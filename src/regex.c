@@ -81,6 +81,9 @@
 #define realloc xrealloc
 #define free xfree
 
+#define RE_STRING_CHAR(p, s) \
+  (multibyte ? (STRING_CHAR (p, s)) : (*(p)))
+
 #else  /* not emacs */
 
 /* If we are not linking with Emacs proper,
@@ -187,12 +190,16 @@ init_syntax_once ()
 #define SAME_CHARSET_P(c1, c2) (1)
 #define MULTIBYTE_FORM_LENGTH(p, s) (1)
 #define STRING_CHAR(p, s) (*(p))
+#define RE_STRING_CHAR STRING_CHAR
 #define STRING_CHAR_AND_LENGTH(p, s, actual_len) ((actual_len) = 1, *(p))
-#define GET_CHAR_AFTER_2(c, p, str1, end1, str2, end2) \
-  (c = ((p) == (end1) ? *(str2) : *(p)))
 #define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2) \
   (c = ((p) == (str2) ? *((end1) - 1) : *((p) - 1)))
 #endif /* not emacs */
+
+#ifndef RE_TRANSLATE
+#define RE_TRANSLATE(TBL, C) ((unsigned char)(TBL)[C])
+#define RE_TRANSLATE_P(TBL) (TBL)
+#endif
 
 /* Get the interface, including the syntax bits.  */
 #include "regex.h"
@@ -519,13 +526,6 @@ typedef enum
 	   current string position when executed.  */
   on_failure_keep_string_jump,
 
-	/* Like `on_failure_jump', except that it assumes that the
-	   pattern following it is mutually exclusive with the pattern
-	   at the destination of the jump:  if one matches something,
-	   the other won't match at all.
-	   Always used via `on_failure_jump_smart'.  */
-  on_failure_jump_exclusive,
-
 	/* Just like `on_failure_jump', except that it checks that we
 	   don't get stuck in an infinite loop (matching an empty string
 	   indefinitely).  */
@@ -534,8 +534,9 @@ typedef enum
         /* A smart `on_failure_jump' used for greedy * and + operators.
 	   It analyses the loop before which it is put and if the
 	   loop does not require backtracking, it changes itself to
-	   `on_failure_jump_exclusive', else it just defaults to
-	   changing itself into `on_failure_jump_loop'.  */
+	   `on_failure_keep_string_jump' and short-circuits the loop,
+	   else it just defaults to changing itself into `on_failure_jump'.
+	   It assumes that it is pointing to just past a `jump'.  */
   on_failure_jump_smart,
 
 	/* Followed by two-byte relative address and two-byte number n.
@@ -941,11 +942,6 @@ print_partial_compiled_pattern (start, end)
 	case on_failure_keep_string_jump:
 	  extract_number_and_incr (&mcnt, &p);
 	  printf ("/on_failure_keep_string_jump to %d", p + mcnt - start);
-	  break;
-
-	case on_failure_jump_exclusive:
-	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_exclusive to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
@@ -1532,6 +1528,7 @@ static boolean at_begline_loc_p _RE_ARGS((const unsigned char *pattern,
 static boolean at_endline_loc_p _RE_ARGS((const unsigned char *p,
 					  const unsigned char *pend,
 					  reg_syntax_t syntax));
+static unsigned char *skip_one_char _RE_ARGS((unsigned char *p));
 
 /* Fetch the next character in the uncompiled pattern---translating it
    if necessary.  Also cast from a signed character in the constant
@@ -2072,9 +2069,6 @@ regex_compile (pattern, size, syntax, bufp)
 	    }
 
 	  {
-	    /* Are we optimizing this jump?  */
-	    boolean keep_string_p = false;
-
 	    /* 1 means zero (many) matches is allowed.	*/
 	    boolean zero_times_ok = 0, many_times_ok = 0;
 	    boolean greedy = 1;
@@ -2129,7 +2123,7 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    /* Star, etc. applied to an empty pattern is equivalent
 	       to an empty pattern.  */
-	    if (!laststart)
+	    if (!laststart || laststart == b)
 	      break;
 
 	    /* Now we know whether or not zero matches is allowed
@@ -2137,59 +2131,46 @@ regex_compile (pattern, size, syntax, bufp)
 	    if (greedy)
 	      {
 		if (many_times_ok)
-		  { /* More than one repetition is allowed, so put in at the
-		       end a backward relative jump from `b' to before the next
-		       jump we're going to put in below (which jumps from
-		       laststart to after this jump).
-
-		       But if we are at the `*' in the exact sequence `.*\n',
-		       insert an unconditional jump backwards to the .,
-		       instead of the beginning of the loop.  This way we only
-		       push a failure point once, instead of every time
-		       through the loop.  */
-		    assert (p - 1 > pattern);
-
-		    /* Allocate the space for the jump.  */
-		    GET_BUFFER_SPACE (3);
-
-		    /* We know we are not at the first character of the pattern,
-		       because laststart was nonzero.  And we've already
-		       incremented `p', by the way, to be the character after
-		       the `*'.  Do we have to do something analogous here
-		       for null bytes, because of RE_DOT_NOT_NULL?	*/
-		    if (TRANSLATE (*(p - 2)) == TRANSLATE ('.')
-			&& zero_times_ok
-			&& p < pend
-			&& TRANSLATE (*p) == TRANSLATE ('\n')
-			&& !(syntax & RE_DOT_NEWLINE))
-		      { /* We have .*\n.  */
-			STORE_JUMP (jump, b, laststart);
-			keep_string_p = true;
-		      }
-		    else
-		      STORE_JUMP (jump, b, laststart - 3);
-		
-		    /* We've added more stuff to the buffer.  */
-		    b += 3;
-		  }
-
-		/* On failure, jump from laststart to b + 3, which will be the
-		   end of the buffer after this jump is inserted.  */
-		GET_BUFFER_SPACE (3);
-		if (!zero_times_ok)
 		  {
-		    assert (many_times_ok);
-		    INSERT_JUMP (on_failure_jump_smart, b - 3, b + 3);
-		    pending_exact = 0;
+		    boolean simple = skip_one_char (laststart) == b;
+		    unsigned int startoffset = 0;
+		    assert (skip_one_char (laststart) <= b);
+		    
+		    if (!zero_times_ok && simple)
+		      { /* Since simple * loops can be made faster by using
+		    	   on_failure_keep_string_jump, we turn simple P+
+		    	   into PP* if P is simple.  */
+		    	unsigned char *p1, *p2;
+		    	startoffset = b - laststart;
+		    	GET_BUFFER_SPACE (startoffset);
+		    	p1 = b; p2 = laststart;
+		    	while (p2 < p1)
+		    	  *b++ = *p2++;
+		    	zero_times_ok = 1;
+		      }
+
+		    GET_BUFFER_SPACE (6);
+		    if (!zero_times_ok)
+		      /* A + loop.  */
+		      STORE_JUMP (on_failure_jump_loop, b, b + 6);
+		    else
+		      /* Simple * loops can use on_failure_keep_string_jump
+			 depending on what follows.  But since we don't know
+			 that yet, we leave the decision up to
+			 on_failure_jump_smart.  */
+		      INSERT_JUMP (simple ? on_failure_jump_smart
+				   : on_failure_jump_loop,
+				   laststart + startoffset, b + 6);
+		    b += 3;
+		    STORE_JUMP (jump, b, laststart + startoffset);
 		    b += 3;
 		  }
 		else
 		  {
-		    INSERT_JUMP (keep_string_p ? on_failure_keep_string_jump
-				 : !many_times_ok ?
-				 on_failure_jump : on_failure_jump_smart,
-				 laststart, b + 3);
-		    pending_exact = 0;
+		    /* A simple ? pattern.  */
+		    assert (zero_times_ok);
+		    GET_BUFFER_SPACE (3);
+		    INSERT_JUMP (on_failure_jump, laststart, b + 3);
 		    b += 3;
 		  }
 	      }
@@ -2224,6 +2205,7 @@ regex_compile (pattern, size, syntax, bufp)
 		  }
 	      }
 	  }
+	  pending_exact = 0;
 	  break;
 
 
@@ -3217,7 +3199,7 @@ at_begline_loc_p (pattern, p, syntax)
     const unsigned char *pattern, *p;
     reg_syntax_t syntax;
 {
-  re_char *prev = p - 2;
+  const unsigned char *prev = p - 2;
   boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
 
   return
@@ -3236,9 +3218,9 @@ at_endline_loc_p (p, pend, syntax)
     const unsigned char *p, *pend;
     reg_syntax_t syntax;
 {
-  re_char *next = p;
+  const unsigned char *next = p;
   boolean next_backslash = *next == '\\';
-  re_char *next_next = p + 1 < pend ? p + 1 : 0;
+  const unsigned char *next_next = p + 1 < pend ? p + 1 : 0;
 
   return
        /* Before a subexpression?  */
@@ -3663,7 +3645,6 @@ re_compile_fastmap (bufp)
 	    {
 	    case on_failure_jump:
 	    case on_failure_keep_string_jump:
-	    case on_failure_jump_exclusive:
 	    case on_failure_jump_loop:
 	    case on_failure_jump_smart:
 	      p++;
@@ -3677,7 +3658,6 @@ re_compile_fastmap (bufp)
 
 	case on_failure_jump:
 	case on_failure_keep_string_jump:
-	case on_failure_jump_exclusive:
 	case on_failure_jump_loop:
 	case on_failure_jump_smart:
 	handle_on_failure_jump:
@@ -3987,11 +3967,9 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	    }
 	  else				/* Searching backwards.	 */
 	    {
-	      int room = (startpos >= size1
-			  ? size2 + size1 - startpos
-			  : size1 - startpos);
-
-	      buf_ch = STRING_CHAR (d, room);
+	      buf_ch = STRING_CHAR (d, (startpos >= size1
+					? size2 + size1 - startpos
+					: size1 - startpos));
 	      if (RE_TRANSLATE_P (translate))
 		buf_ch = RE_TRANSLATE (translate, buf_ch);
 
@@ -4153,11 +4131,54 @@ static int bcmp_translate ();
 
 /* Optimization routines.  */
 
+/* If the operation is a match against one or more chars,
+   return a pointer to the next operation, else return NULL.  */
+static unsigned char *
+skip_one_char (p)
+     unsigned char *p;
+{
+  switch (SWITCH_ENUM_CAST (*p++))
+    {
+    case anychar:
+      break;
+      
+    case exactn:
+      p += *p + 1;
+      break;
+
+    case charset_not:
+    case charset:
+      if (CHARSET_RANGE_TABLE_EXISTS_P (p - 1))
+	{
+	  int mcnt;
+	  p = CHARSET_RANGE_TABLE (p - 1);
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  p = CHARSET_RANGE_TABLE_END (p, mcnt);
+	}
+      else
+	p += 1 + CHARSET_BITMAP_SIZE (p - 1);
+      break;
+      
+#ifdef emacs
+    case syntaxspec:
+    case notsyntaxspec:
+    case categoryspec:
+    case notcategoryspec:
+#endif /* emacs */
+      p++;
+      break;
+
+    default:
+      p = NULL;
+    }
+  return p;
+}
+
+
 /* Jump over non-matching operations.  */
 static unsigned char *
-skip_noops (p, pend, memory)
+skip_noops (p, pend)
      unsigned char *p, *pend;
-     int memory;
 {
   int mcnt;
   while (p < pend)
@@ -4165,8 +4186,6 @@ skip_noops (p, pend, memory)
       switch (SWITCH_ENUM_CAST ((re_opcode_t) *p))
 	{
 	case start_memory:
-	  if (!memory)
-	    return p;
 	case stop_memory:
 	  p += 2; break;
 	case no_op:
@@ -4190,100 +4209,97 @@ mutually_exclusive_p (bufp, p1, p2)
      struct re_pattern_buffer *bufp;
      unsigned char *p1, *p2;
 {
-  int multibyte = bufp->multibyte;
+  re_opcode_t op2;
+  const boolean multibyte = bufp->multibyte;
   unsigned char *pend = bufp->buffer + bufp->used;
 
-  assert (p1 >= bufp->buffer && p1 <= pend
+  assert (p1 >= bufp->buffer && p1 < pend
 	  && p2 >= bufp->buffer && p2 <= pend);
 
   /* Skip over open/close-group commands.
      If what follows this loop is a ...+ construct,
      look at what begins its body, since we will have to
      match at least one of that.  */
-  p2 = skip_noops (p2, pend, 1);
-  /* The same skip can be done for p1, except that skipping over
-     start_memory is not a good idea (if there's a group inside
-     the loop delimited by on_failure_jump_exclusive, then it
-     can't optimize the push away (it still works properly, but
-     slightly slower rather than faster)).  */
-  p1 = skip_noops (p1, pend, 0);
+  p2 = skip_noops (p2, pend);
+  /* The same skip can be done for p1, except that this function
+     is only used in the case where p1 is a simple match operator.  */
+  /* p1 = skip_noops (p1, pend); */
 
-  /* If we're at the end of the pattern, we can change.  */
-  if (p2 == pend)
+  assert (p1 >= bufp->buffer && p1 < pend
+	  && p2 >= bufp->buffer && p2 <= pend);
+
+  op2 = p2 == pend ? succeed : *p2;
+
+  switch (SWITCH_ENUM_CAST (op2))
     {
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p1))
+    case succeed:
+    case endbuf:
+      /* If we're at the end of the pattern, we can change.  */
+      if (skip_one_char (p1))
 	{
-	case anychar:
-	case charset_not:
-	case charset:
-	case exactn:
 	  DEBUG_PRINT1 ("  End of pattern: fast loop.\n");
 	  return 1;
-	default:
-	  return 0;
 	}
-    }
+      break;
+      
+    case endline:
+      if (!bufp->newline_anchor)
+	break;
+      /* Fallthrough */
+    case exactn:
+      {
+	register unsigned int c
+	  = (re_opcode_t) *p2 == endline ? '\n'
+	  : RE_STRING_CHAR(p2 + 2, pend - p2 - 2);
 
-  else if ((re_opcode_t) *p2 == exactn
-	   || (bufp->newline_anchor && (re_opcode_t) *p2 == endline))
-    {
-      register unsigned int c
-	= *p2 == (unsigned char) endline ? '\n' : p2[2];
+	if ((re_opcode_t) *p1 == exactn)
+	  {
+	    if (c != RE_STRING_CHAR (p1 + 2, pend - p1 - 2))
+	      {
+		DEBUG_PRINT3 ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
+		return 1;
+	      }
+	  }
 
-      if ((re_opcode_t) *p1 == exactn)
-	{
-	  if (!(multibyte /* && (c != '\n') */
-		&& BASE_LEADING_CODE_P (c))
-	      ? c != p1[2]
-	      : (STRING_CHAR (&p2[2], pend - &p2[2])
-		 != STRING_CHAR (&p1[2], pend - &p1[2])))
-	    {
-	      DEBUG_PRINT3 ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
-	      return 1;
-	    }
-	}
+	else if ((re_opcode_t) *p1 == charset
+		 || (re_opcode_t) *p1 == charset_not)
+	  {
+	    int not = (re_opcode_t) *p1 == charset_not;
 
-      else if ((re_opcode_t) *p1 == charset
-	       || (re_opcode_t) *p1 == charset_not)
-	{
-	  int not = (re_opcode_t) *p1 == charset_not;
+	    /* Test if C is listed in charset (or charset_not)
+	       at `p1'.  */
+	    if (SINGLE_BYTE_CHAR_P (c))
+	      {
+		if (c < CHARSET_BITMAP_SIZE (p1) * BYTEWIDTH
+		    && p1[2 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
+		  not = !not;
+	      }
+	    else if (CHARSET_RANGE_TABLE_EXISTS_P (p1))
+	      CHARSET_LOOKUP_RANGE_TABLE (not, c, p1);
 
-	  if (multibyte /* && (c != '\n') */
-	      && BASE_LEADING_CODE_P (c))
-	    c = STRING_CHAR (&p2[2], pend - &p2[2]);
+	    /* `not' is equal to 1 if c would match, which means
+	       that we can't change to pop_failure_jump.  */
+	    if (!not)
+	      {
+		DEBUG_PRINT1 ("	 No match => fast loop.\n");
+		return 1;
+	      }
+	  }
+	else if ((re_opcode_t) *p1 == anychar
+		 && c == '\n')
+	  {
+	    DEBUG_PRINT1 ("   . != \\n => fast loop.\n");
+	    return 1;
+	  }
+      }
+      break;
 
-	  /* Test if C is listed in charset (or charset_not)
-	     at `p1'.  */
-	  if (SINGLE_BYTE_CHAR_P (c))
-	    {
-	      if (c < CHARSET_BITMAP_SIZE (p1) * BYTEWIDTH
-		  && p1[2 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
-		not = !not;
-	    }
-	  else if (CHARSET_RANGE_TABLE_EXISTS_P (p1))
-	    CHARSET_LOOKUP_RANGE_TABLE (not, c, p1);
-
-	  /* `not' is equal to 1 if c would match, which means
-	     that we can't change to pop_failure_jump.  */
-	  if (!not)
-	    {
-	      DEBUG_PRINT1 ("	 No match => fast loop.\n");
-	      return 1;
-	    }
-	}
-      else if ((re_opcode_t) *p1 == anychar
-	       && c == '\n')
-	{
-	  DEBUG_PRINT1 ("   . != \\n => fast loop.\n");
-	  return 1;
-	}
-    }
-  else if ((re_opcode_t) *p2 == charset
-	   || (re_opcode_t) *p2 == charset_not)
-    {
-      if ((re_opcode_t) *p1 == exactn)
-	/* Reuse the code above.  */
-	return mutually_exclusive_p (bufp, p2, p1);
+    case charset:
+    case charset_not:
+      {
+	if ((re_opcode_t) *p1 == exactn)
+	  /* Reuse the code above.  */
+	  return mutually_exclusive_p (bufp, p2, p1);
 
 
       /* It is hard to list up all the character in charset
@@ -4332,13 +4348,39 @@ mutually_exclusive_p (bufp, p1, p2)
 			   && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
 		  break;
 
-	      if (idx == p2[1])
-		{
-		  DEBUG_PRINT1 ("	 No match => fast loop.\n");
-		  return 1;
-		}
-	    }
-	}
+		if (idx == p2[1])
+		  {
+		    DEBUG_PRINT1 ("	 No match => fast loop.\n");
+		    return 1;
+		  }
+	      }
+	  }
+      }
+      
+#ifdef emacs
+    case wordend:
+    case notsyntaxspec:
+      return ((re_opcode_t) *p1 == syntaxspec
+	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+
+    case wordbeg:
+    case syntaxspec:
+      return ((re_opcode_t) *p1 == notsyntaxspec
+	      && p1[1] == (op2 == wordend ? Sword : p2[1]));
+
+    case wordbound:
+      return (((re_opcode_t) *p1 == notsyntaxspec
+	       || (re_opcode_t) *p1 == syntaxspec)
+	      && p1[1] == Sword);
+
+    case categoryspec:
+      return ((re_opcode_t) *p1 == notcategoryspec && p1[1] == p2[1]);
+    case notcategoryspec:
+      return ((re_opcode_t) *p1 == categoryspec && p1[1] == p2[1]);
+#endif /* emacs */
+
+    default:
+      ;
     }
 
   /* Safe default.  */
@@ -5157,32 +5199,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PUSH_FAILURE_POINT (p - 3, NULL);
 	  break;
 
-	case on_failure_jump_exclusive:
-	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_exclusive %d (to %p):\n",
-			mcnt, p + mcnt);
 
-	  if (! FAIL_STACK_EMPTY ()
-	      && FAILURE_PAT (TOP_FAILURE_HANDLE ()) == (p - 3)
-	      && fail_stack.avail == fail_stack.frame)
-	    {
-	      /* We are trying to push failure F2 onto the stack but there
-		 is already a failure F1 pushed from the same instruction.
-		 Between F1 and now, something has matched (else this is an
-		 improper use of on_failure_jump_exclusive), so that we know
-		 that the fail-destination of F1 cannot match, hence we can
-		 pop F1 before pushing F2.  Instead of doing this pop/push,
-		 we manually turn F1 into F2.
-		 `fail_stack.avail == fail_stack.frame' makes sure
-		 that popping F1 doesn't involve registers, else
-		 this optimization cannot be done so trivially.  */
-	      assert (FAILURE_STR (TOP_FAILURE_HANDLE ()) != d);
-	      FAILURE_STR (TOP_FAILURE_HANDLE ()) = d;
-	    }
-	  else
-	    PUSH_FAILURE_POINT (p - 3, d);
-	  break;
-
+	  /* Simple loop detecting on_failure_jump:  just check on the
+	     failure stack if the same spot was already hit earlier.  */
 	case on_failure_jump_loop:
 	on_failure:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
@@ -5215,13 +5234,13 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PUSH_FAILURE_POINT (p -3, d);
 	  break;
 
-	/* This operation is used for greedy * and +.
+	/* This operation is used for greedy *.
 	   Compare the beginning of the repeat with what in the
 	   pattern follows its end. If we can establish that there
 	   is nothing that they would both match, i.e., that we
 	   would have to backtrack because of (as in, e.g., `a*a')
 	   then we can use a non-backtracking loop based on
-	   on_failure_jump_exclusive instead of on_failure_jump_loop.  */
+	   on_failure_keep_string_jump instead of on_failure_jump.  */
 	case on_failure_jump_smart:
 	  QUIT;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
@@ -5234,18 +5253,25 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    p -= 3;		/* Reset so that we will re-execute the
 				   instruction once it's been changed. */
 
+	    EXTRACT_NUMBER (mcnt, p2 - 2);
+
+	    /* Ensure this is a indeed the trivial kind of loop
+	       we are expecting.  */
+	    assert (skip_one_char (p1) == p2 - 3);
+	    assert ((re_opcode_t) p2[-3] == jump && p2 + mcnt == p);
 	    DEBUG_STATEMENT (debug += 2);
 	    if (mutually_exclusive_p (bufp, p1, p2))
 	      {
 		/* Use a fast `on_failure_keep_string_jump' loop.  */
-		*p = (unsigned char) on_failure_jump_exclusive;
-		/* STORE_NUMBER (p2 - 2, mcnt + 3); */
+		DEBUG_PRINT1 ("  smart exclusive => fast loop.\n");
+		*p = (unsigned char) on_failure_keep_string_jump;
+		STORE_NUMBER (p2 - 2, mcnt + 3);
 	      }
 	    else
 	      {
 		/* Default to a safe `on_failure_jump' loop.  */
 		DEBUG_PRINT1 ("  smart default => slow loop.\n");
-		*p = (unsigned char) on_failure_jump_loop;
+		*p = (unsigned char) on_failure_jump;
 	      }
 	    DEBUG_STATEMENT (debug -= 2);
 	  }
@@ -5599,14 +5625,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    case on_failure_keep_string_jump:
 	      assert (str == NULL);
 	      goto continue_failure_jump;
-
-	    case on_failure_jump_exclusive:
-	      /* If something has matched, the alternative will not match,
-		 so we might as well keep popping right away.  */
-	      if (0 /* d != str && d != string2 */) /* Don't bother.  -sm */
-		/* (d == string2 && str == end1) => (d =~ str) */
-		goto fail;
-	      /* Fallthrough */
 
 	    case on_failure_jump_loop:
 	    case on_failure_jump:
