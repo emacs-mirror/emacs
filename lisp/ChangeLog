@@ -1,3 +1,7 @@
+2005-01-02  Stefan  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-local-variables): Fix last change.
+
 2005-01-02  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-yank.el (calc-edit-top): New variable.
