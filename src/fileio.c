@@ -117,6 +117,12 @@ report_file_error (string, data)
     Fsignal (Qfile_error,
 	     Fcons (build_string (string), Fcons (errstring, data)));
 }
+
+close_file_unwind (fd)
+     Lisp_Object fd;
+{
+  close (XFASTINT (fd));
+}
 
 DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
   1, 1, 0,
@@ -1374,6 +1380,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   char buf[16 * 1024];
   struct stat st;
   struct gcpro gcpro1, gcpro2;
+  int count = specpdl_ptr - specpdl;
 
   GCPRO2 (filename, newname);
   CHECK_STRING (filename, 0);
@@ -1389,6 +1396,8 @@ A prefix arg makes KEEP-TIME non-nil.")
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (filename, Qnil));
 
+  record_unwind_protect (close_file_unwind, make_number (ifd));
+
 #ifdef VMS
   /* Create the copy file with the same record format as the input file */
   ofd = sys_creat (XSTRING (newname)->data, 0666, ifd);
@@ -1396,18 +1405,16 @@ A prefix arg makes KEEP-TIME non-nil.")
   ofd = creat (XSTRING (newname)->data, 0666);
 #endif /* VMS */
   if (ofd < 0)
-    {
-      close (ifd);
-      report_file_error ("Opening output file", Fcons (newname, Qnil));
-    }
+    report_file_error ("Opening output file", Fcons (newname, Qnil));
 
+  record_unwind_protect (close_file_unwind, make_number (ofd));
+
+  immediate_quit = 1;
+  QUIT;
   while ((n = read (ifd, buf, sizeof buf)) > 0)
     if (write (ofd, buf, n) != n)
-      {
-	close (ifd);
-	close (ofd);
-	report_file_error ("I/O error", Fcons (newname, Qnil));
-      }
+      report_file_error ("I/O error", Fcons (newname, Qnil));
+  immediate_quit = 0;
 
   if (fstat (ifd, &st) >= 0)
     {
@@ -1423,6 +1430,9 @@ A prefix arg makes KEEP-TIME non-nil.")
 #endif
 	chmod (XSTRING (newname)->data, st.st_mode & 07777);
     }
+
+  /* Discard the unwind protects.  */
+  specpdl_ptr = specpdl + count;
 
   close (ifd);
   if (close (ofd) < 0)
@@ -1949,12 +1959,6 @@ otherwise, if FILE2 does not exist, the answer is t.")
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
 }
 
-close_file_unwind (fd)
-     Lisp_Object fd;
-{
-  close (XFASTINT (fd));
-}
-
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 2, 0,
   "Insert contents of file FILENAME after point.\n\
@@ -2022,7 +2026,13 @@ before the error is signaled.")
   while (1)
     {
       int try = min (st.st_size - inserted, 64 << 10);
-      int this = read (fd, &FETCH_CHAR (point + inserted - 1) + 1, try);
+      int this;
+
+      /* Allow quitting out of the actual I/O.  */
+      immediate_quit = 1;
+      QUIT;
+      this = read (fd, &FETCH_CHAR (point + inserted - 1) + 1, try);
+      immediate_quit = 0;
 
       if (this <= 0)
 	{
