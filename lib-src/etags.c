@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.18";
+char pot_etags_version[] = "@(#) pot revision number is 14.20";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -5155,6 +5155,7 @@ add_regex (regexp_pattern, ignore_case, lang)
      bool ignore_case;
      language *lang;
 {
+  static struct re_pattern_buffer zeropattern;
   char *name;
   const char *err;
   struct re_pattern_buffer *patbuf;
@@ -5175,11 +5176,9 @@ add_regex (regexp_pattern, ignore_case, lang)
   (void) scan_separators (name);
 
   patbuf = xnew (1, struct re_pattern_buffer);
-  /* Translation table to fold case if appropriate. */
-  patbuf->translate = (ignore_case) ? lc_trans : NULL;
-  patbuf->fastmap = NULL;
-  patbuf->buffer = NULL;
-  patbuf->allocated = 0;
+  *patbuf = zeropattern;
+  if (ignore_case)
+    patbuf->translate = lc_trans;	/* translation table to fold case  */
 
   err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
   if (err != NULL)
