@@ -125,6 +125,8 @@ int insert_default_directory;
    Zero means use var format.  */
 int vms_stmlf_recfm;
 
+static Lisp_Object Vinhibit_file_name_handlers;
+
 Lisp_Object Qfile_error, Qfile_already_exists;
 
 Lisp_Object Qfile_name_history;
@@ -196,7 +198,10 @@ DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handle
   "Return FILENAME's handler function, if its syntax is handled specially.\n\
 Otherwise, return nil.\n\
 A file name is handled if one of the regular expressions in\n\
-`file-name-handler-alist' matches it.")
+`file-name-handler-alist' matches it.\n\n\
+If FILENAME is a member of `inhibit-file-name-handlers',\n\
+then its handler is not run.  This is lets handlers\n\
+use the standard functions without calling themselves recursively.")
   (filename)
     Lisp_Object filename;
 {
@@ -204,6 +209,19 @@ A file name is handled if one of the regular expressions in\n\
   Lisp_Object chain;
 
   CHECK_STRING (filename, 0);
+
+  if (! NILP (Vinhibit_file_name_handlers))
+    {
+      Lisp_Object tail;
+      for (tail = Vinhibit_file_name_handlers; CONSP (tail);
+	   tail = XCONS (tail)->cdr)
+	{
+	  Lisp_Object tem;
+	  tem = Fstring_equal (tail, filename);
+	  if (!NILP (tem))
+	    return Qnil;
+	}
+    }
 
   for (chain = Vfile_name_handler_alist; XTYPE (chain) == Lisp_Cons;
        chain = XCONS (chain)->cdr)
@@ -3486,6 +3504,8 @@ Non-nil second argument means save only current buffer.")
 	if (XTYPE (b->auto_save_file_name) == Lisp_String
 	    && b->save_modified < BUF_MODIFF (b)
 	    && b->auto_save_modified < BUF_MODIFF (b)
+	    /* -1 means we've turned off autosaving for a while--see below.  */
+	    && XINT (b->save_length) >= 0
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (b->auto_save_file_name))))
 	  {
@@ -3510,10 +3530,9 @@ Non-nil second argument means save only current buffer.")
 		/* It has shrunk too much; turn off auto-saving here.  */
 		message ("Buffer %s has shrunk a lot; auto save turned off there",
 			 XSTRING (b->name)->data);
-		/* User can reenable saving with M-x auto-save.  */
-		b->auto_save_file_name = Qnil;
-		/* Prevent warning from repeating if user does so.  */
-		XFASTINT (b->save_length) = 0;
+		/* Turn off auto-saving until there's a real save,
+		   and prevent any more warnings.  */
+		XSET (b->save_length, Lisp_Int, -1);
 		Fsleep_for (make_number (1), Qnil);
 		continue;
 	      }
@@ -3965,6 +3984,10 @@ insert before the first byte written).  The POSITIONs must be sorted into\n\
 increasing order.  If there are several functions in the list, the several\n\
 lists are merged destructively.");
   Vwrite_region_annotate_functions = Qnil;
+
+  DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
+    "A list of file names for which handlers should not be used.");
+  Vinhibit_file_name_handlers = Qnil;
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);
