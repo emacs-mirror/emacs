@@ -1,3 +1,8 @@
+2000-12-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi): Show
+	"... entries" messages for every 10000 entries, not 10.
+
 2000-12-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Provide a generic exit hook, as suggested by
