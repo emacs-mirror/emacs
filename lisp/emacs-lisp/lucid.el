@@ -141,6 +141,31 @@ bottom of the buffer stack."
 (defun make-extent (beg end &optional buffer)
   (make-overlay beg end buffer))
 
+(defun extent-properties (extent)
+  (overlay-properties extent))
+
+(defun extent-at (pos &optional object property before)
+  (with-current-buffer (or object (current-buffer))
+    (let ((overlays (overlays-at pos)))
+      (when property
+	(let (filtered)
+	  (while overlays
+	    (if (overlay-get (car overlays) property)
+		(setq filtered (cons (car overlays) filtered)))
+	    (setq overlays (cdr overlays)))
+	  (setq overlays filtered)))
+      (setq overlays
+	    (sort overlays
+		  (function (lambda (o1 o2)
+			      (let ((p1 (or (overlay-get o1 'priority) 0))
+				    (p2 (or (overlay-get o2 'priority) 0)))
+				(or (> p1 p2)
+				    (and (= p1 p2)
+					 (> (overlay-start o1) (overlay-start o2)))))))))
+      (if before
+	  (nth 1 (memq before overlays))
+	(car overlays)))))
+
 (defun set-extent-property (extent prop value)
   ;; Make sure that separate adjacent extents
   ;; with the same mouse-face value
