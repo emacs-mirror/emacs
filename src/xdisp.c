@@ -10798,6 +10798,11 @@ try_window_id (w)
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
 #endif
 
+      row = row_containing_pos (w, PT, r0, NULL);
+      if (row == NULL)
+	return 0;
+      
+      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
       return 1;
     }
 
