@@ -138,16 +138,22 @@ file, the local value will be saved there and restored the next time
 the file is visited (subject to the usual restriction via
 `enable-local-variables'), and the layout will be set accordingly.")
 
-(defvar gametree-score-opener "{score="
-  "*The string which opens a score tag, and precedes the actual score.")
+(defcustom gametree-score-opener "{score="
+  "*The string which opens a score tag, and precedes the actual score."
+  :type 'string
+  :group gametree)
 
-(defvar gametree-score-manual-flag "!"
-  "*String marking the line as manually (as opposed to automatically) scored.")
+(defcustom gametree-score-manual-flag "!"
+  "*String marking the line as manually (as opposed to automatically) scored."
+  :type 'string
+  :group gametree)
 
-(defvar gametree-score-closer "}"
-  "*The string which closes a score tag, and follows the actual score.")
+(defcustom gametree-score-closer "}"
+  "*The string which closes a score tag, and follows the actual score."
+  :type 'string
+  :group gametree)
 
-(defvar gametree-score-regexp
+(defcustom gametree-score-regexp
   (concat "[^\n\^M]*\\("
           (regexp-quote gametree-score-opener)
           "[ 	]*\\("
@@ -162,10 +168,14 @@ second parenthetical group should be an optional flag that marks the
 line as *manually* (as opposed to automatically) scored, which
 prevents the program from recursively applying the scoring algorithm
 on the subtree headed by the marked line, and makes it use the manual
-score instead.")
+score instead."
+  :type 'regexp
+  :group gametree)
 
-(defvar gametree-default-score 0
-  "*Score to assume for branches lacking score tags.")
+(defcustom gametree-default-score 0
+  "*Score to assume for branches lacking score tags."
+  :type 'integer
+  :group gametree)
 
 ;;;; Helper functions
 
