@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar.
 
-;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -992,9 +992,13 @@ key (or menu-item)"))
 
 (defun menu-bar-select-frame ()
   (interactive)
-  (make-frame-visible last-command-event)
-  (raise-frame last-command-event)
-  (select-frame last-command-event))
+  (let (frame)
+    (dolist (f (frame-list))
+      (when (equal last-command-event (frame-parameter f 'name))
+	(setq frame f)))
+  (make-frame-visible frame)
+  (raise-frame frame)
+  (select-frame frame)))
 
 (defun menu-bar-update-buffers-1 (elt)
   (cons (format
@@ -1122,7 +1126,7 @@ key (or menu-item)"))
 				(mapcar
 				 (lambda (frame)
 				   (nconc
-				    (list frame
+				    (list (frame-parameter frame 'name)
 					  (frame-parameter frame 'name)
 					  (cons nil nil))
 					  'menu-bar-select-frame))
