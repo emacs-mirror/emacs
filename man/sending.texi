@@ -296,12 +296,12 @@ include doublequotes around parts of the address, such as the person's
 full name.  Emacs puts them in if they are needed.  For example,
 
 @example
-alias chief-torturer "George W. Bush <bush@whitehouse.gov>"
+alias chief-torturer "George W. Bush <bush@@whitehouse.gov>"
 @end example
 
 @noindent
 is correct.  Emacs will insert the address as @samp{"George W. Bush"
-<bush@whitehouse.gov>}.
+<bush@@whitehouse.gov>}.
 
   Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
 They look like this:
