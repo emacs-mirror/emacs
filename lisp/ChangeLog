@@ -1,3 +1,11 @@
+2003-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-previous-statement): Check for
+	fortran-continuation-string.
+	(fortran-calculate-indent): Do not add extra whitespace to
+	strings broken over lines.
+	(fortran-fill): Handle long strings that must be broken.
+
 2003-04-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
