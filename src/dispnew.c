@@ -4977,7 +4977,11 @@ update_frame_line (frame, vpos)
 	  cursor_to (vpos, nlen);
           clear_end_of_line (FRAME_WINDOW_WIDTH (frame));
 	}
-
+      else
+	/* Make sure we are in the right row, otherwise cursor movement
+	   with cmgoto might use `ch' in the wrong row.  */
+	cursor_to (vpos, 0);
+      
       make_current (desired_matrix, current_matrix, vpos);
       return;
     }
