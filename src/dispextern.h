@@ -29,6 +29,13 @@ struct face
     /* If this is non-zero, it is a GC we can use without modification
        to represent this face.  */
     GC gc;
+
+    /* If we have ever called get_cached_face on this face structure,
+       here is the index in face_vector of the face it returned.  It
+       might not be valid any more, but it's a good place to start
+       looking; get_cached_face tries to use this to avoid searching
+       all of face_vector.  */
+    int cached_index;
   
     /* Pixel value for foreground color.  */
     int foreground;
