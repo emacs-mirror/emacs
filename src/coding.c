@@ -3043,7 +3043,7 @@ encode_coding_sjis_big5 (coding, source, destination,
 	  switch (c)
 	    {
 	    case '\r':
-	      if (!coding->mode & CODING_MODE_SELECTIVE_DISPLAY)
+	      if (!(coding->mode & CODING_MODE_SELECTIVE_DISPLAY))
 		{
 		  EMIT_ONE_BYTE (c);
 		  break;
