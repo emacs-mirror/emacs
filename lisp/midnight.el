@@ -173,8 +173,8 @@ The relevant variables are `clean-buffer-list-delay-general',
 `clean-buffer-list-kill-never-regexps'.
 While processing buffers, this procedure displays messages containing
 the current date/time, buffer name, how many seconds ago it was
-displayed (can be NIL if the buffer was never displayed) and its
-lifetime, i.e., its `age' when it will be purged."
+displayed (can be nil if the buffer was never displayed) and its
+lifetime, i.e., its \"age\" when it will be purged."
   (interactive)
   (let ((tm (midnight-float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn
         (bufs (buffer-list)) buf delay cbld)
@@ -196,7 +196,7 @@ lifetime, i.e., its `age' when it will be purged."
 (defvar midnight-period (* 24 60 60)
   "The number of seconds in a day--the delta for `midnight-timer'.")
 
-(defcustom midnight-hook 'clean-buffer-list
+(defcustom midnight-hook '(clean-buffer-list)
   "The hook run `midnight-delay' seconds after midnight every day.
 The default value is `clean-buffer-list'."
   :type 'hook
