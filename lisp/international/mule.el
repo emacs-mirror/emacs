@@ -316,8 +316,7 @@ Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
-    (or (gethash code-point
-		 (get 'utf-subst-table-for-decode 'translation-hash-table))
+    (or (utf-lookup-subst-table-for-decode code-point)
 	(let ((c (cond
 		  ((< code-point 160)
 		   code-point)
@@ -361,8 +360,7 @@ code-point in CCS.  Currently not supported and just ignored."
 	 (charset (car split))
 	 trans)
     (cond ((eq ccs 'ucs)
-	   (or (gethash char (get 'utf-subst-table-for-encode
-				  'translation-hash-table))
+	   (or (utf-lookup-subst-table-for-encode char)
 	       (let ((table (get 'utf-translation-table-for-encode
 				 'translation-table)))
 		 (setq trans (aref table char))
