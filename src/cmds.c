@@ -222,7 +222,8 @@ Whichever character you type to run this command is inserted.")
   else
     while (XINT (arg) > 0)
       {
-	XFASTINT (arg)--;	/* Ok since old and new vals both nonneg */
+	/* Ok since old and new vals both nonneg */
+	XSETFASTINT (arg, XFASTINT (arg) - 1);
 	internal_self_insert (XINT (last_command_char), XFASTINT (arg) != 0);
       }
 
@@ -277,7 +278,8 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
 	insert (&c1, 1);
       else
 	internal_self_insert ('\n', !NILP (arg1));
-      XFASTINT (arg)--;		/* Ok since old and new vals both nonneg */
+      /* Ok since old and new vals both nonneg */
+      XSETFASTINT (arg, XFASTINT (arg) - 1);
     }
 
   if (flag)
