@@ -1,3 +1,7 @@
+2000-12-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* hscroll.el: Moved to `obsolete' subdir.
+
 2000-12-11  Miles Bader  <miles@gnu.org>
 
 	* window.el (window-text-height): Function removed (now in C).
