@@ -179,6 +179,8 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
       xml)))
 
 
+(defvar xml-name-re)
+(defvar xml-entity-value-re)
 (let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
 ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
