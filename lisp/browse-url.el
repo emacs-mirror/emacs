@@ -752,8 +752,6 @@ in an Xterm window."
   (interactive (browse-url-interactive-arg "Lynx URL: "))
   (start-process (concat "lynx" url) nil "xterm" "-e" "lynx" url))
 
-(eval-when-compile (require 'term))
-
 ;; --- Lynx in an Emacs "term" window ---
 
 ;;;###autoload
