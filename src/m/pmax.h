@@ -50,10 +50,10 @@ NOTE-END  */
 #define HAVE_ALLOCA
 #endif
 
-/* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.
-   If you don't have DECnet and this causes trouble,
-   just delete the definition.  */
+/* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.  */
+#ifdef HAVE_LIBDNET
 #define LIBS_MACHINE -ldnet
+#endif
 
 /* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
 #undef KERNEL_FILE
