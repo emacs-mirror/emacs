@@ -1,3 +1,30 @@
+2002-07-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl.el (cl-set-substring): Fix thinko.
+	(cl-hack-byte-compiler): Avoid infinite require loop.
+
+	* net/ange-ftp.el: Use hash-tables.
+	(ange-ftp-make-hashtable, ange-ftp-map-hashtable)
+	(ange-ftp-make-hash-key, ange-ftp-get-hash-entry)
+	(ange-ftp-put-hash-entry, ange-ftp-del-hash-entry): Remove.
+	Replace with make-hash-table, maphash, gethash, puthash and remhash.
+	(ange-ftp-hash-entry-exists-p): Rewrite.
+	(ange-ftp-vms-delete-file-entry, ange-ftp-vms-add-file-entry):
+	Change mapatom -> maphash.
+	(ange-ftp-file-entry-active-p, ange-ftp-file-entry-not-ignored-p):
+	Update to new calling mode.
+
+	* progmodes/ebrowse.el (ebrowse-symbol-regexp): Avoid cl-set-substring.
+	(ebrowse-hash-table-to-alist): Delete.
+	(ebrowse-tags-read-name, ebrowse-tags-list-members-in-file)
+	(ebrowse-tags-complete-symbol): Use the hashtable for completion.
+
+	* textmodes/sgml-mode.el (sgml-quote): Use narrowing.
+	Improve the regexp used when unquoting.
+	(sgml-pretty-print): New function.
+	(sgml-get-context): Better handling of improperly nested tags.
+	(sgml-show-context): Don't use the FULL arg of sgml-get-context.
+
 2002-07-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-in): Handle the case where no
@@ -8,8 +35,8 @@
 	* net/ange-ftp.el: Do not hook into file-name-handler-alist, this
 	is done by Tramp.
 
-	* net/tramp.el (tramp-multi-file-name-structure-unified): Add
-	missing slash and move colon from start to end of each hop.
+	* net/tramp.el (tramp-multi-file-name-structure-unified):
+	Add missing slash and move colon from start to end of each hop.
 	(tramp-multi-file-name-hop-structure-unified): Move colon from
 	start to end of each hop.
 
@@ -64,15 +91,14 @@
 
 	* help-fns.el (describe-variable): Put `defvaralias' info before the
 	documentation (patch from John Paul Wallington
-	<jpw@shootybangbang.com>). Remove useless "Documentation:" string.
+	<jpw@shootybangbang.com>).  Remove useless "Documentation:" string.
 
-	* timer.el (timer-set-time-with-usecs): Fix documentation. Simplify
-	extraction of time data.
+	* timer.el (timer-set-time-with-usecs): Fix documentation.
+	Simplify extraction of time data.
 
 2002-07-12  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* help-fns.el (describe-variable): Mention if the variable is an
-	alias.
+	* help-fns.el (describe-variable): Mention if the variable is an alias.
 
 2002-07-12  Kenichi Handa  <handa@etl.go.jp>
 
@@ -86,15 +112,12 @@
 	which I guess to be good for most people.
 	(tramp-default-method-alist): Use "ftp" method (ie, forwarding to
 	Ange-FTP) for some user/host combinations.
-	(tramp-file-name-structure, tramp-file-name-regexp) 
-	(tramp-make-tramp-file-format) 
-	(tramp-make-tramp-file-user-nil-format) 
-	(tramp-multi-file-name-structure) 
-	(tramp-multi-file-name-hop-structure) 
+	(tramp-file-name-structure, tramp-file-name-regexp)
+	(tramp-make-tramp-file-format, tramp-make-tramp-file-user-nil-format)
+	(tramp-multi-file-name-structure, tramp-multi-file-name-hop-structure)
 	(tramp-make-multi-tramp-file-format): New default value which
 	unifies the filename syntax between Tramp and Ange-FTP.  The new
-	syntax is "/method:user@host:path".  Note the colon after the
-	method.
+	syntax is "/method:user@host:path".  Note the colon after the method.
 	(tramp-handle-file-name-directory): Don't return "/" when
 	completing a remote root directory (where the filename looks like
 	"/method:user@host:/").
@@ -171,8 +194,7 @@
 2002-07-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* files.el (insert-directory): Be sure to bind
-	coding-system-for-write to the just decided
-	coding-system-for-read.
+	coding-system-for-write to the just decided coding-system-for-read.
 
 2002-07-09  Kim F. Storm  <storm@cua.dk>
 
@@ -201,6 +223,13 @@
 	(ido-define-mode-map): Bind it to SPACE.
 
 2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-default-unfontify-region):
+	Use remove-list-of-text-properties.
+	(font-lock-extra-managed-props): Doc fix.
+
+	* facemenu.el: Move `provide' to the end.
+	(facemenu-read-color): Don't cons unnecessarily.
 
 	* language/ind-util.el (indian-make-hash):
 	* language/devan-util.el (dev-char-glyph-hash, dev-glyph-glyph-hash)
