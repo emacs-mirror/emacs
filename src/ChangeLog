@@ -1,5 +1,11 @@
 2004-07-25  Richard M. Stallman  <rms@gnu.org>
 
+	* window.c (coordinates_in_window): Return ON_SCROLL_BAR
+	instead of ON_VERTICAL_BORDER, when on scroll bar.
+	(Fcoordinates_in_window_p): Handle ON_SCROLL_BAR--return nil.
+
+	* dispextern.h (enum window_part): Add ON_SCROLL_BAR.
+
 	* window.c (Fcoordinates_in_window_p): 
 	Take account of FRAME_INTERNAL_BORDER_WIDTH.
 
