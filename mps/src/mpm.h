@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.66) $
+ * $HopeName: MMsrc!mpm.h(trunk.67) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -648,14 +648,16 @@ extern Addr (BufferLimit)(Buffer buffer);
 /* Format Interface -- see impl.c.format */
 
 extern Bool FormatCheck(Format format);
-extern Res FormatCreate(Format *formatReturn, Arena arena,
+extern Res FormatCreate(Format *formatReturn, Arena arena, 
                         Align alignment,
+			FormatVariety variety,
                         FormatScanMethod scan,
                         FormatSkipMethod skip,
                         FormatMoveMethod move,
                         FormatIsMovedMethod isMoved,
                         FormatCopyMethod copy,
-                        FormatPadMethod pad);
+                        FormatPadMethod pad,
+			FormatClassMethod class);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
