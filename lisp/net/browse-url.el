@@ -880,8 +880,8 @@ used instead of `browse-url-new-window-flag'."
 				(if (browse-url-maybe-new-window
 				     new-window)
 				    (if browse-url-mozilla-new-window-is-tab
-					",new-tab")
-				  ",new-window")
+					",new-tab"
+				      ",new-window"))
 				")"))))))
     (set-process-sentinel process
 			  `(lambda (process change)
