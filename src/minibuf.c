@@ -1719,7 +1719,7 @@ do_completion ()
   if (NILP (completion))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No match]");
+      temp_echo_area_glyphs (build_string (" [No match]"));
       UNGCPRO;
       return 0;
     }
@@ -1783,7 +1783,7 @@ do_completion ()
       else if (!NILP (Vcompletion_auto_help))
 	Fminibuffer_completion_help ();
       else
-	temp_echo_area_glyphs (" [Next char not unique]");
+	temp_echo_area_glyphs (build_string (" [Next char not unique]"));
       return 6;
     }
   else if (completedp)
@@ -1882,13 +1882,13 @@ scroll the window of possible completions.  */)
     case 1:
       if (PT != ZV)
 	Fgoto_char (make_number (ZV));
-      temp_echo_area_glyphs (" [Sole completion]");
+      temp_echo_area_glyphs (build_string (" [Sole completion]"));
       break;
 
     case 3:
       if (PT != ZV)
 	Fgoto_char (make_number (ZV));
-      temp_echo_area_glyphs (" [Complete, but not unique]");
+      temp_echo_area_glyphs (build_string (" [Complete, but not unique]"));
       break;
     }
 
@@ -1949,7 +1949,7 @@ a repetition of this command will exit.  */)
     case 4:
       if (!NILP (Vminibuffer_completion_confirm))
 	{
-	  temp_echo_area_glyphs (" [Confirm]");
+	  temp_echo_area_glyphs (build_string (" [Confirm]"));
 	  return Qnil;
 	}
       else
@@ -1986,7 +1986,7 @@ Return nil if there is no valid completion, else t.  */)
   if (NILP (completion))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No match]");
+      temp_echo_area_glyphs (build_string (" [No match]"));
       return Qnil;
     }
   if (EQ (completion, Qt))
@@ -2344,7 +2344,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   if (NILP (completions))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No completions]");
+      temp_echo_area_glyphs (build_string (" [No completions]"));
     }
   else
     internal_with_output_to_temp_buffer ("*Completions*",
@@ -2388,15 +2388,15 @@ If no minibuffer is active, return nil.  */)
 }
 
 
-/* Temporarily display the string M at the end of the current
+/* Temporarily display STRING at the end of the current
    minibuffer contents.  This is used to display things like
    "[No Match]" when the user requests a completion for a prefix
    that has no possible completions, and other quick, unobtrusive
    messages.  */
 
 void
-temp_echo_area_glyphs (m)
-     const char *m;
+temp_echo_area_glyphs (string)
+     Lisp_Object string;
 {
   int osize = ZV;
   int osize_byte = ZV_BYTE;
@@ -2409,7 +2409,7 @@ temp_echo_area_glyphs (m)
   message (0);
 
   SET_PT_BOTH (osize, osize_byte);
-  insert_string (m);
+  insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 0);
   SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
@@ -2432,7 +2432,7 @@ or until the next input event arrives, whichever comes first.  */)
      Lisp_Object string;
 {
   CHECK_STRING (string);
-  temp_echo_area_glyphs (SDATA (string));
+  temp_echo_area_glyphs (string);
   return Qnil;
 }
 
