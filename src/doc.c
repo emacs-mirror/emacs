@@ -215,6 +215,11 @@ when doc strings are referred to later in the dumped Emacs.")
   char *name;
   extern char *index ();
 
+#ifndef CANNOT_DUMP
+  if (NILP (Vpurify_flag))
+    error ("Snarf-documentation can only be called in an undumped Emacs");
+#endif
+
   CHECK_STRING (filename, 0);
 
 #ifndef CANNOT_DUMP
