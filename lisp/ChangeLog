@@ -1,3 +1,10 @@
+2002-11-08  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-modeline-display): Use assq as
+	well as memq to find `global-mode-string' within
+	`mode-line-format'.  The structure of that variable has changed in
+	21.3.
+
 2002-11-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* format.el (format-decode): Be careful with the order in `format'.
