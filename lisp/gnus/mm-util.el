@@ -24,7 +24,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar mm-mime-mule-charset-alist))
 (require 'mail-prsvr)
 
 (eval-and-compile
@@ -231,9 +233,11 @@
 	 'nconc
 	 (mapcar
 	  (lambda (cs)
-	    (when (and (coding-system-get cs 'mime-charset)
+	    (when (and (or (coding-system-get cs :mime-charset)	; Emacs 22
+			   (coding-system-get cs 'mime-charset))
 		       (not (eq t (coding-system-get cs 'safe-charsets))))
-	      (list (cons (coding-system-get cs 'mime-charset)
+	      (list (cons (or (coding-system-get cs :mime-charset)
+			      (coding-system-get cs 'mime-charset))
 			  (delq 'ascii
 				(coding-system-get cs 'safe-charsets))))))
 	  (sort-coding-systems (coding-system-list 'base-only))))))
@@ -296,7 +300,8 @@ prefer iso-2022-jp to japanese-shift-jis:
 	(dolist (cs (find-coding-systems-for-charsets (list charset)))
 	  (unless mime
 	    (when cs
-	      (setq mime (coding-system-get cs 'mime-charset)))))
+	      (setq mime (or (coding-system-get cs :mime-charset)
+			     (coding-system-get cs 'mime-charset))))))
 	mime)
     (let ((alist mm-mime-mule-charset-alist)
 	  out)
@@ -345,7 +350,8 @@ used as the line break code type of the coding system."
       ;; Do we need -lbt?
       (dolist (c (mm-get-coding-system-list))
 	(if (and (null cs)
-		 (eq charset (coding-system-get c 'mime-charset)))
+		 (eq charset (or (coding-system-get c :mime-charset)
+				 (coding-system-get c 'mime-charset))))
 	    (setq cs c)))
       cs))))
 
@@ -440,8 +446,10 @@ If the charset is `composition', return the actual one."
       ;; This exists in Emacs 20.
       (or
        (and (mm-preferred-coding-system charset)
-	    (coding-system-get
-	     (mm-preferred-coding-system charset) 'mime-charset))
+	    (or (coding-system-get
+		 (mm-preferred-coding-system charset) :mime-charset)
+		(coding-system-get
+		 (mm-preferred-coding-system charset) 'mime-charset)))
        (and (eq charset 'ascii)
 	    'us-ascii)
        (mm-preferred-coding-system charset)
@@ -510,7 +518,9 @@ charset, and a longer list means no appropriate charset."
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
-		   (let ((cs (coding-system-get (pop systems) 'mime-charset)))
+		   (let ((cs (or (coding-system-get (pop systems)
+						    :mime-charset)
+				 (coding-system-get systems 'mime-charset))))
 		     (if cs
 			 (setq systems nil
 			       charsets (list cs))))))
