@@ -110,17 +110,15 @@ If the line's indentation appears to be wrong, and this command is called
 interactively or with optional argument FORCE, it will be fixed."
   (interactive (list (prefix-numeric-value current-prefix-arg) t))
   (beginning-of-line n)
-  (let ((lm (current-left-margin)))
-    (if (memq (current-justification) '(right center))
-	(move-to-column lm)
-      (skip-chars-forward " \t"))
-    (let ((cc (current-column)))
-      (cond ((> cc lm)
-	     (if (> (move-to-column lm force) lm)
-		 ;; If lm is in a tab and we are not forcing, move before tab
-		 (backward-char 1)))
-	    ((and force (< cc lm))
-	     (indent-to-left-margin))))))
+  (skip-chars-forward " \t")
+  (let ((lm (current-left-margin))
+	(cc (current-column)))
+    (cond ((> cc lm)
+	   (if (> (move-to-column lm force) lm)
+	       ;; If lm is in a tab and we are not forcing, move before tab
+	       (backward-char 1)))
+	  ((and force (< cc lm))
+	   (indent-to-left-margin)))))
 
 ;; This is the default indent-line-function,
 ;; used in Fundamental Mode, Text Mode, etc.
