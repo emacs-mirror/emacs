@@ -1,3 +1,24 @@
+2002-05-28  Colin Walters  <walters@gnu.org>
+
+	* textmodes/sgml-mode.el (xml-mode): New alias for `sgml-mode'.
+
+	* emacs-lisp/bytecomp.el (byte-compile-last-line): Deleted.
+	(byte-compile-read-position): New variable.
+	(byte-compile-last-position): New variable.
+	(byte-compile-log-1): Use it.
+	(byte-compile-set-symbol-position): New function.
+	(byte-compile-obsolete, byte-compile-callargs-warn)
+	(byte-compile-arglist-warn, byte-compile-arglist-warn)
+	(byte-compile-print-syms, byte-compile-file-form-defmumble)
+	(byte-compile-check-lambda-list, byte-compile-lambda)
+	(byte-compile-form, byte-compile-variable-ref)
+	(byte-compile-subr-wrong-args, byte-compile-negation-optimizer)
+	(byte-compile-condition-case, byte-compile-defun)
+	(byte-compile-defvar, byte-compile-autoload)
+	(byte-compile-lambda-form): Use it.
+	(byte-compile-from-buffer): Set it, and bind
+	`read-with-symbol-positions' and `read-symbol-positions-list'.
+
 2002-05-28  Kim F. Storm  <storm@cua.dk>
 
 	* files.el (read-directory-name): New function.

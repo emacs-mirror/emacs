@@ -1,3 +1,30 @@
+2002-05-28  Colin Walters  <walters@debian.org>
+
+	* emacs.c (USAGE1): Add --no-splash.
+	(standard_args): Ditto.
+
+2002-05-28  Colin Walters  <walters@gnu.org>
+
+	* lread.c (readchar_count): New variable.
+	(readchar): Increment it.
+	(unreadchar): Decrement it.
+	(read_multibyte): Decrement it.
+	(Vread_with_symbol_positions): New variable.
+	(Vread_symbol_positions_list): New variable.
+	(read_internal_start): New function, created from Fread and
+	Fread_from_string.  Handle Vread_symbol_positions_list and
+	Vread_with_symbol_positions.
+	(readevalloop, Fread, Fread_from_string): Use it.
+	(read1): Use readchar_count to add symbol positions to
+	Vread_symbol_positions_list if Vread_with_symbol_positions is
+	non-nil.
+	(syms_of_lread): DEFVAR_LISP and initialize them.
+
+	* lread.c (read0, read1, read_list, read_vector, read_multibyte)
+	(substitute_object_recurse, substitute_object_in_subtree)
+	(substitute_in_interval): Prototype.
+	(read_multibyte): Return c if it's less than zero.
+	
 2002-05-28  Kim F. Storm  <storm@cua.dk>
 
 	* fileio.c (Fread_file_name_internal): Added brute-force
