@@ -960,8 +960,11 @@ static const char *re_error_msgid[] =
 #endif
 
 /* The match routines may not allocate if (1) they would do it with malloc
-   and (2) it's not safe for them to use malloc.  */
-#if (defined (C_ALLOCA) || defined (REGEX_MALLOC)) && (defined (emacs) || defined (REL_ALLOC))
+   and (2) it's not safe for them to use malloc.
+   Note that if REL_ALLOC is defined, matching would not use malloc for the
+   failure stack, but we would still use it for the register vectors;
+   so REL_ALLOC should not affect this.  */
+#if (defined (C_ALLOCA) || defined (REGEX_MALLOC)) && defined (emacs)
 #undef MATCH_MAY_ALLOCATE
 #endif
 
@@ -982,8 +985,8 @@ static const char *re_error_msgid[] =
    exactly that if always used MAX_FAILURE_SPACE each time we failed.
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.  */
-#ifdef REL_ALLOC
-int re_max_failures = 20000000;
+#if defined (MATCH_MAY_ALLOCATE)
+int re_max_failures = 200000;
 #else
 int re_max_failures = 2000;
 #endif
@@ -3138,7 +3141,8 @@ re_compile_fastmap (bufp)
   bufp->can_be_null |= path_can_be_null;
 
  done:
-  REGEX_FREE_STACK (fail_stack.stack);
+  if (!FAIL_STACK_EMPTY ())
+     REGEX_FREE_STACK (fail_stack.stack);
   return 0;
 } /* re_compile_fastmap */
 
