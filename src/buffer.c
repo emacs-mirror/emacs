@@ -832,7 +832,8 @@ No argument or nil as argument means use the current buffer.  */)
 DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
        0, 1, 0,
        doc: /* Return the base buffer of indirect buffer BUFFER.
-If BUFFER is not indirect, return nil.  */)
+If BUFFER is not indirect, return nil.
+BUFFER defaults to the current buffer.  */)
      (buffer)
      register Lisp_Object buffer;
 {
