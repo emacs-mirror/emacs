@@ -62,11 +62,14 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <errno.h>
 
-#include "syswait.h"
 #include <getopt.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#include "syswait.h"
 #ifdef MAIL_USE_POP
 #include "pop.h"
 #endif
@@ -102,18 +105,11 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #endif /* WINDOWSNT */
 
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 #ifndef F_OK
 #define F_OK 0
 #define X_OK 1
 #define W_OK 2
 #define R_OK 4
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
 #endif
 
 #if defined (XENIX) || defined (WINDOWSNT)
