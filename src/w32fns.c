@@ -7127,6 +7127,21 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
       lplf->elfLogFont.lfCharSet != lpef->logfont.lfCharSet)
     return 1;
 
+  if (FontType == RASTER_FONTTYPE)
+    {
+      /* DBCS raster fonts have problems displaying, so skip them.  */
+      int charset = lplf->elfLogFont.lfCharSet;
+      if (charset == SHIFTJIS_CHARSET
+	  || charset == HANGEUL_CHARSET
+	  || charset == CHINESEBIG5_CHARSET
+	  || charset == GB2312_CHARSET
+#ifdef JOHAB_CHARSET
+	  || charset == JOHAB_CHARSET
+#endif
+	  )
+	return 1;
+    }
+
   {
     char buf[100];
     Lisp_Object width = Qnil;
