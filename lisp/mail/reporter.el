@@ -1,7 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993 1994 Barry A. Warsaw
-;; Copyright (C) 1993 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
 ;; Maintainer:      bwarsaw@cnri.reston.va.us
@@ -334,7 +333,10 @@ composed.")
 	(problem (and reporter-prompt-for-summary-p
 		      (read-string "(Very) brief summary of problem: ")))
 	(mailbuf
-	 (progn
+	 ;; Normally *mail* is directed to appear in the same window,
+	 ;; but we don't want that to happen here.
+	 (let (same-window-buffer-names
+	       same-window-regexps)
 	   (call-interactively
 	    (if (nlistp reporter-mailer)
 		reporter-mailer
@@ -352,8 +354,14 @@ composed.")
 		mailer)))
 	   (current-buffer))))
     (require 'sendmail)
-    (pop-to-buffer mailbuf)
-    (display-buffer reporter-eval-buffer)
+    ;; If mailbuf did not get made visible before,
+    ;; make it visible now.
+    (let (same-window-buffer-names
+	  same-window-regexps)
+      (pop-to-buffer mailbuf)
+      ;; Just in case the original buffer is not visible now,
+      ;; bring it back somewhere.
+      (display-buffer reporter-eval-buffer))
     (goto-char (point-min))
     ;; different mailers use different separators, some may not even
     ;; use m-h-s, but sendmail.el stuff must have m-h-s bound.
