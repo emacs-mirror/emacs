@@ -140,11 +140,14 @@ main (argc, argv)
   }
 
 #ifdef MAIL_USE_POP
-  if (!bcmp (inname, "po:", 3))
+  if (!strncmp (inname, "po:", 3))
     {
       int status; char *user;
 
-      user = (char *) rindex (inname, ':') + 1;
+      for (user = &inname[strlen (inname) - 1]; user >= inname; user--)
+	if (*user == ':')
+	  break;
+
       status = popmail (user, outname);
       exit (status);
     }
