@@ -246,11 +246,12 @@ Applies to lines after point."
   (define-key occur-mode-map [mouse-2] 'occur-mode-mouse-goto)
   (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence)
   (define-key occur-mode-map "\C-m" 'occur-mode-goto-occurrence)
+  (define-key occur-mode-map "\M-n" 'occur-next)
+  (define-key occur-mode-map "\M-p" 'occur-prev)
   (define-key occur-mode-map "g" 'revert-buffer))
 
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
-(defvar occur-pos-list nil)
 (defvar occur-command-arguments nil
   "Arguments that were given to `occur' when it made this buffer.")
 
@@ -271,7 +272,6 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq revert-buffer-function 'occur-revert-function)
   (make-local-variable 'occur-buffer)
   (make-local-variable 'occur-nlines)
-  (make-local-variable 'occur-pos-list)
   (make-local-variable 'occur-command-arguments)
   (run-hooks 'occur-mode-hook))
 
@@ -299,28 +299,12 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (if (or (null occur-buffer)
 	  (null (buffer-name occur-buffer)))
       (progn
-	(setq occur-buffer nil
-	      occur-pos-list nil)
+	(setq occur-buffer nil)
 	(error "Buffer in which occurrences were found is deleted")))
-  (let* ((line-count
-	  (count-lines (point-min)
-		       (save-excursion
-			 (beginning-of-line)
-			 (point))))
-	 (occur-number (save-excursion
-			 (beginning-of-line)
-			 (/ (1- line-count)
-			    (cond ((< occur-nlines 0)
-				   (- 2 occur-nlines))
-				  ((> occur-nlines 0)
-				   (+ 2 (* 2 occur-nlines)))
-				  (t 1)))))
-	 (pos (nth occur-number occur-pos-list)))
-    (if (< line-count 1)
-	(error "No occurrence on this line"))
-    (or pos
-	(error "No occurrence on this line"))
-    pos))
+  (let ((pos (get-text-property (point) 'occur)))
+    (if (null pos)
+	(error "No occurrence on this line")
+      pos)))
 
 (defun occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
@@ -328,6 +312,39 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (let ((pos (occur-mode-find-occurrence)))
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
+
+(defun occur-next (&optional n)
+  "Move to the Nth (default 1) next match in the *Occur* buffer."
+  (interactive "p")
+  (if (not n) (setq n 1))
+  (let ((r))
+    (while (> n 0)
+      (if (get-text-property (point) 'occur-point)
+	  (forward-char 1))
+      (setq r (next-single-property-change (point) 'occur-point))
+      (if r
+	  (goto-char r)
+	(error "no more matches"))
+      (setq n (1- n)))))
+
+
+
+(defun occur-prev (&optional n)
+  "Move to the Nth (default 1) previous match in the *Occur* buffer."
+  (interactive "p")
+  (if (not n) (setq n 1))
+  (let ((r))
+    (while (> n 0)
+    
+      (setq r (get-text-property (point) 'occur-point))
+      (if r (forward-char -1))
+      
+      (setq r (previous-single-property-change (point) 'occur-point))
+      (if r
+	  (goto-char (- r 1))
+	(error "no earlier matches"))
+      
+      (setq n (1- n)))))
 
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines to include around a `list-matching-lines'
@@ -376,6 +393,7 @@ the matching is case-sensitive."
 		    (prefix-numeric-value nlines)
 		  list-matching-lines-default-context-lines))
 	(first t)
+	(occur-num-matches 0)
 	(buffer (current-buffer))
 	(dir default-directory)
 	(linenum 1)
@@ -406,7 +424,6 @@ the matching is case-sensitive."
 	    (occur-mode)
 	    (setq occur-buffer buffer)
 	    (setq occur-nlines nlines)
-	    (setq occur-pos-list ())
 	    (setq occur-command-arguments
 		  (list regexp nlines)))
 	  (if (eq buffer standard-output)
@@ -431,30 +448,45 @@ the matching is case-sensitive."
 				(forward-line (1+ nlines))
 				(forward-line 1))
 			    (point)))
-		     ;; Record where the actual match 
-		     (match-offset
-		      (save-excursion
-			(goto-char (match-beginning 0))
-			(beginning-of-line)
-			;; +6 to skip over line number
-			(+ 6 (- (match-beginning 0) (point)))))
+		     (match-beg (- (match-beginning 0) start))
 		     (match-len (- (match-end 0) (match-beginning 0)))
 		     (tag (format "%5d" linenum))
 		     (empty (make-string (length tag) ?\ ))
-		     tem)
+		     tem 
+		     occur-marker
+		     (text-beg (make-marker))
+		     (text-end (make-marker))
+		     )
 		(save-excursion
-		  (setq tem (make-marker))
-		  (set-marker tem (point))
+		  (setq occur-marker (make-marker))
+		  (set-marker occur-marker (point))
 		  (set-buffer standard-output)
-		  (setq occur-pos-list (cons tem occur-pos-list))
+		  (setq occur-num-matches (1+ occur-num-matches))
 		  (or first (zerop nlines)
 		      (insert "--------\n"))
 		  (setq first nil)
+		  (set-marker text-beg (point))
 		  (insert-buffer-substring buffer start end)
+		  (set-marker text-end (point))
+		  (if list-matching-lines-face
+		      (put-text-property
+		       (+ (marker-position text-beg) match-beg)
+		       (+ (marker-position text-beg) match-beg match-len)
+		       'face list-matching-lines-face))
+
+		  ;; Identify a place for occur-next and occur-prev
+		  ;; to move to.
+		  (put-text-property
+		   (+ (marker-position text-beg) match-beg match-len)
+		   (+ (marker-position text-beg) match-beg match-len 1)
+		   'occur-point t)
 		  (set-marker final-context-start 
 			      (- (point) (- end (match-end 0))))
 		  (goto-char (- (point) (- end start)))
-		  (setq tem nlines)
+		  ;;(setq tem nlines)
+		  (setq tem (if (< linenum nlines)
+				(- nlines linenum)
+			      nlines))
 		  (while (> tem 0)
 		    (insert empty ?:)
 		    (forward-line 1)
@@ -469,16 +501,6 @@ the matching is case-sensitive."
 			    (save-excursion
 			      (beginning-of-line)
 			      (point)))
-		      (put-text-property line-start
-					 (save-excursion
-					   (end-of-line)
-					   (point))
-					 'mouse-face 'highlight)
-		      (if list-matching-lines-face
-			  (put-text-property
-			   (+ line-start match-offset)
-			   (+ line-start match-offset match-len)
-			   'face list-matching-lines-face))
 		      (forward-line 1)
 		      (setq tag nil)
 		      (setq this-linenum (1+ this-linenum)))
@@ -486,20 +508,28 @@ the matching is case-sensitive."
 		      (insert empty ?:)
 		      (forward-line 1)
 		      (setq this-linenum (1+ this-linenum))))
-		  (while (< tem nlines)
+		  (while (and (< (point) (point-max)) (< tem nlines))
 		    (insert empty ?:)
 		    (forward-line 1)
 		    (setq tem (1+ tem)))
+		  
+		  ;; Add text properties.  The `occur' prop is used to
+		  ;; store the marker of the matching text in the
+		  ;; source buffer.
+		  (put-text-property (marker-position text-beg)
+				     (- (marker-position text-end) 1)
+				     'mouse-face 'highlight)
+		  (put-text-property (marker-position text-beg)
+				     (- (marker-position text-end) 1)
+				     'occur occur-marker)
 		  (goto-char (point-max)))
 		(forward-line 1)))
 	    (set-buffer standard-output)
-	    ;; Put positions in increasing order to go with buffer.
-	    (setq occur-pos-list (nreverse occur-pos-list))
 	    (goto-char (point-min))
 	    (let ((message-string
-		   (if (= (length occur-pos-list) 1)
+		   (if (= occur-num-matches 1)
 		       "1 line"
-		     (format "%d lines" (length occur-pos-list)))))
+		     (format "%d lines" occur-num-matches))))
 	      (insert message-string)
 	      (if (interactive-p)
 		  (message "%s matched" message-string)))))))))
