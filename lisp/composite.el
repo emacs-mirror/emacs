@@ -77,12 +77,16 @@ follows (the point `*' corresponds to both reference points):
     +----+-----+ <--- new descent
 ")
 
-;; Encode composition rule RULE into an integer value.  RULE is a cons
-;; of global and new reference point symbols.
-;; This must be compatible with C macro COMPOSITION_ENCODE_RULE
-;; defined in composite.h.
 
+;;;###autoload
 (defun encode-composition-rule (rule)
+  "Encode composition rule RULE into an integer value.
+RULE is a cons of global and new reference point symbols
+\(see reference-point-alist)."
+
+  ;; This must be compatible with C macro COMPOSITION_ENCODE_RULE
+  ;; defined in composite.h.
+
   (if (and (integerp rule) (< rule 144))
       ;; Already encoded.
       rule
