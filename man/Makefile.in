@@ -27,6 +27,7 @@ INFOSOURCES = info.texi info-stnd.texi
 	texi2dvi $<
 
 TEXI2DVI = texi2dvi
+ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)" 
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
@@ -80,86 +81,86 @@ dvi: $(DVI_TARGETS)
 	cd $(srcdir); $(MAKEINFO) --no-split info.texi
 
 info.dvi: ${INFOSOURCES}
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/info.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/info.texi
 
 ../info/emacs: ${EMACSSOURCES}
 	cd $(srcdir); $(MAKEINFO) emacs.texi
 
 emacs.dvi: ${EMACSSOURCES}
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
 
 ../info/ccmode: cc-mode.texi
 	cd $(srcdir); $(MAKEINFO) cc-mode.texi
 cc-mode.dvi: cc-mode.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/cc-mode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/cc-mode.texi
 
 ../info/cl: cl.texi
 	cd $(srcdir); $(MAKEINFO) cl.texi
 cl.dvi: cl.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/cl.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/cl.texi
 
 ../info/customize: customize.texi
 	cd $(srcdir); $(MAKEINFO) customize.texi
 customize.dvi: customize.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/customize.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/customize.texi
 
 ../info/dired-x: dired-x.texi
 	cd $(srcdir); $(MAKEINFO) dired-x.texi
 dired-x.dvi: dired-x.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/dired-x.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/dired-x.texi
 
 ../info/ediff: ediff.texi
 	cd $(srcdir); $(MAKEINFO) ediff.texi
 ediff.dvi: ediff.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/ediff.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
 
 ../info/forms: forms.texi
 	cd $(srcdir); $(MAKEINFO) forms.texi
 forms.dvi: forms.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/forms.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
 
 ../info/gnus: gnus.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/gnus.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/gnus.texi
 
 ../info/message: message.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
 message.dvi: message.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/message.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
 
 ../info/mh-e: mh-e.texi
 	cd $(srcdir); $(MAKEINFO) mh-e.texi
 mh-e.dvi: mh-e.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/mh-e.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/mh-e.texi
 
 ../info/reftex: reftex.texi
 	cd $(srcdir); $(MAKEINFO) reftex.texi
 reftex.dvi: reftex.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/reftex.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/reftex.texi
 
 ../info/sc: sc.texi
 	cd $(srcdir); $(MAKEINFO) sc.texi
 sc.dvi: sc.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/sc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sc.texi
 
 ../info/vip: vip.texi
 	cd $(srcdir); $(MAKEINFO) vip.texi
 vip.dvi: vip.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/vip.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/vip.texi
 
 ../info/viper: viper.texi
 	cd $(srcdir); $(MAKEINFO) viper.texi
 viper.dvi: viper.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/viper.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/viper.texi
 
 ../info/widget: widget.texi
 	cd $(srcdir); $(MAKEINFO) widget.texi
 widget.dvi: widget.texi
-	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/widget.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
 
 ../etc/GNU: gnu1.texi gnu.texi
-	makeinfo --no-headers -o ../etc/GNU gnu1.texi
+	cd $(srcdir) && makeinfo --no-headers -o ../etc/GNU gnu1.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
