@@ -3,7 +3,7 @@
 # DIST: that first.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001 Free Software Foundation, Inc.
+#  2000, 2001, 2002 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -279,6 +279,13 @@ config.status: ${srcdir}/configure
 
 ${srcdir}/configure: configure.in
 	cd ${srcdir} && autoconf
+
+$(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
+	@true
+$(srcdir)/src/stamp-h.in: configure.in
+	cd ${srcdir} && autoheader
+	rm -f $(srcdir)/src/stamp-h.in
+	echo timestamp > $(srcdir)/src/stamp-h.in
 
 src/Makefile: $(srcdir)/src/Makefile.in config.status
 	./config.status
