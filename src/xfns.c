@@ -9756,13 +9756,13 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   int i, width, height;
   int root_x, root_y, win_x, win_y;
   unsigned pmask;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   int count = specpdl_ptr - specpdl;
   
   specbind (Qinhibit_redisplay, Qt);
 
-  GCPRO3 (string, parms, frame);
+  GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string, 0);
   f = check_x_frame (frame);
