@@ -268,23 +268,24 @@ Not actually set up until the first time you you use it.")
 If your environment imcludes a $CDPATH variable, cd tries each one of that
 colon-separated list of directories when resolving a relative cd."
   (interactive "FChange default directory: ")
-  (if (= (aref dir 0) ?/)
-      (cd-absolute (expand-file-name dir))
-    (if (null cd-path)
-	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
-	  (setq cd-path (or trypath "./"))))
-    (if (not (catch 'found
-	       (mapcar
-		(function (lambda (x)
-			    (let ((f (expand-file-name (concat x dir))))
-			      (if (file-directory-p f)
-				  (progn
-				    (cd-absolute f)
-				    (throw 'found t))))))
-		cd-path)
-	       nil))
-	(error "No such directory on your cd path.")))
-  )
+  (let ((first (aref dir 0)))
+    (if (or (= first ?/) (= first ?~))
+	(cd-absolute (expand-file-name dir))
+      (if (null cd-path)
+	  (let ((trypath (parse-colon-path (getenv "CDPATH"))))
+	    (setq cd-path (or trypath "./"))))
+      (if (not (catch 'found
+		 (mapcar
+		  (function (lambda (x)
+			      (let ((f (expand-file-name (concat x dir))))
+				(if (file-directory-p f)
+				    (progn
+				      (cd-absolute f)
+				      (throw 'found t))))))
+		  cd-path)
+		 nil))
+	  (error "No such directory on your cd path.")))
+    ))
 
 (defun load-file (file)
   "Load the Lisp file named FILE."
