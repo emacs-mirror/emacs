@@ -2267,7 +2267,7 @@ indirect definition itself.")
   if (nomenus && NILP (noindirect) && NILP (keymap))
     {
       Lisp_Object *defns;
-      int i, n;
+      int i, j, n;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
       
       /* Check heuristic-consistency of the cache.  */
@@ -2302,12 +2302,17 @@ indirect definition itself.")
 	 the following can GC.  */
       GCPRO2 (definition, keymaps);
       result = Qnil;
+      j = -1;
       for (i = n - 1; i >= 0; --i)
-	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition)
-	    && ascii_sequence_p (defns[i]))
-	  break;
+	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition))
+	  {
+	    if (ascii_sequence_p (defns[i]))
+	      break;
+	    else if (j < 0)
+	      j = i;
+	  }
 
-      result = i >= 0 ? defns[i] : Qnil;
+      result = i >= 0 ? defns[i] : (j >= 0 ? defns[j] : Qnil);
       UNGCPRO;
     }
   else
