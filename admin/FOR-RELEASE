@@ -23,6 +23,8 @@ See msg from rms to emacs-devel on 21 Dec.
 
 * FATAL ERRORS
 
+** Make unexec handle memory mapping policy of the latest versions of Linux.
+
 ** Investigate reported crashes in compact_small_strings.
 
 ** Investigate reported crashes related to using an
@@ -30,6 +32,9 @@ invalid pointer from string_free_list.
 
 
 * LOSSAGE
+
+** Fix ispell.el bug reported by Peter Dyballa <Peter_Dyballa@Web.DE>
+on 18 Feb to emacs-pretest-bug.
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
 
