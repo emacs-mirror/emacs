@@ -97,9 +97,9 @@ static __malloc_size_t bytes_used_when_full;
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
-#define MARK_STRING(S)		XMARK ((S)->size)
-#define UNMARK_STRING(S)	XUNMARK ((S)->size)
-#define STRING_MARKED_P(S)	XMARKBIT ((S)->size)
+#define MARK_STRING(S)		((S)->size |= MARKBIT)
+#define UNMARK_STRING(S)	((S)->size &= ~MARKBIT)
+#define STRING_MARKED_P(S)	((S)->size & MARKBIT)
 
 /* Value is the number of bytes/chars of S, a pointer to a struct
    Lisp_String.  This must be used instead of STRING_BYTES (S) or
@@ -798,7 +798,20 @@ mark_interval_tree (tree)
      }							\
   } while (0)
 
-
+
+/* Number support.  If NO_UNION_TYPE isn't in effect, we
+   can't create number objects in macros.  */
+#ifndef make_number
+Lisp_Object
+make_number (n)
+     int n;
+{
+  Lisp_Object obj;
+  obj.s.val = n;
+  obj.s.type = Lisp_Int;
+  return obj;
+}
+#endif
 
 /***********************************************************************
 			  String Allocation

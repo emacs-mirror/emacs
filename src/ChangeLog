@@ -1,3 +1,12 @@
+2000-04-01  Ken Raeburn  <raeburn@gnu.org>
+
+	* alloc.c (MARK_STRING, UNMARK_STRING, STRING_MARKED_P): Expand
+	non-union-type versions of XMARK and friends here, because XMARK
+	and friends won't work on an integer field if NO_UNION_TYPE is not
+	defined.
+	(make_number): Define as a function if it's not defined as a
+	macro.
+
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (TN_no_color_video): New variable.
