@@ -460,9 +460,10 @@ x_set_frame_parameters (f, alist)
 	left = val;
       else
 	{
-	  register Lisp_Object param_index = Fget (prop, Qx_frame_parameter);
-	  register Lisp_Object old_value = get_frame_param (f, prop);
+	  register Lisp_Object param_index, old_value;
 
+	  param_index = Fget (prop, Qx_frame_parameter);
+	  old_value = get_frame_param (f, prop);
 	  store_frame_param (f, prop, val);
 	  if (XTYPE (param_index) == Lisp_Int
 	      && XINT (param_index) >= 0
@@ -1432,7 +1433,8 @@ x_get_arg (alist, param, attribute, class, type)
 	      /* As a special case, we map the values `true' and `on'
 		 to Qt, and `false' and `off' to Qnil.  */
 	      {
-		Lisp_Object lower = Fdowncase (tem);
+		Lisp_Object lower;
+		lower = Fdowncase (tem);
 		if (!strcmp (XSTRING (tem)->data, "on")
 		    || !strcmp (XSTRING (tem)->data, "true"))
 		  return Qt;
@@ -1833,11 +1835,12 @@ x_window (f)
      place where that assumption isn't correct; f->name is set, but
      the X server hasn't been told.  */
   {
-    Lisp_Object name = f->name;
+    Lisp_Object name;
     int explicit = f->explicit_name;
 
-    f->name = Qnil;
     f->explicit_name = 0;
+    name = f->name;
+    f->name = Qnil;
     x_set_name (f, name, explicit);
   }
 
@@ -2144,8 +2147,9 @@ be shared by the new frame.")
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
   {
-    Lisp_Object visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
+    Lisp_Object visibility;
 
+    visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
     if (EQ (visibility, Qunbound))
       visibility = Qt;
 
@@ -2384,8 +2388,9 @@ be shared by the new frame.")
 
   /* Make the window appear on the frame and enable display.  */
   {
-    Lisp_Object visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
+    Lisp_Object visibility;
 
+    visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
     if (EQ (visibility, Qunbound))
       visibility = Qt;
 
