@@ -518,6 +518,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
      register Lisp_Object sym, newdef;
 {
   CHECK_SYMBOL (sym, 0);
+  if (NILP (sym) || EQ (sym, Qt))
+    return Fsignal (Qsetting_constant, Fcons (sym, Qnil));
+
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (sym)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
