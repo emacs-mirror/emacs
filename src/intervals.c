@@ -670,6 +670,45 @@ previous_interval (interval)
 
   return NULL_INTERVAL;
 }
+
+/* Find the interval containing POS given some non-NULL INTERVAL
+   in the same tree. */
+INTERVAL
+update_interval (i, pos)
+     register INTERVAL i;
+     int pos;
+{
+  if (NULL_INTERVAL_P (i))
+    return NULL_INTERVAL;
+
+  while (1) 
+    {
+      if (pos < i->position) 
+	{
+	  /* Move left. */
+	  if (pos >= i->position - TOTAL_LENGTH (i->left))
+	    i = i->left;		/* Move to the left child */
+	  else if (NULL_PARENT (i)) 
+	    error ("Point before start of properties");
+	  else  i = i->parent;
+	  continue;
+	}
+      else if (pos >= INTERVAL_LAST_POS (i))
+	{
+	  /* Move right. */
+	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
+	    i = i->right;		/* Move to the right child */
+	  else if (NULL_PARENT (i)) 
+	    error ("Point after end of properties");
+	  else 
+	    i = i->parent;
+	  continue;
+	}
+      else 
+	return i;
+    }
+}
+
 
 #if 0
 /* Traverse a path down the interval tree TREE to the interval
