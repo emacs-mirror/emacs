@@ -332,7 +332,11 @@ and the greater of them is not at the start of a line."
 		(setq done (+ 40 done)))
 	      (while (re-search-forward "[\n\C-m]" nil t 1)
 		(setq done (+ 1 done)))
-	      done)
+	      (goto-char (point-max))
+	      (if (and (/= start end)
+		       (not (bolp)))
+		  (1+ done)
+		done))
 	  (- (buffer-size) (forward-line (buffer-size))))))))
 
 (defun what-cursor-position ()
