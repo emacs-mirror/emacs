@@ -54,10 +54,6 @@
 ;;; o  It's not possible to add a NEW file to a tar archive; not that 
 ;;;    important, but still...
 ;;;
-;;; o  In the directory listing, we don't show creation times because I don't
-;;;    know how to print an arbitrary date, and I don't really want to have to
-;;;    implement decode-universal-time.
-;;;
 ;;; o  The code is less efficient that it could be - in a lot of places, I
 ;;;    pull a 512-character string out of the buffer and parse it, when I could
 ;;;    be parsing it in place, not garbaging a string.  Should redo that.
@@ -107,13 +103,17 @@ have a blocksize of 20, tar will tell you that; all this really controls is
 how many null padding bytes go on the end of the tar file.")
 
 (defvar tar-update-datestamp nil
-  "*Whether tar-mode should play fast and loose with sub-file datestamps;
-if this is true, then editing and saving a tar file entry back into its
+  "*Non-nil means tar-mode should play fast and loose with sub-file datestamps.
+If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
 in a tar archive has been changed, but it is bad for the same reason that
 editing a file in the tar archive at all is bad - the changed version of 
 the file never exists on disk.")
+
+(defvar tar-mode-show-date nil
+  "*Non-nil means Tar mode should show the date/time of each subfile.
+This information is useful, but it takes screen space away from file names.")
 
 (defvar tar-parse-info nil)
 (defvar tar-header-offset nil)
@@ -248,7 +248,7 @@ write-date, checksum, link-type, and link-name."
 	     (tar-parse-octal-integer string tar-uid-offset (1- tar-gid-offset))
 	     (tar-parse-octal-integer string tar-gid-offset (1- tar-size-offset))
 	     (tar-parse-octal-integer string tar-size-offset (1- tar-time-offset))
-	     (tar-parse-octal-integer string tar-time-offset (1- tar-chk-offset))
+	     (tar-parse-octal-long-integer string tar-time-offset (1- tar-chk-offset))
 	     (tar-parse-octal-integer string tar-chk-offset (1- tar-linkp-offset))
 	     link-p
 	     (substring string tar-link-offset link-end)
@@ -269,9 +269,24 @@ write-date, checksum, link-type, and link-name."
     (let ((n 0))
       (while (< start end)
 	(setq n (if (< (aref string start) ?0) n
-		  (+ (* n 8) (- (aref string start) 48)))
+		  (+ (* n 8) (- (aref string start) ?0)))
 	      start (1+ start)))
       n)))
+
+(defun tar-parse-octal-long-integer (string &optional start end)
+  (if (null start) (setq start 0))
+  (if (null end) (setq end (length string)))
+  (if (= (aref string start) 0)
+      [0 0]
+    (let ((lo 0)
+	  (hi 0))
+      (while (< start end)
+	(if (>= (aref string start) ?0)
+	    (setq lo (+ (* lo 8) (- (aref string start) ?0))
+		  hi (+ (* hi 8) (ash lo -16))
+		  lo (logand lo 65535)))
+	(setq start (1+ start)))
+      (list hi lo))))
 
 (defun tar-parse-octal-integer-safe (string)
   (let ((L (length string)))
@@ -315,6 +330,9 @@ write-date, checksum, link-type, and link-name."
     (tar-dotimes (i l) (aset hblock (- 153 i) (aref chk-string (- l i 1)))))
   hblock)
 
+(defun tar-clip-time-string (time)
+  (let ((str (current-time-string time)))
+    (concat (substring str 4 16) (substring str 19 24))))
 
 (defun tar-grind-file-mode (mode string start)
   "Write a \"-rw--r--r-\" representing MODE into STRING beginning at START."
@@ -349,10 +367,11 @@ write-date, checksum, link-type, and link-name."
 	   (namew 8)
 	   (groupw 8)
 	   (sizew 8)
-	   (datew 2)
+	   (datew (if tar-mode-show-date 18 0))
 	   (slash (1- (+ left namew)))
 	   (lastdigit (+ slash groupw sizew))
-	   (namestart (+ lastdigit datew))
+	   (datestart (+ lastdigit 2))
+	   (namestart (+ datestart datew))
 	   (string (make-string (+ namestart (length name) (if link-p (+ 5 (length link-name)) 0)) 32))
 	   (type (tar-header-link-type tar-hblock)))
       (aset string 0 (if mod-p ?* ? ))
@@ -373,11 +392,13 @@ write-date, checksum, link-type, and link-name."
       (setq uid (if (= 0 (length uname)) (int-to-string uid) uname))
       (setq gid (if (= 0 (length gname)) (int-to-string gid) gname))
       (setq size (int-to-string size))
+      (setq time (tar-clip-time-string time))
       (tar-dotimes (i (min (1- namew) (length uid))) (aset string (- slash i) (aref uid (- (length uid) i 1))))
       (aset string (1+ slash) ?/)
       (tar-dotimes (i (min (1- groupw) (length gid))) (aset string (+ (+ slash 2) i) (aref gid i)))
       (tar-dotimes (i (min sizew (length size))) (aset string (- lastdigit i) (aref size (- (length size) i 1))))
-      ;; ## bloody hell, how do I print an arbitrary date??
+      (if tar-mode-show-date
+	  (tar-dotimes (i (length time)) (aset string (+ datestart i) (aref time i))))
       (tar-dotimes (i (length name)) (aset string (+ namestart i) (aref name i)))
       (if (or (eq link-p 1) (eq link-p 2))
 	  (progn
@@ -611,7 +632,7 @@ save your changes to disk."
 (defun tar-next-line (p)
   (interactive "p")
   (forward-line p)
-  (if (eobp) nil (forward-char 36)))
+  (if (eobp) nil (forward-char (if tar-mode-show-date 54 36))))
 
 (defun tar-previous-line (p)
   (interactive "p")
