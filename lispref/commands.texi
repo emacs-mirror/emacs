@@ -524,7 +524,7 @@ The argument @var{keys}, if given, specifies the sequence of events to
 supply if the command inquires which events were used to invoke it.
 @end defun
 
-@defun command-execute command &optional record-flag keys
+@defun command-execute command &optional record-flag keys special
 @cindex keyboard macro execution
 This function executes @var{command}.  The argument @var{command} must
 satisfy the @code{commandp} predicate; i.e., it must be an interactively
@@ -542,6 +542,10 @@ rechecking the definition of the symbol.
 
 The argument @var{keys}, if given, specifies the sequence of events to
 supply if the command inquires which events were used to invoke it.
+
+The argument @var{special}, if given, means to ignore the prefix
+argument and not clear it.  This is used for executing special events
+(@pxref{Special Events}).
 @end defun
 
 @deffn Command execute-extended-command prefix-argument
@@ -1112,9 +1116,10 @@ the entire scroll bar.
 
 If the position is on a mode line or the vertical line separating
 @var{window} from its neighbor to the right, then @var{buffer-pos} is
-the symbol @code{mode-line} or @code{vertical-line}.  For the mode line,
-@var{y} does not have meaningful data.  For the vertical line, @var{x}
-does not have meaningful data.
+the symbol @code{mode-line}, @code{header-line}, or
+@code{vertical-line}.  For the mode line, @var{y} does not have
+meaningful data.  For the vertical line, @var{x} does not have
+meaningful data.
 
 In one special case, @var{buffer-pos} is a list containing a symbol (one
 of the symbols listed above) instead of just the symbol.  This happens

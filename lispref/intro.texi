@@ -650,8 +650,7 @@ evaluated.  If you execute example code in a Lisp Interaction buffer
 (such as the buffer @samp{*scratch*}), the printed text is inserted into
 the buffer.  If you execute the example by other means (such as by
 evaluating the function @code{eval-region}), the printed text is
-displayed in the echo area.  You should be aware that text displayed in
-the echo area is truncated to a single line.
+displayed in the echo area.
 
   Examples in this manual indicate printed text with @samp{@print{}},
 irrespective of where that text goes.  The value returned by evaluating

@@ -54,6 +54,10 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @code{"Buffer is read-only"}@*
 @xref{Read Only Buffers}.
 
+@item coding-system-error
+@code{"Invalid coding system"}@*
+@xref{Coding Systems}.
+
 @item cyclic-function-indirection
 @code{"Symbol's chain of function indirections\@* contains a loop"}@*
 @xref{Function Indirection}.
@@ -91,6 +95,11 @@ This is a subcategory of @code{file-error}.@*
 This is a subcategory of @code{file-error}.@*
 @xref{Modification Time}.
 
+@item ftp-error
+This is a subcategory of @code{file-error}, which results from problems
+in accessing a remote file using ftp.@*
+@xref{Remote Files,,, emacs, The Emacs Manual}.
+
 @item invalid-function
 @code{"Invalid function"}@*
 @xref{Classifying Lists}.
@@ -127,6 +136,10 @@ The values of the symbols @code{nil} and @code{t},
 and any symbols that start with @samp{:},
 may not be changed.@*
 @xref{Constant Variables, , Variables that Never Change}.
+
+@item text-read-only
+@code{"Text is read-only"}@*
+@xref{Special Properties}.
 
 @item undefined-color
 @code{"Undefined color"}@*

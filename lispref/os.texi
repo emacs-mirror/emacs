@@ -1077,13 +1077,15 @@ because that is how @samp{%S} normally pads to two positions.
 
 The characters @samp{E} and @samp{O} act as modifiers when used between
 @samp{%} and one of the letters in the table above.  @samp{E} specifies
-using the locale's ``alternative'' version of a format, as specified by
-POSIX.  @samp{E} is allowed in @samp{%Ec}, @samp{%EC}, @samp{%Ex},
-@samp{%EX}, @samp{%Ey}, and @samp{%EY}.
+using the current locale's ``alternative'' version of the date and time.
+In a Japanese locale, for example, @code{%Ex} might yield a date format
+based on the Japanese Emperors' reigns.  @samp{E} is allowed in
+@samp{%Ec}, @samp{%EC}, @samp{%Ex}, @samp{%EX}, @samp{%Ey}, and
+@samp{%EY}.
 
-@samp{O} means to use the current locale's number symbols to format each
-number, instead of the ordinary @sc{ascii} digits.  It is allowed with
-most letters.
+@samp{O} means to use the current locale's ``alternative''
+representation of numbers, instead of the ordinary decimal digits.  This
+is allowed with most letters, all the ones that output numbers.
 
 If @var{universal} is non-@code{nil}, that means to describe the time as
 Universal Time; @code{nil} means describe it using what Emacs believes

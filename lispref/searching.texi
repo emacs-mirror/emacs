@@ -963,7 +963,7 @@ the echo area, returning the string printed.
 This function is a synonym of @code{how-many}.
 @end deffn
 
-@deffn Command list-matching-lines regexp nlines
+@deffn Command list-matching-lines regexp &optional nlines
 This function is a synonym of @code{occur}.
 Show all lines following point containing a match for @var{regexp}.
 Display each line with @var{nlines} lines before and after,
@@ -1213,7 +1213,7 @@ should make sure that the current buffer when you call
 matching.
 @end defun
 
-@defun match-string-no-properties count
+@defun match-string-no-properties count &optional in-string
 This function is like @code{match-string} except that the result
 has no text properties.
 @end defun

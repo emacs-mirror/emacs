@@ -289,18 +289,19 @@ identifying them as generic string delimiters.
 @cindex syntax flags
 
   In addition to the classes, entries for characters in a syntax table
-can specify flags.  There are six possible flags, represented by the
-characters @samp{1}, @samp{2}, @samp{3}, @samp{4}, @samp{b} and
-@samp{p}.
+can specify flags.  There are seven possible flags, represented by the
+characters @samp{1}, @samp{2}, @samp{3}, @samp{4}, @samp{b}, @samp{n},
+and @samp{p}.
 
-  All the flags except @samp{p} are used to describe multi-character
-comment delimiters.  The digit flags indicate that a character can
-@emph{also} be part of a comment sequence, in addition to the syntactic
-properties associated with its character class.  The flags are
-independent of the class and each other for the sake of characters such
-as @samp{*} in C mode, which is a punctuation character, @emph{and} the
-second character of a start-of-comment sequence (@samp{/*}), @emph{and}
-the first character of an end-of-comment sequence (@samp{*/}).
+  All the flags except @samp{n} and @samp{p} are used to describe
+multi-character comment delimiters.  The digit flags indicate that a
+character can @emph{also} be part of a comment sequence, in addition to
+the syntactic properties associated with its character class.  The flags
+are independent of the class and each other for the sake of characters
+such as @samp{*} in C mode, which is a punctuation character, @emph{and}
+the second character of a start-of-comment sequence (@samp{/*}),
+@emph{and} the first character of an end-of-comment sequence
+(@samp{*/}).
 
   Here is a table of the possible flags for a character @var{c},
 and what they mean:
@@ -370,6 +371,12 @@ character, @samp{*}, does not have the @samp{b} flag.
 This is a comment-end sequence for ``b'' style, because the newline
 character has the @samp{b} flag.
 @end table
+
+@item
+@samp{n} on a comment delimiter character specifies
+that this kind of comment can be nested.  For a two-character
+comment delimiter, @samp{n} on either character makes it
+nestable.
 
 @item
 @c Emacs 19 feature
@@ -638,7 +645,9 @@ string delimiter character should terminate it.
 
 @item 
 @cindex inside comment
-@code{t} if inside a comment (of either style).
+@code{t} if inside a comment (of either style),
+or the comment nesting level if inside a kind of comment
+that can be nested.
 
 @item 
 @cindex quote character
@@ -837,16 +846,19 @@ corresponds to each syntax flag.
 @tab
 @samp{1} @ @  @code{(lsh 1 16)}
 @tab
-@samp{3} @ @  @code{(lsh 1 18)}
+@samp{4} @ @  @code{(lsh 1 19)}
 @tab
-@samp{p} @ @  @code{(lsh 1 20)}
+@samp{b} @ @  @code{(lsh 1 21)}
 @item
 @tab
 @samp{2} @ @  @code{(lsh 1 17)}
 @tab
-@samp{4} @ @  @code{(lsh 1 19)}
+@samp{p} @ @  @code{(lsh 1 20)}
 @tab
-@samp{b} @ @  @code{(lsh 1 21)}
+@samp{n} @ @  @code{(lsh 1 22)}
+@item
+@tab
+@samp{3} @ @  @code{(lsh 1 18)}
 @end multitable
 
 @node Categories
