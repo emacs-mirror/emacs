@@ -2986,6 +2986,11 @@ it were the arg to `interactive' (which see) to interactively read the value."
 This is a local variable in the completion list buffer.
 Initial value is nil to avoid some compiler warnings.")
 
+(defvar completion-no-auto-exit nil
+  "Non-nil means `choose-completion-string' should never exit the minibuffer.
+This also applies to other functions such as `choose-completion'
+and `mouse-choose-completion'.")
+
 (defvar completion-base-size nil
   "Number of chars at beginning of minibuffer not involved in completion.
 This is a local variable in the completion list buffer
@@ -3084,7 +3089,8 @@ With prefix argument N, move N items (negative N means move backward)."
 ;; to keep.  If it is nil, use choose-completion-delete-max-match instead.
 
 ;; If BUFFER is the minibuffer, exit the minibuffer
-;; unless it is reading a file name and CHOICE is a directory.
+;; unless it is reading a file name and CHOICE is a directory,
+;; or completion-no-auto-exit is non-nil.
 (defun choose-completion-string (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
@@ -3106,7 +3112,8 @@ With prefix argument N, move N items (negative N means move backward)."
       (let ((window (get-buffer-window buffer t)))
 	(set-window-point window (point)))
       ;; If completing for the minibuffer, exit it with this choice.
-      (and (equal buffer (window-buffer (minibuffer-window)))
+      (and (not completion-no-auto-exit)
+	   (equal buffer (window-buffer (minibuffer-window)))
 	   minibuffer-completion-table
 	   ;; If this is reading a file name, and the file name chosen
 	   ;; is a directory, don't exit the minibuffer.
