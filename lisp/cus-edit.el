@@ -1376,16 +1376,23 @@ Otherwise use brackets."
 	(widget-insert (format ".
 %s show active fields; type RET or click mouse-1
 on an active field to invoke its action.  Editing an option value
-changes the text in the buffer; invoke the State button and
-choose the Set operation to set the option value.
-Invoke " (if custom-raised-buttons
-	     "`Raised' buttons"
-	     "Square brackets")))
+changes only the text in the buffer.  Invoke the State button to set or
+save the option value.  Saving an option normally edits your init file.
+Invoke "
+			       (if custom-raised-buttons
+				   "`Raised' buttons"
+				 "Square brackets")))
+	(widget-create 'info-link
+		       :tag "Custom file"
+		       "(emacs)Saving Customizations")
+	(widget-insert
+	 " for information on how to save in a different file.
+Invoke ")
 	(widget-create 'info-link
 		       :tag "Help"
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
-	(widget-insert " for more information.\n\n")
+	(widget-insert " for general information.\n\n")
 	(widget-insert "Operate on everything in this buffer:\n "))
     (widget-insert " "))
   (widget-create 'push-button
@@ -1665,31 +1672,31 @@ item in another window.\n\n"))
 
 (defconst custom-magic-alist
   '((nil "#" underline "\
-uninitialized, you should not see this.")
+UNINITIALIZED, you should not see this.")
     (unknown "?" italic "\
-unknown, you should not see this.")
+UNKNOWN, you should not see this.")
     (hidden "-" default "\
-hidden, invoke \"Show\" in the previous line to show." "\
+HIDDEN, invoke \"Show\" in the previous line to show." "\
 group now hidden, invoke \"Show\", above, to show contents.")
     (invalid "x" custom-invalid-face "\
-the value displayed for this %c is invalid and cannot be set.")
+INVALID, the displayed value cannot be set.")
     (modified "*" custom-modified-face "\
-you have edited the value as text, but you have not set the %c." "\
+EDITED, shown value does not take effect until you set or save it." "\
 something in this group has been edited but not set.")
     (set "+" custom-set-face "\
-you have set this %c, but not saved it for future sessions." "\
+SET for current session only." "\
 something in this group has been set but not saved.")
     (changed ":" custom-changed-face "\
-this %c has been changed outside the customize buffer." "\
+CHANGED outside Customize; operating on it here may be unreliable." "\
 something in this group has been changed outside customize.")
     (saved "!" custom-saved-face "\
-You've set this %c and Customize saved it in your init file." "\
+SAVED and set." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue-face "\
-this %c has not been changed with customize." "\
+NO CUSTOMIZATION DATA; you should not see this." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
-this %c is unchanged from its standard setting." "\
+STANDARD." "\
 visible group members are all at standard settings."))
   "Alist of customize option states.
 Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where
@@ -1709,7 +1716,7 @@ STATE is one of the following symbols:
 `set'
    This item has been set but not saved.
 `changed'
-   The current value of this item has been changed temporarily.
+   The current value of this item has been changed outside Customize.
 `saved'
    This item is marked for saving.
 `rogue'
