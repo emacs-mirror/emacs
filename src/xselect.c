@@ -384,7 +384,7 @@ x_get_local_selection (selection_symbol, target_type)
 
 /* Subroutines of x_reply_selection_request.  */
 
-/* Send a SelectionNotify event to the requestor with property=None,
+/* Send a SelectionNotify event to the requester with property=None,
    meaning we were unable to do what they wanted.  */
 
 static void
@@ -394,14 +394,14 @@ x_decline_selection_request (event)
   XSelectionEvent reply;
   reply.type = SelectionNotify;
   reply.display = SELECTION_EVENT_DISPLAY (event);
-  reply.requestor = SELECTION_EVENT_REQUESTOR (event);
+  reply.requester = SELECTION_EVENT_REQUESTER (event);
   reply.selection = SELECTION_EVENT_SELECTION (event);
   reply.time = SELECTION_EVENT_TIME (event);
   reply.target = SELECTION_EVENT_TARGET (event);
   reply.property = None;
 
   BLOCK_INPUT;
-  XSendEvent (reply.display, reply.requestor, False, 0L,
+  XSendEvent (reply.display, reply.requester, False, 0L,
 	      (XEvent *) &reply);
   XFlush (reply.display);
   UNBLOCK_INPUT;
@@ -412,7 +412,7 @@ x_decline_selection_request (event)
 static struct input_event *x_selection_current_request;
 
 /* Used as an unwind-protect clause so that, if a selection-converter signals
-   an error, we tell the requestor that we were unable to do what they wanted
+   an error, we tell the requester that we were unable to do what they wanted
    before we throw to top-level or go into the debugger or whatever.  */
 
 static Lisp_Object
@@ -498,7 +498,7 @@ x_reply_selection_request (event, format, data, size, type)
 {
   XSelectionEvent reply;
   Display *display = SELECTION_EVENT_DISPLAY (event);
-  Window window = SELECTION_EVENT_REQUESTOR (event);
+  Window window = SELECTION_EVENT_REQUESTER (event);
   int bytes_remaining;
   int format_bytes = format/8;
   int max_bytes = SELECTION_QUANTUM (display);
@@ -509,7 +509,7 @@ x_reply_selection_request (event, format, data, size, type)
 
   reply.type = SelectionNotify;
   reply.display = display;
-  reply.requestor = window;
+  reply.requester = window;
   reply.selection = SELECTION_EVENT_SELECTION (event);
   reply.time = SELECTION_EVENT_TIME (event);
   reply.target = SELECTION_EVENT_TARGET (event);
@@ -576,7 +576,7 @@ x_reply_selection_request (event, format, data, size, type)
       had_errors = x_had_errors_p (display);
       UNBLOCK_INPUT;
 
-      /* First, wait for the requestor to ack by deleting the property.
+      /* First, wait for the requester to ack by deleting the property.
 	 This can run random lisp code (process handlers) or signal.  */
       if (! had_errors)
 	wait_for_property_change (wait_object);
@@ -607,12 +607,12 @@ x_reply_selection_request (event, format, data, size, type)
 	  if (had_errors)
 	    break;
 
-	  /* Now wait for the requestor to ack this chunk by deleting the
+	  /* Now wait for the requester to ack this chunk by deleting the
 	     property.	 This can run random lisp code or signal.
 	   */
 	  wait_for_property_change (wait_object);
 	}
-      /* Now write a zero-length chunk to the property to tell the requestor
+      /* Now write a zero-length chunk to the property to tell the requester
 	 that we're done.  */
 #if 0
       fprintf (stderr,"  INCR done\n");
@@ -1030,7 +1030,7 @@ fetch_multiple_target (event)
      XSelectionRequestEvent *event;
 {
   Display *display = event->display;
-  Window window = event->requestor;
+  Window window = event->requester;
   Atom target = event->target;
   Atom selection_atom = event->selection;
   int result;
@@ -1085,10 +1085,10 @@ static Lisp_Object
 x_get_foreign_selection (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
-  Window requestor_window = FRAME_X_WINDOW (selected_frame);
+  Window requester_window = FRAME_X_WINDOW (selected_frame);
   Display *display = FRAME_X_DISPLAY (selected_frame);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
-  Time requestor_time = last_event_timestamp;
+  Time requester_time = last_event_timestamp;
   Atom target_property = dpyinfo->Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
   Atom type_atom;
@@ -1104,11 +1104,11 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   x_catch_errors (display);
   XConvertSelection (display, selection_atom, type_atom, target_property,
-		     requestor_window, requestor_time);
+		     requester_window, requester_time);
   XFlush (display);
 
   /* Prepare to block until the reply has been read.  */
-  reading_selection_window = requestor_window;
+  reading_selection_window = requester_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
 
@@ -1142,7 +1142,7 @@ x_get_foreign_selection (selection_symbol, target_type)
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
-    x_get_window_property_as_lisp_data (display, requestor_window,
+    x_get_window_property_as_lisp_data (display, requester_window,
 					target_property, target_type,
 					selection_atom);
 }
@@ -1196,7 +1196,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   total_size = bytes_remaining + 1;
   *data_ret = (unsigned char *) xmalloc (total_size);
   
-  /* Now read, until weve gotten it all.  */
+  /* Now read, until we've gotten it all.  */
   while (bytes_remaining)
     {
 #if 0
@@ -1273,7 +1273,7 @@ receive_incremental_selection (display, window, property, target_type,
       int tmp_size_bytes;
       wait_for_property_change (wait_object);
       /* expect it again immediately, because x_get_window_property may
-	 .. no it wont, I dont get it.
+	 .. no it won't, I don't get it.
 	 .. Ok, I get it now, the Xt code that implements INCR is broken.
        */
       x_get_window_property (display, window, property,
@@ -1697,7 +1697,7 @@ void
 x_handle_selection_notify (event)
      XSelectionEvent *event;
 {
-  if (event->requestor != reading_selection_window)
+  if (event->requester != reading_selection_window)
     return;
   if (event->selection != reading_which_selection)
     return;
@@ -2142,7 +2142,7 @@ it merely informs you that they have happened.");
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
    "Number of milliseconds to wait for a selection reply.\n\
-If the selection owner doens't reply in this time, we give up.\n\
+If the selection owner doesn't reply in this time, we give up.\n\
 A value of 0 means wait as long as necessary.  This is initialized from the\n\
 \"*selectionTimeout\" resource.");
   x_selection_timeout = 0;
