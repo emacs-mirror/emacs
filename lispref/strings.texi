@@ -255,7 +255,7 @@ printed form is with @code{format} (@pxref{Formatting Strings}) or
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
-@code{vconcat} in @ref{Vectors}, and @code{append} in @ref{Building
+@code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building
 Lists}.
 @end defun
 
