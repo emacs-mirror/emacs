@@ -1614,8 +1614,8 @@ try_window_id (window)
 	     following line from being overwritten by scrolling
 	     and therefore having to be redrawn.  */
 	  tem = scroll_frame_lines (f, bp.vpos + top - scroll_amount,
-				     top + height - max (0, scroll_amount),
-				     scroll_amount);
+				    top + height - max (0, scroll_amount),
+				    scroll_amount, bp.bufpos);
 	  if (!tem) stop_vpos = height;
 	}
       else if (scroll_amount)
@@ -1634,7 +1634,7 @@ try_window_id (window)
 	    return -2;
 	  tem = scroll_frame_lines (f, ep.vpos + top - scroll_amount,
 				     top + height - max (0, scroll_amount),
-				     scroll_amount);
+				     scroll_amount, ep.bufpos);
 	  if (!tem) stop_vpos = height;
 	}
     }
