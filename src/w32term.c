@@ -1209,7 +1209,6 @@ w32_text_out (s, x, y,chars,nchars)
 }
 
 
-
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -2061,7 +2060,6 @@ x_draw_image_foreground (s)
 }
 
 
-
 /* Draw a relief around the image glyph string S.  */
 
 static void
@@ -2811,14 +2809,6 @@ x_new_focus_frame (dpyinfo, frame)
 
       if (old_focus && old_focus->auto_lower)
 	x_lower_frame (old_focus);
-
-
-
-
-
-
-
-
 
       if (dpyinfo->w32_focus_frame && dpyinfo->w32_focus_frame->auto_raise)
 	pending_autoraise_frame = dpyinfo->w32_focus_frame;
@@ -4688,7 +4678,6 @@ w32_read_socket (sd, expected, hold_quit)
           if (f)
             x_new_focus_frame (dpyinfo, f);
 
-
 	  dpyinfo->grabbed = 0;
 	  check_visibility = 1;
 	  break;
@@ -4904,7 +4893,6 @@ w32_read_socket (sd, expected, hold_quit)
   UNBLOCK_INPUT;
   return count;
 }
-
 
 
 
