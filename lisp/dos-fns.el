@@ -28,7 +28,7 @@
 ;;; Code:
 
 ;;; Add %t: into the mode line format just after the open-paren.
-(let ((tail (assoc "   %[(" mode-line-format)))
+(let ((tail (member "   %[(" mode-line-format)))
   (setcdr tail (cons (purecopy "%t:")
 		     (cdr tail))))
 
