@@ -475,10 +475,18 @@ If the third argument is incorrect, Emacs may crash.")
 	      {
 		v2 = XSYMBOL (v1)->value;
 		if (MISCP (v2) || EQ (v2, Qunbound))
-		  v2 = Fsymbol_value (v1);
+		  {
+		    BEFORE_POTENTIAL_GC ();
+		    v2 = Fsymbol_value (v1);
+		    AFTER_POTENTIAL_GC ();
+		  }
 	      }
 	    else
-	      v2 = Fsymbol_value (v1);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		v2 = Fsymbol_value (v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    PUSH (v2);
 	    break;
 	  }
@@ -522,8 +530,10 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bmemq:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fmemq (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -564,7 +574,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    Lisp_Object sym, val;
 	      
 	    sym = vectorp[op];
-	    val = POP;
+	    val = TOP;
 
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
@@ -581,8 +591,13 @@ If the third argument is incorrect, Emacs may crash.")
 		     && !EQ (val, sym)))
 	      XSYMBOL (sym)->value = val;
 	    else
-	      set_internal (sym, val, current_buffer, 0);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		set_internal (sym, val, current_buffer, 0);
+		AFTER_POTENTIAL_GC ();
+	      }
 	  }
+	  POP;
 	  break;
 
 	case Bdup:
@@ -809,8 +824,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcatch:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = internal_catch (TOP, Feval, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -842,8 +857,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Btemp_output_buffer_show:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    temp_output_buffer_show (TOP);
 	    TOP = v1;
 	    /* pop binding of standard-output */
@@ -855,9 +870,9 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bnth:
 	  {
 	    Lisp_Object v1, v2;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    v2 = TOP;
-	    BEFORE_POTENTIAL_GC ();
 	    CHECK_NUMBER (v2, 0);
 	    AFTER_POTENTIAL_GC ();
 	    op = XINT (v2);
@@ -947,86 +962,110 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Blength:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Flength (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Baref:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Faref (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Baset:
 	  {
 	    Lisp_Object v1, v2;
+	    BEFORE_POTENTIAL_GC ();
 	    v2 = POP; v1 = POP;
 	    TOP = Faset (TOP, v1, v2);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bsymbol_value:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fsymbol_value (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bsymbol_function:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fsymbol_function (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bset:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fset (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bfset:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Ffset (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bget:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fget (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bsubstring:
 	  {
 	    Lisp_Object v1, v2;
-	    v2 = POP; v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v2 = POP; v1 = POP;
 	    TOP = Fsubstring (TOP, v1, v2);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bconcat2:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fconcat (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bconcat3:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (2);
 	  TOP = Fconcat (3, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bconcat4:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (3);
 	  TOP = Fconcat (4, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case BconcatN:
 	  op = FETCH;
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (op - 1);
 	  TOP = Fconcat (op, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bsub1:
@@ -1053,15 +1092,19 @@ If the third argument is incorrect, Emacs may crash.")
 		TOP = v1;
 	      }
 	    else
-	      TOP = Fadd1 (v1);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		TOP = Fadd1 (v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
 	case Beqlsign:
 	  {
 	    Lisp_Object v1, v2;
-	    v2 = POP; v1 = TOP;
 	    BEFORE_POTENTIAL_GC ();
+	    v2 = POP; v1 = TOP;
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
 	    AFTER_POTENTIAL_GC ();
@@ -1081,24 +1124,30 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bgtr:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fgtr (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Blss:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Flss (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bleq:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fleq (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1111,8 +1160,10 @@ If the third argument is incorrect, Emacs may crash.")
 	  }
 
 	case Bdiff:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fminus (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bnegate:
@@ -1125,40 +1176,56 @@ If the third argument is incorrect, Emacs may crash.")
 		TOP = v1;
 	      }
 	    else
-	      TOP = Fminus (1, &TOP);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		TOP = Fminus (1, &TOP);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
 	case Bplus:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fplus (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bmax:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fmax (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bmin:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fmin (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bmult:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Ftimes (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bquo:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fquo (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Brem:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Frem (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1207,13 +1274,17 @@ If the third argument is incorrect, Emacs may crash.")
 	  }
 
 	case Bchar_after:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fchar_after (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bfollowing_char:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = Ffollowing_char ();
+	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
 	    break;
 	  }
@@ -1221,7 +1292,9 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bpreceding_char:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = Fprevious_char ();
+	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
 	    break;
 	  }
@@ -1285,8 +1358,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bskip_chars_forward:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = Fskip_chars_forward (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -1295,8 +1368,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bskip_chars_backward:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = Fskip_chars_backward (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -1318,8 +1391,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bbuffer_substring:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = Fbuffer_substring (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -1328,8 +1401,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bdelete_region:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = Fdelete_region (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -1338,8 +1411,8 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bnarrow_to_region:
 	  {
 	    Lisp_Object v1;
-	    v1 = POP;
 	    BEFORE_POTENTIAL_GC ();
+	    v1 = POP;
 	    TOP = Fnarrow_to_region (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
@@ -1360,41 +1433,55 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bset_marker:
 	  {
 	    Lisp_Object v1, v2;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    v2 = POP;
 	    TOP = Fset_marker (TOP, v2, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bmatch_beginning:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fmatch_beginning (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bmatch_end:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fmatch_end (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bupcase:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fupcase (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bdowncase:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fdowncase (TOP);
+	  AFTER_POTENTIAL_GC ();
 	break;
 
 	case Bstringeqlsign:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fstring_equal (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bstringlss:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fstring_lessp (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1409,8 +1496,10 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bnthcdr:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fnthcdr (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1420,9 +1509,9 @@ If the third argument is incorrect, Emacs may crash.")
 	    if (CONSP (TOP))
 	      {
 		/* Exchange args and then do nth.  */
+		BEFORE_POTENTIAL_GC ();
 		v2 = POP;
 		v1 = TOP;
-		BEFORE_POTENTIAL_GC ();
 		CHECK_NUMBER (v2, 0);
 		AFTER_POTENTIAL_GC ();
 		op = XINT (v2);
@@ -1455,8 +1544,10 @@ If the third argument is incorrect, Emacs may crash.")
 	      }
 	    else
 	      {
+		BEFORE_POTENTIAL_GC ();
 		v1 = POP;
 		TOP = Felt (TOP, v1);
+		AFTER_POTENTIAL_GC ();
 	      }
 	    break;
 	  }
@@ -1464,36 +1555,46 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bmember:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fmember (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bassq:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fassq (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bnreverse:
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fnreverse (TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bsetcar:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fsetcar (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
 	case Bsetcdr:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fsetcdr (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1520,8 +1621,10 @@ If the third argument is incorrect, Emacs may crash.")
 	  }
 
 	case Bnconc:
+	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fnconc (2, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bnumberp:
