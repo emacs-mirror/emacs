@@ -26,11 +26,16 @@ any later version published by the Free Software Foundation; with the
 Invariant Sections being none, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
-License''.
+License'' in the Emacs manual.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end ifnottex
 
 @tex
@@ -556,34 +561,31 @@ syntactically malformed.
 
 This library deals with decoding and encoding Quoted-Printable text.
 
-Very briefly explained, qp encoding means translating all 8-bit
+Very briefly explained, QP encoding means translating all 8-bit
 characters (and lots of control characters) into things that look like
 @samp{=EF}; that is, an equal sign followed by the byte encoded as a hex
-string.
+string.  It is defined in RFC 2045.
 
 The following functions are defined by the library:
 
-@table @code
-@item quoted-printable-decode-region
-@findex quoted-printable-decode-region
-QP-decode all the encoded text in the specified region.
+@deffn Command quoted-printable-decode-region @var{from} @var{to} &optional @var{coding-system}
+QP-decode all the encoded text in the region.  If @var{coding-system} is
+non-nil, decode bytes into characters with that coding-system.
 
-@item quoted-printable-decode-string
-@findex quoted-printable-decode-string
-Decode the QP-encoded text in a string and return the results.
+@defun quoted-printable-decode-string @var{string} &optional @var{coding-system}
+Return a QP-encoded copy of @var{string}.  If @var{coding-system} is
+non-nil, decode bytes into characters with that coding-system.
 
-@item quoted-printable-encode-region
-@findex quoted-printable-encode-region
-QP-encode all the encodable characters in the specified region.  The third
-optional parameter @var{fold} specifies whether to fold long lines.
-(Long here means 72.)
+@deffn Command quoted-printable-encode-region @var{from} @var{to} &optional @var{fold} @var{class}
+QP-encode all the region.  If @var{fold} is non-@var{nil}, fold lines at
+76 characters, as required by the RFC.  If @var{class} is
+non-@code{nil}, translate the characters matched by that class in the
+form expected by @var{skip-chars-forward}.  If variable
+@var{mm-use-ultra-safe-encoding} is defined and non-@code{nil}, fold
+lines unconditionally and encode lines starting with @samp{From }.
 
-@item quoted-printable-encode-string
-@findex quoted-printable-encode-string
-QP-encode all the encodable characters in a string and return the
-results.
-
-@end table
+@defun quoted-printable-encode-string string
+Return a QP-encoded copy of @var{string}.
 
 
 @node base64
@@ -592,34 +594,8 @@ results.
 
 Base64 is an encoding that encodes three bytes into four characters,
 thereby increasing the size by about 33%.  The alphabet used for
-encoding is very resistant to mangling during transit.
-
-The following functions are defined by this library:
-
-@table @code
-@item base64-encode-region
-@findex base64-encode-region
-base64 encode the selected region.  Return the length of the encoded
-text.  Optional third argument @var{no-line-break} means do not break
-long lines into shorter lines.
-
-@item base64-encode-string
-@findex base64-encode-string
-base64 encode a string and return the result.
-
-@item base64-decode-region
-@findex base64-decode-region
-base64 decode the selected region.  Return the length of the decoded
-text.  If the region can't be decoded, return @code{nil} and don't
-modify the buffer.
-
-@item base64-decode-string
-@findex base64-decode-string
-base64 decode a string and return the result.  If the string can't be
-decoded, @code{nil} is returned.
-
-@end table
-
+encoding is very resistant to mangling during transit.  @xref{Base
+64,,Base 64 Encoding, elisp, The Emacs Lisp Reference Manual}.
 
 @node binhex
 @section binhex
