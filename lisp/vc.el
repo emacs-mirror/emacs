@@ -622,8 +622,7 @@ See `vc-update-change-log'."
     (error "No log operation is pending."))
   ;; Return to "parent" buffer of this checkin and remove checkin window
   (pop-to-buffer vc-parent-buffer)
-  (vc-error-occurred
-   (delete-window (get-buffer-window "*VC-log*")))
+  (delete-windows-on (get-buffer "*VC-log*"))
   (kill-buffer "*VC-log*")
   ;; Now make sure we see the expanded headers
   (if buffer-file-name
