@@ -701,14 +701,13 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	   CONSP (frames);
 	   frames = XCONS (frames)->cdr)
 	{
-	  Lisp_Object this = XCONS (frames)->car;
+	  Lisp_Object this;
+	  this = XCONS (frames)->car;
 
 	  if (! EQ (this, frame)
 	      && EQ (frame,
-		     (WINDOW_FRAME
-		      (XWINDOW
-		       (FRAME_MINIBUF_WINDOW
-			(XFRAME (this)))))))
+		     WINDOW_FRAME (XWINDOW
+				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
 	    error ("Attempt to delete a surrogate minibuffer frame");
 	}
     }
