@@ -810,7 +810,7 @@ keymaps make this easier than it used to be.
 @menu
 * Minor Mode Conventions::      Tips for writing a minor mode.
 * Keymaps and Minor Modes::     How a minor mode can have its own keymap.
-* Easy-Mmode::                  A convenient facility for defining minor modes.
+* Defining Minor Modes::        A convenient facility for defining minor modes.
 @end menu
 
 @node Minor Mode Conventions
@@ -961,23 +961,25 @@ followed by a punctuation character @emph{other than} @kbd{@{},
 @kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:}, and @kbd{;}.  (Those few punctuation
 characters are reserved for major modes.)
 
-@node Easy-Mmode
-@subsection Easy-Mmode
+@node Defining Minor Modes
+@subsection Defining Minor Modes
 
-  The easy-mmode package provides a convenient way of implementing a
-mode in one self-contained definition.  It currently supports only
+  The macro @code{define-minor-mode} offers a convenient way of
+implementing a mode in one self-contained definition.  It supports only
 buffer-local minor modes, not global ones.
 
-@defmac easy-mmode-define-minor-mode mode doc &optional init-value mode-indicator keymap
-@tindex easy-mmode-define-minor-mode
+@defmac define-minor-mode mode doc &optional init-value mode-indicator keymap body...
+@tindex define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a symbol).
+It defines a command named @var{mode} to toggle the minor
+mode, with @var{doc} as its documentation string.  It also defines a
+variable named @var{mode}, which is set to @code{t} or @code{nil} by
+enabling or disabling the mode.  The variable is initialized to
+@var{init-value}.
 
-This macro defines a command named @var{mode} which toggles the minor
-mode, and has @var{doc} as its documentation string.
-
-It also defines a variable named @var{mode}, which is set to @code{t} or
-@code{nil} by enabling or disabling the mode.  The variable is
-initialized to @var{init-value}.
+The command named @var{mode} finishes by executing the @var{body} forms,
+if any, after it has performed the standard actions such as setting
+the variable named @var{mode}.
 
 The string @var{mode-indicator} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
@@ -992,10 +994,10 @@ specifying bindings in this form:
 @end example
 @end defmac
 
-  Here is an example of using @code{easy-mmode-define-minor-mode}:
+  Here is an example of using @code{define-minor-mode}:
 
 @smallexample
-(easy-mmode-define-minor-mode hungry-mode
+(define-minor-mode hungry-mode
   "Toggle Hungry mode.
 With no argument, this command toggles the mode. 
 Non-null prefix argument turns on the mode.
@@ -1023,6 +1025,11 @@ which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
 mode is enabled.  It initializes the keymap with key bindings for
 @kbd{C-@key{DEL}} and @kbd{C-M-@key{DEL}}.
+
+
+@findex easy-mmode-define-minor-mode
+  The name @code{easy-mmode-define-minor-mode} is an alias
+for this macro.
 
 @node Mode Line Format
 @section Mode Line Format

@@ -18,6 +18,7 @@ are done, and the subroutines that allow Lisp programs to do them.
 * Defining Commands::   Specifying how a function should read arguments.
 * Interactive Call::    Calling a command, so that it will read arguments.
 * Command Loop Info::   Variables set by the command loop for you to examine.
+* Adjusting Point::     Adjustment of point after a command.
 * Input Events::	What input looks like when you read it.
 * Reading Input::       How to read input events from the keyboard or mouse.
 * Special Events::      Events processed immediately and individually.
@@ -726,9 +727,9 @@ if all those events were characters.  @xref{Input Events}.
 @end defun
 
 @defun this-command-keys-vector
-Like @code{this-command-keys}, except that it always returns
-the events in a vector, so you do never need to deal with the complexities
-of storing input events in a string (@pxref{Strings of Events}).
+Like @code{this-command-keys}, except that it always returns the events
+in a vector, so you don't need to deal with the complexities of storing
+input events in a string (@pxref{Strings of Events}).
 @end defun
 
 @tindex clear-this-command-keys
@@ -777,6 +778,35 @@ Usually this is the frame that was selected when the event was
 generated, but if that frame has redirected input focus to another
 frame, the value is the frame to which the event was redirected.
 @xref{Input Focus}.
+@end defvar
+
+@node Adjusting Point
+@section Adjusting Point After Commands
+
+  It is not easy to display a value of point in the middle of a sequence
+of text that has the @code{display} or @code{composition} property.  So
+after a command finishes and returns to the command loop, if point is
+within such a sequence, the command loop normally moves point to the
+edge of the sequence.
+
+  A command can inhibit this feature by setting the variable
+@code{disable-point-adjustment}:
+
+@defvar disable-point-adjustment
+@tindex disable-point-adjustment
+If this variable is non-@code{nil} when a command returns to the command
+loop, then the command loop does not check for text properties such as
+@code{display} and @code{composition}, and does not move point out of
+sequences that have these properties.
+
+The command loop sets this variable to @code{nil} before each command,
+so if a command sets it, the effect applies only to that command.
+@end defvar
+
+@defvar global-disable-point-adjustment
+@tindex global-disable-point-adjustment
+If you set this variable to a non-@code{nil} value, the feature of
+moving point out of these sequences is completely turned off.
 @end defvar
 
 @node Input Events
@@ -1192,6 +1222,7 @@ motion (by reading motion events) until the button is released.
 @cindex repeat events
 @cindex double-click events
 @cindex triple-click events
+@cindex mouse events, repeated
 
 If you press the same mouse button more than once in quick succession
 without moving the mouse, Emacs generates special @dfn{repeat} mouse
@@ -1529,6 +1560,8 @@ to an event type which specifies all of them.  For example,
 
 @node Accessing Events
 @subsection Accessing Events
+@cindex mouse events, accessing the data
+@cindex accessing data of mouse events
 
   This section describes convenient functions for accessing the data in
 a mouse button or motion event.
@@ -1557,6 +1590,7 @@ event, the value is actually the starting position, which is the only
 position such events have.
 @end defun
 
+@cindex mouse position list, accessing
   These five functions take a position list as described above, and
 return various parts of it.
 
@@ -1579,6 +1613,8 @@ a cons cell @code{(@var{col} . @var{row})}.  These are computed from the
 @var{x} and @var{y} values actually found in @var{position}.
 @end defun
 
+@cindex mouse event, timestamp
+@cindex timestamp of a mouse event
 @defun posn-timestamp position
 Return the timestamp in @var{position}.
 @end defun
@@ -1614,6 +1650,8 @@ of a pair of x and y coordinates.
 
 @node Strings of Events
 @subsection Putting Keyboard Events in Strings
+@cindex keyboard events in strings
+@cindex strings with keyboard events
 
   In most of the places where strings are used, we conceptualize the
 string as containing text characters---the same kind of characters found
@@ -1818,17 +1856,24 @@ button-down events entirely.  It also reshuffles focus events and
 miscellaneous window events so that they never appear in a key sequence
 with any other events.
 
+@cindex @code{header-line} prefix key
+@cindex @code{mode-line} prefix key
+@cindex @code{vertical-line} prefix key
+@cindex @code{horizontal-scroll-bar} prefix key
+@cindex @code{vertical-scroll-bar} prefix key
+@cindex @code{menu-bar} prefix key
+@cindex mouse events, in special parts of frame
 When mouse events occur in special parts of a window, such as a mode
 line or a scroll bar, the event type shows nothing special---it is the
 same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys'', all of which are symbols: @code{mode-line},
-@code{vertical-line}, @code{horizontal-scroll-bar} and
-@code{vertical-scroll-bar}.  You can define meanings for mouse clicks in
-special window parts by defining key sequences using these imaginary
-prefix keys.
+``prefix keys'', all of which are symbols: @code{heder-line},
+@code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
+@code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
+meanings for mouse clicks in special window parts by defining key
+sequences using these imaginary prefix keys.
 
 For example, if you call @code{read-key-sequence} and then click the
 mouse on the window's mode line, you get two events, like this:
@@ -1856,6 +1901,8 @@ from the terminal---not counting those generated by keyboard macros.
 
 @node Reading One Event
 @subsection Reading One Event
+@cindex reading a single event
+@cindex event, reading only one
 
   The lowest level functions for command input are those that read a
 single event.
@@ -1960,7 +2007,8 @@ buffer.
   The input method function should return a list of events which should
 be used as input.  (If the list is @code{nil}, that means there is no
 input, so @code{read-event} waits for another event.)  These events are
-processed before the events in @code{unread-command-events}.  Events
+processed before the events in @code{unread-command-events}
+(@pxref{Event Input Misc}).  Events
 returned by the input method function are not passed to the input method
 function again, even if they are printing characters with no modifier
 bits.

@@ -20,6 +20,12 @@ expand file name arguments by calling @code{expand-file-name}, so that
 @samp{../}).  These functions don't recognize environment variable
 substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
 
+  When file I/O functions signal Lisp errors, they usually use the
+condition @code{file-error} (@pxref{Handling Errors}).  The error
+message is in most cases obtained from the operating system, according
+to locale @code{system-message-locale}, and decoded using coding system
+@code{locale-coding-system} (@pxref{Locales}).
+
 @menu
 * Visiting Files::           Reading files into Emacs buffers for editing.
 * Saving Buffers::           Writing changed buffers back into files.
@@ -250,7 +256,7 @@ This function is used by @code{find-file-noselect}.
 It uses @code{generate-new-buffer} (@pxref{Creating Buffers}).
 @end defun
 
-@defun after-find-file &optional error warn
+@defun after-find-file &optional error warn noauto after-find-file-from-revert-buffer nomodes
 This function sets the buffer major mode, and parses local variables
 (@pxref{Auto Major Mode}).  It is called by @code{find-file-noselect}
 and by the default revert function (@pxref{Reverting}).
@@ -265,6 +271,19 @@ call @code{after-find-file}.
 
 If @var{warn} is non-@code{nil}, then this function issues a warning
 if an auto-save file exists and is more recent than the visited file.
+
+If @var{noauto} is non-@code{nil}, that says not to enable or disable
+Auto-Save mode.  The mode remains enabled if it was enabled before.
+
+If @var{after-find-file-from-revert-buffer} is non-@code{nil}, that
+means this call was from @code{revert-buffer}.  This has no direct
+effect, but some mode functions and hook functions check the value
+of this variable.
+
+If @var{nomodes} is non-@code{nil}, that means don't alter the buffer's
+major mode, don't process local variables specifications in the file,
+and don't run @code{find-file-hooks}.  This feature is used by
+@code{revert-buffer} in some cases.
 
 The last thing @code{after-find-file} does is call all the functions
 in the list @code{find-file-hooks}.
@@ -318,13 +337,16 @@ saving one of these is asked to specify a file name to use.)  The
 for this argument.
 @end deffn
 
-@deffn Command write-file filename
+@deffn Command write-file filename &optional confirm
 This function writes the current buffer into file @var{filename}, makes
 the buffer visit that file, and marks it not modified.  Then it renames
 the buffer based on @var{filename}, appending a string like @samp{<2>}
 if necessary to make a unique buffer name.  It does most of this work by
 calling @code{set-visited-file-name} (@pxref{Buffer File Name}) and
 @code{save-buffer}.
+
+If @var{confirm} is non-@code{nil}, that means to ask for confirmation
+before overwriting an existing file.
 @end deffn
 
   Saving a buffer runs several hooks.  It also performs format
@@ -512,7 +534,7 @@ An error is signaled if @var{filename} specifies a nonwritable file,
 or a nonexistent file in a directory where files cannot be created.
 @end deffn
 
-@deffn Command write-region start end filename &optional append visit mustbenew
+@deffn Command write-region start end filename &optional append visit lockname mustbenew
 This function writes the region delimited by @var{start} and @var{end}
 in the current buffer into the file specified by @var{filename}.
 
@@ -551,6 +573,10 @@ the buffer as visiting another file (@var{visit}).  The argument
 @var{visit} is stored in @code{buffer-file-name}.  This feature is used
 to implement @code{file-precious-flag}; don't use it yourself unless you
 really know what you're doing.
+
+The optional argument @var{lockname}, if non-@code{nil}, specifies the
+file name to use for purposes of locking and unlocking, overriding
+@var{filename} and @var{visit} for that purpose.
 
 The function @code{write-region} converts the data which it writes to
 the appropriate file formats specified by @code{buffer-file-format}.
@@ -692,10 +718,10 @@ or directories unless otherwise noted.
   These functions test for permission to access a file in specific ways.
 
 @defun file-exists-p filename
-This function returns @code{t} if a file named @var{filename} appears
-to exist.  This does not mean you can necessarily read the file, only
-that you can find out its attributes.  (On Unix, this is true if the
-file exists and you have execute permission on the containing
+This function returns @code{t} if a file named @var{filename} appears to
+exist.  This does not mean you can necessarily read the file, only that
+you can find out its attributes.  (On Unix and GNU/Linux, this is true
+if the file exists and you have execute permission on the containing
 directories, regardless of the protection of the file itself.)
 
 If the file does not exist, or if fascist access control policies
@@ -726,10 +752,10 @@ and you can read it.  It returns @code{nil} otherwise.
 @c Emacs 19 feature
 @defun file-executable-p filename
 This function returns @code{t} if a file named @var{filename} exists and
-you can execute it.  It returns @code{nil} otherwise.  On Unix, if the
-file is a directory, execute permission means you can check the
-existence and attributes of files inside the directory, and open those
-files if their modes permit.
+you can execute it.  It returns @code{nil} otherwise.  On Unix and
+GNU/Linux, if the file is a directory, execute permission means you can
+check the existence and attributes of files inside the directory, and
+open those files if their modes permit.
 @end defun
 
 @defun file-writable-p filename
@@ -906,18 +932,38 @@ other I/O device).
 
 @c Emacs 19 features
   The @dfn{truename} of a file is the name that you get by following
-symbolic links until none remain, then simplifying away @samp{.}@: and
-@samp{..}@: appearing as components.  Strictly speaking, a file need not
-have a unique truename; the number of distinct truenames a file has is
-equal to the number of hard links to the file.  However, truenames are
-useful because they eliminate symbolic links as a cause of name
-variation.
+symbolic links at all levels until none remain, then simplifying away
+@samp{.}@: and @samp{..}@: appearing as name components.  This results
+in a sort of canonical name for the file.  A file does not always have a
+unique truename; the number of distinct truenames a file has is equal to
+the number of hard links to the file.  However, truenames are useful
+because they eliminate symbolic links as a cause of name variation.
 
 @defun file-truename filename
-The function @code{file-truename} returns the true name of the file
-@var{filename}.  This is the name that you get by following symbolic
-links until none remain.  The argument must be an absolute file name.
+The function @code{file-truename} returns the truename of the file
+@var{filename}.  The argument must be an absolute file name.
 @end defun
+
+@defun file-chase-links filename
+This function follows symbolic links, starting with @var{filename},
+until it finds a file name which is not the name of a symbolic link.
+Then it returns that file name.
+@end defun
+
+  To illustrate the difference between @code{file-chase-links} and
+@code{file-truename}, suppose that @file{/usr/foo} is a symbolic link to
+the directory @file{/home/foo}, and @file{/home/foo/hello} is an
+ordinary file (or at least, not a symbolic link) or nonexistent.  Then
+we would have:
+
+@example
+(file-chase-links "/usr/foo/hello")
+     ;; @r{This does not follow the links in the parent directories.}
+     @result{} "/usr/foo/hello"
+(file-truename "/usr/foo/hello")
+     ;; @r{Assuming that @file{/home} is not a symbolic link.}
+     @result{} "/home/foo/hello"
+@end example
 
   @xref{Buffer File Name}, for related information.
 
@@ -1242,9 +1288,9 @@ This command deletes the file @var{filename}, like the shell command
 @samp{rm @var{filename}}.  If the file has multiple names, it continues
 to exist under the other names.
 
-A suitable kind of @code{file-error} error is signaled if the file
-does not exist, or is not deletable.  (On Unix, a file is deletable if
-its directory is writable.)
+A suitable kind of @code{file-error} error is signaled if the file does
+not exist, or is not deletable.  (On Unix and GNU/Linux, a file is
+deletable if its directory is writable.)
 
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
@@ -1278,8 +1324,8 @@ be an integer).  Only the low 12 bits of @var{mode} are used.
 @defun set-default-file-modes mode
 This function sets the default file protection for new files created by
 Emacs and its subprocesses.  Every file created with Emacs initially has
-this protection.  On Unix, the default protection is the bitwise
-complement of the ``umask'' value.
+this protection.  On Unix and GNU/Linux, the default protection is the
+bitwise complement of the ``umask'' value.
 
 The argument @var{mode} must be an integer.  On most systems, only the
 low 9 bits of @var{mode} are meaningful.
@@ -1406,9 +1452,13 @@ This function returns the nondirectory part of @var{filename}.
 @end example
 @end defun
 
-@defun file-name-sans-versions filename
+@defun file-name-sans-versions filename &optional keep-backup-version
 This function returns @var{filename} with any file version numbers,
-backup version numbers, or trailing tildes deleted.
+backup version numbers, or trailing tildes discarded.
+
+If @var{keep-backup-version} is non-@code{nil}, then true file version
+numbers understood as such by the file system are discarded from the
+return value, but backup version numbers are kept.
 
 @example
 @group
@@ -1545,12 +1595,12 @@ directory.
 root directory.  A file name can specify all the directory names
 starting from the root of the tree; then it is called an @dfn{absolute}
 file name.  Or it can specify the position of the file in the tree
-relative to a default directory; then it is called a @dfn{relative}
-file name.  On Unix, an absolute file name starts with a slash or a
-tilde (@samp{~}), and a relative one does not.  On MS-DOS and
+relative to a default directory; then it is called a @dfn{relative} file
+name.  On Unix and GNU/Linux, an absolute file name starts with a slash
+or a tilde (@samp{~}), and a relative one does not.  On MS-DOS and
 MS-Windows, an absolute file name starts with a slash or a backslash, or
 with a drive specification @samp{@var{x}:/}, where @var{x} is the
-@dfn{drive letter}. The rules on VMS are complicated.
+@dfn{drive letter}.  The rules on VMS are complicated.
 
 @defun file-name-absolute-p filename
 This function returns @code{t} if file @var{filename} is an absolute
@@ -1625,10 +1675,11 @@ variables; only @code{substitute-in-file-name} does that.
 @end defun
 
 @c Emacs 19 feature
-@defun file-relative-name filename directory
+@defun file-relative-name filename &optional directory
 This function does the inverse of expansion---it tries to return a
 relative name that is equivalent to @var{filename} when interpreted
-relative to @var{directory}.
+relative to @var{directory}.  If @var{directory} is omitted or
+@code{nil}, it defaults to the current buffer's default directory.
 
 On some operating systems, an absolute file name begins with a device
 name.  On such systems, @var{filename} has no relative equivalent based
@@ -2053,8 +2104,10 @@ files that are directories.  For example, you cannot delete a directory
 with @code{delete-file}.  These special functions exist to create and
 delete directories.
 
-@defun make-directory dirname
+@defun make-directory dirname &optional parents
 This function creates a directory named @var{dirname}.
+If @var{parents} is non-@code{nil}, that means to create
+the parent directories first, if they don't already exist.
 @end defun
 
 @defun delete-directory dirname

@@ -507,6 +507,18 @@ This function returns the current syntax table, which is the table for
 the current buffer.
 @end defun
 
+@defmac with-syntax-table @var{table} @var{body}...
+@tindex with-syntax-table
+This macro executes @var{body} using @var{table} as the current syntax
+table.  It returns the value of the last form in @var{body}, after
+restoring the old current syntax table.
+
+Since each buffer has its own current syntax table, we should make that
+more precise: @code{with-syntax-table} temporarily alters the current
+syntax table of whichever buffer is current at the time the macro
+execution starts.  Other buffers are not affected.
+@end defmac
+
 @node Syntax Properties
 @section Syntax Properties
 @kindex syntax-table @r{(text property)}
@@ -939,6 +951,14 @@ This function makes @var{table} the category table for the current
 buffer.  It returns @var{table}.
 @end defun
 
+@defun make-category-table &optional default-set
+@tindex make-category-table
+This creates and returns an empty category table, using
+@var{default-set} as the default (for characters that don't specify
+their own sets).  Initially no characters specify their own sets in this
+new table; that is what we mean by ``empty.''
+@end defun
+
 @defun make-category-set categories
 This function returns a new category set---a bool-vector---whose initial
 contents are the categories listed in the string @var{categories}.  The
@@ -967,7 +987,8 @@ the category table.
 
 @defun category-set-mnemonics category-set
 This function converts the category set @var{category-set} into a string
-containing the names of all the categories that are members of the set.
+containing the characters that designate the categories that are members
+of the set.
 
 @example
 (category-set-mnemonics (char-category-set ?a))

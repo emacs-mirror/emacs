@@ -18,9 +18,9 @@
 @sp 1
 @center @titlefont{Manual}
 @sp 2
-@center GNU Emacs Version 19
+@center GNU Emacs Version 19.29
 @center for Unix Users
-@center Edition 2.3, June 1994
+@center Edition 2.4, June 1995
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
@@ -39,9 +39,9 @@
 @sp 1
 @center @titlefont{Manual}
 @sp 2
-@center GNU Emacs Version 19
+@center GNU Emacs Version 19.29
 @center for Unix Users
-@center Edition 2.3, June 1994
+@center Edition 2.4, June 1995
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2

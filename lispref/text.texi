@@ -220,9 +220,6 @@ This is the contents of buffer foo
 "
 @end group
 @end example
-
-When this function is used in the minibuffer, the value does not include
-the prompt.
 @end defun
 
 @defun thing-at-point thing
@@ -306,7 +303,7 @@ to point after the inserted text, regardless of the markers' insertion
 type.
 
   Insertion functions signal an error if the current buffer is
-read-only.
+read-only or if they insert within read-only text.
 
   These functions copy text characters from strings and buffers along
 with their properties.  The inserted characters have exactly the same
@@ -486,10 +483,9 @@ return a value of @code{nil}.
 @deffn Command erase-buffer
 This function deletes the entire text of the current buffer, leaving it
 empty.  If the buffer is read-only, it signals a @code{buffer-read-only}
-error.  Otherwise, it deletes the text without asking for any
-confirmation.  It returns @code{nil}.
-
-In the minibuffer, @code{erase-buffer} does not delete the prompt.
+error; if some of the text in it is read-only, it signals a
+@code{text-read-only} error.  Otherwise, it deletes the text without
+asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
 auto-saving of that buffer ``because it has shrunk''.  However,
@@ -791,16 +787,16 @@ In an interactive call, @var{start} and @var{end} are point and
 the mark.
 
 @c Emacs 19 feature
-If the buffer is read-only, @code{kill-region} modifies the kill ring
-just the same, then signals an error without modifying the buffer.  This
-is convenient because it lets the user use all the kill commands to copy
-text into the kill ring from a read-only buffer.
+If the buffer or text is read-only, @code{kill-region} modifies the kill
+ring just the same, then signals an error without modifying the buffer.
+This is convenient because it lets the user use a series of kill
+commands to copy text from a read-only buffer into the kill ring.
 @end deffn
 
 @defopt kill-read-only-ok
-If this option is non-@code{nil}, @code{kill-region} does not get an
-error if the buffer is read-only.  Instead, it simply returns, updating
-the kill ring but not changing the buffer.
+If this option is non-@code{nil}, @code{kill-region} does not signal an
+error if the buffer or text is read-only.  Instead, it simply returns,
+updating the kill ring but not changing the buffer.
 @end defopt
 
 @deffn Command copy-region-as-kill start end
@@ -1219,7 +1215,7 @@ The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
 @end deffn
 
-@deffn Command fill-individual-paragraphs start end &optional justify mail-flag
+@deffn Command fill-individual-paragraphs start end &optional justify citation-regexp
 This command fills each paragraph in the region according to its
 individual fill prefix.  Thus, if the lines of a paragraph were indented
 with spaces, the filled paragraph will remain indented in the same
@@ -1227,11 +1223,13 @@ fashion.
 
 The first two arguments, @var{start} and @var{end}, are the beginning
 and end of the region to be filled.  The third and fourth arguments,
-@var{justify} and @var{mail-flag}, are optional.  If
+@var{justify} and @var{citation-regexp}, are optional.  If
 @var{justify} is non-@code{nil}, the paragraphs are justified as
-well as filled.  If @var{mail-flag} is non-@code{nil}, it means the
+well as filled.  If @var{citation-regexp} is non-@code{nil}, it means the
 function is operating on a mail message and therefore should not fill
-the header lines.
+the header lines.  If @var{citation-regexp} is a string, it is used as
+a regular expression; if it matches the beginning of a line, that line
+is treated as a citation marker.
 
 Ordinarily, @code{fill-individual-paragraphs} regards each change in
 indentation as starting a new paragraph.  If
@@ -1262,7 +1260,7 @@ In Adaptive Fill mode, this command calls @code{fill-context-prefix} to
 choose a fill prefix by default.  @xref{Adaptive Fill}.
 @end deffn
 
-@deffn Command justify-current-line how eop nosqueeze
+@deffn Command justify-current-line &optional how eop nosqueeze
 This command inserts spaces between the words of the current line so
 that the line ends exactly at @code{fill-column}.  It returns
 @code{nil}.
@@ -1395,11 +1393,12 @@ If @var{force} is non-@code{nil}, that says to fix the line's
 indentation if that doesn't match the left margin value.
 @end deffn
 
-@defun delete-to-left-margin from to
-This function removes left margin indentation from the text
-between @var{from} and @var{to}.  The amount of indentation
-to delete is determined by calling @code{current-left-margin}.
-In no case does this function delete non-whitespace.
+@defun delete-to-left-margin &optional from to
+This function removes left margin indentation from the text between
+@var{from} and @var{to}.  The amount of indentation to delete is
+determined by calling @code{current-left-margin}.  In no case does this
+function delete non-whitespace.  If @var{from} and @var{to} are omitted,
+they default to the whole buffer.
 @end defun
 
 @defun indent-to-left-margin
@@ -1442,6 +1441,9 @@ This function implements the heart of Adaptive Fill mode; it chooses a
 fill prefix based on the text between @var{from} and @var{to}.  It does
 this by looking at the first two lines of the paragraph, based on the
 variables described below.
+@c The optional argument first-line-regexp is not documented
+@c because it exists for internal purposes and might be eliminated
+@c in the future.
 @end defun
 
 @defopt adaptive-fill-regexp
@@ -2255,6 +2257,8 @@ along with the characters; this includes such diverse functions as
                                   only when text is examined.
 * Clickable Text::              Using text properties to make regions of text
                                   do something when you click on them.
+* Fields::                      The @code{field} property defines
+                                  fields within the buffer.
 * Not Intervals::		Why text properties do not use
 				  Lisp-visible text intervals.
 @end menu
@@ -2329,7 +2333,7 @@ properties specified by name.
 
   Since text properties are considered part of the contents of the
 buffer (or string), and can affect how a buffer looks on the screen, any
-change in buffer text properties mark the buffer as modified.  Buffer
+change in buffer text properties marks the buffer as modified.  Buffer
 text property changes are undoable also (@pxref{Undo}).
 
 @defun put-text-property start end prop value &optional object
@@ -2658,7 +2662,8 @@ about this particular character.  @xref{Syntax Properties}.
 @cindex read-only character
 @kindex read-only @r{(text property)}
 If a character has the property @code{read-only}, then modifying that
-character is not allowed.  Any command that would do so gets an error.
+character is not allowed.  Any command that would do so gets an error,
+@code{text-read-only}.
 
 Insertion next to a read-only character is an error if inserting
 ordinary text there would inherit the @code{read-only} property due to
@@ -2685,6 +2690,13 @@ point actually moves to the start of the group.
 
 When the variable @code{inhibit-point-motion-hooks} is non-@code{nil},
 the @code{intangible} property is ignored.
+
+@item field
+@kindex field @r{(text property)}
+Consecutive characters with the same @code{field} property constitute a
+@dfn{field}.  Some motion functions including @code{forward-word} and
+@code{beginning-of-line} stop moving at a field boundary.
+@xref{Fields}.
 
 @item modification-hooks
 @cindex change hooks for a character
@@ -2799,16 +2811,23 @@ section.  Self-inserting characters inherit properties because they work
 using these primitives.
 
   When you do insertion with inheritance, @emph{which} properties are
-inherited depends on two specific properties: @code{front-sticky} and
-@code{rear-nonsticky}.
-
-  Insertion after a character inherits those of its properties that are
+inherited, and from where, depends on which properties are @dfn{sticky}.
+Insertion after a character inherits those of its properties that are
 @dfn{rear-sticky}.  Insertion before a character inherits those of its
-properties that are @dfn{front-sticky}.  By default, a text property is
-rear-sticky but not front-sticky.  Thus, the default is to inherit all
-the properties of the preceding character, and nothing from the
-following character.  You can request different behavior by specifying
-the stickiness of certain properties.
+properties that are @dfn{front-sticky}.  When both sides offer different
+sticky values for the same property, the previous character's value
+takes precedence.
+
+  By default, a text property is rear-sticky but not front-sticky; thus,
+the default is to inherit all the properties of the preceding character,
+and nothing from the following character.
+
+  You can control the stickiness of various text properties with two
+specific text properties, @code{front-sticky} and @code{rear-nonsticky},
+and with the variable @code{text-property-default-nonsticky}.  You can
+use the variable to specify a different default for a given property.
+You can use those two text properties to make any specific properties
+sticky or nonsticky in any particular part of the text.
 
   If a character's @code{front-sticky} property is @code{t}, then all
 its properties are front-sticky.  If the @code{front-sticky} property is
@@ -2818,18 +2837,29 @@ names are in the list.  For example, if a character has a
 then insertion before the character can inherit its @code{face} property
 and its @code{read-only} property, but no others.
 
-  The @code{rear-nonsticky} works the opposite way.  Every property is
-rear-sticky by default, so the @code{rear-nonsticky} property says which
-properties are @emph{not} rear-sticky.  If a character's
+  The @code{rear-nonsticky} works the opposite way.  A property is
+normally rear-sticky by default, so the @code{rear-nonsticky} property
+says which properties are @emph{not} rear-sticky.  If a character's
 @code{rear-nonsticky} property is @code{t}, then none of its properties
 are rear-sticky.  If the @code{rear-nonsticky} property is a list,
 properties are rear-sticky @emph{unless} their names are in the list.
 
-  When you insert text with inheritance, it inherits all the rear-sticky
-properties of the preceding character, and all the front-sticky
-properties of the following character.  The previous character's
-properties take precedence when both sides offer different sticky values
-for the same property.
+@defvar text-property-default-nonsticky
+@tindex text-property-default-nonsticky
+This variable holds an alist which defines the default rear-stickiness
+of various text properties.  Each element has the form
+@code{(@var{property} . @var{nonstickiness})}, and it defines the
+stickiness of a particular text property, @var{property}.
+
+If @var{nonstickiness} is non-@code{nil}, this means that the property
+@var{property} is rear-nonsticky by default.  Since all properties are
+front-nonsticky by default, this makes @var{property} nonsticky in both
+directions by default.
+
+The text properties @code{front-sticky} and @code{rear-nonsticky}, when
+used, take precedence over the default @var{nonstickiness} specifed in
+@code{text-property-default-nonsticky}.
+@end defvar
 
   Here are the functions that insert text with inheritance of properties:
 
@@ -3034,6 +3064,102 @@ clickable pieces of text.  Also, the major mode definition (or the
 global definition) remains available for the rest of the text in the
 buffer.
 
+@node Fields
+@subsection Defining and Using Fields
+@cindex fields
+
+  A field is a range of consecutive characters in the buffer that are
+identified by having the same value (comparing with @code{eq}) of the
+@code{field} property.  This section describes special functions that
+are available for operating on fields.
+
+  You specify a field with a buffer position, @var{pos}.  We think of
+each field as containing a range of buffer positions, so the position
+you specify stands for the field containing that position.
+
+  When the characters before and after @var{pos} are part of the same
+field, there is no doubt which field contains @var{pos}: the one those
+characters both belong to.  When @var{pos} is at a boundary between
+fields, which field it belongs to depends on the stickiness of the
+@code{field} properties of the two surrounding characters (@pxref{Sticky
+Properties}).  The field whose property would be inherited by text
+inserted at @var{pos} is the field that contains @var{pos}.
+
+  There is an anomalous case where newly inserted text at @var{pos}
+would not inherit the @code{field} property from either side.  This
+happens if the previous character's @code{field} property is not
+rear-sticky, and the following character's @code{field} property is not
+front-sticky.  In this case, @var{pos} belongs to neither the preceding
+field nor the following field; the field functions treat it as belonging
+to an empty field whose beginning and end are both at @var{pos}.
+
+  In all of these functions, if @var{pos} is omitted or @code{nil}, the
+value of point is used by default.
+
+@defun field-beginning &optional pos escape-from-edge
+@tindex field-beginning
+This function returns the beginning of the field specified by @var{pos}.
+
+If @var{pos} is at the end of a field, and @var{escape-from-edge} is
+non-@code{nil}, then the return value is always the beginning of the
+field that @emph{ends} at @var{pos}, regardless of the stickiness of the
+@code{field} properties around @var{pos}.
+@end defun
+
+@defun field-end &optional pos escape-from-edge
+@tindex field-end
+This function returns the end of the field specified by @var{pos}.
+
+If @var{pos} is at the beginning of a field, and @var{escape-from-edge}
+is non-@code{nil}, then the return value is always the end of the field
+that @emph{begins} at @var{pos}, regardless of the stickiness of the
+@code{field} properties around @var{pos}.
+@end defun
+
+@defun field-string &optional pos
+@tindex field-string
+This function returns the contents of the field specified by @var{pos},
+as a string.
+@end defun
+
+@defun field-string-no-properties &optional pos
+@tindex field-string-no-properties
+This function returns the contents of the field specified by @var{pos},
+as a string, discarding text properties.
+@end defun
+
+@defun delete-field &optional pos
+@tindex delete-field
+This function deletes the text of the field specified by @var{pos}.
+@end defun
+
+@defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line
+@tindex constrain-to-field
+This function ``constrains'' @var{new-pos} to the field that
+@var{old-pos} belongs to---in other words, it returns the position
+closest to @var{new-pos} that is in the same field as @var{old-pos}.
+
+If @var{new-pos} is @code{nil}, then @code{constrain-to-field} uses
+the value of point instead, and moves point to the resulting position.
+
+If @var{old-pos} is at the boundary of two fields, then the allowable
+positions for @var{new-pos} depends on the value of the optional
+argument @var{escape-from-edge}.  If @var{escape-from-edge} is
+@code{nil}, then @var{new-pos} is constrained to the field that has the
+same @code{field} text-property that new characters inserted at
+@var{old-pos} would get.  (This depends on the stickiness of the
+@code{field} property for the characters before and after
+@var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
+@var{new-pos} is constrained to the union of the two adjacent fields.
+
+If the optional argument @var{only-in-line} is non-@code{nil}, and
+constraining @var{new-pos} in the usual way would move it to a different
+line, @var{new-pos} is returned unconstrained.  This used in commands
+that move by line, such as @code{next-line} and
+@code{beginning-of-line}, so that they respect field boundaries only in
+the case where they can still move to the right line.
+@end defun
+
 @node Not Intervals
 @subsection Why Text Properties are not Intervals
 @cindex intervals
@@ -3094,12 +3220,11 @@ This function replaces all occurrences of the character @var{old-char}
 with the character @var{new-char} in the region of the current buffer
 defined by @var{start} and @var{end}.
 
-@cindex Outline mode
 @cindex undo avoidance
 If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region} does
 not record the change for undo and does not mark the buffer as modified.
-This feature is used for controlling selective display (@pxref{Selective
-Display}).
+This was useful for controlling the old selective display feature
+(@pxref{Selective Display}).
 
 @code{subst-char-in-region} does not move point and returns
 @code{nil}.

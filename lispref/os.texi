@@ -1090,6 +1090,13 @@ is allowed with most letters, all the ones that output numbers.
 If @var{universal} is non-@code{nil}, that means to describe the time as
 Universal Time; @code{nil} means describe it using what Emacs believes
 is the local time zone (see @code{current-time-zone}).
+
+This function uses the C library function @code{strftime} to do most of
+the work.  In order to communicate with that function, it first encodes
+its argument using the coding system specified by
+@code{locale-coding-system} (@pxref{Locales}); after @code{strftime}
+returns the resulting string, @code{format-time-string} decodes the
+string using that same coding system.
 @end defun
 
 @defun decode-time time

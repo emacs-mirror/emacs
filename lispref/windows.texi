@@ -260,7 +260,7 @@ gets @minus{} @var{size} lines and the upper window gets the rest, but
 the upper window is still the one selected.)
 @end deffn
 
-@deffn Command split-window-horizontally size
+@deffn Command split-window-horizontally &optional size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window with @var{size} columns.
 
@@ -1320,7 +1320,9 @@ window scrolls up because point is above the window start, the new start
 position is chosen to put point @var{f} part of the window height from
 the top.  The larger @var{f}, the more aggressive the scrolling.
 
-This variable automatically becomes buffer-local when set in any fashion.
+A value of @code{nil} is equivalent to .5, since its effect is to center
+point.  This variable automatically becomes buffer-local when set in any
+fashion.
 @end defopt
 
 @defopt scroll-down-aggressively

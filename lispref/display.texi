@@ -919,7 +919,7 @@ current buffer.
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
 insertion type for the start of the overlay and for the end of the
-overlay.  @xref{Marker Insertion Types}.
+overlay, respectively.  @xref{Marker Insertion Types}.
 @end defun
 
 @defun overlay-start overlay
@@ -938,19 +938,22 @@ This function returns the buffer that @var{overlay} belongs to.
 
 @defun delete-overlay overlay
 This function deletes @var{overlay}.  The overlay continues to exist as
-a Lisp object, but ceases to be attached to the buffer it belonged to,
-and ceases to have any effect on display.
+a Lisp object, and its property list is unchanged, but it ceases to be
+attached to the buffer it belonged to, and ceases to have any effect on
+display.
 
-A deleted overlay is not permanently useless.  You can give it
-a position in a buffer again by calling @code{move-overlay}.
+A deleted overlay is not permanently disconnected.  You can give it a
+position in a buffer again by calling @code{move-overlay}.
 @end defun
 
 @defun move-overlay overlay start end &optional buffer
 This function moves @var{overlay} to @var{buffer}, and places its bounds
 at @var{start} and @var{end}.  Both arguments @var{start} and @var{end}
-must specify buffer positions; they may be integers or markers.  If
-@var{buffer} is omitted, @var{overlay} stays in the same buffer;
-if @var{overlay} was deleted, it goes into the current buffer.
+must specify buffer positions; they may be integers or markers.
+
+If @var{buffer} is omitted, @var{overlay} stays in the same buffer it
+was already associated with; if @var{overlay} was deleted, it goes into
+the current buffer.
 
 The return value is @var{overlay}.
 
@@ -960,11 +963,82 @@ update other vital data structures and can cause some overlays to be
 ``lost''.
 @end defun
 
+  Here are some examples:
+
+@example
+;; @r{Create an overlay.}
+(setq foo (make-overlay 1 10))
+     @result{} #<overlay from 1 to 10 in display.texi>
+(overlay-start foo)
+     @result{} 1
+(overlay-end foo)
+     @result{} 10
+(overlay-buffer foo)
+     @result{} #<buffer display.texi>
+;; @r{Give it a property we can check later.}
+(overlay-put foo 'happy t)
+     @result{} t
+;; @r{Verify the property is present.}
+(overlay-get foo 'happy)
+     @result{} t
+;; @r{Move the overlay.}
+(move-overlay foo 5 20)
+     @result{} #<overlay from 5 to 20 in display.texi>
+(overlay-start foo)
+     @result{} 5
+(overlay-end foo)
+     @result{} 20
+;; @r{Delete the overlay.}
+(delete-overlay foo)
+     @result{} nil
+;; @r{Verify it is deleted.}
+foo
+     @result{} #<overlay in no buffer>
+;; @r{A deleted overlay has no position.}
+(overlay-start foo)
+     @result{} nil
+(overlay-end foo)
+     @result{} nil
+(overlay-buffer foo)
+     @result{} nil
+;; @r{Undelete the overlay.}
+(move-overlay foo 1 20)
+     @result{} #<overlay from 1 to 20 in display.texi>
+;; @r{Verify the results.}
+(overlay-start foo)
+     @result{} 1
+(overlay-end foo)
+     @result{} 20
+(overlay-buffer foo)
+     @result{} #<buffer display.texi>
+;; @r{Moving and deleting the overlay don't change its properties.}
+(overlay-get foo 'happy)
+     @result{} t
+@end example
+
+@node Finding Overlays
+@subsection Searching for Overlays
+
 @defun overlays-at pos
-This function returns a list of all the overlays that contain position
-@var{pos} in the current buffer.  The list is in no particular order.
-An overlay contains position @var{pos} if it begins at or before
-@var{pos}, and ends after @var{pos}.
+This function returns a list of all the overlays that cover the
+character at position @var{pos} in the current buffer.  The list is in
+no particular order.  An overlay contains position @var{pos} if it
+begins at or before @var{pos}, and ends after @var{pos}.
+
+To illustrate usage, here is a Lisp function that returns a list of the
+overlays that specify property @var{prop} for the character at point:
+
+@smallexample
+(defun find-overlays-specifying (prop)
+  (let ((overlays (overlays-at (point)))
+        found)
+    (while overlays
+      (let ((overlay (cdr overlays)))
+        (if (overlay-get overlay prop)
+            (setq found (cons overlay found))))
+      (setq overlays (cdr overlays)))
+    found))
+@end smallexample
 @end defun
 
 @defun overlays-in beg end
@@ -973,7 +1047,7 @@ This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
 specified region; however, empty overlays are included in the result if
-they are located at @var{beg} or between @var{beg} and @var{end}.
+they are located at @var{beg}, or strictly between @var{beg} and @var{end}.
 @end defun
 
 @defun next-overlay-change pos
@@ -985,6 +1059,20 @@ of an overlay, after @var{pos}.
 This function returns the buffer position of the previous beginning or
 end of an overlay, before @var{pos}.
 @end defun
+
+  Here's an easy way to use @code{next-overlay-change} to search for the
+next character which gets a non-@code{nil} @code{happy} property from
+either its overlays or its text properties (@pxref{Property Search}):
+
+@smallexample
+(defun find-overlay-prop (prop)
+  (save-excursion
+    (while (and (not (eobp))
+                (not (get-char-property (point) 'happy)))
+      (goto-char (min (next-overlay-change (point))
+                      (next-single-property-change (point) 'happy))))
+    (point)))
+@end smallexample
 
 @node Width
 @section Width
@@ -1782,7 +1870,6 @@ expression in the list.  For example,
 @noindent
 allows the use of scalable fonts with registry @code{muleindian-2}.
 @end example
-@end defvar
 
 @defun clear-face-cache &optional unload-p
 @tindex clear-face-cache
@@ -2808,6 +2895,13 @@ displayed as a backslash followed by three octal digits: @samp{\001}.
 The value of this variable is the default value for @code{ctl-arrow} in
 buffers that do not override it.  @xref{Default Value}.
 @end defvar
+
+@defopt indicate-empty-lines
+@tindex indicate-empty-lines
+When this is non-@code{nil}, Emacs displays a special glyph in
+each empty line at the end of the buffer, on terminals that
+support it (window systems).
+@end defopt
 
 @defopt tab-width
 The value of this variable is the spacing between tab stops used for

@@ -423,19 +423,19 @@ should have a documentation string.
 An internal variable or subroutine of a Lisp program might as well have
 a documentation string.  In earlier Emacs versions, you could save space
 by using a comment instead of a documentation string, but that is no
-longer the case.
+longer the case---documentation strings now take up very little space in
+a running Emacs.
 
 @item
 The first line of the documentation string should consist of one or two
 complete sentences that stand on their own as a summary.  @kbd{M-x
-apropos} displays just the first line, and if it doesn't stand on its
-own, the result looks bad.  In particular, start the first line with a
-capital letter and end with a period.
+apropos} displays just the first line, and if that line's contents don't
+stand on their own, the result looks bad.  In particular, start the
+first line with a capital letter and end with a period.
 
-The documentation string can have additional lines that expand on the
-details of how to use the function or variable.  The additional lines
-should be made up of complete sentences also, but they may be filled if
-that looks good.
+The documentation string is not limited to one line; use as many lines
+as you need to explain the details of how to use the function or
+variable.  Please use complete sentences in the additional lines.
 
 @item
 For consistency, phrase the verb in the first sentence of a function's
@@ -457,17 +457,27 @@ Instead of, ``Cause Emacs to display text in boldface,'' write just
 ``Display text in boldface.''
 
 @item
+When a command is meaningful only in a certain mode or situation,
+do mention that in the documentation string.  For example,
+the documentation of @code{dired-find-file} is:
+
+@example
+In Dired, visit the file or directory named on this line.
+@end example
+
+@item
 Do not start or end a documentation string with whitespace.
 
 @item
 Format the documentation string so that it fits in an Emacs window on an
 80-column screen.  It is a good idea for most lines to be no wider than
-60 characters.  The first line can be wider if necessary to fit the 
-information that ought to be there.
+60 characters.  The first line should not be wider than 67 characters
+or it will look bad in the output of @code{apropos}.
 
-However, rather than simply filling the entire documentation string, you
-can make it much more readable by choosing line breaks with care.
-Use blank lines between topics if the documentation string is long.
+You can fill the text if that looks good.  However, rather than blindly
+filling the entire documentation string, you can often make it much more
+readable by choosing certain line breaks with care.  Use blank lines
+between topics if the documentation string is long.
  
 @item
 @strong{Do not} indent subsequent lines of a documentation string so
@@ -499,18 +509,34 @@ all non-@code{nil} values are equivalent and indicate explicitly what
 When a function's documentation string mentions the value of an argument
 of the function, use the argument name in capital letters as if it were
 a name for that value.  Thus, the documentation string of the function
-@code{/} refers to its second argument as @samp{DIVISOR}, because the
-actual argument name is @code{divisor}.
+@code{eval} refers to its second argument as @samp{FORM}, because the
+actual argument name is @code{form}:
 
-Also use all caps for metasyntactic variables, such as when you show
-the decomposition of a list or vector into subunits, some of which may
-vary.  @samp{KEY} and @samp{VALUE} in the following example
+@example
+Evaluate FORM and return its value.
+@end example
+
+Also write metasyntactic variables in capital letters, such as when you
+show the decomposition of a list or vector into subunits, some of which
+may vary.  @samp{KEY} and @samp{VALUE} in the following example
 illustrate this practice:
 
 @example
 The argument TABLE should be an alist whose elements
 have the form (KEY . VALUE).  Here, KEY is ...
 @end example
+
+@item
+If a line in a documentation string begins with an open-parenthesis,
+write a backslash before the open-parenthesis, like this:
+
+@example
+The argument FOO can be either a number
+\(a buffer position) or a string (a file name).
+@end example
+
+This prevents the open-parenthesis from being treated as the start of a
+defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
 
 @item
 @iftex
@@ -634,29 +660,31 @@ at that point.  For example:
 @end group
 @end smallexample
 
-Every function that has no documentation string (presumably one that is
-used only internally within the package it belongs to), should have
-instead a two-semicolon comment right before the function, explaining
-what the function does and how to call it properly.  Explain precisely
-what each argument means and how the function interprets its possible
-values.
-
-@item ;;;
-Comments that start with three semicolons, @samp{;;;}, should start at
-the left margin.  Such comments are used outside function definitions to
-make general statements explaining the design principles of the program.
-For example:
+We also normally use two semicolons for comments outside functions.
 
 @smallexample
 @group
-;;; This Lisp code is run in Emacs
-;;; when it is to operate as a server
-;;; for other processes.
+;; This Lisp code is run in Emacs
+;; when it is to operate as a server
+;; for other processes.
 @end group
 @end smallexample
 
+Every function that has no documentation string (presumably one that is
+used only internally within the package it belongs to), should instead
+have a two-semicolon comment right before the function, explaining what
+the function does and how to call it properly.  Explain precisely what
+each argument means and how the function interprets its possible values.
+
+@item ;;;
+Comments that start with three semicolons, @samp{;;;}, should start at
+the left margin.  These are used, occasionally, for comments within
+functions that should start at the margin.  We also use them sometimes
+for comments that are between functions---whether to use two or three
+semicolons there is a matter of style.
+
 Another use for triple-semicolon comments is for commenting out lines
-within a function.  We use triple-semicolons for this precisely so that
+within a function.  We use three semicolons for this precisely so that
 they remain at the left margin.
 
 @smallexample
@@ -799,7 +827,8 @@ appropriate.  You can also put in header lines with other header
 names---they have no standard meanings, so they can't do any harm.
 
   We use additional stylized comments to subdivide the contents of the
-library file.  Here is a table of them:
+library file.  These should be separated by blank lines from anything
+else.  Here is a table of them:
 
 @table @samp
 @item ;;; Commentary:
@@ -815,11 +844,10 @@ but @samp{;;; Commentary:} is preferred.
 
 @item ;;; Change Log:
 This begins change log information stored in the library file (if you
-store the change history there).  For most of the Lisp
-files distributed with Emacs, the change history is kept in the file
-@file{ChangeLog} and not in the source file at all; these files do
-not have a @samp{;;; Change Log:} line.  @samp{History} is an
-alternative to @samp{Change Log}.
+store the change history there).  For Lisp files distributed with Emacs,
+the change history is kept in the file @file{ChangeLog} and not in the
+source file at all; these files generally do not have a @samp{;;; Change
+Log:} line.  @samp{History} is an alternative to @samp{Change Log}.
 
 @item ;;; Code:
 This begins the actual code of the program.

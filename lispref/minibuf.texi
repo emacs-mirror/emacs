@@ -45,15 +45,14 @@ nothing but a minibuffer window; see @ref{Minibuffers and Frames}.)
   The text in the minibuffer always starts with the @dfn{prompt string},
 the text that was specified by the program that is using the minibuffer
 to tell the user what sort of input to type.  This text is marked
-read-only so you won't accidentally delete or change it.  In other
-respects, it is an ordinary part of the buffer contents, but certain
-functions such as @code{erase-buffer}, @code{buffer-string},
-@code{beginning-of-line}, @code{forward-word}, @code{forward-sentence},
-and @code{forward-paragraph}, treat it a little bit specially.  (In
-older Emacs versions, the prompt was displayed using a special mechanism
-and was not part of the buffer contents.)
+read-only so you won't accidentally delete or change it.  It is also
+marked as a field (@pxref{Fields}), so that certain motion functions,
+including @code{beginning-of-line}, @code{forward-word},
+@code{forward-sentence}, and @code{forward-paragraph}, stop at the
+boundary between the prompt and the actual text.  (In older Emacs
+versions, the prompt was displayed using a special mechanism and was not
+part of the buffer contents.)
 
-@c ???
   The minibuffer's window is normally a single line; it grows
 automatically if necessary if the contents require more space.  You can
 explicitly resize it temporarily with the window sizing commands; it
@@ -93,6 +92,10 @@ just like @key{RET}.  This is used mainly for Mocklisp compatibility.
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
 @end itemize
+
+  When Emacs is running in batch mode, any request to read from the
+minibuffer actually reads a line from the standard input descriptor that
+was supplied when Emacs was started.
 
 @node Text from Minibuffer
 @section Reading Text Strings with the Minibuffer
@@ -1350,7 +1353,7 @@ asking each question individually.  This gives the user certain
 convenient facilities such as the ability to answer the whole series at
 once.
 
-@defun map-y-or-n-p prompter actor list &optional help action-alist
+@defun map-y-or-n-p prompter actor list &optional help action-alist no-cursor-in-echo-area
 This function asks the user a series of questions, reading a
 single-character answer in the echo area for each one.
 
@@ -1419,6 +1422,10 @@ When the user responds with @var{char}, @code{map-y-or-n-p} calls
 @var{list}.  If it returns @code{nil}, the prompt is repeated for the
 same object.
 
+Normally, @code{map-y-or-n-p} binds @code{cursor-in-echo-area} while
+prompting.  But if @var{no-cursor-in-echo-area} is non-@code{nil}, it
+does not do that.
+
 If @code{map-y-or-n-p} is called in a command that was invoked using the
 mouse---more precisely, if @code{last-nonmenu-event} (@pxref{Command
 Loop Info}) is either @code{nil} or a list---then it uses a dialog box
@@ -1480,16 +1487,16 @@ This command replaces the minibuffer contents with the value of the
 @var{n}th more recent history element.
 @end deffn
 
-@deffn Command previous-matching-history-element pattern
+@deffn Command previous-matching-history-element pattern n
 This command replaces the minibuffer contents with the value of the
-previous (older) history element that matches @var{pattern} (a regular
-expression).
+@var{n}th previous (older) history element that matches @var{pattern} (a
+regular expression).
 @end deffn
 
-@deffn Command next-matching-history-element pattern
-This command replaces the minibuffer contents with the value of the next
-(newer) history element that matches @var{pattern} (a regular
-expression).
+@deffn Command next-matching-history-element pattern n
+This command replaces the minibuffer contents with the value of the
+@var{n}th next (newer) history element that matches @var{pattern} (a
+regular expression).
 @end deffn
 
 @defun minibuffer-prompt
@@ -1497,8 +1504,8 @@ This function returns the prompt string of the currently active
 minibuffer.  If no minibuffer is active, it returns @code{nil}.
 @end defun
 
-@tindex minubuffer-prompt-end
-@defun minubuffer-prompt-end
+@tindex minibuffer-prompt-end
+@defun minibuffer-prompt-end
 This function, available starting in Emacs 21, returns the current
 position of the end of the minibuffer prompt, if a minibuffer is
 current.  Otherwise, it returns zero.
