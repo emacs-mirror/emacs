@@ -26,7 +26,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (require 'ring))
 
 ;;; Function aliases later to be redefined for XEmacs usage.
 
@@ -162,7 +164,8 @@
 	pixmap file height beg i)
     (save-excursion
       (switch-to-buffer (gnus-get-buffer-create gnus-group-buffer))
-      (let ((buffer-read-only nil))
+      (let ((buffer-read-only nil)
+	    width height)
 	(erase-buffer)
 	(when (and dir
 		   (file-exists-p (setq file
@@ -197,12 +200,18 @@
 (defvar gnus-article-xface-ring-size 6
   "Length of the ring used for `gnus-article-xface-ring-internal'.")
 
+(defvar gnus-article-compface-xbm
+  (eq 0 (string-match "#define" (shell-command-to-string "uncompface -X")))
+  "Non-nil means the compface program supports the -X option.
+That produces XBM output.")
+
 (defun gnus-article-display-xface (beg end)
   "Display an XFace header from between BEG and END in the current article.
 Requires support for images in your Emacs and the external programs
 `uncompface', and `icontopbm'.  On a GNU/Linux system these
 might be in packages with names like `compface' or `faces-xface' and
-`netpbm' or `libgr-progs', for instance.
+`netpbm' or `libgr-progs', for instance.  See also
+`gnus-article-compface-xbm'.
 
 This function is for Emacs 21+.  See `gnus-xmas-article-display-xface'
 for XEmacs."
@@ -222,23 +231,35 @@ for XEmacs."
 	(unless image
 	  (with-temp-buffer
 	    (insert data)
-	    (and (eq 0 (call-process-region (point-min) (point-max)
-					    "uncompface"
-					    'delete '(t nil)))
-		 (goto-char (point-min))
-		 (progn (insert "/* Width=48, Height=48 */\n") t)
-		 (eq 0 (call-process-region (point-min) (point-max)
-					    "icontopbm"
-					    'delete '(t nil)))
+	    (and (eq 0 (apply #'call-process-region (point-min) (point-max)
+			      "uncompface"
+			      'delete '(t nil) nil
+			      (if gnus-article-compface-xbm
+				  '("-X"))))
+		 (if gnus-article-compface-xbm
+		     t
+		   (goto-char (point-min))
+		   (progn (insert "/* Width=48, Height=48 */\n") t)
+		   (eq 0 (call-process-region (point-min) (point-max)
+					      "icontopbm"
+					      'delete '(t nil))))
 		 ;; Miles Bader says that faces don't look right as
 		 ;; light on dark.
 		 (if (eq 'dark (cdr-safe (assq 'background-mode
 					       (frame-parameters))))
-		     (setq image (create-image (buffer-string) 'pbm t
+		     (setq image (create-image (buffer-string)
+					       (if gnus-article-compface-xbm
+						   'xbm
+						 'pbm)
+					       t
 					       :ascent 'center
 					       :foreground "black"
 					       :background "white"))
-		   (setq image (create-image (buffer-string) 'pbm t
+		   (setq image (create-image (buffer-string)
+					     (if gnus-article-compface-xbm
+						 'xbm
+					       'pbm)
+					     t
 					     :ascent 'center)))))
 	  (ring-insert gnus-article-xface-ring-internal (cons data image)))
 	(when image
@@ -247,9 +268,5 @@ for XEmacs."
 	  (insert-image image))))))
 
 (provide 'gnus-ems)
-
-;; Local Variables:
-;; byte-compile-warnings: '(redefine callargs)
-;; End:
 
 ;;; gnus-ems.el ends here
