@@ -149,7 +149,7 @@ main (argc, argv)
 
   if (argc < 3)
     {
-      fprintf (stderr, "Usage: movemail inbox destfile");
+      fprintf (stderr, "Usage: movemail inbox destfile\n");
       exit(1);
     }
 
