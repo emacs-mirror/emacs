@@ -531,10 +531,10 @@ message (m, a1, a2, a3)
 	      a[2] = a3;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_WIDTH (f), m, (char *)0, 3, a);
+			    (int) FRAME_WIDTH (f), m, (char *)0, 3, a);
 #else
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_WIDTH (f), m, (char *)0, 3, &a1);
+			    (int) FRAME_WIDTH (f), m, (char *)0, 3, &a1);
 #endif /* NO_ARG_ARRAY */
 
 	      message2 (FRAME_MESSAGE_BUF (f), len);
