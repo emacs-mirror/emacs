@@ -154,16 +154,13 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
    for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 struct re_pattern_buffer *
-compile_pattern (pattern, regp, translate, posix)
+compile_pattern (pattern, regp, translate, posix, multibyte)
      Lisp_Object pattern;
      struct re_registers *regp;
      Lisp_Object *translate;
-     int posix;
+     int posix, multibyte;
 {
   struct regexp_cache *cp, **cpp;
-  /* Should we check it here, or add an argument `multibyte' to this
-     function?  */
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   for (cpp = &searchbuf_head; ; cpp = &cp->next)
     {
@@ -227,7 +224,8 @@ looking_at_1 (string, posix)
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
 			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
-			  posix);
+			  posix,
+			  !NILP (current_buffer->enable_multibyte_characters));
 
   immediate_quit = 1;
   QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
@@ -303,8 +301,9 @@ string_match_1 (regexp, string, start, posix)
      int posix;
 {
   int val;
-  int s;
   struct re_pattern_buffer *bufp;
+  int pos, pos_byte;
+  int i;
 
   if (running_asynch_code)
     save_search_regs ();
@@ -313,35 +312,48 @@ string_match_1 (regexp, string, start, posix)
   CHECK_STRING (string, 1);
 
   if (NILP (start))
-    s = 0;
+    pos = 0, pos_byte = 0;
   else
     {
       int len = XSTRING (string)->size;
 
       CHECK_NUMBER (start, 2);
-      s = XINT (start);
-      if (s < 0 && -s <= len)
-	s = len + s;
-      else if (0 > s || s > len)
+      pos = XINT (start);
+      if (pos < 0 && -pos <= len)
+	pos = len + pos;
+      else if (0 > pos || pos > len)
 	args_out_of_range (string, start);
+      pos_byte = string_char_to_byte (string, pos);
     }
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
 			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
-			  posix);
+			  posix,
+			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
   
   val = re_search (bufp, (char *) XSTRING (string)->data,
-		   XSTRING (string)->size, s, XSTRING (string)->size - s,
+		   XSTRING (string)->size_byte, pos_byte,
+		   XSTRING (string)->size_byte - pos_byte,
 		   &search_regs);
   immediate_quit = 0;
   last_thing_searched = Qt;
   if (val == -2)
     matcher_overflow ();
   if (val < 0) return Qnil;
-  return make_number (val);
+
+  for (i = 0; i < search_regs.num_regs; i++)
+    if (search_regs.start[i] >= 0)
+      {
+	search_regs.start[i]
+	  = string_byte_to_char (string, search_regs.start[i]);
+	search_regs.end[i]
+	  = string_byte_to_char (string, search_regs.end[i]);
+      }
+
+  return make_number (string_byte_to_char (string, val));
 }
 
 DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
@@ -380,7 +392,7 @@ fast_string_match (regexp, string)
   int val;
   struct re_pattern_buffer *bufp;
 
-  bufp = compile_pattern (regexp, 0, 0, 0);
+  bufp = compile_pattern (regexp, 0, 0, 0, STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
   
@@ -393,7 +405,8 @@ fast_string_match (regexp, string)
 
 /* Match REGEXP against STRING, searching all of STRING ignoring case,
    and return the index of the match, or negative on failure.
-   This does not clobber the match data.  */
+   This does not clobber the match data.
+   We assume that STRING contains single-byte characters.  */
 
 extern Lisp_Object Vascii_downcase_table;
 
@@ -406,9 +419,11 @@ fast_c_string_match_ignore_case (regexp, string)
   struct re_pattern_buffer *bufp;
   int len = strlen (string);
 
+  regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
-			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0);
+			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0,
+			  1);
   immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
   immediate_quit = 0;
@@ -929,6 +944,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
      int posix;
 {
   int len = XSTRING (string)->size;
+  int len_byte = XSTRING (string)->size_byte;
   unsigned char *base_pat = XSTRING (string)->data;
   register int *BM_tab;
   int *BM_tab_base;
@@ -958,7 +974,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
     {
       struct re_pattern_buffer *bufp;
 
-      bufp = compile_pattern (string, &search_regs, trt, posix);
+      bufp = compile_pattern (string, &search_regs, trt, posix,
+			      !NILP (current_buffer->enable_multibyte_characters));
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
@@ -1061,21 +1078,21 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
       BM_tab = (int *) alloca (0400 * sizeof (int));
 #endif
       {
-	unsigned char *patbuf = (unsigned char *) alloca (len);
+	unsigned char *patbuf = (unsigned char *) alloca (len_byte);
 	pat = patbuf;
-	while (--len >= 0)
+	while (--len_byte >= 0)
 	  {
 	    /* If we got here and the RE flag is set, it's because we're
 	       dealing with a regexp known to be trivial, so the backslash
 	       just quotes the next character.  */
 	    if (RE && *base_pat == '\\')
 	      {
-		len--;
+		len_byte--;
 		base_pat++;
 	      }
 	    *pat++ = (trt ? XINT (trt[*base_pat++]) : *base_pat++);
 	  }
-	len = pat - patbuf;
+	len_byte = pat - patbuf;
 	pat = base_pat = patbuf;
       }
       /* The general approach is that we are going to maintain that we know */
@@ -1105,10 +1122,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
       /* instance of a character that matches it (per trt), or misses */
       /* it entirely if there is none. */  
 
-      dirlen = len * direction;
-      infinity = dirlen - (lim_byte + pos_byte + len + len) * direction;
+      dirlen = len_byte * direction;
+      infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
       if (direction < 0)
-	pat = (base_pat += len - 1);
+	pat = (base_pat += len_byte - 1);
       BM_tab_base = BM_tab;
       BM_tab += 0400;
       j = dirlen;		/* to get it in a register */
@@ -1211,7 +1228,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
  /* to throw you well beyond the end of the search.  It can also */
  /* happen if you fail to match within the permitted region and would */
  /* otherwise try a character beyond that region */
-		  if ((cursor - p_limit) * direction <= len)
+		  if ((cursor - p_limit) * direction <= len_byte)
 		    break;	/* a small overrun is genuine */
 		  cursor -= infinity; /* large overrun = hit */
 		  i = dirlen - direction;
@@ -1230,11 +1247,13 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  cursor += dirlen - i - direction;	/* fix cursor */
 		  if (i + direction == 0)
 		    {
+		      int position;
+
 		      cursor -= direction;
 
-		      set_search_regs (pos_byte + cursor - p2 + ((direction > 0)
-							    ? 1 - len : 0),
-				       len);
+		      position = pos_byte + cursor - p2 + ((direction > 0)
+							   ? 1 - len_byte : 0);
+		      set_search_regs (position, len_byte);
 
 		      if ((n -= direction) != 0)
 			cursor += dirlen; /* to resume search */
@@ -1255,8 +1274,8 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		       ? BUFFER_CEILING_OF (pos_byte - dirlen + 1)
 		       : BUFFER_FLOOR_OF (pos_byte - dirlen - 1));
 	      limit = ((direction > 0)
-		       ? min (limit + len, lim_byte - 1)
-		       : max (limit - len, lim_byte));
+		       ? min (limit + len_byte, lim_byte - 1)
+		       : max (limit - len_byte, lim_byte));
 	      /* LIMIT is now the last value POS_BYTE can have
 		 and still be valid for a possible match.  */
 	      while (1)
@@ -1269,7 +1288,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		    pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
 		  /* now run the same tests to distinguish going off the */
 		  /* end, a match or a phony match. */
-		  if ((pos_byte - limit) * direction <= len)
+		  if ((pos_byte - limit) * direction <= len_byte)
 		    break;	/* ran off the end */
 		  /* Found what might be a match.
 		     Set POS_BYTE back to last (first if reverse) pos.  */
@@ -1289,10 +1308,12 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  pos_byte += dirlen - i- direction;
 		  if (i + direction == 0)
 		    {
+		      int position;
 		      pos_byte -= direction;
 
-		      set_search_regs (pos_byte + ((direction > 0) ? 1 - len : 0),
-				       len);
+		      position = pos_byte + ((direction > 0) ? 1 - len_byte : 0);
+
+		      set_search_regs (position, len_byte);
 
 		      if ((n -= direction) != 0)
 			pos_byte += dirlen; /* to resume search */
@@ -1342,29 +1363,48 @@ wordify (string)
      Lisp_Object string;
 {
   register unsigned char *p, *o;
-  register int i, len, punct_count = 0, word_count = 0;
+  register int i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
+  int prev_c = 0;
+  int adjust;
 
   CHECK_STRING (string, 0);
   p = XSTRING (string)->data;
   len = XSTRING (string)->size;
 
-  for (i = 0; i < len; i++)
-    if (SYNTAX (p[i]) != Sword)
-      {
-	punct_count++;
-	if (i > 0 && SYNTAX (p[i-1]) == Sword) word_count++;
-      }
-  if (SYNTAX (p[len-1]) == Sword) word_count++;
-  if (!word_count) return build_string ("");
+  for (i = 0, i_byte = 0; i < len; )
+    {
+      int c;
+      
+      if (STRING_MULTIBYTE (string))
+	FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      else
+	c = XSTRING (string)->data[i++];
 
-  val = make_string (p, len - punct_count + 5 * (word_count - 1) + 4);
+      if (SYNTAX (c) != Sword)
+	{
+	  punct_count++;
+	  if (i > 0 && SYNTAX (prev_c) == Sword)
+	    word_count++;
+	}
+
+      prev_c = c;
+    }
+
+  if (SYNTAX (prev_c) == Sword)
+    word_count++;
+  if (!word_count)
+    return build_string ("");
+
+  adjust = - punct_count + 5 * (word_count - 1) + 4;
+  val = make_uninit_multibyte_string (len + adjust,
+				      XSTRING (string)->size_byte + adjust);
 
   o = XSTRING (val)->data;
   *o++ = '\\';
   *o++ = 'b';
 
-  for (i = 0; i < len; i++)
+  for (i = 0; i < XSTRING (val)->size_byte; i++)
     if (SYNTAX (p[i]) == Sword)
       *o++ = p[i];
     else if (i > 0 && SYNTAX (p[i-1]) == Sword && --word_count)
@@ -1682,22 +1722,25 @@ since only regular expressions have distinguished subexpressions.")
       if (NILP (literal))
 	{
 	  int lastpos = -1;
+	  int lastpos_byte = -1;
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
+	  int pos_byte;
 
 	  accum = Qnil;
 
-	  for (pos = 0; pos < XSTRING (newtext)->size; pos++)
+	  for (pos_byte = 0, pos = 0; pos_byte < XSTRING (newtext)->size_byte;)
 	    {
 	      int substart = -1;
 	      int subend;
 	      int delbackslash = 0;
 
-	      c = XSTRING (newtext)->data[pos];
+	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+
 	      if (c == '\\')
 		{
-		  c = XSTRING (newtext)->data[++pos];
+		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
 		  if (c == '&')
 		    {
 		      substart = search_regs.start[sub];
@@ -1719,28 +1762,34 @@ since only regular expressions have distinguished subexpressions.")
 	      if (substart >= 0)
 		{
 		  if (pos - 1 != lastpos + 1)
-		    middle = Fsubstring (newtext,
-					 make_number (lastpos + 1),
-					 make_number (pos - 1));
+		    middle = substring_both (newtext, lastpos + 1,
+					     lastpos_byte + 1,
+					     pos - 1, pos_byte - 1);
 		  else
 		    middle = Qnil;
 		  accum = concat3 (accum, middle,
-				   Fsubstring (string, make_number (substart),
+				   Fsubstring (string,
+					       make_number (substart),
 					       make_number (subend)));
 		  lastpos = pos;
+		  lastpos_byte = pos_byte;
 		}
 	      else if (delbackslash)
 		{
-		  middle = Fsubstring (newtext, make_number (lastpos + 1),
-				       make_number (pos));
+		  middle = substring_both (newtext, lastpos + 1,
+					   lastpos_byte + 1,
+					   pos, pos_byte);
+
 		  accum = concat2 (accum, middle);
 		  lastpos = pos;
+		  lastpos_byte = pos_byte;
 		}
 	    }
 
 	  if (pos != lastpos + 1)
-	    middle = Fsubstring (newtext, make_number (lastpos + 1),
-				 make_number (pos));
+	    middle = substring_both (newtext, lastpos + 1,
+				     lastpos_byte + 1,
+				     pos, pos_byte);
 	  else
 	    middle = Qnil;
 
@@ -2087,15 +2136,16 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 {
   register unsigned char *in, *out, *end;
   register unsigned char *temp;
+  int backslashes_added = 0;
 
   CHECK_STRING (string, 0);
 
-  temp = (unsigned char *) alloca (XSTRING (string)->size * 2);
+  temp = (unsigned char *) alloca (XSTRING (string)->size_byte * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
   in = XSTRING (string)->data;
-  end = in + XSTRING (string)->size;
+  end = in + XSTRING (string)->size_byte;
   out = temp; 
 
   for (; in != end; in++)
@@ -2104,11 +2154,13 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 	  || *in == '*' || *in == '.' || *in == '\\'
 	  || *in == '?' || *in == '+'
 	  || *in == '^' || *in == '$')
-	*out++ = '\\';
+	*out++ = '\\', backslashes_added++;
       *out++ = *in;
     }
 
-  return make_string (temp, out - temp);
+  return make_multibyte_string (temp,
+				XSTRING (string)->size + backslashes_added,
+				out - temp);
 }
   
 syms_of_search ()
