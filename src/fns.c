@@ -788,6 +788,12 @@ static Lisp_Object string_char_byte_cache_string;
 static int string_char_byte_cache_charpos;
 static int string_char_byte_cache_bytepos;
 
+void
+clear_string_char_byte_cache ()
+{
+  string_char_byte_cache_string = Qnil;
+}
+
 /* Return the character index corresponding to CHAR_INDEX in STRING.  */
 
 int
@@ -1782,8 +1788,26 @@ ARRAY is a vector, string, char-table, or bool-vector.")
       CHECK_NUMBER (item, 1);
       charval = XINT (item);
       size = XSTRING (array)->size;
-      for (index = 0; index < size; index++)
-	p[index] = charval;
+      if (STRING_MULTIBYTE (array))
+	{
+	  unsigned char workbuf[4], *str;
+	  int len = CHAR_STRING (charval, workbuf, str);
+	  int size_byte = STRING_BYTES (XSTRING (array));
+	  unsigned char *p1 = p, *endp = p + size_byte;
+	  int this_len, i;
+
+	  for (i = 0; i < size; i++)
+	    {
+	      this_len = MULTIBYTE_FORM_LENGTH (p1, endp - p1);
+	      if (len != this_len)
+		error ("Attempt to change byte length of a string");
+	    }
+	  for (i = 0; i < size_byte; i++)
+	    *p++ = str[i % len];
+	}
+      else
+	for (index = 0; index < size; index++)
+	  p[index] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     {
