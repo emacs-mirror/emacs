@@ -3774,8 +3774,7 @@ Non-nil second argument means save only current buffer.")
      autosave perfectly ordinary files because it couldn't handle some
      ange-ftp'd file.  */
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
-    for (tail = Vbuffer_alist; XGCTYPE (tail) == Lisp_Cons;
-	 tail = XCONS (tail)->cdr)
+    for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
       {
 	buf = XCONS (XCONS (tail)->car)->cdr;
 	b = XBUFFER (buf);
