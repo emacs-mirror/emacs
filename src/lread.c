@@ -130,7 +130,8 @@ static int read_pure;
 static int read_from_string_index;
 static int read_from_string_limit;
 
-/* This contains the last string skipped with #@.  */
+/* This contains the last string skipped with #@, but only on some systems.
+     On other systems we can't put the string here.  */
 static char *saved_doc_string;
 /* Length of buffer allocated in saved_doc_string.  */
 static int saved_doc_string_size;
@@ -1517,6 +1518,7 @@ read1 (readcharfun, pch, first_in_list)
 	      for (i = 0; i < nskip && c >= 0; i++)
 		c = READCHAR;
 	    }
+
 	  goto retry;
 	}
       if (c == '$')
@@ -1942,6 +1944,7 @@ read_list (flag, readcharfun)
 
       /* While building, if the list starts with #$, treat it specially.  */
       if (EQ (elt, Vload_file_name)
+	  && ! NILP (elt)
 	  && !NILP (Vpurify_flag))
 	{
 	  if (NILP (Vdoc_file_name))
@@ -1960,6 +1963,7 @@ read_list (flag, readcharfun)
 			   Ffile_name_nondirectory (elt));
 	}
       else if (EQ (elt, Vload_file_name)
+	       && ! NILP (elt)
 	       && load_force_doc_strings)
 	doc_reference = 2;
 
