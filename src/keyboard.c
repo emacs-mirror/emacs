@@ -2416,7 +2416,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 never use the echo area.  */
       if (maps == 0)
 	{
-	  specbind (Qinput_method_exit_on_first_char, Qt);
 	  specbind (Qinput_method_use_echo_area, Qt);
 	}
 
