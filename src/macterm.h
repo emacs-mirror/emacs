@@ -402,8 +402,12 @@ struct mac_output {
 
 typedef struct mac_output mac_output;
 
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.mac)
+
 /* Return the Mac window used for displaying data in frame F.  */
 #define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->mWP)
+#define FRAME_X_WINDOW(f) ((f)->output_data.mac->mWP)
 
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
@@ -426,6 +430,7 @@ typedef struct mac_output mac_output;
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_MAC_DISPLAY(f) (0)
+#define FRAME_X_DISPLAY(f) (0)
 
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_MAC_FONT_TABLE(f) (FRAME_MAC_DISPLAY_INFO (f)->font_table)
@@ -647,4 +652,7 @@ struct scroll_bar {
 			  - (f)->output_data.mac->internal_border_width)))
 
 struct frame * check_x_frame (Lisp_Object);
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
