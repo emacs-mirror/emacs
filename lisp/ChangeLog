@@ -1,3 +1,8 @@
+2005-03-19  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+
+	* files.el (backup-buffer): If the file's directory is not
+	writable, use copy instead of move to backup the file.
+
 2005-03-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* obsolete/keyswap.el: Moved to obsolete/ from term/.
