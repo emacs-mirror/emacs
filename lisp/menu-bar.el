@@ -653,7 +653,7 @@ Do the same for the keys of the same name."
 			      (frame-visible-p
 			       (symbol-value 'speedbar-frame))))))
 
-(setq menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
+(defvar menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
 
 (defun menu-bar-showhide-fringe-menu-customize ()
   "Show customization buffer for `fringe-mode'."
