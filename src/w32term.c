@@ -1945,6 +1945,7 @@ x_scroll_bar_move (bar, top, left, width, height)
   MoveWindow (w, left, top, width, height, TRUE);
   SetScrollRange (w, SB_CTL, 0, height, FALSE);
   InvalidateRect (w, NULL, FALSE);
+  my_show_window (w, SW_NORMAL);
 
   XSETINT (bar->left, left);
   XSETINT (bar->top, top);
@@ -2273,6 +2274,7 @@ x_scroll_bar_clear (f)
       HDC hdc = GetDC (window);
       RECT rect;
 
+      my_show_window (window, SW_HIDE);
       GetClientRect (window, &rect);
       select_palette (f, hdc);
       win32_clear_rect (f, hdc, &rect);
