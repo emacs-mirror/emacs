@@ -1,3 +1,10 @@
+2001-07-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-file-modtime): Check a 213 response
+	from the server for the format we expect.  Don't use it if it
+	doesn't look like what the Internet draft for FTP extensions
+	specifies.
+
 Mon Jul 09 2001  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-cmds.el: Extended the kludge to interoperate with the
