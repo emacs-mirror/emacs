@@ -325,7 +325,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    ,@(if (memq system-type '(windows-nt ms-dos))
+    ,(if (memq system-type '(windows-nt ms-dos))
 	  '("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/"))
     ("^/+" . "file:/"))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
