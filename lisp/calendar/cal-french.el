@@ -1,6 +1,6 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar.
 
-;; Copyright (C) 1988, 1989, 1992, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 89, 92, 94, 95, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -43,36 +43,51 @@
 
 (require 'calendar)
 
-(defvar french-calendar-accents
-  (and (char-table-p standard-display-table)
-       (equal (aref standard-display-table 161) [161]))
-  "True if diacritical marks are available.")
+(defun french-calendar-accents ()
+  "True if diacritical marks are available."
+  (and (or window-system
+	   (terminal-coding-system))
+       (or enable-multibyte-characters
+	   (and (char-table-p standard-display-table)
+		(equal (aref standard-display-table 161) [161])))))
 
 (defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
   "Absolute date of start of French Revolutionary calendar = September 22, 1792.")
 
 (defconst french-calendar-month-name-array
-  (if french-calendar-accents
-      ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
-       "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"]
-    ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
-     "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"]))
+  ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
+   "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"])
+
+(defconst french-calendar-multibyte-month-name-array
+  ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
+   "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"])
 
 (defconst french-calendar-day-name-array
   ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
    "Octidi" "Nonidi" "Decadi"])
 
+(defconst french-calendar-multibyte-special-days-array
+  ["de la Vertu" "du Génie" "du Labour" "de la Raison"
+   "de la Récompense" "de la Révolution"])
+
+(defun french-calendar-month-name-array ()
+  (if (french-calendar-accents)
+      french-calendar-multibyte-month-name-array
+    french-calendar-month-name-array))
+
+(defun french-calendar-day-name-array ()
+  (if (french-calendar-accents)
+      french-calendar-multibyte-month-name-array
+    french-calendar-month-name-array))
+
 (defconst french-calendar-special-days-array
-  (if french-calendar-accents
-      ["de la Vertu" "du Genie" "du Labour" "de la Raison"
-       "de la Récompense" "de la Révolution"]
-    ["de la Vertu" "du Genie" "du Labour" "de la Raison" "de la Re'compense"
-     "de la Re'volution"]))
+  ["de la Vertu" "du Ge'nie" "du Labour" "de la Raison" "de la Re'compense"
+   "de la Re'volution"])
 
 (defun french-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.
 For Gregorian years 1793 to 1805, the years of actual operation of the
-calendar, uses historical practice based on equinoxes is followed (years 3, 7,
+calendar, follows historical practice based on equinoxes (years 3, 7,
 and 11 were leap years; 15 and 20 would have been leap years).  For later
 years uses the proposed rule of Romme (never adopted)--leap years fall every
 four years except century years not divisible 400 and century years that are
@@ -153,24 +168,25 @@ Defaults to today's date if DATE is not given."
          (d (extract-calendar-day french-date)))
     (cond
      ((< y 1) "")
-     ((= m 13) (format (if french-calendar-accents
+     ((= m 13) (format (if (french-calendar-accents)
                            "Jour %s de l'Année %d de la Révolution"
                          "Jour %s de l'Anne'e %d de la Re'volution")
                        (aref french-calendar-special-days-array (1- d))
                        y))
      (t (format
-         (if french-calendar-accents
+         (if (french-calendar-accents)
              "Décade %s, %s de %s de l'Année %d de la Révolution"
            "De'cade %s, %s de %s de l'Anne'e %d de la Re'volution")
          (make-string (1+ (/ (1- d) 10)) ?I)
-         (aref french-calendar-day-name-array (% (1- d) 10))
-         (aref french-calendar-month-name-array (1- m))
+         (aref (french-calendar-day-name-array) (% (1- d) 10))
+         (aref (french-calendar-month-name-array) (1- m))
          y)))))
 
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
-  (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
+  (let ((f (calendar-french-date-string (calendar-cursor-to-date t)))
+	(enable-multibyte-characters t))
     (if (string-equal f "")
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
@@ -179,19 +195,24 @@ Defaults to today's date if DATE is not given."
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
   (interactive
-   (let* ((year (calendar-read
-                 (if french-calendar-accents
-                     "Année de la Révolution (>0): "
-                   "Anne'e de la Re'volution (>0): ")
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-french-from-absolute
-                    (calendar-absolute-from-gregorian
-                     (calendar-current-date)))))))
+   (let* ((oldval enable-multibyte-characters)
+	  (year (unwind-protect
+		    (progn
+		      (setq-default enable-multibyte-characters t)
+		      (calendar-read
+		       (if (french-calendar-accents)
+			   "Année de la Révolution (>0): "
+			 "Anne'e de la Re'volution (>0): ")
+		       '(lambda (x) (> x 0))
+		       (int-to-string
+			(extract-calendar-year
+			 (calendar-french-from-absolute
+			  (calendar-absolute-from-gregorian
+			   (calendar-current-date)))))))
+		  (setq-default enable-multibyte-characters oldval)))
           (month-list
            (mapcar 'list
-                   (append french-calendar-month-name-array
+                   (append (french-calendar-month-name-array)
                            (if (french-calendar-leap-year-p year)
                                (mapcar
                                 '(lambda (x) (concat "Jour " x))
@@ -216,7 +237,7 @@ Echo French Revolutionary date unless NOECHO is t."
           (decade (if (> month 12)
                       1
                     (calendar-read
-                     (if french-calendar-accents
+                     (if (french-calendar-accents)
                          "Décade (1-3): "
                        "De'cade (1-3): ")
                      '(lambda (x) (memq x '(1 2 3))))))
