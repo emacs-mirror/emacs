@@ -4573,6 +4573,21 @@ x_display_box_cursor (f, on)
 	  || (f->display.x->current_cursor != hollow_box_cursor
 	      && (f != x_highlight_frame))))
     {
+      int mouse_face_here = 0;
+
+      /* If the cursor is in the mouse face area, redisplay that when
+	 we clear the cursor.  */
+      if (f == mouse_face_mouse_frame
+	  &&
+	  (f->phys_cursor_y > mouse_face_beg_row
+	   || (f->phys_cursor_y == mouse_face_beg_row
+	       && f->phys_cursor_x >= mouse_face_beg_col))
+	  &&
+	  (f->phys_cursor_y < mouse_face_end_row
+	   || (f->phys_cursor_y == mouse_face_end_row
+	       && f->phys_cursor_x < mouse_face_end_col)))
+	mouse_face_here = 1;
+
       /* If the font is not as tall as a whole line,
 	 we must explicitly clear the line's whole height.  */
       if (FONT_HEIGHT (f->display.x->font) != f->display.x->line_height)
@@ -4584,7 +4599,9 @@ x_display_box_cursor (f, on)
       /* Erase the cursor by redrawing the character underneath it.  */
       x_draw_single_glyph (f, f->phys_cursor_y, f->phys_cursor_x,
 			   f->phys_cursor_glyph,
-			   current_glyphs->highlight[f->phys_cursor_y]);
+			   (mouse_face_here
+			    ? 3
+			    : current_glyphs->highlight[f->phys_cursor_y]));
       f->phys_cursor_x = -1;
     }
 
