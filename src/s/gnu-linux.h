@@ -77,14 +77,15 @@ Boston, MA 02111-1307, USA.  */
 #define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
 
 #undef PTY_TTY_NAME_SPRINTF
+/* This used to use SIGCLD, but that doesn't appear in glibc 2.1.  */
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
     char *ptsname (), *ptyname;			\
 						\
-    sigblock (sigmask (SIGCLD));		\
+    sigblock (sigmask (SIGCHLD));		\
     if (grantpt (fd) == -1)			\
       { close (fd); return -1; }		\
-    sigunblock (sigmask (SIGCLD));		\
+    sigunblock (sigmask (SIGCHLD));		\
     if (unlockpt (fd) == -1)			\
       { close (fd); return -1; }		\
     if (!(ptyname = ptsname (fd)))		\
