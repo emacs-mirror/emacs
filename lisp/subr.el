@@ -951,7 +951,7 @@ evaluated whenever that feature is `provide'd."
 	      (featurep file)
 	    ;; Make sure `load-history' contains the files dumped with
 	    ;; Emacs for the case that FILE is one of them.
-	    (load-symbol-file-load-history)
+	    ;;; (load-symbol-file-load-history)
 	    (assoc file load-history))
 	  (eval form))))
   form)

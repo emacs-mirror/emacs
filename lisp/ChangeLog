@@ -1,3 +1,8 @@
+2002-08-24  Sam Steingold  <sds@gnu.org>
+
+	* subr.el (eval-after-load): Do not call
+	load-symbol-file-load-history (deleted yesterday).
+
 2002-08-24  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* startup.el (normal-splash-screen): Ensure splash buffer is
