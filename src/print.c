@@ -1151,6 +1151,9 @@ print (obj, printcharfun, escapeflag)
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  int size_byte;
+	  /* 1 means we must ensure that the next character we output
+	     cannot be taken as part of a hex character escape.  */
+	  int need_nonhex = 0;
 
 	  GCPRO1 (obj);
 
@@ -1197,6 +1200,7 @@ print (obj, printcharfun, escapeflag)
 		  unsigned char outbuf[50];
 		  sprintf (outbuf, "\\x%x", c);
 		  strout (outbuf, -1, -1, printcharfun, 0);
+		  need_nonhex = 1;
 		}
 	      else if (SINGLE_BYTE_CHAR_P (c)
 		       && ! ASCII_BYTE_P (c)
@@ -1211,6 +1215,15 @@ print (obj, printcharfun, escapeflag)
 		}
 	      else
 		{
+		  /* If we just had a hex escape, and this character
+		     could be taken as part of it,
+		     output `\ ' to prevent that.  */
+		  if (need_nonhex
+		      && ((c >= 'a' && c <= 'f')
+			  || (c >= 'A' && c <= 'F')
+			  || (c >= '0' && c <= '9')))
+		    strout ("\\ ", -1, -1, printcharfun, 0);
+
 		  if (c == '\"' || c == '\\')
 		    PRINTCHAR ('\\');
 		  PRINTCHAR (c);
