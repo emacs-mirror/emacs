@@ -43,6 +43,9 @@ extern Lisp_Object Fmake_sparse_keymap ();
 #define OUTPUT_IF(a) { if (a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc); }
 #define OUTPUT1_IF(a) { if (a) tputs (a, 1, cmputc); }
 
+/* Function to use to ring the bell.  */
+Lisp_Object Vring_bell_function;
+
 /* Terminal characteristics that higher levels want to look at.
    These are all extern'd in termchar.h */
 
@@ -310,6 +313,26 @@ extern char *tgetstr ();
 
 ring_bell ()
 {
+  if (! NILP (Vring_bell_function))
+    {
+      Lisp_Object function;
+
+      /* Temporarily set the global variable to nil
+	 so that if we get an error, it stays nil
+	 and we don't call it over and over.
+
+	 We don't specbind it, because that would carefully
+	 restore the bad value if there's an error
+	 and make the loop of errors happen anyway.  */
+      function = Vring_bell_function;
+      Vring_bell_function = Qnil;
+
+      call0 (function);
+
+      Vring_bell_function = function;
+      return;
+    }
+
   if (! FRAME_TERMCAP_P (selected_frame))
     {
       (*ring_bell_hook) ();
@@ -1777,4 +1800,9 @@ This variable can be used by terminal emulator packages.");
 #else
   system_uses_terminfo = 0;
 #endif
+
+  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
+    "Non-nil means call this function to ring the bell.\n\
+The function should accept no arguments.");
+  Vring_bell_function = Qnil;
 }
