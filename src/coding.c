@@ -4477,7 +4477,10 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
       if (ccl->eol_type ==CODING_EOL_UNDECIDED)
 	ccl->eol_type = CODING_EOL_LF;
       ccl->cr_consumed = coding->spec.ccl.cr_carryover;
+      ccl->eight_bit_control = coding->dst_multibyte;
     }
+  else
+    ccl->eight_bit_control = 1;
   ccl->multibyte = coding->src_multibyte;
   if (coding->spec.ccl.eight_bit_carryover[0] != 0)
     {
