@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.58 $
+;; Version: $Revision: 1.59 $
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +45,7 @@
 ;; * tcl-type-alist can be used to minimally customize indentation
 ;; according to context.
 
-;; THANKS TO:
+;; THANKS FOR CRITICISM AND SUGGESTIONS TO:
 ;; Guido Bosch <Guido.Bosch@loria.fr>
 ;; pgs1002@esc.cam.ac.uk (Dr P.G. Sjoerdsma)
 ;; Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
@@ -63,8 +63,6 @@
 ;; Ben Wing <wing@666.com>
 
 ;; KNOWN BUGS:
-;; * indent-region should skip blank lines.  (It does in v19, so I'm
-;;   not motivated to fix it here).
 ;; * In Tcl "#" is not always a comment character.  This can confuse
 ;;   tcl.el in certain circumstances.  For now the only workaround is
 ;;   to enclose offending hash characters in quotes or precede it with
@@ -129,23 +127,33 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.58 $")
+(defconst tcl-version "$Revision: 1.59 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
 ;; User variables.
 ;;
 
-(defvar tcl-indent-level 4
-  "*Indentation of Tcl statements with respect to containing block.")
+(defgroup tcl nil
+  "Major mode for editing Tcl source in Emacs"
+  :group 'languages)
 
-(defvar tcl-continued-indent-level 4
-  "*Indentation of continuation line relative to first line of command.")
+(defcustom tcl-indent-level 4
+  "*Indentation of Tcl statements with respect to containing block."
+  :group 'tcl
+  :type 'integer)
 
-(defvar tcl-auto-newline nil
-  "*Non-nil means automatically newline before and after braces you insert.")
+(defcustom tcl-continued-indent-level 4
+  "*Indentation of continuation line relative to first line of command."
+  :group 'tcl
+  :type 'integer)
 
-(defvar tcl-tab-always-indent t
+(defcustom tcl-auto-newline nil
+  "*Non-nil means automatically newline before and after braces you insert."
+  :group 'tcl
+  :type 'boolean)
+
+(defcustom tcl-tab-always-indent t
   "*Control effect of TAB key.
 If t (the default), always indent current line.
 If nil and point is not in the indentation area at the beginning of
@@ -158,47 +166,68 @@ to take place:
   3. Move forward to start of comment, indenting if necessary.
   4. Move forward to end of line, indenting if necessary.
   5. Create an empty comment.
-  6. Move backward to start of comment, indenting if necessary.")
+  6. Move backward to start of comment, indenting if necessary."
+  :group 'tcl
+  :type '(choice (const :tag "Always" t)
+		 (const :tag "Beginning only" nil)
+		 (const :tag "Maybe move or make or delete comment" 'tcl)))
 
-(defvar tcl-use-hairy-comment-detector t
-  "*If not nil, use the more complicated, but slower, comment-delete method.
-This variable is only used in Emacs 19;
-the fast function is always used in other versions.")
 
-(defvar tcl-electric-hash-style 'smart
+(defcustom tcl-use-hairy-comment-detector t
+  "*If not nil, use the more sophisticated, but slower, comment-delete method.
+This variable is not effective in Emacs 18;
+the fast function is always used in that version."
+  :group 'tcl
+  :type 'boolean)
+
+(defcustom tcl-electric-hash-style 'smart
   "*Style of electric hash insertion to use.
 Possible values are `backslash', meaning that `\\' quoting should be
 done; `quote', meaning that `\"' quoting should be done; `smart',
 meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
-taken to mean `smart'.  The default is `smart'.")
+taken to mean `smart'.  The default is `smart'."
+  :group 'tcl
+  :type '(choice (const backslash) (const quote) (const smart) (const nil)))
 
-(defvar tcl-help-directory-list nil
-  "*List of topmost directories containing TclX help files")
+(defcustom tcl-help-directory-list nil
+  "*List of topmost directories containing TclX help files."
+  :group 'tcl
+  :type '(list directory))
 
-(defvar tcl-use-smart-word-finder t
-  "*If not nil, use smart way to find current word, for Tcl help feature.")
+(defcustom tcl-use-smart-word-finder t
+  "*If not nil, use smart way to find current word, for Tcl help feature."
+  :group 'tcl
+  :type 'boolean)
 
-(defvar tcl-application "wish"
-  "*Name of Tcl application to run in inferior Tcl mode.")
+(defcustom tcl-application "wish"
+  "*Name of Tcl program to run in inferior Tcl mode."
+  :group 'tcl
+  :type 'string)
 
-(defvar tcl-command-switches nil
-  "*Switches to supply to `tcl-application'.")
+(defcustom tcl-command-switches nil
+  "*List of switches to supply to the `tcl-application' program."
+  :group 'tcl
+  :type '(list string))
 
-(defvar tcl-prompt-regexp "^\\(% \\|\\)"
+(defcustom tcl-prompt-regexp "^\\(% \\|\\)"
   "*If not nil, a regexp that will match the prompt in the inferior process.
 If nil, the prompt is the name of the application with \">\" appended.
 
 The default is \"^\\(% \\|\\)\", which will match the default primary
-and secondary prompts for tclsh and wish.")
+and secondary prompts for tclsh and wish."
+  :group 'tcl
+  :type 'regexp)
 
-(defvar inferior-tcl-source-command "source %s\n"
+(defcustom inferior-tcl-source-command "source %s\n"
   "*Format-string for building a Tcl command to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
-quoted for Tcl.")
+quoted for Tcl."
+  :group 'tcl
+  :type 'string)
 
 ;;
 ;; Keymaps, abbrevs, syntax tables.
@@ -524,6 +553,7 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;; problem seems to be that there is a bug in Emacs 19.22 where
 ;; end-of-defun doesn't really use the brace matching the one that
 ;; trails defun-prompt-regexp.
+;; ?? Is there a bug now ??
 (defconst tcl-omit-ws-regexp "^[^ \t\n#}][^\n}]+}*[ \t]+")
 
 (defun tcl-internal-beginning-of-defun (&optional arg)
