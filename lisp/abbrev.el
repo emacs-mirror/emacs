@@ -176,17 +176,17 @@ the ones defined from the buffer now."
   "Read abbrev definitions from file written with `write-abbrev-file'.
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
-Optional second argument QUIETLY non-nil means don't print anything."
+Optional second argument QUIETLY non-nil means don't display a message."
   (interactive "fRead abbrev file: ")
   (load (if (and file (> (length file) 0)) file abbrev-file-name)
 	nil quietly)
-  (setq save-abbrevs t abbrevs-changed nil))
+  (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
   "Read abbrev definitions from file written with write-abbrev-file.
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
-Does not print anything."
+Does not display any message."
   ;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
