@@ -1,3 +1,8 @@
+2000-08-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.el (shell-quote-wildcard-pattern): Make sure to return
+	PATTERN, in the Unix case.
+
 2000-08-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* play/zone.el (zone): Discard any pending input before running

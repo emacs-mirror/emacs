@@ -1,8 +1,8 @@
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (ensure_echo_area_buffers): If a buffer was killed, and
-	a new buffer is created, make sure make sure echo_area_buffer[]
-	references the new buffer.
+	a new buffer is created, make sure echo_area_buffer[] references
+	the new buffer.
 
 2000-08-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
