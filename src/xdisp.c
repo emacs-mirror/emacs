@@ -4062,7 +4062,7 @@ display_menu_bar (w)
   Lisp_Object items, tail;
   register int vpos = 0;
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
-  int maxendcol = FRAME_WIDTH (f) + WINDOW_LEFT_MARGIN (w);
+  int maxendcol = FRAME_WIDTH (f);
   int hpos = 0;
   int i;
 
