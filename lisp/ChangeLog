@@ -1,4 +1,11 @@
-2002-03-04  Kenichi Handa  <handa@etl.go.jp>
+2002-03-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/czech.el ("Czech"): Set `iso-8859-2' for
+	`nonascii-translation'.
+
+	* language/romanian.el ("Romanian"): Likewise.
+
+	* language/slovak.el ("Slovak"): Likewise.
 
 	* international/characters.el: Optimize calls of
 	modify-category-entry.

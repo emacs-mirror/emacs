@@ -1,3 +1,26 @@
+2002-03-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* casefiddle.c (casify_region): Fix multibyte case.
+
+	* character.c (c_string_width): Add return type `int'.
+	(char_string_with_unification): Arg ADVANCED deleted.
+
+	* character.h (CHAR_VALID_P): Don't call CHARACTERP.
+	(CHAR_STRING): Adjusted for the change of
+	char_string_with_unification.
+	(CHAR_STRING_ADVANCE): Make it do-while statement.
+
+	* chartab.c (sub_char_table_set_range): Optimized for the case
+	DEPTH == 3.  Add workaround code for a GCC optimization bug.
+
+	* coding.c: Delete unused variables.
+
+	* fileio.c (Finsert_file_contents): Set coding_system to Qnil
+	earlier.  If inserted is zero and the coding system doesn't
+	require flushing, don't call decode_coding_gap.
+
+	* syntax.h (SET_RAW_SYNTAX_ENTRY): Don't call make_number.
+
 2002-03-01  Kenichi Handa  <handa@etl.go.jp>
 
 	The following changes are for using Unicode as an internal

@@ -62,7 +62,7 @@ enum charset_attr_index
     charset_plist,
 
     /* If the method of the charset is `MAP_DEFERRED', the value is a
-       mappint vector or a file name that contains mapping vector.
+       mapping vector or a file name that contains mapping vector.
        Otherwise, nil.  */
     charset_map,
 
@@ -82,10 +82,15 @@ enum charset_attr_index
        of the form (PARENT-CHARSET-ID .  CODE-OFFSET).  */
     charset_parents,
 
-    /*  */
+    /* The value is a mapping vector or a file name that contains
+       mapping vector.  This provide how characters in the charset
+       should be unified with Unicode.  The value of the member
+       `charset_deunifier' is created from this information.  */
     charset_unify_map,
 
-    /*  */
+    /* If characters in the charset must be unified Unicode, the value
+       is a char table that maps a character code in the charset to
+       the corresponding Unicode character.  */
     charset_deunifier,
 
     /* The length of charset attribute vector.  */
@@ -113,13 +118,15 @@ enum charset_method
 
     /* A charset of this method inherits characters from the other
        charsets.  */
-    CHARSET_METHOD_INHERIT,
+    CHARSET_METHOD_INHERIT
   };
 
 struct charset
 {
+  /* Index to charset_table.  */
   int id;
 
+  /* Index to Vcharset_hash_table.  */
   int hash_index;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
@@ -135,10 +142,11 @@ struct charset
      If the charset is treated as 96-chars in ISO-2022, the value is 1.  */
   int iso_chars_96;
 
-  /* ISO final character code for the charset: 48..127.
-     It may be 0 if the charset doesn't conform to ISO-2022.  */
+  /* ISO final byte of the charset: 48..127.  It may be -1 if the
+     charset doesn't conform to ISO-2022.  */
   int iso_final;
 
+  /* ISO revision number of the charset.  */
   int iso_revision;
 
   /* If the charset is identical to what supported by Emacs 21 and the

@@ -124,7 +124,11 @@ where CODE-n is a code-point of the charset, and CHAR-n is the
 corresponding charcter code.
 
 If it is a string, it is a name of file that contains the above
-information.
+information.   Each line of the file must be this format:
+	0xXXX 0xYYY
+where XXX is a hexadecimal representation of CODE-n and YYY is a
+hexadecimal representation of CHAR-n.  A line starting with `#' is a
+comment line.
 
 `:parents'
 
@@ -140,10 +144,11 @@ VALUE must be vector or string.
 
 If it is a vector, the format is [ CODE-1 CHAR-1 CODE-2 CHAR-2 ... ],
 where CODE-n is a code-point of the charset, and CHAR-n is the
-corresponding unified charcter code.
+corresponding Unicode charcter code.
 
 If it is a string, it is a name of file that contains the above
-information."
+information.  The file format is the same as what described for `:map'
+attribute."
   (let ((attrs (mapcar 'list '(:dimension
 			       :code-space
 			       :iso-final-char
