@@ -25,11 +25,11 @@
 
 ;;; Commentary:
 ;;
-;; This file only contain the code needed to declare and initialize
+;; This file only contains the code needed to declare and initialize
 ;; user options.  The code to customize options is autoloaded from
 ;; `cus-edit.el' and is documented in the Emacs Lisp Reference manual.
 
-;; The code implementing face declarations is in `cus-face.el'
+;; The code implementing face declarations is in `cus-face.el'.
 
 ;;; Code:
 
