@@ -2189,6 +2189,7 @@ init_obarray ()
   Vpurify_flag = Qt;
 
   Qvariable_documentation = intern ("variable-documentation");
+  staticpro (&Qvariable_documentation);
 
   read_buffer_size = 100;
   read_buffer = (char *) malloc (read_buffer_size);
