@@ -1,3 +1,14 @@
+2002-08-17  Richard M. Stallman  <rms@gnu.org>
+
+	* tar-mode.el (tar-subfile-mode): Use add-hook and
+	remove-hook, and use write-file-functions instead of
+	local-write-file-hooks.
+	(tar-untar-buffer): Don't try to extract directories.
+
+	* menu-bar.el (fringe-mode): Set to nil.
+
+	* mail/rmail.el (rmail-search-mime-header-function): Doc fix.
+
 2002-08-15  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/appt.el (appt-delete): Use substring-no-properties.

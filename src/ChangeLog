@@ -1,3 +1,14 @@
+2002-08-17  Richard M. Stallman  <rms@gnu.org>
+
+	* s/sol2-5.h (BROKEN_SIGIO): Add #undef.
+
+	* sysdep.c [!VMS]: Include sys/files.h.
+
+	* editfns.c (save_restriction_restore): Defend from unchained marker.
+
+	* buffer.c (overlays_at): Handle extending vec uniformly.
+	(overlays_in): Handle extending vec from length 0 as in overlays_at.
+
 2002-08-15  Andrew Choi  <akochoi@shaw.ca>
 
 	* mac.c (init_mac_osx_environment): New function.
