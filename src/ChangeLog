@@ -1,3 +1,7 @@
+2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (syms_of_xfns): Provide x-toolkit also for GTK.
+
 2004-05-11  Steven Tamm  <steventamm@mac.com>
 
 	* macfns.c (Fx_create_frame): Default to using tool-bar by
