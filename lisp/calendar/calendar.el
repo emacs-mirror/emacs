@@ -1914,6 +1914,8 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "gmnh" 'calendar-next-haab-date)
   (define-key calendar-mode-map "gmpt" 'calendar-previous-tzolkin-date)
   (define-key calendar-mode-map "gmnt" 'calendar-next-tzolkin-date)
+  (define-key calendar-mode-map "A"   'appt-add)
+  (define-key calendar-mode-map "D"   'appt-delete)
   (define-key calendar-mode-map "S"   'calendar-sunrise-sunset)
   (define-key calendar-mode-map "M"   'calendar-phases-of-moon)
   (define-key calendar-mode-map " "   'scroll-other-window)
