@@ -1,6 +1,6 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.10) $
+ * $HopeName: MMsrc!vmsu.c(trunk.11) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -44,7 +44,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.10) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.11) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -195,6 +195,21 @@ Addr VMLimit(Space space)
   VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->limit;
+}
+
+
+Size VMReserved(Space space)
+{
+  VM vm = SpaceVM(space);
+  AVERT(VM, vm);
+  return vm->reserved;
+}
+
+Size VMMapped(Space space)
+{
+  VM vm = SpaceVM(space);
+  AVERT(VM, vm);
+  return vm->mapped;
 }
 
 
