@@ -360,7 +360,7 @@ and source-file directory for your debugger."
 				   (car gud-gdb-history)
 				 "gdb ")
 			       gdb-minibuffer-local-map nil
-			       '(gud-gdb-history . 1))))
+			       'gud-gdb-history)))
 
   (gud-common-init command-line 'gud-gdb-massage-args
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
@@ -670,7 +670,7 @@ and source-file directory for your debugger."
 				   (car gud-sdb-history)
 				 "sdb ")
 			       nil nil
-			       '(gud-sdb-history . 1))))
+			       'gud-sdb-history)))
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name)
 		     (stringp tags-file-name)
@@ -1004,7 +1004,7 @@ and source-file directory for your debugger."
 				   (car gud-dbx-history)
 				 "dbx ")
 			       nil nil
-			       '(gud-dbx-history . 1))))
+			       'gud-dbx-history)))
 
   (cond
    (gud-mips-p
@@ -1153,7 +1153,7 @@ directories if your program contains sources from more than one directory."
 				   (car gud-xdb-history)
 				 "xdb ")
 			       nil nil
-			       '(gud-xdb-history . 1))))
+			       'gud-xdb-history)))
 
   (gud-common-init command-line 'gud-xdb-massage-args
 		   'gud-xdb-marker-filter 'gud-xdb-find-file)
@@ -1270,7 +1270,7 @@ and source-file directory for your debugger."
 					     "-e 0")
 					 " "))
 			       nil nil
-			       '(gud-perldb-history . 1))))
+			       'gud-perldb-history)))
 
   (gud-common-init command-line 'gud-perldb-massage-args
 		   'gud-perldb-marker-filter 'gud-perldb-find-file)
@@ -1399,7 +1399,7 @@ and source-file directory for your debugger."
 				   (car gud-pdb-history)
 				 (concat gud-pdb-command-name " "))
 			       pdb-minibuffer-local-map nil
-			       '(gud-pdb-history . 1))))
+			       'gud-pdb-history)))
 
   (gud-common-init command-line 'gud-pdb-massage-args
 		   'gud-pdb-marker-filter 'gud-pdb-find-file)
@@ -1876,7 +1876,7 @@ between it and it's value."
 				   (car gud-jdb-history)
 				 (concat gud-jdb-command-name " "))
 			       nil nil
-			       '(gud-jdb-history . 1))))
+			       'gud-jdb-history)))
 
   (gud-common-init command-line 'gud-jdb-massage-args
 	   'gud-jdb-marker-filter 'gud-jdb-find-file)
@@ -2365,12 +2365,11 @@ Obeying it means displaying in another window the specified file and line."
   "Make sure the current local map has a [menu-bar debug] submap.
 If it doesn't, replace it with a new map that inherits it,
 and create such a submap in that new map."
-  (if (and (current-local-map)
-	   (lookup-key (current-local-map) [menu-bar debug]))
-      nil
-    (use-local-map (gud-new-keymap (current-local-map)))
-    (define-key (current-local-map) [menu-bar debug]
-      (cons "Gud" (gud-new-keymap gud-menu-map)))))
+  (use-local-map (gud-new-keymap (current-local-map)))
+  (define-key (current-local-map) [menu-bar]
+    (gud-new-keymap (lookup-key (current-local-map) [menu-bar])))
+  (define-key (current-local-map) [menu-bar debug]
+    (cons "Gud" (gud-new-keymap gud-menu-map))))
 
 ;;; Code for parsing expressions out of C code.  The single entry point is
 ;;; find-c-expr, which tries to return an lvalue expression from around point.
