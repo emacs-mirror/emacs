@@ -562,6 +562,9 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       fail ();
     }
 
+  /* First of all, send our version number for verification. */
+  fprintf (out, "-version %s ", VERSION);
+  
   if (nowait)
     fprintf (out, "-nowait ");
 
@@ -650,7 +653,20 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   /* Now, wait for an answer and print any messages.  */
   while ((str = fgets (string, BUFSIZ, in)))
     {
-      if (strprefix ("-emacs-pid ", str))
+      if (strprefix ("-good-version ", str))
+        {
+          /* OK, we got the green light. */
+        }
+      else if (strprefix ("-bad-version ", str))
+        {
+          if (str[strlen (str) - 1] == '\n')
+            str[strlen (str) - 1] = 0;
+          
+          fprintf (stderr, "%s: Version mismatch: Emacs is %s, but we are %s\n",
+                   argv[0], str + strlen ("-bad-version "), VERSION);
+          fail ();
+        }
+      else if (strprefix ("-emacs-pid ", str))
         {
           emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
         }
