@@ -1,9 +1,13 @@
-;;; Forms Mode - A GNU Emacs Major Mode		; @(#)@ forms	1.2.2
-;;; Created 1989 - Johan Vromans <jv@mh.nl>
-;;; See the docs for a list of other contributors.
-;;;
-;;; This file is part of GNU Emacs.
+;;; forms.el -- Forms Mode - A GNU Emacs Major Mode
+;;; SCCS Status     : @(#)@ forms	1.2.7
+;;; Author          : Johan Vromans
+;;; Created On      : 1989
+;;; Last Modified By: Johan Vromans
+;;; Last Modified On: Mon Jul  1 14:13:20 1991
+;;; Update Count    : 15
+;;; Status          : OK
 
+;;; This file is part of GNU Emacs.
 ;;; GNU Emacs is distributed in the hope that it will be useful,
 ;;; but WITHOUT ANY WARRANTY.  No author or distributor
 ;;; accepts responsibility to anyone for the consequences of using it
@@ -19,6 +23,21 @@
 ;;; If you don't have this copy, write to the Free Software
 ;;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;;
+
+;;; HISTORY 
+;;; 1-Jul-1991		Johan Vromans	
+;;;    Normalized error messages.
+;;; 30-Jun-1991		Johan Vromans	
+;;;    Add support for forms-modified-record-filter.
+;;;    Allow the filter functions to be the name of a function.
+;;;    Fix: parse--format used forms--dynamic-text destructively.
+;;;    Internally optimized the forms-format-list.
+;;;    Added support for debugging.
+;;;    Stripped duplicate documentation.
+;;;   
+;;; 29-Jun-1991		Johan Vromans	
+;;;    Add support for functions and lisp symbols in forms-format-list.
+;;;    Add function forms-enumerate.
 
 (provide 'forms-mode)
 
@@ -75,11 +94,19 @@
 ;;;
 ;;; The forms-format-list should be a list, each element containing
 ;;;
-;;;  - either a string, e.g. "hello" (which is inserted \"as is\"),
+;;;  - a string, e.g. "hello" (which is inserted \"as is\"),
 ;;;
 ;;;  - an integer, denoting a field number. The contents of the field
 ;;;    are inserted at this point.
 ;;;    The first field has number one.
+;;;
+;;;  - a function call, e.g. (insert "text"). This function call is 
+;;;    dynamically evaluated and should return a string. It should *NOT*
+;;;    have side-effects on the forms being constructed.
+;;;    The current fields are available to the function in the variable
+;;;    forms-fields, they should *NOT* be modified.
+;;;
+;;;  - a lisp symbol, that must evaluate to one of the above.
 ;;;
 ;;; Optional variables which may be set in the control file:
 ;;;
@@ -111,10 +138,22 @@
 ;;;			to performs forms-first/last-field if in
 ;;;			forms mode.
 ;;;
-;;;	forms-new-record-filter			[function, no default]
-;;;			If defined: this function is called when a new
+;;;	forms-new-record-filter			[symbol, no default]
+;;;			If defined: this should be the name of a 
+;;;			function that is called when a new
 ;;;			record is created. It can be used to fill in
 ;;;			the new record with default fields, for example.
+;;;			Instead of the name of the function, it may
+;;;			be the function itself.
+;;;
+;;;	forms-modified-record-filter		[symbol, no default]
+;;;			If defined: this should be the name of a 
+;;;			function that is called when a record has
+;;;			been modified. It is called after the fields
+;;;			are parsed. It can be used to register
+;;;			modification dates, for example.
+;;;			Instead of the name of the function, it may
+;;;			be the function itself.
 ;;;
 ;;; After evaluating the control file, its buffer is cleared and used
 ;;; for further processing.
@@ -126,7 +165,7 @@
 ;;; A record from the data file is transferred from the data file,
 ;;; split into fields (into forms--the-record-list), and displayed using
 ;;; the specs in forms-format-list.
-;;; A format routine 'forms--format' is build upon startup to format 
+;;; A format routine 'forms--format' is built upon startup to format 
 ;;; the records.
 ;;;
 ;;; When a form is changed the record is updated as soon as this form
@@ -135,7 +174,7 @@
 ;;; fields not shown on the forms retain their origional values.
 ;;; The newly formed record and replaces the contents of the
 ;;; old record in forms--file-buffer.
-;;; A parse routine 'forms--parser' is build upon startup to parse
+;;; A parse routine 'forms--parser' is built upon startup to parse
 ;;; the records.
 ;;;
 ;;; Two exit functions exist: forms-exit (which saves) and forms-exit-no-save
@@ -196,7 +235,7 @@
 ;;;
 ;;; Global variables and constants
 
-(defconst forms-version "1.2.2"
+(defconst forms-version "1.2.7"
   "Version of forms-mode implementation")
 
 (defvar forms-forms-scrolls t
@@ -211,19 +250,10 @@
 ;;; Mandatory variables - must be set by evaluating the control file
 
 (defvar forms-file nil
-   "Name of the file holding the data.")
+  "Name of the file holding the data.")
 
 (defvar forms-format-list nil
-  "Formatting specifications:
-
-It should be a list, each element containing 
-
- - either a string, e.g. "hello" (which is inserted \"as is\"),
-
- - an integer, denoting the number of a field which contents are
-   inserted at this point.
-   The first field has number one.
-")
+  "List of formatting specifications.")
 
 (defvar forms-number-of-fields nil
   "Number of fields per record.")
@@ -287,6 +317,15 @@ It should be a list, each element containing
 
 (defvar forms--new-record-filter nil
   "Internal - set if a new record filter has been defined.")
+
+(defvar forms--modified-record-filter nil
+  "Internal - set if a modified record filter has been defined.")
+
+(defvar forms--dynamic-text nil
+  "Internal - holds dynamic text to insert between fields.")
+
+(defvar forms-fields nil
+  "List with fields of the current forms. First field has number 1.")
 
 ;;;
 ;;; forms-mode
@@ -359,13 +398,29 @@ It should be a list, each element containing
 	(make-local-variable 'forms--parser)
 	(forms--make-parser)
 
-	;; check if a new record filter was defined
+	;; check if record filters are defined
 	(make-local-variable 'forms--new-record-filter)
 	(setq forms--new-record-filter 
-	      (and (fboundp 'forms-new-record-filter)
-		   (symbol-function 'forms-new-record-filter)))
+	      (cond
+	       ((fboundp 'forms-new-record-filter)
+		(symbol-function 'forms-new-record-filter))
+	       ((and (boundp 'forms-new-record-filter)
+		     (fboundp forms-new-record-filter))
+		forms-new-record-filter)))
 	(fmakunbound 'forms-new-record-filter)
+	(make-local-variable 'forms--modified-record-filter)
+	(setq forms--modified-record-filter 
+	      (cond
+	       ((fboundp 'forms-modified-record-filter)
+		(symbol-function 'forms-modified-record-filter))
+	       ((and (boundp 'forms-modified-record-filter)
+		     (fboundp forms-modified-record-filter))
+		forms-modified-record-filter)))
+	(fmakunbound 'forms-modified-record-filter)
 
+	;; dynamic text support
+	(make-local-variable 'forms--dynamic-text)
+	(make-local-variable 'forms-fields)
 
 	;; prepare this buffer for further processing
 	(setq buffer-read-only nil)
@@ -445,6 +500,9 @@ It should be a list, each element containing
 (defun forms--process-format-list ()
   "Validate forms-format-list and set some global variables."
 
+  (forms--debug "forms-forms-list before 1st pass:\n"
+		'forms-format-list)
+
   ;; it must be non-nil
   (or forms-format-list
       (error "'forms-format-list' has not been set"))
@@ -455,65 +513,65 @@ It should be a list, each element containing
   (setq forms--number-of-markers 0)
 
   (let ((the-list forms-format-list)	; the list of format elements
+	(this-item 0)			; element in list
 	(field-num 0))			; highest field number 
+
+    (setq forms-format-list nil)	; gonna rebuild
 
     (while the-list
 
       (let ((el (car-safe the-list))
 	    (rem (cdr-safe the-list)))
 
+	;; if it is a symbol, eval it first
+	(if (and (symbolp el)
+		 (boundp el))
+	    (setq el (eval el)))
+
 	(cond
 
 	 ;; try string ...
 	 ((stringp el))			; string is OK
 	  
-	 ;; try int ...
-	 ((numberp el)			; check it
+	 ;; try numeric ...
+	 ((numberp el) 
 
 	  (if (or (<= el 0)
 		  (> el forms-number-of-fields))
 	      (error
-	       "forms error: field number %d out of range 1..%d"
+	       "Forms error: field number %d out of range 1..%d"
 	       el forms-number-of-fields))
 
 	  (setq forms--number-of-markers (1+ forms--number-of-markers))
 	  (if (> el field-num)
 	      (setq field-num el)))
 
+	 ;; try function
+	 ((listp el)
+	  (or (fboundp (car-safe el))
+	      (error 
+	       "Forms error: not a function: %s"
+	       (prin1-to-string (car-safe el)))))
+
 	 ;; else
 	 (t
-	  (error "invalid element in 'forms-format-list': %s"
-		 (prin1-to-string el)))
-
-	 ;; dead code - we'll need it in the future
-	 ((consp el)			; check it
-
-	  (let ((str (car-safe el))
-		(idx (cdr-safe el)))
-
-	    (cond
-
-	     ;; car must be string
-	     ((not (stringp str))
-	      (error "forms error: car of cons %s must be string"
-		     (prin1-to-string el)))
-
-	     ;; cdr must be number, > zero
-	     ((or (not (numberp idx))
-		  (<= idx 0)
-		  (> idx forms-number-of-fields))
-	      (error
-	       "forms error: cdr of cons %s must be a number between 1 and %d"
-	       (prin1-to-string el)
-	       forms-number-of-fields)))
-
-	    ;; passed the test - handle it
-	    (setq forms--number-of-markers (1+ forms--number-of-markers))
-	    (if (> idx field-num)
-		(setq field-num idx)))))
+	  (error "Invalid element in 'forms-format-list': %s"
+		 (prin1-to-string el))))
 
 	;; advance to next element of the list
-	(setq the-list rem))))
+	(setq the-list rem)
+	(setq forms-format-list
+	      (append forms-format-list (list el) nil)))))
+
+  (forms--debug "forms-forms-list after 1st pass:\n"
+		'forms-format-list)
+
+  ;; concat adjacent strings
+  (setq forms-format-list (forms--concat-adjacent forms-format-list))
+
+  (forms--debug "forms-forms-list after 2nd pass:\n"
+		'forms-format-list
+		'forms--number-of-markers)
 
   (setq forms--markers (make-vector forms--number-of-markers nil)))
 
@@ -524,7 +582,7 @@ It should be a list, each element containing
 ;;; The format routine (forms--format) will look like
 ;;; 
 ;;; (lambda (arg)
-;;;
+;;;   (setq forms--dynamic-text nil)
 ;;;   ;;  "text: "
 ;;;   (insert "text: ")
 ;;;   ;;  6
@@ -532,6 +590,11 @@ It should be a list, each element containing
 ;;;   (insert (elt arg 5))
 ;;;   ;;  "\nmore text: "
 ;;;   (insert "\nmore text: ")
+;;;   ;;  (tocol 40)
+;;;   (let ((the-dyntext (tocol 40)))
+;;;     (insert the-dyntext)
+;;;     (setq forms--dynamic-text (append forms--dynamic-text
+;;;					  (list the-dyntext))))
 ;;;   ;;  9
 ;;;   (aset forms--markers 1 (point-marker))
 ;;;   (insert (elt arg 8))
@@ -540,16 +603,17 @@ It should be a list, each element containing
 ;;; 
 
 (defun forms--make-format ()
-  "Generate parser function for forms"
-  (setq forms--format (forms--format-maker forms-format-list)))
+  "Generate format function for forms"
+  (setq forms--format (forms--format-maker forms-format-list))
+  (forms--debug 'forms--format))
 
 (defun forms--format-maker (the-format-list)
   "Returns the parser function for forms"
   (let ((the-marker 0))
     (` (lambda (arg)
+	 (setq forms--dynamic-text nil)
 	 (,@ (apply 'append
-		    (mapcar 'forms--make-format-elt 
-			    (forms--concat-adjacent the-format-list))))))))
+		    (mapcar 'forms--make-format-elt the-format-list)))))))
 
 (defun forms--make-format-elt (el)
   (cond ((stringp el)
@@ -558,7 +622,15 @@ It should be a list, each element containing
 	 (prog1
 	     (` ((aset forms--markers (, the-marker) (point-marker))
 		 (insert (elt arg (, (1- el))))))
-	   (setq the-marker (1+ the-marker))))))
+	   (setq the-marker (1+ the-marker))))
+	((listp el)
+	 (prog1
+	     (` ((let ((the-dyntext (, el)))
+		   (insert the-dyntext)
+		   (setq forms--dynamic-text (append forms--dynamic-text
+						     (list the-dyntext)))))
+		)))
+	))
 
 
 (defun forms--concat-adjacent (the-list)
@@ -584,16 +656,22 @@ It should be a list, each element containing
 ;;; 
 ;;;	;;  "text: "
 ;;;     (if (not (looking-at "text: "))
-;;; 	    (error "parse error: cannot find \"text: \""))
+;;; 	    (error "Parse error: cannot find \"text: \""))
 ;;;     (forward-char 6)	; past "text: "
 ;;; 
 ;;;     ;;  6
 ;;;	;;  "\nmore text: "
 ;;;     (setq here (point))
 ;;;     (if (not (search-forward "\nmore text: " nil t nil))
-;;; 	    (error "parse error: cannot find \"\\nmore text: \""))
+;;; 	    (error "Parse error: cannot find \"\\nmore text: \""))
 ;;;     (aset the-recordv 5 (buffer-substring here (- (point) 12)))
-;;;     ...
+;;;
+;;;	;;  (tocol 40)
+;;;	(let ((the-dyntext (car-safe forms--dynamic-text)))
+;;;	  (if (not (looking-at (regexp-quote the-dyntext)))
+;;;	      (error "Parse error: not looking at \"%s\"" the-dyntext))
+;;;	  (forward-char (length the-dyntext))
+;;;	  (setq forms--dynamic-text (cdr-safe forms--dynamic-text)))
 ;;;     ... 
 ;;;     ;; final flush (due to terminator sentinel, see below)
 ;;;	(aset the-recordv 7 (buffer-substring (point) (point-max)))
@@ -601,16 +679,16 @@ It should be a list, each element containing
 
 (defun forms--make-parser ()
   "Generate parser function for forms"
-  (setq forms--parser (forms--parser-maker forms-format-list)))
+  (setq forms--parser (forms--parser-maker forms-format-list))
+  (forms--debug 'forms--parser))
 
 (defun forms--parser-maker (the-format-list)
   "Returns the parser function for forms"
   (let ((the-field nil)
 	(seen-text nil)
 	the--format-list)
-    ;; concat adjacent strings and add a terminator sentinel
-    (setq the--format-list 
-	  (append (forms--concat-adjacent the-format-list) (list nil)))
+    ;; add a terminator sentinel
+    (setq the--format-list (append the-format-list (list nil)))
     (` (lambda nil
 	 (let (here)
 	   (goto-char (point-min))
@@ -618,30 +696,50 @@ It should be a list, each element containing
 		    (mapcar 'forms--make-parser-elt the--format-list))))))))
 
 (defun forms--make-parser-elt (el)
-  (cond ((stringp el)
-	 (prog1
-	     (if the-field
-		 (` ((setq here (point))
-		     (if (not (search-forward (, el) nil t nil))
-			 (error "Parse error: cannot find %s" (, el)))
-		     (aset the-recordv (, (1- the-field))
-			   (buffer-substring here
-					     (- (point) (, (length el)))))))
-		 (` ((if (not (looking-at (, (regexp-quote el))))
-			 (error "Parse error: not looking at %s" (, el)))
-		     (forward-char (, (length el))))))
-	   (setq seen-text t)
-	   (setq the-field nil)))
-	((numberp el)
-	 (if the-field
-	     (error "Cannot parse adjacent fields %d and %d"
-		    the-field el)
-	     (setq the-field el)
-	     nil))
-	((null el)
-	 (if the-field
-	     (` ((aset the-recordv (, (1- the-field))
-		       (buffer-substring (point) (point-max)))))))))
+  (cond
+   ((stringp el)
+    (prog1
+	(if the-field
+	    (` ((setq here (point))
+		(if (not (search-forward (, el) nil t nil))
+		    (error "Parse error: cannot find \"%s\"" (, el)))
+		(aset the-recordv (, (1- the-field))
+		      (buffer-substring here
+					(- (point) (, (length el)))))))
+	  (` ((if (not (looking-at (, (regexp-quote el))))
+		  (error "Parse error: not looking at \"%s\"" (, el)))
+	      (forward-char (, (length el))))))
+      (setq seen-text t)
+      (setq the-field nil)))
+   ((numberp el)
+    (if the-field
+	(error "Cannot parse adjacent fields %d and %d"
+	       the-field el)
+      (setq the-field el)
+      nil))
+   ((null el)
+    (if the-field
+	(` ((aset the-recordv (, (1- the-field))
+		  (buffer-substring (point) (point-max)))))))
+   ((listp el)
+    (prog1
+	(if the-field
+	    (` ((let ((here (point))
+		      (the-dyntext (car-safe forms--dynamic-text)))
+		  (if (not (search-forward the-dyntext nil t nil))
+		      (error "Parse error: cannot find \"%s\"" the-dyntext))
+		  (aset the-recordv (, (1- the-field))
+			(buffer-substring here
+					  (- (point) (length the-dyntext))))
+		  (setq forms--dynamic-text (cdr-safe forms--dynamic-text)))))
+	  (` ((let ((the-dyntext (car-safe forms--dynamic-text)))
+		(if (not (looking-at (regexp-quote the-dyntext)))
+		    (error "Parse error: not looking at \"%s\"" the-dyntext))
+		(forward-char (length the-dyntext))
+		(setq forms--dynamic-text (cdr-safe forms--dynamic-text))))))
+      (setq seen-text t)
+      (setq the-field nil)))
+   ))
 ;;;
 
 (defun forms--set-minor-mode ()
@@ -699,7 +797,7 @@ It should be a list, each element containing
       nil
     (fset 'forms--scroll-down (symbol-function 'scroll-down))
     (fset 'scroll-down
-	  '(lambda (arg) 
+	  '(lambda (&optional arg) 
 	     (interactive "P")
 	     (if (and forms--mode-setup
 		      forms-forms-scroll)
@@ -712,7 +810,7 @@ It should be a list, each element containing
       nil
     (fset 'forms--scroll-up   (symbol-function 'scroll-up))
     (fset 'scroll-up
-	  '(lambda (arg) 
+	  '(lambda (&optional arg) 
 	     (interactive "P")
 	     (if (and forms--mode-setup
 		      forms-forms-scroll)
@@ -860,6 +958,7 @@ It should be a list, each element containing
 		       "")))))
 
   ;; call the formatter function
+  (setq forms-fields (append (list nil) forms--the-record-list nil))
   (funcall forms--format forms--the-record-list)
 
   ;; prepare
@@ -884,10 +983,18 @@ It should be a list, each element containing
     (setq the-recordv (vconcat forms--the-record-list))
 
     ;; parse the form and update the vector
-    (funcall forms--parser)
+    (let ((forms--dynamic-text forms--dynamic-text))
+      (funcall forms--parser))
 
-    ;; transform to a list and return
-    (append the-recordv nil)))
+    (if forms--modified-record-filter
+	;; As a service to the user, we add a zeroth element so she
+	;; can use the same indices as in the forms definition.
+	(let ((the-fields (vconcat [nil] the-recordv)))
+	  (setq the-fields (funcall forms--modified-record-filter the-fields))
+	  (cdr (append the-fields nil)))
+
+      ;; transform to a list and return
+      (append the-recordv nil))))
 
 (defun forms--update ()
   "Update current record with contents of form. As a side effect: sets
@@ -1065,16 +1172,18 @@ forms--the-record-list ."
       (forms-mode))))
 
 ;; Sample:
-;; (defun forms-new-record-filter (the-fields)
+;; (defun my-new-record-filter (the-fields)
 ;;   ;; numbers are relative to 1
 ;;   (aset the-fields 4 (current-time-string))
 ;;   (aset the-fields 6 (user-login-name))
 ;;   the-list)
+;; (setq forms-new-record-filter 'my-new-record-filter)
 
 (defun forms-insert-record (arg)
   "Create a new record before the current one. With ARG: store the
  record after the current one.
- If a function forms-new-record-filter is defined, is is called to
+ If a function forms-new-record-filter is defined, or forms-new-record-filter
+ contains the name of a function, it is called to
  fill (some of) the fields with default values."
  ; The above doc is not true, but for documentary purposes only
 
@@ -1193,3 +1302,55 @@ forms--the-record-list ."
 	    (setq i (1+ i))))
 	nil
       (goto-char (aref forms--markers 0)))))
+
+;;;
+;;; Special service
+;;;
+(defun forms-enumerate (the-fields)
+  "Take a quoted list of symbols, and set their values to the numbers
+1, 2 and so on. Returns the higest number.
+
+Usage: (setq forms-number-of-fields
+             (forms-enumerate
+              '(field1 field2 field2 ...)))"
+
+  (let ((the-index 0))
+    (while the-fields
+      (setq the-index (1+ the-index))
+      (let ((el (car-safe the-fields)))
+	(setq the-fields (cdr-safe the-fields))
+	(set el the-index)))
+    the-index))
+
+;;;
+;;; Debugging
+;;;
+(defvar forms--debug nil
+  "*Enables forms-mode debugging if not nil.")
+
+(defun forms--debug (&rest args)
+  "Internal - debugging routine"
+  (if forms--debug
+      (let ((ret nil))
+	(while args
+	  (let ((el (car-safe args)))
+	    (setq args (cdr-safe args))
+	    (if (stringp el)
+		(setq ret (concat ret el))
+	      (setq ret (concat ret (prin1-to-string el) " = "))
+	      (if (boundp el)
+		  (let ((vel (eval el)))
+		    (setq ret (concat ret (prin1-to-string vel) "\n")))
+		(setq ret (concat ret "<unbound>" "\n")))
+	      (if (fboundp el)
+		  (setq ret (concat ret (prin1-to-string (symbol-function el)) 
+				    "\n"))))))
+	(save-excursion
+	  (set-buffer (get-buffer-create "*forms-mode debug*"))
+	  (goto-char (point-max))
+	  (insert ret)))))
+
+;;; Local Variables:
+;;; eval: (headers)
+;;; eval: (setq comment-start ";;; ")
+;;; End:
