@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SOLARIS/SPARC v8/GCC WITH PROFILING PLATFORM
 #
-#  $HopeName: MMsrc!sos8gp.gmk(trunk.2) $
+#  $HopeName: MMsrc!sos8gp.gmk(trunk.3) $
 #  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 #  This is the GNU makefile for platform.sos8gp.
@@ -19,7 +19,7 @@ MPMS = sssos8.s
 DW = fmtdy.c dw.c
 SW = assert.c ring.c mpm.c arenavm.c arenacl.c arena.c pool.c poolmfs.c \
      poolmv.c root.c format.c buffer.c lockan.c ref.c bt.c \
-     trace.c than.c protsw.c shield.c mpsi.c ld.c ssan.c vmso.c \
+     trace.c than.c protsw.c prmcan.c shield.c mpsi.c ld.c ssan.c vmso.c \
      poolepdl.c poolepvm.c action.c seg.c message.c poolmrg.c
 # Need to pass the profile option to the linker as well.
 LIBS = -lm -pg 
