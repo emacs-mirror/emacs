@@ -1,3 +1,11 @@
+2003-10-28  Kenichi Handa  <handa@etlken2>
+
+	* disp-table.el (standard-display-8bit)
+	(standard-display-default, standard-display-ascii)
+	(standard-display-g1, standard-display-graphic)
+	(standard-display-underline): Assure that standard-display-table
+	is a display table.
+
 2003-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (reindent-then-newline-and-indent): Delete space *after*
