@@ -203,6 +203,7 @@ extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
+extern Lisp_Object Vdefault_properties;
 
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
