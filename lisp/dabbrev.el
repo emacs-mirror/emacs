@@ -197,7 +197,7 @@ all the other buffers, except those named in `dabbrev-ignored-buffer-names'."
   :type 'boolean
   :group 'dabbrev)
 
-(defcustom dabbrev-ignored-buffer-names '("*Messages")
+(defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
   "*List of buffer names that dabbrev should not check."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
