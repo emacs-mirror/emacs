@@ -546,6 +546,11 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	  (switch-to-buffer (other-buffer))))))
 
 (global-set-key "\C-x#" 'server-edit)
+
+(defun server-unload-hook ()
+  (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
+  (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+  (remove-hook 'kill-buffer-hook 'server-kill-buffer))
 
 (provide 'server)
 
