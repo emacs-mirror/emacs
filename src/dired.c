@@ -113,7 +113,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
      Lisp_Object dirname, full, match, nosort;
 {
   DIR *d;
-  int length;
+  int dirnamelen;
   Lisp_Object list, name, dirfilename;
   Lisp_Object handler;
   struct re_pattern_buffer *bufp;
@@ -174,7 +174,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
   list = Qnil;
-  length = XSTRING (dirname)->size;
+  dirnamelen = XSTRING (dirname)->size;
 
   /* Loop reading blocks */
   while (1)
@@ -191,23 +191,24 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	    {
 	      if (!NILP (full))
 		{
-		  int index = XSTRING (dirname)->size;
-		  int total = len + index;
+		  int afterdirindex = dirnamelen;
+		  int total = len + dirnamelen;
+		  int needsep = 0;
+
+		  /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
-		  if (length == 0
-		      || !IS_ANY_SEP (XSTRING (dirname)->data[length - 1]))
-		    total++;
+		  if (dirnamelen == 0
+		      || !IS_ANY_SEP (XSTRING (dirname)->data[dirnamelen - 1]))
+		    needsep = 1;
 #endif /* VMS */
 
-		  name = make_uninit_string (total);
+		  name = make_uninit_string (total + needsep);
 		  bcopy (XSTRING (dirname)->data, XSTRING (name)->data,
-			 index);
-#ifndef VMS
-		  if (length == 0
-		      || IS_ANY_SEP (XSTRING (dirname)->data[length - 1]))
-		    XSTRING (name)->data[index++] = DIRECTORY_SEP;
-#endif /* VMS */
-		  bcopy (dp->d_name, XSTRING (name)->data + index, len);
+			 dirnamelen);
+		  if (needsep)
+		    XSTRING (name)->data[afterdirindex++] = DIRECTORY_SEP;
+		  bcopy (dp->d_name,
+			 XSTRING (name)->data + afterdirindex, len);
 		}
 	      else
 		name = make_string (dp->d_name, len);
