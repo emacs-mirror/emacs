@@ -1,3 +1,13 @@
+2000-12-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (define-derived-mode) 
+	(easy-mmode-derived-mode-p): Remove (moved to derived.el).
+
+	* derived.el (define-derived-mode): Revived, moved from easy-mmode.el.
+	(derived-mode-p): New function.
+	(derived-mode-make-docstring): Add `docstring' argument.
+	Use it if available and complete it if necessary.
+
 2000-12-03  Andreas Schwab  <schwab@suse.de>
 
 	* type-break.el (type-break): Don't make parent of itself.
