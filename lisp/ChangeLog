@@ -1,3 +1,11 @@
+2002-07-05  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (find-coding-systems-region)
+	(language-info-alist, reset-language-environment, princ-list): Doc
+	fix.
+	(input-method-verbose-flag): Fix :type.
+	(set-locale-environment): Revert last change.
+
 2002-07-03  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (set-char-table-default): Make obsolete.
