@@ -1349,6 +1349,10 @@ The returned value is a Quail map specific to KEY."
 	  generated-events))
 
     ;; Since KEY doesn't start any translation, just return it.
+    ;; But, translate KEY if necessary.
+    (if (and (integerp key)
+	     (quail-kbd-translate))
+	(setq key (quail-keyboard-translate key)))
     (list key)))
 
 (defun quail-start-conversion (key)
@@ -1429,6 +1433,10 @@ The returned value is a Quail map specific to KEY."
 	  generated-events))
 
     ;; Since KEY doesn't start any translation, just return it.
+    ;; But, translate KEY if necessary.
+    (if (and (integerp key)
+	     (quail-kbd-translate))
+	(setq key (quail-keyboard-translate key)))
     (list key)))
 
 (defun quail-terminate-translation ()
@@ -2407,17 +2415,19 @@ package to describe."
 	    (insert "
 KEYBOARD LAYOUT
 ---------------
-Physical key layout for this input method is as below.
-You can input a character in the table by typing a key
-at the same location on your keyboard.\n")
+This input method is designed to pretend you are using a keyboard
+with the following \"virtual\" layout:
+")
 	    (setq done-list
 		  (quail-insert-kbd-layout quail-keyboard-layout))
-	    (insert "It is assumed that your keyboard type is `")
+	    (insert "\
+The input method implements that result by assuming you have
+a `")
 	    (help-insert-xref-button
 	     quail-keyboard-layout-type
 	     #'quail-show-keyboard-layout quail-keyboard-layout-type
 	     "mouse-2, RET: show this layout")
-	    (insert "'.
+	    (insert "' keyboard layout, and translating characters accordingly.
 If the layout is different from your keyboard, or you see the
 different characters when you type keys according to this layout,
 adjust the variable `quail-keyboard-layout-type' ")
