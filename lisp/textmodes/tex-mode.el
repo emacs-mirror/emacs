@@ -999,8 +999,10 @@ on the line for the invalidity you want to see."
 		      (forward-char (- start end))
 		      (setq text-beg (point-marker))
 		      (insert (format "%3d: " linenum))
-		      (put-text-property text-beg (- text-end 1)
-					 'mouse-face 'highlight)
+		      (add-text-properties
+		       text-beg (- text-end 1)
+		       '(mouse-face highlight
+			 help-echo "mouse-2: go to this invalidity"))
 		      (put-text-property text-beg (- text-end 1)
 					 'occur tem)))))
 	    (goto-char prev-end))))
