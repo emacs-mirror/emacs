@@ -63,7 +63,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
-* HTML Mode::           Editing HTML files.
+* HTML Mode::           Editing HTML, SGML, and XML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 @end menu
@@ -1653,7 +1653,7 @@ required.  This is set up for Czech---customize the group
 Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
 
 @node HTML Mode
-@section SGML and HTML Modes
+@section SGML, XML, and HTML Modes
 
   The major modes for SGML and HTML include indentation support and
 commands to operate on tags.  This section describes the special
@@ -1719,7 +1719,9 @@ the tag at point.
 @item C-c /
 @kindex C-c / @r{(SGML mode)}
 @findex sgml-close-tag
-Insert a close tag for the innermost unterminated tag (@code{sgml-close-tag}).
+Insert a close tag for the innermost unterminated tag
+(@code{sgml-close-tag}).  If called from within a tag or a comment,
+close this element instead of inserting a close tag.
 
 @item C-c 8
 @kindex C-c 8 @r{(SGML mode)}
@@ -1735,13 +1737,19 @@ Run a shell command (which you must specify) to validate the current
 buffer as SGML (@code{sgml-validate}).
 @end table
 
+@item C-x TAB
+@kindex C-c TAB @r{(SGML mode)}
+@findex sgml-tags-invisible
+Toggle the visibility of existing tags in the buffer.  This can be
+used as a cheap preview.
+
 @vindex sgml-xml-mode
   SGML mode and HTML mode support XML also.  In XML, every opening tag
 must have an explicit closing tag.  When @code{sgml-xml-mode} is
 non-@code{nil}, SGML mode (and HTML mode) always insert explicit
 closing tags.  When you visit a file, these modes determine from the
 file contents whether it is XML or not, and set @code{sgml-xml-mode}
-accordingly, so that they does the right thing for the file in either
+accordingly, so that they do the right thing for the file in either
 case.
 
 @node Nroff Mode
