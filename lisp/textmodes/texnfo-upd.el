@@ -157,6 +157,101 @@
   "String inserted before lower level entries in Texinfo master menu.
 It comes after the chapter-level menu entries.")
 
+;; We used to look for just sub, but that found @subtitle.
+(defvar texinfo-section-types-regexp
+  "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
+  "Regexp matching chapter, section, other headings (but not the top node).")
+
+(defvar texinfo-section-level-regexp
+  (regexp-opt (texinfo-filter 3 texinfo-section-list))
+  "Regular expression matching just the Texinfo section level headings.")
+
+(defvar texinfo-subsection-level-regexp
+  (regexp-opt (texinfo-filter 4 texinfo-section-list))
+  "Regular expression matching just the Texinfo subsection level headings.")
+
+(defvar texinfo-subsubsection-level-regexp
+  (regexp-opt (texinfo-filter 5 texinfo-section-list))
+  "Regular expression matching just the Texinfo subsubsection level headings.")
+
+(defvar texinfo-update-menu-same-level-regexps
+  '((1 . "top[ \t]+")
+    (2 . (concat "\\(^@\\)\\(" texinfo-chapter-level-regexp "\\)\\>[ \t]*"))
+    (3 . (concat "\\(^@\\)\\(" texinfo-section-level-regexp "\\)\\>[ \t]*"))
+    (4 . (concat "\\(^@\\)\\(" texinfo-subsection-level-regexp "\\)\\>[ \t]+"))
+    (5 . (concat "\\(^@\\)\\(" texinfo-subsubsection-level-regexp "\\)\\>[ \t]+")))
+  "*Regexps for searching for same level sections in a Texinfo file.
+The keys are strings specifying the general hierarchical level in the
+document; the values are regular expressions.")
+
+(defvar texinfo-update-menu-higher-regexps
+  '((1 . "^@node [ \t]*DIR")
+    (2 . "^@node [ \t]*top[ \t]*\\(,\\|$\\)")
+    (3 .
+     (concat
+      "\\(^@\\("
+      texinfo-chapter-level-regexp
+      "\\)\\>[ \t]*\\)"))
+    (4 .
+     (concat
+      "\\(^@\\("
+      texinfo-section-level-regexp
+      "\\|"
+      texinfo-chapter-level-regexp
+      "\\)\\>[ \t]*\\)"))
+    (5 .
+     (concat
+      "\\(^@\\("
+      texinfo-subsection-level-regexp
+      "\\|"
+      texinfo-section-level-regexp
+      "\\|"
+      texinfo-chapter-level-regexp
+      "\\)\\>[ \t]*\\)")))
+  "*Regexps for searching for higher level sections in a Texinfo file.
+The keys are strings specifying the general hierarchical level in the
+document; the values are regular expressions.")
+
+(defvar texinfo-update-menu-lower-regexps
+  '((1 .
+     (concat
+      "\\(^@\\("
+      texinfo-chapter-level-regexp
+      "\\|"
+      texinfo-section-level-regexp
+      "\\|"
+      texinfo-subsection-level-regexp
+      "\\|"
+      texinfo-subsubsection-level-regexp
+      "\\)\\>[ \t]*\\)"))
+    (2 .
+     (concat
+      "\\(^@\\("
+      texinfo-section-level-regexp
+      "\\|"
+      texinfo-subsection-level-regexp
+      "\\|"
+      texinfo-subsubsection-level-regexp
+      "\\)\\>[ \t]*\\)"))
+    (3 .
+     (concat
+      "\\(^@\\("
+      texinfo-subsection-level-regexp
+      "\\|"
+      texinfo-subsubsection-level-regexp
+      "\\)\\>[ \t]+\\)"))
+    (4 .
+     (concat
+      "\\(^@\\("
+      texinfo-subsubsection-level-regexp
+      "\\)\\>[ \t]+\\)"))
+    ;; There's nothing below 5, use a bogus regexp that can't match.
+    (5 . "a\\(^\\)"))
+  "*Regexps for searching for lower level sections in a Texinfo file.
+The keys are strings specifying the general hierarchical level in the
+document; the values are regular expressions.")
+
+
 (defun texinfo-make-menu (&optional beginning end)
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
@@ -1133,101 +1228,6 @@ end of that region; it limits the search."
     (re-search-forward "^@node" end t)
     (beginning-of-line)
     (point)))
-
-
-;; We used to look for just sub, but that found @subtitle.
-(defvar texinfo-section-types-regexp
-  "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
-  "Regexp matching chapter, section, other headings (but not the top node).")
-
-(defvar texinfo-section-level-regexp
-  (regexp-opt (texinfo-filter 3 texinfo-section-list))
-  "Regular expression matching just the Texinfo section level headings.")
-
-(defvar texinfo-subsection-level-regexp
-  (regexp-opt (texinfo-filter 4 texinfo-section-list))
-  "Regular expression matching just the Texinfo subsection level headings.")
-
-(defvar texinfo-subsubsection-level-regexp
-  (regexp-opt (texinfo-filter 5 texinfo-section-list))
-  "Regular expression matching just the Texinfo subsubsection level headings.")
-
-(defvar texinfo-update-menu-same-level-regexps
-  '((1 . "top[ \t]+")
-    (2 . (concat "\\(^@\\)\\(" texinfo-chapter-level-regexp "\\)\\>[ \t]*"))
-    (3 . (concat "\\(^@\\)\\(" texinfo-section-level-regexp "\\)\\>[ \t]*"))
-    (4 . (concat "\\(^@\\)\\(" texinfo-subsection-level-regexp "\\)\\>[ \t]+"))
-    (5 . (concat "\\(^@\\)\\(" texinfo-subsubsection-level-regexp "\\)\\>[ \t]+")))
-  "*Regexps for searching for same level sections in a Texinfo file.
-The keys are strings specifying the general hierarchical level in the
-document; the values are regular expressions.")
-
-(defvar texinfo-update-menu-higher-regexps
-  '((1 . "^@node [ \t]*DIR")
-    (2 . "^@node [ \t]*top[ \t]*\\(,\\|$\\)")
-    (3 .
-     (concat
-      "\\(^@\\("
-      texinfo-chapter-level-regexp
-      "\\)\\>[ \t]*\\)"))
-    (4 .
-     (concat
-      "\\(^@\\("
-      texinfo-section-level-regexp
-      "\\|"
-      texinfo-chapter-level-regexp
-      "\\)\\>[ \t]*\\)"))
-    (5 .
-     (concat
-      "\\(^@\\("
-      texinfo-subsection-level-regexp
-      "\\|"
-      texinfo-section-level-regexp
-      "\\|"
-      texinfo-chapter-level-regexp
-      "\\)\\>[ \t]*\\)")))
-  "*Regexps for searching for higher level sections in a Texinfo file.
-The keys are strings specifying the general hierarchical level in the
-document; the values are regular expressions.")
-
-(defvar texinfo-update-menu-lower-regexps
-  '((1 .
-     (concat
-      "\\(^@\\("
-      texinfo-chapter-level-regexp
-      "\\|"
-      texinfo-section-level-regexp
-      "\\|"
-      texinfo-subsection-level-regexp
-      "\\|"
-      texinfo-subsubsection-level-regexp
-      "\\)\\>[ \t]*\\)"))
-    (2 .
-     (concat
-      "\\(^@\\("
-      texinfo-section-level-regexp
-      "\\|"
-      texinfo-subsection-level-regexp
-      "\\|"
-      texinfo-subsubsection-level-regexp
-      "\\)\\>[ \t]*\\)"))
-    (3 .
-     (concat
-      "\\(^@\\("
-      texinfo-subsection-level-regexp
-      "\\|"
-      texinfo-subsubsection-level-regexp
-      "\\)\\>[ \t]+\\)"))
-    (4 .
-     (concat
-      "\\(^@\\("
-      texinfo-subsubsection-level-regexp
-      "\\)\\>[ \t]+\\)"))
-    ;; There's nothing below 5, use a bogus regexp that can't match.
-    (5 . "a\\(^\\)"))
-  "*Regexps for searching for lower level sections in a Texinfo file.
-The keys are strings specifying the general hierarchical level in the
-document; the values are regular expressions.")
 
 
 ;;; Updating a node
