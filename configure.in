@@ -1766,7 +1766,7 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE}"
     AC_CHECK_HEADER(X11/xpm.h,
-      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
+      AC_CHECK_LIB(Xpm, XpmReturnAllocPixels, HAVE_XPM=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
