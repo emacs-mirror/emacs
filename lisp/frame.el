@@ -606,7 +606,7 @@ DISPLAY is a name of a display, a string of the form HOST:SERVER.SCREEN.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let* ((display (or display (frame-parameter nil 'display)))
 	 (func #'(lambda (frame)
-		   (eq (frame-parameter frame 'display) display))))
+		   (equal (frame-parameter frame 'display) display))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional display)
