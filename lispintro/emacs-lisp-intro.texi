@@ -10,7 +10,7 @@
 
 @c ---------
 @c <<<< For hard copy printing, this file is now
-@c      set for smallbook, which works for all sizes 
+@c      set for smallbook, which works for all sizes
 @c      of paper, and with Postscript figures >>>>
 @smallbook
 @clear largebook
@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.04
-@set update-date 2001 Dec 17
+@set edition-number 2.05
+@set update-date 2001 Jan 5
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -231,15 +231,19 @@ people who are not programmers.
 
 Edition @value{edition-number}, @value{update-date}
 
-Copyright (C) 1990, '91, '92, '93, '94, '95, '97, 2001 Free Software Foundation, Inc.
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
 Invariant Section being the Preface, with the Front-Cover Texts being
-no Front-Cover Texts, and with the Back-Cover Texts being no
-Back-Cover Texts.  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
+``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A
+copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and
+modify this GNU Manual, like GNU software.  Copies published by the
+Free Software Foundation raise funds for GNU development.''
 @end ifinfo
 
 @c half title; two lines here, so do not use `shorttitlepage'
@@ -264,7 +268,7 @@ entitled ``GNU Free Documentation License''.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, '91, '92, '93, '94, '95, '97, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 
 Published by the Free Software Foundation, Inc.@*
@@ -280,9 +284,13 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
 Invariant Section being the Preface, with the Front-Cover Texts being
-no Front-Cover Texts, and with the Back-Cover Texts being no
-Back-Cover Texts.  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
+``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A
+copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and
+modify this GNU Manual, like GNU software.  Copies published by the
+Free Software Foundation raise funds for GNU development.''
 @end titlepage
 
 @iftex
@@ -2904,7 +2912,7 @@ following more complex expression:
 (switch-to-buffer (other-buffer (current-buffer) t))
 @end smallexample
 
-@noindent
+@c noindent
 In this case, the first argument to @code{other-buffer} tells it which
 buffer to skip---the current one---and the second argument tells
 @code{other-buffer} it is OK to switch to a visible buffer.
@@ -9854,7 +9862,7 @@ the value of @code{count} is equal to or is greater than the
 a simple @code{setq} such as @code{(setq count (1+ count))}, where
 @code{1+} is a built-in function in Emacs Lisp that adds 1 to its
 argument.  (The expression @w{@code{(1+ count)}} has the same result as
-@code{(+ count 1)}, but is easier for a human to read.)
+@w{@code{(+ count 1)}}, but is easier for a human to read.)
 
 @need 1250
 The template for a @code{while} loop controlled by an incrementing
