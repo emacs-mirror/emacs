@@ -1231,7 +1231,7 @@ buffer_posn_from_coords (window, col, line)
   posn = compute_motion (startp, 0,
 			 (window == XWINDOW (minibuf_window) && startp == 1
 			  ? minibuf_prompt_width : 0),
-			 ZV, line, col - window_left,
+			 ZV, line, col,
 			 window_width, XINT (window->hscroll), 0);
 
   current_buffer = old_current_buffer;
