@@ -1,3 +1,8 @@
+2002-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): 
+	Changed mail addresses to emacs-devel@gnu.org.
+
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fsubstitute_in_file_name): If the file name includes
