@@ -1,3 +1,22 @@
+2001-10-26  Peter Kleiweg  <kleiweg@let.rug.nl>
+
+	* progmodes/ps-mode.el (ps-mode-print-function): Remove quote for
+	lambda expression.
+	(ps-mode-menu-main): Submenu with options on/off was replaced with
+	a toggle button.
+	(ps-mode, ps-run-mode): Define with `define-derived-mode'
+	(ps-mode): Autoload cookie added on same line as comment
+	(ps-mode-tabkey, ps-mode-backward-delete-char):
+	(ps-mode-r-balance): Replace `delete-horizontal-space' and
+	`indent-to' with `indent-line-to'
+	(ps-mode-print-buffer, ps-mode-print-region): Use `funcall'
+	instead of `eval'.
+	(ps-mode-print-region): Use `with-temp-buffer'.
+	(ps-run-start): Use of `mapconcat'.  Use `apply' instead of
+	`eval'.
+	(numerous places): Add back-tick and tick around names in
+	docstrings, fix punctuation in docstrings, remove trailing spaces.
+	
 2001-10-25  Sam Steingold  <sds@gnu.org>
 
 	* add-log.el (add-log-always-start-new-record): New user option.
