@@ -669,7 +669,7 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
   "Return the full name of the user logged in, as a string.\n\
 If optional argument UID is an integer, return the full name of the user\n\
-with that uid, or \"unknown\" if there is no such user.
+with that uid, or \"unknown\" if there is no such user.\n\
 If UID is a string, return the full name of the user with that login\n\
 name, or \"unknown\" if no such user could be found.")
   (uid)
