@@ -179,7 +179,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
       xml)))
 
 
-(let* ((start-chars (concat ":[:alpha:]_"))
+(let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
 ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
@@ -652,6 +652,22 @@ This follows the rule [28] in the XML specifications."
 					       (xml-parse-fragment
 						xml-validating-parser
 						parse-ns))))))))
+	   ;; skip parameter entity declarations
+	   ((or (looking-at (concat "<!ENTITY[ \t\n\r]+%[ \t\n\r]+\\(" xml-name-re
+				    "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
+				    "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>"))
+		(looking-at (concat "<!ENTITY[ \t\n\r]+"
+				    "%[ \t\n\r]+"
+				    "\\(" xml-name-re "\\)[ \t\n\r]+"
+				    "PUBLIC[ \t\n\r]+"
+				    "\\(\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
+				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'\\)[ \t\n\r]+"
+				    "\\(\"[^\"]+\"\\|'[^']+'\\)"
+				    "[ \t\n\r]*>")))
+	    (goto-char (match-end 0)))
+	   ;; skip parameter entities
+	   ((looking-at (concat "%" xml-name-re ";"))
+	    (goto-char (match-end 0)))
 	   (t
 	    (when xml-validating-parser
 	      (error "XML: (Validity) Invalid DTD item"))))))
