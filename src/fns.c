@@ -3293,8 +3293,7 @@ Lisp_Object Vweak_hash_tables;
 
 /* Various symbols.  */
 
-Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey_weak, Qvalue_weak;
-Lisp_Object Qkey_value_weak;
+Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey, Qvalue;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweak;
 Lisp_Object Qhash_table_test;
 
@@ -3567,7 +3566,7 @@ user-supplied hash function"),
    (table size) is >= REHASH_THRESHOLD.
 
    WEAK specifies the weakness of the table.  If non-nil, it must be
-   one of the symbols `key-weak', `value-weak' or `key-value-weak'.  */
+   one of the symbols `key', `value' or t.  */
 
 Lisp_Object
 make_hash_table (test, size, rehash_size, rehash_threshold, weak,
@@ -3649,6 +3648,41 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
   else
     {
       h->next_weak = Vweak_hash_tables;
+      Vweak_hash_tables = table;
+    }
+
+  return table;
+}
+
+
+/* Return a copy of hash table H1.  Keys and values are not copied,
+   only the table itself is.  */
+
+Lisp_Object
+copy_hash_table (h1)
+     struct Lisp_Hash_Table *h1;
+{
+  Lisp_Object table;
+  struct Lisp_Hash_Table *h2;
+  struct Lisp_Vector *v, *next;
+  int len;
+  
+  len = VECSIZE (struct Lisp_Hash_Table);
+  v = allocate_vectorlike (len);
+  h2 = (struct Lisp_Hash_Table *) v;
+  next = h2->vec_next;
+  bcopy (h1, h2, sizeof *h2);
+  h2->vec_next = next;
+  h2->key_and_value = Fcopy_sequence (h1->key_and_value);
+  h2->hash = Fcopy_sequence (h1->hash);
+  h2->next = Fcopy_sequence (h1->next);
+  h2->index = Fcopy_sequence (h1->index);
+  XSET_HASH_TABLE (table, h2);
+
+  /* Maybe add this hash table to the list of all weak hash tables.  */
+  if (!NILP (h2->weak))
+    {
+      h2->next_weak = Vweak_hash_tables;
       Vweak_hash_tables = table;
     }
 
@@ -3901,11 +3935,11 @@ sweep_weak_hash_tables ()
 		      int i = XFASTINT (idx);
 		      Lisp_Object next;
 
-		      if (EQ (h->weak, Qkey_weak))
+		      if (EQ (h->weak, Qkey))
 			remove_p = !survives_gc_p (HASH_KEY (h, i));
-		      else if (EQ (h->weak, Qvalue_weak))
+		      else if (EQ (h->weak, Qvalue))
 			remove_p = !survives_gc_p (HASH_VALUE (h, i));
-		      else if (EQ (h->weak, Qkey_value_weak))
+		      else if (EQ (h->weak, Qt))
 			remove_p = (!survives_gc_p (HASH_KEY (h, i))
 				    || !survives_gc_p (HASH_VALUE (h, i)));
 		      else
@@ -4170,10 +4204,10 @@ multiplying the old size with that factor.  Default is 1.5.\n\
 Resize the hash table when ratio of the number of entries in the table.\n\
 Default is 0.8.\n\
 \n\
-:WEAK WEAK -- WEAK must be one of nil, t, `key-weak', `value-weak' or\n\
-`key-value-weak'.  WEAK t means the same as `key-value-weak'.  Elements\n\
- are removed from a weak hash table when their key, value or both \n\
-according to WEAKNESS are otherwise unreferenced.  Default is nil.")
+:WEAK WEAK -- WEAK must be one of nil, t, `key', or `value'.\n\
+If WEAK is not nil, the table returned is a weak table.  Key/value\n\
+pairs are removed from a weak hash table when their key, value or both\n\
+(WEAK t) are otherwise unreferenced.  Default is nil.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -4237,12 +4271,10 @@ according to WEAKNESS are otherwise unreferenced.  Default is nil.")
   /* Look for `:weak WEAK'.  */
   i = get_key_arg (QCweak, nargs, args, used);
   weak = i < 0 ? Qnil : args[i];
-  if (EQ (weak, Qt))
-    weak = Qkey_value_weak;
   if (!NILP (weak)
-      && !EQ (weak, Qkey_weak)
-      && !EQ (weak, Qvalue_weak)
-      && !EQ (weak, Qkey_value_weak))
+      && !EQ (weak, Qt)
+      && !EQ (weak, Qkey)
+      && !EQ (weak, Qvalue))
     Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"), 
 			    weak));
   
@@ -4257,6 +4289,15 @@ according to WEAKNESS are otherwise unreferenced.  Default is nil.")
 }
 
 
+DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
+       "Return a copy of hash table TABLE.")
+  (table)
+     Lisp_Object table;
+{
+  return copy_hash_table (check_hash_table (table));
+}
+
+
 DEFUN ("makehash", Fmakehash, Smakehash, 0, MANY, 0,
        "Create a new hash table.\n\
 Optional first argument SIZE is a hint to the implementation as\n\
@@ -4266,9 +4307,8 @@ Optional second argument TEST specifies how to compare keys in\n\
 the table.  Predefined tests are `eq', `eql', and `equal'.  Default\n\
 is `eql'.  New tests can be defined with `define-hash-table-test'.\n\
 \n\
-Optional third argument WEAK must be one of nil, t, `key-weak',\n\
- `value-weak' or `key-value-weak'.  WEAK t means the same as\n\
- `key-value-weak'.  Default is nil.  Elements of weak hash tables\n\
+Optional third argument WEAK must be one of nil, t, `key',\n\
+ or `value'.  Default is nil.  Elements of weak hash tables\n\
 are removed when their key, value or both are otherwise unreferenced.\n\
 \n\
 The rest of the optional arguments are keyword/value pairs.  The\n\
@@ -4310,9 +4350,8 @@ Default is 0.8.")
   /* Recognize weakness argument.  */
   if (EQ (args[i], Qt)
       || NILP (args[i])
-      || EQ (args[i], Qkey_weak)
-      || EQ (args[i], Qvalue_weak)
-      || EQ (args[i], Qkey_value_weak))
+      || EQ (args[i], Qkey)
+      || EQ (args[i], Qvalue))
     {
       args2[j++] = QCweak;
       args2[j++] = args[i++];
@@ -4514,17 +4553,16 @@ syms_of_fns ()
   staticpro (&QCrehash_threshold);
   QCweak = intern (":weak");
   staticpro (&QCweak);
-  Qkey_weak = intern ("key-weak");
-  staticpro (&Qkey_weak);
-  Qvalue_weak = intern ("value-weak");
-  staticpro (&Qvalue_weak);
-  Qkey_value_weak = intern ("key-value-weak");
-  staticpro (&Qkey_value_weak);
+  Qkey = intern ("key");
+  staticpro (&Qkey);
+  Qvalue = intern ("value");
+  staticpro (&Qvalue);
   Qhash_table_test = intern ("hash-table-test");
   staticpro (&Qhash_table_test);
 
   defsubr (&Ssxhash);
   defsubr (&Smake_hash_table);
+  defsubr (&Scopy_hash_table);
   defsubr (&Smakehash);
   defsubr (&Shash_table_count);
   defsubr (&Shash_table_rehash_size);
