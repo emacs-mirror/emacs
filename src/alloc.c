@@ -112,6 +112,12 @@ extern
 int undo_limit;
 int undo_strong_limit;
 
+int total_conses, total_markers, total_symbols, total_string_size, total_vector_size;
+int total_free_conses, total_free_markers, total_free_symbols;
+#ifdef LISP_FLOAT_TYPE
+int total_free_floats, total_floats;
+#endif /* LISP_FLOAT_TYPE */
+
 /* Points to memory space allocated as "spare",
    to be freed if we run out of memory.  */
 static char *spare_memory;
@@ -1032,6 +1038,18 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->insertion_type = 0;
   return val;
 }
+
+/* Put MARKER back on the free list after using it temporarily.  */
+
+free_marker (marker)
+     Lisp_Object marker;
+{
+  XMISC (marker)->u_marker.type = Lisp_Misc_Free;
+  XMISC (marker)->u_free.chain = marker_free_list;
+  marker_free_list = XMISC (marker);
+
+  total_free_markers++;
+}
 
 /* Allocation of strings */
 
@@ -1475,12 +1493,6 @@ struct backtrace
   };
 
 /* Garbage collection!  */
-
-int total_conses, total_markers, total_symbols, total_string_size, total_vector_size;
-int total_free_conses, total_free_markers, total_free_symbols;
-#ifdef LISP_FLOAT_TYPE
-int total_free_floats, total_floats;
-#endif /* LISP_FLOAT_TYPE */
 
 /* Temporarily prevent garbage collection.  */
 
