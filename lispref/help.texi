@@ -94,8 +94,8 @@ of the Emacs core image saves a significant amount of space.
 Help, emacs, The GNU Emacs Manual}.
 
 @c Wordy to prevent overfull hbox.  --rjc 15mar92
-  The @file{emacs/etc} directory contains two utilities that you can use
-to print nice-looking hardcopy for the file
+  The @file{emacs/lib-src} directory contains two utilities that you can
+use to print nice-looking hardcopy for the file
 @file{emacs/etc/DOC-@var{version}}.  These are @file{sorted-doc.c} and
 @file{digest-doc.c}.
 
