@@ -1037,8 +1037,8 @@ it to change priority.  (Emacs sets its uid back to the real uid.)");
 
   staticpro (&Vinstallation_directory);
   Vinstallation_directory = Qnil;
+
+  /* These have already been set, in init_cmdargs, so don't set them here.  */
   staticpro (&Vinvocation_name);
-  Vinvocation_name = Qnil;
   staticpro (&Vinvocation_directory);
-  Vinvocation_directory = Qnil;
 }
