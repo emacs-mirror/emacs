@@ -440,7 +440,7 @@ This works whether or not the table is Unicode-based or
 	       (input-method . "bulgarian-bds")
 		  (features code-pages)
 	       (documentation
-		. "Support for Bulgrian with windows-1251 character set."))
+		. "Support for Bulgarian with windows-1251 character set."))
  '("Cyrillic"))
 
 (set-language-info-alist
