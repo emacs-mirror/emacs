@@ -58,7 +58,6 @@ env_vars[] =
   {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},
-  {"EMACSLOCKDIR", "%emacs_dir%/lock"},
   /* We no longer set INFOPATH because Info-default-directory-list
      is then ignored.  */
   /*  {"INFOPATH", "%emacs_dir%/info"},  */
