@@ -1,3 +1,60 @@
+2003-10-21  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-left-fringe-cols): Add new optional
+	argument REAL, to return a real number instead of a rounded
+	integer value.  Define as inline function.
+	(ruler-mode-right-fringe-cols): Likewise.
+	(ruler-mode-scroll-bar-cols): New function.
+	(ruler-mode-left-scroll-bar-cols): Use it.  Define as macro.
+	(ruler-mode-right-scroll-bar-cols): Likewise.
+	(ruler-mode-space): New function.
+	(ruler-mode-ruler): Use it.  Handle variations of fringe style,
+	scroll bar mode and margins in a more robust way.
+
+2003-10-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* progmodes/antlr-mode.el: Make major mode work with cc-mode-5.30+.
+	(antlr-c-init-language-vars): New function.
+	(antlr-mode): Use it with cc-mode before v5.29.
+	(antlr-c-common-init): Don't set some local vars here.
+	(antlr-mode): Set them here.
+	(antlr-c-forward-sws): New function alias.
+	(antlr-mode): Redefine with cc-mode before v5.30.
+	(antlr-skip-sexps): Use it.
+	(antlr-skip-exception-part): Ditto.
+	(antlr-skip-file-prelude): Ditto.
+	(antlr-outside-rule-p): Ditto.
+	(antlr-end-of-body): Ditto.
+	(antlr-option-kind): Ditto.
+	(antlr-insert-option-area): Ditto.
+	(antlr-file-dependencies): Ditto.
+
+2003-10-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-move-outside-of-entry): 
+	Move backward only if point was not inside an entry.
+
+2003-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-auto-highlight): Undo July 7 change.
+
+2003-10-21  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el: Automatically skip non-matching text to resync.
+	(compare-windows-whitespace): Doc fix.
+	(compare-windows-sync, compare-windows-sync-string-size)
+	(compare-windows-recenter, compare-ignore-whitespace)
+	(compare-windows-highlight, compare-windows-face): New variables.
+	(compare-windows): Use compare-windows-sync.
+	(compare-windows-highlight, compare-windows-dehighlight)
+	(compare-windows-sync-regexp)
+	(compare-windows-sync-default-function): New functions.
+
+2003-10-21  Juri Linkov  <juri@jurta.org>
+
+	* diff.el (diff-parse-differences): Don't visit the files now;
+	instead, just record the error locus.
+
 2003-10-21  Dave Love  <fx@gnu.org>
 
 	* progmodes/cfengine.el: New file.
