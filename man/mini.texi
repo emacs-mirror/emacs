@@ -46,10 +46,10 @@ while.  It comes back after a few seconds, or as soon as you type
 anything.
 
 @item
-If in the minibuffer you use a command whose purpose is to print a
-message in the echo area, such as @kbd{C-x =}, the message is printed
-normally, and the minibuffer is hidden for a while.  It comes back
-after a few seconds, or as soon as you type anything.
+If in the minibuffer you use a command whose purpose is to display a
+message in the echo area, such as @kbd{C-x =}, the message hides the
+minibuffer for a while.  The minibuffer contents come back after a few
+seconds, or as soon as you type anything.
 
 @item
 Echoing of keystrokes does not take place while the minibuffer is in
@@ -254,7 +254,7 @@ Complete the minibuffer text, but don't go beyond one word
 Submit the text in the minibuffer as the argument, possibly completing
 first as described below (@code{minibuffer-complete-and-exit}).
 @item ?
-Print a list of all possible completions of the text in the minibuffer
+Display a list of all possible completions of the text in the minibuffer
 (@code{minibuffer-list-completions}).
 @end table
 

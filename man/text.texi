@@ -358,7 +358,7 @@ the next page, and @minus{}1 means the previous one.
 @kindex C-x l
 @findex count-lines-page
   The @kbd{C-x l} command (@code{count-lines-page}) is good for deciding
-where to break a page in two.  It prints in the echo area the total number
+where to break a page in two.  It displays in the echo area the total number
 of lines in the current page, and then divides it up into those preceding
 the current line and those following, as in
 
@@ -1366,7 +1366,7 @@ text that belongs inside.  Afterward, use the command @kbd{C-c @}}
 @kindex C-j @r{(@TeX{} mode)}
   There are two commands for checking the matching of braces.  @kbd{C-j}
 (@code{tex-terminate-paragraph}) checks the paragraph before point, and
-inserts two newlines to start a new paragraph.  It prints a message in
+inserts two newlines to start a new paragraph.  It outputs a message in
 the echo area if any mismatch is found.  @kbd{M-x tex-validate-region}
 checks a region, paragraph by paragraph.  The errors are listed in the
 @samp{*Occur*} buffer, and you can use @kbd{C-c C-c} or @kbd{Mouse-2} in
@@ -1664,7 +1664,7 @@ Move to the beginning of the next line that isn't an nroff command
 @item M-p
 Like @kbd{M-n} but move up (@code{backward-text-line}).
 @item M-?
-Prints in the echo area the number of text lines (lines that are not
+Displays in the echo area the number of text lines (lines that are not
 nroff commands) in the region (@code{count-text-lines}).
 @end table
 

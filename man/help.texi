@@ -185,8 +185,8 @@ programming language you are editing (@code{info-lookup-symbol}).
 @findex describe-key-briefly
   The most basic @kbd{C-h} options are @kbd{C-h c}
 (@code{describe-key-briefly}) and @w{@kbd{C-h k}} (@code{describe-key}).
-@kbd{C-h c @var{key}} prints in the echo area the name of the command
-that @var{key} is bound to.  For example, @kbd{C-h c C-f} prints
+@kbd{C-h c @var{key}} displays in the echo area the name of the command
+that @var{key} is bound to.  For example, @kbd{C-h c C-f} displays
 @samp{forward-char}.  Since command names are chosen to describe what
 the commands do, this is a good way to get a very brief description of
 what @var{key} does.
@@ -246,7 +246,7 @@ f} command, then go on editing.
 @kindex C-h w
 @findex where-is
   @kbd{C-h w @var{command} @key{RET}} tells you what keys are bound to
-@var{command}.  It prints a list of the keys in the echo area.  If it
+@var{command}.  It displays a list of the keys in the echo area.  If it
 says the command is not on any key, you must use @kbd{M-x} to run it.
 @kbd{C-h w} runs the command @code{where-is}.
 
@@ -482,7 +482,7 @@ mode.
 @kindex C-h l
 @findex view-lossage
   If something surprising happens, and you are not sure what commands you
-typed, use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} prints the last
+typed, use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays the last
 100 command characters you typed in.  If you see commands that you don't
 know, you can use @kbd{C-h c} to find out what they do.
 
@@ -490,7 +490,7 @@ know, you can use @kbd{C-h c} to find out what they do.
 @findex describe-mode
   Emacs has numerous major modes, each of which redefines a few keys and
 makes a few other changes in how editing works.  @kbd{C-h m}
-(@code{describe-mode}) prints documentation on the current major mode,
+(@code{describe-mode}) displays documentation on the current major mode,
 which normally describes all the commands that are changed in this
 mode.
 
@@ -551,6 +551,6 @@ various situations with solutions or workarounds in many cases.
   When a region of text is ``active,'' so that you can select it with
 the mouse or a key like @kbd{RET}, it often has associated help text.
 Areas of the mode line are examples.  This help will normally be
-printed in the echo area when you move point into the active text.  In
+shown in the echo area when you move point into the active text.  In
 a window system you can display the help text as a ``tooltip''
 (sometimes known as ``balloon help'').  @xref{Tooltips}.

@@ -123,18 +123,18 @@ feedback.  You can change this behavior by setting a variable
 (@pxref{Display Custom}).
 
 @cindex error message in the echo area
-  If a command cannot be executed, it may print an @dfn{error message}
+  If a command cannot be executed, it may display an @dfn{error message}
 in the echo area.  Error messages are accompanied by beeping or by
 flashing the screen.  The error also discards any input you have typed
 ahead.
 
-  Some commands print informative messages in the echo area.  These
+  Some commands display informative messages in the echo area.  These
 messages look much like error messages, but they are not announced with
 a beep and do not throw away input.  Sometimes the message tells you
 what the command has done, when this is not obvious from looking at the
-text being edited.  Sometimes the sole purpose of a command is to print
-a message giving you specific information---for example, @kbd{C-x =}
-prints a message describing the character position of point in the text
+text being edited.  Sometimes the sole purpose of a command is to show
+you a message giving you specific information---for example, @kbd{C-x =}
+displays a message describing the character position of point in the text
 and its current column in the window.  Commands that take a long time
 often display messages ending in @samp{...} while they are working, and
 add @samp{done} at the end when they are finished.

@@ -75,7 +75,7 @@ would stand for the file name @file{/u/rms/gnu/new/foo}.
 
 @findex cd
 @findex pwd
-  The command @kbd{M-x pwd} prints the current buffer's default
+  The command @kbd{M-x pwd} displays the current buffer's default
 directory, and the command @kbd{M-x cd} sets it (to a value read using
 the minibuffer).  A buffer's default directory changes only when the
 @code{cd} command is used.  A file-visiting buffer's default directory
@@ -218,16 +218,16 @@ in the echo area.
 another copy.  It selects the existing buffer containing that file.
 However, before doing so, it checks that the file itself has not changed
 since you visited or saved it last.  If the file has changed, a warning
-message is printed.  @xref{Interlocking,,Simultaneous Editing}.
+message is shown.  @xref{Interlocking,,Simultaneous Editing}.
 
 @cindex maximum buffer size exceeded, error message
   Since Emacs reads the visited file in its entirety, files whose size
 is larger than the maximum Emacs buffer size (@pxref{Buffers}) cannot be
-visited; if you try, Emacs will print an error message saying that the
+visited; if you try, Emacs will display an error message saying that the
 maximum buffer size has been exceeded.
 
 @cindex creating files
-  What if you want to create a new file?  Just visit it.  Emacs prints
+  What if you want to create a new file?  Just visit it.  Emacs displays
 @samp{(New file)} in the echo area, but in other respects behaves as if
 you had visited an existing empty file.  If you make any changes and
 save them, the file is created.
@@ -748,7 +748,7 @@ date of the existing file on disk to verify that it has not changed since the
 file was last visited or saved.  If the date does not match, it implies
 that changes were made in the file in some other way, and these changes are
 about to be lost if Emacs actually does save.  To prevent this, Emacs
-prints a warning message and asks for confirmation before saving.
+displays a warning message and asks for confirmation before saving.
 Occasionally you will know why the file was changed and know that it does
 not matter; then you can answer @kbd{yes} and proceed.  Otherwise, you should
 cancel the save with @kbd{C-g} and investigate the situation.
@@ -2642,7 +2642,7 @@ example of specifying a file name pattern:
 C-x C-d /u2/emacs/src/*.c @key{RET}
 @end example
 
-  Normally, @kbd{C-x C-d} prints a brief directory listing containing
+  Normally, @kbd{C-x C-d} displays a brief directory listing containing
 just file names.  A numeric argument (regardless of value) tells it to
 make a verbose listing including sizes, dates, and owners (like
 @samp{ls -l}).

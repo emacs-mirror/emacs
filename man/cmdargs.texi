@@ -185,7 +185,7 @@ to run as if the display were a text-only terminal.
 Run Emacs in @dfn{batch mode}, which means that the text being edited is
 not displayed and the standard terminal interrupt characters such as
 @kbd{C-z} and @kbd{C-c} continue to have their normal effect.  Emacs in
-batch mode outputs to @code{stderr} only what would normally be printed
+batch mode outputs to @code{stderr} only what would normally be displayed
 in the echo area under program control, and functions which would
 normally read from the minibuffer take their input from @code{stdin}.
 

@@ -83,8 +83,8 @@ preference---other users editing the same file might not want the same
 minor modes you prefer.
 
   The buffer-local minor modes include Abbrev mode, Auto Fill mode,
-Auto Save mode, Font-Lock mode, ISO Accents mode, Outline minor mode,
-Overwrite mode, and Binary Overwrite mode.
+Auto Save mode, Font-Lock mode, Glasses mode, ISO Accents mode,
+Outline minor mode, Overwrite mode, and Binary Overwrite mode.
 
   Abbrev mode allows you to define abbreviations that automatically expand
 as you type them.  For example, @samp{amd} might expand to @samp{abbrev
@@ -1176,7 +1176,7 @@ to execute the macro.  The macro name is a Lisp symbol, and defining it in
 this way makes it a valid command name for calling with @kbd{M-x} or for
 binding a key to with @code{global-set-key} (@pxref{Keymaps}).  If you
 specify a name that has a prior definition other than another keyboard
-macro, an error message is printed and nothing is changed.
+macro, an error message is shown and nothing is changed.
 
 @findex insert-kbd-macro
   Once a macro has a command name, you can save its definition in a file.
@@ -1965,7 +1965,7 @@ command.  Here is the Lisp program to do this:
 @end example
 
   If the value of the @code{disabled} property is a string, that string
-is included in the message printed when the command is used:
+is included in the message displayed when the command is used:
 
 @example
 (put 'delete-region 'disabled

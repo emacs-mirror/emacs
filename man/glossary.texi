@@ -352,7 +352,7 @@ tell it to.  @xref{Bugs}.
 
 @item Echo Area
 The echo area is the bottom line of the screen, used for echoing the
-arguments to commands, for asking questions, and printing brief messages
+arguments to commands, for asking questions, and showing brief messages
 (including error messages).  The messages are stored in the buffer
 @samp{*Messages*} so you can review them later.  @xref{Echo Area}.
 
@@ -389,7 +389,7 @@ See `end of line.'
 An error occurs when an Emacs command cannot execute in the current
 circumstances.  When an error occurs, execution of the command stops
 (unless the command has been programmed to do otherwise) and Emacs
-reports the error by printing an error message (q.v.@:).  Type-ahead
+reports the error by displaying an error message (q.v.@:).  Type-ahead
 is discarded.  Then Emacs is ready to read another editing command.
 
 @item Error Message
@@ -549,7 +549,7 @@ listings of text in Emacs buffers.  @xref{Hardcopy}.
 command does.  @xref{Help}.
 
 @item Help Echo
-Help echo is a short message printed in the echo area when the mouse
+Help echo is a short message displayed in the echo area when the mouse
 pointer is located on portions of display that require some
 explanations.  Emacs displays help echo for menu items, parts of the
 mode line, tool-bar buttons, etc.  On graphics displays, the messages
@@ -894,7 +894,7 @@ The Emacs kill commands set the primary selection and the yank command
 uses the primary selection when appropriate.  @xref{Killing}.
 
 @item Prompt
-A prompt is text printed to ask the user for input.  Displaying a prompt
+A prompt is text used to ask the user for input.  Displaying a prompt
 is called prompting.  Emacs prompts always appear in the echo area
 (q.v.@:).  One kind of prompting happens when the minibuffer is used to
 read an argument (@pxref{Minibuffer}); the echoing which happens when

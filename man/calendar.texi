@@ -269,7 +269,7 @@ Display the number of days in the current region
 @kindex M-= @r{(Calendar mode)}
 @findex calendar-count-days-region
   To determine the number of days in the region, type @kbd{M-=}
-(@code{calendar-count-days-region}).  The numbers of days printed is
+(@code{calendar-count-days-region}).  The numbers of days shown is
 @emph{inclusive}; that is, it includes the days specified by mark and
 point.
 
@@ -290,7 +290,7 @@ Exit from calendar (@code{exit-calendar}).
 @kindex p d @r{(Calendar mode)}
 @cindex day of year
 @findex calendar-print-day-of-year
-  To print the number of days elapsed since the start of the year, or
+  To display the number of days elapsed since the start of the year, or
 the number of days remaining in the year, type the @kbd{p d} command
 (@code{calendar-print-day-of-year}).  This displays both of those
 numbers in the echo area.  The number of days elapsed includes the

@@ -334,7 +334,7 @@ where it was before the command that made the change.
   Consecutive repetitions of @kbd{C-_} or @kbd{C-x u} undo earlier and
 earlier changes, back to the limit of the undo information available.
 If all recorded changes have already been undone, the undo command
-prints an error message and does nothing.
+displays an error message and does nothing.
 
   Any command other than an undo command breaks the sequence of undo
 commands.  Starting from that moment, the previous undo commands become
@@ -592,12 +592,13 @@ is relative to the accessible portion (@pxref{Narrowing}).  By contrast,
 region and the line number relative to the whole buffer.
 
   @kbd{M-x what-page} counts pages from the beginning of the file, and
-counts lines within the page, printing both numbers.  @xref{Pages}.
+counts lines within the page, showing both numbers in the echo area.
+@xref{Pages}.
 
 @kindex M-=
 @findex count-lines-region
   While on this subject, we might as well mention @kbd{M-=} (@code{count-lines-region}),
-which prints the number of lines in the region (@pxref{Mark}).
+which displays the number of lines in the region (@pxref{Mark}).
 @xref{Pages}, for the command @kbd{C-x l} which counts the lines in the
 current page.
 
@@ -605,7 +606,7 @@ current page.
 @findex what-cursor-position
   The command @kbd{C-x =} (@code{what-cursor-position}) can be used to find out
 the column that the cursor is in, and other miscellaneous information about
-point.  It prints a line in the echo area that looks like this:
+point.  It displays a line in the echo area that looks like this:
 
 @smallexample
 Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53 
@@ -633,7 +634,7 @@ percentage of the total size.
 columns from the left edge of the window.
 
   If the buffer has been narrowed, making some of the text at the
-beginning and the end temporarily inaccessible, @kbd{C-x =} prints
+beginning and the end temporarily inaccessible, @kbd{C-x =} displays
 additional text describing the currently accessible range.  For example, it
 might display this:
 
