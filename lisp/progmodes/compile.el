@@ -49,7 +49,7 @@ The value may be t instead of a list; this means that the buffer of
 error messages should be reparsed the next time the list of errors is wanted.
 
 Some other commands (like `diff') use this list to control the error
-message tracking facilites; if you change its structure, you should make
+message tracking facilities; if you change its structure, you should make
 sure you also change those packages.  Perhaps it is better not to change
 it at all.")
 
@@ -142,7 +142,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ("\n\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement
     ;; Unknown who does this:
-    ;;  Line 45 of "foo.c": bloofel undefined
+    ;;  Line 45 of "foo.c": bloofle undefined
     ;; Absoft FORTRAN 77 Compiler 3.1.3
     ;;  error on line 19 of fplot.f: spelling error?
     ;;  warning on line 17 of fplot.f: data type is undefined for variable d
