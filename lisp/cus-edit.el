@@ -1955,9 +1955,13 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 (defun custom-comment-create (widget)
   (let* ((null-comment (equal "" (widget-value widget))))
-    (when (or (widget-get (widget-get widget :parent) :comment-shown)
-	      (not null-comment))
-      (widget-default-create widget))))
+    (if (or (widget-get (widget-get widget :parent) :comment-shown)
+	    (not null-comment))
+	(widget-default-create widget)
+      ;; `widget-default-delete' expects markers in these slots --
+      ;; maybe it shouldn't.
+      (widget-put widget :from (point-marker))
+      (widget-put widget :to (point-marker)))))
 
 (defun custom-comment-hide (widget)
   (widget-put (widget-get widget :parent) :comment-shown nil))
