@@ -1352,6 +1352,9 @@ saying which chars may appear in the node name."
        (if (looking-at "(")
 	   (skip-chars-forward "^)")))
      (skip-chars-backward " ")
+     ;; Skip trailing period.
+     (if (equal (char-before) ?.)
+	 (forward-char -1))
      (point))))
 
 (defun Info-next ()
@@ -1493,7 +1496,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	  (if (looking-at ":")
 	      (buffer-substring-no-properties beg (1- (point)))
 	    (skip-chars-forward " \t\n")
-	    (Info-following-node-name (if multi-line "^.,\t" "^.,\t\n"))))
+	    (Info-following-node-name (if multi-line "^,\t" "^,\t\n"))))
     (replace-regexp-in-string "[ \n]+" " " str)))
 
 ;; No one calls this.
