@@ -1,3 +1,8 @@
+2002-11-16  Ivan Zakharyaschev <imz@altlinux.org>  (tiny change)
+
+	* international/codepage.el (cp866-decode-table): Fix the
+	translation table.
+
 2002-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-bytecomp.el (cc-bytecomp-defun): Fixed bug that
