@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/08/30 07:03:33 $|$Revision: 1.72 $
+;; |$Date: 1994/08/30 21:20:09 $|$Revision: 1.73 $
 
 ;; This file is part of GNU Emacs.
 
@@ -514,10 +514,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (set-buffer-modified-p (buffer-modified-p)) ; update modeline
 
-  ;; It is ugly to show region highlighting while the search
-  ;; is going on.  And we don't want the mark active at the end either.
-  (setq deactivate-mark t)      
-
   (isearch-push-state)
 
   (make-local-variable 'overriding-local-map)
@@ -598,7 +594,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     ;; Maybe should test difference between and set mark iff > threshold.
     (if (/= (point) isearch-opoint)
 	(progn
-	  (push-mark isearch-opoint t)
+	  (or (and transient-mark-mode mark-active)
+	      (push-mark isearch-opoint t))
 	  (or executing-macro (> (minibuffer-depth) 0)
 	      (message "Mark saved where search started")))
       ;; (message "") why is this needed?
