@@ -824,25 +824,38 @@ the modes of the new file to agree with the old modes."
 	      setmodes)
 	(file-error nil)))))
 
-(defun file-name-sans-versions (name)
+(defun file-name-sans-versions (name &optional keep-backup-version)
   "Return FILENAME sans backup versions or strings.
 This is a separate procedure so your site-init or startup file can
-redefine it."
-  (substring name 0
-             (if (eq system-type 'vax-vms)
-		 ;; VMS version number is (a) semicolon, optional
-		 ;; sign, zero or more digits or (b) period, option
-		 ;; sign, zero or more digits, provided this is the
-		 ;; second period encountered outside of the
-		 ;; device/directory part of the file name.
-                 (or (string-match ";[---+]?[0-9]*\\'" name)
-                     (if (string-match "\\.[^]>:]*\\(\\.[---+]?[0-9]*\\)\\'"
-                                       name)
-                         (match-beginning 1))
-                     (length name))
-               (or (string-match "\\.~[0-9]+~\\'" name)
-                   (string-match "~\\'" name)
-                   (length name)))))
+redefine it.
+If the optional argument KEEP-BACKUP-VERSION is non-nil,
+we do not remove backup version numbers, only true file version numbers."
+  (let (handler (handlers file-name-handler-alist))
+    (while (and (consp handlers) (null handler))
+      (if (and (consp (car handlers))
+	       (stringp (car (car handlers)))
+	       (string-match (car (car handlers)) name))
+	  (setq handler (cdr (car handlers))))
+      (setq handlers (cdr handlers)))
+    (if handler
+	(funcall handler 'file-name-sans-versions name keep-backup-version)
+      (substring name 0
+		 (if (eq system-type 'vax-vms)
+		     ;; VMS version number is (a) semicolon, optional
+		     ;; sign, zero or more digits or (b) period, option
+		     ;; sign, zero or more digits, provided this is the
+		     ;; second period encountered outside of the
+		     ;; device/directory part of the file name.
+		     (or (string-match ";[---+]?[0-9]*\\'" name)
+			 (if (string-match "\\.[^]>:]*\\(\\.[---+]?[0-9]*\\)\\'"
+					   name)
+			     (match-beginning 1))
+			 (length name))
+		   (if keep-backup-version
+		       (length name)
+		     (or (string-match "\\.~[0-9]+~\\'" name)
+			 (string-match "~\\'" name)
+			 (length name))))))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
@@ -1380,23 +1393,61 @@ and `list-directory-verbose-switches'."
       (princ "Directory ")
       (princ dirname)
       (terpri)
+      (save-excursion
+	(set-buffer "*Directory*")
+	(let ((wildcard (not (file-directory-p dirname))))
+	  (insert-directory dirname switches wildcard (not wildcard)))))))
+
+(defvar insert-directory-program "ls"
+  "Absolute or relative name of the `ls' program used by `insert-directory'.")
+
+;; insert-directory
+;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
+;;   FULL-DIRECTORY-P is nil.
+;;   The single line of output must display FILE's name as it was
+;;   given, namely, an absolute path name.
+;; - must insert exactly one line for each file if WILDCARD or
+;;   FULL-DIRECTORY-P is t, plus one optional "total" line
+;;   before the file lines, plus optional text after the file lines.
+;;   Lines are delimited by "\n", so filenames containing "\n" are not
+;;   allowed.
+;;   File lines should display the basename.
+;; - must be consistent with
+;;   - functions dired-move-to-filename, (these two define what a file line is)
+;;   		 dired-move-to-end-of-filename,
+;;		 dired-between-files, (shortcut for (not (dired-move-to-filename)))
+;;   		 dired-insert-headerline
+;;   		 dired-after-subdir-garbage (defines what a "total" line is)
+;;   - variable dired-subdir-regexp
+(defun insert-directory (file switches &optional wildcard full-directory-p)
+  "Insert directory listing for of FILE, formatted according to SWITCHES.
+Leaves point after the inserted text.
+Optional third arg WILDCARD means treat FILE as shell wildcard.
+Optional fourth arg FULL-DIRECTORY-P means file is a directory and
+switches do not contain `d', so that a full listing is expected.
+
+This works by running a directory listing program
+whose name is in the variable `ls-program'.
+If WILDCARD, it also runs the shell specified by `shell-file-name'."
+  (let (handler (handlers file-name-handler-alist))
+    (while (and (consp handlers) (null handler))
+      (if (and (consp (car handlers))
+	       (stringp (car (car handlers)))
+	       (string-match (car (car handlers)) file))
+	  (setq handler (cdr (car handlers))))
+      (setq handlers (cdr handlers)))
+    (if handler
+	(funcall handler 'insert-directory file switches
+		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
-	  (vms-read-directory dirname switches standard-output)
-	(if (file-directory-p dirname)
-	    (save-excursion
-	      (set-buffer "*Directory*")
-	      (call-process "ls" nil standard-output nil switches
-			    (setq default-directory
-				  (file-name-as-directory dirname))))
-	  (let ((default-directory (file-name-directory dirname)))
-	    (if (file-exists-p default-directory)
-		(call-process shell-file-name nil standard-output nil
-			      "-c" (concat "exec ls "
-					   switches " "
-					   (file-name-nondirectory dirname)))
-	      (princ "No such directory: ")
-	      (princ dirname)
-	      (terpri))))))))
+	  (vms-read-directory file switches (current-buffer))
+	(if wildcard
+	    (let ((default-directory (file-name-directory file)))
+	      (call-process shell-file-name nil t nil
+			    "-c" (concat insert-directory-program
+					 " -d " switches " "
+					 (file-name-nondirectory file))))
+	  (call-process insert-directory-program nil t nil switches file))))))
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.

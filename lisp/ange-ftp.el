@@ -3704,6 +3704,7 @@ to the directory part of the contents of the current buffer."
 (put 'file-attributes 'ange-ftp 'ange-ftp-file-attributes)
 (put 'file-name-all-completions 'ange-ftp 'ange-ftp-file-name-all-completions)
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
+(put 'insert-directory 'ange-ftp 'ange-ftp-insert-directory)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
@@ -3780,128 +3781,21 @@ to the directory part of the contents of the current buffer."
 (defun ange-ftp-real-file-name-completion (&rest args)
   (let (file-name-handler-alist)
     (apply 'file-name-completion args)))
-
-;;; This is obsolete and won't work
-
-;; Attention!
-;; It would be nice if ange-ftp-add-hook was generalized to
-;; (defun ange-ftp-add-hook (hook-var hook-function &optional postpend),
-;; where the optional postpend variable stipulates that hook-function
-;; should be post-pended to the hook-var, rather than prepended.
-;; Then, maybe we should overwrite dired with
-;; (ange-ftp-add-hook 'dired-load-hook 'ange-ftp-overwrite-dired t).
-;; This is because dired-load-hook is commonly used to add the dired extras
-;; features (dired-x.el, dired-trns.el, dired-nstd.el, ...). Some of these
-;; extras features overwrite functions in dired.el with fancier versions.
-;; The "extras" overwrites would then clobber the ange-ftp overwrites.
-;; As long as the ange-ftp overwrites are carefully written to use
-;; ange-ftp-real-... when the directory is local, then doing the ange-ftp
-;; overwrites after the extras overwites should be OK.
-;; At the moment, I think that there aren't any conflicts between the extras
-;; overwrites, and the ange-ftp overwrites. This may not last though.
-
-(defun ange-ftp-add-hook (hook-var hook-function)
-  "Prepend hook-function to hook-var's value, if it is not already an element.
-hook-var's value may be a single function or a list of functions."
-  (if (boundp hook-var)
-      (let ((value (symbol-value hook-var)))
-        (if (and (listp value) (not (eq (car value) 'lambda)))
-            (and (not (memq hook-function value))
-                 (set hook-var
-                      (if value (cons hook-function value) hook-function)))
-          (and (not (eq hook-function value))
-               (set hook-var
-                    (list hook-function value)))))
-    (set hook-var hook-function)))
-
-;; To load ange-ftp and not dired (leaving it to autoload), define
-;; dired-load-hook and make sure dired.el ends with:
-;;	(run-hooks 'dired-load-hook)
-;;
-(if (and (boundp 'dired-load-hook)
-	 (not (featurep 'dired)))
-    (ange-ftp-add-hook 'dired-load-hook 'ange-ftp-overwrite-dired)
-  (require 'dired)
-  (ange-ftp-overwrite-dired))
-
-(defun ange-ftp-overwrite-dired ()
-  (if (not (fboundp 'dired-ls))		;dired should have been loaded by now
-      (ange-ftp-overwrite-fn 'dired-readin) ; classic dired
-    (ange-ftp-overwrite-fn 'make-directory) ; tree dired and v19 stuff
-    (ange-ftp-overwrite-fn 'remove-directory)
-    (ange-ftp-overwrite-fn 'diff)
-    (ange-ftp-overwrite-fn 'dired-run-shell-command)
-    (ange-ftp-overwrite-fn 'dired-ls)
-    (ange-ftp-overwrite-fn 'dired-call-process)
-    ;; Can't use (fset 'ange-ftp-dired-readin 'ange-ftp-tree-dired-readin)
-    ;; here because it confuses ange-ftp-overwrite-fn.
-    (fset 'ange-ftp-dired-readin (symbol-function 'ange-ftp-tree-dired-readin))
-    (ange-ftp-overwrite-fn 'dired-readin)
-    (ange-ftp-overwrite-fn 'dired-insert-headerline)
-    (ange-ftp-overwrite-fn 'dired-move-to-filename)
-    (ange-ftp-overwrite-fn 'dired-move-to-end-of-filename)
-    (ange-ftp-overwrite-fn 'dired-get-filename)
-    (ange-ftp-overwrite-fn 'dired-between-files)
-    (ange-ftp-overwrite-fn 'dired-clean-directory)
-    (ange-ftp-overwrite-fn 'dired-flag-backup-files)
-    (ange-ftp-overwrite-fn 'dired-backup-diff)
-    (if (fboundp 'dired-do-create-files)
-	;; dired 6.0 or later.
-	(progn
-	  (ange-ftp-overwrite-fn 'dired-copy-file)
-	  (ange-ftp-overwrite-fn 'dired-create-files)
-	  (ange-ftp-overwrite-fn 'dired-do-create-files)))
-    (if (fboundp 'dired-compress-make-compressed-filename)
-	;; it's V5.255 or later
-	(ange-ftp-overwrite-fn 'dired-compress-make-compressed-filename)
-      ;; ange-ftp-overwrite-fn confuses dired-mark-map here.
-      (fset 'ange-ftp-real-dired-compress (symbol-function 'dired-compress))
-      (fset 'dired-compress 'ange-ftp-dired-compress)
-      (fset 'ange-ftp-real-dired-uncompress (symbol-function 'dired-uncompress))
-      (fset 'dired-uncompress 'ange-ftp-dired-uncompress)))
-
-  (ange-ftp-overwrite-fn 'dired-find-file)
-  (ange-ftp-overwrite-fn 'dired-revert))
+(defun ange-ftp-real-insert-directory (&rest args)
+  (let (file-name-handler-alist)
+    (apply 'insert-directory args)))
 
 ;;;; ------------------------------------------------------------
 ;;;; Classic Dired support.
 ;;;; ------------------------------------------------------------
 
-(defvar ange-ftp-dired-host-type nil
-  "The host type associated with a dired buffer. (buffer local)")
-(make-variable-buffer-local 'ange-ftp-dired-host-type)
-
-(defun ange-ftp-dired-readin (dirname buffer)
+(defun ange-ftp-insert-directory (file switches &optional wildcard full)
   "Documented as original."
-  (let ((file (ange-ftp-abbreviate-filename dirname))
-	(parsed (ange-ftp-ftp-path dirname)))
-    (save-excursion
-      (ange-ftp-message "Reading directory %s..." file)
-      (set-buffer buffer)
-      (let ((buffer-read-only nil))
-	(widen)
-	(erase-buffer)
-	(setq dirname (expand-file-name dirname))
-	(if parsed
-	    (let ((host-type (ange-ftp-host-type (car parsed))))
-	      (setq ange-ftp-dired-host-type host-type)
-	      (insert (ange-ftp-ls dirname dired-listing-switches t)))
-	  (if (ange-ftp-real-file-directory-p dirname)
-	      (call-process "ls" nil buffer nil
-			    dired-listing-switches dirname)
-	    (let ((default-directory
-		    (ange-ftp-real-file-name-directory dirname)))
-	      (call-process
-	       shell-file-name nil buffer nil
-	       "-c" (concat
-		     "ls " dired-listing-switches " "
-		     (ange-ftp-real-file-name-nondirectory dirname))))))
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (insert "  ")
-	  (forward-line 1))
-	(goto-char (point-min))))
-    (ange-ftp-message "Reading directory %s...done" file)))
+  (setq file (ange-ftp-abbreviate-filename file))
+  (let ((parsed (ange-ftp-ftp-path file)))
+    (if parsed
+	(insert (ange-ftp-ls dirname switches t))
+      (ange-ftp-real-insert-directory file switches wildcard full))))
 
 (defun ange-ftp-dired-revert (&optional arg noconfirm)
   "Documented as original."
@@ -3909,147 +3803,21 @@ hook-var's value may be a single function or a list of functions."
 	   (ange-ftp-ftp-path (expand-file-name dired-directory)))
       (setq ange-ftp-ls-cache-file nil))
   (ange-ftp-real-dired-revert arg noconfirm))
-
-;;;; ------------------------------------------------------------
-;;;; Tree Dired support (ange & Sebastian Kremer)
-;;;; ------------------------------------------------------------
 
-(defvar ange-ftp-dired-re-exe-alist nil
-  "Association list of regexps \(strings\) which match file lines of
- executable files.")
+(defvar ange-ftp-sans-version-alist nil
+  "Alist of mapping host type into function to remove file version numbers.")
 
-(defvar ange-ftp-dired-re-dir-alist nil
-  "Association list of regexps \(strings\) which match file lines of
- subdirectories.")
-
-(defvar ange-ftp-dired-insert-headerline-alist nil
-  "Association list of \(TYPE \. FUNC \) pairs, where FUNC is
-the function to be used by dired to insert the headerline of
-the dired buffer.")
-
-(defvar ange-ftp-dired-move-to-filename-alist nil
-  "Association list of \(TYPE \. FUNC \) pairs, where FUNC is
-the function to be used by dired to move to the beginning of a
-filename.")
-
-(defvar ange-ftp-dired-move-to-end-of-filename-alist nil
-  "Association list of \(TYPE \. FUNC \) pairs, where FUNC is
-the function to be used by dired to move to the end of a
-filename.")
-
-(defvar ange-ftp-dired-get-filename-alist nil
-  "Association list of \(TYPE \. FUNC \) pairs, where FUNC is
-the function to be used by dired to get a filename from the
-current line.")
-
-(defvar ange-ftp-dired-between-files-alist nil
-  "Association list of \(TYPE \. FUNC \) pairs, where FUNC is
-the function to be used by dired to determine when the point
-is on a line between files.")
-
-(defvar ange-ftp-dired-ls-trim-alist nil
-  "Association list of \( TYPE \. FUNC \) pairs, where FUNC is
-a function which trims extraneous lines from a directory listing.")
-
-(defvar ange-ftp-dired-clean-directory-alist nil
-  "Association list of \( TYPE \. FUNC \) pairs, where FUNC is
-a function which cleans out old versions of files in the OS TYPE.")
-
-(defvar ange-ftp-dired-flag-backup-files-alist nil
-  "Association list of \( TYPE \. FUNC \) pairs, where FUNC is
-a functions which flags the backup files for deletion in the OS TYPE.")
-
-(defvar ange-ftp-dired-backup-diff-alist nil
-  "Association list of \( TYPE \. FUNC \) pairs, where FUNC diffs
-a file with its backup. The backup file is determined according to
-the OS TYPE.")
-
-;; Could use dired-before-readin-hook here, instead of overloading
-;; dired-readin. However, if people change this hook after ange-ftp
-;; is loaded, they'll break things.
-;; Also, why overload dired-readin rather than dired-mode?
-;; Because I don't want to muck up virtual dired (see dired-x.el).
-
-(defun ange-ftp-tree-dired-readin (dirname buffer)
+(defun ange-ftp-file-name-sans-versions (file keep-backup-version)
   "Documented as original."
-  (let ((parsed (ange-ftp-ftp-path dirname)))
+  (setq file (ange-ftp-abbreviate-filename file))
+  (let ((parsed (ange-ftp-ftp-path file))
+	host-type func)
     (if parsed
-	(save-excursion
-	  (set-buffer buffer)
-	  (setq ange-ftp-dired-host-type
-		(ange-ftp-host-type (car parsed)))
-	  (and ange-ftp-dl-dir-regexp
-	       (eq ange-ftp-dired-host-type 'unix)
-	       (string-match ange-ftp-dl-dir-regexp dirname)
-	       (setq ange-ftp-dired-host-type 'unix:dl))
-	  (let ((eentry (assq ange-ftp-dired-host-type
-			      ange-ftp-dired-re-exe-alist))
-		(dentry (assq ange-ftp-dired-host-type
-			      ange-ftp-dired-re-dir-alist)))
-	    (if eentry
-		(set (make-local-variable 'dired-re-exe) (cdr eentry)))
-	    (if dentry
-		(set (make-local-variable 'dired-re-dir) (cdr dentry)))
-	    ;; No switches are sent to dumb hosts, so don't confuse dired.
-	    ;; I hope that dired doesn't get excited if it doesn't see the l
-	    ;; switch. If it does, then maybe fake things by setting this to
-	    ;; "-Al".
-	    (if (memq ange-ftp-dired-host-type ange-ftp-dumb-host-types)
-		(setq dired-actual-switches "-Al"))))))
-  (ange-ftp-real-dired-readin dirname buffer))
-
-(defun ange-ftp-dired-insert-headerline (dir)
-  "Documented as original."
-  (funcall (or (and ange-ftp-dired-host-type
-		    (cdr (assq ange-ftp-dired-host-type
-			       ange-ftp-dired-insert-headerline-alist)))
-	       'ange-ftp-real-dired-insert-headerline)
-	   dir))
-
-(defun ange-ftp-dired-move-to-filename (&optional raise-error eol)
-  "Documented as original."
-  (funcall (or (and ange-ftp-dired-host-type
-		    (cdr (assq ange-ftp-dired-host-type
-			       ange-ftp-dired-move-to-filename-alist)))
-	       'ange-ftp-real-dired-move-to-filename)
-	   raise-error eol))
-
-(defun ange-ftp-dired-move-to-end-of-filename (&optional no-error)
-  "Documented as original."
-  (funcall (or (and ange-ftp-dired-host-type
-		    (cdr (assq ange-ftp-dired-host-type
-			       ange-ftp-dired-move-to-end-of-filename-alist)))
-	       'ange-ftp-real-dired-move-to-end-of-filename)
-	   no-error))
-
-(defun ange-ftp-dired-get-filename (&optional localp no-error-if-not-filep)
-  "Documented as original."
-  (funcall (or (and ange-ftp-dired-host-type
-		    (cdr (assq ange-ftp-dired-host-type
-			       ange-ftp-dired-get-filename-alist)))
-	       'ange-ftp-real-dired-get-filename)
-	   localp no-error-if-not-filep))
-
-(defun ange-ftp-dired-between-files ()
-  "Documented as original."
-  (funcall (or (and ange-ftp-dired-host-type
-		    (cdr (assq ange-ftp-dired-host-type
-			       ange-ftp-dired-between-files-alist)))
-	       'ange-ftp-real-dired-between-files)))
-
-(defvar ange-ftp-bob-version-alist nil
-  "Association list of pairs \( TYPE \. FUNC \), where FUNC is
-a function to be used to bob the version number off of a filename
-in OS TYPE.")
-
-(defun ange-ftp-dired-find-file ()
-  "Documented as original."
-  (interactive)
-  (find-file (funcall (or (and ange-ftp-dired-host-type
-			       (cdr (assq ange-ftp-dired-host-type
-					  ange-ftp-bob-version-alist)))
-			  'identity)
-		      (dired-get-filename))))
+	(setq host-type (ange-ftp-host-type (car parsed))
+	      func (cdr (assq ange-ftp-dired-host-type
+			      ange-ftp-sans-version-alist))))
+    (if func (funcall func file keep-backup-version)
+      (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
 ;; Need the following functions for making filenames of compressed
 ;; files, because some OS's (unlike UNIX) do not allow a filename to

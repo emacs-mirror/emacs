@@ -50,13 +50,9 @@ may contain even `F', `b', `i' and `s'.")
   "Name of chown command (usully `chown' or `/etc/chown').")
 
 ;;;###autoload
-(defvar dired-ls-program "ls"
-  "Absolute or relative name of the `ls' program used by dired.")
-
-;;;###autoload
 (defvar dired-ls-F-marks-symlinks nil
   "*Informs dired about how `ls -lF' marks symbolic links.
-Set this to t if `dired-ls-program' with `-lF' marks the symbolic link
+Set this to t if `insert-directory-program' with `-lF' marks the symbolic link
 itself with a trailing @ (usually the case under Ultrix).
 
 Example: if `ln -s foo bar; ls -F bar' gives `bar -> foo', set it to
@@ -307,39 +303,6 @@ Optional second argument ARG forces to use other files.  If ARG is an
 
 ;; Function dired-ls is redefinable for VMS, ange-ftp, Prospero or
 ;; other special applications.
-
-;; dired-ls
-;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
-;;   FULL-DIRECTORY-P is nil.
-;;   The single line of output must display FILE's name as it was
-;;   given, namely, an absolute path name.
-;; - must insert exactly one line for each file if WILDCARD or
-;;   FULL-DIRECTORY-P is t, plus one optional "total" line
-;;   before the file lines, plus optional text after the file lines.
-;;   Lines are delimited by "\n", so filenames containing "\n" are not
-;;   allowed.
-;;   File lines should display the basename, not a path name.
-;; - must drag point after inserted text
-;; - must be consistent with
-;;   - functions dired-move-to-filename, (these two define what a file line is)
-;;   		 dired-move-to-end-of-filename,
-;;		 dired-between-files, (shortcut for (not (dired-move-to-filename)))
-;;   		 dired-insert-headerline
-;;   		 dired-after-subdir-garbage (defines what a "total" line is)
-;;   - variables dired-subdir-regexp
-(defun dired-ls (file switches &optional wildcard full-directory-p)
-;  "Insert `ls' output of FILE, formatted according to SWITCHES.
-;Optional third arg WILDCARD means treat FILE as shell wildcard.
-;Optional fourth arg FULL-DIRECTORY-P means file is a directory and
-;switches do not contain `d', so that a full listing is expected.
-;
-;Uses dired-ls-program (and shell-file-name if WILDCARD) to do the work."
-  (if wildcard
-      (let ((default-directory (file-name-directory file)))
-	(call-process shell-file-name nil t nil
-		      "-c" (concat dired-ls-program " -d " switches " "
-				   (file-name-nondirectory file))))
-    (call-process dired-ls-program nil t nil switches file)))
 
 ;; The dired command
 
@@ -496,12 +459,12 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (defun dired-readin-insert (dirname)
   ;; Just insert listing for DIRNAME, assuming a clean buffer.
   (if (equal default-directory dirname);; i.e., (file-directory-p dirname)
-      (dired-ls dirname dired-actual-switches nil t)
+      (insert-directory dirname dired-actual-switches nil t)
     (if (not (file-readable-p
 	      (directory-file-name (file-name-directory dirname))))
 	(error "Directory %s inaccessible or nonexistent" dirname)
       ;; else assume it contains wildcards:
-      (dired-ls dirname dired-actual-switches t)
+      (insert-directory dirname dired-actual-switches t)
       (save-excursion;; insert wildcard instead of total line:
 	(goto-char (point-min))
 	(insert "wildcard " (file-name-nondirectory dirname) "\n")))))
@@ -881,7 +844,7 @@ Creates a buffer if necessary."
 (defun dired-find-file ()
   "In dired, visit the file or directory named on this line."
   (interactive)
-  (find-file (dired-get-filename)))
+  (find-file (file-name-sans-versions (dired-get-filename) t)))
 
 (defun dired-view-file ()
   "In dired, examine a file in view mode, returning to dired when done.
@@ -891,17 +854,18 @@ otherwise, display it in another buffer."
   (if (file-directory-p (dired-get-filename))
       (or (and dired-subdir-alist (dired-goto-subdir (dired-get-filename)))
 	  (dired (dired-get-filename)))
-    (view-file (dired-get-filename))))
+    (view-file (file-name-sans-versions (dired-get-filename) t))))
 
 (defun dired-find-file-other-window ()
   "In dired, visit this file or directory in another window."
   (interactive)
-  (find-file-other-window (dired-get-filename)))
+  (find-file-other-window (file-name-sans-versions (dired-get-filename) t)))
 
 (defun dired-display-file ()
   "In dired, display this file or directory in another window."
   (interactive)
-  (display-buffer (find-file-noselect (dired-get-filename))))
+  (let ((file (file-name-sans-versions (dired-get-filename) t)))
+    (display-buffer (find-file-noselect file))))
 
 ;;; Functions for extracting and manipulating file names in dired buffers.
 
