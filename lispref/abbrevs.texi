@@ -80,6 +80,11 @@ This function undefines all the abbrevs in abbrev table @var{table},
 leaving it empty.  It always returns @code{nil}.
 @end defun
 
+@defun copy-abbrev-table table
+This function returns a copy of abbrev table @var{table}---a new
+abbrev table that contains the same abbrev definitions.
+@end defun
+
 @defun define-abbrev-table tabname definitions
 This function defines @var{tabname} (a symbol) as an abbrev table
 name, i.e., as a variable whose value is an abbrev table.  It defines
