@@ -11529,7 +11529,7 @@ DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
   "Dump glyph row ROW to stderr.\n\
 GLYPH 0 means don't dump glyphs.\n\
 GLYPH 1 means dump glyphs in short form.\n\
-GLYPH > 1 or omitted means dump glyphs on long form.")
+GLYPH > 1 or omitted means dump glyphs in long form.")
   (row, glyphs)
      Lisp_Object row, glyphs;
 {
