@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.27) $
+ * $HopeName: MMsrc!root.c(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.27) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.28) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -20,11 +20,12 @@ SRCID(root, "$HopeName: MMsrc!root.c(trunk.27) $");
 
 Bool RootVarCheck(RootVar rootVar)
 {
-  AVER(rootVar == RootTABLE ||
-       rootVar == RootTABLE_MASKED ||
-       rootVar == RootFUN ||
-       rootVar == RootFMT ||
-       rootVar == RootREG);
+  CHECKL(rootVar == RootTABLE ||
+         rootVar == RootTABLE_MASKED ||
+         rootVar == RootFUN ||
+         rootVar == RootFMT ||
+         rootVar == RootREG);
+  UNUSED(rootVar);
   return TRUE;
 }
 
@@ -33,12 +34,13 @@ Bool RootVarCheck(RootVar rootVar)
 
 Bool RootModeCheck(RootMode mode)
 {
-  AVER((mode & (RootModeCONSTANT |
-		RootModePROTECTABLE |
-		RootModePROTECTABLE_INNER)) == mode);
+  CHECKL((mode & (RootModeCONSTANT |
+		  RootModePROTECTABLE |
+		  RootModePROTECTABLE_INNER)) == mode);
   /* RootModePROTECTABLE_INNER implies RootModePROTECTABLE */
-  AVER((mode & RootModePROTECTABLE_INNER) == 0 ||
-       (mode & RootModePROTECTABLE));
+  CHECKL((mode & RootModePROTECTABLE_INNER) == 0 ||
+         (mode & RootModePROTECTABLE));
+  UNUSED(mode);
   
   return TRUE;
 }
@@ -92,13 +94,13 @@ Bool RootCheck(Root root)
   CHECKL(RootModeCheck(root->mode));
   CHECKL(BoolCheck(root->protectable));
   if(root->protectable) {
-    CHECKL(root->protBase != NULL);
-    CHECKL(root->protLimit != NULL);
+    CHECKL(root->protBase != (Addr)0);
+    CHECKL(root->protLimit != (Addr)0);
     CHECKL(root->protBase < root->protLimit);
     /* there is no AccessSetCheck */
   } else {
-    CHECKL(root->protBase == NULL);
-    CHECKL(root->protLimit == NULL);
+    CHECKL(root->protBase == (Addr)0);
+    CHECKL(root->protLimit == (Addr)0);
     CHECKL(root->pm == (AccessSet)0);
   }
   return TRUE;
@@ -140,8 +142,8 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   root->mode = mode;
   root->pm = AccessSetEMPTY;
   root->protectable = FALSE;
-  root->protBase = 0;
-  root->protLimit = 0;
+  root->protBase = (Addr)0;
+  root->protLimit = (Addr)0;
 
   /* See design.mps.arena.root-ring */
   RingInit(&root->arenaRing);
@@ -474,14 +476,14 @@ void RootAccess(Root root, AccessSet mode)
 {
   AVERT(Root, root);
   /* Can't AVERT mode. */
-  AVER((root->pm & mode) != AccessSetEMPTY);
+  AVER((RootPM(root) & mode) != AccessSetEMPTY);
   AVER(mode == AccessWRITE); /* only write protection supported */
 
   rootSetSummary(root, RefSetUNIV);
 
   /* Access must now be allowed. */
-  AVER((root->pm & mode) == AccessSetEMPTY);
-  ProtSet(root->protBase, root->protLimit, root->pm);
+  AVER((RootPM(root) & mode) == AccessSetEMPTY);
+  ProtSet(root->protBase, root->protLimit, RootPM(root));
 }
 
 
