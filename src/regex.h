@@ -393,12 +393,25 @@ typedef struct
    already been defined, as by Autoconf's AC_CONST, don't do anything.  */
 
 #if __STDC__
+
 #define _RE_ARGS(args) args
+
 #else /* not __STDC__ */
+
 #define _RE_ARGS(args) ()
-#if !const && !HAVE_CONST
+
+#ifndef USING_AUTOCONF
+
+#ifndef HAVE_CONST
+#define const
+#else
+#if !HAVE_CONST
 #define const
 #endif
+#endif
+
+#endif /* not USING_AUTOCONF */
+
 #endif /* not __STDC__ */
 
 /* Sets the current default syntax to SYNTAX, and return the old syntax.
