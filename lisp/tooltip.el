@@ -141,7 +141,9 @@ only tooltips in the buffer containing the overlay arrow."
 
 
 (defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of the actual tooltip windows."
+  "Use the echo area instead of tooltip frames.
+This is only relevant GUD display, since otherwise it is equivalent to
+turning off Tooltip mode."
   :type 'boolean
   :tag "use echo area"
   :group 'tooltip)
