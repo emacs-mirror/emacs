@@ -2183,7 +2183,7 @@ is specified, returning t if it is specified."
 						   buffer-file-name)
 						(concat "buffer "
 							(buffer-name))))))))))
-	  (let (prefix prefixlen suffix beg
+	  (let (prefix suffix beg
 		(enable-local-eval enable-local-eval))
 	    ;; The prefix is what comes before "local variables:" in its line.
 	    ;; The suffix is what comes after "local variables:" in its line.
@@ -2197,8 +2197,7 @@ is specified, returning t if it is specified."
 		      (buffer-substring (point)
 					(progn (beginning-of-line) (point)))))
 
-	    (if prefix (setq prefixlen (length prefix)
-			     prefix (regexp-quote prefix)))
+	    (setq prefix (if prefix (regexp-quote prefix) "^"))
 	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
 	    (forward-line 1)
 	    (let ((startpos (point))
