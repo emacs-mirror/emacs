@@ -1,3 +1,10 @@
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ada-mode.
+	(../info/ada-mode, ada-mode.dvi): New targets.
+
+	* ada-mode.texi: Set file name to ../info/ada-mode.
+	
 1999-10-07  Emmanuel Briot  <briot@gnat.com>
 
 	* ada-xref.texi: New file.

@@ -1,3 +1,7 @@
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (install-arch-indep): Add ada-mode.
+	
 1999-10-06  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Add rules for config.status, configure.
