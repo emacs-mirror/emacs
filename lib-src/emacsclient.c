@@ -71,6 +71,7 @@ main (argc, argv)
   char *getenv (), *getwd ();
   char *getcwd ();
   int geteuid ();
+  int nowait = 0;
 
   if (argc < 2)
     {
@@ -167,6 +168,17 @@ main (argc, argv)
 
   for (i = 1; i < argc; i++)
     {
+      /* If -nowait or --nowait option is used,
+	 report it to the server.  */
+      if (!strcmp (argv[i], "-nowait")
+	  || (!strncmp (argv[i], "--nowait", strlen (argv[i]))
+	      && strlen (argv[i]) >= 3))
+	{
+	  fprintf (out, "-nowait ");
+	  nowait = 1;
+	  continue;
+	}
+
       if (*argv[i] == '+')
 	{
 	  char *p = argv[i] + 1;
@@ -180,6 +192,10 @@ main (argc, argv)
     }
   fprintf (out, "\n");
   fflush (out);
+
+  /* Maybe wait for an answer.   */
+  if (nowait)
+    return 0;
 
   printf ("Waiting for Emacs...");
   fflush (stdout);
@@ -224,6 +240,7 @@ main (argc, argv)
   char *cwd;
   char *temp;
   char *progname = argv[0];
+  int nowait = 0;
 
   if (argc < 2)
     {
@@ -287,7 +304,17 @@ main (argc, argv)
     {
       int need_cwd = 0;
       char *modified_arg = argv[0];
-      if (*modified_arg == '+')
+
+      /* If -nowait or --nowait option is used,
+	 report it to the server.  */
+      if (!strcmp (modified_arg, "-nowait")
+	  || (!strncmp (modified_arg, "--nowait", strlen (modified_arg))
+	      && strlen (modified_arg) >= 3))
+	{
+	  modified_arg = "-nowait";
+	  nowait = 1;
+	}
+      else if (*modified_arg == '+')
 	{
 	  char *p = modified_arg + 1;
 	  while (*p >= '0' && *p <= '9') p++;
@@ -330,9 +357,11 @@ main (argc, argv)
       perror ("msgsnd");
       exit (1);
     }
-  /*
-   * Now, wait for an answer
-   */
+
+  /* Maybe wait for an answer.   */
+  if (nowait)
+    return 0;
+
   printf ("Waiting for Emacs...");
   fflush (stdout);
 
