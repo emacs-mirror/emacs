@@ -452,8 +452,8 @@ main (argc, argv)
 	case 'o':
 	  if (tagfile)
 	    {
-	      fprintf (stderr,
-		       "%s: -%c flag may only be given once\n", progname, opt);
+	      fprintf(stderr,
+		      "%s: -%c flag may only be given once.\n", progname, opt);
 	      goto usage;
 	    }
 	  tagfile = optarg;
@@ -466,6 +466,13 @@ main (argc, argv)
 	  break;
 	case 'H':
 	  print_help ();
+	  break;
+	case 't':
+	  typedefs++;
+	  break;
+	case 'T':
+	  typedefs++;
+	  typedefs_and_cplusplus++;
 	  break;
 
 #if (!CTAGS)
@@ -480,13 +487,6 @@ main (argc, argv)
 	  /* Ctags options. */
 	case 'B':
 	  searchar = '?';
-	  break;
-	case 't':
-	  typedefs++;
-	  break;
-	case 'T':
-	  typedefs++;
-	  typedefs_and_cplusplus++;
 	  break;
 	case 'u':
 	  update++;
@@ -504,6 +504,8 @@ main (argc, argv)
 #endif /* CTAGS */
 
 	default:
+	  fprintf (stderr,
+		   "%s: -%c flag not recognised.\n", progname, opt);
 	  goto usage;
 	}
     }
@@ -2074,6 +2076,8 @@ takeprec ()
   dbp++;
   while (isspace (*dbp))
     dbp++;
+  if (tail ("(*)"))
+    return;
   if (!isdigit (*dbp))
     {
       --dbp;			/* force failure */
