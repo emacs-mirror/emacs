@@ -163,7 +163,7 @@ calls."
   :group 'hi-lock-faces)
 
 (defface hi-black-hb
-  '((t (:weight bold :family "helv" :height 200)))
+  '((t (:weight bold :height 1.67 :inherit variable-pitch)))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
