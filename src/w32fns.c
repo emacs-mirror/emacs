@@ -2131,7 +2131,7 @@ x_set_title (f, name, old_name)
 }
 
 
-x_set_scroll_bar_default_width (f)
+void x_set_scroll_bar_default_width (f)
      struct frame *f;
 {
   int wid = FONT_WIDTH (f->output_data.w32->font);
