@@ -5351,9 +5351,9 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	      if (!force_raw_text
 		  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 		/* Confirm that VAL can surely encode the current region.  */
-		coding_system = call3 (Vselect_safe_coding_system_function,
+		coding_system = call4 (Vselect_safe_coding_system_function,
 				       make_number (b), make_number (e),
-				       coding_system);
+				       coding_system, Qnil);
 
 	      if (force_raw_text)
 		coding_system = Qraw_text;
