@@ -1654,7 +1654,7 @@ set_frame_menubar (f, first_time, deep_p)
 	if (menu_items_used == i
 	    || (previous_items[i] != XVECTOR (menu_items)->contents[i]))
 	  break;
-      if (i == menu_items_used && i == previous_menu_items_used)
+      if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
 	  free_menubar_widget_value_tree (first_wv);
 	  menu_items = Qnil;
@@ -1704,6 +1704,11 @@ set_frame_menubar (f, first_time, deep_p)
 	    first_wv->contents = wv;
 	  prev_wv = wv;
 	}
+
+      /* Forget what we thought we knew about what is in the
+	 detailed contents of the menu bar menus.
+	 Changing the top level always destroys the contents.  */
+      f->menu_bar_items_used = 0;
     }
 
   /* Create or update the menu bar widget.  */
