@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
+#ifdef MSDOS
+#include <fcntl.h>
+#endif
 
 #define DEFAULT_GROUPING	0x01
 #define DEFAULT_BASE		16
@@ -9,211 +12,229 @@
 #define TRUE  (1)
 #define FALSE (0)
 
-extern void exit(), perror();
+extern void exit (), perror ();
 
 int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
-main(argc, argv)
-int argc;
-char *argv[];
+main (argc, argv)
+     int argc;
+     char *argv[];
 {
-    register long address;
-    char string[18];
-    FILE *fp;
+  register long address;
+  char string[18];
+  FILE *fp;
 
-    progname = *argv++; --argc;
+  progname = *argv++; --argc;
 
-    /*
-    ** -hex		hex dump
-    ** -oct		Octal dump
-    ** -group-by-8-bits
-    ** -group-by-16-bits
-    ** -group-by-32-bits
-    ** -group-by-64-bits
-    ** -iso		iso character set.
-    ** -big-endian	Big Endian
-    ** -little-endian	Little Endian
-    ** -un || -de	from hexl format to binary.
-    ** --		End switch list.
-    ** <filename>	dump filename
-    ** -		(as filename == stdin)
-    */
+  /*
+   ** -hex		hex dump
+   ** -oct		Octal dump
+   ** -group-by-8-bits
+   ** -group-by-16-bits
+   ** -group-by-32-bits
+   ** -group-by-64-bits
+   ** -iso		iso character set.
+   ** -big-endian	Big Endian
+   ** -little-endian	Little Endian
+   ** -un || -de	from hexl format to binary.
+   ** --		End switch list.
+   ** <filename>	dump filename
+   ** -		(as filename == stdin)
+   */
     
-    while (*argv && *argv[0] == '-' && (*argv)[1])
+  while (*argv && *argv[0] == '-' && (*argv)[1])
     {
-	/* A switch! */
-	if (!strcmp(*argv, "--"))
+      /* A switch! */
+      if (!strcmp (*argv, "--"))
 	{
-	    --argc; argv++;
-	    break;
-	} else if (!strcmp(*argv, "-un") || !strcmp(*argv, "-de"))
+	  --argc; argv++;
+	  break;
+	}
+      else if (!strcmp (*argv, "-un") || !strcmp (*argv, "-de"))
 	{
-	    un_flag = TRUE;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-hex"))
+	  un_flag = TRUE;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-hex"))
 	{
-	    base = 16;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-iso"))
+	  base = 16;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-iso"))
 	{
-	    iso_flag = TRUE;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-oct"))
+	  iso_flag = TRUE;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-oct"))
 	{
-	    base = 8;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-big-endian"))
+	  base = 8;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-big-endian"))
 	{
-	    endian = 1;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-little-endian"))
+	  endian = 1;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-little-endian"))
 	{
-	    endian = 0;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-group-by-8-bits"))
+	  endian = 0;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-group-by-8-bits"))
 	{
-	    group_by = 0x00;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-group-by-16-bits"))
+	  group_by = 0x00;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-group-by-16-bits"))
 	{
-	    group_by = 0x01;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-group-by-32-bits"))
+	  group_by = 0x01;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-group-by-32-bits"))
 	{
-	    group_by = 0x03;
-	    --argc; argv++;
-	} else if (!strcmp(*argv, "-group-by-64-bits"))
+	  group_by = 0x03;
+	  --argc; argv++;
+	}
+      else if (!strcmp (*argv, "-group-by-64-bits"))
 	{
-	    group_by = 0x07;
-	    endian = 0;
-	    --argc; argv++;
-	} else
+	  group_by = 0x07;
+	  endian = 0;
+	  --argc; argv++;
+	}
+      else
 	{
-	    (void) fprintf(stderr, "%s: invalid switch: \"%s\".\n", progname,
-			   *argv);
-	    usage();
+	  fprintf (stderr, "%s: invalid switch: \"%s\".\n", progname,
+		   *argv);
+	  usage ();
 	}
     }
 
-    do
+  do
     {
-	if (*argv == NULL)
+      if (*argv == NULL)
+	fp = stdin;
+      else
+	{
+	  char *filename = *argv++;
+
+	  if (!strcmp (filename, "-"))
 	    fp = stdin;
-	else
-	{
-	    char *filename = *argv++;
-
-	    if (!strcmp(filename, "-"))
-		fp = stdin;
-	    else
-		if ((fp = fopen(filename, "r")) == NULL)
-		{
-		    perror(filename);
-		    continue;
-		}
-	}
-
-	if (un_flag)
-	{
-	    char buf[18];
-
-	    for (;;)
+	  else if ((fp = fopen (filename, "r")) == NULL)
 	    {
-		register int i, c, d;
-
-#define hexchar(x) (isdigit(x) ? x - '0' : x - 'a' + 10)
-
-		(void) fread(buf, 1, 10, fp); /* skip 10 bytes */
-
-		for (i=0; i < 16; ++i)
-		{
-		    if ((c = getc(fp)) == ' ' || c == EOF)
-			break;
-
-		    d = getc(fp);
-		    c = hexchar(c) * 0x10 + hexchar(d);
-		    (void) putchar(c);
-
-		    if ((i&group_by) == group_by)
-			(void) getc(fp);
-		}
-
-		if (c == ' ')
-		{
-		    while ((c = getc(fp)) != '\n' && c != EOF)
-			;
-
-		    if (c == EOF)
-			break;
-		}
-		else
-		{
-		    if (i < 16)
-			break;
-
-		    (void) fread(buf, 1, 18, fp); /* skip 18 bytes */
-		}
+	      perror (filename);
+	      continue;
 	    }
 	}
-	else
+
+      if (un_flag)
 	{
-	    address = 0;
-	    string[0] = ' ';
-	    string[17] = '\0';
-	    for (;;)
+	  char buf[18];
+
+#ifdef MSDOS
+	  (stdout)->_flag &= ~_IOTEXT; /* print binary */
+	  _setmode (fileno (stdout), O_BINARY);
+#endif
+	  for (;;)
 	    {
-		register int i, c;
+	      register int i, c, d;
 
-		for (i=0; i < 16; ++i)
+#define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
+
+	      fread (buf, 1, 10, fp); /* skip 10 bytes */
+
+	      for (i=0; i < 16; ++i)
 		{
-		    if ((c = getc(fp)) == EOF)
-		    {
-			if (!i)
-			    break;
-
-			(void) fputs("  ", stdout);
-			string[i+1] = '\0';
-		    }
-		    else
-		    {
-			if (!i)
-			    (void) printf("%08x: ", address);
-
-			if (iso_flag)
-			    string[i+1] =
-				(c < 0x20 || (c >= 0x7F && c < 0xa0)) ? '.' :c;
-			else
-			    string[i+1] = (c < 0x20 || c >= 0x7F) ? '.' : c;
-
-			(void) printf("%02x", c);
-		    }
-
-		    if ((i&group_by) == group_by)
-			(void) putchar(' ');
-		}
-
-		if (i)
-		    (void) puts(string);
-
-		if (c == EOF)
+		  if ((c = getc (fp)) == ' ' || c == EOF)
 		    break;
 
-		address += 0x10;
+		  d = getc (fp);
+		  c = hexchar (c) * 0x10 + hexchar (d);
+		  putchar (c);
+
+		  if ((i&group_by) == group_by)
+		    getc (fp);
+		}
+
+	      if (c == ' ')
+		{
+		  while ((c = getc (fp)) != '\n' && c != EOF)
+		    ;
+
+		  if (c == EOF)
+		    break;
+		}
+	      else
+		{
+		  if (i < 16)
+		    break;
+
+		  fread (buf, 1, 18, fp); /* skip 18 bytes */
+		}
+	    }
+	}
+      else
+	{
+#ifdef MSDOS
+	  (fp)->_flag &= ~_IOTEXT; /* read binary */
+	  _setmode (fileno (fp), O_BINARY);
+#endif
+	  address = 0;
+	  string[0] = ' ';
+	  string[17] = '\0';
+	  for (;;)
+	    {
+	      register int i, c;
+
+	      for (i=0; i < 16; ++i)
+		{
+		  if ((c = getc (fp)) == EOF)
+		    {
+		      if (!i)
+			break;
+
+		      fputs ("  ", stdout);
+		      string[i+1] = '\0';
+		    }
+		  else
+		    {
+		      if (!i)
+			printf ("%08x: ", address);
+
+		      if (iso_flag)
+			string[i+1] =
+			  (c < 0x20 || (c >= 0x7F && c < 0xa0)) ? '.' :c;
+		      else
+			string[i+1] = (c < 0x20 || c >= 0x7F) ? '.' : c;
+
+		      printf ("%02x", c);
+		    }
+
+		  if ((i&group_by) == group_by)
+		    putchar (' ');
+		}
+
+	      if (i)
+		puts (string);
+
+	      if (c == EOF)
+		break;
+
+	      address += 0x10;
 
 	    }
 	}
 
-	if (fp != stdin)
-	    (void) close(fp);
+      if (fp != stdin)
+	fclose (fp);
 
     } while (*argv != NULL);
-    return 0;
+  return 0;
 }
 
-usage()
+usage ()
 {
-    (void) fprintf(stderr, "usage: %s [-de] [-iso]\n", progname);
-    exit(1);
+  fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
+  exit (1);
 }
