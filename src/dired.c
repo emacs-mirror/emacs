@@ -953,7 +953,6 @@ If file does not exist, returns nil.  */)
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
-  /* Cast -1 to avoid warning if int is not as wide as VALBITS.  */
   if (FIXNUM_OVERFLOW_P (s.st_ino))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
