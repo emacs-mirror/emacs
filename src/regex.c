@@ -1922,19 +1922,23 @@ regex_compile (pattern, size, syntax, bufp)
 
                         for (ch = 0; ch < 1 << BYTEWIDTH; ch++)
                           {
+			    /* This was split into 3 if's to
+			       avoid an arbitrary limit in some compiler.  */
                             if (   (is_alnum  && ISALNUM (ch))
                                 || (is_alpha  && ISALPHA (ch))
                                 || (is_blank  && ISBLANK (ch))
-                                || (is_cntrl  && ISCNTRL (ch))
-                                || (is_digit  && ISDIGIT (ch))
+                                || (is_cntrl  && ISCNTRL (ch)))
+			      SET_LIST_BIT (ch);
+			    if (   (is_digit  && ISDIGIT (ch))
                                 || (is_graph  && ISGRAPH (ch))
                                 || (is_lower  && ISLOWER (ch))
-                                || (is_print  && ISPRINT (ch))
-                                || (is_punct  && ISPUNCT (ch))
+                                || (is_print  && ISPRINT (ch)))
+			      SET_LIST_BIT (ch);
+			    if (   (is_punct  && ISPUNCT (ch))
                                 || (is_space  && ISSPACE (ch))
                                 || (is_upper  && ISUPPER (ch))
                                 || (is_xdigit && ISXDIGIT (ch)))
-                            SET_LIST_BIT (ch);
+			      SET_LIST_BIT (ch);
                           }
                         had_char_class = true;
                       }
@@ -3602,8 +3606,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      boolean same_str_p = (FIRST_STRING_P (match_end) 
 				    == MATCHING_IN_FIRST_STRING);
 	      /* 1 if this match is the best seen so far.  */
-	      boolean best_match_p = (same_str_p ? d > match_end
-				      : !MATCHING_IN_FIRST_STRING);
+	      boolean best_match_p;
+
+	      /* AIX compiler got confused when this was combined
+		 with the previous declaration.  */
+	      if (same_str_p)
+		best_match_p = d > match_end;
+	      else
+		best_match_p = !MATCHING_IN_FIRST_STRING;
 
               DEBUG_PRINT1 ("backtracking.\n");
               
