@@ -1,3 +1,7 @@
+2000-12-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* *.xpm, *.pbm: Convert icons icons to size 24x24.
+
 2000-12-18  Dave Love  <fx@gnu.org>
 
 	* gnus-msg.el (news-setup, news-reply-mode): Don't autoload

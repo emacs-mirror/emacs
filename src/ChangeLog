@@ -4,6 +4,9 @@
 
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_connection_closed): Prevent being called recursively
+	because of an error condition in XtCloseDisplay.
+	
 	* xdisp.c (init_iterator): If noninteractive, and the frame's
 	face cache is null, make one.
 
