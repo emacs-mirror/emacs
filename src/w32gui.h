@@ -36,7 +36,7 @@ typedef struct _XCharStruct
 
 enum w32_char_font_type
 {
-  UNKNOWN_FONT,
+  UNKNOWN_FONT = 0 /* FONT_TYPE_UNKNOWN */,
   ANSI_FONT,
   UNICODE_FONT,
   BDF_1D_FONT,
@@ -76,7 +76,21 @@ typedef XGCValues * GC;
 typedef COLORREF Color;
 typedef DWORD Time;
 typedef HWND Window;
+typedef int Display;  /* ++KFS: define here? */
 typedef HCURSOR Cursor;
+
+#define XChar2b wchar_t
+
+/* Dealing with bits of wchar_t as if they were an XChar2b.  */
+#define STORE_XCHAR2B(chp, byte1, byte2) \
+  ((*chp) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
+
+#define XCHAR2B_BYTE1(chp) \
+ (((*chp) & 0xff00) >> 8)
+
+#define XCHAR2B_BYTE2(chp) \
+ ((*chp) & 0x00ff)
+
 
 /* Windows equivalent of XImage.  */
 typedef struct _XImage
