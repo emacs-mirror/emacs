@@ -306,6 +306,10 @@ following REQ are defined:
 `background' (what color is used for the background text)
   Should be one of `light' or `dark'.
 
+`min-colors' (the minimum number of colors the frame should support)
+  Should be an integer, it is compared with the result of
+  `display-color-cells'.
+
 Read the section about customization in the Emacs Lisp manual for more
 information."
   ;; It is better not to use backquote in this file,
