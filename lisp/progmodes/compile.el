@@ -210,7 +210,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (gnu
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
-\\([/.]*[a-zA-Z]:?[^ \t\n:]*\\): ?\
+\\([/.]*[a-zA-Z]:?[^ \t\n:]*\\|{standard input}\\): ?\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
 \\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
@@ -242,7 +242,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 : \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 1 2 nil (3))
 
     (oracle
-     "^Semantic error at line \\([0-9]+\\), column \\([0-9]+\\), file \\(.*\\):$"
+     "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
+\\(?:\\(?:,\\| at\\)? column \\([0-9]+\\)\\)?\
+\\(?:,\\| in\\| of\\)? file \\(.*?\\):?$"
      3 1 2)
 
     (perl
@@ -988,13 +990,11 @@ exited abnormally with code %d\n"
 	 ;; If window is alone in its frame, aside from a minibuffer,
 	 ;; don't change its height.
 	 (not (eq window (frame-root-window (window-frame window))))
-	 ;; This save-current-buffer prevents us from changing the current
-	 ;; buffer, which might not be the same as the selected window's buffer.
-	 (save-current-buffer
+	 ;; Stef said that doing the saves in this order is safer:
+	 (save-excursion
 	   (save-selected-window
-	     (save-excursion
-	       (select-window window)
-	       (enlarge-window (- height (window-height)))))))))
+	     (select-window window)
+	     (enlarge-window (- height (window-height))))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))
