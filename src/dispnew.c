@@ -5754,6 +5754,57 @@ mode_line_string (w, x, y, mode_line_p, charpos)
 }
 
 
+/* Value is the string under window-relative coordinates X/Y in either
+   marginal area, or nil if none.  *CHARPOS is set to the position in
+   the string returned.  */
+
+Lisp_Object
+marginal_area_string (w, x, y, area, charpos)
+     struct window *w;
+     int x, y;
+     int *charpos;
+     int area;
+{
+  struct glyph_row *row = w->current_matrix->rows;
+  struct glyph *glyph, *end;
+  int x0, i, wy = y;
+  Lisp_Object string = Qnil;
+
+  if (area == 6)
+    area = LEFT_MARGIN_AREA;
+  else if (area == 7)
+    area = RIGHT_MARGIN_AREA;
+  else
+    abort ();
+
+  for (i = 0; row->enabled_p && i < w->current_matrix->nrows; ++i, ++row)
+    if (wy >= row->y && wy < MATRIX_ROW_BOTTOM_Y (row))
+      break;
+
+  if (row->enabled_p)
+    {
+      /* Find the glyph under X.  If we find one with a string object,
+	 it's the one we were looking for.  */
+      glyph = row->glyphs[area];
+      end = glyph + row->used[area];
+      if (area == RIGHT_MARGIN_AREA)
+	x0 = (window_box_width (w, TEXT_AREA)
+	      + window_box_width (w, LEFT_MARGIN_AREA));
+      else
+	x0 = 0;
+      for (; glyph < end; x0 += glyph->pixel_width, ++glyph)
+	if (x >= x0 && x < x0 + glyph->pixel_width)
+	  {
+	    string = glyph->object;
+	    *charpos = glyph->charpos;
+	    break;
+	  }
+    }
+
+  return string;
+}
+
+
 /***********************************************************************
 			 Changing Frame Sizes
  ***********************************************************************/
