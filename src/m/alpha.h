@@ -276,3 +276,13 @@ extern void r_alloc_free ();
       close (dummy);					\
     }							\
   while (0)
+
+#ifdef linux
+#define COFF
+/* Linux/Alpha doesn't like it if termio.h and termios.h get included
+   simultaneously.  */
+#define NO_TERMIO
+
+#define TEXT_END ({ extern int _etext; _etext; })
+#define DATA_END ({ extern int _EDATA; _EDATA; })
+#endif
