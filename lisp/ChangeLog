@@ -5,7 +5,7 @@
 	(pop-global-mark-quick-repeat): New user option.
 	(set-mark-command): Use it.
 
-	* emulation/cua-base.el (cua-set-mark): 
+	* emulation/cua-base.el (cua-set-mark):
 	Check pop-global-mark-quick-repeat.
 
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
@@ -29,7 +29,7 @@
 
 2003-03-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-mode.el (c-parse-state): Added kludge to avoid
+	* progmodes/cc-mode.el (c-parse-state): Add kludge to avoid
 	an infinite loop when Emacs' open-paren-in-column-zero rule
 	kicks in and causes the sexp functions to misbehave.
 
@@ -39,19 +39,19 @@
 	(file-cache-complete, file-cache-display): New functions.
 
 	* generic-x.el (etc-modules-conf-generic-mode): New generic mode.
-	(rul-generic-mode): Bugfixes by Rolf.Sandau@marconi.com. 
+	(rul-generic-mode): Bugfixes by Rolf.Sandau@marconi.com.
 
 	* dirtrack.el (dirtrack-cygwin-directory-function): New function.
 	Remove timestamp.
 
 2003-03-22  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-mode): Remove unused NOBIND arg. Fix doc string
+	* ido.el (ido-mode): Remove unused NOBIND arg.  Fix doc string
 	accordingly.
 	(ido-define-mode-map): Bind C-l for both file and dir modes.
-	(ido-wide-find-file, ido-wide-find-dir, ido-make-directory): 
+	(ido-wide-find-file, ido-wide-find-dir, ido-make-directory):
 	Let-bind enable-recursive-minibuffers to t around read-string.
-	
+
 2003-03-22  Kenichi Handa  <handa@etlken2>
 
 	* international/fontset.el (setup-default-fontset):
@@ -61,7 +61,7 @@
 	* language/indian.el (indian-font-foundry): New variable.
 	(indian-script-language-alist): New variable.
 	(indian-font-char-index-table): New variable.
-	(indian-font-char): New function. 
+	(indian-font-char): New function.
 	(indian-font-char-range): New function.
 	(font-ccl-encoder-alist): Add entry for AKRUTI font.
 
@@ -108,8 +108,8 @@
 	* language/european.el ("Latin-6"): Fix input-method.
 	("Latin-7"): Fix input-method.
 
-	* international/utf-8.el (utf-fragment-on-decoding): Don't call
-	register-char-codings.
+	* international/utf-8.el (utf-fragment-on-decoding):
+	Don't call register-char-codings.
 	(utf-fragment-on-decoding): Don't update char-coding-system-table.
 	(utf-translate-cjk): Don't call register-char-codings nor
 	optimize-char-coding-system-table.  Don't update
@@ -118,8 +118,8 @@
 	* international/ucs-tables.el (ucs-unify-8859): Don't call
 	register-char-codings.
 	(ucs-unify-8859): Don't call optimize-char-coding-system-table.
-	(ucs-fragment-8859): Don't update char-coding-system-table.  Don't
-	call register-char-codings nor optimize-char-coding-system-table.
+	(ucs-fragment-8859): Don't update char-coding-system-table.
+	Don't call register-char-codings nor optimize-char-coding-system-table.
 
 	* international/mule.el (optimize-char-coding-system-table):
 	Remove this function.
@@ -138,6 +138,10 @@
 
 	* international/code-pages.el (cp-fix-safe-chars): Make it obsolete.
 	(cp-make-coding-system): Don't call cp-fix-safe-chars.
+
+2003-03-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* startup.el (command-line-1): Use command-execute for any command.
 
 2003-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
