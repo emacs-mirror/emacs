@@ -368,9 +368,9 @@ the machine where you started GDB and use the debugger from there.
 ** Running Emacs with Purify
 
 Some people who are willing to use non-free software use Purify.  We
-can't ethically ask you to you become a Purify user; but if you have
-it, and you test Emacs with it, we will not refuse to look at the
-results you find.
+can't ethically ask you to become a Purify user; but if you have it,
+and you test Emacs with it, we will not refuse to look at the results
+you find.
 
 Emacs compiled with Purify won't run without some hacking.  Here are
 some of the changes you might find necessary (SYSTEM-NAME and
@@ -387,7 +387,7 @@ subdirectories of `src'):
     than with 2.95 or later versions.
 
   - Type "make" then "make -k install".  You might need to run
-    "make -k install twice.
+    "make -k install" twice.
 
   - cd src; purify -chain-length=40 gcc <link command line for temacs>
 
@@ -396,7 +396,7 @@ subdirectories of `src'):
 Note that Purify might print lots of false alarms for bitfields used
 by Emacs in some data structures.  If you want to get rid of the false
 alarms, you will have to hack the definitions of these data structures
-on the respective headers to remove the ":N" bitfield definitions
+on the respective headers to remove the `:N' bitfield definitions
 (which will cause each such field to use a full int).
 
 ** Debugging problems which happen in GC
@@ -415,8 +415,8 @@ Use the `last_marked' array and the source to reconstruct the sequence
 that objects were marked.
 
 Once you discover the corrupted Lisp object or data structure, it is
-useful to look at it in a fresh session and compare its contents with
-a session that you are debugging.
+useful to look at it in a fresh Emacs session and compare its contents
+with a session that you are debugging.
 
 ** Some suggestions for debugging on MS Windows:
 
