@@ -276,8 +276,18 @@ Value is a list of strings, which may be nil."
   :group 'shell)
 
 (defcustom explicit-bash-args
-    ;; Tell bash not to use readline.
-    '("--noediting" "-i")
+  ;; Tell bash not to use readline, except for bash 1.x which doesn't grook --noediting.
+  ;; Bash 1.x has -nolineediting, but process-send-eof cannot terminate bash if we use it.
+  (let* ((prog (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
+		   (getenv "ESHELL") shell-file-name))
+	 (name (file-name-nondirectory prog)))
+    (if (and (not purify-flag)
+	     (equal name "bash")
+	     (file-executable-p prog)
+	     (string-match "bad option"
+			   (shell-command-to-string (concat prog " --noediting"))))
+	'("-i")
+      '("--noediting" "-i")))
   "*Args passed to inferior shell by M-x shell, if the shell is bash.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
