@@ -28,8 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 extern char *index ();
 
-int current_prefix_partial;
-Lisp_Object Vprefix_arg, Vcurrent_prefix_arg, Qminus, Qplus;
+Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
@@ -47,45 +46,6 @@ static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
 static Lisp_Object point_marker;
-
-
-void
-clear_prefix_arg ()
-{
-  Vprefix_arg = Qnil;
-  if (!current_prefix_partial)
-    {
-      current_kboard->prefix_factor = Qnil;
-      current_kboard->prefix_value = Qnil;
-      current_kboard->prefix_sign = 1;
-      current_kboard->prefix_partial = 0;
-    }
-}
-
-void
-finalize_prefix_arg ()
-{
-  if (!NILP (current_kboard->prefix_factor))
-    Vprefix_arg = Fcons (current_kboard->prefix_factor, Qnil);
-  else if (NILP (current_kboard->prefix_value))
-    Vprefix_arg = (current_kboard->prefix_sign > 0 ? Qnil : Qminus);
-  else if (current_kboard->prefix_sign > 0)
-    Vprefix_arg = current_kboard->prefix_value;
-  else
-    XSETINT (Vprefix_arg, -XINT (current_kboard->prefix_value));
-  current_kboard->prefix_partial = 0;
-}
-
-static void
-describe_prefix_arg ()
-{
-  if (INTEGERP (Vprefix_arg))
-    message ("Arg: %d", Vprefix_arg);
-  else if (CONSP (Vprefix_arg))
-    message ("Arg: [%d]", XCONS (Vprefix_arg)->car);
-  else if (EQ (Vprefix_arg, Qminus))
-    message ("Arg: -");
-}
 
 
 /* This comment supplies the doc string for interactive,
@@ -694,65 +654,6 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
   return val;
 }
 
-DEFUN ("universal-argument", Funiversal_argument, Suniversal_argument, 0, 0, "",
-  "Begin a numeric argument for the following command.\n\
-Digits or minus sign following \\[universal-argument] make up the numeric argument.\n\
-\\[universal-argument] following the digits or minus sign ends the argument.\n\
-\\[universal-argument] without digits or minus sign provides 4 as argument.\n\
-Repeating \\[universal-argument] without digits or minus sign\n\
- multiplies the argument by 4 each time.")
-  ()
-{
-  if (!current_prefix_partial)
-    {
-      /* First C-u */
-      XSETFASTINT (current_kboard->prefix_factor, 4);
-      current_kboard->prefix_value = Qnil;
-      current_kboard->prefix_sign = 1;
-      current_kboard->prefix_partial = 1;
-    }
-  else if (!NILP (current_kboard->prefix_factor))
-    {
-      /* Subsequent C-u */
-      XSETINT (current_kboard->prefix_factor,
-	       XINT (current_kboard->prefix_factor) * 4);
-      current_kboard->prefix_partial = 1;
-    }
-  else
-    {
-      /* Terminating C-u */
-      finalize_prefix_arg ();
-      describe_prefix_arg ();
-    }
-}
-
-DEFUN ("negative-argument", Fnegative_argument, Snegative_argument, 0, 0, "",
-  "Begin a negative numeric argument for the next command.\n\
-\\[universal-argument] following digits or minus sign ends the argument.")
-  ()
-{
-  current_kboard->prefix_factor = Qnil;
-  current_kboard->prefix_sign *= -1;
-  current_kboard->prefix_partial = 1;
-}
-
-DEFUN ("digit-argument", Fdigit_argument, Sdigit_argument, 0, 0, "",
-  "Part of the numeric argument for the next command.\n\
-\\[universal-argument] following digits or minus sign ends the argument.")
-  ()
-{
-  int c;
-  if (!(INTEGERP (last_command_char)
-	&& (c = (XINT (last_command_char) & 0177)) >= '0' && c <= '9'))
-    error("digit-argument must be bound to a digit key");
-  current_kboard->prefix_factor = Qnil;
-  if (NILP (current_kboard->prefix_value))
-    XSETFASTINT (current_kboard->prefix_value, 0);
-  XSETINT (current_kboard->prefix_value,
-	   XINT (current_kboard->prefix_value) * 10 + (c - '0'));
-  current_kboard->prefix_partial = 1;
-}
-
 syms_of_callint ()
 {
   point_marker = Fmake_marker ();
@@ -785,7 +686,7 @@ syms_of_callint ()
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
 
-  DEFVAR_LISP ("prefix-arg", &Vprefix_arg,
+  DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
 or a list whose car is a number for just one or more C-U's\n\
@@ -795,7 +696,6 @@ You cannot examine this variable to find the argument for this command\n\
 since it has been set to nil by the time you can look.\n\
 Instead, you should use the variable `current-prefix-arg', although\n\
 normally commands can get this prefix argument with (interactive \"P\").");
-  Vprefix_arg = Qnil;
 
   DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
     "The value of the prefix argument for this editing command.\n\
@@ -833,7 +733,4 @@ a way to turn themselves off when a mouse command switches windows.");
   defsubr (&Sinteractive);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
-  defsubr (&Suniversal_argument);
-  defsubr (&Snegative_argument);
-  defsubr (&Sdigit_argument);
 }
