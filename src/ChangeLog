@@ -1,3 +1,9 @@
+2002-03-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* process.c (conv_sockaddr_to_lisp, conv_lisp_to_sockaddr): Don't
+	use "sun" as a variable, it's a predefined constant on Sun
+	machines.
+
 2002-03-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* bytecode.c (Fbyte_code): Revert last change.

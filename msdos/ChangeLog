@@ -1,3 +1,12 @@
+2002-03-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (bootstrap-lisp-1, bootstrap-lisp, bootstrap-src) 
+	(bootstrap-clean-before, bootstrap-clean-after): Return to the
+	top-level directory after sub-make.
+	(bootstrap-lisp): Pass an absolute file name as value of ${lisp}.
+
+	* sed1v2.inp: Fix editing of the rule for ${libsrc}make-docfile.
+
 2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Add support for bootstraping Emacs:
