@@ -661,6 +661,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 ;;;; Miscellanea.
 
 (defun ignore (&rest ignore) 
+  (interactive)
   "Do nothing.
 Accept any number of arguments, but ignore them."
   nil)
