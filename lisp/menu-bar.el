@@ -205,6 +205,7 @@
 
 (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
+(define-key menu-bar-edit-menu [props] '("Text Properties" . facemenu-menu))
 
 (define-key menu-bar-edit-menu [separator-edit]
   '("--"))
