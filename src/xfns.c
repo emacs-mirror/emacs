@@ -6948,8 +6948,13 @@ xpm_load (f, img)
   attrs.visual = FRAME_X_DISPLAY_INFO (f)->visual;
   attrs.valuemask |= XpmVisual;
   attrs.valuemask |= XpmReturnAllocPixels;
+#ifdef XpmAllocCloseColors
   attrs.alloc_close_colors = 1;
   attrs.valuemask |= XpmAllocCloseColors;
+#else
+  attrs.closeness = 600;
+  attrs.valuemask |= XpmCloseness;
+#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
