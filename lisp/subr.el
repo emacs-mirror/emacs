@@ -676,6 +676,8 @@ To make a hook variable buffer-local, always use
 (defun add-to-list (list-var element)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
 The test for presence of ELEMENT is done with `equal'.
+If ELEMENT is added, it is added at the beginning of the list.
+
 If you want to use `add-to-list' on a variable that is not defined
 until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
