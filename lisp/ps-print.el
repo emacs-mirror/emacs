@@ -1041,9 +1041,10 @@ serial printers, or \"//hostname/printer\" for a shared network printer.
 You can also set it to a name of a file, in which case the output gets
 appended to that file.  \(Note that `ps-print' package already has
 facilities for printing to a file, so you might as well use them instead
-of changing the setting of this variable.\) If you want to silently
+of changing the setting of this variable.\)  If you want to silently
 discard the printed output, set this to \"NUL\"."
-  :type '(choice file)
+  :type '(choice (file :tag "Name")
+		 (const :tag "Default" nil))
   :group 'ps-print)
 
 (defcustom ps-lpr-command lpr-command
