@@ -409,6 +409,10 @@ static char *vga_colors[16] = {
   "lightred", "lightmagenta", "yellow", "white"
 };
 
+static char *unspecified_colors[] = {
+  "unspecified-fg", "unspecified-bg", "unspecified"
+};
+
 /* Given a color name, return its index, or -1 if not found.  Note
    that this only performs case-insensitive comparison against the
    standard names.  For anything more sophisticated, like matching
@@ -424,17 +428,25 @@ msdos_stdcolor_idx (const char *name)
     if (strcasecmp (name, vga_colors[i]) == 0)
       return i;
 
-  return FACE_TTY_DEFAULT_COLOR;
+  return
+    strcmp (name, unspecified_colors[0]) == 0 ? FACE_TTY_DEFAULT_FG_COLOR
+    : strcmp (name, unspecified_colors[1]) == 0 ? FACE_TTY_DEFAULT_BG_COLOR
+    : FACE_TTY_DEFAULT_COLOR;
 }
 
 /* Given a color index, return its standard name.  */
 Lisp_Object
 msdos_stdcolor_name (int idx)
 {
-  extern Lisp_Object Qunspecified;
+  extern Lisp_Object Qunspecified, Qunspecified_fg, Qunspecified_bg;
 
   if (idx < 0 || idx >= sizeof (vga_colors) / sizeof (vga_colors[0]))
-    return Qunspecified;	/* meaning the default */
+    {
+      return
+	idx == FACE_TTY_DEFAULT_FG_COLOR ? Qunspecified_fg
+	: idx == FACE_TTY_DEFAULT_BG_COLOR ? Qunspecified_bg
+	: Qunspecified;	/* meaning the default */
+    }
   return build_string (vga_colors[idx]);
 }
 

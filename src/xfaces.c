@@ -282,7 +282,7 @@ Lisp_Object Qsemi_condensed, Qsemi_expanded, Qexpanded, Qextra_expanded;
 Lisp_Object Qultra_expanded;
 Lisp_Object Qreleased_button, Qpressed_button;
 Lisp_Object QCstyle, QCcolor, QCline_width;
-Lisp_Object Qunspecified;
+Lisp_Object Qunspecified, Qunspecified_fg, Qunspecified_bg;
 
 /* The symbol `x-charset-registry'.  This property of charsets defines
    the X registry and encoding that fonts should have that are used to
@@ -1108,6 +1108,14 @@ tty_defined_color (f, color_name, color_def, alloc)
 	   load color" messages in the *Messages* buffer.  */
 	status = 1;
     }
+  if (color_idx == FACE_TTY_DEFAULT_COLOR && *color_name)
+    {
+      if (strcmp (color_name, "unspecified-fg") == 0)
+	color_idx = FACE_TTY_DEFAULT_FG_COLOR;
+      else if (strcmp (color_name, "unspecified-bg") == 0)
+	color_idx = FACE_TTY_DEFAULT_BG_COLOR;
+    }
+
   color_def->pixel = (unsigned long) color_idx;
   color_def->red = red;
   color_def->green = green;
@@ -1179,7 +1187,10 @@ tty_color_name (f, idx)
      by index using the default color mapping on a Windows console.  */
 #endif
 
-  return Qunspecified;
+  return
+    idx == FACE_TTY_DEFAULT_FG_COLOR ? Qunspecified_fg
+    : idx == FACE_TTY_DEFAULT_BG_COLOR ? Qunspecified_bg
+    : Qunspecified;
 }
 
 /* Return non-zero if COLOR_NAME is a shade of gray (or white or
@@ -3427,7 +3438,8 @@ frame.")
     }
   else if (EQ (attr, QCforeground))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value)
+	  && !EQ (value, Qunspecified_fg) && !EQ (value, Qunspecified_bg))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -3441,7 +3453,8 @@ frame.")
     }
   else if (EQ (attr, QCbackground))
     {
-      if (!UNSPECIFIEDP (value))
+      if (!UNSPECIFIEDP (value)
+	  && !EQ (value, Qunspecified_bg) && !EQ (value, Qunspecified_fg))
 	{
 	  /* Don't check for valid color names here because it depends
 	     on the frame (display) whether the color will be valid
@@ -5686,7 +5699,9 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
+      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+	LFACE_FOREGROUND (lface) = Qunspecified_fg;
+      else
 	abort ();
     }
   
@@ -5699,7 +5714,9 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
+      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+	LFACE_BACKGROUND (lface) = Qunspecified_bg;
+      else
 	abort ();
     }
   
@@ -6072,7 +6089,8 @@ realize_tty_face (c, attrs, charset)
     face->tty_reverse_p = 1;
 
   /* Map color names to color indices.  */
-  face->foreground = face->background = FACE_TTY_DEFAULT_COLOR;
+  face->foreground = FACE_TTY_DEFAULT_FG_COLOR;
+  face->background = FACE_TTY_DEFAULT_BG_COLOR;
 
   color = attrs[LFACE_FOREGROUND_INDEX];
   if (STRINGP (color)
@@ -6084,7 +6102,7 @@ realize_tty_face (c, attrs, charset)
        (NAME INDEX R G B).  We need the INDEX part.  */
     face->foreground = XINT (XCAR (XCDR (color)));
 
-  if (face->foreground == FACE_TTY_DEFAULT_COLOR
+  if (face->foreground == FACE_TTY_DEFAULT_FG_COLOR
       && STRINGP (attrs[LFACE_FOREGROUND_INDEX]))
     {
       face->foreground = load_color (c->f, face,
@@ -6093,12 +6111,23 @@ realize_tty_face (c, attrs, charset)
 #ifdef MSDOS
       /* If the foreground of the default face is the default color,
 	 use the foreground color defined by the frame.  */
-      if (FRAME_MSDOS_P (c->f) && face->foreground == FACE_TTY_DEFAULT_COLOR)
+      if (FRAME_MSDOS_P (c->f))
 	{
-	  face->foreground = FRAME_FOREGROUND_PIXEL (f);
-	  attrs[LFACE_FOREGROUND_INDEX] =
-	    msdos_stdcolor_name (face->foreground);
-	  face_colors_defaulted = 1;
+	  if (face->foreground == FACE_TTY_DEFAULT_FG_COLOR
+	      || face->foreground == FACE_TTY_DEFAULT_COLOR)
+	    {
+	      face->foreground = FRAME_FOREGROUND_PIXEL (f);
+	      attrs[LFACE_FOREGROUND_INDEX] =
+		msdos_stdcolor_name (face->foreground);
+	      face_colors_defaulted = 1;
+	    }
+	  else if (face->foreground == FACE_TTY_DEFAULT_BG_COLOR)
+	    {
+	      face->foreground = FRAME_BACKGROUND_PIXEL (f);
+	      attrs[LFACE_FOREGROUND_INDEX] =
+		msdos_stdcolor_name (face->foreground);
+	      face_colors_defaulted = 1;
+	    }
 	}
 #endif
     }
@@ -6113,7 +6142,7 @@ realize_tty_face (c, attrs, charset)
        (NAME INDEX R G B).  We need the INDEX part.  */
     face->background = XINT (XCAR (XCDR (color)));
 
-  if (face->background == FACE_TTY_DEFAULT_COLOR
+  if (face->background == FACE_TTY_DEFAULT_BG_COLOR
       && STRINGP (attrs[LFACE_BACKGROUND_INDEX]))
     {
       face->background = load_color (c->f, face,
@@ -6122,12 +6151,23 @@ realize_tty_face (c, attrs, charset)
 #ifdef MSDOS
       /* If the background of the default face is the default color,
 	 use the background color defined by the frame.  */
-      if (FRAME_MSDOS_P (c->f) && face->background == FACE_TTY_DEFAULT_COLOR)
+      if (FRAME_MSDOS_P (c->f))
 	{
-	  face->background = FRAME_BACKGROUND_PIXEL (f);
-	  attrs[LFACE_BACKGROUND_INDEX] =
-	    msdos_stdcolor_name (face->background);
-	  face_colors_defaulted = 1;
+	  if (face->background == FACE_TTY_DEFAULT_BG_COLOR
+	      || face->background == FACE_TTY_DEFAULT_COLOR)
+	    {
+	      face->background = FRAME_BACKGROUND_PIXEL (f);
+	      attrs[LFACE_BACKGROUND_INDEX] =
+		msdos_stdcolor_name (face->background);
+	      face_colors_defaulted = 1;
+	    }
+	  else if (face->background == FACE_TTY_DEFAULT_FG_COLOR)
+	    {
+	      face->background = FRAME_FOREGROUND_PIXEL (f);
+	      attrs[LFACE_BACKGROUND_INDEX] =
+		msdos_stdcolor_name (face->background);
+	      face_colors_defaulted = 1;
+	    }
 	}
 #endif
     }
@@ -6611,6 +6651,10 @@ syms_of_xfaces ()
   staticpro (&Qforeground_color);
   Qunspecified = intern ("unspecified");
   staticpro (&Qunspecified);
+  Qunspecified_fg = intern ("unspecified-fg");
+  staticpro (&Qunspecified_fg);
+  Qunspecified_bg = intern ("unspecified-bg");
+  staticpro (&Qunspecified_bg);
 
   Qx_charset_registry = intern ("x-charset-registry");
   staticpro (&Qx_charset_registry);

@@ -1959,7 +1959,9 @@ turn_on_face (f, face_id)
       && TN_magic_cookie_glitch_ul <= 0)
     OUTPUT1_IF (TS_enter_underline_mode);
 
-  if (face->tty_reverse_p)
+  if (face->tty_reverse_p
+      || face->foreground == FACE_TTY_DEFAULT_BG_COLOR
+      || face->background == FACE_TTY_DEFAULT_FG_COLOR)
     OUTPUT1_IF (TS_enter_reverse_mode);
 
   if (TN_max_colors > 0)
@@ -1967,6 +1969,8 @@ turn_on_face (f, face_id)
       char *p;
       
       if (face->foreground != FACE_TTY_DEFAULT_COLOR
+	  && face->foreground != FACE_TTY_DEFAULT_FG_COLOR
+	  && face->foreground != FACE_TTY_DEFAULT_BG_COLOR
 	  && TS_set_foreground)
 	{
 	  p = tparam (TS_set_foreground, NULL, 0, (int) face->foreground);
@@ -1975,6 +1979,8 @@ turn_on_face (f, face_id)
 	}
 
       if (face->background != FACE_TTY_DEFAULT_COLOR
+	  && face->background != FACE_TTY_DEFAULT_BG_COLOR
+	  && face->background != FACE_TTY_DEFAULT_FG_COLOR
 	  && TS_set_background)
 	{
 	  p = tparam (TS_set_background, NULL, 0, (int) face->background);
@@ -2027,8 +2033,10 @@ turn_off_face (f, face_id)
 
   /* Switch back to default colors.  */
   if (TN_max_colors > 0
-      && (face->foreground != FACE_TTY_DEFAULT_COLOR
-	  || face->background != FACE_TTY_DEFAULT_COLOR))
+      && ((face->foreground != FACE_TTY_DEFAULT_COLOR
+	   && face->foreground != FACE_TTY_DEFAULT_FG_COLOR)
+	  || (face->background != FACE_TTY_DEFAULT_COLOR
+	      && face->background != FACE_TTY_DEFAULT_BG_COLOR)))
     OUTPUT1_IF (TS_orig_pair);
 }
   

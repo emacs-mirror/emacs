@@ -1,3 +1,9 @@
+1999-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (face-read-integer, read-face-attribute)
+	(color-defined-p, color-values): Allow color values unspecified-fg
+	and unspecified-bg, handle them as unspecified.
+
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
 	The following changes are for the new composition mechanism.  We

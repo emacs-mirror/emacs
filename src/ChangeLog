@@ -1,3 +1,46 @@
+1999-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dispextern.h (FACE_TTY_DEFAULT_FG_COLOR)
+	(FACE_TTY_DEFAULT_BG_COLOR):  New macros.
+
+	* xfaces.c (Qunspecified_fg, Qunspecified_bg): New variables.
+	(syms_of_xfaces): Initialize and staticpro them.
+	(tty_defined_color): If the color name is unspecified-fg or
+	unspecified-bg, return FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR, respectively, as the pixel value.
+	(tty_color_name): If the color pixel value is either
+	FACE_TTY_DEFAULT_FG_COLOR or FACE_TTY_DEFAULT_BG_COLOR, return
+	Qunspecified_fg or Qunspecified_bg, respectively.
+	(Finternal_set_lisp_face_attribute): Allow values Qunspecified_fg
+	and Qunspecified_bg for foreground and background colors.
+	(realize_default_face): If the foreground and background colors
+	are not specified, default to Qunspecified_fg and Qunspecified_bg.
+	(realize_tty_face): By default, set the face colors to
+	FACE_TTY_DEFAULT_FG_COLOR and FACE_TTY_DEFAULT_BG_COLOR.
+	[MSDOS]: Handle FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR when face colors are not defined.
+	Reverse the colors if the default colors were reversed.
+
+	* dispnew.c (init_display): Initialize the frame pixels of the
+	initial frame to FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR.
+
+	* term.c (turn_on_face): If the default fore- and background
+	colors are reversed, enter inverse video mode.  Don't send color
+	escape sequences for unspecified foreground and background colors.
+	(turn_off_face): Handle unspecified-fg and unspecified-bg colors.
+
+	* dosfns.c (unspecified_colors): New variable.
+	(msdos_stdcolor_idx): Handle unspecified-fg and unspecified-bg
+	color names, return FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR, respectively.
+	(msdos_stdcolor_name): Handle FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR, return Qunspecified_fg and
+	Qunspecified_bg, respectively.
+
+	* msdos.c (IT_set_face): Support FACE_TTY_DEFAULT_FG_COLOR and
+	FACE_TTY_DEFAULT_BG_COLOR as pixel values.
+
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_region): Fix the secoding arg to

@@ -5925,8 +5925,8 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 	 are the foreground and background colors of the terminal.  */
       struct frame *sf = SELECTED_FRAME();
 
-      FRAME_FOREGROUND_PIXEL (sf) = -1;
-      FRAME_BACKGROUND_PIXEL (sf) = -1;
+      FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
+      FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
       call0 (intern ("tty-set-up-initial-frame-faces"));
     }
 }

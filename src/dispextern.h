@@ -1268,6 +1268,14 @@ struct face
 
 #define FACE_TTY_DEFAULT_COLOR ((unsigned long) -1)
 
+/* Color index indicating that face uses an unknown foreground color.  */
+
+#define FACE_TTY_DEFAULT_FG_COLOR ((unsigned long) -2)
+
+/* Color index indicating that face uses an unsigned background color.  */
+
+#define FACE_TTY_DEFAULT_BG_COLOR ((unsigned long) -3)
+
 /* Non-zero if FACE was realized for unibyte use.  */
 
 #define FACE_UNIBYTE_P(FACE) ((FACE)->charset < 0)

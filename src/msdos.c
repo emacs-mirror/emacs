@@ -685,12 +685,16 @@ IT_set_face (int face)
      all 16 colors to be available for the background, since Emacs
      switches on this mode (and loses the blinking attribute) at
      startup.  */
-  if (fg == (unsigned long)-1)
+  if (fg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_FG_COLOR)
     fg = highlight || fp->tty_reverse_p ? FRAME_BACKGROUND_PIXEL (sf)
 					: FRAME_FOREGROUND_PIXEL (sf);
-  if (bg == (unsigned long)-1)
+  else if (fg == FACE_TTY_DEFAULT_BG_COLOR)
+    fg = highlight ? FRAME_FOREGROUND_PIXEL (sf) : FRAME_BACKGROUND_PIXEL (sf);
+  if (bg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_BG_COLOR)
     bg = highlight || fp->tty_reverse_p ? FRAME_FOREGROUND_PIXEL (sf)
 					: FRAME_BACKGROUND_PIXEL (sf);
+  else if (bg == FACE_TTY_DEFAULT_FG_COLOR)
+    fg = highlight ? FRAME_BACKGROUND_PIXEL (sf) : FRAME_FOREGROUND_PIXEL (sf);
   if (termscript)
     fprintf (termscript, "<FACE %d%s: %d/%d>",
 	     face, highlight ? "H" : "", fp->foreground, fp->background);
