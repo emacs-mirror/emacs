@@ -43,6 +43,20 @@
 (defvar texinfo-node-names)
 (defvar texinfo-enclosure-list)
 
+(defvar texinfo-command-start)
+(defvar texinfo-command-end)
+(defvar texinfo-command-name)
+(defvar texinfo-defun-type)
+(defvar texinfo-last-node-pos)
+(defvar texinfo-stack)
+(defvar texinfo-short-index-cmds-alist)
+(defvar texinfo-short-index-format-cmds-alist)
+(defvar texinfo-format-filename)
+(defvar texinfo-footnote-number)
+(defvar texinfo-start-of-header)
+(defvar texinfo-end-of-header)
+(defvar texinfo-raisesections-alist)
+(defvar texinfo-lowersections-alist)
 
 ;;; Syntax table
 
@@ -678,9 +692,9 @@ lower types.")
 
 (defun texinfo-format-begin-end (prop)
   (setq texinfo-command-name (intern (texinfo-parse-line-arg)))
-  (setq cmd (get texinfo-command-name prop))
-  (if cmd (funcall cmd)
-    (texinfo-unsupported)))
+  (let ((cmd (get texinfo-command-name prop)))
+    (if cmd (funcall cmd)
+      (texinfo-unsupported))))
 
 ;;; Parsing functions
 
@@ -2190,7 +2204,7 @@ Default is to leave paragraph indentation as is."
 
 (defun texinfo-format-defun-1 (first-p)
   (let ((parse-args (texinfo-format-parse-defun-args))
-        (command-type (get texinfo-command-name 'texinfo-defun-type)))
+        (texinfo-defun-type (get texinfo-command-name 'texinfo-defun-type)))
     (texinfo-discard-command)
     ;; Delete extra newline inserted after previous header line.
     (if (not first-p)
@@ -2226,7 +2240,7 @@ Default is to leave paragraph indentation as is."
     (while args
       (insert " "
               (if (or (= ?& (aref (car args) 0))
-                      (eq (eval (car command-type)) 'deftp-type))
+                      (eq (eval (car texinfo-defun-type)) 'deftp-type))
                   (car args)
                 (upcase (car args))))
       (setq args (cdr args)))))
@@ -2257,8 +2271,8 @@ Default is to leave paragraph indentation as is."
   ;; @defun name args           In Info, `Function: Name ARGS'
   ;; @defmac name args          In Info, `Macro: Name ARGS'
   ;; @defvar name               In Info, `Variable: Name'
-  ;; Use cdr of command-type to determine category:
-  (let ((category (car (cdr command-type)))
+  ;; Use cdr of texinfo-defun-type to determine category:
+  (let ((category (car (cdr texinfo-defun-type)))
         (name (car parsed-args))
         (args (cdr parsed-args)))
     (insert " -- " category ": " name)
@@ -2304,8 +2318,8 @@ Default is to leave paragraph indentation as is."
   ;; @deftypevar data-type name 
   ;;     In Info, `Variable:  data-type name'
   ;; Note: args in lower case, unless modified in command line.
-  ;; Use cdr of command-type to determine category:
-  (let ((category (car (cdr command-type)))
+  ;; Use cdr of texinfo-defun-type to determine category:
+  (let ((category (car (cdr texinfo-defun-type)))
         (data-type (car parsed-args))
         (name (car (cdr  parsed-args)))
         (args (cdr (cdr parsed-args))))
@@ -2356,8 +2370,8 @@ Default is to leave paragraph indentation as is."
   ;; @defmethod class name args... 
   ;;     In Info, `Method on class: name ARGS'
   ;; Note: args in upper case; use of `on'
-  ;; Use cdr of command-type to determine category:
-  (let ((category (car (cdr command-type)))
+  ;; Use cdr of texinfo-defun-type to determine category:
+  (let ((category (car (cdr texinfo-defun-type)))
         (class (car parsed-args))
         (name (car (cdr  parsed-args)))
         (args (cdr  (cdr parsed-args))))
@@ -2374,8 +2388,8 @@ Default is to leave paragraph indentation as is."
   ;; @defivar class name
   ;;     In Info, `Instance variable of class: name'
   ;; Note: args in upper case; use of `of'
-  ;; Use cdr of command-type to determine category:
-  (let ((category (car (cdr command-type)))
+  ;; Use cdr of texinfo-defun-type to determine category:
+  (let ((category (car (cdr texinfo-defun-type)))
         (class (car parsed-args))
         (name (car (cdr  parsed-args)))
         (args (cdr  (cdr parsed-args))))
