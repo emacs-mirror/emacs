@@ -410,6 +410,15 @@ This allows the current directory to be opened immediate with `dired'."
   :type 'boolean
   :group 'ido)
 
+(defcustom ido-file-extensions-order nil
+  "*List of file extensions specifying preferred order of file selections.
+Each element is either a string with `.' as the first char, an empty
+string matching files without extension, or t which is the default order
+of for files with an unlisted file extension."
+  :type '(repeat (choice string
+			 (const :tag "Default order" t)))
+  :group 'ido)
+
 (defcustom ido-ignore-directories
   '("\\`CVS/" "\\`\\.\\./" "\\`\\./")
   "*List of regexps or functions matching sub-directory names to ignore."
@@ -2629,10 +2638,69 @@ for first matching file."
      (t nil))))
 
 
-(defun ido-sort-list (items)
-  ;; Simple list of file or buffer names
-  (sort items (lambda (a b) (string-lessp (ido-no-final-slash a)
-					  (ido-no-final-slash b)))))
+;; File list sorting
+
+(defun ido-file-lessp (a b)
+  ;; Simple compare two file names.
+  (string-lessp (ido-no-final-slash a) (ido-no-final-slash b)))
+
+
+(defun ido-file-extension-lessp (a b)
+  ;; Compare file names according to ido-file-extensions-order list.
+  (let ((n (compare-strings a 0 nil b 0 nil nil))
+	lessp p)
+    (if (eq n t)
+	nil
+      (if (< n 0)
+	  (setq n (1- (- n))
+		p a a b b p
+		lessp t)
+	(setq n (1- n)))
+      (cond
+       ((= n 0)
+	lessp)
+       ((= (aref a n) ?.)
+	(ido-file-extension-aux a b n lessp))
+       (t
+	(while (and (> n 2) (/= (aref a n) ?.))
+	  (setq n (1- n)))
+	(if (> n 1)
+	    (ido-file-extension-aux a b n lessp)
+	  lessp))))))
+
+(defun ido-file-extension-aux (a b n lessp)
+  (let ((oa (ido-file-extension-order a n))
+	(ob (ido-file-extension-order b n)))
+    (cond
+     ((= oa ob)
+      lessp)
+     ((and oa ob)
+      (if lessp
+	  (> oa ob)
+	(< oa ob)))
+     (oa
+      (not lessp))
+     (ob
+      lessp)
+     (t
+      lessp))))
+
+(defun ido-file-extension-order (s n)
+  (let ((l ido-file-extensions-order)
+	(i 0) o do)
+    (while l
+      (cond
+       ((eq (car l) t)
+	(setq do i
+	      l (cdr l)))
+       ((eq (compare-strings s n nil (car l) 0 nil nil) t)
+	(setq o i
+	      l nil))
+       (t
+	(setq l (cdr l))))
+      (setq i (1+ i)))
+    (or o do)))
+
 
 (defun ido-sort-merged-list (items promote)
   ;; Input is list of ("file" . "dir") cons cells.
@@ -2905,7 +2973,10 @@ for first matching file."
   ;; created to allow the user to further modify the order of the file names
   ;; in this list.
   (let ((ido-temp-list (ido-make-file-list1 ido-current-directory)))
-    (setq ido-temp-list (ido-sort-list ido-temp-list))
+    (setq ido-temp-list (sort ido-temp-list
+			      (if ido-file-extensions-order
+				  #'ido-file-extension-lessp
+				#'ido-file-lessp)))
     (let ((default-directory ido-current-directory))
       (ido-to-end ;; move ftp hosts and visited files to end
        (delq nil (mapcar
@@ -2954,7 +3025,7 @@ for first matching file."
   ;; created to allow the user to further modify the order of the
   ;; directory names in this list.
   (let ((ido-temp-list (ido-make-dir-list1 ido-current-directory)))
-    (setq ido-temp-list (ido-sort-list ido-temp-list))
+    (setq ido-temp-list (sort ido-temp-list #'ido-file-lessp))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
 		(lambda (x) (if (string-equal (substring x 0 1) ".") x))
@@ -3184,14 +3255,15 @@ for first matching file."
       (setq display-it t))
     (if display-it
 	(with-output-to-temp-buffer ido-completion-buffer
-	  (let ((completion-list (ido-sort-list
+	  (let ((completion-list (sort
 				  (cond
 				   (ido-use-merged-list
 				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
 				   ((or full-list ido-completion-buffer-all-completions)
 				    (ido-all-completions))
 				   (t
-				    (copy-sequence (or ido-matches ido-cur-list)))))))
+				    (copy-sequence (or ido-matches ido-cur-list))))
+				  #'ido-file-lessp)))
 	    (if (featurep 'xemacs)
 		;; XEmacs extents are put on by default, doesn't seem to be
 		;; any way of switching them off.
