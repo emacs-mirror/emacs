@@ -44,7 +44,7 @@ extern void abort ();
 /* On some systems, the character-composition stuff is broken in X11R5.  */
 #if defined (HAVE_X11R5) && ! defined (HAVE_X11R6)
 #ifdef X11R5_INHIBIT_I18N
-#undef HAVE_X_I18N
+#define X_I18N_INHIBITED
 #endif
 #endif
 
@@ -2656,6 +2656,7 @@ x_window (f, window_prompting, minibuffer_only)
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
 #ifdef HAVE_X_I18N
+#ifndef X_I18N_INHIBITED
   { 
     XIM xim;
     XIC xic = NULL;
@@ -2671,11 +2672,19 @@ x_window (f, window_prompting, minibuffer_only)
 			 NULL);
 
 	if (xic == 0)
-	  XCloseIM (xim);
+	  {
+	    XCloseIM (xim);
+	    xim = NULL;
+	  }
       }
+    FRAME_XIM (f) = xim;
     FRAME_XIC (f) = xic;
   }
-#endif
+#else /* X_I18N_INHIBITED */
+  FRAME_XIM (f) = 0;
+  FRAME_XIC (f) = 0;
+#endif /* X_I18N_INHIBITED */
+#endif /* HAVE_X_I18N */
 
   f->output_data.x->wm_hints.input = True;
   f->output_data.x->wm_hints.flags |= InputHint;
@@ -2769,6 +2778,7 @@ x_window (f)
 		     FRAME_X_DISPLAY_INFO (f)->visual,
 		     attribute_mask, &attributes);
 #ifdef HAVE_X_I18N
+#ifndef X_I18N_INHIBITED
   { 
     XIM xim;
     XIC xic = NULL;
@@ -2784,12 +2794,20 @@ x_window (f)
 			 NULL);
 
 	if (!xic)
-	  XCloseIM (xim);
+	  {
+	    XCloseIM (xim);
+	    xim = NULL;
+	  }
       }
 
+    FRAME_XIM (f) = xim;
     FRAME_XIC (f) = xic;
   }
-#endif
+#else /* X_I18N_INHIBITED */
+  FRAME_XIM (f) = 0;
+  FRAME_XIC (f) = 0;
+#endif /* X_I18N_INHIBITED */
+#endif /* HAVE_X_I18N */
 
   validate_x_resource_name ();
 
