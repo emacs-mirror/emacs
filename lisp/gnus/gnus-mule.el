@@ -1,6 +1,6 @@
 ;;; gnus-mule.el --- Provide multilingual environment to GNUS
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 
 ;; Keywords: gnus, mule
@@ -24,10 +24,8 @@
 
 ;;; Commentary:
 
-;; This package enables GNUS to code convert automatically
+;; This package enables Gnus to code convert automatically
 ;; accoding to a coding system specified for each news group.
-;; Please put the following line in your .emacs:
-;;	(add-hook 'gnus-startup-hook 'gnus-mule-initialize)
 ;; If you want to specify some coding system for a specific news
 ;; group, add the fllowing line in your .emacs:
 ;;	(gnus-mule-add-group "xxx.yyy.zzz" 'some-coding-system)
@@ -37,8 +35,7 @@
 ;; appropriate coding system for as below:
 ;;	(gnus-mule-add-group "" 'iso-2022-jp)  ;; the case for Japanese
 
-(require 'gnus)
-(require 'message)
+(require 'nntp)
 
 (defvar gnus-newsgroup-coding-systems nil
   "Assoc list of news groups vs corresponding coding systems.
@@ -82,6 +79,7 @@ coding-system for reading and writing respectively."
 (defvar gnus-mule-article-decoded nil)
 ;; Coding system for reading articles of the current news group.
 (defvar gnus-mule-coding-system nil)
+;;(make-variable-buffer-local 'gnus-mule-coding-system)
 (defvar gnus-mule-subject nil)
 (defvar gnus-mule-decoded-subject nil)
 (defvar gnus-mule-original-subject nil)
@@ -125,34 +123,20 @@ coding-system for reading and writing respectively."
 
 ;; Set `gnus-mule-coding-system' to the coding system articles of the
 ;; current news group is encoded.   This function is set in
-;; `gnus-select-group-hook'.
+;; `gnus-parse-headers-hook'.
 (defun gnus-mule-select-coding-system ()
-  (let ((coding-system (gnus-mule-get-coding-system gnus-newsgroup-name)))
-    (setq gnus-mule-coding-system
-	  (if (and coding-system (coding-system-p (car coding-system)))
-	      (car coding-system)))))
+  (save-excursion
+    (set-buffer gnus-summary-buffer)
+    (let ((coding-system (gnus-mule-get-coding-system gnus-newsgroup-name)))
+      (setq gnus-mule-coding-system
+	    (if (and coding-system (coding-system-p (car coding-system)))
+		(car coding-system))))))
 
 ;; Decode the current article.  This function is set in
-;; `gnus-article-prepare-hook'.
+;; `gnus-show-traditional-method'.
 (defun gnus-mule-decode-article ()
   (gnus-mule-code-convert gnus-mule-coding-system nil)
   (setq gnus-mule-article-decoded t))
-
-;; Decode the current summary buffer.  This function is set in
-;; `gnus-summary-generate-hook'.
-;; Made by <sangil@hugsvr.kaist.ac.kr>,
-;; coded by <crisp@hugsvr.kaist.ac.kr>.
-(defun gnus-mule-decode-summary ()
-  (if gnus-mule-coding-system 
-      (mapcar 
-       (lambda (headers)
-         (let ((subject (aref headers 1))
-               (author  (aref headers 2)))
-           (aset headers 1 
-                 (decode-coding-string subject gnus-mule-coding-system))
-           (aset headers 2
-                 (decode-coding-string author gnus-mule-coding-system))))
-       gnus-newsgroup-headers)))
 
 (defun gnus-mule-toggle-article-format ()
   "Toggle decoding/encoding of the current article buffer."
@@ -200,30 +184,29 @@ coding-system for reading and writing respectively."
   (define-key gnus-article-mode-map "z" 'gnus-mule-toggle-article-format)
   (define-key gnus-summary-mode-map "z" 'gnus-mule-toggle-article-format)
   ;; Hook definition
-  (add-hook 'gnus-select-group-hook 'gnus-mule-select-coding-system)
-  (add-hook 'gnus-summary-generate-hook 'gnus-mule-decode-summary)
-  (add-hook 'gnus-article-prepare-hook 'gnus-mule-decode-article)
+  (add-hook 'gnus-parse-headers-hook 'gnus-mule-select-coding-system)
   (add-hook 'message-send-news-hook
 	    'gnus-mule-message-send-news-function)
   (add-hook 'message-send-mail-hook
 	    'gnus-mule-message-send-mail-function)
-  (let ((stream (get-process "nntpd")))
-    (if (processp stream)
-	(set-process-coding-system stream 'no-conversion 'no-conversion))))
+  (setq nntp-coding-system-for-read 'binary
+	nntp-coding-system-for-write 'binary
+	nnheader-file-coding-system 'binary
+	nnmail-file-coding-system   'binary)
+  )
 
-(gnus-mule-add-group "" 'undecided)
+(gnus-mule-add-group "" '(undecided . iso-latin-1))
 (gnus-mule-add-group "fj" 'iso-2022-7bit)
 (gnus-mule-add-group "tnn" 'iso-2022-7bit)
 (gnus-mule-add-group "japan" 'iso-2022-7bit)
 (gnus-mule-add-group "pin" 'iso-2022-7bit)
+(gnus-mule-add-group "han" 'euc-kr)
 (gnus-mule-add-group "alt.chinese.text" 'chinese-hz)
 (gnus-mule-add-group "alt.hk" 'chinese-hz)
 (gnus-mule-add-group "alt.chinese.text.big5" 'chinese-big5)
 (gnus-mule-add-group "soc.culture.vietnamese" '(nil . vietnamese-viqr))
 (gnus-mule-add-group "relcom" 'cyrillic-koi8)
 
-(add-hook 'gnus-startup-hook 'gnus-mule-initialize)
-
-(modify-coding-system-alist 'network "nntp" 'no-conversion)
+(provide 'gnus-mule)
 
 ;; gnus-mule.el ends here
