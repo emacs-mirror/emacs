@@ -1,3 +1,11 @@
+2000-06-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (next_frame): Don't check frame-focus redirection in
+	case MINIBUF is a window.  Doing so excludes frames using MINIBUF
+	unless their focus is redirected, which contradicts the
+	specification of next-frame, and leads to infinite loops in
+	certain situations when cycling through windows with next-window.
+
 2000-06-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_region): Even if the length of text is
