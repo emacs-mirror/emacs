@@ -1866,6 +1866,11 @@ Here are the operations that a magic file name handler gets to handle:
 @code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
 @code{verify-visited-file-modtime}, @code{write-region}.
 
+Handlers for @code{insert-file-contents} typically need to clear the
+buffer's modified flag, with @code{(set-buffer-modified-p nil)}, if the
+@var{visit} argument is non-@code{nil}.  This also has the effect of
+unlocking the buffer if it is locked.
+
 The handler function must handle all of the above operations, and
 possibly others to be added in the future.  It need not implement all
 these operations itself---when it has nothing special to do for a
