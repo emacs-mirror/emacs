@@ -291,7 +291,7 @@ A large number or nil slows down menu responsiveness.")
 
 (defun menu-bar-update-buffers ()
   ;; If user discards the Buffers item, play along.
-  (and (lookup-key global-map [menu-bar buffer])
+  (and (lookup-key (current-global-map) [menu-bar buffer])
        (frame-or-buffer-changed-p)
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
@@ -379,7 +379,7 @@ A large number or nil slows down menu responsiveness.")
 	     (setq buffers-menu (cons 'keymap buffers-menu)))
 	 (if frames-menu
 	     (setq frames-menu (cons 'keymap frames-menu)))
-	 (define-key global-map [menu-bar buffer]
+	 (define-key (current-global-map) [menu-bar buffer]
 	   (cons "Buffers"
 		 (if (and buffers-menu frames-menu)
 		     (list 'keymap "Buffers and Frames"
