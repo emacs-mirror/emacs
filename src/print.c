@@ -498,8 +498,8 @@ print_string (string, printcharfun)
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    int len;
-	    int ch = STRING_CHAR_AND_CHAR_LENGTH (XSTRING (string)->data + i,
-						  size_byte - i, len);
+	    int ch = STRING_CHAR_AND_LENGTH (XSTRING (string)->data + i,
+					     size_byte - i, len);
 	    if (!CHAR_VALID_P (ch, 0))
 	      {
 		ch = XSTRING (string)->data[i];
@@ -1141,8 +1141,8 @@ print (obj, printcharfun, escapeflag)
 
 	      if (STRING_MULTIBYTE (obj))
 		{
-		  c = STRING_CHAR_AND_CHAR_LENGTH (str + i_byte,
-						   size_byte - i_byte, len);
+		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
+					      size_byte - i_byte, len);
 		  if (CHAR_VALID_P (c, 0))
 		    i_byte += len;
 		  else
