@@ -4100,17 +4100,16 @@ During a selection process, these are the local bindings.
 	      (concat "\\\\bibitem\\(\\[[^]]*\\]\\)?{" (regexp-quote key) "}")
 	    (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
 		    "[, \t\r\n}]")))
-         (window-conf (current-window-configuration))
+	 (buffer-conf (current-buffer))
          file buf)
 
     (catch 'exit
-      (switch-to-buffer-other-window (current-buffer))
       (while file-list
         (setq file (car file-list)
               file-list (cdr file-list))
         (unless (setq buf (reftex-get-file-buffer-force file mark-to-kill))
           (error "No such file %s" file))
-        (switch-to-buffer buf)
+	(set-buffer buf)
         (widen)
         (goto-char (point-min))
         (when (re-search-forward re nil t)
@@ -4120,13 +4119,15 @@ During a selection process, these are the local bindings.
 	    (if item (goto-char (match-end 0)))
 	    (setq return (buffer-substring 
 			  (point) (reftex-end-of-bib-entry item)))
-	    (set-window-configuration window-conf)
+	    (set-buffer buffer-conf)
 	    (throw 'exit return))
+	  (switch-to-buffer-other-window buffer-conf)
+	  (switch-to-buffer buf)
           (recenter 0)
           (if highlight
               (reftex-highlight 0 (match-beginning 0) (match-end 0)))
           (throw 'exit (selected-window))))
-      (set-window-configuration window-conf)
+      (set-buffer buffer-conf)
       (if item
 	  (error "No \\bibitem with citation key %s" key)
 	(error "No BibTeX entry with citation key %s" key)))))
