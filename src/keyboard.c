@@ -444,6 +444,8 @@ Lisp_Object Qextended_command_history;
 
 Lisp_Object Qpolling_period;
 
+extern Lisp_Object Vprint_level, Vprint_length;
+
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
 EMACS_TIME *input_available_clear_time;
@@ -765,6 +767,8 @@ Lisp_Object
 cmd_error (data)
      Lisp_Object data;
 {
+  Lisp_Object old_level, old_length;
+
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
@@ -773,7 +777,15 @@ cmd_error (data)
       clear_prefix_arg ();
       cancel_echoing ();
     }
+
+  /* Avoid unquittable loop if data contains a circular list.  */
+  old_level = Vprint_level;
+  old_length = Vprint_length;
+  XSETFASTINT(Vprint_level, 10);
+  XSETFASTINT(Vprint_length, 10);
   cmd_error_internal (data, 0);
+  Vprint_level = old_level;
+  Vprint_length = old_length;
 
   Vquit_flag = Qnil;
 
