@@ -60,7 +60,7 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 \[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\
-\\|easy-mmode-define-global-mode\\)\\(\\s-\\|\n\\)+'?\
+\\|easy-mmode-define-global-mode\\)\\(\\s-\\|\n\\)+\\('\\|\(quote \\)?\
 %s\\(\\s-\\|$\\|\(\\|\)\\)"
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
@@ -108,6 +108,7 @@ See the functions `find-function' and `find-variable'."
 
 ;;; Functions:
 
+;;;###autoload
 (defun find-function-search-for-symbol (symbol variable-p library)
   "Search for SYMBOL.
 If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
