@@ -237,12 +237,6 @@ fire repeatedly that many seconds apart."
           (setq timer-idle-list (delq (car tail) timer-idle-list)))
       (setq tail (cdr tail)))))
 
-;; Set up the common handler for all timer events.  Since the event has
-;; the timer as parameter we can still distinguish.  Note that using
-;; special-event-map ensures that event timer events that arrive in the
-;; middle of a key sequence being entered are still handled correctly.
-(define-key special-event-map [timer-event] 'timer-event-handler)
-
 ;; Record the last few events, for debugging.
 (defvar timer-event-last-2 nil)
 (defvar timer-event-last-1 nil)
@@ -259,14 +253,13 @@ TIME is a time-list."
 	(low (- (nth 1 time) (aref timer 2))))
     (+ low (* high 65536))))
   
-(defun timer-event-handler (event)
-  "Call the handler for the timer in the event EVENT."
-  (interactive "e")
+(defun timer-event-handler (timer)
+  "Call the handler for the timer TIMER.
+This function is called, by name, directly by the C code."
   (setq timer-event-last-2 timer-event-last-1)
   (setq timer-event-last-1 timer-event-last)
-  (setq timer-event-last (cons event (copy-sequence event)))
-  (let ((inhibit-quit t)
-	(timer (car-safe (cdr-safe event))))
+  (setq timer-event-last timer)
+  (let ((inhibit-quit t))
     (if (timerp timer)
 	(progn
 	  ;; Delete from queue.
