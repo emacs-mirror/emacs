@@ -328,6 +328,8 @@ Third argument TYPE is the custom option type."
 Fourth argument TYPE is the custom option type."
   (cond ((eq keyword :group)
 	 (custom-add-to-group value symbol type))
+	((eq keyword :version)
+	 (custom-add-version symbol value))
 	((eq keyword :link)
 	 (custom-add-link symbol value))
 	((eq keyword :load)
@@ -351,6 +353,10 @@ For other types variables, the effect is undefined."
   (let ((links (get symbol 'custom-links)))
     (unless (member widget links)
       (put symbol 'custom-links (cons widget links)))))
+
+(defun custom-add-version (symbol version)
+  "To the custom option SYMBOL add the version VERSION."
+  (put symbol 'custom-version version))
 
 (defun custom-add-load (symbol load)
   "To the custom option SYMBOL add the dependency LOAD.
