@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "blockinput.h"
 #include "puresize.h"
+#include "intervals.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -1285,7 +1286,15 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	      RETURN_UNGCPRO (value);
 	  }
 
-      local = get_local_map (PT, current_buffer);
+      local = get_local_map (PT, current_buffer, keymap);
+      if (! NILP (local))
+	{
+	  value = Flookup_key (local, key, accept_default);
+	  if (! NILP (value) && !INTEGERP (value))
+	    RETURN_UNGCPRO (value);
+	}
+
+      local = get_local_map (PT, current_buffer, local_map);
 
       if (! NILP (local))
 	{
@@ -2068,14 +2077,25 @@ indirect definition itself.")
      shadowed bindings. */
   keymap1 = keymap;
   if (! keymap_specified)
-    keymap1 = get_local_map (PT, current_buffer);
+    keymap1 = get_local_map (PT, current_buffer, keymap);
     
   if (!NILP (keymap1))
     maps = nconc2 (Faccessible_keymaps (get_keymap (keymap1), Qnil),
 		   Faccessible_keymaps (get_keymap (current_global_map),
 					Qnil));
   else
-    maps = Faccessible_keymaps (get_keymap (current_global_map), Qnil);
+    {
+      keymap1 = keymap;
+      if (! keymap_specified)
+	keymap1 = get_local_map (PT, current_buffer, local_map);
+    
+      if (!NILP (keymap1))
+	maps = nconc2 (Faccessible_keymaps (get_keymap (keymap1), Qnil),
+		       Faccessible_keymaps (get_keymap (current_global_map),
+					    Qnil));
+      else
+	maps = Faccessible_keymaps (get_keymap (current_global_map), Qnil);
+    }
 
   /* Put the minor mode keymaps on the front.  */
   if (! keymap_specified)
