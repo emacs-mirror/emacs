@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.34) $
+# $HopeName: MMsrc!comm.gmk(trunk.35) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -247,7 +247,7 @@ all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
 
 mpmss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
-  mps.a lo.a awl.a mmsw.a mpsplan.a: phony
+  mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -339,6 +339,9 @@ $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ)
+
+$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ) \
+$(DWOBJ) $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
 
