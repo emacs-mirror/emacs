@@ -2574,7 +2574,9 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
   (%-constructs are allowed when the string is the entire mode-line-format\n\
    or when it is found in a cons-cell or a list)\n\
   %b -- print buffer name.      %f -- print visited file name.\n\
-  %* -- print *, % or hyphen.   %+ -- print * or hyphen.\n\
+  %* -- print %, * or hyphen.   %+ -- print *, % or hyphen.\n\
+	% means buffer is read-only and * means it is modified.\n\
+	For a modified read-only buffer, %* gives % and %+ gives *.\n\
   %s -- print process status.   %l -- print the current line number.\n\
   %p -- print percent of buffer above top of window, or Top, Bot or All.\n\
   %P -- print percent of buffer above bottom of window, perhaps plus Top,\n\
