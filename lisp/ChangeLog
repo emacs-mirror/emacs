@@ -1,3 +1,7 @@
+2000-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* md5.el: Removed.  There's a built-in function, now.
+
 2000-11-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ps-print.el (ps-end-job): Bind case-fold-search only after

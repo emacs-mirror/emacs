@@ -2006,8 +2006,7 @@ operates on the minibuffer.
 ** The user-option `face-font-registry-alternatives' specifies
 alternative font registry names to try when looking for a font.
 
-** Function `md5' calculates the MD5 "message digest"/"checksum",
-currently using the `md5sum' program.
+** Function `md5' calculates the MD5 "message digest"/"checksum".
 
 +++
 ** Function `delete-frame' runs `delete-frame-hook' before actually

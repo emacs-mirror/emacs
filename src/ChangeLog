@@ -1,3 +1,7 @@
+2000-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Fmd5): Doc fix.
+
 2000-10-07  Simon Josefsson  <simon@josefsson.org>
 
 	* fns.c (Fmd5): New function.
