@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.20) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.21) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -22,7 +22,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.20) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.21) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -123,7 +123,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   /* Could profitably AVER that the given range is free, */
   /* but the CBS doesn't provide that facility. */
 
-  if(AddrOffset(base, limit) < mvff->minSegSize)
+  if (AddrOffset(base, limit) < mvff->minSegSize)
     return; /* not large enough for entire segments */
 
   arena = PoolArena(MVFFPool(mvff));
@@ -134,7 +134,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   segLimit = SegLimit(seg);
 
   while(segLimit <= limit) { /* segment ends in range */
-    if(segBase >= base) { /* segment starts in range */
+    if (segBase >= base) { /* segment starts in range */
       /* Must remove from free list first, in case free list */
       /* is using inline data structures. */
       res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
@@ -147,7 +147,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     /* Avoid calling SegNext if the next segment would fail */
     /* the loop test, mainly because there might not be a */
     /* next segment. */
-    if(segLimit == limit) /* segment ends at end of range */
+    if (segLimit == limit) /* segment ends at end of range */
       break;
     
     b = SegNext(&seg, arena, segBase);
@@ -189,21 +189,20 @@ static Res MVFFAddSeg(Seg *segReturn,
 
   /* Use extendBy unless it's too small (see */
   /* design.mps.poolmvff.design.seg-size). */
-  if(size <= mvff->extendBy)
+  if (size <= mvff->extendBy)
     segSize = mvff->extendBy;
   else
     segSize = size;
 
   segSize = SizeAlignUp(segSize, align);
 
-  res = SegAlloc(&seg, EnsureSegClass(),
-                 mvff->segPref, segSize, pool, 
+  res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
                  withReservoirPermit);
-  if(res != ResOK) {
+  if (res != ResOK) {
     /* try again for a seg just large enough for object */
     /* see design.mps.poolmvff.design.seg-fail */
     segSize = SizeAlignUp(size, align);
-    res = SegAlloc(&seg, EnsureSegClass(), mvff->segPref, segSize, pool, 
+    res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool, 
                    withReservoirPermit);
     if (res != ResOK) {
       return res;
@@ -214,7 +213,7 @@ static Res MVFFAddSeg(Seg *segReturn,
   base = SegBase(seg); limit = AddrAdd(base, segSize);
   MVFFAddToFreeList(&base, &limit, mvff);
   AVER(base <= SegBase(seg));
-  if(mvff->minSegSize > segSize) mvff->minSegSize = segSize;
+  if (mvff->minSegSize > segSize) mvff->minSegSize = segSize;
 
   /* Don't call MVFFFreeSegs; that would be silly. */
 
@@ -251,7 +250,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
     (mvff->firstFit ? CBSFindFirst : CBSFindLast)
       (baseReturn, limitReturn, CBSOfMVFF(mvff), size, findDelete);
 
-  if(foundBlock)
+  if (foundBlock)
     mvff->free -= size;
 
   return foundBlock;
@@ -279,11 +278,11 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
   size = SizeAlignUp(size, PoolAlignment(pool));
 
   foundBlock = MVFFFindFirstFree(&base, &limit, mvff, size);
-  if(!foundBlock) {
+  if (!foundBlock) {
     Seg seg;
 
     res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
-    if(res != ResOK) 
+    if (res != ResOK) 
       return res;
     foundBlock = MVFFFindFirstFree(&base, &limit, mvff, size);
 
@@ -359,14 +358,14 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* Hoping the largest is big enough, delete it and return if small. */
   foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
                               CBSFindDeleteENTIRE);
-  if(foundBlock && AddrOffset(base, limit) < size) {
+  if (foundBlock && AddrOffset(base, limit) < size) {
     foundBlock = FALSE;
     res = CBSInsert(CBSOfMVFF(mvff), base, limit);
     AVER(res == ResOK);
   }
-  if(!foundBlock) {
+  if (!foundBlock) {
     res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
-    if(res != ResOK) 
+    if (res != ResOK) 
       return res;
     foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
                                 CBSFindDeleteENTIRE);
@@ -441,7 +440,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   arena = PoolArena(pool);
 
   mvff->extendBy = extendBy;
-  if(extendBy < ArenaAlign(arena))
+  if (extendBy < ArenaAlign(arena))
     mvff->minSegSize = ArenaAlign(arena);
   else
     mvff->minSegSize = extendBy;
@@ -450,11 +449,9 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->slotHigh = slotHigh;
   mvff->firstFit = firstFit;
 
-  res = ControlAlloc(&p, arena, sizeof(SegPrefStruct), 
-                     /* withReservoirPermit */ FALSE);
-  if (res != ResOK) {
+  res = ControlAlloc(&p, arena, sizeof(SegPrefStruct), FALSE);
+  if (res != ResOK)
     return res;
-  }
   
   mvff->segPref = (SegPref)p;
   *mvff->segPref = *SegPrefDefault();
@@ -577,7 +574,7 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
 
 PoolClass PoolClassMVFF(void)
 {
-  return EnsureMVFFPoolClass();
+  return MVFFPoolClassGet();
 }
 
 
@@ -598,12 +595,12 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 
 mps_class_t mps_class_mvff(void)
 {
-  return (mps_class_t)(EnsureMVFFPoolClass());
+  return (mps_class_t)(MVFFPoolClassGet());
 }
 
 mps_class_t mps_class_mvff_debug(void)
 {
-  return (mps_class_t)(EnsureMVFFDebugPoolClass());
+  return (mps_class_t)(MVFFDebugPoolClassGet());
 }
 
 
@@ -644,7 +641,7 @@ static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, EnsureMVFFPoolClass()));
+  CHECKL(IsSubclassPoly(MVFFPool(mvff)->class, MVFFPoolClassGet()));
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
   CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFFPool(mvff))));
