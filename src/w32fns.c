@@ -9726,7 +9726,7 @@ xbm_scan (s, end, sval, ival)
  loop:
 
   /* Skip white space.  */
-  while (*s < end &&(c = *(*s)++, isspace (c)))
+  while (*s < end && (c = *(*s)++, isspace (c)))
     ;
 
   if (*s >= end)
@@ -9818,6 +9818,31 @@ static unsigned char reflect_byte (unsigned char orig)
 }
 
 
+/* Create a Windows bitmap from X bitmap data.  */
+static HBITMAP
+w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
+{
+  int i, j, w1, w2;
+  char *bits, *p;
+  HBITMAP bmp;
+
+  w1 = (width + 7) / 8;         /* nb of 8bits elt in X bitmap */
+  w2 = ((width + 15) / 16) * 2; /* nb of 16bits elt in W32 bitmap */
+  bits = (char *) xmalloc (height * w2);
+  bzero (bits, height * w2);
+  for (i = 0; i < height; i++)
+    {
+      p = bits + i*w2;
+      for (j = 0; j < w1; j++)
+        *p++ = reflect_byte(*data++);
+    }
+  bmp = CreateBitmap (width, height, 1, 1, bits);
+  xfree (bits);
+
+  return bmp;
+}
+
+
 /* Replacement for XReadBitmapFileData which isn't available under old
    X versions.  CONTENTS is a pointer to a buffer to parse; END is the
    buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
@@ -9835,7 +9860,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
-  int bytes_in_per_line, bytes_out_per_line, i, nbytes;
+  int bytes_per_line, i, nbytes;
   unsigned char *p;
   int value;
   int LA1;
@@ -9888,10 +9913,6 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   expect_ident ("static");
   if (LA1 == XBM_TK_IDENT)
     {
-      /* On Windows, all images need padding to 16 bit boundaries.  */
-      if (*width % 16 && *width % 16 < 9)
-	padding_p = 1;
-
       if (strcmp (buffer, "unsigned") == 0)
 	{
 	  match (); 
@@ -9901,6 +9922,8 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	{
 	  match ();
 	  v10 = 1;
+	  if (*width % 16 && *width % 16 < 9)
+	    padding_p = 1;
 	}
       else if (strcmp (buffer, "char") == 0)
 	match ();
@@ -9916,12 +9939,9 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   expect ('=');
   expect ('{');
 
-  /* Bytes per line on input.  Only count padding for v10 XBMs.  */
-  bytes_in_per_line = (*width + 7) / 8 + (v10 ? padding_p : 0);
-  bytes_out_per_line = (*width + 7) / 8 + padding_p;
-
-  nbytes = bytes_in_per_line * *height;
-  p = *data = (char *) xmalloc (bytes_out_per_line * *height);
+  bytes_per_line = (*width + 7) / 8 + padding_p;
+  nbytes = bytes_per_line * *height;
+  p = *data = (char *) xmalloc (nbytes);
 
   if (v10)
     {
@@ -9930,9 +9950,9 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 
-	  *p++ = reflect_byte (val);
-	  if (!padding_p || ((i + 2) % bytes_in_per_line))
-	    *p++ = reflect_byte (value >> 8);
+	  *p++ = val;
+	  if (!padding_p || ((i + 2) % bytes_per_line))
+	    *p++ = value >> 8;
 	  
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
@@ -9947,9 +9967,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 	  
-	  *p++ = reflect_byte (val);
-	  if (padding_p && ((i + 1) % bytes_in_per_line) == 0)
-	    *p++ = 0;
+	  *p++ = val;
 
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
@@ -10011,7 +10029,7 @@ xbm_load_image (f, img, contents, end)
 	  img->background_valid = 1;
 	}
       img->pixmap
-	= CreateBitmap (img->width, img->height, 1, 1, data);
+	= w32_create_pixmap_from_bitmap_data (img->width, img->height, data);
 
       xfree (data);
 
@@ -10151,17 +10169,13 @@ xbm_load (f, img)
 	    bits = XSTRING (data)->data;
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
-#ifdef TODO /* full image support.  */
+
 	  /* Create the pixmap.  */
 	  depth = one_w32_display_info.n_cbits;
 	  img->pixmap
-	    = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
-					   FRAME_X_WINDOW (f),
-					   bits,
-					   img->width, img->height,
-					   foreground, background,
-					   depth);
-#endif
+	    = w32_create_pixmap_from_bitmap_data (img->width, img->height,
+						  bits);
+
 	  if (img->pixmap)
 	    success_p = 1;
 	  else
