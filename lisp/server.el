@@ -335,7 +335,7 @@ so don't mark these buffers specially, just visit them normally."
 	      (goto-line (nth 1 (car files)))
 	      (let ((column-number (nth 2 (car files))))
 		(when (> column-number 0)
-		  (move-to-column (1- column))))
+		  (move-to-column (1- column-number))))
 	      (run-hooks 'server-visit-hook)))
 	  (if (not nowait)
 	      (setq server-buffer-clients
