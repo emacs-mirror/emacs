@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.51) $
+# $HopeName: MMsrc!comm.gmk(trunk.52) $
 # Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -255,14 +255,14 @@ endif
 
 all: mpmss apss amcss amsss awlut mpsicv lockcov poolncv mps.a \
      locv qs finalcv arenacv bttest teletest abqtest cbstest \
-     btcv mv2eptst mv2test
+     btcv mv2eptst mv2test messtest
 
 # Runs the automatic tests that are built with CONFIG_PROD_MPS
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
 testrun: mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
-         locv qs finalcv arenacv abqtest cbstest btcv
+         locv qs finalcv arenacv abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
@@ -278,7 +278,7 @@ testrunep: epvmss
 
 mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
-  abqtest cbstest btcv mv2eptst mv2test eventcnv \
+  abqtest cbstest btcv mv2eptst mv2test eventcnv messtest \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
@@ -387,6 +387,9 @@ $(PFM)/$(VARIETY)/mv2eptst: $(PFM)/$(VARIETY)/mv2eptst.o \
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+
+$(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
+	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
