@@ -508,7 +508,7 @@ the user from the mailer."
 ;;;		   (insert "Sender: " (user-login-name) "\n")))
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
-	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
+	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
 		(replace-match ""))
 	    ;; Put the "From:" field in unless for some odd reason
 	    ;; they put one in themselves.
