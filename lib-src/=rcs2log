@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.31 1996/09/25 09:53:56 eggert Exp eggert $
+# $Id: rcs2log,v 1.32 1996/09/30 22:15:13 eggert Exp eggert $
 
 # Copyright 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
@@ -199,7 +199,7 @@ fi
 
 # Use $rlog's -zLT option, if $rlog supports it.
 case `$rlog -zLT 2>&1` in
-*'unknown option'*) ;;
+*' option'*) ;;
 *) rlog_options=-zLT$nl$rlog_options
 esac
 
