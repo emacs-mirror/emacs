@@ -167,7 +167,8 @@ record_marker_adjustment (marker, adjustment)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (current_buffer != XBUFFER (last_undo_buffer))
+  if (!BUFFERP (last_undo_buffer) 
+      || current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
@@ -201,7 +202,8 @@ record_first_change ()
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  if (current_buffer != XBUFFER (last_undo_buffer))
+  if (!BUFFERP (last_undo_buffer)
+      || current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
