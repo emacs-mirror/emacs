@@ -686,15 +686,17 @@ If nil, uses `change-log-default-name'."
 		 vc-log-version
 		 (buffer-string)))
     (error "No log operation is pending"))
-  ;; Return to "parent" buffer of this checkin and remove checkin window
-  (pop-to-buffer vc-parent-buffer)
-  (let ((logbuf (get-buffer "*VC-log*")))
-    (delete-windows-on logbuf)
-    (kill-buffer logbuf))
-  ;; Now make sure we see the expanded headers
-  (if buffer-file-name
+  ;; save the vc-log-after-operation-hook of log buffer
+  (let ((after-hook vc-log-after-operation-hook))
+    ;; Return to "parent" buffer of this checkin and remove checkin window
+    (pop-to-buffer vc-parent-buffer)
+    (let ((logbuf (get-buffer "*VC-log*")))
+      (delete-windows-on logbuf)
+      (kill-buffer logbuf))
+    ;; Now make sure we see the expanded headers
+    (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
-  (run-hooks vc-log-after-operation-hook))
+    (run-hooks after-hook)))
 
 ;; Code for access to the comment ring
 
