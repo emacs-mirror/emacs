@@ -6,7 +6,34 @@
   support and a port of GNU make.  You can use the Cygwin ports of GCC,
   but Emacs requires the Mingw headers and libraries to build.
 
+  If you build Emacs on Windows 9X or ME, not on Windows 2000 or
+  Windows/NT, we suggest to install the Cygwin port of Bash.
+
   Please see http://www.mingw.org for pointers to GCC/Mingw binaries.
+
+  For reference, here is a list of which builds of GNU make are known
+  to work or not, and whether they work in the presence and/or absence
+  of sh.exe, the Cygwin port of Bash.
+ 
+                                         sh exists     no sh
+
+    cygwin b20.1 make (3.75):            okay[1]       fails[2]
+    MSVC compiled gmake 3.77:            okay          okay
+    MSVC compiled gmake 3.78.1:          okay          okay
+    MSVC compiled gmake 3.79.1:          okay          okay
+    mingw32/gcc-2.92.2 make (3.77):      okay[4]       okay
+    cygwin compiled gmake 3.77:          okay[1]       fails[2]
+    cygwin compiled gmake 3.78.1:        okay          fails[2]
+    cygwin compiled gmake 3.79.1:        couldn't build make[3]
+
+  Notes:
+
+    [1] doesn't cope with makefiles with DOS line endings, so must mount
+        emacs source with text!=binary.
+    [2] fails when needs to invoke shell commands; okay invoking gcc etc.
+    [3] requires LC_MESSAGES support to build; maybe 2.95.x update to
+        cygwin provides this?
+    [4] may fail on Windows 9X and Windows ME; if so, install Bash.
 
 Configuring:
 
@@ -71,6 +98,11 @@ Trouble-shooting:
   in the definition of IMAGE_FIRST_SECTION in winnt.h, which
   addsection.c relies on.  Versions of w32api-xxx.zip from at least
   1999-11-18 onwards are okay.
+
+  If configure succeeds, but make fails, install the Cygwin port of
+  Bash, even if the table above indicates that Emacs should be able to
+  build without sh.exe.  (Some versions of Windows shells are too dumb
+  for Makefile's used by Emacs.)
 
 Debugging:
 
