@@ -1,5 +1,8 @@
 2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
+	* src/macterm.c (XTread_socket): Read all pending events in the
+	event queue instead of one.
+
 	* makefile.MPW: Generate etc/DOC file from .elc files instead of
 	.el files.
 
