@@ -1450,6 +1450,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      }
 		    else if (EQ (content, Qlambda))
 		      {
+			reg[RRR] = i;
 			break;
 		      }
 		    else
@@ -1492,13 +1493,13 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  reg[RRR] = -1;
 		else
 		  {
+		    reg[RRR] = 0;
 		    content = XVECTOR (map)->contents[point];
 		    if (NILP (content))
 		      reg[RRR] = -1;
 		    else if (NUMBERP (content))
 		      reg[rrr] = XINT (content);
-		    else if (EQ (content, Qt))
-		      reg[RRR] = i;
+		    else if (EQ (content, Qt));
 		    else if (CONSP (content))
 		      {
 			attrib = XCAR (content);
