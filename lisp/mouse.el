@@ -49,6 +49,8 @@
   ;; Switch to the window clicked on, because otherwise
   ;; the mode's commands may not make sense.
   (interactive "@e\nP")
+  ;; Let the mode update its menus first.
+  (run-hooks 'activate-menubar-hook)
   (let (;; This is where mouse-major-mode-menu-prefix
 	;; returns the prefix we should use (after menu-bar).
 	;; It is either nil or (SOME-SYMBOL).
