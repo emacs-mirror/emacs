@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.37 $")
+(defconst byte-compile-version "$Revision: 2.38 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -336,9 +336,11 @@ Elements of the list may be be:
 
 See also the macro `byte-compiler-options'."
   :group 'bytecomp
-  :type '(set (const free-vars) (const unresolved)
-	      (const callargs) (const redefined)
-	      (const obsolete)))
+  :type '(choice (const :tag "All" t)
+		 (set :menu-tag "Some"
+		      (const free-vars) (const unresolved)
+		      (const callargs) (const redefined)
+		      (const obsolete))))
 
 (defcustom byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
