@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -86,9 +86,11 @@ int byte_metering_on;
 
 
 Lisp_Object Qbytecode;
+extern Lisp_Object Qand_optional, Qand_rest;
 
 /*  Byte codes: */
 
+#define Bstack_ref 0
 #define Bvarref 010
 #define Bvarset 020
 #define Bvarbind 030
@@ -227,6 +229,13 @@ Lisp_Object Qbytecode;
 #define BlistN 0257
 #define BconcatN 0260
 #define BinsertN 0261
+
+/* Bstack_ref is code 0.  */
+#define Bstack_set  0262
+#define Bstack_set2 0263
+#define Bvec_ref    0264
+#define Bvec_set    0265
+#define BdiscardN   0266
 
 #define Bconstant 0300
 #define CONSTANTLIM 0100
@@ -411,14 +420,41 @@ unmark_byte_stack ()
   } while (0)
 
 
-DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
+DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, MANY, 0,
        doc: /* Function used internally in byte-compiled code.
 The first argument, BYTESTR, is a string of byte code;
 the second, VECTOR, a vector of constants;
 the third, MAXDEPTH, the maximum stack depth used in this function.
-If the third argument is incorrect, Emacs may crash.  */)
-     (bytestr, vector, maxdepth)
-     Lisp_Object bytestr, vector, maxdepth;
+If the third argument is incorrect, Emacs may crash.
+
+If ARGS-TEMPLATE is specified, it is an argument list specification,
+according to which any remaining arguments are pushed on the stack
+before executing BYTESTR.
+
+usage: (byte-code BYTESTR VECTOR MAXDEP &optional ARGS-TEMPLATE &rest ARGS) */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object args_tmpl = nargs >= 4 ? args[3] : Qnil;
+  int pnargs = nargs >= 4 ? nargs - 4 : 0;
+  Lisp_Object *pargs = nargs >= 4 ? args + 4 : 0;
+  return exec_byte_code (args[0], args[1], args[2], args_tmpl, pnargs, pargs);
+}
+
+/* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
+   MAXDEPTH is the maximum stack depth used (if MAXDEPTH is incorrect,
+   emacs may crash!).  If ARGS_TEMPLATE is non-nil, it should be a lisp
+   argument list (including &rest, &optional, etc.), and ARGS, of size
+   NARGS, should be a vector of the actual arguments.  The arguments in
+   ARGS are pushed on the stack according to ARGS_TEMPLATE before
+   executing BYTESTR.  */
+
+Lisp_Object
+exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
+     Lisp_Object bytestr, vector, maxdepth, args_template;
+     int nargs;
+     Lisp_Object *args;
 {
   int count = specpdl_ptr - specpdl;
 #ifdef BYTE_CODE_METER
@@ -476,6 +512,37 @@ If the third argument is incorrect, Emacs may crash.  */)
 #ifdef BYTE_CODE_SAFE
   stacke = stack.bottom - 1 + XFASTINT (maxdepth);
 #endif
+
+  if (! NILP (args_template))
+    /* We should push some arguments on the stack.  */
+    {
+      Lisp_Object at;
+      int pushed = 0, optional = 0;
+
+      for (at = args_template; CONSP (at); at = XCDR (at))
+	if (EQ (XCAR (at), Qand_optional))
+	  optional = 1;
+	else if (EQ (XCAR (at), Qand_rest))
+	  {
+	    PUSH (Flist (nargs, args));
+	    pushed = nargs;
+	    at = Qnil;
+	    break;
+	  }
+	else if (pushed < nargs)
+	  {
+	    PUSH (*args++);
+	    pushed++;
+	  }
+	else if (optional)
+	  PUSH (Qnil);
+	else
+	  break;
+
+      if (pushed != nargs || !NILP (at))
+	Fsignal (Qwrong_number_of_arguments,
+		 Fcons (args_template, Fcons (make_number (nargs), Qnil)));
+    }
 
   while (1)
     {
@@ -1699,8 +1766,57 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  break;
 #endif
 
-	case 0:
-	  abort ();
+	  /* Handy byte-codes for lexical binding.  */
+	case Bstack_ref:
+	case Bstack_ref+1:
+	case Bstack_ref+2:
+	case Bstack_ref+3:
+	case Bstack_ref+4:
+	case Bstack_ref+5:
+	  PUSH (stack.bottom[op - Bstack_ref]);
+	  break;
+	case Bstack_ref+6:
+	  PUSH (stack.bottom[FETCH]);
+	  break;
+	case Bstack_ref+7:
+	  PUSH (stack.bottom[FETCH2]);
+	  break;
+	case Bstack_set:
+	  stack.bottom[FETCH] = POP;
+	  break;
+	case Bstack_set2:
+	  stack.bottom[FETCH2] = POP;
+	  break;
+	case Bvec_ref:
+	case Bvec_set:
+	  /* These byte-codes used mostly for variable references to
+	     lexically bound variables that are in an environment vector
+	     instead of on the byte-interpreter stack (generally those
+	     variables which might be shared with a closure).  */
+	  {
+	    int index = FETCH;
+	    Lisp_Object vec = POP;
+
+	    if (! VECTORP (vec))
+	      wrong_type_argument (Qvectorp, vec);
+	    else if (index < 0 || index >= XVECTOR (vec)->size)
+	      args_out_of_range (vec, index);
+
+	    if (op == Bvec_ref)
+	      PUSH (XVECTOR (vec)->contents[index]);
+	    else
+	      XVECTOR (vec)->contents[index] = POP;
+	  }
+	  break;
+	case BdiscardN:
+	  op = FETCH;
+	  if (op & 0x80)
+	    {
+	      op &= 0x7F;
+	      top[-op] = TOP;
+	    }
+	  DISCARD (op);
+	  break;
 
 	case 255:
 	default:
