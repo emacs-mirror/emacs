@@ -149,7 +149,7 @@ all:            $(ALL)
 #
 emacs:          $(BLD) $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
-	"./$(BLD)/temacs.exe" -batch -l loadup dump
+	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup dump
 
 #
 # The undumped executable
@@ -176,7 +176,7 @@ bootstrap-temacs: bootstrap-clean
 # files from loadup.el in source form.
 #
 bootstrap-emacs: bootstrap-temacs
-	"./$(BLD)/temacs.exe" -batch -l loadup bootstrap
+	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup bootstrap
 	- mkdir "../bin"
 	$(CP) $(EMACS) ../bin
 
