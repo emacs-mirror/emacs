@@ -1764,7 +1764,13 @@ Returns the new value of the alist."
   (save-excursion
     (let ((count 0)
 	  (buffer-read-only nil)
-	  new-dir-name)
+	  new-dir-name
+	  (R-ftp-base-dir-regex
+	   ;; Used to expand subdirectory names correctly in recursive
+	   ;; ange-ftp listings.
+	   (and (string-match "R" dired-actual-switches)
+		(string-match "\\`/.*:\\(/.*\\)" default-directory)
+		(concat "\\`" (match-string 1 default-directory)))))
       (goto-char (point-min))
       (setq dired-subdir-alist nil)
       (while (and (re-search-forward dired-subdir-regexp nil t)
@@ -1778,7 +1784,15 @@ Returns the new value of the alist."
 	(save-excursion
 	  (goto-char (match-beginning 1))
 	  (setq new-dir-name
-		(expand-file-name (buffer-substring (point) (match-end 1))))
+		(buffer-substring-no-properties (point) (match-end 1))
+		new-dir-name
+		(save-match-data
+		  (if (and R-ftp-base-dir-regex
+			   (not (string= new-dir-name default-directory))
+			   (string-match R-ftp-base-dir-regex new-dir-name))
+		      (concat default-directory
+			      (substring new-dir-name (match-end 0)))
+		    (expand-file-name new-dir-name))))
 	  (delete-region (point) (match-end 1))
 	  (insert new-dir-name))
 	(setq count (1+ count))
