@@ -1,5 +1,16 @@
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* minibuf.c (read_minibuf): Bind inhibit-modification-hooks to t,
+	in addition to read-only.
+
+	* xdisp.c (with_echo_area_buffer): Bind inhibit-modification-hooks
+	to t in addition to read-only.
+
+	* lisp.h (Qinhibit_modification_hooks): Declare.
+
+	* insdel.c (Qinhibit_modification_hooks): New variable.
+	(syms_of_insdel): Initialize and staticpro it.
+
 	* textprop.c (verify_interval_modification): Don't run
 	modification-hooks if inhibit_modification_hooks.
 
