@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.11 2000/05/19 15:37:41 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.12 2000/05/21 00:27:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -664,8 +664,8 @@ indentation to be kept as it was before narrowing."
 (defun comment-region-internal (beg end cs ce
 				    &optional ccs cce block lines indent)
   "Comment region BEG..END.
-CS and CE are the comment start resp. end string.
-CCS and CCE are the comment continuation strings for the start resp. end
+CS and CE are the comment start resp end string.
+CCS and CCE are the comment continuation strings for the start resp end
 of lines (default to CS and CE).
 BLOCK indicates that end of lines should be marked with either CCE, CE or CS
 \(if CE is empty) and that those markers should be aligned.
@@ -702,6 +702,7 @@ rather than at left margin."
 	  (comment-quote-nested comment-start comment-end nil)
 
 	  ;; Loop over all lines to find the needed indentations.
+	  (goto-char (point-min))
 	  (while
 	      (progn
 		(unless (looking-at "[ \t]*$")
@@ -938,6 +939,18 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.12  2000/05/21 00:27:31  monnier
+;; (comment-styles): New `box-multi'.
+;; (comment-normalize-vars): Better default for comment-continue to
+;; avoid whitespace-only continuations.
+;; (comment-search-forward): Always move even in the no-syntax case.
+;; (comment-padright): Only obey N if it's only obeyed for padleft.
+;; (comment-make-extra-lines): Better handling of empty continuations.
+;; Use `=' for the filler if comment-start has only one character.
+;; (uncomment-region): Try handling the special `=' filler.
+;; (comment-region): Allow LINES even if MULTI is nil.
+;; (comment-box): Choose box style based on comment-style.
+;;
 ;; Revision 1.11  2000/05/19 15:37:41  monnier
 ;; Fix license text and author.
 ;; Move aliases (indent-for-comment, set-comment-column, kill-comment
