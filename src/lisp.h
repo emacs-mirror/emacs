@@ -46,9 +46,11 @@ enum Lisp_Type
        The length of the string, and its contents, are stored therein. */
     Lisp_String,
 
-    /* Vector of Lisp objects.  XVECTOR(object) points to a struct Lisp_Vector.
-       The length of the vector, and its contents, are stored therein. */
-    Lisp_Vector,
+    /* Vector of Lisp objects, or something resembling it.
+       XVECTOR(object) points to a struct Lisp_Vector, which contains
+       the size and contents.  The size field also contains the type
+       information, if it's not a real vector object.  */
+    Lisp_Vectorlike,
 
     /* Cons.  XCONS (object) points to a struct Lisp_Cons. */
     Lisp_Cons,
@@ -83,7 +85,7 @@ enum Lisp_Type
     Lisp_Window,
 
     /* Used by save,set,restore-window-configuration */
-    Lisp_Window_Configuration,
+    OBSOLETE_Lisp_Window_Configuration,
 
 #ifdef LISP_FLOAT_TYPE
     Lisp_Float,
@@ -218,7 +220,26 @@ Lisp_Object;
 #define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
 #endif /* no ARRAY_MARK_FLAG */
 
-#if ARRAY_MARK_FLAG == MARKBIT
+/* In the size word of a struct Lisp_Vector, this bit means it's really
+   some other vector-like object.  */
+#ifndef PSEUDOVECTOR_FLAG
+#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1) & ~ARRAY_MARK_FLAG)
+#endif
+
+/* In a pseudo-vector, the size field actually contains a word with one
+   PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
+   indicate the actual type.  */
+#define PVEC_BUFFER	0x100
+#define PVEC_PROCESS	0x200
+#define PVEC_FRAME	0x400
+#define PVEC_COMPILED	0x800
+#define PVEC_WINDOW	0x1000
+#define PVEC_WINDOW_CONFIGURATION	0x2000
+
+/* For convenience, we also store the number of elements in these bits.  */
+#define PSEUDOVECTOR_SIZE_MASK 0xff
+
+#if ARRAY_MARK_FLAG == MARKBIT || PSEUDOVECTOR_FLAG == ARRAY_MARK_FLAG || PSEUDOVECTOR_FLAG == MARKBIT
 you lose
 #endif
 
@@ -381,7 +402,7 @@ extern int pure_size;
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
 #define XSETBUFFER(a, b) XSET (a, Lisp_Buffer, b)
-#define XSETVECTOR(a, b) XSET (a, Lisp_Vector, b)
+#define XSETVECTOR(a, b) XSET (a, Lisp_Vectorlike, b)
 #define XSETSUBR(a, b) XSET (a, Lisp_Subr, b)
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
 #define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
@@ -389,7 +410,8 @@ extern int pure_size;
 #define XSETWINDOW(a, b) XSET (a, Lisp_Window, b)
 #define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
 #define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
-#define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
+#define XSETPSEUDOVECTOR(a, b, code) (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
+#define XSETWINDOW_CONFIGURATION(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETCOMPILED(a, b) XSET (a, Lisp_Compiled, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
 
@@ -766,10 +788,10 @@ typedef unsigned char UCHAR;
 #define GC_SYMBOLP(x) (XGCTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
 #define GC_MISCP(x) (XGCTYPE ((x)) == Lisp_Misc)
+#define VECTORLIKEP(x) (XTYPE ((x)) == Lisp_Vectorlike)
+#define GC_VECTORLIKEP(x) (XGCTYPE ((x)) == Lisp_Vectorlike)
 #define STRINGP(x) (XTYPE ((x)) == Lisp_String)
 #define GC_STRINGP(x) (XGCTYPE ((x)) == Lisp_String)
-#define VECTORP(x) (XTYPE ((x)) == Lisp_Vector)
-#define GC_VECTORP(x) (XGCTYPE ((x)) == Lisp_Vector)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
 #define COMPILEDP(x) (XTYPE ((x)) == Lisp_Compiled)
@@ -793,8 +815,10 @@ typedef unsigned char UCHAR;
 #endif
 #define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
 #define GC_WINDOWP(x) (XGCTYPE ((x)) == Lisp_Window)
-#define WINDOW_CONFIGURATIONP(x) (XTYPE ((x)) == Lisp_Window_Configuration)
-#define GC_WINDOW_CONFIGURATIONP(x) (XGCTYPE ((x)) == Lisp_Window_Configuration)
+#define PSEUDOVECTORP(x, code) (VECTORLIKEP (x) && ((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code)))) == PSEUDOVECTOR_FLAG | (code))
+#define GC_PSEUDOVECTORP(x, code) (GC_VECTORLIKEP (x) && ((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code)))) == PSEUDOVECTOR_FLAG | (code))
+#define WINDOW_CONFIGURATIONP(x) PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
+#define GC_WINDOW_CONFIGURATIONP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
 #ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
 #define GC_FLOATP(x) (XGCTYPE ((x)) == Lisp_Float)
@@ -802,6 +826,8 @@ typedef unsigned char UCHAR;
 #define FLOATP(x) (0)
 #define GC_FLOATP(x) (0)
 #endif
+#define VECTORP(x) (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
+#define GC_VECTORP(x) (GC_VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
 #define GC_OVERLAYP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
