@@ -1820,7 +1820,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      does not pass on any keymaps.  */
 
   if (nmaps > 0 && INTERACTIVE
-      && !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event)
+      && !NILP (prev_event)
+      && EVENT_HAS_PARAMETERS (prev_event)
+      && !EQ (XCONS (prev_event)->car, Qmenu_bar)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0)
@@ -4622,7 +4624,8 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 #if (defined (HAVE_X_WINDOWS) && defined (HAVE_X_MENU)) || defined (MSDOS)
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
-  if (EVENT_HAS_PARAMETERS (prev_event))
+  if (EVENT_HAS_PARAMETERS (prev_event)
+      && !EQ (XCONS (prev_event)->car, Qmenu_bar))
     {
       /* Display the menu and get the selection.  */
       Lisp_Object *realmaps
