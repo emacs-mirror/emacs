@@ -292,6 +292,12 @@ If a number, only buffers greater than this size have fontification messages."
 		 (other :tag "always" t)
 		 (integer :tag "size"))
   :group 'font-lock)
+
+(defcustom font-lock-lines-before 1
+  "*Number of lines before the changed text to include in refontification."
+  :type 'integer
+  :group 'font-lock
+  :version "22.1")
 
 
 ;; Originally these variable values were face names such as `bold' etc.
@@ -1062,7 +1068,8 @@ what properties to clear before refontifying a region.")
       (save-match-data
 	;; Rescan between start of lines enclosing the region.
 	(font-lock-fontify-region
-	 (progn (goto-char beg) (beginning-of-line) (point))
+	 (progn (goto-char beg)
+		(forward-line (- font-lock-lines-before)) (point))
 	 (progn (goto-char end) (forward-line 1) (point)))))))
 
 (defun font-lock-fontify-block (&optional arg)
