@@ -115,9 +115,10 @@ the command `insert-file-contents'."
 	     (props
 	      `(display ,image
 			intangible ,image
-			rear-nonsticky (display intangible read-only)
+			rear-nonsticky (display intangible)
 			;; This a cheap attempt to make the whole buffer
-			;; read-only when we're visiting the file.
+			;; read-only when we're visiting the file (as
+			;; opposed to just inserting it).
 			,@(and visit
 			       (= ibeg (point-min))
 			       (= iend (point-max))
