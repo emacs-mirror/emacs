@@ -1,3 +1,9 @@
+2002-10-03  Jan D.  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTread_socket): For ConfigureNotify, with x and y == 0,
+	and USE_MOTIF, call XTranslateCoordinates to get the real x and y.
+	This is to also handle x/y changes that occur because of a resize.
+
 2002-10-02  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* frame.c (Vdelete_frame_functions): New variable.
