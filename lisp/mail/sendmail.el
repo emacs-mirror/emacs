@@ -216,6 +216,7 @@ actually occur.")
 	  (fill-region-as-paragraph address-start (point-max))))
     (if in-reply-to
         (let ((fill-prefix "\t")
+	      (fill-column 78)
 	      (address-start (point)))
 	  (insert "In-reply-to: " in-reply-to "\n")
 	  (fill-region-as-paragraph address-start (point-max))))
