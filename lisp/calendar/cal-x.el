@@ -134,7 +134,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
       (append special-display-buffer-names
               (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
                     fancy-diary-buffer (get-file-buffer diary-file)
-                    calendar-buffer)))
+                    other-calendars-buffer calendar-buffer)))
 
 (run-hooks 'cal-x-load-hook)
 
