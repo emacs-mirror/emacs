@@ -9,9 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.10
-@set EDITION 4.10
-@set DATE January 2000
+@set VERSION 4.11
+@set EDITION 4.11
+@set DATE February 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@strw.leidenuniv.nl
 @set MAINTAINER Carsten Dominik
@@ -5396,6 +5396,11 @@ with @file{reftex-vars.el} on DOS machines.
 @item
 New options @code{reftex-parse-file-extension} and
 @code{reftex-index-phrase-file-extension}.
+@end itemize
+@noindent @b{Version 4.11}
+@itemize @bullet
+@item
+Fixed bug which would parse @samp{\Section} just like @samp{\section}.
 @end itemize
 
 @node Index,  , , Top
