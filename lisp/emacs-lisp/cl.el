@@ -229,6 +229,8 @@ right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
 one value."
   (apply function expression))
 
+(defalias 'multiple-value-call 'apply)  ; only works for one arg
+
 (defsubst nth-value (n expression)
   "Evaluate EXPRESSION to get multiple values and return the Nth one.
 This handles multiple values in Common Lisp style, but it does not work
