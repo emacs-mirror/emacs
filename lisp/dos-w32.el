@@ -208,7 +208,10 @@ dealing with untranslated filesystems."
 		    filename nil))
 	;; Use expand-file-name to canonicalize directory separators, except
 	;; with bare drive letters (which would have the cwd appended).
-	(if (string-match "^.:$" name)
+	;; Avoid expanding names that could trigger ange-ftp to prompt
+	;; for passwords, though.
+	(if (or (string-match "^.:$" name)
+		(string-match "^/[^/:]+:" name))
 	    name
 	  (expand-file-name name)))
     filename))
