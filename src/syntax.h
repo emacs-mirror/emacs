@@ -45,17 +45,51 @@ enum syntaxcode
     Scharquote,  /* for a character that quotes the following character */
     Scomment,    /* for a comment-starting character */
     Sendcomment, /* for a comment-ending character */
+    Sinherit,    /* use the standard syntax table for this character */
     Smax	 /* Upper bound on codes that are meaningful */
   };
 
-#define SYNTAX(c) \
-  ((enum syntaxcode) (XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) & 0377))
+#define RAW_SYNTAX(table, c) \
+  ((enum syntaxcode) (XINT (XVECTOR (table)->contents[(unsigned char) (c)]) & 0377))
+
+#ifdef __GNUC__
+#define SYNTAX(c)						\
+ ({ unsigned char character = c;				\
+    enum syntaxcode syntax					\
+      = RAW_SYNTAX (current_buffer->syntax_table, character);	\
+    if (syntax == Sinherit)					\
+      syntax = RAW_SYNTAX (Vstandard_syntax_table, character);	\
+    syntax; })
+#else
+#define SYNTAX(c)						\
+ (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
+  ? RAW_SYNTAX (Vstandard_syntax_table, c)			\
+  : RAW_SYNTAX (c))
+#endif
 
 /* The next 8 bits of the number is a character,
  the matching delimiter in the case of Sopen or Sclose. */
 
-#define SYNTAX_MATCH(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 8) & 0377)
+#define RAW_SYNTAX_MATCH(table, c) \
+  ((XINT (XVECTOR (table)->contents[(unsigned char) (c)]) >> 8) & 0377)
+
+#ifdef __GNUC__
+#define SYNTAX_MATCH(c)							    \
+ ({ unsigned char character = c;					    \
+    enum syntaxcode syntax						    \
+      = RAW_SYNTAX (current_buffer->syntax_table, character);		    \
+    int matcher;							    \
+    if (syntax == Sinherit)						    \
+      matcher = RAW_SYNTAX_MATCH (Vstandard_syntax_table, character);	    \
+    else								    \
+      matcher = RAW_SYNTAX_MATCH (current_buffer->syntax_table, character); \
+    syntax; })
+#else
+#define SYNTAX_MATCH(c)						\
+ (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
+  ? RAW_SYNTAX_MATCH (Vstandard_syntax_table, c)			\
+  : RAW_SYNTAX_MATCH (c))
+#endif
 
 /* Then there are six single-bit flags that have the following meanings:
   1. This character is the first of a two-character comment-start sequence.
@@ -73,24 +107,71 @@ enum syntaxcode
   Style a is always the default.
   */
 
-#define SYNTAX_COMSTART_FIRST(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 16) & 1)
+#define SYNTAX_CHOOSE_TABLE(c)					\
+ (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
+  ? Vstandard_syntax_table : current_buffer->syntax_table)
+
+#ifdef __GNUC__
+
+#define SYNTAX_COMSTART_FIRST(c)			\
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 16) & 1;	\
+   })
 
 #define SYNTAX_COMSTART_SECOND(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 17) & 1)
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 17) & 1;	\
+   })
 
 #define SYNTAX_COMEND_FIRST(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 18) & 1)
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 18) & 1;	\
+   })
 
 #define SYNTAX_COMEND_SECOND(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 19) & 1)
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 19) & 1;	\
+   })
 
 #define SYNTAX_PREFIX(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 20) & 1)
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 20) & 1;	\
+   })
 
 /* extract the comment style bit from the syntax table entry */
 #define SYNTAX_COMMENT_STYLE(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 21) & 1)
+  ({ unsigned char ch = c;				\
+     Lisp_Object table = SYNTAX_CHOOSE_TABLE (ch);	\
+     (XINT (XVECTOR (table)->contents[ch]) >> 21) & 1;	\
+   })
+
+#else
+
+#define SYNTAX_COMSTART_FIRST(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 16) & 1)
+
+#define SYNTAX_COMSTART_SECOND(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 17) & 1)
+
+#define SYNTAX_COMEND_FIRST(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 18) & 1)
+
+#define SYNTAX_COMEND_SECOND(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 19) & 1)
+
+#define SYNTAX_PREFIX(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 20) & 1)
+
+/* extract the comment style bit from the syntax table entry */
+#define SYNTAX_COMMENT_STYLE(c) \
+  ((XINT (XVECTOR (SYNTAX_CHOOSE_TABLE (c))->contents[(unsigned char) (c)]) >> 21) & 1)
+
+#endif
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
@@ -100,4 +181,4 @@ extern unsigned char syntax_spec_code[0400];
 
 /* Indexed by syntax code, give the letter that describes it. */
 
-extern char syntax_code_spec[13];
+extern char syntax_code_spec[14];
