@@ -1295,7 +1295,10 @@ This option is appropriate if you like Emacs-style words."
 		(t nil)))
     (if (memq ?^ syntax) (setq negated-syntax t))
 
-    (while (and (not (= local 0)) (not (eobp)))
+    (while (and (not (= local 0)) 
+		(cond ((eq direction 'forward) 
+		       (not (eobp)))
+		      (t (not (bobp)))))
       (setq char-looked-at (viper-char-at-pos direction)
 	    ;; if outside the range, set to nil
 	    syntax-of-char-looked-at (if char-looked-at
