@@ -459,6 +459,7 @@ These special properties include `invisible', `intangible' and `read-only'."
 	  (message "%s" str)
 	(with-output-to-temp-buffer "*Text Properties*"
 	  (princ (format "Text properties at %d:\n\n" p))
+	  (setq help-xref-stack nil)
 	  (while props
 	    (if (eq (car props) 'category)
 		(setq category (car (cdr props))))
