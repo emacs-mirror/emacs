@@ -797,25 +797,25 @@ Do not change."
 
 (defvar antlr-font-lock-keyword-face 'antlr-font-lock-keyword-face)
 (defface antlr-font-lock-keyword-face
-  '((((class color) (background light)) (:foreground "black" :bold t)))
+  '((((class color) (background light)) (:foreground "black" :weight bold)))
   "ANTLR keywords."
   :group 'antlr)
 
 (defvar antlr-font-lock-syntax-face 'antlr-font-lock-keyword-face)
 (defface antlr-font-lock-syntax-face
-  '((((class color) (background light)) (:foreground "black" :bold t)))
+  '((((class color) (background light)) (:foreground "black" :weight bold)))
   "ANTLR syntax symbols like :, |, (, ), ...."
   :group 'antlr)
 
 (defvar antlr-font-lock-ruledef-face 'antlr-font-lock-ruledef-face)
 (defface antlr-font-lock-ruledef-face
-  '((((class color) (background light)) (:foreground "blue" :bold t)))
+  '((((class color) (background light)) (:foreground "blue" :weight bold)))
   "ANTLR rule references (definition)."
   :group 'antlr)
 
 (defvar antlr-font-lock-tokendef-face 'antlr-font-lock-tokendef-face)
 (defface antlr-font-lock-tokendef-face
-  '((((class color) (background light)) (:foreground "blue" :bold t)))
+  '((((class color) (background light)) (:foreground "blue" :weight bold)))
   "ANTLR token references (definition)."
   :group 'antlr)
 
@@ -833,7 +833,7 @@ Do not change."
 
 (defvar antlr-font-lock-literal-face 'antlr-font-lock-literal-face)
 (defface antlr-font-lock-literal-face
-  '((((class color) (background light)) (:foreground "brown4" :bold t)))
+  '((((class color) (background light)) (:foreground "brown4" :weight bold)))
   "ANTLR special literal tokens.
 It is used to highlight strings matched by the first regexp group of
 `antlr-font-lock-literal-regexp'."
