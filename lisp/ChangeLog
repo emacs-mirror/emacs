@@ -1,3 +1,7 @@
+2005-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el: Add more keywords.
+
 2005-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* speedbar.el: Avoid unnecessary use of locate-library.
