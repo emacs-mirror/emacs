@@ -473,7 +473,7 @@ extern Lisp_Object Vascii_downcase_table;
 int
 fast_c_string_match_ignore_case (regexp, string)
      Lisp_Object regexp;
-     char *string;
+     const char *string;
 {
   int val;
   struct re_pattern_buffer *bufp;
