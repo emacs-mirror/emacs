@@ -3297,15 +3297,15 @@ An entry (TEXT . POSITION) represents the deletion of the string TEXT\n\
 from (abs POSITION).  If POSITION is positive, point was at the front\n\
 of the text being deleted; if negative, point was at the end.\n\
 \n\
-An entry (t HIGHWORD LOWWORD) indicates that the buffer had been\n\
-previously unmodified.  HIGHWORD and LOWWORD are the high and low\n\
-16-bit words of the buffer's modification count at the time.  If the\n\
-modification count of the most recent save is different, this entry is\n\
+An entry (t HIGH . LOW) indicates that the buffer previously had\n\
+\"unmodified\" status.  HIGH and LOW are the high and low 16-bit portions\n\
+of the visited file's modification time, as of that time.  If the\n\
+modification time of the most recent save is different, this entry is\n\
 obsolete.\n\
 \n\
-An entry (nil PROP VAL BEG . END) indicates that a text property\n\
-was modified between BEG and END.  PROP is the property name,\n\
-and VAL is the old value.\n\
+An entry (nil PROPERTY VALUE BEG . END) indicates that a text property\n\
+was modified between BEG and END.  PROPERTY is the property name,\n\
+and VALUE is the old value.\n\
 \n\
 An entry of the form POSITION indicates that point was at the buffer\n\
 location given by the integer.  Undoing an entry of this form places\n\
