@@ -3525,7 +3525,7 @@ opendir (filename)
   BLOCK_INPUT;
   if (fstat (fd, &sbuf) < 0
       || (sbuf.st_mode & S_IFMT) != S_IFDIR
-      || (dirp = (DIR *) malloc (sizeof (DIR))) == 0)
+      || (dirp = (DIR *) xmalloc (sizeof (DIR))) == 0)
     {
       emacs_close (fd);
       UNBLOCK_INPUT;
@@ -6354,7 +6354,7 @@ GetTempDirName ()
       else if (mkdir (unixDirName, 0700) != 0)  /* create it if not */
 	return NULL;
 
-      TempDirName = (char *) malloc (strlen (unixDirName) + 1);
+      TempDirName = (char *) xmalloc (strlen (unixDirName) + 1);
       strcpy (TempDirName, unixDirName);
     }
 
@@ -6594,7 +6594,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 
   /* After expanding all the arguments, we now know the length of the parameter block to be
      sent to the subprocess as a message attached to the HLE. */
-  param = (char *) malloc (paramlen + 1);
+  param = (char *) xmalloc (paramlen + 1);
   if (!param)
     return -1;
 
@@ -6623,7 +6623,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   iErr = FSMakeFSSpec (0, 0, macappname, &spec);
   
   if (iErr != noErr) {
-    free (param);
+    xfree (param);
     return -1;
   }
 
@@ -6634,10 +6634,11 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   lpbr.launchAppParameters = NULL;
 
   iErr = LaunchApplication (&lpbr);  /* call the subprocess */
-  if (iErr != noErr) {
-    free (param);
-    return -1;
-  }
+  if (iErr != noErr)
+    {
+      xfree (param);
+      return -1;
+    }
 
   sendEvent.what = kHighLevelEvent;
   sendEvent.message = kEmacsSubprocessSend;  /* Event ID stored in "where" unused */
@@ -6649,7 +6650,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   while (iErr == sessClosedErr && retries-- > 0);
 
   if (iErr != noErr) {
-    free (param);
+    xfree (param);
     return -1;
   }
 
@@ -6664,12 +6665,12 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   iErr = AcceptHighLevelEvent (&targ, &refCon, NULL, &len);
   if (iErr != noErr) {
     DisposeHandle ((Handle) cursorRegionHdl);
-    free (param);
+    xfree (param);
     return -1;
   }
   
   DisposeHandle ((Handle) cursorRegionHdl);
-  free (param);
+  xfree (param);
 
   return refCon;
 }
@@ -6682,7 +6683,7 @@ opendir (const char *dirname)
   CInfoPBRec cipb;
   int len;
 
-  dirp = (DIR *) malloc (sizeof (DIR));
+  dirp = (DIR *) xmalloc (sizeof (DIR));
   if (!dirp)
     return 0;
 
