@@ -1689,7 +1689,7 @@ ffap most of the time."
      ;; (setq dired-x-hands-off-my-keys t) ; the default
      )
      "List of binding forms evaluated by function `ffap-bindings'.
-A reasonable ffap installation needs just these one line:
+A reasonable ffap installation needs just this one line:
   (ffap-bindings)
 Of course if you do not like these bindings, just roll your own!")
 
