@@ -1,3 +1,18 @@
+2002-10-09  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (char_string): Renamed from
+	char_string_with_unification.  Pay attention to
+	CHAR_MODIFIER_MASK.
+	(string_char): Renamed from string_char.
+
+	* character.h (CHAR_STRING): Call char_string if C is greater than
+	MAX_3_BYTE_CHAR.
+	(CHAR_STRING_ADVANCE): Likewise.
+	(STRING_CHAR): Call string_char instead of
+	string_char_with_unification.
+	(STRING_CHAR_AND_LENGTH): Likewise.
+	(STRING_CHAR_ADVANCE): Likewise.
+
 2002-10-07  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (push_key_description): Pay attention to

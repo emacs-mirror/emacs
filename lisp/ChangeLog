@@ -1,3 +1,9 @@
+2002-10-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): If
+	:mime-charset property of a coding system is not equal to that
+	coding system, don't show that :mime-charset name.
+
 2002-10-06  Dave Love  <fx@gnu.org>
 
 	* language/chinese.el (chinese-gb18030, gb18030) 
