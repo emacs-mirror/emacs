@@ -3574,7 +3574,7 @@ read_non_regular_quit ()
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
        doc: /* Insert contents of file FILENAME after point.
-Returns list of absolute file name and number of bytes inserted.
+Returns list of absolute file name and number of characters inserted.
 If second argument VISIT is non-nil, the buffer's visited filename
 and last save file modtime are set, and it is marked unmodified.
 If visiting and the file does not exist, visiting is completed
@@ -4492,6 +4492,8 @@ actually used.  */)
 	adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
  			     inserted);
     }
+
+  /* Now INSERTED is measured in characters.  */
 
 #ifdef DOS_NT
   /* Use the conversion type to determine buffer-file-type
@@ -6414,10 +6416,11 @@ or local variable spec of the tailing lines with `coding:' tag.  */);
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
-Each is passed one argument, the number of bytes inserted.  It should return
-the new byte count, and leave point the same.  If `insert-file-contents' is
-intercepted by a handler from `file-name-handler-alist', that handler is
-responsible for calling the after-insert-file-functions if appropriate.  */);
+Each is passed one argument, the number of characters inserted.
+It should return the new character count, and leave point the same.
+If `insert-file-contents' is intercepted by a handler from
+`file-name-handler-alist', that handler is responsible for calling the
+functions in `after-insert-file-functions' if appropriate.  */);
   Vafter_insert_file_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
