@@ -1,3 +1,14 @@
+2004-10-27  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Allocate discarded table with SAFE_ALLOCA.
+	Only allocate info and discarded tables once.
+
+	* lisp.h (USE_SAFE_ALLOCA): Add and init sa_must_free integer.
+	(SAFE_ALLOCA, SAFE_ALLOCA_LISP): Increment it when malloc is used.
+	(SAFE_FREE): Test it to determine if we need to unwind to free.
+	Remove size arg.  All users changed.
+	(SAFE_FREE_LISP) Remove.  All users changed to use SAFE_FREE.
+
 2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Put empty line between comment and function body.
