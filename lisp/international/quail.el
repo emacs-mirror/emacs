@@ -1511,7 +1511,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 	      (set-window-buffer win quail-guidance-buf)
 	      ;;(set-window-dedicated-p win t)
 	      ))
-	(set-window-buffer win quail-guidance-buf))
+	(set-window-buffer win quail-guidance-buf)
+	(set-minibuffer-window win))
       (setq quail-guidance-win win)))
 
   ;; And, create a buffer for completion.
