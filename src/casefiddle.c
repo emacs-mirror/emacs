@@ -101,7 +101,7 @@ casify_object (flag, obj)
 	    {
 	      /* The work is not yet finished because of a multibyte
 		 character just encountered.  */
-	      int fromlen, tolen, j = i, j_byte = i;
+	      int fromlen, tolen, j_byte = i;
 	      char *buf
 		= (char *) alloca ((len - i) * MAX_LENGTH_OF_MULTI_BYTE_FORM
 				   + i);
@@ -123,13 +123,11 @@ casify_object (flag, obj)
 		  tolen = CHAR_STRING (c, workbuf, str);
 		  bcopy (str, buf + j_byte, tolen);
 		  i += fromlen;
-		  j++;
 		  j_byte += tolen;
 		  if ((int) flag >= (int) CASE_CAPITALIZE)
 		    inword = SYNTAX (c) == Sword;
 		}
-	      obj = make_specified_string (buf, j, j_byte,
-					   STRING_MULTIBYTE (obj));
+	      obj = make_string (buf, j_byte);
 	    }
 	  return obj;
 	}
