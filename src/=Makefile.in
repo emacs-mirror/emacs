@@ -28,12 +28,12 @@ clean:
 xemacs: doxemacs
 
 doxemacs: xmakefile
-	$(MAKE) -f xmakefile ${MFLAGS} xemacs
+	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} xemacs
 
 temacs: dotemacs
 
 dotemacs: xmakefile
-	$(MAKE) -f xmakefile ${MFLAGS} temacs
+	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} temacs
 
 # If you have a problem with cc -E here, changing
 # the definition of CPP above may fix it.
