@@ -503,7 +503,7 @@ BUFFER can be either a buffer or the name of one."
 
 ;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
 ;; for the second argument (program).
-;;###autoload
+;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
   "Make a comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
@@ -526,7 +526,7 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
 	   (comint-exec buffer name program startfile switches)))
     buffer))
 
-;;###autoload
+;;;###autoload
 (defun comint-run (program)
   "Run PROGRAM in a comint buffer and switch to it.
 The buffer name is made by surrounding the file name of PROGRAM with `*'s.
