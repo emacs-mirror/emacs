@@ -77,11 +77,6 @@ static int this_line_start_hpos;
 /* Buffer that this_line variables are describing. */
 static struct buffer *this_line_buffer;
 
-/* Set by try_window_id to the vpos of first of any lines
-   scrolled on to the bottom of the frame.  These lines should
-   not be included in any general scroll computation.  */
-static int scroll_bottom_vpos;
-
 /* Value of echo_area_glyphs when it was last acted on.
   If this is nonzero, there is a message on the frame
   in the minibuffer and it should be erased as soon
@@ -166,7 +161,6 @@ static int try_window_id ();
 static struct position *display_text_line ();
 static void display_mode_line ();
 static int display_mode_element ();
-static char *fmodetrunc ();
 static char *decode_mode_spec ();
 static int display_string ();
 static void display_menu_bar ();
@@ -505,10 +499,10 @@ message (m, a1, a2, a3)
 	      a[2] = a3;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			    FRAME_WIDTH (echo_frame), m, 0, 3, a);
+			    FRAME_WIDTH (echo_frame), m, (char *)0, 3, a);
 #else
 	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			    FRAME_WIDTH (echo_frame), m, 0, 3, &a1);
+			    FRAME_WIDTH (echo_frame), m, (char *)0, 3, &a1);
 #endif /* NO_ARG_ARRAY */
 
 	      message2 (FRAME_MESSAGE_BUF (echo_frame), len);
