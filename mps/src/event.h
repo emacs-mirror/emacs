@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!event.h(trunk.5) $
+ * $HopeName: MMsrc!event.h(trunk.6) $
  *
  * READERSHIP
  *
@@ -29,6 +29,8 @@ extern Res EventFlush(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
 extern Word EventControl(Word, Word);
+extern Word EventInternString(char *);
+extern void EventLabelAddr(Addr, Word);
 
 typedef Index EventKind;
 
@@ -45,8 +47,9 @@ typedef Index EventKind;
 #define EventKindSeg        ((EventType)3) /* Per seg */
 #define EventKindRef        ((EventType)4) /* Per ref or fix */
 #define EventKindObject     ((EventType)5) /* Per alloc or object */
+#define EventKindUser       ((EventType)6) /* User-invoked */
 
-#define EventKindNumber     ((Count)6) /* Number of event kinds */
+#define EventKindNumber     ((Count)7) /* Number of event kinds */
 
 
 #ifdef EVENT

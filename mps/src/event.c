@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.6) $
+ * $HopeName: MMsrc!event.c(trunk.7) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.6) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.7) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -34,6 +34,7 @@ static Bool eventInited = FALSE;
 static mps_io_t eventIO;
 static char eventBuffer[EVENT_BUFFER_SIZE];
 static Count eventUserCount;
+static Serial EventInternSerial;
 
 EventUnion Event; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
@@ -72,6 +73,7 @@ Res (EventInit)(void)
   }
 
   ++eventUserCount;
+  EventInternSerial = (Serial)0;
 
   return ResOK;
 }
@@ -110,6 +112,24 @@ Word EventControl(Word resetMask, Word flipMask)
   return oldValue;
 }
 
+Word EventInternString(char *label)
+{
+  Word id;
+
+  AVER(label != NULL);
+
+  id = (Word)EventInternSerial;
+  ++EventInternSerial;
+  EVENT_WS(Intern, id, label);
+  return id;
+}
+
+void EventLabelAddr(Addr addr, Word id)
+{
+  AVER((Serial)id < EventInternSerial);
+
+  EVENT_AW(Label, addr, id);
+}
 
 #else /* EVENT, not */
 
@@ -129,6 +149,19 @@ Word EventControl(Word resetMask, Word flipMask)
   UNUSED(flipMask);
 
   return (Word)0;
+}
+
+Word EventInternString(char *label)
+{
+  UNUSED(label);
+
+  return (Word)0;
+}
+
+void EventLabelAddr(Addr addr, Word id)
+{
+  UNUSED(addr);
+  UNUSED(id);
 }
 
 #endif /* EVENT */
