@@ -39,15 +39,15 @@
        (setq (, face) (signal 'wrong-type-argument (list 'internal-facep (, face)))))))
 
 ;;; Accessors.
-(defsubst face-name (face)
+(defun face-name (face)
   "Return the name of face FACE."
   (aref (internal-get-face face) 1))
 
-(defsubst face-id (face)
+(defun face-id (face)
   "Return the internal ID number of face FACE."
   (aref (internal-get-face face) 2))
 
-(defsubst face-font (face &optional frame)
+(defun face-font (face &optional frame)
   "Return the font name of face FACE, or nil if it is unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
@@ -56,21 +56,21 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 3))
 
-(defsubst face-foreground (face &optional frame)
+(defun face-foreground (face &optional frame)
   "Return the foreground color name of face FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 4))
 
-(defsubst face-background (face &optional frame)
+(defun face-background (face &optional frame)
   "Return the background color name of face FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 5))
 
-(defsubst face-stipple (face &optional frame)
+(defun face-stipple (face &optional frame)
  "Return the stipple pixmap name of face FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
@@ -79,7 +79,7 @@ If FRAME is omitted or nil, use the selected frame."
 
 (defalias 'face-background-pixmap 'face-stipple)
 
-(defsubst face-underline-p (face &optional frame)
+(defun face-underline-p (face &optional frame)
  "Return t if face FACE is underlined.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
@@ -89,7 +89,7 @@ If FRAME is omitted or nil, use the selected frame."
 
 ;;; Mutators.
 
-(defsubst set-face-font (face font &optional frame)
+(defun set-face-font (face font &optional frame)
   "Change the font of face FACE to FONT (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
@@ -97,14 +97,14 @@ in that frame; otherwise change each frame."
   (if (stringp font) (setq font (x-resolve-font-name font face frame)))
   (internal-set-face-1 face 'font font 3 frame))
 
-(defsubst set-face-foreground (face color &optional frame)
+(defun set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "foreground"))
   (internal-set-face-1 face 'foreground color 4 frame))
 
-(defsubst set-face-background (face color &optional frame)
+(defun set-face-background (face color &optional frame)
   "Change the background color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
@@ -118,7 +118,7 @@ in that frame; otherwise change each frame."
       (set-face-stipple face color frame)
     (internal-set-face-1 face 'background color 5 frame)))
 
-(defsubst set-face-stipple (face name &optional frame)
+(defun set-face-stipple (face name &optional frame)
   "Change the stipple pixmap of face FACE to PIXMAP.
 PIXMAP should be a string, the name of a file of pixmap data.
 The directories listed in the `x-bitmap-file-path' variable are searched.
@@ -134,7 +134,7 @@ in that frame; otherwise change each frame."
 
 (defalias 'set-face-background-pixmap 'set-face-stipple)
 
-(defsubst set-face-underline-p (face underline-p &optional frame)
+(defun set-face-underline-p (face underline-p &optional frame)
   "Specify whether face FACE is underlined.  (Yes if UNDERLINE-P is non-nil.)
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
