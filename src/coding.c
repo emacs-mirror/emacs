@@ -3638,7 +3638,7 @@ setup_coding_system (coding_system, coding)
 	if (reg_bits)
 	  for (charset = 0; charset <= MAX_CHARSET; charset++)
 	    {
-	      if (CHARSET_VALID_P (charset)
+	      if (CHARSET_DEFINED_P (charset)
 		  && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 		      == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 		{
