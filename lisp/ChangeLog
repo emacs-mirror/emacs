@@ -1,3 +1,8 @@
+2000-12-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (delete-key-deletes-forward-mode): Bind backspace
+	and delete in isearch-mode-map.
+
 2000-12-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* textmodes/artist.el (artist-butlast): Deleted.
