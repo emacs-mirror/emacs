@@ -448,10 +448,12 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	   (erase-buffer)
 	   (princ symbol (current-buffer))
 	   (goto-char (point-min))
-	   (when (and (eq (get symbol 'custom-type) 'boolean)
-		      (re-search-forward "-p\\'" nil t))
-	     (replace-match "" t t)
-	     (goto-char (point-min)))
+	   ;; FIXME: Boolean variables are not predicates, so they shouldn't
+	   ;; end with `-p'.  -stef
+	   ;; (when (and (eq (get symbol 'custom-type) 'boolean)
+	   ;; 	      (re-search-forward "-p\\'" nil t))
+	   ;;   (replace-match "" t t)
+	   ;;   (goto-char (point-min)))
 	   (if custom-unlispify-remove-prefixes
 	       (let ((prefixes custom-prefix-list)
 		     prefix)
@@ -3806,7 +3808,8 @@ or (if there were none) at the end of the buffer."
   "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
   `( ,(custom-unlispify-menu-entry symbol t)
      :filter (lambda (&rest junk)
-	       (cdr (custom-menu-create ',symbol)))))
+	       (let ((menu (custom-menu-create ',symbol)))
+		 (if (consp menu) (cdr menu) menu)))))
 
 ;;;###autoload
 (defun custom-menu-create (symbol)
@@ -3845,7 +3848,8 @@ The format is suitable for use with `easy-menu-define'."
     (setq name "Customize"))
   `(,name
     :filter (lambda (&rest junk)
-	      (custom-menu-create ',symbol))))
+	      (let ((menu (custom-menu-create ',symbol)))
+		(if (consp menu) (cdr menu) menu)))))
 
 ;;; The Custom Mode.
 
