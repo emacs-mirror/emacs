@@ -1,3 +1,15 @@
+2000-04-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (echo_message_buffer): New variable.
+	(echo_now): Set echo_message_buffer to the echo area buffer used
+	to display the echo.
+	(cancel_echoing): Reset echo_message_buffer to nil.
+	(read_char): Code rewritten that handles canceling an echo or
+	echoing a dash, respectively.
+
+	* fileio.c (Ffile_writable_p) [WINDOWSNT]: Return nil if parent
+	directory doesn't exist.
+
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* fns.c (syms_of_fns): Defsubr mapc.
