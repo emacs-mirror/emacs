@@ -389,6 +389,10 @@ struct buffer
        form of characters, not a binary code.  */
     Lisp_Object enable_multibyte_characters;
 
+    /* Coding system to be used for encoding the buffer contents on
+       saving.  */
+    Lisp_Object buffer_file_coding_system;
+
     /* List of symbols naming the file format used for visited file. */
     Lisp_Object file_format;
 
