@@ -1,5 +1,5 @@
 /* machine description file for Bull SPS-7.
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,12 +99,8 @@ Boston, MA 02111-1307, USA.  */
 /* Use -T32 for 68020, -T16 otherwise */
 
 #define C_SWITCH_MACHINE -T32
-
-/*
-   Here we assume that signal.h is included before config.h
-   so that we can override it here.  */
   
-#undef SIGIO
+#define BROKEN_SIGIO
 
 /* Other than 68020 use ld16, as32, or undefine (defaults ld and as). */
 

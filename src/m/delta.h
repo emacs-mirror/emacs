@@ -1,7 +1,7 @@
 /* Machine description file for the Motorola Delta.
    Tested on mvme147 board using R3V7 without X.  Tested with gcc.
    Tested on mvme167 board using R3V7 without X.  Tested with cc, gnucc, gcc.
-   Copyright (C) 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1993, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -137,11 +137,6 @@ Boston, MA 02111-1307, USA.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
-#ifdef SIGIO
- /* R3V7 has SIGIO, but interrupt input does not work yet.
-    Let's go on with cbreak code. */
-/* # define INTERRUPT_INPUT */
-#endif
 
 /* The standard C library is -lc881, not -lc.
    -lbsd brings sigblock and sigsetmask.

@@ -1,5 +1,5 @@
 /* machine description file For the alpha chip.
-   Copyright (C) 1994, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1997, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -241,8 +241,6 @@ NOTE-END
 /* We need these because pointers are larger than the default ints.  */
 #if !defined(__NetBSD__) && !defined(__OpenBSD__)
 #include <alloca.h>
-#else
-#include <stdlib.h>
 #endif
 
 /* Hack alert!  For reasons unknown to mankind the string.h file insists
@@ -299,7 +297,7 @@ extern void r_alloc_free ();
       if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
 	fd = -1;					\
       sigsetmask (mask);				\
-      close (dummy);					\
+      emacs_close (dummy);				\
     }							\
   while (0)
 #endif

@@ -1,5 +1,5 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1992, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -198,7 +198,7 @@ NOTE-END  */
 #undef static
 
 /* Don't try to use SIGIO or FIONREAD even though they are defined.  */
-#undef SIGIO
+#define BROKEN_SIGIO
 #define BROKEN_FIONREAD
 
 /* Describe special kernel features.  */

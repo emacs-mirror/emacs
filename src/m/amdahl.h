@@ -1,5 +1,5 @@
 /* amdahl machine description file 
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -150,7 +150,4 @@ extern int sign_extend_temp;
 #define STACK_DIRECTION -1
 
 /* Compensate for error in signal.h.  */
-#if NSIG==19
-#undef NSIG
-#define NSIG 20
-#endif
+#define NSIG_MINIMUM 20

@@ -1,5 +1,5 @@
 /* machine description for Bull DPX/2 range 
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -151,9 +151,7 @@ Boston, MA 02111-1307, USA.  */
  * if SIGIO is defined, much of the emacs
  * code assumes we are BSD !!
  */
-#ifdef SIGIO
-# undef SIGIO
-#endif
+#define BROKEN_SIGIO
 
 
 /*
@@ -162,7 +160,6 @@ Boston, MA 02111-1307, USA.  */
 #define CLASH_DETECTION		/* probably a good idea */
 
 
-#ifdef SIGTSTP
 /*
  * sysdep.c(sys_suspend) works fine with emacs-18.58
  * and BOS 02.00.45, if you have an earler version
@@ -170,10 +167,9 @@ Boston, MA 02111-1307, USA.  */
  * to start a sub-shell rather than suspend-emacs,
  * un-comment out the next line.
  */
-/* # undef SIGTSTP /* make suspend-emacs spawn a sub-shell */
-# ifdef NOMULTIPLEJOBS
-#   undef NOMULTIPLEJOBS
-# endif
+/* # define BROKEN_SIGTSTP /* make suspend-emacs spawn a sub-shell */
+#ifdef NOMULTIPLEJOBS
+# undef NOMULTIPLEJOBS
 #endif
 /*
  * no we don't want this at all

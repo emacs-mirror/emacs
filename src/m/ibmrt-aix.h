@@ -1,5 +1,5 @@
 /* RTPC AIX machine/system dependent defines
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -106,7 +106,7 @@ Boston, MA 02111-1307, USA.  */
 { /* Check that server side not already open */		\
   if ((ioctl (*ptyv, PTYSTATUS, 0) & 0xFFFF) != 0)	\
     {							\
-      close (*ptyv);					\
+      emacs_close (*ptyv);				\
       continue;						\
     }							\
   /* And finally to be sure we can open it later */	\

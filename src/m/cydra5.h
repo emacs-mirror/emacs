@@ -1,5 +1,5 @@
 /* machine description file for Cydrome's CYDRA 5 mini super computer
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,4 +123,4 @@ Boston, MA 02111-1307, USA.  */
 
 /* We can't do interrupt-driven input, so don't let user try.  */
 
-#undef SIGIO
+#define BROKEN_SIGIO

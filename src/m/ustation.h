@@ -1,5 +1,5 @@
 /* machine description file for U-station (Nihon Unisys, SS5E; Sumitomo Denkoh, U-Station E30).
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -139,5 +139,5 @@ Boston, MA 02111-1307, USA.  */
 #define EXEC_PAGESIZE 1024
 #define PURESIZE 130000
 
-#undef SIGIO
-#undef SIGTSTP
+#define BROKEN_SIGIO
+#define BROKEN_SIGTSTP
