@@ -23,25 +23,15 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
-
-#ifdef emacs
 
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
-
-#else  /* not emacs */
-
-#include "mulelib.h"
-
-#endif /* not emacs */
 
 Lisp_Object Qccl, Qcclp;
 
@@ -70,6 +60,17 @@ Lisp_Object Qccl_program_idx;
    RESOLVEDP (t or nil) is the flag to tell if symbols in CCL_PROG is
    already resolved to index numbers or not.  */
 Lisp_Object Vccl_program_table;
+
+/* Vector of registered hash tables for translation.  */
+Lisp_Object Vtranslation_hash_table_vector;
+
+/* Return a hash table of id number ID.  */
+#define GET_HASH_TABLE(id) \
+  (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
+/* Copied from fns.c.  */
+#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
+
+extern int charset_unicode;
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -658,6 +659,18 @@ while (0)
 					  set reg[RRR] to -1.
 				     */
 
+#define CCL_LookupIntConstTbl 0x13 /* Lookup multibyte character by
+				      integer key.  Afterwards R7 set
+				      to 1 iff lookup succeeded.
+				      1:ExtendedCOMMNDRrrRRRXXXXXXXX
+				      2:ARGUMENT(Hash table ID) */
+
+#define CCL_LookupCharConstTbl 0x14 /* Lookup integer by multibyte
+				       character key.  Afterwards R7 set
+				       to 1 iff lookup succeeded.
+				       1:ExtendedCOMMNDRrrRRRrrrXXXXX
+				       2:ARGUMENT(Hash table ID) */
+
 /* CCL arithmetic/logical operators. */
 #define CCL_PLUS	0x00	/* X = Y + Z */
 #define CCL_MINUS	0x01	/* X = Y - Z */
@@ -1212,6 +1225,51 @@ ccl_driver (ccl, source, destination, src_size, dst_size)
 	      charset = CHAR_CHARSET (op);
 	      reg[RRR] = CHARSET_ID (charset);
 	      reg[rrr] = ENCODE_CHAR (charset, op);
+	      break;
+
+	    case CCL_LookupIntConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      {		
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (reg[RRR]), NULL);
+		if (op >= 0)
+		  {
+                    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!CHARACTERP (opl))
+		      CCL_INVALID_CMD;
+		    reg[rrr] = ENCODE_CHAR (CHAR_CHARSET (charset_unicode),
+					    op);
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
+	      break;
+
+	    case CCL_LookupCharConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      charset = CHARSET_FROM_ID (reg[RRR]);
+	      i = DECODE_CHAR (charset, reg[rrr]);
+	      {		
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (i), NULL);
+		if (op >= 0)
+		  {
+                    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!INTEGERP (opl))
+		      CCL_INVALID_CMD;
+		    reg[RRR] = XINT (opl);
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
 	      break;
 
 	    case CCL_IterateMultipleMap:
@@ -1795,8 +1853,6 @@ setup_ccl_program (ccl, ccl_prog)
   return 0;
 }
 
-#ifdef emacs
-
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
 See the documentation of  `define-ccl-program' for the detail of CCL program.  */)
@@ -2186,11 +2242,16 @@ The code point in the font is set in CCL registers R1 and R2
  If the font is single-byte font, the register R2 is not used.  */);
   Vfont_ccl_encoder_alist = Qnil;
 
+  DEFVAR_LISP ("translation-hash-table-vector", &Vtranslation_hash_table_vector,
+    doc: /* Vector containing all translation hash tables ever defined.
+Comprises pairs (SYMBOL . TABLE) where SYMBOL and TABLE were set up by calls
+to `define-translation-hash-table'.  The vector is indexed by the table id
+used by CCL.  */);
+    Vtranslation_hash_table_vector = Qnil;
+
   defsubr (&Sccl_program_p);
   defsubr (&Sccl_execute);
   defsubr (&Sccl_execute_on_string);
   defsubr (&Sregister_ccl_program);
   defsubr (&Sregister_code_conversion_map);
 }
-
-#endif  /* emacs */
