@@ -269,7 +269,7 @@ This variable is buffer-local in all comint buffers."
 (defcustom comint-scroll-show-maximum-output t
   "*Controls how to scroll due to interpreter output.
 This variable applies when point is at the end of the buffer
-\(either because it was originally there, or because 
+\(either because it was originally there, or because
 `comint-move-point-for-output' said to move it there)
 and output from the subprocess is inserted.
 
@@ -1903,7 +1903,7 @@ filter and C-g is pressed, this function returns nil rather than a string).
 Note that the keystrokes comprising the text can still be recovered
 \(temporarily) with \\[view-lossage].  Some people find this worrysome.
 Once the caller uses the password, it can erase the password
-by doing (fillarray STRING 0)."
+by doing (clear-string STRING)."
   (let ((ans "")
 	(newans nil)
 	(c 0)
@@ -1930,11 +1930,11 @@ by doing (fillarray STRING 0)."
 	    ((or (= c ?\r) (= c ?\n) (= c ?\e))
 	     (setq done t))
 	    ((= c ?\C-u)
-	     (fillarray ans 0)
+	     (clear-string ans)
 	     (setq ans ""))
 	    ((and (/= c ?\b) (/= c ?\177))
 	     (setq newans (concat ans (char-to-string c)))
-	     (fillarray ans 0)
+	     (clear-string ans)
 	     (setq ans newans))
 	    ((> (length ans) 0)
 	     (aset ans (1- (length ans)) 0)
