@@ -1,3 +1,14 @@
+2002-12-21  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el Remove the concept of an instance. This means that
+	a lot of functions have been renamed. Accessors are prefixed with
+	gdb-get, setters with gdb-set and the word instance has been
+	removed from many function and variable names.
+	(gdb-display-buffer): Protect source buffer as well
+	as GUD buffer when requesting new buffers.
+	(gdb-source-info): Two changes : Don't create display buffer
+	automatically, compute source window correctly.
+
 2002-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* man.el (Man-getpage-in-background): Put GROFF_NO_SGR in env.
@@ -59,8 +70,8 @@
 	rename gud-gdba-marker-filter.
 	(gdb-append-to-inferior-io): Only pop up IO buffer if there is
 	output.
-	(gdb-make-instance): Remove (put into gdba). Use
-	gdb-instance-enqueue-input instead of
+	(gdb-make-instance): Remove (put into gdba).
+	Use gdb-instance-enqueue-input instead of
 	gdb-instance-enqueue-idle-input for user functions.
 	(gdb-instance-target-string): Simplify.
 	(in-gdb-instance-context): Remove.
