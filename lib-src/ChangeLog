@@ -1,3 +1,11 @@
+2001-07-25  Juanma Barranquero  <jbarranquero@peoplecall.com>
+
+	* grep-changelog (parse_changelog): Remove unused local variable.
+
+	* grep-changelog (main): Add new option --reverse.
+	(print_log): Use it.
+	(parse_changelog): Use it.
+
 2001-07-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* grep-changelog: Remove RCS Id keyword.
