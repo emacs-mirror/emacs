@@ -144,6 +144,10 @@ Lisp_Object composition_hash_table;
 /* Function to call to adjust composition.  */
 Lisp_Object Vcompose_chars_after_function;
 
+/* Char-table of patterns and functions to make a composition.  */
+Lisp_Object Vcomposition_function_table;
+Lisp_Object Qcomposition_function_table;
+
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
 
@@ -455,8 +459,8 @@ run_composition_function (from, to, prop)
   if (!NILP (func))
     call2 (func, make_number (from), make_number (to));
   else if (!NILP (Ffboundp (Vcompose_chars_after_function)))
-    call2 (Vcompose_chars_after_function,
-	   make_number (from), make_number (to));
+    call3 (Vcompose_chars_after_function,
+	   make_number (from), make_number (to), Qnil);
 }
 
 /* Make invalid compositions adjacent to or inside FROM and TO valid.
@@ -576,6 +580,123 @@ compose_text (start, end, components, modification_func, string)
 		       Qcomposition, prop, string);
 }
 
+/* Compose sequences of characters in the region between START and END
+   by functions registered in Vcomposition_function_table.  If STRING
+   is non-nil, operate on characters contained between indices START
+   and END in STRING.  */
+
+void
+compose_chars_in_text (start, end, string)
+     int start, end;
+     Lisp_Object string;
+{
+  int count;
+  struct gcpro gcpro1;
+  Lisp_Object tail, elt, val, to;
+  /* Set to nonzero if we don't have to compose ASCII characters.  */
+  int skip_ascii;
+  int i, len, stop, c;
+  unsigned char *ptr, *pend;
+
+  if (! CHAR_TABLE_P (Vcomposition_function_table))
+    return;
+
+  if (STRINGP (string))
+    {
+      count = specpdl_ptr - specpdl;
+      GCPRO1 (string);
+      stop = end;
+      ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+      pend = ptr + STRING_BYTES (XSTRING (string));
+    }
+  else
+    {
+      record_unwind_protect (save_excursion_restore, save_excursion_save ());
+      TEMP_SET_PT (start);
+      stop = (start < GPT && GPT < end ? GPT : end);
+      ptr = CHAR_POS_ADDR (start);
+      pend = CHAR_POS_ADDR (end);
+    }
+
+  /* Preserve the match data.  */
+  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+
+  /* If none of ASCII characters have composition functions, we can
+     skip them quickly.  */
+  for (i = 0; i < 128; i++)
+    if (!NILP (CHAR_TABLE_REF (Vcomposition_function_table, i)))
+      break;
+  skip_ascii = (i == 128);
+
+
+  while (1)
+    {
+      if (skip_ascii)
+	while (start < stop && ASCII_BYTE_P (*ptr))
+	  start++, ptr++;
+
+      if (start >= stop)
+	{
+	  if (stop == end || start >= end)
+	    break;
+	  stop = end;
+	  if (STRINGP (string))
+	    ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+	  else
+	    ptr = CHAR_POS_ADDR (start);
+	}
+
+      c = STRING_CHAR_AND_LENGTH (ptr, pend - ptr, len);
+      tail = CHAR_TABLE_REF (Vcomposition_function_table, c);
+      while (CONSP (tail))
+	{
+	  elt = XCAR (tail);
+	  if (CONSP (elt)
+	      && STRINGP (XCAR (elt))
+	      && !NILP (Ffboundp (XCDR (elt))))
+	    {
+	      if (STRINGP (string))
+		val = Fstring_match (XCAR (elt), string, make_number (start));
+	      else
+		{
+		  val = Flooking_at (XCAR (elt));
+		  if (!NILP (val))
+		    val = make_number (start);
+		}
+	      if (INTEGERP (val) && XFASTINT (val) == start)
+		{
+		  to = Fmatch_end (make_number (0));
+		  val = call4 (XCDR (elt), val, to, XCAR (elt), string);
+		  if (INTEGERP (val) && XINT (val) > 1)
+		    {
+		      start += XINT (val);
+		      if (STRINGP (string))
+			ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+		      else
+			ptr = CHAR_POS_ADDR (start);
+		    }
+		  else
+		    {
+		      start++;
+		      ptr += len;
+		    }
+		  break;
+		}
+	    }
+	  tail = XCDR (tail);
+	}
+      if (!CONSP (tail))
+	{
+	  /* No composition done.  Try the next character.  */
+	  start++;
+	  ptr += len;
+	}
+    }
+
+  unbind_to (count, Qnil);
+  if (STRINGP (string))
+    UNGCPRO;
+}
 
 /* Emacs Lisp APIs.  */
 
@@ -717,15 +838,40 @@ syms_of_composite ()
   DEFVAR_LISP ("compose-chars-after-function", &Vcompose_chars_after_function,
     "Function to adjust composition of buffer text.\n\
 \n\
+The function is called with three arguments FROM, TO, and OBJECT.\n\
+FROM and TO specify the range of text of which composition should be\n\
+adjusted.  OBJECT, if non-nil, is a string that contains the text.\n\
+\n\
 This function is called after a text with `composition' property is\n\
 inserted or deleted to keep `composition' property of buffer text\n\
 valid.\n\
 \n\
-The function is called with two arguments FROM and TO.  They specify\n\
-the range of text of which composition should be adjusted.\n\
-\n\
 The default value is the function `compose-chars-after'.");
   Vcompose_chars_after_function = intern ("compose-chars-after");
+
+  Qcomposition_function_table = intern ("composition-function-table");
+  staticpro (&Qcomposition_function_table);
+
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+
+  Fput (Qcomposition_function_table, Qchar_table_extra_slots, make_number (0));
+
+  DEFVAR_LISP ("composition-function-table", &Vcomposition_function_table,
+    "Char table of patterns and functions to make a composition.\n\
+\n\
+Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs\n\
+are regular expressions and FUNCs are functions.  FUNC is responsible\n\
+for composing text matching the corresponding PATTERN.  FUNC is called\n\
+with three arguments FROM, TO, and PATTERN.  See the function\n\
+`compose-chars-after' for more detail.\n\
+\n\
+This table is looked up by the first character of a composition when\n\
+the composition gets invalid after a change in a buffer.");
+  Vcomposition_function_table
+    = Fmake_char_table (Qcomposition_function_table, Qnil);
 
   defsubr (&Scompose_region_internal);
   defsubr (&Scompose_string_internal);
