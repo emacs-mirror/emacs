@@ -1719,7 +1719,16 @@ A prefix argument says to unflag those files instead."
      ;; It is less than general to check for ~ here,
      ;; but it's the only way this runs fast enough.
      (and (save-excursion (end-of-line)
-			  (eq (preceding-char) ?#))
+                          (or
+                           (eq (preceding-char) ?#)
+                           ;; Handle executables in case of -F option.
+                           ;; We need not worry about the other kinds
+                           ;; of markings that -F makes, since they won't
+                           ;; appear on real auto-save files.
+                           (if (eq (preceding-char) ?*)
+                               (progn
+                                 (forward-char -1)
+                                 (eq (preceding-char) ?#)))))
 	  (not (looking-at dired-re-dir))
 	  (let ((fn (dired-get-filename t t)))
 	    (if fn (auto-save-file-name-p
@@ -1735,16 +1744,16 @@ With prefix argument, unflag these files."
      ;; It is less than general to check for ~ here,
      ;; but it's the only way this runs fast enough.
      (and (save-excursion (end-of-line)
-                            (or
-                             (eq (preceding-char) ?~)
-			     ;; Handle executables in case of -F option.
-			     ;; We need not worry about the other kinds
-			     ;; of markings that -F makes, since they won't
-			     ;; appear on real backup files.
-                             (if (eq (preceding-char) ?*)
-                                 (progn
-                                   (forward-char -1)
-                                   (eq (preceding-char) ?~)))))
+			  (or
+			   (eq (preceding-char) ?~)
+			   ;; Handle executables in case of -F option.
+			   ;; We need not worry about the other kinds
+			   ;; of markings that -F makes, since they won't
+			   ;; appear on real backup files.
+			   (if (eq (preceding-char) ?*)
+			       (progn
+				 (forward-char -1)
+				 (eq (preceding-char) ?~)))))
 	  (not (looking-at dired-re-dir))
 	  (let ((fn (dired-get-filename t t)))
 	    (if fn (backup-file-name-p fn))))
