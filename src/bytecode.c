@@ -888,6 +888,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
+	  CHECK_STRING (TOP, 0);
 	  temp_output_buffer_setup (XSTRING (TOP)->data);
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
