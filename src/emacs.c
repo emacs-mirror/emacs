@@ -1270,6 +1270,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 #endif
 
       syms_of_textprop ();
+      syms_of_composite ();
 #ifdef VMS
       syms_of_vmsproc ();
 #endif /* VMS */
