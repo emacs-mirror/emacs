@@ -731,7 +731,11 @@ See the manual for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-buttonize-head 'highlight t)
 
-(defcustom gnus-treat-emphasize 50000
+(defcustom gnus-treat-emphasize 
+  (and (or window-system
+	   (featurep 'xemacs)
+	   (>= (string-to-number emacs-version) 21))
+       50000)
   "Emphasize text.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
@@ -1317,9 +1321,14 @@ always hide."
 	  (forward-line 1))))))
 
 (defun article-treat-dumbquotes ()
-  "Translate M******** sm*rtq**t*s into proper text.
+  "Translate M****s*** sm*rtq**t*s into proper text.
 Note that this function guesses whether a character is a sm*rtq**t* or
-not, so it should only be used interactively."
+not, so it should only be used interactively.
+
+Sm*rtq**t*s are M****s***'s unilateral extension to the character map
+in an attempt to provide more quoting characters.  If you see
+something like \\222 or \\264 where you're expecting some kind of
+apostrophe or quotation mark, then try this wash."
   (interactive)
   (article-translate-strings gnus-article-dumbquotes-map))
 
