@@ -700,7 +700,7 @@ used instead of `browse-url-new-window-p'."
   ;; include at least commas; presumably also close parens.
   (while (string-match "[,)]" url)
     (setq url (replace-match
-	       (format "%x" (string-to-char (match-string 0 url))) t t url)))
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
  			(concat "netscape " url) nil
