@@ -1,5 +1,8 @@
 2001-11-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* textprop.c (Fset_text_properties): Remove unused variables
+	`unchanged', `prev_changed', `s' and `len'.
+
 	* search.c (Freplace_match): Remove unused variable `inslen'.
 
 	* keymap.c (access_keymap): Remove unused variables `c1' and `c2'.
