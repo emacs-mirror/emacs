@@ -251,39 +251,39 @@ Prefix arg means just kill any existing server communications subprocess."
 		       (substring request (match-beginning 0) (1- (match-end 0))))
 		      (pos 0))
 		  (setq request (substring request (match-end 0)))
-		  (if (string-match "\\`-nowait" arg)
-		      (setq nowait t)
-		    (cond
-    			;; ARG is a line number option.
-		     ((string-match "\\`\\+[0-9]+\\'" arg)
-		      (setq lineno (string-to-int (substring arg 1))))
-		     ;; ARG is line number:column option. 
-		     ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
-		      (setq lineno (string-to-int (match-string 1 arg))
-			    columnno (string-to-int (match-string 2 arg))))
-		     (t
-		      ;; ARG is a file name.
-		      ;; Collapse multiple slashes to single slashes.
-		      (setq arg (command-line-normalize-file-name arg))
-		      ;; Undo the quoting that emacsclient does
-		      ;; for certain special characters.
-		      (while (string-match "&." arg pos)
-			(setq pos (1+ (match-beginning 0)))
-			(let ((nextchar (aref arg pos)))
-			  (cond ((= nextchar ?&)
-				 (setq arg (replace-match "&" t t arg)))
-				((= nextchar ?-)
-				 (setq arg (replace-match "-" t t arg)))
-				(t
-				 (setq arg (replace-match " " t t arg))))))
-		      ;; Now decode the file name if necessary.
-		      (if coding-system
-			  (setq arg (decode-coding-string arg coding-system)))
-		      (setq files
-			    (cons (list arg lineno columnno)
-				  files))
-		      (setq lineno 1)
-		      (setq columnno 0))))))
+		  (cond
+		   ((string-match "\\`-nowait" arg)
+		    (setq nowait t))
+		   ;; ARG is a line number option.
+		   ((string-match "\\`\\+[0-9]+\\'" arg)
+		    (setq lineno (string-to-int (substring arg 1))))
+		   ;; ARG is line number:column option. 
+		   ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
+		    (setq lineno (string-to-int (match-string 1 arg))
+			  columnno (string-to-int (match-string 2 arg))))
+		   (t
+		    ;; ARG is a file name.
+		    ;; Collapse multiple slashes to single slashes.
+		    (setq arg (command-line-normalize-file-name arg))
+		    ;; Undo the quoting that emacsclient does
+		    ;; for certain special characters.
+		    (while (string-match "&." arg pos)
+		      (setq pos (1+ (match-beginning 0)))
+		      (let ((nextchar (aref arg pos)))
+			(cond ((= nextchar ?&)
+			       (setq arg (replace-match "&" t t arg)))
+			      ((= nextchar ?-)
+			       (setq arg (replace-match "-" t t arg)))
+			      (t
+			       (setq arg (replace-match " " t t arg))))))
+		    ;; Now decode the file name if necessary.
+		    (if coding-system
+			(setq arg (decode-coding-string arg coding-system)))
+		    (setq files
+			  (cons (list arg lineno columnno)
+				files))
+		    (setq lineno 1)
+		    (setq columnno 0)))))
 	      (run-hooks 'pre-command-hook)
 	      (server-visit-files files client nowait)
 	      (run-hooks 'post-command-hook)
@@ -303,6 +303,12 @@ Prefix arg means just kill any existing server communications subprocess."
 			  "When done with a buffer, type \\[server-edit]"))))))))
   ;; Save for later any partial line that remains.
   (setq server-previous-string string))
+
+(defun server-goto-line-column (file-line-col)
+  (goto-line (nth 1 file-line-col))
+  (let ((column-number (nth 2 file-line-col)))
+    (if (> column-number 0)
+	(move-to-column (1- column-number)))))
 
 (defun server-visit-files (files client &optional nowait)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
@@ -325,8 +331,7 @@ so don't mark these buffers specially, just visit them normally."
 	    (if (and obuf (set-buffer obuf))
 		(progn
 		  (cond ((file-exists-p filen)
-			 (if (or (not (verify-visited-file-modtime obuf))
-				 (buffer-modified-p obuf))
+			 (if (not (verify-visited-file-modtime obuf))
 			     (revert-buffer t nil)))
 			(t
 			 (if (y-or-n-p
@@ -335,12 +340,9 @@ so don't mark these buffers specially, just visit them normally."
 				      ", write buffer to file? "))
 			     (write-file filen))))
 		  (setq server-existing-buffer t)
-		  (goto-line (nth 1 (car files))))
+		  (server-goto-line-column (car files)))
 	      (set-buffer (find-file-noselect filen))
-	      (goto-line (nth 1 (car files)))
-	      (let ((column-number (nth 2 (car files))))
-		(when (> column-number 0)
-		  (move-to-column (1- column-number))))
+	      (server-goto-line-column (car files))
 	      (run-hooks 'server-visit-hook)))
 	  (if (not nowait)
 	      (setq server-buffer-clients
