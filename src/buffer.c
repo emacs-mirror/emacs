@@ -180,6 +180,7 @@ int buffer_count;
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
   "Return the buffer named NAME, or create such a buffer and return it.\n\
 A new buffer is created if there is no live buffer named NAME.\n\
+If NAME starts with a space, the new buffer does not keep undo information.\n\
 If NAME is a buffer instead of a string, then it is the value returned.\n\
 The value is never nil.")  
   (name)
