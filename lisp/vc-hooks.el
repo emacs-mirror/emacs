@@ -929,11 +929,11 @@ control system name."
 	 (this-buffer (current-buffer)))
     (if (eq true-buffer this-buffer)
 	(progn
+	  (kill-buffer this-buffer)
 	  ;; In principle, we could do something like set-visited-file-name.
 	  ;; However, it can't be exactly the same as set-visited-file-name.
 	  ;; I'm not going to work out the details right now. -- rms.
-	  (set-buffer (find-file-noselect truename))
-	  (kill-buffer this-buffer))
+	  (set-buffer (find-file-noselect truename)))
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
