@@ -4782,6 +4782,10 @@ make_lispy_event (event)
 		    struct display_pos p;
 		    buffer_posn_from_coords (w, &wx, &wy, &object, &p);
 		    posn = make_number (CHARPOS (p.pos));
+		    if (STRINGP (object))
+		      string_info
+			= Fcons (object,
+				 make_number (CHARPOS (p.string_pos)));
 		  }
 	      }
 
@@ -7769,6 +7773,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      int can_return_switch_frame;
      int fix_current_buffer;
 {
+  volatile Lisp_Object from_string;
   volatile int count = specpdl_ptr - specpdl;
 
   /* How many keys there are in the current key sequence.  */
@@ -7922,6 +7927,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
   orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
+  from_string = Qnil;
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -8325,6 +8331,35 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    }
 
 		  goto replay_key;
+		}
+	      else if (CONSP (POSN_STRING (EVENT_START (key)))
+		       && NILP (from_string))
+		{
+		  /* For a click on a string, i.e. overlay string or a
+		     string displayed via the `display' property,
+		     consider `local-map' and `keymap' properties of
+		     that string.  */
+		  Lisp_Object string, pos, map, map2;
+
+		  string = POSN_STRING (EVENT_START (key));
+		  pos = XCDR (string);
+		  string = XCAR (string);
+		  if (XINT (pos) >= 0
+		      && XINT (pos) < XSTRING (string)->size)
+		    {
+		      map = Fget_text_property (pos, Qlocal_map, string);
+		      if (!NILP (map))
+			orig_local_map = map;
+		      map2 = Fget_text_property (pos, Qkeymap, string);
+		      if (!NILP (map2))
+			orig_keymap = map2;
+
+		      if (!NILP (map) || !NILP (map2))
+			{
+			  from_string = string;
+			  goto replay_sequence;
+			}
+		    }
 		}
 	    }
 	  else if (CONSP (XCDR (key))
