@@ -254,6 +254,8 @@ actually occur.")
 	(setq mail-aliases nil)
 	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
+  ;; Don't leave this around from a previous message.
+  (setq buffer-file-coding-system nil)
   (setq mail-send-actions actions)
   (setq mail-reply-action replybuffer)
   (goto-char (point-min))
