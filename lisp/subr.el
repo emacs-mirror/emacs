@@ -226,7 +226,7 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
-If optional fourth argument OLDMAP is specified, we redefine
+Alternatively, if optional fourth argument OLDMAP is specified, we redefine
 in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
   (or prefix (setq prefix ""))
   (let* ((scan (or oldmap keymap))
