@@ -3310,10 +3310,12 @@ merge_face_vectors (f, from, to, cycle_check)
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (from[i]))
-      if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
-	to[i] = merge_face_heights (from[i], to[i], to[i], cycle_check);
-      else
-	to[i] = from[i];
+      {
+	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
+	  to[i] = merge_face_heights (from[i], to[i], to[i], cycle_check);
+	else
+	  to[i] = from[i];
+      }
 
   /* TO is always an absolute face, which should inherit from nothing.
      We blindly copy the :inherit attribute above and fix it up here.  */
@@ -4185,20 +4187,22 @@ FRAME 0 means change the face on all frames, and change the default
 	}
 
       if (!NILP (param))
-	if (EQ (frame, Qt))
-	  /* Update `default-frame-alist', which is used for new frames.  */
-	  {
-	    store_in_alist (&Vdefault_frame_alist, param, value);
-	  }
-	else
-	  /* Update the current frame's parameters.  */
-	  {
-	    Lisp_Object cons;
-	    cons = XCAR (Vparam_value_alist);
-	    XSETCAR (cons, param);
-	    XSETCDR (cons, value);
-	    Fmodify_frame_parameters (frame, Vparam_value_alist);
-	  }
+	{
+	  if (EQ (frame, Qt))
+	    /* Update `default-frame-alist', which is used for new frames.  */
+	    {
+	      store_in_alist (&Vdefault_frame_alist, param, value);
+	    }
+	  else
+	    /* Update the current frame's parameters.  */
+	    {
+	      Lisp_Object cons;
+	      cons = XCAR (Vparam_value_alist);
+	      XSETCAR (cons, param);
+	      XSETCDR (cons, value);
+	      Fmodify_frame_parameters (frame, Vparam_value_alist);
+	    }
+	}
     }
 
   return face;
