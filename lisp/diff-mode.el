@@ -305,7 +305,11 @@ when editing big diffs)."
 (defvar diff-narrowed-to nil)
 
 (defun diff-end-of-hunk (&optional style)
-  (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
+  (when (looking-at diff-hunk-header-re)
+    (unless style
+      ;; Especially important for unified (because headers are ambiguous).
+      (setq style (cdr (assq (char-after) '((?@ . unified) (?* . context))))))
+    (goto-char (match-end 0)))
   (let ((end (and (re-search-forward (case style
 				       ;; A `unified' header is ambiguous.
 				       (unified (concat "^[^-+# \\]\\|"

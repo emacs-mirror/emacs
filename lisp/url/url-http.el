@@ -4,6 +4,7 @@
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
+
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -1120,7 +1121,7 @@ CBARGS as the arguments."
 ;;;###autoload
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
-(defun url-http-head-file-attributes (url)
+(defun url-http-head-file-attributes (url &optional id-format)
   (let ((buffer (url-http-head url))
 	(attributes nil))
     (when buffer
@@ -1136,10 +1137,10 @@ CBARGS as the arguments."
     attributes))
 
 ;;;###autoload
-(defun url-http-file-attributes (url)
+(defun url-http-file-attributes (url &optional id-format)
   (if (url-dav-supported-p url)
-      (url-dav-file-attributes url)
-    (url-http-head-file-attributes url)))
+      (url-dav-file-attributes url id-format)
+    (url-http-head-file-attributes url id-format)))
 
 ;;;###autoload
 (defun url-http-options (url)

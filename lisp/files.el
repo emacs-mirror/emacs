@@ -616,6 +616,8 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
 	  (suffix (concat (regexp-opt (cdr path-and-suffixes) t) "\\'"))
 	  (string-dir (file-name-directory string)))
       (dolist (dir (car path-and-suffixes))
+	(unless dir
+	  (setq dir default-directory))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
 	(when (file-directory-p dir)
 	  (dolist (file (file-name-all-completions
@@ -668,14 +670,17 @@ Do not specify them in other calls."
   ;; PREV-DIRS can be a cons cell whose car is an alist
   ;; of truenames we've just recently computed.
 
-  ;; The last test looks dubious, maybe `+' is meant here?  --simon.
-  (if (or (string= filename "") (string= filename "~")
-	  (and (string= (substring filename 0 1) "~")
-	       (string-match "~[^/]*" filename)))
-      (progn
-	(setq filename (expand-file-name filename))
-	(if (string= filename "")
-	    (setq filename "/"))))
+  (cond ((or (string= filename "") (string= filename "~"))
+	 (setq filename (expand-file-name filename))
+	 (if (string= filename "")
+	     (setq filename "/")))
+	((and (string= (substring filename 0 1) "~")
+	      (string-match "~[^/]*/?" filename))
+	 (let ((first-part
+		(substring filename 0 (match-end 0)))
+	       (rest (substring filename (match-end 0))))
+	   (setq filename (concat (expand-file-name first-part) rest)))))
+
   (or counter (setq counter (list 100)))
   (let (done
 	;; For speed, remove the ange-ftp completion handler from the list.
@@ -4230,7 +4235,7 @@ This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'.
 
-When SWITCHES contains the long `--dired' option,this function
+When SWITCHES contains the long `--dired' option, this function
 treats it specially, for the sake of dired.  However, the
 normally equivalent short `-D' option is just passed on to
 `insert-directory-program', as any other option."
@@ -4307,6 +4312,8 @@ normally equivalent short `-D' option is just passed on to
 
 	  ;; If `insert-directory-program' failed, signal an error.
 	  (unless (eq 0 result)
+	    ;; Delete the error message it may have output.
+	    (delete-region beg (point))
 	    ;; On non-Posix systems, we cannot open a directory, so
 	    ;; don't even try, because that will always result in
 	    ;; the ubiquitous "Access denied".  Instead, show the

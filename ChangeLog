@@ -1,3 +1,8 @@
+2004-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* INSTALL: Move the info about site-lisp dirs,
+	and say uninstalled Emacs looks there too.
+
 2004-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat (lib-src): Recognize comment lines in Makefile.in

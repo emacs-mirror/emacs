@@ -1239,13 +1239,10 @@ z t± ide±. Proszê, przeczytaj plik COPYING, po czym rozdaj swoim
 znajomym kopie Emacsa. Pomó¿ têpiæ obstrukcjonizm w informatyce,
 u¿ywaj±c, tworz±c i dziel±c siê oprogramowaniem swobodnym.
 
-
 ;;; Local Variables:
 ;;; mode: fundamental
 ;;; coding: latin-2
+;;; sentence-end-double-space: nil
 ;;; End:
-
-
-
 
 ;;; arch-tag: 6c6b7445-4cd5-44ca-a101-7f4697b92f60

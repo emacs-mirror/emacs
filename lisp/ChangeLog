@@ -1,3 +1,91 @@
+2004-04-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-goto-info): Require 'info.
+	(gdb-info-breakpoints-custom): Revert previous change.
+	(gdb-view-assembler): Update assembler if necessary.
+	(gdb-frame-handler): Parse correctly for gdb-current-frame.
+	(gdb-display-source-buffer): Update properly when both source and
+	assembler are visible.
+
+2004-04-17  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-max-to-show): Added a new config variable
+	which limits the number of names shown in the minibuffer.  Off by
+	default.
+	(iswitchb-completions): Use `iswitchb-max-to-show'.  This speeds
+	up iswitchb for users with a multitude of open buffers by showing
+	only the first and last N/2 buffers in the completion list (which
+	is enough to aid C-s/C-r, and to know that more characters are
+	needed to refine the completion list).
+
+2004-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (locate-file-completion): Handle nil in path-and-suffixes.
+	(file-truename): Expand all ~ constructs directly.
+	(insert-directory): Delete any error msg output by the
+	`insert-directory-program'.
+
+	* allout.el (allout-mode-exposure-menu, allout-mode-editing-menu):
+	(allout-mode-navigation-menu, allout-mode-misc-menu): New defvars.
+	(allout-prior-bindings, allout-added-bindings): Defvars deleted.
+	(allout-init): Use find-file-hook, not find-file-hooks.
+	(allout-mode): Eliminate Emacs 18 support.
+	Use write-contents-functions, not local-write-file-hooks.
+
+2004-04-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-properties): Fix for
+	adding messages when there are already markers for their file.
+	(compilation-fake-loc): New function.
+
+2004-04-16  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-compilation-line-number): Fix braindamage.
+	(python-load-file): Fix python-orig-start setting.
+
+	* progmodes/compile.el: Doc fixes.
+	(compilation-error-regexp-alist-alist)
+	(compilation-mode-font-lock-keywords): Allow non-ASCII where possible.
+	(compilation-assq): Wrap in eval-when-compile.
+	(compilation-mode-font-lock-keywords): Don't use list*.
+	(compilation-start): Avoid warning.
+	(compilation-compat-error-properties)
+	(compilation-directory-properties): Add keymap property.
+	(compilation-parsing-end): Make it a marker for better compatibility.
+
+	* progmodes/python.el (python-after-info-look): Use with-no-warnings.
+
+2004-04-16  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el: Doc fixes.
+	(xml-get-children): Only looks at sub-tags and ignore strings.
+
+	* xml.el (xml-parse-tag): Avoid overwriting node-name.
+
+2004-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url/url-util.el (url-debug): Use with-current-buffer.
+
+	* url/url-nfs.el (url-nfs-file-attributes): Add id-format parameter.
+	(url-nfs-create-wrapper): Use new backquote syntax.
+
+	* url/url-https.el (url-https-file-attributes): Add id-format param.
+
+	* url/url-http.el (url-http-head-file-attributes)
+	(url-http-file-attributes): Add id-format parameter.
+
+	* url/url-handlers.el: Use new find-file-hook.
+	(url-file-attributes): Add id-format parameter.
+
+	* url/url-file.el (url-file-create-wrapper): Use new backquote syntax.
+	(url-file-file-attributes): Add id-format parameter.
+
+	* url/url-dav.el: Use with-current-buffer.
+	(url-dav-process-response): Fix regexps and spurious quote.
+	(url-dav-file-attributes): Add id-format param.
+
+	* diff-mode.el (diff-end-of-hunk): Be more careful with unified hunks.
+
 2004-04-16  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-default-workfile-unchanged-p): Quote signal.
@@ -9,8 +97,7 @@
 	* simple.el (completion-setup-function): Set an initial value
 	to `element-common-end' before entering loop. Set a value
 	to `element-common-end' at the end of loop.
-	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel
-	list.
+	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel list.
 	(completions-common-part): Rename from completion-de-emphasis.
 	(completions-first-difference): Rename from completion-emphasis.
 	Suggested by RMS.
@@ -19,6 +106,12 @@
 
 	* bookmark.el (bookmark-send-edited-annotation): Fix docstring.
 	(bookmark-edit-annotation-mode): Add mode name.
+
+2004-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-match-conflict): Try to do something sensible
+	for nested conflict markers.
+	(smerge-find-conflict): Better handle errors in smerge-match-conflict.
 
 2004-04-15  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -119,7 +212,7 @@
 	in addition it also disables menu-bar, tool-bar, scroll-bars,
 	tool-tips, and the blinking cursor.
 	(command-line-1): Skip startup screen if -Q.
-	(fancy-splash-head): Use :align-to center prop to center splash image.
+	(fancy-splash-head): Use ":align-to center" prop to center splash image.
 
 	* emulation/cua-base.el (cua-read-only-cursor-color)
 	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
@@ -153,6 +246,10 @@
 
 	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
 	Set compilation-error-regexp-alist earlier.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-shell-minor-mode-map, compile-mouse-goto-error)
+	(compile-goto-error): Re-merge the mouse and non-mouse commands.
 
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

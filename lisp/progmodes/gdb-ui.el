@@ -222,6 +222,7 @@ speedbar."
 (defun gdb-goto-info ()
   (interactive)
   (select-frame (make-frame))
+  (require 'info)
   (Info-goto-node "(emacs)GDB Graphical Interface"))
 
 (defconst gdb-var-create-regexp
@@ -688,9 +689,9 @@ This filter may simply queue output for a later time."
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
   (setq gdb-view-source t)
-;; cover for auto-display output which comes *before*
-;; stopped annotation
-    (if (eq (gdb-get-output-sink) 'inferior) (gdb-set-output-sink 'user)))
+  ;; cover for auto-display output which comes *before*
+  ;; stopped annotation
+  (if (eq (gdb-get-output-sink) 'inferior) (gdb-set-output-sink 'user)))
 
 (defun gdb-send-item (item)
   (if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
@@ -1112,7 +1113,8 @@ static char *magick[] = {
 			  (save-excursion
 			    (goto-line (string-to-number line))
 			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
-	  (end-of-line))))))
+	  (end-of-line)))))
+  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-toggle-breakpoint (event)
   "Toggle breakpoint with mouse click in left margin."
@@ -1532,11 +1534,9 @@ the source buffer."
 
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
-      (progn
 	(gdb-display-buffer buffer)
-	(get-buffer-window buffer))
-    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer))
-    nil))
+    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer)))
+    (get-buffer-window buffer))
 
 
 ;;; Shared keymap initialization:
@@ -1612,6 +1612,7 @@ the source buffer."
 (defun gdb-view-assembler()
   (interactive)
   (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (gdb-invalidate-assembler)
   (setq gdb-selected-view 'assembler))
 
 ;(defun gdb-view-both()
@@ -1964,7 +1965,7 @@ BUFFER nil or omitted means use the current buffer."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (forward-line)
-    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*\\)")
+    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? ")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))

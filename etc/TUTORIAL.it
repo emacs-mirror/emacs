@@ -1114,4 +1114,8 @@ copie di GNU Emacs ai vostri amici.  Aiutateci a combattere
 l'ostruzionismo al software ("la proprietà") usando, scrivendo e
 condividendo software libero!
 
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
+
 ;;; arch-tag: c6f7079d-8032-473d-91d4-36754af15719

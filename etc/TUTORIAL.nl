@@ -830,8 +830,7 @@ het zoeken.
    zien wat er met de cursor gebeurt.  Je hebt nu eenmaal naar het woord
    `cursor' gezocht.
 >> Type nogmaals C-s, om het volgende woord `cursor' te zoeken
-  
-> Type nu viermaal <Delback> en let op de cursorbewegingen.
+>> Type nu viermaal <Delback> en let op de cursorbewegingen.
 >> Type <RET> om het zoeken te beëindigen.
 
 Zag je wat er gebeurde?  Tijdens incrementeel zoeken probeert Emacs naar
@@ -1092,5 +1091,9 @@ The conditions for copying Emacs itself are more complex, but in the
 same spirit.  Please read the file COPYING and then do give copies of
 GNU Emacs to your friends.  Help stamp out software obstructionism
 ("ownership") by using, writing, and sharing free software!)
+
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
 
 ;;; arch-tag: 3399e308-e605-4125-8fbb-b2fe91ac3149

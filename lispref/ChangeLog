@@ -1,3 +1,7 @@
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* sequences.texi: Various clarifications.
+
 2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Read Only Buffers): Mention optional ARG to

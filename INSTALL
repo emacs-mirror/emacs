@@ -466,17 +466,6 @@ are installed in the following directories:
 		at the same time; in particular, you don't have to
 		make Emacs unavailable while installing a new version.
 
-`/usr/local/share/emacs/VERSION/site-lisp' holds the local Emacs Lisp
-		files installed for Emacs version VERSION only.
-
-`/usr/local/share/emacs/site-lisp' holds the local Emacs Lisp
-		files installed for all Emacs versions.
-
-		When Emacs is installed, it searches for its Lisp files
-		in `/usr/local/share/emacs/VERSION/site-lisp', then in
-		`/usr/local/share/emacs/site-lisp', and finally in
-		`/usr/local/share/emacs/VERSION/lisp'.
-
 `/usr/local/share/emacs/VERSION/etc' holds the Emacs tutorial, the DOC
 		file, the `yow' database, and other
 		architecture-independent files Emacs might need while
@@ -505,6 +494,20 @@ are installed in the following directories:
 
 `/usr/local/man/man1' holds the man pages for the programs installed
 		in `/usr/local/bin'.
+
+Any version of Emacs, whether installed or not, also looks for Lisp
+files in these directories.
+
+`/usr/local/share/emacs/VERSION/site-lisp' holds the local Emacs Lisp
+		files installed for Emacs version VERSION only.
+
+`/usr/local/share/emacs/site-lisp' holds the local Emacs Lisp
+		files installed for all Emacs versions.
+
+		When Emacs is installed, it searches for its Lisp files
+		in `/usr/local/share/emacs/VERSION/site-lisp', then in
+		`/usr/local/share/emacs/site-lisp', and finally in
+		`/usr/local/share/emacs/VERSION/lisp'.
 
 If these directories are not what you want, you can specify where to
 install Emacs's libraries and data files or where Emacs should search

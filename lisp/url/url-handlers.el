@@ -225,7 +225,7 @@ accessible."
                 ,@(remove '&rest (remove '&optional args))))))
 
 (url-handlers-create-wrapper file-exists-p (url))
-(url-handlers-create-wrapper file-attributes (url))
+(url-handlers-create-wrapper file-attributes (url &optional id-format))
 (url-handlers-create-wrapper file-symlink-p (url))
 (url-handlers-create-wrapper file-writable-p (url))
 (url-handlers-create-wrapper file-directory-p (url))
@@ -244,7 +244,7 @@ accessible."
   (url-handlers-create-wrapper
    file-truename (url &optional counter prev-dirs)))
 
-(add-hook 'find-file-hooks 'url-handlers-set-buffer-mode)
+(add-hook 'find-file-hook 'url-handlers-set-buffer-mode)
 
 (defun url-handlers-set-buffer-mode ()
   "Set correct modes for the current buffer if visiting a remote file."

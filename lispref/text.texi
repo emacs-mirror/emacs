@@ -3875,7 +3875,7 @@ changes, like this:
 If an error (or other nonlocal exit) occurs inside the body of
 @code{atomic-change-group}, it unmakes all the changes in that buffer
 that were during the execution of the body.  This kind of change group
-has no effect on any other buffers--any such changes remain.
+has no effect on any other buffers---any such changes remain.
 
   If you need something more sophisticated, such as to make changes in
 various buffers constitute one atomic group, you must directly call
