@@ -199,6 +199,7 @@ extern int get_composition_id P_ ((int, int, int, Lisp_Object, Lisp_Object));
 extern int find_composition P_ ((int, int, int *, int *, Lisp_Object *,
 				 Lisp_Object));
 extern void update_compositions P_ ((int, int, int));
+extern void make_composition_value_copy P_ ((Lisp_Object));
 extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 				Lisp_Object));
 extern void syms_of_composition P_ ((void));
