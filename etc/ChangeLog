@@ -1,3 +1,7 @@
+2000-11-16  Andre Spiegel  <spiegel@gnu.org>
+
+	* NEWS: Updated VC news.
+
 2000-11-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* TUTORIAL.ja: Adjusted for the change of TUTORIAL (use C-x C-l,
