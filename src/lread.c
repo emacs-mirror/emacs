@@ -127,6 +127,9 @@ static int load_convert_to_unibyte;
    compiled) instead of readevalloop.  */
 Lisp_Object Vload_source_file_function;
 
+/* List of all DEFVAR_BOOL variables.  Used by the byte optimizer.  */
+Lisp_Object Vbyte_boolean_vars;
+
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
@@ -3038,6 +3041,7 @@ defvar_bool (namestring, address)
   XMISCTYPE (val) = Lisp_Misc_Boolfwd;
   XBOOLFWD (val)->boolvar = address;
   XSYMBOL (sym)->value = val;
+  Vbyte_boolean_vars = Fcons (sym, Vbyte_boolean_vars);
 }
 
 /* Similar but define a variable whose value is the Lisp Object stored
@@ -3420,6 +3424,10 @@ You cannot count on them to still be there!");
   DEFVAR_LISP ("preloaded-file-list", &Vpreloaded_file_list,
      "List of files that were preloaded (when dumping Emacs).");
   Vpreloaded_file_list = Qnil;
+
+  DEFVAR_LISP ("byte-boolean-vars", &Vbyte_boolean_vars,
+     "List of all DEFVAR_BOOL variables, used by the byte code optimizer.");
+  Vbyte_boolean_vars = Qnil;
 
   /* Vsource_directory was initialized in init_lread.  */
 
