@@ -23,7 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef VMS
 #ifndef WAITTYPE
-#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX)
+#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX) || defined (WAIT_USE_INT)
 #define WAITTYPE int
 #define WIFSTOPPED(w) ((w&0377) == 0177)
 #define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
