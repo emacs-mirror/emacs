@@ -425,7 +425,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
     (mapatoms (lambda (symbol)
 		(and (fboundp symbol)
 		     (not (eq symbol definition))
-		     (eq func (indirect-function symbol))
+		     (eq func (condition-case ()
+				  (indirect-function symbol)
+				(error symbol)))
 		     (push symbol defs))))
     (princ (mapconcat
             #'(lambda (symbol)
