@@ -2,25 +2,28 @@
 
 ;; Copyright (C) 1999-2000  Free Software Foundation Inc.
 
-;; Author: FSF??
+;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.9 2000/05/16 22:02:37 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.10 2000/05/17 19:32:32 monnier Exp $
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -46,13 +49,13 @@
 ;; - support gnu-style "multi-line with space in continue"
 ;; - somehow allow comment-dwim to use the region even if transient-mark-mode
 ;;   is not turned on.
-;; - (from c-comment-line-break-function): c-ignore-auto-fill so that you can
-;;   auto-fill comments but not code.  This should probably be moved directly
-;;   inside do-auto-fill.
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(defalias 'indent-for-comment 'comment-indent)
+(defalias 'set-comment-column 'comment-set-column)
+(defalias 'kill-comment 'comment-kill)
+(defalias 'indent-new-comment-line 'comment-indent-new-line)
 
 (defgroup comment nil
   "Indenting and filling of comments."
@@ -337,10 +340,10 @@ and can use regexps instead of syntax."
     (if comment-use-syntax (forward-comment n)
       (while (> n 0)
 	(skip-syntax-forward " ")
-	(if (and (looking-at comment-start-skip)
-		 (re-search-forward comment-end-skip nil 'move))
-	    (decf n)
-	  (setq n -1)))
+	(setq n
+	      (if (and (looking-at comment-start-skip)
+		       (re-search-forward comment-end-skip nil 'move))
+		  (1- n) -1)))
       (= n 0))))
 
 (defun comment-enter-backward ()
@@ -367,7 +370,6 @@ Point is assumed to be just at the end of a comment."
 ;;;; Commands
 ;;;;
 
-(defalias 'indent-for-comment 'comment-indent)
 (defun comment-indent (&optional continue)
   "Indent this line's comment to comment column, or insert an empty comment.
 If CONTINUE is non-nil, use the `comment-continuation' markers if any."
@@ -408,7 +410,6 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
             (save-excursion
               (insert ender))))))))
 
-(defalias 'set-comment-column 'comment-set-column)
 (defun comment-set-column (arg)
   "Set the comment column based on point.
 With no ARG, set the comment column to the current column.
@@ -430,7 +431,6 @@ With any other arg, set comment column to indentation of the previous comment
    (t (setq comment-column (current-column))
       (message "Comment column set to %d" comment-column))))
 
-(defalias 'kill-comment 'comment-kill)
 (defun comment-kill (arg)
   "Kill the comment on this line, if any.
 With prefix ARG, kill comments on that many lines starting with this one."
@@ -593,7 +593,7 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
 			(make-string min-indent ? ) ccs))
 	     (e (concat cce "\n" (make-string min-indent ? )
 			ccs "a=m" ce))
-	     (_ (assert (string-match "\\s-*\\(a=m\\)\\s-*" s)))
+	     ;;(_ (assert (string-match "\\s-*\\(a=m\\)\\s-*" s)))
 	     (fill (make-string (+ (- max-indent
 				      min-indent
 				      (match-beginning 0))
@@ -601,7 +601,7 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
 				      (match-end 1)))
 				(aref s (match-end 0)))))
 	(setq cs (replace-match fill t t s))
-	(assert (string-match "\\s-*\\(a=m\\)\\s-*" e))
+	;;(assert (string-match "\\s-*\\(a=m\\)\\s-*" e))
 	(setq ce (replace-match fill t t e)))
     (when (and ce (string-match "\\`\\s-*\\(.*\\S-\\)\\s-*\\'" ce))
       (setq ce (match-string 1 ce)))
@@ -622,28 +622,29 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
   "Execute BODY with BEG..END narrowing.
 Space is added (and then removed) at the beginning for the text's
 indentation to be kept as it was before narrowing."
-  `(let ((-bindent (save-excursion (goto-char beg) (current-column))))
-     (save-restriction
-       (narrow-to-region beg end)
-       (goto-char (point-min))
-       (insert (make-string -bindent ? ))
-       (prog1
-	   (progn ,@body)
-	 ;; remove the -bindent
-	 (save-excursion
-	   (goto-char (point-min))
-	   (when (looking-at " *")
-	     (let ((n (min (- (match-end 0) (match-beginning 0)) -bindent)))
-	       (delete-char n)
-	       (decf -bindent n)))
-	   (end-of-line)
-	   (let ((e (point)))
-	     (beginning-of-line)
-	     (while (and (> -bindent 0) (re-search-forward "  +" e t))
-	       (let ((n (min -bindent (- (match-end 0) (match-beginning 0) 1))))
-		 (goto-char (match-beginning 0))
+  (let ((bindent (make-symbol "bindent")))
+    `(let ((,bindent (save-excursion (goto-char beg) (current-column))))
+       (save-restriction
+	 (narrow-to-region beg end)
+	 (goto-char (point-min))
+	 (insert (make-string ,bindent ? ))
+	 (prog1
+	     (progn ,@body)
+	   ;; remove the bindent
+	   (save-excursion
+	     (goto-char (point-min))
+	     (when (looking-at " *")
+	       (let ((n (min (- (match-end 0) (match-beginning 0)) ,bindent)))
 		 (delete-char n)
-		 (decf -bindent n)))))))))
+		 (setq ,bindent (- ,bindent n))))
+	     (end-of-line)
+	     (let ((e (point)))
+	       (beginning-of-line)
+	       (while (and (> ,bindent 0) (re-search-forward "   *" e t))
+		 (let ((n (min ,bindent (- (match-end 0) (match-beginning 0) 1))))
+		   (goto-char (match-beginning 0))
+		   (delete-char n)
+		   (setq ,bindent (- ,bindent n)))))))))))
 
 (defun comment-region-internal (beg end cs ce
 				    &optional ccs cce block lines indent)
@@ -657,7 +658,7 @@ LINES indicates that an extra lines will be used at the beginning and end
 of the region for CE and CS.
 INDENT indicates to put CS and CCS at the current indentation of the region
 rather than at left margin."
-  (assert (< beg end))
+  ;;(assert (< beg end))
   (let ((no-empty t))
     ;; Sanitize CE and CCE.
     (if (and (stringp ce) (string= "" ce)) (setq ce nil))
@@ -695,7 +696,8 @@ rather than at left margin."
 		(not (or (eobp) (progn (forward-line) nil)))))
 	  
 	  ;; Inserting ccs can change max-indent by (1- tab-width).
-	  (incf max-indent (+ (max (length cs) (length ccs)) -1 tab-width))
+	  (setq max-indent
+		(+ max-indent (max (length cs) (length ccs)) tab-width -1))
 	  (unless indent (setq min-indent 0))
 
 	  ;; make the leading and trailing lines if requested
@@ -769,8 +771,8 @@ The strings used as comment starts are built from
      ((consp arg) (uncomment-region beg end))
      ((< numarg 0) (uncomment-region beg end (- numarg)))
      (t
-      (if (and (null arg) (= (length comment-start) 1))
-	  (setq numarg add) (decf numarg))
+      (setq numarg (if (and (null arg) (= (length comment-start) 1))
+		       add (1- numarg)))
       (comment-region-internal
        beg end
        (let ((s (comment-padright comment-start numarg)))
@@ -830,7 +832,6 @@ This has no effect in modes that do not define a comment syntax."
   :type 'boolean
   :group 'comment)
 
-(defalias 'indent-new-comment-line 'comment-indent-new-line)
 (defun comment-indent-new-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
 This indents the body of the continued comment
@@ -847,71 +848,87 @@ The inserted newline is marked hard if variable `use-hard-newlines' is true,
 unless optional argument SOFT is non-nil."
   (interactive)
   (comment-normalize-vars t)
-  (let (comcol comstart compt comin)
+  (let (compos comin)
+    ;; If we are not inside a comment and we only auto-fill comments,
+    ;; don't do anything (unless no comment syntax is defined).
     (unless (and comment-start
 		 comment-auto-fill-only-comments
 		 (not (save-excursion
-			(prog1 (setq compt (comment-beginning))
+			(prog1 (setq compos (comment-beginning))
 			  (setq comin (point))))))
+
+      ;; Now we know we should auto-fill.
       (delete-region (progn (skip-chars-backward " \t") (point))
-		     (progn (skip-chars-forward " \t") (point)))
+		     (progn (skip-chars-forward  " \t") (point)))
       (if soft (insert-and-inherit ?\n) (newline 1))
       (if fill-prefix
 	  (progn
 	    (indent-to-left-margin)
 	    (insert-and-inherit fill-prefix))
-	(unless comment-multi-line
+
+	;; If necessary check whether we're inside a comment.
+	(unless (or comment-multi-line compos (null comment-start))
 	  (save-excursion
 	    (backward-char)
-	    (when (and comment-start
-		       (if compt (goto-char comin)
-			 (setq compt (comment-beginning))))
-	      ;; The old line has a comment and point was inside the comment.
-	      ;; Indent this line like what we found.
-	      (setq comstart (buffer-substring compt (point)))
-	      (goto-char compt)
-	      (setq comcol (current-column)))))
-	(if compt
-	    (let* ((comment-column (min comcol comment-column))
-		   (normal-comment
-		    (string-match (regexp-quote (comment-string-strip
-						 comment-start t t))
-				  comstart))
-		   ;; Force comment-continue to be recreated from comment-start.
-		   (comment-continue nil) ;(if normal-comment comment-continue)
-		   (comment-end
-		    (if normal-comment comment-end
-		      ;; The comment starter is not the normal comment-start
-		      ;; so we can't just use comment-end.
-		      (save-excursion
-			(goto-char compt)
-			(if (not (comment-forward)) comment-end
-			  (comment-string-strip
-			   (buffer-substring
-			    (save-excursion (comment-enter-backward) (point))
-			    (point))
-			   nil t)))))
-		   (comment-start comstart))
-	      ;;(if (not (eolp)) (setq comment-end ""))
-	      (insert-and-inherit ?\n)
-	      (forward-char -1)
-	      (comment-indent (cadr (assoc comment-style comment-styles)))
-	      (save-excursion
-		(let ((pt (point)))
-		  (end-of-line)
-		  (let ((comend (buffer-substring pt (point))))
-		    ;; The 1+ is to make sure we delete the \n inserted above.
-		    (delete-region pt (1+ (point)))
-		    (beginning-of-line)
-		    (backward-char)
-		    (insert comend)
-		    (forward-char)))))
-	  (indent-according-to-mode))))))
+	    (setq compos (comment-beginning))
+	    (setq comin (point))))
+
+	;; If we're not inside a comment, just try to indent.
+	(if (not compos) (indent-according-to-mode)
+	  (let* ((comment-column
+		  ;; The continuation indentation should be somewhere between
+		  ;; the current line's indentation (plus 2 for good measure)
+		  ;; and the current comment's indentation, with a preference
+		  ;; for comment-column.
+		  (save-excursion
+		    (goto-char compos)
+		    (min (current-column) (max comment-column
+					       (+ 2 (current-indentation))))))
+		 (comstart (buffer-substring compos comin))
+		 (normalp
+		  (string-match (regexp-quote (comment-string-strip
+					       comment-start t t))
+				comstart))
+		 (comment-end
+		  (if normalp comment-end
+		    ;; The comment starter is not the normal comment-start
+		    ;; so we can't just use comment-end.
+		    (save-excursion
+		      (goto-char compos)
+		      (if (not (comment-forward)) comment-end
+			(comment-string-strip
+			 (buffer-substring
+			  (save-excursion (comment-enter-backward) (point))
+			  (point))
+			 nil t)))))
+		 (comment-start comstart)
+		 ;; Force comment-continue to be recreated from comment-start.
+		 (comment-continue nil))
+	    (insert-and-inherit ?\n)
+	    (forward-char -1)
+	    (comment-indent (cadr (assoc comment-style comment-styles)))
+	    (save-excursion
+	      (let ((pt (point)))
+		(end-of-line)
+		(let ((comend (buffer-substring pt (point))))
+		  ;; The 1+ is to make sure we delete the \n inserted above.
+		  (delete-region pt (1+ (point)))
+		  (beginning-of-line)
+		  (backward-char)
+		  (insert comend)
+		  (forward-char))))))))))
 
 (provide 'newcomment)
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.10  2000/05/17 19:32:32  monnier
+;; (comment-beginning): Handle unclosed comment.
+;; (comment-auto-fill-only-comments): New var.
+;; (comment-indent-new-line): Obey comment-auto-fill-only-comments.
+;;   Align with comment-column rather than previous comment if previous
+;;   comment's indentation is greater than comment-column.
+;;
 ;; Revision 1.9  2000/05/16 22:02:37  monnier
 ;; (comment-string-strip): Strip terminating newlines.
 ;; (comment-search-forward): Make LIMIT compulsory.
