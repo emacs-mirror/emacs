@@ -1,5 +1,7 @@
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* faq.texi: Many changes to make it consistent with Emacs 21.
+
 	* Makefile.in (../info/idlwave): Use --no-split.
 
 2000-12-14  Dave Love  <fx@gnu.org>
