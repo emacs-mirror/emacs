@@ -206,9 +206,121 @@
 
 (require 'calc-macs)
 
+(defgroup calc nil
+  "GNU Calc"
+  :prefix "calc-"
+  :tag    "Calc")
+
 ;;;###autoload
-(defvar calc-settings-file (convert-standard-filename "~/.calc.el")
-  "*File in which to record permanent settings.")
+(defcustom calc-settings-file 
+  (convert-standard-filename "~/.calc.el")
+  "*File in which to record permanent settings."
+  :group 'calc
+  :type '(file))
+
+(defcustom calc-language-alist
+  '((latex-mode . latex)
+    (tex-mode   . tex)
+    (plain-tex-mode . tex)
+    (context-mode . tex)
+    (nroff-mode . eqn)
+    (pascal-mode . pascal)
+    (c-mode . c)
+    (c++-mode . c)
+    (fortran-mode . fortran)
+    (f90-mode . fortran))
+  "*Alist of major modes with appropriate Calc languages."
+  :group 'calc
+  :type '(alist :key-type symbol :value-type symbol))
+
+(defcustom calc-embedded-announce-formula 
+  "%Embed\n\\(% .*\n\\)*"
+  "*A regular expression which is sure to be followed by a calc-embedded formula."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-open-formula 
+  "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
+  "*A regular expression for the opening delimiter of a formula used by calc-embedded."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-close-formula 
+  "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
+  "*A regular expression for the closing delimiter of a formula used by calc-embedded."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-open-word 
+  "^\\|[^-+0-9.eE]"
+  "*A regular expression for the opening delimiter of a formula used by calc-embedded-word."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-close-word 
+  "$\\|[^-+0-9.eE]"
+  "*A regular expression for the closing delimiter of a formula used by calc-embedded-word."
+  :group 'calc
+  :type '(regexp))
+
+(defcustom calc-embedded-open-plain 
+  "%%% "
+  "*A string which is the opening delimiter for a \"plain\" formula.
+If calc-show-plain mode is enabled, this is inserted at the front of
+each formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-plain 
+  " %%%\n"
+  "*A string which is the closing delimiter for a \"plain\" formula.
+See calc-embedded-open-plain."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-open-new-formula 
+  "\n\n"
+  "*A string which is inserted at front of formula by calc-embedded-new-formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-new-formula 
+  "\n\n"
+  "*A string which is inserted at end of formula by calc-embedded-new-formula."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-open-mode 
+  "% "
+  "*A string which should precede calc-embedded mode annotations.
+This is not required to be present for user-written mode annotations."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-embedded-close-mode 
+  "\n"
+  "*A string which should follow calc-embedded mode annotations.
+This is not required to be present for user-written mode annotations."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-gnuplot-name 
+  "gnuplot"
+  "*Name of GNUPLOT program, for calc-graph features."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-gnuplot-plot-command 
+  nil
+  "*Name of command for displaying GNUPLOT output; %s = file name to print."
+  :group 'calc
+  :type '(choice (string) (sexp)))
+
+(defcustom calc-gnuplot-print-command 
+  "lp %s"
+  "*Name of command for printing GNUPLOT output; %s = file name to print."
+  :group 'calc
+  :type '(choice (string) (sexp)))
 
 (defvar calc-bug-address "belanger@truman.edu"
   "Address of the author of Calc, for use by `report-calc-bug'.")
