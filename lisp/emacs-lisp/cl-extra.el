@@ -655,7 +655,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'."
 
 ;;; Hash tables.
 
-(defun make-hash-table (&rest cl-keys)
+(defun cl-make-hash-table (&rest cl-keys)
   "Make an empty Common Lisp-style hash-table.
 If :test is `eq', this can use Lucid Emacs built-in hash-tables.
 In non-Lucid Emacs, or with non-`eq' test, this internally uses a-lists.
@@ -674,7 +674,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
   (if (and (fboundp 'make-hashtable) (vectorp (make-hashtable 1)))
       (aref (make-hashtable 1) 0) (make-symbol "--cl-hash-tag--")))
 
-(defun hash-table-p (x)
+(defun cl-hash-table-p (x)
   "Return t if OBJECT is a hash table."
   (or (eq (car-safe x) 'cl-hash-table-tag)
       (and (vectorp x) (= (length x) 4) (eq (aref x 0) cl-lucid-hash-tag))
@@ -723,7 +723,6 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
       (let ((found (cl-hash-lookup key table)))
 	(if (car found) (cdr (car found)) def))
     (funcall cl-builtin-gethash key table def)))
-(defalias 'gethash 'cl-gethash)
 
 (defun cl-puthash (key val table)
   (if (consp table)
@@ -756,7 +755,6 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 		 (set (nth 2 table) del)) t)))
     (prog1 (not (eq (funcall cl-builtin-gethash key table '--cl--) '--cl--))
       (funcall cl-builtin-remhash key table))))
-(defalias 'remhash 'cl-remhash)
 
 (defun cl-clrhash (table)
   "Clear HASH-TABLE."
@@ -768,7 +766,6 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 	(setcar (cdr (cdr (cdr table))) 0))
     (funcall cl-builtin-clrhash table))
   nil)
-(defalias 'clrhash 'cl-clrhash)
 
 (defun cl-maphash (cl-func cl-table)
   "Call FUNCTION on keys and values from HASH-TABLE."
@@ -783,9 +780,8 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 		(if (symbolp (nth 2 cl-table))
 		    (vector (nth 2 cl-table)) (nth 2 cl-table)))
     (funcall cl-builtin-maphash cl-func cl-table)))
-(defalias 'maphash 'cl-maphash)
 
-(defun hash-table-count (table)
+(defun cl-hash-table-count (table)
   "Return the number of entries in HASH-TABLE."
   (or (hash-table-p table) (cl-not-hash-table table))
   (if (consp table) (nth 3 table) (funcall 'hashtable-fullness table)))
