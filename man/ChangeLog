@@ -1,3 +1,9 @@
+2000-09-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* search.texi (Other Repeating Search): Describe `how-many'
+	instead of `count-matches'.  Say that they work on the active
+	region in Transient Mark mode.
+
 2000-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-mime.texi, message.texi: Fix @setfilename directive.

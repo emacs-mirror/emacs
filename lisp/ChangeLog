@@ -1,5 +1,10 @@
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* replace.el (keep-lines-read-args): New function.
+	(keep-lines, flush-lines, how-many): Use keep-lines-read-args to
+	read arguments interactively.  Add parameters RSTART and REND.
+	Operate on the active region in Transient Mark mode.
+
 	* files.el (auto-mode-alist): Add pattern for `#*mail*...'.
 
 	* emacs-lisp/authors.el (authors-obsolete-file-p): New function.
