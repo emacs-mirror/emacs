@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.7 2000/10/06 16:07:31 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.8 2000/12/22 22:58:57 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -472,13 +472,19 @@ The point is moved to the end of the conflict."
 	(font-lock-remove-keywords nil smerge-font-lock-keywords))
       (goto-char (point-min))
       (while (smerge-find-conflict)
-	(font-lock-fontify-region (match-beginning 0) (match-end 0) nil)))))
+	(save-excursion
+	  (font-lock-fontify-region (match-beginning 0) (match-end 0) nil))))))
 
 
 (provide 'smerge-mode)
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.8  2000/12/22 22:58:57  monnier
+;; (smerge-basic-map): Use `=' rather than `d'.
+;; Use minibuffer menu prompt for the `=' prefix.
+;; (smerge-command-prefix): Change default to C-^.
+;;
 ;; Revision 1.7  2000/10/06 16:07:31  monnier
 ;; (smerge-diff): Setup the buffer's default-directory
 ;; and add filename to the names so that diff-mode can jump to source.
