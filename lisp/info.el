@@ -475,7 +475,8 @@ to read a file name from the minibuffer."
 				  (setq active-expression
 					(read (current-buffer))))))
 			 (point-max)))
-     (if Info-enable-active-nodes (eval active-expression)))))
+     (if Info-enable-active-nodes (eval active-expression))
+     (run-hooks 'Info-selection-hook))))
 
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
