@@ -384,20 +384,16 @@ IF REGEXP is not a string, return it unchanged."
     regexp))
 
 (defun custom-variable-prompt ()
-  "Prompt for a variable, defaulting to the variable at point.
+  "Prompt for a custom variable, defaulting to the variable at point.
 Return a list suitable for use in `interactive'."
    (let ((v (variable-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read
-		(if (symbolp v)
+		(if (and (symbolp v) (custom-variable-p v))
 		    (format "Customize option: (default %s) " v)
-		  "Customize variable: ")
-		obarray (lambda (symbol)
-			  (and (boundp symbol)
-			       (or (get symbol 'custom-type)
-				   (get symbol 'custom-loads)
-				   (get symbol 'standard-value)))) t))
+		  "Customize option: ")
+		obarray 'custom-variable-p t))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
@@ -928,28 +924,6 @@ then prompt for the MODE to customize."
 (defun customize-option (symbol)
   "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
-  ;; If we don't have SYMBOL's real definition loaded,
-  ;; try to load it.
-  (unless (get symbol 'custom-type)
-    (let ((loaddefs-file (locate-library "loaddefs.el" t))
-	  file)
-      ;; See if it is autoloaded from some library.
-      (when loaddefs-file
-	(with-temp-buffer
-	  (insert-file-contents loaddefs-file)
-	  (when (re-search-forward (concat "^(defvar " (symbol-name symbol))
-				   nil t)
-	    (search-backward "\n;;; Generated autoloads from ")
-	    (goto-char (match-end 0))
-	    (setq file (buffer-substring (point)
-					 (progn (end-of-line) (point)))))))
-      ;; If it is, load that library.
-      (when file
-	(when (string-match "\\.el\\'" file)
-	  (setq file (substring file 0 (match-beginning 0))))
-	(load file))))
-  (unless (get symbol 'custom-type)
-    (error "Variable %s cannot be customized" symbol))
   (custom-buffer-create (list (list symbol 'custom-variable))
 			(format "*Customize Option: %s*"
 				(custom-unlispify-tag-name symbol))))
@@ -1171,7 +1145,7 @@ user-settable, as well as faces and groups."
 		  (when (and (not (memq all '(groups faces)))
 			     (boundp symbol)
 			     (or (get symbol 'saved-value)
-				 (get symbol 'standard-value)
+				 (custom-variable-p symbol)
 				 (if (memq all '(nil options))
 				     (user-variable-p symbol)
 				   (get symbol 'variable-documentation))))
@@ -3745,7 +3719,7 @@ or (if there were none) at the end of the buffer."
 	 (let ((spec (car-safe (get symbol 'theme-value)))
 	       (value (get symbol 'saved-value))
 	       (requests (get symbol 'custom-requests))
-	       (now (not (or (get symbol 'standard-value)
+	       (now (not (or (custom-variable-p symbol)
 			     (and (not (boundp symbol))
 				  (not (eq (get symbol 'force-value)
 					   'rogue))))))
