@@ -2625,6 +2625,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       gdouble shown;
       gdouble top;
       int size, value;
+      int new_upper, new_step;
 
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
 
@@ -2652,21 +2653,33 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       value = min (value, whole - size);
       value = max (value, XG_SB_MIN);
 
-      adj->page_size = (int)size;
-
       /* gtk_range_set_value invokes the callback.  Set
          ignore_gtk_scrollbar to make the callback do nothing  */
       xg_ignore_gtk_scrollbar = 1;
 
-      gtk_range_set_range (GTK_RANGE (wscroll), adj->lower, max (whole, size));
+      new_upper = max (whole, size);
+      new_step  =  portion / max (1, FRAME_HEIGHT (f));
 
-      /* Assume all lines are of equal size.  */
-      /* Assume a page increment is about 95% of the page size  */
-      gtk_range_set_increments (GTK_RANGE (wscroll),
-                                portion / max (1, FRAME_HEIGHT (f)),
-                                (int) (0.95*adj->page_size));
+      if ((int) adj->page_size != size
+          || (int) adj->upper != new_upper
+          || (int) adj->step_increment != new_step)
+        {
+          adj->page_size = (int) size;
 
-      gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
+          gtk_range_set_range (GTK_RANGE (wscroll), adj->lower,
+                               (gdouble) new_upper);
+
+          /* Assume all lines are of equal size.  */
+          /* Assume a page increment is about 95% of the page size  */
+          gtk_range_set_increments (GTK_RANGE (wscroll),
+                                    portion / max (1, FRAME_HEIGHT (f)),
+                                    (int) (0.95*adj->page_size));
+          
+        }
+
+      if ((int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+        gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
+
       xg_ignore_gtk_scrollbar = 0;
 
       /* Make GTK draw the new thumb.  We are not using a pure GTK event

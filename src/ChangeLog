@@ -1,5 +1,8 @@
 2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_set_toolkit_scroll_bar_thumb): Check if new values
+	equal old values before updating.
+
 	* xterm.c (xg_scroll_callback): Remove xg_ignore_next_thumb.
 
 	* gtkutil.c (xg_initialize): Remove xg_ignore_next_thumb.
