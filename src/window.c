@@ -4506,7 +4506,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 results for variable height lines.  */
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       it.current_y = it.last_visible_y;
-      move_it_vertically (&it, - window_box_height (w) / 2);
+      move_it_vertically_backward (&it, window_box_height (w) / 2);
 
       /* The function move_iterator_vertically may move over more than
 	 the specified y-distance.  If it->w is small, e.g. a
@@ -4516,7 +4516,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
       if (it.current_y <= 0)
 	{
 	  init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
-	  move_it_vertically (&it, 0);
+	  move_it_vertically_backward (&it, 0);
 	  it.current_y = 0;
 	}
 
@@ -5185,7 +5185,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
-	  move_it_vertically (&it, - window_box_height (w) / 2);
+	  move_it_vertically_backward (&it, window_box_height (w) / 2);
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
@@ -5193,29 +5193,62 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	{
 	  struct it it;
 	  struct text_pos pt;
-	  int y0, y1, h, nlines;
+	  int nlines = - XINT (arg);
+	  int extra_line_spacing;
+	  int h = window_box_height (w);
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
-	  y0 = it.current_y;
+
+	  /* Be sure we have the exact height of the full line containing PT.  */
+	  move_it_by_lines (&it, 0, 1);
 
 	  /* The amount of pixels we have to move back is the window
 	     height minus what's displayed in the line containing PT,
 	     and the lines below.  */
-	  nlines = - XINT (arg) - 1;
+	  it.current_y = 0;
+	  it.vpos = 0;
 	  move_it_by_lines (&it, nlines, 1);
 
-	  y1 = line_bottom_y (&it);
+	  if (it.vpos == nlines)
+	    h -= it.current_y;
+	  else
+	    {
+	      /* Last line has no newline */
+	      h -= line_bottom_y (&it);
+	      it.vpos++;
+	    }
+
+	  /* Don't reserve space for extra line spacing of last line.  */
+	  extra_line_spacing = it.max_extra_line_spacing;
 
 	  /* If we can't move down NLINES lines because we hit
 	     the end of the buffer, count in some empty lines.  */
 	  if (it.vpos < nlines)
-	    y1 += (nlines - it.vpos) * FRAME_LINE_HEIGHT (it.f);
+	    {
+	      nlines -= it.vpos;
+	      extra_line_spacing = it.extra_line_spacing;
+	      h -= nlines * (FRAME_LINE_HEIGHT (it.f) + extra_line_spacing);
+	    }
+	  if (h <= 0)
+	    return Qnil;
 
-	  h = window_box_height (w) - (y1 - y0);
-
+	  /* Now find the new top line (starting position) of the window.  */
 	  start_display (&it, w, pt);
-	  move_it_vertically (&it, - h);
+	  it.current_y = 0;
+	  move_it_vertically_backward (&it, h);
+
+	  /* If extra line spacing is present, we may move too far
+	     back.  This causes the last line to be only partially
+	     visible (which triggers redisplay to recenter that line
+	     in the middle), so move forward.
+	     But ignore extra line spacing on last line, as it is not
+	     considered to be part of the visible height of the line.
+	  */
+	  h += extra_line_spacing;
+	  while (-it.current_y > h)
+	    move_it_by_lines (&it, 1, 1);
+
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
