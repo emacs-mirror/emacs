@@ -1506,9 +1506,10 @@ main (argc, argv, envp)
 #endif
     }
 
-  /* Gerd Moellmann <gerd@acm.org> says this makes profiling work on
-     FreeBSD.  It might work on some other systems too.
-     Give it a try and tell me if it works on your system.  */
+  /* Set up for profiling.  This is known to work on FreeBSD and
+     GNU/Linux.  It might work on some other systems too.  Give it a
+     try and tell us if it works on your system.  To compile for
+     profiling use something like `make CFLAGS="-pg -g -O -DPROFILING=1'. */
 #if defined (__FreeBSD__) || defined (__linux)
 #ifdef PROFILING
   if (initialized)
