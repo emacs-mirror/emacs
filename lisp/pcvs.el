@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.36 2002/06/18 21:50:30 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.37 2002/06/24 22:49:38 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -62,7 +62,6 @@
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
 ;; - rework the displaying of error messages.
-;; - use UP-TO-DATE rather than DEAD when cleaning before `examine'.
 ;; - allow to flush messages only
 ;; - allow to protect files like ChangeLog from flushing
 ;; - automatically cvs-mode-insert files from find-file-hook
@@ -640,45 +639,41 @@ DCD is the `dont-change-disc' flag to use when parsing that output.
 SUBDIR is the subdirectory (if any) where this command was run.
 OLD-FIS is the list of fileinfos on which the cvs command was applied and
   which should be considered up-to-date if they are missing from the output."
-  (let* ((from-buf (current-buffer))
-	 (fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
-	 (_ (set-buffer cvs-buffer))
-	 last
-	 (from-pt (point)))
-    ;; Expand OLD-FIS to actual files.
-    (dolist (fi old-fis)
-      (when (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
-	(setq old-fis (nconc (ewoc-collect cvs-cookies 'cvs-dir-member-p
-					   (cvs-fileinfo->dir fi))
-			     old-fis))))
-    ;; Drop OLD-FIS which were already up-to-date.
-    (let ((fis nil))
+  (let* ((fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
+	 last)
+    (with-current-buffer cvs-buffer
+      ;; Expand OLD-FIS to actual files.
+      (let ((fis nil))
+	(dolist (fi old-fis)
+	  (setq fis (if (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
+			(nconc (ewoc-collect cvs-cookies 'cvs-dir-member-p
+					     (cvs-fileinfo->dir fi))
+			       fis)
+		      (cons fi fis))))
+	(setq old-fis fis))
+      ;; Drop OLD-FIS which were already up-to-date.
+      (let ((fis nil))
+	(dolist (fi old-fis)
+	  (unless (eq (cvs-fileinfo->type fi) 'UP-TO-DATE) (push fi fis)))
+	(setq old-fis fis))
+      ;; Add the new fileinfos to the ewoc.
+      (dolist (fi fileinfos)
+	(setq last (cvs-addto-collection cvs-cookies fi last))
+	;; This FI was in the output, so remove it from OLD-FIS.
+	(setq old-fis (delq (ewoc-data last) old-fis)))
+      ;; Process the "silent output" (i.e. absence means up-to-date).
       (dolist (fi old-fis)
-	(unless (eq (cvs-fileinfo->type fi) 'UP-TO-DATE) (push fi fis)))
-      (setq old-fis fis))
-    ;; Add the new fileinfos to the ewoc.
-    (dolist (fi fileinfos)
-      (setq last (cvs-addto-collection cvs-cookies fi last))
-      ;; This FI was in the output, so remove it from OLD-FIS.
-      (setq old-fis (delq (ewoc-data last) old-fis)))
-    ;; Process the "silent output" (i.e. absence means up-to-date).
-    (dolist (fi old-fis)
-      (setf (cvs-fileinfo->type fi) 'UP-TO-DATE)
-      (setq last (cvs-addto-collection cvs-cookies fi last)))
-    (setq fileinfos (nconc old-fis fileinfos))
-    ;; Clean up the ewoc as requested by the user.
-    (cvs-cleanup-collection cvs-cookies
-			    (eq cvs-auto-remove-handled t)
-			    cvs-auto-remove-directories
-			    nil)
-    ;; Revert buffers if necessary.
-    (when (and cvs-auto-revert (not dcd) (not cvs-from-vc))
-      (cvs-revert-if-needed fileinfos))
-    ;; get back to where we were.  `save-excursion' doesn't seem to
-    ;; work in this case, probably because the buffer is reconstructed
-    ;; by the cookie code.
-    (goto-char from-pt)
-    (set-buffer from-buf)))
+	(setf (cvs-fileinfo->type fi) 'UP-TO-DATE)
+	(setq last (cvs-addto-collection cvs-cookies fi last)))
+      (setq fileinfos (nconc old-fis fileinfos))
+      ;; Clean up the ewoc as requested by the user.
+      (cvs-cleanup-collection cvs-cookies
+			      (eq cvs-auto-remove-handled t)
+			      cvs-auto-remove-directories
+			      nil)
+      ;; Revert buffers if necessary.
+      (when (and cvs-auto-revert (not dcd) (not cvs-from-vc))
+	(cvs-revert-if-needed fileinfos)))))
 
 (defmacro defun-cvs-mode (fun args docstring interact &rest body)
   "Define a function to be used in a *cvs* buffer.
@@ -766,6 +761,8 @@ TIN specifies an optional starting point."
 	;; fi == tin
 	(cvs-fileinfo-update (ewoc-data tin) fi)
 	(ewoc-invalidate c tin)
+	;; Move cursor back to where it belongs.
+	(when (bolp) (cvs-move-to-goal-column))
 	tin))))
 
 (defcustom cvs-cleanup-functions nil
@@ -1108,29 +1105,25 @@ Full documentation is in the Texinfo file."
 
 ;; Move around in the buffer
 
+(defun cvs-move-to-goal-column ()
+  (let* ((eol (line-end-position))
+	 (fpos (next-single-property-change (point) 'cvs-goal-column nil eol)))
+    (when (< fpos eol)
+      (goto-char fpos))))
+
 (defun-cvs-mode cvs-mode-previous-line (arg)
   "Go to the previous line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
   (ewoc-goto-prev cvs-cookies arg)
-  (let ((fpos (next-single-property-change
-	       (point) 'cvs-goal-column
-	       (current-buffer) (line-end-position)))
-	(eol (line-end-position)))
-    (when (< fpos eol)
-      (goto-char fpos))))
+  (cvs-move-to-goal-column))
 
 (defun-cvs-mode cvs-mode-next-line (arg)
   "Go to the next line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
   (ewoc-goto-next cvs-cookies arg)
-  (let ((fpos (next-single-property-change
-	       (point) 'cvs-goal-column
-	       (current-buffer) (line-end-position)))
-	(eol (line-end-position)))
-    (when (< fpos eol)
-      (goto-char fpos))))
+  (cvs-move-to-goal-column))
 
 ;;;;
 ;;;; Mark handling
@@ -2144,7 +2137,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 		 (pop flags))
 	       ;; don't parse output we don't understand.
 	       (member (car flags) cvs-parse-known-commands)))
-    (save-excursion
+    (save-current-buffer
       (let ((buffer (current-buffer))
 	    (dir default-directory)
 	    (cvs-from-vc t))
@@ -2156,6 +2149,13 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 	    (let ((subdir (substring dir (length default-directory))))
 	      (set-buffer buffer)
 	      (set (make-local-variable 'cvs-buffer) cvs-buf)
+	      ;; `cvs -q add file' produces no useful output :-(
+	      (when (and (equal (car flags) "add")
+			 (goto-char (point-min))
+			 (looking-at ".*to add this file permanently\n\\'"))
+		(insert "cvs add: scheduling file `"
+			(file-name-nondirectory file)
+			"' for addition\n"))
 	      ;; VC never (?) does `cvs -n update' so dcd=nil
 	      ;; should probably always be the right choice.
 	      (cvs-parse-process nil subdir))))))))
