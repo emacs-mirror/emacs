@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "keyboard.h"
 #include "termhooks.h"
 #include "blockinput.h"
+#include "puresize.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -405,8 +406,7 @@ store_in_keymap (keymap, idx, def)
 {
   /* If we are preparing to dump, and DEF is a menu element
      with a menu item string, copy it to ensure it is not pure.  */
-  if (!NILP (Vpurify_flag) && CONSP (def)
-      && STRINGP (XCONS (def)->car))
+  if (CONSP (def) && PURE_P (def) && STRINGP (XCONS (def)->car))
     def = Fcons (XCONS (def)->car, XCONS (def)->cdr);
 
   if (!CONSP (keymap) || ! EQ (XCONS (keymap)->car, Qkeymap))
@@ -931,6 +931,8 @@ recognize the default bindings, just as `read-key-sequence' does.")
     }
   else
     { 
+      Lisp_Object local;
+
       nmaps = current_minor_maps (0, &maps);
       /* Note that all these maps are GCPRO'd
 	 in the places where we found them.  */
@@ -943,9 +945,11 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	      RETURN_UNGCPRO (value);
 	  }
 
-      if (! NILP (current_buffer->keymap))
+      local = get_local_map (PT, current_buffer);
+
+      if (! NILP (local))
 	{
-	  value = Flookup_key (current_buffer->keymap, key, accept_default);
+	  value = Flookup_key (local, key, accept_default);
 	  if (! NILP (value) && !INTEGERP (value))
 	    RETURN_UNGCPRO (value);
 	}
