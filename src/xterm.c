@@ -10526,7 +10526,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			   || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 			   || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 			   /* Any "vendor-specific" key is ok.  */
-			   || (orig_keysym & (1 << 28)))
+			   || (orig_keysym & (1 << 28))
+			   || (keysym != NoSymbol && nbytes == 0))
 			  && ! (IsModifierKey (orig_keysym)
 #ifndef HAVE_X11R5
 #ifdef XK_Mode_switch

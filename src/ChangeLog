@@ -1,5 +1,19 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	This handles unknown keysyms better than before.  For example,
+	after `xmodmap -e 'keysym F5 = ccaron' in a Latin-1 environment,
+	Emacs formerly completely ignored F5.  With the change, it derives
+	a key symbol from the name of the X keysym, `ccaron' in this case.
+	Reported by Martin Buchholz.
+
+	* xterm.c (XTread_socket): Return a non_ascii_keystroke for
+	unknown keysyms.
+
+	* keyboard.c (make_lispy_event) [HAVE_X_WINDOWS]: If we know
+	that EVENT->code isn't a function key, use the keysym's name.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
 	FOREACH is a macro that should make it easier to loop over Lisp
 	lists with checks for cycles and proper lists.
 
