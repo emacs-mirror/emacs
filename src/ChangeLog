@@ -1,5 +1,10 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* minibuf.c (Fminibuffer_complete_word): Reindent.
+	(Fminibuffer_complete_and_exit): Likewise.
+	(Fminibuffer_completion_help): Likewise.  
+	(Fminibuffer_message): Likewise.
+
 	* fns.c (Freverse): Reindent.
 
 	* eval.c (Fif): Reindent.
