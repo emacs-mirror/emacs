@@ -444,12 +444,17 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (setq default-directory dir)
 	 (setq buffer-read-only nil)
 	 (erase-buffer)
-	 (insert "\
-Repository : " (directory-file-name (cvs-get-cvsroot)) "
-Module     : " (cvs-get-module) "
-Working dir: " (abbreviate-file-name dir) "
-
-")
+	 (insert "Repository : " (directory-file-name (cvs-get-cvsroot))
+		 "\nModule     : " (cvs-get-module)
+		 "\nWorking dir: " (abbreviate-file-name dir)
+		 (if (not (file-readable-p "CVS/Tag")) "\n"
+		   (let ((tag (cvs-file-to-string "CVS/Tag")))
+		     (cond
+		      ((string-match "\\`T" tag)
+		       (concat "\nTag        : " (substring tag 1)))
+		      ((string-match "\\`D" tag)
+		       (concat "\nDate       : " (substring tag 1)))
+		      ("")))))
 	 (setq buffer-read-only t)
 	 (cvs-mode)
 	 (set (make-local-variable 'list-buffers-directory) buffer-name)
@@ -1059,7 +1064,7 @@ the override will persist until the next toggle."
   (cvs-prefix-set 'cvs-force-command arg))
 
 (put 'cvs-mode 'mode-class 'special)
-(define-derived-mode cvs-mode fundamental-mode "CVS"
+(define-derived-mode cvs-mode nil "CVS"
   "Mode used for PCL-CVS, a frontend to CVS.
 Full documentation is in the Texinfo file."
   (setq mode-line-process
@@ -1068,6 +1073,8 @@ Full documentation is in the Texinfo file."
 	       ("" cvs-branch-prefix (cvs-secondary-branch-prefix
 				      ("->" cvs-secondary-branch-prefix))))
 	  " " cvs-mode-line-process))
+  (if buffer-file-name
+      (error "Use M-x cvs-quickdir to get a *cvs* buffer."))
   (buffer-disable-undo)
   ;;(set (make-local-variable 'goal-column) cvs-cursor-column)
   (set (make-local-variable 'revert-buffer-function) 'cvs-mode-revert-buffer)
