@@ -48,6 +48,9 @@ prompt string.
 of non-selected windows.  The `mode-line' face is now used to display
 the mode line of the currently selected window.
 
+The new variable `mode-line-in-non-selected-windows' controls whether
+the `mode-line-inactive' face is used.
+
 ** A menu item "Show/Hide" was added to the top-level menu "Options".
 This menu allows you to turn various display features on and off (like
 tool bar and the menu bar itself).  You can also move the vertical
