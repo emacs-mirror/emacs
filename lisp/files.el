@@ -1321,9 +1321,8 @@ Value is a list whose car is the name for the backup file
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: default-directory)."
   (setq filename (expand-file-name filename)
-	directory (file-name-as-directory (if directory
-					      (expand-file-name directory)
-					      default-directory)))
+	directory (file-name-as-directory (expand-file-name
+					   (or directory default-directory))))
   (file-relative-name-1 directory))
 
 (defun save-buffer (&optional args)
