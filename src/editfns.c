@@ -394,7 +394,7 @@ overlays_around (pos, vec, len)
    If OBJECT is a window, then that window's buffer is used, but
    window-specific overlays are considered only if they are associated
    with OBJECT. */
-static Lisp_Object
+Lisp_Object
 get_pos_property (position, prop, object)
      Lisp_Object position, object;
      register Lisp_Object prop;
@@ -460,12 +460,12 @@ get_pos_property (position, prop, object)
     }
 
   { /* Now check the text-properties.  */
-    int stickiness = text_property_stickiness (Qfield, position);
+    int stickiness = text_property_stickiness (prop, position);
     if (stickiness > 0)
-      return Fget_text_property (position, Qfield, Qnil);
+      return Fget_text_property (position, prop, Qnil);
     else if (stickiness < 0 && XINT (position) > BEGV)
       return Fget_text_property (make_number (XINT (position) - 1),
-				 Qfield, Qnil);
+				 prop, Qnil);
     else
       return Qnil;
   }
