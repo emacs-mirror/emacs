@@ -1,5 +1,13 @@
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* emacs-lisp/autoload.el (make-autoload):
+	Handle `define-compilation-mode'.
+
+	* emacs-lisp/lisp-mode.el (define-compilation-mode):
+	Specify `doc-string-elt' property.
+
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* bs.el (bs-mode): Doc fix.
 
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
