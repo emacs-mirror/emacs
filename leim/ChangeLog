@@ -1,3 +1,10 @@
+2001-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* CXTERM-DIC/Punct-b5.tit: Add big5 Chinese double spaced alphabet
+	mappings, so that one could type them without leaving the Hanyu
+	Pinyin input method.  Suggested by Kenichi Handa
+	<handa@etl.go.jp>.
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/greek.el ("greek-babel"): New input method.  From David
