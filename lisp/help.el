@@ -190,15 +190,25 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		       (substitute-command-keys first-message)
 		     "")
 		   (if first-message "  " "")
+		   ;; If the help buffer will go in a separate frame,
+		   ;; it's no use mentioning a command to scroll, so don't.
 		   (if (or (member (buffer-name standard-output)
-				   same-window-buffer-names)
+				   special-display-buffer-names)
 			   (memq t (mapcar '(lambda (elt)
 					      (string-match elt (buffer-name standard-output)))
-					   same-window-regexps)))
+					   special-display-regexps)))
+		       nil
+		     (if (or (member (buffer-name standard-output)
+				     same-window-buffer-names)
+			     (memq t (mapcar '(lambda (elt)
+						(string-match elt (buffer-name standard-output)))
+					     same-window-regexps)))
+			 ;; Say how to scroll this window.
+			 (substitute-command-keys
+			  "\\[scroll-up] to scroll the help.")
+		       ;; Say how to scroll some other window.
 		       (substitute-command-keys
-			"\\[scroll-up] to scroll the help.")
-		     (substitute-command-keys
-		      "\\[scroll-other-window] to scroll the help.")))))))
+			"\\[scroll-other-window] to scroll the help."))))))))
 
 (defun describe-key (key)
   "Display documentation of the function invoked by KEY.  KEY is a string."
