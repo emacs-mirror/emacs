@@ -590,38 +590,34 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		 ;; Unknown command.
 		 (t (error "Unknown command: %s" arg)))))
 
-	    (when files
-	      (run-hooks 'pre-command-hook)
-	      (server-visit-files files client nowait)
-	      (run-hooks 'post-command-hook))
+	    (let (buffers)
+	      (when files
+		(run-hooks 'pre-command-hook)
+		(setq buffers (server-visit-files files client nowait))
+		(run-hooks 'post-command-hook))
 
-	    ;; Delete the client if necessary.
-	    (cond
-	     (nowait
-	      ;; Client requested nowait; return immediately.
-	      (server-log "Close nowait client" proc)
-	      (server-delete-client proc))
-	     ((and (not dontkill)
-		   (null (server-client-get client 'buffers)))
-	      ;; This client is empty; get rid of it immediately.
-	      (server-log "Close empty client" proc)
-	      (server-delete-client proc))
-	     (t
-	      (let ((buffers (server-client-get client 'buffers)))
-		(when buffers
-		  ;; We visited some buffer for this client.
-		  (cond
-		   ((or isearch-mode (minibufferp))
-		    nil)
-		   ((and frame (null buffers))
-		    (message (substitute-command-keys
-			      "When done with this frame, type \\[delete-frame]")))
-		   ((not (null buffers))
-		    (server-switch-buffer (car buffers))
-		    (run-hooks 'server-switch-hook)
-		    (unless nowait
-		      (message (substitute-command-keys
-				"When done with a buffer, type \\[server-edit]")))))))))))
+	      ;; Delete the client if necessary.
+	      (cond
+	       (nowait
+		;; Client requested nowait; return immediately.
+		(server-log "Close nowait client" proc)
+		(server-delete-client proc))
+	       ((and (not dontkill) (null buffers))
+		;; This client is empty; get rid of it immediately.
+		(server-log "Close empty client" proc)
+		(server-delete-client proc)))
+	      (cond
+	       ((or isearch-mode (minibufferp))
+		nil)
+	       ((and frame (null buffers))
+		(message (substitute-command-keys
+			  "When done with this frame, type \\[delete-frame]")))
+	       ((not (null buffers))
+		(server-switch-buffer (car buffers))
+		(run-hooks 'server-switch-hook)
+		(unless nowait
+		  (message (substitute-command-keys
+			    "When done with a buffer, type \\[server-edit]"))))))))
 
 	;; Save for later any partial line that remains.
 	(when (> (length string) 0)
@@ -641,7 +637,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	(move-to-column (1- column-number)))))
 
 (defun server-visit-files (files client &optional nowait)
-  "Find FILES and return the list CLIENT with the buffers nconc'd.
+  "Find FILES and return a list of buffers created.
 FILES is an alist whose elements are (FILENAME LINENUMBER COLUMNNUMBER).
 NOWAIT non-nil means this client is not waiting for the results,
 so don't mark these buffers specially, just visit them normally."
@@ -676,11 +672,13 @@ so don't mark these buffers specially, just visit them normally."
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)
-	  (push (car client) server-buffer-clients)
-	  (push (current-buffer) client-record))))
-    (server-client-set
-     client 'buffers
-     (nconc (server-client-get client 'buffers) client-record))))
+	  (push (car client) server-buffer-clients))
+	(push (current-buffer) client-record)))
+    (unless nowait
+      (server-client-set
+       client 'buffers
+       (nconc (server-client-get client 'buffers) client-record)))
+    client-record))
 
 (defun server-buffer-done (buffer &optional for-killing)
   "Mark BUFFER as \"done\" for its client(s).
