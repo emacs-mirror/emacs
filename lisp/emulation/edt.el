@@ -1499,7 +1499,7 @@ If FILE is nil, try to load a default file.  The default file names are
           (setq term nil)))
     ;; Override terminal-specific file if running X Windows.  X Windows support
     ;; is handled differently in edt-load-xkeys
-    (if window-system
+    (if (eq window-system 'x)
 	(edt-load-xkeys nil)
       (if (null term)
 	  (error "Unable to load EDT terminal specific file for %s" edt-term)))
