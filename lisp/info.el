@@ -464,7 +464,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			    Info-dir-file-attributes
 			    (cons (cons file attrs)
 				  Info-dir-file-attributes))))))
-	  (or (cdr dirs) (setq Info-dir-contents-directory (car dirs)))
+	  (or (cdr dirs) (setq Info-dir-contents-directory
+			       (file-name-as-directory (car dirs))))
 	  (setq dirs (cdr dirs))))
       
       (or buffers
