@@ -33,8 +33,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'dired-aux))
-
 ;;; Customizable variables
 
 (defgroup dired nil
