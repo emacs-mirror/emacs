@@ -586,12 +586,16 @@ Returns nil if line starts inside a string, t if in a comment."
 	    ((and
 	      (search-backward "//" (max (c++-point-bol) lim) 'move)
 	      (not (c++-within-string-p (point) opoint))))
-	  (t (beginning-of-line)
-	     (skip-chars-forward " \t")
-	     (if (looking-at "#")
-		 (setq stop (<= (point) lim))
-	       (setq stop t)
-	       (goto-char opoint)))))))
+	    ;; No comment to be found.
+	    ;; If there's a # command on this line,
+	    ;; move back to it.
+	    (t (beginning-of-line)
+	       (skip-chars-forward " \t")
+	       ;; But don't get fooled if we are already before the #.
+	       (if (and (looking-at "#") (< (point) opoint))
+		   (setq stop (<= (point) lim))
+		 (setq stop t)
+		 (goto-char opoint)))))))
 
 (defun indent-c++-exp ()
   "Indent each line of the C++ grouping following point."
