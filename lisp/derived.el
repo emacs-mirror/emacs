@@ -100,7 +100,8 @@
 The arguments to this command are as follow:
 
 CHILD:     the name of the command for the derived mode.
-PARENT:    the name of the command for the parent mode (e.g. `text-mode').
+PARENT:    the name of the command for the parent mode (e.g. `text-mode')
+           or nil if there is no parent.
 NAME:      a string which will appear in the status line (e.g. \"Hypertext\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
@@ -131,7 +132,7 @@ been generated automatically, with a reference to the keymap."
     (push docstring body)
     (setq docstring nil))
 
-  (unless parent (setq parent 'fundamental-mode))
+  (when (eq parent 'fundamental-mode) (setq parent nil))
 
   (let ((map (derived-mode-map-name child))
 	(syntax (derived-mode-syntax-table-name child))
@@ -141,7 +142,7 @@ been generated automatically, with a reference to the keymap."
 	 
     `(progn
        (defvar ,map (make-sparse-keymap))
-       (defvar ,syntax (make-char-table 'syntax-table nil))
+       (defvar ,syntax (make-syntax-table))
        (defvar ,abbrev)
        (define-abbrev-table ',abbrev nil)
        (put ',child 'derived-mode-parent ',parent)
@@ -152,26 +153,28 @@ been generated automatically, with a reference to the keymap."
 					; Run the parent.
 	 ;; (combine-run-hooks
 
-	  (,parent)
-					; Identify special modes.
-	  (if (get (quote ,parent) 'special)
-	      (put (quote ,child) 'special t))
+	  (,(or parent 'kill-all-local-variables))
 					; Identify the child mode.
 	  (setq major-mode (quote ,child))
 	  (setq mode-name ,name)
+					; Identify special modes.
+	  ,(when parent
+	     `(progn
+		(if (get (quote ,parent) 'special)
+		    (put (quote ,child) 'special t))
 					; Set up maps and tables.
-	  (unless (keymap-parent ,map)
-	    (set-keymap-parent ,map (current-local-map)))
-	  (let ((parent (char-table-parent ,syntax)))
-	    (unless (and parent (not (eq parent (standard-syntax-table))))
-	      (set-char-table-parent ,syntax (syntax-table))))
-	  (when local-abbrev-table
-	    (mapatoms
-	     (lambda (symbol)
-	       (or (intern-soft (symbol-name symbol) ,abbrev)
-		   (define-abbrev ,abbrev (symbol-name symbol)
-		     (symbol-value symbol) (symbol-function symbol))))
-	     local-abbrev-table))
+		(unless (keymap-parent ,map)
+		  (set-keymap-parent ,map (current-local-map)))
+		(let ((parent (char-table-parent ,syntax)))
+		  (unless (and parent (not (eq parent (standard-syntax-table))))
+		    (set-char-table-parent ,syntax (syntax-table))))
+		(when local-abbrev-table
+		  (mapatoms
+		   (lambda (symbol)
+		     (or (intern-soft (symbol-name symbol) ,abbrev)
+			 (define-abbrev ,abbrev (symbol-name symbol)
+			   (symbol-value symbol) (symbol-function symbol))))
+		   local-abbrev-table))))
        
 	  (use-local-map ,map)
 	  (set-syntax-table ,syntax)
@@ -234,20 +237,23 @@ this function is not very useful.  Use `derived-mode-p' instead."
     (unless (stringp docstring)
       ;; Use a default docstring.
       (setq docstring
-	    (format "Major mode derived from `%s' by `define-derived-mode'.
+	    (if (null parent)
+		(format "Major-mode.
+Uses keymap `%s', abbrev table `%s' and syntax-table `%s'." map abbrev syntax)
+	      (format "Major mode derived from `%s' by `define-derived-mode'.
 It inherits all of the parent's attributes, but has its own keymap,
 abbrev table and syntax table:
 
   `%s', `%s' and `%s'
 
 which more-or-less shadow %s's corresponding tables."
-		    parent map abbrev syntax parent)))
+		      parent map abbrev syntax parent))))
   
     (unless (string-match (regexp-quote (symbol-name hook)) docstring)
       ;; Make sure the docstring mentions the mode's hook
       (setq docstring
 	    (concat docstring
-		    (if (eq parent 'fundamental-mode)
+		    (if (null parent)
 			"\n\nThis mode "
 		      (concat
 		       "\n\nIn addition to any hooks its parent mode "
