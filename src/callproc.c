@@ -75,7 +75,7 @@ extern char **environ;
 Lisp_Object Vbinary_process;
 #endif
 
-Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
+Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory;
 
 Lisp_Object Vshell_file_name;
@@ -756,10 +756,14 @@ egetenv (var)
 init_callproc_1 ()
 {
   char *data_dir = egetenv ("EMACSDATA");
-    
+  char *doc_dir = egetenv ("EMACSDOC");
+
   Vdata_directory
     = Ffile_name_as_directory (build_string (data_dir ? data_dir 
 					     : PATH_DATA));
+  Vdoc_directory
+    = Ffile_name_as_directory (build_string (doc_dir ? doc_dir
+					     : PATH_DOC));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from paths.h.  */
@@ -861,6 +865,10 @@ especially executable programs intended for Emacs to invoke.");
   DEFVAR_LISP ("data-directory", &Vdata_directory,
     "Directory of architecture-independent files that come with GNU Emacs,\n\
 intended for Emacs to use.");
+
+  DEFVAR_LISP ("doc-directory", &Vdoc_directory,
+    "Directory containing the DOC file that comes with GNU Emacs.\n\
+This is usually the same as data-directory.");
 
   DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
     "For internal use by the build procedure only.\n\
