@@ -1,5 +1,8 @@
 2002-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mouse.el (mouse-show-mark): Remove the no-highlight alternative:
+	all terminals now support highlighting of some kind.
+
 	* language/european.el (mac-roman): Fix the safe-chars property.
 
 2002-03-05  Andre Spiegel  <spiegel@gnu.org>
