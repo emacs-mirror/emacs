@@ -111,7 +111,7 @@ and `time-zone' all alphabetic strings, and `mail' a true/nil value.
 For example, the form
 
   '((substring year -2) \"/\" month \"/\" day
-    " " 24-hours \":\" minutes \":\" seconds
+    \" \" 24-hours \":\" minutes \":\" seconds
     (if time-zone \" (\") time-zone (if time-zone \")\")
     (if mail \" Mail\" \"\"))
 
