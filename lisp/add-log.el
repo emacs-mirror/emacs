@@ -26,23 +26,23 @@
 
 ;;; Code:
 
-;;;###autoload
 (defvar change-log-default-name nil
   "*Name of a change log file for \\[add-change-log-entry].")
 
-;;;###autoload
 (defvar add-log-current-defun-function nil
   "\
 *If non-nil, function to guess name of current function from surrounding text.
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
 instead) with no arguments.  It returns a string or nil if it cannot guess.")
 
-;;;###autoload
+;; This MUST not be autoloaded, since user-login-name
+;; cannot be known at Emacs dump time.
 (defvar add-log-full-name (user-full-name)
   "*Full name of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by the `user-full-name' function.")
 
-;;;###autoload
+;; This MUST not be autoloaded, since user-login-name
+;; cannot be known at Emacs dump time.
 (defvar add-log-mailing-address (concat (user-login-name) "@" (system-name))
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by `user-login-name', followed by
