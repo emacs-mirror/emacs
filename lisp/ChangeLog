@@ -1,5 +1,15 @@
 2004-05-04  Juanma Barranquero  <lektu@terra.es>
 
+	* help-fns.el (help-argument-name): New face, inheriting from
+	font-lock-variable-name-face, to highlight function arguments in
+	`describe-function' and `describe-key'.
+	(help-do-arg-highlight): Auxiliary function to highlight a given
+	list of arguments in a string.
+	(help-highlight-arguments): Highlight the function arguments and
+	all uses of them in the docstring.
+	(describe-function-1): Use it. Do docstring output via `insert',
+	not 'princ', so text attributes are preserved.
+
 	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
 	C-c <left> and C-c <right>, respectively (the previous bindings
 	conflict with prev-buffer, next-buffer).
