@@ -1279,7 +1279,7 @@ can cope with separate Latin-1 and Latin-9 representations of e-acute.
 See also command `unify-8859-on-decoding-mode'."
   :group 'mule
   :global t
-  :version 21.3				; who knows...?
+  :version "21.3"				; who knows...?
   :init-value nil
   (if unify-8859-on-encoding-mode
       (ucs-unify-8859 t)
@@ -1298,7 +1298,7 @@ methods produce unified characters.
 See also command `unify-8859-on-encoding-mode'."
   :group 'mule
   :global t
-  :version 21.3				; who knows...?
+  :version "21.3"				; who knows...?
   :init-value nil
   (let ((table (if unify-8859-on-decoding-mode ucs-mule-8859-to-mule-unicode)))
     (set-char-table-parent standard-translation-table-for-decode table)
