@@ -19,10 +19,12 @@ NOTE-END  */
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH -g -O
 #else
+/* We used to have  -systype bsd43, but a configure change
+   now takes care of that option.  */
 #ifdef MIPS2
-#define C_DEBUG_SWITCH -DMips -systype bsd43 -g3 -O -Olimit 2000 -mips2
+#define C_DEBUG_SWITCH -DMips -g3 -O -Olimit 2000 -mips2
 #else
-#define C_DEBUG_SWITCH -DMips -systype bsd43 -g3 -O -Olimit 2000
+#define C_DEBUG_SWITCH -DMips -g3 -O -Olimit 2000
 #endif
 #endif
 
@@ -44,3 +46,5 @@ NOTE-END  */
 #define COFF
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -systype bsd43 -g3 -D 800000
+
+#define NO_MODE_T
