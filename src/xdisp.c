@@ -11663,27 +11663,26 @@ cursor_row_p (w, row)
      struct window *w;
      struct glyph_row *row;
 {
+  int cursor_row_p = 1;
+  
   if (PT == MATRIX_ROW_END_CHARPOS (row))
     {
-      /* If PT is at the end of ROW, and that row ends with a
-	 newline from a string, we don't want the cursor there.  */
-      if (row->end.overlay_string_index >= 0
-	  && ((truncate_partial_width_windows
-	       && !WINDOW_FULL_WIDTH_P (w))
-	      || !NILP (current_buffer->truncate_lines)))
-	return 0;
+      /* If the row ends with a newline from a string, we don't want
+	 the cursor there (if the row is continued it doesn't end in a
+	 newline).  */
+      if (CHARPOS (row->end.string_pos) >= 0
+	  || MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
+	cursor_row_p = row->continued_p;
 
-      /* If PT is at the end of ROW, we normally want the cursor
-	 at the start of the row below, except when ROW ends
-	 at ZV or in the middle of a character.  */
-      if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-	  || row->ends_at_zv_p)
-	return 1;
-
-      return 0;
+      /* If the row ends at ZV, display the cursor at the end of that
+	 row instead of at the start of the row below.  */
+      else if (row->ends_at_zv_p)
+	cursor_row_p = 1;
+      else
+	cursor_row_p = 0;
     }
 
-  return 1;
+  return cursor_row_p;
 }
 
 
