@@ -4637,7 +4637,7 @@ Value is nil if ATTR doesn't have a discrete set of valid values.  */)
 
 DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
        Sinternal_merge_in_global_face, 2, 2, 0,
-  doc: /* Add attributes from frame-default definition of FACE to FACE on FRAME.
+       doc: /* Add attributes from frame-default definition of FACE to FACE on FRAME.
 Default face attributes override any local face attributes.  */)
      (face, frame)
      Lisp_Object face, frame;
@@ -4672,7 +4672,7 @@ Default face attributes override any local face attributes.  */)
    done in fontset.el.  */
 
 DEFUN ("face-font", Fface_font, Sface_font, 1, 2, 0,
-  doc: /* Return the font name of face FACE, or nil if it is unspecified.
+       doc: /* Return the font name of face FACE, or nil if it is unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
   The font default for a face is either nil, or a list
@@ -5588,7 +5588,7 @@ be found.  Value is ALIST.  */)
 DEFUN ("internal-set-alternative-font-registry-alist",
        Finternal_set_alternative_font_registry_alist,
        Sinternal_set_alternative_font_registry_alist, 1, 1, 0,
-  doc: /* Define alternative font registries to try in face font selection.
+       doc: /* Define alternative font registries to try in face font selection.
 ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
 Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can
 be found.  Value is ALIST.  */)
@@ -6694,7 +6694,7 @@ realize_tty_face (cache, attrs, c)
 DEFUN ("tty-suppress-bold-inverse-default-colors",
        Ftty_suppress_bold_inverse_default_colors,
        Stty_suppress_bold_inverse_default_colors, 1, 1, 0,
-  doc: /* Suppress/allow boldness of faces with inverse default colors.
+       doc: /* Suppress/allow boldness of faces with inverse default colors.
 SUPPRESS non-nil means suppress it.
 This affects bold faces on TTYs whose foreground is the default background
 color of the display and whose background is the default foreground color.
