@@ -29,21 +29,21 @@
 ### If configure succeeds, it leaves its status in config.status.
 ### If configure fails after disturbing the status quo,
 ### 	config.status is removed.
-###
 
 
-### Remove any leading "." elements from the path name.  If we don't
-### remove them, then another "./" will be prepended to the file name
-### each time we use config.status, and the program name will get larger
-### and larger.  This wouldn't be a problem, except that since progname
-### gets recorded in all the Makefiles this script produces,
-### move-if-change thinks they're different when they're not.
+### Remove any more than one leading "." element from the path name.
+### If we don't remove them, then another "./" will be prepended to
+### the file name each time we use config.status, and the program name
+### will get larger and larger.  This wouldn't be a problem, except
+### that since progname gets recorded in all the Makefiles this script
+### produces, move-if-change thinks they're different when they're
+### not.
 ###
 ### It would be nice if we could put the ./ in a \( \) group and then
 ### apply the * operator to that, so we remove as many leading ./././'s
 ### as are present, but some seds (like Ultrix's sed) don't allow you to
 ### apply * to a \( \) group.  Bleah.
-progname="`echo $0 | sed 's:^\./::'`"
+progname="`echo $0 | sed 's:^\./\./:\./:'`"
 
 
 #### Usage messages.
@@ -260,6 +260,10 @@ if configuration=`${srcdir}/config.sub "${configuration}"` ; then : ; else
   exit $?
 fi
 
+### If you add support for a new configuration, add code to this
+### switch statement to recognize your configuration name and select
+### the appropriate operating system and machine description files.
+
 ### You would hope that you could choose an m/*.h file pretty much
 ### based on the machine portion of the configuration name, and an s-
 ### file based on the operating system portion.  However, it turns out
@@ -268,12 +272,17 @@ fi
 ### all 68000 machines; mips.h, pmax.h, and news-risc are all MIPS
 ### machines.  So we basically have to have a special case for each
 ### configuration name.
-
+###
 ### As far as handling version numbers on operating systems is
 ### concerned, make sure things will fail in a fixable way.  If
 ### /etc/MACHINES doesn't say anything about version numbers, be
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
+###
+### Eric Raymond says we should accept strings like "sysvr4" to mean
+### "System V Release 4"; he writes, "The old convention encouraged
+### confusion between `system' and `release' levels'."
+
 machine='' opsys='' unported='false'
 case "${configuration}" in
 
@@ -526,10 +535,10 @@ case "${configuration}" in
   ;;
 
   ## NCR machines
-  m68*-ncr-sysv2* )
+  m68*-ncr-sysv2* | m68*-ncr-sysvr2* )
     machine=tower32 opsys=usg5-2-2
   ;;
-  m68*-ncr-sysv3* )
+  m68*-ncr-sysv3* | m68*-ncr-sysvr3* )
     machine=tower32v3 opsys=usg5-3
   ;;
 
@@ -648,13 +657,13 @@ case "${configuration}" in
   vax-dec-* )
     machine=vax
     case "${configuration}" in
-      *-bsd4.1 ) opsys=bsd4-1 ;;
-      *-bsd4.2 | *-ultrix[0-3].* | *-ultrix4.0 ) opsys=bsd4-2 ;;
-      *-bsd4.3 | *-ultrix* ) opsys=bsd4-3 ;;
-      *-sysv[01]* ) opsys=usg5-0 ;;
-      *-sysv2* ) opsys=usg5-2 ;;
-      *-vms* ) opsys=vms ;;
-      * ) unported=true
+      *-bsd4.1 ) 					opsys=bsd4-1 ;;
+      *-bsd4.2 | *-ultrix[0-3].* | *-ultrix4.0 )	opsys=bsd4-2 ;;
+      *-bsd4.3 | *-ultrix* ) 				opsys=bsd4-3 ;;
+      *-sysv[01]* | *-sysvr[01]* ) 			opsys=usg5-0 ;;
+      *-sysv2* | *-sysvr2* )				opsys=usg5-2 ;;
+      *-vms* ) 						opsys=vms ;;
+      * ) 						unported=true
     esac
   ;;
 
@@ -686,11 +695,11 @@ if [ ! "${opsys}" ]; then
     *-bsd4.[01] )	opsys=bsd4-1 ;;
     *-bsd4.2 )		opsys=bsd4-2 ;;
     *-bsd4.3 )		opsys=bsd4-3 ;;
-    *-sysv0 )		opsys=usg5-0 ;;
-    *-sysv2 )		opsys=usg5-2 ;;
-    *-sysv2.2 )		opsys=usg5-2-2 ;;
-    *-sysv3 )		opsys=usg5-3 ;;
-    *-sysv4 )		opsys=usg5-4 ;;
+    *-sysv0 | *-sysvr0 )		opsys=usg5-0 ;;
+    *-sysv2 | *-sysvr2 )		opsys=usg5-2 ;;
+    *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
+    *-sysv3 | *-sysvr3 )		opsys=usg5-3 ;;
+    *-sysv4 | *-sysvr4 )		opsys=usg5-4 ;;
     * )
       unported=true
     ;;
