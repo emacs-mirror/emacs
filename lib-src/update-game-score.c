@@ -19,8 +19,12 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 /* This program is allows a game to securely and atomically update a
-   score file.  It should be installed setgid, owned by an appropriate
-   group like `games'.
+   score file.  It should be installed setuid, owned by an appropriate
+   user like `games'.
+
+   Alternatively, it can be compiled without HAVE_SHARED_GAME_DIR
+   defined, and in that case it will store scores in the user's home
+   directory (it should NOT be setuid).
 
    Created 2002/03/22, by Colin Walters <walters@debian.org>
 */
@@ -36,15 +40,22 @@ Boston, MA 02111-1307, USA.  */
 #include <pwd.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <sys/stat.h>
 #include <config.h>
 
 #define MAX_ATTEMPTS 5
+#define MAX_SCORES 200
+#define MAX_DATA_LEN 1024
 
 #ifdef HAVE_SHARED_GAME_DIR
 #define SCORE_FILE_PREFIX HAVE_SHARED_GAME_DIR
 #else
-#define SCORE_FILE_PREFIX "$HOME"
+#define SCORE_FILE_PREFIX "~/.emacs.d/games"
+#endif
+
+#if !defined (__GNUC__) || __GNUC__ < 2
+#define __attribute__(x) 
 #endif
 
 int
@@ -90,7 +101,8 @@ get_user_id(struct passwd *buf)
     {
       int count = 1;
       int uid = (int) getuid();
-      while (uid /= 10)
+      int tuid = uid;
+      while (tuid /= 10)
 	count++;
       name = malloc(count+1);
       sprintf(name, "%d", uid);
@@ -107,6 +119,18 @@ get_home_dir(struct passwd *buf)
   return buf->pw_dir;
 }
 
+void lose(const char *msg, ...)
+     __attribute__ ((format (printf,1,0), noreturn));
+
+void lose(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    vfprintf(stderr, msg, ap);
+    va_end(ap);
+    exit(1);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -115,7 +139,7 @@ main(int argc, char **argv)
   char *scorefile, *prefix;
   struct stat buf;
   struct score_entry *scores;
-  int newscore, scorecount, reverse = 0, max = -1;
+  int newscore, scorecount, reverse = 0, max = MAX_SCORES;
   char *newdata;
   struct passwd *passwdbuf;
 
@@ -132,6 +156,8 @@ main(int argc, char **argv)
 	break;
       case 'm':
 	max = atoi(optarg);
+	if (max > MAX_SCORES)
+	  max = MAX_SCORES;
 	break;
       default:
 	usage(1);
@@ -142,62 +168,65 @@ main(int argc, char **argv)
 
   passwdbuf = getpwuid(getuid());
 
-  if (!strcmp(SCORE_FILE_PREFIX, "$HOME"))
+  if (!strncmp(SCORE_FILE_PREFIX, "~", 1))
     {
-      prefix = get_home_dir(passwdbuf);
-      if (!prefix)
-	{
-	  fprintf(stderr, "Unable to determine home directory\n");
-	  exit(1);
-	}
+      char *homedir = get_home_dir(passwdbuf);
+      if (!homedir)
+	lose("Unable to determine home directory\n");
+      prefix = malloc(strlen(homedir) + strlen(SCORE_FILE_PREFIX) + 1);
+      strcpy(prefix, homedir);
+      /* Skip over the '~'. */
+      strcat(prefix, SCORE_FILE_PREFIX+1);
     }
   else
-    prefix = SCORE_FILE_PREFIX;
-  
-  scorefile = malloc(strlen(prefix) + strlen(argv[optind]) + 1);
+    prefix = strdup(SCORE_FILE_PREFIX);
+
+  if (!prefix)
+    lose("Couldn't create score file name: %s\n", strerror(errno));
+
+  scorefile = malloc(strlen(prefix) + strlen(argv[optind]) + 2);
   if (!scorefile)
-    {
-      fprintf(stderr, "Couldn't create score file name: %s\n",
-	      strerror(errno));
-      goto fail;
-    }
+    lose("Couldn't create score file name: %s\n", strerror(errno));
+
   strcpy(scorefile, prefix);
+  free(prefix);
+  strcat(scorefile, "/");
   strcat(scorefile, argv[optind]);
   newscore = atoi(argv[optind+1]);
   newdata = argv[optind+2];
+  if (strlen(newdata) > MAX_DATA_LEN)
+    newdata[MAX_DATA_LEN] = '\0';
   
   if (stat(scorefile, &buf) < 0)
-    {
-      fprintf(stderr, "Failed to access scores file \"%s\": %s\n",
-	      scorefile, strerror(errno));
-      goto fail;
-    }
+    lose("Failed to access scores file \"%s\": %s\n", scorefile,
+	 strerror(errno));
   if (lock_file(scorefile, &lockstate) < 0)
-    {
-      fprintf(stderr, "Failed to lock scores file \"%s\": %s\n",
-	      scorefile, strerror(errno));
-      goto fail;
-    }
+      lose("Failed to lock scores file \"%s\": %s\n",
+	   scorefile, strerror(errno));
   if (read_scores(scorefile, &scores, &scorecount) < 0)
     {
-      fprintf(stderr, "Failed to read scores file \"%s\": %s\n",
-	      scorefile, strerror(errno));
-      goto fail_unlock;
+      unlock_file(scorefile, lockstate);
+      lose("Failed to read scores file \"%s\": %s\n", scorefile,
+	   strerror(errno));
     }
   push_score(&scores, &scorecount, newscore, get_user_id(passwdbuf), newdata);
+  /* Limit the number of scores.  If we're using reverse sorting, then
+     we should increment the beginning of the array, to skip over the
+     *smallest* scores.  Otherwise, we just decrement the number of
+     scores, since the smallest will be at the end. */
+  if (scorecount > MAX_SCORES)
+    scorecount -= (scorecount - MAX_SCORES);
+    if (reverse)
+      scores += (scorecount - MAX_SCORES);
   sort_scores(scores, scorecount, reverse);
   if (write_scores(scorefile, scores, scorecount) < 0)
     {
-      fprintf(stderr, "Failed to write scores file \"%s\": %s\n",
-	      scorefile, strerror(errno));
-      goto fail_unlock;
+      unlock_file(scorefile, lockstate);
+      lose("Failed to write scores file \"%s\": %s\n", scorefile,
+	   strerror(errno));
     }
   unlock_file(scorefile, lockstate);
   exit(0);
- fail_unlock:
-  unlock_file(scorefile, lockstate);
- fail:
-  exit(1);
 }
 
 int
@@ -236,11 +265,9 @@ read_score(FILE *f, struct score_entry *score)
     while ((c = getc(f)) != EOF
 	   && !isspace(c))
       {
-	if (unameread == unamelen)
-	  {
-	    if (!(username = realloc(username, unamelen *= 2)))
-	      return -1;
-	  }
+	if (unameread >= unamelen-1)
+	  if (!(username = realloc(username, unamelen *= 2)))
+	    return -1;
 	username[unameread] = c;
 	unameread++;
       }
@@ -366,7 +393,11 @@ write_scores(const char *filename, const struct score_entry *scores,
     return -1;
   strcpy(tempfile, filename);
   strcat(tempfile, ".tempXXXXXX");
+#ifdef HAVE_MKSTEMP
   if (mkstemp(tempfile) < 0
+#else
+  if (mktemp(tempfile) != tempfile
+#endif
       || !(f = fopen(tempfile, "w")))
     return -1;
   for (i = 0; i < count; i++)
@@ -374,59 +405,12 @@ write_scores(const char *filename, const struct score_entry *scores,
 		scores[i].data) < 0)
       return -1;
   fclose(f);
-  rename(tempfile, filename);
+  if (rename(tempfile, filename) < 0)
+    return -1;
+  if (chmod(filename, 0644) < 0)
+    return -1;
   return 0;
 }
-
-#if 0
-int
-lock_file(const char *filename, void **state)
-{
-  struct flock lock;
-  int *istate;
-  int fd, attempts = 0, ret = 0;
-  lock.l_type = F_WRLCK;
-  lock.l_whence = SEEK_SET;
-  lock.l_start = 0;
-  lock.l_len = 0;
-  istate = malloc(sizeof(int));
-  if (!istate)
-    return -1;
-  if ((fd = open(filename, O_RDWR, 0600)) < 0)
-    return -1;
-  *istate = fd;
- trylock:
-  attempts++;
-  if ((ret = fcntl(fd, F_GETLK, &lock)) == -1)
-    {
-      if (ret == EACCES || ret == EAGAIN)
-	if (attempts > MAX_ATTEMPTS)
-	  exit(1);
-	else
-	  {
-	    sleep((rand() % 3)+1);
-	    goto trylock;
-	  }
-      else
-	ret = 0 ;
-    }
-  else
-    ret = 0;
-  *state = istate;
-  return ret;
-}
-
-int
-unlock_file(const char *filename, void *state)
-{
-  int fd, ret;
-  fd = *((int *) state);
-  free(state);
-  ret = close(fd);
-  return ret;
-}
-
-#else
 
 int
 lock_file(const char *filename, void **state)
@@ -450,8 +434,7 @@ lock_file(const char *filename, void **state)
 	     lose some scores. */
 	  if (attempts > MAX_ATTEMPTS)
 	    unlink(lockpath);
-	  else
-	    sleep((rand() % 2)+1);
+	  sleep((rand() % 2)+1);
 	  goto trylock;
 	}
       else
@@ -471,5 +454,3 @@ unlock_file(const char *filename, void *state)
   errno = saved_errno;
   return ret;
 }
-
-#endif
