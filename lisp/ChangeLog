@@ -1,3 +1,9 @@
+2004-05-10  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (help-buffer): Autoload when compiling.
+	(python-after-info-look): Don't assume Info-goto-node returns non-nil.
+	(run-python): Prepend to any existing PYTHONPATH.
+
 2004-05-10  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-annotation-rules): Add nquery annotation
