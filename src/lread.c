@@ -2303,6 +2303,8 @@ OBARRAY defaults to the value of the variable `obarray'.")
   if (SYMBOLP (name) && !EQ (name, tem))
     return Qnil;
 
+  XSYMBOL (tem)->obarray = Qnil;
+
   hash = oblookup_last_bucket_number;
 
   if (EQ (XVECTOR (obarray)->contents[hash], tem))
