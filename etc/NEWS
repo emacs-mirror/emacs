@@ -24,6 +24,9 @@ You no longer need to download a separate tarball in order to build
 Emacs with Leim.
 
 ---
+** Support for AIX 5.1 was added.
+
+---
 ** Support for FreeBSD/Alpha has been added.
 
 ---
