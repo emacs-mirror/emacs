@@ -3302,7 +3302,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
       while (XPending (dpyinfo->display) != 0)
 	{
+#ifdef USE_X_TOOLKIT
+          /* needed to raise Motif submenus */
+	  XtAppNextEvent (Xt_app_con, &event);
+#else
 	  XNextEvent (dpyinfo->display, &event);
+#endif
 	  event_found = 1;
 
 	  switch (event.type)
