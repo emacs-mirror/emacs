@@ -166,8 +166,9 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                                 (truncate date)))))
 			  60.0 24.0)))
          (time (* 24 (- date (truncate date))))
-	 (date (calendar-gregorian-from-absolute (truncate date))))
-    (list date (solar-time-string time date) phase)))
+	 (date (calendar-gregorian-from-absolute (truncate date)))
+         (adj (solar-adj-time-for-dst date time)))
+    (list (car adj) (apply 'solar-time-string (cdr adj)) phase)))
 
 (defun lunar-phase-name (phase)
   "Name of lunar PHASE.
