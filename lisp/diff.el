@@ -260,7 +260,7 @@ The backup file is the first file given to `diff'."
   ;; Ignore the value of version-control because we look for existing
   ;; backups, which maybe were made earlier or by another user with
   ;; a different value of version-control.
-  (setq fn (expand-file-name fn))
+  (setq fn (file-chase-links (expand-file-name fn)))
   (or
    (let ((bak (make-backup-file-name fn)))
      (if (file-exists-p bak) bak))
