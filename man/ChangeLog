@@ -1,3 +1,12 @@
+2004-08-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Font Lock): Correct invalid @xref.
+
+	* search.texi (Regexps): Correct cryptic @ref.
+	(Configuring Scrolling): Correct invalid @xref.
+	(Regexp Replace): Standardize reference to hardcopy Elisp Manual
+	in @pxref.
+
 2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* kmacro.texi (Keyboard Macro Counter, Keyboard Macro Step-Edit):
