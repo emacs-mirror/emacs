@@ -1,3 +1,7 @@
+2001-05-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Undo last change.
+
 2001-05-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cus-edit.el (custom-file): Don't assume we were invoked with -q
@@ -15338,8 +15342,8 @@
 
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/ebrowse.el (ebrowse-tree-mode): Use
-	propertized-buffer-identification.
+	* progmodes/ebrowse.el (ebrowse-tree-mode):
+	Use propertized-buffer-identification.
 	(ebrowse-update-member-buffer-mode-line): Likewise.
 	(ebrowse--mode-strings): Removed.
 	(ebrowse--mode-line-props): Removed.
@@ -15366,14 +15370,12 @@
 
 2000-04-09  Dave Love  <fx@gnu.org>
 
-	* files.el (backup-enable-predicate): Use
-	temporary-file-directory, small-temporary-file-directory.
-	(make-backup-file-name-function, backup-directory-alist): New
-	variables.
+	* files.el (backup-enable-predicate):
+	Use temporary-file-directory, small-temporary-file-directory.
+	(make-backup-file-name-function, backup-directory-alist): New vars.
 	(make-backup-file-name-1): New function.
 	(make-backup-file-name): Use it.
-	(find-backup-file-name): Likewise.  Use format for clarity, not
-	concat.
+	(find-backup-file-name): Likewise.  Use format for clarity, not concat.
 	(file-newest-backup): Use make-backup-file-name.
 
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
