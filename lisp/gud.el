@@ -84,7 +84,8 @@ This association list has elements of the form
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
-  %f	name of current source file. 
+  %f	name (without directory) of current source file. 
+  %d	directory of current source file. 
   %l	number of current source line
   %e	text of the C lvalue or function-call expression surrounding point.
   %a	text of the hexadecimal address surrounding point
@@ -330,7 +331,7 @@ and source-file directory for your debugger."
 
   (gud-common-init command-line)
 
-  (gud-def gud-break  "file \"%f\"\nstop at %l"
+  (gud-def gud-break  "file \"%d%f\"\nstop at %l"
 	   			  "\C-b" "Set breakpoint at current line.")
 ;;  (gud-def gud-break  "stop at \"%f\":%l"
 ;;	   			  "\C-b" "Set breakpoint at current line.")
@@ -723,42 +724,44 @@ Obeying it means displaying in another window the specified file and line."
 (defun gud-format-command (str arg)
   (let ((insource (not (eq (current-buffer) gud-comint-buffer))))
     (if (string-match "\\(.*\\)%f\\(.*\\)" str)
-	(progn
-	  (setq str (concat
-		     (substring str (match-beginning 1) (match-end 1))
-		     (file-name-nondirectory (if insource
-						 (buffer-file-name)
-					       (car gud-last-frame)))
-		     (substring str (match-beginning 2) (match-end 2))))))
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (file-name-nondirectory (if insource
+					       (buffer-file-name)
+					     (car gud-last-frame)))
+		   (substring str (match-beginning 2) (match-end 2)))))
+    (if (string-match "\\(.*\\)%d\\(.*\\)" str)
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (file-name-directory (if insource
+					    (buffer-file-name)
+					  (car gud-last-frame)))
+		   (substring str (match-beginning 2) (match-end 2)))))
     (if (string-match "\\(.*\\)%l\\(.*\\)" str)
-	(progn
-	  (setq str (concat
-		     (substring str (match-beginning 1) (match-end 1))
-		     (if insource
-			 (save-excursion
-			   (beginning-of-line)
-			   (save-restriction (widen) 
-					     (1+ (count-lines 1 (point)))))
-		       (cdr gud-last-frame))
-		     (substring str (match-beginning 2) (match-end 2))))))
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (if insource
+		       (save-excursion
+			 (beginning-of-line)
+			 (save-restriction (widen) 
+					   (1+ (count-lines 1 (point)))))
+		     (cdr gud-last-frame))
+		   (substring str (match-beginning 2) (match-end 2)))))
     (if (string-match "\\(.*\\)%e\\(.*\\)" str)
-	(progn
-	  (setq str (concat
-		     (substring str (match-beginning 1) (match-end 1))
-		     (find-c-expr)
-		     (substring str (match-beginning 2) (match-end 2))))))
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (find-c-expr)
+		   (substring str (match-beginning 2) (match-end 2)))))
     (if (string-match "\\(.*\\)%a\\(.*\\)" str)
-	(progn
-	  (setq str (concat
-		     (substring str (match-beginning 1) (match-end 1))
-		     (gud-read-address)
-		     (substring str (match-beginning 2) (match-end 2))))))
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (gud-read-address)
+		   (substring str (match-beginning 2) (match-end 2)))))
     (if (string-match "\\(.*\\)%p\\(.*\\)" str)
-	(progn
-	  (setq str (concat
-		     (substring str (match-beginning 1) (match-end 1))
-		     (if arg (int-to-string arg) "")
-		     (substring str (match-beginning 2) (match-end 2))))))
+	(setq str (concat
+		   (substring str (match-beginning 1) (match-end 1))
+		   (if arg (int-to-string arg) "")
+		   (substring str (match-beginning 2) (match-end 2)))))
     )
   str
   )
