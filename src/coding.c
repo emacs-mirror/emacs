@@ -1087,7 +1087,6 @@ detect_coding_utf_8 (coding, mask)
 }
 
 
-/* Fixme: deal with surrogates?  */
 static void
 decode_coding_utf_8 (coding)
      struct coding_system *coding;
@@ -1153,7 +1152,8 @@ decode_coding_utf_8 (coding)
 		{
 		  c = (((c1 & 0xF) << 12)
 		       | ((c2 & 0x3F) << 6) | (c3 & 0x3F));
-		  if (c < 0x800)
+		  if (c < 0x800
+		      || (c >= 0xd800 && c < 0xe000)) /* surrogates (invalid) */
 		    goto invalid_code;
 		}
 	      else
