@@ -3,6 +3,9 @@
 	* coding.c (setup_coding_system): Don't do any designation based
 	on reg_bits if charset is not yet defined.
 
+	* lisp.h (XVECTOR): Verify correct object type before returning a
+	pointer, using eassert.
+
 2001-07-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (KBD_BUFFER_SIZE) [!HAVE_WINDOW_SYSTEM]: Increase

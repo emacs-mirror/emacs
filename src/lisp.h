@@ -471,7 +471,7 @@ extern Lisp_Object make_number ();
 /* Extract a value or address from a Lisp_Object.  */
 
 #define XCONS(a) (eassert (GC_CONSP(a)),(struct Lisp_Cons *) XPNTR(a))
-#define XVECTOR(a) ((struct Lisp_Vector *) XPNTR(a))
+#define XVECTOR(a) (eassert (GC_VECTORLIKEP(a)),(struct Lisp_Vector *) XPNTR(a))
 #define XSTRING(a) (eassert (GC_STRINGP(a)),(struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) (eassert (GC_SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
 #define XFLOAT(a) (eassert (GC_FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
