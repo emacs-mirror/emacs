@@ -862,11 +862,16 @@ PREFIX should be an absolute file name.")
   while (1)
     {
       struct stat ignored;
-      unsigned num = make_temp_name_count++;
+      unsigned num = make_temp_name_count;
 
       p[0] = make_temp_name_tbl[num & 63], num >>= 6;
       p[1] = make_temp_name_tbl[num & 63], num >>= 6;
       p[2] = make_temp_name_tbl[num & 63], num >>= 6;
+
+      /* Poor man's congruential RN generator.  Replace with
+         ++make_temp_name_count for debugging.  */
+      make_temp_name_count += 25229;
+      make_temp_name_count %= 225307;
 
       if (stat (data, &ignored) < 0)
 	{
@@ -878,9 +883,9 @@ PREFIX should be an absolute file name.")
 	       can do.  The alternatives are to return nil, which is
 	       as bad as (and in many cases worse than) throwing the
 	       error, or to ignore the error, which will likely result
-	       in looping through 262144 stat's, which is not only
-	       SLOW, but also useless since it will fallback to the
-	       errow below, anyway.  */
+	       in looping through 225307 stat's, which is not only
+	       dog-slow, but also useless since it will fallback to
+	       the errow below, anyway.  */
 	    report_file_error ("Cannot create temporary name for prefix `%s'",
 			       Fcons (prefix, Qnil));
 	  /* not reached */
