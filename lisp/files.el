@@ -592,17 +592,18 @@ If there is no such live buffer, return nil."
 	  found)
 	(let ((number (nthcdr 10 (file-attributes truename)))
 	      (list (buffer-list)) found)
-	  (while (and (not found) list)
-	    (save-excursion
-	      (set-buffer (car list))
-	      (if (and (equal buffer-file-number number)
-		       ;; Verify this buffer's file number
-		       ;; still belongs to its file.
-		       (file-exists-p buffer-file-name)
-		       (equal (nthcdr 10 (file-attributes buffer-file-name))
-			      number))
-		  (setq found (car list))))
-	    (setq list (cdr list)))
+	  (and number
+	       (while (and (not found) list)
+		 (save-excursion
+		   (set-buffer (car list))
+		   (if (and (equal buffer-file-number number)
+			    ;; Verify this buffer's file number
+			    ;; still belongs to its file.
+			    (file-exists-p buffer-file-name)
+			    (equal (nthcdr 10 (file-attributes buffer-file-name))
+				   number))
+		       (setq found (car list))))
+		 (setq list (cdr list))))
 	  found))))
 
 (defun find-file-noselect (filename &optional nowarn)
