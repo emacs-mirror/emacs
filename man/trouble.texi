@@ -16,8 +16,8 @@ also considered.
 
 @table @kbd
 @item C-g
-@itemx C-@key{BREAK}@r{ (MS-DOS only)}
-Quit (@code{keyboard-quit}): cancel running or partially typed command.
+@itemx C-@key{BREAK} @r{(MS-DOS only)}
+Quit: cancel running or partially typed command.
 @item C-]
 Abort innermost recursive editing level and cancel the command which
 invoked it (@code{abort-recursive-edit}).
@@ -37,7 +37,6 @@ editing level and cancels the command that invoked the recursive edit.
 (@xref{Recursive Edit}.)
 
 @cindex quitting
-@findex keyboard-quit
 @kindex C-g
   Quitting with @kbd{C-g} is used for getting rid of a partially typed
 command, or a numeric argument that you don't want.  It also stops a
@@ -56,11 +55,12 @@ recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
 @kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Input}.
 
+@findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
 the instant @kbd{C-g} is typed; Emacs Lisp checks this variable
 frequently and quits if it is non-@code{nil}.  @kbd{C-g} is only
 actually executed as a command if you type it while Emacs is waiting for
-input.
+input.  In that case, the command it runs is @code{keyboard-quit}.
 
   If you quit with @kbd{C-g} a second time before the first @kbd{C-g} is
 recognized, you activate the ``emergency escape'' feature and return to
@@ -463,8 +463,8 @@ well.
 
 @cindex reporting bugs
   The best way to send a bug report is to mail it electronically to the
-Emacs maintainers at @samp{bug-gnu-emacs@@gnu.org}, or to
-@samp{emacs-pretest-bug@@gnu.org} if you are pretesting an Emacs beta
+Emacs maintainers at @email{bug-gnu-emacs@@gnu.org}, or to
+@email{emacs-pretest-bug@@gnu.org} if you are pretesting an Emacs beta
 release.  (If you want to suggest a change as an improvement, use the
 same address.)
 
@@ -629,6 +629,12 @@ whether the bug was happening---we would not be able to draw any
 conclusion from our observations.
 
 @item
+If the bug is that the Emacs Manual or the Emacs Lisp Reference Manual
+fails to describe the actual behavior of Emacs, or that the text is
+confusing, copy in the text from the online manual which you think is
+at fault.  If the section is small, just the section name is enough.
+
+@item
 If the manifestation of the bug is an Emacs error message, it is
 important to report the precise text of the error message, and a
 backtrace showing how the Lisp program in Emacs arrived at the error.
@@ -730,7 +736,7 @@ More detailed advice and other useful techniques for debugging Emacs
 are available in the file @file{etc/DEBUG} in the Emacs distribution.
 That file also includes instructions for investigating problems
 whereby Emacs stops responding (many people assume that Emacs is
-``hung'', whereas in fact it might be in an infinite loop).
+``hung,'' whereas in fact it might be in an infinite loop).
 
 In an installed Emacs, the file @file{etc/DEBUG} is in the same
 directory where the Emacs on-line documentation file @file{DOC},
