@@ -89,6 +89,7 @@ static time_t boot_time;
 static time_t
 get_boot_time ()
 {
+#ifdef BOOT_TIME
   struct utmp ut, *utp;
 
   if (boot_time)
@@ -102,6 +103,9 @@ get_boot_time ()
   if (!utp)
     return boot_time = 1;
   return boot_time = utp->ut_time;
+#else
+  return 0;
+#endif;
 }
 
 /* Here is the structure that stores information about a lock.  */
@@ -158,6 +162,7 @@ lock_file_1 (lfname, force)
      int force;
 {
   register int err;
+  time_t boot_time;
   char *user_name;
   char *host_name;
   char *lock_info_str;
@@ -173,8 +178,13 @@ lock_file_1 (lfname, force)
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
 				  + LOCK_PID_MAX + 5);
 
-  sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
-           (unsigned long) getpid (), (unsigned long) get_boot_time ());
+  boot_time = get_boot_time ();
+  if (boot_time)
+    sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
+	     (unsigned long) getpid (), (unsigned long) boot_time);
+  else
+    sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
+	     (unsigned long) getpid ());    
 
   err = symlink (lock_info_str, lfname);
   if (errno == EEXIST && force)
