@@ -1,3 +1,7 @@
+2001-02-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (where_is_internal): Accept non-ascii integer prefixes.
+
 2001-02-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (lisp): Add international/utf-8.elc.
