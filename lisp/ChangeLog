@@ -12,7 +12,7 @@
 
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-parse-state): Fixed bug that could
+	* progmodes/cc-engine.el (c-parse-state): Fix bug that could
 	cause errors when the state cache contains info on parts that have
 	been narrowed out.
 
@@ -23,13 +23,13 @@
 	changed; it doesn't work to reinitialize the mode since that
 	typically clobbers the variable.
 
-	* progmodes/cc-styles.el (c-setup-paragraph-variables): Made it
-	interactive.
+	* progmodes/cc-styles.el (c-setup-paragraph-variables):
+	Make it interactive.
 
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-fonts.el (c-font-lock-declarations): Fixed
-	recognition of constructors and destructors for classes whose
+	* progmodes/cc-fonts.el (c-font-lock-declarations):
+	Fix recognition of constructors and destructors for classes whose
 	names are matched by `*-font-lock-extra-types'.
 
 	* progmodes/cc-langs.el (c-type-list-kwds): If "operator" is
@@ -37,26 +37,25 @@
 
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-fonts.el (c-font-lock-invalid-string): Fixed eob
+	* progmodes/cc-fonts.el (c-font-lock-invalid-string): Fix eob
 	problem that primarily affected XEmacs.  Don't use faces to find
 	unterminated strings since Emacs and XEmacs fontify strings
 	differently - this function should now work better in XEmacs.
 
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el (c-electric-brace): Fixed a bug in the
-	`expand-abbrev' workaround which caused braces to disbehave inside
+	* progmodes/cc-cmds.el (c-electric-brace): Fix a bug in the
+	`expand-abbrev' workaround which caused braces to misbehave inside
 	macros.
 
-	* progmodes/cc-engine.el (c-forward-keyword-clause): Fixed error
-	handling.  This bug could cause interactive font locking to bail
-	out.
+	* progmodes/cc-engine.el (c-forward-keyword-clause): Fix error
+	handling.  This bug could cause interactive font locking to bail out.
 
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-just-after-func-arglist-p): Handle
-	paren-style types in Pike.  Also fixed some cases of insufficient
-	handling of unbalanced parens.
+	* progmodes/cc-engine.el (c-just-after-func-arglist-p):
+	Handle paren-style types in Pike.  Also fixed some cases of
+	insufficient handling of unbalanced parens.
 
 2003-09-24  Andre Spiegel  <spiegel@gnu.org>
 
@@ -65,18 +64,14 @@
 
 2003-09-24  Kenichi Handa  <handa@m17n.org>
 
-	* language/devan-util.el (devanagari-post-read-conversion): Add
-	autoload cookie.
+	* language/devan-util.el (devanagari-post-read-conversion):
+	* language/mlm-util.el (malayalam-post-read-conversion):
+	* language/tml-util.el (tamil-post-read-conversion):
+	Add autoload cookie.
 
-	* language/mlm-util.el (malayalam-post-read-conversion): Add
-	autoload cookie.
-
-	* language/tml-util.el (tamil-post-read-conversion): Add autoload
-	cookie.
-
-	* international/utf-8.el (utf-8-post-read-conversion): Call
-	post-read-conversion functions for Devanagari, Malayalam, and
-	Tamil.
+	* international/utf-8.el (utf-8-post-read-conversion):
+	Call post-read-conversion functions for Devanagari, Malayalam,
+	and Tamil.
 
 2003-09-23  Dave Love  <fx@gnu.org>
 
@@ -89,8 +84,8 @@
 
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/sh-script.el (sh-mode-default-syntax-table): 
-	Renamed from sh-mode-syntax-table.  Call sh-mode-syntax-table directly.
+	* progmodes/sh-script.el (sh-mode-default-syntax-table):
+	Rename from sh-mode-syntax-table.  Call sh-mode-syntax-table directly.
 	(sh-mode-syntax-table-input): New variable.
 	(sh-require-final-newline): Don't use eval.
 	(sh-builtins, sh-leading-keywords, sh-other-keywords)
@@ -110,7 +105,7 @@
 
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
-	* woman.el (woman-file-name, woman-follow-word): 
+	* woman.el (woman-file-name, woman-follow-word):
 	If current-word returns nil, use "".
 
 	* simple.el (eval-expression): Bind standard-output in to-buffer case.
@@ -122,8 +117,8 @@
 
 2003-09-22  Jari Aalto  <jari.aalto@poboxes.com>
 
-	* emacs-lisp/lisp-mnt.el (lm-get-header-re): Added
-	surrounding \\( and \\) around the header, as in
+	* emacs-lisp/lisp-mnt.el (lm-get-header-re):
+	Add surrounding \\( and \\) around the header, as in
 	for lm-history-header 'Change Log\\|History'.
 
 2003-09-22  John Paul Wallington  <jpw@gnu.org>
@@ -151,15 +146,15 @@
 
 	* startup.el (command-line-1): Stop startup-echo-area-message
 	being hidden by "Loading image..." message.
-	(use-fancy-splash-screens-p, display-splash-screen): Move
-	display-graphic-p test from latter to former.
+	(use-fancy-splash-screens-p, display-splash-screen):
+	Move display-graphic-p test from latter to former.
 
-	* progmodes/sh-script.el (sh-font-lock-keywords): Highlight
-	escaped EOLs differently from other backslash constructs.
+	* progmodes/sh-script.el (sh-font-lock-keywords):
+	Highlight escaped EOLs differently from other backslash constructs.
 
 2003-09-19  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/edebug.el (edebug-var-status, edebug-restore-status): 
+	* emacs-lisp/edebug.el (edebug-var-status, edebug-restore-status):
 	New functions.
 	(edebug-enter, edebug-outside-excursion): Use them.
 
@@ -167,7 +162,7 @@
 	Fix the condition for whether to print "In WHERE".
 
 2003-09-19  Jari Aalto  <jari.aalto@poboxes.com>
-	
+
 	* finder.el (finder-mode-hook): New variable.
 	(finder-mode): Run hook finder-mode-hook
 
@@ -177,7 +172,7 @@
 
 2003-09-17  Mario Lang  <mlang@delysid.org>
 
-	* progmodes/gud.el (perldb): Change gud-print from just "%e" to 
+	* progmodes/gud.el (perldb): Change gud-print from just "%e" to
 	"p %e" to actually print the value in the GUD buffer.
 
 2003-09-16  Miles Bader  <miles@gnu.ai.mit.edu>
@@ -218,6 +213,10 @@
 
 	* hl-line.el: Documentation (comments-only) fix.
 
+2003-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/tq.el (tq-create): Fix mixed up unquote style.
+
 2003-09-12  Eric Hanchrow <offby1@blarg.net>  (tiny change)
 
 	* dired.el (dired-mode-map): Fix typo.
@@ -229,8 +228,7 @@
 2003-09-11  Paul Pogonyshev  <pogonyshev@gmx.net>  (tiny change)
 
 	* window.el (kill-buffer-and-window): Remove `yes-or-no-p' so that
-	the function is less noisy.  Now only `kill-buffer' can ask
-	questions.
+	the function is less noisy.  Now only `kill-buffer' can ask questions.
 
 2003-09-10  Mario Lang  <mlang@delysid.org>
 
@@ -245,7 +243,7 @@
 
 2003-09-08  David Ponce  <david@dponce.com>
 
-	Ensure that recentf correctly update the menu bar.
+	Ensure that recentf correctly updates the menu bar.
 	* recentf.el (recentf-menu-path,recentf-menu-before): Doc fix.
 	(recentf-menu-bar): New function.
 	(recentf-clear-data): Use it
@@ -260,7 +258,7 @@
 2003-09-04  Mario Lang  <mlang@delysid.org>
 
 	* battery.el (battery-linux-proc-acpi): New function.
-	(battery-status-function): Modified default value calculation to also
+	(battery-status-function): Modify default value calculation to also
 	check for availability of ACPI.
 	(battery-echo-area-format): Ditto.
 	(battery-mode-line-format): Ditto.
@@ -269,8 +267,7 @@
 
 	* ielm.el (ielm-mode-hook): Add :options.
 
-	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info-function):
-	New.
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info-function): New.
 	(eldoc-print-current-symbol-info): Use it.
 
 2003-09-04  Nick Roberts  <nick@nick.uklinux.net>
@@ -278,38 +275,37 @@
 	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
 	being displayed in GUD buffer.
 	(gdb-idle-input-queue): Remove var. Use just one queue.
-	(gdb-enqueue-idle-input,gdb-dequeue-idle-input): Remove
-	functions. Use just one queue.
+	(gdb-enqueue-idle-input,gdb-dequeue-idle-input):
+	Remove functions.  Use just one queue.
 	(gdb-prompt, gdb-subprompt, def-gdb-auto-update-trigger)
-	(gdb-invalidate-assembler, gdb-get-current-frame): Modify
-	functions. Use just one queue.
+	(gdb-invalidate-assembler, gdb-get-current-frame):
+	Modify functions.  Use just one queue.
 
 2003-09-04  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add blink-cursor-alist.
 
 	* ruler-mode.el (ruler-mode-fill-column-char)
-	(ruler-mode-current-column-char): Use char-displayable-p, not
-	window-system.
+	(ruler-mode-current-column-char): Use char-displayable-p,
+	not window-system.
 
-	* international/codepage.el ("mule-diag"): Add eval-after-load
-	clause.
+	* international/codepage.el ("mule-diag"): Add eval-after-load clause.
 
-	* language/european.el (windows-1252): Moved from code-pages.
+	* language/european.el (windows-1252): Move from code-pages.
 
-	* language/cyrillic.el ("Windows-1251"): Deleted.
+	* language/cyrillic.el ("Windows-1251"): Delete.
 	("Bulgarian", "Belarusian"): Remove `features'.
-	(windows-1251): Moved from code-pages.
+	(windows-1251): Move from code-pages.
 
-	* international/mule-diag.el (non-iso-charset-alist): Remove
-	`codepage' stuff.
+	* international/mule-diag.el (non-iso-charset-alist):
+	Remove `codepage' stuff.
 	(print-designation, list-coding-systems-1): Output fixes.
 
 	* international/code-pages.el (cp-make-translation-table)
 	(cp-valid-codes): Made defsubsts.
-	(cp-fix-safe-chars): Deleted.
+	(cp-fix-safe-chars): Delete.
 	(mule-diag): Don't require.
-	(windows-1251, windows-1252): Removed to cyrillic.el/european.el.
+	(windows-1251, windows-1252): Remove to cyrillic.el/european.el.
 	(top-level): Check for defined coding system when defining
 	cp... aliases.  Change w32-add-charset-info test to avoid warning.
 	(non-iso-charset-alist): Defvar when compiling.
@@ -341,11 +337,11 @@
 	* menu-bar.el (menu-bar-showhide-menu): Amend date and time label
 	and :help; also line and column numbers labels.
 
-	* international/mule-util.el (char-displayable-p): Moved from
-	latin1-disp, renamed and autoloaded.
+	* international/mule-util.el (char-displayable-p): Move from
+	latin1-disp, rename and autoload.
 
-	* international/latin1-disp.el (latin1-char-displayable-p): Now
-	obsolete alias.  Replace uses with char-displayable-p.
+	* international/latin1-disp.el (latin1-char-displayable-p):
+	Now obsolete alias.  Replace uses with char-displayable-p.
 	(latin1-display-ucs-per-lynx): Fix last change.
 
 	* international/mule-cmds.el (standard-display-european-internal):
@@ -367,8 +363,8 @@
 2003-08-31  Masatake YAMATO  <jet@gyve.org>
 
 	* pcvs.el (cvs-do-removal): Use = instead of eq to check
-	the numbre of files. Bind the numbre of files to a a local
-	variable. Suggestd by Kevin Rodgers <ihs_4664@yahoo.com>.
+	the number of files.  Bind the number of files to a local
+	variable.  Suggested by Kevin Rodgers <ihs_4664@yahoo.com>.
 
 2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
 
@@ -410,11 +406,10 @@
 
 2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
 
-	* mail/rmail.el (rmail-convert-to-babyl-format): Detect
-	quoted-printable- and base64-encoded messages and decode them
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Detect quoted-printable- and base64-encoded messages and decode them
 	automatically.  Set the message's encoding from the charset=
-	header, if any.  Decode base64-encoded messages in Mail format as
-	well.
+	header, if any.  Decode base64-encoded messages in Mail format as well.
 
 2003-08-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -431,8 +426,7 @@
 
 	* progmodes/cc-cmds.el (c-electric-brace): Work around for a
 	misfeature in `expand-abbrev' which caused electric keywords like
-	"else" to disappear if an open brace was typed directly
-	afterwards.
+	"else" to disappear if an open brace was typed directly afterwards.
 
 2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -440,24 +434,21 @@
 	mandatory in `define-widget'.
 
 	* progmodes/cc-align.el, progmodes/cc-langs.el (c-lineup-math):
-	Don't align the operators "!=", "<=" and ">=" as assignment
-	operators.
+	Don't align the operators "!=", "<=" and ">=" as assignment operators.
 
 	(c-assignment-operators): New language constant that only contains
 	the assignment operators.
 
-	(c-assignment-op-regexp): New language variable used by
-	`c-lineup-math'.
+	(c-assignment-op-regexp): New language var used by `c-lineup-math'.
 
 2003-08-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-just-after-func-arglist-p): Safeguard
-	against unbalanced sexps.
+	* progmodes/cc-engine.el (c-just-after-func-arglist-p):
+	Safeguard against unbalanced sexps.
 
 2003-08-26  Terje Rosten <terjeros@phys.ntnu.no>
 
-	* version.el (emacs-version): Check for gtk.  Include gtk version
-	info.
+	* version.el (emacs-version): Check for gtk.  Include gtk version info.
 
 2003-08-25  John Paul Wallington  <jpw@gnu.org>
 
@@ -517,8 +508,8 @@
 
 2003-08-23  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Better
-	explain obsolescence, and what to use instead.
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates):
+	Better explain obsolescence, and what to use instead.
 
 2003-08-23  Masatake YAMATO  <jet@gyve.org>
 
@@ -534,8 +525,7 @@
 
 	* emacs-lisp/lisp.el (beginning-of-defun-function): Doc fix.
 
-	* international/utf-8.el (ucs-unicode-to-mule-cjk): Use smaller
-	:size.
+	* international/utf-8.el (ucs-unicode-to-mule-cjk): Use smaller :size.
 
 	* international/utf-16.el: Add mime-text-unsuitable coding system
 	properties.
@@ -570,8 +560,8 @@
 	(sql-sqlite-options): Correct comment.
 	(sql-ms-program): Use "osql" rather than "isql".
 	(sql-prompt-regexp, sql-prompt-length): Update comment.
-	(sql-mode-menu): Add "Start SQLi session" entry.  Replace
-	Highlighting submenu with Product menu.  Fix Send Region entry.
+	(sql-mode-menu): Add "Start SQLi session" entry.
+	Replace Highlighting submenu with Product menu.  Fix Send Region entry.
 	(sql-mode-abbrev-table): Add abbreviations.  Support of
 	SYSTEM-FLAG on define-abbrev.  Support was removed with last
 	check-in; it now handles older Emacsen without the SYSTEM-FLAG.
@@ -611,11 +601,9 @@
 	(sql-highlight-strong-keywords)
 	(sql-highlight-mysql-keywords)
 	(sql-highlight-sqlite-keywords)
-	(sql-highlight-db2-keywords): New functions.  Use
-	`sql-set-product'.
+	(sql-highlight-db2-keywords): New functions.  Use `sql-set-product'.
 	(sql-get-login): Prompt in the same order as the tokens.
-	(sql-mode): Uses `sql-product-highlight' and
-	`sql-product-font-lock'.
+	(sql-mode): Uses `sql-product-highlight' and `sql-product-font-lock'.
 	(sql-product-interactive): New function.  Common portions of
 	product-specific interactive mode wrappers.
 	(sql-interactive-mode): Rewritten to use product features.
@@ -625,8 +613,8 @@
 	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
 	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
 	(sql-connect-ingres, sql-connect-postgres)
-	(sql-connect-interbase, sql-connect-db2, sql-connect-linter): New
-	functions.  Format command line parameters and invoke comint on
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter):
+	New functions.  Format command line parameters and invoke comint on
 	the appropriate interpreter.  Code was in the corresponding
 	`sql-xyz' function before.
 	(sql-connect-ms): New function.  Support -E argument to use
@@ -712,7 +700,7 @@
 2003-08-14  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
-	Added Java ANt error detection as described in document
+	Add Java ANt error detection as described in document
 	http://ant.apache.org/faq.html
 
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)

@@ -16,8 +16,7 @@
 
 2003-09-23  Dave Love  <fx@gnu.org>
 
-	* process.c (Fnetwork_interface_info): Use
-	HAVE_STRUCT_IFREQ... macros.
+	* process.c (Fnetwork_interface_info): Use HAVE_STRUCT_IFREQ... macros.
 
 2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
 
@@ -31,9 +30,9 @@
 
 2003-09-22  Masatake YAMATO  <jet@gyve.org>
 
-	* window.c (Fset_window_scroll_bars): Validate the value of 
+	* window.c (Fset_window_scroll_bars): Validate the value of
 	`vertical_type'.
-	
+
 2003-09-21  Kim F. Storm  <storm@cua.dk>
 
 	* frame.c (Vdefault_frame_scroll_bars): New variable.
@@ -42,10 +41,6 @@
 	window-system default scroll bar position.
 
 	* window.c (Fwindow_scroll_bars): Doc fix.
-
-2003-09-19  Dave Love  <fx@gnu.org>
-
-	* alloc.c (GC_MALLOC_CHECK): Move conditional undef after lisp.h.
 
 2003-09-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -95,7 +90,7 @@
 	Return 1<<optbit for known option, 0 for unknown.
 	Do not interpret 0 as false for boolean option (only nil).
 	Pass failed option and value to report_file_error.
-	(Fset_network_process_options): Replaced by Fset_network_process_option. 
+	(Fset_network_process_options): Replace by Fset_network_process_option.
 	(Fset_network_process_option): New function to set just one option.
 	(Fmake_network_process): Allow :coding arg to be a cons.
 	Allow :server arg to be an integer specifying backlog size.
@@ -120,7 +115,16 @@
 	(syms_of_process): Defsubr them.
 
 	* config.in: Regenerate.
-	
+
+2003-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* m/sr2k.h (XMARKBIT, XUNMARK): Remove.
+	* m/news-r6.h (XUNMARK): Remove.
+	* m/mips.h (XUNMARK): Remove.
+	* m/mips-siemens.h (XUNMARK): Remove.
+	* m/iris4d.h (XUNMARK): Remove.
+	* m/hp800.h (XMARKBIT, XUNMARK): Remove.
+
 2003-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (VALBITS): Don't remove 1 for the markbit.
