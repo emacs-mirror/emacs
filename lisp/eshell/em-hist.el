@@ -207,12 +207,10 @@ element, regardless of any text on the command line.  In that case,
 
 (defun eshell-hist-initialize ()
   "Initialize the history management code for one Eshell buffer."
-  (make-local-hook 'eshell-expand-input-functions)
   (add-hook 'eshell-expand-input-functions
 	    'eshell-expand-history-references nil t)
 
   (when (eshell-using-module 'eshell-cmpl)
-    (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-history-reference nil t))
 
@@ -224,14 +222,12 @@ element, regardless of any text on the command line.  In that case,
 	     (append rebind-alist eshell-hist-rebind-keys-alist))
 	(set (make-local-variable 'search-invisible) t)
 	(set (make-local-variable 'search-exit-option) t)
-	(make-local-hook 'isearch-mode-hook)
 	(add-hook 'isearch-mode-hook
 		  (function
 		   (lambda ()
 		     (if (>= (point) eshell-last-output-end)
 			 (setq overriding-terminal-local-map
 			       eshell-isearch-map)))) nil t)
-	(make-local-hook 'isearch-mode-end-hook)
 	(add-hook 'isearch-mode-end-hook
 		  (function
 		   (lambda ()
@@ -278,13 +274,11 @@ element, regardless of any text on the command line.  In that case,
     (if eshell-history-file-name
 	(eshell-read-history nil t))
 
-    (make-local-hook 'eshell-exit-hook)
     (add-hook 'eshell-exit-hook 'eshell-write-history nil t))
 
   (unless eshell-history-ring
     (setq eshell-history-ring (make-ring eshell-history-size)))
 
-  (make-local-hook 'eshell-exit-hook)
   (add-hook 'eshell-exit-hook 'eshell-write-history nil t)
 
   (add-hook 'kill-emacs-hook 'eshell-save-some-history)
