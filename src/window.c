@@ -3521,11 +3521,24 @@ enlarge_window (window, delta, widthflag)
       register int delta1;
       register int opht = (*sizefun) (parent);
 
-      /* If trying to grow this window to or beyond size of the parent,
-	 make delta1 so big that, on shrinking back down,
-	 all the siblings end up with less than one line and are deleted.  */
       if (opht <= XINT (*sizep) + delta)
-	delta1 = opht * opht * 2;
+	{
+	  /* If trying to grow this window to or beyond size of the parent,
+	     just delete all the sibling windows.  */
+	  Lisp_Object tem, next;
+
+	  tem = XWINDOW (parent)->vchild;
+	  if (NILP (tem))
+	    tem = XWINDOW (parent)->hchild;
+
+	  while (! NILP (tem))
+	    {
+	      next = XWINDOW (tem)->next;
+	      if (!EQ (tem, window))
+		delete_window (tem);
+	      tem = next;
+	    }
+	}
       else
 	{
 	  /* Otherwise, make delta1 just right so that if we add
@@ -3568,19 +3581,20 @@ enlarge_window (window, delta, widthflag)
 	      ++n;
 
 	  delta1 = n * delta;
+
+	  /* Add delta1 lines or columns to this window, and to the parent,
+	     keeping things consistent while not affecting siblings.  */
+	  XSETINT (CURSIZE (parent), opht + delta1);
+	  (*setsizefun) (window, XINT (*sizep) + delta1, 0);
+
+	  /* Squeeze out delta1 lines or columns from our parent,
+	     shriking this window and siblings proportionately.
+	     This brings parent back to correct size.
+	     Delta1 was calculated so this makes this window the desired size,
+	     taking it all out of the siblings.  */
+	  (*setsizefun) (parent, opht, 0);
+
 	}
-
-      /* Add delta1 lines or columns to this window, and to the parent,
-	 keeping things consistent while not affecting siblings.  */
-      XSETINT (CURSIZE (parent), opht + delta1);
-      (*setsizefun) (window, XINT (*sizep) + delta1, 0);
-
-      /* Squeeze out delta1 lines or columns from our parent,
-	 shriking this window and siblings proportionately.
-	 This brings parent back to correct size.
-	 Delta1 was calculated so this makes this window the desired size,
-	 taking it all out of the siblings.  */
-      (*setsizefun) (parent, opht, 0);
     }
 
   XSETFASTINT (p->last_modified, 0);
