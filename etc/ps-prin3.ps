@@ -1,0 +1,14 @@
+% === BEGIN ps-print prologue 3
+
+% --- duplex feature verification
+1
+UseSetpagedevice {
+  {<< /Duplex DuplexValue /Tumble TumbleValue >> setpagedevice}
+}{
+  {statusdict begin
+    DuplexValue setduplexmode TumbleValue settumble
+   end}
+}ifelse
+CheckConfig
+
+% === END ps-print prologue 3
