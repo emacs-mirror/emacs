@@ -2682,7 +2682,7 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
      Lisp_Object dir;
      int tempin, tempout, temperr;
 {
-  char *saveargv1, *saveargv2, **envv;
+  char *saveargv1, *saveargv2, **envv, *lowcase_argv0, *pa, *pl;
   char oldwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
   int msshell, result = -1;
   int in, out, inbak, outbak, errbak;
@@ -2692,7 +2692,19 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
   /* Get current directory as MSDOS cwd is not per-process.  */
   getwd (oldwd);
 
-  cmd = Ffile_name_nondirectory (build_string (argv[0]));
+  /* If argv[0] is the shell, it might come in any lettercase.
+     Since `Fmember' is case-sensitive, we need to downcase
+     argv[0], even if we are on case-preserving filesystems.  */
+  lowcase_argv0 = alloca (strlen (argv[0]) + 1);
+  for (pa = argv[0], pl = lowcase_argv0; *pa; pl++)
+    {
+      *pl = *pa++;
+      if (*pl >= 'A' && *pl <= 'Z')
+	*pl += 'a' - 'A';
+    }
+  *pl = '\0';
+
+  cmd = Ffile_name_nondirectory (build_string (lowcase_argv0));
   msshell = !NILP (Fmember (cmd, Fsymbol_value (intern ("msdos-shells"))))
     && !strcmp ("-c", argv[1]);
   if (msshell)
