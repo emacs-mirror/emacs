@@ -663,30 +663,34 @@ Replace the specification with the base-ten representation of an
 integer.
 
 @item %x
+@itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.
+integer.  @samp{%x} uses lower case and @samp{%X} uses upper case.
 
 @item %c
 Replace the specification with the character which is the value given.
 
 @item %e
+@itemx %E
 Replace the specification with the exponential notation for a floating
-point number.
+point number.  @samp{%e} uses lower case @samp{e} for the exponent and
+@samp{%E} uses upper case.
 
 @item %f
 Replace the specification with the decimal-point notation for a floating
 point number.
 
 @item %g
+@itemx %G
 Replace the specification with notation for a floating point number,
 using either exponential notation or decimal-point notation, whichever
-is shorter.
+is shorter.  @samp{%G} uses upper case if an exponent is printed.
 
 @item %%
-Replace the specification with a single @samp{%}.  This format specification is
-unusual in that it does not use a value.  For example, @code{(format "%%
-%d" 30)} returns @code{"% 30"}.
+Replace the specification with a single @samp{%}.  This format
+specification is unusual in that it does not use a value.  For example,
+@code{(format "%% %d" 30)} returns @code{"% 30"}.
 @end table
 
   Any other format character results in an @samp{Invalid format
