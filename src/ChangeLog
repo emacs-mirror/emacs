@@ -1,3 +1,11 @@
+2003-03-30  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (x_insert_glyphs): Fix swapped width and height
+	parameters for shift_glyphs_for_insert.
+
+	* macterm.c (x_redisplay_interface): Add missing entry for
+	draw_vertical_window_border.
+
 2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* fileio.c (Fexpand_file_name): In the no-handler case, after
