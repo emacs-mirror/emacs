@@ -1,5 +1,8 @@
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/codepage.el (codepage-setup): Don't define a
+	codepage if it is already defined.
+
 	* textmodes/po.el (po-find-charset): Search for the Charset=
 	header even if we've read less than 4KB.
 	<top-level>: Remove the setup for all known codepages: it seems
