@@ -1636,13 +1636,16 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     int pos = PT, pos_byte = PT_BYTE;
 
     if (from < PT)
-      adjust_point (len - nchars_del + combined_after_bytes,
-		    len_byte - nbytes_del + combined_after_bytes);
-    else if (from == PT && combined_before_bytes)
-      adjust_point (0, combined_before_bytes);
+      adjust_point (len - nchars_del, len_byte - nbytes_del);
 
     if (combined_after_bytes)
-      combine_bytes (from + len, from_byte + len_byte, combined_after_bytes);
+      {
+	if (combined_before_bytes)
+	  combined_before_bytes += combined_after_bytes;
+	else
+	  combine_bytes (from + len, from_byte + len_byte,
+			 combined_after_bytes);
+      }
 
     if (combined_before_bytes)
       combine_bytes (from, from_byte, combined_before_bytes);
@@ -1887,16 +1890,18 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point ((from + inschars - (PT < to ? PT : to)
-		   + combined_after_bytes),
+    adjust_point ((from + inschars - (PT < to ? PT : to)),
 		  (from_byte + outgoing_insbytes
-		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)
-		   + combined_after_bytes));
+		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
 
   if (combined_after_bytes)
-    combine_bytes (from + inschars, from_byte + outgoing_insbytes,
-		   combined_after_bytes);
-
+    {
+      if (combined_before_bytes)
+	combined_before_bytes += combined_after_bytes;
+      else
+	combine_bytes (from + inschars, from_byte + outgoing_insbytes,
+		       combined_after_bytes);
+    }
   if (combined_before_bytes)
     combine_bytes (from, from_byte, combined_before_bytes);
 
