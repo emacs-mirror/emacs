@@ -109,13 +109,14 @@
      (choice :tag "Height"
 	     :help-echo "Face's font height."
 	     (const :tag "*" nil)
-	     (integer :tag "Height in 1/10 pt"))
+	     (integer :tag "Height in 1/10 pt")
+	     (number :tag "Scale" 1.0))
      (lambda (face value &optional frame)
        (set-face-attribute face frame :height (or value 'unspecified)))
      (lambda (face &optional frame)
        (let ((height (face-attribute face :height frame)))
 	 (if (eq height 'unspecified) nil height))))
-    
+
     (:weight
      (choice :tag "Weight"
 	     :help-echo "Font weight."
@@ -278,7 +279,26 @@
        (set-face-attribute face frame :stipple (or value 'unspecified)))
      (lambda (face &optional frame)
        (let ((value (face-attribute face :stipple frame)))
-	 (if (eq value 'unspecified) nil value)))))
+	 (if (eq value 'unspecified) nil value))))
+
+    (:inherit
+     (repeat :tag "Inherit"
+	     :help-echo "List of faces to inherit attributes from."
+	     (face :Tag "Face" default))
+     (lambda (face value &optional frame)
+       (message "Setting to: <%s>" value)
+       (set-face-attribute face frame :inherit
+			   (if (and (consp value) (null (cdr value)))
+			       (car value)
+			     value)))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :inherit frame)))
+	 (cond ((or (null value) (eq value 'unspecified))
+		nil)
+	       ((symbolp value)
+		(list value))
+	       (t
+		value))))))
        
   "Alist of face attributes.
 
@@ -307,7 +327,8 @@ If FRAME is nil, use the global defaults for FACE."
       (let* ((attribute (car (car attrs)))
 	     (value (face-attribute face attribute frame)))
 	(setq attrs (cdr attrs))
-	(unless (eq value 'unspecified)
+	(unless (or (eq value 'unspecified)
+		    (and (null value) (memq attribute '(:inherit))))
 	  (setq plist (cons attribute (cons value plist))))))
     plist))
 
