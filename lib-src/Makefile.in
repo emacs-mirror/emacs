@@ -38,11 +38,12 @@ LOADLIBES=
 
 all: ../arch-lib
 
+# We use rm -f so that rm won't try to ask questions during the build.
 ../arch-lib: ${EXECUTABLES}
 	for file in ${EXECUTABLES} ; do \
 	  if [ -f $${file} ]; then \
             if [ -f ../arch-lib/$${file} ]; then \
-	      rm ../arch-lib/$${file} ; \
+	      rm -f ../arch-lib/$${file} ; \
 	    fi ; \
 	    ln $${file} ../arch-lib ; \
           fi ; \
