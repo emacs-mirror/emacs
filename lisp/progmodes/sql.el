@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.21
+;; Version: 1.4.22
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -270,6 +270,12 @@ Starts `sql-interactive-mode' after doing some setup.
 
 The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
+  :group 'SQL)
+
+(defcustom sql-mysql-options nil
+  "*List of additional options for `sql-mysql-program'."
+  :type '(repeat string)
+  :version "20.8"
   :group 'SQL)
 
 ;; Customisation for Solid
@@ -1384,6 +1390,8 @@ The default comes from `process-coding-system-alist' and
 	  (setq params (append (list (concat "--password=" sql-password)) params)))
       (if (not (string= "" sql-user))
 	  (setq params (append (list (concat "--user=" sql-user)) params)))
+      (if (not (null sql-mysql-options))
+          (setq params (append sql-mysql-options params)))
       (set-buffer (apply 'make-comint "SQL" sql-mysql-program
 			 nil params)))
     (setq sql-prompt-regexp "^mysql>")
