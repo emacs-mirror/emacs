@@ -1296,7 +1296,7 @@
 	(which-function-mode): Remove references to which-func-mode-global.
 
 	* calendar/cal-islam.el (calendar-goto-islamic-date):
-	Add  autoload cookie.
+	Add autoload cookie.
 
 	* play/fortune.el: Add types to defcustoms.
 
