@@ -1,3 +1,16 @@
+2000-10-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* eshell/esh-var.el, eshell/esh-util.el, eshell/esh-test.el,
+	* eshell/esh-proc.el, eshell/esh-opt.el, eshell/esh-mode.el,
+	* eshell/esh-maint.el, eshell/esh-io.el, eshell/esh-ext.el,
+	* eshell/esh-cmd.el, eshell/esh-arg.el, eshell/em-xtra.el,
+	* eshell/em-unix.el, eshell/em-term.el, eshell/em-smart.el,
+	* eshell/em-script.el, eshell/em-rebind.el, eshell/em-prompt.el,
+	* eshell/em-pred.el, eshell/em-ls.el, eshell/em-hist.el,
+	* eshell/em-glob.el, shell/em-dirs.el, eshell/em-cmpl.el,
+	* eshell/em-basic.el, eshell/em-banner.el, eshell/em-alias.el:
+	Add author information.
+
 2000-10-16  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* toolbar/up_arrow.xpm, toolbar/right_arrow.xpm:
