@@ -1288,13 +1288,22 @@ AC_AIX
 
 dnl check if exec-shield is present.
 AC_CHECK_FILE(/proc/sys/kernel/exec-shield, emacs_cv_execshield=1,
-					    emacs_cv_execshield=0)
+                                            emacs_cv_execshield=0)
 if test "$emacs_cv_execshield" = 1; then
-   AC_PATH_PROG(SETARCH, setarch, no)
-   AC_SUBST(SETARCH)
-   if test "$setarch" != no; then
-     AC_DEFINE(HAVE_EXECSHIELD, 1, [Define to 1 if this OS has exec shield.])
-   fi
+  AC_PATH_PROG(SETARCH, setarch, no)
+  AC_SUBST(SETARCH)
+  if test "$setarch" != no && test "$machine" = "intel386"; then
+    AC_DEFINE(HAVE_EXECSHIELD, 1,
+    [Define to 1 if this OS has exec shield and we can handle it.])
+  else
+    case "`cat /proc/sys/kernel/exec-shield`" in
+      0) ;;
+      *)
+        AC_MSG_ERROR([Exec-shield is turned on.
+Emacs can not dump itself if exec-shield is turned on.
+See `etc/PROBLEMS' for further information.])
+    esac
+  fi
 fi
 
 #### Extract some information from the operating system and machine files.

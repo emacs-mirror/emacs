@@ -4302,7 +4302,7 @@ else
 fi
 
 if test "$emacs_cv_execshield" = 1; then
-   # Extract the first word of "setarch", so it can be a program name with args.
+  # Extract the first word of "setarch", so it can be a program name with args.
 set dummy setarch; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
@@ -4343,13 +4343,25 @@ echo "${ECHO_T}no" >&6
 fi
 
 
-   if test "$setarch" != no; then
+  if test "$setarch" != no && test "$machine" = "intel386"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_EXECSHIELD 1
 _ACEOF
 
-   fi
+  else
+    case "`cat /proc/sys/kernel/exec-shield`" in
+      0) ;;
+      *)
+        { { echo "$as_me:$LINENO: error: Exec-shield is turned on.
+Emacs can not dump itself if exec-shield is turned on.
+See \`etc/PROBLEMS' for further information." >&5
+echo "$as_me: error: Exec-shield is turned on.
+Emacs can not dump itself if exec-shield is turned on.
+See \`etc/PROBLEMS' for further information." >&2;}
+   { (exit 1); exit 1; }; }
+    esac
+  fi
 fi
 
 #### Extract some information from the operating system and machine files.
