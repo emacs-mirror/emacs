@@ -892,7 +892,7 @@ and selects that window."
     (if (assoc "Default" elt)
 	(delete (assoc "Default" elt) elt))
     (setcdr elt
-	    (cons (cons "Default"
+	    (cons (list "Default"
 			(cdr (assq 'font (frame-parameters (selected-frame)))))
 		  (cdr elt)))))
 
