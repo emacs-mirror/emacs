@@ -307,7 +307,9 @@ install-arch-dep: mkdir
 	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
 	-unset CDPATH; \
 	for f in `cd lib-src && echo fns-*.el`; do \
-	  ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
+	  if test -r lib-src/$$f ; then \
+	    ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
+	  else true; fi ; \
 	done
 
 ### Install the files that are machine-independent.

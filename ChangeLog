@@ -1,3 +1,8 @@
+2000-05-25  Ken Raeburn  <raeburn@gnu.org>
+
+	* Makefile.in (install-arch-dep): Install fns-*.el only if it
+	exists; it won't in the CANNOT_DUMP case.
+
 2000-05-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in: Ignore exit status of `unset CDPATH' everywhere.
