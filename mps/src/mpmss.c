@@ -1,24 +1,27 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(trunk.18) $
+ * $HopeName: MMsrc!mpmss.c(trunk.19) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
 
 #include <stdio.h>
+#include "mpstd.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 #include <stdlib.h>
 #include <stdarg.h>
+#ifdef MPS_OS_IA
+struct itimerspec; /* stop complaints from time.h */
+#endif
 #include <time.h>
 
-#include "mps.h"
 #include "mpscmv.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
-#include "mpsavm.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
+#include "mps.h"
 
 
 /* @@@@ Hack due to missing mpscmfs.h */
@@ -27,8 +30,8 @@ extern mps_class_t PoolClassMFS(void);
 
 #define testArenaSIZE   ((((size_t)64)<<20) - 4)
 #define smallArenaSIZE  ((((size_t)1)<<20) - 4)
-#define TEST_SET_SIZE 200
-#define TEST_LOOPS 10
+#define testSetSIZE 200
+#define testLOOPS 10
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
@@ -38,17 +41,17 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   mps_pool_t pool;
   va_list arg;
   int i, k;
-  int *ps[TEST_SET_SIZE];
-  size_t ss[TEST_SET_SIZE];
+  int *ps[testSetSIZE];
+  size_t ss[testSetSIZE];
 
   va_start(arg, size);
   res = mps_pool_create_v(&pool, arena, class, arg);
   va_end(arg);
-  if(res != MPS_RES_OK)
+  if (res != MPS_RES_OK)
     return res;
 
   /* allocate a load of objects */
-  for(i=0; i<TEST_SET_SIZE; ++i) {
+  for (i=0; i<testSetSIZE; ++i) {
     ss[i] = (*size)(i);
 
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
@@ -57,17 +60,17 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
 
-    if(i && i%4==0) putchar('\n');
+    if (i && i%4==0) putchar('\n');
     printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
   putchar('\n');
 
   mps_pool_check_fenceposts(pool);
 
-  for (k=0; k<TEST_LOOPS; ++k) {
+  for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
-    for(i=0; i<TEST_SET_SIZE; ++i) {
-      int j = rand()%(TEST_SET_SIZE-i);
+    for (i=0; i<testSetSIZE; ++i) {
+      int j = rand()%(testSetSIZE-i);
       void *tp;
       size_t ts;
       
@@ -78,18 +81,18 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     /* free half of the objects */
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
-    for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
+    for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
-      /*    if(i == TEST_SET_SIZE/2)
-            PoolDescribe((Pool)pool, mps_lib_stdout); */
+      /* if (i == testSetSIZE/2) */
+      /*   PoolDescribe((Pool)pool, mps_lib_stdout); */
     }
     /* allocate some new objects */
-    for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
+    for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-      if(res != MPS_RES_OK) return res;
+      if (res != MPS_RES_OK) return res;
       
-      if(i && i%4==0) putchar('\n');
+      if (i && i%4==0) putchar('\n');
       printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
     }
     putchar('\n');
@@ -125,7 +128,7 @@ static size_t fixedSize(int i)
 
 static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
 
-static int test_in_arena(mps_arena_t arena)
+static int testInArena(mps_arena_t arena)
 {
   die(stress(mps_class_mv_debug(), arena, randomSize,
              &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
@@ -143,25 +146,26 @@ static int test_in_arena(mps_arena_t arena)
   return 0;
 }
 
+
 int main(void)
 {
   mps_arena_t arena;
   int i;
 
   /* Randomize the random number generator a bit. */
-  for(i = time(NULL) % 67; i > 0; --i) rnd();
+  for (i = time(NULL) % 67; i > 0; --i) rnd();
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
 
-  test_in_arena(arena);
+  testInArena(arena);
 
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),
       "mps_arena_create");
 
-  test_in_arena(arena);
+  testInArena(arena);
 
   mps_arena_destroy(arena);
 
