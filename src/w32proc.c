@@ -367,7 +367,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
     cp->pid = -cp->pid;
 
   /* pid must fit in a Lisp_Int */
-  cp->pid = make_number (cp->pid);
+  cp->pid = XUINT (make_number (cp->pid));
 
   *pPid = cp->pid;
 
