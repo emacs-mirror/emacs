@@ -1227,42 +1227,39 @@ extern char *stack_bottom;
 /* 1 if CH is upper case.  */
 
 #define UPPERCASEP(CH) \
-  (XSTRING (current_buffer->downcase_table)->data[CH] != (CH))
+  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH] != (CH))
 
 /* 1 if CH is lower case.  */
 
 #define LOWERCASEP(CH) \
   (!UPPERCASEP (CH) \
-   && XSTRING (current_buffer->upcase_table)->data[CH] != (CH))
+   && XCHAR_TABLE (current_buffer->upcase_table)->contents[CH] != (CH))
 
 /* 1 if CH is neither upper nor lower case.  */
 
-#define NOCASEP(CH) (XSTRING (current_buffer->upcase_table)->data[CH] == (CH))
+#define NOCASEP(CH) \
+  (XCHAR_TABLE (current_buffer->upcase_table)->contents[CH] == (CH))
 
 /* Upcase a character, or make no change if that cannot be done.  */
 
 #define UPCASE(CH) \
-  (XSTRING (current_buffer->downcase_table)->data[CH] == (CH) \
+  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH] == (CH) \
    ? UPCASE1 (CH) : (CH))
 
 /* Upcase a character known to be not upper case.  */
 
-#define UPCASE1(CH) (XSTRING (current_buffer->upcase_table)->data[CH])
+#define UPCASE1(CH) (XCHAR_TABLE (current_buffer->upcase_table)->contents[CH])
 
 /* Downcase a character, or make no change if that cannot be done.  */
 
-#define DOWNCASE(CH) (XSTRING (current_buffer->downcase_table)->data[CH])
+#define DOWNCASE(CH) \
+  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH])
 
 /* Current buffer's map from characters to lower-case characters.  */
 
-#define DOWNCASE_TABLE XSTRING (current_buffer->downcase_table)->data
+#define DOWNCASE_TABLE XCHAR_TABLE (current_buffer->downcase_table)->contents
 
-/* Table mapping each char to the next char with the same lowercase version.
-   This mapping is a no-op only for characters that don't have case.  */
-#define UPCASE_TABLE XSTRING (current_buffer->upcase_table)->data
-
-extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
-extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
+extern Lisp_Object Vascii_downcase_table;
 
 /* Number of bytes of structure consed since last GC.  */
 
