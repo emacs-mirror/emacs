@@ -1,5 +1,10 @@
 2000-09-12  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Add
+	extra docstrings for "chinese-ccdospy", "chinese-ecdict",
+	"chinese-etzy", "chinese-sw", and "chinese-ziranma".  Modify the
+	docstring of "chinese-py".
+
 	* international/quail.el (quail-translation-docstring): New
 	variable.
 	(quail-show-keyboard-layout): Docstring modified.
