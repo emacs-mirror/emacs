@@ -61,9 +61,7 @@ Lisp_Object Vwin32_pipe_read_delay;
    nil means no, t means yes. */
 Lisp_Object Vwin32_downcase_file_names;
 
-/* Keep track of whether we have already started a DOS program, and
-   whether we can run them in the first place. */
-BOOL restrict_dos_process;
+/* Keep track of whether we have already started a DOS program. */
 BOOL dos_process_running;
 
 #ifndef SYS_SIGLIST_DECLARED
@@ -384,8 +382,7 @@ reap_subprocess (child_process *cp)
       cp->procinfo.hThread = NULL;
 
       /* If this was a DOS process, indicate that it is now safe to
-	 start a new one.  dos_process_running is only referred to under
-	 Win95, so it doesn't matter if it is incorrect on NT. */
+	 start a new one.  */
       if (cp->is_dos_process)
 	dos_process_running = FALSE;
     }
@@ -623,7 +620,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   /* Check if program is a DOS executable, and if so whether we are
      allowed to start it. */
   is_dos_binary = win32_is_dos_binary (cmdname);
-  if (is_dos_binary && restrict_dos_process && dos_process_running)
+  if (is_dos_binary && dos_process_running)
     {
       errno = EAGAIN;
       return -1;
