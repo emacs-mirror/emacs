@@ -2653,7 +2653,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    --- CODE RANGE of SJIS ---
    (character set)	(range)
    ASCII		0x00 .. 0x7F
-   KATAKANA-JISX0201	0xA0 .. 0xDF
+   KATAKANA-JISX0201	0xA1 .. 0xDF
    JISX0208 (1st byte)	0x81 .. 0x9F and 0xE0 .. 0xEF
 	    (2nd byte)	0x40 .. 0x7E and 0x80 .. 0xFC
    -------------------------------
@@ -2728,15 +2728,14 @@ detect_coding_sjis (src, src_end, multibytep)
   while (1)
     {
       ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
-      if (c >= 0x81)
+      if (c < 0x80)
+	continue;
+      if (c == 0x80 || c == 0xA0 || c > 0xEF)
+	return 0;
+      if (c <= 0x9F || c >= 0xE0)
 	{
-	  if (c <= 0x9F || (c >= 0xE0 && c <= 0xEF))
-	    {
-	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
-	      if (c < 0x40 || c == 0x7F || c > 0xFC)
-		return 0;
-	    }
-	  else if (c > 0xDF)
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	  if (c < 0x40 || c == 0x7F || c > 0xFC)
 	    return 0;
 	}
     }
@@ -2761,12 +2760,13 @@ detect_coding_big5 (src, src_end, multibytep)
   while (1)
     {
       ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
-      if (c >= 0xA1)
-	{
-	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
-	  if (c < 0x40 || (c >= 0x7F && c <= 0xA0))
-	    return 0;
-	}
+      if (c < 0x80)
+	continue;
+      if (c < 0xA1 || c > 0xFE)
+	return 0;
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      if (c < 0x40 || (c > 0x7F && c < 0xA1) || c > 0xFE)
+	return 0;
     }
  label_end_of_loop:
   return CODING_CATEGORY_MASK_BIG5;
@@ -2944,9 +2944,9 @@ decode_coding_sjis_big5 (coding, source, destination,
         {
 	  if (sjis_p)
 	    {
-	      if (c1 >= 0xF0)
+	      if (c1 == 0x80 || c1 == 0xA0 || c1 > 0xEF)
 		goto label_invalid_code;
-	      if (c1 < 0xA0 || c1 >= 0xE0)
+	      if (c1 <= 0x9F || c1 >= 0xE0)
 		{
 		  /* SJIS -> JISX0208 */
 		  ONE_MORE_BYTE (c2);
@@ -2962,7 +2962,7 @@ decode_coding_sjis_big5 (coding, source, destination,
 	  else
 	    {
 	      /* BIG5 -> Big5 */
-	      if (c1 < 0xA1 || c1 > 0xFE)
+	      if (c1 < 0xA0 || c1 > 0xFE)
 		goto label_invalid_code;
 	      ONE_MORE_BYTE (c2);
 	      if (c2 < 0x40 || (c2 > 0x7E && c2 < 0xA1) || c2 > 0xFE)
@@ -6217,6 +6217,7 @@ highest priority.")
 {
   int from, to;
   int from_byte, to_byte;
+  int include_anchor_byte = 0;
 
   CHECK_NUMBER_COERCE_MARKER (start, 0);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
@@ -6228,9 +6229,14 @@ highest priority.")
 
   if (from < GPT && to >= GPT)
     move_gap_both (to, to_byte);
-
+  if (to == Z || (to == GPT && GAP_SIZE > 0))
+    include_anchor_byte = 1;
   return detect_coding_system (BYTE_POS_ADDR (from_byte),
-			       to_byte - from_byte,
+			       /* "+ include_anchor_byteq" is to
+				  include the anchor byte `\0'.  With
+				  this, code detectors can check if
+				  tailing bytes are valid.  */
+			       to_byte - from_byte + include_anchor_byte,
 			       !NILP (highest),
 			       !NILP (current_buffer
 				      ->enable_multibyte_characters));
@@ -6253,7 +6259,11 @@ highest priority.")
   CHECK_STRING (string, 0);
 
   return detect_coding_system (XSTRING (string)->data,
-			       STRING_BYTES (XSTRING (string)),
+			       /* "+ 1" is to include the anchor byte
+				  `\0'.  With this, code detectors can
+				  check if tailing bytes are
+				  valid.  */
+			       STRING_BYTES (XSTRING (string)) + 1,
 			       !NILP (highest),
 			       STRING_MULTIBYTE (string));
 }
