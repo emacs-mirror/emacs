@@ -3027,6 +3027,27 @@ class of the file (using s to separate nested class ids)."
 	  (save-excursion (indent-line-to indent))
 	(indent-line-to indent)))))
 
+;; Derived from cfengine.el.
+(defun gdb-script-beginning-of-defun ()
+  "`beginning-of-defun' function for Gdb script mode.
+Treats actions as defuns."
+  (unless (<= (current-column) (current-indentation))
+    (end-of-line))
+  (if (re-search-backward "^define \\|^document " nil t)
+      (beginning-of-line)
+    (goto-char (point-min)))
+  t)
+
+;; Derived from cfengine.el.
+(defun gdb-script-end-of-defun ()
+  "`end-of-defun' function for Gdb script mode.
+Treats actions as defuns."
+  (end-of-line)
+  (if (re-search-forward "^end" nil t)
+      (beginning-of-line)
+    (goto-char (point-max)))
+  t)
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("/\\.gdbinit" . gdb-script-mode))
 
@@ -3039,6 +3060,10 @@ class of the file (using s to separate nested class ids)."
   (set (make-local-variable 'imenu-generic-expression)
        '((nil "^define[ \t]+\\(\\w+\\)" 1)))
   (set (make-local-variable 'indent-line-function) 'gdb-script-indent-line)
+  (set (make-local-variable 'beginning-of-defun-function)
+       #'gdb-script-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function)
+       #'gdb-script-end-of-defun)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
 	 (font-lock-syntactic-keywords

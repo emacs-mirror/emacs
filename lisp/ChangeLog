@@ -1,3 +1,10 @@
+2004-10-14  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
+	(gdb-script-end-of-defun): New function.
+	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
+	`gdb-script-end-of-defun' as *-of-defun-function.
+
 2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.45.
