@@ -1,3 +1,7 @@
+2001-05-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (globals): Fix handling of namespace aliases.
+
 2001-04-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.c (print_help): Enclose the regexp in the help text
