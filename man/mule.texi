@@ -803,9 +803,9 @@ are decoded correctly.
   If Emacs recognizes the encoding of a file incorrectly, you can
 reread the file using the correct coding system by typing @kbd{C-x
 @key{RET} c @var{coding-system} @key{RET} M-x revert-buffer
-@key{RET}}.  To see what coding system did Emacs use to decode the
-file, look at the coding system mnemonic letter near the left edge of
-the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
+@key{RET}}.  To see what coding system Emacs actually used to decode
+the file, look at the coding system mnemonic letter near the left edge
+of the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
 
 @vindex buffer-file-coding-system
   Once Emacs has chosen a coding system for a buffer, it stores that
@@ -844,7 +844,7 @@ not recommended and prompts you for another coding system.  This is so
 you won't inadvertently send a message encoded in a way that your
 recipient's mail software will have difficulty decoding.  (If you do
 want to use the most-preferred coding system, you can still type its
-name to Emacs prompt.)
+name in response to the question.)
 
 @vindex sendmail-coding-system
   When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
@@ -1337,8 +1337,8 @@ command names.
 @cindex ISO Accents mode
 @findex iso-accents-mode
 @cindex Latin-1, Latin-2 and Latin-3 input mode
-For Latin-1, Latin-2 and Latin-3, @kbd{M-x iso-accents-mode} installs
-a minor mode which works much like the @code{latin-1-prefix} input
+For Latin-1, Latin-2 and Latin-3, @kbd{M-x iso-accents-mode} enables
+a minor mode that works much like the @code{latin-1-prefix} input
 method, but does not depend on having the input methods installed.  This
 mode is buffer-local.  It can be customized for various languages with
 @kbd{M-x iso-accents-customize}.
