@@ -1510,7 +1510,7 @@ calendar."
   "String of astronomical (Julian) day number of Gregorian date."
   t)
 
-(autoload 'calendar-goto-astro-date "cal-julian"
+(autoload 'calendar-goto-astro-day-number "cal-julian"
    "Move cursor to astronomical (Julian) day number."
    t)
 
