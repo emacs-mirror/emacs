@@ -66,7 +66,7 @@
 ;;      ;; Enable pending-delete
 ;;      (delete-selection-mode 1)
 ;;
-;; * You can control the way mouse-sel binds it's keys by setting the value
+;; * You can control the way mouse-sel binds its keys by setting the value
 ;;   of mouse-sel-default-bindings before loading mouse-sel.
 ;;
 ;;   (a) If mouse-sel-default-bindings = t (the default)
