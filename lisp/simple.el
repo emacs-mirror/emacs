@@ -438,7 +438,10 @@ contains expressions rather than strings.")
 	(car key-and-command)
 	(let ((command (cdr key-and-command)))
 	  (if (consp command)
-	      (if (cdr keymap-and-completionp)
+	      ;; (and ... nil) => ... turns back on the completion-oriented
+	      ;; history commands which rms turned off since they seem to
+	      ;; do things he doesn't like.
+	      (if (and (cdr keymap-and-completionp) nil) ;XXX turned off
 		  (cdr command)
 		(car command))
 	    command))))
@@ -447,11 +450,8 @@ contains expressions rather than strings.")
       (minibuffer-local-completion-map . t)
       (minibuffer-local-must-match-map . t)
       (read-expression-map . nil))))
- ;;; This was once set up to use the completion-oriented history commands
- ;;; but I turned that off since they seem to do things I don't like.
- ;;; - rms
- '(("\en" . (next-history-element . next-history-element))
-   ([next] . (next-history-element . next-history-element))
+ '(("\en" . (next-history-element . next-complete-history-element))
+   ([next] . (next-history-element . next-complete-history-element))
    ("\ep" . (previous-history-element . previous-history-element))
    ([prior] . (previous-history-element . previous-history-element))
    ("\er" . previous-matching-history-element)
@@ -541,8 +541,13 @@ If N is negative, find the previous or Nth previous match."
   "\
 Get previous element of history which is a completion of minibuffer contents."
   (interactive "p")
-  (next-matching-history-element
-   (concat "^" (regexp-quote (buffer-substring (point-min) (point)))) n))
+  (let ((point-at-start (point)))
+    (next-matching-history-element
+     (concat "^" (regexp-quote (buffer-substring (point-min) (point)))) n)
+    ;; next-matching-history-element always puts us at (point-min).
+    ;; Move to the position we were at before changing the buffer contents.
+    ;; This is still sensical, because the text before point has not changed.
+    (goto-char point-at-start)))
 
 (defun previous-complete-history-element (n)
   "Get next element of history which is a completion of minibuffer contents."
