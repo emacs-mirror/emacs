@@ -1823,9 +1823,20 @@ x_produce_glyphs (it)
 	  pcm = x_per_char_metric (font, &char2b);
 	  it->ascent = font->ascent + boff;
 	  it->descent = font->descent - boff;
-	  it->phys_ascent = pcm->ascent + boff;
-	  it->phys_descent = pcm->descent - boff;
-	  it->pixel_width = pcm->width;
+
+	  if (pcm)
+	    {
+	      it->phys_ascent = pcm->ascent + boff;
+	      it->phys_descent = pcm->descent - boff;
+	      it->pixel_width = pcm->width;
+	    }
+	  else
+	    {
+	      it->glyph_not_available_p = 1;
+	      it->phys_ascent = font->ascent + boff;
+	      it->phys_descent = font->descent - boff;
+	      it->pixel_width = FONT_WIDTH (font);
+	    }
 
 	  /* If this is a space inside a region of text with
 	     `space-width' property, change its width.  */
