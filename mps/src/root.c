@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.6) $
+ *  $HopeName: MMsrc!root.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -36,7 +36,8 @@ Bool RootIsValid(Root root, ValidationType validParam)
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
   AVER(ISVALIDNESTED(RefRank, root->rank));
   AVER(ISVALIDNESTED(TraceSet, &root->marked));
-  AVER(root->type == RootTABLE || root->type == RootFUN);
+  AVER(root->type == RootTABLE || root->type == RootFUN
+       || root->type == RootREG);
   switch(root->type)
   {
     case RootTABLE:
@@ -46,6 +47,11 @@ Bool RootIsValid(Root root, ValidationType validParam)
     
     case RootFUN:
     AVER(root->the.fun.scan != NULL);
+    break;
+
+    case RootREG:
+    AVER(root->the.reg.scan != NULL);
+    AVER(ISVALIDNESTED(Thread, root->the.reg.thread));
     break;
 
     default:
