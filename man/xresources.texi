@@ -24,10 +24,13 @@ and how to use them.
 @cindex resources
 
 @cindex X resources, @file{~/.Xdefaults} file
-  Programs running under the X Window System organize their user options
-under a hierarchy of classes and resources.  You can specify default
-values for these options in your X resources file, usually named
-@file{~/.Xdefaults}.
+  Programs running under the X Window System organize their user
+options under a hierarchy of classes and resources.  You can specify
+default values for these options in your X resources file, usually
+named @file{~/.Xdefaults}.  If changes in @file{~/.Xdefaults} do not
+take effect, it is because your X server stores its own list of
+resources; to update them, use the shell command @command{xrdb}---for
+instance, @samp{xrdb ~/.Xdefaults}.
 
   Each line in the file specifies a value for one option or for a
 collection of related options, for one program or for several programs
@@ -137,7 +140,8 @@ Changes take effect immediately if you click on the @samp{Apply} button.
 @appendixsec Table of X Resources for Emacs
 
   This table lists the resource names that designate options for
-Emacs, each with the class that it belongs to:
+Emacs, not counting those for the appearance of the menu bar, each
+with the class that it belongs to:
 
 @table @asis
 @item @code{background} (class @code{Background})
@@ -193,7 +197,9 @@ Width in pixels of the internal border.
 Additional space (@dfn{leading}) between lines, in pixels.
 
 @item @code{menuBar} (class @code{MenuBar})
-Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
+Give frames menu bars if @samp{on}; don't have menu bars if
+@samp{off}.  @xref{Lucid Resources}, and @ref{LessTif Resources}, for
+how to control the appearance of the menu bar if you have one.
 
 @item @code{toolBar} (class @code{ToolBar})
 Number of lines to reserve for the tool bar.  A zero value suppresses
