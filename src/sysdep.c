@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-#include <config.h>
+#include "config.h"
 #include <signal.h>
 #include <setjmp.h>
 #ifdef HAVE_UNISTD_H
@@ -66,9 +66,11 @@ Lisp_Object Vx_bitmap_file_path;
 #undef fwrite
 #endif
 
+#ifdef TRY_AGAIN
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
+#endif /* TRY_AGAIN */
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -163,7 +165,6 @@ extern int errno;
 
 #if defined (USG) || defined (DGUX)
 #include <sys/utsname.h>
-#include <string.h>
 #ifndef MEMORY_IN_STRING_H
 #include <memory.h>
 #endif
