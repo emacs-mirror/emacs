@@ -1,8 +1,13 @@
-;;; Abbrev-expansion of mail aliases.
+;;; mailabbrev.el --- abbrev-expansion of mail aliases.
+
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
-;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
-;;; Modified: 5 apr 92, Roland McGrath <roland@gnu.ai.mit.edu>
-;;; Last change 27-aug-92. jwz
+
+;; Author: Jamie Zawinski <jwz@lucid.com>
+;; Maintainer: Jamie Zawinski <jwz@lucid.com>
+;; Created: 19 Oct 90
+;; Keywords: mail
+
+;;; ??? We must get papers for this or delete it.
 
 ;;; This file is part of GNU Emacs.
 
@@ -19,6 +24,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; This file ensures that, when the point is in a To:, CC:, BCC:, or From: 
 ;;; field, word-abbrevs are defined for each of your mail aliases.  These
@@ -138,6 +145,8 @@
 ;;;    -  Remove the autoload of expand-mail-aliases from the file sendmail.el;
 ;;;    -  Remove the autoload of build-mail-aliases from the file sendmail.el;
 ;;;    -  Add an autoload of define-mail-alias to loaddefs.el.
+
+;;; Code:
 
 (require 'sendmail)
 
@@ -434,55 +443,66 @@ characters which may be a part of the name of a mail-alias.")
 (defvar mail-mode-abbrev-table) ; quiet the compiler
 
 (defun sendmail-pre-abbrev-expand-hook ()
-  (if mail-abbrev-aliases-need-to-be-resolved
-      (mail-resolve-all-aliases))
-  (if (and mail-aliases (not (eq mail-aliases t)))
-      (if (not (mail-abbrev-in-expansion-header-p))
-	  ;;
-	  ;; If we're not in a mail header in which mail aliases should
-	  ;; be expanded, then use the normal mail-mode abbrev table (if any)
-	  ;; and the normal mail-mode syntax table.
-	  ;;
-	  (progn
-	    (setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
-					  mail-mode-abbrev-table))
-	    (set-syntax-table mail-mode-syntax-table))
-	;;
-	;; Otherwise, we are in a To: (or CC:, or whatever) header, and
-	;; should use word-abbrevs to expand mail aliases.
-	;;   -  First, install the mail-aliases as the word-abbrev table.
-	;;   -  Then install the mail-abbrev-syntax-table, which temporarily
-	;;      marks all of the non-alphanumeric-atom-characters (the "_"
-	;;      syntax ones) as being normal word-syntax.  We do this because
-	;;      the C code for expand-abbrev only works on words, and we want
-	;;      these characters to be considered words for the purpose of
-	;;      abbrev expansion.
-	;;   -  Then we call expand-abbrev again, recursively, to do the abbrev
-	;;      expansion with the above syntax table.
-	;;   -  Then we do a trick which tells the expand-abbrev frame which
-	;;      invoked us to not continue (and thus not expand twice.)
-	;;      This means that any abbrev expansion will happen as a result
-	;;      of this function's call to expand-abbrev, and not as a result
-	;;      of the call to expand-abbrev which invoked *us*.
-	;;   -  Then we set the syntax table to mail-mode-header-syntax-table,
-	;;      which doesn't have anything to do with abbrev expansion, but
-	;;      is just for the user's convenience (see its doc string.)
-	;;
-	(setq local-abbrev-table mail-aliases)
-	;; If the character just typed was non-alpha-symbol-syntax, then don't
-	;; expand the abbrev now (that is, don't expand when the user types -.)
-	;; Check the character's syntax in the mail-mode-header-syntax-table.
-	(set-syntax-table mail-mode-header-syntax-table)
-	(or (eq (char-syntax last-command-char) ?_)
-	    (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
-	      ;; Use this table so that abbrevs can have hyphens in them.
-	      (set-syntax-table mail-abbrev-syntax-table)
-	      (expand-abbrev)
-	      ;; Now set it back to what it was before.
-	      (set-syntax-table mail-mode-header-syntax-table)))
-	(setq abbrev-start-location (point)  ; This is the trick.
-	      abbrev-start-location-buffer (current-buffer))
-	)))
+  (and (and mail-aliases (not (eq mail-aliases t)))
+       (if (mail-abbrev-in-expansion-header-p)
+	   (progn
+	     ;;
+	     ;; We are in a To: (or CC:, or whatever) header, and
+	     ;; should use word-abbrevs to expand mail aliases.
+
+	     ;; Before anything else, resolve aliases if they need it.
+	     (and mail-abbrev-aliases-need-to-be-resolved
+		  (mail-resolve-all-aliases))
+
+	     ;; Now proceed with the abbrev section.
+	     ;;   -  First, install the mail-aliases as the word-abbrev table.
+	     ;;   -  Then install the mail-abbrev-syntax-table, which
+	     ;;      temporarily marks all of the
+	     ;;      non-alphanumeric-atom-characters (the "_"
+	     ;;      syntax ones) as being normal word-syntax.  We do this
+	     ;;      because the C code for expand-abbrev only works on words,
+	     ;;      and we want these characters to be considered words for
+	     ;;      the purpose of abbrev expansion.
+	     ;;   -  Then we call expand-abbrev again, recursively, to do
+	     ;;      the abbrev expansion with the above syntax table.
+	     ;;   -  Then we do a trick which tells the expand-abbrev frame
+	     ;;      which invoked us to not continue (and thus not
+	     ;;      expand twice.) This means that any abbrev expansion
+	     ;;      will happen as a result of this function's call to
+	     ;;      expand-abbrev, and not as a result of the call to
+	     ;;      expand-abbrev which invoked *us*.
+	     ;;   -  Then we set the syntax table to
+	     ;;      mail-mode-header-syntax-table, which doesn't have
+	     ;;      anything to do with abbrev expansion, but
+	     ;;      is just for the user's convenience (see its doc string.)
+	     ;;
+
+	     (setq local-abbrev-table mail-aliases)
+
+	     ;; If the character just typed was non-alpha-symbol-syntax,
+	     ;; then don't expand the abbrev now (that is, don't expand
+	     ;; when the user types -.)  Check the character's syntax in
+	     ;; the mail-mode-header-syntax-table.
+
+	     (set-syntax-table mail-mode-header-syntax-table)
+	     (or (eq (char-syntax last-command-char) ?_)
+		 (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
+		   ;; Use this table so that abbrevs can have hyphens in them.
+		   (set-syntax-table mail-abbrev-syntax-table)
+		   (expand-abbrev)
+		   ;; Now set it back to what it was before.
+		   (set-syntax-table mail-mode-header-syntax-table)))
+	     (setq abbrev-start-location (point) ; This is the trick.
+		   abbrev-start-location-buffer (current-buffer)))
+
+	 ;; We're not in a mail header where mail aliases should
+	 ;; be expanded, then use the normal mail-mode abbrev table
+	 ;; (if any) and the normal mail-mode syntax table.
+
+	 (setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
+				       mail-mode-abbrev-table))
+	 (set-syntax-table mail-mode-syntax-table))
+       ))
 
 ;;; utilities
 
@@ -619,8 +639,7 @@ end of line."
     (abbrev-mode 1)))
 
 
-(cond ((or (string-match "^18\\." emacs-version)
-	   (and (boundp 'epoch::version) epoch::version))
+(cond ((string-match "^18\\." emacs-version)
        ;;
        ;; v19 (and this code) uses a new name for this function.
        (or (fboundp 'buffer-disable-undo)
@@ -670,8 +689,8 @@ end of line."
 			(symbol-function 'vm-mail-internal)))
 	      (fset 'vm-mail-internal
 		    (function (lambda (&rest args)
-				(apply 'vm-mail-internal-v18 args)
-				(mail-aliases-setup-v18))))))
+				(mail-aliases-setup-v18)
+				(apply 'vm-mail-internal-v18 args))))))
 
        ;; If we're being loaded from mail-setup-hook or mail-mode-hook
        ;; as run from inside mail-setup or vm-mail-internal, then install
