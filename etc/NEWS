@@ -2452,6 +2452,11 @@ instead.
 as promised long ago.
 
 ** The new function `float-time' returns the current time as a float.
+
+** The new variable auto-coding-regexp-alist specifies coding systems
+for reading specific files, analogous to auto-coding-alist, but
+patterns are checked against file contents instead of file names.
+
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
