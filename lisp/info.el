@@ -1130,8 +1130,8 @@ a case-insensitive match is tried."
     (set-buffer-modified-p nil)))
 
 (defun Info-select-node ()
-"Select the info node that point is in.
-Bind this in case the user sets it to nil."
+  "Select the info node that point is in."
+  ;; Bind this in case the user sets it to nil.
   (let ((case-fold-search t))
     (save-excursion
       ;; Find beginning of node.
