@@ -52,31 +52,35 @@ this script will help you distribute your version to others.
 
 There are several subdirectories:
 
-`src' holds the C code for Emacs (the Emacs Lisp interpreter and its
-    primitives, the redisplay code, and some basic editing functions).
-`lisp' holds the Emacs Lisp code for Emacs (most everything else).
-`lib-src' holds the source code for some utility programs for use by
-    or with Emacs, like movemail and etags.
-`etc' holds miscellaneous architecture-independent data files
-    Emacs uses, like the tutorial text and the Zippy the Pinhead quote
-    database.  The contents of the `lisp', `info', `man', and `lispref'
-    subdirectories are architecture-independent too.
-
-`info' holds the Info documentation tree for Emacs.
-`man' holds the source code for the Emacs Manual.  If you modify the
-      manual sources, you will need the `makeinfo' program to produce
-      an updated manual.  `makeinfo' is part of the GNU Texinfo
-      package; you need version 4.0 or later of Texinfo.
-`lispref' holds the source code for the Emacs Lisp reference manual.
+`src'       holds the C code for Emacs (the Emacs Lisp interpreter and
+            its primitives, the redisplay code, and some basic editing 
+            functions).
+`lisp'      holds the Emacs Lisp code for Emacs (most everything else).
+`leim'      holds the library of Emacs input methods, Lisp code and 
+            auxiliary data files required to type international characters
+            which can't be directly produced by your keyboard.
+`lib-src'   holds the source code for some utility programs for use by or
+            with Emacs, like movemail and etags.
+`etc'       holds miscellaneous architecture-independent data files
+            Emacs uses, like the tutorial text and the Zippy the Pinhead
+            quote database.  The contents of the `lisp', `leim', `info',
+            `man', `lispref', and `lispintro' subdirectories are
+            architecture-independent too.
+`info'      holds the Info documentation tree for Emacs.
+`man'       holds the source code for the Emacs Manual.  If you modify the
+            manual sources, you will need the `makeinfo' program to produce
+            an updated manual.  `makeinfo' is part of the GNU Texinfo
+            package; you need version 4.0 or later of Texinfo.
+`lispref'   holds the source code for the Emacs Lisp reference manual.
 `lispintro' holds the source code for the Introduction to Programming
             in Emacs Lisp manual.
 
-`msdos' holds configuration files for compiling Emacs under MSDOG.
-`vms' holds instructions and useful files for running Emacs under VMS.
-`nt' holds various command files and documentation files that pertain
-     to running Emacs on Windows NT.
-`mac' holds instructions, sources, and other useful files for building
-      and running Emacs on the Mac.
+`msdos'     holds configuration files for compiling Emacs under MSDOG.
+`vms'       holds instructions and useful files for running Emacs under VMS.
+`nt'        holds various command files and documentation files that pertain
+            to building and running Emacs on Windows 9X/ME/NT/2000/XP.
+`mac'       holds instructions, sources, and other useful files for building
+            and running Emacs on the Mac.
 
    Building Emacs on non-Posix platforms requires to install tools
 that aren't part of the standard distribution of the OS.  The
