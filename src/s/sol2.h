@@ -23,5 +23,6 @@
 #define LD_SWITCH_SYSTEM `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX`
 #endif /* GCC */
 
-#define LIBS_SYSTEM -lkvm
+#undef LIBS_SYSTEM
+#define LIBS_SYSTEM -lsocket -lnsl -lelf -lkvm
 #define HAVE_VFORK
