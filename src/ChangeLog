@@ -1,3 +1,14 @@
+2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfns.c: Don't check HAVE_PNG_H: autoconf doesn't seem to find it.
+
+	* buffer.c (delete_all_overlays): New function.
+	* buffer.h (delete_all_overlays): Declare.
+	* coding.c (run_pre_post_conversion_on_str):
+	* print.c (temp_output_buffer_setup):
+	* fileio.c (Finsert_file_contents):
+	* minibuf.c (get_minibuffer): Use it.
+
 2003-07-22  Andrew Choi  <akochoi@shaw.ca>
 
 	* unexmacosx.c (unexec_regions_sort_compare):
@@ -18,7 +29,7 @@
 
 	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Add undef.
 
-	* fns.c (Flocale_info): Renamed from Flanginfo.  Doc fixes.
+	* fns.c (Flocale_info): Rename from Flanginfo.  Doc fixes.
 	(syms_of_fns): Corresponding change.
 
 	* alloc.c (syms_of_alloc): Doc fixes.
