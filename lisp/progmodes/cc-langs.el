@@ -374,6 +374,12 @@ identifiers, or nil in languages that don't have such things.  Does
 not contain a \\| operator at the top level."
   t    nil
   c++  "::"
+  ;; Java has "." to concatenate identifiers but it's also used for
+  ;; normal indexing.  There's special code in the Java font lock
+  ;; rules to fontify qualified identifiers based on the standard
+  ;; naming conventions.  We still define "." here to make
+  ;; `c-forward-name' move over as long names as possible which is
+  ;; necessary to e.g. handle throws clauses correctly.
   java "\\."
   idl  "::"
   pike "\\(::\\|\\.\\)")

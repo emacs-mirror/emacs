@@ -1077,7 +1077,7 @@ A non-nil FLAG means mark the buffer modified.  */)
 
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
-       doc: /* Like `set-buffer-modified-p', with a differences concerning redisplay.
+       doc: /* Like `set-buffer-modified-p', with a difference concerning redisplay.
 It is not ensured that mode lines will be updated to show the modified
 state of the current buffer.  Use with care.  */)
      (flag)

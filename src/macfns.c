@@ -324,19 +324,21 @@ x_real_positions (f, xptr, yptr)
   Point pt;
   GrafPtr oldport;
 
-#ifdef TARGET_API_MAC_CARBON
+  GetPort (&oldport);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
+
+#if TARGET_API_MAC_CARBON
   {
     Rect r;
 
-    GetWindowPortBounds (f->output_data.mac->mWP, &r);
+    GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
     SetPt (&pt, r.left, r.top);
   }
 #else /* not TARGET_API_MAC_CARBON */
   SetPt (&pt,
-	 f->output_data.mac->mWP->portRect.left,
-	 f->output_data.mac->mWP->portRect.top);
+	 FRAME_MAC_WINDOW (f)->portRect.left,
+	 FRAME_MAC_WINDOW (f)->portRect.top);
 #endif /* not TARGET_API_MAC_CARBON */
-  GetPort (&oldport);
   LocalToGlobal (&pt);
   SetPort (oldport);
 
@@ -1934,8 +1936,8 @@ x_set_name (f, name, explicit)
   if (FRAME_MAC_WINDOW (f))
     {
       if (STRING_MULTIBYTE (name))
-#if 0 /* MAC_TODO: encoding title string */
-	name = ENCODE_SYSTEM (name);
+#if TARGET_API_MAC_CARBON
+	name = ENCODE_UTF_8 (name);
 #else
         return;
 #endif
@@ -1943,6 +1945,14 @@ x_set_name (f, name, explicit)
       BLOCK_INPUT;
 
       {
+#if TARGET_API_MAC_CARBON
+	CFStringRef windowTitle =
+	  CFStringCreateWithCString (NULL, SDATA (name),
+				     kCFStringEncodingUTF8);
+
+	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
+	CFRelease (windowTitle);
+#else
 	Str255 windowTitle;
 	if (strlen (SDATA (name)) < 255)
 	  {
@@ -1950,6 +1960,7 @@ x_set_name (f, name, explicit)
 	    c2pstr (windowTitle);
 	    SetWTitle (FRAME_MAC_WINDOW (f), windowTitle);
 	  }
+#endif
       }
 
       UNBLOCK_INPUT;
@@ -2008,8 +2019,8 @@ x_set_title (f, name, old_name)
   if (FRAME_MAC_WINDOW (f))
     {
       if (STRING_MULTIBYTE (name))
-#if 0 /* MAC_TODO: encoding title string */
-	name = ENCODE_SYSTEM (name);
+#if TARGET_API_MAC_CARBON
+	name = ENCODE_UTF_8 (name);
 #else
         return;
 #endif
@@ -2017,6 +2028,14 @@ x_set_title (f, name, old_name)
       BLOCK_INPUT;
 
       {
+#if TARGET_API_MAC_CARBON
+	CFStringRef windowTitle =
+	  CFStringCreateWithCString (NULL, SDATA (name),
+				     kCFStringEncodingUTF8);
+
+	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
+	CFRelease (windowTitle);
+#else
 	Str255 windowTitle;
 	if (strlen (SDATA (name)) < 255)
 	  {
@@ -2024,6 +2043,7 @@ x_set_title (f, name, old_name)
 	    c2pstr (windowTitle);
 	    SetWTitle (FRAME_MAC_WINDOW (f), windowTitle);
 	  }
+#endif
       }
 
       UNBLOCK_INPUT;
@@ -2981,17 +3001,20 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
-  int mac_major_version, mac_minor_version;
+  int mac_major_version;
   SInt32 response;
 
   if (Gestalt (gestaltSystemVersion, &response) != noErr)
     error ("Cannot get Mac OS version");
 
-  mac_major_version = (response >> 8) & 0xf;
-  mac_minor_version = (response >> 4) & 0xf;
+  mac_major_version = (response >> 8) & 0xff;
+  /* convert BCD to int */
+  mac_major_version -= (mac_major_version >> 4) * 6;
 
   return Fcons (make_number (mac_major_version),
-		Fcons (make_number (mac_minor_version), Qnil));
+		Fcons (make_number ((response >> 4) & 0xf),
+		       Fcons (make_number (response & 0xf),
+			      Qnil)));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -4192,19 +4215,27 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 
 
+#ifdef TARGET_API_MAC_CARBON
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
 
-#if 0 /* MAC_TODO: can standard file dialog */
+/**
+   There is a relatively standard way to do this using applescript to run
+   a (choose file) method.  However, this doesn't do "the right thing"
+   by working only if the find-file occurred during a menu or toolbar
+   click.  So we must do the file dialog by hand, using the navigation
+   manager.  This also has more flexibility in determining the default
+   directory and whether or not we are going to choose a file.
+ **/
+
 extern Lisp_Object Qfile_name_history;
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
 Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Don't let the user enter a file name in the file
-selection dialog's entry field, if MUSTMATCH is non-nil.  */)
+specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   (prompt, dir, default_filename, mustmatch)
      Lisp_Object prompt, dir, default_filename, mustmatch;
 {
@@ -4212,9 +4243,8 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   Lisp_Object file = Qnil;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  char filename[MAX_PATH + 1];
-  char init_dir[MAX_PATH + 1];
-  int use_dialog_p = 1;
+  char filename[1001];
+  int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
   CHECK_STRING (prompt);
@@ -4223,87 +4253,150 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  strncpy (init_dir, SDATA (dir), MAX_PATH);
-  init_dir[MAX_PATH] = '\0';
-  unixtodos_filename (init_dir);
 
-  if (STRINGP (default_filename))
-    {
-      char *file_name_only;
-      char *full_path_name = SDATA (default_filename);
+  {
+    OSStatus status;
+    NavDialogCreationOptions options;
+    NavDialogRef dialogRef;
+    NavTypeListHandle fileTypes = NULL;
+    NavUserAction userAction;
+    CFStringRef message=NULL, client=NULL, saveName = NULL;
+    
+    /* No need for a callback function because we are modal */
+    NavGetDefaultDialogCreationOptions(&options);
+    options.modality = kWindowModalityAppModal;
+    options.location.h = options.location.v = -1;
+    options.optionFlags = kNavDefaultNavDlogOptions;
+    options.optionFlags |= kNavAllFilesInPopup;  /* All files allowed */
+    options.optionFlags |= kNavSelectAllReadableItem;
+    if (!NILP(prompt))
+      {
+	message = CFStringCreateWithCStringNoCopy(NULL, SDATA(prompt),
+						  kCFStringEncodingUTF8, 
+						  kCFAllocatorNull);
+	options.message = message;
+      }
+    /* Don't set the application, let it use default.
+    client = CFStringCreateWithCStringNoCopy(NULL, "Emacs", 
+					     kCFStringEncodingMacRoman, NULL);
+    options.clientName = client;
+    */
 
-      unixtodos_filename (full_path_name);
+    /* Do Dired hack copied from w32fns.c */ 
+    if (!NILP(prompt) && strncmp (SDATA(prompt), "Dired", 5) == 0)
+      status = NavCreateChooseFolderDialog(&options, NULL, NULL, NULL,
+					   &dialogRef);
+    else if (NILP (mustmatch)) 
+      { 
+	/* This is a save dialog */
+	if (!NILP(default_filename))
+	  {
+	    saveName = CFStringCreateWithCString(NULL, SDATA(default_filename),
+						 kCFStringEncodingUTF8);
+	    options.saveFileName = saveName;
+	    options.optionFlags |= kNavSelectDefaultLocation;
+	  }
+	/* MAC_TODO: Find a better way to determine if this is a save
+	   or load dialog than comparing dir with default_filename */
+	if (EQ(dir, default_filename)) 
+	  {
+	    status = NavCreateChooseFileDialog(&options, fileTypes,
+					       NULL, NULL, NULL, NULL, 
+					       &dialogRef);
+	  }
+	else {
+	  status = NavCreatePutFileDialog(&options, 
+					  'TEXT', kNavGenericSignature,
+					  NULL, NULL, &dialogRef);
+	}
+      }
+    else
+      {
+	/* This is an open dialog*/
+	status = NavCreateChooseFileDialog(&options, fileTypes,
+					   NULL, NULL, NULL, NULL, 
+					   &dialogRef);
+      }
+    
+    /* Set the default location and continue*/
+    if (status == noErr) {
+      if (!NILP(dir)) {
+	FSRef defLoc;
+	AEDesc defLocAed;
+	status = FSPathMakeRef(SDATA(dir), &defLoc, NULL);
+	if (status == noErr) 
+	  {
+	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
+	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
+	  }
+	AEDisposeDesc(&defLocAed);
+      }
 
-      file_name_only = strrchr (full_path_name, '\\');
-      if (!file_name_only)
-        file_name_only = full_path_name;
-      else
-        {
-          file_name_only++;
-
-          /* If default_file_name is a directory, don't use the open
-             file dialog, as it does not support selecting
-             directories. */
-          if (!(*file_name_only))
-            use_dialog_p = 0;
-        }
-
-      strncpy (filename, file_name_only, MAX_PATH);
-      filename[MAX_PATH] = '\0';
-    }
-  else
-    filename[0] = '\0';
-
-  if (use_dialog_p)
-    {
-      OPENFILENAME file_details;
-      char *filename_file;
-
-      /* Prevent redisplay.  */
-      specbind (Qinhibit_redisplay, Qt);
       BLOCK_INPUT;
-
-      bzero (&file_details, sizeof (file_details));
-      file_details.lStructSize = sizeof (file_details);
-      file_details.hwndOwner = FRAME_W32_WINDOW (f);
-      file_details.lpstrFile = filename;
-      file_details.nMaxFile = sizeof (filename);
-      file_details.lpstrInitialDir = init_dir;
-      file_details.lpstrTitle = SDATA (prompt);
-      file_details.Flags = OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
-
-      if (!NILP (mustmatch))
-        file_details.Flags |= OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-
-      if (GetOpenFileName (&file_details))
-        {
-          dostounix_filename (filename);
-          file = build_string (filename);
-        }
-      else
-        file = Qnil;
-
+      status = NavDialogRun(dialogRef);
       UNBLOCK_INPUT;
-      file = unbind_to (count, file);
     }
-  /* Open File dialog will not allow folders to be selected, so resort
-     to minibuffer completing reads for directories. */
-  else
-    file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-                             dir, mustmatch, dir, Qfile_name_history,
-                             default_filename, Qnil);
+
+    if (saveName) CFRelease(saveName);
+    if (client) CFRelease(client);
+    if (message) CFRelease(message);
+
+    if (status == noErr) {
+      userAction = NavDialogGetUserAction(dialogRef);
+      switch (userAction)
+	{
+	case kNavUserActionNone:
+	case kNavUserActionCancel:
+	  NavDialogDispose(dialogRef);
+	  Fsignal (Qquit, Qnil);  /* Treat cancel like C-g */
+	  return;
+	case kNavUserActionOpen:
+	case kNavUserActionChoose:
+	case kNavUserActionSaveAs:
+	  {
+	    NavReplyRecord reply;
+	    AEDesc aed;
+	    FSRef fsRef;
+	    status = NavDialogGetReply(dialogRef, &reply);
+	    AECoerceDesc(&reply.selection, typeFSRef, &aed);
+	    AEGetDescData(&aed, (void *) &fsRef, sizeof (FSRef));
+	    FSRefMakePath(&fsRef, (UInt8 *) filename, 1000);
+	    AEDisposeDesc(&aed);
+	    if (reply.saveFileName)
+	      {
+		/* If it was a saved file, we need to add the file name */
+		int len = strlen(filename);
+		if (len && filename[len-1] != '/')
+		  filename[len++] = '/';
+		CFStringGetCString(reply.saveFileName, filename+len, 
+				   1000-len, kCFStringEncodingUTF8);
+	      }
+	    file = DECODE_FILE(build_string (filename));
+	    NavDisposeReply(&reply);
+	  }
+	  break;
+	}
+      NavDialogDispose(dialogRef);
+    }
+    else {
+      /* Fall back on minibuffer if there was a problem */
+      file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
+			       dir, mustmatch, dir, Qfile_name_history,
+			       default_filename, Qnil);
+    }
+  }
 
   UNGCPRO;
-
+  
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (file))
     Fsignal (Qquit, Qnil);
-
+  
   return unbind_to (count, file);
 }
-#endif /* MAC_TODO */
 
 
+#endif
 
 /***********************************************************************
 			    Initialization
@@ -4507,7 +4600,7 @@ Chinese, Japanese, and Korean.  */);
   last_show_tip_args = Qnil;
   staticpro (&last_show_tip_args);
 
-#if 0 /* MAC_TODO */
+#if TARGET_API_MAC_CARBON
   defsubr (&Sx_file_dialog);
 #endif
 }

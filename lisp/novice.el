@@ -1,6 +1,7 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2004
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -36,12 +37,17 @@
 ;; and the keys are returned by (this-command-keys).
 
 ;;;###autoload
-(defvar disabled-command-hook 'disabled-command-hook
+(defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
 If nil, the feature is disabled, i.e., all commands work normally.")
 
+(defvaralias 'disabled-command-hook 'disabled-command-function)
+(make-obsolete-variable
+ 'disabled-command-hook
+ "use the variable `disabled-command-function' instead." "21.4")
+
 ;;;###autoload
-(defun disabled-command-hook (&rest ignore)
+(defun disabled-command-function (&rest ignore)
   (let (char)
     (save-window-excursion
      (with-output-to-temp-buffer "*Help*"
@@ -91,7 +97,7 @@ SPC to try the command just this once, but leave it disabled.
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (if (= char ?!)
-	(setq disabled-command-hook nil))
+	(setq disabled-command-function nil))
     (if (= char ?y)
 	(if (and user-init-file
 		 (not (string= "" user-init-file))
@@ -104,7 +110,8 @@ SPC to try the command just this once, but leave it disabled.
 ;;;###autoload
 (defun enable-command (command)
   "Allow COMMAND to be executed without special confirmation from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
@@ -141,7 +148,8 @@ to future sessions."
 ;;;###autoload
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CDisable command: ")
   (if (not (commandp command))

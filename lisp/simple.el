@@ -65,7 +65,7 @@
 	    (setq found buffer)))
       (setq list (cdr list)))
     (switch-to-buffer found)))
-
+
 ;;; next-error support framework
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
@@ -91,51 +91,50 @@ to navigate in it.")
     (or (and extra-test (funcall extra-test))
 	next-error-function)))
 
-;; Return a next-error capable buffer according to the following rules:
-;; 1. If the current buffer is a next-error capable buffer, return it.
-;; 2. If one window on the selected frame displays such buffer, return it.
-;; 3. If next-error-last-buffer is set to a live buffer, use that.
-;; 4. Otherwise, look for a next-error capable buffer in a buffer list.
-;; 5. Signal an error if there are none.
 (defun next-error-find-buffer (&optional other-buffer extra-test)
-  (if (and (not other-buffer)
-	   (next-error-buffer-p (current-buffer) extra-test))
-      ;; The current buffer is a next-error capable buffer.
-      (current-buffer)
-    (or
-     (let ((window-buffers
-            (delete-dups
-             (delq nil
-              (mapcar (lambda (w)
-                        (and (next-error-buffer-p (window-buffer w) extra-test)
-                             (window-buffer w)))
-                      (window-list))))))
-       (if other-buffer
-           (setq window-buffers (delq (current-buffer) window-buffers)))
-       (if (eq (length window-buffers) 1)
-           (car window-buffers)))
-     (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
-              (next-error-buffer-p next-error-last-buffer extra-test)
-              (or (not other-buffer) (not (eq next-error-last-buffer
-                                              (current-buffer)))))
-         next-error-last-buffer
-       (let ((buffers (buffer-list)))
-         (while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
-                                 (and other-buffer
-                                      (eq (car buffers) (current-buffer)))))
-           (setq buffers (cdr buffers)))
-         (if buffers
-             (car buffers)
-           (or (and other-buffer
-                    (next-error-buffer-p (current-buffer) extra-test)
-                    ;; The current buffer is a next-error capable buffer.
-                    (progn
-                      (if other-buffer
-                          (message "This is the only next-error capable buffer."))
-                      (current-buffer)))
-               (error "No next-error capable buffer found"))))))))
+  "Return a next-error capable buffer."
+  (or
+   ;; 1. If one window on the selected frame displays such buffer, return it.
+   (let ((window-buffers
+          (delete-dups
+           (delq nil (mapcar (lambda (w)
+                               (if (next-error-buffer-p
+                                    (window-buffer w) extra-test)
+                                   (window-buffer w)))
+                             (window-list))))))
+     (if other-buffer
+         (setq window-buffers (delq (current-buffer) window-buffers)))
+     (if (eq (length window-buffers) 1)
+         (car window-buffers)))
+   ;; 2. If next-error-last-buffer is set to a live buffer, use that.
+   (if (and next-error-last-buffer
+            (buffer-name next-error-last-buffer)
+            (next-error-buffer-p next-error-last-buffer extra-test)
+            (or (not other-buffer)
+                (not (eq next-error-last-buffer (current-buffer)))))
+       next-error-last-buffer)
+   ;; 3. If the current buffer is a next-error capable buffer, return it.
+   (if (and (not other-buffer)
+            (next-error-buffer-p (current-buffer) extra-test))
+       (current-buffer))
+   ;; 4. Look for a next-error capable buffer in a buffer list.
+   (let ((buffers (buffer-list)))
+     (while (and buffers
+                 (or (not (next-error-buffer-p (car buffers) extra-test))
+                     (and other-buffer (eq (car buffers) (current-buffer)))))
+       (setq buffers (cdr buffers)))
+     (if buffers
+         (car buffers)
+       (or (and other-buffer
+                (next-error-buffer-p (current-buffer) extra-test)
+                ;; The current buffer is a next-error capable buffer.
+                (progn
+                  (if other-buffer
+                      (message "This is the only next-error capable buffer"))
+                  (current-buffer)))
+           (error "No next-error capable buffer found"))))))
 
-(defun next-error (arg &optional reset)
+(defun next-error (&optional arg reset)
   "Visit next next-error message and corresponding source code.
 
 If all the error messages parsed so far have been processed already,
@@ -153,9 +152,10 @@ compilation, grep, or occur buffer.  It can also operate on any
 buffer with output from the \\[compile], \\[grep] commands, or,
 more generally, on any buffer in Compilation mode or with
 Compilation Minor mode enabled, or any buffer in which
-`next-error-function' is bound to an appropriate
-function.  To specify use of a particular buffer for error
-messages, type \\[next-error] in that buffer.
+`next-error-function' is bound to an appropriate function.
+To specify use of a particular buffer for error messages, type
+\\[next-error] in that buffer when it is the only one displayed
+in the current frame.
 
 Once \\[next-error] has chosen the buffer for error messages,
 it stays with that buffer until you use it in some other buffer which
@@ -175,7 +175,7 @@ See variables `compilation-parse-errors-function' and
 
 (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error (n)
+(defun previous-error (&optional n)
   "Visit previous next-error message and corresponding source code.
 
 Prefix arg N says how many error messages to move backwards (or
@@ -183,9 +183,9 @@ forwards, if negative).
 
 This operates on the output from the \\[compile] and \\[grep] commands."
   (interactive "p")
-  (next-error (- n)))
+  (next-error (- (or n 1))))
 
-(defun first-error (n)
+(defun first-error (&optional n)
   "Restart at the first error.
 Visit corresponding source code.
 With prefix arg N, visit the source code of the Nth error.
@@ -193,25 +193,63 @@ This operates on the output from the \\[compile] command, for instance."
   (interactive "p")
   (next-error n t))
 
-(defun next-error-no-select (n)
+(defun next-error-no-select (&optional n)
   "Move point to the next error in the next-error buffer and highlight match.
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
 Finds and highlights the source line like \\[next-error], but does not
 select the source buffer."
   (interactive "p")
-  (next-error n)
+  (let ((next-error-highlight next-error-highlight-no-select))
+    (next-error n))
   (pop-to-buffer next-error-last-buffer))
 
-(defun previous-error-no-select (n)
+(defun previous-error-no-select (&optional n)
   "Move point to the previous error in the next-error buffer and highlight match.
 Prefix arg N says how many error messages to move backwards (or
 forwards, if negative).
 Finds and highlights the source line like \\[previous-error], but does not
 select the source buffer."
   (interactive "p")
-  (next-error-no-select (- n)))
+  (next-error-no-select (- (or n 1))))
 
+(defgroup next-error nil
+  "next-error support framework."
+  :group 'compilation
+  :version "21.4")
+
+(defface next-error
+  '((t (:inherit region)))
+  "Face used to highlight next error locus."
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight 0.1
+  "*Highlighting of locations in selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight-no-select 0.1
+  "*Highlighting of locations in non-selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
 ;;;
 
 (defun fundamental-mode ()
@@ -1628,7 +1666,7 @@ and only used if a buffer is displayed."
 
 (defun shell-command-on-region (start end command
 				      &optional output-buffer replace
-				      error-buffer)
+				      error-buffer display-error-buffer)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.  Return the exit code of
@@ -1641,10 +1679,10 @@ is encoded in the same coding system that will be used to save the file,
 `buffer-file-coding-system'.  If the output is going to replace the region,
 then it is decoded from that same coding system.
 
-The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER,
-REPLACE, ERROR-BUFFER.  Noninteractive callers can specify coding
-systems by binding `coding-system-for-read' and
-`coding-system-for-write'.
+The noninteractive arguments are START, END, COMMAND,
+OUTPUT-BUFFER, REPLACE, ERROR-BUFFER, and DISPLAY-ERROR-BUFFER.
+Noninteractive callers can specify coding systems by binding
+`coding-system-for-read' and `coding-system-for-write'.
 
 If the command generates output, the output may be displayed
 in the echo area or in a buffer.
@@ -1674,6 +1712,8 @@ around it.
 If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
+If DISPLAY-ERROR-BUFFER is non-nil, display the error buffer if there
+were any errors.  (This is always t, interactively.)
 In an interactive call, the variable `shell-command-default-error-buffer'
 specifies the value of ERROR-BUFFER."
   (interactive (let (string)
@@ -1691,7 +1731,8 @@ specifies the value of ERROR-BUFFER."
 		       string
 		       current-prefix-arg
 		       current-prefix-arg
-		       shell-command-default-error-buffer)))
+		       shell-command-default-error-buffer
+		       t)))
   (let ((error-file
 	 (if error-buffer
 	     (make-temp-file
@@ -1800,7 +1841,8 @@ specifies the value of ERROR-BUFFER."
 	      (format-insert-file error-file nil)
 	      ;; Put point after the inserted errors.
 	      (goto-char (- (point-max) pos-from-end)))
-	    (display-buffer (current-buffer))))
+	    (and display-error-buffer
+		 (display-buffer (current-buffer)))))
       (delete-file error-file))
     exit-status))
 
@@ -4304,6 +4346,12 @@ make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
+;; This is for packages that need to bind it to a non-default regexp
+;; in order to make the first-differing character highlight work
+;; to their liking
+(defvar completion-root-regexp "^/"
+  "Regexp to use in `completion-setup-function' to find the root directory.")
+
 (defun completion-setup-function ()
   (let ((mainbuf (current-buffer))
 	(mbuf-contents (minibuffer-contents)))
@@ -4313,6 +4361,13 @@ of the differing parts is, by contrast, slightly highlighted."
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
 	  (setq default-directory (file-name-directory mbuf-contents))))
+    ;; If partial-completion-mode is on, point might not be after the
+    ;; last character in the minibuffer.
+    ;; FIXME: This still doesn't work if the text to be completed
+    ;; starts with a `-'.
+    (when (and partial-completion-mode (not (eobp)))
+      (setq mbuf-contents
+	    (substring mbuf-contents 0 (- (point) (point-max)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
@@ -4325,7 +4380,7 @@ of the differing parts is, by contrast, slightly highlighted."
 		(with-current-buffer mainbuf
 		  (save-excursion
 		    (goto-char (point-max))
-		    (skip-chars-backward "^/")
+		    (skip-chars-backward completion-root-regexp)
 		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(if (minibufferp mainbuf)

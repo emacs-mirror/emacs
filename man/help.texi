@@ -63,7 +63,7 @@ match for @var{topic}, a regular expression.  @xref{Apropos}.
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
 If there are several matches, Emacs displays the first one.  You can then
-press @key{,} to move to other matches, until you find what you are
+press @kbd{,} to move to other matches, until you find what you are
 looking for.
 
 @item C-h i d m emacs @key{RET} s @var{topic} @key{RET}
@@ -455,6 +455,7 @@ is available within Info.  Eventually all the documentation of the GNU
 system will be available.  Type @kbd{h} after entering Info to run
 a tutorial on using Info.
 
+@cindex find Info manual by its file name
   If you specify a numeric argument, @kbd{C-h i} prompts for the name of
 a documentation file.  This way, you can browse a file which doesn't
 have an entry in the top-level Info menu.  It is also handy when you

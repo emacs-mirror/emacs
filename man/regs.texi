@@ -30,8 +30,8 @@ Display a description of what register @var{r} contains.
 * Text: RegText.              Saving text in registers.
 * Rectangle: RegRect.         Saving rectangles in registers.
 * Configurations: RegConfig.  Saving window configurations in registers.
-* Files: RegFiles.            File names in registers.
 * Numbers: RegNumbers.        Numbers in registers.
+* Files: RegFiles.            File names in registers.
 * Bookmarks::                 Bookmarks are like registers, but persistent.
 @end menu
 
@@ -185,11 +185,11 @@ Store @var{number} into register @var{r} (@code{number-to-register}).
 @findex increment-register
 Increment the number in register @var{r} by @var{number}
 (@code{increment-register}).
-@item C-x r g @var{r}
+@item C-x r i @var{r}
 Insert the number from register @var{r} into the buffer.
 @end table
 
-  @kbd{C-x r g} is the same command used to insert any other sort of
+  @kbd{C-x r i} is the same command used to insert any other sort of
 register contents into the buffer.  @kbd{C-x r +} with no numeric
 argument increments the register value by 1; @kbd{C-x r n} with no
 numeric argument stores zero in the register.

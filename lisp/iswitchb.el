@@ -159,7 +159,7 @@
 ;; then all buffers matching "Summary" are moved to the end of the
 ;; list.  (I find this handy for keeping the INBOX Summary and so on
 ;; out of the way.)  It also moves buffers matching "output\*$" to the
-;; end of the list (these are created by AUC TeX when compiling.)
+;; end of the list (these are created by AUCTeX when compiling.)
 ;; Other functions could be made available which alter the list of
 ;; matching buffers (either deleting or rearranging elements.)
 

@@ -57,47 +57,6 @@
 ;; keep the behavior.  No point in forcing nonincremental search until
 ;; the last possible moment.
 
-;; TODO
-;; - Integrate the emacs 19 generalized command history.
-;; - Hooks and options for failed search.
-
-;;; Change Log:
-
-;; Changes before those recorded in ChangeLog:
-
-;; Revision 1.4  92/09/14  16:26:02  liberte
-;; Added prefix args to isearch-forward, etc. to switch between
-;;    string and regular expression searching.
-;; Added some support for lemacs.
-;; Added general isearch-highlight option - but only for lemacs so far.
-;; Added support for frame switching in emacs 19.
-;; Added word search option to isearch-edit-string.
-;; Renamed isearch-quit to isearch-abort.
-;; Numerous changes to comments and doc strings.
-;;
-;; Revision 1.3  92/06/29  13:10:08  liberte
-;; Moved modal isearch-mode handling into isearch-mode.
-;; Got rid of buffer-local isearch variables.
-;; isearch-edit-string used by ring adjustments, completion, and
-;; nonincremental searching.  C-s and C-r are additional exit commands.
-;; Renamed all regex to regexp.
-;; Got rid of found-start and found-point globals.
-;; Generalized handling of upper-case chars.
-
-;; Revision 1.2  92/05/27  11:33:57  liberte
-;; Emacs version 19 has a search ring, which is supported here.
-;; Other fixes found in the version 19 isearch are included here.
-;;
-;; Also see variables search-caps-disable-folding,
-;; search-nonincremental-instead, search-whitespace-regexp, and
-;; commands isearch-toggle-regexp, isearch-edit-string.
-;;
-;; semi-modal isearching is supported.
-
-;; Changes for 1.1
-;; 3/18/92 Fixed invalid-regexp.
-;; 3/18/92 Fixed yanking in regexps.
-
 ;;; Code:
 
 
@@ -153,9 +112,9 @@ string, and RET terminates editing and does a nonincremental search."
 (defcustom search-whitespace-regexp "\\(?:\\s-+\\)"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to regular expression incremental search.
-You might want to use something like \"[ \\t\\r\\n]+\" instead.
-In the Customization buffer, that is `[' followed by a space,
-a tab, a carriage return (control-M), a newline, and `]+'."
+You might want to use something like \"\\\\(?:[ \\t\\r\\n]+\\\\)\" instead.
+In the Customization buffer, that is `\\(?:[' followed by a space,
+a tab, a carriage return (control-M), a newline, and `]+\\)'."
   :type 'regexp
   :group 'isearch)
 
@@ -197,6 +156,15 @@ Ordinarily the text becomes invisible again at the end of the search."
 
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.")
+
+(defvar isearch-wrap-function nil
+  "Function to call to wrap the search when search is failed.
+If nil, move point to the beginning of the buffer for a forward search,
+or to the end of the buffer for a backward search.")
+
+(defvar isearch-push-state-function nil
+  "Function to save a function restoring the mode-specific isearch state
+to the search status stack.")
 
 ;; Search ring.
 
@@ -298,11 +266,11 @@ Default value, nil, means edit the string instead."
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-line)
 
-    ;; Define keys for regexp chars * ? |.
+    ;; Define keys for regexp chars * ? } |.
     ;; Nothing special for + because it matches at least once.
     (define-key map "*" 'isearch-*-char)
     (define-key map "?" 'isearch-*-char)
-    (define-key map "{" 'isearch-{-char)
+    (define-key map "}" 'isearch-}-char)
     (define-key map "|" 'isearch-|-char)
 
     ;; Turned off because I find I expect to get the global definition--rms.
@@ -372,9 +340,9 @@ Default value, nil, means edit the string instead."
 
 (defvar isearch-cmds nil
   "Stack of search status sets.
-Each set is a list of the form:
- (STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD
-  INVALID-REGEXP WRAPPED BARRIER WITHIN-BRACKETS CASE-FOLD-SEARCH)")
+Each set is a vector of the form:
+ [STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD
+  INVALID-REGEXP WRAPPED BARRIER WITHIN-BRACKETS CASE-FOLD-SEARCH]")
 
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
@@ -774,6 +742,81 @@ REGEXP says which ring to use."
 ;;   (handle-switch-frame (car (cdr last-command-char))))
 
 
+;; The search status structure and stack.
+
+(defsubst isearch-string-state (frame)
+  "Return the search string in FRAME."
+  (aref frame 0))
+(defsubst isearch-message-state (frame)
+  "Return the search string to display to the user in FRAME."
+  (aref frame 1))
+(defsubst isearch-point-state (frame)
+  "Return the point in FRAME."
+  (aref frame 2))
+(defsubst isearch-success-state (frame)
+  "Return the success flag in FRAME."
+  (aref frame 3))
+(defsubst isearch-forward-state (frame)
+  "Return the searching-forward flag in FRAME."
+  (aref frame 4))
+(defsubst isearch-other-end-state (frame)
+  "Return the other end of the match in FRAME."
+  (aref frame 5))
+(defsubst isearch-word-state (frame)
+  "Return the search-by-word flag in FRAME."
+  (aref frame 6))
+(defsubst isearch-invalid-regexp-state (frame)
+  "Return the regexp error message in FRAME, or nil if its regexp is valid."
+  (aref frame 7))
+(defsubst isearch-wrapped-state (frame)
+  "Return the search-wrapped flag in FRAME."
+  (aref frame 8))
+(defsubst isearch-barrier-state (frame)
+  "Return the barrier value in FRAME."
+  (aref frame 9))
+(defsubst isearch-within-brackets-state (frame)
+  "Return the in-character-class flag in FRAME."
+  (aref frame 10))
+(defsubst isearch-case-fold-search-state (frame)
+  "Return the case-folding flag in FRAME."
+  (aref frame 11))
+(defsubst isearch-pop-fun-state (frame)
+  "Return the function restoring the mode-specific isearch state in FRAME."
+  (aref frame 12))
+
+(defun isearch-top-state ()
+  (let ((cmd (car isearch-cmds)))
+    (setq isearch-string (isearch-string-state cmd)
+	  isearch-message (isearch-message-state cmd)
+	  isearch-success (isearch-success-state cmd)
+	  isearch-forward (isearch-forward-state cmd)
+	  isearch-other-end (isearch-other-end-state cmd)
+	  isearch-word (isearch-word-state cmd)
+	  isearch-invalid-regexp (isearch-invalid-regexp-state cmd)
+	  isearch-wrapped (isearch-wrapped-state cmd)
+	  isearch-barrier (isearch-barrier-state cmd)
+	  isearch-within-brackets (isearch-within-brackets-state cmd)
+	  isearch-case-fold-search (isearch-case-fold-search-state cmd))
+    (if (functionp (isearch-pop-fun-state cmd))
+	(funcall (isearch-pop-fun-state cmd) cmd))
+    (goto-char (isearch-point-state cmd))))
+
+(defun isearch-pop-state ()
+  (setq isearch-cmds (cdr isearch-cmds))
+  (isearch-top-state))
+
+(defun isearch-push-state ()
+  (setq isearch-cmds
+	(cons (vector isearch-string isearch-message (point)
+		      isearch-success isearch-forward isearch-other-end
+		      isearch-word
+		      isearch-invalid-regexp isearch-wrapped isearch-barrier
+		      isearch-within-brackets isearch-case-fold-search
+		      (if isearch-push-state-function
+			  (funcall isearch-push-state-function)))
+	      isearch-cmds)))
+
+
 ;; Commands active while inside of the isearch minor mode.
 
 (defun isearch-exit ()
@@ -956,10 +999,13 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 (defun isearch-cancel ()
   "Terminate the search and go back to the starting point."
   (interactive)
+  (if (functionp (isearch-pop-fun-state (car (last isearch-cmds))))
+      (funcall (isearch-pop-fun-state (car (last isearch-cmds)))
+               (car (last isearch-cmds))))
   (goto-char isearch-opoint)
-  (isearch-done t)
+  (isearch-done t)                      ; exit isearch
   (isearch-clean-overlays)
-  (signal 'quit nil))  ; and pass on quit signal
+  (signal 'quit nil))                   ; and pass on quit signal
 
 (defun isearch-abort ()
   "Abort incremental search mode if searching is successful, signaling quit.
@@ -971,11 +1017,9 @@ Use `isearch-exit' to quit without signaling."
   (if isearch-success
       ;; If search is successful, move back to starting point
       ;; and really do quit.
-      (progn (goto-char isearch-opoint)
-	     (setq isearch-success nil)
-	     (isearch-done t)   ; exit isearch
-	     (isearch-clean-overlays)
-	     (signal 'quit nil))  ; and pass on quit signal
+      (progn
+        (setq isearch-success nil)
+        (isearch-cancel))
     ;; If search is failing, or has an incomplete regexp,
     ;; rub out until it is once more successful.
     (while (or (not isearch-success) isearch-invalid-regexp)
@@ -1000,7 +1044,9 @@ Use `isearch-exit' to quit without signaling."
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
-	      (goto-char (if isearch-forward (point-min) (point-max)))
+	      (if isearch-wrap-function
+		  (funcall isearch-wrap-function)
+	        (goto-char (if isearch-forward (point-min) (point-max))))
 	      (setq isearch-wrapped t))))
     ;; C-s in reverse or C-r in forward, change direction.
     (setq isearch-forward (not isearch-forward)))
@@ -1042,6 +1088,7 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-regexp (not isearch-regexp))
   (if isearch-regexp (setq isearch-word nil))
+  (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
 (defun isearch-toggle-case-fold ()
@@ -1054,34 +1101,39 @@ Use `isearch-exit' to quit without signaling."
 	     (isearch-message-prefix nil nil isearch-nonincremental)
 	     isearch-message
 	     (if isearch-case-fold-search "in" "")))
-  (setq isearch-adjusted t)
+  (setq isearch-success t isearch-adjusted t)
   (sit-for 1)
   (isearch-update))
 
-(defun isearch-query-replace ()
+(defun isearch-query-replace (&optional regexp-flag)
   "Start query-replace with string to replace from last search string."
   (interactive)
   (barf-if-buffer-read-only)
+  (if regexp-flag (setq isearch-regexp t))
   (let ((case-fold-search isearch-case-fold-search))
     (isearch-done)
     (isearch-clean-overlays)
-    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
+    (if (and (< isearch-other-end (point))
+             (not (and transient-mark-mode mark-active
+                       (< isearch-opoint (point)))))
+        (goto-char isearch-other-end))
+    (set query-replace-from-history-variable
+         (cons isearch-string
+               (symbol-value query-replace-from-history-variable)))
     (perform-replace
      isearch-string
-     (query-replace-read-to isearch-string "Query replace" isearch-regexp)
-     t isearch-regexp isearch-word)))
+     (query-replace-read-to
+      isearch-string
+      (if isearch-regexp "Query replace regexp" "Query replace")
+      isearch-regexp)
+     t isearch-regexp isearch-word nil nil
+     (if (and transient-mark-mode mark-active) (region-beginning))
+     (if (and transient-mark-mode mark-active) (region-end)))))
 
 (defun isearch-query-replace-regexp ()
   "Start query-replace-regexp with string to replace from last search string."
   (interactive)
-  (let ((query-replace-interactive t)
-        (case-fold-search isearch-case-fold-search))
-    ;; Put search string into the right ring
-    (setq isearch-regexp t)
-    (isearch-done)
-    (isearch-clean-overlays)
-    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
-    (call-interactively 'query-replace-regexp)))
+  (isearch-query-replace t))
 
 
 (defun isearch-delete-char ()
@@ -1249,53 +1301,93 @@ might return the position of the end of the line."
   (isearch-update))
 
 
-(defun isearch-{-char ()
-  "Handle \{ specially in regexps."
-  (interactive)
-  (isearch-*-char t))
-
-;; *, ?, and | chars can make a regexp more liberal.
+;; *, ?, }, and | chars can make a regexp more liberal.
 ;; They can make a regexp match sooner or make it succeed instead of failing.
 ;; So go back to place last successful search started
 ;; or to the last ^S/^R (barrier), whichever is nearer.
 ;; + needs no special handling because the string must match at least once.
 
-(defun isearch-*-char (&optional want-backslash)
-  "Handle * and ? specially in regexps.
-When WANT-BACKSLASH is non-nil, do special handling for \{."
-  (interactive)
-  (if isearch-regexp
-      (let ((idx (length isearch-string)))
-	(while (and (> idx 0)
-		    (eq (aref isearch-string (1- idx)) ?\\))
-	  (setq idx (1- idx)))
-	;; * and ? are special when not preceded by \.
-	;; { is special when it is preceded by \.
-	(when (= (mod (- (length isearch-string) idx) 2)
-		 (if want-backslash 1 0))
-	  (setq isearch-adjusted t)
-	  ;; Get the isearch-other-end from before the last search.
-	  ;; We want to start from there,
-	  ;; so that we don't retreat farther than that.
-	  ;; (car isearch-cmds) is after last search;
-	  ;; (car (cdr isearch-cmds)) is from before it.
-	  (let ((cs (nth 5 (car (cdr isearch-cmds)))))
-	    (setq cs (or cs isearch-barrier))
-	    (goto-char
-	     (if isearch-forward
-		 (max cs isearch-barrier)
-	       (min cs isearch-barrier)))))))
+(defun isearch-backslash (str)
+  "Return t if STR ends in an odd number of backslashes."
+  (= (mod (- (length str) (string-match "\\\\*\\'" str)) 2) 1))
+
+(defun isearch-fallback (want-backslash &optional allow-invalid to-barrier)
+  "Return point to previous successful match to allow regexp liberalization.
+\\<isearch-mode-map>
+Respects \\[isearch-repeat-forward] and \\[isearch-repeat-backward] by
+stopping at `isearch-barrier' as needed.
+
+Do nothing if a backslash is escaping the liberalizing character.  If
+WANT-BACKSLASH is non-nil, invert this behavior (for \\} and \\|).
+
+Do nothing if regexp has recently been invalid unless optional ALLOW-INVALID
+non-nil.
+
+If optional TO-BARRIER non-nil, ignore previous matches and go exactly to the
+barrier."
+  ;; (eq (not a) (not b)) makes all non-nil values equivalent
+  (when (and isearch-regexp (eq (not (isearch-backslash isearch-string))
+				(not want-backslash))
+	     ;; We have to check 2 stack frames because the last might be
+	     ;; invalid just because of a backslash.
+	     (or (not isearch-invalid-regexp)
+		 (not (isearch-invalid-regexp-state (cadr isearch-cmds)))
+		 allow-invalid))
+    (if to-barrier
+	(progn (goto-char isearch-barrier)
+	       (setq isearch-adjusted t))
+      (let* ((stack isearch-cmds)
+	     (previous (cdr stack))	; lookbelow in the stack
+	     (frame (car stack)))
+	;; Walk down the stack looking for a valid regexp (as of course only
+	;; they can be the previous successful match); this conveniently
+	;; removes all bracket-sets and groups that might be in the way, as
+	;; well as partial \{\} constructs that the code below leaves behind.
+	;; Also skip over postfix operators -- though horrid,
+	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly legal.
+	(while (and previous
+		    (or (isearch-invalid-regexp-state frame)
+			(let* ((string (isearch-string-state frame))
+			       (lchar (aref string (1- (length string)))))
+			  ;; The operators aren't always operators; check
+			  ;; backslashes.  This doesn't handle the case of
+			  ;; operators at the beginning of the regexp not
+			  ;; being special, but then we should fall back to
+			  ;; the barrier anyway because it's all optional.
+			  (if (isearch-backslash
+			       (isearch-string-state (car previous)))
+			      (eq lchar ?\})
+			    (memq lchar '(?* ?? ?+))))))
+	  (setq stack previous previous (cdr previous) frame (car stack)))
+	(when stack
+	  ;; `stack' now refers the most recent valid regexp that is not at
+	  ;; all optional in its last term.  Now dig one level deeper and find
+	  ;; what matched before that.
+	  (let ((last-other-end (or (isearch-other-end-state (car previous))
+				    isearch-barrier)))
+	    (goto-char (if isearch-forward
+			   (max last-other-end isearch-barrier)
+			 (min last-other-end isearch-barrier)))
+	    (setq isearch-adjusted t))))))
   (isearch-process-search-char last-command-char))
 
+;; * and ? are special when not preceded by \.
+(defun isearch-*-char ()
+  "Maybe back up to handle * and ? specially in regexps."
+  (interactive)
+  (isearch-fallback nil))
 
+;; } is special when it is preceded by \.
+(defun isearch-}-char ()
+  "Handle \\} specially in regexps."
+  (interactive)
+  (isearch-fallback t t))
+
+;; | is special when it is preceded by \.
 (defun isearch-|-char ()
-  "If in regexp search, jump to the barrier."
+  "If in regexp search, jump to the barrier unless in a group."
   (interactive)
-  (if isearch-regexp
-      (progn
-	(setq isearch-adjusted t)
-	(goto-char isearch-barrier)))
-  (isearch-process-search-char last-command-char))
+  (isearch-fallback t nil t))
 
 (defun isearch-unread-key-sequence (keylist)
   "Unread the given key-sequence KEYLIST.
@@ -1534,8 +1626,7 @@ Isearch mode."
            (let ((ab-bel (isearch-string-out-of-window isearch-point)))
              (if ab-bel
                  (isearch-back-into-window (eq ab-bel 'above) isearch-point)
-               (or (eq (point) isearch-point)
-                   (goto-char isearch-point))))
+               (goto-char isearch-point)))
            (isearch-update))
 	  (search-exit-option
 	   (let (window)
@@ -1775,38 +1866,6 @@ If there is no completion possible, say so and continue searching."
 	(insert isearch-string))))
 
 
-;; The search status stack (and isearch window-local variables, not used).
-;; Need a structure for this.
-
-(defun isearch-top-state ()
-  (let ((cmd (car isearch-cmds)))
-    (setq isearch-string (car cmd)
-	  isearch-message (car (cdr cmd))
-	  isearch-success (nth 3 cmd)
-	  isearch-forward (nth 4 cmd)
-	  isearch-other-end (nth 5 cmd)
-	  isearch-word (nth 6 cmd)
-	  isearch-invalid-regexp (nth 7 cmd)
-	  isearch-wrapped (nth 8 cmd)
-	  isearch-barrier (nth 9 cmd)
-	  isearch-within-brackets (nth 10 cmd)
-	  isearch-case-fold-search (nth 11 cmd))
-    (goto-char (car (cdr (cdr cmd))))))
-
-(defun isearch-pop-state ()
-  (setq isearch-cmds (cdr isearch-cmds))
-  (isearch-top-state))
-
-(defun isearch-push-state ()
-  (setq isearch-cmds
-	(cons (list isearch-string isearch-message (point)
-		    isearch-success isearch-forward isearch-other-end
-		    isearch-word
-		    isearch-invalid-regexp isearch-wrapped isearch-barrier
-		    isearch-within-brackets isearch-case-fold-search)
-	      isearch-cmds)))
-
-
 ;; Message string
 
 (defun isearch-message (&optional c-q-hack ellipsis)
@@ -1841,7 +1900,9 @@ If there is no completion possible, say so and continue searching."
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
   (let ((m (concat (if isearch-success "" "failing ")
+		   (if isearch-adjusted "pending " "")
 		   (if (and isearch-wrapped
+			    (not isearch-wrap-function)
 			    (if isearch-forward
 				(> (point) isearch-opoint)
 			      (< (point) isearch-opoint)))
@@ -1936,9 +1997,11 @@ Can be changed via `isearch-search-fun-function' for special needs."
   (if isearch-success
       nil
     ;; Ding if failed this time after succeeding last time.
-    (and (nth 3 (car isearch-cmds))
+    (and (isearch-success-state (car isearch-cmds))
 	 (ding))
-    (goto-char (nth 2 (car isearch-cmds)))))
+    (if (functionp (isearch-pop-fun-state (car isearch-cmds)))
+        (funcall (isearch-pop-fun-state (car isearch-cmds)) (car isearch-cmds)))
+    (goto-char (isearch-point-state (car isearch-cmds)))))
 
 
 ;; Called when opening an overlay, and we are still in isearch.

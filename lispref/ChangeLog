@@ -1,3 +1,117 @@
+2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrevs.texi (Abbrev Expansion): `abbrev-start-location' can be
+	an integer or a marker.
+	(Abbrev Expansion): Replace example for `pre-abbrev-expand-hook'.
+
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Discuss rebinding of
+	standard key bindings.
+
+2004-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Accepting Output): Add `just-this-one' arg to
+	`accept-process-output'.
+	(Output from Processes): New var `process-adaptive-read-buffering'.
+
+2004-08-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymaps.texi: Various changes in addition to:
+	(Keymap Terminology): `kbd' uses same syntax as Edit Macro mode.
+	Give more varied examples for `kbd'.
+	(Creating Keymaps): Char tables have slots for all characters
+	without modifiers.
+	(Active Keymaps): `overriding-local-map' and
+	`overriding-terminal-local-map' also override text property and
+	overlay keymaps.
+	(Functions for Key Lookup): Mention OLP arg to `current-active-maps'.
+	(Scanning Keymaps): `accessible-keymaps' uses `[]' instead of `""'
+	to denote a prefix of no events.
+	`map-keymap' includes parent's bindings _recursively_.
+	Clarify and correct description of `where-is-internal'.
+	Mention BUFFER-OR-NAME arg to `describe-bindings'.
+	(Menu Example): For menus intended for use with the keyboard, the
+	menu items should be bound to characters or real function keys.
+
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* objects.texi (Character Type): Reposition `@anchor' to prevent
+	double space inside sentence in Info.
+
+	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
+	renamed to `disabled-command-function'.
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	(Command Loop Info): Replace reference to it.
+	(Disabling Commands): `disabled-command-hook' has been renamed to
+	`disabled-command-function'.
+
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* os.texi (Translating Input): Only non-prefix bindings in
+	`key-translation-map' override actual key bindings.  Warn about
+	possible indirect effect of actual key bindings on non-prefix
+	bindings in `key-translation-map'.
+
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (High-Level Completion): Add anchor for definition
+	of `read-variable'.
+
+	* commands.texi: Various changes in addition to:
+	(Using Interactive): Clarify description of `interactive-form'.
+	(Interactive Call): Mention default for KEYS argument to
+	`call-interactively'.
+	(Command Loop Info): Clarify description of `this-command-keys'.
+	Mention KEEP-RECORD argument to `clear-this-command-keys'.
+	Value of `last-event-frame' can be `macro'.
+	(Repeat Events): `double-click-fuzz' is also used to distinguish
+	clicks and drags.
+	(Classifying Events): Clarify descriptions of `event-modifiers'
+	`event-basic-type' and `event-convert-list'.
+	(Accessing Events): `posn-timestamp' takes POSITION argument.
+	(Quoted Character Input): Clarify description of
+	`read-quoted-char' and fix example.
+	(Quitting): Add `with-local-quit'.
+	(Disabling Commands):  Correct and clarify descriptions of
+	`enable-command' and `disable-command'.
+	Mention what happens if `disabled-command-hook' is nil.
+	(Keyboard Macros): Mention LOOPFUNC arg to `execute-kbd-macro'.
+	Describe `executing-kbd-macro' instead of obsolete `executing-macro'.
+
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi: Various changes in addition to:
+	(Creating Frames): Expand and clarify description of `make-frame'.
+	(Window Frame Parameters): Either none or both of the `icon-left'
+	and `icon-top' parameters must be specified.  Put descriptions of
+	`menu-bar-lines' and `toolbar-lines' closer together and change
+	them accordingly.
+	(Frame Titles): `multiple-frames' is not guaranteed to be accurate
+	except while processing `frame-title-format' or `icon-title-format'.
+	(Deleting Frames): Correct description of `delete-frame'.
+	Non-nil return values of `frame-live-p' are like those of `framep'.
+	(Frames and Windows): mention return value of
+	`set-frame-selected-window'.
+	(Visibility of Frames): Mention `force' argument to
+	`make-frame-invisible'.  `frame-visible-p' returns t for all
+	frames on text-only terminals.
+	(Frame Configurations): Restoring a frame configuration does not
+	restore deleted frames.
+	(Window System Selections): `x-set-selection' returns DATA.
+	(Resources): Add example.
+	(Display Feature Testing): Clarify descriptions of
+	`display-pixel-height', `display-pixel-width', `x-server-version'
+	and `x-server-vendor'.
+
+	* windows.texi (Choosing Window): Add anchor.
+	* minibuf.texi (Minibuffer Misc): Add anchor.
+
+2004-07-23  John Paul Wallington  <jpw@gnu.org>
+
+	* macros.texi (Defining Macros): Declaration keyword for setting
+	Edebug spec is `debug' not `edebug'.
+
 2004-07-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* windows.texi: Various small changes in addition to:

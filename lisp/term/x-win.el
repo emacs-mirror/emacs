@@ -2212,7 +2212,8 @@ order until succeed.")
 		     (if utf8
 			 (setq text (x-select-utf8-or-ctext utf8 ctext))
 		       ;; Othewise, choose CTEXT.
-		       (setq text ctext))))
+		       (setq text ctext))
+		   (setq text utf8)))
 	     ;; If not yet decided, try STRING.
 	     (or text
 		 (setq text (condition-case nil

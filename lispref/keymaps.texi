@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/keymaps
@@ -103,16 +103,19 @@ representation; it is also convenient to use @code{kbd}:
 This macro converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents
 of @var{keyseq-text} should describe the key sequence using the syntax
-used in this manual:
+used in this manual.  More precisely, it uses the same syntax that
+Edit Macro mode uses for editing keyboard macros (@pxref{Edit Keyboard
+Macro,,, emacs, The GNU Emacs Manual}).
 
 @example
 (kbd "C-x") @result{} "\C-x"
 (kbd "C-x C-f") @result{} "\C-x\C-f"
-(kbd "C-c C-c") @result{} "\C-c\C-c"
 (kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
 (kbd "X") @result{} "X"
 (kbd "RET") @result{} "\^M"
-(kbd "C-c 3") @result{} "\C-c3"
+(kbd "C-c SPC") @result{} "\C-c@ "
+(kbd "<f1> SPC") @result{} [f1 32]
+(kbd "C-M-<down>") @result{} [C-M-down]
 @end example
 @end defmac
 
@@ -144,7 +147,8 @@ This specifies a @dfn{default key binding}; any event not bound by other
 elements of the keymap is given @var{binding} as its binding.  Default
 bindings allow a keymap to bind all possible event types without having
 to enumerate all of them.  A keymap that has a default binding
-completely masks any lower-precedence keymap.
+completely masks any lower-precedence keymap, except for events
+explicitly bound to @code{nil} (see below).
 
 @item @var{char-table}
 If an element of a keymap is a char-table, it counts as holding
@@ -251,17 +255,15 @@ satisfies @code{keymapp}.
 @c ??? This should come after make-sparse-keymap
 @defun make-keymap &optional prompt
 This function creates and returns a new full keymap.  That keymap
-contains a char-table (@pxref{Char-Tables}) with 384 slots: the first
-128 slots are for defining all the @acronym{ASCII} characters, the next 128
-slots are for 8-bit European characters, and each one of the final 128
-slots is for one character set of non-@acronym{ASCII} characters supported by
-Emacs.  The new keymap initially binds all these characters to
-@code{nil}, and does not bind any other kind of event.
+contains a char-table (@pxref{Char-Tables}) with slots for all
+characters without modifiers.  The new keymap initially binds all
+these characters to @code{nil}, and does not bind any other kind of
+event.
 
 @example
 @group
 (make-keymap)
-    @result{} (keymap [nil nil nil @dots{} nil nil])
+    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
 @end group
 @end example
 
@@ -509,6 +511,7 @@ active keymap.
 
 @defun define-prefix-command symbol &optional mapvar prompt
 @cindex prefix command
+@anchor{Definition of define-prefix-command}
 This function prepares @var{symbol} for use as a prefix key's binding:
 it creates a sparse keymap and stores it as @var{symbol}'s function
 definition.  Subsequently binding a key sequence to @var{symbol} will
@@ -698,15 +701,16 @@ all buffers.
 
 @defvar overriding-local-map
 If non-@code{nil}, this variable holds a keymap to use instead of the
-buffer's local keymap and instead of all the minor mode keymaps.  This
-keymap, if any, overrides all other maps that would have been active,
-except for the current global map.
+buffer's local keymap, text property or overlay keymaps, and instead
+of all the minor mode keymaps.  This keymap, if any, overrides all
+other maps that would have been active, except for the current global
+map.
 @end defvar
 
 @defvar overriding-terminal-local-map
 If non-@code{nil}, this variable holds a keymap to use instead of
-@code{overriding-local-map}, the buffer's local keymap and all the minor
-mode keymaps.
+@code{overriding-local-map}, the buffer's local keymap, text property
+or overlay keymaps, and all the minor mode keymaps.
 
 This variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.  It is used to implement
@@ -977,9 +981,12 @@ An error is signaled if @var{key} is not a string or a vector.
 @end example
 @end defun
 
-@defun current-active-maps
+@defun current-active-maps &optional olp
 This returns the list of keymaps that would be used by the command
-loop in the current circumstances to look up a key sequence.
+loop in the current circumstances to look up a key sequence.  Normally
+it ignores @code{overriding-local-map} and
+@code{overriding-terminal-local-map}, but if @var{olp} is
+non-@code{nil} then it pays attention to them.
 @end defun
 
 @defun local-key-binding key &optional accept-defaults
@@ -1191,7 +1198,7 @@ changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
 default global map.
 
   The function @code{substitute-key-definition} scans a keymap for
-keys that have a certain binding and rebind them with a different
+keys that have a certain binding and rebinds them with a different
 binding.  Another feature you can use for similar effects, but which
 is often cleaner, is to add a binding that remaps a command
 (@pxref{Remapping Commands}).
@@ -1324,7 +1331,7 @@ this by making these two command-remapping bindings in its keymap:
 Whenever @code{my-mode-map} is an active keymap, if the user types
 @kbd{C-k}, Emacs will find the standard global binding of
 @code{kill-line} (assuming nobody has changed it).  But
-@code{my-mode-map} remaps @code{kill-line} to @code{my-mode-map},
+@code{my-mode-map} remaps @code{kill-line} to @code{my-kill-line},
 so instead of running @code{kill-line}, Emacs runs
 @code{my-kill-line}.
 
@@ -1337,15 +1344,16 @@ Remapping only works through a single level.  In other words,
 
 @noindent
 does not have the effect of remapping @code{kill-line} into
-@code{my-other-kill-line}.  If an ordinary key binding specifies 
+@code{my-other-kill-line}.  If an ordinary key binding specifies
 @code{kill-line}, this keymap will remap it to @code{my-kill-line};
 if an ordinary binding specifies @code{my-kill-line}, this keymap will
 remap it to @code{my-other-kill-line}.
 
 @defun command-remapping command
-This function returns the remapping for @var{command}, given the
-current active keymaps.  If @var{command} is not remapped (which is
-the usual situation), the function returns @code{nil}.
+This function returns the remapping for @var{command} (a symbol),
+given the current active keymaps.  If @var{command} is not remapped
+(which is the usual situation), or not a symbol, the function returns
+@code{nil}.
 @end defun
 
 @node Key Binding Commands
@@ -1409,7 +1417,7 @@ actually bind the multibyte character with code 2294, not the unibyte
 Latin-1 character with code 246 (@kbd{M-v}).  In order to use this
 binding, you need to enter the multibyte Latin-1 character as keyboard
 input.  One way to do this is by using an appropriate input method
-(@pxref{Input Methods, , Input Methods, emacs,The GNU Emacs Manual}).
+(@pxref{Input Methods, , Input Methods, emacs, The GNU Emacs Manual}).
 
   If you want to use a unibyte character in the key binding, you can
 construct the key sequence string using @code{multibyte-char-to-unibyte}
@@ -1499,7 +1507,7 @@ association list with elements of the form @code{(@var{key} .@:
 @var{keymap} is @var{map}.
 
 The elements of the alist are ordered so that the @var{key} increases
-in length.  The first element is always @code{("" .@: @var{keymap})},
+in length.  The first element is always @code{([] .@: @var{keymap})},
 because the specified keymap is accessible from itself with a prefix of
 no events.
 
@@ -1517,7 +1525,7 @@ definition is the sparse keymap @code{(keymap (83 .@: center-paragraph)
 @smallexample
 @group
 (accessible-keymaps (current-local-map))
-@result{}(("" keymap
+@result{}(([] keymap
       (27 keymap   ; @r{Note this keymap for @key{ESC} is repeated below.}
           (83 . center-paragraph)
           (115 . center-line))
@@ -1541,7 +1549,7 @@ of a window.
 @smallexample
 @group
 (accessible-keymaps (current-global-map))
-@result{} (("" keymap [set-mark-command beginning-of-line @dots{}
+@result{} (([] keymap [set-mark-command beginning-of-line @dots{}
                    delete-backward-char])
 @end group
 @group
@@ -1572,6 +1580,8 @@ The function @code{map-keymap} calls @var{function} once
 for each binding in @var{keymap}.  It passes two arguments,
 the event type and the value of the binding.  If @var{keymap}
 has a parent, the parent's bindings are included as well.
+This works recursively: if the parent has itself a parent, then the
+grandparent's bindings are also included and so on.
 
 This function is the cleanest way to examine all the bindings
 in a keymap.
@@ -1580,7 +1590,7 @@ in a keymap.
 @defun where-is-internal command &optional keymap firstonly noindirect no-remap
 This function is a subroutine used by the @code{where-is} command
 (@pxref{Help, , Help, emacs,The GNU Emacs Manual}).  It returns a list
-of key sequences (of any length) that are bound to @var{command} in a
+of all key sequences (of any length) that are bound to @var{command} in a
 set of keymaps.
 
 The argument @var{command} can be any object; it is compared with all
@@ -1588,7 +1598,7 @@ keymap entries using @code{eq}.
 
 If @var{keymap} is @code{nil}, then the maps used are the current active
 keymaps, disregarding @code{overriding-local-map} (that is, pretending
-its value is @code{nil}).  If @var{keymap} is non-@code{nil}, then the
+its value is @code{nil}).  If @var{keymap} is a keymap, then the
 maps searched are @var{keymap} and the global keymap.  If @var{keymap}
 is a list of keymaps, only those keymaps are searched.
 
@@ -1598,11 +1608,12 @@ keymaps that are active.  To search only the global map, pass
 @code{(keymap)} (an empty keymap) as @var{keymap}.
 
 If @var{firstonly} is @code{non-ascii}, then the value is a single
-string representing the first key sequence found, rather than a list of
+vector representing the first key sequence found, rather than a list of
 all possible key sequences.  If @var{firstonly} is @code{t}, then the
 value is the first key sequence, except that key sequences consisting
 entirely of @acronym{ASCII} characters (or meta variants of @acronym{ASCII}
-characters) are preferred to all other key sequences.
+characters) are preferred to all other key sequences and that the
+return value can never be a menu binding.
 
 If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
 follow indirect keymap bindings.  This makes it possible to search for
@@ -1623,7 +1634,7 @@ other command.  However, if @var{no-remap} is non-@code{nil}.
 @end smallexample
 @end defun
 
-@deffn Command describe-bindings &optional prefix
+@deffn Command describe-bindings &optional prefix buffer-or-name
 This function creates a listing of all current key bindings, and
 displays it in a buffer named @samp{*Help*}.  The text is grouped by
 modes---minor modes first, then the major mode, then global bindings.
@@ -1643,6 +1654,10 @@ For example, in the default global map, the characters @samp{@key{SPC}
 @kbd{~} is @acronym{ASCII} 126, and the characters between them include all
 the normal printing characters, (e.g., letters, digits, punctuation,
 etc.@:); all these characters are bound to @code{self-insert-command}.
+
+If @var{buffer-or-name} is non-@code{nil}, it should be a buffer or a
+buffer name.  Then @code{describe-bindings} lists that buffer's bindings,
+instead of the current buffer's.
 @end deffn
 
 @node Menu Keymaps
@@ -1681,8 +1696,9 @@ prompt string.
 
 The easiest way to construct a keymap with a prompt string is to specify
 the string as an argument when you call @code{make-keymap},
-@code{make-sparse-keymap} or @code{define-prefix-command}
-(@pxref{Creating Keymaps}).
+@code{make-sparse-keymap} (@pxref{Creating Keymaps}), or
+@code{define-prefix-command} (@pxref{Definition of define-prefix-command}).
+
 
 @defun keymap-prompt keymap
 This function returns the overall prompt string of @var{keymap},
@@ -2107,6 +2123,12 @@ functioning of the menu itself, but they are ``echoed'' in the echo area
 when the user selects from the menu, and they appear in the output of
 @code{where-is} and @code{apropos}.
 
+  The menu in this example is intended for use with the mouse.  If a
+menu is intended for use with the keyboard, that is, if it is bound to
+a key sequence ending with a keyboard event, then the menu items
+should be bound to characters or ``real'' function keys, that can be
+typed with the keyboard.
+
   The binding whose definition is @code{("--")} is a separator line.
 Like a real menu item, the separator has a key symbol, in this case
 @code{separator-ps-print}.  If one menu has two separators, they must
@@ -2389,7 +2411,7 @@ property list elements to add to the menu item specification.
 This function is used for making non-global tool bar items.  Use it
 like @code{tool-bar-add-item-from-menu} except that @var{in-map}
 specifies the local map to make the definition in.  The argument
-@var{from-map} si like the @var{map} argument of
+@var{from-map} is like the @var{map} argument of
 @code{tool-bar-add-item-from-menu}.
 @end defun
 

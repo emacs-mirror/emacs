@@ -45,6 +45,7 @@
 	      (timezone-make-date-arpa-standard date)))
     (error (error "Invalid date: %s" date))))
 
+;;;###autoload
 (defun time-to-seconds (time)
   "Convert time value TIME to a floating point number.
 You can use `float-time' instead."

@@ -92,7 +92,7 @@
 ;; into sub-lists.  A long flat list can be used instead if needed.
 ;; Other filters can be easily added.
 ;;
-;;    AUC-TEX users: The imenu tags for AUC-TEX mode doesn't work very
+;;    AUCTEX users: The imenu tags for AUCTEX mode doesn't work very
 ;; well.  Use the imenu keywords from tex-mode.el for better results.
 ;;
 ;; This file requires the library package assoc (association lists)
@@ -665,6 +665,9 @@ useful, such as version control."
   "*Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'")
 
+;; Compiler silencing trick.  The real defvar comes later in this file.
+(defvar speedbar-file-regexp)
+
 ;; this is dangerous to customize, because the defaults will probably
 ;; change in the future.
 (defcustom speedbar-supported-extension-expressions
@@ -689,14 +692,22 @@ file."
   :type '(repeat (regexp :tag "Extension Regexp"))
   :set (lambda (sym val)
 	 (setq speedbar-supported-extension-expressions val
-	       speedbar-file-regexp (speedbar-extension-list-to-regex val)))
-  )
+	       speedbar-file-regexp (speedbar-extension-list-to-regex val))))
 
 (defvar speedbar-file-regexp
   (speedbar-extension-list-to-regex speedbar-supported-extension-expressions)
   "Regular expression matching files we know how to expand.
 Created from `speedbar-supported-extension-expression' with the
 function `speedbar-extension-list-to-regex'")
+
+(defcustom speedbar-scan-subdirs nil
+  "*Non-nil means speedbar will check if subdirs are empty.
+That way you don't have to click on them to find out.  But this
+incurs extra I/O, hence it slows down directory display
+proportionally to the number of subdirs."
+  :group 'speedbar
+  :type 'boolean
+  :version 21.4)
 
 (defun speedbar-add-supported-extension (extension)
   "Add EXTENSION as a new supported extension for speedbar tagging.
@@ -1287,8 +1298,9 @@ in the selected file.
     (toggle-read-only 1)
     (speedbar-set-mode-line-format)
     (if speedbar-xemacsp
-	(set (make-local-variable 'mouse-motion-handler)
-	     'speedbar-track-mouse-xemacs)
+	(with-no-warnings
+	 (set (make-local-variable 'mouse-motion-handler)
+	      'speedbar-track-mouse-xemacs))
       (if speedbar-track-mouse-flag
 	  (set (make-local-variable 'track-mouse) t))	;this could be messy.
       (setq auto-show-mode nil))	;no auto-show for Emacs
@@ -1337,7 +1349,8 @@ This gives visual indications of what is up.  It EXPECTS the speedbar
 frame and window to be the currently active frame and window."
   (if (and (frame-live-p speedbar-frame)
 	   (or (not speedbar-xemacsp)
-	       (specifier-instance has-modeline-p)))
+	       (with-no-warnings
+		(specifier-instance has-modeline-p))))
       (save-excursion
 	(set-buffer speedbar-buffer)
 	(let* ((w (or (speedbar-frame-width) 20))
@@ -1538,9 +1551,7 @@ Must be bound to event E."
     ;; This gets the cursor where the user can see it.
     (if (not (bolp)) (forward-char -1))
     (sit-for 0)
-    (if (< emacs-major-version 20)
-	(mouse-major-mode-menu e)
-      (mouse-major-mode-menu e nil))))
+    (mouse-major-mode-menu e nil)))
 
 (defun speedbar-hack-buffer-menu (e)
   "Control mouse 1 is buffer menu.
@@ -2185,21 +2196,17 @@ the file-system."
   ;; find the directory, either in the cache, or build it.
   (or (cdr-safe (assoc directory speedbar-directory-contents-alist))
       (let ((default-directory directory)
-	    (dir (directory-files directory nil))
-	    (dirs nil)
-	    (files nil))
-	(while dir
-	  (if (not
-	       (or (string-match speedbar-file-unshown-regexp (car dir))
-		   (string-match speedbar-directory-unshown-regexp (car dir))))
-	      (if (file-directory-p (car dir))
-		  (setq dirs (cons (car dir) dirs))
-		(setq files (cons (car dir) files))))
-	  (setq dir (cdr dir)))
-	(let ((nl (cons (nreverse dirs) (list (nreverse files)))))
+	    (case-fold-search read-file-name-completion-ignore-case)
+	    dirs files)
+	(dolist (file (directory-files directory nil))
+	  (or (string-match speedbar-file-unshown-regexp file)
+	      (string-match speedbar-directory-unshown-regexp file)
+	      (if (file-directory-p file)
+		  (setq dirs (cons file dirs))
+		(setq files (cons file files)))))
+	(let ((nl `(,(nreverse dirs) ,(nreverse files))))
 	  (aput 'speedbar-directory-contents-alist directory nl)
-	  nl))
-      ))
+	  nl))))
 
 (defun speedbar-directory-buttons (directory index)
   "Insert a single button group at point for DIRECTORY.
@@ -2343,34 +2350,40 @@ position to insert a new item, and that the new item will end with a CR."
 
 ;;; Build button lists
 ;;
-(defun speedbar-insert-files-at-point (files level)
+(defun speedbar-insert-files-at-point (files level directory)
   "Insert list of FILES starting at point, and indenting all files to LEVEL.
 Tag expandable items with a +, otherwise a ?.  Don't highlight ? as we
 don't know how to manage them.  The input parameter FILES is a cons
 cell of the form ( 'DIRLIST .  'FILELIST )."
   ;; Start inserting all the directories
-  (let ((dirs (car files)))
-    (while dirs
-      (speedbar-make-tag-line 'angle ?+ 'speedbar-dired (car dirs)
-			      (car dirs) 'speedbar-dir-follow nil
-			      'speedbar-directory-face level)
-      (setq dirs (cdr dirs))))
-  (let ((lst (car (cdr files)))
-	(case-fold-search t))
-    (while lst
-      (let* ((known (string-match speedbar-file-regexp (car lst)))
+  (dolist (dir (car files))
+    (if (if speedbar-scan-subdirs
+	    (condition-case nil
+		(let ((l (speedbar-file-lists (concat directory dir))))
+		  (or (car l) (cadr l)))
+	      (file-error))
+	  (file-readable-p (concat directory dir)))
+	(speedbar-make-tag-line 'angle ?+ 'speedbar-dired dir
+				dir 'speedbar-dir-follow nil
+				'speedbar-directory-face level)
+      (speedbar-make-tag-line 'angle ?  nil dir
+			      dir 'speedbar-dir-follow nil
+			      'speedbar-directory-face level)))
+  (let ((case-fold-search read-file-name-completion-ignore-case))
+    (dolist (file (cadr files))
+      (let* ((known (and (file-readable-p (concat directory file))
+			 (string-match speedbar-file-regexp file)))
 	     (expchar (if known ?+ ??))
 	     (fn (if known 'speedbar-tag-file nil)))
 	(if (or speedbar-show-unknown-files (/= expchar ??))
-	    (speedbar-make-tag-line 'bracket expchar fn (car lst)
-				    (car lst) 'speedbar-find-file nil
-				    'speedbar-file-face level)))
-      (setq lst (cdr lst)))))
+	    (speedbar-make-tag-line 'bracket expchar fn file
+				    file 'speedbar-find-file nil
+				    'speedbar-file-face level))))))
 
 (defun speedbar-default-directory-list (directory index)
   "Insert files for DIRECTORY with level INDEX at point."
   (speedbar-insert-files-at-point
-   (speedbar-file-lists directory) index)
+   (speedbar-file-lists directory) index directory)
   (speedbar-reset-scanners)
   (if (= index 0)
       ;; If the shown files variable has extra directories, then
@@ -2918,7 +2931,7 @@ updated."
 	 (newcf (if newcfd newcfd))
 	 (lastb (current-buffer))
 	 (sucf-recursive (boundp 'sucf-recursive))
-	 (case-fold-search t))
+	 (case-fold-search read-file-name-completion-ignore-case))
     (if (and newcf
 	     ;; check here, that way we won't refresh to newcf until
 	     ;; its been written, thus saving ourselves some time
@@ -4235,9 +4248,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 	   (speedbar-convert-emacs21-imagespec-to-xemacs (quote ,imagespec)))
 	  'buffer)
        (error nil))
-     ,docstring))
-
-)))
+     ,docstring)))))
 
 (defimage-speedbar speedbar-directory-plus
   ((:type xpm :file "sb-dir-plus.xpm" :ascent center))
@@ -4246,6 +4257,10 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 (defimage-speedbar speedbar-directory-minus
   ((:type xpm :file "sb-dir-minus.xpm" :ascent center))
   "Image used for open directories with stuff in them.")
+
+(defimage-speedbar speedbar-directory
+  ((:type xpm :file "sb-dir.xpm" :ascent center))
+  "Image used for empty or unreadable directories.")
 
 (defimage-speedbar speedbar-page-plus
   ((:type xpm :file "sb-pg-plus.xpm" :ascent center))
@@ -4290,6 +4305,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 (defvar speedbar-expand-image-button-alist
   '(("<+>" . speedbar-directory-plus)
     ("<->" . speedbar-directory-minus)
+    ("< >" . speedbar-directory)
     ("[+]" . speedbar-page-plus)
     ("[-]" . speedbar-page-minus)
     ("[?]" . speedbar-page)

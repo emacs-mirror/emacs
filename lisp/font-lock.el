@@ -358,8 +358,9 @@ Each element in a user-level keywords list should have one of these forms:
  (eval . FORM)
 
 where MATCHER can be either the regexp to search for, or the function name to
-call to make the search (called with one argument, the limit of the search) and
-return non-nil if it succeeds (and set `match-data' appropriately).
+call to make the search (called with one argument, the limit of the search;
+it should return non-nil, move point, and set `match-data' appropriately iff
+it succeeds; like `re-search-forward' would).
 MATCHER regexps can be generated via the function `regexp-opt'.
 
 FORM is an expression, whose value should be a keyword element, evaluated when
@@ -1515,7 +1516,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
     (let* ((defaults (or font-lock-defaults
-			 (cdr (assq major-mode font-lock-defaults-alist))))
+			 (cdr (assq major-mode
+				    (with-no-warnings
+				     font-lock-defaults-alist)))))
 	   (keywords
 	    (font-lock-choose-keywords (nth 0 defaults)
 				       (font-lock-value-in-major-mode font-lock-maximum-decoration)))

@@ -176,7 +176,8 @@ If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
   (and (eq this-command 'beginning-of-defun)
-       (or (eq last-command 'beginning-of-defun) (push-mark)))
+       (or inhibit-mark-movement (eq last-command 'beginning-of-defun)
+           (push-mark)))
   (and (beginning-of-defun-raw arg)
        (progn (beginning-of-line) t)))
 
@@ -226,7 +227,8 @@ If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
   (and (eq this-command 'end-of-defun)
-       (or (eq last-command 'end-of-defun) (push-mark)))
+       (or inhibit-mark-movement (eq last-command 'end-of-defun)
+           (push-mark)))
   (if (or (null arg) (= arg 0)) (setq arg 1))
   (if end-of-defun-function
       (if (> arg 0)

@@ -34,159 +34,1475 @@
 ;;
 ;; 1. MH-E Customization Groups
 ;;
-;;    These are the customization group definitions. These are organized in a
-;;    logical order. High-level, windows and toolbar, folder, message,
-;;    composing and hooks.
+;;    These are the customization group definitions. Every group has a
+;;    associated manual node. The ordering is alphabetical, except for the
+;;    groups mh-faces and mh-hooks which are last .
 ;;
 ;; 2. MH-E Customization
 ;;
-;;    Here are the actual customization variables. There is a sub-section for
-;;    each group in the MH-E Customization Groups section. Within each
-;;    section, variables are sorted alphabetically. The manual section
-;;    dictates which group a variable should be placed. New variables should
-;;    be placed in the section where they would most likely be defined.
+;;    These are the actual customization variables. There is a sub-section for
+;;    each group in the MH-E Customization Groups section, in the same order,
+;;    separated by page breaks. Within each section, variables are sorted
+;;    alphabetically.
 ;;
-;;    All hooks should be placed in the 'mh-hook group; in addition, add the
-;;    group in which the hook is defined in the manual (or, if it is new,
-;;    where it would be defined). These two actions insures that the hooks
-;;    appear last in each group.
+;; 3. Hooks
 ;;
-;; 3. Faces
-
+;;    All hooks must be placed in the mh-hook group; in addition, add the
+;;    group associated with the manual node in which the hook is described.
+;;    Since the mh-hook group appears near the end of this file, the hooks
+;;    will appear at the end of these other groups.
+;;
+;; 4. Faces
+;;
+;;    Create a new face group if necessary; in this case, add the group
+;;    associated with the manual node in which the faces are described to the
+;;    faces' group definition. Since the face groups appear last, the face
+;;    groups will appear at the end of these other groups.
+;;
 ;;; Change Log:
 
 ;;; Code:
+
 (provide 'mh-customize)
-(require 'mh-utils)
+
+(eval-when-compile (require 'mh-acros))
+(mh-require-cl)
+(require 'mh-loaddefs)
+
+(autoload 'Info-goto-node "info")
+
+(eval-and-compile
+  (defvar mh-xemacs-flag (featurep 'xemacs)
+    "Non-nil means the current Emacs is XEmacs."))
 
 (when mh-xemacs-flag
   (require 'mh-xemacs))
 
-;;;###mh-autoload
+;; XXX: Functions autoloaded from the following files are used to initialize
+;;  customizable variables. They are require'd here, since otherwise the
+;;  corresponding .elc would be loaded at compile time.
+(eval-when-compile
+  (require 'mh-init)
+  (require 'mh-identity))
+
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
-With optional argument DELETE-OTHER-WINDOWS-FLAG, other windows in the frame
-are removed."
+If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
+the frame are removed."
   (interactive "P")
   (customize-group 'mh)
   (when delete-other-windows-flag
     (delete-other-windows)))
 
+
+
+;;; For compiler warnings...
+(defvar mh-show-buffer)
+(defvar mh-show-folder-buffer)
+
 ;;; MH-E Customization Groups
 
 (defgroup mh nil
-  "GNU Emacs interface to the MH mail system."
+  "Emacs interface to the MH mail system.
+MH is the Rand Mail Handler. Other implementations include nmh and GNU
+mailutils."
   :link '(custom-manual "(mh-e)Top")
   :group 'mail)
 
-(defgroup mh-toolbar nil
-  "Toolbar configuration."
-  :prefix "mh-"
-  :group 'mh)
+(defgroup mh-e '((mh custom-group))     ; Sort of an alias for 'mh group
+  "Emacs interface to the MH mail system.
+MH is the Rand Mail Handler. Other implementations include nmh and GNU
+mailutils."
+  :link '(custom-manual "(mh-e)Top"))
 
-(defgroup mh-speed nil
-  "Speedbar and folder configuration."
-  :prefix "mh-"
-  :link '(custom-manual "(mh-e)Customizing Moving Mail")
+(defgroup mh-alias nil
+  "Aliases."
+  :link '(custom-manual "(mh-e)Aliases")
+  :prefix "mh-alias-"
   :group 'mh)
 
 (defgroup mh-folder nil
-  "Options for controlling scan listing."
+  "Organizing your mail with folders."
   :prefix "mh-"
-  :link '(custom-manual "(mh-e)Customizing Moving Mail")
+  :link '(custom-manual "(mh-e)Organizing")
+  :group 'mh)
+
+(defgroup mh-folder-selection nil
+  "Folder selection."
+  :prefix "mh-"
+  :link '(custom-manual "(mh-e)Folder Selection")
+  :group 'mh)
+
+(defgroup mh-identity nil
+  "Identities."
+  :link '(custom-manual "(mh-e)Identities")
+  :prefix "mh-identity-"
+  :group 'mh)
+
+(defgroup mh-inc nil
+  "Incorporating your mail."
+  :prefix "mh-inc-"
+  :link '(custom-manual "(mh-e)Incorporating Mail")
   :group 'mh)
 
 (defgroup mh-index nil
-  "Indexed searching."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-"
+  "Searching."
+  :link '(custom-manual "(mh-e)Searching")
+  :prefix "mh-index-"
   :group 'mh)
 
 (defgroup mh-junk nil
-  "Spam handling."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
+  "Dealing with junk mail."
+  :link '(custom-manual "(mh-e)Junk")
   :prefix "mh-junk-"
   :group 'mh)
 
-(defgroup mh-show nil
-  "Message display."
+(defgroup mh-letter nil
+  "Editing a draft."
   :prefix "mh-"
-  :link '(custom-manual "(mh-e)Customizing Reading")
+  :link '(custom-manual "(mh-e)Editing Drafts")
+  :group 'mh)
+
+(defgroup mh-ranges nil
+  "Ranges."
+  :prefix "mh-"
+  :link '(custom-manual "(mh-e)Ranges")
+  :group 'mh)
+
+(defgroup mh-scan-line-formats nil
+  "Scan line formats."
+  :link '(custom-manual "(mh-e)Scan Line Formats")
+  :prefix "mh-"
+  :group 'mh)
+
+(defgroup mh-sending-mail nil
+  "Sending mail."
+  :prefix "mh-"
+  :link '(custom-manual "(mh-e)Sending Mail")
+  :group 'mh)
+
+(defgroup mh-sequences nil
+  "Sequences."
+  :prefix "mh-"
+  :link '(custom-manual "(mh-e)Sequences")
+  :group 'mh)
+
+(defgroup mh-show nil
+  "Reading your mail."
+  :prefix "mh-"
+  :link '(custom-manual "(mh-e)Reading Mail")
+  :group 'mh)
+
+(defgroup mh-speed nil
+  "The speedbar."
+  :prefix "mh-speed-"
+  :link '(custom-manual "(mh-e)Speedbar")
+  :group 'mh)
+
+(defgroup mh-toolbar nil
+  "The toolbar"
+  :link '(custom-manual "(mh-e)Toolbar")
+  :prefix "mh-"
   :group 'mh)
 
 (defgroup mh-faces nil
   "Faces used in MH-E."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
+  :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'faces
   :group 'mh)
 
-(defgroup mh-letter nil
-  "Composing messages."
-  :prefix "mh-"
-  :link '(custom-manual "(mh-e)Customizing Sending")
-  :group 'mh)
-
-(defgroup mh-alias nil
-  "Alias handling."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-alias-"
-  :group 'mh)
-
-(defgroup mh-identity nil
-  "Multiple personalities."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-"
-  :group 'mh)
-
 (defgroup mh-hooks nil
   "MH-E hooks."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
+  :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'mh)
 
 ;;; Faces
 
-(defgroup mh-speed-faces nil
-  "Faces used in speedbar."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-speed)
-
 (defgroup mh-folder-faces nil
   "Faces used in scan listing."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-folder)
-
-(defgroup mh-index-faces nil
-  "Faces used in indexed searches."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-index)
-
-(defgroup mh-show-faces nil
-  "Faces used in message display."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
+  :link '(custom-manual "(mh-e)Organizing")
   :prefix "mh-"
   :group 'mh-faces
   :group 'mh-show)
 
+(defgroup mh-index-faces nil
+  "Faces used in searching."
+  :link '(custom-manual "(mh-e)Searching")
+  :prefix "mh-"
+  :group 'mh-faces
+  :group 'mh-index)
+
 (defgroup mh-letter-faces nil
-  "Faces used when composing messages."
-  :link '(custom-manual "(mh-e)Customizing mh-e")
+  "Faces used in message drafts."
+  :link '(custom-manual "(mh-e)Sending Mail")
   :prefix "mh-"
   :group 'mh-faces
   :group 'mh-letter)
 
+(defgroup mh-show-faces nil
+  "Faces used in message display."
+  :link '(custom-manual "(mh-e)Reading Mail")
+  :prefix "mh-"
+  :group 'mh-faces
+  :group 'mh-show)
+
+(defgroup mh-speed-faces nil
+  "Faces used in speedbar."
+  :link '(custom-manual "(mh-e)Speedbar")
+  :prefix "mh-"
+  :group 'mh-faces
+  :group 'mh-speed)
+
 
 
-;;; MH-E Customization (:group mh)
+;;; Emacs interface to the MH mail system (:group mh)
+(eval-when (compile)
+  (setq mh-variant 'none))
 
-;;; Toolbar configuration (:group 'mh-toolbar)
+(defcustom mh-variant 'autodetect
+  "*Specifies the variant used by MH-E.
+
+The default setting of this option is `Auto-detect' which means that MH-E will
+automatically choose the first of nmh, MH, or GNU mailutils that it finds in
+the directories listed in `mh-path', `mh-sys-path', and `exec-path'. If, for
+example, you have both nmh and mailutils installed and `mh-variant-in-use' was
+initialized to nmh but you want to use mailutils, then you can set this option
+to `mailutils'.
+
+When this variable is changed, MH-E resets `mh-progs', `mh-lib',
+`mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
+accordingly."
+  :type `(radio
+          (const :tag "Auto-detect" autodetect)
+          ,@(mapcar (lambda (x) `(const ,(car x))) (mh-variants)))
+  :set (lambda (symbol value)
+         (set-default symbol value)     ;Done in mh-variant-set-variant!
+         (mh-variant-set value))
+  :group 'mh)
+
+
+
+;;; Aliases (:group 'mh-alias)
+
+(defcustom mh-alias-completion-ignore-case-flag t
+  "*Non-nil means don't consider case significant in MH alias completion.
+As MH ignores case in the aliases, so too does MH-E. However, you may turn
+this option off to make case significant which can be used to segregate
+completion of your aliases. You might use lowercase for mailing lists and
+uppercase for people."
+  :type 'boolean
+  :group 'mh-alias)
+
+(defcustom mh-alias-expand-aliases-flag nil
+  "*Non-nil means to expand aliases entered in the minibuffer.
+In other words, aliases entered in the minibuffer will be expanded to the full
+address in the message draft. By default, this expansion is not performed."
+  :type 'boolean
+  :group 'mh-alias)
+
+(defcustom mh-alias-flash-on-comma t
+  "*Specify whether to flash address or warn on translation.
+This option controls the behavior when a [comma] is pressed while entering
+aliases or addresses. The default setting flashes the address associated with
+an address in the minibuffer briefly, but does not display a warning if the
+alias is not found."
+  :type '(choice (const :tag "Flash but Don't Warn If No Alias" t)
+		 (const :tag "Flash and Warn If No Alias" 1)
+		 (const :tag "Don't Flash Nor Warn If No Alias" nil))
+  :group 'mh-alias)
+
+(defcustom mh-alias-insert-file nil
+  "*Filename used to store a new MH-E alias.
+The default setting of this option is `Use Aliasfile Profile Component'. This
+option can also hold the name of a file or a list a file names. If this option
+is set to a list of file names, or the `Aliasfile:' profile component contains
+more than one file name, MH-E will prompt for one of them when MH-E adds an
+alias."
+  :type '(choice (const :tag "Use Aliasfile Profile Component" nil)
+                 (file :tag "Alias File")
+                 (repeat :tag "List of Alias Files" file))
+  :group 'mh-alias)
+
+(defcustom mh-alias-insertion-location 'sorted
+  "Specifies where new aliases are entered in alias files.
+This option is set to `Alphabetical' by default. If you organize your alias
+file in other ways, then adding aliases to the `Top' or `Bottom' of your alias
+file might be more appropriate."
+  :type '(choice (const :tag "Alphabetical" sorted)
+                 (const :tag "Top" top)
+                 (const :tag "Bottom" bottom))
+  :group 'mh-alias)
+
+(defcustom mh-alias-local-users t
+  "*If on, local users are added to alias completion.
+
+Aliases are created from `/etc/passwd' entries with a user ID larger than
+a magical number, typically 200. This can be a handy tool on a machine where
+you and co-workers exchange messages. These aliases have the form
+`local.first.last' if a real name is present in the password file.
+Otherwise, the alias will have the form `local.login'.
+
+If you're on a system with thousands of users you don't know, and the loading
+of local aliases slows MH-E down noticeably, then turn this option off.
+
+This option also takes a string which is executed to generate the password
+file. For example, use \"ypcat passwd\" to obtain the NIS password file."
+  :type '(choice (boolean) (string))
+  :group 'mh-alias)
+
+(defcustom mh-alias-local-users-prefix "local."
+  "*String prepended to the real names of users from the password file.
+This option can also be set to `Use Login'.
+
+For example, consider the following password file entry:
+
+    psg:x:1000:1000:Peter S Galbraith,,,:/home/psg:/bin/tcsh
+
+The following settings of this option will produce the associated aliases:
+
+    \"local.\"                  local.peter.galbraith
+    \"\"                        peter.galbraith
+    Use Login                   psg
+
+This option has no effect if variable `mh-alias-local-users' is turned off."
+  :type '(choice (const :tag "Use Login" nil)
+                 (string))
+  :group 'mh-alias)
+
+(defcustom mh-alias-passwd-gecos-comma-separator-flag t
+  "*Non-nil means the gecos field in the password file uses a comma separator.
+In the example in `mh-alias-local-users-prefix', commas are used to separate
+different values within the so-called gecos field. This is a fairly common
+usage. However, in the rare case that the gecos field in your password file is
+not separated by commas and whose contents may contain commas, you can turn
+this option off."
+  :type 'boolean
+  :group 'mh-alias)
+
+
+
+;;; Organizing Your Mail with Folders (:group 'mh-folder)
+
+(defcustom mh-recenter-summary-flag nil
+  "*Non-nil means to recenter the summary window.
+If this option is turned on, recenter the summary window when the show window
+is toggled off."
+  :type 'boolean
+  :group 'mh-folder)
+
+
+
+;;; Folder Selection (:group 'mh-folder-selection)
+
+(defcustom mh-default-folder-for-message-function nil
+  "Function to select a default folder for refiling or `Fcc'.
+The current buffer is set to the message being refiled with point at the start
+of the message. This function should return the default folder as a string
+with a leading `+' sign. It can also return nil so that the last folder name
+is used as the default, or an empty string to suppress the default entirely."
+  :type 'function
+  :group 'mh-folder-selection)
+
+(defcustom mh-default-folder-list nil
+  "*List of addresses and folders.
+The folder name associated with the first address found in this list is used
+as the default for `mh-refile-msg' and similar functions. Each element in this
+list contains a `Check Recipient' item. If this item is turned on, then the
+address is checked against the recipient instead of the sender. This is useful
+for mailing lists.
+
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
+  :type '(repeat (list (regexp :tag "Address")
+                       (string :tag "Folder")
+                       (boolean :tag "Check Recipient")))
+  :group 'mh-folder-selection)
+
+(defcustom mh-default-folder-must-exist-flag t
+  "*Non-nil means guessed folder name must exist to be used.
+If the derived folder does not exist, and this option is on, then the last
+folder name used is suggested. This is useful if you get mail from various
+people for whom you have an alias, but file them all in the same project
+folder.
+
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
+  :type 'boolean
+  :group 'mh-folder-selection)
+
+(defcustom mh-default-folder-prefix ""
+  "*Prefix used for folder names generated from aliases.
+The prefix is used to prevent clutter in your mail directory.
+
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
+information."
+  :type 'string
+  :group 'mh-folder-selection)
+
+
+
+;;; Identities (:group 'mh-identity)
+
+(defcustom mh-identity-list nil
+  "*List of identities.
+
+Each element consists of an identity label, and a collection of header fields
+and a signature to insert if the identity is selected (see
+`mh-identity-default', `mh-insert-identity' and the `Identity' menu in a
+MH-Letter buffer). The `Value Menu' contains the common header fields `From'
+and `Organization'. Other header fields may be added using the `Other Field'
+menu item. The `Signature' menu item is used to insert a signature with
+`mh-insert-signature'. The `GPG Key ID' menu item is used to specify a
+different key to sign or encrypt messages."
+  :type '(repeat (list :tag ""
+                       (string :tag "Label")
+                       (repeat :tag "Add at least one item below"
+                               (choice
+                                (cons :tag "From Field"
+                                      (const "From")
+                                      (string :tag "Value"))
+                                (cons :tag "Organization Field"
+                                      (const "Organization")
+                                      (string :tag "Value"))
+                                (cons :tag "Other Field"
+                                      (string :tag "Field")
+                                      (string :tag "Value"))
+                                (cons :tag "Attribution Verb"
+                                      (const ":attribution-verb")
+                                      (string :tag "Value"))
+                                (cons :tag "Signature"
+                                      (const :tag "Signature"
+                                             ":signature")
+                                      (choice
+                                       (const :tag "mh-signature-file-name"
+                                              nil)
+                                       (file)
+                                       (function)))
+                                (cons :tag "GPG Key ID"
+                                      (const :tag "GPG Key ID"
+                                             ":pgg-default-user-id")
+                                      (string :tag "Value"))))))
+  :set 'mh-identity-list-set
+  :group 'mh-identity)
+
+(defcustom mh-auto-fields-list nil
+  "List of recipients for which header lines are automatically inserted.
+Each element consists of the recipient, which is a regular expression, and a
+collection of header fields and identities to insert if the message is sent to
+this recipient. The `Value Menu' contains the common header fields `Fcc' and
+`Mail-Followup-To'. Other header fields may be added using the `Other Field'
+menu item. The `Identity' menu item is used to insert entire identities with
+`mh-insert-identity'."
+  :type `(repeat
+          (list :tag ""
+                (string :tag "Recipient")
+                (repeat :tag "Add at least one item below"
+                        (choice
+                         (cons :tag "Identity"
+                               (const ":identity")
+                               ,(append
+                                 '(radio)
+                                 (mapcar
+                                  (function (lambda (arg) `(const ,arg)))
+                                  (mapcar 'car mh-identity-list))))
+                         (cons :tag "Fcc Field"
+                               (const "fcc")
+                               (string :tag "Value"))
+                         (cons :tag "Mail-Followup-To Field"
+                               (const "Mail-Followup-To")
+                               (string :tag "Value"))
+                         (cons :tag "Other Field"
+                                 (string :tag "Field")
+                                 (string :tag "Value"))))))
+  :group 'mh-identity)
+
+(defcustom mh-auto-fields-prompt-flag t
+  "*Non-nil means to prompt before sending if fields inserted.
+See `mh-auto-fields-list'."
+  :type 'boolean
+  :group 'mh-identity)
+
+(defcustom mh-identity-default nil
+  "Default identity to use when `mh-letter-mode' is called."
+  :type (append
+         '(radio)
+         (cons '(const :tag "None" nil)
+               (mapcar (function (lambda (arg) `(const ,arg)))
+                       (mapcar 'car mh-identity-list))))
+  :group 'mh-identity)
+
+(defcustom mh-identity-handlers
+  '((":default" . mh-identity-handler-bottom)
+    ("from" . mh-identity-handler-top)
+    (":attribution-verb" . mh-identity-handler-attribution-verb)
+    (":signature" . mh-identity-handler-signature)
+    (":pgg-default-user-id" . mh-identity-handler-gpg-identity))
+  "Handler functions for fields in `mh-identity-list'.
+This is an alist of fields (strings) and handlers (functions). Strings are
+lowercase. Use \":signature\" for Signature and \":pgg-default-user-id\" for
+GPG Key ID. The function associated with the string \":default\" is used if no
+other functions are appropriate."
+  :type '(repeat (cons (string :tag "Field") function))
+  :group 'mh-identity)
+
+
+
+;;; Incorporating Your Mail (:group 'mh-inc)
+
+(defcustom mh-inc-prog "inc"
+  "*Program to run to incorporate new mail into a folder.
+Normally \"inc\". This program is relative to the `mh-progs' directory unless
+it is an absolute pathname."
+  :type 'string
+  :group 'mh-inc)
+
+(defcustom mh-inc-spool-list nil
+  "*Alist of alternate spool files, corresponding folders and keybindings.
+This option will be described by example.
+
+Suppose you have subscribed to the mh-e-devel mailing list and you use
+procmail to filter its mail into `~/mail/mh-e' with the following
+`.procmailrc' recipe:
+
+    MAILDIR=$HOME/mail
+    :0:
+    * ^From mh-e-devel-admin@lists.sourceforge.net
+    mh-e
+
+If you wanted to incorporate that spool file into an MH folder called mh-e
+with the \"I m\" or \\[mh-inc-spool-mh-e] commands, you would use the
+following:
+
+    Spool File:  ~/mail/mh-e
+    Folder:      mh-e
+    Key Binding: m
+
+Then, you could also install `xbuffy' and configure an extra mailbox using the
+gnuserv package to run the `mh-inc-spool-mh-e' command in Emacs:
+
+    box ~/mail/mh-e
+        title mh-e
+        origMode
+        polltime 10
+        headertime 0
+        command gnudoit -q '(mh-inc-spool-mh-e)'
+
+To incorporate the spool file, click the xbuffy box with the middle mouse
+button."
+  :type '(repeat (list (file :tag "Spool File")
+                       (string :tag "Folder")
+                       (character :tag "Key Binding")))
+  :set 'mh-inc-spool-list-set
+  :group 'mh-inc)
+
+
+
+;;; Searching (:group 'mh-index)
+
+(defcustom mh-index-new-messages-folders t
+  "Folders searched for the `unseen' sequence.
+This option can be set to `Inbox' to search the `+inbox' folder or `All' to
+search all of the top level folders. Otherwise, list the folders that should
+be searched with the `Choose Folders' menu item.
+
+See also `mh-recursive-folders-flag'."
+  :group 'mh-index
+  :type '(choice (const :tag "Inbox" t)
+                 (const :tag "All" nil)
+                 (repeat :tag "Choose Folders" (string :tag "Folder"))))
+
+(defcustom mh-index-program nil
+  "Indexing program that MH-E shall use.
+The default setting of this option is `Auto-detect' which means that MH-E will
+automatically choose one of swish++, swish-e, mairix, namazu, pick and grep in
+that order. If, for example, you have both swish++ and mairix installed and
+you want to use mairix, then you can set this option to `mairix'.
+
+More information about setting up an indexing program to use with MH-E can be
+found in the documentation of `mh-index-search'."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (const :tag "swish++" swish++)
+                 (const :tag "swish-e" swish)
+                 (const :tag "mairix" mairix)
+                 (const :tag "namazu" namazu)
+                 (const :tag "pick" pick)
+                 (const :tag "grep" grep))
+  :group 'mh-index)
+
+(defcustom mh-index-ticked-messages-folders t
+  "Folders searched for `mh-tick-seq'.
+This option can be set to `Inbox' to search the `+inbox' folder or `All' to
+search all of the top level folders. Otherwise, list the folders that should
+be searched with the `Choose Folders' menu item.
+
+See also `mh-recursive-folders-flag'."
+  :group 'mh-index
+  :type '(choice (const :tag "Inbox" t)
+                 (const :tag "All" nil)
+                 (repeat :tag "Choose Folders" (string :tag "Folder"))))
+
+
+
+;;; Dealing with Junk Mail (:group 'mh-junk)
+
+;; Spam fighting program chosen
+(defvar mh-junk-choice nil)
+
+;; Available spam filter interfaces
+(defvar mh-junk-function-alist
+  '((spamassassin mh-spamassassin-blacklist mh-spamassassin-whitelist)
+    (bogofilter mh-bogofilter-blacklist mh-bogofilter-whitelist)
+    (spamprobe mh-spamprobe-blacklist mh-spamprobe-whitelist))
+  "Available choices of spam programs to use.
+This is an alist. For each element there are functions that blacklist a message
+as spam and whitelist a message incorrectly classified as spam.")
+
+(defun mh-junk-choose (symbol value)
+  "Choose spam program to use.
+The function is always called with SYMBOL bound to `mh-junk-program' and VALUE
+bound to the new value of `mh-junk-program'. The function sets the variable
+`mh-junk-choice' in addition to `mh-junk-program'."
+  (set symbol value)
+  (setq mh-junk-choice
+        (or value
+            (loop for element in mh-junk-function-alist
+                  until (executable-find (symbol-name (car element)))
+                  finally return (car element)))))
+
+;; User customizable variables
+(defcustom mh-junk-disposition nil
+  "Disposition of junk mail."
+  :type '(choice (const :tag "Delete Spam" nil)
+                 (string :tag "Spam Folder"))
+  :group 'mh-junk)
+
+(defcustom mh-junk-program nil
+  "Spam program that MH-E should use.
+The default setting of this option is `Auto-detect' which means that MH-E will
+automatically choose one of SpamAssassin, Bogofilter, or SpamProbe in that
+order. If, for example, you have both SpamAssassin and Bogofilter installed
+and you want to use BogoFilter, then you can set this option to `Bogofilter'."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (const :tag "SpamAssassin" spamassassin)
+                 (const :tag "Bogofilter" bogofilter)
+                 (const :tag "SpamProbe" spamprobe))
+  :set 'mh-junk-choose
+  :group 'mh-junk)
+
+(defcustom mh-junk-background nil
+  "If on, spam programs are run in background.
+By default, the programs are run in the foreground, but this can be slow when
+junking large numbers of messages. If you have enough memory or don't junk
+that many messages at the same time, you might try turning on this option."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" 0))
+  :group 'mh-junk)
+
+
+
+;;; Editing a Draft (:group 'mh-letter)
+
+(defcustom mh-mml-method-default (if mh-gnus-pgp-support-flag "pgpmime" "none")
+  "Default method to use in security directives."
+  :type '(choice (const :tag "PGP (MIME)" "pgpmime")
+                 (const :tag "PGP" "pgp")
+                 (const :tag "S/MIME" "smime")
+                 (const :tag "None" "none"))
+  :group 'mh-letter)
+
+(defcustom mh-compose-forward-as-mime-flag t
+  "Non-nil means that messages are forwarded as a MIME part."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-compose-insertion (if (locate-library "mml") 'gnus 'mhn)
+  "Type of MIME message directives in messages.
+
+By default, this option is set to `Gnus' if it is supported. This option can
+also be set manually to `mhn' if mhn directives are preferred."
+  :type '(choice (const :tag "Gnus" gnus)
+                 (const :tag "mhn"  mhn))
+  :group 'mh-letter)
+
+(defcustom mh-compose-skipped-header-fields
+  '("From" "Organization" "References" "In-Reply-To"
+    "X-Face" "Face" "X-Image-URL" "X-Mailer")
+  "List of header fields to skip over when navigating in draft."
+  :type '(repeat (string :tag "Field"))
+  :group 'mh-letter)
+
+(defcustom mh-compose-space-does-completion-flag nil
+  "*Non-nil means that <SPC> does completion in message header."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-delete-yanked-msg-window-flag nil
+  "*Non-nil means delete any window displaying the message.
+If this option is on, yanking the current message into a draft letter with
+\\<mh-letter-mode-map>\\[mh-yank-cur-msg] deletes any windows displaying the
+message."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-extract-from-attribution-verb "wrote:"
+  "*Verb to use for attribution when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg]."
+  :type '(choice (const "wrote:")
+                 (const "a écrit:")
+                 (const "schrieb:")
+                 (string :tag "Custom String"))
+  :group 'mh-letter)
+
+(defcustom mh-ins-buf-prefix "> "
+  "*String to put before each non-blank line of a yanked or inserted message.
+Used when the message is inserted into an outgoing letter
+by \\<mh-letter-mode-map>\\[mh-insert-letter] or \\[mh-yank-cur-msg]."
+  :type 'string
+  :group 'mh-letter)
+
+(defcustom mh-insert-x-mailer-flag t
+  "*Non-nil means append an X-Mailer field to the header."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-letter-complete-function 'ispell-complete-word
+  "*Function to call when completing outside of address or folder fields.
+By default, this is set to `ispell-complete-word'."
+  :type '(choice function (const nil))
+  :group 'mh-letter)
+
+(defcustom mh-letter-fill-column 72
+  "*Fill column to use in `mh-letter-mode'.
+This is usually less than in other text modes because email messages get
+quoted by some prefix (sometimes many times) when they are replied to,
+and it's best to avoid quoted lines that span more than 80 columns."
+  :type 'integer
+  :group 'mh-letter)
+
+(defcustom mh-reply-show-message-flag t
+  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
+
+The setting of this variable determines whether the MH `show-buffer' is
+displayed with the current message when using `mh-reply' without a prefix
+argument.  Set it to nil if you already include the message automatically
+in your draft using
+ repl: -filter repl.filter
+in your ~/.mh_profile file."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-signature-file-name "~/.signature"
+  "*Source of user's signature.
+
+By default, the text of your signature is taken from the file `~/.signature'.
+You can read from other files by changing this option. This file may contain a
+vCard in which case an attachment is added with the vCard.
+
+This option may also be a symbol, in which case that function is called. You
+may not want a signature separator to be added for you; instead you may want
+to insert one yourself. Variables that you may find useful to do this include
+`mh-signature-separator' (when inserting a signature separator) and
+`mh-signature-separator-regexp' (for finding said separator). The function
+`mh-signature-separator-p', which reports t if the buffer contains a
+separator, may be useful as well.
+
+The signature is inserted into your message with the command
+\\<mh-letter-mode-map>\\[mh-insert-signature] or with the `mh-identity-list'
+option."
+  :type 'file
+  :group 'mh-letter)
+
+(defcustom mh-signature-separator-flag t
+  "*Non-nil means a signature separator should be inserted.
+It is not recommended that you change this option since various mail user
+agents, including MH-E, use the separator to present the signature
+differently, and to suppress the signature when replying or yanking a letter
+into a draft."
+  :type 'boolean
+  :group 'mh-letter)
+
+(defcustom mh-x-face-file "~/.face"
+  "*File containing face header field to insert in outgoing mail.
+
+If the file starts with either of the strings `X-Face:', `Face:' or
+`X-Image-URL:' then the contents are added to the message header verbatim.
+Otherwise it is assumed that the file contains the value of the `X-Face:'
+header field.
+
+The `X-Face:' header field, which is a low-resolution, black and white image,
+can be generated using the `compface' command, which can be obtained from
+ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. The \"Online
+X-Face Convertor\" at http://www.dairiki.org/xface/ is a useful resource for
+quick conversion of images into `X-Face:' header fields.
+
+Use the `make-face' script (http://quimby.gnus.org/circus/face/make-face) to
+convert a JPEG image to the higher resolution, color, `Face:' header field.
+
+The URL of any image can be used for the `X-Image-URL:' field and no
+processing of the image is required.
+
+To prevent the setting of any of these header fields, either set
+`mh-x-face-file' to nil, or simply ensure that the file defined by this option
+doesn't exist."
+  :type 'file
+  :group 'mh-letter)
+
+(defcustom mh-yank-from-start-of-msg 'attribution
+  "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
+If t, include the entire message, with full headers.  This is historically
+here for use with supercite, but is now deprecated in favor of the setting
+`supercite' below.
+
+If the symbol `body', then yank the message minus the header.
+
+If the symbol `supercite', include the entire message, with full headers.
+This also causes the invocation of `sc-cite-original' without the setting
+of `mail-citation-hook', now deprecated practice.
+
+If the symbol `autosupercite', do as for `supercite' automatically when
+show buffer matches the message being replied-to.  When this option is used,
+the -noformat switch is passed to the repl program to override a -filter or
+-format switch.
+
+If the symbol `attribution', then yank the message minus the header and add
+a simple attribution line at the top.
+
+If the symbol `autoattrib', do as for `attribution' automatically when show
+buffer matches the message being replied-to.  You can make sure this is
+always the case by setting `mh-reply-show-message-flag' to t (which is the
+default) and optionally `mh-delete-yanked-msg-window-flag' to t as well such
+that the show window is never displayed.  When the `autoattrib' option is
+used, the -noformat switch is passed to the repl program to override a
+-filter or -format switch.
+
+If nil, yank only the portion of the message following the point.
+
+If the show buffer has a region, this variable is ignored unless its value is
+one of `attribution' or `autoattrib' in which case the attribution is added
+to the yanked region."
+  :type '(choice (const :tag "Below point" nil)
+                 (const :tag "Without header" body)
+                 (const :tag "Invoke supercite" supercite)
+                 (const :tag "Invoke supercite, automatically" autosupercite)
+                 (const :tag "Without header, with attribution" attribution)
+                 (const :tag "Without header, with attribution, automatically"
+                        autoattrib)
+                 (const :tag "Entire message with headers" t))
+  :group 'mh-letter)
+
+
+
+;;; Ranges (:group 'mh-ranges)
+
+(defcustom mh-interpret-number-as-range-flag t
+  "Non-nil means interpret a number as a range.
+If the variable is non-nil, and you use an integer, N, when asked for a
+range to scan, then MH-E uses the range \"last:N\"."
+  :type 'boolean
+  :group 'mh-ranges)
+
+
+
+;;; Scan Line Formats (:group 'mh-scan-line-formats)
+
+(defcustom mh-adaptive-cmd-note-flag t
+  "*Non-nil means that the message number width is determined dynamically.
+This is done once when a folder is first opened by running scan on the last
+message of the folder. The message number for the last message is extracted
+and its width calculated. This width is used when calling `mh-set-cmd-note'.
+
+If you prefer fixed-width message numbers, set this variable to nil and call
+`mh-set-cmd-note' with the width specified by the scan format in
+`mh-scan-format-file'. For example, the default width is 4, so you would use
+\"(mh-set-cmd-note 4)\" if `mh-scan-format-file' were nil."
+  :type 'boolean
+  :group 'mh-scan-line-formats)
+
+(defcustom mh-scan-format-file t
+  "Specifies the format file to pass to the scan program.
+If t, the format string will be taken from the either `mh-scan-format-mh'
+or `mh-scan-format-nmh' depending on whether MH or nmh is in use.
+If nil, the default scan output will be used.
+
+If you customize the scan format, you may need to modify a few variables
+containing regexps that MH-E uses to identify specific portions of the output.
+Use `M-x apropos RET mh-scan.*regexp' to obtain a list of these variables. You
+may also have to call `mh-set-cmd-note' with the width of your message
+numbers. See also `mh-adaptive-cmd-note-flag'."
+  :type '(choice (const :tag "Use MH-E scan Format" t)
+                 (const :tag "Use Default scan Format" nil)
+                 (file  :tag "Specify a scan Format File"))
+  :group 'mh-scan-line-formats)
+
+(defcustom mh-scan-prog "scan"
+  "*Program to run to generate one-line-per-message listing of a folder.
+Normally \"scan\" or a file name linked to scan.  This file is searched
+for relative to the `mh-progs' directory unless it is an absolute pathname."
+  :type 'string
+  :group 'mh-scan-line-formats)
+(make-variable-buffer-local 'mh-scan-prog)
+
+
+
+;;; Sending Mail (:group 'mh-sending-mail)
+
+(defcustom mh-compose-letter-function nil
+  "Invoked when setting up a letter draft.
+It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
+  :type '(choice (const nil) function)
+  :group 'mh-sending-mail)
+
+(defcustom mh-compose-prompt-flag nil
+  "*Non-nil means prompt for header fields when composing a new draft."
+  :type 'boolean
+  :group 'mh-sending-mail)
+
+(defcustom mh-forward-subject-format "%s: %s"
+  "*Format to generate the Subject: line contents for a forwarded message.
+The two string arguments to the format are the sender of the original
+message and the original subject line."
+  :type 'string
+  :group 'mh-sending-mail)
+
+(defcustom mh-reply-default-reply-to nil
+  "*Sets the person or persons to whom a reply will be sent.
+If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
+value and it should be one of \"from\", \"to\", \"cc\", or \"all\".
+The values \"cc\" and \"all\" do the same thing."
+  :type '(choice (const :tag "Prompt" nil)
+                 (const "from") (const "to")
+                 (const "cc") (const "all"))
+  :group 'mh-sending-mail)
+
+
+
+;;; Sequences (:group 'mh-sequences)
+
+;;; If `mh-unpropagated-sequences' becomes a defcustom, add the following to
+;;; the docstring: "Additional sequences that should not to be preserved can be
+;;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
+
+(defcustom mh-refile-preserves-sequences-flag t
+  "*Non-nil means that sequences are preserved when messages are refiled.
+If this variable is non-nil and a message belonging to a sequence other than
+cur or Previous-Sequence (see mh-profile 5) is refiled then it is put in the
+same sequence in the destination folder."
+  :type 'boolean
+  :group 'mh-sequences)
+
+(defcustom mh-tick-seq 'tick
+  "The name of the MH sequence for ticked messages.
+You would change this option if you already use the `tick' sequence for your
+own use. You can also disable all of the ticking functions by choosing the
+`Disable Ticking' item but there isn't much advantage to that."
+  :type '(choice (const :tag "Disable Ticking" nil)
+                 symbol)
+  :group 'mh-sequences)
+
+(defcustom mh-update-sequences-after-mh-show-flag t
+  "*Non-nil means flush MH sequences to disk after message is shown.
+Three sequences are maintained internally by MH-E and pushed out to MH when a
+message is shown. They include the sequence specified by your
+`Unseen-Sequence:' profile entry, `cur', and the sequence listed by
+the `mh-tick-seq' option which is `tick' by default.
+If you do not like this behavior, set this option to nil. You can then update
+the state manually with the \\<mh-folder-mode-map>`\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]' commands."
+  :type 'boolean
+  :group 'mh-sequences)
+
+
+
+;;; Reading Your Mail (:group 'mh-show)
+
+(defcustom mh-bury-show-buffer-flag t
+  "*Non-nil means that the displayed show buffer for a folder is buried."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-clean-message-header-flag t
+  "*Non-nil means remove extraneous header fields.
+The header fields listed in the `mh-invisible-header-fields-default' option
+are hidden, although you can check off any field that you would like to see.
+Header fields that you would like to hide that aren't listed can be added to
+the `mh-invisible-header-fields' option."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-decode-mime-flag (not (not (locate-library "mm-decode")))
+  "*Non-nil means that Gnus is used to show MIME attachments with Gnus."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-display-buttons-for-alternatives-flag nil
+  "*Non-nil means display buttons for all MIME alternatives.
+Default behavior is to display only the preferred alternative. If this
+variable is non-nil, then the preferred part is shown inline and buttons
+are shown for each of the other alternatives."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-display-buttons-for-inline-parts-flag nil
+  "*Non-nil means display buttons for all inline MIME parts.
+If non-nil, buttons are displayed for all MIME parts. Inline parts start off
+in displayed state but they can be hidden by clicking the button. If nil no
+buttons are shown for inline parts."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-do-not-confirm-flag nil
+  "*Non-nil means do not prompt for confirmation.
+Commands such as `mh-pack-folder' prompt to confirm whether to process
+outstanding moves and deletes or not before continuing. A non-nil setting will
+perform the action--which is usually desired but cannot be retracted--without
+question."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-fetch-x-image-url 'ask
+  "*Control fetching of `X-Image-URL:' header field image.
+If set to \"Always fetch\" (t), the image is always fetched. You probably want
+to avoid this setting for privacy and DOS (denial of service) reasons. For
+example, fetching a URL can tip off a spammer that you've read his email.
+Someone may also flood your network and fill your disk drive by sending a
+torrent of messages, each specifying a unique URL to a very large file.
+
+If set to \"Ask before fetching\" ('ask), you are prompted before the image is
+fetched. MH-E will remember your reply and will either use the already fetched
+image the next time the same URL is encountered or silently skip it if you
+didn't fetch it the first time. This is the default.
+
+If set to \"Never fetch\" (nil), images are never fetched and only displayed
+if they are already present in the cache.
+
+The cache of images is found in the directory `.mhe-x-image-cache' within your
+MH directory. To see how you can add your own face to the `From:' field, see
+`mh-x-face-file'.
+
+This setting only has effect if `mh-show-use-xface-flag' is non-nil."
+
+  :type '(choice (const :tag "Always fetch" t)
+                 (const :tag "Ask before fetching" ask)
+                 (const :tag "Never fetch" nil))
+  :group 'mh-show)
+
+(defcustom mh-graphical-smileys-flag t
+  "*Non-nil means graphical smileys are displayed.
+Non-nil means that small graphics will be used in the show buffer instead of
+patterns like :-), ;-) etc. The setting only has effect if
+`mh-decode-mime-flag' is non-nil."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-graphical-emphasis-flag t
+  "*Non-nil means graphical emphasis is displayed.
+Non-nil means that _underline_ will be underlined, *bold* will appear in bold,
+/italic/ will appear in italic etc. See `gnus-emphasis-alist' for the whole
+list. The setting only has effect if `mh-decode-mime-flag' is non-nil."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-highlight-citation-p 'gnus
+  "How to highlight citations in show buffers.
+The gnus method uses a different color for each indentation."
+  :type '(choice (const :tag "Use Gnus" gnus)
+                 (const :tag "Use font-lock" font-lock)
+                 (const :tag "Don't fontify" nil))
+  :group 'mh-show)
+
+;; Keep fields alphabetized. Mention source, if known.
+(defvar mh-invisible-header-fields-internal
+  '("Approved:"
+    "Autoforwarded:"
+    "Bestservhost:"
+    "Cancel-Lock:"                      ; NNTP posts
+    "Content-"                          ; RFC 2045
+    "Delivered-To:"              ; Egroups/yahoogroups mailing list manager
+    "Delivery-Date:"                    ; MH
+    "Delivery:"
+    "Encoding:"
+    "Envelope-to:"
+    "Errors-To:"
+    "Face:"                             ; Gnus Face header
+    "Forwarded:"                        ; MH
+    "From "                             ; sendmail
+    "Importance:"                       ; MS Outlook
+    "In-Reply-To:"                      ; MH
+    "Lines:"
+    "List-"                             ; Mailman mailing list manager
+    "List-"                             ; Unknown mailing list managers
+    "List-Subscribe:"                   ; Unknown mailing list managers
+    "List-Unsubscribe:"                 ; Unknown mailing list managers
+    "Mail-from:"                        ; MH
+    "Mailing-List:"              ; Egroups/yahoogroups mailing list manager
+    "Message-Id:"                       ; RFC 822
+    "Mime-Version"                      ; RFC 2045
+    "NNTP-"                             ; News
+    "Old-Return-Path:"
+    "Original-Encoded-Information-Types:"  ; X400
+    "Original-Lines:"                   ; mail to news
+    "Original-NNTP-"                    ; mail to news
+    "Original-Newsgroups:"              ; mail to news
+    "Original-Path:"                    ; mail to news
+    "Original-Received:"                ; mail to news
+    "Original-To:"                      ; mail to news
+    "Original-X-"                       ; mail to news
+    "Originator:"
+    "P1-Content-Type:"                  ; X400
+    "P1-Message-Id:"                    ; X400
+    "P1-Recipient:"                     ; X400
+    "Path:"
+    "Precedence:"
+    "Prev-Resent"                       ; MH
+    "Priority:"
+    "Received:"                         ; RFC 822
+    "References:"
+    "Remailed-"                         ; MH
+    "Replied:"                          ; MH
+    "Resent"                            ; MH
+    "Return-Path:"                      ; RFC 822
+    "Sensitivity:"                      ; MS Outlook
+    "Status:"                           ; sendmail
+    "Thread-"
+    "Ua-Content-Id:"                    ; X400
+;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
+    "Via:"                              ; MH
+    "X-Abuse-Info:"
+    "X-Abuse-and-DMCA-"
+    "X-Accept-Language:"
+    "X-Accept-Language:"                ; Netscape/Mozilla
+    "X-Ack:"
+    "X-Administrivia-To:"
+    "X-AntiAbuse:"                      ; cPanel
+    "X-Apparently-From:"                ; MS Outlook
+    "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
+    "X-Authentication-Warning:"         ; sendmail
+    "X-Beenthere:"                      ; Mailman mailing list manager
+    "X-Bogosity:"                       ; bogofilter
+    "X-Complaints-To:"
+    "X-Cron-Env:"
+    "X-DMCA"
+    "X-Delivered"
+    "X-ELNK-Trace:"                     ; Earthlink mailer
+    "X-Envelope-Date:"                  ; GNU mailutils
+    "X-Envelope-From:"
+    "X-Envelope-Sender:"
+    "X-Envelope-To:"
+    "X-Face:"
+    "X-Folder:"                         ; Spam
+    "X-From-Line"
+    "X-Gnus-Mail-Source:"               ; gnus
+    "X-Greylist:"                       ; milter-greylist-1.2.1
+    "X-Habeas-SWE-1:"                   ; Spam
+    "X-Habeas-SWE-2:"                   ; Spam
+    "X-Habeas-SWE-3:"                   ; Spam
+    "X-Habeas-SWE-4:"                   ; Spam
+    "X-Habeas-SWE-5:"                   ; Spam
+    "X-Habeas-SWE-6:"                   ; Spam
+    "X-Habeas-SWE-7:"                   ; Spam
+    "X-Habeas-SWE-8:"                   ; Spam
+    "X-Habeas-SWE-9:"                   ; Spam
+    "X-Image-URL:"                      ; URL equivalent of X-Face and Face
+    "X-Info:"                           ; NTMail
+    "X-Juno-"                           ; Juno
+    "X-List-Host:"                      ; Unknown mailing list managers
+    "X-List-Subscribe:"                 ; Unknown mailing list managers
+    "X-List-Unsubscribe:"               ; Unknown mailing list managers
+    "X-Listprocessor-"                  ; ListProc(tm) by CREN
+    "X-Listserver:"                     ; Unknown mailing list managers
+    "X-Loop:"                           ; Unknown mailing list managers
+    "X-MHE-Checksum"                    ; Checksum added during index search
+    "X-MIME-Autoconverted:"             ; sendmail
+    "X-MIMETrack:"
+    "X-Mms-"                            ; T-Mobile pictures
+    "X-MS-"			        ; MS Outlook
+    "X-MailScanner"                     ; ListProc(tm) by CREN
+    "X-Mailing-List:"                   ; Unknown mailing list managers
+    "X-Mailman-Version:"                ; Mailman mailing list manager
+    "X-Majordomo:"                      ; Majordomo mailing list manager
+    "X-Message-Id"
+    "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
+    "X-MimeOLE:"                        ; MS Outlook
+    "X-Mozilla-Status:"                 ; Netscape/Mozilla
+    "X-Msmail-"                         ; MS Outlook
+    "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
+    "X-News:"                           ; News
+    "X-No-Archive:"
+    "X-Notes-Item:"                     ; Lotus Notes Domino structured header
+    "X-OperatingSystem:"
+    ;;"X-Operator:"                     ; Similar to X-Mailer, so display it
+    "X-Orcl-Content-Type:"
+    "X-Original-Complaints-To:"
+    "X-Original-Date:"                  ; SourceForge mailing list manager
+    "X-Original-To:"
+    "X-Original-Trace:"
+    "X-OriginalArrivalTime:"            ; Hotmail
+    "X-Originating-IP:"                 ; Hotmail
+    "X-Postfilter:"
+    "X-Priority:"                       ; MS Outlook
+    "X-Qotd-"                           ; User added
+    "X-RM"
+    "X-Received-Date:"
+    "X-Received:"
+    "X-Request-"
+    "X-SBClass:"                        ; Spam
+    "X-SBNote:"                         ; Spam
+    "X-SBPass:"                         ; Spam
+    "X-SBRule:"                         ; Spam
+    "X-SMTP-"
+    "X-Scanned-By"
+    "X-Sender:"
+    "X-Server-Date:"
+    "X-Server-Uuid:"
+    "X-Sieve:"                          ; Sieve filtering
+    "X-Source"
+    "X-Spam-"                           ; Spamassassin
+    "X-SpamBouncer:"                    ; Spam
+    "X-Status"
+    "X-Submissions-To:"
+    "X-Telecom-Digest"
+    "X-Trace:"
+    "X-UID"
+    "X-UIDL:"
+    "X-UserInfo1:"
+    "X-VSMLoop:"                        ; NTMail
+    "X-Vms-To:"
+    "X-WebTV-Signature:"
+    "X-Wss-Id:"                         ; Worldtalk gateways
+    "X-Yahoo"
+    "X-eGroups-"                 ; Egroups/yahoogroups mailing list manager
+    "X-pgp:"
+    "X-submission-address:"
+    "X400-"                             ; X400
+    "Xref:")
+  "List of default header fields that are not to be shown.
+Do not alter this variable directly.  Instead, add entries from here that you
+would like to be displayed in `mh-invisible-header-fields-default'
+and add entries to hide in `mh-invisible-header-fields'.")
+
+(defvar mh-invisible-header-fields-compiled nil
+  "*Regexp matching lines in a message header that are not to be shown.
+Do not alter this variable directly. Instead, customize
+`mh-invisible-header-fields-default' checking for fields normally
+hidden that you wish to display, and add extra entries to hide in
+`mh-invisible-header-fields'.")
+
+(defun mh-invisible-headers ()
+  "Make or remake the variable `mh-invisible-header-fields-compiled'.
+Done using `mh-invisible-header-fields-internal' as input, from which entries
+from `mh-invisible-header-fields-default' are removed and entries
+from `mh-invisible-header-fields' are added."
+  (let ((fields mh-invisible-header-fields-internal))
+    (when mh-invisible-header-fields-default
+      ;; Remove entries from `mh-invisible-header-fields-default'
+      (setq fields
+            (loop for x in fields
+                  unless (member x mh-invisible-header-fields-default)
+                  collect x)))
+    (when (and (boundp 'mh-invisible-header-fields)
+               mh-invisible-header-fields)
+      (dolist (x mh-invisible-header-fields)
+        (unless (member x fields) (setq fields (cons x fields)))))
+    (if fields
+        (setq mh-invisible-header-fields-compiled
+              (concat
+               "^"
+               ;; workaround for insufficient default
+               (let ((max-specpdl-size 1000))
+                 (regexp-opt fields t))))
+      (setq mh-invisible-header-fields-compiled nil))))
+
+(defcustom mh-invisible-header-fields-default nil
+  "*List of hidden header fields.
+The header fields listed in this option are hidden, although you can check off
+any field that you would like to see. Header fields that you would like to
+hide that aren't listed can be added to the `mh-invisible-header-fields'
+option.
+
+See also `mh-clean-message-header-flag'."
+  :type `(set ,@(mapcar (lambda (x) `(const ,x))
+                        mh-invisible-header-fields-internal))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (mh-invisible-headers))
+  :group 'mh-show)
+
+(defcustom mh-invisible-header-fields nil
+  "*Additional header fields to hide.
+Header fields that you would like to hide that aren't listed in
+`mh-invisible-header-fields-default' can be added to this option with a couple
+of caveats. Regular expressions are not allowed. Unique fields should have a
+`:' suffix; otherwise, the element can be used to render invisible an entire
+class of fields that start with the same prefix.
+
+See also `mh-clean-message-header-flag'."
+
+  :type '(repeat (string :tag "Header field"))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (mh-invisible-headers))
+  :group 'mh-show)
+
+(defcustom mh-lpr-command-format "lpr -J '%s'"
+  "*Format for Unix command that prints a message.
+The string should be a Unix command line, with the string '%s' where
+the job's name (folder and message number) should appear.  The formatted
+message text is piped to this command when you type \\<mh-folder-mode-map>`\\[mh-print-msg]'."
+  :type 'string
+  :group 'mh-show)
+
+(defcustom mh-max-inline-image-height nil
+  "*Maximum inline image height if Content-Disposition is not present.
+If nil, image will be displayed if its height is smaller than the height of
+the window."
+  :type '(choice (const nil) integer)
+  :group 'mh-show)
+
+(defcustom mh-max-inline-image-width nil
+  "*Maximum inline image width if Content-Disposition is not present.
+If nil, image will be displayed if its width is smaller than the width of the
+window."
+  :type '(choice (const nil) integer)
+  :group 'mh-show)
+
+(defcustom mh-mime-save-parts-default-directory t
+  "Default directory to use for `mh-mime-save-parts'.
+If nil, prompt and set for next time the command is used during same session.
+If t, prompt always"
+  :type '(choice (const :tag "Prompt the first time" nil)
+                 (const :tag "Prompt always" t)
+                 directory)
+  :group 'mh-show)
+
+(defcustom mh-print-background-flag nil
+  "*Non-nil means messages should be printed in the background.
+WARNING: do not delete the messages until printing is finished;
+otherwise, your output may be truncated."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-recursive-folders-flag nil
+  "*Non-nil means that commands which operate on folders do so recursively."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-show-maximum-size 0
+  "*Maximum size of message (in bytes) to display automatically.
+Provides an opportunity to skip over large messages which may be slow to load.
+Use a value of 0 to display all messages automatically regardless of size."
+  :type 'integer
+  :group 'mh-show)
+
+(defcustom mh-show-threads-flag nil
+  "Non-nil means new folders start in threaded mode.
+Threading large number of messages can be time consuming. So if the flag is
+non-nil then threading will be done only if the number of messages being
+threaded is less than `mh-large-folder'."
+  :type 'boolean
+  :group 'mh-show)
+
+;; Use goto-addr if it was already loaded (which probably sets this
+;; variable to t), or if this variable is otherwise set to t.
+(defcustom mh-show-use-goto-addr-flag (and (boundp 'goto-address-highlight-p)
+                                           goto-address-highlight-p)
+  "*Non-nil means highlight URLs and email addresses.
+The `goto-addr' module is used."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-show-use-xface-flag (>= emacs-major-version 21)
+  "*Non-nil means display face images in `mh-show-mode'.
+
+MH-E can display the content of `Face:', `X-Face:', and `X-Image-URL:' header
+fields. If any of these fields occur in the header of your message, the
+sender's face will appear in the `From:' header field. If more than one of
+these fields appear, then the first field found in the order `Face:',
+`X-Face:', and `X-Image-URL:' will be used. Note that versions of GNU Emacs
+prior to 21.1 don't support the display of inline images, so face images are
+not displayed in these versions.
+
+The option `mh-show-use-xface-flag' is used to turn this feature on and off.
+This feature will be turned on by default if your system supports it.
+
+The first header field used, if present, is the Gnus-specific `Face:' field.
+The `Face:' field appeared in GNU Emacs 21 and XEmacs. For more information,
+see http://quimby.gnus.org/circus/face/. Next is the traditional `X-Face:'
+header field. The display of this field requires the `uncompface' program
+which can be obtained from
+ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. Recent versions of
+XEmacs have internal support for `X-Face:' images. If your version of XEmacs
+does not, then you'll need both `uncompface' and the x-face package which is
+available at ftp://ftp.jpl.org/pub/elisp/.
+
+Finally, MH-E will display images referenced by the `X-Image-URL:' header
+field if neither the `Face:' nor the `X-Face:' fields are present. The display
+of the images requires `wget' (available from
+http://www.gnu.org/software/wget/wget.html), `fetch', or `curl' to fetch the
+image and the `convert' program from the ImageMagick suite, available from
+http://www.imagemagick.org/. Of the three header fields this is the most
+efficient in terms of network usage since the image doesn't need to be
+transmitted with every single mail.
+
+The option `mh-fetch-x-image-url' controls the fetching of the `X-Image-URL:'
+header field image."
+  :type 'boolean
+  :group 'mh-show)
+
+(defcustom mh-store-default-directory nil
+  "*Last directory used by \\[mh-store-msg]; default for next store.
+A directory name string, or nil to use current directory."
+  :type '(choice (const :tag "Current" nil)
+                 directory)
+  :group 'mh-show)
+
+(defcustom mh-summary-height nil
+  "*Number of lines in MH-Folder window (including the mode line)."
+  :type '(choice (const :tag "Automatic" nil)
+                 (integer :tag "Fixed sized"))
+  :group 'mh-show)
+
+(defcustom mhl-formfile nil
+  "*Name of format file to be used by mhl to show and print messages.
+A value of t means use the default format file.
+nil means don't use mhl to format messages when showing; mhl is still used,
+with the default format file, to format messages when printing them.
+The format used should specify a non-zero value for overflowoffset so
+the message continues to conform to RFC 822 and MH-E can parse the headers."
+  :type '(choice (const nil) (const t) string)
+  :group 'mh-show)
+(put 'mhl-formfile 'info-file "mh-e")
+
+
+
+;;; The Speedbar (:group 'mh-speed)
+
+(defcustom mh-large-folder 200
+  "The number of messages that indicates a large folder.
+If a folder is deemed to be large, that is the number of messages in it exceed
+this value, then confirmation is needed when it is visited. Even when
+`mh-show-threads-flag' is non-nil, the folder is not automatically threaded, if
+it is large. If set to nil all folders are treated as if they are small."
+  :type '(choice (const :tag "No limit") integer)
+  :group 'mh-speed)
+
+(defcustom mh-speed-flists-interval 60
+  "Time between calls to flists in seconds.
+If 0, flists is not called repeatedly."
+  :type 'integer
+  :group 'mh-speed)
+
+(defcustom mh-speed-run-flists-flag t
+  "Non-nil means flists is used.
+If non-nil, flists is executed every `mh-speed-flists-interval' seconds to
+update the display of the number of unseen and total messages in each folder.
+If resources are limited, this can be set to nil and the speedbar display can
+be updated manually with the \\[mh-speed-flists] command."
+  :type 'boolean
+  :group 'mh-speed)
+
+
+
+;;; The Toolbar (:group 'mh-toolbar)
 
 (defcustom mh-tool-bar-search-function 'mh-search-folder
   "*Function called by the tool-bar search button.
@@ -326,10 +1642,10 @@ where,
   ;; The following variable names have been carefully chosen to make code
   ;; generation easier. Modifying the names should be done carefully.
   (let (folder-buttons folder-docs folder-button-setter sequence-button-setter
-        show-buttons show-button-setter show-seq-button-setter
-        letter-buttons letter-docs letter-button-setter
-        folder-defaults letter-defaults
-        folder-vectors show-vectors letter-vectors)
+                       show-buttons show-button-setter show-seq-button-setter
+                       letter-buttons letter-docs letter-button-setter
+                       folder-defaults letter-defaults
+                       folder-vectors show-vectors letter-vectors)
     (dolist (x defaults)
       (cond ((eq (car x) :folder) (setq folder-defaults (cdr x)))
             ((eq (car x) :letter) (setq letter-defaults (cdr x)))))
@@ -341,7 +1657,7 @@ where,
              (name-str (symbol-name name))
              (icon (nth 2 button))
              (xemacs-icon (mh-do-in-xemacs
-                           (cdr (assoc (intern icon) mh-xemacs-icon-map))))
+                            (cdr (assoc (intern icon) mh-xemacs-icon-map))))
              (full-doc (nth 3 button))
              (doc (if (string-match "\\(.*\\)\n" full-doc)
                       (match-string 1 full-doc)
@@ -386,7 +1702,7 @@ where,
              setter `(when (member ',name ,list)
                        (mh-funcall-if-exists
                         tool-bar-add-item ,icon ',function ',key
-                                          :help ,doc :enable ',enable-expr)))
+                        :help ,doc :enable ',enable-expr)))
             (add-to-list mbuttons name)
             (if docs (add-to-list docs doc))))))
     (setq folder-buttons (nreverse folder-buttons)
@@ -458,17 +1774,19 @@ where,
          ;; Custom setter functions
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            (set-default symbol value)
-           (setq mh-toolbar-letter-buttons
-                 (loop for b in value
-                       collect (cdr (assoc b mh-toolbar-letter-vector-map)))))
+           (when mh-xemacs-has-toolbar-flag
+             (setq mh-toolbar-letter-buttons
+                   (loop for b in value
+                         collect (cdr (assoc b mh-toolbar-letter-vector-map))))))
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            (set-default symbol value)
-           (setq mh-toolbar-folder-buttons
-                 (loop for b in value
-                       collect (cdr (assoc b mh-toolbar-folder-vector-map))))
-           (setq mh-toolbar-show-buttons
-                 (loop for b in value
-                       collect (cdr (assoc b mh-toolbar-show-vector-map)))))
+           (when mh-xemacs-has-toolbar-flag
+             (setq mh-toolbar-folder-buttons
+                   (loop for b in value
+                         collect (cdr (assoc b mh-toolbar-folder-vector-map))))
+             (setq mh-toolbar-show-buttons
+                   (loop for b in value
+                         collect (cdr (assoc b mh-toolbar-show-vector-map))))))
          ;; Initialize toolbar
          (defun mh-toolbar-init (mode)
            "Install toolbar in MODE."
@@ -478,7 +1796,8 @@ where,
                  (height 37)
                  (width 40)
                  (buffer (current-buffer)))
-             (when (and mh-xemacs-toolbar-position mh-xemacs-use-toolbar-flag)
+             (when (and mh-xemacs-toolbar-position mh-xemacs-use-toolbar-flag
+                        mh-xemacs-has-toolbar-flag)
                (cond
                 ((eq mh-xemacs-toolbar-position 'top)
                  (set-specifier top-toolbar toolbar buffer)
@@ -545,9 +1864,11 @@ This button runs `mh-previous-undeleted-msg'")
     "Mark this message for deletion\nThis button runs `mh-delete-msg'")
   (mh-refile-msg (folder) "refile"
     "Refile this message\nThis button runs `mh-refile-msg'")
-  (mh-undo (folder) "undo" "Undo last operation\nThis button runs `undo'")
+  (mh-undo (folder) "undo" "Undo last operation\nThis button runs `undo'"
+    (mh-outstanding-commands-p))
   (mh-execute-commands (folder) "execute"
-    "Perform moves and deletes\nThis button runs `mh-execute-commands'")
+    "Perform moves and deletes\nThis button runs `mh-execute-commands'"
+    (mh-outstanding-commands-p))
   (mh-toggle-tick (folder) "highlight"
     "Toggle tick mark\nThis button runs `mh-toggle-tick'")
   (mh-toggle-showing (folder) "show"
@@ -559,7 +1880,7 @@ This button runs `mh-previous-undeleted-msg'")
     "Reply to this message\nThis button runs `mh-reply'")
   (mh-alias-grab-from-field (folder) "alias"
     "Grab From alias\nThis button runs `mh-alias-grab-from-field'"
-    (mh-alias-from-has-no-alias-p))
+    (and (mh-extract-from-header-value) (not (mh-alias-for-from-p))))
   (mh-send (folder) "mail_compose"
     "Compose new message\nThis button runs `mh-send'")
   (mh-rescan-folder (folder) "rescan"
@@ -574,7 +1895,8 @@ This button runs `mh-previous-undeleted-msg'")
   (mh-send-letter (letter) "mail_send" "Send this letter")
   (mh-compose-insertion (letter) "attach" "Insert attachment")
   (ispell-message (letter) "spell" "Check spelling")
-  (save-buffer (letter) "save" "Save current buffer to its file")
+  (save-buffer (letter) "save" "Save current buffer to its file"
+    (buffer-modified-p))
   (undo (letter) "undo" "Undo last operation")
   (kill-region (letter) "cut"
     "Cut (kill) text in region between mark and current position")
@@ -594,1085 +1916,47 @@ This button runs `mh-previous-undeleted-msg'")
 
 
 
-;;; Speedbar and folder configuration (:group 'mh-speed)
-
-(defcustom mh-large-folder 200
-  "The number of messages that indicates a large folder.
-If a folder is deemed to be large, that is the number of messages in it exceed
-this value, then confirmation is needed when it is visited. Even when
-`mh-show-threads-flag' is non-nil, the folder is not automatically threaded, if
-it is large. If set to nil all folders are treated as if they are small."
-  :type '(choice (const :tag "No limit") integer)
-  :group 'mh-speed)
-
-(defcustom mh-speed-flists-interval 60
-  "Time between calls to flists in seconds.
-If 0, flists is not called repeatedly."
-  :type 'integer
-  :group 'mh-speed)
-
-(defcustom mh-speed-run-flists-flag t
-  "Non-nil means flists is used.
-If non-nil, flists is executed every `mh-speed-flists-interval' seconds to
-update the display of the number of unseen and total messages in each folder.
-If resources are limited, this can be set to nil and the speedbar display can
-be updated manually with the \\[mh-speed-flists] command."
-  :type 'boolean
-  :group 'mh-speed)
-
-
-
-;;; Options for controlling scan listing (:group 'mh-folder)
-
-(defcustom mh-adaptive-cmd-note-flag t
-  "*Non-nil means that the message number width is determined dynamically.
-This is done once when a folder is first opened by running scan on the last
-message of the folder. The message number for the last message is extracted
-and its width calculated. This width is used when calling `mh-set-cmd-note'.
-
-If you prefer fixed-width message numbers, set this variable to nil and call
-`mh-set-cmd-note' with the width specified by the scan format in
-`mh-scan-format-file'. For example, the default width is 4, so you would use
-\"(mh-set-cmd-note 4)\" if `mh-scan-format-file' were nil."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-default-folder-list nil
-  "*Alist of addresses and folders.
-When refiling messages, these folders are the default that is provided if the
-sender (or recipient if the Check Recipient checkbox has been selected) has
-the associated address, a regexp. The first entry to match will be used, so
-order them according to the wanted priority. You do not need to list your
-aliases here as that lookup is already performed.
-
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
-  :type '(repeat (list (regexp :tag "Address")
-                       (string :tag "Folder")
-                       (boolean :tag "Check Recipient")))
-  :group 'mh-folder)
-
-(defcustom mh-default-folder-must-exist-flag t
-  "*Non-nil means guessed folder name must exist to be used.
-If this variable is t, then the guessed name is only used if the folder
-already exists\; if the folder doesn't exist, then the last folder name used
-is suggested. This is useful if you get mail from various people for whom you
-have an alias, but file them all in the same project folder.
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-default-folder-prefix ""
-  "*Prefix used for guessed folder names.
-This can be used to put folders associated with your aliases in a sub-folder
-so as to not clutter your mail directory.
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
-  :type 'string
-  :group 'mh-folder)
-
-(defcustom mh-inc-prog "inc"
-  "*Program to run to incorporate new mail into a folder.
-Normally \"inc\".  This file is searched for relative to
-the `mh-progs' directory unless it is an absolute pathname."
-  :type 'string
-  :group 'mh-folder)
-
-(defcustom mh-inc-spool-list nil
-  "*Alist of alternate spool files, corresponding folders and keybindings.
-Here's an example. Suppose you have subscribed to the MH-E devel mailing
-list. You could filter its mail into a separate spool file named
-~/mail/mh-e using Procmail and a .procmailrc entry like:
-
-MAILDIR=$HOME/mail      #you'd better make sure it exists
-:0:
-* ^From mh-e-devel-admin@lists.sourceforge.net
-mh-e
-
-If you wanted to incorporate that spool file into an MH folder called
-mh-e by pressing \"I m\" in folder-mode or by `M-x mh-inc-spool-mh-e',
-you would setup  `mh-inc-spool-list' with an entry:
-
- Spool file:  ~/mail/mh-e
- Folder:      mh-e
- Key binding: m
-
-Then, you could also install `xbuffy' and configure an extra mailbox like so:
-
-box ~/mail/mh-e
- title mh-e
- origMode
- polltime 10
- headertime 0
- command gnudoit -q '(mh-inc-spool-mh-e)'
-
-Note that the entry above uses the gnuserv package to communicate the
-command `mh-inc-spool-mh-e' to Emacs. It will incorporate the spool file
-when clicking the xbuffy box with the middle mouse button."
-  :type '(repeat (list (file :tag "Spool file")
-                       (string :tag "Folder")
-                       (character :tag "Key binding")))
-  :set 'mh-inc-spool-list-set
-  :group 'mh-folder)
-
-(defcustom mh-interpret-number-as-range-flag t
-  "Non-nil means interpret a number as a range.
-If the variable is non-nil, and you use an integer, N, when asked for a
-range to scan, then MH-E uses the range \"last:N\"."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-lpr-command-format "lpr -J '%s'"
-  "*Format for Unix command that prints a message.
-The string should be a Unix command line, with the string '%s' where
-the job's name (folder and message number) should appear.  The formatted
-message text is piped to this command when you type \\<mh-folder-mode-map>`\\[mh-print-msg]'."
-  :type 'string
-  :group 'mh-folder)
-
-(defcustom mh-mime-save-parts-default-directory t
-  "Default directory to use for `mh-mime-save-parts'.
-If nil, prompt and set for next time the command is used during same session.
-If t, prompt always"
-  :type '(choice (const :tag "Prompt the first time" nil)
-                 (const :tag "Prompt always" t)
-                 directory)
-  :group 'mh-folder)
-
-(defcustom mh-print-background-flag nil
-  "*Non-nil means messages should be printed in the background.
-WARNING: do not delete the messages until printing is finished;
-otherwise, your output may be truncated."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-recenter-summary-flag nil
-  "*Non-nil means to recenter the summary window.
-Recenter the summary window when the show window is toggled off if non-nil."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-recursive-folders-flag nil
-  "*Non-nil means that commands which operate on folders do so recursively."
-  :type 'boolean
-  :group 'mh-folder)
-
-;;; If `mh-unpropagated-sequences' becomes a defcustom, add the following tot
-;;; he docstring: "Additional sequences that should not to be preserved can be
-;;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
-
-(defcustom mh-refile-preserves-sequences-flag t
-  "*Non-nil means that sequences are preserved when messages are refiled.
-If this variable is non-nil and a message belonging to a sequence other than
-cur or Previous-Sequence (see mh-profile 5) is refiled then it is put in the
-same sequence in the destination folder."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-scan-format-file t
-  "Specifies the format file to pass to the scan program.
-If t, the format string will be taken from the either `mh-scan-format-mh'
-or `mh-scan-format-nmh' depending on whether MH or nmh is in use.
-If nil, the default scan output will be used.
-
-If you customize the scan format, you may need to modify a few variables
-containing regexps that MH-E uses to identify specific portions of the output.
-Use `M-x apropos RET mh-scan.*regexp' to obtain a list of these variables. You
-may also have to call `mh-set-cmd-note' with the width of your message
-numbers. See also `mh-adaptive-cmd-note-flag'."
-  :type '(choice (const :tag "Use MH-E scan format" t)
-                 (const :tag "Use default scan format" nil)
-                 (file  :tag "Specify a scan format file"))
-  :group 'mh-folder)
-
-(defcustom mh-scan-prog "scan"
-  "*Program to run to generate one-line-per-message listing of a folder.
-Normally \"scan\" or a file name linked to scan.  This file is searched
-for relative to the `mh-progs' directory unless it is an absolute pathname."
-  :type 'string
-  :group 'mh-folder)
-(make-variable-buffer-local 'mh-scan-prog)
-
-(defcustom mh-show-threads-flag nil
-  "Non-nil means new folders start in threaded mode.
-Threading large number of messages can be time consuming. So if the flag is
-non-nil then threading will be done only if the number of messages being
-threaded is less than `mh-large-folder'."
-  :type 'boolean
-  :group 'mh-folder)
-
-(defcustom mh-store-default-directory nil
-  "*Last directory used by \\[mh-store-msg]; default for next store.
-A directory name string, or nil to use current directory."
-  :type '(choice (const :tag "Current" nil)
-                 directory)
-  :group 'mh-folder)
-
-(defcustom mh-tick-seq 'tick
-  "The name of the MH tick sequence."
-  :type '(choice (const :tag "Disable ticking" nil)
-                 symbol)
-  :group 'mh-folder)
-
-(defcustom mh-update-sequences-after-mh-show-flag t
-  "*Non-nil means `mh-update-sequence' is called from `mh-show-mode'.
-If set, `mh-update-sequence' is run every time a message is shown, telling
-MH or nmh that this is your current message.  It's useful, for example, to
-display MIME content using \"M-! mhshow RET\""
-  :type 'boolean
-  :group 'mh-folder)
-
-
-
-;;; Indexed searching (:group 'mh-index)
-
-(defcustom mh-index-new-messages-folders t
-  "Folders searched for `mh-unseen-seq'.
-If t, then `mh-inbox' is searched. If nil, all the top level folders are
-searched. Otherwise the list of folders specified as strings are searched.
-See also `mh-recursive-folders-flag'."
-  :group 'mh-index
-  :type '(choice (const :tag "Inbox" t)
-                 (const :tag "All" nil)
-                 (repeat :tag "Choose folders" (string :tag "Folder"))))
-
-(defcustom mh-index-program nil
-  "Indexing program that MH-E shall use.
-The possible choices are swish++, swish-e, mairix, namazu, glimpse, pick and
-grep. By default this variable is nil which means that the programs are tried
-in order and the first one found is used.
-
-More information about setting up an indexing program to use with MH-E can be
-found in the documentation of `mh-index-search'."
-  :type '(choice (const :tag "Auto-detect" nil)
-                 (const :tag "swish++" swish++)
-                 (const :tag "swish-e" swish)
-                 (const :tag "mairix" mairix)
-                 (const :tag "namazu" namazu)
-                 (const :tag "glimpse" glimpse)
-                 (const :tag "pick" pick)
-                 (const :tag "grep" grep))
-  :group 'mh-index)
-
-(defcustom mh-index-ticked-messages-folders t
-  "Folders searched for `mh-tick-seq'.
-If t, then `mh-inbox' is searched. If nil, all the top level folders are
-searched. Otherwise the list of folders specified as strings are searched.
-See also `mh-recursive-folders-flag'."
-  :group 'mh-index
-  :type '(choice (const :tag "Inbox" t)
-                 (const :tag "All" nil)
-                 (repeat :tag "Choose folders" (string :tag "Folder"))))
-
-
-
-;;; Spam Handling (:group 'mh-junk)
-
-;; Spam fighting program chosen
-(defvar mh-junk-choice nil)
-
-;; Available spam filter interfaces
-(defvar mh-junk-function-alist
-  '((bogofilter mh-bogofilter-blacklist mh-bogofilter-whitelist)
-    (spamprobe mh-spamprobe-blacklist mh-spamprobe-whitelist)
-    (spamassassin mh-spamassassin-blacklist mh-spamassassin-whitelist))
-  "Available choices of spam programs to use.
-This is an alist. For each element there are functions that blacklist a message
-as spam and whitelist a message incorrectly classified as spam.")
-
-(defun mh-junk-choose (symbol value)
-  "Choose spam program to use.
-The function is always called with SYMBOL bound to `mh-junk-program' and VALUE
-bound to the new value of `mh-junk-program'. The function sets the variable
-`mh-junk-choice' in addition to `mh-junk-program'."
-  (set symbol value)
-  (setq mh-junk-choice
-        (or value
-            (loop for element in mh-junk-function-alist
-                  until (executable-find (symbol-name (car element)))
-                  finally return (car element)))))
-
-;; User customizable variables
-(defcustom mh-junk-mail-folder nil
-  "Folder to put spam mail in.
-If nil then the spam is deleted."
-  :type '(choice (const :tag "Delete spam" nil)
-                 (string :tag "Spam folder"))
-  :group 'mh-junk)
-
-(defcustom mh-junk-program nil
-  "Spam program that MH-E shall use.
-The possible choices are bogofilter, spamprobe, and spamassassin. By default
-this variable is nil which means that the programs are tried in order and the
-first one found is used."
-  :type '(choice (const :tag "auto-detect" nil)
-                 (const :tag "bogofilter" bogofilter)
-                 (const :tag "spamprobe" spamprobe)
-                 (const :tag "spamassassin" spamassassin))
-  :set 'mh-junk-choose
-  :group 'mh-junk)
-
-
-
-;;; Message display (:group 'mh-show)
-
-(defcustom mh-bury-show-buffer-flag t
-  "*Non-nil means that the displayed show buffer for a folder is buried."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-clean-message-header-flag t
-  "*Non-nil means clean headers of messages that are displayed or inserted.
-The variable `mh-invisible-headers' if set determines the header fields that
-are displayed. If it isn't set, then the variable `mh-invisible-headers'
-determines the header fields that are removed."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-decode-mime-flag (not (not (locate-library "mm-decode")))
-  "*Non-nil means that Gnus is used to show MIME attachments with Gnus."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-display-buttons-for-alternatives-flag nil
-  "*Non-nil means display buttons for all MIME alternatives.
-Default behavior is to display only the preferred alternative. If this
-variable is non-nil, then the preferred part is shown inline and buttons
-are shown for each of the other alternatives."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-display-buttons-for-inline-parts-flag nil
-  "*Non-nil means display buttons for all inline MIME parts.
-If non-nil, buttons are displayed for all MIME parts. Inline parts start off
-in displayed state but they can be hidden by clicking the button. If nil no
-buttons are shown for inline parts."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-do-not-confirm-flag nil
-  "*Non-nil means do not prompt for confirmation.
-Commands such as `mh-pack-folder' prompt to confirm whether to process
-outstanding moves and deletes or not before continuing. A non-nil setting will
-perform the action--which is usually desired but cannot be retracted--without
-question."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-fetch-x-image-url nil
-  "Control fetching of X-Image-URL header field image.
-This setting only has effect if `mh-show-use-xface-flag' is non-nil.
-
-If set to t, the image is fetched.
-
-If set to 'ask, the user is prompted before the image is fetched. MH-E will
-remember your reply and will either use the already fetched image the next time
-the same URL is encountered or silently skip it if you didn't fetch it the
-first time.
-
-If set to nil, the default, images are not fetched and only displayed if they
-are already present in the cache."
-  :type '(choice (const :tag "Always fetch" t)
-                 (const :tag "Ask before fetching" ask)
-                 (const :tag "Never fetch" nil))
-  :group 'mh-show)
-
-(defcustom mh-graphical-smileys-flag t
-  "*Non-nil means graphical smileys are displayed.
-Non-nil means that small graphics will be used in the show buffer instead of
-patterns like :-), ;-) etc. The setting only has effect if
-`mh-decode-mime-flag' is non-nil."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-graphical-emphasis-flag t
-  "*Non-nil means graphical emphasis is displayed.
-Non-nil means that _underline_ will be underlined, *bold* will appear in bold,
-/italic/ will appear in italic etc. See `gnus-emphasis-alist' for the whole
-list. The setting only has effect if `mh-decode-mime-flag' is non-nil."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-highlight-citation-p 'gnus
-  "How to highlight citations in show buffers.
-The gnus method uses a different color for each indentation."
-  :type '(choice (const :tag "Use Gnus" gnus)
-                 (const :tag "Use font-lock" font-lock)
-                 (const :tag "Don't fontify" nil))
-  :group 'mh-show)
-
-(defvar mh-invisible-headers nil
-  "*Regexp matching lines in a message header that are not to be shown.
-Customize the variable `mh-invisible-header-fields' to generate this variable;
-It will in turn automatically use the function `mh-invisible-headers' to
-generate this variable.
-If the variable `mh-visible-headers' is non-nil, it is used instead to specify
-what to keep.")
-
-(defun mh-invisible-headers ()
-  "Make or remake the variable `mh-invisible-headers'.
-Done using `mh-invisible-header-fields' as input."
-  (if mh-invisible-header-fields
-      (setq mh-invisible-headers
-            (concat
-             "^"
-             (let ((max-specpdl-size 1000) ;workaround for insufficient default
-                   (fields mh-invisible-header-fields))
-               (regexp-opt fields t))))
-    (setq mh-invisible-headers nil)))
-
-;; Keep fields alphabetized. Mention source, if known.
-(defcustom mh-invisible-header-fields
-  '("Approved:"
-    "Autoforwarded:"
-    "Bestservhost:"
-    "Cancel-Lock:"                      ; NNTP posts
-    "Content-"                          ; RFC 2045
-    "Delivered-To:"              ; Egroups/yahoogroups mailing list manager
-    "Delivery-Date:"                    ; MH
-    "Delivery:"
-    "Encoding:"
-    "Envelope-to:"
-    "Errors-To:"
-    "Face:"                             ; Gnus Face header
-    "Forwarded:"                        ; MH
-    "From "                             ; sendmail
-    "Importance:"                       ; MS Outlook
-    "In-Reply-To:"                      ; MH
-    "Lines:"
-    "List-"                             ; Mailman mailing list manager
-    "List-"                             ; Unknown mailing list managers
-    "List-Subscribe:"                   ; Unknown mailing list managers
-    "List-Unsubscribe:"                 ; Unknown mailing list managers
-    "Mail-from:"                        ; MH
-    "Mailing-List:"              ; Egroups/yahoogroups mailing list manager
-    "Message-Id:"                       ; RFC 822
-    "Mime-Version"                      ; RFC 2045
-    "NNTP-"                             ; News
-    "Old-Return-Path:"
-    "Original-Encoded-Information-Types:"  ; X400
-    "Original-Lines:"                   ; mail to news
-    "Original-Newsgroups:"              ; mail to news
-    "Original-NNTP-"                    ; mail to news
-    "Original-Path:"                    ; mail to news
-    "Original-Received:"                ; mail to news
-    "Original-To:"                      ; mail to news
-    "Original-X-"                       ; mail to news
-    "P1-Content-Type:"                  ; X400
-    "P1-Message-Id:"                    ; X400
-    "P1-Recipient:"                     ; X400
-    "Path:"
-    "Precedence:"
-    "Prev-Resent"                       ; MH
-    "Priority:"
-    "Received:"                         ; RFC 822
-    "References:"
-    "Remailed-"                         ; MH
-    "Replied:"                          ; MH
-    "Resent"                            ; MH
-    "Return-Path:"                      ; RFC 822
-    "Sensitivity:"                      ; MS Outlook
-    "Status:"                           ; sendmail
-    "Ua-Content-Id:"                    ; X400
-;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
-    "Via:"                              ; MH
-    "X-Abuse-Info:"
-    "X-Accept-Language:"
-    "X-Accept-Language:"                ; Netscape/Mozilla
-    "X-Ack:"
-    "X-Apparently-From:"                ; MS Outlook
-    "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
-    "X-Authentication-Warning:"         ; sendmail
-    "X-Beenthere:"                      ; Mailman mailing list manager
-    "X-Bogosity:"                       ; bogofilter
-    "X-Complaints-To:"
-    "X-Cron-Env:"
-    "X-Delivered"
-    "X-Envelope-Sender:"
-    "X-Envelope-To:"
-    "X-Face:"
-    "X-Folder:"                         ; Spam
-    "X-From-Line"
-    "X-Gnus-Mail-Source:"               ; gnus
-    "X-Habeas-SWE-1:"                   ; Spam
-    "X-Habeas-SWE-2:"                   ; Spam
-    "X-Habeas-SWE-3:"                   ; Spam
-    "X-Habeas-SWE-4:"                   ; Spam
-    "X-Habeas-SWE-5:"                   ; Spam
-    "X-Habeas-SWE-6:"                   ; Spam
-    "X-Habeas-SWE-7:"                   ; Spam
-    "X-Habeas-SWE-8:"                   ; Spam
-    "X-Habeas-SWE-9:"                   ; Spam
-    "X-Info:"                           ; NTMail
-    "X-Juno-"                           ; Juno
-    "X-List-Host:"                      ; Unknown mailing list managers
-    "X-List-Subscribe:"                 ; Unknown mailing list managers
-    "X-List-Unsubscribe:"               ; Unknown mailing list managers
-    "X-Listserver:"                     ; Unknown mailing list managers
-    "X-Loop:"                           ; Unknown mailing list managers
-    "X-MIME-Autoconverted:"             ; sendmail
-    "X-MIMETrack:"
-    "X-MS-TNEF-Correlator:"             ; MS Outlook
-    "X-Mailing-List:"                   ; Unknown mailing list managers
-    "X-Mailman-Version:"                ; Mailman mailing list manager
-    "X-Majordomo:"                      ; Majordomo mailing list manager
-    "X-Message-Id"
-    "X-MHE-Checksum"                    ; Checksum added during index search
-    "X-MimeOLE:"                        ; MS Outlook
-    "X-Mozilla-Status:"                 ; Netscape/Mozilla
-    "X-Msmail-"                         ; MS Outlook
-    "X-News:"                           ; News
-    "X-No-Archive:"
-    "X-Notes-Item:"                     ; Lotus Notes Domino structured header
-    "X-Orcl-Content-Type:"
-    "X-Original-Complaints-To:"
-    "X-Original-Date:"                  ; SourceForge mailing list manager
-    "X-Original-To:"
-    "X-Original-Trace:"
-    "X-OriginalArrivalTime:"            ; Hotmail
-    "X-Originating-IP:"                 ; Hotmail
-    "X-Priority:"                       ; MS Outlook
-    "X-Qotd-"                           ; User added
-    "X-Received-Date:"
-    "X-Received:"
-    "X-Request-"
-    "X-SBClass:"                        ; Spam
-    "X-SBNote:"                         ; Spam
-    "X-SBPass:"                         ; Spam
-    "X-SBRule:"                         ; Spam
-    "X-Scanned-By"
-    "X-Sender:"
-    "X-Server-Date:"
-    "X-Server-Uuid:"
-    "X-Sieve:"                          ; Sieve filtering
-    "X-Spam-Checker-Version:"           ; Spamassassin
-    "X-Spam-Level:"                     ; Spamassassin
-    "X-Spam-Score:"                     ; Spamassassin
-    "X-Spam-Status:"                    ; Spamassassin
-    "X-SpamBouncer:"                    ; Spam
-    "X-Trace:"
-    "X-UIDL:"
-    "X-UserInfo1:"
-    "X-VSMLoop:"                        ; NTMail
-    "X-Vms-To:"
-    "X-Wss-Id:"                         ; Worldtalk gateways
-    "X-eGroups-"                 ; Egroups/yahoogroups mailing list manager
-    "X-pgp:"
-    "X-submission-address:"
-    "X400-"                             ; X400
-    "Xref:")
-"*List of header fields that are not to be shown.
-Regexps are not allowed. Unique fields should have a \":\" suffix; otherwise,
-the element can be used to render invisible an entire class of fields that
-start with the same prefix.
-This variable is ignored if the variable `mh-visible-headers' is set."
-  :type '(repeat (string :tag "Header field"))
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (mh-invisible-headers))
-  :group 'mh-show)
-
-(defcustom mh-max-inline-image-height nil
-  "*Maximum inline image height if Content-Disposition is not present.
-If nil, image will be displayed if its height is smaller than the height of
-the window."
-  :type '(choice (const nil) integer)
-  :group 'mh-show)
-
-(defcustom mh-max-inline-image-width nil
-  "*Maximum inline image width if Content-Disposition is not present.
-If nil, image will be displayed if its width is smaller than the width of the
-window."
-  :type '(choice (const nil) integer)
-  :group 'mh-show)
-
-(defcustom mh-show-maximum-size 0
-  "*Maximum size of message (in bytes) to display automatically.
-Provides an opportunity to skip over large messages which may be slow to load.
-Use a value of 0 to display all messages automatically regardless of size."
-  :type 'integer
-  :group 'mh-show)
-
-;; Use goto-addr if it was already loaded (which probably sets this
-;; variable to t), or if this variable is otherwise set to t.
-(defcustom mh-show-use-goto-addr-flag (and (boundp 'goto-address-highlight-p)
-                                           goto-address-highlight-p)
-  "*Non-nil means highlight URLs and email addresses.
-The `goto-addr' module is used."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-show-use-xface-flag (>= emacs-major-version 21)
-  "*Non-nil means display face images in `mh-show-mode'.
-This flag controls the display of three kinds of faces.
-
-The first is the traditional X-Face header field. For GNU Emacs 21
-and above, the `uncompface' binary is required to be in the execute
-PATH for the display of X-Face images. It can be obtained from
-ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z.
-
-If the XEmacs you are using has internal support for X-Face images, then MH-E
-will display X-Face images in XEmacs \"out of the box\". Even if you don't have
-X-Face support compiled into your XEmacs, you can still see the X-Face images
-in MH-E with the aid of an external x-face package and `uncompface'. It is
-available from ftp://ftp.jpl.org/pub/elisp/. Download it, put its files in the
-`load-path' and MH-E will invoke it automatically.
-
-Second, MH-E supports the display of the Gnus-specific Face
-header field in GNU Emacs >= 21 and XEmacs. No external packages
-are required. More information about the Face header can be found
-at: http://quimby.gnus.org/circus/face/.
-
-Finally, MH-E can also display images from the X-Image-URL header field. The
-display of the images requires the `wget' program, available from
-http://www.gnu.org/software/wget/wget.html, to fetch the image and the
-`convert' program from the ImageMagick suite, available from
-http://www.imagemagick.org/. Of the three header fields this is the most
-efficient in terms of network usage since the image doesn't need to be
-transmitted with every single mail. However its display needs the recipient to
-fetch a URL and this can be misused. So it is disabled by default. It can be
-enabled by customizing `mh-fetch-x-image-url'. Setting that to ask for
-confirmation before fetching seems like a good choice.
-
-Versions of GNU Emacs prior to 21.1 don't support the display of
-inline images. So face images are not displayed in these versions."
-  :type 'boolean
-  :group 'mh-show)
-
-(defcustom mh-summary-height nil
-  "*Number of lines in MH-Folder window (including the mode line)."
-  :type '(choice (const :tag "Automatic" nil)
-                 (integer :tag "Fixed sized"))
-  :group 'mh-show)
-
-(defvar mh-visible-headers nil
-  "*Regexp matching lines in a message header that are to be shown.
-Customize the variable `mh-visible-header-fields' to generate this variable;
-It will in turn automatically use the function `mh-visible-headers' to
-generate this variable.
-Only used if `mh-clean-message-header-flag' is non-nil. Setting it overrides
-the variable `mh-invisible-headers'.")
-
-(defun mh-visible-headers ()
-  "Make or remake the variable `mh-visible-headers'.
-Done using `mh-visible-header-fields' as input."
-  (if mh-visible-header-fields
-      (setq mh-visible-headers
-            (concat
-             "^"
-             (let ((max-specpdl-size 1000) ;workaround for insufficient default
-                   (fields mh-visible-header-fields))
-               (regexp-opt fields t))))
-    (setq mh-visible-headers nil)))
-
-(defcustom mh-visible-header-fields nil
-"*List of header fields that are to be shown.
-Regexps are not allowed. Unique fields should have a \":\" suffix; otherwise,
-the element can be used to render visible an entire class of fields that
-start with the same prefix.
-Only used if `mh-clean-message-header-flag' is non-nil.
-Setting it overrides the variable `mh-invisible-headers'."
-  :type '(repeat (string :tag "Header field"))
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (mh-visible-headers))
-  :group 'mh-show)
-
-(defcustom mhl-formfile nil
-  "*Name of format file to be used by mhl to show and print messages.
-A value of t means use the default format file.
-nil means don't use mhl to format messages when showing; mhl is still used,
-with the default format file, to format messages when printing them.
-The format used should specify a non-zero value for overflowoffset so
-the message continues to conform to RFC 822 and MH-E can parse the headers."
-  :type '(choice (const nil) (const t) string)
-  :group 'mh-show)
-(put 'mhl-formfile 'info-file "mh-e")
-
-
-
-;;; Composing messages (:group 'mh-letter)
-
-(defcustom mh-compose-insertion (if (locate-library "mml") 'gnus 'mhn)
-  "Use either 'gnus or 'mhn to insert MIME message directives in messages."
-  :type '(choice (const :tag "Use Gnus" gnus)
-                 (const :tag "Use mhn"  mhn))
+;;; Hooks (:group 'mh-hooks + group where hook described)
+
+(defcustom mail-citation-hook nil
+  "*Hook for modifying a citation just inserted in the mail buffer.
+Each hook function can find the citation between point and mark.
+And each hook function should leave point and mark around the citation
+text as modified.
+
+If this hook is entirely empty (nil), the text of the message is inserted
+with `mh-ins-buf-prefix' prefixed to each line.
+
+See also the variable `mh-yank-from-start-of-msg', which controls how
+much of the message passed to the hook.
+
+This hook was historically provided to set up supercite.  You may now leave
+this nil and set up supercite by setting the variable
+`mh-yank-from-start-of-msg' to 'supercite or, for more automatic insertion,
+to 'autosupercite.
+
+The hook 'trivial-cite is NOT part of Emacs.  It is provided from tc.el,
+available here:
+ http://shasta.cs.uiuc.edu/~lrclause/tc.html
+If you use it, customize `mh-yank-from-start-of-msg' to
+ \"Entire message with headers\"."
+  :type 'hook
+  :options '(trivial-cite)
+  :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-compose-letter-function nil
-  "Invoked when setting up a letter draft.
-It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
-  :type '(choice (const nil) function)
-  :group 'mh-letter)
-
-(defcustom mh-compose-prompt-flag nil
-  "*Non-nil means prompt for header fields when composing a new draft."
-  :type 'boolean
-  :group 'mh-letter)
-
-(defcustom mh-compose-skipped-header-fields
-  '("from" "organization" "references" "in-reply-to" "x-face" "face"
-    "x-mailer")
-  "List of header fields to skip over when navigating in draft."
-  :type '(repeat (string :tag "Field"))
-  :group 'mh-letter)
-
-(defcustom mh-compose-space-does-completion-flag nil
-  "*Non-nil means that SPACE does completion in message header."
-  :type 'boolean
-  :group 'mh-letter)
-
-(defcustom mh-delete-yanked-msg-window-flag nil
-  "*Non-nil means delete any window displaying the message.
-Controls window display when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
-If non-nil, yanking the current message into a draft letter deletes any
-windows displaying the message."
-  :type 'boolean
-  :group 'mh-letter)
-
-(defcustom mh-extract-from-attribution-verb "wrote:"
-  "*Verb to use for attribution when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg]."
-  :type '(choice (const "wrote:")
-                 (const "a écrit :")
-                 (string :tag "Custom string"))
-  :group 'mh-letter)
-
-(defcustom mh-forward-subject-format "%s: %s"
-  "*Format to generate the Subject: line contents for a forwarded message.
-The two string arguments to the format are the sender of the original
-message and the original subject line."
-  :type 'string
-  :group 'mh-letter)
-
-(defcustom mh-ins-buf-prefix "> "
-  "*String to put before each non-blank line of a yanked or inserted message.
-\\<mh-letter-mode-map>Used when the message is inserted into an outgoing letter
-by \\[mh-insert-letter] or \\[mh-yank-cur-msg]."
-  :type 'string
-  :group 'mh-letter)
-
-(defcustom mh-insert-x-mailer-flag t
-  "*Non-nil means append an X-Mailer field to the header."
-  :type 'boolean
-  :group 'mh-letter)
-
-(defcustom mh-letter-complete-function 'ispell-complete-word
-  "*Function to call when completing outside of fields specific to aliases."
-  :type '(choice function (const nil))
-  :group 'mh-letter)
-
-(defcustom mh-letter-fill-column 72
-  "*Fill column to use in `mh-letter-mode'.
-This is usually less than in other text modes because email messages get
-quoted by some prefix (sometimes many times) when they are replied to,
-and it's best to avoid quoted lines that span more than 80 columns."
-  :type 'integer
-  :group 'mh-letter)
-
-(defcustom mh-reply-default-reply-to nil
-  "*Sets the person or persons to whom a reply will be sent.
-If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
-value and it should be one of \"from\", \"to\", \"cc\", or \"all\".
-The values \"cc\" and \"all\" do the same thing."
-  :type '(choice (const :tag "Prompt" nil)
-                 (const "from") (const "to")
-                 (const "cc") (const "all"))
-  :group 'mh-letter)
-
-(defcustom mh-reply-show-message-flag t
-  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
-
-The setting of this variable determines whether the MH `show-buffer' is
-displayed with the current message when using `mh-reply' without a prefix
-argument.  Set it to nil if you already include the message automatically
-in your draft using
- repl: -filter repl.filter
-in your ~/.mh_profile file."
-  :type 'boolean
-  :group 'mh-letter)
-
-(defcustom mh-signature-file-name "~/.signature"
-  "*Name of file containing the user's signature.
-Inserted into message by \\<mh-letter-mode-map>\\[mh-insert-signature]."
-  :type 'file
-  :group 'mh-letter)
-
-(defcustom mh-x-face-file "~/.face"
-  "*File containing X-Face or Face header field to insert in outgoing mail.
-
-If the file starts with either of the strings \"X-Face: \", \"Face: \" or
-\"X-Image-URL: \" then it is assumed to contain the whole field and is added to
-the message header verbatim. Otherwise it is assumed that the file contains the
-value of the X-Face header field.
-
-X-Face header fields can be generated using `compface', which can be obtained
-from ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. The \"Online
-X-Face Convertor\" at http://www.dairiki.org/xface/ is a useful resource for
-quick conversion of images into X-Face header fields.
-
-There is a `make-face' script that converts a jpeg image to a Face header
-field at http://quimby.gnus.org/circus/face/make-face.
-
-The URL of any image can be used for the X-Image-URL field and no processing
-of the image is required.
-
-If nil, or the file does not exist, nothing is added to the message header."
-  :type 'file
-  :group 'mh-letter)
-
-(defcustom mh-yank-from-start-of-msg 'attribution
-  "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
-If t, include the entire message, with full headers.  This is historically
-here for use with supercite, but is now deprecated in favor of the setting
-`supercite' below.
-
-If the symbol `body', then yank the message minus the header.
-
-If the symbol `supercite', include the entire message, with full headers.
-This also causes the invocation of `sc-cite-original' without the setting
-of `mail-citation-hook', now deprecated practice.
-
-If the symbol `autosupercite', do as for `supercite' automatically when
-show buffer matches the message being replied-to.  When this option is used,
-the -noformat switch is passed to the repl program to override a -filter or
--format switch.
-
-If the symbol `attribution', then yank the message minus the header and add
-a simple attribution line at the top.
-
-If the symbol `autoattrib', do as for `attribution' automatically when show
-buffer matches the message being replied-to.  You can make sure this is
-always the case by setting `mh-reply-show-message-flag' to t (which is the
-default) and optionally `mh-delete-yanked-msg-window-flag' to t as well such
-that the show window is never displayed.  When the `autoattrib' option is
-used, the -noformat switch is passed to the repl program to override a
--filter or -format switch.
-
-If nil, yank only the portion of the message following the point.
-
-If the show buffer has a region, this variable is ignored unless its value is
-one of `attribution' or `autoattrib' in which case the attribution is added
-to the yanked region."
-  :type '(choice (const :tag "Below point" nil)
-                 (const :tag "Without header" body)
-                 (const :tag "Invoke supercite" supercite)
-                 (const :tag "Invoke supercite, automatically" autosupercite)
-                 (const :tag "Without header, with attribution" attribution)
-                 (const :tag "Without header, with attribution, automatically"
-                        autoattrib)
-                 (const :tag "Entire message with headers" t))
-  :group 'mh-letter)
-
-
-
-;;; Alias handling (:group 'mh-alias)
-
-(defcustom mh-alias-completion-ignore-case-flag t
-  "*Non-nil means don't consider case significant in MH alias completion.
-This is the default in plain MH, so it is the default here as well. It
-can be useful to set this to t if, for example, you use lowercase
-aliases for people and uppercase for mailing lists."
-  :type 'boolean
+(defcustom mh-alias-reloaded-hook nil
+  "Invoked by `mh-alias-reload' after reloading aliases."
+  :type 'hook
+  :group 'mh-hooks
   :group 'mh-alias)
-
-(defcustom mh-alias-expand-aliases-flag nil
-  "*Non-nil means to expand aliases entered in the minibuffer.
-In other words, aliases entered in the minibuffer will be expanded to the full
-address in the message draft. By default, this expansion is not performed."
-  :type 'boolean
-  :group 'mh-alias)
-
-(defcustom mh-alias-flash-on-comma t
-  "*Specify whether to flash or warn on translation.
-When a [comma] is pressed while entering aliases or addresses, setting this
-variable to the following values has the listed effects:
-t   Flash alias translation but don't warn if there is no translation.
-1   Flash alias translation and warn if there is no translation.
-nil Do not flash alias translation nor warn if there is no translation."
-  :type '(choice (const :tag "Flash but don't warn if no translation" t)
-		 (const :tag "Flash and warn if no translation" 1)
-		 (const :tag "Don't flash nor warn if no translation" nil))
-  :group 'mh-alias)
-
-(defcustom mh-alias-insert-file nil
-  "*Filename to use to store new MH-E aliases.
-This variable can also be a list of filenames, in which case MH-E will prompt
-for one of them. If nil, the default, then MH-E will use the first file found
-in the \"AliasFile\" component of the MH profile."
-  :type '(choice (const :tag "Use AliasFile MH profile component" nil)
-                 (file :tag "Alias file")
-                 (repeat :tag "List of alias files" file))
-  :group 'mh-alias)
-
-(defcustom mh-alias-insertion-location 'sorted
-  "Specifies where new aliases are entered in alias files.
-Options are sorted alphabetically, at the top of the file or at the bottom."
-  :type '(choice (const :tag "Sorted alphabetically" sorted)
-                 (const :tag "At the top of file" top)
-                 (const :tag "At the bottom of file" bottom))
-  :group 'mh-alias)
-
-(defcustom mh-alias-local-users t
-  "*If t, local users are completed in MH-E To: and Cc: prompts.
-
-Users with a userid greater than some magic number (usually 200) are available
-for completion.
-
-If you set this variable to a string, it will be executed to generate a
-password file. A value of \"ypcat passwd\" is helpful if NIS is in use."
-  :type '(choice (boolean) (string))
-  :group 'mh-alias)
-
-(defcustom mh-alias-local-users-prefix "local."
-  "*String prepended to the real names of users from the passwd file.
-If nil, use the username string unmodified instead of the real name from
-the gecos field of the passwd file.
-
-For example, given the following passwd file line:
-
- psg:x:1000:1000:Peter S Galbraith,,,:/home/psg:/bin/tcsh
-
-here are the derived aliases for different values of this variable:
-
- \"local.\"  -> local.peter.galbraith
- \"\"        -> peter.galbraith
- nii       -> psg
-
-This variable is only meaningful if the variable `mh-alias-local-users' is
-non-nil."
-  :type '(choice (const :tag "Use username instead of real name" nil)
-                 (string))
-  :group 'mh-alias)
-
-(defcustom mh-alias-passwd-gecos-comma-separator-flag t
-  "*Non-nil means the gecos field in the passwd file uses comma as a separator.
-Used to construct aliases for users in the passwd file."
-  :type 'boolean
-  :group 'mh-alias)
-
-(defcustom mh-alias-system-aliases
-  '("/etc/nmh/MailAliases" "/usr/lib/mh/MailAliases" "/etc/passwd")
-  "*A list of system files from which to cull aliases.
-If these files are modified, they are automatically reread. This list need
-include only system aliases and the passwd file, since personal alias files
-listed in your \"AliasFile\" MH profile component are automatically included.
-You can update the alias list manually using \\[mh-alias-reload]."
-  :type '(choice (file) (repeat file))
-  :group 'mh-alias)
-
-
-
-;;; Multiple personalities (:group 'mh-identity)
-
-(defcustom mh-identity-list nil
-  "*List holding MH-E identity.
-Omit the colon and trailing space from the field names.
-The keyword name \"none\" is reserved for internal use.
-Use the keyname name \"signature\" to specify either a signature file or a
-function to call to insert a signature at point.
-
-Providing an empty Value (\"\") will cause the field to be deleted.
-
-Example entries using the customize interface:
-   Keyword name: work
-            From
-            Value: John Doe <john@work.com>
-            Organization
-            Value: Acme Inc.
-   Keyword name: home
-            From
-            Value: John Doe <johndoe@home.net>
-            Organization
-            Value:
-
-This would produce the equivalent of:
- (setq mh-identity-list
-      '((\"work\"
-         ((\"From\" . \"John Doe <john@work.com>\")
-          (\"Organization\" . \"Acme Inc.\")))
-        (\"home\"
-         ((\"From\" . \"John Doe <johndoe@home.net>\")
-          (\"Organization\" . \"\")))))"
-  :type '(repeat (list :tag ""
-                       (string :tag "Keyword name")
-                       (repeat :tag "At least one pair from below"
-                               (choice (cons :tag "From field"
-                                             (const "From")
-                                             (string :tag "Value"))
-                                       (cons :tag "Organization field"
-                                             (const "Organization")
-                                             (string :tag "Value"))
-                                       (cons :tag "Signature"
-                                             (const "signature")
-                                             (choice (file) (function)))
-                                       (cons :tag "Other field & value pair"
-                                             (string :tag "Field")
-                                             (string :tag "Value"))))))
-  :set 'mh-identity-list-set
-  :group 'mh-identity)
-
-(defcustom mh-auto-fields-list nil
-  "Alist of addresses for which header lines are automatically inserted.
-Each element has the form (REGEXP ((KEYWORD VALUE) (KEYWORD VALUE)).
-When the REGEXP appears in the To or cc fields of a message, the corresponding
-KEYWORD header field is insert with its VALUE in the message header.
-
-There is one special case for KEYWORD, that of \"identity\", which means to
-insert that identity using `mh-insert-identity'.
-
-The common KEYWORD cases of \"Mail-Followup-To\" and \"fcc\" are also
-prompted for in the customization interface."
-  :type `(repeat
-          (list :tag ""
-                (string :tag "Regular expression to match")
-                (repeat :tag "At least one pair from below"
-                        (choice
-                         (cons :tag "Identity entry"
-                          (const "identity")
-                          ,(append
-                            '(radio)
-                            (mapcar (function (lambda (arg) `(const ,arg)))
-                                    (mapcar 'car mh-identity-list))))
-                         (cons :tag "fcc field"
-                               (const "fcc")
-                               (string :tag "Value"))
-                         (cons :tag "Mail-Followup-To field"
-                               (const "Mail-Followup-To")
-                               (string :tag "Value"))
-                         (cons :tag "Other field and value pair"
-                                 (string :tag "Field")
-                                 (string :tag "Value"))))))
-  :group 'mh-identity)
-
-(defcustom mh-identity-default nil
-  "Default identity to use when `mh-letter-mode' is called."
-  ;; Dynamically render :type corresponding to `mh-identity-list' entries,
-  ;; e.g.:
-  ;;  :type '(radio (const :tag "none" nil)
-  ;;                (const "home")
-  ;;                (const "work"))
-  :type (append
-         '(radio)
-         (cons '(const :tag "None" nil)
-               (mapcar (function (lambda (arg) `(const ,arg)))
-                       (mapcar 'car mh-identity-list))))
-  :group 'mh-identity)
-
-
-
-;;; Hooks (:group 'mh-hooks + group where hook defined)
-
-;;; These are alphabetized. All hooks should be placed in the 'mh-hook group;
-;;; in addition, add the group in which the hook is defined in the manual (or,
-;;; if it is new, where it would be defined).
 
 (defcustom mh-before-quit-hook nil
   "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting MH-E.
 See also `mh-quit-hook'."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-before-send-letter-hook nil
   "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command."
@@ -1684,7 +1968,7 @@ See also `mh-quit-hook'."
   "Invoked after marking each message for deletion."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-edit-mhn-hook nil
   "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-edit-mhn]."
@@ -1696,13 +1980,13 @@ See also `mh-quit-hook'."
   "Invoked by `mh-find-path' after reading the user's MH profile."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-folder-mode-hook nil
   "Invoked in `mh-folder-mode' on a new folder."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-folder-updated-hook nil
   "Invoked when the folder actions (such as moves and deletes) are performed.
@@ -1712,11 +1996,17 @@ current folder, `mh-current-folder'."
   :type 'hook
   :group 'mh-hooks)
 
+(defcustom mh-forward-hook nil
+  "Invoked on the forwarded letter by \\<mh-folder-mode-map>\\[mh-forward]."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-folder)
+
 (defcustom mh-inc-folder-hook nil
   "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-inc)
 
 (defcustom mh-kill-folder-suppress-prompt-hook '(mh-index-p)
   "Invoked at the beginning of the  \\<mh-folder-mode-map>`\\[mh-kill-folder]' command.
@@ -1733,13 +2023,12 @@ t on +inbox and you hit \\<mh-folder-mode-map>`\\[mh-kill-folder]' by accident
 in the +inbox buffer, you will not be happy."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-letter-insert-signature-hook nil
-  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-insert-signature] command.
-Can be used to determine which signature file to use based on message content.
-On return, if `mh-signature-file-name' is non-nil that file will be inserted at
-the current point in the buffer."
+  "Invoked after signature has been inserted.
+This hook may access the actual name of the file or the function used to
+insert the signature with `mh-signature-file-name'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-letter)
@@ -1748,26 +2037,26 @@ the current point in the buffer."
   "Invoked in `mh-letter-mode' on a new letter."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-letter)
+  :group 'mh-sending-mail)
 
 (defcustom mh-pick-mode-hook nil
   "Invoked upon entry to `mh-pick-mode'."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-index)
 
 (defcustom mh-quit-hook nil
   "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits MH-E.
 See also `mh-before-quit-hook'."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-refile-msg-hook nil
   "Invoked after marking each message for refiling."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 (defcustom mh-show-hook nil
   "Invoked after \\<mh-folder-mode-map>`\\[mh-show]' shows a message."
@@ -1787,44 +2076,13 @@ The variable `mh-seen-list' can be used to obtain the list of messages which
 will be removed from the unseen sequence."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-folder)
+  :group 'mh-show)
 
 
 
-;;; Faces
+;;; Faces (:group 'mh-*-faces + group where faces described)
 
-;;; Faces used in speedbar (:group mh-speed-faces)
-
-(defface mh-speedbar-folder-face
-  '((((class color) (background light))
-     (:foreground "blue4"))
-    (((class color) (background dark))
-     (:foreground "light blue")))
-  "Face used for folders in the speedbar buffer."
-  :group 'mh-speed-faces)
-
-(defface mh-speedbar-selected-folder-face
-  '((((class color) (background light))
-     (:foreground "red" :underline t))
-    (((class color) (background dark))
-     (:foreground "red" :underline t))
-    (t (:underline t)))
-  "Face used for the current folder."
-  :group 'mh-speed-faces)
-
-(defface mh-speedbar-folder-with-unseen-messages-face
-  '((t (:inherit mh-speedbar-folder-face :bold t)))
-  "Face used for folders in the speedbar buffer which have unread messages."
-  :group 'mh-speed-faces)
-
-(defface mh-speedbar-selected-folder-with-unseen-messages-face
-  '((t (:inherit mh-speedbar-selected-folder-face :bold t)))
-  "Face used for the current folder when it has unread messages."
-  :group 'mh-speed-faces)
-
-
-
-;;; Faces used in scan listing (:group mh-folder-faces)
+;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
 (defvar mh-folder-body-face 'mh-folder-body-face
   "Face for highlighting body text in MH-Folder buffers.")
@@ -1962,7 +2220,36 @@ will be removed from the unseen sequence."
 
 
 
-;;; Faces used in message display (:group mh-show-faces)
+;;; Faces Used in Searching (:group 'mh-index-faces)
+
+(defvar mh-index-folder-face 'mh-index-folder-face
+  "Face for highlighting folders in MH-Index buffers.")
+(defface mh-index-folder-face
+  '((((class color) (background light))
+     (:foreground "dark green" :bold t))
+    (((class color) (background dark))
+     (:foreground "indian red" :bold t))
+    (t
+     (:bold t)))
+  "Face for highlighting folders in MH-Index buffers."
+  :group 'mh-index-faces)
+
+
+
+;;; Faces Used in Message Drafts (:group 'mh-letter-faces)
+
+(defface mh-letter-header-field-face
+  '((((class color) (background light))
+     (:background "gray90"))
+    (((class color) (background dark))
+     (:background "gray10"))
+    (t (:bold t)))
+  "Face for displaying header fields in draft buffers."
+  :group 'mh-letter-faces)
+
+
+
+;;; Faces Used in Message Display (:group 'mh-show-faces)
 
 (defvar mh-show-cc-face 'mh-show-cc-face
   "Face for highlighting cc header fields.")
@@ -2000,6 +2287,11 @@ will be removed from the unseen sequence."
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
   "Face used to deemphasize unspecified header fields."
+  :group 'mh-show-faces)
+
+(defface mh-show-signature-face
+  '((t (:italic t)))
+  "Face for highlighting message signature."
   :group 'mh-show-faces)
 
 (defvar mh-show-to-face 'mh-show-to-face
@@ -2041,32 +2333,34 @@ The background and foreground is used in the image."
 
 
 
-;;; Faces used in indexed searches (:group mh-index-faces)
+;;; Faces Used in Speedbar (:group 'mh-speed-faces)
 
-(defvar mh-index-folder-face 'mh-index-folder-face
-  "Face for highlighting folders in MH-Index buffers.")
-(defface mh-index-folder-face
+(defface mh-speedbar-folder-face
   '((((class color) (background light))
-     (:foreground "dark green" :bold t))
+     (:foreground "blue4"))
     (((class color) (background dark))
-     (:foreground "indian red" :bold t))
-    (t
-     (:bold t)))
-  "Face for highlighting folders in MH-Index buffers."
-  :group 'mh-index-faces)
+     (:foreground "light blue")))
+  "Face used for folders in the speedbar buffer."
+  :group 'mh-speed-faces)
 
-
-
-;;; Faces used when composing messages.
-
-(defface mh-letter-header-field-face
+(defface mh-speedbar-selected-folder-face
   '((((class color) (background light))
-     (:background "gray90"))
+     (:foreground "red" :underline t))
     (((class color) (background dark))
-     (:background "gray10"))
-    (t (:bold t)))
-  "Face for displaying header fields in draft buffers."
-  :group 'mh-letter-faces)
+     (:foreground "red" :underline t))
+    (t (:underline t)))
+  "Face used for the current folder."
+  :group 'mh-speed-faces)
+
+(defface mh-speedbar-folder-with-unseen-messages-face
+  '((t (:inherit mh-speedbar-folder-face :bold t)))
+  "Face used for folders in the speedbar buffer which have unread messages."
+  :group 'mh-speed-faces)
+
+(defface mh-speedbar-selected-folder-with-unseen-messages-face
+  '((t (:inherit mh-speedbar-selected-folder-face :bold t)))
+  "Face used for the current folder when it has unread messages."
+  :group 'mh-speed-faces)
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil

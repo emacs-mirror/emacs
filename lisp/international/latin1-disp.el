@@ -225,7 +225,7 @@ character set: `latin-2', `hebrew' etc."
 
 ;; Backwards compatibility.
 (defalias 'latin1-char-displayable-p 'char-displayable-p)
-(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "21.5")
+(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "21.4")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.

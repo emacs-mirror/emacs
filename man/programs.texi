@@ -31,8 +31,8 @@ Highlight program syntax (@pxref{Font Lock}).
 * Defuns::              Commands to operate on major top-level parts
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
-* Comments::	        Inserting, killing, and aligning comments.
 * Parentheses::         Commands that operate on parentheses.
+* Comments::	        Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.

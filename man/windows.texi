@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2004 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows, Frames, Buffers, Top
 @chapter Multiple Windows
@@ -36,11 +36,11 @@ each window has its own value of point.
   At any time, one of the windows is the @dfn{selected window}; the
 buffer this window is displaying is the current buffer.  The terminal's
 cursor shows the location of point in this window.  Each other window
-has a location of point as well, but since the terminal has only one
-cursor there is no way to show where those locations are.  When multiple
-frames are visible in X, each frame has a cursor which appears in the
-frame's selected window.  The cursor in the selected frame is solid; the
-cursor in other frames is a hollow box.
+has a location of point as well.  On text-only terminals, there is no
+way to show where those locations are, since the terminal has only one
+cursor.  If you are using a window system, the location of point in a
+non-selected window is indicated by a hollow box.  The cursor in the
+selected window is blinking or solid.
 
   Commands to move point affect the value of point for the selected Emacs
 window only.  They do not change the value of point in any other Emacs
@@ -93,20 +93,20 @@ numeric argument specifies how many lines to give to the top window.
 @findex split-window-horizontally
   @kbd{C-x 3} (@code{split-window-horizontally}) breaks the selected
 window into two side-by-side windows.  A numeric argument specifies how
-many columns to give the one on the left.  A line of vertical bars
-separates the two windows.  Windows that are not the full width of the
-screen have mode lines, but they are truncated.  On terminals where
-Emacs does not support highlighting, truncated mode lines sometimes do
-not appear in inverse video.
+many columns to give the one on the left.  If you are not using
+scrollbars, a line of vertical bars separates the two windows.
+Windows that are not the full width of the screen have mode lines, but
+they are truncated.  On terminals where Emacs does not support
+highlighting, truncated mode lines sometimes do not appear in inverse
+video.
 
 @kindex C-Mouse-2 @r{(scroll bar)}
   You can split a window horizontally or vertically by clicking
-@kbd{C-Mouse-2} in the mode line or the scroll bar.  (This does not
-work in scroll bars implemented by X toolkits.)  The line of splitting
-goes through the place where you click: if you click on the mode line,
-the new scroll bar goes above the spot; if you click in the scroll
-bar, the mode line of the split window is side by side with your
-click.
+@kbd{C-Mouse-2} in the mode line or the scroll bar.  The line of
+splitting goes through the place where you click: if you click on the
+mode line, the new scroll bar goes above the spot; if you click in the
+scroll bar, the mode line of the split window is side by side with
+your click.
 
 @vindex truncate-partial-width-windows
   When a window is less than the full width, text lines too long to fit are
@@ -319,8 +319,8 @@ the minibuffer); the selected window expands to use the whole frame
 except for the echo area.
 
   You can also delete a window by clicking on its mode line with
-@kbd{Mouse-2}, and delete all the windows in a frame except one window
-by clicking on that window's mode line with @kbd{Mouse-3}.
+@kbd{Mouse-3}, and delete all the windows in a frame except one window
+by clicking on that window's mode line with @kbd{Mouse-2}.
 
   The easiest way to adjust window heights is with a mouse.  If you
 press @kbd{Mouse-1} on a mode line, you can drag that mode line up or
@@ -370,8 +370,8 @@ heights of all the windows in the selected frame.
   @kbd{M-x winner-mode} is a global minor mode that records the
 changes in the window configuration (i.e. how the frames are
 partitioned into windows), so that you can ``undo'' them.  To undo,
-use @kbd{C-x left} (@code{winner-undo}).  If you change your mind
-while undoing, you can redo the changes you had undone using @kbd{C-x
+use @kbd{C-c left} (@code{winner-undo}).  If you change your mind
+while undoing, you can redo the changes you had undone using @kbd{C-c
 right} (@code{M-x winner-redo}).  Another way to enable Winner mode is
 by customizing the variable @code{winner-mode}.
 

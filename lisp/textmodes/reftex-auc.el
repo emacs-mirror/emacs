@@ -1,4 +1,4 @@
-;;; reftex-auc.el --- RefTeX's interface to AUC TeX
+;;; reftex-auc.el --- RefTeX's interface to AUCTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>

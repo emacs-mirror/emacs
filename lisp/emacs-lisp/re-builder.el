@@ -45,7 +45,7 @@
 ;; call `reb-force-update' ("\C-c\C-u") which should reveal the error.
 
 ;; The target buffer can be changed with `reb-change-target-buffer'
-;; ("\C-c\C-b"). Changing the target buffer automatically removes
+;; ("\C-c\C-b").  Changing the target buffer automatically removes
 ;; the overlays from the old buffer and displays the new one in the
 ;; target window.
 
@@ -135,6 +135,7 @@ Can either be `read', `string', `sregex' or `lisp-re'."
 		 (const :tag "String syntax" string)
 		 (const :tag "`sregex' syntax" sregex)
 		 (const :tag "`lisp-re' syntax" lisp-re)
+		 (const :tag "`rx' syntax" rx)
 		 (value: string)))
 
 (defcustom reb-auto-match-limit 200
@@ -228,21 +229,19 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Buffer to use for the RE Builder.")
 
 ;; Define the local "\C-c" keymap
-(defvar reb-mode-map nil
+(defvar reb-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'reb-toggle-case)
+    (define-key map "\C-c\C-q" 'reb-quit)
+    (define-key map "\C-c\C-w" 'reb-copy)
+    (define-key map "\C-c\C-s" 'reb-next-match)
+    (define-key map "\C-c\C-r" 'reb-prev-match)
+    (define-key map "\C-c\C-i" 'reb-change-syntax)
+    (define-key map "\C-c\C-e" 'reb-enter-subexp-mode)
+    (define-key map "\C-c\C-b" 'reb-change-target-buffer)
+    (define-key map "\C-c\C-u" 'reb-force-update)
+    map)
   "Keymap used by the RE Builder.")
-
-(if (not reb-mode-map)
-    (progn
-      (setq reb-mode-map (make-sparse-keymap))
-      (define-key reb-mode-map "\C-c\C-c" 'reb-toggle-case)
-      (define-key reb-mode-map "\C-c\C-q" 'reb-quit)
-      (define-key reb-mode-map "\C-c\C-w" 'reb-copy)
-      (define-key reb-mode-map "\C-c\C-s" 'reb-next-match)
-      (define-key reb-mode-map "\C-c\C-r" 'reb-prev-match)
-      (define-key reb-mode-map "\C-c\C-i" 'reb-change-syntax)
-      (define-key reb-mode-map "\C-c\C-e" 'reb-enter-subexp-mode)
-      (define-key reb-mode-map "\C-c\C-b" 'reb-change-target-buffer)
-      (define-key reb-mode-map "\C-c\C-u" 'reb-force-update)))
 
 (defun reb-mode ()
   "Major mode for interactively building Regular Expressions.
@@ -261,7 +260,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (cond ((eq reb-re-syntax 'lisp-re)	; Pull in packages
 	 (require 'lisp-re))		; as needed
 	((eq reb-re-syntax 'sregex)	; sregex is not autoloaded
-	 (require 'sregex)))		; right now..
+	 (require 'sregex))		; right now..
+	((eq reb-re-syntax 'rx)		; rx-to-string is autoloaded
+	 (require 'rx)))		; require rx anyway
   (reb-mode-common))
 
 ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
@@ -320,7 +321,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 (defsubst reb-lisp-syntax-p ()
   "Return non-nil if RE Builder uses a Lisp syntax."
-  (memq reb-re-syntax '(lisp-re sregex)))
+  (memq reb-re-syntax '(lisp-re sregex rx)))
 
 (defmacro reb-target-binding (symbol)
   "Return binding for SYMBOL in the RE Builder target buffer."
@@ -364,7 +365,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       (reb-update-modestring))))
 
 (defun reb-force-update ()
-  "Forces an update in the RE Builder target window without a match limit."
+  "Force an update in the RE Builder target window without a match limit."
   (interactive)
 
   (let ((reb-auto-match-limit nil))
@@ -466,10 +467,10 @@ Optional argument SYNTAX must be specified if called non-interactively."
    (list (intern
 	  (completing-read "Select syntax: "
 			   (mapcar (lambda (el) (cons (symbol-name el) 1))
-				   '(read string lisp-re sregex))
+				   '(read string lisp-re sregex rx))
 			   nil t (symbol-name reb-re-syntax)))))
 
-  (if (memq syntax '(read string lisp-re sregex))
+  (if (memq syntax '(read string lisp-re sregex rx))
       (let ((buffer (get-buffer reb-buffer)))
 	(setq reb-re-syntax syntax)
 	(if buffer
@@ -604,6 +605,8 @@ optional fourth argument FORCE is non-nil."
 	 (lre-compile-string (eval (car (read-from-string re)))))
 	((eq reb-re-syntax 'sregex)
 	 (apply 'sregex (eval (car (read-from-string re)))))
+	((eq reb-re-syntax 'rx)
+	 (rx-to-string (eval (car (read-from-string re)))))
 	(t re)))
 
 (defun reb-update-regexp ()
@@ -670,7 +673,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 		  (overlay-put overlay 'priority i)))
 	    (setq i (1+ i))))))
     (let ((count (if subexp submatches matches)))
-      (message"%s %smatch%s%s"
+      (message "%s %smatch%s%s"
 	       (if (= 0 count) "No" (int-to-string count))
 	       (if subexp "subexpression " "")
 	       (if (= 1 count) "" "es")

@@ -513,7 +513,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	     (numberp elp-report-limit)
 	     (< cc elp-report-limit))
 	nil
-      (insert symname)
+      (elp-output-insert-symname symname)
       (insert-char 32 (+ elp-field-len (- (length symname)) 2))
       ;; print stuff out, formatting it nicely
       (insert callcnt)
@@ -524,6 +524,32 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert-char 32 (+ elp-et-len (- (length ttstr)) 2))
 	(insert atstr))
       (insert "\n"))))
+
+(defvar elp-results-symname-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'elp-results-jump-to-definition-by-mouse)
+    (define-key map "\C-m" 'elp-results-jump-to-definition)
+    map)
+  "Keymap used on the function name column." )
+
+(defun elp-results-jump-to-definition-by-mouse (event)
+  "Jump to the definition of the function under the place specified by EVENT."
+  (interactive "e")
+  (posn-set-point (event-end event))
+  (elp-results-jump-to-definition))
+
+(defun elp-results-jump-to-definition ()
+  "Jump to the definition of the function under the point."
+  (interactive)
+  (find-function (get-text-property (point) 'elp-symname)))
+
+(defun elp-output-insert-symname (symname)
+  ;; Insert SYMNAME with text properties.
+  (insert (propertize symname
+		      'elp-symname (intern symname)
+		      'keymap elp-results-symname-map
+		      'mouse-face 'highlight
+		      'help-echo (substitute-command-keys "\\{elp-results-symname-map}"))))
 
 ;;;###autoload
 (defun elp-results ()

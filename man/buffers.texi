@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers, Windows, Files, Top
@@ -44,7 +44,7 @@ the value in other buffers.  @xref{Locals}.
   A buffer's size cannot be larger than some maximum, which is defined
 by the largest buffer position representable by the @dfn{Emacs integer}
 data type.  This is because Emacs tracks buffer positions using that
-data type.  For 32-bit machines, the largest buffer size is 128
+data type.  For 32-bit machines, the largest buffer size is 256
 megabytes.
 
 @menu
@@ -395,9 +395,9 @@ select the window.
 @item 1
 Immediately select this line's buffer in a full-screen window.
 @item 2
-Immediately set up two windows, with this line's buffer in one, and the
-previously current buffer (aside from the buffer @samp{*Buffer List*})
-in the other.
+Immediately set up two windows, with this line's buffer selected in
+one, and the previously current buffer (aside from the buffer
+@samp{*Buffer List*}) displayed in the other.
 @item b
 Bury the buffer listed on this line.
 @item m
@@ -427,11 +427,18 @@ window.  If you run @code{list-buffers} (that is, type @kbd{C-x C-b})
 and select the buffer list manually, you can use all of the commands
 described here.
 
-  The buffer @samp{*Buffer List*} is not updated automatically when
+  Normally, the buffer @samp{*Buffer List*} is not updated automatically when
 buffers are created and killed; its contents are just text.  If you have
 created, deleted or renamed buffers, the way to update @samp{*Buffer
 List*} to show what you have done is to type @kbd{g}
 (@code{revert-buffer}) or repeat the @code{buffer-menu} command.
+
+  The @samp{*Buffer List*} buffer does automatically update every
+@code{auto-revert-interval} seconds if you enable Auto Revert mode in
+it.  (As long as it is not marked modified.)  Global Auto Revert mode
+does not update the @samp{*Buffer List*} buffer by default, but it
+does if @code{global-auto-revert-non-file-buffers} is non-@code{nil}.
+@inforef{Autorevert,, emacs-xtra}, for details.
 
   The command @code{buffer-menu-other-window} works the same as
 @code{buffer-menu}, except that it displays the buffers list in

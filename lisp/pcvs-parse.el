@@ -1,7 +1,7 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,02,2003
-;; 		 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -370,7 +370,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; File you removed still exists.  Ignore (will be noted as removed).
        (cvs-match ".* should be removed and is still there$")
        ;; just a note
-       (cvs-match "use '.+ commit' to \\sw+ th\\sw+ files? permanently$")
+       (cvs-match "use ['`].+ commit' to \\sw+ th\\sw+ files? permanently$")
        ;; [add,status] followed by a more complete status description anyway
        (and (cvs-match "nothing known about \\(.*\\)$" (path 1))
 	    (cvs-parsed-fileinfo 'DEAD path 'trust))
@@ -492,12 +492,14 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			  :head-rev head-rev))))
 
 (defun cvs-parse-commit ()
-  (let (path base-rev subtype)
+  (let (path file base-rev subtype)
     (cvs-or
 
      (and
-      (cvs-match "\\(Checking in\\|Removing\\) \\(.*\\);$" (path 2))
-      (cvs-match ".*,v  <--  .*$")
+      (cvs-or
+       (cvs-match "\\(Checking in\\|Removing\\) \\(.*\\);$" (path 2))
+       t)
+      (cvs-match ".*,v  <--  \\(.*\\)$" (file 1))
       (cvs-or
        ;; deletion
        (cvs-match "new revision: delete; previous revision: \\([0-9.]*\\)$"
@@ -508,7 +510,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; update
        (cvs-match "new revision: \\([0-9.]*\\); previous revision: .*$"
 		  (subtype 'COMMITTED) (base-rev 1)))
-      (cvs-match "done$")
+      (cvs-or (cvs-match "done$") t)
       (progn
 	;; Try to remove the temp files used by VC.
 	(vc-delete-automatic-version-backups (expand-file-name path))
@@ -516,7 +518,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; because `cvs commit' might begin by a series of Examining messages
 	;; so the processing of the actual checkin messages might begin with
 	;; a `current-dir' set to something different from ""
-	(cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype) path 'trust
+	(cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype)
+			     (or path file) (if path 'trust)
 			     :base-rev base-rev)))
 
      ;; useless message added before the actual addition: ignored
@@ -525,5 +528,5 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (provide 'pcvs-parse)
 
-;;; arch-tag: 35418375-1a23-40a0-957d-96b0262f91d6
+;; arch-tag: 35418375-1a23-40a0-957d-96b0262f91d6
 ;;; pcvs-parse.el ends here

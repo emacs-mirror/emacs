@@ -14,6 +14,10 @@ Tasks needed before the next release.
 
 ** Update man/info.texi.
 
+** Update man/ack.texi.
+
+** Update AUTHORS.
+
 
 * NEW FEATURES
 
@@ -37,8 +41,6 @@ isearch faces.
 
 
 * GTK RELATED BUGS
-
-** Make geometry specifications work correctly for GTK.
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 

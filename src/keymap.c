@@ -130,10 +130,11 @@ static void silly_event_symbol_error P_ ((Lisp_Object));
 
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
        doc: /* Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).
-CHARTABLE is a char-table that holds the bindings for the ASCII
-characters.  ALIST is an assoc-list which holds bindings for function keys,
-mouse events, and any other things that appear in the input stream.
-All entries in it are initially nil, meaning "command undefined".
+CHARTABLE is a char-table that holds the bindings for all characters
+without modifiers.  All entries in it are initially nil, meaning
+"command undefined".  ALIST is an assoc-list which holds bindings for
+function keys, mouse events, and any other things that appear in the
+input stream.  Initially, ALIST is nil.
 
 The optional arg STRING supplies a menu name for the keymap
 in case you use it as a menu with `x-popup-menu'.  */)
@@ -342,7 +343,7 @@ keymap_memberp (map, maps)
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
        doc: /* Modify KEYMAP to set its parent map to PARENT.
-PARENT should be nil or another keymap.  */)
+Return PARENT.  PARENT should be nil or another keymap.  */)
      (keymap, parent)
      Lisp_Object keymap, parent;
 {
@@ -728,7 +729,10 @@ map_keymap_call (key, val, fun, dummy)
 
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 2, 0,
        doc: /* Call FUNCTION for every binding in KEYMAP.
-FUNCTION is called with two arguments: the event and its binding.  */)
+FUNCTION is called with two arguments: the event and its binding.
+If KEYMAP has a parent, the parent's bindings are included as well.
+This works recursively: if the parent has itself a parent, then the
+grandparent's bindings are also included and so on.  */)
      (function, keymap)
      Lisp_Object function, keymap;
 {
@@ -1602,7 +1606,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 
 DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
        doc: /* Return the binding for command KEYS in current local keymap only.
-KEYS is a string, a sequence of keystrokes.
+KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
@@ -1621,7 +1625,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
        doc: /* Return the binding for command KEYS in current global keymap only.
-KEYS is a string, a sequence of keystrokes.
+KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 This function's return values are the same as those of `lookup-key'
 \(which see).
@@ -1686,7 +1690,8 @@ If a second optional argument MAPVAR is given, the map is stored as
 its value instead of as COMMAND's value; but COMMAND is still defined
 as a function.
 The third optional argument NAME, if given, supplies a menu name
-string for the map.  This is required to use the keymap as a menu.  */)
+string for the map.  This is required to use the keymap as a menu.
+This function returns COMMAND.  */)
      (command, mapvar, name)
      Lisp_Object command, mapvar, name;
 {
@@ -2571,7 +2576,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
-If KEYMAP is non-nil, search only KEYMAP and the global keymap.
+If KEYMAP is a keymap, search only KEYMAP and the global keymap.
 If KEYMAP is nil, search all the currently active keymaps.
 If KEYMAP is a list of keymaps, search only those keymaps.
 
@@ -2579,8 +2584,8 @@ If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
 rather than a list of all possible key sequences.
 If FIRSTONLY is the symbol `non-ascii', return the first binding found,
 no matter what it is.
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,
-and entirely reject menu bindings.
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters
+\(or their meta variants) and entirely reject menu bindings.
 
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
 to other keymaps or slots.  This makes it possible to search for an
@@ -3750,7 +3755,7 @@ key, typing `ESC O P x' would return [f1 x].  */);
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
 	       doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
-and applies even for keys that have ordinary bindings.  */);
+and its non-prefix bindings override ordinary bindings.  */);
   Vkey_translation_map = Qnil;
 
   staticpro (&Vmouse_events);

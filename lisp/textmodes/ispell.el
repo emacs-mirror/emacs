@@ -1228,7 +1228,7 @@ for skipping in latex mode.")
   "*Lists of start and end keys to skip in HTML buffers.
 Same format as `ispell-skip-region-alist'
 Note - substrings of other matches must come last
- (e.g. \"<[tT][tT]/\" and \"<[^ \t\n>]\").")
+ (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
 
 
 (defvar ispell-local-pdict ispell-personal-dictionary

@@ -290,7 +290,7 @@ The following %-sequences are provided:
 				      nil t)
 	       (setq low (+ (or low 0)
 			    (string-to-int (match-string 1))))))))
-       (directory-files "/proc/acpi/battery/" t "BAT")))
+       (directory-files "/proc/acpi/battery/" t "\\(BAT\\|CMB\\)")))
     (and capacity rate
 	 (setq minutes (if (zerop rate) 0
 			 (floor (* (/ (float (if (string= charging-state

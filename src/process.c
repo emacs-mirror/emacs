@@ -3718,7 +3718,7 @@ close_process_descs ()
 }
 
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
-       0, 3, 0,
+       0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
 It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
@@ -3726,15 +3726,20 @@ from PROCESS.
 Non-nil second arg TIMEOUT and third arg TIMEOUT-MSECS are number of
 seconds and microseconds to wait; return after that much time whether
 or not there is input.
+If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
+from PROCESS, suspending reading output from other processes.
+If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil iff we received any output before the timeout expired.  */)
-     (process, timeout, timeout_msecs)
-     register Lisp_Object process, timeout, timeout_msecs;
+     (process, timeout, timeout_msecs, just_this_one)
+     register Lisp_Object process, timeout, timeout_msecs, just_this_one;
 {
   int seconds;
   int useconds;
 
   if (! NILP (process))
     CHECK_PROCESS (process);
+  else
+    just_this_one = Qnil;
 
   if (! NILP (timeout_msecs))
     {
@@ -3772,11 +3777,12 @@ Return non-nil iff we received any output before the timeout expired.  */)
   else
     seconds = NILP (process) ? -1 : 0;
 
-  if (NILP (process))
-    XSETFASTINT (process, 0);
-
   return
-    (wait_reading_process_input (seconds, useconds, process, 0)
+    (wait_reading_process_output (seconds, useconds, 0, 0,
+				  Qnil,
+				  !NILP (process) ? XPROCESS (process) : NULL,
+				  NILP (just_this_one) ? 0 :
+				  !INTEGERP (just_this_one) ? 1 : -1)
      ? Qt : Qnil);
 }
 
@@ -3976,12 +3982,12 @@ server_accept_connection (server, channel)
    lisp code is being evalled.
    This is also used in record_asynch_buffer_change.
    For that purpose, this must be 0
-   when not inside wait_reading_process_input.  */
+   when not inside wait_reading_process_output.  */
 static int waiting_for_user_input_p;
 
 /* This is here so breakpoints can be put on it.  */
 static void
-wait_reading_process_input_1 ()
+wait_reading_process_output_1 ()
 {
 }
 
@@ -4003,25 +4009,32 @@ wait_reading_process_input_1 ()
      1 to return when input is available, or
      -1 meaning caller will actually read the input, so don't throw to
        the quit handler, or
-     a cons cell, meaning wait until its car is non-nil
-       (and gobble terminal input into the buffer if any arrives), or
-     a process object, meaning wait until something arrives from that
-       process.  The return value is true iff we read some input from
-       that process.
 
    DO_DISPLAY != 0 means redisplay should be done to show subprocess
-   output that arrives.
+     output that arrives.
 
-   If READ_KBD is a pointer to a struct Lisp_Process, then the
-     function returns true iff we received input from that process
-     before the timeout elapsed.
+   If WAIT_FOR_CELL is a cons cell, wait until its car is non-nil
+     (and gobble terminal input into the buffer if any arrives).
+
+   If WAIT_PROC is specified, wait until something arrives from that
+     process.  The return value is true iff we read some input from
+     that process.
+
+   If JUST_WAIT_PROC is non-nil, handle only output from WAIT_PROC
+     (suspending output from other processes).  A negative value
+     means don't run any timers either.
+
+   If WAIT_PROC is specified, then the function returns true iff we
+     received input from that process before the timeout elapsed.
    Otherwise, return true iff we received input from any process.  */
 
 int
-wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
-     int time_limit, microsecs;
-     Lisp_Object read_kbd;
-     int do_display;
+wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
+			     wait_for_cell, wait_proc, just_wait_proc)
+     int time_limit, microsecs, read_kbd, do_display;
+     Lisp_Object wait_for_cell;
+     struct Lisp_Process *wait_proc;
+     int just_wait_proc;
 {
   register int channel, nfds;
   SELECT_TYPE Available;
@@ -4031,33 +4044,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   Lisp_Object proc;
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
-  struct Lisp_Process *wait_proc = 0;
   int got_some_input = 0;
   /* Either nil or a cons cell, the car of which is of interest and
      may be changed outside of this routine.  */
-  Lisp_Object wait_for_cell = Qnil;
   int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);
   FD_ZERO (&Connecting);
 
-  /* If read_kbd is a process to watch, set wait_proc and wait_channel
-     accordingly.  */
-  if (PROCESSP (read_kbd))
-    {
-      wait_proc = XPROCESS (read_kbd);
-      wait_channel = XINT (wait_proc->infd);
-      XSETFASTINT (read_kbd, 0);
-    }
+  /* If wait_proc is a process to watch, set wait_channel accordingly.  */
+  if (wait_proc != NULL)
+    wait_channel = XINT (wait_proc->infd);
 
-  /* If waiting for non-nil in a cell, record where.  */
-  if (CONSP (read_kbd))
-    {
-      wait_for_cell = read_kbd;
-      XSETFASTINT (read_kbd, 0);
-    }
-
-  waiting_for_user_input_p = XINT (read_kbd);
+  waiting_for_user_input_p = read_kbd;
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
@@ -4085,7 +4084,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
-      if (XINT (read_kbd) >= 0)
+      if (read_kbd >= 0)
 	QUIT;
 #ifdef SYNC_INPUT
       else if (interrupt_input_pending)
@@ -4122,7 +4121,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 But not if wait_for_cell; in those cases,
 	 the wait is supposed to be short,
 	 and those callers cannot handle running arbitrary Lisp code here.  */
-      if (NILP (wait_for_cell))
+      if (NILP (wait_for_cell)
+	  && just_wait_proc >= 0)
 	{
 	  EMACS_TIME timer_delay;
 
@@ -4150,7 +4150,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  while (!detect_input_pending ());
 
 	  /* If there is unread keyboard input, also return.  */
-	  if (XINT (read_kbd) != 0
+	  if (read_kbd != 0
 	      && requeued_events_pending_p ())
 	    break;
 
@@ -4168,7 +4168,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  else if (time_limit != -1)
 	    {
 	      /* This is so a breakpoint can be put here.  */
-	      wait_reading_process_input_1 ();
+	      wait_reading_process_output_1 ();
 	    }
 	}
 
@@ -4178,7 +4178,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 It is important that we do this before checking for process
 	 activity.  If we get a SIGCHLD after the explicit checks for
 	 process activity, timeout is the only way we will know.  */
-      if (XINT (read_kbd) < 0)
+      if (read_kbd < 0)
 	set_waiting_for_input (&timeout);
 
       /* If status of something has changed, and no input is
@@ -4195,7 +4195,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
              present (for reading) at stdin, even when none is.  This
              causes the call to SELECT below to return 1 and
              status_notify not to be called.  As a result output of
-             subprocesses are incorrectly discarded.  
+             subprocesses are incorrectly discarded.
 	  */
           FD_CLR (0, &Atemp);
 #endif
@@ -4258,14 +4258,21 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do */
 
-      if (!NILP (wait_for_cell))
+      if (wait_proc && just_wait_proc)
+	{
+	  if (XINT (wait_proc->infd) < 0)  /* Terminated */
+	    break;
+	  FD_SET (XINT (wait_proc->infd), &Available);
+	  check_connect = check_delay = 0;
+	}
+      else if (!NILP (wait_for_cell))
 	{
 	  Available = non_process_wait_mask;
 	  check_connect = check_delay = 0;
 	}
       else
 	{
-	  if (! XINT (read_kbd))
+	  if (! read_kbd)
 	    Available = non_keyboard_wait_mask;
 	  else
 	    Available = input_wait_mask;
@@ -4282,12 +4289,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  clear_waiting_for_input ();
 	  redisplay_preserve_echo_area (11);
-	  if (XINT (read_kbd) < 0)
+	  if (read_kbd < 0)
 	    set_waiting_for_input (&timeout);
 	}
 
       no_avail = 0;
-      if (XINT (read_kbd) && detect_input_pending ())
+      if (read_kbd && detect_input_pending ())
 	{
 	  nfds = 0;
 	  no_avail = 1;
@@ -4404,10 +4411,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If we are using polling for input,
 	 and we see input available, make it get read now.
 	 Otherwise it might not actually get read for a second.
-	 And on hpux, since we turn off polling in wait_reading_process_input,
+	 And on hpux, since we turn off polling in wait_reading_process_output,
 	 it might never get read at all if we don't spend much time
-	 outside of wait_reading_process_input.  */
-      if (XINT (read_kbd) && interrupt_input
+	 outside of wait_reading_process_output.  */
+      if (read_kbd && interrupt_input
 	  && keyboard_bit_set (&Available)
 	  && input_polling_used ())
 	kill (getpid (), SIGALRM);
@@ -4417,7 +4424,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if (XINT (read_kbd) != 0)
+      if (read_kbd != 0)
 	{
 	  int old_timers_run = timers_run;
 	  struct buffer *old_buffer = current_buffer;
@@ -4442,7 +4449,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       /* If there is unread keyboard input, also return.  */
-      if (XINT (read_kbd) != 0
+      if (read_kbd != 0
 	  && requeued_events_pending_p ())
 	break;
 
@@ -4453,7 +4460,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 That would causes delays in pasting selections, for example.
 
 	 (We used to do this only if wait_for_cell.)  */
-      if (XINT (read_kbd) == 0 && detect_input_pending ())
+      if (read_kbd == 0 && detect_input_pending ())
 	{
 	  swallow_events (do_display);
 #if 0  /* Exiting when read_kbd doesn't request that seems wrong, though.  */
@@ -4472,7 +4479,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 In that case, there really is no input and no SIGIO,
 	 but select says there is input.  */
 
-      if (XINT (read_kbd) && interrupt_input
+      if (read_kbd && interrupt_input
 	  && keyboard_bit_set (&Available) && ! noninteractive)
 	kill (getpid (), SIGIO);
 #endif
@@ -4482,7 +4489,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If checking input just got us a size-change event from X,
 	 obey it now if we should.  */
-      if (XINT (read_kbd) || ! NILP (wait_for_cell))
+      if (read_kbd || ! NILP (wait_for_cell))
 	do_pending_window_change (0);
 
       /* Check for data from a process.  */
@@ -4657,7 +4664,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
      Otherwise, do pending quit if requested.  */
-  if (XINT (read_kbd) >= 0)
+  if (read_kbd >= 0)
     {
       /* Prevent input_pending from remaining set if we quit.  */
       clear_input_pending ();
@@ -4762,16 +4769,16 @@ read_process_output (proc, channel)
   if (DATAGRAM_CHAN_P (channel))
     {
       int len = datagram_address[channel].len;
-      nbytes = recvfrom (channel, chars + carryover, readmax - carryover,
+      nbytes = recvfrom (channel, chars + carryover, readmax,
 			 0, datagram_address[channel].sa, &len);
     }
   else
 #endif
   if (proc_buffered_char[channel] < 0)
     {
-      nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
+      nbytes = emacs_read (channel, chars + carryover, readmax);
 #ifdef ADAPTIVE_READ_BUFFERING
-      if (!NILP (p->adaptive_read_buffering))
+      if (nbytes > 0 && !NILP (p->adaptive_read_buffering))
 	{
 	  int delay = XINT (p->read_output_delay);
 	  if (nbytes < 256)
@@ -4783,7 +4790,7 @@ read_process_output (proc, channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0 && (nbytes == readmax - carryover))
+	  else if (delay > 0 && (nbytes == readmax))
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)
@@ -4802,7 +4809,7 @@ read_process_output (proc, channel)
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1 - carryover);
+      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
       if (nbytes < 0)
 	nbytes = 1;
       else
@@ -5304,7 +5311,6 @@ send_process (proc, buf, len, object)
 		       that may allow the program
 		       to finish doing output and read more.  */
 		    {
-		      Lisp_Object zero;
 		      int offset = 0;
 
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
@@ -5339,11 +5345,10 @@ send_process (proc, buf, len, object)
 		      else if (STRINGP (object))
 			offset = buf - SDATA (object);
 
-		      XSETFASTINT (zero, 0);
 #ifdef EMACS_HAS_USECS
-		      wait_reading_process_input (0, 20000, zero, 0);
+		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
 #else
-		      wait_reading_process_input (1, 0, zero, 0);
+		      wait_reading_process_output (1, 0, 0, 0, Qnil, NULL, 0);
 #endif
 
 		      if (BUFFERP (object))
@@ -5549,29 +5554,36 @@ process_send_signal (process, signo, current_group, nomsg)
          work.  If the system has it, use it.  */
 #ifdef HAVE_TERMIOS
       struct termios t;
+      cc_t *sig_char = NULL;
+
+      tcgetattr (XINT (p->infd), &t);
 
       switch (signo)
 	{
 	case SIGINT:
-	  tcgetattr (XINT (p->infd), &t);
-	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
-	  return;
+	  sig_char = &t.c_cc[VINTR];
+	  break;
 
 	case SIGQUIT:
-	  tcgetattr (XINT (p->infd), &t);
-  	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
-  	  return;
+	  sig_char = &t.c_cc[VQUIT];
+	  break;
 
   	case SIGTSTP:
-	  tcgetattr (XINT (p->infd), &t);
 #if defined (VSWTCH) && !defined (PREFER_VSUSP)
-  	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
+	  sig_char = &t.c_cc[VSWTCH];
 #else
-	  send_process (proc, &t.c_cc[VSUSP], 1, Qnil);
+	  sig_char = &t.c_cc[VSUSP];
 #endif
-  	  return;
+	  break;
 	}
 
+      if (sig_char && *sig_char != CDISABLE)
+	{
+	  send_process (proc, sig_char, 1, Qnil);
+	  return;
+	}
+      /* If we can't send the signal with a character,
+	 fall through and send it another way.  */
 #else /* ! HAVE_TERMIOS */
 
       /* On Berkeley descendants, the following IOCTL's retrieve the
@@ -5628,9 +5640,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	 you'd better be using one of the alternatives above!  */
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-#endif /* ! defined HAVE_TERMIOS */
+	/* In this case, the code above should alway returns.  */
 	abort ();
-      /* The code above always returns from the function.  */
+#endif /* ! defined HAVE_TERMIOS */
+
+      /* The code above may fall through if it can't
+	 handle the signal.  */
 #endif /* defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP
@@ -6202,7 +6217,7 @@ sigchld_handler (signo)
 	      FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
 	    }
 
-	  /* Tell wait_reading_process_input that it needs to wake up and
+	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
@@ -6220,7 +6235,7 @@ sigchld_handler (signo)
 	  else if (WIFSIGNALED (w))
             synch_process_termsig = WTERMSIG (w);
 
-	  /* Tell wait_reading_process_input that it needs to wake up and
+	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
@@ -6862,10 +6877,9 @@ Lisp_Object QCtype;
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
        the quit handler.
-     a cons cell, meaning wait until its car is non-nil
-       (and gobble terminal input into the buffer if any arrives), or
-     We know that read_kbd will never be a Lisp_Process, since
-     `subprocesses' isn't defined.
+
+   see full version for other parameters. We know that wait_proc will
+     always be NULL, since `subprocesses' isn't defined.
 
    do_display != 0 means redisplay should be done to show subprocess
    output that arrives.
@@ -6873,27 +6887,17 @@ Lisp_Object QCtype;
    Return true iff we received input from any process.  */
 
 int
-wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
-     int time_limit, microsecs;
-     Lisp_Object read_kbd;
-     int do_display;
+wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
+			     wait_for_cell, wait_proc, just_wait_proc)
+     int time_limit, microsecs, read_kbd, do_display;
+     Lisp_Object wait_for_cell;
+     struct Lisp_Process *wait_proc;
+     int just_wait_proc;
 {
   register int nfds;
   EMACS_TIME end_time, timeout;
   SELECT_TYPE waitchannels;
   int xerrno;
-  /* Either nil or a cons cell, the car of which is of interest and
-     may be changed outside of this routine.  */
-  Lisp_Object wait_for_cell;
-
-  wait_for_cell = Qnil;
-
-  /* If waiting for non-nil in a cell, record where.  */
-  if (CONSP (read_kbd))
-    {
-      wait_for_cell = read_kbd;
-      XSETFASTINT (read_kbd, 0);
-    }
 
   /* What does time_limit really mean?  */
   if (time_limit || microsecs)
@@ -6916,7 +6920,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
-      if (XINT (read_kbd) >= 0)
+      if (read_kbd >= 0)
 	QUIT;
 
       /* Exit now if the cell we're waiting for became non-nil.  */
@@ -6967,7 +6971,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  while (!detect_input_pending ());
 
 	  /* If there is unread keyboard input, also return.  */
-	  if (XINT (read_kbd) != 0
+	  if (read_kbd != 0
 	      && requeued_events_pending_p ())
 	    break;
 
@@ -6985,12 +6989,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Cause C-g and alarm signals to take immediate action,
 	 and cause input available signals to zero out timeout.  */
-      if (XINT (read_kbd) < 0)
+      if (read_kbd < 0)
 	set_waiting_for_input (&timeout);
 
       /* Wait till there is something to do.  */
 
-      if (! XINT (read_kbd) && NILP (wait_for_cell))
+      if (! read_kbd && NILP (wait_for_cell))
 	FD_ZERO (&waitchannels);
       else
 	FD_SET (0, &waitchannels);
@@ -7001,11 +7005,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  clear_waiting_for_input ();
 	  redisplay_preserve_echo_area (15);
-	  if (XINT (read_kbd) < 0)
+	  if (read_kbd < 0)
 	    set_waiting_for_input (&timeout);
 	}
 
-      if (XINT (read_kbd) && detect_input_pending ())
+      if (read_kbd && detect_input_pending ())
 	{
 	  nfds = 0;
 	  FD_ZERO (&waitchannels);
@@ -7041,13 +7045,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	kill (getpid (), SIGIO);
 #endif
 #ifdef SIGIO
-      if (XINT (read_kbd) && interrupt_input && (waitchannels & 1))
+      if (read_kbd && interrupt_input && (waitchannels & 1))
 	kill (getpid (), SIGIO);
 #endif
 
       /* Check for keyboard input */
 
-      if ((XINT (read_kbd) != 0)
+      if (read_kbd
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
@@ -7056,7 +7060,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       /* If there is unread keyboard input, also return.  */
-      if (XINT (read_kbd) != 0
+      if (read_kbd
 	  && requeued_events_pending_p ())
 	break;
 
