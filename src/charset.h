@@ -43,7 +43,8 @@ enum define_charset_arg_index
     charset_arg_invalid_code,
     charset_arg_code_offset,
     charset_arg_map,
-    charset_arg_parents,
+    charset_arg_subset,
+    charset_arg_superset,
     charset_arg_unify_map,
     charset_arg_plist,
     charset_arg_max
@@ -80,9 +81,27 @@ enum charset_attr_index
        points.  */
     charset_encoder,
 
-    /* If the method of the charset is `INHERIT', the value is a list
-       of the form (PARENT-CHARSET-ID .  CODE-OFFSET).  */
-    charset_parents,
+    /* If the method of the charset is `SUBSET', the value is a vector
+       that has this form:
+
+	[ CHARSET-ID MIN-CODE MAX-CODE OFFSET ]
+
+       CHARSET-ID is an ID number of a parent charset.  MIN-CODE and
+       MAX-CODE specify the range of characters inherited from the
+       parent.  OFFSET is an integer value to add to a code point of
+       the parent charset to get the corresponding code point of this
+       charset.  */
+    charset_subset,
+
+    /* If the method of the charset is `SUPERSET', the value is a list
+       whose elements have this form:
+
+	(CHARSET-ID . OFFSET)
+
+      CHARSET-IDs are ID numbers of parent charsets.  OFFSET is an
+      integer value to add to a code point of the parent charset to
+      get the corresponding code point of this charset.  */
+    charset_superset,
 
     /* The value is a mapping vector or a file name that contains
        mapping vector.  This provide how characters in the charset
@@ -118,9 +137,11 @@ enum charset_method
        CHARSET_METHOD_MAP.  */
     CHARSET_METHOD_MAP_DEFERRED,
 
-    /* A charset of this method inherits characters from the other
-       charsets.  */
-    CHARSET_METHOD_INHERIT
+    /* A charset of this method is a subset of the other charset.  */
+    CHARSET_METHOD_SUBSET,
+
+    /* A charset of this method is a superset of the other charsets.  */
+    CHARSET_METHOD_SUPERSET
   };
 
 struct charset
@@ -245,7 +266,8 @@ extern struct charset *emacs_mule_charset[256];
 #define CHARSET_ATTR_MAP(attrs)		AREF ((attrs), charset_map)
 #define CHARSET_ATTR_DECODER(attrs)	AREF ((attrs), charset_decoder)
 #define CHARSET_ATTR_ENCODER(attrs)	AREF ((attrs), charset_encoder)
-#define CHARSET_ATTR_PARENTS(attrs)	AREF ((attrs), charset_parents)
+#define CHARSET_ATTR_SUBSET(attrs)	AREF ((attrs), charset_subset)
+#define CHARSET_ATTR_SUPERSET(attrs)	AREF ((attrs), charset_superset)
 #define CHARSET_ATTR_UNIFY_MAP(attrs)	AREF ((attrs), charset_unify_map)
 #define CHARSET_ATTR_DEUNIFIER(attrs)	AREF ((attrs), charset_deunifier)
 
@@ -290,8 +312,10 @@ extern struct charset *emacs_mule_charset[256];
   (CHARSET_ATTR_DECODER (CHARSET_ATTRIBUTES (charset)))
 #define CHARSET_ENCODER(charset)	\
   (CHARSET_ATTR_ENCODER (CHARSET_ATTRIBUTES (charset)))
-#define CHARSET_PARENTS(charset)	\
-  (CHARSET_ATTR_PARENTS (CHARSET_ATTRIBUTES (charset)))
+#define CHARSET_SUBSET(charset)	\
+  (CHARSET_ATTR_SUBSET (CHARSET_ATTRIBUTES (charset)))
+#define CHARSET_SUPERSET(charset)	\
+  (CHARSET_ATTR_SUPERSET (CHARSET_ATTRIBUTES (charset)))
 #define CHARSET_UNIFY_MAP(charset)	\
   (CHARSET_ATTR_UNIFY_MAP (CHARSET_ATTRIBUTES (charset)))
 #define CHARSET_DEUNIFIER(charset)	\
@@ -382,24 +406,29 @@ extern Lisp_Object Vchar_charset_set;
    : decode_char ((charset), (code)))
 
 
+extern Lisp_Object charset_work;
+
 /* Return a code point of CHAR in CHARSET.
    Try some optimization before calling encode_char.  */
 
-#define ENCODE_CHAR(charset, c)						\
-  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			\
-   ? (c)								\
-   : (charset)->unified_p						\
-   ? encode_char ((charset), (c))					\
-   : ((c) < (charset)->min_char || (c) > (charset)->max_char)		\
-   ? (charset)->invalid_code						\
-   : (charset)->method == CHARSET_METHOD_OFFSET				\
-   ? ((charset)->code_linear_p						\
-      ? (c) - (charset)->code_offset + (charset)->min_code		\
-      : encode_char ((charset), (c)))					\
-   : (charset)->method == CHARSET_METHOD_MAP				\
-   ? ((charset)->compact_codes_p					\
-      ? XFASTINT (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c)))	\
-      : encode_char ((charset), (c)))					\
+#define ENCODE_CHAR(charset, c)						 \
+  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
+   ? (c)								 \
+   : (charset)->unified_p						 \
+   ? encode_char ((charset), (c))					 \
+   : ((c) < (charset)->min_char || (c) > (charset)->max_char)		 \
+   ? (charset)->invalid_code						 \
+   : (charset)->method == CHARSET_METHOD_OFFSET				 \
+   ? ((charset)->code_linear_p						 \
+      ? (c) - (charset)->code_offset + (charset)->min_code		 \
+      : encode_char ((charset), (c)))					 \
+   : (charset)->method == CHARSET_METHOD_MAP				 \
+   ? ((charset)->compact_codes_p					 \
+      ? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c)), \
+	 (NILP (charset_work)						 \
+	  ? (charset)->invalid_code					 \
+	  : XFASTINT (charset_work)))					 \
+      : encode_char ((charset), (c)))					 \
    : encode_char ((charset), (c)))
 
 
@@ -445,17 +474,16 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 
 /* 1 iff CHARSET may contain the character C.  */
-#define CHAR_CHARSET_P(c, charset)					    \
-  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			    \
-   || (CHARSET_UNIFIED_P (charset)					    \
-       ? encode_char ((charset), (c)) != (charset)->invalid_code	    \
-       : (CHARSET_FAST_MAP_REF ((c), (charset)->fast_map)		    \
-	  && ((charset)->method == CHARSET_METHOD_OFFSET		    \
-	      ? (c) >= (charset)->min_char && (c) <= (charset)->max_char    \
-	      : ((charset)->method == CHARSET_METHOD_MAP		    \
-		 && (charset)->compact_codes_p)				    \
-	      ? (XFASTINT (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c))) \
-		 != (charset)->invalid_code)				    \
+#define CHAR_CHARSET_P(c, charset)					 \
+  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
+   || (CHARSET_UNIFIED_P (charset)					 \
+       ? encode_char ((charset), (c)) != (charset)->invalid_code	 \
+       : (CHARSET_FAST_MAP_REF ((c), (charset)->fast_map)		 \
+	  && ((charset)->method == CHARSET_METHOD_OFFSET		 \
+	      ? (c) >= (charset)->min_char && (c) <= (charset)->max_char \
+	      : ((charset)->method == CHARSET_METHOD_MAP		 \
+		 && (charset)->compact_codes_p)				 \
+	      ? ! NILP (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c))) \
 	      : encode_char ((charset), (c)) != (charset)->invalid_code))))
 
 
@@ -475,6 +503,10 @@ extern Lisp_Object charset_attributes P_ ((int));
 extern int decode_char P_ ((struct charset *, unsigned));
 extern unsigned encode_char P_ ((struct charset *, int));
 extern int string_xstring_p P_ ((Lisp_Object));
+
+extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object),
+				   Lisp_Object, Lisp_Object,
+				   struct charset *, unsigned, unsigned));
 
 EXFUN (Funify_charset, 2);
 
