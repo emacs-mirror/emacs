@@ -1,3 +1,7 @@
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add mouse pointer shape constants.
+
 2005-03-15  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (move-beginning-of-line): Use vertical-motion.

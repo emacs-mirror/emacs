@@ -1,7 +1,55 @@
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Qhyper, Qsuper, Qmeta, Qalt, Qctrl, Qcontrol, Qshift):
+	Remove unused variables.
+	(syms_of_macfns): Don't initialize them.  Likewise for
+	Qface_set_after_frame_default.  Defvar and initialize
+	Vx_window_horizontal_drag_shape.
+	(x_set_mouse_color): Change mouse pointer shape.
+	(mac_window) [!MAC_OSX]: Create root control.
+	(mac_window): Remove initializations of mouse pointer shapes.
+	(hourglass_started): New function (from xfns.c).
+	(start_hourglass, cancel_hourglass): Put function body in #ifdef
+	MAC_OSX.
+	(show_hourglass) [TARGET_API_MAC_CARBON]: Create progress
+	indicator for each non-tooltip frame if needed, and show it.
+	(hide_hourglass) [TARGET_API_MAC_CARBON]: Hide progress
+	indicators.
+
+	* macgui.h [!TARGET_API_MAC_CARBON]: Include Appearance.h and
+	Controls.h.  Use ThemeCursor instead of CursHandle.
+
+	* macterm.c (activate_scroll_bars, deactivate_scroll_bars): Remove
+	functions and declarations.
+	(mac_set_colors): Take argument for saving background color.  All
+	callers changed.
+	(XDrawLine, XClearArea, mac_draw_bitmap, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common): Save and Restore
+	background color.
+	(x_update_end, mac_do_track_drag): Don't reset background color.
+	(mac_define_frame_cursor) [!TARGET_API_MAC_CARBON]: Use
+	SetThemeCursor.
+	(x_set_window_size) [TARGET_API_MAC_CARBON]: Move progress
+	indicator control to the upper-right corner of the window.
+	(arrow_cursor) [!TARGET_API_MAC_CARBON]: Remove variable.
+	(do_init_managers) [!TARGET_API_MAC_CARBON]: Don't initialize it.
+	(do_window_update): Update controls after updating content area.
+	(mac_handle_window_event): Remove unused extern.
+	(XTread_socket): Check both control handle and control part code
+	to determine whether a scroll bar is clicked.  Activate/deactivate
+	root control instead of contained scroll bar controls.
+	(make_mac_terminal_frame): Use ThemeCursor constants.
+
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]: New
+	member hourglass_control.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): New defines.
+	(activate_scroll_bars, deactivate_scroll_bars): Remove
+	declarations.
+
 2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (keycode_to_xkeysym_table): Change mapping so that it
-	coincide with that in Apple X11 except `clear', `enter' on
+	coincides with that in Apple X11 except `clear', `enter' on
 	laptops, and fn + `enter' on laptops.
 
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
