@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -375,24 +375,24 @@ See also `coding-category-list' and `coding-system-category'."
 It is called with two coding systems, and should return t if the first
 one is \"less\" than the second.
 
-The function `sort-coding-systems' use it.")
+The function `sort-coding-systems' uses it.")
 
 (defun sort-coding-systems (codings)
   "Sort coding system list CODINGS by a priority of each coding system.
 
-If a coding system is most preferred, it has the highest priority.
-Otherwise, a coding system corresponds to some MIME charset has higher
-priorities.  Among them, a coding system included in `coding-system'
-key of the current language environment has higher priorities.  See
-also the documentation of `language-info-alist'.
+The most preferred coding system has the highest priority.  Otherwise,
+coding systems corresponding to some MIME charset has higher priority.
+Among them, a coding system included in the `coding-priority' key of
+the current language environment has highest priority.  See also the
+documentation of `language-info-alist'.
 
 If the variable `sort-coding-systems-predicate' (which see) is
-non-nil, it is used to sort CODINGS in the different way than above."
+non-nil, it is used to sort CODINGS differently from the above recipe."
   (if sort-coding-systems-predicate
       (sort codings sort-coding-systems-predicate)
     (let* ((most-preferred (symbol-value (car coding-category-list)))
 	   (lang-preferred (get-language-info current-language-environment
-					      'coding-system))
+					      'coding-priority))
 	   (func (function
 		  (lambda (x)
 		    (let ((base (coding-system-base x)))
@@ -1426,7 +1426,7 @@ specifies the character set for the major languages of Western Europe."
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
-	(if (fboundp func) (funcall func))))
+	(if (functionp func) (funcall func))))
   (let ((default-eol-type (coding-system-eol-type
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
@@ -1486,7 +1486,7 @@ specifies the character set for the major languages of Western Europe."
       (require (car required-features))
       (setq required-features (cdr required-features))))
   (let ((func (get-language-info language-name 'setup-function)))
-    (if (fboundp func)
+    (if (functionp func)
 	(funcall func)))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
@@ -1650,10 +1650,6 @@ of buffer-file-coding-system set by this function."
 
 (defvar locale-language-names
   '(
-    ;; UTF-8 is not yet implemented.
-    ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
-    (".*[._]utf" . nil)
-
     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
     ;; as specified in the Single Unix Spec, Version 2.
     ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
@@ -1671,7 +1667,7 @@ of buffer-file-coding-system set by this function."
     ; ay Aymara
     ; az Azerbaijani
     ; ba Bashkir
-    ("be" . "Latin-5") ; Byelorussian
+    ("be" . "Latin-5") ; Belarusian [Byelorussian until early 1990s]
     ("bg" . "Latin-5") ; Bulgarian
     ; bh Bihari
     ; bi Bislama
@@ -1733,8 +1729,7 @@ of buffer-file-coding-system set by this function."
     ("lt" . "Latin-4") ; Lithuanian
     ("lv" . "Latin-4") ; Latvian, Lettish
     ; mg Malagasy
-    ; mi Maori
-    ("mk" . "Latin-5") ; Macedonian
+    ("mk" . "Cyrillic-ISO") ; Macedonian
     ; ml Malayalam
     ; mn Mongolian
     ; mo Moldavian
@@ -1757,8 +1752,8 @@ of buffer-file-coding-system set by this function."
     ("rm" . "Latin-1") ; Rhaeto-Romanic
     ; rn Kirundi
     ("ro" . "Romanian")
-    ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
-    ("ru" . "Latin-5") ; Russian
+    ("ru.*[_.]koi8-r" . "Cyrillic-KOI8") ; Russian
+    ("ru" . "Cyrillic-ISO") ; Russian
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
@@ -1791,7 +1786,7 @@ of buffer-file-coding-system set by this function."
     ; tt Tatar
     ; tw Twi
     ; ug Uighur
-    ("uk" . "Latin-5") ; Ukrainian
+    ("uk" . "Cyrillic-ISO") ; Ukrainian
     ; ur Urdu
     ; uz Uzbek
     ("vi" . "Vietnamese")
@@ -1819,7 +1814,7 @@ of buffer-file-coding-system set by this function."
     ("cz" . "Czech") ; e.g. Solaris 2.6
     ("ee" . "Latin-4") ; Estonian, e.g. X11R6.4
     ("iw" . "Hebrew") ; e.g. X11R6.4
-    ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
+    ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
@@ -1838,8 +1833,8 @@ If the language name is nil, there is no corresponding language environment.")
     (".*8859[-_]?9\\>" . "Latin-5")
     (".*8859[-_]?14\\>" . "Latin-8")
     (".*8859[-_]?15\\>" . "Latin-9")
-    (".*@euro\\>" . "Latin-9")
-    )
+    (".*utf\\(-?8\\)\\>" . "UTF-8")
+    (".*@euro\\>" . "Latin-9"))	 ; utf-8@euro exists, so put this last
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
@@ -1852,7 +1847,7 @@ the language name that would otherwise be used for this locale.")
     ("ja.*[._]pck" . japanese-shift-jis)
     ("ja.*[._]sjis" . japanese-shift-jis)
     ("jpn" . japanese-shift-jis)   ; MS-Windows uses this.
-    )
+    (".*[._]utf" . utf-8))
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
