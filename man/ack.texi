@@ -1150,7 +1150,7 @@ Olaf Sylvester wrote @file{bs.el}, a package for manipulating Emacs
 buffers.
 
 @item
-Tibor @v{S}imko and Milan Zamzal wrote @file{slovak.el}, support for
+Tibor @v{S}imko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
 @item 
