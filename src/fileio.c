@@ -336,9 +336,10 @@ use the standard functions without calling themselves recursively.  */)
      Lisp_Object filename, operation;
 {
   /* This function must not munge the match data.  */
-  Lisp_Object chain, inhibited_handlers, result = Qnil;
+  Lisp_Object chain, inhibited_handlers, result;
   int pos = -1;
 
+  result = Qnil;
   CHECK_STRING (filename);
 
   if (EQ (operation, Vinhibit_file_name_operation))
