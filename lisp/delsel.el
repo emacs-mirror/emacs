@@ -52,17 +52,17 @@ insertion commands first delete the region and then insert.")
 	(cond ((eq type 'kill)
 	       (delete-active-region t))
 	      ((eq type 'supersede)
-	       (if (delete-active-region ())
+	       (if (delete-active-region nil)
 		   (setq this-command '(lambda () (interactive)))))
 	      (type
-	       (delete-active-region ()))))))
+	       (delete-active-region nil))))))
 
 (add-hook 'pre-command-hook 'delete-selection-pre-hook)
 
 (put 'self-insert-command 'delete-selection t)
 
 (put 'yank 'delete-selection t)
-(put 'x-yank-clipboard-selection 'delete-selection t)
+(put 'insert-register 'delete-selection t)
 
 (put 'delete-backward-char 'delete-selection 'supersede)
 (put 'backward-delete-char-untabify 'delete-selection 'supersede)
@@ -72,7 +72,9 @@ insertion commands first delete the region and then insert.")
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection t)
 
+;;;###autoload
 (defalias 'pending-delete-mode 'delete-selection-mode)
+;;;###autoload
 (defun delete-selection-mode (arg)
   "Toggle Delete Selection mode.
 When ON, typed text replaces the selection if the selection is active.
@@ -83,34 +85,15 @@ When OFF, typed text is just inserted at point."
 	  (> (prefix-numeric-value arg) 0)))
   (set-buffer-modified-p (buffer-modified-p))) ;No-op, but updates mode line.
 
-;; This new definition of control-G makes the first control-G disown the 
-;; selection and the second one signal a QUIT.
 ;; This is very useful for cancelling a selection in the minibuffer without 
 ;; aborting the minibuffer.
-;; It has actually nothing to do with delete-selection but its more necessary
-;; with pending delete because pending delete users use the selection more.
-(defun keyboard-quit ()
-  "Signal a `quit' condition.
-During execution of Lisp code, this character causes a quit directly.
-At top-level, as an editor command, this simply beeps.
-In Transient Mark mode, if the mark is active, just deactivate it."
-  (interactive)
-  (if (and transient-mark-mode mark-active)
-      (progn
-	;; Don't beep if just deactivating the region.
-	(setq mark-active nil)
-	(run-hooks 'deactivate-mark-hook))
-    (signal 'quit nil)))
-
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
-In Transient Mark mode, if the mark is active, just deactivate it."
+In Delete Selection mode mode, if the mark is active, just deactivate it;
+then it takes a second C-g to abort the minibuffer."
   (interactive)
-  (if (and transient-mark-mode mark-active)
-      (progn
-	;; Don't beep if just deactivating the region.
-	(setq mark-active nil)
-	(run-hooks 'deactivate-mark-hook))
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark t)
     (abort-recursive-edit)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit) 
@@ -119,6 +102,6 @@ In Transient Mark mode, if the mark is active, just deactivate it."
 (define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit) 
 (define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit) 
 
-(provide 'pending-del)
+(provide 'delsel)
 
-;;; pending-del.el ends here
+;;; delsel.el ends here
