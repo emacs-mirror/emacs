@@ -2084,7 +2084,7 @@ read1 (readcharfun, pch, first_in_list)
 	    {
 	      Lisp_Object tmp;
 	      tmp = read_vector (readcharfun, 0);
-	      if (XVECTOR (tmp)->size != VECSIZE (struct Lisp_Char_Table))
+	      if (XVECTOR (tmp)->size < VECSIZE (struct Lisp_Char_Table))
 		error ("Invalid size char-table");
 	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
 	      return tmp;
@@ -2103,7 +2103,7 @@ read1 (readcharfun, pch, first_in_list)
 		  depth = XINT (AREF (tmp, 0));
 		  if (depth < 1 || depth > 3)
 		    error ("Invalid depth in char-table");
-		  size = XVECTOR (tmp)->size + 2;
+		  size = XVECTOR (tmp)->size - 2;
 		  if (chartab_size [depth] != size)
 		    error ("Invalid size char-table");
 		  XSETSUB_CHAR_TABLE (tmp, XSUB_CHAR_TABLE (tmp));
