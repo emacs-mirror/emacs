@@ -1,3 +1,8 @@
+2001-10-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (VERSION): Set to 2.7.
+	(manual): Use `manual-21' instead of `manual-20'.
+
 2001-10-02  Miles Bader  <miles@gnu.org>
 
 	* minibuf.texi (Minibuffer Misc): Add entries for

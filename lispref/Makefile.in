@@ -23,8 +23,8 @@ texmacrodir = /usr/local/lib/tex/macros
 texinputdir = TEXINPUTS=$(srcdir):
 
 # The name of the manual:
-VERSION=2.6
-manual = elisp-manual-20-$(VERSION)
+VERSION=2.7
+manual = elisp-manual-21-$(VERSION)
 
 # Uncomment this line for permuted index.
 # permuted_index = 1 
