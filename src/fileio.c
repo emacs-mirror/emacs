@@ -4604,56 +4604,56 @@ This does code conversion according to the value of\n\
     Lisp_Object val;
 
     if (auto_saving)
-      val = Qnil;
-    else if (!NILP (Vcoding_system_for_write))
-      val = Vcoding_system_for_write;
-    else
-      {
-	/* If the variable `buffer-file-coding-system' is set locally,
-	   it means that the file was read with some kind of code
-	   conversion or the variable is explicitly set by users.  We
-	   had better write it out with the same coding system even if
-	   `enable-multibyte-characters' is nil.
+    val = Qnil;
+  else if (!NILP (Vcoding_system_for_write))
+    val = Vcoding_system_for_write;
+  else
+    {
+      /* If the variable `buffer-file-coding-system' is set locally,
+	 it means that the file was read with some kind of code
+	 conversion or the variable is explicitly set by users.  We
+	 had better write it out with the same coding system even if
+	 `enable-multibyte-characters' is nil.
 
-	   If it is not set locally, we anyway have to convert EOL
-	   format if the default value of `buffer-file-coding-system'
-	   tells that it is not Unix-like (LF only) format.  */
-	int using_default_coding = 0;
-	int force_raw_text = 0;
+	 If it is not set locally, we anyway have to convert EOL
+	 format if the default value of `buffer-file-coding-system'
+	 tells that it is not Unix-like (LF only) format.  */
+      int using_default_coding = 0;
+      int force_raw_text = 0;
 
-	val = current_buffer->buffer_file_coding_system;
-	if (NILP (val)
-	    || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
-	  {
-	    val = Qnil;
-	    if (NILP (current_buffer->enable_multibyte_characters))
-	      force_raw_text = 1;
-	  }
+      val = current_buffer->buffer_file_coding_system;
+      if (NILP (val)
+	  || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
+	{
+	  val = Qnil;
+	  if (NILP (current_buffer->enable_multibyte_characters))
+	    force_raw_text = 1;
+	}
 	
-	if (NILP (val))
-	  {
-	    /* Check file-coding-system-alist.  */
-	    Lisp_Object args[7], coding_systems;
+      if (NILP (val))
+	{
+	  /* Check file-coding-system-alist.  */
+	  Lisp_Object args[7], coding_systems;
 
-	    args[0] = Qwrite_region; args[1] = start; args[2] = end;
-	    args[3] = filename; args[4] = append; args[5] = visit;
-	    args[6] = lockname;
-	    coding_systems = Ffind_operation_coding_system (7, args);
-	    if (CONSP (coding_systems) && !NILP (XCDR (coding_systems)))
-	      val = XCDR (coding_systems);
-	  }
+	  args[0] = Qwrite_region; args[1] = start; args[2] = end;
+	  args[3] = filename; args[4] = append; args[5] = visit;
+	  args[6] = lockname;
+	  coding_systems = Ffind_operation_coding_system (7, args);
+	  if (CONSP (coding_systems) && !NILP (XCDR (coding_systems)))
+	    val = XCDR (coding_systems);
+	}
 
-	if (NILP (val)
-	    && !NILP (current_buffer->buffer_file_coding_system))
-	  {
-	    /* If we still have not decided a coding system, use the
-	       default value of buffer-file-coding-system.  */
-	    val = current_buffer->buffer_file_coding_system;
-	    using_default_coding = 1;
-	  }
+      if (NILP (val)
+	  && !NILP (current_buffer->buffer_file_coding_system))
+	{
+	  /* If we still have not decided a coding system, use the
+	     default value of buffer-file-coding-system.  */
+	  val = current_buffer->buffer_file_coding_system;
+	  using_default_coding = 1;
+	}
 	    
-	if (!force_raw_text
-	    && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
+      if (!force_raw_text
+	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	  /* Confirm that VAL can surely encode the current region.  */
 	  val = call3 (Vselect_safe_coding_system_function, start, end, val);
 
@@ -4662,10 +4662,10 @@ This does code conversion according to the value of\n\
 	    && !using_default_coding)
 	  {
 	    if (! EQ (default_buffer_file_coding.symbol,
-		      buffer_defaults.buffer_file_coding_system))
-	      setup_coding_system (buffer_defaults.buffer_file_coding_system,
-				   &default_buffer_file_coding);
-	    if (default_buffer_file_coding.eol_type != CODING_EOL_UNDECIDED)
+		    buffer_defaults.buffer_file_coding_system))
+	    setup_coding_system (buffer_defaults.buffer_file_coding_system,
+				 &default_buffer_file_coding);
+	  if (default_buffer_file_coding.eol_type != CODING_EOL_UNDECIDED)
 	      {
 		Lisp_Object subsidiaries;
 
@@ -6170,7 +6170,8 @@ of the form (POSITION . STRING), consisting of strings to be effectively\n\
 inserted at the specified positions of the file being written (1 means to\n\
 insert before the first byte written).  The POSITIONs must be sorted into\n\
 increasing order.  If there are several functions in the list, the several\n\
-lists are merged destructively.");
+lists are merged destructively.  Alternatively, the function can return\n\
+with a different buffer current and value nil.");
   Vwrite_region_annotate_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotations-so-far",
