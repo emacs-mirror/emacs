@@ -1202,11 +1202,17 @@ a non-nil `permanent-local' property are not eliminated by this function.")
      or ZV if there are no more overlays.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
-   when this function is called.  */
+   when this function is called.
+
+   If EXTEND is non-zero, we make the vector bigger if necessary.
+   If EXTEND is zero, we never extend the vector,
+   and we store only as many overlays as will fit.
+   But we still return the total number of overlays.  */
 
 int
-overlays_at (pos, vec_ptr, len_ptr, next_ptr)
+overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
      int pos;
+     int extend;
      Lisp_Object **vec_ptr;
      int *len_ptr;
      int *next_ptr;
@@ -1216,6 +1222,8 @@ overlays_at (pos, vec_ptr, len_ptr, next_ptr)
   int len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   int next = ZV;
+  int inhibit_storing = 0;
+
   for (tail = current_buffer->overlays_before;
        CONSP (tail);
        tail = XCONS (tail)->cdr)
@@ -1235,11 +1243,22 @@ overlays_at (pos, vec_ptr, len_ptr, next_ptr)
 	{
 	  if (idx == len)
 	    {
-	      *len_ptr = len *= 2;
-	      vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
-	      *vec_ptr = vec;
+	      /* The supplied vector is full.
+		 Either make it bigger, or don't store any more in it.  */
+	      if (extend)
+		{
+		  *len_ptr = len *= 2;
+		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  *vec_ptr = vec;
+		}
+	      else
+		inhibit_storing = 1;
 	    }
-	  vec[idx++] = overlay;
+
+	  if (!inhibit_storing)
+	    vec[idx] = overlay;
+	  /* Keep counting overlays even if we can't return them all.  */
+	  idx++;
 	}
       else if (startpos < next)
 	next = startpos;
@@ -1268,11 +1287,19 @@ overlays_at (pos, vec_ptr, len_ptr, next_ptr)
 	{
 	  if (idx == len)
 	    {
-	      *len_ptr = len *= 2;
-	      vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
-	      *vec_ptr = vec;
+	      if (extend)
+		{
+		  *len_ptr = len *= 2;
+		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  *vec_ptr = vec;
+		}
+	      else
+		inhibit_storing = 1;
 	    }
-	  vec[idx++] = overlay;
+
+	  if (!inhibit_storing)
+	    vec[idx] = overlay;
+	  idx++;
 	}
     }
 
@@ -1658,7 +1685,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
-  noverlays = overlays_at (XINT (pos), &overlay_vec, &len, &endpos);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -1688,7 +1715,7 @@ DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
      endpos gets the position where the next overlay starts.  */
-  noverlays = overlays_at (XINT (pos), &overlay_vec, &len, &endpos);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
