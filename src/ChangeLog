@@ -6,8 +6,8 @@
 	* xdisp.c (invisible_text_between_p): Put prototype inside #if
 	0 because unused.
 
-	* bytecode.c, callint.c, callproc.c, window.c: Change doc-string
-	comments to `new style' [w/`doc:' keyword].
+	* bytecode.c, callint.c, callproc.c, process.c, window.c: Change
+	doc-string comments to `new style' [w/`doc:' keyword].
 
 2001-10-20  Miles Bader  <miles@gnu.org>
 
