@@ -51,6 +51,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
 If provided LIGHTER will be used to help choose capitalization."
@@ -87,7 +89,9 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
 	 ;; We might as well provide a best-guess default group.
-	 (group (intern (replace-regexp-in-string "-mode\\'" "" mode-name)))
+	 (group
+	  (list 'quote
+		(intern (replace-regexp-in-string "-mode\\'" "" mode-name))))
 	 (keymap-sym (intern (concat mode-name "-map")))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
@@ -98,10 +102,11 @@ BODY contains code that will be executed each time the mode is (dis)activated.
       (setq init-value (cdr init-value) globalp t))
 
     ;; Check keys.
-    (while
-	(case (car body)
-	  (:global (setq body (cdr body)) (setq globalp (pop body)))
-	  (:group (setq body (cdr body)) (setq group (pop body)))))
+    (while (keywordp (car body))
+      (case (pop body)
+	(:global (setq globalp (pop body)))
+	(:group (setq group (pop body)))
+	(t (setq body (cdr body)))))
 
     ;; Add default properties to LIGHTER.
     (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
@@ -116,6 +121,8 @@ BODY contains code that will be executed each time the mode is (dis)activated.
     `(progn
        ;; Define the variable to enable or disable the mode.
        ,(if globalp
+	    ;; BEWARE! autoload.el depends on this `defcustom' coming
+	    ;; as the first element after progn.
 	    `(defcustom ,mode ,init-value
 	       ,(format "Toggle %s.
 Setting this variable directly does not take effect;
@@ -123,7 +130,7 @@ use either \\[customize] or the function `%s'."
 			pretty-name mode)
 	       :set (lambda (symbol value) (funcall symbol (or value 0)))
 	       :initialize 'custom-initialize-default
-	       :group ',group
+	       :group ,group
 	       :type 'boolean)
 	  `(progn
 	     (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
@@ -143,7 +150,7 @@ Use the function `%s' to change this variable." pretty-name mode))
        ;; The toggle's hook.
        (defcustom ,hook  nil
 	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 :group ',group
+	 :group ,group
 	 :type 'hook)
 
        ;; The actual function.
@@ -174,6 +181,75 @@ With zero or negative ARG turn mode off.
        ,(if globalp `(if ,mode (,mode 1))))))
 
 ;;;
+;;; make global minor mode
+;;;
+
+(defmacro easy-mmode-define-global-mode (global-mode mode turn-on
+						     &rest keys)
+  "Make GLOBAL-MODE out of the MODE buffer-local minor mode.
+TURN-ON is a function that will be called with no args in every buffer
+  and that should try to turn MODE on if applicable for that buffer.
+KEYS is a list of CL-style keyword arguments:
+:group to specify the custom group."
+  (let* ((mode-name (symbol-name mode))
+	 (global-mode-name (symbol-name global-mode))
+	 (pretty-name (easy-mmode-pretty-mode-name mode))
+	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
+	 ;; We might as well provide a best-guess default group.
+	 (group
+	  (list 'quote
+		(intern (replace-regexp-in-string "-mode\\'" "" mode-name))))
+	 (buffers (intern (concat global-mode-name "-buffers")))
+	 (cmmh (intern (concat global-mode-name "-cmmh"))))
+
+    ;; Check keys.
+    (while (keywordp (car keys))
+      (case (pop keys)
+	(:group (setq group (pop keys)))
+	(t (setq keys (cdr keys)))))
+
+    `(progn
+       ;; BEWARE!  autoload.el depends on `define-minor-mode' coming
+       ;; as the first element after progn.
+
+       ;; The actual global minor-mode
+       (define-minor-mode ,global-mode
+	 ,(format "Toggle %s in every buffer.
+With prefix ARG, turn %s on if and only if ARG is positive.
+%s is actually not turned on in every buffer but only in those
+in which `%s' turns it on."
+		  pretty-name pretty-global-name pretty-name turn-on)
+	 nil nil nil :global t :group ,group
+
+	 ;; Setup hook to handle future mode changes and new buffers.
+	 (if ,global-mode
+	     (add-hook 'change-major-mode-hook ',cmmh)
+	   (remove-hook 'change-major-mode-hook ',cmmh))
+
+	 ;; Go through existing buffers.
+	 (dolist (buf (buffer-list))
+	   (with-current-buffer buf
+	     (if ,global-mode (,turn-on) (,mode -1)))))
+
+       ;; List of buffers left to process.
+       (defvar ,buffers nil)
+
+       ;; The function that calls TURN-ON in each buffer.
+       (defun ,buffers ()
+	 (while ,buffers
+	   (when (buffer-name (car ,buffers))
+	     (with-current-buffer (pop ,buffers)
+	       (,turn-on))))
+	 (remove-hook 'post-command-hook ',buffers)
+	 (remove-hook 'after-find-file ',buffers))
+
+       ;; The function that catches kill-all-local-variables.
+       (defun ,cmmh ()
+	 (add-to-list ',buffers (current-buffer))
+	 (add-hook 'post-command-hook ',buffers)
+	 (add-hook 'after-find-file ',buffers)))))
+
+;;;
 ;;; easy-mmode-defmap
 ;;;
 
@@ -200,10 +276,10 @@ ARGS is a list of additional arguments."
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
-	(cond
-	 ((eq key :dense) (setq dense val))
-	 ((eq key :inherit) (setq inherit val))
-	 ((eq key :group) )
+	(case key
+	 (:dense (setq dense val))
+	 (:inherit (setq inherit val))
+	 (:group)
 	 ;;((eq key :suppress) (setq suppress val))
 	 (t (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
