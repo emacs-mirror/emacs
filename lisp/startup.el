@@ -156,6 +156,63 @@ altering `command-line-args-left' to remove them.")
   "Default directory to use for command line arguments.
 This is normally copied from `default-directory' when Emacs starts.")
 
+;;; This is here, rather than in x-win.el, so that we can ignore these
+;;; options when we are not using X.
+(defvar command-line-x-option-alist
+  '(("-bw" 1 x-handle-numeric-switch border-width)
+    ("-d" 1 x-handle-display)
+    ("-display" 1 x-handle-display)
+    ("-name" 1 x-handle-name-rn-switch)
+    ("-rn" 1 x-handle-name-rn-switch)
+    ("-T" 1 x-handle-switch name)
+    ("-r" 0 x-handle-switch reverse t)
+    ("-rv" 0 x-handle-switch reverse t)
+    ("-reverse" 0 x-handle-switch reverse t)
+    ("-reverse-video" 0 x-handle-switch reverse t)
+    ("-fn" 1 x-handle-switch font)
+    ("-font" 1 x-handle-switch font)
+    ("-ib" 1 x-handle-numeric-switch internal-border-width)
+    ("-g" 1 x-handle-switch geometry)
+    ("-geometry" 1 x-handle-switch geometry)
+    ("-fg" 1 x-handle-switch foreground-color)
+    ("-foreground" 1 x-handle-switch foreground-color)
+    ("-bg" 1 x-handle-switch background-color)
+    ("-background" 1 x-handle-switch background-color)
+    ("-ms" 1 x-handle-switch mouse-color)
+    ("-itype" 0 x-handle-switch icon-type t)
+    ("-i" 0 x-handle-switch icon-type t)
+    ("-iconic" 0 x-handle-iconic)
+    ("-xrm" 1 x-handle-xrm-switch)
+    ("-cr" 1 x-handle-switch cursor-color)
+    ("-vb" 0 x-handle-switch vertical-scroll-bars t)
+    ("-hb" 0 x-handle-switch horizontal-scroll-bars t)
+    ("-bd" 1 x-handle-switch)
+    ("--border-width" 1 x-handle-numeric-switch border-width)
+    ("--display" 1 x-handle-display)
+    ("--name" 1 x-handle-name-rn-switch)
+    ("--title" 1 x-handle-name-rn-switch)
+    ("--reverse-video" 0 x-handle-switch reverse t)
+    ("--font" 1 x-handle-switch font)
+    ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
+    ("--geometry" 1 x-handle-switch geometry)
+    ("--foreground-color" 1 x-handle-switch foreground-color)
+    ("--background-color" 1 x-handle-switch background-color)
+    ("--mouse-color" 1 x-handle-switch mouse-color)
+    ("--icon-type" 0 x-handle-switch icon-type t)
+    ("--iconic" 0 x-handle-iconic)
+    ("--xrm" 1 x-handle-xrm-switch)
+    ("--cursor-color" 1 x-handle-switch cursor-color)
+    ("--vertical-scroll-bars" 0 x-handle-switch vertical-scroll-bars t)
+    ("--border-color" 1 x-handle-switch border-width))
+  "Alist of X Windows options.
+Each element has the form
+  (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
+where NAME is the option name string, NUMARGS is the number of arguments
+that the option accepts, HANDLER is a function to call to handle the option.
+FRAME-PARAM (optional) is the frame parameter this option specifies,
+and VALUE is the value which is given to that frame parameter
+\(most options use the argument for this, so VALUE is not present).")
+
 (defvar before-init-hook nil
   "Functions to call after handling urgent options but before init files.
 The frame system uses this to open frames to display messages while
@@ -722,6 +779,13 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	       (initial-load-path load-path))
 	  (setq command-line-args-left (cdr command-line-args-left))
 
+	  ;; Add the long X options to longopts.
+	  (setq tem command-line-x-option-alist)
+	  (while tem
+	    (if (string-match "^--" (car (car tem)))
+		(setq longopts (cons (list (car (car tem))) longopts)))
+	    (setq tem (cdr tem)))
+
 	  ;; Convert long options to ordinary options
 	  ;; and separate out an attached option argument into argval.
 	  (if (string-match "^--[^=]*=" argi)
@@ -795,6 +859,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (kill-emacs t))
 		((string-match "^\\+[0-9]+\\'" argi)
 		 (setq line (string-to-int argi)))
+		((setq tem (assoc argi command-line-x-option-alist))
+		 ;; Ignore X-windows options and their args if not using X.
+		 (setq command-line-args-left
+		       (nthcdr (nth 1 tem) command-line-args-left)))
 		(t
 		 ;; We have almost exhausted our options. See if the
 		 ;; user has made any other command-line options available
