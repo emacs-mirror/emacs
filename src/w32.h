@@ -89,12 +89,14 @@ typedef struct
 extern filedesc fd_info [ MAXDESC ];
 
 /* fd_info flag definitions */
-#define FILE_READ    0x0001
-#define FILE_WRITE   0x0002
-#define FILE_BINARY  0x0010
-#define FILE_LAST_CR 0x0020
-#define FILE_PIPE    0x0100
-#define FILE_SOCKET  0x0200
+#define FILE_READ               0x0001
+#define FILE_WRITE              0x0002
+#define FILE_BINARY             0x0010
+#define FILE_LAST_CR            0x0020
+#define FILE_AT_EOF             0x0040
+#define FILE_SEND_SIGCHLD       0x0080
+#define FILE_PIPE               0x0100
+#define FILE_SOCKET             0x0200
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
