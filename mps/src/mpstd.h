@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.10) $
+ * $HopeName: MMsrc!mpstd.h(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -66,13 +66,26 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .hack.align */
 
-/* MW C/C++/ASM Lang Ref, pp175-176.  Metrowerks does not document */
+/* MW C/C++/ASM Lang Ref (CW9), pp184-186.  Metrowerks does not document */
 /* a way to determine the OS -- we assume MacOS 7.  */
 
 #elif defined(__MWERKS__) && __MC68K__ == 1
 #define MPS_PF_S7M6MW
 #define MPS_OS_S7
 #define MPS_ARCH_M6
+#define MPS_BUILD_MW
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
+
+/* MW C/C++/ASM Lang Ref (CW9), pp184-186.  Metrowerks does not document */
+/* a way to determine the OS -- we assume MacOS 7.  */
+
+#elif defined(__MWERKS__) && __POWERPC__ == 1
+#define MPS_PF_S7PPMW
+#define MPS_OS_S7
+#define MPS_ARCH_PP
 #define MPS_BUILD_MW
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
