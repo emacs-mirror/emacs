@@ -388,6 +388,8 @@ the user during startup."
 		  (cons (car (cdr tail)) frame-initial-geometry-arguments))
 	    (setcdr tail (cdr (cdr tail))))
 	(setq tail (cdr tail)))))
+  (setq frame-initial-geometry-arguments
+	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
 
