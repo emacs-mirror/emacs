@@ -2344,13 +2344,14 @@ See `pr-ps-printer-alist'.")
        ,@body
        (kill-buffer temp))))
 
-
+(eval-and-compile
 (defun pr-get-symbol (name)
   ;; Recent versions of easy-menu downcase names before interning them.
   (and (fboundp 'easy-menu-name-match)
        (setq name (downcase name)))
   (or (intern-soft name)
       (make-symbol name)))
+)
 
 
 (defsubst pr-visible-p (key)
