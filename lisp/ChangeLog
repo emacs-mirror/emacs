@@ -1,3 +1,9 @@
+2001-08-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hexl.el (hexl-mode, hexl-mode-exit): Adjust hexl-max-address and
+	original-point for extra CR characters that are added/removed when
+	the buffer is written/read whose EOL type is -dos.
+
 2001-08-16  Miles Bader  <miles@gnu.org>
 
 	* simple.el (line-move): Undo previous change.
