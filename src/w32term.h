@@ -22,8 +22,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include "w32gui.h"
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
 
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
@@ -135,7 +133,7 @@ struct w32_display_info
   Cursor vertical_scroll_bar_cursor;
 
   /* Resource data base */
-  char *xrdb;
+  XrmDatabase xrdb;
 
   /* color palette information.  */
   int has_palette;
@@ -429,17 +427,6 @@ struct w32_output
 
 extern struct w32_output w32term_display;
 
-enum
-{
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
-};
-
 /* Return the X output data for frame F.  */
 #define FRAME_X_OUTPUT(f) ((f)->output_data.w32)
 
@@ -709,9 +696,6 @@ w32_fill_area (f,hdc,f->output_data.x->background_pixel,px,py,nx,ny)
 
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
-
-extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
-				     int *, int *));
 
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
