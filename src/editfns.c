@@ -847,6 +847,53 @@ lisp_time_argument (specified_time, result)
     }
 }
 
+/* Write information into buffer S of size MAXSIZE, according to the
+   FORMAT of length FORMAT_LEN, using time information taken from *TP.
+   Return the number of bytes written, not including the terminating
+   '\0'.  If S is NULL, nothing will be written anywhere; so to
+   determine how many bytes would be written, use NULL for S and
+   ((size_t) -1) for MAXSIZE.
+
+   This function behaves like emacs_strftime, except it allows null
+   bytes in FORMAT.  */
+static size_t
+emacs_memftime (s, maxsize, format, format_len, tp)
+      char *s;
+      size_t maxsize;
+      const char *format;
+      size_t format_len;
+      const struct tm *tp;
+{
+  size_t total = 0;
+
+  for (;;)
+    {
+      size_t len;
+      size_t result;
+
+      if (s)
+	s[0] = '\1';
+
+      result = emacs_strftime (s, maxsize, format, tp);
+
+      if (s)
+	{
+	  if (result == 0 && s[0] != '\0')
+	    return 0;
+	  s += result + 1;
+	}
+
+      maxsize -= result + 1;
+      total += result;
+      len = strlen (format);
+      if (len == format_len)
+	return total;
+      total++;
+      format += len + 1;
+      format_len -= len + 1;
+    }
+}
+
 /*
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
   "Use FORMAT-STRING to format the time TIME, or now if omitted.\n\
@@ -925,13 +972,16 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
       int result;
 
       buf[0] = '\1';
-      result = emacs_strftime (buf, size, XSTRING (format_string)->data,
+      result = emacs_memftime (buf, size, XSTRING (format_string)->data,
+			       STRING_BYTES (XSTRING (format_string)),
 			       tm);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return build_string (buf);
+	return make_string (buf, result);
 
       /* If buffer was too small, make it bigger and try again.  */
-      result = emacs_strftime (NULL, 0x7fffffff, XSTRING (format_string)->data,
+      result = emacs_memftime (NULL, (size_t) -1,
+			       XSTRING (format_string)->data,
+			       STRING_BYTES (XSTRING (format_string)),
 			       tm);
       size = result + 1;
     }
