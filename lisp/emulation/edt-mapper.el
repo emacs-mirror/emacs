@@ -69,13 +69,6 @@
 ;; ====================================================================
 
 ;;;
-;;;  Revision Information
-;;;
-(defconst edt-mapper-revision "$Revision: 1.2 $"
-    "Revision Number of EDT X-Windows Emacs Key Mapper.")
-
-
-;;;
 ;;;  Make sure we're running X-windows and Emacs version 19
 ;;;
 (cond
