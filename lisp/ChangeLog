@@ -1,3 +1,21 @@
+2002-01-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* net/eudc-hotlist.el (eudc-edit-hotlist): Avoid error when
+	editing an empty hotlist.
+
+	* net/ldap.el (ldap-search-internal): Make the buffer unibyte.
+	Use buffer-string instead of buffer-substring for the whole
+	buffer.
+
+	* net/eudc-vars.el (eudc-external-viewers): Do not use xv, it is
+	not free.
+
+	* net/eudc-bob.el (eudc-bob-can-display-inline-images)
+	(eudc-bob-display-jpeg): Use fboundp instead of boundp.
+	(eudc-bob-save-object): Make the buffer unibyte.
+	(eudc-bob-generic-keymap): Add new keybinding `!' to pipe the
+	object to external program.
+
 2002-01-05  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-branch-part): Return nil if there's no `.'
