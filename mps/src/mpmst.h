@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.62) $
+ * $HopeName: MMsrc!mpmst.h(trunk.63) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -73,6 +73,7 @@ typedef struct PoolClassStruct {
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
+  PoolClass super;              /* superclass */
   Attr attr;                    /* attributes */
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolFinishMethod finish;      /* finish the pool descriptor */
@@ -97,6 +98,7 @@ typedef struct PoolClassStruct {
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
+  PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   Sig endSig;                   /* .class.end-sig */
 } PoolClassStruct;
 

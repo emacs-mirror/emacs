@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.6) $
+ * $HopeName: MMsrc!poollo.c(trunk.7) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.6) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.7) $");
 
 
 /* MACROS */
@@ -751,6 +751,7 @@ static struct PoolClassStruct PoolClassLOStruct = {
   "LO",                                 /* name */
   sizeof(LOStruct),                     /* size */
   offsetof(LOStruct, poolStruct),       /* offset */
+  NULL,                                 /* super */
   AttrFMT | AttrBUF | AttrBUF_RESERVE | AttrGC,
   LOInit,                               /* init */
   LOFinish,                             /* finish */
@@ -775,6 +776,7 @@ static struct PoolClassStruct PoolClassLOStruct = {
   PoolNoRampEnd,
   LOWalk,                               /* walk */
   PoolTrivDescribe,                     /* describe */
+  PoolNoDebugMixin,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 

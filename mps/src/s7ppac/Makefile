@@ -1,8 +1,8 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.13) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.14) $
 #
-# Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
+# Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
 #
 
 # This only knows about making the mmsw libraries for MM/EP-core.
@@ -116,6 +116,7 @@ mmsw_{Variety}.o  Ä  ¶
 		seg{OSffx} ¶
 		event{OSffx} ¶
 		mpsioan{OSffx} ¶
+		dbgpool{OSffx} ¶
 		poolmrg{OSffx} ¶
 		message{OSffx}
 

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.54) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.55) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -76,6 +76,7 @@ typedef struct ThreadStruct *Thread;    /* impl.c.th* */
 typedef struct ActionStruct *Action;    /* design.mps.action */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* design.mps.prot */
+typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 
 
 /* Splay* -- See design.mps.splay */
@@ -91,6 +92,7 @@ enum {
   CompareGREATER
 };
 
+
 /* CBS* -- See design.mps.cbs */
 
 typedef struct CBSStruct *CBS;
@@ -102,7 +104,6 @@ typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
 
 
 /* Arena*Method -- see @@@@ */
-
 
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, va_list args);
@@ -138,6 +139,7 @@ typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
 /* This type is used by the PoolClass method Walk */
 typedef void (*FormattedObjectsStepMethod)(Addr, Format, Pool,
                                            void *, Size);
+
 
 /* Pool*Method -- see design.mps.class-interface */
 
@@ -176,13 +178,14 @@ typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
                                void *p, unsigned long s);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
+typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
 
 
 /* Message*Method -- design.mps.message */
 
 typedef void (*MessageDeleteMethod)(Message message);
 typedef void (*MessageFinalizationRefMethod)
-  (Ref *refReturn, Space space, Message message);
+  (Ref *refReturn, Arena arena, Message message);
 
 
 /* Message Types -- design.mps.message and elsewhere */
@@ -194,21 +197,20 @@ typedef struct MessageFinalizationStruct *MessageFinalization;
 /* .fmt-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See impl.h.mps.fmt-methods.) */
 
-typedef Res  (*FormatScanMethod)   (ScanState ss, Addr base, 
-                                    Addr limit);
-typedef Addr (*FormatSkipMethod)   (Addr object);
-typedef void (*FormatMoveMethod)   (Addr object, Addr to);
+typedef Res  (*FormatScanMethod)(ScanState ss, Addr base, Addr limit);
+typedef Addr (*FormatSkipMethod)(Addr object);
+typedef void (*FormatMoveMethod)(Addr object, Addr to);
 typedef Addr (*FormatIsMovedMethod)(Addr object);
-typedef void (*FormatCopyMethod)   (Addr object, Addr to);
-typedef void (*FormatPadMethod)    (Addr base, Size size);
-typedef Addr (*FormatClassMethod)  (Addr object);
+typedef void (*FormatCopyMethod)(Addr object, Addr to);
+typedef void (*FormatPadMethod)(Addr base, Size size);
+typedef Addr (*FormatClassMethod)(Addr object);
 
 
 /* Root*Method -- see design.mps.root-interface */
 /* .root-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See impl.h.mps.root-methods.) */
 
-typedef Res (*RootScanMethod)   (ScanState ss, void *p, size_t s);
+typedef Res (*RootScanMethod)(ScanState ss, void *p, size_t s);
 typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, 
                                  size_t s);
 
@@ -318,7 +320,8 @@ enum {
   ResLIMIT,
   ResUNIMPL,
   ResIO,
-  ResCOMMIT_LIMIT
+  ResCOMMIT_LIMIT,
+  ResPARAM
 };
 
 

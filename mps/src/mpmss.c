@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(trunk.17) $
+ * $HopeName: MMsrc!mpmss.c(trunk.18) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -47,20 +47,22 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   if(res != MPS_RES_OK)
     return res;
 
-
   /* allocate a load of objects */
   for(i=0; i<TEST_SET_SIZE; ++i) {
     ss[i] = (*size)(i);
 
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-    if(res != MPS_RES_OK)
+    if (res != MPS_RES_OK)
       return res;
-    *ps[i] = 1; /* Write something, so it gets swap. */
+    if (ss[i] >= sizeof(ps[i]))
+      *ps[i] = 1; /* Write something, so it gets swap. */
 
     if(i && i%4==0) putchar('\n');
     printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
   putchar('\n');
+
+  mps_pool_check_fenceposts(pool);
 
   for (k=0; k<TEST_LOOPS; ++k) {
     /* shuffle all the objects */
@@ -121,16 +123,22 @@ static size_t fixedSize(int i)
 }
 
 
+static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
+
 static int test_in_arena(mps_arena_t arena)
 {
+  die(stress(mps_class_mv_debug(), arena, randomSize,
+             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
+      "stress MV");
+
   fixedSizeSize = 13;
   die(stress(PoolClassMFS(),
              arena, fixedSize, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
-  die(stress(mps_class_mv(),
-             arena, randomSize, (size_t)65536,
-             (size_t)32, (size_t)65536), "stress MV");
+  die(stress(mps_class_mv(), arena, randomSize,
+             (size_t)65536, (size_t)32, (size_t)65536),
+      "stress MV");
 
   return 0;
 }
