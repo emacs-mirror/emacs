@@ -1,5 +1,8 @@
 2001-03-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (timer_check): Preserve the value of deactivate-mark.
+	(command_loop_1): Undo last change.
+
 	* xterm.c (fast_find_position): Return the correct vpos.
 
 	* data.c (store_symval_forwarding): Add parameter BUF.  If BUF is
