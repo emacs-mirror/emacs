@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.17) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.18) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers, Dylan developers
@@ -508,6 +508,21 @@ static mps_res_t dylan_scan(mps_ss_t mps_ss,
   return MPS_RES_OK;
 }
 
+/* dylan_class -- return pointer indicating class of object
+ *
+ * Return wrapper pointer, except for broken hearts or padding
+ */
+
+static mps_addr_t dylan_class(mps_addr_t obj)
+{
+  mps_word_t first_word = ((mps_word_t *)obj)[0];
+
+  if((first_word & 3) != 0) /* broken heart or padding */
+    return NULL;
+  else
+    return (mps_addr_t)first_word;
+}
+
 static mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
   mps_addr_t *assoc;
@@ -754,6 +769,56 @@ mps_fmt_A_s *dylan_fmt_A(void)
 mps_fmt_A_s *dylan_fmt_A_weak(void)
 {
   return &dylan_fmt_A_weak_s;
+}
+
+
+static struct mps_fmt_B_s dylan_fmt_B_s =
+{
+  ALIGN,
+  dylan_scan,
+  dylan_skip,
+  dylan_copy,
+  dylan_fwd,
+  dylan_isfwd,
+  dylan_pad,
+  dylan_class
+};
+
+static struct mps_fmt_B_s dylan_fmt_B_weak_s =
+{
+  ALIGN,
+  dylan_scan_weak,
+  dylan_skip,
+  dylan_no_copy,
+  dylan_no_fwd,
+  dylan_no_isfwd,
+  dylan_no_pad,
+  dylan_class
+};
+
+mps_fmt_B_s *dylan_fmt_B(void)
+{
+  return &dylan_fmt_B_s;
+}
+
+mps_fmt_B_s *dylan_fmt_B_weak(void)
+{
+  return &dylan_fmt_B_weak_s;
+}
+
+
+/* Now we have format variety-independent version that pick the right 
+ * format variety and create it.
+ */
+
+mps_res_t dylan_fmt(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
+{
+  return mps_fmt_create_B(mps_fmt_o, arena, dylan_fmt_B());
+}
+
+mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
+{
+  return mps_fmt_create_B(mps_fmt_o, arena, dylan_fmt_B_weak());
 }
 
 

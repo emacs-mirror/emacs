@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- * $HopeName: MMsrc!format.c(trunk.16) $
+ * $HopeName: MMsrc!format.c(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * DESIGN
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.16) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.17) $");
 
 
 Bool FormatCheck(Format format)
@@ -18,27 +18,39 @@ Bool FormatCheck(Format format)
   CHECKS(Format, format);
   CHECKU(Arena, format->arena);
   CHECKL(format->serial < format->arena->formatSerial);
+  CHECKL(format->variety == FormatVarietyA || 
+	 format->variety == FormatVarietyB);
   CHECKL(RingCheck(&format->arenaRing));
   CHECKL(AlignCheck(format->alignment));
   /* @@@@ alignment should be less than maximum allowed */
-  CHECKL(format->scan != NULL);
-  CHECKL(format->skip != NULL);
-  CHECKL(format->move != NULL);
-  CHECKL(format->isMoved != NULL);
-  CHECKL(format->copy != NULL);
-  CHECKL(format->pad != NULL);
+  CHECKL(FUNCHECK(format->scan));
+  CHECKL(FUNCHECK(format->skip));
+  CHECKL(FUNCHECK(format->move));
+  CHECKL(FUNCHECK(format->isMoved));
+  CHECKL(FUNCHECK(format->copy));
+  CHECKL(FUNCHECK(format->pad));
+  CHECKL(FUNCHECK(format->class));
+
   return TRUE;
 }
 
+static Addr FormatDefaultClass(Addr object) 
+{
+  AVER(object != NULL);
+
+  return ((Addr *)object)[0];
+}
 
 Res FormatCreate(Format *formatReturn, Arena arena,
                  Align alignment,
+		 FormatVariety variety,
                  FormatScanMethod scan,
                  FormatSkipMethod skip,
                  FormatMoveMethod move,
                  FormatIsMovedMethod isMoved,
                  FormatCopyMethod copy,
-                 FormatPadMethod pad)
+                 FormatPadMethod pad,
+		 FormatClassMethod class)
 {
   Format format;
   Res res;
@@ -54,12 +66,19 @@ Res FormatCreate(Format *formatReturn, Arena arena,
   format->arena = arena;
   RingInit(&format->arenaRing);
   format->alignment = alignment;
+  format->variety = variety;
   format->scan = scan;
   format->skip = skip;
   format->move = move;
   format->isMoved = isMoved;
   format->copy = copy;
   format->pad = pad;
+  if(class == NULL) {
+    AVER(variety == FormatVarietyA); 
+    format->class = &FormatDefaultClass;
+  } else {
+    format->class = class;
+  }
 
   format->sig = FormatSig;
   format->serial = arena->formatSerial;

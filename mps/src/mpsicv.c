@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.12) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.13) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
 
@@ -126,7 +126,7 @@ static void *test(void *arg, size_t s)
   arena = (mps_arena_t)arg;
   testlib_unused(s);
 
-  die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
+  die(dylan_fmt(&format, arena), "fmt_create");
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");

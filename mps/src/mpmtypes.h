@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.37) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.38) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -48,6 +48,7 @@ typedef unsigned TraceSet;              /* design.mps.tracer */
 typedef unsigned TraceState;		/* design.mps.tracer */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
+typedef unsigned FormatVariety;         
 typedef int RootVar;                    /* design.mps.type.rootvar */
 typedef unsigned Serial;                /* design.mps.type.serial */
 typedef struct RingStruct *Ring;        /* design.mps.ring */
@@ -149,6 +150,7 @@ typedef void (*FormatMoveMethod)   (Addr object, Addr to);
 typedef Addr (*FormatIsMovedMethod)(Addr object);
 typedef void (*FormatCopyMethod)   (Addr object, Addr to);
 typedef void (*FormatPadMethod)    (Addr base, Size size);
+typedef Addr (*FormatClassMethod)  (Addr object);
 
 
 /* Root*Method -- see design.mps.root-interface */
@@ -193,6 +195,8 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
+#define FormatVarietyA  ((FormatVariety)0)
+#define FormatVarietyB  ((FormatVariety)1)
 #define SegPrefHigh     ((SegPrefKind)0)
 #define SegPrefLow      ((SegPrefKind)1)
 #define SegPrefRefSet   ((SegPrefKind)2)
