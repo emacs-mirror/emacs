@@ -4291,7 +4291,9 @@ re_match (bufp, string, size, pos, regs)
 {
   int result = re_match_2_internal (bufp, NULL, 0, string, size,
 				    pos, regs, size);
+#if defined (C_ALLOCA) && !defined (REGEX_MALLOC)
   alloca (0);
+#endif
   return result;
 }
 #endif /* not emacs */
@@ -4335,7 +4337,9 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 
   result = re_match_2_internal (bufp, string1, size1, string2, size2,
 				pos, regs, stop);
+#if defined (C_ALLOCA) && !defined (REGEX_MALLOC)
   alloca (0);
+#endif
   return result;
 }
 
@@ -5593,7 +5597,8 @@ re_comp (s)
   if (!s)
     {
       if (!re_comp_buf.buffer)
-	return gettext ("No previous regular expression");
+        /* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
+	return (char *) gettext ("No previous regular expression");
       return 0;
     }
 
@@ -5601,12 +5606,14 @@ re_comp (s)
     {
       re_comp_buf.buffer = (unsigned char *) malloc (200);
       if (re_comp_buf.buffer == NULL)
-        return gettext (re_error_msgid[(int) REG_ESPACE]);
+        /* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
+        return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
       re_comp_buf.allocated = 200;
 
       re_comp_buf.fastmap = (char *) malloc (1 << BYTEWIDTH);
       if (re_comp_buf.fastmap == NULL)
-	return gettext (re_error_msgid[(int) REG_ESPACE]);
+	/* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
+	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
     }
 
   /* Since `re_exec' always passes NULL for the `regs' argument, we
