@@ -50,9 +50,9 @@ The following commands are useful for viewing screenfuls:
    Find the cursor again and notice that the same text
    is near the cursor now.
 
-You can also use the PageUp and PageDn keys to do scrolling, if your
-terminal has them, but you can edit more efficiently if you use C-v
-and M-v.
+You can also use the PageUp and PageDn keys to move by screenfuls, if
+your terminal has them, but you can edit more efficiently if you use
+C-v and M-v.
 
 
 * BASIC CURSOR CONTROL
@@ -352,10 +352,10 @@ You've now learned the most basic way of typing something in
 Emacs and correcting errors.  You can delete by words or lines
 as well.  Here is a summary of the delete operations:
 
-	<Delback>     delete the character just before the cursor
+	<Delback>    delete the character just before the cursor
 	C-d   	     delete the next character after the cursor
 
-	M-<Delback>   kill the word immediately before the cursor
+	M-<Delback>  kill the word immediately before the cursor
 	M-d	     kill the next word after the cursor
 
 	C-k	     kill from the cursor position to end of line
@@ -384,8 +384,8 @@ can be reinserted, whereas "deleted" things cannot be reinserted.
 Reinsertion of killed text is called "yanking".  Generally, the
 commands that can remove a lot of text kill the text (they set up so
 that you can yank the text), while the commands that remove just one
-character, or just blank lines and spaces, do deletion (so you cannot
-yank that text).
+character, or only remove blank lines and spaces, do deletion (so you
+cannot yank that text).
 
 >> Move the cursor to the  beginning of a line which is not empty.
    Then type C-k to kill the text on that line.
@@ -402,8 +402,8 @@ Bringing back killed text is called "yanking".  (Think of it as
 yanking back, or pulling back, some text that was taken away.)  You
 can yank the killed text either at the same place where it was killed,
 or at some other place in the buffer, or even in a different file.
-You can yank the text several times, which makes multiple copies of
-it.
+You can yank the same text several times; that makes multiple copies
+of it.
 
 The command for yanking is C-y.  It reinserts the last killed text,
 at the current cursor position.
