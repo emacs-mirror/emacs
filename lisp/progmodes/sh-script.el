@@ -159,6 +159,19 @@ shell it really is."
 				     sexp))))
   :group 'sh-script)
 
+(defcustom sh-imenu-generic-expression
+  (list
+   (cons 'sh
+	 (concat
+	  "\\(^\\s-*function\\s-+[A-Za-z_][A-Za-z_0-9]*\\)"
+	  "\\|"
+	  "\\(^\\s-*[A-Za-z_][A-Za-z_0-9]*\\s-*()\\)")))
+  "*Regular expression for recognizing shell function definitions.
+See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       regexp))
+  :group 'sh-script)
+
 (defvar sh-shell-variables nil
   "Alist of shell variable names that should be included in completion.
 These are used for completion in addition to all the variables named
@@ -690,6 +703,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'skeleton-newline-indent-rigidly)
   (make-local-variable 'sh-shell-variables)
   (make-local-variable 'sh-shell-variables-initialized)
+  (make-local-variable 'imenu-generic-expression)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
 	indent-line-function 'sh-indent-line
@@ -807,6 +821,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
+	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
   (while shell
