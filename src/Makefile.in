@@ -623,7 +623,9 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
    be present, like site-load.el and site-init.el; this makefile
    expects them all to be either present or buildable.
 
-   Always update shortlisp as well as this variable.  */
+   Files which are loaded unconditionally should be in shortlisp as well.
+   Files included conditionally here should be included (unconditionally)
+   in SOME_MACHINE_LISP.  */
 
 lisp= \
 	${lispsource}abbrev.elc \
@@ -693,6 +695,8 @@ shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
 	../lisp/byte-run.elc \
+	../lisp/cus-start.elc \
+	../lisp/custom.elc \
 	../lisp/files.elc \
 	../lisp/fill.elc \
 	../lisp/format.elc \
