@@ -5,8 +5,8 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <99/11/20 18:05:05 vinicius>
-;; Version:    1.4
+;; Time-stamp: <2000/12/19 15:29:04 vinicius>
+;; Version:    1.5
 
 ;; This file is part of GNU Emacs.
 
@@ -467,8 +467,10 @@ See documentation for variable `ebnf-bnf-lex'."
 	'terminal)
        ;; non-terminal or terminal
        ((eq token 'non-terminal)
+	;; replace the range "\240-\377" (see `ebnf-range-regexp').
 	(setq ebnf-bnf-lex (ebnf-buffer-substring
-			    "!#%&'*-,0-:<>@-Z\\^-z~\240-\377"))
+			    (ebnf-range-regexp "!#%&'*-,0-:<>@-Z\\^-z~"
+					       ?\240 ?\377)))
 	(let ((case-fold-search ebnf-case-fold-search)
 	      match)
 	  (if (and ebnf-terminal-regexp
@@ -505,7 +507,9 @@ See documentation for variable `ebnf-bnf-lex'."
        ))))
 
 
-(defconst ebnf-bnf-comment-chars "^\n\000-\010\016-\037\177-\237")
+;; replace the range "\177-\237" (see `ebnf-range-regexp').
+(defconst ebnf-bnf-comment-chars
+  (ebnf-range-regexp "^\n\000-\010\016-\037" ?\177 ?\237))
 
 
 (defun ebnf-bnf-skip-comment ()
