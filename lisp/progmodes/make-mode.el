@@ -300,6 +300,11 @@ not be enclosed in { } or ( )."
    ;; They can make a tab fail to be effective.
    '("^\\( +\\)\t" 1 makefile-space-face)))
 
+(defconst makefile-font-lock-syntactic-keywords
+  (list
+   ;; Change the syntax of a quoted newline so that it does not end a comment.
+   '("\\\\\n" 0 " ")))
+
 (defvar makefile-imenu-generic-expression
   (list
    (list "Dependencies" makefile-dependency-regex  1)
@@ -588,7 +593,11 @@ Makefile mode can be configured by modifying the following variables:
 	;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
 	;; near the end of a large buffer, due to parse-partial-sexp's
 	;; trying to parse all the way till the beginning of buffer.
-        '(makefile-font-lock-keywords nil nil ((?$ . ".")) backward-paragraph))
+ 	'(makefile-font-lock-keywords
+ 	  nil nil
+ 	  ((?$ . "."))
+ 	  backward-paragraph
+	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
