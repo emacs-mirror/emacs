@@ -1,3 +1,11 @@
+2000-12-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-insert-decode-map): Check the
+	frame width of a window displaying the current buffer, not that of
+	the selected frame.
+	(quail-help): Make sure that the help buffer has window before
+	inserting text in it.
+
 2000-12-07  Sam Steingold  <sds@gnu.org>
 
 	* loadup.el: Load emacs-lisp/backquote instead of autoloading.
