@@ -2188,7 +2188,7 @@ This variable doesn't affect GUI applications, which will never be hidden.  */);
 	       &Vw32_start_process_share_console,
 	       doc: /* When nil, new child processes are given a new console.
 When non-nil, they share the Emacs console; this has the limitation of
-allowing only only DOS subprocess to run at a time (whether started directly
+allowing only one DOS subprocess to run at a time (whether started directly
 or indirectly by Emacs), and preventing Emacs from cleanly terminating the
 subprocess group, but may allow Emacs to interrupt a subprocess that doesn't
 otherwise respond to interrupts from Emacs.  */);
