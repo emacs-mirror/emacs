@@ -1,3 +1,7 @@
+2000-02-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* keyboard.c (read_char): Fix the bug of setting `usec'.
+
 2000-02-25  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
 
 	* ccl.c (ccl_driver) [CCL_MapMultiple]: When the mapped value is
