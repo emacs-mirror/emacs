@@ -410,16 +410,24 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (or dir-or-list (setq dir-or-list default-directory))
   ;; This loses the distinction between "/foo/*/" and "/foo/*" that
   ;; some shells make:
-  (let (dirname)
+  (let (dirname initially-was-dirname)
     (if (consp dir-or-list)
 	(setq dirname (car dir-or-list))
       (setq dirname dir-or-list))
+    (setq initially-was-dirname
+	  (string= (file-name-as-directory dirname) dirname))
     (setq dirname (abbreviate-file-name
 		   (expand-file-name (directory-file-name dirname))))
     (if find-file-visit-truename
 	(setq dirname (file-truename dirname)))
-    (if (file-directory-p dirname)
-	(setq dirname (file-name-as-directory dirname)))
+    ;; If the argument was syntactically  a directory name not a file name,
+    ;; or if it happens to name a file that is a directory,
+    ;; convert it syntactically to a directory name.
+    ;; The reason for checking initially-was-dirname
+    ;; and not just file-directory-p
+    ;; is that file-directory-p is slow over ftp.
+    (if (or initially-was-dirname (file-directory-p dirname))
+	(setq dirname  (file-name-as-directory dirname)))
     (if (consp dir-or-list)
 	(setq dir-or-list (cons dirname (cdr dir-or-list)))
       (setq dir-or-list dirname))
