@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.64) $
+ * $HopeName: MMsrc!trace.c(trunk.65) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.64) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.65) $");
 
 
 /* Types
@@ -20,6 +20,20 @@ enum {TraceAccountingPhaseRootScan,
       TraceAccountingPhaseSegScan,
       TraceAccountingPhaseSingleScan};
 typedef int TraceAccountingPhase;
+
+
+/* Collection control parameters @@@@ */
+/* Defined here, because they are used by more than one module (pool). */
+/* They have the wrong name because they originally came from AMC, and */
+/* binary compatibility is required. */
+
+unsigned long AMCGen0Frequency = 4;
+unsigned long AMCGen1Frequency = 32;
+unsigned long AMCGen2Frequency = 300;
+unsigned long AMCGen2plusFrequencyMultiplier = 1000;
+Serial AMCGenFinal = 0; /* default: no final generation */
+
+double TraceGen0IncrementalityMultiple = 0.5;
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -379,7 +393,8 @@ Res TraceStart(Trace trace)
     double surviving = trace->condemned / 2;
     double scan = trace->foundation + surviving;
     /* double reclaim = trace->condemned - surviving; */
-    double alloc = 1024*1024L; /* reclaim / 2; */
+    double alloc = AMCGen0Frequency * TraceGen0IncrementalityMultiple *
+                   1024*1024uL;
     /* if(alloc > 0) */
       trace->rate = 1 + (Size)(scan * ARENA_POLL_MAX / (4096 * alloc));
     /* else */
