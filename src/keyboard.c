@@ -10243,12 +10243,12 @@ struct event_head {
 };
 
 struct event_head head_table[] = {
-  &Qmouse_movement,	"mouse-movement",	&Qmouse_movement,
-  &Qscroll_bar_movement, "scroll-bar-movement",	&Qmouse_movement,
-  &Qswitch_frame,	"switch-frame",		&Qswitch_frame,
-  &Qdelete_frame,	"delete-frame",		&Qdelete_frame,
-  &Qiconify_frame,	"iconify-frame",	&Qiconify_frame,
-  &Qmake_frame_visible,	"make-frame-visible",	&Qmake_frame_visible,
+  {&Qmouse_movement,      "mouse-movement",      &Qmouse_movement},
+  {&Qscroll_bar_movement, "scroll-bar-movement", &Qmouse_movement},
+  {&Qswitch_frame,        "switch-frame",        &Qswitch_frame},
+  {&Qdelete_frame,        "delete-frame",        &Qdelete_frame},
+  {&Qiconify_frame,       "iconify-frame",       &Qiconify_frame},
+  {&Qmake_frame_visible,  "make-frame-visible",  &Qmake_frame_visible}
 };
 
 void
