@@ -2522,7 +2522,10 @@ Advanced commands:
   (make-local-variable 'Info-index-alternatives)
   (setq header-line-format
 	(if Info-use-header-line
-	    '(:eval (get-text-property (point-min) 'header-line))
+	    '(:eval
+	      (replace-regexp-in-string
+	       "%" "%%"
+	       (get-text-property (point-min) 'header-line)))
 	  nil)) ; so the header line isn't displayed
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
