@@ -160,6 +160,8 @@ Boston, MA 02111-1307, USA.  */
 /* Replace later with cache access */
 /*#define FRONT_STICKY_P(i) ((i)->front_sticky != 0)
   #define END_STICKY_P(i) ((i)->rear_sticky != 0)*/
+/* As we now have Vtext_property_default_nonsticky, these macros are
+   unreliable now.  Currently, they are never used.  */
 #define FRONT_STICKY_P(i) \
   (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qfront_sticky)))
 #define END_NONSTICKY_P(i) \
@@ -219,6 +221,8 @@ extern INLINE void copy_intervals_to_string P_ ((Lisp_Object, struct buffer *,
 extern INTERVAL copy_intervals P_ ((INTERVAL, int, int));
 extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
 extern void move_if_not_intangible P_ ((int));
+extern int get_property_and_range P_ ((int, Lisp_Object, Lisp_Object *,
+				       int *, int *, Lisp_Object));
 extern Lisp_Object get_local_map P_ ((int, struct buffer *));
 extern INTERVAL update_interval P_ ((INTERVAL, int));
 extern void set_intervals_multibyte P_ ((int));
@@ -245,6 +249,7 @@ extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
 extern Lisp_Object Vdefault_text_properties;
+extern Lisp_Object Vtext_property_default_nonsticky;
 
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
@@ -268,3 +273,5 @@ int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 extern void syms_of_textprop ();
+
+#include "composite.h"
