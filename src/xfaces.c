@@ -4383,8 +4383,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
     value = face_boolean_x_resource_value (value, 1);
   else if (EQ (attr, QCunderline)
 	   || EQ (attr, QCoverline)
-	   || EQ (attr, QCstrike_through)
-	   || EQ (attr, QCbox))
+	   || EQ (attr, QCstrike_through))
     {
       Lisp_Object boolean_value;
 
@@ -4394,6 +4393,8 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
       if (SYMBOLP (boolean_value))
 	value = boolean_value;
     }
+  else if (EQ (attr, QCbox))
+    value = Fcar (Fread_from_string (value, Qnil, Qnil));
 
   return Finternal_set_lisp_face_attribute (face, attr, value, frame);
 }
