@@ -186,7 +186,7 @@ EVENT should be a scroll bar click or drag event."
       (setq next-portion-start (max
 				(scroll-bar-drag-position next-portion-whole)
 				(1+ portion-start)))
-      (if (or (> current-start next-portion-start)
+      (if (or (>= current-start next-portion-start)
 	      (< current-start portion-start))
 	  (set-window-start window portion-start)
 	;; Always set window start, to ensure scroll bar position is updated.
