@@ -2868,7 +2868,6 @@ free_frame_tool_bar (f)
 
   if (x->toolbar_widget)
     {
-      fprintf(stderr, "Remove toolbar\n");
       BLOCK_INPUT;
       gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
                             x->handlebox_widget);

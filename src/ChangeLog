@@ -1,3 +1,7 @@
+2003-01-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (free_frame_tool_bar): Removed debug printf.
+
 2003-01-30  Dave Love  <fx@gnu.org>
 
 	* alloc.c (Vgc_elapsed, gcs_done): New variables.
@@ -41,7 +45,7 @@
 	(xg_item_label_same_p, xg_update_menu_item): Check for NULL string
 	before calling strcmp or strlen.
 
-2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Call prepare_image_for_display
 	and handle image load failure.
@@ -67,7 +71,7 @@
 
 	* buffer.c (Fkill_buffer): Call format2 instead of format1.
 
-2003-01-25  Jan D.  <jan.h.d@swipnet.se>
+2003-01-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Change to return value of x_dispatch_event to int.
 
@@ -102,7 +106,7 @@
 
 	* minibuf.c (Fminibuffer_message): Verify type of parameter.
 
-2003-01-24  Jan D.  <jan.h.d@swipnet.se>
+2003-01-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_initialize): Initialize id_to_widget here instead
 	of static initializer.
@@ -201,7 +205,7 @@
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
 
-2003-01-21  Jan D.  <jan.h.d@swipnet.se>
+2003-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Must include stdio.h before termhooks.h
 
@@ -239,12 +243,12 @@
 	* xdisp.c (redisplay_window): If mini window's buffer is not
 	a minibuffer, then redisplay it like other windows.
 
-2003-01-20  Jan D.  <jan.h.d@swipnet.se>
+2003-01-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_create_frame_widgets): Check if there is an
 	external tool bar before setting tool bar height.
 
-2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Surround popup_activated
 	with #ifdef:s for non-toolkit version.
@@ -360,7 +364,7 @@
 
 	* charset.h (Funibyte_char_to_multibyte): Export.
 
-2003-01-18  Jan D.  <jan.h.d@swipnet.se>
+2003-01-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (mouse_position_for_popup): New function.
 	(Fx_popup_menu): Call mouse_position_for_popup for X and
@@ -487,7 +491,7 @@
 	* process.c (Fmake_network_process): Convert new port number
 	to host byte order for `:service t' case.  From Mario Lang.
 
-2003-01-08  Jan D.  <jan.h.d@swipnet.se>
+2003-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_file_dialog): Call XtAppNextEvent and x_dispatch_event
 	instead of XtAppProcessEvent.
@@ -1516,7 +1520,7 @@
 	* macmenu.c (mac_menu_show): Add j to count menu items; match
 	menu_item_selection to it to find selected item.
 
-2002-10-06  Jan D.  <jan.h.d@swipnet.se>
+2002-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket): Fix from 2002-10-03 didn't cover all
 	cases.  The correct fix is to pass ReparentNotify to Xt.
@@ -1543,7 +1547,7 @@
 	* macterm.c (keycode_to_xkeysym_table): Change return to be
 	treated like an X keysym.
 
-2002-10-03  Jan D.  <jan.h.d@swipnet.se>
+2002-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket): For ConfigureNotify, with x and y == 0,
 	and USE_MOTIF, call XTranslateCoordinates to get the real x and y.
@@ -2847,7 +2851,7 @@
 
 	* xdisp.c (store_mode_line_string): Lisp_Object/int mixup.
 
-2002-06-28  Jan D.  <jan.h.d@swipnet.se>
+2002-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (readable_filtered_events): New function that filters
 	FOCUS_IN_EVENT depending on parameter.
@@ -4451,7 +4455,7 @@
 	* lread.c (Fload): Don't assume that message_with_string uses the
 	string it is given like a C string.
 
-2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (x_session_check_input, x_session_initialize): Declared.
 
@@ -5202,11 +5206,11 @@
 
 	* .gdbinit (hookpost-run): Defined.
 
-2002-01-22  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-01-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Typo in previous fix corrected.
 
-2002-01-21  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Just call x_fullscreen_adjust
 	if fullscreen is being set.
@@ -5358,7 +5362,7 @@
 	* emacs.c (USAGE2): Add the --color option.
 	(standard_args): Ditto.
 
-2002-01-13  Jan Djarv  <Jan.Djarv@mbox200.swipnet.se>
+2002-01-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): New members want_fullscreen,
 	x_pixels_diff, y_pixels_diff, x_pixels_outer_diff, and
