@@ -1,3 +1,13 @@
+2003-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Renamed from non-standard-icccm-encodings-alist.
+	(ctext-non-standard-encodings-regexp): New variable
+	(ctext-post-read-conversion): Full rewrite.
+	(ctext-non-standard-designations-alist): Renamed from
+	non-standard-designations-alist.
+	(ctext-pre-write-conversion): Full rewrite.
+
 2003-05-28  Andreas Schwab  <schwab@suse.de>
 
 	* descr-text.el (describe-char): Use `char' instead of
