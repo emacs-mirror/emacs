@@ -809,14 +809,18 @@ the variable vc-header-alist"
 ;; The VC directory submode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
 
+(defvar vc-dired-prefix-map (make-sparse-keymap))
+(define-key vc-dired-prefix-map "\C-xv" vc-prefix-map)
+
 (or (assq 'vc-dired-mode minor-mode-map-alist)
     (setq minor-mode-map-alist
-	   (cons 'vc-dired-mode minor-mode-map-alist)))
+	   (cons '(vc-dired-mode vc-dired-prefix-map)
+		 minor-mode-map-alist)))
 
 (defun vc-dired-mode ()
   "The augmented Dired minor mode used in VC directory buffers.
 All Dired commands operate normally.  Users currently locking listed files
-are listed at the left-hand side of the buffer, following the Dired mark area.
+are listed in place of the file's owner and group.
 Keystrokes bound to VC commands will execute as though they had been called
 on a buffer attached to the file named in the current Dired buffer line."
   (setq vc-dired-mode t)
