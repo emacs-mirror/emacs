@@ -6793,6 +6793,8 @@ note_mouse_highlight (f, x, y)
   int portion;
   Lisp_Object window;
   struct window *w;
+  Cursor cursor = None;
+  struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
 #ifdef USE_X_TOOLKIT
@@ -6840,31 +6842,35 @@ note_mouse_highlight (f, x, y)
       return;
     }
 
+  /* Mouse is on the mode or header line?  */
   if (portion == 1 || portion == 3)
     {
-      /* Mouse is on the mode or top line.  */
       note_mode_line_highlight (w, x, portion == 1);
       return;
     }
-  else if (portion == 2)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->horizontal_drag_cursor);
+  
+  if (portion == 2)
+    cursor = f->output_data.x->horizontal_drag_cursor;
   else
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->text_cursor);
+    cursor = f->output_data.x->text_cursor;
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
+  b = XBUFFER (w->buffer);
   if (/* Within text portion of the window.  */
       portion == 0
       && EQ (w->window_end_valid, w->buffer)
-      && XFASTINT (w->last_modified) == BUF_MODIFF (XBUFFER (w->buffer))
-      && (XFASTINT (w->last_overlay_modified)
-	  == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer))))
+      && XFASTINT (w->last_modified) == BUF_MODIFF (b)
+      && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
       int hpos, vpos, pos, i, area;
       struct glyph *glyph;
       Lisp_Object object;
+      Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
+      Lisp_Object *overlay_vec = NULL;
+      int len, noverlays;
+      struct buffer *obuf;
+      int obegv, ozv, same_region;
 
       /* Find the glyph under X/Y.  */
       glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, &area, 0);
@@ -6883,261 +6889,261 @@ note_mouse_highlight (f, x, y)
       if (!STRINGP (object) && !BUFFERP (object))
 	return;
 
-      {
-	Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
-	Lisp_Object *overlay_vec = NULL;
-	int len, noverlays;
-	struct buffer *obuf;
-	int obegv, ozv;
+      /* If we get an out-of-range value, return now; avoid an error.  */
+      if (BUFFERP (object) && pos > BUF_Z (b))
+	return;
 
-	/* If we get an out-of-range value, return now; avoid an error.  */
-	if (BUFFERP (object) && pos > BUF_Z (XBUFFER (w->buffer)))
-	  return;
+      /* Make the window's buffer temporarily current for
+	 overlays_at and compute_char_face.  */
+      obuf = current_buffer;
+      current_buffer = b;
+      obegv = BEGV;
+      ozv = ZV;
+      BEGV = BEG;
+      ZV = Z;
 
-	/* Make the window's buffer temporarily current for
-	   overlays_at and compute_char_face.  */
-	obuf = current_buffer;
-	current_buffer = XBUFFER (w->buffer);
-	obegv = BEGV;
-	ozv = ZV;
-	BEGV = BEG;
-	ZV = Z;
+      /* Is this char mouse-active or does it have help-echo?  */
+      position = make_number (pos);
 
-	/* Is this char mouse-active or does it have help-echo?  */
-	position = make_number (pos);
+      if (BUFFERP (object))
+	{
+	  /* Put all the overlays we want in a vector in overlay_vec.
+	     Store the length in len.  If there are more than 10, make
+	     enough space for all, and try again.  */
+	  len = 10;
+	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	  noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
+	  if (noverlays > len)
+	    {
+	      len = noverlays;
+	      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	      noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
+	    }
 
-	if (BUFFERP (object))
-	  {
-	    /* Put all the overlays we want in a vector in overlay_vec.
-	       Store the length in len.  If there are more than 10, make
-	       enough space for all, and try again.  */
-	    len = 10;
-	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	    if (noverlays > len)
-	      {
-		len = noverlays;
-		overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-		noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
-	      }
+	  /* Sort overlays into increasing priority order.  */
+	  noverlays = sort_overlays (overlay_vec, noverlays, w);
+	}
+      else
+	noverlays = 0;
 
-	    /* Sort overlays into increasing priority order.  */
-	    noverlays = sort_overlays (overlay_vec, noverlays, w);
-	  }
-	else
-	  noverlays = 0;
+      same_region = (EQ (window, dpyinfo->mouse_face_window)
+		     && vpos >= dpyinfo->mouse_face_beg_row
+		     && vpos <= dpyinfo->mouse_face_end_row
+		     && (vpos > dpyinfo->mouse_face_beg_row
+			 || hpos >= dpyinfo->mouse_face_beg_col)
+		     && (vpos < dpyinfo->mouse_face_end_row
+			 || hpos < dpyinfo->mouse_face_end_col
+			 || dpyinfo->mouse_face_past_end));
 
-	/* Check mouse-face highlighting.  */
-	if (! (EQ (window, dpyinfo->mouse_face_window)
-	       && vpos >= dpyinfo->mouse_face_beg_row
-	       && vpos <= dpyinfo->mouse_face_end_row
-	       && (vpos > dpyinfo->mouse_face_beg_row
-		   || hpos >= dpyinfo->mouse_face_beg_col)
-	       && (vpos < dpyinfo->mouse_face_end_row
-		   || hpos < dpyinfo->mouse_face_end_col
-		   || dpyinfo->mouse_face_past_end))
-	    /* If there exists an overlay with mouse-face overlapping
-	       the one we are currently highlighting, we have to
-	       check if we enter the overlapping overlay, and then
-	       highlight only that.  */
-	    || (OVERLAYP (dpyinfo->mouse_face_overlay)
-		&& mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
-	  
-	  {
-	    /* Clear the display of the old active region, if any.  */
-	    clear_mouse_face (dpyinfo);
+      if (same_region)
+	cursor = None;
 
-	    /* Find the highest priority overlay that has a mouse-face
-	       property.  */
-	    overlay = Qnil;
-	    for (i = noverlays - 1; i >= 0 && NILP (overlay); --i)
-	      {
-		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
-		if (!NILP (mouse_face))
-		  overlay = overlay_vec[i];
-	      }
-	    dpyinfo->mouse_face_overlay = overlay;
+      /* Check mouse-face highlighting.  */
+      if (! same_region
+	  /* If there exists an overlay with mouse-face overlapping
+	     the one we are currently highlighting, we have to
+	     check if we enter the overlapping overlay, and then
+	     highlight only that.  */
+	  || (OVERLAYP (dpyinfo->mouse_face_overlay)
+	      && mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
+	{
+	  /* Clear the display of the old active region, if any.  */
+	  clear_mouse_face (dpyinfo);
+	  cursor = None;
+
+	  /* Find the highest priority overlay that has a mouse-face
+	     property.  */
+	  overlay = Qnil;
+	  for (i = noverlays - 1; i >= 0 && NILP (overlay); --i)
+	    {
+	      mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
+	      if (!NILP (mouse_face))
+		overlay = overlay_vec[i];
+	    }
+	  dpyinfo->mouse_face_overlay = overlay;
 	    
-	    /* If no overlay applies, get a text property.  */
-	    if (NILP (overlay))
-	      mouse_face = Fget_text_property (position, Qmouse_face, object);
+	  /* If no overlay applies, get a text property.  */
+	  if (NILP (overlay))
+	    mouse_face = Fget_text_property (position, Qmouse_face, object);
 
-	    /* Handle the overlay case.  */
-	    if (!NILP (overlay))
-	      {
-		/* Find the range of text around this char that
-		   should be active.  */
-		Lisp_Object before, after;
-		int ignore;
+	  /* Handle the overlay case.  */
+	  if (!NILP (overlay))
+	    {
+	      /* Find the range of text around this char that
+		 should be active.  */
+	      Lisp_Object before, after;
+	      int ignore;
 
-		before = Foverlay_start (overlay);
-		after = Foverlay_end (overlay);
-		/* Record this as the current active region.  */
-		fast_find_position (w, XFASTINT (before),
-				    &dpyinfo->mouse_face_beg_col,
-				    &dpyinfo->mouse_face_beg_row,
-				    &dpyinfo->mouse_face_beg_x,
-				    &dpyinfo->mouse_face_beg_y);
-		dpyinfo->mouse_face_past_end
-		  = !fast_find_position (w, XFASTINT (after),
-					 &dpyinfo->mouse_face_end_col,
-					 &dpyinfo->mouse_face_end_row,
-					 &dpyinfo->mouse_face_end_x,
-					 &dpyinfo->mouse_face_end_y);
-		dpyinfo->mouse_face_window = window;
+	      before = Foverlay_start (overlay);
+	      after = Foverlay_end (overlay);
+	      /* Record this as the current active region.  */
+	      fast_find_position (w, XFASTINT (before),
+				  &dpyinfo->mouse_face_beg_col,
+				  &dpyinfo->mouse_face_beg_row,
+				  &dpyinfo->mouse_face_beg_x,
+				  &dpyinfo->mouse_face_beg_y);
+	      dpyinfo->mouse_face_past_end
+		= !fast_find_position (w, XFASTINT (after),
+				       &dpyinfo->mouse_face_end_col,
+				       &dpyinfo->mouse_face_end_row,
+				       &dpyinfo->mouse_face_end_x,
+				       &dpyinfo->mouse_face_end_y);
+	      dpyinfo->mouse_face_window = window;
+	      dpyinfo->mouse_face_face_id
+		= face_at_buffer_position (w, pos, 0, 0,
+					   &ignore, pos + 1, 1);
+
+	      /* Display it as active.  */
+	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	    }
+	  /* Handle the text property case.  */
+	  else if (!NILP (mouse_face) && BUFFERP (object))
+	    {
+	      /* Find the range of text around this char that
+		 should be active.  */
+	      Lisp_Object before, after, beginning, end;
+	      int ignore;
+
+	      beginning = Fmarker_position (w->start);
+	      end = make_number (BUF_Z (XBUFFER (object))
+				 - XFASTINT (w->window_end_pos));
+	      before
+		= Fprevious_single_property_change (make_number (pos + 1),
+						    Qmouse_face,
+						    object, beginning);
+	      after
+		= Fnext_single_property_change (position, Qmouse_face,
+						object, end);
+		
+	      /* Record this as the current active region.  */
+	      fast_find_position (w, XFASTINT (before),
+				  &dpyinfo->mouse_face_beg_col,
+				  &dpyinfo->mouse_face_beg_row,
+				  &dpyinfo->mouse_face_beg_x,
+				  &dpyinfo->mouse_face_beg_y);
+	      dpyinfo->mouse_face_past_end
+		= !fast_find_position (w, XFASTINT (after),
+				       &dpyinfo->mouse_face_end_col,
+				       &dpyinfo->mouse_face_end_row,
+				       &dpyinfo->mouse_face_end_x,
+				       &dpyinfo->mouse_face_end_y);
+	      dpyinfo->mouse_face_window = window;
+
+	      if (BUFFERP (object))
 		dpyinfo->mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
 					     &ignore, pos + 1, 1);
 
-		/* Display it as active.  */
-		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      }
-	    /* Handle the text property case.  */
-	    else if (!NILP (mouse_face) && BUFFERP (object))
-	      {
-		/* Find the range of text around this char that
-		   should be active.  */
-		Lisp_Object before, after, beginning, end;
-		int ignore;
-
-		beginning = Fmarker_position (w->start);
-		end = make_number (BUF_Z (XBUFFER (object))
-				   - XFASTINT (w->window_end_pos));
-		before
-		  = Fprevious_single_property_change (make_number (pos + 1),
-						      Qmouse_face,
-						      object, beginning);
-		after
-		  = Fnext_single_property_change (position, Qmouse_face,
-						  object, end);
+	      /* Display it as active.  */
+	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	    }
+	  else if (!NILP (mouse_face) && STRINGP (object))
+	    {
+	      Lisp_Object b, e;
+	      int ignore;
 		
-		/* Record this as the current active region.  */
-		fast_find_position (w, XFASTINT (before),
+	      b = Fprevious_single_property_change (make_number (pos + 1),
+						    Qmouse_face,
+						    object, Qnil);
+	      e = Fnext_single_property_change (position, Qmouse_face,
+						object, Qnil);
+	      if (NILP (b))
+		b = make_number (0);
+	      if (NILP (e))
+		e = make_number (XSTRING (object)->size - 1);
+	      fast_find_string_pos (w, XINT (b), object,
 				    &dpyinfo->mouse_face_beg_col,
 				    &dpyinfo->mouse_face_beg_row,
 				    &dpyinfo->mouse_face_beg_x,
-				    &dpyinfo->mouse_face_beg_y);
-		dpyinfo->mouse_face_past_end
-		  = !fast_find_position (w, XFASTINT (after),
-					 &dpyinfo->mouse_face_end_col,
-					 &dpyinfo->mouse_face_end_row,
-					 &dpyinfo->mouse_face_end_x,
-					 &dpyinfo->mouse_face_end_y);
-		dpyinfo->mouse_face_window = window;
-
-		if (BUFFERP (object))
-		  dpyinfo->mouse_face_face_id
-		    = face_at_buffer_position (w, pos, 0, 0,
-					       &ignore, pos + 1, 1);
-
-		/* Display it as active.  */
-		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      }
-	    else if (!NILP (mouse_face) && STRINGP (object))
-	      {
-		Lisp_Object b, e;
-		int ignore;
-		
-		b = Fprevious_single_property_change (make_number (pos + 1),
-						      Qmouse_face,
-						      object, Qnil);
-		e = Fnext_single_property_change (position, Qmouse_face,
-						  object, Qnil);
-		if (NILP (b))
-		  b = make_number (0);
-		if (NILP (e))
-		  e = make_number (XSTRING (object)->size - 1);
-		fast_find_string_pos (w, XINT (b), object,
-				      &dpyinfo->mouse_face_beg_col,
-				      &dpyinfo->mouse_face_beg_row,
-				      &dpyinfo->mouse_face_beg_x,
-				      &dpyinfo->mouse_face_beg_y, 0);
-		fast_find_string_pos (w, XINT (e), object,
-				      &dpyinfo->mouse_face_end_col,
-				      &dpyinfo->mouse_face_end_row,
-				      &dpyinfo->mouse_face_end_x,
-				      &dpyinfo->mouse_face_end_y, 1);
-		dpyinfo->mouse_face_past_end = 0;
-		dpyinfo->mouse_face_window = window;
-		dpyinfo->mouse_face_face_id
-		  = face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
-					     glyph->face_id, 1);
-		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      }
-	  }
-
-	/* Look for a `help-echo' property.  */
-	{
-	  Lisp_Object help, overlay;
-
-	  /* Check overlays first.  */
-	  help = overlay = Qnil;
-	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
-	    {
-	      overlay = overlay_vec[i];
-	      help = Foverlay_get (overlay, Qhelp_echo);
-	    }
-
-	  if (!NILP (help))
-	    {
-	      help_echo = help;
-	      help_echo_window = window;
-	      help_echo_object = overlay;
-	      help_echo_pos = pos;
-	    }
-	  else
-	    {
-	      Lisp_Object object = glyph->object;
-	      int charpos = glyph->charpos;
-	      
-	      /* Try text properties.  */
-	      if (STRINGP (object)
-		  && charpos >= 0
-		  && charpos < XSTRING (object)->size)
-		{
-		  help = Fget_text_property (make_number (charpos),
-					     Qhelp_echo, object);
-		  if (NILP (help))
-		    {
-		      /* If the string itself doesn't specify a help-echo,
-			 see if the buffer text ``under'' it does.  */
-		      struct glyph_row *r
-			= MATRIX_ROW (w->current_matrix, vpos);
-		      int start = MATRIX_ROW_START_CHARPOS (r);
-		      int pos = string_buffer_position (w, object, start);
-		      if (pos > 0)
-			{
-			  help = Fget_text_property (make_number (pos),
-						     Qhelp_echo, w->buffer);
-			  if (!NILP (help))
-			    {
-			      charpos = pos;
-			      object = w->buffer;
-			    }
-			}
-		    }
-		}
-	      else if (BUFFERP (object)
-		       && charpos >= BEGV
-		       && charpos < ZV)
-		help = Fget_text_property (make_number (charpos), Qhelp_echo,
-					   object);
-	    
-	      if (!NILP (help))
-		{
-		  help_echo = help;
-		  help_echo_window = window;
-		  help_echo_object = object;
-		  help_echo_pos = charpos;
-		}
+				    &dpyinfo->mouse_face_beg_y, 0);
+	      fast_find_string_pos (w, XINT (e), object,
+				    &dpyinfo->mouse_face_end_col,
+				    &dpyinfo->mouse_face_end_row,
+				    &dpyinfo->mouse_face_end_x,
+				    &dpyinfo->mouse_face_end_y, 1);
+	      dpyinfo->mouse_face_past_end = 0;
+	      dpyinfo->mouse_face_window = window;
+	      dpyinfo->mouse_face_face_id
+		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
+					   glyph->face_id, 1);
+	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	    }
 	}
-	  
-	BEGV = obegv;
-	ZV = ozv;
-	current_buffer = obuf;
+
+      /* Look for a `help-echo' property.  */
+      {
+	Lisp_Object help, overlay;
+
+	/* Check overlays first.  */
+	help = overlay = Qnil;
+	for (i = noverlays - 1; i >= 0 && NILP (help); --i)
+	  {
+	    overlay = overlay_vec[i];
+	    help = Foverlay_get (overlay, Qhelp_echo);
+	  }
+
+	if (!NILP (help))
+	  {
+	    help_echo = help;
+	    help_echo_window = window;
+	    help_echo_object = overlay;
+	    help_echo_pos = pos;
+	  }
+	else
+	  {
+	    Lisp_Object object = glyph->object;
+	    int charpos = glyph->charpos;
+	      
+	    /* Try text properties.  */
+	    if (STRINGP (object)
+		&& charpos >= 0
+		&& charpos < XSTRING (object)->size)
+	      {
+		help = Fget_text_property (make_number (charpos),
+					   Qhelp_echo, object);
+		if (NILP (help))
+		  {
+		    /* If the string itself doesn't specify a help-echo,
+		       see if the buffer text ``under'' it does.  */
+		    struct glyph_row *r
+		      = MATRIX_ROW (w->current_matrix, vpos);
+		    int start = MATRIX_ROW_START_CHARPOS (r);
+		    int pos = string_buffer_position (w, object, start);
+		    if (pos > 0)
+		      {
+			help = Fget_text_property (make_number (pos),
+						   Qhelp_echo, w->buffer);
+			if (!NILP (help))
+			  {
+			    charpos = pos;
+			    object = w->buffer;
+			  }
+		      }
+		  }
+	      }
+	    else if (BUFFERP (object)
+		     && charpos >= BEGV
+		     && charpos < ZV)
+	      help = Fget_text_property (make_number (charpos), Qhelp_echo,
+					 object);
+	    
+	    if (!NILP (help))
+	      {
+		help_echo = help;
+		help_echo_window = window;
+		help_echo_object = object;
+		help_echo_pos = charpos;
+	      }
+	  }
       }
+	  
+      BEGV = obegv;
+      ZV = ozv;
+      current_buffer = obuf;
     }
+
+  if (cursor != None)
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 }
 
 static void
