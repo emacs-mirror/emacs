@@ -579,7 +579,10 @@ main (argc, argv, envp)
 
   sort_args (argc, argv);
 
-  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
+  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args)
+      /* We don't know the version number unless this is a dumped Emacs.
+         So ignore --version otherwise.  */
+      && initialized)
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("emacs-version"));
@@ -591,7 +594,7 @@ main (argc, argv, envp)
       else
 	{
 	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
-	  printf ("Copyright (C) 1997 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 1998 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
