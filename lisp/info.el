@@ -312,8 +312,7 @@ Do the right thing if the file has been compressed or zipped."
 	  (source (expand-file-name "info/" source-directory))
 	  (sibling (if installation-directory
 		       (expand-file-name "info/" installation-directory)
-		     (if (and (memq system-type '(ms-dos windows-nt))
-			      invocation-directory)
+		     (if invocation-directory
 			 (let ((infodir (expand-file-name
 					 "../info/"
 					 invocation-directory)))
