@@ -2502,7 +2502,7 @@ Optional EVENT is the location for the menu."
 			 value))
   :match (lambda (widget value)
 	   (or (symbolp value)
-	       (widget-editable-list-match widget value)))
+	       (widget-group-match widget value)))
   :convert-widget 'custom-hook-convert-widget
   :tag "Hook")
 
