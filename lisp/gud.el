@@ -2184,20 +2184,23 @@ It is saved for when this flag is not set.")
 
 	    (with-current-buffer (process-buffer proc)
 	      ;; If we have been so requested, delete the debugger prompt.
-	      (if (marker-buffer gud-delete-prompt-marker)
-		  (progn
-		    (delete-region (process-mark proc) gud-delete-prompt-marker)
-		    (set-marker gud-delete-prompt-marker nil)))
-	      ;; Save the process output, checking for source file markers.
-	      (setq output (gud-marker-filter string))
-	      ;; Check for a filename-and-line number.
-	      ;; Don't display the specified file
-	      ;; unless (1) point is at or after the position where output appears
-	      ;; and (2) this buffer is on the screen.
-	      (setq process-window
-		    (and gud-last-frame
-			 (>= (point) (process-mark proc))
-			 (get-buffer-window (current-buffer))))
+	      (save-restriction
+		(widen)
+		(if (marker-buffer gud-delete-prompt-marker)
+		    (progn
+		      (delete-region (process-mark proc)
+				     gud-delete-prompt-marker)
+		      (set-marker gud-delete-prompt-marker nil)))
+		;; Save the process output, checking for source file markers.
+		(setq output (gud-marker-filter string))
+		;; Check for a filename-and-line number.
+		;; Don't display the specified file
+		;; unless (1) point is at or after the position where output appears
+		;; and (2) this buffer is on the screen.
+		(setq process-window
+		      (and gud-last-frame
+			   (>= (point) (process-mark proc))
+			   (get-buffer-window (current-buffer)))))
 
 	      ;; Let the comint filter do the actual insertion.
 	      ;; That lets us inherit various comint features.
@@ -2382,10 +2385,12 @@ Obeying it means displaying in another window the specified file and line."
     ;; Arrange for the current prompt to get deleted.
     (save-excursion
       (set-buffer gud-comint-buffer)
-      (goto-char (process-mark proc))
-      (beginning-of-line)
-      (if (looking-at comint-prompt-regexp)
-	  (set-marker gud-delete-prompt-marker (point))))
+      (save-restriction
+	(widen)
+	(goto-char (process-mark proc))
+	(forward-line 0)
+	(if (looking-at comint-prompt-regexp)
+	    (set-marker gud-delete-prompt-marker (point)))))
     (process-send-string proc command)))
 
 (defun gud-refresh (&optional arg)
