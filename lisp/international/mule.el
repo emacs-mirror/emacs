@@ -760,7 +760,12 @@ If the buffer's previous file coding-system value specifies end-of-line
 conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
 merged with the already-specified end-of-line conversion.
 However, if the optional prefix argument FORCE is non-nil,
-then CODING-SYSTEM is used exactly as specified."
+then CODING-SYSTEM is used exactly as specified.
+
+This marks the buffer modified so that the succeeding \\[save-buffer]
+surely saves the buffer with CODING-SYSTEM.  From a program, if you
+don't want to mark the buffer modified, just set the variable
+`buffer-file-coding-system' directly."
   (interactive "zCoding system for visited file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (null force)
