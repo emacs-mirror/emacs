@@ -29,8 +29,8 @@
 
 ;;; Code:
 
-(autoload 'mm-decode-coding-region "mm-util")
-(autoload 'mm-encode-coding-region "mm-util")
+(require 'mm-util)
+(eval-when-compile (defvar mm-use-ultra-safe-encoding))
 
 (defun quoted-printable-decode-region (from to &optional coding-system)
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
