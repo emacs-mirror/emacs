@@ -473,6 +473,9 @@ M-x customize-variable RET recentf-mode RET.
 To change the number of recent files displayed and others options use
 M-x customize-group RET recentf RET.
 
+*** elide-head.el provides a mechanism for eliding boilerplate header
+text.
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
