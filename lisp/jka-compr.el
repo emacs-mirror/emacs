@@ -531,8 +531,15 @@ There should be no more than seven characters after the final `/'")
 						nil
 						uncompress-args))
 		      (setq size (- (point) start))
-		      (goto-char start))
-
+		      (goto-char start)
+		      ;; Run the functions that insert-file-contents would.
+		      (let ((list after-insert-file-functions)
+			    (value size))
+			(while list
+			  (setq value (funcall (car list) size))
+			  (if value
+			      (setq size value))
+			  (setq list (cdr list)))))
 
 		  (error
 		   (if (and (eq (car error-code) 'file-error)
