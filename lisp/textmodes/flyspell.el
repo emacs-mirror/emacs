@@ -731,14 +731,17 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 	 (flyspell-not-casechars (flyspell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))
 	 (ispell-many-otherchars-p (ispell-get-many-otherchars-p))
-	 (word-regexp (concat flyspell-casechars
-			      "+\\("
-			      ispell-otherchars
-			      "?"
-			      flyspell-casechars
-			      "+\\)"
-			      (if ispell-many-otherchars-p
-				  "*" "?")))
+	 (word-regexp (if (not (string= "" ispell-otherchars))
+			  (concat 
+			   flyspell-casechars
+			   "+\\("
+			   ispell-otherchars
+			   "?"
+			   flyspell-casechars
+			   "+\\)"
+			   (if ispell-many-otherchars-p
+			       "*" "?"))
+			(concat flyspell-casechars "+")))
 	 (tex-prelude "[\\\\{]")
 	 (tex-regexp  (if (eq ispell-parser 'tex)
 			  (concat tex-prelude "?" word-regexp "}?")
@@ -755,18 +758,19 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 	  (re-search-backward flyspell-casechars (point-min) t)))
     ;; move to front of word
     (re-search-backward flyspell-not-casechars (point-min) 'start)
-    (let ((pos nil))
-      (while (and (looking-at ispell-otherchars)
-		  (not (bobp))
-		  (or (not did-it-once)
-		      ispell-many-otherchars-p)
-		  (not (eq pos (point))))
-	(setq pos (point))
-	(setq did-it-once t)
-	(backward-char 1)
-	(if (looking-at flyspell-casechars)
-	    (re-search-backward flyspell-not-casechars (point-min) 'move)
-	  (backward-char -1))))
+    (if (not (string= "" ispell-otherchars))
+	(let ((pos nil))
+	  (while (and (looking-at ispell-otherchars)
+		      (not (bobp))
+		      (or (not did-it-once)
+			  ispell-many-otherchars-p)
+		      (not (eq pos (point))))
+	    (setq pos (point))
+	    (setq did-it-once t)
+	    (backward-char 1)
+	    (if (looking-at flyspell-casechars)
+		(re-search-backward flyspell-not-casechars (point-min) 'move)
+	      (backward-char -1)))))
     ;; Now mark the word and save to string.
     (if (eq (re-search-forward tex-regexp (point-max) t) nil)
 	nil
