@@ -252,7 +252,7 @@ which call really caused the error.
 You can start Emacs in a synchronous mode by invoking it with the -xrm
 option, like this:
 
-    emacs -rm "emacs.synchronous: true"
+    emacs -xrm "emacs.synchronous: true"
 
 Setting a breakpoint in the function `x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
