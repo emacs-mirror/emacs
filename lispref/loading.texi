@@ -656,6 +656,7 @@ The argument @var{feature} must be a symbol.  @code{provide} returns
 
 If provided, @var{subfeatures} should be a list of symbols indicating
 a set of specific subfeatures provided by this version of @var{feature}.
+You can test the presence of a subfeature using @code{featurep}.
 
 @smallexample
 features
@@ -723,12 +724,14 @@ library with @code{defun}, @code{defalias}, @code{defsubst},
 It then restores any autoloads formerly associated with those symbols.
 (Loading saves these in the @code{autoload} property of the symbol.)
 
+@vindex unload-feature-special-hooks
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
-hooks.  These hooks include variables whose names end in @samp{hook} or
-@samp{-hooks}, plus those listed in @code{loadhist-special-hooks}.  This
-is to prevent Emacs from ceasing to function because important hooks
-refer to functions that are no longer defined.
+hooks.  These hooks include variables whose names end in @samp{hook}
+or @samp{-hooks}, plus those listed in
+@code{unload-feature-special-hooks}.  This is to prevent Emacs from
+ceasing to function because important hooks refer to functions that
+are no longer defined.
 
 @vindex @var{feature}-unload-hook
 If these measures are not sufficient to prevent malfunction, a library
