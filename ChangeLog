@@ -1,3 +1,8 @@
+2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* INSTALL (* GNU/Linux development packages): Mention Debian and
+	RedHat package names.
+
 2003-04-30  Boyd Lynn Gerber  <gerberb@zenez.com>
 
 	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.

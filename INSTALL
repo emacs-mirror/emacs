@@ -178,7 +178,9 @@ Many GNU/Linux systems do not come with development packages by
 default; they just include the files that you need to run Emacs, but
 not those you need to compile it.  For example, to compile Emacs with
 X11 support, you may need to install the special `X11 development'
-package (`xlibs-dev' on Debian).
+package.  For example, in April 2003, the package names to install
+were `xlibs-dev' and `libxaw7-dev' on Debian and `XFree86-devel' and
+`Xaw3d-devel' on RedHat.
 
 
 DETAILED BUILDING AND INSTALLATION:
