@@ -228,9 +228,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
     GCPRO3 (infile, buffer, current_dir);
 
-    current_dir = 
-      expand_and_dir_to_file
-	(Funhandled_file_name_directory (current_dir), Qnil);
+    current_dir
+      = expand_and_dir_to_file (Funhandled_file_name_directory (current_dir),
+				Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
@@ -240,6 +240,25 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   display = nargs >= 4 ? args[3] : Qnil;
 
+  filefd = open (XSTRING (infile)->data, O_RDONLY, 0);
+  if (filefd < 0)
+    {
+      report_file_error ("Opening process input file", Fcons (infile, Qnil));
+    }
+  /* Search for program; barf if not found.  */
+  {
+    struct gcpro gcpro1;
+
+    GCPRO1 (current_dir);
+    openp (Vexec_path, args[0], EXEC_SUFFIXES, &path, 1);
+    UNGCPRO;
+  }
+  if (NILP (path))
+    {
+      close (filefd);
+      report_file_error ("Searching for program", Fcons (args[0], Qnil));
+    }
+  new_argv[0] = XSTRING (path)->data;
   {
     register int i;
     for (i = 4; i < nargs; i++)
@@ -247,24 +266,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	CHECK_STRING (args[i], i);
 	new_argv[i - 3] = XSTRING (args[i])->data;
       }
-    /* Program name is first command arg */
-    new_argv[0] = XSTRING (args[0])->data;
     new_argv[i - 3] = 0;
   }
-
-  filefd = open (XSTRING (infile)->data, O_RDONLY, 0);
-  if (filefd < 0)
-    {
-      report_file_error ("Opening process input file", Fcons (infile, Qnil));
-    }
-  /* Search for program; barf if not found.  */
-  openp (Vexec_path, args[0], EXEC_SUFFIXES, &path, 1);
-  if (NILP (path))
-    {
-      close (filefd);
-      report_file_error ("Searching for program", Fcons (args[0], Qnil));
-    }
-  new_argv[0] = XSTRING (path)->data;
 
 #ifdef MSDOS /* MW, July 1993 */
   /* These vars record information from process termination.
