@@ -4624,7 +4624,15 @@ choose_write_coding_system (start, end, filename,
   if (auto_saving)
     val = Qnil;
   else if (!NILP (Vcoding_system_for_write))
-    val = Vcoding_system_for_write;
+    {
+      val = Vcoding_system_for_write;
+      if (coding_system_require_warning
+	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
+	/* Confirm that VAL can surely encode the current region.  */
+	val = call5 (Vselect_safe_coding_system_function,
+		     start, end, Fcons (Qt, Fcons (val, Qnil)),
+		     Qnil, filename);
+    }
   else
     {
       /* If the variable `buffer-file-coding-system' is set locally,
