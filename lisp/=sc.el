@@ -1366,10 +1366,12 @@ Any old information is lost, unless an error occurs."
 	(info (copy-sequence sc-gal-information)))
     (setq sc-gal-attributions nil
 	  sc-gal-information nil)
-    (let ((start (region-beginning))
-	  (end   (region-end))
+    (let (start end
 	  (sc-force-confirmation-p t)
 	  (sc-cite-context nil))
+      (let ((mark-active t))
+	(setq start (region-beginning)
+	      end (region-end)))
       (sc-fetch-fields start end)
       (if (null sc-gal-information)
 	  (progn
@@ -1514,8 +1516,10 @@ original message but it does require a few things:
   (run-hooks 'sc-pre-hook)
   (setq sc-gal-attributions nil)
   (setq sc-gal-information nil)
-  (let ((start (region-beginning))
-	(end   (region-end)))
+  (let (start end)
+    (let ((mark-active t))
+      (setq start (region-beginning)
+	    end (region-end)))
     (sc-fetch-fields start end)
     (sc-mail-yank-clear-headers start end)
     (if (not sc-all-but-cite-p)
