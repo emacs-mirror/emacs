@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.38) $
+ * $HopeName: MMsrc!arenavm.c(trunk.39) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.38) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.39) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -700,6 +700,13 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
     }
   }
 
+  /* test commit limit */
+  /* Assumes VMArenaCommitted will increase by size after the call */
+  /* to VMMap */
+  if(VMArenaCommitted(arena) + size > arena->commitLimit) {
+    return ResCOMMIT_LIMIT;
+  }
+
   /* .alloc.early-map: Map in the segment memory before actually */
   /* allocating the pages, so that we can exit straight away if */
   /* we fail. */
@@ -714,6 +721,15 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* Ensure that the page descriptors we need are on mapped pages. */
   if(unusedTablePages(&unmappedPagesBase, &unmappedPagesLimit,
 		      vmArena, base, base + pages)) {
+    /* test commit limit */
+    /* Assumes VMArenaCommitted will increase by unmappedPagesLimit - */
+    /* unmappedPagesBase after the call to VMMap */
+    if(VMArenaCommitted(arena) +
+       AddrOffset(unmappedPagesBase, unmappedPagesLimit) >
+       arena->commitLimit) {
+      res = ResCOMMIT_LIMIT;
+      goto failTableMap;
+    }
     res = VMMap(vmArena->vm, unmappedPagesBase, unmappedPagesLimit);
     if(res != ResOK)
       goto failTableMap;
