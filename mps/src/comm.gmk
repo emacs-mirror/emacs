@@ -1,7 +1,7 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.49) $
-# Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
+# $HopeName: MMsrc!comm.gmk(trunk.50) $
+# Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -110,8 +110,7 @@ endif
 endif
 
 # These flags are included in all compilations.
-CFLAGSCOMMON = -I standard/export -I fwos/export -I fwos/unix/export \
-  $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
+CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
 
 # %%VARIETY: Define a macro containing the set of flags for the new
 #            variety.
@@ -275,22 +274,17 @@ testrunep: epvmss
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 #
-# %%TARGET: Add a pseudo-target for the new target here, first rule for
-# variety-dependent targets, and second for variety-independent ones.
+# %%TARGET: Add a pseudo-target for the new target here.
 
 mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
-  abqtest cbstest btcv mv2eptst mv2test \
+  abqtest cbstest btcv mv2eptst mv2test eventcnv \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 endif
-
-eventcnv: phony
-	$(MAKE) -f $(PFM).gmk TARGET=$@ VARIETY=we variety
-# Use the we directory and libraries.
 
 
 # "clean" removes the directory containing the build results for the
@@ -396,8 +390,6 @@ $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
-	$(ECHO) "$(PFM): $@"
-	$(CC) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ)
 
