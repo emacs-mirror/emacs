@@ -1,5 +1,8 @@
 2003-02-24  Juanma Barranquero  <lektu@terra.es>
 
+	* callint.c (fix_command): Declare as static void and move before
+	Fcall_interactively.
+
 	* xdisp.c (Qwhen): Declare external; it's now defined in callint.c.
 	(syms_of_xdisp): Don't initialize Qwhen.
 
