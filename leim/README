@@ -19,7 +19,7 @@ SKK-DIC:
 This directory contains source dictionary for Japanese input method
 distributed with SKK (Japanese input method run with Mule).  But, you
 don't need this file because we distribute an Emacs Lisp source file
-skk/skkdic.el which has already been converted from the source
+ja-dic/ja-dic.el which has already been converted from the source
 dictionary (See below).
 
 ja-dic:

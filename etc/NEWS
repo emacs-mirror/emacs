@@ -699,7 +699,7 @@ variable is found in `default-indicate-empty-lines'.
 ** There is a new "aggressive" scrolling method.
 
 When scrolling up because point is above the window start, if the
-value of the buffer-local variable `scroll-up-aggessively' is a
+value of the buffer-local variable `scroll-up-aggressively' is a
 number, Emacs chooses a new window start so that point ends up that
 fraction of the window's height from the top of the window.
 
