@@ -406,7 +406,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
       (XTYPE (arg2) == Lisp_Int)) /* don't promote, if both are ints */
     {				/* this can be improved by pre-calculating */
       int acc, x, y;		/* some binary powers of x then accumulating */
-      /* these, thereby saving some time. -wsr */
+      Lisp_Object val;
+
       x = XINT (arg1);
       y = XINT (arg2);
       acc = 1;
@@ -431,8 +432,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 	      y = (unsigned)y >> 1;
 	    }
 	}
-      XSET (x, Lisp_Int, acc);
-      return x;
+      XSET (val, Lisp_Int, acc);
+      return val;
     }
   f1 = (XTYPE (arg1) == Lisp_Float) ? XFLOAT (arg1)->data : XINT (arg1);
   f2 = (XTYPE (arg2) == Lisp_Float) ? XFLOAT (arg2)->data : XINT (arg2);
