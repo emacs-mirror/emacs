@@ -1,5 +1,7 @@
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* config.in: Regenerate.
+
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)
 	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
 	(x_top_window_to_frame): Add Display* argument to xg_win_to_widget.
