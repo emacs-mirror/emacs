@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993,2000,2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -718,7 +718,8 @@ This also does some trivial optimizations to make the form prettier."
 				     '((quote --cl-rest--)))))))
 		 (list (car form) (list* 'lambda (cadadr form) body))))
 	   (let ((found (assq (cadr form) env)))
-	     (if (eq (cadr (caddr found)) 'cl-labels-args)
+	     (if (and found (ignore-errors
+			      (eq (cadr (caddr found)) 'cl-labels-args)))
 		 (cl-macroexpand-all (cadr (caddr (cadddr found))) env)
 	       form))))
 	((memq (car form) '(defun defmacro))
