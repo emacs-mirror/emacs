@@ -1779,7 +1779,7 @@ x_set_font (f, arg, oldval)
   else
     abort ();
 
-  do_pending_window_change ();
+  do_pending_window_change (0);
 
   /* Don't call `face-set-after-frame-default' when faces haven't been
      initialized yet.  This is the case when called from
@@ -1833,7 +1833,7 @@ x_set_internal_border_width (f, arg, oldval)
     {
       x_set_window_size (f, 0, f->width, f->height);
       SET_FRAME_GARBAGED (f);
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
 }
 
@@ -2251,7 +2251,7 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
 }
 
@@ -2281,7 +2281,7 @@ x_set_scroll_bar_width (f, arg, oldval)
 
       if (FRAME_X_WINDOW (f))
         x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
   else if (INTEGERP (arg) && XINT (arg) > 0
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
@@ -2295,7 +2295,7 @@ x_set_scroll_bar_width (f, arg, oldval)
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 
-  change_frame_size (f, 0, FRAME_WIDTH (f), 0, 0);
+  change_frame_size (f, 0, FRAME_WIDTH (f), 0, 0, 0);
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.hpos = 0;
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;
 }
@@ -3787,7 +3787,7 @@ This function is an internal primitive--use `make-frame' instead.")
   height = f->height;
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, height, width, 1, 0);
+  change_frame_size (f, height, width, 1, 0, 0);
 
   /* Set up faces after all frame parameters are known.  */
   call1 (Qface_set_after_frame_default, frame);
@@ -9636,7 +9636,7 @@ x_create_tip_frame (dpyinfo, parms)
   height = f->height;
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, height, width, 1, 0);
+  change_frame_size (f, height, width, 1, 0, 0);
 
   f->no_split = 1;
 
