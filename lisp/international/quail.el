@@ -81,6 +81,13 @@ See the documentation of `quail-package-alist' for the format.")
 (defvar quail-current-translations nil
   "Cons of indices and vector of possible translations of the current key.")
 
+(defvar quail-current-data nil
+  "Any Lisp object holding information of current translation status.
+When a key sequence is mapped to TRANS and TRANS is a cons
+of actual translation and some Lisp object to be refered
+for translating the longer key sequence, this variable is set
+to that Lisp object.")
+
 ;; A flag to control conversion region.  Normally nil, but if set to
 ;; t, it means we must start the new conversion region if new key to
 ;; be translated is input.
@@ -185,27 +192,26 @@ Conversion keymap is a keymap used while conversion region is active
 (defun quail-use-package (package-name &rest libraries)
   "Start using Quail package PACKAGE-NAME.
 The remaining arguments are libraries to be loaded before using the package."
-  (while libraries
-    (if (not (load (car libraries) t))
-	(progn
-	  (with-output-to-temp-buffer "*Help*"
-	    (princ "Quail package \"")
-	    (princ package-name)
-	    (princ "\" can't be activated\n  because library \"")
-	    (princ (car libraries))
-	    (princ "\" is not in `load-path'.
+  (let ((package (quail-package package-name)))
+    (if (null package)
+	;; Perhaps we have not yet loaded necessary libraries.
+	(while libraries
+	  (if (not (load (car libraries) t))
+	      (progn
+		(with-output-to-temp-buffer "*Help*"
+		  (princ "Quail package \"")
+		  (princ package-name)
+		  (princ "\" can't be activated\n  because library \"")
+		  (princ (car libraries))
+		  (princ "\" is not in `load-path'.
 
 The most common case is that you have not yet installed appropriate
 libraries in LEIM (Libraries of Emacs Input Method) which is
 distributed separately from Emacs.
 
-Installation of LEIM for Quail is very simple, just copy Quail
-packages (byte-compiled Emacs Lisp files) to somewhere in your
-`load-path'.
-
 LEIM is available from the same ftp directory as Emacs."))
-	  (error "Can't use the Quail package `%s'" package-name))
-      (setq libraries (cdr libraries))))
+		(error "Can't use the Quail package `%s'" package-name))
+	    (setq libraries (cdr libraries))))))
   (quail-select-package package-name)
   (setq current-input-method-title (quail-title))
   (quail-mode 1))
@@ -295,6 +301,7 @@ This map is activated while translation region is active.")
 This map is activated while convesion region is active but translation
 region is not active.")
 
+;;;###autoload
 (defun quail-define-package (name language title
 				  &optional guidance docstring translation-keys
 				  forget-last-selection deterministic
@@ -393,8 +400,10 @@ vs. corresponding command to be called."
 	   forget-last-selection deterministic kbd-translate show-layout
 	   (if create-decode-map (list 'decode-map) nil)
 	   maximum-shortest overlay-plist update-translation-function
-	   conversion-keymap)))
-  (register-input-method language (list name 'quail-use-package))
+	   conversion-keymap))
+    ;; Update TITLE field.
+    (let ((slot (assoc name input-method-alist)))
+      (if slot (setcar (nthcdr 4 slot) docstring))))
   (quail-select-package name))
 
 ;; Quail minor mode handlers.
@@ -425,10 +434,9 @@ vs. corresponding command to be called."
   (if (overlayp quail-conv-overlay)
       (delete-overlay quail-conv-overlay)))
 
-;; While translating and converting, we enter the recursive edit and
-;; exit it frequently, which results in frequent and annoying change
-;; of and annoying in mode line.   To avoid it, we use a modified
-;; mode-line-format.
+;; While translating and converting, we enter and exit the recursive
+;; edit frequently, which results in frequent and annoying change of
+;; mode line.  To avoid it, we use a modified mode-line-format.
 (defvar quail-mode-line-format nil)
 
 ;; Return a modified mode-line-format which doesn't show the recursive
@@ -658,12 +666,15 @@ the translation.  These objects are transformed to cons cells in the
 format \(INDEX . VECTOR), as described above."
   (and (consp object)
        (let ((translation (car object)))
-	 (or (integerp translation) (consp translation) (null translation)
+	 (or (integerp translation) (null translation)
 	     (vectorp translation) (stringp translation)
-	     (symbolp translation)))
+	     (symbolp translation)
+	     (and (consp translation) (not (vectorp (cdr translation))))))
        (let ((alist (cdr object)))
-	 (or (listp alist) (symbolp alist)))))
+	 (or (and (listp alist) (consp (car alist)))
+	     (symbolp alist)))))
 
+;;;###autoload
 (defmacro quail-define-rules (&rest rules)
   "Define translation rules of the current Quail package.
 Each argument is a list of KEY and TRANSLATION.
@@ -685,6 +696,7 @@ If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
 	  (setq l (cdr l)))
 	map)))
 
+;;;###autoload
 (defun quail-install-map (map)
   "Install the Quail map MAP in the current Quail package.
 The installed map can be referred by the function `quail-map'."
@@ -694,14 +706,18 @@ The installed map can be referred by the function `quail-map'."
       (error "Invalid Quail map `%s'" map))
   (setcar (cdr (cdr quail-current-package)) map))
 
+;;;###autoload
 (defun quail-defrule (key translation &optional name)
   "Add one translation rule, KEY to TRANSLATION, in the current Quail package.
 KEY is a string meaning a sequence of keystrokes to be translated.
-TRANSLATION is a character, a string, a vector, a Quail map, or a function.
+TRANSLATION is a character, a string, a vector, a Quail map,
+a function, or a cons.
 It it is a character, it is the sole translation of KEY.
 If it is a string, each character is a candidate for the translation.
 If it is a vector, each element (string or character) is a candidate
   for the translation.
+If it is a cons, the car is one of the above and the cdr is a function
+to call when translating KEY.
 In these cases, a key specific Quail map is generated and assigned to KEY.
 
 If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
@@ -717,10 +733,12 @@ current Quail package."
   (quail-defrule-internal key translation (quail-map)))
 
 ;; Define KEY as TRANS in a Quail map MAP.
+;;;###autoload
 (defun quail-defrule-internal (key trans map)
   (if (null (stringp key))
       "Invalid Quail key `%s'" key)
   (if (not (or (numberp trans) (stringp trans) (vectorp trans)
+	       (consp trans)
 	       (symbolp trans)
 	       (quail-map-p trans)))
       (error "Invalid Quail translation `%s'" trans))
@@ -729,6 +747,7 @@ current Quail package."
   (let ((len (length key))
 	(idx 0)
 	ch entry)
+    ;; Make a map for registering TRANS if necessary.
     (while (< idx len)
       (if (null (consp map))
 	  ;; We come here, for example, when we try to define a rule
@@ -766,41 +785,43 @@ current Quail package."
 	      (setcdr entry (append trans (cdr map)))))
 	(setcar map trans)))))
 
-(defun quail-get-translation (map key len)
-  "Return the translation specified in Quail map MAP for KEY of length LEN.
+(defun quail-get-translation (def key len)
+  "Return the translation specified as DEF for KEY of length LEN.
 The translation is either a character or a cons of the form (INDEX . VECTOR),
 where VECTOR is a vector of candidates (character or string) for
 the translation, and INDEX points into VECTOR to specify the currently
 selected translation."
-  (let ((def (car map)))
-    (if (and def (symbolp def))
-	;; DEF is a symbol of a function which returns valid translation.
-	(setq def (funcall def key len)))
-    (cond
-     ((or (integerp def) (consp def))
-      def)
+  (if (and def (symbolp def))
+      ;; DEF is a symbol of a function which returns valid translation.
+      (setq def (funcall def key len)))
+  (if (and (consp def) (not (vectorp (cdr def))))
+      (setq def (car def)))
 
-     ((null def)
-      ;; No translation.
-      nil)
+  (cond
+   ((or (integerp def) (consp def))
+    def)
 
-     ((stringp def)
-      ;; Each character in DEF is a candidate of translation.  Reform
-      ;; it as (INDEX . VECTOR).
-      (setq def (string-to-vector def))
-      ;; But if the length is 1, we don't need vector but a single
-      ;; character as the translation.
-      (if (= (length def) 1)
-	  (aref def 0)
-	(cons 0 def)))
+   ((null def)
+    ;; No translation.
+    nil)
 
-     ((vectorp def)
-      ;; Each element (string or character) in DEF is a candidate of
-      ;; translation.  Reform it as (INDEX . VECTOR).
-      (cons 0 def))
+   ((stringp def)
+    ;; Each character in DEF is a candidate of translation.  Reform
+    ;; it as (INDEX . VECTOR).
+    (setq def (string-to-vector def))
+    ;; But if the length is 1, we don't need vector but a single
+    ;; candidate as the translation.
+    (if (= (length def) 1)
+	(aref def 0)
+      (cons 0 def)))
 
-     (t
-      (error "Invalid object in Quail map: %s" def)))))
+   ((vectorp def)
+    ;; Each element (string or character) in DEF is a candidate of
+    ;; translation.  Reform it as (INDEX . VECTOR).
+    (cons 0 def))
+
+   (t
+    (error "Invalid object in Quail map: %s" def))))
 
 (defun quail-lookup-key (key len)
   "Lookup KEY of length LEN in the current Quail map and return the definition.
@@ -808,7 +829,7 @@ The returned value is a Quail map specific to KEY."
   (let ((idx 0)
 	(map (quail-map))
 	(kbd-translate (quail-kbd-translate))
-	slot ch translation)
+	slot ch translation def)
     (while (and map (< idx len))
       (setq ch (if kbd-translate (quail-keyboard-translate (aref key idx))
 		 (aref key idx)))
@@ -819,12 +840,22 @@ The returned value is a Quail map specific to KEY."
       (if (and (cdr slot) (symbolp (cdr slot)))
 	  (setcdr slot (funcall (cdr slot) key idx)))
       (setq map (cdr slot)))
-    (if (and map (setq translation (quail-get-translation map key len)))
+    (setq def (car map))
+    (if (and map (setq translation (quail-get-translation def key len)))
 	(progn
-	  ;; We may have to reform car part of MAP.
-	  (if (not (equal (car map) translation))
-	      (setcar map translation))
-	  (if (consp translation) 
+	  (if (and (consp def) (not (vectorp (cdr def))))
+	      (progn
+		(if (not (equal (car def) translation))
+		    ;; We must reflect TRANSLATION to car part of DEF.
+		    (setcar def translation))
+		(setq quail-current-data
+		      (if (functionp (cdr def))
+			  (funcall (cdr def))
+			(cdr def))))
+	    (if (not (equal def translation))
+		;; We must reflect TRANSLATION to car part of MAP.
+		(setcar map translation)))
+	  (if (and (consp translation) (vectorp (cdr translation))) 
 	      (progn
 		(setq quail-current-translations translation)
 		(if (quail-forget-last-selection)
@@ -1003,6 +1034,8 @@ sequence counting from the head."
 	 def ch)
     (if map
 	(let ((def (car map)))
+	  (if (and (consp def) (not (vectorp (cdr def))))
+	      (setq def (car def)))
 	  (setq quail-current-str
 		(if (consp def) (aref (cdr def) (car def)) def))
 	  ;; Return t only if we can terminate the current translation.
@@ -1024,6 +1057,8 @@ sequence counting from the head."
 	      (quail-maximum-shortest)
 	      (>= len 4)
 	      (setq def (car (quail-lookup-key quail-current-key (- len 2))))
+	      (if (and (consp def) (not (vectorp (cdr def))))
+		  (setq def (car def)))
 	      (quail-lookup-key (substring quail-current-key -2) 2))
 	     ;; Now the sequence is "...ABCD", which can be split into
 	     ;; "...AB" and "CD..." to get valid translation.
@@ -1239,10 +1274,10 @@ the bottommost ordinary window."
       ;; Delete the window for guidance buffer.
       (if (or (null input-method-tersely-flag)
 	      (not (eq (selected-window) (minibuffer-window))))
-	  (progn
-	    (setq win (get-buffer-window quail-guidance-buf))
-	    (set-window-dedicated-p win nil)
-	    (delete-window win))))))
+	  (if (setq win (get-buffer-window quail-guidance-buf))
+	      (progn
+		(set-window-dedicated-p win nil)
+		(delete-window win)))))))
 
 (defun quail-update-guidance ()
   "Update the Quail guidance buffer and completion buffer (if displayed now)."
@@ -1309,8 +1344,11 @@ the bottommost ordinary window."
 
 (defun quail-show-translations ()
   "Show the current possible translations."
-  (let ((key quail-current-key)
-	(map (quail-lookup-key quail-current-key (length quail-current-key))))
+  (let* ((key quail-current-key)
+	 (map (quail-lookup-key quail-current-key (length quail-current-key)))
+	 (def (car map)))
+    (if (and (consp def) (not (vectorp (cdr def))))
+	(setq def (car def)))
     (save-excursion
       (set-buffer quail-guidance-buf)
       (erase-buffer)
@@ -1328,9 +1366,9 @@ the bottommost ordinary window."
 	    (insert "]")))
 
       ;; Show list of translations.
-      (if (consp (car map))
-	  (let* ((idx (car (car map)))
-		 (translations (cdr (car map)))
+      (if (and (not (quail-deterministic)) (consp def))
+	  (let* ((idx (car def))
+		 (translations (cdr def))
 		 (from (* (/ idx 10) 10))
 		 (to (min (+ from 10) (length translations))))
 	    (indent-to 10)
@@ -1393,7 +1431,7 @@ All possible translations of the current key and whole possible longer keys
 ;; indentation INDENT.
 (defun quail-completion-list-translations (map key indent)
   (let ((translations
-	 (quail-get-translation map key (length key))))
+	 (quail-get-translation (car map) key (length key))))
     (if (integerp translations)
 	(insert "(1/1) 1." translations "\n")
       ;; We need only vector part.
@@ -1492,7 +1530,7 @@ key		binding
 	  (insert ch)
 	(let* ((map (cdr (assq ch (cdr (quail-map)))))
 	       (translation (and map (quail-get-translation 
-				      map (char-to-string ch) 1))))
+				      (car map) (char-to-string ch) 1))))
 	  (if (integerp translation)
 	      (insert translation)
 	    (if (consp translation)
@@ -1545,6 +1583,90 @@ key		binding
       (set-buffer-modified-p nil))
     (display-buffer buf)))
 
+
+(defvar quail-directory-name "quail"
+  "Name of Quail directory which cotains Quail packages.
+This is a sub-directory of LEIM directory.")
+
+;;;###autoload
+(defun quail-update-leim-list-file (dirname)
+  "Update entries for Quail packages in LEIM list file of directory DIRNAME.
+LEIM is a library of Emacs input method."
+  (interactive "FDirectory of LEIM: ")
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
+  (let ((quail-dir (concat dirname quail-directory-name))
+	(filename (concat dirname leim-list-file-name))
+	list-buf pkg-list pkg-buf pos)
+    (if (not (file-exists-p quail-dir))
+	nil
+      (if (not (file-readable-p quail-dir))
+	  (message "Can't write to file \"%s\"" filename)
+	(if (not (file-writable-p filename))
+	    (message "Can't write to file \"%s\"" filename)
+	  (setq list-buf (find-file-noselect filename))
+	  (setq pkg-list (directory-files quail-dir 'full ".*\\.el$" 'nosort))
+	  (message "Updating %s ..." filename)
+
+	  ;; At first, clean up the file.
+	  (save-excursion
+	    (set-buffer list-buf)
+	    (goto-char 1)
+
+	    ;; Insert the correct header.
+	    (if (looking-at (regexp-quote leim-list-header))
+		(goto-char (match-end 0))
+	      (insert leim-list-header))
+	    (setq pos (point))
+	    (if (not (re-search-forward leim-list-entry-regexp nil t))
+		nil
+
+	      ;; Remove garbages after the header.
+	      (goto-char (match-beginning 0))
+	      (if (< pos (point))
+		  (delete-region pos (point)))
+
+	      ;; Remove all entries for Quail.
+	      (while (re-search-forward leim-list-entry-regexp nil 'move)
+		(goto-char (match-beginning 0))
+		(setq pos (point))
+		(let ((form (read list-buf)))
+		  (if (equal (nth 3 form) ''quail-use-package)
+		      (progn
+			(if (eolp) (forward-line 1))
+			(delete-region pos (point))))))))
+
+	  ;; Insert entries for Quail.
+	  (while pkg-list
+	    (message "Checking %s ..." (car pkg-list))
+	    (setq pkg-buf (find-file-noselect (car pkg-list)))
+	    (save-excursion
+	      (set-buffer pkg-buf)
+	      (while (search-forward "(quail-define-package" nil t)
+		(goto-char (match-beginning 0))
+		(let ((form (read (current-buffer))))
+		  (save-excursion
+		    (set-buffer list-buf)
+		    (insert (format "(register-input-method
+ %S %S '%s
+ %S %S
+ %S)\n" (nth 1 form)			; PACKAGE-NAME
+ (nth 2 form)				; LANGUAGE
+ 'quail-use-package			; ACTIVATE-FUNC
+ (nth 3 form)				; PACKAGE-TITLE
+ (progn					; PACKAGE-DESCRIPTION (one line)
+   (string-match ".*" (nth 5 form))
+   (match-string 0 (nth 5 form)))
+ (file-relative-name			; PACKAGE-FILENAME
+  (file-name-sans-extension (car pkg-list)) dirname)
+ ))))))
+	    (kill-buffer pkg-buf)
+	    (setq pkg-list (cdr pkg-list)))
+	  (save-excursion
+	    (set-buffer list-buf)
+	    (setq buffer-file-coding-system 'iso-2022-7bit)
+	    (save-buffer))
+	  (kill-buffer list-buf)
+	  (message "Updating %s ... done" (buffer-file-name list-buf)))))))
 ;;
 (provide 'quail)
 
