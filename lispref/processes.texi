@@ -892,10 +892,10 @@ text arrives, insert the following line just before the
 it was previously, eliminate the variable @code{moving} and call
 @code{goto-char} unconditionally.
 
-  All filter functions that do regexp searching or matching should save
-and restore the match data.  Otherwise, a filter function that runs
-during a call to @code{sit-for} might clobber the match data of the
-program that called @code{sit-for}.  @xref{Match Data}.
+  In earlier Emacs versions, every filter function that did regexp
+searching or matching had to explicitly save and restore the match data.
+Now Emacs does this automatically; filter functions never need to do it
+explicitly.  @xref{Match Data}.
 
   A filter function that writes the output into the buffer of the
 process should check whether the process is still alive.  If it tries to
@@ -1052,10 +1052,10 @@ should check whether the process is still alive.  If it tries to insert
 into a dead buffer, it will get an error.  If the buffer is dead,
 @code{(buffer-name (process-buffer @var{process}))} returns @code{nil}.
 
-  All sentinels that do regexp searching or matching should save and
-restore the match data.  Otherwise, a sentinel that runs during a call
-to @code{sit-for} might clobber the match data of the program that
-called @code{sit-for}.  @xref{Match Data}.
+  In earlier Emacs versions, every sentinel that did regexp searching or
+matching had to explicitly save and restore the match data.  Now Emacs
+does this automatically; sentinels never need to do it explicitly.
+@xref{Match Data}.
 
 @defun set-process-sentinel process sentinel
 This function associates @var{sentinel} with @var{process}.  If
