@@ -36,6 +36,8 @@
 
 ;;; Code:
 
+(define-key calendar-mode-map [menu-bar edit] 'undefined)
+
 (define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-2-date-menu)
 (define-key calendar-mode-map [mouse-2] 'ignore)
 
