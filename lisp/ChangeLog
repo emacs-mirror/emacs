@@ -36,6 +36,11 @@
 	coding-system-for-write to either rmail-file-coding-system or
 	emacs-mule-unix.
 
+2001-03-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texnfo-upd.el (texinfo-update-menu-lower-regexps):
+	Fix the name and regexp used for subsubsections.
+
 2001-03-10  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-setup): Don't suppress write-file
