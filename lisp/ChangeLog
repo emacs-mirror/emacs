@@ -1,5 +1,18 @@
 2000-10-08  Dave Love  <fx@gnu.org>
 
+	* recentf.el: Doc fixes.
+
+	* vcursor.el (vcursor-cs-binding): Remove compatibility code.
+	Clean up remainder.
+
+	* timezone.el (timezone-parse-date): Doc fix.  Fix regexps for (5)
+	without timezone and (8) with timezone to enforce some whitespace.
+	Simplify code somewhat.
+
+	* options.el (list-options): Doc that you should use customize.
+
+	* iswitchb.el (iswitchb-mode): Add :require.
+
 	* info.el (Info-goto-node, Info-menu): Doc fix.
 	(Info-mode-menu): Bind beginning-of-buffer, Info-edit
 	(info-tool-bar-map): New variable.
