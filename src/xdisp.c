@@ -6500,6 +6500,12 @@ resize_mini_window (w, exact_p)
 
   xassert (MINI_WINDOW_P (w));
 
+  /* Don't resize windows while redisplaying; it would confuse
+     redisplay functions when the size of the window they are
+     displaying changes from under them.  */
+  if (redisplaying_p)
+    return 0;
+  
   /* Nil means don't try to resize.  */
   if (NILP (Vresize_mini_windows)
       || (FRAME_X_P (f) && f->output_data.x == NULL))
