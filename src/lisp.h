@@ -1389,7 +1389,8 @@ typedef unsigned char UCHAR;
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
-#if !defined (__STDC__) || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) && !defined (PROTOTYPES)) \
+    || defined (USE_NONANSI_DEFUN)
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname ();						\
   struct Lisp_Subr sname =						\
@@ -1753,7 +1754,8 @@ void staticpro P_ ((Lisp_Object *));
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
-#if !defined (__STDC__) || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) &&  !defined (PROTOTYPES)) \
+    || defined (USE_NONANSI_DEFUN)
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname ()
 #else
@@ -1938,6 +1940,7 @@ extern void syms_of_syntax P_ ((void));
 extern Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 extern void sweep_weak_hash_tables P_ ((void));
 extern Lisp_Object Qstring_lessp;
+EXFUN (Foptimize_char_table, 1);
 extern Lisp_Object Vfeatures;
 extern Lisp_Object QCtest, QCweakness, Qequal;
 unsigned sxhash P_ ((Lisp_Object, int));
@@ -2443,6 +2446,7 @@ extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
 EXFUN (Fmake_temp_name, 1);
 extern void init_fileio_once P_ ((void));
+extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 
 /* Defined in abbrev.c */
 
