@@ -322,7 +322,8 @@ this does make a difference, you can force a particular Lisp file to be
 interpreted as unibyte by writing @samp{-*-unibyte: t;-*-} in a
 comment on the file's first line.  With that designator, the file will
 unconditionally be interpreted as unibyte, even in an ordinary
-multibyte Emacs session.
+multibyte Emacs session.  This can matter when making keybindings to
+non-@sc{ascii} characters written as @code{?v@var{literal}}.
 
 @node Autoload
 @section Autoload
