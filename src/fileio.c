@@ -2069,7 +2069,7 @@ duplicates what `expand-file-name' does.  */)
 			      && *s != ':'
 #endif /* VMS */
 			      ); s++);
-	  if (s > p + 1)
+	  if (p[0] == '~' && s > p + 1)	/* we've got "/~something/" */
 	    {
 	      o = (unsigned char *) alloca (s - p + 1);
 	      bcopy ((char *) p, o, s - p);
@@ -2080,7 +2080,7 @@ duplicates what `expand-file-name' does.  */)
 	  /* If we have ~/ or ~user and `user' exists, discard
 	     everything up to ~.  But if `user' does not exist, leave
 	     ~user alone, it might be a literal file name.  */
-	  if (s == p + 1 || pw)
+	  if (IS_DIRECTORY_SEP (p[0]) || s == p + 1 || pw)
 	    {
 	      nm = p;
 	      substituted = 1;
