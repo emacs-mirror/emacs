@@ -58,7 +58,7 @@ menu item in the top-level menu.  The cdr of the submenu list
 is a list of menu items, as above."
   (` (let* ((maps (, maps))
 	    (menu (, menu))
-	    (keymap (easy-menu-keymap (car menu) (cdr menu))))
+	    (keymap (easy-menu-create-keymaps (car menu) (cdr menu))))
        (and (keymapp maps) (setq maps (list maps)))
        (while maps
 	 (define-key (car maps) (vector 'menu-bar (intern (car menu)))
@@ -69,7 +69,7 @@ is a list of menu items, as above."
 
 ;; Return a menu keymap corresponding to a Lucid-style menu list
 ;; MENU-ITEMS, and with name MENU-NAME.
-(defun easy-menu-keymap (menu-name menu-items)
+(defun easy-menu-create-keymaps (menu-name menu-items)
   (let ((menu (make-sparse-keymap menu-name)))
     ;; Process items in reverse order,
     ;; since the define-key loop reverses them again.
@@ -82,7 +82,7 @@ is a list of menu items, as above."
 	       (setq command nil)
 	       (setq name (if (string-match "^-+$" item) "" item)))
 	      ((consp item)
-	       (setq command (easy-menu-keymap (car item) (cdr item)))
+	       (setq command (easy-menu-create-keymaps (car item) (cdr item)))
 	       (setq name (car item)))
 	      ((vectorp item)
 	       (setq command (make-symbol (format "menu-function-%d"
