@@ -1,3 +1,27 @@
+2003-04-02  Masatake YAMATO  <jet@gyve.org>
+
+	* woman.el (woman-xref): Removed.
+	(woman-mode): Use `Man-highlight-references' instead of
+	`WoMan-highlight-references'.
+	(WoMan-highlight-references): Removed.
+
+	* man.el (toplevel): Require button.
+	(Man-header-file-path): New option.
+	(Man-synopsis-regexp, Man-files-regexp, Man-include-regexp)
+	(Man-file-name-regexp, Man-normal-file-prefix-regexp)
+	(Man-header-regexp, Man-normal-file-regexp): New variables.
+	(Man-mode-map): Inherited from `button-buffer-map'.  Don't define
+	"\r" and mouse-2 directly.  These key are defined in
+	`button-buffer-map'.
+	(Man-xref-man-page, Man-xref-header-file, Man-xref-normal-file): New
+	buttons.  `Man-xref-man-page' comes from woman.el.
+	(man-follow-mouse): Removed.
+	(Man-fontify-manpage): Use `Man-highlight-references' instead of
+	calling `add-text-properties' directly.
+	(Man-highlight-references, Man-highlight-references0): New
+	functions.
+	(Man-view-header-file): New function.
+
 2003-04-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/asm-mode.el (asm-calculate-indentation, asm-indent-line):
