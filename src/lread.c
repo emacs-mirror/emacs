@@ -1793,7 +1793,7 @@ to_multibyte (p, end, nchars)
   if (read_buffer_size < 2 * nbytes)
     {
       int offset = *p - read_buffer;
-      read_buffer_size *= 2;
+      read_buffer_size = 2 * max (read_buffer_size, nbytes);
       read_buffer = (char *) xrealloc (read_buffer, read_buffer_size);
       *p = read_buffer + offset;
       *end = read_buffer + read_buffer_size;
