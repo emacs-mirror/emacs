@@ -61,13 +61,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif      
 #include "syswait.h"
 #include <getopt.h>
 #ifdef HAVE_FCNTL_H
