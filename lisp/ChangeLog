@@ -1,3 +1,8 @@
+2003-08-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* lpr.el (printify-region): It was ending conversion before the
+	expected position.  Reported by Keiichi Suzuki <keiichi@nanap.org>.
+
 2003-07-31  John Paul Wallington  <jpw@gnu.org>
 
 	* net/browse-url.el (browse-url-epiphany): Doc fix.
