@@ -1598,7 +1598,7 @@ function,command,variable,option or symbol." ms1))))))
 			  (concat (car fp) "-flag"))))
 		   (if (checkdoc-y-or-n-p
 			(format
-			 "Rename to %s and Query-Replace all occurances? "
+			 "Rename to %s and Query-Replace all occurrences? "
 			 newname))
 		       (progn
 			 (beginning-of-defun)
