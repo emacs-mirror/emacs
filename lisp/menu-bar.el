@@ -313,15 +313,18 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Text Properties" facemenu-menu
 	      :help "Change properties of text in region"))
 
-(define-key menu-bar-search-menu [separator-search]
+(define-key menu-bar-edit-menu [fill]
+  '(menu-item "Fill" fill-region
+	      :enable (and mark-active (not buffer-read-only))
+	      :help
+	      "Fill text in region to fit between left and right margin"))
+
+(define-key menu-bar-edit-menu [separator-bookmark]
   '(menu-item "--"))
 
 (define-key menu-bar-edit-menu [bookmark]
   '(menu-item "Bookmarks" menu-bar-bookmark-map
 	      :help "Record positions and jump between them"))
-
-(define-key menu-bar-edit-menu [separator-bookmark]
-  '(menu-item "--"))
 
 (defvar menu-bar-goto-menu (make-sparse-keymap "Go To"))
 
@@ -374,11 +377,9 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-edit-menu [search]
   (list 'menu-item "Search" menu-bar-search-menu))
 
-(define-key menu-bar-edit-menu [fill]
-  '(menu-item "Fill" fill-region
-	      :enable (and mark-active (not buffer-read-only))
-	      :help
-	      "Fill text in region to fit between left and right margin"))
+(define-key menu-bar-edit-menu [separator-search]
+  '(menu-item "--"))
+
 (define-key menu-bar-edit-menu [mark-whole-buffer]
   '(menu-item "Select All" mark-whole-buffer
 	      :help "Mark the whole buffer for a subsequent cut/copy."))
