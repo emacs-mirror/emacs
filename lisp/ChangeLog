@@ -1,3 +1,13 @@
+2003-08-11  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-insert-field, gdb-array-format1)
+	(gdb-info-breakpoints-custom, gdb-info-frames-custom)
+	(gdb-info-threads-custom): Add help-echo text.
+	(gdb-display-back): Don't use purecopy.
+	(gdb-info-breakpoints-custom, gdb-reset)
+	(gdb-assembler-custom): Use display-images-p to test if breakpoint
+	icons can be displayed.
+
 2003-08-11  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/reftex-vars.el (reftex-auto-recenter-toc): Fix typo.
