@@ -93,7 +93,7 @@
 ;;		'my-highlight-changes-disable-hook)
 
 
-;;           Explciit vs. Implicit
+;;           Explcit vs. Implicit
 ;;
 
 ;; Normally, Highlight Changes mode is turned on explicitly in a buffer.
