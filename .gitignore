@@ -39,3 +39,4 @@ Makefile
 emacs*.tar.gz
 leim*.tar.gz
 *.xdelta
+pretests
