@@ -281,8 +281,8 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    occupies on the screen: one of 0, 1, and 2.
 
    DIRECTION (integer) is the rendering direction of characters in the
-   charset when rendering.  If 0, render from right to left, else
-   render from left to right.
+   charset when rendering.  If 0, render from left to right, else
+   render from right to left.
 
    LEADING-CODE-BASE (integer) is the base leading-code for the
    charset.
