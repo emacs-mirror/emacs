@@ -66,10 +66,8 @@
 (require 'comint)
 (eval-when-compile
   (require 'compile)
-  (autoload 'Info-last "info")
-  (autoload 'Info-exit "info")
   (autoload 'info-lookup-maybe-add-help "info-look"))
-(autoload 'compilation-start "compile")	; spurious compiler warning anyway
+(autoload 'compilation-start "compile")
 
 (defgroup python nil
   "Silly walks in the Python language"
@@ -829,7 +827,8 @@ move and return nil.  Otherwise return t."
 Makes nested Imenu menus from nested `class' and `def' statements.
 The nested menus are headed by an item referencing the outer
 definition; it has a space prepended to the name so that it sorts
-first with `imenu--sort-by-name'."
+first with `imenu--sort-by-name' (though, unfortunately, sub-menus
+precede it)."
   (unless (boundp 'python-recursing)		; dynamically bound below
     (goto-char (point-min)))		; normal call from Imenu
   (let (index-alist			; accumulated value to return
@@ -937,32 +936,37 @@ Additional arguments are added when the command is used by `run-python'
 et al.")
 
 (defvar python-buffer nil
-  "*The current python process buffer.
-To run multiple Python processes, start the first with \\[run-python].
-It will be in a buffer named *Python*.  Rename that with
-\\[rename-buffer].  Now start a new process with \\[run-python].  It
-will be in a new buffer, named *Python*.  Switch between the different
-process buffers with \\[switch-to-buffer].
+  "The current python process buffer."
+  ;; Fixme: a single process is currently assumed, so that this doc
+  ;; is misleading.
 
-Commands that send text from source buffers to Python processes have
-to choose a process to send to.  This is determined by global variable
-`python-buffer'.  Suppose you have three inferior Pythons running:
-    Buffer	Process
-    foo		python
-    bar		python<2>
-    *Python*    python<3>
-If you do a \\[python-send-region-and-go] command on some Python source
-code, what process does it go to?
+;;   "*The current python process buffer.
+;; To run multiple Python processes, start the first with \\[run-python].
+;; It will be in a buffer named *Python*.  Rename that with
+;; \\[rename-buffer].  Now start a new process with \\[run-python].  It
+;; will be in a new buffer, named *Python*.  Switch between the different
+;; process buffers with \\[switch-to-buffer].
 
-- In a process buffer (foo, bar, or *Python*), send it to that process.
-- In some other buffer (e.g. a source file), send it to the process
-  attached to `python-buffer'.
-Process selection is done by function `python-proc'.
+;; Commands that send text from source buffers to Python processes have
+;; to choose a process to send to.  This is determined by global variable
+;; `python-buffer'.  Suppose you have three inferior Pythons running:
+;;     Buffer	Process
+;;     foo		python
+;;     bar		python<2>
+;;     *Python*    python<3>
+;; If you do a \\[python-send-region-and-go] command on some Python source
+;; code, what process does it go to?
 
-Whenever \\[run-python] starts a new process, it resets `python-buffer'
-to be the new process's buffer.  If you only run one process, this will
-do the right thing.  If you run multiple processes, you can change
-`python-buffer' to another process buffer with \\[set-variable].")
+;; - In a process buffer (foo, bar, or *Python*), send it to that process.
+;; - In some other buffer (e.g. a source file), send it to the process
+;;   attached to `python-buffer'.
+;; Process selection is done by function `python-proc'.
+
+;; Whenever \\[run-python] starts a new process, it resets `python-buffer'
+;; to be the new process's buffer.  If you only run one process, this will
+;; do the right thing.  If you run multiple processes, you can change
+;; `python-buffer' to another process buffer with \\[set-variable]."
+  )
 
 (defconst python-compilation-regexp-alist
   `((,(rx (and line-start (1+ (any " \t")) "File \""
@@ -971,6 +975,9 @@ do the right thing.  If you run multiple processes, you can change
      1 python-compilation-line-number))
   "`compilation-error-regexp-alist' for inferior Python.")
 
+;; Fixme: This should inherit some stuff from python-mode, but I'm not
+;; sure how much: at least some keybindings, like C-c C-f; syntax?;
+;; font-locking, e.g. for triple-quoted strings?
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for interacting with an inferior Python process.
 A Python process can be started with \\[run-python].
@@ -997,7 +1004,8 @@ For running multiple processes in multiple buffers, see `python-buffer'.
   (add-hook 'comint-input-filter-functions 'python-input-filter nil t)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
 	    nil t)
-  ;; Still required by `comint-redirect-send-command', for instance:
+  ;; Still required by `comint-redirect-send-command', for instance
+  ;; (and we need to match things like `>>> ... >>> '):
   (set (make-local-variable 'comint-prompt-regexp) "^\\([>.]\\{3\\} \\)+")
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
@@ -1329,13 +1337,14 @@ Used with `eval-after-load'."
 		    (string-match "^Python \\([0-9]+\\.[0-9]+\\>\\)" s)
 		    (match-string 1 s)))
 	 ;; Whether info files have a Python version suffix, e.g. in Debian.
-	 (versioned
+	 (versioned 
 	  (with-temp-buffer
-	    (Info-mode)
+	    (with-no-warnings (Info-mode))
 	    (condition-case ()
 		;; Don't use `info' because it would pop-up a *info* buffer.
-		(Info-goto-node (format "(python%s-lib)Miscellaneous Index"
-					version))
+		(with-no-warnings
+		 (Info-goto-node (format "(python%s-lib)Miscellaneous Index"
+					 version)))
 	      (error nil)))))
     (info-lookup-maybe-add-help
      :mode 'python-mode
