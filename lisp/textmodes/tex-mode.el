@@ -130,15 +130,15 @@ See the documentation of `tex-command'."
   :version "20.4")
 
 (defvar standard-latex-block-names
-  '("abstract"         "array"            "center"       "description"
-    "displaymath"      "document"         "enumerate"    "eqnarray"
-    "eqnarray*"        "equation"         "figure"       "figure*"
-    "flushleft"        "flushright"       "itemize"      "letter"
-    "list"             "minipage"         "picture"      "quotation"
-    "quote"            "slide"            "sloppypar"    "tabbing"
-    "table"            "table*"           "tabular"      "tabular*"
-    "thebibliography"  "theindex*"        "titlepage"    "trivlist"
-    "verbatim"         "verbatim*"        "verse")
+  '("abstract"		"array"		"center"	"description"
+    "displaymath"	"document"	"enumerate"	"eqnarray"
+    "eqnarray*"		"equation"	"figure"	"figure*"
+    "flushleft"		"flushright"	"itemize"	"letter"
+    "list"		"minipage"	"picture"	"quotation"
+    "quote"		"slide"		"sloppypar"	"tabbing"
+    "table"		"table*"	"tabular"	"tabular*"
+    "thebibliography"	"theindex*"	"titlepage"	"trivlist"
+    "verbatim"		"verbatim*"	"verse"		"math")
   "Standard LaTeX block names.")
 
 ;;;###autoload
@@ -721,14 +721,14 @@ Entering Latex mode runs the hook `text-mode-hook', then
 subshell is initiated, `tex-shell-hook' is run."
   (tex-common-initialization)
   (setq tex-command latex-run-command)
-  (setq tex-start-of-header "\\\\documentstyle\\|\\\\documentclass")
-  (setq tex-end-of-header "\\\\begin{document}")
-  (setq tex-trailer "\\end{document}\n")
+  (setq tex-start-of-header "\\\\document\\(style\\|class\\)")
+  (setq tex-end-of-header "\\\\begin\\s-*{document}")
+  (setq tex-trailer "\\end\\s-*{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
   (setq paragraph-start
-	(concat "[ \t]*$\\|[\f%]\\|[ \t]*\\$\\$\\|"
+	(concat "[\f%]\\|[ \t]*\\($\\|\\$\\$\\|"
 		"\\\\[][]\\|"
 		"\\\\" (regexp-opt (append
 				    (mapcar 'car latex-section-alist)
@@ -737,9 +737,9 @@ subshell is initiated, `tex-shell-hook' is run."
 				      "newpage" "footnote" "marginpar"
 				      "parbox" "caption")) t)
 		"\\>\\|\\\\[a-z]*" (regexp-opt '("space" "skip" "page") t)
-		"\\>"))
+		"\\>\\)"))
   (setq paragraph-separate
-	(concat "[ \t]*$\\|[\f%]\\|[ \t]*\\$\\$[ \t]*$\\|"
+	(concat "[\f%]\\|[ \t]*\\($\\|"
 		"\\\\[][]\\|"
 		"\\\\" (regexp-opt (append
 				    (mapcar 'car latex-section-alist)
@@ -747,14 +747,15 @@ subshell is initiated, `tex-shell-hook' is run."
 		"\\>\\|\\\\\\(" (regexp-opt '("item" "bibitem" "newline"
 					      "noindent" "newpage" "footnote"
 					      "marginpar" "parbox" "caption"))
-		"\\|[a-z]*\\(space\\|skip\\|page[a-z]*\\)"
-		"\\)[ \t]*\\($\\|%\\)"))
+		"\\|\\$\\$\\|[a-z]*\\(space\\|skip\\|page[a-z]*\\)"
+		"\\>\\)[ \t]*\\($\\|%\\)\\)"))
   (set (make-local-variable 'imenu-create-index-function)
        'latex-imenu-create-index)
   (set (make-local-variable 'tex-face-alist) tex-latex-face-alist)
   (set (make-local-variable 'fill-nobreak-predicate)
        'latex-fill-nobreak-predicate)
   (set (make-local-variable 'indent-line-function) 'latex-indent)
+  (set (make-local-variable 'fill-indent-according-to-mode) t)
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
@@ -1050,15 +1051,17 @@ Puts point on a blank line between them."
       ;; Remember new block names for later completion.
       (push choice latex-block-names))
     choice)
+  (unless (save-excursion (beginning-of-line) (looking-at "[ \t]*$")) '\n)
   "\\begin{" str ?\}
   ?\[ (skeleton-read "[options]: ") & ?\] | -1
-  \n _ \n
+  > \n _ \n
   "\\end{" str ?\} >)
 
 (define-skeleton latex-insert-item
   "Insert a \item macro."
   nil
-  \n "\\item " >)
+  (unless (save-excursion (beginning-of-line) (looking-at "[ \t]*$")) '\n)
+  "\\item " >)
 
 
 ;;;;
@@ -1299,16 +1302,56 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-start-tex-marker nil
   "Marker pointing after last TeX-running command in the TeX shell buffer.")
 
-(defun tex-main-file ()
+(defun tex-guess-main-file (&optional all)
+  "Find a likely `tex-main-file'.
+Looks for hints in other buffers in the same directory or in
+ALL other buffers."
+  (let ((dir default-directory)
+	(header-re tex-start-of-header))
+    (catch 'found
+      ;; Look for a buffer with `tex-main-file' set.
+      (dolist (buf (if (consp all) all (buffer-list)))
+	(with-current-buffer buf
+	  (when (and (or all (equal dir default-directory))
+		     (stringp tex-main-file))
+	    (throw 'found (expand-file-name tex-main-file)))))
+      ;; Look for a buffer containing the magic `tex-start-of-header'.
+      (dolist (buf (if (consp all) all (buffer-list)))
+	(with-current-buffer buf
+	  (when (and (or all (equal dir default-directory))
+		     buffer-file-name
+		     ;; (or (easy-mmode-derived-mode-p 'latex-mode)
+		     ;; 	 (easy-mmode-derived-mode-p 'plain-tex-mode))
+		     (save-excursion
+		       (goto-char (point-min))
+		       (re-search-forward header-re 10000 t)))
+	    (throw 'found (expand-file-name buffer-file-name))))))))
+
+(defun tex-main-file (&optional realfile)
+  "Return the name of the main file with the `.tex' extension stripped.
+If REALFILE is non-nil, don't strip the extension."
   (let ((file (or tex-main-file
-		  ;; Compatibility with AUCTeX
-		  (and (boundp 'TeX-master) (stringp TeX-master) TeX-master)
-		  (if (buffer-file-name)
-		      (file-relative-name (buffer-file-name))
-		    (error "Buffer is not associated with any file")))))
-    (if (string-match "\\.tex\\'" file)
-	(substring file 0 (match-beginning 0))
-      file)))
+		  ;; Compatibility with AUCTeX.
+		  (and (boundp 'TeX-master) (stringp TeX-master)
+		       (set (make-local-variable 'tex-main-file) TeX-master))
+		  ;; Try to guess the main file.
+		  (if (not buffer-file-name)
+		      (error "Buffer is not associated with any file")
+		    (file-relative-name
+		     (if (save-excursion
+			   (goto-char (point-min))
+			   (re-search-forward tex-start-of-header 10000 t))
+			 ;; This is the main file.
+			 buffer-file-name
+		       ;; This isn't the main file, let's try to find better,
+		       (or (tex-guess-main-file)
+			   ;; (tex-guess-main-file t)
+			   buffer-file-name)))))))
+    (cond
+     (realfile (if (file-exists-p file) file (concat file ".tex")))
+     ((string-match "\\.tex\\'" file) (substring file 0 (match-beginning 0)))
+     (t file))))
+
 
 (defun tex-start-tex (command file &optional dir)
   "Start a TeX run, using COMMAND on FILE."
@@ -1702,7 +1745,9 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
 
 (easy-mmode-defsyntax tex-latex-indent-syntax-table
-  '((?$ . "."))
+  '((?$ . ".")
+    (?\( . ".")
+    (?\) . "."))
   "Syntax table used while computing indentation."
   :copy tex-mode-syntax-table)
 
