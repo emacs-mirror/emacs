@@ -1,3 +1,7 @@
+1999-10-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (auto-save-interval): Fix documentation.
+	
 1999-10-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* print.c (print): When removing objects from Vprint_number_table,
