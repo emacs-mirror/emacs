@@ -4336,7 +4336,7 @@ x_draw_glyph_string (s)
 	  else if (s->face->font)
 	    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
 	  else
-	    y = s->height - h;
+	    y = s->y + s->height - h;
       
 	  if (s->face->underline_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc,
@@ -5669,41 +5669,11 @@ expose_frame (f, x, y, w, h)
   expose_window_tree (XWINDOW (f->root_window), &r);
 
   if (WINDOWP (f->tool_bar_window))
-    {
-      struct window *w = XWINDOW (f->tool_bar_window);
-      XRectangle window_rect;
-      XRectangle intersection_rect;
-      int window_x, window_y, window_width, window_height;
-      
-
-      window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
-      window_rect.x = window_x;
-      window_rect.y = window_y;
-      window_rect.width = window_width;
-      window_rect.height = window_height;
-
-      if (x_intersect_rectangles (&r, &window_rect, &intersection_rect))
-	expose_window (w, &intersection_rect);
-    }
+    expose_window (XWINDOW (f->tool_bar_window), &r);
 
 #ifndef USE_X_TOOLKIT
   if (WINDOWP (f->menu_bar_window))
-    {
-      struct window *w = XWINDOW (f->menu_bar_window);
-      XRectangle window_rect;
-      XRectangle intersection_rect;
-      int window_x, window_y, window_width, window_height;
-      
-
-      window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
-      window_rect.x = window_x;
-      window_rect.y = window_y;
-      window_rect.width = window_width;
-      window_rect.height = window_height;
-
-      if (x_intersect_rectangles (&r, &window_rect, &intersection_rect))
-	expose_window (w, &intersection_rect);
-    }
+    expose_window (XWINDOW (f->menu_bar_window), &r);
 #endif /* not USE_X_TOOLKIT */
 }
 
@@ -5723,32 +5693,8 @@ expose_window_tree (w, r)
       else if (!NILP (w->vchild))
 	expose_window_tree (XWINDOW (w->vchild), r);
       else
-	{
-	  XRectangle window_rect;
-	  XRectangle intersection_rect;
-	  struct frame *f = XFRAME (w->frame);
-	  int window_x, window_y, window_width, window_height;
-
-	  /* Frame-relative pixel rectangle of W.  */
-	  window_box (w, -1, &window_x, &window_y, &window_width,
-		      &window_height);
-	  window_rect.x
-	    = (window_x
-	       - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
-	       - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f));
-	  window_rect.y = window_y;
-	  window_rect.width
-	    = (window_width
-	       + FRAME_X_FLAGS_AREA_WIDTH (f)
-	       + FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f));
-	  window_rect.height
-	    = window_height + CURRENT_MODE_LINE_HEIGHT (w);
-
-	  if (x_intersect_rectangles (r, &window_rect, &intersection_rect))
-	    expose_window (w, &intersection_rect);
-	}
-
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+	expose_window (w, r);
+      w = NILP (w->next) ? NULL : XWINDOW (w->next);
     }
 }
 
@@ -5869,18 +5815,19 @@ x_phys_cursor_in_rect_p (w, r)
 }
 
 
-/* Redraw a rectangle of window W.  R is a rectangle in window
-   relative coordinates.  Call this function with input blocked.  */
+/* Redraw the part of window W intersection rectangle FR.  Pixel
+   coordinates in FR are frame-relative.  Call this function with
+   input blocked.  */
 
 static void
-expose_window (w, r)
+expose_window (w, fr)
      struct window *w;
-     XRectangle *r;
+     XRectangle *fr;
 {
+  struct frame *f = XFRAME (w->frame);
   struct glyph_row *row;
-  int y;
-  int yb = window_text_bottom_y (w);
-  int cursor_cleared_p;
+  int y, yb, cursor_cleared_p;
+  XRectangle wr, r;
 
   /* If window is not yet fully initialized, do nothing.  This can
      happen when toolkit scroll bars are used and a window is split.
@@ -5889,16 +5836,27 @@ expose_window (w, r)
   if (w->current_matrix == NULL || w == updated_window)
     return;
 
+    /* Frame-relative pixel rectangle of W.  */
+  wr.x = XFASTINT (w->left) * CANON_X_UNIT (f);
+  wr.y = XFASTINT (w->top) * CANON_Y_UNIT (f);
+  wr.width = XFASTINT (w->width) * CANON_X_UNIT (f);
+  wr.height = XFASTINT (w->height) * CANON_Y_UNIT (f);
+
+  if (!x_intersect_rectangles (fr, &wr, &r))
+    return;
+
+  yb = window_text_bottom_y (w);
+  
   TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
-	  r->x, r->y, r->width, r->height));
+	  r.x, r.y, r.width, r.height));
 
   /* Convert to window coordinates.  */
-  r->x = FRAME_TO_WINDOW_PIXEL_X (w, r->x);
-  r->y = FRAME_TO_WINDOW_PIXEL_Y (w, r->y);
+  r.x = FRAME_TO_WINDOW_PIXEL_X (w, r.x);
+  r.y = FRAME_TO_WINDOW_PIXEL_Y (w, r.y);
 
   /* Turn off the cursor.  */
   if (!w->pseudo_window_p
-      && x_phys_cursor_in_rect_p (w, r))
+      && x_phys_cursor_in_rect_p (w, &r))
     {
       x_clear_cursor (w);
       cursor_cleared_p = 1;
@@ -5911,7 +5869,7 @@ expose_window (w, r)
   y = 0;
   while (row->enabled_p
 	 && y < yb
-	 && y + row->height < r->y)
+	 && y + row->height < r.y)
     {
       y += row->height;
       ++row;
@@ -5920,9 +5878,9 @@ expose_window (w, r)
   /* Display the text in the rectangle, one text line at a time.  */
   while (row->enabled_p
 	 && y < yb
-	 && y < r->y + r->height)
+	 && y < r.y + r.height)
     {
-      expose_line (w, row, r);
+      expose_line (w, row, &r);
       y += row->height;
       ++row;
     }
@@ -5931,8 +5889,8 @@ expose_window (w, r)
   if (WINDOW_WANTS_MODELINE_P (w)
       && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
 	  row->enabled_p)
-      && row->y < r->y + r->height)
-    expose_line (w, row, r);
+      && row->y < r.y + r.height)
+    expose_line (w, row, &r);
 
   if (!w->pseudo_window_p)
     {
