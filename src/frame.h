@@ -4,7 +4,7 @@
 #define _XFRAME_H_
 
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -179,7 +179,7 @@ struct frame
   Lisp_Object tool_bar_window;
 
   /* Desired and current tool-bar items.  */
-  Lisp_Object desired_tool_bar_items, current_tool_bar_items;
+  Lisp_Object tool_bar_items;
 
   /* Desired and current contents displayed in tool_bar_window.  */
   Lisp_Object desired_tool_bar_string, current_tool_bar_string;
@@ -206,8 +206,7 @@ struct frame
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
 
-  int n_desired_tool_bar_items;
-  int n_current_tool_bar_items;
+  int n_tool_bar_items;
   
   /* A buffer for decode_mode_line. */
   char *decode_mode_spec_buffer;
