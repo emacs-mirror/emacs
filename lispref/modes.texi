@@ -35,7 +35,12 @@ user.  For related topics such as keymaps and syntax tables, see
 @cindex Fundamental mode
 
   Major modes specialize Emacs for editing particular kinds of text.
-Each buffer has only one major mode at a time.
+Each buffer has only one major mode at a time.  For each major mode
+there is a function to switch to that mode in the current buffer; its
+name should end in @samp{-mode}.  These functions work by setting
+buffer-local variable bindings and other data associated with the
+buffer, such as a local keymap.  The effect lasts until you switch
+to another major mode in the same buffer.
 
   The least specialized major mode is called @dfn{Fundamental mode}.
 This mode has no mode-specific definitions or variable settings, so each
