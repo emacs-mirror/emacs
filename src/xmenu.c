@@ -113,6 +113,7 @@ be the return value for that line (i.e. if it is selected).")
   int XMenu_xpos, XMenu_ypos;
   char **menus;
   char ***names;
+  int **enables;
   Lisp_Object **obj_list;
   int *items;
   char *title;
@@ -180,8 +181,8 @@ be the return value for that line (i.e. if it is selected).")
 	title = (char *) XSTRING (prompt)->data;
 
       /* Extract the detailed info to make one pane.  */
-      number_of_panes = keymap_panes (&obj_list, &menus, &names, &items,
-				      &menu, 1);
+      number_of_panes = keymap_panes (&obj_list, &menus, &names, &enables,
+				      &items, &menu, 1);
       /* The menu title seems to be ignored,
 	 so put it in the pane title.  */
       if (menus[0] == 0)
@@ -209,8 +210,8 @@ be the return value for that line (i.e. if it is selected).")
 	}
 
       /* Extract the detailed info to make one pane.  */
-      number_of_panes = keymap_panes (&obj_list, &menus, &names, &items,
-				      maps, nmaps);
+      number_of_panes = keymap_panes (&obj_list, &menus, &names, &enables,
+				      &items, maps, nmaps);
       /* The menu title seems to be ignored,
 	 so put it in the pane title.  */
       if (menus[0] == 0)
@@ -222,8 +223,8 @@ be the return value for that line (i.e. if it is selected).")
       ltitle = Fcar (menu);
       CHECK_STRING (ltitle, 1);
       title = (char *) XSTRING (ltitle)->data;
-      number_of_panes = list_of_panes (&obj_list, &menus, &names, &items,
-				       Fcdr (menu));
+      number_of_panes = list_of_panes (&obj_list, &menus, &names, &enables,
+				       &items, Fcdr (menu));
     }
 #ifdef XDEBUG
   fprintf (stderr, "Panes = %d\n", number_of_panes);
@@ -257,8 +258,8 @@ be the return value for that line (i.e. if it is selected).")
       /* But XGetGeometry said root was the root window of f's screen!  */ 
       abort ();
 
-    selection = xmenu_show (root, XMenu_xpos, XMenu_ypos, names, menus,
-			    items, number_of_panes, obj_list, title,
+    selection = xmenu_show (root, XMenu_xpos, XMenu_ypos, names, enables,
+			    menus, items, number_of_panes, obj_list, title,
 			    &error_name);
   }
   UNBLOCK_INPUT;
@@ -275,11 +276,13 @@ be the return value for that line (i.e. if it is selected).")
   for (i = 0; i < number_of_panes; i++)
     {
       free (names[i]);
+      free (enables[i]);
       free (obj_list[i]);
     }
   free (menus);
   free (obj_list);
   free (names);
+  free (enables);
   free (items);
   /* free (title); */
   if (error_name) error (error_name);
@@ -292,11 +295,12 @@ struct indices {
 };
 
 Lisp_Object
-xmenu_show (parent, startx, starty, line_list, pane_list, line_cnt,
-		      pane_cnt, item_list, title, error)
+xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
+	    line_cnt, pane_cnt, item_list, title, error)
      Window parent;		
      int startx, starty;	/* upper left corner position BROKEN */
      char **line_list[];   	/* list of strings for items */
+     int *enable_list[];   	/* list of strings for items */
      char *pane_list[];		/* list of pane titles */
      char *title;
      int pane_cnt;		/* total number of panes */
@@ -348,7 +352,8 @@ xmenu_show (parent, startx, starty, line_list, pane_list, line_cnt,
 	  /* datap[selidx+sofar].pane = panes;
 	     datap[selidx+sofar].line = selidx; */
 	  if (XMenuAddSelection (XDISPLAY GXMenu, lpane, 0,
-				 line_list[panes][selidx], TRUE)
+				 line_list[panes][selidx],
+				 enable_list[panes][selidx])
 	      == XM_FAILURE)
 	    {
 	      XMenuDestroy (XDISPLAY GXMenu);
@@ -419,17 +424,18 @@ syms_of_xmenu ()
 }
 
 /* Construct the vectors that describe a menu
-   and store them in *VECTOR, *PANES, *NAMES and *ITEMS.
+   and store them in *VECTOR, *PANES, *NAMES, *ENABLES and *ITEMS.
    Each of those four values is a vector indexed by pane number.
    Return the number of panes.
 
    KEYMAPS is a vector of keymaps.  NMAPS gives the length of KEYMAPS.  */
 
 int
-keymap_panes (vector, panes, names, items, keymaps, nmaps)
+keymap_panes (vector, panes, names, enables, items, keymaps, nmaps)
      Lisp_Object ***vector;	/* RETURN all menu objects */
      char ***panes;		/* RETURN pane names */
      char ****names;		/* RETURN all line names */
+     int ***enables;		/* RETURN enable-flags of lines */
      int **items;		/* RETURN number of items per pane */
      Lisp_Object *keymaps;
      int nmaps;
@@ -448,12 +454,13 @@ keymap_panes (vector, panes, names, items, keymaps, nmaps)
   *panes = (char **) xmalloc (npanes_allocated * sizeof (char *));
   *items = (int *) xmalloc (npanes_allocated * sizeof (int));
   *names = (char ***) xmalloc (npanes_allocated * sizeof (char **));
+  *enables = (int **) xmalloc (npanes_allocated * sizeof (int *));
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
-    single_keymap_panes (keymaps[mapno], panes, vector, names, items,
+    single_keymap_panes (keymaps[mapno], panes, vector, names, enables, items,
 			 &p, &npanes_allocated, "");
 
   /* Return the number of panes.  */
@@ -465,12 +472,13 @@ keymap_panes (vector, panes, names, items, keymaps, nmaps)
    The other arguments are passed along
    or point to local variables of the previous function.  */
 
-single_keymap_panes (keymap, panes, vector, names, items,
+single_keymap_panes (keymap, panes, vector, names, enables, items,
 		     p_ptr, npanes_allocated_ptr, pane_name)
      Lisp_Object keymap;
      Lisp_Object ***vector;	/* RETURN all menu objects */
      char ***panes;		/* RETURN pane names */
      char ****names;		/* RETURN all line names */
+     int ***enables;		/* RETURN enable flags of lines */
      int **items;		/* RETURN number of items per pane */
      int *p_ptr;
      int *npanes_allocated_ptr;
@@ -499,6 +507,9 @@ single_keymap_panes (keymap, panes, vector, names, items,
       *names
 	= (char ***) xrealloc (*names,
 			       *npanes_allocated_ptr * sizeof (char **));
+      *enables
+	= (int **) xrealloc (*enables,
+			     *npanes_allocated_ptr * sizeof (int *));
     }
 
   /* When a menu comes from keymaps, don't give names to the panes.  */
@@ -516,6 +527,7 @@ single_keymap_panes (keymap, panes, vector, names, items,
      I is an upper bound for the number of items.  */
   (*vector)[*p_ptr] = (Lisp_Object *) xmalloc (i * sizeof (Lisp_Object));
   (*names)[*p_ptr] = (char **) xmalloc (i * sizeof (char *));
+  (*enables)[*p_ptr] = (int *) xmalloc (i * sizeof (int));
 
   /* I is now the index of the next unused slots.  */
   i = 0;
@@ -549,11 +561,14 @@ single_keymap_panes (keymap, panes, vector, names, items,
 		  if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
 		    pending_maps = Fcons (Fcons (def, item2),
 					  pending_maps);
-		  else if (!NILP (enabled))
+		  else
 		    {
 		      (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
 		      /* The menu item "value" is the key bound here.  */
 		      (*vector)[*p_ptr][i] = XCONS (item)->car;
+		      (*enables)[*p_ptr][i]
+			= (!NILP (enabled) ? 1
+			   : NILP (def) ? -1 : 0);
 		      i++;
 		    }
 		}
@@ -593,11 +608,14 @@ single_keymap_panes (keymap, panes, vector, names, items,
 		      if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
 			pending_maps = Fcons (Fcons (def, item2),
 					      pending_maps);
-		      else if (!NILP (enabled))
+		      else
 			{
 			  (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
 			  /* The menu item "value" is the key bound here.  */
 			  (*vector)[*p_ptr][i] = character;
+			  (*enables)[*p_ptr][i]
+			    = (!NILP (enabled) ? 1
+			       : NILP (def) ? -1 : 0);
 			  i++;
 			}
 		    }
@@ -613,6 +631,7 @@ single_keymap_panes (keymap, panes, vector, names, items,
     {
       free ((*vector)[*p_ptr]);
       free ((*names)[*p_ptr]);
+      free ((*enables)[*p_ptr]);
     }
   /* Otherwise, advance past it.  */
   else
@@ -623,7 +642,7 @@ single_keymap_panes (keymap, panes, vector, names, items,
     {
       Lisp_Object elt;
       elt = Fcar (pending_maps);
-      single_keymap_panes (Fcar (elt), panes, vector, names, items,
+      single_keymap_panes (Fcar (elt), panes, vector, names, enables, items,
 			   p_ptr, npanes_allocated_ptr,
 			   /* Add 1 to discard the @.  */
 			   (char *) XSTRING (XCONS (elt)->cdr)->data + 1);
@@ -632,17 +651,18 @@ single_keymap_panes (keymap, panes, vector, names, items,
 }
 
 /* Construct the vectors that describe a menu
-   and store them in *VECTOR, *PANES, *NAMES and *ITEMS.
+   and store them in *VECTOR, *PANES, *NAMES, *ENABLES and *ITEMS.
    Each of those four values is a vector indexed by pane number.
    Return the number of panes.
 
    MENU is the argument that was given to Fx_popup_menu.  */
 
 int
-list_of_panes (vector, panes, names, items, menu)
+list_of_panes (vector, panes, names, enables, items, menu)
      Lisp_Object ***vector;	/* RETURN all menu objects */
      char ***panes;		/* RETURN pane names */
      char ****names;		/* RETURN all line names */
+     int ***enables;		/* RETURN enable flags of lines */
      int **items;		/* RETURN number of items per pane */
      Lisp_Object menu;
 {
@@ -657,6 +677,7 @@ list_of_panes (vector, panes, names, items, menu)
   *panes = (char **) xmalloc (i * sizeof (char *));
   *items = (int *) xmalloc (i * sizeof (int));
   *names = (char ***) xmalloc (i * sizeof (char **));
+  *enables = (int **) xmalloc (i * sizeof (int *));
 
   for (i = 0, tail = menu; !NILP (tail); tail = Fcdr (tail), i++)
     {
@@ -672,7 +693,7 @@ list_of_panes (vector, panes, names, items, menu)
 	       XSTRING (item1)->data);
 #endif
       (*panes)[i] = (char *) XSTRING (item1)->data;
-      (*items)[i] = list_of_items ((*vector)+i, (*names)+i, item);
+      (*items)[i] = list_of_items ((*vector)+i, (*names)+i, (*enables)+i, item);
       /* (*panes)[i] = (char *) xmalloc ((XSTRING (item1)->size)+1);
 	 bcopy (XSTRING (item1)->data, (*panes)[i], XSTRING (item1)->size + 1)
 	 ; */
@@ -681,13 +702,14 @@ list_of_panes (vector, panes, names, items, menu)
 }
 
 /* Construct the lists of values and names for a single pane, from the
-   alist PANE.  Put them in *VECTOR and *NAMES.
-   Return the number of items.  */
+   alist PANE.  Put them in *VECTOR and *NAMES.  Put the enable flags
+   int *ENABLES.   Return the number of items.  */
 
 int
-list_of_items (vector, names, pane)  /* get list from emacs and put to vector */
+list_of_items (vector, names, enables, pane)
      Lisp_Object **vector;	/* RETURN menu "objects" */
      char ***names;		/* RETURN line names */
+     int **enables;		/* RETURN enable flags of lines */
      Lisp_Object pane;
 {
   Lisp_Object tail, item, item1;
@@ -699,6 +721,7 @@ list_of_items (vector, names, pane)  /* get list from emacs and put to vector */
 
   *vector = (Lisp_Object *) xmalloc (i * sizeof (Lisp_Object));
   *names = (char **) xmalloc (i * sizeof (char *));
+  *enables = (int *) xmalloc (i * sizeof (int));
 
   for (i = 0, tail = pane; !NILP (tail); tail = Fcdr (tail), i++)
     {
@@ -715,6 +738,7 @@ list_of_items (vector, names, pane)  /* get list from emacs and put to vector */
 	       XSTRING (item1)->data);
 #endif
       (*names)[i] = (char *) XSTRING (item1)->data;
+      (*enables)[i] = 1;
     }
   return i;
 }
