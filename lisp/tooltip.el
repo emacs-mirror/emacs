@@ -197,6 +197,8 @@ This might return nil if the event did not occur over a buffer."
   "Mode for tooltip display.
 With ARG, turn tooltip mode on if and only if ARG is positive."
   (interactive "P")
+  (unless (fboundp 'x-show-tip)
+    (error "Sorry, tooltips are not yet available on this system"))
   (let* ((on (if arg
 		 (> (prefix-numeric-value arg) 0)
 	       (not tooltip-mode)))
