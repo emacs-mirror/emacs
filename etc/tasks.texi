@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 22 November 1994
+@set lastupdate 6 February 1995
 @c %**end of header
 
 @setchapternewpage off
@@ -206,6 +206,11 @@ An emulator for Macintosh graphics calls on top of X Windows.
 A music playing and editing system.
 
 @item
+A "disk jockey" program to keep track of a collection of recorded music
+samples (songs, etc), and queue up a sequence of them for playing.  This
+program could use rplay to do the actual playing.
+
+@item
 A program to edit dance notation (such as labanotation) and display
 dancers moving on the screen.
 
@@ -213,7 +218,8 @@ dancers moving on the screen.
 Port the Vibrant toolkit to work on X without using Motif.
 
 @item
-A library for displaying circle-shaped menus with X windows.
+A widget for displaying circle-shaped menus ("pie menus") with X
+windows.
 
 @item
 A program to display and edit Hypercard stacks.
@@ -225,7 +231,11 @@ DLD and C++, loading in the same class definitions that will be used
 by the application program.
 
 @item
-A desktop program with icons and such, for X-windows.
+A "desktop" program with drag-and-drop icons and such.
+
+@item
+An "empire builder" system that makes it easy to write various kinds of
+simulation games.
 
 @item
 A paint program, supporting both bitmap-oriented operations and
