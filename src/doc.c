@@ -48,13 +48,13 @@ get_doc_string (filepos)
   register int count;
   extern char *index ();
 
-  if (XTYPE (Vexec_directory) != Lisp_String
+  if (XTYPE (Vdata_directory) != Lisp_String
       || XTYPE (Vdoc_file_name) != Lisp_String)
     return Qnil;
 
-  name = (char *) alloca (XSTRING (Vexec_directory)->size
+  name = (char *) alloca (XSTRING (Vdata_directory)->size
 			  + XSTRING (Vdoc_file_name)->size + 8);
-  strcpy (name, XSTRING (Vexec_directory)->data);
+  strcpy (name, XSTRING (Vdata_directory)->data);
   strcat (name, XSTRING (Vdoc_file_name)->data);
 #ifdef VMS
 #ifndef VMS4_4
@@ -175,7 +175,7 @@ DEFUN ("documentation-property", Fdocumentation_property,
        Sdocumentation_property, 2, 2, 0,
   "Return the documentation string that is SYMBOL's PROP property.\n\
 This differs from using `get' only in that it can refer to strings\n\
-stored in the `etc/DOC' file.")
+stored in the `share-lib/DOC' file.")
   (sym, prop)
      Lisp_Object sym, prop;
 {
@@ -192,10 +192,10 @@ stored in the `etc/DOC' file.")
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
   1, 1, 0,
   "Used during Emacs initialization, before dumping runnable Emacs,\n\
-to find pointers to doc strings stored in `etc/DOC...' and\n\
+to find pointers to doc strings stored in `share-lib/DOC...' and\n\
 record them in function definitions.\n\
 One arg, FILENAME, a string which does not include a directory.\n\
-The file is found in `../etc' now; found in the `exec-directory'\n\
+The file is found in `../share-lib' now; found in the `data-directory'\n\
 when doc strings are referred to later in the dumped Emacs.")
   (filename)
      Lisp_Object filename;
@@ -212,13 +212,13 @@ when doc strings are referred to later in the dumped Emacs.")
   CHECK_STRING (filename, 0);
 
 #ifndef CANNOT_DUMP
-  name = (char *) alloca (XSTRING (filename)->size + 8);
-  strcpy (name, "../etc/");
+  name = (char *) alloca (XSTRING (filename)->size + 14);
+  strcpy (name, "../share-lib/");
 #else /* CANNOT_DUMP */
-  CHECK_STRING (Vexec_directory, 0);
+  CHECK_STRING (Vdata_directory, 0);
   name = (char *) alloca (XSTRING (filename)->size +
-			  XSTRING (Vexec_directory)->size + 1);
-  strcpy (name, XSTRING (Vexec_directory)->data);
+			  XSTRING (Vdata_directory)->size + 1);
+  strcpy (name, XSTRING (Vdata_directory)->data);
 #endif /* CANNOT_DUMP */
   strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
 #ifdef VMS

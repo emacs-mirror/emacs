@@ -858,7 +858,7 @@ read1 (readcharfun)
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
-	   that we are really going to find in etc/DOC.nn.nn  */
+	   that we are really going to find in share-lib/DOC.nn.nn  */
 	if (!NULL (Vpurify_flag) && NULL (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
