@@ -182,8 +182,8 @@ executable."
       (let ((point (point-marker))
 	    (buffer-modified-p (buffer-modified-p)))
 	(goto-char (point-min))
-	(make-local-variable 'after-save-hook)
-	(add-hook 'after-save-hook 'executable-chmod)
+	(make-local-hook 'after-save-hook)
+	(add-hook 'after-save-hook 'executable-chmod nil t)
 	(if (looking-at "#![ \t]*\\(.*\\)$")
 	    (and (goto-char (match-beginning 1))
 		 (not (string= argument
