@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.21 $")
+(defconst byte-compile-version "$Revision: 2.22 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1437,6 +1437,9 @@ With argument, insert value in current buffer after the form."
 		;; in files loaded early in loadup.el.
 		"\n(if (and (boundp 'emacs-version)\n"
 		"\t (or (and (boundp 'epoch::version) epoch::version)\n"
+		;; If there is a name at the end of emacs-version,
+		;; don't try to check the version number.
+		"\t     (< (aref emacs-version (1- (length emacs-version))) ?A)"
 		(if dynamic-docstrings
 		    "\t     (string-lessp emacs-version \"19.29\")))\n"
 		  "\t     (string-lessp emacs-version \"19\")))\n")
