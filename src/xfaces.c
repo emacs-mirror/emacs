@@ -690,10 +690,9 @@ recompute_basic_faces (f)
 {
   if (FRAME_FACE_CACHE (f))
     {
-      int realized_p;
       clear_face_cache (0);
-      realized_p = realize_basic_faces (f);
-      xassert (realized_p);
+      if (!realize_basic_faces (f))
+	abort ();
     }
 }
 
@@ -2736,7 +2735,9 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
   else
     {
       font.name = STRDUPA (font_name);
-      if (!split_font_name (f, &font, 1))
+      if (split_font_name (f, &font, 1))
+	have_font_p = 1;
+      else
 	{
 	  /* The font name may be something like `6x13'.  Make
 	     sure we use the full name.  */
@@ -2745,14 +2746,14 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
 	  BLOCK_INPUT;
 	  font_info = fs_load_font (f, FRAME_X_FONT_TABLE (f),
 				    CHARSET_ASCII, font_name, -1);
-	  UNBLOCK_INPUT;
-
 	  if (font_info)
 	    {
 	      font.name = STRDUPA (font_info->full_name);
 	      split_font_name (f, &font, 1);
 	      have_font_p = 1;
 	    }
+	  
+	  UNBLOCK_INPUT;
 	}
     }
 
