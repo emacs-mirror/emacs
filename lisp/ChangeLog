@@ -1,3 +1,35 @@
+2002-08-17  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-discardN): Add byte-defop.
+	(byte-compile-lapcode): Include byte-discardN.
+	(byte-compile-lambda): Fixup closure detection.
+	(byte-compile-top-level): Handle arguments for a lexical lambda.
+	(byte-compile-lexical-variable-ref, byte-compile-variable-ref)
+	(byte-compile-variable-set): Use byte-compile-stack-set/ref.
+	(byte-compile-discard): Add new parameters NUM and PRESERVE-TOS.
+	(byte-compile-stack-ref, byte-compile-stack-set): New functions.
+	(byte-compile-push-binding-init): Get the variable list properly
+	from LFORMINFO.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-lforminfo-analyze):
+	Ignore setq'd variables we're not interested in.
+	(byte-compile-make-lambda-lexenv): Add assertion that closed-over
+	variables be heap allocated.
+	(byte-compile-closure-initial-lexenv-p): Renamed from
+	byte-compile-closure-lexenv-p.
+	(byte-compile-non-stack-bindings-p): Get the variable list
+	properly from LFORMINFO.
+	(byte-compile-maybe-push-heap-environment): Handle the
+	no-closed-over-variables case correctly.
+	(byte-compile-bind): Use byte-compile-stack-set/ref.
+	Don't bother modifying INIT-LEXENV as no one will see the changes.
+	(byte-compile-unbind): Call `byte-compile-discard' to handle
+	unbinding lexical bindings.
+
+	* emacs-lisp/disass.el (disassemble-internal): Handle closures.
+	(disassemble-1): Handle new bytecodes.
+	* emacs-lisp/byte-opt.el (disassemble-offset): Handle new bytecodes.
+
 2002-06-16  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/macroexp.el (macroexp-accumulate): New macro.

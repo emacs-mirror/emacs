@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.1 $")
+(defconst byte-compile-version "$Revision: 2.98.2.2 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -677,6 +677,13 @@ otherwise pop it")
 (byte-defop 180  1 byte-vec-ref)	; vector offset in following one byte
 (byte-defop 181 -1 byte-vec-set)	; vector offset in following one byte
 
+;; if (following one byte & 0x80) == 0
+;;    discard (following one byte & 0x7F) stack entries
+;; else
+;;    discard (following one byte & 0x7F) stack entries _underneath_ the top of stack
+;;    (that is, if the operand = 0x83,  ... X Y Z T  =>  ... T)
+(byte-defop 182 nil byte-discardN)
+
 ;; unused: 182-191
 
 (byte-defop 192  1 byte-constant	"for reference to a constant")
@@ -786,7 +793,7 @@ CONST2 may be evaulated multiple times."
 		    (byte-compile-push-bytecode-const2 byte-stack-set2 off
 						       bytes pc))
 		   ((and (>= opcode byte-listN)
-			 (<= opcode byte-vec-set))
+			 (<= opcode byte-discardN))
 		    ;; These insns all put their operand into one extra byte.
 		    (byte-compile-push-bytecodes opcode off bytes pc))
 		   ((null off)
@@ -2369,23 +2376,21 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		  (byte-compile-warn "malformed interactive spec: %s"
 				     (prin1-to-string int))))))
     (let* ((byte-compile-lexical-environment
+	    ;; If doing lexical binding, push a new lexical environment
+	    ;; containing the args and any closed-over variables.
 	    (and lexical-binding
 		 (byte-compile-make-lambda-lexenv
 		  fun
-		  byte-compile-lexical-environment)))
-	   (closure-env
-	    (and lexical-binding
-		 (byte-compile-closure-lexenv-p byte-compile-lexical-environment)
-		 byte-compile-current-heap-environment))
-	   (lforminfo
-	    (and lexical-binding (byte-compile-compute-lforminfo form)))
+		  byte-compile-lexical-environment))) 
+	   (is-closure
+	    ;; This is true if we should be making a closure instead of
+	    ;; a simple lambda (because some variables from the
+	    ;; containing lexical environment are closed over).
+	    (byte-compile-closure-lexenv-p byte-compile-lexical-environment))
 	   (byte-compile-current-heap-environment nil)
 	   (byte-compile-current-num-closures 0)
 	   (compiled
 	    (byte-compile-top-level (cons 'progn body) nil 'lambda)))
-;;       ;; If necessary, create a new heap environment to hold some of the args.
-;;       (when lforminfo 
-;; 	(setq init-lexenv (byte-compile-maybe-push-heap-environment lforminfo)))
       (if (and (eq 'byte-code (car-safe compiled))
 	       (not (byte-compile-version-cond
 		     byte-compile-compatibility)))
@@ -2402,7 +2407,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 				    (list (nth 1 int)))
 				(if lexical-binding
 				    '(t))))))
-	    (if closure-env
+	    (if is-closure
 		(cons 'closure code)
 	      code))
 	(setq compiled
@@ -2479,17 +2484,35 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
 	(byte-compile-output nil))
-     (if (memq byte-optimize '(t source))
-	 (setq form (byte-optimize-form form for-effect)))
-     (while (and (eq (car-safe form) 'progn) (null (cdr (cdr form))))
-       (setq form (nth 1 form)))
-     (if (and (eq 'byte-code (car-safe form))
-	      (not (memq byte-optimize '(t byte)))
-	      (stringp (nth 1 form)) (vectorp (nth 2 form))
-	      (natnump (nth 3 form)))
-	 form
-       (byte-compile-form form for-effect)
-       (byte-compile-out-toplevel for-effect output-type))))
+    (if (memq byte-optimize '(t source))
+	(setq form (byte-optimize-form form for-effect)))
+    (while (and (eq (car-safe form) 'progn) (null (cdr (cdr form))))
+      (setq form (nth 1 form)))
+    (if (and (eq 'byte-code (car-safe form))
+	     (not (memq byte-optimize '(t byte)))
+	     (stringp (nth 1 form)) (vectorp (nth 2 form))
+	     (natnump (nth 3 form)))
+	form
+      ;; Set up things for a lexically-bound function
+      (when (and lexical-binding (eq output-type 'lambda))
+	;; See how many arguments there are, and set the current stack depth
+	;; accordingly
+	(dolist (var byte-compile-lexical-environment)
+	  (when (byte-compile-lexvar-on-stack-p var)
+	    (setq byte-compile-depth (1+ byte-compile-depth))))
+	;; If this is the top-level of a lexically bound lambda expression,
+	;; perhaps some parameters on stack need to be copied into a heap
+	;; environment, so check for them, and do so if necessary.
+	(let ((lforminfo (byte-compile-compute-lforminfo form)))
+	  (byte-compile-maybe-push-heap-environment lforminfo)
+	  (dolist (arginfo (byte-compile-lforminfo-vars lforminfo))
+	    (when (byte-compile-lvarinfo-closed-over-p arginfo)
+	      (byte-compile-bind (car arginfo)
+				 byte-compile-lexical-environment
+				 lforminfo)))))
+      ;; Now compile FORM
+      (byte-compile-form form for-effect)
+      (byte-compile-out-toplevel for-effect output-type))))
 
 (defun byte-compile-out-toplevel (&optional for-effect output-type)
   (if for-effect
@@ -2681,7 +2704,7 @@ If BINDING is non-nil, VAR is being bound."
       (error "Lexical binding not found for `%s'" var))
     (if (byte-compile-lexvar-on-stack-p binding)
 	;; On the stack
-	(byte-compile-out 'byte-stack-ref (byte-compile-lexvar-offset binding))
+	(byte-compile-stack-ref (byte-compile-lexvar-offset binding))
       ;; In a heap environment vector; first push the vector on the stack
       (byte-compile-lexical-variable-ref
        (byte-compile-lexvar-environment binding))
@@ -2689,15 +2712,14 @@ If BINDING is non-nil, VAR is being bound."
       (byte-compile-out 'byte-vec-ref (byte-compile-lexvar-offset binding)))))
 
 (defun byte-compile-variable-ref (var)
-  "Generate code to push the value of the dynamic variable VAR on the stack."
+  "Generate code to push the value of the variable VAR on the stack."
   (byte-compile-check-variable var)
   (let ((lex-binding (assq var byte-compile-lexical-environment)))
     (if lex-binding
 	;; VAR is lexically bound
 	(if (byte-compile-lexvar-on-stack-p lex-binding)
 	    ;; On the stack
-	    (byte-compile-out 'byte-stack-ref
-			      (byte-compile-lexvar-offset lex-binding))
+	    (byte-compile-stack-ref (byte-compile-lexvar-offset lex-binding))
 	  ;; In a heap environment vector
 	  (byte-compile-lexical-variable-ref
 	   (byte-compile-lexvar-environment lex-binding))
@@ -2713,15 +2735,14 @@ If BINDING is non-nil, VAR is being bound."
       (byte-compile-dynamic-variable-op 'byte-varref var))))
 
 (defun byte-compile-variable-set (var)
-  "Generate code to set the dynamic variable VAR from the top-of-stack value."
+  "Generate code to set the variable VAR from the top-of-stack value."
   (byte-compile-check-variable var)
   (let ((lex-binding (assq var byte-compile-lexical-environment)))
     (if lex-binding
 	;; VAR is lexically bound
 	(if (byte-compile-lexvar-on-stack-p lex-binding)
 	    ;; On the stack
-	    (byte-compile-out 'byte-stack-set
-			      (byte-compile-lexvar-offset lex-binding))
+	    (byte-compile-stack-set (byte-compile-lexvar-offset lex-binding))
 	  ;; In a heap environment vector
 	  (byte-compile-lexical-variable-ref
 	   (byte-compile-lexvar-environment lex-binding))
@@ -2999,8 +3020,38 @@ is the value it should have."
 (defun byte-compile-noop (form)
   (byte-compile-constant nil))
 
-(defun byte-compile-discard ()
-  (byte-compile-out 'byte-discard 0))
+(defun byte-compile-discard (&optional num preserve-tos)
+  "Output byte codes to discard the NUM entries at the top of the stack (NUM defaults to 1).
+If PRESERVE-TOS is non-nil, preserve the top-of-stack value, as if it were
+popped before discarding the num values, and then pushed back again after
+discarding."
+  (if (and (null num) (not preserve-tos))
+      ;; common case
+      (byte-compile-out 'byte-discard)
+    ;; general case
+    (unless num
+      (setq num 1))
+    (when (and preserve-tos (> num 0))
+      ;; Preserve the top-of-stack value by writing it directly to the stack
+      ;; location which will be at the top-of-stack after popping.
+      (byte-compile-stack-set (1- (- byte-compile-depth num)))
+      ;; Now we actually discard one less value, since we want to keep the eventual TOS
+      (setq num (1- num)))
+    (while (> num 0)
+      (byte-compile-out 'byte-discard)
+      (setq num (1- num)))))
+
+(defun byte-compile-stack-ref (stack-pos)
+  "Output byte codes to push the value at position STACK-POS in the stack, on the top of the stack."
+  (if (= byte-compile-depth (1+ stack-pos))
+      ;; A simple optimization
+      (byte-compile-out 'byte-dup)
+    ;; normal case
+    (byte-compile-out 'byte-stack-ref stack-pos)))
+
+(defun byte-compile-stack-set (stack-pos)
+  "Output byte codes to store the top-of-stack value at position STACK-POS in the stack."
+  (byte-compile-out 'byte-stack-set stack-pos))
 
 
 ;; Compile a function that accepts one or more args and is right-associative.
@@ -3350,7 +3401,7 @@ LFORMINFO should be information about lexical variables being bound.
 Return INIT-LEXENV updated to include the newest initialization, or nil
 if LFORMINFO is nil (meaning all bindings are dynamic)."
   (let* ((var (if (consp clause) (car clause) clause))
-	 (vinfo (assq var lforminfo))
+	 (vinfo (assq var (byte-compile-lforminfo-vars lforminfo)))
 	 (unused (and vinfo (zerop (cadr vinfo)))))
     (unless (and unused (symbolp clause))
       (when lforminfo
