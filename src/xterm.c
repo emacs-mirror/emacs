@@ -8736,7 +8736,6 @@ x_create_toolkit_scroll_bar (f, bar)
   XtSetArg (av[ac], XtNorientation, XtorientVertical); ++ac;
   /* For smoother scrolling with Xaw3d   -sm */
   /* XtSetArg (av[ac], XtNpickTop, True); ++ac; */
-  /* XtSetArg (av[ac], XtNbeNiceToColormap, True); ++ac; */
   
   pixel = f->output_data.x->scroll_bar_foreground_pixel;
   if (pixel != -1)
@@ -8751,7 +8750,61 @@ x_create_toolkit_scroll_bar (f, bar)
       XtSetArg (av[ac], XtNbackground, pixel);
       ++ac;
     }
-  
+
+  /* Top/bottom shadow colors.  */
+
+  /* Allocate them, if necessary.  */
+  if (f->output_data.x->scroll_bar_top_shadow_pixel == -1)
+    {
+      pixel = f->output_data.x->scroll_bar_background_pixel;
+      if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+				  &pixel, 1.2, 0x8000))
+	pixel = -1;
+      f->output_data.x->scroll_bar_top_shadow_pixel = pixel;
+    }
+  if (f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
+    {
+      pixel = f->output_data.x->scroll_bar_background_pixel;
+      if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+				  &pixel, 0.6, 0x4000))
+	pixel = -1;
+      f->output_data.x->scroll_bar_bottom_shadow_pixel = pixel;
+    }
+
+  /* Tell the toolkit about them.  */
+  if (f->output_data.x->scroll_bar_top_shadow_pixel == -1
+      || f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
+    /* We tried to allocate a color for the top/bottom shadow, and
+       failed, so tell Xaw3d to use dithering instead.   */
+    {
+      XtSetArg (av[ac], XtNbeNiceToColormap, True);
+      ++ac;
+    }
+  else
+    /* Tell what colors Xaw3d should use for the top/bottom shadow, to
+       be more consistent with other emacs 3d colors, and since Xaw3d is
+       not good at dealing with allocation failure.  */
+    {
+      /* This tells Xaw3d to use real colors instead of dithering for
+	 the shadows.  */
+      XtSetArg (av[ac], XtNbeNiceToColormap, False);
+      ++ac;
+
+      /* Specify the colors.  */
+      pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
+      if (pixel != -1)
+	{
+	  XtSetArg (av[ac], "topShadowPixel", pixel);
+	  ++ac;
+	}
+      pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
+      if (pixel != -1)
+	{
+	  XtSetArg (av[ac], "bottomShadowPixel", pixel);
+	  ++ac;
+	}
+    }
+
   widget = XtCreateWidget (scroll_bar_name, scrollbarWidgetClass,
 			   f->output_data.x->edit_widget, av, ac);
 
@@ -13139,6 +13192,13 @@ x_free_frame_resources (f)
 	unload_color (f, f->output_data.x->scroll_bar_background_pixel);
       if (f->output_data.x->scroll_bar_foreground_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_foreground_pixel);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+      /* Scrollbar shadow colors.  */
+      if (f->output_data.x->scroll_bar_top_shadow_pixel != -1)
+	unload_color (f, f->output_data.x->scroll_bar_top_shadow_pixel);
+      if (f->output_data.x->scroll_bar_bottom_shadow_pixel != -1)
+	unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
+#endif /* USE_TOOLKIT_SCROLL_BARS */
       if (f->output_data.x->white_relief.allocated_p)
 	unload_color (f, f->output_data.x->white_relief.pixel);
       if (f->output_data.x->black_relief.allocated_p)
