@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.20 1995/03/21 23:14:41 eggert Exp eggert $
+# $Id: rcs2log,v 1.22 1995/04/30 15:34:52 eggert Exp $
 
 # Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -42,7 +42,7 @@ nl='
 hostname= # name of local host (if empty, will deduce it later)
 indent=8 # indent of log line
 length=79 # suggested max width of log line
-logins= # login names for people we know fullnames and mailaddresses of
+logins= # login names for people we know fullnames and mailaddrs of
 loginFullnameMailaddrs= # login<tab>fullname<tab>mailaddr triplets
 recursive= # t if we want recursive rlog
 rlog_options= # options to pass to rlog
@@ -116,69 +116,78 @@ month_data='
 '
 
 
-# Log into $rlogout the revisions checked in since the first ChangeLog entry.
+# Put rlog output into $rlogout.
 
-date=1970
-if test -s ChangeLog
-then
-	# Add 1 to seconds to avoid duplicating most recent log.
-	e='
-		/^... ... [ 0-9][0-9] [ 0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9]+ /{
-			'"$month_data"'
-			year = $5
-			for (i=0; i<=11; i++) if (m[i] == $2) break
-			dd = $3
-			hh = substr($0,12,2)
-			mm = substr($0,15,2)
-			ss = substr($0,18,2)
-			ss++
-			if (ss == 60) {
-				ss = 0
-				mm++
-				if (mm == 60) {
-					mm = 0
-					hh++
-					if (hh == 24) {
-						hh = 0
-						dd++
-						monthdays = mo[i+1] - mo[i]
-						if (i == 1 && year%4 == 0 && (year%100 != 0 || year%400 == 0)) monthdays++
-						if (dd == monthdays + 1) {
-							dd = 1
-							i++
-							if (i == 12) {
-								i = 0
-								year++
+# If no rlog options are given,
+# log the revisions checked in since the first ChangeLog entry.
+case $rlog_options in
+'')
+	date=1970
+	if test -s ChangeLog
+	then
+		# Add 1 to seconds to avoid duplicating most recent log.
+		e='
+			/^... ... [ 0-9][0-9] [ 0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9]+ /{
+				'"$month_data"'
+				year = $5
+				for (i=0; i<=11; i++) if (m[i] == $2) break
+				dd = $3
+				hh = substr($0,12,2)
+				mm = substr($0,15,2)
+				ss = substr($0,18,2)
+				ss++
+				if (ss == 60) {
+					ss = 0
+					mm++
+					if (mm == 60) {
+						mm = 0
+						hh++
+						if (hh == 24) {
+							hh = 0
+							dd++
+							monthdays = mo[i+1] - mo[i]
+							if (i == 1 && year%4 == 0 && (year%100 != 0 || year%400 == 0)) monthdays++
+							if (dd == monthdays + 1) {
+								dd = 1
+								i++
+								if (i == 12) {
+									i = 0
+									year++
+								}
 							}
 						}
 					}
 				}
+				printf "%d/%02d/%02d %02d:%02d:%02d\n", year,i+1,dd,hh,mm,ss
+				exit
 			}
-			printf "%d/%02d/%02d %02d:%02d:%02d\n", year, i+1, dd, hh, mm, ss
-			exit
-		}
-	'
-	d=`$AWK "$e" <ChangeLog` || exit
-	case $d in
-	?*) date=$d
-	esac
-fi
-datearg="-d>$date"
-
-repository=
-rlog=rlog
-case $CVSROOT in
-?*)
-	if test -d "$CVSROOT" && test -f CVS/Repository
-	then
-		r=`cat <CVS/Repository` || exit
-		if test -d "$CVSROOT/$r"
-		then
-			repository=$CVSROOT/$r
-			rlog='cvs log'
-		fi
+		'
+		d=`$AWK "$e" <ChangeLog` || exit
+		case $d in
+		?*) date=$d
+		esac
 	fi
+	datearg="-d>$date"
 esac
+
+# If CVS is in use, examine its repository, not the normal RCS files.
+if test ! -f CVS/Repository
+then
+	rlog=rlog
+	repository=
+else
+	rlog='cvs log'
+	repository=`sed 1q <CVS/Repository` || exit
+	case $repository in
+	/*) ;;
+	*) repository=${CVSROOT?}/$repository
+	esac
+	if test ! -d "$repository"
+	then
+		echo >&2 "$0: $repository: bad repository (see CVS/Repository)"
+		exit 1
+	fi
+fi
 
 # With no arguments, examine all files under the RCS directory.
 case $# in
@@ -226,7 +235,10 @@ rlogout=$TMPDIR/rcs2log$$r
 trap exit 1 2 13 15
 trap "rm -f $llogout $rlogout; exit 1" 0
 
-$rlog "$datearg" $rlog_options ${1+"$@"} >$rlogout || exit
+case $rlog_options in
+?*) $rlog $rlog_options ${1+"$@"} >$rlogout;;
+'') $rlog "$datearg" ${1+"$@"} >$rlogout
+esac || exit
 
 
 # Get the full name of each author the logs mention, and set initialize_fullname
@@ -450,7 +462,7 @@ sort +1 -3r +3 +0 |
 # Finally, reformat the sorted log entries.
 $AWK '
 	BEGIN {
-		# Some awks do not understand "\r" or "\013", so we have to
+		# Some awk variants do not understand "\r" or "\013", so we have to
 		# put a carriage return directly in the file.
 		CR="" # <-- There is a single CR between the " chars here.
 
