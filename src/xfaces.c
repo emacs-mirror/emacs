@@ -4432,6 +4432,7 @@ lface_same_font_attributes_p (lface1, lface2)
 	  && EQ (lface1[LFACE_SLANT_INDEX], lface2[LFACE_SLANT_INDEX])
 	  && (EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
 	      || (STRINGP (lface1[LFACE_FONT_INDEX])
+		  && STRINGP (lface2[LFACE_FONT_INDEX])
 		  && xstricmp (XSTRING (lface1[LFACE_FONT_INDEX])->data,
 			       XSTRING (lface2[LFACE_FONT_INDEX])->data))));
 }
