@@ -2037,6 +2037,7 @@ for you.  You can use the command line switch @samp{-q} to prevent
 loading your init file, and @samp{-u} (or @samp{--user}) to specify a
 different user's init file (@pxref{Entering Emacs}).
 
+@cindex @file{default.el}, the default init file
   There can also be a @dfn{default init file}, which is the library
 named @file{default.el}, found via the standard search path for
 libraries.  The Emacs distribution contains no such library; your site
@@ -2046,10 +2047,21 @@ But your init file, if any, is loaded first; if it sets
 @code{inhibit-default-init} non-@code{nil}, then @file{default} is not
 loaded.
 
+@cindex site init file
+@cindex @file{site-start.el}, the site startup file
   Your site may also have a @dfn{site startup file}; this is named
-@file{site-start.el}, if it exists.  Emacs loads this library before it
-loads your init file.  To inhibit loading of this library, use the
-option @samp{-no-site-file}.  @xref{Initial Options}.
+@file{site-start.el}, if it exists.  Like @file{default.el}, Emacs
+finds this file via the standard search path for Lisp libraries.
+Emacs loads this library before it loads your init file.  To inhibit
+loading of this library, use the option @samp{-no-site-file}.
+@xref{Initial Options}.
+
+  You can place @file{default.el} and @file{site-start.el} in any of
+the directories which Emacs searches for Lisp libraries.  The variable
+@code{load-path} (@pxref{Lisp Libraries}) specifies these directories.
+Many sites put these files in the @file{site-lisp} subdirectory of the
+Emacs installation directory, typically
+@file{/usr/local/share/emacs/site-lisp}.
 
   If you have a large amount of code in your @file{.emacs} file, you
 should rename it to @file{~/.emacs.el}, and byte-compile it.  @xref{Byte
