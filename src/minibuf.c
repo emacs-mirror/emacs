@@ -415,7 +415,7 @@ is a string to insert in the minibuffer before reading.")
 {
   CHECK_STRING (prompt, 0);
   if (!NILP (initial_contents))
-    CHECK_STRING (initial_contents, 1)
+    CHECK_STRING (initial_contents, 1);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history, make_number (0));
 }
