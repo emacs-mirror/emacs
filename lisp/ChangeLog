@@ -1,3 +1,26 @@
+2000-11-21  Miles Bader  <miles@gnu.org>
+
+	* textmodes/refill.el (refill-ignorable-overlay): New variable.
+	(refill-adjust-ignorable-overlay): New function.
+	(refill-fill-paragraph-at): Use `refill-ignorable-overlay' to fill
+	only the paragraph's tail if possible.
+	Update `refill-ignorable-overlay'.
+	(refill-mode): Initialize/cleanup `refill-ignorable-overlay'.
+
+	* textmodes/refill.el (refill-fill-paragraph-at): Don't leave
+	point inside the fill-prefix.
+
+	* textmodes/refill.el (refill-post-command-function): Don't reset
+	refill-doit in the case where a self-insertion command doesn't
+	case a refill.  Use `refill-fill-paragraph-at', getting position
+	from `refill-doit'.
+	(refill-after-change-function): Set `refill-doit' to END.
+	(refill-fill-paragraph-at): New function, mostly from old
+	refill-fill-paragraph.
+	(refill-fill-paragraph): Use `refill-fill-paragraph-at'.
+	(refill-pre-command-function): New function.
+	(refill-mode): Add it to `pre-command-hook'.
+
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/artist.el (artist-mode): Fix autoload cookie.
