@@ -1980,12 +1980,18 @@ about X displays.
 @defun x-server-version &optional display
 This function returns the list of version numbers of the X server
 running the display.  The value is a list of three integers: the major
-and minor version numbers, and the vendor-specific release number.
+and minor version numbers of the X protocol, and the
+distributor-specific release number of the X server software itself.
 @end defun
 
 @defun x-server-vendor &optional display
-This function returns the ``vendor'' that provided the X server software
-(as a string).
+This function returns the ``vendor'' that provided the X server
+software (as a string).  Really this means whoever distributes the X
+server.
+
+When the developers of X labelled software distributors as
+``vendors'', they showed their false assumption that no system could
+ever be developed and distributed noncommercially.
 @end defun
 
 @ignore
