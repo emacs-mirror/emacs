@@ -899,7 +899,7 @@ Its value and function definition are void, and its property list is nil.")
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index++]);
     }
   p = XSYMBOL (val);
-  p->name = XSTRING (str);
+  p->name = XSTRING (name);
   p->plist = Qnil;
   p->value = Qunbound;
   p->function = Qunbound;
