@@ -63,6 +63,7 @@ strings or patterns."
   :version "21.3")
 
 (defun query-replace-read-args (string regexp-flag)
+  (barf-if-buffer-read-only)
   (let (from to)
     (if query-replace-interactive
 	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
