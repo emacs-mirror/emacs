@@ -1,3 +1,9 @@
+2000-11-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info/dir (Top): Rearrange menu items more logically, and put
+	them into a single category.  Add menu items for RefTeX and
+	Widget.
+
 2000-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep): Use --info-dir instead of
