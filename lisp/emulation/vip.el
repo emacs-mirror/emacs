@@ -158,10 +158,6 @@ No message."
     (forward-char (1- val))
     (if com (vip-execute-com 'vip-goto-col val com))))
 
-(defun vip-refresh-mode-line ()
-  "Redraw mode line."
-  (set-buffer-modified-p (buffer-modified-p)))
-
 (defun vip-copy-keymap (map)
   (if (null map) (make-sparse-keymap) (copy-keymap map)))
 
@@ -207,7 +203,7 @@ No message."
 	       (vip-change-mode-line "Emacs:")
 	       (use-local-map vip-emacs-local-map)))
 	(setq vip-current-mode new-mode)
-	(vip-refresh-mode-line))))
+	(force-mode-line-update))))
 
 (defun vip-copy-region-as-kill (beg end)
   "If BEG and END do not belong to the same buffer, it copies empty region."
