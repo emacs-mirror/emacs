@@ -22,7 +22,11 @@ the supported image types and their associated dynamic libraries by
 setting the variable `image-library-alist'.
 
 ---
-** A Bulgarian translation of the Emacs Tutorial is available.
+** New translations of the Emacs Tutorial are available in the following
+   languages: Brasilian, Bulgarian, Chinese (both with simplified and
+   traditional characters), French, and Italian.  Type `C-u C-h t' to
+   choose one of them in case your language setup doesn't automatically
+   select the right one.
 
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.  This port
@@ -88,7 +92,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 ** A French translation of the `Emacs Survival Guide' is available.
 
 ---
-** A French translation of the Emacs Tutorial is available.
 ** Building with -DENABLE_CHECKING does not automatically build with union
 types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
