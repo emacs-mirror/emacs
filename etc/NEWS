@@ -130,6 +130,12 @@ When Emacs is configured to use LessTif or Motif, reading a file name
 from a menu will pop up a file selection dialog if `use-dialog-box' is
 non-nil.
 
+** File selection dialog on MS-Windows is supported.
+
+When a file is visited by clicking File->Open, the MS-Windows version
+now pops up a standard file selection dialog where you can select a
+file to visit.  File->Save As also pops up that dialog.
+
 ** Toolkit scroll bars.
 
 Emacs now uses toolkit scroll bars if available.  When configured for
