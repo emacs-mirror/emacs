@@ -879,19 +879,19 @@ This variable holds frame parameters for
 @code{special-display-popup-frame} to use when it creates a frame.
 @end defopt
 
-@defvar same-window-buffer-names
+@defopt same-window-buffer-names
 A list of buffer names for buffers that should be displayed in the
 selected window.  If the buffer's name is in this list,
 @code{display-buffer} handles the buffer by switching to it in the
 selected window.
-@end defvar
+@end defopt
 
-@defvar same-window-regexps
+@defopt same-window-regexps
 A list of regular expressions that specify buffers that should be
 displayed in the selected window.  If the buffer's name matches any of
 the regular expressions in this list, @code{display-buffer} handles the
 buffer by switching to it in the selected window.
-@end defvar
+@end defopt
 
 @c Emacs 19 feature
 @defvar display-buffer-function
