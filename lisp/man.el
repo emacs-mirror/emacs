@@ -290,6 +290,13 @@ This regular expression should start with a `^' character.")
 /\e\\[[0-9][0-9]*m/ s///g"
   "Script for berkeley-like sed to nuke backspaces and ANSI codes from manpages.")
 
+(defvar man-mode-syntax-table
+  (let ((table (copy-syntax-table (standard-syntax-table))))
+    (modify-syntax-entry ?. "w" table)
+    (modify-syntax-entry ?_ "w" table)
+    table)
+  "Syntax table used in Man mode buffers.")
+
 (if Man-mode-map
     nil
   (setq Man-mode-map (make-keymap))
@@ -463,31 +470,23 @@ and the Man-section-translations-alist variables)."
   "Make a guess at a default manual entry.
 This guess is based on the text surrounding the cursor, and the
 default section number is selected from `Man-auto-section-alist'."
-  (let (default-title)
+  (let (word)
     (save-excursion
-      
       ;; Default man entry title is any word the cursor is on, or if
-      ;; cursor not on a word, then nearest preceding word.  Cannot
-      ;; use the current-word function because it skips the dots.
-      (if (not (looking-at "[-a-zA-Z_.]"))
-	  (skip-chars-backward "^a-zA-Z"))
-      (skip-chars-backward "-(a-zA-Z_0-9_.")
-      (if (looking-at "(") (forward-char 1))
-      (setq default-title
-	    (buffer-substring
-	     (point)
-	     (progn (skip-chars-forward "-a-zA-Z0-9_.") (point))))
-      
+      ;; cursor not on a word, then nearest preceding word.
+      (setq word (current-word))
+      (if (string-match "[._]+$" word)
+	  (setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
-      (let ((result (concat
-		     default-title
-		     (if (looking-at
-			  (concat "[ \t]*([ \t]*\\("
-				  Man-section-regexp "\\)[ \t]*)"))
-			 (format "(%s)" (Man-match-substring 1))))))
-	(set-text-properties 0 (length result) nil result)
-	result))))
+      (forward-word 1)
+      ;; Use `format' here to clear any text props from `word'.
+      (format "%s%s"
+	      word
+	      (if (looking-at
+		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
+		  (format "(%s)" (Man-match-substring 1))
+		"")))))
 
 
 ;; ======================================================================
@@ -788,6 +787,7 @@ The following key bindings are currently in effect in the buffer:
   (buffer-disable-undo (current-buffer))
   (auto-fill-mode -1)
   (use-local-map Man-mode-map)
+  (set-syntax-table man-mode-syntax-table)
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
