@@ -35,6 +35,10 @@ Lisp_Object Vcommand_history;
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
 
+/* Non-nil means treat the mark as active
+   even if mark_active is 0.  */
+Lisp_Object Vmark_even_if_inactive;
+
 Lisp_Object Qlist;
 Lisp_Object preserved_fns;
 
@@ -141,7 +145,7 @@ check_mark ()
   Lisp_Object tem = Fmarker_buffer (current_buffer->mark);
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error ("The mark is not set now");
-  if (NILP (current_buffer->mark_active))
+  if (NILP (current_buffer->mark_active) && NILP (Vmark_even_if_inactive))
     error ("The mark is not active now");
 }
 
@@ -656,6 +660,14 @@ Each command is represented as a form to evaluate.");
 Bound each time `call-interactively' is called;\n\
 may be set by the debugger as a reminder for itself.");
   Vcommand_debug_status = Qnil;
+
+  DEFVAR_LISP ("Vmark-even-if-inactive", &Vmark_even_if_inactive,
+    "*Non-nil means you can use the mark even when inactive.\n\
+This option makes a difference in Transient Mark mode.\n\
+When the option is non-nil, deactivation of the mark\n\
+turns off region highlighting, but commands that use the mark\n\
+behave as if the mark were still active.");
+  Vmark_even_if_inactive = Qnil;
 
   defsubr (&Sinteractive);
   defsubr (&Scall_interactively);
