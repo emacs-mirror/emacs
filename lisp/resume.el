@@ -81,7 +81,7 @@
 
 ;; Insert this in your .emacs file:
 ;;(setq suspend-resume-hook 'resume-process-args)
-;;(setq suspend-hook 'empty-args-file)
+;;(setq suspend-hooks 'empty-args-file)
 ;;(autoload 'empty-args-file "resume")
 ;;(autoload 'resume-process-args "resume")
 
