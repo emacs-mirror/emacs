@@ -1114,7 +1114,7 @@ with SIGHUP.")
   /* Delete any auto-save file, if we saved it in this session.  */
   if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0
-      && SAVE_MODIFF < b->auto_save_modified)
+      && BUF_SAVE_MODIFF (b) < b->auto_save_modified)
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
