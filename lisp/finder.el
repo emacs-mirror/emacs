@@ -51,7 +51,7 @@
     (c		. "support for the C language and related languages")
     (calendar	. "calendar and time management support")
     (comm	. "communications, networking, remote access to files")
-    (convenience. "convenience features for faster editing")
+    (convenience . "convenience features for faster editing")
     (data	. "support editing files of data")
     (docs	. "support for Emacs documentation")
     (emulations	. "emulations of other editors")
