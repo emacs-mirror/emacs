@@ -1330,6 +1330,8 @@ struct face_cache
       ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
       : NULL)
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Non-zero if FACE is suitable for displaying character CHAR.  */
 
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR)	\
@@ -1346,9 +1348,12 @@ struct face_cache
    ? (FACE)->ascii_face->id		\
    : face_for_char ((F), (FACE), (CHAR)))
 
-/* The default registry and encoding to use.  */
+#else /* not HAVE_WINDOW_SYSTEM */
 
-extern Lisp_Object Vface_default_registry;
+#define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR) 1
+#define FACE_FOR_CHAR(F, FACE, CHAR) ((FACE)->id)
+
+#endif /* not HAVE_WINDOW_SYSTEM */
 
 /* Non-zero means face attributes have been changed since the last
    redisplay.  Used in redisplay_internal.  */
