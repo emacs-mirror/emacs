@@ -7407,7 +7407,7 @@ parse_menu_item (item, notreal, inmenubar)
       newcache = chkcache;
       if (chkcache)
 	{
-	  tem = Fkey_description (tem);
+	  tem = Fkey_description (tem, Qnil);
 	  if (CONSP (prefix))
 	    {
 	      if (STRINGP (XCAR (prefix)))
@@ -9806,7 +9806,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  int count = SPECPDL_INDEX ();
 
 	  record_unwind_protect (pop_message_unwind, Qnil);
-	  binding = Fkey_description (bindings);
+	  binding = Fkey_description (bindings, Qnil);
 
 	  newmessage
 	    = (char *) alloca (SCHARS (SYMBOL_NAME (function))
