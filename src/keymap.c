@@ -222,8 +222,8 @@ get_keymap_1 (object, error, autoload)
 	{
 	  struct gcpro gcpro1, gcpro2;
 
-	  GCPRO2 (tem, object)
-	    do_autoload (tem, object);
+	  GCPRO2 (tem, object);
+	  do_autoload (tem, object);
 	  UNGCPRO;
 
 	  goto autoload_retry;
@@ -1860,6 +1860,7 @@ static int
 describe_vector_princ (elt)
      Lisp_Object elt;
 {
+  Findent_to (make_number (16), make_number (1));
   Fprinc (elt, Qnil);
   Fterpri (Qnil);
 }
