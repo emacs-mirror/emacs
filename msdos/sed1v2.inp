@@ -14,6 +14,8 @@ s/\.h\.in/.h-in/
 /^CC *=/s/@[^@\n]*@/gcc/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
+/^CPPFLAGS *=/s/@[^@\n]*@//
+/^LDFLAGS *=/s/@[^@\n]*@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
