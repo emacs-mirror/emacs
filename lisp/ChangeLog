@@ -1,3 +1,8 @@
+2001-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* delsel.el (delete-selection-pre-hook): Handle and resignal
+	file-supersession errors to interact properly with userlock.el.
+
 2002-01-16  Andreas Schwab  <schwab@suse.de>
 
 	* mail/feedmail.el (feedmail): Fix :link spec.

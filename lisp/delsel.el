@@ -84,24 +84,31 @@ any selection."
 	     (not buffer-read-only))
     (let ((type (and (symbolp this-command)
 		     (get this-command 'delete-selection))))
-      (cond ((eq type 'kill)
-	     (delete-active-region t))
-	    ((eq type 'yank)
-	     ;; Before a yank command,
-	     ;; make sure we don't yank the same region
-	     ;; that we are going to delete.
-	     ;; That would make yank a no-op.
-	     (when (string= (buffer-substring-no-properties (point) (mark))
-			    (car kill-ring))
-	       (current-kill 1))
-	     (delete-active-region))
-	    ((eq type 'supersede)
-	     (let ((empty-region (= (point) (mark))))
-	       (delete-active-region)
-	       (unless empty-region
-		 (setq this-command 'ignore))))
-	    (type
-	     (delete-active-region))))))
+      (condition-case data
+	  (cond ((eq type 'kill)
+		 (delete-active-region t))
+		((eq type 'yank)
+		 ;; Before a yank command,
+		 ;; make sure we don't yank the same region
+		 ;; that we are going to delete.
+		 ;; That would make yank a no-op.
+		 (when (string= (buffer-substring-no-properties (point) (mark))
+				(car kill-ring))
+		   (current-kill 1))
+		 (delete-active-region))
+		((eq type 'supersede)
+		 (let ((empty-region (= (point) (mark))))
+		   (delete-active-region)
+		   (unless empty-region
+		     (setq this-command 'ignore))))
+		(type
+		 (delete-active-region)))
+	(file-supersession
+	 ;; If ask-user-about-supersession-threat signals an error,
+	 ;; stop safe_run_hooks from clearing out pre-command-hook.
+	 (and (eq inhibit-quit 'pre-command-hook)
+	      (setq inhibit-quit 'delete-selection-dummy))
+	 (signal 'file-supersession (cdr data)))))))
 
 (put 'self-insert-command 'delete-selection t)
 (put 'self-insert-iso 'delete-selection t)
