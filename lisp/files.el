@@ -372,7 +372,7 @@ Do not specify them in other calls."
 	(if handler
 	    (setq filename (funcall handler 'file-truename filename)
 		  done t)
-	  (let ((dir (file-name-directory filename))
+	  (let ((dir (or (file-name-directory filename) default-directory))
 		target dirfile)
 	    ;; Get the truename of the directory.
 	    (setq dirfile (directory-file-name dir))
