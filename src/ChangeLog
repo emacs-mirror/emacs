@@ -264,6 +264,17 @@
 	* xfns.c: Include "character.h".
 	(x_encode_text): Adjusted for the new code-conversion API.
 
+	* xterm.c: Include "character.h".
+	(x_encode_char): New argument CHARSET.  Caller changed.
+	(x_get_char_face_and_encoding): Call ENCODE_CHAR instead of
+	SPLIT_CHAR.
+	(x_get_glyph_face_and_encoding): Likewise.
+	(x_produce_glyphs): Don't check Vnonascii_translation_table Call
+	CHAR_WIDTH instead of CHARSET_WIDTH.
+	(XTread_socket): Adjusted for the new code-conversion API.
+	(x_new_font): Adjusted for the change of FS_LOAD_FONT.
+	(x_load_font): Adjusted for the change of struct font.
+
 2002-02-26  Kim F. Storm  <storm@cua.dk>
 
 	The following changes add a new Vminibuf_selected_window variable
