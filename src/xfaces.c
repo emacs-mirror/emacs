@@ -435,6 +435,11 @@ int face_change_count;
 
 int tty_suppress_bold_inverse_default_colors_p;
 
+/* A list of the form `((x . y))' used to avoid consing in
+   Finternal_set_lisp_face_attribute.  */
+
+static Lisp_Object Vparam_value_alist;
+
 /* The total number of colors currently allocated.  */
 
 #if GLYPH_DEBUG
@@ -4032,7 +4037,13 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	}
 
       if (!NILP (param))
-	Fmodify_frame_parameters (frame, Fcons (Fcons (param, value), Qnil));
+	{
+	  Lisp_Object cons;
+	  cons = XCAR (Vparam_value_alist);
+	  XCAR (cons) = param;
+	  XCDR (cons) = value;
+	  Fmodify_frame_parameters (frame, Vparam_value_alist);
+	}
     }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -7009,6 +7020,8 @@ syms_of_xfaces ()
   Qtty_color_alist = intern ("tty-color-alist");
   staticpro (&Qtty_color_alist);
 
+  Vparam_value_alist = Fcons (Fcons (Qnil, Qnil), Qnil);
+  staticpro (&Vparam_value_alist);
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);
 
