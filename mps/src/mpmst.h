@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.91) $
+ * $HopeName: MMsrc!mpmst.h(trunk.92) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -280,12 +280,12 @@ typedef struct SegStruct {      /* segment structure */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
   unsigned depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
-  AccessSet pm : AccessMAX;     /* protection mode, impl.c.shield */
-  AccessSet sm : AccessMAX;     /* shield mode, impl.c.shield */
-  TraceSet grey : TRACE_MAX;    /* traces for which seg is grey */
-  TraceSet white : TRACE_MAX;   /* traces for which seg is white */
-  TraceSet nailed : TRACE_MAX;  /* traces for which seg has nailed objects */
-  RankSet rankSet : RankMAX;    /* ranks of references in this seg */
+  AccessSet pm : AccessSetWIDTH; /* protection mode, impl.c.shield */
+  AccessSet sm : AccessSetWIDTH; /* shield mode, impl.c.shield */
+  TraceSet grey : TraceLIMIT;   /* traces for which seg is grey */
+  TraceSet white : TraceLIMIT;  /* traces for which seg is white */
+  TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
+  RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
 } SegStruct;
 
 
@@ -741,9 +741,9 @@ typedef struct ArenaStruct {
   /* trace fields (impl.c.trace) */
   TraceSet busyTraces;          /* set of running traces */
   TraceSet flippedTraces;       /* set of running and flipped traces */
-  TraceStruct trace[TRACE_MAX]; /* trace structures.  See
+  TraceStruct trace[TraceLIMIT]; /* trace structures.  See
                                    design.mps.trace.intance.limit */
-  RingStruct greyRing[RankMAX]; /* ring of grey segments at each rank */
+  RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
   Bool clamped;                 /* prevent background activity */
   RingStruct chainRing;         /* ring of chains */
