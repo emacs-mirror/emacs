@@ -337,11 +337,6 @@ extern Lisp_Object Qmode_line;
 
 Lisp_Object Qface_alias;
 
-/* Names of frame parameters related to faces.  */
-
-extern Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
-extern Lisp_Object Qborder_color, Qcursor_color, Qmouse_color;
-
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
    for a face background color.  See `set-face-stipple' for possible
