@@ -5615,7 +5615,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
       int point_at_end = 0;
       int zv_at_end = 0;
       Lisp_Object old_deactivate_mark, tem;
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+      struct gcpro gcpro1;
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
