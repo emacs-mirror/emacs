@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.110) $
+ * $HopeName: MMsrc!mpm.h(trunk.111) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -389,6 +389,14 @@ extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
 extern void PoolTrivRampEnd(Pool pool, Buffer buf);
+extern Res PoolNoFramePush(AllocFrame *frameReturn,
+                           Pool pool, Buffer buf);
+extern Res PoolTrivFramePush(AllocFrame *frameReturn,
+                             Pool pool, Buffer buf);
+extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
+extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
+extern void PoolNoFramePopPending(Pool pool, Buffer buf,
+                                  AllocFrame frame);
 extern void PoolNoWalk(Pool pool, Seg seg,
                        FormattedObjectsStepMethod,
 		       void *, unsigned long);
@@ -761,6 +769,9 @@ extern void BufferFinish(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
 extern Bool BufferIsMutator(Buffer buffer);
+extern void BufferSetAllocAddr(Buffer buffer, Addr addr);
+extern void BufferAttach(Buffer buffer, Seg seg, 
+                         Addr base, Addr limit, Addr init, Size size);
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
 extern Addr BufferScanLimit(Buffer buffer);
@@ -785,9 +796,14 @@ extern Addr (BufferAlloc)(Buffer buffer);
 extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
 extern Bool BufferIsTrapped(Buffer buffer);
+extern Bool BufferIsTrappedByMutator(Buffer buffer);
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);
 extern void BufferRampReset(Buffer buffer);
+extern Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer);
+extern Res BufferFramePop(Buffer buffer, AllocFrame frame);
+extern FrameState BufferFrameState(Buffer buffer);
+extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);

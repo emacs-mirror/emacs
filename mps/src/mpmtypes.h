@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.65) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.66) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -55,6 +55,7 @@ typedef struct RingStruct *Ring;        /* design.mps.ring */
 typedef Word *BT;                       /* design.mps.bt */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
 typedef unsigned BufferMode;            /* design.mps.buffer */
+typedef unsigned FrameState;            /* design.mps.alloc-frame */
 typedef struct APStruct *AP;            /* design.mps.buffer */
 typedef struct FormatStruct *Format;    /* design.mps.format */
 typedef struct LDStruct *LD;            /* design.mps.ld */
@@ -82,6 +83,7 @@ typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* design.mps.prot */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
+typedef struct AllocFrameStruct *AllocFrame; /* design.mps.alloc-frame */
 
 
 /* Splay* -- See design.mps.splay */
@@ -190,6 +192,12 @@ typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
+typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn, 
+                                   Pool pool, Buffer buf);
+typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
+                                  AllocFrame frame);
+typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
+                                          AllocFrame frame);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
                                void *p, unsigned long s);
@@ -282,6 +290,14 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define BufferModeATTACHED      ((BufferMode)(1<<0))
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
+
+/* Buffer frame states. See design.mps.alloc-frame.lw-frame.states */
+enum {
+  BufferFrameVALID,
+  BufferFramePOP_PENDING,
+  BufferFrameDISABLED,
+  BufferFrameMAX
+};
 
 
 /* Rank constants -- see design.mps.type.rank */

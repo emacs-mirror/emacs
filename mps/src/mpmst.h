@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.70) $
+ * $HopeName: MMsrc!mpmst.h(trunk.71) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -96,6 +96,9 @@ typedef struct PoolClassStruct {
   PoolActMethod act;            /* do an action */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
+  PoolFramePushMethod framePush; /* push an allocation frame */
+  PoolFramePopMethod framePop;  /* pop an allocation frame */
+  PoolFramePopPendingMethod framePopPending;  /* notify pending pop */
   PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
@@ -315,6 +318,8 @@ typedef struct APStruct {
   Addr init;                    /* limit of initialized area */
   Addr alloc;                   /* limit of allocated area */
   Addr limit;                   /* limit of allocation buffer */
+  Addr frameptr;                /* lightweight frame pointer */
+  Bool enabled;                 /* lightweight frame status */
 } APStruct;
 
 
