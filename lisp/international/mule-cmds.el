@@ -1048,6 +1048,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
 	  (error "Can't activate input method `%s'" input-method))
+      (setq current-input-method-title nil)
       (let ((func (nth 2 slot)))
 	(if (functionp func)
 	    (apply (nth 2 slot) input-method (nthcdr 5 slot))
@@ -1057,7 +1058,8 @@ If INPUT-METHOD is nil, deactivate any current input method."
 		(apply (car func) input-method (nthcdr 5 slot)))
 	    (error "Can't activate input method `%s'" input-method))))
       (setq current-input-method input-method)
-      (setq current-input-method-title (nth 3 slot))
+      (or (stringp current-input-method-title)
+	  (setq current-input-method-title (nth 3 slot)))
       (unwind-protect
 	  (run-hooks 'input-method-activate-hook)
 	(force-mode-line-update)))))
