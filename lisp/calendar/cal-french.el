@@ -76,9 +76,7 @@
     french-calendar-month-name-array))
 
 (defun french-calendar-day-name-array ()
-  (if (french-calendar-accents)
-      french-calendar-multibyte-month-name-array
-    french-calendar-month-name-array))
+  french-calendar-day-name-array)
 
 (defconst french-calendar-special-days-array
   ["de la Vertu" "du Ge'nie" "du Labour" "de la Raison" "de la Re'compense"
