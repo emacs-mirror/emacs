@@ -1,4 +1,4 @@
-;;; makefile.el --- makefile editing commands for Emacs
+;;; make-mode.el --- makefile editing commands for Emacs
 
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
@@ -1362,7 +1362,8 @@ Uses `makefile-use-curly-braces-for-macros-p'."
     (nreverse alist)))
 
 (defun makefile-define-space-face ()
-  (make-face 'makefile-space-face)
+  (if (eq window-system 'x)
+      (make-face 'makefile-space-face))
   (or (face-differs-from-default-p 'makefile-space-face)
       (let* ((params (frame-parameters))
 	     (light-bg (cdr (assq 'background-mode params)))
@@ -1376,4 +1377,4 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 			      "hotpink"))))
 	(set-face-background 'makefile-space-face bg-color))))
 
-;;; makefile.el ends here
+;;; make-mode.el ends here
