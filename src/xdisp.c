@@ -9793,9 +9793,6 @@ try_window_id (w)
       start_pos = it.current.pos;
     }
 
-  bottom_row = MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
-  bottom_vpos = MATRIX_ROW_VPOS (bottom_row, current_matrix);
-  
   /* Find the first row that is not affected by changes at the end of
      the buffer.  Value will be null if there is no unchanged row, in
      which case we must redisplay to the end of the window.  delta
@@ -9884,7 +9881,10 @@ try_window_id (w)
   /* Compute differences in buffer positions, y-positions etc.  for
      lines reused at the bottom of the window.  Compute what we can
      scroll.  */
-  if (first_unchanged_at_end_row)
+  if (first_unchanged_at_end_row
+      /* No lines reused because we displayed everything up to the
+         bottom of the window.  */
+      && it.current_y < it.last_visible_y)
     {
       dvpos = (it.vpos
 	       - MATRIX_ROW_VPOS (first_unchanged_at_end_row,
@@ -9895,7 +9895,10 @@ try_window_id (w)
       run.height = it.last_visible_y - max (run.current_y, run.desired_y);
     }
   else
-    delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
+    {
+      delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
+      first_unchanged_at_end_row = NULL;
+    }
   IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
 
 
@@ -10043,7 +10046,11 @@ try_window_id (w)
       update_end (f);
     }
 
-  /* Shift reused rows of the current matrix to the right position.  */
+  /* Shift reused rows of the current matrix to the right position.
+     BOTTOM_ROW is the last + 1 row in the current matrix reserved for
+     text.  */
+  bottom_row = MATRIX_BOTTOM_TEXT_ROW (current_matrix, w);
+  bottom_vpos = MATRIX_ROW_VPOS (bottom_row, current_matrix);
   if (dvpos < 0)
     {
       rotate_matrix (current_matrix, first_unchanged_at_end_vpos + dvpos,
