@@ -67,6 +67,10 @@ megabytes.
 @table @kbd
 @item C-x b @var{buffer} @key{RET}
 Select or create a buffer named @var{buffer} (@code{switch-to-buffer}).
+@item C-x @key{LEFT}
+Select the previous buffer in the list of existing buffers.
+@item C-x @key{RIGHT}
+Select the next buffer in the list of existing buffers.
 @item C-x 4 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in another window
 (@code{switch-to-buffer-other-window}).
@@ -83,6 +87,16 @@ Similar, but select @var{buffer} in a separate frame
 name you want (@pxref{Completion}).  An empty argument to @kbd{C-x b}
 specifies the buffer that was current most recently among those not
 now displayed in any window.
+
+@kindex C-x @key{LEFT}
+@kindex C-x @key{RIGHT}
+@findex next-buffer
+@findex prev-buffer
+  For conveniently switching between a few buffers, use the commands
+@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{RIGHT}}
+(@code{prev-buffer}) selects the previous buffer (following the order
+of most recent selection), while @kbd{C-x @key{LEFT}}
+(@code{next-buffer}) moves through buffers in the reverse direction.
 
 @kindex C-x 4 b
 @findex switch-to-buffer-other-window
@@ -141,9 +155,9 @@ List the existing buffers (@code{list-buffers}).
 @cindex listing current buffers
 @kindex C-x C-b
 @findex list-buffers
-  To display a list of all the buffers that exist, type @kbd{C-x C-b}.
-Each line in the list shows one buffer's name, major mode and visited
-file.  The buffers are listed in the order that they were current; the
+  To display a list of existing buffers, type @kbd{C-x C-b}.  Each
+line in the list shows one buffer's name, major mode and visited file.
+The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
   @samp{*} in the first field of a line indicates the buffer is ``modified.''
@@ -171,7 +185,7 @@ directory @file{~/cvs/emacs/src/}.  You can list only buffers that are
 visiting files by giving the command a prefix; for instance, by typing
 @kbd{C-u C-x C-b}.
 
-@code{list-buffers} omits buffers whose name begins with a blank,
+  @code{list-buffers} omits buffers whose names begin with a space,
 unless they visit files: such buffers are used internally by Emacs.
 
 @need 2000
@@ -332,8 +346,9 @@ Similar, but do it in another window.
 buffers@footnote{Buffers which don't visit files and whose names begin
 with a space are omitted: these are used internally by Emacs.} into the
 buffer @samp{*Buffer List*}, and selects that buffer in Buffer Menu
-mode.  The list in the @samp{*Buffer List*} buffer looks exactly as
-described in @ref{List Buffers}.  The buffer is read-only, and can be
+mode.
+
+  The buffer is read-only, and can be
 changed only through the special commands described in this section.
 The usual Emacs cursor motion commands can be used in the @samp{*Buffer
 List*} buffer.  The following commands apply to the buffer described on
@@ -411,21 +426,32 @@ any buffers previously marked with the @kbd{m} command.  If you have not
 marked any buffers, this command is equivalent to @kbd{1}.
 @end table
 
-  All that @code{buffer-menu} does directly is create and switch to a
-suitable buffer, and turn on Buffer Menu mode.  Everything else
+  There is also a command that affects the entire buffer list:
+
+@table @kbd
+@item T
+Delete, or reinsert, lines for non-file buffers.  This command toggles
+the inclusion of such buffers in the buffer list.
+@end table
+
+  What @code{buffer-menu} actually does is create and switch to a
+suitable buffer, and turn on Buffer Menu mode in it.  Everything else
 described above is implemented by the special commands provided in
 Buffer Menu mode.  One consequence of this is that you can switch from
-the @samp{*Buffer List*} buffer to another Emacs buffer, and edit there.
-You can reselect the @samp{*Buffer List*} buffer later, to perform the
-operations already requested, or you can kill it, or pay no further
-attention to it.
+the @samp{*Buffer List*} buffer to another Emacs buffer, and edit
+there.  You can reselect the @samp{*Buffer List*} buffer later, to
+perform the operations already requested, or you can kill it, or pay
+no further attention to it.
 
-  The only difference between @code{buffer-menu} and @code{list-buffers}
-is that @code{buffer-menu} switches to the @samp{*Buffer List*} buffer
-in the selected window; @code{list-buffers} displays it in another
-window.  If you run @code{list-buffers} (that is, type @kbd{C-x C-b})
-and select the buffer list manually, you can use all of the commands
-described here.
+  The list in the @samp{*Buffer List*} buffer looks exactly like the
+buffer list described in @ref{List Buffers}, because they really are
+the same.  The only difference between @code{buffer-menu} and
+@code{list-buffers} is that @code{buffer-menu} switches to the
+@samp{*Buffer List*} buffer in the selected window;
+@code{list-buffers} displays the same buffer in another window.  If
+you run @code{list-buffers} (that is, type @kbd{C-x C-b}) and select
+the buffer list manually, you can use all of the commands described
+here.
 
   Normally, the buffer @samp{*Buffer List*} is not updated automatically when
 buffers are created and killed; its contents are just text.  If you have
@@ -506,7 +532,7 @@ minibuffer.
 convenient to switch between buffers.
 
 @menu
-* Uniquify::               Buffer names can contain directory parts.
+* Uniquify::               Making buffer names unique with directory parts.
 * Iswitchb::               Switching between buffers with substrings.
 * Buffer Menus::           Configurable buffer menu.
 @end menu
