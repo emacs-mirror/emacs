@@ -2079,7 +2079,9 @@ beginning and `after-revert-hook' at the end."
       (error "%s is an auto-save file" file))
   (let ((file-name (let ((buffer-file-name file))
 		     (make-auto-save-file-name))))
-    (cond ((not (file-newer-than-file-p file-name file))
+    (cond ((if (file-exists-p file)
+	       (not (file-newer-than-file-p file-name file))
+	     (not (file-exists-p file-name)))
 	   (error "Auto-save file %s not current" file-name))
 	  ((save-window-excursion
 	     (if (not (eq system-type 'vax-vms))
@@ -2129,14 +2131,41 @@ This command is used in the special Dired buffer created by
 	  (set-buffer buffer)
 	  (erase-buffer)
 	  (insert-file-contents file)
+	  ;; The file contains a pair of line for each auto-saved buffer.
+	  ;; The first line of the pair contains the visited file name
+	  ;; or is empty if the buffer was not visiting a file.
+	  ;; The second line is the auto-save file name.
 	  (map-y-or-n-p  "Recover %s? "
 			 (lambda (file) (save-excursion (recover-file file)))
 			 (lambda ()
 			   (if (eobp)
 			       nil
 			     (prog1
-				 (buffer-substring-no-properties
-				  (point) (progn (end-of-line) (point)))
+				 (if (eolp)
+				     ;; If the first line of the pair is empty,
+				     ;; it means this was a non-file buffer
+				     ;; that was autosaved.
+				     ;; Make a file name from 
+				     ;; the auto-save file name.
+				     (let ((autofile
+					    (buffer-substring-no-properties
+					     (save-excursion
+					       (forward-line 1)
+					       (point))
+					     (save-excursion
+					       (forward-line 1)
+					       (end-of-line)
+					       (point)))))
+				       (expand-file-name
+					(concat "temp"
+						(substring
+						 (file-name-nondirectory autofile)
+						 1 -1))
+					(file-name-directory autofile)))
+				   ;; This pair of lines is a file-visiting
+				   ;; buffer.  Use the visited file name.
+				   (buffer-substring-no-properties
+				    (point) (progn (end-of-line) (point))))
 			       (while (and (eolp) (not (eobp)))
 				 (forward-line 2)))))
 			 '("file" "files" "recover")))
