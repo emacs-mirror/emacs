@@ -1829,14 +1829,21 @@ Zero means the entire text matched by the whole regexp or whole string.")
   return match_limit (subexp, 0);
 } 
 
-DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 0, 0,
+DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 2, 0,
   "Return a list containing all info on what the last search matched.\n\
 Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.\n\
 All the elements are markers or nil (nil if the Nth pair didn't match)\n\
 if the last match was on a buffer; integers or nil if a string was matched.\n\
-Use `store-match-data' to reinstate the data in this list.")
-  ()
+Use `store-match-data' to reinstate the data in this list.\n\
+\n\
+If INTEGERS (the optional first argument) is non-nil, always use integers\n\
+(rather than markers) to represent buffer positions.\n\
+If REUSE is a list, reuse it as part of the value.  If REUSE is long enough\n\
+to hold all the values, and if INTEGERS is non-nil, no consing is done.")
+  (integers, reuse)
+     Lisp_Object integers, reuse;
 {
+  Lisp_Object tail, prev;
   Lisp_Object *data;
   int i, len;
 
@@ -1852,7 +1859,8 @@ Use `store-match-data' to reinstate the data in this list.")
       int start = search_regs.start[i];
       if (start >= 0)
 	{
-	  if (EQ (last_thing_searched, Qt))
+	  if (EQ (last_thing_searched, Qt)
+	      || ! NILP (integers))
 	    {
 	      XSETFASTINT (data[2 * i], start);
 	      XSETFASTINT (data[2 * i + 1], search_regs.end[i]);
@@ -1877,7 +1885,29 @@ Use `store-match-data' to reinstate the data in this list.")
       else
 	data[2 * i] = data [2 * i + 1] = Qnil;
     }
-  return Flist (2 * len + 2, data);
+
+  /* If REUSE is not usable, cons up the values and return them.  */
+  if (! CONSP (reuse))
+    return Flist (2 * len + 2, data);
+
+  /* If REUSE is a list, store as many value elements as will fit
+     into the elements of REUSE.  */
+  for (i = 0, tail = reuse; CONSP (tail);
+       i++, tail = XCONS (tail)->cdr)
+    {
+      if (i < 2 * len + 2)
+	XCONS (tail)->car = data[i];
+      else
+	XCONS (tail)->car = Qnil;
+      prev = tail;
+    }
+
+  /* If we couldn't fit all value elements into REUSE,
+     cons up the rest of them and add them to the end of REUSE.  */
+  if (i < 2 * len + 2)
+    XCONS (prev)->cdr = Flist (2 * len + 2 - i, data + i);
+
+  return reuse;
 }
 
 
