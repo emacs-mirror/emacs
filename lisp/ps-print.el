@@ -99,7 +99,7 @@ Please send all bug fixes and enhancements to
 ;; otherwise be wasted on banner pages, and to make it easier to find
 ;; your output at the printer (it's easier to pick up one 50-page
 ;; printout than to find 50 single-page printouts).
-;; 
+;;
 ;; Ps-print has a hook in the `kill-emacs-hooks' so that you won't
 ;; accidentally quit from Emacs while you have unprinted PostScript
 ;; waiting in the spool buffer.  If you do attempt to exit with
@@ -276,7 +276,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;     ps-print.el                                         1/21
 ;;     /home/jct/emacs-lisp/ps/new                     94/12/31
-;; 
+;;
 ;; When printing on duplex printers, left and right are reversed so
 ;; that the page numbers are toward the outside (cf. `ps-spool-duplex').
 ;;
@@ -286,7 +286,7 @@ Please send all bug fixes and enhancements to
 ;; set `ps-print-header-frame' to nil.
 ;;
 ;; The font family and size of text in the header are determined
-;; by the variables `ps-header-font-family', `ps-header-font-size' and 
+;; by the variables `ps-header-font-family', `ps-header-font-size' and
 ;; `ps-header-title-font-size' (see below).
 ;;
 ;; The variable `ps-header-line-pad' determines the portion of a header
@@ -361,7 +361,7 @@ Please send all bug fixes and enhancements to
 ;; Don't forget to set `ps-lpr-switches' to select duplex printing
 ;; for your printer.
 ;;
-;; 
+;;
 ;; Line Number
 ;; -----------
 ;;
@@ -385,7 +385,7 @@ Please send all bug fixes and enhancements to
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;;
-;; The X's here represent rectangles filled with a light gray color.
+;; The blocks of X's represent rectangles filled with a light gray color.
 ;; Each rectangle extends all the way across the page.
 ;;
 ;; The height, in lines, of each rectangle is controlled by
@@ -408,7 +408,7 @@ Please send all bug fixes and enhancements to
 ;; Each font family contains the font names for standard, bold, italic
 ;; and bold-italic characters, a reference size (usually 10) and the
 ;; corresponding line height, width of a space and average character width.
-;; 
+;;
 ;; The variable `ps-font-family' determines which font family
 ;; is to be used for ordinary text.
 ;; If its value does not correspond to a known font family,
@@ -546,7 +546,7 @@ Please send all bug fixes and enhancements to
 ;;   box       - text will be surrounded by a box.
 ;;   outline   - print characters as hollow outlines.
 ;;
-;; See the documentation for `ps-extend-face' and `ps-extend-face-list'.
+;; See the documentation for `ps-extend-face'.
 ;;
 ;; Let's, for example, remap font-lock-keyword-face to another foreground color
 ;; and bold attribute:
@@ -555,9 +555,6 @@ Please send all bug fixes and enhancements to
 ;;
 ;; If you want to use a new face, define it first with `defface',
 ;; and then call `ps-extend-face' to specify how to print it.
-;;
-;; NOTE: the only face attributes that have an effect are bold, italic and
-;;       underline.  All other attributes are ignored.
 ;;
 ;;
 ;; How Ps-Print Has A Text And/Or Image On Background
@@ -696,7 +693,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Epoch and Emacs 18 not supported.  At all.
 ;;
-;; Fixed-pitch fonts work better for line folding, but are not required.  
+;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
 ;; `ps-nb-pages-buffer' and `ps-nb-pages-region' don't take care
 ;; of folding lines.
@@ -873,13 +870,13 @@ example `letter', `legal' or `a4'."
 
 (defcustom ps-zebra-stripes nil
   "*Non-nil means print zebra stripes.
-See also documentation for `ps-print-n-zebra'."
+See also documentation for `ps-zebra-stripe-height'."
   :type 'boolean
   :group 'ps-print)
 
 (defcustom ps-zebra-stripe-height 3
   "*Number of zebra stripe lines.
-See also documentation for `ps-print-zebra'."
+See also documentation for `ps-zebra-stripes'."
   :type 'number
   :group 'ps-print)
 
@@ -1396,7 +1393,7 @@ number, prompt the user for the name of the file to save in."
 
 ;;;###autoload
 (defun ps-line-lengths ()
-  "*Display the correspondence between a line length and a font size,
+  "Display the correspondence between a line length and a font size,
 using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (interactive)
@@ -1404,23 +1401,21 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
 
 ;;;###autoload
 (defun ps-nb-pages-buffer (nb-lines)
-  "*Display an approximate correspondence between a font size and the number
-of pages the current buffer would require to print
-using the current ps-print setup."
+  "Display number of pages to print this buffer, for various font heights.
+The table depends on the current ps-print setup."
   (interactive (list (count-lines (point-min) (point-max))))
   (ps-nb-pages nb-lines))
 
 ;;;###autoload
 (defun ps-nb-pages-region (nb-lines)
-  "*Display an approximate correspondence between a font size and the number
-of pages the current region would require to print
-using the current ps-print setup."
+  "Display number of pages to print the region, for various font heights.
+The table depends on the current ps-print setup."
   (interactive (list (count-lines (mark) (point))))
   (ps-nb-pages nb-lines))
 
 ;;;###autoload
 (defun ps-setup ()
-  "*Return the current setup"
+  "Return the current setup."
   (format
    "
 \(setq ps-print-color-p  %s
@@ -2683,7 +2678,7 @@ page-height == bm + print-height + tm - ho - hh
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
     (insert-file fname)))
-    
+
 ;; These functions insert the arrays that define the contents of the
 ;; headers.
 
@@ -2723,6 +2718,7 @@ page-height == bm + print-height + tm - ho - hh
 
 (defun ps-output-boolean (name bool)
   (ps-output (format "/%s %s def\n" name (if bool "true" "false"))))
+
 
 (defun ps-background-pages (page-list func)
   (if page-list
@@ -2892,7 +2888,7 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output (format "/TopMargin    %s def\n" ps-top-margin)) ; not used
   (ps-output (format "/HeaderOffset %s def\n" ps-header-offset))
   (ps-output (format "/HeaderPad    %s def\n" ps-header-pad))
-  
+
   (ps-output-boolean "PrintHeader"      ps-print-header)
   (ps-output-boolean "PrintHeaderFrame" ps-print-header-frame)
   (ps-output-boolean "ShowNofN"         ps-show-n-of-n)
@@ -3018,7 +3014,7 @@ page-height == bm + print-height + tm - ho - hh
 BeginPage
 EndPage
 EndDSCPage\n"))
-	    
+
 (defun ps-next-line ()
   (setq ps-showline-count (1+ ps-showline-count))
   (if (< ps-height-remaining ps-line-height)
@@ -3110,15 +3106,15 @@ EndDSCPage\n"))
 (defun ps-plot-region (from to font &optional fg-color bg-color effects)
   (if (not (equal font ps-current-font))
       (ps-set-font font))
-  
+
   ;; Specify a foreground color only if one's specified and it's
   ;; different than the current.
   (if (not (equal fg-color ps-current-color))
       (ps-set-color fg-color))
-  
+
   (if (not (equal bg-color ps-current-bg))
       (ps-set-bg bg-color))
-  
+
   ;; Specify effects (underline, overline, box, etc)
   (cond
    ((not (integerp effects))
@@ -3247,16 +3243,6 @@ If FACE is not a valid face name, it is used default face."
   (goto-char to))
 
 
-(defun ps-emacs-face-kind-p (face kind kind-regex kind-list)
-  (let ((frame-font (face-font face))
-	(face-defaults (face-font face t)))
-    (or
-     ;; Check FACE defaults:
-     (and (listp face-defaults)
-	  (memq kind face-defaults))
-     ;; Check the user's preferences
-     (memq face kind-list))))
-
 (defun ps-xemacs-face-kind-p (face kind kind-regex kind-list)
   (let* ((frame-font (or (face-font face) (face-font 'default)))
 	 (kind-cons (assq kind (x-font-properties frame-font)))
@@ -3269,13 +3255,15 @@ If FACE is not a valid face name, it is used default face."
 
 (defun ps-face-bold-p (face)
   (if (eq ps-print-emacs-type 'emacs)
-      (face-bold-p face)
+      (or (face-bold-p face)
+	  (memq face ps-bold-faces))
     (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold"
 			   ps-bold-faces)))
 
 (defun ps-face-italic-p (face)
   (if (eq ps-print-emacs-type 'emacs)
-      (face-italic-p face)
+      (or (face-italic-p face)
+	  (memq face ps-italic-faces))
     (or
      (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
      (ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces))))
@@ -3339,7 +3327,7 @@ If FACE is not a valid face name, it is used default face."
 
 (defun ps-mapper (extent list)
   (nconc list (list (list (extent-start-position extent) 'push extent)
-                    (list (extent-end-position extent) 'pull extent)))
+		    (list (extent-end-position extent) 'pull extent)))
   nil)
 
 (defun ps-extent-sorter (a b)
@@ -3348,8 +3336,8 @@ If FACE is not a valid face name, it is used default face."
 (defun ps-print-ensure-fontified (start end)
   (if (and (boundp 'lazy-lock-mode) lazy-lock-mode)
       (if (fboundp 'lazy-lock-fontify-region)
-          (lazy-lock-fontify-region start end) ; the new
-        (lazy-lock-fontify-buffer))))	       ; the old
+	  (lazy-lock-fontify-region start end) ; the new
+	(lazy-lock-fontify-buffer))))	; the old
 
 (defun ps-generate-postscript-with-faces (from to)
   ;; Some initialization...
