@@ -2266,10 +2266,15 @@ detect_coding_sjis (src, src_end)
   while (1)
     {
       ONE_MORE_BYTE (c);
-      if ((c >= 0x80 && c < 0xA0) || c >= 0xE0)
+      if (c >= 0x81)
 	{
-	  ONE_MORE_BYTE (c);
-	  if (c < 0x40)
+	  if (c <= 0x9F || (c >= 0xE0 && c <= 0xEF))
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (c < 0x40 || c == 0x7F || c > 0xFC)
+		return 0;
+	    }
+	  else if (c > 0xDF)
 	    return 0;
 	}
     }
