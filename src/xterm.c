@@ -3412,6 +3412,23 @@ x_alloc_nearest_color (f, cmap, color)
       color->blue  = cells[nearest].blue;
       rc = XAllocColor (display, cmap, color);
     }
+  else
+    {
+      /* If allocation succeeded, and the allocated pixel color is not
+         equal to a cached pixel color recorded earlier, there was a
+         change in the colormap, so clear the color cache.  */
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      XColor *cached_color;
+      
+      if (dpyinfo->color_cells
+	  && (cached_color = &dpyinfo->color_cells[color->pixel],
+	      cached_color->pixel != color->pixel))
+	{
+	  xfree (dpyinfo->color_cells);
+	  dpyinfo->color_cells = NULL;
+	  dpyinfo->ncolor_cells = 0;
+	}
+    }
 
 #ifdef DEBUG_X_COLORS
   if (rc)
