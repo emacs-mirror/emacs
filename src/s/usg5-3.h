@@ -212,7 +212,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* X needs to talk on the network, so search the network library.  */
 
 #define LIBX10_SYSTEM -lnsl_s
-#define LIBX11_SYSTEM -lnsl -lnsl_s -lpt -lc_s
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s
 
 /* The docs for system V/386 suggest v.3 has sigpause,
    so let's give it a try.  */
