@@ -870,18 +870,28 @@ of text."
 
 (defun cua-set-mark (&optional arg)
   "Set mark at where point is, clear mark, or jump to mark.
-With no prefix argument, set mark, push old mark position on local mark
-ring, and push mark on global mark ring, or if mark is already set, clear mark.
-With argument, jump to mark, and pop a new position for mark off the ring;
-then it jumps to the next mark off the ring if repeated with no argument, or
-sets the mark at the new position if repeated with argument."
+
+With no prefix argument, clear mark if already set.  Otherwise, set
+mark, and push old mark position on local mark ring; also push mark on
+global mark ring if last mark was set in another buffer.  
+
+With argument, jump to mark, and pop a new position for mark off
+the local mark ring \(this does not affect the global mark ring\).
+Use \\[pop-global-mark] to jump to a mark off the global mark ring
+\(see `pop-global-mark'\).  Repeating the command without the prefix
+jumps to the next position off the local \(or global\) mark ring.
+
+With a double \\[universal-argument] prefix argument, unconditionally set mark."
   (interactive "P")
   (cond
+   ((and (consp arg) (> (prefix-numeric-value arg) 4))
+    (push-mark-command nil))
    ((eq last-command 'pop-to-mark-command)
-    (if (and (consp arg) (> (prefix-numeric-value arg) 4))
-	(push-mark-command nil)
-      (setq this-command 'pop-to-mark-command)
-      (pop-to-mark-command)))
+    (setq this-command 'pop-to-mark-command)
+    (pop-to-mark-command))
+   ((and (eq last-command 'pop-global-mark) (not arg))
+    (setq this-command 'pop-global-mark)
+    (pop-global-mark))
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
