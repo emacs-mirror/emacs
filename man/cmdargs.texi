@@ -1217,7 +1217,7 @@ Whether to draw the characters in the face @var{face} as italic.
 @end table
 
 @node Lucid Resources
-@section Lucid Menu X Resources
+@appendixsec Lucid Menu X Resources
 @cindex Menu X Resources (Lucid widgets)
 @cindex Lucid Widget X Resources
 
@@ -1286,16 +1286,19 @@ menu bar appear like the LessTif/Motif one.
 @end table
 
 @node LessTif Resources
-@section LessTif Menu X Resources
+@appendixsec LessTif Menu X Resources
 @cindex Menu X Resources (LessTif widgets)
 @cindex LessTif Widget X Resources
 
   If the Emacs installed at your site was built to use the X toolkit
-with the LessTif or Motif widgets, then the menu bar is a separate
-widget and has its own resources.  The resource names contain
-@samp{pane.menubar} (following, as always, the name of the Emacs
-invocation, or @samp{Emacs}, which stands for all Emacs invocations).
-Specify them like this:
+with the LessTif or Motif widgets, then the menu bar, the dialog
+boxes, the pop-up menus, and the file-selection box are separate
+widgets and have their own resources.
+
+  The resource names for the menu bar contain @samp{pane.menubar}
+(following, as always, the name of the Emacs invocation, or
+@samp{Emacs}, which stands for all Emacs invocations).  Specify them
+like this:
 
 @smallexample
 Emacs.pane.menubar.@var{subwidget}.@var{resource}:  @var{value}
@@ -1364,7 +1367,7 @@ Emacs.pane.menubar.popup_*.fontList: 8x16
 @end smallexample
 
 @noindent
-For toolkit pop-up menus, use @samp{menu*} instead of
+For LessTif pop-up menus, use @samp{menu*} instead of
 @samp{pane.menubar}.  For example, to specify the font @samp{8x16} for
 the pop-up menu items, write this:
 
@@ -1372,10 +1375,26 @@ the pop-up menu items, write this:
 Emacs.menu*.fontList:  8x16
 @end smallexample
 
+@noindent
+For LessTif dialog boxes, use @samp{dialog} instead of @samp{menu}:
+
+@example
+Emacs.dialog*.fontList: 8x16
+Emacs.dialog*.foreground: hotpink
+@end example
+
+To specify resources for the LessTif file-selection box, use
+@samp{fsb*}, like this:
+
+@example
+Emacs.fsb*.fontList: 8x16
+@end example
+
 @iftex
 @medbreak
 @end iftex
-  Here is a list of the specific resources for menu bars and pop-up menus:
+  Here is a list of the specific resources for LessTif menu bars and
+pop-up menus:
 
 @table @code
 @item armColor
