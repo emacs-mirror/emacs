@@ -1,5 +1,5 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 92, 93, 94, 95, 1996, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 1999, 2000, 01, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -465,7 +465,7 @@ if the entry is new.  */)
   CHECK_NUMBER (blue);
   CHECK_STRING (name);
 
-  XSET (rgb, Lisp_Int, RGB(XUINT (red), XUINT (green), XUINT (blue)));
+  XSETINT (rgb, RGB(XUINT (red), XUINT (green), XUINT (blue)));
 
   BLOCK_INPUT;
 
