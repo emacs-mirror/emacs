@@ -55,8 +55,8 @@
 ;;;###autoload
 (defcustom winner-mode nil
   "Toggle winner-mode.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `winner-mode'."
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `winner-mode'."
   :set #'(lambda (symbol value)
 	   (winner-mode (or value 0)))
   :initialize 'custom-initialize-default
