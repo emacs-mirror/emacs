@@ -27,145 +27,177 @@
 
 ;;; Code:
 
+;; Setup font-encoding-alist for all known encodings.
+
+(setq font-encoding-alist
+      '(("iso8859-1$" . iso-8859-1)
+	("iso8859-2$" . iso-8859-2)
+	("iso8859-3$" . iso-8859-3)
+	("iso8859-4$" . iso-8859-4)
+	("iso8859-5$" . iso-8859-5)
+	("iso8859-6$" . iso-8859-6)
+	("iso8859-7$" . iso-8859-7)
+	("iso8859-8$" . iso-8859-8)
+	("iso8859-9$" . iso-8859-9)
+	("iso8859-10$" . iso-8859-10)
+	("iso8859-11$" . iso-8859-11)
+	("iso8859-13$" . iso-8859-13)
+	("iso8859-14$" . iso-8859-14)
+	("iso8859-15$" . iso-8859-15)
+	("gb2312.1980" . chinese-gb2312)
+	("jisx0208.1978" . japanese-jisx0208-1978)
+	("jisx0208" . japanese-jisx0208)
+	("jisx0201" . jisx0201)
+	("jisx0212" . japanese-jisx0212)
+	("ksc5601.1987" . korean-ksc5601)
+	("cns11643.1992.*1" . chinese-cns11643-1)
+	("cns11643.1992.*2" . chinese-cns11643-2)
+	("cns11643.1992.*3" . chinese-cns11643-3)
+	("cns11643.1992.*4" . chinese-cns11643-4)
+	("cns11643.1992.*5" . chinese-cns11643-5)
+	("cns11643.1992.*6" . chinese-cns11643-6)
+	("cns11643.1992.*7" . chinese-cns11643-7)
+	("big5" . big5)
+	("sisheng_cwnn" . chinese-sisheng)
+	("viscii" . viscii)
+	("tis620" . tis620-2533)
+	("mulearabic-0" . arabic-digit)
+	("mulearabic-1" . arabic-1-column)
+	("mulearabic-2" . arabic-2-column)
+	("muleipa" . ipa)
+	("ethiopic-unicode" . ethiopic)
+	("is13194-devanagari" . indian-is13194)
+	("devanagari-cdac" . devanagari-glyph)
+	("muleindian-2" . indian-2-column)
+	("muleindian-1" . indian-1-column)
+	("mulelao-1" . mule-lao)
+	("muletibetan-2" . tibetan)
+	("muletibetan-1" . tibetan-1-column)
+	("jisx0213.2000-1" . japanese-jisx0213-1)
+	("jisx0213.2000-2" . japanese-jisx0213-2)
+	("abobe-symbol" . symbol)
+	("iso10646-1" . (unicode . nil))
+	("iso10646.indian-1" . (unicode . nil))))
+
+
 ;; Set standard fontname specification of characters in the default
-;; fontset to find an appropriate font for each charset.  This is used
-;; to generate a font name for a fontset if the fontset doesn't
-;; specify a font name for a specific character.  The specification
-;; has the form (FAMILY . REGISTRY).  FAMILY may be nil, in which
-;; case, the family name of default face is used.  If REGISTRY
+;; fontset to find an appropriate font for each script/charset.  The
+;; specification has the form ((SCRIPT FONT-SPEC ...) ...), where
+;; FONT-SPEC is:
+;;	a vector [ FAMILY WEIGHT SLANT ADSTYLE REGISTRY ],
+;;	or a cons (FAMILY . REGISTRY),
+;;	or a string FONT-NAME.
+;; 
+;; FAMILY, WEIGHT, SLANT, and ADSTYLE may be nil, in which case, the
+;; the corresponding name of default face is used.  If REGISTRY
 ;; contains a character `-', the string before that is embedded in
 ;; `CHARSET_REGISTRY' field, and the string after that is embedded in
 ;; `CHARSET_ENCODING' field.  If it does not contain `-', the whole
 ;; string is embedded in `CHARSET_REGISTRY' field, and a wild card
-;; character `*' is embedded in `CHARSET_ENCODING' field.  The
-;; REGISTRY for ASCII characters are predefined as "ISO8859-1".
+;; character `*' is embedded in `CHARSET_ENCODING' field.
+;;
+;; SCRIPT is a symbol that appears as an element of the char table
+;; `char-script-table'.  SCRIPT may be a charset specifying the range
+;; of characters.
 
-(let ((l
-       ;; Eval this at compile-time, since fontset.el is always loaded
-       ;; when run under X and this would always load ind-util.el as well.
-       (eval-when-compile
-	 `((ascii . (nil . "ISO8859-1"))
-	   (iso-8859-1 . (nil . "ISO8859-1"))
-	   (iso-8859-2 . (nil . "ISO8859-2"))
-	   (iso-8859-3 . (nil . "ISO8859-3"))
-	   (iso-8859-4 . (nil . "ISO8859-4"))
-	   (tis620-2533 . (nil . "TIS620*"))
-	   (iso-8859-7 . (nil . "ISO8859-7"))
-	   (iso-8859-6 . (nil . "ISO8859-6"))
-	   (iso-8859-8 . (nil . "ISO8859-8"))
-	   (iso-8859-5 . (nil . "ISO8859-5"))
-	   (iso-8859-9 . (nil . "ISO8859-9"))
-	   (iso-8859-14 . (nil . "ISO8859-14"))
-	   (iso-8859-15 . (nil . "ISO8859-15"))
-	   (chinese-gb2312 . (nil . "GB2312.1980-0"))
-	   (japanese-jisx0208 . (nil . "JISX0208*"))
-	   (korean-ksc5601 . (nil . "KSC5601.1987*"))
-	   (japanese-jisx0212 . (nil . "JISX0212*"))
-	   (big5 . (nil . "Big5"))
-	   (chinese-cns11643-1 . (nil . "CNS11643.1992-1"))
-	   (chinese-cns11643-2 . (nil . "CNS11643.1992-2"))
-	   (chinese-cns11643-3 . (nil . "CNS11643.1992-3"))
-	   (chinese-cns11643-4 . (nil . "CNS11643.1992-4"))
-	   (chinese-cns11643-5 . (nil . "CNS11643.1992-5"))
-	   (chinese-cns11643-6 . (nil . "CNS11643.1992-6"))
-	   (chinese-cns11643-7 . (nil . "CNS11643.1992-7"))
-	   (chinese-gbk . (nil . "gbk-0"))
-	   (chinese-sisheng . (nil . "sisheng_cwnn"))
-	   (viscii . (nil . "VISCII1.1*"))
-	   (arabic-digit . (nil . "MuleArabic-0"))
-	   (arabic-1-column . (nil . "MuleArabic-1"))
-	   (arabic-2-column . (nil . "MuleArabic-2"))
-	   (ipa . (nil . "MuleIPA"))
-	   (ethiopic . (nil . "Ethiopic-Unicode"))
-	   (indian-is13194 . (nil . "IS13194-Devanagari"))
-	   (indian-2-column . (nil . "MuleIndian-2"))
-	   (mule-lao . (nil . "MuleLao-1"))
-	   (tibetan . ("proportional" . "MuleTibetan-2"))
-	   (tibetan-1-column . (nil . "MuleTibetan-1"))
-	   (jisx0201 . (nil . "JISX0201*"))
-	   (japanese-jisx0208-1978 . (nil . "JISX0208.1978*"))
-	   (japanese-jisx0213-1 . (nil . "JISX0213.2000-1"))
-	   (japanese-jisx0213-2 . (nil . "JISX0213.2000-2"))
-           ;; unicode
-           ((,(decode-char 'ucs #x0900)
-	     . ,(decode-char 'ucs #x097F)) . (nil . "ISO10646.indian-1"))
-           ;; indian
-	   (indian-glyph . (nil . "Devanagari-CDAC"))
-	   ((,(indian-glyph-char 0 'devanagari)
-	     . ,(indian-glyph-char 255 'devanagari)) . (nil . "Devanagari-CDAC"))
-	   ((,(indian-glyph-char 0 'sanskrit)
-	     . ,(indian-glyph-char 255 'sanskrit)) . (nil . "Sanskrit-CDAC"))
-	   ((,(indian-glyph-char 0 'bengali)
-	     . ,(indian-glyph-char 255 'bengali)) . (nil . "Bengali-CDAC"))
-	   ((,(indian-glyph-char 0 'assamese)
-	     . ,(indian-glyph-char 255 'assamese)) . (nil . "Assamese-CDAC"))
-	   ((,(indian-glyph-char 0 'punjabi)
-	     . ,(indian-glyph-char 255 'punjabi)) . (nil . "Punjabi-CDAC"))
-	   ((,(indian-glyph-char 0 'gujarati)
-	     . ,(indian-glyph-char 255 'gujarati)) . (nil . "Gujarati-CDAC"))
-	   ((,(indian-glyph-char 0 'oriya)
-	     . ,(indian-glyph-char 255 'oriya)) . (nil . "Oriya-CDAC"))
-	   ((,(indian-glyph-char 0 'tamil)
-	     . ,(indian-glyph-char 255 'tamil)) . (nil . "Tamil-CDAC"))
-	   ((,(indian-glyph-char 0 'telugu)
-	     . ,(indian-glyph-char 255 'telugu)) . (nil . "Telugu-CDAC"))
-	   ((,(indian-glyph-char 0 'kannada)
-	     . ,(indian-glyph-char 255 'kannada)) . (nil . "Kannada-CDAC"))
-	   ((,(indian-glyph-char 0 'malayalam)
-	     . ,(indian-glyph-char 255 'malayalam)) . (nil . "Malayalam-CDAC"))
-	   (unicode . (nil . "ISO10646-1"))
-	   )))
-      charset font-spec)
-  (while l
-    (setq charset (car (car l)) font-spec (cdr (car l)) l (cdr l))
-    (set-fontset-font "fontset-default" charset font-spec)))
+(new-fontset
+ "fontset-default"
+ '( ;; for each script
+   (ascii (nil . "ISO8859-1"))
 
-(setq font-encoding-alist
-      '(("ISO8859-1" . iso-8859-1)
-	("ISO8859-2" . iso-8859-2)
-	("ISO8859-3" . iso-8859-3)
-	("ISO8859-4" . iso-8859-4)
-	("TIS620" . tis620-2533)
-	("ISO8859-7" . iso-8859-7)
-	("ISO8859-6" . iso-8859-6)
-	("ISO8859-8" . iso-8859-8)
-	("JISX0201" . jisx0201)
-	("ISO8859-5" . iso-8859-5)
-	("ISO8859-9" . iso-8859-9)
-	("JISX0208.1978" . japanese-jisx0208-1978)
-	("GB2312.1980" . chinese-gb2312)
-	("JISX0208.1990" . japanese-jisx0208)
-	("JISX0208.1983" . japanese-jisx0208)
-	("KSC5601.1987" . korean-ksc5601)
-	("JISX0212" . japanese-jisx0212)
-	("CNS11643.1992-1" . chinese-cns11643-1)
-	("CNS11643.1992-2" . chinese-cns11643-2)
-	("CNS11643.1992-3" . chinese-cns11643-3)
-	("CNS11643.1992-4" . chinese-cns11643-4)
-	("CNS11643.1992-5" . chinese-cns11643-5)
-	("CNS11643.1992-6" . chinese-cns11643-6)
-	("CNS11643.1992-7" . chinese-cns11643-7)
-	("Big5" . big5)
-	("sisheng_cwnn" . chinese-sisheng)
-	("VISCII" . viscii)
-	("MuleArabic-0" . arabic-digit)
-	("MuleArabic-1" . arabic-1-column)
-	("MuleArabic-2" . arabic-2-column)
-	("MuleIPA" . ipa)
-	("Ethiopic-Unicode" . ethiopic)
-	("IS13194-Devanagari" . indian-is13194)
-	("MuleIndian-2" . indian-2-column)
-	("MuleIndian-1" . indian-1-column)
-	("MuleLao-1" . mule-lao)
-	("MuleTibetan-2" . tibetan)
-	("MuleTibetan-1" . tibetan-1-column)
-	("ISO8859-14" . iso-8859-14)
-	("ISO8859-15" . iso-8859-15)
-	("JISX0213.2000-1" . japanese-jisx0213-1)
-	("JISX0213.2000-2" . japanese-jisx0213-2)
-	("abobe-symbol" . symbol)
-	("ISO10646-1" . unicode)
-	("ISO10646.indian-1" . unicode)))
+   (latin (nil . "ISO8859-1")
+	  (nil . "ISO8859-2")
+	  (nil . "ISO8859-3")
+	  (nil . "ISO8859-4")
+	  (nil . "ISO8859-9")
+	  (nil . "ISO8859-10")
+	  (nil . "ISO8859-13")
+	  (nil . "ISO8859-14")
+	  (nil . "VISCII1.1-1"))
+
+   (thai (nil . "TIS620*")
+	 (nil . "ISO8859-11"))
+
+   (lao  (nil . "MuleLao-1"))
+
+   ;; both for script and charset.
+   (tibetan (nil . "muletibetan-2"))
+
+   ;; both for script and charset.
+   (ethiopic (nil . "ethiopic-unicode"))
+
+   (greek (nil . "ISO8859-7"))
+
+   (cyrillic (nil . "ISO8859-5"))
+
+   (arabic (nil . "MuleArabic-0")
+	   (nil . "MuleArabic-1")
+	   (nil . "MuleArabic-2")
+	   (nil . "ISO8859-6"))
+
+   (hebrew (nil . "ISO8859-8"))
+
+   (kana (nil . "JISX0208*")
+	 (nil . "GB2312.1980-0")
+	 (nil . "KSC5601.1987*")
+	 (nil . "JISX0201*"))
+
+   (bopomofo (nil . "sisheng_cwnn-0"))
+
+   (han (nil . "GB2312.1980-0")
+	(nil . "JISX0208*")
+	(nil . "JISX0212*")
+	(nil . "big5*")
+	(nil . "KSC5601.1987*")
+	(nil . "CNS11643.1992-1")
+	(nil . "CNS11643.1992-2")
+	(nil . "CNS11643.1992-3")
+	(nil . "CNS11643.1992-4")
+	(nil . "CNS11643.1992-5")
+	(nil . "CNS11643.1992-6")
+	(nil . "CNS11643.1992-7")
+	(nil . "gbk-0")
+	(nil . "JISX0213.2000-1")
+	(nil . "JISX0213.2000-2"))
+
+   (cjk-misc (nil . "GB2312.1980-0")
+	     (nil . "JISX0208*")
+	     (nil . "JISX0212*")
+	     (nil . "big5*")
+	     (nil . "KSC5601.1987*")
+	     (nil . "CNS11643.1992-1")
+	     (nil . "CNS11643.1992-2")
+	     (nil . "CNS11643.1992-3")
+	     (nil . "CNS11643.1992-4")
+	     (nil . "CNS11643.1992-5")
+	     (nil . "CNS11643.1992-6")
+	     (nil . "CNS11643.1992-7")
+	     (nil . "gbk-0")
+	     (nil . "JISX0213.2000-1")
+	     (nil . "JISX0213.2000-2"))
+
+   (hangul (nil . "KSC5601.1987-0"))
+
+   ;; for each charset
+   (arabic-digit ("*" . "MuleArabic-0"))
+   (arabic-1-column ("*" . "MuleArabic-1"))
+   (arabic-2-column ("*" . "MuleArabic-2"))
+   (indian-1-column ("*" . "muleindian-2"))
+   (devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
+   (ipa (nil . "MuleIPA-1"))
+   ))
+
+;; Append Unicode fonts.
+;; This may find fonts of more varients (bold, italic) but don't cover
+;; many characters.
+(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+		  '(nil . "iso10646-1") nil 'append)
+;; These may find fonts that covers many characters but less varients.
+(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+		  '("gnu-unifont" . "iso10646-1") nil 'append)
+(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+		  '("mutt-clearlyu" . "iso10646-1") nil 'append)
+
 
 ;; Set arguments in `font-encoding-alist' (which see).
 (defun set-font-encoding (pattern charset)
@@ -355,11 +387,12 @@ XLFD-FIELDS."
 			       (aref xlfd-fields xlfd-regexp-adstyle-subnum)
 			       (aref xlfd-fields xlfd-regexp-registry-subnum)))
 	 (slot (assq 'ascii fontlist))
-	 (ascii-font (cdr slot))
+	 (ascii-font (cadr slot))
 	 xlfd-ascii)
     (if ascii-font
 	(progn
-	  (setcdr slot (setq ascii-font (x-resolve-font-name ascii-font)))
+	  (setq ascii-font (x-resolve-font-name ascii-font))
+	  (setcar (cdr slot) ascii-font)
 	  (setq xlfd-ascii (x-decompose-font-name ascii-font))
 	  (dotimes (i 11)
 	    (or (aref xlfd-fields i)
@@ -368,10 +401,10 @@ XLFD-FIELDS."
       (setq xlfd-ascii (copy-sequence xlfd-fields))
       (aset xlfd-ascii xlfd-regexp-registry-subnum "iso8859-1")
       (setq ascii-font (x-must-resolve-font-name xlfd-ascii))
-      (setq fontlist (cons (cons 'ascii ascii-font) fontlist)))
+      (setq fontlist (cons (list 'ascii ascii-font) fontlist)))
 
     (dolist (elt fontlist)
-      (let ((name (cdr elt))
+      (let ((name (cadr elt))
 	    font-spec)
 	(when (string-match xlfd-style-regexp name)
 	  (setq font-spec (make-vector 6 nil))
@@ -380,7 +413,7 @@ XLFD-FIELDS."
 	  (dotimes (i 6)
 	    (if (string-match "^[*-]+$" (aref font-spec i))
 		(aset font-spec i (aref default-spec i))))
-	  (setcdr elt font-spec))))
+	  (setcar (cdr elt) font-spec))))
 
     fontlist))
 
@@ -439,12 +472,63 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	    name))
       fontset)))
 
+(defvar charset-script-alist
+  '((ascii . ascii)
+    (latin-iso8859-1 . latin)
+    (latin-iso8859-2 . latin)
+    (latin-iso8859-3 . latin)
+    (latin-iso8859-4 . latin)
+    (latin-iso8859-9 . latin)
+    (latin-iso8859-10 . latin)
+    (latin-iso8859-13 . latin)
+    (latin-iso8859-14 . latin)
+    (latin-iso8859-15 . latin)
+    (latin-iso8859-16 . latin)
+    (latin-jisx0201 . latin)
+    (thai-tis620 . thai)
+    (cyrillic-iso8859-5 . cyrillic)
+    (arabic-iso8859-6 . arabic)
+    (greek-iso8859-7 . latin)
+    (hebrew-iso8859-8 . latin)
+    (katakana-jisx0201 . katakana-halfwidth)
+    (chinese-gb2312 . han)
+    (chinese-big5-1 . han)
+    (chinese-big5-2 . han)
+    (chinese-cns11643-1 . han)
+    (chinese-cns11643-2 . han)
+    (chinese-cns11643-3 . han)
+    (chinese-cns11643-4 . han)
+    (chinese-cns11643-5 . han)
+    (chinese-cns11643-6 . han)
+    (chinese-cns11643-7 . han)
+    (japanese-jisx0208 . han)
+    (japanese-jisx0208-1978 . han)
+    (japanese-jisx0212 . han)
+    (japanese-jisx0213-1 . han)
+    (japanese-jisx0213-2 . han)
+    (korean-ksc5601 . hangul-syllable)
+    (chinese-sisheng . bopomofo)
+    (vietnamese-viscii-lower . latin)
+    (vietnamese-viscii-upper . latin)
+    (arabic-digit . arabic)
+    (arabic-1-column . arabic)
+    (arabic-2-column . arabic)
+    (indian-is13194 . devanagari)
+    (indian-glyph . devanagari)
+    (indian-1-column . devanagari)
+    (indian-2-column . devanagari)
+    (tibetan-1-column . tibetan))
+  "Alist of charsets vs the corresponding most appropriate scripts.
+
+This alist is used by the function `create-fontset-from-fontset-spec'
+to map charsets to scripts.")
+
 ;;;###autoload
 (defun create-fontset-from-fontset-spec (fontset-spec
 					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
-	FONTSET-NAME,CHARSET-NAME0:FONT-NAME0,CHARSET-NAME1:FONT-NAME1, ...
+	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
 Optional 2nd argument is ignored.  It exists just for backward
@@ -453,13 +537,16 @@ compatibility.
 If this function attempts to create already existing fontset, error is
 signaled unless the optional 3rd argument NOERROR is non-nil.
 
-It returns a name of the created fontset."
+It returns a name of the created fontset.
+
+For backward compatibility, SCRIPT-NAME may be a charset name, in
+which case, the corresponding script is decided by the variable
+`charset-script-alist' (which see)."
   (if (not (string-match "^[^,]+" fontset-spec))
       (error "Invalid fontset spec: %s" fontset-spec))
-  (setq fontset-spec (downcase fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	xlfd-fields charset fontlist ascii-font)
+	xlfd-fields script fontlist ascii-font)
     (if (query-fontset name)
 	(or noerror 
 	    (error "Fontset \"%s\" already exists" name))
@@ -470,11 +557,12 @@ It returns a name of the created fontset."
       ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
       (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
 	(setq idx (match-end 0))
-	(setq charset (intern (match-string 1 fontset-spec)))
-	(if (charsetp charset)
-	    (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
+	(setq script (intern (match-string 1 fontset-spec)))
+	(if (or (memq script (char-table-extra-slot char-script-table 0))
+		(setq script (cdr (assq script charset-script-alist))))
+	    (setq fontlist (cons (list script (match-string 2 fontset-spec))
 				 fontlist))))
-      (setq ascii-font (cdr (assq 'ascii fontlist)))
+      (setq ascii-font (cadr (assq 'ascii fontlist)))
 
       ;; Complement FONTLIST.
       (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
@@ -513,9 +601,8 @@ an appropriate name is generated automatically.
 
 It returns a name of the created fontset."
   (setq font (downcase font))
-  (if resolved-font
-      (setq resolved-font (downcase resolved-font))
-    (setq resolved-font (downcase (x-resolve-font-name font))))
+  (setq resolved-font
+	(downcase (or resolved-font (x-resolve-font-name font))))
   (let ((xlfd (x-decompose-font-name resolved-font))
 	fontset)
     (if fontset-name
@@ -540,6 +627,7 @@ It returns a name of the created fontset."
 You have the biggest chance to display international characters
 with correct glyphs by using the standard fontset.
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
+
 
 ;; Create fontsets from X resources of the name `fontset-N (class
 ;; Fontset-N)' where N is integer 0, 1, ...
