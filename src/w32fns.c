@@ -2844,9 +2844,7 @@ win_msg_worker (dw)
 	    case WM_TIMER:
 	      if (saved_mouse_msg.msg.hwnd)
 		{
-		  Win32Msg wmsg = saved_mouse_msg;
-		  my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
-			       wmsg.msg.wParam, wmsg.msg.lParam);
+		  post_msg (&saved_mouse_msg);
 		  saved_mouse_msg.msg.hwnd = 0;
 		}
 	      timer_id = 0;
@@ -2992,7 +2990,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	int this = (msg == WM_LBUTTONDOWN) ? LMOUSE : RMOUSE;
 	int other = (msg == WM_LBUTTONDOWN) ? RMOUSE : LMOUSE;
 
-	if (button_state & this) abort ();
+	if (button_state & this)
+	  return 0;
 
 	if (button_state == 0)
 	  SetCapture (hwnd);
@@ -3021,9 +3020,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	    else
 	      {
 		/* Flush out saved message. */
-		wmsg = saved_mouse_msg;
-		my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
-			     wmsg.msg.wParam, wmsg.msg.lParam);
+		post_msg (&saved_mouse_msg);
 	      }
 	    wmsg.dwModifiers = win32_get_modifiers ();
 	    my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
@@ -3055,7 +3052,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	int this = (msg == WM_LBUTTONUP) ? LMOUSE : RMOUSE;
 	int other = (msg == WM_LBUTTONUP) ? RMOUSE : LMOUSE;
 
-	if ((button_state & this) == 0) abort ();
+	if ((button_state & this) == 0)
+	  return 0;
 
 	button_state &= ~this;
 
@@ -3077,9 +3075,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	    /* Flush out saved message if necessary. */
 	    if (saved_mouse_msg.msg.hwnd)
 	      {
-		wmsg = saved_mouse_msg;
-		my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
-			     wmsg.msg.wParam, wmsg.msg.lParam);
+		post_msg (&saved_mouse_msg);
 	      }
 	  }
 	wmsg.dwModifiers = win32_get_modifiers ();
@@ -3846,27 +3842,43 @@ win32_to_x_font (lplogfont, lpxstr, len)
      char * lpxstr;
      int len;
 {
-  if (!lpxstr) return (FALSE);
+  char height_pixels[8];
+  char height_dpi[8];
+  char width_pixels[8];
 
-  if (lplogfont)
+  if (!lpxstr) abort ();
+
+  if (!lplogfont)
+    return FALSE;
+
+  if (lplogfont->lfHeight)
     {
-      _snprintf (lpxstr, len - 1,
-		 "-*-%s-%s-%c-*-*-%d-%d-*-*-%c-%d-*-%s-",
-		 lplogfont->lfFaceName,
-		 win32_to_x_weight (lplogfont->lfWeight),
-		 lplogfont->lfItalic?'i':'r',
-		 abs (lplogfont->lfHeight),
-		 (abs (lplogfont->lfHeight) * 720) / one_win32_display_info.height_in,
-		 ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH) ? 'p' : 'c',
-		 lplogfont->lfWidth * 10,
-		 win32_to_x_charset (lplogfont->lfCharSet)
-		 );
+      sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
+      sprintf (height_dpi, "%u",
+	       (abs (lplogfont->lfHeight) * 720) / one_win32_display_info.height_in);
     }
   else
     {
-      strncpy (lpxstr,"-*-*-*-*-*-*-*-*-*-*-*-*-*-*-", len - 1);
+      strcpy (height_pixels, "*");
+      strcpy (height_dpi, "*");
     }
-  
+  if (lplogfont->lfWidth)
+    sprintf (width_pixels, "%u", lplogfont->lfWidth * 10);
+  else
+    strcpy (width_pixels, "*");
+
+  _snprintf (lpxstr, len - 1,
+	     "-*-%s-%s-%c-*-*-%s-%s-*-*-%c-%s-*-%s-",
+	     lplogfont->lfFaceName,
+	     win32_to_x_weight (lplogfont->lfWeight),
+	     lplogfont->lfItalic?'i':'r',
+	     height_pixels,
+	     height_dpi,
+	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH) ? 'p' : 'c',
+	     width_pixels,
+	     win32_to_x_charset (lplogfont->lfCharSet)
+	     );
+
   lpxstr[len - 1] = 0;		/* just to be sure */
   return (TRUE);
 }
@@ -4047,6 +4059,7 @@ typedef struct enumfont_t
 {
   HDC hdc;
   int numFonts;
+  LOGFONT logfont;
   XFontStruct *size_ref;
   Lisp_Object *pattern;
   Lisp_Object *head;
@@ -4067,6 +4080,12 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
   /*    if (!lpef->size_ref || lptm->tmMaxCharWidth == FONT_WIDTH (lpef->size_ref)) */
   {
     char buf[100];
+
+    if (!NILP (*(lpef->pattern)) && FontType == TRUETYPE_FONTTYPE)
+      {
+	lplf->elfLogFont.lfHeight = lpef->logfont.lfHeight;
+	lplf->elfLogFont.lfWidth = lpef->logfont.lfWidth;
+      }
 
     if (!win32_to_x_font (lplf, buf, 100)) return (0);
 
@@ -4196,6 +4215,7 @@ even if they match PATTERN and FACE.")
   ef.pattern = &pattern;
   ef.tail = ef.head = &namelist;
   ef.numFonts = 0;
+  x_to_win32_font (STRINGP (pattern) ? XSTRING (pattern)->data : NULL, &ef.logfont);
 
   {
     ef.hdc = GetDC (FRAME_WIN32_WINDOW (f));
