@@ -43,7 +43,8 @@ struct font_info
   /* Full name of the font given by a window system.  */
   char *full_name;
 
-  /* Charset of characters displayed by the font.  */
+  /* Charset to encode a character code into a glyph code of the
+     font.  */
   int charset;
 
 #ifdef WINDOWSNT

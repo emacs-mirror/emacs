@@ -697,9 +697,8 @@ struct Lisp_Vector
    ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]		 \
    : char_table_ref ((CT), (IDX)))
 
-/* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
-   and 8-bit Europeans characters.  However, if the result is nil,
-   return IDX.
+/* Almost equivalent to Faref (CT, IDX).  However, if the result is
+   not a character, return IDX.
 
    For these characters, do not check validity of CT
    and do not follow parent.  */

@@ -1,3 +1,25 @@
+2003-10-06  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (charset_unicode): Extern it.
+
+	* charset.c (string_xstring_p): Check by (C >= 0x100).
+	(find_charsets_in_text): Format of the arc CHARSETS changed.  New
+	arg MULTIBYTE.
+	(Ffind_charset_region, Ffind_charset_string): Adjusted for the
+	change of find_charsets_in_text.
+	(Fsplit_char): Fix doc.  Never return unknown.
+
+	* chartab.c (char_table_translate): Use CHARACTERP, not INETEGERP.
+
+	* coding.c (Fdefine_coding_system_alias): Update
+	Vcoding_system_list.
+
+	* fontset.c (load_font_get_repertory): Pay attention to the case
+	that ENCODING of a font is specified by a char-table.
+
+	* xterm.c (x_get_font_repertory): Handle the case that the
+	encoding of font is other than Unicode.
+
 2003-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Don't handle glyph-table.  Check
