@@ -1,3 +1,9 @@
+2001-04-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* find-lisp.el (find-lisp-find-dired-filter)
+	(find-lisp-find-dired-subdirectories, find-lisp-find-dired): Add
+	autoload cookies.  From Richard Y. Kim <ryk@dspwiz.com>.
+
 2001-04-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords):
