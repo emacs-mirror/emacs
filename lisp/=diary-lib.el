@@ -104,8 +104,7 @@ The holidays are those in the list `calendar-holidays'."
 No diary entry if there is no sunset on that date."
   t)
 
-(defvar diary-syntax-table
-  (standard-syntax-table)
+(defvar diary-syntax-table (copy-syntax-table (standard-syntax-table))
   "The syntax table used when parsing dates in the diary file.
 It is the standard syntax table used in Fundamental mode, but with the
 syntax of `*' changed to be a word constituent.")
