@@ -1,6 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.10) $
+ * $HopeName: MMsrc!vmso.c(trunk.11) $
  * Copyright (C) 1995. Harlequin Group plc. All rights reserved.
  *
  * DESIGN
@@ -19,7 +19,8 @@
  * .assume.not-last: The implementation of VMCreate assumes that
  *   mmap() will not choose a region which contains the last page
  *   in the address space, so that the limit of the mapped area
- *   is representable.
+ *   is representable.  (VMCheck checfks limit != 0 which is a kind
+ *   of roundabout way of checking this)
  *
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
@@ -51,7 +52,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.10) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.11) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -108,11 +109,18 @@ Res VMCreate(VM *vmReturn, Size size)
   int zero_fd;
   int none_fd;
   VM vm;
+  long pagesize;
 
   AVER(vmReturn != NULL);
 
   /* Find out the page size from the OS */
-  align = (Align)sysconf(_SC_PAGESIZE);
+  pagesize = sysconf(_SC_PAGESIZE);
+  /* check the actual returned pagesize will fit in an object of */
+  /* type Align. */
+  AVER(pagesize > 0);
+  AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
+  /* Note implicit conversion from "long" to "Align". */
+  align = pagesize;
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
   if((size == 0) || (size > (Size)(size_t)-1))
