@@ -137,12 +137,15 @@ corresponding to the mode line clicked."
       (purecopy (lambda (window object point)
 		  (save-window-excursion
 		    (select-window window)
-		    (if enable-multibyte-characters
-			(concat (symbol-name buffer-file-coding-system)
-				" buffer; see M-x describe-coding-system")
-		      (concat "Unibyte "
-			      (symbol-name buffer-file-coding-system)
-			      " buffer")))))))
+		    ;; Don't show this tip if the coding system is nil,
+		    ;; it reads like a bug, and is not useful anyway.
+		    (when buffer-file-coding-system
+		      (if enable-multibyte-characters
+			  (concat (symbol-name buffer-file-coding-system)
+				  " buffer; see M-x describe-coding-system")
+			(concat "Unibyte "
+				(symbol-name buffer-file-coding-system)
+				" buffer"))))))))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
