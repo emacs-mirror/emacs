@@ -2424,15 +2424,9 @@ since only regular expressions have distinguished subexpressions.  */)
   else
     opoint = PT;
 
-  TEMP_SET_PT (search_regs.start[sub]);
-
-  /* We insert the replacement text before the old text, and then
-     delete the original text.  This means that markers at the
-     beginning or end of the original will float to the corresponding
-     position in the replacement.  */
-  if (!NILP (literal))
-    Finsert_and_inherit (1, &newtext);
-  else
+  /* If we want non-literal replacement,
+     perform substitution on the replacement string.  */
+  if (NILP (literal))
     {
       int length = STRING_BYTES (XSTRING (newtext));
       unsigned char *substed;
@@ -2440,6 +2434,7 @@ since only regular expressions have distinguished subexpressions.  */)
       int buf_multibyte = !NILP (current_buffer->enable_multibyte_characters);
       int str_multibyte = STRING_MULTIBYTE (newtext);
       Lisp_Object rev_tbl;
+      int really_changed = 0;
 
       rev_tbl= (!buf_multibyte && CHAR_TABLE_P (Vnonascii_translation_table)
 		? Fchar_table_extra_slot (Vnonascii_translation_table,
@@ -2481,6 +2476,8 @@ since only regular expressions have distinguished subexpressions.  */)
 
 	  if (c == '\\')
 	    {
+	      really_changed = 1;
+
 	      if (str_multibyte)
 		{
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
@@ -2546,21 +2543,23 @@ since only regular expressions have distinguished subexpressions.  */)
 	    }
 	}
 
-      /* Now insert what we accumulated.  */
-      insert_and_inherit (substed, substed_len);
+      if (really_changed)
+	newtext = make_string (substed, substed_len);
 
       xfree (substed);
     }
 
-  inslen = PT - (search_regs.start[sub]);
-  del_range (search_regs.start[sub] + inslen, search_regs.end[sub] + inslen);
+  /* Replace the old text with the new in the cleanest possible way.  */
+  replace_range (search_regs.start[sub], search_regs.end[sub],
+		 newtext, 1, 0, 1);
+  newpoint = search_regs.start[sub] + XSTRING (newtext)->size;
 
   if (case_action == all_caps)
-    Fupcase_region (make_number (PT - inslen), make_number (PT));
+    Fupcase_region (make_number (search_regs.start[sub]),
+		    make_number (newpoint));
   else if (case_action == cap_initial)
-    Fupcase_initials_region (make_number (PT - inslen), make_number (PT));
-
-  newpoint = PT;
+    Fupcase_initials_region (make_number (search_regs.start[sub]),
+			     make_number (newpoint));
 
   /* Put point back where it was in the text.  */
   if (opoint <= 0)
