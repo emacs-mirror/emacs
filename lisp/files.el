@@ -1564,7 +1564,11 @@ Interactively, confirmation is required unless you supply a prefix argument."
 This is normally done before saving the buffer the first time.
 If the value is non-nil, it is the result of `file-modes' on the original
 file; this means that the caller, after saving the buffer, should change
-the modes of the new file to agree with the old modes."
+the modes of the new file to agree with the old modes.
+
+A backup may be done by renaming or by copying; see documentation of
+variable `make-backup-files'.  If it's done by renaming, then the file is
+no longer accessible under its old name."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
 	   (file-exists-p buffer-file-name)
