@@ -949,6 +949,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			(mapconcat 'prin1-to-string (cdr error) ", "))
 	       (pop-to-buffer "*Messages*")
 	       (setq init-file-had-error t)))))
+
+	;; If the user has a file of abbrevs, read it.
+	(if (file-exists-p abbrev-file-name)
+	    (quietly-read-abbrev-file abbrev-file-name))
+
 	;; If we can tell that the init file altered debug-on-error,
 	;; arrange to preserve the value that it set up.
 	(or (eq debug-on-error debug-on-error-initial)
