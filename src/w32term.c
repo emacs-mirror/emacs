@@ -201,8 +201,36 @@ static void clear_mouse_face ();
 static void show_mouse_face ();
 static void do_line_dance ();
 
-static int w32_cursor_to ();
-static int w32_clear_end_of_line ();
+/* Forward declarations for term hooks.  Consistency with the rest of Emacs
+   requires the use of K&R functions prototypes.  However, MSVC does not
+   pick up the function prototypes correctly with K&R function definitions,
+   and so we declare them first to give a little help to MSVC.  */
+static void w32_clear_frame ();
+static void w32_clear_end_of_line (int);
+static void w32_ins_del_lines (int, int);
+static void w32_change_line_highlight (int, int, int);
+static void w32_insert_glyphs (GLYPH *, int);
+static void w32_write_glyphs (GLYPH *, int);
+static void w32_delete_glyphs (int);
+static void w32_ring_bell ();
+static void w32_reset_terminal_modes ();
+static void w32_set_terminal_modes ();
+static void w32_update_begin (FRAME_PTR);
+static void w32_update_end (FRAME_PTR);
+static void w32_set_terminal_window (int);
+extern int  w32_read_socket (int, struct input_event *, int, int);
+static void w32_frame_up_to_date (FRAME_PTR);
+static void w32_cursor_to (int, int);
+static void w32_reassert_line_highlight (int, int);
+static void w32_mouse_position (FRAME_PTR *, int, Lisp_Object *,
+		enum scroll_bar_part *, Lisp_Object *,
+		Lisp_Object *, unsigned long *);
+static void w32_frame_rehighlight (FRAME_PTR);
+static void w32_frame_raise_lower (FRAME_PTR, int);
+static void w32_set_vertical_scroll_bar (struct window *, int, int, int);
+static void w32_condemn_scroll_bars (FRAME_PTR);
+static void w32_redeem_scroll_bar (struct window *);
+static void w32_judge_scroll_bars (FRAME_PTR);
 
 #if 0
 /* This is a function useful for recording debugging information
@@ -287,7 +315,7 @@ w32_clear_window (f)
    should never be called except during an update, the only exceptions
    being w32_cursor_to, w32_write_glyphs and w32_reassert_line_highlight.  */
 
-static
+static void
 w32_update_begin (f)
      struct frame *f;
 {
@@ -350,7 +378,7 @@ w32_update_begin (f)
   UNBLOCK_INPUT;
 }
 
-static
+static void
 w32_update_end (f)
      struct frame *f;
 {
@@ -367,7 +395,7 @@ w32_update_end (f)
 
 /* This is called after a redisplay on frame F.  */
 
-static
+static void
 w32_frame_up_to_date (f)
      FRAME_PTR f;
 {
@@ -387,6 +415,7 @@ w32_frame_up_to_date (f)
    Call this when about to modify line at position VPOS
    and not change whether it is highlighted.  */
 
+static void
 w32_reassert_line_highlight (new, vpos)
      int new, vpos;
 {
@@ -396,7 +425,7 @@ w32_reassert_line_highlight (new, vpos)
 /* Call this when about to modify line at position VPOS
    and change whether it is highlighted.  */
 
-static
+static void
 w32_change_line_highlight (new_highlight, vpos, first_unused_hpos)
      int new_highlight, vpos, first_unused_hpos;
 {
@@ -409,8 +438,8 @@ w32_change_line_highlight (new_highlight, vpos, first_unused_hpos)
    When starting Emacs, no window is mapped.  And nothing must be done
    to Emacs's own window if it is suspended (though that rarely happens).  */
 
-static
-w32_set_terminal_modes ()
+static void
+w32_set_terminal_modes (void)
 {
 }
 
@@ -418,8 +447,8 @@ w32_set_terminal_modes ()
    Exiting will make the W32 windows go away, and suspending
    requires no action.  */
 
-static
-w32_reset_terminal_modes ()
+static void
+w32_reset_terminal_modes (void)
 {
 }
 
@@ -427,7 +456,7 @@ w32_reset_terminal_modes ()
    This is where display update commands will take effect.
    This does not affect the place where the cursor-box is displayed.  */
 
-static int
+static void
 w32_cursor_to (row, col)
      register int row, col;
 {
@@ -686,7 +715,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
    `highlight', set up by w32_reassert_line_highlight or w32_change_line_highlight,
    controls the pixel values used for foreground and background.  */
 
-static
+static void
 w32_write_glyphs (start, len)
      register GLYPH *start;
      int len;
@@ -735,7 +764,7 @@ w32_write_glyphs (start, len)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
 
-static
+static void
 w32_clear_end_of_line (first_unused)
      register int first_unused;
 {
@@ -745,9 +774,9 @@ w32_clear_end_of_line (first_unused)
     abort ();
 
   if (curs_y < 0 || curs_y >= f->height)
-    return 1;
+    return;
   if (first_unused <= 0)
-    return 1;
+    return;
 
   if (first_unused >= f->width)
     first_unused = f->width;
@@ -773,7 +802,7 @@ w32_clear_end_of_line (first_unused)
   UNBLOCK_INPUT;
 }
 
-static
+static void
 w32_clear_frame ()
 {
   struct frame *f = updating_frame;
@@ -798,7 +827,8 @@ w32_clear_frame ()
 
 /* Make audible bell.  */
 
-w32_ring_bell ()
+static void
+w32_ring_bell (void)
 {
   BLOCK_INPUT;
 
@@ -808,23 +838,21 @@ w32_ring_bell ()
       w32_sys_ring_bell ();
 
   UNBLOCK_INPUT;
-
-  return 1;
 }
 
 /* Insert and delete character.
    These are not supposed to be used because we are supposed to turn
    off the feature of using them.  */
 
-static
+static void
 w32_insert_glyphs (start, len)
-     register char *start;
+     register GLYPH *start;
      register int len;
 {
   abort ();
 }
 
-static
+static void
 w32_delete_glyphs (n)
      register int n;
 {
@@ -836,7 +864,7 @@ w32_delete_glyphs (n)
    This, and those operations, are used only within an update
    that is bounded by calls to w32_update_begin and w32_update_end.  */
 
-static
+static void
 w32_set_terminal_window (n)
      register int n;
 {
@@ -867,13 +895,15 @@ static int line_dance_in_progress;
 
 /* Perform an insert-lines or delete-lines operation,
    inserting N lines or deleting -N lines at vertical position VPOS.  */
+
+static void
 w32_ins_del_lines (vpos, n)
      int vpos, n;
 {
   register int fence, i;
 
   if (vpos >= flexlines)
-    return 1;
+    return;
 
   if (!line_dance_in_progress)
     {
@@ -1083,7 +1113,6 @@ frame_unhighlight (f)
   x_display_cursor (f, 1);
 }
 
-static void w32_frame_rehighlight ();
 static void x_frame_rehighlight ();
 
 /* The focus has changed.  Update the frames as necessary to reflect
@@ -4011,7 +4040,7 @@ x_make_frame_visible (f)
 	    /* It could be confusing if a real alarm arrives while processing
 	       the fake one.  Turn it off and let the handler reset it.  */
 	    alarm (0);
-	    input_poll_signal ();
+	    input_poll_signal (0);
 	  }
 	/* Once we have handled input events,
 	   we should have received the MapNotify if one is coming.
@@ -4357,16 +4386,18 @@ DWORD w32_msg_worker ();
 
 w32_initialize ()
 {
-  clear_frame_hook = w32_clear_frame;
+  /* MSVC does not type K&R functions with no arguments correctly, and
+     so we must explicitly cast them.  */
+  clear_frame_hook = (void (*)(void)) w32_clear_frame;
   clear_end_of_line_hook = w32_clear_end_of_line;
   ins_del_lines_hook = w32_ins_del_lines;
   change_line_highlight_hook = w32_change_line_highlight;
   insert_glyphs_hook = w32_insert_glyphs;
   write_glyphs_hook = w32_write_glyphs;
   delete_glyphs_hook = w32_delete_glyphs;
-  ring_bell_hook = w32_ring_bell;
-  reset_terminal_modes_hook = w32_reset_terminal_modes;
-  set_terminal_modes_hook = w32_set_terminal_modes;
+  ring_bell_hook = (void (*)(void)) w32_ring_bell;
+  reset_terminal_modes_hook = (void (*)(void)) w32_reset_terminal_modes;
+  set_terminal_modes_hook = (void (*)(void)) w32_set_terminal_modes;
   update_begin_hook = w32_update_begin;
   update_end_hook = w32_update_end;
   set_terminal_window_hook = w32_set_terminal_window;
