@@ -371,7 +371,7 @@ Search backwards for the start of a URL ending at or after
 point.  If no URL found, return the empty string.
 A file name is also acceptable, and `http://' will be prepended to it."
   (or (thing-at-point 'url)
-      (let ((file (thing-at-point 'file)))
+      (let ((file (thing-at-point 'filename)))
 	(if file (concat "http://" file)))
       ""))
 
