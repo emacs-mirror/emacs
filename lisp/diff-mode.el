@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.23 2000/09/29 02:25:32 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.24 2000/09/29 18:05:27 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -82,6 +82,12 @@ undo mechanism) or whenever the file is written (can be slow
 when editing big diffs)."
   :group 'diff-mode
   :type '(boolean))
+
+(defcustom diff-advance-after-apply-hunk t
+  "*Non-nil means `diff-apply-hunk' will move to the next hunk after applying."
+  :group 'diff-mode
+  :type 'boolean)
+
 
 (defvar diff-mode-hook nil
   "Run after setting up the `diff-mode' major mode.")
@@ -1041,10 +1047,10 @@ hunk was applied backwards and nil if the hunk wasn't applied."
 	  (delete-char (length (car old)))
 	  (insert (car new)))
 	;; Display BUF in a window
-	(let ((win (display-buffer buf)))
-	  (set-window-point win (+ pos (cdr new))))
+	(set-window-point (display-buffer buf) (+ pos (cdr new)))
 	(diff-hunk-status-msg line-offset reversed nil)
-	(diff-hunk-next)
+	(when diff-advance-after-apply-hunk
+	  (diff-hunk-next))
 	(if reversed 'reversed t))))))
 
 
@@ -1057,9 +1063,10 @@ applied and nil if it can't be found."
   (interactive "P")
   (destructuring-bind (buf line-offset pos src dst &optional switched)
       (diff-find-source-location nil reverse)
-    (let ((win (display-buffer buf)))
-      (set-window-point win (+ pos (cdr src))))
-    (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
+    (set-window-point (display-buffer buf) (+ pos (cdr src)))
+    (let ((reversed (diff-xor switched reverse)))
+      (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)
+      (if reversed 'reversed t))))
 
 
 (defun diff-goto-source (&optional other-file)
@@ -1075,7 +1082,9 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
       (diff-find-source-location other-file t)
     (pop-to-buffer buf)
     (goto-char (+ pos (cdr src)))
-    (unless line-offset (message "Hunk text not found"))))
+    (if line-offset
+	(diff-hunk-status-msg line-offset (not switched) t)
+      (message "Hunk text not found"))))
 
 
 (defun diff-current-defun ()
