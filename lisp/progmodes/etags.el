@@ -40,6 +40,17 @@ Use the `etags' program to make a tags table file.")
   :group 'tools)
 
 ;;;###autoload
+(defcustom tags-case-fold-search 'default
+  "*Whether tags operations should be case-sensitive.
+A value of t means case-insensitive, a value of nil means case-sensitive.
+Any other value means use the setting of `case-fold-search'."
+  :group 'etags
+  :type '(choice (const :tag "Case-sensitive" nil)
+		 (const :tag "Case-insensitive" t)
+		 (other :tag "Use default" default))
+  :version "21.1")
+
+;;;###autoload
 ;; Use `visit-tags-table-buffer' to cycle through tags tables in this list.
 (defcustom tags-table-list nil
   "*List of file names of tags tables to search.
@@ -1009,6 +1020,9 @@ where they were found."
 	(tag-order order)
 	(match-marker (make-marker))
 	goto-func
+	(case-fold-search (if (memq tags-case-fold-search '(nil t))
+			      tags-case-fold-search
+			    case-fold-search))
 	)
     (save-excursion
 
@@ -1519,6 +1533,16 @@ if the file was newly read in, the value is the filename."
 If it returns non-nil, this file needs processing by evalling
 \`tags-loop-operate'.  Otherwise, move on to the next file.")
 
+(defun tags-loop-eval (form)
+  "Evaluate FORM and return its result.
+Bind `case-fold-search' during the evaluation, depending on the value of
+`tags-case-fold-search'."
+  (let ((case-fold-search (if (memq tags-case-fold-search '(t nil))
+			      tags-case-fold-search
+			    case-fold-search)))
+    (eval form)))
+  
+
 ;;;###autoload
 (defun tags-loop-continue (&optional first-time)
   "Continue last \\[tags-search] or \\[tags-query-replace] command.
@@ -1542,7 +1566,7 @@ nil, we exit; otherwise we scan the next file."
 	  (while (or first-time file-finished
 		     (save-restriction
 		       (widen)
-		       (not (eval tags-loop-scan))))
+		       (not (tags-loop-eval tags-loop-scan))))
 	    (setq file-finished nil)
 	    (setq new (next-file first-time t))
 	    ;; If NEW is non-nil, we got a temp buffer,
@@ -1568,7 +1592,7 @@ nil, we exit; otherwise we scan the next file."
 
 	  ;; Now operate on the file.
 	  ;; If value is non-nil, continue to scan the next file.
-	  (eval tags-loop-operate))
+	  (tags-loop-eval tags-loop-operate))
       (setq file-finished t))
     (and messaged
 	 (null tags-loop-operate)
