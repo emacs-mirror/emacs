@@ -1,3 +1,542 @@
+2003-05-24  Kim F. Storm  <storm@cua.dk>
+
+	The following changes serve several purposes:
+
+	1) Swap the position of fringes and display margins in windows, i.e.
+	the fringes are now displayed between the margins and the text area
+	(by default).
+
+	2) Allow fringe and scroll bar parameters to be set per-buffer and
+	per-window (like display margins).  Such settings are now stored
+	in window configurations, preserved when frames are resized, and
+	copied when windows are split vertically or horisontally.
+	Several bugs related to display margins have been fixed.
+
+	3) Consistently use FRAME_FONT and FRAME_FONTSET macros.
+	
+	4) Use FRAME_COLUMN_WIDTH (f) consistently throughout the code
+	rather than FRAME_WIDTH	(FRAME_FONT (f)).
+
+	5) Introduce a consistent naming of variables, members and macros
+	depending on whether their value is measured in pixels or in
+	canonical columns/lines.  Pixel dimensions are named *_width and
+	*_height, while canonical columns/lines are named *_cols and
+	*_lines.  Pixel positions are named *_x and *_y, while column/line
+	positions are named *_col and *_line.
+
+	6) Consolidate more of the X, W32, and MAC gui code by moving
+	common data into struct frame, and generalize it for the non-gui
+	case by using suitable defaults.
+
+	7) Cleanup and consolidate the macros controlling frame and window
+	layout into frame.h and window.h, and generalize the use of the
+	various window_box_* functions (enhanced to handle the new fringe
+	position and the per-window fringe and scroll bar settings).
+
+	* frame.h (struct frame): Rename members height to text_lines,
+	width to text_cols, window_height to total_lines, window_width to
+	total_cols, new_height to new_text_lines, new_width to
+	new_text_cols.  All uses changed.
+	(struct frame): New members which consolidate common members of
+	x_output, w32_output, and mac_output structures: left_pos,
+	top_pos, pixel_height, pixel_width, x_pixels_diff, y_pixels_diff,
+	win_gravity, size_hint_flags, border_width, internal_border_width,
+	line_height, fringe_cols, left_fringe_width, right_fringe_width,
+	want_fullscreen.  All uses changed.
+	(struct frame): New member column_width contaning the canonical
+	column width, analogue to line_height.  All uses changed.
+	(struct frame): Rename members scroll_bar_pixel_width to
+	config_scroll_bar_width, and scroll_bar_cols to
+	config_scroll_bar_cols.  All uses changed.
+	(struct frame): New member scroll_bar_actual_width which
+	consolidates and renames the vertical_scroll_bar_extra member of
+	x_output, w32_output, and mac_output structures.  All uses changed.
+	(FRAME_PIXEL_HEIGHT): Renamed from PIXEL_HEIGHT and moved
+	from x/w32/macterm.h files.  All uses changed.  Also change code
+	which referred to f->output_data...->pixel_height.
+	(FRAME_PIXEL_WIDTH): Renamed from PIXEL_WIDTH and moved
+	from x/w32/macterm.h files.  All uses changed. 	Also change code
+	which referred to f->output_data...->pixel_width.
+	(FRAME_LINES): Renamed from FRAME_HEIGHT.  All uses changed.
+	Also change code which referred to f->height.
+	(FRAME_COLS): Renamed from FRAME_WIDTH.  All uses changed.
+	Also change code which referred to f->width.
+	(FRAME_NEW_HEIGHT, FRAME_NEW_WIDTH): Remove macros; change uses
+	to update new_text_lines and new_text_cols members directly.
+	(FRAME_CONFIG_SCROLL_BAR_WIDTH): Renamed from
+	FRAME_SCROLL_BAR_PIXEL_WIDTH.  All uses changed.
+	(FRAME_CONFIG_SCROLL_BAR_COLS): Renamed from
+	FRAME_SCROLL_BAR_COLS.  All uses changed.
+	(FRAME_LEFT_SCROLL_BAR_COLS, FRAME_RIGHT_SCROLL_BAR_COLS):
+	Renamed from FRAME_LEFT_SCROLL_BAR_WIDTH and
+	FRAME_RIGHT_SCROLL_BAR_WIDTH, resp.  All uses changed.
+	(FRAME_SCROLL_BAR_AREA_WIDTH, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
+	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH): New macros.
+	(FRAME_TOTAL_COLS): Renamed from FRAME_WINDOW_WIDTH.
+	(SET_FRAME_COLS): Renamed from SET_FRAME_WIDTH.
+	(FRAME_TOTAL_COLS_ARG): Renamed from FRAME_WINDOW_WIDTH_ARG.
+	(WINDOW_VERTICAL_SCROLL_BAR_COLUMN): Remove unused macro.
+	(WINDOW_VERTICAL_SCROLL_BAR_HEIGHT): Remove unused macro.
+	(FRAME_LINE_HEIGHT): Renamed from CANON_Y_UNIT.  Unconditionally
+	return line_height member (it now has proper value also for
+	non-window frames).
+	(FRAME_COLUMN_WIDTH): Renamed from CANON_X_UNIT.  Unconditionally
+	return new column_width member (rather than the default font width).
+	(FRAME_FRINGE_COLS, FRAME_LEFT_FRINGE_WIDTH)
+	(FRAME_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_... and moved
+	from x/w32/macterm.h files.  Unconditionally return corresponding
+	member of frame structure (they now have proper values also for
+	non-window frames).
+	(FRAME_TOTAL_FRINGE_WIDTH): Renamed from FRAME_FRINGE_WIDTH.
+	Calculate return value from left and right widths.
+	(FRAME_INTERNAL_BORDER_WIDTH): Unconditionally return
+	internal_border_width member (has proper value for non-window frame).
+	(FRAME_PIXEL_X_FROM_CANON_X): Renamed from PIXEL_X_FROM_CANON_X.
+	(FRAME_PIXEL_Y_FROM_CANON_Y): Renamed from PIXEL_Y_FROM_CANON_Y.
+	(FRAME_CANON_X_FROM_PIXEL_X): Renamed from CANON_X_FROM_PIXEL_X.
+	(FRAME_CANON_Y_FROM_PIXEL_Y): Renamed from CANON_Y_FROM_PIXEL_Y.
+	(FRAME_LINE_TO_PIXEL_Y): Renamed from CHAR_TO_PIXEL_ROW,
+	consolidated from xterm.h, macterm.h, and w32term.h.
+	(FRAME_COL_TO_PIXEL_X): Renamed from CHAR_TO_PIXEL_COL,
+	consolidated from xterm.h, macterm.h, and w32term.h.
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Renamed from
+	CHAR_TO_PIXEL_WIDTH consolidated from x/mac/w32term.h.
+	(FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Renamed from
+	CHAR_TO_PIXEL_HEIGHT consolidated from x/mac/w32term.h.
+	(FRAME_PIXEL_Y_TO_LINE): Renamed from PIXEL_TO_CHAR_ROW
+	consolidated from x/mac/w32term.h.
+	(FRAME_PIXEL_X_TO_COL): Renamed from PIXEL_TO_CHAR_COL
+	consolidated from x/mac/w32term.h.
+	(FRAME_PIXEL_WIDTH_TO_TEXT_COLS): Renamed from
+	PIXEL_TO_CHAR_WIDTH consolidated from x/mac/w32term.h.
+	(FRAME_PIXEL_HEIGHT_TO_TEXT_LINES): Renamed from
+	PIXEL_TO_CHAR_HEIGHT consolidated from x/mac/w32term.h.
+
+	* window.h (struct window): Rename members left to left_col,
+	top to top_line, height to total_lines, width to total_cols,
+	left_margin_width to left_margin_cols, right_margin_width to
+	right_margin_cols, orig_height to orig_total_lines, orig_top to
+	orig_top_line.  All uses changed.
+	(struct window): New members left_fringe_width, right_fringe_width,
+	fringes_outside_margins, scroll_bar_width, vertical_scroll_bar_type.
+	(WINDOW_XFRAME, WINDOW_FRAME_COLUMN_WIDTH, WINDOW_FRAME_LINE_HEIGHT):
+	New macros primarily used to simplify other macros.
+	(WINDOW_TOTAL_COLS): New macro.  Change relevant code that
+	referred to XINT (w->width).
+	(WINDOW_TOTAL_LINES): New macro.  Change relevant code that
+	referred to XINT (w->height).
+	(WINDOW_TOTAL_WIDTH): New macro.  Change relevant code that
+	referred to XINT (w->width) * canon_x_unit.
+	(WINDOW_TOTAL_HEIGHT): New macro.  Change relevant code that
+	referred to XINT (w->height) * canon_y_unit.
+	(WINDOW_LEFT_EDGE_COL): New macro.  Change relevant code that
+	referred to XINT (w->left).
+	(WINDOW_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_EDGE.  Change
+	all uses and code that referred to XINT (w->left) + XINT (w->width).
+	(WINDOW_TOP_EDGE_LINE): New macro.  Change relevant code that
+	referred to XINT (w->top).
+	(WINDOW_BOTTOM_EDGE_LINE): New macro.  Change relevant code that
+	referred to XINT (w->top) + XINT (w->height).
+	(WINDOW_LEFT_EDGE_X): New macro.  Change relevant code that
+	referred to XINT (w->left) * canon_x_unit.
+	(WINDOW_RIGHT_EDGE_X): New macro.  Change relevant code that
+	referred to (XINT (w->left) + XINT (w->width)) * canon_x_unit.
+	(WINDOW_TOP_EDGE_Y): New macro.  Change relevant code that
+	referred to XINT (w->top) * canon_y_unit.
+	(WINDOW_BOTTOM_EDGE_Y): New macro.  Change relevant code that
+	referred to (XINT (w->top) + XINT (w->height)) * canon_y_unit.
+	(WINDOW_LEFTMOST_P): New macro.
+	(WINDOW_BOX_LEFT_EDGE_COL): Renamed from WINDOW_LEFT_MARGIN.
+	All uses changed.
+	(WINDOW_BOX_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_MARGIN.
+	All uses changed.
+	(WINDOW_BOX_LEFT_EDGE_X): Renamed from
+	WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X, moved from dispextern.h.
+	Do not exclude left fringe width.
+	(WINDOW_BOX_RIGHT_EDGE_X): Renamed from
+	WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X, moved from dispextern.h.
+	Do not exclude fringe widths.
+	(WINDOW_LEFT_FRINGE_WIDTH, WINDOW_RIGHT_FRINGE_WIDTH)
+	(WINDOW_FRINGE_COLS, WINDOW_TOTAL_FRINGE_WIDTH): New macros.
+	Change relevant code that referred to FRAME_LEFT_FRINGE_WIDTH,
+	FRAME_RIGHT_FRINGE_WIDTH, FRAME_FRINGE_COLS, and
+	FRAME_TOTAL_FRINGE_WIDTH to allow per-window fringe settings.
+	(WINDOW_HAS_FRINGES_OUTSIDE_MARGINS): New macro.
+	(WINDOW_VERTICAL_SCROLL_BAR_TYPE, WINDOW_HAS_VERTICAL_SCROLL_BAR)
+	(WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT)
+	(WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT)
+	(WINDOW_CONFIG_SCROLL_BAR_WIDTH, WINDOW_CONFIG_SCROLL_BAR_COLS):
+	New macros.  Change code which referenced corresponding
+	FRAME_VERTICAL_SCROLL_BAR_TYPE, FRAME_HAS_VERTICAL_SCROLL_BARS,
+	FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT,
+	FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT,
+	FRAME_SCROLL_BAR_PIXEL_WIDTH, and FRAME_SCROLL_BAR_COLS macros to
+	allow per-window scroll-bar settings.
+	(WINDOW_LEFT_SCROLL_BAR_COLS, WINDOW_RIGHT_SCROLL_BAR_COLS): New macros.
+	(WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH): New macro.  Change code that
+	referred to FRAME_LEFT_SCROLL_BAR_WIDTH.
+	(WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH): New macro.  Change code
+	that referred to FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT and
+	FRAME_SCROLL_BAR_WIDTH.
+	(WINDOW_SCROLL_BAR_COLS, WINDOW_SCROLL_BAR_AREA_WIDTH)
+	(WINDOW_SCROLL_BAR_AREA_X): New macros. 
+	(WINDOW_HEADER_LINE_HEIGHT): Renamed from
+	WINDOW_DISPLAY_HEADER_LINE_HEIGHT, moved from dispextern.h.
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Renamed from
+	WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE, moved from dispextern.h.
+	(WINDOW_BOX_TEXT_HEIGHT): Renamed from
+	WINDOW_DISPLAY_PIXEL_WIDTH, moved from dispextern.h.
+	(WINDOW_TO_FRAME_PIXEL_X, WINDOW_TO_FRAME_PIXEL_Y)
+	(FRAME_TO_WINDOW_PIXEL_X, FRAME_TO_WINDOW_PIXEL_Y)
+	(WINDOW_TEXT_TO_FRAME_PIXEL_X): Moved here from dispextern.h.
+	(WINDOW_LEFT_MARGIN_WIDTH): Renamed from
+	WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH, moved from dispextern.h.
+	(WINDOW_RIGHT_MARGIN_WIDTH): Renamed from
+	WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH, moved from dispextern.h.
+	(window_from_coordinates): Update prototype.
+	(Fset_window_buffer): Update EXFUN.
+	(set_window_buffer): Update prototype.
+	
+	* dispextern.h (struct glyph_matrix): Rename members window_left_x
+	to window_left_col, window_top_y to window_top_line. All uses
+	changed.
+	(FRAME_INTERNAL_BORDER_WIDTH_SAFE): Remove macro; can now safely
+	use FRAME_INTERNAL_BORDER_WIDTH macro instead as
+	internal_border_width is now set to 0 for non-window frames.
+	(WINDOW_DISPLAY_PIXEL_WIDTH, WINDOW_DISPLAY_PIXEL_HEIGHT)
+	(WINDOW_DISPLAY_MODE_LINE_HEIGHT, WINDOW_DISPLAY_HEADER_LINE_HEIGHT)
+	(WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE, WINDOW_DISPLAY_TEXT_HEIGHT)
+	(WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X, WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X)
+	(WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y, WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y)
+	(WINDOW_TO_FRAME_PIXEL_X, WINDOW_TO_FRAME_PIXEL_Y)
+	(FRAME_TO_WINDOW_PIXEL_X, FRAME_TO_WINDOW_PIXEL_Y)
+	(WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH)
+	(WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH, WINDOW_WANTS_MODELINE_P):
+	Move to window.h and renamed [see window.h changes]. 
+	(WINDOW_AREA_TO_FRAME_PIXEL_X, WINDOW_AREA_PIXEL_WIDTH)
+	(WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH): Remove macros.
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P): Use
+	WINDOW_TOTAL_LINES.
+	(frame_update_line_height): Remove prototype.
+
+	* buffer.h (struct buffer): Rename members measured in columns:
+	left_margin_width to left_margin_cols, right_margin_width to
+	right_margin_cols.  All uses changed.
+	New members left_fringe_width, right_fringe_width,
+	fringes_outside_margins for per-buffer fringe settings.
+	New members scroll_bar_width and vertical_scroll_bar_type for
+	per-buffer scroll bar settings.
+
+	* buffer.c (init_buffer_once): Set buffer_defaults and
+	buffer_local_flags for new buffer-local variables
+	left_fringe_width, right_fringe_width, fringes_outside_margins,
+	scroll_bar_width, and vertical_scroll_bar_type.
+	(syms_of_buffer): Defvar_per_buffer them, and defvar_lisp_nopro
+	default-* variables for them.
+
+	* dispnew.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(mode_line_string): No need to adjust width for mode lines, as it
+	is already adjusted by the caller.
+	(marginal_area_string): Handle fringes inside/outside margins.
+	
+	* frame.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(make_frame): Initialize left_fringe_width, right_fringe_width,
+	fringe_cols, scroll_bar_actual_width, border_width,
+	internal_border_width, column_width, line_height, x_pixels_diff,
+	y_pixels_diff, want_fullscreen, size_hint_flags, and win_gravity
+	members with values suitable for a non-window frames.
+
+	* gtkutil.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	
+	* indent.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* keyboard.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(make_lispy_event): Use window positions returned from
+	window_from_coordinates when constructing the lisp event for
+	MOUSE_CLICK_EVENT and DRAG_N_DROP_EVENT, rather than calculating
+	(incorrect) values locally.
+	(make_lispy_movement): Use window positions returned from
+	window_from_coordinates when constructing the lisp event, rather
+	than calculating (incorrect) values locally.
+
+	* scroll.c: Make (some) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* sunfns.c (Fsun_menu_internal): Adapt to per-window fringes and
+	scroll-bars.
+
+	* sysdep.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* term.c: Make (some) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* widget.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* window.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(make_window): Initialize new members
+	left_margin_cols, right_margin_cols, left_fringe_width,
+	right_fringe_width, fringes_outside_margins, scroll_bar_width,
+	and vertical_scroll_bar_type.
+	(coordinates_in_window): Adapted to new fringe/margin positions
+	and per-window fringes and scroll-bars.  
+	Fix bug related to incorrectly adjusting coordinates by
+	frame's internal_border_width (the effect normally negible since 
+	the internal_border_width is typically 0 or 1 pixel, but very
+	noticeable for an internal_border_width of e.g. 25 pixels).
+	Upon successful return (other than ON_NOTHING), the coordinates
+	are now always properly converted to window relative for the
+	given display element.
+	(window_from_coordinates): Add new parameters wx and wy to
+	return the window relative x and y position in the returned
+	window and part.  A null arg means, don't return the position.
+	All callers changed.
+	(adjust_window_margins): New function which may reduce the width
+	of the display margins if a window's text area is too small after
+	resizing or splitting windows.
+	(size_window): Fix bug that did not account for display margin
+	widths when checking the minimum width of a window; use
+	adjust_window_margins.
+	(set_window_buffer): Call Fset_window_fringes and
+	Fset_window_scroll_bars to setup per-window elements.
+	Add new arg KEEP_MARGINS_P.  Non-nil means to keep window's
+	existing display margin, fringe widths, and scroll bar settings
+	(e.g. after splitting a window or resizing the frame).  All
+	callers changed.
+	(Fset_window_buffer): New arg KEEP_MARGINS.  All callers changed.
+	(Fsplit_window): Duplicate original window's display margin,
+	fringe, and scroll-bar settings; then call Fset_window_buffer with
+	KEEP_MARGINS non-nil.  This fixes a bug which caused a split
+	window to only preserve the display margins in one of the windows.
+	When splitting horisontally, call adjust_window_margins	on both
+	windows to ensure that the text area of the new windows is non too
+	narrow.  This fixes a bug which could cause emacs to trap if the
+	width of the split window was less than the width of the display
+	margins.
+	(window_box_text_cols): Renamed from window_internal_width.  All
+	uses changed.  Adapt to per-window fringes and scroll bars.
+	Fix bug that caused vertical separator to be subtracted also on
+	window frames.  Fix another bug that did not reduce the returned
+	value by the columns used for display margins.
+	(window_scroll_line_based): Fix bug related to scrolling too much
+	when display margins are present (implicitly fixed by the fix to
+	window_box_text_cols).
+	(scroll_left, scroll_right): Fix bug related to scrolling too far
+	by default when display margins are present (implicitly fixed by
+	the fix to window_box_text_cols).
+	(struct saved_window): Rename members left to left_col, top to
+	top_line, width to total_cols, height to total_lines, orig_top to
+	orig_top_line, orig_height to orig_total_lines.  All uses changed.
+	New members left_margin_cols, right_margin_cols,
+	left_fringe_width, right_fringe_width, fringes_outside_margins,
+	scroll_bar_width, and vertical_scroll_bar_type for saving
+	per-window display elements.
+	(Fset_window_configuration): Restore display margins, fringes,
+	and scroll bar settings.  This fixes a bug which caused display
+	margins to be discarded when saving and restoring a window
+	configuration.
+	(save_window_save): Save display margins, fringes, and scroll bar
+	settings.  This fixes a bug which caused display margins to be
+	discarded when saving and restoring a window configuration.
+	(Fset_window_margins): Do nothing if display margins are not
+	really changed.  Otherwise, call adjust_window_margins to ensure
+	the text area doesn't get too narrow.  This fixes a bug which
+	could cause emacs to trap if setting display margins wider than
+	the width of the window.
+	(Fset_window_fringes): New defun to allow user to specifically set
+	this window's fringe widths and position vs. display margins.
+	(Fwindow_fringes): New defun to return window's actual fringe
+	settings.
+	(Fset_window_scroll_bars): New defun to allow user to specifically
+	set this window's scroll bar width and position.
+	(Fwindow_scroll_bars): New defun to return window's actual scroll
+	bar settings.
+	(compare_window_configurations): Also compare display margins,
+	fringes, and scroll bar settings.
+	(syms_of_window): Defsubr new defuns for fringe and scroll bars.
+
+	* xdisp.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(window_box_width): Adapt to per-window fringes and scroll bars,
+	and new fringe vs. display margin position. Note that returned
+	value is no longer guaranteed to be a whole multiple of the frame
+	column width, since per-window fringes may now be any width.
+	(window_box_left_offset): New function like window_box_left, but
+	value is relative to left border of window (rather than frame).
+	(window_box_right_offset): New function like window_box_right,
+	but value is relative to left border of window.
+	(window_box_left): Adapt to per-window fringes and scroll bars,
+	and new fringe vs. display margin position.  Simplify by using
+	WINDOW_LEFT_EDGE_X and window_box_left_offset.
+	(window_box): Allow null args for unnecessary return values;
+	change/simplify relevant callers.
+	(x_y_to_hpos_vpos): Adapt to per-window fringes and scroll bars,
+	and new fringe vs. display margin position.  Use
+	window_box_left_offset and window_box_right_offset
+	(get_glyph_string_clip_rect): Adapt to per-window fringes and
+	scroll bars, and new fringe vs. display margin position.  Use
+	WINDOW_LEFT_EDGE_X and WINDOW_TOTAL_WIDTH.
+	(draw_fringe_bitmap): Rework to handle per-window fringes and new
+	fringe vs. display margin position.
+	(hscroll_window_tree): Use window_box_width instead of window_box.
+	(redisplay_window):  Adapt to per-window scroll bars.
+	(draw_glyphs):  Rework to handle per-window fringes and scroll
+	bars, and new fringe vs. display margin position.  Use
+	WINDOW_LEFT_EDGE_X, WINDOW_TOTAL_WIDTH, and window_box_left.
+	(x_clear_end_of_line):  Adapt to per-window fringes and scroll
+	bars, and new fringe vs. display margin position.  Fix bug which
+	increased total width of full_width rows by width of scroll bars
+	although window's total width already includes that.
+	(x_fix_overlapping_area): Simplify using window_box_left_offset.
+	(expose_area): Simplify using window_box_left_offset.
+	(x_draw_vertical_border): Handle per-window scroll bar settings,
+	mixing windows with left, right and no scroll bars.
+
+	* xfaces.c [WINDOWSNT]: Move redefinition of FONT_WIDTH macro to
+	where it's used in x_list_fonts (for clarity).
+	(frame_update_line_height): Remove unused function; functionality
+	is now done directly when setting the default font in x_set_font.
+
+	* xfns.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* xmenu.c: Make (some) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* xterm.h (struct x_output): Move members left_pos, top_pos,
+	border_width, pixel_height, pixel_width, line_height,
+	internal_border_width, vertical_scroll_bar_extra,
+	left_fringe_width, right_fringe_width, fringe_cols,
+	fringes_extra, win_gravity, size_hint_flags, want_fullscreen,
+	x_pixels_diff, and y_pixels_diff to struct frame (frame.h).
+	(FRAME_INTERNAL_BORDER_WIDTH, FRAME_LINE_HEIGHT): Move to frame.h.
+	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
+	(PIXEL_WIDTH, PIXEL_HEIGHT)
+	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	frame.h and renamed [see frame.h changes].
+	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
+	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	and renamed [see frame.h changes].
+	
+	* xterm.c: Make (several) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and
+	scroll-bars.
+	(scroll_run): Adapt to new fringe position.
+	(glyph_rect): Use window coordinates returned from
+	window_from_coordinates rather than frame_to_window_pixel_xy.
+	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
+	scroll-bars.
+	(handle_one_xevent): Simplify a USE_GTK conditional.
+	(x_clip_to_row): Remove superfluous whole_line_p arg and code
+	(fringes are now inside margins, i.e. always in the clipping area).
+	All callers changed.
+	(x_new_font): Set FRAME_COLUMN_WIDTH and FRAME_LINE_HEIGHT
+	directly, then call compute_fringe_widths.  Don't call
+	frame_update_line_height.
+
+	* w32term.h (struct w32_output): Move members left_pos, top_pos,
+	border_width, pixel_height, pixel_width, line_height,
+	internal_border_width, vertical_scroll_bar_extra,
+	left_fringe_width, right_fringe_width, fringe_cols,
+	fringes_extra, win_gravity, size_hint_flags, want_fullscreen,
+	x_pixels_diff, and y_pixels_diff to struct frame (frame.h).
+	(FRAME_INTERNAL_BORDER_WIDTH, FRAME_LINE_HEIGHT): Move to frame.h.
+	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
+	(PIXEL_WIDTH, PIXEL_HEIGHT)
+	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	frame.h and renamed [see frame.h changes].
+	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
+	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	and renamed [see frame.h changes].
+	
+	* w32term.c: Make (several) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and
+	scroll-bars.
+	(glyph_rect): Use window coordinates returned from
+	window_from_coordinates rather than frame_to_window_pixel_xy.
+	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
+	scroll-bars.
+	(w32_clip_to_row): Remove superfluous whole_line_p arg and code
+	(fringes are now inside margins, i.e. always in the clipping area).
+	All callers changed.
+	(x_new_font): Set FRAME_COLUMN_WIDTH and FRAME_LINE_HEIGHT
+	directly, then call compute_fringe_widths.  Don't call
+	frame_update_line_height.
+
+	* w32console.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* w32fns.c: Make (many) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* w32menu.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* macterm.h (struct mac_output): Move members left_pos, top_pos,
+	border_width, pixel_height, pixel_width, line_height,
+	internal_border_width, vertical_scroll_bar_extra,
+	left_fringe_width, right_fringe_width, fringe_cols,
+	fringes_extra, win_gravity, size_hint_flags, want_fullscreen,
+	x_pixels_diff, y_pixels_diff to struct frame (frame.h).
+	(FRAME_INTERNAL_BORDER_WIDTH, FRAME_LINE_HEIGHT): Move to frame.h.
+	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
+	(PIXEL_WIDTH, PIXEL_HEIGHT)
+	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	frame.h and renamed [see frame.h changes].
+	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
+	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	and renamed [see frame.h changes].
+	
+	* macterm.c: Make (several) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and
+	scroll-bars.
+	(glyph_rect): Use window coordinates returned from
+	window_from_coordinates rather than frame_to_window_pixel_xy.
+	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
+	scroll-bars.
+	(x_clip_to_row): Remove superfluous whole_line_p arg and code
+	(fringes are now inside margins, i.e. always in the clipping area).
+	All callers changed.
+	(x_new_font): Set FRAME_COLUMN_WIDTH and FRAME_LINE_HEIGHT
+	directly, then call compute_fringe_widths.  Don't call
+	frame_update_line_height.
+
+	* macfns.c: Make (several) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(x_real_positions): Set f->x_pixels_diff and f->y_pixels_diff to 0. 
+
+	* macmenu.c: Make (few) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+
+	* msdos.h (struct x_output): Remove members left_pos, top_pos,
+	and line_height, and use corresponding new members in struct
+	frame.  All uses changed.
+	(FRAME_LINE_HEIGHT, FRAME_INTERNAL_BORDER_WIDTH): Remove macros;
+	superseeded by corresponding macros in frame.h.
+
+	* msdos.c: Make (several) trivial substitutions for renamed and
+	new macros in dispextern.h, frame.h and window.h.
+	(IT_note_mouse_highlight): Use updated window coordinates returned
+	by window_from_coordinates, rather than adjusting them locally. 
+	(internal_terminal_init): No need to initialize line_height here;
+	it now defaults to 1.
+
 2003-05-24  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (find_safe_codings): Fix last change.
