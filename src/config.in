@@ -280,6 +280,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_STRSIGNAL
 #undef HAVE_GRANTPT
 #undef HAVE_GETPT
+#undef HAVE_SPEED_T		/* speed_t typedef in termios.h */
 
 #undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
