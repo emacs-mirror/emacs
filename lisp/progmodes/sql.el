@@ -262,6 +262,25 @@ The program can also specify a TCP connection.  See `make-comint'."
   :version "20.8"
   :group 'SQL)
 
+;; Customization for SQLite
+
+(defcustom sql-sqlite-program "sqlite"
+  "*Command to start SQLite.
+
+Starts `sql-interactive-mode' after doing some setup.
+
+The program can also specify a TCP connection.  See `make-comint'."
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-sqlite-options nil
+  "*List of additional options for `sql-mysql-program'.
+The following list of options is reported to make things work
+on Windows: \"-C\" \"-t\" \"-f\" \"-n\"."
+  :type '(repeat string)
+  :version "20.8"
+  :group 'SQL)
+
 ;; Customization for MySql
 
 (defcustom sql-mysql-program "mysql"
@@ -534,10 +553,10 @@ Based on `comint-mode-map'.")
     ()
   (let ((wrapper))
     (define-abbrev-table 'sql-mode-abbrev-table ())
-    (define-abbrev sql-mode-abbrev-table  "ins" "insert" nil 0 t)
-    (define-abbrev sql-mode-abbrev-table  "upd" "update" nil 0 t)
-    (define-abbrev sql-mode-abbrev-table  "del" "delete" nil 0 t)
-    (define-abbrev sql-mode-abbrev-table  "sel" "select" nil 0 t)))
+    (define-abbrev sql-mode-abbrev-table  "ins" "insert")
+    (define-abbrev sql-mode-abbrev-table  "upd" "update")
+    (define-abbrev sql-mode-abbrev-table  "del" "delete")
+    (define-abbrev sql-mode-abbrev-table  "sel" "select")))
 
 ;; Syntax Table
 
@@ -924,6 +943,7 @@ Use the following commands to start a specific SQL interpreter:
 
     PostGres: \\[sql-postgres]
     MySQL: \\[sql-mysql]
+    SQLite: \\[sql-sqlite]
 
 Other non-free SQL implementations are also supported:
 
@@ -1578,6 +1598,61 @@ The default comes from `process-coding-system-alist' and
       (set-buffer (make-comint "SQL" sql-informix-program nil sql-database "-")))
     (setq sql-prompt-regexp "^SQL> ")
     (setq sql-prompt-length 5)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
+
+;;;###autoload
+(defun sql-sqlite ()
+  "Run sqlite as an inferior process.
+
+SQLite is free software.
+
+If buffer `*SQL*' exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-sqlite-program'.  Login uses
+the variables `sql-user', `sql-password', `sql-database', and
+`sql-server' as defaults, if set.  Additional command line parameters
+can be stored in the list `sql-sqlite-options'.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+To specify a coding system for converting non-ASCII characters
+in the input and output to the process, use \\[universal-coding-system-argument]
+before \\[sql-sqlite].  You can also specify this with \\[set-buffer-process-coding-system]
+in the SQL buffer, after you start the process.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (sql-get-login 'database)
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (let ((params))
+      (if (not (string= "" sql-database))
+	  (setq params (append (list sql-database) params)))
+      (if (not (string= "" sql-server))
+	  (setq params (append (list (concat "--host=" sql-server)) params)))
+      (if (not (string= "" sql-password))
+	  (setq params (append (list (concat "--password=" sql-password)) params)))
+      (if (not (string= "" sql-user))
+	  (setq params (append (list (concat "--user=" sql-user)) params)))
+      (if (not (null sql-sqlite-options))
+          (setq params (append sql-sqlite-options params)))
+      (set-buffer (apply 'make-comint "SQL" sql-sqlite-program
+			 nil params)))
+    (setq sql-prompt-regexp "^sqlite> ")
+    (setq sql-prompt-length 8)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
