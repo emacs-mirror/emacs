@@ -6,6 +6,8 @@
 
 &options();
 
+print $platform_phylum."\n";
+
 require "headread";
 
 open(IF, ">tmp_index");
@@ -13,7 +15,7 @@ open(IF, ">tmp_index");
 while ($testfile = <*.c>) {
  &readheader($testfile, 0);
  $testnum=$testfile;
- $testnum=~s/.c//;
+ $testnum=~s/\.c//;
  $testname = $test_header{"summary"};
  unless ($testname) {
   print "unknown test: ".$testnum."\n";
@@ -23,6 +25,12 @@ while ($testfile = <*.c>) {
 }
 
 close(IF);
-system("sort -n tmp_index");
+if ($platform_phylum eq "unix") {
+ $sort_options = "-n";
+} elsif ($platform_phylum eq "pc") {
+ $sort_options = "<"; # there's no numeric sort option, unfortunately
+}
+
+system("sort $sort_options tmp_index");
 system("rm tmp_index");
  
