@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Created: July, 1993
-;; Version: 2.4
+;; Version: 2.5
 ;; Keywords: bookmarks, placeholders
 
 ;; This file is part of GNU Emacs.
@@ -26,18 +26,32 @@
 
 ;; Thanks to David Bremner <bremner@cs.sfu.ca> for thinking of and
 ;; then implementing the bookmark-current-bookmark idea.  He even
-;; sent *patches*, bless his soul... 
+;; sent *patches*, bless his soul...
 
 ;; Thanks to Gregory M. Saunders <saunders@cis.ohio-state.edu> for
 ;; fixing and improving bookmark-time-to-save-p.
+
+;; Thanks go to Andrew V. Klein <avk@rtsg.mot.com> for the code that
+;; sorts the alist before presenting it to the user (in list-bookmarks
+;; and the menu-bar).
 
 ;; And much thanks to David Hughes <djh@harston.cv.com> for many small
 ;; suggestions and the code to implement them (like
 ;; Bookmark-menu-check-position, and some of the Lucid compatibility
 ;; stuff).
 
+;; Kudos (whatever they are) go to Jim Blandy <jimb@cs.oberlin.edu>
+;; for his eminently sensible suggestion to separate bookmark-jump
+;; into bookmark-jump and bookmark-jump-noselect, which made many
+;; other things cleaner as well.
+
 ;; Thanks to Roland McGrath for encouragement and help with defining
 ;; autoloads on the menu-bar.
+
+;; Jonathan Stigelman <stig@key.amdahl.com> gave patches for default
+;; values in bookmark-jump and bookmark-set.  Everybody please keep
+;; all the keystrokes they save thereby and send them to him at the
+;; end of each year :-)  (No, seriously, thanks Jonathan!)
 
 ;; Based on info-bookmark.el, by Karl Fogel and Ken Olstad
 ;; <olstad@msc.edu>.
@@ -45,7 +59,7 @@
 ;; LCD Archive Entry:
 ;; bookmark|Karl Fogel|kfogel@cs.oberlin.edu|
 ;; Setting bookmarks in files or directories, jumping to them later.|
-;; 16-July-93|Version: 2.4|~/misc/bookmark.el.Z|
+;; 16-July-93|Version: 2.5|~/misc/bookmark.el.Z|
 
 ;; Enough with the credits already, get on to the good stuff:
 
@@ -666,7 +680,8 @@ for a file, defaulting to the file defined by variable
     (save-window-excursion
       (if (>= baud-rate 9600)
           (message (format "Saving bookmarks to file %s." file)))
-      (set-buffer (find-file-noselect file))
+      (set-buffer (let ((enable-local-eval nil))
+                    (find-file-noselect file)))
       (goto-char (point-min))
       (delete-region (point-min) (point-max))
       (print bookmark-alist (current-buffer))
@@ -709,7 +724,8 @@ explicitly."
         (save-window-excursion
           (if (and (null no-msg) (>= baud-rate 9600))
               (message (format "Loading bookmarks from %s..." file)))
-          (set-buffer (find-file-noselect file))
+          (set-buffer (let ((enable-local-eval nil))
+                        (find-file-noselect file)))
           (goto-char (point-min))
           (let ((blist (car (read-from-string
                              (buffer-substring (point-min) (point-max))))))
@@ -1237,10 +1253,6 @@ one most recently used in this file, if any\)."
 ;; Thanks to Roland McGrath for fixing menubar.el so that the
 ;; following works, and for explaining what to do to make it work.
 
-;;;###autoload 
-(define-key global-map [menu-bar bookmark]
-  '("Bookmarks" . menu-bar-bookmark-map))
-
 (defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions."))
 
 ;; make bookmarks appear toward the right side of the menu.
@@ -1289,4 +1301,3 @@ one most recently used in this file, if any\)."
 (provide 'bookmark)
       
 ;;; bookmark.el ends here
-
