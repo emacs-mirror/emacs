@@ -549,6 +549,19 @@ stores a positive value in this variable, thus reenabling auto-save.
 Turning auto-save mode off or on also alters this variable.
 @end defvar
 
+@defvar auto-save-list-file-name
+This variable (if non-@code{nil}) specifies a file for recording the
+names of all the auto-save files.  Each time Emacs does auto-saving, it
+writes into this file the names of all the auto-save files of all the
+buffers that have auto-save enabled.  If Emacs crashes, you can look in
+this file to find all the auto-save files that might contain work that
+was otherwise lost.  The @code{multi-replace} command uses these files.
+
+The default name for this file is in your home directory and starts with
+@samp{.saves-}.  It also contains the Emacs process @sc{id} and the host
+name.
+@end defvar
+
 @node Reverting
 @section Reverting
 
