@@ -36,6 +36,8 @@
 
 ;;; Code:
 
+(require 'calendar)
+
 (defvar calendar-frame nil "Frame in which to display the calendar.")
 
 (defvar diary-frame nil "Frame in which to display the diary.")
