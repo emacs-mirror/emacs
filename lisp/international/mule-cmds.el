@@ -179,11 +179,12 @@ With arg, make them enable iff arg is positive."
 
 (defun set-default-coding-systems (coding-system)
   "Set default value of various coding systems to CODING-SYSTEM.
-The follwing coding systems are set:
+This sets the follwing coding systems:
   o coding system of a newly created buffer
-  o default coding system for terminal output
-  o default coding system for keyboard input
-  o default coding system for subprocess I/O"
+  o default coding system for subprocess I/O
+This also sets the following values:
+  o default value for the command `set-terminal-coding-system'
+  o default value for the command `set-keyboard-coding-system'"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
   (setq default-terminal-coding-system coding-system)
@@ -192,29 +193,30 @@ The follwing coding systems are set:
 
 (defun prefer-coding-system (coding-system)
   "Add CODING-SYSTEM at the front of the priority list for automatic detection.
-This also sets the following coding systems to CODING-SYSTEM:
+This also sets the follwing coding systems:
   o coding system of a newly created buffer
-  o default coding system for terminal output
-  o default coding system for keyboard input
-  o default coding system for subprocess I/O"
+  o default coding system for subprocess I/O
+This also sets the following values:
+  o default value for the command `set-terminal-coding-system'
+  o default value for the command `set-keyboard-coding-system'"
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
   (let ((coding-category (coding-system-category coding-system))
-	(parent (coding-system-parent coding-system)))
+	(base (coding-system-base coding-system)))
     (if (not coding-category)
 	;; CODING-SYSTEM is no-conversion or undecided.
 	(error "Can't prefer the coding system `%s'" coding-system))
-    (set coding-category (or parent coding-system))
+    (set coding-category (or base coding-system))
     (if (not (eq coding-category (car coding-category-list)))
 	;; We must change the order.
 	(setq coding-category-list
 	      (cons coding-category
 		    (delq coding-category coding-category-list))))
-    (if (and parent (interactive-p))
-	(message "Highest priority is set to %s (parent of %s)"
-		 parent coding-system))
-    (set-default-coding-systems (or parent coding-system))))
+    (if (and base (interactive-p))
+	(message "Highest priority is set to %s (base of %s)"
+		 base coding-system))
+    (set-default-coding-systems (or base coding-system))))
 
 
 ;;; Language support staffs.
@@ -468,7 +470,14 @@ If some input method is already on, turn it off at first."
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
 	  (error "Can't activate input method `%s'" input-method))
-      (apply (nth 2 slot) input-method (nthcdr 5 slot))
+      (let ((func (nth 2 slot)))
+	(if (functionp func)
+	    (apply (nth 2 slot) input-method (nthcdr 5 slot))
+	  (if (and (consp func) (symbolp (car func)) (symbolp (cdr func)))
+	      (progn
+		(require (cdr func))
+		(apply (car func) input-method (nthcdr 5 slot)))
+	    (error "Can't activate input method `%s'" input-method))))
       (setq current-input-method input-method)
       (setq current-input-method-title (nth 3 slot))
       (run-hooks 'input-method-activate-hook))))
@@ -576,25 +585,34 @@ or a string."
 ;; Variables to control behavior of input methods.  All input methods
 ;; should react to these variables.
 
-(defcustom input-method-verbose-flag t
-  "*If this flag is non-nil, input methods give extra guidance.
+(defcustom input-method-verbose-flag 'default
+  "*A flag to control extra guidance given by input methods.
+The value should be nil, t, `complex-only', or `default'.
 
 The extra guidance is done by showing list of available keys in echo
-area.
+area.  When you use the input method in the minibuffer, the guidance
+is shown at the bottom short window (split from the existing window).
 
-For complex input methods such as `chinese-py' and `japanese',
-when you use the input method in the minibuffer, the guidance is
-shown at the bottom short window (split from the existing window).
-For simple input methods, guidance is not shown
-when you are in the minibuffer."
-  :type 'boolean
+If the value is t, extra guidance is always given, if the value is
+nil, extra guidance is always suppressed.
+
+If the value is `complex-only', only complex input methods such as
+`chinese-py' and `japanese' give extra guidance.
+
+If the value is `default', complex input methods always give extra
+guidance, but simple input methods give it only when you are not in
+the minibuffer.
+
+See also the variable `input-method-highlight-flag'."
+  :type '(choice (const t) (const nil) (const complex-only) (const default))
   :group 'mule)
 
 (defcustom input-method-highlight-flag t
   "*If this flag is non-nil, input methods highlight partially-entered text.
 For instance, while you are in the middle of a Quail input method sequence,
 the text inserted so far is temporarily underlined.
-The underlining goes away when you finish or abort the input method sequence."
+The underlining goes away when you finish or abort the input method sequence.
+See also the variable `input-method-verbose-flag'."
   :type 'boolean
   :group 'mule)
 
@@ -622,6 +640,22 @@ back on.
 But, if this flag is non-nil, the input method is never back on.")
 
 
+(defvar set-language-environment-hook nil
+  "Normal hook run after some language environment is set.
+
+When you set some hook function here, that effect usually should not
+be inherited to another language environment.  So, you had better set
+another function in `exit-language-environment-hook' (which see) to
+cancel the effect.")
+
+(defvar exit-language-environment-hook nil
+  "Normal hook run after exiting from some language environment.
+When this hook is run, the variable `current-language-environment'
+is still bound to the language environment being exited.
+
+This hook is mainly used for cancelling the effect of
+`set-language-environment-hook' (which-see).")
+
 (defun setup-specified-language-environment ()
   "Set up multi-lingual environment convenient for the specified language."
   (interactive)
@@ -640,16 +674,23 @@ But, if this flag is non-nil, the input method is never back on.")
   "Set up multi-lingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
 and sometimes other things."
-  (interactive (list (read-language-name 'setup-function
-					 "Set language environment: ")))
+  (interactive (list (read-language-name
+		      'setup-function
+		      "Set language environment (default, English): ")))
   (if language-name
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
     (setq language-name "English"))
   (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
-  (funcall (get-language-info language-name 'setup-function))
+  (if current-language-environment
+      (let ((func (get-language-info current-language-environment
+				     'exit-function)))
+	(if (fboundp func) (funcall func))
+	(run-hooks 'exit-language-environment-hook)))
   (setq current-language-environment language-name)
+  (funcall (get-language-info language-name 'setup-function))
+  (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 
 ;; Print all arguments with `princ', then print "\n".
@@ -722,6 +763,11 @@ and sometimes other things."
 			   (car l)
 			   (coding-system-mnemonic (car l))
 			   (coding-system-doc-string (car l))))
+	    (let ((aliases (coding-system-get (car l) 'alias-coding-systems)))
+	      (when aliases
+		(princ "\t")
+		(princ (cons 'alias: (cdr aliases)))
+		(terpri)))
 	    (setq l (cdr l))))))))
 
 ;;; Charset property
