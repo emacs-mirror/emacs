@@ -268,6 +268,7 @@ list.  You can (and should) also run it whenever the value of
     ;;     (symbol-value (intern (concat cp "-nonascii-translation-table"))))
     (set-language-environment (cp-language-for-codepage cp))
     (set-default-coding-systems (intern (concat cp "-dos")))
+    (set-selection-coding-system (intern (concat cp "-dos")))
     (set-terminal-coding-system
      (setq default-terminal-coding-system (intern (concat cp
 							  "-unix"))))
