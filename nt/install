@@ -28,9 +28,12 @@ Configuring:
 
     to make it writable.
 
+(3) You may need to edit nt/paths.h to specify some other device
+    instead of `C:'.
+
 Building:
 
-(3) The target to compile the sources is "all", and is recursive starting 
+(4) The target to compile the sources is "all", and is recursive starting 
     one directory up.  The makefiles for the NT port are in files named 
     "makefile.nt".  To get things started, type in this directory:
 
@@ -51,13 +54,13 @@ Building:
 
 Installing:
 
-(4) Currently, Emacs requires a number of environment variables to be set
+(5) Currently, Emacs requires a number of environment variables to be set
     for it to run correctly.  A batch file, emacs.bat, is provided that 
     sets these variables appropriately and then runs the executable
     (emacs.bat is generated using the definition of INSTALL_DIR in
     nt\makefile.def and the contents of nt\emacs.bat.in).
 
-(5) The install process will install the files necessary to run Emacs in 
+(6) The install process will install the files necessary to run Emacs in 
     INSTALL_DIR (which may be the directory in which it was built), 
     and create a program manager/folder icon in a folder called GNU Emacs.
     From this directory, type:
@@ -66,7 +69,7 @@ Installing:
 
     or use the install.bat file.
 
-(6) Create the Emacs startup file.  Under Unix, this file is .emacs;
+(7) Create the Emacs startup file.  Under Unix, this file is .emacs;
     under NT and Win95, this files is _emacs.  (If you would like to
     use a .emacs file that, for example, you share with a Unix version
     of Emacs, you can invoke Emacs with the -l option to specify the
@@ -76,7 +79,7 @@ Installing:
     as it will be different for each user.  (HOME could be set, 
     for example, in the System panel of the Control Panel).
 
-(7) Either click on the icon, or run the emacs.bat file, and away you go.
+(8) Either click on the icon, or run the emacs.bat file, and away you go.
 
     If you would like to resize the command window that Emacs uses,
     or change the font or colors, click on the program manager icon
