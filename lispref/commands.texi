@@ -357,8 +357,8 @@ Prompt.
 
 @item N
 @cindex raw prefix argument usage
-The raw prefix argument.  If the prefix argument is @code{nil}, then
-read a number as with @kbd{n}.  Requires a number.  @xref{Prefix Command
+The numeric prefix argument; but if there is no prefix argument, read a
+number as with @kbd{n}.  Requires a number.  @xref{Prefix Command
 Arguments}.  Prompt.
 
 @item p
