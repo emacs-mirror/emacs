@@ -51,3 +51,6 @@
     return -1;							\
   strcpy (pty_name, name);					\
 }
+
+/* arch-tag: cfd7e200-a4dc-4f67-9a32-4184c10b0c57
+   (do not change this comment) */

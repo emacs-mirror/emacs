@@ -2586,13 +2586,11 @@ GROUP using BNews sys file syntax."
 	    (replace-match ".*" t t))
 	  (goto-char (point-min))
 	  ;; Deal with "not."s.
-	  (if (looking-at "not.")
-	      (progn
-		(setq not-match t)
-		(setq regexp
-		      (concat "^" (buffer-substring 5 (point-max)) "$")))
-	    (setq regexp (concat "^" (buffer-substring 1 (point-max)) "$"))
-	    (setq not-match nil))
+	  (setq not-match (looking-at "not."))
+	  (setq regexp
+		(concat "^" (buffer-substring (+ (point-min) (if not-match 4 0))
+					      (point-max))
+			"$"))
 	  ;; Finally - if this resulting regexp matches the group name,
 	  ;; we add this score file to the list of score files
 	  ;; applicable to this group.

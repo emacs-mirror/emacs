@@ -95,3 +95,6 @@ Boston, MA 02111-1307, USA.  */
 #define SVR4
 #endif
 #endif
+
+/* arch-tag: 99f3a078-95e1-49d6-8666-04726eb25647
+   (do not change this comment) */

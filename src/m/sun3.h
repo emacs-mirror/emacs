@@ -48,3 +48,6 @@ NOTE-END  */
    For maximum cleanliness, don't edit this file;
    instead, insert this line in config.h.  */
 /* #define START_FILES crt0.o /usr/lib/Mcrt1.o  */
+
+/* arch-tag: d0559a79-2285-4a78-ad68-9694264d0d8a
+   (do not change this comment) */

@@ -111,3 +111,6 @@ Boston, MA 02111-1307, USA.  */
 /* We can't do interrupt-driven input, so don't let user try.  */
 
 #define BROKEN_SIGIO
+
+/* arch-tag: ad70aae4-1f54-4e67-8677-6eeafb9bcbd9
+   (do not change this comment) */

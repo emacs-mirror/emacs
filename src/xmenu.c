@@ -99,7 +99,6 @@ Lisp_Object Vmenu_updating_frame;
 Lisp_Object Qdebug_on_next_call;
 
 extern Lisp_Object Qmenu_bar;
-extern Lisp_Object Qmouse_click, Qevent_kind;
 
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -610,7 +609,7 @@ single_menu_item (key, item, dummy, skp_v)
 #endif /* not HAVE_BOXES */
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-  if (!NILP(map))
+  if (!NILP (map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
 #endif
@@ -696,7 +695,7 @@ list_of_items (pane)
    the scroll bar or the edit window.  Fx_popup_menu needs to be
    sure it is the edit window.  */
 static void
-mouse_position_for_popup(f, x, y)
+mouse_position_for_popup (f, x, y)
      FRAME_PTR f;
      int *x;
      int *y;
@@ -1093,6 +1092,12 @@ on the left of the dialog box and all following items on the right.
     CHECK_STRING (title);
     record_unwind_protect (unuse_menu_items, Qnil);
 
+    if (NILP (Fcar (Fcdr (contents))))
+      /* No buttons specified, add an "Ok" button so users can pop down
+         the dialog.  Also, the lesstif/motif version crashes if there are
+         no buttons.  */
+      contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
+    
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
@@ -1116,17 +1121,19 @@ on the left of the dialog box and all following items on the right.
    and x-popup-dialog; it is not used for the menu bar.
 
    If DO_TIMERS is nonzero, run timers.
+   If DOWN_ON_KEYPRESS is nonzero, pop down if a key is pressed.
 
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 #ifdef USE_X_TOOLKIT
 static void
-popup_get_selection (initial_event, dpyinfo, id, do_timers)
+popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
      int do_timers;
+     int down_on_keypress;
 {
   XEvent event;
 
@@ -1162,15 +1169,20 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
           event.xbutton.state = 0;
 #endif
         }
-      /* If the user presses a key, deactivate the menu.
+      /* If the user presses a key that doesn't go to the menu,
+         deactivate the menu.
          The user is likely to do that if we get wedged.
-         This is mostly for Lucid, Motif pops down the menu on ESC.  */
+         All toolkits now pop down menus on ESC.
+         For dialogs however, the focus may not be on the dialog, so
+         in that case, we pop down. */
       else if (event.type == KeyPress
+               && down_on_keypress
                && dpyinfo->display == event.xbutton.display)
         {
           KeySym keysym = XLookupKeysym (&event.xkey, 0);
-          if (!IsModifierKey (keysym))
-            popup_activated_flag = 0;
+          if (!IsModifierKey (keysym)
+              && x_any_window_to_frame (dpyinfo, event.xany.window) != NULL)
+	    popup_activated_flag = 0;
         }
 
       x_dispatch_event (&event, event.xany.display);
@@ -1217,7 +1229,8 @@ x_activate_menubar (f)
     return;
 
 #ifdef USE_GTK
-  if (! xg_win_to_widget (f->output_data.x->saved_menu_event->xany.window))
+  if (! xg_win_to_widget (FRAME_X_DISPLAY (f),
+                          f->output_data.x->saved_menu_event->xany.window))
     return;
 #endif
 
@@ -1303,6 +1316,7 @@ show_help_event (f, widget, help)
     }
   else
     {
+#if 0  /* This code doesn't do anything useful.  ++kfs */
       /* WIDGET is the popup menu.  It's parent is the frame's
 	 widget.  See which frame that is.  */
       xt_or_gtk_widget frame_widget = XtParent (widget);
@@ -1316,7 +1330,7 @@ show_help_event (f, widget, help)
 		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
 	    break;
 	}
-
+#endif
       show_help_echo (help, Qnil, Qnil, Qnil, 1);
     }
 }
@@ -1866,6 +1880,12 @@ set_frame_menubar (f, first_time, deep_p)
       f->output_data.x->saved_menu_event->type = 0;
     }
 
+#ifdef USE_GTK
+  /* If we have detached menus, we must update deep so detached menus
+     also gets updated.  */
+  deep_p = deep_p || xg_have_tear_offs ();
+#endif
+
   if (deep_p)
     {
       /* Make a widget-value tree representing the entire menu trees.  */
@@ -2066,7 +2086,7 @@ set_frame_menubar (f, first_time, deep_p)
   xg_crazy_callback_abort = 1;
   if (menubar_widget)
     {
-      /* The third arg is DEEP_P, which says to consider the entire
+      /* The fourth arg is DEEP_P, which says to consider the entire
 	 menu trees we supply, rather than just the menu bar item names.  */
       xg_modify_menubar_widgets (menubar_widget,
                                  f,
@@ -2343,17 +2363,13 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
 
-  xg_did_tearoff = 0;
   /* Set this to one.  popup_widget_loop increases it by one, so it becomes
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
   popup_widget_loop ();
 
-  if (xg_did_tearoff)
-    xg_keep_popup (menu, xg_did_tearoff);
-  else
-    gtk_widget_destroy (menu);
+  gtk_widget_destroy (menu);
 
   /* Must reset this manually because the button release event is not passed
      to Emacs event loop. */
@@ -2439,7 +2455,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0, 0);
 
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
@@ -2833,7 +2849,8 @@ create_and_show_dialog (f, first_wv)
                            Fcons (make_number (dialog_id >> (fact)),
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f),
+                         dialog_id, 1, 1);
 
     unbind_to (count, Qnil);
   }
@@ -3376,3 +3393,6 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_dialog);
 #endif
 }
+
+/* arch-tag: 92ea573c-398e-496e-ac73-2436f7d63242
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -150,8 +150,11 @@ The format is (FUNCTION ARGS...).")
 		   ;; Don't use find-function-noselect because it follows
 		   ;; aliases (which fails for built-in functions).
 		   (let ((location
-			  (if (bufferp file) (cons file fun)
-			    (find-function-search-for-symbol fun nil file))))
+			  (cond
+			   ((bufferp file) (cons file fun))
+			   ((string-match "\\`src/\\(.*\\.c\\)" file)
+			    (help-find-C-source fun (match-string 1 file) 'fun))
+			   (t (find-function-search-for-symbol fun nil file)))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
@@ -160,7 +163,10 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function (lambda (var &optional file)
 		   (let ((location
-			  (find-variable-noselect var file)))
+			  (cond
+			   ((string-match "\\`src/\\(.*\\.c\\)" file)
+			    (help-find-C-source var (match-string 1 file) 'var))
+			   (t (find-variable-noselect var file)))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy"mouse-2, RET: find variable's definition"))
@@ -213,7 +219,8 @@ Commands:
 		    "\\(function\\|command\\)\\|"
 		    "\\(face\\)\\|"
 		    "\\(symbol\\)\\|"
-		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)\\s-+\\)?"
+		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
+		    "[ \t\n]+\\)?"
 		    ;; Note starting with word-syntax character:
 		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
   "Regexp matching doc string references to symbols.
@@ -230,7 +237,7 @@ when help commands related to multilingual environment (e.g.,
 
 
 (defconst help-xref-info-regexp
-  (purecopy "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'")
+  (purecopy "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
 
 ;;;###autoload
@@ -278,7 +285,10 @@ Find cross-reference information in a buffer and activate such cross
 references for selection with `help-follow'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
-`help-xref-symbol-regexp'.
+`help-xref-symbol-regexp'.  Faces only get cross-referenced if
+preceded or followed by the word `face'.  Variables without
+variable documentation do not get cross-referenced, unless
+preceded by the word `variable' or `option'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
 cross-reference information related to multilingual environment
@@ -306,11 +316,11 @@ that."
               ;; Info references
               (save-excursion
                 (while (re-search-forward help-xref-info-regexp nil t)
-                  (let ((data (match-string 1)))
+                  (let ((data (match-string 2)))
 		    (save-match-data
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
-		    (help-xref-button 1 'help-info data))))
+		    (help-xref-button 2 'help-info data))))
 	      ;; Mule related keywords.  Do this before trying
 	      ;; `help-xref-symbol-regexp' because some of Mule
 	      ;; keywords have variable or function definitions.
@@ -342,11 +352,11 @@ that."
                          (sym (intern-soft data)))
                     (if sym
                         (cond
-                         ((match-string 3) ; `variable' &c
+                         ((match-string 3)  ; `variable' &c
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
                                (help-xref-button 8 'help-variable sym)))
-                         ((match-string 4) ; `function' &c
+                         ((match-string 4)   ; `function' &c
                           (and (fboundp sym) ; similarly
                                (help-xref-button 8 'help-function sym)))
 			 ((match-string 5) ; `face'
@@ -354,23 +364,33 @@ that."
 			       (help-xref-button 8 'help-face sym)))
                          ((match-string 6)) ; nothing for `symbol'
 			 ((match-string 7)
-;; this used:
-;; 			   #'(lambda (arg)
-;; 			       (let ((location
-;; 				      (find-function-noselect arg)))
-;; 				 (pop-to-buffer (car location))
-;; 				 (goto-char (cdr location))))
+;;;  this used:
+;;; 			  #'(lambda (arg)
+;;; 			      (let ((location
+;;; 				     (find-function-noselect arg)))
+;;; 				(pop-to-buffer (car location))
+;;; 				(goto-char (cdr location))))
 			  (help-xref-button 8 'help-function-def sym))
+			 ((facep sym)
+			  (if (save-match-data (looking-at "[ \t\n]+face\\W"))
+			      (help-xref-button 8 'help-face sym)))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button 8 'help-symbol sym))
-                         ((boundp sym)
+                         ((and
+			   (boundp sym)
+ 			   (or
+ 			    (documentation-property
+ 			     sym 'variable-documentation)
+ 			    (condition-case nil
+ 				(documentation-property
+ 				 (indirect-variable sym)
+ 				 'variable-documentation)
+ 			      (cyclic-variable-indirection nil))))
 			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
-			  (help-xref-button 8 'help-function sym))
-			 ((facep sym)
-			  (help-xref-button 8 'help-face sym)))))))
+			  (help-xref-button 8 'help-function sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward
@@ -412,11 +432,13 @@ that."
 	(goto-char (point-max))
 	(while (and (not (bobp)) (bolp))
 	  (delete-char -1))
+        (insert "\n")
         ;; Make a back-reference in this buffer if appropriate.
         (when help-xref-stack
-	  (insert "\n\n")
+	  (insert "\n")
 	  (help-insert-xref-button help-back-label 'help-back
-				   (current-buffer))))
+				   (current-buffer))
+          (insert "\n")))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
            (list (cons 'view-mode help-xref-override-view-map)))
@@ -592,4 +614,5 @@ For the cross-reference format, see `help-make-xrefs'."
 
 (provide 'help-mode)
 
+;;; arch-tag: 850954ae-3725-4cb4-8e91-0bf6d52d6b0b
 ;;; help-mode.el ends here

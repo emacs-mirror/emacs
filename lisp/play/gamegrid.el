@@ -566,7 +566,7 @@ FILE is created there."
 			  ((boundp 'user-mail-address)
 			   user-mail-address)
 			  (t ""))))
-    (sort-numeric-fields 1 (point-min) (point-max))
+    (sort-fields 1 (point-min) (point-max))
     (reverse-region (point-min) (point-max))
     (goto-line (1+ gamegrid-score-file-length))
     (delete-region (point) (point-max))
@@ -578,4 +578,5 @@ FILE is created there."
 
 (provide 'gamegrid)
 
+;;; arch-tag: a96c2ff4-1c12-427e-bd3d-faeaf174cd46
 ;;; gamegrid.el ends here

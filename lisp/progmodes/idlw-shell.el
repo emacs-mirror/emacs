@@ -5,7 +5,6 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/09/13 06:18:53 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -3650,4 +3649,6 @@ static char * file[] = {
 
 (if idlwave-shell-use-toolbar
     (add-hook 'idlwave-shell-mode-hook 'idlwave-toolbar-add-everywhere))
+
+;;; arch-tag: 20c2e8ce-0709-41d8-a5b6-bb039148440a
 ;;; idlw-shell.el ends here

@@ -85,8 +85,9 @@ for pop-up frames."
   :group 'frames)
 
 (setq pop-up-frame-function
-      (function (lambda ()
-		  (make-frame pop-up-frame-alist))))
+      ;; Using `function' here caused some sort of problem.
+      '(lambda ()
+	 (make-frame pop-up-frame-alist)))
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
@@ -335,10 +336,22 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 					   frame-initial-geometry-arguments)))
 		   (top (frame-parameter frame-initial-frame 'top)))
 	      (when (and (consp initial-top) (eq '- (car initial-top)))
-		(setq newparms
-		      (append newparms
-			      `((top . ,(+ top (* lines char-height))))
-			      nil)))
+		(let ((adjusted-top
+		       (cond ((and (consp top)
+				   (eq '+ (car top)))
+			      (list '+
+				    (+ (cadr top)
+				       (* lines char-height))))
+			     ((and (consp top)
+				   (eq '- (car top)))
+			      (list '-
+				    (- (cadr top)
+				       (* lines char-height))))
+			     (t (+ top (* lines char-height))))))
+		  (setq newparms
+			(append newparms
+				`((top . ,adjusted-top))
+				nil))))
 	      (modify-frame-parameters frame-initial-frame newparms)
 	      (tool-bar-mode -1)))))
 
@@ -942,6 +955,18 @@ one frame, otherwise the name is displayed on the frame's caption bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
+
+(defun frame-current-scroll-bars (&optional frame)
+  "Return the current scroll-bar settings in frame FRAME.
+Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+current location of the vertical scroll-bars (left, right, or nil),
+and HORISONTAL specifies the current location of the horisontal scroll
+bars (top, bottom, or nil)."
+  (let ((vert (frame-parameter frame 'vertical-scroll-bars))
+	(hor nil))
+    (unless (memq vert '(left right nil))
+      (setq vert default-frame-scroll-bars))
+    (cons vert hor)))
 
 ;;;; Frame/display capabilities.
 (defun display-mouse-p (&optional display)
@@ -1327,4 +1352,5 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
+;;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

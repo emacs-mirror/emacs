@@ -319,3 +319,7 @@ points to.
 Insert in the buffer the @emph{contents} of the file that bookmark
 @var{bookmark} points to.
 @end table
+
+@ignore
+   arch-tag: b00af991-ebc3-4b3a-8e82-a3ac81ff2e64
+@end ignore

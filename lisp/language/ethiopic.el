@@ -80,4 +80,5 @@
 
 (provide 'ethiopic)
 
+;;; arch-tag: e81329d9-1286-43ba-92fd-54ce5c7b213c
 ;;; ethiopic.el ends here

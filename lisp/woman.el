@@ -539,9 +539,9 @@ Change only via `Customization' or the function `add-hook'."
 	(mapcar 'woman-Cyg-to-Win path)
       path))
   "*List of dirs to search and/or files to try for man config file.
-A trailing separator (`/' for UNIX etc.) on directories is optional
-and the filename used if a directory is specified is the first to
-match the regexp \"man.*\\.conf\".
+A trailing separator (`/' for UNIX etc.) on directories is optional,
+and the filename is used if a directory specified is the first to
+contain the strings \"man\" and \".conf\" (in that order).
 If MANPATH is not set but a config file is found then it is parsed
 instead to provide a default value for `woman-manpath'."
   :type '(repeat string)
@@ -554,7 +554,9 @@ Look in `woman-man.conf-path' and return a value for `woman-manpath'.
 Concatenate data from all lines in the config file of the form
   MANPATH  /usr/man
 or
-  MANDATORY_MANPATH  /usr/man"
+  MANDATORY_MANPATH  /usr/man
+or
+  OPTIONAL_MANPATH  /usr/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
 	file manpath)
@@ -574,7 +576,7 @@ or
 		    (while (re-search-forward
 			    ;; `\(?: ... \)' is a "shy group"
 			    "\
-^[ \t]*\\(?:MANDATORY_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
+^[ \t]*\\(?:MANDATORY_\\|OPTIONAL_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
 		      (setq manpath (cons (match-string 1) manpath)))
 		    manpath))
 		 ))
@@ -807,7 +809,7 @@ Only useful when run on a graphic display such as X or MS-Windows."
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
-  "*If non-nil then most of the frame width is used."
+  "*If non-nil then most of the window width is used."
   :type 'boolean
   :group 'woman-formatting)
 
@@ -830,10 +832,15 @@ the buffer, which may aid debugging."
   :type 'boolean
   :group 'woman-formatting)
 
-(defcustom woman-preserve-ascii nil
-  "*If non-nil then preserve ASCII characters in the WoMan buffer.
-Otherwise, non-ASCII characters (that display as ASCII) may remain.
-This is irrelevant unless the buffer is to be saved to a file."
+(defcustom woman-preserve-ascii t
+  "*If non-nil, preserve ASCII characters in the WoMan buffer.
+Otherwise, to save time, some backslashes and spaces may be
+represented differently (as the values of the variables
+`woman-escaped-escape-char' and `woman-unpadded-space-char'
+respectively) so that the buffer content is strictly wrong even though
+it should display correctly.  This should be irrelevant unless the
+buffer text is searched, copied or saved to a file."
+  ;; This option should probably be removed!
   :type 'boolean
   :group 'woman-formatting)
 
@@ -1221,7 +1228,7 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 		   ;; Was let-bound when file loaded, so ...
 		   (setq woman-topic-at-point woman-topic-at-point-default)))
 	     (setq topic
-		   (current-word t))	; only within or adjacent to word
+		   (or (current-word t) ""))	; only within or adjacent to word
 	     (assoc topic woman-topic-all-completions))
 	(setq topic
 	      (completing-read
@@ -1230,7 +1237,7 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	       ;; Initial input suggestion (was nil), with
 	       ;; cursor at left ready to kill suggestion!:
 	       (and woman-topic-at-point
-		    (cons (current-word) 0)) ; nearest word
+		    (cons (or (current-word) "") 0)) ; nearest word
 	       'woman-topic-history)))
     ;; Note that completing-read always returns a string.
     (if (= (length topic) 0)
@@ -1744,7 +1751,7 @@ Leave point at end of new text.  Return length of inserted text."
 Argument EVENT is the invoking mouse event."
   (interactive "e")			; mouse event
   (goto-char (posn-point (event-start event)))
-  (woman (current-word t)))
+  (woman (or (current-word t) "")))
 
 ;; WoMan menu bar and pop-up menu:
 (easy-menu-define
@@ -2204,7 +2211,7 @@ Currently set only from '\" t in the first line of the source file.")
     ;; Based loosely on a suggestion by Theodore Jump:
     (if (or woman-fill-frame
 	    (not (and (integerp woman-fill-column) (> woman-fill-column 0))))
-	(setq woman-fill-column (- (frame-width) woman-default-indent)))
+	(setq woman-fill-column (- (window-width) woman-default-indent)))
 
     ;; Check for preprocessor requests:
     (goto-char from)
@@ -3232,7 +3239,7 @@ If optional arg CONCAT is non-nil then join arguments."
   ;; Paragraph .LP/PP/HP/IP/TP and font .B/.BI etc. macros reset font.
   ;; Should .SH/.SS reset font?
   ;; Font size setting macros (?) should reset font.
-  (let ((woman-font-alist woman-font-alist) ; for local updating
+  (let ((font-alist woman-font-alist) ; for local updating
 	(previous-pos (point))
 	(previous-font 'default)
 	(current-font 'default))
@@ -3263,15 +3270,15 @@ If optional arg CONCAT is non-nil then join arguments."
 	  ;; Get font name:
 	  (or font
 	      (let ((fontstring (match-string 0)))
-		(setq font (assoc fontstring woman-font-alist)
-		      ;; NB: woman-font-alist contains VARIABLE NAMES.
+		(setq font (assoc fontstring font-alist)
+		      ;; NB: font-alist contains VARIABLE NAMES.
 		      font (if font
 			       (cdr font)
 			     (WoMan-warn "Unknown font %s." fontstring)
 			     ;; Output this message once only per call ...
-			     (setq woman-font-alist
+			     (setq font-alist
 				   (cons (cons fontstring 'woman-unknown-face)
-					 woman-font-alist))
+					 font-alist))
 			     'woman-unknown-face)
 		      )))
 	  ;; Delete font control line or escape sequence:
@@ -4526,4 +4533,5 @@ logging the message."
 
 (provide 'woman)
 
+;;; arch-tag: eea35e90-552f-4712-a94b-d9ffd3db7651
 ;;; woman.el ends here

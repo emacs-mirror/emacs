@@ -97,3 +97,5 @@ foreach $config (@configs)
 # Local Variables:
 # mode: cperl
 # End:
+
+# arch-tag: 20a4452d-610a-4e54-9abc-ffe79f5c0d30

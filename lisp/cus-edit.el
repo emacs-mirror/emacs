@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -74,6 +74,7 @@
 
 (defgroup emulations nil
   "Emulations of other editors."
+  :link '(custom-manual "(emacs)Emulation")
   :group 'editing)
 
 (defgroup mouse nil
@@ -87,11 +88,6 @@
 (defgroup external nil
   "Interfacing to external utilities."
   :group 'emacs)
-
-(defgroup bib nil
-  "Code related to the `bib' bibliography processor."
-  :tag "Bibliography"
-  :group 'external)
 
 (defgroup processes nil
   "Process, subshell, compilation, and job control support."
@@ -117,6 +113,7 @@
 
 (defgroup c nil
   "Support for the C language and related languages."
+  :link '(custom-manual "(ccmode)")
   :group 'languages)
 
 (defgroup tools nil
@@ -141,6 +138,7 @@
 
 (defgroup news nil
   "Support for netnews reading and posting."
+  :link '(custom-manual "(gnus)")
   :group 'applications)
 
 (defgroup games nil
@@ -195,6 +193,7 @@
 
 (defgroup i18n nil
   "Internationalization and alternate character-set support."
+  :link '(custom-manual "(emacs)International")
   :group 'environment
   :group 'editing)
 
@@ -245,8 +244,6 @@
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
   :link '(custom-manual "(elisp)Customization")
-  :link '(url-link :tag "(Old?) Development Page"
-		   "http://www.dina.kvl.dk/~abraham/custom/")
   :prefix "custom-"
   :group 'help)
 
@@ -272,6 +269,7 @@
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
+  :link '(custom-manual "(emacs)Abbrevs")
   :group 'abbrev)
 
 (defgroup alloc nil
@@ -281,15 +279,12 @@
 
 (defgroup undo nil
   "Undoing changes in buffers."
+  :link '(custom-manual "(emacs)Undo")
   :group 'editing)
 
 (defgroup modeline nil
   "Content of the modeline."
   :group 'environment)
-
-(defgroup fill nil
-  "Indenting and filling text."
-  :group 'editing)
 
 (defgroup editing-basics nil
   "Most basic editing facilities."
@@ -321,6 +316,7 @@
 
 (defgroup minibuffer nil
   "Controling the behaviour of the minibuffer."
+  :link '(custom-manual "(emacs)Minibuffer")
   :group 'environment)
 
 (defgroup keyboard nil
@@ -349,6 +345,7 @@
 
 (defgroup windows nil
   "Windows within a frame."
+  :link '(custom-manual "(emacs)Windows")
   :group 'environment)
 
 ;;; Utilities.
@@ -1954,7 +1951,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(type (widget-type widget))
 	(buttons (widget-get widget :buttons))
 	(start (point))
-	found)
+	(parents nil))
     (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
 		(let ((entry (assq name (get symbol 'custom-group))))
@@ -1965,12 +1962,30 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 			   :tag (custom-unlispify-tag-name symbol)
 			   symbol)
 			  buttons)
-		    (setq found t)))))
-    (widget-put widget :buttons buttons)
-    (if found
-	(insert "\n")
+		    (setq parents (cons symbol parents))))))
+    (and (null (get name 'custom-links)) ;No links of its own.
+         (= (length parents) 1)         ;A single parent.
+         (let* ((links (get (car parents) 'custom-links))
+                (many (> (length links) 2)))
+           (when links
+             (insert "\nParent documentation: ")
+             (while links
+               (push (widget-create-child-and-convert widget (car links))
+                     buttons)
+               (setq links (cdr links))
+               (cond ((null links)
+                      (insert ".\n"))
+                     ((null (cdr links))
+                      (if many
+                          (insert ", and ")
+                        (insert " and ")))
+                     (t
+                      (insert ", ")))))))
+    (if parents
+        (insert "\n")
       (delete-region start (point)))
-    found))
+    (widget-put widget :buttons buttons)
+    parents))
 
 ;;; The `custom-comment' Widget.
 
@@ -4111,4 +4126,5 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
+;;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here

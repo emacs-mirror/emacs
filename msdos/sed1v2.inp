@@ -36,6 +36,7 @@ s/\.h\.in/.h-in/
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
+/^EXEEXT *=/s/@EXEEXT@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
@@ -60,5 +61,7 @@ s/bootstrap-doc/b-doc/
 /^	mv -f emacs/a\
 	stubify b-emacs\
 	stubedit b-emacs.exe minstack=1024k\
-	rm -f emacs.exe temacs.exe
+	rm -f emacs.exe temacs.exe emacs
 /^	rm -f/s/\\#/#/
+
+# arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

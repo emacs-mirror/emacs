@@ -49,6 +49,7 @@
 (define-key help-map (char-to-string help-char) 'help-for-help)
 (define-key help-map [help] 'help-for-help)
 (define-key help-map [f1] 'help-for-help)
+(define-key help-map "." 'display-local-help)
 (define-key help-map "?" 'help-for-help)
 
 (define-key help-map "\C-c" 'describe-copying)
@@ -177,7 +178,7 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
 
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
-  "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w or ? :"
+  "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -217,6 +218,8 @@ v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
 w  where-is.  Type command name; it prints which keystrokes
 	invoke that command.
+.  display-local-help.  Display any available local help at point
+        in the echo area.
 
 C-c Display Emacs copying permission (GNU General Public License).
 C-d Display Emacs ordering information.
@@ -561,11 +564,13 @@ the last key hit are used."
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
-The major mode description comes first, followed by the minor modes,
-each on a separate page.
-For this to work correctly for a minor mode, the mode's indicator variable
-\(listed in `minor-mode-alist') must also be a function whose documentation
-describes the minor mode."
+A brief summary of the minor modes comes first, followed by the
+major mode description.  This is followed by detailed
+descriptions of the minor modes, each on a separate page.
+
+For this to work correctly for a minor mode, the mode's indicator
+variable \(listed in `minor-mode-alist') must also be a function
+whose documentation describes the minor mode."
   (interactive)
   (help-setup-xref (list #'describe-mode (or buffer (current-buffer)))
 		   (interactive-p))
@@ -574,48 +579,70 @@ describes the minor mode."
   (with-output-to-temp-buffer (help-buffer)
     (save-excursion
       (when buffer (set-buffer buffer))
-      (when minor-mode-alist
-	(princ "The major mode is described first.
-For minor modes, see following pages.\n\n"))
-      (princ mode-name)
-      (princ " mode:\n")
-      (princ (documentation major-mode))
-      (let ((minor-modes minor-mode-alist))
-	(while minor-modes
-	  (let* ((minor-mode (car (car minor-modes)))
-		 (indicator (car (cdr (car minor-modes)))))
-	    ;; Document a minor mode if it is listed in minor-mode-alist,
-	    ;; bound locally in this buffer, non-nil, and has a function
-	    ;; definition.
-	    (if (and (boundp minor-mode)
-		     (symbol-value minor-mode)
-		     (fboundp minor-mode))
-		(let ((pretty-minor-mode minor-mode))
-		  (if (string-match "\\(-minor\\)?-mode\\'"
-				    (symbol-name minor-mode))
-		      (setq pretty-minor-mode
-			    (capitalize
-			     (substring (symbol-name minor-mode)
-					0 (match-beginning 0)))))
-		  (while (and indicator (symbolp indicator)
-			      (boundp indicator)
-			      (not (eq indicator (symbol-value indicator))))
-		    (setq indicator (symbol-value indicator)))
-		  (princ "\n\f\n")
-		  (princ (format "%s minor mode (%s):\n"
-				 pretty-minor-mode
-				 (if indicator
-				     (format "indicator%s" indicator)
-				   "no indicator")))
-		  (princ (documentation minor-mode)))))
-	  (setq minor-modes (cdr minor-modes))))
+      (let (minor-modes)
+	;; Find enabled minor mode we will want to mention.
+	(dolist (mode minor-mode-list)
+	  ;; Document a minor mode if it is listed in minor-mode-alist,
+	  ;; non-nil, and has a function definition.
+	  (and (boundp mode) (symbol-value mode)
+	       (fboundp mode)
+	       (let ((pretty-minor-mode mode)
+		     indicator)
+		 (if (string-match "\\(-minor\\)?-mode\\'"
+				   (symbol-name mode))
+		     (setq pretty-minor-mode
+			   (capitalize
+			    (substring (symbol-name mode)
+				       0 (match-beginning 0)))))
+		 (setq indicator (cadr (assq mode minor-mode-alist)))
+		 (while (and indicator (symbolp indicator)
+			     (boundp indicator)
+			     (not (eq indicator (symbol-value indicator))))
+		   (setq indicator (symbol-value indicator)))
+		 (push (list pretty-minor-mode mode indicator)
+		       minor-modes))))
+	(if auto-fill-function
+	    (push '("Auto Fill" auto-fill-mode " Fill")
+		  minor-modes))
+	(setq minor-modes
+	      (sort minor-modes
+		    (lambda (a b) (string-lessp (car a) (car b)))))
+	(when minor-modes
+	  (princ "Summary of minor modes:\n")
+	  (dolist (mode minor-modes)
+	    (let ((pretty-minor-mode (nth 0 mode))
+		  (indicator (nth 2 mode)))
+	      (princ (format "  %s minor mode (%s):\n"
+			     pretty-minor-mode
+			     (if indicator
+				 (format "indicator%s" indicator)
+			       "no indicator")))))
+	  (princ "\n(Full information about these minor modes
+follows the description of the major mode.)\n\n"))
+	;; Document the major mode.
+	(princ mode-name)
+	(princ " mode:\n")
+	(princ (documentation major-mode))
+	;; Document the minor modes fully.
+	(dolist (mode minor-modes)
+	  (let ((pretty-minor-mode (nth 0 mode))
+		(mode-function (nth 1 mode))
+		(indicator (nth 2 mode)))
+	    (princ "\n\f\n")
+	    (princ (format "%s minor mode (%s):\n"
+			   pretty-minor-mode
+			   (if indicator
+			       (format "indicator%s" indicator)
+			     "no indicator")))
+	    (princ (documentation mode-function)))))
       (print-help-return-message))))
+
 
 (defun describe-minor-mode (minor-mode)
   "Display documentation of a minor mode given as MINOR-MODE.
 MINOR-MODE can be a minor mode symbol or a minor mode indicator string
 appeared on the mode-line."
-  (interactive (list (completing-read 
+  (interactive (list (completing-read
 		      "Minor mode: "
 			      (nconc
 			       (describe-minor-mode-completion-table-for-symbol)
@@ -633,14 +660,14 @@ appeared on the mode-line."
      (t
       (error "No such minor mode: %s" minor-mode)))))
 
-;; symbol    
+;; symbol
 (defun describe-minor-mode-completion-table-for-symbol ()
   ;; In order to list up all minor modes, minor-mode-list
   ;; is used here instead of minor-mode-alist.
   (delq nil (mapcar 'symbol-name minor-mode-list)))
 (defun describe-minor-mode-from-symbol (symbol)
   "Display documentation of a minor mode given as a symbol, SYMBOL"
-  (interactive (list (intern (completing-read 
+  (interactive (list (intern (completing-read
 			      "Minor mode symbol: "
 			      (describe-minor-mode-completion-table-for-symbol)))))
   (if (fboundp symbol)
@@ -649,7 +676,7 @@ appeared on the mode-line."
 
 ;; indicator
 (defun describe-minor-mode-completion-table-for-indicator ()
-  (delq nil 
+  (delq nil
 	(mapcar (lambda (x)
 		  (let ((i (format-mode-line x)))
 		    ;; remove first space if existed
@@ -658,15 +685,15 @@ appeared on the mode-line."
 		      nil)
 		     ((eq (aref i 0) ?\ )
 		      (substring i 1))
-		     (t 
+		     (t
 		      i))))
 		minor-mode-alist)))
 (defun describe-minor-mode-from-indicator (indicator)
   "Display documentation of a minor mode specified by INDICATOR.
 If you call this function interactively, you can give indicator which
 is currently activated with completion."
-  (interactive (list 
-		(completing-read 
+  (interactive (list
+		(completing-read
 		 "Minor mode indicator: "
 		 (describe-minor-mode-completion-table-for-indicator))))
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
@@ -677,17 +704,17 @@ is currently activated with completion."
 (defun lookup-minor-mode-from-indicator (indicator)
   "Return a minor mode symbol from its indicator on the modeline."
   ;; remove first space if existed
-  (if (and (< 0 (length indicator)) 
+  (if (and (< 0 (length indicator))
 	   (eq (aref indicator 0) ?\ ))
       (setq indicator (substring indicator 1)))
   (let ((minor-modes minor-mode-alist)
 	result)
     (while minor-modes
       (let* ((minor-mode (car (car minor-modes)))
-	     (anindicator (format-mode-line 
+	     (anindicator (format-mode-line
 			   (car (cdr (car minor-modes))))))
 	;; remove first space if existed
-	(if (and (stringp anindicator) 
+	(if (and (stringp anindicator)
 		 (> (length anindicator) 0)
 		 (eq (aref anindicator 0) ?\ ))
 	    (setq anindicator (substring anindicator 1)))
@@ -744,4 +771,5 @@ out of view."
 ;; defcustoms which require 'help'.
 (provide 'help)
 
+;;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
 ;;; help.el ends here

@@ -5,6 +5,46 @@ in compiling, installing and running GNU Emacs.
 
 It's completely redundant now, as far as we know.
 
+* Segfault on GNU/Linux using certain recent versions of the Linux kernel.
+
+With certain recent Linux kernels (like the one of Redhat Fedora Core
+1), the new "Exec-shield" functionality is enabled by default, which
+creates a different memory layout that breaks the emacs dumper.
+
+You can check the Exec-shield state like this:
+
+    cat /proc/sys/kernel/exec-shield
+
+It returns 1 or 2 when Exec-shield is enabled, 0 otherwise.  Please
+read your system documentation for more details on Exec-shield and
+associated commands.
+
+When Exec-shield is enabled, building Emacs will segfault during the
+execution of this command:
+
+temacs --batch --load loadup [dump|bootstrap]
+
+To work around this problem, it is necessary to temporarily disable
+Exec-shield while building Emacs, using the `setarch' command like
+this:
+
+    setarch i386 ./configure <configure parameters>
+    setarch i386 make <make parameters>
+
+* Characters are displayed as empty boxes or with wrong font under X.
+
+This can occur when two different versions of FontConfig are used.
+For example, XFree86 4.3.0 has one version and Gnome usually comes
+with a newer version.  Emacs compiled with --with-gtk will then use
+the newer version.  In most cases the problem can be temporarily
+fixed by stopping the application that has the error (it can be
+Emacs or any other application), removing ~/.fonts.cache-1,
+and then start the application again.
+If removing ~/.fonts.cache-1 and restarting doesn't help, the
+application with problem must be recompiled with the same version
+of FontConfig as the rest of the system uses.  For KDE, it is
+sufficient to recompile Qt.
+
 * Process output truncated on Mac OS X (Carbon) when using pty's.
 
 There appears to be a problem with the implementation of pty's on the
@@ -22,6 +62,18 @@ xrealloc().  Relinking the application (by deleting src/temacs and
 running make) will solve the problem.  It appears to be caused by some
 problems with the unexec code and its interaction with libSystem.B.
 
+* Emacs crashes with SIGSEGV in XtInitializeWidgetClass
+
+It crashes on X, but runs fine when called with option "-nw".
+
+This has been observed when Emacs is linked with GNU ld but without passing
+the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
+flag when needed, so if you come across a situation where the flag is
+necessary but missing, please report it via M-x report-emacs-bug.
+
+On platforms such as Solaris, you can also work around this problem by
+configuring your compiler to use the native linker instead of GNU ld.
+	
 * Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
@@ -592,7 +644,8 @@ The solution is to remove this line from `etc/fstab'.
 * Emacs binary is not in executable format, and cannot be run.
 
 This was reported to happen when Emacs is built in a directory mounted
-via NFS.  Usually, the file `emacs' produced in these cases is full of
+via NFS, for some combinations of NFS client and NFS server.
+Usually, the file `emacs' produced in these cases is full of
 binary null characters, and the `file' utility says:
 
     emacs: ASCII text, with no line terminators
@@ -929,7 +982,7 @@ An example of such an error is:
 
   x-complement-fontset-spec: "Wrong type argument: stringp, nil"
 
-This can be another symptom of stale *.elc files in your classpath.
+This can be another symptom of stale *.elc files in your load-path.
 The following command will print any duplicate Lisp files that are
 present in load-path:
 
@@ -3396,3 +3449,5 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
+
+arch-tag: 49fc0d95-88cb-4715-b21c-f27fb5a4764a

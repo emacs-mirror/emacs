@@ -344,4 +344,5 @@ can be modified by the global variable `repeat-on-final-keystroke'."
 
 (provide 'repeat)
 
+;;; arch-tag: cd569600-a1ad-4fa7-9062-bb91dfeaf1db
 ;;; repeat.el ends here

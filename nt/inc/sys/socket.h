@@ -163,3 +163,6 @@ extern int h_errno;
 #endif /* _SOCKET_H_ */
 
 /* end of socket.h */
+
+/* arch-tag: e3b8b91c-aaa0-4bc4-be57-a85a1dd247b4
+   (do not change this comment) */

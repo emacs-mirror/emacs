@@ -430,7 +430,7 @@ Possible options are:
 		    (eshell-parse-double-quote))))
 	(if name
 	  (list 'eshell-get-variable (eval name) 'indices))))
-     ((eq (char-after) ?<)
+     ((eq (char-after) ?\<)
       (let ((end (eshell-find-delimiter ?\< ?\>)))
 	(if (not end)
 	    (throw 'eshell-incomplete ?\<)
@@ -650,4 +650,5 @@ For example, to retrieve the second element of a user's record in
 
 ;;; Code:
 
+;;; arch-tag: 393654fe-bdad-4f27-9a10-b1472ded14cf
 ;;; esh-var.el ends here

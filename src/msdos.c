@@ -64,6 +64,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "intervals.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -412,7 +413,8 @@ static unsigned short screen_virtual_offset = 0;
 /* A flag to control how to display unibyte 8-bit characters.  */
 extern int unibyte_display_via_language_environment;
 
-Lisp_Object Qbar, Qhbar;
+extern Lisp_Object Qcursor_type;
+extern Lisp_Object Qbar, Qhbar;
 
 /* The screen colors of the current frame, which serve as the default
    colors for newly-created frames.  */
@@ -1327,7 +1329,7 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
 static void
 clear_mouse_face (struct display_info *dpyinfo)
 {
-  if (! NILP (dpyinfo->mouse_face_window))
+  if (!dpyinfo->mouse_face_hidden && ! NILP (dpyinfo->mouse_face_window))
     show_mouse_face (dpyinfo, 0);
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
@@ -1435,7 +1437,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
       /* Find the glyph under X.  */
       glyph = (row->glyphs[TEXT_AREA]
 	       + x
-	       /* Does MS-DOG really support scroll-bars??  ++KFS */
+	       /* in case someone implements scroll bars some day... */
 	       - WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w));
       end = glyph + row->used[TEXT_AREA];
       if (glyph < end
@@ -1991,8 +1993,6 @@ IT_update_end (struct frame *f)
 {
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 }
-
-Lisp_Object Qcursor_type;
 
 static void
 IT_frame_up_to_date (struct frame *f)
@@ -3131,7 +3131,7 @@ dos_rawgetc ()
   union REGS regs;
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
   EVENT_INIT (event);
-  
+
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
   IT_cmgoto (SELECTED_FRAME());
@@ -3342,8 +3342,8 @@ dos_rawgetc ()
 
       if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
 	{
-	  dpyinfo->mouse_face_hidden = 1;
 	  clear_mouse_face (dpyinfo);
+	  dpyinfo->mouse_face_hidden = 1;
 	}
 
       if (code >= 0x100)
@@ -5266,18 +5266,11 @@ syms_of_msdos ()
 #ifndef HAVE_X_WINDOWS
 
   /* The following two are from xfns.c:  */
-  Qbar = intern ("bar");
-  staticpro (&Qbar);
-  Qhbar = intern ("hbar");
-  staticpro (&Qhbar);
-  Qcursor_type = intern ("cursor-type");
-  staticpro (&Qcursor_type);
   Qreverse = intern ("reverse");
   staticpro (&Qreverse);
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
-
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
 
@@ -5297,3 +5290,6 @@ nil means don't delete them until `list-processes' is run.  */);
 }
 
 #endif /* MSDOS */
+
+/* arch-tag: db404e92-52a5-475f-9eb2-1cb78dd05f30
+   (do not change this comment) */

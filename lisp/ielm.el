@@ -30,28 +30,7 @@
 ;; Input is handled by the comint package, and output is passed
 ;; through the pretty-printer.
 
-;; To install: copy this file to a directory in your load-path, and
-;; add the following line to your .emacs file:
-;;
-;;   (autoload 'ielm "ielm" "Start an inferior Emacs Lisp session" t)
-;;
-;; For completion to work, the comint.el from Emacs 19.23 is
-;; required.  If you do not have it, or if you are running Lemacs,
-;; also add the following code to your .emacs:
-;;
-;;    (setq ielm-mode-hook
-;; 	    '(lambda nil
-;; 		 (define-key ielm-map "\t"
-;; 		    '(lambda nil (interactive) (or (ielm-tab)
-;;                                                 (lisp-complete-symbol))))))
-
 ;; To start: M-x ielm.  Type C-h m in the *ielm* buffer for more info.
-
-;; The latest version is available by WWW from
-;;      http://mathssun5.lancs.ac.uk:2080/~maa036/elisp/dir.html
-;; or by anonymous FTP from
-;;      /anonymous@wingra.stat.wisc.edu:pub/src/emacs-lisp/ielm.el.gz
-;; or from the author: David M. Smith <maa036@lancaster.ac.uk>
 
 ;;; Code:
 
@@ -95,6 +74,7 @@ such as `edebug-defun' to work with such inputs."
 
 (defcustom ielm-mode-hook nil
   "*Hooks to be run when IELM (`inferior-emacs-lisp-mode') is started."
+  :options '(turn-on-eldoc-mode)
   :type 'hook
   :group 'ielm)
 
@@ -550,4 +530,5 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
 
 (provide 'ielm)
 
+;;; arch-tag: ef60e4c0-9c4f-4bdb-8402-271313329790
 ;;; ielm.el ends here

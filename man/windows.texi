@@ -400,3 +400,7 @@ windows together.  You can also turn it on by customizing the variable
 scroll-all-scroll-down-all}, @kbd{M-x scroll-all-page-down-all} and
 their corresponding ``up'' equivalents.  To make this mode useful,
 you should bind these commands to appropriate keys.
+
+@ignore
+   arch-tag: 8bea7453-d4b1-49b1-9bf4-cfe4383e1113
+@end ignore

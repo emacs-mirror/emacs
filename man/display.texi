@@ -756,13 +756,35 @@ hidden lines.  This variable becomes local automatically when set.
 @node Optional Mode Line
 @section Optional Mode Line Features
 
+@cindex buffer size display
+@cindex display of buffer size
+@findex size-indication-mode
+  The buffer percentage @var{pos} indicates the percentage of the
+buffer above the top of the window.  You can additionally display the
+size of the buffer by typing @kbd{M-x size-indication-mode} to turn on
+Size Indication mode.  The size will be displayed immediately
+following the buffer percentage like this:
+
+@example
+@var{POS} of @var{SIZE}
+@end example
+
+@noindent
+Here @var{SIZE} is the human readable representation of the number of
+characters in the buffer, which means that @samp{k} for 10^3, @samp{M}
+for 10^6, @samp{G} for 10^9, etc., are used to abbreviate.
+
+@cindex narrowing, and buffer size display
+  If you have narrowed the buffer (@pxref{Narrowing}), the size of the
+accessible part of the buffer is shown.
+
 @cindex line number display
 @cindex display of line number
 @findex line-number-mode
   The current line number of point appears in the mode line when Line
 Number mode is enabled.  Use the command @kbd{M-x line-number-mode} to
 turn this mode on and off; normally it is on.  The line number appears
-before the buffer percentage @var{pos}, with the letter @samp{L} to
+after the buffer percentage @var{pos}, with the letter @samp{L} to
 indicate what it is.  @xref{Minor Modes}, for more information about
 minor modes and about how to use this command.
 
@@ -866,20 +888,20 @@ lines are displayed in the @code{mode-line} face.
 @section How Text Is Displayed
 @cindex characters (in text)
 
-  ASCII printing characters (octal codes 040 through 0176) in Emacs
+  @acronym{ASCII} printing characters (octal codes 040 through 0176) in Emacs
 buffers are displayed with their graphics, as are non-ASCII multibyte
 printing characters (octal codes above 0400).
 
-  Some ASCII control characters are displayed in special ways.  The
+  Some @acronym{ASCII} control characters are displayed in special ways.  The
 newline character (octal code 012) is displayed by starting a new line.
 The tab character (octal code 011) is displayed by moving to the next
 tab stop column (normally every 8 columns).
 
-  Other ASCII control characters are normally displayed as a caret
+  Other @acronym{ASCII} control characters are normally displayed as a caret
 (@samp{^}) followed by the non-control version of the character; thus,
 control-A is displayed as @samp{^A}.
 
-  Non-ASCII characters 0200 through 0237 (octal) are displayed with
+  Non-@acronym{ASCII} characters 0200 through 0237 (octal) are displayed with
 octal escape sequences; thus, character code 0230 (octal) is displayed
 as @samp{\230}.  The display of character codes 0240 through 0377
 (octal) may be either as escape sequences or as graphics.  They do not
@@ -1037,3 +1059,7 @@ tab character.  To enable this feature, set the variable
 a minor mode that highlights the line containing point.  Use @kbd{M-x
 hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
 global-hl-line-mode} enables or disables the same mode globally.
+
+@ignore
+   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
+@end ignore

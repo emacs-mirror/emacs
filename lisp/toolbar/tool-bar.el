@@ -266,4 +266,5 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
 
 (provide 'tool-bar)
 
+;;; arch-tag: 15f30f0a-d0d7-4d50-bbb7-f48fd0c8582f
 ;;; tool-bar.el ends here

@@ -1069,3 +1069,6 @@ do_line_insertion_deletion_costs (frame,
 		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
+
+/* arch-tag: cdb7149c-48e7-4793-a948-2786c8e45485
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2003
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 03, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
@@ -413,6 +413,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
     ["Re-examine"		cvs-mode-examine	t]
     ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
+    ["Tag"			cvs-mode-tag		(cvs-enabledp (when cvs-force-dir-tag 'tag))]
     ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
     ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
     ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
@@ -507,4 +508,5 @@ message and replace it with a message tell you to change this variable.")
 ;;
 (provide 'pcvs-defs)
 
+;;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
 ;;; pcvs-defs.el ends here

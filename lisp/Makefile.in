@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+# Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -61,6 +61,7 @@ DONTCOMPILE = \
 	$(lisp)/language/devanagari.el \
 	$(lisp)/language/malayalam.el \
 	$(lisp)/language/tamil.el \
+	$(lisp)/language/kannada.el \
 	$(lisp)/language/english.el \
 	$(lisp)/language/greek.el \
 	$(lisp)/language/hebrew.el \
@@ -78,6 +79,7 @@ DONTCOMPILE = \
 	$(lisp)/language/chinese.el \
 	$(lisp)/language/indian.el \
 	$(lisp)/loaddefs.el \
+	$(lisp)/ldefs-boot.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
 	$(lisp)/patcomp.el \
@@ -106,6 +108,13 @@ DONTCOMPILE = \
 	$(lisp)/term/wyse50.el \
 	$(lisp)/version.el
 
+# Elisp files auto-generated.
+AUTOGENEL = loaddefs.el \
+	cus-load.el \
+	finder-inf.el \
+	subdirs.el \
+	eshell/esh-groups.el
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
 # because CC mode tweaks the compilation process, and requiring
@@ -125,17 +134,17 @@ emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
-setwins=subdirs=`find $$wd -type d -print`; \
+setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* ) ;; \
+		*) wins="$$wins $$wd/$$file" ;; \
 	   esac; \
         done
 
-setwins_almost=subdirs=`find $$wd -type d -print`; \
+setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$file" ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
+		*) wins="$$wins $$wd/$$file" ;; \
 	   esac; \
         done
 
@@ -184,11 +193,11 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
@@ -269,18 +278,39 @@ compile-after-backup: backup-compiled-files compile-always
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
-recompile: doit
+recompile: doit $(lisp)/progmodes/cc-mode.elc
 	LC_ALL=C $(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
-# Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
-# because it's not sure it's up-to-date, and if it's not, that might
-# lead to errors during the bootstrap because something fails to
-# autoload as expected.  Remove compiled Lisp files so that
-# bootstrap-emacs will be built from sources only.
+# CC Mode uses a compile time macro system which causes a compile time
+# dependency in cc-mode.elc on the macros in cc-langs.el and the
+# version string in cc-defs.el.
+$(lisp)/progmodes/cc-mode.elc: \
+	$(lisp)/progmodes/cc-mode.el \
+	$(lisp)/progmodes/cc-langs.el \
+	$(lisp)/progmodes/cc-defs.el
+	$(EMACS) $(EMACSOPT) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
-bootstrap-clean:
-	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
-	cd $(lisp); rm -f *.elc */*.elc
+# Prepare a bootstrap in the lisp subdirectory.
+#
+# Build loaddefs.el, because it's not sure it's up-to-date, and if it's not,
+# that might lead to errors during the bootstrap because something fails to
+# autoload as expected.  However, if there is no emacs binary, then we can't
+# build autoloads yet, so just make sure there's some loaddefs.el file, as
+# it's necessary for generating the binary (because loaddefs.el is an
+# automatically generated file, we don't want to store it in the source
+# repository).
+
+bootstrap-prepare:
+	if test -x $(EMACS); then				\
+	  $(MAKE) $(MFLAGS) autoloads;				\
+	else							\
+	  if test ! -r $(lisp)/loaddefs.el; then		\
+	    cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;	\
+	  fi							\
+	fi
+
+maintainer-clean:
+	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
 # Generate/update files for the bootstrap process.
 
@@ -294,4 +324,5 @@ bootstrap-after: finder-data custom-deps
 distclean:
 	-rm -f ./Makefile
 
+# arch-tag: d4ea703a-b91c-405c-a171-8dde30b163a7
 # Makefile ends here.

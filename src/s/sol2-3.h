@@ -48,3 +48,6 @@
     strncpy (pty_name, ptyname, sizeof (pty_name)); \
     pty_name[sizeof (pty_name) - 1] = 0;	\
   }
+
+/* arch-tag: a8fe2e15-e517-49cb-a863-f346b80885fe
+   (do not change this comment) */

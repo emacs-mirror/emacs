@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,2003
+;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,03,2004
 ;;               Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -30,6 +30,11 @@
 
 ;;; Code:
 
+(defgroup fill nil
+  "Indenting and filling text."
+  :link '(custom-manual "(emacs)Filling")
+  :group 'editing)
+
 (defcustom fill-individual-varying-indent nil
   "*Controls criterion for a new paragraph in `fill-individual-paragraphs'.
 Non-nil means changing indent doesn't end a paragraph.
@@ -49,13 +54,14 @@ A value of nil means that any change in indentation starts a new paragraph."
 If the function returns nil, then `fill-paragraph' does its normal work.")
 
 (defvar fill-paragraph-handle-comment t
-  "If non-nil, paragraph filling will try to pay attention to comments.")
+  "Non-nil means paragraph filling will try to pay attention to comments.")
 
-(defvar enable-kinsoku t
-  "*Non-nil means enable \"kinsoku\" processing on filling paragraph.
+(defcustom enable-kinsoku t
+  "*Non-nil means enable \"kinsoku\" processing on filling paragraphs.
 Kinsoku processing is designed to prevent certain characters from being
 placed at the beginning or end of a line by filling.
-See the documentation of `kinsoku' for more information.")
+See the documentation of `kinsoku' for more information."
+  :type 'boolean)
 
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
@@ -317,7 +323,7 @@ be tested.  If it returns t, fill commands do not break the line there."
   :options '(fill-french-nobreak-p fill-single-word-nobreak-p))
 
 (defcustom fill-nobreak-invisible nil
-  "Non-nil means that fill command do not break lines in invisible text."
+  "Non-nil means that fill commands do not break lines in invisible text."
   :type 'boolean
   :group 'fill)
 
@@ -365,7 +371,7 @@ and `fill-nobreak-invisible'."
 Don't move back past the buffer position LIMIT.
 
 This function is called when we are going to break the current line
-after or before a non-ascii character.  If the charset of the
+after or before a non-ASCII character.  If the charset of the
 character has the property `fill-find-break-point-function', this
 function calls the property value as a function with one arg LINEBEG.
 If the charset has no such property, do nothing."
@@ -423,9 +429,13 @@ Point is moved to just past the fill prefix on the first line."
 	  ((string-match "\\[[^][]*\\(\\.\\)[^][]*\\]" sentence-end)
 	   (concat (replace-match ".:" nil nil sentence-end 1) "$"))
 	  ;; Can't find the right spot to insert the colon.
-	  (t "[.?!:][])}\"']*$"))))
+	  (t "[.?!:][])}\"']*$")))
+	(sentence-end-without-space-list
+	 (string-to-list sentence-end-without-space)))
     (while (re-search-forward eol-double-space-re to t)
       (or (>= (point) to) (memq (char-before) '(?\t ?\ ))
+	  (memq (char-after (match-beginning 0))
+		sentence-end-without-space-list)
 	  (insert-and-inherit ?\ ))))
 
   (goto-char from)
@@ -728,7 +738,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
       ;; Then try our syntax-aware filling code.
       (and fill-paragraph-handle-comment
 	   ;; Our code only handles \n-terminated comments right now.
-	   comment-start comment-start-skip (equal comment-end "")
+	   comment-start (equal comment-end "")
 	   (let ((fill-paragraph-handle-comment nil))
 	     (fill-comment-paragraph arg)))
       ;; If it all fails, default to the good ol' text paragraph filling.
@@ -801,9 +811,13 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	      (save-excursion
 		(goto-char comstart)
 		(if has-code-and-comment
-		    (concat (make-string (/ (current-column) tab-width) ?\t)
-			    (make-string (% (current-column) tab-width) ?\ )
-			    (buffer-substring (point) comin))
+		    (concat
+		     (if (not indent-tabs-mode)
+			 (make-string (current-column) ?\ )
+		       (concat
+			(make-string (/ (current-column) tab-width) ?\t)
+			(make-string (% (current-column) tab-width) ?\ )))
+		     (buffer-substring (point) comin))
 		  (buffer-substring (line-beginning-position) comin))))
 	     beg end)
 	(save-excursion
@@ -818,7 +832,11 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 			     (looking-at comment-re)))
 		 ;; We may have gone too far.  Go forward again.
 		 (line-beginning-position
-		  (if (looking-at (concat ".*\\(?:" comment-start-skip "\\)"))
+		  (if (progn
+			(goto-char
+			 (or (comment-search-forward (line-end-position) t)
+			     (point)))
+			(looking-at comment-re))
 		      1 2))))
 	   ;; Find the beginning of the first line past the region to fill.
 	   (save-excursion
@@ -836,8 +854,13 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 		    (concat paragraph-start "\\|[ \t]*\\(?:"
 			    comment-start-skip "\\)\\(?:"
 			    (default-value 'paragraph-start) "\\)"))
-		   (paragraph-ignore-fill-prefix nil)
-		   (fill-prefix comment-fill-prefix)
+		   ;; We used to reply on fill-prefix to break paragraph at
+		   ;; comment-starter changes, but it did not work for the
+		   ;; first line (mixed comment&code).
+		   ;; We now use comment-re instead to "manually" make sure
+		   ;; we treat comment-marker changes as paragraph boundaries.
+		   ;; (paragraph-ignore-fill-prefix nil)
+		   ;; (fill-prefix comment-fill-prefix)
 		   (after-line (if has-code-and-comment
 				   (line-beginning-position 2))))
 	      (setq end (progn (forward-paragraph) (point)))
@@ -884,7 +907,7 @@ as specified by its text properties.
 The fourth arg NOSQUEEZE non-nil means to leave
 whitespace other than line breaks untouched, and fifth arg TO-EOP
 non-nil means to keep filling to the end of the paragraph (or next
-hard newline, if `use-hard-newlines' is on).
+hard newline, if variable `use-hard-newlines' is on).
 
 Return the fill-prefix used for filling the last paragraph.
 
@@ -968,8 +991,8 @@ beginning and end of the region are not at paragraph breaks, they are
 moved to the beginning and end \(respectively) of the paragraphs they
 are in.
 
-If `use-hard-newlines' is true, all hard newlines are taken to be paragraph
-breaks.
+If variable `use-hard-newlines' is true, all hard newlines are
+taken to be paragraph breaks.
 
 When calling from a program, operates just on region between BEGIN and END,
 unless optional fourth arg WHOLE-PAR is non-nil.  In that case bounds are
@@ -1406,4 +1429,5 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	"")
     string))
 
+;;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
 ;;; fill.el ends here

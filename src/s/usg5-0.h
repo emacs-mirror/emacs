@@ -151,3 +151,6 @@ Boston, MA 02111-1307, USA.  */
 /* Prevent -lg from being used for debugging.  Not implemented?  */
 
 #define LIBS_DEBUG
+
+/* arch-tag: a18bdba9-506d-40ed-9877-49fc27ce8cac
+   (do not change this comment) */

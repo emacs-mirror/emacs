@@ -447,4 +447,5 @@ BITS must be of length nrings.  Start at START-TIME."
 
 (provide 'hanoi)
 
+;;; arch-tag: 7a901659-4346-495c-8883-14cbf540610c
 ;;; hanoi.el ends here

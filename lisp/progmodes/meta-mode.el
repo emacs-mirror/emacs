@@ -1031,4 +1031,5 @@ Turning on MetaPost mode calls the value of the variable
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 
+;;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
 ;;; meta-mode.el ends here

@@ -714,9 +714,10 @@ FUNCTION will be called 15 times."
      (ucs-oriya-to-is13194-alist nil)
      (ucs-tamil-to-is13194-alist nil)
      (ucs-telugu-to-is13194-alist nil)
-     (ucs-malayalam-to-is13194-alist nil))
+     (ucs-malayalam-to-is13194-alist nil)
+     (ucs-kannada-to-is13194-alist nil))
   (dolist (script '(devanagari bengali assamese gurmukhi gujarati
-		    oriya tamil telugu malayalam))
+		    oriya tamil telugu malayalam kannada))
    (let ((hashtable (intern (concat "is13194-to-ucs-"
 				    (symbol-name script) "-hashtbl" )))
 	 (regexp    (intern (concat "is13194-to-ucs-"
@@ -764,6 +765,8 @@ FUNCTION will be called 15 times."
 (defvar is13194-to-ucs-telugu-regexp nil)
 (defvar is13194-to-ucs-malayalam-hashtbl nil)
 (defvar is13194-to-ucs-malayalam-regexp nil)
+(defvar is13194-to-ucs-kannada-hashtbl nil)
+(defvar is13194-to-ucs-kannada-regexp nil)
 
 (defvar ucs-to-is13194-regexp
   ;; only Devanagari is supported now.
@@ -1221,4 +1224,5 @@ Returns new end position."
 
 (provide 'ind-util)
 
+;;; arch-tag: 59aacd71-46c2-4cb3-bb26-e12bbad55545
 ;;; ind-util.el ends here

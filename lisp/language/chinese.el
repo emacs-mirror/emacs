@@ -107,7 +107,8 @@
 		(input-method . "chinese-py-punct")
 		(features china-util)
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
-		(documentation . "Support for Chinese GB2312 character set."))
+		(documentation . "Support for Chinese GB2312 character set.")
+		(tutorial . "TUTORIAL.cn"))
  '("Chinese"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -131,7 +132,8 @@
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
-		  (documentation . "Support for Chinese Big5 character set."))
+		  (documentation . "Support for Chinese Big5 character set.")
+		  (tutorial . "TUTORIAL.zh"))
  '("Chinese"))
 
 (define-coding-system 'chinese-big5-hkscs
@@ -253,4 +255,5 @@ converted to CNS)."))
 
 (provide 'chinese)
 
+;;; arch-tag: b82fcf7a-84f6-4e0b-b38c-1742dac0e09f
 ;;; chinese.el ends here

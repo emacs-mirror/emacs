@@ -272,4 +272,5 @@ turns it on iff arg is positive, otherwise off."
 
 (provide 'nroff-mode)
 
+;;; arch-tag: 6e276340-6c65-4f65-b4e3-0ca431ddfb6c
 ;;; nroff-mode.el ends here

@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -88,8 +88,105 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
       nil))
   (diff-backup (dired-get-filename) switches))
 
+(defun dired-compare-directories (dir2 predicate)
+  "Mark files with different file attributes in two dired buffers.
+Compare file attributes of files in the current directory
+with file attributes in directory DIR2 using PREDICATE on pairs of files
+with the same name.  Mark files for which PREDICATE returns non-nil.
+Mark files with different names if PREDICATE is nil (or interactively
+when the user enters empty input at the predicate prompt).
+
+PREDICATE is a Lisp expression that can refer to the following variables:
+
+    size1, size2   - file size in bytes
+    mtime1, mtime2 - last modification time in seconds, as a float
+    fa1, fa2       - list of file attributes
+                     returned by function `file-attributes'
+
+    where 1 refers to attribute of file in the current dired buffer
+    and 2 to attribute of file in second dired buffer.
+
+Examples of PREDICATE:
+
+    (> mtime1 mtime2) - mark newer files
+    (not (= size1 size2)) - mark files with different sizes
+    (not (string= (nth 8 fa1) (nth 8 fa2))) - mark files with different modes
+    (not (and (= (nth 2 fa1) (nth 2 fa2))   - mark files with different UID
+              (= (nth 3 fa1) (nth 3 fa2))))   and GID."
+  (interactive
+   (list (read-file-name (format "Compare %s with: "
+				 (dired-current-directory))
+			 (dired-dwim-target-directory))
+         (read-from-minibuffer "Mark if (lisp expr or RET): " nil nil t nil "nil")))
+  (let* ((dir1 (dired-current-directory))
+         (file-alist1 (dired-files-attributes dir1))
+         (file-alist2 (dired-files-attributes dir2))
+	 (file-list1 (mapcar
+		      'cadr
+                      (dired-file-set-difference
+                       file-alist1 file-alist2
+		       predicate)))
+	 (file-list2 (mapcar
+		      'cadr
+                      (dired-file-set-difference
+                       file-alist2 file-alist1
+		       predicate))))
+    (dired-fun-in-all-buffers
+     dir1 nil
+     (lambda ()
+       (dired-mark-if
+        (member (dired-get-filename nil t) file-list1) nil)))
+    (dired-fun-in-all-buffers
+     dir2 nil
+     (lambda ()
+       (dired-mark-if
+        (member (dired-get-filename nil t) file-list2) nil)))
+    (message "Marked in dir1: %s files, in dir2: %s files"
+             (length file-list1)
+             (length file-list2))))
+
+(defun dired-file-set-difference (list1 list2 predicate)
+  "Combine LIST1 and LIST2 using a set-difference operation.
+The result list contains all file items that appear in LIST1 but not LIST2.
+This is a non-destructive function; it makes a copy of the data if necessary
+to avoid corrupting the original LIST1 and LIST2.
+PREDICATE (see `dired-compare-directories') is an additional match
+condition.  Two file items are considered to match if they are equal
+*and* PREDICATE evaluates to t."
+  (if (or (null list1) (null list2))
+      list1
+    (let (res)
+      (dolist (file1 list1)
+	(unless (let ((list list2))
+		  (while (and list
+			      (not (let* ((file2 (car list))
+					  (fa1 (caddr file1))
+					  (fa2 (caddr file2))
+					  (size1 (nth 7 fa1))
+					  (size2 (nth 7 fa2))
+					  (mtime1 (float-time (nth 5 fa1)))
+					  (mtime2 (float-time (nth 5 fa2))))
+				     (and
+				      (equal (car file1) (car file2))
+				      (not (eval predicate))))))
+		    (setq list (cdr list)))
+		  list)
+	  (setq res (cons file1 res))))
+      (nreverse res))))
+
+(defun dired-files-attributes (dir)
+  "Return a list of all file names and attributes from DIR.
+List has a form of (file-name full-file-name (attribute-list))"
+  (mapcar
+   (lambda (file-name)
+     (let ((full-file-name (expand-file-name file-name dir)))
+       (list file-name
+             full-file-name
+             (file-attributes full-file-name))))
+   (directory-files dir)))
+
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
-  ;; Change file attributes (mode, group, owner) of marked files and
+  ;; Change file attributes (mode, group, owner, timestamp) of marked files and
   ;; refresh their file lines.
   ;; ATTRIBUTE-NAME is a string describing the attribute to the user.
   ;; PROGRAM is the program used to change the attribute.
@@ -106,7 +203,10 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
 			     (append
-			      (list operation program new-attribute)
+			      (list operation program)
+			      (if (eq op-symbol 'touch)
+				  '("-t") nil)
+			      (list new-attribute)
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
 			     files))
@@ -138,6 +238,12 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
   (if (memq system-type '(ms-dos windows-nt))
       (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
+
+(defun dired-do-touch (&optional arg)
+  "Change the timestamp of the marked (or next ARG) files.
+This calls touch."
+  (interactive "P")
+  (dired-do-chxxx "Timestamp" dired-touch-program 'touch arg))
 
 ;; Process all the files in FILES in batches of a convenient size,
 ;; by means of (FUNCALL FUNCTION ARGS... SOME-FILES...).
@@ -466,8 +572,8 @@ the list of file names explicitly with the FILE-LIST argument."
       (set-buffer err-buffer)
       (erase-buffer)
       (setq default-directory dir	; caller's default-directory
-	    err (/= 0
-		 (apply (function dired-call-process) program nil arguments)))
+	    err (not (eq 0
+		 (apply (function dired-call-process) program nil arguments))))
       (if err
 	  (progn
 	    (dired-log (concat program " " (prin1-to-string arguments) "\n"))
@@ -564,6 +670,8 @@ and use this command with a prefix argument (the value does not matter)."
     ;; For .z, try gunzip.  It might be an old gzip file,
     ;; or it might be from compact? pack? (which?) but gunzip handles both.
     ("\\.z\\'" "" "gunzip")
+    ("\\.dz\\'" "" "dictunzip")
+    ("\\.tbz\\'" ".tar" "bunzip2")
     ("\\.bz2\\'" "" "bunzip2")
     ;; This item controls naming for compression.
     ("\\.tar\\'" ".tgz" nil))
@@ -2015,6 +2123,11 @@ If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
+  (dolist (file (dired-get-marked-files nil nil 'dired-nondirectory-p))
+    (let ((buffer (get-file-buffer file)))
+      (if (and buffer (with-current-buffer buffer
+			buffer-read-only))
+	  (error "File `%s' is visited read-only" file))))
   (tags-query-replace from to delimited
 		      '(dired-get-marked-files nil nil 'dired-nondirectory-p)))
 
@@ -2037,4 +2150,5 @@ true then the type of the file linked to by FILE is printed instead."
 
 (provide 'dired-aux)
 
+;;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
 ;;; dired-aux.el ends here

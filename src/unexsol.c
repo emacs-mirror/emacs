@@ -27,3 +27,6 @@ unexec (char *new_name, char *old_name, unsigned int data_start,
   Fsignal (Qfile_error,
 	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
+
+/* arch-tag: d8ff72b3-8198-4011-8ef5-011b12027f59
+   (do not change this comment) */

@@ -108,4 +108,5 @@ Upside-down characters are obtained by a preceding slash (/)."
  ("`" ?,0q(B)
  (":" ?,0r(B))
 
+;;; arch-tag: cf2614cc-ecce-4ef5-ba51-37faeed41691
 ;;; ipa.el ends here

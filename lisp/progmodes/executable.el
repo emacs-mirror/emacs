@@ -1,6 +1,6 @@
 ;;; executable.el --- base functionality for executable interpreter scripts -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2003 by Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2003, 2004 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix
@@ -139,6 +139,27 @@ See `compilation-error-regexp-alist'.")
 
 ;; The C function openp slightly modified would do the trick fine
 (defvaralias 'executable-binary-suffixes 'exec-suffixes)
+
+;;;###autoload
+(defun executable-command-find-posix-p (&optional program)
+  "Check if PROGRAM handles arguments Posix-style.
+If PROGRAM is non-nil, use that instead of \"find\"."
+  ;;  Pick file to search from location we know
+  (let* ((dir (file-truename data-directory))
+         (file (car (directory-files dir nil "^[^.]"))))
+    (with-temp-buffer
+      (call-process (or program "find")
+                    nil
+                    (current-buffer)
+                    nil
+                    dir
+                    "-name"
+                    file
+                    "-maxdepth"
+                    "1")
+        (goto-char (point-min))
+        (if (search-forward file nil t)
+            t))))
 
 ;;;###autoload
 (defun executable-find (command)
@@ -280,4 +301,5 @@ file modes."
 
 (provide 'executable)
 
+;;; arch-tag: 58458d1c-d9db-45ec-942b-8bbb1d5e319d
 ;;; executable.el ends here

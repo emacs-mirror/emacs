@@ -144,3 +144,6 @@ extern int sign_extend_temp;
 
 /* This affects filemode.c.  */
 #define NO_MODE_T
+
+/* arch-tag: 07441a37-d630-447f-94fa-7da19645c97a
+   (do not change this comment) */

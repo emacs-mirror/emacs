@@ -22229,3 +22229,7 @@ former).  The manual is unambiguous, but it can be confusing.
 @end iftex
 
 @c End:
+
+@ignore
+   arch-tag: c9fa47e7-78ca-4681-bda9-9fef45d1c819
+@end ignore

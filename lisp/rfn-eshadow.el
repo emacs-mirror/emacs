@@ -222,4 +222,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'rfn-eshadow)
 
+;;; arch-tag: dcf70a52-0115-4ec2-b1e3-4f8d3541a888
 ;;; rfn-eshadow.el ends here

@@ -1,3 +1,103 @@
+2004-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* make-docfile.c (xmalloc): Fix return type.
+	(put_filename): New fun.
+	(scan_file): Use it.
+
+2004-03-09  Juanma Barranquero  <lektu@terra.es>
+
+	* grep-changelog: Changes to support ChangeLog.10+.
+	(main): Tidy up usage string.  Fix "Use of uninitialized value"
+	warning.  Set version to 0.2.  Parse the directory listing to get
+	any ChangeLog.n file, not just 1..9.
+	(header_match_p, entry_match_p, print_log, parse_changelog):
+	Remove Perl prototypes (their purpose is to help the parser, which
+	isn't needed here, not declare arguments).
+	(parse_changelog): Make --reverse faster on big batches by not
+	modifying the entries list.
+
+2004-03-01  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (obj): Add fringe.c.
+
+2004-02-14  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs2log: Work correctly if CVSROOT specifies :fork: or
+	:local: methods, or omits the colon between the hostname
+	and the path.  Allow :/ in repository path, since CVS does.
+	Fix typo: "pository" should be set from $CVSROOT, not $repository.
+	This fixes a bug reported by Wolfgang Scherer in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-02/msg00085.html>,
+	along with some related bugs I discovered by inspecting how
+	CVS itself parses $CVSROOT.
+
+2004-02-04  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
+
+	* emacsclient.c (decode_options): Fix handling of alternate editor.
+
+2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Don't use the hostname in the socket name.
+	Look for relative socket names in the /tmp dir rather than in cwd.
+
+2004-01-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c (main): Restore errno from saved_errno,
+	so the error message comes from socket_status.
+
+2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Stop if socket name too long.
+	Only try su-fallback if the socket name was not explicit.
+	Check socket name length in su-fallback case as well.
+
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Save errno from socket_status.
+
+2004-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Fix socket name when using another user.
+
+2003-12-27  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs2log (rlog_options): Append -rbranchtag if CVS/Tag indicates
+	a tag, and if the user has not specified an rlog option.
+	Adapted from a suggestion by Martin Stjernholm in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2003-07/msg00066.html>.
+	(Copyright): Update to 2003.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* make-docfile.c (main): For return code, no longer special-case VMS.
+	Instead, use `EXIT_SUCCESS' and `EXIT_FAILURE' from stdlib.h.
+
+2003-09-28  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (quote_file_name): Print the result instead of
+	returning it.  Fix the return type accordingly.
+	(main): With --eval, if no file name, read from stdin.
+	Quote file names.
+
+2003-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c	(main): Use socket_name.
+
+2003-09-10  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (socket_name): New variable.
+	(longopts, decode_options, print_help_and_exit):
+	Handle --socket-name argument.
+
+2003-08-25  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* etags.c (consider_token): Check C++ `operator' only when the
+	token len is long enough.
+
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Remove obsolete references to alloca.
+
 2003-07-29  Ken Brush  <ken@wirex.com>
 
 	* emacsclient.c (main)
@@ -1554,7 +1654,7 @@
 	Now used as element of a linked list.
 	(patterns, num_patterns): Global variables deleted.
 	(p_head): New global variable.
-	(forced_lang):  New global variable (replaces lang_func).
+	(forced_lang): New global variable (replaces lang_func).
 	(get_language_from_name, get_language_from_interpreter)
 	(get_language_from_suffix): Semantics changed.  All callers changed.
 	(last_node): New global variable.
@@ -2818,7 +2918,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* etags.c (lowcase): Use the standard tolower function.
 	(substitute): Remove some wrong and some useless code related with
-	escape `\` character in regexp replacement string.
+	escape '\' character in regexp replacement string.
 	(TEX_defenv): Added part, appendix, entry, index.  Removed typeout.
 	(lang_suffixes): New suffixes: .hpp for C++; .f90 for Fortran;
 	.bib, .ltx, .TeX for TeX (.bbl, .dtx removed); .ml for Lisp;
@@ -3839,7 +3939,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1994-02-17  Francesco Potorti`  (pot@cnuce.cnr.it)
 
-	* etags.c (--absolute-pathnames):  option removed.
+	* etags.c (--absolute-pathnames): Option removed.
 
 1994-02-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4300,8 +4400,8 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1993-05-30  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* Makefile.in: (${archlibdir}): Use `(cd foo && pwd)` instead of
-	`(cd foo ; pwd)` to get the canonical name of a directory; cd
+	* Makefile.in: (${archlibdir}): Use `(cd foo && pwd)' instead of
+	`(cd foo ; pwd)' to get the canonical name of a directory; cd
 	might fail, and have pwd print out the current directory.
 
 	* movemail.c [MAIL_USE_POP] (main): Don't use non-portable
@@ -4986,7 +5086,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* etags.c (C_entries): Process token before handling end of line.
 	When inner loops reach end of line, just back up.
 	Let the real end of line processing happen in just one place.
-	(consider_token):  Likewise.
+	(consider_token): Likewise.
 
 1991-04-11  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -5099,7 +5199,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1990-03-14  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* etags.c (getit):  Recognize '$' as beginning identifiers.
+	* etags.c (getit): Recognize '$' as beginning identifiers.
 
 1990-02-22  David Lawrence  (tale@pogo.ai.mit.edu)
 
@@ -5430,7 +5530,10 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
+    Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
+	1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 2d979296-954c-448e-95c1-b46d134513dc

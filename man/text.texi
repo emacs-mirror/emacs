@@ -312,7 +312,7 @@ pages.
 @cindex pages
 @cindex formfeed
   Files are often thought of as divided into @dfn{pages} by the
-@dfn{formfeed} character (ASCII control-L, octal code 014).  When you
+@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).  When you
 print hardcopy for a file, this character forces a page break; thus,
 each page of the file goes on a separate page on paper.  Most Emacs
 commands treat the page-separator character just like any other
@@ -2198,7 +2198,7 @@ Make the region right-filled (@code{set-justification-right}).
 @kindex M-j f @r{(Enriched mode)}
 @findex set-justification-full
 @item M-j f
-Make the region fully-justified (@code{set-justification-full}).
+Make the region fully justified (@code{set-justification-full}).
 @kindex M-j c @r{(Enriched mode)}
 @kindex M-S @r{(Enriched mode)}
 @findex set-justification-center
@@ -2277,3 +2277,6 @@ uncompression (@pxref{Compressed Files}).  To disable format conversion
 but allow character code conversion and/or automatic uncompression if
 appropriate, use @code{format-find-file} with suitable arguments.
 
+@ignore
+   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
+@end ignore

@@ -2584,8 +2584,8 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sstring_fence:
 	      while (1)
 		{
-		  DEC_BOTH (from, from_byte);
 		  if (from == stop) goto lose;
+		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
 		      && (c = FETCH_CHAR_AS_MULTIBYTE (from_byte),
@@ -2600,19 +2600,14 @@ scan_lists (from, count, depth, sexpflag)
 	      while (1)
 		{
 		  if (from == stop) goto lose;
-		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
-		    DEC_POS (temp_pos);
-		  else
-		    temp_pos--;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-		  if (!char_quoted (from - 1, temp_pos)
-		      && stringterm == (c = FETCH_CHAR_AS_MULTIBYTE (temp_pos))
+		  DEC_BOTH (from, from_byte);
+		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+		  if (!char_quoted (from, from_byte)
+		      && (stringterm
+			  == (c = FETCH_CHAR_AS_MULTIBYTE (from_byte)))
 		      && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
 		    break;
-		  DEC_BOTH (from, from_byte);
 		}
-	      DEC_BOTH (from, from_byte);
 	      if (!depth && sexpflag) goto done2;
 	      break;
 	    default:

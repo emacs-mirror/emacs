@@ -42,3 +42,5 @@
 #undef LDAV_SYMBOL
 #define LDAV_SYMBOL "avenrun"
 
+/* arch-tag: c56449e1-6d1b-4537-a596-0b08b8e4ec73
+   (do not change this comment) */

@@ -1,6 +1,5 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/ChgSel.c,v 1.1 1999/10/03 19:34:54 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -86,3 +85,6 @@ XMenuChangeSelection(display, menu, p_num, s_num, data, data_sw, label, label_sw
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
+
+/* arch-tag: 229732a6-46bf-4a3a-ad90-3d8ed65c0841
+   (do not change this comment) */

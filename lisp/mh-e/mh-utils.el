@@ -2290,4 +2290,5 @@ Put the output into buffer after point.  Set mark after inserted text."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 1af39fdf-f66f-4b06-9b48-18a7656c8e36
 ;;; mh-utils.el ends here

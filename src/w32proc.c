@@ -2238,3 +2238,6 @@ are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
   Vw32_get_true_file_attributes = Qt;
 }
 /* end of ntproc.c */
+
+/* arch-tag: 23d3a34c-06d2-48a1-833b-ac7609aa5250
+   (do not change this comment) */

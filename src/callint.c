@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 2003
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -41,6 +41,7 @@ Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
 extern Lisp_Object Vhistory_length;
+extern Lisp_Object Vthis_original_command, real_this_command;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
@@ -208,7 +209,7 @@ fix_command (input, values)
 	  Lisp_Object intail, valtail;
 	  for (intail = Fcdr (input), valtail = values;
 	       CONSP (valtail);
-	       intail = Fcdr (intail), valtail = Fcdr (valtail))
+	       intail = Fcdr (intail), valtail = XCDR (valtail))
 	    {
 	      Lisp_Object elt;
 	      elt = Fcar (intail);
@@ -291,6 +292,14 @@ supply if the command inquires which events were used to invoke it.  */)
   int key_count;
   int record_then_fail = 0;
 
+  Lisp_Object save_this_command, save_last_command;
+  Lisp_Object save_this_original_command, save_real_this_command;
+
+  save_this_command = Vthis_command;
+  save_this_original_command = Vthis_original_command;
+  save_real_this_command = real_this_command;
+  save_last_command = current_kboard->Vlast_command;
+
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
   else
@@ -338,25 +347,17 @@ supply if the command inquires which events were used to invoke it.  */)
 	goto lose;
       specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
     }
-  else if (!CONSP (fun))
-    goto lose;
-  else if (funcar = XCAR (fun), EQ (funcar, Qautoload))
-    {
-      GCPRO2 (function, prefix_arg);
-      do_autoload (fun, function);
-      UNGCPRO;
-      goto retry;
-    }
-  else if (EQ (funcar, Qlambda))
-    {
-      specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
-      if (NILP (specs))
-	goto lose;
-      filter_specs = Fnth (make_number (1), specs);
-      specs = Fcar (Fcdr (specs));
-    }
   else
-    goto lose;
+    {
+      Lisp_Object form;
+      GCPRO2 (function, prefix_arg);
+      form = Finteractive_form (function);
+      UNGCPRO;
+      if (CONSP (form))
+	specs = filter_specs = Fcar (XCDR (form));
+      else
+	goto lose;
+    }
 
   /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))
@@ -395,6 +396,12 @@ supply if the command inquires which events were used to invoke it.  */)
 		XSETCDR (teml, Qnil);
 	    }
 	}
+
+      Vthis_command = save_this_command;
+      Vthis_original_command = save_this_original_command;
+      real_this_command= save_real_this_command;
+      current_kboard->Vlast_command = save_last_command;
+
       single_kboard_state ();
       return apply1 (function, specs);
     }
@@ -841,6 +848,11 @@ supply if the command inquires which events were used to invoke it.  */)
   if (record_then_fail)
     Fbarf_if_buffer_read_only ();
 
+  Vthis_command = save_this_command;
+  Vthis_original_command = save_this_original_command;
+  real_this_command= save_real_this_command;
+  current_kboard->Vlast_command = save_last_command;
+
   single_kboard_state ();
 
   {
@@ -978,3 +990,6 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
+
+/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
+   (do not change this comment) */

@@ -28,9 +28,8 @@
 
 ;;; Commentary:
 
-;; For European scripts, character sets ISO8859-1,2,3,4,9,10,13,14,15,
-;; windows-1250,2,4,7, mac-roman, adobe-standard-encoding, cp850 and
-;; next are supported.
+;; For European scripts, all the ISO Latin character sets are
+;; supported, along with various others.
 
 ;;; Code:
 
@@ -272,7 +271,7 @@ covered by other ISO-8859 character sets:
 	     (unibyte-display . iso-latin-9)
 	     (input-method . "latin-9-prefix")
 	     (sample-text
-	      . "AVE. ,b&(48<=>(B ,b$(B")
+	      . "AVE. ,B)9.>,b<=,_/(B ,b$(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-9 (ISO-8859-15)
 character set which supports the same languages as Latin-1 with the
@@ -484,7 +483,7 @@ and it selects the Spanish tutorial."))
 	     (nonascii-translation . iso-8859-9)
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
-	     (sample-text . "Turkish (T,M|(Brk,Mg(Be)	Merhaba")
+	     (sample-text . "Turkish (T,A|(Brk,Ag(Be)	Merhaba")
 	     (setup-function
 	      . (lambda ()
 		  (set-case-syntax-pair ?I ?,C9(B (standard-case-table))
@@ -510,7 +509,7 @@ method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B
 	   (nonascii-translation . iso-8859-2)
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.pl")
-	   (sample-text . "P,Bs(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
+	   (sample-text . "P,As(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
 	   (documentation . t))
  '("European"))
 
@@ -724,4 +723,5 @@ or nil if no characters are composed."
 
 (provide 'european)
 
+;;; arch-tag: 9e018b12-fb02-4120-907b-9adeaf84b5c2
 ;;; european.el ends here

@@ -27,3 +27,6 @@ NOTE-END  */
 
 #define sun_soft
 #define START_FILES crt0.o /usr/lib/Fcrt1.o
+
+/* arch-tag: 76e9d7e6-66a8-4c4f-b0a5-335d082e5720
+   (do not change this comment) */

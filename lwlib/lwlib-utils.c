@@ -182,3 +182,6 @@ XtSafelyDestroyWidget (widget)
   abort ();
 #endif
 }
+
+/* arch-tag: f21f0a1f-2a4e-44e1-8715-7f234fe2d159
+   (do not change this comment) */

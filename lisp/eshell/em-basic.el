@@ -182,4 +182,5 @@ or `eshell-printn' for display."
 (eval-when-compile
   (defvar print-func))
 
+;;; arch-tag: 385a31b1-cb95-46f0-9829-9d352ee77db8
 ;;; em-basic.el ends here

@@ -450,4 +450,5 @@
 	     (tibetan-vowel-tibkey-alist . m-state))
     (m-state tibetan-modifier-tibkey-alist))))
 
+;;; arch-tag: 828fdb1a-733f-4c7b-b882-a19d2449ac99
 ;;; tibetan.el ends here

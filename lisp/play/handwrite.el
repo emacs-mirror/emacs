@@ -159,8 +159,7 @@ Variables: handwrite-linespace     (default 12)
     (setq next-line-add-newlines t)
     (switch-to-buffer ps-buf-name)
     (handwrite-insert-header buf-name)
-    (insert "\n(\\nCreated by GNU Emacs' handwrite version "
-	    emacs-version  "\\n\\n)=print flush\n")
+    (insert "%%Creator: GNU Emacs' handwrite version " emacs-version  "\n")
     (handwrite-insert-preamble)
     (handwrite-insert-info)
     (handwrite-insert-font)
@@ -1417,4 +1416,5 @@ end
 (provide 'handwrite)
 
 
+;;; arch-tag: f2285ae9-e41b-4c96-8343-87dce41e44b7
 ;;; handwrite.el ends here

@@ -1197,7 +1197,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
-  int prev_hpos = 0;
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -1225,6 +1224,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int wide_column_end_hpos = 0;
   int prev_pos;			/* Previous buffer position.  */
   int prev_pos_byte;		/* Previous buffer position.  */
+  int prev_hpos = 0;
+  int prev_vpos = 0;
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
 
@@ -1273,6 +1274,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  pos = prev_pos;
 		  pos_byte = prev_pos_byte;
 		  hpos = prev_hpos;
+		  vpos = prev_vpos;
 		  tab_offset = prev_tab_offset;
 		}
 	      break;
@@ -1382,6 +1384,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  if (pos >= next_boundary)
 		    next_boundary = pos + 1;
 		  prev_hpos = width;
+		  prev_vpos = vpos;
 		  prev_tab_offset = tab_offset;
 		}
 	    }
@@ -1414,6 +1417,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  pos = prev_pos;
 	  pos_byte = prev_pos_byte;
 	  hpos = prev_hpos;
+	  vpos = prev_vpos;
 	  tab_offset = prev_tab_offset;
 
 	  /* NOTE on contin_hpos, hpos, and prev_hpos.
@@ -1434,10 +1438,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      hpos = contin_hpos;
 	      vpos = vpos - 1;
 	    }
-	  else if (c == '\n')
-	    /* If previous character is NEWLINE,
-	       set VPOS back to previous line */
-	    vpos = vpos - 1;
 	  break;
 	}
 
@@ -1455,6 +1455,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      pos = prev_pos;
 	      pos_byte = prev_pos_byte;
 	      hpos = prev_hpos;
+	      vpos = prev_vpos;
 	      tab_offset = prev_tab_offset;
 	    }
 	  break;
@@ -1463,6 +1464,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	break;
 
       prev_hpos = hpos;
+      prev_vpos = vpos;
       prev_pos = pos;
       prev_pos_byte = pos_byte;
       wide_column_end_hpos = 0;
@@ -1834,9 +1836,7 @@ vmotion (from, vtarget, w)
      register int from, vtarget;
      struct window *w;
 {
-  /* We don't need to make room for continuation marks (we have fringes now),
-     so hould we really subtract 1 here if FRAME_WINDOW_P ?  ++KFS  */
-  int width = window_box_text_cols (w) - 1;
+  int width = window_box_text_cols (w);
   int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
@@ -1856,6 +1856,12 @@ vmotion (from, vtarget, w)
   Lisp_Object text_prop_object;
 
   XSETWINDOW (window, w);
+
+  /* We must make room for continuation marks if we don't have fringes.  */
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!FRAME_WINDOW_P (XFRAME (w->frame)))
+#endif
+    width -= 1;
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
@@ -2063,3 +2069,6 @@ Setting this variable automatically makes it local to the current buffer.  */);
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
+
+/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
+   (do not change this comment) */

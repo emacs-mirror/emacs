@@ -1007,7 +1007,7 @@ clicking on them with @kbd{Mouse-2} or by moving to one and typing
 @section Rmail and Coding Systems
 
 @cindex decoding mail messages (Rmail)
-  Rmail automatically decodes messages which contain non-ASCII
+  Rmail automatically decodes messages which contain non-@acronym{ASCII}
 characters, just as Emacs does with files you visit and with subprocess
 output.  Rmail uses the standard @samp{charset=@var{charset}} header in
 the message, if any, to determine how the message was encoded by the
@@ -1230,3 +1230,7 @@ this, and you would rather read your mail in the order in which it was
 received, you can tell @code{movemail} to reverse the order of
 downloaded messages by adding the @samp{-r} flag to
 @code{rmail-movemail-flags}.
+
+@ignore
+   arch-tag: 034965f6-38df-47a2-a9f1-b8bc8ab37e23
+@end ignore

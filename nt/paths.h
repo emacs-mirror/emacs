@@ -44,19 +44,19 @@ Boston, MA 02111-1307, USA.  */
 /* #define PATH_DATA "/usr/local/lib/emacs/data" */
 #define PATH_DATA "C:/emacs/data"
 
+/* Where Emacs should look for X bitmap files.
+   The lisp variable x-bitmap-file-path is set based on this value.  */
+#define PATH_BITMAPS ""
+
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
 #define PATH_DOC "C:/emacs/etc"
-
-/* The name of the directory that contains lock files with which we
-   record what files are being modified in Emacs.  This directory
-   should be writable by everyone.  THE STRING MUST END WITH A
-   SLASH!!!  */
-/* #define PATH_LOCK "/usr/local/lib/emacs/lock/" */
-#define PATH_LOCK "C:/emacs/lock/"
 
 /* Where the configuration process believes the info tree lives.  The
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
 /* #define PATH_INFO "/usr/local/info" */
 #define PATH_INFO "C:/emacs/info"
+
+/* arch-tag: f6d46f3c-e1e9-436b-8629-edcaf6597973
+   (do not change this comment) */

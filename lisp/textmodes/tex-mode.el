@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,2003
+;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,03,2004
 ;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -196,7 +196,7 @@ use."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-dvi-view-command '(if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\")
+(defcustom tex-dvi-view-command '(if (eq window-system 'x) "xdvi" "dvi2tty * | cat -s")
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
@@ -902,7 +902,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'tex-start-of-header)
        "\\\\document\\(style\\|class\\)")
   (set (make-local-variable 'tex-end-of-header) "\\\\begin\\s-*{document}")
-  (set (make-local-variable 'tex-trailer) "\\end\\s-*{document}\n")
+  (set (make-local-variable 'tex-trailer) "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
   ;; but does not separate paragraphs if it has more stuff on it.
@@ -1446,6 +1446,8 @@ Mark is left at original location."
 ;; The utility functions:
 
 (define-derived-mode tex-shell shell-mode "TeX-Shell"
+  (set (make-local-variable 'compilation-parse-errors-function)
+       'tex-compilation-parse-errors)
   (compilation-shell-minor-mode t))
 
 ;;;###autoload
@@ -1584,6 +1586,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
+    ("yap %r &" "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("advi %r &" "%r.dvi")
     ("bibtex %r" "%r.aux" "%r.bbl")
@@ -1592,6 +1595,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
     ("dvipdfm %r" "%r.dvi" "%r.pdf")
     ("dvipdf %r" "%r.dvi" "%r.pdf")
     ("dvips %r" "%r.dvi" "%r.ps")
+    ("ps2pdf %r.ps" "%r.ps" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("gv %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
@@ -1670,7 +1674,8 @@ of the current buffer."
 			    (tex-guess-main-file 'sub)
 			    ;; (tex-guess-main-file t)
 			    buffer-file-name)))))))
-    (if (file-exists-p file) file (concat file ".tex"))))
+    (if (or (file-exists-p file) (string-match "\\.tex\\'" file))
+	file (concat file ".tex"))))
 
 (defun tex-summarize-command (cmd)
   (if (not (stringp cmd)) ""
@@ -1717,7 +1722,9 @@ FILE is typically the output DVI or PDF file."
 	 (uptodate t))
      (while (and files uptodate)
        (let ((f (pop files)))
-	 (if (file-directory-p f)
+	 (if (and (file-directory-p f)
+		  ;; Avoid infinite loops.
+		  (not (file-symlink-p f)))
 	     (unless (string-match ignored-dirs-re f)
 	       (setq files (nconc
 			    (directory-files f t tex-input-files-re)
@@ -1874,8 +1881,6 @@ FILE is typically the output DVI or PDF file."
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
-    (make-local-variable 'compilation-parse-errors-function)
-    (setq compilation-parse-errors-function 'tex-compilation-parse-errors)
     (setq compilation-last-buffer (current-buffer))
     (compilation-forget-errors)
     ;; Don't parse previous compilations.
@@ -1922,7 +1927,7 @@ for the error messages."
 			end-of-error (match-end 0)))
 		(re-search-forward
 		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
-      (let* ((this-error (set-marker (make-marker) begin-of-error))
+      (let* ((this-error (copy-marker begin-of-error))
 	     (linenum (string-to-int (match-string 1)))
 	     (error-text (regexp-quote (match-string 3)))
 	     (filename
@@ -2337,15 +2342,15 @@ There might be text before point."
 	 (+ indent (current-column) tex-indent-item))
 	(t
 	 (let ((col (current-column)))
-	   (if (not (eq (char-syntax char) ?\())
+	   (if (or (null char) (not (eq (char-syntax char) ?\()))
 	       ;; If the first char was not an open-paren, there's
 	       ;; a risk that this is really not an argument to the
 	       ;; macro at all.
-		 (+ indent col)
-	       (forward-sexp 1)
-	       (if (< (line-end-position)
-		      (save-excursion (forward-comment (point-max))
-				      (point)))
+	       (+ indent col)
+	     (forward-sexp 1)
+	     (if (< (line-end-position)
+		    (save-excursion (forward-comment (point-max))
+				    (point)))
 		 ;; we're indenting the first argument.
 		 (min (current-column) (+ tex-indent-arg col))
 	       (skip-syntax-forward " ")
@@ -2412,4 +2417,5 @@ There might be text before point."
 
 (provide 'tex-mode)
 
+;;; arch-tag: c0a680b1-63aa-4547-84b9-4193c29c0080
 ;;; tex-mode.el ends here

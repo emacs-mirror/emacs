@@ -67,3 +67,5 @@ TAGS:
 	../lib-src/etags $(srcdir)/*.[ch]
 tags: TAGS
 .PHONY: tags
+
+# arch-tag: a881fa74-b56a-44c6-80b4-28a4c65d88ff

@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -2261,8 +2261,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 			      (list (list 'or pred-check
 					  (list 'error
 						(format "%s accessing a non-%s"
-							accessor name)
-						'cl-x))))
+							accessor name)))))
 			 (list (if (eq type 'vector) (list 'aref 'cl-x pos)
 				 (if (= pos 0) '(car cl-x)
 				   (list 'nth pos 'cl-x)))))) forms)
@@ -2340,8 +2339,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 		       (list (list 'or (subst temp 'cl-x pred-form)
 				   (list 'error
 					 (format
-					  "%s storing a non-%s" accessor name)
-					 temp))))
+					  "%s storing a non-%s" accessor name)))))
 		  (list (if (eq (car (get name 'cl-struct-type)) 'vector)
 			    (list 'aset temp pos store)
 			  (list 'setcar
@@ -2657,4 +2655,5 @@ surrounded by (block NAME ...).
 ;;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
 ;;; End:
 
+;;; arch-tag: afd947a6-b553-4df1-bba5-000be6388f46
 ;;; cl-macs.el ends here

@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000, 01, 2003
+;; Copyright (C) 1988,89,90,91,92,93,94,95,97,1999,2000,01,03,2004
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -2090,6 +2090,10 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec push (form sexp))
 (def-edebug-spec pop (sexp))
 
+(def-edebug-spec 1value (form))
+(def-edebug-spec noreturn (form))
+
+
 ;; Anything else?
 
 
@@ -2241,8 +2245,10 @@ error is signaled again."
 
 	    ;; Save the outside value of executing macro.  (here??)
 	    (edebug-outside-executing-macro executing-kbd-macro)
-	    (edebug-outside-pre-command-hook pre-command-hook)
-	    (edebug-outside-post-command-hook post-command-hook))
+	    (edebug-outside-pre-command-hook
+	     (edebug-var-status 'pre-command-hook))
+	    (edebug-outside-post-command-hook
+	     (edebug-var-status 'post-command-hook)))
 	(unwind-protect
 	    (let (;; Don't keep reading from an executing kbd macro
 		  ;; within edebug unless edebug-continue-kbd-macro is
@@ -2267,10 +2273,11 @@ error is signaled again."
 		    edebug-next-execution-mode nil)
 	      (edebug-enter edebug-function edebug-args edebug-body))
 	  ;; Reset global variables in case outside value was changed.
-	  (setq executing-kbd-macro edebug-outside-executing-macro
-		pre-command-hook edebug-outside-pre-command-hook
-		post-command-hook edebug-outside-post-command-hook
-		)))
+	  (setq executing-kbd-macro edebug-outside-executing-macro)
+	  (edebug-restore-status
+	   'post-command-hook edebug-outside-post-command-hook)
+	  (edebug-restore-status
+	   'pre-command-hook edebug-outside-pre-command-hook)))
 
     (let* ((edebug-data (get edebug-function 'edebug))
 	   (edebug-def-mark (car edebug-data)) ; mark at def start
@@ -2291,6 +2298,30 @@ error is signaled again."
 	(funcall edebug-body))
       )))
 
+(defun edebug-var-status (var)
+  "Return a cons cell describing the status of VAR's current binding.
+The purpose of this function is so you can properly undo
+subsequent changes to the same binding, by passing the status
+cons cell to `edebug-restore-status'.  The status cons cell
+has the form (LOCUS . VALUE), where LOCUS can be a buffer
+\(for a buffer-local binding), a frame (for a frame-local binding),
+or nil (if the default binding is current)."
+  (cons (variable-binding-locus var)
+	(symbol-value var)))
+
+(defun edebug-restore-status (var status)
+  "Reset VAR based on STATUS.
+STATUS should be a list you got from `edebug-var-status'."
+  (let ((locus (car status))
+	(value (cdr status)))
+    (cond ((bufferp locus)
+	   (if (buffer-live-p locus)
+	       (with-current-buffer locus
+		 (set var value))))
+	  ((framep locus)
+	   (modify-frame-parameters locus (list (cons var value))))
+	  (t
+	   (set var value)))))
 
 (defun edebug-enter-trace (edebug-body)
   (let ((edebug-stack-depth (1+ edebug-stack-depth))
@@ -2478,6 +2509,11 @@ MSG is printed after `::::} '."
 
 
 (defun edebug-display ()
+  (unless (marker-position edebug-def-mark)
+    ;; The buffer holding the source has been killed.
+    ;; Let's at least show a backtrace so the user can figure out
+    ;; which function we're talking about.
+    (debug))
   ;; Setup windows for edebug, determine mode, maybe enter recursive-edit.
   ;; Uses local variables of edebug-enter, edebug-before, edebug-after
   ;; and edebug-debugger.
@@ -3511,8 +3547,9 @@ Return the result of the last expression."
 
 	   (executing-kbd-macro edebug-outside-executing-macro)
 	   (defining-kbd-macro edebug-outside-defining-kbd-macro)
-	   (pre-command-hook edebug-outside-pre-command-hook)
-	   (post-command-hook edebug-outside-post-command-hook)
+	   ;; Get the values out of the saved statuses.
+	   (pre-command-hook (cdr edebug-outside-pre-command-hook))
+	   (post-command-hook (cdr edebug-outside-post-command-hook))
 
 	   ;; See edebug-display
 	   (overlay-arrow-position edebug-outside-o-a-p)
@@ -3552,13 +3589,18 @@ Return the result of the last expression."
 
 	  edebug-outside-executing-macro executing-kbd-macro
 	  edebug-outside-defining-kbd-macro defining-kbd-macro
-	  edebug-outside-pre-command-hook pre-command-hook
-	  edebug-outside-post-command-hook post-command-hook
 
 	  edebug-outside-o-a-p overlay-arrow-position
 	  edebug-outside-o-a-s overlay-arrow-string
 	  edebug-outside-c-i-e-a cursor-in-echo-area
-	  )))				; let
+	  )
+
+	 ;; Restore the outside saved values; don't alter
+	 ;; the outside binding loci.
+	 (setcdr edebug-outside-pre-command-hook pre-command-hook)
+	 (setcdr edebug-outside-post-command-hook post-command-hook)
+
+	 ))				; let
      ))
 
 (defvar cl-debug-env nil) ;; defined in cl; non-nil when lexical env used.
@@ -3644,17 +3686,14 @@ Return the result of the last expression."
     (edebug-prin1-to-string value)))
 
 (defun edebug-compute-previous-result (edebug-previous-value)
+  (if edebug-unwrap-results
+      (setq edebug-previous-value
+	    (edebug-unwrap* edebug-previous-value)))
   (setq edebug-previous-result
-	(if (and (integerp edebug-previous-value)
-		 (< edebug-previous-value 256)
-		 (>= edebug-previous-value 0))
-	    (format "Result: %s = %s" edebug-previous-value
-		    (single-key-description edebug-previous-value))
-	  (if edebug-unwrap-results
-	      (setq edebug-previous-value
-		    (edebug-unwrap* edebug-previous-value)))
-	  (concat "Result: "
-		  (edebug-safe-prin1-to-string edebug-previous-value)))))
+	(concat "Result: "
+		(edebug-safe-prin1-to-string edebug-previous-value)
+		(let ((name (prin1-char edebug-previous-value)))
+		  (if name (concat " = " name))))))
 
 (defun edebug-previous-result ()
   "Print the previous result."
@@ -3676,14 +3715,13 @@ Print result in minibuffer."
     (edebug-safe-prin1-to-string (car values)))))
 
 (defun edebug-eval-last-sexp ()
-  "Evaluate sexp before point in the outside environment;
-print value in minibuffer."
+  "Evaluate sexp before point in the outside environment; value in minibuffer."
   (interactive)
   (edebug-eval-expression (edebug-last-sexp)))
 
 (defun edebug-eval-print-last-sexp ()
-  "Evaluate sexp before point in the outside environment;
-print value into current buffer."
+  "Evaluate sexp before point in the outside environment; insert the value.
+This prints the value into current buffer."
   (interactive)
   (let* ((edebug-form (edebug-last-sexp))
 	 (edebug-result-string
@@ -3698,12 +3736,15 @@ print value into current buffer."
 
 ;;; Edebug Minor Mode
 
-;; Global GUD bindings for all emacs-lisp-mode buffers.
-(define-key emacs-lisp-mode-map "\C-x\C-a\C-s" 'edebug-step-mode)
-(define-key emacs-lisp-mode-map "\C-x\C-a\C-n" 'edebug-next-mode)
-(define-key emacs-lisp-mode-map "\C-x\C-a\C-c" 'edebug-go-mode)
-(define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where)
+(defvar gud-inhibit-global-bindings
+  "*Non-nil means don't do global rebindings of C-x C-a subcommands.")
 
+;; Global GUD bindings for all emacs-lisp-mode buffers.
+(unless gud-inhibit-global-bindings
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-s" 'edebug-step-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-n" 'edebug-next-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-c" 'edebug-go-mode)
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where))
 
 (defvar edebug-mode-map
   (let ((map (copy-keymap emacs-lisp-mode-map)))
@@ -4110,8 +4151,8 @@ You must include newlines in FMT to break lines, but one newline is appended."
 ;;; Frequency count and coverage
 
 (defun edebug-display-freq-count ()
-  "Display the frequency count data for each line of the current
-definition.  The frequency counts are inserted as comment lines after
+  "Display the frequency count data for each line of the current definition.
+The frequency counts are inserted as comment lines after
 each line, and you can undo all insertions with one `undo' command.
 
 The counts are inserted starting under the `(' before an expression
@@ -4415,4 +4456,5 @@ With prefix argument, make it a temporary breakpoint."
 
 (provide 'edebug)
 
+;;; arch-tag: 19c8d05c-4554-426e-ac72-e0fa1fcb0808
 ;;; edebug.el ends here

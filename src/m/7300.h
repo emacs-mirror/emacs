@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
 /* Insist on using cc when compiling this.  GCC may have been
    configured to use GAS syntax, which causes problems.  */
 #define CRT0_COMPILE cc -c -O -Demacs
+
+/* arch-tag: 66219dc7-ef45-4f0c-bb98-f35421f39c8d
+   (do not change this comment) */

@@ -87,7 +87,7 @@ Turning on Paragraph-Indent Text mode runs the normal hooks
   "Minor mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs when the
 first line of the following paragraph starts with whitespace, as with
-`paragraph-indent-mode'.
+`paragraph-indent-text-mode'.
 Turning on Paragraph-Indent minor mode runs the normal hook
 `paragraph-indent-text-mode-hook'."
   (interactive)
@@ -178,4 +178,5 @@ The argument NLINES says how many lines to center."
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
 
+;;; arch-tag: a07ccaad-da13-4d7b-9c61-cd04f5926aab
 ;;; text-mode.el ends here

@@ -1,6 +1,6 @@
 ;;; calc-map.el --- higher-order functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -700,10 +700,7 @@
 					       (calcFunc-afixp   . 2))))))
 			  (oper3 (if (eq (nth 2 oper) 'calcFunc-inner)
 				     (calc-get-operator
-				      (format "%s%s, inner (add)" msg dir
-					      (substring
-					       (symbol-name (nth 2 oper))
-					       9)))
+				      (format "%s%s, inner (add)" msg dir))
 				   '(0 0 0)))
 			  (args nil)
 			  (nargs (if (> (nth 1 oper) 0)
@@ -1261,4 +1258,5 @@
       (setq mat (cons (cons 'vec row) mat)))
     (cons 'vec (nreverse mat))))
 
+;;; arch-tag: 980eac49-00e0-4870-b72a-e726b74c7990
 ;;; calc-map.el ends here

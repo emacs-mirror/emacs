@@ -60,7 +60,7 @@ files.")
     ("Eric S. Raymond" "Eric Raymond")
     ("Eric Youngdale" "(Eric Youngdale at youngdale@v6550c.nrl.navy.mil)")
     ("Fran,Ag(Bois Pinard" "Francois Pinard")
-    ("Francesco Potorti" "Francesco Potorti`")
+    ("Francesco Potort,Al(B" "Francesco Potorti" "Francesco Potorti`")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
     ("Geoff Voelker" "voelker")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth")
@@ -638,4 +638,5 @@ the Emacs source tree, from which to build the file."
     (authors root)
     (write-file file)))
 
+;;; arch-tag: 659d5900-5ff2-43b0-954c-a315cc1e4dc1
 ;;; authors.el ends here

@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001, 2002
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001, 02, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -701,8 +701,8 @@ DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make SYMBOL a variable alias for symbol ALIASED.
 Setting the value of SYMBOL will subsequently set the value of ALIASED,
 and getting the value of SYMBOL will return the value ALIASED has.
-ALIASED nil means remove the alias; SYMBOL is unbound after that.
-Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.  */)
+Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.
+The return value is ALIASED.  */)
      (symbol, aliased, docstring)
      Lisp_Object symbol, aliased, docstring;
 {
@@ -1436,6 +1436,8 @@ A handler for any of those names will get to handle this signal.
 The symbol `error' should normally be one of them.
 
 DATA should be a list.  Its elements are printed as part of the error message.
+See Info anchor `(elisp)Definition of signal' for some details on how this
+error message is constructed.
 If the signal is handled, DATA is made available to the handler.
 See also the function `condition-case'.  */)
      (error_symbol, data)
@@ -1810,13 +1812,11 @@ then strings and vectors are not accepted.  */)
   /* Lists may represent commands.  */
   if (!CONSP (fun))
     return Qnil;
-  funcar = Fcar (fun);
-  if (!SYMBOLP (funcar))
-    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+  funcar = XCAR (fun);
   if (EQ (funcar, Qlambda))
-    return Fassq (Qinteractive, Fcdr (Fcdr (fun)));
+    return Fassq (Qinteractive, Fcdr (XCDR (fun)));
   if (EQ (funcar, Qautoload))
-    return Fcar (Fcdr (Fcdr (Fcdr (fun))));
+    return Fcar (Fcdr (Fcdr (XCDR (fun))));
   else
     return Qnil;
 }
@@ -2641,6 +2641,8 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 #endif /* not NO_ARG_ARRAY */
 }
 
+/* The caller should GCPRO all the elements of ARGS.  */
+
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
@@ -3432,3 +3434,6 @@ The value the function returns is not used.  */);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
 }
+
+/* arch-tag: 014a07aa-33ab-4a8f-a3d2-ee8a4a9ff7fb
+   (do not change this comment) */

@@ -1009,4 +1009,5 @@ Should be set in `~/.viper' file."
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
+;;; arch-tag: 4efa2416-1fcb-4690-be10-1a2a0248d250
 ;;; viper-init.el ends here

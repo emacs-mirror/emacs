@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -194,6 +194,7 @@ Boston, MA 02111-1307, USA.  */
    used to fill in unspecified attributes of the default face.  */
 
 #include <config.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -264,7 +265,6 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* HAVE_X_WINDOWS */
 
-#include <stdio.h>
 #include <ctype.h>
 
 #define abs(X)		((X) < 0 ? -(X) : (X))
@@ -1503,15 +1503,19 @@ face_color_supported_p (f, color_name, background_p)
   XColor not_used;
 
   XSETFRAME (frame, f);
-  return (FRAME_WINDOW_P (f)
-	  ? (!NILP (Fxw_display_color_p (frame))
-	     || xstricmp (color_name, "black") == 0
-	     || xstricmp (color_name, "white") == 0
-	     || (background_p
-		 && face_color_gray_p (f, color_name))
-	     || (!NILP (Fx_display_grayscale_p (frame))
-		 && face_color_gray_p (f, color_name)))
-	  : tty_defined_color (f, color_name, &not_used, 0));
+  return
+#ifdef HAVE_X_WINDOWS
+    FRAME_WINDOW_P (f)
+    ? (!NILP (Fxw_display_color_p (frame))
+       || xstricmp (color_name, "black") == 0
+       || xstricmp (color_name, "white") == 0
+       || (background_p
+	   && face_color_gray_p (f, color_name))
+       || (!NILP (Fx_display_grayscale_p (frame))
+	   && face_color_gray_p (f, color_name)))
+    :
+#endif
+    tty_defined_color (f, color_name, &not_used, 0);
 }
 
 
@@ -1524,8 +1528,11 @@ If FRAME is nil or omitted, use the selected frame.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   return face_color_gray_p (f, SDATA (color)) ? Qt : Qnil;
 }
@@ -1542,8 +1549,11 @@ COLOR must be a valid color name.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   if (face_color_supported_p (f, SDATA (color), !NILP (background_p)))
     return Qt;
@@ -2613,6 +2623,69 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
 }
 
 
+/* Check if a font matching pattern_offset_t on frame F is available
+   or not.  PATTERN may be a cons (FAMILY . REGISTRY), in which case,
+   a font name pattern is generated from FAMILY and REGISTRY.  */
+
+int
+face_font_available_p (f, pattern)
+     struct frame *f;
+     Lisp_Object pattern;
+{
+  Lisp_Object fonts;
+
+  if (! STRINGP (pattern))
+    {
+      Lisp_Object family, registry;
+      char *family_str, *registry_str, *pattern_str;
+
+      CHECK_CONS (pattern);
+      family = XCAR (pattern);
+      if (NILP (family))
+	family_str = "*";
+      else
+	{
+	  CHECK_STRING (family);
+	  family_str = (char *) SDATA (family);
+	}
+      registry = XCDR (pattern);
+      if (NILP (registry))
+	registry_str = "*";
+      else
+	{
+	  CHECK_STRING (registry);
+	  registry_str = (char *) SDATA (registry);
+	}
+
+      pattern_str = (char *) alloca (strlen (family_str)
+				     + strlen (registry_str)
+				     + 10);
+      strcpy (pattern_str, index (family_str, '-') ? "-" : "-*-");
+      strcat (pattern_str, family_str);
+      strcat (pattern_str, "-*-");
+      strcat (pattern_str, registry_str);
+      if (!index (registry_str, '-'))
+	{
+	  if (registry_str[strlen (registry_str) - 1] == '*')
+	    strcat (pattern_str, "-*");
+	  else
+	    strcat (pattern_str, "*-*");
+	}
+      pattern = build_string (pattern_str);
+    }
+
+  /* Get the list of fonts matching PATTERN.  */
+#ifdef WINDOWSNT
+  BLOCK_INPUT;
+  fonts = w32_list_fonts (f, pattern, 0, 1);
+  UNBLOCK_INPUT;
+#else
+  fonts = x_list_fonts (f, pattern, -1, 1);
+#endif
+  return XINT (Flength (fonts));
+}
+
+
 /* Determine fonts matching PATTERN on frame F.  Sort resulting fonts
    using comparison function CMPFN.  Value is the number of fonts
    found.  If value is non-zero, *FONTS is set to a vector of
@@ -3243,7 +3316,13 @@ lface_fully_specified_p (attrs)
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
 	&& i != LFACE_AVGWIDTH_INDEX && i != LFACE_FONTSET_INDEX)
-      if (UNSPECIFIEDP (attrs[i]))
+      if (UNSPECIFIEDP (attrs[i])
+#ifdef MAC_OS
+        /* MAC_TODO: No stipple support on Mac OS yet, this index is
+           always unspecified.  */
+          && i != LFACE_STIPPLE_INDEX
+#endif
+          )
         break;
 
   return i == LFACE_VECTOR_SIZE;
@@ -5662,12 +5741,19 @@ cache_face (c, face, hash)
   face->id = i;
 
   /* Maybe enlarge C->faces_by_id.  */
-  if (i == c->used && c->used == c->size)
+  if (i == c->used)
     {
-      int new_size = 2 * c->size;
-      int sz = new_size * sizeof *c->faces_by_id;
-      c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
-      c->size = new_size;
+      if (c->used == c->size)
+	{
+	  int new_size, sz;
+	  new_size = min (2 * c->size, MAX_FACE_ID);
+	  if (new_size == c->size)
+	    abort ();  /* Alternatives?  ++kfs */
+	  sz = new_size * sizeof *c->faces_by_id;
+	  c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
+	  c->size = new_size;
+	}
+      c->used++;
     }
 
 #if GLYPH_DEBUG
@@ -5686,8 +5772,6 @@ cache_face (c, face, hash)
 #endif /* GLYPH_DEBUG */
 
   c->faces_by_id[i] = face;
-  if (i == c->used)
-    ++c->used;
 }
 
 
@@ -6176,6 +6260,18 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 	return 1;
     }
 
+  if (! compare_pt_p)
+    {
+      /* We prefer a real scalable font; i.e. not what autoscaled.  */
+      int auto_scaled_1 = (font1->numeric[XLFD_POINT_SIZE] == 0
+			   && font1->numeric[XLFD_RESY] > 0);
+      int auto_scaled_2 = (font2->numeric[XLFD_POINT_SIZE] == 0
+			   && font2->numeric[XLFD_RESY] > 0);
+
+      if (auto_scaled_1 != auto_scaled_2)
+	return auto_scaled_2;
+    }
+
   return font1->registry_priority < font2->registry_priority;
 }
 
@@ -6414,7 +6510,10 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		|| better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
-	      best = fonts + i;
+	      {
+		non_scalable_has_exact_height_p = 1;
+		best = fonts + i;
+	      }
 	  }
 
       if (needs_overstrike)
@@ -7918,3 +8017,6 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_WINDOW_SYSTEM */
 }
+
+/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
+   (do not change this comment) */

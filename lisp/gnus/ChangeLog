@@ -1,3 +1,20 @@
+2004-03-27  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-srvr.el (gnus-server-prepare): Remove spurious call to `cdr'.
+
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el: Use inhibit-read-only instead of buffer-read-only.
+	(gnus-narrow-to-page): Don't assume point-min == 1.
+	(gnus-article-edit-mode): Derive from message-mode.
+	(gnus-button-alist): Add buttons to (info "(emacs)Keymaps").
+
+	* gnus-score.el (gnus-score-find-bnews): Simplify and don't assume
+	point-min == 1.
+
+	* imap.el (imap-parse-address-list, imap-parse-body-ext):
+	Disable incorrect use of `assert'.
+
 2004-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-mode): Fix last change.

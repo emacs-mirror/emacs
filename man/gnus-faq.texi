@@ -671,3 +671,6 @@ Use an nnbabyl:all.SCORE (or nnmh, or nnml, or whatever) file containing:
 @end itemize
 
 
+@ignore
+   arch-tag: 64dc5692-edb4-4848-a965-7aa0181acbb8
+@end ignore

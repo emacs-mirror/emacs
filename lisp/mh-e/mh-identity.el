@@ -210,4 +210,5 @@ Edit the `mh-identity-list' variable to define identity."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 07d66ef6-8726-4ac6-9ecf-e566cd5bfb45
 ;;; mh-identity.el ends here

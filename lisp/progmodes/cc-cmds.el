@@ -54,37 +54,6 @@
 
 (defvar c-fix-backslashes t)
 
-(defun c-shift-line-indentation (shift-amt)
-  ;; This function does not do any hidden buffer changes.
-  (let ((pos (- (point-max) (point)))
-	(c-macro-start c-macro-start)
-	tmp-char-inserted)
-    (if (zerop shift-amt)
-	nil
-      (when (and (c-query-and-set-macro-start)
-		 (looking-at "[ \t]*\\\\$")
-		 (save-excursion
-		   (skip-chars-backward " \t")
-		   (bolp)))
-	(insert ?x)
-	(backward-char)
-	(setq tmp-char-inserted t))
-      (unwind-protect
-	  (let ((col (current-indentation)))
-	    (delete-region (c-point 'bol) (c-point 'boi))
-	    (beginning-of-line)
-	    (indent-to (+ col shift-amt)))
-	(when tmp-char-inserted
-	  (delete-char 1))))
-    ;; If initial point was within line's indentation and we're not on
-    ;; a line with a line continuation in a macro, position after the
-    ;; indentation.  Else stay at same point in text.
-    (if (and (< (point) (c-point 'boi))
-	     (not tmp-char-inserted))
-	(back-to-indentation)
-      (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))))
-
 (defun c-indent-line (&optional syntax quiet ignore-point-pos)
   "Indent the current line according to the syntactic context,
 if `c-syntactic-indentation' is non-nil.  Optional SYNTAX is the
@@ -498,10 +467,21 @@ This function does various newline cleanups based on the value of
 	(when (save-excursion
 		(skip-chars-backward " \t")
 		(not (bolp)))
-	  (setq delete-temp-newline
-		(list (point-marker)))
 	  (c-newline-and-indent)
-	  (setcdr delete-temp-newline (point-marker)))
+	  ;; Set markers around the newline and indention inserted
+	  ;; above.  We insert the start marker here and not before
+	  ;; the call to kludge around a misfeature in expand-abbrev:
+	  ;; If the line contains e.g. "else" then expand-abbrev will
+	  ;; be called when c-newline-and-indent inserts the newline.
+	  ;; That function first removes the abbrev "else" and then
+	  ;; inserts the expansion, which is an identical "else" in
+	  ;; this case.  So the marker that we put after "else" would
+	  ;; end up before it.
+	  (setq delete-temp-newline
+		(cons (save-excursion
+			(c-backward-syntactic-ws)
+			(copy-marker (point) t))
+		      (point-marker))))
 	(unwind-protect
 	    (progn
 	      (if (eq last-command-char ?{)
@@ -2662,7 +2642,7 @@ command to conveniently insert and align the necessary backslashes."
 
 		   ;; There's no nonempty prefix on the line after the
 		   ;; comment opener.  If the line is empty, or if the
-		   ;; text on has less or equal indentation than the
+		   ;; text on it has less or equal indentation than the
 		   ;; comment starter we assume it's an unclosed
 		   ;; comment starter, i.e. that
 		   ;; `c-block-comment-prefix' should be used.
@@ -3505,4 +3485,5 @@ normally bound to C-o.  See `c-context-line-break' for the details."
 
 (cc-provide 'cc-cmds)
 
+;;; arch-tag: bf0611dc-d1f4-449e-9e45-4ec7c6936677
 ;;; cc-cmds.el ends here

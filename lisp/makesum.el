@@ -113,4 +113,5 @@ Previous contents of that buffer are killed first."
 
 (provide 'makesum)
 
+;;; arch-tag: c2383336-fc89-46ad-8110-ded42bffaee3
 ;;; makesum.el ends here

@@ -1,3 +1,96 @@
+2004-04-14  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* TUTORIAL.nl: Update Delete/Delback translation.
+
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* TODO: Remove index-apropos entry.
+
+2004-04-01  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Add Javanese.
+
+2004-03-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-prin1.ps: Clip the header and footer area, so text will not be
+	printed outside header or footer, respectively.
+	(HeaderClip, FooterClip): New PostScript funs.
+	(HeaderText, FooterText): Adjust PostScript code.
+
+2004-03-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* TODO: Removed drag-and-drop entry (DONE).
+
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* TODO: Remove entries for fringe related issues (DONE).
+	Remove entry about image-relative coordinates of mouse clicks (DONE).
+
+2004-03-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* compilation.txt: New file.
+
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* NEWS: Remove bogus reference to user option unicode-data.
+
+2004-02-16  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* PROBLEMS: Document crashes on X when build with GCC and GNU ld.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* NEWS: Fix typo.
+
+2003-12-29  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
+
+	* TUTORIAL.bg: Use windows-1251 encoding.  Fix punctuation errors.
+
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* TODO: Add plans for change of file attributes UID and GID from
+	integer to string.
+
+2003-11-10  Kailash C. Chowksey  <klchxbec@m-net.arbornet.org>
+
+	* HELLO: Add Kannada.
+
+2003-11-05  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Fix language names.  Add C, Braille, Georgian, Ukrainian.
+	Add IPA pronunciation to English.  Fix tab widths.
+
+2003-11-03  David Ponce  <david.ponce@wanadoo.fr>
+
+	* PROBLEMS: Document segfaults with Linux kernels that enable the
+	Exec-shield functionality.
+
+2003-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Fix cases of language names.  Make German lines one.
+	Delete FORTRAN, add Mathematics.
+
+2003-10-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Characters are displayed as empty boxes or
+	with wrong font under X.
+
+2003-09-30  Werner Lemberg  <wl@gnu.org>
+
+	* TUTORIAL.de: Minor updates and grammatical fixes.
+
+2003-09-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* TODO: Add invisible text kill/yank issue.
+
+2003-08-29  Wim Nieuwenhuizen  <wwwillem@xs4all.nl>
+
+	* TUTORIAL.nl: Many changes.
+
+2003-08-20  Stephen Eglen  <stephen@gnu.org>
+
+	* MORE.STUFF: Update URLs for several projects.
+
 2003-07-22  Andrew Choi  <akochoi@shaw.ca>
 
 	* PROBLEMS: Truncated process output with pty's on Mac OS X.
@@ -1563,3 +1656,5 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1

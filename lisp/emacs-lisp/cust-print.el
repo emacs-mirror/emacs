@@ -688,4 +688,5 @@ See `custom-format' for the details."
 
 (provide 'cust-print)
 
+;;; arch-tag: 3a5a8650-622c-48c4-87d8-e01bf72ec580
 ;;; cust-print.el ends here

@@ -407,4 +407,6 @@ mail-sending package is used for editing and sending the message."
 
 
 (provide 'reporter)
+
+;;; arch-tag: 33612ff4-fbbc-4be2-b183-560ce9e0199b
 ;;; reporter.el ends here

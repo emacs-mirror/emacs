@@ -2603,4 +2603,5 @@ For instance, typing \"S\" followed by TAB will tell you
  ("SC/"	?￠)
  ("SF"	?℉))
 
+;;; arch-tag: 26bc93fc-64ee-4fb1-b26d-22220d132dbe
 ;;; hangul.el ends here

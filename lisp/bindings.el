@@ -135,12 +135,14 @@ corresponding to the mode line clicked."
   "Local keymap for the coding-system part of the mode line.")
 
 
-(defun mode-line-change-eol ()
+(defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
-  (interactive)
-  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
-    (set-buffer-file-coding-system
-     (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix)))))
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+      (set-buffer-file-coding-system
+       (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix))))))
 
 (defvar mode-line-eol-desc-cache nil)
 
@@ -251,19 +253,21 @@ Normally nil in most modes, since there is no process to display.")
 
 ;; Actual initialization is below.
 (defvar mode-line-position nil
-  "Mode-line control for displaying line number, column number and fraction.")
+  "Mode-line control for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
-(defvar mode-line-major-mode-keymap 
+(defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
     map) "\
 Keymap to display on major mode.")
 
-(defvar mode-line-minor-mode-keymap 
+(defvar mode-line-minor-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
@@ -301,7 +305,7 @@ Keymap to display on minor modes.")
      `(:propertize ("" mode-name)
 		   help-echo "mouse-2: help for current major mode"
 		   local-map ,mode-line-major-mode-keymap)
-     `(:propertize ("" mode-line-process))
+     '("" mode-line-process)
      `(:propertize ("" minor-mode-alist)
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
@@ -311,7 +315,9 @@ Keymap to display on minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+    `((-3 ,(propertize "%p" 'help-echo help-echo))
+      (size-indication-mode
+       (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
        ((column-number-mode
 	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
@@ -507,14 +513,16 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks)
-         ".fasl" ".ufsl" ".fsl" ".dxl"
+         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
+         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
 	 ".gmo" ".mo"
 	 ;; Texinfo-related
-	 ".toc" ".log" ".aux"
+	 ;; This used to contain .log, but that's commonly used for log
+	 ;; files you do want to see, not just TeX stuff.  -- fx
+	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
@@ -766,6 +774,11 @@ language you are using."
 (define-key global-map [S-insert]	'yank)
 (define-key global-map [undo]		'undo)
 (define-key global-map [redo]		'repeat-complex-command)
+(define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
+(define-key global-map [open]		'find-file) ; Sun
+;; The following wouldn't work to interrupt running code since C-g is
+;; treated specially in the event loop.
+;; (define-key global-map [stop]		'keyboard-quit) ; Sun
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
@@ -1029,4 +1042,5 @@ language you are using."
 ;; no-update-autoloads: t
 ;; End:
 
+;;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

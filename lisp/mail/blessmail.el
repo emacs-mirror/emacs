@@ -66,4 +66,5 @@
 (write-region (point-min) (point-max) "blessmail")
 (kill-emacs)
 
+;;; arch-tag: c3329fe2-f945-41a9-8b00-b4b038ff182f
 ;;; blessmail.el ends here

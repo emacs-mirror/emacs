@@ -280,3 +280,5 @@ clean:
 	- $(DEL) term\*.orig term\*.rej term\*.crlf
 	- $(DEL) textmodes\*.orig textmodes\*.rej textmodes\*.crlf
 	- $(DEL_TREE) deleted
+
+# arch-tag: 01ddeb44-fb4c-4366-8478-4a6c21a68fb3

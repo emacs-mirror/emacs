@@ -183,8 +183,16 @@ struct x_display_info
   /* The root window of this screen.  */
   Window root_window;
 
+  /* Client leader window.  */
+  Window client_leader_window;
+
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+
+#ifdef USE_GTK
+  /* The GDK cursor for scroll bars and popup menus.  */
+  GdkCursor *xg_cursor;
+#endif
 
   /* X Resource data base */
   XrmDatabase xrdb;
@@ -289,6 +297,7 @@ struct x_display_info
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
+  Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
 
   /* EditRes protocol */
   Atom Xatom_editres;
@@ -356,6 +365,23 @@ struct x_display_info
      use this directly, call x_color_cells instead.  */
   XColor *color_cells;
   int ncolor_cells;
+
+  /* Bits and shifts to use to compose pixel values on TrueColor visuals.  */
+  int red_bits, blue_bits, green_bits;
+  int red_offset, blue_offset, green_offset;
+
+  /* The type of window manager we have.  If we move FRAME_OUTER_WINDOW
+     to x/y 0/0, some window managers (type A) puts the window manager
+     decorations outside the screen and FRAME_OUTER_WINDOW exactly at 0/0.
+     Other window managers (type B) puts the window including decorations
+     at 0/0, so FRAME_OUTER_WINDOW is a bit below 0/0.
+     Record the type of WM in use so we can compensate for type A WMs.  */
+  enum
+    {
+      X_WMTYPE_UNKNOWN,
+      X_WMTYPE_A,
+      X_WMTYPE_B
+    } wm_type;
 };
 
 #ifdef HAVE_X_I18N
@@ -605,6 +631,19 @@ struct x_output
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
+
+  /* The latest move we made to FRAME_OUTER_WINDOW.  Saved so we can
+     compensate for type A WMs (see wm_type in dpyinfo above).  */
+  int expected_top;
+  int expected_left;
+
+  /* The offset we need to add to compensate for type A WMs.  */
+  int move_offset_top;
+  int move_offset_left;
+
+  /* Nonzero if we have made a move and needs to check if the WM placed us
+     at the right position.  */
+  int check_expected_move;
 };
 
 #define No_Cursor (None)
@@ -970,18 +1009,25 @@ extern void x_handle_selection_request P_ ((struct input_event *));
 extern void x_handle_selection_clear P_ ((struct input_event *));
 extern void x_clear_frame_selections P_ ((struct frame *));
 
+extern int x_handle_dnd_message P_ ((struct frame *,
+                                     XClientMessageEvent *,
+                                     struct x_display_info *,
+                                     struct input_event *bufp));
+extern int x_check_property_data P_ ((Lisp_Object));
+extern void x_fill_property_data P_ ((Display *,
+                                      Lisp_Object,
+                                      void *,
+                                      int));
+extern Lisp_Object x_property_data_to_lisp P_ ((struct frame *,
+                                                unsigned char *,
+                                                Atom,
+                                                int,
+                                                unsigned long));
+
 /* Defined in xfns.c */
 
+extern struct x_display_info * check_x_display_info P_ ((Lisp_Object frame));
 extern int have_menus_p P_ ((void));
-extern int x_bitmap_height P_ ((struct frame *, int));
-extern int x_bitmap_width P_ ((struct frame *, int));
-extern int x_bitmap_pixmap P_ ((struct frame *, int));
-extern void x_reference_bitmap P_ ((struct frame *, int));
-extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
-					  unsigned int, unsigned int));
-extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
-extern void x_destroy_bitmap P_ ((struct frame *, int));
-extern int x_create_bitmap_mask P_ ((struct frame * , int));
 
 #ifdef USE_GTK
 extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
@@ -1023,6 +1069,7 @@ extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
 
@@ -1032,9 +1079,8 @@ extern void widget_store_internal_border P_ ((Widget));
 
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM
-extern void x_session_initialize P_ ((void));
-extern int x_session_check_input P_ ((struct input_event *bufp,
-                                      int *numchars));
+extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
+extern int x_session_check_input P_ ((struct input_event *bufp));
 extern int x_session_have_connection P_ ((void));
 #endif
 
@@ -1056,3 +1102,6 @@ extern int x_session_have_connection P_ ((void));
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
+
+/* arch-tag: 78a7972a-b18f-4694-861a-0780c4b3090e
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 2000, 01, 02, 04 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -1458,7 +1458,7 @@ reversed."
 	(if (eq 1 (length name))
 	    (setq char (string-to-char name))
 	  (error "`%s': Spurious text \"%s\" after mark name"
-		 name (substring name 1) viper-SpuriousText))
+		 name (substring name 1)))
     (save-window-excursion
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
       (set-buffer viper-ex-work-buf)
@@ -2318,4 +2318,5 @@ Type 'mak ' (including the space) to run make with no args."
 
 
 
+;;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
 ;;; viper-ex.el ends here

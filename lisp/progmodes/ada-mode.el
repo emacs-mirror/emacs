@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 2003
+;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 03, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
@@ -1071,7 +1071,6 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/05/04 19:52:34 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -1342,22 +1341,8 @@ If you use ada-xref.el:
   ;; Fix is: redefine a new function ada-which-function, and call it when the
   ;; major-mode is ada-mode.
 
-  (unless (featurep 'xemacs)
-    ;;  This function do not require that we load which-func now.
-    ;;  This can be done by the user if he decides to use which-func-mode
-
-    (defadvice which-function (around ada-which-function activate)
-      "In Ada buffers, should work with overloaded subprograms, and does not
-use imenu."
-      (if (equal major-mode 'ada-mode)
-	  (set 'ad-return-value (ada-which-function))
-	ad-do-it))
-
-    ;;  So that we can activate which-func-modes for Ada mode
-    (if (and (boundp 'which-func-modes)
-	     (listp which-func-modes))
-	(add-to-list 'which-func-modes 'ada-mode))
-    )
+  (make-local-variable 'which-func-functions)
+  (setq which-func-functions '(ada-which-function))
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (setq comment-multi-line nil)
@@ -4747,7 +4732,6 @@ Moves to 'begin' if in a declarative part."
 	     )))
 
     (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
-    (easy-menu-add ada-mode-menu ada-mode-map)
     (if (featurep 'xemacs)
 	(progn
 	  (define-key ada-mode-map [menu-bar] ada-mode-menu)
@@ -5504,4 +5488,5 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 ;;; provide ourselves
 (provide 'ada-mode)
 
+;;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
 ;;; ada-mode.el ends here

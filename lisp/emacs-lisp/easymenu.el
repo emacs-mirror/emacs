@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu
 
-;; Copyright (C) 1994, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994,96,98,1999,2000,2004  Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -59,8 +59,8 @@ It may be followed by the following keyword argument pairs
 
    :filter FUNCTION
 
-FUNCTION is a function with one argument, the menu.  It returns the actual
-menu displayed.
+FUNCTION is a function with one argument, the rest of menu items.
+It returns the remaining items of the displayed menu.
 
    :visible INCLUDE
 
@@ -478,7 +478,9 @@ Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
 	(setq menu (symbol-value menu)))
-    (if (keymapp menu) (x-popup-menu nil menu))))
+    ;; x-popup-menu does not exist on tty-only Emacs.
+    ;; (if (keymapp menu) (x-popup-menu nil menu))
+    ))
 
 (defun add-submenu (menu-path submenu &optional before in-menu)
   "Add submenu SUBMENU in the menu at MENU-PATH.
@@ -620,4 +622,5 @@ In some cases we use that to select between the local and global maps."
 
 (provide 'easymenu)
 
+;;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
 ;;; easymenu.el ends here

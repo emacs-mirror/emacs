@@ -3,7 +3,6 @@
 ;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.14 2000/11/12 00:22:02 fx Exp $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -190,4 +189,5 @@ redisplayed as output is inserted."
 
 (provide 'metamail)
 
+;;; arch-tag: 52c0cb6f-d800-4776-9789-f0275cb5490e
 ;;; metamail.el ends here

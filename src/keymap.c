@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 2001
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 01, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -672,7 +672,6 @@ map_keymap (map, fun, args, data, autoload)
 	  /* Loop over the char values represented in the vector.  */
 	  int len = ASIZE (binding);
 	  int c;
-	  abort();
 	  for (c = 0; c < len; c++)
 	    {
 	      Lisp_Object character;
@@ -2312,7 +2311,7 @@ shadow_lookup (shadow, key, flag)
   return Qnil;
 }
 
-static Lisp_Object Vmenu_events;
+static Lisp_Object Vmouse_events;
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
@@ -2369,7 +2368,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       /* if (nomenus && !ascii_sequence_p (this)) */
       if (nomenus && XINT (last) >= 0
 	  && SYMBOLP (tem = Faref (this, make_number (0)))
-	  && !NILP (Fmemq (XCAR (parse_modifiers (tem)), Vmenu_events)))
+	  && !NILP (Fmemq (XCAR (parse_modifiers (tem)), Vmouse_events)))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes like `C-down-mouse-2'.  */
@@ -3551,13 +3550,17 @@ This keymap works like `function-key-map', but comes after that,
 and applies even for keys that have ordinary bindings.  */);
   Vkey_translation_map = Qnil;
 
-  staticpro (&Vmenu_events);
-  Vmenu_events = Fcons (intern ("menu-bar"),
-                       Fcons (intern ("tool-bar"),
-                              Fcons (intern ("mouse-1"),
-                                     Fcons (intern ("mouse-2"),
-                                            Fcons (intern ("mouse-3"),
-                                                   Qnil)))));
+  staticpro (&Vmouse_events);
+  Vmouse_events = Fcons (intern ("menu-bar"),
+		  Fcons (intern ("tool-bar"),
+		  Fcons (intern ("header-line"),
+		  Fcons (intern ("mode-line"),
+		  Fcons (intern ("mouse-1"),
+		  Fcons (intern ("mouse-2"),
+		  Fcons (intern ("mouse-3"),
+		  Fcons (intern ("mouse-4"),
+		  Fcons (intern ("mouse-5"),
+			 Qnil)))))))));
 
 
   Qsingle_key_description = intern ("single-key-description");
@@ -3624,3 +3627,6 @@ keys_of_keymap ()
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl('X'), "Control-X-prefix");
 }
+
+/* arch-tag: 6dd15c26-7cf1-41c4-b904-f42f7ddda463
+   (do not change this comment) */

@@ -30,7 +30,7 @@
 pressing <RET>.  There are several different kinds of commands,
 however."
   :tag "Command invocation"
-  :link '(info-link "(eshell)Command invocation")
+  ;; :link '(info-link "(eshell)Command invocation")
   :group 'eshell)
 
 ;;; Commentary:
@@ -1400,7 +1400,8 @@ messages, and errors."
 		      (let ((arg (car args)))
 			(if (and (stringp arg)
 				 (> (length arg) 0)
-				 (get-text-property 0 'number arg))
+				 (not (text-property-not-all
+				       0 (length arg) 'number t arg)))
 			    (setcar args (string-to-number arg))))
 		      (setq args (cdr args))))
 		  (eshell-apply object eshell-last-arguments))
@@ -1416,4 +1417,5 @@ messages, and errors."
 
 (defalias 'eshell-lisp-command* 'eshell-lisp-command)
 
+;;; arch-tag: 8e4f3867-a0c5-441f-96ba-ddd142d94366
 ;;; esh-cmd.el ends here

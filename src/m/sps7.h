@@ -112,3 +112,6 @@ Boston, MA 02111-1307, USA.  */
 #define	ADJUST_EXEC_HEADER f_hdr.f_magic = SMROMAGIC;\
  f_ohdr.stsize = 0;
 #endif
+
+/* arch-tag: 2240f71c-6f3b-4a82-80fc-4d56c682d7ad
+   (do not change this comment) */

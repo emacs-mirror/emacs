@@ -93,6 +93,7 @@
 (load "language/devanagari")	 ; This should be loaded after indian.
 (load "language/malayalam")	 ; This should be loaded after indian.
 (load "language/tamil")		 ; This should be loaded after indian.
+(load "language/kannada")	 ; This should be loaded after indian.
 (load "language/english")
 (load "language/ethiopic")
 (load "language/european")
@@ -317,7 +318,7 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (memq system-type '(ms-dos windows-nt)))
+      (if (not (memq system-type '(ms-dos windows-nt cygwin)))
 	  (let ((name (concat "emacs-" emacs-version)))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
@@ -344,4 +345,6 @@
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
+
+;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

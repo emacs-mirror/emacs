@@ -613,4 +613,5 @@
  ("m8" "僖凞喜噫囍姬嬉希憙憘戱晞曦熙熹熺犧禧稀羲")
  ("mdw" "詰"))
 
+;;; arch-tag: 2dda6492-e6e3-47a0-aa88-8d9bdf3a200f
 ;;; hanja3.el ends here

@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99,2001,2003,2004  Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; Really cool code to lookup info indexes.
-;; Try especially info-lookup-symbol (aka C-h TAB).
+;; Try especially info-lookup-symbol (aka C-h S).
 
 ;;; Code:
 
@@ -321,7 +321,7 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
-                    (assoc-ignore-case item completions)
+                    (assoc-string item completions t)
                     (error "Not documented as a %s: %s" topic (or item ""))))
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))
@@ -338,7 +338,8 @@ If optional argument QUERY is non-nil, query for the help mode."
 	       (info-frame (and window (window-frame window))))
 	  (if (and info-frame
 		   (display-multi-frame-p)
-		   (memq info-frame (frames-on-display-list)))
+		   (memq info-frame (frames-on-display-list))
+		   (not (eq info-frame (selected-frame))))
 	    (select-frame info-frame)
 	  (switch-to-buffer-other-window "*info*")))))
     (while (and (not found) modes)
@@ -808,7 +809,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'scheme-mode
- :regexp "[^()'\" \t\n]+"
+ :regexp "[^()`',\" \t\n]+"
  :ignore-case t
  ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
@@ -829,6 +830,17 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 (t nil)))
 	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'maxima-mode
+ :ignore-case t
+ :regexp "[a-zA-Z_%]+"
+ :doc-spec '( ("(maxima)Function and Variable Index" nil 
+	       "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'inferior-maxima-mode
+ :other-modes '(maxima-mode))
 
 ;; coreutils and bash builtins overlap in places, eg. printf, so there's a
 ;; question which should come first.  Some of the coreutils descriptions are
@@ -878,4 +890,5 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (provide 'info-look)
 
+;;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
 ;;; info-look.el ends here

@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -1020,7 +1020,7 @@ a key."
 Then send it to the process running in the current buffer."
   (interactive "P")                     ; Defeat snooping via C-x ESC ESC
   (let ((str (read-passwd
-	      (format "Password: "
+	      (format "%s Password: "
 		      (process-name (eshell-interactive-process))))))
     (if (stringp str)
 	(process-send-string (eshell-interactive-process)
@@ -1080,4 +1080,5 @@ This function could be in the list `eshell-output-filter-functions'."
 
 ;;; Code:
 
+;;; arch-tag: ec65bc2b-da14-4547-81d3-a32af3a4dc57
 ;;; esh-mode.el ends here

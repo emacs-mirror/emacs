@@ -125,4 +125,5 @@ Entries without port tokens default to DEFAULTPORT."
 
 (provide 'netrc)
 
+;;; arch-tag: af9929cc-2d12-482f-936e-eb4366f9fa55
 ;;; netrc.el ends here

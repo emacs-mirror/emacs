@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include <signal.h>
+#include <stdio.h>
 #include <setjmp.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -80,7 +81,6 @@ static int delete_exited_processes;
 #undef fwrite
 #endif
 
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -2614,13 +2614,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */
 
-/* Make all keyboard buffers much bigger when using a window system.  */
-#ifdef HAVE_WINDOW_SYSTEM
-#define BUFFER_SIZE_FACTOR 16
-#else
-#define BUFFER_SIZE_FACTOR 1
-#endif
-
 void
 read_input_waiting ()
 {
@@ -2629,26 +2622,19 @@ read_input_waiting ()
 
   if (read_socket_hook)
     {
-      struct input_event buf[256];
-      for (i = 0; i < 256; i++)
-	EVENT_INIT (buf[i]);
-      
+      struct input_event hold_quit;
+
+      EVENT_INIT (hold_quit);
+      hold_quit.kind = NO_EVENT;
+
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, buf, 256, 1);
+	nread = (*read_socket_hook) (0, 1, &hold_quit);
       else
 	nread = -1;
 
-      /* Scan the chars for C-g and store them in kbd_buffer.  */
-      for (i = 0; i < nread; i++)
-	{
-	  kbd_buffer_store_event (&buf[i]);
-	  /* Don't look at input that follows a C-g too closely.
-	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-	      && buf[i].code == quit_char)
-	    break;
-	}
+      if (hold_quit.kind != NO_EVENT)
+	kbd_buffer_store_event (&hold_quit);
     }
   else
     {
@@ -3741,7 +3727,8 @@ mkdir (dpath, dmode)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/mkdir failed */
@@ -3787,7 +3774,8 @@ rmdir (dpath)
       wait_for_termination (cpid);
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0
+      || synch_process_termsig != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/rmdir failed */
@@ -5298,3 +5286,5 @@ strsignal (code)
 }
 #endif /* HAVE_STRSIGNAL */
 
+/* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
+   (do not change this comment) */

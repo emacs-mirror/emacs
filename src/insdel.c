@@ -441,9 +441,13 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
     }
 
   /* Adjusting only markers whose insertion-type is t may result in
-     disordered overlays in the slot `overlays_before'.  */
+     - disordered start and end in overlays, and 
+     - disordered overlays in the slot `overlays_before' of current_buffer.  */
   if (adjusted)
-    fix_overlays_before (current_buffer, from, to);
+    {
+      fix_start_end_in_overlays(from, to);
+      fix_overlays_before (current_buffer, from, to);
+    }
 }
 
 /* Adjust point for an insertion of NBYTES bytes, which are NCHARS characters.
@@ -2314,3 +2318,6 @@ as well as hooks attached to text properties and overlays.  */);
 
   defsubr (&Scombine_after_change_execute);
 }
+
+/* arch-tag: 9b34b886-47d7-465e-a234-299af411b23d
+   (do not change this comment) */

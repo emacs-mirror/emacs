@@ -52,3 +52,5 @@ RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 install: all\
 
 /^	if test -f/d
+
+# arch-tag: 33c5eed1-78bc-4a6e-9d11-cbc7c541b763

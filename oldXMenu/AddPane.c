@@ -1,6 +1,5 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/AddPane.c,v 1.1 1999/10/03 19:34:51 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -102,3 +101,6 @@ XMenuAddPane(display, menu, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return((menu->p_count - 1));
 }
+
+/* arch-tag: 62a26021-f29d-48ba-96ef-3b6c4ebd6547
+   (do not change this comment) */

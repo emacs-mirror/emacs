@@ -79,6 +79,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
   (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
+	(from-buffer (current-buffer))
 	user-point prompt-beg-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
@@ -140,6 +141,15 @@ usually do not have translators to read other languages for them.\n\n")
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default-enable-multibyte-characters: %s\n"
 		    default-enable-multibyte-characters))
+    (insert "\n")
+    (insert (format "Major mode: %s\n"
+		    (buffer-local-value 'mode-name from-buffer)))
+    (insert "\n")
+    (insert "Minor modes in effect:\n")
+    (dolist (mode minor-mode-list)
+      (and (boundp mode) (buffer-local-value mode from-buffer)
+	   (insert (format "  %s: %s\n" mode
+			   (buffer-local-value mode from-buffer)))))
     (insert "\n")
     (insert "Recent input:\n")
     (let ((before-keys (point)))
@@ -255,4 +265,5 @@ and send the mail again using \\[mail-send-and-exit].")))
 
 (provide 'emacsbug)
 
+;;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
 ;;; emacsbug.el ends here

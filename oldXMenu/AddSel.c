@@ -1,6 +1,5 @@
 #include "copyright.h"
 
-/* $Header: /cvs/emacs/oldXMenu/AddSel.c,v 1.2 2000/01/27 15:30:18 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -103,3 +102,6 @@ XMenuAddSelection(display, menu, p_num, data, label, active, help)
     _XMErrorCode = XME_NO_ERROR;
     return((pane->s_count - 1));
 }
+
+/* arch-tag: 0161f024-c739-440d-9498-050280c6c355
+   (do not change this comment) */

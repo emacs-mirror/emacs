@@ -1,8 +1,9 @@
-;; ffap.el --- find file (or url) at point
-;;
-;; Copyright (C) 1995, 96, 97, 2000  Free Software Foundation, Inc.
-;;
+;;; ffap.el --- find file (or url) at point
+
+;; Copyright (C) 1995, 96, 97, 2000, 2004  Free Software Foundation, Inc.
+
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
+;; Maintainer: Rajesh Vaidheeswarran  <rv@gnu.org>
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse, convenience
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
@@ -65,6 +66,7 @@
 ;; (setq ffap-alist nil)                ; faster, dumber prompting
 ;; (setq ffap-machine-p-known 'accept)  ; no pinging
 ;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
+;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;;
 ;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
@@ -119,6 +121,18 @@ Otherwise return nil (or the optional DEFAULT value)."
   ;; Bug: (ffap-soft-value "nil" 5) --> 5
   (let ((sym (intern-soft name)))
     (if (and sym (boundp sym)) (symbol-value sym) default)))
+
+(defcustom ffap-shell-prompt-regexp
+  ;; This used to test for some shell prompts that don't have a space
+  ;; after them. The common root shell prompt (#) is not listed since it
+  ;; also doubles up as a valid URL character.
+  "[$%><]*"
+  "Paths matching this regexp are stripped off the shell prompt
+If nil, ffap doesn't do shell prompt stripping."
+  :type '(choice (const :tag "Disable" nil)
+		  (const :tag "Standard" "[$%><]*")
+		   regexp)
+  :group 'ffap)
 
 (defcustom ffap-ftp-regexp
   ;; This used to test for ange-ftp or efs being present, but it should be
@@ -687,7 +701,7 @@ kpathsea, a library used by some versions of TeX."
 
 (defun ffap-locate-file (file &optional nosuffix path dir-ok)
   ;; The Emacs 20 version of locate-library could almost replace this,
-  ;; except it does not let us overrride the suffix list.  The
+  ;; except it does not let us override the suffix list.  The
   ;; compression-suffixes search moved to ffap-file-exists-string.
   "A generic path-searching function, mimics `load' by default.
 Returns path to file that \(load FILE\) would load, or nil.
@@ -952,6 +966,7 @@ possibly a major-mode name, or one of the symbol
 MODE (defaults to value of `major-mode') is a symbol used to look up string
 syntax parameters in `ffap-string-at-point-mode-alist'.
 If MODE is not found, we use `file' instead of MODE.
+If the region is active, return a string from the region.
 Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
   (let* ((args
 	  (cdr
@@ -959,15 +974,19 @@ Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
 	       (assq 'file ffap-string-at-point-mode-alist))))
 	 (pt (point))
 	 (str
-	  (buffer-substring
-	   (save-excursion
-	     (skip-chars-backward (car args))
-	     (skip-chars-forward (nth 1 args) pt)
-	     (setcar ffap-string-at-point-region (point)))
-	   (save-excursion
-	     (skip-chars-forward (car args))
-	     (skip-chars-backward (nth 2 args) pt)
-	     (setcar (cdr ffap-string-at-point-region) (point))))))
+	  (if (and transient-mark-mode mark-active)
+	      (buffer-substring
+	       (setcar ffap-string-at-point-region (region-beginning))
+	       (setcar (cdr ffap-string-at-point-region) (region-end)))
+	    (buffer-substring
+	     (save-excursion
+	       (skip-chars-backward (car args))
+	       (skip-chars-forward (nth 1 args) pt)
+	       (setcar ffap-string-at-point-region (point)))
+	     (save-excursion
+	       (skip-chars-forward (car args))
+	       (skip-chars-backward (nth 2 args) pt)
+	       (setcar (cdr ffap-string-at-point-region) (point)))))))
     (set-text-properties 0 (length str) nil str)
     (setq ffap-string-at-point str)))
 
@@ -1109,9 +1128,11 @@ which may actually result in an url rather than a filename."
          ;; Try stripping off line numbers; good for compilation/grep output.
          ((and (not abs) (string-match ":[0-9]" name)
                (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
-	 ;; Immediately test local filenames.  If default-directory is
-	 ;; remote, you probably already have a connection.
-	 ((and (not abs) (ffap-file-exists-string name)))
+         ;; Try stripping off prominent (non-root - #) shell prompts
+	 ;; if the ffap-shell-prompt-regexp is non-nil.
+         ((and ffap-shell-prompt-regexp
+	       (not abs) (string-match ffap-shell-prompt-regexp name)
+               (ffap-file-exists-string (substring name (match-end 0)))))
 	 ;; Accept remote names without actual checking (too slow):
 	 ((if abs
 	      (ffap-file-remote-p name)
@@ -1166,6 +1187,14 @@ which may actually result in an url rather than a filename."
 			 remote-dir (substring name (match-end 1)))))
 		  (ffap-file-exists-string
 		   (ffap-replace-file-component remote-dir name))))))
+         ;; Try all parent directories by deleting the trailing directory
+         ;; name until existing directory is found or name stops changing
+         ((let ((dir name))
+            (while (and dir
+                        (not (ffap-file-exists-string dir))
+                        (not (equal dir (setq dir (file-name-directory
+                                                   (directory-file-name dir)))))))
+            (ffap-file-exists-string dir)))
 	 )
       (set-match-data data))))
 
@@ -1230,9 +1259,7 @@ which may actually result in an url rather than a filename."
 ;; This code assumes that you load ffap.el after complete.el.
 ;;
 ;; We must inform complete about whether our completion function
-;; will do filename style completion.  For earlier versions of
-;; complete.el, this requires a defadvice.  For recent versions
-;; there may be a special variable for this purpose.
+;; will do filename style completion.
 
 (defun ffap-complete-as-file-p nil
   ;; Will `minibuffer-completion-table' complete the minibuffer
@@ -1246,15 +1273,7 @@ which may actually result in an url rather than a filename."
  (featurep 'complete)
  (if (boundp 'PC-completion-as-file-name-predicate)
      ;; modern version of complete.el, just set the variable:
-     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)
-   (require 'advice)
-   (defadvice PC-do-completion (around ffap-fix act)
-     "Work with ffap."
-     (let ((minibuffer-completion-table
-	    (if (eq t (ffap-complete-as-file-p))
-		'read-file-name-internal
-	      minibuffer-completion-table)))
-       ad-do-it))))
+     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)))
 
 
 ;;; Highlighting (`ffap-highlight'):
@@ -1658,7 +1677,9 @@ ffap most of the time."
       (if (file-directory-p filename)
 	  (dired (expand-file-name filename))
 	(dired (concat (expand-file-name filename) "*"))))
-     ((and (file-writable-p (file-name-directory filename))
+     ((and (file-writable-p
+            (or (file-name-directory (directory-file-name filename))
+                filename))
            (y-or-n-p "Directory does not exist, create it? "))
       (make-directory filename)
       (dired filename))
@@ -1671,9 +1692,24 @@ ffap most of the time."
       (ffap-read-file-or-url
        (if ffap-url-regexp "Dired file or URL: " "Dired file: ")
        (prog1
-	   (setq guess (or guess (ffap-guesser)))
-	 (and guess (ffap-highlight))
-	 ))
+	   (setq guess (or guess
+                           (let ((guess (ffap-guesser)))
+                             (if (or (not guess)
+                                     (ffap-url-p guess)
+                                     (ffap-file-remote-p guess))
+                                 guess
+                               (setq guess (abbreviate-file-name
+                                            (expand-file-name guess)))
+                               (cond
+                                ;; Interpret local directory as a directory.
+                                ((file-directory-p guess)
+                                 (file-name-as-directory guess))
+                                ;; Get directory component from local files.
+                                ((file-regular-p guess)
+                                 (file-name-directory guess))
+                                (guess))))
+                           ))
+	 (and guess (ffap-highlight))))
     (ffap-highlight t)))
 
 ;;; Offer default global bindings (`ffap-bindings'):
@@ -1704,4 +1740,6 @@ Of course if you do not like these bindings, just roll your own!")
   (eval (cons 'progn ffap-bindings)))
 
 
+
+;;; arch-tag: 9dd3e88a-5dec-4607-bd57-60ae9ede8ebc
 ;;; ffap.el ends here

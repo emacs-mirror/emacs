@@ -175,4 +175,5 @@ See \\[compile]."
       (set (make-local-variable 'comint-file-name-prefix)
 	   (concat "/" host ":")))))
 
+;;; arch-tag: 2866a132-ece4-4ce9-9f91-ec147f803f73
 ;;; rcompile.el ends here

@@ -409,4 +409,5 @@ and reset it unless READ-ONLY is non-nil."
 
 (provide 'pcvs-util)
 
+;;; arch-tag: 3b2588bb-2ae3-4f1f-bf5b-dea91b1f8a59
 ;;; pcvs-util.el ends here

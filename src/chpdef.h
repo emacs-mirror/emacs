@@ -36,3 +36,6 @@
 #define	CHP$V_READ	0
 #define	CHP$V_WRITE	1
 #define	CHP$V_USEREADALL	2
+
+/* arch-tag: a7117984-e927-4f8e-932e-35d5fd524f12
+   (do not change this comment) */

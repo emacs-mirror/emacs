@@ -296,4 +296,5 @@
   (interactive "P")
   (calc-rewrite-selection "InvertRules" many "jinv"))
 
+;;; arch-tag: 7c5b8d65-b8f0-45d9-820d-9930f8ee114b
 ;;; calcsel2.el ends here

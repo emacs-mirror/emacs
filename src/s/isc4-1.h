@@ -30,3 +30,6 @@
 
 /* ISC 4.1 has sys/wait.h but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
+
+/* arch-tag: ec5c77d9-a330-4d93-8117-d2b374531c67
+   (do not change this comment) */

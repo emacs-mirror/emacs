@@ -5,7 +5,6 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2003/05/06 17:40:52 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -3889,9 +3888,12 @@ you specify /."
 		  (progn
 		    (message (concat "Tagging " item "..."))
 		    (setq errbuf (get-buffer-create "*idltags-error*"))
-		    (setq status (+ status
-				    (call-process "sh" nil errbuf nil "-c"
-						  (concat cmd append item))))
+		    (setq status
+			  (+ status
+			     (if (eq 0 (call-process "sh" nil errbuf nil "-c"
+						     (concat cmd append item)))
+				 0
+			       1)))
 		    ;;
 		    ;; Append additional tags
 		    (setq append " --append ")
@@ -8251,4 +8253,5 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 
 (provide 'idlwave)
 
+;;; arch-tag: f77f3b0c-c37c-424f-a328-0886fd42b6fb
 ;;; idlwave.el ends here

@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -175,6 +175,17 @@ Any other value of `Man-notify-method' is equivalent to `meek'."
 		(const polite) (const quiet) (const meek))
   :group 'man)
 
+(defcustom Man-width nil
+  "*Number of columns for which manual pages should be formatted.
+If nil, the width of the window selected at the moment of man
+invocation is used.  If non-nil, the width of the frame selected
+at the moment of man invocation is used.  The value also can be a
+positive integer."
+  :type '(choice (const :tag "Window width" nil)
+                 (const :tag "Frame width" t)
+                 (integer :tag "Specific width" :value 65))
+  :group 'man)
+
 (defcustom Man-frame-parameters nil
   "*Frame parameter list for creating a new frame for a manual page."
   :type 'sexp
@@ -317,6 +328,12 @@ make -a one of the switches, if your `man' program supports it.")
     "")
   "Option that indicates a specified a manual section name.")
 
+(defvar Man-support-local-filenames 'auto-detect
+  "Internal cache for the value of the function `Man-support-local-filenames'.
+`auto-detect' means the value is not yet determined.
+Otherwise, the value is whatever the function
+`Man-support-local-filenames' should return.")
+
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user variables
 
@@ -425,9 +442,9 @@ This is necessary if one wants to dump man.el with Emacs."
 	  (cond
 	   (Man-fontify-manpage-flag
 	    nil)
-	   ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
+	   ((eq 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
 	    Man-sysv-sed-script)
-	   ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
+	   ((eq 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
 	    Man-berkeley-sed-script)
 	   (t
 	    nil))))
@@ -486,13 +503,15 @@ This is necessary if one wants to dump man.el with Emacs."
 (defsubst Man-build-man-command ()
   "Builds the entire background manpage and cleaning command."
   (let ((command (concat manual-program " " Man-switches
-			 ; Stock MS-DOS shells cannot redirect stderr;
-			 ; `call-process' below sends it to /dev/null,
-			 ; so we don't need `2>' even with DOS shells
-			 ; which do support stderr redirection.
-			 (if (not (fboundp 'start-process))
-			     " %s"
-			   (concat " %s 2>" null-device))))
+                         (cond
+                          ;; Already has %s
+                          ((string-match "%s" manual-program) "")
+                          ;; Stock MS-DOS shells cannot redirect stderr;
+                          ;; `call-process' below sends it to /dev/null,
+                          ;; so we don't need `2>' even with DOS shells
+                          ;; which do support stderr redirection.
+                          ((not (fboundp 'start-process)) " %s")
+                          ((concat " %s 2>" null-device)))))
 	(flist Man-filter-list))
     (while (and flist (car flist))
       (let ((pcom (car (car flist)))
@@ -555,6 +574,31 @@ and the Man-section-translations-alist variables)."
 		  slist nil))))
       (concat Man-specified-section-option section " " name))))
 
+(defun Man-support-local-filenames ()
+  "Check the availability of `-l' option of the man command.
+This option allows `man' to interpret command line arguments
+as local filenames.
+Return the value of the variable `Man-support-local-filenames'
+if it was set to nil or t before the call of this function.
+If t, the man command supports `-l' option.  If nil, it don't.
+Otherwise, if the value of `Man-support-local-filenames'
+is neither t nor nil, then determine a new value, set it
+to the variable `Man-support-local-filenames' and return
+a new value."
+  (if (or (not Man-support-local-filenames)
+          (eq Man-support-local-filenames t))
+      Man-support-local-filenames
+    (setq Man-support-local-filenames
+          (with-temp-buffer
+            (and (equal (condition-case nil
+                            (call-process manual-program nil t nil "--help")
+                          (error nil))
+                        0)
+                 (progn
+                   (goto-char (point-min))
+                   (search-forward "--local-file" nil t))
+                 t)))))
+
 
 ;; ======================================================================
 ;; default man entry: get word under point
@@ -569,19 +613,18 @@ This guess is based on the text surrounding the cursor."
       (skip-chars-backward "-a-zA-Z0-9._+:")
       (let ((start (point)))
 	(skip-chars-forward "-a-zA-Z0-9._+:")
-	(setq word (buffer-substring start (point))))
+	(setq word (buffer-substring-no-properties start (point))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
+      ;; If looking at something like *strcat(... , remove the '*'
+      (if (string-match "^*" word)
+	  (setq word (substring word 1)))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
-      (forward-word 1)
-      ;; Use `format' here to clear any text props from `word'.
-      (format "%s%s"
-	      word
+      (concat word
 	      (if (looking-at
 		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (match-string 1))
-		"")))))
+		  (format "(%s)" (match-string-no-properties 1)))))))
 
 
 ;; ======================================================================
@@ -680,7 +723,12 @@ all sections related to a subject, put something appropriate into the
 	      ;; This isn't strictly correct, since we don't know how
 	      ;; the page will actually be displayed, but it seems
 	      ;; reasonable.
-	      (setenv "COLUMNS" (number-to-string (frame-width)))))
+	      (setenv "COLUMNS" (number-to-string
+				 (cond
+				  ((and (integerp Man-width) (> Man-width 0))
+				   Man-width)
+				  (Man-width (frame-width))
+				  ((window-width)))))))
 	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
@@ -758,7 +806,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
   "Convert overstriking and underlining to the correct fonts.
 Same for the ANSI bold and normal escape sequences."
   (interactive)
-  (message "Please wait: making up the %s man page..." Man-arguments)
+  (message "Please wait: formatting the %s man page..." Man-arguments)
   (goto-char (point-min))
   (while (search-forward "\e[1m" nil t)
     (delete-backward-char 4)
@@ -802,7 +850,12 @@ Same for the ANSI bold and normal escape sequences."
   ;; Try to recognize common forms of cross references.
   (Man-highlight-references)
   (Man-softhyphen-to-minus)
-  (message "%s man page made up" Man-arguments))
+  (goto-char (point-min))
+  (while (re-search-forward Man-heading-regexp nil t)
+    (put-text-property (match-beginning 0)
+		       (match-end 0)
+		       'face Man-overstrike-face))
+  (message "%s man page formatted" Man-arguments))
 
 (defun Man-highlight-references ()
   "Highlight the references on mouse-over.
@@ -972,6 +1025,9 @@ The following key bindings are currently in effect in the buffer:
   (auto-fill-mode -1)
   (use-local-map Man-mode-map)
   (set-syntax-table man-mode-syntax-table)
+  (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
+  (set (make-local-variable 'outline-regexp) Man-heading-regexp)
+  (set (make-local-variable 'outline-level) (lambda () 1))
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
@@ -1308,4 +1364,5 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (provide 'man)
 
+;;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

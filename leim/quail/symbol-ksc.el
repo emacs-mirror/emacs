@@ -198,4 +198,5 @@
  ("Russ"	"БВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ")
  ("russ"	"абвгдеёжзйиклмнопрстуфхцчшщъыьэюя"))
 
+;;; arch-tag: a77d89b9-9847-41d2-8e3a-7cce841ebb3b
 ;;; symbol-ksc.el ends here

@@ -127,3 +127,5 @@ Boston, MA 02111-1307, USA.  */
 /* Use terminfo library.  */
 #define LIBS_TERMCAP -ltermlib
 
+/* arch-tag: 0494629b-7e11-4f6f-865f-62254ac46099
+   (do not change this comment) */

@@ -213,3 +213,5 @@ Boston, MA 02111-1307, USA.  */
 /* For unexaix.c. */
 #define ALIGN_DATA_RELOC
 
+/* arch-tag: bfff798c-542d-4290-91f2-267394c85b7b
+   (do not change this comment) */

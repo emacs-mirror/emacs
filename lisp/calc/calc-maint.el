@@ -388,4 +388,5 @@ Usage:  C-x C-f calc.texinfo RET
     (save-buffer))
   (message "Wrote file calcsum.tex"))
 
+;;; arch-tag: 46cf3de8-6248-4a11-9034-d9850195761d
 ;;; calc-maint.el ends here

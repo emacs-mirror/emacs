@@ -1,12 +1,13 @@
 ;;; ebnf-bnf.el --- parser for EBNF
 
-;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;; Free Sofware Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/04/03 16:42:18 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:29:48 jbarranquero>
-;; Version: 1.7
+;; Version: 1.9
 
 ;; This file is part of GNU Emacs.
 
@@ -53,7 +54,10 @@
 ;;    C D		sequence (C occurs before D)
 ;;    C | D		alternative (C or D occurs)
 ;;    A - B		exception (A excluding B, B without any non-terminal)
-;;    n * A		repetition (A repeats n (integer) times)
+;;    n * A		repetition (A repeats at least n (integer) times)
+;;    n * n A		repetition (A repeats exactly n (integer) times)
+;;    n * m A		repetition (A repeats at least n (integer) and at most
+;;			m (integer) times)
 ;;    (C)		group (expression C is grouped together)
 ;;    [C]		optional (C may or not occurs)
 ;;    C+		one or more occurrences of C
@@ -77,7 +81,7 @@
 ;;
 ;;    exception = repeat [ "-" repeat].         ;; exception
 ;;
-;;    repeat = [ integer "*" ] term.            ;; repetition
+;;    repeat = [ integer "*" [ integer ]] term. ;; repetition
 ;;
 ;;    term = factor
 ;;         | [factor] "+"                       ;; one-or-more
@@ -95,14 +99,30 @@
 ;;           .
 ;;
 ;;    non_terminal = "[!#%&'*-,0-:<>@-Z\\\\^-z~\\240-\\377]+".
+;;    ;; that is, a valid non_terminal accepts decimal digits, letters (upper
+;;    ;; and lower), 8-bit accentuated characters,
+;;    ;; "!", "#", "%", "&", "'", "*", "+", ",", ":",
+;;    ;; "<", ">", "@", "\", "^", "_", "`" and "~".
 ;;
 ;;    terminal = "\\([^\"\\]\\|\\\\[ -~\\240-\\377]\\)+".
+;;    ;; that is, a valid terminal accepts any printable character (including
+;;    ;; 8-bit accentuated characters) except `"', as `"' is used to delimit a
+;;    ;; terminal.  Also, accepts escaped characters, that is, a character
+;;    ;; pair starting with `\' followed by a printable character, for
+;;    ;; example: \", \\. 
 ;;
-;;    special = "[^?\\n\\000-\\010\\016-\\037\\177-\\237]*".
+;;    special = "[^?\\000-\\010\\012-\\037\\177-\\237]*".
+;;    ;; that is, a valid special accepts any printable character (including
+;;    ;; 8-bit accentuated characters) and tabs except `?', as `?' is used to
+;;    ;; delimit a special.
 ;;
 ;;    integer = "[0-9]+".
+;;    ;; that is, an integer is a sequence of one or more decimal digits.
 ;;
 ;;    comment = ";" "[^\\n\\000-\\010\\016-\\037\\177-\\237]*" "\\n".
+;;    ;; that is, a comment starts with the character `;' and terminates at end
+;;    ;; of line.  Also, it only accepts printable characters (including 8-bit
+;;    ;; accentuated characters) and tabs.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -186,17 +206,7 @@
 		 term  (cdr term))
       (setq seq (cons term seq)))
     (cons token
-	  (cond
-	   ;; null sequence
-	   ((null seq)
-	    (ebnf-make-empty))
-	   ;; sequence with only one element
-	   ((= (length seq) 1)
-	    (car seq))
-	   ;; a real sequence
-	   (t
-	    (ebnf-make-sequence (nreverse seq)))
-	   ))))
+	  (ebnf-token-sequence seq))))
 
 
 ;;; exception = repeat [ "-" repeat].
@@ -233,15 +243,20 @@
 	  ))))
 
 
-;;; repeat = [ integer "*" ] term.
+;;; repeat = [ integer "*" [ integer ]] term.
 
 (defun ebnf-repeat (token)
   (if (not (eq token 'integer))
       (ebnf-term token)
-    (let ((times ebnf-bnf-lex))
+    (let ((times ebnf-bnf-lex)
+	  upper)
       (or (eq (ebnf-bnf-lex) 'repeat)
 	  (error "Missing `*'"))
-      (ebnf-token-repeat times (ebnf-term (ebnf-bnf-lex))))))
+      (setq token (ebnf-bnf-lex))
+      (when (eq token 'integer)
+	(setq upper ebnf-bnf-lex
+	      token (ebnf-bnf-lex)))
+      (ebnf-token-repeat times (ebnf-term token) upper))))
 
 
 ;;; term = factor
@@ -462,9 +477,9 @@ See documentation for variable `ebnf-bnf-lex'."
 	'integer)
        ;; special: ?special?
        ((eq token 'special)
-	(setq ebnf-bnf-lex (concat "?"
+	(setq ebnf-bnf-lex (concat (and ebnf-special-show-delimiter "?")
 				   (ebnf-string " ->@-~" ?\? "special")
-				   "?"))
+				   (and ebnf-special-show-delimiter "?")))
 	'special)
        ;; terminal: "string"
        ((eq token 'terminal)
@@ -586,4 +601,5 @@ See documentation for variable `ebnf-bnf-lex'."
 (provide 'ebnf-bnf)
 
 
+;;; arch-tag: 3b1834d3-8367-475b-80d5-8e0bbd00ce50
 ;;; ebnf-bnf.el ends here

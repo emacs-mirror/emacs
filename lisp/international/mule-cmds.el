@@ -1,4 +1,4 @@
-;;; mule-cmds.el --- commands for mulitilingual environment
+;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 ;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;;   Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
@@ -293,7 +293,7 @@ wrong, use this command again to toggle back to the right mode."
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
 	      ;; Have to bind `last-command-char' here so that
-	      ;; `digit-argument', for isntance, can compute the
+	      ;; `digit-argument', for instance, can compute the
 	      ;; prefix arg.
 	      (last-command-char (aref keyseq 0)))
 	  (call-interactively cmd)))
@@ -326,6 +326,11 @@ This also sets the following values:
   o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
+  (if (fboundp 'ucs-set-table-for-input)
+      (dolist (buffer (buffer-list))
+	(or (local-variable-p 'buffer-file-coding-system buffer)
+	    (ucs-set-table-for-input buffer))))
+
   (if default-enable-multibyte-characters
       (setq default-file-name-coding-system coding-system))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
@@ -870,7 +875,7 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(insert "\n")
 		(fill-region-as-paragraph pos (point)))
 	      (insert "Or specify any other coding system
-on your risk of losing the problematic characters.\n")))
+at the risk of losing the problematic characters.\n")))
 
 	  ;; Read a coding system.
 	  (setq default-coding-system (or (car safe) (car codings)))
@@ -902,13 +907,33 @@ on your risk of losing the problematic characters.\n")))
 			 (goto-char (point-min))
 			 (set-auto-coding (or file buffer-file-name "")
 					  (buffer-size))))))
-	(if (and auto-cs coding-system
+	;; Merge coding-system and auto-cs as far as possible.
+	(if (not coding-system)
+	    (setq coding-system auto-cs)
+	  (if (not auto-cs)
+	      (setq auto-cs coding-system)
+	    (let ((eol-type-1 (coding-system-eol-type coding-system))
+		  (eol-type-2 (coding-system-eol-type auto-cs)))
+	    (if (eq (coding-system-base coding-system) 'undecided)
+		(setq coding-system (coding-system-change-text-conversion
+				     coding-system auto-cs))
+	      (if (eq (coding-system-base auto-cs) 'undecided)
+		  (setq auto-cs (coding-system-change-text-conversion
+				 auto-cs coding-system))))
+	    (if (vectorp eol-type-1)
+		(or (vectorp eol-type-2)
+		    (setq coding-system (coding-system-change-eol-conversion
+					 coding-system eol-type-2)))
+	      (if (vectorp eol-type-2)
+		  (setq auto-cs (coding-system-change-eol-conversion
+				 auto-cs eol-type-1)))))))
+
+	(if (and auto-cs
 		 ;; Don't barf if writing a compressed file, say.
 		 ;; This check perhaps isn't ideal, but is probably
 		 ;; the best thing to do.
 		 (not (auto-coding-alist-lookup (or file buffer-file-name "")))
-		 (not (coding-system-equal (coding-system-base coding-system)
-					   (coding-system-base auto-cs))))
+		 (not (coding-system-equal coding-system auto-cs)))
 	    (unless (yes-or-no-p
 		     (format "Selected encoding %s disagrees with \
 %s specified by file contents.  Really save (else edit coding cookies \
@@ -981,6 +1006,12 @@ Meaningful values for KEY include
 			environment.
   features           value is a list of features requested in this
 			language environment.
+  ctext-non-standard-encodings
+		     value is a list of non-standard encoding
+		     names used in extended segments of CTEXT.
+		     See the variable
+		     `ctext-non-standard-encodings' for more
+		     detail.
 
 The following keys take effect only when multibyte characters are
 globally disabled, i.e. the value of `default-enable-multibyte-characters'
@@ -1720,6 +1751,15 @@ specifies the character set for the major languages of Western Europe."
     (while required-features
       (require (car required-features))
       (setq required-features (cdr required-features))))
+
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (when (fboundp 'fontset-list)
+    (let ((overriding-fontspec (get-language-info language-name 
+						  'overriding-fontspec)))
+      (if overriding-fontspec
+	  (set-overriding-fontspec-internal overriding-fontspec))))
+
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
 	(funcall func)))
@@ -1801,7 +1841,7 @@ Setting this variable directly does not take effect.  See
 	(aset standard-display-table 160 [32])
 	;; With luck, non-Latin-1 fonts are more recent and so don't
 	;; have this bug.
-	(aset standard-display-table 2208 [32]) ; Latin-1 NBSP
+	(aset standard-display-table (make-char 'latin-iso8859-1 160) [32])
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1809,7 +1849,23 @@ Setting this variable directly does not take effect.  See
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39]))))
+	(aset standard-display-table 146 [39])
+	;; XFree86 4 has changed most of the fonts from their designed
+	;; versions such that `' no longer appears as balanced quotes.
+	;; Assume it has iso10646 fonts installed, so we can display
+	;; balanced quotes.
+	(when (and (eq window-system 'x)
+		   (string= "The XFree86 Project, Inc" (x-server-vendor))
+		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
+		      ?3))
+	  ;; We suppress these setting for the moment because the
+	  ;; above assumption is wrong.
+	  ;; (aset standard-display-table ?' [?,F"(B])
+	  ;; (aset standard-display-table ?` [?,F!(B])
+	  ;; The fonts don't have the relevant bug.
+	  (aset standard-display-table 160 nil)
+	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
+		nil)))))
 
 (defun set-language-environment-coding-systems (language-name
 						&optional eol-type)
@@ -1834,7 +1890,7 @@ of `buffer-file-coding-system' set by this function."
 
 (put 'describe-specified-language-support 'apropos-inhibit t)
 
-;; Print a language specific information such as input methods,
+;; Print language-specific information such as input methods,
 ;; charsets, and coding systems.  This function is intended to be
 ;; called from the menu:
 ;;   [menu-bar mule describe-language-environment LANGUAGE]
@@ -1957,6 +2013,13 @@ of `buffer-file-coding-system' set by this function."
     ;; TERRITORY is a country code taken from ISO 3166
     ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
     ;; CODESET and MODIFIER are implementation-dependent.
+
+     ;; jasonr comments: MS Windows uses three letter codes for
+     ;; languages instead of the two letter ISO codes that POSIX
+     ;; uses. In most cases the first two letters are the same, so
+     ;; most of the regexps in locale-language-names work. Japanese
+     ;; and Chinese are exceptions, which are listed in the
+     ;; non-standard section at the bottom of locale-language-names.
 
     ; aa Afar
     ; ab Abkhazian
@@ -2151,14 +2214,13 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*utf\\(-?8\\)\\>" . "UTF-8")
-     ;; @euro actually indicates the monetary component, but it
-     ;; probably implies a Latin-9 codeset component.
-     ;; utf-8@euro exists, so put this last.
+     (".*utf\\(?:-?8\\)?\\>" . "UTF-8")
+     ;; utf-8@euro exists, so put this last.  (@euro really specifies
+     ;; the currency, rather than the charset.)
      (".*@euro\\>" . "Latin-9")))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
-specifies the language name whose charsets corresponds to that locale.
+specifies the language name whose charset corresponds to that locale.
 This language name is used if its charsets disagree with the charsets of
 the language name that would otherwise be used for this locale.")
 
@@ -2193,13 +2255,39 @@ names.  E.g. `ISO_8859-1' and `iso88591' both match `iso-8859-1'."
   (setq charset2 (replace-regexp-in-string "[-_]" "" charset2))
   (eq t (compare-strings charset1 nil nil charset2 nil nil t)))
 
+(defvar locale-charset-alist nil
+  "Coding system alist keyed on locale-style charset name.
+Used by `locale-charset-to-coding-system'.")
+
+(defun locale-charset-to-coding-system (charset)
+  "Find coding system corresponding to CHARSET.
+CHARSET is any sort of non-Emacs charset name, such as might be used
+in a locale codeset, or elsewhere.  It is matched to a coding system
+first by case-insensitive lookup in `locale-charset-alist'.  Then
+matches are looked for in the coding system list, treating case and
+the characters `-' and `_' as insignificant.  The coding system base
+is returned.  Thus, for instance, if charset \"ISO8859-2\",
+`iso-latin-2' is returned."
+  (or (car (assoc-ignore-case charset locale-charset-alist))
+      (let ((cs coding-system-alist)
+	    c)
+	(while (and (not c) cs)
+	  (if (locale-charset-match-p charset (caar cs))
+	      (setq c (intern (caar cs)))
+	    (pop cs)))
+	(if c (coding-system-base c)))))
+
+;; Fixme: This ought to deal with the territory part of the locale
+;; too, for setting things such as calendar holidays, ps-print paper
+;; size, spelling dictionary.
+
 (defun set-locale-environment (&optional locale-name)
   "Set up multi-lingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
 
 LOCALE-NAME should be a string which is the name of a locale supported
-by the system; often it is of the form xx_XX.CODE, where xx is a
+by the system.  Often it is of the form xx_XX.CODE, where xx is a
 language, XX is a country, and CODE specifies a character set and
 coding system.  For example, the locale name \"ja_JP.EUC\" might name
 a locale for Japanese in Japan using the `japanese-iso-8bit'
@@ -2223,7 +2311,7 @@ See also `locale-charset-language-names', `locale-language-names',
   (setq locale-translation-file-name
 	(let ((files
 	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
-		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; XFree86, e.g. RedHat 4.2
 		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
 		 ;;
 		 ;; The following name appears after the X-related names above,
@@ -2271,7 +2359,11 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
 	    (coding-system
-	     (locale-name-match locale locale-preferred-coding-systems)))
+	     (or (locale-name-match locale locale-preferred-coding-systems)
+		 (when locale
+		   (if (string-match "\\.\\([^@]+\\)" locale)
+		       (locale-charset-to-coding-system
+			(match-string 1 locale)))))))
 
 	;; Give preference to charset-language-name over language-name.
 	(if (and charset-language-name
@@ -2393,7 +2485,7 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
    (if (and coding-system (eq (coding-system-type coding-system) 'iso-2022))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
        (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
-				 (format "%02X" x))))
+				 (format "0x%02X" x))))
      (function (lambda (x) (format "0x%02X" x))))
    str " "))
 
@@ -2439,4 +2531,5 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 (defvar nonascii-translation-table nil "This variable is obsolete.")
 
 
+;;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

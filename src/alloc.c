@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,88,93,94,95,97,98,1999,2000,01,02,03,2004
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -31,13 +31,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
-/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
-   memory.  Can do this only if using gmalloc.c.  */
-
-#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
-#undef GC_MALLOC_CHECK
-#endif
-
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
    replaced, this file likely will not be used.  */
@@ -55,6 +48,13 @@ Boston, MA 02111-1307, USA.  */
 #include "character.h"
 #include "syssignal.h"
 #include <setjmp.h>
+
+/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
+   memory.  Can do this only if using gmalloc.c.  */
+
+#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
+#undef GC_MALLOC_CHECK
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -598,6 +598,7 @@ lisp_malloc (nbytes, type)
 
   val = (void *) malloc (nbytes);
 
+#ifndef USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
      object's pointer, and it needs to be,
      that's equivalent to running out of memory.  */
@@ -612,6 +613,7 @@ lisp_malloc (nbytes, type)
 	  val = 0;
 	}
     }
+#endif
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
@@ -756,6 +758,11 @@ lisp_align_malloc (nbytes, type)
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+      if (base == 0)
+	{
+	  UNBLOCK_INPUT;
+	  memory_full ();
+	}
 #endif
 
       aligned = (base == abase);
@@ -767,6 +774,7 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
+#ifndef USE_LSB_TAG
       /* If the memory just allocated cannot be addressed thru a Lisp
 	 object's pointer, and it needs to be, that's equivalent to
 	 running out of memory.  */
@@ -783,6 +791,7 @@ lisp_align_malloc (nbytes, type)
 	      memory_full ();
 	    }
 	}
+#endif
 
       /* Initialize the blocks and put them on the free list.
 	 Is `base' was not properly aligned, we can't use the last block.  */
@@ -1099,8 +1108,9 @@ uninterrupt_malloc ()
 
 struct interval_block
 {
-  struct interval_block *next;
+  /* Place `intervals' first, to preserve alignment.  */
   struct interval intervals[INTERVAL_BLOCK_SIZE];
+  struct interval_block *next;
 };
 
 /* Current interval block.  Its `next' pointer points to older
@@ -1338,8 +1348,9 @@ struct sblock
 
 struct string_block
 {
-  struct string_block *next;
+  /* Place `strings' first, to preserve alignment.  */
   struct Lisp_String strings[STRING_BLOCK_SIZE];
+  struct string_block *next;
 };
 
 /* Head and tail of the list of sblock structures holding Lisp string
@@ -2120,8 +2131,10 @@ make_uninit_multibyte_string (nchars, nbytes)
    by GC are put on a free list to be reallocated before allocating
    any new float cells from the latest float_block.  */
 
-#define FLOAT_BLOCK_SIZE \
-  (((BLOCK_BYTES - sizeof (struct float_block *)) * CHAR_BIT) \
+#define FLOAT_BLOCK_SIZE					\
+  (((BLOCK_BYTES - sizeof (struct float_block *)		\
+     /* The compiler might add padding at the end.  */		\
+     - (sizeof (struct Lisp_Float) - sizeof (int))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 #define GETMARKBIT(block,n)				\
@@ -2224,15 +2237,17 @@ make_float (float_value)
 	  new = (struct float_block *) lisp_align_malloc (sizeof *new,
 							  MEM_TYPE_FLOAT);
 	  new->next = float_block;
+	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
 	  n_float_blocks++;
 	}
-      XSETFLOAT (val, &float_block->floats[float_block_index++]);
+      XSETFLOAT (val, &float_block->floats[float_block_index]);
+      float_block_index++;
     }
 
   XFLOAT_DATA (val) = float_value;
-  FLOAT_UNMARK (XFLOAT (val));
+  eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
   return val;
@@ -2340,17 +2355,19 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  register struct cons_block *new;
 	  new = (struct cons_block *) lisp_align_malloc (sizeof *new,
 							 MEM_TYPE_CONS);
+	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
 	  n_cons_blocks++;
 	}
-      XSETCONS (val, &cons_block->conses[cons_block_index++]);
+      XSETCONS (val, &cons_block->conses[cons_block_index]);
+      cons_block_index++;
     }
 
   XSETCAR (val, car);
   XSETCDR (val, cdr);
-  CONS_UNMARK (XCONS (val));
+  eassert (!CONS_MARKED_P (XCONS (val)));
   consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
@@ -2489,7 +2506,9 @@ allocate_vectorlike (len, type)
   /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
      because mapped region contents are not preserved in
      a dumped Emacs.  */
+  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, 0);
+  UNBLOCK_INPUT;
 #endif
 
   nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
@@ -2497,7 +2516,9 @@ allocate_vectorlike (len, type)
 
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas.  */
+  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+  UNBLOCK_INPUT;
 #endif
 
   consing_since_gc += nbytes;
@@ -2697,8 +2718,9 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 
 struct symbol_block
 {
-  struct symbol_block *next;
+  /* Place `symbols' first, to preserve alignment.  */
   struct Lisp_Symbol symbols[SYMBOL_BLOCK_SIZE];
+  struct symbol_block *next;
 };
 
 /* Current symbol block and index of first unused Lisp_Symbol
@@ -2756,7 +2778,8 @@ Its value and function definition are void, and its property list is nil.  */)
 	  symbol_block_index = 0;
 	  n_symbol_blocks++;
 	}
-      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index++]);
+      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
+      symbol_block_index++;
     }
 
   p = XSYMBOL (val);
@@ -2788,8 +2811,9 @@ Its value and function definition are void, and its property list is nil.  */)
 
 struct marker_block
 {
-  struct marker_block *next;
+  /* Place `markers' first, to preserve alignment.  */
   union Lisp_Misc markers[MARKER_BLOCK_SIZE];
+  struct marker_block *next;
 };
 
 struct marker_block *marker_block;
@@ -2834,7 +2858,8 @@ allocate_misc ()
 	  marker_block_index = 0;
 	  n_marker_blocks++;
 	}
-      XSETMISC (val, &marker_block->markers[marker_block_index++]);
+      XSETMISC (val, &marker_block->markers[marker_block_index]);
+      marker_block_index++;
     }
 
   consing_since_gc += sizeof (union Lisp_Misc);
@@ -3369,6 +3394,7 @@ live_string_p (m, p)
 	 must not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->strings[0] == 0
+	      && offset < (STRING_BLOCK_SIZE * sizeof b->strings[0])
 	      && ((struct Lisp_String *) p)->data != NULL);
     }
   else
@@ -3393,8 +3419,8 @@ live_cons_p (m, p)
 	 one of the unused cells in the current cons block,
 	 and not be on the free-list.  */
       return (offset >= 0
-	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && offset % sizeof b->conses[0] == 0
+	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
 	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
@@ -3422,6 +3448,7 @@ live_symbol_p (m, p)
 	 and not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->symbols[0] == 0
+	      && offset < (SYMBOL_BLOCK_SIZE * sizeof b->symbols[0])
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
 	      && !EQ (((struct Lisp_Symbol *) p)->function, Vdead));
@@ -3447,8 +3474,8 @@ live_float_p (m, p)
       /* P must point to the start of a Lisp_Float and not be
 	 one of the unused cells in the current float block.  */
       return (offset >= 0
-	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && offset % sizeof b->floats[0] == 0
+	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && (b != float_block
 		  || offset / sizeof b->floats[0] < float_block_index));
     }
@@ -3475,6 +3502,7 @@ live_misc_p (m, p)
 	 and not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->markers[0] == 0
+	      && offset < (MARKER_BLOCK_SIZE * sizeof b->markers[0])
 	      && (b != marker_block
 		  || offset / sizeof b->markers[0] < marker_block_index)
 	      && ((union Lisp_Misc *) p)->u_marker.type != Lisp_Misc_Free);
@@ -4009,6 +4037,9 @@ pure_alloc (size, type)
      int type;
 {
   POINTER_TYPE *result;
+#ifdef USE_LSB_TAG
+  size_t alignment = (1 << GCTYPEBITS);
+#else
   size_t alignment = sizeof (EMACS_INT);
 
   /* Give Lisp_Floats an extra alignment.  */
@@ -4020,6 +4051,7 @@ pure_alloc (size, type)
       alignment = sizeof (struct Lisp_Float);
 #endif
     }
+#endif
 
  again:
   result = ALIGN (purebeg + pure_bytes_used, alignment);
@@ -4155,12 +4187,13 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
-      register int i, size;
+      register int i;
+      EMACS_INT size;
 
       size = XVECTOR (obj)->size;
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
-      vec = XVECTOR (make_pure_vector ((EMACS_INT) size));
+      vec = XVECTOR (make_pure_vector (size));
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
       if (COMPILEDP (obj))
@@ -4445,13 +4478,6 @@ returns nil, because real GC can't be done.  */)
   gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
-
-#if (GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE \
-     || GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES)
-  {
-    register struct gcpro *tail;
-  }
-#endif
 
   unmark_byte_stack ();
   VECTOR_UNMARK (&buffer_defaults);

@@ -304,8 +304,10 @@ START and END are buffer positions indicating what to prepend."
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
   "Copy rectangular region into register REGISTER.
-With prefix arg, delete as well.
-Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
+With prefix arg, delete as well.  To insert this register
+in the buffer, use \\[insert-register].
+
+Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
   (set-register register
@@ -313,4 +315,6 @@ START and END are buffer positions giving two corners of rectangle."
 		    (delete-extract-rectangle start end)
 		  (extract-rectangle start end))))
 
+(provide 'register)
+;;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

@@ -5,7 +5,6 @@
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.42 2003/02/24 17:29:49 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +507,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.42 $"))
+  (let ((rcs-rev "$Revision: 1.47 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -1049,7 +1048,7 @@ and many other features.
 Below is a description of the bindings, and then explanation of
 special `allout-mode' features and terminology.  See also the outline
 menubar additions for quick reference to many of the features, and see
-the docstring of the variable `allout-init' for instructions on
+the docstring of the function `allout-init' for instructions on
 priming your emacs session for automatic activation of `allout-mode'.
 
 
@@ -1079,7 +1078,7 @@ C-c <	allout-shift-out	... less deep.
 C-c<CR>	allout-rebullet-topic	Reconcile bullets of topic and its offspring
 				- distinctive bullets are not changed, others
 				  alternated according to nesting depth.
-C-c b	allout-rebullet-current-heading Prompt for alternate bullet for
+C-c *	allout-rebullet-current-heading Prompt for alternate bullet for
 					 current topic.
 C-c #	allout-number-siblings	Number bullets of topic and siblings - the
 				offspring are not affected.  With repeat
@@ -3015,9 +3014,9 @@ Third arg NUMBER-CONTROL can force the prefix to or away from
 numbered form.  It has effect only if `allout-numbered-bullet' is
 non-nil and soliciting was not explicitly invoked (via first arg).
 Its effect, numbering or denumbering, then depends on the setting
-of the forth arg, INDEX.
+of the fourth arg, INDEX.
 
-If NUMBER-CONTROL is non-nil and forth arg INDEX is nil, then the
+If NUMBER-CONTROL is non-nil and fourth arg INDEX is nil, then the
 prefix of the topic is forced to be non-numbered.  Null index and
 non-nil NUMBER-CONTROL forces denumbering.  Non-nil INDEX (and
 non-nil NUMBER-CONTROL) forces a numbered-prefix form.  If non-nil
@@ -4770,4 +4769,5 @@ so pass them along when appropriate."
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
+;;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
 ;;; allout.el ends here

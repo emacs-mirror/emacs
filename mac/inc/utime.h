@@ -35,3 +35,6 @@ struct utimbuf {
 int utime(const char *path, const struct utimbuf *buf);
 
 #endif
+
+/* arch-tag: 52dc3f6b-6122-4568-8f09-a5a56de6a324
+   (do not change this comment) */

@@ -1947,7 +1947,7 @@ SPC:   Accept word this time.
 	  (help-2 (concat "[l]ook a word up in alternate dictionary;  "
 			  "e[x/X]it;  [q]uit session"))
 	  (help-3 (concat "[u]ncapitalized insert into dict.  "
-			  "Type 'x C-h d ispell-help' for more help")))
+			  "Type 'x C-h f ispell-help' for more help")))
       (save-window-excursion
 	(if ispell-help-in-bufferp
 	    (progn
@@ -3572,4 +3572,5 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 
+;;; arch-tag: 4941b9f9-3b7c-4a76-a4ed-5fa8b6010ef5
 ;;; ispell.el ends here

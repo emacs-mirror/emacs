@@ -89,8 +89,8 @@ Should be set to the number of terminal writes telnet will make
 rejecting one login and prompting again for a username and password.")
 
 (defun telnet-interrupt-subjob ()
-  (interactive)
   "Interrupt the program running through telnet on the remote host."
+  (interactive)
   (send-string nil telnet-interrupt-string))
 
 (defun telnet-c-z ()
@@ -262,4 +262,5 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (provide 'telnet)
 
+;;; arch-tag: 98218821-d04a-48b6-9058-57d0d4677a56
 ;;; telnet.el ends here

@@ -1212,4 +1212,5 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
+;;; arch-tag: b1b8205e-77fc-4597-b373-3ea2c04311eb
 ;;; gomoku.el ends here

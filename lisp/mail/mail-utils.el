@@ -79,6 +79,7 @@ we add the wrapper characters =?ISO-8859-1?Q?....?=."
 	(concat result (substring string i))))))
 
 (defun mail-unquote-printable-hexdigit (char)
+  (setq char (upcase char))
   (if (>= char ?A)
       (+ (- char ?A) 10)
     (- char ?0)))
@@ -107,31 +108,48 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
       (apply 'concat (nreverse (cons (substring string i) strings))))))
 
 ;;;###autoload
-(defun mail-unquote-printable-region (beg end &optional wrapper)
+(defun mail-unquote-printable-region (beg end &optional wrapper noerror
+					  unibyte)
   "Undo the \"quoted printable\" encoding in buffer from BEG to END.
 If the optional argument WRAPPER is non-nil,
-we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
+we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=.
+If NOERROR is non-nil, return t if successful.
+If UNIBYTE is non-nil, insert converted characters as unibyte.
+That is useful if you are going to character code decoding afterward,
+as Rmail does."
   (interactive "r\nP")
-  (save-match-data
-    (save-excursion
-      (save-restriction
-	(narrow-to-region beg end)
-	(goto-char (point-min))
-	(when (and wrapper
-		   (looking-at "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?"))
-	  (delete-region (match-end 1) end)
-	  (delete-region (point) (match-beginning 1)))
-	(while (re-search-forward "=\\(..\\|\n\\)" nil t)
-	  (goto-char (match-end 0))
-	  (replace-match
-	   (if (= (char-after (match-beginning 1)) ?\n)
-	       ""
-	     (make-string 1
-			  (+ (* 16 (mail-unquote-printable-hexdigit
-				    (char-after (match-beginning 1))))
-			     (mail-unquote-printable-hexdigit
-			      (char-after (1+ (match-beginning 1)))))))
-	   t t))))))
+  (let (failed)
+    (save-match-data
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region beg end)
+	  (goto-char (point-min))
+	  (when (and wrapper
+		     (looking-at "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?"))
+	    (delete-region (match-end 1) end)
+	    (delete-region (point) (match-beginning 1)))
+	  (while (re-search-forward "=\\(\\([0-9A-F][0-9A-F]\\)\\|[=\n]\\|..\\)" nil t)
+	    (goto-char (match-end 0))
+	    (cond ((= (char-after (match-beginning 1)) ?\n)
+		   (replace-match ""))
+		  ((= (char-after (match-beginning 1)) ?=)
+		   (replace-match "="))
+		  ((match-beginning 2)
+		   (let ((char (+ (* 16 (mail-unquote-printable-hexdigit
+					 (char-after (match-beginning 2))))
+				  (mail-unquote-printable-hexdigit
+				   (char-after (1+ (match-beginning 2)))))))
+		     (if unibyte
+			 (progn
+			   (replace-match "")
+			   ;; insert-char will insert this as unibyte,
+			   (insert-char char 1))
+		       (replace-match (make-string 1 char) t t))))
+		  (noerror
+		   (setq failed t))
+		  (t
+		   (error "Malformed MIME quoted-printable message"))))
+	  (not failed))))))
 
 (eval-when-compile (require 'rfc822))
 
@@ -216,9 +234,15 @@ the comma-separated list.  The pruned list is returned."
                       "")
                     (if (and user-mail-address
                              (not (equal user-mail-address user-login-name)))
-                        (concat (regexp-quote user-mail-address) "\\|")
+			;; Anchor the login name and email address so
+			;; that we don't match substrings: if the
+			;; login name is "foo", we shouldn't match
+			;; "barfoo@baz.com".
+                        (concat "\\`"
+				(regexp-quote user-mail-address)
+				"\\'\\|")
                       "")
-                    (concat (regexp-quote user-login-name) "\\>"))))
+                    (concat "\\`" (regexp-quote user-login-name) "@"))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
@@ -346,4 +370,5 @@ If 4th arg LIST is non-nil, return a list of all such fields."
 
 (provide 'mail-utils)
 
+;;; arch-tag: b24aec2f-fd65-4ceb-9e39-3cc2827036fd
 ;;; mail-utils.el ends here

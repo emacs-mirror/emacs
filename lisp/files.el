@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,2003
+;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,03,2004
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -42,7 +42,7 @@
 (defcustom delete-auto-save-files t
   "*Non-nil means delete auto-save file when a buffer is saved or killed.
 
-Note that auto-save file will not be deleted if the buffer is killed
+Note that the auto-save file will not be deleted if the buffer is killed
 when it has unsaved changes."
   :type 'boolean
   :group 'auto-save)
@@ -355,10 +355,14 @@ The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
-(defvar find-file-hook nil
+(defcustom find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
-functions are called.")
+functions are called."
+  :group 'find-file
+  :type 'hook
+  :options '(auto-insert)
+  :version "21.4")
 (defvaralias 'find-file-hooks 'find-file-hook)
 (make-obsolete-variable 'find-file-hooks 'find-file-hook "21.4")
 
@@ -371,7 +375,12 @@ So any buffer-local binding of this variable is discarded if you change
 the visited file name with \\[set-visited-file-name], but not when you
 change the major mode.
 
-See also `write-contents-functions'.")
+This hook is not run if any of the functions in
+`write-contents-functions' returns non-nil.  Both hooks pertain
+to how to save a buffer to file, for instance, choosing a suitable
+coding system and setting mode bits.  (See Info
+node `(elisp)Saving Buffers'.)  To perform various checks or
+updates before the buffer is saved, use `before-save-hook' .")
 (put 'write-file-functions 'permanent-local t)
 (defvaralias 'write-file-hooks 'write-file-functions)
 (make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
@@ -391,7 +400,11 @@ buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
 major mode does clear it.
 
-See also `write-file-functions'.")
+For hooks that _do_ pertain to the particular visited file, use
+`write-file-functions'.  Both this variable and
+`write-file-functions' relate to how a buffer is saved to file.
+To perform various checks or updates before the buffer is saved,
+use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
 (defvaralias 'write-contents-hooks 'write-contents-functions)
 (make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")
@@ -477,13 +490,18 @@ patterns and to guarantee valid names."
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-DIRNAME if user enters a null string.
+Default name to DEFAULT-DIRNAME if user exits with the same
+non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, the current buffer's directory is used,
   except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
 Fourth arg MUSTMATCH non-nil means require existing directory's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
-DIR defaults to current buffer's directory default."
+DIR should be an absolute directory name.  It defaults to
+the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
   (unless default-dirname
@@ -837,7 +855,9 @@ do not put this buffer at the front of the list of recently selected ones.
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other window: ")
-  (let ((pop-up-windows t))
+  (let ((pop-up-windows t)
+	;; Don't let these interfere.
+	same-window-buffer-names same-window-regexps)
     (pop-to-buffer buffer t norecord)))
 
 (defun switch-to-buffer-other-frame (buffer &optional norecord)
@@ -848,7 +868,8 @@ do not put this buffer at the front of the list of recently selected ones.
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other frame: ")
-  (let ((pop-up-frames t))
+  (let ((pop-up-frames t)
+	same-window-buffer-names same-window-regexps)
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
@@ -1601,7 +1622,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
-     ("\\.scm\\'" . scheme-mode)
+     ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.lisp\\'" . lisp-mode)
      ("\\.f\\'" . fortran-mode)
@@ -1717,6 +1738,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.[1-9]\\'" . nroff-mode)
      ("\\.g\\'" . antlr-mode)
      ("\\.ses\\'" . ses-mode)
+     ("\\.orig\\'" nil t)		; from patch
      ("\\.in\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
@@ -2154,7 +2176,7 @@ is specified, returning t if it is specified."
 (put 'format-alist 'risky-local-variable t)
 (put 'vc-mode 'risky-local-variable t)
 (put 'imenu-generic-expression 'risky-local-variable t)
-(put 'imenu-index-alist 'risky-local-variable t)
+(put 'imenu--index-alist 'risky-local-variable t)
 (put 'standard-input 'risky-local-variable t)
 (put 'standard-output 'risky-local-variable t)
 (put 'unread-command-events 'risky-local-variable t)
@@ -2174,9 +2196,10 @@ is specified, returning t if it is specified."
 ;; This case is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable 'stringp)
 
-(defun risky-local-variable-p (sym val)
+(defun risky-local-variable-p (sym &optional val)
   "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
-If VAL is nil, the question is whether any value might be dangerous."
+If VAL is nil or omitted, the question is whether any value might be
+dangerous."
   (let ((safep (get sym 'safe-local-variable)))
     (or (memq sym ignored-local-variables)
 	(get sym 'risky-local-variable)
@@ -2414,7 +2437,7 @@ This makes the buffer visit that file, and marks it as not modified.
 
 If you specify just a directory name as FILENAME, that means to use
 the default file name but in that directory.  You can also yank
-the default file name into the minibuffer to edit it, using M-n.
+the default file name into the minibuffer to edit it, using \\<minibuffer-local-map>\\[next-history-element].
 
 If the buffer is not already visiting a file, the default file name
 for the output file is the buffer name.
@@ -2546,7 +2569,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	      (not (file-writable-p to-name)))
 	 (delete-file to-name))
      (copy-file from-name to-name t t)))
-  (set-file-modes to-name (logand modes #o1777)))
+  (and modes
+       (set-file-modes to-name (logand modes #o1777))))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
@@ -2881,9 +2905,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (or
 	   ;; Test for different drives on DOS/Windows
 	   (and
+	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (string-equal (substring filename  0 2)
-			       (substring directory 0 2))))
+	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
 	   ;; Test for different remote file handlers
 	   (not (eq hf hd))
 	   ;; Test for different remote file system identification
@@ -2901,21 +2925,22 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  filename
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))
-          (while
-	      (and
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename-dir))
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename)))
+          (while (not
+		  (or
+		   (eq t (compare-strings filename-dir nil (length directory)
+					  directory nil nil case-fold-search))
+		   (eq t (compare-strings filename nil (length directory)
+					  directory nil nil case-fold-search))))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
-          (if (string-match (concat "^" (regexp-quote directory)) filename)
+          (if (eq t (compare-strings filename nil (length directory)
+				     directory nil nil case-fold-search))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
-	      (let ((rest (substring filename (match-end 0))))
+	      (let ((rest (substring filename (length directory))))
 		(if (and (equal ancestor ".") (not (equal rest "")))
 		    ;; But don't bother with ANCESTOR if it would give us `./'.
 		    rest
@@ -2983,6 +3008,12 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defvar auto-save-hook nil
   "Normal hook run just before auto-saving.")
 
+(defcustom before-save-hook nil
+  "Normal hook that is run before a buffer is saved to its file."
+  :options '(copyright-update)
+  :type 'hook
+  :group 'files)
+
 (defcustom after-save-hook nil
   "Normal hook that is run after a buffer is saved to its file."
   :options '(executable-make-buffer-file-executable-if-script-p)
@@ -3005,7 +3036,8 @@ in such cases.")
 The hooks `write-contents-functions' and `write-file-functions' get a chance
 to do the job of saving; if they do not, then the buffer is saved in
 the visited file file in the usual way.
-After saving the buffer, this function runs `after-save-hook'."
+Before and after saving the buffer, this function runs
+`before-save-hook' and `after-save-hook', respectively."
   (interactive)
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
@@ -3061,6 +3093,7 @@ After saving the buffer, this function runs `after-save-hook'."
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
+	    (run-hooks 'before-save-hook)
 	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-functions)
@@ -3343,7 +3376,7 @@ saying what text to write."
   ;; ordinary or numeric backups.  It might create a directory for
   ;; backups as a side-effect, according to `backup-directory-alist'.
   (let* ((filename (file-name-sans-versions
-		    (make-backup-file-name filename)))
+		    (make-backup-file-name (expand-file-name filename))))
 	 (file (file-name-nondirectory filename))
 	 (dir  (file-name-directory    filename))
 	 (comp (file-name-all-completions file dir))
@@ -3420,6 +3453,20 @@ Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.
 
 The function you specify is responsible for updating (or preserving) point.")
+
+(defvar buffer-stale-function nil
+  "Function to check whether a non-file buffer needs reverting.
+This should be a function with one optional argument NOCONFIRM.
+Auto Revert Mode sets NOCONFIRM to t.  The function should return
+non-nil if the buffer should be reverted.  A return value of
+`fast' means that the need for reverting was not checked, but
+that reverting the buffer is fast.  The buffer is current when
+this function is called.
+
+The idea behind the NOCONFIRM argument is that it should be
+non-nil if the buffer is going to be reverted without asking the
+user.  In such situations, one has to be careful with potentially
+time consuming operations.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
@@ -3721,8 +3768,9 @@ This command is used in the special Dired buffer created by
       (kill-buffer buffer))))
 
 (defun kill-some-buffers (&optional list)
-  "For each buffer in LIST, ask whether to kill it.
-LIST defaults to all existing live buffers."
+  "Kill some buffers.  Asks the user whether to kill each one of them.
+Non-interactively, if optional argument LIST is non-`nil', it
+specifies the list of buffers to kill, asking for approval for each one."
   (interactive)
   (if (null list)
       (setq list (buffer-list)))
@@ -4129,10 +4177,10 @@ program specified by `directory-free-space-program' if that is non-nil."
     (save-match-data
       (with-temp-buffer
 	(when (and directory-free-space-program
-		   (zerop (call-process directory-free-space-program
-					nil t nil
-					directory-free-space-args
-					dir)))
+		   (eq 0 (call-process directory-free-space-program
+				       nil t nil
+				       directory-free-space-args
+				       dir)))
 	  ;; Usual format is a header line followed by a line of
 	  ;; numbers.
 	  (goto-char (point-min))
@@ -4172,14 +4220,20 @@ program specified by `directory-free-space-program' if that is non-nil."
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
-SWITCHES may be a string of options, or a list of strings.
+SWITCHES may be a string of options, or a list of strings
+representing individual options.
 Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
 This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
-If WILDCARD, it also runs the shell specified by `shell-file-name'."
+If WILDCARD, it also runs the shell specified by `shell-file-name'.
+
+When SWITCHES contains the long `--dired' option,this function
+treats it specially, for the sake of dired.  However, the
+normally equivalent short `-D' option is just passed on to
+`insert-directory-program', as any other option."
   ;; We need the directory in order to find the right handler.
   (let ((handler (find-file-name-handler (expand-file-name file)
 					 'insert-directory)))
@@ -4252,23 +4306,25 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 				 file))))))))
 
 	  ;; If `insert-directory-program' failed, signal an error.
-	  (if (/= result 0)
-	      ;; On non-Posix systems, we cannot open a directory, so
-	      ;; don't even try, because that will always result in
-	      ;; the ubiquitous "Access denied".  Instead, show the
-	      ;; command line so the user can try to guess what went wrong.
-	      (if (and (file-directory-p file)
-		       (memq system-type '(ms-dos windows-nt)))
-		  (error
-		   "Reading directory: \"%s %s -- %s\" exited with status %s"
-		   insert-directory-program
-		   (if (listp switches) (concat switches) switches)
-		   file result)
-		;; Unix.  Access the file to get a suitable error.
-		(access-file file "Reading directory")
-		(error "Listing directory failed but `access-file' worked")))
+	  (unless (eq 0 result)
+	    ;; On non-Posix systems, we cannot open a directory, so
+	    ;; don't even try, because that will always result in
+	    ;; the ubiquitous "Access denied".  Instead, show the
+	    ;; command line so the user can try to guess what went wrong.
+	    (if (and (file-directory-p file)
+		     (memq system-type '(ms-dos windows-nt)))
+		(error
+		 "Reading directory: \"%s %s -- %s\" exited with status %s"
+		 insert-directory-program
+		 (if (listp switches) (concat switches) switches)
+		 file result)
+	      ;; Unix.  Access the file to get a suitable error.
+	      (access-file file "Reading directory")
+	      (error "Listing directory failed but `access-file' worked")))
 
-	  (when (string-match "--dired\\>" switches)
+	  (when (if (stringp switches)
+		    (string-match "--dired\\>" switches)
+		  (member "--dired" switches))
 	    (forward-line -2)
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
@@ -4475,4 +4531,5 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 
+;;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

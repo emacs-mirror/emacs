@@ -260,7 +260,7 @@ Key translation rules are:
     acute    |   '    | 'e -> é
     grave    |   `    | `a -> à
   circumflex |   ^    | ^a -> â
-  diaeresis  |   \"   | \"i -> ï
+  diaeresis  |   \"    | \"i -> ï
    cedilla   | ~ or , | ~c -> ç   ,c -> ç
    symbol    |   ~    | ~> -> »   ~< -> «
 " nil t nil nil nil nil nil nil nil nil t)
@@ -351,7 +351,7 @@ Key translation rules are:
  "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> Ä ->   \"O -> Ö   \"U -> Ü   \"s -> ?ß
+ \"A -> Ä ->   \"O -> Ö   \"U -> Ü   \"s -> ß
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1183,4 +1183,6 @@ of characters from a single Latin-N charset.
  ("~|" ?¦)
  ("~~" ?¸)
 )
+
+;;; arch-tag: 83017837-6b84-4366-b183-e0577e3ed838
 ;;; latin-pre.el ends here

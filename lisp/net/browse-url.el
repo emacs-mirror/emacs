@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
@@ -818,8 +818,8 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens.
-  (while (string-match "[,)]" url)
+  ;; include at least commas; presumably also close parens and dollars.
+  (while (string-match "[,)$]" url)
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
@@ -889,8 +889,8 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens.
-  (while (string-match "[,)]" url)
+  ;; include at least commas; presumably also close parens and dollars.
+  (while (string-match "[,)$]" url)
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
@@ -942,8 +942,8 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens.
-  (while (string-match "[,)]" url)
+  ;; include at least commas; presumably also close parens and dollars.
+  (while (string-match "[,)$]" url)
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
@@ -991,8 +991,8 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens.
-  (while (string-match "[,)]" url)
+  ;; include at least commas; presumably also close parens and dollars.
+  (while (string-match "[,)$]" url)
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
@@ -1301,9 +1301,11 @@ Default to the URL around or before point."
 
 ;; --- mailto ---
 
+(autoload 'rfc2368-parse-mailto-url "rfc2368")
+
 ;;;###autoload
 (defun browse-url-mail (url &optional new-window)
-  "Open a new mail message buffer within Emacs.
+  "Open a new mail message buffer within Emacs for the RFC 2368 URL.
 Default to using the mailto: URL around or before point as the
 recipient's address.  Supplying a non-nil interactive prefix argument
 will cause the mail to be composed in another window rather than the
@@ -1318,14 +1320,24 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mailto URL: "))
   (save-excursion
-    (let ((to (if (string-match "^mailto:" url)
-		  (substring url 7)
-		url)))
+    (let* ((alist (rfc2368-parse-mailto-url url))
+	   (to (assoc "To" alist))
+	   (subject (assoc "Subject" alist))
+	   (body (assoc "Body" alist))
+	   (rest (delete to (delete subject (delete body alist))))
+	   (to (cdr to))
+	   (subject (cdr subject))
+	   (body (cdr body))
+	   (mail-citation-hook (unless body mail-citation-hook)))
       (if (browse-url-maybe-new-window new-window)
-	  (compose-mail-other-window to nil nil nil
-				     (list 'insert-buffer (current-buffer)))
-	(compose-mail to nil nil nil nil
-		      (list 'insert-buffer (current-buffer)))))))
+	  (compose-mail-other-window to subject rest nil
+				     (if body
+					 (list 'insert body)
+				       (list 'insert-buffer (current-buffer))))
+	(compose-mail to subject rest nil nil
+		      (if body
+			  (list 'insert body)
+			(list 'insert-buffer (current-buffer))))))))
 
 ;; --- Random browser ---
 
@@ -1340,8 +1352,8 @@ don't offer a form of remote control."
   (interactive (browse-url-interactive-arg "URL: "))
   (if (not browse-url-generic-program)
     (error "No browser defined (`browse-url-generic-program')"))
-  (apply 'start-process (concat browse-url-generic-program url) nil
-	 browse-url-generic-program
+  (apply 'call-process browse-url-generic-program nil
+	 0 nil
 	 (append browse-url-generic-args (list url))))
 
 ;;;###autoload
@@ -1355,4 +1367,5 @@ Default to the URL around or before point."
 
 (provide 'browse-url)
 
+;;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here

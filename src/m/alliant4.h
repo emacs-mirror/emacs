@@ -22,3 +22,6 @@
 
 /* include <sys/param.h> for the definition of LOADAVG_SCALE, and also
    LOADAVG_SIZE, the number of items in the Loadavg array. */
+
+/* arch-tag: cf917b55-c95e-4079-a4d1-d31e00c61b66
+   (do not change this comment) */

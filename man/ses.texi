@@ -385,11 +385,11 @@ list.
 @code{ses-mode-hook} is a normal mode hook (list of functions to
 execute when starting SES mode for a buffer).
 
-The variable @code{safe-functions} is a a list of possibly-unsafe
+The variable @code{safe-functions} is a list of possibly-unsafe
 functions to be treated as safe when analysing formulas and printers.
 @xref{Virus protection}.  Before customizing @code{safe-functions},
 think about how much you trust the person who's suggesting this
-change.  The value t turns off all anti-virus protection.  A
+change.  The value @code{t} turns off all anti-virus protection.  A
 list-of-functions value might enable a ``gee whiz'' spreadsheet, but it
 also creates trapdoors in your anti-virus armor.  In order for virus
 protection to work, you must always press @kbd{n} when presented with
@@ -406,11 +406,15 @@ safety belts!
 
 @table @kbd
 @item C-c M-C-h
-(@code{ses-read-header-row}).  The header line at the top of the SES
+(@code{ses-set-header-row}).  The header line at the top of the SES
 window normally shows the column letter for each column.  You can set
 it to show a copy of some row, such as a row of column titles, so that
-row will always be visible.  Set the header line to row 0 to show
-column letters again.
+row will always be visible.  Default is to set the current row as the
+header; use C-u to prompt for header row.  Set the header to row 0 to
+show column letters again.
+@item [header-line mouse-3]
+Pops up a menu to set the current row as the header, or revert to
+column letters.
 @end table
 
 @menu
@@ -816,6 +820,13 @@ cell.
 @node Acknowledgements,  , For Gurus, Top
 @chapter Acknowledgements
 
+Coding by:
+@quotation
+Jonathan Yavner @email{jyavner@@member.fsf.org}@*
+Stefan Monnier @email{monnier@@gnu.org}
+@end quotation
+
+Ideas from:
 @quotation
 Christoph Conrad @email{christoph.conrad@@gmx.de}@*
 CyberBob @email{cyberbob@@redneck.gacracker.org}@*
@@ -824,7 +835,7 @@ Ami Fischman @email{fischman@@zion.bpnetworks.com}@*
 Thomas Gehrlein @email{Thomas.Gehrlein@@t-online.de}@*
 Chris F.A. Johnson @email{c.f.a.johnson@@rogers.com}@*
 Yusong Li @email{lyusong@@hotmail.com}@*
-Yuri Linkov @email{link0ff@@yahoo.com}@*
+Juri Linkov @email{juri@@jurta.org}@*
 Harald Maier @email{maierh@@myself.com}@*
 Alan Nash @email{anash@@san.rr.com}@*
 François Pinard @email{pinard@@iro.umontreal.ca}@*
@@ -832,6 +843,7 @@ Pedro Pinto @email{ppinto@@cs.cmu.edu}@*
 Stefan Reichör @email{xsteve@@riic.at}@*
 Oliver Scholz @email{epameinondas@@gmx.de}@*
 Richard M. Stallman @email{rms@@gnu.org}@*
+Luc Teirlinck @email{teirllm@@dms.auburn.edu}@*
 J. Otto Tennant @email{jotto@@pobox.com}@*
 Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @end quotation
@@ -839,3 +851,7 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @c ===================================================================
 
 @bye
+
+@ignore
+   arch-tag: 10a4ee1c-7ef4-4c06-8b7a-f975e39f0dec
+@end ignore

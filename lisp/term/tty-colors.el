@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-;; Author: Eli Zaretskii <eliz@is.elta.co.il>
+;; Author: Eli Zaretskii
 ;; Maintainer: FSF
 ;; Keywords: terminals, faces
 
@@ -1047,4 +1047,5 @@ A color is considered gray if the 3 components of its RGB value are equal."
       (setq colors (cdr colors)))
     count))
 
+;;; arch-tag: 84d5c3ef-ae22-4754-99ac-e6350c0967ae
 ;;; tty-colors.el ends here

@@ -80,3 +80,6 @@ NOTE-END  */
    on the 386 needs this.  */
 #define LIBS_MACHINE -lkvm
 #endif
+
+/* arch-tag: 861af4b4-ce5f-475e-876e-ebff6436a1fe
+   (do not change this comment) */

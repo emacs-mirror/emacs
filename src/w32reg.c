@@ -163,3 +163,6 @@ x_get_string_resource (rdb, name, class)
 
   return (w32_get_string_resource (name, class, REG_SZ));
 }
+
+/* arch-tag: 755fce25-42d7-4acb-874f-2fb42336823d
+   (do not change this comment) */

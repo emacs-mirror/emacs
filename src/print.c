@@ -511,7 +511,7 @@ print_string (string, printcharfun)
 	for (i = 0; i < size; i++)
 	  PRINTCHAR (SREF (string, i));
       else
-	for (i = 0; i < size_byte; i++)
+	for (i = 0; i < size_byte; )
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
@@ -758,33 +758,42 @@ A printed representation of an object is text which describes that object.  */)
      (object, noescape)
      Lisp_Object object, noescape;
 {
-  PRINTDECLARE;
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
   Lisp_Object save_deactivate_mark;
   int count = specpdl_ptr - specpdl;
+  struct buffer *previous;
 
   specbind (Qinhibit_modification_hooks, Qt);
 
-  /* Save and restore this--we are altering a buffer
-     but we don't want to deactivate the mark just for that.
-     No need for specbind, since errors deactivate the mark.  */
-  save_deactivate_mark = Vdeactivate_mark;
-  /* GCPRO2 (object, save_deactivate_mark); */
-  abort_on_gc++;
+  {
+    PRINTDECLARE;
 
-  printcharfun = Vprin1_to_string_buffer;
-  PRINTPREPARE;
-  print (object, printcharfun, NILP (noescape));
-  /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
-  PRINTFINISH;
+    /* Save and restore this--we are altering a buffer
+       but we don't want to deactivate the mark just for that.
+       No need for specbind, since errors deactivate the mark.  */
+    save_deactivate_mark = Vdeactivate_mark;
+    /* GCPRO2 (object, save_deactivate_mark); */
+    abort_on_gc++;
+
+    printcharfun = Vprin1_to_string_buffer;
+    PRINTPREPARE;
+    print (object, printcharfun, NILP (noescape));
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    PRINTFINISH;
+  }
+
+  previous = current_buffer;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
+  /* Note that this won't make prepare_to_modify_buffer call 
+     ask-user-about-supersession-threat because this buffer
+     does not visit a file.  */
   Ferase_buffer ();
-  set_buffer_internal (old);
+  set_buffer_internal (previous);
 
   Vdeactivate_mark = save_deactivate_mark;
   /* UNGCPRO; */
@@ -902,6 +911,49 @@ to make it write to the debugging output.  */)
   return character;
 }
 
+
+#if defined(GNU_LINUX)
+
+/* This functionality is not vitally important in general, so we rely on
+   non-portable ability to use stderr as lvalue.  */
+
+#define WITH_REDIRECT_DEBUGGING_OUTPUT 1
+
+FILE *initial_stderr_stream = NULL;
+
+DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
+       1, 2,
+       "FDebug output file: \nP",
+       doc: /* Redirect debugging output (stderr stream) to file FILE.
+If FILE is nil, reset target to the initial stderr stream.
+Optional arg APPEND non-nil (interactively, with prefix arg) means
+append to existing target file.  */) 
+     (file, append)
+     Lisp_Object file, append;
+{
+  if (initial_stderr_stream != NULL)
+    fclose(stderr);
+  stderr = initial_stderr_stream;
+  initial_stderr_stream = NULL;
+
+  if (STRINGP (file))
+    {
+      file = Fexpand_file_name (file, Qnil);
+      initial_stderr_stream = stderr;
+      stderr = fopen(SDATA (file), NILP (append) ? "w" : "a");
+      if (stderr == NULL)
+	{
+	  stderr = initial_stderr_stream;
+	  initial_stderr_stream = NULL;
+	  report_file_error ("Cannot open debugging output stream",
+			     Fcons (file, Qnil));
+	}
+    }
+  return Qnil;
+}
+#endif /* GNU_LINUX */
+
+
 /* This is the interface for debugging printing.  */
 
 void
@@ -914,7 +966,9 @@ debug_print (arg)
 
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
-       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.  */)
+       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
+See Info anchor `(elisp)Definition of signal' for some details on how this
+error message is constructed.  */)
      (obj)
      Lisp_Object obj;
 {
@@ -1222,7 +1276,8 @@ static void
 print_preprocess (obj)
      Lisp_Object obj;
 {
-  int i, size;
+  int i;
+  EMACS_INT size;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1288,7 +1343,9 @@ print_preprocess (obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK;
+	  size = XVECTOR (obj)->size;
+	  if (size & PSEUDOVECTOR_FLAG)
+	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
 	  break;
@@ -1938,7 +1995,7 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else
 	{
-	  int size = XVECTOR (obj)->size;
+	  EMACS_INT size = XVECTOR (obj)->size;
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
@@ -2273,6 +2330,9 @@ priorities.  */);
   defsubr (&Sterpri);
   defsubr (&Swrite_char);
   defsubr (&Sexternal_debugging_output);
+#ifdef WITH_REDIRECT_DEBUGGING_OUTPUT
+  defsubr (&Sredirect_debugging_output);
+#endif
 
   Qexternal_debugging_output = intern ("external-debugging-output");
   staticpro (&Qexternal_debugging_output);
@@ -2291,3 +2351,6 @@ priorities.  */);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
+
+/* arch-tag: bc797170-94ae-41de-86e3-75e20f8f7a39
+   (do not change this comment) */

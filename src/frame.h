@@ -452,6 +452,10 @@ struct frame
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
 
+  /* Set to non-zero in when we want for force a flush_display in
+     update_frame, usually after resizing the frame.  */
+  unsigned force_flush_display_p : 1;
+
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
@@ -795,9 +799,6 @@ extern Lisp_Object Vdefault_frame_alist;
 extern Lisp_Object Vterminal_frame;
 
 extern Lisp_Object Vmouse_highlight;
-
-enum text_cursor_kinds get_specified_cursor_type P_ ((Lisp_Object, int *));
-enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *, int *));
 
 /* The currently selected frame.  */
 
@@ -1023,7 +1024,6 @@ enum
   FULLSCREEN_HEIGHT     = 2,
   FULLSCREEN_BOTH       = 3,
   FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
 };
 
 
@@ -1078,3 +1078,6 @@ extern void validate_x_resource_name P_ ((void));
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not EMACS_FRAME_H */
+
+/* arch-tag: 0df048ee-e6bf-4f48-bd56-e3cd055dd8c4
+   (do not change this comment) */

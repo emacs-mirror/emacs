@@ -132,14 +132,23 @@ without a period."
   :type 'boolean
   :group 'fill)
 
+(defcustom sentence-end-without-space
+  "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
+  "*String containing characters that end sentence without following spaces.
+If you change this, you should also change `sentence-end'.  See Info
+node `Sentences'."
+  :group 'paragraphs
+  :type 'string)
+
 (defcustom sentence-end
   (purecopy
    ;; This is a bit stupid since it's not auto-updated when the
    ;; other variables are changes, but it's still useful info.
    (concat (if sentence-end-without-period "\\w  \\|")
-	   "[.?!$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B][]\"')}]*"
+	   "\\([.?!][]\"')}]*"
 	   (if sentence-end-double-space
 	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+	   "\\|[" sentence-end-without-space "]+\\)"
 	   "[ \t\n]*"))
   "*Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.
@@ -421,9 +430,9 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
     (constrain-to-field nil opoint t)))
 
 (defun repunctuate-sentences ()
-  (interactive)
   "Put two spaces at the end of sentences from point to the end of buffer.
 It works using `query-replace-regexp'."
+  (interactive)
   (query-replace-regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +"
 			"\\1\\2\\3  "))
 
@@ -469,4 +478,5 @@ ones already marked."
 ;;; coding: iso-2022-7bit
 ;;; End:
 
+;;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

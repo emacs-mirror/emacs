@@ -172,4 +172,5 @@ for the currently selected frame."
 ;; This recomputes all the default faces given the colors we've just set up.
 (tty-set-up-initial-frame-faces)
 
+;;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
 ;;; rxvt.el ends here

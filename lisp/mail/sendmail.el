@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -68,11 +68,12 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 (defcustom mail-specify-envelope-from nil
   "*If non-nil, specify the envelope-from address when sending mail.
 The value used to specify it is whatever is found in
-`mail-envelope-from', with `user-mail-address' as fallback.
+the variable `mail-envelope-from', with `user-mail-address' as fallback.
 
 On most systems, specifying the envelope-from address is a
-privileged operation.  This variable is only used if
-`send-mail-function' is set to `sendmail-send-it'."
+privileged operation.  This variable affects sendmail and
+smtpmail -- if you use feedmail to send mail, see instead the
+variable `feedmail-deduce-envelope-from'."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
@@ -184,8 +185,8 @@ The function `mail-setup' runs this hook."
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
-\(The file's name is normally `~/.mailrc', but your MAILRC environment
-variable can override that name.)
+\(The file's name is normally `~/.mailrc', but `mail-personal-alias-file'
+can specify a different file name.)
 The alias definitions in the file have this form:
     alias ALIAS MEANING")
 
@@ -386,10 +387,11 @@ actually occur.")
 
 
 (defun sendmail-sync-aliases ()
-  (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-    (or (equal mail-alias-modtime modtime)
-	(setq mail-alias-modtime modtime
-	      mail-aliases t))))
+  (when mail-personal-alias-file
+    (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+      (or (equal mail-alias-modtime modtime)
+	  (setq mail-alias-modtime modtime
+		mail-aliases t)))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (or mail-default-reply-to
@@ -398,8 +400,9 @@ actually occur.")
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p mail-personal-alias-file)
-	    (build-mail-aliases))))
+	(when mail-personal-alias-file
+	  (if (file-exists-p mail-personal-alias-file)
+	      (build-mail-aliases)))))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
@@ -509,6 +512,9 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; Allow using comment commands to add/remove quoting (this only does
   ;; anything if mail-yank-prefix is set to a non-nil value).
   (set (make-local-variable 'comment-start) mail-yank-prefix)
+  (if mail-yank-prefix
+      (set (make-local-variable 'comment-start-skip)
+	   (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")))
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
@@ -1026,7 +1032,7 @@ external program defined by `sendmail-program'."
 			      )
 		      )
 		     (exit-value (apply 'call-process-region args)))
-		(or (null exit-value) (zerop exit-value)
+		(or (null exit-value) (eq 0 exit-value)
 		    (error "Sending...failed with exit value %d" exit-value)))
 	    (or fcc-was-found
 		(error "No recipients")))
@@ -1724,4 +1730,5 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
+;;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

@@ -105,3 +105,6 @@ NOTE-END  */
 
 /* Enable a fix in process.c.  */
 #define SET_CHILD_PTY_PGRP
+
+/* arch-tag: 45d5070e-d2b7-479f-b336-3fd497c36e15
+   (do not change this comment) */

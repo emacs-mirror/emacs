@@ -149,3 +149,6 @@ NOTE-END
    Define DBL_MIN_REPLACEMENT to be the next value larger than DBL_MIN:
    this avoids the assembler bug.  */
 #define DBL_MIN_REPLACEMENT 2.2250738585072019e-308
+
+/* arch-tag: 978cb578-1e25-4a60-819b-adae0972aa78
+   (do not change this comment) */

@@ -919,3 +919,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (chmod (new_name, stat_buf.st_mode) == -1)
     fatal ("Can't chmod(%s): errno %d\n", new_name, errno);
 }
+
+/* arch-tag: c784ead3-7a27-442b-83fe-7af8d08654d3
+   (do not change this comment) */

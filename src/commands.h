@@ -90,3 +90,6 @@ extern int update_mode_lines;
    so put cursor on minibuffer after the prompt.  */
 
 extern int cursor_in_echo_area;
+
+/* arch-tag: 4f7ca0b7-6a56-4b20-8bf5-b67a99921d1d
+   (do not change this comment) */

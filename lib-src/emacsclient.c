@@ -1,5 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2003
+   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2003, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -67,6 +67,9 @@ char *display = NULL;
    is not running.  --alternate-editor.   */
 const char * alternate_editor = NULL;
 
+/* If non-NULL, the filename of the UNIX socket.  */
+char *socket_name = NULL;
+
 void print_help_and_exit ();
 
 struct option longopts[] =
@@ -76,6 +79,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "alternate-editor", required_argument, NULL, 'a' },
+  { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
   { 0, 0, 0, 0 }
 };
@@ -88,15 +92,15 @@ decode_options (argc, argv)
      int argc;
      char **argv;
 {
+  alternate_editor = getenv ("ALTERNATE_EDITOR");
+
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:d:", longopts, 0);
+			     "VHnea:s:d:", longopts, 0);
 
       if (opt == EOF)
 	break;
-
-      alternate_editor = getenv ("ALTERNATE_EDITOR");
 
       switch (opt)
 	{
@@ -107,6 +111,10 @@ decode_options (argc, argv)
 
 	case 'a':
 	  alternate_editor = optarg;
+	  break;
+
+	case 's':
+	  socket_name = optarg;
 	  break;
 
 	case 'd':
@@ -152,6 +160,8 @@ The following OPTIONS are accepted:\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
+-s, --socket-name=FILENAME\n\
+                        Set the filename of the UNIX socket for communication\n\
 -a, --alternate-editor=EDITOR\n\
                         Editor to fallback to if the server is not running\n\
 \n\
@@ -159,14 +169,14 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (0);
 }
 
-/* Return a copy of NAME, inserting a &
-   before each &, each space, each newline, and any initial -.
-   Change spaces to underscores, too, so that the
+/* In NAME, insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
    return value never contains a space.  */
 
-char *
-quote_file_name (name)
+void
+quote_file_name (name, stream)
      char *name;
+     FILE *stream;
 {
   char *copy = (char *) malloc (strlen (name) * 2 + 1);
   char *p, *q;
@@ -196,7 +206,9 @@ quote_file_name (name)
     }
   *q++ = 0;
 
-  return copy;
+  fprintf (stream, copy);
+
+  free (copy);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -287,8 +299,6 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  char *system_name;
-  int system_name_length;
   int s, i, needlf = 0;
   FILE *out, *in;
   struct sockaddr_un server;
@@ -300,7 +310,7 @@ main (argc, argv)
   /* Process options.  */
   decode_options (argc, argv);
 
-  if (argc - optind < 1)
+  if ((argc - optind < 1) && !eval)
     {
       fprintf (stderr, "%s: file name or argument required\n", progname);
       fprintf (stderr, "Try `%s --help' for more information\n", progname);
@@ -321,37 +331,38 @@ main (argc, argv)
   server.sun_family = AF_UNIX;
 
   {
-    char *dot;
-    system_name_length = 32;
+    int sock_status = 0;
+    int default_sock = !socket_name;
+    int saved_errno;
+    char *server_name = "server";
 
-    while (1)
-      {
-	system_name = (char *) xmalloc (system_name_length + 1);
-
-	/* system_name must be null-terminated string.  */
-	system_name[system_name_length] = '\0';
-
- 	if (gethostname (system_name, system_name_length) == 0)
-	  break;
-
-	free (system_name);
-	system_name_length *= 2;
+    if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
+      { /* socket_name is a file name component.  */
+	server_name = socket_name;
+	socket_name = NULL;
+	default_sock = 1;	/* Try both UIDs.  */
       }
 
-    /* We always use the non-dotted host name, for simplicity.  */
-    dot = index (system_name, '.');
-    if (dot)
-      *dot = '\0';
-  }
+    if (default_sock)
+      {
+	socket_name = alloca (100 + strlen (server_name));
+	sprintf (socket_name, "/tmp/emacs%d/%s",
+		 (int) geteuid (), server_name);
+      }
 
-  {
-    int sock_status = 0;
-
-    sprintf (server.sun_path, "/tmp/emacs%d-%s/server", (int) geteuid (), system_name);
+    if (strlen (socket_name) < sizeof (server.sun_path))
+      strcpy (server.sun_path, socket_name);
+    else
+      {
+	fprintf (stderr, "%s: socket-name %s too long",
+		 argv[0], socket_name);
+	exit (1);
+      }
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
-    if (sock_status)
+    saved_errno = errno;
+    if (sock_status && default_sock)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
 	   our euid.  If so, look for a socket based on the UID
@@ -359,19 +370,35 @@ main (argc, argv)
 	   that init_editfns uses to set the global Vuser_full_name.  */
 
 	char *user_name = (char *) getenv ("LOGNAME");
+
 	if (!user_name)
 	  user_name = (char *) getenv ("USER");
 
 	if (user_name)
 	  {
 	    struct passwd *pw = getpwnam (user_name);
+
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		sprintf (server.sun_path, "/tmp/esrv%d-%s",
-			 (int) pw->pw_uid, system_name);
+		socket_name = alloca (100 + strlen (server_name));
+		sprintf (socket_name, "/tmp/emacs%d/%s",
+			 (int) pw->pw_uid, server_name);
+
+		if (strlen (socket_name) < sizeof (server.sun_path))
+		  strcpy (server.sun_path, socket_name);
+		else
+		  {
+		    fprintf (stderr, "%s: socket-name %s too long",
+			     argv[0], socket_name);
+		    exit (1);
+		  }
+
 		sock_status = socket_status (server.sun_path);
+		saved_errno = errno;
 	      }
+	    else
+	      errno = saved_errno;
 	  }
       }
 
@@ -389,14 +416,14 @@ main (argc, argv)
 
        case 2:
 	 /* `stat' failed */
-	 if (errno == ENOENT)
+	 if (saved_errno == ENOENT)
 	   fprintf (stderr,
 		    "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		    argv[0]);
 	 else
 	   fprintf (stderr, "%s: can't stat %s: %s\n",
-		    argv[0], server.sun_path, strerror (errno));
+		    argv[0], server.sun_path, strerror (saved_errno));
 	 fail (argc, argv);
 	 break;
        }
@@ -455,24 +482,47 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     fprintf (out, "-eval ");
 
   if (display)
-    fprintf (out, "-display %s ", quote_file_name (display));
-
-  for (i = optind; i < argc; i++)
     {
-      if (eval)
-	; /* Don't prepend any cwd or anything like that.  */
-      else if (*argv[i] == '+')
-	{
-	  char *p = argv[i] + 1;
-	  while (isdigit ((unsigned char) *p) || *p == ':') p++;
-	  if (*p != 0)
-	    fprintf (out, "%s/", quote_file_name (cwd));
-	}
-      else if (*argv[i] != '/')
-	fprintf (out, "%s/", quote_file_name (cwd));
-
-      fprintf (out, "%s ", quote_file_name (argv[i]));
+      fprintf (out, "-display ");
+      quote_file_name (display, out);
+      fprintf (out, " ");
     }
+
+  if ((argc - optind > 0))
+    {
+      for (i = optind; i < argc; i++)
+	{
+	  if (eval)
+	    ; /* Don't prepend any cwd or anything like that.  */
+	  else if (*argv[i] == '+')
+	    {
+	      char *p = argv[i] + 1;
+	      while (isdigit ((unsigned char) *p) || *p == ':') p++;
+	      if (*p != 0)
+		{
+		  quote_file_name (cwd, out);
+		  fprintf (out, "/");
+		}
+	    }
+	  else if (*argv[i] != '/')
+	    {
+	      quote_file_name (cwd, out);
+	      fprintf (out, "/");
+	    }
+
+	  quote_file_name (argv[i], out);
+	  fprintf (out, " ");
+	}
+    }
+  else
+    {
+      while ((str = fgets (string, BUFSIZ, stdin)))
+	{
+	  quote_file_name (str, out);
+	}
+      fprintf (out, " ");
+    }
+  
   fprintf (out, "\n");
   fflush (out);
 
@@ -519,3 +569,6 @@ strerror (errnum)
 }
 
 #endif /* ! HAVE_STRERROR */
+
+/* arch-tag: f39bb9c4-73eb-477e-896d-50832e2ca9a7
+   (do not change this comment) */

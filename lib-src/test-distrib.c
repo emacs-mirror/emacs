@@ -105,3 +105,6 @@ have been corrupted in the files of Emacs, and it will not work.\n",
 #endif
   return (0);
 }
+
+/* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
+   (do not change this comment) */

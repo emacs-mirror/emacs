@@ -110,4 +110,5 @@ See also `toggle-rot13-mode'."
 
 (provide 'rot13)
 
+;;; arch-tag: ad5b9ca8-946c-4414-996f-e9b1bf9ec79f
 ;;; rot13.el ends here

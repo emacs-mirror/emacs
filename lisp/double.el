@@ -207,4 +207,5 @@ when pressed twice.  See variable `double-map' for details."
 
 (provide 'double)
 
+;;; arch-tag: 2e170036-44cb-4493-bc32-ada0a4395221
 ;;; double.el ends here

@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
 #define SEGMENT_MASK 0xffff
 
 #define SWITCH_ENUM_BUG 1
+
+/* arch-tag: f2438018-7d4e-4be5-b368-4bf342b7785b
+   (do not change this comment) */

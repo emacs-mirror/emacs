@@ -25,101 +25,9 @@
 
 ;;; Commentary:
 
-;; This file parses the command line and gets Emacs running.  Options on
-;; the command line are handled in precedence order.  The order is the
-;; one in the list below; first described means first handled.  Options
-;; within each category (delimited by a bar) are handled in the order
-;; encountered on the command line.
-
-;; -------------------------
-;; -version                  Print Emacs version to stderr, then exit
-;; --version                 successfully right away.
-;;                           This option is handled by emacs.c
-;; -------------------------
-;; -help                     Print a short usage description and exit
-;; --help                    successfully right away.
-;;                           This option is handled by emacs.c
-;; -------------------------
-;; -nl                       Do not use shared memory (for systems that
-;; -no-shared-memory         support this) for the dumped Emacs data.
-;;                           This option is handled by emacs.c
-;;
-;; -map                      For VMS.
-;; --map-data                This option is handled by emacs.c
-;; -------------------------
-;; -t FILE                   Use FILE as the name of the terminal.
-;; --terminal FILE           Using this implies "-nw" also.
-;;                           This option is handled by emacs.c
-;; -------------------------
-;; -d DISPNAME               Use DISPNAME as the name of the X
-;; -display DISPNAME         display for the initial frame.
-;; --display DISPNAME        This option is handled by emacs.c
-;; -------------------------
-;; -nw                       Do not use a windows system (but use the
-;; --no-window-system        terminal instead.)
-;;                           This option is handled by emacs.c
-;; -------------------------
-;; -batch                    Execute noninteractively (messages go to stdout,
-;; --batch                   variable noninteractive set to t)
-;;                           This option is handled by emacs.c
-;; -------------------------
-;; -q                        Do not load user's init file and do not load
-;; -no-init-file             "default.el".  Regardless of this switch,
-;; --no-init-file            "site-start" is still loaded.
-;; -------------------------
-;; -no-site-file             Do not load "site-start.el".  (This is the ONLY
-;; --no-site-file            way to prevent loading that file.)
-;; -------------------------
-;; -no-splash                 Don't display a splash screen on startup.
-;; --no-splash
-;; -------------------------
-;; -u USER                   Load USER's init file instead of the init
-;; -user USER                file belonging to the user starting Emacs.
-;; --user USER
-;; -------------------------
-;; -debug-init               Don't catch errors in init files; let the
-;; --debug-init              debugger run.
-;; -------------------------
-;; -i ICONTYPE               Set type of icon using when Emacs is
-;; -itype ICONTYPE           iconified under X.
-;; --icon-type ICONTYPE      This option is passed on to term/x-win.el
-;;
-;; -iconic                   Start Emacs iconified.
-;; --iconic                  This option is passed on to term/x-win.el
-;; -------------------------
-;; Various X options for colors/fonts/geometry/title etc.
-;; These options are passed on to term/x-win.el which see.
-;; -------------------------
-;; FILE                      Visit FILE.
-;; -visit FILE
-;; --visit FILE
-;; -file FILE
-;; --file FILE
-;;
-;; -L DIRNAME                Add DIRNAME to load-path
-;; -directory DIRNAME
-;; --directory DIRNAME
-;;
-;; -l FILE                   Load and execute the Emacs lisp code
-;; -load FILE                in FILE.
-;; --load FILE
-;;
-;; -f FUNC                   Execute Emacs lisp function FUNC with
-;; -funcall FUNC             no arguments.  The "-e" form is outdated
-;; --funcall FUNC            and should not be used.  (It's a typo
-;; -e FUNC                   promoted to a feature.)
-;;
-;; -eval FORM                Execute Emacs lisp form FORM.
-;; --eval FORM
-;; -execute EXPR
-;; --execute EXPR
-;;
-;; -insert FILE              Insert the contents of FILE into buffer.
-;; --insert FILE
-;; -------------------------
-;; -kill                     Kill (exit) Emacs right away.
-;; --kill
-;; -------------------------
+;; This file parses the command line and gets Emacs running.  Options
+;; on the command line are handled in precedence order.  For priorities
+;; see the structure standard_args in the emacs.c file.
 
 ;;; Code:
 
@@ -168,8 +76,8 @@ the startup message unless he personally acts to inhibit it."
 (defvar command-switch-alist nil
   "Alist of command-line switches.
 Elements look like (SWITCH-STRING . HANDLER-FUNCTION).
-HANDLER-FUNCTION receives switch name as sole arg;
-remaining command-line args are in the variable `command-line-args-left'.")
+HANDLER-FUNCTION receives the switch string as its sole argument;
+the remaining command-line args are in the variable `command-line-args-left'.")
 
 (defvar command-line-args-left nil
   "List of command-line args not yet processed.")
@@ -358,6 +266,8 @@ from being initialized."
   :type '(choice (const :tag "Don't record a session's auto save list" nil)
 		 string)
   :group 'auto-save)
+
+(defvar emacs-quick-startup nil)
 
 (defvar init-file-debug nil)
 
@@ -777,6 +687,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
+	 ((equal argi "-Q")
+	  (setq init-file-user nil
+		site-run-file nil
+		emacs-quick-startup t)
+	  (push '(vertical-scroll-bars . nil) initial-frame-alist))
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
 	 ((member argi '("-u" "-user"))
@@ -808,18 +723,21 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
+	      emacs-quick-startup
               (and (memq window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (unless (or noninteractive
+	      emacs-quick-startup
               (not (display-graphic-p))
               (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because window-system isn't set.
   (unless (or noninteractive
+	      emacs-quick-startup
               (eq system-type 'ms-dos)
               (not (memq window-system '(x w32))))
     (setq-default blink-cursor t)
@@ -841,6 +759,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (normal-erase-is-backspace-mode 1)))
 
   (unless (or noninteractive
+	      emacs-quick-startup
               (not (display-graphic-p))
               (not (fboundp 'x-show-tip)))
     (setq-default tooltip-mode t)
@@ -1194,8 +1113,8 @@ where FACE is a valid face specification, as it can be used with
     (when img
       (when (> window-width image-width)
 	;; Center the image in the window.
-	(let ((pos (/ (- window-width image-width) 2)))
-	  (insert (propertize " " 'display `(space :align-to ,pos))))
+	(insert (propertize " " 'display
+			    `(space :align-to (+ center (-0.5 . ,img)))))
 
 	;; Change the color of the XPM version of the splash image
 	;; so that it is visible with a dark frame background.
@@ -1344,9 +1263,10 @@ we put it on this frame."
 
 (defun use-fancy-splash-screens-p ()
   "Return t if fancy splash screens should be used."
-  (when (or (and (display-color-p)
+  (when (and (display-graphic-p)
+             (or (and (display-color-p)
 		 (image-type-available-p 'xpm))
-	    (image-type-available-p 'pbm))
+                 (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
 	(let* ((img (create-image (or fancy-splash-image
@@ -1520,8 +1440,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 Fancy splash screens are used on graphic displays,
 normal otherwise."
   (interactive)
-  (if (and (display-graphic-p)
-	   (use-fancy-splash-screens-p))
+  (if (use-fancy-splash-screens-p)
       (fancy-splash-screens)
     (normal-splash-screen)))
 
@@ -1556,6 +1475,8 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
+      ;; Stop any "Loading image..." message hiding echo-area-message.
+      (use-fancy-splash-screens-p)
       (display-startup-echo-area-message))
 
   ;; Delay 2 seconds after an init file error message
@@ -1745,11 +1666,13 @@ normal otherwise."
                (list-buffers)))))
 
   ;; Maybe display a startup screen.
-  (when (and (not inhibit-startup-message) (not noninteractive)
+  (unless (or inhibit-startup-message
+	      noninteractive
+	      emacs-quick-startup
 	     ;; Don't display startup screen if init file
 	     ;; has started some sort of server.
-	     (not (and (fboundp 'process-list)
-		       (process-list))))
+	     (and (fboundp 'process-list)
+		  (process-list)))
     ;; Display a startup screen, after some preparations.
 
     ;; If there are no switches to process, we might as well
@@ -1808,4 +1731,5 @@ normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
+;;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
@@ -368,7 +368,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
-	     (PC-is-complete-p str table pred))
+	     (test-completion str table pred))
 	'complete
 
       ;; Do substitutions in directory names
@@ -394,7 +394,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
       ;; Add wildcards if necessary
       (and filename
            (let ((dir (file-name-directory str))
-                 (file (file-name-nondirectory str)))
+                 (file (file-name-nondirectory str))
+		 ;; The base dir for file-completion is passed in `predicate'.
+		 (default-directory (expand-file-name pred)))
              (while (and (stringp dir) (not (file-directory-p dir)))
                (setq dir (directory-file-name dir))
                (setq file (concat (replace-regexp-in-string
@@ -408,6 +410,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
       (and filename
 	   (string-match "\\*.*/" str)
 	   (let ((pat str)
+		 ;; The base dir for file-completion is passed in `predicate'.
+		 (default-directory (expand-file-name pred))
 		 files)
 	     (setq p (1+ (string-match "/[^/]*\\'" pat)))
 	     (while (setq p (string-match PC-delim-regex pat p))
@@ -637,7 +641,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		(if improved
 
 		    ;; We changed it... would it be complete without the space?
-		    (if (PC-is-complete-p (buffer-substring 1 (1- end))
+		    (if (test-completion (buffer-substring 1 (1- end))
 					  table pred)
 			(delete-region (1- end) end)))
 
@@ -645,7 +649,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 		  ;; We changed it... enough to be complete?
 		  (and (eq mode 'exit)
-		       (PC-is-complete-p (field-string) table pred))
+		       (test-completion (field-string) table pred))
 
 		;; If totally ambiguous, display a list of completions
 		(if (or (eq completion-auto-help t)
@@ -675,20 +679,6 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			      (substitute-in-file-name (concat dirname (car poss)))
 			    (car poss)))))
 	t)))))
-
-
-(defun PC-is-complete-p (str table pred)
-  (let ((res (if (listp table)
-		 (assoc str table)
-	       (if (vectorp table)
-		   (or (equal str "nil")   ; heh, heh, heh
-		       (intern-soft str table))
-		 (funcall table str pred 'lambda)))))
-    (and res
-	 (or (not pred)
-	     (and (not (listp table)) (not (vectorp table)))
-	     (funcall pred res))
-	 res)))
 
 (defun PC-chop-word (new old)
   (let ((i -1)
@@ -954,4 +944,5 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 
 (provide 'complete)
 
+;;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
 ;;; complete.el ends here

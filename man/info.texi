@@ -1,4 +1,7 @@
-\input texinfo    @c -*-texinfo-*-
+\input texinfo.tex    @c -*-texinfo-*-
+@c We must \input texinfo.tex instead of texinfo, otherwise make
+@c distcheck in the Texinfo distribution fails, because the texinfo Info
+@c file is made first, and texi2dvi must include . first in the path.
 @comment %**start of header
 @setfilename info.info
 @settitle Info
@@ -6,13 +9,12 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.33 2003/07/16 22:17:40 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 Free Software Foundation, Inc.
 
 @quotation
@@ -459,7 +461,7 @@ Now type @kbd{]}, to learn about the @kbd{]} and @kbd{[} commands.
 @end menu
 
 @node Help-], , , Help-Inv
-@subsection The @kbd{]} and @kbd{[} commands.
+@subsection The @kbd{]} and @kbd{[} commands
 
 If you type @kbd{n} now, you get an error message saying that this
 node has no next node.  Similarly, if you type @kbd{p}, the error
@@ -829,12 +831,16 @@ between local and remote links.
   The introductory course is almost over; please continue
 a little longer to learn some intermediate-level commands.
 
-  Most Info files have an index, which is actually a large node that
-contains nothing but a menu.  The menu has one menu item for each
-topic listed in the index.  You can find the index node from the main
-menu of the file, with the @kbd{m} command; then you can use the
-@kbd{m} command again in the index node to go to the node that
-describes the topic.
+  Most Info files have an index, which is actually a large node
+containing little but a menu.  The menu has one menu item for each
+topic listed in the index.  (As a special feature, menus for indices
+may also include the line number within the node of the index entry.
+This allows Info readers to go to the exact line of an entry, not just
+the start of the containing node.)
+
+  You can get to the index from the main menu of the file with the
+@kbd{m} command; then you can use the @kbd{m} command again in the
+index node to go to the node that describes the topic you want.
 
   There is also a short-cut Info command, @kbd{i}, which does all of
 that for you.  It searches the index for a given topic (a string) and
@@ -933,7 +939,7 @@ Documentation Format}.
 
 Here are some more Info commands that make it easier to move around.
 
-@unnumberedsubsec @kbd{g} goes to a node by name
+@subheading @kbd{g} goes to a node by name
 
 @kindex g @r{(Info mode)}
 @findex Info-goto-node
@@ -959,7 +965,7 @@ the node @samp{Top} in the Info file @file{dir}.  Likewise,
 all of the current file by typing @kbd{g*@key{RET}} or all of any
 other file with @kbd{g(@var{filename})@key{RET}}.
 
-@unnumberedsubsec @kbd{1} -- @kbd{9} choose a menu subtopic by its number
+@subheading @kbd{1} -- @kbd{9} choose a menu subtopic by its number
 
 @kindex 1 @r{through} 9 @r{(Info mode)}
 @findex Info-nth-menu-item
@@ -973,17 +979,18 @@ In the stand-alone reader, @kbd{0} goes through the last menu item;
 this is so you need not count how many entries are there.  In Emacs,
 the digit keys run the command @code{Info-nth-menu-item}.
 
-  If your display supports multiple fonts, and you are using Emacs'
-Info mode to read Info files, the @samp{*} for the fifth menu item
-stands out, either in color or in some other attribute, such as
-underline, and so is the @samp{*} for the ninth item; this makes it
-easy to see at a glance which number to use for an item.
+  If your display supports multiple fonts, colors or underlining, and
+you are using Emacs' Info mode to read Info files, the third, sixth
+and ninth menu items have a @samp{*} that stands out, either in color
+or in some other attribute, such as underline; this makes it easy to
+see at a glance which number to use for an item.
 
-  Some terminals don't support colors or underlining.  If you need to
-actually count items, it is better to use @kbd{m} instead, and specify
-the name, or use @key{TAB} to quickly move between menu items.
+  Some terminals don't support either multiple fonts, colors or
+underlining.  If you need to actually count items, it is better to use
+@kbd{m} instead, and specify the name, or use @key{TAB} to quickly
+move between menu items.
 
-@unnumberedsubsec @kbd{e} makes Info document editable
+@subheading @kbd{e} makes Info document editable
 
 @kindex e @r{(Info mode)}
 @findex Info-edit
@@ -997,6 +1004,23 @@ only if the variable @code{Info-enable-edit} is non-@code{nil}.
 @code{Info-edit}.  The stand-alone Info reader doesn't allow you to
 edit the Info file, so typing @kbd{e} there goes to the end of the
 current node.
+
+@subheading @kbd{M-n} creates a new independent Info buffer in Emacs
+
+@kindex M-n @r{(Info mode)}
+@findex clone-buffer
+@cindex multiple Info buffers
+  If you are reading Info in Emacs, you can select a new independent
+Info buffer in another window by typing @kbd{M-n}.  The new buffer
+starts out as an exact copy of the old one, but you will be able to
+move independently between nodes in the two buffers.  (In Info mode,
+@kbd{M-n} runs the Emacs command @code{clone-buffer}.)
+
+  In Emacs Info, you can also produce new Info buffers by giving a
+numeric prefix argument to the @kbd{m} and @kbd{g} commands.  @kbd{C-u
+m} and @kbd{C-u g} go to a new node in exactly the same way that
+@kbd{m} and @kbd{g} do, but they do so in a new Info buffer which they
+select in another window.
 
 @node Info Search, Add, Advanced, Expert Info
 @comment  node-name,  next,  previous,  up
@@ -1031,7 +1055,7 @@ you typed @emph{as a substring}.  For each match, Info shows in the
 echo area the full index entry it found.  Often, the text of the full
 index entry already gives you enough information to decide whether it
 is relevant to what you are looking for, so we recommend that you read
-what Emacs shows in the echo are before looking at the node it
+what Emacs shows in the echo area before looking at the node it
 displays.
 
   Since @kbd{i} looks for a substring, you can search for subjects even
@@ -1046,11 +1070,17 @@ options, and key sequences that the program provides.  If you are
 looking for a description of a command, an option, or a key, just type
 their names when @kbd{i} prompts you for a topic.  For example, if you
 want to read the description of what the @kbd{C-f} key does, type
-@kbd{iC-f@key{RET}}.  Here @kbd{C-f} are 3 literal characters
+@kbd{i C - f @key{RET}}.  Here @kbd{C-f} are 3 literal characters
 @samp{C}, @samp{-}, and @samp{f}, not the ``Control-f'' command key
 you type inside Emacs to run the command bound to @kbd{C-f}.
 
   In Emacs, @kbd{i} runs the command @code{Info-index}.
+
+@findex info-apropos
+If you don't know what manual documents something, try the @kbd{M-x
+info-apropos} command.  It prompts for a string and then looks up that
+string in all the indices of all the Info documents installed on your
+system.
 
 @kindex s @r{(Info mode)}
 @findex Info-search
@@ -1456,3 +1486,7 @@ topics discussed in this document.
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 965c1638-01d6-4156-9227-b10418b9d8e8
+@end ignore

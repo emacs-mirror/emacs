@@ -127,3 +127,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Special library needed for linking for 4.1.  */
 #define LIBS_SYSTEM -ljobs
+
+/* arch-tag: de56716a-ed9b-4851-a5c5-c882efaf9931
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 04 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -826,7 +826,8 @@ Reestablish the default three-window display."
 		 (eq this-command 'ediff-quit))))
 	  ))
 
-    (ediff-restore-highlighting)
+    (or no-rehighlight
+	(ediff-restore-highlighting))
     (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines))
     ))
 
@@ -1079,8 +1080,10 @@ of the current buffer."
 		 (eq this-command 'ediff-toggle-read-only)
 		 (file-exists-p file)
 		 (not (file-writable-p file)))
-	    (message "Warning: file %s is read-only"
-		     (ediff-abbreviate-file-name file) (beep 1)))
+	    (progn
+	      (beep 1)
+	      (message "Warning: file %s is read-only"
+		       (ediff-abbreviate-file-name file))))
 	))))
 
 ;; checkout if visited file is checked in
@@ -2232,7 +2235,7 @@ a regular expression typed in by the user."
       (if (y-or-n-p
 	   (format
 	    "Ignore regions that match %s regexps, OK? "
-	    msg-connective alt-msg-connective))
+	    msg-connective))
 	  (message "Will ignore regions that match %s regexps" msg-connective)
 	(setq ediff-hide-regexp-connective alt-connective)
 	(message "Will ignore regions that match %s regexps"
@@ -2271,7 +2274,7 @@ a regular expression typed in by the user."
       (if (y-or-n-p
 	   (format
 	    "Focus on regions that match %s regexps, OK? "
-	    msg-connective alt-msg-connective))
+	    msg-connective))
 	  (message "Will focus on regions that match %s regexps"
 		   msg-connective)
 	(setq ediff-focus-regexp-connective alt-connective)
@@ -2940,6 +2943,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	     ))
 
 	(ediff-install-fine-diff-if-necessary n)
+	;; set current difference here so the hook will be able to refer to it
+	(setq ediff-current-difference n)
 	(run-hooks 'ediff-select-hook))))
 
 
@@ -2991,6 +2996,9 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 	  (or (eq flag 'unselect-only)
 	      (ediff-select-difference n))
+	  ;; need to set current diff here even though it is also set in
+	  ;; ediff-select-difference because ediff-select-difference might not
+	  ;; be called if unselect-only is specified
 	  (setq ediff-current-difference n)
 	  ) ; end protected section
 
@@ -3393,29 +3401,33 @@ Without an argument, it saves customized diff argument, if available
   (let ((buf-A-file-name (buffer-file-name ediff-buffer-A))
 	(buf-B-file-name (buffer-file-name ediff-buffer-B))
 	file-A file-B)
-    (if (stringp buf-A-file-name)
-	(setq buf-A-file-name (file-name-nondirectory buf-A-file-name)))
-    (if (stringp buf-B-file-name)
-	(setq buf-B-file-name (file-name-nondirectory buf-B-file-name)))
-    (setq file-A (ediff-make-temp-file ediff-buffer-A buf-A-file-name)
-	  file-B (ediff-make-temp-file ediff-buffer-B buf-B-file-name))
-
+    (unless (and buf-A-file-name (file-exists-p buf-A-file-name))
+      (setq file-A
+	    (ediff-make-temp-file ediff-buffer-A)))
+    (unless (and buf-B-file-name (file-exists-p buf-B-file-name))
+      (setq file-B
+	    (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
 	(setq ediff-custom-diff-buffer
 	      (get-buffer-create
 	       (ediff-unique-buffer-name "*ediff-custom-diff" "*"))))
     (ediff-with-current-buffer ediff-custom-diff-buffer
-      (setq buffer-read-only nil)
-      (erase-buffer))
+			       (setq buffer-read-only nil)
+			       (erase-buffer))
     (ediff-exec-process
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
-     ediff-custom-diff-options file-A file-B)
+     ediff-custom-diff-options
+     ;; repetition of buf-A-file-name is needed so it'll return a file
+     (or (and buf-A-file-name (file-exists-p buf-A-file-name) buf-A-file-name)
+	 file-A)
+     (or (and buf-B-file-name (file-exists-p buf-B-file-name) buf-B-file-name)
+	 file-B))
     ;; put the diff file in diff-mode, if it is available
     (if (fboundp 'diff-mode)
 	(with-current-buffer ediff-custom-diff-buffer
 	  (diff-mode)))
-    (delete-file file-A)
-    (delete-file file-B)
+    (and file-A (file-exists-p file-A) (delete-file file-A))
+    (and file-B (file-exists-p file-B) (delete-file file-B))
     ))
 
 (defun ediff-show-diff-output (arg)
@@ -4286,4 +4298,5 @@ Mail anyway? (y or n) ")
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: f51099b6-ef4b-470f-88a1-3a0e0b03a879
 ;;; ediff-util.el ends here

@@ -1157,4 +1157,5 @@ different buffer menu using the function `msb'."
 (provide 'msb)
 (eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
 
+;;; arch-tag: 403f9e82-b92e-4e7a-a797-5d6d9b76da36
 ;;; msb.el ends here

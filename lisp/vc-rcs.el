@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.36 2003/02/04 12:11:40 lektu Exp $
+;; $Id: vc-rcs.el,v 1.38 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -479,14 +479,14 @@ Needs RCS 5.6.2 or later for -M."
 ;;; History functions
 ;;;
 
-(defun vc-rcs-print-log (file)
+(defun vc-rcs-print-log (file &optional buffer)
   "Get change log associated with FILE."
-  (vc-do-command nil 0 "rlog" (vc-name file)))
+  (vc-do-command buffer 0 "rlog" (vc-name file)))
 
-(defun vc-rcs-diff (file &optional oldvers newvers)
+(defun vc-rcs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using RCS between two versions of FILE."
   (if (not oldvers) (setq oldvers (vc-workfile-version file)))
-  (apply 'vc-do-command "*vc-diff*" 1 "rcsdiff" file
+  (apply 'vc-do-command (or buffer "*vc-diff*") 1 "rcsdiff" file
          (append (list "-q"
                        (concat "-r" oldvers)
                        (and newvers (concat "-r" newvers)))
@@ -782,4 +782,5 @@ variable `vc-rcs-release' is set to the returned value."
 
 (provide 'vc-rcs)
 
+;;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

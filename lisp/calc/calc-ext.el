@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -591,6 +591,9 @@
   (define-key calc-mode-map "v}" 'calc-matrix-brackets)
   (define-key calc-mode-map "v(" 'calc-vector-parens)
   (define-key calc-mode-map "v)" 'calc-matrix-brackets)
+  ;; We can't rely on the automatic upper->lower conversion because
+  ;; in the global map V is explicitly bound, so we need to bind it
+  ;; explicitly as well :-(  --stef
   (define-key calc-mode-map "V" (lookup-key calc-mode-map "v"))
 
   (define-key calc-mode-map "z" 'nil)
@@ -1262,7 +1265,7 @@ calc-kill calc-kill-region calc-yank))))
       (if key
 	  (if msgs
 	      (message "%s: %s: %c-" group (car msgs) key)
-	    (message "%s: (none)  %c-" group (car msgs) key))
+	    (message "%s: (none)  %c-" group key))
 	(message "%s: %s" group (car msgs))))
     (and key (calc-unread-command key))))
 
@@ -3287,4 +3290,5 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
 (run-hooks 'calc-ext-load-hook)
 
+;;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here

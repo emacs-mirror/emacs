@@ -569,4 +569,5 @@ in the minibuffer:
 
 ;;; Code:
 
+;;; arch-tag: 1e9c5a95-f1bd-45f8-ad36-55aac706e787
 ;;; em-dirs.el ends here

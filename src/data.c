@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001, 2003
+   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -71,6 +71,7 @@ Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qtext_read_only;
+
 Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
@@ -87,7 +88,8 @@ Lisp_Object Qoverflow_error, Qunderflow_error;
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
+Lisp_Object Qinteger;
+static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
@@ -728,7 +730,7 @@ determined by DEFINITION.  */)
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
-       doc: /* Set SYMBOL's property list to NEWVAL, and return NEWVAL.  */)
+       doc: /* Set SYMBOL's property list to NEWPLIST, and return NEWPLIST.  */)
      (symbol, newplist)
      register Lisp_Object symbol, newplist;
 {
@@ -759,17 +761,39 @@ function with `&rest' args, or `unevalled' for a special form.  */)
     return Fcons (make_number (minargs), make_number (maxargs));
 }
 
-DEFUN ("subr-interactive-form", Fsubr_interactive_form, Ssubr_interactive_form, 1, 1, 0,
-       doc: /* Return the interactive form of SUBR or nil if none.
-SUBR must be a built-in function.  Value, if non-nil, is a list
+DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
+       doc: /* Return the interactive form of CMD or nil if none.
+CMD must be a command.  Value, if non-nil, is a list
 \(interactive SPEC).  */)
-     (subr)
-     Lisp_Object subr;
+     (cmd)
+     Lisp_Object cmd;
 {
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
-  if (XSUBR (subr)->prompt)
-    return list2 (Qinteractive, build_string (XSUBR (subr)->prompt));
+  Lisp_Object fun = indirect_function (cmd);
+
+  if (SUBRP (fun))
+    {
+      if (XSUBR (fun)->prompt)
+	return list2 (Qinteractive, build_string (XSUBR (fun)->prompt));
+    }
+  else if (COMPILEDP (fun))
+    {
+      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE)
+	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
+    }
+  else if (CONSP (fun))
+    {
+      Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qlambda))
+	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
+      else if (EQ (funcar, Qautoload))
+	{
+	  struct gcpro gcpro1;
+	  GCPRO1 (cmd);
+	  do_autoload (fun, cmd);
+	  UNGCPRO;
+	  return Finteractive_form (cmd);
+	}
+    }
   return Qnil;
 }
 
@@ -871,6 +895,8 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
      register Lisp_Object valcontents, newval;
      struct buffer *buf;
 {
+  int offset;
+
   switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
     case Lisp_Misc:
@@ -890,6 +916,36 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 
 	case Lisp_Misc_Objfwd:
 	  *XOBJFWD (valcontents)->objvar = newval;
+
+	  /* If this variable is a default for something stored
+	     in the buffer itself, such as default-fill-column,
+	     find the buffers that don't have local values for it
+	     and update them.  */
+	  if (XOBJFWD (valcontents)->objvar > (Lisp_Object *) &buffer_defaults
+	      && XOBJFWD (valcontents)->objvar < (Lisp_Object *) (&buffer_defaults + 1))
+	    {
+	      int offset = ((char *) XOBJFWD (valcontents)->objvar
+			    - (char *) &buffer_defaults);
+	      int idx = PER_BUFFER_IDX (offset);
+
+	      Lisp_Object tail, buf;
+
+	      if (idx <= 0)
+		break;
+
+	      for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+		{
+		  Lisp_Object buf;
+		  struct buffer *b;
+
+		  buf = Fcdr (XCAR (tail));
+		  if (!BUFFERP (buf)) continue;
+		  b = XBUFFER (buf);
+
+		  if (! PER_BUFFER_VALUE_P (b, idx))
+		    PER_BUFFER_VALUE (b, offset) = newval;
+		}
+	    }
 	  break;
 
 	case Lisp_Misc_Buffer_Objfwd:
@@ -1449,6 +1505,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
   register Lisp_Object tem, valcontents, newval;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1502,6 +1559,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   register Lisp_Object tem, valcontents;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1581,6 +1639,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
   register Lisp_Object tem, valcontents;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
@@ -1645,6 +1704,7 @@ See `modify-frame-parameters' for how to set frame parameters.  */)
   register Lisp_Object tem, valcontents, newval;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
@@ -1694,6 +1754,7 @@ BUFFER defaults to the current buffer.  */)
     }
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1701,7 +1762,6 @@ BUFFER defaults to the current buffer.  */)
     {
       Lisp_Object tail, elt;
 
-      variable = indirect_variable (variable);
       for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
@@ -1738,6 +1798,7 @@ BUFFER defaults to the current buffer.  */)
     }
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
@@ -1757,6 +1818,41 @@ BUFFER defaults to the current buffer.  */)
 	    return Qt;
 	}
     }
+  return Qnil;
+}
+
+DEFUN ("variable-binding-locus", Fvariable_binding_locus, Svariable_binding_locus,
+       1, 1, 0,
+       doc: /* Return a value indicating where VARIABLE's current binding comes from.
+If the current binding is buffer-local, the value is the current buffer.
+If the current binding is frame-local, the value is the selected frame.
+If the current binding is global (the default), the value is nil.  */)
+     (variable)
+     register Lisp_Object variable;
+{
+  Lisp_Object valcontents;
+
+  CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
+
+  /* Make sure the current binding is actually swapped in.  */
+  find_symbol_value (variable);
+
+  valcontents = XSYMBOL (variable)->value;
+
+  if (BUFFER_LOCAL_VALUEP (valcontents)
+      || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+      || BUFFER_OBJFWDP (valcontents))
+    {
+      /* For a local variable, record both the symbol and which
+	 buffer's or frame's value we are saving.  */
+      if (!NILP (Flocal_variable_p (variable, Qnil)))
+	return Fcurrent_buffer ();
+      else if (!BUFFER_OBJFWDP (valcontents)
+	       && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
+	return XBUFFER_LOCAL_VALUE (valcontents)->frame;
+    }
+
   return Qnil;
 }
 
@@ -2701,6 +2797,20 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
   XSETINT (number, ~XINT (number));
   return number;
 }
+
+DEFUN ("byteorder", Fbyteorder, Sbyteorder, 0, 0, 0,
+       doc: /* Return the byteorder for the machine.
+Returns 66 (ASCII uppercase B) for big endian machines or 108 (ASCII
+lowercase l) for small endian machines.  */)
+     ()
+{
+  unsigned i = 0x04030201;
+  int order = *(char *)&i == 1 ? 108 : 66;
+
+  return make_number (order);
+}
+
+
 
 void
 syms_of_data ()
@@ -3017,7 +3127,7 @@ syms_of_data ()
   staticpro (&Qhash_table);
 
   defsubr (&Sindirect_variable);
-  defsubr (&Ssubr_interactive_form);
+  defsubr (&Sinteractive_form);
   defsubr (&Seq);
   defsubr (&Snull);
   defsubr (&Stype_of);
@@ -3075,6 +3185,7 @@ syms_of_data ()
   defsubr (&Smake_variable_frame_local);
   defsubr (&Slocal_variable_p);
   defsubr (&Slocal_variable_if_set_p);
+  defsubr (&Svariable_binding_locus);
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);
@@ -3102,6 +3213,7 @@ syms_of_data ()
   defsubr (&Sadd1);
   defsubr (&Ssub1);
   defsubr (&Slognot);
+  defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
@@ -3154,3 +3266,6 @@ init_data ()
   signal (SIGEMT, arith_error);
 #endif /* uts */
 }
+
+/* arch-tag: 25879798-b84d-479a-9c89-7d148e2109f7
+   (do not change this comment) */

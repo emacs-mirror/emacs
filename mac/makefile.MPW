@@ -1123,3 +1123,4 @@ Make-DocFile Ä {Make-DocFileDir}Make-DocFile
 "{Source}chdir.c.x" Ä {Makefile} "{Source}chdir.c"
 	{PPCC} "{Source}chdir.c" -o "{Source}chdir.c.x" {Make-DocFile-PPCCOptions}
 
+# arch-tag: c9d9bc1a-142f-41da-b75e-79e0c44ffbb4

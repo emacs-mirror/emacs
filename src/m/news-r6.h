@@ -49,7 +49,5 @@
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
-#define XUNMARK(a)							\
-  ((a) =								\
-   (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))			\
-    >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
+/* arch-tag: b9fd7b75-ba3c-46d4-8966-24381b13001b
+   (do not change this comment) */

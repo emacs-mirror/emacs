@@ -66,3 +66,7 @@
 }
 
 \eject\bye
+
+@ignore
+   arch-tag: e1830f4c-dc4a-4314-b706-a03c7e93f022
+@end ignore

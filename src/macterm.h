@@ -23,44 +23,25 @@ Boston, MA 02111-1307, USA.  */
 #include "macgui.h"
 #include "frame.h"
 
-/* Include Carbon.h to define Cursor and Rect.  */
-#ifdef HAVE_CARBON
-#undef mktime
-#undef DEBUG
-#undef Z
-#undef free
-#undef malloc
-#undef realloc
-/* Macros max and min defined in lisp.h conflict with those in
-   precompiled header Carbon.h.  */
-#undef max
-#undef min
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef Z
-#define Z (current_buffer->text->z)
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#undef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#undef init_process
-#define init_process emacs_init_process
-#endif /* MAC_OSX */
-
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
 
 #define RED_FROM_ULONG(color) ((color) >> 16)
 #define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
 #define BLUE_FROM_ULONG(color) ((color) & 0xff)
 
+/* Do not change `* 0x101' in the following lines to `<< 8'.  If
+   changed, image masks in 1-bit depth will not work. */
+#define RED16_FROM_ULONG(color) (RED_FROM_ULONG(color) * 0x101)
+#define GREEN16_FROM_ULONG(color) (GREEN_FROM_ULONG(color) * 0x101)
+#define BLUE16_FROM_ULONG(color) (BLUE_FROM_ULONG(color) * 0x101)
+
 #define BLACK_PIX_DEFAULT(f) RGB_TO_ULONG(0,0,0)
 #define WHITE_PIX_DEFAULT(f) RGB_TO_ULONG(255,255,255)
+
+/* A black pixel in a mask bitmap/pixmap means ``draw a source
+   pixel''.  A white pixel means ``retain the current pixel''. */
+#define PIX_MASK_DRAW(f) BLACK_PIX_DEFAULT(f)
+#define PIX_MASK_RETAIN(f) WHITE_PIX_DEFAULT(f)
 
 #define FONT_WIDTH(f)   ((f)->max_bounds.width)
 #define FONT_HEIGHT(f)  ((f)->ascent + (f)->descent)
@@ -75,6 +56,7 @@ Boston, MA 02111-1307, USA.  */
 struct mac_bitmap_record
 {
   char *bitmap_data;
+  char *file;
   int refcount;
   int height, width;
 };
@@ -101,8 +83,13 @@ struct mac_display_info
   /* Number of planes on this screen.  */
   int n_planes;
 
+  /* Whether the screen supports color */ 
+  int color_p;
+
+#if 0
   /* Number of bits per pixel on this screen.  */
   int n_cbits;
+#endif
 
   /* Dimensions of this screen.  */
   int height, width;
@@ -253,6 +240,12 @@ extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
 extern struct mac_display_info *mac_term_init ();
 
+extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
+extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
+extern struct font_info *x_load_font P_ ((struct frame *, char *, int));
+extern struct font_info *x_query_font P_ ((struct frame *, char *));
+extern void x_find_ccl_program P_ ((struct font_info *));
+
 /* When Emacs uses a tty window, tty_display in frame.c points to an
    x_output struct .  */
 struct x_output
@@ -578,6 +571,24 @@ struct frame * check_x_frame (Lisp_Object);
 void activate_scroll_bars (FRAME_PTR);
 void deactivate_scroll_bars (FRAME_PTR);
 
+/* Defined in macterm.c.  */
+
+extern void x_set_window_size P_ ((struct frame *, int, int, int));
+extern void x_make_frame_visible P_ ((struct frame *));
+extern void mac_initialize P_ ((void));
+extern Pixmap XCreatePixmap P_ ((Display *, WindowPtr, unsigned int,
+				 unsigned int, unsigned int));
+extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
+					       unsigned int, unsigned int,
+					       unsigned long, unsigned long,
+					       unsigned int));
+extern void XFreePixmap P_ ((Display *, Pixmap));
+extern void XSetForeground P_ ((Display *, GC, unsigned long));
+extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
+					 int, int));
+
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+/* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79
+   (do not change this comment) */

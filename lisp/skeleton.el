@@ -561,4 +561,5 @@ symmetrical ones, and the same character twice for the others."
 
 (provide 'skeleton)
 
+;;; arch-tag: ccad7bd5-eb5d-40de-9ded-900197215c3e
 ;;; skeleton.el ends here

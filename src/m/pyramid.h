@@ -61,3 +61,6 @@ Boston, MA 02111-1307, USA.  */
 /* Reenable this #define for old versions of the Pyramid system.  */
 
 /* #define PYRAMID_OLD */
+
+/* arch-tag: b9097bc9-92be-46d4-acb1-13c2b966d581
+   (do not change this comment) */

@@ -114,6 +114,7 @@ Lisp_Object Qface_set_after_frame_default;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
+Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
 Lisp_Object Vdelete_frame_functions;
@@ -1278,6 +1279,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (f->namebuf)
     xfree (f->namebuf);
+  if (f->decode_mode_spec_buffer)
+    xfree (f->decode_mode_spec_buffer);
   if (FRAME_INSERT_COST (f))
     xfree (FRAME_INSERT_COST (f));
   if (FRAME_DELETEN_COST (f))
@@ -2015,7 +2018,7 @@ store_frame_param (f, prop, val)
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
       if (! MINI_WINDOW_P (XWINDOW (val)))
-	error ("Surrogate minibuffer windows must be minibuffer windows.");
+	error ("Surrogate minibuffer windows must be minibuffer windows");
 
       if ((FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f))
 	  && !EQ (val, f->minibuffer_window))
@@ -2590,32 +2593,6 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
 }
 
 
-/* Really try to move where we want to be in case of fullscreen.  Some WMs
-   moves the window where we tell them.  Some (mwm, twm) moves the outer
-   window manager window there instead.
-   Try to compensate for those WM here. */
-
-static void
-x_fullscreen_move (f, new_top, new_left)
-     struct frame *f;
-     int new_top;
-     int new_left;
-{
-  if (new_top != f->top_pos || new_left != f->left_pos)
-    {
-      int move_x = new_left;
-      int move_y = new_top;
-
-#ifdef HAVE_X_WINDOWS
-      move_x += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
-      move_y += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
-#endif
-
-      f->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
-      x_set_offset (f, move_x, move_y, 1);
-    }
-}
-
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing special;
    otherwise call the `x_set_...' function for that parameter.
@@ -2811,7 +2788,8 @@ x_set_frame_parameters (f, alist)
       int new_left, new_top;
 
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
-      x_fullscreen_move (f, new_top, new_left);
+      if (new_top != f->top_pos || new_left != f->left_pos)
+        x_set_offset (f, new_left, new_top, 1);
     }
 #endif
 
@@ -3217,13 +3195,11 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	   ? vertical_scroll_bar_left
 	   : EQ (Qright, arg)
 	   ? vertical_scroll_bar_right
-#ifdef HAVE_NTGUI
-	   /* MS-Windows has scroll bars on the right by default.  */
-	   : vertical_scroll_bar_right
-#else
-	   : vertical_scroll_bar_left
-#endif
-	   );
+	   : EQ (Qleft, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_left
+	   : EQ (Qright, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_right
+	   : vertical_scroll_bar_none);
 
       /* We set this parameter before creating the X window for the
 	 frame, so we can get the geometry right from the start.
@@ -4032,6 +4008,19 @@ The `menu-bar-lines' element of the list controls whether new frames
 Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
 
+  DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
+	       doc: /* Default position of scroll bars on this window-system.  */);
+#ifdef HAVE_WINDOW_SYSTEM
+#if defined(HAVE_NTGUI) || defined(HAVE_CARBON)
+  /* MS-Windows has scroll bars on the right by default.  */
+  Vdefault_frame_scroll_bars = Qright;
+#else
+  Vdefault_frame_scroll_bars = Qleft;
+#endif
+#else
+  Vdefault_frame_scroll_bars = Qnil;
+#endif
+
   Qinhibit_default_face_x_resources
     = intern ("inhibit-default-face-x-resources");
   staticpro (&Qinhibit_default_face_x_resources);
@@ -4134,3 +4123,6 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
 #endif
 
 }
+
+/* arch-tag: 7dbf2c69-9aad-45f8-8296-db893d6dd039
+   (do not change this comment) */

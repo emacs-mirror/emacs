@@ -185,4 +185,5 @@
 
 (provide 'cl-compat)
 
+;;; arch-tag: 9996bb4f-aaf5-4592-b436-bf64759a3163
 ;;; cl-compat.el ends here

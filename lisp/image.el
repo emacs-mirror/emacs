@@ -67,7 +67,8 @@ We accept the tag Exif because that is the same format."
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
 	      (throw 'jfif
-		     (string-match "JFIF\\|Exif" (substring data i (+ i nbytes)))))
+		     (string-match "JFIF\\|Exif"
+				   (substring data i (min (+ i nbytes) len)))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
@@ -292,4 +293,5 @@ Example:
 
 (provide 'image)
 
+;;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
 ;;; image.el ends here

@@ -3,7 +3,6 @@
 ;; Copyright (C) 1998, 99, 2000-2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.61 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -681,4 +680,5 @@ AFTER-TEXT is inserted just after the widget."
 
 (provide 'ada-prj)
 
+;;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
 ;;; ada-prj.el ends here

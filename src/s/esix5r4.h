@@ -22,3 +22,6 @@
 /* zircon!joe says this makes X windows work.  */
 # define BROKEN_FIONREAD
 #endif
+
+/* arch-tag: 2d314ae9-0357-4ddf-96e5-cf821071ba4b
+   (do not change this comment) */

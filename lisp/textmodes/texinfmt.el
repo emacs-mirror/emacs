@@ -134,6 +134,11 @@ Info-split to do these manually."
 (defvar texinfo-region-buffer-name "*Info Region*"
   "*Name of the temporary buffer used by \\[texinfo-format-region].")
 
+(defvar texinfo-pre-format-hook nil
+  "Hook called before the conversion of the Texinfo file to Info format.
+The functions on this hook are called with argument BUFFER, the buffer
+containing the Texinfo file.")
+
 ;; These come from tex-mode.el.
 (defvar tex-start-of-header)
 (defvar tex-end-of-header)
@@ -215,6 +220,7 @@ converted to Info is stored in a temporary buffer."
      input-buffer
      (max region-beginning header-end)
      region-end)
+    (run-hook-with-args 'texinfo-pre-format-hook input-buffer)
     ;; Make sure region ends in a newline.
     (or (= (preceding-char) ?\n)
         (insert "\n"))
@@ -381,6 +387,7 @@ if large.  You can use Info-split to do this manually."
     (set-syntax-table texinfo-format-syntax-table)
 
     (insert-buffer-substring input-buffer)
+    (run-hook-with-args 'texinfo-pre-format-hook input-buffer)
     (message "Converting %s to Info format..." (buffer-name input-buffer))
 
     ;; Insert @include files so `texinfo-raise-lower-sections' can
@@ -4334,4 +4341,5 @@ For example, invoke
 ;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
+;;; arch-tag: 1e8d9a2d-bca0-40a0-ac6c-dab01bc6f725
 ;;; texinfmt.el ends here

@@ -288,4 +288,5 @@ With a prefix, push that prefix as a number onto the stack."
 	       (nth 2 expr)))
 	(t (cons (car expr) (mapcar 'math-map-over-constants-rec (cdr expr))))))
 
+;;; arch-tag: 789332ef-a178-49d3-8fb7-5d7ed7e21f56
 ;;; calc-stuff.el ends here

@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989, 1990, 1991, 1992, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1991, 1992, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -618,10 +618,11 @@ Point must be located just after the node name.  Point left before description.
 Single argument, END-OF-MENU, is position limiting search."
   (skip-chars-forward "[:.,\t\n ]+")
   ;; don't copy a carriage return at line beginning with asterisk!
+  ;; don't copy @detailmenu or @end menu as descriptions!
   ;; do copy a description that begins with an `@'!
   ;; !! Known bug: does not copy descriptions starting with ^|\{?* etc.
   (if (and (looking-at "\\(\\w+\\|@\\)")
-	   (not (looking-at "\\(^\\* \\|^@end menu\\)")))
+	   (not (looking-at "\\(^\\* \\|^@detailmenu\\|^@end menu\\)")))
       (buffer-substring
        (point)
        (save-excursion
@@ -1782,7 +1783,13 @@ Requirements:
   * this node must be the first node in the included file,
   * each highest hierarchical level node must be of the same type.
 
-Thus, normally, each included file contains one, and only one, chapter."
+Thus, normally, each included file contains one, and only one, chapter.
+
+However, when an included file does not have any node lines in
+it, this command does not try to create a menu entry for it.
+Consequently, you can include any file, such as a version or an
+update file without node lines, not just files that are
+chapters."
 
 ;; The menu-list has the form:
 ;;
@@ -1795,25 +1802,34 @@ Thus, normally, each included file contains one, and only one, chapter."
 ;; description slot of a menu as a description.
 
   (let ((case-fold-search t)
-	menu-list next-node-name previous-node-name)
+	menu-list next-node-name previous-node-name files-with-node-lines)
 
-    ;; Find the name of the first node of the first included file.
-    (set-buffer (find-file-noselect (car (cdr files))))
+    ;; Create a new list of included files that only have node lines
+    (while files
+      (set-buffer (find-file-noselect (car files)))
+      (widen)
+      (goto-char (point-min))
+      (when (re-search-forward "^@node" nil t)
+        (setq files-with-node-lines (cons (car files) files-with-node-lines)))
+      (setq files (cdr files)))
+    (setq files-with-node-lines (nreverse files-with-node-lines))
+
+    ;; Find the name of the first node in a subsequent file
+    ;; and copy it into the variable  next-node-name
+    (set-buffer (find-file-noselect (car (cdr files-with-node-lines))))
     (widen)
     (goto-char (point-min))
-    (if (not (re-search-forward "^@node" nil t))
-	(error "No `@node' line found in %s" (buffer-name)))
     (beginning-of-line)
     (texinfo-check-for-node-name)
     (setq next-node-name (texinfo-copy-node-name))
-
     (push (cons next-node-name (prog1 "" (forward-line 1)))
 	  ;; Use following to insert section titles automatically.
 	  ;; (texinfo-copy-next-section-title)
 	  menu-list)
 
     ;; Go to outer file
-    (set-buffer (find-file-noselect (pop files)))
+    ;; `pop' is analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE)))
+    (set-buffer (find-file-noselect (pop files-with-node-lines)))
     (goto-char (point-min))
     (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
 	(error "This buffer needs a Top node"))
@@ -1824,18 +1840,16 @@ Thus, normally, each included file contains one, and only one, chapter."
     (beginning-of-line)
     (setq previous-node-name "Top")
 
-    (while files
+    (while files-with-node-lines
 
-      (if (not (cdr files))
+      (if (not (cdr files-with-node-lines))
 	  ;; No next file
 	  (setq next-node-name "")
 	;; Else,
 	;; find the name of the first node in the next file.
-	(set-buffer (find-file-noselect (car (cdr files))))
+	(set-buffer (find-file-noselect (car (cdr files-with-node-lines))))
 	(widen)
 	(goto-char (point-min))
-	(if (not (re-search-forward "^@node" nil t))
-	    (error "No `@node' line found in %s" (buffer-name)))
 	(beginning-of-line)
 	(texinfo-check-for-node-name)
 	(setq next-node-name (texinfo-copy-node-name))
@@ -1845,10 +1859,8 @@ Thus, normally, each included file contains one, and only one, chapter."
 	      menu-list))
 
       ;; Go to node to be updated.
-      (set-buffer (find-file-noselect (car files)))
+      (set-buffer (find-file-noselect (car files-with-node-lines)))
       (goto-char (point-min))
-      (if (not (re-search-forward "^@node" nil t))
-	  (error "No `@node' line found in %s" (buffer-name)))
       (beginning-of-line)
 
       ;; Update other menus and nodes if requested.
@@ -1862,7 +1874,7 @@ Thus, normally, each included file contains one, and only one, chapter."
       (beginning-of-line)
       (setq previous-node-name (texinfo-copy-node-name))
 
-      (setq files (cdr files)))
+      (setq files-with-node-lines (cdr files-with-node-lines)))
     (nreverse menu-list)))
 
 (defun texinfo-multi-files-insert-main-menu (menu-list)
@@ -2039,4 +2051,5 @@ chapter."
 ;; Place `provide' at end of file.
 (provide 'texnfo-upd)
 
+;;; arch-tag: d21613a5-c32f-43f4-8af4-bfb1e7455842
 ;;; texnfo-upd.el ends here

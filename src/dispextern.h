@@ -50,53 +50,29 @@ typedef struct {
 
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
+typedef XImage * XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #define NativeRectangle XRectangle
 #endif
 
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
 typedef struct w32_display_info Display_Info;
+typedef XImage *XImagePtr;
+typedef HDC XImagePtr_or_DC;
 #endif
 
 #ifdef HAVE_CARBON
 #include "macgui.h"
 typedef struct mac_display_info Display_Info;
-
-/* Include Carbon.h to define Cursor and Rect.  */
-#undef mktime
-#undef DEBUG
-#undef Z
-#undef free
-#undef malloc
-#undef realloc
-/* Macros max and min defined in lisp.h conflict with those in
-   precompiled header Carbon.h.  */
-#undef max
-#undef min
-#undef init_process
-#include <Carbon/Carbon.h>
-#undef Z
-#define Z (current_buffer->text->z)
-#undef free
-#define free unexec_free
-#undef malloc
-#define malloc unexec_malloc
-#undef realloc
-#define realloc unexec_realloc
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#undef max
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#undef init_process
-#define init_process emacs_init_process
-
+/* Mac equivalent of XImage.  */
+typedef Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #endif
-
 
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
-
 
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
@@ -125,6 +101,9 @@ enum window_part
   ON_LEFT_MARGIN,
   ON_RIGHT_MARGIN
 };
+
+/* Number of bits allocated to store fringe bitmap numbers.  */
+#define FRINGE_ID_BITS  8
 
 
 
@@ -321,6 +300,9 @@ struct glyph
   /* Width in pixels.  */
   short pixel_width;
 
+  /* Ascent and descent in pixels.  */
+  short ascent, descent;
+
   /* Vertical offset.  If < 0, the glyph is displayed raised, if > 0
      the glyph is displayed lowered.  */
   short voffset;
@@ -359,8 +341,10 @@ struct glyph
      doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
+#define FACE_ID_BITS	21
+
   /* Face of the glyph.  */
-  unsigned face_id : 21;
+  unsigned face_id : FACE_ID_BITS;
 
   /* Type of font used to display the character glyph.  May be used to
      determine which set of functions to use to obtain font metrics
@@ -704,6 +688,33 @@ struct glyph_row
      position of the next row.  */
   struct display_pos end;
 
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_fringe_face_id : FACE_ID_BITS;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_fringe_face_id : FACE_ID_BITS;
+
+  /* 1 means that we must draw the bitmaps of this row.  */
+  unsigned redraw_fringe_bitmaps_p : 1;
+
   /* In a desired matrix, 1 means that this row must be updated.  In a
      current matrix, 0 means that the row has been invalidated, i.e.
      the row's contents do not agree with what is visible on the
@@ -771,6 +782,29 @@ struct glyph_row
 
   /* 1 means this row was ended by a newline from a string.  */
   unsigned ends_in_newline_from_string_p : 1;
+
+  /* 1 means this row width is exactly the width of the window, and the
+     final newline character is hidden in the right fringe.  */
+  unsigned exact_window_width_line_p : 1;
+
+  /* 1 means this row currently shows the cursor in the right fringe.  */
+  unsigned cursor_in_fringe_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the first line of the buffer.  */
+  unsigned indicate_bob_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the top line of the window, but not start of the buffer.  */
+  unsigned indicate_top_line_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the last line of the buffer.  */
+  unsigned indicate_eob_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the bottom line of the window, but not end of the buffer.  */
+  unsigned indicate_bottom_line_p : 1;
 
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
@@ -1486,6 +1520,7 @@ enum face_id
   BASIC_FACE_ID_SENTINEL
 };
 
+#define MAX_FACE_ID  ((1 << FACE_ID_BITS) - 1)
 
 /* A cache of realized faces.  Each frame has its own cache because
    Emacs allows different frame-local face definitions.  */
@@ -1564,26 +1599,6 @@ extern int face_change_count;
 			       Fringes
  ***********************************************************************/
 
-enum fringe_bitmap_type
-{
-  NO_FRINGE_BITMAP = 0,
-  LEFT_TRUNCATION_BITMAP,
-  RIGHT_TRUNCATION_BITMAP,
-  CONTINUED_LINE_BITMAP,
-  CONTINUATION_LINE_BITMAP,
-  OVERLAY_ARROW_BITMAP,
-  ZV_LINE_BITMAP,
-  MAX_FRINGE_BITMAPS
-};
-
-struct fringe_bitmap
-{
-  int width;
-  int height;
-  int period;
-  unsigned char *bits;
-};
-
 /* Structure used to describe where and how to draw a fringe bitmap.
    WHICH is the fringe bitmap to draw.  WD and H is the (adjusted)
    width and height of the bitmap, DH is the height adjustment (if
@@ -1594,14 +1609,17 @@ struct fringe_bitmap
 
 struct draw_fringe_bitmap_params
 {
-  enum fringe_bitmap_type which;
+  int which;  /* enum fringe_bitmap_type */
+  unsigned short *bits;
   int wd, h, dh;
   int x, y;
   int bx, nx, by, ny;
+  unsigned cursor_p : 1;
+  unsigned overlay_p : 1;
   struct face *face;
 };
 
-extern struct fringe_bitmap fringe_bitmaps[MAX_FRINGE_BITMAPS];
+#define MAX_FRINGE_BITMAPS (1<<FRINGE_ID_BITS)
 
 
 /***********************************************************************
@@ -1771,6 +1789,10 @@ struct it
      translation (e.g \222\244).  Such a character is at most 4 bytes,
      thus we need at most 16 bytes here.  */
   Lisp_Object ctl_chars[16];
+
+  /* Initial buffer or string position of the iterator, before skipping
+     over display properties and invisible text.  */
+  struct display_pos start;
 
   /* Current buffer or string position of the iterator, including
      position in overlay strings etc.  */
@@ -1958,6 +1980,9 @@ struct it
      glyph_row in move_it_to and display_line.  */
   int current_y;
 
+  /* Vertical matrix position of first text line in window.  */
+  int first_vpos;
+
   /* Current vertical matrix position, or line number.  Automatically
      incremented by move_it_to and display_line.  */
   int vpos;
@@ -1965,6 +1990,18 @@ struct it
   /* Horizontal matrix position reached in move_it_in_display_line.
      Only set there, not in display_line.  */
   int hpos;
+
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_user_fringe_face_id : FACE_ID_BITS;
 };
 
 
@@ -2120,6 +2157,11 @@ struct redisplay_interface
   /* Draw a fringe bitmap in window W of row ROW using parameters P.  */
   void (*draw_fringe_bitmap) P_ ((struct window *w, struct glyph_row *row,
 				  struct draw_fringe_bitmap_params *p));
+
+  /* Define and destroy fringe bitmap no. WHICH.  */
+  void (*define_fringe_bitmap) P_ ((int which, unsigned short *bits,
+				    int h, int wd));
+  void (*destroy_fringe_bitmap) P_ ((int which));
 
 /* Get metrics of character CHAR2B in FONT of type FONT_TYPE.
    Value is null if CHAR2B is not contained in the font.  */
@@ -2443,7 +2485,9 @@ int window_box_height P_ ((struct window *));
 int window_text_bottom_y P_ ((struct window *));
 int window_box_width P_ ((struct window *, int));
 int window_box_left P_ ((struct window *, int));
+int window_box_left_offset P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
+int window_box_right_offset P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
 int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 void pixel_to_glyph_coords P_ ((struct frame *, int, int, int *, int *,
@@ -2470,8 +2514,6 @@ void move_it_past_eol P_ ((struct it *));
 int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
-void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-void compute_fringe_widths P_ ((struct frame *, int));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
@@ -2486,6 +2528,9 @@ extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern int mouse_autoselect_window;
+
+extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
+					   /* XFontStruct */ void *, int, int *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -2523,6 +2568,7 @@ extern void x_draw_vertical_border P_ ((struct window *w));
 extern void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 extern void get_glyph_string_clip_rect P_ ((struct glyph_string *,
 					    NativeRectangle *nr));
+extern Lisp_Object find_hot_spot P_ ((Lisp_Object, int, int));
 extern void note_mouse_highlight P_ ((struct frame *, int, int));
 extern void x_clear_window_mouse_face P_ ((struct window *));
 extern void cancel_mouse_face P_ ((struct frame *));
@@ -2538,6 +2584,55 @@ extern int cursor_in_mouse_face_p P_ ((struct window *w));
 extern void expose_frame P_ ((struct frame *, int, int, int, int));
 extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
+#endif
+
+/* Defined in fringe.c */
+
+int valid_fringe_bitmap_id_p (int);
+void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
+void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
+void draw_window_fringes P_ ((struct window *));
+int update_window_fringes P_ ((struct window *, int));
+void compute_fringe_widths P_ ((struct frame *, int));
+
+#ifdef WINDOWS_NT
+void w32_init_fringe P_ ((void));
+void w32_reset_fringes P_ ((void));
+#endif
+
+/* Defined in image.c */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+extern int x_bitmap_height P_ ((struct frame *, int));
+extern int x_bitmap_width P_ ((struct frame *, int));
+extern int x_bitmap_pixmap P_ ((struct frame *, int));
+extern void x_reference_bitmap P_ ((struct frame *, int));
+extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
+					  unsigned int, unsigned int));
+extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
+#ifndef x_destroy_bitmap
+extern void x_destroy_bitmap P_ ((struct frame *, int));
+#endif
+extern void x_destroy_all_bitmaps P_ ((Display_Info *));
+extern int x_create_bitmap_mask P_ ((struct frame * , int));
+extern Lisp_Object x_find_image_file P_ ((Lisp_Object));
+
+void x_kill_gs_process P_ ((Pixmap, struct frame *));
+struct image_cache *make_image_cache P_ ((void));
+void free_image_cache P_ ((struct frame *));
+void clear_image_cache P_ ((struct frame *, int));
+void forall_images_in_image_cache P_ ((struct frame *,
+				       void (*) P_ ((struct image *))));
+int valid_image_p P_ ((Lisp_Object));
+void prepare_image_for_display P_ ((struct frame *, struct image *));
+int lookup_image P_ ((struct frame *, Lisp_Object));
+
+unsigned long image_background P_ ((struct image *, struct frame *,
+				    XImagePtr_or_DC ximg));
+int image_background_transparent P_ ((struct image *, struct frame *,
+				      XImagePtr_or_DC mask));
+
 #endif
 
 /* Defined in sysdep.c */
@@ -2596,27 +2691,14 @@ void gamma_correct P_ ((struct frame *, XColor *));
 #ifdef WINDOWSNT
 void gamma_correct P_ ((struct frame *, COLORREF *));
 #endif
+#ifdef MAC_OS
+void gamma_correct P_ ((struct frame *, unsigned long *));
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-void x_kill_gs_process P_ ((Pixmap, struct frame *));
 int x_screen_planes P_ ((struct frame *));
 void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-struct image_cache *make_image_cache P_ ((void));
-void free_image_cache P_ ((struct frame *));
-void clear_image_cache P_ ((struct frame *, int));
-void forall_images_in_image_cache P_ ((struct frame *,
-				       void (*) P_ ((struct image *))));
-int valid_image_p P_ ((Lisp_Object));
-void prepare_image_for_display P_ ((struct frame *, struct image *));
-int lookup_image P_ ((struct frame *, Lisp_Object));
-
-#ifdef HAVE_X_WINDOWS
-unsigned long image_background P_ ((struct image *, struct frame *,
-				    XImage *ximg));
-int image_background_transparent P_ ((struct image *, struct frame *,
-				      XImage *mask));
-#endif /* HAVE_X_WINDOWS */
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;
@@ -2656,10 +2738,19 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern Lisp_Object mode_line_string P_ ((struct window *, int, int,
-					 enum window_part, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int, int,
-					     enum window_part, int *));
+extern Lisp_Object buffer_posn_from_coords P_ ((struct window *,
+						int *, int *,
+						struct display_pos *,
+						Lisp_Object *, 
+						int *, int *, int *, int *));
+extern Lisp_Object mode_line_string P_ ((struct window *, enum window_part,
+					 int *, int *, int *,
+					 Lisp_Object *,
+					 int *, int *, int *, int *));
+extern Lisp_Object marginal_area_string P_ ((struct window *, enum window_part,
+					     int *, int *, int *,
+					     Lisp_Object *,
+					     int *, int *, int *, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
@@ -2700,8 +2791,6 @@ int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
-void buffer_posn_from_coords P_ ((struct window *, int *, int *,
-				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));
@@ -2779,3 +2868,6 @@ extern Lisp_Object x_default_parameter P_ ((struct frame *, Lisp_Object,
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not DISPEXTERN_H_INCLUDED */
+
+/* arch-tag: c65c475f-1c1e-4534-8795-990b8509fd65
+   (do not change this comment) */

@@ -1,12 +1,12 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992,93,94,95,96,98,99,2000,2003
+;; Copyright (C) 1992,93,94,95,96,98,99,2000,03,2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.155 2003/07/26 15:54:53 rost Exp $
+;; $Id: vc-hooks.el,v 1.165 2004/03/28 17:38:03 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,13 +40,20 @@
 ;; Customization Variables (the rest is in vc.el)
 
 (defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files 'vc-handled-backends)
+(make-obsolete-variable 'vc-ignore-vc-files
+                        "set `vc-handled-backends' to nil to disable VC.")
+
 (defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates 'vc-BACKEND-master-templates)
+(make-obsolete-variable 'vc-master-templates 
+ "to define master templates for a given BACKEND, use 
+vc-BACKEND-master-templates.  To enable or disable VC for a given
+BACKEND, use `vc-handled-backends'.")
+
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defcustom vc-handled-backends '(RCS CVS SVN MCVS SCCS)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
+  ;; Arch and MCVS come last because they are per-tree rather than per-dir.
   "*List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
@@ -259,7 +266,6 @@ It is usually called via the `vc-call' macro."
 (defmacro vc-call (fun file &rest args)
   ;; BEWARE!! `file' is evaluated twice!!
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
-
 
 (defsubst vc-parse-buffer (pattern i)
   "Find PATTERN in the current buffer and return its Ith submatch."
@@ -456,8 +462,21 @@ and does not employ any heuristic at all."
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
 Return non-nil if FILE is unchanged."
-  ;; If rev1 is nil, `diff' uses the current workfile version.
-  (zerop (vc-call diff file)))
+  (zerop (condition-case err
+             ;; If the implementation supports it, let the output
+             ;; go to *vc*, not *vc-diff*, since this is an internal call.
+             (vc-call diff file nil nil "*vc*")
+           (wrong-number-of-arguments
+            ;; If this error came from the above call to vc-BACKEND-diff,
+            ;; try again without the optional buffer argument (for
+            ;; backward compatibility).  Otherwise, resignal.
+            (if (or (not (eq (cadr err)
+                             (indirect-function
+                              (vc-find-backend-function (vc-backend file)
+                                                        'diff))))
+                    (not (eq (caddr err) 5)))
+                (signal wrong-number-of-arguments err)
+              (vc-call diff file))))))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
@@ -583,7 +602,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Make a backup copy of FILE, which is assumed in sync with the repository.
 Before doing that, check if there are any old backups and get rid of them."
   (unless (and (fboundp 'msdos-long-file-names)
-               (not (with-no-warnings msdos-long-file-names)))
+               (not (with-no-warnings (msdos-long-file-names))))
     (vc-delete-automatic-version-backups file)
     (copy-file file (vc-version-backup-file-name file)
                nil 'keep-date)))
@@ -692,6 +711,9 @@ current, and kill the buffer that visits the link."
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
+(defun vc-default-find-file-hook (backend)
+  nil)
+
 (defun vc-find-file-hook ()
   "Function for `find-file-hook' activating VC mode if appropriate."
   ;; Recompute whether file is version controlled,
@@ -707,7 +729,9 @@ current, and kill the buffer that visits the link."
       (unless vc-make-backup-files
 	;; Use this variable, not make-backup-files,
 	;; because this is for things that depend on the file name.
-	(set (make-local-variable 'backup-inhibited) t)))
+	(set (make-local-variable 'backup-inhibited) t))
+      ;; Let the backend setup any buffer-local things he needs.
+      (vc-call-backend (vc-backend buffer-file-name) 'find-file-hook))
      ((let* ((link (file-symlink-p buffer-file-name))
 	     (link-type (and link (vc-backend (file-chase-links link)))))
 	(cond ((not link-type) nil)	;Nothing to do.
@@ -746,14 +770,17 @@ Used in `find-file-not-found-functions'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
-  (if (and (vc-backend buffer-file-name)
-	   (yes-or-no-p
-	    (format "File %s was lost; check out from version control? "
-		    (file-name-nondirectory buffer-file-name))))
-    (save-excursion
-      (require 'vc)
-      (setq default-directory (file-name-directory buffer-file-name))
-      (not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  (let ((backend (vc-backend buffer-file-name)))
+    (if backend (vc-call-backend backend 'find-file-not-found-hook))))
+
+(defun vc-default-find-file-not-found-hook (backend)
+  (if (yes-or-no-p
+       (format "File %s was lost; check out from version control? "
+	       (file-name-nondirectory buffer-file-name)))
+      (save-excursion
+	(require 'vc)
+	(setq default-directory (file-name-directory buffer-file-name))
+	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 
@@ -842,4 +869,5 @@ Used in `find-file-not-found-functions'."
 
 (provide 'vc-hooks)
 
+;;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32
 ;;; vc-hooks.el ends here

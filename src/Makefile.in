@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2003
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 01, 03, 2004
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -305,14 +305,17 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcd
 #endif
 
 #ifdef HAVE_X_WINDOWS
+
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
+
 #ifdef HAVE_MENUS
 
-/* Include xmenu.o in the list of X object files.  */
+#ifndef HAVE_CARBON
+XMENU_OBJ = xmenu.o
+#endif
 
 #ifdef USE_GTK
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o gtkutil.o
-#else
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+GTK_OBJ= gtkutil.o
 #endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
@@ -332,9 +335,7 @@ LIBXMENU= -lXMenu
 
 #else /* not HAVE_MENUS */
 
-/* Otherwise, omit xmenu.o from the list of X object files, and
-   don't worry about the menu library at all.  */
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+/* Otherwise, don't worry about the menu library at all.  */
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -447,6 +448,10 @@ LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM L
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
+#else /* not HAVE_X_WINDOWS */
+#if defined(HAVE_MENUS) && !defined(HAVE_CARBON)
+XMENU_OBJ = xmenu.o
+#endif
 #endif /* not HAVE_X_WINDOWS */
 
 LIBSOUND= @LIBSOUND@
@@ -559,21 +564,22 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
 #endif
 
+#ifdef CYGWIN
+CYGWIN_OBJ = sheap.o
+#endif
+
 #ifdef HAVE_CARBON
 mac = $(dot)$(dot)/mac/
-XMENU_OBJ =
-MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o
+MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o fringe.o image.o
 emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
-#else
-XMENU_OBJ = xmenu.o
 #endif
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
-	cm.o term.o xfaces.o $(XOBJ) \
+	cm.o term.o xfaces.o $(XOBJ) $(GTK_OBJ)\
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o filemode.o \
@@ -584,7 +590,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -641,7 +647,12 @@ widgetobj=
 
 /* define otherobj as list of object files that make-docfile
    should not be told about.  */
+#ifdef CYGWIN
+/* Cygwin differs because of its unexec(). */
+otherobj= $(termcapobj) $(gmallocobj) $(rallocobj) lastfile.o vm-limit.o $(allocaobj) $(widgetobj) $(LIBOBJS)
+#else
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBOBJS)
+#endif
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
@@ -722,6 +733,7 @@ lisp= \
 	${lispsource}language/cyrillic.el \
 	${lispsource}language/indian.el \
 	${lispsource}language/devanagari.el \
+	${lispsource}language/kannada.el \
 	${lispsource}language/malayalam.el \
 	${lispsource}language/tamil.el \
 	${lispsource}language/english.el \
@@ -802,6 +814,7 @@ shortlisp= \
 	../lisp/language/cyrillic.el \
 	../lisp/language/indian.el \
 	../lisp/language/devanagari.el \
+	../lisp/language/kannada.el \
 	../lisp/language/malayalam.el \
 	../lisp/language/tamil.el \
 	../lisp/language/english.el \
@@ -926,11 +939,6 @@ prefix-args${EXEEXT}: prefix-args.c $(config_h)
 #define OLDXMENU_OPTIONS
 #endif
 
-/* Don't lose if this was not defined.  */
-#ifndef LWLIB_OPTIONS
-#define LWLIB_OPTIONS
-#endif
-
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
 
 /* We use stamp-xmenu with these two deps
@@ -954,7 +962,7 @@ C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-lwlib:
-	cd ${lwlibdir}; ${MAKE} ${MFLAGS} LWLIB_OPTIONS \
+	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
@@ -1005,40 +1013,10 @@ stamp-oldxmenu:
 	exit 1
 
 /* Some machines have alloca built-in.
-   They should define HAVE_ALLOCA, or may just let alloca.s
-   be used but generate no code.
-   Some have it written in assembler in alloca.s.
+   They should define HAVE_ALLOCA.
    Some use the C version in alloca.c (these define C_ALLOCA in config.h).
    */
-
-#ifdef C_ALLOCA
-/* We could put something in alloca.c to #define free and malloc
-   whenever emacs was #defined, but that's not appropriate for all
-   users of alloca in Emacs.  Check out ../lib-src/getopt.c.  */
-alloca.o : alloca.c
-	$(CC) -c $(CPPFLAGS) -DEMACS_FREE=xfree -DDO_BLOCK_INPUT \
-	$(ALL_CFLAGS) ${srcdir}/alloca.c
-#else
-#ifndef HAVE_ALLOCA
-alloca.o : alloca.s $(config_h)
-/* $(CPP) is cc -E, which may get confused by filenames
-   that do not end in .c.  So copy file to a safe name.  */
-	-rm -f allocatem.c
-	cp ${srcdir}/alloca.s allocatem.c
-/* Remove any ^L, blank lines, and preprocessor comments,
-   since some assemblers barf on them.  Use a different basename for the
-   output file, since some stupid compilers (Green Hill's) use that
-   name for the intermediate assembler file. */
-	$(CPP) $(CPPFLAGS) $(ALL_CFLAGS) allocatem.c | \
-	sed -e 's///' -e 's/^#.*//' | \
-	sed -n -e '/^..*$$/p' > allocax.s
-	-rm -f alloca.o
-/* Xenix, in particular, needs to run assembler via cc.  */
-	$(CC) -c allocax.s
-	mv allocax.o alloca.o
-	-rm -f allocax.s allocatem.c
-#endif /* HAVE_ALLOCA */
-#endif /* ! defined (C_ALLOCA) */
+alloca.o: alloca.c blockinput.h atimer.h
 
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
@@ -1065,8 +1043,7 @@ character.o: character.c character.h buffer.h charset.h composite.h disptab.h \
 charset.o: charset.c charset.h character.h buffer.h coding.h composite.h \
    disptab.h $(config_h)
 chartab.o: charset.h character.h $(config.h)
-coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h composite.h \
-   $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h intervals.h composite.h window.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h $(config_h) \
 	msdos.h dispextern.h
@@ -1086,7 +1063,8 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) character.h \
    coding.h dispextern.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h)
+   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
+   window.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) character.h \
    coding.h ccl.h msdos.h dispextern.h $(config_h)
 filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
@@ -1095,9 +1073,12 @@ filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
    msdos.h dosfns.h dispextern.h $(config_h)
+fringe.o: fringe.c dispextern.h frame.h window.h buffer.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
+image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
+   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
    dispextern.h keyboard.h
@@ -1123,7 +1104,7 @@ minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
-   keyboard.h $(config_h)
+   keyboard.h intervals.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1172,7 +1153,7 @@ xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    character.h charset.h coding.h gtkutil.h $(config_h) termhooks.h
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
-   systime.h gtkutil.h msdos.h $(config_h) coding.h
+   systime.h gtkutil.h msdos.h coding.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h gnu.h character.h charset.h ccl.h fontset.h composite.h \
@@ -1180,9 +1161,10 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
-xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
+xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
+  lisp.h termopts.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h termhooks.h coding.h
+  blockinput.h window.h atimer.h termhooks.h keyboard.h charset.h coding.h
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
@@ -1193,14 +1175,14 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h atimer.h systime.h character.h dispextern.h $(config_h) \
  $(INTERVAL_SRC)
-bytecode.o: bytecode.c buffer.h syntax.h character.h $(config_h)
+bytecode.o: bytecode.c buffer.h syntax.h character.h window.h $(config_h)
 data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h \
  $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
-  $(config_h)
+  dispextern.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
- frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h
+ frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
@@ -1341,3 +1323,5 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 
+/* arch-tag: 8e915ae5-d15d-4617-8c41-c5c267a23b00
+   (do not change this comment) */

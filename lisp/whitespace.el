@@ -5,7 +5,6 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.24 2003/06/11 03:50:45 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -33,7 +32,7 @@
 ;; 1. Leading space (empty lines at the top of a file).
 ;; 2. Trailing space (empty lines at the end of a file).
 ;; 3. Indentation space (8 or more spaces at beginning of line, that should be
-;; 		      replaced with TABS).
+;;		      replaced with TABS).
 ;; 4. Spaces followed by a TAB.  (Almost always, we never want that).
 ;; 5. Spaces or TABS at the end of a line.
 ;;
@@ -87,7 +86,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.3" "Version of the whitespace library.")
+(defvar whitespace-version "3.4" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -233,6 +232,12 @@ It can be overriden by setting a buffer local variable
 
 (defcustom whitespace-errbuf "*Whitespace Errors*"
   "The name of the buffer where whitespace related messages will be logged."
+  :type 'string
+  :group 'whitespace)
+
+(defcustom whitespace-clean-msg "clean."
+  "If non-nil, this message will be displayed after a whitespace check
+determines a file to be clean."
   :type 'string
   :group 'whitespace)
 
@@ -503,8 +508,9 @@ and:
 					 (concat "!" whitespace-unchecked)
 				       ""))
 				   whitespace-filename)))
-		  (if (not quiet)
-		      (message "%s clean" whitespace-filename))))))))
+		  (if (and (not quiet) (not (equal whitespace-clean-msg "")))
+		      (message "%s %s" whitespace-filename
+			       whitespace-clean-msg))))))))
     (if whitespace-error
 	t
       nil)))
@@ -816,7 +822,7 @@ If timer is not set, then set it to scan the files in
 ;;;###autoload
 (define-minor-mode whitespace-global-mode
   "Toggle using Whitespace mode in new buffers.
-With ARG, turn the mode on if and only iff ARG is positive.
+With ARG, turn the mode on iff ARG is positive.
 
 When this mode is active, `whitespace-buffer' is added to
 `find-file-hook' and `kill-buffer-hook'."
@@ -851,4 +857,6 @@ This is meant to be added buffer-locally to `write-file-functions'."
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)
+
+;;; arch-tag: 4ff44e87-b63c-402d-95a6-15e51e58bd0c
 ;;; whitespace.el ends here

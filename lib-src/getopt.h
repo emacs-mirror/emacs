@@ -178,3 +178,6 @@ extern int _getopt_internal ();
 #undef __need_getopt
 
 #endif /* getopt.h */
+
+/* arch-tag: 9adb7828-e6a6-40cd-8512-0cdf1f20ddd4
+   (do not change this comment) */

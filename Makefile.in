@@ -2,8 +2,8 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,2004
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -45,13 +45,18 @@
 # make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
-#      everything deleted by distclean, plus more: C source files
-#      produced by Bison, tags tables, info files, and so on.
+#      everything deleted by distclean, plus more: .elc files,
+#      C source files produced by Bison, tags tables, info files,
+#      and so on.
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
 
 SHELL = /bin/sh
+
+# This may not work with certain non-GNU make's.  It only matters when
+# inheriting a CDPATH not starting with the current directory.
+CDPATH=
 
 # If Make doesn't predefine MAKE, set it here.
 @SET_MAKE@
@@ -367,9 +372,9 @@ install-arch-dep: mkdir
 	done
 	if test "${carbon_appdir}" != ""; then \
 	  umask 022; mkdir -p ${carbon_appdir}/Emacs.app; \
-	  (cd mac/Emacs.app; tar -chf - . ) | \
+	  (cd mac/Emacs.app; (tar -chf - . | \
 		(cd ${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
-			&& cat > /dev/null) || exit 1; \
+			&& cat > /dev/null))) || exit 1; \
 	fi
 
 ### Install the files that are machine-independent.
@@ -440,9 +445,11 @@ install-arch-indep: mkdir info
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
-	   (cd ./etc; tar -chf - DOC*) \
+	   (cd ./etc; tar -chf - DOC* compilation.txt) \
 	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
+	   (cd $(docdir); \
+	    chown $${LOGNAME:-$$USERNAME} DOC* compilation.txt; \
+	    chmod a+r DOC* compilation.txt; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
@@ -468,7 +475,7 @@ install-arch-indep: mkdir info
 	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* tramp* vip* widget* woman* smtpmail*; do \
+	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* ses* speedbar* tramp* vip* widget* woman* smtpmail*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
@@ -478,7 +485,7 @@ install-arch-indep: mkdir info
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar tramp vip viper widget woman smtpmail; do \
+	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc ses speedbar tramp vip viper widget woman smtpmail; do \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
@@ -544,7 +551,7 @@ uninstall:
 	done
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip* smtpmail*)
+	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* ses* vip* smtpmail*)
 	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
@@ -630,6 +637,7 @@ maintainer-clean: FRC
 	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -730,7 +738,7 @@ maybe_bootstrap:
 	fi
 
 bootstrap: bootstrap-clean-before info FRC
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
@@ -748,3 +756,4 @@ bootstrap-clean-before: FRC
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
+# arch-tag: c1162ff6-e0a8-4366-bc1a-2eb544007156

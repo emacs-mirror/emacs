@@ -1,3 +1,31 @@
+2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenuP.h (_XlwMenu_part): Added top_depth.
+
+	* xlwmenu.h: Removed declaration of pop_up_menu
+
+	* xlwmenu.c (Start): Get correct time if time in event is CurrentTime.
+	(find_first_selectable, find_next_selectable)
+	(find_prev_selectable): Add parameter skip_no_call_data to skip
+	over items with no call data (popup menu titles).
+	(Down, Up): Compare old_depth to top_depth instead of 2.
+	Pass True to find_*_selectable:s new parameter if this is a popup menu.
+	(Left, Right): Compare old_depth to top_depth instead of 2.
+	Pass 0 to find_*_selectable:s new parameter.
+	(pop_up_menu): Set top_depth to 1 for pop up menus and 2 for
+	menu bar menus, to enable keyboard traversal of popups.
+
+	* lwlib-Xm.c (dialog_key_cb): New function.
+	(make_dialog): Add event handlers to dialog_key_cb for key press
+	so we can pop down on ESC.
+
+	* lwlib-Xlw.c (xlw_popup_menu): Replace call to pop_up_menu with
+	XtCallActionProc ("start").  Use a full XEvent since "start" copies it.
+
+	* lwlib-Xaw.c (make_dialog): Add override so dialog pops down
+	on ESC.
+	(wm_delete_window): If widget isn't a shell, use the parent.
+
 2003-05-22  Dave Love  <fx@gnu.org>
 
 	* xlwmenu.c: Include lisp.h, not ../src/lisp.h.
@@ -8,7 +36,7 @@
 	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]: Provide
 	ISO C arglists.
 
-2003-04-30  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-04-30  Lute Kamstra  <lute@gnu.org>
 
 	* Makefile.in: Make things function properly in case both LessTif
 	and Open Motif are installed.
@@ -1184,3 +1212,5 @@
         Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 0cd8ab87-d764-40d9-b86d-d00c71887a9e

@@ -117,3 +117,6 @@ unexec_text_start = hdr.a_text_addr;}
    a variable name causes errors when compiling under ANSI C.  */
 
 #define vector xxvector
+
+/* arch-tag: 0ad5f932-f29a-4458-a24c-496cafdfd50d
+   (do not change this comment) */

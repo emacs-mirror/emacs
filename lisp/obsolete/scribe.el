@@ -321,4 +321,5 @@ preceding text is of the form @Command."
 
 (provide 'scribe)
 
+;;; arch-tag: 64f454c4-7544-4ea2-9d14-f0b668f2cdc6
 ;;; scribe.el ends here

@@ -21,8 +21,8 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_W32INEVT_H
 #define EMACS_W32INEVT_H
 
-extern int w32_console_read_socket (int sd, struct input_event *bufp,
-				    int numchars, int expected);
+extern int w32_console_read_socket (int sd, int numchars,
+				    struct input_event *hold_quit);
 extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
 					Lisp_Object *bar_window,
 					enum scroll_bar_part *part,
@@ -30,3 +30,6 @@ extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
 					unsigned long *time);
 
 #endif /* EMACS_W32INEVT_H */
+
+/* arch-tag: 7641bd54-199f-4552-8e8a-6a2f5340ef13
+   (do not change this comment) */

@@ -442,4 +442,5 @@ Default directory is the last directory used, or initially the value of
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
 ;;; mh-funcs.el ends here

@@ -137,3 +137,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) (1)
 
 #endif /* NOT_C_CODE */
+
+/* arch-tag: c7013e7b-6e2e-44f2-ba61-90b6d5e2ea45
+   (do not change this comment) */

@@ -387,4 +387,5 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       ;; Cleanup.
       (kill-buffer outbuf))))
 
+;;; arch-tag: 4f20253c-71ef-4e6d-a774-19087060910e
 ;;; cmacexp.el ends here

@@ -90,3 +90,6 @@ NOTE-END */
 #define LIB_STANDARD -lmc -lc
 #define C_DEBUG_SWITCH -20 -O -X23
 #endif
+
+/* arch-tag: 3bfb5a11-d94e-4372-923b-9f47d0851f42
+   (do not change this comment) */

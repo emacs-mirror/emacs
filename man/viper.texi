@@ -2779,7 +2779,7 @@ As if all that is not enough, Viper (through its interface to Emacs
 macros) lets the user define keyboard macros that ask for confirmation or
 even prompt the user for input and then continue.  To do this, one should
 type @kbd{C-x q} (for confirmation) or @kbd{C-u C-x q} (for prompt).
-For details, @pxref{Kbd Macro Query,,Customization,emacs,The GNU Emacs
+For details, @pxref{Keyboard Macro Query,,Customization,emacs,The GNU Emacs
 Manual} @refill
 
 When the user finishes defining a macro (which is done by typing @kbd{C-x)} ---
@@ -3140,7 +3140,7 @@ Return, Enter
 
 We also use @samp{word} for alphanumeric/non-alphanumeric words, and
 @samp{WORD} for whitespace delimited words.  @samp{char} refers to any
-ASCII character, @samp{CHAR} to non-whitespace character.
+@acronym{ASCII} character, @samp{CHAR} to non-whitespace character.
 Brackets @samp{[]} indicate optional parameters; @samp{<count>} also
 optional, usually defaulting to 1.  Brackets are elided for
 @samp{<count>} to eschew obfuscation.
@@ -4542,3 +4542,7 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: f53e866a-15cf-4b1e-aead-77da9da1e864
+@end ignore

@@ -1059,4 +1059,5 @@ E.g.: &aacute; -> á"
   ("&zwnj;" ?\‌) ;; ZERO WIDTH NON-JOINER
 )
 
+;;; arch-tag: ad2a65ea-f903-423b-b3bd-08d0912ae41f
 ;;; sgml-input.el ends here

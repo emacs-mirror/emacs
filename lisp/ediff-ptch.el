@@ -86,10 +86,10 @@ See also `ediff-backup-specs'."
 
 (defun ediff-test-patch-utility ()
   (condition-case nil
-      (cond ((zerop (call-process ediff-patch-program nil nil nil "-z." "-b"))
+      (cond ((eq 0 (call-process ediff-patch-program nil nil nil "-z." "-b"))
 	     ;; GNU `patch' v. >= 2.2
 	     'gnu)
-	    ((zerop (call-process ediff-patch-program nil nil nil "-b"))
+	    ((eq 0 (call-process ediff-patch-program nil nil nil "-b"))
 	     'posix)
 	    (t 'traditional))
     (file-error nil)))
@@ -802,4 +802,5 @@ you can still examine the changes via M-x ediff-files"
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
 ;;; ediff-ptch.el ends here

@@ -48,6 +48,7 @@ under X.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
+* Drag and drop::       Using drag and drop to open files and insert text.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
@@ -69,7 +70,7 @@ commands for copying between Emacs and other X client programs.
   If you select a region with any of these mouse commands, and then
 immediately afterward type the @key{DELETE} function key, it deletes the
 region that you selected.  The @key{BACKSPACE} function key and the
-ASCII character @key{DEL} do not do this; if you type any other key
+@acronym{ASCII} character @key{DEL} do not do this; if you type any other key
 in between the mouse command and @key{DELETE}, it does not do this.
 
 @findex mouse-set-region
@@ -795,6 +796,40 @@ generating appropriate events for Emacs.
 @code{mouse-wheel-scroll-amount} determine where and by how much
 buffers are scrolled.
 
+@node Drag and drop
+@section Drag and drop in Emacs.
+
+@cindex drag and drop
+  Emacs supports drag and drop so that dropping of files and text is handeled.
+Currently supported drag and drop protocols are XDND, Motif and the old
+KDE 1.x protocol.  There is no drag support yet. 
+When text is dropped on Emacs, Emacs inserts the text where it is dropped.
+When a file is dragged from a file manager to Emacs, Emacs opens that file.
+As a special case, if a file is dropped on a dired buffer the file is
+copied or moved (depends on exactly how it is dragged and the application
+it was dragged from) to the directory the dired buffer is displaying.
+
+@vindex x-dnd-open-file-other-window
+  A file is normally opened in the window it is dropped on, but if you
+prefer the file to be opened in a new window you can customize the variable
+@code{x-dnd-open-file-other-window}.
+
+@vindex x-dnd-types-alist
+  If you want to change the way Emacs handles drop of different types
+or add a new type, you shall customize @code{x-dnd-types-alist}.  This
+requires detailed knowledge of what types other applications use
+for drag and drop.
+
+@vindex x-dnd-protocol-alist
+  When an URL is dropped on Emacs it may be a file, but it may also be
+another URL type (ftp, http, etc.).  Emacs first checks
+@code{x-dnd-protocol-alist} to determine what to do with the URL.  If there
+is no match there and if @code{browse-url-browser-function} is an alist,
+Emacs looks for a match there.  If no match is found the text for the URL
+is inserted.  If you want to alter Emacs behaviour you can customize these
+variables.
+
+
 @node Menu Bars
 @section Menu Bars
 @cindex Menu Bar mode
@@ -854,6 +889,16 @@ invoke the command to begin with.
   You can customize the option @code{use-dialog-box} to suppress the
 use of dialog boxes.  This also controls whether to use file selection
 windows (but those are not supported on all platforms).
+
+@vindex use-file-dialog
+  A file selection window is a special kind of dialog box for asking for
+file names.
+
+  You can customize the option @code{use-file-dialog} to suppress the
+use of file selection windows even if you still want other kinds
+of dialogs.  This option has no effect if you have supressed all dialog
+boxes with the option @code{use-dialog-box}.
+
 
 @node Tooltips
 @section Tooltips (or ``Balloon Help'')
@@ -954,3 +999,7 @@ functionality is still available by holding down the @kbd{SHIFT} key
 when you press the mouse button.  The Linux console supports this
 mode if it has support for the mouse enabled, e.g.@: using the
 @command{gpm} daemon.
+
+@ignore
+   arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
+@end ignore

@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <string.h>
 #include <pwd.h>
+#include <grp.h>
 #include <sys/param.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -1164,6 +1165,13 @@ static struct passwd my_passwd =
   my_passwd_dir,
 };
 
+static struct group my_group =
+{
+  /* There are no groups on the mac, so we just return "root" as the
+     group name.  */
+  "root",
+};
+
 
 /* Initialized by main () in macterm.c to pathname of emacs directory.  */
 
@@ -1255,6 +1263,13 @@ getpwuid (uid_t uid)
     }
 
   return &my_passwd;
+}
+
+
+struct group *
+getgrgid (gid_t gid)
+{
+  return &my_group;
 }
 
 
@@ -2988,3 +3003,6 @@ syms_of_mac ()
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
 }
+
+/* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff
+   (do not change this comment) */

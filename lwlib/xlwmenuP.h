@@ -47,6 +47,7 @@ typedef struct _XlwMenu_part
   unsigned free_bottom_shadow_color_p : 1;
 
   /* State of the XlwMenu */
+  int                   top_depth;
   int			old_depth;
   widget_value**	old_stack;
   int			old_stack_length;
@@ -97,3 +98,6 @@ typedef struct _XlwMenuClassRec
 extern XlwMenuClassRec xlwMenuClassRec;
 
 #endif /* _XlwMenuP_h */
+
+/* arch-tag: 18d7fc41-ffa0-47a3-a49f-3469900c7a25
+   (do not change this comment) */

@@ -30,7 +30,7 @@
 ;; This file ensures that, when the point is in a To:, CC:, BCC:, or From:
 ;; field, word-abbrevs are defined for each of your mail aliases.  These
 ;; aliases will be defined from your .mailrc file (or the file specified by
-;; the MAILRC environment variable) if it exists.  Your mail aliases will
+;; `mail-personal-alias-file') if it exists.  Your mail aliases will
 ;; expand any time you type a word-delimiter at the end of an abbreviation.
 ;;
 ;; What you see is what you get: if mailabbrev is in use when you type
@@ -161,12 +161,13 @@ no aliases, which is represented by this being a table with no entries.)")
   "The modification time of your mail alias file when it was last examined.")
 
 (defun mail-abbrevs-sync-aliases ()
-  (if (file-exists-p mail-personal-alias-file)
-      (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-	(if (not (equal mail-abbrev-modtime modtime))
-	    (progn
-	      (setq mail-abbrev-modtime modtime)
-	      (build-mail-abbrevs))))))
+  (when mail-personal-alias-file
+    (if (file-exists-p mail-personal-alias-file)
+	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	  (if (not (equal mail-abbrev-modtime modtime))
+	      (progn
+		(setq mail-abbrev-modtime modtime)
+		(build-mail-abbrevs)))))))
 
 ;;;###autoload
 (defun mail-abbrevs-setup ()
@@ -625,4 +626,5 @@ Don't use this command in Lisp programs!
 (if mail-abbrevs-mode
     (mail-abbrevs-enable))
 
+;;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

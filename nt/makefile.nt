@@ -210,3 +210,5 @@ clean:
 
 realclean: clean
 		- $(DEL_TREE) ..\bin
+
+# arch-tag: b01debf7-6859-439e-b08e-f041aa03c32f

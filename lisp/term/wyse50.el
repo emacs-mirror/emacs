@@ -148,4 +148,5 @@ M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
 		      (send-string-to-terminal
 		       (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
 
+;;; arch-tag: b6a05d37-eead-4cf6-b997-0f956c68881c
 ;;; wyse50.el ends here

@@ -973,3 +973,7 @@ in testing and proofreading the code and docs of @file{ph.el}.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 1b79460b-4ea1-441d-ab45-05ddd16ef241
+@end ignore

@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;; Copyright (C) 1993, 94, 95, 1999, 2000, 01, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -166,7 +166,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	  (lookup-key menubar (vector (car submap)))))))
 
 (defun mouse-popup-menubar (event prefix)
-  "Pops up a menu equivalent to the menu bar a keyboard EVENT with PREFIX.
+  "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
@@ -577,12 +577,7 @@ This should be bound to a mouse click event type."
   (mouse-minibuffer-check event)
   ;; Use event-end in case called from mouse-drag-region.
   ;; If EVENT is a click, event-end and event-start give same value.
-  (let ((posn (event-end event)))
-    (if (not (windowp (posn-window posn)))
-	(error "Cursor not in text area of window"))
-    (select-window (posn-window posn))
-    (if (numberp (posn-point posn))
-	(goto-char (posn-point posn)))))
+  (posn-set-point (event-end event)))
 
 (defvar mouse-last-region-beg nil)
 (defvar mouse-last-region-end nil)
@@ -895,12 +890,12 @@ If DIR is positive skip forward; if negative, skip backward."
 	   (while (and (not (eobp)) (= (following-char) char))
 	     (forward-char 1))))))
 
-;; Return a list of region bounds based on START and END according to MODE.
-;; If MODE is 0 then set point to (min START END), mark to (max START END).
-;; If MODE is 1 then set point to start of word at (min START END),
-;; mark to end of word at (max START END).
-;; If MODE is 2 then do the same for lines.
 (defun mouse-start-end (start end mode)
+"Return a list of region bounds based on START and END according to MODE.
+If MODE is 0 then set point to (min START END), mark to (max START END).
+If MODE is 1 then set point to start of word at (min START END),
+mark to end of word at (max START END).
+If MODE is 2 then do the same for lines."
   (if (> start end)
       (let ((temp start))
         (setq start end
@@ -2204,6 +2199,10 @@ and selects that window."
 (global-set-key [double-mouse-1] 'mouse-set-point)
 (global-set-key [triple-mouse-1] 'mouse-set-point)
 
+;; Clicking on the fringes causes hscrolling:
+(global-set-key [left-fringe mouse-1]	'mouse-set-point)
+(global-set-key [right-fringe mouse-1]	'mouse-set-point)
+
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
 
@@ -2245,4 +2244,5 @@ and selects that window."
 (make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line "21.1")
 (provide 'mldrag)
 
+;;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here

@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (c) 1994, 1995, 1997, 1999 Free Software Foundation
+;; Copyright (c) 1994, 1995, 1997, 1999, 2004 Free Software Foundation
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -278,7 +278,7 @@ For most purposes, consider using `format-decode-region' instead."
 	    (let ((do format) f)
 	      (while do
 		(or (setq f (assq (car do) format-alist))
-		    (error "Unknown format" (car do)))
+		    (error "Unknown format %s" (car do)))
 		;; Decode:
 		(if (nth 3 f)
 		    (setq end (format-decode-run-method (nth 3 f) begin end)))
@@ -357,11 +357,15 @@ one of the formats defined in `format-alist', or a list of such symbols."
 		 (funcall to-fn beg end (current-buffer)))))
 	  (setq format (cdr format)))))))
 
-(defun format-write-file (filename format)
+(defun format-write-file (filename format &optional confirm)
   "Write current buffer into file FILENAME using some FORMAT.
-Makes buffer visit that file and sets the format as the default for future
+Make buffer visit that file and set the format as the default for future
 saves.  If the buffer is already visiting a file, you can specify a directory
-name as FILENAME, to write a file of the same old name in that directory."
+name as FILENAME, to write a file of the same old name in that directory.
+
+If optional third arg CONFIRM is non-nil, this function asks for
+confirmation before overwriting an existing file.  Interactively,
+confirmation is required unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
@@ -373,7 +377,7 @@ name as FILENAME, to write a file of the same old name in that directory."
 				  nil nil (buffer-name))))
 	  (fmt (format-read (format "Write file `%s' in format: "
 				    (file-name-nondirectory file)))))
-     (list file fmt)))
+     (list file fmt (not current-prefix-arg))))
   (let ((old-formats buffer-file-format)
 	preserve-formats)
     (dolist (fmt old-formats)
@@ -384,7 +388,7 @@ name as FILENAME, to write a file of the same old name in that directory."
     (dolist (fmt preserve-formats)
       (unless (memq fmt buffer-file-format)
 	(setq buffer-file-format (append buffer-file-format (list fmt))))))
-  (write-file filename))
+  (write-file filename confirm))
 
 (defun format-find-file (filename format)
   "Find the file FILENAME using data format FORMAT.
@@ -407,7 +411,7 @@ The optional third and fourth arguments BEG and END specify
 the part of the file to read.
 
 The return value is like the value of `insert-file-contents':
-a list (ABSOLUTE-FILE-NAME . SIZE)."
+a list (ABSOLUTE-FILE-NAME SIZE)."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (read-file-name "Find file: "))
@@ -420,7 +424,7 @@ a list (ABSOLUTE-FILE-NAME . SIZE)."
       (setq size (nth 1 value)))
     (if format
 	(setq size (format-decode format size)
-	      value (cons (car value) size)))
+	      value (list (car value) size)))
     value))
 
 (defun format-read (&optional prompt)
@@ -1040,4 +1044,5 @@ OLD and NEW are the values."
 
 (provide 'format)
 
+;;; arch-tag: c387e9c7-a93d-47bf-89bc-8ca67e96755a
 ;;; format.el ends here

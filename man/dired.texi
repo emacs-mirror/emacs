@@ -39,6 +39,7 @@ files.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
+* Misc: Misc Dired Commands.  Various other features.
 @end menu
 
 @node Dired Enter
@@ -84,6 +85,11 @@ beginning of the line.
 to @kbd{C-n}.  @kbd{p} is equivalent to @kbd{C-p}.  (Moving by lines is
 so common in Dired that it deserves to be easy to type.)  @key{DEL}
 (move up and unflag) is often useful simply for moving up.
+
+@findex dired-goto-file
+@kindex M-g
+  @kbd{M-g} (@code{dired-goto-file}) moves point to the line that
+describes a specified file or directory.
 
   Some additional navigation commands are available when the Dired
 buffer includes several directories.  @xref{Subdirectory Motion}.
@@ -329,7 +335,7 @@ those files.
 @item * @@
 @kindex * @@ @r{(Dired)}
 @findex dired-mark-symlinks
-@cindex marking symlinks (in Dired)
+@cindex marking symbolic links (in Dired)
 Mark all symbolic links with @samp{*} (@code{dired-mark-symlinks}).
 With a numeric argument, unmark all those files.
 
@@ -549,7 +555,7 @@ just one link) the name to give the link.
 
 @findex dired-do-symlink
 @kindex S @r{(Dired)}
-@cindex symlinks (in Dired)
+@cindex symbolic links (creation in Dired)
 @item S @var{new} @key{RET}
 Make symbolic links to the specified files (@code{dired-do-symlink}).
 The argument @var{new} is the directory to make the links in, or (if
@@ -1086,3 +1092,33 @@ matching a given regular expression.
 variable @code{find-ls-option}, whose default value specifies using
 options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
 may need to change the value of this variable.
+
+@node Misc Dired Commands
+@section Other Dired Commands
+
+@table @kbd
+@item w
+@cindex Adding to the kill ring in Dired.
+@kindex w
+@findex dired-copy-filename-as-kill
+The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
+names of the marked (or next @var{n}) files into the kill ring, as if
+you had killed them with @kbd{C-w}.  With a zero prefix argument
+@var{n}=0, use the absolute file name of each marked file.  With just
+@kbd{C-u} as the prefix argument, use the relative file name of each
+marked file.  As a special case, if no prefix argument is given and
+point is on a directory headerline, @kbd{w} gives you the name of that
+directory without looking for marked files.
+
+@vindex dired-marked-files
+The main purpose of the @kbd{w} command is so that you can yank the
+file names into arguments for other Emacs commands.  It also displays
+what was pushed onto the kill ring, so you can use it to display the
+list of currently marked files in the echo area.  It also stores the
+list of names in the variable @code{dired-marked-files}, for use in
+Lisp expressions.
+@end table
+
+@ignore
+   arch-tag: d105f9b9-fc1b-4c5f-a949-9b2cf3ca2fc1
+@end ignore

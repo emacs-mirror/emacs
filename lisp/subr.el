@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -61,6 +61,20 @@ The return value of this function is not used."
 ;;;; Lisp language features.
 
 (defalias 'not 'null)
+
+(defmacro noreturn (form)
+  "Evaluates FORM, with the expectation that the evaluation will signal an error
+instead of returning to its caller.  If FORM does return, an error is
+signalled."
+  `(prog1 ,form
+     (error "Form marked with `noreturn' did return")))
+
+(defmacro 1value (form)
+  "Evaluates FORM, with the expectation that all the same value will be returned
+from all evaluations of FORM.  This is the global do-nothing
+version of `1value'.  There is also `testcover-1value' that
+complains if FORM ever does return differing values."
+  form)
 
 (defmacro lambda (&rest cdr)
   "Return a lambda expression.
@@ -144,6 +158,12 @@ the return value (nil if RESULT is omitted).
 	 (setq ,(car spec) (1+ ,(car spec))))
        ,@(cdr (cdr spec)))))
 
+(defmacro declare (&rest specs)
+  "Do not evaluate any arguments and return nil.
+Treated as a declaration when used at the right place in a
+`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'."
+  nil)
+
 (defsubst caar (x)
   "Return the car of the car of X."
   (car (car x)))
@@ -189,22 +209,54 @@ If N is bigger than the length of X, return X."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
+(defun delete-dups (list)
+  "Destructively remove `equal' duplicates from LIST.
+Store the result in LIST and return it.  LIST must be a proper list.
+Of several `equal' occurrences of an element in LIST, the first
+one is kept."
+  (let ((tail list))
+    (while tail
+      (setcdr tail (delete (car tail) (cdr tail)))
+      (setq tail (cdr tail))))
+  list)
+
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
-INC is the increment used between numbers in the sequence.
-So, the Nth element of the list is (+ FROM (* N INC)) where N counts from
-zero.
-If INC is nil, it defaults to 1 (one).
-If TO is nil, it defaults to FROM.
-If TO is less than FROM, the value is nil.
-Note that FROM, TO and INC can be integer or float."
-  (if (not to)
+INC is the increment used between numbers in the sequence and defaults to 1.
+So, the Nth element of the list is \(+ FROM \(* N INC)) where N counts from
+zero.  TO is only included if there is an N for which TO = FROM + N * INC.
+If TO is nil or numerically equal to FROM, return \(FROM).
+If INC is positive and TO is less than FROM, or INC is negative
+and TO is larger than FROM, return nil.
+If INC is zero and TO is neither nil nor numerically equal to
+FROM, signal an error.
+
+This function is primarily designed for integer arguments.
+Nevertheless, FROM, TO and INC can be integer or float.  However,
+floating point arithmetic is inexact.  For instance, depending on
+the machine, it may quite well happen that
+\(number-sequence 0.4 0.6 0.2) returns the one element list \(0.4),
+whereas \(number-sequence 0.4 0.8 0.2) returns a list with three
+elements.  Thus, if some of the arguments are floats and one wants
+to make sure that TO is included, one may have to explicitly write
+TO as \(+ FROM \(* N INC)) or use a variable whose value was
+computed with this exact expression.  Alternatively, you can,
+of course, also replace TO with a slightly larger value
+\(or a slightly more negative value if INC is negative)."
+  (if (or (not to) (= from to))
       (list from)
     (or inc (setq inc 1))
-    (let (seq)
-      (while (<= from to)
-	(setq seq (cons from seq)
-	      from (+ from inc)))
+    (when (zerop inc) (error "The increment can not be zero"))
+    (let (seq (n 0) (next from))
+      (if (> inc 0)
+          (while (<= next to)
+            (setq seq (cons next seq)
+                  n (1+ n)
+                  next (+ from (* n inc))))
+        (while (>= next to)
+          (setq seq (cons next seq)
+                n (1+ n)
+                next (+ from (* n inc)))))
       (nreverse seq))))
 
 (defun remove (elt seq)
@@ -263,27 +315,19 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
+(make-obsolete 'assoc-ignore-case 'assoc-string)
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil t))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist t))
 
+(make-obsolete 'assoc-ignore-representation 'assoc-string)
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
   "Like `member', but ignores differences in case and text representation.
@@ -634,20 +678,23 @@ The value is a printing character (not upper case) or a symbol."
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
-If EVENT is a mouse press or a mouse click, this returns the location
+If EVENT is a mouse or key press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
-  "Return the ending location of EVENT.  EVENT should be a click or drag event.
+  "Return the ending location of EVENT.
+EVENT should be a click, drag, or key press event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -659,60 +706,115 @@ The return value is a positive integer."
 
 (defsubst posn-window (position)
   "Return the window in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
   (nth 0 position))
+
+(defsubst posn-area (position)
+  "Return the window area recorded in POSITION, or nil for the text area.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (let ((area (if (consp (nth 1 position))
+		  (car (nth 1 position))
+		(nth 1 position))))
+    (and (symbolp area) area)))
 
 (defsubst posn-point (position)
   "Return the buffer location in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
-  (if (consp (nth 1 position))
-      (car (nth 1 position))
-    (nth 1 position)))
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (or (nth 5 position)
+      (if (consp (nth 1 position))
+	  (car (nth 1 position))
+	(nth 1 position))))
+
+(defun posn-set-point (position)
+  "Move point to POSITION.
+Select the corresponding window as well."
+    (if (not (windowp (posn-window position)))
+	(error "Position not in text area of window"))
+    (select-window (posn-window position))
+    (if (numberp (posn-point position))
+	(goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
   (nth 2 position))
 
 (defun posn-col-row (position)
-  "Return the column and row in POSITION, measured in characters.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions.
+  "Return the nominal column and row in POSITION, measured in characters.
+The column and row values are approximations calculated from the x
+and y coordinates in POSITION and the frame's default character width
+and height.
 For a scroll-bar event, the result column is 0, and the row
-corresponds to the vertical position of the click in the scroll bar."
-  (let* ((pair   (nth 2 position))
-	 (window (posn-window position)))
-    (if (eq (if (consp (nth 1 position))
-		(car (nth 1 position))
-	      (nth 1 position))
-	    'vertical-scroll-bar)
-	(cons 0 (scroll-bar-scale pair (1- (window-height window))))
-      (if (eq (if (consp (nth 1 position))
-		  (car (nth 1 position))
-		(nth 1 position))
-	      'horizontal-scroll-bar)
-	  (cons (scroll-bar-scale pair (window-width window)) 0)
-	(let* ((frame (if (framep window) window (window-frame window)))
-	       (x (/ (car pair) (frame-char-width frame)))
-	       (y (/ (cdr pair) (+ (frame-char-height frame)
-				   (or (frame-parameter frame 'line-spacing)
-				       default-line-spacing
-				       0)))))
-	  (cons x y))))))
+corresponds to the vertical position of the click in the scroll bar.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (let* ((pair   (posn-x-y position))
+	 (window (posn-window position))
+	 (area   (posn-area position)))
+    (cond
+     ((null window)
+      '(0 . 0))
+     ((eq area 'vertical-scroll-bar)
+      (cons 0 (scroll-bar-scale pair (1- (window-height window)))))
+     ((eq area 'horizontal-scroll-bar)
+      (cons (scroll-bar-scale pair (window-width window)) 0))
+     (t
+      (let* ((frame (if (framep window) window (window-frame window)))
+	     (x (/ (car pair) (frame-char-width frame)))
+	     (y (/ (cdr pair) (+ (frame-char-height frame)
+				 (or (frame-parameter frame 'line-spacing)
+				     default-line-spacing
+				     0)))))
+	(cons x y))))))
+
+(defun posn-actual-col-row (position)
+  "Return the actual column and row in POSITION, measured in characters.
+These are the actual row number in the window and character number in that row.
+Return nil if POSITION does not contain the actual position; in that case
+`posn-col-row' can be used to get approximate values.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
   (nth 3 position))
+
+(defsubst posn-string (position)
+  "Return the string object of POSITION, or nil if a buffer position.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 4 position))
+
+(defsubst posn-image (position)
+  "Return the image object of POSITION, or nil if a not an image.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 7 position))
+
+(defsubst posn-object (position)
+  "Return the object (image or string) of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (or (posn-image position) (posn-string position)))
+
+(defsubst posn-object-x-y (position)
+  "Return the x and y coordinates relative to the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 8 position))
+
+(defsubst posn-object-width-height (position)
+  "Return the pixel width and height of the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 9 position))
 
 
 ;;;; Obsolescent names for functions.
@@ -878,31 +980,32 @@ FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
 list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
 
 The optional third argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed."
+the hook's buffer-local value rather than its default value."
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
-  (if local (unless (local-variable-if-set-p hook)
-	      (set (make-local-variable hook) (list t)))
+  ;; Do nothing if LOCAL is t but this hook has no local binding.
+  (unless (and local (not (local-variable-p hook)))
     ;; Detect the case where make-local-variable was used on a hook
     ;; and do what we used to do.
-    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
-      (setq local t)))
-  (let ((hook-value (if local (symbol-value hook) (default-value hook))))
-    ;; Remove the function, for both the list and the non-list cases.
-    (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
-	(if (equal hook-value function) (setq hook-value nil))
-      (setq hook-value (delete function (copy-sequence hook-value))))
-    ;; If the function is on the global hook, we need to shadow it locally
-    ;;(when (and local (member function (default-value hook))
-    ;;	       (not (member (cons 'not function) hook-value)))
-    ;;  (push (cons 'not function) hook-value))
-    ;; Set the actual variable
-    (if (not local)
-	(set-default hook hook-value)
-      (if (equal hook-value '(t))
-	  (kill-local-variable hook)
-	(set hook hook-value)))))
+    (when (and (local-variable-p hook)
+	       (not (and (consp (symbol-value hook))
+			 (memq t (symbol-value hook)))))
+      (setq local t))
+    (let ((hook-value (if local (symbol-value hook) (default-value hook))))
+      ;; Remove the function, for both the list and the non-list cases.
+      (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+	  (if (equal hook-value function) (setq hook-value nil))
+	(setq hook-value (delete function (copy-sequence hook-value))))
+      ;; If the function is on the global hook, we need to shadow it locally
+      ;;(when (and local (member function (default-value hook))
+      ;;	       (not (member (cons 'not function) hook-value)))
+      ;;  (push (cons 'not function) hook-value))
+      ;; Set the actual variable
+      (if (not local)
+	  (set-default hook hook-value)
+	(if (equal hook-value '(t))
+	    (kill-local-variable hook)
+	  (set hook hook-value))))))
 
 (defun add-to-list (list-var element &optional append)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
@@ -1180,10 +1283,10 @@ Optional DEFAULT is a default password to use instead of empty input."
 		(second (read-passwd "Confirm password: " nil default)))
 	    (if (equal first second)
 		(progn
-		  (and (arrayp second) (fillarray second ?\0))
+		  (and (arrayp second) (clear-string second))
 		  (setq success first))
-	      (and (arrayp first) (fillarray first ?\0))
-	      (and (arrayp second) (fillarray second ?\0))
+	      (and (arrayp first) (clear-string first))
+	      (and (arrayp second) (clear-string second))
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
@@ -1199,21 +1302,42 @@ Optional DEFAULT is a default password to use instead of empty input."
 	(clear-this-command-keys)
 	(if (= c ?\C-u)
 	    (progn
-	      (and (arrayp pass) (fillarray pass ?\0))
+	      (and (arrayp pass) (clear-string pass))
 	      (setq pass ""))
 	  (if (and (/= c ?\b) (/= c ?\177))
 	      (let* ((new-char (char-to-string c))
 		     (new-pass (concat pass new-char)))
-		(and (arrayp pass) (fillarray pass ?\0))
-		(fillarray new-char ?\0)
+		(and (arrayp pass) (clear-string pass))
+		(clear-string new-char)
 		(setq c ?\0)
 		(setq pass new-pass))
 	    (if (> (length pass) 0)
 		(let ((new-pass (substring pass 0 -1)))
-		  (and (arrayp pass) (fillarray pass ?\0))
+		  (and (arrayp pass) (clear-string pass))
 		  (setq pass new-pass))))))
       (message nil)
       (or pass default ""))))
+
+;; This should be used by `call-interactively' for `n' specs.
+(defun read-number (prompt &optional default)
+  (let ((n nil))
+    (when default
+      (setq prompt
+	    (if (string-match "\\(\\):[^:]*" prompt)
+		(replace-match (format " [%s]" default) t t prompt 1)
+	      (concat prompt (format " [%s] " default)))))
+    (while
+	(progn
+	  (let ((str (read-from-minibuffer prompt nil nil nil nil
+					   (number-to-string default))))
+	    (setq n (cond
+		     ((zerop (length str)) default)
+		     ((stringp str) (read str)))))
+	  (unless (numberp n)
+	    (message "Please enter a number.")
+	    (sit-for 1)
+	    t)))
+    n))
 
 ;;; Atomic change groups.
 
@@ -1321,8 +1445,10 @@ This finishes the change group by reverting all of its changes."
 (defalias 'redraw-modeline 'force-mode-line-update)
 
 (defun force-mode-line-update (&optional all)
-  "Force the mode line of the current buffer to be redisplayed.
-With optional non-nil ALL, force redisplay of all mode lines."
+  "Force redisplay of the current buffer's mode line and header line.
+With optional non-nil ALL, force redisplay of all mode lines and
+header lines.  This function also forces recomputation of the
+menu bar menus and the frame title."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
@@ -1497,7 +1623,18 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
+  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+
+See `insert-for-yank-1' for more details."
+  (let (to)
+    (while (setq to (next-single-property-change 0 'yank-handler string))
+      (insert-for-yank-1 (substring string 0 to))
+      (setq string (substring string to))))
+  (insert-for-yank-1 string))
+
+(defun insert-for-yank-1 (string)
   "Insert STRING at point, stripping some text properties.
+
 Strip text properties from the inserted text according to
 `yank-excluded-properties'.  Otherwise just like (insert STRING).
 
@@ -1550,6 +1687,8 @@ BUFFER may be a buffer or a buffer name.  Arguments START and END are
 character numbers specifying the substring.  They default to the
 beginning and the end of BUFFER.  Strip text properties from the
 inserted text according to `yank-excluded-properties'."
+  ;; Since the buffer text should not normally have yank-handler properties,
+  ;; there is no need to handle them here.
   (let ((opoint (point)))
     (insert-buffer-substring buf start end)
     (remove-yank-excluded-properties opoint (point))))
@@ -1741,6 +1880,7 @@ in BODY."
 (defvar delayed-mode-hooks nil
   "List of delayed mode hooks waiting to be run.")
 (make-variable-buffer-local 'delayed-mode-hooks)
+(put 'delay-mode-hooks 'permanent-local t)
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
@@ -1872,10 +2012,8 @@ Zero means the entire text matched by the whole regexp or whole string.
 STRING should be given if the last search was by `string-match' on STRING."
   (if (match-beginning num)
       (if string
-	  (let ((result
-		 (substring string (match-beginning num) (match-end num))))
-	    (set-text-properties 0 (length result) nil result)
-	    result)
+	  (substring-no-properties string (match-beginning num)
+				   (match-end num))
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
@@ -2133,7 +2271,10 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil iff OBJECT is a type of object that can be called as a function."
+  "Non-nil if OBJECT is any kind of function or a special form.
+Also non-nil if OBJECT is a symbol and its function definition is
+\(recursively) a function or special form.  This does not include
+macros."
   (or (and (symbolp object) (fboundp object)
 	   (condition-case nil
 	       (setq object (indirect-function object))
@@ -2142,28 +2283,6 @@ configuration."
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
       (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
-
-(defun interactive-form (function)
-  "Return the interactive form of FUNCTION.
-If function is a command (see `commandp'), value is a list of the form
-\(interactive SPEC).  If function is not a command, return nil."
-  (setq function (indirect-function function))
-  (when (commandp function)
-    (cond ((byte-code-function-p function)
-	   (when (> (length function) 5)
-	     (let ((spec (aref function 5)))
-	       (if spec
-		   (list 'interactive spec)
-		 (list 'interactive)))))
-	  ((subrp function)
-	   (subr-interactive-form function))
-	  ((eq (car-safe function) 'lambda)
-	   (setq function (cddr function))
-	   (when (stringp (car function))
-	     (setq function (cdr function)))
-	   (let ((form (car function)))
-	     (when (eq (car-safe form) 'interactive)
-	       (copy-sequence form)))))))
 
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.
@@ -2219,7 +2338,8 @@ If SUFFIX is non-nil, add that at the end of the file name."
 ;; isearch-mode is deliberately excluded, since you should
 ;; not call it yourself.
 (defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
-					 overwrite-mode view-mode)
+					 overwrite-mode view-mode
+                                         hs-minor-mode)
   "List of all minor mode functions.")
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
@@ -2448,4 +2568,5 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
+;;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

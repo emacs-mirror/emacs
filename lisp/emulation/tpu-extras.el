@@ -480,4 +480,5 @@ version that respects the bottom scroll margin."
 			     GOLD-map)
   (message "The cursor is now bound to the flow of your text."))
 
+;;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
 ;;; tpu-extras.el ends here

@@ -245,3 +245,7 @@ preserving the columns of all nonblank text.  @kbd{M-x tabify} scans the
 region for sequences of spaces, and converts sequences of at least three
 spaces to tabs if that can be done without changing indentation.  @kbd{M-x
 untabify} changes all tabs in the region to appropriate numbers of spaces.
+
+@ignore
+   arch-tag: acc07de7-ae11-4ee8-a159-cb59c473f0fb
+@end ignore

@@ -121,11 +121,17 @@ The value 0 means there's no limitation.")
 
 ;; Try to resolve `kinsoku' restriction by making the current line longer.
 (defun kinsoku-longer ()
-  (let ((pos-and-column (save-excursion
-			  (forward-char 1)
-			  (while (aref (char-category-set (following-char)) ?>)
-			    (forward-char 1))
-			  (cons (point) (current-column)))))
+  (let ((pos-and-column
+	 (save-excursion
+	   (forward-char 1)
+	   (while (and (not (eobp))
+		       (or (aref (char-category-set (following-char)) ?>)
+			   ;; protect non-kinsoku words
+			   (not (or (eq (preceding-char) ? )
+				    (aref (char-category-set (preceding-char))
+					  ?|)))))
+	     (forward-char 1))
+	   (cons (point) (current-column)))))
     (if (or (<= kinsoku-limit 0)
 	    (< (cdr pos-and-column) (+ (current-fill-column) kinsoku-limit)))
 	(goto-char (car pos-and-column)))))
@@ -135,9 +141,14 @@ The value 0 means there's no limitation.")
 (defun kinsoku-shorter (linebeg)
   (let ((pos (save-excursion
 	       (forward-char -1)
-	       (while (and (< linebeg (point))
-			   (or (aref (char-category-set (preceding-char)) ?<)
-			       (aref (char-category-set (following-char)) ?>)))
+	       (while (and
+		       (< linebeg (point))
+		       (or (aref (char-category-set (preceding-char)) ?<)
+			   (aref (char-category-set (following-char)) ?>)
+			   ;; protect non-kinsoku words
+			   (not (or (eq (preceding-char) ? )
+				    (aref (char-category-set (preceding-char))
+					  ?|)))))
 		 (forward-char -1))
 	       (point))))
     (if (< linebeg pos)
@@ -170,4 +181,5 @@ the context of text formatting."
 	      (aref (char-category-set (preceding-char)) ?<))
 	  (kinsoku-shorter linebeg))))
 
+;;; arch-tag: e6b036bc-9e5b-4e9f-a22c-4ed04e37777e
 ;;; kinsoku.el ends here

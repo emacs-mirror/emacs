@@ -95,4 +95,5 @@ static char * file[] = {
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: f531e3cc-98ba-4f9f-b6a1-e282173a6aa9
 ;;; mh-xemacs-compat.el ends here

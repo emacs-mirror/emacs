@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,1999,2000,01,03,2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -173,8 +173,6 @@
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
-  (make-local-variable 'normal-auto-fill-function)
-  (setq normal-auto-fill-function 'lisp-mode-auto-fill)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'indent-region-function)
@@ -182,7 +180,7 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;;* \\|(")
+  (setq outline-regexp ";;;;* [^ \t\n]\\|(")
   (make-local-variable 'outline-level)
   (setq outline-level 'lisp-outline-level)
   (make-local-variable 'comment-start)
@@ -195,8 +193,8 @@
   (setq comment-add 1)			;default to `;;' in comment-region
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent)
+  ;; Don't get confused by `;' in doc strings when paragraph-filling.
+  (set (make-local-variable 'comment-use-global-state) t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)
@@ -205,14 +203,14 @@
   (setq font-lock-defaults
 	'((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+	  nil nil (("+-*/.<>=!?$%_&~^:" . "w")) nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function))))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
-  (if (looking-at "(")
+  (if (looking-at "(\\|;;;###autoload")
       1000
     (looking-at outline-regexp)
     (- (match-end 0) (match-beginning 0))))
@@ -358,6 +356,9 @@ if that value is non-nil."
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
 
+;; Used in old LispM code.
+(defalias 'common-lisp-mode 'lisp-mode)
+
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
@@ -448,14 +449,18 @@ alternative printed representations that can be displayed."
 If CHAR is not a character, return nil."
   (and (integerp char)
        (characterp (event-basic-type char))
-       (concat
-	"?"
-	(mapconcat
-	 (lambda (modif)
-	   (cond ((eq modif 'super) "\\s-")
-		 (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
-	 (event-modifiers char) "")
-	(string (event-basic-type char)))))
+       (let ((c (event-basic-type char)))
+	 (concat
+	  "?"
+	  (mapconcat
+	   (lambda (modif)
+	     (cond ((eq modif 'super) "\\s-")
+		   (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
+	   (event-modifiers char) "")
+	  (cond
+	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
+	   ((eq c 127) "\\C-?")
+	   (t (string c)))))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -512,27 +517,30 @@ With argument, print output into current buffer."
 						      expr
 						      'args)))))
 			 expr)))))))
-      (let ((unabbreviated (let ((print-length nil) (print-level nil))
-			     (prin1-to-string value)))
-	    (print-length eval-expression-print-length)
-	    (print-level eval-expression-print-level)
-	    (char-string (prin1-char value))
-	    (beg (point))
-	    end)
-	(prog1
-	    (prin1 value)
-	  (if (and (eq standard-output t) char-string)
-	      (princ (concat " = " char-string)))
-	  (setq end (point))
-	  (when (and (bufferp standard-output)
-		     (or (not (null print-length))
-			 (not (null print-level)))
-		     (not (string= unabbreviated
-				   (buffer-substring-no-properties beg end))))
-	    (last-sexp-setup-props beg end value
-				   unabbreviated
-				   (buffer-substring-no-properties beg end))
-	    ))))))
+      (eval-last-sexp-print-value value))))
+
+(defun eval-last-sexp-print-value (value)
+  (let ((unabbreviated (let ((print-length nil) (print-level nil))
+			 (prin1-to-string value)))
+	(print-length eval-expression-print-length)
+	(print-level eval-expression-print-level)
+	(char-string (prin1-char value))
+	(beg (point))
+	end)
+    (prog1
+	(prin1 value)
+      (if (and (eq standard-output t) char-string)
+	  (princ (concat " = " char-string)))
+      (setq end (point))
+      (when (and (bufferp standard-output)
+		 (or (not (null print-length))
+		     (not (null print-level)))
+		 (not (string= unabbreviated
+			       (buffer-substring-no-properties beg end))))
+	(last-sexp-setup-props beg end value
+			       unabbreviated
+			       (buffer-substring-no-properties beg end))
+	))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
@@ -663,8 +671,8 @@ which see."
 ;; This function just forces a more costly detection of comments (using
 ;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of
 ;; taking a `;' inside a string started on another line for a comment starter.
-;; Note: `newcomment' gets it right in 99% of the cases if you're using
-;;       font-lock, anyway, so we could get rid of it.   -stef
+;; Note: `newcomment' gets it right now since we set comment-use-global-state
+;; so we could get rid of it.   -stef
 (defun lisp-mode-auto-fill ()
   (if (> (current-column) (current-fill-column))
       (if (save-excursion
@@ -1167,4 +1175,5 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
+;;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

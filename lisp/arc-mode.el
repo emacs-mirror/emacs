@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
 
-;; Author: Morten Welinder <terra@diku.dk>
+;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -1817,4 +1817,5 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
+;;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

@@ -564,4 +564,5 @@ Optional argument END is maximum excursion."
 
 (provide 'hi-lock)
 
+;;; arch-tag: d2e8fd07-4cc9-4c6f-a200-1e729bc54066
 ;;; hi-lock.el ends here

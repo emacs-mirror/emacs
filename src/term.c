@@ -81,6 +81,10 @@ static void tty_hide_cursor P_ ((void));
 
 #define OUTPUT1_IF(a) do { if (a) tputs (a, 1, cmputc); } while (0)
 
+/* Display space properties */
+
+extern Lisp_Object Qspace, QCalign_to, QCwidth;
+
 /* Function to use to ring the bell.  */
 
 Lisp_Object Vring_bell_function;
@@ -133,7 +137,7 @@ void (*insert_glyphs_hook) P_ ((struct glyph *, int));
 void (*write_glyphs_hook) P_ ((struct glyph *, int));
 void (*delete_glyphs_hook) P_ ((int));
 
-int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
+int (*read_socket_hook) P_ ((int, int, struct input_event *));
 
 void (*frame_up_to_date_hook) P_ ((struct frame *));
 
@@ -1584,6 +1588,7 @@ term_get_fkeys_1 ()
  ***********************************************************************/
 
 static void append_glyph P_ ((struct it *));
+static void produce_stretch_glyph P_ ((struct it *));
 
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
@@ -1647,8 +1652,13 @@ produce_glyphs (it)
   /* If a hook is installed, let it do the work.  */
   xassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION
-	   || it->what == IT_IMAGE
 	   || it->what == IT_STRETCH);
+
+  if (it->what == IT_STRETCH)
+    {
+      produce_stretch_glyph (it);
+      goto done;
+    }
 
   /* Nothing but characters are supported on terminal frames.  For a
      composition sequence, it->c is the first character of the
@@ -1716,12 +1726,88 @@ produce_glyphs (it)
 	append_glyph (it);
     }
 
+ done:
   /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
+}
+
+
+/* Produce a stretch glyph for iterator IT.  IT->object is the value
+   of the glyph property displayed.  The value must be a list
+   `(space KEYWORD VALUE ...)' with the following KEYWORD/VALUE pairs
+   being recognized:
+
+   1. `:width WIDTH' specifies that the space should be WIDTH *
+   canonical char width wide.  WIDTH may be an integer or floating
+   point number.
+
+   2. `:align-to HPOS' specifies that the space should be wide enough
+   to reach HPOS, a value in canonical character units.  */
+
+static void
+produce_stretch_glyph (it)
+     struct it *it;
+{
+  /* (space :width WIDTH ...)  */
+  Lisp_Object prop, plist;
+  int width = 0, align_to = -1;
+  int zero_width_ok_p = 0;
+  double tem;
+
+  /* List should start with `space'.  */
+  xassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
+  plist = XCDR (it->object);
+
+  /* Compute the width of the stretch.  */
+  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
+      && calc_pixel_width_or_height (&tem, it, prop, 0, 1, 0))
+    {
+      /* Absolute width `:width WIDTH' specified and valid.  */
+      zero_width_ok_p = 1;
+      width = (int)(tem + 0.5);
+    }
+  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
+	   && calc_pixel_width_or_height (&tem, it, prop, 0, 1, &align_to))
+    {
+      if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
+	align_to = (align_to < 0 
+		    ? 0
+		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
+      else if (align_to < 0)
+	align_to = window_box_left_offset (it->w, TEXT_AREA);
+      width = max (0, (int)(tem + 0.5) + align_to - it->current_x);
+      zero_width_ok_p = 1;
+    }
+  else
+    /* Nothing specified -> width defaults to canonical char width.  */
+    width = FRAME_COLUMN_WIDTH (it->f);
+
+  if (width <= 0 && (width < 0 || !zero_width_ok_p))
+    width = 1;
+
+  if (width > 0 && it->glyph_row)
+    {
+      Lisp_Object o_object = it->object;
+      Lisp_Object object = it->stack[it->sp - 1].string;
+      int n = width;
+      int c = it->c;
+
+      if (!STRINGP (object))
+	object = it->w->buffer;
+      it->object = object;
+      it->c = ' ';
+      it->pixel_width = it->len = 1;
+      while (n--)
+	append_glyph (it);
+      it->object = o_object;
+      it->c = c;
+    }
+  it->pixel_width = width;
+  it->nglyphs = width;
 }
 
 
@@ -2048,6 +2134,10 @@ void
 tty_setup_colors (mode)
      int mode;
 {
+  /* Canonicalize all negative values of MODE.  */
+  if (mode < -1)
+    mode = -1;
+
   switch (mode)
     {
       case -1:	 /* no colors at all */
@@ -2090,7 +2180,7 @@ set_tty_color_mode (f, val)
   tty_color_mode_alist = Fintern_soft (build_string ("tty-color-mode-alist"),
 				       Qnil);
 
-  if (NATNUMP (val))
+  if (INTEGERP (val))
     color_mode = val;
   else
     {
@@ -2098,22 +2188,24 @@ set_tty_color_mode (f, val)
 	color_mode_spec = Qnil;
       else
 	color_mode_spec = Fassq (val, XSYMBOL (tty_color_mode_alist)->value);
-      current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
 
       if (CONSP (color_mode_spec))
 	color_mode = XCDR (color_mode_spec);
       else
 	color_mode = Qnil;
     }
+
+  current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
+
   if (CONSP (current_mode_spec))
     current_mode = XCDR (current_mode_spec);
   else
     current_mode = Qnil;
-  if (NATNUMP (color_mode))
+  if (INTEGERP (color_mode))
     mode = XINT (color_mode);
   else
     mode = 0;	/* meaning default */
-  if (NATNUMP (current_mode))
+  if (INTEGERP (current_mode))
     old_mode = XINT (current_mode);
   else
     old_mode = 0;
@@ -2141,7 +2233,8 @@ term_init (terminal_type)
 {
   char *area;
   char **address = &area;
-  char buffer[2044];
+  char *buffer = NULL;
+  int buffer_size = 4096;
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
@@ -2152,9 +2245,6 @@ term_init (terminal_type)
   Wcm_clear ();
 
   area = (char *) xmalloc (2044);
-
-  if (area == 0)
-    abort ();
 
   FrameRows = FRAME_LINES (sf);
   FrameCols = FRAME_COLS (sf);
@@ -2184,6 +2274,7 @@ term_init (terminal_type)
 
   Wcm_clear ();
 
+  buffer = (char *) xmalloc (buffer_size);
   status = tgetent (buffer, terminal_type);
   if (status < 0)
     {
@@ -2211,13 +2302,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	     terminal_type);
 #endif
     }
-#ifdef TERMINFO
-  area = (char *) xmalloc (2044);
-#else
-  area = (char *) xmalloc (strlen (buffer));
-#endif /* not TERMINFO */
-  if (area == 0)
+
+#ifndef TERMINFO
+  if (strlen (buffer) >= buffer_size)
     abort ();
+  buffer_size = strlen (buffer);
+#endif
+  area = (char *) xmalloc (buffer_size);
 
   TS_ins_line = tgetstr ("al", address);
   TS_ins_multi_lines = tgetstr ("AL", address);
@@ -2550,6 +2641,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
       terminal_encode_buf_size = 1024;
     }
 #endif /* WINDOWSNT */
+
+  xfree (buffer);
 }
 
 /* VARARGS 1 */
@@ -2585,3 +2678,5 @@ The function should accept no arguments.  */);
   defsubr (&Stty_display_color_cells);
 }
 
+/* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
+   (do not change this comment) */

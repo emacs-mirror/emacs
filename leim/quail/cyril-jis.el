@@ -141,4 +141,5 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 3a0cc2ac-de48-42fe-9e80-05d8aa6faa36
 ;;; cyril-jis.el ends here

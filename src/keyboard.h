@@ -250,21 +250,25 @@ extern Lisp_Object item_properties;
 #define EVENT_END(event) (XCAR (XCDR (XCDR (event))))
 
 /* Extract the click count from a multi-click event.  */
-#define EVENT_CLICK_COUNT(event) (Fnth ((event), make_number (2)))
+#define EVENT_CLICK_COUNT(event) (Fnth (make_number (2), (event)))
 
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCAR (posn))
-#define POSN_BUFFER_POSN(posn) (XCAR (XCDR (posn)))
-#define POSN_BUFFER_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
+#define POSN_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
 #define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
-#define POSN_TIMESTAMP(posn) \
-  (XCAR (XCDR (XCDR (XCDR (posn)))))
-#define POSN_SCROLLBAR_PART(posn)	(Fnth ((posn), make_number (4)))
+#define POSN_TIMESTAMP(posn) (XCAR (XCDR (XCDR (XCDR (posn)))))
+#define POSN_SCROLLBAR_PART(posn)	(Fnth (make_number (4), (posn)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
    It's a cons if the click is over a string in the mode line.  */
 
-#define POSN_STRING(POSN) Fnth (make_number (4), (POSN))
+#define POSN_STRING(posn) (Fnth (make_number (4), (posn)))
+
+/* If POSN_STRING is nil, event refers to buffer location.  */
+
+#define POSN_INBUFFER_P(posn) (NILP (POSN_STRING (posn)))
+#define POSN_BUFFER_POSN(posn) (Fnth (make_number (5), (posn)))
 
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;
@@ -325,13 +329,18 @@ extern void timer_start_idle P_ ((void));
 extern void timer_stop_idle P_ ((void));
 extern int lucid_event_type_list_p P_ ((Lisp_Object));
 extern void kbd_buffer_store_event P_ ((struct input_event *));
+extern void kbd_buffer_store_event_hold P_ ((struct input_event *,
+					     struct input_event *));
 #ifdef POLL_FOR_INPUT
 extern void poll_for_input_1 P_ ((void));
 #endif
 extern void show_help_echo P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, int));
-extern int gen_help_event P_ ((struct input_event *, int, Lisp_Object,
-			       Lisp_Object, Lisp_Object, Lisp_Object, int));
+extern void gen_help_event P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+			       Lisp_Object, int));
 extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
 extern int  kbd_buffer_events_waiting P_ ((int));
+
+/* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3
+   (do not change this comment) */

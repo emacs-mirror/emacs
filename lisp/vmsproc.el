@@ -145,4 +145,5 @@ line to the last line for resubmission."
 
 (define-key esc-map "$" 'subprocess-command)
 
+;;; arch-tag: 600b2512-f903-4887-bcd2-e76b306f5b66
 ;;; vmsproc.el ends here

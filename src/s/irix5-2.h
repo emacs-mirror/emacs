@@ -16,3 +16,6 @@
    for jpff@maths.bath.ac.uk.
    Note that irix6-0.h does not include this file, only irix5-0.h.  */
 #define NO_WTMP_FILE
+
+/* arch-tag: e2f820c1-2a3e-4cee-b5f1-6ce8ab21f439
+   (do not change this comment) */

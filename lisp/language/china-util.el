@@ -190,4 +190,5 @@ Return the length of resulting text."
 ;;
 (provide 'china-util)
 
+;;; arch-tag: 5a47b084-b9ac-420e-8191-70c5b3a14836
 ;;; china-util.el ends here

@@ -1303,4 +1303,5 @@ static char * widen_xpm[] = {
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 5b06d860-a468-4a0f-a61b-255a148985e4
 ;;; mh-xemacs-icons.el ends here

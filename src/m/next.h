@@ -121,3 +121,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* This should be true for recent NeXT systems.  At least since 3.2.  */
 #define HAVE_MACH_MACH_H
+
+/* arch-tag: 1155cdcb-1f6c-4208-a2da-22c7473060a1
+   (do not change this comment) */

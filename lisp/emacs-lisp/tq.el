@@ -1,6 +1,6 @@
 ;;; tq.el --- utility to maintain a transaction queue
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2003 Free Software Foundation, Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -50,7 +50,7 @@ to a tcp server on another machine."
 				     (process-name process)))))))
     (set-process-filter process
 			`(lambda (proc string)
-			   (tq-filter '(, tq) string)))
+			   (tq-filter ',tq string)))
     tq))
 
 ;;; accessors
@@ -120,4 +120,5 @@ that's how we tell where the answer ends."
 
 (provide 'tq)
 
+;;; arch-tag: 65dea08c-4edd-4cde-83a5-e8a15b993b79
 ;;; tq.el ends here

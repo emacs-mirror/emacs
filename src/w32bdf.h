@@ -124,3 +124,6 @@ int w32_BDF_TextOut (bdffont *fontp, HDC hdc, int left,
 int w32_BDF_to_x_font (char *file, char* xstr, int len);
 
 #endif  /* EMACS_W32BDF_H */
+
+/* arch-tag: 7499e9f2-197e-44cc-9274-373f00b51eec
+   (do not change this comment) */

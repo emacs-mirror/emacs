@@ -41,3 +41,6 @@ int chdir(const char *path)
 
   return error == noErr ? 0 : -1;
 }
+
+/* arch-tag: f567b034-fd9e-43d1-94cb-9012375237d1
+   (do not change this comment) */

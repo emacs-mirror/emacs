@@ -49,3 +49,6 @@ tparam (string, outstring, len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, 
   strcpy (outstring, temp);
   return outstring;
 }
+
+/* arch-tag: a6f96a69-e68f-4e9d-a223-f0b0da26ead5
+   (do not change this comment) */

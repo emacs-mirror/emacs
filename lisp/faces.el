@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1071,8 +1071,7 @@ of a global face.  Value is the new attribute value."
 If optional argument FRAME Is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
     (completing-read (format "Set font attributes of face `%s' from font: " face)
-		     (mapcar 'list (append (fontset-list)
-					   (x-list-fonts "*" nil frame))))))
+		     (append (fontset-list) (x-list-fonts "*" nil frame)))))
 
 
 (defun read-all-face-attributes (face &optional frame)
@@ -1316,6 +1315,8 @@ If FRAME is nil, the current FRAME is used."
 				  (not (featurep 'motif)))
 			     (and (memq 'x-toolkit options)
 				  (featurep 'x-toolkit))))
+			((eq req 'min-colors)
+			 (>= (display-color-cells frame) (car options)))
 			((eq req 'class)
 			 (memq (frame-parameter frame 'display-type) options))
 			((eq req 'background)
@@ -1833,7 +1834,9 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((((type tty))
+  '((t
+     :inherit mode-line)
+    (((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
      ;; good when combined with inverse-video mode-lines and multiple
      ;; windows.  Underlining looks better, and is more consistent with
@@ -1843,41 +1846,37 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
+     :inverse-video nil	       ;Override the value inherited from mode-line.
      :underline t)
     (((class color grayscale) (background light))
      :background "grey90" :foreground "grey20"
-     :box nil
-     :inherit mode-line)
+     :box nil)
     (((class color grayscale) (background dark))
      :background "grey20" :foreground "grey90"
-     :box nil
-     :inherit mode-line)
+     :box nil)
     (((class mono) (background light))
      :background "white" :foreground "black"
      :inverse-video nil
      :box nil
-     :underline t
-     :inherit mode-line)
+     :underline t)
     (((class mono) (background dark))
      :background "black" :foreground "white"
      :inverse-video nil
      :box nil
-     :underline t
-     :inherit mode-line))
+     :underline t))
   "Basic header-line face."
   :version "21.1"
   :group 'basic-faces)
 
 
 (defface tool-bar
-  '((((type x w32 mac) (class color))
+  '((t
      :box (:line-width 1 :style released-button)
-     :background "grey75" :foreground "black")
+     :foreground "black")
+    (((type x w32 mac) (class color))
+     :background "grey75")
     (((type x) (class mono))
-     :box (:line-width 1 :style released-button)
-     :background "grey" :foreground "black")
-    (t
-     ()))
+     :background "grey"))
   "Basic tool-bar face."
   :version "21.1"
   :group 'basic-faces)
@@ -1894,14 +1893,18 @@ created."
       (append minibuffer-prompt-properties (list 'face 'minibuffer-prompt)))
 
 (defface region
-  '((((type tty) (class color))
+  '((((class color) (min-colors 88) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 88) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 8))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
      :inverse-video t)
-    (((class color) (background dark))
-     :background "blue3")
-    (((class color) (background light))
-     :background "lightgoldenrod2")
     (t :background "gray"))
   "Basic face for highlighting the region."
   :version "21.1"
@@ -1992,24 +1995,32 @@ created."
 
 
 (defface highlight
-  '((((type tty) (class color))
-     :background "green" :foreground "black")
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      :background "darkseagreen2")
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      :background "darkolivegreen")
+    (((class color) (min-colors 16) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 16) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 8))
+     :background "green" :foreground "black")
     (t :inverse-video t))
   "Basic face for highlighting."
   :group 'basic-faces)
 
 
 (defface secondary-selection
-  '((((type tty) (class color))
-     :background "cyan" :foreground "black")
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      :background "yellow")
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      :background "SkyBlue4")
+    (((class color) (min-colors 16) (background light))
+     :background "yellow")
+    (((class color) (min-colors 16) (background dark))
+     :background "SkyBlue4")
+    (((class color) (min-colors 8))
+     :background "cyan" :foreground "black")
     (t :inverse-video t))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)
@@ -2216,4 +2227,5 @@ If that can't be done, return nil."
 
 (provide 'faces)
 
+;;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

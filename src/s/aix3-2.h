@@ -49,3 +49,6 @@
    lose declaring char * rindex without this.
    It is just a guess which versions of AIX need this definition.  */
 #undef HAVE_STRING_H
+
+/* arch-tag: 0935754d-67e1-4697-978a-3e9976da05c3
+   (do not change this comment) */

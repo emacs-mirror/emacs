@@ -1775,4 +1775,5 @@
     (while (setq expr (cdr expr))
       (math-all-vars-rec (car expr)))))
 
+;;; arch-tag: ff9f2920-8111-48b5-b3fa-b0682c3e44a6
 ;;; calcalg3.el ends here

@@ -413,3 +413,5 @@ $(BLD)\timer.obj : \
 $(BLD)\yow.obj : \
 	$(SRC)\yow.c \
 	$(EMACS_ROOT)\lib-src\..\src\paths.h
+
+# arch-tag: 59e1b54b-4cc2-4086-bb0b-ecfad4b683e9

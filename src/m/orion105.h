@@ -66,3 +66,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Arguments to ignore before argc in crt0.c.  */
 #define DUMMIES dummy1, dummy2,
+
+/* arch-tag: 32fed6e3-8cae-4882-b327-a68c2af6db7a
+   (do not change this comment) */

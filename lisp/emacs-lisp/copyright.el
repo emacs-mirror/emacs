@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 1998, 2001, 2003
+;; Copyright (C) 1991, 92, 93, 94, 95, 1998, 2001, 2003, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -27,7 +27,8 @@
 
 ;; Allows updating the copyright year and above mentioned GPL version manually
 ;; or when saving a file.
-;; Do (add-hook 'write-file-functions 'copyright-update).
+;; Do (add-hook 'before-save-hook 'copyright-update), or use
+;; M-x customize-variable RET before-save-hook RET.
 
 ;;; Code:
 
@@ -189,4 +190,5 @@ version \\([0-9]+\\), or (at"
 ;; coding: utf-8
 ;; End:
 
+;;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8
 ;;; copyright.el ends here

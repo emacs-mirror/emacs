@@ -47,3 +47,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef HAVE_SOCKETS
 #define HAVE_SOCKETS
 #endif
+
+/* arch-tag: 2bb78fcd-fbc4-46dd-a14b-e4a9be957fe0
+   (do not change this comment) */

@@ -59,6 +59,10 @@ Boston, MA 02111-1307, USA.  */
    asked by mouse commands.  */
 int use_dialog_box;
 
+/* Nonzero enables use of a file dialog for file name
+   questions asked by mouse commands.  */
+int use_file_dialog;
+
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
@@ -91,7 +95,7 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random number.
 All integers representable in Lisp are equally likely.
-  On most systems, this is 28 bits' worth.
+  On most systems, this is 29 bits' worth.
 With positive integer argument N, return random number in interval [0,N).
 With argument t, set the random number seed from the current time and pid. */)
      (n)
@@ -1004,8 +1008,14 @@ string_make_unibyte (string)
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
        doc: /* Return the multibyte equivalent of STRING.
-The function `unibyte-char-to-multibyte' is used to convert
-each unibyte character to a multibyte character. */)
+If STRING is unibyte and contains non-ASCII characters, the function
+`unibyte-char-to-multibyte' is used to convert each unibyte character
+to a multibyte character.  In this case, the returned string is a
+newly created string with no text properties.  If STRING is multibyte
+or entirely ASCII, it is returned unchanged.  In particular, when
+STRING is unibyte and entirely ASCII, the returned string is unibyte.
+\(When the characters are all ASCII, Emacs primitives will treat the
+string the same way whether it is unibyte or multibyte.)  */)
      (string)
      Lisp_Object string;
 {
@@ -1035,8 +1045,7 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
 If STRING is unibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 If STRING is multibyte and contains a character of charset
-`eight-bit-control' or `eight-bit-graphic', it is converted to the
-corresponding single byte.  */)
+`eight-bit', it is converted to the corresponding single byte.  */)
      (string)
      Lisp_Object string;
 {
@@ -1408,7 +1417,7 @@ whose car is ELT.  */)
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
-The value is actually the element of LIST whose car is KEY.
+The value is actually the first element of LIST whose car is KEY.
 Elements of LIST that are not conses are ignored.  */)
      (key, list)
      Lisp_Object key, list;
@@ -1465,7 +1474,7 @@ assq_no_quit (key, list)
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
-The value is actually the element of LIST whose car equals KEY.  */)
+The value is actually the first element of LIST whose car equals KEY.  */)
        (key, list)
      Lisp_Object key, list;
 {
@@ -1509,7 +1518,7 @@ The value is actually the element of LIST whose car equals KEY.  */)
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr is KEY.  */)
+The value is actually the first element of LIST whose cdr is KEY.  */)
      (key, list)
      register Lisp_Object key;
      Lisp_Object list;
@@ -1551,7 +1560,7 @@ The value is actually the element of LIST whose cdr is KEY.  */)
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr equals KEY.  */)
+The value is actually the first element of LIST whose cdr equals KEY.  */)
      (key, list)
      Lisp_Object key, list;
 {
@@ -1754,7 +1763,7 @@ to be sure of changing the value of `foo'.  */)
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
        doc: /* Reverse LIST by modifying cdr pointers.
-Returns the beginning of the reversed list.  */)
+Return the reversed list.  */)
      (list)
      Lisp_Object list;
 {
@@ -1777,7 +1786,7 @@ Returns the beginning of the reversed list.  */)
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-       doc: /* Reverse LIST, copying.  Returns the beginning of the reversed list.
+       doc: /* Reverse LIST, copying.  Return the reversed list.
 See also the function `nreverse', which is used more often.  */)
      (list)
      Lisp_Object list;
@@ -2052,13 +2061,27 @@ Symbols must match exactly.  */)
      (o1, o2)
      register Lisp_Object o1, o2;
 {
-  return internal_equal (o1, o2, 0) ? Qt : Qnil;
+  return internal_equal (o1, o2, 0, 0) ? Qt : Qnil;
 }
 
-static int
-internal_equal (o1, o2, depth)
+DEFUN ("equal-including-properties", Fequal_including_properties, Sequal_including_properties, 2, 2, 0,
+       doc: /* Return t if two Lisp objects have similar structure and contents.
+This is like `equal' except that it compares the text properties
+of strings.  (`equal' ignores text properties.)  */)
+     (o1, o2)
      register Lisp_Object o1, o2;
-     int depth;
+{
+  return internal_equal (o1, o2, 0, 1) ? Qt : Qnil;
+}
+
+/* DEPTH is current depth of recursion.  Signal an error if it
+   gets too deep.
+   PROPS, if non-nil, means compare string text properties too.  */
+
+static int
+internal_equal (o1, o2, depth, props)
+     register Lisp_Object o1, o2;
+     int depth, props;
 {
   if (depth > 200)
     error ("Stack overflow in equal");
@@ -2073,10 +2096,18 @@ internal_equal (o1, o2, depth)
   switch (XTYPE (o1))
     {
     case Lisp_Float:
-      return (extract_float (o1) == extract_float (o2));
+      {
+	double d1, d2;
+
+	d1 = extract_float (o1);
+	d2 = extract_float (o2);
+	/* If d is a NaN, then d != d. Two NaNs should be `equal' even
+	   though they are not =. */
+	return d1 == d2 || (d1 != d1 && d2 != d2);
+      }
 
     case Lisp_Cons:
-      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))
+      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1, props))
 	return 0;
       o1 = XCDR (o1);
       o2 = XCDR (o2);
@@ -2088,7 +2119,7 @@ internal_equal (o1, o2, depth)
       if (OVERLAYP (o1))
 	{
 	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-			       depth + 1)
+			       depth + 1, props)
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1))
 	    return 0;
@@ -2106,8 +2137,8 @@ internal_equal (o1, o2, depth)
 
     case Lisp_Vectorlike:
       {
-	register int i, size;
-	size = XVECTOR (o1)->size;
+	register int i;
+	EMACS_INT size = XVECTOR (o1)->size;
 	/* Pseudovectors have the type encoded in the size field, so this test
 	   actually checks that the objects have the same type as well as the
 	   same size.  */
@@ -2143,7 +2174,7 @@ internal_equal (o1, o2, depth)
 	    Lisp_Object v1, v2;
 	    v1 = XVECTOR (o1)->contents [i];
 	    v2 = XVECTOR (o2)->contents [i];
-	    if (!internal_equal (v1, v2, depth + 1))
+	    if (!internal_equal (v1, v2, depth + 1, props))
 	      return 0;
 	  }
 	return 1;
@@ -2157,6 +2188,8 @@ internal_equal (o1, o2, depth)
 	return 0;
       if (bcmp (SDATA (o1), SDATA (o2),
 		SBYTES (o1)))
+	return 0;
+      if (props && !compare_string_intervals (o1, o2))
 	return 0;
       return 1;
 
@@ -2230,8 +2263,15 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars; index++)
+      for (index = 0; index < size_in_chars - 1; index++)
 	p[index] = charval;
+      if (index < size_in_chars)
+	{
+	  /* Mask out bits beyond the vector size.  */
+	  if (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)
+	    charval &= (1 << (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)) - 1;
+	  p[index] = charval;
+	}
     }
   else
     {
@@ -2798,8 +2838,8 @@ DEFUN ("require", Frequire, Srequire, 1, 3, 0,
 If FEATURE is not a member of the list `features', then the feature
 is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
-and `load' will try to load this name appended with the suffix `.elc',
-`.el' or the unmodified name, in that order.
+and `load' will try to load this name appended with the suffix `.elc' or
+`.el', in that order.  The name without appended suffix will not be used.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
 Normally the return value is FEATURE.
@@ -3749,7 +3789,7 @@ hashfn_eq (h, key)
      Lisp_Object key;
 {
   unsigned hash = XUINT (key) ^ XGCTYPE (key);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3768,7 +3808,7 @@ hashfn_eql (h, key)
     hash = sxhash (key, 0);
   else
     hash = XUINT (key) ^ XGCTYPE (key);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3783,7 +3823,7 @@ hashfn_equal (h, key)
      Lisp_Object key;
 {
   unsigned hash = sxhash (key, 0);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3970,7 +4010,7 @@ maybe_resize_hash_table (h)
       index_size = next_almost_prime ((int)
 				      (new_size
 				       / XFLOATINT (h->rehash_threshold)));
-      if (max (index_size, 2 * new_size) & ~VALMASK)
+      if (max (index_size, 2 * new_size) > MOST_POSITIVE_FIXNUM)
 	error ("Hash table too large to resize");
 
       h->key_and_value = larger_vector (h->key_and_value, 2 * new_size, Qnil);
@@ -4060,7 +4100,7 @@ hash_put (h, key, value, hash)
 {
   int start_of_bucket, i;
 
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
 
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
@@ -4345,7 +4385,7 @@ sxhash_string (ptr, len)
       hash = ((hash << 3) + (hash >> 28) + c);
     }
 
-  return hash & VALMASK;
+  return hash & INTMASK;
 }
 
 
@@ -4413,7 +4453,7 @@ sxhash_bool_vector (vec)
 
 
 /* Return a hash code for OBJ.  DEPTH is the current depth in the Lisp
-   structure.  Value is an unsigned integer clipped to VALMASK.  */
+   structure.  Value is an unsigned integer clipped to INTMASK.  */
 
 unsigned
 sxhash (obj, depth)
@@ -4477,7 +4517,7 @@ sxhash (obj, depth)
       abort ();
     }
 
-  return hash & VALMASK;
+  return hash & INTMASK;
 }
 
 
@@ -4903,12 +4943,18 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
     }
   else
     {
+      struct buffer *prev = current_buffer;
+
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
+      if (bp != current_buffer)
+	set_buffer_internal (bp);
 
       if (NILP (start))
-	b = BUF_BEGV (bp);
+	b = BEGV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (start);
@@ -4916,7 +4962,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       if (NILP (end))
-	e = BUF_ZV (bp);
+	e = ZV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (end);
@@ -4926,7 +4972,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       if (b > e)
 	temp = b, b = e, e = temp;
 
-      if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
+      if (!(BEGV <= b && e <= ZV))
 	args_out_of_range (start, end);
 
       if (NILP (coding_system))
@@ -4993,6 +5039,11 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       object = make_buffer_string (b, e, 0);
+      if (prev != current_buffer)
+	set_buffer_internal (prev);
+      /* Discard the unwind protect for recovering the current
+	 buffer.  */
+      specpdl_ptr--;
 
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
@@ -5105,6 +5156,13 @@ This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.  */);
   use_dialog_box = 1;
 
+  DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
+    doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
+This applies to commands from menus and tool bar buttons.  The value of
+`use-dialog-box' takes precedence over this variable, so a file dialog is only
+used if both `use-dialog-box' and this variable are non-nil.  */);
+  use_file_dialog = 1;
+
   defsubr (&Sidentity);
   defsubr (&Srandom);
   defsubr (&Slength);
@@ -5146,6 +5204,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Slax_plist_get);
   defsubr (&Slax_plist_put);
   defsubr (&Sequal);
+  defsubr (&Sequal_including_properties);
   defsubr (&Sfillarray);
   defsubr (&Sclear_string);
   defsubr (&Snconc);
@@ -5176,3 +5235,6 @@ init_fns ()
 {
   Vweak_hash_tables = Qnil;
 }
+
+/* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31
+   (do not change this comment) */

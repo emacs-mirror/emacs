@@ -1285,4 +1285,5 @@ These two lines must come in the order given.
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
+;;; arch-tag: 5f3e844c-c4e6-4bbd-9b73-63bdc14e7d79
 ;;; viper.el ends here

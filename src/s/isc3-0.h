@@ -44,3 +44,6 @@
    It won't be needed for 4.1.  */
 #define EXTRA_INITIALIZE __setostype (0)
 #endif
+
+/* arch-tag: c1aca3f2-813d-4c1c-ad64-ca6c20ec9bfb
+   (do not change this comment) */

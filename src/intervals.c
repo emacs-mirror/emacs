@@ -1712,6 +1712,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree;
+  int over_used;
 
   tree = BUF_INTERVALS (buffer);
 
@@ -1745,6 +1746,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
 	  BUF_INTERVALS (buffer)->position = BEG;
+	  BUF_INTERVALS (buffer)->up_obj = 1;
 
 	  /* Explicitly free the old tree here?  */
 
@@ -1767,6 +1769,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
     {
       BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
       BUF_INTERVALS (buffer)->position = BEG;
+      BUF_INTERVALS (buffer)->up_obj = 1;
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1814,21 +1817,42 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      adjust_intervals_for_insertion, so stickiness has
      already been taken care of.  */
 
+  /* OVER is the interval we are copying from next.
+     OVER_USED says how many characters' worth of OVER
+     have already been copied into target intervals.
+     UNDER is the next interval in the target.  */
+  over_used = 0;
   while (! NULL_INTERVAL_P (over))
     {
-      if (LENGTH (over) < LENGTH (under))
+      /* If UNDER is longer than OVER, split it.  */
+      if (LENGTH (over) - over_used < LENGTH (under))
 	{
-	  this = split_interval_left (under, LENGTH (over));
+	  this = split_interval_left (under, LENGTH (over) - over_used);
 	  copy_properties (under, this);
 	}
       else
 	this = under;
-      copy_properties (over, this);
+
+      /* THIS is now the interval to copy or merge into.
+	 OVER covers all of it.  */
       if (inherit)
 	merge_properties (over, this);
       else
 	copy_properties (over, this);
-      over = next_interval (over);
+
+      /* If THIS and OVER end at the same place,
+	 advance OVER to a new source interval.  */
+      if (LENGTH (this) == LENGTH (over) - over_used)
+	{
+	  over = next_interval (over);
+	  over_used = 0;
+	}
+      else
+	/* Otherwise just record that more of OVER has been used.  */
+	over_used += LENGTH (this);
+
+      /* Always advance to a new target interval.  */
+      under = next_interval (this);
     }
 
   if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
@@ -2587,3 +2611,6 @@ set_intervals_multibyte (multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
+
+/* arch-tag: 3d402b60-083c-4271-b4a3-ebd9a74bfe27
+   (do not change this comment) */

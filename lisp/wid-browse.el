@@ -297,4 +297,5 @@ With arg, turn widget mode on if and only if arg is positive."
 
 (provide 'wid-browse)
 
+;;; arch-tag: d5ffb18f-8984-4735-8502-edf70456db21
 ;;; wid-browse.el ends here

@@ -356,10 +356,13 @@ Returns the abbrev symbol, if expansion took place.  */)
     {
       SET_PT (wordstart);
 
-      del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
-
       insert_from_string (expansion, 0, 0, SCHARS (expansion),
 			  SBYTES (expansion), 1);
+      del_range_both (PT, PT_BYTE,
+		      wordend + (PT - wordstart),
+		      wordend_byte + (PT_BYTE - wordstart_byte),
+		      1);
+
       SET_PT (PT + whitecnt);
 
       if (uccount && !lccount)
@@ -543,7 +546,8 @@ is inserted.  Otherwise the description is an expression,
 a call to `define-abbrev-table', which would
 define the abbrev table NAME exactly as it is currently defined.
 
-Abbrevs marked as "system abbrevs" are omitted.  */)
+Abbrevs marked as "system abbrevs" are normally omitted.  However, if
+READABLE is non-nil, they are listed.  */)
      (name, readable)
      Lisp_Object name, readable;
 {
@@ -696,3 +700,6 @@ the current abbrev table before abbrev lookup happens.  */);
   defsubr (&Sinsert_abbrev_table_description);
   defsubr (&Sdefine_abbrev_table);
 }
+
+/* arch-tag: b721db69-f633-44a8-a361-c275acbdad7d
+   (do not change this comment) */

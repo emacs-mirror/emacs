@@ -126,7 +126,7 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   sec_attrs.bInheritHandle = FALSE;
 
   if (CreateProcess (NULL, new_cmdline, &sec_attrs, NULL, TRUE, priority_class,
-		     GetEnvironmentStrings (), NULL, &start, &child))
+		     NULL, NULL, &start, &child))
     {
       if (wait_for_child)
 	{
@@ -144,3 +144,6 @@ error:
   MessageBox (NULL, "Could not start Emacs.", "Error", MB_ICONSTOP);
   return 1;
 }
+
+/* arch-tag: 7e02df73-4df7-4aa0-baea-99c6d047a384
+   (do not change this comment) */

@@ -219,7 +219,7 @@ The following commands are available:
     (while alist
       (unless (member (cdar alist) done)
 	(push (cdar alist) done)
-	(cdr (setq server (pop alist)))
+	(setq server (pop alist))
 	(when (and server (car server) (cdr server))
 	  (gnus-server-insert-server-line (car server) (cdr server))))
       (when (member (cdar alist) done)

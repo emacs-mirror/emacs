@@ -1,5 +1,5 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2001, 02, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -203,9 +203,6 @@ Boston, MA 02111-1307, USA.  */
 /* Fix compilation problem for regex.c.  */
 #define __restrict
 
-/* Fix compilation problem for md5.c.  */
-#define __attribute__(x)
-
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
@@ -250,7 +247,7 @@ Boston, MA 02111-1307, USA.  */
    page) to leave room at the end of the header for adding load
    commands.  Needed for dumping.  0x690 is the total size of 30
    segment load commands (at 56 each).  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -lstdc++ -Xlinker -headerpad -Xlinker 690
+#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -framework QuickTime -lstdc++ -Xlinker -headerpad -Xlinker 690
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 
@@ -316,3 +313,10 @@ struct kboard;
 #if defined (HAVE_CARBON) && (defined (emacs) || defined (temacs))
 #define select sys_select
 #endif
+
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
+   stack.  */
+#define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: 481d443d-4f89-43ea-b5fb-49706d95fa41
+   (do not change this comment) */

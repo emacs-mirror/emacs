@@ -1133,4 +1133,5 @@
 	   (math-read-angle-brackets))
 	  (t (throw 'syntax "Expected a number")))))
 
+;;; arch-tag: 5599e45d-e51e-44bb-9a20-9f4ed8c96c32
 ;;; calc-aent.el ends here

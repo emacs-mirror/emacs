@@ -1697,7 +1697,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 	  break;
 
 	default:
-	  sprintf(msg, "\nCCL: Unknown error type (%d).", ccl->status);
+	  sprintf(msg, "\nCCL: Unknown error type (%d)", ccl->status);
 	}
 
       msglen = strlen (msg);
@@ -2290,3 +2290,6 @@ used by CCL.  */);
   defsubr (&Sregister_ccl_program);
   defsubr (&Sregister_code_conversion_map);
 }
+
+/* arch-tag: bb9a37be-68ce-4576-8d3d-15d750e4a860
+   (do not change this comment) */

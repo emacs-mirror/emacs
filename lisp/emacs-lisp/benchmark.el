@@ -114,4 +114,6 @@ non-interactive use see also `benchmark-run' and
 	       (nth 2 result) (nth 1 result)))))
 
 (provide 'benchmark)
+
+;;; arch-tag: be570e24-4b51-4784-adf3-fa2b56c31946
 ;;; benchmark.el ends here

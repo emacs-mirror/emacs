@@ -155,4 +155,5 @@ This is in addition to the primary selection."
   :group 'killing)
 
 
+;;; arch-tag: ee2394fb-9db7-4c15-a8f0-66b47f4a2bb1
 ;;; w32-vars.el ends here

@@ -64,12 +64,6 @@
 
 (provide 'delphi)
 
-(defconst delphi-version
-  (let ((revision "$Revision: 3.9 $"))
-    (string-match ": \\([^ ]+\\)" revision)
-    (match-string 1 revision))
-  "Version of this delphi mode.")
-
 (eval-and-compile
   ;; Allow execution on pre Emacs 20 versions.
   (or (fboundp 'when)
@@ -2010,4 +2004,5 @@ no args, if that value is non-nil."
 
   (run-hooks 'delphi-mode-hook))
 
+;;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
 ;;; delphi.el ends here

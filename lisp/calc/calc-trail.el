@@ -177,4 +177,5 @@
        (kill-line n)))
    (calc-trail-here)))
 
+;;; arch-tag: 59b76655-d882-4aab-a3ee-b83870e530d0
 ;;; calc-trail.el ends here

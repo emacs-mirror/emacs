@@ -1,5 +1,5 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987, 1992, 1993, 1995, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987,1992,1993,95,2002,03  Free Software Foundation, Inc.
 
    This file contains some changes for our SVR4 based SINIX-Mips 5.4.
    I hope this is helpful to port the emacs to our RM?00 series and
@@ -158,8 +158,5 @@ NOTE-END  */
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
-#define XUNMARK(a)							\
-  ((a) =								\
-   (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
-    >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
-
+/* arch-tag: a4f5c090-0bd5-48f0-9724-b7d531f9b6c8
+   (do not change this comment) */

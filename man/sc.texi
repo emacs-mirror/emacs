@@ -2521,3 +2521,7 @@ its @var{variable} name.
 @summarycontents
 @contents
 @bye
+
+@ignore
+   arch-tag: 0521847a-4680-44b6-ae6e-13ce20e18436
+@end ignore

@@ -320,6 +320,7 @@ This is not required to be present for user-written mode annotations.")
       (aset info 8 val)
       (calc-embedded-update info 14 t t))))
 
+;;;###autoload
 (defun calc-do-embedded-activate (arg cbuf)
   (calc-plain-buffer-only)
   (if arg
@@ -341,8 +342,8 @@ This is not required to be present for user-written mode annotations.")
 	      (setcdr active (delq (car info) (cdr active)))))
 	(goto-char (point-min))
 	(while (re-search-forward pat nil t)
-	  (if (looking-at calc-embedded-open-formula)
-	      (goto-char (match-end 1)))
+;;;	  (if (looking-at calc-embedded-open-formula)
+;;;	      (goto-char (match-end 1)))
 	  (setq info (calc-embedded-make-info (point) cbuf nil))
 	  (or (eq (car-safe (aref info 8)) 'error)
 	      (goto-char (aref info 5))))))
@@ -1202,4 +1203,5 @@ The command \\[yank] can retrieve it from there."
 	(setq bp (if buf nil (cdr bp))))
       (or first calc-embedded-quiet (message "")))))
 
+;;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here

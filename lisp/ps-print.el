@@ -1,7 +1,7 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;; 2003 Free Software Foundation, Inc.
+;; 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2003/07/10 19:19:12 vinicius>
-;; Version: 6.6.2
+;; Time-stamp: <2004/03/10 18:57:00 vinicius>
+;; Version: 6.6.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.2"
-  "ps-print.el, v 6.6.2 <2003/07/10 vinicius>
+(defconst ps-print-version "6.6.4"
+  "ps-print.el, v 6.6.4 <2004/03/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1213,6 +1213,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
+;;    20040229
+;;	 `ps-time-stamp-yyyy-mm-dd', `ps-time-stamp-iso8601'
+;;
 ;;    20010619
 ;;	 `ps-time-stamp-locale-default'
 ;;
@@ -1261,7 +1264,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [keinichi] 19990509 Kein'ichi Handa <handa@etl.go.jp>
 ;;
-;; `ps-print-region-function'
+;;    `ps-print-region-function'
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
@@ -1274,7 +1277,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [keinichi] 19980819 Kein'ichi Handa <handa@etl.go.jp>
 ;;
-;; Multi-byte buffer handling.
+;;    Multi-byte buffer handling.
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
@@ -1370,9 +1373,11 @@ Please send all bug fixes and enhancements to
 ;; Thanks to David X Callaway <dxc@xprt.net> for helping debugging PostScript
 ;; level 1 compatibility.
 ;;
-;; Thanks to Colin Marquardt <colin.marquardt@usa.alcatel.com> for upside-down,
-;; line number step, line number start and zebra stripe follow suggestions, and
-;; for XEmacs beta-tests.
+;; Thanks to Colin Marquardt <colin.marquardt@usa.alcatel.com> for:
+;;    - upside-down, line number step, line number start and zebra stripe
+;;	follow suggestions.
+;;    - `ps-time-stamp-yyyy-mm-dd' and `ps-time-stamp-iso8601' suggestion.
+;;    - and for XEmacs beta-tests.
 ;;
 ;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
 ;; prologue code suggestion, for odd/even printing suggestion and for
@@ -3111,7 +3116,9 @@ delimiters '(' and ')'.
 For symbols with bound functions, the function is called and should return a
 string to be inserted into the array.  For symbols with bound values, the value
 should be a string to be inserted into the array.  In either case, function or
-variable, the string value has PostScript string delimiters added to it."
+variable, the string value has PostScript string delimiters added to it.
+
+If symbols are unbounded, they are silently ignored."
   :type '(repeat (choice :menu-tag "Left Header"
 			 :tag "Left Header"
 			 string symbol))
@@ -3135,6 +3142,11 @@ There are the following basic functions implemented:
 
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
 
+   `ps-time-stamp-yyyy-mm-dd'		Return date as \"2001-06-18\" (ISO
+					date).
+
+   `ps-time-stamp-iso8601'		Alias for `ps-time-stamp-yyyy-mm-dd'.
+
 You can also create your own time stamp function by using `format-time-string'
 \(which see)."
   :type '(repeat (choice :menu-tag "Right Header"
@@ -3157,7 +3169,9 @@ string literals should be delimited with PostScript string delimiters '(' and
 For symbols with bound functions, the function is called and should return a
 string to be inserted into the array.  For symbols with bound values, the value
 should be a string to be inserted into the array.  In either case, function or
-variable, the string value has PostScript string delimiters added to it."
+variable, the string value has PostScript string delimiters added to it.
+
+If symbols are unbounded, they are silently ignored."
   :version "21.1"
   :type '(repeat (choice :menu-tag "Left Footer"
 			 :tag "Left Footer"
@@ -3181,6 +3195,11 @@ There are the following basic functions implemented:
    `ps-time-stamp-hh:mm:ss'		Return time as \"17:28:31\".
 
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
+
+   `ps-time-stamp-yyyy-mm-dd'		Return date as \"2001-06-18\" (ISO
+					date).
+
+   `ps-time-stamp-iso8601'		Alias for `ps-time-stamp-yyyy-mm-dd'.
 
 You can also create your own time stamp function by using `format-time-string'
 \(which see)."
@@ -3694,6 +3713,15 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (format-time-string "%b %d %Y"))
 
 
+(defun ps-time-stamp-yyyy-mm-dd ()
+  "Return date as \"2001-06-18\" (ISO date)."
+  (format-time-string "%Y-%m-%d"))
+
+
+(defalias 'ps-time-stamp-iso8601 'ps-time-stamp-yyyy-mm-dd
+  "Alias for `ps-time-stamp-yyyy-mm-dd' (which see).")
+
+
 (defun ps-time-stamp-hh:mm:ss ()
   "Return time as \"17:28:31\"."
   (format-time-string "%T"))
@@ -4113,6 +4141,11 @@ If EXTENSION is any other symbol, it is ignored."
 ;; Internal functions and variables
 
 
+(defun ps-message-log-max ()
+  (and (not (string= (buffer-name) "*Messages*"))
+       message-log-max))
+
+
 (defvar ps-print-hook nil)
 (defvar ps-print-begin-sheet-hook nil)
 (defvar ps-print-begin-page-hook nil)
@@ -4125,9 +4158,10 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defun ps-spool-without-faces (from to &optional region-p)
-  (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from to)
-  (ps-generate (current-buffer) from to 'ps-generate-postscript))
+  (let ((message-log-max (ps-message-log-max)))	; to print *Messages* buffer
+    (run-hooks 'ps-print-hook)
+    (ps-printing-region region-p from to)
+    (ps-generate (current-buffer) from to 'ps-generate-postscript)))
 
 
 (defun ps-print-with-faces (from to &optional filename region-p)
@@ -4136,15 +4170,17 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defun ps-spool-with-faces (from to &optional region-p)
-  (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from to)
-  (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
+  (let ((message-log-max (ps-message-log-max)))	; to print *Messages* buffer
+    (run-hooks 'ps-print-hook)
+    (ps-printing-region region-p from to)
+    (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces)))
 
 
 (defun ps-count-lines-preprint (from to)
-   (or (and from to)
-       (error "The mark is not set now"))
-   (list (count-lines from to)))
+  (or (and from to)
+      (error "The mark is not set now"))
+  (let ((message-log-max (ps-message-log-max)))	; to count lines of *Messages*
+    (list (count-lines from to))))
 
 
 (defun ps-count-lines (from to)
@@ -6551,10 +6587,12 @@ If FACE is not a valid face name, it is used default face."
 (defun ps-kill-emacs-check ()
   (let (ps-buffer)
     (and (setq ps-buffer (get-buffer ps-spool-buffer-name))
+	 (buffer-name ps-buffer)	; check if it's not killed
 	 (buffer-modified-p ps-buffer)
 	 (y-or-n-p "Unprinted PostScript waiting; print now? ")
 	 (ps-despool))
     (and (setq ps-buffer (get-buffer ps-spool-buffer-name))
+	 (buffer-name ps-buffer)	; check if it's not killed
 	 (buffer-modified-p ps-buffer)
 	 (not (yes-or-no-p "Unprinted PostScript waiting; exit anyway? "))
 	 (error "Unprinted PostScript"))))
@@ -6792,4 +6830,5 @@ This checks if all multi-byte characters in the region are printable or not.")
 
 (provide 'ps-print)
 
+;;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here

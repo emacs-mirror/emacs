@@ -85,6 +85,7 @@
     (devanagari-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun devanagari-post-read-conversion (len)
   (save-excursion
     (save-restriction
@@ -586,19 +587,14 @@ preferred rule from the sanskrit fonts."  )
 	  (setq preceding-r t)
 	  (goto-char (+ 2 (point))))
 	;; translate the rest characters into glyphs
-	(while (not (eobp))
-	  (if (looking-at dev-char-glyph-regexp)
-	      (let ((end (match-end 0)))
-		(setq match-str (match-string 0)
-		      glyph-str
-		      (concat glyph-str
-			      (gethash match-str dev-char-glyph-hash)))
-		;; count the number of consonant-glyhs.
-		(if (string-match devanagari-consonant match-str)
-		    (setq cons-num (1+ cons-num)))
-		(goto-char end))
-	    (setq glyph-str (concat glyph-str (string (following-char))))
-	    (forward-char 1)))
+	(while (re-search-forward dev-char-glyph-regexp nil t)
+	  (setq match-str (match-string 0))
+	  (setq glyph-str
+		(concat glyph-str
+			(gethash match-str dev-char-glyph-hash)))
+	  ;; count the number of consonant-glyhs.
+	  (if (string-match devanagari-consonant match-str)
+	      (setq cons-num (1+ cons-num))))
 	;; preceding-r must be attached before the anuswar if exists.
 	(if preceding-r
 	    (if last-modifier
@@ -652,4 +648,5 @@ preferred rule from the sanskrit fonts."  )
 
 (provide 'devan-util)
 
+;;; arch-tag: 9bc4d6e3-f2b9-4110-886e-ff9b66b7eebc
 ;;; devan-util.el ends here

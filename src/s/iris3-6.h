@@ -157,3 +157,6 @@ Boston, MA 02111-1307, USA.  */
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
  	    sprintf (ptyname, "/dev/ttyq%d", minor (stb.st_rdev));
+
+/* arch-tag: cdf2033e-a2d5-43e1-a1a2-a7243cf41a11
+   (do not change this comment) */

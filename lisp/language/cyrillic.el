@@ -122,6 +122,23 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	     (tutorial . "TUTORIAL.ru"))
  '("Cyrillic"))
 
+(define-coding-system 'koi8-u
+  "KOI8-U 8-bit encoding for Cyrillic (MIME: KOI8-U)"
+  :coding-type 'charset
+  :mnemonic ?U 
+  :charset-list '(koi8-u)
+  :mime-charset 'koi8-u)
+
+(set-language-info-alist
+ "Ukrainian" `((charset koi8-u)
+	       (coding-system koi8-u)
+	       (coding-priority koi8-u)
+	       (nonascii-translation . koi8-u)
+	       (input-method . "ukrainian-computer")
+	       (documentation
+		. "Support for Ukrainian with KOI8-U character set."))
+ '("Cyrillic"))
+
 ;;; ALTERNATIVNYJ stuff
 
 (define-coding-system 'cyrillic-alternativnyj
@@ -220,13 +237,20 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	   (documentation . "Support for Tajik using KOI8-T."))
  '("Cyrillic"))
 
+(let ((elt `("microsoft-cp1251" windows-1251 1
+	     ,(get 'encode-windows-1251 'translation-table)))
+      (slot (assoc "microsoft-cp1251" ctext-non-standard-encodings-alist)))
+  (if slot
+      (setcdr slot (cdr elt))
+    (push elt ctext-non-standard-encodings-alist)))
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
 	       (coding-priority windows-1251)
 	       (nonascii-translation . windows-1251)
 	       (charset windows-1251)
+	       (ctext-non-standard-encodings "microsoft-cp1251")
 	       (input-method . "bulgarian-bds")
-	       (features code-pages)
 	       (documentation
 		. "Support for Bulgrian with windows-1251 character set."))
  '("Cyrillic"))
@@ -236,8 +260,8 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		(coding-priority windows-1251)
 		(nonascii-translation . windows-1251)
 		(charset windows-1251)
+		(ctext-non-standard-encodings "microsoft-cp1251")
 		(input-method . "belarusian")
-		(features code-pages)
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
@@ -253,4 +277,5 @@ Support for Russian using koi8-r and the russian-computer input method.")
 
 (provide 'cyrillic)
 
+;;; arch-tag: bda71ae0-ba41-4cb6-a6e0-1dff542313d3
 ;;; cyrillic.el ends here

@@ -21,11 +21,11 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#include <stdio.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "region-cache.h"
-
-#include <stdio.h>
 
 
 /* Data structures.  */
@@ -832,3 +832,6 @@ pp_cache (c)
       fprintf (stderr, "%d : %d\n", pos, BOUNDARY_VALUE (c, i));
     }
 }
+
+/* arch-tag: 98c29f3f-2ca2-4e3a-92f0-f2249200a17d
+   (do not change this comment) */

@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000,01,02,03,2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
+
+#ifndef EMACS_LISP_H
+#define EMACS_LISP_H
 
 /* Declare the prototype for a general external function.  */
 #if defined (PROTOTYPES) || defined (WINDOWSNT)
@@ -64,10 +67,6 @@ extern void die P_((const char *, const char *, int));
 			   ? (void) 0				\
 			   : die ((msg), __FILE__, __LINE__)),	\
 			  0)
-
-/* Let's get some compile-time checking too.  */
-#undef NO_UNION_TYPE
-
 #else
 
 /* Produce same side effects and result, but don't complain.  */
@@ -160,8 +159,7 @@ enum Lisp_Misc_Type
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
-/* The -1 is for the markbit.  */
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS - 1)
+#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
 #endif
 
 #ifndef NO_UNION_TYPE
@@ -180,21 +178,13 @@ union Lisp_Object
     struct
       {
 	EMACS_INT val  : VALBITS;
-	EMACS_INT type : GCTYPEBITS + 1;
+	enum Lisp_Type type : GCTYPEBITS;
       } s;
     struct
       {
 	EMACS_UINT val : VALBITS;
-	EMACS_INT type : GCTYPEBITS + 1;
+	enum Lisp_Type type : GCTYPEBITS;
       } u;
-    struct
-      {
-	EMACS_UINT val		: VALBITS;
-	enum Lisp_Type type	: GCTYPEBITS;
-	/* The markbit is not really part of the value of a Lisp_Object,
-	   and is always zero except during garbage collection.  */
-	EMACS_UINT markbit	: 1;
-      } gu;
   }
 Lisp_Object;
 
@@ -209,22 +199,14 @@ union Lisp_Object
 
     struct
       {
-	EMACS_INT type : GCTYPEBITS+1;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	EMACS_INT type : GCTYPEBITS+1;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_UINT val : VALBITS;
       } u;
-    struct
-      {
-	/* The markbit is not really part of the value of a Lisp_Object,
-	   and is always zero except during garbage collection.  */
-	EMACS_UINT markbit	: 1;
-	enum Lisp_Type type	: GCTYPEBITS;
-	EMACS_UINT val		: VALBITS;
-      } gu;
   }
 Lisp_Object;
 
@@ -254,25 +236,13 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
-#ifndef VALMASK
-#define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
-#endif
-#define GCTYPEMASK ((((EMACS_INT) 1)<<GCTYPEBITS) - 1)
-
 /* Two flags that are set during GC.  On some machines, these flags
    are defined differently by the m- file.  */
-
-/* This is set in the car of a cons to indicate it is marked.
-   Likewise in the type slot of a float and in the size slot of strings.  */
-
-#ifndef MARKBIT
-#define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS)))
-#endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
 #ifndef ARRAY_MARK_FLAG
-#define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
+#define ARRAY_MARK_FLAG ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
 #endif /* no ARRAY_MARK_FLAG */
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
@@ -310,38 +280,74 @@ enum pvec_type
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
 
+/***** Select the tagging scheme.  *****/
+
+/* First, try and define DECL_ALIGN(type,var) which declares a static
+   variable VAR of type TYPE with the added requirement that it be
+   TYPEBITS-aligned. */
+#if defined USE_LSB_TAG && !defined DECL_ALIGN
+/* What compiler directive should we use for non-gcc compilers?  -stef  */
+# if defined (__GNUC__)
+#  define DECL_ALIGN(type, var) \
+    type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+# else
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
+#endif
+
+#ifndef USE_LSB_TAG
+/* Just remove the alignment annotation if we don't use it.  */
+#undef DECL_ALIGN
+#define DECL_ALIGN(type, var) type var
+#endif
+
+
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 #ifdef NO_UNION_TYPE
 
+#ifdef USE_LSB_TAG
+
+#define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
+#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) & TYPEMASK))
+#define XINT(a) (((EMACS_INT) (a)) >> GCTYPEBITS)
+#define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
+#define XSET(var, type, ptr)					\
+    (eassert (XTYPE (ptr) == 0), /* Check alignment.  */	\
+     (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
+#define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
+
+/* XFASTINT and XSETFASTINT are for use when the integer is known to be
+   positive, in which case the implementation can sometimes be faster
+   depending on the tagging scheme.  With USE_LSB_TAG, there's no benefit.  */
+#define XFASTINT(a) XINT (a)
+#define XSETFASTINT(a, b) ((a) = make_number (b))
+
+#define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
+
+#else  /* not USE_LSB_TAG */
+
+#define VALMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+
 /* One need to override this if there must be high bits set in data space
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
     on all machines, but would penalize machines which don't need it)
  */
-#ifndef XTYPE
-#define XTYPE(a) ((enum Lisp_Type) ((a) >> VALBITS))
-#endif
-
-#ifndef XSETTYPE
-#define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((EMACS_INT)(b) << VALBITS))
-#endif
+#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) >> VALBITS))
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.
-   Beware: XFASTINT applied to a non-positive integer or to something
-   else than an integer should return something that preserves all the
-   info that was in the Lisp_Object, because it is used in EQ.  */
+   fact that Lisp_Int is 0.  */
 #define XFASTINT(a) ((a) + 0)
 #define XSETFASTINT(a, b) ((a) = (b))
 
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) ((EMACS_INT) (((a) << (BITS_PER_EMACS_INT - VALBITS)) \
-			      >> (BITS_PER_EMACS_INT - VALBITS)))
+#define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
+		 >> (BITS_PER_EMACS_INT - VALBITS))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
@@ -361,41 +367,13 @@ enum pvec_type
 #define make_number(N)		\
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 
-/* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT accesses the markbit.
- Markbits are used only in particular slots of particular structure types.
- Other markbits are always zero.
- Outside of garbage collection, all mark bits are always zero.  */
+#endif /* not USE_LSB_TAG */
 
-#ifndef XGCTYPE
-#define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-#endif
+#define EQ(x, y) ((x) == (y))
 
-#if VALBITS + GCTYPEBITS == BITS_PER_EMACS_INT - 1
-/* Make XMARKBIT faster if mark bit is sign bit.  */
-#ifndef XMARKBIT
-#define XMARKBIT(a) ((a) < 0)
-#endif
-#endif /* markbit is sign bit */
-
-#ifndef XMARKBIT
-#define XMARKBIT(a) ((a) & MARKBIT)
-#endif
-
-#ifndef XMARK
-#define XMARK(a) ((a) |= MARKBIT)
-#endif
-
-#ifndef XUNMARK
-#define XUNMARK(a) ((a) &= ~MARKBIT)
-#endif
-
-#endif /* NO_UNION_TYPE */
-
-#ifndef NO_UNION_TYPE
+#else /* not NO_UNION_TYPE */
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-#define XSETTYPE(a, b) ((a).u.type = (char) (b))
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
@@ -423,18 +401,20 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
+#define EQ(x, y) ((x).s.val == (y).s.val)
+
+#endif /* NO_UNION_TYPE */
+
 /* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT access the markbit.
+ so that the mark bit is ignored.  XMARKBIT accesses the markbit.
  Markbits are used only in particular slots of particular structure types.
  Other markbits are always zero.
  Outside of garbage collection, all mark bits are always zero.  */
 
-#define XGCTYPE(a) ((a).gu.type)
-#define XMARKBIT(a) ((a).gu.markbit)
-#define XMARK(a) (XMARKBIT(a) = 1)
-#define XUNMARK(a) (XMARKBIT(a) = 0)
-
-#endif /* NO_UNION_TYPE */
+#ifndef XGCTYPE
+/* The distinction does not exist now that the MARKBIT has been eliminated.  */
+#define XGCTYPE(a) XTYPE (a)
+#endif
 
 #ifndef XPNTR
 #ifdef HAVE_SHM
@@ -461,6 +441,9 @@ extern size_t pure_size;
 
 #define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
 #define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
+/* Mask indicating the significant bits of a Lisp_Int.
+   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
+#define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
 
 /* Value is non-zero if C integer I doesn't fit into a Lisp fixnum.  */
 
@@ -1031,15 +1014,6 @@ struct Lisp_Hash_Table
 
 /* These structures are used for various misc types.  */
 
-/* A miscellaneous object, when it's on the free list.  */
-struct Lisp_Free
-  {
-    int type : 16;	/* = Lisp_Misc_Free */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
-    union Lisp_Misc *chain;
-  };
-
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
@@ -1204,6 +1178,22 @@ struct Lisp_Save_Value
   };
 
 
+/* A miscellaneous object, when it's on the free list.  */
+struct Lisp_Free
+  {
+    int type : 16;	/* = Lisp_Misc_Free */
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
+    union Lisp_Misc *chain;
+#ifdef USE_LSB_TAG
+    /* Try to make sure that sizeof(Lisp_Misc) preserves TYPEBITS-alignment.
+       This assumes that Lisp_Marker is the largest of the alternatives and
+       that Lisp_Intfwd has the same size as "Lisp_Free w/o padding".  */
+    char padding[((((sizeof (struct Lisp_Marker) - 1) >> GCTYPEBITS) + 1)
+		  << GCTYPEBITS) - sizeof (struct Lisp_Intfwd)];
+#endif
+  };
+
 /* To get the type field of a union Lisp_Misc, use XMISCTYPE.
    It uses one of these struct subtypes to get the type field.  */
 
@@ -1363,7 +1353,7 @@ typedef unsigned char UCHAR;
 #define GC_NATNUMP(x) (GC_INTEGERP (x) && XINT (x) >= 0)
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
-#define GC_INTEGERP(x) (XGCTYPE ((x)) == Lisp_Int)
+#define GC_INTEGERP(x) INTEGERP (x)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
 #define GC_SYMBOLP(x) (XGCTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
@@ -1434,9 +1424,11 @@ typedef unsigned char UCHAR;
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
 #define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
 
+/* Test for image (image . spec)  */
+#define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
+
 
-#define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
-#define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
+#define GC_EQ(x, y) EQ (x, y)
 
 #define CHECK_LIST(x) \
   do { if (!CONSP ((x)) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)
@@ -1581,7 +1573,7 @@ typedef unsigned char UCHAR;
 
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname ();						\
-  struct Lisp_Subr sname =						\
+  DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
@@ -1592,7 +1584,7 @@ typedef unsigned char UCHAR;
    arguments, so we can catch errors with maxargs at compile-time.  */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-  struct Lisp_Subr sname =						\
+  DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
@@ -1739,6 +1731,22 @@ extern char *stack_bottom;
    This is a good thing to do around a loop that has no side effects
    and (in particular) cannot call arbitrary Lisp code.  */
 
+#ifdef SYNC_INPUT
+extern void handle_async_input P_ ((void));
+extern int interrupt_input_pending;
+#define QUIT						\
+  do {							\
+    if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
+      {							\
+	Vquit_flag = Qnil;				\
+	Fsignal (Qquit, Qnil);				\
+      }							\
+    else if (interrupt_input_pending)			\
+      handle_async_input ();				\
+  } while (0)
+
+#else  /* not SYNC_INPUT */
+
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
@@ -1747,6 +1755,9 @@ extern char *stack_bottom;
 	Fsignal (Qquit, Qnil);				\
       }							\
   } while (0)
+
+#endif	/* not SYNC_INPUT */
+
 
 /* Nonzero if ought to quit now.  */
 
@@ -2019,28 +2030,32 @@ extern Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
 extern Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
-extern Lisp_Object Qend_of_file, Qarith_error;
+extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
-extern Lisp_Object Qmark_inactive, Qtext_read_only;
+extern Lisp_Object Qtext_read_only;
+
+extern Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
+extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
+extern Lisp_Object Qbuffer_or_string_p;
+extern Lisp_Object Qboundp, Qfboundp;
+extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
+
+extern Lisp_Object Qcdr;
 
 extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 extern Lisp_Object Qoverflow_error, Qunderflow_error;
 
-extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qwholenump;
-extern Lisp_Object Qsymbolp, Qlistp, Qconsp;
-extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
-extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
-extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
-extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
-extern Lisp_Object Qboundp, Qfboundp;
-extern Lisp_Object Qbuffer_or_string_p;
-extern Lisp_Object Qcdr;
+extern Lisp_Object Qfloatp;
+extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-extern Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
-
-extern Lisp_Object Qframep;
+extern Lisp_Object Qinteger;
 
 extern void circular_list_error P_ ((Lisp_Object));
+EXFUN (Finteractive_form, 1);
+
+/* Defined in frame.c */
+extern Lisp_Object Qframep;
 
 EXFUN (Feq, 2);
 EXFUN (Fnull, 1);
@@ -2293,6 +2308,15 @@ EXFUN (Ftruncate, 2);
 extern void init_floatfns P_ ((void));
 extern void syms_of_floatfns P_ ((void));
 
+/* Defined in fringe.c */
+extern void syms_of_fringe P_ ((void));
+extern void init_fringe P_ ((void));
+extern void init_fringe_once P_ ((void));
+
+/* Defined in image.c */
+extern void syms_of_image P_ ((void));
+extern void init_image P_ ((void));
+
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap P_ ((int));
@@ -2347,6 +2371,7 @@ extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
+extern Lisp_Object Qimage;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
@@ -2377,7 +2402,6 @@ extern void redisplay P_ ((void));
 extern int check_point_in_composition
 	P_ ((struct buffer *, int, struct buffer *, int));
 extern void redisplay_preserve_echo_area P_ ((int));
-extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern void prepare_menu_bars P_ ((void));
 
 void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
@@ -2673,7 +2697,7 @@ EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
 extern void adjust_overlays_for_insert P_ ((EMACS_INT, EMACS_INT));
 extern void adjust_overlays_for_delete P_ ((EMACS_INT, EMACS_INT));
-extern void fix_overlays_in_range P_ ((int, int));
+extern void fix_start_end_in_overlays P_ ((int, int));
 extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
 extern int overlay_touches_p P_ ((int));
@@ -3019,7 +3043,6 @@ extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 2);
 extern void syms_of_xmenu P_ ((void));
-extern int popup_activated_flag;
 
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));
@@ -3069,7 +3092,7 @@ extern void syms_of_category P_ ((void));
 extern void syms_of_ccl P_ ((void));
 
 /* Defined in dired.c */
-EXFUN (Ffile_attributes, 1);
+EXFUN (Ffile_attributes, 2);
 extern void syms_of_dired P_ ((void));
 
 /* Defined in term.c */
@@ -3092,7 +3115,6 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-extern void init_xfns P_ ((void));
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
 EXFUN (Fxw_display_color_p, 1);
@@ -3205,3 +3227,8 @@ extern Lisp_Object Vdirectory_sep_char;
    (FIXNUM_OVERFLOW_P (val) \
     ? make_float (val) \
     : make_number ((EMACS_INT)(val)))
+
+#endif /* EMACS_LISP_H */
+
+/* arch-tag: 9b2ed020-70eb-47ac-94ee-e1c2a5107d5e
+   (do not change this comment) */

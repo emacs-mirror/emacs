@@ -106,4 +106,5 @@
 
 (provide 'vt-control)
 
+;;; arch-tag: d4fed1bf-2524-4ba1-a4fe-86bca3d928a2
 ;;; vt-control.el ends here

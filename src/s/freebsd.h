@@ -68,6 +68,9 @@ Boston, MA 02111-1307, USA.  */
 #define LIBS_SYSTEM -lutil
 #if __FreeBSD_version < 400000
 #define LIBS_TERMCAP -ltermcap
+#else
+#define TERMINFO
+#define LIBS_TERMCAP -lncurses
 #endif
 
 #define SYSV_SYSTEM_DIR
@@ -216,3 +219,14 @@ Boston, MA 02111-1307, USA.  */
    of sigblock says it is obsolete.  */
 
 #define POSIX_SIGNALS		1
+
+/* The `combreloc' setting became the default, and it seems to be
+   incompatible with unexec.  Symptom is an immediate SEGV in
+   XtInitializeWidget when starting Emacs under X11.  */
+
+#if defined __FreeBSD_version && __FreeBSD_version >= 500042
+#define LD_SWITCH_SYSTEM_TEMACS -znocombreloc
+#endif
+
+/* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
+   (do not change this comment) */

@@ -28,3 +28,6 @@
       sigprocmask (SIG_SETMASK, &sigprocmask_set, NULL))
 #endif
 #endif /* not POSIX_SIGNALS */
+
+/* arch-tag: 1278f86f-17f2-462d-88c9-85e4b5faa5c3
+   (do not change this comment) */

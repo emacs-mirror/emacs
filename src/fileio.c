@@ -134,6 +134,7 @@ extern int errno;
 
 #include "commands.h"
 extern int use_dialog_box;
+extern int use_file_dialog;
 
 #ifndef O_WRONLY
 #define O_WRONLY 1
@@ -2407,7 +2408,7 @@ Also set the file modes of the target file to match the source file.  */)
   CHECK_STRING (newname);
 
   if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (file, newname);
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
   else
     newname = Fexpand_file_name (newname, Qnil);
 
@@ -4654,7 +4655,9 @@ choose_write_coding_system (start, end, filename,
 {
   Lisp_Object val;
 
-  if (auto_saving)
+  if (auto_saving
+      && NILP (Fstring_equal (current_buffer->filename,
+			      current_buffer->auto_save_file_name)))
     val = Qutf_8_emacs;
   else if (!NILP (Vcoding_system_for_write))
     {
@@ -5161,10 +5164,17 @@ This does code conversion according to the value of
       update_mode_lines++;
     }
   else if (quietly)
-    return Qnil;
+    {
+      if (auto_saving
+	  && ! NILP (Fstring_equal (current_buffer->filename,
+				    current_buffer->auto_save_file_name)))
+	SAVE_MODIFF = MODIFF;
+
+      return Qnil;
+    }
 
   if (!auto_saving)
-    message_with_string ((! INTEGERP (append)
+    message_with_string ((INTEGERP (append)
 			  ? "Updated %s"
 			  : ! NILP (append)
 			  ? "Added to %s"
@@ -5381,7 +5391,8 @@ e_write (desc, string, start, end, coding)
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
        Sverify_visited_file_modtime, 1, 1, 0,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
-This means that the file has not been changed since it was visited or saved.  */)
+This means that the file has not been changed since it was visited or saved.
+See Info node `(elisp)Modification Time' for more details.  */)
      (buf)
      Lisp_Object buf;
 {
@@ -5437,7 +5448,9 @@ DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
 The value is a list of the form (HIGH . LOW), like the time values
-that `file-attributes' returns.  */)
+that `file-attributes' returns.  If the current buffer has no recorded
+file modification time, this function returns 0.
+See Info node `(elisp)Modification Time' for more details.  */)
      ()
 {
   return long_to_cons ((unsigned long) current_buffer->modtime);
@@ -5657,11 +5670,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   minibuffer_auto_raise = 0;
   auto_saving = 1;
 
-  /* First, save all files which don't have handlers.  If Emacs is
-     crashing, the handlers may tweak what is causing Emacs to crash
-     in the first place, and it would be a shame if Emacs failed to
-     autosave perfectly ordinary files because it couldn't handle some
-     ange-ftp'd file.  */
+  /* On first pass, save all files that don't have handlers.
+     On second pass, save all files that do have handlers.
+
+     If Emacs is crashing, the handlers may tweak what is causing
+     Emacs to crash in the first place, and it would be a shame if
+     Emacs failed to autosave perfectly ordinary files because it
+     couldn't handle some ange-ftp'd file.  */
+
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
     for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
       {
@@ -5964,6 +5980,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   if (SCHARS (name) == 0)
     return Qt;
 #endif /* VMS */
+  string = Fexpand_file_name (string, dir);
   if (!NILP (Vread_file_name_predicate))
     return call1 (Vread_file_name_predicate, string);
   return Ffile_exists_p (string);
@@ -5972,15 +5989,20 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-FILENAME if user enters a null string.
+Default name to DEFAULT-FILENAME if user exits the minibuffer with
+the same non-empty string that was inserted by this function.
  (If DEFAULT-FILENAME is omitted, the visited file name is used,
   except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
 Fourth arg MUSTMATCH non-nil means require existing file's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
-If optional sixth arg PREDICATE is non-nil, possible completions and the
-resulting file name must satisfy (funcall PREDICATE NAME).
-DIR defaults to current buffer's directory default.
+If optional sixth arg PREDICATE is non-nil, possible completions and
+the resulting file name must satisfy (funcall PREDICATE NAME).
+DIR should be an absolute directory name.  It defaults to the value of
+`default-directory'.
 
 If this command was invoked with the mouse, use a file dialog box if
 `use-dialog-box' is non-nil, and the window system or X toolkit in use
@@ -6081,7 +6103,7 @@ provides a file dialog box.  */)
     }
 
   count = SPECPDL_INDEX ();
-#ifdef VMS
+#if defined VMS || defined DOS_NT || defined MAC_OSX
   specbind (intern ("completion-ignore-case"), Qt);
 #endif
 
@@ -6094,6 +6116,7 @@ provides a file dialog box.  */)
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
+      && use_file_dialog
       && have_menus_p ())
     {
       /* If DIR contains a file name, split it.  */
@@ -6143,13 +6166,6 @@ provides a file dialog box.  */)
 
   if (!NILP (tem) && !NILP (default_filename))
     val = default_filename;
-  else if (SCHARS (val) == 0 && NILP (insdef))
-    {
-      if (!NILP (default_filename))
-	val = default_filename;
-      else
-	error ("No default file name");
-    }
   val = Fsubstitute_in_file_name (val);
 
   if (replace_in_history)
@@ -6325,7 +6341,20 @@ same format as a regular save would use.  */);
   Vread_file_name_predicate = Qnil;
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
-	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.  */);
+	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.
+If the initial minibuffer contents are non-empty, you can usually
+request a default filename by typing RETURN without editing.  For some
+commands, exiting with an empty minibuffer has a special meaning,
+such as making the current buffer visit no file in the case of
+`set-visited-file-name'.
+If this variable is non-nil, the minibuffer contents are always
+initially non-empty and typing RETURN without editing will fetch the
+default name, if one is provided.  Note however that this default name
+is not necessarily the name originally inserted in the minibuffer, if
+that is just the default directory.
+If this variable is nil, the minibuffer often starts out empty.  In
+that case you may have to explicitly fetch the next history element to
+request the default name.  */);
   insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,
@@ -6473,3 +6502,6 @@ a non-nil value.  */);
   defsubr (&Sunix_sync);
 #endif
 }
+
+/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
+   (do not change this comment) */

@@ -12,6 +12,12 @@ Small but important fixes needed in existing features:
 * Make compile.el record the markers that point to error loci
   on text properties in the error message lines.
 
+* Fix the kill/yank treatment of invisible text. At the moment,
+  invisible text is placed in the kill-ring, so that the contents of
+  the ring may not correspond to the text as displayed to the user. It
+  ought to be possible to omit text which is invisible (due to a
+  text-property, overlay, or selective display) from the kill-ring.
+
 Important features:
 
 * Provide user-friendly ways to list all available font families,
@@ -19,7 +25,8 @@ Important features:
   font selection for Emacs 22.]
 
 * Program Enriched mode to read and save in RTF.  [Is there actually a
-  decent single definition of RTF?]
+  decent single definition of RTF?  Maybe see info at
+  http://latex2rtf.sourceforge.net/.]
 
 * Implement something better than the current Refill mode.  This
   probably needs some primitive support.
@@ -55,14 +62,6 @@ Important features:
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
-
-* Move fringe to be displayed between display margins and text area.
-  [KFS is looking into this].
-
-* Set fringe widths per-window/per-buffer.
-
-* Make fringe bitmaps user configurable.  Maybe add ability to add
-  additional bitmaps to the fringe from lisp.
 
 Other features we would like:
 
@@ -164,9 +163,6 @@ Other features we would like:
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
-* Implement some variety of (non-gtk) drag-and-drop support under X.
-  Using libdnd might be a good start.
-
 * Add horizontal scroll bars.
 
 * Provide an optional feature which computes a scroll bar slider's
@@ -177,8 +173,6 @@ Other features we would like:
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
   programs to native code is probably the first thing to try, though.
-
-* Add a feature to Info similar to "info --apropos SUBJECT".
 
 * Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
@@ -256,10 +250,6 @@ Other features we would like:
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
-* Provide a means to extract image-relative coordinates from mouse
-  clicks on images.  (Needed for W3, at least.)  Also useful for W3
-  and Gnus: allow images to scroll properly.
-
 * Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
   the XPMs so that the colour versions work generally.  (Requires care
   with the colour used for the transparent regions.)
@@ -270,3 +260,16 @@ Other features we would like:
   other variable, without changing the value of `values'.
 
 * Fix skip-chars-{for,back}ward to allow character classes.
+
+* (Controlled by a flag) make open and close syntax match exactly,
+  i.e. `(' doesn't match `]'.
+
+* Specify parameter ID-FORMAT in all calls to `file-attributes' and
+  `directory-files-and-attributes' where attributes UID or GID are used.
+  Whenever possible, use value 'string.
+  When done, change meaning of default value from 'integer to 'string.
+  If value 'integer is used nowhere, remove the parameter ID-FORMAT from
+  the definition of `file-attributes' and `directory-files-and-attributes'
+  and from the calls.
+
+;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

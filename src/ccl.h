@@ -112,3 +112,6 @@ EXFUN (Fccl_program_p, 1);
   } while (0);
 
 #endif /* EMACS_CCL_H */
+
+/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
+   (do not change this comment) */

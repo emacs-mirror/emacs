@@ -508,4 +508,5 @@ Returns what was actually sent, or nil if nothing was sent."
 
 ;;; Code:
 
+;;; arch-tag: 9ca2080f-d5e0-4b26-aa0b-d59194a905a2
 ;;; esh-io.el ends here

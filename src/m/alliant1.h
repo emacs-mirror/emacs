@@ -7,3 +7,6 @@
 
 #define ALLIANT_1
 #include "alliant.h"
+
+/* arch-tag: 516688f9-4b94-4356-9bf0-92b2d72e664e
+   (do not change this comment) */

@@ -84,7 +84,7 @@ This option also treats some characters in the `mule-unicode-...'
 charsets if you don't have a Unicode font with which to display them.
 
 Setting this variable directly does not take effect;
-use either M-x customize of the function `latin1-display'."
+use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp
@@ -106,7 +106,7 @@ a Unicode font with which to display them."
   (if sets
       (progn
 	(mapc #'latin1-display-setup sets)
-	(unless (latin1-char-displayable-p
+	(unless (char-displayable-p
 		 (make-char 'mule-unicode-0100-24ff 32 33))
 	  ;; It doesn't look as though we have a Unicode font.
 	  (map-char-table
@@ -133,6 +133,7 @@ a Unicode font with which to display them."
 	     (?\$,1rt(B "--")	;; EM DASH
 	     (?\$,1ub(B "TM")	;; TRADE MARK SIGN
 	     (?\$,1s:(B ">") ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	     (?$,1s"(B  ",A7(B")
 	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)
@@ -220,47 +221,11 @@ character set: `latin-2', `hebrew' etc."
       (setq language 'cyrillic-iso))
   (let* ((info (get-language-info language 'charset))
 	 (char (and info (make-char (car (remq 'ascii info)) ?\ ))))
-    (and char (latin1-char-displayable-p char))))
+    (and char (char-displayable-p char))))
 
-;; This should be moved into mule-utils or somewhere after 21.1.
-(defun latin1-char-displayable-p (char)
-  "Return non-nil if we should be able to display CHAR.
-On a multi-font display, the test is only whether there is an
-appropriate font from the selected frame's fontset to display CHAR's
-charset in general.  Since fonts may be specified on a per-character
-basis, this may not be accurate."
-  (cond ((< char 256)
-	 ;; Single byte characters are always displayable.
-	 t)
-	((display-multi-font-p)
-	 ;; On a window system, a character is displayable if we have
-	 ;; a font for that character in the default face of the
-	 ;; currently selected frame.
-	 (let ((fontset (frame-parameter (selected-frame) 'font))
-	       font-pattern)
-	   (if (query-fontset fontset)
-	       (setq font-pattern (fontset-font fontset char)))
-	   (or font-pattern
-	       (setq font-pattern (fontset-font "fontset-default" char)))
-	   (if font-pattern
-	       (progn
-		 ;; Now FONT-PATTERN is a string or a cons of family
-		 ;; field pattern and registry field pattern.
-		 (or (stringp font-pattern)
-		     (setq font-pattern (concat "-"
-						(or (car font-pattern) "*")
-						"-*-"
-						(cdr font-pattern))))
-		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
-	(t
-	 (let ((coding (terminal-coding-system)))
-	   (if coding
-	       (let ((safe-chars (coding-system-get coding 'safe-chars))
-		     (safe-charsets (coding-system-get coding 'safe-charsets)))
-		 (or (and safe-chars
-			  (aref safe-chars char))
-		     (and safe-charsets
-			  (memq (char-charset char) safe-charsets)))))))))
+;; Backwards compatibility.
+(defalias 'latin1-char-displayable-p 'char-displayable-p)
+(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "21.5")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.
@@ -269,12 +234,11 @@ whether a font for SET is available and don't set the display if it
 is.  If FORCE is non-nil, set up the display regardless."
   (cond
    ((eq set 'latin-2)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,BF(B "'C" "C'")
 	 (?,BP(B "'D" "/D")
 	 (?,B&(B "'S" "S'")
@@ -335,15 +299,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Bk(B "\"e")
 	 (?,B=(B "''" "'")
 	 (?,B7(B "'<")			; Lynx's rendering of caron
-	 ))))
+	 )))
 
    ((eq set 'latin-3)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,C!(B "/H")
 	 (?,C"(B "~`" "'(")
 	 (?,C&(B "^H" "H^")
@@ -371,15 +334,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Cx(B "^g" "g^")
 	 (?,C}(B "~u" "u(")
 	 (?,C~(B "^s" "s^")
-	 (?,C(B "/." "^.")))))
+	 (?,C(B "/." "^."))))
 
    ((eq set 'latin-4)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,D!(B "A," "A;")
 	 (?,D"(B "k/" "kk")
 	 (?,D#(B "R," ",R")
@@ -428,15 +390,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Dy(B "u," "u;")
 	 (?,D}(B "u~" "~u")
 	 (?,D~(B "u-")
-	 (?,D(B "^.")))))
+	 (?,D(B "^."))))
 
    ((eq set 'latin-5)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	 (apply 'latin1-display-char l)))
        '((?,Mp(B "~g" "g(")
 	 (?,MP(B "~G" "G(")
 	 (?,M](B ".I" "I^.")
@@ -445,15 +406,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Mj(B "^e" "e<")			; from latin-post
 	 (?,Ml(B ".e" "e^.")
 	 (?,Mo(B "\"i" "i-")		; from latin-post
-	 (?,M}(B ".i" "i.")))))
+	 (?,M}(B ".i" "i."))))
 
    ((eq set 'latin-8)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,_!(B ".B" "B`")
 	 (?,_"(B ".b" "b`")
 	 (?,_%(B ".c" "c`")
@@ -484,15 +444,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,_W(B ".T" "T`")
 	 (?,_~(B "^y" "y^")
 	 (?,_^(B "^Y" "Y^")
-	 (?,_/(B "\"Y")))))
+	 (?,_/(B "\"Y"))))
 
    ((eq set 'latin-9)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (latin1-display-identities set)
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (latin1-display-identities set)
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,b((B "~s" "s<")
 	 (?,b&(B "~S" "S<")
 	 (?,b$(B "Euro" "E=")
@@ -500,14 +459,13 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,b4(B "~Z" "Z<")
 	 (?,b>(B "\"Y")
 	 (?,b=(B "oe")
-	 (?,b<(B "OE")))))
+	 (?,b<(B "OE"))))
 
    ((eq set 'greek)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,F!(B "9'")
 	 (?,F"(B "'9")
 	 (?,F/(B "-M")
@@ -566,9 +524,10 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,F|(B "'o")
 	 (?,F}(B "'u")
 	 (?,F~(B "'w")))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,FA(B "A")
 	 (?,FB(B "B")
 	 (?,FE(B "E")
@@ -583,23 +542,22 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,FT(B "T")
 	 (?,FU(B "Y")
 	 (?,FW(B "X")
-	 (?,Fo(B "o")))))
+	 (?,Fo(B "o"))))
 
    ((eq set 'hebrew)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      ;; Don't start with identities, since we don't have definitions
-      ;; for a lot of Hebrew in internal.el.  (Intlfonts is also
-      ;; missing some glyphs.)
-      (let ((i 34))
-	(while (<= i 62)
-	  (aset standard-display-table
-		(make-char 'hebrew-iso8859-8 i)
-		(vector (make-char 'latin-iso8859-1 i)))
-	  (setq i (1+ i))))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    ;; Don't start with identities, since we don't have definitions
+    ;; for a lot of Hebrew in internal.el.  (Intlfonts is also
+    ;; missing some glyphs.)
+    (let ((i 34))
+      (while (<= i 62)
+	(aset standard-display-table
+	      (make-char 'hebrew-iso8859-8 i)
+	      (vector (make-char 'latin-iso8859-1 i)))
+	(setq i (1+ i))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,H_(B "=2")
 	 (?,H`(B "A+")
 	 (?,Ha(B "B+")
@@ -627,19 +585,21 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Hw(B "Q+")
 	 (?,Hx(B "R+")
 	 (?,Hy(B "Sh")
-	 (?,Hz(B "T+")))))
+	 (?,Hz(B "T+"))))
 
    ;; Arabic probably isn't so useful in the absence of Arabic
    ;; language support...
    ((eq set 'arabic)
     (setq set 'arabic)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (aset standard-display-table ?,G (B ",A (B")
-      (aset standard-display-table ?,G$(B ",A$(B")
-      (aset standard-display-table ?,G-(B ",A-(B")
-      (mapc (lambda (l)
-	      (apply  'latin1-display-char l))
+    (or (char-displayable-p ?,G (B)
+	(aset standard-display-table ?,G (B ",A (B"))
+    (or (char-displayable-p ?,G$(B)
+	(aset standard-display-table ?,G$(B ",A$(B"))
+    (or (char-displayable-p ?,G-(B)
+	(aset standard-display-table ?,G-(B ",A-(B"))
+    (mapc (lambda (l)
+	    (or (char-displayable-p (car l))
+		(apply  'latin1-display-char l)))
 	    '((?,G,(B ",+")
 	      (?,G;(B ";+")
 	      (?,G?(B "?+")
@@ -687,15 +647,14 @@ is.  If FORCE is non-nil, set up the display regardless."
 	      (?,Go(B "'+")
 	      (?,Gp(B "1+")
 	      (?,Gq(B "3+")
-	      (?,Gr(B "0+")))))
+	      (?,Gr(B "0+"))))
 
    ((eq set 'cyrillic)
     (setq set 'cyrillic-iso)
-    (when (or force
-	      (not (latin1-display-check-font set)))
-      (mapc
-       (lambda (l)
-	 (apply 'latin1-display-char l))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (apply 'latin1-display-char l)))
        '((?,L"(B "Dj")
 	 (?,L#(B "Gj")
 	 (?,L$(B "IE")
@@ -762,9 +721,10 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,L|(B "kj")
 	 (?,L~(B "v%")
 	 (?,L(B "dzh")))
-      (mapc
-       (lambda (l)
-	 (aset standard-display-table (car l) (string-to-vector (cadr l))))
+    (mapc
+     (lambda (l)
+       (or (char-displayable-p (car l))
+	   (aset standard-display-table (car l) (string-to-vector (cadr l)))))
        '((?,L!(B ",AK(B")
 	 (?,L%(B "S")
 	 (?,L&(B "I")
@@ -793,7 +753,7 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Lu(B "s")
 	 (?,Lv(B "i")
 	 (?,Lw(B ",Ao(B")
-	 (?,Lx(B "j")))))
+	 (?,Lx(B "j"))))
 
    (t (error "Unsupported character set: %S" set)))
 
@@ -802,11 +762,11 @@ is.  If FORCE is non-nil, set up the display regardless."
 ;;;###autoload
 (defcustom latin1-display-ucs-per-lynx nil
   "Set up Latin-1/ASCII display for Unicode characters.
-This uses the transliterations of the Lynx browser.  The display is't
+This uses the transliterations of the Lynx browser.  The display isn't
 changed if the display can render Unicode characters.
 
 Setting this variable directly does not take effect;
-use either M-x customize of the function `latin1-display'."
+use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp
@@ -825,7 +785,7 @@ turn it off and display Unicode characters literally.  The display
 is't changed if the display can render Unicode characters."
   (interactive "p")
   (if (> arg 0)
-      (unless (latin1-char-displayable-p
+      (unless (char-displayable-p
  	       (make-char 'mule-unicode-0100-24ff 32 33))
 	;; It doesn't look as though we have a Unicode font.
 	(let ((latin1-display-format "%s"))
@@ -3244,8 +3204,8 @@ is't changed if the display can render Unicode characters."
 	     (?\$,3sc(B "\"")
 	     (?\$,3sd(B ",")
 	     ;; Not from Lynx
-	     (?$,3r_(B . "")
-	     (?$,3u=(B . "?")))))
+	     (?$,3r_(B "")
+	     (?$,3u=(B "?")))))
     (aset standard-display-table
 	  (make-char 'mule-unicode-0100-24ff) nil)
     (aset standard-display-table
@@ -3257,4 +3217,5 @@ is't changed if the display can render Unicode characters."
 
 (provide 'latin1-disp)
 
+;;; arch-tag: 68b2872e-d667-4f48-8e2f-ec2ba2d29406
 ;;; latin1-disp.el ends here

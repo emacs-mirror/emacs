@@ -8,7 +8,7 @@
 PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
-AVOID="CVS -DIC README COPYING ChangeLog ~ \.orig$ \.rej$ Makefile makefile stamp-subdir .cvsignore \.[cho]$ make-docfile testfile test-distrib"
+AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile makefile stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
 
 # Prune old binaries lying around in the source tree
 PRUNE=no
@@ -133,7 +133,8 @@ elif test ! -r "$BUILD/config.status"; then
 fi
 
 CONFIG_STATUS="$BUILD/config.status"
-function get_config_var () {
+get_config_var ()
+{
   if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | sed q | grep ''
   then
     echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
@@ -153,7 +154,8 @@ DST_BIN="$prefix/bin"
 DST_LIBEXEC="$prefix/libexec/emacs/$VERSION/$ARCH"
 DST_INFO="$prefix/info"
 
-function maybe_mkdir () {
+maybe_mkdir ()
+{
   if ! test -d "$1"; then
     $MKDIR "$1" 2>&1 | sed "s/^mkdir:/$me:/" 1>&2
   fi
@@ -177,15 +179,12 @@ if test x"$PRUNE" != xno; then
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"
   done
-  for D in `ls -1t $BUILD/lib-src/fns-* | sed 1d`; do
-    echo $REMOVE_CMD $D
-    PRUNED="$PRUNED $D"
-  done
 fi
 
 test x"$PRUNE" = xonly && exit 0
 
-function maybe_emit_copy () {
+maybe_emit_copy ()
+{
   if test "$FORCE" = yes || ! cmp -s $1 $2; then
     echo $LINK_CMD $1 $2
   fi
@@ -338,3 +337,5 @@ END {
 done
 
 ) | eval $EXEC
+
+# arch-tag: 9322b572-9755-4cf7-a67a-21e6505f1477

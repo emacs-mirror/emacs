@@ -1,3 +1,55 @@
+2004-04-09  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (distclean clean): Remove nmake specific
+	stamp-subdir test.
+
+2004-02-28  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (all): Depends on ${WORLD} instead of ${TIT} and
+	${MISC-DIC}.
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
+	* makefile.nt (all): Depends on $(WORLD) instead of $(TIT) and
+	$(MISC-DIC).
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
+	* makefile.w32-in (all): Depends on $(WORLD) instead of $(TIT) and
+	$(MISC-DIC).
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
+2004-02-16  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
+
+	* Makefile.in (distclean maintainer-clean): Depend on clean.
+
+2004-01-27  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
+
+	* quail/cyrillic.el ("bulgarian-bds"): Docstring fixed.
+
+2004-01-22  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
+
+	* quail/cyrillic.el ("bulgarian-phonetic"): Docstring fixed.
+	Duplicated entry removed.
+	("bulgarian-bds"): Docstring fixed.
+
+2003-10-06  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Several additions.
+
+2003-08-25  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* quail/latin-pre.el ("german-prefix"): Fix typo in the docstring.
+
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Add \rhd.
+
+2003-08-19  Markus Rost  <rost@math.ohio-state.edu>
+
+	* quail/latin-pre.el ("french-prefix"): Fix spacing in docstring.
+
 2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (quail-indian-update-translation): Adjusted the
@@ -675,7 +727,7 @@
 	translation.
 
 	* quail/japanese.el ("japanese"): Delete the key sequence for
-	Roman transliteration from the docstring because it's now shonw
+	Roman transliteration from the docstring because it's now shown
 	automatically.
 	("japanese-ascii", "japanese-zenkaku")
 	("japanese-hankaku-kana", "japanese-hiragana")
@@ -1343,3 +1395,5 @@
     Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 4b364045-a476-4ff7-92ad-dde58dbd45b4

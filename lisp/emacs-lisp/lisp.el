@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 1994, 2000, 2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -157,8 +157,9 @@ normal recipe (see `beginning-of-defun').  Major modes can define this
 if defining `defun-prompt-regexp' is not sufficient to handle the mode's
 needs.
 
-The function should go to the line on which the current defun starts,
-and return non-nil, or should return nil if it can't find the beginning.")
+The function (of no args) should go to the line on which the current
+defun starts, and return non-nil, or should return nil if it can't
+find the beginning.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -187,7 +188,12 @@ If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
   (if beginning-of-defun-function
-      (funcall beginning-of-defun-function)
+      (if (> (setq arg (or arg 1)) 0)
+	  (dotimes (i arg)
+	    (funcall beginning-of-defun-function))
+	;; Better not call end-of-defun-function directly, in case
+	;; it's not defined.
+	(end-of-defun (- arg)))
     (and arg (< arg 0) (not (eobp)) (forward-char 1))
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat (if open-paren-in-column-0-is-defun-start
@@ -217,12 +223,17 @@ matches the open-parenthesis that starts a defun; see function
 If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
+  (if (or (null arg) (= arg 0)) (setq arg 1))
   (if end-of-defun-function
-      (funcall end-of-defun-function)
-    (if (or (null arg) (= arg 0)) (setq arg 1))
+      (if (> arg 0)
+	  (dotimes (i arg)
+	    (funcall end-of-defun-function))
+	;; Better not call beginning-of-defun-function
+	;; directly, in case it's not defined.
+	(beginning-of-defun (- arg)))
     (let ((first t))
       (while (and (> arg 0) (< (point) (point-max)))
-	(let ((pos (point)) npos)
+	(let ((pos (point)))
 	  (while (progn
 		   (if (and first
 			    (progn
@@ -266,10 +277,14 @@ already marked."
 	    (end-of-defun)
 	    (point))))
 	(t
+	 ;; Do it in this order for the sake of languages with nested
+	 ;; functions where several can end at the same place as with
+	 ;; the offside rule, e.g. Python.
 	 (push-mark (point))
-	 (end-of-defun)
-	 (push-mark (point) nil t)
 	 (beginning-of-defun)
+	 (push-mark (point) nil t)
+	 (end-of-defun)
+	 (exchange-point-and-mark)
 	 (re-search-backward "^\n" (- (point) 1) t))))
 
 (defun narrow-to-defun (&optional arg)
@@ -279,10 +294,13 @@ Optional ARG is ignored."
   (interactive)
   (save-excursion
     (widen)
-    (end-of-defun)
-    (let ((end (point)))
-      (beginning-of-defun)
-      (narrow-to-region (point) end))))
+    ;; Do it in this order for the sake of languages with nested
+    ;; functions where several can end at the same place as with the
+    ;; offside rule, e.g. Python.
+    (beginning-of-defun)
+    (let ((beg (point)))
+      (end-of-defun)
+      (narrow-to-region beg (point)))))
 
 (defun insert-parentheses (arg)
   "Enclose following ARG sexps in parentheses.  Leave point after open-paren.
@@ -445,4 +463,5 @@ considered."
 		   (display-completion-list list)))
 	       (message "Making completion list...%s" "done")))))))
 
+;;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

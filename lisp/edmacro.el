@@ -418,7 +418,7 @@ doubt, use whitespace."
 			 (while (memq (aref rest-mac i) (cdr mdigs))
 			   (incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (concat "M-" (edmacro-subseq rest-mac 0 i) " ")
+			      (prog1 (vconcat "M-" (edmacro-subseq rest-mac 0 i) " ")
 				(callf edmacro-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
@@ -437,7 +437,7 @@ doubt, use whitespace."
 				      '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
 			   (incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (concat "C-u " (edmacro-subseq rest-mac 1 i) " ")
+			      (prog1 (vconcat "C-u " (edmacro-subseq rest-mac 1 i) " ")
 				(callf edmacro-subseq rest-mac i)))))))
 	     (bind-len (apply 'max 1
 			      (loop for map in maps
@@ -525,7 +525,8 @@ doubt, use whitespace."
 			       (t
 				(error "Unrecognized item in macro: %s" ch)))))
 			   (or fkey key) " "))))
-	(if prefix (setq desc (concat prefix desc)))
+	(if prefix
+	    (setq desc (concat (edmacro-sanitize-for-string prefix) desc)))
 	(unless (string-match " " desc)
 	  (let ((times 1) (pos bind-len))
 	    (while (not (edmacro-mismatch rest-mac rest-mac
@@ -607,6 +608,16 @@ If START or END is negative, it counts from the end."
 		 (aset res i (aref seq start))
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
+
+(defun edmacro-sanitize-for-string (seq)
+  "Convert a key sequence vector into a string.
+The string represents the same events; Meta is indicated by bit 7.
+This function assumes that the events can be stored in a string."
+  (setq seq (copy-sequence seq))
+  (loop for i below (length seq) do
+        (when (< (aref seq i) 0)
+          (setf (aref seq i) (logand (aref seq i) 127))))
+  seq)
 
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
@@ -727,4 +738,5 @@ If START or END is negative, it counts from the end."
 
 (provide 'edmacro)
 
+;;; arch-tag: 726807b4-3ae6-49de-b0ae-b9590973e0d7
 ;;; edmacro.el ends here

@@ -67,3 +67,6 @@ NOTE-END */
 /* Change some things to avoid bugs in compiler */
 
 #define SWITCH_ENUM_BUG 1
+
+/* arch-tag: 7208d63c-9a23-469e-a9b1-908ac912c743
+   (do not change this comment) */

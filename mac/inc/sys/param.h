@@ -26,3 +26,6 @@ Boston, MA 02111-1307, USA.  */
 #define MAXPATHLEN 255
 
 #endif /* _SYS_PARAM_H */
+
+/* arch-tag: dceae288-b9cf-4a8f-a780-bca2cadf0c47
+   (do not change this comment) */

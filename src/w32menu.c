@@ -153,7 +153,6 @@ Lisp_Object Vmenu_updating_frame;
 Lisp_Object Qdebug_on_next_call;
 
 extern Lisp_Object Qmenu_bar;
-extern Lisp_Object Qmouse_click, Qevent_kind;
 
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -2416,3 +2415,6 @@ void globals_of_w32menu ()
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
 }
+
+/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,2003
+;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,03,2004
 ;; 		 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
@@ -12,7 +12,7 @@
 ;;	(Stefan Monnier) monnier@cs.yale.edu
 ;;	(Greg Klanderman) greg@alphatech.com
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
-;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
+;; Maintainer: (Stefan Monnier) monnier@gnu.org
 ;; Keywords: CVS, version control, release management
 
 ;; This file is part of GNU Emacs.
@@ -669,6 +669,14 @@ DCD is the `dont-change-disc' flag to use when parsing that output.
 SUBDIR is the subdirectory (if any) where this command was run.
 OLD-FIS is the list of fileinfos on which the cvs command was applied and
   which should be considered up-to-date if they are missing from the output."
+  (when (eq system-type 'darwin)
+    ;; Fixup the ^D^H^H inserted at beginning of buffer sometimes on MacOSX
+    ;; because of the call to `process-send-eof'.
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^\\^D+" nil t)
+	(let ((inhibit-read-only t))
+	  (delete-region (match-beginning 0) (match-end 0))))))
   (let* ((fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
 	 last)
     (with-current-buffer cvs-buffer
@@ -1186,11 +1194,12 @@ marked instead. A directory can never be marked."
       (ewoc-invalidate cvs-cookies tin)
       (cvs-mode-next-line 1))))
 
-(defun cvs-mouse-toggle-mark (e)
-  "Toggle the mark of the entry under the mouse."
-  (interactive "e")
+(defalias 'cvs-mouse-toggle-mark 'cvs-mode-toggle-mark)
+(defun cvs-mode-toggle-mark (e)
+  "Toggle the mark of the entry at point."
+  (interactive (list last-input-event))
   (save-excursion
-    (mouse-set-point e)
+    (posn-set-point (event-end e))
     (cvs-mode-mark 'toggle)))
 
 (defun-cvs-mode cvs-mode-unmark ()
@@ -1256,7 +1265,8 @@ they should always be unmarked."
   (let ((tin (ewoc-goto-prev cvs-cookies 1)))
     (when tin
       (setf (cvs-fileinfo->marked (ewoc-data tin)) nil)
-      (ewoc-invalidate cvs-cookies tin))))
+      (ewoc-invalidate cvs-cookies tin)))
+  (cvs-move-to-goal-column))
 
 (defconst cvs-ignore-marks-alternatives
   '(("toggle-marks"	. "/TM")
@@ -1921,7 +1931,7 @@ to hear about anymore."
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
   ;; If the event moves point, check that it moves it to a valid location.
-  (when (and (/= (point) (progn (ignore-errors (mouse-set-point e)) (point)))
+  (when (and (/= (point) (progn (posn-set-point (event-end e)) (point)))
 	     (not (memq (get-text-property (1- (line-end-position))
                                            'font-lock-face)
                         '(cvs-header-face cvs-filename-face))))
@@ -2043,7 +2053,16 @@ Returns a list of FIS that should be `cvs remove'd."
 	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect
-		     (yes-or-no-p (format "Delete %d files? " (length files)))
+		     (yes-or-no-p
+		      (let ((nfiles (length files))
+			    (verb (if (eq filter 'undo) "Undo" "Delete")))
+			(if (= 1 nfiles)
+			    (format "%s file: \"%s\" ? "
+				    verb
+				    (cvs-fileinfo->file (car files)))
+			  (format "%s %d files? "
+				  verb
+				  nfiles))))
 		   (cvs-bury-buffer tmpbuf cvs-buffer))))
 	(progn (message "Aborting") nil)
       (dolist (fi files)
@@ -2105,8 +2124,8 @@ With prefix argument, prompt for cvs flags."
   "Add a ChangeLog entry in the ChangeLog of the current directory."
   (interactive)
   (dolist (fi (cvs-mode-marked nil nil))
-    (let ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	  (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
+    (let* ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
+	   (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
       (kill-local-variable 'change-log-default-name)
       (save-excursion (add-change-log-entry-other-window)))))
 
@@ -2311,4 +2330,5 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (provide 'pcvs)
 
+;;; arch-tag: 8e3a7494-0453-4389-9ab3-a557ce9fab61
 ;;; pcvs.el ends here

@@ -1387,10 +1387,17 @@ Like `compound-text', but does not produce escape sequences for compositions."
 (define-coding-system 'compound-text-with-extensions
  "Compound text encoding with ICCCM Extended Segment extensions.
 
+See the variable `ctext-non-standard-encodings-alist' for the
+detail about how extended segments are handled.
+
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
-  :coding-type 'raw-text
+  :coding-type 'iso-2022
   :mnemonic ?x
+  :charset-list 'iso-2022
+  :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
+  :flags '(ascii-at-eol ascii-at-cntl
+			designation locking-shift single-shift)
   :post-read-conversion 'ctext-post-read-conversion
   :pre-write-conversion 'ctext-pre-write-conversion)
 
@@ -1491,4 +1498,5 @@ for decoding and encoding files, process I/O, etc."
 ;; no-byte-compile: t
 ;; End:
 
+;;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

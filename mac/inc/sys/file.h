@@ -57,3 +57,6 @@ int pause(void);
 char *getwd(char *);
 
 #endif  /* _SYS_FILE_H */
+
+/* arch-tag: c3a653d5-f228-4d62-a47c-0398015195de
+   (do not change this comment) */

@@ -3410,7 +3410,9 @@ directory with these items."
 	(if (re-search-forward "[]>?}] [^ ]"
 			       (save-excursion (end-of-line) (point))
 			       t)
-	    (speedbar-do-function-pointer)
+	    (progn
+	      (forward-char -1)
+	      (speedbar-do-function-pointer))
 	  nil))
       (speedbar-do-function-pointer)))
 
@@ -4339,4 +4341,5 @@ If we have an image associated with it, use that image."
 ;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
 
+;;; arch-tag: 4477e6d1-f78c-48b9-a503-387d3c9767d5
 ;;; speedbar.el ends here

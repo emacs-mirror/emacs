@@ -314,7 +314,7 @@
 ;;  - The logic in vcursor-find-window is rather complicated and
 ;;    therefore bug-prone, though in practice it seems to work OK.
 ;;
-;; Possible enhnacements:
+;; Possible enhancements:
 ;; It would be easy to implement vcursor-push (save vcursor position
 ;; as mark and deactivate) and vcursor-pop (deactivate vcursor and
 ;; move to last pushed position) functions.
@@ -342,9 +342,14 @@ disable the vcursor."
   :type '(choice (const t) (const nil) (const copy))
   :group 'vcursor)
 
+(defcustom vcursor-modifiers (list 'control 'shift)
+  "*A list of modifiers that are used to define vcursor key bindings."
+  :type '(repeat symbol)
+  :group 'vcursor)
+
 ;; Needed for defcustom, must be up here
 (defun vcursor-cs-binding (base &optional meta)
-  (vector (let ((key (list 'control 'shift (intern base))))
+  (vector (let ((key (append vcursor-modifiers (list (intern base)))))
 	    (if meta
 		(cons 'meta key)
 	      key))))
@@ -1161,4 +1166,5 @@ Disabling the vcursor automatically turns this off."
 
 (provide 'vcursor)
 
+;;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
 ;;; vcursor.el ends here

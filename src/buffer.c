@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 2003
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 03, 2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -67,7 +67,7 @@ struct buffer *all_buffers;
    Setting the default value also goes through the alist of buffers
    and stores into each buffer that does not say it has a local value.  */
 
-struct buffer buffer_defaults;
+DECL_ALIGN (struct buffer, buffer_defaults);
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 
@@ -89,10 +89,6 @@ static Lisp_Object Vbuffer_defaults;
    If a slot is -2, then there is no DEFVAR_PER_BUFFER for it,
    but there is a default value which is copied into each buffer.
 
-   If a slot in this structure is negative, then even though there may
-   be a DEFVAR_PER_BUFFER for the slot, there is no default value for it;
-   and the corresponding slot in buffer_defaults is not used.
-
    If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
    zero, that is a bug */
 
@@ -101,7 +97,8 @@ struct buffer buffer_local_flags;
 /* This structure holds the names of symbols whose values may be
    buffer-local.  It is indexed and accessed in the same way as the above. */
 
-struct buffer buffer_local_symbols;
+DECL_ALIGN (struct buffer, buffer_local_symbols);
+
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
 
@@ -525,7 +522,7 @@ DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
        2, 3,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
        doc: /* Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.
-BASE-BUFFER should be an existing buffer (or buffer name).
+BASE-BUFFER should be a live buffer, or the name of an existing buffer.
 NAME should be a string which is not the name of an existing buffer.
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
@@ -533,16 +530,20 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
      (base_buffer, name, clone)
      Lisp_Object base_buffer, name, clone;
 {
-  Lisp_Object buf;
+  Lisp_Object buf, tem;
   struct buffer *b;
 
+  CHECK_STRING (name);
   buf = Fget_buffer (name);
   if (!NILP (buf))
     error ("Buffer name `%s' is in use", SDATA (name));
 
+  tem = base_buffer;
   base_buffer = Fget_buffer (base_buffer);
   if (NILP (base_buffer))
-    error ("No such buffer: `%s'", SDATA (name));
+    error ("No such buffer: `%s'", SDATA (tem));
+  if (NILP (XBUFFER (base_buffer)->name))
+    error ("Base buffer has been killed");
 
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
@@ -656,7 +657,7 @@ delete_all_overlays (b)
 }
 
 /* Reinitialize everything about a buffer except its name and contents
-   and local variables. 
+   and local variables.
    If called on an already-initialized buffer, the list of overlays
    should be deleted before calling this function, otherwise we end up
    with overlays that claim to belong to the buffer but the buffer
@@ -770,7 +771,7 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buff
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
-until an unused name is found, and then return that name.
+\(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use
 \(if it is in the sequence to be tried)
 even if a buffer with that name exists.  */)
@@ -783,6 +784,9 @@ even if a buffer with that name exists.  */)
 
   CHECK_STRING (name);
 
+  tem = Fstring_equal (name, ignore);
+  if (!NILP (tem))
+    return name;
   tem = Fget_buffer (name);
   if (NILP (tem))
     return name;
@@ -1203,6 +1207,10 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
       buf = Fcdr (XCAR (tail));
       if (EQ (buf, buffer))
 	continue;
+      if (NILP (buf))
+	continue;
+      if (NILP (XBUFFER (buf)->name))
+	continue;
       if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       /* If the selected frame has a buffer_predicate,
@@ -1430,7 +1438,8 @@ with SIGHUP.  */)
   if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0
       && BUF_SAVE_MODIFF (b) < b->auto_save_modified
-      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
+      && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
@@ -1674,8 +1683,9 @@ DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
        doc: /* Select buffer BUFFER in some window, preferably a different one.
 If BUFFER is nil, then some other buffer is chosen.
 If `pop-up-windows' is non-nil, windows can be split to do this.
-If optional second arg OTHER-WINDOW is non-nil, insist on finding another
-window even if BUFFER is already visible in the selected window.
+If optional second arg OTHER-WINDOW is nil, insist on finding another
+window even if BUFFER is already visible in the selected window,
+and ignore `same-window-regexps' and `same-window-buffer-names'.
 This uses the function `display-buffer' as a subroutine; see the documentation
 of `display-buffer' for additional customization information.
 
@@ -2082,7 +2092,9 @@ If FLAG is nil, this makes the buffer a single-byte buffer.
 In these cases, the buffer contents remain unchanged as a sequence of
 bytes but the contents viewed as characters do change.
 If FLAG is `to', this makes the buffer a multibyte buffer by changing
-all eight-bit bytes to eight-bit characters.  */)
+all eight-bit bytes to eight-bit characters.
+If the multibyte flag was really changed, undo information of the
+current buffer is cleared.  */)
      (flag)
      Lisp_Object flag;
 {
@@ -3301,10 +3313,9 @@ adjust_overlays_for_delete (pos, length)
    endpoint in this range will need to be unlinked from the overlay
    list and reinserted in its proper place.
    Such an overlay might even have negative size at this point.
-   If so, we'll reverse the endpoints.  Can you think of anything
-   better to do in this situation?  */
+   If so, we'll make the overlay empty. */
 void
-fix_overlays_in_range (start, end)
+fix_start_end_in_overlays (start, end)
      register int start, end;
 {
   Lisp_Object overlay;
@@ -3329,23 +3340,24 @@ fix_overlays_in_range (start, end)
   for (parent = NULL, tail = current_buffer->overlays_before; tail;)
     {
       XSETMISC (overlay, tail);
+
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+
+      /* If the overlay is backwards, make it empty.  */
+      if (endpos < startpos)
+	{
+	  startpos = endpos;
+	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
+		       Qnil);
+	}
+
       if (endpos < start)
 	break;
-      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      
       if (endpos < end
 	  || (startpos >= start && startpos < end))
 	{
-	  /* If the overlay is backwards, fix that now.  */
-	  if (startpos > endpos)
-	    {
-	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
-			   Qnil);
-	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
-			   Qnil);
-	      tem = startpos; startpos = endpos; endpos = tem;
-	    }
 	  /* Add it to the end of the wrong list.  Later on,
 	     recenter_overlay_lists will move it to the right place.  */
 	  if (endpos < current_buffer->overlay_center)
@@ -3376,22 +3388,24 @@ fix_overlays_in_range (start, end)
   for (parent = NULL, tail = current_buffer->overlays_after; tail;)
     {
       XSETMISC (overlay, tail);
+
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      /* If the overlay is backwards, make it empty.  */
+      if (endpos < startpos)
+	{
+	  startpos = endpos;
+	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
+		       Qnil);	  
+	}
+
       if (startpos >= end)
 	break;
-      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+
       if (startpos >= start
 	  || (endpos >= start && endpos < end))
 	{
-	  if (startpos > endpos)
-	    {
-	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
-			   Qnil);
-	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
-			   Qnil);
-	      tem = startpos; startpos = endpos; endpos = tem;
-	    }
 	  if (endpos < current_buffer->overlay_center)
 	    {
 	      if (!afterp)
@@ -4974,6 +4988,7 @@ init_buffer_once ()
   buffer_defaults.scroll_bar_width = Qnil;
   buffer_defaults.vertical_scroll_bar_type = Qt;
   buffer_defaults.indicate_empty_lines = Qnil;
+  buffer_defaults.indicate_buffer_boundaries = Qnil;
   buffer_defaults.scroll_up_aggressively = Qnil;
   buffer_defaults.scroll_down_aggressively = Qnil;
   buffer_defaults.display_time = Qnil;
@@ -5043,6 +5058,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.scroll_bar_width, idx); ++idx;
   XSETFASTINT (buffer_local_flags.vertical_scroll_bar_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.indicate_buffer_boundaries, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
@@ -5331,6 +5347,11 @@ This is the same as (default-value 'vertical-scroll-bar).  */);
 		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
 
+  DEFVAR_LISP_NOPRO ("default-indicate-buffer-boundaries",
+		     &buffer_defaults.indicate_buffer_boundaries,
+		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
+This is the same as (default-value 'indicate-buffer-boundaries).  */);
+
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
 		     doc: /* Default value of `scroll-up-aggressively'.
@@ -5388,6 +5409,8 @@ A string is printed verbatim in the mode line except for %-constructs:
   %c -- print the current column number (this makes editing slower).
         To make the column number update correctly in all cases,
 	`column-number-mode' must be non-nil.
+  %i -- print the size of the buffer.
+  %I -- like %i, but use k, M, G, etc., to abbreviate.
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
@@ -5638,6 +5661,24 @@ A value of t means to use the vertical scroll bar type from the window's frame. 
 		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
+
+  DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
+		     &current_buffer->indicate_buffer_boundaries, Qnil,
+		     doc: /* *Visually indicate buffer boundaries and scrolling.
+If non-nil, the first and last line of the buffer are marked in the fringe
+of a window on window-systems with angle bitmaps, or if the window can be
+scrolled, the top and bottom line of the window are marked with up and down
+arrow bitmaps.
+If value is `left' or `right', both angle and arrow bitmaps are displayed in
+the left or right fringe, resp.  Any other non-nil value causes the
+bitmap on the top line to be displayed in the left fringe, and the
+bitmap on the bottom line in the right fringe.
+If value is a cons (ANGLES . ARROWS), the car specifies the position
+of the angle bitmaps, and the cdr specifies the position of the arrow
+bitmaps.  For example, (t . right) places the top angle bitmap in left
+fringe, the bottom angle bitmap in right fringe, and both arrow
+bitmaps in right fringe.  To show just the angle bitmaps in the left
+fringe, but no arrow bitmaps, use (left . nil).  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
@@ -5907,3 +5948,6 @@ keys_of_buffer ()
      initialized when that function gets called.  */
   Fput (intern ("erase-buffer"), Qdisabled, Qt);
 }
+
+/* arch-tag: e48569bf-69a9-4b65-a23b-8e68769436e1
+   (do not change this comment) */

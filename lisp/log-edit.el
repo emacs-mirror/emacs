@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999,2000,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000,2003,2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
@@ -299,6 +299,11 @@ automatically."
 ;;; Actual code
 ;;;
 
+(defvar log-edit-font-lock-keywords
+  '(("\\`\\(Summary:\\)\\(.*\\)"
+     (1 font-lock-keyword-face)
+     (2 font-lock-function-name-face))))
+
 ;;;###autoload
 (defun log-edit (callback &optional setup listfun buffer &rest ignore)
   "Setup a buffer to enter a log message.
@@ -337,6 +342,8 @@ the package from which this is used might also provide additional
 commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
+  (set (make-local-variable 'font-lock-defaults)
+       '(log-edit-font-lock-keywords t))
   (make-local-variable 'log-edit-comment-ring-index))
 
 (defun log-edit-hide-buf (&optional buf where)
@@ -564,12 +571,21 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
   (save-excursion
     (let ((changelog-file-name
 	   (let ((default-directory
-		   (file-name-directory (expand-file-name file))))
-	     ;; `find-change-log' uses `change-log-default-name' if set
-	     ;; and sets it before exiting, so we need to work around
-	     ;; that memoizing which is undesired here
-	     (setq change-log-default-name nil)
-	     (find-change-log))))
+		   (file-name-directory (expand-file-name file)))
+		 (visiting-buffer (find-buffer-visiting file)))
+	     ;; If there is a buffer visiting FILE, and it has a local
+	     ;; value for `change-log-default-name', use that.
+	     (if (and visiting-buffer
+		      (local-variable-p 'change-log-default-name
+					visiting-buffer))
+		 (save-excursion
+		   (set-buffer visiting-buffer)
+		   change-log-default-name)
+	       ;; `find-change-log' uses `change-log-default-name' if set
+	       ;; and sets it before exiting, so we need to work around
+	       ;; that memoizing which is undesired here
+	       (setq change-log-default-name nil)
+	       (find-change-log)))))
       (set-buffer (find-file-noselect changelog-file-name))
       (unless (eq major-mode 'change-log-mode) (change-log-mode))
       (goto-char (point-min))
@@ -630,4 +646,5 @@ Sort REGIONS front-to-back first."
 
 (provide 'log-edit)
 
+;;; arch-tag: 8089b39c-983b-4e83-93cd-ed0a64c7fdcc
 ;;; log-edit.el ends here

@@ -36,3 +36,6 @@ __start:
 	.data
 	.globl _data_start
 _data_start:	.space 4
+
+/* arch-tag: ba84e4dc-615d-4a81-898c-f5b98ec71c9d
+   (do not change this comment) */

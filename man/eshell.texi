@@ -1,5 +1,4 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.17 2002/12/10 13:16:31 pj Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -9,7 +8,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -671,6 +670,8 @@ Below is complete list of known problems with Eshell version 2.4.1,
 which is the version included with Emacs 21.1.
 
 @table @asis
+@item Documentation incomplete
+
 @item Differentiate between aliases and functions
 
 Allow for a bash-compatible syntax, such as:
@@ -1128,3 +1129,7 @@ Since it keeps the cursor up where the command was invoked.
 
 @printindex ky
 @bye
+
+@ignore
+   arch-tag: 776409ba-cb15-42b9-b2b6-d2bdc7ebad01
+@end ignore

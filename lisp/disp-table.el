@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994, 1995, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 94, 95, 1999, 2004  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
@@ -113,15 +113,17 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun standard-display-8bit (l h)
   "Display characters in the range L to H literally."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (if (and (>= l ?\ ) (< l 127))
-	(aset standard-display-table l nil)
-      (aset standard-display-table l (vector l)))
+    (aset standard-display-table l (if (or (< l ?\ ) (>= l 127)) (vector l)))
     (setq l (1+ l))))
 
 ;;;###autoload
 (defun standard-display-default (l h)
   "Display characters in the range L to H using the default notation."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (while (<= l h)
     (if (and (>= l ?\ ) (characterp l))
 	(aset standard-display-table l nil))
@@ -133,6 +135,8 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun standard-display-ascii (c s)
   "Display character C using printable string S."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c (vconcat s)))
 
 ;;;###autoload
@@ -142,6 +146,8 @@ This function assumes that your terminal uses the SO/SI characters;
 it is meaningless for an X frame."
   (if (memq window-system '(x w32))
       (error "Cannot use string glyphs in a windowing system"))
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
@@ -152,12 +158,16 @@ This function assumes VT100-compatible escapes; it is meaningless for an
 X frame."
   (if (memq window-system '(x w32))
       (error "Cannot use string glyphs in a windowing system"))
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
 ;;;###autoload
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
   (aset standard-display-table c
 	(vector
 	 (if window-system
@@ -227,4 +237,5 @@ for users who call this function in `.emacs'."
 
 (provide 'disp-table)
 
+;;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here

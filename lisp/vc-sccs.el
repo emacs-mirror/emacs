@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.21 2003/02/04 12:11:54 lektu Exp $
+;; $Id: vc-sccs.el,v 1.24 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -130,15 +130,19 @@ For a description of possible values, see `vc-check-master-templates'."
               (if (file-ownership-preserved-p file)
                   'edited
                 (vc-user-login-name owner-uid))
-          ;; Strange permissions.
-          ;; Fall through to real state computation.
-          (vc-sccs-state file)))
-    (vc-sccs-state file))))
+            ;; Strange permissions.
+            ;; Fall through to real state computation.
+            (vc-sccs-state file))))
+    (vc-sccs-state file)))
 
 (defun vc-sccs-workfile-version (file)
   "SCCS-specific version of `vc-workfile-version'."
   (with-temp-buffer
-    (vc-insert-file (vc-name file) "^\001e")
+    ;; The workfile version is always the latest version number.
+    ;; To find this number, search the entire delta table,
+    ;; rather than just the first entry, because the
+    ;; first entry might be a deleted ("R") version.
+    (vc-insert-file (vc-name file) "^\001e\n\001[^s]")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
 
 (defun vc-sccs-checkout-model (file)
@@ -266,9 +270,9 @@ EDITABLE non-nil means previous version should be locked."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (file)
+(defun vc-sccs-print-log (file &optional buffer)
   "Get change log associated with FILE."
-  (vc-do-command nil 0 "prs" (vc-name file)))
+  (vc-do-command buffer 0 "prs" (vc-name file)))
 
 (defun vc-sccs-logentry-check ()
   "Check that the log entry in the current buffer is acceptable for SCCS."
@@ -276,11 +280,11 @@ EDITABLE non-nil means previous version should be locked."
     (goto-char 512)
     (error "Log must be less than 512 characters; point is now at pos 512")))
 
-(defun vc-sccs-diff (file &optional oldvers newvers)
+(defun vc-sccs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two versions of FILE."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file)
+  (apply 'vc-do-command (or buffer "*vc-diff*") 1 "vcdiff" (vc-name file)
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))
@@ -393,4 +397,5 @@ If NAME is nil or a version number string it's just passed through."
 
 (provide 'vc-sccs)
 
+;;; arch-tag: d751dee3-d7b3-47e1-95e3-7ae98c052041
 ;;; vc-sccs.el ends here

@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -180,8 +180,8 @@ Leading comment characters and whitespace should be in regexp group 1."
 If called with optional MODE and with value `section',
 return section regexp instead."
   (if (eq mode 'section)
-      (concat "^;;;;* " header ":[ \t]*$")
-    (concat lm-header-prefix header "[ \t]*:[ \t]*")))
+      (concat "^;;;;* \\(" header "\\):[ \t]*$")
+    (concat lm-header-prefix "\\(" header "\\)[ \t]*:[ \t]*")))
 
 (defun lm-get-package-name ()
   "Return package name by looking at the first line."
@@ -214,6 +214,7 @@ The end of the section is defined as the beginning of the next
 section of the same level or lower.  The function
 `lisp-outline-level' is used to compute the level of a section.
 If no such section exists, return the end of the buffer."
+  (require 'outline)   ;; for outline-regexp.
   (let ((start (lm-section-start header)))
     (when start
       (save-excursion
@@ -296,15 +297,16 @@ The returned value is a list of strings, one per line."
 ;; These give us smart access to the header fields and commentary
 
 (defmacro lm-with-file (file &rest body)
-  "Make a buffer with FILE current, and execute BODY.
-If FILE isn't in a buffer, load it in, and kill it after BODY is executed."
+  "Execute BODY in a buffer containing the contents of FILE.
+If FILE is nil, execute BODY in the current buffer."
   (let ((filesym (make-symbol "file")))
-    `(save-excursion
-       (let ((,filesym ,file))
-	 (if ,filesym (set-buffer (find-file-noselect ,filesym)))
-	 (prog1 (progn ,@body)
-	   (if (and ,filesym (not (get-buffer-window (current-buffer) t)))
-	       (kill-buffer (current-buffer))))))))
+    `(let ((,filesym ,file))
+       (if ,filesym
+	   (with-temp-buffer
+	     (insert-file-contents ,filesym)
+	     ,@body)
+	 (save-excursion 
+	   ,@body)))))
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
 
@@ -450,14 +452,14 @@ This can be found in an RCS or SCCS header."
     (if keywords
 	(split-string keywords ",?[ \t]"))))
 
+(defvar finder-known-keywords)
 (defun lm-keywords-finder-p (&optional file)
   "Return non-nil if any keywords in FILE are known to finder."
   (require 'finder)
   (let ((keys (lm-keywords-list file)))
     (catch 'keyword-found
       (while keys
-	(if (assoc (intern (car keys)) 
-		   (with-no-warnings finder-known-keywords))
+	(if (assoc (intern (car keys)) finder-known-keywords)
 	    (throw 'keyword-found t))
 	(setq keys (cdr keys)))
       nil)))
@@ -520,7 +522,7 @@ copyright notice is allowed."
 	(setq ret
 	      (cond
 	       ((null name)
-		(format "Package %s does not exist"))
+		"Can't find package name")
 	       ((not (lm-authors))
 		"`Author:' tag missing")
 	       ((not (lm-maintainer))
@@ -544,7 +546,7 @@ copyright notice is allowed."
 		    (concat "^;;;[ \t]+" name "[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
 		    nil t)))
-		(format "Can't find the footer line"))
+		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")
 	       ((not (or non-fsf-ok
@@ -607,4 +609,5 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 
 (provide 'lisp-mnt)
 
+;;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
 ;;; lisp-mnt.el ends here

@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -52,21 +52,26 @@
 
 ;;; LIST FORMAT
 
-;; The functions `xml-parse-file' and `xml-parse-tag' return a list with
-;; the following format:
+;; The functions `xml-parse-file', `xml-parse-region' and
+;; `xml-parse-tag' return a list with the following format:
 ;;
 ;;    xml-list   ::= (node node ...)
-;;    node       ::= (tag_name attribute-list . child_node_list)
+;;    node       ::= (qname attribute-list . child_node_list)
 ;;    child_node_list ::= child_node child_node ...
 ;;    child_node ::= node | string
-;;    tag_name   ::= string
-;;    attribute_list ::= (("attribute" . "value") ("attribute" . "value") ...)
+;;    qname      ::= (:namespace-uri . "name") | "name"
+;;    attribute_list ::= ((qname . "value") (qname . "value") ...)
 ;;                       | nil
 ;;    string     ::= "..."
 ;;
 ;; Some macros are provided to ease the parsing of this list.
 ;; Whitespace is preserved.  Fixme: There should be a tree-walker that
 ;; can remove it.
+
+;; TODO:
+;;  * xml:base, xml:space support
+;;  * more complete DOCTYPE parsing
+;;  * pi support
 
 ;;; Code:
 
@@ -104,15 +109,19 @@ CHILD-NAME should be a lower case symbol."
 	      (push child match))))
     (nreverse match)))
 
-(defun xml-get-attribute (node attribute)
+(defun xml-get-attribute-or-nil (node attribute)
   "Get from NODE the value of ATTRIBUTE.
-An empty string is returned if the attribute was not found."
-  (if (xml-node-attributes node)
-      (let ((value (assoc attribute (xml-node-attributes node))))
-	(if value
-	    (cdr value)
-	  ""))
-    ""))
+Return `nil' if the attribute was not found.
+
+See also `xml-get-attribute'."
+  (cdr (assoc attribute (xml-node-attributes node))))
+
+(defsubst xml-get-attribute (node attribute)
+  "Get from NODE the value of ATTRIBUTE.
+An empty string is returned if the attribute was not found.
+
+See also `xml-get-attribute-or-nil'."
+  (or (xml-get-attribute-or-nil node attribute) ""))
 
 ;;*******************************************************************
 ;;**
@@ -208,13 +217,14 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	    (if (search-forward "<" nil t)
 		(progn
 		  (forward-char -1)
-		  (if xml
+		  (setq result (xml-parse-tag parse-dtd parse-ns))
+		  (if (and xml result)
 		      ;;  translation of rule [1] of XML specifications
 		      (error "XML files can have only one toplevel tag")
-		    (setq result (xml-parse-tag parse-dtd parse-ns))
 		    (cond
 		     ((null result))
-		     ((listp (car result))
+		     ((and (listp (car result))
+			   parse-dtd)
 		      (setq dtd (car result))
 		      (if (cdr result)	; possible leading comment
 			  (add-to-list 'xml (cdr result))))
@@ -225,6 +235,27 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	      (cons dtd (nreverse xml))
 	    (nreverse xml)))))))
 
+(defun xml-maybe-do-ns (name default xml-ns)
+  "Perform any namespace expansion.  NAME is the name to perform the expansion on.
+DEFAULT is the default namespace.  XML-NS is a cons of namespace
+names to uris.  When namespace-aware parsing is off, then XML-NS
+is nil.
+
+During namespace-aware parsing, any name without a namespace is
+put into the namespace identified by DEFAULT.  nil is used to
+specify that the name shouldn't be given a namespace."
+  (if (consp xml-ns)
+      (let* ((nsp (string-match ":" name))
+	     (lname (if nsp (substring name (match-end 0)) name))
+	     (prefix (if nsp (substring name 0 (match-beginning 0)) default))
+	     (special (and (string-equal lname "xmlns") (not prefix)))
+             ;; Setting default to nil will insure that there is not
+             ;; matching cons in xml-ns.  In which case we
+	     (ns (or (cdr (assoc (if special "xmlns" prefix)
+                                 xml-ns))
+                     :)))
+        (cons ns (if special "" lname)))
+    (intern name)))
 
 (defun xml-parse-tag (&optional parse-dtd parse-ns)
   "Parse the tag at point.
@@ -239,10 +270,12 @@ Returns one of:
 		    parse-ns
 		  (if parse-ns
 		      (list
-		       ;; Default no namespace
-		       (cons "" "")
+                       ;; Default for empty prefix is no namespace
+                       (cons ""      :)
+		       ;; "xml" namespace
+		       (cons "xml"   :http://www.w3.org/XML/1998/namespace)
 		       ;; We need to seed the xmlns namespace
-		       (cons "xmlns" "http://www.w3.org/2000/xmlns/"))))))
+		       (cons "xmlns" :http://www.w3.org/2000/xmlns/))))))
     (cond
      ;; Processing instructions (like the <?xml version="1.0"?> tag at the
      ;; beginning of a document).
@@ -276,53 +309,26 @@ Returns one of:
      ;;  opening tag
      ((looking-at "<\\([^/>[:space:]]+\\)")
       (goto-char (match-end 1))
+
+      ;; Parse this node
       (let* ((node-name (match-string 1))
-	     ;; Parse the attribute list.
-	     (children (list (xml-parse-attlist) (intern node-name)))
-	     pos)
+             ;; Parse the attribute list.
+             (attrs (xml-parse-attlist xml-ns))
+             children pos)
 
-	;; add the xmlns:* attrs to our cache
-	(when (consp xml-ns)
-	  (mapcar
-	   (lambda (attr)
-	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
-		    (prefix (nth 0 splitup))
-		    (lname (nth 1 splitup)))
-	       (when (string= "xmlns" prefix)
-		 (setq xml-ns (append (list (cons (if lname
-						      lname
-						    "")
-						  (cdr attr)))
-				      xml-ns)))))
-	   (car children))
+        ;; add the xmlns:* attrs to our cache
+        (when (consp xml-ns)
+	  (dolist (attr attrs)
+	    (when (and (consp (car attr))
+		       (eq :http://www.w3.org/2000/xmlns/
+			   (caar attr)))
+	      (push (cons (cdar attr) (intern (concat ":" (cdr attr))))
+		    xml-ns))))
 
-	  ;; expand element names
-	  (let* ((splitup (split-string (symbol-name (cadr children)) ":"))
-		 (lname (or (nth 1 splitup)
-			    (nth 0 splitup)))
-		 (prefix (if (nth 1 splitup)
-			     (nth 0 splitup)
-			   "")))
-	    (setcdr children (list
-			      (intern (concat "{"
-					     (cdr (assoc-string prefix xml-ns))
-					     "}" lname)))))
+        ;; expand element names
+        (setq node-name (list (xml-maybe-do-ns node-name "" xml-ns)))
 
-	  ;; expand attribute names
-	  (mapcar
-	   (lambda (attr)
-	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
-		    (lname (or (nth 1 splitup)
-			       (nth 0 splitup)))
-		    (prefix (if (nth 1 splitup)
-				(nth 0 splitup)
-			      (caar xml-ns))))
-
-	       (setcar attr (intern (concat "{"
-					    (cdr (assoc-string prefix xml-ns))
-					    "}" lname)))))
-	   (car children)))
-
+        (setq children (list attrs node-name))
 	;; is this an empty element ?
 	(if (looking-at "/>")
 	(progn
@@ -376,24 +382,26 @@ Returns one of:
      (t	;; This is not a tag.
       (error "XML: Invalid character")))))
 
-(defun xml-parse-attlist ()
-  "Return the attribute-list after point.Leave point at the first non-blank character after the tag."
+(defun xml-parse-attlist (&optional xml-ns)
+  "Return the attribute-list after point.  Leave point at the
+first non-blank character after the tag."
   (let ((attlist ())
-	start-pos name)
+	end-pos name)
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
-      (setq name (intern (match-string 1)))
-      (goto-char (match-end 0))
+      (setq end-pos (match-end 0))
+      (setq name (xml-maybe-do-ns (match-string 1) nil xml-ns))
+      (goto-char end-pos)
 
       ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
 
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?
       (if (looking-at "\"\\([^\"]*\\)\"")
-	  (setq start-pos (match-beginning 0))
+	  (setq end-pos (match-end 0))
 	(if (looking-at "'\\([^']*\\)'")
-	    (setq start-pos (match-beginning 0))
+	    (setq end-pos (match-end 0))
 	  (error "XML: Attribute values must be given between quotes")))
 
       ;; Each attribute must be unique within a given element
@@ -407,9 +415,7 @@ Returns one of:
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(push (cons name (xml-substitute-special string)) attlist))
 
-      (goto-char start-pos)
-      (forward-sexp)			; we have string syntax
-
+      (goto-char end-pos)
       (skip-syntax-forward " "))
     (nreverse attlist)))
 
@@ -490,7 +496,7 @@ This follows the rule [28] in the XML specifications."
 	   ((looking-at
 	     "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
 
-	    (setq element (intern (match-string 1))
+	    (setq element (match-string 1)
 		  type    (match-string-no-properties 2))
 	    (setq end-pos (match-end 0))
 
@@ -510,7 +516,7 @@ This follows the rule [28] in the XML specifications."
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (assoc element dtd)
 		(error "XML: element declarations must be unique in a DTD (<%s>)"
-		       (symbol-name element)))
+		       element))
 
 	    ;;  Store the element in the DTD
 	    (push (list element type) dtd)
@@ -524,7 +530,6 @@ This follows the rule [28] in the XML specifications."
 	  ;;  Skip the end of the DTD
 	  (search-forward ">"))))
     (nreverse dtd)))
-
 
 (defun xml-parse-elem-type (string)
   "Convert element type STRING into a Lisp structure."
@@ -643,4 +648,5 @@ The first line is indented with INDENT-STRING."
 
 (provide 'xml)
 
+;;; arch-tag: 5864b283-5a68-4b59-a20d-36a72b353b9b
 ;;; xml.el ends here

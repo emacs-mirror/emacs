@@ -163,6 +163,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
 
+/* Define to 1 if you have the `gdk_display_open' function. */
+#undef HAVE_GDK_DISPLAY_OPEN
+
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
@@ -213,6 +216,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
+
+/* Define to 1 if GTK can handle more than one display. */
+#undef HAVE_GTK_MULTIDISPLAY
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
@@ -399,6 +405,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
+/* Define to 1 if you have the <net/if.h> header file. */
+#undef HAVE_NET_IF_H
+
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
 
@@ -498,6 +507,21 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
+/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_ADDR
+
+/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
+
+/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_FLAGS
+
+/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_HWADDR
+
+/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_NETMASK
+
 /* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
@@ -510,6 +534,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -521,6 +548,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
 
 /* Define to 1 if you have the <sys/soundcard.h> header file. */
 #undef HAVE_SYS_SOUNDCARD_H
@@ -721,9 +751,9 @@ Boston, MA 02111-1307, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */

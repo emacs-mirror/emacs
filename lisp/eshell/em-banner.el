@@ -30,7 +30,7 @@
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
-  :link '(info-link "(eshell)Login banner")
+  ;; :link '(info-link "(eshell)Login banner")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -89,4 +89,5 @@ This can be any sexp, and should end with at least two newlines."
     (goto-char (point-min))
     (looking-at msg)))
 
+;;; arch-tag: e738b4ef-8671-42ae-a757-291779b92491
 ;;; em-banner.el ends here

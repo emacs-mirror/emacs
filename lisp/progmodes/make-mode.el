@@ -301,9 +301,14 @@ not be enclosed in { } or ( )."
    '("^\\( +\\)\t" 1 makefile-space-face)))
 
 (defconst makefile-font-lock-syntactic-keywords
-  (list
-   ;; Change the syntax of a quoted newline so that it does not end a comment.
-   '("\\\\\n" 0 " ")))
+  ;; From sh-script.el.
+  ;; A `#' begins a comment in sh when it is unquoted and at the beginning
+  ;; of a word.  In the shell, words are separated by metacharacters.
+  ;; The list of special chars is taken from the single-unix spec of the
+  ;; shell command language (under `quoting') but with `$' removed.
+  '(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 "_")
+    ;; Change the syntax of a quoted newline so that it does not end a comment.
+    ("\\\\\n" 0 ".")))
 
 (defvar makefile-imenu-generic-expression
   (list
@@ -1369,7 +1374,7 @@ and generates the overview, one line per target name."
   (delete-file filename))		; remove the tmpfile
 
 (defun makefile-query-by-make-minus-q (target &optional filename)
-  (not (zerop
+  (not (eq 0
 	(call-process makefile-brave-make nil nil nil
 		      "-f" filename "-q" target))))
 
@@ -1552,4 +1557,5 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
+;;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

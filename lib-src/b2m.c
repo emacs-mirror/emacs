@@ -301,3 +301,5 @@ fatal (message)
   exit (BAD);
 }
 
+/* arch-tag: 5a3ad2af-a802-408f-83cc-e7cf5e98653e
+   (do not change this comment) */

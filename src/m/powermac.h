@@ -109,3 +109,6 @@ Boston, MA 02111-1307, USA.  */
    If you've just fixed a problem in an existing configuration file,
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
+
+/* arch-tag: d8af08a6-48b3-4c8a-94a0-0b4acae5e1f0
+   (do not change this comment) */

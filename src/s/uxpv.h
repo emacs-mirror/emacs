@@ -9,3 +9,6 @@
 
 #undef SYSTEM_TYPE
 #define SYSTEM_TYPE "uxpv"
+
+/* arch-tag: 3f00cfe7-f44c-45ce-a2fe-2b17fc411a1e
+   (do not change this comment) */

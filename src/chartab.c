@@ -512,7 +512,7 @@ then the actual applicable value is inherited from the parent char-table
 DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
        doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
-PARENT must be either nil or another char-table.  */)
+Return PARENT.  PARENT must be either nil or another char-table.  */)
      (char_table, parent)
      Lisp_Object char_table, parent;
 {
@@ -597,10 +597,10 @@ a cons of character codes (for characters in the range), or a character code.  *
 
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
-       doc: /*
-Set the value in CHAR-TABLE for characters specified by RANGE to VALUE.
+       doc: /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
 RANGE should be t (for all characters), nil (for the default value),
-a cons of character codes (for characters in the range), or a character code.  */)
+a cons of character codes (for characters in the range),
+or a character code.  Return VALUE.  */)
      (char_table, range, value)
      Lisp_Object char_table, range, value;
 {

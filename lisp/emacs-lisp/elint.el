@@ -540,7 +540,8 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 (defun elint-check-defcustom-form (form env)
   "Lint the defcustom FORM in ENV."
   (if (and (> (length form) 3)
-	   (evenp (length form)))	; even no. of keyword/value args
+	   ;; even no. of keyword/value args ?
+	   (zerop (logand (length form) 1)))
       (elint-env-add-global-var (elint-form (nth 2 form) env)
 				(car (cdr form)))
     (elint-error "Malformed variable declaration: %s" form)
@@ -801,4 +802,5 @@ If no documentation could be found args will be `unknown'."
 
 (provide 'elint)
 
+;;; arch-tag: b2f061e2-af84-4ddc-8e39-f5e969ac228f
 ;;; elint.el ends here

@@ -2,7 +2,7 @@
 @c Copyright (C) 1985,86,87,93,94,95,97,99, 2000, 2001
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Files, Buffers, Fixit, Top
+@node Files, Buffers, Keyboard Macros, Top
 @chapter File Handling
 @cindex files
 
@@ -139,7 +139,7 @@ literal @samp{~} should also be quoted with @samp{/:}.
 @code{substitute-in-file-name}.  The substitution is performed only on
 file names read as such using the minibuffer.
 
-  You can include non-ASCII characters in file names if you set the
+  You can include non-@acronym{ASCII} characters in file names if you set the
 variable @code{file-name-coding-system} to a non-@code{nil} value.
 @xref{Specify Coding}.
 
@@ -316,7 +316,7 @@ seek.  This feature is available only when you are using a window
 system.  @xref{Frames}.
 
 @findex find-file-literally
-  If you wish to edit a file as a sequence of ASCII characters with no special
+  If you wish to edit a file as a sequence of @acronym{ASCII} characters with no special
 encoding or conversion, use the @kbd{M-x find-file-literally} command.
 It visits a file, like @kbd{C-x C-f}, but does not do format conversion
 (@pxref{Formatted Text}), character code conversion (@pxref{Coding
@@ -855,11 +855,10 @@ of the file.  To do this, use @kbd{M-x revert-buffer}, which operates on
 the current buffer.  Since reverting a buffer unintentionally could lose
 a lot of work, you must confirm this command with @kbd{yes}.
 
-  @code{revert-buffer} keeps point at the same distance (measured in
-characters) from the beginning of the file.  If the file was edited only
-slightly, you will be at approximately the same piece of text after
-reverting as before.  If you have made drastic changes, the same value of
-point in the old file may address a totally different piece of text.
+  @code{revert-buffer} tries to position point in such a way that, if
+the file was edited only slightly, you will be at approximately the
+same piece of text after reverting as before.  However, if you have made
+drastic changes, point may wind up in a totally different piece of text.
 
   Reverting marks the buffer as ``not modified'' until another change is
 made.
@@ -1070,6 +1069,8 @@ file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
+@cindex symbolic links (visiting)
+@cindex hard links (visiting)
 
   Symbolic links and hard links both make it possible for several file
 names to refer to the same file.  Hard links are alternate names that
@@ -1121,6 +1122,10 @@ project recommends RCS and CVS, which are free software and available
 from the Free Software Foundation.  We also have free software to
 replace SCCS, known as CSSC; if you are using SCCS and don't want to
 make the incompatible change to RCS or CVS, you can switch to CSSC.
+
+  VC is enabled by default in Emacs.  To disable it, set the
+customizable variable @code{vc-handled-backends} to @code{nil}
+(@pxref{Customizing VC}).
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -1529,6 +1534,46 @@ for the time scale.  A stretch factor of 0.1 means that the color
 range from red to blue spans the past 36 days instead of 360 days.  A
 stretch factor greater than 1 means the color range spans more than a
 year.
+
+From the annotate buffer, you can use the following keys to browse the
+annotations of past revisions, view diffs, or view log entries:
+
+@itemize @bullet
+
+@item
+Pressing @kbd{P} annotates the previous revision.  It also takes a
+numeric prefix argument, so for example @kbd{C-u 10 P} would take you
+back 10 revisions.
+
+@item
+Pressing @kbd{N} annotates the next revision.  It also takes a numeric
+prefix argument, so for example @kbd{C-u 10 N} would take you forward
+10 revisions.
+
+@item
+Pressing @kbd{J} annotates the revision at line (as denoted by the
+version number on the same line).
+
+@item
+Pressing @kbd{A} annotates the revision previous to line (as denoted
+by the version number on the same line).  This is useful to see the
+state the file was in before the change on the current line was made.
+
+@item
+Pressing @kbd{D} shows the diff of the revision at line with its
+previous revision.  This is useful to see what actually changed when
+the revision denoted on the current line was committed.
+
+@item
+Pressing @kbd{L} shows the log of the revision at line.  This is
+useful to see the author's description of the changes that occured
+when the revision denoted on the current line was committed.
+
+@item
+Pressing @kbd{W} annotates the workfile (most up to date) version.  If
+you used @kbd{P} and @kbd{N} to browse to other revisions, use this
+key to return to the latest version.
+@end itemize
 
 @node Secondary VC Commands
 @subsection The Secondary Commands of VC
@@ -2492,7 +2537,8 @@ The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
 SCCS)}, so it contains all three version systems that are currently
 supported.  If you want VC to ignore one or more of these systems,
-exclude its name from the list.
+exclude its name from the list.  To disable VC entirely, set this
+variable to @code{nil}.
 
 The order of systems in the list is significant: when you visit a file
 registered in more than one system (@pxref{Local Version Control}),
@@ -2859,6 +2905,7 @@ file system.  On MS-DOS, it works by copying the file.
 the old contents of the file @var{new}.
 
 @findex make-symbolic-link
+@cindex symbolic links (creation)
   @kbd{M-x make-symbolic-link} reads two file names @var{target} and
 @var{linkname}, then creates a symbolic link named @var{linkname}, which
 points at @var{target}.  The effect is that future attempts to open file
@@ -3186,3 +3233,7 @@ powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@ignore
+   arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
+@end ignore

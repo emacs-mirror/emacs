@@ -189,7 +189,7 @@ other windows; see @ref{Optional Mode Line}, for more about this.
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}  @var{buf}      @var{line} @var{pos}   (@var{major} @var{minor})------
+-@var{cs}:@var{ch}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
 @end example
 
 @noindent
@@ -211,19 +211,20 @@ cursor is in) is also Emacs's current buffer, the one that editing
 takes place in.  When we speak of what some command does to ``the
 buffer,'' we are talking about the current buffer.
 
-  @var{line} is @samp{L} followed by the current line number of point.
-This is present when Line Number mode is enabled (which it normally is).
-You can optionally display the current column number too, by turning on
-Column Number mode (which is not enabled by default because it is
-somewhat slower).  @xref{Optional Mode Line}.
-
   @var{pos} tells you whether there is additional text above the top of
 the window, or below the bottom.  If your buffer is small and it is all
 visible in the window, @var{pos} is @samp{All}.  Otherwise, it is
 @samp{Top} if you are looking at the beginning of the buffer, @samp{Bot}
 if you are looking at the end of the buffer, or @samp{@var{nn}%}, where
-@var{nn} is the percentage of the buffer above the top of the
-window.@refill
+@var{nn} is the percentage of the buffer above the top of the window.
+With Size Indication mode, you can display the size of the buffer as
+well.  @xref{Optional Mode Line}.
+
+  @var{line} is @samp{L} followed by the current line number of point.
+This is present when Line Number mode is enabled (which it normally is).
+You can optionally display the current column number too, by turning on
+Column Number mode (which is not enabled by default because it is
+somewhat slower).  @xref{Optional Mode Line}.
 
   @var{major} is the name of the @dfn{major mode} in effect in the
 buffer.  At any time, each buffer is in one and only one of the possible
@@ -303,8 +304,9 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 @xref{Variables}, for an explanation of how to set variables.
 
   @xref{Optional Mode Line}, for features that add other handy
-information to the mode line, such as the current column number of
-point, the current time, and whether new mail for you has arrived.
+information to the mode line, such as the size of the buffer, the
+current column number of point, the current time, and whether new mail
+for you has arrived.
 
 The mode line is mouse-sensitive; when you move the mouse across
 various parts of it, Emacs displays help text to say what a click in
@@ -347,3 +349,7 @@ can type the item's letter or digit to select the item.
   Some of the commands in the menu bar have ordinary key bindings as
 well; if so, the menu lists one equivalent key binding in parentheses
 after the item itself.
+
+@ignore
+   arch-tag: 104ba40e-d972-4866-a542-a98be94bdf2f
+@end ignore

@@ -4,7 +4,7 @@
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: gomoku neural network adaptive search chemotaxis
+;; Keywords: gomoku, neural network, adaptive search, chemotaxis
 
 ;;;_* Usage
 ;;; Just type
@@ -1703,4 +1703,5 @@ Use \\[describe-mode] for more info."
 
 (provide 'landmark)
 
+;;; arch-tag: ae5031be-96e6-459e-a3df-1df53117d3f2
 ;;; landmark.el ends here

@@ -175,4 +175,5 @@
 
 (provide 'iso-ascii)
 
+;;; arch-tag: 687edf0d-f792-471e-b50e-be805938359a
 ;;; iso-ascii.el ends here

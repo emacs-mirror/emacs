@@ -1354,4 +1354,5 @@ message multiple times."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
 ;;; mh-mime.el ends here

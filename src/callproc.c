@@ -123,6 +123,9 @@ int synch_process_alive;
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 char *synch_process_death;
 
+/* Nonzero => this is the signal number that terminated the subprocess.  */
+int synch_process_termsig;
+
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
@@ -502,6 +505,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
        to avoid timing error if process terminates soon.  */
     synch_process_death = 0;
     synch_process_retcode = 0;
+    synch_process_termsig = 0;
 
     if (NILP (error_file))
       fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
@@ -860,6 +864,19 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   call_process_exited = 1;
 
   unbind_to (count, Qnil);
+
+  if (synch_process_termsig)
+    {
+      char *signame;
+
+      synchronize_system_messages_locale ();
+      signame = strsignal (synch_process_termsig);
+
+      if (signame == 0)
+        signame = "unknown";
+
+      synch_process_death = signame;
+    }
 
   if (synch_process_death)
     return code_convert_string_norecord (build_string (synch_process_death),
@@ -1567,3 +1584,6 @@ See `setenv' and `getenv'.  */);
 #endif
   defsubr (&Scall_process_region);
 }
+
+/* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
+   (do not change this comment) */

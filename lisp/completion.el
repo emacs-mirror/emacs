@@ -2505,4 +2505,5 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 (provide 'completion)
 
+;;; arch-tag: 6990dafe-4abd-4a1f-8c42-ffb25e120f5e
 ;;; completion.el ends here

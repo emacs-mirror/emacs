@@ -39,7 +39,7 @@
 	  abbrev-table)
 	(setq abbrev-list (sort abbrev-list 'string-lessp))
 	(while abbrev-list
-	  (if (> (+ first-column 40) (frame-width))
+	  (if (> (+ first-column 40) (window-width))
 	      (progn
 		(insert "\n")
 		(setq first-column 0)))
@@ -52,4 +52,5 @@
 
 (provide 'abbrevlist)
 
+;;; arch-tag: 178f0638-6597-4c16-bcee-576c3d8e9217
 ;;; abbrevlist.el ends here

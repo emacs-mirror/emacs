@@ -1,5 +1,5 @@
 /* Resource definitions for GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +24,6 @@ Boston, MA 02111-1307, USA.  */
 #include "Types.r"
 /* added for finder icon balloon help --ben */
 #include "Balloons.r"
-#endif
 
 /* Define to use gnu icon */
 /* #define GNU_ICON 1 */
@@ -57,7 +56,6 @@ resource 'hfdr' (-5696) { /*help for emacs icon*/
    	}
 };
 
-#ifndef TARGET_API_MAC_CARBON
 /* added for finder icon balloon help --ben */
 resource 'STR ' (128) { /*help message for emacs icon*/
 	"GNU Emacs\0xd1the extensible, customizable, self-documenting real-time display editor."
@@ -176,7 +174,7 @@ resource 'DITL' (129, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"Emacs does not run on a Macintosh with more than 256 MB of physical or virtual memory"
+			"Emacs does not run on a Macintosh with more than 512 MB of physical or virtual memory"
 		}
 	}
 };

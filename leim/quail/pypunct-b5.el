@@ -53,4 +53,5 @@ For instance, typing `v' and `%' insert `$(0"h(B'.
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
 
+;;; arch-tag: fe8176d3-b467-47d5-9ed9-75b6e27cf29b
 ;;; pypunct-b5.el ends here

@@ -223,7 +223,7 @@ Fourth and fifth arg START and END specify the region to operate on."
 	   (if (and transient-mark-mode mark-active)
 	       (region-end)))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
-		   t t delimited nil nil start end))
+		   t 'literal delimited nil nil start end))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -916,8 +916,9 @@ See also `multi-occur'."
 		(goto-char headerpt)
 		(let ((beg (point))
 		      end)
-		  (insert (format "%d lines matching \"%s\" in buffer: %s\n"
-				  matches regexp (buffer-name buf)))
+		  (insert (format "%d match%s for \"%s\" in buffer: %s\n"
+				  matches (if (= matches 1) "" "es")
+				  regexp (buffer-name buf)))
 		  (setq end (point))
 		  (add-text-properties beg end
 				       (append
@@ -1057,7 +1058,7 @@ make, or the user didn't cancel the call."
 	(case-fold-search (and case-fold-search
 			       (string-equal from-string
 					     (downcase from-string))))
-	(literal (not regexp-flag))
+	(literal (or (not regexp-flag) (eq regexp-flag 'literal)))
 	(search-function (if regexp-flag 're-search-forward 'search-forward))
 	(search-string from-string)
 	(real-match-data nil)		; the match data for the current match
@@ -1328,4 +1329,5 @@ make, or the user didn't cancel the call."
 				'query-replace 'region))))
 	 (move-overlay replace-overlay start end (current-buffer)))))
 
+;;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

@@ -2,11 +2,10 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
-
 
 ;; Keywords: mule, multilingual
 
@@ -186,18 +185,18 @@ defaults to \"...\"."
 ;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
 ;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
 ;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 15 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(B...")
-;; 		(("x" 3 nil nil "$(0GnM$(B") . "x")
-;; 		(("$AVP(B" 2 nil nil "$(0GnM$(B") . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ?x "$(0GnM$(B") . "x") ;; XEmacs error
-;; 		(("$AVPND(B" 3 nil ?  "$(0GnM$(B") . "$AVP(B ") ;; XEmacs error
-;; 		(("foobarbaz" 4 nil nil  "$(0GnM$(B") . "$(0GnM$(B")
-;; 		(("foobarbaz" 5 nil nil  "$(0GnM$(B") . "f$(0GnM$(B")
-;; 		(("foobarbaz" 6 nil nil  "$(0GnM$(B") . "fo$(0GnM$(B")
-;; 		(("foobarbaz" 8 3 nil "$(0GnM$(B") . "b$(0GnM$(B")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 4 ?x "$BF|K\8l(B") . "xe$B$KF|K\8l(B")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 13 4 ?x "$BF|K\8l(B") . "xex$BF|K\8l(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 15 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(B...")
+;; 		(("x" 3 nil nil "$(Gemk#(B") . "x")
+;; 		(("$AVP(B" 2 nil nil "$(Gemk#(B") . "$AVP(B")
+;; 		(("$AVP(B" 1 nil ?x "$(Gemk#(B") . "x") ;; XEmacs error
+;; 		(("$AVPND(B" 3 nil ?  "$(Gemk#(B") . "$AVP(B ") ;; XEmacs error
+;; 		(("foobarbaz" 4 nil nil  "$(Gemk#(B") . "$(Gemk#(B")
+;; 		(("foobarbaz" 5 nil nil  "$(Gemk#(B") . "f$(Gemk#(B")
+;; 		(("foobarbaz" 6 nil nil  "$(Gemk#(B") . "fo$(Gemk#(B")
+;; 		(("foobarbaz" 8 3 nil "$(Gemk#(B") . "b$(Gemk#(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 4 ?x "$AHU1>$(Gk#(B") . "xe$A$KHU1>$(Gk#(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 13 4 ?x "$AHU1>$(Gk#(B") . "xex$AHU1>$(Gk#(B")
 ;; 		))
 ;;   (let (ret)
 ;;     (condition-case e
@@ -366,6 +365,50 @@ language environment LANG-ENV."
 	(with-coding-priority coding-priority
           (detect-coding-region from to)))))
 
+;;;###autoload
+(defun char-displayable-p (char)
+  "Return non-nil if we should be able to display CHAR.
+On a multi-font display, the test is only whether there is an
+appropriate font from the selected frame's fontset to display CHAR's
+charset in general.  Since fonts may be specified on a per-character
+basis, this may not be accurate."
+  (cond ((< char 256)
+	 ;; Single byte characters are always displayable.
+	 t)
+	((display-multi-font-p)
+	 ;; On a window system, a character is displayable if we have
+	 ;; a font for that character in the default face of the
+	 ;; currently selected frame.
+	 (let ((fontset (frame-parameter (selected-frame) 'font))
+	       font-pattern)
+	   (if (query-fontset fontset)
+	       (setq font-pattern (fontset-font fontset char)))
+	   (or font-pattern
+	       (setq font-pattern (fontset-font "fontset-default" char)))
+	   (if font-pattern
+	       (progn
+		 ;; Now FONT-PATTERN is a string or a cons of family
+		 ;; field pattern and registry field pattern.
+		 (or (stringp font-pattern)
+		     (let ((family (or (car font-pattern) "*"))
+			   (registry (or (cdr font-pattern) "*")))
+		       (or (string-match "-" family)
+			   (setq family (concat "*-" family)))
+		       (or (string-match "-" registry)
+			   (setq registry (concat registry "-*")))
+		       (setq font-pattern
+			     (format "-%s-*-*-*-*-*-*-*-*-*-*-%s"
+				     family registry))))
+		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
+	(t
+	 (let ((coding (terminal-coding-system)))
+	   (if coding
+	       (let ((safe-chars (coding-system-get coding 'safe-chars))
+		     (safe-charsets (coding-system-get coding 'safe-charsets)))
+		 (or (and safe-chars
+			  (aref safe-chars char))
+		     (and safe-charsets
+			  (memq (char-charset char) safe-charsets)))))))))
 
 (provide 'mule-util)
 
@@ -373,4 +416,5 @@ language environment LANG-ENV."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

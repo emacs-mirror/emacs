@@ -171,3 +171,6 @@ extern SIGMASKTYPE sigprocmask_set;
 #define LIB_STANDARD -lc /usr/ccs/lib/crtn.o
 
 #define NARROWPROTO 1
+
+/* arch-tag: 930541b5-52d9-4cbe-b73c-f4c72091f5df
+   (do not change this comment) */

@@ -1016,3 +1016,6 @@ widget_store_internal_border (widget)
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }
+
+/* arch-tag: 931d28e5-0d59-405a-8325-7d475d0a13d9
+   (do not change this comment) */

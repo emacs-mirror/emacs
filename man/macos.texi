@@ -51,7 +51,7 @@ uses the @key{option} key as the @key{META} key.
 
   Most people should want to use the @key{command} key as the @key{META} key,
 so that dead-key processing with the @key{option} key will still work.  This is
-useful for entering non-ASCII Latin characters directly from the Mac
+useful for entering non-@acronym{ASCII} Latin characters directly from the Mac
 keyboard, for example.
 
   Emacs recognizes the setting in the Keyboard control panel and
@@ -244,3 +244,7 @@ returns the GNU or Unix equivalent.  The function
 @code{posix-file-name-to-mac} performs the opposite conversion.  They
 are useful for constructing AppleScript commands to be passed to
 @code{do-applescript}.
+
+@ignore
+   arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
+@end ignore

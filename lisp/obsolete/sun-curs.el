@@ -218,4 +218,5 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
 
 (provide 'sun-curs)
 
+;;; arch-tag: 7cc861e5-e2d9-4191-b211-2baaaab54e78
 ;;; sun-curs.el ends here

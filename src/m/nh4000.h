@@ -102,3 +102,6 @@ Boston, MA 02111-1307, USA.  */
  */
 
 /* #define NO_SOCK_SIGIO */
+
+/* arch-tag: d9e12769-ae79-4c25-953f-70db5b7ef5dd
+   (do not change this comment) */

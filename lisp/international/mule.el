@@ -1117,7 +1117,7 @@ If CODING-SYSTEM leaves the text conversion unspecified, or if it
 leaves the end-of-line conversion unspecified, FORCE controls what to
 do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
 buffer's previous `buffer-file-coding-system' value (if it is
-specified there).  Otherwise, levae it unspecified.
+specified there).  Otherwise, leave it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
@@ -1229,7 +1229,7 @@ See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
 On non-windowing terminals, this is set from the locale by default.
 
 Setting this variable directly does not take effect;
-use either M-x customize or \\[set-keyboard-coding-system]."
+use either \\[customize] or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
   :link '(info-link "(emacs)Specify Coding")
   :link '(info-link "(emacs)Single-Byte Character Support")
@@ -1302,12 +1302,42 @@ Now we have more convenient function `set-coding-system-priority'."
 ;;; X selections
 
 (defvar ctext-non-standard-encodings-alist
-  '(("ISO8859-15" . latin-iso8859-15)
-    ("ISO8859-14" . latin-iso8859-14)
-    ("KOI8-R" . koi8-r)
-    ("BIG5-0" . big5))
-  "Alist of non-standard encoding names vs Emacs coding systems.
-This alist is used to decode an extened segment of a compound text.")
+  '(("big5-0" big5 2 (chinese-big5-1 chinese-big5-2))
+    ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
+    ("ISO8859-15" iso-8859-15 1 latin-iso8859-15))
+  "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
+
+It controls how extended segments of a compound text are handled
+by the coding system `compound-text-with-extensions'.
+
+Each element has the form (ENCODING-NAME CODING-SYSTEM N-OCTET CHARSET).
+
+ENCODING-NAME is an encoding name of an \"extended segments\".
+
+CODING-SYSTEM is the coding-system to encode (or decode) the
+characters into (or from) the extended segment.
+
+N-OCTET is the number of octets (bytes) that encodes a character
+in the segment.  It can be 0 (meaning the number of octets per
+character is variable), 1, 2, 3, or 4.
+
+CHARSET is a charater set containing characters that are encoded
+in the segment.  It can be a list of character sets.  It can also
+be a char-table, in which case characters that have non-nil value
+in the char-table are the target.
+
+On decoding CTEXT, all encoding names listed here are recognized.
+
+On encoding CTEXT, encoding names in the variable
+`ctext-non-standard-encodings' (which see) and in the information
+listed for the current language environment under the key
+`ctext-non-standard-encodings' are used.")
+
+(defvar ctext-non-standard-encodings
+  '("big5-0")
+  "List of non-standard encoding names used in extended segments of CTEXT.
+Each element must be one of the names listed in the variable
+`ctext-non-standard-encodings-alist' (which see).")
 
 (defvar ctext-non-standard-encodings-regexp
   (string-to-multibyte
@@ -1319,13 +1349,9 @@ This alist is used to decode an extened segment of a compound text.")
     "\\(\e%G[^\e]*\e%@\\)")))
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
-;; by the COMPOUND-TEXT spec.
-;; We support that by decoding the whole data by `ctext' which just
-;; pertains byte sequences belonging to ``extended segment'', then
-;; decoding those byte sequences one by one in Lisp.
-;; This function also supports "The UTF-8 encoding" described in the
-;; section 7 of the documentation fo COMPOUND-TEXT distributed with
-;; XFree86.
+;; by the COMPOUND-TEXT spec.  They also support "The UTF-8 encoding"
+;; described in the section 7 of the documentation of COMPOUND-TEXT
+;; distributed with XFree86.
 
 (defun ctext-post-read-conversion (len)
   "Decode LEN characters encoded as Compound Text with Extended Segments."
@@ -1348,14 +1374,14 @@ This alist is used to decode an extened segment of a compound text.")
 	      (let* ((M (char-after (+ pos 4)))
 		     (L (char-after (+ pos 5)))
 		     (encoding (match-string 2))
-		     (coding (or (cdr (assoc-ignore-case 
-				       encoding
-				       ctext-non-standard-encodings-alist))
-				 (coding-system-p
-				  (intern (downcase encoding))))))
-		(if enable-multibyte-characters
-		    (setq M (multibyte-char-to-unibyte M)
-			  L (multibyte-char-to-unibyte L)))
+		     (encoding-info (assoc-ignore-case 
+				     encoding
+				     ctext-non-standard-encodings-alist))
+		     (coding (if encoding-info
+				 (nth 1 encoding-info)
+			       (setq encoding (intern (downcase encoding)))
+			       (and (coding-system-p encoding)
+				    encoding))))
 		(setq bytes (- (+ (* (- M 128) 128) (- L 128))
 			       (- (point) (+ pos 6))))
 		(when coding
@@ -1363,40 +1389,39 @@ This alist is used to decode an extened segment of a compound text.")
 		  (forward-char bytes)
 		  (decode-coding-region (- (point) bytes) (point) coding)))
 	    ;; ESC % G --UTF-8-BYTES-- ESC % @
-	    (setq bytes (- (point) pos))
-	    (decode-coding-region (- (point) bytes) (point) 'utf-8))))
+	    (delete-char -3)
+	    (delete-region pos (+ pos 3))
+	    (decode-coding-region pos (point) 'utf-8))))
       (goto-char (point-min))
       (- (point-max) (point)))))
 
-;; If you add charsets here, be sure to modify the regexp used by
-;; ctext-pre-write-conversion to look up non-standard charsets.
-(defvar ctext-non-standard-designations-alist
-  '(("$(0" . (big5 "big5-0" 2))
-    ("$(1" . (big5 "big5-0" 2))
-    ;; The following are actually standard; generating extended
-    ;; segments for them is wrong and screws e.g. Latin-9 users.
-    ;; 8859-{10,13,16} aren't Emacs charsets anyhow.  -- fx
-;;     ("-V"  . (t "iso8859-10" 1))
-;;     ("-Y"  . (t "iso8859-13" 1))
-;;     ("-_"  . (t "iso8859-14" 1))
-;;     ("-b"  . (t "iso8859-15" 1))
-;;     ("-f"  . (t "iso8859-16" 1))
-    )
-  "Alist of ctext control sequences that introduce character sets which
-are not in the list of approved encodings, and the corresponding
-coding system, identifier string, and number of octets per encoded
-character.
+;; Return a char table of extended segment usage for each character.
+;; Each value of the char table is nil, one of the elements of
+;; `ctext-non-standard-encodings-alist', or the symbol `utf-8'.
 
-Each element has the form (CTLSEQ . (ENCODING CHARSET NOCTETS)).  CTLSEQ
-is the control sequence (sans the leading ESC) that introduces the character
-set in the text encoded by compound-text.  ENCODING is a coding system
-symbol; if it is t, it means that the ctext coding system already encodes
-the text correctly, and only the leading control sequence needs to be altered.
-If ENCODING is a coding system, we need to re-encode the text with that
-coding system.  CHARSET is the name of the charset we need to put into
-the leading control sequence.  NOCTETS is the number of octets (bytes) that
-encode each character in this charset.  NOCTETS can be 0 (meaning the number
-of octets per character is variable), 1, 2, 3, or 4.")
+(defun ctext-non-standard-encodings-table ()
+  (let ((table (make-char-table 'translation-table)))
+    (aset table (make-char 'mule-unicode-0100-24ff) 'utf-8)
+    (aset table (make-char 'mule-unicode-2500-33ff) 'utf-8)
+    (aset table (make-char 'mule-unicode-e000-ffff) 'utf-8)
+    (dolist (encoding (reverse
+		       (append
+			(get-language-info current-language-environment
+					   'ctext-non-standard-encodings)
+			ctext-non-standard-encodings)))
+      (let* ((slot (assoc encoding ctext-non-standard-encodings-alist))
+	     (charset (nth 3 slot)))
+	(if charset
+	    (cond ((charsetp charset)
+		   (aset table (make-char charset) slot))
+		  ((listp charset)
+		   (dolist (elt charset)
+		     (aset table (make-char elt) slot)))
+		  ((char-table-p charset)
+		   (map-char-table #'(lambda (k v) 
+				   (if (and v (> k 128)) (aset table k slot)))
+				   charset))))))
+    table))
 
 (defun ctext-pre-write-conversion (from to)
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
@@ -1412,47 +1437,56 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
       (insert from))
 
     ;; Now we can encode the whole buffer.
-    (let ((case-fold-search nil)
+    (let ((encoding-table (ctext-non-standard-encodings-table))
 	  last-coding-system-used
-	  pos posend desig encode-info encoding chset noctets textlen)
-      (goto-char (point-min))
-      ;; At first encode the whole buffer.
-      (encode-coding-region (point-min) (point-max) 'ctext-no-compositions)
-      ;; Then replace ISO-2022 charset designations with extended
-      ;; segments, for those charsets that are not part of the
-      ;; official X registry.  The regexp below finds the leading
-      ;; sequences for big5.
-      (while (re-search-forward "\e\\(\$([01]\\)" nil 'move)
-	(setq pos (match-beginning 0)
-	      posend (point)
-	      desig (match-string 1)
-	      encode-info (cdr (assoc desig
-				      ctext-non-standard-designations-alist))
-	      encoding (car encode-info)
-	      chset (cadr encode-info)
-	      noctets (car (cddr encode-info)))
-	(skip-chars-forward "^\e")
-	(cond
-	 ((eq encoding t) ; only the leading sequence needs to be changed
-	  (setq textlen (+ (- (point) posend) (length chset) 1))
-	  ;; Generate the control sequence for an extended segment.
-	  (replace-match (string-to-multibyte (format "\e%%/%d%c%c%s"
-						      noctets
-						      (+ (/ textlen 128) 128)
-						      (+ (% textlen 128) 128)
-						      chset))
-			 t t))
-	 ((coding-system-p encoding) ; need to recode the entire segment...
-	  (decode-coding-region pos (point) 'ctext-no-compositions)
-	  (encode-coding-region pos (point) encoding)
-	  (setq textlen (+ (- (point) pos) (length chset) 1))
-	  (save-excursion
-	    (goto-char pos)
-	    (insert (string-to-multibyte (format "\e%%/%d%c%c%s"
-						 noctets
-						 (+ (/ textlen 128) 128)
-						 (+ (% textlen 128) 128)
-						 chset)))))))
+	  last-pos last-encoding-info
+	  encoding-info end-pos)
+      (goto-char (setq last-pos (point-min)))
+      (setq end-pos (point-marker))
+      (while (re-search-forward "[^\000-\177]+" nil t)
+	;; Found a sequence of non-ASCII characters.
+	(setq last-pos (match-beginning 0)
+	      last-encoding-info (aref encoding-table (char-after last-pos)))
+	(set-marker end-pos (match-end 0))
+	(goto-char (1+ last-pos))
+	(catch 'tag
+	  (while t
+	    (setq encoding-info
+		  (if (< (point) end-pos)
+		      (aref encoding-table (following-char))))
+	    (unless (eq last-encoding-info encoding-info)
+	      (cond ((consp last-encoding-info)
+		     ;; Encode the previous range using an extended
+		     ;; segment.
+		     (let ((encoding-name (car last-encoding-info))
+			   (coding-system (nth 1 last-encoding-info))
+			   (noctets (nth 2 last-encoding-info))
+			   len)
+		       (encode-coding-region last-pos (point) coding-system)
+		       (setq len (+ (length encoding-name) 1
+				    (- (point) last-pos)))
+		       (save-excursion
+			 (goto-char last-pos)
+			 (insert (string-to-multibyte 
+				  (format "\e%%/%d%c%c%s"
+					  noctets
+					  (+ (/ len 128) 128)
+					  (+ (% len 128) 128)
+					  encoding-name))))))
+		    ((eq last-encoding-info 'utf-8)
+		     ;; Encode the previous range using UTF-8 encoding
+		     ;; extention.
+		     (encode-coding-region last-pos (point) 'mule-utf-8)
+		     (save-excursion
+		       (goto-char last-pos)
+		       (insert "\e%G"))
+		     (insert "\e%@")))
+	      (setq last-pos (point)
+		    last-encoding-info encoding-info))
+	    (if (< (point) end-pos)
+		(forward-char 1)
+	      (throw 'tag nil)))))
+      (set-marker end-pos nil)
       (goto-char (point-min))))
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
@@ -1596,31 +1630,36 @@ function by default."
 		  (setq coding-system nil)))))
 
 	;; If no coding: tag in the head, check the tail.
+	;; Here we must pay attention to the case that the end-of-line
+	;; is just "\r" and we can't use "^" nor "$" in regexp.
 	(when (and tail-found (not coding-system))
 	  (goto-char tail-start)
-	  (search-forward "\n\^L" nil t)
+	  (re-search-forward "[\r\n]\^L" nil t)
 	  (if (re-search-forward
-	       "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
-	  ;; The prefix is what comes before "local variables:" in its
-	   ;; line.  The suffix is what comes after "local variables:"
+	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]" 
+	       tail-end t)
+	      ;; The prefix is what comes before "local variables:" in its
+	      ;; line.  The suffix is what comes after "local variables:"
 	      ;; in its line.
 	      (let* ((prefix (regexp-quote (match-string 1)))
 		     (suffix (regexp-quote (match-string 2)))
 		     (re-coding
 		      (concat
-		       "^" prefix
+		       "[\r\n]" prefix
 		       ;; N.B. without the \n below, the regexp can
 		       ;; eat newlines.
-		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-unibyte
 		      (concat
-		       "^" prefix
-		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[\r\n]" prefix
+		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-end
-		      (concat "^" prefix "[ \t]*End *:[ \t]*" suffix "$"))
-		     (pos (point)))
+		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix 
+			      "[\r\n]?"))
+		     (pos (1- (point))))
+		(forward-char -1)	; skip back \r or \n.
 		(re-search-forward re-end tail-end 'move)
 		(setq tail-end (point))
 		(goto-char pos)
@@ -1788,9 +1827,9 @@ of the function `insert-file-contents'."
 	    (setq coding (funcall set-auto-coding-function
 				  filename (- (point-max) (point-min)))))
 	(or coding
-	    (setq coding (find-operation-coding-system
-			  'insert-file-contents
-			  filename visit beg end replace)))
+	    (setq coding (car (find-operation-coding-system
+			       'insert-file-contents
+			       filename visit beg end replace))))
 	(if (coding-system-p coding)
 	    (or enable-multibyte-characters
 		(setq coding
@@ -2062,4 +2101,5 @@ This function is intended to be added to `auto-coding-functions'."
 ;;;
 (provide 'mule)
 
+;;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here

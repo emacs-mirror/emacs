@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002
+;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -74,6 +74,23 @@ If ALL-FRAMES is neither nil nor t, count only the selected frame."
 	(setq base-window (next-window base-window)))
     (eq base-window
 	(next-window base-window (if nomini 'arg) all-frames))))
+
+(defun window-current-scroll-bars (&optional window)
+  "Return the current scroll-bar settings in window WINDOW.
+Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+current location of the vertical scroll-bars (left, right, or nil),
+and HORISONTAL specifies the current location of the horisontal scroll
+bars (top, bottom, or nil)."
+  (let ((vert (nth 2 (window-scroll-bars window)))
+	(hor nil))
+    (when (or (eq vert t) (eq hor t))
+      (let ((fcsb (frame-current-scroll-bars 
+		   (window-frame (or window (selected-window))))))
+	(if (eq vert t)
+	    (setq vert (car fcsb)))
+	(if (eq hor t)
+	    (setq hor (cdr fcsb)))))
+    (cons vert hor)))
 
 (defun walk-windows (proc &optional minibuf all-frames)
   "Cycle through all visible windows, calling PROC for each one.
@@ -171,13 +188,11 @@ even if it is inactive."
 (defun window-safely-shrinkable-p (&optional window)
   "Non-nil if the WINDOW can be shrunk without shrinking other windows.
 If WINDOW is nil or omitted, it defaults to the currently selected window."
-  (save-selected-window
-    (when window (select-window window))
-    (or (and (not (eq window (frame-first-window)))
-	     (= (car (window-edges))
-		(car (window-edges (previous-window)))))
-	(= (car (window-edges))
-	   (car (window-edges (next-window)))))))
+  (with-selected-window (or window (selected-window))
+    (let ((edges (window-edges)))
+      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
+	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
+
 
 (defun balance-windows ()
   "Make all visible windows the same height (approximately)."
@@ -532,11 +547,18 @@ Return non-nil if the window was shrunk."
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
   (interactive)
-  (if (yes-or-no-p (format "Kill buffer `%s'? " (buffer-name)))
-      (let ((buffer (current-buffer)))
-	(delete-window (selected-window))
-	(kill-buffer buffer))
-    (error "Aborted")))
+  (let ((window-to-delete (selected-window))
+	(delete-window-hook (lambda ()
+			      (condition-case nil
+				  (delete-window)
+				(error nil)))))
+    (add-hook 'kill-buffer-hook delete-window-hook t t)
+    (if (kill-buffer (current-buffer))
+	;; If `delete-window' failed before, we rerun it to regenerate
+	;; the error so it can be seen in the minibuffer.
+	(when (eq (selected-window) window-to-delete)
+	  (delete-window))
+      (remove-hook 'kill-buffer-hook delete-window-hook t))))
 
 (defun quit-window (&optional kill window)
   "Quit the current buffer.  Bury it, and maybe delete the selected frame.
@@ -602,4 +624,5 @@ and the buffer that is killed or buried is the one in that window."
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
+;;; arch-tag: b508dfcc-c353-4c37-89fa-e773fe10cea9
 ;;; window.el ends here

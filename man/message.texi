@@ -1410,3 +1410,7 @@ basis of the new @code{Cc} header, except if this header is
 @bye
 
 @c End:
+
+@ignore
+   arch-tag: 16ab76af-a281-4e34-aed6-5624569f7601
+@end ignore

@@ -331,4 +331,5 @@ insert a template for the file depending on the mode of the buffer."
 
 (provide 'autoinsert)
 
+;;; arch-tag: 5b6630ac-c735-43cf-b097-b78c622af909
 ;;; autoinsert.el ends here

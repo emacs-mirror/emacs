@@ -19,15 +19,17 @@ between sessions unless you save the customization in a file such as
 customizations for future sessions, this actually works by editing
 @file{.emacs} for you.
 
+  Another means of customization is the keyboard macro, which is a
+sequence of keystrokes to be replayed with a single command.
+@xref{Keyboard Macros}, for full instruction how to record, manage, and
+replay sequences of keys.
+
 @menu
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
-* Keyboard Macros::	A keyboard macro records a sequence of
-			  keystrokes to be replayed with a single
-			  command.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
 * Keyboard Translations::
@@ -1058,230 +1060,11 @@ value are @code{t}, @code{nil}, and anything else, just as for
 neither @code{t} nor @code{nil}, so normally Emacs does ask for
 confirmation about file settings for these variables.
 
-@node Keyboard Macros
-@section Keyboard Macros
-
-@cindex defining keyboard macros
-@cindex keyboard macro
-  A @dfn{keyboard macro} is a command defined by the user to stand for
-another sequence of keys.  For example, if you discover that you are
-about to type @kbd{C-n C-d} forty times, you can speed your work by
-defining a keyboard macro to do @kbd{C-n C-d} and calling it with a
-repeat count of forty.
-
-@table @kbd
-@item C-x (
-Start defining a keyboard macro (@code{start-kbd-macro}).
-@item C-x )
-End the definition of a keyboard macro (@code{end-kbd-macro}).
-@item C-x e
-Execute the most recent keyboard macro (@code{call-last-kbd-macro}).
-@item C-u C-x (
-Re-execute last keyboard macro, then add more keys to its definition.
-@item C-x q
-When this point is reached during macro execution, ask for confirmation
-(@code{kbd-macro-query}).
-@item M-x name-last-kbd-macro
-Give a command name (for the duration of the session) to the most
-recently defined keyboard macro.
-@item M-x insert-kbd-macro
-Insert in the buffer a keyboard macro's definition, as Lisp code.
-@item C-x C-k
-Edit a previously defined keyboard macro (@code{edit-kbd-macro}).
-@item M-x apply-macro-to-region-lines
-Run the last keyboard macro on each complete line in the region.
-@end table
-
-  Keyboard macros differ from ordinary Emacs commands in that they are
-written in the Emacs command language rather than in Lisp.  This makes it
-easier for the novice to write them, and makes them more convenient as
-temporary hacks.  However, the Emacs command language is not powerful
-enough as a programming language to be useful for writing anything
-intelligent or general.  For such things, Lisp must be used.
-
-  You define a keyboard macro while executing the commands which are the
-definition.  Put differently, as you define a keyboard macro, the
-definition is being executed for the first time.  This way, you can see
-what the effects of your commands are, so that you don't have to figure
-them out in your head.  When you are finished, the keyboard macro is
-defined and also has been, in effect, executed once.  You can then do the
-whole thing over again by invoking the macro.
-
-@menu
-* Basic Kbd Macro::     Defining and running keyboard macros.
-* Save Kbd Macro::      Giving keyboard macros names; saving them in files.
-* Kbd Macro Query::     Making keyboard macros do different things each time.
-@end menu
-
-@node Basic Kbd Macro
-@subsection Basic Use
-
-@kindex C-x (
-@kindex C-x )
-@kindex C-x e
-@findex start-kbd-macro
-@findex end-kbd-macro
-@findex call-last-kbd-macro
-  To start defining a keyboard macro, type the @kbd{C-x (} command
-(@code{start-kbd-macro}).  From then on, your keys continue to be
-executed, but also become part of the definition of the macro.  @samp{Def}
-appears in the mode line to remind you of what is going on.  When you are
-finished, the @kbd{C-x )} command (@code{end-kbd-macro}) terminates the
-definition (without becoming part of it!).  For example,
-
-@example
-C-x ( M-f foo C-x )
-@end example
-
-@noindent
-defines a macro to move forward a word and then insert @samp{foo}.
-
-  The macro thus defined can be invoked again with the @kbd{C-x e}
-command (@code{call-last-kbd-macro}), which may be given a repeat count
-as a numeric argument to execute the macro many times.  @kbd{C-x )} can
-also be given a repeat count as an argument, in which case it repeats
-the macro that many times right after defining it, but defining the
-macro counts as the first repetition (since it is executed as you define
-it).  Therefore, giving @kbd{C-x )} an argument of 4 executes the macro
-immediately 3 additional times.  An argument of zero to @kbd{C-x e} or
-@kbd{C-x )} means repeat the macro indefinitely (until it gets an error
-or you type @kbd{C-g} or, on MS-DOS, @kbd{C-@key{BREAK}}).
-
-  If you wish to repeat an operation at regularly spaced places in the
-text, define a macro and include as part of the macro the commands to move
-to the next place you want to use it.  For example, if you want to change
-each line, you should position point at the start of a line, and define a
-macro to change that line and leave point at the start of the next line.
-Then repeating the macro will operate on successive lines.
-
-  When a command reads an argument with the minibuffer, your
-minibuffer input becomes part of the macro along with the command.  So
-when you replay the macro, the command gets the same argument as
-when you entered the macro.  For example,
-
-@example
-C-x ( C-a C-@key{SPC} C-n M-w C-x b f o o @key{RET} C-y C-x b @key{RET} C-x )
-@end example
-
-@noindent
-defines a macro that copies the current line into the buffer
-@samp{foo}, then returns to the original buffer.
-
-  You can use function keys in a keyboard macro, just like keyboard
-keys.  You can even use mouse events, but be careful about that: when
-the macro replays the mouse event, it uses the original mouse position
-of that event, the position that the mouse had while you were defining
-the macro.  The effect of this may be hard to predict.  (Using the
-current mouse position would be even less predictable.)
-
-  One thing that doesn't always work well in a keyboard macro is the
-command @kbd{C-M-c} (@code{exit-recursive-edit}).  When this command
-exits a recursive edit that started within the macro, it works as you'd
-expect.  But if it exits a recursive edit that started before you
-invoked the keyboard macro, it also necessarily exits the keyboard macro
-as part of the process.
-
-  After you have terminated the definition of a keyboard macro, you can add
-to the end of its definition by typing @kbd{C-u C-x (}.  This is equivalent
-to plain @kbd{C-x (} followed by retyping the whole definition so far.  As
-a consequence it re-executes the macro as previously defined.
-
-@findex edit-kbd-macro
-@kindex C-x C-k
-  You can edit a keyboard macro already defined by typing @kbd{C-x C-k}
-(@code{edit-kbd-macro}).  Follow that with the keyboard input that you
-would use to invoke the macro---@kbd{C-x e} or @kbd{M-x @var{name}} or
-some other key sequence.  This formats the macro definition in a buffer
-and enters a specialized major mode for editing it.  Type @kbd{C-h m}
-once in that buffer to display details of how to edit the macro.  When
-you are finished editing, type @kbd{C-c C-c}.
-
-@findex apply-macro-to-region-lines
-  The command @kbd{M-x apply-macro-to-region-lines} repeats the last
-defined keyboard macro on each complete line within the current region.
-It does this line by line, by moving point to the beginning of the line
-and then executing the macro.
-
-@node Save Kbd Macro
-@subsection Naming and Saving Keyboard Macros
-
-@cindex saving keyboard macros
-@findex name-last-kbd-macro
-  If you wish to save a keyboard macro for longer than until you define the
-next one, you must give it a name using @kbd{M-x name-last-kbd-macro}.
-This reads a name as an argument using the minibuffer and defines that name
-to execute the macro.  The macro name is a Lisp symbol, and defining it in
-this way makes it a valid command name for calling with @kbd{M-x} or for
-binding a key to with @code{global-set-key} (@pxref{Keymaps}).  If you
-specify a name that has a prior definition other than another keyboard
-macro, an error message is shown and nothing is changed.
-
-@findex insert-kbd-macro
-  Once a macro has a command name, you can save its definition in a file.
-Then it can be used in another editing session.  First, visit the file
-you want to save the definition in.  Then use this command:
-
-@example
-M-x insert-kbd-macro @key{RET} @var{macroname} @key{RET}
-@end example
-
-@noindent
-This inserts some Lisp code that, when executed later, will define the
-same macro with the same definition it has now.  (You need not
-understand Lisp code to do this, because @code{insert-kbd-macro} writes
-the Lisp code for you.)  Then save the file.  You can load the file
-later with @code{load-file} (@pxref{Lisp Libraries}).  If the file you
-save in is your init file @file{~/.emacs} (@pxref{Init File}) then the
-macro will be defined each time you run Emacs.
-
-  If you give @code{insert-kbd-macro} a numeric argument, it makes
-additional Lisp code to record the keys (if any) that you have bound to the
-keyboard macro, so that the macro will be reassigned the same keys when you
-load the file.
-
-@node Kbd Macro Query
-@subsection Executing Macros with Variations
-
-@kindex C-x q
-@findex kbd-macro-query
-  Using @kbd{C-x q} (@code{kbd-macro-query}), you can get an effect
-similar to that of @code{query-replace}, where the macro asks you each
-time around whether to make a change.  While defining the macro,
-type @kbd{C-x q} at the point where you want the query to occur.  During
-macro definition, the @kbd{C-x q} does nothing, but when you run the
-macro later, @kbd{C-x q} asks you interactively whether to continue.
-
-  The valid responses when @kbd{C-x q} asks are @key{SPC} (or @kbd{y}),
-@key{DEL} (or @kbd{n}), @key{RET} (or @kbd{q}), @kbd{C-l} and @kbd{C-r}.
-The answers are the same as in @code{query-replace}, though not all of
-the @code{query-replace} options are meaningful.
-
-  These responses include @key{SPC} to continue, and @key{DEL} to skip
-the remainder of this repetition of the macro and start right away with
-the next repetition.  @key{RET} means to skip the remainder of this
-repetition and cancel further repetitions.  @kbd{C-l} redraws the screen
-and asks you again for a character to say what to do.
-
-  @kbd{C-r} enters a recursive editing level, in which you can perform
-editing which is not part of the macro.  When you exit the recursive
-edit using @kbd{C-M-c}, you are asked again how to continue with the
-keyboard macro.  If you type a @key{SPC} at this time, the rest of the
-macro definition is executed.  It is up to you to leave point and the
-text in a state such that the rest of the macro will do what you
-want.@refill
-
-  @kbd{C-u C-x q}, which is @kbd{C-x q} with a numeric argument,
-performs a completely different function.  It enters a recursive edit
-reading input from the keyboard, both when you type it during the
-definition of the macro, and when it is executed from the macro.  During
-definition, the editing you do inside the recursive edit does not become
-part of the macro.  During macro execution, the recursive edit gives you
-a chance to do some particularized editing on each repetition.
-@xref{Recursive Edit}.
-
-  Another way to vary the behavior of a keyboard macro is to use a
-register as a counter, incrementing it on each repetition of the macro.
-@xref{RegNumbers}.
+@findex safe-local-eval-forms
+  The @code{safe-local-eval-forms} is a customizable list of eval
+forms which are safe to eval, so Emacs should not ask for
+confirmation to evaluate these forms, even if
+@code{enable-local-variables} says to ask for confirmation in general.
 
 @node Key Bindings
 @section Customizing Key Bindings
@@ -1304,7 +1087,7 @@ name which usually consists of lower-case letters and hyphens.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
-* Non-ASCII Rebinding:: Rebinding non-ASCII characters such as Latin-1.
+* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -1628,8 +1411,8 @@ command is less work to invoke when you really want to.
 you can specify them in your @file{.emacs} file by using their Lisp
 syntax.  (@xref{Init File}.)
 
-  The simplest method for doing this works for ASCII characters and
-Meta-modified ASCII characters only.  This method uses a string to
+  The simplest method for doing this works for @acronym{ASCII} characters and
+Meta-modified @acronym{ASCII} characters only.  This method uses a string to
 represent the key sequence you want to rebind.  For example, here's how
 to bind @kbd{C-z} to @code{shell}:
 
@@ -1659,7 +1442,7 @@ string, you can use the Emacs Lisp escape sequences, @samp{\t},
 (global-set-key "\C-x\t" 'indent-rigidly)
 @end example
 
-  These examples show how to write some other special ASCII characters
+  These examples show how to write some other special @acronym{ASCII} characters
 in strings for key bindings:
 
 @example
@@ -1669,7 +1452,7 @@ in strings for key bindings:
 @end example
 
   When the key sequence includes function keys or mouse button events,
-or non-ASCII characters such as @code{C-=} or @code{H-a}, you must use
+or non-@acronym{ASCII} characters such as @code{C-=} or @code{H-a}, you must use
 the more general method of rebinding, which uses a vector to specify the
 key sequence.
 
@@ -1681,8 +1464,8 @@ character, write it as a Lisp character constant: @samp{?} followed by
 the character as it would appear in a string.
 
   Here are examples of using vectors to rebind @kbd{C-=} (a control
-character not in ASCII), @kbd{C-M-=} (not in ASCII because @kbd{C-=}
-is not), @kbd{H-a} (a Hyper character; ASCII doesn't have Hyper at
+character not in @acronym{ASCII}), @kbd{C-M-=} (not in @acronym{ASCII} because @kbd{C-=}
+is not), @kbd{H-a} (a Hyper character; @acronym{ASCII} doesn't have Hyper at
 all), @key{F7} (a function key), and @kbd{C-Mouse-1} (a
 keyboard-modified mouse button):
 
@@ -1713,7 +1496,7 @@ by listing each of the characters within the square brackets that
 delimit the vector.
 
   Language and coding systems can cause problems with key bindings
-for non-ASCII characters.  @xref{Non-ASCII Rebinding}.
+for non-@acronym{ASCII} characters.  @xref{Non-ASCII Rebinding}.
 
 @node Function Keys
 @subsection Rebinding Function Keys
@@ -1758,7 +1541,7 @@ given function key on your terminal, type @kbd{C-h c} followed by that
 key.
 
   A key sequence which contains function key symbols (or anything but
-ASCII characters) must be a vector rather than a string.  The vector
+@acronym{ASCII} characters) must be a vector rather than a string.  The vector
 syntax uses spaces between the elements, and square brackets around the
 whole vector.  Thus, to bind function key @samp{f1} to the command
 @code{rmail}, write the following:
@@ -1806,10 +1589,10 @@ word:
 @end example
 
 @node Named ASCII Chars
-@subsection Named ASCII Control Characters
+@subsection Named @acronym{ASCII} Control Characters
 
   @key{TAB}, @key{RET}, @key{BS}, @key{LFD}, @key{ESC} and @key{DEL}
-started out as names for certain ASCII control characters, used so often
+started out as names for certain @acronym{ASCII} control characters, used so often
 that they have special keys of their own.  Later, users found it
 convenient to distinguish in Emacs between these keys and the ``same''
 control characters typed with the @key{CTRL} key.
@@ -1818,25 +1601,25 @@ control characters typed with the @key{CTRL} key.
 reports these keys to Emacs.  It treats the ``special'' keys as function
 keys named @code{tab}, @code{return}, @code{backspace}, @code{linefeed},
 @code{escape}, and @code{delete}.  These function keys translate
-automatically into the corresponding ASCII characters @emph{if} they
+automatically into the corresponding @acronym{ASCII} characters @emph{if} they
 have no bindings of their own.  As a result, neither users nor Lisp
 programs need to pay attention to the distinction unless they care to.
 
   If you do not want to distinguish between (for example) @key{TAB} and
-@kbd{C-i}, make just one binding, for the ASCII character @key{TAB}
+@kbd{C-i}, make just one binding, for the @acronym{ASCII} character @key{TAB}
 (octal code 011).  If you do want to distinguish, make one binding for
-this ASCII character, and another for the ``function key'' @code{tab}.
+this @acronym{ASCII} character, and another for the ``function key'' @code{tab}.
 
-  With an ordinary ASCII terminal, there is no way to distinguish
+  With an ordinary @acronym{ASCII} terminal, there is no way to distinguish
 between @key{TAB} and @kbd{C-i} (and likewise for other such pairs),
 because the terminal sends the same character in both cases.
 
 @node Non-ASCII Rebinding
-@subsection Non-ASCII Characters on the Keyboard
-@cindex rebinding non-ASCII keys
-@cindex non-ASCII keys, binding
+@subsection Non-@acronym{ASCII} Characters on the Keyboard
+@cindex rebinding non-@acronym{ASCII} keys
+@cindex non-@acronym{ASCII} keys, binding
 
-If your keyboard has keys that send non-ASCII characters, such as
+If your keyboard has keys that send non-@acronym{ASCII} characters, such as
 accented letters, rebinding these keys is a bit tricky.  There are two
 solutions you can use.  One is to specify a keyboard coding system,
 using @code{set-keyboard-coding-system} (@pxref{Specify Coding}).
@@ -1852,7 +1635,7 @@ Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 @noindent
 Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
-Since this puts a non-ASCII character in the @file{.emacs}, you should
+Since this puts a non-@acronym{ASCII} character in the @file{.emacs}, you should
 specify the proper coding system for that file.  @xref{Init Syntax}.
 Specify the same coding system for the file that you use for your
 keyboard.
@@ -2091,8 +1874,8 @@ input processing; the keys that are looked up in keymaps contain the
 characters that result from keyboard translation.
 
   On a window system, the keyboard key named @key{DELETE} is a function
-key and is distinct from the ASCII character named @key{DEL}.
-@xref{Named ASCII Chars}.  Keyboard translations affect only ASCII
+key and is distinct from the @acronym{ASCII} character named @key{DEL}.
+@xref{Named ASCII Chars}.  Keyboard translations affect only @acronym{ASCII}
 character input, not function keys; thus, the above example used on a
 window system does not affect the @key{DELETE} key.  However, the
 translation above isn't necessary on window systems, because Emacs can
@@ -2225,17 +2008,17 @@ Backslash and double-quote are the only characters for which backslash
 sequences are mandatory.
 
 @samp{\C-} can be used as a prefix for a control character, as in
-@samp{\C-s} for ASCII control-S, and @samp{\M-} can be used as a prefix for
+@samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
 a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 @kbd{Control-Meta-A}.@refill
 
 @cindex international characters in @file{.emacs}
-@cindex non-ASCII characters in @file{.emacs}
-If you want to include non-ASCII characters in strings in your init
+@cindex non-@acronym{ASCII} characters in @file{.emacs}
+If you want to include non-@acronym{ASCII} characters in strings in your init
 file, you should consider putting a @w{@samp{-*-coding:
 @var{coding-system}-*-}} tag on the first line which states the coding
 system used to save your @file{.emacs}, as explained in @ref{Recognize
-Coding}.  This is because the defaults for decoding non-ASCII text might
+Coding}.  This is because the defaults for decoding non-@acronym{ASCII} text might
 not yet be set up by the time Emacs reads those parts of your init file
 which use such strings, possibly leading Emacs to decode those strings
 incorrectly.
@@ -2248,7 +2031,7 @@ strings and characters are not interchangeable in Lisp; some contexts
 require one and some contexts require the other.
 
 @xref{Non-ASCII Rebinding}, for information about binding commands to
-keys which send non-ASCII characters.
+keys which send non-@acronym{ASCII} characters.
 
 @item True:
 @code{t} stands for `true'.
@@ -2510,3 +2293,7 @@ If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 @c  LocalWords:  backtab
+
+@ignore
+   arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
+@end ignore

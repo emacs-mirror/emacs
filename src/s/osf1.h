@@ -72,3 +72,6 @@
       emacs_close (dummy);				\
     }							\
   while (0)
+
+/* arch-tag: 65eaea67-fcc3-4de7-8574-d46beb82d4ed
+   (do not change this comment) */

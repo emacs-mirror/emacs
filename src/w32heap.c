@@ -304,3 +304,6 @@ _heap_term (void)
 }
 
 #endif
+
+/* arch-tag: 9a6a9860-040d-422d-8905-450dd535cd9c
+   (do not change this comment) */

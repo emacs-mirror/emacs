@@ -324,4 +324,5 @@ the value of this variable and the variables `ediff-help-message-*' in
   (customize-group "ediff"))
 
 
+;;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d
 ;;; ediff-help.el ends here

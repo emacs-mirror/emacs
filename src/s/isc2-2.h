@@ -75,3 +75,6 @@
 /* Some versions of ISC are said to define S_IFLNK even tho
    they don't really support symlinks.  */
 #undef S_IFLNK
+
+/* arch-tag: 4de02713-eac5-4360-9d36-fd82c7a3ae44
+   (do not change this comment) */

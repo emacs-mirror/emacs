@@ -69,3 +69,6 @@
 
 /* High order bit must be stripped off nlist return values */
 #define FIXUP_KERNEL_SYMBOL_ADDR(NL)  (NL)[0].n_value &= 0x7fffffff;
+
+/* arch-tag: 9b816c7d-6ee2-40d9-b6dc-42c0aeccfbec
+   (do not change this comment) */

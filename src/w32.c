@@ -66,6 +66,7 @@ Boston, MA 02111-1307, USA.
 #include "lisp.h"
 
 #include <pwd.h>
+#include <grp.h>
 
 #ifdef __GNUC__
 #define _ANONYMOUS_UNION
@@ -385,6 +386,13 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
+static struct group the_group =
+{
+  /* There are no groups on NT, so we just return "root" as the
+     group name.  */
+  "root",
+};
+
 int
 getuid ()
 {
@@ -418,6 +426,12 @@ getpwuid (int uid)
   if (uid == the_passwd.pw_uid)
     return &the_passwd;
   return NULL;
+}
+
+struct group *
+getgrgid (gid_t gid)
+{
+  return &the_group;
 }
 
 struct passwd *
@@ -3450,11 +3464,22 @@ sys_pipe (int * phandles)
 
   if (rc == 0)
     {
-      flags = FILE_PIPE | FILE_READ | FILE_BINARY;
-      fd_info[phandles[0]].flags = flags;
+      /* Protect against overflow, since Windows can open more handles than
+	 our fd_info array has room for.  */
+      if (phandles[0] >= MAXDESC || phandles[1] >= MAXDESC)
+	{
+	  _close (phandles[0]);
+	  _close (phandles[1]);
+	  rc = -1;
+	}
+      else
+	{
+	  flags = FILE_PIPE | FILE_READ | FILE_BINARY;
+	  fd_info[phandles[0]].flags = flags;
 
-      flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
-      fd_info[phandles[1]].flags = flags;
+	  flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
+	  fd_info[phandles[1]].flags = flags;
+	}
     }
 
   return rc;
@@ -3955,3 +3980,6 @@ void globals_of_w32 ()
 }
 
 /* end of nt.c */
+
+/* arch-tag: 90442dd3-37be-482b-b272-ac752e3049f1
+   (do not change this comment) */

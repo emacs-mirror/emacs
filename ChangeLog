@@ -1,6 +1,120 @@
-2003-09-29  Dave Love  <fx@gnu.org>
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure.in: Merge from HEAD.
+	* config.bat (lib-src): Recognize comment lines in Makefile.in
+	that have a TAB after the #, to avoid errors in preprocessing with
+	GCC 3.3.3.
+
+2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Mention in comment that `make maintainer-clean'
+	deletes .elc files.
+
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* update-subdirs: Add local variables to prevent byte-compiling.
+
+2004-03-21  Dave Love  <fx@gnu.org>
+
+	* configure.in: Fix previous change.
+
+2004-03-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Add -znocombreloc to LDFLAGS if compiler supports it.
+
+2004-03-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info/dir (File): Add SMTP and SES.
+
+2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (maintainer-clean): Clean in the lisp dir as well.
+	(bootstrap): Use the new bootstrap-prepare target in lisp.
+
+2004-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL.CVS: Add info about ssh/cvs related problems and work-around.
+
+2004-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist: Don't link index.*perm and permute-index into tempdir.
+
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* AUTHORS (JonathanYavner): Rename testcover-*.el to tcover-*.el
+	to match previous changes by Eli Zaretskii.
+
+2004-02-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Set CDPATH to an empty string.
+
+2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in <darwin>: Use fink packages if available.
+
+2004-01-25  Jerome Marant  <jmarant@free.fr>  (tiny change)
+
+	* make-dist (lispref): Do include lispref/index.texi.
+
+2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
+
+	* make-dist (tempdir): Include cursors in nt/icons.
+
+2003-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
+	clashes with install-sh on 8+3 filesystems.
+
+2003-12-08  Miles Bader  <miles@gnu.org>
+
+	* .cvsignore: Add .arch-inventory.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Check for <sys/socket.h>.  Include it before
+	including <net/if.h>.  Move check for <net/if.h> before its use.
+
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-dep): Don't let cd output go into
+	pipe for carbon_appdir.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in (PKG_CHECK_MODULES): Fix quoting.
+
+2003-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in (powerpc-apple-darwin*): Use ${CC-cc} instead of
+	hardcoding gcc.
+	* configure: Rebuild.
+
+2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GTK_MULTIDISPLAY): Check if GTK can handle
+	multiple displays.
+	Wrong number of args to AC_CHECK_LIB for HAVE_X_SM test corrected.
+
+2003-09-23  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check members of struct ifreq.
+
+2003-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* configure.in: Add checks for sys/ioctl.h and net/if.h.
+
+2003-09-12  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* Makefile.in (install-arch-indep, uninstall): Add SES manual.
+
+2003-08-18  Lute Kamstra  <lute@gnu.org>
+
+	* configure.in: Revert the change of 2003-07-29 as GTK+ 2.2 is not
+	required anymore.
+
+2003-08-07  Andrew Choi  <akochoi@shaw.ca>
+
+	* configure.in [powerpc-apple-darwin*]: Use the -no-cpp-precomp
+	option instead of -traditional-cpp for CPP.
 
 2003-07-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -308,7 +422,7 @@
 	(*-sunos5.6*, *-solaris2.6*): New alternative.
 	(*-sunos5*): Use version 2.6 as default.
 
-2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* configure.in: Fix typo.
 
@@ -343,15 +457,15 @@
 	* configure.in (gamedir): Handle it like lispdir.
 	(--with-game-dir option): Delete.
 
-2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add support for mipseb-*-netbsd* machines.
 
-2002-06-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep, uninstall): Add Tramp.
 
-2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* info/dir (File): Add an entry for Tramp.
 
@@ -375,7 +489,7 @@
 
 	* configure.in (emacs_cv_speed_t): Add square brackets for clarity.
 
-2002-05-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not distribute lock/ directory.
 
@@ -389,7 +503,7 @@
 
 	* configure.in: Delete configure check for access to the game user.
 
-2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib/Imakefile is removed.
 
@@ -400,7 +514,7 @@
 
 	* make-dist: Create directories in mac/Emacs.app.
 
-2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib-Xol* are removed.
 
@@ -427,7 +541,7 @@
 	* configure.in: Add --game-dir, --game-user.  Test to see if we
 	can use them.
 
-2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add --with-sound.
 
@@ -515,7 +629,7 @@
 
 	* configure.in (hppa*-*-linux-gnu*): New alternative.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Copy COPYING to leim/, lwlib/, mac/ and nt/ when
 	creating distribution.
@@ -528,12 +642,12 @@
 	(HAVE_DES_H, HAVE_KRB5_H): Properly quote args of AC_CHECK_HEADERS;
 	this is required by recent Autoconf versions.
 
-2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not try to link removed files (aclocal.m4, _emacs,
 	TODO, vms-pp.trans and others).
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Use COPYING from the top-level directory.
 
@@ -541,7 +655,7 @@
 
 	* configure.in: Add support for FreeBSD/Alpha.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Add COPYING to the top-level directory of the
 	distribution.  Simplify the logic behind copying.
@@ -586,7 +700,7 @@
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
-	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Bm(Bk).
+	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Am(Bk).
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -597,14 +711,14 @@
 
 	* configure.in: Add coff.h to the list in AC_CHECK_HEADERS.
 
-2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Fix previous change.
 
 	* configure.in, Makefile.in: Add support for --program-prefix,
 	--program-suffix and --program-transform-name options.
 
-2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (install-arch-indep): Use `${manext}' instead of `.1'.
 	(install-arch-indep): Install emacsclient manual page.
@@ -613,9 +727,9 @@
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist: Add lispref/index.*perm files to the distribution.
-	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
 
-2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Remove gfdl.1 when uninstalling.
 
@@ -652,7 +766,7 @@
 
 	* configure.in: Added a check for <nlist.h>
 
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Reindent --help output.
 	From Per Starback (starback@ling.uu.se).
@@ -5692,10 +5806,12 @@
 	to match build-install and paths.h.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: ac61a779-1480-4884-b292-d0c39c127a73

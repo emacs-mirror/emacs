@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
+
+/* arch-tag: 577983d9-87a6-4922-b8f8-ff2b563714a4
+   (do not change this comment) */

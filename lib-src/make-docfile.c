@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 01, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
  of GNU Emacs.  .elc and .el and .c files are allowed.
  A .o file can also be specified; the .c file it was made from is used.
  This helps the makefile pass the correct list of files.
+ Option -d DIR means change to DIR before looking for files.
 
  The results, which go to standard output or to a file
  specified with -a or -o (-a to append, -o to start from nothing),
@@ -104,11 +105,11 @@ fatal (s1, s2)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
+void *
 xmalloc (size)
      unsigned int size;
 {
-  long *result = (long *) malloc (size);
+  void *result = (void *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -174,10 +175,23 @@ main (argc, argv)
       if (j == i)
 	err_count += scan_file (argv[i]);
     }
-#ifndef VMS
-  exit (err_count > 0);
-#endif /* VMS */
-  return err_count > 0;
+  return (err_count > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
+}
+
+/* Add a source file name boundary marker in the output file.  */
+void
+put_filename (filename)
+     char *filename;
+{
+  char *tmp = filename;
+  int len;
+  
+  while ((tmp = index (filename, '/')))
+    filename = tmp + 1;
+
+  putc (037, outfile);
+  putc ('S', outfile);
+  fprintf (outfile, "%s\n", filename);
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
@@ -188,6 +202,8 @@ scan_file (filename)
      char *filename;
 {
   int len = strlen (filename);
+
+  put_filename (filename);
   if (len > 4 && !strcmp (filename + len - 4, ".elc"))
     return scan_lisp_file (filename, READ_BINARY);
   else if (len > 3 && !strcmp (filename + len - 3, ".el"))
@@ -1185,3 +1201,6 @@ scan_lisp_file (filename, mode)
   fclose (infile);
   return 0;
 }
+
+/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
+   (do not change this comment) */

@@ -1255,4 +1255,5 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 	(if (null font)
 	    (error "Font not found")))))
 
+;;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

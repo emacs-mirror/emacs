@@ -103,3 +103,6 @@ IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
 IMAGE_SECTION_HEADER * rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */
+
+/* arch-tag: 3ba4cbe1-8a09-4a41-8f37-fd31f7426b3c
+   (do not change this comment) */

@@ -444,4 +444,5 @@ Returns the button found."
 
 (provide 'button)
 
+;;; arch-tag: 5f2c7627-413b-4097-b282-630f89d9c5e9
 ;;; button.el ends here

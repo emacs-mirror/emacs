@@ -159,3 +159,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* rocky@watson.ibm.com says this is needed.  */
 #define HAVE_FTIME
+
+/* arch-tag: eea85307-0ca9-4a9c-a4f6-89fad7591d28
+   (do not change this comment) */

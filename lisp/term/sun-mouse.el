@@ -679,4 +679,5 @@ just close the window, and wait for reopening."
 (provide 'sun-mouse)
 (provide 'term/sun-mouse)		; have to (require 'term/sun-mouse)
 
+;;; arch-tag: 6e879372-b899-4509-833f-d7f6250e309a
 ;;; sun-mouse.el ends here

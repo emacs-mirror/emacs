@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.61 2003/05/23 17:57:29 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.67 2004/01/20 17:41:18 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -533,14 +533,14 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-cvs-print-log (file)
+(defun vc-cvs-print-log (file &optional buffer)
   "Get change log associated with FILE."
   (vc-cvs-command
-   nil
+   buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
-(defun vc-cvs-diff (file &optional oldvers newvers)
+(defun vc-cvs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using CVS between two versions of FILE."
   (if (string= (vc-workfile-version file) "0")
       ;; This file is added but not yet committed; there is no master file.
@@ -549,13 +549,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; We regard this as "changed".
 	;; Diff it against /dev/null.
 	;; Note: this is NOT a "cvs diff".
-	(apply 'vc-do-command "*vc-diff*"
+	(apply 'vc-do-command (or buffer "*vc-diff*")
 	       1 "diff" file
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
     (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
-	   (status (apply 'vc-cvs-command "*vc-diff*"
+	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
 			  file "diff"
 			  (and oldvers (concat "-r" oldvers))
@@ -624,6 +624,14 @@ systime, or nil if there is none."
 	(progn
 	  (beginning-of-line nil)
 	    (vc-cvs-annotate-time))))))
+
+(defun vc-cvs-annotate-extract-revision-at-line ()
+  (save-excursion
+    (beginning-of-line)
+    (if (re-search-forward "^\\([0-9]+\\.[0-9]+\\(\\.[0-9]+\\)*\\) +("
+			   (line-end-position) t)
+	(match-string-no-properties 1)
+      nil)))
 
 ;;;
 ;;; Snapshot system
@@ -921,22 +929,26 @@ is non-nil."
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
-		     (vc-cvs-parse-sticky-tag (match-string 4) (match-string 5)))
-    ;; compare checkout time and modification time
-    (let* ((mtime (nth 5 (file-attributes file)))
-	   (system-time-locale "C")
-	   (mtstr (format-time-string "%c" mtime 'utc)))
-      ;; Solaris sometimes uses "Wed Sep 05" instead of  "Wed Sep  5".
-      ;; See "grep '[^a-z_]ctime' cvs/src/*.c" for reference.
-      (if (= (aref mtstr 8) ?0)
-	  (setq mtstr (concat (substring mtstr 0 8) " " (substring mtstr 9))))
-      (cond ((equal mtstr (match-string 2))
-	     (vc-file-setprop file 'vc-checkout-time mtime)
-	     (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-	    (t
-	     (vc-file-setprop file 'vc-checkout-time 0)
-	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
+		     (vc-cvs-parse-sticky-tag (match-string 4) 
+                                              (match-string 5)))
+    ;; Compare checkout time and modification time.
+    ;; This is intentionally different from the algorithm that CVS uses
+    ;; (which is based on textual comparison), because there can be problems
+    ;; generating a time string that looks exactly like the one from CVS.
+    (let ((mtime (nth 5 (file-attributes file))))
+      (require 'parse-time)
+      (let ((parsed-time
+	     (parse-time-string (concat (match-string 2) " +0000"))))
+	(cond ((and (not (string-match "\\+" (match-string 2)))
+		    (car parsed-time)
+		    (equal mtime (apply 'encode-time parsed-time)))
+	       (vc-file-setprop file 'vc-checkout-time mtime)
+	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+	      (t
+	       (vc-file-setprop file 'vc-checkout-time 0)
+	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
 
 (provide 'vc-cvs)
 
+;;; arch-tag: 60e1402a-aa53-4607-927a-cf74f144b432
 ;;; vc-cvs.el ends here

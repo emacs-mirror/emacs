@@ -80,4 +80,5 @@ This is the same as `thai-tis620' with the addition of no-break-space."
 
 (provide 'thai)
 
+;;; arch-tag: c7eb0e91-4db0-4619-81f8-8762e7d51e15
 ;;; thai.el ends here

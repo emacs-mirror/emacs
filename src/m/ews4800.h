@@ -36,3 +36,6 @@ Boston, MA 02111-1307, USA.  */
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -O  -KOlimit=3000 -ZXNd=5000
 #endif  /* !__GNUC__ */
+
+/* arch-tag: 27f72f54-45cd-40a3-b182-345127f04955
+   (do not change this comment) */

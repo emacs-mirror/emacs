@@ -1002,4 +1002,5 @@ for highlighting the match that is found."
 
 (provide 'view)
 
+;;; arch-tag: 6d0ace36-1d12-4de3-8de3-1fa3231636d7
 ;;; view.el ends here

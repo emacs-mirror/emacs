@@ -76,6 +76,7 @@
     (tamil-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun tamil-post-read-conversion (len)
   (save-excursion
     (save-restriction
@@ -368,4 +369,5 @@ In this case, compose characters after POS of the string."
 
 (provide 'tml-util)
 
+;;; arch-tag: 4d1c9737-e7b1-44cf-a040-4f64c50e773e
 ;;; tml-util.el ends here

@@ -261,3 +261,7 @@ other modes.  @kbd{C-c C-y} (@code{picture-yank-rectangle}) inserts
 (by overwriting) the rectangle that was most recently killed, while
 @kbd{C-c C-x} (@code{picture-yank-rectangle-from-register}) does
 likewise for the rectangle found in a specified register.
+
+@ignore
+   arch-tag: b7589747-683c-4f40-aed8-1b10403cb666
+@end ignore

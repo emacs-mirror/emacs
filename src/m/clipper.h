@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* USG */
 
 #define LD_TEXT_START_ADDR 8000
+
+/* arch-tag: 2f7981c1-7018-4a1e-b7b6-b2900de36a04
+   (do not change this comment) */

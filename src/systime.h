@@ -172,3 +172,6 @@ extern int set_file_times __P ((const char *, EMACS_TIME, EMACS_TIME));
 #define EMACS_TIME_LE(T1, T2) (EMACS_TIME_CMP (T1, T2) <= 0)
 
 #endif /* EMACS_SYSTIME_H */
+
+/* arch-tag: dcb79915-cf99-4bce-9778-aade71d07651
+   (do not change this comment) */

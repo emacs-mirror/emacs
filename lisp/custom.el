@@ -1,6 +1,7 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004
+;;  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -264,7 +265,7 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-face', set the face attributes
+If FACE has been set with `custom-set-faces', set the face attributes
 as specified by that function, otherwise set the face attributes
 according to SPEC.
 
@@ -305,6 +306,10 @@ following REQ are defined:
 
 `background' (what color is used for the background text)
   Should be one of `light' or `dark'.
+
+`min-colors' (the minimum number of colors the frame should support)
+  Should be an integer, it is compared with the result of
+  `display-color-cells'.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
@@ -502,6 +507,14 @@ LOAD should be either a library file name, or a feature name."
   "Load all dependencies for SYMBOL."
   (unless custom-load-recursion
     (let ((custom-load-recursion t))
+      ;; Load these files if not already done,
+      ;; to make sure we know all the dependencies of SYMBOL.
+      (condition-case nil
+	  (require 'cus-load)
+	(error nil))
+      (condition-case nil
+	  (require 'cus-start)
+	(error nil))
       (dolist (load (get symbol 'custom-loads))
 	(cond ((symbolp load) (condition-case nil (require load) (error nil)))
 	      ;; This is subsumed by the test below, but it's much faster.
@@ -550,17 +563,17 @@ from THEME by `custom-make-theme-feature'."
 	  (error "Keyword %s is missing an argument" keyword))
 	(setq args (cdr args))
 	(cond ((eq keyword :short-description)
-	       (put theme 'theme-short-description short-description))
+	       (put theme 'theme-short-description value))
 	      ((eq keyword :immediate)
-	       (put theme 'theme-immediate immediate))
+	       (put theme 'theme-immediate value))
 	      ((eq keyword :variable-set-string)
-	       (put theme 'theme-variable-set-string variable-set-string))
+	       (put theme 'theme-variable-set-string value))
 	      ((eq keyword :variable-reset-string)
-	       (put theme 'theme-variable-reset-string variable-reset-string))
+	       (put theme 'theme-variable-reset-string value))
 	      ((eq keyword :face-set-string)
-	       (put theme 'theme-face-set-string face-set-string))
+	       (put theme 'theme-face-set-string value))
 	      ((eq keyword :face-reset-string)
-	       (put theme 'theme-face-reset-string face-reset-string)))))))
+	       (put theme 'theme-face-reset-string value)))))))
 
 (defmacro deftheme (theme &optional doc &rest args)
   "Declare custom theme THEME.
@@ -1063,4 +1076,5 @@ This means reset VARIABLE to its value in TO-THEME."
 
 (provide 'custom)
 
+;;; arch-tag: 041b6116-aabe-4f9a-902d-74092bc3dab2
 ;;; custom.el ends here

@@ -101,3 +101,6 @@ NOTE-END  */
 
 /* Avoids a compiler bug */
 /* borrowed from sequent.h */
+
+/* arch-tag: e15d9072-9e1a-44bf-8add-966be535967b
+   (do not change this comment) */

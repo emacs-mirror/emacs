@@ -47,3 +47,6 @@ Boston, MA 02111-1307, USA.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
+
+/* arch-tag: 61e6deb4-a93e-444b-bbd5-9887a83f1bbc
+   (do not change this comment) */

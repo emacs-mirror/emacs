@@ -248,4 +248,5 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
+;;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
 ;;; goto-addr.el ends here

@@ -212,3 +212,6 @@ NOTE-END */
 
 #define SEGMENT_MASK ((SEGMENT_SIZE)-1)
 #endif
+
+/* arch-tag: 746338f0-cb7b-4f49-a98c-cb50817cf2ec
+   (do not change this comment) */

@@ -41,7 +41,7 @@
   :group 'octave-inferior)
 
 (defcustom inferior-octave-prompt
-  "\\(^octave\\(\\|.bin\\)\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
+  "\\(^octave\\(\\|.bin\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
   "*Regexp to match prompts for the inferior Octave process."
   :type 'regexp
   :group 'octave-inferior)
@@ -382,4 +382,5 @@ directory and makes this the current buffer's default directory."
 
 (provide 'octave-inf)
 
+;;; arch-tag: bdce0395-24d1-4bb4-bfba-6fb1eeb1a660
 ;;; octave-inf.el ends here

@@ -1113,4 +1113,5 @@
 	(setq h (1+ h))))
     h))
 
+;;; arch-tag: 483bfe15-f290-4fef-bb7d-ce65be687f2e
 ;;; calc-lang.el ends here

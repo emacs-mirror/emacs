@@ -103,4 +103,5 @@ If t is found, signal error and display the locked buffer name."
 
 (provide 'emacs-lock)
 
+;;; arch-tag: 58e6cb43-7cf0-401a-bcb6-4902a0b8bdc1
 ;;; emacs-lock.el ends here

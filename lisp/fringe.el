@@ -35,6 +35,33 @@
 
 ;;; Code:
 
+;; Standard fringe bitmaps
+
+(defconst no-fringe-bitmap 0)
+(defconst undef-fringe-bitmap 1)
+(defconst left-truncation-fringe-bitmap 2)
+(defconst right-truncation-fringe-bitmap 3)
+(defconst up-arrow-fringe-bitmap 4)
+(defconst down-arrow-fringe-bitmap 5)
+(defconst continued-line-fringe-bitmap 6)
+(defconst continuation-line-fringe-bitmap 7)
+(defconst overlay-arrow-fringe-bitmap 8)
+(defconst top-left-angle-fringe-bitmap 9)
+(defconst top-right-angle-fringe-bitmap 10)
+(defconst bottom-left-angle-fringe-bitmap 11)
+(defconst bottom-right-angle-fringe-bitmap 12)
+(defconst left-bracket-fringe-bitmap 13)
+(defconst right-bracket-fringe-bitmap 14)
+(defconst filled-box-cursor-fringe-bitmap 15)
+(defconst hollow-box-cursor-fringe-bitmap 16)
+(defconst hollow-square-fringe-bitmap 17)
+(defconst bar-cursor-fringe-bitmap 18)
+(defconst hbar-cursor-fringe-bitmap 19)
+(defconst empty-line-fringe-bitmap 20)
+
+
+;; Control presence of fringes
+
 (defvar fringe-mode)
 
 (defun set-fringe-mode-1 (ignore value)
@@ -119,7 +146,7 @@ If ALL-FRAMES, the negation of the fringe values in
 Otherwise the negation of the fringe value in the currently selected
 frame parameter is used."
   (let ((mode (intern (completing-read
-		       "Select fringe mode for all frames (SPACE for list): "
+		       "Select fringe mode for all frames (type ? for list): "
 		       '(("none") ("default") ("left-only")
 			 ("right-only") ("half") ("minimal"))
 		       nil t))))
@@ -139,34 +166,70 @@ frame parameter is used."
 
 ;;;###autoload
 (defun fringe-mode (&optional mode)
-  "Toggle appearance of fringes on all frames.
-Valid values for MODE include `none', `default', `left-only',
-`right-only', `minimal' and `half'.  MODE can also be a cons cell
-where the integer in car will be used as left fringe width and the
-integer in cdr will be used as right fringe width. If MODE is not
-specified, the user is queried.
-It applies to all frames that exist and frames to be created in the
-future.
-If you want to set appearance of fringes on the selected frame only,
-see `set-fringe-style'."
+  "Set the default appearance of fringes on all frames.
+
+When called interactively, query the user for MODE.  Valid values
+for MODE include `none', `default', `left-only', `right-only',
+`minimal' and `half'.
+
+When used in a Lisp program, MODE can be a cons cell where the
+integer in car specifies the left fringe width and the integer in
+cdr specifies the right fringe width.  MODE can also be a single
+integer that specifies both the left and the right fringe width.
+If a fringe width specification is nil, that means to use the
+default width (8 pixels).  This command may round up the left and
+right width specifications to ensure that their sum is a multiple
+of the character width of a frame.  It never rounds up a fringe
+width of 0.
+
+Fringe widths set by `set-window-fringes' override the default
+fringe widths set by this command.  This command applies to all
+frames that exist and frames to be created in the future.  If you
+want to set the default appearance of fringes on the selected
+frame only, see the command `set-fringe-style'."
   (interactive (list (fringe-query-style 'all-frames)))
   (set-fringe-mode mode))
 
 ;;;###autoload
 (defun set-fringe-style (&optional mode)
-  "Set appearance of fringes on selected frame.
-Valid values for MODE include `none', `default', `left-only',
-`right-only', `minimal' and `half'.  MODE can also be a cons cell
-where the integer in car will be used as left fringe width and the
-integer in cdr will be used as right fringe width. If MODE is not
-specified, the user is queried.
-If you want to set appearance of fringes on all frames, see `fringe-mode'."
+  "Set the default appearance of fringes on the selected frame.
+
+When called interactively, query the user for MODE.  Valid values
+for MODE include `none', `default', `left-only', `right-only',
+`minimal' and `half'.
+
+When used in a Lisp program, MODE can be a cons cell where the
+integer in car specifies the left fringe width and the integer in
+cdr specifies the right fringe width.  MODE can also be a single
+integer that specifies both the left and the right fringe width.
+If a fringe width specification is nil, that means to use the
+default width (8 pixels).  This command may round up the left and
+right width specifications to ensure that their sum is a multiple
+of the character width of a frame.  It never rounds up a fringe
+width of 0.
+
+Fringe widths set by `set-window-fringes' override the default
+fringe widths set by this command.  If you want to set the
+default appearance of fringes on all frames, see the command
+`fringe-mode'."
   (interactive (list (fringe-query-style)))
   (modify-frame-parameters
    (selected-frame)
    (list (cons 'left-fringe (if (consp mode) (car mode) mode))
 	 (cons 'right-fringe (if (consp mode) (cdr mode) mode)))))
 
+(defsubst fringe-columns (side &optional real)
+  "Return the width, measured in columns, of the fringe area on SIDE.
+If optional argument REAL is non-nil, return a real floating point
+number instead of a rounded integer value.
+SIDE must be the symbol `left' or `right'."
+  (funcall (if real '/ 'ceiling)
+	   (or (funcall (if (eq side 'left) 'car 'cadr)
+			(window-fringes))
+	       0)
+           (float (frame-char-width))))
+  
 (provide 'fringe)
 
+;;; arch-tag: 6611ef60-0869-47ed-8b93-587ee7d3ff5d
 ;;; fringe.el ends here

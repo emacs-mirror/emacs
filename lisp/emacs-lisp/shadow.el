@@ -161,7 +161,7 @@ See the documentation for `list-load-path-shadows' for further information."
 		 ;; sizes.
 		 (and (= (nth 7 (file-attributes f1))
 			 (nth 7 (file-attributes f2)))
-		      (zerop (call-process "cmp" nil nil nil "-s" f1 f2))))))))
+		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 ;;;###autoload
 (defun list-load-path-shadows ()
@@ -257,4 +257,5 @@ version unless you know what you are doing.\n")
 
 (provide 'shadow)
 
+;;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
 ;;; shadow.el ends here

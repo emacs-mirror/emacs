@@ -62,6 +62,8 @@ to the system configuration; look at `system-configuration' instead."
 		 (cond ((featurep 'motif)
 			(concat ", " (substring motif-version-string 4)))
 		       ((featurep 'x-toolkit) ", X toolkit")
+		       ((featurep 'gtk)
+			(concat ", GTK+ Version " gtk-version-string))
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))
@@ -88,4 +90,5 @@ to the system configuration; look at `system-configuration' instead."
 ;;version-control: never
 ;;End:
 
+;;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
 ;;; version.el ends here

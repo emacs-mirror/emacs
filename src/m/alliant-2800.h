@@ -124,3 +124,6 @@ unexec_text_start = hdr.a_text_addr;}
 
 /* Use the K&R version of the DEFUN macro.  */
 #define USE_NONANSI_DEFUN
+
+/* arch-tag: 8ba70b15-d082-40f6-931d-14adfd7f9dbd
+   (do not change this comment) */

@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,2003
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,03,2004
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -86,9 +86,18 @@ extern char *index P_ ((const char *, int));
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
+#ifdef USE_LSB_TAG
+int gdb_use_lsb = 1;
+#else
+int gdb_use_lsb = 0;
+#endif
+#ifdef NO_UNION_TYPE
+int gdb_use_union = 0;
+#else
+int gdb_use_union = 1;
+#endif
 EMACS_INT gdb_valbits = VALBITS;
 EMACS_INT gdb_gctypebits = GCTYPEBITS;
-EMACS_INT gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR;
 #ifdef DATA_SEG_BITS
 EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
@@ -220,6 +229,8 @@ int initial_argc;
 static void sort_args ();
 void syms_of_emacs ();
 
+/* MSVC needs each string be shorter than 2048 bytes, so the usage
+   strings below are split to not overflow this limit.  */
 #define USAGE1 "\
 Usage: %s [OPTION-OR-FILENAME]...\n\
 \n\
@@ -232,66 +243,71 @@ read the main documentation for these command-line arguments.\n\
 \n\
 Initialization options:\n\
 \n\
---batch			do not do interactive display; implies -q\n\
---script FILE           run FILE as an Emacs Lisp script.\n\
---debug-init		enable Emacs Lisp debugger during init file\n\
---help			display this help message and exit\n\
---multibyte, --no-unibyte   run Emacs in multibyte mode\n\
---no-init-file, -q	    load neither ~/.emacs nor default.el\n\
---no-shared-memory, -nl	    do not use shared memory\n\
---no-site-file		    do not load site-start.el\n\
---no-splash		    do not display a splash screen on startup\n\
---no-window-system, -nw	    don't communicate with X, ignoring $DISPLAY\n\
---terminal, -t DEVICE	    use DEVICE for terminal I/O\n\
+--batch                     do not do interactive display; implies -q\n\
+--debug-init                enable Emacs Lisp debugger for init file\n\
+--display, -d DISPLAY       use X server DISPLAY\n\
+--multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
+--no-desktop                do not load a saved desktop\n\
+--no-init-file, -q          load neither ~/.emacs nor default.el\n\
+--no-shared-memory, -nl     do not use shared memory\n\
+--no-site-file              do not load site-start.el\n\
+--no-splash                 do not display a splash screen on startup\n\
+--no-window-system, -nw     don't communicate with X, ignoring $DISPLAY\n\
+--script FILE               run FILE as an Emacs Lisp script\n\
+--terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
---user, -u USER		load ~USER/.emacs instead of your own\n\
---version		display version information and exit\n\
-\n\
-Action options:\n\
-\n\
-FILE			visit FILE using find-file\n\
-+LINE FILE		visit FILE using find-file, then go to line LINE\n\
-+LINE:COLUMN FILE	visit FILE using find-file, then go to line LINE,\n\
-			    column COLUMN\n\
---directory, -L DIR	add DIR to variable load-path\n\
---eval EXPR		evaluate Emacs Lisp expression EXPR\n\
---execute EXPR		evaluate Emacs Lisp expression EXPR\n\
---find-file FILE	visit FILE\n\
---funcall, -f FUNC	call Emacs function FUNC with no arguments\n\
---insert FILE		insert contents of FILE into current buffer\n\
---kill			exit without asking for confirmation\n\
---load, -l FILE		load FILE of Emacs Lisp code using the load function\n\
---visit FILE		visit FILE\n\
-\n"
+--user, -u USER             load ~USER/.emacs instead of your own\n\
+\n%s"
 
 #define USAGE2 "\
+Action options:\n\
+\n\
+FILE                    visit FILE using find-file\n\
++LINE FILE              visit FILE using find-file, then go to line LINE\n\
++LINE:COLUMN FILE       visit FILE using find-file, then go to line LINE,\n\
+                          column COLUMN\n\
+--directory, -L DIR     add DIR to variable load-path\n\
+--eval EXPR             evaluate Emacs Lisp expression EXPR\n\
+--execute EXPR          evaluate Emacs Lisp expression EXPR\n\
+--file FILE             visit FILE using find-file\n\
+--find-file FILE        visit FILE using find-file\n\
+--funcall, -f FUNC      call Emacs Lisp function FUNC with no arguments\n\
+--insert FILE           insert contents of FILE into current buffer\n\
+--kill                  exit without asking for confirmation\n\
+--load, -l FILE         load Emacs Lisp FILE using the load function\n\
+--visit FILE            visit FILE using find-file\n\
+\n"
+
+#define USAGE3 "\
 Display options:\n\
 \n\
---background-color, -bg COLOR	window background color\n\
---border-color, -bd COLOR	main border color\n\
---border-width, -bw WIDTH	width of main border\n\
---color=MODE			color mode for character terminals;\n\
-				MODE defaults to `auto', and can also\n\
-				be `never', `auto', `always',\n\
-				or a mode name like `ansi8'\n\
---cursor-color, -cr COLOR	color of the Emacs cursor indicating point\n\
---display, -d DISPLAY		use X server DISPLAY\n\
---font, -fn FONT		default font; must be fixed-width\n\
---foreground-color, -fg COLOR	window foreground color\n\
---fullscreen, -fs	        make first frame fullscreen\n\
---fullwidth, -fw	        make the first frame wide as the screen\n\
---fullheight, -fh	        make the first frame high as the screen\n\
---geometry, -g GEOMETRY		window geometry\n\
---iconic			start Emacs in iconified state\n\
---icon-type, -i			use picture of gnu for Emacs icon\n\
---internal-border, -ib WIDTH	width between text and main border\n\
---line-spacing, -lsp PIXELS	additional space to put between lines\n\
---mouse-color, -ms COLOR 	mouse cursor color in Emacs window\n\
---name NAME			title of main Emacs window\n\
---reverse-video, -r, -rv	switch foreground and background\n\
---title, -T, -wn TITLE		title for Emacs windows\n\
---vertical-scroll-bars, -vb	enable vertical scroll bars\n\
---xrm XRESOURCES		set additional X resources\n\
+--background-color, -bg COLOR   window background color\n\
+--border-color, -bd COLOR       main border color\n\
+--border-width, -bw WIDTH       width of main border\n\
+--color MODE                    color mode for character terminals;\n\
+                                  MODE defaults to `auto', and can also\n\
+                                  be `never', `auto', `always',\n\
+                                  or a mode name like `ansi8'\n\
+--cursor-color, -cr COLOR       color of the Emacs cursor indicating point\n\
+--font, -fn FONT                default font; must be fixed-width\n\
+--foreground-color, -fg COLOR   window foreground color\n\
+--fullheight, -fh               make the first frame high as the screen\n\
+--fullscreen, -fs               make first frame fullscreen\n\
+--fullwidth, -fw                make the first frame wide as the screen\n\
+--geometry, -g GEOMETRY         window geometry\n\
+--horizontal-scroll-bars, -hb   enable horizontal scroll bars\n\
+--icon-type, -i                 use picture of gnu for Emacs icon\n\
+--iconic                        start Emacs in iconified state\n\
+--internal-border, -ib WIDTH    width between text and main border\n\
+--line-spacing, -lsp PIXELS     additional space to put between lines\n\
+--mouse-color, -ms COLOR        mouse cursor color in Emacs window\n\
+--name NAME                     title for initial Emacs frame\n\
+--reverse-video, -r, -rv        switch foreground and background\n\
+--title, -T TITLE               title for initial Emacs frame\n\
+--vertical-scroll-bars, -vb     enable vertical scroll bars\n\
+--xrm XRESOURCES                set additional X resources\n\
+--help                          display this help and exit\n\
+--version                       output version information and exit\n\
 \n\
 You can generally also specify long option names with a single -; for\n\
 example, -batch as well as --batch.  You can use any unambiguous\n\
@@ -301,7 +317,7 @@ Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
 \n"
 
-#define USAGE3 "\
+#define USAGE4 "\
 Report bugs to %s.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
@@ -1061,9 +1077,9 @@ main (argc, argv
   /* Handle the --help option, which gives a usage message.  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
-      printf (USAGE1, argv[0]);
-      printf (USAGE2);
-      printf (USAGE3, bug_reporting_address ());
+      printf (USAGE1, argv[0], USAGE2);
+      printf (USAGE3);
+      printf (USAGE4, bug_reporting_address ());
       exit (0);
     }
 
@@ -1236,6 +1252,9 @@ main (argc, argv
 
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      init_fringe_once ();	/* Swap bitmaps if necessary. */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
 
   init_alloc ();
@@ -1505,6 +1524,10 @@ main (argc, argv
 #endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+      syms_of_fringe ();
+      syms_of_image ();
+#endif /* HAVE_WINDOW_SYSTEM */
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
@@ -1517,10 +1540,12 @@ main (argc, argv
 #endif
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef HAVE_MENUS
 #ifndef HAVE_NTGUI
 #ifndef MAC_OS
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_xmenu ();
+#endif
 #endif
 #endif
 
@@ -1584,11 +1609,12 @@ main (argc, argv
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
   init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.).  */
-#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
-  init_xfns ();
-#endif /* HAVE_X_WINDOWS */
   init_fns ();
   init_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+  init_fringe ();
+  init_image ();
+#endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_editfns ();
   init_floatfns ();
@@ -2002,7 +2028,7 @@ shut_down_emacs (sig, no_x, stuff)
 	fflush (stdout);
 	reset_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d).", sig);
+	  fprintf (stderr, "Fatal error (%d)", sig);
       }
   }
 #else
@@ -2407,3 +2433,6 @@ near where the Emacs executable was found.  */);
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
 }
+
+/* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
+   (do not change this comment) */

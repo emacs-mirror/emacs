@@ -309,4 +309,5 @@ was not traced this is a noop."
 
 (provide 'trace)
 
+;;; arch-tag: cfd170a7-4932-4331-8c8b-b7151942e5a1
 ;;; trace.el ends here

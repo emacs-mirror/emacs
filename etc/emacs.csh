@@ -23,3 +23,5 @@ alias edit 'set emacs_command=("emacs -nw \!*" "fg %emacs" "emacs -i \!* &"\
  @ whichjob = 1 + $isjob + $?DISPLAY * 2 + $?WINDOW_PARENT * 4; \
  test -S ~/.emacs_server && emacsclient \!* \
  || echo `pwd` \!* >! ~/.emacs_args && eval $emacs_command[$whichjob]'
+
+# arch-tag: 433d58df-15b9-446f-ad37-f0393e3a23d4

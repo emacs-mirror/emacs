@@ -150,18 +150,6 @@
 ;; This avoids a hang of `cus-test-apropos' in 21.2.
 ;; (add-to-list 'cus-test-skip-list 'sh-alias-alist)
 
-;; Don't create a file `filesets-menu-cache-file'.
-(setq filesets-menu-cache-file "")
-;; Disable filesets hooks.
-(add-hook
- 'cus-test-after-load-libs-hook
- (lambda nil
-   (remove-hook 'menu-bar-update-hook 'filesets-build-menu-maybe)
-   (remove-hook 'kill-emacs-hook 'filesets-exit)
-   (remove-hook 'kill-buffer-hook 'filesets-remove-from-ubl)
-   (remove-hook 'first-change-hook 'filesets-reset-filename-on-change)
-   ))
-
 ;; Loading dunnet in batch mode leads to a Dead end.
 (let (noninteractive) (load "dunnet"))
 (add-to-list 'cus-test-libs-noloads "dunnet")
@@ -538,4 +526,5 @@ in the Emacs source directory."
 
 (provide 'cus-test)
 
+;;; arch-tag: a4991a31-548d-48fb-8ba1-1ebbe68eb2e7
 ;;; cus-test.el ends here

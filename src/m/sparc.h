@@ -97,3 +97,6 @@ NOTE-END  */
 				   should be here.  -- fx */
 #endif
 #endif
+
+/* arch-tag: 0a6f7882-33fd-4811-9832-7466c51e50f7
+   (do not change this comment) */

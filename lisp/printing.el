@@ -1,17 +1,17 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2002, 2003
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004
 ;; Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Time-stamp: <2004/04/05 23:41:49 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2002/09/11 16:59:00 vinicius>
-;; Version: 6.7.1
+;; Version: 6.7.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.7.1"
-  "printing.el, v 6.7.1 <2002/09/11 vinicius>
+(defconst pr-version "6.7.4"
+  "printing.el, v 6.7.4 <2004/03/31 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -166,6 +166,38 @@ Please send all bug fixes and enhancements to
 ;;         printer doesn't have duplex feature; otherwise, it's ok, your
 ;;         printer does have duplex feature.
 ;;
+;; NOTE 4: See Tips section.
+;;
+;;
+;; Tips
+;; ----
+;;
+;; 1. If your have a local printer, that is, a printer which is connected
+;;    directly to your computer, don't forget to connect the printer to your
+;;    computer before printing.
+;;
+;; 2. If you try to print a file and it seems that the file was printed, but
+;;    there is no paper in the printer, then try to set `pr-delete-temp-file'
+;;    to nil.  Probably `printing' is deleting the temporary file before your
+;;    local system can get it to send to the printer.
+;;
+;; 3. Don't try to print a dynamic buffer, that is, a buffer which is
+;;    modifying while `printing' tries to print.  Eventually you got an error
+;;    message.  Instead, save the dynamic buffer to a file or copy it in
+;;    another buffer and, then, print the file or the new static buffer.
+;;    An example of dynamic buffer is the *Messages* buffer.
+;;
+;; 4. When running Emacs on Windows with cygwin, check if the
+;;    `pr-shell-file-name' variable is set to the proper shell.  This shell
+;;    will execute the commands to preview/print the buffer, file or directory.
+;;    Also check the setting of `pr-path-style' variable.
+;;    Probably, you should use:
+;;
+;;    (setq pr-shell-file-name "bash")
+;;    (setq pr-path-style 'unix)
+;;
+;;     And use / instead of \ when specifying a directory.
+;;
 ;;
 ;; Using `printing'
 ;; ----------------
@@ -255,9 +287,9 @@ Please send all bug fixes and enhancements to
 ;;    PREFIX:
 ;;    `pr-interface'	buffer interface for printing package.
 ;;    `pr-help'		help for printing package.
-;;    `pr-ps-name'	select interactively a PostScript printer.
-;;    `pr-txt-name'	select interactively a text printer.
-;;    `pr-ps-utility'	select interactively a PostScript utility.
+;;    `pr-ps-name'	interactively select a PostScript printer.
+;;    `pr-txt-name'	interactively select a text printer.
+;;    `pr-ps-utility'	interactively select a PostScript utility.
 ;;    `pr-show-*-setup'	show current settings.
 ;;    `pr-ps-*'		deal with PostScript code generation.
 ;;    `pr-txt-*'	deal with text generation.
@@ -381,9 +413,11 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `pr-ps-temp-file'		Specify PostScript temporary file name.
 ;;
-;; `pr-gv-command'		Specify path and name of gsview program.
+;; `pr-gv-command'		Specify path and name of the gsview/gv
+;;				utility.
 ;;
-;; `pr-gs-command'		Specify path and name of ghostscript program.
+;; `pr-gs-command'		Specify path and name of the ghostscript
+;;				utility.
 ;;
 ;; `pr-gs-switches'		Specify ghostscript switches.
 ;;
@@ -408,8 +442,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `pr-auto-region'		Non-nil means region is automagically detected.
 ;;
-;; `pr-auto-mode'		Non-nil means major-mode printing is prefered
-;;				over normal printing.
+;; `pr-auto-mode'		Non-nil means major-mode specific printing is
+;;				prefered over normal printing.
 ;;
 ;; `pr-mode-alist'		Specify an alist for a major-mode and printing
 ;;				function.
@@ -515,7 +549,7 @@ Please send all bug fixes and enhancements to
 ;;     5  |   Print                    >|---\ | |Despool... |  |
 ;;     6  |   Text Printer: name       >|-\ | | +-----------+  |
 ;;        +-----------------------------+ | | | +---------+   +------------+
-;; III 7  |[ ]Landscape                 | | | \-|Directory|   |   As Is... | Ia
+;; III 7  |[ ]Landscape                 | | | \-|Directory|   | No Prep... | Ia
 ;;     8  |[ ]Print Header              | | |   |Buffer   |   +------------+ Ib
 ;;     9  |[ ]Print Header Frame        | | |   |Region   |   |   name    >|- C
 ;;     10 |[ ]Line Number               | | |   +---------+   +------------+
@@ -526,8 +560,8 @@ Please send all bug fixes and enhancements to
 ;;     15 |   Print All Pages          >|--\ |  |Mode     |   +------------+
 ;;        +-----------------------------+  | |  +---------+   |[ ]Landscape| Id
 ;; IV  16 |[ ]Spool Buffer              |  | |  +-C-------+   |[ ]Duplex   | Ie
-;;     17 |[ ]Print with-faces          |  | \--|( )name A|   |[ ]Tumble   | If
-;;     18 |[ ]Print Using Ghostscript   |  |    |( )name B|   +------------+
+;;     17 |[ ]Print with faces          |  | \--|( )name A|   |[ ]Tumble   | If
+;;     18 |[ ]Print via Ghostscript     |  |    |( )name B|   +------------+
 ;;        +-----------------------------+  |    |...      |
 ;; V   19 |[ ]Auto Region               |  |    |(*)name  |
 ;;     20 |[ ]Auto Mode                 |  |    |...      |
@@ -579,8 +613,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;;	 NOTE 2: There are the following options for PostScript file
 ;;		 processing:
-;;		 Ia. Print the file *as is*, that is, send it directly to
-;;		     PostScript printer.
+;;		 Ia. Print the file *No Preprocessing*, that is, send it
+;;		     directly to PostScript printer.
 ;;		 Ib. PostScript utility processing selection.
 ;;		     See `pr-ps-utility-alist' and `pr-setting-database' for
 ;;		     documentation.
@@ -690,7 +724,7 @@ Please send all bug fixes and enhancements to
 ;;	  declared in `pr-mode-alist', the `*-buffer*' and `*-region*' commands
 ;;	  behave like `*-mode*' commands.
 ;;
-;;    21. If you want that Printing menu stays poped up while you are setting
+;;    21. If you want that Printing menu stays open while you are setting
 ;;	  toggle options, turn on this option.  The variables
 ;;	  `pr-menu-char-height' and `pr-menu-char-width' are used to guess the
 ;;	  menu position, so don't forget to adjust these variables if menu
@@ -838,8 +872,8 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
-;; Thanks to Drew Adams <?@?> for directory processing and `pr-path-alist'
-;; suggestions.
+;; Thanks to Drew Adams <drew.adams@oracle.com> for directory processing and
+;; `pr-path-alist' suggestions.
 ;;
 ;; Thanks to Fred Labrosse <f.labrosse@maths.bath.ac.uk> for XEmacs tests.
 ;;
@@ -1157,9 +1191,9 @@ SYMBOL		It's a symbol to identify a text printer.  It's for
 			'prt_06a
 			'my_printer
 
-COMMAND		Name of program for printing a text file.  On MS-DOS and
-		MS-Windows systems, if the value is an empty string then Emacs
-		will write directly to the printer port named by NAME (see text
+COMMAND		Name of the program for printing a text file.  On MS-DOS and
+		MS-Windows systems, if the value is an empty string, then Emacs
+		will write directly to the printer port given by NAME (see text
 		below), that is, the NAME should be something like \"PRN\" or
 		\"LPT1:\".
 		If NAME is something like \"\\\\\\\\host\\\\share-name\" then
@@ -1287,11 +1321,11 @@ SYMBOL		It's a symbol to identify a PostScript printer.  It's for
 			'prt_06a
 			'my_printer
 
-COMMAND		Name of program for printing a PostScript file.  On MS-DOS and
-		MS-Windows systems, if the value is an empty string then Emacs
-		will write directly to the printer port named by NAME (see text
-		below), that is, the NAME should be something like \"PRN\" or
-		\"LPT1:\".
+COMMAND		Name of the program for printing a PostScript file.  On MS-DOS
+		and MS-Windows systems, if the value is an empty string then
+		Emacs will write directly to the printer port given by NAME
+		(see text below), that is, the NAME should be something like
+		\"PRN\" or \"LPT1:\".
 		If NAME is something like \"\\\\\\\\host\\\\share-name\" then
 		COMMAND shouldn't be an empty string.
 		The programs `print' and `nprint' (the standard print programs
@@ -1472,10 +1506,10 @@ Examples:
   (if ps-windows-system
       "gsview32.exe"
     "gv")
-  "*Specify path and name of gsview program.
+  "*Specify path and name of the gsview/gv utility.
 
 See also `pr-path-alist'."
-  :type '(string :tag "Ghostview Program")
+  :type '(string :tag "Ghostview Utility")
   :group 'printing)
 
 
@@ -1483,10 +1517,10 @@ See also `pr-path-alist'."
   (if ps-windows-system
       "gswin32.exe"
     "gs")
-  "*Specify path and name of ghostscript program.
+  "*Specify path and name of the ghostscript utility.
 
 See also `pr-path-alist'."
-  :type '(string :tag "Ghostscript Program")
+  :type '(string :tag "Ghostscript Utility")
   :group 'printing)
 
 
@@ -1524,7 +1558,7 @@ To see ghostscript documentation for more information:
   (if ps-windows-system
       "mswinpr2"
     "uniprint")
-  "*Specify ghostscript device switch value (-sDEVICE=).
+  "*Specify the ghostscript device switch value (-sDEVICE=).
 
 A note on the gs switches:
 
@@ -1609,7 +1643,7 @@ marked instead of all buffer."
 
 
 (defcustom pr-auto-mode t
-  "*Non-nil means major-mode printing is prefered over normal printing.
+  "*Non-nil means major-mode specific printing is prefered over normal printing.
 
 That is, if current major-mode is declared in `pr-mode-alist', the `*-buffer*'
 and `*-region*' commands will behave like `*-mode*' commands; otherwise,
@@ -1876,9 +1910,9 @@ UTILITY		Name of utility for processing a PostScript file.
 		    . for Windows system:
 			\"c:/psutils/psnup -q\"
 
-MUST-SWITCHES	List of sexp's to pass as options for PostScript utility
+MUST-SWITCHES	List of sexp's to pass as options to the PostScript utility
 		program.  These options are necessary to process the utility
-		program and must be place before any other switches.
+		program and must be placed before any other switches.
 		Example:
 		    . for psnup:
 			'(\"-q\")
@@ -1921,7 +1955,7 @@ OUTPUT		It's a string to specify how to generate an output file.  Some
 		    . for mpage
 			\">\" ; mpage ... input > output
 
-SWITCHES	List of sexp's to pass as extra options for PostScript utility
+SWITCHES	List of sexp's to pass as extra options to the PostScript utility
 		program.
 		Example:
 		    . for psnup
@@ -2202,8 +2236,8 @@ Valid values with the corresponding menu parts are:
 			      |    Print All Pages          >|
 			      +------------------------------+
    `postscript-process'	      |[ ] Spool Buffer              |
-			      |[ ] Print with-faces          |
-			      |[ ] Print Using Ghostscript   |
+			      |[ ] Print with faces          |
+			      |[ ] Print via Ghostscript     |
 			      +------------------------------+
    `printing'		      |[ ] Auto Region               |
 			      |[ ] Auto Mode                 |
@@ -2281,7 +2315,8 @@ It's used by `pr-interface'."
 
 
 (defcustom pr-shell-file-name
-  (if (eq pr-path-style 'windows)
+  (if (and (not pr-cygwin-system)
+	   ps-windows-system)
       "cmdproxy.exe"
     shell-file-name)
   "*Specify file name to load inferior shells from."
@@ -2299,7 +2334,7 @@ See `pr-txt-printer-alist'.")
 
 
 (defvar pr-txt-switches nil
-  "List of sexp's to pass as extra options for text printer program.
+  "List of sexp's to pass as extra options to the text printer program.
 See `pr-txt-printer-alist'.")
 
 
@@ -2314,7 +2349,7 @@ See `pr-ps-printer-alist'.")
 
 
 (defvar pr-ps-switches nil
-  "List of sexp's to pass as extra options for PostScript printer program.
+  "List of sexp's to pass as extra options to the PostScript printer program.
 See `pr-ps-printer-alist'.")
 
 
@@ -2413,7 +2448,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-preview nil t)
 	   :keys "\\[pr-ps-mode-preview]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-preview)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
 	   :keys "\\[pr-ps-file-preview]"
 	   :help "Preview PostScript file"]
 	  "--"
@@ -2468,7 +2503,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-ps-print nil t)
 	   :keys "\\[pr-ps-mode-ps-print]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-ps-print)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
 	   :keys "\\[pr-ps-file-ps-print]"
 	   :help "Send PostScript file to printer"]
 	  "--"
@@ -2556,11 +2591,11 @@ See `pr-ps-printer-alist'.")
 	 :style toggle :selected pr-spool-p
 	 :included (pr-visible-p 'postscript-process)
 	 :help "Toggle PostScript spooling"]
-	["Print with-faces"        pr-toggle-faces
+	["Print with faces"        pr-toggle-faces
 	 :style toggle :selected pr-faces-p
 	 :included (pr-visible-p 'postscript-process)
 	 :help "Toggle PostScript printing with faces"]
-	["Print Using Ghostscript" pr-toggle-ghostscript
+	["Print via Ghostscript" pr-toggle-ghostscript
 	 :style toggle :selected pr-print-using-ghostscript
 	 :included (pr-visible-p 'postscript-process)
 	 :help "Toggle PostScript generation using ghostscript"]
@@ -2622,7 +2657,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-preview nil t)
 	   :keys "\\[pr-ps-mode-preview]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-preview)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
 	   :keys "\\[pr-ps-file-preview]"]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
@@ -2670,7 +2705,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-ps-print nil t)
 	   :keys "\\[pr-ps-mode-ps-print]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-ps-print)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
 	   :keys "\\[pr-ps-file-ps-print]"]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
@@ -2746,10 +2781,10 @@ See `pr-ps-printer-alist'.")
 	["Spool Buffer"            pr-toggle-spool
 	 :style toggle :selected pr-spool-p
 	 :included (pr-visible-p 'postscript-process)]
-	["Print with-faces"        pr-toggle-faces
+	["Print with faces"        pr-toggle-faces
 	 :style toggle :selected pr-faces-p
 	 :included (pr-visible-p 'postscript-process)]
-	["Print Using Ghostscript" pr-toggle-ghostscript
+	["Print via Ghostscript" pr-toggle-ghostscript
 	 :style toggle :selected pr-print-using-ghostscript
 	 :included (pr-visible-p 'postscript-process)]
 	"--"
@@ -2859,7 +2894,7 @@ II  4  |   Printify                 >|-----\\ |File      >|--\\  +--------+
     5  |   Print                    >|---\\ | |Despool... |  |
     6  |   Text Printer: name       >|-\\ | | +-----------+  |
        +-----------------------------+ | | | +---------+   +------------+
-III 7  |[ ]Landscape                 | | | \\-|Directory|   |   As Is... | Ia
+III 7  |[ ]Landscape                 | | | \\-|Directory|   | No Prep... | Ia
     8  |[ ]Print Header              | | |   |Buffer   |   +------------+ Ib
     9  |[ ]Print Header Frame        | | |   |Region   |   |   name    >|- C
     10 |[ ]Line Number               | | |   +---------+   +------------+
@@ -2870,8 +2905,8 @@ III 7  |[ ]Landscape                 | | | \\-|Directory|   |   As Is... | Ia
     15 |   Print All Pages          >|--\\ |  |Mode     |   +------------+
        +-----------------------------+  | |  +---------+   |[ ]Landscape| Id
 IV  16 |[ ]Spool Buffer              |  | |  +-C-------+   |[ ]Duplex   | Ie
-    17 |[ ]Print with-faces          |  | \\--|( )name A|   |[ ]Tumble   | If
-    18 |[ ]Print Using Ghostscript   |  |    |( )name B|   +------------+
+    17 |[ ]Print with faces          |  | \\--|( )name A|   |[ ]Tumble   | If
+    18 |[ ]Print via Ghostscript     |  |    |( )name B|   +------------+
        +-----------------------------+  |    |...      |
 V   19 |[ ]Auto Region               |  |    |(*)name  |
     20 |[ ]Auto Mode                 |  |    |...      |
@@ -2921,8 +2956,8 @@ I. PostScript printing:
 	      switch from gnus *Summary* buffer first.
 
       NOTE 2: There are the following options for PostScript file processing:
-	      Ia. Print the file *as is*, that is, send it directly to
-		  PostScript printer.
+	      Ia. Print the file *No Preprocessing*, that is, send it
+		  directly to PostScript printer.
 	      Ib. PostScript utility processing selection.
 		  See `pr-ps-utility-alist' and `pr-setting-database' for
 		  documentation.
@@ -2945,9 +2980,9 @@ I. PostScript printing:
       save temporarily the PostScript code generated in a buffer and print it
       later.  The option `Despool...' despools the PostScript spooling buffer
       directly on a printer.  If you type C-u before choosing this option,
-      the PostScript code generated is saved in a file instead of sending to
-      printer.  To spool the PostScript code generated you need to turn on
-      the option 16.  This option is enabled if spooling is on (option 16).
+      the PostScript code generated is saved in a file instead of sending it to
+      the printer.  To spool the PostScript code generated you need to turn on
+      option 16.  This option is enabled if spooling is on (option 16).
       See also the NOTE 1, NOTE 2 and NOTE 3 on option 1.
 
    3. You can select a new PostScript printer to send PostScript code
@@ -3032,7 +3067,7 @@ V. Printing customization:
        declared in `pr-mode-alist', the `*-buffer*' and `*-region*' commands
        behave like `*-mode*' commands.
 
-   21. If you want that Printing menu stays poped while you are setting
+   21. If you want that Printing menu stays open while you are setting
        toggle options, turn on this option.  The variables
        `pr-menu-char-height' and `pr-menu-char-width' are used to guess the
        menu position, so don't forget to adjust these variables if menu
@@ -3128,7 +3163,7 @@ The printing interface buffer has the following sections:
       NOTE 2: Don't forget to download and install the utilities declared on
 	      `pr-ps-utility-alist'.
 
-      * Use It AS-IS :
+      * No Preprocessing:
 	 If it's turned on, don't use the PostScript utility to preprocess the
 	 PostScript file before printing/previewing.
 
@@ -3237,7 +3272,7 @@ The printing interface buffer has the following sections:
 	 behave like `*-mode*' commands.
 
       * Menu Lock:
-	 If you want that Printing menu stays poped while you are setting
+	 If you want that Printing menu stays open while you are setting
 	 toggle options, turn on this option.  The variables
 	 `pr-menu-char-height' and `pr-menu-char-width' are used to guess the
 	 menu position, so don't forget to adjust these variables if menu
@@ -3247,13 +3282,13 @@ The printing interface buffer has the following sections:
 	 To spool the PostScript code generated.  You can despool later by
 	 setting Despool option on PostScript printer section.
 
-      * Print with-faces:
+      * Print with faces:
 	 If you use colors in your buffers and want to see these colors on your
 	 PostScript code generated, turn on this option.  If you have a
 	 black/white PostScript printer, these colors are displayed in gray
 	 scale by PostScript printer interpreter.
 
-      * Print Using Ghostscript:
+      * Print via Ghostscript:
 	 If you don't have a PostScript printer to send PostScript files, turn
 	 on this option.  When this option is on, the ghostscript is used to
 	 print PostScript files.  In GNU or Unix system, if ghostscript is set
@@ -3294,9 +3329,9 @@ The printing interface buffer has the following sections:
 (defun pr-interface (&optional buffer)
   "Activate the printing interface buffer.
 
-If BUFFER is nil, it uses the current buffer for printing.
+If BUFFER is nil, the current buffer is used for printing.
 
-For more informations, type \\[pr-interface-help]."
+For more information, type \\[pr-interface-help]."
   (interactive)
   (save-excursion
     (set-buffer (or buffer (current-buffer)))
@@ -3799,7 +3834,7 @@ image in a file with that name."
   (and (stringp filename) (file-exists-p filename)
        ;; printing
        (let ((file (pr-expand-file-name filename)))
-	 (if (string-equal pr-ps-command "")
+	 (if (string= pr-ps-command "")
 	     (let ((ps-spool-buffer (get-buffer-create ps-spool-buffer-name)))
 	       (save-excursion
 		 (set-buffer ps-spool-buffer)
@@ -3901,7 +3936,7 @@ bottom."
 (defun pr-toggle-faces ()
   "Toggle printing with faces."
   (interactive)
-  (pr-toggle 'pr-faces-p "Printing with-faces"
+  (pr-toggle 'pr-faces-p "Printing with faces"
 	     'postscript-process 1 12 'toggle))
 
 
@@ -4008,28 +4043,28 @@ bottom."
 
 ;;;###autoload
 (defun pr-customize (&rest ignore)
-  "Customization of `printing' group."
+  "Customization of the `printing' group."
   (interactive)
   (customize-group 'printing))
 
 
 ;;;###autoload
 (defun lpr-customize (&rest ignore)
-  "Customization of `lpr' group."
+  "Customization of the `lpr' group."
   (interactive)
   (customize-group 'lpr))
 
 
 ;;;###autoload
 (defun pr-help (&rest ignore)
-  "Help for printing package."
+  "Help for the printing package."
   (interactive)
   (pr-show-setup pr-help-message "*Printing Help*"))
 
 
 ;;;###autoload
 (defun pr-ps-name ()
-  "Select interactively a PostScript printer."
+  "Interactively select a PostScript printer."
   (interactive)
   (pr-menu-set-ps-title
    (pr-complete-alist "PostScript printer" pr-ps-printer-alist pr-ps-name)))
@@ -4037,7 +4072,7 @@ bottom."
 
 ;;;###autoload
 (defun pr-txt-name ()
-  "Select interactively a text printer."
+  "Interactively select a text printer."
   (interactive)
   (pr-menu-set-txt-title
    (pr-complete-alist "Text printer" pr-txt-printer-alist pr-txt-name)))
@@ -4045,7 +4080,7 @@ bottom."
 
 ;;;###autoload
 (defun pr-ps-utility ()
-  "Select interactively a PostScript utility."
+  "Interactively select a PostScript utility."
   (interactive)
   (pr-menu-set-utility-title
    (pr-complete-alist "Postscript utility" pr-ps-utility-alist pr-ps-utility)))
@@ -4527,6 +4562,10 @@ See `pr-visible-entry-alist'.")
   (+ index 2))
 
 
+(defvar pr-menu-position nil)
+(defvar pr-menu-state nil)
+
+
 (eval-and-compile
   (cond
    ((eq ps-print-emacs-type 'xemacs)
@@ -4545,8 +4584,8 @@ See `pr-visible-entry-alist'.")
     (defun pr-menu-position (entry index horizontal)
       (let ((pos (cdr (pr-e-mouse-pixel-position))))
 	(list
-	 (list (car pos)		; X
-	       (- (cdr pos)		; Y
+	 (list (or (car pos) 0)		; X
+	       (- (or (cdr pos) 0)	; Y
 		  (* (pr-menu-index entry index) pr-menu-char-height)))
 	 (selected-frame))))		; frame
     )
@@ -4555,65 +4594,60 @@ See `pr-visible-entry-alist'.")
     (defun pr-menu-position (entry index horizontal)
       (let ((pos (cdr (pr-e-mouse-pixel-position))))
 	(list
-	 (list (- (car pos)		; X
+	 (list (- (or (car pos) 0)	; X
 		  (* horizontal pr-menu-char-width))
-	       (- (cdr pos)		; Y
+	       (- (or (cdr pos) 0)	; Y
 		  (* (pr-menu-index entry index) pr-menu-char-height)))
 	 (selected-frame))))		; frame
-    )))
+    ))
+
+  (cond
+   ((eq ps-print-emacs-type 'emacs)
+    ;; GNU Emacs
+    (defun pr-menu-lookup (path)
+      (let ((ipath pr-menu-bar))
+	(lookup-key global-map
+		    (if path
+			(vconcat ipath
+				 (mapcar 'pr-get-symbol
+					 (if (listp path)
+					     path
+					   (list path))))
+		      ipath))))
+
+    ;; GNU Emacs
+    (defun pr-menu-lock (entry index horizontal state path)
+      (when (and (not (interactive-p)) pr-menu-lock)
+	(or (and pr-menu-position (eq state pr-menu-state))
+	    (setq pr-menu-position (pr-menu-position entry index horizontal)
+		  pr-menu-state    state))
+	(let* ((menu   (pr-menu-lookup path))
+	       (result (x-popup-menu pr-menu-position menu)))
+	  (and result
+	       (let ((command (lookup-key menu (vconcat result))))
+		 (if (fboundp command)
+		     (funcall command)
+		   (eval command)))))
+	(setq pr-menu-position nil))))
 
 
-(defvar pr-menu-position nil)
-(defvar pr-menu-state nil)
+   ((eq ps-print-emacs-type 'xemacs)
+    ;; XEmacs
+    (defun pr-menu-lookup (path)
+      (car (pr-x-find-menu-item current-menubar (cons "Printing" path))))
 
-
-(cond
- ((eq ps-print-emacs-type 'emacs)
-  ;; GNU Emacs
-  (defun pr-menu-lock (entry index horizontal state path)
-    (when (and (not (interactive-p)) pr-menu-lock)
-      (or (and pr-menu-position (eq state pr-menu-state))
-	  (setq pr-menu-position (pr-menu-position entry index horizontal)
-		pr-menu-state    state))
-      (let* ((menu   (pr-menu-lookup path))
-	     (result (x-popup-menu pr-menu-position menu)))
-	(and result
-	     (let ((command (lookup-key menu (vconcat result))))
-	       (if (fboundp command)
-		   (funcall command)
-		 (eval command)))))
-      (setq pr-menu-position nil)))
-
-  ;; GNU Emacs
-  (defun pr-menu-lookup (path)
-    (let ((ipath pr-menu-bar))
-      (lookup-key global-map
-		  (if path
-		      (vconcat ipath
-			       (mapcar 'pr-get-symbol
-				       (if (listp path)
-					   path
-					 (list path))))
-		    ipath)))))
-
-
- ((eq ps-print-emacs-type 'xemacs)
-  ;; XEmacs
-  (defun pr-menu-lock (entry index horizontal state path)
-    (when (and (not (interactive-p)) pr-menu-lock)
-      (or (and pr-menu-position (eq state pr-menu-state))
-	  (setq pr-menu-position (pr-menu-position entry index horizontal)
-		pr-menu-state    state))
-      (let* ((menu   (pr-menu-lookup path))
-	     (result (pr-x-get-popup-menu-response menu pr-menu-position)))
-	(and (pr-x-misc-user-event-p result)
-	     (funcall (pr-x-event-function result)
-		      (pr-x-event-object result))))
-      (setq pr-menu-position nil)))
-
-  ;; XEmacs
-  (defun pr-menu-lookup (path)
-    (car (pr-x-find-menu-item current-menubar (cons "Printing" path))))))
+    ;; XEmacs
+    (defun pr-menu-lock (entry index horizontal state path)
+      (when (and (not (interactive-p)) pr-menu-lock)
+	(or (and pr-menu-position (eq state pr-menu-state))
+	    (setq pr-menu-position (pr-menu-position entry index horizontal)
+		  pr-menu-state    state))
+	(let* ((menu   (pr-menu-lookup path))
+	       (result (pr-x-get-popup-menu-response menu pr-menu-position)))
+	  (and (pr-x-misc-user-event-p result)
+	       (funcall (pr-x-event-function result)
+			(pr-x-event-object result))))
+	(setq pr-menu-position nil))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4634,7 +4668,7 @@ otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
 non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
 non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
 non-nil."
-  (interactive)
+  (interactive "P")
   (pr-update-var 'pr-ps-name pr-ps-printer-alist)
   (pr-update-var 'pr-txt-name pr-txt-printer-alist)
   (pr-update-var 'pr-ps-utility pr-ps-utility-alist)
@@ -4642,19 +4676,19 @@ non-nil."
 
 
 (defvar pr-ps-printer-menu-modified  t
-  "Non-nil means `pr-ps-printer-alist' was modified and need to update menu.")
+  "Non-nil means `pr-ps-printer-alist' was modified and we need to update menu.")
 (defvar pr-txt-printer-menu-modified t
-  "Non-nil means `pr-txt-printer-alist' was modified and need to update menu.")
+  "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
 (defvar pr-ps-utility-menu-modified t
-  "Non-nil means `pr-ps-utility-alist' was modified and need to update menu.")
+  "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
 
 
 (defconst pr-even-or-odd-alist
-  '((nil        . "Print All   Pages")
-    (even-page  . "Print Even  Pages")
-    (odd-page   . "Print Odd   Pages")
+  '((nil        . "Print All Pages")
+    (even-page  . "Print Even Pages")
+    (odd-page   . "Print Odd Pages")
     (even-sheet . "Print Even Sheets")
-    (odd-sheet  . "Print Odd  Sheets")))
+    (odd-sheet  . "Print Odd Sheets")))
 
 
 (defun pr-menu-create (name alist var-sym fun entry index)
@@ -4881,12 +4915,12 @@ non-nil."
     newname)
    (set var-sym newname)))
 
-
+;; GNU Emacs
 (defun pr-menu-set-item-name (item name)
   (and item
        (setcar (nthcdr 2 item) name)))	; ITEM-NAME
 
-
+;; GNU Emacs
 (defun pr-menu-get-item (name-list)
   ;; NAME-LIST is a string or a list of strings.
   (let ((ipath pr-menu-bar)
@@ -5471,6 +5505,8 @@ non-nil."
 (defun pr-command (command)
   "Return absolute file name specification for COMMAND.
 
+If COMMAND is an empty string, return it.
+
 If COMMAND is already an absolute file name specification, return it.
 Else it uses `pr-path-alist' to find COMMAND, if find it then return it;
 otherwise, gives an error.
@@ -5480,14 +5516,17 @@ When using `pr-path-alist' to find COMMAND, the entries `cygwin', `windows' and
 
 If Emacs is running on Windows 95/98/NT/2000, tries to find COMMAND,
 COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
-  (pr-dosify-path
-   (or (pr-find-command command)
-       (pr-path-command (cond (pr-cygwin-system  'cygwin)
-			      (ps-windows-system 'windows)
-			      (t                 'unix))
-			(file-name-nondirectory command)
-			nil)
-       (error "Command not found: %s" (file-name-nondirectory command)))))
+  (if (string= command "")
+      command
+    (pr-dosify-path
+     (or (pr-find-command command)
+	 (pr-path-command (cond (pr-cygwin-system  'cygwin)
+				(ps-windows-system 'windows)
+				(t                 'unix))
+			  (file-name-nondirectory command)
+			  nil)
+	 (error "Command not found: %s"
+		(file-name-nondirectory command))))))
 
 
 (defun pr-path-command (symbol command sym-list)
@@ -5715,7 +5754,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	     (if (pr-interface-directory widget)
 		 (pr-widget-field-action widget event)
 	       (ding)
-	       (message "It should be a readable directory")))
+	       (message "Please specify a readable directory")))
    pr-i-directory)
   ;;    1b. Directory: File Regexp
   (widget-create 'regexp
@@ -5739,16 +5778,15 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	     (if (pr-interface-infile widget)
 		 (pr-widget-field-action widget event)
 	       (ding)
-	       (message "It should be a readable PostScript file")))
+	       (message "Please specify a readable PostScript file")))
    pr-i-ps-file)
   ;;    1c. PostScript File: PostScript Utility
   (pr-insert-menu "PostScript Utility" 'pr-ps-utility
 		  (pr-choice-alist pr-ps-utility-alist)
 		  "\n      PostScript Utility : "
 		  "    ")
-  ;;    1c. PostScript File: Use It AS-IS
-  (pr-insert-toggle 'pr-i-ps-as-is " Use It ")
-  (pr-insert-italic "AS-IS"))
+  ;;    1c. PostScript File: No Preprocessing
+  (pr-insert-toggle 'pr-i-ps-as-is " No Preprocessing"))
 
 
 (defun pr-insert-section-2 ()
@@ -5766,7 +5804,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	    (if pr-spool-p
 		(setq pr-i-despool (not pr-i-despool))
 	      (ding)
-	      (message "It despool only when it's spooling")
+	      (message "Can despool only when spooling is actually selected")
 	      (setq pr-i-despool nil))
 	    (widget-value-set widget pr-i-despool)
 	    (widget-setup))		; MUST be called after widget-value-set
@@ -5792,7 +5830,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 				(y-or-n-p "File exists; overwrite? "))))
 		 (pr-widget-field-action widget event)
 	       (ding)
-	       (message "It should be a writable PostScript file")))
+	       (message "Please specify a writable PostScript file")))
    pr-i-out-file)
   ;; 2. PostScript Printer: N-Up
   (widget-create
@@ -5809,7 +5847,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		     (message " ")
 		     (setq pr-i-n-up value))
 		 (ding)
-		 (message "It should be an integer between 1 and 100"))))
+		 (message "Please specify an integer between 1 and 100"))))
    pr-i-n-up))
 
 
@@ -5857,26 +5895,27 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 			    (pr-update-checkbox 'pr-i-despool)))
 		      " Spool Buffer")
 
-  ;; 4. Settings: Duplex                Print with-faces
+  ;; 4. Settings: Duplex                Print with faces
   (pr-insert-checkbox "\n  "
 		      'ps-spool-duplex
 		      #'(lambda (&rest ignore)
 			  (setq ps-spool-duplex (not ps-spool-duplex)
 				pr-file-duplex  ps-spool-duplex))
 		      " Duplex                ")
-  (pr-insert-toggle 'pr-faces-p " Print with-faces")
+  (pr-insert-toggle 'pr-faces-p " Print with faces")
 
-  ;; 4. Settings: Tumble                Print Using Ghostscript
+  ;; 4. Settings: Tumble                Print via Ghostscript
   (pr-insert-checkbox "\n  "
 		      'ps-spool-tumble
 		      #'(lambda (&rest ignore)
 			  (setq ps-spool-tumble (not ps-spool-tumble)
 				pr-file-tumble  ps-spool-tumble))
 		      " Tumble                ")
-  (pr-insert-toggle 'pr-print-using-ghostscript " Print Using Ghostscript\n  ")
+  (pr-insert-toggle 'pr-print-using-ghostscript " Print via Ghostscript\n  ")
 
   ;; 4. Settings: Upside-Down           Page Parity
-  (pr-insert-toggle 'ps-print-upside-down " Upside-Down           ")
+  (pr-insert-toggle 'ps-print-upside-down " Upside-Down")
+  (pr-insert-italic "\n\nSelect Pages  :   " 2 14)
   (pr-insert-menu "Page Parity" 'ps-even-or-odd-pages
 		  (mapcar #'(lambda (alist)
 			      (list 'quote
@@ -5962,7 +6001,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		  (pr-txt-buffer)))
 	       )))
        ((eq pr-i-process 'file)
-	(error "It should be a text file"))
+	(error "Please specify a text file"))
        (t
 	(error "Internal error: `pr-i-process' = %S" pr-i-process))
        )
@@ -5987,7 +6026,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	     (pr-printify-region)
 	   (pr-printify-buffer))))
        ((eq pr-i-process 'file)
-	(error "It can't printify a PostScript file"))
+	(error "Cannot printify a PostScript file"))
        (t
 	(error "Internal error: `pr-i-process' = %S" pr-i-process))
        )
@@ -6034,7 +6073,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	 ((eq pr-i-process 'file)
 	  (cond ((or (file-directory-p pr-i-ps-file)
 		     (not (file-readable-p pr-i-ps-file)))
-		 (error "It should be a readable PostScript file"))
+		 (error "Please specify a readable PostScript file"))
 		(pr-i-ps-as-is
 		 (pr-interface-save
 		  (funcall ps-file pr-i-ps-file)))
@@ -6070,7 +6109,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	 (error "Internal error: `pr-i-ps-send' = %S" pr-i-ps-send))
 	((or (file-directory-p pr-i-out-file)
 	     (not (file-writable-p pr-i-out-file)))
-	 (error "It should be a writable PostScript file"))
+	 (error "Please specify a writable PostScript file"))
 	((or (not (file-exists-p pr-i-out-file))
 	     pr-i-answer-yes
 	     (setq pr-i-answer-yes
@@ -6084,12 +6123,12 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defun pr-i-directory ()
   (or (and (file-directory-p pr-i-directory)
 	   (file-readable-p pr-i-directory))
-      (error "It should be a readable directory")))
+      (error "Please specify be a readable directory")))
 
 
 (defun pr-interface-directory (widget &rest ignore)
   (and pr-buffer-verbose
-       (message "Type M-TAB or ESC TAB for file completion"))
+       (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((dir (widget-value widget)))
     (and (file-directory-p dir)
 	 (file-readable-p dir)
@@ -6098,7 +6137,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 (defun pr-interface-infile (widget &rest ignore)
   (and pr-buffer-verbose
-       (message "Type M-TAB or ESC TAB for file completion"))
+       (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((file (widget-value widget)))
     (and (not (file-directory-p file))
 	 (file-readable-p file)
@@ -6108,7 +6147,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defun pr-interface-outfile (widget &rest ignore)
   (setq pr-i-answer-yes nil)
   (and pr-buffer-verbose
-       (message "Type M-TAB or ESC TAB for file completion"))
+       (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((file (widget-value widget)))
     (and (not (file-directory-p file))
 	 (file-writable-p file)
@@ -6228,4 +6267,5 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (provide 'printing)
 
 
+;;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
 ;;; printing.el ends here

@@ -157,4 +157,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'minibuf-eldef)
 
+;;; arch-tag: 7e421fae-c275-4729-b0da-7836af377d3d
 ;;; minibuf-eldef.el ends here
