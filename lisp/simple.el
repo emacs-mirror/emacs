@@ -797,7 +797,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	(progn
 	  (describe-arg value sign)
 	  (setq key (read-key-sequence nil t))))
-    (setq unread-command-events (append key '()))))
+    (setq unread-command-events (listify-key-sequence key))))
 
 (defun describe-arg (value sign)
   (cond ((numberp value)
