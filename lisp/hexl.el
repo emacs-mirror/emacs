@@ -341,7 +341,7 @@ Ask the user for confirmation."
 Signal error if ADDRESS out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
-	  (error "Out of hexl region."))
+	  (error "Out of hexl region"))
   (goto-char (hexl-address-to-marker address)))
 
 (defun hexl-goto-hex-address (hex-address)
@@ -615,13 +615,13 @@ This discards the buffer's undo information."
     (let ((ch (logior character 32)))
       (if (and (>= ch ?a) (<= ch ?f))
 	  (- ch (- ?a 10))
-	(error "Invalid hex digit `%c'." ch)))))
+	(error "Invalid hex digit `%c'" ch)))))
 
 (defun hexl-oct-char-to-integer (character)
   "Take a char and return its value as if it was a octal digit."
   (if (and (>= character ?0) (<= character ?7))
       (- character ?0)
-    (error "Invalid octal digit `%c'." character)))
+    (error "Invalid octal digit `%c'" character)))
 
 (defun hexl-printable-character (ch)
   "Return a displayable string for character CH."
@@ -675,7 +675,7 @@ This discards the buffer's undo information."
   (interactive "p")
   (let ((num (hexl-hex-string-to-integer (read-string "Hex number: "))))
     (if (or (> num 255) (< num 0))
-	(error "Hex number out of range.")
+	(error "Hex number out of range")
       (hexl-insert-char num arg))))
 
 (defun hexl-insert-decimal-char (arg)
@@ -683,7 +683,7 @@ This discards the buffer's undo information."
   (interactive "p")
   (let ((num (string-to-int (read-string "Decimal Number: "))))
     (if (or (> num 255) (< num 0))
-	(error "Decimal number out of range.")
+	(error "Decimal number out of range")
       (hexl-insert-char num arg))))
 
 (defun hexl-insert-octal-char (arg)
@@ -691,7 +691,7 @@ This discards the buffer's undo information."
   (interactive "p")
   (let ((num (hexl-octal-string-to-integer (read-string "Octal Number: "))))
     (if (or (> num 255) (< num 0))
-	(error "Decimal number out of range.")
+	(error "Decimal number out of range")
       (hexl-insert-char num arg))))
 
 ;; startup stuff.
@@ -802,5 +802,7 @@ This discards the buffer's undo information."
   (define-key hexl-mode-map "\C-x\C-p" 'undefined)
   (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
   (define-key hexl-mode-map "\C-x\C-t" 'undefined))
+
+(provide 'hexl)
 
 ;;; hexl.el ends here
