@@ -1,3 +1,11 @@
+2001-11-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-find-version): New function.
+	(vc-version-other-window): Redefined in terms of the above.
+
+	* log-view.el (log-view-find-version): New function.
+	(log-view-mode-map): Bind it to `f'.
+
 2001-11-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* language/devan-util.el (dev-char-glyph): Escape `"' in
