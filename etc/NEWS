@@ -16,6 +16,14 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The most preferred coding-system is now used to save a buffer if
+buffer-file-coding-system is `undecided' and it is safe for the buffer
+contents.  (The most preferred is set by set-language-environment or
+by M-x prefer-coding-system.)  Thus if you visit an ASCII file and
+insert a non-ASCII character from your current language environment,
+the file will be saved silently with the appropriate coding.
+Previously you would be prompted for a safe coding system.
+
 ** Variable `default-korean-keyboard' is initialized properly from the
 environment variable `HANGUL_KEYBOARD_TYPE'.
 
@@ -1210,6 +1218,10 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** select-safe-coding-system now also checks the most preferred
+coding-system if buffer-file-coding-system is `undecided' and
+DEFAULT-CODING-SYSTEM is not specified,
 
 ** The function `subr-arity' provides information on the argument list
 of a primitive.
