@@ -1,4 +1,4 @@
-/* impl.c.awlut: POOL CLASS AWL UNIT TEST
+/* impl.c.awluthe: POOL CLASS AWL UNIT TEST WITH OBJECT HEADERS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
@@ -11,17 +11,18 @@
 #include "mpscawl.h"
 #include "mpsclo.h"
 #include "mpsavm.h"
-#include "fmtdy.h"
+#include "fmthe.h"
 #include "testlib.h"
 #include "mps.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
 #endif
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+
 
 static char *prog; /* program name */
 
@@ -32,7 +33,7 @@ static void error(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: ", prog);
+  fprintf(stderr, "%s:  ", prog);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
@@ -118,15 +119,17 @@ static mps_word_t *alloc_string(char *s, mps_ap_t ap)
     size_t i;
     char *s2;
 
-    die(mps_reserve(&p, ap, objsize), "Reserve Leaf\n");
-    object = p;
+    die(mps_reserve(&p, ap, objsize + headerSIZE), "Reserve Leaf\n");
+    object = (mps_word_t *)((char *)p + headerSIZE);
     object[0] = (mps_word_t)string_wrapper;
     object[1] = l << 2 | 1;
     s2 = (char *)&object[2];
     for(i = 0; i < l; ++i) {
       s2[i] = s[i];
     }
-  } while(!mps_commit(ap, p, objsize));
+    ((int*)p)[0] = realHeader;
+    ((int*)p)[1] = 0xED0ED;
+  } while(!mps_commit(ap, p, objsize + headerSIZE));
   return object;
 }
 
@@ -147,15 +150,17 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   do {
     unsigned long i;
 
-    die(mps_reserve(&p, ap, objsize), "Reserve Table\n");
-    object = p;
+    die(mps_reserve(&p, ap, objsize + headerSIZE), "Reserve Table\n");
+    object = (mps_word_t *)((char *)p + headerSIZE);
     object[0] = (mps_word_t)table_wrapper;
     object[1] = 0;
     object[2] = n << 2 | 1;
     for(i = 0; i < n; ++i) {
       object[3+i] = 0;
     }
-  } while(!mps_commit(ap, p, objsize));
+    ((int*)p)[0] = realHeader;
+    ((int*)p)[1] = 0xED0ED;
+  } while(!mps_commit(ap, p, objsize + headerSIZE));
   return object;
 }
 
@@ -281,10 +286,8 @@ static void *setup(void *v, size_t s)
   die(mps_root_create_reg(&stack, arena, MPS_RANK_AMBIG, 0, thr,
                           mps_stack_scan_ambig, v, 0),
       "Root Create\n");
-  die(mps_fmt_create_A(&dylanfmt, arena, dylan_fmt_A()),
-      "Format Create\n");
-  die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
-      "Format Create (weak)\n");
+  EnsureHeaderFormat(&dylanfmt, arena);
+  EnsureHeaderWeakFormat(&dylanweakfmt, arena);
   die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
   die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
