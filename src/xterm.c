@@ -8881,11 +8881,16 @@ XTread_socket (sd, bufp, numchars, expected)
 
 #ifdef HAVE_X_I18N
 	  {
-	    struct frame *f1 = x_any_window_to_frame (dpyinfo,
-						      event.xclient.window);
-	    /* The necessity of the following line took me
-	       a full work-day to decipher from the docs!!  */
-	    if (f1 != 0 && FRAME_XIC (f1) && XFilterEvent (&event, None))
+	    /* Filter events for the current X input method.
+	       XFilterEvent returns non-zero if the input method has
+	       consumed the event.  We pass the frame's X window to
+	       XFilterEvent because that's the one for which the IC
+	       was created.  */
+	    struct frame *f1
+	      = x_any_window_to_frame (dpyinfo, event.xclient.window);
+	    if (f1
+		&& FRAME_XIC (f1)
+		&& XFilterEvent (&event, FRAME_X_WINDOW (f1)))
 	      break;
 	  }
 #endif
@@ -9318,10 +9323,6 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f))
 		    {
-		      /* The necessity of the following line took me
-			 a full work-day to decipher from the docs!!  */
-		      if (XFilterEvent (&event, None))
-			break;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
 						&event.xkey, copy_buffer,
 						80, &keysym,
