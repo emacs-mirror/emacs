@@ -79,8 +79,6 @@
 (provide 'shadowfile)
 (require 'ange-ftp)
 
-(setq find-file-visit-truename t)	; makes life easier with symbolic links
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
