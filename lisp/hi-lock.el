@@ -550,7 +550,6 @@ Optional argument END is maximum excursion."
 				    (hi-lock-current-line))) nil))))
             (if patterns
                 (setq all-patterns (append patterns all-patterns))))))
-      (unless font-lock-mode (font-lock-mode))
       (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
         (message (format "Hi-lock added %d patterns." (length all-patterns)))))))
