@@ -678,7 +678,7 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `cvtmail', `emacsserver', `fakemail', `hexl',
+- The programs `cvtmail', `fakemail', `hexl',
     `movemail', `profile', `rcs2log', `timer', `vcdiff', `wakeup',
     and `yow' are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'

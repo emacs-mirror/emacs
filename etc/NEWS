@@ -17,6 +17,8 @@ so we will look at it and add it to the manual.
 ---
 ** Emacs can now be built without sound support.
 
+** The `emacsserver' program has been removed, replaced with elisp code.
+
 ---
 ** Emacs now supports new configure options `--program-prefix',
 `--program-suffix' and `--program-transform-name' that affect the names of

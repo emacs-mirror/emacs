@@ -1,40 +1,33 @@
-2002-09-25  Oliver Scholz  <alkibiades@gmx.de>
+2002-09-25  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* gamegrid.el (gamegrid-face): new variable to emulate a
-	buffer-local default face.
-	(gamegrid-xbm): new variable; XBM image as a replacement for
-	`gamegrid-xpm' on Emacsen compiled without XPM-support.
-	(gamegrid-colorize-glyph): Ported XEmacs-code for the generation
-	of images to Emacs.
-	(gamegrid-match-spec): Call `gamegrid-make-image-from-vector' to
-	convert XEmacs-type image descriptors.
-	(gamegrid-color-display-p): Removed. (Use `display-colors-p'
-	instead.)
-	(gamegrid-make-image-from-vector): New function. Convert XEmacs'
-	image descriptors.
-	(gamegrid-display-type): Use Emacs' standard `display-.*-p'
-	functions to check for display capabilities. Fix the recognition
-	of image-support in Emacs 21 by this way.
-	(gamegrid-hide-cursor): Removed.
-	(gamegrid-setup-default-font): Ported the code from XEmacs to
-	Emacs: create a new face and assign the variable `gamegrid-face'
-	to it. Make sure that the face is not higher than the smallest
-	image used by the game.
-	(gamegrid-initialize-display): Use `(setq cursor-type nil)'
-	instead of `gamegrid-hide-cursor'.
-	(gamegrid-set-face): If `gamegrid-display-mode' is 'glyph, put an
-	image in the buffer, instead of applying a face. [This is because
-	Emacs display-tables are not as capable as the display-tables in
-	XEmacs. Maybe this function should be renamed to reflect the
-	change?]
-	(gamegrid-init-buffer): If `gamegrid-display-mode' is 'glyph, put
-	the face held by `gamegrid-face' in an overlay over the whole
-	buffer to emulate a buffer-local default-face.
+	* server.el: Use built-in network primitives.
+	(server-program, server-previous-string): Remove.
+	(server-previous-strings): New var.
+	(server-socket-name): New var.
+	(server-log): Minor change to the output format.
+	(server-sentinel): Clean up global state when a client disconnects.
+	(server-unquote-arg): New fun.
+	(server-start): Use server-socket-name and make-network-process.
+	(server-process-filter): Now talks to the clients directly.
+	Normalize file name after unquoting and decoding.
+	(server-buffer-done): Just close the connection.
+	(server-switch-buffer): Handle the case where all windows are
+	dedicated or minibuffers.
+
+	* font-lock.el (fast-lock-mode, lazy-lock-mode, jit-lock-mode):
+	Don't bind them variables.
+	(font-lock-turn-off-thing-lock, font-lock-after-fontify-buffer)
+	(font-lock-after-unfontify-buffer): Check that the vars are bound.
+	(font-lock-dont-widen): New var.
+	(font-lock-default-fontify-region): Use it.
+
+	* emacs-lisp/find-func.el (find-library-name):
+	Correctly find "file.el.gz" from "file.elc" or "file.elc.gz".
 
 2002-09-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (select-safe-coding-system): Handle
-	safe but rejected default coding systems and unsafe default
+	* international/mule-cmds.el (select-safe-coding-system):
+	Handle safe but rejected default coding systems and unsafe default
 	coding systems differently.
 
 	* international/mule-diag.el (list-character-sets): Use the buffer
@@ -63,6 +56,15 @@
 	* eshell/em-unix.el (eshell-occur-mode-mouse-goto)
 	(eshell-poor-mans-grep): Remove references to `occur-buffer'.
 
+2002-09-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* descr-text.el (describe-text-category): Use *Help*.
+	Don't kill-buffer.
+	(describe-text-properties, describe-char):
+	Delay self-inspection test.  Use *Help*.
+	Use syntax-after.  Use `pos' rather than (point).
+	Distinguish the before/after part of a composition.
+
 2002-09-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-completion): Be sure to scroll
@@ -74,33 +76,31 @@
 
 2002-09-22  Oliver Scholz  <alkibiades@gmx.de>
 
-	* play/gamegrid.el (gamegrid-face): new variable to emulate a
+	* play/gamegrid.el (gamegrid-face): New variable to emulate a
 	buffer-local default face.
-	(gamegrid-xbm): new variable; XBM image as a replacement for
+	(gamegrid-xbm): New variable; XBM image as a replacement for
 	`gamegrid-xpm' on Emacsen compiled without XPM-support.
 	(gamegrid-colorize-glyph): Ported XEmacs-code for the generation
 	of images to Emacs.
 	(gamegrid-match-spec): Call `gamegrid-make-image-from-vector' to
 	convert XEmacs-type image descriptors.
-	(gamegrid-color-display-p): Removed. (Use `display-colors-p'
-	instead.)
-	(gamegrid-make-image-from-vector): New function. Convert XEmacs'
+	(gamegrid-color-display-p): Remove (use `display-colors-p' instead.)
+	(gamegrid-make-image-from-vector): New function.  Convert XEmacs'
 	image descriptors.
 	(gamegrid-display-type): Use Emacs' standard `display-.*-p'
-	functions to check for display capabilities. Fix the recognition
+	functions to check for display capabilities.  Fix the recognition
 	of image-support in Emacs 21 by this way.
 	(gamegrid-hide-cursor): Removed.
 	(gamegrid-setup-default-font): Ported the code from XEmacs to
 	Emacs: create a new face and assign the variable `gamegrid-face'
-	to it. Make sure that the face is not higher than the smallest
+	to it.  Make sure that the face is not higher than the smallest
 	image used by the game.
 	(gamegrid-initialize-display): Use `(setq cursor-type nil)'
 	instead of `gamegrid-hide-cursor'.
 	(gamegrid-set-face): If `gamegrid-display-mode' is 'glyph, put an
-	image in the buffer, instead of applying a face. [This is because
+	image in the buffer, instead of applying a face.  [This is because
 	Emacs display-tables are not as capable as the display-tables in
-	XEmacs. Maybe this function should be renamed to reflect the
-	change?]
+	XEmacs.  Maybe this function should be renamed to reflect the change?]
 	(gamegrid-init-buffer): If `gamegrid-display-mode' is 'glyph, put
 	the face held by `gamegrid-face' in an overlay over the whole
 	buffer to emulate a buffer-local default-face.
@@ -111,7 +111,7 @@
 
 2002-09-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-init.el (ediff-get-next-window): bug fix.
+	* ediff-init.el (ediff-get-next-window): Bug fix.
 
 2002-09-22  Richard M. Stallman  <rms@gnu.org>
 
@@ -134,12 +134,11 @@
 	and 'host' are empty (not necessarily `nil'.
 	(tramp-parse-netrc, tramp-parse-netrc-group): New functions.
 	(tramp-user-regexp): " \t" are not user regexp characters.
-	(tramp-completion-handle-file-name-all-completions): Remove
-	Ange-FTP cmpletion. It has a bug not handling the "/ftp:" prefix
+	(tramp-completion-handle-file-name-all-completions):
+	Remove Ange-FTP cmpletion. It has a bug not handling the "/ftp:" prefix
 	completely, and it returns local completions as well.
 	(tramp-completion-function-alist-ftp): New constant.
-	(tramp-completion-function-alist): Add completion function for
-	"ftp".
+	(tramp-completion-function-alist): Add completion function for "ftp".
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
 2002-09-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
@@ -196,8 +195,7 @@
 
 2002-09-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* net/tramp.el (tramp-file-name-handler): Add `file-remote-p'
-	property.
+	* net/tramp.el (tramp-file-name-handler): Add `file-remote-p' property.
 
 2002-09-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -221,8 +219,8 @@
 
 	* net/tramp-uu.el: New file, implements uuencode in Lisp.
 
-	* net/tramp.el (tramp-coding-commands): Use
-	`tramp-uuencode-region' as local encoder for the uuencode based
+	* net/tramp.el (tramp-coding-commands):
+	Use `tramp-uuencode-region' as local encoder for the uuencode based
 	entries.
 
 2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
@@ -239,8 +237,8 @@
 
 2002-09-12  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* net/tramp.el (tramp-find-inline-encoding): Call
-	tramp-call-local-coding-command with nil for INPUT and OUTPUT.
+	* net/tramp.el (tramp-find-inline-encoding):
+	Call tramp-call-local-coding-command with nil for INPUT and OUTPUT.
 	(tramp-call-local-coding-command): OUTPUT equals nil means to
 	discard the output.  INPUT equals nil means /dev/null.
 
@@ -267,20 +265,18 @@
 	inline encodings, distinguish between local and remote commands,
 	instead of between commands and functions.  (The local commands
 	can be functions, too.)  If the local host is a Windows machine,
-	we can't expect the same commands to work there as on the remote
-	host.
+	we can't expect the same commands to work there as on the remote host.
 	(tramp-call-local-coding-command): New function for calling local
 	encoding and decoding commands.
 	(tramp-set-remote-encoding, tramp-get-remote-encoding)
 	(tramp-set-remote-decoding, tramp-get-remote-decoding)
 	(tramp-set-local-encoding, tramp-get-local-encoding)
-	(tramp-set-local-decoding, tramp-get-local-decoding): New
-	functions.
+	(tramp-set-local-decoding, tramp-get-local-decoding): New functions.
 	(tramp-get-encoding-command, tramp-set-encoding-command)
 	(tramp-get-decoding-command, tramp-set-decoding-command)
 	(tramp-get-encoding-function, tramp-set-encoding-function)
-	(tramp-get-decoding-function, tramp-set-decoding-function): Old
-	functions, removed.
+	(tramp-get-decoding-function, tramp-set-decoding-function):
+	Old functions, removed.
 
 2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -291,42 +287,40 @@
 2002-09-10  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-handle-write-region): Added missing
-	`)'. Hope it's the right place.
+	`)'.  Hope it's the right place.
 
 2002-09-09  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* net/tramp.el (tramp-open-connection-setup-interactive-shell): Do
-	"exec env PS1='$ ' /bin/sh" instead of just "exec /bin/sh" in
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Do "exec env PS1='$ ' /bin/sh" instead of just "exec /bin/sh" in
 	order to get a sane shell prompt.  If people have ${CWD}, say, in
 	their shell prompt, then the default login shell might display
 	something harmless, but the /bin/sh will display a dollar sign
 	which confused the subsequent prompt recognition.
 	(tramp-multi-action-password): More debugging output.
-	(tramp-encoding-shell): Renamed from tramp-sh-program.  More
-	documentation.  Default to cmd.exe on Windows NT.
+	(tramp-encoding-shell): Renamed from tramp-sh-program.
+	More documentation.  Default to cmd.exe on Windows NT.
 	(tramp-encoding-command-switch): New variable.  Use instead of
 	hard-wired "-c" which is only good for /bin/sh.
 	(tramp-encoding-reads-stdin): New variable.  If t, commands are
 	called like "/bin/sh -c COMMAND <INPUT", if nil, they are called
-	like "/bin/sh -c COMMAND INPUT", ie the input file is the last
-	argument.
+	like "/bin/sh -c COMMAND INPUT", ie the input file is the last arg.
 	(tramp-multi-sh-program): Always default to tramp-encoding-shell.
-	(tramp-handle-file-local-copy, tramp-handle-write-region): Respect
-	tramp-encoding-shell and friends.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	Respect tramp-encoding-shell and friends.
 	(tramp-find-inline-encoding): Use new-style calls for checking if
 	the local commands work.
 
 2002-09-07  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-methods): Remove `tramp-completion-function'
-	entries. They are handled now by
-	`tramp-completion-function-alist'.
+	entries. They are handled now by `tramp-completion-function-alist'.
 	(tramp-completion-function): Defvar removed. I've never used
 	it. Hmm.
 	(tramp-get-completion-function)
 	(tramp-get-completion-rsh, tramp-get-completion-ssh)
-	(tramp-get-completion-telnet, tramp-get-completion-su): Functions
-	removed as well. Not necessary any longer due to extended
+	(tramp-get-completion-telnet, tramp-get-completion-su):
+	Functions removed as well.  Not necessary any longer due to extended
 	customization means.
 	(tramp-completion-function-alist): New defcustom. Holds all
 	FUNCTION FILE pairs used for user and host name completion
@@ -342,17 +336,17 @@
 	(tramp-get-completion-function): New functions for configuration
 	of `tramp-completion-function-alist'. The old definition of
 	`tramp-get-completion-function' has been discarded.
-	(tramp-completion-handle-file-name-all-completions): Change
-	function call for user/host completion according to definition in
-	`tramp-completion-function-alist'.
+	(tramp-completion-handle-file-name-all-completions):
+	Change function call for user/host completion according to definition
+	in `tramp-completion-function-alist'.
 	(tramp-parse-passwd): Added exception handling for "root", because
 	`tramp-get-completion-su' (the previous place for this stuff)
 	doesn't exist any longer.
 
 2002-09-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* net/tramp.el (tramp-enter-password): Use
-	`tramp-password-end-of-line' to terminate the line.
+	* net/tramp.el (tramp-enter-password):
+	Use `tramp-password-end-of-line' to terminate the line.
 	(tramp-bug): Include new variable `tramp-password-end-of-line'.
 	(tramp-password-end-of-line): New variable.  People who use plink
 	under Windows might have to issue "\r\n" after the password, but
@@ -368,8 +362,7 @@
 	about Douglas Grey Stephen's suggestions to make Tramp work better
 	with plink under Windows.  I'm not sure what to think of them, but
 	now I have a guinea pig to try it out on.  Said guinea pig is
-	having other problems, though...  Also remove some commented-out
-	code.
+	having other problems, though...  Also remove some commented-out code.
 
 2002-09-06  Michael Albinus  <Michael.Albinus@alcatel.de>
 
@@ -410,8 +403,8 @@
 	(tramp-postfix-multi-hop-regexp)
 	(tramp-user-regexp, tramp-postfix-user-regexp)
 	(tramp-host-regexp, tramp-postfix-host-regexp)
-	(tramp-path-regexp): New atomar regular expressions. If
-	corresponding format strings exist, derived from them.
+	(tramp-path-regexp): New atomar regular expressions.
+	If corresponding format strings exist, derived from them.
 	(tramp-file-name-structure)
 	(tramp-multi-file-name-structure)
 	(tramp-multi-file-name-hop-structure)
@@ -440,8 +433,7 @@
 	names. Generate tramp file format on-the-fly depending on
 	parameters. Apply atomar format strings resp expressions.
 	(tramp-get-completion-methods)
-	(tramp-get-completion-user-host): Apply
-	`tramp-make-tramp-file-name'.
+	(tramp-get-completion-user-host): Apply `tramp-make-tramp-file-name'.
 	(tramp-parse-hosts-group): Take all host names and IP addresses
 	into account.
 	(tramp-bug): Remove `tramp-make-tramp-file-format'.
@@ -459,23 +451,22 @@
 
 2002-08-31  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* net/tramp.el (tramp-completion-mode): Check for
-	`last-input-char'.
+	* net/tramp.el (tramp-completion-mode): Check for `last-input-char'.
 	(tramp-completion-file-name-handler-alist): Add handler for
 	`file-exists-p.
 	(tramp-completion-handle-file-exists-p): New function.
 	(tramp-completion-handle-file-name-completion): Simplified.
 	(tramp-completion-dissect-file-name): Regexp's reorganised.
-	(tramp-completion-handle-file-name-all-completions): Call
-	completion-function only if `user' or `host' is given.
+	(tramp-completion-handle-file-name-all-completions):
+	Call completion-function only if `user' or `host' is given.
 	(tramp-get-completion-user-host): New function.
 	(tramp-get-completion-rsh)
 	(tramp-get-completion-ssh): Apply it.
 
 2002-08-29  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* net/tramp.el (tramp-completion-file-name-handler-alist): Add
-	handler for `expand-file-name'.
+	* net/tramp.el (tramp-completion-file-name-handler-alist):
+	Add handler for `expand-file-name'.
 	(tramp-completion-handle-expand-file-name): New function.
 
 2002-08-26  Michael Albinus  <Michael.Albinus@alcatel.de>
@@ -483,8 +474,7 @@
 	* net/tramp.el (tramp-completion-mode): New function.
 	(tramp-completion-handle-file-name-directory)
 	(tramp-completion-handle-file-name-all-completions): Apply it.
-	(tramp-methods): Remove double definition of `ssh1-old' and
-	`ssh2-old'.
+	(tramp-methods): Remove double definition of `ssh1-old' and `ssh2-old'.
 	(tramp-point-at-eol): New defalias.
 	(tramp-parse-rhosts-group)
 	(tramp-parse-shosts-group):: Apply it.
@@ -501,8 +491,8 @@
 	(tramp-completion-handle-file-name-nondirectory)
 	(tramp-completion-run-real-handler): New functions.
 	(tramp-completion-file-name-handler)
-	(tramp-completion-handle-file-name-all-completions): Apply
-	`tramp-completion-run-real-handler'.
+	(tramp-completion-handle-file-name-all-completions):
+	Apply `tramp-completion-run-real-handler'.
 	(tramp-parse-rhosts)
 	(tramp-parse-shosts): Use `with-temp-buffer'. `result,b4(B renamed to
 	`res' (otherwise side effects in XEmacs).
@@ -556,8 +546,8 @@
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp)
 	(tramp-completion-file-name-handler-alist): New defcustoms.
-	(tramp-completion-file-name-handler): New function. Add
-	`tramp-completion-file-name-handler' to `file-name-handler-alist'.
+	(tramp-completion-file-name-handler): New function.
+	Add `tramp-completion-file-name-handler' to `file-name-handler-alist'.
 	(tramp-run-real-handler): Add `tramp-completion-file-name-handler'
 	to `inhibit-file-name-handlers'.
 	(tramp-completion-handle-file-name-all-completions)
@@ -591,8 +581,8 @@
 
 2002-09-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	* net/tramp.el (tramp-handle-insert-directory): Use
-	`insert-buffer-substring' instead of `insert-buffer', which is not
+	* net/tramp.el (tramp-handle-insert-directory):
+	Use `insert-buffer-substring' instead of `insert-buffer', which is not
 	supposed to be used from Lisp.  Remember old point in a variable
 	instead of using `mark'.  Suggestion from Stefan Monnier.
 	(tramp-unified-filenames): New variable.  Use it in default value
@@ -612,8 +602,7 @@
 	* files.el (insert-directory): Comment saying that "--dired"
 	might be in the SWITCHES.
 	* net/ange-ftp.el (ange-ftp-ls): Handle "--dired" in LSARGS.
-	(ange-ftp-insert-directory): Comment explaining "--dired"
-	handling.
+	(ange-ftp-insert-directory): Comment explaining "--dired" handling.
 
 2002-09-21  Markus Rost  <rost@math.ohio-state.edu>
 
