@@ -3950,12 +3950,13 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 {
   int len = to - from, len_byte = to_byte - from_byte;
   int require, inserted, inserted_byte;
-  int from_byte_orig, to_byte_orig;
+  int head_skip, tail_skip, total_skip;
   Lisp_Object saved_coding_symbol = Qnil;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int first = 1;
   int fake_multibyte = 0;
   unsigned char *src, *dst;
+  Lisp_Object deletion = Qnil;
 
   if (replace)
     {
@@ -3975,10 +3976,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 
   if (! encodep && CODING_REQUIRE_DETECTION (coding))
     {
-      /* We must detect encoding of text and eol.  Even if detection
-         routines can't decide the encoding, we should not let them
-         undecided because the deeper decoding routine (decode_coding)
-         tries to detect the encodings in vain in that case.  */
+      /* We must detect encoding of text and eol format.  */
 
       if (from < GPT && to > GPT)
 	move_gap_both (from, from_byte);
@@ -3986,6 +3984,10 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	{
 	  detect_coding (coding, BYTE_POS_ADDR (from_byte), len_byte);
 	  if (coding->type == coding_type_undecided)
+	    /* It seems that the text contains only ASCII, but we
+	       should not left it undecided because the deeper
+	       decoding routine (decode_coding) tries to detect the
+	       encodings again in vain.  */
 	    coding->type = coding_type_emacs_mule;
 	}
       if (coding->eol_type == CODING_EOL_UNDECIDED)
@@ -4007,25 +4009,18 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       : ! CODING_REQUIRE_DECODING (coding))
     {
       coding->produced = len_byte;
-      if (multibyte)
+      if (multibyte
+	  && ! replace
+	  /* See the comment of the member heading_ascii in coding.h.  */
+	  && coding->heading_ascii < len_byte)
 	{
-	  adjust_before_replace (from, from_byte, to, to_byte);
-
 	  /* We still may have to combine byte at the head and the
              tail of the text in the region.  */
-	  if (GPT != to)
+	  if (from < GPT && GPT < to)
 	    move_gap_both (to, to_byte);
-	  coding->produced_char
-	    = multibyte_chars_in_text (BYTE_POS_ADDR (from_byte), len_byte);
-	  GAP_SIZE += len_byte;
-	  GPT_BYTE -= len_byte;
-	  ZV_BYTE -= len_byte;
-	  Z_BYTE -= len_byte;
-	  GPT -= len;
-	  ZV -= len;
-	  Z -= len;
-	  adjust_after_replace (from, from_byte, to, to_byte,
-				coding->produced_char, len_byte, replace);
+	  len = multibyte_chars_in_text (BYTE_POS_ADDR (from_byte), len_byte);
+	  adjust_after_insert (from, from_byte, to, to_byte, len);
+	  coding->produced_char = len;
 	}
       else
 	coding->produced_char = len_byte;
@@ -4058,26 +4053,36 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	}
     }
 
-  /* Try to skip the heading and tailing ASCIIs.  */
-  from_byte_orig = from_byte; to_byte_orig = to_byte;
-  if (from < GPT && GPT < to)
-    move_gap (from);
-  if (encodep)
-    shrink_encoding_region (&from_byte, &to_byte, coding, NULL);
-  else
-    shrink_decoding_region (&from_byte, &to_byte, coding, NULL);
-  if (from_byte == to_byte)
-    {
-      coding->produced = len_byte;
-      coding->produced_char = multibyte ? len : len_byte;
-      return 0;
-    }
+  if (replace)
+    deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
-  /* Here, the excluded region by shrinking contains only ASCIIs.  */
-  from += (from_byte - from_byte_orig);
-  to += (to_byte - to_byte_orig);
-  len = to - from;
-  len_byte = to_byte - from_byte;
+  /* Try to skip the heading and tailing ASCIIs.  */
+  {
+    int from_byte_orig = from_byte, to_byte_orig = to_byte;
+
+    if (from < GPT && GPT < to)
+      move_gap_both (from, from_byte);
+    if (encodep)
+      shrink_encoding_region (&from_byte, &to_byte, coding, NULL);
+    else
+      shrink_decoding_region (&from_byte, &to_byte, coding, NULL);
+    if (from_byte == to_byte)
+      {
+	coding->produced = len_byte;
+	coding->produced_char = multibyte ? len : len_byte;
+	if (!replace)
+	  /* We must record and adjust for this new text now.  */
+	  adjust_after_insert (from, from_byte_orig, to, to_byte_orig, len);
+	return 0;
+      }
+
+    head_skip = from_byte - from_byte_orig;
+    tail_skip = to_byte_orig - to_byte;
+    total_skip = head_skip + tail_skip;
+    from += head_skip;
+    to -= tail_skip;
+    len -= total_skip; len_byte -= total_skip;
+  }
 
   /* For converion, we must put the gap before the text in addition to
      making the gap larger for efficient decoding.  The required gap
@@ -4089,9 +4094,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (GAP_SIZE  < require)
     make_gap (require - GAP_SIZE);
   move_gap_both (from, from_byte);
-
-  if (replace)
-    adjust_before_replace (from, from_byte, to, to_byte);
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
@@ -4238,13 +4240,25 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (src - dst > 0) *dst = 0; /* Put an anchor.  */
 
   if (multibyte
-      && (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte)))
+      && (fake_multibyte
+	  || !encodep && (to - from) != (to_byte - from_byte)))
     inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
 
-  adjust_after_replace (from, from_byte, to, to_byte,
-			inserted, inserted_byte, replace);
-  if (from_byte_orig == from_byte)
-    from_byte_orig = from_byte = PT_BYTE;
+  /* If we have shrinked the conversion area, adjust it now.  */ 
+  if (total_skip > 0)
+    {
+      if (tail_skip > 0)
+	safe_bcopy (GAP_END_ADDR, GPT_ADDR + inserted_byte, tail_skip);
+      inserted += total_skip; inserted_byte += total_skip;
+      GAP_SIZE += total_skip;
+      GPT -= head_skip; GPT_BYTE -= head_skip;
+      ZV -= total_skip; ZV_BYTE -= total_skip;
+      Z -= total_skip; Z_BYTE -= total_skip;
+      from -= head_skip; from_byte -= head_skip;
+      to += tail_skip; to_byte += tail_skip;
+    }
+
+  adjust_after_replace (from, from_byte, deletion, inserted, inserted_byte);
 
   if (! encodep && ! NILP (coding->post_read_conversion))
     {
@@ -4266,12 +4280,10 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   signal_after_change (from, to - from, inserted);
 
   {
-    int skip = (to_byte_orig - to_byte) + (from_byte - from_byte_orig);
-
-    coding->consumed = to_byte_orig - from_byte_orig;
-    coding->consumed_char = skip + (to - from);
-    coding->produced = skip + inserted_byte;
-    coding->produced_char = skip + inserted;
+    coding->consumed = to_byte - from_byte;
+    coding->consumed_char = to - from;
+    coding->produced = inserted_byte;
+    coding->produced_char = inserted;
   }
 
   return 0;
