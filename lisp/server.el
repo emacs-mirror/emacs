@@ -32,9 +32,9 @@
 ;; a server for other processes.
 
 ;; Load this library and do M-x server-edit to enable Emacs as a server.
-;; Emacs runs the program ../arch-lib/emacsserver as a subprocess
-;; for communication with clients.  If there are no client buffers to edit, 
-;; server-edit acts like (switch-to-buffer (other-buffer))
+;; Emacs opens up a socket for communication with clients.  If there are no
+;; client buffers to edit, server-edit acts like (switch-to-buffer
+;; (other-buffer))
 
 ;; When some other program runs "the editor" to edit a file,
 ;; "the editor" can be the Emacs client program ../lib-src/emacsclient.
@@ -178,6 +178,26 @@ are done with it in the server.")
     (if ps (setq server-clients (delq ps server-clients))))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
+(defun server-select-display (display)
+  ;; If the current frame is on `display' we're all set.
+  (unless (equal (frame-parameter (selected-frame) 'display) display)
+    ;; Otherwise, look for an existing frame there and select it.
+    (dolist (frame (frame-list))
+      (when (equal (frame-parameter frame 'display) display)
+	(select-frame frame)))
+    ;; If there's no frame on that display yet, create a dummy one
+    ;; and select it.
+    (unless (equal (frame-parameter (selected-frame) 'display) display)
+      (select-frame
+       (make-frame-on-display
+	display
+	;; This frame is only there in place of an actual "current display"
+	;; setting, so we want it to be as unobtrusive as possible.  That's
+	;; what the invisibility is for.  The minibuffer setting is so that
+	;; we don't end up displaying a buffer in it (which noone would
+	;; notice).
+	'((visibility . nil) (minibuffer . only)))))))
+
 (defun server-unquote-arg (arg)
   (replace-regexp-in-string
    "&." (lambda (s)
@@ -239,7 +259,7 @@ Prefix arg means just kill any existing server communications subprocess."
 	  (coding-system (and default-enable-multibyte-characters
 			      (or file-name-coding-system
 				  default-file-name-coding-system)))
-	  client nowait
+	  client nowait eval
 	  (files nil)
 	  (lineno 1)
 	  (columnno 0))
@@ -252,6 +272,14 @@ Prefix arg means just kill any existing server communications subprocess."
 	  (setq request (substring request (match-end 0)))
 	  (cond
 	   ((equal "-nowait" arg) (setq nowait t))
+	   ((equal "-eval" arg) (setq eval t))
+	   ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
+	    (let ((display (server-unquote-arg (match-string 1 request))))
+	      (setq request (substring request (match-end 0)))
+	      (condition-case err
+		  (server-select-display display)
+		(error (process-send-string proc (nth 1 err))
+		       (setq request "")))))
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
 	    (setq lineno (string-to-int (substring arg 1))))
@@ -266,10 +294,17 @@ Prefix arg means just kill any existing server communications subprocess."
 	    ;; Now decode the file name if necessary.
 	    (if coding-system
 		(setq arg (decode-coding-string arg coding-system)))
-	    ;; ARG is a file name.
-	    ;; Collapse multiple slashes to single slashes.
-	    (setq arg (command-line-normalize-file-name arg))
-	    (push (list arg lineno columnno) files)
+	    (if eval
+		(let ((v (eval (car (read-from-string arg)))))
+		  (when v
+		    (with-temp-buffer
+		      (let ((standard-output (current-buffer)))
+			(pp v)
+			(process-send-region proc (point-min) (point-max))))))
+	      ;; ARG is a file name.
+	      ;; Collapse multiple slashes to single slashes.
+	      (setq arg (command-line-normalize-file-name arg))
+	      (push (list arg lineno columnno) files))
 	    (setq lineno 1)
 	    (setq columnno 0)))))
       (when files
@@ -302,45 +337,44 @@ Prefix arg means just kill any existing server communications subprocess."
 	(move-to-column (1- column-number)))))
 
 (defun server-visit-files (files client &optional nowait)
-  "Finds FILES and returns the list CLIENT with the buffers nconc'd.
+  "Find FILES and return the list CLIENT with the buffers nconc'd.
 FILES is an alist whose elements are (FILENAME LINENUMBER COLUMNNUMBER).
 NOWAIT non-nil means this client is not waiting for the results,
 so don't mark these buffers specially, just visit them normally."
   ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
-  (let (client-record (last-nonmenu-event t) (obuf (current-buffer)))
+  (let ((last-nonmenu-event t) client-record)
     ;; Restore the current buffer afterward, but not using save-excursion,
     ;; because we don't want to save point in this buffer
     ;; if it happens to be one of those specified by the server.
-    (unwind-protect
-	(while files
-	  ;; If there is an existing buffer modified or the file is
-	  ;; modified, revert it.  If there is an existing buffer with
-	  ;; deleted file, offer to write it.
-	  (let* ((filen (car (car files)))
-		 (obuf (get-file-buffer filen)))
-	    (push filen file-name-history)
-	    (if (and obuf (set-buffer obuf))
-		(progn
-		  (cond ((file-exists-p filen)
-			 (if (not (verify-visited-file-modtime obuf))
-			     (revert-buffer t nil)))
-			(t
-			 (if (y-or-n-p
-			      (concat "File no longer exists: "
-				      filen
-				      ", write buffer to file? "))
-			     (write-file filen))))
-		  (setq server-existing-buffer t)
-		  (server-goto-line-column (car files)))
-	      (set-buffer (find-file-noselect filen))
-	      (server-goto-line-column (car files))
-	      (run-hooks 'server-visit-hook)))
-	  (if (not nowait)
-	      (setq server-buffer-clients
-		    (cons (car client) server-buffer-clients)))
-	  (setq client-record (cons (current-buffer) client-record))
-	  (setq files (cdr files)))
-      (set-buffer obuf))
+    (save-current-buffer
+      (dolist (file files)
+	;; If there is an existing buffer modified or the file is
+	;; modified, revert it.  If there is an existing buffer with
+	;; deleted file, offer to write it.
+	(let* ((filen (car file))
+	       (obuf (get-file-buffer filen)))
+	  (push filen file-name-history)
+	  (if (and obuf (set-buffer obuf))
+	      (progn
+		(cond ((file-exists-p filen)
+		       (if (not (verify-visited-file-modtime obuf))
+			   (revert-buffer t nil)))
+		      (t
+		       (if (y-or-n-p
+			    (concat "File no longer exists: "
+				    filen
+				    ", write buffer to file? "))
+			   (write-file filen))))
+		(setq server-existing-buffer t)
+		(server-goto-line-column file))
+	    (set-buffer (find-file-noselect filen))
+	    (server-goto-line-column file)
+	    (run-hooks 'server-visit-hook)))
+	(unless nowait
+	  ;; When the buffer is killed, inform the clients.
+	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)
+	  (push (car client) server-buffer-clients))
+	(push (current-buffer) client-record)))
     (nconc client client-record)))
 
 (defun server-buffer-done (buffer &optional for-killing)
@@ -462,8 +496,6 @@ specifically for the clients and did not exist before their request for it."
 (defvar server-kill-buffer-running nil
   "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
 
-;; When a buffer is killed, inform the clients.
-(add-hook 'kill-buffer-hook 'server-kill-buffer)
 (defun server-kill-buffer ()
   ;; Prevent infinite recursion if user has made server-done-hook
   ;; call kill-buffer.
@@ -531,9 +563,13 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	      (select-window (next-window nil 'nomini 0)))
 	  ;; Move to a non-dedicated window, if we have one.
 	  (when (window-dedicated-p (selected-window))
-	    (select-window (get-window-with-predicate
-			    (lambda (w) (not (window-dedicated-p w)))
-			    'nomini 'visible (selected-window))))
+	    (select-window
+	     (get-window-with-predicate
+	      (lambda (w)
+		(and (not (window-dedicated-p w))
+		     (equal (frame-parameter (window-frame w) 'display)
+			    (frame-parameter (selected-frame) 'display))))
+	      'nomini 'visible (selected-window))))
 	  (condition-case nil
 	      (switch-to-buffer next-buffer)
 	    ;; After all the above, we might still have ended up with
