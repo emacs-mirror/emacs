@@ -24,6 +24,17 @@
 
 2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* mwheel.el (mouse-wheel-change-button): Deactivate before changing.
+	(mouse-wheel-up-button, mouse-wheel-down-button): Obsolete.
+	(mouse-wheel-up-event, mouse-wheel-down-event): New vars.
+	(mouse-wheel-follow-mouse): Change default to t.
+	(mwheel-event-button): Return the basic event symbol.
+	(mwheel-scroll): Work with non-mouse events.
+	(mouse-wheel-mode): Use the new vars.
+	(mwheel-install): Obey `uninstall'.
+
+	* term/xterm.el (function-key-map): Add some bindings.
+
 	* uniquify.el (uniquify-delay-rationalize-file-buffer-names):
 	Rename from delay-uniquify-rationalize-file-buffer-names.
 	Only rationalize if the buffer is under uniquify control.
