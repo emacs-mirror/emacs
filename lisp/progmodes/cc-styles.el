@@ -553,7 +553,6 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   ;; crucial because future c-set-style calls will always reset the
   ;; variables first to the `cc-mode' style before instituting the new
   ;; style.  Only do this once!
-  (require 'cl)
   (or (assoc "cc-mode" c-style-alist)
       (progn
 	(c-add-style "cc-mode"
@@ -562,7 +561,7 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 		       (lambda (var)
 			 (let ((val (symbol-value var)))
 			   (cons var (if (atom val) val
-				       (copy-tree val)
+				       (c-copy-tree val)
 				       ))
 			   )))
 		      '(c-backslash-column
@@ -579,6 +578,24 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 	;; the default style is now GNU.  This can be overridden in
 	;; c-mode-common-hook or {c,c++,objc,java}-mode-hook.
 	(c-set-style c-site-default-style))))
+
+(defun c-copy-tree (tree &optional vecp)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to copy-sequence, which copies only along the cdrs.  With second
+argument VECP, this copies vectors as well as conses."
+  (if (consp tree)
+      (let ((p (setq tree (copy-list tree))))
+	(while (consp p)
+	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
+	      (setcar p (c-copy-tree (car p) vecp)))
+	  (or (listp (cdr p)) (setcdr p (c-copy-tree (cdr p) vecp)))
+	  (setq p (cdr p))))
+    (if (and vecp (vectorp tree))
+	(let ((i (length (setq tree (copy-sequence tree)))))
+	  (while (>= (setq i (1- i)) 0)
+	    (aset tree i (c-copy-tree (aref tree i) vecp))))))
+  tree)
 
 (defun c-make-styles-buffer-local ()
   "Make all CC Mode style variables buffer local.
