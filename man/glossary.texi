@@ -95,7 +95,7 @@ commands for operating on the blank lines in the buffer.
 
 @item Bookmark
 Bookmarks are akin to registers (q.v.@:) in that they record positions
-in buffers to which you can return later.  Unlike registers, bookmark
+in buffers to which you can return later.  Unlike registers, bookmarks
 persist between Emacs sessions.
 
 @item Buffer
@@ -819,8 +819,8 @@ therefore also called newlines.  @xref{Text Characters,Newline}.
 @cindex nil
 @cindex t
 @item @code{nil}
-A value usually interpreted as a logical ``false.''  Its opposite
-is @code{t}, interpreted as ``true.''
+@code{nil} is a value usually interpreted as a logical ``false.''  Its
+opposite is @code{t}, interpreted as ``true.''
 
 @item Numeric Argument
 A numeric argument is a number, specified before a command, to change
@@ -885,8 +885,8 @@ you pause in the middle of typing a multi-character key sequence is also
 a kind of prompting (@pxref{Echo Area}).
 
 @item Query-Replace
-An interactive string replacement feature provided by Emacs.
-@xref{Query Replace}.
+Query-replace is an interactive string replacement feature provided by
+Emacs.  @xref{Query Replace}.
 
 @item Quitting
 Quitting means canceling a partially typed command or a running
@@ -1122,7 +1122,7 @@ or following the stylistic conventions of human language.
 @item Text-only Terminal
 A text-only terminal is a display that is limited to displaying text in
 character units.  Such a terminal cannot control individual pixels it
-displays.  Emacs supports a subset of display features on character
+displays.  Emacs supports a subset of display features on text-only
 terminals.
 
 @item Tool Bar
@@ -1156,7 +1156,7 @@ displaying it.  See also `continuation line.'
 @xref{Basic,Truncation,Basic Editing}.
 
 @item TTY
-See `character terminal.'
+See `text-only terminal.'
 
 @item Undoing
 Undoing means making your previous editing go in reverse, bringing
