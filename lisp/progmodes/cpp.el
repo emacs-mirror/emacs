@@ -676,7 +676,7 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
   ;; Choose a symbol if called from keyboard, otherwise use the one clicked on.
   (if cpp-button-event
       cpp-callback-data
-    (completing-read "Symbol: " (mapcar 'list cpp-edit-symbols) nil t)))
+    (completing-read "Symbol: " cpp-edit-symbols nil t)))
 
 (defun cpp-choose-branch ()
   ;; Choose a branch, either nil, t, or both.
