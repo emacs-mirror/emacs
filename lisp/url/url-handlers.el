@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (c) 1996, 1997, 1998, 1999, 2004  Free Software Foundation, Inc.
+;; Copyright (c) 1996, 1997, 1998, 1999, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -106,7 +106,7 @@ particularly bad at this\).")
 ;;;###autoload
 (define-minor-mode url-handler-mode
   "Use URL to handle URL-like file names."
-  :global t
+  :global t :group 'url
   (if (not (boundp 'file-name-handler-alist))
       ;; Can't be turned ON anyway.
       (setq url-handler-mode nil)
