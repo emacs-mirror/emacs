@@ -531,8 +531,8 @@ command remapping allows you to directly map kill-line into
 my-kill-line and kill-word into my-kill-word through the minor mode
 map using define-key:
 
-   (define-key my-mode-map 'kill-line 'my-kill-line)
-   (define-key my-mode-map 'kill-word 'my-kill-word)
+   (define-key my-mode-map [remap kill-line] 'my-kill-line)
+   (define-key my-mode-map [remap kill-word] 'my-kill-word)
 
 Now, when my-mode is enabled, and the user enters C-k or M-d,
 the commands my-kill-line and my-kill-word are run.
@@ -543,20 +543,16 @@ then C-k still runs my-kill-line.
 
 The following changes have been made to provide command remapping:
 
-- define-key now accepts a command name as the KEY argument.
-  This identifies the command to be remapped in the specified keymap.
-  This is equivalent to specifying the command name as the only
-  element of a vector, e.g [kill-line], except that when KEY is a
-  symbol, the DEF argument must also be a symbol.
+- Command remappings are defined using `define-key' with a prefix-key
+  `remap', i.e. `(define-key MAP [remap CMD] DEF)' remaps command CMD
+  to definition DEF in keymap MAP.  The definition is not limited to
+  another command; it can be anything accepted for a normal binding.
 
-- In calls from Lisp, global-set-key, global-unset-key, local-set-key,
-  and local-unset-key also accept a command name as the KEY argument.
+- The new function `remap-command' returns the binding for a remapped
+  command in the current keymaps, or nil if it isn't remapped.
 
 - key-binding now remaps interactive commands unless the optional
-  third argument NO-REMAP is non-nil.  It also accepts a command name
-  as the KEY argument.
-
-- lookup-key now accepts a command name as the KEY argument.
+  third argument NO-REMAP is non-nil.
 
 - where-is-internal now returns nil for a remapped command (e.g.
   kill-line if my-mode is enabled), and the actual key binding for
