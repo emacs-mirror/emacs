@@ -79,6 +79,18 @@
 
 
 ;;;###autoload
+(defcustom appt-issue-message t
+  "*Non-nil means check for appointments in the diary buffer.
+To be detected, the diary entry must have the format described in the
+documentation of the function `appt-check'."
+  :type 'boolean
+  :group 'appt)
+
+(make-obsolete-variable 'appt-issue-message
+                        "use the function `appt-activate', and the \
+variable `appt-display-format' instead." "21.4")
+
+;;;###autoload
 (defcustom appt-message-warning-time 12
   "*Time in minutes before an appointment that the warning begins."
   :type 'integer
