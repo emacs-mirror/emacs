@@ -2370,6 +2370,7 @@ This makes STRING unibyte and may change its length.  */)
      (string)
      Lisp_Object string;
 {
+  CHECK_STRING (string);
   int len = SBYTES (string);
   bzero (SDATA (string), len);
   STRING_SET_CHARS (string, len);
