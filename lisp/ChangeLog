@@ -1,3 +1,13 @@
+2000-10-12  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* isearch.el (isearch-set-lazy-highlight-faces-at): New function.
+	(isearch-highlight): Restore lazy-isearch face properties at old
+	position, and suppress them at new position.
+	(isearch-dehighlight): Restore lazy-isearch face properties.
+	(isearch-lazy-highlight-update): Add lazy-isearch overlays even
+	over the real isearch overlay, but in that case, don't give it a
+	face property.  Use `push'.
+
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* man.el (Man-getpage-in-background): Fix previous change.
