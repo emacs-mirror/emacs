@@ -15,8 +15,8 @@ the --without-pop configure option, should that be necessary.
 images and toolkit scrollbars.  Use the --help option in `configure'
 to list them.
 
-** There is a new option `without-xim' that instructs Emacs to not
-use X Input Methods (XIM), if they these are available.
+** There is a new configure option `--without-xim' that instructs
+Emacs to not use X Input Methods (XIM), if they these are available.
 
 * Changes in Emacs 21.1
 
@@ -479,8 +479,8 @@ There is a new command M-x replace-rectangle.
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
 
-** M-x query-replace recognizes a new command `E' that lets you
-edit the replacement string.
+** M-x query-replace recognizes a new command `e' (or `E') that lets
+you edit the replacement string.
 
 ** The new command mail-abbrev-complete-alias, bound to `M-TAB', let's
 you complete mail aliases in the text, analogous to

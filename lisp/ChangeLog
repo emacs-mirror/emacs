@@ -1,3 +1,7 @@
+2000-06-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* replace.el (query-replace-map): Bind `e' like `E'.
+
 2000-06-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-edit-menu) <mark-whole-buffer>: Change

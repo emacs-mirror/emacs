@@ -1,3 +1,9 @@
+2000-06-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/isc4-0.h (sigunblock): Define.
+
+	* s/sco5.h (sigunblock): Define.
+
 2000-06-27  Dave Love  <fx@gnu.org>
 
 	* s/osf1.h (C_SWITCH_SYSTEM, LIBS_SYSTEM): Revert last change
