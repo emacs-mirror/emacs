@@ -2432,6 +2432,7 @@ Build a menu of the possible matches."
     (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^.]+\\)."
 			   (regexp-quote string)))
 	  (ohist Info-history)
+	  (ohist-list Info-history-list)
 	  (current-node Info-current-node)
 	  (current-file Info-current-file)
 	  manuals matches temp-file node)
@@ -2465,7 +2466,8 @@ Build a menu of the possible matches."
 		    (Info-goto-node node))))
 	    (error nil))))
       (Info-goto-node (concat "(" current-file ")" current-node))
-      (setq Info-history ohist)
+      (setq Info-history ohist
+	    Info-history-list ohist-list)
       (message "Searching indices...done")
       (if (null matches)
 	  (message "No matches found")

@@ -1,3 +1,7 @@
+2004-04-14  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Don't clobber Info-history-list.
+
 2004-04-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-setup): Localize
