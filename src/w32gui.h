@@ -21,11 +21,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_W32GUI_H
 #define EMACS_W32GUI_H
 #include <windows.h>
-/* Emacs takes care of ensuring that these are defined.  */
-#ifdef max
-#undef max
-#undef min
-#endif
 
 #include "w32bdf.h"
 

@@ -457,12 +457,6 @@ extern char *get_emacs_configuration_options (void);
 #endif
 #include <string.h>
 
-/* Emacs takes care of ensuring that these are defined.  */
-#ifdef max
-#undef max
-#undef min
-#endif
-
 /* We need a little extra space, see ../../lisp/loadup.el */
 #define SYSTEM_PURESIZE_EXTRA 137500
 

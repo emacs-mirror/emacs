@@ -25,11 +25,6 @@ Boston, MA 02111-1307, USA.
 #define NTHEAP_H_
 
 #include <windows.h>
-/* Emacs takes care of ensuring that these are defined.  */
-#ifdef max
-#undef max
-#undef min
-#endif
 
 #define ROUND_UP(p, align)   (((DWORD)(p) + (align)-1) & ~((align)-1))
 #define ROUND_DOWN(p, align) ((DWORD)(p) & ~((align)-1))
