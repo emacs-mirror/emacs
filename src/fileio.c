@@ -3606,20 +3606,20 @@ for its argument.");
   Vfile_name_handler_alist = Qnil;
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
-    "A list of functions to be called at the end of `insert-file-contents'.
-Each is passed one argument, the number of bytes inserted.  It should return
-the new byte count, and leave point the same.  If `insert-file-contents' is
-intercepted by a handler from `file-name-handler-alist', that handler is
+    "A list of functions to be called at the end of `insert-file-contents'.\n\
+Each is passed one argument, the number of bytes inserted.  It should return\n\
+the new byte count, and leave point the same.  If `insert-file-contents' is\n\
+intercepted by a handler from `file-name-handler-alist', that handler is\n\
 responsible for calling the after-insert-file-functions if appropriate.");
   Vafter_insert_file_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
-    "A list of functions to be called at the start of `write-region'.
-Each is passed two arguments, START and END as for `write-region'.  It should
-return a list of pairs (POSITION . STRING) of strings to be effectively
-inserted at the specified positions of the file being written (1 means to
-insert before the first byte written).  The POSITIONs must be sorted into
-increasing order.  If there are several functions in the list, the several
+    "A list of functions to be called at the start of `write-region'.\n\
+Each is passed two arguments, START and END as for `write-region'.  It should\n\
+return a list of pairs (POSITION . STRING) of strings to be effectively\n\
+inserted at the specified positions of the file being written (1 means to\n\
+insert before the first byte written).  The POSITIONs must be sorted into\n\
+increasing order.  If there are several functions in the list, the several\n\
 lists are merged destructively.");
   Vwrite_region_annotate_functions = Qnil;
 
