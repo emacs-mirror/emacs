@@ -9489,8 +9489,9 @@ requeued_events_pending_p ()
 
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
-       doc: /* t if command input is currently available with no waiting.
-Actually, the value is nil only if we can be sure that no input is available.  */)
+       doc: /* Return t if command input is currently available with no wait.
+Actually, the value is nil only if we can be sure that no input is available;
+if there is a doubt, the value is t.  */)
      ()
 {
   if (!NILP (Vunread_command_events) || unread_command_char != -1)
