@@ -196,7 +196,7 @@ use."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-dvi-view-command '(if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\")
+(defcustom tex-dvi-view-command '(if (eq window-system 'x) "xdvi" "dvi2tty * | cat -s")
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
