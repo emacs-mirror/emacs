@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.49) $
+ * $HopeName: MMsrc!buffer.c(trunk.50) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,11 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.49) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.50) $");
+
+
+/* forward declarations */
+static void BufferFrameNotifyPopPending(Buffer buffer);
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -369,6 +373,11 @@ void BufferFinish(Buffer buffer)
   /* The PoolClass should support buffer protocols */
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
   AVER(BufferIsReady(buffer));
+
+  /* design.mps.alloc-frame.lw-frame.sync.trip */
+  if (BufferIsTrappedByMutator(buffer)) {
+    BufferFrameNotifyPopPending(buffer);
+  }
 
   BufferDetach(buffer, pool);
 
