@@ -1,11 +1,18 @@
+2000-10-07  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el (browse-url-gnome-moz-arguments): New option.
+	(browse-url-gnome-moz): New function.
+	(browse-url-browser-function): Use it.
+	Suggested by Colin Walters <walters@cis.ohio-state.edu>.
+
 2000-10-07  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* net/net-utils.el (nslookup-font-lock-keywords, ftp-font-lock-keywords,
-	smbclient-font-lock-keywords): Do not require font-lock.
-	Doc cleanups throughout (incorporate changes by Dave Love).
+	* net/net-utils.el (nslookup-font-lock-keywords)
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Do not
+	require font-lock.  Doc cleanups throughout (incorporate changes
+	by Dave Love).
 	(network-connection-mode-setup): Comment out network-abbrev-table
-	variable.
-	Incorporate doc cleanups throughout.
+	variable.  Incorporate doc cleanups throughout.
 	
 2000-10-07  Stefan Monnier  <monnier@cs.yale.edu>
 
