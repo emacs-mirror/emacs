@@ -1,3 +1,7 @@
+2005-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* ediff-init.el: Use (featurep 'xemacs).
+
 2005-04-05  David Ponce  <david@dponce.com>
 
 	* cus-edit.el (face): Derive from symbol widget.  Display sample
