@@ -4868,7 +4868,7 @@ instead of any buffer contents; END is ignored.
 Optional fourth argument APPEND if non-nil means
   append to existing file contents (if any).  If it is an integer,
   seek to that offset in the file before writing.
-Optional fifth argument VISIT if t means
+Optional fifth argument VISIT, if t or a string, means
   set the last-save-file-modtime of buffer to this file's modtime
   and mark buffer not modified.
 If VISIT is a string, it is a second file name;

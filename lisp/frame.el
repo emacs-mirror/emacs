@@ -642,7 +642,13 @@ You cannot specify either `width' or `height', you must use neither or both.
 
 Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
-on `after-make-frame-functions' are run with one arg, the newly created frame."
+on `after-make-frame-functions' are run with one arg, the newly created frame.
+
+This function itself does not make the new frame the selected frame.
+The previously selected frame remains selected.  However, the
+window system may select the new frame for its own reasons, for
+instance if the frame appears under the mouse pointer and your
+setup is for focus to follow the pointer."
   (interactive)
   (let* ((w (cond
 	     ((assq 'display-id parameters)

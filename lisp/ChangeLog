@@ -1,3 +1,34 @@
+2004-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu-prev-index-position-function)
+	(imenu-extract-index-name-function, imenu-name-lookup-function)
+	(imenu--index-alist): Docstring redundancy fix.
+
+2004-07-25  Lars Hansen  <larsh@math.ku.dk>
+
+	* wdired.el (wdired-finish-edit): Require dired-aux before locally
+	binding dired-backup-overwrite.
+
+2004-07-25  John Paul Wallington  <jpw@gnu.org>
+
+	* subr.el (butlast, event-modifiers, event-basic-type): Doc fixes.
+
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* term/tty-colors.el (tty-color-approximate): Doc fix.
+
+	* select.el (x-get-selection, x-set-selection): Doc fixes.
+
+	* frame.el (make-frame): Doc fix.
+
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-mime-charset-pattern):
+	Don't include semicolon in the charset value.
+
+	* replace.el (occur-next-error): Call set-window-point.
+	(occur-engine): Handle negative NLINES.
+
 2004-07-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frame.el (modify-all-frames-parameters): Minor doc fix.
@@ -49,8 +80,8 @@
 
 2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
-	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New
-	docstring.  From Luc Teirlinck.
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	New docstring.  From Luc Teirlinck.
 
 2004-07-17  Luc Teirlinck  <teirllm@auburn.edu>
 
