@@ -262,7 +262,7 @@
 	(cp866): Delete this alias.
 	("Bulgarian"): Fix the value of `input-method'.
 
-2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
+2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>  (tiny change)
 
 	* dired-aux.el (dired-add-entry): Put point in correct position
 	before inserting marker char.
