@@ -587,10 +587,6 @@ if (1)									      \
   }									      \
 else
 
-  /* Nonzero enables use of dialog boxes for questions
-     asked by mouse commands.  */
-  int use_dialog_box;
-
 /* Return the length of the multi-byte form at string STR of length LEN.  */
 
 #define MULTIBYTE_FORM_LENGTH(str, len)			     	\
