@@ -1549,11 +1549,14 @@ AC_MSG_RESULT($HAVE_XFREE386)
 # Change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
 # for the tests that follow.  We set it back to REAL_CFLAGS later on.
 
+REAL_CPPFLAGS="$CPPFLAGS"
+
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LDFLAGS="$LDFLAGS $LD_SWITCH_X_SITE"
   LIBS="$LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
+  CPPFLAGS="$C_SWITCH_X_SITE $CPPFLAGS"
 
   # On Solaris, arrange for LD_RUN_PATH to point to the X libraries for tests.
   # This is handled by LD_SWITCH_X_SITE_AUX during the real build,
@@ -2061,6 +2064,7 @@ AC_FUNC_VFORK
 
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
+CPPFLAGS="$REAL_CPPFLAGS"
 
 changequote(, )dnl
 #### Find out which version of Emacs this is.
