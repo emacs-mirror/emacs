@@ -7650,7 +7650,7 @@ x_window_to_scroll_bar (window_id)
 			 Toolkit scroll bars
  ************************************************************************/
 
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 
 static void x_scroll_bar_to_input_event P_ ((XEvent *, struct input_event *));
 static void x_send_scroll_bar_event P_ ((Lisp_Object, int, int, int));
@@ -8326,7 +8326,7 @@ x_scroll_bar_create (w, top, left, width, height)
 
   BLOCK_INPUT;
 
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
   x_create_toolkit_scroll_bar (f, bar);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   {
@@ -8386,7 +8386,7 @@ x_scroll_bar_create (w, top, left, width, height)
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
   /* Map the window/widget.  */
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
  {
    Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
    XtConfigureWidget (scroll_bar,
@@ -8531,7 +8531,7 @@ x_scroll_bar_remove (bar)
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   BLOCK_INPUT;
 
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
   XtDestroyWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar));
 #else
   XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
@@ -8676,7 +8676,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       UNBLOCK_INPUT;
     }
 
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
   x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   /* Set the scroll bar's current state, unless we're currently being
@@ -9729,7 +9729,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	    case KeyPress:
 	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
-#ifdef USE_MOTIF
+#if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
 	      /* I couldn't find a way to prevent LessTif scroll bars
 	         from consuming key events.  */
 	      if (f == 0)
@@ -9742,7 +9742,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      f = x_any_window_to_frame (dpyinfo, XtWindow (widget));
 		    }
 		}
-#endif /* USE_MOTIF */
+#endif /* USE_MOTIF and USE_TOOLKIT_SCROLL_BARS */
 
 	      if (f != 0)
 		{
@@ -13917,7 +13917,7 @@ x_initialize ()
   }
 #endif
   
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
   xaw3d_arrow_scroll = False;
   xaw3d_pick_top = True;
 #endif
@@ -13972,7 +13972,7 @@ wide as that tab on the display.");
 
   DEFVAR_BOOL ("x-toolkit-scroll-bars-p", &x_toolkit_scroll_bars_p,
     "If not nil, Emacs uses toolkit scroll bars.");
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
   x_toolkit_scroll_bars_p = 1;
 #else
   x_toolkit_scroll_bars_p = 0;
