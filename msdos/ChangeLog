@@ -1,3 +1,7 @@
+2000-04-14  Dave Love  <fx@gnu.org>
+
+	* sed1v2.inp, sed1.inp: Add LIBS, LIBOBJS.
+
 2000-03-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2.inp: Add PROTOTYPES and POINTER_TYPE, per the new

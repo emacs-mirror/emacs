@@ -1,3 +1,19 @@
+2000-04-14  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (LIBS, IBOBJS): New variable.
+	(INTERVAL_SRC): Convert to make variable.
+	(INTERVAL_OBJ, MKTIME_OBJ, FLOAT_SUPPORT, FACE_SUPPORT)
+	(HAVE_X_WINDOWS, OBJECTS_SYSTEM): Remove.
+	(obj): Substitute INTERVAL_OBJ, add MKTIME_OBJ, GETLOADAVG_OBJ and
+	add LIBOBJS.
+	(SOME_MACHINE_OBJECTS): Remove interval stuff.
+	(lisp): Substitute FACE_SUPPORT, FLOAT_SUP.
+	(shortlisp): Add facemenu, float-sup, frame.
+	(SOME_MACHINE_LISP): Remove them from here.
+	(LIBES): Change unused LDLIBS to autoconf LIBS.
+
+	* config.in: Add BROKEN_MKTIME, NLIST_STRUCT, NLIST_NAME_UNION.
+
 2000-04-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.c (update_compositions): If FROM and TO are not in a
