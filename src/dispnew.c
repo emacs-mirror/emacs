@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "cm.h"
 #include "buffer.h"
+#include "charset.h"
 #include "frame.h"
 #include "window.h"
 #include "commands.h"
@@ -42,7 +43,9 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "blockinput.h"
 
-#include "systty.h"
+/* I don't know why DEC Alpha OSF1 fail to compile this file if we
+   include the following file.  */
+/* #include "systty.h" */
 #include "syssignal.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -346,7 +349,7 @@ remake_frame_glyphs (frame)
 
       FRAME_MESSAGE_BUF (frame)
 	= (char *) xrealloc (FRAME_MESSAGE_BUF (frame),
-			     FRAME_WIDTH (frame) + 1);
+			     FRAME_MESSAGE_BUF_SIZE (frame) + 1);
 
       if (echo_area_glyphs == old_message_buf)
 	echo_area_glyphs = FRAME_MESSAGE_BUF (frame);
@@ -355,7 +358,7 @@ remake_frame_glyphs (frame)
     }
   else
     FRAME_MESSAGE_BUF (frame)
-      = (char *) xmalloc (FRAME_WIDTH (frame) + 1);
+      = (char *) xmalloc (FRAME_MESSAGE_BUF_SIZE (frame) + 1);
 
   FRAME_CURRENT_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_DESIRED_GLYPHS (frame) = make_frame_glyphs (frame, 0);
@@ -1114,10 +1117,17 @@ direct_output_forward_char (n)
   register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
   Lisp_Object position;
+  /* This check is redundant.  It's checked at "losing cursor" below.  */
+#if 0
   int hpos = FRAME_CURSOR_X (frame);
 
   /* Give up if in truncated text at end of line.  */
   if (hpos >= WINDOW_LEFT_MARGIN (w) + window_internal_width (w) - 1)
+    return 0;
+#endif /* 0 */
+
+  /* Give up if the buffer's direction is reversed (i.e. right-to-left).  */
+  if (!NILP (XBUFFER(w->buffer)->direction_reversed))
     return 0;
 
   /* Avoid losing if cursor is in invisible text off left margin
@@ -1125,7 +1135,11 @@ direct_output_forward_char (n)
   if ((FRAME_CURSOR_X (frame) == WINDOW_LEFT_MARGIN (w)
        && (XINT (w->hscroll) || n < 0))
       || (n > 0
-	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
+	  && (FRAME_CURSOR_X (frame) + 1 
+	      >= XFASTINT (w->left) + window_internal_width (w) - 1))
+      /* BUG FIX: Added "XFASTINT (w->left)".  Without this,
+	 direct_output_forward_char() always fails on "the right"
+	 window.  */
       || cursor_in_echo_area)
     return 0;
 
@@ -1547,7 +1561,7 @@ update_line (frame, vpos)
   int *temp1;
   int tem;
   int osp, nsp, begmatch, endmatch, olen, nlen;
-  int save;
+  GLYPH save;
   register struct frame_glyphs *current_frame
     = FRAME_CURRENT_GLYPHS (frame);
   register struct frame_glyphs *desired_frame
@@ -1663,8 +1677,10 @@ update_line (frame, vpos)
 	  if (i >= olen || nbody[i] != obody[i])    /* A non-matching char. */
 	    {
 	      cursor_to (vpos, i);
-	      for (j = 1; (i + j < nlen &&
-			   (i + j >= olen || nbody[i+j] != obody[i+j]));
+	      for (j = 1;
+		   (i + j < nlen
+		    && (i + j >= olen || nbody[i + j] != obody[i + j]
+			|| (nbody[i + j] & GLYPH_MASK_PADDING)));
 		   j++);
 
 	      /* Output this run of non-matching chars.  */ 
@@ -1851,8 +1867,24 @@ update_line (frame, vpos)
 	}
       else if (nlen > olen)
 	{
-	  write_glyphs (nbody + nsp + begmatch, olen - tem);
-	  insert_glyphs (nbody + nsp + begmatch + olen - tem, nlen - olen);
+	  /* Here, we used to have the following simple code:
+	     ----------------------------------------
+	     write_glyphs (nbody + nsp + begmatch, olen - tem);
+	     insert_glyphs (nbody + nsp + begmatch + olen - tem, nlen - olen);
+	     ----------------------------------------
+	     but it doesn't work if nbody[nsp + begmatch + olen - tem]
+	     is a padding glyph.  */
+	  int out = olen - tem;	/* Columns to be overwritten originally.  */
+	  int del;
+
+	  /* Calculate columns we can actually overwrite.  */
+	  while (nbody[nsp + begmatch + out] & GLYPH_MASK_PADDING) out--;
+	  write_glyphs (nbody + nsp + begmatch, out);
+	  /* If we left columns to be overwritten. we must delete them.  */
+	  del = olen - tem - out;
+	  if (del > 0) delete_glyphs (del);
+	  /* At last, we insert columns not yet written out.  */
+	  insert_glyphs (nbody + nsp + begmatch + out, nlen - olen + del);
 	  olen = nlen;
 	}
       else if (olen > nlen)
