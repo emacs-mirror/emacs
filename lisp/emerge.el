@@ -2148,7 +2148,10 @@ Use C-u l to reset the windows afterward."
 				       (princ "Ancestor buffer is: ")
 				       (princ (buffer-name))))
 				   (princ "\n")))
-      (princ emerge-output-description))))
+      (princ emerge-output-description)
+      (save-excursion
+	(set-buffer standard-output)
+	(help-mode)))))
 
 (defun emerge-join-differences (arg)
   "Join the selected difference with the following one.
@@ -2989,6 +2992,9 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 ;;			       minor-mode indicator))
 ;;		(princ (documentation minor-mode)))))
 ;;	(setq minor-modes (cdr minor-modes))))
+;;    (save-excursion
+;;      (set-buffer standard-output)
+;;      (help-mode))
 ;;    (print-help-return-message)))
 
 ;; This goes with the redefinition of describe-mode.
