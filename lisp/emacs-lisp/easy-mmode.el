@@ -90,7 +90,8 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
   Before the actual body code, you can write
   keyword arguments (alternating keywords and values).
-  These following keyword arguments are supported:
+  These following keyword arguments are supported (other keywords
+  will be passed to `defcustom' if the minor mode is global):
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
               	buffer-local, so don't make the variable MODE buffer-local.
@@ -101,8 +102,7 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
-    nil \"Foo \" foo-keymap
-    :require 'foo :global t :group 'inconvenience
+    :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
 
   ;; Allow skipping the first three args.
@@ -119,23 +119,26 @@ For example, you could write
 	 (globalp nil)
 	 (group nil)
 	 (extra-args nil)
+	 (extra-keywords nil)
 	 (require t)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
-	 (hook-off (intern (concat mode-name "-off-hook"))))
+	 (hook-off (intern (concat mode-name "-off-hook")))
+	 keyw)
 
     ;; Check keys.
-    (while (keywordp (car body))
-      (case (pop body)
+    (while (keywordp (setq keyw (car body)))
+      (setq body (cdr body))
+      (case keyw
 	(:init-value (setq init-value (pop body)))
 	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
 	(:require (setq require (pop body)))
-	(t (pop body))))
+	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -161,7 +164,7 @@ See the command `%s' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
 			pretty-name mode mode)
-	       :set (lambda (symbol value) (funcall symbol (or value 0)))
+	       :set 'custom-set-minor-mode
 	       :initialize 'custom-initialize-default
 	       ,@group
 	       :type 'boolean
@@ -170,7 +173,8 @@ use either \\[customize] or the function `%s'."
 		  ((not (eq require t)) `(:require ,require))
 		  (t `(:require
 		       ',(intern (file-name-nondirectory
-				  (file-name-sans-extension curfile)))))))))
+				  (file-name-sans-extension curfile))))))
+	       ,@(nreverse extra-keywords))))
 
        ;; The actual function.
        (defun ,mode (&optional arg ,@extra-args)
