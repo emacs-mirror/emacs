@@ -1092,7 +1092,7 @@ calculate_ins_del_char_costs (frame)
 
   /* Delete costs are at negative offsets */
   p = &char_ins_del_cost (frame)[0];
-  for (i = FRAME_WIDTH (selected_frame); --i >= 0;)
+  for (i = FRAME_WIDTH (frame); --i >= 0;)
     *--p = (del_startup_cost += del_cost_per_char);
 
   /* Doing nothing is free */
