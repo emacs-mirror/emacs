@@ -65,7 +65,7 @@ A backup file records the contents that a file had before the current
 editing session.  Emacs makes backup files automatically to help you
 track down or cancel changes you later regret making.  @xref{Backup}.
 
-@item Balance Parentheses
+@item Balancing Parentheses
 Emacs can balance parentheses (or other matching delimiters) either
 manually or automatically.  You do manual balancing with the commands
 to move over parenthetical groupings (@pxref{Moving by Parens}).
@@ -138,6 +138,9 @@ you press down on a mouse button.  @xref{Mouse Buttons}.
 
 @item By Default
 See `default.'
+
+@item Byte Compilation
+See `compilation.'
 
 @item @kbd{C-}
 @kbd{C-} in the name of a character is an abbreviation for Control.
@@ -246,15 +249,16 @@ characters.  @xref{User Input}.
 
 @item Copyleft
 A copyleft is a notice giving the public legal permission to
-redistribute a program or other work of art.  Copyright is normally used
-to keep users divided and helpless; with copyleft we turn that around
-to empower users and encourage them to cooperate.
+redistribute and modify a program or other work of art, but requiring
+modified versions to carry similar permission.  Copyright is normally
+used to keep users divided and helpless; with copyleft we turn that
+around to empower users and encourage them to cooperate.
 
 The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
 
 @item @key{CTRL}
-The @key{CTLR} or ``control'' key is what you hold down
+The @key{CTRL} or ``control'' key is what you hold down
 in order to enter a control character (q.v.).
 
 @item Current Buffer
@@ -263,7 +267,7 @@ commands operate.  You can select any Emacs buffer as the current one.
 @xref{Buffers}.
 
 @item Current Line
-The current line is a line point is on (@pxref{Point}).
+The current line is the line that point is on (@pxref{Point}).
 
 @item Current Paragraph
 The current paragraph is the paragraph that point is in.  If point is
@@ -284,8 +288,9 @@ people speak of `the cursor' when, strictly speaking, they mean
 
 @item Customization
 Customization is making minor changes in the way Emacs works.  It is
-often done by setting variables (@pxref{Variables}) or by rebinding
-key sequences (@pxref{Keymaps}).
+often done by setting variables (@pxref{Variables}) or faces
+(@pxref{Face Customization}), or by rebinding key sequences
+(@pxref{Keymaps}).
 
 @cindex cut and paste
 @item Cut and Paste
@@ -372,9 +377,10 @@ arguments to commands, for asking questions, and showing brief messages
 @samp{*Messages*} so you can review them later.  @xref{Echo Area}.
 
 @item Echoing
-Echoing is acknowledging the receipt of commands by displaying them (in
-the echo area).  Emacs never echoes single-character key sequences;
-longer key sequences echo only if you pause while typing them.
+Echoing is acknowledging the receipt of input events by displaying
+them (in the echo area).  Emacs never echoes single-character key
+sequences; longer key sequences echo only if you pause while typing
+them.
 
 @item Electric
 We say that a character is electric if it is normally self-inserting
@@ -493,16 +499,16 @@ See `page.'
 @item Frame
 A frame is a rectangular cluster of Emacs windows.  Emacs starts out
 with one frame, but you can create more.  You can subdivide each frame
-into Emacs windows (q.v.@:).  When you are using a windowing system, all
-the frames can be visible at the same time.  @xref{Frames}.  Some
-other editors use the term ``window'' for this, but in Emacs a window
-means something else.
+into Emacs windows (q.v.@:).  When you are using a window system
+(q.v.@:), all the frames can be visible at the same time.
+@xref{Frames}.  Some other editors use the term ``window'' for this,
+but in Emacs a window means something else.
 
 @item Fringe
-On windowed displays, there's a narrow portion of the frame (q.v.@:)
-between the text area and the window's border.  Emacs displays the
-fringe using a special face (q.v.@:) called @code{fringe}.
-@xref{Faces,fringe}.
+On a graphical terminal (q.v.@:), there's a narrow portion of the
+frame (q.v.@:) between the text area and the window's border.  Emacs
+displays the fringe using a special face (q.v.@:) called
+@code{fringe}.  @xref{Faces,fringe}.
 
 @item FTP
 FTP is an acronym for File Transfer Protocol.  Emacs uses an FTP client
@@ -549,6 +555,10 @@ Control (q.v.@:) characters are graphic characters.  These include
 letters, digits, punctuation, and spaces; they do not include
 @key{RET} or @key{ESC}.  In Emacs, typing a graphic character inserts
 that character (in ordinary editing modes).  @xref{Inserting Text}.
+
+@item Graphical Terminal
+A graphical terminal is one that can display images and multiple fonts.
+Usually it also has a window system (q.v.@:).
 
 @item Highlighting
 Highlighting text means displaying it with a different foreground and/or
@@ -641,6 +651,9 @@ See `incremental search.'
 Justification means adding extra spaces within lines of text to make
 them extend exactly to a specified width.
 @xref{Format Justification}.
+
+@item Keybinding
+See `binding.'
 
 @item Keyboard Macro
 Keyboard macros are a way of defining new Emacs commands from
@@ -760,6 +773,10 @@ alternative mail composition methods.  @xref{Mail Methods}.
 The Emacs major modes are a mutually exclusive set of options, each of
 which configures Emacs for editing a certain sort of text.  Ideally,
 each programming language has its own major mode.  @xref{Major Modes}.
+
+@item Margin
+The space between the usable part of a window (including the
+fringe) and the window edge.
 
 @item Mark
 The mark points to a position in the text.  It specifies one end of the
@@ -981,7 +998,7 @@ See `regular expression.'
 The region is the text between point (q.v.@:) and the mark (q.v.@:).
 Many commands operate on the text of the region.  @xref{Mark,Region}.
 
-@item Registers
+@item Register
 Registers are named slots in which text or buffer positions or
 rectangles can be saved for later use.  @xref{Registers}.  A related
 Emacs feature is `bookmarks' (q.v.@:).
@@ -1054,7 +1071,15 @@ applications can use it for transferring text to and from other
 applications.  Emacs has special mouse commands for transferring text
 using the secondary selection.  @xref{Secondary Selection}.
 
-@item Selecting
+@item Selected Frame
+The selected frame is the one your input currently operates on.
+@xref{Frames}.
+
+@item Selected Window
+The selected frame is the one your input currently operates on.
+@xref{Basic Window}.
+
+@item Selecting a Buffer
 Selecting a buffer means making it the current (q.v.@:) buffer.
 @xref{Select Buffer}.
 
@@ -1100,7 +1125,7 @@ warns one of the users to investigate.
 space bar.
 
 @item Speedbar
-Speedbar is a special tall frame that provides fast access to Emacs
+The speedbar is a special tall frame that provides fast access to Emacs
 buffers, functions within those buffers, Info nodes, and other
 interesting parts of text within Emacs.  @xref{Speedbar}.
 
@@ -1261,6 +1286,10 @@ can display the contents of one buffer (q.v.@:) at any time.
 @xref{Windows}, for commands to control the use of windows.  Some
 other editors use the term ``window'' for what we call a `frame'
 (q.v.@:) in Emacs.
+
+@item Window System
+A window system is a graphical terminal (q.v.@:) that can display multiple
+windows for different programs at the same time.
 
 @item Word Abbrev
 See `abbrev.'

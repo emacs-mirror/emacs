@@ -35,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "coding.h"
 
-#ifndef MAC_OSX
+#if !TARGET_API_MAC_CARBON
 #include <MacTypes.h>
 #include <Menus.h>
 #include <QuickDraw.h>
@@ -47,7 +47,7 @@ Boston, MA 02111-1307, USA.  */
 #if defined (__MRC__) || (__MSL__ >= 0x6000)
 #include <ControlDefinitions.h>
 #endif
-#endif /* not MAC_OSX */
+#endif /* not TARGET_API_MAC_CARBON */
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */

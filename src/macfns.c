@@ -2294,8 +2294,6 @@ XParseGeometry (string, x, y, width, height)
 
 /* Create and set up the Mac window for frame F.  */
 
-extern OSErr install_window_handler (WindowPtr);
-
 static void
 mac_window (f)
      struct frame *f;
@@ -4356,7 +4354,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	options.actionButtonLabel = CFSTR ("Ok");
 	options.windowTitle = CFSTR ("Enter name");
 
-	if (!NILP(default_filename))
+	if (STRINGP (default_filename))
 	  {
 	    Lisp_Object utf8 = ENCODE_UTF_8 (default_filename);
 	    char *begPtr = SDATA(utf8);
@@ -4381,21 +4379,28 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
       }
     
     /* Set the default location and continue*/
-    if (status == noErr) {
-      if (!NILP(dir)) {
-	FSRef defLoc;
+    if (status == noErr)
+      {
 	AEDesc defLocAed;
+#ifdef MAC_OSX
+	FSRef defLoc;
 	status = FSPathMakeRef(SDATA(ENCODE_FILE(dir)), &defLoc, NULL);
+#else
+	FSSpec defLoc;
+	status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (dir)), &defLoc);
+#endif
 	if (status == noErr) 
 	  {
+#ifdef MAC_OSX
 	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
+#else
+	    AECreateDesc(typeFSS, &defLoc, sizeof(FSSpec), &defLocAed);
+#endif
 	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
 	    AEDisposeDesc(&defLocAed);
 	  }
+	status = NavDialogRun(dialogRef);
       }
-
-      status = NavDialogRun(dialogRef);
-    }
 
     if (saveName) CFRelease(saveName);
     if (message) CFRelease(message);
@@ -4413,11 +4418,22 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	  {
 	    NavReplyRecord reply;
 	    AEDesc aed;
+#ifdef MAC_OSX
 	    FSRef fsRef;
+#else
+	    FSSpec fs;
+#endif
 	    status = NavDialogGetReply(dialogRef, &reply);
+
+#ifdef MAC_OSX
 	    AECoerceDesc(&reply.selection, typeFSRef, &aed);
 	    AEGetDescData(&aed, (void *) &fsRef, sizeof (FSRef));
 	    FSRefMakePath(&fsRef, (UInt8 *) filename, sizeof (filename));
+#else
+	    AECoerceDesc (&reply.selection, typeFSS, &aed);
+	    AEGetDescData (&aed, (void *) &fs, sizeof (FSSpec));
+	    fsspec_to_posix_pathname (&fs, filename, sizeof (filename) - 1);
+#endif
 	    AEDisposeDesc(&aed);
 	    if (reply.saveFileName)
 	      {

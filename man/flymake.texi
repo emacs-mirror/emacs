@@ -419,19 +419,16 @@ checking.
 First, we write the @code{init-function}:
 
 @lisp
-(defun flymake-perl-init(buffer)
-    (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-			     buffer
-			     'flymake-create-temp-inplace))
-		   (local-file  (concat (flymake-build-relative-path
-				  (file-name-directory
-				    (buffer-file-name
-				      (current-buffer)))
-							      (file-name-directory temp-file))
-								(file-name-nondirectory temp-file))))
-	(list "perl" (list "-wc " local-file))
-	)
-)
+(defun flymake-perl-init (buffer)
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                     buffer 'flymake-create-temp-inplace))
+         (local-file  (concat (flymake-build-relative-path
+                               (file-name-directory
+                                (buffer-file-name
+                                 (current-buffer)))
+                               (file-name-directory temp-file))
+                              (file-name-nondirectory temp-file))))
+    (list "perl" (list "-wc " local-file))))
 @end lisp
 
 @code{flymake-perl-init} creates a temporary copy of the buffer
@@ -444,11 +441,11 @@ Next, we add a new entry to the
 
 @lisp
 (setq flymake-allowed-file-name-masks
-	  (cons '(".+\\.pl$"
-	  flymake-perl-init
-	  flymake-simple-cleanup
-	  flymake-get-real-file-name)
-	flymake-allowed-file-name-masks))
+      (cons '(".+\\.pl$"
+              flymake-perl-init
+              flymake-simple-cleanup
+              flymake-get-real-file-name)
+            flymake-allowed-file-name-masks))
 @end lisp
 
 Note that we use standard @code{cleanup-function} and
@@ -458,8 +455,9 @@ Finally, we add an entry to @code{flymake-err-line-patterns}:
 
 @lisp
 (setq flymake-err-line-patterns
-	  (cons '("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1)
-			flymake-err-line-patterns))
+      (cons '("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]"
+              2 3 nil 1)
+            flymake-err-line-patterns))
 @end lisp
 
 @node Example -- Configuring a tool called via make
@@ -475,11 +473,11 @@ functions for @code{make}. We just add a new entry to the
 
 @lisp
 (setq flymake-allowed-file-name-masks
-	  (cons '(".+\\.c$"
-	    flymake-simple-make-init
-	    flymake-simple-cleanup
-	    flymake-get-real-file-name)
-      flymake-allowed-file-name-masks))
+      (cons '(".+\\.c$"
+              flymake-simple-make-init
+              flymake-simple-cleanup
+              flymake-get-real-file-name)
+            flymake-allowed-file-name-masks))
 @end lisp
 
 @code{flymake-simple-make-init} builds the following @code{make}
@@ -487,12 +485,11 @@ command line:
 
 @lisp
 (list "make"
-    (list "-s"
-		  "-C"
-		   base-dir
-		  (concat "CHK_SOURCES=" source)
-		  "SYNTAX_CHECK_MODE=1"
-		  "check-syntax"))
+      (list "-s" "-C"
+            base-dir
+            (concat "CHK_SOURCES=" source)
+            "SYNTAX_CHECK_MODE=1"
+            "check-syntax"))
 @end lisp
 
 @code{base-dir} is a directory containing @code{Makefile}, see @ref{Locating the buildfile}.
@@ -748,12 +745,11 @@ Flymake also provides an alternative command for starting compilation,
 @code{flymake-compile}:
 
 @lisp
-(defun flymake-compile()
-    "kill all flymake syntax checks, start compilation"
-    (interactive)
-    (flymake-stop-all-syntax-checks)
-    (call-interactively 'compile)
-)
+(defun flymake-compile ()
+  "Kill all flymake syntax checks then start compilation."
+  (interactive)
+  (flymake-stop-all-syntax-checks)
+  (call-interactively 'compile))
 @end lisp
 
 It just kills all the active syntax check processes before calling

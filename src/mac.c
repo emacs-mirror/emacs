@@ -25,20 +25,8 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
-#include <utime.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <pwd.h>
-#include <grp.h>
-#include <sys/param.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#if __MWERKS__
-#include <unistd.h>
-#endif
 
+#ifdef HAVE_CARBON
 #ifdef MAC_OSX
 #undef mktime
 #undef DEBUG
@@ -57,7 +45,12 @@ Boston, MA 02111-1307, USA.  */
 #define realloc unexec_realloc
 #undef init_process
 #define init_process emacs_init_process
-#else /* not MAC_OSX */
+#else  /* not MAC_OSX */
+#undef SIGHUP
+#define OLDP2C 1
+#include <Carbon.h>
+#endif	/* not MAC_OSX */
+#else	/* not HAVE_CARBON */
 #include <Files.h>
 #include <MacTypes.h>
 #include <TextUtils.h>
@@ -69,7 +62,24 @@ Boston, MA 02111-1307, USA.  */
 #include <OSA.h>
 #include <AppleScript.h>
 #include <Scrap.h>
-#endif /* not MAC_OSX */
+#include <Events.h>
+#include <Processes.h>
+#include <EPPC.h>
+#endif	/* not HAVE_CARBON */
+
+#include <utime.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/param.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#if __MWERKS__
+#include <unistd.h>
+#endif
 
 #include "lisp.h"
 #include "process.h"
@@ -812,8 +822,6 @@ sys_fopen (const char *name, const char *mode)
 }
 
 
-#include <Events.h>
-
 long target_ticks = 0;
 
 #ifdef __MRC__
@@ -856,7 +864,24 @@ select (n,  rfds, wfds, efds, timeout)
   struct timeval *timeout;
 {
 #if TARGET_API_MAC_CARBON
-  return 1;
+  OSErr err;
+  EventTimeout timeout_sec =
+    (timeout
+     ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+     : kEventDurationForever);
+
+  if (FD_ISSET (0, rfds))
+    {
+      BLOCK_INPUT;
+      err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
+      UNBLOCK_INPUT;
+      if (err == noErr)
+	return 1;
+      else
+	FD_ZERO (rfds);
+    }
+  return 0;
 #else /* not TARGET_API_MAC_CARBON */
   EventRecord e;
   UInt32 sleep_time = EMACS_SECS (*timeout) * 60 +
@@ -1421,6 +1446,39 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
   return 1;  /* success */
 }
 
+
+OSErr
+posix_pathname_to_fsspec (ufn, fs)
+     const char *ufn;
+     FSSpec *fs;
+{
+  Str255 mac_pathname;
+
+  if (posix_to_mac_pathname (ufn, mac_pathname, sizeof (mac_pathname)) == 0)
+    return fnfErr;
+  else
+    {
+      c2pstr (mac_pathname);
+      return FSMakeFSSpec (0, 0, mac_pathname, fs);
+    }
+}
+
+OSErr
+fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
+     const FSSpec *fs;
+     char *ufn;
+     int ufnbuflen;
+{
+  char mac_pathname[MAXPATHLEN];
+
+  if (path_from_vol_dir_name (mac_pathname, sizeof (mac_pathname) - 1,
+			      fs->vRefNum, fs->parID, fs->name)
+      && mac_to_posix_pathname (mac_pathname, ufn, ufnbuflen))
+    return noErr;
+  else
+    return fnfErr;
+}
+
 #ifndef MAC_OSX
 
 int
@@ -1898,9 +1956,6 @@ uname (struct utsname *name)
     return -1;
 }
 
-
-#include <Processes.h>
-#include <EPPC.h>
 
 /* Event class of HLE sent to subprocess.  */
 const OSType kEmacsSubprocessSend = 'ESND';
@@ -2770,7 +2825,6 @@ and t is the same as `SECONDARY'.  */)
   return Qnil;
 }
 
-extern void mac_clear_font_name_table P_ ((void));
 
 DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
        doc: /* Clear the font name table.  */)

@@ -135,6 +135,7 @@ the command `insert-file-contents'."
 	  (setq truncate-lines t))))
     rval))
 
+(put 'image-file-handler 'safe-magic t)
 (defun image-file-handler (operation &rest args)
   "Filename handler for inserting image files.
 OPERATION is the operation to perform, on ARGS.

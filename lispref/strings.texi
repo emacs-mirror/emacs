@@ -691,8 +691,8 @@ in the copy with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
-are copied directly into the output; starting in Emacs 21, if they have
-text properties, these are copied into the output also.
+are copied directly into the output; if they have text properties,
+these are copied into the output also.
 @end defun
 
 @cindex @samp{%} in format
@@ -732,7 +732,7 @@ made without quoting (that is, using @code{princ}, not
 by their contents alone, with no @samp{"} characters, and symbols appear
 without @samp{\} characters.
 
-Starting in Emacs 21, if the object is a string, its text properties are
+If the object is a string, its text properties are
 copied into the output.  The text properties of the @samp{%s} itself
 are also copied, but those of the object take priority.
 

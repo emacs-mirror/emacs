@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
+@c Copyright (C) 1992, 1993, 1994, 1998, 1999, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -99,7 +99,7 @@ which stops execution.  @xref{Edebug Execution Modes}.
 the Lisp code you are debugging.  This is referred to as the @dfn{source
 code buffer}, and it is temporarily read-only.
 
-  An arrow at the left margin indicates the line where the function is
+  An arrow in the left fringe indicates the line where the function is
 executing.  Point initially shows where within the line the function is
 executing, but this ceases to be true if you move point yourself.
 
@@ -158,16 +158,15 @@ into it, to invoke Edebug at the proper places.
 
 @kindex C-M-x
 @findex eval-defun (Edebug)
-  Once you have loaded Edebug, the command @kbd{C-M-x}
-(@code{eval-defun}) is redefined so that when invoked with a prefix
-argument on a definition, it instruments the definition before
-evaluating it.  (The source code itself is not modified.)  If the
-variable @code{edebug-all-defs} is non-@code{nil}, that inverts the
-meaning of the prefix argument: in this case, @kbd{C-M-x} instruments the
-definition @emph{unless} it has a prefix argument.  The default value of
-@code{edebug-all-defs} is @code{nil}.  The command @kbd{M-x
-edebug-all-defs} toggles the value of the variable
-@code{edebug-all-defs}.
+  When you invoke command @kbd{C-M-x} (@code{eval-defun}) with a
+prefix argument on a function definition, it instruments the
+definition before evaluating it.  (This does not modify the source
+code itself.)  If the variable @code{edebug-all-defs} is
+non-@code{nil}, that inverts the meaning of the prefix argument: in
+this case, @kbd{C-M-x} instruments the definition @emph{unless} it has
+a prefix argument.  The default value of @code{edebug-all-defs} is
+@code{nil}.  The command @kbd{M-x edebug-all-defs} toggles the value
+of the variable @code{edebug-all-defs}.
 
 @findex eval-region @r{(Edebug)}
 @findex eval-current-buffer @r{(Edebug)}
@@ -302,11 +301,12 @@ executing a keyboard macro outside of Edebug does not affect commands
 inside Edebug.  This is usually an advantage.  See also the
 @code{edebug-continue-kbd-macro} option (@pxref{Edebug Options}).
 
-When you enter a new Edebug level, the initial execution mode comes from
-the value of the variable @code{edebug-initial-mode}.  By default, this
-specifies step mode.  Note that you may reenter the same Edebug level
-several times if, for example, an instrumented function is called
-several times from one command.
+When you enter a new Edebug level, the initial execution mode comes
+from the value of the variable @code{edebug-initial-mode}.
+(@xref{Edebug Options}.)  By default, this specifies step mode.  Note
+that you may reenter the same Edebug level several times if, for
+example, an instrumented function is called several times from one
+command.
 
 @defopt edebug-sit-for-seconds
 This option specifies how many seconds to wait between execution steps
@@ -1082,7 +1082,7 @@ the @code{for} example macro (@pxref{Argument Evaluation}).
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
-  (declare (edebug symbolp "from" form "to" form "do" &rest form))
+  (declare (debug symbolp "from" form "to" form "do" &rest form))
   ...)
 @end example
 

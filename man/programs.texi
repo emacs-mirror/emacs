@@ -1326,8 +1326,8 @@ symbol names.
 partial symbol before point against the set of meaningful symbol
 names.  This command inserts at point any additional characters that
 it can determine from the partial name.  (If your window manager
-defines @kbd{M-@key{TAB}} to switch windows, you can type this Emacs
-command as @kbd{@key{ESC} @key{TAB}}.)
+defines @kbd{M-@key{TAB}} to switch windows, you can type
+@kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.)
 
   If the partial name in the buffer has multiple possible completions
 that differ in the very next character, so that it is impossible to

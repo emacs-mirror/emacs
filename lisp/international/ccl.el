@@ -1305,7 +1305,9 @@ CCL-PROGRAM has this form:
 
 BUFFER_MAGNIFICATION is an integer value specifying the approximate
 output buffer magnification size compared with the bytes of input data
-text.  If the value is zero, the CCL program can't execute `read' and
+text.  It is assured that the actual output buffer has 256 bytes
+more than the size calculated by BUFFER_MAGNIFICATION.
+If the value is zero, the CCL program can't execute `read' and
 `write' commands.
 
 CCL_MAIN_CODE and CCL_EOF_CODE are CCL program codes.  CCL_MAIN_CODE

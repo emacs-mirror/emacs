@@ -415,6 +415,7 @@ This functions is called after Emacs has been idle for
   (unless (or executing-kbd-macro
 	      (window-minibuffer-p (selected-window)))
     (let ((buffers (buffer-list))
+	  (outer-buffer (current-buffer))
 	  minibuffer-auto-raise
 	  message-log-max)
       (with-local-quit
@@ -449,7 +450,10 @@ This functions is called after Emacs has been idle for
 		      (point (point-min)))
 		  (while (and (setq start
 				    (jit-lock-stealth-chunk-start point))
-			      (sit-for nice))
+			      ;; In case sit-for runs any timers,
+			      ;; give them the expected current buffer.
+			      (with-current-buffer outer-buffer
+				(sit-for nice)))
 
 		    ;; fontify a block.
 		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
@@ -461,7 +465,10 @@ This functions is called after Emacs has been idle for
 		    ;; Wait a little if load is too high.
 		    (when (and jit-lock-stealth-load
 			       (> (car (load-average)) jit-lock-stealth-load))
-		      (sit-for (or jit-lock-stealth-time 30)))))))))))))
+		      ;; In case sit-for runs any timers,
+		      ;; give them the expected current buffer.
+		      (with-current-buffer outer-buffer
+			(sit-for (or jit-lock-stealth-time 30))))))))))))))
 
 
 

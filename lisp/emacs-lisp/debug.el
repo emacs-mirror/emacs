@@ -51,15 +51,11 @@ the middle is discarded, and just the beginning and end are displayed."
   :group 'debugger
   :version "21.1")
 
-(defcustom debug-function-list nil
-  "List of functions currently set for debug on entry."
-  :type '(repeat function)
-  :group 'debugger)
+(defvar debug-function-list nil
+  "List of functions currently set for debug on entry.")
 
-(defcustom debugger-step-after-exit nil
-  "Non-nil means \"single-step\" after the debugger exits."
-  :type 'boolean
-  :group 'debugger)
+(defvar debugger-step-after-exit nil
+  "Non-nil means \"single-step\" after the debugger exits.")
 
 (defvar debugger-value nil
   "This is the value for the debugger to return, when it returns.")
@@ -98,7 +94,8 @@ This is to optimize `debugger-make-xrefs'.")
 
 (defvar debugger-jumping-flag nil
   "Non-nil means that debug-on-entry is disabled.
-This variable is used by `debugger-jump' and `debugger-reenable'.")
+This variable is used by `debugger-jump', `debugger-step-through',
+and `debugger-reenable' to temporarily disable debug-on-entry.")
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.
@@ -388,6 +385,8 @@ That buffer should be current already."
 Enter another debugger on next entry to eval, apply or funcall."
   (interactive)
   (setq debugger-step-after-exit t)
+  (setq debugger-jumping-flag t)
+  (add-hook 'post-command-hook 'debugger-reenable)
   (message "Proceeding, will debug on next eval or call.")
   (exit-recursive-edit))
 
@@ -697,25 +696,24 @@ If argument is nil or an empty string, cancel for all functions."
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
 (defun debug-on-entry-1 (function defn flag)
-  (if (subrp defn)
-      (error "%s is a built-in function" function)
-    (if (eq (car defn) 'macro)
-	(debug-on-entry-1 function (cdr defn) flag)
-      (or (eq (car defn) 'lambda)
-	  (error "%s not user-defined Lisp function" function))
-      (let ((tail (cdr defn)))
-	;; Skip the docstring.
-	(when (and (stringp (cadr tail)) (cddr tail))
-	  (setq tail (cdr tail)))
-	;; Skip the interactive form.
-	(when (eq 'interactive (car-safe (cadr tail)))
-	  (setq tail (cdr tail)))
-	(unless (eq flag (equal (cadr tail) debug-entry-code))
-	  ;; Add/remove debug statement as needed.
-	  (if flag
-	      (setcdr tail (cons debug-entry-code (cdr tail)))
-	    (setcdr tail (cddr tail))))
-	defn))))
+  (let ((tail defn))
+    (if (subrp tail)
+	(error "%s is a built-in function" function)
+      (if (eq (car tail) 'macro) (setq tail (cdr tail)))
+      (if (eq (car tail) 'lambda) (setq tail (cdr tail))
+	(error "%s not user-defined Lisp function" function))
+      ;; Skip the docstring.
+      (when (and (stringp (cadr tail)) (cddr tail))
+	(setq tail (cdr tail)))
+      ;; Skip the interactive form.
+      (when (eq 'interactive (car-safe (cadr tail)))
+	(setq tail (cdr tail)))
+      (unless (eq flag (equal (cadr tail) debug-entry-code))
+	;; Add/remove debug statement as needed.
+	(if flag
+	    (setcdr tail (cons debug-entry-code (cdr tail)))
+	  (setcdr tail (cddr tail))))
+      defn)))
 
 (defun debugger-list-functions ()
   "Display a list of all the functions now set to debug on entry."

@@ -45,7 +45,7 @@ switch to other buffers while in the middle of composing mail, and switch
 back later (or never).  If you use the @kbd{C-x m} command again when you
 have been composing another message but have not sent it, you are asked to
 confirm before the old message is erased.  If you answer @kbd{n}, the
-@samp{*mail*} buffer is left selected with its old contents, so you can
+@samp{*mail*} buffer remains selected with its old contents, so you can
 finish the old message and send it.  @kbd{C-u C-x m} is another way to do
 this.  Sending the message marks the @samp{*mail*} buffer ``unmodified,''
 which avoids the need for confirmation when @kbd{C-x m} is next used.
@@ -289,7 +289,21 @@ this line:@refill
 alias maingnu gnu@@gnu.org local-gnu
 @end example
 
-  Emacs also recognizes include commands in @samp{.mailrc} files.
+@noindent
+Addresses specified in this way should use doublequotes around an
+entire address when the address contains spaces.  But you need not
+include doublequotes around parts of the address, such as the person's
+full name.  Emacs puts them in if they are needed.  For example,
+
+@example
+alias chief-torturer "George W. Bush <bush@@whitehouse.gov>"
+@end example
+
+@noindent
+is correct.  Emacs will insert the address as @samp{"George W. Bush"
+<bush@@whitehouse.gov>}.
+
+  Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
 They look like this:
 
 @example
@@ -363,12 +377,10 @@ expansion as well.  Here's how to do that:
 @smallexample
 (add-hook 'mail-mode-hook
           (lambda ()
-            (substitute-key-definition
-              'next-line 'mail-abbrev-next-line
-              mail-mode-map global-map)
-            (substitute-key-definition
-              'end-of-buffer 'mail-abbrev-end-of-buffer
-              mail-mode-map global-map)))
+            (define-key
+              mail-mode-map [remap next-line] 'mail-abbrev-next-line)
+            (define-key
+              mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
 @end smallexample
 
 @node Mail Mode
@@ -503,8 +515,8 @@ inserts the full name corresponding to the address, if it can
 determine the full name.  The variable @code{mail-complete-style}
 controls whether to insert the full name, and what style to use, as in
 @code{mail-from-style} (@pxref{Mail Headers}).  (If your window
-manager defines @kbd{M-@key{TAB}} to switch windows, you can type this
-Emacs command as @kbd{@key{ESC} @key{TAB}}.)
+manager defines @kbd{M-@key{TAB}} to switch windows, you can type
+@kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.)
 
   For completion purposes, the valid mailing addresses are taken to be
 the local users' names plus your personal mail aliases.  You can
@@ -626,7 +638,8 @@ the usual command to insert a file in the current buffer.  But it is
 often more convenient to use a special command, @kbd{C-c C-i}
 (@code{mail-attach-file}).  This command inserts the file contents at
 the end of the buffer, after your signature if any, with a delimiter
-line that includes the file name.
+line that includes the file name.  Note that this is not a MIME
+attachment.
 
 @vindex mail-mode-hook
 @vindex mail-setup-hook

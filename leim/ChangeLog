@@ -1,3 +1,8 @@
+2005-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* quail/latin-pre.el ("latin-1-prefix"): Add rule "__"->"_".
+	("latin-9-prefix"): Add rules "__"->"_", "_ "->NBSP.
+
 2004-12-04  Kenichi Handa  <handa@m17n.org>
 
 	* quail/lao.el (lao-key-alist): Declare it by defvar.

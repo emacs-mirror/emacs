@@ -77,7 +77,7 @@ of the various commands and major modes for further information.
 @end ifnottex
 
 @menu
-* About PCL-CVS::               Installation, credits, history, @dots{}
+* About PCL-CVS::               Credits, history, @dots{}
 
 * Getting started::             An introduction with a walk-through example.
 * Buffer contents::             An explanation of the buffer contents.
@@ -100,7 +100,6 @@ of the various commands and major modes for further information.
 About PCL-CVS
 
 * Contributors::                Contributors to PCL-CVS.
-* Installation::
 
 Commands
 
@@ -152,14 +151,11 @@ separate XEmacs version was slowly splitting away.  In late 1998,
 Stefan Monnier picked up development again, adding some major new
 functionality and taking over the maintenance.
 
-As of Emacs 21, PCL-CVS is part of the standard Emacs distribution.
-
 @menu
 * Contributors::                Contributors to PCL-CVS.
-* Installation::
 @end menu
 
-@node     Contributors, Installation, About PCL-CVS, About PCL-CVS
+@node     Contributors,, About PCL-CVS, About PCL-CVS
 @section Contributors to PCL-CVS
 @cindex Contributors
 @cindex Authors
@@ -234,39 +230,6 @@ superseded by the new @code{cvs-status-mode}.
 Apart from these, a lot of people have sent us suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of PCL-CVS.
-
-
-@node   Installation,  , Contributors, About PCL-CVS
-@section Installation
-@cindex Installation
-
-As mentioned above, PCL-CVS comes bundled with Emacs version 21.1 and
-later.  If you're using Emacs 20, you can download an older version of
-PCL-CVS from @uref{ftp://flint.cs.yale.edu/pub/monnier/pcl-cvs}.  That
-version also works on XEmacs.
-
-If you are running XEmacs 21.0 or later, PCL-CVS is available in
-pre-compiled package form.  Please refer to the XEmacs manual for
-instructions regarding package selection and installation.  Currently,
-that PCL-CVS package also requires you to have installed the
-@file{xemacs-base}, @file{elib}, and @file{dired} packages.
-
-If you have @TeX{} installed at your site, you can make a typeset manual
-from @file{pcl-cvs.texi}.
-
-@enumerate
-@item
-If PCL-CVS came with the Emacs distribution, type @kbd{make pcl-cvs.dvi}
-in the @file{man} subdirectory of the Emacs source tree.
-@item
-Alternatively, run @TeX{} by typing @kbd{texi2dvi pcl-cvs.texi}.
-@item
-Convert the resulting device independent file @file{pcl-cvs.dvi} to a
-form which your printer can output and print it.  If you have a
-PostScript printer, there is a program, @code{dvi2ps}, which does.  There
-is also a program which comes together with @TeX{}, @code{dvips}, which
-you can use.
-@end enumerate
 
 
 @node Getting started, Buffer contents, About PCL-CVS, Top

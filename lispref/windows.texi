@@ -1583,7 +1583,7 @@ Replaces three keystroke sequence C-u 0 C-l."
 
   @dfn{Vertical fractional scrolling} means shifting the image in the
 window up or down by a specified multiple or fraction of a line.
-Starting in Emacs 21, each window has a @dfn{vertical scroll position},
+Each window has a @dfn{vertical scroll position},
 which is a number, never less than zero.  It specifies how far to raise
 the contents of the window.  Raising the window contents generally makes
 all or part of some lines disappear off the top, and all or part of some
@@ -2053,7 +2053,6 @@ and @code{nil} otherwise.
 If this variable is non-@code{nil}, in any given buffer,
 then the size of any window displaying the buffer remains fixed
 unless you explicitly change it or Emacs has no other choice.
-(This feature is new in Emacs 21.)
 
 If the value is @code{height}, then only the window's height is fixed;
 if the value is @code{width}, then only the window's width is fixed.

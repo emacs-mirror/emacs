@@ -99,7 +99,7 @@ GNU Emacs and MH@.  Now I'm fully hooked on both of them.
 @cindex history
 
 The mh-e package is distributed with GNU Emacs, @footnote{Note that
-mh-e is supported with MH 6 and @w{Emacs 18} through @w{Emacs 21}.
+mh-e is supported with MH 6 and @w{Emacs 18} and up.
 Reportedly, large parts of it work with @w{MH 5} and also with
 Lucid/XEmacs and Epoch, but there are no guarantees. It is also
 distributed with Lucid/XEmacs, as well as with MH itself.} so you

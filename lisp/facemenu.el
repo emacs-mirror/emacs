@@ -39,8 +39,8 @@
 ;; modifications before inserting or typing anything.
 ;;
 ;; Faces can be selected from the keyboard as well.
-;; The standard keybindings are M-g (or ESC g) + letter:
-;; M-g i = "set italic",  M-g b = "set bold", etc.
+;; The standard keybindings are M-o (or ESC o) + letter:
+;; M-o i = "set italic",  M-o b = "set bold", etc.
 
 ;;; Customization:
 ;; An alternative set of keybindings that may be easier to type can be set up
@@ -91,12 +91,12 @@
   (require 'button))
 
 ;;; Provide some binding for startup:
-;;;###autoload (define-key global-map "\M-g" 'facemenu-keymap)
+;;;###autoload (define-key global-map "\M-o" 'facemenu-keymap)
 ;;;###autoload (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
 
 ;; Global bindings:
 (define-key global-map [C-down-mouse-2] 'facemenu-menu)
-(define-key global-map "\M-g" 'facemenu-keymap)
+(define-key global-map "\M-o" 'facemenu-keymap)
 
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text"
@@ -513,17 +513,17 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
      'face (cons 'background-color (car color)))
     (put-text-property
      (prog1 (point)
-       (insert "  " (if (cdr color)
-			(mapconcat 'identity (cdr color) ", ")
-		      (car color)))
-       (indent-to (max (- (window-width) 8) 44))
-       (insert (apply 'format " #%02x%02x%02x"
-		      (mapcar (lambda (c) (lsh c -8))
-			      (color-values (car color)))))
-
-       (insert "\n"))
+       (insert " " (if (cdr color)
+		       (mapconcat 'identity (cdr color) ", ")
+		     (car color))))
      (point)
-     'face (cons 'foreground-color (car color))))
+     'face (cons 'foreground-color (car color)))
+    (indent-to (max (- (window-width) 8) 44))
+    (insert (apply 'format "#%02x%02x%02x"
+		   (mapcar (lambda (c) (lsh c -8))
+			   (color-values (car color)))))
+
+    (insert "\n"))
   (goto-char (point-min)))
 
 (defun list-colors-duplicates (&optional list)
@@ -539,8 +539,8 @@ a list of colors that the current display can handle."
 	 (l list))
     (while (cdr l)
       (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
-	       (not (and (boundp 'w32-default-color-map)
-			 (not (assoc (car (car l)) w32-default-color-map)))))
+	       (not (if (boundp 'w32-default-color-map)
+			(not (assoc (car (car l)) w32-default-color-map)))))
 	  (progn
 	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
 	    (setcdr l (cdr (cdr l))))

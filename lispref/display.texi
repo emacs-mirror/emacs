@@ -19,7 +19,6 @@ that Emacs presents to the user.
 * Progress::            Informing user about progress of a long operation.
 * Invisible Text::      Hiding part of the buffer text.
 * Selective Display::   Hiding part of the buffer text (the old way).
-* Overlay Arrow::       Display of an arrow to indicate position.
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::            Use overlays to highlight parts of the buffer.
 * Width::               How wide a character or string is on the screen.
@@ -27,8 +26,6 @@ that Emacs presents to the user.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
-* Fringe Bitmaps::      Displaying bitmaps in the window fringes.
-* Customizing Bitmaps:: Specifying your own bitmaps to use in the fringes.
 * Scroll Bars::         Controlling vertical scroll bars.
 * Pointer Shape::       Controlling the mouse pointer shape.
 * Display Property::    Enabling special display features.
@@ -45,29 +42,30 @@ that Emacs presents to the user.
 @node Refresh Screen
 @section Refreshing the Screen
 
-The function @code{redraw-frame} redisplays the entire contents of a
-given frame (@pxref{Frames}).
+  The function @code{redraw-frame} clears and redisplays the entire
+contents of a given frame (@pxref{Frames}).  This is useful if the
+screen is corrupted.
 
 @c Emacs 19 feature
 @defun redraw-frame frame
 This function clears and redisplays frame @var{frame}.
 @end defun
 
-Even more powerful is @code{redraw-display}:
+  Even more powerful is @code{redraw-display}:
 
 @deffn Command redraw-display
 This function clears and redisplays all visible frames.
 @end deffn
 
-  This function forces certain windows to be redisplayed
-but does not clear them.
+  This function calls for redisplay of certain windows, the next time
+redisplay is done, but does not clear them first.
 
-@defun force-window-update object
+@defun force-window-update &optional object
 This function forces redisplay of some or all windows.  If
 @var{object} is a window, it forces redisplay of that window.  If
 @var{object} is a buffer or buffer name, it forces redisplay of all
-windows displaying that buffer.  If @var{object} is @code{nil}, it
-forces redisplay of all windows.
+windows displaying that buffer.  If @var{object} is @code{nil} (or
+omitted), it forces redisplay of all windows.
 @end defun
 
   Processing user input takes absolute priority over redisplay.  If you
@@ -102,8 +100,7 @@ binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 @defvar redisplay-dont-pause
 If this variable is non-@code{nil}, pending input does not
 prevent or halt redisplay; redisplay occurs, and finishes,
-regardless of whether input is available.  This feature is available
-as of Emacs 21.
+regardless of whether input is available.
 @end defvar
 
   You can request a display update, but only if no input is pending,
@@ -131,8 +128,8 @@ the rightmost column indicates a line that ``wraps'' onto the next line,
 which is also called @dfn{continuing} the line.  (The display table can
 specify alternative indicators; see @ref{Display Tables}.)
 
-  On a windowed display, the @samp{$} and @samp{\} indicators are
-replaced with graphics bitmaps displayed in the window fringes
+  On a window system display, the @samp{$} and @samp{\} indicators are
+replaced with arrow images displayed in the window fringes
 (@pxref{Fringes}).
 
   Note that continuation is different from filling; continuation happens
@@ -165,9 +162,6 @@ If it is non-@code{nil}, these lines are truncated; otherwise,
   When horizontal scrolling (@pxref{Horizontal Scrolling}) is in use in
 a window, that forces truncation.
 
-  You can override the glyphs that indicate continuation or truncation
-using the display table; see @ref{Display Tables}.
-
   If your buffer contains @emph{very} long lines, and you use
 continuation to display them, just thinking about them can make Emacs
 redisplay slow.  The column computation and indentation functions also
@@ -190,14 +184,14 @@ This variable is automatically buffer-local in every buffer.
 @cindex error display
 @cindex echo area
 
-The @dfn{echo area} is used for displaying messages made with the
-@code{message} primitive, and for echoing keystrokes.  It is not the
-same as the minibuffer, despite the fact that the minibuffer appears
-(when active) in the same place on the screen as the echo area.  The
-@cite{GNU Emacs Manual} specifies the rules for resolving conflicts
-between the echo area and the minibuffer for use of that screen space
-(@pxref{Minibuffer,, The Minibuffer, emacs, The GNU Emacs Manual}).
-Error messages appear in the echo area; see @ref{Errors}.
+The @dfn{echo area} is used for displaying error messages
+(@pxref{Errors}), for messages made with the @code{message} primitive,
+and for echoing keystrokes.  It is not the same as the minibuffer,
+despite the fact that the minibuffer appears (when active) in the same
+place on the screen as the echo area.  The @cite{GNU Emacs Manual}
+specifies the rules for resolving conflicts between the echo area and
+the minibuffer for use of that screen space (@pxref{Minibuffer,, The
+Minibuffer, emacs, The GNU Emacs Manual}).
 
 You can write output in the echo area by using the Lisp printing
 functions with @code{t} as the stream (@pxref{Output Functions}), or as
@@ -244,8 +238,14 @@ Minibuffer depth is 0.
 @end example
 
 To automatically display a message in the echo area or in a pop-buffer,
-depending on its size, use @code{display-message-or-buffer}.
+depending on its size, use @code{display-message-or-buffer} (see below).
 @end defun
+
+@defopt max-mini-window-height
+This variable specifies the maximum height for resizing minibuffer
+windows.  If a float, it specifies a fraction of the height of the
+frame.  If an integer, it specifies a number of lines.
+@end defopt
 
 @tindex with-temp-message
 @defmac with-temp-message message &rest body
@@ -539,11 +539,11 @@ that warning is not logged.
 @section Reporting Operation Progress
 @cindex progress reporting
 
-When an operation can take a while to finish, you should inform the
+  When an operation can take a while to finish, you should inform the
 user about the progress it makes.  This way the user can estimate
 remaining time and clearly see that Emacs is busy working, not hung.
 
-Functions listed in this section provide simple and efficient way of
+  Functions listed in this section provide simple and efficient way of
 reporting operation progress.  Here is a working example that does
 nothing useful:
 
@@ -558,15 +558,16 @@ nothing useful:
 @end example
 
 @defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
-This function creates a progress reporter---the object you will use as
-an argument for all other functions listed here.  The idea is to
-precompute as much data as possible to make progress reporting very
-fast.
+This function creates and returns a @dfn{progress reporter}---an
+object you will use as an argument for all other functions listed
+here.  The idea is to precompute as much data as possible to make
+progress reporting very fast.
 
-The @var{message} will be displayed in the echo area, followed by
-progress percentage.  @var{message} is treated as a simple string.  If
-you need it to depend on a filename, for instance, use @code{format}
-before calling this function.
+When this progress reporter is subsequently used, it will display
+@var{message} in the echo area, followed by progress percentage.
+@var{message} is treated as a simple string.  If you need it to depend
+on a filename, for instance, use @code{format} before calling this
+function.
 
 @var{min-value} and @var{max-value} arguments stand for starting and
 final states of your operation.  For instance, if you scan a buffer,
@@ -593,9 +594,10 @@ message is printed immediately.
 
 @defun progress-reporter-update reporter value
 This function does the main work of reporting progress of your
-operation.  It print the message of @var{reporter} followed by
+operation.  It displays the message of @var{reporter}, followed by
 progress percentage determined by @var{value}.  If percentage is zero,
-then it is not printed at all.
+or close enough according to the @var{min-change} and @var{min-time}
+arguments, then it is omitted from the output.
 
 @var{reporter} must be the result of a call to
 @code{make-progress-reporter}.  @var{value} specifies the current
@@ -656,7 +658,9 @@ this macro this way:
 You can make characters @dfn{invisible}, so that they do not appear on
 the screen, with the @code{invisible} property.  This can be either a
 text property (@pxref{Text Properties}) or a property of an overlay
-(@pxref{Overlays}).
+(@pxref{Overlays}).  Cursor motion also partly ignores these
+characters; if the command loop finds point within them, it moves
+point to the other side of them.
 
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
@@ -785,10 +789,11 @@ make it invisible again.
   @dfn{Selective display} refers to a pair of related features for
 hiding certain lines on the screen.
 
-  The first variant, explicit selective display, is designed for use in
-a Lisp program: it controls which lines are hidden by altering the text.
-The invisible text feature (@pxref{Invisible Text}) has partially
-replaced this feature.
+  The first variant, explicit selective display, is designed for use
+in a Lisp program: it controls which lines are hidden by altering the
+text.  This kind of hiding in some ways resembles the effect of the
+@code{invisible} property (@pxref{Invisible Text}), but the two
+features are different and do not work the same way.
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -796,32 +801,32 @@ user-level feature.
 
   The way you control explicit selective display is by replacing a
 newline (control-j) with a carriage return (control-m).  The text that
-was formerly a line following that newline is now invisible.  Strictly
-speaking, it is temporarily no longer a line at all, since only newlines
-can separate lines; it is now part of the previous line.
+was formerly a line following that newline is now hidden.  Strictly
+speaking, it is temporarily no longer a line at all, since only
+newlines can separate lines; it is now part of the previous line.
 
   Selective display does not directly affect editing commands.  For
-example, @kbd{C-f} (@code{forward-char}) moves point unhesitatingly into
-invisible text.  However, the replacement of newline characters with
-carriage return characters affects some editing commands.  For example,
-@code{next-line} skips invisible lines, since it searches only for
-newlines.  Modes that use selective display can also define commands
-that take account of the newlines, or that make parts of the text
-visible or invisible.
+example, @kbd{C-f} (@code{forward-char}) moves point unhesitatingly
+into hidden text.  However, the replacement of newline characters with
+carriage return characters affects some editing commands.  For
+example, @code{next-line} skips hidden lines, since it searches only
+for newlines.  Modes that use selective display can also define
+commands that take account of the newlines, or that control which
+parts of the text are hidden.
 
   When you write a selectively displayed buffer into a file, all the
 control-m's are output as newlines.  This means that when you next read
-in the file, it looks OK, with nothing invisible.  The selective display
+in the file, it looks OK, with nothing hidden.  The selective display
 effect is seen only within Emacs.
 
 @defvar selective-display
 This buffer-local variable enables selective display.  This means that
-lines, or portions of lines, may be made invisible.
+lines, or portions of lines, may be made hidden.
 
 @itemize @bullet
 @item
 If the value of @code{selective-display} is @code{t}, then the character
-control-m marks the start of invisible text; the control-m, and the rest
+control-m marks the start of hidden text; the control-m, and the rest
 of the line following it, are not displayed.  This is explicit selective
 display.
 
@@ -831,12 +836,12 @@ lines that start with more than that many columns of indentation are not
 displayed.
 @end itemize
 
-When some portion of a buffer is invisible, the vertical movement
+When some portion of a buffer is hidden, the vertical movement
 commands operate as if that portion did not exist, allowing a single
-@code{next-line} command to skip any number of invisible lines.
+@code{next-line} command to skip any number of hidden lines.
 However, character movement commands (such as @code{forward-char}) do
-not skip the invisible portion, and it is possible (if tricky) to insert
-or delete text in an invisible portion.
+not skip the hidden portion, and it is possible (if tricky) to insert
+or delete text in an hidden portion.
 
 In the examples below, we show the @emph{display appearance} of the
 buffer @code{foo}, which changes with the value of
@@ -874,7 +879,7 @@ change.
 
 @defvar selective-display-ellipses
 If this buffer-local variable is non-@code{nil}, then Emacs displays
-@samp{@dots{}} at the end of a line that is followed by invisible text.
+@samp{@dots{}} at the end of a line that is followed by hidden text.
 This example is a continuation of the previous one.
 
 @example
@@ -894,42 +899,6 @@ This example is a continuation of the previous one.
 You can use a display table to substitute other text for the ellipsis
 (@samp{@dots{}}).  @xref{Display Tables}.
 @end defvar
-
-@node Overlay Arrow
-@section The Overlay Arrow
-@cindex overlay arrow
-
-  The @dfn{overlay arrow} is useful for directing the user's attention
-to a particular line in a buffer.  For example, in the modes used for
-interface to debuggers, the overlay arrow indicates the line of code
-about to be executed.
-
-@defvar overlay-arrow-string
-This variable holds the string to display to call attention to a
-particular line, or @code{nil} if the arrow feature is not in use.
-On a graphical display the contents of the string are ignored; instead a
-glyph is displayed in the fringe area to the left of the display area.
-@end defvar
-
-@defvar overlay-arrow-position
-This variable holds a marker that indicates where to display the overlay
-arrow.  It should point at the beginning of a line.  On a non-graphical
-display the arrow text
-appears at the beginning of that line, overlaying any text that would
-otherwise appear.  Since the arrow is usually short, and the line
-usually begins with indentation, normally nothing significant is
-overwritten.
-
-The overlay string is displayed only in the buffer that this marker
-points into.  Thus, only one buffer can have an overlay arrow at any
-given time.
-@c !!! overlay-arrow-position: but the overlay string may remain in the display
-@c of some other buffer until an update is required.  This should be fixed
-@c now.  Is it?
-@end defvar
-
-  You can do a similar job by creating an overlay with a
-@code{before-string} property.  @xref{Overlay Properties}.
 
 @node Temporary Displays
 @section Temporary Displays
@@ -1093,28 +1062,152 @@ you can specify whether text inserted at the beginning should be
 inside the overlay or outside, and likewise for the end of the overlay.
 
 @menu
+* Managing Overlays::   Creating and moving overlays.
 * Overlay Properties::  How to read and set properties.
 			What properties do to the screen display.
-* Managing Overlays::   Creating and moving overlays.
 * Finding Overlays::    Searching for overlays.
 @end menu
+
+@node Managing Overlays
+@subsection Managing Overlays
+
+  This section describes the functions to create, delete and move
+overlays, and to examine their contents.  Overlay changes are not
+recorded in the buffer's undo list, since the overlays are not
+part of the buffer's contents.
+
+@defun overlayp object
+This function returns @code{t} if @var{object} is an overlay.
+@end defun
+
+@defun make-overlay start end &optional buffer front-advance rear-advance
+This function creates and returns an overlay that belongs to
+@var{buffer} and ranges from @var{start} to @var{end}.  Both @var{start}
+and @var{end} must specify buffer positions; they may be integers or
+markers.  If @var{buffer} is omitted, the overlay is created in the
+current buffer.
+
+The arguments @var{front-advance} and @var{rear-advance} specify the
+insertion type for the start of the overlay and for the end of the
+overlay, respectively.  @xref{Marker Insertion Types}.  If
+@var{front-advance} is non-@code{nil}, text inserted at the beginning
+of the overlay is excluded from the overlay.  If @var{read-advance} is
+non-@code{nil}, text inserted at the beginning of the overlay is
+included in the overlay.
+@end defun
+
+@defun overlay-start overlay
+This function returns the position at which @var{overlay} starts,
+as an integer.
+@end defun
+
+@defun overlay-end overlay
+This function returns the position at which @var{overlay} ends,
+as an integer.
+@end defun
+
+@defun overlay-buffer overlay
+This function returns the buffer that @var{overlay} belongs to.  It
+returns @code{nil} if @var{overlay} has been deleted.
+@end defun
+
+@defun delete-overlay overlay
+This function deletes @var{overlay}.  The overlay continues to exist as
+a Lisp object, and its property list is unchanged, but it ceases to be
+attached to the buffer it belonged to, and ceases to have any effect on
+display.
+
+A deleted overlay is not permanently disconnected.  You can give it a
+position in a buffer again by calling @code{move-overlay}.
+@end defun
+
+@defun move-overlay overlay start end &optional buffer
+This function moves @var{overlay} to @var{buffer}, and places its bounds
+at @var{start} and @var{end}.  Both arguments @var{start} and @var{end}
+must specify buffer positions; they may be integers or markers.
+
+If @var{buffer} is omitted, @var{overlay} stays in the same buffer it
+was already associated with; if @var{overlay} was deleted, it goes into
+the current buffer.
+
+The return value is @var{overlay}.
+
+This is the only valid way to change the endpoints of an overlay.  Do
+not try modifying the markers in the overlay by hand, as that fails to
+update other vital data structures and can cause some overlays to be
+``lost''.
+@end defun
+
+  Here are some examples:
+
+@example
+;; @r{Create an overlay.}
+(setq foo (make-overlay 1 10))
+     @result{} #<overlay from 1 to 10 in display.texi>
+(overlay-start foo)
+     @result{} 1
+(overlay-end foo)
+     @result{} 10
+(overlay-buffer foo)
+     @result{} #<buffer display.texi>
+;; @r{Give it a property we can check later.}
+(overlay-put foo 'happy t)
+     @result{} t
+;; @r{Verify the property is present.}
+(overlay-get foo 'happy)
+     @result{} t
+;; @r{Move the overlay.}
+(move-overlay foo 5 20)
+     @result{} #<overlay from 5 to 20 in display.texi>
+(overlay-start foo)
+     @result{} 5
+(overlay-end foo)
+     @result{} 20
+;; @r{Delete the overlay.}
+(delete-overlay foo)
+     @result{} nil
+;; @r{Verify it is deleted.}
+foo
+     @result{} #<overlay in no buffer>
+;; @r{A deleted overlay has no position.}
+(overlay-start foo)
+     @result{} nil
+(overlay-end foo)
+     @result{} nil
+(overlay-buffer foo)
+     @result{} nil
+;; @r{Undelete the overlay.}
+(move-overlay foo 1 20)
+     @result{} #<overlay from 1 to 20 in display.texi>
+;; @r{Verify the results.}
+(overlay-start foo)
+     @result{} 1
+(overlay-end foo)
+     @result{} 20
+(overlay-buffer foo)
+     @result{} #<buffer display.texi>
+;; @r{Moving and deleting the overlay does not change its properties.}
+(overlay-get foo 'happy)
+     @result{} t
+@end example
 
 @node Overlay Properties
 @subsection Overlay Properties
 
   Overlay properties are like text properties in that the properties that
 alter how a character is displayed can come from either source.  But in
-most respects they are different.  Text properties are considered a part
-of the text; overlays are specifically considered not to be part of the
-text.  Thus, copying text between various buffers and strings preserves
-text properties, but does not try to preserve overlays.  Changing a
-buffer's text properties marks the buffer as modified, while moving an
-overlay or changing its properties does not.  Unlike text property
-changes, overlay changes are not recorded in the buffer's undo list.
-@xref{Text Properties}, for comparison.
+most respects they are different.  @xref{Text Properties}, for comparison.
 
-  These functions are used for reading and writing the properties of an
-overlay:
+  Text properties are considered a part of the text; overlays and
+their properties are specifically considered not to be part of the
+text.  Thus, copying text between various buffers and strings
+preserves text properties, but does not try to preserve overlays.
+Changing a buffer's text properties marks the buffer as modified,
+while moving an overlay or changing its properties does not.  Unlike
+text property changes, overlay property changes are not recorded in
+the buffer's undo list.
+
+  These functions read and set the properties of an overlay:
 
 @defun overlay-get overlay prop
 This function returns the value of property @var{prop} recorded in
@@ -1180,12 +1273,12 @@ then each element can be any of these possibilities:
 A face name (a symbol or string).
 
 @item
-Starting in Emacs 21, a property list of face attributes.  This has the
-form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
-face attribute name and @var{value} is a meaningful value for that
-attribute.  With this feature, you do not need to create a face each
-time you want to specify a particular attribute for certain text.
-@xref{Face Attributes}.
+A property list of face attributes.  This has the form (@var{keyword}
+@var{value} @dots{}), where each @var{keyword} is a face attribute
+name and @var{value} is a meaningful value for that attribute.  With
+this feature, you do not need to create a face each time you want to
+specify a particular attribute for certain text.  @xref{Face
+Attributes}.
 
 @item
 A cons cell of the form @code{(foreground-color . @var{color-name})} or
@@ -1302,127 +1395,6 @@ buffer's local map (and the map specified by the @code{local-map}
 property) rather than replacing it.
 @end table
 
-@node Managing Overlays
-@subsection Managing Overlays
-
-  This section describes the functions to create, delete and move
-overlays, and to examine their contents.
-
-@defun overlayp object
-This function returns @code{t} if @var{object} is an overlay.
-@end defun
-
-@defun make-overlay start end &optional buffer front-advance rear-advance
-This function creates and returns an overlay that belongs to
-@var{buffer} and ranges from @var{start} to @var{end}.  Both @var{start}
-and @var{end} must specify buffer positions; they may be integers or
-markers.  If @var{buffer} is omitted, the overlay is created in the
-current buffer.
-
-The arguments @var{front-advance} and @var{rear-advance} specify the
-insertion type for the start of the overlay and for the end of the
-overlay, respectively.  @xref{Marker Insertion Types}.  If
-@var{front-advance} is non-@code{nil}, text inserted at the beginning
-of the overlay is excluded from the overlay.  If @var{read-advance} is
-non-@code{nil}, text inserted at the beginning of the overlay is
-included in the overlay.
-@end defun
-
-@defun overlay-start overlay
-This function returns the position at which @var{overlay} starts,
-as an integer.
-@end defun
-
-@defun overlay-end overlay
-This function returns the position at which @var{overlay} ends,
-as an integer.
-@end defun
-
-@defun overlay-buffer overlay
-This function returns the buffer that @var{overlay} belongs to.  It
-returns @code{nil}, if @var{overlay} has been deleted.
-@end defun
-
-@defun delete-overlay overlay
-This function deletes @var{overlay}.  The overlay continues to exist as
-a Lisp object, and its property list is unchanged, but it ceases to be
-attached to the buffer it belonged to, and ceases to have any effect on
-display.
-
-A deleted overlay is not permanently disconnected.  You can give it a
-position in a buffer again by calling @code{move-overlay}.
-@end defun
-
-@defun move-overlay overlay start end &optional buffer
-This function moves @var{overlay} to @var{buffer}, and places its bounds
-at @var{start} and @var{end}.  Both arguments @var{start} and @var{end}
-must specify buffer positions; they may be integers or markers.
-
-If @var{buffer} is omitted, @var{overlay} stays in the same buffer it
-was already associated with; if @var{overlay} was deleted, it goes into
-the current buffer.
-
-The return value is @var{overlay}.
-
-This is the only valid way to change the endpoints of an overlay.  Do
-not try modifying the markers in the overlay by hand, as that fails to
-update other vital data structures and can cause some overlays to be
-``lost''.
-@end defun
-
-  Here are some examples:
-
-@example
-;; @r{Create an overlay.}
-(setq foo (make-overlay 1 10))
-     @result{} #<overlay from 1 to 10 in display.texi>
-(overlay-start foo)
-     @result{} 1
-(overlay-end foo)
-     @result{} 10
-(overlay-buffer foo)
-     @result{} #<buffer display.texi>
-;; @r{Give it a property we can check later.}
-(overlay-put foo 'happy t)
-     @result{} t
-;; @r{Verify the property is present.}
-(overlay-get foo 'happy)
-     @result{} t
-;; @r{Move the overlay.}
-(move-overlay foo 5 20)
-     @result{} #<overlay from 5 to 20 in display.texi>
-(overlay-start foo)
-     @result{} 5
-(overlay-end foo)
-     @result{} 20
-;; @r{Delete the overlay.}
-(delete-overlay foo)
-     @result{} nil
-;; @r{Verify it is deleted.}
-foo
-     @result{} #<overlay in no buffer>
-;; @r{A deleted overlay has no position.}
-(overlay-start foo)
-     @result{} nil
-(overlay-end foo)
-     @result{} nil
-(overlay-buffer foo)
-     @result{} nil
-;; @r{Undelete the overlay.}
-(move-overlay foo 1 20)
-     @result{} #<overlay from 1 to 20 in display.texi>
-;; @r{Verify the results.}
-(overlay-start foo)
-     @result{} 1
-(overlay-end foo)
-     @result{} 20
-(overlay-buffer foo)
-     @result{} #<buffer display.texi>
-;; @r{Moving and deleting the overlay does not change its properties.}
-(overlay-get foo 'happy)
-     @result{} t
-@end example
-
 @node Finding Overlays
 @subsection Searching for Overlays
 
@@ -1458,12 +1430,14 @@ they are located at @var{beg}, or strictly between @var{beg} and @var{end}.
 
 @defun next-overlay-change pos
 This function returns the buffer position of the next beginning or end
-of an overlay, after @var{pos}.
+of an overlay, after @var{pos}.  If there is none, it returns
+@code{(point-max)}.
 @end defun
 
 @defun previous-overlay-change pos
 This function returns the buffer position of the previous beginning or
-end of an overlay, before @var{pos}.
+end of an overlay, before @var{pos}.  If there is none, it returns
+@code{(point-min)}.
 @end defun
 
   Here's an easy way to use @code{next-overlay-change} to search for the
@@ -1497,7 +1471,7 @@ This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
-@defun truncate-string-to-width string width &optional start-column padding
+@defun truncate-string-to-width string width &optional start-column padding ellipsis
 This function returns the part of @var{string} that fits within
 @var{width} columns, as a new string.
 
@@ -1519,6 +1493,13 @@ it to exactly @var{width} columns.  The padding character is used at the
 end of the result if it falls short of @var{width}.  It is also used at
 the beginning of the result if one multi-column character in
 @var{string} extends across the column @var{start-column}.
+
+If @var{ellipsis} is non-@code{nil}, it should be a string which will
+replace the end of @var{str} (including any padding) if it extends
+beyond @var{end-column}, unless the display width of @var{str} is
+equal to or less than the display width of @var{ellipsis}.  If
+@var{ellipsis} is non-@code{nil} and not a string, it stands for
+@code{"..."}.
 
 @example
 (truncate-string-to-width "\tab\t" 12 4)
@@ -1909,11 +1890,11 @@ mean.  Note that in general, more than one face can be specified for a
 given piece of text; when that happens, the attributes of all the faces
 are merged to specify how to display the text.  @xref{Displaying Faces}.
 
-  In Emacs 21, any attribute in a face can have the value
-@code{unspecified}.  This means the face doesn't specify that attribute.
-In face merging, when the first face fails to specify a particular
-attribute, that means the next face gets a chance.  However, the
-@code{default} face must specify all attributes.
+  Any attribute in a face can have the value @code{unspecified}.  This
+means the face doesn't specify that attribute.  In face merging, when
+the first face fails to specify a particular attribute, that means the
+next face gets a chance.  However, the @code{default} face must
+specify all attributes.
 
   Some of these font attributes are meaningful only on certain kinds of
 displays---if your display cannot handle a certain attribute, the
@@ -2043,11 +2024,10 @@ that is being pressed.  If it is @code{nil} or omitted, a plain 2D box
 is used.
 @end table
 
-  The attributes @code{:overline}, @code{:strike-through} and
-@code{:box} are new in Emacs 21.  The attributes @code{:family},
-@code{:height}, @code{:width}, @code{:weight}, @code{:slant} are also
-new; previous versions used the following attributes, now semi-obsolete,
-to specify some of the same information:
+  In older versions of Emacs, before @code{:family}, @code{:height},
+@code{:width}, @code{:weight}, and @code{:slant} existed, these
+attributes were used to specify the type face.  They are now
+semi-obsolete, but they still work:
 
 @table @code
 @item :font
@@ -2060,8 +2040,8 @@ A non-@code{nil} value specifies a bold font.
 A non-@code{nil} value specifies an italic font.
 @end table
 
-  For compatibility, you can still set these ``attributes'' in Emacs 21,
-even though they are not real face attributes.  Here is what that does:
+  For compatibility, you can still set these ``attributes'', even
+though they are not real face attributes.  Here is what that does:
 
 @table @code
 @item :font
@@ -2195,31 +2175,22 @@ they are used automatically to handle certain shades of gray.
 @end defun
 
 @defun set-face-font face font &optional frame
-This function sets the font of face @var{face}.
-
-In Emacs 21, this actually sets the attributes @code{:family},
-@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}
-according to the font name @var{font}.
-
-In Emacs 20, this sets the font attribute.  Once you set the font
-explicitly, the bold and italic attributes cease to have any effect,
-because the precise font that you specified is used.
+This function sets the font of face @var{face}.  This actually sets
+the attributes @code{:family}, @code{:width}, @code{:height},
+@code{:weight}, and @code{:slant} according to the font name
+@var{font}.
 @end defun
 
 @defun set-face-bold-p face bold-p &optional frame
 This function specifies whether @var{face} should be bold.  If
 @var{bold-p} is non-@code{nil}, that means yes; @code{nil} means no.
-
-In Emacs 21, this sets the @code{:weight} attribute.
-In Emacs 20, it sets the @code{:bold} attribute.
+This actually sets the @code{:weight} attribute.
 @end defun
 
 @defun set-face-italic-p face italic-p &optional frame
 This function specifies whether @var{face} should be italic.  If
 @var{italic-p} is non-@code{nil}, that means yes; @code{nil} means no.
-
-In Emacs 21, this sets the @code{:slant} attribute.
-In Emacs 20, it sets the @code{:italic} attribute.
+This actually sets the @code{:slant} attribute.
 @end defun
 
 @defun set-face-underline-p face underline-p &optional frame
@@ -2297,8 +2268,10 @@ With defaults.  The @code{default} face is used as the ultimate
 default for all text.  (In Emacs 19 and 20, the @code{default}
 face is used only when no other face is specified.)
 
-For a mode line or header line, the face @code{modeline} or
-@code{header-line} is used just before @code{default}.
+@item
+For a mode line or header line, the face @code{mode-line} or
+@code{mode-line-inactive}, or @code{header-line}, is merged in just
+before @code{default}.
 
 @item
 With text properties.  A character can have a @code{face} property; if
@@ -2324,19 +2297,15 @@ number.  @xref{Glyphs}.
 
   If these various sources together specify more than one face for a
 particular character, Emacs merges the attributes of the various faces
-specified.  The attributes of the faces of special glyphs come first;
-then comes the face for region highlighting, if appropriate;
-then come attributes of faces from overlays, followed by those from text
-properties, and last the default face.
+specified.  For each attribute, Emacs tries first the face of any
+special glyph; then the face for region highlighting, if appropriate;
+then the faces specified by overlays, followed by those specified by
+text properties, then the @code{mode-line} or
+@code{mode-line-inactive} or @code{header-line} face (if in a mode
+line or a header line), and last the @code{default} face.
 
   When multiple overlays cover one character, an overlay with higher
 priority overrides those with lower priority.  @xref{Overlays}.
-
-  In Emacs 20, if an attribute such as the font or a color is not
-specified in any of the above ways, the frame's own font or color is
-used.  In newer Emacs versions, this cannot happen, because the
-@code{default} face specifies all attributes---in fact, the frame's own
-font and colors are synonymous with those of the default face.
 
 @node Font Selection
 @subsection Font Selection
@@ -2480,7 +2449,7 @@ This function returns a list of all defined face names.
 @end defun
 
 @defun copy-face old-face new-name &optional frame new-frame
-This function defines the face @var{new-name} as a copy of the existing
+This function defines a face named @var{new-name} as a copy of the existing
 face named @var{old-face}.  It creates the face @var{new-name} if that
 doesn't already exist.
 
@@ -2519,9 +2488,8 @@ differently from the default face.
 @cindex faces, automatic choice
 
 @cindex Font-Lock mode
-  Starting with Emacs 21, a hook is available for automatically
-assigning faces to text in the buffer.  This hook is used for part of
-the implementation of Font-Lock mode.
+  This hook is used for automatically assigning faces to text in the
+buffer.  It is part of the implementation of Font-Lock mode.
 
 @tindex fontification-functions
 @defvar fontification-functions
@@ -2571,8 +2539,6 @@ after the first @var{maximum} matching fonts.  Specifying a small value
 for @var{maximum} can make this function much faster, in cases where
 many fonts match the pattern.
 @end defun
-
-  These additional functions are available starting in Emacs 21.
 
 @defun x-family-fonts &optional family frame
 @tindex x-family-fonts
@@ -2772,15 +2738,25 @@ does that, this function's value may not be accurate.
 
   The @dfn{fringes} of a window are thin vertical strips down the
 sides that are used for displaying bitmaps that indicate truncation,
-continuation, horizontal scrolling, and the overlay arrow.  The
-fringes normally appear between the display margins and the window
-text, but you can put them outside the display margins for a specific
-buffer by setting @code{fringes-outside-margins} buffer-locally to a
-non-@code{nil} value.
+continuation, horizontal scrolling, and the overlay arrow.
+
+@menu
+* Fringe Size/Pos::     Specifying where to put the window fringes.
+* Fringe Bitmaps::      Displaying bitmaps in the window fringes.
+* Customizing Bitmaps:: Specifying your own bitmaps to use in the fringes.
+* Overlay Arrow::       Display of an arrow to indicate position.
+@end menu
+
+@node Fringe Size/Pos
+@subsection Fringe Size and Position
+
+  Here's how to control the position and width of the window fringes.
 
 @defvar fringes-outside-margins
-If the value is non-@code{nil}, the frames appear outside
-the display margins.
+If the value is non-@code{nil}, the frames appear outside the display
+margins.  The fringes normally appear between the display margins and
+the window text.  It works to set @code{fringes-outside-margins}
+buffer-locally.  @xref{Display Margins}.
 @end defvar
 
 @defvar left-fringe-width
@@ -2813,7 +2789,7 @@ should appear outside of the display margins.
 This function returns information about the fringes of a window
 @var{window}.  If @var{window} is omitted or @code{nil}, the selected
 window is used.  The value has the form @code{(@var{left-width}
-@var{right-width} @var{frames-outside-margins})}.
+@var{right-width} @var{outside-margins})}.
 @end defun
 
 @defvar overflow-newline-into-fringe
@@ -2824,7 +2800,7 @@ fringe.
 @end defvar
 
 @node Fringe Bitmaps
-@section Fringe Bitmaps
+@subsection Fringe Bitmaps
 @cindex fringe bitmaps
 @cindex bitmaps, fringe
 
@@ -2884,7 +2860,7 @@ If @var{pos} is @code{nil}, that stands for the value of point in
 @end defun
 
 @node Customizing Bitmaps
-@section Customizing Fringe Bitmaps
+@subsection Customizing Fringe Bitmaps
 
 @defun define-fringe-bitmap bitmap bits &optional height width align
 This function defines the symbol @var{bitmap} as a new fringe bitmap,
@@ -2934,6 +2910,61 @@ bitmap's face controls the color to draw it in.
 The face you use here should be derived from @code{fringe}, and should
 specify only the foreground color.
 @end defun
+
+@node Overlay Arrow
+@subsection The Overlay Arrow
+@cindex overlay arrow
+
+  The @dfn{overlay arrow} is useful for directing the user's attention
+to a particular line in a buffer.  For example, in the modes used for
+interface to debuggers, the overlay arrow indicates the line of code
+about to be executed.  This feature has nothing to do with
+@dfn{overlays} (@pxref{Overlays}).
+
+@defvar overlay-arrow-string
+This variable holds the string to display to call attention to a
+particular line, or @code{nil} if the arrow feature is not in use.
+On a graphical display the contents of the string are ignored; instead a
+glyph is displayed in the fringe area to the left of the display area.
+@end defvar
+
+@defvar overlay-arrow-position
+This variable holds a marker that indicates where to display the overlay
+arrow.  It should point at the beginning of a line.  On a non-graphical
+display the arrow text
+appears at the beginning of that line, overlaying any text that would
+otherwise appear.  Since the arrow is usually short, and the line
+usually begins with indentation, normally nothing significant is
+overwritten.
+
+The overlay string is displayed only in the buffer that this marker
+points into.  Thus, only one buffer can have an overlay arrow at any
+given time.
+@c !!! overlay-arrow-position: but the overlay string may remain in the display
+@c of some other buffer until an update is required.  This should be fixed
+@c now.  Is it?
+@end defvar
+
+  You can do a similar job by creating an overlay with a
+@code{before-string} property.  @xref{Overlay Properties}.
+
+  You can define multiple overlay arrows via the variable
+@code{overlay-arrow-variable-list}.
+
+@defvar overlay-arrow-variable-list
+This variable's value is a list of varibles, each of which specifies
+the position of an overlay arrow.  The variable
+@code{overlay-arrow-position} has its normal meaning because it is on
+this list.
+@end defvar
+
+Each variable on this list can have properties
+@code{overlay-arrow-string} and @code{overlay-arrow-bitmap} that
+specify an overlay arrow string (for text-only terminals) or fringe
+bitmap (for graphical terminals) to display at the corresponding
+overlay arrow position.  If either property is not set, the default
+(@code{overlay-arrow-string} or @code{overlay-arrow-fringe-bitmap}) is
+used.
 
 @node Scroll Bars
 @section Scroll Bars
@@ -3031,11 +3062,10 @@ buffer.  The default is to use the @code{arrow} (non-text) pointer.
 
   The @code{display} text property (or overlay property) is used to
 insert images into text, and also control other aspects of how text
-displays.  These features are available starting in Emacs 21.  The value
-of the @code{display} property should be a display specification, or a
-list or vector containing several display specifications.  The rest of
-this section describes several kinds of display specifications and what
-they mean.
+displays.  The value of the @code{display} property should be a
+display specification, or a list or vector containing several display
+specifications.  The rest of this section describes several kinds of
+display specifications and what they mean.
 
 @menu
 * Specified Space::      Displaying one space with a specified width.
@@ -3044,8 +3074,6 @@ they mean.
                           up or down on the page; adjusting the width
                           of spaces within text.
 * Display Margins::     Displaying text or images to the side of the main text.
-* Conditional Display::  Making any of the above features conditional
-                          depending on some Lisp expression.
 @end menu
 
 @node Specified Space
@@ -3108,7 +3136,7 @@ with a @dfn{pixel ascent} specification (@pxref{Pixel Specification}).
 
   Don't use both @code{:height} and @code{:relative-height} together.
 
-  The @code{:height} and @code{:align-to} properties are supported on
+  The @code{:width} and @code{:align-to} properties are supported on
 non-graphic terminals, but the other space properties in this section
 are not.
 
@@ -3171,10 +3199,11 @@ the left-margin, use
 to the left edge of the text area.  For example, @samp{:align-to 0} in a
 header-line aligns with the first text column in the text area.
 
-  A value of the form @code{(@var{num} . @var{expr})} stands
-multiplying the values of @var{num} and @var{expr}.  For example,
+  A value of the form @code{(@var{num} . @var{expr})} stands for the
+product of the values of @var{num} and @var{expr}.  For example,
 @code{(2 . in)} specifies a width of 2 inches, while @code{(0.5 .
-@var{image})} specifies half the width (or height) of the specified image.
+@var{image})} specifies half the width (or height) of the specified
+image.
 
   The form @code{(+ @var{expr} ...)} adds up the value of the
 expressions.  The form @code{(- @var{expr} ...)} negates or subtracts
@@ -3188,9 +3217,9 @@ in the @code{display} text property.
 
 @table @code
 @item (image . @var{image-props})
-This is in fact an image descriptor (@pxref{Images}).  When used as a
-display specification, it means to display the image instead of the text
-that has the display specification.
+This display specification is an image descriptor (@pxref{Images}).
+When used as a display specification, it means to display the image
+instead of the text that has the display specification.
 
 @item (slice @var{x} @var{y} @var{width} @var{height})
 This specification together with @code{image} specifies a @dfn{slice}
@@ -3261,6 +3290,17 @@ not affect the amount of raising or lowering, which is based on the
 faces used for the text.
 @end table
 
+  You can make any display specification conditional.  To do that,
+package it in another list of the form @code{(when @var{condition} .
+@var{spec})}.  Then the specification @var{spec} applies only when
+@var{condition} evaluates to a non-@code{nil} value.  During the
+evaluation, @code{object} is bound to the string or buffer having the
+conditional @code{display} property.  @code{position} and
+@code{buffer-position} are bound to the position within @code{object}
+and the buffer position where the @code{display} property was found,
+respectively.  Both positions can be different when @code{object} is a
+string.
+
 @node Display Margins
 @subsection Displaying in the Margins
 @cindex display margins
@@ -3323,42 +3363,26 @@ as a cons cell of the form @code{(@var{left} . @var{right})}.
 If @var{window} is @code{nil}, the selected window is used.
 @end defun
 
-@node Conditional Display
-@subsection Conditional Display Specifications
-@cindex conditional display specifications
-
-  You can make any display specification conditional.  To do that,
-package it in another list of the form @code{(when @var{condition} .
-@var{spec})}.  Then the specification @var{spec} applies only when
-@var{condition} evaluates to a non-@code{nil} value.  During the
-evaluation, @code{object} is bound to the string or buffer having the
-conditional @code{display} property.  @code{position} and
-@code{buffer-position} are bound to the position within @code{object}
-and the buffer position where the @code{display} property was found,
-respectively.  Both positions can be different when @code{object} is a
-string.
-
 @node Images
 @section Images
 @cindex images in buffers
 
   To display an image in an Emacs buffer, you must first create an image
 descriptor, then use it as a display specifier in the @code{display}
-property of text that is displayed (@pxref{Display Property}).  Like the
-@code{display} property, this feature is available starting in Emacs 21.
+property of text that is displayed (@pxref{Display Property}).
 
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
-your machine.  In some environments, Emacs allows loading image
+your machine.  In some environments, Emacs can load image
 libraries on demand; if so, the variable @code{image-library-alist}
 can be used to modify the set of known names for these dynamic
 libraries (though it is not possible to add new image formats).
 
-  The supported image formats include XBM, XPM (needing the
-libraries @code{libXpm} version 3.4k and @code{libz}), GIF (needing
-@code{libungif} 4.1.0), Postscript, PBM, JPEG (needing the
-@code{libjpeg} library version v6a), TIFF (needing @code{libtiff} v3.4),
-and PNG (needing @code{libpng} 1.0.2).
+  The supported image formats include XBM, XPM (this requires the
+libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
+@code{libungif} 4.1.0), Postscript, PBM, JPEG (requiring the
+@code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
+v3.4), and PNG (requiring @code{libpng} 1.0.2).
 
   You specify one of these formats with an image type symbol.  The image
 type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
@@ -3439,12 +3463,12 @@ types:
 
 @table @code
 @item :file @var{file}
-The @code{:file} property specifies to load the image from file
+The @code{:file} property says to load the image from file
 @var{file}.  If @var{file} is not an absolute file name, it is expanded
 in @code{data-directory}.
 
 @item :data @var{data}
-The @code{:data} property specifies the actual contents of the image.
+The @code{:data} property says the actual contents of the image.
 Each image must use either @code{:data} or @code{:file}, but not both.
 For most image types, the value of the @code{:data} property should be a
 string containing the image data; we recommend using a unibyte string.
@@ -3703,12 +3727,7 @@ specifies the actual color to use for displaying that name.
 @subsection GIF Images
 @cindex GIF
 
-  For GIF images, specify image type @code{gif}.  Because of the patents
-in the US covering the LZW algorithm, the continued use of GIF format is
-a problem for the whole Internet; to end this problem, it is a good idea
-for everyone, even outside the US, to stop using GIFs right away
-(@uref{http://www.burnallgifs.org/}).  But if you still want to use
-them, Emacs can display them.
+  For GIF images, specify image type @code{gif}.
 
 @table @code
 @item :index @var{index}
@@ -3887,8 +3906,9 @@ section.
 This function inserts @var{image} in the current buffer at point.  The
 value @var{image} should be an image descriptor; it could be a value
 returned by @code{create-image}, or the value of a symbol defined with
-@code{defimage}.  The argument @var{string} specifies the text to put in
-the buffer to hold the image.
+@code{defimage}.  The argument @var{string} specifies the text to put
+in the buffer to hold the image.  If it is omitted or @code{nil},
+@code{insert-image} uses @code{" "} by default.
 
 The argument @var{area} specifies whether to put the image in a margin.
 If it is @code{left-margin}, the image appears in the left margin;
@@ -3999,16 +4019,16 @@ manipulating clickable (with the mouse, or via keyboard commands)
 buttons in Emacs buffers, such as might be used for help hyper-links,
 etc.  Emacs uses buttons for the hyper-links in help text and the like.
 
-A button is essentially a set of properties attached (via text
-properties or overlays) to a region of text in an Emacs buffer, which
-are called its button properties.  @xref{Button Properties}.
+  A button is essentially a set of properties attached (via text
+properties or overlays) to a region of text in an Emacs buffer.  These
+properties are called @dfn{button properties}.
 
-One of the these properties (@code{action}) is a function, which will
+  One of the these properties (@code{action}) is a function, which will
 be called when the user invokes it using the keyboard or the mouse.
 The invoked function may then examine the button and use its other
 properties as desired.
 
-In some ways the Emacs button package duplicates functionality offered
+  In some ways the Emacs button package duplicates functionality offered
 by the widget package (@pxref{Top, , Introduction, widget, The Emacs
 Widget Library}), but the button package has the advantage that it is
 much faster, much smaller, and much simpler to use (for elisp
@@ -4024,7 +4044,6 @@ entries).
 * Making Buttons::         Adding buttons to Emacs buffers.
 * Manipulating Buttons::   Getting and setting properties of buttons.
 * Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
-* Manipulating Button Types::
 @end menu
 
 @node Button Properties
@@ -4033,13 +4052,10 @@ entries).
 
   Buttons have an associated list of properties defining their
 appearance and behavior, and other arbitrary properties may be used
-for application specific purposes.
-
-Some properties that have special meaning to the button package
-include:
+for application specific purposes.  Some properties that have special
+meaning to the button package include:
 
 @table @code
-
 @item action
 @kindex action @r{(button property)}
 The function to call when the user invokes the button, which is passed
@@ -4094,7 +4110,7 @@ in finding regions of text that comprise buttons (which is what the
 standard button functions do).
 @end table
 
-There are other properties defined for the regions of text in a
+  There are other properties defined for the regions of text in a
 button, but these are not generally interesting for typical uses.
 
 @node Button Types
@@ -4122,9 +4138,9 @@ property values.  Note that this inheritance happens only when
 reflected in its subtypes.
 @end defun
 
-Using @code{define-button-type} to define default properties for
+  Using @code{define-button-type} to define default properties for
 buttons is not necessary---buttons without any specified type use the
-built-in button-type @code{button}---but it is is encouraged, since
+built-in button-type @code{button}---but it is encouraged, since
 doing so usually makes the resulting code clearer and more efficient.
 
 @node Making Buttons
@@ -4132,19 +4148,19 @@ doing so usually makes the resulting code clearer and more efficient.
 @cindex making buttons
 
   Buttons are associated with a region of text, using an overlay or
-text-properties to hold button-specific information, all of which are
+text properties to hold button-specific information, all of which are
 initialized from the button's type (which defaults to the built-in
 button type @code{button}).  Like all Emacs text, the appearance of
 the button is governed by the @code{face} property; by default (via
 the @code{face} property inherited from the @code{button} button-type)
 this is a simple underline, like a typical web-page link.
 
-For convenience, there are two sorts of button-creation functions,
+  For convenience, there are two sorts of button-creation functions,
 those that add button properties to an existing region of a buffer,
 called @code{make-...button}, and those also insert the button text,
 called @code{insert-...button}.
 
-The button-creation functions all take the @code{&rest} argument
+  The button-creation functions all take the @code{&rest} argument
 @var{properties}, which should be a sequence of @var{property value}
 pairs, specifying properties to add to the button; see @ref{Button
 Properties}.  In addition, the keyword argument @code{:type} may be
@@ -4153,39 +4169,40 @@ see @ref{Button Types}.  Any properties not explicitly specified
 during creation will be inherited from the button's type (if the type
 defines such a property).
 
-The following functions add a button using an overlay
+  The following functions add a button using an overlay
 (@pxref{Overlays}) to hold the button properties:
 
 @defun make-button beg end &rest properties
 @tindex make-button
-Make a button from @var{beg} to @var{end} in the current buffer.
+This makes a button from @var{beg} to @var{end} in the
+current buffer, and returns it.
 @end defun
 
 @defun insert-button label &rest properties
 @tindex insert-button
-Insert a button with the label @var{label}.
+This insert a button with the label @var{label} at point,
+and returns it.
 @end defun
 
-The following functions are similar, but use Emacs text-properties
+  The following functions are similar, but use Emacs text properties
 (@pxref{Text Properties}) to hold the button properties, making the
 button actually part of the text instead of being a property of the
-buffer (using text-properties is usually faster than using overlays,
-so this may be preferable when creating large numbers of buttons):
+buffer.  Buttons using text properties do not create markers into the
+buffer, which is important for speed when you use extremely large
+numbers of buttons.  Both functions return the position of the start
+of the new button:
 
 @defun make-text-button beg end &rest properties
 @tindex make-text-button
-Make a button from @var{beg} to @var{end} in the current buffer, using
-text-properties.
+This makes a button from @var{beg} to @var{end} in the current buffer, using
+text properties.
 @end defun
 
 @defun insert-text-button label &rest properties
 @tindex insert-text-button
-Insert a button with the label @var{label}, using text-properties.
+This inserts a button with the label @var{label} at point, using text
+properties.
 @end defun
-
-Buttons using text-properties retain no markers into the buffer are
-retained, which is important for speed in cases where there are
-extremely large numbers of buttons.
 
 @node Manipulating Buttons
 @subsection Manipulating Buttons
@@ -4250,6 +4267,21 @@ Return @code{t} if @var{button} has button-type @var{type}, or one of
 Return the button at position @var{pos} in the current buffer, or @code{nil}.
 @end defun
 
+@defun button-type-put type prop val
+@tindex button-type-put
+Set the button-type @var{type}'s @var{prop} property to @var{val}.
+@end defun
+
+@defun button-type-get type prop
+@tindex button-type-get
+Get the property of button-type @var{type} named @var{prop}.
+@end defun
+
+@defun button-type-subtype-p type supertype
+@tindex button-type-subtype-p
+Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
+@end defun
+
 @node Button Buffer Commands
 @subsection Button Buffer Commands
 @cindex button buffer commands
@@ -4267,8 +4299,9 @@ which uses buttons may want to use @code{button-buffer-map} as a
 parent keymap for its keymap.
 
 If the button has a non-@code{nil} @code{follow-link} property, and
-@var{mouse-1-click-follows-link} is set, a @key{Mouse-1} click will
-also activate the @code{push-button} command.
+@var{mouse-1-click-follows-link} is set, a quick @key{Mouse-1} click
+will also activate the @code{push-button} command.
+@xref{Links and Mouse-1}.
 
 @deffn Command push-button &optional pos use-mouse-action
 @tindex push-button
@@ -4318,25 +4351,6 @@ If @var{count-current} is non-@code{nil}, count any button at
 Return the @var{n}th button before position @var{pos} in the current
 buffer.  If @var{count-current} is non-@code{nil}, count any button at
 @var{pos} in the search, instead of starting at the next button.
-@end defun
-
-@node Manipulating Button Types
-@subsection Manipulating Button Types
-@cindex manipulating button types
-
-@defun button-type-put type prop val
-@tindex button-type-put
-Set the button-type @var{type}'s @var{prop} property to @var{val}.
-@end defun
-
-@defun button-type-get type prop
-@tindex button-type-get
-Get the property of button-type @var{type} named @var{prop}.
-@end defun
-
-@defun button-type-subtype-p type supertype
-@tindex button-type-subtype-p
-Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 @end defun
 
 @node Blinking
@@ -4412,14 +4426,10 @@ default is @code{nil}.
 @end defopt
 
 @defopt mode-line-inverse-video
-This variable controls the use of inverse video for mode lines and menu
-bars.  If it is non-@code{nil}, then these lines are displayed in
-inverse video.  Otherwise, these lines are displayed normally, just like
-other text.  The default is @code{t}.
-
-For window frames, this feature actually applies the face named
-@code{mode-line}; that face is normally set up as the inverse of the
-default face, unless you change it.
+This variable controls the use of inverse video for mode lines and
+menu bars.  If it is non-@code{nil}, then these lines are displayed in
+the face @code{mode-line}.  Otherwise, these lines are displayed
+normally, just like other text.  The default is @code{t}.
 @end defopt
 
 @node Usual Display
@@ -4603,22 +4613,26 @@ means to use the default for that slot, as stated below.
 @table @asis
 @item 0
 The glyph for the end of a truncated screen line (the default for this
-is @samp{$}).  @xref{Glyphs}.  Newer Emacs versions, on some platforms,
-display arrows to indicate truncation---the display table has no effect
-in these situations.
+is @samp{$}).  @xref{Glyphs}.  On graphical terminals, Emacs uses
+arrows in the fringes to indicate truncation, so the display table has
+no effect.
+
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
-Newer Emacs versions, on some platforms, display curved arrows to
-indicate continuation---the display table has no effect in these
-situations.
+On graphical terminals, Emacs uses curved arrows in the fringes to
+indicate continuation, so the display table has no effect.
+
 @item 2
 The glyph for indicating a character displayed as an octal character
 code (the default is @samp{\}).
+
 @item 3
 The glyph for indicating a control character (the default is @samp{^}).
+
 @item 4
 A vector of glyphs for indicating the presence of invisible lines (the
 default is @samp{...}).  @xref{Selective Display}.
+
 @item 5
 The glyph used to draw the border between side-by-side windows (the
 default is @samp{|}).  @xref{Splitting Windows}.  This takes effect only
@@ -4678,9 +4692,10 @@ table for buffer @var{b} if it has one; otherwise, the standard display
 table if any.  The display table chosen is called the @dfn{active}
 display table.
 
-@defun window-display-table window
+@defun window-display-table &optional window
 This function returns @var{window}'s display table, or @code{nil}
-if @var{window} does not have an assigned display table.
+if @var{window} does not have an assigned display table.  The default
+for @var{window} is the selected window.
 @end defun
 
 @defun set-window-display-table window table

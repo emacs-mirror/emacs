@@ -53,6 +53,11 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* 0 */
 
+#ifdef GC_CHECK_CONS_LIST
+#define CHECK_CONS_LIST() check_cons_list()
+#else
+#define CHECK_CONS_LIST() 0
+#endif
 
 /* These are default choices for the types to use.  */
 #ifdef _LP64
