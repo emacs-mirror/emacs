@@ -77,14 +77,39 @@ visited by the buffers.")
   ;; which is 'editing?
   :group (if whitespace-running-emacs 'convenience 'editing))
 
+(defcustom whitespace-check-leading-whitespace t
+  "Flag to check leading whitespace."
+  :type 'boolean
+  :group 'whitespace)
+
+(defcustom whitespace-check-trailing-whitespace t
+  "Flag to check trailing whitespace."
+  :type 'boolean
+  :group 'whitespace)
+
+(defcustom whitespace-check-spacetab-whitespace t
+  "Flag to check space followed by a TAB."
+  :type 'boolean
+  :group 'whitespace)
+
 (defcustom whitespace-spacetab-regexp " \t"
-  "Regexp to match a TAB followed by a space."
+  "Regexp to match a space followed by a TAB."
   :type 'string
+  :group 'whitespace)
+
+(defcustom whitespace-check-indent-whitespace t
+  "Flag to check indentation whitespace."
+  :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-indent-regexp (concat "^\\(\t*\\)    " "    ")
   "Regexp to match (any TABS followed by) 8/more whitespaces at start of line."
   :type 'string
+  :group 'whitespace)
+
+(defcustom whitespace-check-ateol-whitespace t
+  "Flag to check end-of-line whitespace."
+  :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-ateol-regexp "[ \t]$"
@@ -112,7 +137,8 @@ Errors*' buffer before opening (or closing) another file."
   :group 'whitespace)
 
 (defcustom whitespace-modes '(ada-mode asm-mode autoconf-mode awk-mode
-				       c-mode c++-mode cc-mode cperl-mode
+				       c-mode c++-mode cc-mode
+				       change-log-mode cperl-mode
 				       electric-nroff-mode emacs-lisp-mode
 				       f90-mode fortran-mode html-mode
 				       html3-mode java-mode jde-mode
@@ -121,9 +147,9 @@ Errors*' buffer before opening (or closing) another file."
 				       modula-2-mode nroff-mode objc-mode
 				       pascal-mode perl-mode prolog-mode
 				       python-mode scheme-mode sgml-mode
-				       sh-mode shell-script-mode
-				       simula-mode tcl-mode tex-mode
-				       texinfo-mode vrml-mode xml-mode)
+				       sh-mode shell-script-mode simula-mode
+				       tcl-mode tex-mode texinfo-mode
+				       vrml-mode xml-mode)
 
   "Major Modes in which we turn on whitespace checking.
 
@@ -142,7 +168,9 @@ Or, alternately, you can use the Emacs `customize' command to set this."
 
 This is the period after which the timer will fire causing
 `whitespace-rescan-files-in-buffers' to check for whitespace creep in
-modified buffers."
+modified buffers.
+
+To disable timer scans, set this to zero."
   :type 'integer
   :group 'whitespace)
 
@@ -191,14 +219,24 @@ and:
 	    (if (and (not quiet) buffer-read-only)
 		(message "Can't Cleanup: %s is read-only." (buffer-name))
 	      (whitespace-cleanup))
-	  (let ((whitespace-leading (whitespace-buffer-leading))
-		(whitespace-trailing (whitespace-buffer-trailing))
-		(whitespace-indent (whitespace-buffer-search
-				    whitespace-indent-regexp))
-		(whitespace-spacetab (whitespace-buffer-search
-				      whitespace-spacetab-regexp))
-		(whitespace-ateol (whitespace-buffer-search
-				   whitespace-ateol-regexp))
+	  (let ((whitespace-leading (if whitespace-check-leading-whitespace
+					(whitespace-buffer-leading)
+				      nil))
+		(whitespace-trailing (if whitespace-check-trailing-whitespace
+					 (whitespace-buffer-trailing)
+				       nil))
+		(whitespace-indent (if whitespace-check-indent-whitespace
+				       (whitespace-buffer-search
+					whitespace-indent-regexp)
+				     nil))
+		(whitespace-spacetab (if whitespace-check-spacetab-whitespace
+					 (whitespace-buffer-search
+					  whitespace-spacetab-regexp)
+				       nil))
+		(whitespace-ateol (if whitespace-check-ateol-whitespace
+				      (whitespace-buffer-search
+				       whitespace-ateol-regexp)
+				    nil))
 		(whitespace-errmsg nil)
 		(whitespace-error nil)
 		(whitespace-filename buffer-file-name)
@@ -236,6 +274,11 @@ and:
 		  (setq whitespace-mode-line
 			(concat " W:" whitespace-this-modeline))
 		  (whitespace-force-mode-line-update)))
+
+	    ;; Now test and set the whitespaces that are not checked.
+	    (whitespace-display-unchecked-whitespaces
+	     (if whitespace-error
+		 (concat " W:" whitespace-this-modeline)))
 	    (save-excursion
 	      (get-buffer-create whitespace-errbuf)
 	      (kill-buffer whitespace-errbuf)
@@ -280,37 +323,44 @@ whitespace problems."
 	;; they are displayed.
 	(setq tab-width whitespace-tabwith)
 
-	(if (whitespace-buffer-leading)
+	(if (and whitespace-check-leading-whitespace
+		 (whitespace-buffer-leading))
 	    (progn
 	      (whitespace-buffer-leading-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (whitespace-buffer-trailing)
+	(if (and whitespace-check-trailing-whitespace
+		 (whitespace-buffer-trailing))
 	    (progn
 	      (whitespace-buffer-trailing-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (whitespace-buffer-search whitespace-indent-regexp)
+	(if (and whitespace-check-indent-whitespace
+		 (whitespace-buffer-search whitespace-indent-regexp))
 	    (progn
 	      (whitespace-indent-cleanup)
 	      (setq whitespace-any t)))
 
-	(if (whitespace-buffer-search whitespace-spacetab-regexp)
+	(if (and whitespace-check-spacetab-whitespace
+		 (whitespace-buffer-search whitespace-spacetab-regexp))
 	    (progn
 	      (whitespace-buffer-cleanup whitespace-spacetab-regexp "\t")
 	      (setq whitespace-any t)))
 
-	(if (whitespace-buffer-search whitespace-ateol-regexp)
+	(if (and whitespace-check-ateol-whitespace
+		 (whitespace-buffer-search whitespace-ateol-regexp))
 	    (progn
 	      (whitespace-buffer-cleanup whitespace-ateol-regexp "")
 	      (setq whitespace-any t)))
 
 	;; Call this recursively till everything is taken care of
-	(if whitespace-any (whitespace-cleanup)
+	(if whitespace-any
+	    (whitespace-cleanup)
 	  (progn
 	    (message "%s clean" buffer-file-name)
 	    (setq whitespace-mode-line nil)
-	    (whitespace-force-mode-line-update)))
+	    (whitespace-force-mode-line-update)
+	    (whitespace-display-unchecked-whitespaces)))
 	(setq tab-width whitespace-tabwith-saved))))
 
 ;;;###autoload
@@ -427,6 +477,20 @@ whitespace problems."
 	(delete-region (match-beginning 0) (point))
 	(indent-to column)))))
 
+(defun whitespace-display-unchecked-whitespaces (&optional whitespace-str)
+  "Update modeline with whitespaces whose testing has been turned off."
+  (let ((whitespace-this-modeline
+	 (concat (if (not whitespace-check-ateol-whitespace) "e")
+		 (if (not whitespace-check-indent-whitespace) "i")
+		 (if (not whitespace-check-leading-whitespace) "l")
+		 (if (not whitespace-check-spacetab-whitespace) "s")
+		 (if (not whitespace-check-trailing-whitespace) "t"))))
+    (setq whitespace-mode-line whitespace-str)
+    (if (not (equal whitespace-this-modeline ""))
+      (setq whitespace-mode-line
+	    (concat whitespace-str " Woff:" whitespace-this-modeline)))
+    (whitespace-force-mode-line-update)))
+
 ;; Force mode line updation for different Emacs versions
 (defun whitespace-force-mode-line-update ()
   "Force the mode line update for different flavors of Emacs."
@@ -449,7 +513,7 @@ periodically for whitespace."
 If timer is not set, then set it to scan the files in
 `whitespace-all-buffer-files' periodically (defined by
 `whitespace-rescan-timer-time') for whitespace creep."
-  (if (not whitespace-rescan-timer)
+  (if (and whitespace-rescan-timer-time (not whitespace-rescan-timer))
       (setq whitespace-rescan-timer
 	    (if whitespace-running-emacs
 		(run-at-time nil whitespace-rescan-timer-time
@@ -531,6 +595,9 @@ i - Indentation whitespace.
 l - Leading whitespace.
 s - Space followed by Tab.
 t - Trailing whitespace.
+
+If any of the whitespace checks is turned off, the modeline will display a
+Woff:<x>, where `x' can be one (or more) of the above.
 
     (since (3) is the most controversial one, here is the rationale: Most
     terminal drivers and printer drivers have TAB configured or even
