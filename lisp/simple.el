@@ -1112,14 +1112,14 @@ If COMMAND ends in ampersand, execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
 That buffer is in shell mode.
 
-Otherwise, COMMAND is executed synchronously.  The output appears in the
-buffer `*Shell Command Output*'.  If the output is short enough to
-display in the echo area (which is determined by the variable
-`max-mini-window-height'), it is shown there, but it is nonetheless
-available in buffer `*Shell Command Output*' even though that buffer is
-not automatically displayed.  If there is no output, or if output is
-inserted in the current buffer, then `*Shell Command Output*' is
-deleted.
+Otherwise, COMMAND is executed synchronously.  The output appears in
+the buffer `*Shell Command Output*'.  If the output is short enough to
+display in the echo area (which is determined by the variables
+`resize-mini-windows' and `max-mini-window-height'), it is shown
+there, but it is nonetheless available in buffer `*Shell Command
+Output*' even though that buffer is not automatically displayed.  If
+there is no output, or if output is inserted in the current buffer,
+then `*Shell Command Output*' is deleted.
 
 To specify a coding system for converting non-ASCII characters
 in the shell command output, use \\[universal-coding-system-argument]
@@ -1230,7 +1230,8 @@ specifies the value of ERROR-BUFFER."
 MESSAGE may be either a string or a buffer.
 
 A buffer is displayed using `display-buffer' if MESSAGE is too long for
-the maximum height of the echo area, as defined by `max-mini-window-height'.
+the maximum height of the echo area, as defined by `max-mini-window-height'
+if `resize-mini-windows' is non-nil.
 
 Returns either the string shown in the echo area, or when a pop-up
 buffer is used, the window used to display it.
@@ -1267,12 +1268,15 @@ and only used if a buffer is displayed."
 		    (count-lines (point-min) (point-max)))))
 	     (cond ((or (<= lines 1)
 			(<= lines
-			    (cond ((floatp max-mini-window-height)
-				   (* (frame-height) max-mini-window-height))
-				  ((integerp max-mini-window-height)
-				   max-mini-window-height)
-				  (t
-				   1))))
+			    (if resize-mini-windows
+				(cond ((floatp max-mini-window-height)
+				       (* (frame-height)
+					  max-mini-window-height))
+				      ((integerp max-mini-window-height)
+				       max-mini-window-height)
+				      (t
+				       1))
+			      1)))
 		    ;; Echo area
 		    (goto-char (point-max))
 		    (when (bolp)
@@ -1313,11 +1317,12 @@ systems by binding `coding-system-for-read' and
 `coding-system-for-write'.
 
 If the output is short enough to display in the echo area (which is
-determined by the variable `max-mini-window-height'), it is shown there,
-but it is nonetheless available in buffer `*Shell Command Output*' even
-though that buffer is not automatically displayed.  If there is no
-output, or if output is inserted in the current buffer, then `*Shell
-Command Output*' is deleted.
+determined by the variable `max-mini-window-height' if
+`resize-mini-windows' is non-nil), it is shown there, but it is
+nonetheless available in buffer `*Shell Command Output*' even though
+that buffer is not automatically displayed.  If there is no output, or
+if output is inserted in the current buffer, then `*Shell Command
+Output*' is deleted.
 
 If the optional fourth argument OUTPUT-BUFFER is non-nil,
 that says to put the output in some other buffer.
