@@ -1,3 +1,9 @@
+2002-10-16  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el (dired-readin-insert): Expand dired-directory.
+
+	* dired-aux.el (dired-insert-subdir-doinsert): Preserve point.
+
 2002-10-16   Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/reftex-vars.el: Move reftex-set-dirty here from
