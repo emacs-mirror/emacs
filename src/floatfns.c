@@ -65,7 +65,7 @@ extern double logb ();
 # endif
 #endif
 
-#ifndef NO_MATHERR
+#ifdef NO_MATHERR
 #undef HAVE_MATHERR
 #endif
 
