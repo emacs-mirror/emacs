@@ -327,6 +327,7 @@ do-install: mkdir
 	   if [ `(cd $$1 ; pwd)` != `(cd $${dir} ; pwd)` ] ; then \
 	     rm -rf $$1 ; \
 	   fi ; \
+	   shift ; \
 	 done
 	-set ${COPYDESTS} ; \
 	 mkdir ${COPYDESTS} ; \
