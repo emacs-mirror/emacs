@@ -1802,6 +1802,7 @@ mark_object (argptr)
 
 	  mark_object (&ptr->name);
 	  mark_object (&ptr->icon_name);
+	  mark_object (&ptr->title);
 	  mark_object (&ptr->focus_frame);
 	  mark_object (&ptr->selected_window);
 	  mark_object (&ptr->minibuffer_window);
