@@ -1,3 +1,8 @@
+2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
+	(../info/tramp, tramp.dvi): New targets.
+
 2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* files.texi (Auto Save Files, Remote Files): Mention
