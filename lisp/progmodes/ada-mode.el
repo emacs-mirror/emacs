@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.48 $
+;; Ada Core Technologies's version:   $Revision: 1.49 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -155,7 +155,7 @@ If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
   (condition-case nil (require 'find-file) (error nil)))
 
 ;;  This call should not be made in the release that is done for the
-;;  official FSF Emacs, since it does nothing useful for the latest version
+;;  official Emacs, since it does nothing useful for the latest version
 (if (not (ada-check-emacs-version 21 1))
     (require 'ada-support))
 
@@ -1085,7 +1085,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2001/12/26 14:40:09 $.
+This version was built on $Date: 2002/04/09 18:50:17 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
