@@ -464,6 +464,10 @@ get_long_basename (char * name, char * buf, int size)
   HANDLE dir_handle;
   int len = 0;
 
+  /* must be valid filename, no wild cards or other illegal characters */
+  if (strpbrk (name, "*?|<>\""))
+    return 0;
+
   dir_handle = FindFirstFile (name, &find_data);
   if (dir_handle != INVALID_HANDLE_VALUE)
     {
@@ -1639,8 +1643,8 @@ stat (const char * path, struct stat * buf)
     }
 
   name = (char *) map_w32_filename (path, &path);
-  /* must be valid filename, no wild cards */
-  if (strchr (name, '*') || strchr (name, '?'))
+  /* must be valid filename, no wild cards or other illegal characters */
+  if (strpbrk (name, "*?|<>\""))
     {
       errno = ENOENT;
       return -1;
