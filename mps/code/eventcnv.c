@@ -1,5 +1,5 @@
 /* impl.c.eventcnv: Simple event log converter
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
  */

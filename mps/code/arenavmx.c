@@ -1,7 +1,7 @@
 /* impl.c.arenavmx: STUBS FOR ARENAVM
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file is not properly part of the MPS.  It is a
  * convenience file for EP-Core who do _not_ wish to get a link error,

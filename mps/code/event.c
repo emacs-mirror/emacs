@@ -1,7 +1,7 @@
 /* impl.c.event: EVENT LOGGING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.event
  *

@@ -1,7 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in

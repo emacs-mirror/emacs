@@ -1,7 +1,7 @@
 /* impl.h.dbgpool: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef dbgpool_h

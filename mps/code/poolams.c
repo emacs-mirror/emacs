@@ -1,7 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See design.mps.poolams.
  *

@@ -1,7 +1,7 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design

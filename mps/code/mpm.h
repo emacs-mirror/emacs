@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the

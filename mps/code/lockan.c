@@ -1,7 +1,7 @@
 /* impl.c.lockan: ANSI RECURSIVE LOCKS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a trivial implementation of recursive locks
  * that assumes we are not running in a multi-threaded environment.

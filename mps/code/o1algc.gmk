@@ -1,7 +1,7 @@
 # impl.gmk.o1algc: BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # _ANSI_C_SOURCE is defined in PFMDEFS to avoid bug in library headers
 # which define TRUE and FALSE.

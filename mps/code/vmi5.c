@@ -1,7 +1,7 @@
 /* impl.c.vmi5: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Design: design.mps.vm
  *

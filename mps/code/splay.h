@@ -1,7 +1,7 @@
 /* impl.h.splay: SPLAY TREE HEADER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .source: design.mps.splay
  */

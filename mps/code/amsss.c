@@ -1,7 +1,7 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
  * total size of objects allocated (because epoch doesn't increment

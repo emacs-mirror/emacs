@@ -1,7 +1,7 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.

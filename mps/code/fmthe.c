@@ -1,7 +1,7 @@
 /* impl.c.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Uses impl.c.fmtdy for the actual Dylan format, and just adds
  * a thin layer to handle the object headers themselves.

@@ -1,7 +1,7 @@
 /* impl.h.abq: ABQ INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A FIFO queue substrate for impl.c.poolmv2
  *

@@ -3,7 +3,7 @@
  *
  *  $Id$
  *
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *  Provides a function for scanning the stack and registers
  *

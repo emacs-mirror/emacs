@@ -1,7 +1,7 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the root datatype.
  *

@@ -1,7 +1,7 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .source: design.mps.telemetry
  *

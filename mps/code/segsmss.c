@@ -1,7 +1,7 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: Adapted from amsss.c (because AMS already supports
  * a protocol for subclassing AMS segments). Defines a new pool

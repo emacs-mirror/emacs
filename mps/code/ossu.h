@@ -2,7 +2,7 @@
  *
  *  $Id$
  *
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This header defines some things which are part of the ANSI
  * standard but missing from the C compiler / environment.

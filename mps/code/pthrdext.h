@@ -1,7 +1,7 @@
 /*  impl.h.pthreadext: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.
+ *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MM developers.
  *

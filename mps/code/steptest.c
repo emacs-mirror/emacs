@@ -1,7 +1,7 @@
 /* impl.c.steptest: TEST FOR ARENA CLAMPING AND STEPPING
  *
  * $Id$
- * Copyright (C) 1998 Ravenbrook Limited.
+ * Copyright (C) 1998 Ravenbrook Limited.  See end of file for license.
  *
  * Based on impl.c.amcss.
  */

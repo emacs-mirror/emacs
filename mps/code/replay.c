@@ -1,5 +1,5 @@
 /* impl.c.replay: Allocation replayer
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
  */

@@ -1,7 +1,7 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
  * These macros should be used to instrument and annotate code with

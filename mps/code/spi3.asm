@@ -1,7 +1,7 @@
 ;  impl.asm.spi3: STACK PROBE
 ;
 ;  $Id$
-;  Copyright (c) 2001 Ravenbrook Limited.
+;  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 ;
 ;  This function reads a location that is probeDepth words beyond
 ;  the current stack pointer.  On intel platforms the stack grows

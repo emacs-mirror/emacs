@@ -1,7 +1,7 @@
 # impl.gmk.lii3eg: BUILD FOR LINUX/INTEL/EGCS PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This is the GNU makefile for platform.lii3eg.
 

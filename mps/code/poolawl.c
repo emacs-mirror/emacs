@@ -1,7 +1,7 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN

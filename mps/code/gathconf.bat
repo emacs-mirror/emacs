@@ -1,7 +1,7 @@
 @rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
 @rem
 @rem $Id$
-@rem Copyright (c) 2001 Ravenbrook Limited.
+@rem Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 
 rmdir /s w3i3mv
 nmake /f w3i3mv.nmk VARIETY=we mps_conf.lib mpsplan.lib

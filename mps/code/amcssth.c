@@ -1,7 +1,7 @@
 /* impl.c.amcssth: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: This is Posix only.
  */

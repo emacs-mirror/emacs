@@ -1,7 +1,7 @@
 /* impl.h.prmci3: PROTECTION MUTATOR CONTEXT (Intel 386)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */

@@ -1,7 +1,7 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .coverage: At the moment, we're only trying to cover the new code
  * (partial mapping of the page table and vm overflow).

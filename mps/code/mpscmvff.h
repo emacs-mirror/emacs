@@ -1,7 +1,7 @@
 /* impl.h.mpscmvff: MEMORY POOL SYSTEM CLASS "MVFF"
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpscmvff_h

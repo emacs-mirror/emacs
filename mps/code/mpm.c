@@ -1,7 +1,7 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
