@@ -141,9 +141,9 @@ nil means make them for files that have some already.
 (defvar dired-kept-versions 2
   "*When cleaning directory, number of versions to keep.")
 
-(defvar trim-versions-without-asking nil
-  "*If t, deletes excess backup versions silently.
-If nil, asks confirmation.  Any other value prevents any trimming.")
+(defvar delete-old-versions nil
+  "*If t, delete excess backup versions silently.
+If nil, ask confirmation.  Any other value prevents any trimming.")
 
 (defvar kept-old-versions 2
   "*Number of oldest versions to keep when a new numbered backup is made.")
@@ -1328,8 +1328,8 @@ the modes of the new file to agree with the old modes."
 		   ;; ask the user to confirm now, before doing anything.
 		   ;; But don't actually delete til later.
 		   (and targets
-			(or (eq trim-versions-without-asking t) (eq trim-versions-without-asking nil))
-			(or trim-versions-without-asking
+			(or (eq delete-old-versions t) (eq delete-old-versions nil))
+			(or delete-old-versions
 			    (y-or-n-p (format "Delete excess backup versions of %s? "
 					      real-file-name))))))
 	      ;; Actually write the back up file.
@@ -1518,7 +1518,7 @@ We don't want excessive versions piling up, so there are variables
  and `kept-new-versions', which tells how many newest versions to keep.
  Defaults are 2 old versions and 2 new.
 `dired-kept-versions' controls dired's clean-directory (.) command.
-If `trim-versions-without-asking' is nil, system will query user
+If `delete-old-versions' is nil, system will query user
  before trimming versions.  Otherwise it does it silently."
   (interactive "p")
   (let ((modp (buffer-modified-p))
