@@ -1,5 +1,7 @@
 2001-12-18  Dave Love  <fx@gnu.org>
 
+	* loadup.el: Add language/utf-8-lang, language/georgian.
+
 	* image-file.el (image-file-name-extensions): Add pnm.  Doc fix.
 	(image-file-name-regexps): Doc fix.
 
