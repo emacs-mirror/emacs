@@ -1,5 +1,14 @@
 2001-10-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* help.el (help-mode): Use define-derived-mode.
+	(describe-mode): Add optional `buffer' arg.
+	Use it instead of going through help-xref-mode.
+	Avoid doubling the word `minor' when prettifying.
+	(describe-function-1): List the corresponding key bindings.
+	(describe-variable): Say if the var is automatically buffer-local.
+	If the source is `loaddefs.el', look for the real source.
+	(help-xref-mode): Remove.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file): Return success when
 	the file says no-byte-compile.
 
