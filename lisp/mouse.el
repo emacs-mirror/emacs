@@ -573,52 +573,42 @@ remains active.  Otherwise, it remains until the next input event."
 	    ;; Run the binding of the terminating up-event, if possible.
 	    ;; In the case of a multiple click, it gives the wrong results,
 	    ;; because it would fail to set up a region.
-	    (if nil ;; (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
-		;; In this case, we can just let the up-event execute normally.
-		(let ((end (event-end event)))
-		  ;; Set the position in the event before we replay it,
-		  ;; because otherwise it may have a position in the wrong
-		  ;; buffer.
-		  (setcar (cdr end) end-of-range)
-		  ;; Delete the overlay before calling the function,
-		  ;; because delete-overlay increases buffer-modified-tick.
-		  (delete-overlay mouse-drag-overlay)
-		  (setq unread-command-events
-			(cons event unread-command-events)))
-	      (if (not (= (overlay-start mouse-drag-overlay)
+	    (if (not (= (overlay-start mouse-drag-overlay)
+			(overlay-end mouse-drag-overlay)))
+		(let* ((stop-point
+			(if (numberp (posn-point (event-end event)))
+			    (posn-point (event-end event))
+			  last-end-point))
+		       ;; The end that comes from where we ended the drag.
+		       ;; Point goes here.
+		       (region-termination
+			(if (and stop-point (< stop-point start-point))
+			    (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
-		  (let* ((stop-point
-			  (if (numberp (posn-point (event-end event)))
-			      (posn-point (event-end event))
-			    last-end-point))
-			 ;; The end that comes from where we ended the drag.
-			 ;; Point goes here.
-			 (region-termination
-			  (if (and stop-point (< stop-point start-point))
-			      (overlay-start mouse-drag-overlay)
-			    (overlay-end mouse-drag-overlay)))
-			 ;; The end that comes from where we started the drag.
-			 ;; Mark goes there.
-			 (region-commencement
-			  (- (+ (overlay-end mouse-drag-overlay)
-				(overlay-start mouse-drag-overlay))
-			     region-termination))
-			 last-command this-command)
-		    (push-mark region-commencement t t)
-		    (goto-char region-termination)
-		    (copy-region-as-kill (point) (mark t))
-		    (let ((buffer (current-buffer)))
-		      (mouse-show-mark)
-		      ;; mouse-show-mark can call read-event,
-		      ;; and that means the Emacs server could switch buffers
-		      ;; under us.  If that happened, 
-		      ;; avoid trying to use the region.
-		      (and (mark t) mark-active
-			   (eq buffer (current-buffer))
-			   (mouse-set-region-1))))
-		(goto-char (overlay-end mouse-drag-overlay))
-		(setq this-command 'mouse-set-point)
-		(delete-overlay mouse-drag-overlay))))
+		       ;; The end that comes from where we started the drag.
+		       ;; Mark goes there.
+		       (region-commencement
+			(- (+ (overlay-end mouse-drag-overlay)
+			      (overlay-start mouse-drag-overlay))
+			   region-termination))
+		       last-command this-command)
+		  (push-mark region-commencement t t)
+		  (goto-char region-termination)
+		  (copy-region-as-kill (point) (mark t))
+		  (let ((buffer (current-buffer)))
+		    (mouse-show-mark)
+		    ;; mouse-show-mark can call read-event,
+		    ;; and that means the Emacs server could switch buffers
+		    ;; under us.  If that happened, 
+		    ;; avoid trying to use the region.
+		    (and (mark t) mark-active
+			 (eq buffer (current-buffer))
+			 (mouse-set-region-1))))
+	      (delete-overlay mouse-drag-overlay)
+	      ;; Run the binding of the terminating up-event.
+	      (if (fboundp fun)
+		  (setq unread-command-events
+			(cons event unread-command-events)))))
 	(delete-overlay mouse-drag-overlay)))))
 
 ;; Commands to handle xterm-style multiple clicks.
