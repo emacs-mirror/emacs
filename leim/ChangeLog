@@ -1,5 +1,7 @@
 2000-08-29  Dave Love  <fx@gnu.org>
 
+	* quail/latin-pre.el ("latin-9-prefix"): Change entries for ,b=(B and ,b<(B.
+
 	* Makefile.in: ja-dic <- skk in several places.
 
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>

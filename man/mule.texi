@@ -363,8 +363,7 @@ Select a new input method for the current buffer.
 Describe the input method @var{method} (@code{describe-input-method}).
 By default, it describes the current input method (if any).  This
 description should give you the full details of how to use any
-particular input method once you have selected it but before selecting
-it once you will typically get only a two-line summary.
+particular input method.
 
 @item M-x list-input-methods
 Display a list of all the supported input methods.

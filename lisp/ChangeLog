@@ -1,5 +1,10 @@
 2000-08-29  Dave Love  <fx@gnu.org>
 
+	* diff-mode.el (diff-mode) <defgroup>: Add :version.
+	(diff-mode-shared-map): Bind mouse-2.
+	(diff-imenu-generic-expression): New variable.
+	(diff-mode): Use it.
+
 	* mouse.el (mouse-major-mode-menu): Use local-key-binding.
 	(mouse-popup-menubar): Add minor mode menus.
 	(popup-menu): Check for lookup-key returning number.
