@@ -288,12 +288,14 @@ access_keymap (map, idx, t_ok, noinherit)
 
   {
     Lisp_Object tail;
-    Lisp_Object t_binding = Qnil;
+    Lisp_Object t_binding;
 
+    t_binding = Qnil;
     for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
       {
-	Lisp_Object binding = XCONS (tail)->car;
+	Lisp_Object binding;
 
+	binding = XCONS (tail)->car;
 	switch (XTYPE (binding))
 	  {
 	  case Lisp_Symbol:
@@ -422,12 +424,14 @@ store_in_keymap (keymap, idx, def)
        towards the front of the alist and character lookups in dense
        keymaps will remain fast.  Otherwise, this just points at the
        front of the keymap.  */
-    Lisp_Object insertion_point = keymap;
+    Lisp_Object insertion_point;
 
+    insertion_point = keymap;
     for (tail = XCONS (keymap)->cdr; CONSP (tail); tail = XCONS (tail)->cdr)
       {
-	Lisp_Object elt = XCONS (tail)->car;
+	Lisp_Object elt;
 
+	elt = XCONS (tail)->car;
 	switch (XTYPE (elt))
 	  {
 	  case Lisp_Vector:
@@ -488,8 +492,9 @@ is not copied.")
 
   for (tail = copy; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      Lisp_Object elt = XCONS (tail)->car;
+      Lisp_Object elt;
 
+      elt = XCONS (tail)->car;
       if (XTYPE (elt) == Lisp_Vector)
 	{
 	  int i;
@@ -630,14 +635,10 @@ the front of KEYMAP.")
 
       keymap = get_keymap_1 (cmd, 0, 1);
       if (NILP (keymap))
-	{
-	  /* We must use Fkey_description rather than just passing key to
-	     error; key might be a vector, not a string.  */
-	  Lisp_Object description = Fkey_description (key);
-
-	  error ("Key sequence %s uses invalid prefix characters",
-		 XSTRING (description)->data);
-	}
+	/* We must use Fkey_description rather than just passing key to
+	   error; key might be a vector, not a string.  */
+	error ("Key sequence %s uses invalid prefix characters",
+	       XSTRING (Fkey_description (key))->data);
     }
 }
 
@@ -1140,17 +1141,22 @@ then the value includes only maps for prefixes that start with PREFIX.")
 
   for (tail = maps; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      register Lisp_Object thisseq = Fcar (Fcar (tail));
-      register Lisp_Object thismap = Fcdr (Fcar (tail));
-      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
-
+      register Lisp_Object thisseq, thismap;
+      Lisp_Object last;
       /* Does the current sequence end in the meta-prefix-char?  */
-      int is_metized = (XINT (last) >= 0
-			&& EQ (Faref (thisseq, last), meta_prefix_char));
+      int is_metized;
+
+      thisseq = Fcar (Fcar (tail));
+      thismap = Fcdr (Fcar (tail));
+      last = make_number (XINT (Flength (thisseq)) - 1);
+      is_metized = (XINT (last) >= 0
+		    && EQ (Faref (thisseq, last), meta_prefix_char));
 
       for (; CONSP (thismap); thismap = XCONS (thismap)->cdr)
 	{
-	  Lisp_Object elt = XCONS (thismap)->car;
+	  Lisp_Object elt;
+
+	  elt = XCONS (thismap)->car;
 
 	  QUIT;
 
@@ -1203,9 +1209,9 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	    }	    
 	  else if (CONSP (elt))
 	    {
-	      register Lisp_Object cmd = get_keyelt (XCONS (elt)->cdr);
-	      register Lisp_Object tem, filter;
+	      register Lisp_Object cmd, tem, filter;
 
+	      cmd = get_keyelt (XCONS (elt)->cdr);
 	      /* Ignore definitions that aren't keymaps themselves.  */
 	      tem = Fkeymapp (cmd);
 	      if (!NILP (tem))
@@ -1558,11 +1564,8 @@ indirect definition itself.")
 
   for (; !NILP (maps); maps = Fcdr (maps))
     {
-      /* Key sequence to reach map */
-      register Lisp_Object this = Fcar (Fcar (maps));
-
-      /* The map that it reaches */
-      register Lisp_Object map  = Fcdr (Fcar (maps));
+      /* Key sequence to reach map, and the map that it reaches */
+      register Lisp_Object this, map;
 
       /* If Fcar (map) is a VECTOR, the current element within that vector.  */
       int i = 0;
@@ -1570,9 +1573,14 @@ indirect definition itself.")
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
 	 is the meta-prefix char.  */
-      Lisp_Object last = make_number (XINT (Flength (this)) - 1);
-      int last_is_meta = (XINT (last) >= 0
-			  && EQ (Faref (this, last), meta_prefix_char));
+      Lisp_Object last;
+      int last_is_meta;
+
+      this = Fcar (Fcar (maps));
+      map  = Fcdr (Fcar (maps));
+      last = make_number (XINT (Flength (this)) - 1);
+      last_is_meta = (XINT (last) >= 0
+		      && EQ (Faref (this, last), meta_prefix_char));
 
       QUIT;
 
@@ -1587,8 +1595,8 @@ indirect definition itself.")
 	     advance map to the next element until i indicates that we
 	     have finished off the vector.  */
 	  
-	  Lisp_Object elt = XCONS (map)->car;
-	  Lisp_Object key, binding, sequence;
+	  Lisp_Object elt, key, binding, sequence;
+	  elt = XCONS (map)->car;
 
 	  QUIT;
 
