@@ -795,7 +795,9 @@ are shown; the contents of those subgroups are initially hidden."
     (if (get-buffer name)
 	(switch-to-buffer name)
       (custom-buffer-create (list (list group 'custom-group))
-			    name))))
+			    name
+			    (concat " for group "
+				    (custom-unlispify-tag-name group))))))
 
 ;;;###autoload
 (defun customize-group-other-window (symbol)
@@ -976,7 +978,7 @@ links: groups have links to subgroups."
   :group 'custom-buffer)
 
 ;;;###autoload
-(defun custom-buffer-create (options &optional name)
+(defun custom-buffer-create (options &optional name description)
   "Create a buffer containing OPTIONS.
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
@@ -985,10 +987,10 @@ that option."
   (unless name (setq name "*Customization*"))
   (kill-buffer (get-buffer-create name))
   (switch-to-buffer (get-buffer-create name))
-  (custom-buffer-create-internal options))
+  (custom-buffer-create-internal options description))
 
 ;;;###autoload
-(defun custom-buffer-create-other-window (options &optional name)
+(defun custom-buffer-create-other-window (options &optional name description)
   "Create a buffer containing OPTIONS.
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
@@ -998,7 +1000,7 @@ that option."
   (kill-buffer (get-buffer-create name))
   (let ((window (selected-window)))
     (switch-to-buffer-other-window (get-buffer-create name))
-    (custom-buffer-create-internal options)
+    (custom-buffer-create-internal options description)
     (select-window window)))
 
 (defcustom custom-reset-button-menu nil
@@ -1007,12 +1009,18 @@ This button will have a menu with all three reset operations."
   :type 'boolean
   :group 'custom-buffer)
 
-(defun custom-buffer-create-internal (options)
+(defun custom-buffer-create-internal (options &optional description)
   (message "Creating customization buffer...")
   (custom-mode)
-  (widget-insert "This is a customization buffer.
+  (widget-insert "This is a customization buffer")
+  (if description
+      (widget-insert description))
+  (widget-insert ".
 Square brackets show active fields; type RET or click mouse-1
-on an active field to invoke its action.  Invoke ")
+on an active field to invoke its action.  Editing an option value
+changes the text in the buffer; invoke the State button and
+choose the Set operation to set the option value.
+Invoke ")
   (widget-create 'info-link 
 		 :tag "Help"
 		 :help-echo "Read the online help."
@@ -1495,7 +1503,6 @@ and `face'."
   :value-delete 'widget-children-value-delete
   :value-get 'widget-value-value-get
   :validate 'widget-children-validate
-  :button-face 'custom-button-face
   :match (lambda (widget value) (symbolp value)))
 
 (defun custom-convert-widget (widget)
@@ -2277,8 +2284,8 @@ Match frames with dark backgrounds.")
 	     (message "Creating face editor...done"))))))
 
 (defvar custom-face-menu 
-  '(("Set" custom-face-set)
-    ("Save" custom-face-save)
+  '(("Set for Current Session" custom-face-set)
+    ("Save for Future Sessions" custom-face-save)
     ("Reset to Saved" custom-face-reset-saved
      (lambda (widget)
        (get (widget-value widget) 'saved-face)))
@@ -2764,10 +2771,10 @@ Creating group members... %2d%%"
 	   (insert "/\n")))))
 
 (defvar custom-group-menu 
-  '(("Set" custom-group-set
+  '(("Set for Current Session" custom-group-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ("Save" custom-group-save
+    ("Save for Future Sessions" custom-group-save
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
     ("Reset to Current" custom-group-reset-current
@@ -3195,6 +3202,8 @@ if that value is non-nil."
   (make-local-variable 'custom-options)
   (make-local-variable 'widget-documentation-face)
   (setq widget-documentation-face 'custom-documentation-face)
+  (make-local-variable 'widget-button-face)
+  (setq widget-button-face 'custom-button-face)
   (make-local-hook 'widget-edit-functions)
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
