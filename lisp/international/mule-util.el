@@ -318,28 +318,6 @@ or one is an alias of the other."
       (equal (coding-system-plist coding-system-1)
 	     (coding-system-plist coding-system-2))))
 
-;;;###autoload
-(defun prefer-coding-system (coding-system)
-  "Add CODING-SYSTEM at the front of the priority list for automatic detection."
-  (interactive "zPrefer coding system: ")
-  (if (not (and coding-system (coding-system-p coding-system)))
-      (error "Invalid coding system `%s'" coding-system))
-  (let ((coding-category (coding-system-category coding-system))
-	(parent (coding-system-parent coding-system)))
-    (if (not coding-category)
-	;; CODING-SYSTEM is no-conversion or undecided.
-	(error "Can't prefer the coding system `%s'" coding-system))
-    (set coding-category (or parent coding-system))
-    (if (not (eq coding-category (car coding-category-list)))
-	;; We must change the order.
-	(setq coding-category-list
-	      (cons coding-category
-		    (delq coding-category coding-category-list))))
-    (if (and parent (interactive-p))
-	(message "Highest priority is set to %s (parent of %s)"
-		 parent coding-system))
-    (setq-default buffer-file-coding-system (or parent coding-system))))
-
 
 ;;; Composite charcater manipulations.
 
@@ -373,6 +351,19 @@ positions (integers or markers) specifying the region."
 	(setq str (buffer-substring (match-beginning 0) (match-end 0)))
 	(delete-region (match-beginning 0) (match-end 0))
 	(insert (decompose-composite-char (string-to-char str)))))))
+
+;;;###autoload
+(defun decompose-string (string)
+  "Decompose all composite characters in STRING."
+  (let* ((l (string-to-list string))
+	 (tail l)
+	 ch)
+    (while tail
+      (setq ch (car tail))
+      (setcar tail (if (cmpcharp ch) (decompose-composite-char ch)
+		     (char-to-string ch)))
+      (setq tail (cdr tail)))
+    (apply 'concat l)))
 
 ;;;###autoload
 (defconst reference-point-alist
