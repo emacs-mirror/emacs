@@ -11993,9 +11993,9 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
   /* The EOL conversion we are using.  */
   Lisp_Object eoltype;
 
-  val = coding_system;
+  val = Fget (coding_system, Qcoding_system);
 
-  if (NILP (val))		/* Not yet decided.  */
+  if (!VECTORP (val))		/* Not yet decided.  */
     {
       if (multibyte)
 	*buf++ = '-';
@@ -12008,13 +12008,6 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       Lisp_Object eolvalue;
 
       eolvalue = Fget (coding_system, Qeol_type);
-
-      while (!NILP (val) && SYMBOLP (val))
-	{
-	  val = Fget (val, Qcoding_system);
-	  if (NILP (eolvalue))
-	    eolvalue = Fget (val, Qeol_type);
-	}
 
       if (multibyte)
 	*buf++ = XFASTINT (XVECTOR (val)->contents[1]);
@@ -12046,6 +12039,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       else if (INTEGERP (eoltype)
 	       && CHAR_VALID_P (XINT (eoltype), 0))
 	{
+	  eol_str = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
 	  eol_str_len = CHAR_STRING (XINT (eoltype), eol_str);
 	}
       else
