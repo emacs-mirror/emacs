@@ -44,7 +44,7 @@ The key sequence \"Z<key>\" can be used for \"０..Ａ..ａ..\
 The key sequence \"H<key-sequence>\" can be used for \"ㅥㅦ...\".
 The key sequnece \"S<key>\" can be used for such symbols as \"￥￡‰...\".
 
-You can use the key TAB to know the avairable key combination.
+You can use the key TAB to know the available key combination.
 For instance, typing \"S\" followed by TAB will tell you
  which key you should type to input some specific symbol.
 --- Example ---
