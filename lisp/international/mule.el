@@ -636,7 +636,7 @@ a value of `safe-charsets' in PLIST."
     (aset coding-spec coding-spec-type-idx type)
     (aset coding-spec coding-spec-mnemonic-idx mnemonic)
     (aset coding-spec coding-spec-doc-string-idx
-	  (if (stringp doc-string) doc-string ""))
+	  (purecopy (if (stringp doc-string) doc-string "")))
     (cond ((= type 0)
 	   (setq coding-category 'coding-category-emacs-mule))
 	  ((= type 1)
