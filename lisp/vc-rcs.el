@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.31 2002/11/13 12:38:20 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.32 2002/12/26 14:06:33 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -325,6 +325,8 @@ whether to remove it."
 			 default-branch)
 	   (setq rev default-branch)
 	   (setq switches (cons "-f" switches)))
+      (if (and (not rev) old-version)
+          (setq rev (vc-branch-part old-version)))
       (apply 'vc-do-command nil 0 "ci" (vc-name file)
 	     ;; if available, use the secure check-in option
 	     (and (vc-rcs-release-p "5.6.4") "-j")
