@@ -299,7 +299,9 @@ to which the end of the previous line belongs, or the end of the buffer."
 	(if (< (point) (point-max))
 	    (goto-char start)))
       (setq arg (1- arg)))
-    (constrain-to-field nil opoint t)))
+    (constrain-to-field nil opoint t)
+    ;; Return the number of steps that could not be done.
+    arg))
 
 (defun backward-paragraph (&optional arg)
   "Move backward to start of paragraph.
