@@ -1201,7 +1201,16 @@ command_loop_1 ()
     directly_done: ;
 
       if (!NILP (Vpost_command_hook))
-	call1 (Vrun_hooks, Qpost_command_hook);
+	{
+	  /* If we get an error during the post-command-hook,
+	     cause post-command-hook to be nil.  */
+	  Vcommand_hook_internal = Vpost_command_hook;
+	  Vpost_command_hook = Qnil;
+
+	  call1 (Vrun_hooks, Qcommand_hook_internal);
+
+	  Vpost_command_hook = Vcommand_hook_internal;
+	}
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -4959,7 +4968,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   Lisp_Object saved_keys;
   struct gcpro gcpro1;
 
-  saved_keys = Fthis_command_keys ();
+  saved_keys = Fvector (this_command_key_count,
+			XVECTOR (this_command_keys)->contents);
   buf[0] = 0;
   GCPRO1 (saved_keys);
 
@@ -4989,17 +4999,15 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
      function, followed by a RET.  */
   {
     struct Lisp_String *str;
+    Lisp_Object *keys;
     int i;
     Lisp_Object tem;
 
     this_command_key_count = 0;
 
-    str = XSTRING (saved_keys);
-    for (i = 0; i < str->size; i++)
-      {
-	XFASTINT (tem) = str->data[i];
-	add_command_key (tem);
-      }
+    keys = XVECTOR (saved_keys)->contents;
+    for (i = 0; i < XVECTOR (saved_keys)->size; i++)
+      add_command_key (keys[i]);
 
     str = XSTRING (function);
     for (i = 0; i < str->size; i++)
@@ -5849,6 +5857,10 @@ The command loop sets this to nil before each command,\n\
 and tests the value when the command returns.\n\
 Buffer modification stores t in this variable.");
   Vdeactivate_mark = Qnil;
+
+  DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
+    "Temporary storage of pre-command-hook or post-command-hook.");
+  Vcommand_hook_internal = Qnil;
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
     "Normal hook run before each command is executed.");
