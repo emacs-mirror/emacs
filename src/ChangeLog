@@ -1,5 +1,8 @@
 2000-07-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (redraw_overlapped_rows): Add missing local.
+	(scrolling_window): Remove debug code.
+
 	* xdisp.c (try_window_reusing_current_matrix, try_window_id):
 	Before scrolling, turn off a mouse-highlight in the window
 	being scrolled.
