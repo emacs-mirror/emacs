@@ -649,6 +649,7 @@ lisp= \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
 	${lispsource}byte-run.elc \
+	${lispsource}composite.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
 	${lispsource}emacs-lisp/backquote.elc \
@@ -725,6 +726,7 @@ shortlisp= \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
 	../lisp/byte-run.elc \
+	../lisp/composite.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
 	../lisp/emacs-lisp/backquote.elc \
