@@ -1027,8 +1027,6 @@ protocols.  It has a separate manual.
 *** autoconf.el provides a major mode for editing configure.in files
 for Autoconf, selected automatically.
 
-*** glasses.el
-
 *** windmove.el
 
 ** Withdrawn packages
@@ -1054,7 +1052,7 @@ and isn't a string.
 +++
 ** The last argument of `define-key-after' defaults to t for convenience.
 
-** The new function `replace-regexps-in-string' replaces all matches
+** The new function `replace-regexp-in-string' replaces all matches
 for a regexp in a string.
 
 ** `mouse-position' now runs the abnormal hook
