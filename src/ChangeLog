@@ -1,5 +1,8 @@
 2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* keyboard.c (syms_of_keyboard): Fix `keyboard-translate-table'
+	docstring.
+
 	* fns.c (Fclear_string): Declare `len' before call to CHECK_STRING.
 
 2004-07-06  John Paul Wallington  <jpw@gnu.org>
