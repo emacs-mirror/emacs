@@ -1,3 +1,7 @@
+1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* editfns.c (Fdelete_field): Make it noninteractive.  Return nil.
+
 1999-11-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 550000.
