@@ -916,7 +916,7 @@ Useful if you accidentally suspend the top-level process."
 ;;; This is pretty stupid about strings. It decides we're in a string
 ;;; if there's a quote on both sides of point on the current line.
 (defun comint-extract-string ()
-  "Returns string around point that starts the current line or nil." 
+  "Returns string around POINT that starts the current line or nil." 
   (save-excursion
     (let* ((point (point))
 	   (bol (progn (beginning-of-line) (point)))
@@ -1052,7 +1052,7 @@ comint-dynamic-complete."
 
 (defun comint-dynamic-complete ()
   "Dynamically complete the filename at point.
-This function is similar to comint-replace-by-expanded-filename, except
+This function is similar to `comint-replace-by-expanded-filename', except
 that it won't change parts of the filename already entered in the buffer; 
 it just adds completion characters to the end of the filename."
   (interactive)
