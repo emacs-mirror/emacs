@@ -98,6 +98,7 @@ C-x 8}.
 * Single-Byte Character Support::
                             You can pick one European character set
                             to use without multibyte characters.
+* Charsets::                How Emacs groups its internal character codes.
 @end menu
 
 @node International Chars
@@ -131,28 +132,6 @@ language, to make it convenient to type them.
 @kindex C-x RET
   The prefix key @kbd{C-x @key{RET}} is used for commands that pertain
 to multibyte characters, coding systems, and input methods.
-
-@ignore
-@c This is commented out because it doesn't fit here, or anywhere.
-@c This manual does not discuss "character sets" as they
-@c are used in Mule, and it makes no sense to mention these commands
-@c except as part of a larger discussion of the topic.
-@c But it is not clear that topic is worth mentioning here,
-@c since that is more of an implementation concept
-@c than a user-level concept.  And when we switch to Unicode,
-@c character sets in the current sense may not even exist.
-
-@findex list-charset-chars
-@cindex characters in a certain charset
-  The command @kbd{M-x list-charset-chars} prompts for a name of a
-character set, and displays all the characters in that character set.
-
-@findex describe-character-set
-@cindex character set, description
-  The command @kbd{M-x describe-character-set} prompts for a character
-set name and displays information about that character set, including
-its internal representation within Emacs.
-@end ignore
 
 @node Enabling Multibyte
 @section Enabling Multibyte Characters
@@ -1360,3 +1339,35 @@ method, but does not depend on having the input methods installed.  This
 mode is buffer-local.  It can be customized for various languages with
 @kbd{M-x iso-accents-customize}.
 @end itemize
+
+@node Charsets
+@section Charsets
+@cindex charsets
+
+  Emacs groups all supported characters into disjoint @dfn{charsets}.
+Each character code belongs to one and only one charset.  For
+historical reasons, Emacs typically divides an 8-bit character code
+for an extended version of ASCII into two charsets: ASCII, which
+covers the codes 0 through 127, plus another charset which covers the
+``right-hand part'' (the codes 128 and up).  For instance, the
+characters of Latin-1 include the Emacs charset @code{ascii} plus the
+Emacs charset @code{latin-iso8859-1}.
+
+  Emacs characters belonging to different charsets may look the same,
+but they are still different characters.  For example, the letter
+@samp{o} with acute accent in charset @code{latin-iso8859-1}, used for
+Latin-1, is different from the letter @samp{o} with acute accent in
+charset @code{latin-iso8859-2}, used for Latin-2.
+
+@findex list-charset-chars
+@cindex characters in a certain charset
+@findex describe-character-set
+  There are two commands for obtaining information about Emacs
+charsets.  The command @kbd{M-x list-charset-chars} prompts for a name
+of a character set, and displays all the characters in that character
+set.  The command @kbd{M-x describe-character-set} prompts for a
+charset name and displays information about that charset, including
+its internal representation within Emacs.
+
+  To find out which charset a character in the buffer belongs to,
+put point before it and type @kbd{C-u C-x =}.
