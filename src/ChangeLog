@@ -1,3 +1,8 @@
+2003-06-11  Dave Love  <fx@gnu.org>
+
+	* search.c (shrink_regexp_cache): Use xrealloc.
+	(syms_of_search): Use xmalloc.
+
 2003-06-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (phys_cursor_in_rect_p): Fix 2003-05-24 change.
@@ -21,6 +26,8 @@
 	Mac too.
 
 2003-06-05  Dave Love  <fx@gnu.org>
+
+	* strftime.c: Merge changes from gnulib.
 
 	* mktime.c (__mktime_internal): Merge changes from gnulib
 	involving year 69 and dst2.
