@@ -1,7 +1,33 @@
+2003-03-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-level): Demote it to defvar.
+	(outline-heading-alist): Document extended semantics.
+	(outline-head-from-level): New fun.
+	(outline-promote, outline-demote): Use it.
+	(outline-show-heading): New fun.
+	(hide-sublevels, show-children):
+	Use it together with outline-map-region.
+	(outline-get-next-sibling): Don't call outline-level at eob.
+
 2003-03-14  Simon Josefsson  <jas@extundo.com>
 
 	* fringe.el (fringe-mode): Autoload so that
 	Options->Show/Hide->Fringe->Customize works.
+
+2003-03-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-mode-menu-bar-map): Add entries.
+	(outline-mode-prefix-map): Match new bindings to those of allout.
+	(outline-map-region): New fun.
+	(outline-map-tree): Remove.
+	(outline-promote, outline-demote): Apply to region if active.
+	Change the default to apply to the subtree.
+	(outline-move-subtree-up, outline-move-subtree-down): New funs.
+	(outline-invisible-p): Add optional `pos' argument.
+	(outline-next-visible-heading, outline-toggle-children): Use it.
+	(outline-get-next-sibling): Don't call outline-level at eob.
+
+	* custom.el (custom-set-minor-mode): New fun.
 
 2003-03-13  Dave Love  <fx@gnu.org>
 
@@ -11,8 +37,8 @@
 
 2003-03-13  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (reset-language-environment): Set
-	default-file-name-coding-system to iso-latin-1.
+	* international/mule-cmds.el (reset-language-environment):
+	Set default-file-name-coding-system to iso-latin-1.
 
 	* language/european.el (iso-latin-1): Definition of this coding
 	system moved to mule-conf.el.
@@ -32,8 +58,7 @@
 	japanese-shift-jis on DOS and Windows.
 
 	* international/quail.el (quail-show-guidance-buf): Make the quail
-	guidance buffer inherit the current value of
-	quail-current-package.
+	guidance buffer inherit the current value of quail-current-package.
 
 	* international/utf-8.el (ccl-decode-mule-utf-8): Don't loose
 	bytes on handling an invalid byte sequence.
@@ -62,8 +87,8 @@
 
 2003-03-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* progmodes/scheme.el (scheme-mode-syntax-table): Construct
-	w/o using `with-syntax-table'.
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	Construct w/o using `with-syntax-table'.
 
 2003-03-10  John Paul Wallington  <jpw@gnu.org>
 
@@ -123,8 +148,8 @@
 
 2003-03-06  John Paul Wallington  <jpw@gnu.org>
 
-	* ebuff-menu.el (electric-buffer-list): Respect
-	`Buffer-menu-use-header-line'.
+	* ebuff-menu.el (electric-buffer-list):
+	Respect `Buffer-menu-use-header-line'.
 	(electric-buffer-menu-looper): Likewise.
 
 	* buff-menu.el (Buffer-menu-mode-map): Add docstring.
@@ -160,60 +185,53 @@
 
 2003-03-05  Reto Zimmermann  <reto@gnu.org>
 
-	* progmodes/vhdl-mode.el: Version 3.32.12 released.  Modifications
-	for displaying all projects in hierarchy browser and case
+	* progmodes/vhdl-mode.el: Version 3.32.12 released.
+	Modifications for displaying all projects in hierarchy browser and case
 	insensitive hierarchy browsing.  Change Rod's email address.
 	Include `itimer.el' patch for XEmacs.  Backquote fix.  Change some
 	documentation strings.  Add "ERROR: " prefix to all error
 	messages.  Enhanced usage of hideshow.
 	(vhdl-in-literal): Remove unused argument LIM.
-	(vhdl-compiler-alist): Enhanced customization for compilers; add
+	(vhdl-compiler-alist): Enhance customization for compilers; add
 	"Speedwave", "Simili", "Synopsys Design Compiler", "Cadence NC",
 	"Savant", "ProVHDL" and "VeriBest" compilers.
-	(vhdl-compiler-alist): Add new error message syntax for Modelsim.
-	(vhdl-compiler-alist): Add Synplify, column no in error regexp.
-	(vhdl-compiler-alist): Include library name in library command.
-	(vhdl-compiler-alist): Add unit-to-file name mapping for Savant.
-	(vhdl-compiler-alist): Add library option in Makefile generation
-	command.
-	(vhdl-compiler-alist): Add command to create library directory.
-	(vhdl-compiler-alist): Built-in Makefile generation is always default.
+	Add new error message syntax for Modelsim.
+	Add Synplify, column no in error regexp.
+	Include library name in library command.
+	Add unit-to-file name mapping for Savant.
+	Add library option in Makefile generation command.
+	Add command to create library directory.
+	Built-in Makefile generation is always default.
 	(vhdl-create-mode-menu): Split menues for compilers, projects, models.
-	(vhdl-create-mode-menu): Add customization for `global-font-lock-mode'.
-	(vhdl-create-mode-menu): Fix `customize-group' entries for XEmacs and
-	change "Gen." to "Generate".
-	(vhdl-create-mode-menu): Get *Messages* buffer.
-	(vhdl-create-mode-menu): Fix "Auto Load Setup File" menu entry.
-	(vhdl-create-mode-menu): Add faces customization to "Options".
-	(vhdl-create-mode-menu): Include `speedbar-indentation-width'.
-	(vhdl-create-mode-menu): Add "Options" entry.
+	Add customization for `global-font-lock-mode'.
+	Fix `customize-group' entries for XEmacs and
+	change "Gen." to "Generate".  Get *Messages* buffer.
+	Fix "Auto Load Setup File" menu entry.
+	Add faces customization to "Options".  Add "Options" entry.
+	Include `speedbar-indentation-width'.
 	(vhdl-replace-string): Allow casing (use `vhdl-file-name-case').
-	(vhdl-template-exit, vhdl-template-next, vhdl-template-return): Fix
-	template abortion.
+	(vhdl-template-exit, vhdl-template-next, vhdl-template-return):
+	Fix template abortion.
 	(vhdl-speedbar-port-copy): Add subprogram copy; copy port of component
 	in package.
 	(vhdl-fixup-whitespace-region): No whitespace after '(' and before ')'.
-	(vhdl-fixup-whitespace-region): Better treat comments and strings.
-	(vhdl-fixup-whitespace-region): Fix "=> ," alignment.
+	Better treat comments and strings.  Fix "=> ," alignment.
 	(vhdl-port-paste-testbench): Print file names created.
-	(vhdl-port-paste-testbench): Better handling when file exist/open.
-	(vhdl-port-paste-testbench): Additional comments in code.
-	(vhdl-port-paste-testbench): Replace keywords in testbench entity and
-	architecture file headers.
-	(vhdl-port-paste-testbench): Adjust case in testbench configuration.
+	Better handling when file exist/open.  Additional comments in code.
+	Replace keywords in testbench entity and architecture file headers.
+	Adjust case in testbench configuration.
 	(vhdl-port-paste-instance): Special case: no number in instance name.
 	(vhdl-speedbar-expand-units): Fix speedbar frame switching oddity.
 	(vhdl-font-lock-keywords-2): Enhance highlighting of instantiation;
 	highlight instantiations without map.
-	(vhdl-font-lock-keywords-2): Fix label highlighting for signal asst.
-	(vhdl-font-lock-keywords-2): Highlight formal parameters.
-	(vhdl-font-lock-keywords-2): Highlight quantity declaration names.
+	Highlight quantity declaration names.  Highlight formal parameters.
+	Fix label highlighting for signal asst.
 	(vhdl-mode): `comment-padding' for Emacs 21 only.
-	(vhdl-mode): Remove forced `turn-on-font-lock'.
-	(vhdl-mode): Remove `hippie-expand-only-buffers' setting.
-	(vhdl-mode): Update online documentation and web address.
+	Remove forced `turn-on-font-lock'.
+	Remove `hippie-expand-only-buffers' setting.
+	Update online documentation and web address.
 	(vhdl-comment-uncomment-region): Remove usage of `commend-dwim' again.
-	(vhdl-comment-uncomment-region): Change ARG for uncommenting.
+	Change ARG for uncommenting.
 	(vhdl-speedbar-make-*-line): Fix for displaying XEmacs speedbar images.
 	(vhdl-fontify-buffer): Toggle font-lock-mode for better recovery.
 	(vhdl-port-list): Add context clause.
@@ -221,66 +239,61 @@
 	(vhdl-testbench-declarations, vhdl-testbench-statements): New default.
 	(vhdl-port-*): Include name in status messages.
 	(vhdl-package-alist): Scan for and display subprogram body.
-	(vhdl-package-alist): Change key to lower case, add original case
-	identifier.
-	(vhdl-package-alist): Scan for packages used by package body.
+	Change key to lower case, add original case identifier.
+	Scan for packages used by package body.
 	(vhdl-speedbar-find-file): Always jump to design unit if buffer open.
 	(vhdl-speedbar-insert-hierarchy): Mark non-existing entities/packages.
-	(vhdl-speedbar-insert-hierarchy): Message "No VHDL design units!".
+	Message "No VHDL design units!".
 	(vhdl-compile-init): Allow fourth element (column no) in error regexp.
-	(vhdl-compile-init): Fix `nconc' bug.
-	(vhdl-compile-init): Eliminate redundant regexps.
+	Fix `nconc' bug.  Eliminate redundant regexps.
 	(vhdl-minibuffer-tab): No indentation.
-	(vhdl-minibuffer-tab): Use `hippie-expand-only-buffers' to take
+	Use `hippie-expand-only-buffers' to take
 	expansions from VHDL buffers only; don't overwrite non-nil default of
 	`hippie-expand-only-buffers'; check whether
 	`hippie-expand-only-buffers' is bound.
 	(vhdl-ams-types, vhdl-ams-enum-values): Add identifiers from
 	`nature_pkg' package.
 	(vhdl-align-alist): Fix "when/else ... =>" case.
-	(vhdl-align-alist): Align declaration keywords only at beg. of line.
-	(vhdl-align-alist): Align <=, := and == among each other.
+	Align declaration keywords only at beg. of line.
+	Align <=, := and == among each other.
 	(vhdl-port-copy): Extended identifiers for signal names.
-	(vhdl-port-copy): Fix on empty generic/port clause.
-	(vhdl-port-copy): Fix parsing of comment on first line.
-	(vhdl-port-copy): Allow generic clause begin on first line.
-	(vhdl-port-copy): Add "inout" and "linkage" to direction modes.
+	Fix on empty generic/port clause.
+	Fix parsing of comment on first line.
+	Allow generic clause begin on first line.
+	Add "inout" and "linkage" to direction modes.
 	(vhdl-font-lock-function-face): Change DarkCyan to Cyan4.
 	(vhdl-file-header): Insert VHDL language standard string.
 	(vhdl-instance-name): Unique numbers in instance names.
 	(vhdl-compile): Check for existing compile directory.
-	(vhdl-compile): Print out file name if compiler does not; put it in
-	quotes if contains spaces.
-	(vhdl-compile): Check compiler name.
-	(vhdl-compiler): Changed empty value from "" to nil.
+	Print out file name if compiler does not; put it in
+	quotes if contains spaces.  Check compiler name.
+	(vhdl-compiler): Change empty value from "" to nil.
 	(vhdl-make): Check for existing compile directory.
-	(vhdl-make): Fix missing options if there is a target.
-	(vhdl-make): Check compiler name.
+	Fix missing options if there is a target.  Check compiler name.
 	(vhdl-template-field): Fix case on all VHDL words.
 	(vhdl-template-others): Re-electrified "others".
 	(vhdl-speedbar-expand-architecture): Give user control over displayed
 	hierarchy depth.
 	(vhdl-project-alist): Insert library name in Makefile name.
-	(vhdl-project-alist): Sources exclude regexp.
-	(vhdl-project-alist): Add file-specific compile exceptions.
-	(vhdl-project-alist): Enhanced customization of projects.
+	Sources exclude regexp.  Add file-specific compile exceptions.
+	Enhance customization of projects.
 	(vhdl-get-hierarchy): Include configurations in hierarchy list.
-	(vhdl-get-hierarchy): Fix bug with configurations.
-	(vhdl-get-hierarchy): Consider configurations; also at lower levels.
-	(vhdl-speedbar-item-info): Enhanced displaying.
+	Fix bug with configurations.
+	Consider configurations; also at lower levels.
+	(vhdl-speedbar-item-info): Enhance displaying.
 	(vhdl-scan-file-contents): Fix skipping of comments in scanning.
-	(vhdl-scan-file-contents): Sources exclude regexp.
-	(vhdl-scan-file-contents): Allow comment lines in instantiations.
-	(vhdl-scan-file-contents): Fix used packages in package body scanning.
-	(vhdl-scan-file-contents): Allow code before first block configuration.
-	(vhdl-scan-file-contents): Scan also for "is" keyword of design units.
-	(vhdl-scan-file-contents): Scan configuration specification.
-	(vhdl-scan-file-contents): Clear directory alists first.
-	(vhdl-scan-file-contents): Consistency check.
-	(vhdl-scan-file-contents): Check for multiply scanned design units.
-	(vhdl-scan-file-contents): Scan components/subprograms in package.
-	(vhdl-scan-file-contents): Scan library clauses and subconfigurations.
-	(vhdl-scan-file-contents): Limit file size for scanning.
+	Sources exclude regexp.
+	Allow comment lines in instantiations.
+	Fix used packages in package body scanning.
+	Allow code before first block configuration.
+	Scan also for "is" keyword of design units.
+	Scan configuration specification.
+	Clear directory alists first.
+	Consistency check.
+	Check for multiply scanned design units.
+	Scan components/subprograms in package.
+	Scan library clauses and subconfigurations.
+	Limit file size for scanning.
 	(vhdl-entity-alist): Change key to lower case, add original case
 	identifier.
 	(vhdl-electric-tab): Not overwrite non-nil default of
@@ -289,8 +302,7 @@
 	bound; use it to take expansions from VHDL buffers only.
 	(vhdl-electric-tab): Toggle comment indent.
 	(vhdl-generate-makefile): Check compiler name.
-	(vhdl-generate-makefile): Add library option in Makefile generation
-	command.
+	Add library option in Makefile generation command.
 	(vhdl-generate-makefile): Add dependencies for components in package.
 	(vhdl-template-elsif): No expansion in concurrent part (except AMS).
 	(vhdl-insert-string-or-file): Resolve environment variables.
@@ -308,18 +320,18 @@
 	(vhdl-actual-port-name): Change default value (no "_i" extension).
 	(vhdl-template-modify): Delete date instead of kill.
 	(vhdl-get-source-files): Don't match source files beginning with ".".
-	(vhdl-project-*-alist): Merged with variables `vhdl-*-alist'.
+	(vhdl-project-*-alist): Merge with variables `vhdl-*-alist'.
 	(vhdl-speedbar-*): Many enhancements and fixes in hierarchy browser.
 	(vhdl-speedbar-expand-*): Display used packages.
 	(vhdl-sequential-statement-p): Better algorithm.
-	(vhdl-electric-mode, vhdl-stutter-mode): Changed key bindings.
+	(vhdl-electric-mode, vhdl-stutter-mode): Change key bindings.
 	(vhdl-electric-...): No stuttering within literals.
 	(vhdl-template-footer): Replace keywords in footer as in header.
 	(vhdl-align-...): Enhance alignment, add progress reporting.
 	(vhdl-beautify-region): Bug fix.
 	(vhdl-comment-insert-inline): Remove wrapping to next line if too long.
-	(vhdl-testbench-configuration-name,
-	vhdl-update-sensitivity-list-buffer): Fix starting cursor position.
+	(vhdl-testbench-configuration-name)
+	(vhdl-update-sensitivity-list-buffer): Fix starting cursor position.
 	(vhdl-prepare-search-[12]): Fix search within hidden code.
 	(vhdl-speedbar-jump-to-unit): Disable cursor re-positioning.
 	(vhdl-template-for): Fix sequential statement part detection.
@@ -327,8 +339,8 @@
 	(vhdl-template-standard-package): Don't insert "std" library.
 	(vhdl-template-architecture): Code optimization.
 	(vhdl-template-package): Search for existing package name.
-	(vhdl-template-component-decl, vhdl-port-paste-declaration): Insert
-	"is" in VHDL'93.
+	(vhdl-template-component-decl, vhdl-port-paste-declaration):
+	Insert "is" in VHDL'93.
 	(match-string-no-properties, vhdl-forward-comment): New aliases.
 	(vhdl-speedbar-library-face, vhdl-speedbar-subprogram-face): New faces.
 	(file-expand-wildcards, regexp-opt, subst-char-in-string)
@@ -392,8 +404,8 @@
 	(vhdl-speedbar-toggle-hierarchy): Functions deleted.
 	(vhdl-in-comment-p, vhdl-in-string-p, vhdl-standard-p): Define as
 	functions, not defsubsts.
-	(vhdl-in-comment-or-string-p, vhdl-speedbar-project-p): Defsubsts
-	deleted.
+	(vhdl-in-comment-or-string-p, vhdl-speedbar-project-p):
+	Delete defsubsts.
 	(vhdl-compose, vhdl-naming, vhdl-speedbar, vhdl-template)
 	(vhdl-testbench): New customization groups.
 	(vhdl-electric): Customization group deleted.
@@ -403,8 +415,8 @@
 	(vhdl-ams-packages, vhdl-doc-release-notes, vhdl-emacs-21)
 	(vhdl-hs-start-regexp, vhdl-time-stamp, vhdl-xemacs): New constants.
 	(vhdl-font-lock-keywords-0): Constants deleted.
-	(vhdl-prepare-search-1, vhdl-prepare-search-2, vhdl-visit-file): New
-	macros.
+	(vhdl-prepare-search-1, vhdl-prepare-search-2, vhdl-visit-file):
+	New macros.
 	(vhdl-ext-syntax-table): Macro deleted.
 	(vhdl-align-group-separate, vhdl-align-same-indent)
 	(vhdl-architecture-file-name, vhdl-compile-use-local-error-regexp)
@@ -438,13 +450,12 @@
 	(vhdl-warnings): New variables.
 	(vhdl-project-ent-inst-list, vhdl-project-entity-alist)
 	(vhdl-project-package-alist, vhdl-speedbar-last-file-name)
-	(vhdl-speedbar-shown-units-alist, vhdl-startup-warnings): Variables
-	deleted.
+	(vhdl-speedbar-shown-units-alist, vhdl-startup-warnings): Delete vars.
 
 2003-03-04  Rob Kaut  <rob@siworks.com>  (tiny change)
 
-	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region): Remove
-	two comment characters at start of line instead of one.
+	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region):
+	Remove two comment characters at start of line instead of one.
 
 2003-03-03  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -470,11 +481,11 @@
 
 2003-03-02  Matt Swift  <swift@alum.mit.edu>
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): New
-	custom variable.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column):
+	New custom variable.
 	(lisp-fill-paragraph): Use it.  Add ?, to `paragraph-separate' so
-	that first docstring lines ending with a comma are respected.  Add
-	"`(" to same so that function and macro bodies beginning with a
+	that first docstring lines ending with a comma are respected.
+	Add "`(" to same so that function and macro bodies beginning with a
 	backquote do not get disturbed.  Revise the comments.
 
 2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -489,14 +500,13 @@
 	* net/tramp.el: Version 2.0.30 released.
 	Replace term "path" with "localname" unless it is used for a
 	search path.
-	(tramp-handle-expand-file-name): Allow ".." to cross host
-	boundaries.
+	(tramp-handle-expand-file-name): Allow ".." to cross host boundaries.
 	(tramp-open-connection-setup-interactive-shell): Unset $ENV in
-	addition to setting $PS1 when starting the Bourne-ish shell.  Some
-	sh implementations (eg, bash when called as sh) read the file
+	addition to setting $PS1 when starting the Bourne-ish shell.
+	Some sh implementations (eg, bash when called as sh) read the file
 	named there on startup, which could clobber $PS1.
-	(tramp-do-copy-or-rename-file-one-local): New function.  Not
-	implemented.  Not used.  Should invoke rcp or scp directly to keep
+	(tramp-do-copy-or-rename-file-one-local): New function.
+	Not implemented.  Not used.  Should invoke rcp or scp directly to keep
 	the time.
 
 2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
