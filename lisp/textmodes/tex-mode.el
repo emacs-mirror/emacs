@@ -155,10 +155,10 @@ The name of the file, preceded by a blank, will be added to this string.")
   "String appended after the end of a region sent to TeX by \\[tex-region].")
 
 (defvar tex-start-of-header nil
-  "String used by \\[tex-region] to delimit the start of the file's header.")
+  "Regular expression used by \\[tex-region] to find start of file's header.")
 
 (defvar tex-end-of-header nil
-  "String used by \\[tex-region] to delimit the end of the file's header.")
+  "Regular expression used by \\[tex-region] to find end of file's header.")
 
 (defvar tex-shell-cd-command "cd"
   "Command to give to shell running TeX to change directory.
@@ -338,8 +338,8 @@ special subshell is initiated, the hook `tex-shell-hook' is run."
   (setq mode-name "TeX")
   (setq major-mode 'plain-tex-mode)
   (setq tex-command tex-run-command)
-  (setq tex-start-of-header "%**start of header")
-  (setq tex-end-of-header "%**end of header")
+  (setq tex-start-of-header "%\\*\\*start of header")
+  (setq tex-end-of-header "%\\*\\*end of header")
   (setq tex-trailer "\\bye\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'plain-tex-mode-hook))
 ;;;###autoload
@@ -391,8 +391,8 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq mode-name "LaTeX")
   (setq major-mode 'latex-mode)
   (setq tex-command latex-run-command)
-  (setq tex-start-of-header "\\documentstyle")
-  (setq tex-end-of-header "\\begin{document}")
+  (setq tex-start-of-header "\\\\documentstyle\\|\\\\documentclass")
+  (setq tex-end-of-header "\\\\begin{document}")
   (setq tex-trailer "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
@@ -466,8 +466,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq mode-name "SliTeX")
   (setq major-mode 'slitex-mode)
   (setq tex-command slitex-run-command)
-  (setq tex-start-of-header "\\documentstyle{slides}")
-  (setq tex-end-of-header "\\begin{document}")
+  (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\docuentclass{slides}")
+  (setq tex-end-of-header "\\\\begin{document}")
   (setq tex-trailer "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
   ;; A line starting with $$ starts a paragraph,
@@ -968,11 +968,11 @@ The value of `tex-command' specifies the command to use to run TeX."
 	      (default-directory zap-directory))
 	  (goto-char (point-min))
 	  ;; Initialize the temp file with either the header or nothing
-	  (if (search-forward tex-start-of-header search-end t)
+	  (if (re-search-forward tex-start-of-header search-end t)
 	      (progn
 		(beginning-of-line)
 		(setq hbeg (point))	;mark beginning of header
-		(if (search-forward tex-end-of-header nil t)
+		(if (re-search-forward tex-end-of-header nil t)
 		    (progn (forward-line 1)
 			   (setq hend (point)))	;mark end of header
 		  (setq hbeg (point-min))))) ;no header
