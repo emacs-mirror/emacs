@@ -1637,7 +1637,7 @@ spaces are put between sequence elements, etc.")
       for (i = 0; i < XSTRING (keys)->size; )
 	{
 	  int c;
-	  int i_before;
+	  int i_before = i;
 
 	  if (STRING_MULTIBYTE (keys))
 	    FETCH_STRING_CHAR_ADVANCE (c, keys, i, i_byte);
@@ -1759,7 +1759,7 @@ push_key_description (c, p)
       *p++ = 'P';
       *p++ = 'C';
     }
-  else if (c < 256)
+  else if (c < 128)
     *p++ = c;
   else if (c < 512)
     {
