@@ -64,7 +64,6 @@
 (load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
-(load "simple")
 (load "files")
 
 (load "cus-face")
@@ -75,6 +74,7 @@
 (message "%s" (garbage-collect))
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (message "%s" (garbage-collect))
+(load "simple")
 
 (load "help")
 
