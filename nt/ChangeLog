@@ -1,3 +1,7 @@
+2003-01-29  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (CURDIR): Disable cygpath kludge.
+
 2003-01-29  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* configure.bat: Avoid endless loop when configuring without image
