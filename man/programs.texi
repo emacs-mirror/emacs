@@ -125,19 +125,19 @@ interface to Lisp execution.  @xref{Executing Lisp}.
   Each of the programming language major modes defines the @key{TAB} key
 to run an indentation function that knows the indentation conventions of
 that language and updates the current line's indentation accordingly.
-For example, in C mode @key{TAB} is bound to @code{c-indent-line}.
+For example, in C mode @key{TAB} is bound to @code{c-indent-command}.
 @kbd{C-j} is normally defined to do @key{RET} followed by @key{TAB};
 thus, it too indents in a mode-specific fashion.
 
 @kindex DEL @r{(programming modes)}
-@findex backward-delete-char-untabify
-  In most programming languages, indentation is likely to vary from line to
-line.  So the major modes for those languages rebind @key{DEL} to treat a
-tab as if it were the equivalent number of spaces (using the command
-@code{backward-delete-char-untabify}).  This makes it possible to rub out
-indentation one column at a time without worrying whether it is made up of
-spaces or tabs.  Use @kbd{C-b C-d} to delete a tab character before point,
-in these modes.
+@findex c-electric-backspace
+  In most programming languages, indentation is likely to vary from
+line to line.  So the major modes for those languages rebind @key{DEL}
+to treat a tab as if it were the equivalent number of spaces (using
+the command @code{c-electric-backspace}).  This makes it possible to
+rub out indentation one column at a time without worrying whether it
+is made up of spaces or tabs.  Use @kbd{C-b C-d} to delete a tab
+character before point, in these modes.
 
   Programming language modes define paragraphs to be separated only by
 blank lines, so that the paragraph commands remain useful.  Auto Fill mode,
@@ -409,12 +409,12 @@ Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @end table
 
 @kindex TAB @r{(programming modes)}
-@findex c-indent-line
-@findex lisp-indent-line
+@findex c-indent-command
+@findex indent-line-function
   The basic indentation command is @key{TAB}, which gives the current line
 the correct indentation as determined from the previous lines.  The
-function that @key{TAB} runs depends on the major mode; it is @code{lisp-indent-line}
-in Lisp mode, @code{c-indent-line} in C mode, etc.  These functions
+function that @key{TAB} runs depends on the major mode; it is @code{indent-for-tab-command}
+in Lisp mode, @code{c-indent-command} in C mode, etc.  These functions
 understand different syntaxes for different languages, but they all do
 about the same thing.  @key{TAB} in any programming-language major mode
 inserts or deletes whitespace at the beginning of the current line,
