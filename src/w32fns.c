@@ -6950,7 +6950,8 @@ If omitted or nil, that stands for the selected frame's display.")
      Lisp_Object display;
 {
   return Fcons (make_number (w32_major_version),
-		Fcons (make_number (w32_minor_version), Qnil));
+		Fcons (make_number (w32_minor_version),
+		       Fcons (make_number (w32_build_number), Qnil)));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
