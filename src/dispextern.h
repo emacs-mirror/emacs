@@ -594,7 +594,8 @@ struct glyph_row
   int x, y;
 
   /* Width of the row in pixels without taking face extension at the
-     end of the row into account.  */
+     end of the row into account, and without counting truncation
+     and continuation glyphs at the end of a row on ttys.  */
   int pixel_width;
 
   /* Logical ascent/height of this line.  The value of ascent is zero
