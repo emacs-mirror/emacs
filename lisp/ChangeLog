@@ -8,6 +8,7 @@
 	* term/sun-mouse.el, textmodes/artist.el:
 	Converted backquote to the new style.
 	* mouse.el, reposition.el: Likewise (in comments).
+	* expand.el: Likewise (in a string).
 
 2001-11-27  Richard M. Stallman  <rms@gnu.org>
 

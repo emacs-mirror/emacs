@@ -47,7 +47,7 @@
 ;;     ("default" "default:\n\nbreak;" 10)
 ;;     ("main" "int\nmain(int argc, char * argv[])\n{\n\n}\n" 37))
 ;;   "Expansions for C mode")
-;; 
+;;
 ;;   and enter Abbrev mode with the following hook :
 ;;
 ;; (add-hook 'c-mode-hook (function (lambda ()
@@ -144,7 +144,7 @@
     (concat
      "(defmacro  ()\n"
      "  \"\"\n"
-     "  (` \n"
+     "  `( \n"
      "    ))")
     (list 11 13 18 25))
 
@@ -184,7 +184,7 @@
 
     )
    "Expansions for Lisp mode. See `expand-add-abbrevs'.")
- 
+
 ;; perl example from Jari Aalto <jaalto@tre.tele.nokia.fi>
 (defconst expand-sample-perl-mode-expand-list
   (list
@@ -496,7 +496,7 @@ This is used only in conjunction with `expand-add-abbrevs'."
 (defun expand-skeleton-end-hook ()
   (if skeleton-positions
       (setq expand-list skeleton-positions)))
-  
+
 (add-hook 'skeleton-end-hook (function expand-skeleton-end-hook))
 
 (provide 'expand)
