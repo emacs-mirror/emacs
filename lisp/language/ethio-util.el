@@ -1294,7 +1294,7 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
     (cond
      ;; in case of gemination
      ((eq (char-charset ch) 'composition)
-      (setq ch (string-to-char (decompose-composite-char ch))
+      (setq ch (string-to-char (char-to-string ch))
 	    composite t))
      ;; neither gemination nor fidel
      ((not (eq (char-charset ch) 'ethiopic))
