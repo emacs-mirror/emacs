@@ -1,3 +1,8 @@
+2004-03-25  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-print-log): Fixed a bug in the last patch:
+	backend-function may be a byte-compiled object, not a lambda
+
 2004-03-25  Juri Linkov  <juri@jurta.org>
 
 	* descr-text.el (describe-property-list): Add a button

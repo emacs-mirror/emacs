@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.369 2004/03/21 15:42:14 spiegel Exp $
+;; $Id: vc.el,v 1.370 2004/03/23 21:00:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2335,15 +2335,18 @@ If FOCUS-REV is non-nil, leave the point at that revision."
   (interactive)
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
-         (print-log-args-length 
-          (length (cadr (symbol-function 
-                         (vc-find-backend-function (vc-backend file) 
-                                                   'print-log))))))
+         (backend-function
+          (symbol-function
+           (vc-find-backend-function (vc-backend file) 'print-log)))
+         (print-log-args
+          (if (byte-code-function-p backend-function)
+              (aref backend-function 0)
+              (cadr backend-function))))
     (or focus-rev (setq focus-rev (vc-workfile-version file)))
-    ;; Don't switch to the output buffer before running the command, 
-    ;; so that any buffer-local settings in the vc-controlled 
+    ;; Don't switch to the output buffer before running the command,
+    ;; so that any buffer-local settings in the vc-controlled
     ;; buffer can be accessed by the command.
-    (if (> print-log-args-length 1)
+    (if (cdr print-log-args)
         (progn
           (vc-call print-log file "*vc-change-log*")
           (set-buffer "*vc-change-log*"))
@@ -3063,7 +3066,7 @@ colors. `vc-annotate-background' specifies the background color."
       (set (make-local-variable 'vc-annotate-parent-rev) vc-annotate-version)
       (set (make-local-variable 'vc-annotate-parent-display-mode)
 	   vc-annotate-display-mode))
-	   
+
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
     (setq vc-annotate-buffers
@@ -3118,7 +3121,7 @@ versions after."
 	  (vc-annotate-warp-version rev-at-line))))))
 
 (defun vc-annotate-revision-previous-to-line ()
-  "Visit the annotation of the version before the version at line."  
+  "Visit the annotation of the version before the version at line."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
