@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.14) $
+ * $HopeName: MMsrc!mpm.h(trunk.15) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -182,6 +182,9 @@ extern Space (PoolSpace)(Pool pool);
 extern Align (PoolAlignment)(Pool pool);
 #define PoolAlignment(pool)     ((pool)->alignment)
 
+extern Ring (PoolSegRing)(Pool pool);
+#define PoolSegRing(pool)	(&(pool)->segRing)
+
 extern Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size);
 extern void PoolSegFree(Pool pool, Seg seg);
 extern Bool PoolOfAddr(Pool *poolReturn, Space space, Addr addr);
@@ -344,19 +347,30 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
-extern void BufferExpose(Buffer buffer);
-extern void BufferCover(Buffer buffer);
 extern void BufferInit(Buffer buffer, Pool pool, Rank rank);
 extern void BufferFinish(Buffer buffer);
 extern void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit);
 extern void BufferReset(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
-extern AP BufferAP(Buffer buffer);
+extern AP (BufferAP)(Buffer buffer);
+#define BufferAP(buffer)	(&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
 extern Space BufferSpace(Buffer buffer);
 extern Pool (BufferPool)(Buffer buffer);
-#define BufferPool(buffer) ((buffer)->pool)
+#define BufferPool(buffer)	((buffer)->pool)
+extern Seg (BufferSeg)(Buffer buffer);
+#define BufferSeg(buffer)	((buffer)->seg)
+extern Rank (BufferRank)(Buffer buffer);
+#define BufferRank(buffer)	((buffer)->rank)
+extern Addr (BufferBase)(Buffer buffer);
+#define BufferBase(buffer)	((buffer)->base)
+extern Addr (BufferGetInit)(Buffer buffer);
+#define BufferGetInit(buffer)	(BufferAP(buffer)->init)
+extern Addr (BufferAlloc)(Buffer buffer);
+#define BufferAlloc(buffer)	(BufferAP(buffer)->alloc)
+extern Addr (BufferLimit)(Buffer buffer);
+#define BufferLimit(buffer)	(BufferAP(buffer)->limit)
 
 
 /* Format Interface -- see impl.c.format */

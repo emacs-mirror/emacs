@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.17) $
+ * $HopeName: MMsrc!buffer.c(trunk.18) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.17) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.18) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -69,10 +69,8 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   buffer->apStruct.alloc = (Addr)0;
   buffer->apStruct.limit = (Addr)0;
   buffer->alignment = pool->alignment; /* .trans.mod */
-  buffer->exposed = FALSE;
   RingInit(&buffer->poolRing);
   buffer->shieldMode = AccessSetEMPTY;
-  buffer->grey = TraceSetEMPTY;
   buffer->p = NULL;
   buffer->i = 0;
 
@@ -118,7 +116,6 @@ void BufferDestroy(Buffer buffer)
   /* The PoolClass should support buffer protocols */
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
   AVER(BufferIsReady(buffer));
-  AVER(buffer->exposed == FALSE);
 
   /* Detach the buffer from its owning pool. */
   RingRemove(&buffer->poolRing);
@@ -134,6 +131,7 @@ void BufferDestroy(Buffer buffer)
   RingFinish(&buffer->poolRing);
   SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
 }
+
 
 /* BufferCheck
  *
@@ -151,6 +149,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(RankCheck(buffer->rank));	/* design.mps.check.type.no-sig */
   if(buffer->seg != NULL) {
     CHECKL(SegCheck(buffer->seg));	/* design.mps.check.type.no-sig */
+    CHECKL(buffer->seg->buffer == buffer);
     CHECKL(buffer->rank == buffer->seg->rank);
   }
   CHECKL(buffer->base <= buffer->apStruct.init);
@@ -163,11 +162,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(AddrIsAligned(buffer->apStruct.init, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->apStruct.alloc, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->apStruct.limit, buffer->alignment));
-  /* .improve.bool-check: */
-  CHECKL(buffer->exposed == TRUE || buffer->exposed == FALSE);
   CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
-  /* .improve.accessset: There is no AccessSetCheck */
-  CHECKL(TraceSetCheck(buffer->grey));	/* design.mps.check.type.no-sig */
   /* buffer->p, and buffer->i are arbitrary and cannot be checked */
   return TRUE;
 }
@@ -192,6 +187,7 @@ void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
   /* No check for base, init, limit */
 
   buffer->seg = seg;
+  seg->buffer = buffer;
   buffer->base = base;
   buffer->apStruct.init = init;
   buffer->apStruct.alloc = init;
@@ -203,6 +199,7 @@ void BufferReset(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
+  buffer->seg->buffer = NULL;
   buffer->seg = NULL;
   buffer->base = (Addr)0;
   buffer->apStruct.init = (Addr)0;
@@ -256,10 +253,10 @@ Bool BufferIsReady(Buffer buffer)
   return FALSE;
 }
 
-AP BufferAP(Buffer buffer)
+AP (BufferAP)(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  return &buffer->apStruct;
+  return BufferAP(buffer);
 }
 
 /* design.mps.buffer.method.ofap */
@@ -405,34 +402,6 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 }
 
 
-/* BufferExpose/Cover -- buffer shield control
- *
- * See design.mps.buffer.method.expose.cover
- */
-
-void BufferExpose(Buffer buffer)
-{
-  Pool pool;
-
-  AVERT(Buffer, buffer);
-
-  buffer->exposed = TRUE;
-  pool = BufferPool(buffer);
-  (*pool->class->bufferExpose)(pool, buffer);
-}
-
-void BufferCover(Buffer buffer)
-{
-  Pool pool;
-
-  AVERT(Buffer, buffer);
-
-  buffer->exposed = FALSE;
-  pool = BufferPool(buffer);
-  (*pool->class->bufferCover)(pool, buffer);
-}
-
-
 /* See impl.h.mpmst for structure definitions */
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
@@ -451,9 +420,6 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
            buffer->base, buffer->apStruct.init,
 	   buffer->apStruct.alloc, buffer->apStruct.limit,
          "  alignment $W\n",   (WriteFW)buffer->alignment,
-	 "  exposed $U\n",     (WriteFU)buffer->exposed,
-	 /* poolRing is uninteresting */
-         "  grey $B\n",        (WriteFB)buffer->grey,
          "  shieldMode $B\n",  (WriteFB)buffer->shieldMode,
          "  p $P  i $U\n",     buffer->p, (WriteFU)buffer->i,
          "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer->serial,

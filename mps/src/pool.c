@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.19) $
+ * $HopeName: MMsrc!pool.c(trunk.20) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.19) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.20) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -54,6 +54,7 @@ Bool PoolCheck(Pool pool)
   CHECKD(PoolClass, pool->class);
   CHECKL(RingCheck(&pool->spaceRing));
   CHECKL(RingCheck(&pool->bufferRing));
+  CHECKL(RingCheck(&pool->segRing));
   /* Cannot check pool->bufferSerial */
   CHECKL(AlignCheck(pool->alignment));
   return TRUE;
@@ -89,6 +90,7 @@ Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args)
   /* .ring.init: See .ring.finish */
   RingInit(&pool->spaceRing);
   RingInit(&pool->bufferRing);
+  RingInit(&pool->segRing);
   pool->alignment = ARCH_ALIGN;
   RingAppend(SpacePoolRing(space), &pool->spaceRing);
 
@@ -108,6 +110,7 @@ Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args)
 
 failInit:
   pool->sig = SigInvalid;      /* Leave space->poolSerial incremented */
+  RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingRemove(&pool->spaceRing);
   RingFinish(&pool->spaceRing);
@@ -175,12 +178,18 @@ void PoolFinish(Pool pool)
   /* this point.  The class-specific finish method is */
   /* allowed to remove them. */
   AVER(RingCheckSingle(&pool->bufferRing)); 
+
+  /* There must be no segments attached to the pool at */
+  /* this point.  The class-specific finish method is */
+  /* allowed to remove them. */
+  AVER(RingCheckSingle(&pool->segRing));
   
   /* Detach the pool from the space, and unsig it. */
   RingRemove(&pool->spaceRing);
   pool->sig = SigInvalid;
   
   /* .ring.finish: Finish the generic fields.  See .ring.init */
+  RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->spaceRing);
 }
@@ -349,6 +358,8 @@ Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size)
   res = SegAlloc(&seg, space, size, pool);
   if(res != ResOK) return res;
 
+  RingAppend(&pool->segRing, &seg->poolRing);
+
   *segReturn = seg;
   return ResOK;
 }
@@ -365,6 +376,8 @@ void PoolSegFree(Pool pool, Seg seg)
   space = PoolSpace(pool);
 
   ShieldFlush(space); /* See impl.c.shield.shield.flush */
+
+  RingRemove(&seg->poolRing);
 
   SegFree(space, seg);
 }

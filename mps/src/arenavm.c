@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.6) $
+ * $HopeName: MMsrc!arenavm.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.6) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.7) $");
 
 
 /* Space Arena Projection
@@ -317,6 +317,9 @@ found:
   seg->p = NULL;
   seg->rank = RankEXACT;    /*  exact by default */
   seg->condemned = TraceIdNONE;
+  seg->grey = TraceSetEMPTY;
+  seg->buffer = NULL;
+  RingInit(&seg->poolRing);
 
   seg->pm = AccessSetEMPTY; /* see impl.c.shield */
   seg->sm = AccessSetEMPTY;

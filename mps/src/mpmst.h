@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.12) $
+ * $HopeName: MMsrc!mpmst.h(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -123,6 +123,7 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct spaceRing;         /* link in list of pools in space */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
+  RingStruct segRing;           /* segs are attached to pool */
   Align alignment;              /* alignment for units */
 } PoolStruct;
 
@@ -269,6 +270,9 @@ typedef struct SegStruct {      /* segment structure */
   Size depth;                   /* see impl.c.shield.def.depth */
   void *p;                      /* pointer for use of owning pool */
   TraceId condemned;            /* seg condemned? for which trace? */
+  TraceSet grey;                /* traces for which seg is grey */
+  Buffer buffer;                /* non-NULL if seg is buffered */
+  RingStruct poolRing;          /* link in list of segs in pool */
 } SegStruct;
 
 
@@ -354,10 +358,12 @@ typedef struct BufferStruct {
   Addr base;                    /* base address of allocation buffer */
   APStruct apStruct;            /* the allocation point */
   Align alignment;              /* allocation alignment */
-  Bool exposed;                 /* is buffer memory exposed? */
   RingStruct poolRing;          /* buffers are attached to pools */
   AccessSet shieldMode;         /* shielding for allocated memory */
+#if 0
+  Bool exposed;                 /* is buffer memory exposed? */
   TraceSet grey;                /* colour for allocated memory */
+#endif
   void *p;
   int i;                        /* (p and i) closure variables (for pool) */
 } BufferStruct;
