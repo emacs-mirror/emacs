@@ -1,3 +1,10 @@
+2005-01-10  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* subr.el (dotimes-with-progress-reporter): New macro.
+
+	* ses.el (ses-dotimes-msg): Remove macro.
+	Use `dotimes-with-progress-reporter' instead.
+
 2005-01-19  Steven Tamm  <steventamm@mac.com>
 
 	* term/mac-win.el (process-connection-type): Use new
@@ -33,6 +40,8 @@
 	* calc/calc.el (calc-display-raw): Fix docstring.
 
 2005-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open): Strip extra info from syntax.
 
 	* progmodes/sh-script.el (sh-here-doc-open-re): Don't allow | or other
 	funny chars in the end-of-here-doc marker.
@@ -6362,8 +6371,7 @@
 	* progmodes/cperl-mode.el (cperl-mode): Adapt defun-prompt-regexp
 	so that it is more understanding of whitespace.
 
-	* xml.el (xml-maybe-do-ns, xml-parse-tag): Produce elements in the
-	form
+	* xml.el (xml-maybe-do-ns, xml-parse-tag): Produce elements in the form
 	(("ns" . "element") (attr-list) children) instead of
 	((:ns . "element") (attr-list) children) in order to reduce the
 	number of symbols used.
