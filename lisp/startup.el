@@ -353,9 +353,12 @@ from being initialized.")
 		       ;; Under MS-DOS our PID is almost always reused between
 		       ;; Emacs invocations.  We need something more unique.
 		       (if (eq system-type 'ms-dos)
-			   (make-temp-name
-			    (expand-file-name auto-save-list-file-prefix))
-			 (expand-file-name (format "%s%d-%s"
+			   (concat 
+			    (make-temp-name
+			     (expand-file-name auto-save-list-file-prefix))
+			    "~")
+
+			 (expand-file-name (format "%s%d-%s~"
 						   auto-save-list-file-prefix
 						   (emacs-pid)
 						   (system-name)))))))
