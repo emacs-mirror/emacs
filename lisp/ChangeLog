@@ -1,3 +1,7 @@
+2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix.
+
 2003-12-29  Alex Schroeder <alex@emacswiki.org>  (tiny change)
 
 	* custom.el (custom-declare-theme): Use `value' when putting
