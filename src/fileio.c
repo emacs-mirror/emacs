@@ -2546,6 +2546,12 @@ This is what happens in interactive use with M-x.")
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
 
+#ifdef DOS_NT
+  /* If the file names are identical but for the case, don't ask for
+     confirmation: they simply want to change the letter-case of the
+     file name.  */
+  if (NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
+#endif
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_newname, "rename to it",
