@@ -745,12 +745,12 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
       (set-process-coding-system proc decoding encoding)))
   (force-mode-line-update))
 
-(defun set-clipboard-coding-system (coding-system)
+(defun set-selection-coding-system (coding-system)
   "Make CODING-SYSTEM used for communicating with other X clients .
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by CODING-SYSTEM."
   (check-coding-system coding-system)
-  (setq clipboard-coding-system coding-system))
+  (setq selection-coding-system coding-system))
 
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to LIST.
