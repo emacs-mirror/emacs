@@ -502,20 +502,21 @@ whitespace problems."
   "Update modeline with whitespace errors and whitespaces whose testing has
 been turned off."
   (if whitespace-display-in-modeline
-      (setq whitespace-mode-line nil)
-    ;; Whitespace errors
-    (if (and whitespace-err (not (equal whitespace-err "")))
-	(setq whitespace-mode-line whitespace-err))
-    ;; Whitespace suppressed errors
-    (let ((whitespace-unchecked (whitespace-unchecked-whitespaces)))
-      (if whitespace-unchecked
-	  (setq whitespace-mode-line
-		(concat whitespace-mode-line "!" whitespace-unchecked))))
-    ;; Add the whitespace modeline prefix
-    (setq whitespace-mode-line (if whitespace-mode-line
-				   (concat " W:" whitespace-mode-line)
-				 nil))
-    (whitespace-force-mode-line-update)))
+      (progn
+	(setq whitespace-mode-line nil)
+	;; Whitespace errors
+	(if (and whitespace-err (not (equal whitespace-err "")))
+	    (setq whitespace-mode-line whitespace-err))
+	;; Whitespace suppressed errors
+	(let ((whitespace-unchecked (whitespace-unchecked-whitespaces)))
+	  (if whitespace-unchecked
+	      (setq whitespace-mode-line
+		    (concat whitespace-mode-line "!" whitespace-unchecked))))
+	;; Add the whitespace modeline prefix
+	(setq whitespace-mode-line (if whitespace-mode-line
+				       (concat " W:" whitespace-mode-line)
+				     nil))
+	(whitespace-force-mode-line-update))))
 
 ;; Force mode line updation for different Emacs versions
 (defun whitespace-force-mode-line-update ()
