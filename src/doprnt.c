@@ -118,7 +118,6 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
   int minlen;
-  int size;			/* Field width factor; e.g., %90d */
   unsigned char charbuf[5];	/* Used for %c.  */
 
   if (format_end == 0)
