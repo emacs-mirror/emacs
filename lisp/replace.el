@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
-;;   2003, 2004  Free Software Foundation, Inc.
+;;   2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -116,10 +116,10 @@ wants to replace FROM with TO."
 	       nil t t))))
       (if (and (zerop (length from)) lastto lastfrom)
 	  (progn
-	    (cons lastfrom
-		  (query-replace-compile-replacement lastto regexp-flag))
 	    (set query-replace-from-history-variable
-		 (cdr (symbol-value query-replace-from-history-variable))))
+		 (cdr (symbol-value query-replace-from-history-variable)))
+	    (cons lastfrom
+		  (query-replace-compile-replacement lastto regexp-flag)))
 	;; Warn if user types \n or \t, but don't reject the input.
 	(and regexp-flag
 	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
