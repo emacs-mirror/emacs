@@ -54,7 +54,7 @@ Users should not set it.")
   "Initialize SYMBOL with VALUE.
 This will do nothing if symbol already has a default binding.
 Otherwise, if symbol has a `saved-value' property, it will evaluate
-the car of that and used as the default binding for symbol.
+the car of that and use it as the default binding for symbol.
 Otherwise, VALUE will be evaluated and used as the default binding for
 symbol."
   (unless (default-boundp symbol)
@@ -176,7 +176,7 @@ set to nil, as the value is no longer rogue."
   "Declare SYMBOL as a customizable variable that defaults to VALUE.
 DOC is the variable documentation.
 
-Neither SYMBOL nor VALUE needs to be quoted.
+Neither SYMBOL nor VALUE need to be quoted.
 If SYMBOL is not already bound, initialize it to VALUE.
 The remaining arguments should have the form
 
@@ -298,8 +298,8 @@ following REQ are defined:
 
 `type' (the value of `window-system')
   Under X, in addition to the values `window-system' can take,
-  `motif', `lucid' and `x-toolkit' are allowed, and match when
-  the Motif toolkit, Lucid toolkit, or any X toolkit is in use.
+  `motif', `lucid', `gtk' and `x-toolkit' are allowed, and match when
+  the Motif toolkit, Lucid toolkit, GTK toolkit or any X toolkit is in use.
 
 `class' (the frame's color support)
   Should be one of `color', `grayscale', or `mono'.

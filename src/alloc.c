@@ -845,7 +845,7 @@ lisp_align_free (block)
   free_ablock = ablock;
   /* Update busy count.  */
   ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
-  
+
   if (2 > (long) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
       int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
@@ -4467,6 +4467,17 @@ returns nil, because real GC can't be done.  */)
   mark_kboards ();
   mark_ttys ();
 
+#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+  mark_stack ();
+#endif
+
+#ifdef USE_GTK
+  {
+    extern void xg_mark_data ();
+    xg_mark_data ();
+  }
+#endif
+
   /* Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
@@ -4509,17 +4520,6 @@ returns nil, because real GC can't be done.  */)
 	nextb = nextb->next;
       }
   }
-
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-  mark_stack ();
-#endif
-
-#ifdef USE_GTK
-  {
-    extern void xg_mark_data ();
-    xg_mark_data ();
-  }
-#endif
 
   gc_sweep ();
 
@@ -4978,6 +4978,14 @@ mark_object (arg)
       break;
 
     case Lisp_Misc:
+      if (XMISCTYPE (obj) == Lisp_Misc_Free)
+	{
+	  /* This is (probably) a freed marker which may still exist on
+	     a buffer undo list, so accept it here, as check below will
+	     fail (not live).  KFS 2004-05-17 */
+	  XMARKER (obj)->gcmarkbit = 1;
+	  break;
+	}
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
       if (XMARKER (obj)->gcmarkbit)
 	break;

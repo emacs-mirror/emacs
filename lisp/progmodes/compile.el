@@ -171,8 +171,15 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
 \\(?:[(. pos]+\\([0-9]+\\))?\\)?[:.,; (-]\\( warning:\\|[-0-9 ]*(W)\\)?" 1 2 3 (4))
 
+    (edg-1
+     "^\\([^ \n]+\\)(\\([0-9]+\\)): \\(?:error\\|warnin\\(g\\)\\|remar\\(k\\)\\)"
+     1 2 nil (3 . 4))
+    (edg-2
+     "at line \\([0-9]+\\) of \"\\([^ \n]+\\)\"$"
+     2 1 nil 0)
+
     (epc
-     "^Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
+     "^Error [0-9]+ at (\\([0-9]+\\):\\([^)\n]+\\))" 2 1)
 
     (iar
      "^\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(?:Error\\|Warnin\\(g\\)\\)\\[[0-9]+\\]:"
@@ -264,10 +271,6 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 
     (sun-ada
      "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
-
-    ;; Redundant with `mips'
-;;    (ultrix
-;;      "^\\(?:cfe\\|fort\\): \\(Warning\\)?[^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3 nil (1))
 
     (4bsd
      "\\(?:^\\|::  \\|\\S ( \\)\\(/[^ \n\t()]+\\)(\\([0-9]+\\))\
@@ -445,17 +448,19 @@ starting the compilation process.")
 (defvar compile-history nil)
 
 (defface compilation-warning-face
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class color)) (:foreground "Orange" :weight bold))
+  '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
+    (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "21.4")
 
 (defface compilation-info-face
-  '((((type tty) (class color)) (:foreground "green" :weight bold))
-    (((class color) (background light)) (:foreground "Green3" :weight bold))
-    (((class color) (background dark)) (:foreground "Green" :weight bold))
+  '((((class color) (min-colors 16) (background light)) 
+     (:foreground "Green3" :weight bold))
+    (((class color) (min-colors 16) (background dark)) 
+     (:foreground "Green" :weight bold))
+    (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
@@ -749,6 +754,8 @@ and move to the source code that caused it.
 
 Interactively, prompts for the command if `compilation-read-command' is
 non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
+Additionally, with universal prefix arg, compilation buffer will be in
+comint mode, i.e. interactive.
 
 To run more than one compilation at once, start one and rename
 the \`*compilation*' buffer to some other name with
@@ -760,11 +767,13 @@ The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
   (interactive
-   (if (or compilation-read-command current-prefix-arg)
-       (list (read-from-minibuffer "Compile command: "
-				 (eval compile-command) nil nil
-				 '(compile-history . 1)))
-     (list (eval compile-command))))
+   (list
+    (if (or compilation-read-command current-prefix-arg)
+        (read-from-minibuffer "Compile command: "
+			      (eval compile-command) nil nil
+			      '(compile-history . 1))
+      (eval compile-command))
+    (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))
     (setq compile-command command))
   (save-some-buffers (not compilation-ask-about-save) nil)
@@ -983,8 +992,9 @@ exited abnormally with code %d\n"
 	 ;; buffer, which might not be the same as the selected window's buffer.
 	 (save-current-buffer
 	   (save-selected-window
-	     (select-window window)
-	     (enlarge-window (- height (window-height))))))))
+	     (save-excursion
+	       (select-window window)
+	       (enlarge-window (- height (window-height)))))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))

@@ -823,6 +823,25 @@ extern void buffer_slot_type_mismatch P_ ((int));
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 
+/* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
+   If NEXTP is non-NULL, return next overlay there.
+   See overlay_at arg CHANGE_REQ for meaning of CHRQ arg.  */
+
+#define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
+  do {									\
+    int maxlen = 40;							\
+    overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
+    noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+			     nextp, NULL, chrq);				\
+    if (noverlays > maxlen)						\
+      {									\
+	maxlen = noverlays;						\
+	overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object)); \
+	noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+				 nextp, NULL, chrq);			\
+      }									\
+  } while (0)
+
 EXFUN (Fbuffer_name, 1);
 EXFUN (Fget_file_buffer, 1);
 EXFUN (Fnext_overlay_change, 1);

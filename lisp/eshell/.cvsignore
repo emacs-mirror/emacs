@@ -1,1 +1,14 @@
+COPYING
+FEATURES
+INSTALL
+Makefile
+NEWS
+README
+_darcs
+_pkg.el
+auto-autoloads.el
 esh-groups.el
+esh-toggle.el
+eshell-auto.el
+eshell.info
+eshell.texi

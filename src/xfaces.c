@@ -3860,7 +3860,7 @@ Otherwise check for the existence of a global face.  */)
 DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
        Sinternal_copy_lisp_face, 4, 4, 0,
        doc: /* Copy face FROM to TO.
-If FRAME it t, copy the global face definition of FROM to the
+If FRAME is t, copy the global face definition of FROM to the
 global face definition of TO.  Otherwise, copy the frame-local
 definition of FROM on FRAME to the frame-local definition of TO
 on NEW-FRAME, or FRAME if NEW-FRAME is nil.
@@ -4687,8 +4687,8 @@ DEFUN ("internal-get-lisp-face-attribute", Finternal_get_lisp_face_attribute,
        doc: /* Return face attribute KEYWORD of face SYMBOL.
 If SYMBOL does not name a valid Lisp face or KEYWORD isn't a valid
 face attribute name, signal an error.
-If the optional argument FRAME is given, report on face FACE in that
-frame.  If FRAME is t, report on the defaults for face FACE (for new
+If the optional argument FRAME is given, report on face SYMBOL in that
+frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
 frames).  If FRAME is omitted or nil, use the selected frame.  */)
      (symbol, keyword, frame)
      Lisp_Object symbol, keyword, frame;
@@ -5238,10 +5238,10 @@ with the default face for display, can be represented in a way that's
  \(1) different in appearance than the default face, and
  \(2) `close in spirit' to what the attributes specify, if not exact.
 
-Point (2) implies that a `:weight black' attribute will be satisified
+Point (2) implies that a `:weight black' attribute will be satisfied
 by any terminal that can display bold, and a `:foreground "yellow"' as
 long as the terminal can display a yellowish color, but `:slant italic'
-will _not_ be satisified by the tty display code's automatic
+will _not_ be satisfied by the tty display code's automatic
 substitution of a `dim' face for italic.  */)
      (attributes, frame)
      Lisp_Object attributes, frame;
@@ -5449,8 +5449,8 @@ clear_face_gcs (c)
 }
 
 
-/* Free all realized faces in face cache C, including basic faces.  C
-   may be null.  If faces are freed, make sure the frame's current
+/* Free all realized faces in face cache C, including basic faces.
+   C may be null.  If faces are freed, make sure the frame's current
    matrix is marked invalid, so that a display caused by an expose
    event doesn't try to use faces we destroyed.  */
 
@@ -7306,24 +7306,8 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   /* Look at properties from overlays.  */
   {
     int next_overlay;
-    int len;
 
-    /* First try with room for 40 overlays.  */
-    len = 40;
-    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-    noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-			     &next_overlay, NULL, 0);
-
-    /* If there are more than 40, make enough space for all, and try
-       again.  */
-    if (noverlays > len)
-      {
-	len = noverlays;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-				 &next_overlay, NULL, 0);
-      }
-
+    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)
       endpos = next_overlay;
   }

@@ -1,5 +1,5 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 92, 93, 94, 95, 1996, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 1999, 2000, 01, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -88,7 +88,7 @@ Lisp_Object Vw32_pass_alt_to_system;
 Lisp_Object Vw32_alt_is_meta;
 
 /* If non-zero, the windows virtual key code for an alternative quit key. */
-Lisp_Object Vw32_quit_key;
+int w32_quit_key;
 
 /* Non nil if left window key events are passed on to Windows (this only
    affects whether "tapping" the key opens the Start menu).  */
@@ -132,11 +132,11 @@ Lisp_Object Vw32_enable_palette;
 
 /* Control how close left/right button down events must be to
    be converted to a middle button down event. */
-Lisp_Object Vw32_mouse_button_tolerance;
+int w32_mouse_button_tolerance;
 
 /* Minimum interval between mouse movement (and scroll bar drag)
    events that are passed on to the event loop. */
-Lisp_Object Vw32_mouse_move_interval;
+int w32_mouse_move_interval;
 
 /* Flag to indicate if XBUTTON events should be passed on to Windows.  */
 int w32_pass_extra_mouse_buttons_to_system;
@@ -235,7 +235,7 @@ Lisp_Object Qw32_charset_unicode;
 #endif
 
 /* The ANSI codepage.  */
-Lisp_Object Vw32_ansi_code_page;
+int w32_ansi_code_page;
 
 /* Prefix for system colors.  */
 #define SYSTEM_COLOR_PREFIX "System"
@@ -283,7 +283,7 @@ int image_cache_refcount, dpyinfo_refcount;
 
 
 /* From w32term.c. */
-extern Lisp_Object Vw32_num_mouse_buttons;
+extern int w32_num_mouse_buttons;
 extern Lisp_Object Vw32_recognize_altgr;
 
 extern HWND w32_system_caret_hwnd;
@@ -465,7 +465,7 @@ if the entry is new.  */)
   CHECK_NUMBER (blue);
   CHECK_STRING (name);
 
-  XSET (rgb, Lisp_Int, RGB(XUINT (red), XUINT (green), XUINT (blue)));
+  XSETINT (rgb, RGB(XUINT (red), XUINT (green), XUINT (blue)));
 
   BLOCK_INPUT;
 
@@ -828,7 +828,7 @@ w32_to_x_color (rgb)
     return Qnil;
 }
 
-COLORREF
+static Lisp_Object
 w32_color_map_lookup (colorname)
      char *colorname;
 {
@@ -847,7 +847,7 @@ w32_color_map_lookup (colorname)
 
       if (lstrcmpi (SDATA (tem), colorname) == 0)
 	{
-	  ret = XUINT (Fcdr (elt));
+	  ret = Fcdr (elt);
 	  break;
 	}
 
@@ -910,7 +910,7 @@ add_system_logical_colors_to_map (system_colors)
 }
 
 
-COLORREF
+static Lisp_Object
 x_to_w32_color (colorname)
      char * colorname;
 {
@@ -970,7 +970,8 @@ x_to_w32_color (colorname)
 	      if (i == 2)
 		{
 		  UNBLOCK_INPUT;
-		  return (colorval);
+		  XSETINT (ret, colorval);
+		  return ret;
 		}
 	      color = end;
 	    }
@@ -1023,7 +1024,8 @@ x_to_w32_color (colorname)
 	      if (*end != '\0')
 		break;
 	      UNBLOCK_INPUT;
-	      return (colorval);
+	      XSETINT (ret, colorval);
+	      return ret;
 	    }
 	  if (*end != '/')
 	    break;
@@ -1064,7 +1066,8 @@ x_to_w32_color (colorname)
 	      if (*end != '\0')
 		break;
 	      UNBLOCK_INPUT;
-	      return (colorval);
+	      XSETINT (ret, colorval);
+	      return ret;
 	    }
 	  if (*end != '/')
 	    break;
@@ -2418,6 +2421,10 @@ Lisp_Object w32_grabbed_keys;
 #define HOTKEY_VK_CODE(k)     (XFASTINT (k) & 255)
 #define HOTKEY_MODIFIERS(k)   (XFASTINT (k) >> 8)
 
+#define RAW_HOTKEY_ID(k)        ((k) & 0xbfff)
+#define RAW_HOTKEY_VK_CODE(k)   ((k) & 255)
+#define RAW_HOTKEY_MODIFIERS(k) ((k) >> 8)
+
 /* Register hot-keys for reserved key combinations when Emacs has
    keyboard focus, since this is the only way Emacs can receive key
    combinations like Alt-Tab which are used by the system.  */
@@ -2499,20 +2506,20 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      focus_window = GetFocus ();
 	      if (focus_window != NULL)
 		RegisterHotKey (focus_window,
-				HOTKEY_ID (msg.wParam),
-				HOTKEY_MODIFIERS (msg.wParam),
-				HOTKEY_VK_CODE (msg.wParam));
+				RAW_HOTKEY_ID (msg.wParam),
+				RAW_HOTKEY_MODIFIERS (msg.wParam),
+				RAW_HOTKEY_VK_CODE (msg.wParam));
 	      /* Reply is not expected.  */
 	      break;
 	    case WM_EMACS_UNREGISTER_HOT_KEY:
 	      focus_window = GetFocus ();
 	      if (focus_window != NULL)
-		UnregisterHotKey (focus_window, HOTKEY_ID (msg.wParam));
+		UnregisterHotKey (focus_window, RAW_HOTKEY_ID (msg.wParam));
 	      /* Mark item as erased.  NB: this code must be
                  thread-safe.  The next line is okay because the cons
                  cell is never made into garbage and is not relocated by
                  GC.  */
-	      XSETCAR ((Lisp_Object) msg.lParam, Qnil);
+	      XSETCAR ((Lisp_Object) ((EMACS_INT) msg.lParam), Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		abort ();
 	      break;
@@ -2520,7 +2527,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      {
 		int vk_code = (int) msg.wParam;
 		int cur_state = (GetKeyState (vk_code) & 1);
-		Lisp_Object new_state = (Lisp_Object) msg.lParam;
+		Lisp_Object new_state = (Lisp_Object) ((EMACS_INT) msg.lParam);
 
 		/* NB: This code must be thread-safe.  It is safe to
                    call NILP because symbols are not relocated by GC,
@@ -2710,7 +2717,7 @@ post_character_message (hwnd, msg, wParam, lParam, modifiers)
       c = make_ctrl_char (c) & 0377;
     if (c == quit_char
 	|| (wmsg.dwModifiers == 0 &&
-	    XFASTINT (Vw32_quit_key) && wParam == XFASTINT (Vw32_quit_key)))
+	    w32_quit_key && wParam == w32_quit_key))
       {
 	Vquit_flag = Qt;
 
@@ -3120,7 +3127,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-      if (XINT (Vw32_num_mouse_buttons) > 2)
+      if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
       {
@@ -3170,7 +3177,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    /* Hold onto message for now. */
 	    mouse_button_timer =
 	      SetTimer (hwnd, MOUSE_BUTTON_ID,
-			XINT (Vw32_mouse_button_tolerance), NULL);
+			w32_mouse_button_tolerance, NULL);
 	    saved_mouse_button_msg.msg.hwnd = hwnd;
 	    saved_mouse_button_msg.msg.message = msg;
 	    saved_mouse_button_msg.msg.wParam = wParam;
@@ -3183,7 +3190,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-      if (XINT (Vw32_num_mouse_buttons) > 2)
+      if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
       {
@@ -3279,7 +3286,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  track_mouse_window = hwnd;
 	}
     case WM_VSCROLL:
-      if (XINT (Vw32_mouse_move_interval) <= 0
+      if (w32_mouse_move_interval <= 0
 	  || (msg == WM_MOUSEMOVE && button_state == 0))
   	{
 	  wmsg.dwModifiers = w32_get_modifiers ();
@@ -3295,7 +3302,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       if (saved_mouse_move_msg.msg.hwnd == 0)
 	mouse_move_timer =
 	  SetTimer (hwnd, MOUSE_MOVE_ID,
-		    XINT (Vw32_mouse_move_interval), NULL);
+		    w32_mouse_move_interval, NULL);
 
       /* Hold onto message for now. */
       saved_mouse_move_msg.msg.hwnd = hwnd;
@@ -4772,46 +4779,46 @@ x_to_w32_charset (lpcs)
   w32_charset = Fcar (Fcdr (this_entry));
 
   /* Translate Lisp symbol to number.  */
-  if (w32_charset == Qw32_charset_ansi)
+  if (EQ (w32_charset, Qw32_charset_ansi))
     return ANSI_CHARSET;
-  if (w32_charset == Qw32_charset_symbol)
+  if (EQ (w32_charset, Qw32_charset_symbol))
     return SYMBOL_CHARSET;
-  if (w32_charset == Qw32_charset_shiftjis)
+  if (EQ (w32_charset, Qw32_charset_shiftjis))
     return SHIFTJIS_CHARSET;
-  if (w32_charset == Qw32_charset_hangeul)
+  if (EQ (w32_charset, Qw32_charset_hangeul))
     return HANGEUL_CHARSET;
-  if (w32_charset == Qw32_charset_chinesebig5)
+  if (EQ (w32_charset, Qw32_charset_chinesebig5))
     return CHINESEBIG5_CHARSET;
-  if (w32_charset == Qw32_charset_gb2312)
+  if (EQ (w32_charset, Qw32_charset_gb2312))
     return GB2312_CHARSET;
-  if (w32_charset == Qw32_charset_oem)
+  if (EQ (w32_charset, Qw32_charset_oem))
     return OEM_CHARSET;
 #ifdef JOHAB_CHARSET
-  if (w32_charset == Qw32_charset_johab)
+  if (EQ (w32_charset, Qw32_charset_johab))
     return JOHAB_CHARSET;
-  if (w32_charset == Qw32_charset_easteurope)
+  if (EQ (w32_charset, Qw32_charset_easteurope))
     return EASTEUROPE_CHARSET;
-  if (w32_charset == Qw32_charset_turkish)
+  if (EQ (w32_charset, Qw32_charset_turkish))
     return TURKISH_CHARSET;
-  if (w32_charset == Qw32_charset_baltic)
+  if (EQ (w32_charset, Qw32_charset_baltic))
     return BALTIC_CHARSET;
-  if (w32_charset == Qw32_charset_russian)
+  if (EQ (w32_charset, Qw32_charset_russian))
     return RUSSIAN_CHARSET;
-  if (w32_charset == Qw32_charset_arabic)
+  if (EQ (w32_charset, Qw32_charset_arabic))
     return ARABIC_CHARSET;
-  if (w32_charset == Qw32_charset_greek)
+  if (EQ (w32_charset, Qw32_charset_greek))
     return GREEK_CHARSET;
-  if (w32_charset == Qw32_charset_hebrew)
+  if (EQ (w32_charset, Qw32_charset_hebrew))
     return HEBREW_CHARSET;
-  if (w32_charset == Qw32_charset_vietnamese)
+  if (EQ (w32_charset, Qw32_charset_vietnamese))
     return VIETNAMESE_CHARSET;
-  if (w32_charset == Qw32_charset_thai)
+  if (EQ (w32_charset, Qw32_charset_thai))
     return THAI_CHARSET;
-  if (w32_charset == Qw32_charset_mac)
+  if (EQ (w32_charset, Qw32_charset_mac))
     return MAC_CHARSET;
 #endif /* JOHAB_CHARSET */
 #ifdef UNICODE_CHARSET
-  if (w32_charset == Qw32_charset_unicode)
+  if (EQ (w32_charset, Qw32_charset_unicode))
     return UNICODE_CHARSET;
 #endif
 
@@ -4937,8 +4944,8 @@ w32_to_x_charset (fncharset)
 
         /* Look for Same charset and a valid codepage (or non-int
            which means ignore).  */
-        if (w32_charset == charset_type
-            && (!INTEGERP (codepage) || codepage == CP_DEFAULT
+        if (EQ (w32_charset, charset_type)
+            && (!INTEGERP (codepage) || XINT (codepage) == CP_DEFAULT
                 || IsValidCodePage (XINT (codepage))))
           {
             /* If we don't have a match already, then this is the
@@ -5095,8 +5102,8 @@ w32_to_all_x_charsets (fncharset)
 
         /* Look for Same charset and a valid codepage (or non-int
            which means ignore).  */
-        if (w32_charset == charset_type
-            && (!INTEGERP (codepage) || codepage == CP_DEFAULT
+        if (EQ (w32_charset, charset_type)
+            && (!INTEGERP (codepage) || XINT (codepage) == CP_DEFAULT
                 || IsValidCodePage (XINT (codepage))))
           {
 	    retval = Fcons (x_charset, retval);
@@ -6145,6 +6152,9 @@ w32_find_ccl_program (fontp)
     }
 }
 
+/* directory-files from dired.c.  */
+Lisp_Object Fdirectory_files P_((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
+
 
 /* Find BDF files in a specified directory.  (use GCPRO when calling,
    as this calls lisp to get a directory listing).  */
@@ -6158,7 +6168,7 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
     return Qnil;
 
   filelist = Fdirectory_files (directory, Qt,
-                              build_string (".*\\.[bB][dD][fF]"), Qt);
+			       build_string (".*\\.[bB][dD][fF]"), Qt);
 
   for ( ; CONSP(filelist); filelist = XCDR (filelist))
     {
@@ -7945,7 +7955,7 @@ lookup_vk_code (char *key)
 
 /* Convert a one-element vector style key sequence to a hot key
    definition.  */
-static int
+static Lisp_Object
 w32_parse_hot_key (key)
      Lisp_Object key;
 {
@@ -7977,7 +7987,7 @@ w32_parse_hot_key (key)
   if (SYMBOLP (c))
     {
       c = parse_modifiers (c);
-      lisp_modifiers = Fcar (Fcdr (c));
+      lisp_modifiers = XINT (Fcar (Fcdr (c)));
       c = Fcar (c);
       if (!SYMBOLP (c))
 	abort ();
@@ -8046,8 +8056,13 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 
       /* Notify input thread about new hot-key definition, so that it
 	 takes effect without needing to switch focus.  */
+#ifdef USE_LISP_UNION_TYPE
+      PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
+			 (WPARAM) key.i, 0);
+#else
       PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
 			 (WPARAM) key, 0);
+#endif
     }
 
   return key;
@@ -8070,8 +8085,14 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
     {
       /* Notify input thread about hot-key definition being removed, so
 	 that it takes effect without needing focus switch.  */
+#ifdef USE_LISP_UNION_TYPE
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
+#else
+      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
+
+#endif
 	{
 	  MSG msg;
 	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -8144,8 +8165,13 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
   if (!dwWindowsThreadId)
     return make_number (w32_console_toggle_lock_key (vk_code, new_state));
 
+#ifdef USE_LISP_UNION_TYPE
   if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state))
+			 (WPARAM) vk_code, (LPARAM) new_state.i))
+#else
+  if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
+			 (WPARAM) vk_code, (LPARAM) new_state.i))
+#endif
     {
       MSG msg;
       GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -8424,9 +8450,9 @@ open the System menu.  When nil, Emacs silently swallows alt key events.  */);
 When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.  */);
   Vw32_alt_is_meta = Qt;
 
-  DEFVAR_INT ("w32-quit-key", &Vw32_quit_key,
-	      doc: /* If non-zero, the virtual key code for an alternative quit key.  */);
-  XSETINT (Vw32_quit_key, 0);
+  DEFVAR_INT ("w32-quit-key", &w32_quit_key,
+	       doc: /* If non-zero, the virtual key code for an alternative quit key.  */);
+  w32_quit_key = 0;
 
   DEFVAR_LISP ("w32-pass-lwindow-to-system",
 	       &Vw32_pass_lwindow_to_system,
@@ -8440,9 +8466,9 @@ When non-nil, the Start menu is opened by tapping the key.  */);
 When non-nil, the Start menu is opened by tapping the key.  */);
   Vw32_pass_rwindow_to_system = Qt;
 
-  DEFVAR_INT ("w32-phantom-key-code",
+  DEFVAR_LISP ("w32-phantom-key-code",
 	       &Vw32_phantom_key_code,
-	      doc: /* Virtual key code used to generate \"phantom\" key presses.
+	       doc: /* Virtual key code used to generate \"phantom\" key presses.
 Value is a number between 0 and 255.
 
 Phantom key presses are generated in order to stop the system from
@@ -8450,7 +8476,7 @@ acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
 `w32-pass-rwindow-to-system' is nil.  */);
   /* Although 255 is technically not a valid key code, it works and
      means that this hack won't interfere with any real key code.  */
-  Vw32_phantom_key_code = 255;
+  XSETINT (Vw32_phantom_key_code, 255);
 
   DEFVAR_LISP ("w32-enable-num-lock",
 	       &Vw32_enable_num_lock,
@@ -8505,21 +8531,21 @@ Any other value will cause the key to be ignored.  */);
   Vw32_enable_palette = Qt;
 
   DEFVAR_INT ("w32-mouse-button-tolerance",
-	      &Vw32_mouse_button_tolerance,
+	      &w32_mouse_button_tolerance,
 	      doc: /* Analogue of double click interval for faking middle mouse events.
 The value is the minimum time in milliseconds that must elapse between
 left/right button down events before they are considered distinct events.
 If both mouse buttons are depressed within this interval, a middle mouse
 button down event is generated instead.  */);
-  XSETINT (Vw32_mouse_button_tolerance, GetDoubleClickTime () / 2);
+  w32_mouse_button_tolerance = GetDoubleClickTime () / 2;
 
   DEFVAR_INT ("w32-mouse-move-interval",
-	      &Vw32_mouse_move_interval,
+	      &w32_mouse_move_interval,
 	      doc: /* Minimum interval between mouse move events.
 The value is the minimum time in milliseconds that must elapse between
 successive mouse move (or scroll bar drag) events before they are
 reported as lisp events.  */);
-  XSETINT (Vw32_mouse_move_interval, 0);
+  w32_mouse_move_interval = 0;
 
   DEFVAR_BOOL ("w32-pass-extra-mouse-buttons-to-system",
 	       &w32_pass_extra_mouse_buttons_to_system,
@@ -8800,9 +8826,9 @@ void globals_of_w32fns ()
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
 
   DEFVAR_INT ("w32-ansi-code-page",
-	      &Vw32_ansi_code_page,
+	      &w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
-  XSETINT (Vw32_ansi_code_page, GetACP ());
+  w32_ansi_code_page = GetACP ();
 }
 
 #undef abort

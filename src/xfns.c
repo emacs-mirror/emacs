@@ -5506,6 +5506,11 @@ Chinese, Japanese, and Korean.  */);
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
+  /* Provide x-toolkit also for GTK.  Internally GTK does not use Xt so it
+     is not an X toolkit in that sense (USE_X_TOOLKIT is not defined).
+     But for a user it is a toolkit for X, and indeed, configure
+     accepts --with-x-toolkit=gtk.  */
+  Fprovide (intern ("x-toolkit"), Qnil);
   Fprovide (intern ("gtk"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,

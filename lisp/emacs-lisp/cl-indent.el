@@ -216,8 +216,12 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 		     (cond ((string-match "\\`def"
 					  function)
 			    (setq tentative-defun t))
-			   ((string-match "\\`\\(with\\|do\\)-"
-					  function)
+			   ((string-match
+                             (eval-when-compile
+                              (concat "\\`\\("
+                                      (regexp-opt '("with" "without" "do"))
+                                      "\\)-"))
+                             function)
 			    (setq method '(&lambda &body))))))
                   ;; backwards compatibility.  Bletch.
                   ((eq method 'defun)

@@ -1043,9 +1043,13 @@ which to install MAP.
 The installed decode map can be referred by the function `quail-decode-map'."
   (if (null quail-current-package)
       (error "No current Quail package"))
-  (if (not (and (consp decode-map) (eq (car decode-map) 'decode-map)))
-      (error "Invalid Quail decode map `%s'" decode-map))
-  (setcar (nthcdr 10 quail-current-package) decode-map))
+  (if (if (consp decode-map)
+	  (eq (car decode-map) 'decode-map)
+	(if (char-table-p decode-map)
+	    (eq (char-table-subtype decode-map) 'quail-decode-map)))
+      (setcar (nthcdr 10 quail-current-package) decode-map)
+    (error "Invalid Quail decode map `%s'" decode-map)))
+
 
 ;;;###autoload
 (defun quail-defrule (key translation &optional name append)
@@ -2589,6 +2593,143 @@ KEY BINDINGS FOR CONVERSION
 	  (message nil)
 	  (quail-update-guidance)
 	  ))))
+
+;; Add KEY (string) to the element of TABLE (char-table) for CHAR if
+;; it is not yet stored.  As a result, the element is a string or a
+;; list of strings.
+
+(defsubst quail-store-decode-map-key (table char key)
+  (let ((elt (aref table char)))
+    (if elt
+	(if (consp elt)
+	    (or (member key elt)
+		(aset table char (cons key elt)))
+	  (or (string= key elt)
+	      (aset table char (list key elt))))
+      (aset table char key))))
+
+;; Helper function for quail-gen-decode-map.  Store key strings to
+;; type each character under MAP in TABLE (char-table).  MAP is an
+;; element of the current Quail map reached by typing keys in KEY
+;; (string).
+
+(defun quail-gen-decode-map1 (map key table)
+  (when (and (consp map) (listp (cdr map)))
+    (let ((trans (car map)))
+      (cond ((integerp trans)
+	     (quail-store-decode-map-key table trans key))
+	    ((stringp trans)
+	     (dotimes (i (length trans))
+	       (quail-store-decode-map-key table (aref trans i) key)))
+	    ((or (vectorp trans)
+		 (and (consp trans)
+		      (setq trans (cdr trans))))
+	     (dotimes (i (length trans))
+	       (let ((elt (aref trans i)))
+		 (if (stringp elt)
+		     (if (= (length elt) 1)
+			 (quail-store-decode-map-key table (aref elt 0) key))
+		   (quail-store-decode-map-key table elt key)))))))
+    (if (> (length key) 1)
+	(dolist (elt (cdr map))
+	  (quail-gen-decode-map1 (cdr elt) key table))
+      (dolist (elt (cdr map))
+	(quail-gen-decode-map1 (cdr elt) (format "%s%c" key (car elt))
+				 table)))))
+
+(put 'quail-decode-map 'char-table-extra-slots 0)
+
+;; Generate a halfly-cooked decode map (char-table) for the current
+;; Quail map.  An element for a character C is a key string or a list
+;; of a key strings to type to input C.  The lenth of key string is at
+;; most 2.  If it is 2, more keys may be required to input C.
+
+(defun quail-gen-decode-map ()
+  (let ((table (make-char-table 'quail-decode-map nil)))
+    (dolist (elt (cdr (quail-map)))
+      (quail-gen-decode-map1 (cdr elt) (string (car elt)) table))
+    table))
+
+;; Helper function for quail-find-key.  Prepend key strings to type
+;; for inputting CHAR by the current input method to KEY-LIST and
+;; return the result.  MAP is an element of the current Quail map
+;; reached by typing keys in KEY.
+
+(defun quail-find-key1 (map key char key-list)
+  (let ((trans (car map))
+	(found-here nil))
+    (cond ((stringp trans)
+	   (setq found-here
+		 (and (= (length trans) 1) (= (aref trans 0) char))))
+	  ((or (vectorp trans) (consp trans))
+	   (if (consp trans)
+	       (setq trans (cdr trans)))
+	   (setq found-here
+		 (catch 'tag
+		   (dotimes (i (length trans))
+		     (let ((target (aref trans i)))
+		       (if (integerp target)
+			   (if (= target char)
+			       (throw 'tag t))
+			 (if (and (= (length target) 1)
+				  (= (aref target 0) char))
+			     (throw 'tag t))))))))
+	    ((integerp trans)
+	     (if (= trans char)
+		 (setq found-here t))))
+    (if found-here
+	(setq key-list (cons key key-list)))
+    (if (> (length key) 1)
+	(dolist (elt (cdr map))
+	  (setq key-list
+		(quail-find-key1 (cdr elt) (format "%s%c" key (car elt))
+				     char key-list))))
+    key-list))
+
+(defun quail-find-key (char)
+  "Return a list of keys to type to input CHAR in the current input method.
+If CHAR is an ASCII character and can be input by typing itself, return t."
+  (let ((decode-map (or (quail-decode-map)
+			(setcar (nthcdr 10 quail-current-package)
+				(quail-gen-decode-map))))
+	(key-list nil))
+    (if (consp decode-map)
+	(let ((str (string char)))
+	  (mapc #'(lambda (elt)
+		    (if (string= str (car elt))
+			(setq key-list (cons (cdr elt) key-list))))
+		(cdr decode-map)))
+      (let ((key-head (aref decode-map char)))
+	(if (stringp key-head)
+	    (setq key-list (quail-find-key1 
+			    (quail-lookup-key key-head nil t)
+			    key-head char nil))
+	  (mapc #'(lambda (elt)
+		    (setq key-list
+			  (quail-find-key1
+			   (quail-lookup-key elt nil t) elt char key-list)))
+		key-head))))
+    (or key-list
+	(and (< char 128)
+	     (not (quail-lookup-key (string char) 1))))))
+
+(defun quail-show-key ()
+  "Show a list of key strings to type for inputting a character at point."
+  (interactive)
+  (or current-input-method
+      (error "No input method is activated"))
+  (let* ((char (following-char))
+	 (key-list (quail-find-key char)))
+    (cond ((consp key-list)
+	   (message "To input `%c', type \"%s\""
+		    char
+		    (mapconcat 'identity key-list "\", \"")))
+	  ((eq key-list t)
+	   (message "To input `%s', just type it"
+		    (single-key-description char)))
+	  (t
+	   (message "%c can't be input by the current input method" char)))))
+
 
 ;; Quail map generator from state transition table.
 

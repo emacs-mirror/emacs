@@ -1424,7 +1424,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
-	    || (!Fequal (previous_items[i], XVECTOR (menu_items)->contents[i])))
+	    || (NILP (Fequal (previous_items[i],
+			      XVECTOR (menu_items)->contents[i]))))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{

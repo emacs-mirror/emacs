@@ -1,7 +1,7 @@
 /* Basic multilingual character support.
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -730,7 +730,7 @@ It includes a generic character for a charset not yet defined.  */)
 
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
-       doc: /* Return an unsed ISO's final char for a charset of DIMENISION and CHARS.
+       doc: /* Return an unused ISO's final char for a charset of DIMENSION and CHARS.
 DIMENSION is the number of bytes to represent a character: 1 or 2.
 CHARS is the number of characters in a dimension: 94 or 96.
 
@@ -1028,9 +1028,9 @@ Internal use only.  */)
 }
 
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
-       doc: /* Return list of charset and one or two position-codes of CHAR.
-If CHAR is invalid as a character code,
-return a list of symbol `unknown' and CHAR.  */)
+       doc: /* Return list of charset and one or two position-codes of CH.
+If CH is invalid as a character code,
+return a list of symbol `unknown' and CH.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1048,7 +1048,7 @@ return a list of symbol `unknown' and CHAR.  */)
 }
 
 DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
-       doc: /* Return charset of CHAR.  */)
+       doc: /* Return charset of CH.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1179,7 +1179,7 @@ The conversion is done based on `nonascii-translation-table' (which see)
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CHAR.  */)
+       doc: /* Return 1 regardless of the argument CH.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1223,7 +1223,7 @@ char_bytes (c)
 	    : 4))))
 
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
-       doc: /* Return width of CHAR when displayed in the current buffer.
+       doc: /* Return width of CH when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
 Tab is taken to occupy `tab-width' columns.  */)
      (ch)
@@ -1406,18 +1406,18 @@ When calculating width of a multibyte character in STRING,
 only the base leading-code is considered; the validity of
 the following bytes is not checked.  Tabs in STRING are always
 taken to occupy `tab-width' columns.  */)
-     (str)
-     Lisp_Object str;
+     (string)
+     Lisp_Object string;
 {
   Lisp_Object val;
 
-  CHECK_STRING (str);
-  XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
+  CHECK_STRING (string);
+  XSETFASTINT (val, lisp_string_width (string, -1, NULL, NULL));
   return val;
 }
 
 DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
-       doc: /* Return the direction of CHAR.
+       doc: /* Return the direction of CH.
 The returned value is 0 for left-to-right and 1 for right-to-left.  */)
      (ch)
      Lisp_Object ch;

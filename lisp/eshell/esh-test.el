@@ -167,13 +167,7 @@
       (local-set-key [(control ?m)] 'eshell-test-goto-func)
       (local-set-key [return] 'eshell-test-goto-func)
 
-      (insert "Testing Eshell under "
-	      (format "GNU Emacs %s (%s%s)"
-		      emacs-version
-		      system-configuration
-		      (cond ((featurep 'motif) ", Motif")
-			    ((featurep 'x-toolkit) ", X toolkit")
-			    (t ""))))
+      (insert "Testing Eshell under " (emacs-version))
       (switch-to-buffer test-buffer)
       (delete-other-windows))
     (eshell-for funcname (sort (all-completions "eshell-test--"

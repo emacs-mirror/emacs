@@ -284,24 +284,51 @@ enum pvec_type
 #define BOOL_VECTOR_BITS_PER_CHAR 8
 
 /***** Select the tagging scheme.  *****/
+/* There are basically two options that control the tagging scheme:
+   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
+     of a union.
+   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
+     always 0, and we can thus use them to hold tag bits, without
+     restricting our addressing space.
+
+   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
+   restricting our possible address range.  Currently USE_LSB_TAG is not
+   allowed together with a union.  This is not due to any fundamental
+   technical (or political ;-) problem: nobody wrote the code to do it yet.
+
+   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
+   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
+   on the few static Lisp_Objects used: all the defsubr as well
+   as the two special buffers buffer_defaults and buffer_local_symbols.  */
 
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned. */
-#if defined USE_LSB_TAG && !defined DECL_ALIGN
+#ifndef DECL_ALIGN
 /* What compiler directive should we use for non-gcc compilers?  -stef  */
 # if defined (__GNUC__)
 #  define DECL_ALIGN(type, var) \
     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-# else
-#  error "USE_LSB_TAG used without defining DECL_ALIGN"
 # endif
 #endif
 
-#ifndef USE_LSB_TAG
+/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+/* We also need to be able to specify mult-of-8 alignment on static vars.  */
+# if defined DECL_ALIGN
+/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
+#  if defined NO_UNION_TYPE
+#   define USE_LSB_TAG
+#  endif
+# endif
+#endif
+
 /* Just remove the alignment annotation if we don't use it.  */
-#undef DECL_ALIGN
-#define DECL_ALIGN(type, var) type var
+#ifndef DECL_ALIGN
+# ifdef USE_LSB_TAG
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
+# define DECL_ALIGN(type, var) type var
 #endif
 
 
@@ -2857,6 +2884,10 @@ extern int indented_beyond_p P_ ((int, int, double));
 extern void syms_of_indent P_ ((void));
 
 /* defined in frame.c */
+#ifdef HAVE_WINDOW_SYSTEM
+extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void store_in_alist P_ ((Lisp_Object *, Lisp_Object, Lisp_Object));
@@ -3079,11 +3110,12 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-extern Lisp_Object Vx_resource_name;
-extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_X_WINDOWS */
+#ifdef HAVE_WINDOW_SYSTEM
+/* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 4);
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in xsmfns.c */
 extern void syms_of_xsmfns P_ ((void));
@@ -3109,9 +3141,7 @@ extern void xfree P_ ((POINTER_TYPE *));
 
 extern char *xstrdup P_ ((const char *));
 
-#ifndef USE_CRT_DLL
 extern char *egetenv P_ ((char *));
-#endif
 
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name P_ ((void));

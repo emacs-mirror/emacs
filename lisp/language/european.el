@@ -451,6 +451,19 @@ and it selects the Spanish tutorial."))
 	      (unibyte-display . iso-8859-2)
 	      (documentation . "Support for Croatian with Latin-2 encoding."))
  '("European"))
+
+(set-language-info-alist
+ "Brazilian Portuguese" '((tutorial . "TUTORIAL.pt_BR")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1 iso-latin-9)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "latin-1-prefix")
+	    (sample-text . "Oi")
+	    (documentation . "Support for Brazilian Portuguese."))
+ '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to

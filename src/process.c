@@ -1457,12 +1457,12 @@ static Lisp_Object start_process_unwind ();
 DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
        doc: /* Start a program in a subprocess.  Return the process object for it.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer.
-Third arg is program file name.  It is searched for in PATH.
+PROGRAM is the program file name.  It is searched for in PATH.
 Remaining arguments are strings to give program as arguments.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
@@ -4018,8 +4018,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      int do_display;
 {
   register int channel, nfds;
-  static SELECT_TYPE Available;
-  static SELECT_TYPE Connecting;
+  SELECT_TYPE Available;
+  SELECT_TYPE Connecting;
   int check_connect, check_delay, no_avail;
   int xerrno;
   Lisp_Object proc;
@@ -4030,6 +4030,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* Either nil or a cons cell, the car of which is of interest and
      may be changed outside of this routine.  */
   Lisp_Object wait_for_cell = Qnil;
+  int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);
   FD_ZERO (&Connecting);
@@ -4643,7 +4644,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}			/* end for each file descriptor */
     }				/* end while exit conditions not met */
 
-  waiting_for_user_input_p = 0;
+  waiting_for_user_input_p = saved_waiting_for_user_input_p;
 
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
@@ -4894,6 +4895,8 @@ read_process_output (proc, channel)
 	}
 
       carryover = nbytes - coding->consumed;
+      if (SCHARS (p->decoding_buf) < carryover)
+	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);
@@ -4998,6 +5001,8 @@ read_process_output (proc, channel)
 	    }
 	}
       carryover = nbytes - coding->consumed;
+      if (SCHARS (p->decoding_buf) < carryover)
+	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);

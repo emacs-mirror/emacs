@@ -153,7 +153,7 @@
 ;;; Code:
 
 ;; TODO
-;; Support for hideshow, align.
+;; Support for align.
 ;; OpenMP, preprocessor highlighting.
 
 (defvar comment-auto-fill-only-comments)
@@ -587,6 +587,53 @@ characters long.")
 (defvar f90-cache-position nil
   "Temporary position used to speed up region operations.")
 (make-variable-buffer-local 'f90-cache-position)
+
+
+;; Hideshow support.
+(defconst f90-end-block-re
+  (concat "^[ \t0-9]*\\<end\\>[ \t]*"
+          (regexp-opt '("do" "if" "forall" "function" "interface"
+                        "module" "program" "select"  "subroutine"
+                        "type" "where" ) t)
+          "[ \t]*\\sw*")
+  "Regexp matching the end of a \"block\" of F90 code.
+Used in the F90 entry in `hs-special-modes-alist'.")
+
+;; Ignore the fact that FUNCTION, SUBROUTINE, WHERE, FORALL have a
+;; following "(".  DO, CASE, IF can have labels; IF must be
+;; accompanied by THEN.
+;; A big problem is that many of these statements can be broken over
+;; lines, even with embedded comments. We only try to handle this for
+;; IF ... THEN statements, assuming and hoping it will be less common
+;; for other constructs. We match up to one new-line, provided ")
+;; THEN" appears on one line. Matching on just ") THEN" is no good,
+;; since that includes ELSE branches.
+;; For a fully accurate solution, hideshow would probably have to be
+;; modified to allow functions as well as regexps to be used to
+;; specify block start and end positions.
+(defconst f90-start-block-re
+  (concat
+   "^[ \t0-9]*"                         ; statement number
+   "\\(\\("
+   "\\(\\sw+[ \t]*:[ \t]*\\)?"          ; structure label
+   "\\(do\\|select[ \t]*case\\|if[ \t]*(.*\n?.*)[ \t]*then\\|"
+   ;; Distinguish WHERE block from isolated WHERE.
+   "\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)\\)\\)"
+   "\\|"
+   "program\\|interface\\|module\\|type\\|function\\|subroutine"
+   ;; ") THEN" at line end. Problem - also does ELSE.
+;;;   "\\|.*)[ \t]*then[ \t]*\\($\\|!\\)"
+   "\\)"
+   "[ \t]*")
+  "Regexp matching the start of a \"block\" of F90 code.
+A simple regexp cannot do this in fully correct fashion, so this
+tries to strike a compromise between complexity and flexibility.
+Used in the F90 entry in `hs-special-modes-alist'.")
+
+;; hs-special-modes-alist is autoloaded.
+(add-to-list 'hs-special-modes-alist
+             `(f90-mode ,f90-start-block-re ,f90-end-block-re
+                        "!" f90-end-of-block nil))
 
 
 ;; Imenu support.

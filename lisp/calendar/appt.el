@@ -449,11 +449,10 @@ NEW-TIME is a string giving the date."
 		  (same-window-p (buffer-name appt-disp-buf)))
 	;; By default, split the bottom window and use the lower part.
 	(appt-select-lowest-window)
-	(split-window))
-      (pop-to-buffer appt-disp-buf))
-    (setq mode-line-format
-	  (concat "-------------------- Appointment in "
-		  min-to-app " minutes. " new-time " %-"))
+        (select-window (split-window)))
+      (switch-to-buffer appt-disp-buf))
+    (calendar-set-mode-line
+     (format " Appointment in %s minutes. %s " min-to-app new-time))
     (erase-buffer)
     (insert appt-msg)
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))

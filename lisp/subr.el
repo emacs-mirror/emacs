@@ -629,7 +629,11 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
-  (or (integerp obj)
+  (or (and (integerp obj)
+	   ;; Filter out integers too large to be events.
+	   ;; M is the biggest modifier.
+	   (zerop (logand obj (lognot (1- (lsh ?\M-\^@ 1)))))
+	   (char-valid-p (event-basic-type obj)))
       (and (symbolp obj)
 	   (get obj 'event-symbol-elements))
       (and (consp obj)
@@ -1119,14 +1123,14 @@ Input and output work as for subprocesses; `delete-process' closes it.
 
 Args are NAME BUFFER HOST SERVICE.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
+ with any buffer.
+HOST is name of the host to connect to, or its IP address.
+SERVICE is name of the service desired, or an integer specifying
+ a port number to connect to."
   (make-network-process :name name :buffer buffer
 			:host host :service service))
 
@@ -1135,14 +1139,14 @@ specifying a port number to connect to."
 It returns nil if non-blocking connects are not supported; otherwise,
 it returns a subprocess-object to represent the connection.
 
-This function is similar to `open-network-stream', except that this
-function returns before the connection is established.  When the
-connection is completed, the sentinel function will be called with
-second arg matching `open' (if successful) or `failed' (on error).
+This function is similar to `open-network-stream', except that it
+returns before the connection is established.  When the connection
+is completed, the sentinel function will be called with second arg
+matching `open' (if successful) or `failed' (on error).
 
 Args are NAME BUFFER HOST SERVICE SENTINEL FILTER.
 NAME, BUFFER, HOST, and SERVICE are as for `open-network-stream'.
-Optional args, SENTINEL and FILTER specifies the sentinel and filter
+Optional args SENTINEL and FILTER specify the sentinel and filter
 functions to be used for this network stream."
   (if (featurep 'make-network-process  '(:nowait t))
       (make-network-process :name name :buffer buffer :nowait t
@@ -1160,17 +1164,17 @@ is called for the new process.
 
 Args are NAME BUFFER SERVICE SENTINEL FILTER.
 NAME is name for the server process.  Client processes are named by
-appending the ip-address and port number of the client to NAME.
-BUFFER is the buffer (or buffer-name) to associate with the server
-process.  Client processes will not get a buffer if a process filter
-is specified or BUFFER is nil; otherwise, a new buffer is created for
-the client process.  The name is similar to the process name.
+ appending the ip-address and port number of the client to NAME.
+BUFFER is the buffer (or buffer name) to associate with the server
+ process.  Client processes will not get a buffer if a process filter
+ is specified or BUFFER is nil; otherwise, a new buffer is created for
+ the client process.  The name is similar to the process name.
 Third arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to.  It may also be t to selected
-an unused port number for the server.
-Optional args, SENTINEL and FILTER specifies the sentinel and filter
-functions to be used for the client processes; the server process
-does not use these function."
+ specifying a port number to connect to.  It may also be t to select
+ an unused port number for the server.
+Optional args SENTINEL and FILTER specify the sentinel and filter
+ functions to be used for the client processes; the server process
+ does not use these function."
   (if (featurep 'make-network-process '(:server t))
       (make-network-process :name name :buffer buffer
 			    :service service :server t :noquery t
@@ -1725,16 +1729,17 @@ Strip text properties from the inserted text according to
 
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-Third arg is command name, the name of a shell command.
+COMMAND is the name of a shell command.
 Remaining arguments are the arguments for the command.
-Wildcards and redirection are handled as usual in the shell."
+Wildcards and redirection are handled as usual in the shell.
+
+\(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
   (cond
    ((eq system-type 'vax-vms)
     (apply 'start-process name buffer args))

@@ -1407,7 +1407,7 @@ local bindings in certain buffers.  */)
 }
 
 DEFUN ("set-default", Fset_default, Sset_default, 2, 2, 0,
-       doc: /* Set SYMBOL's default value to VAL.  SYMBOL and VAL are evaluated.
+       doc: /* Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
 The default value is seen in buffers that do not have their own values
 for this variable.  */)
      (symbol, value)

@@ -562,8 +562,18 @@ struct scroll_bar {
    text from glomming up against the scroll bar */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
+struct frame;
+struct face;
+struct image;
 
-struct frame * check_x_frame (Lisp_Object);
+Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
+					Lisp_Object, Lisp_Object,
+					Lisp_Object, Lisp_Object));
+struct frame *check_x_frame P_ ((Lisp_Object));
+EXFUN (Fx_display_color_p, 1);
+EXFUN (Fx_display_grayscale_p, 1);
+EXFUN (Fx_display_planes, 1);
+extern void x_free_gcs P_ ((struct frame *));
 
 void activate_scroll_bars (FRAME_PTR);
 void deactivate_scroll_bars (FRAME_PTR);

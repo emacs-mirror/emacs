@@ -61,9 +61,9 @@ to the system configuration; look at `system-configuration' instead."
 		 system-configuration
 		 (cond ((featurep 'motif)
 			(concat ", " (substring motif-version-string 4)))
-		       ((featurep 'x-toolkit) ", X toolkit")
 		       ((featurep 'gtk)
 			(concat ", GTK+ Version " gtk-version-string))
+		       ((featurep 'x-toolkit) ", X toolkit")
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))

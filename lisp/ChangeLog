@@ -1,3 +1,222 @@
+2004-05-18  Masatake YAMATO  <jet@gyve.org>
+
+	* wid-edit.el (widget-radio-button-notify): Don't pass `widget'
+	to widget-apply. :action method assumes 2 arguments, not 3.
+
+2004-05-17  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): New
+	constants.
+	(hs-special-modes-alist): Add an f90-mode entry.
+
+2004-05-17  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1): Indent
+	"without-" forms just like "with-" and "do-".  Use regexp-opt.
+
+2004-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/timer.el (timer-event-handler): Fix last change.
+
+2004-05-15  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-io.el (eshell-get-target): whitespace changes.
+	(eshell-output-object-to-target): Improve output speed 20% by not
+	calling `eshell-stringify' if something is already known to be a
+	string.
+
+2004-05-15  Alex Ott  <ott@jet.msk.su>
+
+	* textmodes/ispell.el (ispell-local-dictionary-alist): Add
+	windows-1251 to the choice of coding systems.
+	(ispell-dictionary-alist-6): Add support for "russianw.aff",
+	encoded in cp1251.
+
+2004-05-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face): Use min-colors.
+
+2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/close.pbm, toolbar/close.xpm
+	* toolbar/copy.pbm, toolbar/copy.xpm
+	* toolbar/cut.pbm, toolbar/cut.xpm
+	* toolbar/help.pbm, toolbar/help.xpm
+	* toolbar/home.pbm, toolbar/home.xpm
+	* toolbar/index.pbm, toolbar/index.xpm
+	* toolbar/jump_to.pbm, toolbar/jump_to.xpm
+	* toolbar/left_arrow.pbm, toolbar/left_arrow.xpm
+	* toolbar/new.pbm, toolbar/new.xpm
+	* toolbar/open.pbm, toolbar/open.xpm
+	* toolbar/paste.pbm, toolbar/paste.xpm
+	* toolbar/preferences.pbm, toolbar/preferences.xpm
+	* toolbar/print.pbm, toolbar/print.xpm
+	* toolbar/right_arrow.pbm, toolbar/right_arrow.xpm
+	* toolbar/save.pbm, toolbar/save.xpm
+	* toolbar/saveas.pbm, toolbar/saveas.xpm
+	* toolbar/search.pbm, toolbar/search.xpm
+	* toolbar/spell.pbm, toolbar/spell.xpm
+	* toolbar/undo.pbm, toolbar/undo.xpm
+	* toolbar/up_arrow.pbm, toolbar/up_arrow.xpm: New icons from
+	GTK+ version 2.
+
+
+2004-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/timer.el (timer-activate): Add optional arg triggered-p.
+	Use it to set triggered-p element of timer.
+	(timer-event-handler): Set triggered-p element non-nil while running
+	the timer function.
+
+2004-05-14  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: New file.
+
+2004-05-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+	* language/european.el ("Brazilian Portuguese"): Added support for
+	Brazilian Portuguese.
+
+2004-05-13  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-use-virtual-buffers): Only turn on
+	`recentf-mode' if this variable has been customized to t.
+
+	* eshell/esh-test.el (eshell-test): Call the function
+	`emacs-version' rather than trying to build a custom version
+	string.
+
+2004-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/telnet.el (telnet-mode): Use define-derived-mode.
+	Don't modify the global value of comint-prompt-regexp.
+
+2004-05-13  John Paul Wallington  <jpw@gnu.org>
+
+	* version.el (emacs-version): Check for `gtk' feature before
+	`x-toolkit' feature.
+
+2004-05-13  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (file-truename): Don't mention COUNTER and PREV-DIRS
+	arguments in the docstring, they're used only in recursive calls.
+
+	* help-fns.el (help-arg-highlighting-function)
+	(help-argument-name): Delete.
+	(help-default-arg-highlight): New function.
+	(help-do-arg-highlighting): Use it.
+
+2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-disp-window):
+	Use `calendar-set-mode-line' for a centered mode-line.
+
+2004-05-13  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* calendar/appt.el (appt-disp-window): Do not split window
+	excessively when `split-height-threshold' is low.
+
+2004-05-12  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gud.el (gud-mode): Add gud-kill-buffer-hook to
+	kill-buffer-hook here and make it local.
+	(gud-kill-buffer-hook): Use kill-process for a sure kill.
+
+2004-05-12  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-set-window-height):
+	Use save-excursion to protect against misplaced marker.
+
+2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* custom.el (defface): Document that type can have value gtk.
+
+	* faces.el (face-spec-set-match-display): Handle type gtk in display.
+
+2004-05-12  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el: Require quail at comile time.
+	(describe-char): If an input method is on and it supports the
+	character, show how to input it.
+
+	* international/quail.el (quail-install-decode-map): Accept a
+	char-table whose subtype is `quail-decode-map'.
+	(quail-store-decode-map-key, quail-gen-decode-map1)
+	(quail-gen-decode-map, quail-find-key1, quail-find-key)
+	(quail-show-key): New functions.
+
+2004-05-12  Juanma Barranquero  <lektu@terra.es>
+
+	* generic.el (define-generic-mode): Remove redundant arglist info.
+
+	* help-fns.el (help-split-fundoc, help-add-fundoc-usage):
+	Make arguments match their use in docstring.
+	(help-arg-highlighting-function): New variable.
+	(help-argument-name): Mention it in the docstring.
+	(help-do-arg-highlight): Use it.  Expand regexp to accept also
+	ARG-xxx and xxx-ARG references.
+
+2004-05-11  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
+
+	* mail/rfc2368.el (rfc2368-parse-mailto-url): Make the results of
+	parsing "mailto:addr1%2C%20addr2", "mailto:?to=addr1%2C%20addr2",
+	and "mailto:addr1?to=addr2" equal.
+
+2004-05-11  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* man.el (Man-getpage-in-background): Use shell-file-name
+	and shell-command-switch variables instead of hard-coded values.
+
+2004-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* iimage.el: New file.
+
+2004-05-11  Juanma Barranquero  <lektu@terra.es>
+
+	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
+
+	* files.el (set-visited-file-name, file-expand-wildcards):
+	Fix docstring.
+
+2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Use eventp.
+
+	* subr.el (eventp): Be more discriminating with integers.
+
+2004-05-10  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compile): Add universal prefix arg.
+	(compilation-error-regexp-alist-alist): Add edg patterns.
+
+2004-05-10  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/ispell.el (ispell-message):
+	Use `message-cite-prefix-regexp' instead of `message-yank-prefix'.
+
+2004-05-10  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (help-buffer): Autoload when compiling.
+	(python-after-info-look): Don't assume Info-goto-node returns non-nil.
+	(run-python): Prepend to any existing PYTHONPATH.
+
+2004-05-10  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-annotation-rules): Add nquery annotation
+	for pending breakpoints.
+
+2004-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/unrmail.el (unrmail): Mostly rewritten.  Parses the file
+	directly without calling any functions in Rmail.
+	(unrmail-unprune): Function deleted.
+
+2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (inferior-python-mode-map): Remove erroneous
+	C-c C-z binding.
+
 2004-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Fix previous change.  Don't make
@@ -10,11 +229,20 @@
 
 2004-05-10  Juanma Barranquero  <lektu@terra.es>
 
-	* subr.el (remove-overlays, read-passwd): Fix docstring.
-
 	* help-fns.el (help-argument-name): Default to italic.
 	(help-highlight-arguments): Return always (usage . doc), even when
 	usage is nil.
+
+	* ibuf-macs.el (define-ibuffer-column, define-ibuffer-sorter)
+	(define-ibuffer-filter): Add usage info.
+	(define-ibuffer-op): Add usage info (but CL-style defaults for
+	keyword args are not shown).
+
+	* subr.el (remove-overlays, read-passwd): Fix docstring.
+	(start-process-shell-command): Fix docstring.  Put usage info in a
+	format usable by `describe-function'.
+	(open-network-stream, open-network-stream-nowait)
+	(open-network-stream-server): Fix docstring.
 
 2004-05-09  Jason Rumney  <jasonr@gnu.org>
 
@@ -29,24 +257,24 @@
 
 	* term/w32-win.el: Require code-pages.
 
-	* international/mule-cmds.el (set-locale-environment): On
-	MS-Windows use ansi code-page for default coding-systems.
+	* international/mule-cmds.el (set-locale-environment):
+	On MS-Windows use ansi code-page for default coding-systems.
 	Set up paper sizes for Windows 3 letter languages.
 
-	* international/code-pages.el (cp932, cp936, cp949, cp950): Add
-	aliases.  Also add cp125* if not already defined.
+	* international/code-pages.el (cp932, cp936, cp949, cp950):
+	Add aliases.  Also add cp125* if not already defined.
 
 2004-05-09  Juanma Barranquero  <lektu@terra.es>
-
-	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
-	Don't use CL-style default args.
-
-	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
-	(cvs-get-marked): Remove redundant arglist info.
 
 	* help-fns.el (help-highlight-arguments): Don't try to highlight
 	missing or autoloaded arglists.  Accept structured arguments, like
 	the first ones of `do' and `flet'.
+
+	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
+	(cvs-get-marked): Remove redundant arglist info.
+
+	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
+	Don't use CL-style default args.
 
 2004-05-08  Andreas Schwab  <schwab@suse.de>
 
@@ -62,17 +290,17 @@
 
 2004-05-08  John Wiegley  <johnw@newartisans.com>
 
-	* iswitchb.el (iswitchb-use-virtual-buffers): Added support for
+	* iswitchb.el (iswitchb-use-virtual-buffers): Add support for
 	"virtual buffers" (off by default), which makes it possible to
 	switch to the "virtual" buffers of recently visited files.  When a
 	buffer name search fails, and this option is on, iswitchb will
 	look at the list of recently visited files, and permit matching
 	against those names.  When the user hits RET on a match, it will
 	revisit that file.
-	(iswitchb-read-buffer): Added two optional arguments, which makes
+	(iswitchb-read-buffer): Add two optional arguments, which makes
 	isearchb.el possible.
-	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match,
-	iswitchb-next-match): Added support for virtual buffers.
+	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match)
+	(iswitchb-next-match): Add support for virtual buffers.
 
 	* isearchb.el: This module extends iswitchb to provide "as you
 	type" buffer selection.
@@ -108,8 +336,7 @@
 
 	* help-fns.el (help-do-arg-highlight): Temporarily set ?\- to be a
 	word constituent so FOO-ARG is not recognized as an arg.
-	(help-highlight-arguments): Don't skip lists in mandatory
-	arguments.
+	(help-highlight-arguments): Don't skip lists in mandatory arguments.
 
 	* simple.el (next-error): Fix typo in docstring.
 	(open-line): Make argument names match their use in docstring.
@@ -127,11 +354,11 @@
 
 	Version 2.0.40 of Tramp released.
 
-	* net/tramp.el (tramp-completion-mode, tramp-md5-function): Use
-	symbol-function to invoke functions only known on some Emacs
+	* net/tramp.el (tramp-completion-mode, tramp-md5-function):
+	Use symbol-function to invoke functions only known on some Emacs
 	flavors.  This avoids byte-compiler warnings.  Reported by Kevin
 	Scaldeferri <kevin@scaldeferri.com>.
-	(tramp-do-copy-or-rename-file-via-buffer): Renamed from
+	(tramp-do-copy-or-rename-file-via-buffer): Rename from
 	tramp-do-copy-or-rename-via-buffer (without `file'), to make it
 	consistent with the other tramp-do-* functions.
 	(tramp-do-copy-or-rename-file): Calls adjusted.
@@ -145,8 +372,7 @@
 	(tramp-read-passwd): Construct the key for the password cache in a
 	way that works for multi methods, too.
 	(tramp-bug): Add backup-directory-alist and
-	bkup-backup-directory-info to bug reports, with Tramp
-	counterparts.
+	bkup-backup-directory-info to bug reports, with Tramp counterparts.
 
 2004-05-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -157,8 +383,8 @@
 	(tramp-do-copy-or-rename-file-out-of-band): Asynchronous process
 	used instead of a synchronous one.  Allows password entering.
 	(tramp-action-out-of-band): New defun.
-	(tramp-open-connection-rsh, tramp-method-out-of-band-p): Remove
-	restriction with password from doc string.
+	(tramp-open-connection-rsh, tramp-method-out-of-band-p):
+	Remove restriction with password from doc string.
 	(tramp-bug): Add variables `tramp-terminal-prompt-regexp',
 	`tramp-out-of-band-prompt-regexp',
 	`tramp-actions-copy-out-of-band', `password-cache' and
@@ -172,15 +398,14 @@
 	Schwab <schwab@suse.de>.
 	(tramp-do-copy-or-rename-file-via-buffer): Set permissions of the
 	new file.
-	(tramp-handle-file-local-copy, tramp-handle-write-region): The
-	permissions of the temporary file are set if filename exists.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	The permissions of the temporary file are set if filename exists.
 	Reported by Ted Stern <stern@cray.com>.
 	(tramp-backup-directory-alist)
 	(tramp-bkup-backup-directory-info): New defcustoms.
-	(tramp-file-name-handler-alist): Add entry for
-	`find-backup-file-name'.
-	(tramp-handle-find-backup-file-name): New function.  Implements
-	Tramp's find-backup-file-name.
+	(tramp-file-name-handler-alist): Add entry for `find-backup-file-name'.
+	(tramp-handle-find-backup-file-name): New function.
+	Implements Tramp's find-backup-file-name.
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry
 	for `find-backup-file-name'.
@@ -197,8 +422,7 @@
 	* subr.el (lambda): Add arglist description to docstring.
 	(declare): Fix typo in docstring.
 	(open-network-stream): Fix docstring.
-	(process-kill-without-query): Fix docstring and add obsolescence
-	info.
+	(process-kill-without-query): Fix docstring and add obsolescence info.
 	(last, butlast, nbutlast): Make arguments match their use in docstring.
 	(insert-buffer-substring-no-properties): Likewise.
 	(insert-buffer-substring-as-yank): Likewise.
@@ -269,12 +493,12 @@
 
 2004-05-06  Juanma Barranquero  <lektu@terra.es>
 
+	* ehelp.el (electric-help-command-loop): Check whether the last
+	character is visible, not (point-max).
+
 	* help-fns.el (help-argument-name): Default to bold; don't inherit
 	from font-lock-variable-name-face.
 	(help-do-arg-highlight): Grok also ARGth occurrences in the docstring.
-
-	* ehelp.el (electric-help-command-loop): Check whether the last
-	character is visible, not (point-max).
 
 2004-05-05  Kenichi Handa  <handa@m17n.org>
 
@@ -323,6 +547,9 @@
 
 2004-05-04  Juanma Barranquero  <lektu@terra.es>
 
+	* ehelp.el (electric-help-command-loop, electric-help-undefined)
+	(electric-help-help): Check against unmapped commands.
+
 	* help-fns.el (help-argument-name): New face, inheriting from
 	font-lock-variable-name-face, to highlight function arguments in
 	`describe-function' and `describe-key'.
@@ -333,12 +560,9 @@
 	(describe-function-1): Use it. Do docstring output via `insert',
 	not 'princ', so text attributes are preserved.
 
-	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
-	C-c <left> and C-c <right>, respectively (the previous bindings
-	conflict with prev-buffer, next-buffer).
-
-	* ehelp.el (electric-help-command-loop, electric-help-undefined)
-	(electric-help-help): Check against unmapped commands.
+	* winner.el (winner-mode-map): Move `winner-undo' and
+	`winner-redo' to C-c <left> and C-c <right>, respectively (the
+	previous bindings conflict with `prev-buffer', `next-buffer').
 
 2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -617,7 +841,7 @@
 	`font-lock-add-keywords'.
 	(sql-send-string): Add function.
 
-2004-04-29  Dave Love <fx@gnu.org>
+2004-04-29  Dave Love  <fx@gnu.org>
 
 	* progmodes/cfengine.el (cfengine-beginning-of-defun)
 	(cfengine-end-of-defun): Ensure progress through buffer.
@@ -1060,10 +1284,10 @@
 
 2004-04-21  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in (WINS): Add url/ directory.
-
 	* font-lock.el (font-lock-preprocessor-face): Remove spurious quote.
 	(font-lock-warning-face): Fix spacing.
+
+	* makefile.w32-in (WINS): Add url/ directory.
 
 2004-04-21  Lars Hansen  <larsh@math.ku.dk>
 
@@ -1809,7 +2033,7 @@
 
 2004-04-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* printing.el: Dox fix.
+	* printing.el: Doc fix.
 
 2004-04-05  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -6811,7 +7035,7 @@
 2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Print line number correctly in a region.  Reported by
-	Tim Allen <timallen@ls83.fsnet.co.uk>
+	Tim Allen <timallen@ls83.fsnet.co.uk>.
 	(ps-print-version): New version number (6.6.2).
 	(ps-printing-region): Code fix.
 

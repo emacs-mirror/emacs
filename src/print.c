@@ -791,7 +791,7 @@ A printed representation of an object is text which describes that object.  */)
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
-  /* Note that this won't make prepare_to_modify_buffer call 
+  /* Note that this won't make prepare_to_modify_buffer call
      ask-user-about-supersession-threat because this buffer
      does not visit a file.  */
   Ferase_buffer ();
@@ -929,7 +929,7 @@ DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugg
        doc: /* Redirect debugging output (stderr stream) to file FILE.
 If FILE is nil, reset target to the initial stderr stream.
 Optional arg APPEND non-nil (interactively, with prefix arg) means
-append to existing target file.  */) 
+append to existing target file.  */)
      (file, append)
      Lisp_Object file, append;
 {
@@ -1280,6 +1280,26 @@ print_preprocess (obj)
 {
   int i;
   EMACS_INT size;
+  int loop_count = 0;
+  Lisp_Object halftail;
+
+  /* Avoid infinite recursion for circular nested structure
+     in the case where Vprint_circle is nil.  */
+  if (NILP (Vprint_circle))
+    {
+      for (i = 0; i < print_depth; i++)
+	if (EQ (obj, being_printed[i]))
+	  return;
+      being_printed[print_depth] = obj;
+    }
+
+  /* Give up if we go so deep that print_object will get an error.  */
+  /* See similar code in print_object.  */
+  if (print_depth >= PRINT_CIRCLE)
+    return;
+
+  print_depth++;
+  halftail = obj;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1340,8 +1360,15 @@ print_preprocess (obj)
 	  break;
 
 	case Lisp_Cons:
+	  /* Use HALFTAIL and LOOP_COUNT to detect circular lists,
+	     just as in print_object.  */
+	  if (loop_count && EQ (obj, halftail))
+	    break;
 	  print_preprocess (XCAR (obj));
 	  obj = XCDR (obj);
+	  loop_count++;
+	  if (!(loop_count & 1))
+	    halftail = XCDR (halftail);
 	  goto loop;
 
 	case Lisp_Vectorlike:
@@ -1356,6 +1383,7 @@ print_preprocess (obj)
 	  break;
 	}
     }
+  print_depth--;
 }
 
 static void
@@ -1372,7 +1400,7 @@ print_object (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
-  char buf[30];
+  char buf[40];
 
   QUIT;
 
@@ -1426,6 +1454,7 @@ print_object (obj, printcharfun, escapeflag)
 
   print_depth++;
 
+  /* See similar code in print_preprocess.  */
   if (print_depth > PRINT_CIRCLE)
     error ("Apparently circular structure being printed");
 #ifdef MAX_PRINT_CHARS

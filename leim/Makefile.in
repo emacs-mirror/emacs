@@ -121,7 +121,8 @@ OTHERS= \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc \
-	${srcdir}/quail/georgian.elc
+	${srcdir}/quail/georgian.elc \
+	${srcdir}/quail/sisheng.elc
 
 MISC= \
 	quail/tsang-b5.elc	\
@@ -174,7 +175,9 @@ TIT-SOURCES= \
 	${srcdir}/CXTERM-DIC/ZOZY.tit
 
 changed.tit: ${TIT-SOURCES}
-	echo "0" > $@
+	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
+	  echo "changed" > $@
 
 MISC-SOURCES= \
 	${srcdir}/MISC-DIC/CTLau-b5.html \
@@ -185,19 +188,11 @@ MISC-SOURCES= \
 	${srcdir}/MISC-DIC/ziranma.cin
 
 changed.misc: ${MISC-SOURCES}
-	echo "0" > $@
+	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
+	  echo "changed" > $@
 
 leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc
-	if [ `(cat changed.tit)` = 0 ] ; then \
-	  ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	    -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
-	  echo "1" > changed.tit; \
-	else true; fi
-	if [ `(cat changed.misc)` = 0 ] ; then \
-	  ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	    -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
-	  echo "1" > changed.misc; \
-	else true; fi
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \

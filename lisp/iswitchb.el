@@ -315,7 +315,7 @@ enabled if this variable is configured to a non-nil value."
   :require 'recentf
   :set (function
 	(lambda (sym value)
-	  (recentf-mode value)
+	  (if value (recentf-mode 1))
 	  (set sym value)))
   :group 'iswitchb)
 

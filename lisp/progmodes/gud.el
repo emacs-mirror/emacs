@@ -2339,7 +2339,8 @@ comint mode, which see."
   ;; Don't put repeated commands in command history many times.
   (set (make-local-variable 'comint-input-ignoredups) t)
   (make-local-variable 'paragraph-start)
-  (set (make-local-variable 'gud-delete-prompt-marker) (make-marker)))
+  (set (make-local-variable 'gud-delete-prompt-marker) (make-marker))
+  (add-hook 'kill-buffer-hook 'gud-kill-buffer-hook nil t))
 
 ;; Cause our buffers to be displayed, by default,
 ;; in the selected window.
@@ -2546,10 +2547,10 @@ It is saved for when this flag is not set.")
 	     (set-buffer obuf))))))
 
 (defun gud-kill-buffer-hook ()
-  (if gud-minor-mode
-      (setq gud-minor-mode-type gud-minor-mode)))
-
-(add-hook 'kill-buffer-hook 'gud-kill-buffer-hook)
+  (setq gud-minor-mode-type gud-minor-mode)
+  (condition-case nil
+      (kill-process (get-buffer-process gud-comint-buffer))
+    (error nil)))
 
 (defun gud-reset ()
   (dolist (buffer (buffer-list))

@@ -2730,19 +2730,10 @@ next_overlay_change (pos)
   int noverlays;
   int endpos;
   Lisp_Object *overlays;
-  int len;
   int i;
 
   /* Get all overlays at the given position.  */
-  len = 10;
-  overlays = (Lisp_Object *) alloca (len * sizeof *overlays);
-  noverlays = overlays_at (pos, 0, &overlays, &len, &endpos, NULL, 1);
-  if (noverlays > len)
-    {
-      len = noverlays;
-      overlays = (Lisp_Object *) alloca (len * sizeof *overlays);
-      noverlays = overlays_at (pos, 0, &overlays, &len, &endpos, NULL, 1);
-    }
+  GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, 1);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
@@ -20832,7 +20823,7 @@ note_mouse_highlight (f, x, y)
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
       Lisp_Object *overlay_vec = NULL;
-      int len, noverlays;
+      int noverlays;
       struct buffer *obuf;
       int obegv, ozv, same_region;
 
@@ -20919,19 +20910,8 @@ note_mouse_highlight (f, x, y)
 
       if (BUFFERP (object))
 	{
-	  /* Put all the overlays we want in a vector in overlay_vec.
-	     Store the length in len.  If there are more than 40, make
-	     enough space for all, and try again.  */
-	  len = 40;
-	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	  if (noverlays > len)
-	    {
-	      len = noverlays;
-	      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	      noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
-	    }
-
+	  /* Put all the overlays we want in a vector in overlay_vec.  */
+	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
 	  /* Sort overlays into increasing priority order.  */
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 	}

@@ -3184,12 +3184,15 @@ xbm_load (f, img)
 			      XPM images
  ***********************************************************************/
 
-#ifdef HAVE_XPM
+#if defined (HAVE_XPM) || defined (MAC_OS)
 
 static int xpm_image_p P_ ((Lisp_Object object));
 static int xpm_load P_ ((struct frame *f, struct image *img));
 static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 
+#endif /* HAVE_XPM || MAC_OS */
+
+#ifdef HAVE_XPM
 #ifdef HAVE_NTGUI
 /* Indicate to xpm.h that we don't have Xlib.  */
 #define FOR_MSW
@@ -3208,7 +3211,9 @@ static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 #else
 #include "X11/xpm.h"
 #endif /* HAVE_NTGUI */
+#endif /* HAVE_XPM */
 
+#if defined (HAVE_XPM) || defined (MAC_OS)
 /* The symbol `xpm' identifying XPM-format images.  */
 
 Lisp_Object Qxpm;
@@ -3536,9 +3541,12 @@ xpm_image_p (object)
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
 
+#endif /* HAVE_XPM || MAC_OS */
 
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
+
+#ifdef HAVE_XPM
 
 static int
 xpm_load (f, img)
@@ -3770,6 +3778,467 @@ xpm_load (f, img)
 }
 
 #endif /* HAVE_XPM */
+
+#ifdef MAC_OS
+
+/* XPM support functions for Mac OS where libxpm is not available.
+   Only XPM version 3 (without any extensions) is supported.  */
+
+static int xpm_scan P_ ((unsigned char **, unsigned char *,
+                       unsigned char **, int *));
+static Lisp_Object xpm_make_color_table_v
+  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
+static void xpm_put_color_table_v P_ ((Lisp_Object, unsigned char *,
+                                     int, Lisp_Object));
+static Lisp_Object xpm_get_color_table_v P_ ((Lisp_Object,
+                                            unsigned char *, int));
+static Lisp_Object xpm_make_color_table_h
+  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
+static void xpm_put_color_table_h P_ ((Lisp_Object, unsigned char *,
+                                     int, Lisp_Object));
+static Lisp_Object xpm_get_color_table_h P_ ((Lisp_Object,
+                                            unsigned char *, int));
+static int xpm_str_to_color_key P_ ((char *));
+static int xpm_load_image P_ ((struct frame *, struct image *,
+                             unsigned char *, unsigned char *));
+
+/* Tokens returned from xpm_scan.  */
+
+enum xpm_token
+{
+  XPM_TK_IDENT = 256,
+  XPM_TK_STRING,
+  XPM_TK_EOF
+};
+
+/* Scan an XPM data and return a character (< 256) or a token defined
+   by enum xpm_token above.  *S and END are the start (inclusive) and
+   the end (exclusive) addresses of the data, respectively.  Advance
+   *S while scanning.  If token is either XPM_TK_IDENT or
+   XPM_TK_STRING, *BEG and *LEN are set to the start address and the
+   length of the corresponding token, respectively.  */
+
+static int
+xpm_scan (s, end, beg, len)
+     unsigned char **s, *end, **beg;
+     int *len;
+{
+  int c;
+
+  while (*s < end)
+    {
+      /* Skip white-space.  */
+      while (*s < end && (c = *(*s)++, isspace (c)))
+      ;
+
+      /* gnus-pointer.xpm uses '-' in its identifier.
+       sb-dir-plus.xpm uses '+' in its identifier.  */
+      if (isalpha (c) || c == '_' || c == '-' || c == '+')
+      {
+        *beg = *s - 1;
+        while (*s < end &&
+               (c = **s, isalnum (c) || c == '_' || c == '-' || c == '+'))
+            ++*s;
+        *len = *s - *beg;
+        return XPM_TK_IDENT;
+      }
+      else if (c == '"')
+      {
+        *beg = *s;
+        while (*s < end && **s != '"')
+          ++*s;
+        *len = *s - *beg;
+        if (*s < end)
+          ++*s;
+        return XPM_TK_STRING;
+      }
+      else if (c == '/')
+      {
+        if (*s < end && **s == '*')
+          {
+            /* C-style comment.  */
+            ++*s;
+            do
+              {
+                while (*s < end && *(*s)++ != '*')
+                  ;
+              }
+            while (*s < end && **s != '/');
+            if (*s < end)
+              ++*s;
+          }
+        else
+          return c;
+      }
+      else
+      return c;
+    }
+
+  return XPM_TK_EOF;
+}
+
+/* Functions for color table lookup in XPM data.  A Key is a string
+   specifying the color of each pixel in XPM data.  A value is either
+   an integer that specifies a pixel color, Qt that specifies
+   transparency, or Qnil for the unspecified color.  If the length of
+   the key string is one, a vector is used as a table.  Otherwise, a
+   hash table is used.  */
+
+static Lisp_Object
+xpm_make_color_table_v (put_func, get_func)
+     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+{
+  *put_func = xpm_put_color_table_v;
+  *get_func = xpm_get_color_table_v;
+  return Fmake_vector (make_number (256), Qnil);
+}
+
+static void
+xpm_put_color_table_v (color_table, chars_start, chars_len, color)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+     Lisp_Object color;
+{
+  XVECTOR (color_table)->contents[*chars_start] = color;
+}
+
+static Lisp_Object
+xpm_get_color_table_v (color_table, chars_start, chars_len)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+{
+  return XVECTOR (color_table)->contents[*chars_start];
+}
+
+static Lisp_Object
+xpm_make_color_table_h (put_func, get_func)
+     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+{
+  *put_func = xpm_put_color_table_h;
+  *get_func = xpm_get_color_table_h;
+  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+                        make_float (DEFAULT_REHASH_SIZE),
+                        make_float (DEFAULT_REHASH_THRESHOLD),
+                        Qnil, Qnil, Qnil);
+}
+
+static void
+xpm_put_color_table_h (color_table, chars_start, chars_len, color)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+     Lisp_Object color;
+{
+  struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
+  unsigned hash_code;
+  Lisp_Object chars = make_unibyte_string (chars_start, chars_len);
+
+  hash_lookup (table, chars, &hash_code);
+  hash_put (table, chars, color, hash_code);
+}
+
+static Lisp_Object
+xpm_get_color_table_h (color_table, chars_start, chars_len)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+{
+  struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
+  int i = hash_lookup (table, make_unibyte_string (chars_start, chars_len),
+                     NULL);
+
+  return i >= 0 ? HASH_VALUE (table, i) : Qnil;
+}
+
+enum xpm_color_key {
+  XPM_COLOR_KEY_S,
+  XPM_COLOR_KEY_M,
+  XPM_COLOR_KEY_G4,
+  XPM_COLOR_KEY_G,
+  XPM_COLOR_KEY_C
+};
+
+static char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
+
+static int
+xpm_str_to_color_key (s)
+     char *s;
+{
+  int i;
+
+  for (i = 0;
+       i < sizeof xpm_color_key_strings / sizeof xpm_color_key_strings[0];
+       i++)
+    if (strcmp (xpm_color_key_strings[i], s) == 0)
+      return i;
+  return -1;
+}
+
+static int
+xpm_load_image (f, img, contents, end)
+     struct frame *f;
+     struct image *img;
+     unsigned char *contents, *end;
+{
+  unsigned char *s = contents, *beg, *str;
+  unsigned char buffer[BUFSIZ];
+  int width, height, x, y;
+  int num_colors, chars_per_pixel;
+  int len, LA1;
+  void (*put_color_table) (Lisp_Object, unsigned char *, int, Lisp_Object);
+  Lisp_Object (*get_color_table) (Lisp_Object, unsigned char *, int);
+  Lisp_Object frame, color_symbols, color_table;
+  int best_key, have_mask = 0;
+  XImagePtr ximg = NULL, mask_img = NULL;
+
+#define match() \
+     LA1 = xpm_scan (&s, end, &beg, &len)
+
+#define expect(TOKEN)         \
+     if (LA1 != (TOKEN))      \
+       goto failure;          \
+     else                     \
+       match ()
+
+#define expect_ident(IDENT)                                   \
+     if (LA1 == XPM_TK_IDENT \
+         && strlen ((IDENT)) == len && memcmp ((IDENT), beg, len) == 0)  \
+        match ();                                              \
+     else                                                     \
+       goto failure
+
+  if (!(end - s >= 9 && memcmp (s, "/* XPM */", 9) == 0))
+    goto failure;
+  s += 9;
+  match();
+  expect_ident ("static");
+  expect_ident ("char");
+  expect ('*');
+  expect (XPM_TK_IDENT);
+  expect ('[');
+  expect (']');
+  expect ('=');
+  expect ('{');
+  expect (XPM_TK_STRING);
+  if (len >= BUFSIZ)
+    goto failure;
+  memcpy (buffer, beg, len);
+  buffer[len] = '\0';
+  if (sscanf (buffer, "%d %d %d %d", &width, &height,
+            &num_colors, &chars_per_pixel) != 4
+      || width <= 0 || height <= 0
+      || num_colors <= 0 || chars_per_pixel <= 0)
+    goto failure;
+  expect (',');
+
+  XSETFRAME (frame, f);
+  if (!NILP (Fxw_display_color_p (frame)))
+    best_key = XPM_COLOR_KEY_C;
+  else if (!NILP (Fx_display_grayscale_p (frame)))
+    best_key = (XFASTINT (Fx_display_planes (frame)) > 2
+              ? XPM_COLOR_KEY_G : XPM_COLOR_KEY_G4);
+  else
+    best_key = XPM_COLOR_KEY_M;
+
+  color_symbols = image_spec_value (img->spec, QCcolor_symbols, NULL);
+  if (chars_per_pixel == 1)
+    color_table = xpm_make_color_table_v (&put_color_table,
+                                        &get_color_table);
+  else
+    color_table = xpm_make_color_table_h (&put_color_table,
+                                        &get_color_table);
+
+  while (num_colors-- > 0)
+    {
+      unsigned char *color, *max_color;
+      int key, next_key, max_key = 0;
+      Lisp_Object symbol_color = Qnil, color_val;
+      XColor cdef;
+
+      expect (XPM_TK_STRING);
+      if (len <= chars_per_pixel || len >= BUFSIZ + chars_per_pixel)
+      goto failure;
+      memcpy (buffer, beg + chars_per_pixel, len - chars_per_pixel);
+      buffer[len - chars_per_pixel] = '\0';
+
+      str = strtok (buffer, " \t");
+      if (str == NULL)
+      goto failure;
+      key = xpm_str_to_color_key (str);
+      if (key < 0)
+      goto failure;
+      do
+      {
+        color = strtok (NULL, " \t");
+        if (color == NULL)
+          goto failure;
+
+        while (str = strtok (NULL, " \t"))
+          {
+            next_key = xpm_str_to_color_key (str);
+            if (next_key >= 0)
+              break;
+            color[strlen (color)] = ' ';
+          }
+
+        if (key == XPM_COLOR_KEY_S)
+          {
+            if (NILP (symbol_color))
+              symbol_color = build_string (color);
+          }
+        else if (max_key < key && key <= best_key)
+          {
+            max_key = key;
+            max_color = color;
+          }
+        key = next_key;
+      }
+      while (str);
+
+      color_val = Qnil;
+      if (!NILP (color_symbols) && !NILP (symbol_color))
+      {
+        Lisp_Object specified_color = Fassoc (symbol_color, color_symbols);
+
+        if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
+          if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
+            color_val = Qt;
+          else if (x_defined_color (f, SDATA (XCDR (specified_color)),
+                                    &cdef, 0))
+            color_val = make_number (cdef.pixel);
+      }
+      if (NILP (color_val) && max_key > 0)
+      if (xstricmp (max_color, "None") == 0)
+        color_val = Qt;
+      else if (x_defined_color (f, max_color, &cdef, 0))
+        color_val = make_number (cdef.pixel);
+      if (!NILP (color_val))
+      (*put_color_table) (color_table, beg, chars_per_pixel, color_val);
+
+      expect (',');
+    }
+
+  if (!x_create_x_image_and_pixmap (f, width, height, 0,
+                                  &ximg, &img->pixmap)
+      || !x_create_x_image_and_pixmap (f, width, height, 1,
+                                     &mask_img, &img->mask))
+    {
+      image_error ("Out of memory (%s)", img->spec, Qnil);
+      goto error;
+    }
+
+  for (y = 0; y < height; y++)
+    {
+      expect (XPM_TK_STRING);
+      str = beg;
+      if (len < width * chars_per_pixel)
+      goto failure;
+      for (x = 0; x < width; x++, str += chars_per_pixel)
+      {
+        Lisp_Object color_val =
+          (*get_color_table) (color_table, str, chars_per_pixel);
+
+        XPutPixel (ximg, x, y,
+                   (INTEGERP (color_val) ? XINT (color_val)
+                    : FRAME_FOREGROUND_PIXEL (f)));
+        XPutPixel (mask_img, x, y,
+                   (!EQ (color_val, Qt) ? PIX_MASK_DRAW (f)
+                    : (have_mask = 1, PIX_MASK_RETAIN (f))));
+      }
+      if (y + 1 < height)
+      expect (',');
+    }
+
+  img->width = width;
+  img->height = height;
+
+  x_put_x_image (f, ximg, img->pixmap, width, height);
+  x_destroy_x_image (ximg);
+  if (have_mask)
+    {
+      x_put_x_image (f, mask_img, img->mask, width, height);
+      x_destroy_x_image (mask_img);
+    }
+  else
+    {
+      x_destroy_x_image (mask_img);
+      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
+      img->mask = NO_PIXMAP;
+    }
+
+  return 1;
+
+ failure:
+  image_error ("Invalid XPM file (%s)", img->spec, Qnil);
+ error:
+  x_destroy_x_image (ximg);
+  x_destroy_x_image (mask_img);
+  x_clear_image (f, img);
+  return 0;
+
+#undef match
+#undef expect
+#undef expect_ident
+}
+
+static int
+xpm_load (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  int success_p = 0;
+  Lisp_Object file_name;
+
+  /* If IMG->spec specifies a file name, create a non-file spec from it.  */
+  file_name = image_spec_value (img->spec, QCfile, NULL);
+  if (STRINGP (file_name))
+    {
+      Lisp_Object file;
+      unsigned char *contents;
+      int size;
+      struct gcpro gcpro1;
+
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+      {
+        image_error ("Cannot find image file `%s'", file_name, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+
+      contents = slurp_file (SDATA (file), &size);
+      if (contents == NULL)
+      {
+        image_error ("Error loading XPM image `%s'", img->spec, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+
+      success_p = xpm_load_image (f, img, contents, contents + size);
+      xfree (contents);
+      UNGCPRO;
+    }
+  else
+    {
+      Lisp_Object data;
+
+      data = image_spec_value (img->spec, QCdata, NULL);
+      success_p = xpm_load_image (f, img, SDATA (data),
+                                SDATA (data) + SBYTES (data));
+    }
+
+  return success_p;
+}
+
+#endif /* MAC_OS */
+ 
 
 
 /***********************************************************************
@@ -7447,7 +7916,7 @@ syms_of_image ()
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
 
-#ifdef HAVE_XPM
+#if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
 #endif
@@ -7517,7 +7986,7 @@ init_image ()
   define_image_type (&xbm_type);
   define_image_type (&pbm_type);
 
-#ifdef HAVE_XPM
+#if defined (HAVE_XPM) || defined (MAC_OS)
   IF_LIB_AVAILABLE(init_xpm_functions)
     define_image_type (&xpm_type);
 #endif

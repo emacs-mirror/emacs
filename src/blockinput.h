@@ -97,6 +97,9 @@ extern int pending_atimers;
 #define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
 
+/* In critical section ? */
+#define INPUT_BLOCKED_P (interrupt_input_blocked > 0)
+
 /* Defined in keyboard.c */
 /* Don't use a prototype here; it causes trouble in some files.  */
 extern void reinvoke_input_signal ();
