@@ -2024,7 +2024,9 @@ switches do not contain `d', so that a full listing is expected.
 This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
-  (let ((handler (find-file-name-handler file 'insert-directory)))
+  ;; We need the directory in order to find the right handler.
+  (let ((handler (find-file-name-handler (expand-file-name file)
+					 'insert-directory)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
