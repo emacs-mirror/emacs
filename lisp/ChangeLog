@@ -1,3 +1,8 @@
+2001-08-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/sendmail.el (mail-send-hook): Remove a duplicate defcustom.
+	From Simon Josefsson <jas@extundo.com>.
+
 2001-08-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/texnfo-upd.el: Remove dots and exclams at end of error
