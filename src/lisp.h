@@ -1288,6 +1288,10 @@ extern Lisp_Object Fexecute_kbd_macro ();
 extern Lisp_Object Fundo_boundary ();
 extern Lisp_Object truncate_undo_list ();
 
+/* defined in textprop.c */
+extern Lisp_Object Qmodification_hooks, Qinsert_before_hooks;
+extern Lisp_Object Qinsert_after_hooks;
+
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
 extern int initialized;
