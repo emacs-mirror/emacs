@@ -43,6 +43,9 @@
 ;;;###begin dired-cmd.el
 ;; Diffing and compressing
 
+(defconst dired-star-subst-regexp "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)")
+(defconst dired-quark-subst-regexp "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)")
+
 ;;;###autoload
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
@@ -102,7 +105,7 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
     (setq failures
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
-			     (append 
+			     (append
 			      (list operation program new-attribute)
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
@@ -355,13 +358,15 @@ the list of file names explicitly with the FILE-LIST argument."
 				files)
       current-prefix-arg
       files)))
-  (let* ((on-each (not (string-match "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)" command)))
-	 (subst (not (string-match "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)" command)))
+  (let* ((on-each (not (string-match dired-star-subst-regexp command)))
+	 (subst (not (string-match dired-quark-subst-regexp command)))
 	 (star (not (string-match "\\*" command)))
 	 (qmark (not (string-match "\\?" command))))
     ;; Get confirmation for wildcards that may have been meant
     ;; to control substitution of a file name or the file name list.
-    (if (cond ((and star (not on-each))
+    (if (cond ((not (or on-each subst))
+	       (error "You can not combine `*' and `?' substitution marks"))
+	      ((and star (not on-each))
 	       (y-or-n-p "Confirm--do you mean to use `*' as a wildcard? "))
 	      ((and qmark (not subst))
 	       (y-or-n-p "Confirm--do you mean to use `?' as a wildcard? "))
@@ -395,15 +400,15 @@ the list of file names explicitly with the FILE-LIST argument."
 ;; (coming from interactive P and currently ignored) to decide what to do.
 ;; Smart would be a way to access basename or extension of file names.
   (let ((stuff-it
-	 (cond ((string-match "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)" command)
-		(lambda (x)
-		  (string-match "\\(^\\|[ \t]\\)\\(\\*\\)\\([ \t]\\|$\\)" command)
-		  (replace-match x t t command 2)))
-	       ((string-match "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)" command)
-		(lambda (x)
-		  (string-match "\\(^\\|[ \t]\\)\\(\\?\\)\\([ \t]\\|$\\)" command)
-		  (replace-match x t t command 2)))
-	       (t (lambda (x) (concat command dired-mark-separator x))))))
+	 (if (or (string-match dired-star-subst-regexp command)
+		 (string-match dired-quark-subst-regexp command))
+	     (lambda (x)
+	       (let ((retval command))
+		 (while (string-match
+			 "\\(^\\|[ \t]\\)\\([*?]\\)\\([ \t]\\|$\\)" retval)
+		   (setq retval (replace-match x t t retval 2)))
+		 retval))
+	   (lambda (x) (concat command dired-mark-separator x)))))
     (if on-each
 	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
       (let ((files (mapconcat 'shell-quote-argument
@@ -576,7 +581,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	    (setq suffix (car suffixes) suffixes nil))
 	(setq suffixes (cdr suffixes))))
     ;; If so, compute desired new name.
-    (if suffix	
+    (if suffix
 	(setq newname (concat (substring file 0 (match-beginning 0))
 			      (nth 1 suffix))))
     (cond (handler
@@ -847,7 +852,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      ;; It inserts the file's absolute name, rather than
 	      ;; the relative one.  That may be hard to fix since it
 	      ;; is probably controlled by something in ftp.
-	      (goto-char opoint)	
+	      (goto-char opoint)
 	      (let ((inserted-name (dired-get-filename 'verbatim)))
 		(if (file-name-directory inserted-name)
 		    (progn
@@ -2013,9 +2018,9 @@ with the command \\[tags-loop-continue]."
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead." 
+true then the type of the file linked to by FILE is printed instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
-  (with-temp-buffer 
+  (with-temp-buffer
     (if deref-symlinks
 	(call-process "file" nil t t "-L" file)
       (call-process "file" nil t t file))
