@@ -90,7 +90,7 @@
     (modify-syntax-entry ?\] ")[  " st)
     (modify-syntax-entry ?{ "(}  " st)
     (modify-syntax-entry ?} "){  " st)
-    (modify-syntax-entry ?\| "  23" st)
+    (modify-syntax-entry ?\| "\" 23b" table)
 
     ;; Other atom delimiters
     (modify-syntax-entry ?\( "()  " st)
@@ -103,7 +103,7 @@
     ;; Special characters
     (modify-syntax-entry ?, "'   " st)
     (modify-syntax-entry ?@ "'   " st)
-    (modify-syntax-entry ?# "'  14" st)
+    (modify-syntax-entry ?# "' 14bn" table)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
 
