@@ -356,8 +356,12 @@ want to get this behavior from a particular command.  There are two
 ways you can enable Transient Mark mode temporarily, and activate the
 mark, for one command only.
 
-One is to type C-SPC C-SPC; this also sets the mark.
-The other is to type C-u C-x C-x.  That does not set the mark.
+One is to type C-SPC C-SPC; this also sets the mark.  The other is to
+type C-u C-x C-x, which does not alter the region.
+
+After these commands, Transient Mark mode remains enabled
+until you deactivate the mark--typically with a command that
+alters the buffer, or typing C-g.
 
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... will cycle through the
