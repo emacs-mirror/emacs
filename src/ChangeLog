@@ -1,5 +1,15 @@
 2000-08-11  Kenichi Handa  <handa@etl.go.jp>
 
+	* ccl.c (CCL_READ_CHAR): If source is multibyte, pay attention to
+	the multibyte form of eight-bit-control characters. 
+	(Fccl_execute_on_string): Initialize ccl->multibyte.
+
+	* ccl.h (struct ccl_program): New member multibyte.
+
+	* coding.c (ccl_coding_driver): Initialize ccl->multibyte.
+
+2000-08-11  Kenichi Handa  <handa@etl.go.jp>
+
 	* regex.c (regex_compile) <normal_char>: Pay attention to
 	multibyteness.
 	(analyse_first) <exactn>: Setup fastmap correctly for
