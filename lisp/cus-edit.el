@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9903
+;; Version: 1.9904
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -33,7 +33,6 @@
 ;;; Code:
 
 (require 'cus-face)
-(require 'cus-start)
 (require 'wid-edit)
 (require 'easymenu)
 (eval-when-compile (require 'cl))
@@ -42,7 +41,12 @@
     (require 'cus-load)
   (error nil))
 
-(define-widget-keywords :custom-prefixes :custom-menu :custom-show
+(condition-case nil
+    (require 'cus-start)
+  (error nil))
+
+(define-widget-keywords :custom-category :custom-prefixes :custom-menu
+  :custom-show  
   :custom-magic :custom-state :custom-level :custom-form
   :custom-set :custom-save :custom-reset-current :custom-reset-saved 
   :custom-reset-standard)
@@ -600,7 +604,7 @@ when the action is chosen.")
     (if answer
 	(funcall answer))))
 
-(defun custom-reset-current ()
+(defun custom-reset-current (&rest ignore)
   "Reset all modified group members to their current value."
   (interactive)
   (let ((children custom-options))
@@ -609,7 +613,7 @@ when the action is chosen.")
 		(widget-apply child :custom-reset-current)))
 	    children)))
 
-(defun custom-reset-saved ()
+(defun custom-reset-saved (&rest ignore)
   "Reset all modified or set group members to their saved value."
   (interactive)
   (let ((children custom-options))
@@ -618,7 +622,7 @@ when the action is chosen.")
 		(widget-apply child :custom-reset-current)))
 	    children)))
 
-(defun custom-reset-standard ()
+(defun custom-reset-standard (&rest ignore)
   "Reset all modified, set, or saved group members to their standard settings."
   (interactive)
   (let ((children custom-options))
@@ -740,7 +744,8 @@ are shown; the contents of those subgroups are initially hidden."
    (list (list symbol 'custom-group))
    (format "*Customize Group: %s*" (custom-unlispify-tag-name symbol))))
 
-;;;### (defalias 'customize-variable 'customize-option)
+;;;###autoload
+(defalias 'customize-variable 'customize-option)
 
 ;;;###autoload
 (defun customize-option (symbol)
@@ -884,7 +889,12 @@ that option."
     (switch-to-buffer-other-window (get-buffer-create name))
     (custom-buffer-create-internal options)
     (select-window window)))
-  
+
+(defcustom custom-reset-button-menu nil
+  "If non-nil, only show a single reset button in customize buffers.
+This button will have a menu with all three reset operations."
+  :type 'boolean
+  :group 'customize)
 
 (defun custom-buffer-create-internal (options)
   (message "Creating customization buffer...")
@@ -911,11 +921,27 @@ Make the modifications default for future sessions."
 		 :action (lambda (widget &optional event)
 			   (custom-save)))
   (widget-insert " ")
-  (widget-create 'push-button
-		 :tag "Reset"
-		 :help-echo "Undo all modifications."
-		 :action (lambda (widget &optional event)
-			   (custom-reset event)))
+  (if custom-reset-button-menu
+      (widget-create 'push-button
+		     :tag "Reset"
+		     :help-echo "Undo all modifications."
+		     :mouse-down-action (lambda (&rest junk) t)
+		     :action (lambda (widget &optional event)
+			       (custom-reset event)))
+    (widget-create 'push-button
+		   :tag "Reset"
+		   :help-echo "Undo all modifications."
+		   :action 'custom-reset-current)
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :tag "Reset to Saved"
+		   :help-echo "Undo all modifications."
+		   :action 'custom-reset-saved)
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :tag "Reset to Standard"
+		   :help-echo "Undo all modifications."
+		   :action 'custom-reset-standard))
   (widget-insert " ")
   (widget-create 'push-button
 		 :tag "Done"
@@ -1034,24 +1060,24 @@ unknown, you should not see this.")
 hidden, invoke the dots above to show." "\
 group now hidden, invoke the dots above to show contents.")
 			       (invalid "x" custom-invalid-face "\
-the value displayed for this item is invalid and cannot be set.")
+the value displayed for this %c is invalid and cannot be set.")
 			       (modified "*" custom-modified-face "\
-you have edited the item, and can now set it." "\
+you have edited the value, and can now set the %c." "\
 you have edited something in this group, and can now set it.")
 			       (set "+" custom-set-face "\
-you have set this item, but not saved it." "\
+you have set this %c, but not saved it." "\
 something in this group has been set, but not yet saved.")
 			       (changed ":" custom-changed-face "\
-this item has been changed outside customize." "\
+this %c has been changed outside the customize buffer." "\
 something in this group has been changed outside customize.")
 			       (saved "!" custom-saved-face "\
-this item has been set and saved." "\
+this %c has been set and saved." "\
 something in this group has been set and saved.")
 			       (rogue "@" custom-rogue-face "\
-this item has not been changed with customize." "\
+this %c has not been changed with customize." "\
 something in this group is not prepared for customization.")
 			       (standard " " nil "\
-this item is unchanged from its standard setting." "\
+this %c is unchanged from its standard setting." "\
 the visible members of this group are all at standard settings."))
   "Alist of customize option states.
 Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where 
@@ -1088,6 +1114,9 @@ ITEM-DESC is a string describing the state for options.
 GROUP-DESC is a string describing the state for groups.  If this is
 left out, ITEM-DESC will be used.
 
+The string %c in either description will be replaced with the
+category of the item.  These are `group'. `option', and `face'.
+
 The list should be sorted most significant first.")
 
 (defcustom custom-magic-show 'long
@@ -1098,9 +1127,12 @@ If non-nil and not the symbol `long', only show first word."
 		 (const long))
   :group 'customize)
 
-(defcustom custom-magic-show-hidden nil
-  "If non-nil, also show long state description of hidden options."
-  :type 'boolean
+(defcustom custom-magic-show-hidden '(option face)
+  "Control whether the state button is shown for hidden items.
+The value should be a list with the custom categories where the state
+button should be visible.  Possible categories are `group', `option',
+and `face'."
+  :type '(set (const group) (const option) (const face))
   :group 'customize)
 
 (defcustom custom-magic-show-button nil
@@ -1131,13 +1163,19 @@ If non-nil and not the symbol `long', only show first word."
 	 (entry (assq state custom-magic-alist))
 	 (magic (nth 1 entry))
 	 (face (nth 2 entry))
-	 (text (or (and (eq (widget-type parent) 'custom-group)
+	 (category (widget-get parent :custom-category))
+	 (text (or (and (eq category 'group)
 			(nth 4 entry))
 		   (nth 3 entry)))
 	 (lisp (eq (widget-get parent :custom-form) 'lisp))
 	 children)
+    (while (string-match "\\`\\(.*\\)%c\\(.*\\)\\'" text)
+      (setq text (concat (match-string 1 text) 
+			 (symbol-name category)
+			 (match-string 2 text))))
     (when (and custom-magic-show
-	       (or custom-magic-show-hidden (not hidden)))
+	       (or (not hidden)
+		   (memq category custom-magic-show-hidden)))
       (insert "   ")
       (push (widget-create-child-and-convert 
 	     widget 'choice-item 
@@ -1383,6 +1421,7 @@ If non-nil and not the symbol `long', only show first word."
   :format "%v%m%h%a"
   :help-echo "Set or reset this variable."
   :documentation-property 'variable-documentation
+  :custom-category 'option
   :custom-state nil
   :custom-menu 'custom-variable-menu-create
   :custom-form 'edit
@@ -1795,6 +1834,7 @@ Match frames with dark backgrounds.")
 			     (face-doc-string face))
   :value-create 'custom-face-value-create
   :action 'custom-face-action
+  :custom-category 'face
   :custom-form 'selected
   :custom-set 'custom-face-set
   :custom-save 'custom-face-save
@@ -2117,6 +2157,7 @@ and so forth.  The remaining group tags are shown with
   :help-echo "Set or reset all members of this group."
   :value-create 'custom-group-value-create
   :action 'custom-group-action
+  :custom-category 'group
   :custom-set 'custom-group-set
   :custom-save 'custom-group-save
   :custom-reset-current 'custom-group-reset-current

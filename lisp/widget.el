@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.9901
+;; Version: 1.9904
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -44,7 +44,8 @@
 	     (set (car keywords) (car keywords)))
 	 (setq keywords (cdr keywords)))))))
 
-(define-widget-keywords :documentation-shown :button-prefix
+(define-widget-keywords :button-overlay :field-overlay
+  :documentation-shown :button-prefix  
   :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive  
   :prompt-internal :prompt-history :prompt-match
   :prompt-value  :deactivate :active  

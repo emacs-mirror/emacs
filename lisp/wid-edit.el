@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9903
+;; Version: 1.9904
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -278,8 +278,8 @@ minibuffer."
 				     'front-sticky t
 				     'rear-nonsticky nil
 				     ;; XEmacs is non-sticky.
-				     'start-open nil
-				     'end-open nil
+				     'start-open t
+				     'end-open t
 				     ;; This is because `insert'
 				     ;; inherit sticky text properties
 				     ;; in XEmacs but not in Emacs. 
@@ -334,10 +334,7 @@ minibuffer."
 	(size (widget-get widget :size))
 	(face (or (widget-get widget :value-face)
 		  'widget-field-face))
-	(help-echo (widget-get widget :help-echo))
-	(help-property (if (featurep 'balloon-help)
-			   'balloon-help
-			 'help-echo)))
+	(help-echo (widget-get widget :help-echo)))
     (unless (or (stringp help-echo) (null help-echo))
       (setq help-echo 'widget-mouse-help))
 
@@ -360,7 +357,8 @@ minibuffer."
 				       'read-only nil
 				       'keymap map
 				       'local-map map
-				       help-property help-echo
+				       'balloon-help help-echo
+				       'help-echo help-echo
 				       'face face))
     
     (when secret 
@@ -374,7 +372,8 @@ minibuffer."
 
     (unless (widget-get widget :size)
       (add-text-properties to (1+ to) (list 'field widget
-					    help-property help-echo
+					    'balloon-help help-echo
+					    'help-echo help-echo
 					    'face face)))
     (add-text-properties to (1+ to) (list 'local-map map
 					  'keymap map))))
@@ -1369,9 +1368,15 @@ Optional EVENT is the event that triggered the action."
   ;; Remove widget from the buffer.
   (let ((from (widget-get widget :from))
 	(to (widget-get widget :to))
+	(inactive-overlay (widget-get widget :inactive))
+	(button-overlay (widget-get widget :button-overlay))
 	(inhibit-read-only t)
 	after-change-functions)
     (widget-apply widget :value-delete)
+    (when inactive-overlay
+      (delete-overlay inactive-overlay))
+    (when button-overlay
+      (delete-overlay button-overlay))
     (when (< from to)
       ;; Kludge: this doesn't need to be true for empty formats.
       (delete-region from to))
@@ -1665,7 +1670,9 @@ If END is omitted, it defaults to the length of LIST."
   (when (widget-get widget :value-from)
     (set-marker (widget-get widget :value-from) nil))
   (when (widget-get widget :value-from)
-    (set-marker (widget-get widget :value-to) nil)))
+    (set-marker (widget-get widget :value-to) nil))
+  (when (widget-get widget :field-overlay)
+    (delete-overlay (widget-get widget :field-overlay))))
 
 (defun widget-field-value-get (widget)
   ;; Return current text in editing field.
@@ -2513,7 +2520,7 @@ when he invoked the menu."
   :button-prefix ""
   :button-suffix ""
   :on "hide"
-  :off "more"
+  :off "show"
   :value-create 'widget-visibility-value-create
   :action 'widget-toggle-action
   :match (lambda (widget value) t))
