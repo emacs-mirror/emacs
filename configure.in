@@ -7,50 +7,42 @@ AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
 bindir='${exec_prefix}/bin'
-datadir='${prefix}/lib'
-statedir='${prefix}/lib'
-libdir='${exec_prefix}/lib'
+datadir='${prefix}/share'
+sharedstatedir='${prefix}/com'
+libexecdir='${exec_prefix}/libexec'
 mandir='${prefix}/man/man1'
 infodir='${prefix}/info'
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
-lockdir='${statedir}/emacs/lock'
-archlibdir='${libdir}/emacs/${version}/${configuration}'
+lockdir='${sharedstatedir}/emacs/lock'
+archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 AC_ARG_WITH(gcc,
 [  --with-gcc              Use GCC to compile Emacs])
 AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    Use an X toolkit (KIT = lucid or athena)],
+[  --with-x-toolkit=KIT    Use an X toolkit (KIT = yes/lucid/athena/motif)],
 [	  case "${withval}" in
 	    y | ye | yes )	val=athena ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athena )	val=athena ;;
+	    m | mo | mot | moti | motif )	val=motif ;;
 dnl These don't currently work.
-dnl	    m | mo | mot | moti | motif )	val=motif ;;
 dnl	    o | op | ope | open | open- | open-l | open-lo \
 dnl		| open-loo | open-look )	val=open-look ;;
 	    * )
 dnl AC_MSG_ERROR([the \`--with-x-toolkit' option is supposed to have a value
 dnl which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'.])
 AC_MSG_ERROR([the \`--with-x-toolkit' option is supposed to have a value
-which is \`yes', \`no', \`lucid', or \`athena'.
+which is \`yes', \`no', \`lucid', \`athena', or \`motif'.
 Currently, \`yes', \`athena' and \`lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
 ])
-dnl AC_ARG_ENABLE(single-tree,
-dnl [  --enable-single-tree    Create a directory tree at DIR which looks like:
-dnl                           .../DIR/bin/CONFIGNAME (emacs, etags, etc.)
-dnl                           .../DIR/bin/CONFIGNAME/etc (movemail, etc.)
-dnl                           .../DIR/common/lisp  (emacs' lisp files)
-dnl                           .../DIR/common/site-lisp (local lisp files)
-dnl                           .../DIR/common/lib (DOC, TUTORIAL, etc.)
-dnl                           .../DIR/common/lock (lockfiles)])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
@@ -141,6 +133,14 @@ case "${canonical}" in
     esac
   ;;
 
+  ## Acorn RISCiX:
+  arm-acorn-riscix1.1* )
+    machine=acorn opsys=riscix1-1
+  ;;
+  arm-acorn-riscix1.2* | arm-acorn-riscix )
+    machine=acorn opsys=riscix1-2
+  ;;
+
   ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
   ## system to choose the right machine file, but currently the
@@ -152,6 +152,10 @@ case "${canonical}" in
   ;;
   i860-alliant-* )
     machine=alliant-2800 opsys=bsd4-3
+  ;;
+
+  alpha-dec-osf* )
+    machine=alpha opsys=osf1
   ;;
 
   ## Altos 3068
@@ -431,9 +435,16 @@ case "${canonical}" in
     machine=i386 opsys=usg5-3
   ;;
 
-  ## Sequent Symmetry
+  ## Sequent Symmetry running Dynix
   i[345]86-sequent-bsd* )
     machine=symmetry opsys=bsd4-3
+  ;;
+
+  ## Sequent Symmetry running DYNIX/ptx
+  ## Use the old cpp rather than the newer ANSI one.
+  i[345]86-sequent-ptx* )
+    machine=sequent-ptx opsys=ptx
+    NON_GNU_CPP="/lib/cpp"
   ;;
 
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
@@ -808,14 +819,51 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_YACC
 
+dnl checks for Unix variants
+AC_AIX
+
 dnl checks for header files
-AC_CHECK_HEADERS(sys/timeb.h sys/time.h unistd.h)
+AC_CHECK_HEADERS(sys/timeb.h sys/time.h unistd.h utime.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
 
+dnl Some systems have utime.h but don't declare the struct anyplace.
+AC_MSG_CHECKING(for struct utimbuf)
+AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif], [static struct utimbuf x; x.actime = x.modtime;],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE(HAVE_STRUCT_UTIMBUF)],
+  AC_MSG_RESULT(no))
+
 dnl checks for typedefs
 AC_TYPE_SIGNAL
+
+AC_MSG_CHECKING(for struct timeval)
+AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif], [static struct timeval x; x.tv_sec = x.tv_usec;],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE(HAVE_TIMEVAL)],
+  AC_MSG_RESULT(no))
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -842,6 +890,12 @@ fi
 test "${x_libraries}" != NONE && LD_SWITCH_X_SITE="-L${x_libraries}"
 test "${x_libraries}" != NONE && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
 test "${x_includes}" != NONE && C_SWITCH_X_SITE="-I${x_includes}"
+
+if [ x"${x_includes}" = x ]; then
+  bitmapdir=/usr/include/X11/bitmaps;
+else
+  bitmapdir="${x_includes}/bitmaps";
+fi
 
 case "${window_system}" in
   x11 )
@@ -1059,8 +1113,8 @@ AC_FUNC_ALLOCA
 # logb and frexp are found in -lm on most systems.
 AC_CHECK_LIB(m, logb)
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
-random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
-fpathconf)
+random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
+strerror fpathconf select mktime eaccess getpagesize)
 
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
@@ -1094,13 +1148,14 @@ fi
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 AC_SUBST(version)
 AC_SUBST(configuration)
+AC_SUBST(canonical)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
 AC_SUBST(bindir)
 AC_SUBST(datadir)
-AC_SUBST(statedir)
-AC_SUBST(libdir)
+AC_SUBST(sharedstatedir)
+AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
@@ -1110,6 +1165,7 @@ AC_SUBST(etcdir)
 AC_SUBST(lockdir)
 AC_SUBST(archlibdir)
 AC_SUBST(docdir)
+AC_SUBST(bitmapdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
 AC_SUBST(LD_SWITCH_X_SITE)
@@ -1120,7 +1176,8 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 
-AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${configuration}")
+AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}")
+AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${config_options}")
 AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}")
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
@@ -1164,12 +1221,12 @@ dnl
 dnl if test "$enable_single_tree" = "yes"; then
 dnl    bindir='${exec_prefix}/bin/${configuration}'
 dnl    datadir='${prefix}/common'
-dnl    statedir='${prefix}/common'
-dnl    libdir='${bindir}'
+dnl    sharedstatedir='${prefix}/common'
+dnl    libexecdir='${bindir}'
 dnl    lispdir='${prefix}/common/lisp'
 dnl    locallisppath='${prefix}/common/site-lisp'
 dnl    lockdir='${prefix}/common/lock'
-dnl    archlibdir='${libdir}/etc'
+dnl    archlibdir='${libexecdir}/etc'
 dnl    etcdir='${prefix}/common/data'
 dnl    docdir='${prefix}/common/data'
 dnl fi
