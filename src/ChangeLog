@@ -1,5 +1,8 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xmenu.c (x-popup-menu): Reindent.
+	(x-popup-dialog): Likewise.
+
 	* xfaces.c (Finternal_set_alternative_font_family_alist):
 	Reindent.
 
