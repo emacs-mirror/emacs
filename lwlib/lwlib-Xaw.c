@@ -35,7 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <X11/Xatom.h>
 
-static void xaw_generic_callback (Widget, XtPointer, XtPointer);
+static void xaw_generic_callback (/*Widget, XtPointer, XtPointer*/);
 
 
 Boolean
