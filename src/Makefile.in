@@ -994,7 +994,7 @@ alloca.o : alloca.s $(config_h)
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
-abbrev.o: abbrev.c buffer.h window.h commands.h $(config_h)
+abbrev.o: abbrev.c buffer.h window.h commands.h charset.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    INTERVAL_SRC blockinput.h charset.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
@@ -1106,7 +1106,7 @@ hftctl.o: hftctl.c $(config_h)
 
 alloc.o: alloc.c frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h charset.h $(config_h) INTERVAL_SRC
-bytecode.o: bytecode.c buffer.h syntax.h $(config_h)
+bytecode.o: bytecode.c buffer.h syntax.h charset.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
