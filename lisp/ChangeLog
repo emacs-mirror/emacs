@@ -1,3 +1,8 @@
+2004-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (choose-completion-string): Set buffer before running
+	choose-completion-string-functions hook so it can be buffer-local.
+
 2004-09-12  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-start): Parse command to see
