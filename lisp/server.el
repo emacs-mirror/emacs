@@ -342,9 +342,12 @@ starts server process and that is all.  Invoked by \\[server-edit]."
 (defun server-switch-buffer (next-buffer)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
-  (cond ((windowp server-window)
+  (cond ((and (windowp server-window)
+	      (window-live-p server-window))
 	 (select-window server-window))
 	((framep server-window)
+	 (if (not (frame-live-p server-window))
+	     (setq server-window (make-frame)))
 	 (select-window (frame-selected-window server-window))))
   (if (window-minibuffer-p (selected-window))
       (select-window (next-window nil 'nomini 0)))
