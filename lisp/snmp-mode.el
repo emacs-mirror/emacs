@@ -354,6 +354,7 @@ This is used during Tempo template completion."
 
 ;; SNMPv1 MIB Editing Mode.
 ;;
+;;;###autoload
 (defun snmp-mode ()
   "Major mode for editing SNMP MIBs.
 Expression and list commands understand all C brackets.
@@ -389,6 +390,7 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
   (run-hooks 'snmp-mode-hook))
 
 
+;;;###autoload
 (defun snmpv2-mode ()
   "Major mode for editing SNMPv2 MIBs.
 Expression and list commands understand all C brackets.
