@@ -2491,7 +2491,7 @@ The file is the one visited by the current buffer."
 	 (file-name (if file-buffer (buffer-file-name  file-buffer))))
     (if (not file-name)
 	(error "Buffer %s doesn't exist or doesn't visit any file.  Why patch?"
-	       file-name))
+	       buffer-name))
     
     (ediff-patch-file file-name startup-hooks)))
 
