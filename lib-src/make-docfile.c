@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 92, 93, 94, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -523,6 +523,7 @@ scan_c_file (filename, mode)
   (fset (quote NAME) (make-byte-code ... DOCSTRING ...))
   (fset (quote NAME) #[... DOCSTRING ...])
   (defalias (quote NAME) #[... DOCSTRING ...])
+  (custom-declare-variable (quote NAME) VALUE DOCSTRING ...)
  starting in column zero.
  (quote NAME) may appear as 'NAME as well.
 
@@ -712,6 +713,66 @@ scan_lisp_file (filename, mode)
 	    {
 
 	      /* Skip until the first newline; remember the two previous chars. */
+	      while (c != '\n' && c >= 0)
+		{
+		  c2 = c1;
+		  c1 = c;
+		  c = getc (infile);
+		}
+	  
+	      /* If two previous characters were " and \,
+		 this is a doc string.  Otherwise, there is none.  */
+	      if (c2 != '"' || c1 != '\\')
+		{
+#ifdef DEBUG
+		  fprintf (stderr, "## non-docstring in %s (%s)\n",
+			   buffer, filename);
+#endif
+		  continue;
+		}
+	    }
+	}
+
+      else if (! strcmp (buffer, "custom-declare-variable"))
+	{
+	  char c1 = 0, c2 = 0;
+	  type = 'V';
+
+	  c = getc (infile);
+	  if (c == '\'')
+	    read_lisp_symbol (infile, buffer);
+	  else
+	    {
+	      if (c != '(')
+		{
+		  fprintf (stderr,
+			   "## unparsable name in custom-declare-variable in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      if (strcmp (buffer, "quote"))
+		{
+		  fprintf (stderr,
+			   "## unparsable name in custom-declare-variable in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      c = getc (infile);
+	      if (c != ')')
+		{
+		  fprintf (stderr,
+			   "## unparsable quoted name in custom-declare-variable in %s\n",
+			   filename);
+		  continue;
+		}
+	    }
+
+	  if (saved_string == 0)
+	    {
+	      /* Skip until the first newline; remember the two previous
+		 chars. */
 	      while (c != '\n' && c >= 0)
 		{
 		  c2 = c1;
