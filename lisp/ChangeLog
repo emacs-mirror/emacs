@@ -1,3 +1,50 @@
+2003-09-30  Nick Roberts  <nick@nick.uklinux.net>
+
+	* toolbar/gud-watch.xpm, toolbar/gud-watch.pbm: Add.
+
+	* toolbar/gud-display.xpm, toolbar/gud-display.pbm: Remove.
+
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Replace
+	gud-display with gud-watch.
+	(gud-speedbar-buttons): Add stuff for watching expressions
+	in the speedbar when using M-x gdba. Use dolist on old part
+	of this function.
+
+	* gdb-ui.el (gdb-var-list, gdb-var-changed, gdb-update-flag)
+	(gdb-update-flag): New variables.
+	(gdb-var-update, gdb-var-update-handler,gdb-var-delete)
+	(gdb-speedbar-expand-node, gdb-var-evaluate-expression-handler)
+	(gud-watch, gdb-var-create-handler) : New functions.
+	(gdb-var-list-children, gdb-var-list-children-handler)
+	(gdb-var-create-regexp, gdb-var-update-regexp)
+	(gdb-var-list-children-regexp): New constants.
+	(gud-gdba-command-name): Don't specify -noasync so that GDB/MI
+	works.
+	(gdb-annotation-rules): Reduced annotation set (level 3).
+	(gdb-pre-prompt, gdb-prompt): Call handler in gdb-prompt.
+	(gdb-post-prompt): Don't update GDB buffers every time speedbar
+	updates.
+	(gdb-window-height, gdb-window-width, gdb-display-in-progress)
+	(gdb-expression-buffer-name, gdb-display-number, gdb-point)
+	(gdb-dive-display-number, gdb-nesting-level, gdb-expression)
+	(gdb-annotation-arg, gdb-dive-map, gdb-values, gdb-array-start)
+	(gdb-array-stop, gdb-array-slice-map, gdb-display-string)
+	(gdb-array-size, gdb-display-mode-map, gdb-expressions-mode-map):
+	(gdb-expressions-mode-menu, gdb-dive): Remove variables.
+	(gud-display, gud-display1)
+	(gdb-display-begin,gdb-display-number-end, gdb-delete-line)
+	(gdb-display-end, gdb-display-go-back, gdb-array-section-end)
+	(gdb-field-begin, gdb-field-end, gdb-elt,gdb-field-format-begin)
+	(gdb-field-format-end, gdb-dive, gdb-dive-new-frame)
+	(gdb-insert-field, gdb-array-format, gdb-mouse-array-slice)
+	(gdb-array-slice, gdb-array-format1, gdb-info-display-custom)
+	(gdb-delete-frames, gdb-display-mode, gdb-display-buffer-name)
+	(gdb-display-display-buffer, gdb-toggle-display)
+	(gdb-delete-display, gdb-expressions-popup-menu)
+	(gdb-expressions-mode, gdb-array-visualise): Remove functions.
+	(gdb-setup-windows, gdb-reset, gdb-source-info): Remove references
+	to display buffer.
+
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/ada-mode.el (ada-mode): Don't use advice.
@@ -227,7 +274,6 @@
 	* progmodes/gud.el (perldb): Add gud-until to list of commands.
 	Update gud-remove.
 
->>>>>>> 1.5409
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode-default-syntax-table):
