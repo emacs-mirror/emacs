@@ -1,5 +1,16 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	This is a fix for a report saying that resuming a search with C-s
+	C-s doesn't use the case-fold-search setting of the previous
+	search (C-s ... M-c ... then C-s C-s).
+
+	* isearch.el (isearch-last-case-fold-search): New variable.
+	(isearch-mode): Remember value of isearch-case-fold-search
+	in isearch-last-case-fold-search.
+	(isearch-done): Quote value of isearch-case-fold-search.
+	(isearch-repeat): When resuming a search, restore
+	isearch-case-fold-search from isearch-last-case-fold-search.
+
 	Added to NEWS.
 
 	* startup.el (inhibit-startup-buffer-menu): New user-option.

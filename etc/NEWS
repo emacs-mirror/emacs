@@ -19,6 +19,8 @@ include a `$' in the value, use `$$'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
+** Rmail now displays 5-digit message ids in its summary buffer.
+
 
 * Lisp Changes in Emacs 21.2
 
