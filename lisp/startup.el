@@ -327,7 +327,7 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
     ;; does things.
     (while (and (not done) args)
       (let ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
-			("--debug-init")))
+			("--debug-init") ("--iconic") ("--icon-type")))
 	    (argi (car args))
 	    (argval nil))
 	(if (string-match "=" argi)
@@ -361,6 +361,16 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	 ((string-equal argi "-debug-init")
 	  (setq init-file-debug t
 		args (cdr args)))
+	 ((string-equal argi "-iconic")
+	  (setq initial-frame-alist
+		(cons '(visibility . icon) initial-frame-alist))
+	  (setq args (cdr args)))
+	 ((or (string-equal argi "-icon-type")
+	      (string-equal argi "-i")
+	      (string-equal argi "-itype"))
+	  (setq default-frame-alist
+		(cons '(icon-type . t) default-frame-alist))
+	  (setq args (cdr args)))
 	 (t (setq done t)))
 	;; Was argval set but not used?
 	(and argval
