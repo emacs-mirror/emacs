@@ -1,3 +1,8 @@
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fmd5): If OBJECT is a buffer different from the current
+	one, set buffer to OBJECT temporarily.
+
 2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (kbd_buffer_gcpro): Remove.
