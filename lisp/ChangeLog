@@ -1,3 +1,9 @@
+2001-10-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* scroll-bar.el (scroll-bar-toolkit-scroll): Don't ring the bell
+	when we hit the beginning or the end of the buffer.  Instead, just
+	print a message and do nothing.
+
 2001-10-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xml.el (xml-parse-tag): Use eq on char-after's return value.
