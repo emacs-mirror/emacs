@@ -1,3 +1,8 @@
+2001-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexec.c (coff.h): Don't include unless HAVE_COFF_H is defined.
+	Required for ISC 4.1.
+
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* syswait.h: (HAVE_SYS_WAIT_H): Undef for ISC 4.1.  Reported by
