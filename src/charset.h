@@ -250,6 +250,9 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 /* 1 if C is an composite character, else 0.  */
 #define COMPOSITE_CHAR_P(c) ((c) >= MIN_CHAR_COMPOSITION)
 
+/* 1 if BYTE is a character in itself, in multibyte mode.  */
+#define ASCII_BYTE_P(byte) ((byte) < 0x80)
+
 /* A char-table containing information of each character set.
 
    Unlike ordinary char-tables, this doesn't contain any nested table.
