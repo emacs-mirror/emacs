@@ -3,6 +3,9 @@
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: mule, multilingual
 
@@ -341,26 +344,20 @@ See also `coding-category-list' and `coding-system-category'."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
-  (let ((coding-category (coding-system-category coding-system))
-	(base (coding-system-base coding-system))
+  (if (memq (coding-system-type coding-system) '(raw-text undecided))
+      (error "Can't prefer the coding system `%s'" coding-system))
+  (let ((base (coding-system-base coding-system))
 	(eol-type (coding-system-eol-type coding-system)))
-    (if (not coding-category)
-	;; CODING-SYSTEM is no-conversion or undecided.
-	(error "Can't prefer the coding system `%s'" coding-system))
-    (set coding-category (or base coding-system))
-    (update-coding-systems-internal)
-    (or (eq coding-category (car coding-category-list))
-	;; We must change the order.
-	(set-coding-priority (list coding-category)))
-    (if (and base (interactive-p))
-	(message "Highest priority is set to %s (base of %s)"
-		 base coding-system))
+    (set-coding-system-priority base)
+    (and (interactive-p)
+	 (or (eq base coding-system)
+	     (message "Highest priority is set to %s (base of %s)"
+		      base coding-system)))
     ;; If they asked for specific EOL conversion, honor that.
     (if (memq eol-type '(0 1 2))
-	(setq coding-system
-	      (coding-system-change-eol-conversion base eol-type))
-      (setq coding-system base))
-    (set-default-coding-systems coding-system)))
+	(setq base
+	      (coding-system-change-eol-conversion base eol-type)))
+    (set-default-coding-systems base)))
 
 (defvar sort-coding-systems-predicate nil
   "If non-nil, a predicate function to sort coding systems.
@@ -383,7 +380,7 @@ If the variable `sort-coding-systems-predicate' (which see) is
 non-nil, it is used to sort CODINGS in the different way than above."
   (if sort-coding-systems-predicate
       (sort codings sort-coding-systems-predicate)
-    (let* ((most-preferred (symbol-value (car coding-category-list)))
+    (let* ((most-preferred (coding-system-priority-list t))
 	   (lang-preferred (get-language-info current-language-environment
 					      'coding-system))
 	   (func (function
@@ -401,12 +398,10 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			 (if (eq (coding-system-type base) 2)
 			     ;; For ISO based coding systems, prefer
 			     ;; one that doesn't use escape sequences.
-			     (let ((flags (coding-system-flags base)))
-			       (if (or (consp (aref flags 0))
-				       (consp (aref flags 1))
-				       (consp (aref flags 2))
-				       (consp (aref flags 3)))
-				   (if (or (aref flags 8) (aref flags 9))
+			     (let* ((extra-spec (coding-system-spec base))
+				    (flags (aref extra-spec 3)))
+			       (if (/= (logand flags #x40) 0)
+				   (if (/= (logand flags #x30) 0)
 				       0
 				     1)
 				 2))
@@ -581,11 +576,8 @@ and TO is ignored."
 
   ;; If the most preferred coding system has the property mime-charset,
   ;; append it to the defaults.
-  (let ((tail coding-category-list)
-	preferred base)
-    (while (and tail
-		(not (setq preferred (symbol-value (car tail)))))
-      (setq tail (cdr tail)))
+  (let ((preferred (coding-system-priority-list t))
+	base)
     (and (coding-system-p preferred)
 	 (setq base (coding-system-base preferred))
 	 (coding-system-get preferred 'mime-charset)
@@ -1339,64 +1331,27 @@ The default status is as follows:
   The default value for the command `set-terminal-coding-system' is nil.
   The default value for the command `set-keyboard-coding-system' is nil.
 
-  The order of priorities of coding categories and the coding system
-  bound to each category are as follows
-	coding category			coding system
-	--------------------------------------------------
-	coding-category-iso-8-2		iso-latin-1
-	coding-category-iso-8-1		iso-latin-1
-	coding-category-iso-7-tight	iso-2022-jp
-	coding-category-iso-7		iso-2022-7bit
-	coding-category-iso-7-else	iso-2022-7bit-lock
-	coding-category-iso-8-else	iso-2022-8bit-ss2
-	coding-category-emacs-mule 	emacs-mule
-	coding-category-raw-text	raw-text
-	coding-category-sjis		japanese-shift-jis
-	coding-category-big5		chinese-big5
-	coding-category-ccl		nil
-	coding-category-binary		no-conversion
-	coding-category-utf-16-be	nil
-	coding-category-utf-16-le	nil
-	coding-category-utf-8		mule-utf-8"
+  The order of priorities of coding systems are as follows:
+	utf-8
+	iso-2022-7bit
+	iso-latin-1
+	iso-2022-7bit-lock
+	iso-2022-8bit-ss2
+	emacs-mule
+	raw-text"
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
   ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
 
-  (setq coding-category-iso-7-tight	'iso-2022-jp
-	coding-category-iso-7		'iso-2022-7bit
-	coding-category-iso-8-1		'iso-latin-1
-	coding-category-iso-8-2		'iso-latin-1
-	coding-category-iso-7-else	'iso-2022-7bit-lock
-	coding-category-iso-8-else	'iso-2022-8bit-ss2
-	coding-category-emacs-mule	'emacs-mule
-	coding-category-raw-text	'raw-text
-	coding-category-sjis		'japanese-shift-jis
-	coding-category-big5		'chinese-big5
-	coding-category-utf-16-be       nil
-	coding-category-utf-16-le       nil
-	coding-category-utf-8           'mule-utf-8
-	coding-category-ccl		nil
-	coding-category-binary		'no-conversion)
-
-  (set-coding-priority
-   '(coding-category-iso-8-1
-     coding-category-iso-8-2
-     coding-category-iso-7-tight
-     coding-category-iso-7
-     coding-category-iso-7-else
-     coding-category-iso-8-else
-     coding-category-emacs-mule 
-     coding-category-raw-text
-     coding-category-sjis
-     coding-category-big5
-     coding-category-ccl
-     coding-category-binary
-     coding-category-utf-16-be
-     coding-category-utf-16-le
-     coding-category-utf-8))
-
-  (update-coding-systems-internal)
-
+  (set-coding-system-priority
+   'utf-8
+   'iso-2022-7bit
+   'iso-latin-1
+   'iso-2022-7bit-lock
+   'iso-2022-8bit-ss2
+   'emacs-mule
+   'raw-text)
+  
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'iso-latin-1)
   (setq default-process-coding-system '(undecided . iso-latin-1))
@@ -1408,7 +1363,8 @@ The default status is as follows:
 ;;;  (set-keyboard-coding-system-internal nil)
 
   (setq nonascii-translation-table nil
-	nonascii-insert-offset 0))
+	nonascii-insert-offset 0)
+  (set-primary-charset 'iso-8859-1))
 
 (reset-language-environment)
 
@@ -1461,20 +1417,15 @@ specifies the character set for the major languages of Western Europe."
 	  (setq input-method-history
 		(cons input-method
 		      (delete input-method input-method-history))))))
-  (let ((nonascii (get-language-info language-name 'nonascii-translation))
-	(dos-table
-	 (if (eq window-system 'pc)
-	     (intern
-	      (format "cp%d-nonascii-translation-table" dos-codepage)))))
-    (cond
-     ((char-table-p nonascii)
-      (setq nonascii-translation-table nonascii))
-     ((and (eq window-system 'pc) (boundp dos-table))
-      ;; DOS terminals' default is to use a special non-ASCII translation
-      ;; table as appropriate for the installed codepage.
-      (setq nonascii-translation-table (symbol-value dos-table)))
-     ((charsetp nonascii)
-      (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
+
+  ;; Note: For DOS, we assumed that the charset cpXXX is already
+  ;; defined.
+  (let ((nonascii (get-language-info language-name 'nonascii-translation)))
+    (if (eq window-system 'pc)
+	(setq nonascii (intern "cp%d" dos-codepage)))
+    (or (charsetp nonascii)
+	(setq nonascii 'iso-8859-1))
+    (set-primary-charset nonascii))
 
   ;; Unibyte setups if necessary.
   (unless default-enable-multibyte-characters
@@ -1543,18 +1494,13 @@ The optional arg EOL-TYPE specifies the eol-type of the default value
 of buffer-file-coding-system set by this function."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority)))
-    (if priority
-	(let ((categories (mapcar 'coding-system-category priority)))
-	  (set-default-coding-systems
-	   (if (memq eol-type '(0 1 2 unix dos mac))
-	       (coding-system-change-eol-conversion default-coding eol-type)
-	     default-coding))
-	  (setq default-sendmail-coding-system default-coding)
-	  (set-coding-priority categories)
-	  (while priority
-	    (set (car categories) (car priority))
-	    (setq priority (cdr priority) categories (cdr categories)))
-	  (update-coding-systems-internal)))))
+    (when priority
+      (set-default-coding-systems
+       (if (memq eol-type '(0 1 2 unix dos mac))
+	   (coding-system-change-eol-conversion default-coding eol-type)
+	 default-coding))
+      (setq default-sendmail-coding-system default-coding)
+      (apply 'set-coding-system-priority priority))))
 
 ;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
@@ -2022,22 +1968,6 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (prefer-coding-system coding-system)
 	  (setq locale-coding-system coding-system))))))
 
-;;; Charset property
-
-(defun get-charset-property (charset propname)
-  "Return the value of CHARSET's PROPNAME property.
-This is the last value stored with
- (put-charset-property CHARSET PROPNAME VALUE)."
-  (and (not (eq charset 'composition))
-       (plist-get (charset-plist charset) propname)))
-
-(defun put-charset-property (charset propname value)
-  "Store CHARSETS's PROPNAME property with value VALUE.
-It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
-  (or (eq charset 'composition)
-      (set-charset-plist charset
-			 (plist-put (charset-plist charset) propname value))))
-
 ;;; Character code property
 (put 'char-code-property-table 'char-table-extra-slots 0)
 
