@@ -1561,8 +1561,9 @@ The seventh argument ACTIONS is a list of actions to take
     ;; "#<RANDOM-STUFF>#" to the buffer name, where RANDOM-STUFF
     ;; is the result of (make-temp-name "").
     (setq non-random-len
-	  (- (length file-name) (length (make-temp-name ""))))
+	  (- (length file-name) (length (make-temp-name "")) 1))
     (setq wildcard (concat (substring file-name 0 non-random-len) "*"))
+    (debug)
     (if (null (file-expand-wildcards wildcard))
 	(message "There are no auto-saved drafts to recover")
       ;; Bind dired-trivial-filenames to t because all auto-save file
