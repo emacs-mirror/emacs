@@ -55,6 +55,7 @@
 
 ;;; Code:
 (require 'ring)
+(require 'sendmail)
 
 (defgroup mail-hist nil
   "Headers and message body history for outgoing mail."
@@ -104,17 +105,11 @@ Oldest elements are dumped first."
   "Get name of mail header point is currently in, without the colon.
 Returns nil if not in a header, implying that point is in the body of
 the message."
-  (if (save-excursion
-        (re-search-backward (concat "^" (regexp-quote mail-header-separator)
-				    "$")
-			    nil t))
+  (if (< (point) (mail-text-start))
       nil ; then we are in the body of the message
     (save-excursion
-      (let* ((body-start ; limit possibility of false headers
-              (save-excursion
-                (re-search-forward
-		 (concat "^" (regexp-quote mail-header-separator) "$")
-		 nil t)))
+      (let* ((body-start
+	      (mail-text-start))
              (name-start
               (re-search-backward mail-hist-header-regexp nil t))
              (name-end
@@ -132,12 +127,9 @@ nil.
 Places point on the first non-whitespace on the line following the
 colon after the header name, or on the second space following that if
 the header is empty."
-  (let ((boundary (save-excursion
-		    (re-search-forward
-		     (concat "^" (regexp-quote mail-header-separator) "$")
-		     nil t))))
+  (let ((boundary (mail-header-end)))
     (and
-     boundary
+     (> boundary 0)
      (let ((unstopped t))
        (setq boundary (save-excursion
                     (goto-char boundary)
@@ -180,8 +172,7 @@ colon, or just after the colon if it is not followed by whitespace."
     (mail-hist-beginning-of-header)
     (let ((start (point)))
       (or (mail-hist-forward-header 1)
-          (re-search-forward
-	   (concat "^" (regexp-quote mail-header-separator) "$")))
+          (goto-char (mail-header-start)))
       (beginning-of-line)
       (buffer-substring start (1- (point))))))
 
@@ -235,13 +226,7 @@ This function normally would be called when the message is sent."
        (mail-hist-add-header-contents-to-ring
         (mail-hist-current-header-name)))
      (let ((body-contents
-            (save-excursion
-	      (goto-char (point-min))
-	      (re-search-forward
-	       (concat "^" (regexp-quote mail-header-separator) "$")
-	       nil)
-	      (forward-line 1)
-	      (buffer-substring (point) (point-max)))))
+	    (buffer-substring (mail-text-start) (point-max))))
        (mail-hist-add-header-contents-to-ring "body" body-contents)))))
 
 (defun mail-hist-previous-input (header)
