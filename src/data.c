@@ -79,6 +79,7 @@ Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
+Lisp_Object Qtext_read_only;
 Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
@@ -2590,6 +2591,7 @@ syms_of_data ()
   Qbeginning_of_buffer = intern ("beginning-of-buffer");
   Qend_of_buffer = intern ("end-of-buffer");
   Qbuffer_read_only = intern ("buffer-read-only");
+  Qtext_read_only = intern ("text-read-only");
   Qmark_inactive = intern ("mark-inactive");
 
   Qlistp = intern ("listp");
@@ -2715,6 +2717,11 @@ syms_of_data ()
   Fput (Qbuffer_read_only, Qerror_message,
 	build_string ("Buffer is read-only"));
 
+  Fput (Qtext_read_only, Qerror_conditions,
+	Fcons (Qtext_read_only, error_tail));
+  Fput (Qtext_read_only, Qerror_message,
+	build_string ("Text is read-only"));
+
 #ifdef LISP_FLOAT_TYPE
   Qrange_error = intern ("range-error");
   Qdomain_error = intern ("domain-error");
@@ -2781,6 +2788,7 @@ syms_of_data ()
   staticpro (&Qbeginning_of_buffer);
   staticpro (&Qend_of_buffer);
   staticpro (&Qbuffer_read_only);
+  staticpro (&Qtext_read_only);
   staticpro (&Qmark_inactive);
 
   staticpro (&Qlistp);
