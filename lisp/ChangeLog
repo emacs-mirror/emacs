@@ -1,5 +1,7 @@
 2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* tar-mode.el: Fix the copyright notice.
+
 	* font-lock.el (font-lock-comment-face): For tty's with dark
 	background, use "red1", since "lightred" is not one of the colors
 	recognized by tty-colors.el.
