@@ -39,11 +39,12 @@
     acute    |   '    | 'a -> ,Aa(B, '' -> ,A4(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
-  diaeresis  |   \"    | \"a -> ,Ad(B, \"\" -> ,A((B
+  diaeresis  |   \"    | \"a -> ,Ad(B   \"\" -> ,A((B
     tilde    |   ~    | ~a -> ,Ac(B
    cedilla   |   ~    | ~c -> ,Ag(B
-    misc     |  ----  | \"s -> ,A_(B, ~d -> ,Ap(B, ~t -> ,A~(B, /a -> ,Ae(B, /e -> ,Af(B, /o -> ,Ax(B
-   symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B, ~~ -> ,A8(B
+    misc     | \" ~ /  | \"s -> ,A_(B   ~d -> ,Ap(B   ~t -> ,A~(B   /a -> ,Ae(B   /e -> ,Af(B   /o -> ,Ax(B
+   symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B   ~! -> ,A!(B   ~? -> ,A?(B   ~~ -> ,A8(B
+   symbol    |  _ /   | _o -> ,A:(B   _a -> ,A*(B   // -> ,A0(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -125,6 +126,8 @@
  ("/o" ?,Ax(B)
  ("//" ?,A0(B)
  ("/ " ?/)
+ ("_o" ?,A:(B)
+ ("_a" ?,A*(B)
 )
 
 (quail-define-package
@@ -133,12 +136,12 @@
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> ,Aa(B, '' -> ,A4(B
+    acute    |   '    | 'a -> ,Aa(B   '' -> ,A4(B
     grave    |   `    | `a -> ,A`(B
-  diaeresis  |   \"    | \"i -> ,Ao(B, \"\" -> ,A((B
+  diaeresis  |   \"    | \"i -> ,Ao(B   \"\" -> ,A((B
     tilde    |   ~    | ~n -> ,Aq(B
    cedilla   |   ~    | ~c -> ,Ag(B
-   symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B
+   symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B   ~! -> ,A!(B   ~? -> ,A?(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -180,8 +183,8 @@
  "esperanto-prefix" "Latin-1" "EO>" t
  "Esperanto input method with prefix modifiers
 Key translation rules are:
- ^H -> ?,A&(B, ^J -> ?,A,(B, ^h -> ?,A6(B, ^j -> ?,A<(B, ^C -> ?,AF(B, ^G -> ?,AX(B,
- ^S -> ?,A^(B, ^c -> ?,Af(B, ^g -> ?,Ax(B, ^s -> ?,A~(B, ~U -> ?,A](B, ~u -> ?,A}(B
+ ^H -> ?,A&(B   ^J -> ?,A,(B   ^h -> ?,A6(B   ^j -> ?,A<(B   ^C -> ?,AF(B   ^G -> ?,AX(B,
+ ^S -> ?,A^(B   ^c -> ?,Af(B   ^g -> ?,Ax(B   ^s -> ?,A~(B   ~U -> ?,A](B   ~u -> ?,A}(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -212,8 +215,8 @@ Key translation rules are:
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
   diaeresis  |   \"   | \"i -> ,Ao(B
-   cedilla   | ~ or , | ~c -> ,Ag(B, ,c -> ,Ag(B
-   symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B
+   cedilla   | ~ or , | ~c -> ,Ag(B   ,c -> ,Ag(B
+   symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -259,7 +262,7 @@ Key translation rules are:
  "german-prefix" "Latin-1" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> ,AD(B -> \"O -> ,AV(B, \"U -> ,A\(B, \"s -> ?,A_(B
+ \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ?,A_(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -277,7 +280,7 @@ Key translation rules are:
  "irish-prefix" "Latin-1" "GA>" t
  "Irish input method with prefix modifiers
 Key translation rules are:
- 'A -> ,AA(B, 'E -> ,AI(B, 'I -> ,AM(B, 'O -> ,AS(B, 'U -> ,AZ(B
+ 'A -> ,AA(B   'E -> ,AI(B   'I -> ,AM(B   'O -> ,AS(B   'U -> ,AZ(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -300,12 +303,12 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> ,Aa(B, '' -> ,A4(B
+    acute    |   '    | 'a -> ,Aa(B   '' -> ,A4(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
   diaeresis  |   \"    | \"u -> ,A|(B
     tilde    |   ~    | ~a -> ,Ac(B
-   cedilla   | ' or , | 'c -> ,Ag(B, ,c -> ,Ag(B
+   cedilla   | ' or , | 'c -> ,Ag(B   ,c -> ,Ag(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -354,7 +357,7 @@ Key translation rules are:
     acute    |   '    | 'a -> ,Aa(B
   diaeresis  |   \"    | \"u -> ,A|(B
     tilde    |   ~    | ~n -> ,Aq(B
-   symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B
+   symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B   ~! -> ,A!(B   ~? -> ,A?(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -387,14 +390,14 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> ,Ba(B, '' -> ?,B4(B
+    acute    |   '    | 'a -> ,Ba(B   '' -> ?,B4(B
   circumflex |   ^    | ^a -> ,Bb(B
-  diaeresis  |   \"    | \"a -> ,Bd(B, \"\" -> ,B((B
+  diaeresis  |   \"    | \"a -> ,Bd(B   \"\" -> ,B((B
     breve    |   ~    | ~a -> ,Bc(B
     caron    |   ~    | ~c -> ,Bh(B
-   cedilla   |   `    | `c -> ,Bg(B, `e -> ?,Bj(B
-    misc     |  ----  | 'd -> ,Bp(B, `l -> ,B3(B, `z -> ,B?(B, ~o -> ,Bu(B, ~u -> ,B{(B
-   symbol    |   ~    | `. -> ,B(B, ~~ -> ,B"(B, ~. -> ?,B8(B
+   cedilla   |   `    | `c -> ,Bg(B   `e -> ?,Bj(B
+    misc     | ' ` ~  | 'd -> ,Bp(B   `l -> ,B3(B   `z -> ,B?(B   ~o -> ,Bu(B   ~u -> ,B{(B
+   symbol    |   ~    | `. -> ,B(B   ~~ -> ,B"(B   ~. -> ?,B8(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -496,14 +499,14 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> ,Ca(B, '' -> ?,C4(B
+    acute    |   '    | 'a -> ,Ca(B   '' -> ?,C4(B
     grave    |   `    | `a -> ,C`(B
   circumflex |   ^    | ^a -> ,Cb(B
-  diaeresis  |   \"    | \"a -> ,Cd(B, \"\" -> ,C((B
-   cedilla   |   ~    | ~c -> ,Cg(B, ~s -> ,C:(B, ~~ -> ,C8(B
-  dot above  | ~ / .  | ~o -> ,Cu(B, /o -> ,Cu(B, .o -> ,Cu(B
-    misc     |  ----  | \"s -> ,C_(B, ~g -> ,C;(B, ~u -> ,C}(B, /h -> ,C1(B, /i -> ,C9(B
-   symbol    |   ~    | ~` -> ,C"(B, /# -> ,C#(B, /$ -> ,C$(B, // -> ,C0(B
+  diaeresis  |   \"    | \"a -> ,Cd(B   \"\" -> ,C((B
+   cedilla   |   ~    | ~c -> ,Cg(B   ~s -> ,C:(B   ~~ -> ,C8(B
+  dot above  | ~ / .  | ~o -> ,Cu(B   /o -> ,Cu(B   .o -> ,Cu(B
+    misc     | \" ~ /  | \"s -> ,C_(B   ~g -> ,C;(B   ~u -> ,C}(B   /h -> ,C1(B   /i -> ,C9(B
+   symbol    |   ~    | ~` -> ,C"(B   /# -> ,C#(B   /$ -> ,C$(B   // -> ,C0(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
