@@ -1093,8 +1093,7 @@ Returns t if checkout was successful, nil otherwise."
     '("Revert to Last Version" . vc-revert-buffer))
   (define-key vc-menu-map [vc-insert-header]
     '("Insert Header" . vc-insert-headers))
-  (define-key vc-menu-map [vc-menu-check-in] '("Check In" . vc-next-action))
-  (define-key vc-menu-map [vc-check-out] '("Check Out" . vc-toggle-read-only))
+  (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
 (put 'vc-rename-file 'menu-enable 'vc-mode)
@@ -1108,7 +1107,6 @@ Returns t if checkout was successful, nil otherwise."
 (put 'vc-revert-buffer 'menu-enable 'vc-mode)
 (put 'vc-insert-headers 'menu-enable 'vc-mode)
 (put 'vc-next-action 'menu-enable 'vc-mode)
-(put 'vc-toggle-read-only 'menu-enable 'vc-mode)
 (put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
 
 (provide 'vc-hooks)
