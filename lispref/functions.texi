@@ -144,6 +144,16 @@ function.  For example:
 @end example
 @end defun
 
+@defun subr-arity subr
+@tindex subr-arity
+This function provides information about the argument list of a
+primitive, @var{subr}.  The returned value is a pair
+@code{(@var{min} . @var{max})}.  @var{min} is the minimum number of
+args.  @var{max} is the maximum number or the symbol @code{many}, for a
+function with @code{&rest} arguments, or the symbol @code{unevalled} if
+@var{subr} is a special form.
+@end defun
+
 @node Lambda Expressions
 @section Lambda Expressions
 @cindex lambda expression
