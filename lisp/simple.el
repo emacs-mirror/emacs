@@ -1477,16 +1477,28 @@ If this is zero, point is always centered after it moves off frame.")
 
 (defun hscroll-point-visible ()
   "Scrolls the window horizontally to make point visible."
-  (let*  ((min (window-hscroll))
-          (max (- (+ min (window-width)) 2))
-          (here (current-column))
-          (delta (if (zerop hscroll-step) (/ (window-width) 2) hscroll-step))
-          )
-    (if (< here min)
-        (scroll-right (max 0 (+ (- min here) delta)))
-      (if (>= here  max)
-          (scroll-left (- (- here min) delta))
-        ))))
+  (let* ((here (current-column))
+	 (left (window-hscroll))
+	 (right (- (+ left (window-width)) 3)))
+    (cond
+     ;; Should we recenter?
+     ((or (< here (- left  hscroll-step))
+	  (> here (+ right hscroll-step)))
+      (set-window-hscroll
+       (selected-window)
+       ;; Recenter, but don't show too much white space off the end of
+       ;; the line.
+       (max 0
+	    (min (- (save-excursion (end-of-line) (current-column))
+		    (window-width)
+		    -5)
+		 (- here (/ (window-width) 2))))))
+     ;; Should we scroll left?
+     ((> here right)
+      (scroll-left hscroll-step))
+     ;; Or right?
+     ((< here left)
+      (scroll-right hscroll-step)))))
   
 ;; rms: (1) The definitions of arrow keys should not simply restate
 ;; what keys they are.  The arrow keys should run the ordinary commands.
