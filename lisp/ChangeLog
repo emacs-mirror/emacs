@@ -1,7 +1,7 @@
 2004-11-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-flush-pending-output): New variable.
-	(gdb-send-item): Use it.
+	(gdb-send-item, gdb-resync, gud-gdba-marker-filter): Use it.
 
 2004-11-22  Richard M. Stallman  <rms@gnu.org>
 
