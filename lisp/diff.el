@@ -62,8 +62,8 @@
 ;;;###autoload
 (defun diff (old new)
   "Find and display the differences between OLD and NEW files.
-Interactively you are prompted with the current buffer's file name for NEW
-and what appears to be it's backup for OLD."
+Interactively the current buffer's file name is the default for for NEW
+and a backup file for NEW is the default for OLD."
   (interactive
    (let (oldf newf)
      (reverse

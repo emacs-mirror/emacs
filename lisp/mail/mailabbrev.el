@@ -1,3 +1,4 @@
+;;; ??? We must get papers for this or delete it.
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.

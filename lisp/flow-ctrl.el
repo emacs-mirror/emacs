@@ -37,8 +37,7 @@
 ;;; won't work outside of UNIX-like environments.
 
 (defun evade-flow-control ()
-  "Replace C-s with C-\ and C-q with C-^ and tell emacs to pass C-s
-and C-q characters to OS."
+  "Enable use of flow control; let user type C-s as C-\ and C-q as C-^."
   (interactive)
   ;; Tell emacs to pass C-s and C-q to OS.
   (set-input-mode nil t)
@@ -65,19 +64,24 @@ and C-q characters to OS."
              ":  use C-\\ for C-s  and  use C-^ for C-q."))
   (sleep-for 2)) ; Give user a chance to see message.
 
-(defun memstr= (e s)
+(defun evade-flow-control-memstr= (e s)
   (cond ((null s) nil)
 	((string= e (car s)) t)
-	(t (memstr= e (cdr s)))))
+	(t (evade-flow-control-memstr= e (cdr s)))))
 
 ;;;###autoload
 (defun evade-flow-control-on (&rest losing-terminal-types)
+  "Enable flow control if using one of a specified set of terminal types.
+Use `(evade-flow-control-on "vt100" "h19")' to enable flow control
+on VT-100 and H19 terminals.  When flow control is enabled,
+you must type C-\ to get the effect of a C-s, and type C-^
+to get the effect of a C-q."
   (let ((term (getenv "TERM"))
 	hyphend)
     ;; Strip off hyphen and what follows
     (while (setq hyphend (string-match "[-_][^-_]+$" term))
       (setq term (substring term 0 hyphend)))
-    (and (memstr= term losing-terminal-types) (evade-flow-control)))
+    (and (evade-flow-control-memstr= term losing-terminal-types) (evade-flow-control)))
   )
 
 (provide 'flow-ctrl)
