@@ -131,6 +131,11 @@ compact way to record lots of bindings.  A keymap with such a vector is
 called a @dfn{full keymap}.  Other keymaps are called @dfn{sparse
 keymaps}.
 
+A @code{nil} binding is used to mean that a key is explicitly not bound.
+Just like any other binding, it takes precedence over a default binding
+or a binding in the parent keymap, but on the other hand, it does not
+take precedence over keymaps of lower priority.
+
 When a keymap contains a vector, it always defines a binding for each
 @sc{ascii} character, even if the vector contains @code{nil} for that
 character.  Such a binding of @code{nil} overrides any default key
