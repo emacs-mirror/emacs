@@ -577,9 +577,9 @@ commands have to be used and yank-popping is hard to make sense of.
 (@code{yank-rectangle}).  Yanking a rectangle is the opposite of killing
 one.  Point specifies where to put the rectangle's upper left corner.
 The rectangle's first line is inserted there, the rectangle's second
-line is inserted at the same horizontal, but one line vertically down,
-and so on.  The number of lines affected is determined by the height of
-the saved rectangle.
+line is inserted at the same horizontal position, but one line
+vertically down, and so on.  The number of lines affected is determined
+by the height of the saved rectangle.
 
   You can convert single-column lists into double-column lists using
 rectangle killing and yanking; kill the second half of the list as a
