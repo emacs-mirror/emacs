@@ -1,3 +1,8 @@
+2003-09-17  Mario Lang  <mlang@delysid.org> (tiny change)
+
+	* progmodes/gud.el (perldb): Change gud-print from just "%e" to 
+	"p %e" to actually print the value in the GUD buffer.
+
 2003-09-16  Miles Bader  <miles@gnu.ai.mit.edu>
 
 	From David Ponce <david.ponce@wanadoo.fr>:
