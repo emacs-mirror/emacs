@@ -35,14 +35,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
+#ifdef WINDOWSNT
+#include <stdlib.h>
+#include <fcntl.h>
+#include <direct.h>
+#endif /* WINDOWSNT */
 
-#ifdef MSDOS
+#ifdef DOS_NT
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
-#else /* not MSDOS */
+#else  /* not DOS_NT */
 #define READ_TEXT "r"
 #define READ_BINARY "r"
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 
 int scan_file ();
 int scan_lisp_file ();
@@ -59,11 +64,17 @@ main (argc, argv)
   int err_count = 0;
   int first_infile;
 
+  /* Don't put CRs in the DOC file.  */
 #ifdef MSDOS
-  _fmode = O_BINARY;	/* all of files are treated as binary files */
+  _fmode = O_BINARY;
   (stdout)->_flag &= ~_IOTEXT;
   _setmode (fileno (stdout), O_BINARY);
 #endif /* MSDOS */
+#ifdef WINDOWSNT
+  _fmode = O_BINARY;
+  _setmode (fileno (stdout), O_BINARY);
+#endif /* WINDOWSNT */
+
   outfile = stdout;
 
   /* If first two args are -o FILE, output to FILE.  */
