@@ -46,6 +46,14 @@
 
 #else  /* not emacs */
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#else
+char *malloc ();
+char *realloc ();
+#endif
+
+
 /* We used to test for `BSTRING' here, but only GCC and Emacs define
    `BSTRING', as far as I know, and neither of them use this code.  */
 #if HAVE_STRING_H || STDC_HEADERS
@@ -62,14 +70,6 @@
 #else
 #include <strings.h>
 #endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#else
-char *malloc ();
-char *realloc ();
-#endif
-
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
