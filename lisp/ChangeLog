@@ -1,3 +1,20 @@
+2004-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-down): Perform vertical motion if DOWN is negative.
+	(term-exec-1): Set both TERMCAP and TERMINFO
+	unconditionally.
+	(term-termcap-format): Synchronyze with the eterm terminfo entry
+	in etc/e/eterm.ti.
+	(term-handle-colors-array): If the current foreground or
+	background are zero (i.e. unspecified), use the foreground and
+	background of the default face for reverse video.
+	(term-ansi-at-eval-string, term-ansi-default-fg)
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused
+	variable.
+	(term-mem): Delete ununsed function.
+	(term-protocol-version): Increment.
+	(term-current-face): Set to default.
+
 2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc.el (annotate-time): Document point handling.
