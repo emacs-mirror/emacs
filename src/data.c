@@ -22,6 +22,14 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 
 #include <config.h>
+
+/* Put this before lisp.h so that lisp.h can define DBL_DIG if not defined.  */
+#ifdef LISP_FLOAT_TYPE
+#ifdef STDC_HEADERS
+#include <float.h>
+#endif
+#endif
+
 #include "lisp.h"
 #include "puresize.h"
 #include "charset.h"
@@ -36,7 +44,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
-#include <float.h>
 #include <stdlib.h>
 #endif
 

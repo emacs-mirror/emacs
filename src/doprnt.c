@@ -24,11 +24,12 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "lisp.h"
 
 #if STDC_HEADERS
 #include <float.h>
 #endif
+
+#include "lisp.h"
 
 #ifndef DBL_MAX_10_EXP
 #define DBL_MAX_10_EXP 308 /* IEEE double */
