@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "charset.h"
+#include <assert.h>
 
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX_ENTRY_VIA_PROPERTY
@@ -56,7 +57,7 @@ struct lisp_parse_state
   {
     int depth;		/* Depth at end of parsing.  */
     int instring;	/* -1 if not within string, else desired terminator.  */
-    int incomment;	/* Nonzero if within a comment at end of parsing.  */
+    int incomment;	/* -1 if in unnestable comment else comment nesting */
     int comstyle;	/* comment style a=0, or b=1, or ST_COMMENT_STYLE.  */
     int quoted;		/* Nonzero if just after an escape char at end of parsing */
     int thislevelstart;	/* Char number of most recent start-of-expression at current level */
@@ -85,7 +86,7 @@ static int find_start_modiff;
 
 
 static int find_defun_start P_ ((int, int));
-static int back_comment P_ ((int, int, int, int, int *, int *));
+static int back_comment P_ ((int, int, int, int, int, int *, int *));
 static int char_quoted P_ ((int, int));
 static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object));
 static Lisp_Object scan_lists P_ ((int, int, int, int));
@@ -442,9 +443,9 @@ prev_char_comstart_first (pos, pos_byte)
    the returned value (or at FROM, if the search was not successful).  */
 
 static int
-back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
+back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_ptr)
      int from, from_byte, stop;
-     int comstyle;
+     int comnested, comstyle;
      int *charpos_ptr, *bytepos_ptr;
 {
   /* Look back, counting the parity of string-quotes,
@@ -472,6 +473,7 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
   int defun_start = 0;
   int defun_start_byte = 0;
   register enum syntaxcode code;
+  int nesting = 1;		/* current comment nesting */
   int c;
 
   /* At beginning of range to scan, we're outside of strings;
@@ -539,10 +541,20 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
 	    string_lossage = 1;
 	}
 
-      /* Record comment-starters according to that
-	 quote-parity to the comment-end.  */
       if (code == Scomment)
+	/* FIXME: we should also check that the comstyle is correct
+	   if the Scomment is a single-char. */
 	{
+	  if (comnested && --nesting <= 0 && parity == 0 && !string_lossage)
+	    /* nested comments have to be balanced, so we don't need to
+	       keep looking for earlier ones.  We use here the same (slightly
+	       incorrect) reasoning as below:  since it is followed by uniform
+	       paired string quotes, this comment-start has to be outside of
+	       strings, else the comment-end itself would be inside a string. */
+	    goto done;
+
+	  /* Record comment-starters according to that
+	     quote-parity to the comment-end.  */
 	  comstart_parity = parity;
 	  comstart_pos = from;
 	  comstart_byte = from_byte;
@@ -553,7 +565,10 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
 	 (because they go with the earlier comment-ender).  */
       if (code == Sendcomment
 	  && SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)) == comstyle)
-	break;
+	if (comnested)
+	  nesting++;
+	else
+	  break;
 
       /* Assume a defun-start point is outside of strings.  */
       if (code == Sopen
@@ -578,7 +593,7 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
      we know it can't be inside a string
      since if it were then the comment ender would be inside one.
      So it does start a comment.  Skip back to it.  */
-  else if (comstart_parity == 0 && !string_lossage) 
+  else if (!comnested && comstart_parity == 0 && !string_lossage) 
     {
       from = comstart_pos;
       from_byte = comstart_byte;
@@ -616,6 +631,7 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
       UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
     
+ done:
   *charpos_ptr = from;
   *bytepos_ptr = from_byte;
 
@@ -822,7 +838,7 @@ Two-character sequences are represented as described below.\n\
 The second character of S is the matching parenthesis,\n\
  used only if the first character is `(' or `)'.\n\
 Any additional characters are flags.\n\
-Defined flags are the characters 1, 2, 3, 4, b, and p.\n\
+Defined flags are the characters 1, 2, 3, 4, b, p, and n.\n\
  1 means CHAR is the start of a two-char comment start sequence.\n\
  2 means CHAR is the second character of such a sequence.\n\
  3 means CHAR is the start of a two-char comment end sequence.\n\
@@ -834,6 +850,7 @@ a, but you can set the comment sequence style to b (on the second character\n\
 of a comment-start, or the first character of a comment-end sequence) using\n\
 this flag:\n\
  b means CHAR is part of comment sequence b.\n\
+ n means CHAR is part of a nestable comment sequence.\n\
 \n\
  p means CHAR is a prefix character for `backward-prefix-chars';\n\
    such characters are treated as whitespace when they occur\n\
@@ -913,6 +930,10 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 
       case 'b':
 	val |= 1 << 21;
+	break;
+
+      case 'n':
+	val |= 1 << 22;
 	break;
       }
 	
@@ -1604,6 +1625,117 @@ skip_chars (forwardp, syntaxp, string, lim)
   }
 }
 
+/* Jump over a comment, assuming we are at the beginning of one.
+   FROM is the current position.
+   FROM_BYTE is the bytepos corresponding to FROM.
+   Do not move past STOP (a charpos).
+   The comment over which we have to jump is of style STYLE
+     (either SYNTAX_COMMENT_STYLE(foo) or ST_COMMENT_STYLE).
+   NESTING should be positive to indicate the nesting at the beginning
+     for nested comments and should be zero or negative else.
+     ST_COMMENT_STYLE cannot be nested.
+   PREV_SYNTAX is the SYNTAX_WITH_FLAGS of the previous character
+     (or 0 If the search cannot start in the middle of a two-character).
+
+   If successful, return 1 and store the charpos of the comment's end
+   into *CHARPOS_PTR and the corresponding bytepos into *BYTEPOS_PTR.
+   Else, return 0 and store the charpos STOP into *CHARPOS_PTR, the
+   corresponding bytepos into *BYTEPOS_PTR and the current nesting
+   (as defined for state.incomment) in *INCOMMENT_PTR.
+
+   The comment end is the last character of the comment rather than the
+     character just after the comment.
+
+   Global syntax data is assumed to initially be valid for FROM and
+   remains valid for forward search starting at the returned position. */
+
+static int
+forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
+	      charpos_ptr, bytepos_ptr, incomment_ptr)
+     int from, from_byte, stop;
+     int nesting, style, prev_syntax;
+     int *charpos_ptr, *bytepos_ptr, *incomment_ptr;
+{
+  register int c, c1;
+  register enum syntaxcode code;
+  register int syntax;
+
+  if (nesting <= 0) nesting = -1;
+
+  /* Enter the loop in the middle so that we find
+     a 2-char comment ender if we start in the middle of it.  */
+  syntax = prev_syntax;
+  if (syntax != 0) goto forw_incomment;
+
+  while (1)
+    {
+      if (from == stop)
+	{
+	  *incomment_ptr = nesting;
+	  *charpos_ptr = from;
+	  *bytepos_ptr = from_byte;
+	  return 0;
+	}
+      c = FETCH_CHAR (from_byte);
+      syntax = SYNTAX_WITH_FLAGS (c);
+      code = syntax & 0xff;
+      if (code == Sendcomment
+	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
+	  && --nesting <= 0)
+	/* we have encountered a comment end of the same style
+	   as the comment sequence which began this comment
+	   section */
+	break;
+      if (code == Scomment_fence
+	  && style == ST_COMMENT_STYLE)
+	/* we have encountered a comment end of the same style
+	   as the comment sequence which began this comment
+	   section.  */
+	break;
+      if (nesting > 0
+	  && code == Scomment
+	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style)
+	/* we have encountered a nested comment of the same style
+	   as the comment sequence which began this comment section */
+	nesting++;
+      INC_BOTH (from, from_byte);
+      UPDATE_SYNTAX_TABLE_FORWARD (from);
+      
+    forw_incomment:
+      if (from < stop && SYNTAX_FLAGS_COMEND_FIRST (syntax)
+	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
+	  && (c1 = FETCH_CHAR (from_byte),
+	      SYNTAX_COMEND_SECOND (c1)))
+	if (--nesting <= 0)
+	  /* we have encountered a comment end of the same style
+	     as the comment sequence which began this comment
+	     section */
+	  break;
+	else
+	  {
+	    INC_BOTH (from, from_byte);
+	    UPDATE_SYNTAX_TABLE_FORWARD (from);
+	  }
+      if (nesting > 0
+	  && from < stop
+	  && SYNTAX_FLAGS_COMSTART_FIRST (syntax)
+	  && (c1 = FETCH_CHAR (from_byte),
+	      SYNTAX_COMMENT_STYLE (c1) == style
+	      && SYNTAX_COMSTART_SECOND (c1)))
+	/* we have encountered a nested comment of the same style
+	   as the comment sequence which began this comment
+	   section */
+	{
+	  INC_BOTH (from, from_byte);
+	  UPDATE_SYNTAX_TABLE_FORWARD (from);
+	  nesting++;
+	}
+    }
+  *charpos_ptr = from;
+  *bytepos_ptr = from_byte;
+  return 1;
+}
+
 DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
   "Move forward across up to N comments.  If N is negative, move backward.\n\
 Stop scanning if we find something other than a comment or whitespace.\n\
@@ -1619,9 +1751,11 @@ between them, return t; otherwise return nil.")
   register int c, c1;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
+  int comnested = 0;	    /* whether the comment is nestable or not */
   int found;
   int count1;
   int out_charpos, out_bytepos;
+  int dummy;
 
   CHECK_NUMBER (count, 0);
   count1 = XINT (count);
@@ -1646,10 +1780,10 @@ between them, return t; otherwise return nil.")
 	      immediate_quit = 0;
 	      return Qnil;
 	    }
-	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
+	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  comstyle = 0;
@@ -1664,7 +1798,9 @@ between them, return t; otherwise return nil.")
 		 the comment section.  */
 	      code = Scomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	      INC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
 	}
       while (code == Swhitespace || code == Sendcomment);
@@ -1679,42 +1815,17 @@ between them, return t; otherwise return nil.")
 	  return Qnil;
 	}
       /* We're at the start of a comment.  */
-      while (1)
+      found = forw_comment (from, from_byte, stop, comnested, comstyle, 0,
+			    &out_charpos, &out_bytepos, &dummy);
+      from = out_charpos; from_byte = out_bytepos;
+      if (!found)
 	{
-	  if (from == stop)
-	    {
-	      immediate_quit = 0;
-	      SET_PT_BOTH (from, from_byte);
-	      return Qnil;
-	    }
-	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  c = FETCH_CHAR (from_byte);
-	  INC_BOTH (from, from_byte);
-	  if (SYNTAX (c) == Sendcomment
-	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
-	    /* we have encountered a comment end of the same style
-	       as the comment sequence which began this comment
-	       section */
-	    break;
-	  if (SYNTAX (c) == Scomment_fence
-	      && comstyle == ST_COMMENT_STYLE)
-	    /* we have encountered a comment end of the same style
-	       as the comment sequence which began this comment
-	       section.  */
-	    break;
-	  if (from < stop && SYNTAX_COMEND_FIRST (c)
-	      && SYNTAX_COMMENT_STYLE (c) == comstyle
-	      && (c1 = FETCH_CHAR (from_byte),
-		  UPDATE_SYNTAX_TABLE_FORWARD (from),
-		  SYNTAX_COMEND_SECOND (c1)))
-	    /* we have encountered a comment end of the same style
-	       as the comment sequence which began this comment
-	       section */
-	    {
-	      INC_BOTH (from, from_byte);
-	      break;
-	    }
+	  immediate_quit = 0;
+	  SET_PT_BOTH (from, from_byte);
+	  return Qnil;
 	}
+      INC_BOTH (from, from_byte);
+      UPDATE_SYNTAX_TABLE_FORWARD (from);
       /* We have skipped one comment.  */
       count1--;
     }
@@ -1743,6 +1854,7 @@ between them, return t; otherwise return nil.")
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  comstyle = 0;
+	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  comstart_second = SYNTAX_COMSTART_SECOND (c);
@@ -1757,15 +1869,14 @@ between them, return t; otherwise return nil.")
 	      code = Sendcomment;
 	      /* Calling char_quoted, above, set up global syntax position
 		 at the new value of FROM.  */
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
+	      c1 = FETCH_CHAR (from_byte);
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	    }
 	  if (from > stop && comstart_second
 	      && prev_char_comstart_first (from, from_byte)
 	      && !char_quoted (from - 1, dec_bytepos (from_byte)))
 	    {
-	      /* We must record the comment style encountered so that
-		 later, we can match only the proper comment begin
-		 sequence of the same style.  */
 	      code = Scomment;
 	      DEC_BOTH (from, from_byte);
 	    }
@@ -1798,7 +1909,7 @@ between them, return t; otherwise return nil.")
 	    }
 	  else if (code == Sendcomment)
 	    {
-	      found = back_comment (from, from_byte, stop, comstyle,
+	      found = back_comment (from, from_byte, stop, comnested, comstyle,
 				    &out_charpos, &out_bytepos);
 	      if (found != -1)
 		from = out_charpos, from_byte = out_bytepos;
@@ -1837,12 +1948,13 @@ scan_lists (from, count, depth, sexpflag)
   register enum syntaxcode code, temp_code;
   int min_depth = depth;    /* Err out if depth gets less than this.  */
   int comstyle = 0;	    /* style of comment encountered */
+  int comnested = 0;	    /* whether the comment is nestable or not */
   int temp_pos;
   int last_good = from;
   int found;
   int from_byte;
   int out_bytepos, out_charpos;
-  int temp;
+  int temp, dummy;
 
   if (depth > 0) min_depth = 0;
 
@@ -1864,6 +1976,7 @@ scan_lists (from, count, depth, sexpflag)
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
+	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  prefix = SYNTAX_PREFIX (c);
 	  if (depth == min_depth)
 	    last_good = from;
@@ -1879,7 +1992,9 @@ scan_lists (from, count, depth, sexpflag)
 		 only a comment end of the same style actually ends
 		 the comment section */
 	      code = Scomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
+	      c1 = FETCH_CHAR (from_byte);
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	      INC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
@@ -1922,41 +2037,24 @@ scan_lists (from, count, depth, sexpflag)
 		}
 	      goto done;
 
-	    case Scomment:
 	    case Scomment_fence:
+	      comstyle = ST_COMMENT_STYLE;
+	      /* FALLTHROUGH */
+	    case Scomment:
 	      if (!parse_sexp_ignore_comments) break;
-	      while (1)
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
+	      found = forw_comment (from, from_byte, stop,
+				    comnested, comstyle, 0,
+				    &out_charpos, &out_bytepos, &dummy);
+	      from = out_charpos, from_byte = out_bytepos;
+	      if (!found)
 		{
-		  if (from == stop)
-		    {
-		      if (depth == 0)
-			goto done;
-		      goto lose;
-		    }
-		  UPDATE_SYNTAX_TABLE_FORWARD (from);
-		  c = FETCH_CHAR (from_byte);
-		  INC_BOTH (from, from_byte);
-		  if (code == Scomment 
-		      ? (SYNTAX (c) == Sendcomment
-			 && SYNTAX_COMMENT_STYLE (c) == comstyle)
-		      : (SYNTAX (c) == Scomment_fence))
-		    /* we have encountered a comment end of the same style
-		       as the comment sequence which began this comment
-		       section */
-		    break;
-		  if (from < stop && SYNTAX_COMEND_FIRST (c)
-		      && SYNTAX_COMMENT_STYLE (c) == comstyle
-		      && (UPDATE_SYNTAX_TABLE_FORWARD (from),
-			  SYNTAX_COMEND_SECOND (FETCH_CHAR (from_byte)))
-		      && code == Scomment)
-		    /* we have encountered a comment end of the same style
-		       as the comment sequence which began this comment
-		       section */
-		    {
-		      INC_BOTH (from, from_byte);
-		      break;
-		    }
+		  if (depth == 0)
+		    goto done;
+		  goto lose;
 		}
+	      INC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	      break;
 
 	    case Smath:
@@ -2038,6 +2136,7 @@ scan_lists (from, count, depth, sexpflag)
 	  if (depth == min_depth)
 	    last_good = from;
 	  comstyle = 0;
+	  comnested = SYNTAX_COMMENT_NESTED (c);
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
@@ -2050,7 +2149,9 @@ scan_lists (from, count, depth, sexpflag)
 	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	      code = Sendcomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
+	      c1 = FETCH_CHAR (from_byte);
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	    }
 	  
 	  /* Quoting turns anything except a comment-ender
@@ -2131,7 +2232,7 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sendcomment:
 	      if (!parse_sexp_ignore_comments)
 		break;
-	      found = back_comment (from, from_byte, stop, comstyle,
+	      found = back_comment (from, from_byte, stop, comnested, comstyle,
 				    &out_charpos, &out_bytepos);
 	      if (found != -1)
 		from = out_charpos, from_byte = out_bytepos;
@@ -2302,11 +2403,12 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   struct lisp_parse_state state;
 
   register enum syntaxcode code;
+  int c1;
+  int comnested;
   struct level { int last, prev; };
   struct level levelstart[100];
   register struct level *curlevel = levelstart;
   struct level *endlevel = levelstart + 100;
-  int prev;
   register int depth;	/* Paren depth of current scanning location.
 			   level - levelstart equals this except
 			   when the depth becomes negative.  */
@@ -2318,6 +2420,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int prev_from_syntax;
   int boundary_stop = commentstop == -1;
   int nofence;
+  int found;
+  int out_bytepos, out_charpos;
   int temp;
 
   prev_from = from;
@@ -2365,13 +2469,15 @@ do { prev_from = from;				\
 
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
-      state.incomment = !NILP (tem);
+      state.incomment = ( !NILP (tem)
+			 ? ( INTEGERP (tem) ? XINT (tem) : -1)
+			 : 0);
 
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
       start_quoted = !NILP (tem);
 
-      /* if the eight element of the list is nil, we are in comment
+      /* if the eighth element of the list is nil, we are in comment
 	 style a.  If it is non-nil, we are in comment style b */
       oldstate = Fcdr (oldstate);
       oldstate = Fcdr (oldstate);
@@ -2431,35 +2537,37 @@ do { prev_from = from;				\
       code = prev_from_syntax & 0xff;
 
       if (code == Scomment)
-	state.comstr_start = prev_from;
+	{
+	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
+			     1 : -1);
+	  state.comstr_start = prev_from;
+	}
       else if (code == Scomment_fence)
 	{
 	  /* Record the comment style we have entered so that only
 	     the comment-end sequence of the same style actually
 	     terminates the comment section.  */
-	  state.comstyle = ( code == Scomment_fence 
-			     ? ST_COMMENT_STYLE 
-			     : SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)));
+	  state.comstyle = ST_COMMENT_STYLE;
+	  state.incomment = -1;
 	  state.comstr_start = prev_from;
-	  if (code != Scomment_fence)
-	    INC_FROM;
 	  code = Scomment;
 	}
      else if (from < end)
 	if (SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax))
-	  if (SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte)))
+	  if (c1 = FETCH_CHAR (from_byte),
+	      SYNTAX_COMSTART_SECOND (c1))
 	    /* Duplicate code to avoid a complex if-expression
 	       which causes trouble for the SGI compiler.  */
 	    {
 	      /* Record the comment style we have entered so that only
 		 the comment-end sequence of the same style actually
 		 terminates the comment section.  */
-	      state.comstyle = ( code == Scomment_fence 
-				 ? ST_COMMENT_STYLE 
-				 : SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)));
+	      state.comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte));
+	      comnested = SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax);
+	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
+	      state.incomment = comnested ? 1 : -1;
 	      state.comstr_start = prev_from;
-	      if (code != Scomment_fence)
-		INC_FROM;
+	      INC_FROM;
 	      code = Scomment;
 	    }
 
@@ -2508,44 +2616,24 @@ do { prev_from = from;				\
 	startincomment:
 	  if (commentstop == 1)
 	    goto done;
-	  if (from != BEGV)
-	    {
-	      /* Enter the loop in the middle so that we find
-		 a 2-char comment ender if we start in the middle of it.  */
-	      goto startincomment_1;
-	    }
-	  /* At beginning of buffer, enter the loop the ordinary way.  */
-	  state.incomment = 1;
 	  goto commentloop;
 
 	case Scomment:
-	  state.incomment = 1;
+	  assert (state.incomment != 0); /* state.incomment = -1; */
 	  if (commentstop || boundary_stop) goto done;
 	commentloop:
-	  while (1)
-	    {
-	      if (from == end) goto done;
-	      prev = FETCH_CHAR (from_byte);
-	      if (SYNTAX (prev) == Sendcomment
-		  && SYNTAX_COMMENT_STYLE (prev) == state.comstyle)
-		/* Only terminate the comment section if the endcomment
-		   of the same style as the start sequence has been
-		   encountered.  */
-		break;
-	      if (state.comstyle == ST_COMMENT_STYLE
-		  && SYNTAX (prev) == Scomment_fence) 
-		break;
-	      INC_FROM;
-	    startincomment_1:
-	      if (from < end && SYNTAX_FLAGS_COMEND_FIRST (prev_from_syntax)
-		  && SYNTAX_COMEND_SECOND (FETCH_CHAR (from_byte))
-		  && (SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax)
-		      == state.comstyle))
-		/* Only terminate the comment section if the end-comment
-		   sequence of the same style as the start sequence has
-		   been encountered.  */
-		break;
-	    }
+	  /* The (from == BEGV) test is to enter the loop in the middle so
+	     that we find a 2-char comment ender even if we start in the
+	     middle of it.  */
+	  found = forw_comment (from, from_byte, end,
+				state.incomment, state.comstyle,
+				(from == BEGV) ? 0 : prev_from_syntax,
+				&out_charpos, &out_bytepos, &state.incomment);
+	  from = out_charpos; from_byte = out_bytepos;
+	  /* Beware!  prev_from and friends are invalid now.
+	     Luckily, the `done' doesn't use them and the INC_FROM
+	     sets them to a sane value without looking at them. */
+	  if (!found) goto done;
 	  INC_FROM; 
 	  state.incomment = 0;
 	  state.comstyle = 0;	/* reset the comment style */
@@ -2668,7 +2756,8 @@ Value is a list of ten elements describing final state of parsing:\n\
  3. non-nil if inside a string.\n\
     (it is the character that will terminate the string,\n\
      or t if the string should be terminated by a generic string delimiter.)\n\
- 4. t if inside a comment.\n\
+ 4. nil if outside a comment, t if inside a non-nestable comment, \n\
+    else an integer (the current comment nesting).\n\
  5. t if following a quote character.\n\
  6. the minimum paren-depth encountered during this scan.\n\
  7. t if in a comment of style b; `syntax-table' if the comment\n\
@@ -2719,7 +2808,9 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 	       Fcons (state.instring >= 0 
 		      ? (state.instring == ST_STRING_STYLE 
 			 ? Qt : make_number (state.instring)) : Qnil,
-		 Fcons (state.incomment ? Qt : Qnil,
+		 Fcons (state.incomment < 0 ? Qt :
+			(state.incomment == 0 ? Qnil :
+			 make_number (state.incomment)),
 		   Fcons (state.quoted ? Qt : Qnil,
 		     Fcons (make_number (state.mindepth),
 		       Fcons ((state.comstyle 
