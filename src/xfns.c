@@ -1374,14 +1374,14 @@ extern XrmDatabase x_load_resources ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
   "Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.\n\
-This uses `NAME.ATTRIBUTE' as the key and `Emacs.INSTANCE' as the\n\
+This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the\n\
 class, where INSTANCE is the name under which Emacs was invoked, or\n\
 the name specified by the `-name' or `-rn' command-line arguments.\n\
 \n\
 The optional arguments COMPONENT and SUBCLASS add to the key and the\n\
 class, respectively.  You must specify both of them or neither.\n\
-If you specify them, the key is `NAME.COMPONENT.ATTRIBUTE'\n\
-and the class is `Emacs.INSTANCE.SUBCLASS'.")
+If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'\n\
+and the class is `Emacs.CLASS.SUBCLASS'.")
   (attribute, class, component, subclass)
      Lisp_Object attribute, class, component, subclass;
 {
