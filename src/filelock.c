@@ -347,7 +347,7 @@ lock_file (fn)
   /* Else consider breaking the lock */
   locker = (char *) alloca (strlen (lock_info.user) + strlen (lock_info.host)
 			    + LOCK_PID_MAX + 9);
-  sprintf (locker, "%s@%s (pid %d)", lock_info.user, lock_info.host,
+  sprintf (locker, "%s@%s (pid %lu)", lock_info.user, lock_info.host,
            lock_info.pid);
   FREE_LOCK_INFO (lock_info);
   
