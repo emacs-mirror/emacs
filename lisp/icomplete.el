@@ -1,6 +1,6 @@
 ;;;_+ icomplete.el - minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 1999 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
