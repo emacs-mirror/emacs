@@ -1383,6 +1383,13 @@ This function makes the hook variable @code{hook} local to the current
 buffer.  When a hook variable is local, it can have local and global
 hook functions, and @code{run-hooks} runs all of them.
 
+This function works by making @code{t} an element of the buffer-local
+value.  That serves as a flag to use the hook functions in the default
+value of the hook variable as well as those in the local value.  Since
+@code{run-hooks} understands this flag, @code{make-local-hook} works
+with all normal hooks.  It works for only some non-normal hooks---those
+whose callers have been updated to understand this meaning of @code{t}.
+
 Do not use @code{make-local-variable} directly for hook variables; it is
 not sufficient.
 @end defun
