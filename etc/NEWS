@@ -92,7 +92,7 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 It now uses font-lock for turning compiler output into hypertext.  Quite a few
 more kinds of messages are recognized.  Messages that are recognized as
-warnings or informational come in orange or green, instead of red. 
+warnings or informational come in orange or green, instead of red.
 Informational messages are by default skipped with `next-error'.
 
 The new file etc/compilation.txt gives examples of each type of message.
@@ -233,7 +233,7 @@ highlighted in `font-lock-doc-face'.
 *** Microsoft SQLServer support has been significantly improved.
 Keyword highlighting for SqlServer 2000 is implemented.
 sql-interactive-mode defaults to use osql, rather than isql, because
-osql flushes it's error stream more frequently.  Thus error messages
+osql flushes its error stream more frequently.  Thus error messages
 are displayed when they occur rather than when the session is
 terminated.
 
@@ -1857,7 +1857,7 @@ supported on text terminals.
 
 The display property stretch specification form `(space PROPS)', where
 PROPS is a property list now allows pixel based width and height
-specifications, as well as enhanced horisontal text alignment.
+specifications, as well as enhanced horizontal text alignment.
 
 The value of these properties can now be a (primitive) expression
 which is evaluated during redisplay.  The following expressions
@@ -1883,7 +1883,7 @@ the image.
 
 The `left-fringe', `right-fringe', `left-margin', `right-margin',
 `scroll-bar', and `text' elements specify to the width of the
-corresponding area of the window.  
+corresponding area of the window.
 
 The `left', `center', and `right' positions can be used with :align-to
 to specify a position relative to the left edge, center, or right edge
