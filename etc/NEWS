@@ -2069,6 +2069,12 @@ Therefore, Lisp programs that read files which contain the internal
 MULE encoding should use `emacs-mule-unix'.  `no-conversion' is only
 appropriate for reading truly binary files.
 
+** Code that relies on the obsolete `before-change-function' and
+`after-change-function' to detect buffer changes will now fail.
+
+** Code that uses `concat' with integer args now gets an error, as
+long promised.
+
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
