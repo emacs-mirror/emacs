@@ -1,3 +1,7 @@
+2001-03-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* CXTERM-DIC/4Corner.tit: Add copyright notice.
+
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/ethiopic.el ("ethiopic"): Docstring adjusted for the
@@ -5,7 +9,7 @@
 
 2001-02-22  Kenichi Handa  <handa@etl.go.jp>
 
-	* CXTERM-DIC/ARRAY30.tit: Add Copyright notice.
+	* CXTERM-DIC/ARRAY30.tit: Add copyright notice.
 
 	* CXTERM-DIC/ETZY.tit: Likewise.
 
