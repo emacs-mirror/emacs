@@ -943,13 +943,17 @@ for more commands.
 The normal macro bindings C-x (, C-x ), and C-x e now interfaces to
 the keyboard macro ring.
 
-The C-x e command now terminates the current macro rather than
-signalling an error if used while defining a macro.
+The C-x e command now automatically terminates the current macro
+before calling it, if used while defining a macro.
 
 In addition, when ending or calling a macro with C-x e, the macro can
 be repeated immediately by typing just the `e'.  You can customize
 this behaviour via the variable kmacro-call-repeat-key and
 kmacro-call-repeat-with-arg.
+
+Keyboard macros can now be debugged and edited interactively.
+C-x C-k SPC will step through the last keyboard macro one key sequence
+at a time, prompting for the actions to take.
 
 +++
 *** Calc is now part of the Emacs distribution.
