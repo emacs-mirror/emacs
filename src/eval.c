@@ -623,7 +623,7 @@ If INITVALUE is missing, SYMBOL's value is not set.")
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
   "(defconst SYMBOL INITVALUE DOCSTRING): define SYMBOL as a constant variable.\n\
-The intent is that nether programs nor users should ever change this value.\n\
+The intent is that neither programs nor users should ever change this value.\n\
 Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
 If SYMBOL is buffer-local, its default value is what is set;\n\
  buffer-local values are not affected.\n\
