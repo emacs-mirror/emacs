@@ -215,6 +215,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
 
+/* Don't use -g in test compiles in configure.
+   This is so we will use the same shared libs for that linking
+   that are used when linking temacs.  */
+#ifdef THIS_IS_CONFIGURE
+#define C_DEBUG_SWITCH
+#endif
+
 /* Let's try this out, just in case.
    Nah.  Rik Faith <faith@cs.unc.edu> says it doesn't work well.  */
 /* #define SIGNALS_VIA_CHARACTERS */
@@ -240,6 +247,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define ADJUST_EXEC_HEADER \
   unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
 
+#if 0
 /* In 19.23 and 19.24, configure sometimes fails to define these.
    It has to do with the fact that configure uses CFLAGS when linking
    while Makefile.in.in (erroneously) fails to do so when linking temacs.  */
@@ -258,3 +266,4 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
+#endif /* 0 */
