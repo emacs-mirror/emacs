@@ -53,11 +53,13 @@
 (defun rmail-update-summary (&rest ignore)
   (apply (car rmail-summary-redo) (cdr rmail-summary-redo)))
 
+;;;###autoload
 (defun rmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
   (rmail-new-summary "All" '(rmail-summary) nil))
 
+;;;###autoload
 (defun rmail-summary-by-labels (labels)
   "Display a summary of all messages with one or more LABELS.
 LABELS should be a string containing the desired labels, separated by commas."
@@ -71,6 +73,7 @@ LABELS should be a string containing the desired labels, separated by commas."
 		     'rmail-message-labels-p
 		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
 
+;;;###autoload
 (defun rmail-summary-by-recipients (recipients &optional primary-only)
   "Display a summary of all messages with the given RECIPIENTS.
 Normally checks the To, From and Cc fields of headers;
@@ -84,6 +87,7 @@ RECIPIENTS is a string of regexps separated by commas."
    'rmail-message-recipients-p
    (mail-comma-list-regexp recipients) primary-only))
 
+;;;###autoload
 (defun rmail-summary-by-regexp (regexp)
   "Display a summary of all messages according to regexp REGEXP.
 If the regular expression is found in the header of the message
@@ -102,6 +106,7 @@ Emacs will list the header line in the RMAIL-summary."
 ;; rmail-summary-by-topic
 ;; 1989 R.A. Schnitzler
 
+;;;###autoload
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
 Normally checks the Subject field of headers;
@@ -126,6 +131,7 @@ SUBJECT is a string of regexps separated by commas."
     (if whole-message (re-search-forward subject nil t)
       (string-match subject (or (mail-fetch-field "Subject") "")) )))
 
+;;;###autoload
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages with the given SENDERS.
 SENDERS is a string of names separated by commas."
