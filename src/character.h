@@ -68,6 +68,22 @@ Boston, MA 02111-1307, USA.  */
    that corresponds to a raw 8-bit byte.  */
 #define CHAR_BYTE8_HEAD_P(byte) ((byte) == 0xC0 || (byte) == 0xC1)
 
+/* If C is not ASCII, make it unibyte. */
+
+#define MAKE_CHAR_UNIBYTE(c)			\
+  if (! ASCII_CHAR_P (c))			\
+    c = multibyte_char_to_unibyte (c, Qnil);	\
+  else
+
+
+/* If C is not ASCII, make it multibyte. */
+
+#define MAKE_CHAR_MULTIBYTE(c)		\
+  if (! ASCII_CHAR_P (c))		\
+    c = unibyte_char_to_multibyte (c);	\
+  else
+
+
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
 
