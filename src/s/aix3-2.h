@@ -9,7 +9,10 @@
 #undef SPECIFY_X11R4
 
 #ifndef __GNUC__
-#define C_SWITCH_SYSTEM -ma
+/* Some programs in src produce warnings saying certain subprograms
+   are to comples and need a MAXMEM value greater than 2000 for
+   additional optimization.  --nils@exp-math.uni-essen.de */
+#define C_SWITCH_SYSTEM -ma -qmaxmem=4000
 #endif
 #define HAVE_ALLOCA
 #undef rindex
