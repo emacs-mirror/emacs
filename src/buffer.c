@@ -2369,6 +2369,8 @@ until the tab is filled in.\n\
 If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
+#if 0 /* The doc string is too long for some compilers,
+	 but make-docfile can find it in this comment.  */
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
 		     Qnil,
     "Display table that controls display of the contents of current buffer.\n\
@@ -2388,6 +2390,9 @@ The remaining five elements control the display of\n\
     a vector of characters).\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
+#endif
+  DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
+		     Qnil, "");
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
@@ -2424,6 +2429,8 @@ The functions are run using the `run-hooks' function.");
   Qfirst_change_hook = intern ("first-change-hook");
   staticpro (&Qfirst_change_hook);
 
+#if 0 /* The doc string is too long for some compilers,
+	 but make-docfile can find it in this comment.  */
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
     "List of undo entries in current buffer.\n\
 Recent changes come first; older changes follow newer.\n\
@@ -2453,6 +2460,9 @@ nil marks undo boundaries.  The undo command treats the changes\n\
 between two undo boundaries as a single step to be undone.\n\
 \n\
 If the value of the variable is t, undo information is not recorded.");
+#endif
+  DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
+    "");
 
   DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active, Qnil, 
     "Non-nil means the mark and region are currently active in this buffer.\n\
