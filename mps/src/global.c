@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.9) $
+ * $HopeName: MMsrc!global.c(trunk.10) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -27,7 +27,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.9) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.10) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -129,7 +129,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* no check possible on pollThreshold */
   CHECKL(BoolCheck(arenaGlobals->insidePoll));
 
-  CHECKL(BoolCheck(arena->bufferLogging));
+  CHECKL(BoolCheck(arenaGlobals->bufferLogging));
   CHECKL(RingCheck(&arena->poolRing));
   CHECKL(RingCheck(&arena->rootRing));
   CHECKL(RingCheck(&arena->formatRing));
@@ -236,6 +236,9 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->insidePoll = FALSE;
 
   arenaGlobals->mpsVersionString = MPSVersion();
+
+  arenaGlobals->bufferLogging = FALSE;
+
   RingInit(&arena->poolRing);
   arena->poolSerial = (Serial)0;
   RingInit(&arena->rootRing);
@@ -257,7 +260,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->suspended = FALSE;
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
-  arena->bufferLogging = FALSE;
+
   for (i=0; i < TraceLIMIT; i++) {
     /* design.mps.arena.trace.invalid */
     arena->trace[i].sig = SigInvalid;   
