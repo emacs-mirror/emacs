@@ -173,29 +173,29 @@ The following keywords are meaningful:
 :options VALUE should be a list of valid members of the widget type.
 :group  VALUE should be a customization group.
         Add SYMBOL to that group.
-:link LINK-DATA'
+:link LINK-DATA
         Include an external link after the documentation string for this
         item.  This is a sentence containing an active field which
         references some other documentation.
    
         There are three alternatives you can use for LINK-DATA:
    
-        `(custom-manual INFO-NODE)'
+        (custom-manual INFO-NODE)
              Link to an Info node; INFO-NODE is a string which specifies
-             the node name, as in `\"(emacs)Top\"'.  The link appears as
+             the node name, as in \"(emacs)Top\".  The link appears as
              `[manual]' in the customization buffer.
    
-        `(info-link INFO-NODE)'
+        (info-link INFO-NODE)
              Like `custom-manual' except that the link appears in the
              customization buffer with the Info node name.
    
-        `(url-link URL)'
+        (url-link URL)
              Link to a web page; URL is a string which specifies the URL.
              The link appears in the customization buffer as URL.
    
         You can specify the text to use in the customization buffer by
         adding `:tag NAME' after the first element of the LINK-DATA; for
-        example, `(info-link :tag \"foo\" \"(emacs)Top\")' makes a link to the
+        example, (info-link :tag \"foo\" \"(emacs)Top\") makes a link to the
         Emacs manual which appears in the buffer as `foo'.
    
         An item can have more than one external link; however, most items
