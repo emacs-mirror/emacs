@@ -3441,6 +3441,21 @@ x_draw_composite_glyph_string_foreground (s)
     SelectObject (s->hdc, old_font);
 }
 
+
+/* Brightness beyond which a color won't have its highlight brightness
+   boosted.
+
+   Nominally, highlight colors for `3d' faces are calculated by
+   brightening an object's color by a constant scale factor, but this
+   doesn't yield good results for dark colors, so for colors who's
+   brightness is less than this value (on a scale of 0-255) have to
+   use an additional additive factor.
+
+   The value here is set so that the default menu-bar/mode-line color
+   (grey75) will not have its highlights changed at all.  */
+#define HIGHLIGHT_COLOR_DARK_BOOST_LIMIT 187
+
+
 /* Allocate a color which is lighter or darker than *COLOR by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as COLOR, try a color where all RGB
@@ -3456,12 +3471,42 @@ w32_alloc_lighter_color (f, color, factor, delta)
      int delta;
 {
   COLORREF new;
+  long bright;
+
+  /* On Windows, RGB values are 0-255, not 0-65535, so scale delta. */
+  delta /= 256;
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
   xassert (factor >= 0);
   new = PALETTERGB (min (0xff, factor * GetRValue (*color)),
                     min (0xff, factor * GetGValue (*color)),
                     min (0xff, factor * GetBValue (*color)));
+
+  /* Calculate brightness of COLOR.  */
+  bright = (2 * GetRValue (*color) + 3 * GetGValue (*color)
+            + GetBValue (*color)) / 6;
+
+  /* We only boost colors that are darker than
+     HIGHLIGHT_COLOR_DARK_BOOST_LIMIT.  */
+  if (bright < HIGHLIGHT_COLOR_DARK_BOOST_LIMIT)
+    /* Make an additive adjustment to NEW, because it's dark enough so
+       that scaling by FACTOR alone isn't enough.  */
+    {
+      /* How far below the limit this color is (0 - 1, 1 being darker).  */
+      double dimness = 1 - (double)bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
+      /* The additive adjustment.  */
+      int min_delta = delta * dimness * factor / 2;
+      
+      if (factor < 1)
+        new = PALETTERGB (max (0, min (0xff, min_delta - GetRValue (*color))),
+                          max (0, min (0xff, min_delta - GetGValue (*color))),
+                          max (0, min (0xff, min_delta - GetBValue (*color))));
+      else
+        new = PALETTERGB (max (0, min (0xff, min_delta + GetRValue (*color))),
+                          max (0, min (0xff, min_delta + GetGValue (*color))),
+                          max (0, min (0xff, min_delta + GetBValue (*color))));
+    }
+  
   if (new == *color)
     new = PALETTERGB (max (0, min (0xff, delta + GetRValue (*color))),
                       max (0, min (0xff, delta + GetGValue (*color))),
@@ -3571,9 +3616,9 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   HDC hdc = get_frame_dc (f);
 
   if (raised_p)
-    gc.foreground = PALETTERGB (255, 255, 255);
+    gc.foreground = f->output_data.w32->white_relief.gc->foreground;
   else
-    gc.foreground = PALETTERGB (0, 0, 0);
+    gc.foreground = f->output_data.w32->black_relief.gc->foreground;
 
   w32_set_clip_rectangle (hdc, clip_rect);
 
@@ -3597,9 +3642,10 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   w32_set_clip_rectangle (hdc, NULL);
 
   if (raised_p)
-    gc.foreground = PALETTERGB (0, 0, 0);
+    gc.foreground = f->output_data.w32->black_relief.gc->foreground;
   else
-    gc.foreground = PALETTERGB (255, 255, 255);
+    gc.foreground = f->output_data.w32->white_relief.gc->foreground;
+
 
   w32_set_clip_rectangle (hdc, clip_rect);
   
