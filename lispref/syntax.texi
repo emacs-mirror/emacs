@@ -769,6 +769,10 @@ necessary make this variable @code{nil}, since not every newline is the
 end of a comment.  This limitation no longer exists.
 @end defvar
 
+@vindex parse-sexp-lookup-properties
+The behaviour of @code{parse-partial-sexp} is also affected by
+@code{parse-sexp-lookup-properties} @xref{Syntax Properties}.
+
 You can use @code{forward-comment} to move forward or backward over
 one comment or several comments.
 
@@ -781,7 +785,9 @@ other than a comment or whitespace, it stops, leaving point at the
 place where it stopped.  This includes (for instance) finding the end
 of a comment when moving forward and expecting the beginning of one.
 The function also stops immediately after moving over the specified
-number of complete comments.
+number of complete comments.  If @var{count} comments are found as
+expected, with nothing except whitespace between them, return
+@code{t}; otherwise return @code{nil}.
 
 This function cannot tell whether the ``comments'' it traverses are
 embedded within a string.  If they look like comments, it treats them
