@@ -218,6 +218,10 @@ and this notice must be preserved on all copies.  */
 #define BSTRING
 #endif
 
+/* Define if you have the ANSI `strerror' function.
+   Otherwise you must have the variable `char *sys_errlist[]'.  */
+#undef HAVE_STRERROR
+
 /* Non-ANSI C compilers usually don't have volatile.  */
 #ifndef HAVE_VOLATILE
 #ifndef __STDC__
