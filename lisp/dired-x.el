@@ -3,8 +3,8 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
 ;; Maintainer: Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Version: 2.27
-;; Date: 1994/04/05 12:45:30
+;; Version: 2.31
+;; Date: 1994/06/09 21:31:53
 ;; Keywords: dired extensions
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation
@@ -137,10 +137,12 @@ Use \\[dired-omit-toggle] to toggle its value.
 Uninteresting files are those whose filenames match regexp `dired-omit-files',
 plus those ending with extensions in `dired-omit-extensions'.")
 
-(defvar dired-omit-files "^#\\|\\.$"
-  "*Filenames matching this regexp will not be displayed (buffer-local).
-This only has effect when `dired-omit-files-p' is t.
-See also `dired-omit-extensions'.")
+(defvar dired-omit-files "^#\\|^\\.$\\|^\\.\\.$"
+  "*Filenames matching this regexp will not be displayed \(buffer-local\).
+This only has effect when `dired-omit-files-p' is t.  See interactive function
+`dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
+`dired-omit-extensions'.  The default is to omit  `.', `..', and auto-save
+files.")
 
 (defvar dired-find-subdir nil           ; t is pretty near to DWIM...
   "*If non-nil, Dired does not make a new buffer for a directory if it
@@ -512,7 +514,7 @@ Should never be used as marker by the user or other packages.")
             (append '((dired-omit-files-p " Omit")) minor-mode-alist))))
 
 (defun dired-omit-toggle (&optional flag)
-  "Toggle between displaying and omitting files matching `dired-omit-files'.
+  "Toggle omitting files matching `dired-omit-files' and `dired-omit-extensions'.
 With an arg, and if omitting was off, don't toggle and just mark the
   files but don't actually omit them.
 With an arg, and if omitting was on, turn it off but don't refresh the buffer."
@@ -534,10 +536,13 @@ With an arg, and if omitting was on, turn it off but don't refresh the buffer."
           dired-latex-unclean-extensions
           dired-bibtex-unclean-extensions
           dired-texinfo-unclean-extensions)
-  "If non-nil, a list of extensions (strings) to omit from Dired
-listings.  Defaults to the elements of
-`completion-ignored-extensions', `dired-latex-unclean-extensions',
-`dired-bibtex-unclean-extensions' and `dired-texinfo-unclean-extensions'.")
+  "If non-nil, a list of extensions \(strings\) to omit from Dired listings.  
+Defaults to elements of `completion-ignored-extensions',
+`dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions', and
+`dired-texinfo-unclean-extensions'.  
+
+See interactive function `dired-omit-toggle' \(\\[dired-omit-toggle]\) and
+variables `dired-omit-files-p' and `dired-omit-files'.")
 
 (defun dired-omit-expunge (&optional regexp)
   "Erases all unmarked files matching REGEXP.
@@ -1272,52 +1277,12 @@ To display just marked files, type \\[delete-other-windows] first."
 
 (defun dired-man ()
   "Run man on this file.  Display old buffer if buffer name matches filename.
-Results displayed based on value of `Man-notify'.  See that variable."
+Uses ../lisp/man.el of \\[manual-entry] fame."
   (interactive)
-  (let* ((file (dired-get-filename))
-         (string (format "*man %s*" (file-name-nondirectory file)))
-         (Man-buffer (get-buffer string))
-         (msg "Expanding manual page...cleaning...done"))
-
-    ;; If Man-buffer already exists and has not been modified, display it.
-    ;; Otherwise, create a fresh one.
-    (if (and Man-buffer
-             (save-excursion
-               (set-buffer Man-buffer)
-               (not (buffer-modified-p))
-               buffer-read-only))
-
-        (setq msg "Displaying pre-existing manual page.")
-
-      ;; Create Man-buffer.
-      (save-excursion
-
-        ;; Prepare buffer.
-        (setq Man-buffer (get-buffer-create string))
-        (set-buffer Man-buffer)
-        (setq buffer-read-only nil)
-        (erase-buffer)
-
-        ;; Expand and clean man page.
-        (message "Expanding manual page...")
-        (call-process shell-file-name nil t nil "-c"
-                      (concat " nroff -man -h " file))
-        (message "Expanding manual page...cleaning...")
-        (call-process-region (point-min) (point-max)
-                             shell-file-name t t nil "-c" " col -b")
-        (goto-char (point-min))
-
-        ;; Reset buffer.
-        (setq buffer-read-only t)
-        (buffer-disable-undo (current-buffer))
-        (set-buffer-modified-p nil)))
-
-    ;; Display results.  Use display function of ../lisp/man.el whose behavior
-    ;; is determined by user-defined variable Man-notify.
-    (require 'man)
-    (Man-notify-when-ready Man-buffer)
-    ;; Overrides any message issued by above function.
-    (message msg)))
+  (require 'man)
+  (let ((file (dired-get-filename))
+	(manual-program "nroff -man -h"))
+    (Man-getpage-in-background file)))
 
 ;;; Run Info on files.
 
@@ -1581,7 +1546,7 @@ test if that file exists.  Use minibuffer after snatching the filename."
 ;;; This section is provided for reports.  It uses Barry A. Warsaw's
 ;;; reporter.el which is bundled with GNU Emacs v19.
 
-(defconst dired-x-version "2.27"
+(defconst dired-x-version "2.31"
   "Revision number of dired-x.el -- dired extra for GNU Emacs v19.
 Type \\[dired-x-submit-report] to send a bug report.  Available via anonymous
 ftp in
