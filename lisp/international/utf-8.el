@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
-;; Keywords: multilingual, Unicode, UTF-8
+;; Keywords: multilingual, Unicode, UTF-8, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; The coding-system `mule-utf-8' supports encoding/decoding of the
-;; following character sets:
+;; following character sets to and from UTF-8:
 ;;
 ;;   ascii
 ;;   eight-bit-control
@@ -35,12 +35,16 @@
 ;;   mule-unicode-e000-ffff
 ;;
 ;; Characters of other character sets cannot be encoded with
-;; mule-utf-8.
+;; mule-utf-8.  Note that the mule-unicode charsets currently lack
+;; case and syntax information, so things like `downcase' will only
+;; work for characters from ASCII and Latin-1.
 ;;
-;; On decoding, Unicode characters that do not fit in above character
-;; sets are handled as `eight-bit-control' or `eight-bit-graphic'
-;; characters to retain original information (i.e. original byte
-;; sequence).
+;; On decoding, Unicode characters that do not fit into the above
+;; character sets are handled as `eight-bit-control' or
+;; `eight-bit-graphic' characters to retain the information about the
+;; original byte sequence.
+
+;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
 
 ;;        scalar       |               utf-8
 ;;        value        | 1st byte  | 2nd byte  | 3rd byte
@@ -176,7 +180,9 @@
 
       (repeat))))
 
-  "CCL program to decode UTF-8 into ascii, eight-bit-control, latin-iso8859-1 and mule-unicode-*.")
+  "CCL program to decode UTF-8.
+Decoding is done into the charsets ascii, eight-bit-control,
+latin-iso8859-1 and mule-unicode-* only.")
 
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
@@ -262,12 +268,15 @@
 		    (write #xbd)))))))))
      (repeat)))
 
-  "CCL program to encode ascii, eight-bit-control, latin-iso8859-1 and mule-unicode-*. into UTF-8.")
+  "CCL program to encode into UTF-8.
+Only characters from the charsets ascii, eight-bit-control,
+latin-iso8859-1 and mule-unicode-* are recognized.  Others are encoded
+as U+FFFD.")
 
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
-Supported character sets are:
+The supported Emacs character sets are:
    ascii
    eight-bit-control
    eight-bit-graphic
@@ -276,8 +285,14 @@ Supported character sets are:
    mule-unicode-2500-33ff
    mule-unicode-e000-ffff
 
-Unicode characters out of these ranges are decoded
-into eight-bit-control or eight-bit-graphic."
+Unicode characters out of the ranges U+0000-U+33FF and U+E200-U+FFFF
+are decoded into sequences of eight-bit-control and eight-bit-graphic
+characters to preserve their byte sequences.  Emacs characters out of
+these ranges are encoded into U+FFFD.
+
+Note that, currently, characters in the mule-unicode charsets have no
+syntax and case information.  Thus, for instance, upper- and
+lower-casing commands won't work with them."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
  '((safe-charsets
@@ -301,7 +316,8 @@ into eight-bit-control or eight-bit-graphic."
    ;; Kluge to ensure the translation table is loaded.
    (pre-write-conversion . internal-require-ucs-tables)))
 
-(defun internal-require-ucs-tables ()
-  (require 'ucs-tables))
+(defun internal-require-ucs-tables (from to)
+  (require 'ucs-tables)
+  nil)
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
