@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (c) 1989, 1995 Free Software Foundation, Inc.
+;; Copyright (c) 1989, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: Michael Ernst <mernst@theory.lcs.mit.edu>
@@ -34,12 +34,18 @@
 ;; Makefile|zaphod, respectively (instead of Makefile and Makefile<2>).
 ;; Other buffer name styles are also available.
 
-;; To use this file, just load it.
+;; To use this file, just load it; or add (require 'uniquify) to your .emacs.
 ;; To disable it after loading, set variable uniquify-buffer-name-style to nil.
 ;; For other options, see "User-visible variables", below.
 
 ;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
 ;; and InfoDock is available from the maintainer.
+
+;; Doesn't correctly handle buffer names created by M-x write-file in Emacs 18.
+;; Doesn't work under NT when backslash is used as a path separator (forward
+;;   slash path separator works fine).  To fix, check system-type against
+;;   'windows-nt, write a routine that breaks paths down into components.
+;;   (Surprisingly, there isn't one built in.)
 
 ;;; Change Log:
 
@@ -59,13 +65,17 @@
 ;;  uniquify-buffer-name-style; add 'forward and 'post-forward-angle-brackets
 ;;  styles; remove uniquify-reverse-dir-content-p; add
 ;;  uniquify-trailing-separator-p.  mernst 4 Aug 95
+;; Don't call expand-file-name on nil.  mernst 7 Jan 96
+;; Check whether list-buffers-directory is bound.  mernst 11 Oct 96
+;; Ignore non-file non-dired buffers. Colin Rafferty <craffert@ml.com> 3 Mar 97
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,
 ;; Alastair Burt <burt@dfki.uni-kl.de>,
 ;; Bob Weiner <weiner@footloose.sps.mot.com>,
 ;; Albert L. Ting <alt@vlibs.com>,
-;; gyro@reasoning.com.
+;; gyro@reasoning.com,
+;; Bryan O'Sullivan <bos@eng.sun.com>.
 
 
 ;;; Code:
@@ -172,11 +182,23 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 ;; uniquify's version of buffer-file-name
 (defun uniquify-buffer-file-name (buffer)
   "Return name of file BUFFER is visiting, or nil if none.
-Works on dired buffers as well as ordinary file-visiting buffers."
+Works on dired buffers as well as ordinary file-visiting buffers,
+but no others."
   (or (buffer-file-name buffer)
+      (and (featurep 'dired)
       (save-excursion
 	(set-buffer buffer)
-	list-buffers-directory)))
+	     (and
+	      (eq major-mode 'dired-mode) ; do nothing if not a dired buffer
+	      (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
+		  list-buffers-directory
+		;; don't use default-directory if dired-directory is nil
+		(and dired-directory
+		     (expand-file-name
+		      (directory-file-name
+		       (if (consp dired-directory)
+			   (car dired-directory)
+			 dired-directory))))))))))
 
 (defun uniquify-fix-list-filename-lessp (fixlist1 fixlist2)
   (uniquify-filename-lessp
@@ -381,4 +403,3 @@ See also `delay-rationalize-file-buffer-names' for hook setter."
 (add-hook 'kill-buffer-hook 'delay-uniquify-rationalize-file-buffer-names)
 
 ;;; uniquify.el ends here
-
