@@ -530,35 +530,32 @@ C-w Display information on absence of warranty for GNU Emacs."
 (defun function-called-at-point ()
   "Return a function around point or else called by the list containing point.
 If that doesn't give a function, return nil."
-  (let ((stab (syntax-table)))
-    (set-syntax-table emacs-lisp-mode-syntax-table)
-    (unwind-protect
-	(or (condition-case ()
-		(save-excursion
-		  (or (not (zerop (skip-syntax-backward "_w")))
-		      (eq (char-syntax (following-char)) ?w)
-		      (eq (char-syntax (following-char)) ?_)
-		      (forward-sexp -1))
-		  (skip-chars-forward "'")
-		  (let ((obj (read (current-buffer))))
-		    (and (symbolp obj) (fboundp obj) obj)))
-	      (error nil))
-	    (condition-case ()
-		(save-excursion
-		  (save-restriction
-		    (narrow-to-region (max (point-min) (- (point) 1000)) (point-max))
-		    ;; Move up to surrounding paren, then after the open.
-		    (backward-up-list 1)
-		    (forward-char 1)
-		    ;; If there is space here, this is probably something
-		    ;; other than a real Lisp function call, so ignore it.
-		    (if (looking-at "[ \t]")
-			(error "Probably not a Lisp function call"))
-		    (let (obj)
-		      (setq obj (read (current-buffer)))
-		      (and (symbolp obj) (fboundp obj) obj))))
-	      (error nil)))
-      (set-syntax-table stab))))
+  (with-syntax-table emacs-lisp-mode-syntax-table
+    (or (condition-case ()
+	    (save-excursion
+	      (or (not (zerop (skip-syntax-backward "_w")))
+		  (eq (char-syntax (following-char)) ?w)
+		  (eq (char-syntax (following-char)) ?_)
+		  (forward-sexp -1))
+	      (skip-chars-forward "'")
+	      (let ((obj (read (current-buffer))))
+		(and (symbolp obj) (fboundp obj) obj)))
+	  (error nil))
+	(condition-case ()
+	    (save-excursion
+	      (save-restriction
+		(narrow-to-region (max (point-min)
+				       (- (point) 1000)) (point-max))
+		;; Move up to surrounding paren, then after the open.
+		(backward-up-list 1)
+		(forward-char 1)
+		;; If there is space here, this is probably something
+		;; other than a real Lisp function call, so ignore it.
+		(if (looking-at "[ \t]")
+		    (error "Probably not a Lisp function call"))
+		(let ((obj (read (current-buffer))))
+		  (and (symbolp obj) (fboundp obj) obj))))
+	  (error nil)))))
 
 (defvar symbol-file-load-history-loaded nil
   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
@@ -760,19 +757,16 @@ It can also be nil, if the definition is not associated with any file."
   "Return the bound variable symbol found around point.
 Return 0 if there is no such symbol."
   (condition-case ()
-      (let ((stab (syntax-table)))
-	(unwind-protect
-	    (save-excursion
-	      (set-syntax-table emacs-lisp-mode-syntax-table)
-	      (or (not (zerop (skip-syntax-backward "_w")))
-		  (eq (char-syntax (following-char)) ?w)
-		  (eq (char-syntax (following-char)) ?_)
-		  (forward-sexp -1))
-	      (skip-chars-forward "'")
-	      (let ((obj (read (current-buffer))))
-		(or (and (symbolp obj) (boundp obj) obj)
-		    0)))
-	  (set-syntax-table stab)))
+      (with-syntax-table emacs-lisp-mode-syntax-table
+	(save-excursion
+	  (or (not (zerop (skip-syntax-backward "_w")))
+	      (eq (char-syntax (following-char)) ?w)
+	      (eq (char-syntax (following-char)) ?_)
+	      (forward-sexp -1))
+	  (skip-chars-forward "'")
+	  (let ((obj (read (current-buffer))))
+	    (or (and (symbolp obj) (boundp obj) obj)
+		0))))
     (error 0)))
 
 (defun help-xref-on-pp (from to)
@@ -843,6 +837,10 @@ Returns the documentation as a string, also."
 		    (with-current-buffer standard-output
 		      (princ "global value is ")
 		      (terpri)
+		      ;; Fixme: pp can take an age if you happen to
+		      ;; ask for a very large expression.  We should
+		      ;; probably print it raw once and check it's a
+		      ;; sensible size before prettyprinting.  -- fx
 		      (let ((from (point)))
 			(pp val)
 			(help-xref-on-pp from (point))))))
@@ -1453,6 +1451,7 @@ out of view."
      (encode-time
       . "(encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)")
      (insert . "(insert &rest ARGS)")
+     (insert-and-inherit . "(insert-and-inherit &rest ARGS)")
      (insert-before-markers . "(insert-before-markers &rest ARGS)")
      (message . "(message STRING &rest ARGUMENTS)")
      (message-box . "(message-box STRING &rest ARGUMENTS)")
