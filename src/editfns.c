@@ -377,17 +377,22 @@ in which case it is less.")
   return buildmark (ZV);
 }
 
-DEFUN ("following-char", Ffollchar, Sfollchar, 0, 0, 0,
-  "Return the character following point, as a number.")
+DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
+  "Return the character following point, as a number.\n\
+At the end of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = FETCH_CHAR (point);
+  if (point >= ZV)
+    XFASTINT (temp) = 0;
+  else
+    XFASTINT (temp) = FETCH_CHAR (point);
   return temp;
 }
 
-DEFUN ("preceding-char", Fprevchar, Sprevchar, 0, 0, 0,
-  "Return the character preceding point, as a number.")
+DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
+  "Return the character preceding point, as a number.\n\
+At the beginning of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
@@ -1232,8 +1237,8 @@ syms_of_editfns ()
   defsubr (&Seobp);
   defsubr (&Sbolp);
   defsubr (&Seolp);
-  defsubr (&Sfollchar);
-  defsubr (&Sprevchar);
+  defsubr (&Sfollowing_char);
+  defsubr (&Sprevious_char);
   defsubr (&Schar_after);
   defsubr (&Sinsert);
   defsubr (&Sinsert_before_markers);
