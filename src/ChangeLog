@@ -1,19 +1,16 @@
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
-	* insdel.c (adjust_markers_for_insert): Call
-	fix_start_end_in_overlays.
+	* buffer.c (fix_start_end_in_overlays): Rename fix_overlays_in_range.
 
-	* buffer.c (fix_start_end_in_overlays): Rename
-	fix_overlays_in_range.
+	* lisp.h (fix_start_end_in_overlays): Likewise.
+
+	* insdel.c (adjust_markers_for_insert): Call fix_start_end_in_overlays.
 
 	* editfns.c (Ftranspose_regions): Likewise.
 
-	* lisp.h (top_level): Likewise.
-
 2004-03-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.c (handle_one_xevent): Do not pass key press events to
-	GTK.
+	* xterm.c (handle_one_xevent): Do not pass key press events to GTK.
 
 2004-03-19  Richard M. Stallman  <rms@gnu.org>
 
@@ -65,8 +62,7 @@
 
 2004-03-14  Steven Tamm <steventamm@mac.com>
 
-	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
-	HAVE_CARBON is defined.
+	* Makefile.in (XMENU_OBJ) [HAVE_CARBON]: Do not include xmenu.o.
 
 2004-03-14  Kim F. Storm  <storm@cua.dk>
 
