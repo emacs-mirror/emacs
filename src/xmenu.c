@@ -746,7 +746,7 @@ cached information about equivalent key sequences.")
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
 	  xpos = (FONT_WIDTH (f->display.x->font) * XWINDOW (window)->left);
-	  ypos = (FONT_HEIGHT (f->display.x->font) * XWINDOW (window)->top);
+	  ypos = (f->display.x->line_height * XWINDOW (window)->top);
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
