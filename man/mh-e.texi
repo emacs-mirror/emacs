@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.3 2000/03/27 04:20:08 monnier Exp $
+@c $Id: mh-e.texi,v 1.4 2000/07/03 13:45:55 gerd Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -67,7 +67,7 @@ translation approved by the Free Software Foundation.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2000 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim
 copies of this manual provided the copyright notice and
@@ -4007,7 +4007,7 @@ the ``copyright'' line and a pointer to where the full notice is found.
 
 @smallexample
 @var{one line to give the program's name and an idea of what it does.}
-Copyright (C) 19@var{yy}  @var{name of author}
+Copyright (C) 20@var{yy}  @var{name of author}
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -4030,7 +4030,7 @@ If the program is interactive, make it output a short notice like this
 when it starts in an interactive mode:
 
 @smallexample
-Gnomovision version 69, Copyright (C) 19@var{yy} @var{name of author}
+Gnomovision version 69, Copyright (C) 20@var{yy} @var{name of author}
 Gnomovision comes with ABSOLUTELY NO WARRANTY; for details
 type `show w'.  This is free software, and you are welcome
 to redistribute it under certain conditions; type `show c' 
