@@ -258,7 +258,7 @@ This is a destructive operation."
 (defmacro ebrowse-output (&rest body)
   "Eval BODY with a writable current buffer.
 Preserve buffer's modified state."
-  (let ((modified (gensym "--ebrowse-output--")))
+  (let ((modified (make-symbol "--ebrowse-output--")))
     `(let (buffer-read-only (,modified (buffer-modified-p)))
        (unwind-protect
 	   (progn ,@body)
