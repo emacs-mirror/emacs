@@ -417,6 +417,9 @@ If nil, use uppercases.")
    nil nil nil nil nil
    ])
 
+;; To avoid byte-compiler warnings.  It should never be set globally.
+(defvar ethio-sera-being-called-by-w3)
+
 ;;;###autoload
 (defun ethio-sera-to-fidel-region (beg end &optional secondary force)
   "Convert the characters in region from SERA to FIDEL.
@@ -587,8 +590,8 @@ the conversion of \"a\"."
       (cond
 
        ;; skip from "<" to ">" (or from "&" to ";") if in w3-mode
-       ((and (boundp 'sera-being-called-by-w3)
-	     sera-being-called-by-w3
+       ((and (boundp 'ethio-sera-being-called-by-w3)
+	     ethio-sera-being-called-by-w3
 	     (or (= ch ?<) (= ch ?&)))
 	(search-forward (if (= ch ?<) ">" ";")
 			nil 0))
@@ -1174,8 +1177,8 @@ See also the descriptions of the variables
 	  (goto-char (1+ (match-end 0)))) ; because we inserted one byte (\)
 
 	 ;; skip from "<" to ">" (or from "&" to ";") if called from w3
-	 ((and (boundp 'sera-being-called-by-w3)
-	       sera-being-called-by-w3
+	 ((and (boundp 'ethio-sera-being-called-by-w3)
+	       ethio-sera-being-called-by-w3
 	       (or (= ch ?<) (= ch ?&)))
 	  (search-forward (if (= ch ?<) ">" ";")
 			  nil 0))
@@ -1835,7 +1838,7 @@ Otherwise, [0-9A-F]."
       (set-buffer-modified-p nil)))
 
    ((string-match "\\.html$" (buffer-file-name))
-    (let ((sera-being-called-by-w3 t))
+    (let ((ethio-sera-being-called-by-w3 t))
       (save-excursion
 	(ethio-sera-to-fidel-marker 'force)
 	(goto-char (point-min))
@@ -1872,7 +1875,7 @@ Otherwise, [0-9A-F]."
 
    ((string-match "\\.html$" (buffer-file-name))
     (save-excursion
-      (let ((sera-being-called-by-w3 t)
+      (let ((ethio-sera-being-called-by-w3 t)
 	    (lq (aref ethio-fidel-to-sera-map 461))
 	    (rq (aref ethio-fidel-to-sera-map 462)))
 	(aset ethio-fidel-to-sera-map 461 "&laquote;")
