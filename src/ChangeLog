@@ -1,3 +1,7 @@
+2001-09-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (handle_single_display_prop): Fix for int/Lisp_Object mixup.
+
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (note_mouse_highlight) <help-echo>: When looking for
@@ -31,8 +35,7 @@
 	(syms_of_xdisp): Initialize them.
 	(handle_single_display_prop): Don't change point, bind `object',
 	`position', and `buffer-position' instead to the object having the
-	`display' property, position in the object and position in the
-	buffer.
+	`display' property, position in the object and position in the buffer.
 
 	* fileio.c (Finsert_file_contents): Don't change the multibyteness
 	of the buffer if REPLACE is non-nil.
@@ -65,8 +68,8 @@
 
 2001-08-28  Miles Bader  <miles@gnu.org>
 
-	* textprop.c (Fprevious_single_char_property_change) 
-       (Fnext_single_char_property_change): Doc fixes.
+	* textprop.c (Fprevious_single_char_property_change)
+	(Fnext_single_char_property_change): Doc fixes.
 
 2001-08-27  Gerd Moellmann  <gerd@gnu.org>
 
@@ -135,8 +138,7 @@
 	From Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>.
 
 	* xdisp.c (move_it_by_lines) <DVPOS < 0>: Start at the beginning
-	of the screen line, not text line, containing IT's current
-	position.
+	of the screen line, not text line, containing IT's current position.
 
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 

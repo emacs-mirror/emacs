@@ -1,3 +1,8 @@
+2001-09-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help.el (describe-function-1): Save precomputed `file-name' rather
+	than recomputing it (incorrectly) with `symbol-file'.
+
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/isearch-x.el (isearch-exit-recursive-edit):
