@@ -361,7 +361,7 @@ on Unix (@pxref{Hardcopy}, @pxref{Postscript Variables}), but the
 defaults for these variables on MS-DOS and MS-Windows are not the same
 as the defaults on Unix.
 
-@vindex printer-name
+@vindex printer-name @r{(MS-DOS)}
   If you want to use your local printer, printing on it in the usual DOS
 manner, then set the Lisp variable @code{lpr-command} to @code{""} (its
 default value) and @code{printer-name} to the name of the printer
