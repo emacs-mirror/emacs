@@ -1,3 +1,8 @@
+2000-10-05  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* xfns.c (image_ascent): Rearrange ascent calculation for the
+	has-a-font case.
+
 2000-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (Fwhere_is_internal): Ignore `menu-bar' and `tool-bar'.
