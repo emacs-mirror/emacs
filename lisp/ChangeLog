@@ -1,3 +1,8 @@
+2004-10-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert x-server-vendor
+	and x-server-version in bug report.
+
 2004-10-28  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (set-auto-mode-0): New function.
