@@ -872,7 +872,7 @@ the current Emacs session.  If a symbol has not yet been so used,
 * Repeat Events::               Double and triple click (or drag, or down).
 * Motion Events::		Just moving the mouse, not pushing a button.
 * Focus Events::		Moving the mouse between frames.
-* Misc Events::                 Other events window systems can generate.
+* Misc Events::                 Other events the system can generate.
 * Event Examples::		Examples of the lists for mouse events.
 * Classifying Events::		Finding the modifier keys in an event symbol.
 				Event types.
@@ -1462,9 +1462,9 @@ so that the focus event comes either before or after the multi-event key
 sequence, and not within it.
 
 @node Misc Events
-@subsection Miscellaneous Window System Events
+@subsection Miscellaneous System Events
 
-A few other event types represent occurrences within the window system.
+A few other event types represent occurrences within the system.
 
 @table @code
 @cindex @code{delete-frame} event
@@ -1517,6 +1517,14 @@ The usual way to handle this event is by visiting these files.
 
 This kind of event is generated, at present, only on some kinds of
 systems.
+
+@cindex @code{usr1-signal} event
+@cindex @code{usr2-signal} event
+@item usr1-signal
+@itemx usr2-signal
+These events are generated when the Emacs process receives the signals
+@code{SIGUSR1} and @code{SIGUSR2}.  They contain no additional data
+because signals do not carry additional information.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that
