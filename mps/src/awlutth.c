@@ -1,17 +1,12 @@
-/* impl.c.thawlut: THREADING UNIT TEST USING POOL CLASS AWL
+/* impl.c.awlutth: THREADING UNIT TEST USING POOL CLASS AWL
  *
- * $HopeName: !awlutth.c(trunk.1) $
- * Copyright (C) 2000, Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * Any MPS developer, any interested QA.
+ * $Id$
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN
  *
  * .design: see design.mps.poolawl.test.*
  */
-
 
 #include "mpscawl.h"
 #include "mpsclo.h"
@@ -24,12 +19,7 @@
 #include "mpsw3.h"
 #endif
 #include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#ifdef MPS_OS_LI
+#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
 #include <pthread.h>
 #endif
 
@@ -146,6 +136,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   return object;
 }
 
+
 /* gets the nth slot from a table
  * .assume.dylan-obj
  */
@@ -160,7 +151,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
 static void set_table_slot(mps_word_t *table,
                            unsigned long n, mps_word_t *p)
 {
-  assert(table[0] == (mps_word_t)table_wrapper);
+  cdie(table[0] == (mps_word_t)table_wrapper, "set_table_slot");
   table[3+n] = (mps_word_t)p;
 }
 
@@ -169,8 +160,8 @@ static void set_table_slot(mps_word_t *table,
  */
 static void table_link(mps_word_t *t1, mps_word_t *t2)
 {
-  assert(t1[0] == (mps_word_t)table_wrapper);
-  assert(t2[0] == (mps_word_t)table_wrapper);
+  cdie(t1[0] == (mps_word_t)table_wrapper, "table_link 1");
+  cdie(t2[0] == (mps_word_t)table_wrapper, "table_link 2");
   t1[1] = (mps_word_t)t2;
   t2[1] = (mps_word_t)t1;
 }
@@ -284,7 +275,7 @@ static void *setup(void *v, size_t s)
       "Weak AP Create\n");
   die(mps_ap_create(&bogusap, tablepool, MPS_RANK_EXACT),
       "Bogus AP Create\n");
-   
+
   test(leafap, exactap, weakap, bogusap);
 
   mps_ap_destroy(bogusap);
@@ -318,10 +309,12 @@ static void *setup_thr(void *v)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   pthread_t pthread1;
+
+  randomize(argc, argv);
 
   initialise_wrapper(wrapper_wrapper);
   initialise_wrapper(string_wrapper);
@@ -334,6 +327,7 @@ int main(void)
   pthread_join(pthread1, NULL);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
