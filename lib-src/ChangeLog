@@ -1,3 +1,7 @@
+2001-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* b2m.c (main): Always return a value.
+
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (parse_qualified_param_ident_or_type): Return a

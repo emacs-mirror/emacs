@@ -1,5 +1,8 @@
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/checkdoc.el (checkdoc-common-verbs-wrong-voice): Add
+	an antry for ``converts''.
+
 	* language/slovak.el ("Slovak"): Add documentation string.  From
 	Pavel@Janik.cz (Pavel Jan,Bm(Bk ml.).
 
