@@ -1,3 +1,8 @@
+2002-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): Allow multi-line
+	copyrights to be updated.
+
 2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/texinfo.el (texinfo-insert-@end): Fix the change from
