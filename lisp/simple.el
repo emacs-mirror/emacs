@@ -2998,9 +2998,12 @@ of the tail end of the buffer's text is involved in completion.")
 Go to the window from which completion was requested."
   (interactive)
   (let ((buf completion-reference-buffer))
-    (delete-window (selected-window))
-    (if (get-buffer-window buf)
-	(select-window (get-buffer-window buf)))))
+    (if (one-window-p t)
+	(if (window-dedicated-p (selected-window))
+	    (delete-frame (selected-frame)))
+      (delete-window (selected-window))
+      (if (get-buffer-window buf)
+	  (select-window (get-buffer-window buf))))))
 
 (defun previous-completion (n)
   "Move to the previous item in the completion list."
