@@ -72,6 +72,12 @@ Changing frame parameter `font' sets font-related attributes of the
 `foreground-color' or `background-color' sets the colors of the 
 `default' face and vice versa.
 
+** New face `menu'.
+
+The face `menu' can be used to change colors and font of Emacs' menus.
+Setting the font of LessTif/Motif menus is currently not supported;
+attempts to set the font are ignored in this case.
+
 ** New frame parameter `screen-gamma' for gamma correction.
 
 The new frame parameter `screen-gamma' specifies gamma-correction for
