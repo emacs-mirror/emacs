@@ -95,7 +95,7 @@
 
 ;;; Contributors:
 
-;; These people have given me importand feedback and new ideas for
+;; These people have given me important feedback and new ideas for
 ;; tempo.el. Thanks.
 
 ;; Nelson Minar <nelson@santafe.edu>
@@ -144,7 +144,7 @@ setting it to '(upcase), for example.")
 (defvar tempo-local-tags '((tempo-tags . nil))
   "A list of locally installed tag completion lists.
 It is a association list where the car of every element is a symbol
-whose varable value is a template list. The cdr part, if non-nil, is a
+whose variable value is a template list. The cdr part, if non-nil, is a
 function or a regexp that defines the string to match. See the
 documentation for the function `tempo-complete-tag' for more info.
 
@@ -181,7 +181,7 @@ should be replaced with a template.")
 (defvar tempo-user-elements nil
   "Element handlers for user-defined elements.
 A list of symbols which are bound to functions that take one argument.
-This function should return somthing to be sent to `tempo-insert' if
+This function should return something to be sent to `tempo-insert' if
 it recognizes the argument, and NIL otherwise")
 
 (defvar tempo-named-insertions nil
@@ -605,7 +605,7 @@ or to `tempo-tags' if TAG-LIST is nil."
 TAG-LIST is a symbol whose variable value is a tag list created with
 `tempo-add-tag'.
 
-COMPLETION-FUNCTION is an obsolete option for specifyingis an optional
+COMPLETION-FUNCTION is an obsolete option for specifying an optional
 function or string that is used by `\\[tempo-complete-tag]' to find a
 string to match the tag against. It has the same definition as the
 variable `tempo-match-finder'. In this version, supplying a
