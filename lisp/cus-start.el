@@ -180,7 +180,7 @@
 	     (split-height-threshold windows integer)
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
-	     (scroll-preserve-screen-position windows bool)
+	     (scroll-preserve-screen-position windows boolean)
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
