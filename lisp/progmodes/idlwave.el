@@ -585,7 +585,7 @@ for which to assume this can be set here."
 (defcustom idlwave-completion-show-classes 1
   "*Number of classes to show when completing object methods and keywords.
 When completing methods or keywords for an object with unknown class,
-the *Completions* buffer will show the legal classes for each completion
+the *Completions* buffer will show the valid classes for each completion
 like this:
 
 MyMethod <Class1,Class2,Class3>
@@ -5338,7 +5338,7 @@ end
 
 (defun idlwave-complete (&optional arg module class)
   "Complete a function, procedure or keyword name at point.
-This function is smart and figures out what can be legally completed
+This function is smart and figures out what can be completed
 at this point.
 - At the beginning of a statement it completes procedure names.
 - In the middle of a statement it completes function names.
@@ -7729,7 +7729,7 @@ from all classes if class equals t."
     keywords))
 
 (defun idlwave-expand-keyword (keyword module)
-  "Expand KEYWORD to one of the legal keyword parameters of MODULE.
+  "Expand KEYWORD to one of the valid keyword parameters of MODULE.
 KEYWORD may be an exact match or an abbreviation of a keyword.
 If the match is exact, KEYWORD itself is returned, even if there may be other
 keywords of which KEYWORD is an abbreviation.  This is necessary because some
