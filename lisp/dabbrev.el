@@ -415,7 +415,7 @@ direction of search to backward if set non-nil.
 
 See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   (interactive "*P")
-  (let (abbrev expansion old direction)
+  (let (abbrev expansion old direction (orig-point (point)))
     ;; abbrev -- the abbrev to expand
     ;; expansion -- the expansion found (eventually) or nil until then
     ;; old -- the text currently in the buffer
@@ -489,6 +489,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (dabbrev--reset-global-variables)
       (if old
 	  (save-excursion
+	    (setq buffer-undo-list (cons orig-point buffer-undo-list))
 	    (search-backward (substring old (length abbrev)))
 	    (delete-region (match-beginning 0) (match-end 0))))
       (error "No%s dynamic expansion for `%s' found"
@@ -507,6 +508,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	  (setq dabbrev--last-expansion-location
 		(copy-marker dabbrev--last-expansion-location)))
       ;; Success: stick it in and return.
+      (setq buffer-undo-list (cons orig-point buffer-undo-list))
       (dabbrev--substitute-expansion old abbrev expansion)
       ;; Save state for re-expand.
       (setq dabbrev--last-expansion expansion)	
