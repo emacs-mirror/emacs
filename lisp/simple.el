@@ -1838,10 +1838,12 @@ visual feedback indicating the extent of the region being copied."
 	      (message "Saved text from \"%s\""
 		      (substring killed-text 0 message-len))))))))
 
-(defun append-next-kill ()
-  "Cause following command, if it kills, to append to previous kill."
-  (interactive)
-  (if (interactive-p)
+(defun append-next-kill (&optional interactive)
+  "Cause following command, if it kills, to append to previous kill.
+The argument is used for internal purposes; do not supply one."
+  (interactive "p")
+  ;; We don't use (interactive-p), since that breaks kbd macros.
+  (if interactive
       (progn
 	(setq this-command 'kill-region)
 	(message "If the next command is a kill, it will append"))
