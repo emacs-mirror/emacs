@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1457,36 +1457,58 @@ ascii_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
-DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
-  "Return list of keys that invoke DEFINITION in KEYMAP or KEYMAP1.\n\
-If KEYMAP is nil, search only KEYMAP1.\n\
-If KEYMAP1 is nil, use the current global map.\n\
+DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
+  "Return list of keys that invoke DEFINITION.\n\
+If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
+If KEYMAP is nil, search all the currently active keymaps.\n\
 \n\
-If optional 4th arg FIRSTONLY is non-nil, return the first key sequence found,\n\
+If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n\
 rather than a list of all possible key sequences.\n\
 If FIRSTONLY is t, avoid key sequences which use non-ASCII\n\
 keys and therefore may not be usable on ASCII terminals.  If FIRSTONLY\n\
 is the symbol `non-ascii', return the first binding found, no matter\n\
 what its components.\n\
 \n\
-If optional 5th arg NOINDIRECT is non-nil, don't follow indirections\n\
+If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
 to other keymaps or slots.  This makes it possible to search for an\n\
 indirect definition itself.")
-  (definition, local_keymap, global_keymap, firstonly, noindirect)
-     Lisp_Object definition, local_keymap, global_keymap;
+  (definition, keymap, firstonly, noindirect)
+     Lisp_Object definition, keymap;
      Lisp_Object firstonly, noindirect;
 {
   register Lisp_Object maps;
   Lisp_Object found;
+  int keymap_specified = !NILP (keymap);
 
-  if (NILP (global_keymap))
-    global_keymap = current_global_map;
+  if (! keymap_specified)
+    {
+#ifdef USE_TEXT_PROPERTIES
+      keymap = get_local_map (PT, current_buffer);
+#else
+      keymap = current_buffer->keymap;
+#endif
+    }
 
-  if (!NILP (local_keymap))
-    maps = nconc2 (Faccessible_keymaps (get_keymap (local_keymap), Qnil),
-		   Faccessible_keymaps (get_keymap (global_keymap), Qnil));
+  if (!NILP (keymap))
+    maps = nconc2 (Faccessible_keymaps (get_keymap (keymap), Qnil),
+		   Faccessible_keymaps (get_keymap (current_global_map),
+					Qnil));
   else
-    maps = Faccessible_keymaps (get_keymap (global_keymap), Qnil);
+    maps = Faccessible_keymaps (get_keymap (current_global_map), Qnil);
+
+  /* Put the minor mode keymaps on the front.  */
+  if (! keymap_specified)
+    {
+      Lisp_Object minors;
+      minors = Fnreverse (Fcurrent_minor_mode_maps ());
+      while (!NILP (minors))
+	{
+	  maps = nconc2 (Faccessible_keymaps (get_keymap (XCONS (minors)->car),
+					      Qnil),
+			 maps);
+	  minors = XCONS (minors)->cdr;
+	}
+    }
 
   found = Qnil;
 
@@ -1596,9 +1618,9 @@ indirect definition itself.")
 
 	     Either nil or number as value from Flookup_key
 	     means undefined.  */
-	  if (!NILP (local_keymap))
+	  if (keymap_specified)
 	    {
-	      binding = Flookup_key (local_keymap, sequence, Qnil);
+	      binding = Flookup_key (keymap, sequence, Qnil);
 	      if (!NILP (binding) && XTYPE (binding) != Lisp_Int)
 		{
 		  if (XTYPE (definition) == Lisp_Cons)
@@ -1612,6 +1634,12 @@ indirect definition itself.")
 		    if (!EQ (binding, definition))
 		      continue;
 		}
+	    }
+	  else
+	    {
+	      binding = Fkey_binding (sequence, Qnil);
+	      if (!EQ (binding, definition))
+		continue;
 	    }
 
 	  /* It is a true unshadowed match.  Record it.  */
@@ -1647,8 +1675,7 @@ where_is_string (definition)
 {
   register Lisp_Object keys, keys1;
 
-  keys = Fwhere_is_internal (definition,
-			     current_buffer->keymap, Qnil, Qnil, Qnil);
+  keys = Fwhere_is_internal (definition, Voverriding_local_map, Qnil, Qnil);
   keys1 = Fmapconcat (Qkey_description, keys, build_string (", "));
 
   return keys1;
