@@ -88,7 +88,7 @@ statedir=@statedir@
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.	 ${archlibdir} is a subdirectory of this.
-libdir=${exec_prefix}/lib
+libdir=@libdir@
 
 # Where to install Emacs's man pages, and what extension they should have.
 mandir=@mandir@
@@ -245,7 +245,9 @@ oldXMenu/Makefile: oldXMenu/Makefile.in config.status
 ## place with their files read-only (perhaps because they are checked
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
-install: all do-install
+## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
+## ever modify src/paths.h.
+install: ${SUBDIR} do-install ;
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
@@ -306,7 +308,7 @@ mkdir: FRC.mkdir
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${libdir} \
 	  `echo ${locallisppath} | sed 's/:/ /'`
-	-chmod 777 ${COPYDESTS} ${lockdir}
+	-chmod 777 ${lockdir}
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
@@ -457,7 +459,9 @@ check:
 dist:
 	cd ${srcdir}; make-dist
 
-info:
+.PHONY: info dvi dist check
+force-info:
+info: force-info
 	(cd ${srcdir}/man; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd ${srcdir}/man; $(MAKE) $(MFLAGS) dvi)
