@@ -480,7 +480,11 @@ The buffer is not selected, just returned to the caller."
 		       (while (and (not found) list)
 			 (save-excursion
 			   (set-buffer (car list))
-			   (if (equal buffer-file-number number)
+			   (if (and (equal buffer-file-number number)
+				    ;; Verify this buffer's file number
+				    ;; still belongs to its file.
+				    (file-exists-p buffer-file-name)
+				    (equal (nthcdr 10 (file-attributes buffer-file-name)) number))
 			     (setq found (car list))))
 			 (setq list (cdr list)))
 		       found))))
