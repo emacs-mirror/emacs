@@ -319,6 +319,7 @@ will be removed before popping up the buffer.  The default is
 @chapter Commands
 
 @menu
+* Buffer Entry::        Commands after entering a Message buffer.
 * Header Commands::     Commands for moving to headers.
 * Movement::            Moving around in message buffers.
 * Insertion::           Inserting things into message buffers.
@@ -326,7 +327,23 @@ will be removed before popping up the buffer.  The default is
 * Various Commands::    Various things.
 * Sending::             Actually sending the message.
 * Mail Aliases::        How to use mail aliases.
+* Spelling::            Having Emacs check your spelling.
 @end menu
+
+
+@node Buffer Entry
+@section Buffer Entry
+@cindex undo
+@kindex C-_
+
+You most often end up in a Message buffer when responding to some other
+message of some sort.  Message does lots of handling of quoted text, and
+may remove signatures, reformat the text, or the like---depending on
+which used settings you're using.  Message usually gets things right,
+but sometimes it stumbles.  To help the user unwind these stumblings,
+Message sets the undo boundary before each major automatic action it
+takes.  If you press the undo key (usually located at @kbd{C-_}) a few
+times, you will get back the un-edited message you're responding to.
 
 
 @node Header Commands
@@ -693,6 +710,51 @@ No expansion will be performed upon sending of the message---all
 expansions have to be done explicitly.
 
 
+@node Spelling
+@section Spelling
+@cindex spelling
+@findex ispell-message
+
+There are two popular ways to have Emacs spell-check your messages:
+@code{ispell} and @code{flyspell}.  @code{ispell} is the older and
+probably more popular package.  You typically first write the message,
+and then run the entire thing through @code{ispell} and fix all the
+typos.  To have this happen automatically when you send a message, put
+something like the following in your @file{.emacs} file:
+
+@lisp
+(add-hook 'message-send-hook 'ispell-message)
+@end lisp
+
+@vindex ispell-message-dictionary-alist
+If you're in the habit of writing in different languages, this can be
+controlled by the @code{ispell-message-dictionary-alist} variable:
+
+@lisp
+(setq ispell-message-dictionary-alist
+      '(("^Newsgroups:.*\\bde\\." . "deutsch8")
+	(".*" . "default")))
+@end lisp
+
+@code{ispell} depends on having the external @samp{ispell} command
+installed.
+
+The other popular method is using @code{flyspell}.  This package checks
+your spelling while you're writing, and marks any mis-spelled words in
+various ways.
+
+To use @code{flyspell}, put something like the following in your
+@file{.emacs} file:
+
+@lisp
+(defun my-message-setup-routine ()
+  (flyspell-mode 1))
+(add-hook 'message-setup-hook 'my-message-setup-routine)
+@end lisp
+
+@code{flyspell} depends on having the external @samp{ispell} command
+installed.
+
 
 @node Variables
 @chapter Variables
@@ -768,7 +830,7 @@ buffers.
 @item message-subject-re-regexp
 @vindex message-subject-re-regexp
 Responses to messages have subjects that start with @samp{Re: }.  This
-is @emph{not} an abbreviation of the English word ``response'', but in
+is @emph{not} an abbreviation of the English word ``response'', but is
 Latin, and means ``in response to''.  Some illiterate nincompoops have
 failed to grasp this fact, and have ``internationalized'' their software
 to use abonimations like @samp{Aw: } (``antwort'') or @samp{Sv: }
@@ -793,7 +855,7 @@ address (not primary one) is used in the @code{From} field.
 @vindex message-required-mail-headers
 @xref{News Headers}, for the syntax of this variable.  It is
 @code{(From Date Subject (optional . In-Reply-To) Message-ID Lines
-(optional . X-Mailer))} by default.
+(optional . User-Agent))} by default.
 
 @item message-ignored-mail-headers
 @vindex message-ignored-mail-headers
@@ -825,6 +887,13 @@ headers in this variable.  If this variable is non-@code{nil} (which is
 the default), these headers will be removed before mailing when sending
 messages via MH.  Set it to @code{nil} if your MH can handle these
 headers.
+
+@item message-send-mail-partially-limit
+@vindex message-send-mail-partially-limit
+The limit on the size of messages sent as @samp{message/partial}.
+This is the minimum message size in characters beyond which the
+message should be sent in several parts.  If it is @code{nil}, the
+size is unlimited.
 
 @end table
 
@@ -881,15 +950,10 @@ will use @code{system-name} to determine the name of the system.  If
 this isn't a fully qualified domain name (FQDN), Message will use
 @code{mail-host-address} as the FQDN of the machine.
 
-@item X-Newsreader
-@cindex X-Newsreader
+@item User-Agent
+@cindex User-Agent
 This optional header will be filled out according to the
 @code{message-newsreader} local variable.
-
-@item X-Mailer
-This optional header will be filled out according to the
-@code{message-mailer} local variable, unless there already is an
-@code{X-Newsreader} header present.
 
 @item In-Reply-To
 This optional header is filled out using the @code{Date} and @code{From}
@@ -1103,9 +1167,8 @@ If you want to add certain headers before sending, you can use the
 @lisp
 (add-hook 'message-send-hook 'my-message-add-content)
 (defun my-message-add-content ()
-  (message-add-header
-   "X-In-No-Sense: Nonsense"
-   "X-Whatever: no"))
+  (message-add-header "X-In-No-Sense: Nonsense")
+  (message-add-header "X-Whatever: no"))
 @end lisp
 
 This function won't add the header if the header is already present.

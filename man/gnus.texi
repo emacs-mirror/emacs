@@ -593,7 +593,6 @@ The Article Buffer
 Composing Messages
 
 * Mail::                 Mailing and replying.
-* Post::                 Posting and following up.
 * Posting Server::       What server should you post via?
 * Mail and Post::        Mailing and posting at the same time.
 * Archived Messages::    Where Gnus stores the messages you've sent.
@@ -1725,6 +1724,9 @@ The default is 1---this will mean that group names like
 @samp{%} (@code{gnus-new-mail-mark}) if there has arrived new mail to
 the group lately.
 
+@item p
+@samp{#} (@code{gnus-process-mark}) if the group is process marked.
+
 @item d
 A string that says when you last read the group (@pxref{Group
 Timestamp}).
@@ -2701,6 +2703,13 @@ like this in the group parameters:
   (name "Funky Name")
   (signature "Funky Signature"))
 @end example
+
+@item banner
+An item like @code{(banner . "regex")} causes any part of an article
+that matches the regular expression "regex" to be stripped. Instead of
+"regex", you can also use the symbol @code{signature} which strips the
+last signature or any of the elements of the alist
+@code{gnus-article-banner-alist}.
 
 @end table
 
@@ -3839,7 +3848,8 @@ You can have as many summary buffers open as you wish.
 * Tree Display::                A more visual display of threads.
 * Mail Group Commands::         Some commands can only be used in mail groups.
 * Various Summary Stuff::       What didn't fit anywhere else.
-* Exiting the Summary Buffer::  Returning to the Group buffer.
+* Exiting the Summary Buffer::  Returning to the Group buffer,
+                                or reselecting the current group.
 * Crosspost Handling::          How crossposted articles are dealt with.
 * Duplicate Suppression::       An alternative when crosspost handling fails.
 @end menu
@@ -4289,6 +4299,9 @@ the given number of lines from the top.
 
 None of the following movement commands understand the numeric prefix,
 and they all select and display an article.
+
+If you want to fetch new articles or redisplay the group, see
+@ref{Exiting the Summary Buffer}.
 
 @table @kbd
 @item SPACE
@@ -7311,7 +7324,15 @@ We call this ``article washing'' for a really good reason.  Namely, the
 something else'', but normally results in something looking better.
 Cleaner, perhaps.
 
+@xref{Customizing Articles}, if you want to change how Gnus displays
+articles by default.
+
 @table @kbd
+
+@item C-u g
+This is not really washing, it's sort of the opposite of washing.  If
+you type this, you see the article exactly as it exists on disk or on
+the server.
 
 @item W l
 @kindex W l (Summary)
@@ -7365,6 +7386,12 @@ Treat M******** sm*rtq**t*s according to
 (@code{gnus-article-treat-dumbquotes}).  Note that this function guesses
 whether a character is a sm*rtq**t* or not, so it should only be used
 interactively.
+
+In reality, this function is translates a subset of the subset of the
+@code{cp1252} (or @code{Windows-1252}) character set that isn't in ISO
+Latin-1, including the quote characters @code{\222} and @code{\264}.
+Messages in this character set often have a MIME header saying that
+they are Latin-1.
 
 @item W w
 @kindex W w (Summary)
@@ -9512,7 +9539,6 @@ on your setup (@pxref{Posting Server}).
 
 @menu
 * Mail::                 Mailing and replying.
-* Post::                 Posting and following up.
 * Posting Server::       What server should you post via?
 * Mail and Post::        Mailing and posting at the same time.
 * Archived Messages::    Where Gnus stores the messages you've sent.
@@ -9540,37 +9566,6 @@ headers will be included in the sequence they are matched.
 @vindex gnus-add-to-list
 If non-@code{nil}, add a @code{to-list} group parameter to mail groups
 that have none when you do a @kbd{a}.
-
-@item message-send-mail-partially-limit
-@vindex message-send-mail-partially-limit
-The limitation of messages sent as message/partial.
-The lower bound of message size in characters, beyond which the message 
-should be sent in several parts. If it is nil, the size is unlimited.
-
-@end table
-
-
-@node Post
-@section Post
-
-Variables for composing news articles:
-
-@table @code
-@item gnus-sent-message-ids-file
-@vindex gnus-sent-message-ids-file
-Gnus will keep a @code{Message-ID} history file of all the mails it has
-sent.  If it discovers that it has already sent a mail, it will ask the
-user whether to re-send the mail.  (This is primarily useful when
-dealing with @sc{soup} packets and the like where one is apt to send the
-same packet multiple times.)  This variable says what the name of this
-history file is.  It is @file{~/News/Sent-Message-IDs} by default.  Set
-this variable to @code{nil} if you don't want Gnus to keep a history
-file.
-
-@item gnus-sent-message-ids-length
-@vindex gnus-sent-message-ids-length
-This variable says how many @code{Message-ID}s to keep in the history
-file.  It is 1000 by default.
 
 @end table
 
@@ -9890,15 +9885,23 @@ So here's a new example:
         ((message-news-p)
          (signature my-news-signature))
         (header "From\\|To" "larsi.*org"
-         (Organization "Somewhere, Inc."))
+                (Organization "Somewhere, Inc."))
         ((posting-from-work-p)
          (signature-file "~/.work-signature")
          (address "user@@bar.foo")
          (body "You are fired.\n\nSincerely, your boss.")
          (organization "Important Work, Inc"))
+        ("nnml:.*"
+         (From (save-excursion
+                 (set-buffer gnus-article-buffer)
+                 (message-fetch-field "to"))))
         ("^nn.+:"
          (signature-file "~/.mail-signature"))))
 @end lisp
+
+The @samp{nnml:.*} rule means that you use the @code{To} address as the
+@code{From} address in all your outgoing replies, which might be handy
+if you fill many roles.
 
 
 @node Drafts
@@ -10475,6 +10478,8 @@ manual page, but here are the salient facts:
 The file contains one or more line, each of which define one server.
 
 @item
+Each line may contain an arbitrary number of token/value pairs.  
+
 The valid tokens include @samp{machine}, @samp{login}, @samp{password},
 @samp{default}.  In addition Gnus introduces two new tokens, not present
 in the original @file{.netrc}/@code{ftp} syntax, namely @samp{port} and
@@ -11430,7 +11435,7 @@ useful when you use local mail and news.
 @end table
 @end table
 
-@subsubheading Function Interface
+@subsubsection Function Interface
 
 Some of the above keywords specify a Lisp function to be executed.
 For each keyword @code{:foo}, the Lisp variable @code{foo} is bound to
@@ -14508,7 +14513,7 @@ wherever.  (Note: this would have to be at a point *after*
 @code{gnus-agent} has been loaded via @code{(gnus-agentize)})
 
 @lisp
-(defvar  gnus-category-predicate-alist
+(setq  gnus-category-predicate-alist
   (append gnus-category-predicate-alist
 	 '((old . my-article-old-p))))
 @end lisp
@@ -15897,7 +15902,7 @@ the @code{gnus-default-adaptive-score-alist} variable.  For instance, it
 might look something like this:
 
 @lisp
-(defvar gnus-default-adaptive-score-alist
+(setq gnus-default-adaptive-score-alist
   '((gnus-unread-mark)
     (gnus-ticked-mark (from 4))
     (gnus-dormant-mark (from 5))
@@ -16152,7 +16157,11 @@ your own article.
 
 @vindex message-sent-hook
 These two functions are both primarily meant to be used in hooks like
-@code{message-sent-hook}.
+@code{message-sent-hook}, like this:
+@lisp
+(add-hook 'message-sent-hook 'gnus-score-followup-thread)
+@end lisp
+
 
 If you look closely at your own @code{Message-ID}, you'll notice that
 the first two or three characters are always the same.  Here's two of
@@ -16169,7 +16178,7 @@ myself:
 
 @lisp
 ("references"
- ("<x6[0-9a-z]+\\.fsf\\(_-_\\)?@@.*eyesore.no>"
+ ("<x6[0-9a-z]+\\.fsf\\(_-_\\)?@@.*eyesore\\.no>"
   1000 nil r))
 @end lisp
 
@@ -20317,9 +20326,9 @@ Message-ID, delete the "original".
  when replying to several messages at once, put the "other" message-ids
 into a See-Also header.
 @item
- support setext: @url{http://www.bsdi.com/setext/}
+ support setext: @uref{http://www.bsdi.com/setext/}
 @item
- support ProleText: @url{http://proletext.clari.net/prole/proletext.html}
+ support ProleText: @uref{http://proletext.clari.net/prole/proletext.html}
 @item
  when browsing a foreign server, the groups that are already subscribed
 should be listed as such and not as "K".
@@ -20932,7 +20941,7 @@ in the summary buffer.
 version branches as threading, checkin date as the date, etc.
 
 @item
-@url{http://www.dejanews.com/forms/dnsetfilter_exp.html}?
+@uref{http://www.dejanews.com/forms/dnsetfilter_exp.html}?
 This filter allows one to construct advance queries on the Dejanews
 database such as specifying start and end dates, subject, author,
 and/or newsgroup name.
