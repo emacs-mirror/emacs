@@ -202,7 +202,7 @@ which is at least the number of distinct elements. */)
   return length;
 }
 
-DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0, 
+DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
        doc: /* Return the number of bytes in STRING.
 If STRING is a multibyte string, this is greater than the length of STRING. */)
      (string)
@@ -1171,7 +1171,7 @@ Elements of ALIST that are not conses are also shared.  */)
 DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
        doc: /* Return a substring of STRING, starting at index FROM and ending before TO.
 TO may be nil or omitted; then the substring runs to the end of STRING.
-If FROM or TO is negative, it counts from the end.
+FROM and TO start at 0.  If either is negative, it counts from the end.
 
 This function allows vectors as well as strings.  */)
      (string, from, to)
@@ -1929,7 +1929,7 @@ one of the properties on the list.  */)
      Lisp_Object prop;
 {
   Lisp_Object tail;
-  
+
   for (tail = plist;
        CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
@@ -1945,7 +1945,7 @@ one of the properties on the list.  */)
 
   if (!NILP (tail))
     wrong_type_argument (Qlistp, prop);
-  
+
   return Qnil;
 }
 
@@ -1983,7 +1983,7 @@ The PLIST is modified by side effects.  */)
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
 	}
-      
+
       prev = tail;
       QUIT;
     }
@@ -2018,7 +2018,7 @@ one of the properties on the list.  */)
      Lisp_Object prop;
 {
   Lisp_Object tail;
-  
+
   for (tail = plist;
        CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
@@ -2031,7 +2031,7 @@ one of the properties on the list.  */)
 
   if (!NILP (tail))
     wrong_type_argument (Qlistp, prop);
-  
+
   return Qnil;
 }
 
@@ -2059,7 +2059,7 @@ The PLIST is modified by side effects.  */)
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
 	}
-      
+
       prev = tail;
       QUIT;
     }
@@ -2194,7 +2194,7 @@ internal_equal (o1, o2, depth)
     case Lisp_Type_Limit:
       break;
     }
-  
+
   return 0;
 }
 
@@ -3137,7 +3137,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 
 DEFUN ("load-average", Fload_average, Sload_average, 0, 1, 0,
        doc: /* Return list of 1 minute, 5 minute and 15 minute load averages.
-     
+
 Each of the three load averages is multiplied by 100, then converted
 to integer.
 
@@ -3172,7 +3172,7 @@ extern Lisp_Object Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Returns t if FEATURE is present in this Emacs.
-     
+
 Use this to conditionalize execution of lisp code based on the
 presence or absence of emacs or environment extensions.
 Use `provide' to declare that a feature is available.  This function
@@ -3249,7 +3249,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   CHECK_SYMBOL (feature);
 
   tem = Fmemq (feature, Vfeatures);
-  
+
   if (NILP (tem))
     {
       int count = SPECPDL_INDEX ();
@@ -3262,7 +3262,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
       if (! NILP (Vpurify_flag))
 	error ("(require %s) while preparing to dump",
 	       SDATA (SYMBOL_NAME (feature)));
-      
+
       /* A certain amount of recursive `require' is legitimate,
 	 but if we require the same feature recursively 3 times,
 	 signal an error.  */
@@ -4709,7 +4709,7 @@ sweep_weak_hash_tables ()
     {
       h = XHASH_TABLE (table);
       next = h->next_weak;
-      
+
       if (h->size & ARRAY_MARK_FLAG)
 	{
 	  /* TABLE is marked as used.  Sweep its contents.  */
@@ -4922,7 +4922,7 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
 
 DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
        doc: /* Create and return a new hash table.
-	  
+
 Arguments are specified as keyword/argument pairs.  The following
 arguments are defined:
 
@@ -5197,7 +5197,7 @@ FUNCTION is called with 2 arguments KEY and VALUE.  */)
 DEFUN ("define-hash-table-test", Fdefine_hash_table_test,
        Sdefine_hash_table_test, 3, 3, 0,
        doc: /* Define a new hash table test with name NAME, a symbol.
-	  
+
 In hash tables created with NAME specified as test, use TEST to
 compare keys, and HASH for computing hash codes of keys.
 
@@ -5223,7 +5223,7 @@ including negative integers.  */)
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
        doc: /* Return MD5 message digest of OBJECT, a buffer or string.
-	  
+
 A message digest is a cryptographic checksum of a document, and the
 algorithm to calculate it is defined in RFC 1321.
 
@@ -5271,14 +5271,14 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	  if (STRING_MULTIBYTE (object))
 	    /* use default, we can't guess correct value */
 	    coding_system = SYMBOL_VALUE (XCAR (Vcoding_category_list));
-	  else 
+	  else
 	    coding_system = Qraw_text;
 	}
-      
+
       if (NILP (Fcoding_system_p (coding_system)))
 	{
 	  /* Invalid coding system.  */
-	  
+
 	  if (!NILP (noerror))
 	    coding_system = Qraw_text;
 	  else
@@ -5312,15 +5312,15 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       else
 	{
 	  CHECK_NUMBER (end);
-	  
+
 	  end_char = XINT (end);
 
 	  if (end_char < 0)
 	    end_char += size;
-	  
+
 	  end_byte = string_char_to_byte (object, end_char);
 	}
-      
+
       if (!(0 <= start_char && start_char <= end_char && end_char <= size))
 	args_out_of_range_3 (object, make_number (start_char),
 			     make_number (end_char));
@@ -5330,7 +5330,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
-	  
+
       if (NILP (start))
 	b = BUF_BEGV (bp);
       else
@@ -5346,16 +5346,16 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	  CHECK_NUMBER_COERCE_MARKER (end);
 	  e = XINT (end);
 	}
-      
+
       if (b > e)
 	temp = b, b = e, e = temp;
-      
+
       if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
 	args_out_of_range (start, end);
-      
+
       if (NILP (coding_system))
 	{
-	  /* Decide the coding-system to encode the data with. 
+	  /* Decide the coding-system to encode the data with.
 	     See fileio.c:Fwrite-region */
 
 	  if (!NILP (Vcoding_system_for_write))
@@ -5377,7 +5377,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 		{
 		  /* Check file-coding-system-alist.  */
 		  Lisp_Object args[4], val;
-		  
+
 		  args[0] = Qwrite_region; args[1] = start; args[2] = end;
 		  args[3] = Fbuffer_file_name(object);
 		  val = Ffind_operation_coding_system (4, args);
@@ -5422,8 +5422,8 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	object = code_convert_string1 (object, coding_system, Qnil, 1);
     }
 
-  md5_buffer (SDATA (object) + start_byte, 
-	      SBYTES (object) - (size_byte - end_byte), 
+  md5_buffer (SDATA (object) + start_byte,
+	      SBYTES (object) - (size_byte - end_byte),
 	      digest);
 
   for (i = 0; i < 16; i++)
