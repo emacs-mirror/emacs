@@ -1072,6 +1072,62 @@ a case-insensitive match is tried."
     (if (numberp nodepos)
 	(+ (- nodepos lastfilepos) (point)))))
 
+(defun Info-unescape-quotes (value)
+  "Unescape double quotes and backslashes in VALUE"
+  (let ((start 0)
+	(unquote value))
+    (while (string-match "[^\\\"]*\\(\\\\\\)[\\\\\"]" unquote start)
+      (setq unquote (replace-match "" t t unquote 1))
+      (setq start (- (match-end 0) 1)))
+    unquote))
+
+;; As of Texinfo 4.6, makeinfo writes constructs like
+;;   \0\h[image param=value ...\h\0]
+;; into the Info file for handling images.
+(defun Info-split-parameter-string (parameter-string)
+  "Return alist of (\"KEY\" . \"VALUE\") from PARAMETER-STRING; a
+   whitespace separated list of KEY=VALUE pairs.  If VALUE
+   contains whitespace or double quotes, it must be quoted in
+   double quotes and any double quotes or backslashes must be
+   escaped (\\\",\\\\)."
+  (let ((start 0)
+	(parameter-alist))
+    (while (string-match
+	    "\\s *\\([^=]+\\)=\\(?:\\([^\\s \"]+\\)\\|\\(?:\"\\(\\(?:[^\\\"]\\|\\\\[\\\\\"]\\)*\\)\"\\)\\)"
+	    parameter-string start)
+      (setq start (match-end 0))
+      (push (cons (match-string 1 parameter-string)
+		  (or (match-string 2 parameter-string)
+		      (Info-unescape-quotes
+		       (match-string 3 parameter-string))))
+	    parameter-alist))
+    parameter-alist))
+
+(defun Info-display-images-node ()
+  "Display images in current node."
+  (save-excursion
+    (let ((inhibit-read-only t)
+	  (case-fold-search t)
+	  paragraph-markers)
+      (goto-char (point-min))
+      (while (re-search-forward
+	      "\\(\0\b[[]image\\(\\(?:[^\b]\\|[^\0]+\b\\)*\\)\0\b[]]\\)"
+	      nil t)
+	(let* ((start (match-beginning 1))
+	       (parameter-alist (Info-split-parameter-string (match-string 2)))
+	       (src (cdr (assoc-string "src" parameter-alist)))
+	       (image-file (if src (if (file-name-absolute-p src) src
+				     (concat default-directory src))
+			     ""))
+	       (image (if (file-exists-p image-file)
+			  (create-image image-file)
+			"[broken image]")))
+	  (message "Found image: %S" image-file)
+	  (if (not (get-text-property start 'display))
+	      (add-text-properties
+	       start (point) `(display ,image rear-nonsticky (display)))))))
+    (set-buffer-modified-p nil)))
+
 (defvar Info-header-line nil
   "If the info node header is hidden, the text of the header.")
 (put 'Info-header-line 'risky-local-variable t)
@@ -1112,6 +1168,7 @@ Bind this in case the user sets it to nil."
 	(if Info-enable-active-nodes (eval active-expression))
 	(Info-fontify-node)
 	(setq Info-header-line (get-text-property (point-min) 'header-line))
+	(Info-display-images-node)
 	(run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
