@@ -98,17 +98,6 @@
     (defmacro defcustom (symbol init docstring &rest rest)
       `(defvar ,symbol ,init ,docstring))))
 
-;; `caddr' is a function in cl and so might not always be available
-;; (remembering the general rule that says cl functions should not be used,
-;; only cl macros). So, to make use of `caddr' without forcing the load of
-;; cl-seq we'll define our own.
-
-(eval-when (load eval)
-  (unless (fboundp 'caddr)
-    (defun caddr (l)
-      "Return the `car' of the `cddr' of L."
-      (car (cddr l)))))
-
 ;; Customize options.
 
 (defgroup quickurl nil
@@ -238,7 +227,7 @@ Note that this function is a setfable place."
 If the URL has no comment an empty string is returned. Also note that this
 function is a setfable place."
   (if (quickurl-url-commented-p url)
-      (caddr url)
+      (nth 2 url)
     ""))
 
 (defsetf quickurl-url-comment (url) (store)
@@ -246,7 +235,7 @@ function is a setfable place."
   (if (quickurl-url-commented-p ,url)
       (if (zerop (length ,store))
           (setf (cdr ,url) (cadr ,url))
-        (setf (caddr ,url) ,store))
+        (setf (nth 2 ,url) ,store))
     (unless (zerop (length ,store))
       (setf (cdr ,url) (list (cdr ,url) ,store)))))
 
