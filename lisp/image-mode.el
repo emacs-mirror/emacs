@@ -79,8 +79,15 @@ See the command `image-mode' for more information on this mode."
   nil " Image" image-mode-map
   :group 'image
   :version "22.1"
-  (unless (or (eq major-mode 'image-mode) image-minor-mode)
-    (use-local-map image-mode-map)))
+  (if (not image-minor-mode)
+      (image-toggle-display-text)
+    (if (get-text-property (point-min) 'display)
+	(setq cursor-type nil truncate-lines t))
+    (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
+    (message (concat (substitute-command-keys
+		      "Type \\[image-toggle-display] to view the image as ")
+		     (if (get-text-property (point-min) 'display)
+			 "text" "an image") "."))))
 
 ;;;###autoload
 (defun image-mode-maybe ()
