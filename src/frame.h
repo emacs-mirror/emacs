@@ -87,7 +87,7 @@ struct frame
   /* Name of this frame: a Lisp string.  See also `explicit_name'.  */
   Lisp_Object name;
 
-  /* The frame which should recieve keystrokes that occur in this
+  /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
      usually nil, but if the frame is minibufferless, we can use this
      to redirect keystrokes to a surrogate minibuffer frame when

@@ -141,7 +141,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar tags-included-tables-function nil
   "Function to do the work of `tags-included-tables' (which see).")
 (defvar verify-tags-table-function nil
-  "Function to return t iff the current buffer vontains a valid
+  "Function to return t iff the current buffer contains a valid
 \(already initialized\) tags file.")
 
 ;; Initialize the tags table in the current buffer.
@@ -636,7 +636,7 @@ See documentation of variable `tags-file-name'."
 		;; Move to the saved location.
 		(set-buffer (marker-buffer marker))
 	      (goto-char (marker-position marker))
-	      ;; Kill that marker so it doesn't slow down editting.
+	      ;; Kill that marker so it doesn't slow down editing.
 	      (set-marker marker nil nil)
 	      ;; Run the user's hook.  Do we really want to do this for pop?
 	      (run-hooks 'local-find-tag-hook))))

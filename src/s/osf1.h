@@ -4,7 +4,7 @@
 
 #define OSF1
 
-/* Define _BSD to tell the inlcude files we're running under
+/* Define _BSD to tell the include files we're running under
    the BSD universe and not the SYSV universe.  */
 
 #define C_SWITCH_SYSTEM	-D_BSD

@@ -785,7 +785,7 @@ The fill lines remain a comment."
 ;; (defconst c++-defun-header-strong
 ;;   (let*
 ;;       (; valid identifiers
-;;        ;; There's a real wierdness here -- if I switch the below
+;;        ;; There's a real weirdness here -- if I switch the below
 ;;        (id "\\(\\w\\|_\\)+")
 ;;        ;; to be
 ;;        ;; (id "\\(_\\|\\w\\)+")

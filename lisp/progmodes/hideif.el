@@ -568,7 +568,7 @@ NOT including one on this line."
 	((hif-looking-at-endif)
 	 'done)
 	(t
-	 (error "Missmatched #ifdef #endif pair"))))
+	 (error "Mismatched #ifdef #endif pair"))))
 
 
 (defun hif-endif-to-ifdef ()
@@ -577,7 +577,7 @@ NOT including one on this line."
   (let ((start (point)))
     (hif-find-previous-relevant)
     (if (= start (point))
-	(error "Missmatched #ifdef #endif pair")))
+	(error "Mismatched #ifdef #endif pair")))
   (cond ((hif-looking-at-endif)
 	 (hif-endif-to-ifdef) ; find beginning of nested if
 	 (hif-endif-to-ifdef)) ; find beginning of outer if or else
@@ -938,7 +938,7 @@ Turn off hiding by calling `show-ifdef'."
 
 
 (defun hif-find-ifdef-block ()
-  "Utilitiy for hide and show `ifdef-block'.
+  "Utility for hide and show `ifdef-block'.
 Set top and bottom of ifdef block."
   (let (max-bottom)
   (save-excursion
@@ -997,7 +997,7 @@ Set top and bottom of ifdef block."
     (if old-read-only (toggle-read-only))))
 
 
-;;;  defininition alist support
+;;;  definition alist support
 
 (defvar hide-ifdef-define-alist nil
   "A global assoc list of pre-defined symbol lists")

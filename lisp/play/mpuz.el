@@ -149,7 +149,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
       (aset mpuz-letter-to-digit elem index))))
 
 
-;; A puzzle also uses a board displaying a mulplication.
+;; A puzzle also uses a board displaying a multiplication.
 ;; Every digit appears in the board, crypted or not.
 ;;------------------------------------------------------
 (defvar mpuz-board (make-vector 10 nil)
@@ -310,7 +310,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 ;; Game control
 ;;-------------
 (defun mpuz-abort-game ()
-  "Abort any puzzle in progess."
+  "Abort any puzzle in progress."
   (message "Mult Puzzle aborted.")
   (setq mpuz-in-progress nil
 	mpuz-nb-errors 0)

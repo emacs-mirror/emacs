@@ -608,7 +608,7 @@ in the current news group."
   "Send list of STRINGS to news server as command and its arguments."
   (let ((cmd (car strings))
 	(strings (cdr strings)))
-    ;; Command and each argument must be separeted by one or more spaces.
+    ;; Command and each argument must be separated by one or more spaces.
     (while strings
       (setq cmd (concat cmd " " (car strings)))
       (setq strings (cdr strings)))

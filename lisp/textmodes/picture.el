@@ -44,7 +44,7 @@ if necessary to attain exactly the specified column."
 	    (delete-char -1)
             (indent-to col)
             (move-to-column column))))
-    ;; This call will go away when Emacs gets real horizonal autoscrolling
+    ;; This call will go away when Emacs gets real horizontal autoscrolling
     (hscroll-point-visible)))
 
 
@@ -57,7 +57,7 @@ If scan reaches end of buffer, stop there without error."
   (interactive "P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
-  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
 (defun picture-end-of-line (&optional arg)
@@ -68,7 +68,7 @@ If scan reaches end of buffer, stop there without error."
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
   (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
-  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
 (defun picture-forward-column (arg)
@@ -238,7 +238,7 @@ always moves to the beginning of a line."
       (end-of-line)
       (if (eobp) (newline) (forward-char 1))
       (setq arg (1- arg))))
-  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
 (defun picture-open-line (arg)
@@ -248,7 +248,7 @@ With positive argument insert that many lines."
   (save-excursion
    (end-of-line)
    (open-line arg))
-  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
 (defun picture-duplicate-line ()

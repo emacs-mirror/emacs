@@ -98,7 +98,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define NONSYSTEM_DIR_LIBRARY */
 
 /* Define this symbol if your system has the functions bcopy, etc.
- * s800 and later versions of s300 (s200) kernels have equivilents
+ * s800 and later versions of s300 (s200) kernels have equivalents
  * of the BSTRING functions of BSD.  If your s200 kernel doesn't have
  * em comment out this section.
  */
@@ -176,7 +176,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define _longjmp longjmp
 */
 
-/* On USG systems the system calls are interruptable by signals
+/* On USG systems the system calls are interruptible by signals
  that the user program has elected to catch.  Thus the system call
  must be retried in these cases.  To handle this without massive
  changes in the source code, we remap the standard system call names

@@ -1,4 +1,4 @@
-/* machine description file for Netional Semiconductor 32000, running Genix.
+/* machine description file for National Semiconductor 32000, running Genix.
    Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

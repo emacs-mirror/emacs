@@ -774,7 +774,7 @@ between them, return t; otherwise return nil.")
 		      }
 
 		    /* If we find another earlier comment-ender,
-		       any comment-starts earier than that don't count
+		       any comment-starts earlier than that don't count
 		       (because they go with the earlier comment-ender).  */
 		    if (code == Sendcomment
 			&& SYNTAX_COMMENT_STYLE (FETCH_CHAR (from)) == comstyle)
@@ -1161,7 +1161,7 @@ scan_lists (from, count, depth, sexpflag)
 		      }
 
 		    /* If we find another earlier comment-ender,
-		       any comment-starts earier than that don't count
+		       any comment-starts earlier than that don't count
 		       (because they go with the earlier comment-ender).  */
 		    if (code == Sendcomment
 			&& SYNTAX_COMMENT_STYLE (FETCH_CHAR (from)) == comstyle)

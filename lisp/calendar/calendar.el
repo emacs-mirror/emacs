@@ -48,7 +48,7 @@
 ;; calendar, to the Islamic calendar, to the French Revolutionary calendar,
 ;; to the Mayan calendar, and to the astronomical (Julian) day number.
 ;; When floating point is available, times of sunrise/sunset can be displayed,
-;; as can the phases of the moon.  Appointment notication for diary entries
+;; as can the phases of the moon.  Appointment notification for diary entries
 ;; is available.
 
 ;; The following files are part of the calendar/diary code:
@@ -360,7 +360,7 @@ characters with or without a period.")
     (monthname " *" day ", *" year "[^0-9]")
     (dayname "\\W"))
   "*List of pseudo-patterns describing the American patterns of date used.
-See the documentation of diary-date-forms for an explanantion.")
+See the documentation of diary-date-forms for an explanation.")
 
 ;;;###autoload
 (defvar european-date-diary-pattern
@@ -370,7 +370,7 @@ See the documentation of diary-date-forms for an explanantion.")
     (day " *" monthname " *" year "[^0-9]")
     (dayname "\\W"))
   "*List of pseudo-patterns describing the European patterns of date used.
-See the documentation of diary-date-forms for an explanantion.")
+See the documentation of diary-date-forms for an explanation.")
 
 ;;;###autoload
 (defvar diary-date-forms
@@ -405,14 +405,14 @@ a portion of the first word of the diary entry.")
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "*The pseudo-pattern that governs the way a Gregorian date is formatted
 in the European style.  See the documentation of calendar-date-display-forms
-for an explanantion.")
+for an explanation.")
 
 ;;;###autoload
 (defvar american-calendar-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "*The pseudo-pattern that governs the way a Gregorian date is formatted
 in the American style.  See the documentation of calendar-date-display-forms
-for an explanantion.")
+for an explanation.")
 
 ;;;###autoload
 (defvar calendar-date-display-form
@@ -962,7 +962,7 @@ add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
 To include a holiday conditionally, use the if or the sexp form.  For example,
 to include American presidential elections, which occur on the first Tuesday
-after the first Monday in November of years divisble by 4, add
+after the first Monday in November of years divisible by 4, add
 
      (sexp (if (zerop (% year 4))
                (calendar-gregorian-from-absolute
@@ -1747,7 +1747,7 @@ Revolutionary, and Mayan calendars can be determined by
        \\[calendar-print-french-date]  show equivalent date on the French Revolutionary calendar
        \\[calendar-print-mayan-date]  show equivalent date on the Mayan calendar
 
-The astromonical (Julian) day number of a date is found with
+The astronomical (Julian) day number of a date is found with
 
        \\[calendar-print-astro-day-number]  show equivalent astronomical (Julian) day number
 
@@ -3112,7 +3112,7 @@ shown by cursor."
   "Move cursor to astronomical (Julian) DAYNUMBER.
 Echo astronomical (Julian) day number unless NOECHO is t."
   (interactive (list (calendar-read
-                      "Astromonical (Julian) day number (>1721425): "
+                      "Astronomical (Julian) day number (>1721425): "
                       '(lambda (x) (> x 1721425)))))
   (calendar-goto-date (calendar-gregorian-from-absolute (- daynumber 1721425)))
   (or noecho (calendar-print-astro-day-number)))

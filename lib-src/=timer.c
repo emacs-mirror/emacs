@@ -52,7 +52,7 @@ struct event *events;		/* events[0 .. num_events-1] are the
 
 char *pname;      /* programme name for error messages */
 
-/* Accepts a string of two fields seperated by FS.
+/* Accepts a string of two fields separated by FS.
    First field is string for get_date, saying when to wake-up.
    Second field is a token to identify the request.  */
 void

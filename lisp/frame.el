@@ -54,7 +54,7 @@ Parameters specified here supersede the values given in
 Pop-up frames are used for completions, help, and the like.
 This variable can be set in your init file, like this:
   (setq pop-up-frame-alist '((width . 80) (height . 20)))
-These supercede the values given in `default-frame-alist'.")
+These supersede the values given in `default-frame-alist'.")
 
 (setq pop-up-frame-function
       (function (lambda ()
@@ -244,7 +244,7 @@ These supercede the values given in `default-frame-alist'.")
 ;;;; Creation of additional frames, and other frame miscellanea
 
 ;;; Return some frame other than the current frame, creating one if
-;;; neccessary.  Note that the minibuffer frame, if separate, is not
+;;; necessary.  Note that the minibuffer frame, if separate, is not
 ;;; considered (see next-frame).
 (defun get-other-frame ()
   (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))

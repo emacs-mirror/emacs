@@ -84,7 +84,7 @@
   (define-key blackbox-mode-map "\C-m" 'bb-done)
   (define-key blackbox-mode-map [kp-enter] 'bb-done)
 
-  ;; This is a kluge.  What we really want is a general
+  ;; This is a kludge.  What we really want is a general
   ;; feature for reminding terminal keys to the functions
   ;; corresponding to them in local maps.
   (mapcar (function

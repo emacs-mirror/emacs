@@ -77,7 +77,7 @@
 ;;; `pages-directory-address-mode' now sets local variables and enables
 ;;; `describe-mode' to describe Addresses Directory mode.
 ;;;
-;;; `pages-directory-for-addresses' now sets the buffer-modifed flag
+;;; `pages-directory-for-addresses' now sets the buffer-modified flag
 ;;; for the Addresses Directory to nil.
 ;;;
 ;;; The documentation string for both `pages-directory-mode' and
@@ -223,7 +223,7 @@
 ;     Washington, DC  20515
 ;     
 ;     Congressional committee concerned with permitting or preventing
-;     monopolistic restictions on the use of software technology
+;     monopolistic restrictions on the use of software technology
 ; 
 ;     
 ;     George Lakoff

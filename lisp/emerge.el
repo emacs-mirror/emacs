@@ -365,9 +365,9 @@ the markers.
 	default-B	the merge buffer contains the B variant by default,
 			but this difference hasn't been selected yet, so
 			change-default commands can alter it
-	prefer-A	in a three-file merge, the A variant is the prefered
+	prefer-A	in a three-file merge, the A variant is the preferred
 			choice
-	prefer-B	in a three-file merge, the B variant is the prefered
+	prefer-B	in a three-file merge, the B variant is the preferred
 			choice")
 (emerge-defvar-local emerge-current-difference -1
   "The difference that is currently selected.")
@@ -1073,7 +1073,7 @@ Otherwise, the A or B file present is copied to the output file."
 	     (t
 	      (error "Unrecognized entry"))))
 	;; If the match on the entry pattern failed
-	(error "Unparseable entry")))
+	(error "Unparsable entry")))
     ;; Make sure that file-A and file-B are present
     (if (not (or (and file-A file-B) file-out))
 	(error "Must have both `A' and `B' entries"))
@@ -2008,7 +2008,7 @@ Use C-u l to reset the windows afterward."
 
 (defun emerge-join-differences (arg)
   "Join the selected difference with the following one.
-With a prefix argument, join with the preceeding one."
+With a prefix argument, join with the preceding one."
   (interactive "P")
   (let ((n emerge-current-difference))
     ;; adjust n to be first difference to join
@@ -2288,11 +2288,11 @@ the nearest previous difference."
        (if (< index emerge-number-of-differences)
 	   index
 	 (error "No difference contains or follows point")))
-      ;; if the arg is negative, select the preceeding difference
+      ;; if the arg is negative, select the preceding difference
       (t
        (if (> index 0)
 	   (1- index)
-	 (error "No difference contains or preceeds point")))))))
+	 (error "No difference contains or precedes point")))))))
 
 (defun emerge-line-numbers ()
   "Display the current line numbers.

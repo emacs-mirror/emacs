@@ -19,7 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* NOTES:
 
-   Only relocate the blocs neccessary for SIZE in r_alloc_sbrk,
+   Only relocate the blocs necessary for SIZE in r_alloc_sbrk,
    rather than all of them.  This means allowing for a possible
    hole between the first bloc and the end of malloc storage. */
 
@@ -485,7 +485,7 @@ r_re_alloc (ptr, size)
    from the system.  */
 extern POINTER (*__morecore) ();
 
-/* Intialize various things for memory allocation. */
+/* Initialize various things for memory allocation. */
 
 static void
 r_alloc_init ()

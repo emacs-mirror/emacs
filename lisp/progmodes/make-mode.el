@@ -18,7 +18,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.7 1993/04/21 03:47:05 eric Exp rms $
+;; $Id: makefile.el,v 1.8 1993/05/06 01:30:26 rms Exp jimb $
 
 ;; This file is part of GNU Emacs.
 
@@ -71,7 +71,7 @@
 (provide 'makefile)
 
 ;;; ------------------------------------------------------------
-;;; Configureable stuff
+;;; Configurable stuff
 ;;; ------------------------------------------------------------
 
 (defconst makefile-mode-name "makefile"
@@ -97,7 +97,7 @@ might prefer to use \" += \" or \" := \" .")
   "Controls the style of generated macro references.
 Set this variable to a non-nil value if you prefer curly braces
 in macro-references, so it looks like ${this}.  A value of nil
-will cause makefile-mode to use parantheses, making macro references
+will cause makefile-mode to use parentheses, making macro references
 look like $(this) .")
 
 (defvar makefile-tab-after-target-colon t
@@ -175,7 +175,7 @@ not be enclosed in { } or ( ).")
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
 ;;; up-to-date overview .
-;;; The standard configuration assumes that your `make' programm
+;;; The standard configuration assumes that your `make' program
 ;;; can be run in question/query mode using the `-q' option, this
 ;;; means that the command
 ;;;
@@ -188,7 +188,7 @@ not be enclosed in { } or ( ).")
 ;;; Dennis Vadura's DMake have no problems.
 ;;; Set the variable `makefile-brave-make' to the name of the
 ;;; make utility that does this on your system.
-;;; To understand what this is all about see the function defintion
+;;; To understand what this is all about see the function definition
 ;;; of `makefile-query-by-make-minus-q' .
 ;;; ------------------------------------------------------------
 
@@ -936,7 +936,7 @@ it will prompt you for all required parameters.
 This function \'knows\' about the required parameters of every
 GNU make function and will use meaningfull prompts for the
 various args, making it much easier to take advantage of this
-powerfull GNU make feature."
+powerful GNU make feature."
   (interactive)
   (let* ((gm-function-name (completing-read
 			     "Function: "

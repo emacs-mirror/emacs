@@ -669,7 +669,7 @@ copy_sym (new, a_out, a_name, new_name)
 /* ****************************************************************
  * mark_x
  *
- * After succesfully building the new a.out, mark it executable
+ * After successfully building the new a.out, mark it executable
  */
 static void
 mark_x (name)

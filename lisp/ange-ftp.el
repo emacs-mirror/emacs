@@ -128,7 +128,7 @@
 
 ;;; Gateways:
 ;;;
-;;; Sometimes it is neccessary for the FTP process to be run on a different
+;;; Sometimes it is necessary for the FTP process to be run on a different
 ;;; machine than the machine running GNU Emacs.  This can happen when the
 ;;; local machine has restrictions on what hosts it can access.
 ;;;
@@ -151,7 +151,7 @@
 ;;;
 ;;; 3) Using NFS and symlinks, make sure that there is a shared directory with
 ;;;    the *same* name between the local machine and the gateway machine.
-;;;    This directory is neccessary for temporary files created by ange-ftp.
+;;;    This directory is necessary for temporary files created by ange-ftp.
 ;;;
 ;;; 4) Set the variable 'ange-ftp-gateway-tmp-name-template' to the name of
 ;;;    this directory plus an identifying filename prefix.  For example:
@@ -223,7 +223,7 @@
 ;;;    there is a chance you might connect to an ULTRIX machine (such as
 ;;;    prep.ai.mit.edu), then set this variable accordingly.  This will have
 ;;;    the side effect that dired will have problems with symlinks whose names
-;;;    end in an @. If you get youself into this situation then editing
+;;;    end in an @.  If you get yourself into this situation then editing
 ;;;    dired's ls-switches to remove "F", will temporarily fix things.
 ;;;
 ;;; 2. If you know that you are connecting to a certain non-UNIX machine
@@ -379,7 +379,7 @@
 ;;; 1. Umask problems:
 ;;;    Be warned that files created by using ange-ftp will take account of the
 ;;;    umask of the ftp daemon process rather than the umask of the creating
-;;;    user.  This is particulary important when logging in as the root user.
+;;;    user.  This is particularly important when logging in as the root user.
 ;;;    The way that I tighten up the ftp daemon's umask under HP-UX is to make
 ;;;    sure that the umask is changed to 027 before I spawn /etc/inetd.  I
 ;;;    suspect that there is something similar on other systems.
@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.23 $")
+(defconst ange-ftp-version "$Revision: 1.24 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1060,7 +1060,7 @@ Optional DEFAULT is password to start with."
   "Return the password for specified HOST and USER, asking user if necessary."
   (ange-ftp-parse-netrc)
 
-  ;; look up password in the hash table first; user might have overriden the
+  ;; look up password in the hash table first; user might have overridden the
   ;; defaults.
   (cond ((ange-ftp-lookup-passwd host user))
 	
@@ -1373,7 +1373,7 @@ then kill the related ftp process."
 ;;;; ------------------------------------------------------------
 
 (defun ange-ftp-process-handle-line (line proc)
-  "Look at the given LINE from the ftp process PROC.  Try to catagorize it
+  "Look at the given LINE from the ftp process PROC.  Try to categorize it
 into one of four categories: good, skip, fatal, or unknown."
   (cond ((string-match ange-ftp-xfer-size-msgs line)
 	 (setq ange-ftp-xfer-size
@@ -3160,7 +3160,7 @@ system TYPE.")
 ;; 	(kill-buffer (current-buffer))))))
 
 ;; this is the extended version of ange-ftp-copy-file-internal that works
-;; asyncronously if asked nicely.
+;; asynchronously if asked nicely.
 (defun ange-ftp-copy-file-internal (filename newname ok-if-already-exists
 					     keep-date &optional msg cont nowait)
   (setq filename (expand-file-name filename)
@@ -4060,7 +4060,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; 		      0		;success-count
 ;; 		      (length fn-list) ;total
 ;; 		      )
-;;    ;; normal case... use the interative routine... much cheaper.
+;;    ;; normal case... use the interactive routine... much cheaper.
 ;;    (ange-ftp-real-dired-create-files file-creator operation fn-list
 ;;				      name-constructor marker-char)))
 

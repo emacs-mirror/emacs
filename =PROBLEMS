@@ -41,7 +41,7 @@ the names work properly with other programs on the same system.
 This typically happens on Suns and other systems that use shared
 libraries.  The cause is that the site has installed a version of the
 shared library which uses a name server--but has not installed a
-similiar version of the unshared library which Emacs uses.
+similar version of the unshared library which Emacs uses.
 
 The result is that most programs, using the shared library, work with
 the nameserver, but Emacs does not.
@@ -65,7 +65,7 @@ corresponding pair of files should fix the problem.
 
 * Trouble using ptys on AIX.
 
-People often instll the pty devices on AIX incorrectly.
+People often install the pty devices on AIX incorrectly.
 Use `smit pty' to reinstall them properly.
 
 * Shell mode on HP/UX gives the message, "`tty`: Ambiguous".
@@ -458,7 +458,7 @@ in sysV.)  You can use keyboard-translate-table, as shown above,
 to map two other input characters (such as C-^ and C-\) into C-s and
 C-q, so that you can still search and quote.
 
-I have no intention of ever redisigning the Emacs command set for
+I have no intention of ever redesigning the Emacs command set for
 the assumption that terminals use C-s/C-q flow control.  This
 flow control technique is a bad design, and terminals that need
 it are bad merchandise and should not be purchased.  If you can

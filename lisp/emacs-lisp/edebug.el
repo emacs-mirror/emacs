@@ -127,7 +127,7 @@
 ;;; Reset edebug-mode only on
 ;;; 	first entry of any function at each recursive-edit level.
 ;;; Add edebug-backtrace, to generate cleaned up
-;;; 	backtrace.  It doesnt "work" like the debug backtrace, however.
+;;; 	backtrace.  It doesn't "work" like the debug backtrace, however.
 ;;; Require reselecting outside window even if
 ;;; 	quit occurs, otherwise save-excursions may restore
 ;;; 	buffer to the wrong window.
@@ -180,9 +180,9 @@
 ;;; Leave point at syntax error, mark at starting position.
 ;;; 
 ;;; Revision 1.2  88/11/28  12:14:15  liberte
-;;; Bug fixes: cond construct didnt execute.
-;;;   () in sexp list didnt parse
-;;;   () as variable in condition-case didnt parse.
+;;; Bug fixes: cond construct didn't execute.
+;;;   () in sexp list didn't parse
+;;;   () as variable in condition-case didn't parse.
 ;;; 
 ;;; Revision 1.1  88/11/28  12:11:27  liberte
 ;;; Initial revision
@@ -281,7 +281,7 @@ Assumes Emacs Lisp syntax is active."
 
 (defun edebug-window-list ()
   "Return a list of windows, in order of next-window."
-  ;; This doesnt work for epoch.
+  ;; This doesn't work for epoch.
   (let* ((first-window (selected-window))
 	 (window-list (list first-window))
 	 (next (next-window first-window)))
@@ -1026,7 +1026,7 @@ Leave point after the value, if there is one."
     (nreverse value-value-list)))
 
 
-;; Bug: this doesnt support condition name lists
+;; Bug: this doesn't support condition name lists
 (put 'condition-case 'edebug-form-hook
      '(symbolp
        form
@@ -1398,7 +1398,7 @@ This is to avoid spurious recentering.")
 		   (eq edebug-arg-mode 'error)) 
 	       (progn
 		 (setq edebug-mode 'step)
-		 (edebug-overlay-arrow)	; this doesnt always show up.
+		 (edebug-overlay-arrow)	; this doesn't always show up.
 		 (edebug-recursive-edit));;   <<<<<< Recursive edit
 	     )
 

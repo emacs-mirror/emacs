@@ -148,7 +148,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-/* On USG systems the system calls are interruptable by signals
+/* On USG systems the system calls are interruptible by signals
  that the user program has elected to catch.  Thus the system call
  must be retried in these cases.  To handle this without massive
  changes in the source code, we remap the standard system call names

@@ -116,7 +116,7 @@ FRAME_PTR last_nonminibuf_frame;
    exist inside frame objects lives in the following structure instead.
 
    NOTE: the_only_frame is not checked for garbage collection; don't
-   store collectable objects in any of its fields!
+   store collectible objects in any of its fields!
 
    You're not/The only frame in town/...  */
 

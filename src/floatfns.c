@@ -405,8 +405,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   if ((XTYPE (arg1) == Lisp_Int) && /* common lisp spec */
       (XTYPE (arg2) == Lisp_Int)) /* don't promote, if both are ints */
     {				/* this can be improved by pre-calculating */
-      int acc, x, y;		/* some binary powers of x then acumulating */
-      /* these, therby saving some time. -wsr */
+      int acc, x, y;		/* some binary powers of x then accumulating */
+      /* these, thereby saving some time. -wsr */
       x = XINT (arg1);
       y = XINT (arg2);
       acc = 1;

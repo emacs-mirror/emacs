@@ -64,7 +64,7 @@
 ;; Known problems (these are all caused by limitations in the Emacs Lisp
 ;; parsing routine (parse-partial-sexp), which was not designed for such
 ;; a rich language; writing a more suitable parser would be a big job):
-;; 1)  Regular expression delimitors do not act as quotes, so special
+;; 1)  Regular expression delimiters do not act as quotes, so special
 ;;       characters such as `'"#:;[](){} may need to be backslashed
 ;;       in regular expressions and in both parts of s/// and tr///.
 ;; 2)  The globbing syntax <pattern> is not recognized, so special

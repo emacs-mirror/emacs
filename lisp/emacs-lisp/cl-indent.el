@@ -74,7 +74,7 @@ by `lisp-body-indent'.")
     ;;  which does special things with subforms.
     (let ((depth 0)
           ;; Path describes the position of point in terms of
-          ;;  list-structure with respect to contining lists.
+          ;;  list-structure with respect to containing lists.
           ;; `foo' has a path of (0 4 1) in `((a b c (d foo) f) g)'
           (path ())
           ;; set non-nil when somebody works out the indentation to use
@@ -331,7 +331,7 @@ by `lisp-body-indent'.")
 		 path state indent-point sexp-column normal-indent))
     (funcall (function lisp-indent-259)
 	     '((&whole nil &rest
- 		;; the following causes wierd indentation
+ 		;; the following causes weird indentation
  		;;(&whole 1 1 2 nil)
 		)
 	       (&whole nil &rest 1))

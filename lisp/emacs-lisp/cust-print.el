@@ -121,8 +121,8 @@ If nil, printing proceeds recursively and may lead to
 `print-length' and `print-level'.
 
 If non-nil, shared substructures anywhere in the structure are printed
-with `#N=' before the first occurance (in the order of the print
-representation) and `#N#' in place of each subsequent occurance,
+with `#N=' before the first occurrence (in the order of the print
+representation) and `#N#' in place of each subsequent occurrence,
 where N is a positive decimal integer.
 
 Currently, there is no way to read this representation in Emacs.")
@@ -269,7 +269,7 @@ string argument will also work.  The string is generated with
 
 (defun custom-message (fmt &rest args)
   "Replacement for standard `message' that works like `custom-format'."
-  ;; It doesnt work to princ the result of custom-format
+  ;; It doesn't work to princ the result of custom-format
   ;; because the echo area requires special handling
   ;; to avoid duplicating the output.  cust-print-internal-message does it right.
   ;; (cust-print-internal-princ (apply 'custom-format fmt args))
@@ -352,7 +352,7 @@ string argument will also work.  The string is generated with
 ;; Print the custom OBJECT using the custom type ALIST.
 ;; For the first predicate that matches the object, the corresponding
 ;; converter is evaluated with the object and the string that results is
-;; printed with princ.  Return nil if no predicte matches the object.
+;; printed with princ.  Return nil if no predicate matches the object.
 (defun cust-print-custom-object1 (object alist)
   (while (and alist (not (funcall (car (car alist)) object)))
     (setq alist (cdr alist)))

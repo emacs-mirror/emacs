@@ -69,7 +69,7 @@ to look for the next message from the ISPELL program.")
 
 (defun kill-ispell ()
   "Kill the ispell process.
-Any changes the your private dictionay
+Any changes in your private dictionary
 that have not already been dumped will be lost."
   (interactive)
   (if ispell-process
@@ -141,7 +141,7 @@ WORD		Check spelling of WORD.  Result is
 :file FILENAME	scan the named file, and print the file offsets of
 		any misspelled words
 
-:insert WORD	put word in private dictonary
+:insert WORD	put word in private dictionary
 
 :accept WORD	don't complain about word any more this session
 
@@ -209,10 +209,10 @@ DIGIT	Near miss selector.  If the misspelled word is close to
 	some words in the dictionary, they are offered as near misses.
 r	Replace.  Replace the word with a string you type.  Each word
 	of your new string is also checked.
-i	Insert.  Insert this word in your private dictonary (kept in
+i	Insert.  Insert this word in your private dictionary (kept in
 	`$HOME/ispell.words').
 a	Accept.  Accept this word for the rest of this editing session,
- 	but don't put it in your private dictonary.
+ 	but don't put it in your private dictionary.
 l	Lookup.  Look for a word in the dictionary by fast binary
 	search, or search for a regular expression in the dictionary
 	using grep.

@@ -880,7 +880,7 @@ Otherwise return nil and don't move point."
 (defun c-beginning-of-statement (count)
   "Go to the beginning of the innermost C statement.
 With prefix arg, go back N - 1 statements.  If already at the beginning of a
-statement then go to the beginning of the preceeding one.
+statement then go to the beginning of the preceding one.
 If within a string or comment, or next to a comment (only whitespace between),
 move by sentences instead of statements."
   (interactive "p")

@@ -469,7 +469,7 @@ in ws-last-errormessage for recovery with C-q w."
 
 
 (defun ws-indent-block ()
-  "In WordStar mode: Indent block (not yet implemeted)."
+  "In WordStar mode: Indent block (not yet implemented)."
   (interactive)
   (ws-error "Indent block not yet implemented"))
 

@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/06/04 06:40:45 $|$Revision: 1.40 $
+;; |$Date: 1993/06/06 22:11:22 $|$Revision: 1.41 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -83,7 +83,7 @@
 ;; the last possible moment.
 
 ;; TODO
-;; - Integrate the emacs 19 generalized commmand history.
+;; - Integrate the emacs 19 generalized command history.
 ;; - Think about incorporating query-replace.
 ;; - Hooks and options for failed search.
 
@@ -626,7 +626,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 ;;;=======================================================
 ;;; Switching buffers should first terminate isearch-mode.
-;;; This is done quite differently for each varient of emacs.
+;;; This is done quite differently for each variant of emacs.
 ;;; For lemacs, see Exiting in lemacs below
 
 ;; For Emacs 19, the frame switch event is handled.
@@ -664,7 +664,7 @@ The following additional command keys are active while editing.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
 \\[isearch-backward-exit-minibuffer] to resume isearching backward.
 \\[isearch-ring-advance-edit] to replace the search string with the next item in the search ring.
-\\[isearch-ring-retreat-edit] to replace the search string with the previou item in the search ring.
+\\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
 
 If first char entered is \\[isearch-yank-word], then do word search instead."
@@ -673,7 +673,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
   ;; If there were a way to catch any change of buffer from the minibuffer,
   ;; this could be simplified greatly.
-  ;; Editing doesnt back up the search point.  Should it?
+  ;; Editing doesn't back up the search point.  Should it?
   (interactive)
   (condition-case err
       (let (isearch-nonincremental	; should search nonincrementally?
@@ -804,7 +804,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 Otherwise, revert to previous successful search and continue searching.
 Use `isearch-exit' to quit without signalling."
   (interactive)
-;;  (ding)  signal instead below, if quiting
+;;  (ding)  signal instead below, if quitting
   (discard-input)
   (if isearch-success
       ;; If search is successful, move back to starting point
@@ -1050,7 +1050,7 @@ If you want to search for just a space, type C-q SPC."
 	  (isearch-process-search-string search-whitespace-regexp " ")
 	(isearch-printing-char))
     (progn
-      ;; This way of doing word search doesnt correctly extend current search.
+      ;; This way of doing word search doesn't correctly extend current search.
       ;;      (setq isearch-word t)
       ;;      (setq isearch-adjusted t)
       ;;      (goto-char isearch-barrier)

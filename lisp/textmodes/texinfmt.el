@@ -431,7 +431,7 @@ converted to Info is stored in a temporary buffer."
 
 
 ; 19 October 1990
-; @setfilename modifed to work with include files; see @include
+; @setfilename modified to work with include files; see @include
 ; (defun texinfo-format-setfilename ()
 ;   (let ((arg (texinfo-parse-arg-discard)))
 ;     (setq texinfo-format-filename
@@ -1653,7 +1653,7 @@ If used within a line, follow `@minus' with braces."
 ;; In the original version, include files were ignored by Info but
 ;; incorporated in to the printed manual.  To make references to the
 ;; included file, the Texinfo source file has to refer to the included
-;; files using the `(filename)nodename' format for refering to other
+;; files using the `(filename)nodename' format for referring to other
 ;; Info files.  Also, the included files had to be formatted on their
 ;; own.  It was just like they were another file.
 

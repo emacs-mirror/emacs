@@ -20,7 +20,7 @@
 /*      2. places fildes into raw mode                         */
 /*      3. converts ioctl arguments to datastream              */
 /*      4. waits for 2 secs for acknowledgement before         */
-/*         timimg out.                                         */
+/*         timing out.                                         */
 /*      5. places response in callers buffer ( just like       */
 /*         ioctl.                                              */
 /*      6. returns fildes to its original mode                 */

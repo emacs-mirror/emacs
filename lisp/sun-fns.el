@@ -32,7 +32,7 @@
 ;;;
 ;;;
 ;;; Functions for manipulating via the mouse and mouse-map definitions
-;;; for accessing them.  Also definitons of mouse menus.
+;;; for accessing them.  Also definitions of mouse menus.
 ;;; This file you should freely modify to reflect you personal tastes.
 ;;;
 ;;; First half of file defines functions to implement mouse commands,
@@ -43,7 +43,7 @@
 ;;;         Mouse Functions.
 ;;;
 ;;; These functions follow the sun-mouse-handler convention of being called
-;;; with three arguements: (window x-pos y-pos)
+;;; with three arguments: (window x-pos y-pos)
 ;;; This makes it easy for a mouse executed command to know where the mouse is.
 ;;; Use the macro "eval-in-window" to execute a function 
 ;;; in a temporarily selected window.
@@ -138,7 +138,7 @@ and put the region in the stuff buffer."
     (mouse-select-window window x y)))
 
 ;;;
-;;; esoteria:
+;;; esoterica:
 ;;;
 (defun mouse-exch-pt-and-mark (window x y)
   "Exchange point and mark."
@@ -321,7 +321,7 @@ relative X divided by window width."
     (if (>= x (1- (window-width)))
 	;; When x is maximun (equal to or 1 less than window width),
 	;; goto end of buffer.  We check for this special case
-	;; becuase the calculated goto-char often goes short of the
+	;; because the calculated goto-char often goes short of the
 	;; end due to roundoff error, and we often really want to go
 	;; to the end.
 	(goto-char (point-max))
@@ -418,7 +418,7 @@ relative X divided by window width."
 ;;; minibuffer menu
 ;;;
 (defmenu minibuffer-menu 
-  ("Minibuffer" message "Just some miscellanous minibuffer commands")
+  ("Minibuffer" message "Just some miscellaneous minibuffer commands")
   ("Stuff" sun-yank-selection)
   ("Do-It" exit-minibuffer)
   ("Abort" abort-recursive-edit)

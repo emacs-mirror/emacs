@@ -268,7 +268,7 @@ of the start of the containing expression."
       (if first-sexp-list-p
 	  (setq desired-indent (current-column)))
       ;; Point is at the point to indent under unless we are inside a string.
-      ;; Call indentation hook except when overriden by scheme-indent-offset
+      ;; Call indentation hook except when overridden by scheme-indent-offset
       ;; or if the desired indentation has already been computed.
       (cond ((car (nthcdr 3 state))
 	     ;; Inside a string, don't change indentation.

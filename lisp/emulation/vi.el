@@ -332,7 +332,7 @@ command extensions.")
   "Save last direction, char and upto-flag used for char finding.")
 
 (defvar vi-last-change-command nil	; cons cell
-  "Save commmands for redoing last changes.  Each command is in (FUNC . ARGS)
+  "Save commands for redoing last changes.  Each command is in (FUNC . ARGS)
 form that is ready to be 'apply'ed.")
 
 (defvar vi-last-shell-command nil	; last shell op command line
@@ -790,7 +790,7 @@ The given COUNT is remembered for future scrollings."
 
 (defun vi-char-argument (arg)
   "Get following character (could be any CHAR) as part of the prefix argument.
-Possible perfix-arg cases are NIL, INTEGER, (NIL . CHAR) or (INTEGER . CHAR)."
+Possible prefix-arg cases are NIL, INTEGER, (NIL . CHAR) or (INTEGER . CHAR)."
   (interactive "P")
   (let ((char (read-char)))
     (cond ((null arg) (setq prefix-arg (cons nil char)))
@@ -1346,7 +1346,7 @@ The following CHAR will be the name for the command or macro."
 	   (vi-ask-for-info char))))
 
 (defun vi-mark-region (arg region)
-  "Mark region approriately.  The next char REGION is d(efun),s(-exp),b(uffer),
+  "Mark region appropriately.  The next char REGION is d(efun),s(-exp),b(uffer),
 p(aragraph), P(age), f(unction in C/Pascal etc.), w(ord), e(nd of sentence),
 l(ines)."
   (interactive "p\nc")

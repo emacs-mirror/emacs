@@ -438,7 +438,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 
     for( scns = 0; scns < f_hdr.h_nscns; scns++ ) {
 
-	/* This is a cheesey little loop to write out the section headers
+	/* This is a cheesy little loop to write out the section headers
 	 * in order of increasing virtual address. Dull but effective.
 	 */
 
@@ -561,7 +561,7 @@ copy_sym (new, a_out, a_name, new_name)
 /* ****************************************************************
  * mark_x
  *
- * After succesfully building the new a.out, mark it executable
+ * After successfully building the new a.out, mark it executable
  */
 static
 mark_x (name)

@@ -106,8 +106,8 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 
 
   /*
-   * Remeber a magic cookie so we know we've got the right binary
-   * when remaping.
+   * Remember a magic cookie so we know we've got the right binary
+   * when remapping.
    */
   cookie = time (0);
 

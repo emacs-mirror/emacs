@@ -32,7 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   It is assumed that for any interval plist, a property appears
   only once on the list.  Although some code i.e., remove_properties,
   handles the more general case, the uniqueness of properties is
-  neccessary for the system to remain consistent.  This requirement
+  necessary for the system to remain consistent.  This requirement
   is enforced by the subrs installing properties onto the intervals. */
 
 /* The rest of the file is within this conditional */

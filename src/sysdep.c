@@ -437,7 +437,7 @@ child_setup_tty (out)
   s.main.c_oflag &= ~OLCUC;	/* Disable map of lower case to upper on
 				   output */
 #if 0
-  /* Said to be unnecesary:  */
+  /* Said to be unnecessary:  */
   s.main.c_cc[VMIN] = 1;	/* minimum number of characters to accept  */
   s.main.c_cc[VTIME] = 0;	/* wait forever for at least 1 character  */
 #endif
@@ -697,7 +697,7 @@ reset_sigio ()
   unrequest_sigio ();
 }
 
-#ifdef FASYNC		/* F_SETFL does not imply existance of FASYNC */
+#ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
 
 request_sigio ()
 {
@@ -830,7 +830,7 @@ emacs_set_tty (fd, settings, waitp)
      of the requested actions could not be performed.
      We must read settings back to ensure tty setup properly.
      AIX requires this to keep tty from hanging occasionally."  */
-  /* This make sure that we dont loop indefinetly in here.  */
+  /* This make sure that we don't loop indefinitely in here.  */
   for (i = 0 ; i < 10 ; i++)
     if (tcsetattr (fd, waitp ? TCSAFLUSH : TCSADRAIN, &settings->main) < 0)
       {
@@ -1162,7 +1162,7 @@ init_sys_modes ()
     }
 
 #ifdef F_SETFL
-#ifdef F_GETOWN		/* F_SETFL does not imply existance of F_GETOWN */
+#ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input)
     {
       old_fcntl_owner = fcntl (0, F_GETOWN, 0);
@@ -1311,7 +1311,7 @@ reset_sys_modes ()
 #endif
 
 #ifdef F_SETFL
-#ifdef F_SETOWN		/* F_SETFL does not imply existance of F_SETOWN */
+#ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
       reset_sigio ();
@@ -2395,7 +2395,7 @@ sys_abort ()
 #ifdef VMS
 #ifdef LINK_CRTL_SHARE
 #ifdef SHAREABLE_LIB_BUG
-/* Variables declared noshare and initialized in shareable libraries
+/* Variables declared noshare and initialized in sharable libraries
    cannot be shared.  The VMS linker incorrectly forces you to use a private
    version which is uninitialized... If not for this "feature", we
    could use the C library definition of sys_nerr and sys_errlist. */
@@ -2516,7 +2516,7 @@ sys_write (fildes, buf, nbyte)
  *	to names for our own functions in sysdep.c that do the system call
  *	with retries.  Actually, for portability reasons, it is good
  *	programming practice, as this example shows, to limit all actual
- *	system calls to a single occurance in the source.  Sure, this
+ *	system calls to a single occurrence in the source.  Sure, this
  *	adds an extra level of function call overhead but it is almost
  *	always negligible.   Fred Fish, Unisoft Systems Inc.
  */
@@ -2802,7 +2802,7 @@ char *sys_siglist[NSIG + 1] =
   "power-fail restart",			 /* 19 SIGPWR    */
   "window size changed",		 /* 20 SIGWINCH  */
   "undefined",				 /* 21           */
-  "pollable event occured",		 /* 22 SIGPOLL   */
+  "pollable event occurred",		 /* 22 SIGPOLL   */
   "sendable stop signal not from tty",	 /* 23 SIGSTOP   */
   "stop signal from tty",		 /* 24 SIGSTP    */
   "continue a stopped process",		 /* 25 SIGCONT   */
@@ -3574,7 +3574,7 @@ creat_copy_attrs (old, new)
 sys_creat (va_alist)
      va_dcl
 {
-  va_list list_incrementor;
+  va_list list_incrementer;
   char *name;
   int mode;
   int rfd;			/* related file descriptor */
@@ -3588,12 +3588,12 @@ sys_creat (va_alist)
   extern int vms_stmlf_recfm;
 
   va_count (count);
-  va_start (list_incrementor);
-  name = va_arg (list_incrementor, char *);
-  mode = va_arg (list_incrementor, int);
+  va_start (list_incrementer);
+  name = va_arg (list_incrementer, char *);
+  mode = va_arg (list_incrementer, int);
   if (count > 2)
-    rfd = va_arg (list_incrementor, int);
-  va_end (list_incrementor);
+    rfd = va_arg (list_incrementer, int);
+  va_end (list_incrementer);
   if (count > 2)
     {
       /* Use information from the related file descriptor to set record
@@ -4102,7 +4102,7 @@ rename (from, to)
    are renaming.
 
    We could use the chmod function, but Eunichs uses 3 bits per user category
-   to describe the protection, and VMS uses 4 (write and delete are seperate
+   to describe the protection, and VMS uses 4 (write and delete are separate
    bits).  To maintain portability, the VMS implementation of `chmod' wires
    the W and D bits together.  */
 

@@ -1358,7 +1358,7 @@ if clumsier, control over this feature."
 ;;; extract a value with (extract-from-klist KLIST KEY [DEFAULT]).
 
 (defun reduce (function sequence &rest kargs)
-  "Apply FUNCTION (a function of two arguments) to succesive pairs of elements
+  "Apply FUNCTION (a function of two arguments) to successive pairs of elements
 from SEQUENCE.  Some keyword arguments are valid after FUNCTION and SEQUENCE:
 :from-end       If non-nil, process the values backwards
 :initial-value  If given, prefix it to the SEQUENCE.  Suffix, if :from-end
@@ -1665,7 +1665,7 @@ The arguments must be integers.  With no arguments, value is zero."
            (do* ((absa (abs (nth 0 integers))) ; better to operate only
                  (absb (abs (nth 1 integers))) ;on positives.
                  (dd (max absa absb))   ; setup correct order for the
-                 (ds (min absa absb))   ;succesive divisions.
+                 (ds (min absa absb))   ;successive divisions.
                  ;; intermediate results
                  (q 0)
                  (r 0)
@@ -1968,7 +1968,7 @@ updating called for."
 
 (defsetf apply
   (lambda (&rest args)
-    ;; dissasemble the calling form
+    ;; disassemble the calling form
     ;; "(((quote fn) x1 x2 ... xn) val)" (function instead of quote, too)
     (let* ((fnform (car args))          ;functional form
            (applyargs (append           ;arguments "to apply fnform"
@@ -2383,7 +2383,7 @@ Each option is either a symbol, or a list of a keyword symbol taken from the
 list \{:conc-name, :copier, :constructor, :predicate, :include,
 :print-function, :type, :initial-offset\}.  The meanings of these are as in
 CLtL, except that no BOA-constructors are provided, and the options
-\{:print-fuction, :type, :initial-offset\} are ignored quietly.  All these
+\{:print-function, :type, :initial-offset\} are ignored quietly.  All these
 structs are named, in the sense that their names can be used for type
 discrimination.
 

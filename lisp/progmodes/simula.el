@@ -59,13 +59,13 @@ the previous line of the statement.")
 
 (defconst simula-if-indent '(0 . 0)
   "*Extra indentation of THEN and ELSE with respect to the starting IF.
-Value is a cons cell, the car is extra THEN indention and the cdr
-extra ELSE indention. IF after ELSE is indented as the starting IF.")
+Value is a cons cell, the car is extra THEN indentation and the cdr
+extra ELSE indentation. IF after ELSE is indented as the starting IF.")
 
 (defconst simula-inspect-indent '(0 . 0)
   "*Extra indentation of WHEN and OTHERWISE with respect to the
 corresponding INSPECT. Value is a cons cell, the car is
-extra WHEN indention and the cdr extra OTHERWISE indention.")
+extra WHEN indentation and the cdr extra OTHERWISE indentation.")
 
 (defconst simula-electric-indent nil
   "*If this variable is non-nil, the simula-indent-line function
@@ -147,12 +147,12 @@ Variables controlling indentation style:
     Offset of SIMULA label lines relative to usual indentation
  simula-if-indent '(0 . 0)
     Extra indentation of THEN and ELSE with respect to the starting IF.
-    Value is a cons cell, the car is extra THEN indention and the cdr
-    extra ELSE indention. IF after ELSE is indented as the starting IF.
+    Value is a cons cell, the car is extra THEN indentation and the cdr
+    extra ELSE indentation. IF after ELSE is indented as the starting IF.
  simula-inspect-indent '(0 . 0)
     Extra indentation of WHEN and OTHERWISE with respect to the
     corresponding INSPECT. Value is a cons cell, the car is
-    extra WHEN indention and the cdr extra OTHERWISE indention.
+    extra WHEN indentation and the cdr extra OTHERWISE indentation.
  simula-electric-indent nil
     If this variable  non-nil value, simula-indent-line
     will check the previous line to see if it has to be reindented.
@@ -169,7 +169,7 @@ Turning on SIMULA mode calls the value of the variable simula-mode-hook
 with no arguments, if that value is non-nil
 
 Warning: simula-mode-hook should not read in an abbrev file without calling
-the function simula-install-standard-abbrevs afterwards, preferrably not
+the function simula-install-standard-abbrevs afterwards, preferably not
 at all."
   (interactive)
   (kill-all-local-variables)
@@ -680,7 +680,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
        ;; Calculate non-comment indentation
        (t
 	;; first, find out if this line starts with something that needs
-	;; special indention (END/IF/THEN/ELSE/WHEN/OTHERWISE or label)
+	;; special indentation (END/IF/THEN/ELSE/WHEN/OTHERWISE or label)
 	;;
 	(skip-chars-forward " \t\f")
 	(cond
@@ -783,7 +783,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 				    (cdr simula-if-indent))))
 		  (simula-find-inspect)))
 		;; found the start of a [sub]statement
-		;; add indention for continued statement
+		;; add indentation for continued statement
 		(if continued
 		    (setq indent
 			  (+ indent
@@ -821,7 +821,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 				   "begin\\|then\\|else\\|when\\|otherwise\\|do")))
 			 (not (memq (preceding-char) '(?: ?\;))))))
 	    ;; if we the state of the continued-variable
-	    ;; changed, add indention for continued statement
+	    ;; changed, add indentation for continued statement
 	    (if (or (and prev-cont (not continued))
 		    (and continued
 			 (listp simula-continued-statement-offset)))
@@ -835,7 +835,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 		(setq start-line (save-excursion (beginning-of-line) (point)))
 	      (beginning-of-line))))
         ;;
-	;; return indention
+	;; return indentation
 	;;
 	indent)))))
 
@@ -909,7 +909,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
 		   ((eq (following-char) ?\;)
 		    (if (zerop parlevel)
 			(throw 'simula-out nil)
-		      (error "Parethesis mismatch or misplaced ';'")))
+		      (error "Parenthesis mismatch or misplaced ';'")))
 		   ((eq (following-char) ?\()
 		    (if (zerop parlevel)
 			(throw 'simula-out (1+ (current-column)))
@@ -947,7 +947,7 @@ If COUNT is negative, move forward instead (simula-next-statement)"
   "Expand SIMULA keyword. If it starts the line, reindent."
   ;; redisplay
   (let ((show-char (eq this-command 'self-insert-command)))
-    ;; If the abbrev expansion results in reindention, the user may have
+    ;; If the abbrev expansion results in reindentation, the user may have
     ;; to wait some time before the character he typed is displayed
     ;; (the char causing the expansion is inserted AFTER the hook function
     ;; is called). This is annoying in case of normal characters.

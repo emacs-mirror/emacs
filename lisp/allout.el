@@ -11,7 +11,7 @@
 ;;;_  - Author: Ken Manheimer <klm@nist.gov>
 ;;;_  - Maintainer: Ken Manheimer <klm@nist.gov>
 ;;;_  - Created: Dec 1991 - first release to usenet
-;;;_  - Version: $Id: allout.el,v 1.1 1993/06/02 17:53:31 rms Exp rms $||
+;;;_  - Version: $Id: allout.el,v 1.2 1993/06/07 18:48:08 rms Exp jimb $||
 ;;;_  - Keywords: outline mode
 
 ;;;_  - LCD Archive Entry
@@ -19,7 +19,7 @@
 ;; LCD Archive Entry:
 ;; allout|Ken Manheimer|klm@nist.gov
 ;; |A more thorough outline-mode
-;; |27-May-1993|$Id: allout.el,v 1.1 1993/06/02 17:53:31 rms Exp rms $||
+;; |27-May-1993|$Id: allout.el,v 1.2 1993/06/07 18:48:08 rms Exp jimb $||
 
 ;;;_  - Description
 ;; A full-fledged outline mode, based on the original rudimentary
@@ -65,7 +65,7 @@
 
 ;;;_   = outline-primary-bullet
 (defvar outline-primary-bullet "*") ;; Changing this var disables any
-                                    ;; backwards compatability with
+                                    ;; backwards compatibility with
                                     ;; the original outline mode.
 (make-variable-buffer-local 'outline-primary-bullet)
 
@@ -333,7 +333,7 @@ up major and minor-mode keybindings.")
 
 ;;;_   : Key bindings
 ;;;_    = Generic minor keybindings control
-;;;_     ; Stallmans suggestion
+;;;_     ; Stallman's suggestion
 (defvar outline-mode-map nil "")
  
 (if outline-mode-map
@@ -594,7 +594,7 @@ Topic: A basic cohesive component of an emacs outline, which can
 Exposure: Hidden (~closed~) topics are represented by ellipses ('...')
           at the end of the visible SUPERTOPIC which contains them,
           rather than by their actual text.  Hidden topics are still
-          susceptable to editing and regular movement functions, they
+          susceptible to editing and regular movement functions, they
           just are not displayed normally, effectively collapsed into
           the ellipses which represent them.  Outline mode provides
           the means to selectively expose topics based on their
@@ -618,7 +618,7 @@ Header: The initial portion of an outline topic.  It is composed of a
         topic header PREFIX at the beginning of the line, followed by
         text to the end of the EFFECTIVE LINE.
 
-Body: Any subsequent lines of text following a topic header and preceeding
+Body: Any subsequent lines of text following a topic header and preceding
       the next one.  This is also referred to as the entry for a topic.
 
 Prefix: The text which distinguishes topic headers from normal text
@@ -629,7 +629,7 @@ Prefix: The text which distinguishes topic headers from normal text
         by zero or more spaces and then an outline BULLET.  [Note - you
         can now designate your own, arbitrary HEADER-LEAD string, by
         setting the variable 'outline-header-prefix'.]  The second form
-        is for backwards compatability with the original emacs outline
+        is for backwards compatibility with the original emacs outline
         mode, and consists solely of asterisks.  Both sorts are
         recognized by all outline commands.  The first sort is generated
         by outline topic production commands if the emacs variable
@@ -1656,7 +1656,7 @@ and cancellation of a search.")
    that the index for the numbered prefix will be derived, by counting
    siblings back to start of level.  If INDEX is a number, then that
    number is used as the index for the numbered prefix (allowing, eg,
-   sequential renumbering to not requre this function counting back the
+   sequential renumbering to not require this function counting back the
    index for each successive sibling)."
 
   ;; The options are ordered in likely frequence of use, most common
@@ -1778,7 +1778,7 @@ and cancellation of a search.")
    - Creation of sibling or nested topics is with respect to the topic
      you're starting from, even when creating backwards.  This way you
      can easily create a sibling in front of the current topic without
-     having to go to it's preceeding sibling, and then open forward
+     having to go to its preceding sibling, and then open forward
      from there."
 
   (let* ((depth (+ (outline-current-depth) relative-depth))
@@ -1814,7 +1814,7 @@ and cancellation of a search.")
                 (or (and (not (> relative-depth 0))
                          ;; not descending,
                          (save-excursion
-                           ;; preceeded by a blank line?
+                           ;; preceded by a blank line?
                            (forward-line -1)
                            (looking-at "^\\s-*$")))
                     (and (= ref-depth 1)
@@ -1906,7 +1906,7 @@ and cancellation of a search.")
   "  Reindent body lines which were indented at old-depth to new-depth.
 
   Note that refill of indented paragraphs is not done, and tabs are
-  not accomodated.  ('untabify' your outline if you want to preserve
+  not accommodated.  ('untabify' your outline if you want to preserve
   hanging body indents.)"
 
   (save-excursion
@@ -2292,7 +2292,7 @@ parameterized communication between the two, if suitable.")
       (yank arg)
       (exchange-dot-and-mark)
       (if (and established-depth        ; the established stuff qualifies.
-               ;; The yanked stuff also qualfies - is topic(s):
+               ;; The yanked stuff also qualifies - is topic(s):
                (looking-at (concat "\\(" outline-regexp "\\)")))
           ;; Ok, adjust the depth of the yanked stuff.  Note that the
           ;; stuff may have more than a single root, so we have to
@@ -2426,7 +2426,7 @@ parameterized communication between the two, if suitable.")
       )
     )
   )
-;;;_     > outline-to-entry-end - Unmaintained compatability - ignore this!
+;;;_     > outline-to-entry-end - Unmaintained compatibility - ignore this!
 ;-------------------------------------------------------------------
 ; Something added solely for use by a "smart menu" package someone got
 ; off the net.  I have no idea whether this is appropriate code.
@@ -2538,7 +2538,7 @@ parameterized communication between the two, if suitable.")
       (if arg (insert-string (format "\t\t\t(%s \"%s\")\n"
                                      "outline-lead-with-comment-string"
                                      arg)))
-                                        ; Insert ammouncement and
+                                        ; Insert announcement and
                                         ; exposure control:
       (insert-string
        (format "\t\t\t%s %s\n\t\t\t%s %s\n\t\t%s %s"

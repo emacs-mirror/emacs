@@ -301,7 +301,7 @@ that uses or sets the mark."
   (goto-char (point-min)))
 
 (defun count-lines-region (start end)
-  "Print number of lines and charcters in the region."
+  "Print number of lines and characters in the region."
   (interactive "r")
   (message "Region has %d lines, %d characters"
 	   (count-lines start end) (- end start)))

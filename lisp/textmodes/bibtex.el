@@ -144,11 +144,11 @@
 ;;; 	M-C-e  end-of-bibtex-entry
 ;;; Mike Newton (newton@gumby.cs.caltech.edu) 90.11.17
 ;;;  * Handle items like
-;;;          title = poft # "Fifth Tri-quaterly" # random-conf,
+;;;          title = poft # "Fifth Tri-quarterly" # random-conf,
 ;;;    and   title = {This title is inside curlies}
 ;;;  * added user settable, always present, optional fields
 ;;;  * fixed 'bibtex-find-it's doc string's location
-;;;  * bibtex-field-text made more general (it wouldnt handle the # construct)
+;;;  * bibtex-field-text made more general (it wouldn't handle the # construct)
 ;;;		and it now handles a small subset of the {} cases
 
 ;;; Bengt Martensson, March 6
@@ -553,7 +553,7 @@ Chosen on aesthetic grounds only.")
 Equal to the space needed for the longest name part.")
 
 (defun bibtex-current-entry-label (&optional include-cite kill)
-  "Return the label of the bibtex entry containing, or preceeding point.
+  "Return the label of the bibtex entry containing, or preceding point.
 Optional argument INCLUDE-CITE, if true means put a '\\cite{}' around the
 returned value.  Second optional argument KILL, if true, means place the
 returned value in the kill buffer.  Interactively; providing prefix
@@ -563,7 +563,7 @@ Rationale:
 The intention is that someone will write a function that can be bound to
 a mouse key so that people entering TeX can just mouse on the bibtex entry
 and have the citation key inserted at the current point (which will almost
-certainly be in some other bufer).  In the interim this function is 
+certainly be in some other buffer).  In the interim this function is 
 marginally useful for keyboard binding and is not bound by default.  
 Suggested binding is ^C-k."
   (interactive (list current-prefix-arg t))
@@ -689,7 +689,7 @@ non-nil."
   (setq local-abbrev-table bibtex-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start "^[ \f\n\t]*$")
-  (auto-fill-mode 1)			; nice alignements
+  (auto-fill-mode 1)			; nice alignments
   (setq left-margin (+ bibtex-text-alignment 1))
 
   (run-hooks 'bibtex-mode-hook))
@@ -813,7 +813,7 @@ If bibtex-sort-ignore-string-entries is true, @string entries will be ignored.
 
 Bugs:
   1. Text between the closing brace ending one bibtex entry, and the @ starting 
-     the next, is considered part of the PRECEEDING entry.  Perhaps it should be
+     the next, is considered part of the PRECEDING entry.  Perhaps it should be
      part of the following entry."
   (interactive)
   (save-restriction
@@ -825,7 +825,7 @@ Bugs:
 			(end-of-bibtex-entry)
 			(point)))
     (sort-subr nil			; reversep
-	       ;; begining of record function
+	       ;; beginning of record function
 	       'forward-line
 	       ;; end of record function
 	       (function (lambda () (and (re-search-forward "}\\s-*\n[\n \t]*@" nil 'move)

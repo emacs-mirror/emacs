@@ -129,7 +129,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 		 ? (sign_extend_temp | 0xFF000000) \
 		 : (sign_extend_temp & 0x00FFFFFF))
 
-#ifdef emacs /* Don't do this when makeing xmakefile! */
+#ifdef emacs /* Don't do this when making xmakefile! */
 extern int sign_extend_temp;
 #endif
 

@@ -131,7 +131,7 @@ we're in the GUD buffer)."
 ;; The job of the marker-filter method is to detect file/line markers in
 ;; strings and set the global gud-last-frame to indicate what display
 ;; action (if any) should be triggered by the marker.  Note that only
-;; whetever the method *returns* is displayed in the buffer; thus, you
+;; whatever the method *returns* is displayed in the buffer; thus, you
 ;; can filter the debugger's output, interpreting some and passing on
 ;; the rest.
 ;;
@@ -755,7 +755,7 @@ the character after the end of the expr."
 
 (defun expr-compound-sep (span-start span-end)
   "Returns '.' for '->' & '.', returns ' ' for white space,
-returns '?' for other puctuation."  
+returns '?' for other punctuation."
   (let ((result ? )
 	(syntax))
     (while (< span-start span-end)

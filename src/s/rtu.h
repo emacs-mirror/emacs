@@ -44,7 +44,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
 
    SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvatages
+   CBREAK mode has two disadvantages
      1) At least in 4.2, it is impossible to handle the Meta key properly.
         I hear that in system V this problem does not exist.
      2) Control-G causes output to be discarded.
@@ -139,7 +139,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/* On RTU systems (like USG) the system calls are interruptable by signals
+/* On RTU systems (like USG) the system calls are interruptible by signals
  that the user program has elected to catch.  Thus the system call
  must be retried in these cases.  To handle this without massive
  changes in the source code, we remap the standard system call names

@@ -119,7 +119,7 @@ NOTE-END */
 
 /* #define VIRT_ADDR_VARIES */
 
-/* For University of Utah 4.3bsd implemetation on HP300s.
+/* For University of Utah 4.3bsd implementation on HP300s.
    The #ifndef __GNUC__ definitions are required for the "standard" cc,
    a very old, brain-dead version of PCC. */
 

@@ -356,7 +356,7 @@ in the current news group."
   (setq nntp-server-process nil))
 
 (defun nnspool-find-article-by-message-id (id)
-  "Return full pathname of an artilce identified by message-ID."
+  "Return full pathname of an article identified by message-ID."
   (save-excursion
     (let ((buffer (get-file-buffer nnspool-history-file)))
       (if buffer
@@ -396,7 +396,7 @@ in the current news group."
   (let ((string (substring string 0))	;Copy string.
 	(len (length string))
 	(idx 0))
-    ;; Replace all occurence of FROM with TO.
+    ;; Replace all occurrences of FROM with TO.
     (while (< idx len)
       (if (= (aref string idx) from)
 	  (aset string idx to))

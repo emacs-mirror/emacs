@@ -201,7 +201,7 @@ and this notice must be preserved on all copies.  */
    programs assume that if you have a config.h file, you must declare
    the type of getenv.
 
-   This declaration shouldn't appear when alloca.s or ymakfile
+   This declaration shouldn't appear when alloca.s or ymakefile
    includes config.h.  */
 #ifndef NOT_C_CODE
 extern char *getenv ();

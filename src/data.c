@@ -1215,9 +1215,9 @@ Lisp_Object
 indirect_function (object)
   register Lisp_Object object;
 {
-  Lisp_Object tortise, hare;
+  Lisp_Object tortoise, hare;
 
-  hare = tortise = object;
+  hare = tortoise = object;
 
   for (;;)
     {
@@ -1228,9 +1228,9 @@ indirect_function (object)
 	break;
       hare = XSYMBOL (hare)->function;
 
-      tortise = XSYMBOL (tortise)->function;
+      tortoise = XSYMBOL (tortoise)->function;
 
-      if (EQ (hare, tortise))
+      if (EQ (hare, tortoise))
 	Fsignal (Qcyclic_function_indirection, Fcons (object, Qnil));
     }
 

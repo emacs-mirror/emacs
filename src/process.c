@@ -1683,7 +1683,7 @@ static int waiting_for_user_input_p;
    If read_kbd is a pointer to a struct Lisp_Process, then the
      function returns true iff we received input from that process
      before the timeout elapsed.
-   Otherwise, return true iff we recieved input from any process.  */
+   Otherwise, return true iff we received input from any process.  */
 
 wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      int time_limit, microsecs;
@@ -3121,7 +3121,7 @@ extern int frame_garbaged;
    do_display != 0 means redisplay should be done to show subprocess
    output that arrives.  This version of the function ignores it.
 
-   Return true iff we recieved input from any process.  */
+   Return true iff we received input from any process.  */
 
 int
 wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)

@@ -23,7 +23,7 @@ extern int num_input_chars;
 /* Total number of times read_char has returned, outside of macros.  */
 extern int num_nonmacro_input_chars;
 
-/* Nonzero means polling for input is temporarily suppresed.  */
+/* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
 
 /* Keymap mapping ASCII function key sequences onto their preferred forms.

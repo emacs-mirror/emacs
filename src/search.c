@@ -943,7 +943,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		  while ((limit - pos) * direction >= 0)
 		    pos += BM_tab[FETCH_CHAR(pos)];
 		  /* now run the same tests to distinguish going off the */
-		  /* end, a match or a phoney match. */
+		  /* end, a match or a phony match. */
 		  if ((pos - limit) * direction <= len)
 		    break;	/* ran off the end */
 		  /* Found what might be a match.

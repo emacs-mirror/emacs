@@ -80,7 +80,7 @@ All the commands defined in Text mode are inherited unless overridden.")
 
 (if indented-text-mode-map
     ()
-  ;; Make different definintion for TAB before the one in text-mode-map, but
+  ;; Make different definition for TAB before the one in text-mode-map, but
   ;; share the rest.
   (let ((newmap (make-sparse-keymap)))
     (define-key newmap "\t" 'indent-relative)

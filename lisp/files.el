@@ -1846,7 +1846,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	  ;; would mean that our line of output would not display
 	  ;; FILE's name as given.  To really address the problem that
 	  ;; SunOS 4.1.3 has, we need to find the right switch to get
-	  ;; a descripton of the link itself.
+	  ;; a description of the link itself.
 	  ;; (let (symlink)
 	  ;;   (while (setq symlink (file-symlink-p file))
 	  ;;     (setq file symlink)))

@@ -244,7 +244,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
     Fbarf_if_buffer_read_only ();
 
   /* Inserting a newline at the end of a line produces better
-     redisplay in try_window_id than inserting at the ebginning fo a
+     redisplay in try_window_id than inserting at the beginning of a
      line, and the textual result is the same.  So, if we're at
      beginning of line, pretend to be at the end of the previous line.  
 

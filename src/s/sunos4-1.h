@@ -1,6 +1,6 @@
 #include "sunos4-0.h"
 
-/* 4.1.1 makes these system calls interruptable.  */
+/* 4.1.1 makes these system calls interruptible.  */
 
 #define read sys_read
 #define write sys_write

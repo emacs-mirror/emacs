@@ -349,7 +349,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq deathlst
 	'((this is not a healthy way of thinking \.)
 	  (($ bother) you\, too\, may die someday \?)
-	  (i am worried by your obssession with this topic!)
+	  (i am worried by your obsession with this topic!)
 	  (did you watch a lot of crime and violence on television as a child \?))
 	)
   (make-local-variable 'sexlst)
@@ -797,7 +797,7 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning elisa 'eliza)
 (doctor-put-meaning weizenbaum 'eliza)
 (doctor-put-meaning doktor 'eliza)
-(doctor-put-meaning atheletics 'sports)
+(doctor-put-meaning athletics 'sports)
 (doctor-put-meaning baseball 'sports)
 (doctor-put-meaning basketball 'sports)
 (doctor-put-meaning football 'sports)
@@ -951,7 +951,7 @@ Otherwise call the Doctor to parse preceding sentence."
 			     sent))))
 
 (defun doctor-shorten (sent)
-  "Make a sentence managably short using a few hacks."
+  "Make a sentence manageably short using a few hacks."
   (let (foo
 	retval
 	(temp '(because but however besides anyway until
@@ -1062,7 +1062,7 @@ the subject noun, and return the portion of the sentence following it."
 		applied applies apply are associate
 		associated ate
 		be became become becomes becoming
-		been being believe belived believes
+		been being believe believed believes
 		bit bite bites bore bored bores boring bought buy buys buying
 		call called calling calls came can caught catch come
 		contract contracted contracts control controlled controls
@@ -1072,7 +1072,7 @@ the subject noun, and return the portion of the sentence following it."
 		dislikes do does drank drink drinks drinking
 		drive drives driving drove dying
 		eat eating eats expand expanded expands
-		expect expected expects expel expels expeled expelled
+		expect expected expects expel expels expelled
 		explain explained explains
 		fart farts feel feels felt fight fights find finds finding
 		forget forgets forgot fought found fuck fucked
@@ -1111,7 +1111,7 @@ the subject noun, and return the portion of the sentence following it."
 		take takes taking talk talked talking talks tell tells telling
 		think thinks
 		thought told took tooled touch touched touches touching
-		transfer transfered transfers transmit transmits transmitted
+		transfer transferred transfers transmit transmits transmitted
 		type types types typing
 		walk walked walking walks want wanted wants was watch
 		watched watching went were will wish would work worked works
@@ -1196,7 +1196,7 @@ the subject noun, and return the portion of the sentence following it."
 		hundred thousand million billion
 		half quarter
 		first second third fourth fifth
-		sixth seventh eighth nineth tenth)))
+		sixth seventh eighth ninth tenth)))
 		 
 (defun doctor-colorp (x)
   (memq x '(beige black blue brown crimson

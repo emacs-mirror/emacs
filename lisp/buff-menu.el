@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Edit, delete, or change attributes of all currently active Emacs
-;; buffers from a list summarizing thir state.  A good way to browse
+;; buffers from a list summarizing their state.  A good way to browse
 ;; any special or scratch buffers you have loaded, since you can't find
 ;; them by filename.  The single entry point is `Buffer-menu-mode',
 ;; normally bound to C-x C-b.

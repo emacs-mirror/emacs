@@ -79,7 +79,7 @@ N0|aa|annarbor|4080|ann arbor 4080:\
 #	Briefly, the settings are for the following modes:
 #	   (values are for bit set/clear with * indicating our preference
 #	    and the value used to test these termcaps)
-#	Note that many of these settings are irelevent to the termcap
+#	Note that many of these settings are irrelevant to the termcap
 #	and are just set to the default mode of the terminal as shipped
 #	by the factory.
 #
@@ -120,7 +120,7 @@ N0|aa|annarbor|4080|ann arbor 4080:\
 #	transmit all characters/transmit only selected characters*
 #	transmit all selected areas/transmit only 1 selected area*
 #
-#	transmit/do not transmit line seperators to host*
+#	transmit/do not transmit line separators to host*
 #	transmit/do not transmit page tab stops tabs to host*
 #	transmit/do not transmit column tab stop tabs to host*
 #	transmit/do not transmit graphics control (underline,inverse..)*
@@ -159,7 +159,7 @@ N0|aa|annarbor|4080|ann arbor 4080:\
 #
 # D menu: 0110 1001   1   0
 #	LF is newline/LF is down one line, same column*
-#	wrap to preceeding line if move left from col 1*/don't wrap
+#	wrap to preceding line if move left from col 1*/don't wrap
 #	wrap to next line if move right from col 80*/don't wrap
 #	backspace is/is not destructive*
 #
@@ -804,7 +804,7 @@ MS|soroc|Soroc 120:\
 	:kl=^H:ku=^K:kr=^L:kd=^J:tc=adm3a:
 # Needs function keys added.  Also can't use 60 line mode because it needs
 # too much nl delay - can fix for nl but not out of vi.
-# The cl delay is sufficent, but a smaller one could do.
+# The cl delay is sufficient, but a smaller one could do.
 # This entry is merged from Mike O'Brien@Rand and Howard Katseff at
 # Bell Labs, and is untested.
 Mb|aaa|ambas|ambassador|ann arbor ambassador/48 lines:\

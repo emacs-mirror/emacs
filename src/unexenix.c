@@ -228,7 +228,7 @@ copyrec (infd, outfd, len, in_name, out_name)
 /*
  * mark_x
  *
- * After succesfully building the new a.out, mark it executable
+ * After successfully building the new a.out, mark it executable
  */
 static
 mark_x (name)

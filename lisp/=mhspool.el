@@ -49,7 +49,7 @@ mhspool-list-folders-using-ls and mhspool-list-folders-using-sh are
 provided now.  I suppose the later is faster.")
 
 (defvar mhspool-list-directory-switches '("-R")
-  "*Switches for mhspool-list-folders-using-ls to pass to `ls' for gettting file lists.
+  "*Switches for mhspool-list-folders-using-ls to pass to `ls' for getting file lists.
 One entry should appear on one line. You may need to add `-1' option.")
 
 
@@ -438,7 +438,7 @@ in the current news group."
   (let ((string (substring string 0))	;Copy string.
 	(len (length string))
 	(idx 0))
-    ;; Replace all occurence of FROM with TO.
+    ;; Replace all occurrences of FROM with TO.
     (while (< idx len)
       (if (= (aref string idx) from)
 	  (aset string idx to))

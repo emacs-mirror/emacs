@@ -703,7 +703,7 @@ XTclear_frame ()
 /* Invert the middle quarter of the frame for .15 sec.  */
 
 /* We use the select system call to do the waiting, so we have to make sure
-   it's avaliable.  If it isn't, we just won't do visual bells.  */
+   it's available.  If it isn't, we just won't do visual bells.  */
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
 
 /* Subtract the `struct timeval' values X and Y,
@@ -1288,7 +1288,7 @@ static void XTframe_rehighlight ();
 /* The focus has changed.  Update the frames as necessary to reflect
    the new situation.  Note that we can't change the selected frame
    here, because the lisp code we are interrupting might become confused.
-   Each event gets marked with the frame in which it occured, so the
+   Each event gets marked with the frame in which it occurred, so the
    lisp code can tell when the switch took place by examining the events.  */
 
 static void
@@ -1629,7 +1629,7 @@ static XRectangle last_mouse_glyph;
 
 /* The scroll bar in which the last X motion event occurred.
 
-   If the last X motion event occured in a scroll bar, we set this
+   If the last X motion event occurred in a scroll bar, we set this
    so XTmouse_position can know whether to report a scroll bar motion or
    an ordinary motion.
 
@@ -2027,7 +2027,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   UNBLOCK_INPUT;
 }
 
-/* Move a scroll bar around on the screen, to accomodate changing
+/* Move a scroll bar around on the screen, to accommodate changing
    window configurations.  */
 static void
 x_scroll_bar_move (bar, top, left, width, height)
@@ -2335,7 +2335,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 
     /* Same deal here as the other #if 0.  */
 #if 0
-    /* Clicks on the handle are always reported as occuring at the top of 
+    /* Clicks on the handle are always reported as occurring at the top of 
        the handle.  */
     if (emacs_event->part == scroll_bar_handle)
       emacs_event->x = bar->start;
@@ -4314,7 +4314,7 @@ x_make_frame_invisible (f)
 			 DefaultScreen (x_current_display)))
     {
       UNBLOCK_INPUT_RESIGNAL;
-      error ("can't notify window manager of window withdrawl");
+      error ("can't notify window manager of window withdrawal");
     }
 
 #else /* ! defined (HAVE_X11R4) */

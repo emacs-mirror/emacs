@@ -388,7 +388,7 @@
 	  
 	  ((memq fn '(and or))  ; remember, and/or are control structures.
 	   ;; take forms off the back until we can't any more.
-	   ;; In the future it could concievably be a problem that the
+	   ;; In the future it could conceivably be a problem that the
 	   ;; subexpressions of these forms are optimized in the reverse
 	   ;; order, but it's ok for now.
 	   (if for-effect
@@ -522,7 +522,7 @@
 ;;;
 ;;; It is now safe to optimize code such that it introduces new bindings.
 
-;; I'd like this to be a defsubst, but let's not be self-referental...
+;; I'd like this to be a defsubst, but let's not be self-referential...
 (defmacro byte-compile-trueconstp (form)
   ;; Returns non-nil if FORM is a non-nil constant.
   (` (cond ((consp (, form)) (eq (car (, form)) 'quote))
@@ -773,7 +773,7 @@
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop 
 ;; take care of this? - Jamie
 ;; I think this may some times be necessary to reduce ie (quote 5) to 5,
-;; so arithmetic optimizers recognize the numerinc constant.  - Hallvard
+;; so arithmetic optimizers recognize the numeric constant.  - Hallvard
 (put 'quote 'byte-optimizer 'byte-optimize-quote)
 (defun byte-optimize-quote (form)
   (if (or (consp (nth 1 form))
@@ -1063,7 +1063,7 @@
 ;;; and by the disassembler.
 ;;;
 (defun byte-decompile-bytecode (bytes constvec)
-  "Turns BYTECODE into lapcode, refering to CONSTVEC."
+  "Turns BYTECODE into lapcode, referring to CONSTVEC."
   (let ((byte-compile-constants nil)
 	(byte-compile-variables nil)
 	(byte-compile-tag-number 0))
@@ -1418,7 +1418,7 @@ may generate incorrect code.")
 	      ((and (eq (car lap0) 'TAG)
 		    (eq (car lap1) 'TAG))
 	       (and (memq byte-optimize-log '(t byte))
-		    (byte-compile-log "  adjascent tags %d and %d merged"
+		    (byte-compile-log "  adjacent tags %d and %d merged"
 				      (nth 1 lap1) (nth 1 lap0)))
 	       (setq tmp3 lap)
 	       (while (setq tmp2 (rassq lap0 tmp3))

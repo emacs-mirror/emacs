@@ -15,7 +15,7 @@
 ;; massages raw reply buffers set up by the reply/forward functions in
 ;; the news/mail subsystems. Therefore, such useful operations as
 ;; yanking and citing portions of the original article (instead of the
-;; whole article) are not within the ability or responsiblity of
+;; whole article) are not within the ability or responsibility of
 ;; supercite.
 
 ;; ========== Disclaimer ==========
@@ -389,7 +389,7 @@ Runs after sc-cite-original executes.")
 
 
 ;; ======================================================================
-;; global variables, not user accessable
+;; global variables, not user accessible
 
 (defconst sc-version-number "2.3"
   "Supercite's version number.")
@@ -574,7 +574,7 @@ If FIELD is not a valid key, return sc-mumble-string."
   ())
 
 (defun sc-no-blank-line-or-header()
-  "Similar to sc-no-header except it removes the preceeding blank line."
+  "Similar to sc-no-header except it removes the preceding blank line."
   (if (not (bobp))
       (if (and (eolp)
 	       (progn (forward-line -1)
@@ -1000,7 +1000,7 @@ Return the list of name symbols."
 				   (run-hooks 'sc-fill-paragraph-hook)))
 	       (setq fstart (point)
 		     fend (point)))
-	      ;; not end of line so perhap cite it
+	      ;; not end of line so perhaps cite it
 	      ((not (looking-at sc-cite-regexp))
 	       (insert (aget sc-gal-information "sc-citation")))
 	      (sc-nested-citation-p
@@ -1551,7 +1551,7 @@ original message but it does require a few things:
 ;;
 (defun sc-describe ()
   "Supercite version 2.3 is now described in a texinfo manual which
-makes the documenation available both for online perusal via emacs'
+makes the documentation available both for online perusal via emacs'
 info system, or for hard-copy printing using the TeX facility.
 
 To view the online document hit \\[info], then \"mSupercite <RET>\"."

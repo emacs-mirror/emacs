@@ -1614,7 +1614,7 @@ Disowning it means there is no such selection.")
   XSetSelectionOwner (display, selection_atom, None, timestamp);
   UNBLOCK_INPUT;
 
-  /* It doesn't seem to be guarenteed that a SelectionClear event will be
+  /* It doesn't seem to be guaranteed that a SelectionClear event will be
      generated for a window which owns the selection when that window sets
      the selection owner to None.  The NCD server does, the MIT Sun4 server
      doesn't.  So we synthesize one; this means we might get two, but

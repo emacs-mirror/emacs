@@ -402,7 +402,7 @@ to be the new process's buffer. If you only run one process, this will
 do the right thing. If you run multiple processes, you can change
 scheme-buffer to another process buffer with \\[set-variable].
 
-More sophisticated approaches are, of course, possible. If you find youself
+More sophisticated approaches are, of course, possible. If you find yourself
 needing to switch back and forth between multiple processes frequently,
 you may wish to consider ilisp.el, a larger, more sophisticated package
 for running inferior Lisp and Scheme processes. The approach taken here is

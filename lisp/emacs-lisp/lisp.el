@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Lisp ediing commands to go with Lisp major mode.
+;; Lisp editing commands to go with Lisp major mode.
 
 ;;; Code:
 

@@ -551,7 +551,7 @@ If file does not exist, returns nil.")
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
 #ifdef BSD4_3 /* Gross kludge to avoid lack of "#if defined(...)" in VMS */
-#define BSD4_2 /* A new meaning to the term `backwards compatability' */
+#define BSD4_2 /* A new meaning to the term `backwards compatibility' */
 #endif
 #ifdef BSD4_2			/* file gid will be dir gid */
   dirname = Ffile_name_directory (filename);

@@ -407,7 +407,7 @@ scan_c_file (filename)
  starting in column zero.
  (quote NAME) may appear as 'NAME as well.
  For defun, defmacro, and autoload, we know how to skip over the arglist.
- For defvar, defconst, and fset we skip to the docstring with a klugey 
+ For defvar, defconst, and fset we skip to the docstring with a kludgy 
  formatting convention: all docstrings must appear on the same line as the
  initial open-paren (the one in column zero) and must contain a backslash 
  and a double-quote immediately after the initial double-quote.  No newlines

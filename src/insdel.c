@@ -546,7 +546,7 @@ after_change_function_restore (value)
   Vafter_change_function = value;
 }
 
-/* Signal a change to the buffer immediatly before it happens.
+/* Signal a change to the buffer immediately before it happens.
    START and END are the bounds of the text to be changed,
    as Lisp objects.  */
 
@@ -578,7 +578,7 @@ signal_before_change (start, end)
     }
 }
 
-/* Signal a change immediatly after it happens.
+/* Signal a change immediately after it happens.
    POS is the address of the start of the changed text.
    LENDEL is the number of characters of the text before the change.
    (Not the whole buffer; just the part that was changed.)

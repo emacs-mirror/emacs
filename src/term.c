@@ -40,7 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define OUTPUT_IF(a) { if (a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc); }
 #define OUTPUT1_IF(a) { if (a) tputs (a, 1, cmputc); }
 
-/* Terminal charateristics that higher levels want to look at.
+/* Terminal characteristics that higher levels want to look at.
    These are all extern'd in termchar.h */
 
 int must_write_spaces;		/* Nonzero means spaces in the text
@@ -1255,7 +1255,7 @@ term_get_fkeys (address)
 
   /* The uses of the "k0" capability are inconsistent; sometimes it
      describes F10, whereas othertimes it describes F0 and "k;" describes F10.
-     We will attempt to politely accomodate both systems by testing for
+     We will attempt to politely accommodate both systems by testing for
      "k;", and if it is present, assuming that "k0" denotes F0, otherwise F10.
      */
   {

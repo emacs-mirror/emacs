@@ -331,7 +331,7 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
-  "Sort the region lexicographically as specifed by RECORD-REGEXP and KEY.
+  "Sort the region lexicographically as specified by RECORD-REGEXP and KEY.
 RECORD-REGEXP specifies the textual units which should be sorted.
   For example, to sort lines RECORD-REGEXP would be \"^.*$\"
 KEY specifies the part of each record (ie each match for RECORD-REGEXP)

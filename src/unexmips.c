@@ -281,7 +281,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 /*
  * mark_x
  *
- * After succesfully building the new a.out, mark it executable
+ * After successfully building the new a.out, mark it executable
  */
 
 static void

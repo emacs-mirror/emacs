@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
- ;;; This is a rudimentry backquote package written by D. King,
+ ;;; This is a rudimentary backquote package written by D. King,
  ;;; king@kestrel, on 8/31/85.  (` x) is a macro
  ;;; that expands to a form that produces x.  (` (a b ..)) is
  ;;; a macro that expands into a form that produces a list of what a b
@@ -83,7 +83,7 @@ a list-value atom"
 ;;; These two advertised variables control what characters are used to
  ;;; unquote things.  I have included , and ,@ as the unquote and
  ;;; splice operators, respectively, to give users of MIT CADR machine
- ;;; derivitive machines a warm, cosy feeling.
+ ;;; derivative machines a warm, cosy feeling.
 
 (defconst backquote-unquote '(,)
   "*A list of all objects that stimulate unquoting in `.  Memq test.")
@@ -181,7 +181,7 @@ See backquote.el for details"
 
 ;;; Given a state/tailmaker pair that already knows how to make a
  ;;; partial tail of the desired form, this function knows how to add
- ;;; yet another element to the burgening list.  There are four cases;
+ ;;; yet another element to the burgeoning list.  There are four cases;
  ;;; the next item is an atom (which will certainly be quoted); a 
  ;;; (, xxx), which will be evaluated and put into the list at the top
  ;;; level; a (,@ xxx), which will be evaluated and spliced in, or

@@ -52,7 +52,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define EXPLICIT_SIGN_EXTEND
 
 /* Data type of load average, as read out of kmem.  */
-/* Suspect there is something wierd about this machine, so turn it off.  */
+/* Suspect there is something weird about this machine, so turn it off.  */
 
 /* #define LOAD_AVE_TYPE long */
 

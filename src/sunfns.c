@@ -85,7 +85,7 @@ static mpr_static(ArrowCursorMpr, 16, 16, 1, ArrowCursorData);
 struct cursor DefaultCursor = {15, 0, PIX_SRC ^ PIX_DST, &ArrowCursorMpr};
 
 #else
-/* The default left-arror cursor, with XOR drawing. */
+/* The default left-arrow cursor, with XOR drawing. */
 static short ArrowCursorData[16] = {
 	0x8000,0xC000,0xE000,0xF000,0xF800,0xFC00,0xFE00,0xF000,
 	0xD800,0x9800,0x0C00,0x0C00,0x0600,0x0600,0x0300,0x0300};
@@ -291,7 +291,7 @@ sel_read (sel, file)
     return(-1);
   }
   /*
-   * The shelltool select saves newlines as carrige returns,
+   * The shelltool select saves newlines as carriage returns,
    * but emacs wants newlines.
    */
   for (i = 0; i < n; i++) 

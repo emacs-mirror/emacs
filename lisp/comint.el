@@ -1356,7 +1356,7 @@ This is a good place to put keybindings.")
 ;;; 9/5/90 shivers
 ;;; - Changed make-variable-buffer-local's to make-local-variable's.
 ;;;   This leaves non-comint-mode buffers alone. Stephane Payrard
-;;;   reported the sloppy useage.
+;;;   reported the sloppy usage.
 ;;; - You can now go from comint-previous-similar-input to
 ;;;   comint-previous-input with no problem.
 ;;;

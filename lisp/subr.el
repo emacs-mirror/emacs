@@ -382,7 +382,7 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'not 'null)
 (defalias 'rplaca 'setcar)
 (defalias 'rplacd 'setcdr)
-(defalias 'beep 'ding) ;preserve lingual purtity
+(defalias 'beep 'ding) ;preserve lingual purity
 (defalias 'indent-to-column 'indent-to)
 (defalias 'backward-delete-char 'delete-backward-char)
 (defalias 'search-forward-regexp (symbol-function 're-search-forward))

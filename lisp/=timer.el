@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package gives you the capability to run Emacs Lisp commands at
-;; specified simes in the future, either as one-shots or periodically.
+;; specified times in the future, either as one-shots or periodically.
 ;; The single entry point is `run-at-time'.
 
 ;;; Code:

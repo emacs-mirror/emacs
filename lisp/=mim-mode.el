@@ -95,7 +95,7 @@ are bound.")
 <FOO ...> will be indented n spaces from start of form.
 \(put 'FOO 'indent-mim-function 'DEFINE\) is like above but means use
 value of mim-body-indent as offset from start of form.
-\(put 'FOO 'indent-mim-function <cons>\) where <cons> is a list or pointted list
+\(put 'FOO 'indent-mim-function <cons>\) where <cons> is a list or pointed list
 of integers, means indent each form in <FOO ...> by the amount specified
 in <cons>.  When <cons> is exhausted, indent remaining forms by
 `mim-body-indent' unless <cons> is a pointed list, in which case the last
@@ -250,7 +250,7 @@ Entry to this mode calls the value of mim-mode-hook if non-nil."
   "Move forward across Mim object.
 With ARG, move forward that many objects."
   (interactive "p")
-  ;; this function is wierd because it emulates the behavior of the old
+  ;; this function is weird because it emulates the behavior of the old
   ;; (gosling) mim-mode - if the arg is 1 and we are `inside' an ADECL,
   ;; more than one character into the ATOM part and not sitting on the
   ;; colon, then we move to the DECL part (just past colon) instead of
@@ -333,7 +333,7 @@ A negative ARG will raise current line and previous lines."
   "Move down a level of Mim structure forwards.
 With ARG, move down that many levels forwards (backwards, ARG < 0)."
   (interactive "p")
-  ;; another wierdo - going down `inside' an ADECL or ATOM trailer
+  ;; another weirdo - going down `inside' an ADECL or ATOM trailer
   ;; depends on the value of mim-down-parens-only.  if nil, treat
   ;; ADECLs and trailers as structured objects.
   (let ((direction (sign (or arg (setq arg 1)))))
@@ -636,7 +636,7 @@ is reached."
 		    (+ method start))
 	      (goto-char current-indent)
 	      (if (consp method)
-		  ;; list or pointted list of explicit indentations
+		  ;; list or pointed list of explicit indentations
 		  (indent-mim-offset state indent-point)
 		(if (and (symbolp method) (fboundp method))
 		    ;; luser function - s/he better know what's going on.
@@ -659,7 +659,7 @@ is reached."
 	(last-sexp (car (nthcdr 2 state)))
 	indentation)
     (goto-char (1+ containing-sexp))
-    ;; determine wheich of the indentations to use.
+    ;; determine which of the indentations to use.
     (while (and (< (point) indent-point)
 		(condition-case nil
 		    (progn (forward-sexp 1)

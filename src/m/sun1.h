@@ -59,7 +59,7 @@ NOTE-END  */
 
 #define NO_UNION_TYPE
 
-/* Sun can't write competant compilers */
+/* Sun can't write competent compilers */
 #define COMPILER_REGISTER_BUG
 
 /* XINT must explicitly sign-extend */

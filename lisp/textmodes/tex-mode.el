@@ -520,7 +520,7 @@ and the location is displayed for a few seconds."
 	    (or (tex-validate-region (point) end)
 		(progn
 		  (push-mark (point))
-		  (message "Mismatch found in pararaph starting here")
+		  (message "Mismatch found in paragraph starting here")
 		  (sit-for 4)))))
       (goto-char opoint))))
 

@@ -394,7 +394,7 @@ all pending output has been dealt with.")
 
 (defun te-more-break-flush-pending-output ()
   "Discard any output which has been received by the terminal emulator but
-not yet proceesed and then proceed from the more break."
+not yet processed and then proceed from the more break."
   (interactive)
   (te-more-break-unwind)
   (te-flush-pending-output))
@@ -1167,9 +1167,9 @@ work with `terminfo' we will try to use it."
 
 (put 'terminal-mode 'mode-class 'special)
 ;; This is only separated out from function terminal-emulator
-;; to keep the latter a little more managable.
+;; to keep the latter a little more manageable.
 (defun terminal-mode ()
-  "Set up variables for use f the terminal-emualtor.
+  "Set up variables for use with the terminal-emulator.
 One should not call this -- it is an internal function
 of the terminal-emulator"
   (kill-all-local-variables)

@@ -37,7 +37,7 @@
 ;; system you connect to.  A more serious problem is that some brain-dead
 ;; systems will not recognize a ^J as an end-of-line character.  So LFD is
 ;; bound to a new function which acts just like CR usually does in shell-mode,
-;; but a ^M is sent as an end-of-line.  Funcions are also provied to swap the
+;; but a ^M is sent as an end-of-line.  Functions are also provided to swap the
 ;; bindings of CR and LFD.  I've also included a filter which will clean out
 ;; any ^M's or ^@'s that get typed at you, but I don't really recommend it.
 ;; There doesn't seem to be an acceptably fast way to do this via emacs-lisp.
@@ -48,7 +48,7 @@
 ;; thru a fairly stupid terminal switch.  If I want to connect to unix system,
 ;; then I use the LFD key to talk to the switch, and ignore any ^M's in the
 ;; buffer, and do a " stty -echo nl " after I log in.  Then the only real
-;; differnce from being in local shell-mode is that it is you need to to type
+;; difference from being in local shell-mode is that you need to type
 ;; ^C^Q^C to send an interrupt, and ^C^Q^Z for a stop signal, etc.  (since ^C^C
 ;; just generates a local stop signal, which kermit ignores).
 ;; To connect to a VMS system, I use a shell script to invoke kermit thru the
@@ -66,7 +66,7 @@
 ;; in order to do a file transfer, you have to think ahead and and add -r
 ;; (receive) to the command line.  This means that you can't use the server
 ;; feature.  The only fix I can see is to muck around with the source code for
-;; kermit, although this problably wouldn't be too hard.  What is needed is an
+;; kermit, although this probably wouldn't be too hard.  What is needed is an
 ;; option to force kermit to be local, to use stdin and stdout for interactive
 ;; speech, and to forget about cbreak mode.
 

@@ -488,7 +488,7 @@ struct scroll_bar {
    (used when relating to the rest of the screen) and inside width
    (used when sizing and drawing the scroll bar window itself).
 
-   The handle moves up and down/back and forth in a rectange inset
+   The handle moves up and down/back and forth in a rectangle inset
    from the edges of the scroll bar.  These are widths by which we
    inset the handle boundaries from the scroll bar edges.  */
 #define VERTICAL_SCROLL_BAR_LEFT_BORDER (2)

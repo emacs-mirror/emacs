@@ -603,7 +603,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
    * .lib), adjust the address of where the section data is in the
    * file, and write out the header.
    *
-   * If any section preceeds .text or .data in the file, this code
+   * If any section precedes .text or .data in the file, this code
    * will not adjust the file pointer for that section correctly.
    */
 
@@ -946,7 +946,7 @@ copy_sym (new, a_out, a_name, new_name)
 /* ****************************************************************
  * mark_x
  *
- * After succesfully building the new a.out, mark it executable
+ * After successfully building the new a.out, mark it executable
  */
 static void
 mark_x (name)

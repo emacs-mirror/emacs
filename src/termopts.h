@@ -1,4 +1,4 @@
-/* Flags and paramaters describing user options for handling the terminal.
+/* Flags and parameters describing user options for handling the terminal.
    Copyright (C) 1985, 1986, 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

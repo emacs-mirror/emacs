@@ -834,7 +834,7 @@ process_file (file)
 }
 
 /*
- * This routine sets up the boolean psuedo-functions which work
+ * This routine sets up the boolean pseudo-functions which work
  * by setting boolean flags dependent upon the corresponding character
  * Every char which is NOT in that string is not a white char.  Therefore,
  * all of the array "_wht" is set to FALSE, and then the elements
@@ -2845,7 +2845,7 @@ readline (linebuffer, stream)
   register char *pend;
   int newline;			/* 1 if ended with newline, 0 if ended with EOF */
 
-  pend = p + linebuffer->size;	/* Separate to avoind 386/IX compiler bug.  */
+  pend = p + linebuffer->size;	/* Separate to avoid 386/IX compiler bug.  */
 
   while (1)
     {

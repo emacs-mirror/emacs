@@ -25,7 +25,7 @@
 
 ;; A demonstrator for John Horton Conway's "Life" cellular automaton
 ;; in Emacs Lisp.  Picks a random one of a set of interesting Life
-;; patterns and avolves it according to the familiar rules.
+;; patterns and evolves it according to the familiar rules.
 
 ;;; Code:
 
@@ -75,7 +75,7 @@
 (defmacro life-not-void-regexp () (concat "[^" (life-void-string) "\n]"))
 
 ;; try to optimize the (goto-char (point-min)) & (goto-char (point-max))
-;; idioms.  This depends on goto-char's not griping if we underrshoot
+;; idioms.  This depends on goto-char's not griping if we undershoot
 ;; or overshoot beginning or end of buffer.
 (defmacro goto-beginning-of-buffer () '(goto-char 1))
 (defmacro maxint () (lsh (lsh (lognot 0) 1) -1))

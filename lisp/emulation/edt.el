@@ -391,7 +391,7 @@ The keys redefined by \\[edt-emulation-on] are given their old definitions."
   (global-set-key "\C-j" edt-mode-old-linefeed))           ;"LineFeed"
 
 (defvar GOLD-map (make-keymap)
-   "`GOLD-map' maps the function keys on the VT100 keyboard preceeded
+   "`GOLD-map' maps the function keys on the VT100 keyboard preceded
 by the PF1 key.  GOLD is the ASCII the 7-bit escape sequence <ESC>OP.")
 
 (defalias 'GOLD-prefix GOLD-map)

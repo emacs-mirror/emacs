@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; The single entry point, `dissociatesd-press', applies a travesty
+;; The single entry point, `dissociated-press', applies a travesty
 ;; generator to the current buffer.  The results can be quite amusing.
 
 ;;; Code:

@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.17 1993/06/04 05:33:32 rms Exp rms $
+;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.18 1993/06/05 09:17:34 rms Exp jimb $
 
 ;; This file is part of GNU Emacs.
 
@@ -137,8 +137,8 @@ read in all newsgroups.")
 
 (defvar gnus-use-followup-to t
   "*Specifies what to do with Followup-To: field.
-If nil, ignore followup-to: field.  If t, use its value execpt for
-`poster'.  Otherewise, if not nil nor t, always use its value.")
+If nil, ignore followup-to: field.  If t, use its value except for
+`poster'.  Otherwise, if not nil nor t, always use its value.")
 
 (defvar gnus-large-newsgroup 50
   "*The number of articles which indicates a large newsgroup.
@@ -276,7 +276,7 @@ mode buffer.  The function is called with an article HEADER. The
 result must be a string excluding `[' and `]'.")
 
 (defvar gnus-auto-extend-newsgroup t
-  "*Extend visible artciles to forward and backward if non-nil.")
+  "*Extend visible articles to forward and backward if non-nil.")
 
 (defvar gnus-auto-select-first t
   "*Select the first unread article automagically if non-nil.
@@ -2780,7 +2780,7 @@ If argument UNREAD is non-nil, only unread article is selected."
 
 (defun gnus-summary-next-page (lines)
   "Show next page of selected article.
-If end of artile, select next article.
+If end of article, select next article.
 Argument LINES specifies lines to be scrolled up."
   (interactive "P")
   (let ((article (gnus-summary-article-number))
@@ -2861,7 +2861,7 @@ NOTE: This command may not work with nnspool.el."
       (gnus-eval-in-buffer-window gnus-article-buffer
 	;; Look for parent Message-ID.
 	;; We cannot use gnus-current-headers to get references
-	;; because we may be looking at parent or refered article.
+	;; because we may be looking at parent or referred article.
 	(let ((references (gnus-fetch-field "References")))
 	  ;; Get the last message-id in the references.
 	  (and references
@@ -2896,7 +2896,7 @@ NOTE: This command may not work with nnspool.el nor mhspool.el."
 	    (setq message-id (concat message-id ">")))
 	;; Push current message-id on history.
 	;; We cannot use gnus-current-headers to get current
-	;; message-id because we may be looking at parent or refered
+	;; message-id because we may be looking at parent or referred
 	;; article.
 	(let ((current (gnus-fetch-field "Message-ID")))
 	  (or (equal current message-id) ;Nothing to do.
@@ -4872,7 +4872,7 @@ If optional argument NEXT is non-nil, it is inserted before NEXT."
   (let ((newsgroup (substring newsgroup 0)) ;Copy string.
 	(len (length newsgroup))
 	(idx 0))
-    ;; Replace all occurence of `.' with `/'.
+    ;; Replace all occurrences of `.' with `/'.
     (while (< idx len)
       (if (= (aref newsgroup idx) ?.)
 	  (aset newsgroup idx ?/))
@@ -5411,7 +5411,7 @@ If no message is available and optional MESSAGE is given, return it."
 
 (defun gnus-define-access-method (method &optional access-methods)
   "Define access functions for the access METHOD.
-Methods defintion is taken from optional argument ACCESS-METHODS or
+Methods definition is taken from optional argument ACCESS-METHODS or
 the variable gnus-access-methods."
   (let ((bindings
 	 (cdr (assoc method (or access-methods gnus-access-methods)))))
@@ -5824,7 +5824,7 @@ If nothing is specified, use the variable gnus-overload-functions."
       (setq defs (car overloads))
       (setq overloads (cdr overloads))
       ;; Load file before overloading function if necessary.  Make
-      ;; sure we cannot use `requre' always.
+      ;; sure we cannot use `require' always.
       (and (not (fboundp (car defs)))
 	   (car (cdr (cdr defs)))
 	   (load (car (cdr (cdr defs))) nil 'nomessage))

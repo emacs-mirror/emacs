@@ -162,7 +162,7 @@ key_f64		k1			function key 64
 
 (4) The uses of the "k0" capability are inconsistent; sometimes it
     describes F10, whereas othertimes it describes F0 and "k;" describes F10.
-    Emacs attempts to politely accomodate both systems by testing for
+    Emacs attempts to politely accommodate both systems by testing for
     "k;", and if it is present, assuming that "k0" denotes F0, otherwise F10.
 -----------------------------------------------------------------------------
 

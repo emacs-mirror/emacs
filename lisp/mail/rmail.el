@@ -234,7 +234,7 @@ that file, but does not copy any new mail into the file."
       ;; Show the first unseen message, which might be from a previous session
       ;; or might have been just read in by rmail-get-new-mail.  Must
       ;; determine already unseen messages first, as rmail-get-new-mail
-      ;; positions on the first new messsage, thus marking it as seen.
+      ;; positions on the first new message, thus marking it as seen.
       (rmail-show-message existing-unseen))))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.

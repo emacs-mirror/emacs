@@ -234,7 +234,7 @@ The killed newsgroups can be yanked by using \\[gnus-group-yank-group]."
 
 (defun gnus-group-yank-group ()
   "Yank the last newsgroup killed with \\[gnus-group-kill-group],
-inserting it before the newsgroup on the line containging point."
+inserting it before the newsgroup on the line containing point."
   (interactive)
   (gnus-group-insert-group (car gnus-killed-assoc))
   ;; Remove killed newsgroups from the buffer if exists.

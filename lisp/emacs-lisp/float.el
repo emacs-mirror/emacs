@@ -71,10 +71,10 @@
   "Number of highest bit")
 
 (defconst mantissa-maxval (1- (ash 1 maxbit))
-  "Maximum permissable value of mantissa")
+  "Maximum permissible value of mantissa")
 
 (defconst mantissa-minval (ash 1 maxbit)
-  "Minimum permissable value of mantissa")
+  "Minimum permissible value of mantissa")
 
 (defconst floating-point-regexp
   "^[ \t]*\\(-?\\)\\([0-9]*\\)\

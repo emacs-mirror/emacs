@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Important pinheaddery for GNU Emacs.
+;; Important pinheadery for GNU Emacs.
 ;;
 ;; See cookie1.el for implementation.  Note --- the `n' argument of yow
 ;; from the 18.xx implementation is no longer; we only support *random*

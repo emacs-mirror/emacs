@@ -164,7 +164,7 @@ static struct sensemode {
 #undef ASYNC
 #endif
 
-/* Interupt input is not used if there is no FIONREAD.  */
+/* Interrupt input is not used if there is no FIONREAD.  */
 #ifndef FIONREAD
 #undef SIGIO
 #endif

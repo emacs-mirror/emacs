@@ -213,7 +213,7 @@ Interactively, with a prefix argument, the file name is prompted for."
 
 ;;;###autoload
 (defun change-log-mode ()
-  "Major mode for editting change logs; like Indented Text Mode.
+  "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.

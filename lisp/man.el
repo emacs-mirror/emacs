@@ -51,7 +51,7 @@
 ;; Eric Rose <erose@jessica.stanford.edu>, submitted manual.el which
 ;; provided a very nice manual browsing mode.
 
-;; This package was available as `superman.el' from the LCD paackage
+;; This package was available as `superman.el' from the LCD package
 ;; for some time before it was accepted into Emacs 19.  The entry
 ;; point and some other names have been changed to make it a drop-in
 ;; replacement for the old man.el package.
@@ -126,7 +126,7 @@ in all sections.")
   "*Association list of bogus sections to real section numbers.
 Some manpages (e.g. the Sun C++ 2.1 manpages) have section numbers in
 their references which Un*x man(1) does not recognize.  This
-assocation list is used to translate those sections, when found, to
+association list is used to translate those sections, when found, to
 the associated section number.")
 
 (defvar Man-filter-list

@@ -795,7 +795,7 @@ Both arguments are required.")
 
 /* Return a Lisp_String containing the text of the current buffer from
    START to END.  If text properties are in use and the current buffer
-   has properties in the range specifed, the resulting string will also
+   has properties in the range specified, the resulting string will also
    have them.
 
    We don't want to use plain old make_string here, because it calls
@@ -1365,7 +1365,7 @@ Use %% to put a single % into the output.")
 	else if (XTYPE (args[n]) == Lisp_Int && *format != 's')
 	  {
 #ifdef LISP_FLOAT_TYPE
-	    /* The following loop issumes the Lisp type indicates
+	    /* The following loop assumes the Lisp type indicates
 	       the proper way to pass the argument.
 	       So make sure we have a flonum if the argument should
 	       be a double.  */

@@ -128,7 +128,7 @@ glyph_to_str_cpy (glyphs, str)
 }
 #endif
 
-/* Low level output routines for charaters and strings */
+/* Low level output routines for characters and strings */
 
 /* Lisp functions to do output using a stream
  must have the stream in a variable called printcharfun

@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This package conversts Mocklisp code written under a Gosling or UniPress
+;; This package converts Mocklisp code written under a Gosling or UniPress
 ;; Emacs for use with GNU Emacs.  The translated code will require runtime
 ;; support from the mlsupport.el equivalent.
 

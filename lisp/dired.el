@@ -48,7 +48,7 @@ may contain even `F', `b', `i' and `s'.")
 (defvar dired-chown-program
   (if (memq system-type '(hpux dgux usg-unix-v silicon-graphics-unix))
       "chown" "/etc/chown")
-  "Name of chown command (usully `chown' or `/etc/chown').")
+  "Name of chown command (usually `chown' or `/etc/chown').")
 
 ;;;###autoload
 (defvar dired-ls-F-marks-symlinks nil
@@ -824,7 +824,7 @@ Keybindings:
   (dired-sort-other dired-actual-switches t)
   (run-hooks 'dired-mode-hook))
 
-;; Ideosyncratic dired commands that don't deal with marks.
+;; Idiosyncratic dired commands that don't deal with marks.
 
 (defun dired-quit ()
   "Bury the current dired buffer."

@@ -65,7 +65,7 @@ Setting to nil limits the scrollbar to the edge or vertical dividing bar.")
 
 (defun define-mouse (mousemap mouse-list def)
   "Args MOUSEMAP, MOUSE-LIST, DEF.  Define MOUSE-LIST in MOUSEMAP as DEF.
-MOUSE-LIST is a list of atoms specifing a mouse hit according to these rules:
+MOUSE-LIST is a list of atoms specifying a mouse hit according to these rules:
   * One of these atoms specifies the active region of the definition.
 	text, scrollbar, modeline, minibuffer
   * One or two or these atoms specify the button or button combination.
@@ -151,7 +151,7 @@ Just like the Common Lisp function of the same name."
 (defmacro sm::hit-x (hit) (list 'nth 1 hit))
 ;;; Screen y position.
 (defmacro sm::hit-y (hit) (list 'nth 2 hit))
-;;; Millisconds since last hit.
+;;; Milliseconds since last hit.
 (defmacro sm::hit-delta (hit) (list 'nth 3 hit))
 
 (defmacro sm::hit-up-p (hit)		; A predicate.
@@ -374,7 +374,7 @@ Returns one of (text scrollbar modeline minibuffer)"
       (cond ((minibuffer-window-p w) 'minibuffer)
 	    ((>= y bottom) 'modeline)
 	    ((>= x right) 'scrollbar)
-	    ;; far right column (window seperator) is always a scrollbar
+	    ;; far right column (window separator) is always a scrollbar
 	    ((and scrollbar-width
 		  ;; mouse within scrollbar-width of edge.
 		  (>= x (- right scrollbar-width))
@@ -596,7 +596,7 @@ evaluated for their side-effects rather than their values.
   If the selected form is a menu or a symbol whose value is a menu, 
 then it is displayed and evaluated as a pullright menu item.
   If the the FORM of the first ITEM is nil, the STRING of the item
-is used as a label for the menu, i.e. it's inverted and not selectible."
+is used as a label for the menu, i.e. it's inverted and not selectable."
 
   (if (symbolp menu) (setq menu (symbol-value menu)))
   (eval (sun-menu-internal *menu-window* *menu-x* *menu-y* 4 menu)))
@@ -641,7 +641,7 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
 
 ;;;
 ;;;  Function interface to selection/region
-;;;  primative functions are defined in sunfns.c
+;;;  primitive functions are defined in sunfns.c
 ;;;
 (defun sun-yank-selection ()
   "Set mark and yank the contents of the current sunwindows selection.

@@ -92,7 +92,7 @@
 ;;;     fred, ethyl, larry, curly, moe
 ;;;
 ;;; Aliases may also contain forward references; the alias of "everybody" can
-;;; preceed the aliases of "group1" and "group2".
+;;; precede the aliases of "group1" and "group2".
 ;;;
 ;;; This code also understands the "source" .mailrc command, for reading
 ;;; aliases from some other file as well.
@@ -362,7 +362,7 @@ turned on.")
 
 (defvar mail-mode-header-syntax-table
   (let ((tab (copy-syntax-table text-mode-syntax-table)))
-    ;; This makes the characters "@%!._-" be considered symbol-consituents
+    ;; This makes the characters "@%!._-" be considered symbol-constituents
     ;; but not word-constituents, so forward-sexp will move you over an
     ;; entire address, but forward-word will only move you over a sequence
     ;; of alphanumerics.  (Clearly the right thing.)

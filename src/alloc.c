@@ -359,7 +359,7 @@ mark_interval_tree (tree)
   { if (!NULL_INTERVAL_P (i)) mark_interval_tree (i); }
 
 /* The oddity in the call to XUNMARK is necessary because XUNMARK
-   expands to an assigment to its argument, and most C compilers don't
+   expands to an assignment to its argument, and most C compilers don't
    support casts on the left operand of `='.  */
 #define UNMARK_BALANCE_INTERVALS(i) 				\
 {                                   				\
@@ -1444,7 +1444,7 @@ clear_marks ()
   If the object referred to has not been seen yet, recursively mark
   all the references contained in it.
 
-   If the object referenced is a short string, the referrencing slot
+   If the object referenced is a short string, the referencing slot
    is threaded into a chain of such slots, pointed to from
    the `size' field of the string.  The actual string size
    lives in the last slot in the chain.  We recognize the end

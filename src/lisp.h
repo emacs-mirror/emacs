@@ -474,7 +474,7 @@ typedef struct interval *INTERVAL;
    structures.  See, e.g., struct Lisp_String below. */
 #define DECLARE_INTERVALS INTERVAL intervals;
 
-/* Macro used to condionally compile interval initialization into
+/* Macro used to conditionally compile interval initialization into
    certain code.  See, e.g., alloc.c. */
 #define INITIALIZE_INTERVAL(ptr,val) ptr->intervals = val
 

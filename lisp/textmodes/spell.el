@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This mode orovides an Emacs interface to the UNIX spell(1) program.
+;; This mode provides an Emacs interface to the UNIX spell(1) program.
 ;; Entry points are `spell-buffer', `spell-word', `spell-region' and
 ;; `spell-string'.  These facilities are documented in the Emacs user's
 ;; manual.

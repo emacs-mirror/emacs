@@ -157,7 +157,7 @@ yywrap ()
 
 ^([a-z]\ -)?\ *{EC}:	{
     /* 
-     * error message (which we print immediately) preceeded by an
+     * error message (which we print immediately) preceded by an
      * error code (which we ignore)
      */
 

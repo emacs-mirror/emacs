@@ -143,7 +143,7 @@
 ;;;
 ;;;  o  The form `eval-when-compile' is like progn, except that the body
 ;;;     is evaluated at compile-time.  When it appears at top-level, this
-;;;     is analagous to the Common Lisp idiom (eval-when (compile) ...).
+;;;     is analogous to the Common Lisp idiom (eval-when (compile) ...).
 ;;;     When it does not appear at top-level, it is similar to the
 ;;;     Common Lisp #. reader macro (but not in interpreted code.)
 ;;;
@@ -407,7 +407,7 @@ Each element is (INDEX . VALUE)")
 (byte-defop  24 -1 byte-varbind	"for binding a variable")
 (byte-defop  32  0 byte-call	"for calling a function")
 (byte-defop  40  0 byte-unbind	"for unbinding special bindings")
-;; codes 8-47 are consumed by the preceeding opcodes
+;; codes 8-47 are consumed by the preceding opcodes
 
 ;; unused: 48-55
 
@@ -2205,7 +2205,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (defun byte-compile-associative (form)
   (if (cdr form)
       (let ((opcode (get (car form) 'byte-opcode)))
-	;; To compile all the args first may enable some optimizaions.
+	;; To compile all the args first may enable some optimizations.
 	(mapcar 'byte-compile-form (setq form (cdr form)))
 	(while (setq form (cdr form))
 	  (byte-compile-out opcode 0)))
@@ -2310,7 +2310,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-funarg (form)
   ;; (mapcar '(lambda (x) ..) ..) ==> (mapcar (function (lambda (x) ..)) ..)
-  ;; for cases where it's guarenteed that first arg will be used as a lambda.
+  ;; for cases where it's guaranteed that first arg will be used as a lambda.
   (byte-compile-normal-call
    (let ((fn (nth 1 form)))
      (if (and (eq (car-safe fn) 'quote)

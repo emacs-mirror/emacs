@@ -584,7 +584,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 #ifdef HAVE_X11
 
-  /* It's not okay to crash if the user selects a screwey cursor.  */
+  /* It's not okay to crash if the user selects a screwy cursor.  */
   x_catch_errors ();
 
   if (!EQ (Qnil, Vx_pointer_shape))
@@ -1856,7 +1856,7 @@ be shared by the new frame.")
   f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (f->display.x, sizeof (struct x_display));
 
-  /* Some temprorary default values for height and width. */
+  /* Some temporary default values for height and width. */
   width = 80;
   height = 40;
   f->display.x->left_pos = -1;
@@ -2821,7 +2821,7 @@ clip_contour_top (y_pos, x_pos)
     }
 }
 
-/* Erase the top horzontal lines of the contour, and then extend
+/* Erase the top horizontal lines of the contour, and then extend
    the contour upwards. */
 
 static void

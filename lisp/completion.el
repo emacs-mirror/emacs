@@ -111,13 +111,13 @@
 ;;;---------------------
 ;;;
 ;;;   A "word" is any string containing characters with either word or symbol 
-;;; syntax.  [E.G. Any alphanumeric string with hypens, underscores, etc.]
+;;; syntax.  [E.G. Any alphanumeric string with hyphens, underscores, etc.]
 ;;; Unless you change the constants, you must type at least three characters
 ;;; for the word to be recognized.  Only words longer than 6 characters are
 ;;; saved.
 ;;;
 ;;;   When you load this file, completion will be on.  I suggest you use the
-;;; compiled version (because it is noticibly faster).
+;;; compiled version (because it is noticeably faster).
 ;;;
 ;;;  M-X completion-mode toggles whether or not new words are added to the
 ;;; database by changing the value of enable-completion.
@@ -273,7 +273,7 @@
 ;;; superior to that of the LISPM version.
 ;;;
 ;;;-----------------------------------------------
-;;; Acknowlegements
+;;; Acknowledgements
 ;;;-----------------------------------------------
 ;;;  Cliff Lasser (cal@think.com), Kevin Herbert (kph@cisco.com),
 ;;;  eero@media-lab, kgk@cs.brown.edu, jla@ai.mit.edu,
@@ -527,7 +527,7 @@ Used to decide whether to save completions.")
 ;;;
 ;;; C diffs ->
 ;;;   Separator chars :: + * / : %
-;;;  A note on the hypen (`-').  Perhaps, the hypen should also be a separator
+;;;  A note on the hyphen (`-').  Perhaps the hyphen should also be a separator
 ;;; char., however, we wanted to have completion symbols include pointer 
 ;;; references.  For example, "foo->bar" is a symbol as far as completion is
 ;;; concerned.
@@ -1060,7 +1060,7 @@ This is sensitive to `case-fold-search'."
 (defconst cmpl-obarray-length 511)
 
 (defvar cmpl-prefix-obarray (make-vector cmpl-obarray-length 0)
-  "An obarray used to store the downcased completion prefices.
+  "An obarray used to store the downcased completion prefixes.
 Each symbol is bound to a list of completion entries.")
 
 (defvar cmpl-obarray (make-vector cmpl-obarray-length 0)
@@ -1139,7 +1139,7 @@ Each symbol is bound to a single completion entry.")
 (defmacro set-cmpl-prefix-entry-tail (prefix-entry new-tail)
   (list 'setcdr prefix-entry new-tail))
 
-;;; Contructor
+;;; Constructor
 
 (defun make-cmpl-prefix-entry (completion-entry-list)
   "Makes a new prefix entry containing only completion-entry."
@@ -1287,7 +1287,7 @@ Must be called after `find-exact-completion'."
 ;;; WRITES
 (defun add-completion-to-tail-if-new (string)
   "If STRING is not in the database add it to appropriate prefix list.
-STRING is added to the end of the approppriate prefix list with
+STRING is added to the end of the appropriate prefix list with
 num-uses = 0.  The database is unchanged if it is there.  STRING must be
 longer than `completion-prefix-min-length'.
 This must be very fast.
@@ -1321,7 +1321,7 @@ Returns the completion entry."
 
 (defun add-completion-to-head (string)
   "If STRING is not in the database, add it to prefix list.
-STRING is added to the head of the approppriate prefix list.  Otherwise
+STRING is added to the head of the appropriate prefix list.  Otherwise
 it is moved to the head of the list.
 STRING must be longer than `completion-prefix-min-length'.
 Updates the saved string with the supplied string.
@@ -1779,7 +1779,7 @@ If there are no more entries, try cdabbrev and then return only a string."
 
 (defun complete (&optional arg)
   "Fill out a completion of the word before point.  
-Point is left at end.  Consective calls rotate through all possibilities.
+Point is left at end.  Consecutive calls rotate through all possibilities.
 Prefix args ::
   control-u :: leave the point at the beginning of the completion rather 
                than at the end.
@@ -2049,14 +2049,14 @@ Prefix args ::
 ;;; Symbol separator chars (have whitespace syntax) --> , ; * = (
 ;;; Opening char --> [ {
 ;;; Closing char --> ] }
-;;; openning and closing must be skipped over
+;;; opening and closing must be skipped over
 ;;; Whitespace chars (have symbol syntax)
 ;;; Everything else has word syntax
 
 (defun cmpl-make-c-def-completion-syntax-table ()
   (let ((table (make-vector 256 0))
 	(whitespace-chars '(?  ?\n ?\t ?\f  ?\v ?\r))
-	;; unforunately the ?( causes the parens to appear unbalanced
+	;; unfortunately the ?( causes the parens to appear unbalanced
 	(separator-chars '(?, ?* ?= ?\( ?\;
 			   ))
 	)
@@ -2505,14 +2505,14 @@ Patched to remove the most recent completion."
 ;;; Patches to self-insert-command.
 ;;;-----------------------------------------------
 
-;;; Need 2 versions: generic seperator chars. and space (to get auto fill
+;;; Need 2 versions: generic separator chars. and space (to get auto fill
 ;;; to work)
 
 ;;; All common separators (eg. space "(" ")" """) characters go through a
 ;;; function to add new words to the list of words to complete from:
 ;;;  COMPLETION-SEPARATOR-SELF-INSERT-COMMAND (arg).
 ;;; If the character before this was an alpha-numeric then this adds the 
-;;; symbol befoe point to the completion list (using ADD-COMPLETION).
+;;; symbol before point to the completion list (using ADD-COMPLETION).
 
 (defun completion-separator-self-insert-command (arg)
   (interactive "p")

@@ -903,7 +903,7 @@ command_loop_1 ()
       Vdeactivate_mark = Qnil;
 
       /* If minibuffer on and echo area in use,
-	 wait 2 sec and redraw minibufer.  */
+	 wait 2 sec and redraw minibuffer.  */
 
       if (minibuf_level && echo_area_glyphs)
 	{
@@ -1175,7 +1175,7 @@ command_loop_1 ()
 /* Number of seconds between polling for input.  */
 int polling_period;
 
-/* Nonzero means polling for input is temporarily suppresed.  */
+/* Nonzero means polling for input is temporarily suppressed.  */
 int poll_suppress_count;
 
 #ifdef POLL_FOR_INPUT
@@ -1333,7 +1333,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 remain unchanged.
 
          Since this event came from a macro, it would be misleading to
-	 leave internal_last_event_frame set to whereever the last
+	 leave internal_last_event_frame set to wherever the last
 	 real event came from.  Normally, a switch-frame event selects
 	 internal_last_event_frame after each command is read, but
 	 events read from a macro should never cause a new frame to be
@@ -2753,7 +2753,7 @@ reorder_modifiers (symbol)
    the returned symbol. 
 
    The symbols we create are supposed to have an
-   `event-symbol-elements' propery, which lists the modifiers present
+   `event-symbol-elements' property, which lists the modifiers present
    in the symbol's name.  */
 
 static Lisp_Object
@@ -3801,7 +3801,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 			 use save_excursion_{save,restore} here, because they
 			 save point as well as the current buffer; we don't
 			 want to save point, because redisplay may change it,
-			 to accomodate a Fset_window_start or something.  We
+			 to accommodate a Fset_window_start or something.  We
 			 don't want to do this at the top of the function,
 			 because we may get input from a subprocess which
 			 wants to change the selected window and stuff (say,
@@ -4417,7 +4417,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
 }
 
 /* If STUFFSTRING is a string, stuff its contents as pending terminal input.
-   Then in any case stuff anthing Emacs has read ahead and not used.  */
+   Then in any case stuff anything Emacs has read ahead and not used.  */
 
 stuff_buffered_input (stuffstring)
      Lisp_Object stuffstring;

@@ -326,7 +326,7 @@ make_terminal_frame ()
 
 DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
   "Select the frame FRAME.\n\
-Subseqent editing commands apply to its selected window.\n\
+Subsequent editing commands apply to its selected window.\n\
 The selection of FRAME lasts until the next time the user does\n\
 something to select a different frame, or until the next time this\n\
 function is called.")
@@ -394,7 +394,7 @@ to that frame.")
   choose_minibuf_frame ();
 
   /* We want to make sure that the next event generates a frame-switch
-     event to the appropriate frame.  This seems kludgey to me, but
+     event to the appropriate frame.  This seems kludgy to me, but
      before you take it out, make sure that evaluating something like
      (select-window (frame-root-window (new-frame))) doesn't end up
      with your typing being interpreted in the new frame instead of

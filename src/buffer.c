@@ -1709,7 +1709,7 @@ OVERLAY.")
 
 
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
-  "Return a list of the overays that contain position POS.")
+  "Return a list of the overlays that contain position POS.")
   (pos)
      Lisp_Object pos;
 {

@@ -67,7 +67,7 @@
 
 (defvar vip-d-com nil
   "If non-nil, it's value is a list (M-COM VAL COM), and is used to
-re-execute last destrcutive command")
+re-execute last destructive command")
 
 (defconst vip-shift-width 8
   "*The number of colums shifted by > and < command.")
@@ -76,7 +76,7 @@ re-execute last destrcutive command")
   "*If t then do regexp replace, if nil then do string replace.")
 
 (defvar vip-d-char nil
-  "The character remenbered by the vi \"r\" command")
+  "The character remembered by the vi \"r\" command")
 
 (defvar vip-f-char nil
   "for use by \";\" command")
@@ -322,7 +322,7 @@ EVENTS is a list of events, which become the beginning of the command."
   (vip-escape-to-emacs arg '(?\C-h)))
 
 
-;; prefix argmument for vi mode
+;; prefix argument for vi mode
 
 ;; In vi mode, prefix argument is a dotted pair (NUM . COM) where NUM
 ;; represents the numeric value of the prefix argument and COM represents
@@ -359,7 +359,7 @@ obtained so far, and COM is the command part obtained so far."
 	    (setq cont nil))
 	;; if com is nil we set com as char, and read more.  again, if char
 	;; is ", we read the name of register and store it in vip-use-register.
-	;; if char is !, =, or #, a copmlete com is formed so we exit while.
+	;; if char is !, =, or #, a complete com is formed so we exit while.
 	(cond ((or (= char ?!) (= char ?=))
 	       (setq com char)
 	       (setq char (read-char))
@@ -422,7 +422,7 @@ obtained so far, and COM is the command part obtained so far."
 	  com (vip-getcom arg))
     (if (null val)
 	(if (null com)
-	    (message "Value is nil, and commmand is nil.")
+	    (message "Value is nil, and command is nil.")
 	  (message "Value is nil, and command is %c." com))
       (if (null com)
 	  (message "Value is %d, and command is nil." val)
@@ -626,7 +626,7 @@ to vip-d-com for later use by vip-repeat"
 			  reg))))
 
 (defun vip-repeat (arg)
-  "(ARG)  Re-excute last destructive command.  vip-d-com has the form
+  "(ARG)  Re-execute last destructive command.  vip-d-com has the form
 (COM ARG CH REG), where COM is the command to be re-executed, ARG is the
 argument for COM, CH is a flag for repeat, and REG is optional and if exists
 is the name of the register for COM."
@@ -1128,7 +1128,7 @@ beginning of buffer, stop and signal error."
     (if com (vip-execute-com 'vip-goto-line val com))))
 
 (defun vip-find-char (arg char forward offset)
-  "Find ARG's occurence of CHAR on the current line.  If FORWARD then
+  "Find ARG's occurrence of CHAR on the current line.  If FORWARD then
 search is forward, otherwise backward.  OFFSET is used to adjust point
 after search."
   (let ((arg (if forward arg (- arg))) point)
@@ -1429,7 +1429,7 @@ used.  This behaviour is controlled by the sign of prefix numeric value."
 ;; searching
 
 (defun vip-search-forward (arg)
-  "Search a string forward.  ARG is used to find the ARG's occurence
+  "Search a string forward.  ARG is used to find the ARG's occurrence
 of the string.  Default is vanilla search.  Search mode can be toggled by
 giving null search string."
   (interactive "P")
@@ -1449,7 +1449,7 @@ giving null search string."
 	    (vip-execute-com 'vip-search-next val com))))))
 
 (defun vip-search-backward (arg)
-  "Search a string backward.  ARG is used to find the ARG's occurence
+  "Search a string backward.  ARG is used to find the ARG's occurrence
 of the string.  Default is vanilla search.  Search mode can be toggled by
 giving null search string."
   (interactive "P")
@@ -2012,7 +2012,7 @@ is a command.")
   "pattern for global command")
 
 (defvar ex-map (make-sparse-keymap)
-  "save commnads for mapped keys")
+  "save commands for mapped keys")
 
 (defvar ex-tag nil
   "save ex tag")
@@ -2988,7 +2988,7 @@ vip-s-string"
 	    (forward-line (1- ex-count)))
 	(set-mark end))
       (vip-enlarge-region (point) (mark))
-      (if ex-flag (error "Extra chacters at end of command"))
+      (if ex-flag (error "Extra characters at end of command"))
       (if ex-buffer
 	  (copy-to-register ex-buffer (point) (mark) nil))
       (copy-region-as-kill (point) (mark)))))

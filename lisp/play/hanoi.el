@@ -76,7 +76,7 @@
 	  ;; If we have NRINGS rings, we label them with the numbers 0
 	  ;; through NRINGS-1.  The width of ring i is 2i+3; it pokes
 	  ;; out i spaces on either side of the pole.  Rather than
-	  ;; checking if the window is wide enough to accomodate this,
+	  ;; checking if the window is wide enough to accommodate this,
 	  ;; we make sure pole-spacing is large enough, since that
 	  ;; works even when we have decremented pole-spacing to make
 	  ;; it even.

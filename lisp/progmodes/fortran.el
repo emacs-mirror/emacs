@@ -27,7 +27,7 @@
 
 ;; Fortran mode has been upgraded and is now maintained by Stephen A. Wood
 ;; (saw@cebaf.gov).  It now will use either fixed format continuation line
-;; markers (character in 6th column), or tab format coninuation line style
+;; markers (character in 6th column), or tab format continuation line style
 ;; (digit after a TAB character.)  A auto-fill mode has been added to
 ;; automatically wrap fortran lines that get too long.
 
@@ -37,7 +37,7 @@
 ;; Gary Sabot and Richard Stallman.
 
 ;;; This file may be used with GNU Emacs version 18.xx if the following
-;;; variable and function substutions are made.
+;;; variable and function substitutions are made.
 ;;;  Replace:
 ;;;   frame-width                           with screen-width
 ;;;   auto-fill-function                    with auto-fill-hook
@@ -159,7 +159,7 @@ This variable used in TAB-format mode.")
  style.")
 
 (defvar fortran-break-before-delimiters t
-  "*Non-nil causes `fortran-do-auto-fill' to break lines before delimeters.")
+  "*Non-nil causes `fortran-do-auto-fill' to break lines before delimiters.")
 
 (if fortran-mode-syntax-table
     ()
@@ -336,7 +336,7 @@ Variables controlling indentation style and extra features:
     Non-nil causes line number digits to be moved to the correct column 
     as typed.  (default t)
  fortran-break-before-delimiters
-    Non-nil causes `fortran-do-auto-fill' breaks lines before delimeters.
+    Non-nil causes `fortran-do-auto-fill' breaks lines before delimiters.
     (default t)
  fortran-startup-message
     Set to nil to inhibit message first time Fortran mode is used.
@@ -1117,7 +1117,7 @@ automatically breaks the line at a previous space."
 	 ;; decide where to split the line. If a position for a quoted
 	 ;; string was found above then use that, else break the line
 	 ;; before the last delimiter.
-	 ;; Delimeters are whitespace, commas, and operators.
+	 ;; Delimiters are whitespace, commas, and operators.
 	 ;; Will break before a pair of *'s.
 	 ;;
 	 (fill-point

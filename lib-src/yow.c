@@ -101,7 +101,7 @@ yow (fp)
   }
 
   /* Read until SEP, read next line, print it.
-     (Note that we will never print anything before the first seperator.)
+     (Note that we will never print anything before the first separator.)
      If we hit EOF looking for the first SEP, just recurse. */
   while ((c = getc(fp)) != SEP)
     if (c == EOF) {

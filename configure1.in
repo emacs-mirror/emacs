@@ -228,7 +228,7 @@ Set it to either \`yes' or \`no'."
 	  inst_paths='#disabled# '
 	;;
 
-	## Has the user specifiec an installation prefix?
+	## Has the user specified an installation prefix?
 	"prefix" )
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
@@ -245,7 +245,7 @@ Set it to either \`yes' or \`no'."
 	  prefix="${val}"
         ;;
 
-	## Has the user specifiec an installation prefix?
+	## Has the user specified an installation prefix?
 	"exec_prefix" )
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then

@@ -65,7 +65,7 @@
 /* define WANT_CAPS_LOCK to make f-key T1 (aka F1) behave as CapsLock */
 #define WANT_CAPS_LOCK
 #ifdef WANT_CAPS_LOCK
-int caps_lock;		/* toggle indicater for f-key T1 caps lock */
+int caps_lock;		/* toggle indicator for f-key T1 caps lock */
 static char *Caps = "[CAPS] ";		/* Caps Lock prefix string */
 #define CAPS_LEN 7			/* strlen (Caps) */
 #endif

@@ -158,7 +158,7 @@ Your options are: \\<query-replace-map>
 		   (with-output-to-temp-buffer "*Help*"
 		     (princ
 		      (substitute-command-keys
-		       "Specify how to procede with keyboard macro execution.
+		       "Specify how to proceed with keyboard macro execution.
 Possibilities: \\<query-replace-map>
 \\[act]	Finish this iteration normally and continue with the next.
 \\[skip]	Skip the rest of this iteration, and start the next.

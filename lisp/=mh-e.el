@@ -48,7 +48,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@bbn.com
-(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.10 1993/05/30 22:56:31 rms Exp rms $")
+(defconst mh-e-RCS-id "$Header: /home/gd/gnu/emacs/19.0/lisp/RCS/mh-e.el,v 1.11 1993/06/05 02:51:21 rms Exp jimb $")
 
 ;;; Code:
 
@@ -195,7 +195,7 @@ Inserted into message by \\<mh-letter-mode-map>\\[mh-insert-signature].")
   "String whose first character is used to notate redistributed messages.")
 
 (defvar mh-good-msg-regexp  "^....[^D^]"
-  "Regexp specifiying the scan lines that are 'good' messages.")
+  "Regexp specifying the scan lines that are 'good' messages.")
 
 (defvar mh-deleted-msg-regexp "^....D"
   "Regexp matching scan lines of deleted messages.")
@@ -1446,7 +1446,7 @@ Assumes mh-e has already been initialized."
 ;;; The folder data abstraction.
 
 (defvar mh-current-folder nil "Name of current folder, a string.")
-(defvar mh-show-buffer nil "Buffer that displays mesage for this folder.")
+(defvar mh-show-buffer nil "Buffer that displays message for this folder.")
 (defvar mh-folder-filename nil "Full path of directory for this folder.")
 (defvar mh-showing nil "If non-nil, show the message in a separate window.")
 (defvar mh-next-seq-num nil "Index of free sequence id.")

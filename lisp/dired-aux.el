@@ -269,7 +269,7 @@ with a prefix argument."
 (defun dired-shell-quote (filename)
   "Quote a file name for inferior shell (see variable `shell-file-name')."
   ;; Quote everything except POSIX filename characters.
-  ;; This should be safe enough even for really wierd shells.
+  ;; This should be safe enough even for really weird shells.
   (let ((result "") (start 0) end)
     (while (string-match "[^---0-9a-zA-Z_./]" filename start)
       (setq end (match-beginning 0)
@@ -480,7 +480,7 @@ and use this command with a prefix argument (the value does not matter)."
 (defun dired-compress-file (file)
   ;; Compress or uncompress FILE.
   ;; Return the name of the compressed or uncompressed file.
-  ;; Rerurn nil if no change in files.
+  ;; Return nil if no change in files.
   (let ((handler (find-file-name-handler file)))
     (cond (handler
 	   (funcall handler 'dired-compress-file file))
@@ -767,7 +767,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	    nil))
     (if reason				; don't move away on failure
 	(goto-char opoint))
-    (not reason)))			; return t on succes, nil else
+    (not reason)))			; return t on success, nil else
 
 ;; This is a separate function for the sake of nested dired format.
 (defun dired-add-entry-do-indentation (marker-char)
@@ -1100,7 +1100,7 @@ ESC or `q' to not overwrite any of the remaining files,
   ;;   the new files.  Target may be a plain file if only one marked
   ;;   file exists.
   ;; OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
-  ;;   will determine wether pop-ups are appropriate for this OP-SYMBOL.
+  ;;   will determine whether pop-ups are appropriate for this OP-SYMBOL.
   ;; FILE-CREATOR and OPERATION as in dired-create-files.
   ;; ARG as in dired-get-marked-files.
   ;; Optional arg OP1 is an alternate form for OPERATION if there is
