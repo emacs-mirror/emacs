@@ -1329,13 +1329,15 @@ specifies the character set for the major languages of Western Europe."
   "Return the value of CHARSET's PROPNAME property.
 This is the last value stored with
  (put-charset-property CHARSET PROPNAME VALUE)."
-  (plist-get (charset-plist charset) propname))
+  (or (eq charset 'composition)
+      (plist-get (charset-plist charset) propname)))
 
 (defsubst put-charset-property (charset propname value)
   "Store CHARSETS's PROPNAME property with value VALUE.
 It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
-  (set-charset-plist charset
-		     (plist-put (charset-plist charset) propname value)))
+  (or (eq charset 'composition)
+      (set-charset-plist charset
+			 (plist-put (charset-plist charset) propname value))))
 
 ;;; Character code property
 (put 'char-code-property-table 'char-table-extra-slots 0)
