@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.91 $")
+(defconst byte-compile-version "$Revision: 2.92 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -363,7 +363,7 @@ invoked interactively are excluded from this list."
   :type '(choice (const :tag "Yes" t) (const :tag "No" nil)
 		 (other :tag "Ask" lambda)))
 
-(defconst byte-compile-call-tree nil "Alist of functions and their call tree.
+(defvar byte-compile-call-tree nil "Alist of functions and their call tree.
 Each element looks like
 
   \(FUNCTION CALLERS CALLS\)
@@ -441,10 +441,10 @@ Each element is (INDEX . VALUE)")
 
 ;;; The byte codes; this information is duplicated in bytecomp.c
 
-(defconst byte-code-vector nil
+(defvar byte-code-vector nil
   "An array containing byte-code names indexed by byte-code values.")
 
-(defconst byte-stack+-info nil
+(defvar byte-stack+-info nil
   "An array with the stack adjustment for each byte-code.")
 
 (defmacro byte-defop (opcode stack-adjust opname &optional docstring)
@@ -810,8 +810,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			   (if (symbolp x) (list 'prin1-to-string x) x))
 			 args)))))))
 
-(defconst byte-compile-last-warned-form nil)
-(defconst byte-compile-last-logged-file nil)
+(defvar byte-compile-last-warned-form nil)
+(defvar byte-compile-last-logged-file nil)
 
 (defvar byte-compile-last-line nil
   "Last known line number in the input.")
@@ -1322,6 +1322,12 @@ recompile every `.el' file that already has a `.elc' file."
              (if (> skip-count 0) (format ", %d skipped" skip-count) "")
 	     (if (> dir-count 1) (format " in %d directories" dir-count) ""))))
 
+(defvar no-byte-compile nil
+  "Non-nil to prevent byte-compiling of emacs-lisp code.
+This is normally set in local file variables at the end of the elisp file:
+
+;; Local Variables:\n;; no-byte-compile: t\n;; End: ")
+
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
@@ -1388,8 +1394,7 @@ The value is non-nil if there were no errors, nil if errors."
       (setq default-directory (file-name-directory filename)))
     ;; Check if the file's local variables explicitly specify not to
     ;; compile this file.
-    (if (with-current-buffer input-buffer
-	  (and (boundp 'no-byte-compile) no-byte-compile))
+    (if (with-current-buffer input-buffer no-byte-compile)
 	(progn
 	  (message "%s not compiled because of `no-byte-compile: %s'"
 		   (file-relative-name filename)
@@ -3296,10 +3301,12 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (byte-compile-warn "third arg to %s %s is not a string: %s"
 			     fun var string))
 	`(put ',var 'variable-documentation ,string))
-      (if (cdr (cdr form))		; `value' provided
+      (if (cddr form)		; `value' provided
 	  (if (eq fun 'defconst)
 	      ;; `defconst' sets `var' unconditionally.
-	      `(setq ,var ,value)
+	      (let ((tmp (make-symbol "defconst-tmp-var")))
+		`(let ((,tmp ,value))
+		   (eval '(defconst ,var ,tmp))))
 	    ;; `defvar' sets `var' only when unbound.
 	    `(if (not (boundp ',var)) (setq ,var ,value))))
       `',var))))
