@@ -2357,8 +2357,8 @@ x_draw_image_foreground_1 (s, pixmap)
 	  XGCValues xgcv;
 
 	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
+	  xgcv.clip_x_origin = x - s->slice.x;
+	  xgcv.clip_y_origin = y - s->slice.y;
 	  xgcv.function = GXcopy;
 	  XChangeGC (s->display, s->gc, mask, &xgcv);
 

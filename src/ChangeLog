@@ -1,5 +1,8 @@
 2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
+	clip_x/y_origin.
+
 	* fns.c (string_to_multibyte): Use xmalloc/xfree instead of alloca.
 
 	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
