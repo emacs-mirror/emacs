@@ -186,9 +186,13 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 This is like `define-key' except that the binding for KEY is placed
 just after the binding for the event AFTER, instead of at the beginning
 of the map.
-The order matters when the keymap is used as a menu."
+The order matters when the keymap is used as a menu.
+KEY must contain just one event type--it must be a string or vector
+of length 1."
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
+  (if (> (length key) 0)
+      (error "multi-event key specified in `define-key-after'"))
   (let ((tail keymap) done inserted
 	(first (aref key 0)))
     (while (and (not done) tail)
