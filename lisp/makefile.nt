@@ -225,7 +225,13 @@ install:
 !else
 	if not exist .\same-dir.tst $(CP_DIR) *.elc $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) cus-load.el $(INSTALL_DIR)\lisp
+	if not exist .\same-dir.tst $(CP) cus-start.el $(INSTALL_DIR)\lisp
+	if not exist .\same-dir.tst $(CP) emacs-lisp\cl-specs.el $(INSTALL_DIR)\lisp\emacs-lisp
+	if not exist .\same-dir.tst $(CP) eshell\esh-maint.el $(INSTALL_DIR)\lisp\eshell
+	if not exist .\same-dir.tst $(CP) eshell\esh-groups.el $(INSTALL_DIR)\lisp\eshell
+	if not exist .\same-dir.tst $(CP) finder-inf.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) forms*.el $(INSTALL_DIR)\lisp
+	if not exist .\same-dir.tst $(CP) generic-x.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) patcomp.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) subdirs.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) version.el $(INSTALL_DIR)\lisp
