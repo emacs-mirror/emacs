@@ -8,6 +8,8 @@
 	keywords for defcustom.
 	(default-generic-mode): Specify :group.
 	
+	* generic-x.el: Specify :group for all generic modes.
+
 	* desktop.el (desktop-no-desktop-file-hook)
 	(desktop-after-read-hook): Fix docstring.
 
