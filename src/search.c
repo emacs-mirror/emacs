@@ -1302,7 +1302,7 @@ LIST should have been created by calling `match-data' previously.")
 
   /* Allocate registers if they don't already exist.  */
   {
-    int length = Flength (list) / 2;
+    int length = XFASTINT (Flength (list)) / 2;
 
     if (length > search_regs.num_regs)
       {
