@@ -1,3 +1,32 @@
+2000-03-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (re_match_2): Fix string shortening (to fit `stop') to make sure
+	POINTER_TO_OFFSET gives the same value before and after PREFETCH.
+	Use `dfail' to guarantee "atomic" matching.
+	(PTR_TO_OFFSET): Use POINTER_TO_OFFSET.
+	(debug): Now only active if > 0 rather than if != 0.
+	(DEBUG_*): Update for the new meaning of `debug'.
+	(print_partial_compiled_pattern): Add missing `succeed' case.
+	Use CHARSET_* macros in the charset(_not) branch.
+	Fix off-by-two bugs in `succeed_n', `jump_n' and `set_number_at'.
+	(store_op1, store_op2, insert_op1, insert_op2)
+	(at_begline_loc_p, at_endline_loc_p): Add prototype.
+	(group_in_compile_stack): Move to after its arg's types are declared
+	and add a prototype.
+	(PATFETCH): Define in terms of PATFETCH_RAW.
+	(GET_UNSIGNED_NUMBER): Add the usual `do { ... } while(0)' wrapper.
+	(QUIT): Redefine as a nop except for NTemacs.
+	(regex_compile): Handle intervals {,M} as if it was {0,M}.
+	Fix indentation of the greedy-op and shy-group code.
+	(at_(beg|end)line_loc_p): Fix argument's types.
+	(re_compile_fastmap): Ifdef out failure_stack_ptr to shut up gcc.
+	(re_search_2): Use POS_AS_IN_BUFFER.  Simplify `room' computation.
+	(MATCHING_IN_FIRST_STRING): Remove.
+	(re_match_2): Use POS_AS_IN_BUFFER.
+	Ifdef out failure_stack_ptr to shut up gcc.
+	Use FIRST_STRING_P and POINTER_TO_OFFSET.
+	Use QUIT unconditionally.
+
 2000-03-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (Fminibuffer_complete): Set point to ZV if finding
