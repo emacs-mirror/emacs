@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.15 2002/08/16 06:29:39 eggert Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.16 2002/10/02 23:24:31 karl Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -200,7 +200,7 @@ there would be no new releases of Eshell.
 As mentioned above, Eshell comes preinstalled as of Emacs 21.  If you're
 using Emacs 20.4 or later, or XEmacs 21, you can download the most
 recent version of Eshell from
-@url{http://www.gci-net.com/users/j/johnw/Emacs/eshell.tar.gz}.
+@url{http://www.gci-net.com/users/j/johnw/Emacs/packages/eshell.tar.gz}.
 
 However, if you are using Emacs 21, you may skip this section.
 
