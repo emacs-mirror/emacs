@@ -1,3 +1,11 @@
+2004-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* buffer.c (init_buffer): Set current_buffer->directory to a
+	multibyte string made by string_to_multibyte.
+
+	* emacs.c (init_cmdargs): Set unibyte strings in
+	Vcommand_line_args.
+
 2004-11-27  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (mark_stack): Call GC_MARK_SECONDARY_STACK if defined.

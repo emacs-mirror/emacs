@@ -1,3 +1,8 @@
+2004-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (command-line): Decode all buffer names by
+	locale-coding-system.
+
 2004-11-29  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el: Remove unnecessary eval-when-compile.
@@ -1505,6 +1510,11 @@
 	(gdb-info-frames-custom, gdb-frame-handler): Use it to find
 	current frame (in case of recursive calls).
 	(gdb-show-changed-values): Add :version keyword.
+
+2004-11-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Change coding: tag back to
+	iso-2022-7bit.
 
 2004-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
