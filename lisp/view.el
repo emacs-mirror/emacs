@@ -120,6 +120,12 @@ The \\[view-file] and \\[view-file-other-window] commands may set this to
 `kill-buffer'.")
 (make-variable-buffer-local 'view-exit-action)
 
+(defvar view-no-disable-on-exit nil
+  "If non-nil, View mode \"exit\" commands don't actually disable View mode.
+Instead, these commands just switch buffers or windows.
+This is set in certain buffers by specialized features such as help commands
+that use View mode automatically.")
+
 (defvar view-overlay nil
   "Overlay used to display where a search operation found its match.
 This is local in each buffer, once it is used.")
@@ -507,7 +513,8 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 		(setq old-window (car (cdr a))))
 	      (if (or (zerop c) (not (window-live-p old-window)))
 		  (setq old-window (selected-window)))))
-	(view-mode-disable)
+	(or view-no-disable-on-exit
+	    (view-mode-disable))
 	(while alist			; Restore windows with info.
 	  (if (and (window-live-p (setq window (car (car alist))))
 		   (eq buffer (window-buffer window)))
