@@ -180,7 +180,7 @@ are removed." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-goto-cur-msg mh-update-sequences mh-folder-line-matches-show-buffer-p)
-;;;;;;  "mh-e" "mh-e.el" (16627 18152))
+;;;;;;  "mh-e" "mh-e.el" (16627 22341))
 ;;; Generated autoloads from mh-e.el
 
 (autoload (quote mh-folder-line-matches-show-buffer-p) "mh-e" "\
