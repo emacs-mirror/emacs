@@ -6,7 +6,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.70 $
+;; Ada Core Technologies's version:   $Revision: 1.31 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -926,7 +926,7 @@ If you use ada-xref.el:
   ;;  Support for compile.el
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
-            '(lambda()
+            (lambda()
 	       (set 'compile-auto-highlight 40)
                (define-key compilation-minor-mode-map [mouse-2]
                  'ada-compile-mouse-goto-error)
@@ -973,7 +973,7 @@ If you use ada-xref.el:
 		       (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
 			       "\\(body[ \t]+\\)?"
 			       "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
-		     '(lambda ()
+		     (lambda ()
 			(set 'fname (ff-get-file
 				     ff-search-directories
 				     (ada-make-filename-from-adaname
@@ -983,7 +983,7 @@ If you use ada-xref.el:
   ;; go to the correct package.
   (add-to-list 'ff-special-constructs
 	       (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-		     '(lambda ()
+		     (lambda ()
 			(set 'fname (ff-get-file
 				     ff-search-directories
 				     (ada-make-filename-from-adaname
@@ -993,7 +993,7 @@ If you use ada-xref.el:
   ;; old one can handle only one possible type of extension for Ada files
   (add-to-list 'ff-special-constructs
 	       (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" 
-		     '(lambda ()
+		     (lambda ()
 			(set 'fname (ff-get-file
 				     ff-search-directories
 				     (ada-make-filename-from-adaname
@@ -1032,7 +1032,7 @@ If you use ada-xref.el:
         (add-hook 'local-write-file-hooks 'ada-remove-trailing-spaces)
         ;; convert all tabs to the correct number of spaces.
         (add-hook 'local-write-file-hooks
-                  '(lambda () (untabify (point-min) (point-max))))))
+                  (lambda () (untabify (point-min) (point-max))))))
 
   (run-hooks 'ada-mode-hook)
 
@@ -1131,7 +1131,7 @@ The standard casing rules will no longer apply to this word."
     ;;  Save the list in the file
     (find-file (expand-file-name ada-case-exception-file))
     (erase-buffer)
-    (mapcar '(lambda (x) (insert (car x) (nth 1 x) "\n"))
+    (mapcar (lambda (x) (insert (car x) (nth 1 x) "\n"))
 	    (sort exception-list
 		  (lambda(a b) (string< (car a) (car b)))))
     (save-buffer)
