@@ -3658,7 +3658,7 @@ direct_output_for_insert (g)
     rif->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
-  fflush (TTY_OUTPUT (CURTTY ());
+  fflush (TTY_OUTPUT (CURTTY ()));
 
   TRACE ((stderr, "direct output for insert\n"));
   mark_window_display_accurate (it.window, 1);

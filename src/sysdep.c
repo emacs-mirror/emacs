@@ -291,7 +291,7 @@ discard_tty_input ()
     ;
 #else /* not MSDOS */
   {
-    struct tty_output tty;
+    struct tty_output *tty;
     for (tty = tty_list; tty; tty = tty->next)
       {
         EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &buf);
