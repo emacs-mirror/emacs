@@ -63,7 +63,7 @@
 	     command enabler name)
 	(cond ((stringp item)
 	       (setq command nil)
-	       (setq name item))
+	       (setq name (if (equal item "----") "" item)))
 	      ((consp item)
 	       (setq command (make-lucid-menu-keymap (car item) (cdr item)))
 	       (setq name (car item)))
