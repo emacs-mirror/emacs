@@ -121,6 +121,8 @@ programs bind @key{INSERT} to similar functions.
   Binary Overwrite mode is a variant of Overwrite mode for editing
 binary files; it treats newlines and tabs like other characters, so that
 they overwrite other characters and can be overwritten by them.
+In Binary Overwrite mode, digits after @kbd{C-q} specify an
+octal character code, as usual.
 
   The following minor modes normally apply to all buffers at once.
 Since each is enabled or disabled by the value of a variable, you
