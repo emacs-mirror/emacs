@@ -72,11 +72,10 @@
 
 (defvar lisp-mode-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
-    (modify-syntax-entry ?\| "\"   " table)
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
     (modify-syntax-entry ?# "' 14bn" table)
-    (modify-syntax-entry ?| "' 23b" table)
+    (modify-syntax-entry ?| "\" 23b" table)
     table))
 
 (define-abbrev-table 'lisp-mode-abbrev-table ())
