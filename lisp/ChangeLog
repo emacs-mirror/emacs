@@ -1,5 +1,8 @@
 2000-11-22  Miles Bader  <miles@gnu.org>
 
+	* calendar/calendar.el (generate-calendar-window): When we don't
+	call `fit-window-to-buffer', make sure the top line is fully visible.
+
 	* image-file.el (insert-image-file): Don't make `read-only'
 	property rear-nonsticky.
 
