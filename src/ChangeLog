@@ -1,5 +1,13 @@
 2002-08-21  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (coding_set_destination): Fix coding->destination for
+	the case converting a region.
+	(encode_coding_utf_8): Encode eight-bit chars as single byte.
+	(encode_coding_object): Fix coding->dst_pos and
+	coding->dst_pos_byte for the case converting a region.
+
+	* insdel.c (insert_from_gap): Make it work even if PT != GTP.
+
 	* character.h (BYTE8_STRING): New macro.
 
 	* fns.c (base64_decode_1): Insert eight-bit chars correctly.
