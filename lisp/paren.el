@@ -139,8 +139,8 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 (defun show-paren-function ()
   (if show-paren-mode
       (let ((oldpos (point))
-	    (dir (cond ((eq (car (syntax-after (1- (point)))) 5) -1)
-		       ((eq (car (syntax-after (point))) 4) 1)))
+	    (dir (cond ((eq (car (syntax-after (1- (point)))) ?\)) -1)
+		       ((eq (car (syntax-after (point))) ?\() 1)))
 	    pos mismatch face)
 	;;
 	;; Find the other end of the sexp.

@@ -507,7 +507,10 @@ as well as widgets, buttons, overlays, and text properties."
 		    (format "%d" (nth 1 split))
 		  (format "%d %d" (nth 1 split) (nth 2 split)))))
 	    ("syntax"
-	     ,(let ((syntax (syntax-after pos)))
+	     ,(let* ((st (if parse-sexp-lookup-properties
+			     (get-char-property pos 'syntax-table)))
+		     (syntax (if (consp st) st
+			       (aref (or st (syntax-table)) (char-after pos)))))
 		(with-temp-buffer
 		  (internal-describe-syntax-value syntax)
 		  (buffer-string))))

@@ -42,25 +42,7 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
   :version "20.3")
 
 (defsubst easy-menu-intern (s)
-  (if (stringp s)
-      (let ((copy (copy-sequence s))
-	    (pos 0)
-	    found)
-	;; For each letter that starts a word, flip its case.
-	;; This way, the usual convention for menu strings (capitalized)
-	;; corresponds to the usual convention for menu item event types
-	;; (all lower case).  It's a 1-1 mapping so causes no conflicts.
-	(while (setq found (string-match "\\<\\sw" copy pos))
-	  (setq pos (match-end 0))
-	  (unless (= (upcase (aref copy found))
-		     (downcase (aref copy found)))
-	    (aset copy found
-		  (if (= (upcase (aref copy found))
-			 (aref copy found))
-		      (downcase (aref copy found))
-		    (upcase (aref copy found))))))
-	 (intern copy))
-    s))
+  (if (stringp s) (intern s) s))
 
 ;;;###autoload
 (put 'easy-menu-define 'lisp-indent-function 'defun)
@@ -396,6 +378,7 @@ otherwise put the new binding last in MENU.
 BEFORE can be either a string (menu item name) or a symbol
 \(the fake function key for the menu item).
 KEY does not have to be a symbol, and comparison is done with equal."
+  (if (symbolp menu) (setq menu (indirect-function menu)))
   (let ((inserted (null item))		; Fake already inserted.
 	tail done)
     (while (not done)
@@ -437,8 +420,7 @@ ITEM should be a keymap binding of the form (KEY . MENU-ITEM)."
 		  (error nil))		;`item' might not be a proper list.
 		;; Also check the string version of the symbol name,
 		;; for backwards compatibility.
-		(eq (car-safe item) (intern name))
-		(eq (car-safe item) (easy-menu-intern name)))))))
+		(eq (car-safe item) (intern name)))))))
 
 (defun easy-menu-always-true-p (x)
   "Return true if form X never evaluates to nil."
@@ -541,15 +523,10 @@ earlier by `easy-menu-define' or `easy-menu-create-menu'."
       (easy-menu-define-key map (easy-menu-intern (car item))
 			    (cdr item) before)
     (if (or (keymapp item)
-	    (and (symbolp item) (keymapp (symbol-value item))))
+	    (and (symbolp item) (keymapp (symbol-value item))
+		 (setq item (symbol-value item))))
 	;; Item is a keymap, find the prompt string and use as item name.
-	(let ((tail (easy-menu-get-map item nil)) name)
-	  (if (not (keymapp item)) (setq item tail))
-	  (while (and (null name) (consp (setq tail (cdr tail)))
-		      (not (keymapp tail)))
-	    (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
-	      (setq tail (cdr tail))))
-	  (setq item (cons name item))))
+	(setq item (cons (keymap-prompt item) item)))
     (easy-menu-do-add-item map item before)))
 
 (defun easy-menu-item-present-p (map path name)

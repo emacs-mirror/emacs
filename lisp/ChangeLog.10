@@ -4150,6 +4150,7 @@
 	(desktop-path): New customizable variable.  List of directories in
 	which to lookup the desktop file.  Replaces hardcoded list.
 	(desktop-globals-to-clear): New variable replaces hardcoded list.
+	(desktop-globals-to-save): Variable made customizable.
 	(desktop-clear-preserve-buffers-regexp): New customizable variable.
 	(desktop-after-read-hook): New hook run after a desktop is read.
 	(desktop-no-desktop-file-hook): New hook when no desktop file found.

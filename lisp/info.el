@@ -657,10 +657,10 @@ is preserved, if possible."
 	     (equal old-nodename Info-current-node))
 	(progn
 	  ;; note goto-line is no good, we want to measure from point-min
-	  (beginning-of-buffer)
+	  (goto-char (point-min))
 	  (forward-line wline)
 	  (set-window-start (selected-window) (point))
-	  (beginning-of-buffer)
+	  (goto-char (point-min))
 	  (forward-line pline)
 	  (move-to-column pcolumn))
       ;; only add to the history when coming from a different file+node
@@ -1484,13 +1484,18 @@ If DIRECTION is `backward', search in the reverse direction."
 				(1- (point)))
 			      (point-max)))
 	  (while (and (not give-up)
-		      (or (null found)
-			  (if backward
-                              (isearch-range-invisible found beg-found)
-                            (isearch-range-invisible beg-found found))
-                          ;; Skip node header line
-                          (save-excursion (forward-line -1)
-                                          (looking-at "\^_"))))
+		      (save-match-data
+			(or (null found)
+			    (if backward
+				(isearch-range-invisible found beg-found)
+			      (isearch-range-invisible beg-found found))
+			    ;; Skip node header line
+			    (save-excursion (forward-line -1)
+					    (looking-at "\^_"))
+			    ;; Skip Tag Table node
+			    (save-excursion
+			      (and (search-backward "\^_" nil t)
+				   (looking-at "\^_\nTag Table"))))))
 	    (if (if backward
                     (re-search-backward regexp bound t)
                   (re-search-forward regexp bound t))
@@ -1552,13 +1557,18 @@ If DIRECTION is `backward', search in the reverse direction."
 		(setq list (cdr list))
 		(setq give-up nil found nil)
 		(while (and (not give-up)
-			    (or (null found)
-				(if backward
-                                    (isearch-range-invisible found beg-found)
-                                  (isearch-range-invisible beg-found found))
-                                ;; Skip node header line
-                                (save-excursion (forward-line -1)
-                                                (looking-at "\^_"))))
+			    (save-match-data
+			      (or (null found)
+				  (if backward
+				      (isearch-range-invisible found beg-found)
+				    (isearch-range-invisible beg-found found))
+				  ;; Skip node header line
+				  (save-excursion (forward-line -1)
+						  (looking-at "\^_"))
+				  ;; Skip Tag Table node
+				  (save-excursion
+				    (and (search-backward "\^_" nil t)
+					 (looking-at "\^_\nTag Table"))))))
 		  (if (if backward
                           (re-search-backward regexp nil t)
                         (re-search-forward regexp nil t))

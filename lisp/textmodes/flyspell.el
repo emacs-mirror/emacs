@@ -1281,7 +1281,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 (defun flyspell-external-point-words ()
   (let ((buffer flyspell-external-ispell-buffer))
     (set-buffer buffer)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (let ((size (- flyspell-large-region-end flyspell-large-region-beg))
 	  (start flyspell-large-region-beg))
       ;; now we are done with ispell, we have to find the word in

@@ -67,6 +67,44 @@
     (switch-to-buffer found)))
 
 ;;; next-error support framework
+
+(defgroup next-error nil
+  "next-error support framework."
+  :group 'compilation
+  :version "21.4")
+
+(defface next-error
+  '((t (:inherit region)))
+  "Face used to highlight next error locus."
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight 0.1
+  "*Highlighting of locations in selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight-no-select 0.1
+  "*Highlighting of locations in non-selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
 A buffer becomes most recent when its compilation, grep, or
@@ -212,43 +250,6 @@ Finds and highlights the source line like \\[previous-error], but does not
 select the source buffer."
   (interactive "p")
   (next-error-no-select (- (or n 1))))
-
-(defgroup next-error nil
-  "next-error support framework."
-  :group 'compilation
-  :version "21.4")
-
-(defface next-error
-  '((t (:inherit region)))
-  "Face used to highlight next error locus."
-  :group 'next-error
-  :version "21.4")
-
-(defcustom next-error-highlight 0.1
-  "*Highlighting of locations in selected source buffers.
-If number, highlight the locus in next-error face for given time in seconds.
-If t, use persistent overlays fontified in next-error face.
-If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
-                 (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
-  :group 'next-error
-  :version "21.4")
-
-(defcustom next-error-highlight-no-select 0.1
-  "*Highlighting of locations in non-selected source buffers.
-If number, highlight the locus in next-error face for given time in seconds.
-If t, use persistent overlays fontified in next-error face.
-If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
-                 (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
-  :group 'next-error
-  :version "21.4")
 
 ;;; Internal variable for `next-error-follow-mode-post-command-hook'.
 (defvar next-error-follow-last-line nil)
@@ -2284,6 +2285,8 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   (interactive "r")
   (copy-region-as-kill beg end)
+  ;; This use of interactive-p is correct
+  ;; because the code it controls just gives the user visual feedback.
   (if (interactive-p)
       (let ((other-end (if (= (point) beg) end beg))
 	    (opoint (point))
@@ -3085,13 +3088,13 @@ It is the column where point was
 at the start of current run of vertical motion commands.
 When the `track-eol' feature is doing its job, the value is 9999.")
 
-(defcustom line-move-ignore-invisible nil
+(defcustom line-move-ignore-invisible t
   "*Non-nil means \\[next-line] and \\[previous-line] ignore invisible lines.
 Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
-(defun line-move-invisible (pos)
+(defun line-move-invisible-p (pos)
   "Return non-nil if the character after POS is currently invisible."
   (let ((prop
 	 (get-char-property pos 'invisible)))
@@ -3102,7 +3105,8 @@ Outline mode sets this."
 
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
-(defun line-move (arg)
+;; The value is t if we can move the specified number of lines.
+(defun line-move (arg &optional noerror to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
@@ -3118,6 +3122,7 @@ Outline mode sets this."
 			     (or (not (bolp)) (eq last-command 'end-of-line)))
 			9999
 		      (current-column))))
+
 	  (if (and (not (integerp selective-display))
 		   (not line-move-ignore-invisible))
 	      ;; Use just newline characters.
@@ -3133,28 +3138,43 @@ Outline mode sets this."
 		    (and (zerop (forward-line arg))
 			 (bolp)
 			 (setq arg 0)))
-		  (signal (if (< arg 0)
-			      'beginning-of-buffer
-			    'end-of-buffer)
-			  nil))
+		  (unless noerror
+		    (signal (if (< arg 0)
+				'beginning-of-buffer
+			      'end-of-buffer)
+			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (while (> arg 0)
-	      ;; If the following character is currently invisible,
-	      ;; skip all characters with that same `invisible' property value.
-	      (while (and (not (eobp)) (line-move-invisible (point)))
-		(goto-char (next-char-property-change (point))))
-	      ;; Now move a line.
-	      (end-of-line)
-	      (and (zerop (vertical-motion 1))
-		   (signal 'end-of-buffer nil))
-	      (setq arg (1- arg)))
-	    (while (< arg 0)
-	      (beginning-of-line)
-	      (and (zerop (vertical-motion -1))
-		   (signal 'beginning-of-buffer nil))
-	      (setq arg (1+ arg))
-	      (while (and (not (bobp)) (line-move-invisible (1- (point))))
-		(goto-char (previous-char-property-change (point)))))))
+	    (let (done)
+	      (while (and (> arg 0) (not done))
+		;; If the following character is currently invisible,
+		;; skip all characters with that same `invisible' property value.
+		(while (and (not (eobp)) (line-move-invisible-p (point)))
+		  (goto-char (next-char-property-change (point))))
+		;; Now move a line.
+		(end-of-line)
+		(and (zerop (vertical-motion 1))
+		     (if (not noerror)
+			 (signal 'end-of-buffer nil)
+		       (setq done t)))
+		(unless done
+		  (setq arg (1- arg))))
+	      (while (and (< arg 0) (not done))
+		(beginning-of-line)
+
+		(if (zerop (vertical-motion -1))
+		    (if (not noerror)
+			(signal 'beginning-of-buffer nil)
+		      (setq done t)))
+		(unless done
+		  (setq arg (1+ arg))
+		  (while (and ;; Don't move over previous invis lines
+			  ;; if our target is the middle of this line.
+			  (or (zerop (or goal-column temporary-goal-column))
+			      (< arg 0))
+			  (not (bobp)) (line-move-invisible-p (1- (point))))
+		    (goto-char (previous-char-property-change (point))))))))
+	  ;; This is the value the function returns.
+	  (= arg 0))
 
       (cond ((> arg 0)
 	     ;; If we did not move down as far as desired,
@@ -3165,8 +3185,7 @@ Outline mode sets this."
 	     ;; at least go to end of line.
 	     (beginning-of-line))
 	    (t
-	     (line-move-finish (or goal-column temporary-goal-column) opoint)))))
-  nil)
+	     (line-move-finish (or goal-column temporary-goal-column) opoint))))))
 
 (defun line-move-finish (column opoint)
   (let ((repeat t))
@@ -3179,9 +3198,11 @@ Outline mode sets this."
 	    (line-end
 	     ;; Compute the end of the line
 	     ;; ignoring effectively intangible newlines.
-	     (let ((inhibit-point-motion-hooks nil)
-		   (inhibit-field-text-motion t))
-	       (save-excursion (end-of-line) (point)))))
+	     (save-excursion
+	       (let ((inhibit-point-motion-hooks nil)
+		     (inhibit-field-text-motion t))
+		 (end-of-line))
+	       (point))))
 
 	;; Move to the desired column.
 	(line-move-to-column column)
@@ -3232,13 +3253,13 @@ and `current-column' to be able to ignore invisible text."
     (move-to-column col))
 
   (when (and line-move-ignore-invisible
-	     (not (bolp)) (line-move-invisible (1- (point))))
+	     (not (bolp)) (line-move-invisible-p (1- (point))))
     (let ((normal-location (point))
 	  (normal-column (current-column)))
       ;; If the following character is currently invisible,
       ;; skip all characters with that same `invisible' property value.
       (while (and (not (eobp))
-		  (line-move-invisible (point)))
+		  (line-move-invisible-p (point)))
 	(goto-char (next-char-property-change (point))))
       ;; Have we advanced to a larger column position?
       (if (> (current-column) normal-column)
@@ -3251,8 +3272,44 @@ and `current-column' to be able to ignore invisible text."
 	;; but with a more reasonable buffer position.
 	(goto-char normal-location)
 	(let ((line-beg (save-excursion (beginning-of-line) (point))))
-	  (while (and (not (bolp)) (line-move-invisible (1- (point))))
+	  (while (and (not (bolp)) (line-move-invisible-p (1- (point))))
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
+
+(defun move-end-of-line (arg)
+  "Move point to end of current line.
+With argument ARG not nil or 1, move forward ARG - 1 lines first.
+If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
+
+This command does not move point across a field boundary unless doing so
+would move beyond there to a different line; if ARG is nil or 1, and
+point starts at a field boundary, point does not move.  To ignore field
+boundaries bind `inhibit-field-text-motion' to t."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (let (done)
+    (while (not done)
+      (let ((newpos
+	     (save-excursion
+	       (let ((goal-column 0))
+		 (and (line-move arg t)
+		      (not (bobp))
+		      (progn
+			(while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+			  (goto-char (previous-char-property-change (point))))
+			(backward-char 1)))
+		 (point)))))
+	(goto-char newpos)
+	(if (and (> (point) newpos)
+		 (eq (preceding-char) ?\n))
+	    (backward-char 1)
+	  (if (and (> (point) newpos) (not (eobp))
+		   (not (eq (following-char) ?\n)))
+	      ;; If we skipped something intangible
+	      ;; and now we're not really at eol,
+	      ;; keep going.
+	      (setq arg 1)
+	    (setq done t)))))))
 
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
@@ -3302,7 +3359,8 @@ With arg N, put point N/10 of the way from the true beginning."
 	(progn
 	  (select-window window)
 	  ;; Set point and mark in that window's buffer.
-	  (beginning-of-buffer arg)
+	  (with-no-warnings
+	   (beginning-of-buffer arg))
 	  ;; Set point accordingly.
 	  (recenter '(t)))
       (select-window orig-window))))
@@ -3318,7 +3376,8 @@ With arg N, put point N/10 of the way from the true end."
     (unwind-protect
 	(progn
 	  (select-window window)
-	  (end-of-buffer arg)
+	  (with-no-warnings
+	   (end-of-buffer arg))
 	  (recenter '(t)))
       (select-window orig-window))))
 

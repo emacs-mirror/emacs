@@ -1,7 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -1289,20 +1289,20 @@ START should be at the beginning of a line."
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
     ;;
-    ;; Find the state at the `beginning-of-line' before `start'.
+    ;; Find the `start' state.
     (setq state (or ppss (syntax-ppss start)))
     ;;
     ;; Find each interesting place between here and `end'.
     (while
 	(progn
+	  (setq state (parse-partial-sexp (point) end nil nil state
+					  'syntax-table))
 	  (when (or (nth 3 state) (nth 4 state))
 	    (setq face (funcall font-lock-syntactic-face-function state))
 	    (setq beg (max (nth 8 state) start))
 	    (setq state (parse-partial-sexp (point) end nil nil state
 					    'syntax-table))
 	    (when face (put-text-property beg (point) 'face face)))
-	  (setq state (parse-partial-sexp (point) end nil nil state
-					  'syntax-table))
 	  (< (point) end)))))
 
 ;;; End of Syntactic fontification functions.
@@ -2003,5 +2003,5 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 
 (provide 'font-lock)
 
-;;; arch-tag: 682327e4-64d8-4057-b20b-1fbb9f1fc54c
+;; arch-tag: 682327e4-64d8-4057-b20b-1fbb9f1fc54c
 ;;; font-lock.el ends here

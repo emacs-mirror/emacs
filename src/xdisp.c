@@ -2071,6 +2071,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 				  * FRAME_LINE_HEIGHT (it->f));
       else if (it->f->extra_line_spacing > 0)
 	it->extra_line_spacing = it->f->extra_line_spacing;
+      it->max_extra_line_spacing = 0;
     }
 
   /* If realized faces have been removed, e.g. because of face
@@ -6066,9 +6067,12 @@ move_it_vertically_backward (it, dy)
 {
   int nlines, h;
   struct it it2, it3;
-  int start_pos = IT_CHARPOS (*it);
+  int start_pos;
 
+ move_further_back:
   xassert (dy >= 0);
+
+  start_pos = IT_CHARPOS (*it);
 
   /* Estimate how many newlines we must move back.  */
   nlines = max (1, dy / FRAME_LINE_HEIGHT (it->f));
@@ -6135,13 +6139,13 @@ move_it_vertically_backward (it, dy)
 	     a line height of 13 pixels each, recentering with point
 	     on the bottom line will try to move -39/2 = 19 pixels
 	     backward.  Try to avoid moving into the first line.  */
-	  && it->current_y - target_y > line_height / 3 * 2
+	  && it->current_y - target_y > line_height * 2 / 3
 	  && IT_CHARPOS (*it) > BEGV)
 	{
 	  TRACE_MOVE ((stderr, "  not far enough -> move_vert %d\n",
 		       target_y - it->current_y));
-	  move_it_vertically (it, target_y - it->current_y);
-	  xassert (IT_CHARPOS (*it) >= BEGV);
+	  dy = it->current_y - target_y;
+	  goto move_further_back;
 	}
       else if (target_y >= it->current_y + line_height
 	       && IT_CHARPOS (*it) < ZV)
@@ -6182,7 +6186,7 @@ move_it_vertically (it, dy)
 {
   if (dy <= 0)
     move_it_vertically_backward (it, -dy);
-  else if (dy > 0)
+  else
     {
       TRACE_MOVE ((stderr, "move_it_v: from %d, %d\n", IT_CHARPOS (*it), dy));
       move_it_to (it, ZV, -1, it->current_y + dy, -1,
@@ -6279,6 +6283,8 @@ move_it_by_lines (it, dvpos, need_y_p)
       /* DVPOS == 0 means move to the start of the screen line.  */
       move_it_vertically_backward (it, 0);
       xassert (it->current_x == 0 && it->hpos == 0);
+      /* Let next call to line_bottom_y calculate real line height */
+      last_height = 0;
     }
   else if (dvpos > 0)
     move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
@@ -7422,7 +7428,7 @@ resize_mini_window (w, exact_p)
 	    height = it.current_y + last_height;
 	  else
 	    height = it.current_y + it.max_ascent + it.max_descent;
-	  height -= it.extra_line_spacing;
+	  height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
 	  height = (height + unit - 1) / unit;
 	}
 
@@ -8699,6 +8705,7 @@ display_tool_bar_line (it)
     {
       row->height = row->phys_height = it->last_visible_y - row->y;
       row->ascent = row->phys_ascent = 0;
+      row->extra_line_spacing = 0;
     }
 
   row->full_width_p = 1;
@@ -10888,7 +10895,7 @@ make_cursor_line_fully_visible (w, force_p)
   row = MATRIX_ROW (matrix, w->cursor.vpos);
 
   /* If the cursor row is not partially visible, there's nothing to do.  */
-  if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
+  if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row))
     return 1;
 
   /* If the row the cursor is in is taller than the window's height,
@@ -11042,7 +11049,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     {
       start_display (&it, w, scroll_margin_pos);
       if (this_scroll_margin)
-	move_it_vertically (&it, - this_scroll_margin);
+	move_it_vertically_backward (&it, this_scroll_margin);
       if (extra_scroll_margin_lines)
 	move_it_by_lines (&it, - extra_scroll_margin_lines, 0);
       scroll_margin_pos = it.current.pos;
@@ -11162,7 +11169,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  if (amount_to_scroll <= 0)
 	    return SCROLLING_FAILED;
 
-	  move_it_vertically (&it, - amount_to_scroll);
+	  move_it_vertically_backward (&it, amount_to_scroll);
 	  startp = it.current.pos;
 	}
     }
@@ -11466,7 +11473,7 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	    }
-	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
+	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row))
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -12043,7 +12050,7 @@ redisplay_window (window, just_this_one_p)
   if (it.current_y <= 0)
     {
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
-      move_it_vertically (&it, 0);
+      move_it_vertically_backward (&it, 0);
       xassert (IT_CHARPOS (it) <= PT);
       it.current_y = 0;
     }
@@ -12395,7 +12402,7 @@ try_window_reusing_current_matrix (w)
   /* Give up if old or new display is scrolled vertically.  We could
      make this function handle this, but right now it doesn't.  */
   start_row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  if (w->vscroll || MATRIX_ROW_PARTIALLY_VISIBLE_P (start_row))
+  if (w->vscroll || MATRIX_ROW_PARTIALLY_VISIBLE_P (w, start_row))
     return 0;
 
   /* The variable new_start now holds the new window start.  The old
@@ -12443,7 +12450,7 @@ try_window_reusing_current_matrix (w)
 	      start = start_row->start.pos;
 	      /* If there are no more rows to try, or just one, give up.  */
 	      if (start_row == MATRIX_MODE_LINE_ROW (w->current_matrix) - 1
-		  || w->vscroll || MATRIX_ROW_PARTIALLY_VISIBLE_P (start_row)
+		  || w->vscroll || MATRIX_ROW_PARTIALLY_VISIBLE_P (w, start_row)
 		  || CHARPOS (start) == ZV)
 		{
 		  clear_glyph_matrix (w->desired_matrix);
@@ -14237,6 +14244,7 @@ compute_line_metrics (it)
 	  row->height = it->max_ascent + it->max_descent;
 	  row->phys_ascent = it->max_phys_ascent;
 	  row->phys_height = it->max_phys_ascent + it->max_phys_descent;
+	  row->extra_line_spacing = it->max_extra_line_spacing;
 	}
 
       /* Compute the width of this line.  */
@@ -14280,6 +14288,7 @@ compute_line_metrics (it)
 	row->pixel_width -= it->truncation_pixel_width;
       row->ascent = row->phys_ascent = 0;
       row->height = row->phys_height = row->visible_height = 1;
+      row->extra_line_spacing = 0;
     }
 
   /* Compute a hash code for this row.  */
@@ -14616,6 +14625,7 @@ display_line (it)
   row->height = it->max_ascent + it->max_descent;
   row->phys_ascent = it->max_phys_ascent;
   row->phys_height = it->max_phys_ascent + it->max_phys_descent;
+  row->extra_line_spacing = it->max_extra_line_spacing;
 
   /* Loop generating characters.  The loop is left with IT on the next
      character to display.  */
@@ -14681,6 +14691,8 @@ display_line (it)
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
 	  row->phys_height = max (row->phys_height,
 				  it->max_phys_ascent + it->max_phys_descent);
+	  row->extra_line_spacing = max (row->extra_line_spacing,
+					 it->max_extra_line_spacing);
 	  set_iterator_to_next (it, 1);
 	  continue;
 	}
@@ -14709,6 +14721,8 @@ display_line (it)
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
 	  row->phys_height = max (row->phys_height,
 				  it->max_phys_ascent + it->max_phys_descent);
+	  row->extra_line_spacing = max (row->extra_line_spacing,
+					 it->max_extra_line_spacing);
 	  if (it->current_x - it->pixel_width < it->first_visible_x)
 	    row->x = x - it->first_visible_x;
 	}
@@ -14860,6 +14874,8 @@ display_line (it)
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
 	  row->phys_height = max (row->phys_height,
 				  it->max_phys_ascent + it->max_phys_descent);
+	  row->extra_line_spacing = max (row->extra_line_spacing,
+					 it->max_extra_line_spacing);
 
 	  /* End of this display line if row is continued.  */
 	  if (row->continued_p || row->ends_at_zv_p)
@@ -16043,27 +16059,31 @@ pint2hrstr (buf, width, d)
 	{
 	  tenths = remainder / 100;
 	  if (50 <= remainder % 100)
-	    if (tenths < 9)
-	      tenths++;
-	    else
-	      {
-		quotient++;
-		if (quotient == 10)
-		  tenths = -1;
-		else
-		  tenths = 0;
-	      }
+	    {
+	      if (tenths < 9)
+		tenths++;
+	      else
+		{
+		  quotient++;
+		  if (quotient == 10)
+		    tenths = -1;
+		  else
+		    tenths = 0;
+		}
+	    }
 	}
       else
 	if (500 <= remainder)
-	  if (quotient < 999)
-	    quotient++;
-	  else
-	    {
-	      quotient = 1;
-	      exponent++;
-	      tenths = 0;
-	    }
+	  {
+	    if (quotient < 999)
+	      quotient++;
+	    else
+	      {
+		quotient = 1;
+		exponent++;
+		tenths = 0;
+	      }
+	  }
     }
 
   /* Calculate the LENGTH of QUOTIENT.TENTHS as a string. */
@@ -16765,6 +16785,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
   row->height = it->max_ascent + it->max_descent;
   row->phys_ascent = it->max_phys_ascent;
   row->phys_height = it->max_phys_ascent + it->max_phys_descent;
+  row->extra_line_spacing = it->max_extra_line_spacing;
 
   /* This condition is for the case that we are called with current_x
      past last_visible_x.  */
@@ -16824,6 +16845,8 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
 	  row->phys_height = max (row->phys_height,
 				  it->max_phys_ascent + it->max_phys_descent);
+	  row->extra_line_spacing = max (row->extra_line_spacing,
+					 it->max_extra_line_spacing);
 	  x += glyph->pixel_width;
 	  ++i;
 	}
@@ -18350,7 +18373,7 @@ produce_image_glyph (it)
 {
   struct image *img;
   struct face *face;
-  int face_ascent, glyph_ascent;
+  int glyph_ascent;
   struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
@@ -18433,7 +18456,7 @@ produce_image_glyph (it)
 
 #if 0  /* this breaks image tiling */
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
-  face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
+  int face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
   if (face_ascent > it->ascent)
     it->ascent = it->phys_ascent = face_ascent;
 #endif
@@ -19446,7 +19469,11 @@ x_produce_glyphs (it)
     it->current_x += it->pixel_width;
 
   if (extra_line_spacing > 0)
-    it->descent += extra_line_spacing;
+    {
+      it->descent += extra_line_spacing;
+      if (extra_line_spacing > it->max_extra_line_spacing)
+	it->max_extra_line_spacing = extra_line_spacing;
+    }
 
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
@@ -20413,19 +20440,20 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
   int past_end = 0;
 
   first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  if (charpos < MATRIX_ROW_START_CHARPOS (first))
+    {
+      *x = first->x;
+      *y = first->y;
+      *hpos = 0;
+      *vpos = MATRIX_ROW_VPOS (first, w->current_matrix);
+      return 1;
+    }
+
   row = row_containing_pos (w, charpos, first, NULL, 0);
   if (row == NULL)
     {
-      if (charpos < MATRIX_ROW_START_CHARPOS (first))
-	{
-	  *x = *y = *hpos = *vpos = 0;
-	  return 1;
-	}
-      else
-	{
-	  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
-	  past_end = 1;
-	}
+      row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+      past_end = 1;
     }
 
   *x = row->x;
@@ -20970,8 +20998,10 @@ note_mouse_highlight (f, x, y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
 
-  /* If we were displaying active text in another window, clear that.  */
-  if (! EQ (window, dpyinfo->mouse_face_window))
+  /* If we were displaying active text in another window, clear that.
+     Also clear if we move out of text area in same window.  */
+  if (! EQ (window, dpyinfo->mouse_face_window)
+      || (part != ON_TEXT && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */

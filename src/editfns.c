@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <sys/types.h>
+#include <stdio.h>
 
 #ifdef VMS
 #include "vms-pwd.h"
@@ -33,11 +34,10 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
-/* Without this, sprintf on Mac OS Classic will produce wrong
-   result.  */
-#ifdef MAC_OS8
-#include <stdio.h>
-#endif
+/* systime.h includes <sys/time.h> which, on some systems, is required
+   for <sys/resource.h>; thus systime.h must be included before
+   <sys/resource.h> */
+#include "systime.h"
 
 #if defined HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -52,8 +52,6 @@ Boston, MA 02111-1307, USA.  */
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
-
-#include "systime.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>

@@ -82,6 +82,11 @@
      4877 4889 4903 4909 4919 4931 4933 4937 4943 4951 4957 4967 4969 4973
      4987 4993 4999 5003])
 
+;; The variable math-prime-factors-finished is set by calcFunc-prfac to 
+;; indicate whether factoring is complete, and used by calcFunc-factors,
+;; calcFunc-totient and calcFunc-moebius.
+(defvar math-prime-factors-finished)
+
 ;;; Combinatorics
 
 (defun calc-gcd (arg)
@@ -194,6 +199,8 @@
    (let* ((n (calc-top-n 1))
 	  (res (math-prime-test n iters)))
      (calc-report-prime-test res))))
+
+(defvar calc-verbose-nextprime nil)
 
 (defun calc-next-prime (iters)
   (interactive "p")
@@ -386,7 +393,7 @@
 		   (if (math-evenp temp)
 		       even
 		     (math-div (calcFunc-fact n) even))))
-	     (list 'calcFunc-dfact max))))
+	     (list 'calcFunc-dfact n))))
 	((equal n '(var inf var-inf)) n)
 	(t (calc-record-why 'natnump n)
 	   (list 'calcFunc-dfact n))))
@@ -484,6 +491,12 @@
   (math-stirling-number n m 0))
 
 (defvar math-stirling-cache (vector [[1]] [[1]]))
+
+;; The variable math-stirling-local-cache is local to
+;; math-stirling-number, but is used by math-stirling-1
+;; and math-stirling-2, which are called by math-stirling-number.
+(defvar math-stirling-local-cache)
+
 (defun math-stirling-number (n m k)
   (or (math-num-natnump n) (math-reject-arg n 'natnump))
   (or (math-num-natnump m) (math-reject-arg m 'natnump))
@@ -493,14 +506,16 @@
   (or (integerp m) (math-reject-arg m 'fixnump))
   (if (< n m)
       0
-    (let ((cache (aref math-stirling-cache k)))
-      (while (<= (length cache) n)
-	(let ((i (1- (length cache)))
+    (let ((math-stirling-local-cache (aref math-stirling-cache k)))
+      (while (<= (length math-stirling-local-cache) n)
+	(let ((i (1- (length math-stirling-local-cache)))
 	      row)
-	  (setq cache (vconcat cache (make-vector (length cache) nil)))
-	  (aset math-stirling-cache k cache)
-	  (while (< (setq i (1+ i)) (length cache))
-	    (aset cache i (setq row (make-vector (1+ i) nil)))
+	  (setq math-stirling-local-cache 
+                (vconcat math-stirling-local-cache 
+                         (make-vector (length math-stirling-local-cache) nil)))
+	  (aset math-stirling-cache k math-stirling-local-cache)
+	  (while (< (setq i (1+ i)) (length math-stirling-local-cache))
+	    (aset math-stirling-local-cache i (setq row (make-vector (1+ i) nil)))
 	    (aset row 0 0)
 	    (aset row i 1))))
       (if (= k 1)
@@ -508,14 +523,14 @@
 	(math-stirling-2 n m)))))
 
 (defun math-stirling-1 (n m)
-  (or (aref (aref cache n) m)
-      (aset (aref cache n) m
+  (or (aref (aref math-stirling-local-cache n) m)
+      (aset (aref math-stirling-local-cache n) m
 	    (math-add (math-stirling-1 (1- n) (1- m))
 		      (math-mul (- 1 n) (math-stirling-1 (1- n) m))))))
 
 (defun math-stirling-2 (n m)
-  (or (aref (aref cache n) m)
-      (aset (aref cache n) m
+  (or (aref (aref math-stirling-local-cache n) m)
+      (aset (aref math-stirling-local-cache n) m
 	    (math-add (math-stirling-2 (1- n) (1- m))
 		      (math-mul m (math-stirling-2 (1- n) m))))))
 
@@ -527,8 +542,13 @@
 
 ;;; Produce a random 10-bit integer, with (random) if no seed provided,
 ;;; or else with Numerical Recipes algorithm ran3 / Knuth 3.2.2-A.
+
+(defvar var-RandSeed nil)
+(defvar math-random-cache nil)
+(defvar math-gaussian-cache nil)
+
 (defun math-init-random-base ()
-  (if (and (boundp 'var-RandSeed) var-RandSeed)
+  (if var-RandSeed
       (if (eq (car-safe var-RandSeed) 'vec)
 	  nil
 	(if (Math-integerp var-RandSeed)
@@ -555,13 +575,13 @@
     (random t)
     (setq var-RandSeed nil
 	  math-random-cache nil
-	  i 0
 	  math-random-shift -4)  ; assume RAND_MAX >= 16383
     ;; This exercises the random number generator and also helps
     ;; deduce a better value for RAND_MAX.
-    (while (< (setq i (1+ i)) 30)
-      (if (> (lsh (math-abs (random)) math-random-shift) 4095)
-	  (setq math-random-shift (1- math-random-shift)))))
+    (let ((i 0))
+      (while (< (setq i (1+ i)) 30)
+        (if (> (lsh (math-abs (random)) math-random-shift) 4095)
+            (setq math-random-shift (1- math-random-shift))))))
   (setq math-last-RandSeed var-RandSeed
 	math-gaussian-cache nil))
 
@@ -583,8 +603,8 @@
 ;;; Avoid various pitfalls that may lurk in the built-in (random) function!
 ;;; Shuffling algorithm from Numerical Recipes, section 7.1.
 (defun math-random-digit ()
-  (let (i)
-    (or (and (boundp 'var-RandSeed) (eq var-RandSeed math-last-RandSeed))
+  (let (i math-random-last)
+    (or (eq var-RandSeed math-last-RandSeed)
 	(math-init-random-base))
     (or math-random-cache
 	(progn
@@ -599,7 +619,6 @@
 	     (aset math-random-cache i (math-random-base))
 	     (>= math-random-last 1000)))
     math-random-last))
-(setq math-random-cache nil)
 
 ;;; Produce an N-digit random integer.
 (defun math-random-digits (n)
@@ -639,7 +658,6 @@
 	  (setq math-gaussian-cache (cons calc-internal-prec
 					  (math-mul v1 fac)))
 	  (math-mul v2 fac))))))
-(setq math-gaussian-cache nil)
 
 ;;; Produce a random integer or real 0 <= N < MAX.
 (defun calcFunc-random (max)
@@ -765,6 +783,12 @@
 ;;;        (nil unknown) if non-prime with no known factors,
 ;;;        (t) if prime,
 ;;;        (maybe N P) if probably prime (after N iters with probability P%)
+(defvar math-prime-test-cache '(-1))
+
+(defvar math-prime-test-cache-k)
+(defvar math-prime-test-cache-q)
+(defvar math-prime-test-cache-nm1)
+
 (defun math-prime-test (n iters)
   (if (and (Math-vectorp n) (cdr n))
       (setq n (nth (1- (length n)) n)))
@@ -849,7 +873,6 @@
 		      (1- iters)
 		    0)))
     res))
-(defvar math-prime-test-cache '(-1))
 
 (defun calcFunc-prime (n &optional iters)
   (or (math-num-integerp n) (math-reject-arg n 'integerp))
@@ -965,7 +988,6 @@
     (if (Math-realp n)
 	(calcFunc-nextprime (math-trunc n) iters)
       (math-reject-arg n 'integerp))))
-(setq calc-verbose-nextprime nil)
 
 (defun calcFunc-prevprime (n &optional iters)
   (if (Math-integerp n)

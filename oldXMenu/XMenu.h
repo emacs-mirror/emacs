@@ -251,6 +251,7 @@ int XMenuRecompute();
 int XMenuEventHandler();	/* No value actually returned. */
 int XMenuLocate();
 int XMenuSetFreeze();		/* No value actually returned. */
+void XMenuActivateSetWaitFunction();
 int XMenuActivate();
 char *XMenuPost();
 int XMenuDeletePane();

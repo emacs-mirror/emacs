@@ -785,11 +785,14 @@ the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
   (interactive
    (list
-    (if (or compilation-read-command current-prefix-arg)
-        (read-from-minibuffer "Compile command: "
-			      (eval compile-command) nil nil
-			      '(compile-history . 1))
-      (eval compile-command))
+    (let ((command (eval compile-command)))
+      (if (or compilation-read-command current-prefix-arg)
+	  (read-from-minibuffer "Compile command: "
+				command nil nil
+				(if (equal (car compile-history) command)
+				    '(compile-history . 1)
+				  'compile-history))
+	command))
     (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))
     (setq compile-command command))

@@ -51,6 +51,15 @@
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
+#
+# make bootstrap
+#      Recompiles all the Emacs Lisp files using the latest source,
+#      then rebuilds Emacs.
+#
+# make bootfast
+#      Recompiles changed Emacs Lisp files using the latest C source,
+#      then rebuilds Emacs.  This is faster than `make bootstrap'
+#      but once in a while an old .elc file can cause trouble.
 
 SHELL = /bin/sh
 
@@ -726,6 +735,8 @@ dvi:
 ### used to compile Lisp files.  The last step is a "normal" make.
 
 .PHONY: bootstrap
+.PHONY: bootstrap-build
+.PHONY: bootfast
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
@@ -737,7 +748,11 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before info FRC
+bootstrap: bootstrap-clean-before info bootstrap-build FRC
+
+bootfast: bootstrap-clean-before-fast info bootstrap-build FRC
+
+bootstrap-build: FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
@@ -746,7 +761,12 @@ bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
 
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
-bootstrap-clean-before: FRC
+bootstrap-clean-before: bootstrap-clean-before-fast FRC
+	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+
+### Used for `bootfast' to avoid deleting existing dumped Emacs executables
+### and compiled .elc files.
+bootstrap-clean-before-fast: FRC
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)

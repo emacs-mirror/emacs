@@ -17,3 +17,4 @@ obj
 prefix-args
 stamp-oldxmenu
 temacs
+buildobj.lst

@@ -1,3 +1,18 @@
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* make-docfile.c (scan_c_file): Set defvarperbufferflag to
+	silence compiler.
+
+	* hexl.c (main): Init local var c to silence compiler.
+
+	* etags.c (main, consider_token, C_entries): Add misc switch
+	default targets to silence compiler.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* makefile.w32-in (obj): Add all files (X and Mac) to doc so the
+	resulting DOC file can be used on Unix/Mac also.
+
 2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (main): When relative file names are given as argument,

@@ -908,8 +908,6 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
      register Lisp_Object valcontents, newval;
      struct buffer *buf;
 {
-  int offset;
-
   switch (SWITCH_ENUM_CAST (XTYPE (valcontents)))
     {
     case Lisp_Misc:
@@ -941,7 +939,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 			    - (char *) &buffer_defaults);
 	      int idx = PER_BUFFER_IDX (offset);
 
-	      Lisp_Object tail, buf;
+	      Lisp_Object tail;
 
 	      if (idx <= 0)
 		break;

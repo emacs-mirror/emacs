@@ -85,6 +85,20 @@
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
 int x_menu_grab_keyboard = 1;
 
+typedef void (*Wait_func)();
+
+static Wait_func wait_func;
+static void* wait_data;
+
+void
+XMenuActivateSetWaitFunction (func, data)
+     Wait_func func;
+     void *data;
+{
+  wait_func = func;
+  wait_data = data;
+}
+
 int
 XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	      help_callback)
@@ -266,6 +280,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * Begin event processing loop.
      */
     while (1) {
+        if (wait_func) (*wait_func) (wait_data);
 	XNextEvent(display, &event);	/* Get next event. */
 	switch (event.type) {		/* Dispatch on the event type. */
     case Expose:
@@ -556,6 +571,8 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	feq = feq_tmp->next;
 	free((char *)feq_tmp);
     }
+
+    wait_func = 0;
 
     /*
      * Return successfully.

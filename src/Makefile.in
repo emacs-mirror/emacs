@@ -596,8 +596,10 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o \
-  mac.o macterm.o macfns.o macmenu.o fontset.o
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
+  mac.o macterm.o macfns.o macmenu.o fontset.o \
+  w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o
 
 
 #ifdef TERMINFO
@@ -948,6 +950,7 @@ ${libsrc}make-docfile${EXEEXT}:
 #endif
 
 temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
@@ -963,7 +966,7 @@ prefix-args${EXEEXT}: prefix-args.c $(config_h)
 #define OLDXMENU_OPTIONS
 #endif
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
+#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (HAVE_GTK)
 
 /* We use stamp-xmenu with these two deps
    to both ensure that lwlib gets remade based on its dependencies
@@ -1019,12 +1022,12 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */
-#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
+#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
 
 /* We don\'t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
-#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
+#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."
@@ -1279,6 +1282,7 @@ mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT}
+	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*${EXEEXT} emacs${EXEEXT}
 /**/# This is used in making a distribution.

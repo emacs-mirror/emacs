@@ -1,3 +1,17 @@
+2004-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-emphasis-alist): Don't hide asterisks by
+	default; improve customization type.
+	(gnus-emphasis-custom-with-format): New macro.
+	(gnus-emphasis-custom-value-to-external): New function.
+	(gnus-emphasis-custom-value-to-internal): New function.
+
+2004-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Don't cause the
+	"Args out of range" error.  Reported by Arnaud Giersch
+	<arnaud.giersch@free.fr>.
+
 2004-11-04  Richard M. Stallman  <rms@gnu.org>
 
 	* spam.el (spam group): Add :version.

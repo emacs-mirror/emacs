@@ -564,7 +564,6 @@ displayed."
 		      (generate-new-buffer elp-results-buffer))))
     (set-buffer resultsbuf)
     (erase-buffer)
-    (beginning-of-buffer)
     ;; get the length of the longest function name being profiled
     (let* ((longest 0)
 	   (title "Function Name")

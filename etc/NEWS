@@ -98,14 +98,16 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** line-move-ignore-invisible now defaults to t.
+
 ** In Outline mode, hide-body no longer hides lines at the top
 of the file that precede the first header line.
 
 +++
 ** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
-will give the buffer XML or SGML mode, unless the file name leads to a mode in
-`xml-based-modes'.
+will give the buffer XML or SGML mode, based on the new var
+`magic-mode-alist'.
 
 +++
 ** New function `looking-back' checks whether a regular expression matches
@@ -2089,6 +2091,13 @@ anyone has committed to the repository since you last executed
 
 * New modes and packages in Emacs 21.4
 
+** The new package conf-mode.el handles thousands of configuration files, with
+varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
+var : value, var value or keyword var value) and sections ([section] or
+section { }).  Many files under /etc/, or with suffixes like .cf through
+.config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
+recognized.
+
 ** The new package password.el provide a password cache and expiring mechanism.
 
 ** The new package dns-mode.el add syntax highlight of DNS master files.
@@ -2325,6 +2334,14 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** The new function syntax-after returns the syntax code
+of the character after a specified buffer position, taking account
+of text properties as well as the character code.
+It returns the value compatibly with char-syntax, except
+that the value can be a list (SYNTAX . MATCHER) which says
+what the matching character is.
 
 +++
 ** The new primitive `get-internal-run-time' returns the processor

@@ -129,7 +129,8 @@ determine where the desktop is saved."
     (const :tag "Ask if desktop file exists, else don't save" ask-if-exists)
     (const :tag "Save if desktop file exists, else don't" if-exists)
     (const :tag "Never save" nil))
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
@@ -142,7 +143,8 @@ determine where the desktop is saved."
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-missing-file-warning nil
   "*If non-nil then `desktop-read' asks if a non-existent file should be recreated.
@@ -151,19 +153,22 @@ Also pause for a moment to display message about errors signaled in
 
 If nil, just print error messages in the message buffer."
   :type 'boolean
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-no-desktop-file-hook nil
   "Normal hook run when `desktop-read' can't find a desktop file.
 May e.g. be used to show a dired buffer."
   :type 'hook
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-after-read-hook nil
   "Normal hook run after a successful `desktop-read'.
 May e.g. be used to show a buffer list."
   :type 'hook
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-save-hook nil
   "Normal hook run before the desktop is saved in a desktop file.
@@ -198,14 +203,16 @@ An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . FORM). Symbols are set to nil and for cons cells VAR is set
 to the value obtained by evaluateing FORM."
   :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-clear-preserve-buffers-regexp
   "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*tramp/.+\\*\\)$"
   "Regexp identifying buffers that `desktop-clear' should not delete.
 See also `desktop-clear-preserve-buffers'."
   :type 'regexp
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 (defcustom desktop-clear-preserve-buffers nil
   "*List of buffer names that `desktop-clear' should not delete.
@@ -257,7 +264,8 @@ Possible values are:
    tilde    -- Relative to ~.
    local    -- Relative to directory of desktop file."
   :type '(choice (const absolute) (const tilde) (const local))
-  :group 'desktop)
+  :group 'desktop
+  :version "21.4")
 
 ;;;###autoload
 (defvar desktop-save-buffer nil
@@ -628,7 +636,7 @@ See also `desktop-base-file-name'."
         ";; Desktop file format version " desktop-file-version "\n"
         ";; Emacs version " emacs-version "\n\n"
         ";; Global section:\n")
-      (mapcar (function desktop-outvar) desktop-globals-to-save)
+      (mapc (function desktop-outvar) desktop-globals-to-save)
       (if (memq 'kill-ring desktop-globals-to-save)
         (insert
           "(setq kill-ring-yank-pointer (nthcdr "
@@ -636,15 +644,15 @@ See also `desktop-base-file-name'."
           " kill-ring))\n"))
 
       (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-      (mapcar #'(lambda (l)
-                  (if (apply 'desktop-save-buffer-p l)
-                      (progn
-                        (insert "(desktop-create-buffer " desktop-file-version)
-                        (mapcar #'(lambda (e)
-                                    (insert "\n  " (desktop-value-to-string e)))
-                                l)
-                        (insert ")\n\n"))))
-              info)
+      (mapc #'(lambda (l)
+		(if (apply 'desktop-save-buffer-p l)
+		    (progn
+		      (insert "(desktop-create-buffer " desktop-file-version)
+		      (mapc #'(lambda (e)
+				(insert "\n  " (desktop-value-to-string e)))
+			    l)
+		      (insert ")\n\n"))))
+	    info)
       (setq default-directory dirname)
       (when (file-exists-p filename) (delete-file filename))
       (let ((coding-system-for-write 'emacs-mule))
@@ -865,9 +873,9 @@ directory DIRNAME."
               ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 0))
               (t
-               (mapcar #'(lambda (minor-mode)
-                           (when (functionp minor-mode) (funcall minor-mode 1)))
-                       desktop-buffer-minor-modes)))
+               (mapc #'(lambda (minor-mode)
+			 (when (functionp minor-mode) (funcall minor-mode 1)))
+		     desktop-buffer-minor-modes)))
         ;; Even though point and mark are non-nil when written by `desktop-save'
         ;; they may be modified by handlers wanting to set point or mark themselves.
         (when desktop-buffer-point

@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "sysselect.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -156,8 +157,6 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
-
-extern EMACS_TIME timer_check P_ ((int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -525,7 +524,7 @@ single_menu_item (key, item, dummy, skp_v)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-  
+
   if (skp->notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -1099,7 +1098,7 @@ on the left of the dialog box and all following items on the right.
          the dialog.  Also, the lesstif/motif version crashes if there are
          no buttons.  */
       contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
-    
+
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
@@ -1115,8 +1114,72 @@ on the left of the dialog box and all following items on the right.
   }
 #endif
 }
+
+
+#ifndef MSDOS
+
+/* Wait for an X event to arrive or for a timer to expire.  */
+
+static void
+x_menu_wait_for_event (void *data)
+{
+  extern EMACS_TIME timer_check P_ ((int));
+
+  /* Another way to do this is to register a timer callback, that can be
+     done in GTK and Xt.  But we have to do it like this when using only X
+     anyway, and with callbacks we would have three variants for timer handling
+     instead of the small ifdefs below.  */
+
+  while (
+#ifdef USE_X_TOOLKIT
+         ! XtAppPending (Xt_app_con)
+#elif defined USE_GTK
+         ! gtk_events_pending ()
+#else
+         ! XPending ((Display*) data)
+#endif
+         )
+    {
+      EMACS_TIME next_time = timer_check (1);
+      long secs = EMACS_SECS (next_time);
+      long usecs = EMACS_USECS (next_time);
+      SELECT_TYPE read_fds;
+      struct x_display_info *dpyinfo;
+      int n = 0;
+
+      FD_ZERO (&read_fds);
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+        {
+          int fd = ConnectionNumber (dpyinfo->display);
+          FD_SET (fd, &read_fds);
+          if (fd > n) n = fd;
+        }
+
+      if (secs < 0 || (secs == 0 && usecs == 0))
+        {
+          /* Sometimes timer_check returns -1 (no timers) even if there are
+             timers.  So do a timeout anyway.  */
+          EMACS_SET_SECS (next_time, 1);
+          EMACS_SET_USECS (next_time, 0);
+        }
+
+      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, &next_time);
+    }
+}
+#endif /* ! MSDOS */
+
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+
+#ifdef USE_X_TOOLKIT
+
+static Lisp_Object
+pop_down_menu (dummy)
+     int dummy;
+{
+  popup_activated_flag = 0;
+  return Qnil;
+}
 
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
@@ -1127,7 +1190,6 @@ on the left of the dialog box and all following items on the right.
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
-#ifdef USE_X_TOOLKIT
 static void
 popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      XEvent *initial_event;
@@ -1138,19 +1200,21 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 {
   XEvent event;
 
+  int specpdl_count = SPECPDL_INDEX ();
+  record_unwind_protect (pop_down_menu, Qnil);
+
   while (popup_activated_flag)
     {
-       /* If we have no events to run, consider timers.  */ 	 
-       if (do_timers && !XtAppPending (Xt_app_con)) 	 
-         timer_check (1); 	 
-
        if (initial_event)
         {
           event = *initial_event;
           initial_event = 0;
         }
       else
-        XtAppNextEvent (Xt_app_con, &event);
+        {
+          if (do_timers) x_menu_wait_for_event (0);
+          XtAppNextEvent (Xt_app_con, &event);
+        }
 
       /* Make sure we don't consider buttons grabbed after menu goes.
          And make sure to deactivate for any ButtonRelease,
@@ -1188,6 +1252,8 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 
       x_dispatch_event (&event, event.xany.display);
     }
+
+  unbind_to (specpdl_count, Qnil);
 }
 
 #endif /* USE_X_TOOLKIT */
@@ -1195,16 +1261,40 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
 #ifdef USE_GTK
 /* Loop util popup_activated_flag is set to zero in a callback.
    Used for popup menus and dialogs. */
-static void
-popup_widget_loop ()
+static GtkWidget *current_menu;
+
+static Lisp_Object
+pop_down_menu (dummy)
+     int dummy;
 {
+  if (current_menu)
+    {
+      gtk_widget_unmap (current_menu);
+      current_menu = 0;
+      popup_activated_flag = 0;
+    }
+  return Qnil;
+}
+
+static void
+popup_widget_loop (do_timers, widget)
+     int do_timers;
+     GtkWidget *widget;
+{
+  int specpdl_count = SPECPDL_INDEX ();
+  current_menu = widget;
+  record_unwind_protect (pop_down_menu, Qnil);
+
   ++popup_activated_flag;
 
   /* Process events in the Gtk event loop until done.  */
   while (popup_activated_flag)
     {
+      if (do_timers) x_menu_wait_for_event (0);
       gtk_main_iteration ();
     }
+
+  unbind_to (specpdl_count, Qnil);
 }
 #endif
 
@@ -2329,7 +2419,7 @@ menu_position_func (menu, x, y, push_in, user_data)
   GtkRequisition req;
   int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
   int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
-  
+
   *x = data->x;
   *y = data->y;
 
@@ -2402,7 +2492,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
-  popup_widget_loop ();
+  popup_widget_loop (1, 0);
 
   gtk_widget_destroy (menu);
 
@@ -2490,7 +2580,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0, 0);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
 
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
@@ -2811,7 +2901,7 @@ create_and_show_dialog (f, first_wv)
       gtk_widget_show_all (menu);
 
       /* Process events that apply to the menu.  */
-      popup_widget_loop ();
+      popup_widget_loop (1, menu);
 
       gtk_widget_destroy (menu);
     }
@@ -3322,6 +3412,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   XMenuSetAEQ (menu, TRUE);
   XMenuSetFreeze (menu, TRUE);
   pane = selidx = 0;
+
+#ifndef MSDOS
+  XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+#endif
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

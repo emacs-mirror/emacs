@@ -357,6 +357,15 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+;; GNOME means of invoking either Mozilla or Netrape.
+(defvar browse-url-gnome-moz-program "gnome-moz-remote")
+
+(defcustom browse-url-gnome-moz-arguments '()
+  "*A list of strings passed to the GNOME mozilla viewer as arguments."
+  :version "21.1"
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
 (defcustom browse-url-mozilla-new-window-is-tab nil
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -1031,14 +1040,6 @@ used instead of `browse-url-new-window-flag'."
 	(apply 'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
-
-;; GNOME means of invoking either Mozilla or Netrape.
-(defvar browse-url-gnome-moz-program "gnome-moz-remote")
-(defcustom browse-url-gnome-moz-arguments '()
-  "*A list of strings passed to the GNOME mozilla viewer as arguments."
-  :version "21.1"
-  :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
 
 ;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)

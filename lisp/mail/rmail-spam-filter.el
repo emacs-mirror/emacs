@@ -302,13 +302,14 @@ it from rmail file.  Called for each new message retrieved by
 
         ;; Check white list, and likewise cause while loop
         ;;  bypass.
-        (if (let ((white-list rsf-white-list)
-                  (found nil))
-              (while (and (not found) white-list)
-                (if (string-match (car white-list) message-sender)
-                    (setq found t)
-                  (setq white-list (cdr white-list))))
-              found)
+        (if (and message-sender
+                 (let ((white-list rsf-white-list)
+                       (found nil))
+                   (while (and (not found) white-list)
+                     (if (string-match (car white-list) message-sender)
+                         (setq found t)
+                       (setq white-list (cdr white-list))))
+                   found))
             (setq exit-while-loop t
                   maybe-spam nil
                   this-is-a-spam-email nil))

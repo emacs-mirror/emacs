@@ -173,7 +173,7 @@ main (argc, argv)
 #endif
 	  for (;;)
 	    {
-	      register int i, c, d;
+	      register int i, c = 0, d;
 
 #define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
 
@@ -225,7 +225,7 @@ main (argc, argv)
 	  string[17] = '\0';
 	  for (;;)
 	    {
-	      register int i, c;
+	      register int i, c = 0;
 
 	      for (i=0; i < 16; ++i)
 		{

@@ -1,8 +1,410 @@
+2004-11-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-dumb-map):  Declared it.
+	(calc-graph-show-dumb):  Check if calc-dumb-map is non-nil rather
+	than unbound. 
+
+	(calc-graph-name):  Made `end' a local variable.
+	(calc-graph-lookup):  Made `varname' a local variable.
+
+	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark): 
+	Declared them. 
+
+	(calc-graph-format-data):  Don't check if var-PlotRejects is
+	bound. 
+
+	(calc-graph-plot, calc-graph-compute-3d):  Removed references to
+	the unused variable y3vec.
+
+	(calc-graph-show-dumb):  Removed reference to unused variable
+	found-pt. 
+
+	(calc-graph-kill-hook, calc-graph-plot):  Removed reference to
+	calc-graph-prev-kill-hook. 
+
+	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)
+	(calc-graph-numsteps3, calc-graph-xvalue, calc-graph-xvec)
+	(calc-graph-xname, calc-graph-yname, calc-graph-xstep)
+	(calc-graph-ycache, calc-graph-ycacheptr, calc-graph-refine)
+	(calc-graph-keep-file, calc-graph-xval, calc-graph-xlow)
+	(calc-graph-xhigh, calc-graph-yval, calc-graph-yp, calc-graph-xp)
+	(calc-graph-zp, calc-graph-yvector, calc-graph-resolution)
+	(calc-graph-y3value, calc-graph-y3name)
+	(calc-graph-y3step, calc-graph-y3step, calc-graph-zval)
+	(calc-graph-stepcount, calc-graph-is-splot)
+	(calc-graph-surprise-splot, calc-graph-blank)
+	(calc-graph-non-blank, calc-graph-curve-num):  New variables. 
+	(calc-graph-plot, calc-graph-compute-2d, calc-graph-refine-2d)
+	(calc-graph-recompute-2d, calc-graph-compute-3d)
+	(calc-graph-format-data): Replaced undeclared variables with the
+	above newly declared variables. 
+
+2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
+
+	* mail/rmail.el (rmail-get-new-mail): Use the renamed variables
+	`rsf-beep' and `rsf-sleep-after-message'.
+
+	* mail/rmail-spam-filter.el (rmail-spam-filter): Only check white
+	list if `message-sender' is non-nil.
+
+2004-11-12  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
+
+	* desktop.el (desktop-create-buffer, desktop-save): Avoid some
+	consing by using mapc instead of mapcar.
+
+2004-11-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (require): Explain why CL is needed.
+
+2004-11-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Insert :version into defgroup (printing).  All reference
+	to Files option in menubar were changed to File.
+	(pr-version): New version number (6.8.2).
+	(pr-get-symbol): Call easy-menu-intern.
+	(pr-region-active-p): Now is a fun (it was defsubst).  To avoid
+	compilation gripes.
+
+2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Understand the
+	new byte-compile-function-environment binding to t.
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Don't forget to highlight the last char when we hit `end'.
+
+	* mwheel.el (mouse-wheel-progressive-speed): Fix typo in name.
+	(mwheel-scroll): Adjust accordingly.
+
+	* cvs-status.el: Reduce spurious warnings.
+	(cvs-status-checkout): Remove.
+	(cvs-status-mode-map): Use cvs-mode-checkout instead.
+
+	* pcvs.el (cvs-mode-checkout): New command.
+
+	* international/iso-cvt.el (iso-cvt-define-menu): Fix typo.
+
+	* tooltip.el: Require CL.
+
+	* emacs-lisp/bytecomp.el: Use push.
+	(byte-compile-file-form-defalias): Rename from byte-compile-defalias.
+	(defalias): Remove the `byte-compile' property and add
+	a `byte-hunk-handler'.
+
+2004-11-11  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Save match data for isearch.
+	Skip Tag Table node.
+
+	* descr-text.el (describe-char): Replace syntax-after with code
+	from its previous version.
+
+	* files.el (magic-mode-alist): Use optimization for SGML mode too.
+	(set-auto-mode): Doc fix.  Remove unused variable `xml'.
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Remove > after <html to allow HTML attributes.
+
+2004-11-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-comb.el (math-prime-factors-finished):  Declare it as
+	a variable.
+	(calcFunc-dfac):  Replace unbound max by n.
+	(math-stirling-local-cache):  New variable.
+	(math-stirling-number, math-stirling-1, math-stirling-2):
+	Replace the variable `cache' by the declared variable
+	math-stirling-local-cache.
+	(var-RandSeed):  Declare it as a variable.
+	(math-init-random-base, math-random-digit):  Don't check to see if
+	var-RandSeed is bound.
+	(math-random-cache, math-gaussian-cache, calc-verbose-nextprime):
+	Declare them instead of just setting them.
+	(math-init-random-base):  Made i a local variable.
+	(math-random-digit):  Made math-random-last a local variable.
+	(math-prime-test-cache):  Move declaration to before it is used.
+	(math-prime-test-cache-k, math-prime-test-cache-q)
+	(math-prime-test-cache-nm1, math-prime-factors-finished):
+	Declare them as variables.
+
+2004-11-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-defcache):  Use defvar for the new
+	variables it creates.
+
+2004-11-11  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-mode-handlers, desktop-after-read-hook)
+	(desktop-clear-preserve-buffers-regexp, desktop-file-name-format)
+	(desktop-globals-to-clear, desktop-no-desktop-file-hook, desktop-path)
+	(desktop-save): Add :version.
+
+2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* printing.el (pr-get-symbol): Don't downcase.
+
+2004-11-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calc-do-quick-calc):  Use kill-new to append
+	string to kill-ring.
+
+	* calc/calc-aent.el (calc-alg-exp, math-toks)
+	(math-exp-pos,math-exp-old-pos, math-exp-token)
+	(math-exp-keep-spaces, math-exp-str):  New variables.
+	(calc-do-alg-entry, calcAlg-equals, calcAlg-edit)
+	(calcAlg-enter):  Use declared variable calc-alg-exp.
+	(math-build-parse-table, math-find-user-token):  Use declared
+	variable math-toks.
+	(math-read-exprs, math-read-token, calc-check-user-syntax)
+	(calc-match-user-syntax, match-factor-after, math-read-factor):
+	Use declared variables math-exp-pos math-exp-old-pos.
+	(math-read-exprs, math-read-token, math-read-expr-level)
+	(calc-check-user-syntax, calc-match-user-syntax)
+	(match-factor-after, math-read-factor):  Use declared variable
+	math-exp-token. 
+	(math-read-exprs, math-read-expr-list, math-read-token)
+	(math-read-factor):  Use declared variable math-exp-keep-spaces.
+	(math-read-exprs, math-read-token):  Use declared variable
+	math-exp-str.
+	(calc-match-user-syntax):  Made m a local variable.
+
+	* calc/calc-ext.el (math-read-expr):  Use declared variables
+	math-exp-pos, math-exp-old-pos, math-exp-str, math-exp-token,
+	math-exp-keep-spaces.
+
+	* calc/calc-forms.el (math-read-angle-bracket):  Use declared
+	variables math-exp-pos, math-exp-str.
+
+	* calc/calc-lang.el (math-parse-tex-sum):  Use declared variable
+	math-exp-old-pos. 
+	(math-parse-fortran-vector, math-parse-fortran-vector-end)
+	(math-parse-eqn-prime):  Use declared variable math-exp-token.
+
+	* calc/calc-vec.el (math-read-brackets, math-check-for-commas):
+	Use declared variable math-exp-pos.
+	(math-check-for-commas):  Use declared variable math-exp-str.
+	(math-read-brackets):  Use declared variables math-exp-old-pos,
+	math-exp-keep-spaces.
+	(math-read-brackets, math-read-vector, math-read-matrix):
+	Use declared variable math-exp-token.
+
+2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (magic-mode-alist): Reduce backtracking in the HTML regexp.
+
+	* textmodes/sgml-mode.el (sgml-tag-text-p): New fun.
+	(sgml-parse-tag-backward): Use it to skip spurious < or >.
+
+2004-11-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* ebuff-menu.el: Doc fixes throughout.
+	(electric-buffer-menu-mode-hook): New defvar.
+
+2004-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: Don't require cl, comint, gud, gdb-ui for
+	compilation. The resulting compiler warnings appear to be harmless.
+
+2004-11-10  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* textmodes/conf-mode.el: New file.
+
+	* files.el (auto-mode-alist, magic-mode-alist): Use it.
+
+2004-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-cvt.el (iso-cvt-define-menu): Clean up namespace.
+
+2004-11-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-init-extensions):  Remove old code.
+
+	* calc/calc-ext.el (math-expr-data, math-mt-many, math-mt-func)
+	(calc-z-prefix-buf, calc-z-prefix-msgs):  New variables.
+	(calc-z-prefix-help, calc-user-function-list):  Use declared
+	variables calc-z-prefix-buf, calc-z-prefix-msgs.
+	(math-map-tree, math-map-tree-rec):  Use declared variables
+	math-mt-many, math-mt-func.
+	(math-read-expression, math-read-string):  Use declared variable
+	math-expr-data.
+
+	* calc/calc-ext.el (math-normalize-nonstandard):  Use declared
+	variable math-normalize-a.
+
+	* calc/calc.el (math-normalize-a):  New variable.
+	(math-normalize):  Use declared variable math-normalize-a.
+
+	* calc/calc-poly.el (math-expand-form):  Use declared variable
+	math-mt-many.
+
+	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):
+	Use declared variable math-mt-many.
+	(math-rewrite):  Use declared variable math-mt-func.
+
+	* calc/calc-vec.el (math-read-brackets, math-read-vector)
+	(math-read-matrix):  Use declared variable math-expr-data.
+
+	* calc/calc-lang.el (math-parse-fortran-vector)
+	(math-parse-fortran-vector-end, math-parse-tex-sum)
+	(math-parse-eqn-matrix, math-parse-eqn-prime)
+	(math-read-math-subscr):  Use declared variable math-expr-data.
+
+	* calc/calc-aent.el (math-read-exprs, math-read-expr-list)
+	(math-read-expr-level, math-read-token, calc-check-user-syntax)
+	(calc-match-user-syntax, math-read-if, math-factor-after)
+	(math-read-factor):  Use declared variable math-expr-data.
+
+2004-11-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-from-outlook)
+	(diary-from-outlook-gnus, diary-from-outlook-rmail): Do not use
+	interactive-p; but rather new optional argument NOCONFIRM.
+
+2004-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-intern): Revert to no-downcasing.
+	(easy-menu-name-match): Revert correspondingly.
+
+2004-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-defalias):
+	Turn off warnings for the new function even if definition not constant.
+	If the definition isn't a quoted symbol, record (FUNCTION . t).
+	(byte-compile-function-environment): Now allow (FUNCTION . t) as elt.
+	(byte-compile-callargs-warn): Handle (FUNCTION . t).
+	(display-call-tree, byte-compile-arglist-warn):
+	Handle t returned by byte-compile-fdefinition.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (maintainer-clean): Depend on distclean.
+
+	* help-fns.el (help-C-file-name): File name must be in build-files
+	to be returned.
+
+2004-11-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-hook, calc-trail-mode-hook)
+	(calc-start-hook, calc-end-hook, calc-load-hook):  New variables.
+
+	* calc/calc.el (calc, calc-trail-display, calc-mode):
+	Remove obsolete sections.
+
+	* calc/calc.el (calc-x-paste-text):  Remove.
+
+	* calc/calc-ext.el (calc-init-extensions):  Bind calc-yank to
+	mouse-2.
+
+2004-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-current-stack-level): New variable.
+	(gdb-info-frames-custom, gdb-frame-handler): Use it to find
+	current frame (in case of recursive calls).
+	(gdb-show-changed-values): Add :version keyword.
+
+2004-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el: Change coding-system to utf-8.
+	(select-safe-coding-system-interactively):
+	New function extracted from select-safe-coding-system.
+	(select-safe-coding-system): Use it.
+
+2004-11-08  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (syntax-after): Doc fix.
+
+	* paren.el (show-paren-function): Change calls to syntax-after
+	for new way of returning the value.
+
+	* menu-bar.el (menu-bar-file-menu): Make this the real name
+	and menu-bar-files-menu the alias.  Use the former.
+	(global-map): Use `file', not `files', as the symbol.
+
+	* info.el (Info-revert-find-node): Don't use beginning-of-buffer.
+
+	* filesets.el (filesets-spawn-external-viewer, filesets-run-cmd):
+	Don't use beginning-of-buffer.
+	(filesets-cmd-show-result): Use with-no-warnings.
+
+2004-11-08  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compile): Don't overwrite last command in
+	minibuffer history with default command if they are not equal.
+
+2004-11-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (math-do-integral-methods):  Try linear then
+	non-linear substitutions.
+
+2004-11-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (math-linear-subst-tried): New variable.
+	(math-do-integral):  Set `math-linear-subst-tried' to nil.
+	(math-do-integral-methods):  Use `math-linear-subst-tried' to
+	determine what type of substitution to try.
+	(math-integ-try-linear-substituion):
+	Set `math-linear-subst-tried' to t.
+
+2004-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (bootstrap-clean): New target for 'make bootstrap'.
+
+2004-11-07  Juri Linkov  <juri@jurta.org>
+
+	* info-look.el (info-lookup): Allow reusing in the current buffer
+	not only *info* buffer, but all (even renamed) Info buffers
+	by checking for major-mode instead of *info* buffer name.
+	(c-mode, autoconf-mode, emacs-lisp-mode, scheme-mode)
+	(octave-mode, maxima-mode) <doc-spec>:
+	Allow long dashes generated by Texinfo 4.7 before definitions.
+	(texinfo-mode) <doc-spec>: Add space to suffix to find command
+	definitions with argument separated by space.
+
+2004-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (next-error group, face): Move before first use.
+	(next-error-highlight, next-error-highlight-no-select): Likewise.
+
+	* simple.el (line-move-invisible-p): Rename from line-move-invisible.
+	(line-move): New args NOERROR and TO-END.
+	Return t if if succeed in moving specified number of lines.
+	(move-end-of-line): New function.
+
+	* simple.el (beginning-of-buffer-other-window): Use with-no-warnings.
+	(end-of-buffer-other-window): Likewise.
+
+	* simple.el (line-move-ignore-invisible): Default to t.
+
+	* subr.el (syntax-after): Return the syntax letter, not the raw code.
+
+	* emacs-lisp/elp.el (elp-results): Delete wasteful beginning-of-buffer.
+
+	* international/iso-cvt.el (iso-cvt-define-menu):
+	Rename menu-bar-files-menu to menu-bar-file-menu.
+
+	* net/browse-url.el (browse-url-gnome-moz-program)
+	(browse-url-gnome-moz-arguments): Move up before first use.
+
+	* net/tramp.el (tramp group): Add :version.
+
+	* progmodes/ada-xref.el (ada-gdb-application):
+	Use goto-char instead of beginning-of-buffer.
+
+	* progmodes/cperl-mode.el (cperl-info-on-command):
+	Use goto-char instead of beginning-of-buffer.
+
+	* progmodes/idlw-shell.el (idlwave-shell-examine-map):
+	Move up before first use.
+	(idlwave-shell-temp-pro-file): Likewise.
+	(idlwave-shell-temp-rinfo-save-file): Likewise.
+	(idlwave-shell-temp-file): Minor doc fix.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use goto-char instead of beginning-of-buffer.
+
 2004-11-06  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
-	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode
-	-o /dev/stdout" before trying "uudecode -o -".  Suggested by Han
-	Boetes.
+	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode -o
+	/dev/stdout" before trying "uudecode -o -".  Suggested by Han Boetes.
 	(tramp-uudecode): Mention `uudecode -o /dev/stdout'.
 
 2004-11-06  David Ponce  <david@dponce.com>
@@ -59,8 +461,7 @@
 
 2004-11-04  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* files.el (set-auto-mode): Don't get error after setting
-	-*-mode-*-.
+	* files.el (set-auto-mode): Don't get error after setting -*-mode-*-.
 
 2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -182,8 +583,7 @@
 	(icalendar-convert-diary-to-ical)
 	(icalendar-extract-ical-from-buffer): Use only two args for
 	make-obsolete (XEmacs compatibility).
-	(icalendar-export-file, icalendar-import-file): Blank at end of
-	prompt.
+	(icalendar-export-file, icalendar-import-file): Blank at end of prompt.
 	(icalendar-export-region): Doc fix.
 	If error, return non-nil and write errors to a buffer.
 	Use correct weekday for weekly recurring events.
@@ -223,16 +623,16 @@
 
 2004-11-02  Pavel Kobiakov <pk_at_work@yahoo.com>
 
-	* progmodes/flymake.el (flymake-err-line-patterns): Use
-	`flymake-reformat-err-line-patterns-from-compile-el' to convert
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Use `flymake-reformat-err-line-patterns-from-compile-el' to convert
 	`compilation-error-regexp-alist-alist' to internal Flymake format.
 
 	* progmodes/flymake.el: eliminated byte-compiler warnings.
 
 2004-11-01  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-frac.el (calc-over-notation): Replaced
-	`completing-read' with `interactive "s"'.
+	* calc/calc-frac.el (calc-over-notation): Replace `completing-read'
+	with `interactive "s"'.
 
 2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

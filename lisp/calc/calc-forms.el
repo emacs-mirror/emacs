@@ -1791,8 +1791,8 @@ and ends on the last Sunday of October at 2 a.m."
 
 
 (defun math-read-angle-brackets ()
-  (let* ((last (or (math-check-for-commas t) (length exp-str)))
-	 (str (substring exp-str exp-pos last))
+  (let* ((last (or (math-check-for-commas t) (length math-exp-str)))
+	 (str (substring math-exp-str math-exp-pos last))
 	 (res
 	  (if (string-match "\\` *\\([a-zA-Z#][a-zA-Z0-9#]* *,? *\\)*:" str)
 	      (let ((str1 (substring str 0 (1- (match-end 0))))
@@ -1818,7 +1818,7 @@ and ends on the last Sunday of October at 2 a.m."
 	(throw 'syntax res))
     (if (eq (car-safe res) 'error)
 	(throw 'syntax (nth 2 res)))
-    (setq exp-pos (1+ last))
+    (setq math-exp-pos (1+ last))
     (math-read-token)
     res))
 
