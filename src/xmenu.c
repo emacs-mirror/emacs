@@ -82,6 +82,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
+Lisp_Object Qdebug_on_next_call;
+
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
 extern Lisp_Object Qmouse_click, Qevent_kind;
@@ -1526,6 +1528,9 @@ set_frame_menubar (f, first_time)
   count = inhibit_garbage_collection ();
 
   specbind (Qinhibit_quit, Qt);
+  /* Don't let the debugger step into this code
+     because it is not reentrant.  */
+  specbind (Qdebug_on_next_call, Qnil);
 
   id = frame_vector_add_frame (f);
 
@@ -2443,6 +2448,9 @@ syms_of_xmenu ()
 {
   staticpro (&menu_items);
   menu_items = Qnil;
+
+  Qdebug_on_next_call = intern ("debug-on-next-call");
+  staticpro (&Qdebug_on_next_call);
 
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);	
