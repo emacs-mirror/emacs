@@ -26,6 +26,11 @@
 #ifdef __GNUC__
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
+#else
+/* Optimize, inaccurate debugging.  This should also be applicable
+   other than on Irix 6.5, but I don't know for which compiler
+   versions.  -- fx */
+#define C_DEBUG_SWITCH -g3 -O
 #endif
 
 #undef SA_RESTART
