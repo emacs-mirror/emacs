@@ -873,11 +873,7 @@ The return value is VALUE from the chosen item.")
 #endif
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt))
-	{
-          window = selected_window;
-          XFASTINT (x) = 0;
-          XFASTINT (y) = 0;
-	}
+	window = selected_window;
     }
   else if (CONSP (position))
     {
