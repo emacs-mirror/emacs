@@ -1,3 +1,9 @@
+2000-06-23  Dave Love  <fx@gnu.org>
+
+	* lwlib-Xlw.c (xlw_popup_menu): Cast arg of pop_up_menu.
+
+	* lwlib-utils.c: Include lwlib.h.
+
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenuP.h (_XlwMenu_part): Add free_top_shadow_color_p and
