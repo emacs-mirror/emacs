@@ -1443,7 +1443,8 @@ If FRAME is nil, the current FRAME is used."
       ;; Set up each face, first from the defface information,
       ;; then the global face data, and then the X resources.
       (let* ((face (car (car rest)))
-	     (spec (or (get face 'saved-face)
+	     (spec (or (get face 'customized-face)
+		       (get face 'saved-face)
 		       (get face 'face-defface-spec)))
 	     (global (cdr (assq face global-face-data)))
 	     (local (cdr (car rest))))
