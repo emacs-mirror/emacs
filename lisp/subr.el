@@ -1339,7 +1339,7 @@ Optional DEFAULT is a default password to use instead of empty input."
 		(replace-match (format " (default %s)" default) t t prompt 1)
 	      (replace-regexp-in-string "[ \t]*\\'"
 					(format " (default %s) " default)
-					prompt t t)))) 
+					prompt t t))))
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
@@ -1708,8 +1708,8 @@ If UNDO is present and non-nil, it is a function that will be called
 (defun insert-buffer-substring-no-properties (buffer &optional start end)
   "Insert before point a substring of BUFFER, without text properties.
 BUFFER may be a buffer or a buffer name.
-Arguments START and END are character numbers specifying the substring.
-They default to the beginning and the end of BUFFER."
+Arguments START and END are character positions specifying the substring.
+They default to the values of (point-min) and (point-max) in BUFFER."
   (let ((opoint (point)))
     (insert-buffer-substring buffer start end)
     (let ((inhibit-read-only t))
@@ -1718,8 +1718,8 @@ They default to the beginning and the end of BUFFER."
 (defun insert-buffer-substring-as-yank (buffer &optional start end)
   "Insert before point a part of BUFFER, stripping some text properties.
 BUFFER may be a buffer or a buffer name.
-Arguments START and END are character numbers specifying the substring.
-They default to the beginning and the end of BUFFER.
+Arguments START and END are character positions specifying the substring.
+They default to the values of (point-min) and (point-max) in BUFFER.
 Strip text properties from the inserted text according to
 `yank-excluded-properties'."
   ;; Since the buffer text should not normally have yank-handler properties,

@@ -255,6 +255,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
       (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
 
+;;;###autoload
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
 This calls touch."
@@ -342,6 +343,7 @@ Uses the shell command coming from variables `lpr-command' and
 
 (defvar dired-file-version-alist)
 
+;;;###autoload
 (defun dired-clean-directory (keep)
   "Flag numerical backups for deletion.
 Spares `dired-kept-versions' latest versions, and `kept-old-versions' oldest.
@@ -551,6 +553,7 @@ the list of file names explicitly with the FILE-LIST argument."
 	(funcall stuff-it files)))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
+;;;###autoload
 (defun dired-run-shell-command (command)
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
@@ -805,6 +808,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
     ;; None of these keys quit - use C-g for that.
     ))
 
+;;;###autoload
 (defun dired-query (qs-var qs-prompt &rest qs-args)
   ;; Query user and return nil or t.
   ;; Store answer in symbol VAR (which must initially be bound to nil).
@@ -891,7 +895,14 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 (defun dired-do-redisplay (&optional arg test-for-subdir)
   "Redisplay all marked (or next ARG) files.
 If on a subdir line, redisplay that subdirectory.  In that case,
-a prefix arg lets you edit the `ls' switches used for the new listing."
+a prefix arg lets you edit the `ls' switches used for the new listing.
+
+Dired remembers switches specified with a prefix arg, so that reverting
+the buffer will not reset them.  However, using `dired-undo' to re-insert
+or delete subdirectories can bypass this machinery.  Hence, you sometimes
+may have to reset some subdirectory switches after a `dired-undo'.
+You can reset all subdirectory switches to the default using
+\\<dired-mode-map>\\[dired-reset-subdir-switches]."
   ;; Moves point if the next ARG files are redisplayed.
   (interactive "P\np")
   (if (and test-for-subdir (dired-get-subdir))
@@ -914,6 +925,12 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 			  arg)
     (dired-move-to-filename)
     (message "Redisplaying...done")))
+
+(defun dired-reset-subdir-switches ()
+  "Set `dired-switches-alist' to nil and revert dired buffer."
+  (interactive)
+  (setq dired-switches-alist nil)
+  (revert-buffer))
 
 (defun dired-update-file-line (file)
   ;; Delete the current line, and insert an entry for FILE.
@@ -1727,7 +1744,14 @@ If it is already present, just move to it (type \\[dired-do-redisplay] to refres
 With a prefix arg, you may edit the ls switches used for this listing.
   You can add `R' to the switches to expand the whole tree starting at
   this subdirectory.
-This function takes some pains to conform to `ls -lR' output."
+This function takes some pains to conform to `ls -lR' output.
+
+Dired remembers switches specified with a prefix arg, so that reverting
+the buffer will not reset them.  However, using `dired-undo' to re-insert
+or delete subdirectories can bypass this machinery.  Hence, you sometimes
+may have to reset some subdirectory switches after a `dired-undo'.
+You can reset all subdirectory switches to the default using
+\\<dired-mode-map>\\[dired-reset-subdir-switches]."
   (interactive
    (list (dired-get-filename)
 	 (if current-prefix-arg
@@ -1832,19 +1856,23 @@ This function takes some pains to conform to `ls -lR' output."
 			  (> (dired-get-subdir-min elt1)
 			     (dired-get-subdir-min elt2)))))))
 
-(defun dired-kill-tree (dirname &optional remember-marks)
+(defun dired-kill-tree (dirname &optional remember-marks kill-root)
   "Kill all proper subdirs of DIRNAME, excluding DIRNAME itself.
-With optional arg REMEMBER-MARKS, return an alist of marked files."
-  (interactive "DKill tree below directory: ")
-  (setq dirname (expand-file-name dirname))
+Interactively, you can kill DIRNAME as well by using a prefix argument.
+In interactive use, the command prompts for DIRNAME.
+
+When called from Lisp, if REMEMBER-MARKS is non-nil, return an alist
+of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
+  (interactive "DKill tree below directory: \ni\nP")
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (let ((s-alist dired-subdir-alist) dir m-alist)
     (while s-alist
       (setq dir (car (car s-alist))
 	    s-alist (cdr s-alist))
-      (if (and (not (string-equal dir dirname))
-	       (dired-in-this-tree dir dirname)
-	       (dired-goto-subdir dir))
-	  (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
+      (and (or kill-root (not (string-equal dir dirname)))
+	   (dired-in-this-tree dir dirname)
+	   (dired-goto-subdir dir)
+	   (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
     m-alist))
 
 (defun dired-insert-subdir-newpos (new-dir)

@@ -3172,8 +3172,8 @@ struct named_merge_point
 
 /* If a face merging cycle is detected for FACE_NAME, return 0,
    otherwise add NEW_NAMED_MERGE_POINT, which is initialized using
-   FACE_NAME, as the head of the linked list
-   pointed to by NAMED_MERGE_POINTS, and return 1.  */
+   FACE_NAME, as the head of the linked list pointed to by
+   NAMED_MERGE_POINTS, and return 1.  */
 
 static INLINE int
 push_named_merge_point (struct named_merge_point *new_named_merge_point,
@@ -3184,7 +3184,7 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
   for (prev = *named_merge_points; prev; prev = prev->prev)
     if (EQ (face_name, prev->face_name))
-	break;
+      return 0;
 
   new_named_merge_point->face_name = face_name;
   new_named_merge_point->prev = *named_merge_points;

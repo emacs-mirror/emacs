@@ -37,7 +37,7 @@
 
 
 (defgroup killing nil
-  "Killing and yanking commands"
+  "Killing and yanking commands."
   :group 'editing)
 
 (defgroup paren-matching nil
@@ -133,7 +133,7 @@ to navigate in it.")
                       (if other-buffer
                           (message "This is the only next-error capable buffer."))
                       (current-buffer)))
-               (error "No next-error capable buffer found!"))))))))
+               (error "No next-error capable buffer found"))))))))
 
 (defun next-error (arg &optional reset)
   "Visit next next-error message and corresponding source code.
@@ -791,12 +791,12 @@ Return a formatted string which is displayed in the echo area
 in addition to the value printed by prin1 in functions which
 display the result of expression evaluation."
   (if (and (integerp value)
-           (or (not (eq this-command 'eval-last-sexp))
+           (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                (eq this-command last-command)
                (and (boundp 'edebug-active) edebug-active)))
       (let ((char-string
              (if (or (and (boundp 'edebug-active) edebug-active)
-                     (eq this-command 'eval-last-sexp))
+                     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                  (prin1-char value))))
         (if char-string
             (format " (0%o, 0x%x) = %s" value value char-string)
@@ -2107,7 +2107,7 @@ the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
 This is the primitive for programs to kill text (as opposed to deleting it).
-Supply two arguments, character numbers indicating the stretch of text
+Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
@@ -2224,7 +2224,7 @@ The argument is used for internal purposes; do not supply one."
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
-  :group 'editing
+  :group 'killing
   :version "21.4")
 
 (defvar yank-window-start nil)

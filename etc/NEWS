@@ -90,8 +90,16 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** A New package flymake.el does on-the-fly syntax checking of program
-source files.  See the Flymake's Info manual for more details.
+** New features in evaluation commands
+
+*** The function `eval-defun' (C-M-x) called on defface reinitializes
+the face to the value specified in the defface expression.
+
+*** Typing C-x C-e twice prints the value of the integer result
+in additional formats (octal, hexadecimal, character) specified
+by the new function `eval-expression-print-format'.  The same
+function also defines the result format for `eval-expression' (M-:),
+`eval-print-last-sexp' (C-j) and some edebug evaluation functions.
 
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
@@ -1808,8 +1816,17 @@ to view diffs or log entries directly from vc-annotate-mode:
     D:  shows the diff of the revision at line with its previous revision
     L:  shows the log of the revision at line
     W:  annotates the workfile (most up to date) version
+
++++
+** In pcl-cvs mode, there is a new `d y' command to view the diffs
+between the local version of the file and yesterday's head revision
+in the repository.
+
 
 * New modes and packages in Emacs 21.4
+
+** The new package flymake.el does on-the-fly syntax checking of program
+source files.  See the Flymake's Info manual for more details.
 
 ** The library tree-widget.el provides a new widget to display a set
 of hierarchical data as an outline.  For example, the tree-widget is
@@ -1905,6 +1922,7 @@ where the keys work like (shifted) arrow keys, home/end, etc., and
 are left unspecified and can be bound individually through the global
 or local keymaps.
 
++++
 ** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
 
@@ -2043,7 +2061,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** The sentinel is now called whan a network process is deleted with
+** The sentinel is now called when a network process is deleted with
 delete-process.  The status message passed to the sentinel for a
 deleted network process is "deleted".  The message passed to the
 sentinel when the connection is closed by the remote peer has been

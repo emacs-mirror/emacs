@@ -1,3 +1,130 @@
+2004-06-10  Kim F. Storm  <storm@cua.dk>
+
+	* pcvs.el (cvs-mode-diff-yesterday): New command.
+
+	* pcvs-defs.el (cvs-mode-diff-map): Bind y to cvs-mode-diff-yesterday.
+
+2004-06-10  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Add `defface'.
+	Fix docstring.
+
+	* simple.el (eval-expression-print-format): Don't print additional
+	information on the first call to `eval-print-last-sexp'.
+	(next-error-find-buffer): Fix punctuation.
+	(killing) <defgroup>: Fix punctuation.
+	(yank-excluded-properties): Change group from editing to killing.
+
+	* replace.el (perform-replace): Use `limit' to terminate the
+	while-loop explicitly.
+
+2004-06-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item):
+	Use lc-*.xpm as prefix instead of *-locol.xpm.
+
+	* toolbar/lc-copy.xpm, toolbar/lc-cut.xpm
+	* toolbar/lc-help.xpm, toolbar/lc-home.xpm
+	* toolbar/lc-index.xpm, toolbar/lc-jump_to.xpm
+	* toolbar/lc-left_arrow.xpm, toolbar/lc-new.xpm
+	* toolbar/lc-open.xpm, toolbar/lc-paste.xpm
+	* toolbar/lc-preferences.xpm, toolbar/lc-print.xpm
+	* toolbar/lc-right_arrow.xpm, toolbar/lc-save.xpm
+	* toolbar/lc-saveas.xpm, toolbar/lc-search.xpm
+	* toolbar/lc-spell.xpm, toolbar/lc-undo.xpm
+	* toolbar/lc-up_arrow.xpm:
+	Renamed from *-locol.xpm.
+
+2004-06-09  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* ffap.el (ffap-string-at-point-mode-alist): Fix the url mode to
+	include forms like &<str>; as valid url patterns.
+
+2004-06-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-diff, dired-backup-diff)
+	(dired-clean-directory, dired-do-chmod, dired-do-chgrp)
+	(dired-do-chown, dired-do-touch, dired-do-print)
+	(dired-do-shell-command, dired-do-kill-lines, dired-do-compress)
+	(dired-do-byte-compile, dired-do-load, dired-do-redisplay)
+	(dired-create-directory, dired-do-copy, dired-do-symlink)
+	(dired-do-hardlink, dired-do-rename, dired-do-rename-regexp)
+	(dired-do-copy-regexp, dired-do-hardlink-regexp)
+	(dired-do-symlink-regexp, dired-upcase, dired-downcase)
+	(dired-maybe-insert-subdir, dired-next-subdir)
+	(dired-prev-subdir, dired-goto-subdir, dired-mark-subdir-files)
+	(dired-kill-subdir, dired-tree-up, dired-tree-down)
+	(dired-hide-subdir, dired-hide-all, dired-show-file-type)
+	(dired-run-shell-command, dired-query): Remove redundant,
+	or incorrect, autoloads.
+
+	* dired-aux.el (dired-kill-tree): Do not kill DIRNAME, even if it
+	does not end in a slash.  Add optional argument KILL-ROOT.  Update
+	docstring.
+	(dired-do-touch, dired-clean-directory, dired-run-shell-command)
+	(dired-query): Add autoloads.
+
+2004-06-08  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-set-window-height): Rearrange
+	the save-* functions because a buffer can have several current
+	point in different windows.
+	(compilation-error-regexp-alist-alist): Recognize {standard input}
+	GNU messages (for gcc --pipe) and more kinds of Oracle messages.
+
+2004-06-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/copy-locol.xpm, toolbar/cut-locol.xpm
+	* toolbar/help-locol.xpm, toolbar/home-locol.xpm
+	* toolbar/index-locol.xpm, toolbar/jump_to-locol.xpm
+	* toolbar/left_arrow-locol.xpm, toolbar/new-locol.xpm
+	* toolbar/open-locol.xpm, toolbar/paste-locol.xpm
+	* toolbar/preferences-locol.xpm, toolbar/print-locol.xpm
+	* toolbar/right_arrow-locol.xpm, toolbar/save-locol.xpm
+	* toolbar/saveas-locol.xpm, toolbar/search-locol.xpm
+	* toolbar/spell-locol.xpm, toolbar/undo-locol.xpm
+	* toolbar/up_arrow-locol.xpm:
+	New versions of icons that uses fewer colors.
+
+	* toolbar/tool-bar.el (tool-bar-local-item)
+	(tool-bar-local-item-from-menu): Try to use icons with fewer colors
+	if display-color-cells is 256 or less.
+
+2004-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (widget-specify-button): Use hand pointer rather
+	than mouse-face as visible mouse-over effect.
+
+2004-06-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Bind `print-length'
+	and `print-level' to nil when writing out `save-place-alist'.
+	Thanks to Kai Grossjohann <kai@emptydomain.de> for enlightenment.
+
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* completion.el (completion-kill-region): Doc fix.
+
+	* format.el (format-insert-annotations)
+	(format-annotate-location): Doc fixes.
+	(format-subtract-regions): Make arguments match their use in
+	docstring.
+
+	* simple.el (kill-region): Doc fix.
+
+	* subr.el (insert-buffer-substring-no-properties)
+	(insert-buffer-substring-as-yank): Doc fixes.
+
+2004-06-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Update docstring.
+	(dired-reset-subdir-switches): New function.
+
+	* dired.el (dired-undo): Call `dired-build-subdir-alist'.
+	Limit scope of `buffer-read-only' binding.
+
 2004-06-06  Emilio C. Lopes  <eclig@gmx.net>
 
 	* eshell/esh-cmd.el (eshell/which): Respect commands quoted with
@@ -10,7 +137,7 @@
 
 2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm,
+	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm
 	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm
 	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm
 	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm
