@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.24 1995/06/28 01:47:55 eggert Exp eggert $
+# $Id: rcs2log,v 1.25 1995/07/07 22:47:57 eggert Exp eggert $
 
 # Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -158,7 +158,8 @@ case $rlog_options in
 						}
 					}
 				}
-				printf "%d/%02d/%02d %02d:%02d:%02d\n", year,i+1,dd,hh,mm,ss
+				# Output comma instead of space to avoid CVS 1.5 bug.
+				printf "%d/%02d/%02d,%02d:%02d:%02d\n", year,i+1,dd,hh,mm,ss
 				exit
 			}
 		'
@@ -179,7 +180,7 @@ else
 	rlog='cvs log'
 	repository=`sed 1q <CVS/Repository` || exit
 	test ! -f CVS/Root || CVSROOT=`cat <CVS/Root` || exit
-	case ${CVSROOT?} in
+	case $CVSROOT in
 	*:/*)
 		# remote repository
 		;;
@@ -187,7 +188,7 @@ else
 		# local repository
 		case $repository in
 		/*) ;;
-		*) repository=$CVSROOT/$repository
+		*) repository=${CVSROOT?}/$repository
 		esac
 		if test ! -d "$repository"
 		then
