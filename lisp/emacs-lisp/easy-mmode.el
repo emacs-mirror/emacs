@@ -48,7 +48,7 @@
 ;;; Code:
 
 (defun easy-mmode-define-keymap (keymap-alist &optional menu-name)
-  "Return a keymap builded from KEYMAP-ALIST.
+  "Return a keymap built from KEYMAP-ALIST.
 KEYMAP-ALIST must be a list of (KEYBINDING . BINDING) where
 KEYBINDING and BINDINGS are suited as for define-key.
 optional MENU-NAME is passed to `make-sparse-keymap'."
