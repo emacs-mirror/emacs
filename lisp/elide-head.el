@@ -33,8 +33,9 @@
 ;; elision.
 
 ;; You might add `elide-head' to appropriate major mode hooks or to
-;; `find-file-hooks'.  Please do this in site init files.  If you do,
-;; information may be hidden from users who don't know it already.
+;; `find-file-hooks'.  Please do not do this in site init files.  If
+;; you do, information may be hidden from users who don't know it
+;; already.
 
 ;; Inspired by jwz's hide-copyleft.el, for which we don't have an
 ;; assignment.
