@@ -1235,7 +1235,7 @@ Leaves point at end of replacement text.")
      position in the replacement.  */
   SET_PT (search_regs.start[0]);
   if (!NILP (literal))
-    Finsert (1, &string);
+    Finsert_and_inherit (1, &string);
   else
     {
       struct gcpro gcpro1;
