@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.1) $
+# $HopeName: MMQA_harness!script:clib(trunk.2) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -32,7 +32,7 @@ sub clib {
   }
  }
  close(MANIFEST);
- &record_clib;
+ &record_clib($success);
  $success;
 }
 
@@ -66,12 +66,14 @@ sub objpurge {
 #  - C-compiler version??
 
 sub record_clib {
+ local ($success) = @_;
  unless (open(REC, ">$obj_dir/record")) {
   die "Unable to write clib record.";
  }
  print REC "HARNESS_VERSION $HARNESS_VERSION\n";
  print REC "INCLUDE_DIR $MPS_INCLUDE_DIR\n";
  print REC "LINK_OBJ $MPS_LINK_OBJ\n";
+ print REC "SUCCESS $success\n";
 # &headertimes and &linkobjtimes have already been called, by &scrutinize
  foreach (sort keys %mps_headers) {
   print REC "HEADER $_ $mps_headers{$_}\n";
@@ -98,6 +100,8 @@ sub test_clib {
   $err = "MPS_INCLUDE_DIR has changed";
  } elsif (<REC> ne "LINK_OBJ $MPS_LINK_OBJ\n") {
   $err = "MPS_LINK_OBJ has changed";
+ } elsif (<REC> ne "SUCCESS 1\n") {
+  $err = "previous attempt to compile test libraries failed";
  } else {
   &headertimes();
   &linkobjtimes();
