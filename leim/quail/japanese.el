@@ -72,18 +72,9 @@
 	(to (overlay-end quail-conv-overlay))
 	newfrom)
     (quail-delete-overlays)
-    (setq overriding-terminal-local-map nil)
-    (kkc-region from to 'quail-japanese-kkc-mode-exit)))
-
-;; Function to call on exiting KKC mode.  ARG is nil if KKC mode is
-;; exited normally, else ARG is a cons (FROM . TO) where FROM and TO
-;; specify a region not yet processed.
-(defun quail-japanese-kkc-mode-exit (arg)
-  (if arg
-      (progn
-	(setq overriding-terminal-local-map (quail-conversion-keymap))
-	(move-overlay quail-conv-overlay (car arg) (cdr arg)))
-    (run-hooks 'input-method-after-insert-chunk-hook)))
+    (let ((result (kkc-region from to)))
+      (move-overlay quail-conv-overlay (- (point) result) (point)))
+    (setq quail-converting nil)))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
@@ -103,9 +94,7 @@
 (defun quail-japanese-switch-package (key idx)
   (let ((pkg (cdr (assq (aref key (1- idx)) quail-japanese-switch-table))))
     (if (null pkg)
-	(error "No package to be switched")
-      (setq overriding-terminal-local-map nil)
-      (quail-delete-region)
+	(quail-error "No package to be switched")
       (if (stringp pkg)
 	  (activate-input-method pkg)
 	(if (string= (car pkg) current-input-method)
