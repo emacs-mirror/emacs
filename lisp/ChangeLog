@@ -1,3 +1,40 @@
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Simplify.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
+	normal-auto-fill-function and comment-indent-function.
+	The default values now work just as well.
+	Don't set font-lock-beginning-of-syntax-function since we already set
+	syntax-begin-function.
+	(lisp-outline-level): Put ;;;###autoload at same level as (.
+	(prin1-char): Quote special chars.
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-finder-p): Use defvar rather
+	than with-no-warnings.
+
+	* emacs-lisp/edebug.el (edebug-display): Bring up a debug trace
+	if the source location can't be found.
+	(edebug-compute-previous-result): Use prin1-char.
+
+	* emacs-lisp/checkdoc.el (checkdoc-error): Dont' assume point-min == 1.
+	(debug-ignored-errors): Add an entry.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Ignore hidden dir.
+	(byte-compile-file): Output warning when deleting a file.
+
+	* emacs-lisp/byte-run.el (defsubst): Add edebug spec and use backquote.
+	(dont-compile, eval-when-compile, eval-and-compile): Add edebug spec.
+
+	* emacs-lisp/byte-opt.el (byte-compile-log-lap)
+	(byte-compile-inline-expand): Use backquote.
+	(byte-optimize-pure-func): Rename from byte-optimize-concat.
+	(symbol-name, regexp-opt, regexp-quote): Mark as pure.
+
+	* emacs-lisp/backquote.el (backquote-list*-macro): Use nreverse.
+
+	* emacs-lisp/advice.el (ad-subr-arglist): Simplify.
+
 2004-03-22  Juri Linkov  <juri@jurta.org>
 
 	* finder.el (finder-known-keywords): Fix data, tex, unix.
@@ -27,8 +64,7 @@
 	implementation supports it, let diff output go to *vc*,
 	not *vc-diff*, since this is an internal call.
 
-	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Add optional BUFFER
-	argument.
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Add optional BUFFER arg.
 
 	* vc-rcs.el (vc-rcs-print-log, vc-rcs-diff): Likewise.
 
@@ -36,8 +72,8 @@
 
 2004-03-21  Dave Love  <fx@gnu.org>
 
-	* progmodes/cfengine.el (cfengine-mode): Set
-	parse-sexp-ignore-comments.
+	* progmodes/cfengine.el (cfengine-mode):
+	Set parse-sexp-ignore-comments.
 
 	* emacs-lisp/rx.el (rx): Work at compile time, not run time.
 
@@ -55,8 +91,8 @@
 
 2004-03-19  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el (ruler-mode-header-line-format-old): Don't
-	`make-variable-buffer-local'.
+	* ruler-mode.el (ruler-mode-header-line-format-old):
+	Don't `make-variable-buffer-local'.
 	(ruler-mode-ruler-function): Default to `ruler-mode-ruler'.
 	(ruler-mode-header-line-format): Simply funcall the above.
 	(ruler-mode): Use `make-local-variable' and `kill-local-variable'
@@ -65,6 +101,20 @@
 	(ruler-mode-ruler): Use symbolic display elements for scrollbar,
 	fringes and margins width.
 	(ruler-mode-ruler-function): Default to ruler-mode-ruler.
+
+2004-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-default-dirs): Don't ignore last part of I-d-d-l.
+
+	* time.el (display-time-string-forms): Add help-echo with date on time.
+
+	* composite.el (compose-region): Use restore-buffer-modified-p.
+
+	* disp-table.el (standard-display-8bit): Simplify.
+
+	* server.el (server-process-filter): Delete temp frame.
+
+	* add-log.el (add-change-log-entry): Simplify.
 
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
@@ -519,7 +569,7 @@
 	to 'pty.  Suggested by Piet van Oostrum <piet@cs.uu.nl>.
 	(top-level): Setting default value in `tramp-default-method-alist'
 	corrected.  Order of USER and HOST have been wrong.
-	Nobody complaimed for months ...
+	Nobody complained for months ...
 	(tramp-smb-maybe-open-connection): Use `tramp-process-connection-type'.
 	(tramp-smb-open-connection): Clear password cache if login has failed.
 
@@ -881,8 +931,7 @@
 	(rsf-bbdb-dont-create-entries-for-deleted-messages): Rename from
 	rsf-bbdb-dont-create-entries-for-spam.
 	(check-field): New function, extracted from code in
-	rmail-spam-filter to ease addition of header fields like
-	content-type.
+	rmail-spam-filter to ease addition of header fields like content-type.
 	(message-content-type): New variable to check the content-type:
 	field added, also in defcustom of rsf-definitions-alist.
 	(rmail-spam-filter): Replace repeated test code for header fields
@@ -938,9 +987,8 @@
 
 2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
 
-	Autorevert: Add support to detect changed dired buffers and for
-	VC controlled files.
-	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
+	* autorevert.el: Add support to detect changed dired and VC buffers.
+	(auto-revert-active-p, auto-revert-list-diff)
 	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
 	(auto-revert-handler, auto-revert-active-p): New functions.
 	(auto-revert-buffers): Move revert logic to `auto-revert-handler'
@@ -1050,7 +1098,7 @@
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
-	handeled by x-dnd-handle-file-name.
+	handled by x-dnd-handle-file-name.
 	(x-dnd-known-types): Add COMPOUND_TEXT.
 	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.
 	(x-dnd-get-state-cons-for-frame): Must do copy-sequence on
