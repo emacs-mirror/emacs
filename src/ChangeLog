@@ -1,5 +1,15 @@
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_image_glyph_string): Remove a comment describing
+	a feature to implement that is already implemented.
+	(note_mouse_highlight, x_find_ccl_program): Avoid some compiler
+	warnings.
+
+	* xfns.c (x_clear_image_1): New function.
+	(x_clear_image): Use it.
+	(x_from_xcolors): Use x_clear_image_1; don't free the image's
+	mask.
+
 	* dispnew.c (update_window): Move test for invisible lines
 	at the top to update_window_line.
 	(update_window_line): Handle invisible lines here.

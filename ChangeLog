@@ -1,3 +1,8 @@
+2000-09-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist (skk): Rename to `ja-dic' because the leim directory
+	was renamed.
+
 2000-09-14  Dave Love  <fx@gnu.org>
 
 	* configure.in: Fix spurion in last change.
