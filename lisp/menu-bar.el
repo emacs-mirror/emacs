@@ -64,6 +64,8 @@
 
       (define-key menu-bar-file-menu [delete-frame]
 	'("Delete Frame" . delete-frame))
+      (define-key menu-bar-file-menu [make-frame-on-display]
+	'("Make Frame on Display" . make-frame-on-display))
       (define-key menu-bar-file-menu [make-frame]
 	'("Make New Frame" . make-frame))))
 
@@ -282,6 +284,8 @@ A large number or nil slows down menu responsiveness.")
 
 (defvar list-buffers-directory nil)
 
+(defvar menu-bar-update-buffers-maxbuf)
+
 (defun menu-bar-select-buffer ()
   (interactive)
   (switch-to-buffer last-command-event))
@@ -294,7 +298,7 @@ A large number or nil slows down menu responsiveness.")
 
 (defun menu-bar-update-buffers-1 (elt)
   (cons (format
-	 (format "%%%ds  %%s%%s  %%s" maxbuf)
+	 (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
 	 (cdr elt)
 	 (if (buffer-modified-p (car elt))
 	     "*" " ")
@@ -333,7 +337,7 @@ A large number or nil slows down menu responsiveness.")
 		     (let* ((buffer-list
 			     (mapcar 'list buffers))
 			    tail
-			    (maxbuf 0)
+			    (menu-bar-update-buffers-maxbuf 0)
 			    (maxlen 0)
 			    alist
 			    head)
@@ -354,8 +358,8 @@ A large number or nil slows down menu responsiveness.")
 		       (setq tail buffer-list)
 		       (while tail
 			 (or (eq ?\ (aref (cdr (car tail)) 0))
-			     (setq maxbuf
-				   (max maxbuf
+			     (setq menu-bar-update-buffers-maxbuf
+				   (max menu-bar-update-buffers-maxbuf
 					(length (cdr (car tail))))))
 			 (setq tail (cdr tail)))
 		       ;; Set ALIST to an alist of the form
