@@ -435,67 +435,7 @@ it is displayed along with the global value."
 	    ;; Return the text we displayed.
 	    (buffer-string)))))))
 
-
-;; `help-manyarg-func-alist' is defined primitively (in doc.c).
-;; New primitives with `MANY' or `UNEVALLED' arglists should be added
-;; to this alist.
-;; The parens and function name are redundant, but it's messy to add
-;; them in `documentation'.
-
-;; This will find any missing items:
-;; (let (l)
-;;   (mapatoms (lambda (x)
-;; 	      (if (and (fboundp x)
-;; 		       (subrp (symbol-function x))
-;; 		       (not (numberp (cdr (subr-arity (symbol-function x)))))
-;; 		       (not (assq x help-manyarg-func-alist)))
-;; 		  (push x l))))
-;;   l)
-(defconst help-manyarg-func-alist
-  (purecopy
-   '((apply . "(apply FUNCTION &rest ARGUMENTS)")
-     (run-hooks . "(run-hooks &rest HOOKS)")
-     (run-hook-with-args . "(run-hook-with-args HOOK &rest ARGS)")
-     (run-hook-with-args-until-failure
-      . "(run-hook-with-args-until-failure HOOK &rest ARGS)")
-     (run-hook-with-args-until-success
-      . "(run-hook-with-args-until-success HOOK &rest ARGS)")
-     (funcall . "(funcall FUNCTION &rest ARGUMENTS)")
-     (start-process . "(start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)")
-     (setq-default . "(setq-default SYMBOL VALUE [SYMBOL VALUE...])")
-     (save-excursion . "(save-excursion &rest BODY)")
-     (save-current-buffer . "(save-current-buffer &rest BODY)")
-     (save-restriction . "(save-restriction &rest BODY)")
-     (or . "(or CONDITIONS ...)")
-     (and . "(and CONDITIONS ...)")
-     (if . "(if COND THEN ELSE...)")
-     (cond . "(cond CLAUSES...)")
-     (progn . "(progn BODY ...)")
-     (prog1 . "(prog1 FIRST BODY...)")
-     (prog2 . "(prog2 X Y BODY...)")
-     (setq . "(setq SYM VAL SYM VAL ...)")
-     (quote . "(quote ARG)")
-     (function . "(function ARG)")
-     (defun . "(defun NAME ARGLIST [DOCSTRING] BODY...)")
-     (defmacro . "(defmacro NAME ARGLIST [DOCSTRING] BODY...)")
-     (defvar . "(defvar SYMBOL [INITVALUE DOCSTRING])")
-     (defconst . "(defconst SYMBOL INITVALUE [DOCSTRING])")
-     (let* . "(let* VARLIST BODY...)")
-     (let . "(let VARLIST BODY...)")
-     (while . "(while TEST BODY...)")
-     (catch . "(catch TAG BODY...)")
-     (unwind-protect . "(unwind-protect BODYFORM UNWINDFORMS...)")
-     (condition-case . "(condition-case VAR BODYFORM HANDLERS...)")
-     (track-mouse . "(track-mouse BODY ...)")
-     (with-output-to-temp-buffer
-	 . "(with-output-to-temp-buffer BUFFNAME BODY ...)")
-     (save-window-excursion . "(save-window-excursion BODY ...)")
-     (find-operation-coding-system
-      . "(find-operation-coding-system OPERATION ARGUMENTS ...)"))))
-
 
 (provide 'help-funs)
 
 ;;; help-funs.el ends here
-
-
