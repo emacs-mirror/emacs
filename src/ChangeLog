@@ -1,3 +1,8 @@
+2005-03-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Docstring of coding-category-list
+	fixed.
+
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfaces.c (x_update_menu_appearance) [HAVE_X_I18N]:
