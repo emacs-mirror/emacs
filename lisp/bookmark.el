@@ -106,6 +106,11 @@ functions have a binding in this keymap.")
 (define-key bookmark-map "w" 'bookmark-write)  
 (define-key bookmark-map "s" 'bookmark-save)
 
+(defvar bookmark-alist ()
+  "Association list of bookmarks.
+You probably don't want to change the value of this alist yourself;
+instead, let the various bookmark functions do it for you.")
+
 ;; just add the hook to make sure that people don't lose bookmarks
 ;; when they kill Emacs, unless they don't want to save them.
 
@@ -154,11 +159,6 @@ bookmark-file, which is `~/.emacs-bkmrks' by default.")
 
 (defvar bookmark-search-size 500 
   "Length of the context strings recorded on either side of a bookmark.")
-
-(defvar bookmark-alist ()
-  "Association list of bookmarks.
-You probably don't want to change the value of this alist yourself;
-instead, let the various bookmark functions do it for you.")
 
 (defvar bookmark-current-point 0)
 (defvar bookmark-yank-point 0)
