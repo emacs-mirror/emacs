@@ -1684,7 +1684,7 @@ key		binding
   (interactive)
   (let ((package quail-current-package)
 	(str (buffer-substring (overlay-start quail-conv-overlay)
-				 (overlay-end quail-conv-overlay))))
+			       (overlay-end quail-conv-overlay))))
     (with-output-to-temp-buffer "*Quail-Help*"
       (save-excursion
 	(set-buffer standard-output)
@@ -1694,7 +1694,7 @@ key		binding
 	  (princ " in Quail mode.\n")
 	  (quail-help-insert-keymap-description
 	   (quail-conversion-keymap)
-       "-----------------------
+	   "-----------------------
 key		binding
 ---		-------\n"))
 	(help-mode)))))
