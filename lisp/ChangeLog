@@ -1,5 +1,7 @@
 2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* play/zone.el (zone, zone-pgm-stress): Don't use window-system.
+
 	* hi-lock.el (hi-lock-unface-buffer): If a menu of regexps is
 	popped up, but the user clicks outside the menu, return an empty
 	regexp (that causes unhighlight-regexp to have no effect).
