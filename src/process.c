@@ -2812,6 +2812,10 @@ read_process_output (proc, channel)
 	  if (NILP (p->encode_coding_system))
 	    {
 	      p->encode_coding_system = coding->symbol;
+	      if (!proc_encode_coding_system[p->outfd])
+		proc_encode_coding_system[p->outfd]
+		  = ((struct coding_system *)
+		     xmalloc (sizeof (struct coding_system)));
 	      setup_coding_system (coding->symbol,
 				   proc_encode_coding_system[p->outfd]);
 	    }
