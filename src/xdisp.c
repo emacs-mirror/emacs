@@ -2037,13 +2037,17 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       /* Find where PT is located now on the frame.  */
       /* Check just_this_one as a way of verifying that the 
 	 window edges have not changed.  */
-      if (PT == XFASTINT (w->last_point) && just_this_one)
+      if (PT == XFASTINT (w->last_point) && just_this_one
+	  /* If CURSOR_IN_ECHO_AREA, last_point_x and last_point_y
+	     refer to the echo area and are not related to this window.  */
+	  && ! cursor_in_echo_area)
 	{
 	  pos.hpos = last_point_x;
 	  pos.vpos = last_point_y;
 	  pos.bufpos = PT;
 	}
       else if (PT > XFASTINT (w->last_point)
+	       && ! cursor_in_echo_area
 	       && XFASTINT (w->last_point) > startp && just_this_one
 	       /* We can't use this if point is in the left margin of a
 		  hscrolled window, because w->last_point_x has been
