@@ -11449,7 +11449,12 @@ x_new_font (f, fontname)
 		f->output_data.x->font->fid);
 
       frame_update_line_height (f);
-      x_set_window_size (f, 0, f->width, f->height);
+
+      /* Don't change the size of a tip frame; there's no point in
+	 doing it because it's done in Fx_show_tip, and it leads to
+	 problems because the tip frame has no widget.  */
+      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+	x_set_window_size (f, 0, f->width, f->height);
     }
   else
     /* If we are setting a new frame's font for the first time,
