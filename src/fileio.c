@@ -1251,7 +1251,7 @@ See also the function `substitute-in-file-name'.")
       /* Get rid of any slash at the end of newdir, unless newdir is
        just // (an incomplete UNC name). */
       length = strlen (newdir);
-      if (IS_DIRECTORY_SEP (newdir[length - 1])
+      if (length > 0 && IS_DIRECTORY_SEP (newdir[length - 1])
 #ifdef WINDOWSNT
 	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
 #endif
