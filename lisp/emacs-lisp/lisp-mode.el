@@ -1079,8 +1079,7 @@ and initial semicolons."
        ;; A line with nothing but a comment on it?
        ((looking-at "[ \t]*;[; \t]*")
 	(setq has-comment t
-	      comment-fill-prefix (buffer-substring (match-beginning 0)
-						    (match-end 0))))
+	      comment-fill-prefix (match-string 0)))
 
        ;; A line with some code, followed by a comment?  Remember that the
        ;; semi which starts the comment shouldn't be part of a string or
@@ -1093,7 +1092,7 @@ and initial semicolons."
 	(setq comment-fill-prefix
 	      (concat (make-string (/ (current-column) tab-width) ?\t)
 		      (make-string (% (current-column) tab-width) ?\ )
-		      (buffer-substring (match-beginning 0) (match-end 0)))))))
+		      (match-string 0))))))
 
     (if (not has-comment)
         ;; `paragraph-start' is set here (not in the buffer-local
@@ -1131,13 +1130,11 @@ and initial semicolons."
 	     (point)))
 
 	  ;; Lines with only semicolons on them can be paragraph boundaries.
-	  (let* ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
-		 (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
+	  (let* ((paragraph-separate (concat paragraph-separate "\\|[ \t;]*$"))
 		 (paragraph-ignore-fill-prefix nil)
 		 (fill-prefix comment-fill-prefix)
 		 (after-line (if has-code-and-comment
-				 (save-excursion
-				   (forward-line 1) (point))))
+				 (line-beginning-position 2)))
 		 (end (progn
 			(forward-paragraph)
 			(or (bolp) (newline 1))
@@ -1154,8 +1151,7 @@ and initial semicolons."
 					(goto-char beg)
 					(if (looking-at fill-prefix)
 					    nil
-					  (re-search-forward comment-start-skip)
-					  (point))))))))
+					  (re-search-forward comment-start-skip))))))))
     t))
 
 (defun indent-code-rigidly (start end arg &optional nochange-regexp)
