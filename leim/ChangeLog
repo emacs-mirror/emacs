@@ -1,3 +1,9 @@
+2002-03-03  Werner Lemberg  <wl@gnu.org>
+
+	* quail/vntelex.el: New file.
+	* Makefile.in (VIETNAMESE), makefile.nt (VIETNAMESE),
+	makefile.w32-in (VIETNAMESE): Add it.
+
 2002-02-10  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(TIT)): Don't depend on $(SUBDIRS).
