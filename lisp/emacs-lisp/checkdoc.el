@@ -1,6 +1,6 @@
 ;;; checkdoc --- Check documentation strings for style requirements
 
-;;;  Copyright (C) 1997, 1998  Free Software Foundation
+;;;  Copyright (C) 1997, 1998, 2001  Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -340,6 +340,7 @@ This should be set in an Emacs Lisp file's local variables."
     ("changes" . "change")
     ("checks" . "check")
     ("contains" . "contain")
+    ("converts" . "convert")
     ("creates" . "create")
     ("destroys" . "destroy")
     ("disables" . "disable")
