@@ -455,7 +455,7 @@ adding more Texinfo files to the `word-help' system."
 ;;; Changing help file
 
 ;;;###autoload
-(defun set-help-file ()
+(defun set-word-help-file ()
   "Change which set of Texinfo files used for word-help.
 
 `word-help' maintains a list over which Texinfo files which are
