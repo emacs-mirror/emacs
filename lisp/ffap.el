@@ -1355,7 +1355,9 @@ See <ftp://ftp.mathcs.emory.edu/pub/mic/emacs/> for latest version."
 				filename))))))
 
 ;; Shortcut: allow {M-x ffap} rather than {M-x find-file-at-point}.
-;;;###autoload(defalias 'ffap 'find-file-at-point)
+;;;###autoload
+(defalias 'ffap 'find-file-at-point)
+
 
 ;;; Menu support (`ffap-menu'):
 
