@@ -1,3 +1,8 @@
+2000-09-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (read_process_output): Before inserting the decoded
+	text in the buffer, adjust the multibyteness.
+
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (set_buffer_internal_1) [REL_ALLOC_MMAP]: If 
