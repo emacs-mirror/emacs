@@ -1215,6 +1215,63 @@ specifies the value of ERROR-BUFFER."
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
+(defun display-message-or-buffer (message
+				  &optional buffer-name not-this-window frame)
+  "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
+MESSAGE may be either a string or a buffer.
+
+A buffer is displayed using `display-buffer' if MESSAGE is too long for
+the maximum height of the echo area, as defined by `max-mini-window-height'.
+
+If MESSAGE is a string, then the optional argument BUFFER-NAME is the
+name of the buffer used to display it in the case where a pop-up buffer
+is used, defaulting to `*Message*'.  In the case where MESSAGE is a
+string and it is displayed in the echo area, it is not specified whether
+the contents are inserted into the buffer anyway.
+
+Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
+and only used if a buffer is displayed."
+  (cond ((and (stringp message) (not (string-match "\n" message)))
+	 ;; Trivial case where we can use the echo area
+	 (message "%s" message))
+	((and (stringp message)
+	      (= (string-match "\n" message) (1- (length message))))
+	 ;; Trivial case where we can just remove single trailing newline
+	 (message "%s" (substring message 0 (1- (length message)))))
+	(t
+	 ;; General case
+	 (with-current-buffer
+	     (if (bufferp message)
+		 message
+	       (get-buffer-create (or buffer-name "*Message*")))
+
+	   (unless (bufferp message)
+	     (erase-buffer)
+	     (insert message))
+
+	   (let ((lines
+		  (if (= (buffer-size) 0)
+		      0
+		    (count-lines (point-min) (point-max)))))
+	     (cond ((or (<= lines 1)
+			(<= lines
+			    (cond ((floatp max-mini-window-height)
+				   (* (frame-height) max-mini-window-height))
+				  ((integerp max-mini-window-height)
+				   max-mini-window-height)
+				  (t
+				   1))))
+		    ;; Echo area
+		    (goto-char (point-max))
+		    (when (bolp)
+		      (backward-char 1))
+		    (message "%s" (buffer-substring (point-min) (point))))
+		   (t
+		    ;; Buffer
+		    (goto-char (point-min))
+		    (display-buffer message not-this-window frame))))))))
+
+
 ;; We have a sentinel to prevent insertion of a termination message
 ;; in the buffer itself.
 (defun shell-command-sentinel (process signal)
@@ -1345,42 +1402,17 @@ specifies the value of ERROR-BUFFER."
 					 nil shell-command-switch command)))
 	  (setq success (and exit-status (equal 0 exit-status)))
 	  ;; Report the amount of output.
-	  (let ((lines (save-excursion
-			 (set-buffer buffer)
-			 (if (= (buffer-size) 0)
-			     0
-			   (count-lines (point-min) (point-max))))))
-	    (cond ((= lines 0)
-		   (if (and error-file
-			    (< 0 (nth 7 (file-attributes error-file))))
-		       (message "(Shell command %sed with some error output)"
-				(if (equal 0 exit-status)
-				    "succeed"
-				  "fail"))
-		     (message "(Shell command %sed with no output)"
-			      (if (equal 0 exit-status)
-				  "succeed"
-				"fail")))
-		   (kill-buffer buffer))
-		  ((or (= lines 1)
-		       (<= lines
-			   (cond ((floatp max-mini-window-height)
-				  (* (frame-height) max-mini-window-height))
-				 ((integerp max-mini-window-height)
-				  max-mini-window-height)
-				 (t
-				  1))))
-		   (message "%s"
-			    (with-current-buffer buffer
-			      (goto-char (point-max))
-			      (when (bolp)
-				(backward-char 1))
-			      (buffer-substring (point-min) (point)))))
-		  (t
-		   (save-excursion
-		     (set-buffer buffer)
-		     (goto-char (point-min)))
-		   (display-buffer buffer)))))))
+	  (if (with-current-buffer buffer (> (point-max) (point-min)))
+	      ;; There's some output, display it
+	      (display-message-or-buffer buffer)
+	    ;; No output; error?
+	    (message (if (and error-file
+			      (< 0 (nth 7 (file-attributes error-file))))
+			 "(Shell command %sed with some error output)"
+		       "(Shell command %sed with no output)")
+		     (if (equal 0 exit-status) "succeed" "fail"))
+	    (kill-buffer buffer)))))
+
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (nth 7 (file-attributes error-file)))
 	  (with-current-buffer (get-buffer-create error-buffer)
