@@ -98,6 +98,10 @@ extern Widget Xt_app_shell;
 extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
 
+#ifndef USE_X_TOOLKIT
+#define x_any_window_to_frame x_window_to_frame
+#endif
+
 #ifdef HAVE_X11
 #define XMapWindow XMapRaised		/* Raise them when mapping. */
 #else /* ! defined (HAVE_X11) */
@@ -1619,31 +1623,6 @@ x_find_modifier_meanings ()
   XFreeModifiermap (mods);
 }
 
-/* Prepare a menu-event in *RESULT for placement in the input queue.  */
-
-static Lisp_Object
-construct_menu_click (result, event, f)
-     struct input_event *result;
-     XButtonEvent *event;
-     struct frame *f;
-{
-  /* Make the event type no_event; we'll change that when we decide
-     otherwise.  */
-  result->kind = mouse_click;
-  XSET (result->code, Lisp_Int, event->button - Button1);
-  result->timestamp = event->time;
-  result->modifiers = (x_x_to_emacs_modifiers (event->state)
-		       | (event->type == ButtonRelease
-			  ? up_modifier 
-			  : down_modifier));
-
-  {
-    XFASTINT (result->x) = event->x;
-    XFASTINT (result->y) = -1;    /* special meaning for menubar */
-    XSET (result->frame_or_window, Lisp_Frame, f);
-  }
-}
-
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 static unsigned int
@@ -1779,6 +1758,34 @@ construct_mouse_click (result, event, f)
     pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
     XFASTINT (result->x) = column;
     XFASTINT (result->y) = row;
+    XSET (result->frame_or_window, Lisp_Frame, f);
+  }
+}
+
+/* Prepare a menu-event in *RESULT for placement in the input queue.  */
+
+static Lisp_Object
+construct_menu_click (result, event, f)
+     struct input_event *result;
+     XButtonEvent *event;
+     struct frame *f;
+{
+  /* Make the event type no_event; we'll change that when we decide
+     otherwise.  */
+  result->kind = mouse_click;
+  XSET (result->code, Lisp_Int, event->button - Button1);
+  result->timestamp = event->time;
+  result->modifiers = (x_x_to_emacs_modifiers (event->state)
+		       | (event->type == ButtonRelease
+			  ? up_modifier 
+			  : down_modifier));
+
+  {
+    int row, column;
+
+    pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
+    XFASTINT (result->x) = column;
+    XFASTINT (result->y) = -1;
     XSET (result->frame_or_window, Lisp_Frame, f);
   }
 }
@@ -4289,6 +4296,17 @@ x_check_errors (format)
       x_uncatch_errors ();
       error (buf);
     }
+}
+
+/* Nonzero if we had any X protocol errors since we did x_catch_errors.  */
+
+int
+x_had_errors_p ()
+{
+  /* Make sure to catch any errors incurred so far.  */
+  XSync (x_current_display, False);
+
+  return x_caught_error_message[0] != 0;
 }
 
 /* Stop catching X protocol errors and let them make Emacs die.  */
