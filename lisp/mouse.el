@@ -579,9 +579,7 @@ If you do this twice in the same position, the selection is killed."
 	      ;; We have already put the old region in the kill ring.
 	      ;; Replace it with the extended region.
 	      ;; (It would be annoying to make a separate entry.)
-	      (setcar kill-ring (buffer-substring (point) (mark t)))
-	      (if interprogram-cut-function
-		  (funcall interprogram-cut-function (car kill-ring)))
+	      (kill-new (buffer-substring (point) (mark t)) t)
 	      ;; Arrange for a repeated mouse-3 to kill this region.
 	      (setq mouse-save-then-kill-posn
 		    (list (car kill-ring) (point) click-posn))
@@ -619,9 +617,7 @@ If you do this twice in the same position, the selection is killed."
 			(goto-char new)
 		      (set-mark new))
 		    (setq deactivate-mark nil)))
-	      (setcar kill-ring (buffer-substring (point) (mark t)))
-	      (if interprogram-cut-function
-		  (funcall interprogram-cut-function (car kill-ring))))
+	      (kill-new (buffer-substring (point) (mark t)) t))
 	  ;; We just have point, so set mark here.
 	  (mouse-set-mark-fast click)
 	  (kill-ring-save (point) (mark t))
@@ -849,11 +845,9 @@ again.  If you do this twice in the same position, it kills the selection."
 		;; We have already put the old region in the kill ring.
 		;; Replace it with the extended region.
 		;; (It would be annoying to make a separate entry.)
-		(setcar kill-ring (buffer-substring
-				   (overlay-start mouse-secondary-overlay)
-				   (overlay-end mouse-secondary-overlay)))
-		(if interprogram-cut-function
-		    (funcall interprogram-cut-function (car kill-ring)))
+		(kill-new (buffer-substring
+			   (overlay-start mouse-secondary-overlay)
+			   (overlay-end mouse-secondary-overlay)) t)
 		;; Arrange for a repeated mouse-3 to kill this region.
 		(setq mouse-save-then-kill-posn
 		      (list (car kill-ring) (point) click-posn)))
@@ -894,17 +888,13 @@ again.  If you do this twice in the same position, it kills the selection."
 				      click-posn))
 		      (setq deactivate-mark nil)))
 		(if (eq last-command 'mouse-secondary-save-then-kill)
-		    (progn
-		      ;; If the front of the kill ring comes from 
-		      ;; an immediately previous use of this command,
-		      ;; replace it with the extended region.
-		      ;; (It would be annoying to make a separate entry.)
-		      (setcar kill-ring
-			      (buffer-substring
+		    ;; If the front of the kill ring comes from 
+		    ;; an immediately previous use of this command,
+		    ;; replace it with the extended region.
+		    ;; (It would be annoying to make a separate entry.)
+		    (kill-new (buffer-substring
 			       (overlay-start mouse-secondary-overlay)
-			       (overlay-end mouse-secondary-overlay)))
-		      (if interprogram-cut-function
-			  (funcall interprogram-cut-function (car kill-ring))))
+			       (overlay-end mouse-secondary-overlay)) t)
 		  (copy-region-as-kill (overlay-start mouse-secondary-overlay)
 				       (overlay-end mouse-secondary-overlay))))
 	    (if mouse-secondary-start
