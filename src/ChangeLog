@@ -1,3 +1,8 @@
+2004-04-26  Steven Tamm  <steventamm@mac.com>
+	* lread.c (init_lread): Don't display missing lisp directory
+	warnings with Carbon Emacs because self-contained bundled Emacs
+	may be build without correct installation path.
+
 2004-04-25  Kim F. Storm  <storm@cua.dk>
 
 	* macterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
