@@ -410,7 +410,7 @@ KEY does not have to be a symbol, and comparison is done with equal."
   "Return t if NAME is the name of menu item ITEM.
 NAME can be either a string, or a symbol."
   (if (consp item)
-      (if (symbolp name) 
+      (if (symbolp name)
 	  (eq (car-safe item) name)
 	(if (stringp name)
 	    ;; Match against the text that is displayed to the user.
@@ -434,7 +434,7 @@ When non-nil, NOEXP indicates that CALLBACK cannot be an expression
 	 (make-symbol (format "menu-function-%d" easy-menu-item-count))))
     (setq easy-menu-item-count (1+ easy-menu-item-count))
     (fset command
-	  (if (or (keymapp callback) noexp) callback
+	  (if (or (keymapp callback) (functionp callback) noexp) callback
 	    `(lambda () (interactive) ,callback)))
     command))
 
