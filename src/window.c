@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 96 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,96,1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
