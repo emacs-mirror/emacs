@@ -437,6 +437,47 @@ some extra checks, such as look for broken relations between byte and
 character positions in buffers and strings; the resulting diagnostics
 might pinpoint the cause of the problem.
 
+** Running Emacs built with malloc debugging packages
+
+If Emacs exhibits bugs that seem to be related to use of memory
+allocated off the heap, it might be useful to link Emacs with a
+special debugging library, such as Electric Fence (a.k.a. efence) or
+GNU Checker, which helps find such problems.
+
+Emacs compiled with such packages might not run without some hacking,
+because Emacs replaces the system's memory allocation functions with
+its own versions, and because the dumping process might be
+incompatible with the way these packages use to track allocated
+memory.  Here are some of the changes you might find necessary
+(SYSTEM-NAME and MACHINE-NAME are the names of your OS- and
+CPU-specific headers in the subdirectories of `src'):
+
+  - In src/s/SYSTEM-NAME.h add "#define SYSTEM_MALLOC".
+
+  - In src/m/MACHINE-NAME.h add "#define CANNOT_DUMP" and
+    "#define CANNOT_UNEXEC".
+
+  - Configure with a different --prefix= option.  If you use GCC,
+    version 2.7.2 is preferred, as some malloc debugging packages
+    work a lot better with it than with 2.95 or later versions.
+
+  - Type "make" then "make -k install".
+
+  - If required, invoke the package-specific command to prepare
+    src/temacs for execution.
+
+  - cd ..; src/temacs
+
+(Note that this runs `temacs' instead of the usual `emacs' executable.
+This avoids problems with dumping Emacs mentioned above.)
+
+Some malloc debugging libraries might print lots of false alarms for
+bitfields used by Emacs in some data structures.  If you want to get
+rid of the false alarms, you will have to hack the definitions of
+these data structures on the respective headers to remove the `:N'
+bitfield definitions (which will cause each such field to use a full
+int).
+
 ** Some suggestions for debugging on MS Windows:
 
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
