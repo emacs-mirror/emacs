@@ -203,7 +203,7 @@ char *tparam ();
 
 ring_bell ()
 {
-  if (! FRAME_IS_TERMCAP (selected_frame))
+  if (! FRAME_TERMCAP_P (selected_frame))
     {
       (*ring_bell_hook) ();
       return;
@@ -213,7 +213,7 @@ ring_bell ()
 
 set_terminal_modes ()
 {
-  if (! FRAME_IS_TERMCAP (selected_frame))
+  if (! FRAME_TERMCAP_P (selected_frame))
     {
       (*set_terminal_modes_hook) ();
       return;
@@ -226,7 +226,7 @@ set_terminal_modes ()
 
 reset_terminal_modes ()
 {
-  if (! FRAME_IS_TERMCAP (selected_frame))
+  if (! FRAME_TERMCAP_P (selected_frame))
     {
       (*reset_terminal_modes_hook) ();
       return;
@@ -249,14 +249,14 @@ update_begin (f)
      FRAME_PTR f;
 {
   updating_frame = f;
-  if (! FRAME_IS_TERMCAP (updating_frame))
+  if (! FRAME_TERMCAP_P (updating_frame))
     (*update_begin_hook) (f);
 }
 
 update_end (f)
      FRAME_PTR f;
 {
-  if (! FRAME_IS_TERMCAP (updating_frame))
+  if (! FRAME_TERMCAP_P (updating_frame))
     {
       (*update_end_hook) (f);
       updating_frame = 0;
@@ -271,7 +271,7 @@ update_end (f)
 set_terminal_window (size)
      int size;
 {
-  if (! FRAME_IS_TERMCAP (updating_frame))
+  if (! FRAME_TERMCAP_P (updating_frame))
     {
       (*set_terminal_window_hook) (size);
       return;
@@ -406,7 +406,7 @@ reassert_line_highlight (highlight, vpos)
      int highlight;
      int vpos;
 {
-  if (! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
+  if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
     {
       (*reassert_line_highlight_hook) (highlight, vpos);
       return;
@@ -427,7 +427,7 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
      int new_highlight, vpos, first_unused_hpos;
 {
   standout_requested = new_highlight;
-  if (! FRAME_IS_TERMCAP (updating_frame))
+  if (! FRAME_TERMCAP_P (updating_frame))
     {
       (*change_line_highlight_hook) (new_highlight, vpos, first_unused_hpos);
       return;
@@ -462,7 +462,7 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
 cursor_to (row, col)
      int row, col;
 {
-  if (! FRAME_IS_TERMCAP ((updating_frame
+  if (! FRAME_TERMCAP_P ((updating_frame
 			    ? updating_frame
 			    : selected_frame))
       && cursor_to_hook)
@@ -486,7 +486,7 @@ cursor_to (row, col)
 raw_cursor_to (row, col)
      int row, col;
 {
-  if (! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
+  if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
     {
       (*raw_cursor_to_hook) (row, col);
       return;
@@ -507,7 +507,7 @@ clear_to_end ()
 {
   register int i;
 
-  if (clear_to_end_hook && FRAME_IS_TERMCAP (updating_frame))
+  if (clear_to_end_hook && FRAME_TERMCAP_P (updating_frame))
     {
       (*clear_to_end_hook) ();
       return;
@@ -533,7 +533,7 @@ clear_to_end ()
 clear_frame ()
 {
   if (clear_frame_hook
-      && ! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
+      && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
     {
       (*clear_frame_hook) ();
       return;
@@ -563,7 +563,7 @@ clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
   static GLYPH buf[1] = {SPACEGLYPH};
-  if (FRAME_IS_TERMCAP (selected_frame)
+  if (FRAME_TERMCAP_P (selected_frame)
       && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
     write_glyphs (buf, 1);
   clear_end_of_line_raw (first_unused_hpos);
@@ -581,7 +581,7 @@ clear_end_of_line_raw (first_unused_hpos)
   register int i;
 
   if (clear_end_of_line_hook
-      && ! FRAME_IS_TERMCAP ((updating_frame
+      && ! FRAME_TERMCAP_P ((updating_frame
 			       ? updating_frame
 			       : selected_frame)))
     {
@@ -629,7 +629,7 @@ write_glyphs (string, len)
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
   if (write_glyphs_hook
-      && ! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
+      && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
     {
       (*write_glyphs_hook) (string, len);
       return;
@@ -696,7 +696,7 @@ insert_glyphs (start, len)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
-  if (insert_glyphs_hook && ! FRAME_IS_TERMCAP (updating_frame))
+  if (insert_glyphs_hook && ! FRAME_TERMCAP_P (updating_frame))
     {
       (*insert_glyphs_hook) (start, len);
       return;
@@ -751,7 +751,7 @@ delete_glyphs (n)
   char *buf;
   register int i;
 
-  if (delete_glyphs_hook && ! FRAME_IS_TERMCAP (updating_frame))
+  if (delete_glyphs_hook && ! FRAME_TERMCAP_P (updating_frame))
     {
       (*delete_glyphs_hook) (n);
       return;
@@ -792,7 +792,7 @@ ins_del_lines (vpos, n)
   register int i = n > 0 ? n : -n;
   register char *buf;
 
-  if (ins_del_lines_hook && ! FRAME_IS_TERMCAP (updating_frame))
+  if (ins_del_lines_hook && ! FRAME_TERMCAP_P (updating_frame))
     {
       (*ins_del_lines_hook) (vpos, n);
       return;
@@ -996,7 +996,7 @@ calculate_costs (frame)
     return;
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (frame))
+  if (FRAME_X_P (frame))
     {
       do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
 					0, 0, x_screen_planes);
