@@ -1,4 +1,4 @@
-2001-02-17  Richard M. Stallman  <rms@psilocin.ai.mit.edu>
+2001-02-17  Richard M. Stallman  <rms@gnu.org>
 
 	* uniquify.el (uniquify-buffer-name-style): Doc fix.
 
