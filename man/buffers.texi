@@ -429,6 +429,7 @@ whose name is @var{indirect-name} and whose text is identical to that of
 the buffer @var{base-buffer}.  It prompts for both @var{base-buffer} and
 @var{indirect-name}.
 
+@cindex multiple @samp{*info*} and @samp{*Help*} buffers
   The command @kbd{M-x clone-indirect-buffer} creates an indirect buffer
 whose base buffer is the current buffer, and also selects the
 newly-created indirect buffer.  With a numeric argument, it prompts for
@@ -436,7 +437,8 @@ the name of the indirect buffer; otherwise it defaults to the name of
 the current buffer, modifying it by adding a @samp{<@var{n}>} prefix if
 required.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
 works like @kbd{M-x clone-indirect-buffer}, but it selects the cloned
-buffer in another window.
+buffer in another window.  These commands come in handy if you want to
+create new @samp{*info*} or @samp{*Help*} buffers, for example.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling
