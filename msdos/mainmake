@@ -46,7 +46,7 @@ install: all
 	coff2exe etags
 	coff2exe ctags
 	coff2exe b2m
-	mv -f *.exe ../bin/
+	mv -f hexl.exe etags.exe ctags.exe b2m.exe ../bin/
 	cd ..
 	cd src
 	coff2exe emacs
