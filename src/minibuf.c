@@ -87,6 +87,10 @@ Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
 
 int completion_ignore_case;
 
+/* List of regexps that should restrict possible completions.  */
+
+Lisp_Object Vcompletion_regexp_list;
+
 /* Nonzero means raise the minibuffer frame when the minibuffer
    is entered.  */
 
@@ -656,12 +660,27 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       /* Is this element a possible completion? */
 
-      if (XTYPE (eltstring) == Lisp_String &&
-	  XSTRING (string)->size <= XSTRING (eltstring)->size &&
-	  0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		    XSTRING (string)->size))
+      if (XTYPE (eltstring) == Lisp_String
+	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
+		       XSTRING (string)->size))
 	{
 	  /* Yes. */
+	  Lisp_Object regexps;
+	  Lisp_Object zero;
+	  XFASTINT (zero) = 0;
+
+	  /* Ignore this element if it fails to match all the regexps.  */
+	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+	       regexps = XCONS (regexps)->cdr)
+	    {
+	      tem = Fstring_match (XCONS (regexps)->car, eltstring, zero);
+	      if (NILP (tem))
+		break;
+	    }
+	  if (CONSP (regexps))
+	    continue;
+
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
@@ -855,6 +874,21 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 		       XSTRING (string)->size))
 	{
 	  /* Yes. */
+	  Lisp_Object regexps;
+	  Lisp_Object zero;
+	  XFASTINT (zero) = 0;
+
+	  /* Ignore this element if it fails to match all the regexps.  */
+	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+	       regexps = XCONS (regexps)->cdr)
+	    {
+	      tem = Fstring_match (XCONS (regexps)->car, eltstring, zero);
+	      if (NILP (tem))
+		break;
+	    }
+	  if (CONSP (regexps))
+	    continue;
+
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
@@ -1580,6 +1614,10 @@ Each minibuffer output is added with\n\
   DEFVAR_BOOL ("minibuffer-auto-raise", &minibuffer_auto_raise,
     "*Non-nil means entering the minibuffer raises the minibuffer's frame.");
   minibuffer_auto_raise = 0;
+
+  DEFVAR_LISP ("completion-regexp-list", &Vcompletion_regexp_list,
+    "List of regexps that should restrict possible completions.");
+  Vcompletion_regexp_list = Qnil;
 
   defsubr (&Sread_from_minibuffer);
   defsubr (&Seval_minibuffer);
