@@ -2103,7 +2103,7 @@ use \\[universal-argument] \\[vc-next-action] to do so."
      file
      (vc-call revert file)
      `((vc-state up-to-date)
-       (vc-checkout-time (nth 5 (file-attributes file)))))
+       (vc-checkout-time ,(nth 5 (file-attributes file)))))
     (vc-resynch-buffer file t t)
     (message "Reverting %s...done" file)))
 
