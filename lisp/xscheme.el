@@ -1,4 +1,4 @@
-;;; xscheme.el --- run Scheme under Emacs
+;;; xscheme.el --- run MIT Scheme under Emacs
 
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
