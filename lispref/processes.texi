@@ -1498,7 +1498,7 @@ back to listening for more connection requests.
 @code{make-network-process} with an argument list consisting of
 keyword/argument pairs, for example @code{:server t} to create a
 server process, or @code{:type 'datagram} to create a datagram
-connection.  @xref{Low-Level Network} for details.  You can also use
+connection.  @xref{Low-Level Network}, for details.  You can also use
 one of the @code{open-network-...} functions descibed below;
 internally, they just call @code{make-network-process} with suitable
 arguments.
