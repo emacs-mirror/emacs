@@ -156,6 +156,10 @@ This mirrors the optional behavior of tcsh.
 
 Detecting executability of files may slow command completion considerably.")
 
+(defvar shell-buffer-maximum-size 1024
+  "*The maximum size in lines for shell buffers.
+Shell buffers are truncated from the top to be no greater than this number.")
+
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
 
@@ -249,16 +253,19 @@ Thus, this does not include the shell's current directory.")
 
 (defun shell-mode ()
   "Major mode for interacting with an inferior shell.
-Return after the end of the process' output sends the text from the 
-    end of process to the end of the current line.
-Return before end of process output copies the current line (except
-    for the prompt) to the end of the buffer and sends it.
+\\[comint-send-input] after the end of the process' output sends the text from
+    the end of process to the end of the current line.
+\\[comint-send-input] before end of process output copies the current line minus the prompt to
+    the end of the buffer and sends it (\\[comint-copy-old-input] just copies the current line).
 \\[send-invisible] reads a line of text without echoing it, and sends it to
     the shell.  This is useful for entering passwords.  Or, add the function
     `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
 If you want to make multiple shell buffers, rename the `*shell*' buffer
 using \\[rename-buffer] or \\[rename-uniquely] and start a new shell.
+
+If you want to make shell buffers limited in length, add the function
+`shell-truncate-buffer' to `comint-output-filter-functions'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -623,6 +630,14 @@ command again."
 	(setq msg (concat msg (directory-file-name dir) " "))
 	(setq ds (cdr ds))))
     (message msg)))
+
+(defun shell-truncate-buffer (string)
+  "Truncate the buffer to `shell-buffer-maximum-size'."
+  (save-excursion
+    (goto-char (point-max))
+    (forward-line (- shell-buffer-maximum-size))
+    (beginning-of-line)
+    (delete-region (point-min) (point))))
 
 (defun shell-forward-command (&optional arg)
   "Move forward across ARG shell command(s).  Does not cross lines.
