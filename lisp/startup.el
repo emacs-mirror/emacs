@@ -85,8 +85,7 @@
 ;; --iconic                  This option is passed on to term/x-win.el
 ;; -------------------------
 ;; Various X options for colors/fonts/geometry/title etc.
-;; These options are passed on to term/x-win.el which see.  Certain
-;; of these are also found in term/pc-win.el
+;; These options are passed on to term/x-win.el which see.
 ;; -------------------------
 ;; FILE                      Visit FILE.
 ;; -visit FILE
