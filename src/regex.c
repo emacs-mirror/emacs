@@ -3710,13 +3710,13 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
     range = total_size - startpos;
 
   /* If the search isn't to be a backwards one, don't waste time in a
-     search for a pattern that must be anchored.  */
+     search for a pattern anchored at beginning of buffer.  */
   if (bufp->used > 0 && (re_opcode_t) bufp->buffer[0] == begbuf && range > 0)
     {
       if (startpos > 0)
 	return -1;
       else
-	range = 1;
+	range = 0;
     }
 
 #ifdef emacs
@@ -3724,8 +3724,8 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
      don't keep searching past point.  */
   if (bufp->used > 0 && (re_opcode_t) bufp->buffer[0] == at_dot && range > 0)
     {
-      range = PT - startpos;
-      if (range <= 0)
+      range = PT_BYTE - BEGV_BYTE - startpos;
+      if (range < 0)
 	return -1;
     }
 #endif /* emacs */
