@@ -1,9 +1,9 @@
 /* impl.c.vmxc: VIRTUAL MEMORY MAPPING FOR MacOS X
  *
- * $HopeName: MMsrc!vmxc.c(MM_epcore_brisling.2) $
+ * $HopeName: MMsrc!vmxc.c(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * Design: design.mps.vm
+ * .design: design.mps.vm
  *
  * .details: mmap(2) is used to reserve address space by creating a
  * mapping to the swap with page access none.  mmap(2) is used to map
@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <limits.h> /* for INT_MAX */
 
-SRCID(vmxc, "$HopeName: MMsrc!vmxc.c(MM_epcore_brisling.2) $");
+SRCID(vmxc, "$HopeName: MMsrc!vmxc.c(trunk.2) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -95,6 +95,7 @@ Res VMCreate(VM *vmReturn, Size size)
     return ResRESOURCE;
 
   /* Map in a page to store the descriptor on. */
+  AVER(sizeof(caddr_t) == sizeof(Addr)); /* verify address spaces match */
   addr = mmap((caddr_t)0, SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, (off_t)0);
   if(addr == (caddr_t)-1) {
@@ -198,7 +199,6 @@ Res VMMap(VM vm, Addr base, Addr limit)
   Size size;
 
   AVERT(VM, vm);
-  AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
@@ -239,12 +239,12 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
 
-  /* .unmap: Map /etc/passwd onto the area, allowing no access.  This */
+  /* .unmap: Map with MAP_ANON, allowing no access.  This */
   /* effectively depopulates the area from memory, but keeps */
   /* it "busy" as far as the OS is concerned, so that it will not */
   /* be re-used by other calls to mmap which do not specify */
   /* MAP_FIXED.  The offset is specified to mmap so that */
-  /* the OS merges this mapping with .map.reserve. */
+  /* the OS can merge this mapping with .map.reserve. */
   size = AddrOffset(base, limit);
   addr = mmap((caddr_t)base, (int)size,
               PROT_NONE, MAP_SHARED | MAP_FIXED | MAP_ANON,
