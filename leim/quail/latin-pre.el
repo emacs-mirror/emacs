@@ -25,9 +25,13 @@
 ;;; Commentary:
 
 ;; All key translation maps are copied from iso-acc.el.
-;; Latin-1-prefix: extra special characters added, adapted from the vim 
+;; latin-1-prefix: extra special characters added, adapted from the vim 
 ;;                 digraphs (from J.H.M.Dassen <jdassen@wi.leidenuniv.nl>)
 ;;                 by R.F. Smith <rsmith@xs4all.nl>
+;;
+;; polish-slash:
+;;  Author:	W,B3(Bodek Bzyl <matwb@univ.gda.pl>
+;;  Maintainer:	W,B3(Bodek Bzyl <matwb@univ.gda.pl>
 
 ;;; Code:
 
@@ -680,3 +684,30 @@ Key translation rules are:
  (".g" ?,Cu(B)
  (".z" ?,C?(B)
 )
+
+
+(quail-define-package
+ "polish-slash" "Polish" "PL>" nil
+ "Polish diacritics in Latin-2 encoding are input as `/[acelnosxzACELNOSXZ]'.
+For example, the character named `aogonek' is obtained by `/a'."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("/a" ?,B1(B)
+ ("/c" ?,Bf(B)
+ ("/e" ?,Bj(B)
+ ("/l" ?,B3(B)
+ ("/n" ?,Bq(B)
+ ("/o" ?,Bs(B) 
+ ("/s" ?,B6(B)
+ ("/x" ?,B<(B)
+ ("/z" ?,B?(B)
+ ("/A" ?,B!(B)
+ ("/C" ?,BF(B)
+ ("/E" ?,BJ(B)
+ ("/L" ?,B#(B)
+ ("/N" ?,BQ(B)
+ ("/O" ?,BS(B) 
+ ("/S" ?,B&(B)
+ ("/X" ?,B,(B)
+ ("/Z" ?,B/(B))
