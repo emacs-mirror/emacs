@@ -2332,10 +2332,6 @@ sys_dup2 (int src, int dst)
   return rc;
 }
 
-/* From callproc.c  */
-extern Lisp_Object Vbinary_process_input;
-extern Lisp_Object Vbinary_process_output;
-
 /* Unix pipe() has only one arg */
 int
 sys_pipe (int * phandles)
@@ -2352,14 +2348,10 @@ sys_pipe (int * phandles)
 
   if (rc == 0)
     {
-      flags = FILE_PIPE | FILE_READ;
-      if (!NILP (Vbinary_process_output))
-	flags |= FILE_BINARY;
+      flags = FILE_PIPE | FILE_READ | FILE_BINARY;
       fd_info[phandles[0]].flags = flags;
 
-      flags = FILE_PIPE | FILE_WRITE;
-      if (!NILP (Vbinary_process_input))
-	flags |= FILE_BINARY;
+      flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
       fd_info[phandles[1]].flags = flags;
     }
 
