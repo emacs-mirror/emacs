@@ -1148,7 +1148,6 @@ redisplay_window (window, just_this_one)
       try_window (window, startp);
       if (cursor_vpos < 0)
 	{
-	  /* ??? What should happen here if highlighting a region?  */
 	  /* If point does not appear, move point so it does appear */
 	  pos = *compute_motion (startp, 0,
 				((EQ (window, minibuf_window) && startp == 1)
@@ -1168,6 +1167,12 @@ redisplay_window (window, just_this_one)
 	      FRAME_CURSOR_X (f) = max (0, pos.hpos) + XFASTINT (w->left);
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
+	  /* If we are highlighting the region,
+	     then we just changed the region, so redisplay to show it.  */
+	  cancel_my_columns (XWINDOW (window));
+	  if (!NILP (Vtransient_mark_mode)
+	      && !NILP (current_buffer->mark_active))
+	    try_window (window, startp);
 	}
       goto done;
     }
