@@ -32,15 +32,15 @@
 ;; Emacs-specific methodology to DCL and TPU commands, so to alleviate
 ;; this pain, we provide `make-mms-derivative', which given a source
 ;; FILENAME (under `make-mms-derivative-root-dir'), inserts the file
-;; contents in a new buffer and loads FILENAME.2mms.  The elisp in the
-;; .2mms file can (do whatever -- it's emacs -- and) arrange to write
-;; out the modified buffer after FILENAME.2mms loading by using:
+;; contents in a new buffer and loads FILENAME-2mms.  The elisp in the
+;; -2mms file can (do whatever -- it's emacs -- and) arrange to write
+;; out the modified buffer after FILENAME-2mms loading by using:
 ;;
 ;;  (make-mms-derivative-data 'write-under-root RELATIVE-FILENAME)
 ;;
 ;; where RELATIVE-FILENAME is something like "src/descrip.mms_in_in".
 ;; Over the long run, the convenience procedures provided (see source)
-;; will be augmented by factoring maximally the .2mms files, squeezing
+;; will be augmented by factoring maximally the -2mms files, squeezing
 ;; as much algorithm out of those nasty heuristics as possible.  What
 ;; makes them nasty is not that they rely on the conventions of the
 ;; Emacs makefiles; that's no big deal.  What makes them nasty is that
@@ -100,7 +100,7 @@
         (file (expand-file-name file)))
     (unless (string-match (concat "^" root) file)
       (error "Not under root (%s)" root))
-    (let ((edits-filename (concat file ".2mms")))
+    (let ((edits-filename (concat file "-2mms")))
       (unless (file-exists-p edits-filename)
         (error "Could not find %s" edits-filename))
       (let* ((pre (+ (length root) (if (string= "/" (substring root -1)) 0 1)))
