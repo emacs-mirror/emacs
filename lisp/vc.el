@@ -1,11 +1,11 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.214 1998/03/31 18:08:36 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.215 1998/04/01 12:26:43 spiegel Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +32,7 @@
 ;; Paul Eggert <eggert@twinsun.com>, Sebastian Kremer <sk@thp.uni-koeln.de>,
 ;; and Richard Stallman contributed valuable criticism, support, and testing.
 ;; CVS support was added by Per Cederqvist <ceder@lysator.liu.se>
-;; in Jan-Feb 1994.  Further enhancements came from ttn.netcom.com and
+;; in Jan-Feb 1994.  Further enhancements came from ttn@netcom.com and
 ;; Andre Spiegel <spiegel@inf.fu-berlin.de>.
 ;;
 ;; Supported version-control systems presently include SCCS, RCS, and CVS.
@@ -540,9 +540,8 @@ before the filename."
       (message "Running %s on %s..." command file))
   (let ((obuf (current-buffer)) (camefrom (current-buffer))
 	(squeezed nil)
-	(vc-file (and file (vc-name file)))
 	(olddir default-directory)
-	status)
+	vc-file status)
     (set-buffer (get-buffer-create buffer))
     (set (make-local-variable 'vc-parent-buffer) camefrom)
     (set (make-local-variable 'vc-parent-buffer-name)
@@ -554,7 +553,7 @@ before the filename."
     (mapcar
      (function (lambda (s) (and s (setq squeezed (append squeezed (list s))))))
      flags)
-    (if (and vc-file (eq last 'MASTER))
+    (if (and (eq last 'MASTER) file (setq vc-file (vc-name file)))
 	(setq squeezed (append squeezed (list vc-file))))
     (if (and file (eq last 'WORKFILE))
 	(progn
@@ -893,8 +892,7 @@ before the filename."
 (defun vc-next-action-dired (file rev comment)
   ;; Do a vc-next-action-on-file on all the marked files, possibly 
   ;; passing on the log comment we've just entered.
-  (let ((configuration (current-window-configuration))
-	(dired-buffer (current-buffer))
+  (let ((dired-buffer (current-buffer))
 	(dired-dir default-directory))
     (dired-map-over-marks
      (let ((file (dired-get-filename)) p
@@ -906,10 +904,11 @@ before the filename."
        (vc-next-action-on-file file nil comment)
        (set-buffer dired-buffer)
        (setq default-directory dired-dir)
-       (vc-dired-update-line file)
-       (set-window-configuration configuration)
+       (dired-do-redisplay file)
+       (set-window-configuration vc-dired-window-configuration)
        (message "Processing %s...done" file))
-    nil t)))
+    nil t))
+  (dired-move-to-filename))
 
 ;; Here's the major entry point.
 
@@ -956,6 +955,8 @@ merge in the changes into your working copy."
   (catch 'nogo
     (if vc-dired-mode
 	(let ((files (dired-get-marked-files)))
+          (set (make-local-variable 'vc-dired-window-configuration)
+               (current-window-configuration))
 	  (if (string= "" 
 		 (mapconcat
 	             (function (lambda (f)
@@ -1231,11 +1232,14 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the *VC-log* buffer and the typing therein).
     (let ((logbuf (get-buffer "*VC-log*")))
-      (delete-windows-on logbuf)
-      (kill-buffer logbuf))
+      (cond (logbuf
+             (delete-windows-on logbuf)
+             (kill-buffer logbuf))))
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
+    (if vc-dired-mode 
+        (dired-move-to-filename))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;; Code for access to the comment ring
@@ -1568,42 +1572,69 @@ The conflicts must be marked with rcsmerge conflict markers."
 ;; All VC commands get mapped into logical equivalents.
 
 (define-derived-mode vc-dired-mode dired-mode "Dired under VC"
-  "The major mode used in VC directory buffers.  It is derived from Dired.
-All Dired commands operate normally.  Users currently locking listed files
-are listed in place of the file's owner and group.
-Keystrokes bound to VC commands will execute as though they had been called
-on a buffer attached to the file named in the current Dired buffer line."
+  "The major mode used in VC directory buffers.  It works like Dired,
+but lists only files under version control, with the current VC state of 
+each file being indicated in the place of the file's link count, owner, 
+group and size.  Subdirectories are also listed, and you may insert them 
+into the buffer as desired, like in Dired.
+  All Dired commands operate normally, with the exception of `v', which
+is redefined as the version control prefix, so that you can type 
+`vl', `v=' etc. to invoke `vc-print-log', `vc-diff', and the like on
+the file named in the current Dired buffer line.  `vv' invokes
+`vc-next-action' on this file, or on all files currently marked.
+There is a special command, `*l', to mark all files currently locked."
+  (make-local-variable 'dired-after-readin-hook)
+  (add-hook 'dired-after-readin-hook 'vc-dired-hook)
   (setq vc-dired-mode t))
 
 (define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
-(define-key vc-dired-mode-map "g" 'vc-dired-update)
+(define-key vc-dired-mode-map "v" vc-prefix-map)
 (define-key vc-dired-mode-map "=" 'vc-diff)
+
+(defun vc-dired-mark-locked ()
+  "Mark all files currently locked."
+  (interactive)
+  (dired-mark-if (let ((f (dired-get-filename nil t)))
+		   (and f
+			(not (file-directory-p f))
+			(vc-locking-user f)))
+		 "locked file"))
+
+(define-key vc-dired-mode-map "*l" 'vc-dired-mark-locked)
+
+(defun vc-fetch-cvs-status (dir)
+  (let ((default-directory dir))
+    (vc-do-command "*vc-info*" 0 "cvs" nil nil "status" dir)
+    (save-excursion
+      (set-buffer (get-buffer "*vc-info*"))
+      (goto-char (point-min))
+      (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
+        (narrow-to-region (match-beginning 0) (match-end 0))
+        (vc-parse-cvs-status)
+        (goto-char (point-max))
+        (widen)))))
 
 (defun vc-dired-state-info (file)
   ;; Return the string that indicates the version control status
   ;; on a VC dired line.
-  (let ((cvs-state (and (eq (vc-backend file) 'CVS)
-			(vc-cvs-status file))))
-    (if cvs-state
-	(cond ((eq cvs-state 'up-to-date) nil)
-	      ((eq cvs-state 'needs-checkout)      "patch")
-	      ((eq cvs-state 'locally-modified)    "modified")
-	      ((eq cvs-state 'needs-merge)         "merge")
-	      ((eq cvs-state 'unresolved-conflict) "conflict")
-	      ((eq cvs-state 'locally-added)       "added"))
-      (vc-locking-user file))))
+  (let* ((cvs-state (and (eq (vc-backend file) 'CVS)
+                         (vc-cvs-status file)))
+         (state 
+          (if cvs-state
+              (cond ((eq cvs-state 'up-to-date) nil)
+                    ((eq cvs-state 'needs-checkout)      "patch")
+                    ((eq cvs-state 'locally-modified)    "modified")
+                    ((eq cvs-state 'needs-merge)         "merge")
+                    ((eq cvs-state 'unresolved-conflict) "conflict")
+                    ((eq cvs-state 'locally-added)       "added"))
+            (vc-locking-user file))))
+    (if state (concat "(" state ")"))))
 
 (defun vc-dired-reformat-line (x)
-  ;; Hack a directory-listing line, plugging in locking-user info in
-  ;; place of the user and group info.  Should have the beneficial
-  ;; side-effect of shortening the listing line.  Each call starts with
-  ;; point immediately following the dired mark area on the line to be
-  ;; hacked.
-  ;;
-  ;; Simplest possible one:
-  ;; (insert (concat x "\t")))
-  ;;
+  ;; Reformat a directory-listing line, plugging in version control info in
+  ;; place of the user and group info.
   ;; This code, like dired, assumes UNIX -l format.
+  (beginning-of-line)
   (let ((pos (point)) limit perm owner date-and-file)
     (end-of-line)
     (setq limit (point))
@@ -1611,144 +1642,74 @@ on a buffer attached to the file named in the current Dired buffer line."
     (cond
      ((or
        (re-search-forward  ;; owner and group
-"\\([drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[^ ]+ +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
+"^\\(..[drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[^ ]+ +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
 	  limit t)       
        (re-search-forward  ;; only owner displayed
-"\\([drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)" 
+"^\\(..[drwxlts-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)" 
 	  limit t))
       (setq perm          (match-string 1)
 	    owner         (match-string 2)
 	    date-and-file (match-string 3)))
      ((re-search-forward  ;; OS/2 -l format, no links, owner, group
-"\\([drwxlts-]+ \\) *[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
+"^\\(..[drwxlts-]+ \\) *[0-9]+\\( [^ 0-9]+ [0-9 ][0-9] .*\\)"
          limit t)
       (setq perm          (match-string 1)
 	    date-and-file (match-string 2))))
-    (if x (setq x (concat "(" x ")")))
-    (let ((rep (substring (concat x "                 ") 0 10)))
-      (replace-match (concat perm rep date-and-file)))))
-       
-(defun vc-dired-update-line (file)
-  ;; Update the vc-dired listing line of file -- it is assumed 
-  ;; that point is already on this line.  Don't use dired-do-redisplay
-  ;; for this, because it cannot handle the way vc-dired deals with 
-  ;; subdirectories.
-  (beginning-of-line)
-  (forward-char 2)
-  (let ((start (point)))
-    (forward-line 1)
-    (beginning-of-line)
-    (delete-region start (point))
-    (insert-directory file dired-listing-switches)
-    (forward-line -1)
-    (end-of-line)
-    (delete-char (- (length file)))
-    (insert (substring file (length (expand-file-name default-directory))))
-    (goto-char start))
-  (vc-dired-reformat-line (vc-dired-state-info file)))
+    (setq x (substring (concat x "          ") 0 10))
+    (replace-match (concat perm x date-and-file))))
 
-(defun vc-dired-update (verbose)
-  (interactive "P")
-  (vc-directory default-directory verbose))
-
-;;; Note in Emacs 18 the following defun gets overridden
-;;; with the symbol 'vc-directory-18.  See below.
-;;;###autoload
-(defun vc-directory (dirname verbose)
-  "Show version-control status of the current directory and subdirectories.
-Normally it creates a Dired buffer that lists only the locked files
-in all these directories.  With a prefix argument, it lists all files."
-  (interactive "DDired under VC (directory): \nP")
-  (require 'dired)
-  (setq dirname (expand-file-name dirname))
-  ;; force a trailing slash
-  (if (not (eq (elt dirname (1- (length dirname))) ?/))
-      (setq dirname (concat dirname "/")))
-  (let (nonempty
-	(dl (length dirname))
-	(filelist nil) (statelist nil)
-	(old-dir default-directory)
-	dired-buf
-	dired-buf-mod-count)
-    (vc-file-tree-walk
-     dirname
-     (function 
-      (lambda (f)
-	(if (vc-registered f)
-	    (let ((state (vc-dired-state-info f)))
-	      (and (or verbose state)
-		   (setq filelist (cons (substring f dl) filelist))
-		   (setq statelist (cons state statelist))))))))
-    (save-window-excursion
-      (save-excursion
-	;; This uses a semi-documented feature of dired; giving a switch
-	;; argument forces the buffer to refresh each time.
-	(setq dired-buf
-	      (dired-internal-noselect
-	       (cons dirname (nreverse filelist))
-	       dired-listing-switches 'vc-dired-mode))
-	(setq nonempty (not (eq 0 (length filelist))))))
-    (switch-to-buffer dired-buf)
-    ;; Make a few modifications to the header
-    (setq buffer-read-only nil)
+(defun vc-dired-hook ()
+  ;; Called by dired after any portion of a vc-dired buffer has been read in.
+  ;; Reformat the listing according to version control.
+  (message "Getting version information... ")
+  (let (subdir filename (buffer-read-only nil))
     (goto-char (point-min))
-    (forward-line 1)	      ;; Skip header line
-    (let ((start (point)))    ;; Erase (but don't remove) the 
-      (end-of-line)           ;; "wildcard" line.
-      (delete-region start (point)))
-    (beginning-of-line)
-    (if nonempty
-	(progn
-	  ;; Plug the version information into the individual lines
-	  (mapcar
-	   (function
-	    (lambda (x)
-	     (forward-char 2)	;; skip dired's mark area
-	     (vc-dired-reformat-line x)
-	     (forward-line 1)))	;; go to next line
-	   (nreverse statelist))
-	  (setq buffer-read-only t)
-	  (goto-char (point-min))
-	  (dired-next-line 2)
-	  )
-      (dired-next-line 1) 
-      (insert "  ")
-      (setq buffer-read-only t)
-      (message "No files are currently %s under %s"
-	       (if verbose "registered" "locked") dirname))
-    ))
+    (while (not (eq (point) (point-max)))
+      (cond 
+       ;; subdir header line
+       ((setq subdir (dired-get-subdir))
+        (if (file-directory-p (concat subdir "/CVS"))
+            (vc-fetch-cvs-status (file-name-as-directory subdir)))
+        (forward-line 1)
+        ;; erase (but don't remove) the "total" line
+        (let ((start (point)))
+          (end-of-line)
+          (delete-region start (point))
+          (beginning-of-line)
+          (forward-line 1)))
+       ;; an ordinary file line
+       ((setq filename (dired-get-filename nil t))
+        (cond
+         ((file-directory-p filename)
+          (if (member (file-name-nondirectory filename) 
+                      vc-directory-exclusion-list)
+              (dired-kill-line)
+            (vc-dired-reformat-line nil)
+            (forward-line 1)))
+         ((vc-backend filename)
+          (vc-dired-reformat-line (vc-dired-state-info filename))
+          (forward-line 1))
+         (t 
+          (dired-kill-line))))
+       ;; any other line
+       (t (forward-line 1)))))
+  (message "Getting version information... done"))
 
-;; Emacs 18 version
-(defun vc-directory-18 (verbose)
-  "Show version-control status of all files under the current directory."
-  (interactive "P")
-  (let (nonempty (dir default-directory))
-    (save-excursion
-      (set-buffer (get-buffer-create "*vc-status*"))
-      (erase-buffer)
-      (cd dir)
-      (vc-file-tree-walk
-       default-directory
-       (function (lambda (f)
-		   (if (vc-registered f)
-		       (let ((user (vc-locking-user f)))
-			 (if (or user verbose)
-			     (insert (format
-				      "%s	%s\n"
-				      (concat user) f))))))))
-      (setq nonempty (not (zerop (buffer-size)))))
-
-    (if nonempty
-	(progn
-	  (pop-to-buffer "*vc-status*" t)
-	  (goto-char (point-min))
-	  (shrink-window-if-larger-than-buffer)))
-      (message "No files are currently %s under %s"
-	       (if verbose "registered" "locked") default-directory))
-    )
-
-(or (boundp 'minor-mode-map-alist)
-    (fset 'vc-directory 'vc-directory-18))
+;;;###autoload
+(defun vc-directory (dirname read-switches)
+  (interactive "DDired under VC (directory): \nP")
+  (let ((switches 
+         (if read-switches (read-string "Dired listing switches: "
+                                        dired-listing-switches))))
+    (require 'dired)
+    (require 'dired-aux)
+    ;; force a trailing slash
+    (if (not (eq (elt dirname (1- (length dirname))) ?/))
+        (setq dirname (concat dirname "/")))
+    (switch-to-buffer 
+     (dired-internal-noselect (expand-file-name dirname)
+                              (or switches dired-listing-switches)
+                              'vc-dired-mode))))
 
 ;; Named-configuration support for SCCS
 
