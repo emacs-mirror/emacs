@@ -2071,6 +2071,7 @@ is specified, returning t if it is specified."
 (put 'mode-line-position 'risky-local-variable t)
 (put 'mode-name 'risky-local-variable t)
 (put 'display-time-string 'risky-local-variable t)
+(put 'parse-time-rules 'risky-local-variable t)
 
 ;; This case is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable 'stringp)
