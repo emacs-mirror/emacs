@@ -1319,9 +1319,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      else
 		c = c_leading_code = XSTRING (string)->data[i++];
 	    }
-	  if (i < XSTRING (string)->size && XSTRING (string)->data[i] == '-')
+	  if (i < XSTRING (string)->size
+	      && XSTRING (string)->data[i_byte] == '-')
 	    {
-	      unsigned int c2;
+	      unsigned int c2, c2_leading_code;
 
 	      /* Skip over the dash.  */
 	      i++, i_byte++;
@@ -1331,18 +1332,29 @@ skip_chars (forwardp, syntaxp, string, lim)
 
 	      /* Get the end of the range.  */
 	      if (string_multibyte)
-		FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
+		{
+		  c2_leading_code = XSTRING (string)->data[i_byte];
+		  FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
+		}
 	      else
 		c2 = XSTRING (string)->data[i++];
 
 	      if (SINGLE_BYTE_CHAR_P (c))
-		while (c <= c2)
-		  {
-		    fastmap[c] = 1;
-		    c++;
-		  }
+		{
+		  if (! SINGLE_BYTE_CHAR_P (c2))
+		    error ("Invalid charcter range: %s",
+			   XSTRING (string)->data);
+		  while (c <= c2)
+		    {
+		      fastmap[c] = 1;
+		      c++;
+		    }
+		}
 	      else
 		{
+		  if (c_leading_code != c2_leading_code)
+		    error ("Invalid charcter range: %s",
+			   XSTRING (string)->data);
 		  fastmap[c_leading_code] = 1;
 		  if (c <= c2)
 		    {
