@@ -6936,22 +6936,48 @@ note_mouse_highlight (f, x, y)
 	    }
 	  else
 	    {
+	      Lisp_Object object = glyph->object;
+	      int charpos = glyph->charpos;
+	      
 	      /* Try text properties.  */
-	      if ((STRINGP (glyph->object)
-		   && glyph->charpos >= 0
-		   && glyph->charpos < XSTRING (glyph->object)->size)
-		  || (BUFFERP (glyph->object)
-		      && glyph->charpos >= BEGV
-		      && glyph->charpos < ZV))
-		help = Fget_text_property (make_number (glyph->charpos),
-					   Qhelp_echo, glyph->object);
+	      if (STRINGP (object)
+		  && charpos >= 0
+		  && charpos < XSTRING (object)->size)
+		{
+		  help = Fget_text_property (make_number (charpos),
+					     Qhelp_echo, object);
+		  if (NILP (help))
+		    {
+		      /* If the string itself doesn't specify a help-echo,
+			 see if the buffer text ``under'' it does.  */
+		      struct glyph_row *r
+			= MATRIX_ROW (w->current_matrix, vpos);
+		      int start = MATRIX_ROW_START_CHARPOS (r);
+		      int pos = string_buffer_position (w, object, start);
+		      if (pos > 0)
+			{
+			  help = Fget_text_property (make_number (pos),
+						     Qhelp_echo, w->buffer);
+			  if (!NILP (help))
+			    {
+			      charpos = pos;
+			      object = w->buffer;
+			    }
+			}
+		    }
+		}
+	      else if (BUFFERP (object)
+		       && charpos >= BEGV
+		       && charpos < ZV)
+		help = Fget_text_property (make_number (charpos), Qhelp_echo,
+					   object);
 	    
 	      if (!NILP (help))
 		{
 		  help_echo = help;
 		  help_echo_window = window;
-		  help_echo_object = glyph->object;
-		  help_echo_pos = glyph->charpos;
+		  help_echo_object = object;
+		  help_echo_pos = charpos;
 		}
 	    }
 	}
