@@ -434,9 +434,9 @@ skip_chars (forwardp, syntaxp, string, lim)
      bfox turned the ZV part on, and rms turned the
      BEGV part back on.  */
   if (XINT (lim) > ZV)
-    XFASTINT (lim) = ZV;
+    XSETFASTINT (lim, ZV);
   if (XINT (lim) < BEGV)
-    XFASTINT (lim) = BEGV;
+    XSETFASTINT (lim, BEGV);
 
   p = XSTRING (string)->data;
   pend = p + XSTRING (string)->size;
@@ -1501,8 +1501,8 @@ Use `store-match-data' to reinstate the data in this list.")
 	{
 	  if (EQ (last_thing_searched, Qt))
 	    {
-	      XFASTINT (data[2 * i]) = start;
-	      XFASTINT (data[2 * i + 1]) = search_regs.end[i];
+	      XSETFASTINT (data[2 * i], start);
+	      XSETFASTINT (data[2 * i + 1], search_regs.end[i]);
 	    }
 	  else if (BUFFERP (last_thing_searched))
 	    {
@@ -1587,7 +1587,7 @@ LIST should have been created by calling `match-data' previously.")
 	  if (MARKERP (marker))
 	    {
 	      if (XMARKER (marker)->buffer == 0)
-		XFASTINT (marker) = 0;
+		XSETFASTINT (marker, 0);
 	      else
 		XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
 	    }
@@ -1598,7 +1598,7 @@ LIST should have been created by calling `match-data' previously.")
 
 	  marker = Fcar (list);
 	  if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
-	    XFASTINT (marker) = 0;
+	    XSETFASTINT (marker, 0);
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
 	  search_regs.end[i] = XINT (marker);
