@@ -1,3 +1,7 @@
+2000-09-27  Dave Love  <fx@gnu.org>
+
+	* mouse.el: Fix last change.
+
 2000-09-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* toolbar/tool-bar.el (tool-bar-help): Use `mouse-pixel-position'.

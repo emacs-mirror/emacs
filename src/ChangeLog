@@ -1,3 +1,7 @@
+2000-09-27  Dave Love  <fx@gnu.org>
+
+	* s/irix6-5.h (IRIX6): Now works 64-bit.  Tidied.
+
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (XINT) [EXPLICIT_SIGN_EXTEND]: Use BITS_PER_EMACS_INT
