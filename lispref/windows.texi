@@ -1967,26 +1967,22 @@ argument because it always uses the frame that @var{window} is on.
 @cindex saving window information
 
   A @dfn{window configuration} records the entire layout of one
-frame---all windows, their sizes, which buffers they contain, what part
-of each buffer is displayed, and the values of point and the mark.  You
-can bring back an entire previous layout by restoring a window
-configuration previously saved.
+frame---all windows, their sizes, which buffers they contain, what
+part of each buffer is displayed, and the values of point and the
+mark.  It also includes the values of @code{window-min-height},
+@code{window-min-width} and @code{minibuffer-scroll-window}.  An
+exception is made for point in the selected window for the current
+buffer; its value is not saved in the window configuration.
 
-  If you want to record all frames instead of just one, use a frame
-configuration instead of a window configuration.  @xref{Frame
-Configurations}.
+  You can bring back an entire previous layout by restoring a window
+configuration previously saved.  If you want to record all frames
+instead of just one, use a frame configuration instead of a window
+configuration.  @xref{Frame Configurations}.
 
 @defun current-window-configuration &optional frame
-This function returns a new object representing @var{frame}'s
-current window configuration, including the number of windows, their
-sizes and current buffers, which window is the selected window, and for
-each window the displayed buffer, the display-start position, and the
-positions of point and the mark.  It also includes the values of
-@code{window-min-height}, @code{window-min-width} and
-@code{minibuffer-scroll-window}.  An exception is made for point in the
-current buffer, whose value is not saved.
-
-If @var{frame} is omitted, the selected frame is used.
+This function returns a new object representing @var{frame}'s current
+window configuration.  If @var{frame} is omitted, the selected frame
+is used.
 @end defun
 
 @defun set-window-configuration configuration
