@@ -23,6 +23,9 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
+#include <errno.h>
+
+extern int errno;
 
 #ifndef MAXPATHLEN
 /* in 4.1, param.h fails to define this. */
@@ -3708,7 +3711,7 @@ init_buffer ()
     strcpy (buf, pwd);
 #ifdef HAVE_GETCWD
   else if (getcwd (buf, MAXPATHLEN+1) == 0)
-    fatal ("`getcwd' failed: %s\n", buf);
+    fatal ("`getcwd' failed: %s\n", strerror (errno));
 #else
   else if (getwd (buf) == 0)
     fatal ("`getwd' failed: %s\n", buf);
