@@ -748,8 +748,8 @@ Return t if file exists.")
 
   GCPRO1 (file);
   lispstream = Fcons (Qnil, Qnil);
-  XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
-  XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
+  XSETFASTINT (XCAR (lispstream), (EMACS_UINT)stream >> 16);
+  XSETFASTINT (XCDR (lispstream), (EMACS_UINT)stream & 0xffff);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
@@ -793,8 +793,8 @@ static Lisp_Object
 load_unwind (stream)  /* used as unwind-protect function in load */
      Lisp_Object stream;
 {
-  fclose ((FILE *) (XFASTINT (XCONS (stream)->car) << 16
-		    | XFASTINT (XCONS (stream)->cdr)));
+  fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
+		    | XFASTINT (XCDR (stream))));
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
@@ -815,8 +815,8 @@ close_load_descs ()
 {
 #ifndef WINDOWSNT
   Lisp_Object tail;
-  for (tail = load_descriptor_list; !NILP (tail); tail = XCONS (tail)->cdr)
-    close (XFASTINT (XCONS (tail)->car));
+  for (tail = load_descriptor_list; !NILP (tail); tail = XCDR (tail))
+    close (XFASTINT (XCAR (tail)));
 #endif
 }
 
@@ -2454,8 +2454,8 @@ read_vector (readcharfun, bytecodeflag)
 		    error ("invalid byte code");
 
 		  otem = XCONS (item);
-		  bytestr = XCONS (item)->car;
-		  item = XCONS (item)->cdr;
+		  bytestr = XCAR (item);
+		  item = XCDR (item);
 		  free_cons (otem);
 		}
 
@@ -2547,7 +2547,7 @@ read_list (flag, readcharfun)
 	    {
 	      GCPRO2 (val, tail);
 	      if (!NILP (tail))
-		XCONS (tail)->cdr = read0 (readcharfun);
+		XCDR (tail) = read0 (readcharfun);
 	      else
 		val = read0 (readcharfun);
 	      read1 (readcharfun, &ch, 0);
@@ -2560,7 +2560,7 @@ read_list (flag, readcharfun)
 		    {
 		      /* Get a doc string from the file we are loading.
 			 If it's in saved_doc_string, get it from there.  */
-		      int pos = XINT (XCONS (val)->cdr);
+		      int pos = XINT (XCDR (val));
 		      /* Position is negative for user variables.  */
 		      if (pos < 0) pos = -pos;
 		      if (pos >= saved_doc_string_position
@@ -2640,7 +2640,7 @@ read_list (flag, readcharfun)
 	     ? pure_cons (elt, Qnil)
 	     : Fcons (elt, Qnil));
       if (!NILP (tail))
-	XCONS (tail)->cdr = tem;
+	XCDR (tail) = tem;
       else
 	val = tem;
       tail = tem;
@@ -3265,7 +3265,7 @@ init_lread ()
 
       for (path_tail = Vload_path;
 	   !NILP (path_tail);
-	   path_tail = XCONS (path_tail)->cdr)
+	   path_tail = XCDR (path_tail))
 	{
 	  Lisp_Object dirfile;
 	  dirfile = Fcar (path_tail);
@@ -3274,7 +3274,7 @@ init_lread ()
 	      dirfile = Fdirectory_file_name (dirfile);
 	      if (access (XSTRING (dirfile)->data, 0) < 0)
 		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
-			     XCONS (path_tail)->car);
+			     XCAR (path_tail));
 	    }
 	}
     }

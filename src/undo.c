@@ -66,13 +66,13 @@ record_insert (beg, length)
   if (CONSP (current_buffer->undo_list))
     {
       Lisp_Object elt;
-      elt = XCONS (current_buffer->undo_list)->car;
+      elt = XCAR (current_buffer->undo_list);
       if (CONSP (elt)
-	  && INTEGERP (XCONS (elt)->car)
-	  && INTEGERP (XCONS (elt)->cdr)
-	  && XINT (XCONS (elt)->cdr) == beg)
+	  && INTEGERP (XCAR (elt))
+	  && INTEGERP (XCDR (elt))
+	  && XINT (XCDR (elt)) == beg)
 	{
-	  XSETINT (XCONS (elt)->cdr, beg + length);
+	  XSETINT (XCDR (elt), beg + length);
 	  return;
 	}
     }
@@ -114,10 +114,10 @@ record_delete (beg, string)
 
       while (1)
 	{
-	  elt = XCONS (tail)->car;
-	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCONS (elt)->car)))
+	  elt = XCAR (tail);
+	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCAR (elt))))
 	    break;
-	  tail = XCONS (tail)->cdr;
+	  tail = XCDR (tail);
 	}
       at_boundary = NILP (elt);
     }
@@ -264,7 +264,7 @@ but another undo command will undo to the previous boundary.")
 	{
 	  /* If we have preallocated the cons cell to use here,
 	     use that one.  */
-	  XCONS (pending_boundary)->cdr = current_buffer->undo_list;
+	  XCDR (pending_boundary) = current_buffer->undo_list;
 	  current_buffer->undo_list = pending_boundary;
 	  pending_boundary = Qnil;
 	}
@@ -298,33 +298,33 @@ truncate_undo_list (list, minsize, maxsize)
      Skip, skip, skip the undo, skip, skip, skip the undo,
      Skip, skip, skip the undo, skip to the undo bound'ry. 
      (Get it?  "Skip to my Loo?")  */
-  if (CONSP (next) && NILP (XCONS (next)->car))
+  if (CONSP (next) && NILP (XCAR (next)))
     {
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
 
       /* Advance to next element.  */
       prev = next;
-      next = XCONS (next)->cdr;
+      next = XCDR (next);
     }
-  while (CONSP (next) && ! NILP (XCONS (next)->car))
+  while (CONSP (next) && ! NILP (XCAR (next)))
     {
       Lisp_Object elt;
-      elt = XCONS (next)->car;
+      elt = XCAR (next);
 
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
       if (CONSP (elt))
 	{
 	  size_so_far += sizeof (struct Lisp_Cons);
-	  if (STRINGP (XCONS (elt)->car))
+	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCONS (elt)->car)->size);
+			    + XSTRING (XCAR (elt))->size);
 	}
 
       /* Advance to next element.  */
       prev = next;
-      next = XCONS (next)->cdr;
+      next = XCDR (next);
     }
   if (CONSP (next))
     last_boundary = prev;
@@ -332,7 +332,7 @@ truncate_undo_list (list, minsize, maxsize)
   while (CONSP (next))
     {
       Lisp_Object elt;
-      elt = XCONS (next)->car;
+      elt = XCAR (next);
 
       /* When we get to a boundary, decide whether to truncate
 	 either before or after it.  The lower threshold, MINSIZE,
@@ -352,14 +352,14 @@ truncate_undo_list (list, minsize, maxsize)
       if (CONSP (elt))
 	{
 	  size_so_far += sizeof (struct Lisp_Cons);
-	  if (STRINGP (XCONS (elt)->car))
+	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCONS (elt)->car)->size);
+			    + XSTRING (XCAR (elt))->size);
 	}
 
       /* Advance to next element.  */
       prev = next;
-      next = XCONS (next)->cdr;
+      next = XCDR (next);
     }
 
   /* If we scanned the whole list, it is short enough; don't change it.  */
@@ -369,7 +369,7 @@ truncate_undo_list (list, minsize, maxsize)
   /* Truncate at the boundary where we decided to truncate.  */
   if (!NILP (last_boundary))
     {
-      XCONS (last_boundary)->cdr = Qnil;
+      XCDR (last_boundary) = Qnil;
       return list;
     }
   else

@@ -2599,19 +2599,19 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.")
   /* If REUSE is a list, store as many value elements as will fit
      into the elements of REUSE.  */
   for (i = 0, tail = reuse; CONSP (tail);
-       i++, tail = XCONS (tail)->cdr)
+       i++, tail = XCDR (tail))
     {
       if (i < 2 * len + 2)
-	XCONS (tail)->car = data[i];
+	XCAR (tail) = data[i];
       else
-	XCONS (tail)->car = Qnil;
+	XCAR (tail) = Qnil;
       prev = tail;
     }
 
   /* If we couldn't fit all value elements into REUSE,
      cons up the rest of them and add them to the end of REUSE.  */
   if (i < 2 * len + 2)
-    XCONS (prev)->cdr = Flist (2 * len + 2 - i, data + i);
+    XCDR (prev) = Flist (2 * len + 2 - i, data + i);
 
   return reuse;
 }

@@ -979,8 +979,8 @@ describe_syntax (value)
       return;
     }
 
-  first = XCONS (value)->car;
-  match_lisp = XCONS (value)->cdr;
+  first = XCAR (value);
+  match_lisp = XCDR (value);
 
   if (!INTEGERP (first) || !(NILP (match_lisp) || INTEGERP (match_lisp)))
     {

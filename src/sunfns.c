@@ -459,8 +459,8 @@ as a menu label.")
   {static Lisp_Object symbol[2];
    symbol[0] = Fintern (sm_kludge_string, Qnil);
    Pair = Ffuncall (1, symbol);
-   xpos += XINT (XCONS (Pair)->cdr);
-   ypos += XINT (XCONS (Pair)->car);
+   xpos += XINT (XCDR (Pair));
+   ypos += XINT (XCAR (Pair));
  }
 #endif
 

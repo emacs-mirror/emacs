@@ -758,9 +758,9 @@ child_sig (vs)
   pid = vs->pid;
   sys$setef (vs->eventFlag);
 
-  for (tail = Vprocess_alist; XSYMBOL (tail) != XSYMBOL (Qnil); tail = XCONS (tail)->cdr)
+  for (tail = Vprocess_alist; XSYMBOL (tail) != XSYMBOL (Qnil); tail = XCDR (tail))
     {
-      proc = XCONS (XCONS (tail)->car)->cdr;
+      proc = XCDR (XCAR (tail));
       p = XPROCESS (proc);
       if (EQ (p->childp, Qt) && XFASTINT (p->pid) == pid)
 	break;
