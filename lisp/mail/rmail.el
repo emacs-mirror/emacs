@@ -2235,7 +2235,7 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let (from reply-to cc subject date to message-id
+  (let (from reply-to cc subject date to message-id references
 	     resent-to resent-cc resent-reply-to
 	     (msgnum rmail-current-message)
 	     (rmail-buffer (current-buffer)))
@@ -2263,7 +2263,8 @@ use \\[mail-yank-original] to yank the original message into it."
 	      date (mail-fetch-field "date")
 	      to (or (mail-fetch-field "to" nil t) "")
 	      message-id (mail-fetch-field "message-id")
-	      resent-reply-to (mail-fetch-field "resent-reply-to" t)
+	      references (mail-fetch-field "references" nil nil t)
+	      resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
 	      resent-cc (and (not just-sender)
 			     (mail-fetch-field "resent-cc" nil t))
 	      resent-to (or (mail-fetch-field "resent-to" nil t) "")
@@ -2303,7 +2304,12 @@ use \\[mail-yank-original] to yank the original message into it."
 		       (save-excursion
 			 (set-buffer rmail-send-actions-rmail-buffer)
 			 (if msgnum
-			     (rmail-set-attribute "answered" t msgnum))))))))
+			     (rmail-set-attribute "answered" t msgnum)))))))
+      nil
+      (cons (cons "References" message-id)
+	    (mapcar (function (lambda (elt) 
+				(cons "References" elt)))
+		    references)))
     ;; We keep the rmail buffer and message number in these 
     ;; buffer-local vars in the sendmail buffer,
     ;; so that rmail-only-expunge can relocate the message number.
