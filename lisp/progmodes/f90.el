@@ -1697,7 +1697,7 @@ Any other key combination is executed normally."
 ;; Change the keywords according to argument.
 (defun f90-change-keywords (change-word &optional beg end)
   "Change the case of F90 keywords in the region (if specified) or buffer.
-CHANGE-WORD should be one of 'upcase-word, 'downcase-word, capitalize-word."
+CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
   (save-excursion
     (setq beg (or beg (point-min))
           end (or end (point-max)))
