@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -522,7 +522,7 @@ copyright notice is allowed."
 	(setq ret
 	      (cond
 	       ((null name)
-		(format "Package %s does not exist"))
+		"Can't find package name")
 	       ((not (lm-authors))
 		"`Author:' tag missing")
 	       ((not (lm-maintainer))
@@ -546,7 +546,7 @@ copyright notice is allowed."
 		    (concat "^;;;[ \t]+" name "[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
 		    nil t)))
-		(format "Can't find the footer line"))
+		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")
 	       ((not (or non-fsf-ok
