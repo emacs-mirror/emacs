@@ -144,18 +144,6 @@ FRAME_PTR selected_frame;
    the address of the_only_frame.  */
 FRAME_PTR last_nonminibuf_frame;
 
-/* In a single-frame version, the information that would otherwise
-   exist inside frame objects lives in the following structure instead.
-
-   NOTE: the_only_frame is not checked for garbage collection; don't
-   store collectible objects in any of its fields!
-
-   You're not/The only frame in town/...  */
-
-#ifndef MULTI_FRAME
-struct frame the_only_frame;
-#endif
-
 /* This is a vector, made larger whenever it isn't large enough,
    which is used inside `update_frame' to hold the old contents
    of the FRAME_PHYS_LINES of the frame being updated.  */
@@ -169,8 +157,6 @@ struct cm Wcm;		/* Structure for info on cursor positioning */
 
 int delayed_size_change;  /* 1 means SIGWINCH happened when not safe.  */
 
-#ifdef MULTI_FRAME
-
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   "Clear frame FRAME and output again what is supposed to appear on it.")
   (frame)
@@ -202,30 +188,6 @@ redraw_frame (f)
   XSETFRAME (frame, f);
   Fredraw_frame (frame);
 }
-
-#else
-
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-  /* Don't confuse make-docfile by having two doc strings for this function.
-     make-docfile does not pay attention to #if, for good reason!  */
-  0)
-  (frame)
-     Lisp_Object frame;
-{
-  update_begin (0);
-  set_terminal_modes ();
-  clear_frame ();
-  update_end (0);
-  fflush (stdout);
-  clear_frame_records (0);
-  windows_or_buffers_changed++;
-  /* Mark all windows as INaccurate,
-     so that every window will have its redisplay done.  */
-  mark_window_display_accurate (FRAME_ROOT_WINDOW (0), 0);
-  return Qnil;
-}
-
-#endif
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   "Clear and redisplay all visible frames.")
@@ -2589,9 +2551,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
 syms_of_display ()
 {
-#ifdef MULTI_FRAME
   defsubr (&Sredraw_frame);
-#endif
   defsubr (&Sredraw_display);
   defsubr (&Sframe_or_buffer_changed_p);
   defsubr (&Sopen_termscript);

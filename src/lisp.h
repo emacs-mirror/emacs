@@ -984,19 +984,8 @@ typedef unsigned char UCHAR;
 #define GC_CHAR_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
 #define BOOL_VECTOR_P(x) PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 #define GC_BOOL_VECTOR_P(x) GC_PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
-
-#ifdef MULTI_FRAME
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
 #define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
-#else
-#ifdef HAVE_MOUSE
-/* We could use this in the !HAVE_MOUSE case also, but we prefer a compile-time
-   error message in case FRAMEP is used.  */
-#define FRAMEP(x) (EQ (x, Fselected_frame ()))
-#define GC_FRAMEP(x) (GC_EQ (x, Fselected_frame ()))
-#endif
-#endif
-
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))

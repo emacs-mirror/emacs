@@ -42,11 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#ifdef MULTI_FRAME
 #define BASE_PURESIZE (325000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
-#else
-#define BASE_PURESIZE (240000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
-#endif
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */

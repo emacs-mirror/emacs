@@ -572,12 +572,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #define FLOAT_SUPPORT
 #endif
 
-#ifdef MULTI_FRAME
-#define FRAME_SUPPORT ${lispsource}frame.elc
-#else
-#define FRAME_SUPPORT
-#endif
-
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}menu-bar.elc ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
@@ -631,7 +625,7 @@ lisp= \
 	FACE_SUPPORT \
 	MOUSE_SUPPORT \
 	FLOAT_SUPPORT \
-	FRAME_SUPPORT \
+	${lispsource}frame.elc\
 	X_WINDOWS_SUPPORT \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \

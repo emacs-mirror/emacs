@@ -373,7 +373,6 @@ init_frame_faces (f)
   new_computed_face (f, FRAME_PARAM_FACES (f)[1]);
   recompute_basic_faces (f);
 
-#ifdef MULTI_FRAME
   /* Find another frame.  */
   {
     Lisp_Object tail, frame, result;
@@ -402,7 +401,6 @@ init_frame_faces (f)
 	    ensure_face_ready (f, i);
       }
   }
-#endif /* MULTI_FRAME */
 }
 
 

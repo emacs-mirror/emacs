@@ -204,7 +204,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
-#ifdef MULTI_FRAME
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   if (XFRAME (mini_frame) != selected_frame)
     record_unwind_protect (Fset_window_configuration,
@@ -216,7 +215,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   if (minibuffer_auto_raise)
     Fraise_frame (mini_frame);
-#endif
 
   /* We have to do this after saving the window configuration
      since that is what restores the current buffer.  */
@@ -280,10 +278,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	}
     }
 
-#ifdef MULTI_FRAME
   if (XFRAME (mini_frame) != selected_frame)
     Fredirect_frame_focus (Fselected_frame (), mini_frame);
-#endif
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());

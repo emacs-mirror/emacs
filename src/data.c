@@ -225,11 +225,8 @@ for example, (type-of 1) returns `integer'.")
 	return Qchar_table;
       if (GC_BOOL_VECTOR_P (object))
 	return Qbool_vector;
-
-#ifdef MULTI_FRAME
       if (GC_FRAMEP (object))
 	return Qframe;
-#endif
       return Qvector;
 
 #ifdef LISP_FLOAT_TYPE

@@ -418,12 +418,10 @@ message2_nolog (m, len)
       mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
-#ifdef MULTI_FRAME
       FRAME_SAMPLE_VISIBILITY (f);
       if (FRAME_VISIBLE_P (selected_frame)
 	  && ! FRAME_VISIBLE_P (f))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (mini_window)));
-#endif
 
       if (m)
 	{
@@ -844,7 +842,6 @@ redisplay_internal (preserve_echo_area)
     return;
 #endif
 
-#ifdef MULTI_FRAME
   if (! FRAME_WINDOW_P (selected_frame)
       && previous_terminal_frame != selected_frame)
     {
@@ -855,7 +852,6 @@ redisplay_internal (preserve_echo_area)
       XSETFRAME (Vterminal_frame, selected_frame);
     }
   previous_terminal_frame = selected_frame;
-#endif
 
   /* Set the visible flags for all frames.
      Do this before checking for resized or garbaged frames; they want
@@ -1112,7 +1108,6 @@ update:
     unrequest_sigio ();
   stop_polling ();
 
-#ifdef MULTI_FRAME
   if (all_windows)
     {
       Lisp_Object tail;
@@ -1142,7 +1137,6 @@ update:
 	}
     }
   else
-#endif /* MULTI_FRAME */
     {
       if (FRAME_VISIBLE_P (selected_frame))
 	pause = update_frame (selected_frame, 0, 0);
@@ -3742,12 +3736,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 
     case 'F':
       /* %F displays the frame name.  */
-#ifdef MULTI_FRAME
       if (!NILP (f->title))
 	return (char *) XSTRING (f->title)->data;
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
 	return (char *) XSTRING (f->name)->data;
-#endif
       return "Emacs";
 
     case 'f': 

@@ -1802,7 +1802,6 @@ mark_object (argptr)
 	  objptr = (Lisp_Object *) &ptr1->contents[COMPILED_CONSTANTS];
 	  goto loop;
 	}
-#ifdef MULTI_FRAME
       else if (GC_FRAMEP (obj))
 	{
 	  /* See comment above under Lisp_Vector for why this is volatile.  */
@@ -1826,7 +1825,6 @@ mark_object (argptr)
 	  mark_object (&ptr->menu_bar_vector);
 	  mark_object (&ptr->buffer_predicate);
 	}
-#endif /* MULTI_FRAME */
       else if (GC_BOOL_VECTOR_P (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);

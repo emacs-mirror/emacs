@@ -1517,10 +1517,8 @@ init_sys_modes ()
   else
     {
       frame_garbaged = 1;
-#ifdef MULTI_FRAME
       if (FRAMEP (Vterminal_frame))
 	FRAME_GARBAGED_P (XFRAME (Vterminal_frame)) = 1;
-#endif
     }
 
   term_initted = 1;

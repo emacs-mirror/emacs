@@ -1150,7 +1150,6 @@ print (obj, printcharfun, escapeflag)
 	{
 	  strout ("#<window-configuration>", -1, printcharfun);
 	}
-#ifdef MULTI_FRAME
       else if (FRAMEP (obj))
 	{
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
@@ -1161,7 +1160,6 @@ print (obj, printcharfun, escapeflag)
 	  strout (buf, -1, printcharfun);
 	  PRINTCHAR ('>');
 	}
-#endif
 #endif /* not standalone */
       else
 	{

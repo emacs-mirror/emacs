@@ -30,12 +30,7 @@ extern int frame_garbaged;
 extern int message_buf_print;
 
 
-/* The structure representing a frame.
-
-   We declare this even if MULTI_FRAME is not defined, because when
-   we lack multi-frame support, we use one instance of this structure
-   to represent the one frame we support.  This is cleaner than
-   having miscellaneous random variables scattered about.  */
+/* The structure representing a frame.  */
 
 enum output_method
 { output_termcap, output_x_window, output_msdos_raw, output_win32 };
@@ -294,13 +289,11 @@ struct frame
   char mouse_moved;
 };
 
-#ifdef MULTI_KBOARD  /* Note that MULTI_KBOARD implies MULTI_FRAME */
+#ifdef MULTI_KBOARD
 #define FRAME_KBOARD(f) ((f)->kboard)
 #else
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
-
-#ifdef MULTI_FRAME
 
 typedef struct frame *FRAME_PTR;
 
@@ -422,8 +415,9 @@ typedef struct frame *FRAME_PTR;
    should be a Lisp_Object too; it is used to iterate through the
    Vframe_list.  
 
-   If MULTI_FRAME isn't defined, then this loop expands to something which 
-   executes the statement once.  */
+   This macro is a holdover from a time when multiple frames weren't always
+   supported.  An alternate definition of the macro would expand to
+   something which executes the statement once.  */
 #define FOR_EACH_FRAME(list_var, frame_var)			\
   for ((list_var) = Vframe_list;				\
        (CONSP (list_var)					\
@@ -446,105 +440,7 @@ extern Lisp_Object Vdefault_frame_alist;
 
 extern Lisp_Object Vterminal_frame;
 
-#else /* not MULTI_FRAME */
-
-/* These definitions are used in a single-frame version of Emacs.  */
-
-/* A frame we use to store all the data concerning the screen when we
-   don't have multiple frames.  Remember, if you store any data in it
-   which needs to be protected from GC, you should staticpro that
-   element explicitly.  */
-extern struct frame the_only_frame;
-
-typedef struct frame *FRAME_PTR;
-#ifdef __GNUC__
-/* A function call for always getting 0 is overkill, so... */
-#define WINDOW_FRAME(w) ({ Lisp_Object tem; XSETFASTINT (tem, 0); tem; })
-#else
-#define WINDOW_FRAME(w) (Fselected_frame ())
-#endif
-#define XSETFRAME(p, v) (p = WINDOW_FRAME (***bogus***))
-#define XFRAME(frame) (&the_only_frame)
-
-extern FRAME_PTR selected_frame;
-extern FRAME_PTR last_nonminibuf_frame;
-
-#define FRAME_LIVE_P(f) 1
-#define FRAME_MSDOS_P(f) 0
-#ifdef MSDOS
-/* The following definitions could also be used in the non-MSDOS case,
-   but the constants below lead to better code.  */
-#define FRAME_TERMCAP_P(f) (the_only_frame.output_method == output_termcap)
-#define FRAME_X_P(f) (the_only_frame.output_method != output_termcap)
-#else
-#define FRAME_TERMCAP_P(f) 1
-#define FRAME_X_P(f) 0
-#endif
-#define FRAME_WINDOW_P(f) FRAME_X_P (f)
-#define FRAME_MINIBUF_ONLY_P(f) 0
-#define FRAME_HAS_MINIBUF_P(f) 1
-#define FRAME_CURRENT_GLYPHS(f) (the_only_frame.current_glyphs)
-#define FRAME_DESIRED_GLYPHS(f) (the_only_frame.desired_glyphs)
-#define FRAME_TEMP_GLYPHS(f) (the_only_frame.temp_glyphs)
-#define FRAME_HEIGHT(f) (the_only_frame.height)
-#define FRAME_WIDTH(f) (the_only_frame.width)
-#define FRAME_NEW_HEIGHT(f) (the_only_frame.new_height)
-#define FRAME_NEW_WIDTH(f) (the_only_frame.new_width)
-#define FRAME_MENU_BAR_LINES(f) (the_only_frame.menu_bar_lines)
-#define FRAME_CURSOR_X(f) (the_only_frame.cursor_x)
-#define FRAME_CURSOR_Y(f) (the_only_frame.cursor_y)
-#define FRAME_SET_VISIBLE(f,p) (p)
-#define FRAME_VISIBLE_P(f) 1
-#define SET_FRAME_GARBAGED(f) (frame_garbaged = 1)
-#define FRAME_GARBAGED_P(f) (frame_garbaged)
-#define FRAME_NO_SPLIT_P(f) 0
-#define FRAME_WANTS_MODELINE_P(f) 1
-#define FRAME_ICONIFIED_P(f) 0
-#define FRAME_WINDOW_SIZES_CHANGED(f) the_only_frame.window_sizes_changed
-#define FRAME_MINIBUF_WINDOW(f) (minibuf_window)
-#define FRAME_ROOT_WINDOW(f) (the_only_frame.root_window)
-#define FRAME_SELECTED_WINDOW(f) (selected_window)
-#define SET_GLYPHS_FRAME(glyphs,frame) do ; while (0)
-#define FRAME_INSERT_COST(frame)  (the_only_frame.insert_line_cost)
-#define FRAME_DELETE_COST(frame)  (the_only_frame.delete_line_cost)
-#define FRAME_INSERTN_COST(frame) (the_only_frame.insert_n_lines_cost)
-#define FRAME_DELETEN_COST(frame) (the_only_frame.delete_n_lines_cost)
-#define FRAME_MESSAGE_BUF(f) (the_only_frame.message_buf)
-#define FRAME_SCROLL_BOTTOM_VPOS(f) (the_only_frame.scroll_bottom_vpos)
-#define FRAME_FOCUS_FRAME(f) (Qnil)
-#define FRAME_CAN_HAVE_SCROLL_BARS(f) (the_only_frame.can_have_scroll_bars)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
-  (the_only_frame.has_vertical_scroll_bars)
-#define FRAME_SCROLL_BAR_PIXEL_WIDTH(f) (the_only_frame.scroll_bar_pixel_width)
-#define FRAME_SCROLL_BAR_COLS(f) (the_only_frame.scroll_bar_cols)
-#define FRAME_SCROLL_BARS(f) (the_only_frame.scroll_bars)
-#define FRAME_CONDEMNED_SCROLL_BARS(f) (the_only_frame.condemned_scroll_bars)
-#define FRAME_MENU_BAR_ITEMS(f) (the_only_frame.menu_bar_items)
-#define FRAME_COST_BAUD_RATE(f) (the_only_frame.cost_calculation_baud_rate)
-
-/* See comments in definition above.  */
-#define FRAME_SAMPLE_VISIBILITY(f) (0)
-
-#define CHECK_FRAME(x, i) do; while (0)
-#define CHECK_LIVE_FRAME(x, y) do; while (0)
-
-/* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
-   `for' loop which iterates over the elements of Vframe_list.  The
-   loop will set FRAME_VAR, a Lisp_Object, to each frame in
-   Vframe_list in succession and execute the statement.  LIST_VAR
-   should be a Lisp_Object too; it is used to iterate through the
-   Vframe_list.  
-
-   If MULTI_FRAME _is_ defined, then this loop expands to a real
-   `for' loop which traverses Vframe_list using LIST_VAR and
-   FRAME_VAR.  */
-#define FOR_EACH_FRAME(list_var, frame_var)			\
-  for (list_var = Qt; frame_var = WINDOW_FRAME (***bogus***), ! NILP (list_var); list_var = Qnil)
-
-#endif /* not MULTI_FRAME */
-
-
-/* Device- and MULTI_FRAME-independent scroll bar stuff.  */
+/* Device-independent scroll bar stuff.  */
 
 /* Return the starting column (zero-based) of the vertical scroll bar
    for window W.  The column before this one is the last column we can

@@ -99,9 +99,7 @@ typedef int FACE;
 
 struct frame_glyphs
   {
-#ifdef MULTI_FRAME
     struct  frame *frame;	/* Frame these glyphs belong to.  */
-#endif /* MULTI_FRAME */
     int height;
     int width;
 

@@ -853,7 +853,6 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	continue;
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;
-#ifdef MULTI_FRAME
       /* If the selected frame has a buffer_predicate,
 	 disregard buffers that don't fit the predicate.  */
       tem = frame_buffer_predicate ();
@@ -863,7 +862,6 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	  if (NILP (tem))
 	    continue;
 	}
-#endif
 
       if (NILP (visible_ok))
 	tem = Fget_buffer_window (buf, Qt);
