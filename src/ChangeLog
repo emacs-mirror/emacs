@@ -1,5 +1,13 @@
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (tty_suppress_bold_inverse_default_colors_p): New
+	variable.
+	(realize_tty_face): Suppress boldness if colors are the inverse of
+	the default colors, and tty_suppress_bold_inverse_default_colors_p
+	is set.
+	(Ftty_suppress_bold_inverse_default_colors): New function.
+	(syms_of_xfaces): Defsubr it.
+
 	* buffer.c (Frestore_buffer_modified_p): New function.
 	(syms_of_buffer): Defsubr it.
 

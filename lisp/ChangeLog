@@ -1,5 +1,13 @@
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/ebrowse-ffh.el: New file.
+	
+	* progmodes/ebrowse.el (ebrowse-find-file-hook-fn): Moved
+	to ebrowse-ffh.el.
+	(ebrowse-load): Add autoload.
+
+	* finder.el (finder-commentary): Add autoload cookie.
+
 	* mail/rfc2368.el: Correct author's email address.
 
 	* progmodes/ebrowse.el: New file.
