@@ -1,3 +1,7 @@
+2001-06-04  Andrew Choi  <akochoi@i-cable.com>
+
+	* quail/.cvsignore: Change CTLauB.el to CTLau-b5.el.
+
 2001-06-01  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (TIT_GB): Remove quail/PY.elc and quail/ZIRANMA.elc.
