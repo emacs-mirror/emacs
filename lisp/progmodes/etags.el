@@ -1000,9 +1000,7 @@ See documentation of variable `tags-file-name'."
 
 (defun etags-file-of-tag ()
   (save-excursion
-    (if (looking-at "./")
-        (re-search-forward "\\([^\n]+\\),[0-9]*\n")
-      (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n"))
+    (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n")
     (buffer-substring (match-beginning 1) (match-end 1))))
 
 
