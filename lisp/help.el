@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -91,27 +91,47 @@
 
 (define-key help-map "q" 'help-quit)
 
-(defvar help-font-lock-keywords
-  (eval-when-compile
-    (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
-      (list
-       ;;
-       ;; The symbol itself.
-       (list (concat "\\`\\(" name-char "+\\)\\(\\(:\\)\\|\\('\\)\\)")
-	     '(1 (if (match-beginning 3)
-		     font-lock-function-name-face
-		   font-lock-variable-name-face)))
-       ;;
-       ;; Words inside `' which tend to be symbol names.
-       (list (concat "`\\(" sym-char sym-char "+\\)'")
-	     1 'font-lock-constant-face t)
-       ;;
-       ;; CLisp `:' keywords as builtins.
-       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-builtin-face t))))
-  "Default expressions to highlight in Help mode.")
+(define-key help-mode-map [mouse-2] 'help-follow-mouse)
+(define-key help-mode-map "\C-c\C-b" 'help-go-back)
+(define-key help-mode-map "\C-c\C-c" 'help-follow)
+(define-key help-mode-map "\t" 'help-next-ref)
+(define-key help-mode-map [backtab] 'help-previous-ref)
+;; Documentation only, since we use minor-mode-overriding-map-alist.
+(define-key help-mode-map "\r" 'help-follow)
+
+;; Font-locking is incompatible with the new xref stuff.
+;(defvar help-font-lock-keywords
+;  (eval-when-compile
+;    (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
+;      (list
+;       ;;
+;       ;; The symbol itself.
+;       (list (concat "\\`\\(" name-char "+\\)\\(\\(:\\)\\|\\('\\)\\)")
+;	     '(1 (if (match-beginning 3)
+;		     font-lock-function-name-face
+;		   font-lock-variable-name-face)))
+;       ;;
+;       ;; Words inside `' which tend to be symbol names.
+;       (list (concat "`\\(" sym-char sym-char "+\\)'")
+;	     1 'font-lock-constant-face t)
+;       ;;
+;       ;; CLisp `:' keywords as references.
+;       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-builtin-face t))))
+;  "Default expressions to highlight in Help mode.")
+
+(defvar help-xref-stack nil
+  "A stack of ways by which to return to help buffers after following xrefs.
+Used by `help-follow' and `help-xref-go-back'.")
+(put 'help-xref-stack 'permanent-local t)
+
+(defvar help-xref-stack-item nil
+  "An item for `help-follow' in this buffer to push onto `help-xref-stack'.")
+(put 'help-xref-stack-item 'permanent-local t)
+
+(setq-default help-xref-stack nil help-xref-stack-item nil)
 
 (defun help-mode ()
-  "Major mode for viewing help text.
+  "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
@@ -121,15 +141,22 @@ Commands:
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(help-font-lock-keywords))
+  (setq font-lock-defaults nil)         ; font-lock would defeat xref
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
+  ;; `help-make-xrefs' would be run here if not invoked from
+  ;; `help-mode-maybe'.
   (run-hooks 'help-mode-hook))
 
 (defun help-mode-maybe ()
   (if (eq major-mode 'fundamental-mode)
       (help-mode))
+  (when (eq major-mode 'help-mode) 
+    ;; View mode's read-only status of existing *Help* buffer is lost
+    ;; by with-output-to-temp-buffer.
+    (toggle-read-only 1)
+    (help-make-xrefs (current-buffer)))
   (setq view-return-to-alist
 	(list (cons (selected-window) help-return-method))))
 
@@ -320,7 +347,8 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	    (let ((doc (documentation defn)))
 	      (if doc
 		  (progn (terpri)
-			 (princ doc))
+			 (princ doc)
+                         (help-setup-xref (cons #'describe-key key) (interactive-p)))
 		(princ "not documented")))
 	    (print-help-return-message)))))))
 
@@ -364,6 +392,7 @@ followed by the major mode, which is described on the last page.\n\f\n"))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
+    (help-setup-xref (cons #'help-xref-mode (current-buffer)) (interactive-p))
     (print-help-return-message)))
 
 ;; So keyboard macro definitions are documented correctly
@@ -448,6 +477,8 @@ With numeric argument display information on correspondingly older changes."
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
 	(insert "\n")))
+    (setq help-xref-stack nil
+          help-xref-stack-item nil)
     (print-help-return-message)))
 
 (defalias 'help 'help-for-help)
@@ -616,7 +647,8 @@ C-w Display information on absence of warranty for GNU Emacs."
 	  (let ((doc (documentation function)))
 	    (if doc
 		(progn (terpri)
-		       (princ doc))
+		       (princ doc)
+                       (help-setup-xref (cons #'describe-function function) (interactive-p)))
 	      (princ "not documented"))))
 	(print-help-return-message)
 	(save-excursion
@@ -696,6 +728,7 @@ Returns the documentation as a string, also."
 	  (terpri)
 	  (let ((doc (documentation-property variable 'variable-documentation)))
 	    (princ (or doc "not documented as a variable.")))
+          (help-setup-xref (cons #'describe-variable variable) (interactive-p))
 	  (print-help-return-message)
 	  (save-excursion
 	    (set-buffer standard-output)
@@ -710,6 +743,8 @@ We put that list in a buffer, and display the buffer.
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
   (interactive "P")
+  (setq help-xref-stack nil
+        help-xref-stack-item nil)
   (describe-bindings-internal nil prefix))
 
 (defun where-is (definition &optional insert)
@@ -787,5 +822,256 @@ is used instead of `load-path'."
 	     (message "Library is file %s" result)
 	   (message "No library %s in search path" library)))
     result))
+
+
+;;; Grokking cross-reference information in doc strings and
+;;; hyperlinking it.
+
+;; This may have some scope for extension and the same or something
+;; similar should be done for widget doc strings, which currently use
+;; another mechanism.
+
+(defcustom help-highlight-p t
+  "*If non-nil, `help-make-xrefs' highlight cross-references.
+Under a window system it highlights them with face defined by
+`help-highlight-face'.  On a character terminal highlighted
+references look like cross-references in info mode."
+ :group 'help
+ :version "20.3"
+ :type 'boolean)
+
+(defcustom help-highlight-face 'underline
+  "Face used by `help-make-xrefs' to highlight cross-references.
+Must be previously-defined."
+  :group 'help
+  :version "20.3"
+  :type 'symbol)
+
+(defvar help-back-label "[back]"
+  "Label to use by `help-make-xrefs' for the go-back reference.")
+
+(defvar help-xref-symbol-regexp
+  (concat "\\(\\<\\(\\(variable\\|option\\)\\|"
+          "\\(function\\|command\\)\\|"
+          "\\(symbol\\)\\)\\s-+\\)?"
+          ;; Note starting with word-syntax character:
+          "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'")
+  "Regexp matching doc string references to symbols.
+
+The words preceding the quoted symbol can be used in doc strings to
+distinguish references to variables, functions and symbols.")
+
+(defvar help-xref-info-regexp
+  "\\<info\\s-+node\\s-`\\([^']+\\)'"
+  "Regexp matching doc string references to an Info node.")
+
+(defun help-setup-xref (item interactive-p)
+  "Invoked from commands using the \"*Help*\" buffer to install some xref info.
+
+ITEM is a (function . args) pair appropriate for recreating the help
+buffer after following a reference.  INTERACTIVE-P is non-nil if the
+calling command was invoked interactively.  In this case the stack of
+items for help buffer \"back\" buttons is cleared."
+  (if interactive-p
+      (setq help-xref-stack nil))
+  (setq help-xref-stack-item item))
+
+(defun help-make-xrefs (&optional buffer)
+  "Parse and hyperlink documentation cross-references in the given BUFFER.
+
+Find cross-reference information in a buffer and, if
+`help-highlight-p' is non-nil, highlight it with face defined by
+`help-highlight-face'; activate such cross references for selection
+with `help-follow'.  Cross-references have the canonical form `...'
+and the type of reference may be disambiguated by the preceding
+word(s) used in `help-xref-symbol-regexp'.
+
+A special reference `back' is made to return back through a stack of
+help buffers.  Variable `help-back-label' specifies the text for
+that."
+  (interactive "b")
+  (save-excursion
+    (set-buffer (or buffer (current-buffer)))
+    (goto-char (point-min))
+    ;; Skip the header-type info, though it might be useful to parse
+    ;; it at some stage (e.g. "function in `library'").
+    (forward-paragraph)
+    (let ((old-modified (buffer-modified-p)))
+      (let ((stab (syntax-table))
+            (case-fold-search t)
+            (inhibit-read-only t))
+        (set-syntax-table emacs-lisp-mode-syntax-table)
+        ;; The following should probably be abstracted out.
+        (unwind-protect
+            (progn
+              ;; Quoted symbols
+              (save-excursion
+                (while (re-search-forward help-xref-symbol-regexp nil t)
+                  (let* ((data (match-string 6))
+                         (sym (intern-soft data)))
+                    (if sym
+                        (cond
+                         ((match-string 3) ; `variable' &c
+                          (and (boundp sym) ; `variable' doesn't ensure
+                                        ; it's actually bound
+                               (help-xref-button 6 #'describe-variable sym)))
+                         ((match-string 4) ; `function' &c
+                          (and (fboundp sym) ; similarly
+                               (help-xref-button 6 #'describe-function sym)))
+                         ((match-string 5)) ; nothing for symbol
+                         ((and (boundp sym) (fboundp sym))
+                          ;; We can't intuit whether to use the
+                          ;; variable or function doc -- supply both.
+                          (help-xref-button 6 #'help-xref-interned sym))
+                         ((boundp sym)
+                          (help-xref-button 6 #'describe-variable sym))
+                         ((fboundp sym)
+                          (help-xref-button 6 #'describe-function sym)))))))
+              ;; Info references
+              (save-excursion
+                (while (re-search-forward help-xref-info-regexp nil t)
+                  (help-xref-button 1 #'Info-goto-node (list (match-data 1)))))
+              ;; An obvious case of a key substitution:
+              (save-excursion              
+                (while (re-search-forward 
+                        "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)" nil t)
+                  (let ((sym (intern-soft (match-string 1))))
+                    (if (fboundp sym)
+                        (help-xref-button 1 #'describe-function sym))))))
+          (set-syntax-table stab))
+        ;; Make a back-reference in this buffer if appropriate.
+        (when help-xref-stack
+          (goto-char (point-max))
+          (save-excursion
+            (insert "\n\n" help-back-label))
+          ;; Just to provide the match data:
+          (looking-at (concat "\n\n\\(" (regexp-quote help-back-label) "\\)"))
+          (help-xref-button 1 #'help-xref-go-back nil)))
+      ;; View mode steals RET from us.
+      (set (make-local-variable 'minor-mode-overriding-map-alist)
+           (list (cons 'view-mode
+                       (let ((map (make-sparse-keymap)))
+                         (define-key map "\r" 'help-follow)
+                         map))))
+      (set-buffer-modified-p old-modified))))
+
+(defun help-xref-button (match-number function data)
+  "Make a hyperlink for cross-reference text previously matched.
+
+MATCH-NUMBER is the subexpression of interest in the last matched
+regexp.  FUNCTION is a function to invoke when the button is
+activated, applied to DATA.  DATA may be a single value or a list.
+See `help-make-xrefs'."
+  (put-text-property (match-beginning match-number)
+                     (match-end match-number)
+                     'mouse-face 'highlight)
+  (if help-highlight-p
+      (put-text-property (match-beginning match-number)
+                         (match-end match-number)
+                         'face help-highlight-face))
+  (put-text-property (match-beginning match-number)
+                     (match-end match-number)
+                     'help-xref (cons function
+                                      (if (listp data)
+                                          data
+                                        (list data)))))
+
+
+;; Additional functions for (re-)creating types of help buffers.
+(defun help-xref-interned (symbol)
+  "Follow a hyperlink which appeared to be an arbitrary interned SYMBOL.
+
+Both variable and function documentation are extracted into a single
+help buffer."
+  (let ((fdoc (describe-function symbol)))
+    (describe-variable symbol)
+    ;; We now have a help buffer on the variable.  Insert the function
+    ;; text after it.
+    (goto-char (point-max))
+    (insert "\n\n" fdoc))
+  (goto-char (point-min))
+  (help-setup-xref (cons #'help-xref-interned symbol) nil))
+
+(defun help-xref-mode (buffer)
+  "Do a `describe-mode' for the specified BUFFER."
+  (save-excursion
+    (set-buffer buffer)
+    (describe-mode)))
+
+;;; Navigation/hyperlinking with xrefs
+
+(defun help-follow-mouse (click)
+  "Follow the cross-reference that you click on."
+  (interactive "e")
+  (save-excursion
+    (let* ((start (event-start click))
+	   (window (car start))
+	   (pos (car (cdr start))))
+      (set-buffer (window-buffer window))
+      (help-follow pos))))
+
+(defun help-xref-go-back ()
+  "Go back to the previous help buffer using info on `help-xref-stack'."
+  (interactive)
+  (when help-xref-stack
+    (setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
+    (let* ((item (car help-xref-stack))
+           (method (car item))
+           (args (cdr item)))
+      (setq help-xref-stack (cdr help-xref-stack))
+      (if (listp args)
+          (apply method args)
+        (funcall method args)))))
+
+(defun help-go-back ()
+  (interactive)
+  (help-follow (1- (point-max))))
+
+(defun help-follow (&optional pos)
+  "Follow cross-reference at POS, defaulting to point.
+
+For the cross-reference format, see `help-make-xrefs'."
+  (interactive "d")
+  (let* ((help-data (get-text-property pos 'help-xref))
+         (method (car help-data))
+         (args (cdr help-data)))
+    (setq help-xref-stack (cons help-xref-stack-item help-xref-stack))
+    (setq help-xref-stack-item nil)
+    (when help-data
+      ;; There is a reference at point.  Follow it.
+      (apply method args))))
+
+;; For tabbing through buffer.
+(defun help-next-ref ()
+  "Find the next help cross-reference in the buffer."
+  (interactive)
+  (let (pos)
+    (while (not pos) 
+      (if (get-text-property (point) 'help-xref) ; move off reference
+	  (or (goto-char (next-single-property-change (point) 'help-xref))
+              (point)))
+      (cond ((setq pos (next-single-property-change (point) 'help-xref))
+	     (if pos (goto-char pos)))
+	    ((bobp)
+	     (message "No cross references in the buffer.")
+	     (setq pos t))
+	    (t				; be circular
+	     (goto-char (point-min)))))))
+
+(defun help-previous-ref ()
+  "Find the previous help cross-reference in the buffer."
+  (interactive)
+  (let (pos)
+    (while (not pos) 
+      (if (get-text-property (point) 'help-xref) ; move off reference
+	  (goto-char (or (previous-single-property-change (point) 'help-xref)
+                         (point))))
+      (cond ((setq pos (previous-single-property-change (point) 'help-xref))
+	     (if pos (goto-char pos)))
+	    ((bobp)
+	     (message "No cross references in the buffer.")
+	     (setq pos t))
+	    (t				; be circular
+	     (goto-char (point-max)))))))
 
 ;;; help.el ends here
