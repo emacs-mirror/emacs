@@ -3830,25 +3830,25 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
                    (read-variable (format "Set variable (default %s): " default-var)
                                   default-var)
                  (read-variable "Set variable: ")))
-		      (minibuffer-help-form '(describe-variable var))
-		      (prop (get var 'variable-interactive))
-		      (prompt (format "Set %s%s to value: " var
-				      (cond ((local-variable-p var)
-					     " (buffer-local)")
-					    ((or current-prefix-arg
-						 (local-variable-if-set-p var))
-					     " buffer-locally")
-					    (t " globally"))))
-		      (val (if prop
-			       ;; Use VAR's `variable-interactive' property
-			       ;; as an interactive spec for prompting.
-			       (call-interactively `(lambda (arg)
-						      (interactive ,prop)
-						      arg))
-			     (read
-			      (read-string prompt nil
-					   'set-variable-value-history)))))
-		 (list var val current-prefix-arg)))
+	  (minibuffer-help-form '(describe-variable var))
+	  (prop (get var 'variable-interactive))
+	  (prompt (format "Set %s%s to value: " var
+			  (cond ((local-variable-p var)
+				 " (buffer-local)")
+				((or current-prefix-arg
+				     (local-variable-if-set-p var))
+				 " buffer-locally")
+				(t " globally"))))
+	  (val (if prop
+		   ;; Use VAR's `variable-interactive' property
+		   ;; as an interactive spec for prompting.
+		   (call-interactively `(lambda (arg)
+					  (interactive ,prop)
+					  arg))
+		 (read
+		  (read-string prompt nil
+			       'set-variable-value-history)))))
+     (list var val current-prefix-arg)))
 
   (and (custom-variable-p var)
        (not (get var 'custom-type))
