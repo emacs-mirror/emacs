@@ -1349,7 +1349,10 @@ encode_coding_utf_8 (coding)
 	{
 	  ASSURE_DESTINATION (safe_room);
 	  c = *charbuf++;
-	  dst += CHAR_STRING (c, dst);
+	  if (CHAR_BYTE8_P (c))
+	    *dst++ = CHAR_TO_BYTE8 (c);
+	  else
+	    dst += CHAR_STRING (c, dst);
 	  produced_chars++;
 	}
     }
@@ -6379,11 +6382,10 @@ consume_chars (coding, translation_table, max_lookup)
 	{
 	  EMACS_INT bytes;
 
-	  if (! CODING_FOR_UNIBYTE (coding)
-	      && (bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
+	  if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
 	    c = STRING_CHAR_ADVANCE (src), pos += bytes;
 	  else
-	    c = *src++, pos++;
+	    c = BYTE8_TO_CHAR (*src), src++, pos++;
 	}
       else
 	c = STRING_CHAR_ADVANCE (src), pos++;
