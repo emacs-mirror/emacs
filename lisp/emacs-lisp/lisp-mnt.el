@@ -120,7 +120,7 @@
   :prefix "lm-"
   :group 'maint)
 
-(defcustom lm-header-prefix "^;;*[ \t]+\\(@\(#\)\\)?[ \t]*\\([\$]\\)?"
+(defcustom lm-header-prefix "^;+[ \t]+\\(@(#)\\)?[ \t]*\\$?"
   "Prefix that is ignored before the tag.
 For example, you can write the 1st line synopsis string and headers like this
 in your Lisp package:
@@ -157,10 +157,9 @@ then $identifier: doc string $ is used by GNU ident(1)"
   "Return regexp for matching HEADER.
 If called with optional MODE and with value `section',
 return section regexp instead."
-  (cond ((eq mode 'section)
-	 (concat "^;;;;* " header ":[ \t]*$"))
-	(t
-	 (concat lm-header-prefix header ":[ \t]*"))))
+  (if (eq mode 'section)
+      (concat "^;;;;* " header ":[ \t]*$")
+    (concat lm-header-prefix header "[ \t]*:[ \t]*")))
 
 (defun lm-get-package-name ()
   "Return package name by looking at the first line."
@@ -201,11 +200,14 @@ If AFTER is non-nil, return the location of the next line."
   "Return the contents of the header named HEADER."
   (goto-char (point-min))
   (let ((case-fold-search t))
-    (if (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
-	     ;;   RCS ident likes format "$identifier: data$"
-	     (looking-at "\\([^$\n]+\\)")
-	     (match-end 1))
-	(match-string-no-properties 1))))
+    (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
+	       ;;   RCS ident likes format "$identifier: data$"
+	       (looking-at
+		(if (save-excursion
+		      (skip-chars-backward "^$" (match-beginning 0))
+		      (= (point) (match-beginning 0)))
+		    "[^\n]+" "[^$\n]+")))
+      (match-string-no-properties 0))))
 
 (defun lm-header-multiline (header)
   "Return the contents of the header named HEADER, with continuation lines.
@@ -216,14 +218,15 @@ The returned value is a list of strings, one per line."
       (when res
 	(setq res (list res))
 	(forward-line 1)
-	(while (and (looking-at (concat lm-header-prefix "[\t ]+"))
-		    (progn
-		      (goto-char (match-end 0))
-		      (looking-at "\\(.*\\)"))
-		    (match-end 1))
-	  (setq res (cons (match-string-no-properties 1) res))
+	(while (and (or (looking-at (concat lm-header-prefix "[\t ]+"))
+			(and (not (looking-at
+				   (lm-get-header-re "\\sw\\(\\sw\\|\\s_\\)*")))
+			     (looking-at lm-header-prefix)))
+		    (goto-char (match-end 0))
+		    (looking-at ".+"))
+	  (setq res (cons (match-string-no-properties 0) res))
 	  (forward-line 1)))
-      res)))
+      (nreverse res))))
 
 ;; These give us smart access to the header fields and commentary
 
