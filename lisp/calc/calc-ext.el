@@ -217,6 +217,7 @@
   (define-key calc-mode-map "dO" 'calc-flat-language)
   (define-key calc-mode-map "dP" 'calc-pascal-language)
   (define-key calc-mode-map "dT" 'calc-tex-language)
+  (define-key calc-mode-map "dL" 'calc-latex-language)
   (define-key calc-mode-map "dU" 'calc-unformatted-language)
   (define-key calc-mode-map "dW" 'calc-maple-language)
   (define-key calc-mode-map "d[" 'calc-truncate-up)
@@ -998,7 +999,7 @@ calc-keypad-press)
  ("calc-lang" calc-big-language calc-c-language calc-eqn-language
 calc-flat-language calc-fortran-language calc-maple-language
 calc-mathematica-language calc-normal-language calc-pascal-language
-calc-tex-language calc-unformatted-language)
+calc-tex-language calc-latex-language calc-unformatted-language)
 
  ("calc-map" calc-accumulate calc-apply calc-inner-product calc-map
 calc-map-equation calc-map-stack calc-outer-product calc-reduce)
