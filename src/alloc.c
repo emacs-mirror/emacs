@@ -47,7 +47,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "charset.h"
+#include "character.h"
 #include "syssignal.h"
 #include <setjmp.h>
 
@@ -2355,49 +2355,6 @@ See also the function `vector'.  */)
     p->contents[index] = init;
 
   XSETVECTOR (vector, p);
-  return vector;
-}
-
-
-DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
-       doc: /* Return a newly created char-table, with purpose PURPOSE.
-Each element is initialized to INIT, which defaults to nil.
-PURPOSE should be a symbol which has a `char-table-extra-slots' property.
-The property's value should be an integer between 0 and 10.  */)
-     (purpose, init)
-     register Lisp_Object purpose, init;
-{
-  Lisp_Object vector;
-  Lisp_Object n;
-  CHECK_SYMBOL (purpose);
-  n = Fget (purpose, Qchar_table_extra_slots);
-  CHECK_NUMBER (n);
-  if (XINT (n) < 0 || XINT (n) > 10)
-    args_out_of_range (n, Qnil);
-  /* Add 2 to the size for the defalt and parent slots.  */
-  vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
-			 init);
-  XCHAR_TABLE (vector)->top = Qt;
-  XCHAR_TABLE (vector)->parent = Qnil;
-  XCHAR_TABLE (vector)->purpose = purpose;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
-  return vector;
-}
-
-
-/* Return a newly created sub char table with default value DEFALT.
-   Since a sub char table does not appear as a top level Emacs Lisp
-   object, we don't need a Lisp interface to make it.  */
-
-Lisp_Object
-make_sub_char_table (defalt)
-     Lisp_Object defalt;
-{
-  Lisp_Object vector
-    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), Qnil);
-  XCHAR_TABLE (vector)->top = Qnil;
-  XCHAR_TABLE (vector)->defalt = defalt;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
 
@@ -5558,7 +5515,6 @@ which includes both saved text and other data.  */);
   defsubr (&Smake_byte_code);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);
-  defsubr (&Smake_char_table);
   defsubr (&Smake_string);
   defsubr (&Smake_bool_vector);
   defsubr (&Smake_symbol);
