@@ -217,7 +217,8 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (if (string-equal (getenv "LC_CTYPE") "iso_8859_1")
+  (if (or (string-equal (getenv "LC_CTYPE") "iso_8859_1")
+	  (string-equal (getenv "LC_CTYPE") "iso-8859-1"))
       (progn 
 	(standard-display-european t)
 	(require 'iso-syntax)))
