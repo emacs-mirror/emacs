@@ -8,7 +8,7 @@
 @comment %**end of header
 
 @copying
-This file describes specialized features of Emacs.
+This manual describes specialized features of Emacs.
 
 Copyright (C) 2004
 Free Software Foundation, Inc.
@@ -252,6 +252,9 @@ if @code{auto-revert-verbose} is @code{t} and effectively override a
 mode for auto-reverting often involves getting rid of such messages.
 This is especially important for buffers that automatically
 auto-revert every @code{auto-revert-interval} seconds.
+
+Also, you may want to update the documentation string of
+@code{global-auto-revert-non-file-buffers}.
 
 @ifinfo
 Finally, you should add a node to this chapter's menu.  This node
