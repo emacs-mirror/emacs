@@ -1,5 +1,8 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/mh-utils.el (mh-recenter): Call `recenter' with arg t
+	if ARG is nil.
+
 	* desktop.el (desktop-last-buffer): New variable.
 	(desktop-create-buffer): Set it.
 	(desktop-read): Bind it and switch to that buffer.
