@@ -164,16 +164,20 @@ markers before we call `read'."
 	(goto-char (point-min))
 	(read (current-buffer))))))
 
-;; !! Requires OUTBUF to be bound !!
+(defvar autoload-print-form-outbuf)
+
 (defun autoload-print-form (form)
-  "Print FORM such that make-docfile will find the docstrings."
+  "Print FORM such that `make-docfile' will find the docstrings.
+The variable `autoload-print-form-outbuf' specifies the buffer to
+put the output in."
   (cond
    ;; If the form is a sequence, recurse.
    ((eq (car form) 'progn) (mapcar 'autoload-print-form (cdr form)))
    ;; Symbols at the toplevel are meaningless.
    ((symbolp form) nil)
    (t
-    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt)))
+    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt))
+	  (outbuf autoload-print-form-outbuf))
       (if (and doc-string-elt (stringp (nth doc-string-elt form)))
 	  ;; We need to hack the printing because the
 	  ;; doc-string must be printed specially for
@@ -317,7 +321,8 @@ are used."
 			      (setq autoloads-done (cons (nth 1 form)
 							 autoloads-done))
 			    (setq autoload form))
-			  (autoload-print-form autoload))
+			  (let ((autoload-print-form-outbuf outbuf))
+			    (autoload-print-form autoload)))
 	 
 		      ;; Copy the rest of the line to the output.
 		      (princ (buffer-substring
