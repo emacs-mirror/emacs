@@ -249,6 +249,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     /* Record that we're about to create a synchronous process.  */
     synch_process_alive = 1;
 
+    /* These vars record information from process termination.
+       Clear them now before process can possibly terminate,
+       to avoid timing error if process terminates soon.  */
+    synch_process_death = 0;
+    synch_process_retcode = 0;
+
     pid = vfork ();
 
     if (pid == 0)
@@ -292,9 +298,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif /* subprocesses */
       return Qnil;
     }
-
-  synch_process_death = 0;
-  synch_process_retcode = 0;
 
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
