@@ -51,12 +51,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 #include "systty.h"
-#include "systime.h"
 
 /* This is to get the definitions of the XK_ symbols.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
+
+/* Include systime.h after xterm.h to avoid double inclusion of time.h. */
+#include "systime.h"
 
 extern int errno;
 
@@ -3247,7 +3249,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
 
   /* Is this a request for a valid symbol?  */
   if (symbol_num < 0 || symbol_num >= table_size)
-    abort ();
+    return Qnil;
 
   if (CONSP (*symbol_table))
     value = Fcdr (assq_no_quit (symbol_int, *symbol_table));
