@@ -5437,7 +5437,7 @@ nil here means use current buffer's major mode.  */);
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
 		     make_number (Lisp_Int),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
-Interactively, you can set this using \\[set-fill-column].  */);
+Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
