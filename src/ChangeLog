@@ -1,3 +1,18 @@
+2000-02-12  Dave Love  <fx@gnu.org>
+
+	* s/aix3-2.h, s/osf-1.h: Define C_DEBUG_SWITCH for non-gcc.
+
+	* s/ux4800.h, s/umips.h, s/umax.h, s/sol2.h, s/sco5.h, s/rtu.h:
+	* s/ptx4.h, s/umax.h, s/dgux.h, s/bsd4-2.h s/bsd4-3.h:
+	* s/hpux.h
+	Don't define HAVE_VFORK.
+
+	* s/gnu-linux.h: Don't define HAVE_VFORK or HAVE_SYS_SIGLIST.
+
+	* s/nextstep.h: Don't define HAVE_ALLOCA.
+
+	* config.in: Add vfork bits.
+
 2000-02-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (Fopen_network_stream) [POLL_FOR_INPUT]: Register
@@ -656,7 +671,7 @@
 	back-ground colors.
 
 	* xfaces.c (Qunspecified_fg, Qunspecified_bg): Remove.
-	(syms_of_xfaces): Remove theit staticpro's.
+	(syms_of_xfaces): Remove their staticpro's.
 	(tty_color_name): Return Lisp strings for unspecified fore- and
 	back-ground colors.
 	(Finternal_set_lisp_face_attribute): Remove the special treatment
