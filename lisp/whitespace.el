@@ -42,7 +42,7 @@
 (add-hook 'find-file-hooks 'whitespace-buffer)
 (add-hook 'kill-buffer-hook 'whitespace-buffer)
 
-(defvar whitespace-version "2.3" "Version of the whitespace library.")
+(defvar whitespace-version "2.6" "Version of the whitespace library.")
 ;; Find out what type of Emacs we are running in.
 (defvar whitespace-running-emacs (if (string-match "XEmacs\\|Lucid"
 						   emacs-version) nil t)
@@ -58,6 +58,17 @@ visited by the buffers.")
 
 (defvar whitespace-rescan-timer nil
   "Timer object used to rescan the files in buffers that have been modified.")
+
+;; Tell Emacs about this new kind of minor mode
+(defvar whitespace-mode nil
+  "Non-nil when Whitespace mode (a minor mode) is enabled.")
+(make-variable-buffer-local 'whitespace-mode)
+(put 'whitespace-mode 'permanent-local nil)
+
+(defvar whitespace-mode-line nil
+  "String to display in the mode line for Whitespace mode.")
+(make-variable-buffer-local 'whitespace-mode-line)
+(put 'whitespace-mode-line 'permanent-local nil)
 
 ;; For users of Emacs 19.x, defgroup and defcustom are not defined.
 
@@ -174,16 +185,10 @@ To disable timer scans, set this to zero."
   :type 'integer
   :group 'whitespace)
 
-;; Tell Emacs about this new kind of minor mode
-(defvar whitespace-mode nil
-  "Non-nil when Whitespace mode (a minor mode) is enabled.")
-(make-variable-buffer-local 'whitespace-mode)
-(put 'whitespace-mode 'permanent-local nil)
-
-(defvar whitespace-mode-line nil
-  "String to display in the mode line for Whitespace mode.")
-(make-variable-buffer-local 'whitespace-mode-line)
-(put 'whitespace-mode-line 'permanent-local nil)
+(defcustom whitespace-display-in-modeline t
+  "Display whitespace errors on the modeline."
+  :type 'boolean
+  :group 'whitespace)
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
@@ -212,91 +217,94 @@ and:
 1. the major mode is one of the whitespace-modes, or
 2. `whitespace-buffer' was explicitly called with a prefix argument."
   (interactive)
-  (whitespace-check-whitespace-mode current-prefix-arg)
-  (if (and buffer-file-name (> (buffer-size) 0) whitespace-mode)
-      (progn
-	(whitespace-check-buffer-list (buffer-name) buffer-file-name)
-	(whitespace-tickle-timer)
-	(if whitespace-auto-cleanup
-	    (if (and (not quiet) buffer-read-only)
-		(message "Can't Cleanup: %s is read-only." (buffer-name))
-	      (whitespace-cleanup))
-	  (let ((whitespace-leading (if whitespace-check-leading-whitespace
-					(whitespace-buffer-leading)
-				      nil))
-		(whitespace-trailing (if whitespace-check-trailing-whitespace
-					 (whitespace-buffer-trailing)
-				       nil))
-		(whitespace-indent (if whitespace-check-indent-whitespace
-				       (whitespace-buffer-search
-					whitespace-indent-regexp)
-				     nil))
-		(whitespace-spacetab (if whitespace-check-spacetab-whitespace
+  (let ((whitespace-error nil))
+    (whitespace-check-whitespace-mode current-prefix-arg)
+    (if (and buffer-file-name (> (buffer-size) 0) whitespace-mode)
+	(progn
+	  (whitespace-check-buffer-list (buffer-name) buffer-file-name)
+	  (whitespace-tickle-timer)
+	  (if whitespace-auto-cleanup
+	      (if buffer-read-only
+		  (if (not quiet)
+		      (message "Can't cleanup: %s is read-only" (buffer-name)))
+		(whitespace-cleanup))
+	    (let ((whitespace-leading (if whitespace-check-leading-whitespace
+					  (whitespace-buffer-leading)
+					nil))
+		  (whitespace-trailing (if whitespace-check-trailing-whitespace
+					   (whitespace-buffer-trailing)
+					 nil))
+		  (whitespace-indent (if whitespace-check-indent-whitespace
 					 (whitespace-buffer-search
-					  whitespace-spacetab-regexp)
+					  whitespace-indent-regexp)
 				       nil))
-		(whitespace-ateol (if whitespace-check-ateol-whitespace
-				      (whitespace-buffer-search
-				       whitespace-ateol-regexp)
-				    nil))
-		(whitespace-errmsg nil)
-		(whitespace-error nil)
-		(whitespace-filename buffer-file-name)
-		(whitespace-this-modeline ""))
+		  (whitespace-spacetab (if whitespace-check-spacetab-whitespace
+					   (whitespace-buffer-search
+					    whitespace-spacetab-regexp)
+					 nil))
+		  (whitespace-ateol (if whitespace-check-ateol-whitespace
+					(whitespace-buffer-search
+					 whitespace-ateol-regexp)
+				      nil))
+		  (whitespace-errmsg nil)
+		  (whitespace-filename buffer-file-name)
+		  (whitespace-this-modeline ""))
 
-	    ;; Now let's complain if we found any of the above.
-	    (setq whitespace-error (or whitespace-leading whitespace-indent
-				       whitespace-spacetab whitespace-ateol
-				       whitespace-trailing))
+	      ;; Now let's complain if we found any of the above.
+	      (setq whitespace-error (or whitespace-leading whitespace-indent
+					 whitespace-spacetab whitespace-ateol
+					 whitespace-trailing))
 
-	    (if whitespace-error
-		(progn
-		  (setq whitespace-errmsg
-			(concat whitespace-filename " contains:\n"
-				(if whitespace-leading "Leading whitespace\n")
-				(if whitespace-indent
-				    (concat "Indentation whitespace"
-					    whitespace-indent "\n"))
-				(if whitespace-spacetab
-				    (concat "Space followed by Tab"
-					    whitespace-spacetab "\n"))
-				(if whitespace-ateol
-				    (concat "End-of-line whitespace"
-					    whitespace-ateol "\n"))
-				(if whitespace-trailing
-				    "Trailing whitespace.\n")
-				"\ntype "
-				"`whitespace-cleanup' to cleanup the file."))
-		  (setq whitespace-this-modeline
-			(concat (if whitespace-ateol "e")
-				(if whitespace-indent "i")
-				(if whitespace-leading "l")
-				(if whitespace-spacetab "s")
-				(if whitespace-trailing "t")))
-		  (setq whitespace-mode-line
-			(concat " W:" whitespace-this-modeline))
-		  (whitespace-force-mode-line-update)))
-
-	    ;; Now test and set the whitespaces that are not checked.
-	    (whitespace-display-unchecked-whitespaces
-	     (if whitespace-error
-		 (concat " W:" whitespace-this-modeline)))
-	    (save-excursion
-	      (get-buffer-create whitespace-errbuf)
-	      (kill-buffer whitespace-errbuf)
-	      (get-buffer-create whitespace-errbuf)
-	      (set-buffer whitespace-errbuf)
-	      (if whitespace-errmsg
+	      (if whitespace-error
 		  (progn
-		    (insert whitespace-errmsg)
-		    (if (not (or quiet whitespace-silent))
-			(display-buffer whitespace-errbuf t))
-		    (if (not quiet)
-			(message "Whitespaces: [%s] in %s"
-				 whitespace-this-modeline
-				 whitespace-filename)))
-		(if (not quiet)
-		    (message "%s clean" whitespace-filename)))))))))
+		    (setq whitespace-errmsg
+			  (concat whitespace-filename " contains:\n"
+				  (if whitespace-leading
+				      "Leading whitespace\n")
+				  (if whitespace-indent
+				      (concat "Indentation whitespace"
+					      whitespace-indent "\n"))
+				  (if whitespace-spacetab
+				      (concat "Space followed by Tab"
+					      whitespace-spacetab "\n"))
+				  (if whitespace-ateol
+				      (concat "End-of-line whitespace"
+					      whitespace-ateol "\n"))
+				  (if whitespace-trailing
+				      "Trailing whitespace\n")
+				  "\ntype `M-x whitespace-cleanup' to "
+				  "cleanup the file."))
+		    (setq whitespace-this-modeline
+			  (concat (if whitespace-ateol "e")
+				  (if whitespace-indent "i")
+				  (if whitespace-leading "l")
+				  (if whitespace-spacetab "s")
+				  (if whitespace-trailing "t")))))
+	      (whitespace-update-modeline whitespace-this-modeline)
+	      (save-excursion
+		(get-buffer-create whitespace-errbuf)
+		(kill-buffer whitespace-errbuf)
+		(get-buffer-create whitespace-errbuf)
+		(set-buffer whitespace-errbuf)
+		(if whitespace-errmsg
+		    (progn
+		      (insert whitespace-errmsg)
+		      (if (not (or quiet whitespace-silent))
+			  (display-buffer whitespace-errbuf t))
+		      (if (not quiet)
+			  (message "Whitespaces: [%s%s] in %s"
+				   whitespace-this-modeline
+				   (let ((whitespace-unchecked
+					  (whitespace-unchecked-whitespaces)))
+				     (if whitespace-unchecked
+					 (concat "!" whitespace-unchecked)
+				       ""))
+				   whitespace-filename)))
+		  (if (not quiet)
+		      (message "%s clean" whitespace-filename))))))))
+    (if whitespace-error
+	t
+      nil)))
 
 ;;;###autoload
 (defun whitespace-region (s e)
@@ -360,9 +368,7 @@ whitespace problems."
 	    (whitespace-cleanup)
 	  (progn
 	    (message "%s clean" buffer-file-name)
-	    (setq whitespace-mode-line nil)
-	    (whitespace-force-mode-line-update)
-	    (whitespace-display-unchecked-whitespaces)))
+	    (whitespace-update-modeline)))
 	(setq tab-width whitespace-tabwith-saved))))
 
 ;;;###autoload
@@ -479,18 +485,35 @@ whitespace problems."
 	(delete-region (match-beginning 0) (point))
 	(indent-to column)))))
 
-(defun whitespace-display-unchecked-whitespaces (&optional whitespace-str)
-  "Update modeline with whitespaces whose testing has been turned off."
+(defun whitespace-unchecked-whitespaces ()
+  "Return the list of whitespaces whose testing has been suppressed."
   (let ((whitespace-this-modeline
 	 (concat (if (not whitespace-check-ateol-whitespace) "e")
 		 (if (not whitespace-check-indent-whitespace) "i")
 		 (if (not whitespace-check-leading-whitespace) "l")
 		 (if (not whitespace-check-spacetab-whitespace) "s")
 		 (if (not whitespace-check-trailing-whitespace) "t"))))
-    (setq whitespace-mode-line whitespace-str)
     (if (not (equal whitespace-this-modeline ""))
-      (setq whitespace-mode-line
-	    (concat whitespace-str " Woff:" whitespace-this-modeline)))
+	whitespace-this-modeline
+      nil)))
+
+(defun whitespace-update-modeline (&optional whitespace-err)
+  "Update modeline with whitespace errors and whitespaces whose testing has
+been turned off."
+  (if whitespace-display-in-modeline
+      (setq whitespace-mode-line nil)
+    ;; Whitespace errors
+    (if (and whitespace-err (not (equal whitespace-err "")))
+	(setq whitespace-mode-line whitespace-err))
+    ;; Whitespace suppressed errors
+    (let ((whitespace-unchecked (whitespace-unchecked-whitespaces)))
+      (if whitespace-unchecked
+	  (setq whitespace-mode-line
+		(concat whitespace-mode-line "!" whitespace-unchecked))))
+    ;; Add the whitespace modeline prefix
+    (setq whitespace-mode-line (if whitespace-mode-line
+				   (concat " W:" whitespace-mode-line)
+				 nil))
     (whitespace-force-mode-line-update)))
 
 ;; Force mode line updation for different Emacs versions
@@ -589,8 +612,8 @@ of whitespace problems that commonly exist in source code.
 
 Whitespace errors are reported in a buffer, and on the modeline.
 
-Modeline will show a W:<x> to denote a particular type of whitespace, where
-`x' can be one (or more) of:
+Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
+where `x' and `y' can be one (or more) of:
 
 e - End-of-Line whitespace.
 i - Indentation whitespace.
@@ -599,7 +622,7 @@ s - Space followed by Tab.
 t - Trailing whitespace.
 
 If any of the whitespace checks is turned off, the modeline will display a
-Woff:<x>, where `x' can be one (or more) of the above.
+!<y>.
 
     (since (3) is the most controversial one, here is the rationale: Most
     terminal drivers and printer drivers have TAB configured or even
