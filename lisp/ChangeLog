@@ -1,7 +1,26 @@
+2002-06-08  Colin Walters  <walters@gnu.org>
+
+	* international/mule-diag.el (describe-char-after): Use
+	`font-lock-face' to italicize property names.
+
+	* international/mule.el (sgml-html-meta-auto-coding-function): New
+	function.
+	(auto-coding-from-file-contents): Delete; merge functionality into
+	`set-auto-coding'.
+	(set-auto-coding): Move tests from `auto-coding-functions' so that
+	they have a lower priority than coding: tags.  Put
+	`auto-coding-regexp-alist' tests before coding: tag tests.
+	(sgml-xml-auto-coding-function): Simply `intern' the match, and
+	test if it's a valid coding system.
+	(auto-coding-functions): Add `sgml-html-meta-auto-coding-function'.
+
 2002-06-08  Colin Walters  <walters@verbum.org>
 
 	* subr.el (copy-list): Moved here from cl.el.
-	(copy-tree): Renamed here from `cl-copy-tree' in cl.el.
+	(copy-tree): Renamed here from `cl-copy-tree' in cl-extra.el.
+	
+	* emacs-lisp/cl-extra.el (cl-copy-tree): Moved to `copy-tree' in
+	subr.el.  Add a defalias with the old name.
 
 	* replace.el (occur-mode): Don't set up categories.
 	(occur-1): Pass `list-matching-lines-face' and

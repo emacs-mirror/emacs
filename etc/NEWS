@@ -293,9 +293,11 @@ screen size.  (For now, this does not work with some window managers.)
 
 ** shell-mode now supports programmable completion using `pcomplete'.
 
-** Emacs now tries to set up buffer coding systems for XML files
+** Emacs now tries to set up buffer coding systems for HTML/XML files
 automatically.  This is accomplished using the general mechanism of a
-new variable called `auto-coding-functions', which you may add to.
+new variable called `auto-coding-functions', which you may add to.  If
+the coding system is detected incorrectly, you may use coding: tags to
+override them.
 
 ** The new command `comint-input-previous-argument' in comint-derived
 modes (shell-mode etc) inserts arguments from previous command lines,
