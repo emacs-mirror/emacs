@@ -1,5 +1,7 @@
 2001-11-25  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Add doc string.
+
 	* international/quail.el (quail-keyboard-layout-button):
 	Define button type.
 	(quail-keyboard-customize-button): Likewise.
