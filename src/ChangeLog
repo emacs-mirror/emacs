@@ -1,3 +1,10 @@
+2001-10-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (DEFUN, DEFVAR_LISP, ...) [DOC_STRINGS_IN_COMMENTS]:
+	Provide definitions for doc strings in comments.
+
+	* fns.c: Put doc strings in comments.
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.c (file_name_completion): Ignore a candidate directory if

@@ -165,3 +165,5 @@
   Emacs.
 
 * Use the XIE X extension, if available, for image display.
+
+* Rewrite make-docfile to something sane.
