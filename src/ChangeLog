@@ -1,3 +1,8 @@
+2000-12-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (wait_reading_process_input): Check for pending
+	input when running timers.
+
 2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_write_glyphs): Compute the glyph face from
