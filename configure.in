@@ -1235,6 +1235,12 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_CHECK_LIB(pthreads, cma_open)
 
+dnl If we can find a tparm in libcurses.a, it means we have ncurses.
+AC_CHECK_LIB(curses, tparm, HAVE_NCURSES=yes)
+if test x"${HAVE_NCURSES}" = "xyes" ; then
+  AC_DEFINE(HAVE_NCURSES)
+fi
+
 AC_MSG_CHECKING(for XFree86)
 if test -d /usr/X386/include; then
   HAVE_XFREE386=yes
