@@ -260,7 +260,7 @@ Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
 matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character set, by writing the
-startong and ending characters with a @samp{-} between them.  Thus,
+starting and ending characters with a @samp{-} between them.  Thus,
 @samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
 which matches any lower case ASCII letter or @samp{$}, @samp{%} or
