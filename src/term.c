@@ -926,7 +926,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   unsigned char *dst_start = dst, *dst_end = dst + dst_len;
   register GLYPH g;
   unsigned int c;
-  unsigned char workbuf[4], *buf;
+  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *buf;
   int len;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
@@ -950,13 +950,6 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      c = ' ';
 	      g = MAKE_GLYPH (sf, c, GLYPH_FACE (sf, g));
 	    }
-	  if (COMPOSITE_CHAR_P (c))
-	    {
-	      /* If C is a composite character, we can display
-		 only the first component.  */
-	      g = cmpchar_table[COMPOSITE_CHAR_ID (c)]->glyph[0],
-	      c = GLYPH_CHAR (sf, g);
-	    }
 	  if (c < tlen)
 	    {
 	      /* G has an entry in Vglyph_table,
@@ -965,8 +958,11 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      c = GLYPH_CHAR (sf, g);
 	    }
 	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
-	    /* We set the multi-byte form of C at BUF.  */
-	    len = CHAR_STRING (c, workbuf, buf);
+	    {
+	      /* We set the multi-byte form of C at WORKBUF.  */
+	      len = CHAR_STRING (c, workbuf);
+	      buf = workbuf;
+	    }
 	  else
 	    {
 	      /* We have a string in Vglyph_table.  */
@@ -1780,11 +1776,15 @@ produce_glyphs (it)
 {
   /* If a hook is installed, let it do the work.  */
   xassert (it->what == IT_CHARACTER
+	   || it->what == IT_COMPOSITION
 	   || it->what == IT_IMAGE
 	   || it->what == IT_STRETCH);
   
-  /* Nothing but characters are supported on terminal frames.  */
-  xassert (it->what == IT_CHARACTER);
+  /* Nothing but characters are supported on terminal frames.  For a
+     composition sequence, it->c is the first character of the
+     sequence.  */
+  xassert (it->what == IT_CHARACTER
+	   || it->what == IT_COMPOSITION);
 
   if (it->c >= 040 && it->c < 0177)
     {
@@ -1829,17 +1829,13 @@ produce_glyphs (it)
     }
   else
     {
-      /* A multi-byte character.  The display width is a per character
-	 value for characters of set CHARSET_COMPOSITION; otherwise
-	 it is fixed for all characters of the set.  Some of the 
-	 glyphs may have to be ignored because they are already 
-	 displayed in a continued line.  */
+      /* A multi-byte character.  The display width is fixed for all
+	 characters of the set.  Some of the glyphs may have to be
+	 ignored because they are already displayed in a continued
+	 line.  */
       int charset = CHAR_CHARSET (it->c);
 
-      if (charset == CHARSET_COMPOSITION)
-	it->pixel_width = cmpchar_table[COMPOSITE_CHAR_ID (it->c)]->width;
-      else
-	it->pixel_width = CHARSET_WIDTH (charset);
+      it->pixel_width = CHARSET_WIDTH (charset);
       it->nglyphs = it->pixel_width;
       
       if (it->glyph_row)
