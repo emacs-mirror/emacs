@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 2.08.01
+;; Version: 2.08.02
 
 ;;; This file is part of GNU Emacs.
 
@@ -312,7 +312,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.01"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.02"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -399,7 +399,7 @@ makes little sense if `lazy-lock-defer-contextually' is non-nil.)
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (const eventually))
+		 (sexp :tag "eventually" :format "%t\n" eventually))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-contextually 'syntax-driven
@@ -417,7 +417,7 @@ buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (const syntax-driven))
+		 (sexp :tag "syntax-driven" :format "%t\n" syntax-driven))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-time
