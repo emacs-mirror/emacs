@@ -9,16 +9,14 @@ to the FSF.
 
 Small but important fixes needed in existing features:
 
-* Bring back the feature of showing the part of the buffer that is a problem
-  for the use of the preferred coding systems.
-
 * Make compile.el record the markers that point to error loci
   on text properties in the error message lines.
 
 Important features:
 
 * Provide user-friendly ways to list all available font families,
-  display a font as a sample, etc.
+  display a font as a sample, etc.  [fx is looking at multilingual
+  font selection for Emacs 22.]
 
 * Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?]
@@ -41,11 +39,17 @@ Important features:
 
 * Make movemail work with IMAP.
 
-* Internationalize Emacs's messages.
+* Internationalize Emacs's messages.  [Note that this is of limited
+  use until the menus can display multilingual text.  It also doesn't
+  address important issues like using the names of symbols essentially
+  as documentation, e.g. in command names and Custom.  -- fx]
 
-* Port Emacs to GTK+.  (Relevant work has been done already.)
-
-* Make the Lucid menu widget display multilingual text.
+* Make the Lucid menu widget display multilingual text.  [This
+  probably needs to be done from actual Emacs buffers, either directly
+  in the menu or by rendering in an unmapped window and copying the
+  pixels.  Note that the relevant Xlib functions assume a specific
+  locale; that isn't good enough even if X can render the arbitrary
+  text, which it often can't as far as I can tell.  -- fx]
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
@@ -92,7 +96,7 @@ Other features we would like:
   for undoing.
 
 * Merge the Emacs regex.c with the Glibc regex.c.
-  They split off a few years ago through negligance.
+  They split off a few years ago through negligence.
 
 * Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
@@ -124,7 +128,9 @@ Other features we would like:
 
 * Support simultaneous tty and X frames.
 
-* Provide MIME support for Rmail using the Gnus MIME library.
+* Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
+  not now feasible, given Gnus maintenance decisions.  fx looked at
+  this and can say where some of the problems are.]
 
 * Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with proprietary compilers on various systems.
@@ -149,7 +155,7 @@ Other features we would like:
   holidays, quoting characters?,...
 
 * Improve the GC (generational, incremental).  (We may be able to use
-  the Boehm collector.)
+  the Boehm collector.)  [fx is working on this.]
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
@@ -161,8 +167,7 @@ Other features we would like:
 * Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-* Integrate Vroonhof's Custom themes code and make it do useful
-  things.  [The integration is partly done.]
+* Make the Custom themes support do useful things.
 
 * Adapt the gnuserv/gnudoit features for server/emacsclient.
 
@@ -204,8 +209,9 @@ Other features we would like:
 * Provide portable undumping using mmap (per gerd design).
 
 * Replace gmalloc.c with the modified Doug Lea code from the current
-  GNU libc so that the special mmapping of buffers can be removed  --
-  that apparently loses under Solaris, at least.
+  GNU libc so that the special mmapping of buffers can be removed --
+  that apparently loses under Solaris, at least.  [fx has mostly done
+  this.]
 
 * Use the XIE X extension, if available, for image display.
 
@@ -244,7 +250,17 @@ Other features we would like:
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
+* Provide a means to extract image-relative coordinates from mouse
+  clicks on images.  (Needed for W3, at least.)  Also useful for W3
+  and Gnus: allow images to scroll properly.
+
+* Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
+  the XPMs so that the colour versions work generally.  (Requires care
+  with the colour used for the transparent regions.)
+
 * Convenient access to the `values' variable.  It would be nice to have an
   interface that would show you the printed reps of the elements of the
   list in a menu, let you select one of the values, and put it into some
   other variable, without changing the value of `values'.
+
+* Fix skip-chars-{for,back}ward to allow character classes.
