@@ -3,11 +3,13 @@
 # Enhanced sccs diff utility for use with vc mode.
 # This version is more compatible with rcsdiff(1).
 #
-#	$Id: vcdiff,v 1.1 1992/08/04 16:08:22 eric Exp eggert $
+#	$Id: vcdiff,v 1.2 1993/06/30 18:54:08 eggert Exp eggert $
 #
 
 DIFF="diff"
 usage="$0: Usage: vcdiff [-q] [-r<sid1>] [-r<sid2>] [diffopts] sccsfile..."
+
+PATH=$PATH:/usr/ccs/bin:/usr/sccs # common SCCS hangouts
 
 echo=
 sid1=-r sid2=
