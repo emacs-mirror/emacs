@@ -146,7 +146,7 @@ $(BLD):         $(OBJDIR)
 		-mkdir $(BLD)
 
 CP		= copy
-CP_DIR		= xcopy /fried
+CP_DIR		= xcopy /f/r/i/e/d
 
 # This is completely braindamaged, but it's the only routine known to be there
 DEL_TREE	= echo y | rmdir /s
