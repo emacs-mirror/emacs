@@ -19,7 +19,7 @@
 #include "mpsw3.h"
 #endif
 #include <string.h>
-
+#include <assert.h>
 
 #define testArenaSIZE     ((size_t)64<<20)
 #define TABLE_SLOTS 49
@@ -156,7 +156,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
 static void set_table_slot(mps_word_t *table,
                            unsigned long n, mps_word_t *p)
 {
-  cdie(table[0] == (mps_word_t)table_wrapper, "set_table_slot");
+  assert(table[0] == (mps_word_t)table_wrapper);
   table[3+n] = (mps_word_t)p;
 }
 
@@ -166,8 +166,8 @@ static void set_table_slot(mps_word_t *table,
  */
 static void table_link(mps_word_t *t1, mps_word_t *t2)
 {
-  cdie(t1[0] == (mps_word_t)table_wrapper, "table_link 1");
-  cdie(t2[0] == (mps_word_t)table_wrapper, "table_link 2");
+  assert(t1[0] == (mps_word_t)table_wrapper);
+  assert(t2[0] == (mps_word_t)table_wrapper);
   t1[1] = (mps_word_t)t2;
   t2[1] = (mps_word_t)t1;
 }
