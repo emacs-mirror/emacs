@@ -208,9 +208,8 @@ char_to_string (c, str)
 	    c &= (037 | (~0177 & ~CHAR_CTL));
 	}
 
-      /* If C still has any modifier bits, it is an invalid character.  */
-      if (c & CHAR_MODIFIER_MASK)
-	invalid_character (c);
+      /* If C still has any modifier bits, just ignore it.  */
+      c &= ~CHAR_MODIFIER_MASK;
     }
   if (SINGLE_BYTE_CHAR_P (c))
     {
