@@ -635,7 +635,6 @@ If value is 'slash, only enter if typing final slash, else do it always."
 		 (other :tag "Always" t))
   :group 'ido)
 
-Non-nil means if typing / results in only one matching directory, enter it 
 (defcustom ido-create-new-buffer 'prompt
   "*Specify whether a new buffer is created if no buffer matches substring.
 Choices are 'always to create new buffers unconditionally, 'prompt to
