@@ -1,3 +1,10 @@
+2001-01-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-mark-fis-dead): New function.
+	(cvs-mode-add): Use it.
+	(cvs-mode-add-change-log-entry-other-window):
+	Rebind change-log-default-name to itself rather than to nil.
+
 2001-01-29  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el: replaced (require 'vc) with a bunch of
