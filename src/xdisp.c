@@ -3816,15 +3816,14 @@ next_element_from_display_vector (it)
 
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
-	 zero means no face.  */
+	 zero means no face is specified.  */
       lface_id = FAST_GLYPH_FACE (g);
       if (lface_id)
 	{
+	  /* The function returns -1 if lface_id is invalid.  */
 	  int face_id = ascii_face_of_lisp_face (it->f, lface_id);
 	  if (face_id >= 0)
-	    {
-	      it->face_id = face_id;
-	    }
+	    it->face_id = face_id;
 	}
     }
   else
