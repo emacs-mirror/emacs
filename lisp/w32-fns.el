@@ -291,17 +291,22 @@ with a definition that really does change some file names."
   "Set the coding system used by the Windows System to CODING-SYSTEM.
 This is used for things like passing font names with non-ASCII
 characters in them to the system. For a list of possible values of
-CODING-SYSTEM, use \\[list-coding-systems]."
+CODING-SYSTEM, use \\[list-coding-systems].
+
+This function is provided for backward compatibility, since
+w32-system-coding-system is now an alias for `locale-coding-system'."
   (interactive
-   (list (let ((default w32-system-coding-system))
+   (list (let ((default locale-coding-system))
            (read-coding-system
             (format "Coding system for system calls (default, %s): "
                     default)
             default))))
   (check-coding-system coding-system)
-  (setq w32-system-coding-system coding-system))
-;; Set system coding system initially to iso-latin-1
-(set-w32-system-coding-system 'iso-latin-1)
+  (setq locale-coding-system coding-system))
+
+;; locale-coding-system was introduced to do the same thing as
+;; w32-system-coding-system. Use that instead.
+(defvaralias 'w32-system-coding-system 'locale-coding-system)
 
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
