@@ -103,21 +103,14 @@ The argument object is not altered--the value is a copy.")
   return casify_object (CASE_CAPITALIZE, obj);
 }
 
+/* Like Fcapitalize but change only the initials.  */
+
 DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
   "Convert the initial of each word in the argument to upper case.\n\
 Do not change the other letters of each word.\n\
 The argument may be a character or string.  The result has the same type.\n\
 The argument object is not altered--the value is a copy.")
   (obj)
-     Lisp_Object obj;
-{
-  return casify_object (CASE_CAPITALIZE_UP, obj);
-}
-
-/* Like Fcapitalize but change only the initials.  */
-
-Lisp_Object
-upcase_initials (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_CAPITALIZE_UP, obj);
@@ -133,16 +126,19 @@ casify_region (flag, b, e)
   register int i;
   register int c;
   register int inword = flag == CASE_DOWN;
+  int start, end;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
     return;
 
   validate_region (&b, &e);
-  modify_region (current_buffer, XFASTINT (b), XFASTINT (e));
-  record_change (XFASTINT (b), XFASTINT (e) - XFASTINT (b));
+  start = XFASTINT (b);
+  end = XFASTINT (e);
+  modify_region (current_buffer, start, end);
+  record_change (start, end - start);
 
-  for (i = XFASTINT (b); i < XFASTINT (e); i++)
+  for (i = start; i < end; i++)
     {
       c = FETCH_CHAR (i);
       if (inword && flag != CASE_CAPITALIZE_UP)
@@ -155,9 +151,7 @@ casify_region (flag, b, e)
 	inword = SYNTAX (c) == Sword;
     }
 
-  signal_after_change (XFASTINT (b),
-		       XFASTINT (e) - XFASTINT (b), 
-		       XFASTINT (e) - XFASTINT (b));
+  signal_after_change (start, end - start, end - start);
 }
 
 DEFUN ("upcase-region", Fupcase_region, Supcase_region, 2, 2, "r",
@@ -198,6 +192,8 @@ character positions to operate on.")
   return Qnil;
 }
 
+/* Like Fcapitalize_region but change only the initials.  */
+
 DEFUN ("upcase-initials-region", Fupcase_initials_region,
        Supcase_initials_region, 2, 2, "r",
   "Upcase the initial of each word in the region.\n\
@@ -205,16 +201,6 @@ Subsequent letters of each word are not changed.\n\
 In programs, give two arguments, the starting and ending\n\
 character positions to operate on.")
   (b, e)
-     Lisp_Object b, e;
-{
-  casify_region (CASE_CAPITALIZE_UP, b, e);
-  return Qnil;
-}
-
-/* Like Fcapitalize_region but change only the initials.  */
-
-Lisp_Object
-upcase_initials_region (b, e)
      Lisp_Object b, e;
 {
   casify_region (CASE_CAPITALIZE_UP, b, e);
@@ -228,11 +214,13 @@ operate_on_word (arg, newpoint)
 {
   Lisp_Object val;
   int farend;
+  int iarg;
 
   CHECK_NUMBER (arg, 0);
-  farend = scan_words (point, XINT (arg));
+  iarg = XINT (arg);
+  farend = scan_words (point, iarg);
   if (!farend)
-    farend = XINT (arg) > 0 ? ZV : BEGV;
+    farend = iarg > 0 ? ZV : BEGV;
 
   *newpoint = point > farend ? point : farend;
   XSETFASTINT (val, farend);
