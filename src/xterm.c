@@ -557,7 +557,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       /* Get the face-code of the next GLYPH.  */
       int cf, len;
       GLYPH g = *gp;
-      int ch, charset;
+      int ch, first_ch, charset;
       /* HIGHEST and LOWEST are used while drawing a composite
          character.  The meanings are described later.  */
       int highest, lowest;
@@ -565,6 +565,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
       cf = (cmpcharp ? cmpcharp->face_work : FAST_GLYPH_FACE (g));
       ch = FAST_GLYPH_CHAR (g);
+      if (gidx == 0) first_ch = ch;
       charset = CHAR_CHARSET (ch);
       if (charset == CHARSET_COMPOSITION)
 	{
@@ -635,12 +636,14 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	   1) A face has stipple.
 	   2) A height of font is different from that of the current line.
 	   3) Drawing a composite character.
+	   4) Font has non-zero _MULE_BASELINE_OFFSET property.
 	   After filling background, we draw glyphs by XDrawString16.  */
 	int background_filled;
 	/* Baseline position of a character, offset from TOP.  */
 	int baseline;
-	/* The property value of `_MULE_RELATIVE_COMPOSE'.  */
-	int relative_compose = 0;
+	/* The property value of `_MULE_RELATIVE_COMPOSE' and
+           `_MULE_DEFAULT_ASCENT'.  */
+	int relative_compose = 0, default_ascent = 0;
 
 	/* HL = 3 means use a mouse face previously chosen.  */
 	if (hl == 3)
@@ -695,7 +698,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      baseline = (f->output_data.x->font_baseline
 			  - fontp->baseline_offset);
 	    if (cmpcharp && cmpcharp->cmp_rule == NULL)
-	      relative_compose = fontp->relative_compose;
+	      {
+		relative_compose = fontp->relative_compose;
+		default_ascent = fontp->default_ascent;
+	      }
 
 	    /* We have to change code points in the following cases.  */
 	    if (fontp->font_encoder)
@@ -812,7 +818,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	else if (!font
 		 || stippled
 		 || f->output_data.x->line_height != FONT_HEIGHT (font)
-		 || cmpcharp)
+		 || cmpcharp
+		 || baseline != f->output_data.x->font_baseline)
 	  {
 	    if (!stippled)
 	      /* This is to fill a rectangle with background color.  */
@@ -853,9 +860,19 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		       written, LOWEST the lowest position.  */
 		    int x_offset = 0;
 
-		    pcm = PER_CHAR_METRIC (font, buf);
-		    highest = pcm->ascent + 1;
-		    lowest = - pcm->descent;
+		    if (default_ascent
+			&& CHAR_TABLE_P (Vuse_default_ascent)
+			&& !NILP (Faref (Vuse_default_ascent, first_ch)))
+		      {
+			highest = default_ascent;
+			lowest = 0;
+		      }
+		    else
+		      {
+			pcm = PER_CHAR_METRIC (font, buf);
+			highest = pcm->ascent + 1;
+			lowest = - pcm->descent;
+		      }
 
 		    if (cmpcharp->cmp_rule)
 		      x_offset = (cmpcharp->col_offset[0]
@@ -6380,6 +6397,9 @@ x_load_font (f, fontname, size)
     fontp->relative_compose
       = (XGetFontProperty (font, dpyinfo->Xatom_MULE_RELATIVE_COMPOSE, &value)
 	 ? (long) value : 0);
+    fontp->default_ascent
+      = (XGetFontProperty (font, dpyinfo->Xatom_MULE_DEFAULT_ASCENT, &value)
+	 ? (long) value : 0);
 
     UNBLOCK_INPUT;
     dpyinfo->n_fonts++;
@@ -6678,6 +6698,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_MULE_BASELINE_OFFSET", False);
   dpyinfo->Xatom_MULE_RELATIVE_COMPOSE
     = XInternAtom (dpyinfo->display, "_MULE_RELATIVE_COMPOSE", False);
+  dpyinfo->Xatom_MULE_DEFAULT_ASCENT
+    = XInternAtom (dpyinfo->display, "_MULE_DEFAULT_ASCENT", False);
 
   dpyinfo->cut_buffers_initialized = 0;
 
