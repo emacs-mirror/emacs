@@ -1,3 +1,40 @@
+2005-01-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (defcalcmodevar): New macro.
+	(calc-mode-var-list-restore-default-values)
+	(calc-mode-var-list-restore-saved-values): New functions.
+	(calc-mode-var-list): Use defcalcmodevar to define it.
+	(calc-always-load-extensions, calc-line-numbering)
+	(calc-line-breaking, calc-display-just, calc-display-origin)
+	(calc-number-radix, calc-leading-zeros, calc-group-digits)
+	(calc-group-char, calc-point-char, calc-frac-format)
+	(calc-prefer-frac, calc-hms-format, calc-date-format)
+	(calc-float-format, calc-full-float-format, calc-complex-format)
+	(calc-complex-mode, calc-infinite-mode, calc-display-strings)
+	(calc-matrix-just, calc-break-vectors, calc-full-vectors)
+	(calc-full-trail-vectors, calc-vector-commas, calc-vector-brackets)
+	(calc-matrix-brackets, calc-language, calc-language-option)
+	(calc-left-label, calc-right-label, calc-word-size)
+	(calc-previous-modulo, calc-simplify-mode, calc-auto-recompute)
+	(calc-display-raw, calc-internal-prec, calc-angle-mode)
+	(calc-algebraic-mode, calc-incomplete-algebraic-mode)
+	(calc-symbolic-mode, calc-matrix-mode, calc-shift-prefix)
+	(calc-window-height, calc-display-trail, calc-show-selections)
+	(calc-use-selections, calc-assoc-selections)
+	(calc-display-working-message, calc-auto-why, calc-timing)
+	(calc-mode-save-mode, calc-standard-date-formats, calc-autorange-units)
+	(calc-was-keypad-mode, calc-full-mode, calc-user-parse-tables)
+	(calc-gnuplot-default-device, calc-gnuplot-default-output)
+	(calc-gnuplot-print-device, calc-gnuplot-print-output)
+	(calc-gnuplot-geometry, calc-graph-default-resolution)
+	(calc-graph-default-resolution-3d, calc-invocation-macro)
+	(calc-show-banner): Use defcalcmodevar to declare them and set
+	their default values.
+
+	* calc/calc-ext.el (calc-reset): Restore saved values of variables
+	instead of default values (but restore default values if there is
+	an argument of 0).
+
 2005-01-09  David Kastrup  <dak@gnu.org>
 
 	* desktop.el (desktop-restore-eager): Fix typo in type.
