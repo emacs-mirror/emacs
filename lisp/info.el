@@ -894,9 +894,18 @@ NAME may be an abbreviation of the reference name."
 	 ;; Record as a completion and perhaps as default.
 	 (if (eq default t) (setq default str))
 	 (if (eq alt-default t) (setq alt-default str))
-	 (setq completions
-	       (cons (cons str nil)
-		     completions))))
+	 ;; Don't add this string if it's a duplicate.
+	 ;; We use a loop instead of "(assoc str completions)" because
+	 ;; we want to do a case-insensitive compare.
+	 (let ((tail completions)
+	       (tem (downcase str)))
+	   (while (and tail
+		       (not (string-equal tem (downcase (car (car tail))))))
+	     (setq tail (cdr tail)))
+	   (or tail
+	       (setq completions
+		     (cons (cons str nil)
+			   completions))))))
      ;; If no good default was found, try an alternate.
      (or default
 	 (setq default alt-default))
