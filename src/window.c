@@ -4495,24 +4495,17 @@ displayed_window_lines (w)
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   start_display (&it, w, start);
   move_it_vertically (&it, height);
-
-  if (old_buffer)
-    set_buffer_internal (old_buffer);
-
-  bottom_y = it.current_y + it.max_ascent + it.max_descent;
-
-  if (bottom_y > it.current_y && bottom_y <= it.last_visible_y)
-    /* Hit a line without a terminating newline.  */
-    it.vpos++;
+  bottom_y = line_bottom_y (&it);
 
   /* Add in empty lines at the bottom of the window.  */
   if (bottom_y < height)
     {
-      struct frame *f = XFRAME (w->frame);
-      int rest = height - bottom_y;
-      int lines = rest / CANON_Y_UNIT (f);
-      it.vpos += lines;
+      int uy = CANON_Y_UNIT (it.f);
+      it.vpos += (height - bottom_y + uy - 1) / uy;
     }
+
+  if (old_buffer)
+    set_buffer_internal (old_buffer);
 
   return it.vpos;
 }
@@ -4659,13 +4652,9 @@ zero means top of window, negative means relative to bottom of window.")
 	XSETINT (arg, XINT (arg) + lines);
     }
 
-#if 0 /* I don't understand why this is done.  Among other things,
-         it means that C-u 0 M-r moves to line 1, and C-u -1 M-r
-         moves to the line below the window end.  2000-02-05, gerd */
+  /* Skip past a partially visible first line.  */
   if (w->vscroll)
-    /* Skip past a partially visible first line.  */
     XSETINT (arg, XINT (arg) + 1);
-#endif
 
   return Fvertical_motion (arg, window);
 }
