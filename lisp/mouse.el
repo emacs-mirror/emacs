@@ -50,17 +50,17 @@
   :group 'mouse)
 
 (defcustom mouse-1-click-follows-link 350
-  "Non-nil means that clicking mouse-1 on a link follows the link.
+  "Non-nil means that clicking Mouse-1 on a link follows the link.
 
-With the default setting, an ordinary mouse-1 click on a link
-performs the same action as mouse-2 on that link, while a longer
-mouse-1 click \(hold down the mouse-1 button for more than 350
-milliseconds) performs the original mouse-1 binding \(which
+With the default setting, an ordinary Mouse-1 click on a link
+performs the same action as Mouse-2 on that link, while a longer
+Mouse-1 click \(hold down the Mouse-1 button for more than 350
+milliseconds) performs the original Mouse-1 binding \(which
 typically sets point where you click the mouse).
 
 If value is an integer, the time elapsed between pressing and
 releasing the mouse button determines whether to follow the link
-or perform the normal mouse-1 action (typically set point).
+or perform the normal Mouse-1 action (typically set point).
 The absolute numeric value specifices the maximum duration of a
 \"short click\" in milliseconds.  A positive value means that a
 short click follows the link, and a longer click performs the
@@ -68,7 +68,7 @@ normal action.  A negative value gives the opposite behaviour.
 
 If value is `double', a double click follows the link.
 
-Otherwise, a single mouse-1 click unconditionally follows the link.
+Otherwise, a single Mouse-1 click unconditionally follows the link.
 
 Note that dragging the mouse never follows the link.
 
