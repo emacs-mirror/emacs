@@ -437,7 +437,7 @@ Lisp_Object Vdeactivate_mark;
 Lisp_Object Vlucid_menu_bar_dirty_flag;
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
-Lisp_Object Qecho_area_clear_hook;
+Lisp_Object Qecho_area_clear_hook, Vecho_area_clear_hook;
 
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook, Vpre_command_hook;
@@ -9489,7 +9489,7 @@ requeued_events_pending_p ()
 
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
-       doc: /* T if command input is currently available with no waiting.
+       doc: /* t if command input is currently available with no waiting.
 Actually, the value is nil only if we can be sure that no input is available.  */)
      ()
 {
@@ -10281,6 +10281,9 @@ syms_of_keyboard ()
   Qpost_command_idle_hook = intern ("post-command-idle-hook");
   staticpro (&Qpost_command_idle_hook);
 
+  Qecho_area_clear_hook = intern ("echo-area-clear-hook");
+  staticpro (&Qecho_area_clear_hook);
+
   Qdeferred_action_function = intern ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
@@ -10720,12 +10723,9 @@ This feature is obsolete; use idle timers instead.  See `etc/NEWS'.  */);
 This is measured in microseconds.  */);
   post_command_idle_delay = 100000;
 
-#if 0
-  DEFVAR_LISP ("echo-area-clear-hook", ...,
+  DEFVAR_LISP ("echo-area-clear-hook", &Vecho_area_clear_hook,
 	       doc: /* Normal hook run when clearing the echo area.  */);
-#endif
-  Qecho_area_clear_hook = intern ("echo-area-clear-hook");
-  SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
+  Vecho_area_clear_hook = Qnil;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
 	       doc: /* t means menu bar, specified Lucid style, needs to be recomputed.  */);
