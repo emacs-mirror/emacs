@@ -194,6 +194,14 @@ sign), Polish, Romanian, Slovak, Slovenian, Thai, Tibetan, Turkish, and
 Vietnamese.
 @end quotation
 
+@cindex fonts, for displaying different languages
+  To be able to display the script(s) used by your language environment
+on a windowed display, you need to have a suitable font installed.  If
+some of the characters appear as empty boxes, download and install the
+GNU Intlfonts distribution, which includes fonts for all supported
+scripts.  @xref{Fontsets}, for more details about setting up your
+fonts.
+
 @findex set-locale-environment
 @vindex locale-language-names
 @vindex locale-charset-language-names
