@@ -627,7 +627,17 @@ extern OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
 extern void mac_clear_font_name_table P_ ((void));
 #if TARGET_API_MAC_CARBON
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
+extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
+extern Lisp_Object cfstring_to_lisp P_ ((CFStringRef));
+extern Lisp_Object cfnumber_to_lisp P_ ((CFNumberRef));
+extern Lisp_Object cfdate_to_lisp P_ ((CFDateRef));
+extern Lisp_Object cfboolean_to_lisp P_ ((CFBooleanRef));
+extern Lisp_Object cfobject_desc_to_lisp P_ ((CFTypeRef));
+extern Lisp_Object cfproperty_list_to_lisp P_ ((CFPropertyListRef, int, int));
 #endif
+extern void xrm_merge_string_database P_ ((XrmDatabase, char *));
+extern Lisp_Object xrm_get_resource P_ ((XrmDatabase, char *, char *));
+extern XrmDatabase xrm_get_preference_database P_ ((char *));
 
 /* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79
    (do not change this comment) */
