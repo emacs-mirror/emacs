@@ -1,3 +1,17 @@
+2002-09-30  Colin Walters  <walters@gnu.org>
+
+	* calc/calc-stuff.el (calc-flush-caches): Add optional arg
+	`inhibit-msg'.
+
+	* calc/calc-prog.el (calc-kbd-report, calc-kbd-query): Don't bind
+	`executing-kbd-macro' and `defining-kbd-macro'.
+
+	* calc/calc-ext.el (calc-reset): Don't bind `executing-kbd-macro'.
+	Call `calc-flush-caches' with inhibit-msg arg.
+	(calc-change-mode): Remove extra arg for `calc-save-modes'.
+	
+	* calc/calc-mode.el (calc-save-modes): Remove `quiet' arg; Don't bind `executing-kbd-macro'.
+
 2002-09-29  Noah Friedman  <friedman@splode.com>
 
 	* subr.el (read-key): Use read-key-auxiliary-map, not
