@@ -1976,6 +1976,11 @@ arg is non-nil.
 
 ** The function `eql' is now available without requiring the CL package.
 
++++
+** The new primitive `set-file-times' sets a file's access and
+modification times.  Magic file name handlers can handle this
+operation.
+
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
 
