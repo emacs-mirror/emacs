@@ -186,7 +186,7 @@ EMACS = emacs
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -366,7 +366,7 @@ mkdir: FRC
 	$(srcdir)/mkinstalldirs ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
-	-chmod 777 ${lockdir}
+	-chmod a+rwx ${lockdir}
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
@@ -436,7 +436,7 @@ clean: FRC
 ###      `make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
-	rm -f config.status config.cache ; \
+	rm -f config.status config.cache config.log ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock && rm -f *)
 distclean: FRC
