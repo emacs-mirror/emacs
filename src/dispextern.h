@@ -2638,7 +2638,7 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 
 /* Defined in fringe.c */
 
-int valid_fringe_bitmap_id_p (int);
+int valid_fringe_bitmap_p (Lisp_Object);
 void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
 void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
 void draw_window_fringes P_ ((struct window *));
