@@ -1,3 +1,12 @@
+2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (do_visible_bell): Add \n\ at the end of each line of
+	inline assembly, to avoid compiler warnings.
+	(syms_of_msdos): Add \n\ at the end of a doc string line for
+	dos-unsupported-char-glyph.
+
+	* buffer.c (syms_of_buffer) [if 0]: Avoid a warning from GCC 3.0.
+
 2001-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* sound.c: Include Emacs' header files with #include "...".
