@@ -283,8 +283,9 @@ format style.")
 ;             (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
 ;             structured-types
 ;             other-types))))
+       ;; Fixme:
        ;; Derived from the above, changing the escaped `[ \t]*'s back.
-       ;; Should be done with a `replace all in string' function...
+       ;; Should be done with a `replace all in string' function at compile time...
        "byte\\|c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|d\\(ata\\|imension\\|ouble[ \t]*\\(complex\\|precision\\)\\)\\|e\\(nd[ \t]*\\(map\\|structure\\|union\\)\\|quivalence\\|xternal\\)\\|i\\(mplicit[ \t]*\\(byte\\|c\\(haracter\\|omplex\\)\\|double[ \t]*\\(complex\\|precision\\)\\|integer\\|logical\\|none\\|real\\)\\|nt\\(eger\\|rinsic\\)\\)\\|logical\\|map\\|none\\|parameter\\|re\\(al\\|cord\\)\\|s\\(ave\\|tructure\\)\\|union")
       (fortran-keywords
        (eval-when-compile
@@ -352,7 +353,10 @@ format style.")
                 ;; Fontify each declaration item (or just the /.../ block name).
                 '(font-lock-match-c-style-declaration-item-and-skip-to-next
                   ;; Start after any *(...) expression.
-                  (and (match-beginning 15) (forward-sexp))
+                  (and (match-beginning 15)
+		       (condition-case nil
+			   (forward-sexp)
+			 (error nil)))
                   ;; No need to clean up.
                   nil
                   ;; Fontify as a variable name, functions are
