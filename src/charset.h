@@ -560,6 +560,34 @@ extern int iso_charset_table[2][2][128];
    ? (actual_len = 1), (unsigned char) *(str)		    	\
    : string_to_non_ascii_char (str, len, &actual_len))
 
+/* Fetch the "next" multibyte character from Lisp string STRING
+   at byte position BYTEIDX, character position CHARIDX.
+   Store it into OUTPUT.
+
+   All the args must be side-effect-free.
+   BYTEIDX and CHARIDX must be lvalues;
+   we increment them past the character fetched.  */
+
+#define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	      \
+if (1)									      \
+  {									      \
+    unsigned char *fetch_string_char_ptr = &XSTRING (STRING)->data[BYTEIDX];  \
+    int fetch_string_char_space_left = XSTRING (STRING)->size_byte - BYTEIDX; \
+    int actual_len;							      \
+    									      \
+    OUTPUT								      \
+      = STRING_CHAR_AND_LENGTH (fetch_string_char_ptr,			      \
+			        fetch_string_char_space_left, actual_len);    \
+									      \
+    BYTEIDX += actual_len;						      \
+    CHARIDX++;								      \
+  }									      \
+else
+
+  /* Nonzero enables use of dialog boxes for questions
+     asked by mouse commands.  */
+  int use_dialog_box;
+
 /* Return the length of the multi-byte form at string STR of length LEN.  */
 
 #define MULTIBYTE_FORM_LENGTH(str, len)			     	\
