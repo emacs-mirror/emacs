@@ -1903,7 +1903,7 @@ copy_part_of_rope (f, to, s, from, len, face)
   if (! FRAME_TERMCAP_P (f))
     while (n--)
       {
-	int glyph = XFASTINT (*fp);
+	int glyph = (INTEGERP (*fp) ? XFASTINT (*fp) : 0);
 	int facecode;
 
 	if (FAST_GLYPH_FACE (glyph) == 0)
