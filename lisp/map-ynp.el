@@ -157,7 +157,7 @@ the current %s and exit."
 			   (funcall actor elt)
 			   (setq actions (1+ actions))))))
 		  ((= ?? char)
-		   (setq unread-command-char help-char)
+		   (setq unread-command-event help-char)
 		   (setq next (` (lambda ()
 				   (setq next '(, next))
 				   '(, elt)))))
