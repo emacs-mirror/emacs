@@ -1255,8 +1255,8 @@ number of backslashes."
    ("\\\\caption\\(\\[[^]]*\\]\\)?{" "}" label)
 
    ;; formulas
-   ("\\\\("  "\\\\)" formula)                   ; \( \)
-   ("\\\\\\[" "\\\\\\]" formula)                ; \[ \]
+   ("[^\\]\\\\("  "\\\\)" formula)                   ; \( \)
+   ("[^\\]\\\\\\[" "\\\\\\]" formula)                ; \[ \]
    ("[^$]\\($\\($[^$]*\\$\\|[^$]*\\)\\$\\)" 1 formula) ; '$...$' or '$$...$$'
    
    ;; things that bring in external files
