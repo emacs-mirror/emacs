@@ -634,6 +634,12 @@ temp_output_buffer_setup (bufname)
 
   current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
+  current_buffer->filename = Qnil;
+  current_buffer->undo_list = Qt;
+  current_buffer->overlays_before = Qnil;
+  current_buffer->overlays_after = Qnil;
+  current_buffer->enable_multibyte_characters
+    = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
 
   XSETBUFFER (buf, current_buffer);
