@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/20 10:04:17 $
-;; Version:		$Revision: 1.53 $
+;; Last-Modified:	$Date: 1994/10/24 12:37:01 $
+;; Version:		$Revision: 1.54 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -346,7 +346,7 @@ This is necessary if one wants to dump man.el with emacs."
        (if Man-sed-script
 	   (concat "-e '" Man-sed-script "'")
 	 "")
-       "-e '/^[\001-\032]*$/d'"
+       "-e '/^[\001-\032][\001-\032]*$/d'"
        "-e '/\e[789]/s///g'"
        "-e '/[Nn]o such file or directory/d'"
        "-e '/Reformatting page.  Wait/d'"
