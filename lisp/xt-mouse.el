@@ -113,11 +113,18 @@
   (setcdr pos (cons xterm-mouse-x xterm-mouse-y))
   pos)
 
+;; read xterm sequences above ascii 127 (#x7f)
+(defun xterm-mouse-event-read ()
+  (let ((c (read-char)))
+    (if (< c 0)
+        (+ c #x8000000 128)
+      c)))
+
 (defun xterm-mouse-event ()
   "Convert XTerm mouse event to Emacs mouse event."
-  (let* ((type (- (read-char) #o40))
-	 (x (- (read-char) #o40 1))
-	 (y (- (read-char) #o40 1))
+  (let* ((type (- (xterm-mouse-event-read) #o40))
+	 (x (- (xterm-mouse-event-read) #o40 1))
+	 (y (- (xterm-mouse-event-read) #o40 1))
 	 (point (cons x y))
 	 (window (window-at x y))
 	 (where (if window
