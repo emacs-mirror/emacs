@@ -226,9 +226,6 @@ void print_interval ();
        if (NILP (current_buffer->enable_multibyte_characters)		\
 	   && ! print_escape_multibyte)					\
          specbind (Qprint_escape_multibyte, Qt);			\
-       if (! NILP (current_buffer->enable_multibyte_characters)		\
-	   && ! print_escape_nonascii)					\
-         specbind (Qprint_escape_nonascii, Qt);				\
        if (print_buffer != 0)						\
 	 {								\
 	   string = make_string_from_bytes (print_buffer,		\
@@ -1384,6 +1381,7 @@ print_object (obj, printcharfun, escapeflag)
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
 	  int need_nonhex = 0;
+	  int multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
 
@@ -1404,7 +1402,7 @@ print_object (obj, printcharfun, escapeflag)
 	      int len;
 	      int c;
 
-	      if (STRING_MULTIBYTE (obj))
+	      if (multibyte)
 		{
 		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
 					      size_byte - i_byte, len);
@@ -1428,7 +1426,8 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
 		}
-	      else if (! SINGLE_BYTE_CHAR_P (c) && print_escape_multibyte)
+	      else if (multibyte && ! ASCII_BYTE_P (c)
+		       && (print_escape_multibyte || print_escape_nonascii))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.  */
@@ -1437,7 +1436,8 @@ print_object (obj, printcharfun, escapeflag)
 		  strout (outbuf, -1, -1, printcharfun, 0);
 		  need_nonhex = 1;
 		}
-	      else if (SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
+	      else if (! multibyte
+		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
 		       && print_escape_nonascii)
 		{
 		  /* When printing in a multibyte buffer
