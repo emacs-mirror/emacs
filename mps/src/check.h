@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.3) $
+ * $HopeName: MMsrc!check.h(trunk.4) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -59,6 +59,12 @@ extern void AssertFail(const char *cond, const char *id,
       AssertFail(#cond, FileSrcIdStruct.hopename, \
                  FileSrcIdStruct.file, __LINE__); \
   END
+/* Disable warning about unreachable code (AssertFail is unreachable, */
+/* if cond is constantly true). */
+#ifdef MPS_BUILD_MV
+#pragma warning(disable: 4702)
+#endif
+
 		 
 #define NOCHECK(cond) \
   BEGIN \
