@@ -149,6 +149,11 @@ Lisp_Object Vx_busy_pointer_shape;
 
 Lisp_Object Vx_sensitive_text_pointer_shape;
 
+/* If non-nil, the pointer shape to indicate that windows can be
+   dragged horizontally.  */
+
+Lisp_Object Vx_window_horizontal_drag_shape;
+
 /* Color of chars displayed in cursor box.  */
 
 Lisp_Object Vx_cursor_fore_pixel;
@@ -1427,7 +1432,7 @@ x_set_mouse_color (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
-  Cursor busy_cursor;
+  Cursor busy_cursor, horizontal_drag_cursor;
   int count;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   unsigned long mask_color = f->output_data.x->background_pixel;
@@ -1495,6 +1500,17 @@ x_set_mouse_color (f, arg, oldval)
   else
     cross_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_crosshair);
 
+  if (!NILP (Vx_window_horizontal_drag_shape))
+    {
+      CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
+      horizontal_drag_cursor
+	= XCreateFontCursor (FRAME_X_DISPLAY (f),
+			     XINT (Vx_window_horizontal_drag_shape));
+    }
+  else
+    horizontal_drag_cursor
+      = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
+
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_X_DISPLAY (f), "can't set cursor shape: %s");
   x_uncatch_errors (FRAME_X_DISPLAY (f), count);
@@ -1517,12 +1533,15 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_X_DISPLAY (f), busy_cursor,
                     &fore_color, &back_color);
+    XRecolorCursor (FRAME_X_DISPLAY (f), horizontal_drag_cursor,
+                    &fore_color, &back_color);
   }
 
   if (FRAME_X_WINDOW (f) != 0)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 
-  if (cursor != f->output_data.x->text_cursor && f->output_data.x->text_cursor != 0)
+  if (cursor != f->output_data.x->text_cursor
+      && f->output_data.x->text_cursor != 0)
     XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->text_cursor);
   f->output_data.x->text_cursor = cursor;
 
@@ -1545,6 +1564,11 @@ x_set_mouse_color (f, arg, oldval)
       && f->output_data.x->cross_cursor != 0)
     XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->cross_cursor);
   f->output_data.x->cross_cursor = cross_cursor;
+
+  if (horizontal_drag_cursor != f->output_data.x->horizontal_drag_cursor
+      && f->output_data.x->horizontal_drag_cursor != 0)
+    XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->horizontal_drag_cursor);
+  f->output_data.x->horizontal_drag_cursor = horizontal_drag_cursor;
 
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -11104,6 +11128,13 @@ or when you set the mouse color.");
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
   Vx_sensitive_text_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-horizontal-drag-cursor",
+	      &Vx_window_horizontal_drag_shape,
+  "Pointer shape to use for indicating a window can be dragged horizontally.\n\
+This variable takes effect when you create a new frame\n\
+or when you set the mouse color.");
+  Vx_window_horizontal_drag_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");
