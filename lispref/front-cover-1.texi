@@ -20,7 +20,7 @@
 @sp 2
 @center GNU Emacs Version 19
 @center for Unix Users
-@center Second Edition, June 1993
+@center Edition 2.3, June 1994
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
@@ -41,7 +41,7 @@
 @sp 2
 @center GNU Emacs Version 19
 @center for Unix Users
-@center Second Edition, June 1993
+@center Edition 2.3, June 1994
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2

@@ -441,7 +441,7 @@ This function is @emph{only} intended for interactive use.
 This function sets the mark to @var{position}, and activates the mark.
 The old value of the mark is @emph{not} pushed onto the mark ring.
 
-@strong{Please note:} use this function only if you want the user to
+@strong{Please note:} Use this function only if you want the user to
 see that the mark has moved, and you want the previous mark position to
 be lost.  Normally, when a new mark is set, the old one should go on the
 @code{mark-ring}.  For this reason, most applications should use

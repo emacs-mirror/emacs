@@ -1069,8 +1069,7 @@ by an alternative, equivalent specification.
 Here is a table of the possibilities for @var{specification} and how each
 directs processing of arguments.
 
-@table @bullet
-
+@table @asis
 @item @code{t}
 All arguments are instrumented for evaluation.
 

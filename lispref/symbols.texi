@@ -241,7 +241,7 @@ However, this normally happens only as part of the abbrev mechanism
 
 @cindex CL note---symbol in obarrays
 @quotation
-@b{Common Lisp note:} in Common Lisp, a single symbol may be interned in
+@b{Common Lisp note:} In Common Lisp, a single symbol may be interned in
 several obarrays.
 @end quotation
 

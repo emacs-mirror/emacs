@@ -626,8 +626,8 @@ A negative argument means move backward but still to a less deep spot.
 
 @deffn Command down-list arg
 This function moves forward into @var{arg} levels of parentheses.  A
-negative argument means move backward but still go @var{arg} levels
-deeper in parentheses.
+negative argument means move backward but still go
+deeper in parentheses (@minus{}@var{arg} levels).
 @end deffn
 
 @deffn Command forward-sexp arg

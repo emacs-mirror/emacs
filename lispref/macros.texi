@@ -320,7 +320,7 @@ should not be used:
 
 @cindex CL note---@samp{,}, @samp{,@@} as functions
 @quotation
-@b{Common Lisp note:} in Common Lisp, @samp{,} and @samp{,@@} are
+@b{Common Lisp note:} In Common Lisp, @samp{,} and @samp{,@@} are
 implemented as reader macros, so they do not require parentheses.  In
 Emacs Lisp they use function call syntax because reader macros are not
 supported (for simplicity's sake).
@@ -474,7 +474,7 @@ number of times:
 local variable named @code{max} which the user does not expect.  This
 causes trouble in examples such as the following:
 
-@example
+@smallexample
 @group
 (let ((max 0))
   (for x from 0 to 10 do
@@ -482,7 +482,7 @@ causes trouble in examples such as the following:
       (if (< max this)
           (setq max this)))))
 @end group
-@end example
+@end smallexample
 
 @noindent
 The references to @code{max} inside the body of the @code{for}, which

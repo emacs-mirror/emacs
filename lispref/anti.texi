@@ -107,7 +107,7 @@ The functions @code{float}, @code{truncate}, @code{floor}, @code{ceil},
 The @code{format} function no longer handles the specifications
 @samp{%e}, @samp{%f} and @samp{%g} for printing floating point numbers;
 likewise for @code{message}.
-@end bullet
+@end itemize
 
 @section Changes in Basic Editing Functions
 
@@ -199,7 +199,7 @@ friendly to process the files in any haphazard order.
 @item
 We eliminated the variables @code{write-contents-hooks} and
 @code{local-write-file-hooks}.
-@end bullet
+@end itemize
 
 @section Making Certain File Names ``Magic''
 
@@ -238,9 +238,11 @@ are: @code{x-display-screens}, @code{x-server-version},
 @code{x-display-visual-class}, @code{x-display-color-p}, and
 @code{x-display-color-cells}.
 
+@item
 Additionally, we removed the variable @code{x-no-window-manager} and the
 functions @code{x-synchronize} and @code{x-get-resource}.
 
+@item
 We didn't abolish @code{x-display-color-p}, but we renamed it to
 @code{x-color-display-p}.  We did abolish @code{x-color-defined-p}.
 
@@ -383,7 +385,7 @@ with a keyboard was too confusing for too many users.
 @item
 Emacs 18 has no menu bars.  All functions and variables related to the
 menu bar have been eliminated.
-@end bullet
+@end itemize
 
 @section Changes in Minibuffer Features
 
@@ -401,7 +403,7 @@ minibuffer input functions can no longer be a cons cell
 @item
 In the function @code{read-no-blanks-input}, the @var{initial} argument
 is no longer optional.
-@end bullet
+@end itemize
 
 @section New Features for Defining Commands
 

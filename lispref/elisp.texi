@@ -7,7 +7,7 @@
 
 @ifinfo
 This version is the edition 2.3 of the GNU Emacs Lisp
-Reference Manual.  It corresponds to Emacs Version 19.23.
+Reference Manual.  It corresponds to Emacs Version 19.25.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
@@ -69,7 +69,7 @@ instead of in the original English.
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
 @subtitle Second Edition, June 1993
-@subtitle Revision 2.3, May 1994
+@subtitle Revision 2.3, June 1994
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -78,9 +78,9 @@ instead of in the original English.
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 
 @sp 2
-Second Edition @*
-Revised for Emacs Version 19.23,@*
-May 1994.@*
+Edition 2.3 @*
+Revised for Emacs Version 19.25,@*
+June, 1994.@*
 @sp 2
 ISBN 1-882114-40-X
 
@@ -114,7 +114,7 @@ Cover art by Etienne Suvasa.
 
 @ifinfo
 This Info file contains edition 2.3 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 19.23.
+Reference Manual, corresponding to GNU Emacs version 19.25.
 @end ifinfo
 
 @menu

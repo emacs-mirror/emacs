@@ -1133,7 +1133,7 @@ but at least it is very unlikely.
 to kill a temporary buffer.  In this example, the value returned by
 @code{unwind-protect} is used.
 
-@example
+@smallexample
 (defun shell-command-string (cmd)
   "Return the output of the shell command CMD, as a string."
   (save-excursion
@@ -1142,4 +1142,4 @@ to kill a temporary buffer.  In this example, the value returned by
     (unwind-protect
         (buffer-string)
       (kill-buffer (current-buffer)))))
-@end example
+@end smallexample

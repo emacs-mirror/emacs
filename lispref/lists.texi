@@ -211,7 +211,7 @@ considered a list and @code{not} when it is considered a truth value
 @end example
 @end defun
 
-@need 1000
+@need 2000
 
 @node List Elements
 @section Accessing Elements of Lists
@@ -1384,6 +1384,7 @@ the new alist without changing the old one.
 (setq needles-per-cluster
       '((2 . ("Austrian Pine" "Red Pine"))
         (3 . ("Pitch Pine"))
+@end group
         (5 . ("White Pine"))))
 @result{}
 ((2 "Austrian Pine" "Red Pine")
@@ -1404,6 +1405,7 @@ the new alist without changing the old one.
      @result{} nil
 (cdr (car (cdr needles-per-cluster)))
      @result{} ("Pitch Pine")
+@group
 (eq (cdr (car (cdr needles-per-cluster)))
     (cdr (car (cdr copy))))
      @result{} t

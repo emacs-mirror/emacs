@@ -422,7 +422,7 @@ do such a thing.
 
 @cindex CL note---case of letters
 @quotation
-@b{Common Lisp note:} in Common Lisp, lower case letters are always
+@b{Common Lisp note:} In Common Lisp, lower case letters are always
 ``folded'' to upper case, unless they are explicitly escaped.  This is
 in contrast to Emacs Lisp, in which upper case and lower case letters
 are distinct.
