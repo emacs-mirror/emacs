@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 21 Jan 1987
+;; Keywords: languages
 
 ;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
 

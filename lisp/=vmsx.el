@@ -3,6 +3,7 @@
 ;; Author: Mukesh Prasad
 ;; Maintainer: FSF
 ;; Last-Modified: 29 Sep 1986
+;; Keywords: vms
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 

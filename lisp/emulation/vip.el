@@ -3,6 +3,7 @@
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Version: 3.5
 ;; Last-Modified: 15 Sep 1987
+;; Keywords: emulations
 
 ;;; Commentary:
 

@@ -2,6 +2,7 @@
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
+;; Keywords: hardware
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 

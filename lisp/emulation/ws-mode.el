@@ -3,6 +3,7 @@
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Last-Modified: 13 Feb 1991
 ;; Version: 0.7
+;; Keywords: emulations
 
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
