@@ -232,7 +232,6 @@ follow an abbrev, this command does nothing.  The command returns the
 abbrev symbol if it did expansion, @code{nil} otherwise.
 @end deffn
 
-
 @deffn Command abbrev-prefix-mark &optional arg
 Mark current point as the beginning of an abbrev.  The next call to
 @code{expand-abbrev} will use the text from here to point (where it is
