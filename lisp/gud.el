@@ -47,7 +47,7 @@
 
 (defgroup gud nil
   "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb, and jdb."
+Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), and jdb."
   :group 'unix
   :group 'tools)
 
@@ -1267,6 +1267,140 @@ and source-file directory for your debugger."
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'perldb-mode-hook)
   )
+
+;; ======================================================================
+;; pdb (Python debugger) functions
+
+;;; History of argument lists passed to pdb.
+(defvar gud-pdb-history nil)
+
+(defun gud-pdb-massage-args (file args)
+  args)
+
+;; Last group is for return value, e.g. "> test.py(2)foo()->None"
+;; Either file or function name may be omitted: "> <string>(0)?()"
+(defvar gud-pdb-marker-regexp
+  "^> \\([-a-zA-Z0-9_/.]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\)()\\(->[^\n]*\\)?\n")
+(defvar gud-pdb-marker-regexp-file-group 1)
+(defvar gud-pdb-marker-regexp-line-group 2)
+(defvar gud-pdb-marker-regexp-fnname-group 3)
+
+(defvar gud-pdb-marker-regexp-start "^> ")
+
+;; There's no guarantee that Emacs will hand the filter the entire
+;; marker at once; it could be broken up across several strings.  We
+;; might even receive a big chunk with several markers in it.  If we
+;; receive a chunk of text which looks like it might contain the
+;; beginning of a marker, we save it here between calls to the
+;; filter.
+(defun gud-pdb-marker-filter (string)
+  (setq gud-marker-acc (concat gud-marker-acc string))
+  (let ((output ""))
+
+    ;; Process all the complete markers in this chunk.
+    (while (string-match gud-pdb-marker-regexp gud-marker-acc)
+      (setq
+
+       ;; Extract the frame position from the marker.
+       gud-last-frame
+       (let ((file (match-string gud-pdb-marker-regexp-file-group
+				 gud-marker-acc))
+	     (line (string-to-int
+		    (match-string gud-pdb-marker-regexp-line-group
+				  gud-marker-acc))))
+	 (if (string-equal file "<string>")
+	     gud-last-frame
+	   (cons file line)))
+
+       ;; Output everything instead of the below
+       output (concat output (substring gud-marker-acc 0 (match-end 0)))
+;;        ;; Append any text before the marker to the output we're going
+;;        ;; to return - we don't include the marker in this text.
+;;        output (concat output
+;; 		      (substring gud-marker-acc 0 (match-beginning 0)))
+
+       ;; Set the accumulator to the remaining text.
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
+
+    ;; Does the remaining text look like it might end with the
+    ;; beginning of another marker?  If it does, then keep it in
+    ;; gud-marker-acc until we receive the rest of it.  Since we
+    ;; know the full marker regexp above failed, it's pretty simple to
+    ;; test for marker starts.
+    (if (string-match gud-pdb-marker-regexp-start gud-marker-acc)
+	(progn
+	  ;; Everything before the potential marker start can be output.
+	  (setq output (concat output (substring gud-marker-acc
+						 0 (match-beginning 0))))
+
+	  ;; Everything after, we save, to combine with later input.
+	  (setq gud-marker-acc
+		(substring gud-marker-acc (match-beginning 0))))
+
+      (setq output (concat output gud-marker-acc)
+	    gud-marker-acc ""))
+
+    output))
+
+(defun gud-pdb-find-file (f)
+  (save-excursion
+    (let ((buf (find-file-noselect f)))
+      (set-buffer buf)
+      (gud-make-debug-menu)
+      ;; (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+      ;; (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+      ;; (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
+      buf)))
+
+(defvar pdb-minibuffer-local-map nil
+  "Keymap for minibuffer prompting of pdb startup command.")
+(if pdb-minibuffer-local-map
+    ()
+  (setq pdb-minibuffer-local-map (copy-keymap minibuffer-local-map))
+  (define-key
+    pdb-minibuffer-local-map "\C-i" 'comint-dynamic-complete-filename))
+
+(defcustom gud-pdb-command-name "pdb"
+  "File name for executing the Python debugger.
+This should be an executable on your path, or an absolute file name."
+  :type 'string
+  :group 'gud)
+
+;;;###autoload
+(defun pdb (command-line)
+  "Run pdb on program FILE in buffer `*gud-FILE*'.
+The directory containing FILE becomes the initial working directory
+and source-file directory for your debugger."
+  (interactive
+   (list (read-from-minibuffer "Run pdb (like this): "
+			       (if (consp gud-pdb-history)
+				   (car gud-pdb-history)
+				 (concat gud-pdb-command-name " "))
+			       pdb-minibuffer-local-map nil
+			       '(gud-pdb-history . 1))))
+
+  (gud-common-init command-line 'gud-pdb-massage-args
+		   'gud-pdb-marker-filter 'gud-pdb-find-file)
+
+  (gud-def gud-break  "break %l"     "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")
+  (gud-def gud-finish "return"       "\C-f" "Finish executing current function.")
+  (gud-def gud-up     "up"           "<" "Up one stack frame.")
+  (gud-def gud-down   "down"         ">" "Down one stack frame.")
+  (gud-def gud-print  "p %e"         "\C-p" "Evaluate Python expression at point.")
+  ;; Is this right?
+  (gud-def gud-statement "! %e"	     "\C-e" "Execute Python statement at point.")
+
+  (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
+  ;; (setq comint-prompt-regexp "^(.*pdb[+]?) *")
+  (setq comint-prompt-regexp "^(Pdb) *")
+  (setq paragraph-start comint-prompt-regexp)
+  (run-hooks 'pdb-mode-hook))
 
 ;; ======================================================================
 ;;
