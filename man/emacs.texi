@@ -568,7 +568,7 @@ Sending Mail
 * Mail Headers::        Details of permitted mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
 * Mail Mode::   	Special commands for editing mail being composed.
-* Distracting NSA::     How to distract the NSA's attention.
+* Mail Amusements::     Distract the NSA's attention; add a fortune to a msg.
 * Mail Methods::        Using alternative mail-composition methods.
 
 Reading Mail with Rmail
