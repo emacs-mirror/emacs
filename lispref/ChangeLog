@@ -1,3 +1,7 @@
+2004-10-08  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* display.texi (Progress): New node.
+
 2004-10-05  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Fringe Bitmaps): Update fringe-bitmaps-at-pos.

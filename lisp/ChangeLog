@@ -1,3 +1,8 @@
+2004-10-08  Peter Seibel  <peter@javamonkey.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Change
+	paragraph-start regexp so we don't fill code starting with #'(
+ 
 2004-10-08  Sebastien Kirche  <seki@seki.fr>  (tiny change)
 
 	* mail/mail-extr.el (mail-extr-ignore-realname-equals-mailbox-name):
