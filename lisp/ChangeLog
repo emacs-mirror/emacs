@@ -1,3 +1,8 @@
+2004-12-21  Markus Rost  <rost@ias.edu>
+
+	* calendar/diary-lib.el (mark-diary-entries): Set
+	mark-diary-entries-in-calendar only after checking for diary-file.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* faces.el (escape-glyph): Use blue against light foreground.
