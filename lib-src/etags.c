@@ -1033,7 +1033,11 @@ process_file (file)
     {
       char *filename;
 
+#ifdef DOS_NT
+      if (file[0] == '/' || (isalpha (file[0]) && file[1] == ':'))
+#else
       if (file[0] == '/')
+#endif
 	{
 	  /* file is an absolute filename.  Canonicalise it. */
 	  filename = absolute_filename (file, cwd);
@@ -3747,7 +3751,11 @@ absolute_filename (file, cwd)
 {
   char *slashp, *cp, *res;
 
+#ifdef DOS_NT
+  if (file[0] == '/' || (isalpha (file[0]) && file[1] == ':'))
+#else
   if (file[0] == '/')
+#endif
     res = concat (file, "", "");
   else
     res = concat (cwd, file, "");
