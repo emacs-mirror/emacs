@@ -752,6 +752,20 @@ Compatibility function for \\[next-error] invocations."
     (set-window-point (get-buffer-window (current-buffer)) (point))
     (occur-mode-goto-occurrence)))
 
+(defface match
+  '((((class color) (min-colors 88) (background light))
+     :background "Tan")
+    (((class color) (min-colors 88) (background dark))
+     :background "RoyalBlue4")
+    (((class color) (min-colors 8))
+     :background "blue" :foreground "white")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Face used to highlight matches permanently."
+  :group 'matching
+  :version "21.4")
+
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.
 A negative number means to include that many lines before the match.
@@ -761,7 +775,7 @@ A positive number means to include that many lines both before and after."
 
 (defalias 'list-matching-lines 'occur)
 
-(defcustom list-matching-lines-face 'bold
+(defcustom list-matching-lines-face 'match
   "*Face used by \\[list-matching-lines] to show the text that matches.
 If the value is nil, don't highlight the matching portions specially."
   :type 'face
