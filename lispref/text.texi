@@ -412,8 +412,8 @@ it except to install it on a keymap.
 In an interactive call, @var{count} is the numeric prefix argument.
 
 This command calls @code{auto-fill-function} whenever that is
-non-@code{nil} and the character inserted is a space or a newline
-(@pxref{Auto Filling}).
+non-@code{nil} and the character inserted is in the table
+@code{auto-fill-chars} (@pxref{Auto Filling}).
 
 @c Cross refs reworded to prevent overfull hbox.  --rjc 15mar92
 This command performs abbrev expansion if Abbrev mode is enabled and
@@ -1498,8 +1498,9 @@ justification style to refill portions of the text.  @xref{Margins}.
 
 @defvar auto-fill-function
 The value of this variable should be a function (of no arguments) to be
-called after self-inserting a space or a newline.  It may be @code{nil},
-in which case nothing special is done in that case.
+called after self-inserting a character from the table
+@code{auto-fill-chars}.  It may be @code{nil}, in which case nothing
+special is done in that case.
 
 The value of @code{auto-fill-function} is @code{do-auto-fill} when
 Auto-Fill mode is enabled.  That is a function whose sole purpose is to
@@ -1517,6 +1518,12 @@ This variable specifies the function to use for
 @code{auto-fill-function}, if and when Auto Fill is turned on.  Major
 modes can set buffer-local values for this variable to alter how Auto
 Fill works.
+@end defvar
+
+@defvar auto-fill-chars
+A char table of characters which invoke @code{auto-fill-function} when
+self-inserted---space and newline in most language environments.  They
+have an entry @code{t} in the table.
 @end defvar
 
 @node Sorting
