@@ -320,7 +320,7 @@ string is passed through `substitute-command-keys'.")
       if (STRINGP (tem))
 	doc = tem;
       else if (NATNUMP (tem) || CONSP (tem))
-	doc = get_doc_string (tem, 1, 0);
+	doc = get_doc_string (tem, 0, 0);
       else
 	return Qnil;
     }
@@ -348,7 +348,7 @@ subcommands.)");
 	     in the function body, so reject them if they are last.  */
 	  else if ((NATNUMP (tem) || CONSP (tem))
 		   && ! NILP (XCONS (tem1)->cdr))
-	    doc = get_doc_string (tem, 1, 0);
+	    doc = get_doc_string (tem, 0, 0);
 	  else
 	    return Qnil;
 	}
