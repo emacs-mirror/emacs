@@ -33,12 +33,15 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #if 1 /* I'd really appreciate it if this code could go away...  -JimB */
-/* this avoids lossage in the `dual-universe' headers on AT&T SysV X11 */
-#ifdef USG5
+/* This avoids lossage in the `dual-universe' headers on AT&T SysV
+   X11.  Don't do it on Solaris, because it breaks compilation with
+   XFree86 4.0.3 (and probably many other X11R6 releases) on Solaris
+   2 */
+#if defined(USG5) && !defined(SOLARIS2)
 #ifndef SYSV
 #define SYSV
 #endif
-#endif /* USG5 */
+#endif /* USG5 && !SOLARIS2 */
 
 #endif /* 1 */
 
