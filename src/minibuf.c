@@ -1089,8 +1089,9 @@ common to all matches is returned as a string.
 If there is no match at all, nil is returned.
 For a unique match which is exact, t is returned.
 
-ALIST can be an obarray instead of an alist.
-Then the print names of all symbols in the obarray are the possible matches.
+If ALIST is a hash-table, all the string keys are the possible matches.
+If ALIST is an obarray, the names of all symbols in the obarray
+are the possible matches.
 
 ALIST can also be a function to do the completion itself.
 It receives three arguments: the values STRING, PREDICATE and nil.
@@ -1100,7 +1101,8 @@ If optional third argument PREDICATE is non-nil,
 it is used to test each possible match.
 The match is a candidate only if PREDICATE returns non-nil.
 The argument given to PREDICATE is the alist element
-or the symbol from the obarray.
+or the symbol from the obarray.  If ALIST is a hash-table,
+predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.  */)
      (string, alist, predicate)
@@ -1111,37 +1113,38 @@ is used to further constrain the set of candidates.  */)
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int list = NILP (alist) || (CONSP (alist)
-			      && (!SYMBOLP (XCAR (alist))
-				  || NILP (XCAR (alist))));
+  int type = HASH_TABLE_P (alist) ? 3
+    : VECTORP (alist) ? 2
+    : NILP (alist) || (CONSP (alist)
+		       && (!SYMBOLP (XCAR (alist))
+			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   int matchcount = 0;
   Lisp_Object bucket, zero, end, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string);
-  if (!list && !VECTORP (alist))
+  if (type == 0)
     return call3 (alist, string, predicate, Qnil);
 
   bestmatch = bucket = Qnil;
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
-  if (! list)
+  if (type == 2)
     {
-      index = 0;
       obsize = XVECTOR (alist)->size;
       bucket = XVECTOR (alist)->contents[index];
     }
 
   while (1)
     {
-      /* Get the next element of the alist or obarray. */
+      /* Get the next element of the alist, obarray, or hash-table. */
       /* Exit the loop if the elements are all used up. */
       /* elt gets the alist element or symbol.
 	 eltstring gets the name to check as a completion. */
 
-      if (list)
+      if (type == 1)
 	{
 	  if (!CONSP (tail))
 	    break;
@@ -1149,7 +1152,7 @@ is used to further constrain the set of candidates.  */)
 	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
 	  tail = XCDR (tail);
 	}
-      else
+      else if (type == 2)
 	{
 	  if (XFASTINT (bucket) != 0)
 	    {
@@ -1167,6 +1170,16 @@ is used to further constrain the set of candidates.  */)
 	      bucket = XVECTOR (alist)->contents[index];
 	      continue;
 	    }
+	}
+      else /* if (type == 3) */
+	{
+	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (alist))
+		 && NILP (HASH_HASH (XHASH_TABLE (alist), index)))
+	    index++;
+	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (alist)))
+	    break;
+	  else
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (alist), index++);
 	}
 
       /* Is this element a possible completion? */
@@ -1205,7 +1218,10 @@ is used to further constrain the set of candidates.  */)
 	      else
 		{
 		  GCPRO4 (tail, string, eltstring, bestmatch);
-		  tem = call1 (predicate, elt);
+		  tem = type == 3
+		    ? call2 (predicate, elt,
+			     HASH_VALUE (XHASH_TABLE (alist), index - 1))
+		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}
 	      if (NILP (tem)) continue;
@@ -1213,9 +1229,9 @@ is used to further constrain the set of candidates.  */)
 
 	  /* Update computation of how much all possible completions match */
 
-	  matchcount++;
 	  if (NILP (bestmatch))
 	    {
+	      matchcount = 1;
 	      bestmatch = eltstring;
 	      bestmatchsize = XSTRING (eltstring)->size;
 	    }
@@ -1269,6 +1285,10 @@ is used to further constrain the set of candidates.  */)
 			   ! EQ (Qt, tem))))
 		    bestmatch = eltstring;
 		}
+	      if (bestmatchsize != XSTRING (eltstring)->size
+		  || bestmatchsize != matchsize)
+		/* Don't count the same string multiple times.  */
+		matchcount++;
 	      bestmatchsize = matchsize;
 	      if (matchsize <= XSTRING (string)->size
 		  && matchcount > 1)
@@ -1308,8 +1328,9 @@ DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
 Each car of each element of ALIST is tested to see if it begins with STRING.
 The value is a list of all the strings from ALIST that match.
 
-ALIST can be an obarray instead of an alist.
-Then the print names of all symbols in the obarray are the possible matches.
+If ALIST is a hash-table, all the string keys are the possible matches.
+If ALIST is an obarray, the names of all symbols in the obarray
+are the possible matches.
 
 ALIST can also be a function to do the completion itself.
 It receives three arguments: the values STRING, PREDICATE and t.
@@ -1319,7 +1340,8 @@ If optional third argument PREDICATE is non-nil,
 it is used to test each possible match.
 The match is a candidate only if PREDICATE returns non-nil.
 The argument given to PREDICATE is the alist element
-or the symbol from the obarray.
+or the symbol from the obarray.  If ALIST is a hash-table,
+predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.
 
@@ -1331,37 +1353,36 @@ are ignored unless STRING itself starts with a space.  */)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
-  int list = NILP (alist) || (CONSP (alist)
-			      && (!SYMBOLP (XCAR (alist))
-				  || NILP (XCAR (alist))));
+  int type = HASH_TABLE_P (alist) ? 3
+    : VECTORP (alist) ? 2
+    : NILP (alist) || (CONSP (alist)
+		       && (!SYMBOLP (XCAR (alist))
+			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string);
-  if (!list && !VECTORP (alist))
-    {
-      return call3 (alist, string, predicate, Qt);
-    }
+  if (type == 0)
+    return call3 (alist, string, predicate, Qt);
   allmatches = bucket = Qnil;
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
-  if (! list)
+  if (type == 2)
     {
-      index = 0;
       obsize = XVECTOR (alist)->size;
       bucket = XVECTOR (alist)->contents[index];
     }
 
   while (1)
     {
-      /* Get the next element of the alist or obarray. */
+      /* Get the next element of the alist, obarray, or hash-table. */
       /* Exit the loop if the elements are all used up. */
       /* elt gets the alist element or symbol.
 	 eltstring gets the name to check as a completion. */
 
-      if (list)
+      if (type == 1)
 	{
 	  if (!CONSP (tail))
 	    break;
@@ -1369,7 +1390,7 @@ are ignored unless STRING itself starts with a space.  */)
 	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
 	  tail = XCDR (tail);
 	}
-      else
+      else if (type == 2)
 	{
 	  if (XFASTINT (bucket) != 0)
 	    {
@@ -1387,6 +1408,16 @@ are ignored unless STRING itself starts with a space.  */)
 	      bucket = XVECTOR (alist)->contents[index];
 	      continue;
 	    }
+	}
+      else /* if (type == 3) */
+	{
+	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (alist))
+		 && NILP (HASH_HASH (XHASH_TABLE (alist), index)))
+	    index++;
+	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (alist)))
+	    break;
+	  else
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (alist), index++);
 	}
 
       /* Is this element a possible completion? */
@@ -1432,7 +1463,10 @@ are ignored unless STRING itself starts with a space.  */)
 	      else
 		{
 		  GCPRO4 (tail, eltstring, allmatches, string);
-		  tem = call1 (predicate, elt);
+		  tem = type == 3
+		    ? call2 (predicate, elt,
+			     HASH_VALUE (XHASH_TABLE (alist), index - 1))
+		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}
 	      if (NILP (tem)) continue;
@@ -1564,6 +1598,7 @@ the values STRING, PREDICATE and `lambda'.  */)
      Lisp_Object string, alist, predicate;
 {
   Lisp_Object regexps, tem = Qnil;
+  int i = 0;
 
   CHECK_STRING (string);
 
@@ -1571,9 +1606,7 @@ the values STRING, PREDICATE and `lambda'.  */)
       || NILP (alist))
     {
       tem = Fassoc_string (string, alist, completion_ignore_case ? Qt : Qnil);
-      if (CONSP (tem))
-	tem = XCAR (tem);
-      else
+      if NILP (tem)
 	return Qnil;
     }
   else if (VECTORP (alist))
@@ -1598,6 +1631,14 @@ the values STRING, PREDICATE and `lambda'.  */)
 	    return Qnil;
 	}
     }
+  else if (HASH_TABLE_P (alist))
+    {
+      i = hash_lookup (XHASH_TABLE (alist), string, NULL);
+      if (i >= 0)
+	tem = HASH_KEY (XHASH_TABLE (alist), i);
+      else
+	return Qnil;
+    }
   else
     return call3 (alist, string, predicate, Qlambda);
 
@@ -1613,7 +1654,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   /* Finally, check the predicate.  */
   if (!NILP (predicate))
-    return call1 (predicate, tem);
+    return HASH_TABLE_P (alist)
+      ? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (alist), i))
+      : call1 (predicate, tem);
   else
     return Qt;
 }
