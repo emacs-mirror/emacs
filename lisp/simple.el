@@ -2330,9 +2330,9 @@ Setting this variable automatically makes it local to the current buffer.")
 (defun do-auto-fill ()
   (let (fc justify bol give-up)
     (if (or (not (setq justify (current-justification)))
-	    (and (setq fc (current-fill-column)) ; make sure this gets set
-		 (eq justify 'left)
-		 (<= (current-column) (setq fc (current-fill-column))))
+	    (null (setq fc (current-fill-column)))
+	    (and (eq justify 'left)
+		 (<= (current-column) fc))
 	    (save-excursion (beginning-of-line) 
 			    (setq bol (point))
 			    (and auto-fill-inhibit-regexp
