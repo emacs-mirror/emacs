@@ -1,3 +1,12 @@
+2002-08-05  Alan Shutko  <ats@acm.org>
+
+	* ibuffer.el (ibuffer-mode-map): Added ibuffer-filter-by-used-mode.
+	(ibuffer-mode-map): Added ibuffer-filter-by-used-mode.
+	(ibuffer-mode): Added ibuffer-filter-by-used-mode to doc string.
+
+	* ibuf-ext.el (ibuffer-list-buffer-modes): New.
+	(ibuffer-filter-by-used-mode): New.
+
 2002-08-05  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ediff-util.el (ediff-copy-list): Use `defalias' instead of
