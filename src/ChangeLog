@@ -1,5 +1,7 @@
 2003-05-27  Andreas Schwab  <schwab@suse.de>
 
+	* buffer.c (syms_of_buffer) <default-direction-reversed>: Doc fix.
+
 	* xdisp.c (try_window_id): Avoid aborting if PT is inside a
 	partially visible line.
 
