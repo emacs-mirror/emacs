@@ -987,8 +987,6 @@ detect_coding_iso2022 (src, src_end)
 	    }
 	  else
 	    {
-	      unsigned char *src_begin = src;
-
 	      mask &= ~(CODING_CATEGORY_MASK_ISO_7BIT
 			| CODING_CATEGORY_MASK_ISO_7_ELSE);
 	      mask_found |= CODING_CATEGORY_MASK_ISO_8_1;
@@ -999,7 +997,7 @@ detect_coding_iso2022 (src, src_end)
 	      if (!single_shifting
 		  && mask & CODING_CATEGORY_MASK_ISO_8_2)
 		{
-		  int i = 0;
+		  int i = 1;
 		  while (src < src_end)
 		    {
 		      ONE_MORE_BYTE (c);
