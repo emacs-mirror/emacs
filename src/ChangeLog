@@ -1,3 +1,11 @@
+2001-10-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (window_loop): Don't check for Fother_buffer returning
+	nil.
+	
+	* window.c (select_window_1): Unfreeze window start.  Remove a
+	doubled test for WINDOW being live.
+
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fns.c (Fmapconcat): Fix typo in a doc string.
