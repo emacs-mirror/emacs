@@ -84,7 +84,6 @@ with comments, so we normally turn it off.")
   "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
 This takes effect when first loading the `sgml-mode' library.")
 
-
 (defvar sgml-mode-map
   (let ((map (make-keymap))	;`sparse' doesn't allow binding to charsets.
 	(menu-map (make-sparse-keymap "SGML")))
@@ -138,7 +137,6 @@ This takes effect when first loading the `sgml-mode' library.")
     map)
   "Keymap for SGML mode.  See also `sgml-specials'.")
 
-
 (defun sgml-make-syntax-table (specials)
   (let ((table (make-syntax-table text-mode-syntax-table)))
     (modify-syntax-entry ?< "(>" table)
@@ -163,7 +161,6 @@ This takes effect when first loading the `sgml-mode' library.")
       (modify-syntax-entry char "." table))
     table)
   "Syntax table used to parse SGML tags.")
-
 
 (defcustom sgml-name-8bit-mode nil
   "*When non-nil, insert non-ASCII characters as named entities."
@@ -219,7 +216,6 @@ This takes effect when first loading the `sgml-mode' library.")
   "A table for mapping non-ASCII characters into SGML entity names.
 Currently, only Latin-1 characters are supported.")
 
-
 ;; nsgmls is a free SGML parser in the SP suite available from
 ;; ftp.jclark.com and otherwise packaged for GNU systems.
 ;; Its error messages can be parsed by next-error.
@@ -235,7 +231,6 @@ separated by a space."
 
 (defvar sgml-saved-validate-command nil
   "The command last used to validate in this buffer.")
-
 
 ;; I doubt that null end tags are used much for large elements,
 ;; so use a small distance here.
@@ -292,13 +287,11 @@ Any terminating `>' or `/' is not matched.")
 When `font-lock-maximum-decoration' is 1 this is always used for fontifying.
 When more these are fontified together with `sgml-font-lock-keywords'.")
 
-
 (defvar sgml-display-text ()
   "Tag names as lowercase symbols, and display string when invisible.")
 
 ;; internal
 (defvar sgml-tags-invisible nil)
-
 
 (defcustom sgml-tag-alist
   '(("![" ("ignore" t) ("include" t))
@@ -312,8 +305,8 @@ This alist is made up as
   ((\"tag\" . TAGRULE)
    ...)
 
-TAGRULE is a list of optionally `t' (no endtag) or `\\n' (separate endtag by
-newlines) or a skeleton with `nil', `t' or `\\n' in place of the interactor
+TAGRULE is a list of optionally t (no endtag) or `\\n' (separate endtag by
+newlines) or a skeleton with nil, t or `\\n' in place of the interactor
 followed by an ATTRIBUTERULE (for an always present attribute) or an
 attribute alist.
 
@@ -322,7 +315,7 @@ The attribute alist is made up as
   ((\"attribute\" . ATTRIBUTERULE)
    ...)
 
-ATTRIBUTERULE is a list of optionally `t' (no value when no input) followed by
+ATTRIBUTERULE is a list of optionally t (no value when no input) followed by
 an optional alist of possible values."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (repeat :tag "Tag Rule" sexp)))
@@ -387,7 +380,6 @@ Otherwise, it is set to be buffer-local when the file has
 	(setq facemenu-end-add-face (concat "</" face ">"))
 	(concat "<" face ">"))
     (error "Face not configured for %s mode" mode-name)))
-
 
 ;;;###autoload
 (define-derived-mode sgml-mode text-mode "SGML"
@@ -454,11 +446,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
        (concat "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\("
 	       sgml-name-re "\\)")))
 
-
 (defun sgml-comment-indent ()
   (if (looking-at "--") comment-column 0))
-
-
 
 (defun sgml-slash (arg)
   "Insert ARG slash characters.
@@ -515,7 +504,6 @@ start tag, and the second `/' is the corresponding null end tag."
               (message "Matches %s"
                        (buffer-substring (line-beginning-position)
                                          (1+ blinkpos)))))))))
-
 
 ;; Why doesn't this use the iso-cvt table or, preferably, generate the
 ;; inverse of the extensive table in the SGML Quail input method?  -- fx
@@ -666,7 +654,6 @@ With prefix argument, only self insert."
       (or (> (point) point)
 	  (self-insert-command 1)))))
 
-
 (defun sgml-tag-help (&optional tag)
   "Display description of tag TAG.  If TAG is omitted, use the tag at point."
   (interactive)
@@ -683,7 +670,6 @@ With prefix argument, only self insert."
 	       (and (eq (aref tag 0) ?/)
 		    (cdr (assoc (downcase (substring tag 1)) sgml-tag-help)))
 	       "No description available")))
-
 
 (defun sgml-maybe-end-tag (&optional arg)
   "Name self unless in position to end a tag or a prefix ARG is given."
@@ -781,6 +767,7 @@ With prefix argument ARG, repeat this ARG times."
 	(goto-char open)
 	(kill-sexp 1)))
     (setq arg (1- arg))))
+
 
 ;; Put read-only last to enable setting this even when read-only enabled.
 (or (get 'sgml-tag 'invisible)
@@ -849,6 +836,7 @@ With prefix argument ARG, repeat this ARG times."
 			     (eq (preceding-char) ?>)))
 		    (backward-list)
 		  (forward-list)))))))
+
 
 (autoload 'compile-internal "compile")
 
@@ -869,7 +857,6 @@ and move to the line in the SGML document that caused it."
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal command "No more errors"))
-
 
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
@@ -960,7 +947,6 @@ With prefix argument, unquote the region."
       (replace-match (cdr (assq (char-before) '((?& . "&amp;")
 						(?< . "&lt;")
 						(?> . "&gt;"))))))))
-
 
 (defsubst sgml-at-indentation-p ()
   "Return true if point is at the first non-whitespace character on the line."
@@ -1330,7 +1316,6 @@ This takes effect when first loading the library.")
     map)
   "Keymap for commands for use in HTML mode.")
 
-
 (defvar html-face-tag-alist
   '((bold . "b")
     (italic . "i")
@@ -1361,14 +1346,13 @@ This takes effect when first loading the library.")
     ("var" . italic))
   "Value of `sgml-tag-face-alist' for HTML mode.")
 
-
 (defvar html-display-text
   '((img . "[/]")
     (hr . "----------")
     (li . "o "))
   "Value of `sgml-display-text' for HTML mode.")
-
 
+
 ;; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
   (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
@@ -1607,6 +1591,7 @@ This takes effect when first loading the library.")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
 "*Value of `sgml-tag-help' for HTML mode.")
+
 
 ;;;###autoload
 (define-derived-mode html-mode sgml-mode "HTML"
@@ -1680,7 +1665,7 @@ To work around that, do:
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   )
-
+
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
   "*A regular expression matching a head line to be added to the menu.
@@ -1716,6 +1701,7 @@ Can be used as a value for `html-mode-hook'."
     (add-hook 'after-save-hook 'browse-url-of-buffer nil t))
   (message "Autoviewing turned %s."
 	   (if arg "off" "on")))
+
 
 (define-skeleton html-href-anchor
   "HTML anchor tag with href attribute."
