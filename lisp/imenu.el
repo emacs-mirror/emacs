@@ -334,6 +334,10 @@ This function is called after the function pointed out by
 (defvar imenu--index-alist nil)
 (make-variable-buffer-local 'imenu--index-alist)
 
+;; The latest buffer index used to update the menu bar menu.
+(defvar imenu--last-menubar-index-alist nil)
+(make-variable-buffer-local 'imenu--last-menubar-index-alist)
+
 ;; History list for 'jump-to-function-in-buffer'.
 ;; Making this buffer local caused it not to work!
 (defvar imenu--history-list nil)
@@ -410,7 +414,7 @@ This function is called after the function pointed out by
 ;;; ((NAME . POSITION) (NAME . POSITION) ...)
 ;;;
 
-(defun imenu--make-index-alist ()
+(defun imenu--make-index-alist (&optional noerror)
   ;; Create a list for this buffer only when needed.
   (or (and imenu--index-alist
 	   (or (not imenu-auto-rescan)
@@ -420,8 +424,10 @@ This function is called after the function pointed out by
       (setq imenu--index-alist
 	    (save-excursion
 	      (funcall imenu-create-index-function))))
-  (or imenu--index-alist
+  (or imenu--index-alist noerror
       (error "No items suitable for an index found in this buffer"))
+  (or imenu--index-alist
+      (setq imenu--index-alist (list nil)))
   ;; Add a rescan option to the index.
   (cons imenu--rescan-item imenu--index-alist))
 ;;;
@@ -446,7 +452,7 @@ This function is called after the function pointed out by
 	alist)
        t))
 
-(defun imenu--create-keymap-2 (alist counter)
+(defun imenu--create-keymap-2 (alist counter &optional commands)
   (let ((map nil))
     (mapcar
      (function
@@ -454,16 +460,21 @@ This function is called after the function pointed out by
 	(cond
 	 ((listp (cdr item))
 	  (append (list (incf counter) (car item) 'keymap (car item))
-		  (imenu--create-keymap-2 (cdr item) (+ counter 10))))
+		  (imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
 	 (t
-	  (let ((end (cons '(nil) t)))
+	  (let ((end (if commands (list 'lambda 'nil '(interactive)
+					(list 'imenu--menubar-select item))
+		       (cons '(nil) t))))
 	    (cons (car item)
 		  (cons (car item) end))))
 	 )))
      alist)))
 
-(defun imenu--create-keymap-1 (title alist)
-  (append (list 'keymap title) (imenu--create-keymap-2 alist 0)))
+;; If COMMANDS is non-nil, make a real keymap
+;; with a real command used as the definition.
+;; If it is nil, make something suitable for x-popup-menu.
+(defun imenu--create-keymap-1 (title alist &optional commands)
+  (append (list 'keymap title) (imenu--create-keymap-2 alist 0 commands)))
 
 
 (defun imenu--in-alist (str alist)
@@ -769,13 +780,47 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 
 ;;;###autoload
 (defun imenu-add-to-menubar (name)
-  "Adds an \"imenu\" entry to the menubar for the current local keymap.
-NAME is the string naming the menu to be added.
-See 'imenu' for more information."
-  (interactive "sMenu name: ")
-  (and window-system
-       (define-key (current-local-map) [menu-bar index]
-	 (cons name 'imenu))))
+  "Adds an \"imenu\" entry to the menu bar for the current major mode.
+NAME is a string used to name the menu bar item.
+See `imenu' for more information."
+  (interactive "sImenu menu item name: ")
+  (define-key (current-local-map) [menu-bar index]
+    (cons name (nconc (make-sparse-keymap "Imenu") (make-sparse-keymap))))
+  (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+
+(defun imenu-update-menubar ()
+  (and (current-local-map)
+       (keymapp (lookup-key (current-local-map) [menu-bar index]))
+       (let ((index-alist (imenu--make-index-alist t)))
+	 ;; Don't bother updating if the index-alist has not changed
+	 ;; since the last time we did it.
+	 (or (equal index-alist imenu--last-menubar-index-alist)
+	     (let (menu menu1 old)
+	       (setq imenu--last-menubar-index-alist index-alist)
+	       (setq menu (imenu--split-menu
+			   (if imenu-sort-function
+			       (sort
+				(let ((res nil)
+				      (oldlist index-alist))
+				  ;; Copy list method from the cl package `copy-list'
+				  (while (consp oldlist) (push (pop oldlist) res))
+				  (prog1 (nreverse res) (setcdr res oldlist)))
+				imenu-sort-function)
+			     index-alist)
+			   (buffer-name)))
+	       (setq menu1 (imenu--create-keymap-1 (car menu) 
+						   (if (< 1 (length (cdr menu)))
+						       (cdr menu)
+						     (cdr (car (cdr menu))))
+						   t))
+	       (setq old (lookup-key (current-local-map) [menu-bar index]))
+	       (if (keymapp old)
+		   (setcdr (nthcdr 2 old) menu1)))))))
+
+(defun imenu--menubar-select (item)
+  "Use Imenu to select the function or variable named in this menu item."
+  (interactive)
+  (imenu item))
 
 ;;;###autoload
 (defun imenu (index-item)
@@ -784,7 +829,10 @@ See `imenu-choose-buffer-index' for more information."
   (interactive
    (list (save-restriction 
 	   (widen)
-	   (imenu-choose-buffer-index))))
+	   (car (imenu-choose-buffer-index)))))
+  ;; Convert a string to an alist element.
+  (if (stringp index-item)
+      (setq index-item (assoc index-item (imenu--make-index-alist))))
   (and index-item
        (progn
 	 (push-mark)
