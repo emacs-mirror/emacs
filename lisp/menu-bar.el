@@ -104,10 +104,17 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "--"))
 
 (define-key menu-bar-files-menu [ps-print-region]
+  '(menu-item "Postscript Print Region (B+W)" ps-print-region
+	      :enable mark-active
+	      :help "Pretty-print marked region in black and white to PostScript printer"))
+(define-key menu-bar-files-menu [ps-print-buffer]
+  '(menu-item "Postscript Print Buffer (B+W)" ps-print-buffer
+	      :help "Pretty-print current buffer in black and white to PostScript printer"))
+(define-key menu-bar-files-menu [ps-print-region-faces]
   '(menu-item "Postscript Print Region" ps-print-region-with-faces
 	      :enable mark-active
 	      :help "Pretty-print marked region to PostScript printer"))
-(define-key menu-bar-files-menu [ps-print-buffer]
+(define-key menu-bar-files-menu [ps-print-buffer-faces]
   '(menu-item "Postscript Print Buffer" ps-print-buffer-with-faces
 	      :help "Pretty-print current buffer to PostScript printer"))
 (define-key menu-bar-files-menu [print-region]
