@@ -523,7 +523,7 @@ The break position will be always after LINEBEG and generally before point."
       ;; We need one space at end of line so that
       ;; further filling won't delete it.  NOTE: We
       ;; intentionally leave this one space to
-      ;; distingush the case that user wants to put
+      ;; distinguish the case that user wants to put
       ;; space between \c| characters.
       (forward-char 1))
   (insert ?\n)
@@ -540,9 +540,10 @@ The break position will be always after LINEBEG and generally before point."
       (fill-indent-to-left-margin)
     (indent-according-to-mode))
   ;; Insert the fill prefix after indentation.
-  ;; Set prefixcol so whitespace in the prefix won't get lost.
   (and fill-prefix (not (equal fill-prefix ""))
-       (insert-and-inherit fill-prefix)))
+       ;; Markers that were after the whitespace are now at point: insert
+       ;; before them so they don't get stuck before the prefix.
+       (insert-before-markers-and-inherit fill-prefix)))
 
 (defun fill-indent-to-left-margin ()
   "Indent current line to the column given by `current-left-margin'."
