@@ -1,5 +1,5 @@
 /* env - manipulate environment and execute a program in that environment
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1994 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@
      { USER=rms EDITOR=emacs PATH=.:/gnubin:/hacks }
 
      * "env DISPLAY=gnu:0 nemacs"
-        calls "nemacs" in the envionment
+        calls "nemacs" in the environment
 	{ USER=rms EDITOR=emacs PATH=.:/gnubin:/hacks DISPLAY=gnu:0 }
 
      * "env - USER=foo /hacks/hack bar baz"
@@ -194,17 +194,14 @@ main (argc, argv, envp)
     }
   else
     {
-      extern int errno, sys_nerr;
-      extern char *sys_errlist[];
+      extern int errno;
+      extern char *strerror ();
 
       environ = nenv;
       (void) execvp (*argv, argv);
 
-      fprintf (stderr, "%s: cannot execute `%s'", progname, *argv);
-      if (errno < sys_nerr)
-	fprintf (stderr, ": %s\n", sys_errlist[errno]);
-      else
-	putc ('\n', stderr);
+      fprintf (stderr, "%s: cannot execute `%s': %s\n",
+	       progname, *argv, strerror (errno));
       exit (errno != 0 ? errno : 1);
     }
 }

@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985, 1986, 1987, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -260,7 +260,7 @@ main (argc, argv, envp)
   int skip_args = 0;
   extern int errno;
   extern sys_nerr;
-  extern char *sys_errlist[];
+  extern char *strerror ();
   extern void malloc_warning ();
 
 /* Map in shared memory, if we are using that.  */
@@ -397,12 +397,7 @@ main (argc, argv, envp)
       result = open (argv[skip_args], O_RDWR, 2 );
       if (result < 0)
 	{
-	  char *errstring;
-
-	  if (errno >= 0 && errno < sys_nerr)
-	    errstring = sys_errlist[errno];
-	  else
-	    errstring = "undocumented error code";
+	  char *errstring = strerror (errno);
 	  fprintf (stderr, "emacs: %s: %s\n", argv[skip_args], errstring);
 	  exit (1);
 	}
