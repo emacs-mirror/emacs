@@ -1872,7 +1872,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes, consumed)
 		ONE_MORE_BYTE (c);
 		if (c != '\n')
 		  *dst++ = '\r';
-
+		*dst++ = c;
 	      }
 	    else
 	      *dst++ = c;
