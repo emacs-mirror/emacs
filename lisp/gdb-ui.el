@@ -178,10 +178,9 @@ The following interactive lisp functions help control operation :
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list main\n" 'ignore))     ; C program
+  (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
-  (gdb-enqueue-input (list "server info source\n"
-			   'gdb-source-info))
+  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
   ;;
   (run-hooks 'gdba-mode-hook))
 
@@ -2085,6 +2084,7 @@ the source buffer."
   (gdb-display-breakpoints-buffer)
   (gdb-display-display-buffer)
   (delete-other-windows)
+  (switch-to-buffer gud-comint-buffer)
   (split-window nil ( / ( * (window-height) 3) 4))
   (split-window nil ( / (window-height) 3))
   (split-window-horizontally)
@@ -2183,6 +2183,7 @@ buffers."
 	(setq gdb-main-file (match-string 0)))
     (setq gdb-view-source nil))
   (delete-other-windows)
+  (switch-to-buffer gud-comint-buffer)
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-display-breakpoints-buffer)
@@ -2191,7 +2192,10 @@ buffers."
     (split-window)
     (other-window 1)
     (if gdb-view-source
-	(switch-to-buffer (gud-find-file gdb-main-file))
+      (switch-to-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file)))
       (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
       (gdb-invalidate-assembler))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
