@@ -1,5 +1,15 @@
 2001-08-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_key_sequence): Check that key is an integer
+	before comparing it with quit_char.
+	(add_command_key): Use larger_vector.
+	(read_char_x_menu_prompt): Instead of converting symbol and
+	integer events into conses (EVENT . nil), use (EVENT . disabled)
+	which cannot be confused with legal events.
+	(read_char): When reading from Vunread_command_events, check for
+	events of the form (EVENT . disabled) instead of
+	(EVENT . nil).
+
 	* xdisp.c (resize_mini_window): If Vmax_mini_window_height is
 	a float, determine the max height from the frame's height.
 
