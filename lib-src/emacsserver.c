@@ -26,7 +26,11 @@ Boston, MA 02111-1307, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
+
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include <signal.h>
 #undef signal
 
@@ -240,7 +244,7 @@ main (argc, argv)
   if (openfiles == 0)
     abort ();
 
-  /* 
+  /*
    * Open up an AF_UNIX socket in this person's home directory
    */
 
@@ -274,7 +278,7 @@ main (argc, argv)
       perror_1 ("unlink");
       exit (1);
     }
-#else  
+#else
   if ((homedir = getenv ("HOME")) == NULL)
     fatal_error ("No home directory\n");
 
@@ -398,14 +402,14 @@ main (argc, argv)
 	  fflush (infile);
 
 	  /* If command is close, close connection to client.  */
-	  if (strncmp (code, "Close:", 6) == 0) 
-	    if (infd > 2) 
+	  if (strncmp (code, "Close:", 6) == 0)
+	    if (infd > 2)
 	      {
 		fclose (infile);
 		close (infd);
 	      }
 	  continue;
-	} 
+	}
     }
 }
 
