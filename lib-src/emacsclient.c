@@ -381,6 +381,7 @@ struct termios tty;
 int old_tty_valid;
 
 int tty_erase_char;
+int quit_char = 'g' & 037;
 int flow_control = 0;
 int meta_key = 0;
 char _sobuf[BUFSIZ];
@@ -435,8 +436,11 @@ init_tty ()
       tty.c_cflag &= ~PARENB;   /* Don't check parity */
     }
 #endif
-  tty.c_cc[VINTR] = CDISABLE;
-  tty.c_cc[VQUIT] = CDISABLE;
+  tty.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
+  /* Set up C-g for both SIGQUIT and SIGINT.
+     We don't know which we will get, but we handle both alike
+     so which one it really gives us does not matter.  */
+  tty.c_cc[VQUIT] = quit_char;
   tty.c_cc[VMIN] = 1;      /* Input should wait for at least 1 char */
   tty.c_cc[VTIME] = 0;          /* no matter how long that takes.  */
 #ifdef VSWTCH
@@ -642,13 +646,25 @@ window_change_signal (int signalnum)
   errno = old_errno;
 }
 
+SIGTYPE
+interrupt_signal (int signalnum)
+{
+  int old_errno = errno;
+  
+  /* Forward it to Emacs. */
+  if (emacs_pid)
+    kill (emacs_pid, SIGINT);
+
+  errno = old_errno;
+}
+
 int
 init_signals ()
 {
   /* Set up signal handlers. */
   signal (SIGWINCH, window_change_signal);
   signal (SIGHUP, hang_up_signal);
-
+  signal (SIGINT, interrupt_signal);
   return 1;
 }
 
