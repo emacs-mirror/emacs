@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.13
+;; Version:    5.14
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -57,7 +57,7 @@
 			    (setq saved (point))
 			    t))
 	     (progn (c-backward-syntactic-ws lim)
-		    (memq (char-before) '(?\; ?{ ?} ?:)))
+		    (memq (char-before) '(?\; ?{ ?:)))
 	     )
 	(setq last-begin saved)
       (goto-char last-begin)
@@ -1249,6 +1249,8 @@
 	      (if inclass-p
 		  (progn
 		    (goto-char (aref inclass-p 1))
+		    (or (= (point) (c-point 'boi))
+			(goto-char (aref inclass-p 0)))
 		    (if inextern-p
 			(c-add-syntax 'inextern-lang)
 		      (c-add-syntax 'inclass (c-point 'boi)))))
