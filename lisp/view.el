@@ -463,6 +463,9 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 		(if (buffer-file-name)
 		    (file-name-nondirectory (buffer-file-name))
 		  (buffer-name))))
+  ;; Override major mode's scrolling commands.
+  (add-to-list 'minor-mode-overriding-map-alist
+	       (cons 'view-mode view-mode-map))
   (force-mode-line-update)
   (run-hooks 'view-mode-hook))
 
