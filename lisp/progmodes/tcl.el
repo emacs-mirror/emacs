@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.5 $
+;; Version: $Revision: 1.6 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/04/07 17:11:03 $|$Revision: 1.5 $|~/modes/tcl.el.Z|
+;; $Date: 1994/04/23 16:23:36 $|$Revision: 1.6 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -64,7 +64,10 @@
 ;; according to context.
 
 ;; Change log:
-;; $Log$
+;; $Log: tcl.el,v $
+; Revision 1.6  1994/04/23  16:23:36  tromey
+; Wrote tcl-indent-for-comment
+;
 ;;
 ;; 18-Mar-1994		Tom Tromey	Fourth beta release.
 ;;    Added {un,}comment-region to menu.  Idea from
@@ -179,10 +182,11 @@
 ;; * Trailing \ will eat blank lines.  Should deal with this.
 ;;   (this would help catch some potential bugs).
 ;; * Inferior should display in half the screen, not the whole screen.
-;; * M-; should do the right thing about putting a ";" at the end of a line.
 ;; * Indentation should deal with "switch".
 ;; * Consider writing code to find help files automatically (for
 ;;   common cases).
+;; * M-; sometimes fails (try on "if [blah] then {")
+;; * `#' shouldn't insert `\#' in string.
 
 
 
