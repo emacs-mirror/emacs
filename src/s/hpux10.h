@@ -9,7 +9,6 @@
    with HAVE_LRAND48 being defined.  */
 #undef srandom
 #undef random
-#undef srand48
 #undef HAVE_RANDOM
 
 #define FORCE_ALLOCA_H
