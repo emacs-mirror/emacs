@@ -1,3 +1,14 @@
+2002-05-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in: By sure to run emacs with LC_ALL=C.
+
+	* international/encoded-kb.el (encoded-kbd-handle-8bit): Call
+	encoded-kbd-self-insert-iso2022-8bit with argument 1.
+	(encoded-kbd-self-insert-charset): New function.
+	(encoded-kbd-setup-keymap): Handle a coding-system of type
+	charset.
+	(encoded-kbd-mode): Likewise.
+
 2002-05-15  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Comment out

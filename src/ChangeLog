@@ -1,5 +1,8 @@
 2002-05-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* character.c (string_escape_byte8): Make multibyte string with
+	correct size.
+
 	* charset.c (Fmake_char): Delete unnecessary code.
 
 2002-05-14  Kenichi Handa  <handa@etl.go.jp>
@@ -20,7 +23,7 @@
 	calling post-read-conversion function.
 	(encode_coding_object): Give correct arguments ot
 	pre-write-conversion.  Ignore the return value of
-	pre-write-conversion function.  Pay attention for the case that
+	pre-write-conversion function.  Pay attention to the case that
 	pre-write-conversion change the current buffer.  If dst_object is
 	Qt, even if coding->src_bytes is zero, allocate at least one byte
 	to coding->destination.
