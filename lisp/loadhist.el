@@ -31,33 +31,6 @@
 
 ;;; Code:
 
-(defvar load-history-loaded nil
-  "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
-That file records the part of `load-history' for preloaded files,
-which is cleared out before dumping to make Emacs smaller.")
-
-(defun symbol-file (sym)
-  "Return the input source from which SYM was loaded.
-The value is normally a string that was passed to `load':
-either an absolute file name, or a library name
-\(with no directory name and no `.el' or `.elc' at the end).
-It can also be nil, if the definition is not associated with any file."
-  (unless load-history-loaded
-    (load (expand-file-name
-	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
-	   (if (eq system-type 'ms-dos)
-	       "fns.el"
-	     (format "fns-%s.el" emacs-version))
-	   exec-directory)
-	  ;; The file name fns-%s.el already has a .el extension.
-	  nil nil t)
-    (setq load-history-loaded t))
-  (catch 'foundit
-    (mapcar
-     (function (lambda (x) (if (memq sym (cdr x)) (throw 'foundit (car x)))))
-     load-history)
-    nil))
-
 (defun feature-symbols (feature)
   "Return the file and list of symbols associated with a given FEATURE."
    (catch 'foundit
