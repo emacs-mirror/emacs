@@ -1,3 +1,7 @@
+2004-11-15  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Other Plists): Add safe-plist-get.
+
 2004-11-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* modes.texi (Font Lock Basics): Fix typo.
