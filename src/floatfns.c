@@ -242,9 +242,7 @@ DEFUN ("log-gamma", Flog_gamma, Slog_gamma, 1, 1, 0,
   return make_float (d);
 }
 
-#endif
-
-DEFUN ("cube-root", Fcube_root, Scube_root, 1, 1, 0,
+DEFUN ("cbrt", Fcbrt, Scbrt, 1, 1, 0,
   "Return the cube root of ARG.")
   (num)
      register Lisp_Object num;
@@ -254,6 +252,8 @@ DEFUN ("cube-root", Fcube_root, Scube_root, 1, 1, 0,
   return make_float (d);
 }
 
+#endif
+
 DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
   "Return the exponential base e of ARG.")
   (num)
@@ -350,7 +350,7 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
   return make_float (d);
 }
 
-#ifndef /* Not clearly worth adding.  */
+#if 0 /* Not clearly worth adding.  */
 
 DEFUN ("acosh", Facosh, Sacosh, 1, 1, 0,
   "Return the inverse hyperbolic cosine of ARG.")
@@ -565,8 +565,8 @@ syms_of_floatfns ()
   defsubr (&Serf);
   defsubr (&Serfc);
   defsubr (&Slog_gamma);
+  defsubr (&Scbrt);
 #endif
-  defsubr (&Scube_root);
   defsubr (&Sexp);
   defsubr (&Sexpm1);
   defsubr (&Sexpt);
