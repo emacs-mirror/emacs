@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(require 'mygud)
+(require 'gud)
 
 (defcustom gdb-many-windows t
   "If t, using gdba, start gdb with ancillary buffers visible.
@@ -81,7 +81,7 @@ in the GUD buffer.
 
 Displayed expressions appear in separate frames. Arrays may be displayed
 as slices and visualised using the graph program from plotutils if installed.
- 
+
 If `gdb-many-windows' is set to nil then gdb starts with just two windows :
 the GUD and the source buffer.
 
@@ -283,9 +283,9 @@ The following interactive lisp functions help control operation :
 ;; representation) and buffers associated with those objects.
 ;;
 
-;; 
+;;
 ;; gdb-instance objects
-;; 
+;;
 
 (defun make-gdb-instance (proc)
   "Create a gdb instance object from a gdb process."
@@ -1299,7 +1299,7 @@ buffer."
 	(let ((annotation (substring burst
 				     (match-beginning 1)
 				     (match-end 1))))
-	    
+
 	  ;; Stuff prior to the match is just ordinary output.
 	  ;; It is either concatenated to OUTPUT or directed
 	  ;; elsewhere.
@@ -1311,7 +1311,7 @@ buffer."
 
 	  ;; Take that stuff off the burst.
 	  (setq burst (substring burst (match-end 0)))
-	    
+
 	  ;; Parse the tag from the annotation, and maybe its arguments.
 	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
 	  (let* ((annotation-type (substring annotation
@@ -1416,7 +1416,7 @@ buffer."
 ;; The idle input queue and the output phasing associated with
 ;; the instance variable `(gdb-instance-output-sink instance)' help
 ;; us to run commands behind the user's back.
-;; 
+;;
 ;; Below is the code for specificly managing buffers of output from one
 ;; command.
 ;;
@@ -1443,7 +1443,7 @@ buffer."
 	    instance
 	    (cons ',name
 		  (gdb-instance-pending-triggers instance)))))))
-		
+
 (defmacro def-gdb-auto-update-handler (name trigger buf-key custom-defun)
   `(defun ,name ()
      (set-gdb-instance-pending-triggers
@@ -1480,7 +1480,7 @@ buffer."
 
 ;;
 ;; Breakpoint buffers
-;; 
+;;
 ;; These display the output of `info breakpoints'.
 ;;
 
@@ -2103,7 +2103,7 @@ buffer."
 	  (setq answer (split-window largest new-size))
 	  (set-window-buffer answer buf)))
     answer))
-      
+
 (defun gdb-display-source-buffer (buffer)
   (set-window-buffer gdb-source-window buffer))
 
