@@ -701,6 +701,7 @@ the user from the mailer."
 		;; convert the message to Babyl format.
 		(save-excursion
 		  (set-buffer (get-buffer-create " mail-temp"))
+		  (setq buffer-read-only nil)
 		  (erase-buffer)
 		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
 			  "From: " (user-login-name) "\n"
