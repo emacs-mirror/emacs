@@ -1,5 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,7 +22,65 @@ Boston, MA 02111-1307, USA.  */
    On many systems, there is a structure defined for this.
    But on vanilla-ish USG systems there is not.  */
 
+#ifndef EMACS_SYSWAIT_H
+#define EMACS_SYSWAIT_H
+
 #ifndef VMS
+
+/* Try the approach recommended by autoconf.  If this doesn't cause
+   trouble anywhere, remove the original code, which is #if'd out
+   below.  */
+
+#if 1
+#undef WAITTYPE
+#define WAITTYPE int
+#define WRETCODE(w) WEXITSTATUS (w)
+
+#include <sys/types.h>
+#if HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+#if defined (HPUX) || defined (convex)
+/* HPUX version 7 has broken definitions of these.  */
+/* pvogel@convex.com says the convex does too.  */
+#undef WTERMSIG
+#undef WSTOPSIG
+#undef WIFSTOPPED
+#undef WIFSIGNALED
+#undef WIFEXITED
+#endif /* HPUX || convex */
+
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+#ifndef WIFSTOPPED
+#define WIFSTOPPED(w) ((w&0377) == 0177)
+#endif
+#ifndef WIFSIGNALED
+#define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
+#endif
+#ifndef WIFEXITED
+#define WIFEXITED(w) ((w&0377) == 0)
+#endif
+#ifndef WRETCODE
+#define WRETCODE(w) (w >> 8)
+#endif
+#ifndef WSTOPSIG
+#define WSTOPSIG(w) (w >> 8)
+#endif
+#ifndef WTERMSIG
+#define WTERMSIG(w) (w & 0377)
+#endif
+#ifndef WCOREDUMP
+#define WCOREDUMP(w) ((w&0200) != 0)
+#endif
+
+#else  /* !1 */
+
 #ifndef WAITTYPE
 
 #ifdef WAIT_USE_INT
@@ -88,6 +146,8 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not WAIT_USE_INT */
 #endif /* no WAITTYPE */
 
+#endif /* 1 */
+
 #else /* VMS */
 
 #define WAITTYPE int
@@ -104,3 +164,5 @@ Boston, MA 02111-1307, USA.  */
 #include "vmsproc.h"
 
 #endif /* VMS */
+
+#endif /* EMACS_SYSWAIT_H */
