@@ -4360,8 +4360,7 @@ x_set_glyph_string_background_width (s, start, last_x)
    DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the right-most
    x-position of the drawing area.  */
 
-#define BUILD_COMPOSITE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD,	  \
-				       TAIL, HL, X, LAST_X, OVERLAPS_P)	  \
+#define BUILD_COMPOSITE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P)	  \
   do {									  \
     int cmp_id = (ROW)->glyphs[AREA][START].u.cmp.id;			  \
     int face_id = (ROW)->glyphs[AREA][START].u.cmp.face_id;		  \
