@@ -154,8 +154,7 @@ first line, insist it must match FIRST-LINE-REGEXP."
 	  (goto-char firstline)
 	(setq at-second t))
       (move-to-left-margin)
-      (let ((start (point))
-	    (eol (save-excursion (end-of-line) (point))))
+      (let ((start (point)))
 	(setq result
 	      (if (not (looking-at paragraph-start))
 		  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
