@@ -299,16 +299,18 @@ point."
 	(goto-char match)
 	(looking-at regexp)))))
 
-;; Can't do it sensibly?
-;(put 'url 'end-op    
-;     '(lambda () (skip-chars-forward (concat ":" thing-at-point-url-chars))
-;	(skip-chars-backward ".,:")))
+(put 'url 'end-op
+     (function (lambda ()
+		 (let ((bounds (thing-at-point-bounds-of-url-at-point)))
+		   (if bounds
+		       (goto-char (cdr bounds))
+		     (error "No URL here"))))))
 (put 'url 'beginning-op
-     '(lambda ()
-	(let ((bounds (thing-at-point-bounds-of-url-at-point)))
-	  (if bounds
-	      (goto-char (car bounds))
-	    (error "No URL here")))))
+     (function (lambda ()
+		 (let ((bounds (thing-at-point-bounds-of-url-at-point)))
+		   (if bounds
+		       (goto-char (car bounds))
+		     (error "No URL here"))))))
 
 ;;  Whitespace 
 
