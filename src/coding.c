@@ -513,9 +513,9 @@ coding_safe_chars (coding)
 
 /*** 2. Emacs internal format (emacs-mule) handlers ***/
 
-/* Emacs' internal format for encoding multiple character sets is a
-   kind of multi-byte encoding, i.e. characters are encoded by
-   variable-length sequences of one-byte codes.
+/* Emacs' internal format for representation of multiple character
+   sets is a kind of multi-byte encoding, i.e. characters are
+   represented by variable-length sequences of one-byte codes.
 
    ASCII characters and control characters (e.g. `tab', `newline') are
    represented by one-byte sequences which are their ASCII codes, in
@@ -531,7 +531,7 @@ coding_safe_chars (coding)
    The other characters are represented by a sequence of `base
    leading-code', optional `extended leading-code', and one or two
    `position-code's.  The length of the sequence is determined by the
-   base leading-code.  Leading-code takes the range 0x80 through 0x9F,
+   base leading-code.  Leading-code takes the range 0x81 through 0x9D,
    whereas extended leading-code and position-code take the range 0xA0
    through 0xFF.  See `charset.h' for more details about leading-code
    and position-code.
@@ -542,9 +542,46 @@ coding_safe_chars (coding)
    ascii		0x00..0x7F
    eight-bit-control	LEADING_CODE_8_BIT_CONTROL + 0xA0..0xBF
    eight-bit-graphic	0xA0..0xBF
-   ELSE			0x81..0x9F + [0xA0..0xFF]+
+   ELSE			0x81..0x9D + [0xA0..0xFF]+
    ---------------------------------------------
 
+   As this is the internal character representation, the format is
+   usually not used externally (i.e. in a file or in a data sent to a
+   process).  But, it is possible to have a text externally in this
+   format (i.e. by encoding by the coding system `emacs-mule').
+
+   In that case, a sequence of one-byte codes has a slightly different
+   form.
+
+   At first, all characters in eight-bit-control are represented by
+   one-byte sequences which are their 8-bit code.
+
+   Next, character composition data are represented by the byte
+   sequence of the form: 0x80 METHOD BYTES CHARS COMPONENT ...,
+   where,
+	METHOD is 0xF0 plus one of composition method (enum
+	composition_method),
+
+	BYTES is 0x20 plus a byte length of this composition data,
+
+	CHARS is 0x20 plus a number of characters composed by this
+	data,
+
+	COMPONENTs are characters of multibye form or composition
+	rules encoded by two-byte of ASCII codes.
+
+   In addition, for backward compatibility, the following formats are
+   also recognized as composition data on decoding.
+
+   0x80 MSEQ ...
+   0x80 0xFF MSEQ RULE MSEQ RULE ... MSEQ
+
+   Here,
+	MSEQ is a multibyte form but in these special format:
+	  ASCII: 0xA0 ASCII_CODE+0x80,
+	  other: LEADING_CODE+0x20 FOLLOWING-BYTE ...,
+	RULE is a one byte code of the range 0xA0..0xF0 that
+	represents a composition rule.
   */
 
 enum emacs_code_class_type emacs_code_class[256];
@@ -608,6 +645,261 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 }
 
 
+/* Record the starting position START and METHOD of one composition.  */
+
+#define CODING_ADD_COMPOSITION_START(coding, start, method)	\
+  do {								\
+    struct composition_data *cmp_data = coding->cmp_data;	\
+    int *data = cmp_data->data + cmp_data->used;		\
+    coding->cmp_data_start = cmp_data->used;			\
+    data[0] = -1;						\
+    data[1] = cmp_data->char_offset + start;			\
+    data[3] = (int) method;					\
+    cmp_data->used += 4;					\
+  } while (0)
+
+/* Record the ending position END of the current composition.  */
+
+#define CODING_ADD_COMPOSITION_END(coding, end)			\
+  do {								\
+    struct composition_data *cmp_data = coding->cmp_data;	\
+    int *data = cmp_data->data + coding->cmp_data_start;	\
+    data[0] = cmp_data->used - coding->cmp_data_start;		\
+    data[2] = cmp_data->char_offset + end;			\
+  } while (0)
+
+/* Record one COMPONENT (alternate character or composition rule).  */
+
+#define CODING_ADD_COMPOSITION_COMPONENT(coding, component)	\
+  (coding->cmp_data->data[coding->cmp_data->used++] = component)
+
+
+/* Get one byte from a data pointed by SRC and increment SRC.  If SRC
+   is not less than SRC_END, return -1 without inccrementing Src.  */
+
+#define SAFE_ONE_MORE_BYTE() (src >= src_end ? -1 : *src++)
+
+
+/* Decode a character represented as a component of composition
+   sequence of Emacs 20 style at SRC.  Set C to that character, store
+   its multibyte form sequence at P, and set P to the end of that
+   sequence.  If no valid character is found, set C to -1.  */
+
+#define DECODE_EMACS_MULE_COMPOSITION_CHAR(c, p)		\
+  do {								\
+    int bytes;							\
+    								\
+    c = SAFE_ONE_MORE_BYTE ();					\
+    if (c < 0)							\
+      break;							\
+    if (CHAR_HEAD_P (c))					\
+      c = -1;							\
+    else if (c == 0xA0)						\
+      {								\
+	c = SAFE_ONE_MORE_BYTE ();				\
+	if (c < 0xA0)						\
+	  c = -1;						\
+	else							\
+	  {							\
+	    c -= 0xA0;						\
+	    *p++ = c;						\
+	  }							\
+      }								\
+    else if (BASE_LEADING_CODE_P (c - 0x20))			\
+      {								\
+	unsigned char *p0 = p;					\
+								\
+	c -= 0x20;						\
+	*p++ = c;						\
+	bytes = BYTES_BY_CHAR_HEAD (c);				\
+	while (--bytes)						\
+	  {							\
+	    c = SAFE_ONE_MORE_BYTE ();				\
+	    if (c < 0)						\
+	      break;						\
+	    *p++ = c;						\
+	  }							\
+	if (UNIBYTE_STR_AS_MULTIBYTE_P (p0, p - p0, bytes))	\
+	  c = STRING_CHAR (p0, bytes);				\
+	else							\
+	  c = -1;						\
+      }								\
+    else							\
+      c = -1;							\
+  } while (0)
+
+
+/* Decode a composition rule represented as a component of composition
+   sequence of Emacs 20 style at SRC.  Set C to the rule.  If not
+   valid rule is found, set C to -1.  */
+
+#define DECODE_EMACS_MULE_COMPOSITION_RULE(c)		\
+  do {							\
+    c = SAFE_ONE_MORE_BYTE ();				\
+    c -= 0xA0;						\
+    if (c < 0 || c >= 81)				\
+      c = -1;						\
+    else						\
+      {							\
+	gref = c / 9, nref = c % 9;			\
+	c = COMPOSITION_ENCODE_RULE (gref, nref);	\
+      }							\
+  } while (0)
+
+
+/* Decode composition sequence encoded by `emacs-mule' at the source
+   pointed by SRC.  SRC_END is the end of source.  Store information
+   of the composition in CODING->cmp_data.
+
+   For backward compatibility, decode also a composition sequence of
+   Emacs 20 style.  In that case, the composition sequence contains
+   characters that should be extracted into a buffer or string.  Store
+   those characters at *DESTINATION in multibyte form.
+
+   If we encounter an invalid byte sequence, return 0.
+   If we encounter an insufficient source or destination, or
+   insufficient space in CODING->cmp_data, return 1.
+   Otherwise, return consumed bytes in the source.
+
+*/
+static INLINE int
+decode_composition_emacs_mule (coding, src, src_end,
+			       destination, dst_end, dst_bytes)
+     struct coding_system *coding;
+     unsigned char *src, *src_end, **destination, *dst_end;
+     int dst_bytes;
+{
+  unsigned char *dst = *destination;
+  int method, data_len, nchars;
+  unsigned char *src_base = src++;
+  /* Store compoments of composition.  */
+  int component[COMPOSITION_DATA_MAX_BUNCH_LENGTH];
+  int ncomponent;
+  /* Store multibyte form of characters to be composed.  This is for
+     Emacs 20 style composition sequence.  */
+  unsigned char buf[MAX_COMPOSITION_COMPONENTS * MAX_MULTIBYTE_LENGTH];
+  unsigned char *bufp = buf;
+  int c, i, gref, nref;
+
+  if (coding->cmp_data->used + COMPOSITION_DATA_MAX_BUNCH_LENGTH
+      >= COMPOSITION_DATA_SIZE)
+    {
+      coding->result = CODING_FINISH_INSUFFICIENT_CMP;
+      return -1;
+    }
+
+  ONE_MORE_BYTE (c);
+  if (c - 0xF0 >= COMPOSITION_RELATIVE
+	   && c - 0xF0 <= COMPOSITION_WITH_RULE_ALTCHARS)
+    {
+      int with_rule;
+
+      method = c - 0xF0;
+      with_rule = (method == COMPOSITION_WITH_RULE
+		   || method == COMPOSITION_WITH_RULE_ALTCHARS);
+      ONE_MORE_BYTE (c);
+      data_len = c - 0xA0;
+      if (data_len < 4
+	  || src_base + data_len > src_end)
+	return 0;
+      ONE_MORE_BYTE (c);
+      nchars = c - 0xA0;
+      if (c < 1)
+	return 0;
+      for (ncomponent = 0; src < src_base + data_len; ncomponent++)
+	{
+	  if (ncomponent % 2 && with_rule)
+	    {
+	      ONE_MORE_BYTE (gref);
+	      gref -= 32;
+	      ONE_MORE_BYTE (nref);
+	      nref -= 32;
+	      c = COMPOSITION_ENCODE_RULE (gref, nref);
+	    }
+	  else
+	    {
+	      int bytes;
+	      if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
+		c = STRING_CHAR (src, bytes);
+	      else
+		c = *src, bytes = 1;
+	      src += bytes;
+	    }
+	  component[ncomponent] = c;
+	}
+    }
+  else
+    {
+      /* This may be an old Emacs 20 style format.  See the comment at
+	 the section 2 of this file.  */
+      while (src < src_end && !CHAR_HEAD_P (*src)) src++;
+      if (src == src_end
+	  && !(coding->mode & CODING_MODE_LAST_BLOCK))
+	goto label_end_of_loop;
+
+      src_end = src;
+      src = src_base + 1;
+      if (c < 0xC0)
+	{
+	  method = COMPOSITION_RELATIVE;
+	  for (ncomponent = 0; ncomponent < MAX_COMPOSITION_COMPONENTS;)
+	    {
+	      DECODE_EMACS_MULE_COMPOSITION_CHAR (c, bufp);
+	      if (c < 0)
+		break;
+	      component[ncomponent++] = c;
+	    }
+	  if (ncomponent < 2)
+	    return 0;
+	  nchars = ncomponent;
+	}
+      else if (c == 0xFF)
+	{
+	  method = COMPOSITION_WITH_RULE;
+	  src++;
+	  DECODE_EMACS_MULE_COMPOSITION_CHAR (c, bufp);
+	  if (c < 0)
+	    return 0;
+	  component[0] = c;
+	  for (ncomponent = 1;
+	       ncomponent < MAX_COMPOSITION_COMPONENTS * 2 - 1;)
+	    {
+	      DECODE_EMACS_MULE_COMPOSITION_RULE (c);
+	      if (c < 0)
+		break;
+	      component[ncomponent++] = c;
+	      DECODE_EMACS_MULE_COMPOSITION_CHAR (c, bufp);
+	      if (c < 0)
+		break;
+	      component[ncomponent++] = c;
+	    }
+	  if (ncomponent < 3)
+	    return 0;
+	  nchars = (ncomponent + 1) / 2;
+	}
+      else
+	return 0;
+    }
+
+  if (buf == bufp || dst + (bufp - buf) <= (dst_bytes ? dst_end : src))
+    {
+      CODING_ADD_COMPOSITION_START (coding, coding->produced_char, method);
+      for (i = 0; i < ncomponent; i++)
+	CODING_ADD_COMPOSITION_COMPONENT (coding, component[i]);
+      CODING_ADD_COMPOSITION_END (coding, coding->produced_char + nchars);  
+      if (buf < bufp)
+	{
+	  unsigned char *p = buf;
+	  EMIT_BYTES (p, bufp);
+	  *destination += bufp - buf;
+	  coding->produced_char += nchars;
+	}
+      return (src - src_base);
+    }
+ label_end_of_loop:
+  return -1;
+}
+
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".  */
 
 static void
@@ -669,6 +961,23 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	  coding->produced_char++;
 	  continue;
 	}
+      else if (*src == 0x80)
+	{
+	  /* Start of composition data.  */
+	  int consumed  = decode_composition_emacs_mule (coding, src, src_end,
+							 &dst, dst_end,
+							 dst_bytes);
+	  if (consumed < 0)
+	    goto label_end_of_loop;
+	  else if (consumed > 0)
+	    {
+	      src += consumed;
+	      continue;
+	    }
+	  bytes = CHAR_STRING (*src, tmp);
+	  p = tmp;
+	  src++;
+	}
       else if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
 	{
 	  p = src;
@@ -693,9 +1002,123 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
   coding->produced = dst - destination;
 }
 
-#define encode_coding_emacs_mule(coding, source, destination, src_bytes, dst_bytes) \
-  encode_eol (coding, source, destination, src_bytes, dst_bytes)
 
+/* Encode composition data stored at DATA into a special byte sequence
+   starting by 0x80.  Update CODING->cmp_data_start and maybe
+   CODING->cmp_data for the next call.  */
+
+#define ENCODE_COMPOSITION_EMACS_MULE(coding, data)			\
+  do {									\
+    unsigned char buf[1024], *p0 = buf, *p;				\
+    int len = data[0];							\
+    int i;								\
+    									\
+    buf[0] = 0x80;							\
+    buf[1] = 0xF0 + data[3];	/* METHOD */				\
+    buf[3] = 0xA0 + (data[2] - data[1]); /* COMPOSED-CHARS */		\
+    p = buf + 4;							\
+    if (data[3] == COMPOSITION_WITH_RULE				\
+	|| data[3] == COMPOSITION_WITH_RULE_ALTCHARS)			\
+      {									\
+	p += CHAR_STRING (data[4], p);					\
+	for (i = 5; i < len; i += 2)					\
+	  {								\
+	    int gref, nref;						\
+	     COMPOSITION_DECODE_RULE (data[i], gref, nref);		\
+	    *p++ = 0x20 + gref;						\
+	    *p++ = 0x20 + nref;						\
+	    p += CHAR_STRING (data[i + 1], p);				\
+	  }								\
+      }									\
+    else								\
+      {									\
+	for (i = 4; i < len; i++)					\
+	  p += CHAR_STRING (data[i], p);				\
+      }									\
+    buf[2] = 0xA0 + (p - buf);	/* COMPONENTS-BYTES */			\
+    									\
+    if (dst + (p - buf) + 4 > (dst_bytes ? dst_end : src))		\
+      {									\
+	coding->result = CODING_FINISH_INSUFFICIENT_DST;		\
+	goto label_end_of_loop;						\
+      }									\
+    while (p0 < p)							\
+      *dst++ = *p0++;							\
+    coding->cmp_data_start += data[0];					\
+    if (coding->cmp_data_start == coding->cmp_data->used		\
+	&& coding->cmp_data->next)					\
+      {									\
+	coding->cmp_data = coding->cmp_data->next;			\
+	coding->cmp_data_start = 0;					\
+      }									\
+  } while (0)
+  
+
+static void encode_eol P_ ((struct coding_system *, unsigned char *,
+			    unsigned char *, int, int));
+
+static void
+encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
+     struct coding_system *coding;
+     unsigned char *source, *destination;
+     int src_bytes, dst_bytes;
+{
+  unsigned char *src = source;
+  unsigned char *src_end = source + src_bytes;
+  unsigned char *dst = destination;
+  unsigned char *dst_end = destination + dst_bytes;
+  unsigned char *src_base;
+  int c;
+  int char_offset;
+  int *data;
+
+  Lisp_Object translation_table;
+
+  translation_table = Qnil;
+
+  /* Optimization for the case that there's no composition.  */
+  if (!coding->cmp_data || coding->cmp_data->used == 0)
+    {
+      encode_eol (coding, source, destination, src_bytes, dst_bytes);
+      return;
+    }
+
+  char_offset = coding->cmp_data->char_offset;
+  data = coding->cmp_data->data + coding->cmp_data_start;
+  while (1)
+    {
+      src_base = src;
+
+      /* If SRC starts a composition, encode the information about the
+	 composition in advance.  */
+      if (coding->cmp_data_start < coding->cmp_data->used
+	  && char_offset + coding->consumed_char == data[1])
+	{
+	  ENCODE_COMPOSITION_EMACS_MULE (coding, data);
+	  char_offset = coding->cmp_data->char_offset;
+	  data = coding->cmp_data->data + coding->cmp_data_start;
+	}
+
+      ONE_MORE_CHAR (c);
+      if (c == '\n' && (coding->eol_type == CODING_EOL_CRLF
+			|| coding->eol_type == CODING_EOL_CR))
+	{
+	  if (coding->eol_type == CODING_EOL_CRLF)
+	    EMIT_TWO_BYTES ('\r', c);
+	  else
+	    EMIT_ONE_BYTE ('\r');
+	}
+      else if (SINGLE_BYTE_CHAR_P (c))
+	EMIT_ONE_BYTE (c);
+      else
+	EMIT_BYTES (src_base, src);
+      coding->consumed_char++;
+    }
+ label_end_of_loop:
+  coding->consumed = src_base - source;
+  coding->produced = coding->produced_char = dst - destination;
+  return;
+}
 
 
 /*** 3. ISO2022 handlers ***/
@@ -1180,35 +1603,12 @@ coding_allocate_composition_data (coding, char_offset)
   coding->cmp_data_start = 0;
 }
 
-/* Record the starting position START and METHOD of one composition.  */
-
-#define CODING_ADD_COMPOSITION_START(coding, start, method)	\
-  do {								\
-    struct composition_data *cmp_data = coding->cmp_data;	\
-    int *data = cmp_data->data + cmp_data->used;		\
-    coding->cmp_data_start = cmp_data->used;			\
-    data[0] = -1;						\
-    data[1] = cmp_data->char_offset + start;			\
-    data[3] = (int) method;					\
-    cmp_data->used += 4;					\
-  } while (0)
-
-/* Record the ending position END of the current composition.  */
-
-#define CODING_ADD_COMPOSITION_END(coding, end)			\
-  do {								\
-    struct composition_data *cmp_data = coding->cmp_data;	\
-    int *data = cmp_data->data + coding->cmp_data_start;	\
-    data[0] = cmp_data->used - coding->cmp_data_start;		\
-    data[2] = cmp_data->char_offset + end;			\
-  } while (0)
-
-/* Record one COMPONENT (alternate character or composition rule).  */
-
-#define CODING_ADD_COMPOSITION_COMPONENT(coding, component)	\
-  (coding->cmp_data->data[coding->cmp_data->used++] = component)
-
-/* Handle compositoin start sequence ESC 0, ESC 2, ESC 3, or ESC 4.  */
+/* Handle composition start sequence ESC 0, ESC 2, ESC 3, or ESC 4.
+   ESC 0 : relative composition : ESC 0 CHAR ... ESC 1
+   ESC 2 : rulebase composition : ESC 2 CHAR RULE CHAR RULE ... CHAR ESC 1
+   ESC 3 : altchar composition :  ESC 3 ALT ... ESC 0 CHAR ... ESC 1
+   ESC 4 : alt&rule composition : ESC 4 ALT RULE .. ALT ESC 0 CHAR ... ESC 1
+  */
 
 #define DECODE_COMPOSITION_START(c1)					   \
   do {									   \
@@ -3088,6 +3488,9 @@ setup_coding_system (coding_system, coding)
     {
     case 0:
       coding->type = coding_type_emacs_mule;
+      coding->common_flags
+	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
+      coding->composing = COMPOSITION_NO;
       if (!NILP (coding->post_read_conversion))
 	coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
       if (!NILP (coding->pre_write_conversion))
