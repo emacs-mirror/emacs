@@ -536,9 +536,7 @@ main (argc, argv, envp)
       syms_of_print ();
       syms_of_eval ();
       syms_of_fns ();
-#ifdef LISP_FLOAT_TYPE
       syms_of_floatfns ();
-#endif
 
       syms_of_abbrev ();
       syms_of_buffer ();
