@@ -1,3 +1,17 @@
+2002-05-23  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-show-scores, apropos-orig-regexp)
+	(apropos-all-regexp, apropos-synonyms, apropos-words)
+	(apropos-all-words): New variables.
+	(aprpos-words-to-regexp, apropos-rewrite-regexp)
+	(apropos-calc-scores, apropos-score-str, apropos-score-doc)
+	(apropos-score-symbol): New functions.
+	(apropos-command, apropos, apropos-value, apropos-documentation):
+	Allow keywords in addition to regexp. Added scoring.
+	(apropos-documentation-check-doc-file)
+	(apropos-documentation-check-elc-file): Added scoring.
+	(apropos-print): Sort according to score.
+	
 2002-05-22  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* info.el (Info-mode-hook): Change `font-lock-mode' to
