@@ -107,6 +107,12 @@
 	  (progn
             (message "Zoning... (%s)" pgm)
 	    (garbage-collect)
+	    ;; If some input is pending, zone says "sorry", which
+	    ;; isn't nice; this might happen e.g. when they invoke the
+	    ;; game by clicking the menu bar.  So discard any pending
+	    ;; input before zoning out.
+	    (if (input-pending-p)
+		(discard-input))
 	    (funcall pgm)
 	    (message "Zoning...sorry"))
 	(error
