@@ -1065,7 +1065,6 @@ combine_bytes (pos, pos_byte, nbytes)
   ADJUST_CHAR_POS (ZV, ZV_BYTE);
 
   if (BUF_INTERVALS (current_buffer) != 0)
-    /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, pos, - nbytes);
 }
 
@@ -1185,15 +1184,12 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 			     combined_before_bytes, combined_after_bytes,
 			     before_markers);
 
-#ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
-    /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, PT, nchars);
 
   if (!inherit && BUF_INTERVALS (current_buffer) != 0)
     Fset_text_properties (make_number (PT), make_number (PT + nchars),
 			  Qnil, Qnil);
-#endif
 
   {
     int pos = PT, pos_byte = PT_BYTE;
@@ -1371,7 +1367,6 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 			     combined_before_bytes, combined_after_bytes,
 			     before_markers);
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   offset_intervals (current_buffer, PT, nchars);
 
   intervals = XSTRING (string)->intervals;
@@ -1580,10 +1575,8 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 			     PT_BYTE + outgoing_nbytes,
 			     combined_before_bytes, combined_after_bytes, 0);
 
-#ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
     offset_intervals (current_buffer, PT, nchars);
-#endif
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
@@ -1735,12 +1728,10 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     adjust_overlays_for_insert (from, len - nchars_del);
   else if (len < nchars_del)
     adjust_overlays_for_delete (from, nchars_del - len);
-#ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
     {
       offset_intervals (current_buffer, from, len - nchars_del);
     }
-#endif
 
   {
     if (from < PT)
@@ -2011,7 +2002,6 @@ replace_range (from, to, new, prepare, inherit, markers)
 			       from + inschars, from_byte + outgoing_insbytes,
 			       combined_before_bytes, combined_after_bytes, 0);
 
-#ifdef USE_TEXT_PROPERTIES
   offset_intervals (current_buffer, from, inschars - nchars_del);
 
   /* Get the intervals for the part of the string we are inserting--
@@ -2020,7 +2010,6 @@ replace_range (from, to, new, prepare, inherit, markers)
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
-#endif
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
@@ -2250,7 +2239,6 @@ del_range_2 (from, from_byte, to, to_byte)
     adjust_point (from - (PT < to ? PT : to),
 		  from_byte - (PT_BYTE < to_byte ? PT_BYTE : to_byte));
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   offset_intervals (current_buffer, from, - nchars_del);
 
   /* Adjust the overlay center as needed.  This must be done after
@@ -2352,7 +2340,6 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
     ++windows_or_buffers_changed;
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   if (BUF_INTERVALS (current_buffer) != 0)
     {
       if (preserve_ptr)

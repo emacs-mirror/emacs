@@ -18,7 +18,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifdef USE_TEXT_PROPERTIES
 #ifndef NORMAL_FACE
 #include "dispextern.h"
 #endif
@@ -269,20 +268,3 @@ int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 extern void syms_of_textprop ();
-
-#else  /* don't support text properties */
-
-#define NULL_INTERVAL_P(i) 1
-#define INTERVAL_SIZE 0
-#define INTERVAL_PTR_SIZE 0
-
-#define copy_intervals_to_string(string,buffer,position,length)
-#define verify_interval_modification(buffer,start,end)
-#define insert_interval_copy(source,position,end,sink,at)
-#define graft_intervals_into_buffer(tree,position,bufferptr)
-#define offset_intervals(buffer,position,length)
-#define copy_intervals(tree,start,length)
-
-#define syms_of_textprop()
-
-#endif /* don't support text properties */

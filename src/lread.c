@@ -1693,7 +1693,6 @@ read1 (readcharfun, pch, first_in_list)
 	  return Fmake_byte_code (XVECTOR (tmp)->size,
 				  XVECTOR (tmp)->contents);
 	}
-#ifdef USE_TEXT_PROPERTIES
       if (c == '(')
 	{
 	  Lisp_Object tmp;
@@ -1726,7 +1725,7 @@ read1 (readcharfun, pch, first_in_list)
 	  UNGCPRO;
 	  return tmp;
 	}
-#endif
+      
       /* #@NUMBER is used to skip NUMBER following characters.
 	 That's used in .elc files to skip over doc strings
 	 and function definitions.  */
@@ -2295,7 +2294,6 @@ substitute_object_recurse (object, placeholder, subtree)
 	return subtree;
       }
 
-#ifdef USE_TEXT_PROPERTIES
     case Lisp_String:
       {
 	/* Check for text properties in each interval.
@@ -2309,7 +2307,6 @@ substitute_object_recurse (object, placeholder, subtree)
 
 	return subtree;
       }
-#endif /* defined USE_TEXT_PROPERTIES */
 
       /* Other types don't recurse any further. */
     default:

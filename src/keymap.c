@@ -2079,13 +2079,7 @@ indirect definition itself.")
      shadowed bindings. */
   keymap1 = keymap;
   if (! keymap_specified)
-    {
-#ifdef USE_TEXT_PROPERTIES
-      keymap1 = get_local_map (PT, current_buffer);
-#else
-      keymap1 = current_buffer->keymap;
-#endif
-    }
+    keymap1 = get_local_map (PT, current_buffer);
     
   if (!NILP (keymap1))
     maps = nconc2 (Faccessible_keymaps (get_keymap (keymap1), Qnil),

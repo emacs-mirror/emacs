@@ -1635,14 +1635,11 @@ vmotion (from, vtarget, w)
 		      && indented_beyond_p (XFASTINT (prevline),
 					    CHAR_TO_BYTE (XFASTINT (prevline)),
 					    selective))
-#ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
 						       Qinvisible,
 						       text_prop_object),
-			 TEXT_PROP_MEANS_INVISIBLE (propval))
-#endif
-		     ))
+			 TEXT_PROP_MEANS_INVISIBLE (propval))))
 	    XSETFASTINT (prevline,
 			 find_next_newline_no_quit (XFASTINT (prevline) - 1,
 						    -1));
@@ -1698,13 +1695,10 @@ vmotion (from, vtarget, w)
 		  && indented_beyond_p (XFASTINT (prevline),
 					CHAR_TO_BYTE (XFASTINT (prevline)),
 					selective))
-#ifdef USE_TEXT_PROPERTIES
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
 						   text_prop_object),
-		     TEXT_PROP_MEANS_INVISIBLE (propval))
-#endif
-	     ))
+		     TEXT_PROP_MEANS_INVISIBLE (propval))))
 	XSETFASTINT (prevline,
 		     find_next_newline_no_quit (XFASTINT (prevline) - 1,
 						-1));

@@ -5804,11 +5804,7 @@ menu_bar_items (old)
 	nmaps = current_minor_maps (NULL, &tmaps);
 	maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
 	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-#ifdef USE_TEXT_PROPERTIES
 	maps[nmaps++] = get_local_map (PT, current_buffer);
-#else
-	maps[nmaps++] = current_buffer->keymap;
-#endif
       }
     maps[nmaps++] = current_global_map;
   }
@@ -6460,11 +6456,7 @@ tool_bar_items (reuse, nitems)
       nmaps = current_minor_maps (NULL, &tmaps);
       maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-#ifdef USE_TEXT_PROPERTIES
       maps[nmaps++] = get_local_map (PT, current_buffer);
-#else
-      maps[nmaps++] = current_buffer->keymap;
-#endif
     }
 
   /* Add global keymap at the end.  */
@@ -7441,11 +7433,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    nmaps_allocated = nmaps + 2;
 	  }
 	bcopy (maps, submaps, nmaps * sizeof (submaps[0]));
-#ifdef USE_TEXT_PROPERTIES
 	submaps[nmaps++] = orig_local_map;
-#else
-	submaps[nmaps++] = current_buffer->keymap;
-#endif
       }
     submaps[nmaps++] = current_global_map;
   }
@@ -8737,11 +8725,7 @@ current_active_maps (maps_p)
       nmaps = current_minor_maps (NULL, &tmaps);
       maps = (Lisp_Object *) xmalloc ((nmaps + 2) * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-#ifdef USE_TEXT_PROPERTIES
       maps[nmaps++] = get_local_map (PT, current_buffer);
-#else
-      maps[nmaps++] = current_buffer->keymap;
-#endif
     }
   maps[nmaps++] = current_global_map;
 

@@ -46,8 +46,6 @@ Boston, MA 02111-1307, USA.  */
   necessary for the system to remain consistent.  This requirement
   is enforced by the subrs installing properties onto the intervals.  */
 
-/* The rest of the file is within this conditional */
-#ifdef USE_TEXT_PROPERTIES
 
 /* Types of hooks.  */
 Lisp_Object Qmouse_left;
@@ -1882,8 +1880,3 @@ This also inhibits the use of the `intangible' text property.");
 /*  defsubr (&Scopy_text_properties); */
 }
 
-#else
-
-lose -- this shouldn't be compiled if USE_TEXT_PROPERTIES isn't defined
-
-#endif /* USE_TEXT_PROPERTIES */

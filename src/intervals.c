@@ -46,9 +46,6 @@ Boston, MA 02111-1307, USA.  */
 #include "puresize.h"
 #include "keyboard.h"
 
-/* The rest of the file is within this conditional.  */
-#ifdef USE_TEXT_PROPERTIES
-
 /* Test for membership, allowing for t (actually any non-cons) to mean the
    universal set.  */
 
@@ -2238,5 +2235,3 @@ set_intervals_multibyte (multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
-
-#endif /* USE_TEXT_PROPERTIES */

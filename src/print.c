@@ -31,10 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "termchar.h"
 #include "keyboard.h"
-
-#ifdef USE_TEXT_PROPERTIES
 #include "intervals.h"
-#endif
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -669,9 +666,7 @@ buffer and calling the hook.  It gets one argument, the buffer to display.")
 
 static void print ();
 static void print_preprocess ();
-#ifdef USE_TEXT_PROPERTIES
 static void print_preprocess_string ();
-#endif /* USE_TEXT_PROPERTIES */
 static void print_object ();
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
@@ -1167,11 +1162,9 @@ print_preprocess (obj)
       switch (XGCTYPE (obj))
 	{
 	case Lisp_String:
-#ifdef USE_TEXT_PROPERTIES
 	  /* A string may have text properties, which can be circular.  */
 	  traverse_intervals (XSTRING (obj)->intervals, 0, 0,
 			      print_preprocess_string, Qnil);
-#endif /* USE_TEXT_PROPERTIES */
 	  break;
 
 	case Lisp_Cons:
@@ -1187,7 +1180,6 @@ print_preprocess (obj)
     }
 }
 
-#ifdef USE_TEXT_PROPERTIES
 static void
 print_preprocess_string (interval, arg)
      INTERVAL interval;
@@ -1195,7 +1187,6 @@ print_preprocess_string (interval, arg)
 {
   print_preprocess (interval->plist);
 }
-#endif /* USE_TEXT_PROPERTIES */
 
 static void
 print_object (obj, printcharfun, escapeflag)
@@ -1304,13 +1295,11 @@ print_object (obj, printcharfun, escapeflag)
 
 	  GCPRO1 (obj);
 
-#ifdef USE_TEXT_PROPERTIES
 	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
 	    }
-#endif
 
 	  PRINTCHAR ('\"');
 	  str = XSTRING (obj)->data;
@@ -1388,14 +1377,12 @@ print_object (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('\"');
 
-#ifdef USE_TEXT_PROPERTIES
 	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
 	    {
 	      traverse_intervals (XSTRING (obj)->intervals,
 				  0, 0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }
-#endif
 
 	  UNGCPRO;
 	}
@@ -1864,7 +1851,6 @@ print_object (obj, printcharfun, escapeflag)
   print_depth--;
 }
 
-#ifdef USE_TEXT_PROPERTIES
 
 /* Print a description of INTERVAL using PRINTCHARFUN.
    This is part of printing a string that has text properties.  */
@@ -1883,7 +1869,6 @@ print_interval (interval, printcharfun)
   print_object (interval->plist, printcharfun, 1);
 }
 
-#endif /* USE_TEXT_PROPERTIES */
 
 void
 syms_of_print ()

@@ -1254,7 +1254,6 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       syms_of_sound ();
 #endif
 
-      /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
       syms_of_textprop ();
 #ifdef VMS
       syms_of_vmsproc ();

@@ -199,7 +199,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Macros to set PT in the current buffer, or another buffer..  */
 
-#ifdef USE_TEXT_PROPERTIES
 #define SET_PT(position) (set_point (current_buffer, (position)))
 #define TEMP_SET_PT(position) (temp_set_point (current_buffer, (position)))
 
@@ -218,22 +217,6 @@ extern INLINE void temp_set_point P_ ((struct buffer *, int));
 extern void set_point_both P_ ((struct buffer *, int, int));
 extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
 
-#else  /* don't support text properties */
-
-#define SET_PT(position) (current_buffer->pt = (position))
-#define TEMP_SET_PT(position) (current_buffer->pt = (position))
-
-#define SET_PT_BOTH(position, byte)		\
-   (current_buffer->pt = (position),		\
-    current_buffer->pt_byte = (byte))
-
-#define TEMP_SET_PT_BOTH(position, byte)	\
-   (current_buffer->pt = (position),		\
-    current_buffer->pt_byte = (byte))
-
-#define BUF_SET_PT(buffer, position) (buffer->pt = (position))
-#define BUF_TEMP_SET_PT(buffer, position) (buffer->pt = (position))
-#endif /* don't support text properties */
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
 

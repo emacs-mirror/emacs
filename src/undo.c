@@ -448,7 +448,6 @@ Return what remains of the list.")
 #endif /* CLASH_DETECTION */
 		  Fset_buffer_modified_p (Qnil);
 		}
-#ifdef USE_TEXT_PROPERTIES
 	      else if (EQ (car, Qnil))
 		{
 		  /* Element (nil prop val beg . end) is property change.  */
@@ -463,7 +462,6 @@ Return what remains of the list.")
 
 		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
-#endif /* USE_TEXT_PROPERTIES */
 	      else if (INTEGERP (car) && INTEGERP (cdr))
 		{
 		  /* Element (BEG . END) means range was inserted.  */

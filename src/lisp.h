@@ -458,7 +458,6 @@ extern Lisp_Object make_number ();
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
 
-#ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
 
 struct interval
@@ -519,17 +518,6 @@ typedef struct interval *INTERVAL;
    certain code.  See, e.g., alloc.c.  */
 #define INITIALIZE_INTERVAL(ptr,val) ptr->intervals = val
 
-#else  /* No text properties */
-
-/* If no intervals are used, make the above definitions go away.  */
-
-#define CHECK_STRING_OR_BUFFER(x, i)
-
-#define INTERVAL
-#define DECLARE_INTERVALS
-#define INITIALIZE_INTERVAL(ptr,val)
-
-#endif /* USE_TEXT_PROPERTIES */
 
 /* In a cons, the markbit of the car is the gc mark bit */
 

@@ -103,10 +103,6 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_MOUSE
 #endif
 
-/* Define USE_TEXT_PROPERTIES to support visual and other properties
-   on text. */
-#define USE_TEXT_PROPERTIES
-
 /* Define USER_FULL_NAME to return a string
    that is the user's full name.
    It can assume that the variable `pw'

@@ -520,13 +520,8 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
 #define UNEXEC_SRC unexec.c
 #endif
 
-#ifdef USE_TEXT_PROPERTIES
 #define INTERVAL_SRC intervals.h
 #define INTERVAL_OBJ intervals.o textprop.o
-#else
-#define INTERVAL_SRC
-#define INTERVAL_OBJ
-#endif
 
 #ifdef HAVE_GETLOADAVG
 #define GETLOADAVG_OBJ
