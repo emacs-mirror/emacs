@@ -109,8 +109,8 @@ If FULL is non-nil, absolute pathnames of the files are returned.\n\
 If MATCH is non-nil, only pathnames containing that regexp are returned.\n\
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
  NOSORT is useful if you plan to sort the result yourself.")
-  (dirname, full, match, nosort)
-     Lisp_Object dirname, full, match, nosort;
+  (directory, full, match, nosort)
+     Lisp_Object directory, full, match, nosort;
 {
   DIR *d;
   int dirnamelen;
@@ -120,14 +120,14 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname, Qdirectory_files);
+  handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
     {
       Lisp_Object args[6];
 
       args[0] = handler;
       args[1] = Qdirectory_files;
-      args[2] = dirname;
+      args[2] = directory;
       args[3] = full;
       args[4] = match;
       args[5] = nosort;
@@ -140,10 +140,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
     /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
     GCPRO1 (match);
-    dirname = Fexpand_file_name (dirname, Qnil);
+    directory = Fexpand_file_name (directory, Qnil);
     UNGCPRO;
-    GCPRO2 (match, dirname);
-    dirfilename = Fdirectory_file_name (dirname);
+    GCPRO2 (match, directory);
+    dirfilename = Fdirectory_file_name (directory);
     UNGCPRO;
   }
 
@@ -171,10 +171,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
      unwind_protect to do so would be a pain.  */
   d = opendir (XSTRING (dirfilename)->data);
   if (! d)
-    report_file_error ("Opening directory", Fcons (dirname, Qnil));
+    report_file_error ("Opening directory", Fcons (directory, Qnil));
 
   list = Qnil;
-  dirnamelen = XSTRING (dirname)->size;
+  dirnamelen = XSTRING (directory)->size;
 
   /* Loop reading blocks */
   while (1)
@@ -198,12 +198,12 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		  /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
 		  if (dirnamelen == 0
-		      || !IS_ANY_SEP (XSTRING (dirname)->data[dirnamelen - 1]))
+		      || !IS_ANY_SEP (XSTRING (directory)->data[dirnamelen - 1]))
 		    needsep = 1;
 #endif /* VMS */
 
 		  name = make_uninit_string (total + needsep);
-		  bcopy (XSTRING (dirname)->data, XSTRING (name)->data,
+		  bcopy (XSTRING (directory)->data, XSTRING (name)->data,
 			 dirnamelen);
 		  if (needsep)
 		    XSTRING (name)->data[afterdirindex++] = DIRECTORY_SEP;
@@ -226,53 +226,53 @@ Lisp_Object file_name_completion ();
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
   2, 2, 0,
-  "Complete file name FILE in directory DIR.\n\
+  "Complete file name FILE in directory DIRECTORY.\n\
 Returns the longest string\n\
-common to all filenames in DIR that start with FILE.\n\
+common to all filenames in DIRECTORY that start with FILE.\n\
 If there is only one and FILE matches it exactly, returns t.\n\
 Returns nil if DIR contains no name starting with FILE.")
-  (file, dirname)
-     Lisp_Object file, dirname;
+  (file, directory)
+     Lisp_Object file, directory;
 {
   Lisp_Object handler;
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname, Qfile_name_completion);
+  handler = Ffind_file_name_handler (directory, Qfile_name_completion);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_completion, file, dirname);
+    return call3 (handler, Qfile_name_completion, file, directory);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_completion);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_completion, file, dirname);
+    return call3 (handler, Qfile_name_completion, file, directory);
 
-  return file_name_completion (file, dirname, 0, 0);
+  return file_name_completion (file, directory, 0, 0);
 }
 
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
   Sfile_name_all_completions, 2, 2, 0,
-  "Return a list of all completions of file name FILE in directory DIR.\n\
-These are all file names in directory DIR which begin with FILE.")
-  (file, dirname)
-     Lisp_Object file, dirname;
+  "Return a list of all completions of file name FILE in directory DIRECTORY.\n\
+These are all file names in directory DIRECTORY which begin with FILE.")
+  (file, directory)
+     Lisp_Object file, directory;
 {
   Lisp_Object handler;
 
   /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname, Qfile_name_all_completions);
+  handler = Ffind_file_name_handler (directory, Qfile_name_all_completions);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_all_completions, file, dirname);
+    return call3 (handler, Qfile_name_all_completions, file, directory);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_all_completions);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_all_completions, file, dirname);
+    return call3 (handler, Qfile_name_all_completions, file, directory);
 
-  return file_name_completion (file, dirname, 1, 0);
+  return file_name_completion (file, directory, 1, 0);
 }
 
 Lisp_Object
@@ -536,11 +536,11 @@ file_name_completion_stat (dirname, dp, st_addr)
 
 DEFUN ("file-name-all-versions", Ffile_name_all_versions,
   Sfile_name_all_versions, 2, 2, 0,
-  "Return a list of all versions of file name FILE in directory DIR.")
-  (file, dirname)
-     Lisp_Object file, dirname;
+  "Return a list of all versions of file name FILE in directory DIRECTORY.")
+  (file, directory)
+     Lisp_Object file, directory;
 {
-  return file_name_completion (file, dirname, 1, 1);
+  return file_name_completion (file, directory, 1, 1);
 }
 
 DEFUN ("file-version-limit", Ffile_version_limit, Sfile_version_limit, 1, 1, 0,
