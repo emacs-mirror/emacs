@@ -1,3 +1,31 @@
+2003-05-17  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.c (find_defun_start):
+	When open_paren_in_column_0_is_defun_start,
+	return beginning of buffer.
+
+	* lisp.h (map_char_table): Declare added arg.
+
+	* fns.c (map_char_table): New arg TABLE gets the master table.
+	All calls changed.
+	Process default and inheritance, resorting to Faref if necessary.
+
+	* keymap.c (Fset_keymap_parent, map_keymap, Fcopy_keymap)
+	(Faccessible_keymaps): Pass new arg to map_char_table.
+
+	* fontset.c (Ffontset_info): Pass new arg to map_char_table.
+
+	* casetab.c (set_case_table): Pass new arg to map_char_table.
+
+	* data.c (let_shadows_buffer_binding_p): Make target of p volatile.
+
+	* lisp.h (specbinding_func): New typedef.
+	(struct specbinding): Use specbinding_func, to put the `volatile'
+	in the right place.
+
+	* alloc.c (Fgarbage_collect): Cast pointers into specpdl
+	to avoid GCC warning.
+	
 2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
 
 	* fileio.c (Fdelete_file): Handle symlinks pointing to
