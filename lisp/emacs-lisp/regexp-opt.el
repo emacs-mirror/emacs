@@ -112,7 +112,8 @@ in REGEXP."
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
     (let ((count 0) start)
-      (while (string-match "\\\\\\(\\\\\\\\\\)*([^?]" regexp start)
+      (while (string-match "\\(\\`\\|[^\\]\\)\\\\\\(\\\\\\\\\\)*([^?]"
+			   regexp start)
 	(setq count (1+ count) start (match-end 0)))
       count)))
 
