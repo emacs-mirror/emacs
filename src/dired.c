@@ -286,6 +286,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   int directoryp;
   int passcount;
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
 #ifdef VMS
   extern DIRENTRY * readdirver ();
 
@@ -305,8 +307,10 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 #ifdef FILE_SYSTEM_CASE
   file = FILE_SYSTEM_CASE (file);
 #endif
-  dirname = Fexpand_file_name (dirname, Qnil);
   bestmatch = Qnil;
+  dirname = Qnil;
+  GCPRO3 (file, dirname, bestmatch);
+  dirname = Fexpand_file_name (dirname, Qnil);
 
   /* With passcount = 0, ignore files that end in an ignored extension.
      If nothing found then try again with passcount = 1, don't ignore them.
@@ -451,7 +455,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
       closedir (d);
     }
 
-  unbind_to (count, Qnil);
+  UNGCPRO;
+  bestmatch = unbind_to (count, bestmatch);
 
   if (all_flag || NILP (bestmatch))
     return bestmatch;
