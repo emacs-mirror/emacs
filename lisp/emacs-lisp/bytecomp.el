@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.118 $")
+(defconst byte-compile-version "$Revision: 2.119 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3225,19 +3225,53 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
-  (if (null (nthcdr 3 form))
-      ;; No else-forms
-      (let ((donetag (byte-compile-make-tag)))
-	(byte-compile-goto-if nil for-effect donetag)
-	(byte-compile-form (nth 2 form) for-effect)
-	(byte-compile-out-tag donetag))
-    (let ((donetag (byte-compile-make-tag)) (elsetag (byte-compile-make-tag)))
-      (byte-compile-goto 'byte-goto-if-nil elsetag)
-      (byte-compile-form (nth 2 form) for-effect)
-      (byte-compile-goto 'byte-goto donetag)
-      (byte-compile-out-tag elsetag)
-      (byte-compile-body (cdr (cdr (cdr form))) for-effect)
-      (byte-compile-out-tag donetag)))
+  ;; Check whether we have `(if (fboundp ...' or `(if (boundp ...'
+  ;; and avoid warnings about the relevent symbols in the consequent.
+  (let* ((clause (nth 1 form))
+	 (fbound (if (eq 'fboundp (car-safe clause))
+		     (and (eq 'quote (car-safe (nth 1 clause)))
+			  ;; Ignore if the symbol is already on the
+			  ;; unresolved list.
+			  (not (assq
+				(nth 1 (nth 1 clause)) ; the relevant symbol
+				byte-compile-unresolved-functions))
+			  (nth 1 (nth 1 clause)))))
+	 (bound (if (eq 'boundp (car-safe clause))
+		    (and (eq 'quote (car-safe (nth 1 clause)))
+			 (nth 1 (nth 1 clause)))))
+	 (donetag (byte-compile-make-tag)))
+    (if (null (nthcdr 3 form))
+	;; No else-forms
+	(progn
+	  (byte-compile-goto-if nil for-effect donetag)
+	  ;; Maybe add to the bound list.
+	  (let ((byte-compile-bound-variables
+		 (if bound
+		     (cons bound byte-compile-bound-variables)
+		   byte-compile-bound-variables)))
+	    (byte-compile-form (nth 2 form) for-effect))
+	  ;; Maybe remove the function symbol from the unresolved list.
+	  (if fbound
+	      (setq byte-compile-unresolved-functions
+		    (delq (assq fbound byte-compile-unresolved-functions)
+			  byte-compile-unresolved-functions)))
+	  (byte-compile-out-tag donetag))
+      (let ((elsetag (byte-compile-make-tag)))
+	(byte-compile-goto 'byte-goto-if-nil elsetag)
+	;; As above for the first form.
+	(let ((byte-compile-bound-variables
+		 (if bound
+		     (cons bound byte-compile-bound-variables)
+		   byte-compile-bound-variables)))
+	    (byte-compile-form (nth 2 form) for-effect))
+	(if fbound
+	    (setq byte-compile-unresolved-functions
+		  (delq (assq fbound byte-compile-unresolved-functions)
+			byte-compile-unresolved-functions)))
+	(byte-compile-goto 'byte-goto donetag)
+	(byte-compile-out-tag elsetag)
+	(byte-compile-body (cdr (cdr (cdr form))) for-effect)
+	(byte-compile-out-tag donetag))))
   (setq for-effect nil))
 
 (defun byte-compile-cond (clauses)
