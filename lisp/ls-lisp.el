@@ -162,9 +162,12 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
 	       (string :tag "Old time format"))
   :group 'ls-lisp)
 
+(defvar original-insert-directory nil
+  "This holds the original function definition of `insert-directory'.")
+
 ;; Remember the original insert-directory function
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
-    (fset 'original-insert-directory (symbol-function 'insert-directory)))
+    (setq original-insert-directory (symbol-function 'insert-directory)))
 
 ;; This stub is to allow ls-lisp to parse symbolic links via another
 ;; library such as w32-symlinks.el from
@@ -200,7 +203,8 @@ is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
 that work are: A a c i r S s t u U X g G B C R and F partly."
   (if ls-lisp-use-insert-directory-program
-      (original-insert-directory file switches wildcard full-directory-p)
+      (funcall original-insert-directory
+	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory)))
