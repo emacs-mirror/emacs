@@ -107,10 +107,6 @@ unexec (new_name, a_name, bndry, bss_start, entry)
   struct exec ohdr;		/* Allocate on the stack,  not needed in the next life */
   struct stat stat;
 
-#ifdef emacs
-  fprintf (stderr, "Used %d bytes of Pure Storage\n", pureptr);
-#endif
-
   if ((fd = open (a_name, O_RDONLY)) < 0)
     {
       fprintf (stderr, "%s: open: ", a_name);
