@@ -912,8 +912,8 @@ a valid generic character.")
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
   "Convert the unibyte character CH to multibyte character.\n\
-The conversion is done based on nonascii-translate-table (which see)\n\
- or nonascii-insert-offset (which see).")
+The conversion is done based on `nonascii-translate-table' (which see)\n\
+ or `nonascii-insert-offset' (which see).")
   (ch)
      Lisp_Object ch;
 {
