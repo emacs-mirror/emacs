@@ -375,7 +375,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			(if (not (eq (current-buffer) (get-buffer "*info*")))
 			    (setq guesspos
 				  (Info-read-subfile guesspos))))
-		    (error "No such node: `%s'" nodename))))
+		    (error "No such node: %s" nodename))))
 	    (goto-char (max (point-min) (- guesspos 1000)))
 	    ;; Now search from our advised position (or from beg of buffer)
 	    ;; to find the actual node.
@@ -466,7 +466,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (setq dirs (cdr dirs))))
       
       (or buffers
-	  (error "Can't find the info directory node"))
+	  (error "Can't find the Info directory node"))
       ;; Distinguish the dir file that comes with Emacs from all the
       ;; others.  Yes, that is really what this is supposed to do.
       ;; If it doesn't work, fix it.
@@ -1328,7 +1328,7 @@ Give a blank topic name to go to the Index node itself."
 	    (Info-goto-node node))
 	  (or matches
 	      (progn
-		(Info-last)
+		(Info-goto-node orignode)
 		(error "No `%s' in index" topic)))
 	  ;; Here it is a feature that assoc is case-sensitive.
 	  (while (setq found (assoc topic matches))
