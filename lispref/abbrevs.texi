@@ -119,7 +119,6 @@ describing in English the kind of abbrev this will be (typically,
 the user.  The argument @var{arg} is the number of words in the
 expansion.
 
-
 The return value is the symbol that internally represents the new
 abbrev, or @code{nil} if the user declines to confirm redefining an
 existing abbrev.
@@ -138,7 +137,6 @@ The argument @var{name} should be a string.  The argument
 @code{nil} to undefine the abbrev.  If it is anything but a string or
 @code{nil}, then the abbreviation ``expands'' solely by running
 @var{hook}.
-
 
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is
