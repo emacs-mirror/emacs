@@ -32,7 +32,7 @@
 ;; (1) Select routine may signal an error or fall into infinite loop
 ;;  while waiting for the server response. In this case, you'd better
 ;;  not use byte-compiled codes but original source. If you still have
-;;  a problems with it, set the variable `nntp-buggy-select' to T.
+;;  a problems with it, set the variable `nntp-buggy-select' to t.
 ;;
 ;; (2) Emacs may hang up while retrieving headers since too many
 ;;  requests have been sent to the NNTP server without reading their
@@ -69,11 +69,12 @@ hook, use the variable `nntp-server-name'.")
 If the number of the articles is greater than the value, verbose
 messages will be shown to indicate the current status.")
 
-(defvar nntp-buggy-select (memq system-type '(usg-unix-v fujitsu-uts))
-  "*T if your select routine is buggy.
+
+(defvar nntp-buggy-select (memq system-type '(fujitsu-uts))
+  "*Non-nil if your select routine is buggy.
 If the select routine signals error or fall into infinite loop while
 waiting for the server response, the variable must be set to t.  In
-case of Fujitsu UTS, it is set to T since `accept-process-output'
+case of Fujitsu UTS, it is set to t since `accept-process-output'
 doesn't work properly.")
 
 (defvar nntp-maximum-request 400
