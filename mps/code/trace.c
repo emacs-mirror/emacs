@@ -1507,6 +1507,37 @@ static void traceQuantum(Trace trace)
            && (trace->emergency || traceWorkClock(trace) < pollEnd));
 }
 
+/* traceStartCollectAll: start a trace which condemns everything in
+ * the arena. */
+
+static Res traceStartCollectAll(Trace *traceReturn, Arena arena)
+{
+  Trace trace;
+  Res res;
+  double finishingTime;
+
+  AVERT(Arena, arena);
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
+  res = TraceCreate(&trace, arena);
+  AVER(res == ResOK); /* succeeds because no other trace is busy */
+  res = traceCondemnAll(trace);
+  if (res != ResOK) /* should try some other trace, really @@@@ */
+    goto failCondemn;
+  finishingTime = ArenaAvail(arena)
+                  - trace->condemned * (1.0 - TraceTopGenMortality);
+  if (finishingTime < 0)
+    /* Run out of time, should really try a smaller collection. @@@@ */
+    finishingTime = 0.0;
+  TraceStart(trace, TraceTopGenMortality, finishingTime);
+  *traceReturn = trace;
+  return ResOK;
+
+failCondemn:
+  TraceDestroy(trace);
+  return res;
+}
+
 
 /* TracePoll -- Check if there's any tracing work to be done */
 
@@ -1537,22 +1568,12 @@ Bool TracePoll(Globals globals)
     AVER(TraceWorkFactor >= 0);
     AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
     sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-    dynamicDeferral = (double)sConsTrace - (double)ArenaAvail(arena);
+    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
-    if (dynamicDeferral > 0.0) { /* start full GC */
-      double finishingTime;
-
-      res = TraceCreate(&trace, arena);
-      AVER(res == ResOK); /* succeeds because no other trace is busy */
-      res = traceCondemnAll(trace);
-      if (res != ResOK) /* should try some other trace, really @@@@ */
-        goto failCondemn;
-      finishingTime = ArenaAvail(arena)
-                      - trace->condemned * (1.0 - TraceTopGenMortality);
-      if (finishingTime < 0)
-        /* Run out of time, should really try a smaller collection. @@@@ */
-        finishingTime = 0.0;
-      TraceStart(trace, TraceTopGenMortality, finishingTime);
+    if (dynamicDeferral < 0.0) { /* start full GC */
+      res = traceStartCollectAll(&trace, arena);
+      if (res != ResOK)
+        goto failStart;
       done = TRUE;
     } else { /* Find the nursery most over its capacity. */
       Ring node, nextNode;
@@ -1600,11 +1621,12 @@ Bool TracePoll(Globals globals)
 
 failCondemn:
   TraceDestroy(trace);
+failStart:
   return FALSE;
 }
 
 
-/* ArenaClamp -- clamp the arena (no new collections) */
+/* ArenaClamp -- clamp the arena (no optional collection increments) */
 
 void ArenaClamp(Globals globals)
 {
@@ -1613,7 +1635,8 @@ void ArenaClamp(Globals globals)
 }
 
 
-/* ArenaRelease -- release the arena (allow new collections) */
+/* ArenaRelease -- release the arena (allow optional collection
+ * increments) */
 
 void ArenaRelease(Globals globals)
 {
@@ -1623,7 +1646,7 @@ void ArenaRelease(Globals globals)
 }
 
 
-/* ArenaClamp -- finish all collections and clamp the arena */
+/* ArenaPark -- finish all current collections and clamp the arena */
 
 void ArenaPark(Globals globals)
 {
@@ -1646,33 +1669,44 @@ void ArenaPark(Globals globals)
   }
 }
 
+/* ArenaStartCollect -- start a collection of everything in the
+ * arena; leave unclamped. */
 
-/* ArenaCollect -- collect everything in arena */
-
-Res ArenaCollect(Globals globals)
+Res ArenaStartCollect(Globals globals)
 {
-  Trace trace;
+  Arena arena;
   Res res;
+  Trace trace;
 
   AVERT(Globals, globals);
+  arena = GlobalsArena(globals);
+
   ArenaPark(globals);
-
-  res = TraceCreate(&trace, GlobalsArena(globals));
-  AVER(res == ResOK); /* should be a trace available -- we're parked */
-
-  res = traceCondemnAll(trace);
+  res = traceStartCollectAll(&trace, arena);
   if (res != ResOK)
-    goto failBegin;
-
-  TraceStart(trace, 0.0, 0.0);
-  ArenaPark(globals);
+    goto failStart;
+  ArenaRelease(globals);
   return ResOK;
 
-failBegin:
-  TraceDestroy(trace);
+failStart:
+  ArenaRelease(globals);
   return res;
 }
 
+/* ArenaCollect -- collect everything in arena; leave clamped */
+
+Res ArenaCollect(Globals globals)
+{
+  Res res;
+
+  AVERT(Globals, globals);
+  res = ArenaStartCollect(globals);
+  if (res != ResOK)
+    return res;
+
+  ArenaPark(globals);
+  return ResOK;
+}
 
 /* C. COPYRIGHT AND LICENSE
  *

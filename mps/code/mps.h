@@ -238,6 +238,7 @@ typedef struct mps_fmt_fixed_s {
 extern void mps_arena_clamp(mps_arena_t);
 extern void mps_arena_release(mps_arena_t);
 extern void mps_arena_park(mps_arena_t);
+extern mps_res_t mps_arena_start_collect(mps_arena_t);
 extern mps_res_t mps_arena_collect(mps_arena_t);
 extern mps_bool_t mps_arena_step(mps_arena_t, double);
 extern void mps_space_clamp(mps_space_t);
