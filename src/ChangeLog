@@ -1,3 +1,7 @@
+2001-11-17  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (notice_overwritten_cursor): Take care of end < 0 case.
+
 2001-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (tool_bar_item_info): Avoid calling Fget_text_property
