@@ -17,7 +17,16 @@ installed programs.
 
 
 * Changes in Emacs 21.3
- 
+
+** The keyboard-coding-system is now automatically set based on
+your current locale settings.  If it turns out that your terminal
+does not support the encoding implied by your locale, you will
+need to add
+
+	(set-keyboard-coding-system nil)
+
+to your .emacs to revert to the old behavior.
+
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
 automatically at startup, if it exists.  And it always offers to save
@@ -44,9 +53,6 @@ with a space, if they visit files.
 ** You can now customize fill-nobreak-predicate to control where
 filling can break lines.  We provide two sample predicates,
 fill-single-word-nobreak-p and fill-french-nobreak-p.
-
-** In Texinfo mode, when Font-Lock is enabled, updating one of the
-`foo's in `@foo ... @end foo' updates the other one on the fly.
 
 ** New user option `add-log-always-start-new-record'.
 When this option is enabled, M-x add-change-log-entry will always
@@ -146,6 +152,16 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.3
+
+** defcustom and other custom declarations now use a default group
+(the last group defined in the same file) when no :group was given.
+
+** emacsserver now runs pre-command-hook and post-command-hook when
+it receives a request from emacsclient.
+
+** The default value of paragraph-start and indent-line-function has
+been changed to reflect the one used in text-mode rather than the one
+used in indented-text-mode.
 
 ** If a major mode function has a non-nil `no-clone-indirect'
 property, `clone-indirect-buffer' signals an error if you use

@@ -1,3 +1,35 @@
+2001-11-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-compile-keywords): New arg `regexp'.
+	If set and if applicable, add a regexp to highlight defun-like
+	text inside comments and strings.
+	(font-lock-fontify-keywords-region): Pass that new arg.
+	(font-lock-set-defaults): Move the code to set `font-lock-keywords'
+	to the end and pass that new arg.
+	(c-font-lock-keywords-2): Fix regex for labels.
+	(font-lock-match-c++-style-declaration-item-and-skip-to-next):
+	Make it work when LIMIT is several lines further.
+	(c-font-lock-keywords-3, c++-font-lock-keywords-3)
+	(objc-font-lock-keywords-3, java-font-lock-keywords-3):
+	Use backquote and make the regexes for `int a, b, c;' work on
+	multiple lines.
+
+	* emacs-lisp/re-builder.el (reb-mode): Use define-derived-mode.
+	(font-lock-defaults-alist): Don't change it any more.
+	(reb-subexp-mode-map): Cleanup.
+
+	* custom.el (custom-current-group-alist): New var.
+	(custom-declare-group): Set it.
+	(custom-current-group): New fun.
+	(custom-declare-variable, custom-handle-all-keywords):
+	Use it as a default if no :group argument is specified.
+
+	* international/mule-cmds.el (locale-name-match): Use \` and \(?:.
+	(standard-keyboard-coding-systems): New var.
+	(set-locale-environment): Use it to decide whether or not to call
+	set-keyboard-coding-system.
+	(locale-language-names): Use \"French\" for "fr".
+
 2001-11-17  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/checkdoc.el (princ-list, checkdoc-read-event)
@@ -6,8 +38,8 @@
 2001-11-17  Stephen Eglen  <stephen@gnu.org>
 
 	* locate.el (locate): Show default locate pattern within the
-	prompt, but don't insert it into the minibuffer contents.  Catch
-	the case when pattern is the empty string.
+	prompt, but don't insert it into the minibuffer contents.
+	Catch the case when pattern is the empty string.
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
