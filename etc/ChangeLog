@@ -1,3 +1,9 @@
+2000-08-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* de-refcard.ps, de-refcard.tex: Renamed from refcard-de.*.
+	
+	* pl-refcard.ps, pl-refcard.tex: Renamed from refcard-pl.*.
+
 2000-08-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* NEWS.1: Reintegrated into NEWS.

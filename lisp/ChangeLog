@@ -1,5 +1,7 @@
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/cl.el (cl-macroexpand): Doc fix.
+
 	* startup.el (command-line): If user's init file had an error,
 	add explanatory text to *Messages*.
 
