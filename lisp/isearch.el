@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/12/24 03:30:11 $|$Revision: 1.57 $
+;; |$Date: 1993/12/25 00:50:10 $|$Revision: 1.58 $
 
 ;; This file is part of GNU Emacs.
 
@@ -838,14 +838,21 @@ Use `isearch-exit' to quit without signalling."
     (setq isearch-forward (not isearch-forward)))
 
   (setq isearch-barrier (point)) ; For subsequent \| if regexp.
-  (setq isearch-success t)
-  (or (equal isearch-string "")
-      (progn
+
+  (if (equal isearch-string "")
+      (setq isearch-success t)
+    (if (and isearch-success (equal (match-end 0) (match-beginning 0)))
 	;; If repeating a search that found
 	;; an empty string, ensure we advance.
-	(if (equal (match-end 0) (match-beginning 0))
-	    (forward-char (if isearch-forward 1 -1)))
-	(isearch-search)))
+	(if (if isearch-forward (eobp) (bobp))
+	    ;; If there's nowhere to advance to, fail (and wrap next time).
+	    (progn
+	      (setq isearch-success nil)
+	      (ding))
+	  (forward-char (if isearch-forward 1 -1))
+	  (isearch-search))
+      (isearch-search)))
+
   (isearch-push-state)
   (isearch-update))
 
