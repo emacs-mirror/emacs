@@ -1,3 +1,8 @@
+2001-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c (unexec): Use mmap/munmap to allocate buffers 
+	instead of malloc/free.
+
 2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (merge_face_vectors): Use braces to follow GNU
