@@ -1,3 +1,7 @@
+1999-12-07  Dave Love  <fx@gnu.org>
+
+	* ffap.el: Autoload the ffap alias directly.
+
 1999-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-mode-shared-map): fset'd and doc change.
@@ -124,6 +128,7 @@
 	tags-recognize-empty-tags-table.
 	(complete-tag): Call tags-complete-tag bypassing try-completion.
 	
+>>>>>>> 1.221
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): Docstring
