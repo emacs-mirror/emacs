@@ -1349,16 +1349,15 @@ This variable is buffer-local.")
 ;; is to keep comint-last-input-end from moving forward
 ;; when output is inserted.
 (defun comint-output-filter (process string)
-  ;; First check for killed buffer
   (let ((oprocbuf (process-buffer process)))
-    (let ((functions comint-preoutput-filter-functions))
-      (while (and functions string)
-	(setq string (funcall (car functions) string))
-	(setq functions (cdr functions))))
-    (if (and string oprocbuf (buffer-name oprocbuf))
-	(let ((obuf (current-buffer))
-	      (opoint nil) (obeg nil) (oend nil))
-	  (set-buffer oprocbuf)
+    ;; First check for killed buffer or no input.
+    (when (and string oprocbuf (buffer-name oprocbuf))
+      (with-current-buffer oprocbuf
+	(let ((functions comint-preoutput-filter-functions))
+	  (while (and functions string)
+	    (setq string (funcall (car functions) string))
+	    (setq functions (cdr functions))))
+	(let (opoint obeg oend)
 	  (setq opoint (point))
 	  (setq obeg (point-min))
 	  (setq oend (point-max))
@@ -1389,8 +1388,7 @@ This variable is buffer-local.")
 
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
-	  (run-hook-with-args 'comint-output-filter-functions string)
-	  (set-buffer obuf)))))
+	  (run-hook-with-args 'comint-output-filter-functions string))))))
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
