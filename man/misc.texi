@@ -2053,8 +2053,7 @@ buffers or major modes while in EDT emulation.
 @cindex ``PC'' key bindings
 The command @kbd{M-x pc-bindings-mode} sets up certain key bindings
 for ``PC compatibility''---what people are often used to on PCs---as
-follows: @kbd{M-Backspace} does undo, @kbd{Home} and @kbd{End}
-move to beginning and end of line, and @kbd{C-Escape} does
+follows: @kbd{M-Backspace} does undo, and @kbd{C-Escape} does
 @code{list-buffers}.
 
 @item PC Selection mode
