@@ -276,24 +276,26 @@ Should be a simple file name with no extension or directory specification.")
   "File name that \\[tex-print] prints.
 Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
-(easy-mmode-defsyntax tex-mode-syntax-table
-  '((?% . "<")
-    (?\n . ">")
-    (?\f . ">")
-    (?\C-@ . "w")
-    (?' . "w")
-    (?@ . "_")
-    (?* . "_")
-    (?\t . " ")
+(defvar tex-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?% "<" st)
+    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?\f ">" st)
+    (modify-syntax-entry ?\C-@ "w" st)
+    (modify-syntax-entry ?' "w" st)
+    (modify-syntax-entry ?@ "_" st)
+    (modify-syntax-entry ?* "_" st)
+    (modify-syntax-entry ?\t " " st)
     ;; ~ is printed by TeX as a space, but it's semantics in the syntax
     ;; of TeX is not `whitespace' (i.e. it's just like \hspace{foo}).
-    (?~ . ".")
-    (?$ . "$$")
-    (?\\ . "/")
-    (?\" . ".")
-    (?& . ".")
-    (?_ . ".")
-    (?^ . "."))
+    (modify-syntax-entry ?~ "." st)
+    (modify-syntax-entry ?$ "$$" st)
+    (modify-syntax-entry ?\\ "/" st)
+    (modify-syntax-entry ?\" "." st)
+    (modify-syntax-entry ?& "." st)
+    (modify-syntax-entry ?_ "." st)
+    (modify-syntax-entry ?^ "." st)
+    st)
   "Syntax table used while in TeX mode.")
 
 ;;;;
@@ -1233,7 +1235,7 @@ a skeleton (see `skeleton-insert').")
 ;; Like tex-insert-braces, but for LaTeX.
 (defalias 'tex-latex-block 'latex-insert-block)
 (define-skeleton latex-insert-block
-  "Create a matching pair of lines \\begin[OPT]{NAME} and \\end{NAME} at point.
+  "Create a matching pair of lines \\begin{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
   (let ((choice (completing-read (format "LaTeX block name [%s]: "
 					 latex-block-default)
@@ -2232,12 +2234,13 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-item tex-indent-basic)
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
 
-(easy-mmode-defsyntax tex-latex-indent-syntax-table
-  '((?$ . ".")
-    (?\( . ".")
-    (?\) . "."))
-  "Syntax table used while computing indentation."
-  :copy tex-mode-syntax-table)
+(defvar tex-latex-indent-syntax-table
+  (let ((st (make-syntax-table tex-mode-syntax-table)))
+    (modify-syntax-entry ?$ "." st)
+    (modify-syntax-entry ?\( "." st)
+    (modify-syntax-entry ?\) "." st)
+    st)
+  "Syntax table used while computing indentation.")
 
 (defun latex-indent (&optional arg)
   (if (and (eq (get-text-property (line-beginning-position) 'face)
