@@ -450,13 +450,19 @@ delete old elements if the list gets too long.  The variable
 @code{history-length} specifies the maximum length for most history
 lists.  To specify a different maximum length for a particular history
 list, put the length in the @code{history-length} property of the
-history list symbol.
+history list symbol.  The variable @code{history-delete-duplicates}
+specifies whether to delete duplicates in history.
 
 @defvar history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there no maximum (don't delete old
 elements).
+@end defvar
+
+@defvar history-delete-duplicates
+If the value of this variable is @code{t}, that means when adding a
+new history element, all previous identical elements are deleted.
 @end defvar
 
   Here are some of the standard minibuffer history list variables:
