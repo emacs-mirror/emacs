@@ -322,7 +322,7 @@ flyspell-buffer checks the whole buffer."
 	(put 'ispell-filter-continue 'permanent-local t)
 	(put 'ispell-process-directory 'permanent-local t)
 	(put 'ispell-parser 'permanent-local t)))
-  ;; We put the `flyspel-delayed' property on some commands.
+  ;; We put the `flyspell-delayed' property on some commands.
   (flyspell-delay-commands)
   ;; we bound flyspell action to post-command hook
   (make-local-hook 'post-command-hook)
@@ -465,6 +465,9 @@ Mostly we check word delimiters."
     t)
    ((not (integerp flyspell-delay))
     ;; yes because the user had set up a no-delay configuration.
+    t)
+   (executing-kbd-macro
+    ;; Don't delay inside a keyboard macro.
     t)
    (t
     (if (fboundp 'about-xemacs)
