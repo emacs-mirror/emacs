@@ -359,6 +359,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   specbind (Qminibuffer_default, defalt);
 
   single_kboard_state ();
+#ifdef HAVE_X_WINDOWS
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
 
   val = Qnil;
   ambient_dir = current_buffer->directory;
