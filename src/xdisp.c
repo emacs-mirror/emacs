@@ -770,7 +770,7 @@ static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
 static int make_cursor_line_fully_visible P_ ((struct window *));
-static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int));
+static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
 static int message_log_check_duplicate P_ ((int, int, int, int));
@@ -6488,6 +6488,10 @@ void
 setup_echo_area_for_printing (multibyte_p)
      int multibyte_p;
 {
+  /* If we can't find an echo area any more, exit.  */
+  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+    Fkill_emacs (Qnil);
+
   ensure_echo_area_buffers ();
 
   if (!message_buf_print)
@@ -9609,6 +9613,9 @@ make_cursor_line_fully_visible (w)
    in redisplay_window to bring a partially visible line into view in
    the case that only the cursor has moved.
 
+   LAST_LINE_MISFIT should be nonzero if we're scrolling because the
+   last screen line's vertical height extends past the end of the screen.
+
    Value is
 
    1	if scrolling succeeded
@@ -9627,11 +9634,12 @@ enum
 
 static int
 try_scrolling (window, just_this_one_p, scroll_conservatively,
-	       scroll_step, temp_scroll_step)
+	       scroll_step, temp_scroll_step, last_line_misfit)
      Lisp_Object window;
      int just_this_one_p;
      EMACS_INT scroll_conservatively, scroll_step;
      int temp_scroll_step;
+     int last_line_misfit;
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -9647,6 +9655,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   int amount_to_scroll = 0;
   Lisp_Object aggressive;
   int height;
+  int end_scroll_margin;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -9683,12 +9692,17 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
      and move this_scroll_margin up to find the position of the scroll
      margin.  */
   window_end = Fwindow_end (window, Qt);
+
+ too_near_end:
+
   CHARPOS (scroll_margin_pos) = XINT (window_end);
   BYTEPOS (scroll_margin_pos) = CHAR_TO_BYTE (CHARPOS (scroll_margin_pos));
-  if (this_scroll_margin)
+
+  end_scroll_margin = this_scroll_margin + !!last_line_misfit;
+  if (end_scroll_margin)
     {
       start_display (&it, w, scroll_margin_pos);
-      move_it_vertically (&it, - this_scroll_margin);
+      move_it_vertically (&it, - end_scroll_margin);
       scroll_margin_pos = it.current.pos;
     }
 
@@ -9696,7 +9710,6 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     {
       int y0;
 
-    too_near_end:
       /* Point is in the scroll margin at the bottom of the window, or
 	 below.  Compute a new window start that makes point visible.  */
 
@@ -9721,9 +9734,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       start_display (&it, w, startp);
 
       if (scroll_conservatively)
+	/* Set AMOUNT_TO_SCROLL to at least one line,
+	   and at most scroll_conservatively lines.  */
 	amount_to_scroll
-	  = max (max (dy, CANON_Y_UNIT (f)),
-		 CANON_Y_UNIT (f) * max (scroll_step, temp_scroll_step));
+	  = min (max (dy, CANON_Y_UNIT (f)),
+		 CANON_Y_UNIT (f) * scroll_conservatively);
       else if (scroll_step || temp_scroll_step)
 	amount_to_scroll = scroll_max;
       else
@@ -9738,7 +9753,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (amount_to_scroll <= 0)
 	return SCROLLING_FAILED;
 
+      /* If moving by amount_to_scroll leaves STARTP unchanged,
+	 move it down one screen line.  */
+
       move_it_vertically (&it, amount_to_scroll);
+      if (CHARPOS (it.current.pos) == CHARPOS (startp))
+	move_it_by_lines (&it, 1, 1);
       startp = it.current.pos;
     }
   else
@@ -9822,6 +9842,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (! make_cursor_line_fully_visible (w))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
+	  last_line_misfit = 1;
 	  goto too_near_end;
 	}
       rc = SCROLLING_SUCCESS;
@@ -10160,6 +10181,7 @@ redisplay_window (window, just_this_one_p)
   int count = SPECPDL_INDEX ();
   int rc;
   int centering_position;
+  int last_line_misfit = 0;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -10530,7 +10552,10 @@ redisplay_window (window, just_this_one_p)
 	    w->base_line_number = Qnil;
 
 	  if (!make_cursor_line_fully_visible (w))
-	    clear_glyph_matrix (w->desired_matrix);
+	    {
+	      clear_glyph_matrix (w->desired_matrix);
+	      last_line_misfit = 1;
+	    }
 	    /* Drop through and scroll.  */
 	  else
 	    goto done;
@@ -10566,7 +10591,7 @@ redisplay_window (window, just_this_one_p)
       int rc = try_scrolling (window, just_this_one_p,
 			      scroll_conservatively,
 			      scroll_step,
-			      temp_scroll_step);
+			      temp_scroll_step, last_line_misfit);
       switch (rc)
 	{
 	case SCROLLING_SUCCESS:
