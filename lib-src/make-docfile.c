@@ -56,6 +56,12 @@ int scan_file ();
 int scan_lisp_file ();
 int scan_c_file ();
 
+#ifdef MSDOS
+/* s/msdos.h defines this as sys_chdir, but we're not linking with the
+   file where that function is defined.  */
+#undef chdir
+#endif
+
 /* Stdio stream for output to the DOC file.  */
 FILE *outfile;
 
