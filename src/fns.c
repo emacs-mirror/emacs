@@ -184,7 +184,7 @@ DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
   "Concatenate all the arguments and make the result a list.\n\
 The result is a list whose elements are the elements of all the arguments.\n\
 Each argument may be a list, vector or string.\n\
-The last argument is not copied if it is a list.")
+The last argument is not copied, just used as the tail of the new list.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
