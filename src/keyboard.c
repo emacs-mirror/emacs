@@ -7513,7 +7513,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       orig_defn_macro = current_kboard->defining_kbd_macro;
       current_kboard->defining_kbd_macro = Qnil;
       do
-	obj = read_char (commandflag, 0, 0, Qnil, 0);
+	obj = read_char (commandflag, 0, 0, Qt, 0);
       while (BUFFERP (obj));
       current_kboard->defining_kbd_macro = orig_defn_macro;
 
