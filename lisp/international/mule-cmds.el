@@ -1320,10 +1320,10 @@ The default status is as follows:
 	coding-category-sjis		japanese-shift-jis
 	coding-category-big5		chinese-big5
 	coding-category-ccl		nil
-	coding-category-utf-8		'mule-utf-8
 	coding-category-binary		no-conversion
 	coding-category-utf-16-be	nil
 	coding-category-utf-16-le	nil
+	coding-category-utf-8		'mule-utf-8
 "
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
@@ -1339,12 +1339,11 @@ The default status is as follows:
 	coding-category-raw-text	'raw-text
 	coding-category-sjis		'japanese-shift-jis
 	coding-category-big5		'chinese-big5
-	coding-category-ccl		nil
-	coding-category-utf-8           'mule-utf-8
-	coding-category-binary		'no-conversion
 	coding-category-utf-16-be       nil
-	coding-category-utf-16-le       nil)
-
+	coding-category-utf-16-le       nil
+	coding-category-utf-8           'mule-utf-8
+	coding-category-ccl		nil
+	coding-category-binary		'no-conversion)
 
   (set-coding-priority
    '(coding-category-iso-8-1
@@ -1357,11 +1356,11 @@ The default status is as follows:
      coding-category-raw-text
      coding-category-sjis
      coding-category-big5
-     coding-category-utf-8
      coding-category-ccl
      coding-category-binary
      coding-category-utf-16-be
-     coding-category-utf-16-le))
+     coding-category-utf-16-le
+     coding-category-utf-8))
 
   (update-coding-systems-internal)
 
