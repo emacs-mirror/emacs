@@ -2105,6 +2105,11 @@ long promised.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The new hook `kbd-macro-termination-hook' is run at the end of of
+function execute-kbd-macro.  Functions on this hook are called with no
+args.  The hook is run independent of how the macro was terminated
+(signal or normal termination).
+
 +++
 ** Functions `butlast' and `nbutlast' for removing trailing elements
 from a list are now available without requiring the CL package.

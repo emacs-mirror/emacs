@@ -1,3 +1,11 @@
+2001-01-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* macros.c (Qkbd_macro_termination_hook): New variable.
+	(syms_of_macros): Initialize and staticpro it.
+	(pop_kbd_macro): Run kbd-macro-termination-hook.
+
+	* xterm.c (XTread_socket) <LeaveNotify>: Set help_echo to nil.
+
 2001-01-07  Dave Love  <d.love@dl.ac.uk>
 
 	* keyboard.c (Fread_key_sequence_vector):  Avoid newline in

@@ -5,6 +5,24 @@
 	instead of setting signal-hook-function.
 	(isearch-done): Remove isearch-done from kbd-macro-termination-hook.
 
+2001-01-08  Kevin Gallagher  <kevingal@onramp.net>
+
+	* emulation/edt.el: Update to version 4.0.  Provide support for
+	EDT scroll margins at top and bottom of the window.  Provide an
+	emulation of the EDT SUBS command (bound to GOLD-Enter, by
+	default).  Enhance edt-quit, bound to GOLD-q by default, to warn
+	user when file-related buffer modifications exist.  Provide
+	support for running EDT Emulation in XEmacs.  Provide customize
+	access to some user updatable variables.  Add Commentary section
+	to file header.  Fixed a few minor bugs and cleaned up some code.
+
+	* emulation/edt-mapper.el: Update to version 4.0.  Provide support
+	for detecting a keypress that generates an ASCII key sequence.
+	(Previously, only a keypress that generates a vector was
+	recognized.)  Embed Window Manager name into name of the generated
+	EDT Emulation initialization file since the initialization file is
+	Window Manager specific.  Add Commentary section to file header.
+	
 2001-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/sendmail.el (mail-mode): Doc fix.

@@ -1,3 +1,8 @@
+2001-01-08  Kevin Gallagher  <kevingal@onramp.net>
+
+	* edt-user.doc: Updated to reflect EDT Emulation version 4.0
+        enhancements.
+	
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* fr-refcard.tex, fr-refcard.ps, fr-drdref.tex, fr-drdref.ps: New
