@@ -1786,6 +1786,24 @@ get_glyph_string_clip_rect (s, nr)
       r.height = s->row->visible_height;
     }
 
+  if (s->clip_head)
+    if (r.x < s->clip_head->x)
+      {
+	if (r.width >= s->clip_head->x - r.x)
+	  r.width -= s->clip_head->x - r.x;
+	else
+	  r.width = 0;
+	r.x = s->clip_head->x;
+      }
+  if (s->clip_tail)
+    if (r.x + r.width > s->clip_tail->x + s->clip_tail->background_width)
+      {
+	if (s->clip_tail->x + s->clip_tail->background_width >= r.x)
+	  r.width = s->clip_tail->x + s->clip_tail->background_width - r.x;
+	else
+	  r.width = 0;
+      }
+
   /* If S draws overlapping rows, it's sufficient to use the top and
      bottom of the window for clipping because this glyph string
      intentionally draws over other lines.  */
@@ -18233,6 +18251,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 {
   struct glyph_string *head, *tail;
   struct glyph_string *s;
+  struct glyph_string *clip_head = NULL, *clip_tail = NULL;
   int last_x, area_width;
   int x_reached;
   int i, j;
@@ -18301,6 +18320,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  start = i;
 	  compute_overhangs_and_x (t, head->x, 1);
 	  prepend_glyph_string_lists (&head, &tail, h, t);
+	  clip_head = head;
 	}
 
       /* Prepend glyph strings for glyphs in front of the first glyph
@@ -18313,6 +18333,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       i = left_overwriting (head);
       if (i >= 0)
 	{
+	  clip_head = head;
 	  BUILD_GLYPH_STRINGS (i, start, h, t,
 			       DRAW_NORMAL_TEXT, dummy_x, last_x);
 	  for (s = h; s; s = s->next)
@@ -18332,6 +18353,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 			       DRAW_NORMAL_TEXT, x, last_x);
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
+	  clip_tail = tail;
 	}
 
       /* Append glyph strings for glyphs following the last glyph
@@ -18342,6 +18364,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       i = right_overwriting (tail);
       if (i >= 0)
 	{
+	  clip_tail = tail;
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
 			       DRAW_NORMAL_TEXT, x, last_x);
 	  for (s = h; s; s = s->next)
@@ -18349,6 +18372,12 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
 	}
+      if (clip_head || clip_tail)
+	for (s = head; s; s = s->next)
+	  {
+	    s->clip_head = clip_head;
+	    s->clip_tail = clip_tail;
+	  }
     }
 
   /* Draw all strings.  */
@@ -18362,8 +18391,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	 completely. */
       && !overlaps_p)
     {
-      int x0 = head ? head->x : x;
-      int x1 = tail ? tail->x + tail->background_width : x;
+      int x0 = clip_head ? clip_head->x : (head ? head->x : x);
+      int x1 = (clip_tail ? clip_tail->x + clip_tail->background_width
+		: (tail ? tail->x + tail->background_width : x));
 
       int text_left = window_box_left (w, TEXT_AREA);
       x0 -= text_left;

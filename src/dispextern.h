@@ -1193,6 +1193,11 @@ struct glyph_string
   /* Slice */
   struct glyph_slice slice;
 
+  /* Non-null means the horizontal clipping region starts from the
+     left edge of *clip_head, and ends with the right edge of
+     *clip_tail, not including their overhangs.  */
+  struct glyph_string *clip_head, *clip_tail;
+
   struct glyph_string *next, *prev;
 };
 
