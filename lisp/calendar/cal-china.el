@@ -66,7 +66,7 @@ UT+7:45:40 to UT+8.")
 
 (defvar chinese-calendar-daylight-time-offset 60
   "*Number of minutes difference between daylight savings and standard time
-for Chinese calendar.  Default is for no daylight savings time.")
+for Chinese calendar.")
 
 (defvar chinese-calendar-standard-time-zone-name
   '(if (< year 1928)
@@ -82,22 +82,20 @@ for Chinese calendar.  Default is for no daylight savings time.")
          ((= 1986 year) '(5 4 1986))
          (t nil))
   "*Sexp giving the date on which daylight savings time starts for Chinese
-calendar.  Default is for no daylight savings time.  See documentation of
-`calendar-daylight-savings-starts'.")
+calendar.  See documentation of `calendar-daylight-savings-starts'.")
 
 (defvar chinese-calendar-daylight-savings-ends
   '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
   "*Sexp giving the date on which daylight savings time ends for Chinese
-calendar.  Default is for no daylight savings time.  See documentation of
-`calendar-daylight-savings-ends'.")
+calendar.  See documentation of `calendar-daylight-savings-ends'.")
 
 (defvar chinese-calendar-daylight-savings-starts-time 0
   "*Number of minutes after midnight that daylight savings time starts for
-Chinese calendar.  Default is for no daylight savings time.")
+Chinese calendar.")
 
 (defvar chinese-calendar-daylight-savings-ends-time 0
   "*Number of minutes after midnight that daylight savings time ends for
-Chinese calendar.  Default is for no daylight savings time.")
+Chinese calendar.")
 
 (defun chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date d.
