@@ -105,27 +105,29 @@ to read a file name from the minibuffer."
   (if filename
       (let (temp temp-downcase found)
 	(setq filename (substitute-in-file-name filename))
-	(let ((dirs (if (string-match "^\\./" filename)
-			;; If specified name starts with `./'
-			;; then just try current directory.
-			'("./")
-		      Info-directory-list)))
-	  ;; Search the directory list for file FILENAME.
-	  (while (and dirs (not found))
-	    (setq temp (expand-file-name filename (car dirs)))
-	    (setq temp-downcase
-		  (expand-file-name (downcase filename) (car dirs)))
-	    ;; Try several variants of specified name.
-	    ;; Try downcasing, appending `.info', or both.
-	    (cond ((file-exists-p temp)
-		   (setq found temp))
-		  ((file-exists-p temp-downcase)
-		   (setq found temp-downcase))
-		  ((file-exists-p (concat temp ".info"))
-		   (setq found (concat temp ".info")))
-		  ((file-exists-p (concat temp-downcase ".info"))
-		   (setq found (concat temp-downcase ".info"))))
-	    (setq dirs (cdr dirs))))
+	(if (string= (downcase (file-name-nondirectory filename)) "dir")
+	    (setq found t)
+	  (let ((dirs (if (string-match "^\\./" filename)
+			  ;; If specified name starts with `./'
+			  ;; then just try current directory.
+			  '("./")
+			Info-directory-list)))
+	    ;; Search the directory list for file FILENAME.
+	    (while (and dirs (not found))
+	      (setq temp (expand-file-name filename (car dirs)))
+	      (setq temp-downcase
+		    (expand-file-name (downcase filename) (car dirs)))
+	      ;; Try several variants of specified name.
+	      ;; Try downcasing, appending `.info', or both.
+	      (cond ((file-exists-p temp)
+		     (setq found temp))
+		    ((file-exists-p temp-downcase)
+		     (setq found temp-downcase))
+		    ((file-exists-p (concat temp ".info"))
+		     (setq found (concat temp ".info")))
+		    ((file-exists-p (concat temp-downcase ".info"))
+		     (setq found (concat temp-downcase ".info"))))
+	      (setq dirs (cdr dirs)))))
 	(if found
 	    (setq filename found)
 	  (error "Info file %s does not exist" filename))))
@@ -151,9 +153,12 @@ to read a file name from the minibuffer."
 		    Info-current-subfile nil
 		    buffer-file-name nil)
 	      (erase-buffer)
-	      (insert-file-contents filename t)
+	      (setq default-directory Info-directory)
+	      (if (eq filename t)
+		  (Info-insert-dir)
+		(insert-file-contents filename t)
+		(setq default-directory (file-name-directory filename)))
 	      (set-buffer-modified-p nil)
-	      (setq default-directory (file-name-directory filename))
 	      ;; See whether file has a tag table.  Record the location if yes.
 	      (set-marker Info-tag-table-marker nil)
 	      (goto-char (point-max))
@@ -181,7 +186,8 @@ to read a file name from the minibuffer."
 					(match-end 0))))
 		      (set-marker Info-tag-table-marker pos))))
 	      (setq Info-current-file
-		    (file-name-sans-versions buffer-file-name))))
+		    (if (eq filename t) "dir"
+		      (file-name-sans-versions buffer-file-name)))))
 	(if (equal nodename "*")
 	    (progn (setq Info-current-node nodename)
 		   (Info-set-mode-line))
@@ -225,6 +231,98 @@ to read a file name from the minibuffer."
 	  (Info-find-node (nth 0 hist) (nth 1 hist) t)
 	  (goto-char (nth 2 hist)))))
   (goto-char (point-min)))
+
+;; Record the contents of the (virtual) dir file,
+;; once we have merged it for the first time,
+;; so we can save time subsequently.
+(defvar Info-dir-contents nil)
+
+;; Construct the Info directory node by merging the files named `dir'
+;; from various directories.
+(defun Info-insert-dir ()
+  (if Info-dir-contents
+      (insert Info-dir-contents)
+    (let ((dirs Info-directory-list)
+	  buffers buffer others nodes)
+      ;; Search the directory list for file FILENAME.
+      (while dirs
+	(setq temp (expand-file-name "dir" (car dirs)))
+	;; Try several variants of specified name.
+	;; Try downcasing, appending `.info', or both.
+	(cond ((file-exists-p temp)
+	       (setq buffers (cons (find-file-noselect temp) buffers)))
+	      ((file-exists-p (concat temp ".info"))
+	       (setq buffers (cons (find-file-noselect (concat temp ".info"))
+				   buffers))))
+	(setq dirs (cdr dirs)))
+      ;; Distinguish the dir file that comes with Emacs
+      ;; from all the others.
+      (setq buffer (car buffers)
+	    others (cdr buffers))
+      ;; Insert the entire original dir file as a start.
+      (insert-buffer buffer)
+      ;; Look at each of the other buffers one by one.
+      (while others
+	(let ((other (car others)))
+	  ;; In each, find all the menus.
+	  (save-excursion
+	    (set-buffer other)
+	    (goto-char (point-min))
+	    ;; Find each menu, and add an elt to NODES for it.
+	    (while (re-search-forward "^\\* Menu:" nil t)
+	      (let (beg nodename end)
+		(forward-line 1)
+		(setq beg (point))
+		(search-backward "\n")
+		(search-forward "Node: ")
+		(setq nodename (Info-following-node-name))
+		(search-forward "\n" nil 'move)
+		(beginning-of-line)
+		(setq end (point))
+		(setq nodes (cons (list nodename other beg end) nodes))))))
+	(setq others (cdr others)))
+      ;; Add to the main menu a menu item for each other node.
+      (re-search-forward "^\\* Menu:")
+      (forward-line 1)
+      (let ((menu-items '("top"))
+	    (nodes nodes)
+	    (case-fold-search t)
+	    (end (save-excursion (search-forward "" nil t) (point))))
+	(while nodes
+	  (let ((nodename (car (car nodes))))
+	    (or (member (downcase nodename) menu-items)
+		(re-search-forward (concat "^\\* " (regexp-quote nodename) ":")
+				   end t)
+		(progn
+		  (insert "* " nodename "\n")
+		  (setq menu-items (cons nodename menu-item)))))
+	  (setq nodes (cdr nodes))))
+      ;; Now take each node of each of the other buffers
+      ;; and merge it into the main buffer.
+      (while nodes
+	(let ((nodename (car (car nodes))))
+	  (goto-char (point-min))
+	  ;; Find the like-named node in the main buffer.
+	  (if (re-search-forward (concat "\n.*\n.*Node: "
+					 (regexp-quote nodename)
+					 "[,\n\t]")
+				 nil t)
+	      (progn
+		(search-forward "\n" nil 'move)
+		(beginning-of-line))
+	    ;; If none exists, add one.
+	    (goto-char (point-max))
+	    (insert "\nFile: dir\tnode: " nodename "\n\n* Menu:\n\n"))
+	  ;; Merge the text from the other buffer's menu
+	  ;; into the menu in the like-named node in the main buffer.
+	  (apply 'insert-buffer-substring (cdr (car nodes)))
+	  (insert "\n"))
+	(setq nodes (cdr nodes)))
+      ;; Kill all the buffers we just made.
+      (while buffers
+	(kill-buffer (car buffers))
+	(setq buffers (cdr buffers))))
+    (setq Info-dir-contents (buffer-string))))
 
 (defun Info-read-subfile (nodepos)
   (set-buffer (marker-buffer Info-tag-table-marker))
@@ -412,6 +510,9 @@ to read a file name from the minibuffer."
 	 nil
        (error (concat "Node has no " (capitalize (or errorname name))))))))
 
+;; Return the node name in the buffer following point.
+;; ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
+;; saying which chas may appear in the node name.
 (defun Info-following-node-name (&optional allowedchars)
   (skip-chars-forward " \t")
   (buffer-substring
