@@ -1,3 +1,8 @@
+2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (Fread_file_name) [DOS_NT]: Don't crash if homedir is
+	NULL.
+
 2000-12-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_calc_absolute_position): Don't subtract menubar's
