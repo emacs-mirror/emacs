@@ -1090,7 +1090,7 @@ direct_output_for_insert (g)
     int dummy;
 
     if (FRAME_X_P (frame))
-      face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
+      face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point, 0);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
     current_frame->charstarts[vpos][hpos] = point - 1;
