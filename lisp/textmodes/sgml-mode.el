@@ -890,7 +890,7 @@ If this can't be done, return nil."
 	  (sgml-beginning-of-tag t))))))
 
 (defun sgml-value (alist)
-  "Interactively insert value taken from attributerule ALIST.
+  "Interactively insert value taken from attribute-rule ALIST.
 See `sgml-tag-alist' for info about attribute rules."
   (setq alist (cdr alist))
   (if (stringp (car alist))
@@ -924,9 +924,20 @@ With prefix argument, unquote the region."
 						(?> . "&gt;"))))))))
 
 
+(defun sgml-empty-tag-p (tag-name)
+  "Return non-nil if TAG-NAME is an implicitly empty tag."
+  (and (not sgml-xml-mode)
+       (member-ignore-case tag-name sgml-empty-tags)))
+
+(defun sgml-unclosed-tag-p (tag-name)
+  "Return non-nil if TAG-NAME is a tag for which an end-tag is optional."
+  (and (not sgml-xml-mode)
+       (member-ignore-case tag-name sgml-unclosed-tags)))
+
 (defun sgml-calculate-indent ()
   "Calculate the column to which this line should be indented."
   (let ((lcon (sgml-lexical-context)))
+
     ;; Indent comment-start markers inside <!-- just like comment-end markers.
     (if (and (eq (car lcon) 'tag)
 	     (looking-at "--")
@@ -934,6 +945,7 @@ With prefix argument, unquote the region."
 	(setq lcon (cons 'comment (+ (cdr lcon) 2))))
 
     (case (car lcon)
+
       (string
        ;; Go back to previous non-empty line.
        (while (and (> (point) (cdr lcon))
@@ -970,7 +982,7 @@ With prefix argument, unquote the region."
 	 (goto-char (1+ (cdr lcon)))
 	 (+ (current-column) sgml-basic-offset)))
 
-      (t ;; text
+      (text
        (while (looking-at "</")
 	 (forward-sexp 1)
 	 (skip-chars-forward " \t"))
@@ -1006,7 +1018,12 @@ With prefix argument, unquote the region."
 	     (current-column)
 	   (goto-char there)
 	   (+ (current-column)
-	      (* sgml-basic-offset (length context)))))))))
+	      (* sgml-basic-offset (length context))))))
+      
+      (otherwise
+       (error "Unrecognised context %s" (car lcon)))
+
+      )))
 
 (defun sgml-indent-line ()
   "Indent the current line as SGML."
