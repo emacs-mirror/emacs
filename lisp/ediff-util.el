@@ -23,7 +23,7 @@
 ;;; Code:
 
 (require 'ediff-init)
-(require 'ediff-meta)
+(require 'ediff-mult)
 
 
 ;;; Functions
