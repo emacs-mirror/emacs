@@ -168,7 +168,7 @@ buf_charpos_to_bytepos (b, charpos)
     CONSIDER (cached_charpos, cached_bytepos);
 
   tail = BUF_MARKERS (b);
-  while (XSYMBOL (tail) != XSYMBOL (Qnil))
+  while (! NILP (tail))
     {
       CONSIDER (XMARKER (tail)->charpos, XMARKER (tail)->bytepos);
 
@@ -336,7 +336,7 @@ buf_bytepos_to_charpos (b, bytepos)
     CONSIDER (cached_bytepos, cached_charpos);
 
   tail = BUF_MARKERS (b);
-  while (XSYMBOL (tail) != XSYMBOL (Qnil))
+  while (! NILP (tail))
     {
       CONSIDER (XMARKER (tail)->bytepos, XMARKER (tail)->charpos);
 
@@ -747,7 +747,7 @@ unchain_marker (marker)
 
   tail = BUF_MARKERS (b);
   prev = Qnil;
-  while (XSYMBOL (tail) != XSYMBOL (Qnil))
+  while (! GC_NILP (tail))
     {
       next = XMARKER (tail)->chain;
       XUNMARK (next);

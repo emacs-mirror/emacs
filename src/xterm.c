@@ -10225,7 +10225,8 @@ x_erase_phys_cursor (w)
 	 
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
-  if (w == XWINDOW (dpyinfo->mouse_face_window)
+  if (! NILP (dpyinfo->mouse_face_window)
+      && w == XWINDOW (dpyinfo->mouse_face_window)
       && (vpos > dpyinfo->mouse_face_beg_row
 	  || (vpos == dpyinfo->mouse_face_beg_row
 	      && hpos >= dpyinfo->mouse_face_beg_col))

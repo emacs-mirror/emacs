@@ -5144,7 +5144,8 @@ auto_save_1 ()
   struct stat st;
 
   /* Get visited file's mode to become the auto save file's mode.  */
-  if (stat (XSTRING (current_buffer->filename)->data, &st) >= 0)
+  if (! NILP (current_buffer->filename)
+      && stat (XSTRING (current_buffer->filename)->data, &st) >= 0)
     /* But make sure we can overwrite it later!  */
     auto_save_mode_bits = st.st_mode | 0600;
   else

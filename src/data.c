@@ -1012,7 +1012,8 @@ set_internal (symbol, newval, buf, bindflag)
 	 isn't the right one, or if it's a Lisp_Buffer_Local_Value and
 	 the default binding is loaded, the loaded binding may be the
 	 wrong one.  */
-      if (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
+      if (!BUFFERP (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
+	  || buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
 	      && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
 	  || (BUFFER_LOCAL_VALUEP (valcontents)

@@ -83,7 +83,7 @@ check_markers ()
 
   tail = BUF_MARKERS (current_buffer);
 
-  while (XSYMBOL (tail) != XSYMBOL (Qnil))
+  while (! NILP (tail))
     {
       if (XMARKER (tail)->buffer->text != current_buffer->text)
 	abort ();

@@ -758,7 +758,7 @@ child_sig (vs)
   pid = vs->pid;
   sys$setef (vs->eventFlag);
 
-  for (tail = Vprocess_alist; XSYMBOL (tail) != XSYMBOL (Qnil); tail = XCDR (tail))
+  for (tail = Vprocess_alist; ! NILP (tail); tail = XCDR (tail))
     {
       proc = XCDR (XCAR (tail));
       p = XPROCESS (proc);
@@ -766,7 +766,7 @@ child_sig (vs)
 	break;
     }
 
-  if (XSYMBOL (tail) == XSYMBOL (Qnil))
+  if (NILP (tail))
     return;
 
   p->status = Fcons (Qexit, Fcons (make_number (vs->exitStatus), Qnil))

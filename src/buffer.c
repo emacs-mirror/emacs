@@ -887,14 +887,14 @@ This does not change the name of the visited file (if any).")
     error ("Empty string is invalid as a buffer name");
 
   tem = Fget_buffer (newname);
-  /* Don't short-circuit if UNIQUE is t.  That is a useful way to rename
-     the buffer automatically so you can create another with the original name.
-     It makes UNIQUE equivalent to
-     (rename-buffer (generate-new-buffer-name NEWNAME)).  */
-  if (NILP (unique) && XBUFFER (tem) == current_buffer)
-    return current_buffer->name;
   if (!NILP (tem))
     {
+      /* Don't short-circuit if UNIQUE is t.  That is a useful way to
+	 rename the buffer automatically so you can create another
+	 with the original name.  It makes UNIQUE equivalent to
+	 (rename-buffer (generate-new-buffer-name NEWNAME)).  */
+      if (NILP (unique) && XBUFFER (tem) == current_buffer)
+	return current_buffer->name;
       if (!NILP (unique))
 	newname = Fgenerate_new_buffer_name (newname, current_buffer->name);
       else
@@ -1815,7 +1815,7 @@ but the contents viewed as characters do change.")
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
       tail = BUF_MARKERS (current_buffer);
-      while (XSYMBOL (tail) != XSYMBOL (Qnil))
+      while (! NILP (tail))
 	{
 	  XMARKER (tail)->charpos = XMARKER (tail)->bytepos;
 	  tail = XMARKER (tail)->chain;
@@ -1880,7 +1880,7 @@ but the contents viewed as characters do change.")
 	 It is also a signal that it should never create a marker.  */
       BUF_MARKERS (current_buffer) = Qnil;
 
-      while (XSYMBOL (tail) != XSYMBOL (Qnil))
+      while (! NILP (tail))
 	{
 	  XMARKER (tail)->bytepos
 	    = advance_to_char_boundary (XMARKER (tail)->bytepos);
@@ -1996,7 +1996,7 @@ swap_out_buffer_local_variables (b)
 
       /* Need not do anything if some other buffer's binding is now encached.  */
       tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer;
-      if (XBUFFER (tem) == current_buffer)
+      if (BUFFERP (tem) && XBUFFER (tem) == current_buffer)
 	{
 	  /* Symbol is set up for this buffer's old local value.
 	     Set it up for the current buffer with the default value.  */
@@ -3166,7 +3166,7 @@ buffer.")
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
   b = XBUFFER (buffer);
-  ob = XBUFFER (obuffer);
+  ob = BUFFERP (obuffer) ? XBUFFER (obuffer) : (struct buffer *) 0;
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
   if (!EQ (buffer, obuffer))

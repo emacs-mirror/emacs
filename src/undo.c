@@ -54,7 +54,8 @@ record_insert (beg, length)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (current_buffer != XBUFFER (last_undo_buffer))
+  if (!BUFFERP (last_undo_buffer)
+      || current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 

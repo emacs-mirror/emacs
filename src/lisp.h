@@ -432,11 +432,11 @@ extern Lisp_Object make_number ();
 
 /* Extract a value or address from a Lisp_Object.  */
 
-#define XCONS(a) ((struct Lisp_Cons *) XPNTR(a))
+#define XCONS(a) (eassert (GC_CONSP(a)),(struct Lisp_Cons *) XPNTR(a))
 #define XVECTOR(a) ((struct Lisp_Vector *) XPNTR(a))
-#define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
-#define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
-#define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
+#define XSTRING(a) (eassert (GC_STRINGP(a)),(struct Lisp_String *) XPNTR(a))
+#define XSYMBOL(a) (eassert (GC_SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
+#define XFLOAT(a) (eassert (GC_FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
 
 /* Misc types.  */
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
@@ -451,10 +451,10 @@ extern Lisp_Object make_number ();
 #define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
-#define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
-#define XWINDOW(a) ((struct window *) XPNTR(a))
-#define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
-#define XBUFFER(a) ((struct buffer *) XPNTR(a))
+#define XPROCESS(a) (eassert (GC_PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
+#define XWINDOW(a) (eassert (GC_WINDOWP(a)),(struct window *) XPNTR(a))
+#define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
+#define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
 #define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
 #define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
 

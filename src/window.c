@@ -905,7 +905,8 @@ unshow_buffer (w)
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer)
       /* This line helps to fix Horsley's testbug.el bug.  */
-      && !(w != XWINDOW (b->last_selected_window)
+      && !(WINDOWP (b->last_selected_window)
+	   && w != XWINDOW (b->last_selected_window)
 	   && EQ (buf, XWINDOW (b->last_selected_window)->buffer)))
     temp_set_point_both (b,
 			 clip_to_bounds (BUF_BEGV (b),
@@ -915,7 +916,8 @@ unshow_buffer (w)
 					 marker_byte_position (w->pointm),
 					 BUF_ZV_BYTE (b)));
   
-  if (w == XWINDOW (b->last_selected_window))
+  if (WINDOWP (b->last_selected_window)
+      && w == XWINDOW (b->last_selected_window))
     b->last_selected_window = Qnil;
 }
 
@@ -1633,7 +1635,8 @@ window_loop (type, obj, mini, frames)
 	  case GET_LARGEST_WINDOW:
 	    /* Ignore dedicated windows and minibuffers.  */
 	    if (MINI_WINDOW_P (XWINDOW (w))
-		|| !NILP (XWINDOW (w)->dedicated))
+		|| !NILP (XWINDOW (w)->dedicated)
+		|| NILP (best_window))
 	      break;
 	    {
 	      struct window *best_window_ptr = XWINDOW (best_window);

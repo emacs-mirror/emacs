@@ -1,3 +1,25 @@
+2000-03-30  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (XCONS, XSTRING, XSYMBOL, XFLOAT, XPROCESS, XWINDOW,
+	XSUBR, XBUFFER): Verify correct object type before returning
+	pointer, using eassert.
+	* frame.h (XFRAME): Likewise.
+
+	* buffer.c (Frename_buffer, Fset_buffer_multibyte,
+	swap_out_buffer_local_variables, Fmove_overlay): Don't apply
+	XSYMBOL, XBUFFER, etc, to values that may be nil or of the wrong
+	type.
+	* data.c (set_internal): Likewise.
+	* dispextern.h (WINDOW_WANTS_MODELINE_P,
+	WINDOW_WANTS_HEADER_LINE_P): Likewise.
+	* fileio.c (auto_save_1): Likewise.
+	* insdel.c (check_markers): Likewise.
+	* marker.c (buf_charpos_to_bytepos, unchain_marker): Likewise.
+	* undo.c (record_insert): Likewise.
+	* vmsproc.c (child_sig): Likewise.
+	* window.c (unshow_buffer, window_loop): Likewise.
+	* xterm.c (x_erase_phys_cursor): Likewise.
+
 2000-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (free_image_cache): Free the cache structure itself
