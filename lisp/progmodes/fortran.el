@@ -243,7 +243,9 @@ This does fairly subdued highlighting.")
   "For consideration as a value of `fortran-font-lock-keywords'.
 This does a lot more highlighting.")
 
-(defconst fortran-font-lock-keywords fortran-font-lock-keywords-1
+(defvar fortran-font-lock-keywords (if font-lock-maximum-decoration
+					 fortran-font-lock-keywords-2
+				       fortran-font-lock-keywords-1)
   "Additional expressions to highlight in Fortran mode.")
 
 (defvar fortran-mode-map () 
