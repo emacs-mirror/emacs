@@ -73,7 +73,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (setq display-time-timer
 	(run-at-time nil display-time-interval 'display-time-event-handler))
   ;; When you get new mail, clear "Mail" from the mode line.
-  (add-hook 'rmail-get-new-mail-hook 'display-time-event-handler))
+  (add-hook 'rmail-after-get-new-mail-hook 'display-time-event-handler))
 
 (defvar display-time-string-forms
   '((if display-time-day-and-date
