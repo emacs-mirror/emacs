@@ -223,8 +223,7 @@ If called with an optional prefix argument, prompts for month and year.
 This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
-    (let* ((completion-ignore-case t)
-           (date (if arg
+    (let* ((date (if arg
                      (calendar-read-date t)
                    (calendar-current-date)))
            (displayed-month (extract-calendar-month date))
