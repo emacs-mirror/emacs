@@ -1,3 +1,12 @@
+2003-08-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/freebsd.h [__FreeBSD_version >= 400000]: Define TERMINFO,
+	use -lncurses.
+
+	* term.c (term_init): Use a buffer of size 4096 for tgetent since
+	FreeBSD returns something longer than 2044.  Abort if the end of
+	the buffer is overwritten.
+
 2003-08-19  Miles Bader  <miles@gnu.org>
 
 	* xterm.c (x_term_init): Correctly use result of Ffile_readable_p.
