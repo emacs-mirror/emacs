@@ -1421,7 +1421,9 @@ single_submenu (item_key, item_name, maps)
 	      else
 		first_wv->contents = wv;
 	      wv->name = pane_string;
-	      if (!NILP (prefix))
+	      /* Ignore the @ that means "separate pane".
+		 This is a kludge, but this isn't worth more time.  */
+	      if (!NILP (prefix) && wv->name[0] == '@')
 		wv->name++;
 	      wv->value = 0;
 	      wv->enabled = 1;
@@ -1839,7 +1841,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   int i;
   LWLIB_ID menu_id;
   Widget menu;
-  Arg av [2];
+  Arg av[2];
   int ac = 0;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
@@ -1847,8 +1849,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   Lisp_Object *subprefix_stack
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
-
-  Position root_x, root_y;
+  XButtonPressedEvent dummy;
 
   int first_pane;
   int next_release_must_exit = 0;
@@ -1993,6 +1994,51 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 			   popup_selection_callback,
 			   popup_deactivate_callback);
 
+  /* Adjust coordinates to relative to the outer (window manager) window.  */
+  {
+    Window child;
+    int win_x = 0, win_y = 0;
+
+    /* Find the position of the outside upper-left corner of
+       the inner window, with respect to the outer window.  */
+    if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+      {
+	BLOCK_INPUT;
+	XTranslateCoordinates (FRAME_X_DISPLAY (f),
+
+			       /* From-window, to-window.  */
+			       f->output_data.x->window_desc,
+			       f->output_data.x->parent_desc,
+
+			       /* From-position, to-position.  */
+			       0, 0, &win_x, &win_y,
+
+			       /* Child of window.  */
+			       &child);
+	UNBLOCK_INPUT;
+	x += win_x;
+	y += win_y;
+      }
+  }
+
+  /* Adjust coordinates to be root-window-relative.  */
+  x += f->output_data.x->left_pos;
+  y += f->output_data.x->top_pos;
+
+  dummy.type = ButtonPress;
+  dummy.serial = 0;
+  dummy.send_event = 0;
+  dummy.display = FRAME_X_DISPLAY (f);
+  dummy.time = CurrentTime;
+  dummy.button = 0;
+  dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
+  dummy.window = dummy.root;
+  dummy.subwindow = dummy.root;
+  dummy.x_root = x;
+  dummy.y_root = y;
+  dummy.x = x;
+  dummy.y = y;
+
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
@@ -2004,7 +2050,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Display the menu.  */
-  lw_popup_menu (menu);
+  lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
