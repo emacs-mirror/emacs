@@ -28,7 +28,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 10.18";
+char pot_etags_version[] = "@(#) pot revision number is 10.21";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -50,7 +50,6 @@ char pot_etags_version[] = "@(#) pot revision number is 10.18";
 #include "getopt.h"
 
 extern char *getenv ();
-extern char *getcwd ();
 
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -148,12 +147,13 @@ logical header_file;		/* TRUE if .h file, FALSE o.w.  */
 /* boolean "functions" (see init)	*/
 logical _wht[0177], _etk[0177], _itk[0177], _btk[0177];
 
-char cwd [BUFSIZ];		/* current working directory */
+char *cwd;			/* current working directory */
 char *outfiledir;		/* directory of tagfile */
 
 char *concat ();
 char *savenstr (), *savestr ();
-char *etags_index (), *etags_rindex ();
+char *etags_strchr (), *etags_strrchr ();
+char *etags_getcwd ();
 char *relative_filename (), *absolute_filename (), *absolute_dirname ();
 char *xmalloc (), *xrealloc ();
 int L_isdef (), L_isquote ();
@@ -367,10 +367,6 @@ names from stdin.\n\n", progname);
       puts ("-T, --typedefs-and-c++\n\
         Generate tag entries for C typedefs, C struct/enum/union tags,\n\
         and C++ member functions.");
-    }
-
-  if (CTAGS)
-    {
       puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
@@ -441,8 +437,8 @@ main (argc, argv)
 
       switch (opt)
 	{
-	case '\0':
-	  /* If getopt returns '\0', then it has already processed a
+	case 0:
+	  /* If getopt returns 0, then it has already processed a
 	     long-named option.  We should do nothing.  */
 	  break;
 
@@ -479,46 +475,43 @@ main (argc, argv)
 	  print_help ();
 	  break;
 
+#if (!CTAGS)
+
 	  /* Etags options */
 	case 'i':
-	  if (CTAGS)
-	    goto usage;
 	  included_files[nincluded_files++] = optarg;
 	  break;
+
+#else /* CTAGS */
 
 	  /* Ctags options. */
 	case 'B':
 	  searchar = '?';
-	  if (!CTAGS) goto usage;
 	  break;
 	case 'F':
 	  searchar = '/';
-	  if (!CTAGS) goto usage;
 	  break;
 	case 't':
 	  typedefs++;
-	  if (!CTAGS) goto usage;
 	  break;
 	case 'T':
 	  typedefs++;
 	  typedefs_and_cplusplus++;
-	  if (!CTAGS) goto usage;
 	  break;
 	case 'u':
 	  update++;
-	  if (!CTAGS) goto usage;
 	  break;
 	case 'v':
 	  vgrind_style++;
 	  /*FALLTHRU*/
 	case 'x':
 	  cxref_style++;
-	  if (!CTAGS) goto usage;
 	  break;
 	case 'w':
 	  no_warnings++;
-	  if (!CTAGS) goto usage;
 	  break;
+
+#endif /* CTAGS */
 
 	default:
 	  goto usage;
@@ -539,7 +532,7 @@ main (argc, argv)
     {
       outfile = CTAGS ? "tags" : "TAGS";
     }
-  getcwd (cwd, BUFSIZ);		/* the current working directory */
+  cwd = etags_getcwd ();	/* the current working directory */
   strcat (cwd, "/");
   if (streq (outfile, "-"))
     {
@@ -745,7 +738,7 @@ find_entries (file)
       return FALSE;
     }
   curfile = savestr (file);
-  cp = etags_rindex (file, '.');
+  cp = etags_strrchr (file, '.');
 
   header_file = (cp && (streq (cp + 1, "h")));
 
@@ -904,9 +897,9 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
     {
-      fp = etags_rindex (curfile, '/');
+      fp = etags_strrchr (curfile, '/');
       name = concat ("M", fp == 0 ? curfile : fp + 1, "");
-      fp = etags_rindex (name, '.');
+      fp = etags_strrchr (name, '.');
       if (fp && fp[1] != '\0' && fp[2] == '\0')
 	*fp = 0;
       named = TRUE;
@@ -2682,7 +2675,7 @@ TEX_funcs (fi)
       charno += readline (&lb, fi);
       dbp = lb.buffer;
       lasthit = dbp;
-      while (dbp = etags_index (dbp, TEX_esc)) /* Look at each escape in line */
+      while (dbp = etags_strchr (dbp, TEX_esc)) /* Look at each esc in line */
 	{
 	  register int i;
 
@@ -2760,7 +2753,7 @@ TEX_decode_env (evarname, defenv)
 
   /* Allocate a token table */
   for (size = 1, p = env; p;)
-    if ((p = etags_index (p, ':')) && *(++p))
+    if ((p = etags_strchr (p, ':')) && *(++p))
       size++;
   /* Add 1 to leave room for null terminator.  */
   tab = xnew (size + 1, struct TEX_tabent);
@@ -2769,7 +2762,7 @@ TEX_decode_env (evarname, defenv)
   /* zero-length strings (leading ':', "::" and trailing ':') */
   for (i = 0; *env;)
     {
-      p = etags_index (env, ':');
+      p = etags_strchr (env, ':');
       if (!p)			/* End of environment string. */
 	p = env + strlen (env);
       if (p - env > 0)
@@ -2816,7 +2809,7 @@ TEX_getit (name, len)
 }
 
 /* If the text at CP matches one of the tag-defining TeX command names,
-   return the etags_index of that command in TEX_toktab.
+   return the pointer to the first occurrence of that command in TEX_toktab.
    Otherwise return -1.  */
 
 /* Keep the capital `T' in `Token' for dumb truncating compilers
@@ -2939,7 +2932,7 @@ substr (sub, s)
      char *sub;
      char *s;
 {
-  while (*s && (s = etags_index (s, *sub)))
+  while (*s && (s = etags_strchr (s, *sub)))
     if (prestr (sub, s))
       return (TRUE);
     else
@@ -3036,11 +3029,11 @@ savenstr (cp, len)
  * Return the ptr in sp at which the character c last
  * appears; NULL if not found
  *
- * Identical to v7 rindex, included for portability.
+ * Identical to System V strrchr, included for portability.
  */
 
 char *
-etags_rindex (sp, c)
+etags_strrchr (sp, c)
      register char *sp, c;
 {
   register char *r;
@@ -3059,11 +3052,11 @@ etags_rindex (sp, c)
  * Return the ptr in sp at which the character c first
  * appears; NULL if not found
  *
- * Identical to v7 index, included for portability.
+ * Identical to System V strchr, included for portability.
  */
 
 char *
-etags_index (sp, c)
+etags_strchr (sp, c)
      register char *sp, c;
 {
   do
@@ -3114,9 +3107,43 @@ concat (s1, s2, s3)
 
   return result;
 }
+
+/* Identical to system V getcwd, but does not need to guess
+   buffer size in advance.  Included mostly for compatibility. */
+char *
+etags_getcwd ()
+{
+  FILE *pipe;
+  char *buf;
+  int bufsize;
 
-/* Return a newly allocated string containing the filename of FILE relative
-   to the absolute directory DIR (which should end with a slash). */
+  do
+    {
+      buf = xnew (bufsize, char);
+
+      pipe = popen ("pwd 2>/dev/null", "r");
+      if (pipe == NULL)
+	{
+	  perror ("pwd");
+	  exit (BAD);
+	}
+      if (fgets (buf, bufsize, pipe) == NULL)
+	{
+	  perror ("pwd");
+	  exit (BAD);
+	}
+      pclose (pipe);
+
+      bufsize *= 2;
+
+    } while (buf[strlen (buf) - 1] != '\n');
+
+  return buf;
+}
+
+/* Return a newly allocated string containing the filename
+   of FILE relative to the absolute directory DIR (which
+   should end with a slash). */
 
 char *
 relative_filename (file, dir)
@@ -3137,9 +3164,9 @@ relative_filename (file, dir)
   while (*fp != '/');
 
   /* Build a sequence of "../" strings for the resulting relative filename. */
-  for (dp = etags_index (dp + 1, '/'), res = "";
+  for (dp = etags_strchr (dp + 1, '/'), res = "";
        dp != NULL;
-       dp = etags_index (dp + 1, '/'))
+       dp = etags_strchr (dp + 1, '/'))
     {
       res = concat (res, "../", "");
     }
@@ -3151,7 +3178,9 @@ relative_filename (file, dir)
 }
 
 /* Return a newly allocated string containing the
-   absolute filename of FILE given CWD (which should end with a slash). */
+   absolute filename of FILE given CWD (which should
+   end with a slash). */
+
 char *
 absolute_filename (file, cwd)
      char *file, *cwd;
@@ -3164,7 +3193,7 @@ absolute_filename (file, cwd)
     res = concat (cwd, file, "");
 
   /* Delete the "/dirname/.." and "/." substrings. */
-  slashp = etags_index (res, '/');
+  slashp = etags_strchr (res, '/');
   while (slashp != NULL && slashp[0] != '\0')
     {
       if (slashp[1] == '.')
@@ -3196,15 +3225,17 @@ absolute_filename (file, cwd)
 	}
       else
 	{
-	  slashp = etags_index (slashp + 1, '/');
+	  slashp = etags_strchr (slashp + 1, '/');
 	}
     }
 
   return res;
 }
 
-/* Return a newly allocated string containing the absolute filename
-   of dir where FILE resides given CWD (which should end with a slash). */
+/* Return a newly allocated string containing the absolute
+   filename of dir where FILE resides given CWD (which should
+   end with a slash). */
+
 char *
 absolute_dirname (file, cwd)
      char *file, *cwd;
@@ -3212,7 +3243,7 @@ absolute_dirname (file, cwd)
   char *slashp, *res;
   char save;
 
-  slashp = etags_rindex (file, '/');
+  slashp = etags_strrchr (file, '/');
   if (slashp == NULL)
     return cwd;
   save = slashp[1];
