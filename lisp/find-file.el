@@ -108,11 +108,6 @@
 ;; The *load-hooks allow you to place point where you want it in the other
 ;; file. 
 
-;; LCD Archive Entry:
-;; find-file|Henry Guillaume|henry@qbd.com.au|
-;; Find a file associated with this buffer.|
-;; 21-Dec-1994|4.0|~/misc/find-file.el.Z|
-
 ;; FEEDBACK:
 ;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;; merge them into the master source.
@@ -147,21 +142,21 @@
   "*List of functions to be called if the other file needs to be created.")
 
 (defvar ff-case-fold-search nil
-  "*Non-nil means ignore cases in matches (see case-fold-search).
+  "*Non-nil means ignore cases in matches (see `case-fold-search').
 If you have extensions in different cases, you will want this to be nil.")
 
 (defvar ff-always-in-other-window nil
-  "*If non-nil, always open the other file in another window, unless an
-argument is given to ff-find-other-file.")
+  "*If non-nil, find the corresponding file in another window by default.
+To override this, give an argument to `ff-find-other-file'.")
 
 (defvar ff-ignore-include nil
-  "*If non-nil, ignores include lines.")
+  "*If non-nil, ignore `#include' lines.")
 
 (defvar ff-always-try-to-create t
   "*If non-nil, always attempt to create the other file if it was not found.")
 
 (defvar ff-quiet-mode nil
-  "*If non-nil, traces which directories are being searched.")
+  "*If non-nil, trace which directories are being searched.")
 
 (defvar ff-special-constructs 
   '(
@@ -186,17 +181,17 @@ extracting the filename from that construct.")
 
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each
-directory specified in ff-search-directories. If a file is not found,
-a new one is created with the first matching extension (.cc yields .hh).
-This alist should be set by the major-mode.")
+directory specified in `ff-search-directories'.  If a file is not found,
+a new one is created with the first matching extension (`.cc' yields `.hh').
+This alist should be set by the major mode.")
 
 (defvar ff-search-directories 'cc-search-directories
   "*List of directories to search for a specific file.
 
-Set by default to 'cc-search-directories, expanded at run-time.
+Set by default to `cc-search-directories', expanded at run-time.
 
 This list is searched through with each extension specified in
-ff-other-file-alist that matches this file's extension. So the
+`ff-other-file-alist' that matches this file's extension.  So the
 longer the list, the longer it'll take to realise that a file
 may not exist.
 
@@ -204,17 +199,17 @@ A typical format is
 
     '(\".\" \"/usr/include/*\" \"$PROJECT/*/include\")
 
-Environment variables can be inserted between slashes ('/').
+Environment variables can be inserted between slashes (`/').
 They will be replaced by their definition. If a variable does
-not exist, it will (silently) be replaced with an empty string.
+not exist, it is replaced (silently) with an empty string.
 
-The stars are _not_ wildcards: they are searched for together with
-the preceding slash. The star represents all the subdirectories except
-'..', and each of these subdirectories will be searched in turn.")
+The stars are *not* wildcards: they are searched for together with
+the preceding slash.  The star represents all the subdirectories except
+`..', and each of these subdirectories will be searched in turn.")
 
 (defvar cc-search-directories
   '("." "/usr/include/*" "/usr/local/include/*")
-  "*See the description of the ff-search-directories variable.")
+  "*See the description of the `ff-search-directories' variable.")
 
 (defvar cc-other-file-alist
   '(
@@ -237,12 +232,12 @@ the preceding slash. The star represents all the subdirectories except
 
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
-specified in ff-search-directories. If a file is not found, a new one
-is created with the first matching extension (.cc yields .hh).")
+specified in `ff-search-directories'.  If a file is not found, a new one
+is created with the first matching extension (`.cc' yields `.hh').")
 
 (defvar ada-search-directories
   '("." "/usr/adainclude" "/usr/local/adainclude")
-  "*See the description for the ff-search-directories variable.")
+  "*See the description for the `ff-search-directories' variable.")
 
 (defvar ada-other-file-alist
   '(
@@ -253,8 +248,8 @@ is created with the first matching extension (.cc yields .hh).")
 
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
-specified in ada-search-directories. If a file is not found, a new one
-is created with the first matching extension (.adb yields .ads).
+specified in `ada-search-directories'.  If a file is not found, a new one
+is created with the first matching extension (`.adb' yields `.ads').
 ")
 
 ;;;### autoload
@@ -269,7 +264,7 @@ is created with the first matching extension (.adb yields .ads).
     ("\\.mi$" (".md")) ;; Modula-2 module definition
     ("\\.md$" (".mi")) ;; and implementation.
     )
-  "*See the description for the ff-search-directories variable.")
+  "*See the description for the `ff-search-directories' variable.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; No user definable variables beyond this point!
@@ -292,12 +287,10 @@ is created with the first matching extension (.adb yields .ads).
 
 ;;;###autoload
 (defun ff-get-other-file (&optional in-other-window)
-  "Find the corresponding header or source file to this source or header
-file. See also the documentation for ff-find-other-file.
+  "Find the header or source file corresponding to this file.
+See also the documentation for `ff-find-other-file;.
 
-If optional IN-OTHER-WINDOW is non-nil, finds the file in another window.
-
-Arguments: (&optional in-other-window)"
+If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
   (interactive "P")
   (let ((ignore ff-ignore-include))
     (setq ff-ignore-include t)
@@ -306,13 +299,11 @@ Arguments: (&optional in-other-window)"
 
 ;;;###autoload
 (defun ff-find-other-file (&optional in-other-window ignore-include)
-  "Find the corresponding header or source file to this source or header
-file; being on a #include line pulls in that file.
+  "Find the header or source file corresponding to this file.
+Being on a `#include' line pulls in that file.
 
-If optional IN-OTHER-WINDOW is non-nil, finds the file in the other window.
-If optional IGNORE-INCLUDE is non-nil, ignores being on #include lines.
-
-Arguments: (&optional in-other-window ignore-include)
+If optional IN-OTHER-WINDOW is non-nil, find the file in the other window.
+If optional IGNORE-INCLUDE is non-nil, ignore being on `#include' lines.
 
 Variables of interest include:
 
@@ -368,7 +359,7 @@ Variables of interest include:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support functions
 
-(defun ff-gnu-emacs-19 ()
+(defun ff-emacs-19 ()
   (string-match "^19\\.[0-9]+\\.[0-9]+$" emacs-version))
 
 (defun ff-xemacs ()
@@ -376,13 +367,11 @@ Variables of interest include:
       (string-match "XEmacs" emacs-version)))
 
 (defun ff-find-the-other-file (&optional in-other-window)
-  "Find the corresponding header or source file to this source or header
-file; being on a #include line pulls in that file, but see the help on
-the ff-ignore-include variable.
+  "Find the header or source file corresponding to the current file.
+Being on a `#include' line pulls in that file, but see the help on
+the `ff-ignore-include' variable.
 
-If optional IN-OTHER-WINDOW is non-nil, finds the file in another window.
-
-Arguments: (&optional in-other-window)"
+If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
 
   (let (match           ;; matching regexp for this file
         suffixes        ;; set of replacing regexps for the matching regexp
@@ -660,16 +649,11 @@ Arguments: (search-dirs fname-stub &optional suffix-list)
     found))
 
 (defun ff-string-match (regexp string &optional start)
-  "Like string-match (which see), but sets case-fold-search to 
-ff-case-fold-search before searching, and then resets it back again."
-  (let ((exact-match case-fold-search)
-        match)
+  "Like string-match (which see), but set `case-fold-search' temporarily.
+The value used comes from `ff-case-fold-search'."
+  (let ((case-fold-search ff-case-fold-search))
     (if regexp
-        (progn
-          (setq case-fold-search ff-case-fold-search)
-          (setq match (string-match regexp string start))
-          (setq case-fold-search exact-match)))
-    match))
+	(string-match regexp string start))))
 
 (defun ff-list-replace-env-vars (search-list)
   "Replace environment variables (of the form $VARIABLE) in SEARCH-LIST."
@@ -688,9 +672,8 @@ ff-case-fold-search before searching, and then resets it back again."
     (setq search-list (reverse list))))
 
 (defun ff-treat-as-special ()
-  "Returns the file to look for if the construct was special, otherwise
-returns nil. The construct is defined in the variable ff-special-constructs 
-(which see)."
+  "Returns the file to look for if the construct was special, else nil.
+The construct is defined in the variable `ff-special-constructs' (which see)."
   (let* (fname
          (list ff-special-constructs)
          (elem (car list))
@@ -706,13 +689,13 @@ returns nil. The construct is defined in the variable ff-special-constructs
     fname))
 
 (defun ff-basename (string)
-  "Returns the basename of PATHNAME."
+  "Return the basename of PATHNAME."
   (setq string (concat "/" string))
   (string-match ".*/\\([^/]+\\)$" string)
   (setq string (substring string (match-beginning 1) (match-end 1))))
 
 (defun ff-all-dirs-under (here &optional exclude)
-  "Get all the directory files under DIRECTORY.
+  "Get all the directory files under directory HERE.
 Exclude all files in the optional EXCLUDE list."
   (if (file-directory-p here)
       (condition-case nil
@@ -732,16 +715,18 @@ Exclude all files in the optional EXCLUDE list."
     nil))
 
 (defun ff-switch-file (f1 f2 file &optional in-other-window new-file)
-  "Calls Function2 or Function1 with FILE as argument, depending on whether 
-(optional) OTHER-WINDOW is set or not. Function1 and Function2 are typically 
-find-file / find-file-other-window or switch-to-buffer / switch-to-buffer-
-other-window function pairs.
+  "Call F1 or F2 on FILE, according to IN-OTHER-WINDOW.
+In addition, this runs various hooks.
 
-If optional NEW-FILE is t, then a special hook (ff-file-created-hooks) is 
-called before ff-post-load-hooks.
+Either F1 or F2 receives FILE as the sole argument.
+The decision of which one to call is based on IN-OTHER-WINDOW
+and on the global variable `ff-always-in-other-window'.
 
-Arguments: (function1 function2 file &optional in-other-window new-file)
-"
+F1 and F2 are typically `find-file' / `find-file-other-window'
+or `switch-to-buffer' / `switch-to-buffer-other-window' function pairs.
+
+If optional NEW-FILE is t, then a special hook (`ff-file-created-hooks') is 
+called before `ff-post-load-hooks'."
   (if ff-pre-load-hooks
       (run-hooks 'ff-pre-load-hooks))
   (if (or
@@ -756,27 +741,20 @@ Arguments: (function1 function2 file &optional in-other-window new-file)
       (run-hooks 'ff-post-load-hooks)))
 
 (defun ff-find-file (file &optional in-other-window new-file)
-  "Like find-file (which see), but checks whether the file goes in another 
-window or not.
-
-Arguments: (file &optional in-other-window new-file)
-"
+  "Like `find-file' (which see), but may put the file in another window."
   (ff-switch-file 'find-file 
                   'find-file-other-window 
                   file in-other-window new-file))
 
 (defun ff-switch-to-buffer (file &optional in-other-window)
-  "Like switch-to-buffer (which see), but checks whether the buffer ends up 
-in another window or not.
+  "Like `switch-to-buffer' (which see), but may put the buffer in another window."
 
-Arguments: (file &optional in-other-window)
-"
   (ff-switch-file 'switch-to-buffer 
                   'switch-to-buffer-other-window 
                   file in-other-window nil))
 
 (cond 
- ((ff-gnu-emacs-19)
+ ((ff-emacs-19)
   (defun ff-goto-click (event)
     (set-buffer (window-buffer (posn-window (event-end event))))
     (goto-char (posn-point (event-end event))))
@@ -828,9 +806,9 @@ Arguments: (file &optional in-other-window)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This section offers an example of user defined function to select files
 
-(defun upcase-p (string &optional start end)
-  "Return t if this string is all uppercase. Given START and/or END,
-checks between these characters."
+(defun ff-upcase-p (string &optional start end)
+  "Return t if this string is all uppercase.
+Given START and/or END, checks between these characters."
   (let (match str)
     (if (not start)
         (setq start 0))
@@ -848,9 +826,9 @@ checks between these characters."
       nil)))
 
 (defun ff-cc-hh-converter (arg)
-  "Discriminate file extensions and build up a new file list based 
-possibly on part of the directory name and the name of the file 
-passed in."
+  "Discriminate file extensions.
+Build up a new file list based possibly on part of the directory name
+and the name of the file passed in."
   (ff-string-match "\\(.*\\)/\\([^/]+\\)/\\([^.]+\\).\\([^/]+\\)$" arg)
   (let ((path (if (match-beginning 1) 
                   (substring arg (match-beginning 1) (match-end 1)) nil))
@@ -873,7 +851,7 @@ passed in."
                                 (concat file ".h")))
         ))
      ;; FOO/ZapJunk.hh => fooZapJunk.{cc,C} or ZapJunk.{cc,C}
-     ((and (string= extn "hh") (upcase-p dire) file)
+     ((and (string= extn "hh") (ff-upcase-p dire) file)
       (let ((stub (concat (downcase dire) file)))
         (setq return-list (list (concat stub ".cc")           
                                 (concat stub ".C")
@@ -909,8 +887,8 @@ passed in."
 ;; bind with (setq ff-pre-load-hooks 'ff-which-function-are-we-in)
 ;;
 (defun ff-which-function-are-we-in ()
-  "Determine whether we are on a function definition/declaration and 
-remember the name of that function."
+  "Return the name of the function whose definition/declaration point is in.
+Also remember that name in `ff-function-name'."
 
   (setq ff-function-name nil)
 
@@ -927,8 +905,8 @@ remember the name of that function."
 ;; bind with (setq ff-post-load-hooks 'ff-set-point-accordingly)
 ;;
 (defun ff-set-point-accordingly ()
-  "Find the function specified in ff-function-name, previously 
-determined by ff-which-function-are-we-in."
+  "Find the function specified in `ff-function-name'.
+That name was previously  etermined by `ff-which-function-are-we-in'."
   (if ff-function-name
       (progn
         (goto-char (point-min))
