@@ -804,10 +804,9 @@ define their own tool bars to replace it.  A few ``special'' modes
 that are not designed for ordinary editing remove some items from the
 global tool bar.
 
-Tool bars work only on a graphical display and only when Emacs is
-compiled with image support.  The tool bar uses colored XPM icons if
-Emacs was built with XPM support.  Otherwise, the tool bar uses
-monochrome icons (PBM or XBM format).
+Tool bars work only on a graphical display.  The tool bar uses colored
+XPM icons if Emacs was built with XPM support.  Otherwise, the tool
+bar uses monochrome icons (PBM or XBM format).
 
 You can turn display of tool bars on or off with @kbd{M-x
 tool-bar-mode}.
@@ -876,16 +875,21 @@ faces:
 @table @code
 @item default
 This face is used for ordinary text that doesn't specify any other face.
-@item modeline
+@item mode-line
 This face is used for mode lines.  By default, it's drawn with shadows
 for a ``raised'' effect on window systems, and drawn as the inverse of
 the default face on non-windowed terminals.  @xref{Display Custom}.
 @item header-line
-Similar to @code{modeline} for a window's header line.  Most modes
+Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
+@item isearch
+This face is used for highlighting Isearch matches.
+@item isearch-lazy-highlight-face
+This face is used for lazy highlighting of Isearch matches other than
+the current one.
 @item region
 This face is used for displaying a selected region (when Transient Mark
 mode is enabled---see below).
@@ -916,8 +920,10 @@ This face determines the color of the cursor.
 @item mouse
 This face determines the color of the mouse pointer.
 @item tool-bar
-The basic tool-bar face.  No text appears in the tool bar, but the
+This is the basic tool-bar face.  No text appears in the tool bar, but the
 colors of this face affect the appearance of tool bar icons.
+@item tooltip
+This face is used for tooltips.
 @item menu
 This face determines the colors and font of Emacs's menus.  Setting the
 font of LessTif/Motif menus is currently not supported; attempts to set
