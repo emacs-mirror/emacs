@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.71) $
+ * $HopeName: MMsrc!trace.c(trunk.72) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.71) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.72) $");
 
 
 /* Types
@@ -337,16 +337,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   arena = trace->arena;
   AVER(finishingTime >= 0.0);
 
-  /* If there is nothing white then there can be nothing grey, */
-  /* so everything is black and we can finish the trace immediately. */
-  if(trace->white == RefSetEMPTY) {
-    arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
-    trace->state = TraceFINISHED;
-    trace->rate = (Size)1;
-    return ResOK;
-  }
-
-  /* Turn everything else grey. */
+  /* From the already set up white set, derive a grey set. */
 
   /* @@@@ Instead of iterating over all the segments, we could */
   /* iterate over all pools which are scannable and thence over */
