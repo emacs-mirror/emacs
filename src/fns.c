@@ -2716,6 +2716,378 @@ ARGS are passed as extra arguments to the function.")
   return result;
 }
 
+/* base64 encode/decode functions.
+   Based on code from GNU recode. */
+
+#define MIME_LINE_LENGTH 76
+
+#define IS_ASCII(Character) \
+  ((Character) < 128)
+#define IS_BASE64(Character) \
+  (IS_ASCII (Character) && base64_char_to_value[Character] >= 0)
+
+/* Table of characters coding the 64 values.  */
+static char base64_value_to_char[64] =
+{
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',	/*  0- 9 */
+  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',	/* 10-19 */
+  'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',	/* 20-29 */
+  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',	/* 30-39 */
+  'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',	/* 40-49 */
+  'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',	/* 50-59 */
+  '8', '9', '+', '/'					/* 60-63 */
+};
+
+/* Table of base64 values for first 128 characters.  */
+static short base64_char_to_value[128] =
+{
+  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,	/*   0-  9 */
+  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,	/*  10- 19 */
+  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,	/*  20- 29 */
+  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,	/*  30- 39 */
+  -1,  -1,  -1,  62,  -1,  -1,  -1,  63,  52,  53,	/*  40- 49 */
+  54,  55,  56,  57,  58,  59,  60,  61,  -1,  -1,	/*  50- 59 */
+  -1,  -1,  -1,  -1,  -1,  0,   1,   2,   3,   4,	/*  60- 69 */
+  5,   6,   7,   8,   9,   10,  11,  12,  13,  14,	/*  70- 79 */
+  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,	/*  80- 89 */
+  25,  -1,  -1,  -1,  -1,  -1,  -1,  26,  27,  28,	/*  90- 99 */
+  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,	/* 100-109 */
+  39,  40,  41,  42,  43,  44,  45,  46,  47,  48,	/* 110-119 */
+  49,  50,  51,  -1,  -1,  -1,  -1,  -1			/* 120-127 */
+};
+
+/* The following diagram shows the logical steps by which three octets
+   get transformed into four base64 characters.
+
+		 .--------.  .--------.  .--------.
+		 |aaaaaabb|  |bbbbcccc|  |ccdddddd|
+		 `--------'  `--------'  `--------'
+                    6   2      4   4       2   6
+	       .--------+--------+--------+--------.
+	       |00aaaaaa|00bbbbbb|00cccccc|00dddddd|
+	       `--------+--------+--------+--------'
+
+	       .--------+--------+--------+--------.
+	       |AAAAAAAA|BBBBBBBB|CCCCCCCC|DDDDDDDD|
+	       `--------+--------+--------+--------'
+
+   The octets are divided into 6 bit chunks, which are then encoded into
+   base64 characters.  */
+
+
+static int base64_encode_1 P_ ((const char *, char *, int, int));
+static int base64_decode_1 P_ ((const char *, char *, int));
+
+DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
+       2, 3, "r",
+       "base64 encode the region between BEG and END.\n\
+Return the length of the encoded text.
+Optional third argument NO-LINE-BREAK means do not break long lines\n\
+into shorter lines.")
+     (beg, end, no_line_break)
+     Lisp_Object beg, end, no_line_break;
+{
+  char *encoded;
+  int allength, length;
+  int ibeg, iend, encoded_length;
+  int old_pos = PT;
+
+  validate_region (&beg, &end);
+
+  ibeg = CHAR_TO_BYTE (XFASTINT (beg));
+  iend = CHAR_TO_BYTE (XFASTINT (end));
+  move_gap_both (XFASTINT (beg), ibeg);
+
+  /* We need to allocate enough room for encoding the text.
+     We need 33 1/3% more space, plus a newline every 76
+     characters, and then we round up. */
+  length = iend - ibeg;
+  allength = length + length/3 + 1;
+  allength += allength / MIME_LINE_LENGTH + 1 + 6;
+
+  encoded = (char *) alloca (allength);
+  encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
+				    NILP (no_line_break));
+  if (encoded_length > allength)
+    abort ();
+
+  /* Now we have encoded the region, so we insert the new contents
+     and delete the old.  (Insert first in order to preserve markers.)  */
+  SET_PT (beg);
+  insert (encoded, encoded_length);
+  del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
+
+  /* If point was outside of the region, restore it exactly; else just
+     move to the beginning of the region.  */
+  if (old_pos >= XFASTINT (end))
+    old_pos += encoded_length - (XFASTINT (end) - XFASTINT (beg));
+  else if (old_pos > beg)
+    old_pos = beg;
+  SET_PT (old_pos);
+
+  /* We return the length of the encoded text. */
+  return make_number (encoded_length);
+}
+
+DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
+       1, 1, 0,
+       "base64 encode STRING and return the result.")
+     (string)
+     Lisp_Object string;
+{
+  int allength, length, encoded_length;
+  char *encoded;
+
+  CHECK_STRING (string, 1);
+
+  length = STRING_BYTES (XSTRING (string));
+  allength = length + length/3 + 1 + 6;
+
+  /* We need to allocate enough room for decoding the text. */
+  encoded = (char *) alloca (allength);
+
+  encoded_length = base64_encode_1 (XSTRING (string)->data,
+				    encoded, length, 0);
+  if (encoded_length > allength)
+    abort ();
+
+  return make_unibyte_string (encoded, encoded_length);
+}
+
+static int
+base64_encode_1 (from, to, length, line_break)
+     const char *from;
+     char *to;
+     int length;
+     int line_break;
+{
+  int counter = 0, i = 0;
+  char *e = to;
+  unsigned char c;
+  unsigned int value;
+
+  while (i < length)
+    {
+      c = from[i++];
+
+      /* Wrap line every 76 characters.  */
+
+      if (line_break)
+	{
+	  if (counter < MIME_LINE_LENGTH / 4)
+	    counter++;
+	  else
+	    {
+	      *e++ = '\n';
+	      counter = 1;
+	    }
+	}
+
+      /* Process first byte of a triplet.  */
+
+      *e++ = base64_value_to_char[0x3f & c >> 2];
+      value = (0x03 & c) << 4;
+
+      /* Process second byte of a triplet.  */
+
+      if (i == length)
+	{
+	  *e++ = base64_value_to_char[value];
+	  *e++ = '=';
+	  *e++ = '=';
+	  break;
+	}
+
+      c = from[i++];
+
+      *e++ = base64_value_to_char[value | (0x0f & c >> 4)];
+      value = (0x0f & c) << 2;
+
+      /* Process third byte of a triplet.  */
+
+      if (i == length)
+	{
+	  *e++ = base64_value_to_char[value];
+	  *e++ = '=';
+	  break;
+	}
+
+      c = from[i++];
+
+      *e++ = base64_value_to_char[value | (0x03 & c >> 6)];
+      *e++ = base64_value_to_char[0x3f & c];
+    }
+
+  /* Complete last partial line.  */
+
+  if (line_break)
+    if (counter > 0)
+      *e++ = '\n';
+
+  return e - to;
+}
+
+
+DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
+  2, 2, "r",
+  "base64 decode the region between BEG and END.\n\
+Return the length of the decoded text.
+If the region can't be decoded, return nil and don't modify the buffer.")
+     (beg, end)
+     Lisp_Object beg, end;
+{
+  int ibeg, iend, length;
+  char *decoded;
+  int old_pos = PT;
+  int decoded_length;
+
+  validate_region (&beg, &end);
+
+  ibeg = CHAR_TO_BYTE (XFASTINT (beg));
+  iend = CHAR_TO_BYTE (XFASTINT (end));
+
+  length = iend - ibeg;
+  /* We need to allocate enough room for decoding the text. */
+  decoded = (char *) alloca (length);
+
+  move_gap_both (XFASTINT (beg), ibeg);
+  decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length);
+  if (decoded_length > length)
+    abort ();
+
+  if (decoded_length < 0)
+    /* The decoding wasn't possible. */
+    return Qnil;
+
+  /* Now we have decoded the region, so we insert the new contents
+     and delete the old.  (Insert first in order to preserve markers.)  */
+  SET_PT (beg);
+  insert (decoded, decoded_length);
+  del_range_byte (ibeg + decoded_length, iend + decoded_length, 1);
+
+  /* If point was outside of the region, restore it exactly; else just
+     move to the beginning of the region.  */
+  if (old_pos >= XFASTINT (end))
+    old_pos += decoded_length - length;
+  else if (old_pos > beg)
+    old_pos = beg;
+  SET_PT (old_pos);
+
+  return make_number (decoded_length);
+}
+
+DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
+       1, 1, 0,
+       "base64 decode STRING and return the result.")
+     (string)
+     Lisp_Object string;
+{
+  char *decoded;
+  int length, decoded_length;
+
+  CHECK_STRING (string, 1);
+
+  length = STRING_BYTES (XSTRING (string));
+  /* We need to allocate enough room for decoding the text. */
+  decoded = (char *) alloca (length);
+
+  decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length);
+  if (decoded_length > length)
+    abort ();
+
+  if (decoded_length < 0)
+      return Qnil;
+
+  return make_string (decoded, decoded_length);
+}
+
+static int
+base64_decode_1 (from, to, length)
+     const char *from;
+     char *to;
+     int length;
+{
+  int counter = 0, i = 0;
+  char *e = to;
+  unsigned char c;
+  unsigned long value;
+
+  while (i < length)
+    {
+      /* Accept wrapping lines, reversibly if at each 76 characters.  */
+
+      c = from[i++];
+      if (c == '\n')
+	{
+	  if (i == length)
+	    break;
+	  c = from[i++];
+	  if (i == length)
+	    break;
+	  if (counter != MIME_LINE_LENGTH / 4)
+	    return -1;
+	  counter = 1;
+	}
+      else
+	counter++;
+
+      /* Process first byte of a quadruplet.  */
+
+      if (!IS_BASE64 (c))
+	return -1;
+      value = base64_char_to_value[c] << 18;
+
+      /* Process second byte of a quadruplet.  */
+
+      if (i == length)
+	return -1;
+      c = from[i++];
+
+      if (!IS_BASE64 (c))
+	return -1;
+      value |= base64_char_to_value[c] << 12;
+
+      *e++ = (unsigned char) (value >> 16);
+
+      /* Process third byte of a quadruplet.  */
+
+      if (i == length)
+	return -1;
+      c = from[i++];
+
+      if (c == '=')
+	{
+	  c = from[i++];
+	  if (c != '=')
+	    return -1;
+	  continue;
+	}
+
+      if (!IS_BASE64 (c))
+	return -1;
+      value |= base64_char_to_value[c] << 6;
+
+      *e++ = (unsigned char) (0xff & value >> 8);
+
+      /* Process fourth byte of a quadruplet.  */
+
+      if (i == length)
+	return -1;
+      c = from[i++];
+
+      if (c == '=')
+	continue;
+
+      if (!IS_BASE64 (c))
+	return -1;
+      value |= base64_char_to_value[c];
+
+      *e++ = (unsigned char) (0xff & value);
+    }
+
+  return e - to;
+}
+
 void
 syms_of_fns ()
 {
@@ -2808,4 +3180,8 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Swidget_put);
   defsubr (&Swidget_get);
   defsubr (&Swidget_apply);
+  defsubr (&Sbase64_encode_region);
+  defsubr (&Sbase64_decode_region);
+  defsubr (&Sbase64_encode_string);
+  defsubr (&Sbase64_decode_string);
 }
