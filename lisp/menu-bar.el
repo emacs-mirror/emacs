@@ -421,9 +421,10 @@ Do the same for the keys of the same name."
   (push-mark (point))
   (insert last-command-event))
 
-(define-key global-map [menu-bar buffer] '("Buffers" . menu-bar-buffers))
-
-(defalias 'menu-bar-buffers (make-sparse-keymap "Buffers"))
+;; This definition is just to show what this looks like.
+;; It gets overridden below when menu-bar-update-buffers is called.
+(define-key global-map [menu-bar buffer]
+  (cons "Buffers" (make-sparse-keymap "Buffers")))
 
 (defvar buffers-menu-max-size 10
   "*Maximum number of entries which may appear on the Buffers menu.
@@ -584,6 +585,8 @@ A large number or nil slows down menu responsiveness.")
 		   (or buffers-menu frames-menu 'undefined)))))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+
+(menu-bar-update-buffers)
 
 ;; this version is too slow
 ;;;(defun format-buffers-menu-line (buffer)
