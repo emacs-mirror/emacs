@@ -76,7 +76,7 @@ index.texi:
 install: elisp
 	./mkinstalldirs $(infodir)
 	cp elisp elisp-* $(infodir)
-	${INSTALL_INFO} --dir-file=${infodir}/dir --info-file=${infodir}/elisp
+	${INSTALL_INFO} --info-dir=${infodir} ${infodir}/elisp
 
 installall: install
 	install -c texinfo.tex $(texmacrodir)
