@@ -692,7 +692,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    struct font_info *fontp;
 
 	    if ((fontset < 0 && (fontset = FRAME_FONTSET (f)) < 0)
-		|| !(fontp = fs_load_font (f, FRAME_X_FONT_TABLE (f),
+		|| !(fontp = FS_LOAD_FONT (f, FRAME_X_FONT_TABLE (f),
 					   charset, NULL, fontset)))
 	      goto font_not_found;
 
@@ -5258,6 +5258,11 @@ x_new_fontset (f, fontsetname)
   if (fontset < 0)
     return Qnil;
 
+  if (f->output_data.x->fontset == fontset)
+    /* This fontset is already set in frame F.  There's nothing more
+       to do.  */
+    return build_string (fontsetname);
+
   fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
 
   if (!fontsetp->fontname[CHARSET_ASCII])
@@ -5272,7 +5277,7 @@ x_new_fontset (f, fontsetname)
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   f->output_data.x->fontset = fontset;
-  fs_load_font (f, FRAME_X_FONT_TABLE (f),
+  FS_LOAD_FONT (f, FRAME_X_FONT_TABLE (f),
 		CHARSET_ASCII, XSTRING (result)->data, fontset);
 
   return build_string (fontsetname);
@@ -6265,28 +6270,19 @@ x_list_fonts (f, pattern, size, maxnames)
      int size;
      int maxnames;
 {
-  Lisp_Object list, patterns = Qnil, newlist = Qnil, key, tem, second_best;
+  Lisp_Object list, patterns, newlist = Qnil, key, tem, second_best;
   Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
 
-  for (list = Valternative_fontname_alist; CONSP (list);
-       list = XCONS (list)->cdr)
-    {
-      tem = XCONS (list)->car;
-      if (CONSP (tem)
-	  && STRINGP (XCONS (tem)->car)
-	  && !NILP (Fstring_equal (XCONS (tem)->car, pattern)))
-	{
-	  patterns = XCONS (tem)->cdr;
-	  break;
-	}
-    }
+  patterns = Fassoc (pattern, Valternative_fontname_alist);
+  if (NILP (patterns))
+    patterns = Fcons (pattern, Qnil);
 
-  for (patterns = Fcons (pattern, patterns); CONSP (patterns);
-       patterns = XCONS (patterns)->cdr, pattern = XCONS (patterns)->car)
+  for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
     {
       int num_fonts;
       char **names;
 
+      pattern = XCONS (patterns)->car;
       /* See if we cached the result for this particular query.  */
       if (f && (tem = XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr,
 		key = Fcons (pattern, make_number (maxnames)),
@@ -6462,6 +6458,11 @@ x_load_font (f, fontname, size)
     struct font_info *fontp;
     unsigned long value;
 
+    /* If we have found fonts by x_list_font, load one of them.  If
+       not, we still try to load a font by the name given as FONTNAME
+       because XListFonts (called in x_list_font) of some X server has
+       a bug of not finding a font even if the font surely exists and
+       is loadable by XLoadQueryFont.  */
     if (!NILP (font_names))
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
 
@@ -6535,6 +6536,29 @@ x_load_font (f, fontname, size)
 
     fontp->size = font->max_bounds.width;
     fontp->height = font->ascent + font->descent;
+
+    if (NILP (font_names))
+      {
+	/* We come here because of a bug of XListFonts mentioned at
+	   the head of this block.  Let's store this information in
+	   the cache for x_list_fonts.  */
+	Lisp_Object lispy_name = build_string (fontname);
+	Lisp_Object lispy_full_name = build_string (fontp->full_name);
+
+	XCONS (dpyinfo->name_list_element)->cdr
+	  = Fcons (Fcons (Fcons (lispy_name, make_number (256)),
+			  Fcons (Fcons (lispy_full_name,
+					make_number (fontp->size)),
+				 Qnil)),
+		   XCONS (dpyinfo->name_list_element)->cdr);
+	if (full_name)
+	  XCONS (dpyinfo->name_list_element)->cdr
+	    = Fcons (Fcons (Fcons (lispy_full_name, make_number (256)),
+			    Fcons (Fcons (lispy_full_name,
+					  make_number (fontp->size)),
+				   Qnil)),
+		     XCONS (dpyinfo->name_list_element)->cdr);
+      }
 
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
