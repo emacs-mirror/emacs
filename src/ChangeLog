@@ -1,5 +1,22 @@
 2001-09-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (make_cursor_line_fully_visible): Return 0 and set
+	fonts_changed_p if need larger matrices due to vscrolling.
+	(try_scrolling, try_cursor_movement, redisplay_window): Give up on
+	this round of redisplay if make_cursor_line_fully_visible fails.
+	(CURSOR_MOVEMENT_*, SCROLLING_*): New enumerators.
+	(try_cursor_movement, try_scrolling): Use them instead of
+	integers.
+
+	* dispextern.h (required_matrix_width, required_matrix_height):
+	Add prototypes.
+
+	* dispnew.c (required_matrix_width, required_matrix_height): New
+	functions.
+	(allocate_matrices_for_window_redisplay)
+	(allocate_matrices_for_frame_redisplay: Use them.  Remove
+	parameters CH_DIM.
+
 	* xdisp.c (display_mode_lines): Temporarily set selected_frame
 	and selected_window to the frame of the window whose mode-lines
 	are displayed, and to the window itself.
