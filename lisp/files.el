@@ -2826,7 +2826,7 @@ Uses `backup-directory-alist' in the same way as does
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
 If FILENAME and DIRECTORY lie on different machines or on different drives
-\(DOS/Windows), it returns FILENAME in expanded form."
+on a DOS/Windows machine, it returns FILENAME on expanded form."
   (save-match-data
     (setq directory
 	  (file-name-as-directory (expand-file-name (or directory
@@ -2836,28 +2836,27 @@ If FILENAME and DIRECTORY lie on different machines or on different drives
           (hd (find-file-name-handler directory 'file-local-copy)))
       (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
       (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
-      (if (and
-	   ;; Conditions for separate trees
-	   (or
-            ;; Test for different drives on DOS/Windows
-            (and
-	     (memq system-type '(ms-dos cygwin windows-nt))
-	     (not (string-equal (substring filename  0 2)
-				(substring directory 0 2))))
-            ;; Test for different remote file handlers
-            (not (eq hf hd))
-            ;; Test for different remote file system identification
-            (and
-	     hf
-	     (let ((re (car (rassq hf file-name-handler-alist))))
-	       (not
-		(equal
-		 (and
-		  (string-match re filename)
-		  (substring filename 0 (match-end 0)))
-		 (and
-		  (string-match re directory)
-		  (substring directory 0 (match-end 0)))))))))
+      (if ;; Conditions for separate trees
+	  (or
+	   ;; Test for different drives on DOS/Windows
+	   (and
+	    (memq system-type '(ms-dos cygwin windows-nt))
+	    (not (string-equal (substring filename  0 2)
+			       (substring directory 0 2))))
+	   ;; Test for different remote file handlers
+	   (not (eq hf hd))
+	   ;; Test for different remote file system identification
+	   (and
+	    hf
+	    (let ((re (car (rassq hf file-name-handler-alist))))
+	      (not
+	       (equal
+		(and
+		 (string-match re filename)
+		 (substring filename 0 (match-end 0)))
+		(and
+		 (string-match re directory)
+		 (substring directory 0 (match-end 0))))))))
 	  filename
         (unless (eq (aref filename 0) ?/)
 	  (setq filename (concat "/" filename)))
