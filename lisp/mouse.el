@@ -371,7 +371,9 @@ Upon exit, point is at the far edge of the newly visible text."
     (or (eq window (selected-window))
 	(goto-char opoint))))
 
+;; Create an overlay and immediately delete it, to get "overlay in no buffer".
 (defvar mouse-drag-overlay (make-overlay 1 1))
+(delete-overlay mouse-drag-overlay)
 (overlay-put mouse-drag-overlay 'face 'region)
 
 (defvar mouse-selection-click-count 0)
