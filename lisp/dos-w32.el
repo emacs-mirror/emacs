@@ -106,7 +106,7 @@ upon the filename, the contents of `untranslated-filesystem-list' and
     If the match is nil (for dos-text):			`undecided-dos'
   Otherwise:
     If the file exists:					`undecided'
-    If the file does not exist:				`undecided-dos'
+    If the file does not exist:	       default-buffer-file-coding-system
 
 If COMMAND is `write-region', the coding system is chosen based upon
 the value of `buffer-file-coding-system' and `buffer-file-type'. If
@@ -148,7 +148,8 @@ set to the appropriate coding system, and the value of
 		 (text '(undecided-dos . undecided-dos))
 		 (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
-		 (t '(undecided-dos . undecided-dos))))
+		 (t (cons default-buffer-file-coding-system
+			  default-buffer-file-coding-system))))
 	  ((eq op 'write-region)
 	   (if buffer-file-coding-system
 	       (cons buffer-file-coding-system
@@ -256,7 +257,95 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 (add-hook 'before-init-hook 'set-default-process-coding-system)
 
-;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
+;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
+
+;; Function to actually send data to the printer port.
+;; Supports writing directly, and using various programs.
+(defun direct-print-region-helper (printer
+				   start end
+				   lpr-prog
+				   delete-text buf display
+				   rest)
+  (let* ((directory-sep-char ?\\)	; expand file names in DOS format
+	 ;; Ignore case when matching known external program names.
+	 (case-fold-search t)
+	 ;; Convert / to \ in printer name, for sake of external programs.
+	 (printer
+	  (if (stringp printer)
+	      (subst-char-in-string ?/ ?\\ printer)
+	    printer))
+	 ;; Find a directory that is local, to work-around Windows bug.
+	 (safe-dir
+	  (let ((safe-dirs (list "c:/" (getenv "windir") (getenv "TMPDIR"))))
+	    (while (not (file-attributes (car safe-dirs)))
+	      (setq safe-dirs (cdr safe-dirs)))
+	    (car safe-dirs)))
+	 (tempfile
+	  (make-temp-name
+	   (expand-file-name "EP" (getenv "TMPDIR"))))
+	 ;; capture output for diagnosis
+	 (errbuf (list (get-buffer-create " *print-region-helper*") t)))
+    ;; It seems that we must be careful about the directory name that
+    ;; gets added to the printer port name by write-region when using
+    ;; the standard "PRN" or "LPTx" ports, because the write can fail if
+    ;; the directory is on a network drive.  The same is true when
+    ;; asking command.com to copy the file.
+    ;; No action is needed for UNC printer names, which is just as well
+    ;; because `expand-file-name' doesn't support UNC names on MS-DOS.
+    (if (not (string-match "^\\\\" printer))
+	(setq printer (expand-file-name printer safe-dir)))
+    ;; Handle known programs specially where necessary.
+    (unwind-protect
+	(cond
+	 ;; nprint.exe is the standard print command on Netware
+	 ((string-match "^nprint\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	  (write-region start end tempfile nil 0)
+	  (call-process lpr-prog nil errbuf nil
+			tempfile (concat "P=" printer)))
+	 ;; print.exe is a standard command on NT
+	 ((string-match "^print\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	  ;; Be careful not to invoke print.exe on MS-DOS or Windows 9x
+	  ;; though, because it is a TSR program there (hangs Emacs).
+	  (or (and (eq system-type 'windows-nt)
+		   (null (getenv "winbootdir")))
+	      (error "Printing via print.exe is not supported on MS-DOS or Windows 9x"))
+	  ;; It seems that print.exe always appends a form-feed so we
+	  ;; should make sure to omit the last FF in the data.
+	  (if (and (> end start)
+		   (char-equal (char-before end) ?\C-l))
+	      (setq end (1- end)))
+	  ;; cancel out annotate function for non-PS case
+	  (let ((write-region-annotate-functions nil))
+	    (write-region start end tempfile nil 0))
+	  (call-process lpr-prog nil errbuf nil
+			(concat "/D:" printer) tempfile))
+	 ;; support lpr and similar programs for convenience, but
+	 ;; supply an explicit filename because the NT version of lpr
+	 ;; can't read from stdin.
+	 ((> (length lpr-prog) 0)
+	  (write-region start end tempfile nil 0)
+	  (setq rest (append rest (list tempfile)))
+	  (apply 'call-process lpr-prog nil errbuf nil rest))
+	 ;; Run command.com to access printer port on Windows 9x, unless
+	 ;; we are supposed to append to an existing (non-empty) file,
+	 ;; to work around a bug in Windows 9x that prevents Win32
+	 ;; programs from accessing LPT ports reliably.
+	 ((and (eq system-type 'windows-nt)
+	       (getenv "winbootdir")
+	       ;; file-attributes fails on LPT ports on Windows 9x but
+	       ;; not on NT, so handle both cases for safety.
+	       (eq (or (nth 7 (file-attributes printer)) 0) 0))
+	  (write-region start end tempfile nil 0)
+	  (let ((w32-quote-process-args nil))
+	    (call-process "command.com" nil errbuf nil "/c"
+			  (format "copy /b %s %s" tempfile printer))))
+	 ;; write directly to the printer port
+	 (t
+	  (write-region start end printer t 0)))
+      ;; ensure we remove the tempfile if created
+      (if (file-exists-p tempfile)
+	  (delete-file tempfile)))))
+
 (defvar printer-name)
 
 (defun direct-print-region-function (start end
@@ -265,8 +354,8 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 					   &rest rest)
   "DOS/Windows-specific function to print the region on a printer.
 Writes the region to the device or file which is a value of
-`printer-name' \(which see\).  Ignores any arguments beyond
-START and END."
+`printer-name' \(which see\), unless the value of `lpr-command'
+indicates a specific program should be invoked."
 
   ;; DOS printers need the lines to end with CR-LF pairs, so make
   ;; sure it always happens that way, unless the buffer is binary.
@@ -274,33 +363,24 @@ START and END."
 	 (coding-base
 	  (if (null coding) 'undecided (coding-system-base coding)))
 	 (eol-type (coding-system-eol-type coding-base))
+	 ;; Make each print-out eject the final page, but don't waste
+	 ;; paper if the file ends with a form-feed already.
 	 (write-region-annotate-functions
 	  (cons
 	   (lambda (start end)
-	     ;; Make each print-out start on a new page, but don't waste
-	     ;; paper if there was a form-feed at the end of this file.
-	     (if (not (char-equal (char-after (1- end)) ?\C-l))
+	     (if (not (char-equal (char-before end) ?\C-l))
 		 `((,end . "\f"))))
-	   write-region-annotate-functions)))
+	   write-region-annotate-functions))
+	 (printer (or (and (boundp 'dos-printer)
+			   (stringp (symbol-value 'dos-printer))
+			   (symbol-value 'dos-printer))
+		      printer-name)))
     (or (eq coding-system-for-write 'no-conversion)
 	(setq coding-system-for-write
 	      (aref eol-type 1)))	; force conversion to DOS EOLs
-    (let ((printer (or (and (boundp 'dos-printer)
-			    (stringp (symbol-value 'dos-printer))
-			    (symbol-value 'dos-printer))
-		       printer-name))
-	  ;; It seems that we must be careful about the directory name
-	  ;; that gets added by write-region when using the standard
-	  ;; "PRN" or "LPTx" ports.  The call can fail if the directory
-	  ;; is on a network drive.
-	  (safe-dir (or (getenv "windir") (getenv "TMPDIR") "c:/")))
-      (write-region start end
-		    (expand-file-name printer safe-dir) t 0))))
+    (direct-print-region-helper printer start end lpr-prog
+				delete-text buf display rest)))
 
-;; Set this to nil if you have a port of the `lpr' program and
-;; you want to use it for printing.  If the default setting is
-;; in effect, `lpr-command' and its switches are ignored when
-;; printing with `lpr-xxx' and `print-xxx'.
 (setq print-region-function 'direct-print-region-function)
 
 ;; Set this to nil if you have a port of the `pr' program
@@ -315,10 +395,28 @@ START and END."
 
 (defvar ps-printer-name)
 
-(setq ps-lpr-command "gs")
+(defun direct-ps-print-region-function (start end
+					      &optional lpr-prog
+					      delete-text buf display
+					      &rest rest)
+  "DOS/Windows-specific function to print the region on a PostScript printer.
+Writes the region to the device or file which is a value of
+`ps-printer-name' \(which see\), unless the value of `ps-lpr-command'
+indicates a specific program should be invoked."
 
-(setq ps-lpr-switches '("-q" "-dNOPAUSE" "-sDEVICE=epson" "-r240x60"
-			  "-sOutputFile=LPT1" "-"))
+  (let ((printer (or (and (boundp 'dos-ps-printer)
+			  (stringp (symbol-value 'dos-ps-printer))
+			  (symbol-value 'dos-ps-printer))
+		     ps-printer-name)))
+    (direct-print-region-helper printer start end lpr-prog
+				delete-text buf display rest)))
+
+(setq ps-print-region-function 'direct-ps-print-region-function)
+
+;(setq ps-lpr-command "gs")
+
+;(setq ps-lpr-switches '("-q" "-dNOPAUSE" "-sDEVICE=epson" "-r240x60"
+;			  "-sOutputFile=LPT1"))
 
 (provide 'dos-w32)
 
