@@ -203,7 +203,11 @@ is a list of menu items, as above."
 	  (setq command (cons item-string command))
 	  (if (not have-buttons)	; Save all items so that we can fix
 	      (setq old-items (cons command old-items))) ; if we have buttons.
-	  (if name (define-key menu (vector (intern name)) command))))
+	  (when name
+	    (let ((key (vector (intern name))))
+	      (if (lookup-key menu key)
+		  (setq key (vector (intern (concat name "*")))))
+	      (define-key menu key command)))))
       (setq menu-items (cdr menu-items)))
     menu))
 
