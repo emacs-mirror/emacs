@@ -1,3 +1,13 @@
+2001-10-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (VERSION): Set to 2.8.
+	(manual): Use `manual-21'.
+
+	* elisp.texi (VERSION): Add and use it where the the version
+	number was used.  Set it to 2.8.
+
+	* intro.texi: Likewise.
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.texi (File Name Completion): Document the significance of
