@@ -1,3 +1,20 @@
+2004-06-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item): Use
+	lc-*.xpm as prefix instead of *-locol.xpm.
+
+	* toolbar/lc-copy.xpm, toolbar/lc-cut.xpm
+	* toolbar/lc-help.xpm, toolbar/lc-home.xpm
+	* toolbar/lc-index.xpm, toolbar/lc-jump_to.xpm
+	* toolbar/lc-left_arrow.xpm, toolbar/lc-new.xpm
+	* toolbar/lc-open.xpm, toolbar/lc-paste.xpm
+	* toolbar/lc-preferences.xpm, toolbar/lc-print.xpm
+	* toolbar/lc-right_arrow.xpm, toolbar/lc-save.xpm
+	* toolbar/lc-saveas.xpm, toolbar/lc-search.xpm
+	* toolbar/lc-spell.xpm, toolbar/lc-undo.xpm
+	* toolbar/lc-up_arrow.xpm:
+	Renamed from *-locol.xpm.
+
 2004-06-09  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* ffap.el (ffap-string-at-point-mode-alist): Fix the url mode to
