@@ -1,3 +1,9 @@
+2003-09-01  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (alloca.o): Remove.
+	(coding.o): Depend on intervals.h
+	(emacs.o, bytecode.o): Depend on window.h
+
 2003-09-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (alloca.o): Remove commands.
