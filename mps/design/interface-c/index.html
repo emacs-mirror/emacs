@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the Memory Pool System interface to C</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+          THE DESIGN OF THE MEMORY POOL SYSTEM INTERFACE TO C
+                         design.mps.interface.c
+                             incomplete doc
+                           richard 1996-07-29
+
+INTRODUCTION
+
+
+Scope
+
+<a id="scope" name="scope">.scope</a>: This document is the design for the Memory Pool System (MPS) interface 
+to the C Language, impl.h.mps.
+
+
+Background
+
+<a id="bg" name="bg">.bg</a>: See mail.richard.1996-07-24.10-57.
+
+
+Document History
+
+<a id="hist.0" name="hist.0">.hist.0</a>: The first draft of this document was generated in response to 
+review.impl.h.mps.10 which revealed the lack of a detailed design document and 
+also the lack of conventions for external interfaces.  The aim of the draft was 
+to record this information, even if it isn't terribly well structured.
+
+
+ANALYSIS
+
+
+Goals
+
+<a id="goal.c" name="goal.c">.goal.c</a>: The file impl.h.mps is the C external interface to the MPS.  It is the 
+default interface between client code written in C and the MPS.  <a id="goal.cpp" name="goal.cpp">.goal.cpp</a>: 
+impl.h.mps is not specifically designed to be an interface to C++, but should 
+be usable from C++.
+
+
+Requirements
+
+<a id="req" name="req">.req</a>: The interface must provide an interface from client code written in C to 
+the functionality of the MPS required by the product (see req.product), Dylan 
+(req.dylan), and the Core RIP (req.epcore).
+
+mps.h may not include internal MPS header files such as "pool.h" etc.
+
+It is essential that the interface cope well with change, in order to avoid 
+restricting possible future MPS developments.  This means that the interface 
+must be "open ended" in its definitions.  This accounts for some of the 
+apparently tortuous methods of doing things (fmt_A, for example).  The 
+requirement is that the MPS should be able to add new functionality, or alter 
+the implementation of existing functionality, without affecting existing client 
+code.  A stronger requirement is that the MPS should be able to change without 
+_recompiling_ client code.  This is not always possible.
+
+[.naming.global wqas presumable done in response to an unwritten requirement 
+regarding the use of the name spaces in C, perhaps something like 
+"<a id="req.name.iso" name="req.name.iso">.req.name.iso</a>: The interface shall not conflict in terms of naming with any 
+interfaces specified by ISO C and all reasonable future versions" and 
+"<a id="req.name.general" name="req.name.general">.req.name.general</a>: The interface shall use a documented and reasonably small 
+portion of the namespace so that clients can interoperate easily"  drj 
+1998-10-01]
+
+
+ARCHITECTURE
+
+<a id="fig.arch" name="fig.arch">.fig.arch</a>: The architecture of the MPS Interface
+
+
+
+Just behind mps.h is the file mpsi.c, the "MPS interface layer" which does the 
+job of converting types and checking parameters before calling through to the 
+MPS proper, using internal MPS methods.
+
+
+GENERAL CONVENTIONS
+
+
+<a id="naming" name="naming">.naming</a>: The external interface names should adhere to the documented interface 
+conventions; these are found in doc.mps.ref-man.if-conv(0).naming.  
+(paraphrased/recreated here)  <a id="naming.unixy" name="naming.unixy">.naming.unixy</a>: The external interface does not 
+follow the same naming conventions as the internal code.  The interface is 
+designed to resemble a more conventional C, Unix, or Posix naming convention.  
+<a id="naming.case" name="naming.case">.naming.case</a>: Identifiers are in lower case, except non-function-like macros, 
+which are in upper case.  <a id="naming.global" name="naming.global">.naming.global</a>: All publicised identifiers are 
+prefixed "mps_" or "MPS_".  <a id="naming.all" name="naming.all">.naming.all</a>: All identifiers defined by the MPS 
+should begin "mps_" or "MPS_" or "_mps_".  <a id="naming.type" name="naming.type">.naming.type</a>: Types are suffixed 
+"_t".  <a id="naming.struct" name="naming.struct">.naming.struct</a>: Structure types and tags are suffixed "_s".  
+<a id="naming.union" name="naming.union">.naming.union</a>: Unions types and tags are suffixed "_u".
+
+<a id="naming.scope" name="naming.scope">.naming.scope</a>: The naming conventions apply to all identifiers (see ISO C 
+clause 6.1.2); this includes names of functions, variables, types (through 
+typedef), structure and union tags, enumeration members, structure and union 
+members, macros, macro parameters, labels.  <a id="naming.scope.labels" name="naming.scope.labels">.naming.scope.labels</a>: labels (for 
+goto statements) should be rare, only in special block macros and probably not 
+even then.  <a id="naming.scope.other" name="naming.scope.other">.naming.scope.other</a>: The naming convention would also extend to 
+enumeration types and parameters in functions prototypes but both of those are 
+prohibited from having names in an interface file.
+
+<a id="type.gen" name="type.gen">.type.gen</a>: The interface defines memory addresses as "void *" and sizes as 
+"size_t" for compatibility with standard C (in particular, with malloc etc.).  
+These types must be binary compatible with the internal types "Addr" and "Size" 
+respectively.  Note that this restricts the definitions of the internal types 
+"Addr" and "Size" when the MPS is interfaced with C, but does not restrict the 
+MPS in general.
+
+<a id="type.opaque" name="type.opaque">.type.opaque</a>: Opaque types are defined as pointers to structures which are 
+never defined.  These types are cast to the corresponding internal types in 
+mpsi.c.
+
+<a id="type.trans" name="type.trans">.type.trans</a>:  Some transparent structures are defined.  The client is expected 
+to read these, or poke about in them, under restrictions which should be 
+documented.  The most important is probably the allocation point (mps_ap_s) 
+which is part of allocation buffers.  The transparent structures must be binary 
+compatible with corresponding internal structures.  For example, the fields of 
+mps_ap_s must corredpond with APStruct internally.  This is checked by mpsi.c 
+in mps_check().
+
+<a id="type.pseudo" name="type.pseudo">.type.pseudo</a>: Some pseudo-opaque structures are defined.  These only exist so 
+that code can be inlined using macros.  The client code shouldn't mess with 
+them.  The most important case of this is the scan state (mps_ss_s) which is 
+accessed by the in-line scanning macros, MPS_SCAN_* and MPS_FIX*.
+
+<a id="type.enum" name="type.enum">.type.enum</a>: There should be no enumeration types in the interface.  Note that 
+enum specifiers (to declare integer constants) are fine as long as no type is 
+declared.  See guide.impl.c.misc.enum.type.
+
+<a id="type.fun" name="type.fun">.type.fun</a>: Whenever function types or derived function types (such as pointer 
+to function) are declared a prototype should be used and the parameters to the 
+function should not be named.  This includes the case where you are declaring 
+the prototype for an interface function.  <a id="type.fun.example" name="type.fun.example">.type.fun.example</a>: So use "extern 
+mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t, ...);" rather than 
+"extern mps_res_t mps_alloc(mps_addr_t *addr_return, mps_pool_t pool , size_t 
+size, ...);"  and "typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);" rather 
+then "typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t object);".  See 
+guide.impl.c.misc.prototype.parameters.
+
+
+Checking
+
+<a id="check.space" name="check.space">.check.space</a>: When the space needs to be recovered from a parameter it is check 
+using AVER(CHECKT(Foo, foo)) before any attempt to access FooSpace(foo).  
+CHECKT (impl.h.assert) performs simple thread-safe checking of foo, so it can 
+be called outside of SpaceEnter/SpaceLeave.  [perhaps this should be a special 
+macro.  "AVER(CHECKT(" can look like the programmer made a mistake.  drj 
+1998-11-05]
+
+<a id="check.types" name="check.types">.check.types</a>: We use definitions of types in both our external interface and 
+our internal code, and we want to make sure that they are compatible.  (The 
+external interface changes less often and hides more information.)  At first, 
+we were just checking their sizes, which wasn't very good, but I've come up 
+with some macros which check the assignment compatibility of the types too.  
+This is a sufficiently useful trick that I thought I'd send it round.  It may 
+be useful in other places where types and structures need to be checked for 
+compatibility at compile time.
+
+These macros don't generate warnings on the compilers I've tried.
+
+This macro checks the assignment compatibility of two lvalues.  The hack is 
+that it uses sizeof to guarantee that the assignments have no effect.
+
+#define check_lvalues(_e1, _e2) \
+  (sizeof((_e1) = (_e2)), sizeof((_e2) = (_e1)), sizeof(_e1) == sizeof(_e2))
+
+This macro checks that two types are compatible and equal in size.  The hack 
+here is that it generates an lvalue for each type by casting zero to a pointer 
+to the type.
+
+#define check_types(_t1, _t2)   check_lvalues(*((_t1 *)0), *((_t2 *)0))
+
+This macro just checks that the offset and size of two fields are the same.
+
+#define check_fields_approx(_s1, _f1, _s2, _f2) \
+  (offsetof(_s1, _f1) == offsetof(_s2, _f2) &amp;&amp; \
+   sizeof(((_s1 *)0)-&gt;_f1) == sizeof(((_s2 *)0)-&gt;_f2))
+
+This macro checks the offset, size, and compatibility of fields.
+
+#define check_fields(_s1, _f1, _s2, _f2) \
+  (check_lvalues(((_s1 *)0)-&gt;_f1, ((_s2 *)0)-&gt;_f2) &amp;&amp; \
+   check_fields_approx(_s1, _f1, _s2, _f2))
+
+
+Binary Compatibility Issues
+
+As in Enumeration types are not allowed (see mail.richard.1995-09-08.09-28).
+
+There are two main aspects to run-time compatibility: binary interface and 
+protocol.  The binary interface is all the information needed to correctly use 
+the library, and includes external symbol linkage, calling conventions, type 
+representation compatibility, structure layouts, etc.  The protocol is how the 
+library is actually used by the client code -- whether this is called before 
+that -- and determines the semantic correctness of the client with respect to 
+the library.
+
+The binary interface is determined completely by the header file and the 
+target.  The header file specifies the external names and the types, and the 
+target platform specifies calling conventions and type representation.  There 
+is therefore a many-to-one mapping between the header file version and the 
+binary interface.
+
+The protocol is determined by the implementation of the library.
+
+  
+Constraints
+
+<a id="cons" name="cons">.cons</a>: The MPS C Interface constrains the MPS in order to provide useful memory 
+management services to a C or C++ program.
+
+<a id="cons.addr" name="cons.addr">.cons.addr</a>: The interface constrains the MPS address type, Addr 
+(design.mps.type.addr), to being the same as C's generic pointer type, void *, 
+so that the MPS can manage C objects in the natural way.
+
+<a id="pun.addr" name="pun.addr">.pun.addr</a>: We pun the type of mps_addr_t (which is void *) into Addr (an 
+incomplete type, see design.mps.type.addr).  This happens in the call to the 
+scan state's fix function, for example.
+
+<a id="cons.size" name="cons.size">.cons.size</a>: The interface constrains the MPS size type, Size 
+(design.mps.type.size), to being the same as C's size type, size_t, so that the 
+MPS can manage C objects in the natural way.
+ 
+<a id="pun.size" name="pun.size">.pun.size</a>: We pun the type of size_t in mps.h into Size in the MPM, as an 
+argument to the format methods.  We assume this works.
+
+<a id="cons.word" name="cons.word">.cons.word</a>: The MPS assumes that Word (design.mps.type.word) and Addr 
+(design.mps.type.addr) are the same size, and the interface constrains Word to 
+being the same size as C's generic pointer type, void *.
+
+
+NOTES
+
+The file mpstd.h is the MPS target detection header.  It decodes
+preprocessor symbols which are predefined by build environments in order to
+determine the target platform, and then defines uniform symbols, such as
+MPS_ARCH_I3, for use internall by the MPS.
+
+There is a design document for the mps interface, design.mps.interface, but
+it was written before we had the idea of having a C interface layer.  It is
+quite relevant, though, and could be updated.  We should use it during the
+review.
+
+All exported identifiers and file names should begin with mps_ or mps so
+that they don't clash with other systems.
+
+We should probably have a specialized set of rules and a special checklist
+for this interface.
+
+<a id="fmt.extend" name="fmt.extend">.fmt.extend</a>: This paragraph should be an explanation of why mps_fmt_A is so 
+called.  The underlying reason is future extensibility.
+
+<a id="thread-safety" name="thread-safety">.thread-safety</a>: Most calls through this interface lock the space and therefore 
+make the MPM single-threaded.  In order to do this they must recover the space 
+from their parameters.  Methods such as ThreadSpace() must therefore be 
+callable when the space is _not_ locked.  These methods are tagged with the tag 
+of this note.
+
+<a id="lock-free" name="lock-free">.lock-free</a>: Certain functions inside the MPM are thread-safe and do not need to 
+be serialized by using locks.  They are marked with the tag of this note.
+
+<a id="form" name="form">.form</a>: Almost all functions in this implementation simply cast their arguments 
+to the equivalent internal types, and cast results back to the external type, 
+where necessary.  Only exceptions are noted in comments.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

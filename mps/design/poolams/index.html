@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the automatic mark-and-sweep pool class</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+         THE DESIGN OF THE AUTOMATIC MARK-AND-SWEEP POOL CLASS
+                           design.mps.poolams
+                              draft design
+                            nickb 1997-08-14
+
+
+INTRODUCTION:
+
+This is the design of the AMS pool class.
+
+<a id="readership" name="readership">.readership</a>: MM developers.
+
+<a id="source" name="source">.source</a>: design.mps.buffer, design.mps.trace, design.mps.scan, 
+design.mps.action and design.mps.class-interface [none of these were actually 
+used  -- pekka 1998-04-21].  No requirements doc [we need a req.mps that 
+captures the commonalities between the products  -- pekka 1998-01-27].
+
+
+Document History
+
+<a id="hist.0" name="hist.0">.hist.0</a>: Nick Barnes wrote down some notes on the implementation 1997-08-14.  
+Pekka P. Pirinen wrote the first draft design 1998-01-27.
+
+<a id="hist.1" name="hist.1">.hist.1</a>: Pekka edited on the basis of review.design.mps.poolams.0, and 
+redesigned the colour representation (results mostly in 
+analysis.non-moving-colour(0)).
+
+<a id="hist.2" name="hist.2">.hist.2</a>: Described subclassing and allocation policy.  pekka 1999-01-04
+
+
+
+OVERVIEW:
+
+This document describes the design of the AMS pool class.  The AMS pool is a 
+proof-of-concept design for a mark-sweep pool in the MPS.  It's not meant to be 
+efficient, but it could serve as a model for an implementation of a more 
+advanced pool (such as EPVM).
+
+
+REQUIREMENTS:
+
+<a id="req.mark-sweep" name="req.mark-sweep">.req.mark-sweep</a>: The pool must use a mark-and-sweep GC algorithm.
+
+<a id="req.colour" name="req.colour">.req.colour</a>: The colour representation should be as efficient as possible.
+
+<a id="req.incremental" name="req.incremental">.req.incremental</a>: The pool must support incremental GC.
+
+<a id="req.ambiguous" name="req.ambiguous">.req.ambiguous</a>: The pool must support ambiguous references to objects in it 
+(but ambiguous references into the middle of an object do not preserve the 
+object).
+
+<a id="req.format" name="req.format">.req.format</a>: The pool must be formatted, for generality.
+
+<a id="req.correct" name="req.correct">.req.correct</a>: The design and the implementation should be simple enough to be 
+seen to be correct.
+
+<a id="req.simple" name="req.simple">.req.simple</a>: Features not related to mark-and-sweep GC should initially be 
+implemented as simply as possible, in order to save development effort.
+
+<a id="not-req.grey" name="not-req.grey">.not-req.grey</a>: We haven't figured out how buffers ought to work with a grey 
+mutator, so we use .req.correct to allow us to design a pool that doesn't work 
+in that phase.  This is acceptable as long as we haven't actually implemented 
+grey mutator collection.
+
+
+ARCHITECTURE:
+
+Subclassing
+
+<a id="subclass" name="subclass">.subclass</a>: Since we expect to have many mark-and-sweep pools, we build in some 
+protocol for subclasses to modify various aspects of the behaviour.  Notably 
+there's a subclassable segment class, and a protocol for performing iteration.  
+
+
+Allocation
+
+<a id="align" name="align">.align</a>: We divide the segments in grains, each the size of the format 
+alignment.  <a id="alloc-bit-table" name="alloc-bit-table">.alloc-bit-table</a>: We keep track of allocated grains using a bit 
+table.  This allows a simple implementation of allocation and freeing using the 
+bit table operators, satisfying .req.simple, and can simplify the GC routines.  
+Eventually, this should use some sophisticated allocation technique suitable 
+for non-moving automatic pools.
+
+<a id="buffer" name="buffer">.buffer</a>: We use buffered allocation, satisfying .req.incremental.  The AMC 
+buffer technique is reused, although it is not suitable for non-moving pools, 
+but req.simple allows us to do that for now.
+
+<a id="extend" name="extend">.extend</a>: If there's no space in any existing segment, a new segment is 
+allocated.  The actual class is allowed to decide the size of the new segment.
+
+<a id="no-alloc" name="no-alloc">.no-alloc</a>: Do not support PoolAlloc, because we can't support one-phase 
+allocation for a scannable pool (unless we disallow incremental collection).  
+For exact details, see design.mps.buffer.
+
+<a id="no-free" name="no-free">.no-free</a>: Do not support PoolFree, because automatic pools don't need explicit 
+free and having it encourages clients to use it (and therefore to have dangling 
+pointers, double frees, &amp;c.)
+
+
+Colours
+
+<a id="colour" name="colour">.colour</a>: Objects in a segment which is _not_ condemned (for some trace) take 
+their colour (for this trace) from the segment.  <a id="colour.object" name="colour.object">.colour.object</a>: Since we need 
+to implement a non-copying GC, we keep track of the colour of each object in a 
+condemned segment separately.  For this, we use bit tables with a bit for each 
+grain.  This format is fast to access, has better locality than mark bits in 
+the objects themselves, and allows cheap interoperation with the allocation bit 
+table.  As to the details, we follow analysis.non-moving-colour(0), with the 
+the analysis.non-moving-colour.free.black option [why?].  <a id="colour.alloc-table" name="colour.alloc-table">.colour.alloc-table</a>: 
+We choose to keep a separate allocation table, for generality.
+
+<a id="ambiguous.middle" name="ambiguous.middle">.ambiguous.middle</a>: We will allow ambiguous references into the middle of an 
+object (as required by .req.ambiguous), using the trick in 
+analysis.non-moving-colour.interior.ambiguous-only to speed up scanning.  
+<a id="interior-pointer" name="interior-pointer">.interior-pointer</a>: Note that non-ambiguous interior pointers are outlawed.
+
+<a id="colour.alloc" name="colour.alloc">.colour.alloc</a>: Objects are allocated black.  This is the most efficient 
+alternative for traces in the black mutator phase, and .not-req.grey means 
+that's sufficient.  [Some day, we need to think about allocating grey or white 
+during the grey mutator phase.]
+
+
+Scanning
+
+<a id="scan.segment" name="scan.segment">.scan.segment</a>: The tracer protocol requires (for segment barrier hits) that 
+there is a method for scanning a segment and turning all grey objects on it 
+black.  This cannot be achieved with a single sequential sweep over the 
+segment, since objects that the sweep has already passed may become grey as 
+later objects are scanned.  <a id="scan.graph" name="scan.graph">.scan.graph</a>: For a non-moving GC, it is more 
+efficient to trace along the reference graph than segment by segment [it would 
+also allow passing type information from fix to scan].  Currently, the tracer 
+doesn't offer this option when it's polling for work.
+
+<a id="scan.stack" name="scan.stack">.scan.stack</a>: Tracing along the reference graph cannot be done by recursive 
+descent, because we can't guarantee that the stack won't overflow.  We can, 
+however, maintain an explicit stack of things to trace, and fall back on 
+iterative methods (.scan.iter) when it overflows and can't be extended.
+
+<a id="scan.iter" name="scan.iter">.scan.iter</a>: As discussed in .scan.segment, when scanning a segment, we need to 
+ensure that there are no grey objects in the segment when the scan method 
+returns.  We can do this by iterating a sequential scan over the segment until 
+nothing is grey (see .marked.scan for details).  <a id="scan.iter.only" name="scan.iter.only">.scan.iter.only</a>: Some 
+iterative method is needed as a fallback for the more advanced methods, and as 
+this is the simplest way of implementing the current tracer protocol, we will 
+start by implementing it as the only scanning method.
+
+<a id="scan.buffer" name="scan.buffer">.scan.buffer</a>: We do not scan between ScanLimit and Limit of a buffer (see 
+.iteration.buffer), as usual [design.mps.buffer should explain why this works, 
+but doesn't.  Pekka 1998-02-11].
+
+<a id="fix.to-black" name="fix.to-black">.fix.to-black</a>: When fixing a reference to a white object, if the segment does 
+not refer to the white set, the object cannot refer to the white set, and can 
+therefore be marked as black immediately (rather than grey).
+
+
+
+ANALYSIS:
+
+[This section intentionally left blank.]
+
+
+IDEAS:
+
+[This section intentionally left blank.]
+
+
+IMPLEMENTATION:
+
+Colour
+
+<a id="colour.determine" name="colour.determine">.colour.determine</a>: Following the plan in .colour, if SegWhite(seg) includes the 
+trace, the colour of an object is given by the bit tables.  Otherwise if 
+SegGrey(seg) includes the trace, all the objects are grey.  Otherwise all the 
+objects are black.
+
+<a id="colour.bits" name="colour.bits">.colour.bits</a>: As we only have searches for runs of zero bits, we use two bit 
+tables, the non-grey and non-white tables, but this is hidden beneath a layer 
+of macros talking about grey and white in positive terms.
+
+<a id="colour.single" name="colour.single">.colour.single</a>: We have only implemented a single set of mark and scan tables, 
+so we can only condemn a segment for one trace at a time.  This is checked for 
+in condemnation.  If we want to do overlapping white sets, each trace needs its 
+own set of tables.
+
+<a id="colour.check" name="colour.check">.colour.check</a>: The grey&amp;white state is illegal, and free objects must be not 
+grey and not white as explained in analysis.non-moving-colour.free.black.
+
+
+Iteration
+
+<a id="iteration" name="iteration">.iteration</a>: Scan, reclaim and other operations need to iterate over all objects 
+in a segment.  We abstract this into a single iteration function, even though 
+we no longer use it for reclaiming and rarely for scanning.
+
+<a id="iteration.buffer" name="iteration.buffer">.iteration.buffer</a>: Iteration skips directly from ScanLimit to Limit of a 
+buffer.  This is because this area may contain partially-initialized and 
+uninitialized data, which cannot be processed.  [ScanLimit is used for reasons 
+which are not documented in design.mps.buffer.]  Since the iteration skips the 
+buffer, callers need to take the appropriate action, if any, on it.
+
+
+Scanning Algorithm
+
+<a id="marked" name="marked">.marked</a>: Each segment has a 'marksChanged' flag, indicating whether anything in 
+it has been made grey since the last scan iteration (.scan.iter) started.  This 
+flag only concerns the colour of objects with respect to the trace for which 
+the segment is condemned, as this is the only trace for which objects in the 
+segment are being made grey by fixing.  Note that this flag doesn't imply that 
+there are grey objects in the segment, because the grey objects might have been 
+subsequently scanned and blackened.
+
+<a id="marked.fix" name="marked.fix">.marked.fix</a>: The marksChanged flag is set TRUE by AMSFix when an object is made 
+grey.
+
+<a id="marked.scan" name="marked.scan">.marked.scan</a>: AMSScan must blacken all grey objects on the segment, so it must 
+iterate over the segment until all grey objects have been seen.  Scanning an 
+object in the segment might grey another one (.marked.fix), so the scanner 
+iterates until this flag is FALSE, setting it to FALSE before each scan.  It is 
+safe to scan the segment even if it contains nothing grey.
+
+<a id="marked.scan.fail" name="marked.scan.fail">.marked.scan.fail</a>: If the format scanner returns failure (see 
+protocol.mps.scanning [is that the best reference?]), we abort the scan in the 
+middle of a segment.  So in this case the marksChanged flag is set back to 
+TRUE, because we may not have blackened all grey objects.
+
+<a id="marked.unused" name="marked.unused">.marked.unused</a>: The marksChanged flag is meaningless unless the segment is 
+condemned.  We make it FALSE in these circumstances.
+
+<a id="marked.condemn" name="marked.condemn">.marked.condemn</a>: Condemnation makes all objects in a segment either black or 
+white, leaving nothing grey, so it doesn't need to set the marksChanged flag 
+which must already be FALSE.
+
+<a id="marked.reclaim" name="marked.reclaim">.marked.reclaim</a>: When a segment is reclaimed, it can contain nothing marked as 
+grey, so the marksChanged flag must already be FALSE.
+
+<a id="marked.blacken" name="marked.blacken">.marked.blacken</a>: When the tracer decides not to scan, but to call PoolBlacken, 
+we know that any greyness can be removed.  AMSBlacken does this and resets the 
+marksChanged flag, if it finds that the segment has been condemned.
+
+<a id="marked.clever" name="marked.clever">.marked.clever</a>: AMS could be clever about not setting the marksChanged flag, if 
+the fixed object is ahead of the current scan pointer.  It could also keep low- 
+and high-water marks of grey objects, but we don't need to implement these 
+improvements at first.
+
+
+Allocation
+
+<a id="buffer-init" name="buffer-init">.buffer-init</a>: We take one init arg to set the Rank on the buffer, just to see 
+how it's done.
+
+<a id="no-bit" name="no-bit">.no-bit</a>: As an optimization, we won't use the alloc bit table until the first 
+reclaim on the segment.  Before that, we just keep a high-water mark.
+
+<a id="fill" name="fill">.fill</a>: AMSBufferFill takes the simplest approach: it iterates over the segments 
+in the pool, looking for one which can be used to refill the buffer.  
+<a id="fill.colour" name="fill.colour">.fill.colour</a>: The objects allocated from the new buffer must be black for all 
+traces (.colour.alloc), so putting it on a black segment (meaning one where 
+neither SegWhite(seg) nor SegGrey(seg) include the trace, see 
+.colour.determine) is obviously OK.  White segments (where SegWhite(seg) 
+includes the trace) are also fine, as we can use the colour tables to make it 
+black (we don't actually have to adjust the tables, since free grains have the 
+same colour table encoding as black, see .colour.object).  At first glance, it 
+seems we can't put it on a segment that is grey for some trace (one where where 
+SegWhite(seg) doesn't include the trace, but SegGrey(seg) does), because the 
+new objects would become grey as the buffer's ScanLimit advanced.  We could 
+switch the segment over to using colour tables, but this becomes very hairy 
+when multiple traces are happening, so in that case, we'd be better off either 
+not attaching to grey segments or allowing grey allocation, wasteful as it is 
+[@@@@ decide which].
+
+<a id="fill.slow" name="fill.slow">.fill.slow</a>: AMSBufferFill gets progressively slower as more segments fill up, 
+as it laboriously checks whether the buffer can be refilled from each segment, 
+by inspecting the allocation bitmap.  This is helped a bit by keeping count of 
+free grains in each segment, but it still spends a lot of time iterating over 
+all the full segments checking the free size.  Obviously, this can be much 
+improved (we could keep track of the largest free block in the segment and in 
+the pool, or we could keep the segments in some more efficient structure, or we 
+could have a real free list structure).
+
+<a id="fill.extend" name="fill.extend">.fill.extend</a>: If there's no space in any existing segment, the segSize method 
+is called to decide the size of the new segment to allocate.  If that fails, 
+the code tries to allocate a segment that's just large enough to satisfy the 
+request.
+
+<a id="empty" name="empty">.empty</a>: AMSBufferEmpty makes the unused space free, since there's no reason not 
+to.  We don't have to adjust the colour tables, since free grains have the same 
+colour table encoding as black, see .colour.object.
+
+<a id="reclaim.empty.buffer" name="reclaim.empty.buffer">.reclaim.empty.buffer</a>: Segments which after reclaim only contain a buffer could 
+be destroyed by trapping the buffer, but there's no point to this.
+
+
+Initialization
+
+<a id="init" name="init">.init</a>: The initialization method AMSInit() takes one additional argument: the 
+format of objects allocated in the pool.  The pool alignment is set equal to 
+the format alignment (see design.mps.align).
+
+<a id="init.internal" name="init.internal">.init.internal</a>: Subclasses call AMSInitInternal() to avoid the problems of 
+sharing va_list and emitting a superfluous PoolInitAMS event.
+
+
+Condemnation
+
+<a id="action" name="action">.action</a>: We use PoolCollectAct to condemn the whole pool (except the buffers) 
+at once.
+
+<a id="condemn.buffer" name="condemn.buffer">.condemn.buffer</a>: Buffers are not condemned, instead they are coloured black, to 
+make sure that the objects allocated will be black, following .colour.alloc 
+(or, if you wish, because buffers are ignored like free space, so need the same 
+encoding).
+
+<a id="benefit.guess" name="benefit.guess">.benefit.guess</a>: The benefit computation is pulled out of a hat; any real pool 
+class will need a real benefit computation.  It will return a positive value 
+when the allocated size of the pool is over one megabyte and more than twice 
+what it was when the last segment in this pool was reclaimed (we call this 
+lastReclaimedSize).  
+
+<a id="benefit.repeat" name="benefit.repeat">.benefit.repeat</a>: We reset lastReclaimedSize when starting a trace in order to 
+avoid repeat condemnation (i.e., the next AMSBenefit returning 1.0 for the same 
+reason as the last).  In the future we need to do better here.
+
+
+Segment Merging and Splitting
+
+<a id="split-merge" name="split-merge">.split-merge</a>: We provide methods for splitting and merging AMS segments. The 
+pool implementation doesn't cause segments to be split or merged - but a 
+subclass might want to do this (see .stress.split-merge). The methods serve as 
+an example of how to implement this facility. 
+
+<a id="split-merge.constrain" name="split-merge.constrain">.split-merge.constrain</a>: There are some additional constraints on what segments 
+may be split or merged: 
+
+<a id="split-merge.constrain.align" name="split-merge.constrain.align">.split-merge.constrain.align</a>: Segments may only be split or merged at an 
+address which is aligned to the pool alignment as well as to the arena 
+alignment. <a id="split-merge.constrain.align.justify" name="split-merge.constrain.align.justify">.split-merge.constrain.align.justify</a>: This constraint is implied by 
+the design of allocation and colour tables, which cannot represent segments 
+starting at unaligned addresses. The constraint only arises if the pool 
+alignment is larger than the arena alignment. There's no requirement to split 
+segments at unaligned addresses.
+
+<a id="split-merge.constrain.empty" name="split-merge.constrain.empty">.split-merge.constrain.empty</a>: The higher segment must be empty. I.e. the higher 
+segment passed to SegMerge must be empty, and the higher segment returned by 
+SegSplit must be empty. <a id="split-merge.constrain.empty.justify" name="split-merge.constrain.empty.justify">.split-merge.constrain.empty.justify</a>: This constraint 
+makes the code significantly simpler. There's no requirement for a more complex 
+solution at the moment (as the purpose is primarily pedagogic).
+
+<a id="split-merge.fail" name="split-merge.fail">.split-merge.fail</a>: The split and merge methods are not proper anti-methods for 
+each other (see design.mps.seg.split-merge.fail.anti.no). Methods will not 
+reverse the side-effects of their counterparts if the allocation of the colour 
+and allocation bit tables should fail. Client methods which over-ride split and 
+merge should not be written in such a way that they might detect failure after 
+calling the next method, unless they have reason to know that the bit table 
+allocations will not fail.
+
+
+
+
+
+TESTING:
+
+<a id="stress" name="stress">.stress</a>: There's a stress test, MMsrc!amsss.c, that does 800 KB of allocation, 
+enough for about three GCs.  It uses a modified Dylan format, and checks for 
+corruption by the GC.  Both ambiguous and exact roots are tested.
+
+<a id="stress.split-merge" name="stress.split-merge">.stress.split-merge</a>: There's also a stress test for segment splitting and 
+merging, MMsrc!segsmss.c. This is similar to amsss.c - but it defines a 
+subclass of AMS, and causes segments to be split and merged. Both buffered and 
+non-buffered segments are split / merged.
+
+
+TEXT:
+
+<a id="addr-index.slow" name="addr-index.slow">.addr-index.slow</a>: Translating from an address to and from a grain index in a 
+segment uses macros such as AMSAddrIndex and AMSIndexAddr.  These are slow 
+because they call SegBase on every translation.
+
+<a id="grey-mutator" name="grey-mutator">.grey-mutator</a>: To enforce the restriction set in .not-req.grey we check that 
+all the traces are flipped in AMSScan.  It would be good to check in AMSFix as 
+well, but we can't do that, because it's called during the flip, and we can't 
+tell the difference between the flip and the grey mutator phases with the 
+current tracer interface.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

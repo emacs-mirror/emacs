@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>MPS to client message protocol</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                     MPS TO CLIENT MESSAGE PROTOCOL
+                           design.mps.message
+                             incomplete doc
+                             drj 1997-02-13
+
+INTRODUCTION
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer.
+
+<a id="intro" name="intro">.intro</a>: The MCMP provides a means by which clients can receive messages from 
+the MPS asynchronously.  Typical messages may be low memory notification (or in 
+general low utility), finalization notification, soft-failure notification.  
+There is a general assumption that it should not be disastrous for the MPS 
+client to ignore messages, but that it is probably in the clients best interest 
+to not ignore messages.  The justification for this is that the MPS cannot 
+force the MPS client to read and act on messages, so no message should be 
+critical [bogus, since we cannot force clients to check error codes either - 
+Pekka 1997-09-17].
+
+<a id="contents" name="contents">.contents</a>: This document describes the design of the external and internal 
+interfaces and concludes with a sketch of an example design of an internal 
+client.  The example is that of implementing finalization using PoolMRG.
+
+
+REQUIREMENTS
+
+<a id="req" name="req">.req</a>: The MPS/Client message protocol will be used for implementing 
+finalization (see design.mps.finalize and req.dylan.fun.final).  It will also 
+be used for implementing the notification of various conditions (possibly 
+req.dylan.prot.consult is relevant here).
+
+
+INTERFACE
+
+
+External Interface
+
+<a id="if.queue" name="if.queue">.if.queue</a>:
+
+Messages are presented as a single queue per arena.  Various functions are 
+provided to inspect the queue and inspect messages in it (see below).
+
+
+Functions
+
+<a id="if.fun" name="if.fun">.if.fun</a>:
+
+The following functions are provided:
+
+<a id="if.fun.poll" name="if.fun.poll">.if.fun.poll</a>: Poll.  Sees whether there are any messages pending.
+
+mps_bool_t mps_message_poll(mps_arena_t arena);
+
+Returns 1 only if there is a message on the queue of arena.  Returns 0 
+otherwise.
+
+<a id="if.fun.enable" name="if.fun.enable">.if.fun.enable</a>: Enable.  Enables the flow of messages of a certain type.
+
+void mps_message_type_enable(mps_arena_t arena, mps_message_type_t type);
+
+Enables the specified message type.  The queue of messages of a arena will 
+contain only messages whose types have been enabled.  Initially all message 
+types are disabled.  Effectively this function allows the client to declare to 
+the MPS what message types the client understands.  The MPS does not generate 
+any messages of a type that hasn't been enabled.  This allows the MPS to add 
+new message types (in subsequent releases of a memory manager) without 
+confusing the client.  The client will only be receiving the messages if they 
+have explicitly enabled them (and the client presumably only enables message 
+types when they have written the code to handle them).
+
+<a id="if.fun.disable" name="if.fun.disable">.if.fun.disable</a>: Disable.  Disables the flow of messages of a certain type.
+
+void mps_message_type_disable(mps_arena_t arena, mps_message_type_t type);
+
+The antidote to mps_message_type_enable.  Disables the specified message type.  
+Flushes any existing messages of that type on the queue, and stops any further 
+generation of messages of that type. This permits clients to dynamically 
+decline interest in a message type, which may help to avoid a memory leak or 
+bloated queue when the messages are only required temporarily. 
+
+<a id="if.fun.get" name="if.fun.get">.if.fun.get</a>: begins a message "transaction".
+
+mps_bool_t mps_message_get(mps_message_t *message_return, mps_arena_t arena, 
+mps_message_type_t type);
+
+If there is a message of the specified type on the queue then the first such 
+message will be removed from the queue and a handle to it will be returned to 
+the client in *messageReturn; in this case the function will return TRUE.  
+Otherwise it will return FALSE.  Having obtained a handle on a message in this 
+way, the client can use the type-specific accessors to find out about the 
+message.  When the client is done with the message the client should call 
+mps_message_discard; failure to do so will result in a resource leak.
+
+<a id="if.fun.discard" name="if.fun.discard">.if.fun.discard</a>: ends a message "transaction".
+
+void mps_message_discard(mps_arena_t arena, mps_message_t message);
+
+Indicates to the MPS that the client is done with this message and its 
+resources may be reclaimed.
+
+<a id="if.fun.type.any" name="if.fun.type.any">.if.fun.type.any</a>: Determines the type of a message in the queue
+
+mps_bool_t mps_message_queue_type(mps_message_type_t *type_return, mps_arena_t 
+arena);
+
+Returns 1 only if there is a message on the queue of arena, and in this case 
+updates *type_return to be the type of a message in the queue.  Otherwise 
+returns 0.
+
+<a id="if.fun.type" name="if.fun.type">.if.fun.type</a>: Determines the type of a message (that has already been got).
+
+mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
+
+Return the type of the message.  Only legal when inside a message transaction 
+(i.e. after mps_message_get and before mps_message_discard).  Note that the 
+type will be the same as the type that the client passed in the call to 
+mps_message_get.
+
+
+Types of messages
+
+<a id="type" name="type">.type</a>: The type governs the "shape" and meaning of the message.
+
+<a id="type.int" name="type.int">.type.int</a>: Types themselves will just be a scalar quantity, an integer.
+
+<a id="type.semantics" name="type.semantics">.type.semantics</a>: A type indicates the semantics of the message.  
+<a id="type.semantics.interpret" name="type.semantics.interpret">.type.semantics.interpret</a>: The semantics of a message are interpreted by the 
+client by calling various accessor methods on the message.  <a id="type.accessor" name="type.accessor">.type.accessor</a>: The 
+type of a message governs which accessor methods are legal to apply to the 
+message.
+
+<a id="type.example" name="type.example">.type.example</a>: Some example types:
+
+<a id="type.finalization" name="type.finalization">.type.finalization</a>: There will be a finalization type.  The type is abstractly: 
+FinalizationMessage(Ref).
+
+<a id="type.finalization.semantics" name="type.finalization.semantics">.type.finalization.semantics</a>: A finalization message indicates that an object 
+has been discovered to be finalizable (see design.mps.poolmrg.def.final.object 
+for a definition of finalizable).  <a id="type.finalization.ref" name="type.finalization.ref">.type.finalization.ref</a>: There is an accessor 
+to get the reference of the finalization message (i.e. a reference to the 
+object which is finalizable) called mps_message_finalization_ref.  
+<a id="type.finalization.ref.scan" name="type.finalization.ref.scan">.type.finalization.ref.scan</a>: Note that the reference returned should be stored 
+in scanned memory.
+
+
+<a id="compatibility" name="compatibility">.compatibility</a>:
+
+Compatibility issues
+
+<a id="compatibility.future.type-new" name="compatibility.future.type-new">.compatibility.future.type-new</a>: Notice that message of a type that the client 
+doesn't understand are not placed on the queue, therefore the MPS can introduce 
+new types of message and existing client will still function and will not leak 
+resources.  This has been achieved by getting the client to declare the types 
+that the client understands (with mps_message_type_enable, .if.fun.enable).
+
+<a id="compatibility.future.type-extend" name="compatibility.future.type-extend">.compatibility.future.type-extend</a>: The information available in a message of a 
+given type can be extended by providing more accessor methods.  Old clients 
+won't get any of this information but that's okay.
+
+
+Internal Interface
+
+
+<a id="message.instance" name="message.instance">.message.instance</a>: Messages are instances of Message Classes.  
+<a id="message.concrete" name="message.concrete">.message.concrete</a>: Concretely a Message is represented by a MessageStruct.  A 
+MessageStruct has the usual signature field (see design.mps.sig).  A 
+MessageStruct has a type field which defines its type, a ring node, which is 
+used to attach the message to the queue of pending messages, a class field, 
+which identifies a MessageClass object.  <a id="message.intent" name="message.intent">.message.intent</a>: The intention is that 
+a MessageStruct will be embedded in some richer object which contains 
+information relevant to that specific type of message.
+
+<a id="message.type" name="message.type">.message.type</a>:
+
+typedef struct MessageStruct *Message;
+
+<a id="message.struct" name="message.struct">.message.struct</a>:
+
+struct MessageStruct {
+  Sig sig;
+  MessageType type;
+  MessageClass class;
+  RingStruct node;
+} MessageStruct;
+
+
+<a id="class" name="class">.class</a>: A message class is an encapsulation of methods.  It encapsulates 
+methods that are applicable to all types of messages (generic) and methods that 
+are applicable to messages only of a certain type (type-specific).  
+<a id="class.concrete" name="class.concrete">.class.concrete</a>: Concretely a message class is represented by a 
+MessageClassStruct (a struct).  Clients of the Message module are expected to 
+allocate storage for and initialise the MessageClassStruct.  It is expected 
+that such storage will be allocated and initialised statically.
+
+<a id="class.not-type" name="class.not-type">.class.not-type</a>: Note that message classes and message types are distinct.  
+<a id="class.not-type.why" name="class.not-type.why">.class.not-type.why</a>: (see also mail.drj.1997-07-15.10-33(0) from which this is 
+derived)  This allows two different implementations (ie classes) of messages 
+with the same meaning (ie type).  This may be necessary because the (memory) 
+management of the messages may be different in the two implemtations (which is 
+bogus).  The case of having one class implement two types is not expected to be 
+so useful.  <a id="class.not-type.why.not" name="class.not-type.why.not">.class.not-type.why.not</a>: It's all pretty feeble justification 
+anyway.
+
+<a id="class.methods.generic" name="class.methods.generic">.class.methods.generic</a>: The generic methods are:
+
+delete - used when the message is destroyed (by the client calling 
+mps_message_discard).  The class implementation should finish the message (by 
+calling MessageFinish) and storage for the message should be reclaimed (if 
+applicable).
+
+<a id="class.methods.specific" name="class.methods.specific">.class.methods.specific</a>: 
+
+The type specific methods are:
+
+<a id="class.methods.specific.finalization" name="class.methods.specific.finalization">.class.methods.specific.finalization</a>:
+
+Specific to MessageTypeFinalization
+
+finalizationRef - returns a reference to the finalizable object represented by 
+this message.
+
+<a id="class.methods.specific.collectionstats" name="class.methods.specific.collectionstats">.class.methods.specific.collectionstats</a>:
+
+Specific to MessageTypeCollectionStats
+
+collectionStatsLiveSize - returns the number of bytes (of objects) that were 
+condemned but survived.
+
+collectionStatsCondemnedSize - returns the number of bytes condemned in the 
+collection.
+
+collectionStatsNotCondemnedSize - returns the the number of bytes (of objects) 
+that are subject to a GC policy (ie collectable) but were not condemned in the 
+collection.
+
+
+<a id="class.type" name="class.type">.class.type</a>:
+
+typedef struct MessageClassStruct *MessageClass;
+
+<a id="class.sig.double" name="class.sig.double">.class.sig.double</a>: The MessageClassStruct has a signature field at both ends.  
+This is so that if the MessageClassStruct changes size (by adding extra methods 
+for example) then any static initializers will generate errors from the 
+compiler (there will be a type error causes by initialising a non-sig type 
+field with a sig) unless the static initializers are changed as well.
+
+<a id="class.struct" name="class.struct">.class.struct</a>:
+
+typedef struct MessageClassStruct {
+  Sig sig;                      /* design.mps.sig */
+  const char *name;             /* Human readable Class name */
+
+  /* generic methods */
+  MessageDeleteMethod delete;   /* terminates a message */
+
+  /* methods specific to MessageTypeFinalization */
+  MessageFinalizationRefMethod finalizationRef;
+
+  /* methods specific to MessageTypeCollectionStats */
+  MessageCollectionStatsLiveSizeMethod collectionStatsLiveSize;
+  MessageCollectionStatsCondemnedSizeMethod collectionStatsCondemnedSize;
+  MessageCollectionStatsNotCondemnedSizeMethod collectionStatsNotCondemnedSize;
+
+  Sig endSig;                   /* design.mps.message.class.sig.double */
+} MessageClassStruct;
+
+
+<a id="space.queue" name="space.queue">.space.queue</a>: The arena structure is augmented with a structure for managing 
+for queue of pending messages.  This is a ring in the ArenaStruct.
+
+struct ArenaStruct
+{
+  ...
+  RingStruct messageRing;
+  ...
+}
+
+
+Functions
+
+<a id="fun.init" name="fun.init">.fun.init</a>:
+/* Initializes a message */
+void MessageInit(Arena arena, Message message, MessageClass class);
+
+Initializes the MessageStruct pointed to by message.  The caller of this 
+function is expected to manage the store for the MessageStruct.
+
+<a id="fun.finish" name="fun.finish">.fun.finish</a>:
+/* Finishes a message */
+void MessageFinish(Message message);
+
+Finishes the MessageStruct pointed to by message.  The caller of this function 
+is expected to manage the store for the MessageStruct.
+
+<a id="fun.post" name="fun.post">.fun.post</a>:
+/* Places a message on the client accessible queue */
+void MessagePost(Arena arena, Message message);
+
+This function places a message on the queue of a arena.  .fun.post.precondition
+: Prior to calling the function the node field of the message must be a 
+singleton.  After the call to the function the message will be available for 
+MPS client to access.  After the call to the function the message fields must 
+not be manipulated except from the message's class's method functions (i.e., 
+you mustn't poke about with the node field in particular).
+
+<a id="fun.empty" name="fun.empty">.fun.empty</a>:
+void MessageEmpty(Arena arena);
+
+Empties the message queue.  This function has the same effect as discarding all 
+the messages on the queue.  After calling this function there will be no 
+messages on the queue.  <a id="fun.empty.internal-only" name="fun.empty.internal-only">.fun.empty.internal-only</a>: This functionality is not 
+exposed to clients.  We might want to expose this functionality to our clients 
+in the future.
+
+
+
+
+Message Life Cycle
+
+<a id="life" name="life">.life</a>: A message will be allocated by a client of the message module, it will 
+be initialised by calling MessageInit.  The client will eventually post the 
+message on the external queue (in fact most clients will create a message and 
+then immediately post it).  The message module may then apply any of the 
+methods to the message.  The message module will eventually destroy the message 
+by applying the Delete method to it.
+
+
+EXAMPLES
+
+
+Finalization
+
+[possibly out of date, see design.mps.finalize and design.mps.poolmrg instead 
+-- drj 1997-08-28]
+
+This subsection is a sketch of how PoolMRG will use Messages for finalization 
+(see design.mps.poolmrg).
+
+PoolMRG has guardians (see design.mps.poolmrg.guardian), guardians are used to 
+manage final references and detect when an object is finalizable.
+
+The link part of a guardian will be expanded to include a MessageStruct; in 
+fact the link part of a guardian will be expanded so that it is exactly a 
+MessageStruct (or rather a structure with a single member that has the type 
+MessageStruct).
+
+The MessageStruct is allocated when the final reference is created (which is 
+when the referred to object is registered for finalization).  This avoids 
+allocating at the time when the message gets posted (which might be a tricky, 
+undesirable, or impossible, time to allocate).
+
+The two queues of PoolMRG (the entry queue, and the exit queue) will use the 
+MessageStruct ring node.  Before the object (referred to by the guardian) is 
+finalizable the MessageStruct is not needed by the Message system (there is no 
+message to send yet!), so it is okay to use the Message's ring node to attach 
+the guardian to the entry queue (see 
+design.mps.poolmrg.guardian.two-part.justify).  The exit queue of MRG will 
+simply be the external message queue.
+
+MRG Message class
+
+del - frees both the link part and the reference part of the guardian.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

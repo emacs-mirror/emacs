@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the root manager</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                     THE DESIGN OF THE ROOT MANAGER
+                            design.mps.root
+                           incomplete design
+                           richard 1995-08-25
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>:
+
+<a id="readership" name="readership">.readership</a>:
+
+
+BASICS
+
+<a id="root.def" name="root.def">.root.def</a>: The root node of the object graph is the node which defines whether 
+objects are accessible, and the place from which the mutator acts to change the 
+graph.  In the MPS, a root is an object which describes part of the root node.  
+The root node is the total of all the roots attached to the space.  [Note that 
+this combines two definitions of root: the accessibility is what defines a root 
+for tracing (see analysis.tracer.root.* and the mutator action for barriers 
+(see analysis.async-gc.root).  pekka 1998-03-20]
+
+<a id="root.repr" name="root.repr">.root.repr</a>: Functionally, roots are defined by their scanning functions.  Roots 
+_could_ be represented as function closures, i.e. a pointer to a C function and 
+some auxillary fields.  The most general variant of roots is just that.  
+However, for reasons of efficiency, some special variants are separated out.
+
+
+DETAILS
+
+
+Creation
+
+<a id="create" name="create">.create</a>: A root becomes "active" as soon as it is created.
+
+<a id="create.col" name="create.col">.create.col</a>: The root inherits its colour from the mutator, since it can only 
+contain references copied there by the mutator from somewhere else.  If the 
+mutator is grey for a trace when a root is created then that root will be used 
+to determine accessibility for that trace.  More specifically, the root will be 
+scanned when that trace flips.
+
+
+Destruction
+
+<a id="destroy" name="destroy">.destroy</a>: It's OK to destroy a root at any time, except perhaps concurrently 
+with scanning it, but that's prevented by the arena lock.  If a root is 
+destroyed the references in it become invalid and unusable.
+
+
+Invariants
+
+<a id="inv.white" name="inv.white">.inv.white</a>: Roots are never white for any trace, because they cannot be 
+condemned.
+
+<a id="inv.rank" name="inv.rank">.inv.rank</a>: Roots always have a single rank.  A root without ranks would be a 
+root without references, which would be pointless.  The tracer doesn't support 
+multiple ranks in a single colour.
+
+
+Scanning
+
+<a id="method" name="method">.method</a>: Root scanning methods are provided by the client so that the MPS can 
+locate and scan the root set.  See protocol.mps.root for details.  [There are 
+some more notes about root methods in meeting.qa.1996-10-16.]
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
