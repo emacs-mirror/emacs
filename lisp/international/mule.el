@@ -291,6 +291,13 @@ See also the documentation of make-char."
        (or (get coding-system 'coding-category)
 	   (coding-system-category (get coding-system 'coding-system)))))
 
+(defun coding-system-parent (coding-system)
+  "Return parent of CODING-SYSTEM."
+  (let ((parent (get coding-system 'parent-coding-system)))
+    (and parent
+	 (or (coding-system-parent parent)
+	     parent))))
+
 ;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
   (let ((subsidiaries (vector (intern (format "%s-unix" coding-system))
