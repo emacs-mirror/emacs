@@ -281,9 +281,9 @@ still the current message in the Rmail buffer.")
 ;;  files).
 
 (defvar rmail-mmdf-delim1 "^\001\001\001\001\n"
-  "Regexp marking the start of an mmdf message")
+  "Regexp marking the start of an mmdf message.")
 (defvar rmail-mmdf-delim2 "^\001\001\001\001\n"
-  "Regexp marking the end of an mmdf message")
+  "Regexp marking the end of an mmdf message.")
 
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
@@ -2400,7 +2400,7 @@ If summary buffer is currently displayed, update current message there also."
 			(progn
 			  (check-coding-system coding-system)
 			  (setq buffer-file-coding-system coding-system))
-		      (error 
+		      (error
 		       (setq buffer-file-coding-system nil))))
 		(setq buffer-file-coding-system nil)))))
 	;; Clear the "unseen" attribute when we show a message.

@@ -1,7 +1,11 @@
+2003-01-06  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* mail/rmail.el (rmail-mmdf-delim1, rmail-mmdf-delim2): Doc fixes.
+
 2003-01-05  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-repeat): Error if try to repeat search and
-	there was no previou search.
+	there was no previous search.
 
 	* dired.el (dired-recursive-deletes): Fix custom type.
 
@@ -125,7 +129,6 @@
 	* emacs-lisp/eldoc.el (eldoc-get-var-docstring): Only return a
 	documentation string when `sym' is non-nil.
 
->>>>>>> 1.4686
 2003-01-02  Steven Tamm  <steventamm@mac.com>
 
 	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
