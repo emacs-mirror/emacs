@@ -1,3 +1,8 @@
+2000-06-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* textmodes/fill.el (fill-find-break-point): Check the validity of
+	charset.
+
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bookmark.el (bookmark-insert-location, bookmark-bmenu-list)
