@@ -940,8 +940,7 @@ and the file name is displayed in the echo area."
 (defcustom help-highlight-p t
   "*If non-nil, `help-make-xrefs' highlight cross-references.
 Under a window system it highlights them with face defined by
-`help-highlight-face'.  On a character terminal highlighted
-references look like cross-references in info mode."
+`help-highlight-face'."
  :group 'help
  :version "20.3"
  :type 'boolean)
