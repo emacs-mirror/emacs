@@ -339,6 +339,8 @@ Lisp_Object Vdeactivate_mark;
 Lisp_Object Vlucid_menu_bar_dirty_flag;
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
+Lisp_Object Qecho_area_clear_hook;
+
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook, Vpre_command_hook;
 Lisp_Object Qpost_command_hook, Vpost_command_hook;
@@ -1141,6 +1143,7 @@ command_loop_1 ()
 	  Fsit_for (make_number (2), Qnil, Qnil);
 	  /* Clear the echo area.  */
 	  message2 (0);
+	  safe_run_hooks (Qecho_area_clear_hook);
 
 	  unbind_to (count, Qnil);
 
@@ -2109,6 +2112,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Wipe the echo area.  */
+  if (echo_area_glyphs)
+    safe_run_hooks (Qecho_area_clear_hook);
   echo_area_glyphs = 0;
 
   /* Handle things that only apply to characters.  */
@@ -8198,6 +8203,13 @@ This feature is obsolete; use idle timers instead.  See `etc/NEWS'.");
     "Delay time before running `post-command-idle-hook'.\n\
 This is measured in microseconds.");
   post_command_idle_delay = 100000;
+
+#if 0
+  DEFVAR_LISP ("echo-area-clear-hook", ...,
+    "Normal hook run when clearing the echo area.");
+#endif
+  Qecho_area_clear_hook = intern ("echo-area-clear-hook");
+  XSYMBOL (Qecho_area_clear_hook)->value = Qnil;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
     "t means menu bar, specified Lucid style, needs to be recomputed.");
