@@ -1219,8 +1219,8 @@ main (argc, argv)
 
   if (update)
     {
-      char cmd[BUFSIZ];
-      sprintf (cmd, "sort -o %s %s", tagfile, tagfile);
+      char cmd[2*BUFSIZ+10];
+      sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
       exit (system (cmd));
     }
   return GOOD;
