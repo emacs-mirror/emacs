@@ -1042,13 +1042,14 @@ on the left of the dialog box and all following items on the right.\n\
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).
 
-   NOTE: All calls to popup_get_selection() should be protected
+   NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 void
-popup_get_selection (initial_event, dpyinfo)
+popup_get_selection (initial_event, dpyinfo, id)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
+     LWLIB_ID id;
 {
   XEvent event;
 
@@ -1077,6 +1078,15 @@ popup_get_selection (initial_event, dpyinfo)
       else if (event.type == ButtonRelease
 	       && dpyinfo->display == event.xbutton.display)
 	dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+      /* If the user presses a key, deactivate the menu.
+	 The user is likely to do that if we get wedged.  */
+      else if (event.type == KeyPress
+	       && dpyinfo->display == event.xbutton.display)
+	{
+	  lw_destroy_all_widgets (id); 
+	  popup_activated_flag = 0;
+	  break;
+	}
 
       /* Queue all events not for this popup,
 	 except for Expose, which we've already handled.
@@ -1847,7 +1857,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f));
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id);
 
 #if 0
   /* fp turned off the following statement and wrote a comment
@@ -2065,7 +2075,7 @@ xdialog_show (f, keymaps, title, error)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f));
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
