@@ -1,3 +1,8 @@
+/* Don't multiply include: dispextern.h includes macterm.h which includes frame.h 
+   some emacs source includes both dispextern.h and frame.h */
+#ifndef _XFRAME_H_
+#define _XFRAME_H_
+
 /* Define frame-object for GNU Emacs.
    Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
@@ -39,7 +44,8 @@ enum output_method
   output_termcap,
   output_x_window,
   output_msdos_raw,
-  output_w32
+  output_w32,
+  output_mac
 };
 
 enum vertical_scroll_bar_type
@@ -211,6 +217,7 @@ struct frame
   {
     struct x_output *x;
     struct w32_output *w32;
+    struct mac_output *mac;
     int nothing;
   }
   output_data;
@@ -360,6 +367,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
+#define FRAME_MAC_P(f) ((f)->output_method == output_mac)
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
@@ -369,6 +377,9 @@ typedef struct frame *FRAME_PTR;
 #endif
 #ifdef HAVE_NTGUI
 #define FRAME_WINDOW_P(f) FRAME_W32_P (f)
+#endif
+#ifdef macintosh
+#define FRAME_WINDOW_P(f) FRAME_MAC_P (f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) (0)
@@ -723,3 +734,4 @@ extern Lisp_Object Vterminal_frame;
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
       : make_number ((Y) / CANON_Y_UNIT (F)))	
 			     
+#endif /* not defined _FRAME_H_ */
