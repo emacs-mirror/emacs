@@ -182,19 +182,25 @@ See also `comint-read-input-ring' and `comint-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks.")
 
-(defvar comint-scroll-to-bottom-on-input 'this
+(defvar comint-scroll-to-bottom-on-input
+  (if (> baud-rate 9600) 'this)
   "*Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 
+The default is `this' for fast terminals, nil for slower ones.
+
 See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local.")
 
-(defvar comint-scroll-to-bottom-on-output 'this
+(defvar comint-scroll-to-bottom-on-output 
+  (if (> baud-rate 9600) 'this)
   "*Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 If `others', scroll only those that are not the selected window.
  
+The default is `this' for fast terminals, nil for slower ones.
+
 See variable `comint-scroll-show-maximum-output' and function
 `comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
  
@@ -222,11 +228,6 @@ This function is called when return is typed while the point is in old text.
 It returns the text to be submitted as process input.  The default is
 `comint-get-old-input-default', which grabs the current line, and strips off
 leading text matching `comint-prompt-regexp'.")
-
-(defvar comint-filename-prefix ""
-  "Prefix prepended to all absolute file names taken from process input.
-This is used by the completion functions, and by directory tracking in shell
-mode.")
 
 (defvar comint-after-partial-filename-command 'comint-after-partial-filename
   "Function that returns non-nil if point is after a file name.
