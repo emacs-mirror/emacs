@@ -328,7 +328,7 @@ on directories.  Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke \"emacs -batch -f batch-update-autoloads *.el\""
   (if (not noninteractive)
-      (error "batch-update-file-autoloads is to be used only with -batch"))
+      (error "batch-update-autoloads is to be used only with -batch"))
   (let ((lost nil)
 	(args command-line-args-left))
     (while args
