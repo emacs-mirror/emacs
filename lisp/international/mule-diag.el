@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
-;; Keywords: multilingual, charset, coding system, fontset, diagnosis
+;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -90,14 +90,16 @@ but still shows the full information."
 	      (insert (car (car columns)))
 	      (search-backward (car (car columns)))
 	      (help-xref-button 0 'sort-listed-character-sets
-				(cdr (car columns)))
+				(cdr (car columns))
+				"mouse-2, C-c: sort on this column")
 	      (goto-char (point-max)))
 	    (setq columns (cdr columns)))
 	  (insert "\n"))
 	(insert "------\t------------\t\t\t--------------\t- -- ----------\n")
 
 	;; Insert body sorted by charset IDs.
-	(list-character-sets-1 'id)))))
+	(list-character-sets-1 'id)
+	(help-setup-xref (list #'list-character-sets arg) (interactive-p))))))
 
 
 ;; Sort character set list by SORT-KEY.
@@ -175,7 +177,8 @@ but still shows the full information."
       (indent-to 8)
       (insert (symbol-name (nth 1 elt))) ; CHARSET-NAME
       (search-backward (symbol-name (nth 1 elt)))
-      (help-xref-button 0 'list-charset-chars (nth 1 elt))
+      (help-xref-button 0 'list-charset-chars (nth 1 elt)
+			"mouse-2, RET: show table of this character set")
       (goto-char (point-max))
       (insert "\t")
       (indent-to 40)
