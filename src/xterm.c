@@ -4012,15 +4012,19 @@ XTread_socket (sd, bufp, numchars, expected)
 		  /* We can't distinguish, from the event, whether the window
 		     has become iconified or invisible.  So assume, if it
 		     was previously visible, than now it is iconified.
-		     We depend on x_make_frame_invisible to mark it invisible.  */
+		     But x_make_frame_invisible clears both
+		     the visible flag and the iconified flag;
+		     and that way, we know the window is not iconified now.  */
 		  if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
-		    f->async_iconified = 1;
+		    {
+		      f->async_iconified = 1;
 
-		  bufp->kind = iconify_event;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  bufp++;
-		  count++;
-		  numchars--;
+		      bufp->kind = iconify_event;
+		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp++;
+		      count++;
+		      numchars--;
+		    }
 		}
 	      goto OTHER;
 
@@ -5619,6 +5623,8 @@ x_make_frame_visible (f)
 {
   int mask;
   Lisp_Object type;
+  int starting_flags = f->output_data.x->size_hint_flags;
+  int original_top, original_left;
 
   BLOCK_INPUT;
 
@@ -5628,6 +5634,16 @@ x_make_frame_visible (f)
 
   if (! FRAME_VISIBLE_P (f))
     {
+      /* We test FRAME_GARBAGED_P here to make sure we don't
+	 call x_set_offset a second time
+	 if we get to x_make_frame_visible a second time
+	 before the window gets really visible.  */
+      if (! FRAME_ICONIFIED_P (f)
+	  && ! f->output_data.x->asked_for_visible)
+	x_set_offset (f, f->output_data.x->left_pos, f->output_data.x->top_pos, 0);
+
+      f->output_data.x->asked_for_visible = 1;
+
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
@@ -5652,21 +5668,30 @@ x_make_frame_visible (f)
   {
     Lisp_Object frame;
     int count = input_signal_count;
-    int orig_left = f->output_data.x->left_pos;
-    int orig_top = f->output_data.x->top_pos;
+
+    original_left = f->output_data.x->left_pos;
+    original_top = f->output_data.x->top_pos;
 
     /* This must come after we set COUNT.  */
     UNBLOCK_INPUT;
 
-    /* We test asked_for_visible here to make sure we don't
-       call x_set_offset a second time
-       if we get to x_make_frame_visible a second time
-       before the window gets really visible.  */
-    if (! FRAME_ICONIFIED_P (f)
-	&& ! f->output_data.x->asked_for_visible)
-      x_set_offset (f, orig_left, orig_top, 0);
+    /* Arriving X events are processed here.  */
 
-    f->output_data.x->asked_for_visible = 1;
+    /* Now move the window back to where it was "supposed to be".  */
+
+    if (! (starting_flags & (XNegative | YNegative)))
+      {
+	BLOCK_INPUT;
+
+#ifdef USE_X_TOOLKIT
+	XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
+		     original_left, original_top);
+#else /* not USE_X_TOOLKIT */
+	XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     original_left, original_top);
+#endif /* not USE_X_TOOLKIT */
+	UNBLOCK_INPUT;
+      }
 
     XSETFRAME (frame, f);
 
