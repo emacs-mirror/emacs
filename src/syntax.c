@@ -130,8 +130,8 @@ update_syntax_table (charpos, count, init, object)
       invalidate = 0;
       if (NULL_INTERVAL_P (i))
 	return;
-      gl_state.b_property = i->position - 1;
-      gl_state.e_property = INTERVAL_LAST_POS (i);
+      gl_state.b_property = i->position - 1 - gl_state.offset;
+      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
       goto update;
     }
   oldi = i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
@@ -151,7 +151,7 @@ update_syntax_table (charpos, count, init, object)
 	  invalidate = 0;
 	  gl_state.right_ok = 1;	/* Invalidate the other end.  */
 	  gl_state.forward_i = i;
-	  gl_state.e_property = INTERVAL_LAST_POS (i);
+	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
 	}
     } 
   else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
@@ -165,7 +165,7 @@ update_syntax_table (charpos, count, init, object)
 	  invalidate = 0;
 	  gl_state.left_ok = 1;		/* Invalidate the other end.  */
 	  gl_state.backward_i = i;
-	  gl_state.b_property = i->position - 1;
+	  gl_state.b_property = i->position - 1 - gl_state.offset;
 	}
     }
   else if (count > 0 ? gl_state.right_ok : gl_state.left_ok)
@@ -187,13 +187,13 @@ update_syntax_table (charpos, count, init, object)
 	{
 	  gl_state.backward_i = i;
 	  gl_state.left_ok = 1;		/* Invalidate the other end.  */
-	  gl_state.b_property = i->position - 1;
+	  gl_state.b_property = i->position - 1 - gl_state.offset;
 	} 
       else 
 	{
 	  gl_state.forward_i = i;	
 	  gl_state.right_ok = 1;	/* Invalidate the other end.  */
-	  gl_state.e_property = INTERVAL_LAST_POS (i);
+	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
 	}
     }
 
@@ -246,12 +246,12 @@ update_syntax_table (charpos, count, init, object)
     {
       if (count > 0) 
 	{
-	  gl_state.e_property = i->position;
+	  gl_state.e_property = i->position - gl_state.offset;
 	  gl_state.forward_i = i;
 	}
       else 
 	{
-	  gl_state.b_property = i->position + LENGTH (i) - 1;
+	  gl_state.b_property = i->position + LENGTH (i) - 1 - gl_state.offset;
 	  gl_state.backward_i = i;
 	}
     }    
@@ -1370,15 +1370,17 @@ skip_chars (forwardp, syntaxp, string, lim)
 	  {
 	    if (multibyte)
 	      {
-		while (pos < XINT (lim)
-		       && fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
-		  {
-		    /* Since we already checked for multibyteness,
-		       avoid using INC_BOTH which checks again.  */
-		    INC_POS (pos_byte);
-		    pos++;
-		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		  }
+		if (pos < XINT (lim))
+		  while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
+		    {
+		      /* Since we already checked for multibyteness,
+			 avoid using INC_BOTH which checks again.  */
+		      INC_POS (pos_byte);
+		      pos++;
+		      if (pos >= XINT (lim))
+		    	break;
+		      UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		    }
 	      }
 	    else
 	      {
@@ -1412,16 +1414,14 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      }
 	    else
 	      {
-		while (pos > XINT (lim))
-		  {
-		    pos--;
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-		    if (!fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
-		      {
-			pos++;
+		if (pos > XINT (lim))
+		  while (fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+		    {
+		      pos--;
+		      if (pos <= XINT (lim))
 			break;
-		      }
-		  }
+		      UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		    }
 	      }
 	  }
       }
