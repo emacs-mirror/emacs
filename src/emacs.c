@@ -790,13 +790,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   if (initialized)
     init_environment (argc, argv, skip_args);
   else
-    {
-#if __DGJPP__ >= 2
-      tzset ();
-#else
-      init_gettimeofday ();
-#endif
-    }
+    tzset ();
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
