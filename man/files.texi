@@ -2959,6 +2959,12 @@ extract or manipulate the subfiles in the archive.
 @node Remote Files
 @section Remote Files
 
+@cindex Tramp
+  In the following, file access via FTP will be discussed.  In
+addition to that facility, it is also possible to access remote files
+through a shell connection.  @xref{Top, The Tramp Manual,, tramp, The
+Tramp Manual}.
+
 @cindex FTP
 @cindex remote file access
   You can refer to files on other machines using a special file name syntax:
@@ -2977,6 +2983,19 @@ the specified host.  It logs in through FTP using your user name or the
 name @var{user}.  It may ask you for a password from time to time; this
 is used for logging in on @var{host}.  The form using @var{port} allows
 you to access servers running on a non-default TCP port.
+
+For using Tramp, the file name syntax looks like this:
+
+@example
+@group
+/[@var{host}]@var{filename}
+/[@var{user}@@@var{host}]@var{filename}
+/[@var{method}/@var{user}@@@var{host}]@var{filename}
+@end group
+@end example
+
+@noindent
+Note that the square brackets are part of the file names.
 
 @cindex backups for remote files
 @vindex ange-ftp-make-backup-files
