@@ -543,7 +543,7 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'search-forward-regexp (symbol-function 're-search-forward))
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
-(defalias 'set-match-data 'store-match-data)
+(defalias 'store-match-data 'set-match-data)
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
@@ -825,7 +825,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (insert-before-markers string)
 	    (setq insert-end (point))
 	    ;; If the message end is off screen, recenter now.
-	    (if (< (window-end) insert-end)
+	    (if (< (window-end nil t) insert-end)
 		(recenter (/ (window-height) 2)))
 	    ;; If that pushed message start off the screen,
 	    ;; scroll to start it at the top of the screen.
@@ -993,7 +993,7 @@ in BODY."
   `(let ((save-match-data-internal (match-data)))
        (unwind-protect
 	   (progn ,@body)
-	 (store-match-data save-match-data-internal))))
+	 (set-match-data save-match-data-internal))))
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
