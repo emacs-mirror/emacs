@@ -8124,7 +8124,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  {
 		    /* We may get paint messages even though the client
 		       area is clipped - these are not expose events. */
-		    DebPrint (("clipped frame %04x (%s) got WM_PAINT\n", f,
+		    DebPrint (("clipped frame %p (%s) got WM_PAINT - ignored\n", f,
 			       XSTRING (f->name)->data));
 		  }
 		else if (f->async_visible != 1)
@@ -8133,7 +8133,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		    f->async_visible = 1;
 		    f->async_iconified = 0;
 		    SET_FRAME_GARBAGED (f);
-		    DebPrint (("frame %04x (%s) reexposed\n", f,
+		    DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
 			       XSTRING (f->name)->data));
 
 		    /* WM_PAINT serves as MapNotify as well, so report
@@ -8734,7 +8734,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 		  if (!FRAME_OBSCURED_P (f))
 		    {
-		      DebPrint (("frame %04x (%s) obscured\n", f,
+		      DebPrint (("frame %p (%s) obscured\n", f,
 				 XSTRING (f->name)->data));
 		    }
 		}
@@ -8746,7 +8746,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  if (FRAME_OBSCURED_P (f))
 		    {
 		      SET_FRAME_GARBAGED (f);
-		      DebPrint (("frame %04x (%s) reexposed\n", f,
+		      DebPrint (("obscured frame %p (%s) found to be visible\n", f,
 				 XSTRING (f->name)->data));
 
 		      /* Force a redisplay sooner or later.  */
