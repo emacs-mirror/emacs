@@ -1,3 +1,9 @@
+2002-12-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textprop.c (text_read_only): New arg `propval'.
+	(get_char_property_and_overlay): Remove unused var `next_overlay'.
+	(verify_interval_modification): Use text_read_only's new arg.
+
 2002-12-13  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Funencodable_char_position): Set pend correctly.
@@ -23,7 +29,7 @@
 2002-12-10  Steven Tamm  <steventamm@mac.com>
 
 	* mac.c (sys_read): Fixed sys_read to not call select if IO is
-	non-blocking
+	non-blocking.
 	(sys_select): Fixed sys_select to not use a timeout larger than
 	the one given.
 
@@ -61,13 +67,13 @@
 	* macterm.c (mac_check_for_quit_char, quit_char_comp)
 	(init_quit_char_handler, mac_determine_quit_char_modifiers)
 	(mac_initialize):  Added code to check for pressing of quit_char
-	in the OS event queue
+	in the OS event queue.
 
 	* mac.c (sys_select): Call mac_check_for_quit_char every second
 	while blocking on select.
 
 	* mac.c (sys_read): Use sys_select to test for input first
-	before calling read to allow C-g to break
+	before calling read to allow C-g to break.
 
 2002-12-07  Richard M. Stallman  <rms@gnu.org>
 
@@ -86,8 +92,7 @@
 
 2002-12-06  Francesco Potorti`  <pot@gnu.org>
 
-	* xfns.c (png_load): Avoid double gamma correction for PNG
-	images.
+	* xfns.c (png_load): Avoid double gamma correction for PNG images.
 
 2002-12-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -104,8 +109,8 @@
 	(Qset_buffer_major_mode_hook): Deleted.
 	(Fset_buffer_major_mode): Revert previous change.
 	(init_buffer_once): Intern ucs-set-table-for-input.
-	(syms_of_buffer): Delete Qset_buffer_major_mode_hook.  Add
-	&Qucs_set_table_for_input.
+	(syms_of_buffer): Delete Qset_buffer_major_mode_hook.
+	Add &Qucs_set_table_for_input.
 
 2002-12-03  Andreas Schwab  <schwab@suse.de>
 
@@ -163,8 +168,8 @@
 
 	* s/irix6-0.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define.
 
-	* systty.h: Don't conditionally define GETPGRP_NO_ARG.  Test
-	GETPGRP_VOID instead.
+	* systty.h: Don't conditionally define GETPGRP_NO_ARG.
+	Test GETPGRP_VOID instead.
 	[BSD_TERMIOS]: Remove definitions (never used).
 
 	* s/osf5-0.h (WAIT_USE_INT, SYS_SIGLIST_DECLARED, sys_siglist):
@@ -210,8 +215,7 @@
 	* keyboard.c (interrupt_signal): Provide forward declaration.
 	(kbd_buffer_store_event): Don't declare interrupt_signal.
 
-	* xdisp.c (store_frame_title_char) [PROTOTYPES]:  Provide ISO C
-	arglist.
+	* xdisp.c (store_frame_title_char) [PROTOTYPES]: Provide ISO C arglist.
 
 2002-11-21  Richard M. Stallman  <rms@gnu.org>
 
@@ -509,8 +513,7 @@
 
 2002-11-01  Andreas Schwab  <schwab@suse.de>
 
-	* editfns.c (Fmessage): Revert last change to properly handle %%
-	format.
+	* editfns.c (Fmessage): Revert last change to properly handle %%.
 
 2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -1030,8 +1033,7 @@
 
 2002-08-30  Andrew Choi  <akochoi@shaw.ca>
 
-	* macterm.c (expose_overlaps): New function (merge code from
-	xterm.c).
+	* macterm.c (expose_overlaps): New function (merge code from xterm.c).
 	(expose_window): Use it to fix the display of overlapping
 	rows (merge code from xterm.c).
 
@@ -1153,7 +1155,8 @@
 
 	* w32term.h (FRAME_BLINK_OFF_CURSOR, FRAME_BLINK_OFF_CURSOR_WIDTH):
 	New macros.
-	(struct w32_output): New fields blink_off_cursor, blink_off_cursor_width.
+	(struct w32_output): New fields blink_off_cursor,
+	blink_off_cursor_width.
 	(FRAME_CURSOR_WIDTH): New macro.
 
 	* w32term.c (x_display_and_set_cursor): Use FRAME_BLINK_OFF_CURSOR
@@ -1206,8 +1209,8 @@
 2002-08-27  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xdisp.c (redisplay_updating_p): Variable removed.
-	(inhibit_free_realized_faces, Qinhibit_free_realized_faces): New
-	variables.
+	(inhibit_free_realized_faces, Qinhibit_free_realized_faces):
+	New variables.
 	(init_iterator): Don't free realized faces if
 	inhibit_free_realized_faces is set.
 	(redisplay_internal): Bind Qinhibit_free_realized_faces to nil.
@@ -1225,8 +1228,8 @@
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
-	foreground and background colors. From Joe Buehler (tiny change).
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize foreground
+	and background colors.  From Joe Buehler (tiny change).
 
 2002-08-26  Miles Bader  <miles@gnu.org>
 
@@ -1313,8 +1316,7 @@
 
 2002-08-19  Kenichi Handa  <handa@localhost>
 
-	* composite.c (run_composition_function): Call FUNC if it is
-	fboundp.
+	* composite.c (run_composition_function): Call FUNC if it is fboundp.
 
 	* composite.h (COMPOSITION_MODIFICATION_FUNC): If PROP is not a
 	cons, return Qnil.
@@ -1391,8 +1393,8 @@
 	(Vmac_pass_command_to_system): New variable.
 	(Vmac_pass_control_to_system): New variable.
 	(do_mouse_moved): Check wp with is_emacs_window.
-	(XTread_socket): Check window_ptr with is_emacs_window.  Call
-	FrontNonFloatingWindow instead of FrontWindow.  Send keydown
+	(XTread_socket): Check window_ptr with is_emacs_window.
+	Call FrontNonFloatingWindow instead of FrontWindow.  Send keydown
 	events back to Mac Toolbox for processing, depending on values of
 	Vmac_pass_command_to_system and Vmac_pass_control_to_system.
 	(syms_of_macterm): DEFVAR_LISP Vmac_pass_command_to_system and
@@ -1424,8 +1426,7 @@
 
 2002-08-08  Ken Raeburn  <raeburn@mit.edu>
 
-	* coding.c (Ffind_operation_coding_system): Fix Lisp_Object/int
-	mixup.
+	* coding.c (Ffind_operation_coding_system): Fix Lisp_Object/int mixup.
 
 	* puresize.h (BASE_PURESIZE): Increase to 910000.
 
@@ -1491,8 +1492,7 @@
 	(XTread_socket) [USE_CARBON_EVENTS]: Call ReceiveNextEvent,
 	SendEventToEventTarget, mac_event_to_emacs_modifiers, and
 	mac_get_mouse_btn.
-	(mac_initialize): Call init_mac_drag_n_drop and
-	init_service_handler.
+	(mac_initialize): Call init_mac_drag_n_drop and init_service_handler.
 
 	* keyboard.c: Define Qmouse_wheel, mouse_wheel_syms, and
 	lispy_mouse_wheel_names for MAC_OSX as well as for WINDOWS_NT.
@@ -1502,8 +1502,7 @@
 	as for WINDOWS_NT.
 	(syms_of_keyboard): Initialize Qmouse_wheel for MAC_OSX.
 
-	* termhooks.h (event_kind): Define MOUSE_WHEEL_EVENT also for
-	MAC_OSX.
+	* termhooks.h (event_kind): Define MOUSE_WHEEL_EVENT also for MAC_OSX.
 
 2002-08-03  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
@@ -1600,13 +1599,13 @@
 
 2002-07-23  Kenichi Handa  <handa@etl.go.jp>
 
-	* xdisp.c (face_before_or_after_it_pos): Call
-	FETCH_MULTIBYTE_CHAR with byte postion, not char position.
+	* xdisp.c (face_before_or_after_it_pos):
+	Call FETCH_MULTIBYTE_CHAR with byte postion, not char position.
 
 2002-07-22  Juanma Barranquero  <lektu@terra.es>
 
-	* callproc.c (init_callproc) [DOS_NT]: Initialize
-	Vshared_game_score_directory to nil.
+	* callproc.c (init_callproc) [DOS_NT]:
+	Initialize Vshared_game_score_directory to nil.
 	(syms_of_callproc) [DOS_NT]: Likewise.
 
 2002-07-22  Gerd Moellmann  <gerd.moellmann@t-online.de>
@@ -1675,8 +1674,8 @@
 	const.
 	* charset.h (BCOPY_SHORT): Source pointer now points to const.
 	* coding.c (encode_eol, detect_coding, detect_eol):
-	(decode_coding, encode_coding, detect_coding_system): Source
-	strings now treated as const.
+	(decode_coding, encode_coding, detect_coding_system):
+	Source strings now treated as const.
 	(decode_coding_string, encode_coding_string): Use STRING_COPYIN to
 	modify Lisp string contents.
 	* coding.h (decode_coding, encode_coding, detect_coding,
@@ -1697,11 +1696,9 @@
 	contents as const.
 	* sysdep.c (emacs_write): Buffer pointer now const.
 	* term.c (encode_terminal_code): Buffer pointer now const.
-	* xfaces.c (may_use_scalable_font_p): Argument now points to
-	const.
+	* xfaces.c (may_use_scalable_font_p): Argument now points to const.
 	(x_face_list_fonts, x_update_menu_appearance):
-	(hash_string_case_insensitive): Treat Lisp string contents as
-	const.
+	(hash_string_case_insensitive): Treat Lisp string contents as const.
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
@@ -2093,8 +2090,7 @@
 
 2002-06-28  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h: Remove duplicate declaration of
-	code_convert_string_norecord.
+	* lisp.h: Remove duplicate declaration of code_convert_string_norecord.
 
 2002-06-27  Kim F. Storm  <storm@cua.dk>
 
@@ -2152,15 +2148,10 @@
 
 	* coding.c (detect_eol): Preserve coding->cmp_data.
 
-	* w16select.c (Fw16_get_clipboard_data): Disable composition handling.
-
-	* w32fns.c (w32_to_x_font): Disable composition handling.
-
-	* w32select.c (Fw32_get_clipboard_data): Disable composition handling.
-
-	* xselect.c (selection_data_to_lisp_data): Disable composition
-	handling.
-
+	* w16select.c (Fw16_get_clipboard_data):
+	* w32fns.c (w32_to_x_font):
+	* w32select.c (Fw32_get_clipboard_data):
+	* xselect.c (selection_data_to_lisp_data):
 	* xterm.c (XTread_socket): Disable composition handling.
 
 2002-06-24  Stefan Monnier  <monnier@cs.yale.edu>
@@ -3486,8 +3477,8 @@
 
 2002-03-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* process.c (conv_sockaddr_to_lisp, conv_lisp_to_sockaddr): Don't
-	use "sun" as a variable, it's a predefined constant on Sun
+	* process.c (conv_sockaddr_to_lisp, conv_lisp_to_sockaddr):
+	Don't use "sun" as a variable, it's a predefined constant on Sun
 	machines.
 
 2002-03-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
@@ -3512,8 +3503,7 @@
 2002-03-18  Kim F. Storm  <storm@cua.dk>
 
 	* config.in: Add HAVE_SENDTO, HAVE_RECVFROM, HAVE_SETSOCKOPT,
-	HAVE_GETSOCKOPT, HAVE_GETPEERNAME, HAVE_GETSOCKNAME, and
-	HAVE_SYS_UN_H.
+	HAVE_GETSOCKOPT, HAVE_GETPEERNAME, HAVE_GETSOCKNAME, and HAVE_SYS_UN_H.
 
 	* process.c: Define HAVE_LOCAL_SOCKETS based on HAVE_SYS_UN_H.
 	Remove explicit GNU_LINUX settings for datagram support.
@@ -3522,8 +3512,7 @@
 
 	* process.c (Fmake_network_process): Remove unused variable `sa'.
 	Doc fix.  Add usage:.
-	(set_socket_options): Remove unused variables `optnum' and
-	`opttype'.
+	(set_socket_options): Remove unused variables `optnum' and `opttype'.
 
 2002-03-17  Richard M. Stallman  <rms@gnu.org>
 
@@ -3714,9 +3703,8 @@
 
 2002-03-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* xdisp.c (move_it_vertically_backward): At the end of the
-	function, when moving forward by lines, treat terminal frames
-	specially.
+	* xdisp.c (move_it_vertically_backward): At the end of the function,
+	when moving forward by lines, treat terminal frames specially.
 
 	* keyboard.c (echo_char): Make sure to add a separator between
 	keys even if echo_dash hasn't been called.
@@ -3916,8 +3904,7 @@
 
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* fileio.c (Fsubstitute_in_file_name): Fix the change from
-	2002-02-08.
+	* fileio.c (Fsubstitute_in_file_name): Fix the change from 2002-02-08.
 
 	* xselect.c (Qcompound_text_with_extensions): Renamed from
 	Qcompound_text_no_extensions.
@@ -4148,9 +4135,8 @@
 
 	* msdos.c (x_autoselect_window_p): New variable.
 	(syms_of_msdos): Defvar it.
-	(dos_rawgetc): If x_autoselect_window_p is set, select the window
-	in which the last mouse movement occured, unless it is already
-	selected.
+	(dos_rawgetc): If x_autoselect_window_p is set, select the window in
+	which the last mouse movement occured, unless it is already selected.
 
 	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step):
 	New variables.
@@ -4353,9 +4339,8 @@
 
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* xfaces.c (realize_default_face): Don't set the weight and slant
-	of the default face to Qnormal, unless these attributes are
-	unspecified.
+	* xfaces.c (realize_default_face): Don't set the weight and slant of
+	the default face to Qnormal, unless these attributes are unspecified.
 
 2002-02-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -5075,8 +5060,8 @@
 	* alloc.c (inhibit_garbage_collection): Don't exceed value an int
 	can hold.
 
-	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum): Rename
-	from most_positive_fixnum and most_negative_fixnum, resp., and
+	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum):
+	Rename from most_positive_fixnum and most_negative_fixnum, resp., and
 	type changed to Lisp_Object.
 	(syms_of_data): DEFVAR_LISP them.
 
@@ -5129,8 +5114,8 @@
 
 	* insdel.c (make_gap_larger): New function.
 	(make_gap_smaller): New function.
-	(make_gap) [USE_MMAP_FOR_BUFFERS || REL_ALLOC]: Call
-	make_gap_smaller if arg is negative.
+	(make_gap) [USE_MMAP_FOR_BUFFERS || REL_ALLOC]:
+	Call make_gap_smaller if arg is negative.
 
 2001-12-04  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -6664,8 +6649,8 @@
 	(show_mouse_face): Set the glyph row's mouse_face_p flag also when
 	DRAW is DRAW_IMAGE_RAISED.
 	(clear_mouse_face): Return 1 if text with mouse face was
-	actually redrawn.  Make the function static.  Reset
-	dpyinfo->mouse_face_overlay otherwise note_mouse_highlight might
+	actually redrawn.  Make the function static.
+	Reset dpyinfo->mouse_face_overlay otherwise note_mouse_highlight might
 	optimize away highlighting if we pass over that same overlay again.
 	(note_mouse_highlight): Call mouse_face_overlay_overlaps
 	to detect a case where we have to highlight a different region

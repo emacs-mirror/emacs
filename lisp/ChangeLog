@@ -1,14 +1,23 @@
+2002-12-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names, rename-buffer)
+	(uniquify-delay-rationalize-file-buffer-names, kill-buffer-hook):
+	Undo 2002/09/27 change because kill-buffer-hook is not permanent-local.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Optimize the remaining part of for-effect and/or expressions.
+
 2002-12-13  Markus Rost  <rost@math.ohio-state.edu>
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Use
-	`custom-current-group'. Pass all groups to the hook.
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use `custom-current-group'. Pass all groups to the hook.
 	(easy-mmode-define-global-mode): Use `custom-current-group'.
 
-	* international/mule-cmds.el (current-language-environment): Set
-	type according to `language-info-alist' also here.
+	* international/mule-cmds.el (current-language-environment):
+	Set type according to `language-info-alist' also here.
 
-	* progmodes/compile.el (compilation-menu-map): Use
-	`kill-compilation' to stop compilation.
+	* progmodes/compile.el (compilation-menu-map):
+	Use `kill-compilation' to stop compilation.
 
 2002-12-13  Kenichi Handa  <handa@m17n.org>
 
@@ -36,15 +45,14 @@
 
 2002-12-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/fortran.el (fortran-mode-abbrev-table): Handle
-	`define-abbrev' with either 5 or 6 arguments.
+	* progmodes/fortran.el (fortran-mode-abbrev-table):
+	Handle `define-abbrev' with either 5 or 6 arguments.
 
 2002-12-12  Markus Rost  <rost@math.ohio-state.edu>
 
-	* international/mule-cmds.el (current-language-environment): Fix
-	custom type.
-	(set-language-info): Update custom type of
-	`current-language-environment'.
+	* international/mule-cmds.el (set-language-info):
+	Update custom-type of current-language-environment.
+	(current-language-environment): Fix custom type.
 
 2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -52,8 +60,8 @@
 
 2002-12-10  R. Bernstein  <rocky@panix.com>
 
-	* gud.el (bashdb): Prompt now included parenthesis for subshell
-	levels. Fix erroneous print expression command, and fix typos.
+	* gud.el (bashdb): Prompt now included parenthesis for subshell levels.
+	Fix erroneous print expression command, and fix typos.
 	(perldb): Undo previous change in prompt regexp.
 
 2002-12-10  Steven Tamm  <steventamm@mac.com>
@@ -108,11 +116,10 @@
 
 2002-12-08  Dave Love  <fx@gnu.org>
 
-	* international/code-pages.el (mule-diag): Move where it's
-	required.
+	* international/code-pages.el (mule-diag): Move where it's required.
 
-	* international/ucs-tables.el: Add latin-jisx0201 characters.  Fix
-	translation-table-for-input for lao, thai, tibetan.
+	* international/ucs-tables.el: Add latin-jisx0201 characters.
+	Fix translation-table-for-input for lao, thai, tibetan.
 
 2002-12-08  Andreas Schwab  <schwab@suse.de>
 
@@ -168,8 +175,7 @@
 
 2002-12-07  Markus Rost  <rost@math.ohio-state.edu>
 
-	* wid-edit.el (define-widget number): Clarify doc and error
-	message.
+	* wid-edit.el (define-widget number): Clarify doc and error message.
 	(define-widget float): New widget.
 
 2002-12-07  Andreas Schwab  <schwab@suse.de>
