@@ -1010,6 +1010,12 @@ All HOST values should be in lower case.")
 (defvar ange-ftp-files-hashtable (ange-ftp-make-hashtable 97)
   "Hash table for storing directories and their respective files.")
 
+(defvar ange-ftp-inodes-hashtable (ange-ftp-make-hashtable 97)
+  "Hash table for storing file names and their \"inode numbers\".")
+
+(defvar ange-ftp-next-inode-number 1
+  "Next \"inode number\" value.  We give each file name a unique number.")
+
 (defvar ange-ftp-ls-cache-lsargs nil
   "Last set of args used by ange-ftp-ls.")
 
@@ -3294,7 +3300,13 @@ system TYPE.")
 	      (let ((host (nth 0 parsed))
 		    (user (nth 1 parsed))
 		    (name (nth 2 parsed))
-		    (dirp (ange-ftp-get-hash-entry part files)))
+		    (dirp (ange-ftp-get-hash-entry part files))
+		    (inode (ange-ftp-get-hash-entry
+			    file ange-ftp-inodes-hashtable)))
+		(unless inode
+		  (setq inode ange-ftp-next-inode-number
+			ange-ftp-next-inode-number (1+ inode))
+		  (ange-ftp-put-hash-entry file inode ange-ftp-inodes-hashtable))
 		(list (if (and (stringp dirp) (file-name-absolute-p dirp))
 			  (ange-ftp-expand-symlink dirp
 						   (file-name-directory file))
@@ -3309,12 +3321,7 @@ system TYPE.")
 		      (concat (if (stringp dirp) "l" (if dirp "d" "-"))
 			      "?????????") ;8 mode
 		      nil		;9 gid weird
-		      ;; Hack to give remote files a unique "inode number".
-		      ;; It's actually the sum of the characters in its name.
-		      (apply '+ (nconc (mapcar 'identity host)
-				       (mapcar 'identity user)
-				       (mapcar 'identity
-					       (directory-file-name name))))
+		      inode		;10 "inode number".
 		      -1		;11 device number [v19 only]
 		      ))))
       (ange-ftp-real-file-attributes file))))
