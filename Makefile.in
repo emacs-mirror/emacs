@@ -332,7 +332,7 @@ do-install: mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   if [ `(cd $$1 ; pwd)` != `(cd $${dir} ; pwd)` ] ; then \
-	     rm -rf $${dir} ; \
+	     rm -rf $$1 ; \
 	   fi ; \
 	 done
 	-set ${COPYDESTS} ; \
