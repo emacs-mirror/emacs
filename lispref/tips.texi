@@ -163,6 +163,15 @@ of the other features intended for interactive users, you can replace
 these functions with one or two lines of simple Lisp code.
 
 @item
+Use lists rather than vectors, except when there is a particular reason
+to use a vector.  Lisp has more facilities for manipulating lists than
+for vectors, and working with lists is usually more convenient.
+
+Vectors are advantageous for tables that are substantial in size and are
+accessed in random order (not searched front to back), provided there is
+no need to insert or delete elements (only lists allow that).
+
+@item
 The recommended way to print a message in the echo area is with
 the @code{message} function, not @code{princ}.  @xref{The Echo Area}.
 
