@@ -73,7 +73,8 @@ It is useful to set this variable in the site customization file.")
 ;;;###autoload
 (defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
 *Regexp to match Header fields that Rmail should normally highlight.
-A value of nil means don't highlight.")
+A value of nil means don't highlight.
+See also `rmail-highlight-face'.")
 
 ;;;###autoload
 (defvar rmail-highlight-face nil "\
@@ -120,6 +121,9 @@ Called with region narrowed to the message, including headers.")
 
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
+
+(defvar rmail-display-summary nil
+  "If non nil, the summary buffer is always displayed.")
 
 (defvar rmail-mode-map nil)
 
@@ -221,7 +225,9 @@ Type \\[describe-mode] once editing that file, for a list of RMAIL commands.
 May be called with file name as argument; then performs rmail editing on
 that file, but does not copy any new mail into the file.
 Interactively, if you supply a prefix argument, then you
-have a chance to specify a file name with the minibuffer."
+have a chance to specify a file name with the minibuffer.
+
+If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "
 					 nil nil t))))
@@ -264,7 +270,8 @@ have a chance to specify a file name with the minibuffer."
       ;; or might have been just read in by rmail-get-new-mail.  Must
       ;; determine already unseen messages first, as rmail-get-new-mail
       ;; positions on the first new message, thus marking it as seen.
-      (rmail-show-message existing-unseen))))
+      (rmail-show-message existing-unseen))
+    (if rmail-display-summary (rmail-summary))))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.
 ;; This is turned off because it is not clear that the user wants
