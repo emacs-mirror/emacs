@@ -169,8 +169,9 @@ To override this, give an argument to `ff-find-other-file'.")
     ("^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" .
      (lambda ()
        (setq fname (buffer-substring (match-beginning 1) (match-end 1)))
+       (require 'ada-mode)
        (setq fname (concat (ada-make-filename-from-adaname fname)
-                           ada-spec-suffix))))
+			   ada-spec-suffix))))
     )
   "*A list of regular expressions specifying how to recognise special 
 constructs such as include files etc, and an associated method for 
@@ -251,13 +252,6 @@ since the search algorithm searches sequentially through each directory
 specified in `ada-search-directories'.  If a file is not found, a new one
 is created with the first matching extension (`.adb' yields `.ads').
 ")
-
-;;;### autoload
-(autoload 'ada-make-filename-from-adaname "ada-mode"
-  "Determine the filename of a package/procedure from its own Ada name.")
-(defvar ada-spec-suffix ".ads"  
-  "*Suffix of Ada specification files.")
-(make-variable-buffer-local 'ada-spec-suffix)
 
 (defvar modula2-other-file-alist
   '(
