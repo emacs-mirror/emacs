@@ -304,8 +304,10 @@ Optional parameter specifies number of years."
     (cal-tex-cmd "\\evensidemargin 1.55in")
     (cal-tex-cmd "\\topmargin 0pt")
     (cal-tex-cmd "\\headheight -0.875in")
+    (cal-tex-cmd "\\fboxsep 0.5mm")
     (cal-tex-cmd "\\pagestyle{empty}")
     (cal-tex-b-document)
+    (cal-tex-cmd "\\vspace*{0.25in}")
     (calendar-for-loop j from 1 to n do
        (insert (format "\\hfil {\\Large \\bf %s} \\hfil\\\\\n" year))
        (cal-tex-b-center)
@@ -316,7 +318,7 @@ Optional parameter specifies number of years."
        (calendar-for-loop i from 1 to 12 do
           (insert (cal-tex-mini-calendar i year
                                          (calendar-month-name i)
-                                         "1.05in" ".8in" "tiny")))
+                                         "1in" ".9in" "tiny" "0.6mm")))
        (insert
 "\\noindent\\fbox{\\January}\\fbox{\\February}\\fbox{\\March}\\\\
 \\noindent\\fbox{\\April}\\fbox{\\May}\\fbox{\\June}\\\\
@@ -1275,28 +1277,32 @@ Optional prefix argument specifies number of days."
 ;;;  Mini calendars
 ;;;
 
-(defun cal-tex-mini-calendar (month year name width height &optional size)
+(defun cal-tex-mini-calendar (month year name width height &optional ptsize colsep)
   "Produce mini-calendar for MONTH, YEAR in macro NAME with WIDTH and HEIGHT.
-Optional SIZE gives the point size; scriptsize is the default,"
+Optional PTSIZE gives the point ptsize; scriptsize is the default.  Optional
+COLSEP gives the column separation; 1mm is the default."
   (let* ((blank-days;; at start of month
           (mod
            (- (calendar-day-of-week (list month 1 year))
               calendar-week-start-day)
            7))
-	 (last (calendar-last-day-of-month month year))
+          (last (calendar-last-day-of-month month year))
+         (colsep (if colsep colsep "1mm"))
          (str (concat "\\def\\" name "{\\hbox to" width "{%\n"
                       "\\vbox to" height "{%\n"
                       "\\vfil  \\hbox to" width "{%\n"
                       "\\hfil\\"
-                      (if size size "scriptsize")
+                      (if ptsize ptsize "scriptsize")
                       "\\begin{tabular}"
-                      "{@{\\hspace{1mm}}r@{\\hspace{1mm}}r@{\\hspace{1mm}}r@{\\hspace{1mm}}"
-                      "r@{\\hspace{1mm}}r@{\\hspace{1mm}}r@{\\hspace{1mm}}r@{\\hspace{1mm}}}%\n"
+                      "{@{\\hspace{0mm}}r@{\\hspace{" colsep
+                      "}}r@{\\hspace{" colsep "}}r@{\\hspace{" colsep
+                      "}}r@{\\hspace{" colsep "}}r@{\\hspace{" colsep
+                      "}}r@{\\hspace{" colsep "}}r@{\\hspace{0mm}}}%\n"
                       "\\multicolumn{7}{c}{"
                       (calendar-month-name month)
                       " "
                       (int-to-string year)
-                      "}\\\\[0.5mm]\n")))
+                      "}\\\\[1mm]\n")))
     (calendar-for-loop i from 0 to 6 do
       (setq str (concat str
                         (substring (aref calendar-day-name-array 
@@ -1304,7 +1310,7 @@ Optional SIZE gives the point size; scriptsize is the default,"
                                    0 2)
                         (if (/= i 6)
                             " & "
-                          "\\\\[0.5mm]\n"))))
+                          "\\\\[0.7mm]\n"))))
     (calendar-for-loop i from 1 to blank-days do
       (setq str (concat str " & ")))
     (calendar-for-loop i from 1 to last do
