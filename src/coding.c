@@ -6419,7 +6419,7 @@ coding system used in each operation can't encode the text.\n\
 The default value is `select-safe-coding-system' (which see).");
   Vselect_safe_coding_system_function = Qnil;
 
-  DEFVAR_BOOL ("inhibit-iso-eacape-detection",
+  DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
     "If non-nil, Emacs ignores ISO2022's escape sequence on code detection.\n\
 \n\
