@@ -172,6 +172,9 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
+    ;; IBM AIX xlc compiler:
+    ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
+    ("\"\\([^\"]+\\)\", lines? \\([0-9]+\\)\\(\\.\\([0-9]+\\)\\)" 1 2 4)
 
     ;; Lucid Compiler, lcc 3.x
     ;; E, file.cc(35,52) Illegal operation on pointers
