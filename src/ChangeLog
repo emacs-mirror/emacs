@@ -1,3 +1,8 @@
+2003-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* intervals.c (graft_intervals_into_buffer): Correct the main loop
+	in the case where OVER is longer than UNDER.
+
 2003-09-22  Masatake YAMATO  <jet@gyve.org>
 
 	* window.c (Fset_window_scroll_bars): Validate the value of 

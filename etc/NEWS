@@ -90,6 +90,12 @@ On 32bit machines, it is now 256M (i.e. 268435455).
 displayed as balanced quotes, not the ASCII glyphs whose shape has
 been changed generally in the XFree86 fonts.
 
++++
+** The -f option, used from the command line to call a function,
+now reads arguments for the function interactively if it i
+an interactively callable function.
+
+
 ** sql changes.
 
 *** The variable `sql-product' controls the highlightng of different

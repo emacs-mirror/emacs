@@ -1,3 +1,42 @@
+2003-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): 
+	Renamed from sh-mode-syntax-table.  Call sh-mode-syntax-table directly.
+	(sh-mode-syntax-table-input): New variable.
+	(sh-require-final-newline): Don't use eval.
+	(sh-builtins, sh-leading-keywords, sh-other-keywords)
+	(sh-variables, sh-font-lock-keywords): Don't use eval.
+	(sh-set-shell): When setting require-final-newline,
+	treat value = `require-final-newline' as don't change it.
+	Set sh-mode-syntax-table locally based on
+	sh-mode-syntax-table-input and sh-mode-default-syntax-table.
+
+	* progmodes/compile.el (compile-internal):
+	Call compilation-set-window-height before setting window start.
+
+2003-09-22  Greg Hill  <ghill@synergymicro.com>  (tiny change)
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-file):
+	Clear out byte-compile-last-warned-form.
+
+2003-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* woman.el (woman-file-name, woman-follow-word): 
+	If current-word returns nil, use "".
+
+	* simple.el (eval-expression): Bind standard-output in to-buffer case.
+
+2003-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-with-file):
+	Don't visit the file, just use insert-file-contents in temp buffer.
+
+2003-09-22  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* emacs-lisp/lisp-mnt.el (lm-get-header-re): Added
+	surrounding \\( and \\) around the header, as in
+	for lm-history-header 'Change Log\\|History'.
+
 2003-09-22  John Paul Wallington  <jpw@gnu.org>
 
 	* progmodes/ld-script.el: Add Commentary section,

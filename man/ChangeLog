@@ -1,3 +1,14 @@
+2003-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.texi (Misc Dired Commands): New node.
+	(Dired Navigation): Add dired-goto-file.
+
+	* files.texi (File Aliases, Misc File Ops): Add @cindex entries.
+
+	* emacs.texi (Acknowledgements): New node, split from Distribution.
+
+	* cmdargs.texi (Action Arguments): -f reads interactive args.
+
 2003-09-21  Karl Berry  <karl@gnu.org>
 
 	* info.texi (] and [ commands): no period at end of section title.
