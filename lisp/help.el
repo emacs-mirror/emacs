@@ -154,9 +154,13 @@ Commands:
   ;; `help-mode-maybe'.
   (run-hooks 'help-mode-hook))
 
-(defun help-mode-maybe ()
-  (if (eq major-mode 'fundamental-mode)
-      (help-mode))
+(defun help-mode-setup ()
+  (help-mode)
+  (setq buffer-read-only nil))
+
+(add-hook 'temp-buffer-setup-hook 'help-mode-setup)
+
+(defun help-mode-finish ()
   (when (eq major-mode 'help-mode) 
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
@@ -165,7 +169,7 @@ Commands:
   (setq view-return-to-alist
 	(list (cons (selected-window) help-return-method))))
 
-(add-hook 'temp-buffer-show-hook 'help-mode-maybe)
+(add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
 (defun help-quit ()
   "Just exit from the Help command's command loop."
