@@ -31,6 +31,11 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+** The header line in an Info buffer is now displayed as an emacs header-line
+(which is like a mode-line, but at the top of the window), so that it
+remains visible even when the buffer has been scrolled.  This behavior
+may be disabled by customizing the option `Info-use-header-line'.
+
 ** `gnus-user-agent' is a new possibility for `mail-user-agent'.  It
 is like `message-user-agent', but with all the Gnus paraphernalia.
 
