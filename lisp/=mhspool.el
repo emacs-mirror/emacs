@@ -35,7 +35,7 @@
 ;; name of the NNTP server passed to GNUS must be `:Mail'.
 
 (defvar mhspool-list-directory-switches '("-R")
-  "*Switches for nntp-request-list to pass to `ls' for gettting file lists.
+  "*Switches for `nntp-request-list' to pass to `ls' for gettting file lists.
 One entry should appear on one line. You may need to add `-1' option.")
 
 
@@ -324,8 +324,7 @@ If the stream is opened, return T, otherwise return NIL."
       )))
 
 (defun mhspool-request-last ()
-  "Set current article pointer to the previous article
-in the current news group."
+  "Set current article pointer to the previous article in the current newsgroup."
   (error "MHSPOOL: LAST is not implemented."))
 
 (defun mhspool-request-next ()
