@@ -649,10 +649,14 @@ a message of type TYPE; and FUNCTION is a function to be called if
 PREDICATE returns non-nil.  FUNCTION is called with one parameter --
 the prefix.")
 
-(defvar message-mail-alias-type 'abbrev
+(defcustom message-mail-alias-type 'abbrev
   "*What alias expansion type to use in Message buffers.
 The default is `abbrev', which uses mailabbrev.  nil switches
-mail aliases off.")
+mail aliases off."
+  :group 'message
+  :link '(custom-manual "(message)Mail Aliases")
+  :type '(choice (const :tag "Use Mailabbrev" abbrev)
+		 (const :tag "No expansion" nil)))
 
 (defcustom message-auto-save-directory
   (file-name-as-directory (nnheader-concat message-directory "drafts"))
@@ -700,10 +704,6 @@ A value of nil means exclude your own name only."
 (defvar message-mode-abbrev-table text-mode-abbrev-table
   "Abbrev table used in Message mode buffers.
 Defaults to `text-mode-abbrev-table'.")
-(defgroup message-headers nil
-  "Message headers."
-  :link '(custom-manual "(message)Variables")
-  :group 'message)
 
 (defface message-header-to-face
   '((((class color)
