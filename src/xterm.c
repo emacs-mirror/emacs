@@ -3473,7 +3473,7 @@ cvt_pixel_dtor (app, to, closure, args, nargs)
       Screen *screen = *(Screen **) args[0].addr;
       Colormap cmap = *(Colormap *) args[1].addr;
       x_free_dpy_colors (DisplayOfScreen (screen), screen, cmap,
-			 (Pixel *) to->addr, 1, 0);
+			 (Pixel *) to->addr, 1);
     }
 }
 
