@@ -3,6 +3,11 @@
 	* simple.el (delete-key-deletes-forward-mode): Bind backspace
 	and delete in isearch-mode-map.
 
+2000-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): 
+	Use xpdf instead of acroread.
+
 2000-12-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* textmodes/artist.el (artist-butlast): Deleted.
@@ -53,6 +58,7 @@
 	* ffap.el (ffap-bindings): Make interactive and add an autoload
 	cookie.
 	(ffap-bindings): Doc fix, to reflect the above change.
+======= end
 
 2000-12-27  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1198,6 +1204,7 @@
 	`verbatim' so that we don't inadvertently delete a non-existant
 	directory name.
 
+>>>>>>> 1.1768
 2000-11-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Specify cases and syntaxes for
