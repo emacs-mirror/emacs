@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-math () nil)
-
 
 (defun calc-sqrt (arg)
   (interactive "P")
@@ -1687,6 +1683,8 @@
 	((math-infinitep a) a)
 	(t (list 'calcFunc-deg a))))
 (put 'calcFunc-deg 'math-expandable t)
+
+(provide 'calc-math)
 
 ;;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
 ;;; calc-math.el ends here
