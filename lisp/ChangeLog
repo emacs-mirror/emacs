@@ -1,3 +1,9 @@
+2001-05-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* arc-mode.el (archive-int-to-mode): Construct the string directly.
+	(archive-mode): Use capitalize.
+	(archive-unique-fname): Use make-temp-file.
+
 2001-05-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-interaction-mode): Doc fix.
@@ -7,17 +13,16 @@
 	* tar-mode.el (tar-extract): Pay attention to the value of
 	coding-system-for-read, if it is non-nil.
 
-	* calendar/holidays.el (holidays): Add an autoload cookie.  From
-	Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+	* calendar/holidays.el (holidays): Add an autoload cookie.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-05-08  John Wiegley  <johnw@gnu.org>
 
-	* calendar/timeclock.el (timeclock-workday-remaining): Changed
-	logic for determining how much time is remaining.
+	* calendar/timeclock.el (timeclock-workday-remaining):
+	Changed logic for determining how much time is remaining.
 	(timeclock-workday-elapsed): Don't accept a "relative" argument
 	for the current day's elapsed time.  What could that have meant?
-	(timeclock-workday-elapsed-string): No "relative" argument
-	anymore.
+	(timeclock-workday-elapsed-string): No "relative" argument anymore.
 	(timeclock-when-to-leave): Changed logic, similarly to what was
 	done for `timeclock-workday-remaining'.
 	(timeclock-find-discrep): Removed "today-only" argument, which had
@@ -41,11 +46,9 @@
 	* mail/rmail.el (rmail-insert-mime-forwarded-message-function)
 	(rmail-search-mime-message-function)
 	(rmail-search-mime-header-function): New variables.
-	(rmail-expunge-and-save): Be sure to set-buffer to the Rmail
-	buffer.
-	(rmail-quit): Bury `rmail-buffer' after `rmail-view-buffer' is
-	hidden.
-	(rmail-get-new-mail): Likewise.
+	(rmail-expunge-and-save): Be sure to set-buffer to the Rmail buffer.
+	(rmail-quit, rmail-get-new-mail): Bury `rmail-buffer' after
+	`rmail-view-buffer' is hidden.
 	(rmail-toggle-header): Likewise.  If rmail-enable-mime is non-nil,
 	call rmai-show-mime-function.
 	(rmail-display-labels): If rmail-enable-mime is non-nil, update
@@ -53,23 +56,21 @@
 	(rmail-set-attribute): Be sure to set-buffer to the Rmail buffer.
 	(rmail-show-message): Be sure to call rmail-auto-file in the Rmail
 	buffer.
-	(rmail-next-message): Be sure to set-buffer to the Rmail buffer.
-	(rmail-next-undeleted-message): Likewise.
+	(rmail-next-message, rmail-next-undeleted-message): Be sure to
+	set-buffer to the Rmail buffer.
 	(rmail-message-regexp-p): If rmail-enable-mime is non-nil, call
 	rmail-search-mime-header-function.
 	(rmail-search-message): New function.
 	(rmail-search): Call rmail-search-message to check if a message
 	matches REGEXP, lastly update point after calling
 	rmail-show-message.
-	(rmail-undelete-previous-message): Be sure to set-buffer to the
-	Rmail buffer.
-	(rmail-expunge-confirmed): Likewise.
-	(rmail-only-expunge): Likewise.
+	(rmail-undelete-previous-message, rmail-expunge-confirmed)
+	(rmail-only-expunge): Be sure to set-buffer to the Rmail buffer.
 	(rmail-reply): If rmail-enable-mime is non-nil, don't narrow to
 	header region, refer to rmail-msgref-vector while setting the
 	current buffer to rmail-buffer temporarily.
-	(rmail-forward): Be sure to bind forward-buffer to the Rmail
-	buffer.  If rmail-enable-mime is non-nil, call
+	(rmail-forward): Be sure to bind forward-buffer to the Rmail buffer.
+	If rmail-enable-mime is non-nil, call
 	rmail-insert-mime-forwarded-message-function instead of inserting
 	forwarded message by itself.
 
@@ -84,8 +85,8 @@
 
 	* mail/rmailsum.el (rmail-message-subject-p): Process the result
 	of mail-fetch-field by rmail-summary-line-decoder.
-	(rmail-new-summary): Be sure to go to the Rmail buffer.  If
-	rmail-enable-mime is non-nil, set rmail-summary-buffer of
+	(rmail-new-summary): Be sure to go to the Rmail buffer.
+	If rmail-enable-mime is non-nil, set rmail-summary-buffer of
 	rmail-view-buffer to nil.
 	(rmail-summary-undelete): If rmail-enable-mime is non-nil, pop to
 	rmail-view-buffer.
@@ -107,22 +108,22 @@
 
 	* mail/rmailedit.el (rmail-edit-mode-hook): Add :version.
 
-	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): Add
-	:version.
-	
-	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): New
-	option.
+	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions):
+	Add :version.
+
+	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions):
+	New option.
 	(smtpmail-via-smtp): Print warnings about unknown SMTP extensions
 	only if smtpmail-warn-about-unknown-extensions is set.
 
 	* mail/rmail.el (rmail-mode-map): Use rmail-sort-by-labels
 	instead of rmail-sort-by-keywords.
 
-	* mail/rmailsort.el (rmail-sort-by-labels): Renamed from 
+	* mail/rmailsort.el (rmail-sort-by-labels): Renamed from
 	rmail-sort-by-keywords.
 
-	* mail/rmailsum.el (rmail-summary-sort-by-labels): Renamed
-	from rmail-summary-sort-by-keywords.  Doc fix.
+	* mail/rmailsum.el (rmail-summary-sort-by-labels): Renamed from
+	rmail-summary-sort-by-keywords.  Doc fix.
 	(rmail-summary-mode): Doc fix.
 
 	* mail/rmail.el (rmail-edit): New Custom group.
@@ -15738,8 +15739,7 @@
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to
 	allow more flexibility.
-	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New
-	fns.
+	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New fns.
 	(easy-mmode-defmap, easy-mmode-defsyntax)
 	(easy-mmode-define-derived-mode): New macros.
 
@@ -15749,8 +15749,7 @@
 
 2000-03-09  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el (fortran-comment-line-start): Define as
-	"C".
+	* progmodes/fortran.el (fortran-comment-line-start): Define as "C".
 	(fortran-comment-line-start-skip): Don't match cpp stuff.
 	(font-lock-keywords): Add * to comment-chars.  Grok cpp stuff.
 	(fortran-mode-map): Remove over-eager custom-menu-create for now.
@@ -15818,8 +15817,7 @@
 	* recentf.el (recentf-keep-non-readable-files-p): Add :set,
 	:require to defcustom.
 
-	* emacs-lisp/cl.el: Remove expt, delete, rassoc from autoloads
-	lists.
+	* emacs-lisp/cl.el: Remove expt, delete, rassoc from autoloads lists.
 
 	* files.el (auto-mode-alist): Add configure.in.
 
@@ -15842,8 +15840,8 @@
 
 2000-03-07  Dave Love  <fx@gnu.org>
 
-	* winner.el: Fix keywords, autoload cookies.  Split
-	eval-when-compile form to avoid compilation failure.
+	* winner.el: Fix keywords, autoload cookies.
+	Split eval-when-compile form to avoid compilation failure.
 
 2000-03-07  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
 
@@ -15852,12 +15850,12 @@
 	(make-coding-system): New argument EOL-TYPE.  Pay attention to
 	coding-category property of PROPERTIES.
 
-	* international/mule-conf.el (coding-category-utf-8,
-	coding-category-utf-16-be, coding-category-utf-16-le): New coding
+	* international/mule-conf.el (coding-category-utf-8)
+	(coding-category-utf-16-be, coding-category-utf-16-le): New coding
 	categories.  Include them in the argument for set-coding-priority.
 
-	* international/mule-cmds.el (reset-language-environment): Include
-	coding-category-utf-8, coding-category-utf-16-be, and
+	* international/mule-cmds.el (reset-language-environment):
+	Include coding-category-utf-8, coding-category-utf-16-be, and
 	coding-category-utf-16-le in the argument for set-coding-priority.
 	(reset-language-environment): Initialize coding-category-utf-8,
 	coding-category-utf-16-be, and coding-category-utf-16-le to nil.
@@ -15882,15 +15880,14 @@
 
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* time.el (display-time-mail-file): Add `none' to the list of
-	choices.
+	* time.el (display-time-mail-file): Add `none' to the list of choices.
 
 2000-03-01  Dave Love  <fx@gnu.org>
 
 	* help.el (help-xref-go-back): Don't try to set position.
 
-	* international/mule-diag.el (list-character-sets): Call
-	help-setup-xref.  Add help-echo to xrefs.
+	* international/mule-diag.el (list-character-sets):
+	Call help-setup-xref.  Add help-echo to xrefs.
 	(list-character-sets-1): Add help-echo to xrefs.
 
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
@@ -15910,35 +15907,29 @@
 	* help.el (help-xref-button): Add help-echo arg.
 	(describe-function-1, describe-variable, help-make-xrefs): Use it.
 
-	* faces.el (list-faces-display): Supply help-echo with
-	help-make-xrefs.
+	* faces.el (list-faces-display): Supply help-echo with help-make-xrefs.
 
-	* facemenu.el (list-text-properties-at): Set help-xref-stack to
-	nil.
+	* facemenu.el (list-text-properties-at): Set help-xref-stack to nil.
 
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* image.el (defimage): Look for image files in load-path.
 
-	* frame.el (busy-cursor-delay-seconds): Change type to
-	`number'.
+	* frame.el (busy-cursor-delay-seconds): Change type to `number'.
 
 2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
-	* recentf.el (recentf): Added version tag to the defgroup of
-	recentf.
+	* recentf.el (recentf): Added version tag to the defgroup of recentf.
 
 2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
-	* recentf.el (recentf-cleanup): Changed to remove excluded file
-	too.
+	* recentf.el (recentf-cleanup): Changed to remove excluded file too.
 	(recentf-edit-list-action): `recentf-edit-list' checkbox widget
 	action to select/unselect a file.
 	(recentf-edit-list): Code cleanup and improvement.
 	(recentf-open-more-files-action): `recentf-open-more-files' button
 	widget action to open a file.
-	(recentf-open-more-files): No more use standard completion but
-	widgets.
+	(recentf-open-more-files): No more use standard completion but widgets.
 	(recentf-more-collection): Deleted.
 	(recentf-more-history): Deleted.
 	(recentf-setup-more-completion): Deleted.
@@ -15948,7 +15939,7 @@
 	* recentf.el (recentf-mode): No more needs that Emacs is running
 	under a window-system.
 
-1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
 	* recentf.el (recentf-edit-list): New command to edit the recent
 	list which allow the user to remove files.
@@ -15958,7 +15949,7 @@
 	(recentf-make-menu-items): Updated to display a "Edit list..."
 	menu item.  Minor code cleanup.
 
-1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
 	* recentf.el (recentf-open-more-files): New command to open files
 	that are not displayed in the menu.
@@ -15970,11 +15961,11 @@
 	`recentf-open-more-files'.
 	(recentf-make-menu-items): Updated to display a "More..." menu item.
 
-1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
 	* recentf.el (recentf-menu-action): Doc fixed.
 
-1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
 
 	* recentf.el (recentf-menu-filter): Doc updated.
 	(recentf-update-menu-hook): Allow menu filters to force menu update.
@@ -15996,8 +15987,8 @@
 
 2000-02-29  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-diag.el (list-character-sets): Completely
-	rewritten.
+	* international/mule-diag.el (list-character-sets):
+	Completely rewritten.
 	(sort-listed-character-sets): New function.
 	(list-character-sets-1): Completely rewritten.
 	(list-character-sets-2): New function.
