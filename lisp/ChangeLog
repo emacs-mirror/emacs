@@ -1,3 +1,20 @@
+2002-09-16  Kim F. Storm  <storm@cua.dk>
+
+	* menu-bar.el (menu-bar-last-search-type): New var.
+	(nonincremental-repeat-search-forward)
+	(nonincremental-repeat-search-backward): Repeat string or
+	regexp search depending on menu-bar-last-search-type.
+	(nonincremental-search-forward, nonincremental-re-search-forward)
+	(nonincremental-search-backward, nonincremental-re-search-backward):
+	Set menu-bar-last-search-type to string or regexp.
+	(nonincremental-repeat-re-search-forward): Removed.
+	(nonincremental-repeat-re-search-backward): Removed.
+	(menu-bar-replace-menu): New keymap for "Edit->Replace" submenu.
+	(menu-bar-i-search-menu): New keymap for "Incremental Search" submenu.
+	(menu-bar-adv-search-menu): Removed.
+	(menu-bar-search-menu): Reorganized.
+	(menu-bar-edit-menu): Added "Replace" submenu.
+	
 2002-09-15  Markus Rost  <rost@math.ohio-state.edu>
 
 	* dired.el (dired-move-to-filename): Fix previous change.
