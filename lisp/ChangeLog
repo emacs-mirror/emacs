@@ -1,3 +1,11 @@
+2000-09-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-start-translation): Translate KEY
+	if necessary even if it doesn't have any mapping in the current
+	input method.
+	(quail-start-conversion): Likewise.
+	(quail-help): The output message is improved.
+
 2000-09-13  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-output-filter): Revert to using
