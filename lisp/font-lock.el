@@ -457,7 +457,7 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block]."
 				 'font-lock-fontify-buffer-function))))
 		  (font-lock-fontify-buffer))
 		 (font-lock-verbose
-		  (message "Fontifying %s... buffer too big." (buffer-name)))))
+		  (message "Fontifying %s...buffer too big" (buffer-name)))))
 	  (font-lock-fontified
 	   (font-lock-unfontify-buffer)
 	   (remove-hook 'before-revert-hook 'font-lock-revert-setup t)
@@ -546,6 +546,9 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	(remove-hook 'change-major-mode-hook 'font-lock-change-major-mode)
       (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
       (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
+      ;; This is to make sure we fontify immediately
+      ;; when process filters (such as GUD) find files.
+      (add-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
       (setq font-lock-buffers (buffer-list)))
     (if message
 	(message "Global Font Lock mode is now %s." (if off-p "OFF" "ON")))
@@ -611,7 +614,7 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	      (setq font-lock-fontified t)))
 	;; We don't restore the old fontification, so it's best to unfontify.
 	(quit (font-lock-unfontify-buffer))))
-    (if verbose (message "Fontifying %s... %s." (buffer-name)
+    (if verbose (message "Fontifying %s...%s" (buffer-name)
 			 (if font-lock-fontified "done" "aborted")))))
 
 (defun font-lock-default-unfontify-buffer ()
@@ -690,7 +693,7 @@ delimit the region to fontify."
 		   (save-excursion (forward-line lines) (point))))
 	      (funcall font-lock-mark-block-function)
 	      (font-lock-fontify-region (point) (mark)))
-	  ((error quit) (message "Fontifying block... %s" error-data)))))))
+	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
 (define-key facemenu-keymap "\M-g" 'font-lock-fontify-block)
 
