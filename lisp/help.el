@@ -267,8 +267,13 @@ If that doesn't give a function, return nil."
 		      (and (symbolp obj) (fboundp obj) obj))))
 	      (error nil))))
       (let* ((str (find-tag-default))
-	     (obj (if str (intern str))))
-	(and (symbolp obj) (fboundp obj) obj))))
+	     (sym (if str (intern-soft str))))
+	(if (and sym (fboundp sym))
+	    sym
+	  (save-match-data
+	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
+	      (setq sym (intern-soft (match-string 1 str)))
+	      (and (fboundp sym) sym)))))))
 
 
 ;;; `User' help functions
