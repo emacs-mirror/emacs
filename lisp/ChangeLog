@@ -1,3 +1,11 @@
+2004-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery-linux-proc-apm): Use string-to-number.
+	(battery-linux-proc-acpi): Ignore all hidden files in the battery dir.
+	Use dolist (and less indentation).  Use erase-buffer.
+	Pre-initialize `design-capacity', `warn', and `low'.
+	(battery-format): Use replace-regexp-in-string.
+
 2004-09-18  Ralph Schleicher  <rs@nunatak.allgaeu.org>
 
 	* battery.el: Delete superfluous empty lines.
@@ -15,8 +23,8 @@
 
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
-	* ibuf-ext.el (define-ibuffer-filter filename): Expand
-	dired-directory since buffer-file-name is absolute.
+	* ibuf-ext.el (define-ibuffer-filter filename):
+	Expand dired-directory since buffer-file-name is absolute.
 
 2004-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -32,16 +40,14 @@
 	Use min-colors.
 
 	* term.el (term-down): Perform vertical motion if DOWN is negative.
-	(term-exec-1): Set both TERMCAP and TERMINFO
-	unconditionally.
+	(term-exec-1): Set both TERMCAP and TERMINFO unconditionally.
 	(term-termcap-format): Synchronyze with the eterm terminfo entry
 	in etc/e/eterm.ti.
 	(term-handle-colors-array): If the current foreground or
 	background are zero (i.e. unspecified), use the foreground and
 	background of the default face for reverse video.
 	(term-ansi-at-eval-string, term-ansi-default-fg)
-	(term-ansi-default-bg, term-ansi-current-temp): Delete unused
-	variable.
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused variable.
 	(term-mem): Delete ununsed function.
 	(term-protocol-version): Increment.
 	(term-current-face): Set to default.
