@@ -1,3 +1,9 @@
+2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (POP_FAILURE_REG_OR_COUNT, re_match_2_internal)
+	(re_match_2_internal, re_match_2_internal, re_match_2_internal):
+	Giving in to popular pressure to shut up the compiler with casts.
+
 2000-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyph_string): Treat XA_UNDERLINE_POSITION as a
