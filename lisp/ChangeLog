@@ -1,3 +1,8 @@
+2005-01-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Compute window co-ordinates
+	more carefully.
+
 2005-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/sgml-mode.el (sgml-fill-nobreak): New fun.
