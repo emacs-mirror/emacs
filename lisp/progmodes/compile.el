@@ -1054,8 +1054,6 @@ See variable `compilation-parse-errors-function' for the interface it uses."
   (setq compilation-error-list (nreverse compilation-error-list))
   (message "Parsing error messages...done"))
 
-(define-key ctl-x-map "`" 'next-error)
-
 (provide 'compile)
 
 ;;; compile.el ends here
