@@ -248,10 +248,8 @@ used by that frame.")
     Lisp_Object frame;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
-  else
-    CHECK_LIVE_FRAME (frame, 0);
-
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
@@ -634,9 +632,8 @@ column 0.")
   struct frame *f;
 
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
-  else
-    CHECK_LIVE_FRAME (frame, 2);
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 2);
   f = XFRAME (frame);
 
   /* Check that arguments are integers or floats.  */
@@ -1213,7 +1210,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 		   If that happens, go back to the selected frame
 		   so we can complete the cycle.  */
 		if (EQ (tem, tem1))
-		  XSETFRAME (tem, selected_frame);
+		  tem = selected_frame;
 	      }
 	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
@@ -1365,7 +1362,7 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 		   If that happens, go back to the selected frame
 		   so we can complete the cycle.  */
 		if (EQ (tem, tem1))
-		  XSETFRAME (tem, selected_frame);
+		  tem = selected_frame;
 	      }
 	    /* If this frame has a minibuffer, find that window first,
 	       because it is conceptually the last window in that frame.  */
@@ -1476,7 +1473,7 @@ window_loop (type, obj, mini, frames)
   if (FRAMEP (frames))
     frame = XFRAME (frames);
   else if (NILP (frames))
-    frame = selected_frame;
+    frame = SELECTED_FRAME ();
   else
     frame = 0;
   if (frame)
@@ -1496,7 +1493,7 @@ window_loop (type, obj, mini, frames)
   else if (frame)
     w = FRAME_SELECTED_WINDOW (frame);
   else
-    w = FRAME_SELECTED_WINDOW (selected_frame);
+    w = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
 
   /* Figure out the last window we're going to mess with.  Since
      Fnext_window, given the same options, is guaranteed to go in a
@@ -2450,6 +2447,7 @@ select_window_1 (window, recordflag)
 {
   register struct window *w;
   register struct window *ow = XWINDOW (selected_window);
+  struct frame *sf;
 
   CHECK_LIVE_WINDOW (window, 0);
 
@@ -2468,7 +2466,8 @@ select_window_1 (window, recordflag)
 		     BUF_PT_BYTE (XBUFFER (ow->buffer)));
 
   selected_window = window;
-  if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
+  sf = SELECTED_FRAME ();
+  if (XFRAME (WINDOW_FRAME (w)) != sf)
     {
       XFRAME (WINDOW_FRAME (w))->selected_window = window;
       /* Use this rather than Fhandle_switch_frame
@@ -2478,7 +2477,7 @@ select_window_1 (window, recordflag)
       Fselect_frame (WINDOW_FRAME (w), Qnil);
     }
   else
-    selected_frame->selected_window = window;
+    sf->selected_window = window;
 
   if (recordflag)
     record_buffer (w->buffer);
@@ -2519,15 +2518,19 @@ static Lisp_Object
 display_buffer_1 (window)
      Lisp_Object window;
 {
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
+  Lisp_Object frame = XWINDOW (window)->frame;
+  FRAME_PTR f = XFRAME (frame);
+  
   FRAME_SAMPLE_VISIBILITY (f);
-  if (f != selected_frame)
+  
+  if (!EQ (frame, selected_frame))
     {
       if (FRAME_ICONIFIED_P (f))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+	Fmake_frame_visible (frame);
       else if (FRAME_VISIBLE_P (f))
-	Fraise_frame (WINDOW_FRAME (XWINDOW (window)));
+	Fraise_frame (frame);
     }
+  
   return window;
 }
 
@@ -2624,6 +2627,7 @@ If FRAME is nil, search only the selected frame\n\
      register Lisp_Object buffer, not_this_window, frame;
 {
   register Lisp_Object window, tem, swp;
+  struct frame *f;
 
   swp = Qnil;
   buffer = Fget_buffer (buffer);
@@ -2683,17 +2687,17 @@ If FRAME is nil, search only the selected frame\n\
       return display_buffer_1 (window);
     }
 
+  f = SELECTED_FRAME ();
   if (pop_up_windows
-      || FRAME_MINIBUF_ONLY_P (selected_frame)
+      || FRAME_MINIBUF_ONLY_P (f)
       /* If the current frame is a special display frame,
 	 don't try to reuse its windows.  */
-      || !NILP (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->dedicated)
-      )
+      || !NILP (XWINDOW (FRAME_ROOT_WINDOW (f))->dedicated))
     {
       Lisp_Object frames;
 
       frames = Qnil;
-      if (FRAME_MINIBUF_ONLY_P (selected_frame))
+      if (FRAME_MINIBUF_ONLY_P (f))
 	XSETFRAME (frames, last_nonminibuf_frame);
       /* Don't try to create a window if would get an error */
       if (split_height_threshold < window_min_height << 1)
@@ -2705,8 +2709,7 @@ If FRAME is nil, search only the selected frame\n\
 
       /* If the frame we would try to split cannot be split,
 	 try other frames.  */
-      if (FRAME_NO_SPLIT_P (NILP (frames) ? selected_frame
-			    : last_nonminibuf_frame))
+      if (FRAME_NO_SPLIT_P (NILP (frames) ? f : last_nonminibuf_frame))
 	{
 	  /* Try visible frames first.  */
 	  window = Fget_largest_window (Qvisible);
@@ -2816,7 +2819,7 @@ temp_output_buffer_show (buf)
     {
       window = Fdisplay_buffer (buf, Qnil, Qnil);
 
-      if (XFRAME (XWINDOW (window)->frame) != selected_frame)
+      if (!EQ (XWINDOW (window)->frame, selected_frame))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
@@ -4511,12 +4514,9 @@ redirection (see `redirect-frame-focus').")
   FRAME_PTR f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   vec = allocate_vectorlike (VECSIZE (struct save_window_data));
@@ -4529,7 +4529,7 @@ redirection (see `redirect-frame-focus').")
   XSETFASTINT (data->frame_height, FRAME_HEIGHT (f));
   XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
   XSETFASTINT (data->frame_tool_bar_lines, FRAME_TOOL_BAR_LINES (f));
-  XSETFRAME (data->selected_frame, selected_frame);
+  data->selected_frame = selected_frame;
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSETBUFFER (data->current_buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
@@ -4890,11 +4890,12 @@ and scrolling positions.")
 void
 init_window_once ()
 {
-  selected_frame = make_terminal_frame ();
-  XSETFRAME (Vterminal_frame, selected_frame);
-  minibuf_window = selected_frame->minibuffer_window;
-  selected_window = selected_frame->selected_window;
-  last_nonminibuf_frame = selected_frame;
+  struct frame *f = make_terminal_frame ();
+  XSETFRAME (selected_frame, f);
+  Vterminal_frame = selected_frame;
+  minibuf_window = f->minibuffer_window;
+  selected_window = f->selected_window;
+  last_nonminibuf_frame = f;
 
   window_initialized = 1;
 }
