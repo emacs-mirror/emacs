@@ -1,3 +1,28 @@
+2002-08-28  Richard M. Stallman  <rms@gnu.org>
+
+	* w32fns.c (x_set_cursor_type): Set FRAME_BLINK_OFF_CURSOR and
+	FRAME_BLINK_OFF_CURSOR_WIDTH using defaults and Vblink_cursor_alist.
+	(Vblink_cursor_alist): New variable.
+	(syms_of_w32fns): Initialize and defvar it.
+	(x_specified_cursor_type): Recognize Qbox for filled box.
+	Exceptions are hollow boxes.
+	(Qbox, Qhollow): New variables.
+	(syms_of_w32fns): Initialize and staticpro them.
+
+	* w32term.h (FRAME_BLINK_OFF_CURSOR, FRAME_BLINK_OFF_CURSOR_WIDTH):
+	New macros.
+	(struct w32_output): New fields blink_off_cursor, blink_off_cursor_width.
+	(FRAME_CURSOR_WIDTH): New macro.
+
+	* w32term.c (x_display_and_set_cursor): Use FRAME_BLINK_OFF_CURSOR
+	and FRAME_BLINK_OFF_CURSOR_WIDTH for blinking cursor off.
+
+	* w32term.c (x_display_and_set_cursor): Check FRAME_CURSOR_WIDTH
+	for bar cursor.
+
+	* w32term.c (expose_overlaps): New function.
+	(expose_window): Use it to fix the display of overlapping rows.
+
 2002-08-28  Simon Josefsson  <jas@extundo.com>
 
 	* xfns.c (Fx_open_connection): Improve help when X connection
