@@ -24,7 +24,7 @@
 	* makefile.w32-in (DONTCOMPILE, bootstrap-clean-CMD)
 	(bootstrap-clean-SH): Rename loaddefs-boot.el to ldefs-boot.el
 
-2003-10-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-10-03  Lute Kamstra  <lute@gnu.org>
 
 	* info.el (Info-mode): Revert previous change.
 	(Info-escape-percent): New function.
@@ -67,7 +67,7 @@
 	* vc-cvs.el (vc-cvs-parse-entry): Revert last change to allow
 	bootstrap.
 
-2003-10-01  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-10-01  Lute Kamstra  <lute@gnu.org>
 
 	* files.el: Fix typo.
 	* imenu.el (imenu--generic-function): Docstring fix.
@@ -183,7 +183,7 @@
 
 	* pcvs.el (cvs-mode-unmark-up): Move to goal column when done.
 
-2003-09-29  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-29  Lute Kamstra  <lute@gnu.org>
 
 	* bindings.el (mode-line-modes): Remove superfluous :propertize
 	construct in initialization.
@@ -246,7 +246,7 @@
 	* man.el (Man-default-man-entry): Remove the leading `*' from the
 	word at point.
 
-2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-26  Lute Kamstra  <lute@gnu.org>
 
 	* bindings.el (mode-line-position): Mention size indication in
 	docstring.
@@ -506,7 +506,7 @@
 	(battery-linux-proc-acpi): Fix a bug in %b which made "!" never
 	appear due to wrong ordering of the expressions in `or'.
 
-2003-09-09  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-09  Lute Kamstra  <lute@gnu.org>
 
 	* misc.el (upcase-char): Fix docstring.
 	(zap-up-to-char): New command.
@@ -520,7 +520,7 @@
 	(recentf-update-menu): Likewise.  Use easy-menu-add-item instead
 	of easy-menu-change.
 
-2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-08  Lute Kamstra  <lute@gnu.org>
 
 	* simple.el (size-indication-mode): New.
 	* bindings.el (mode-line-position): Add buffer size indicator.
@@ -3305,7 +3305,7 @@
 	looks for, and ignores, a literal copy of the value of
 	shell-dirstack-query).
 
-2003-06-06  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-06-06  Lute Kamstra  <lute@gnu.org>
 
 	* info.el (Info-complete-menu-item): Revert change of 2003-06-03.
 
@@ -3366,7 +3366,7 @@
 	* info.el (Info-mode): Mention `c' and remove duplicate mention
 	of `q' in documentation string.
 
-2003-06-05  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-06-05  Lute Kamstra  <lute@gnu.org>
 
 	* shell.el (shell-mode): Put `shell-filter-ctrl-a-ctrl-b' on
 	`comint-output-filter-functions' when bash is used as the inferior
@@ -3472,7 +3472,7 @@
 	Check the return value of `string-match'.
 	(Info-speedbar-fetch-file-nodes): Factor out common code.
 
-2003-06-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-06-03  Lute Kamstra  <lute@gnu.org>
 
 	* cus-edit.el (custom-get-fresh-buffer): Test for nonexistence buffer.
 
@@ -3632,7 +3632,7 @@
 
 	* sort.el (sort-subr): Add `predicate' arg.  Remove `sortcar' code.
 
-2003-06-02  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-06-02  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-synopsis): Use relative filenames
 	correctly.  Show the synopsis to the user when appropriate.
@@ -4181,7 +4181,7 @@
 
 	* textmodes/paragraphs.el (repunctuate-sentences): New function.
 
-2003-05-23  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-05-23  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el: Make the description of the library more
 	accurate.
@@ -4559,7 +4559,7 @@
 	(imenu-update-menubar): Use the new arg to keep the old behavior.
 	(imenu--mouse-menu): Don't use the arg, to recover the lost behavior.
 
-2003-05-16  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-05-16  Lute Kamstra  <lute@gnu.org>
 
 	* hl-line.el (hl-line-highlight, global-hl-line-highlight):
 	Use `line-beginning-position' to determine the beginning of the next
@@ -4576,7 +4576,7 @@
 	* emacs-lisp/autoload.el (make-autoload): Add arglist for
 	define-derived-mode.
 
-2003-05-15  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-05-15  Lute Kamstra  <lute@gnu.org>
 
 	* hl-line.el: Rewrite the local minor mode so that it can be
 	sticky as well and made sticky the default.  Reimplement the
@@ -5032,7 +5032,7 @@
 	* help-fns.el (help-add-fundoc-usage): Use t for "no arglist".
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Adjust usage.
 
-2003-05-06  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-05-06  Lute Kamstra  <lute@gnu.org>
 
 	* hl-line.el: Removed an erroneous comment.
 	(hl-line-mode): Use buffer local hooks.
@@ -6330,7 +6330,7 @@
 	* term/mac-win.el (iconify-or-deiconify-frame): Define for
 	compatibility with packages that use it.
 
-2003-03-28  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-03-28  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer):
 	Fix docstring.

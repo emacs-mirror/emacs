@@ -48,7 +48,7 @@
 
 	* info.texi (] and [ commands): no period at end of section title.
 
-2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-08  Lute Kamstra  <lute@gnu.org>
 
 	* screen.texi (Mode Line): Say that POS comes before LINE.
 	Mention `size-indication-mode'.

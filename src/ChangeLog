@@ -248,7 +248,7 @@
 
 	* bytecode.c (mark_byte_stack, unmark_byte_stack): Ignore the markbit.
 
-2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-08  Lute Kamstra  <lute@gnu.org>
 
 	* xdisp.c (pint2hrstr): New function.
 	(decode_mode_spec): Add `%i' and `%I' specs.

@@ -8,7 +8,7 @@
 	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]: Provide
 	ISO C arglists.
 
-2003-04-30  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-04-30  Lute Kamstra  <lute@gnu.org>
 
 	* Makefile.in: Make things function properly in case both LessTif
 	and Open Motif are installed.
