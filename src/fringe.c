@@ -930,6 +930,7 @@ update_window_fringes (w, force_p)
       if (force_p
 	  || row->y != cur->y
 	  || row->visible_height != cur->visible_height
+	  || row->ends_at_zv_p != cur->ends_at_zv_p
 	  || left != cur->left_fringe_bitmap
 	  || right != cur->right_fringe_bitmap
 	  || left_face_id != cur->left_fringe_face_id
@@ -953,6 +954,9 @@ update_window_fringes (w, force_p)
       row->right_fringe_bitmap = right;
       row->left_fringe_face_id = left_face_id;
       row->right_fringe_face_id = right_face_id;
+
+      if (rn > 0 && row->redraw_fringe_bitmaps_p)
+	row[-1].redraw_fringe_bitmaps_p = cur[-1].redraw_fringe_bitmaps_p = 1;
     }
 
   return redraw_p;
