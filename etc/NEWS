@@ -1196,19 +1196,32 @@ used to clear the mapping table.
 
 +++
 ** The minibuffer prompt is now actually inserted in the minibuffer.
-This makes it possible to scroll through the prompt, if you want to.
 
-A number of functions such as forward-word, forward-sentence,
-forward-paragraph, and beginning-of-line, stop moving when they
-come to the boundary between the prompt and the actual contents.
-The function erase-buffer does not delete the prompt.
+This makes it possible to scroll through the prompt, if you want to.
 
 The function minubuffer-prompt-end returns the current position of the
 end of the minibuffer prompt, if the minibuffer is current.
 Otherwise, it returns zero.
 
-The function buffer-string does not return the portion of the
-mini-buffer belonging to the prompt; buffer-substring does.
+** New `field' abstraction in buffers.
+
+There is now code to support an abstraction called `fields' in emacs
+buffers.  A field is a contiguous region of text with the same `field'
+text-property.
+
+Certain functions, such as forward-word, forward-sentence,
+forward-paragraph, beginning-of-line, etc., stop moving when they come
+to the boundary between fields (beginning-of-line and end-of-line will
+not let the point move past the field boundary, but other movement
+commands continue into the next field if repeated).
+
+The new function constrain-to-field may be used to achieve similar
+behavior; other new field functions include field-beginning, field-end,
+erase-field, and field-string.
+
+Now that the minibuffer prompt is inserted into the minibuffer, it is in
+a separate field from the user-input part of the buffer, so that many
+editing commands treat the user's text separately from the prompt.
 
 +++
 ** Image support.
