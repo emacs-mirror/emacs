@@ -1,3 +1,9 @@
+2004-07-03  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Swallow space after 'foo,
+	not after (quote foo).  Match space only immediately after symbol,
+	not anywhere in the whole string.
+
 2004-07-02  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace-read-args): Swallow space after
