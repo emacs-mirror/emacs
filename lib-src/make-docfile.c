@@ -217,7 +217,7 @@ write_c_args (out, func, buf, minargs, maxargs)
 		|| ('0' <= p[6] && p[6] <= '9')
 		|| p[6] == '_'))
 	{
-	  fprintf (out, "default");
+	  fprintf (out, "DEFAULT");
 	  p += 5;
 	  in_ident = 0;
 	  just_spaced = 0;
