@@ -317,11 +317,11 @@ It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   (plist-get (charset-plist charset) :docstring))
 
 (defun charset-dimension (charset)
-  "Return dimension string of CHARSET."
+  "Return dimension of CHARSET."
   (plist-get (charset-plist charset) :dimension))
 
 (defun charset-chars (charset &optional dimension)
-  "Return character numbers contained in DIMENSION of CHARSET.
+  "Return number of characters contained in DIMENSION of CHARSET.
 DIMENSION defaults to the first dimension."
   (unless dimension (setq dimension 1))
   (let ((code-space (plist-get (charset-plist charset) :code-space)))
@@ -329,7 +329,7 @@ DIMENSION defaults to the first dimension."
 	   (aref code-space (- (* 2 dimension) 2))))))
 
 (defun charset-iso-final-char (charset)
-  "Return final char of CHARSET."
+  "Return ISO-2022 final character of CHARSET."
   (or (plist-get (charset-plist charset) :iso-final-char)
       -1))
 
@@ -342,7 +342,7 @@ DIMENSION defaults to the first dimension."
   (plist-get (charset-plist charset) :long-name))
 
 (defun charset-list ()
-  "Return list of charsets ever defined.
+  "Return list of all charsets ever defined.
 
 This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
@@ -379,13 +379,13 @@ Now we have the variable `charset-list'."
     use-oldjis)
   "List of symbols that control ISO-2022 encoder/decoder.
 
-The value of `:flags' attribute in the argument of the function
+The value of the `:flags' attribute in the argument of the function
 `define-coding-system' must be one of them.
 
 If `long-form' is specified, use a long designation sequence on
 encoding for the charsets `japanese-jisx0208-1978', `chinese-gb2312',
 and `japanese-jisx0208'.  The long designation sequence doesn't
-conform to ISO 2022, but used by such a coding system as
+conform to ISO 2022, but is used by such coding systems as
 `compound-text'.
 
 If `ascii-at-eol' is specified, designate ASCII to g0 at end of line
@@ -412,33 +412,42 @@ revision number of a charset on encoding.  Such an escape sequence is
 always correctly decoded on decoding.
 
 If `direction' is specified, decode ISO6429's code for specifying
-direction correctly, and produced the code on encoding.
+direction correctly, and produce the code on encoding.
 
 If `init-at-bol' is specified, on encoding, it is assumed that
 invocation and designation statuses are reset at each beginning of
-line even if `ascii-at-eol' is not specified thus no code for
+line even if `ascii-at-eol' is not specified; thus no codes for
 resetting them are produced.
 
 If `safe' is specified, on encoding, characters not supported by a
 coding are replaced with `?'.
 
-If `latin-extra' is specified, code-detection routine assumes that a
+If `latin-extra' is specified, the code-detection routine assumes that a
 code specified in `latin-extra-code-table' (which see) is valid.
 
 If `composition' is specified, an escape sequence to specify
-composition sequence is correctly decode on decoding, and is produced
+composition sequence is correctly decoded on decoding, and is produced
 on encoding.
 
 If `euc-tw-shift' is specified, the EUC-TW specific shifting code is
-correctly decoded on decoding, and is produced on encoding.")
+correctly decoded on decoding, and is produced on encoding.
 
+If `use-roman' is specified, JIS0201-1976-Roman is designated instead
+of ASCII.
+
+If `use-oldjis' is specified, JIS0208-1976 is designated instead of
+JIS0208-1983.")
+
+;; Fixme: Are translation tables still relevant?  (Not currently
+;; implemented, anyway.)
+;; Fixme: What does cons :bom mean?  Explanation of :endian.
 (defun define-coding-system (name docstring &rest props)
-  "Define NAME (symbol) as a coding system with DOCSTRING and attributes.
+  "Define NAME (a symbol) as a coding system with DOCSTRING and attributes.
 The remaining arguments must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE
 may be any symbol.
 
-The following attributes have special meanings.  If labeled as
-\"(required)\", it should not be omitted.
+The following attributes have special meanings.  Those labeled as
+\"(required)\", should not be omitted.
 
 `:mnemonic' (required)
 
@@ -449,54 +458,52 @@ VALUE is a character to display on mode line for the coding system.
 VALUE must be one of `charset', `utf-8', `utf-16', `iso-2022',
 `emacs-mule', `shift-jis', `big5', `ccl', `raw-text', `undecided'.
 
-`:eol-type' (optional)
+`:eol-type'
 
-VALUE is an EOL (end-of-line) format of the coding system.  It must be
+VALUE is the EOL (end-of-line) format of the coding system.  It must be
 one of `unix', `dos', `mac'.  The symbol `unix' means Unix-like EOL
 \(i.e. single LF), `dos' means DOS-like EOL \(i.e. sequence of CR LF),
 and `mac' means MAC-like EOL \(i.e. single CR).  If omitted, on
-decoding by the coding system, Emacs automatically detects an EOL
+decoding by the coding system, Emacs automatically detects the EOL
 format of the source text.
 
-`:charset-list' (required)
+`:charset-list' (required for `charset' coding systems)
 
 VALUE must be a list of charsets supported by the coding system.  On
 encoding by the coding system, if a character belongs to multiple
 charsets in the list, a charset that comes earlier in the list is
 selected.
 
-`:ascii-compatible-p' (optional)
+`:ascii-compatible-p'
 
 If VALUE is non-nil, the coding system decodes all 7-bit bytes into
 the corresponding ASCII characters, and encodes all ASCII characters
-back to the corresponding 7-bit bytes.  If omitted, the VALUE defaults
-to nil.
+back to the corresponding 7-bit bytes.  VALUE defaults to nil.
 
-`:decode-translation-table' (optional)
+`:decode-translation-table'
 
 VALUE must be a translation table to use on decoding.
 
-`:encode-translation-table' (optional)
+`:encode-translation-table'
 
 VALUE must be a translation table to use on encoding.
 
-`:post-read-conversion' (optional)
+`:post-read-conversion'
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
 `after-insert-functions' are called.  The arguments to this function
-is the same as those of a function in `after-insert-functions',
-i.e. LENGTH of a text while putting point at the head of the text to
-be decoded
+are the same as those of a function in `after-insert-file-functions',
+i.e. LENGTH of the text to be decoded with point at the head of it,
+and the function should leave point unchanged.
 
 `:pre-write-conversion'
 
 VALUE must be a function to call after all functions in
 `write-region-annotate-functions' and `buffer-file-format' are called,
 and before the text is encoded by the coding system itself.  The
-arguments to this function is the same as those of a function in
-`write-region-annotate-functions', i.e. FROM and TO specifying region
-of a text.
+arguments to this function are the same as those of a function in
+`write-region-annotate-functions'.
 
 `:default-char'
 
@@ -507,23 +514,24 @@ the coding system is replaced with VALUE.
 
 VALUE must be `unix', `dos', `mac'.  The symbol `unix' means Unix-like
 EOL (LF), `dos' means DOS-like EOL (CRLF), and `mac' means MAC-like
-EOL (CR).  If omitted, on decoding, the coding system detect EOL
-format automatically, and on encoding, used Unix-like EOL.
+EOL (CR).  If omitted, on decoding, the coding system detects EOL
+format automatically, and on encoding, uses Unix-like EOL.
 
 `:mime-charset'
 
-VALUE must be a symbol who has MIME-charset name.
+VALUE must be a symbol whose name is that of a MIME charset converted
+to lower case.
 
 `:flags'
 
-VALUE must be a list of symbols that control ISO-2022 converter.  Each
-symbol must be a member of the variable `coding-system-iso-2022-flags'
+VALUE must be a list of symbols that control the ISO-2022 converter.
+Each must be a member of the list `coding-system-iso-2022-flags'
 \(which see).  This attribute has a meaning only when `:coding-type'
 is `iso-2022'.
 
 `:designation'
 
-VALUE must be a vector [ G0-USAGE G1-USAGE G2-USAGE G3-USAGE].
+VALUE must be a vector [G0-USAGE G1-USAGE G2-USAGE G3-USAGE].
 GN-USAGE specifies the usage of graphic register GN as follows.
 
 If it is nil, no charset can be designated to GN.
@@ -532,18 +540,19 @@ If it is a charset, the charset is initially designated to GN, and
 never used by the other charsets.
 
 If it is a list, the elements must be charsets, nil, 94, or 96.  GN
-can be used by all listed charsets.  If the list contains 94, any
-charsets whose iso-chars is 94 can be designated to GN.  If the list
-contains 96, any charsets whose iso-chars is 96 can be designated to
-GN.  If the first element is a charset, the charset is initially
-designated to GN.
+can be used by all the listed charsets.  If the list contains 94, any
+iso-2022 charset whose code-space ranges are 94 long can be designated
+to GN.  If the list contains 96, any charsets whose whose ranges are
+96 long can be designated to GN.  If the first element is a charset,
+that charset is initially designated to GN.
 
 This attribute has a meaning only when `:coding-type' is `iso-2022'.
 
 `:bom'
 
-VALUE must nil, t, or cons of coding systems whose `:coding-type' is
-`utf-16'.
+This attributes specifies whether the coding system uses a `byte order
+mark'.  VALUE must nil, t, or cons of coding systems whose
+`:coding-type' is `utf-16'.
 
 This attribute has a meaning only when `:coding-type' is `utf-16'.
 
@@ -555,11 +564,15 @@ This attribute has a meaning only when `:coding-type' is `utf-16'.
 
 `:ccl-decoder'
 
-This attribute has a meaning only when `:coding-type' is `ccl'.
+VALUE is a symbol representing the registered CCL program used for
+decoding.  This attribute has a meaning only when `:coding-type' is
+`ccl'.
 
 `:ccl-encoder'
 
-This attribute has a meaning only when `:coding-type' is `ccl'."
+VALUE is a symbol representing the registered CCL program used for
+encoding.  This attribute has a meaning only when `:coding-type' is
+`ccl'."
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -647,8 +660,8 @@ This attribute has a meaning only when `:coding-type' is `ccl'."
 
 (defun coding-system-mnemonic (coding-system)
   "Return the mnemonic character of CODING-SYSTEM.
-The mnemonic character of a coding system is used in mode line
-to indicate the coding system.  If the arg is nil, return ?-."
+The mnemonic character of a coding system is used in mode line to
+indicate the coding system.  If CODING-SYSTEM. is nil, return ?=."
   (plist-get (coding-system-plist coding-system) :mnemonic))
 
 (defun coding-system-type (coding-system)
@@ -678,16 +691,6 @@ like `mime-charset' as well as the current style like `:mime-charset'."
 
 (defalias 'coding-system-parent 'coding-system-base)
 (make-obsolete 'coding-system-parent 'coding-system-base "20.3")
-
-;; Coding system also has a property `eol-type'.
-;;
-;; This property indicates how the coding system handles end-of-line
-;; format.  The value is integer 0, 1, 2, or a vector of three coding
-;; systems.  Each integer value 0, 1, and 2 indicates the format of
-;; end-of-line LF, CRLF, and CR respectively.  A vector value
-;; indicates that the format of end-of-line should be detected
-;; automatically.  Nth element of the vector is the subsidiary coding
-;; system whose `eol-type' property is N.
 
 (defun coding-system-lessp (x y)
   (cond ((eq x 'no-conversion) t)
@@ -719,8 +722,8 @@ like `mime-charset' as well as the current style like `:mime-charset'."
 
 (defun coding-system-list (&optional base-only)
   "Return a list of all existing non-subsidiary coding systems.
-If optional arg BASE-ONLY is non-nil, only base coding systems are listed.
-The value doesn't include subsidiary coding systems which are what
+If optional arg BASE-ONLY is non-nil, only base coding systems are
+listed.  The value doesn't include subsidiary coding systems which are
 made from bases and aliases automatically for various end-of-line
 formats (e.g. iso-latin-1-unix, koi8-r-dos)."
   (let* ((codings (copy-sequence coding-system-list))
@@ -889,14 +892,14 @@ the text is encoded or decoded by CODING-SYSTEM."
 (defvar last-next-selection-coding-system nil)
 
 (defun set-next-selection-coding-system (coding-system)
-  "Make CODING-SYSTEM used for the next communication with other X clients.
+  "Use CODING-SYSTEM for next communication with other window system clients.
 This setting is effective for the next communication only."
   (interactive
    (list (read-coding-system
 	  (if last-next-selection-coding-system
-	      (format "Coding system for the next X selection (default, %S): "
+	      (format "Coding system for the next selection (default, %S): "
 		      last-next-selection-coding-system)
-	    "Coding system for the next X selection: ")
+	    "Coding system for the next selection: ")
 	  last-next-selection-coding-system)))
   (if coding-system
       (setq last-next-selection-coding-system coding-system)
@@ -905,7 +908,7 @@ This setting is effective for the next communication only."
 
   (setq next-selection-coding-system coding-system))
 
-;; Fixme: 
+;; Fixme: Should this just go?
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to ARG.
 ARG is a list of coding categories ordered by priority.
@@ -938,6 +941,8 @@ Now we have more convenient function `set-coding-system-priority'."
     ("BIG5-0" . big5))
   "Alist of font charset names defined by XLFD, and the corresponding Emacs
 charsets or coding systems.")
+
+;; Fixme: this needs sorting out
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
 ;; by the ICCCM spec.  We support that by converting the leading
