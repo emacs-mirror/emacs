@@ -1,3 +1,7 @@
+2004-01-01  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Buttons): New section.
+
 2003-12-31  Andreas Schwab  <schwab@suse.de>
 
 	* numbers.texi (Math Functions): sqrt reports a domain-error
