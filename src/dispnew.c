@@ -1272,9 +1272,10 @@ update_frame (f, force, inhibit_hairy_id)
 			sleep (outq / baud_rate);
 		    }
 		}
-	      if ((i - 1) % preempt_count == 0)
-		detect_input_pending ();
 	    }
+
+	  if ((i - 1) % preempt_count == 0)
+	    detect_input_pending ();
 
 	  update_line (f, i);
 #ifdef HAVE_WINDOW_SYSTEM
