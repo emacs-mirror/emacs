@@ -3,6 +3,7 @@
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: ttn@netcom.com
 ;; Version: 5.3 + CVS hacks by ceder@lysator.liu.se made in Jan-Feb 1994.
 
 ;; This file is part of GNU Emacs.
