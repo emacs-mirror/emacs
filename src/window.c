@@ -4488,8 +4488,9 @@ struct saved_window
     Lisp_Object parent, prev;
     Lisp_Object start_at_line_beg;
     Lisp_Object display_table;
+    Lisp_Object orig_top, orig_height;
   };
-#define SAVED_WINDOW_VECTOR_SIZE 14 /* Arg to Fmake_vector */
+#define SAVED_WINDOW_VECTOR_SIZE 16 /* Arg to Fmake_vector */
 
 #define SAVED_WINDOW_N(swv,n) \
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
@@ -4681,6 +4682,8 @@ the return value is nil.  Otherwise the value is t.")
 	  w->height = p->height;
 	  w->hscroll = p->hscroll;
 	  w->display_table = p->display_table;
+	  w->orig_top = p->orig_top;
+	  w->orig_height = p->orig_height;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
 
@@ -4946,6 +4949,8 @@ save_window_save (window, vector, i)
       p->height = w->height;
       p->hscroll = w->hscroll;
       p->display_table = w->display_table;
+      p->orig_top = w->orig_top;
+      p->orig_height = w->orig_height;
       if (!NILP (w->buffer))
 	{
 	  /* Save w's value of point in the window configuration.
@@ -5043,8 +5048,7 @@ redirection (see `redirect-frame-focus').")
   for (i = 0; i < n_windows; i++)
     XVECTOR (tem)->contents[i]
       = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
-  save_window_save (FRAME_ROOT_WINDOW (f),
-		    XVECTOR (tem), 0);
+  save_window_save (FRAME_ROOT_WINDOW (f), XVECTOR (tem), 0);
   XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);
 }
