@@ -1,3 +1,7 @@
+2005-02-21  David Kastrup <dak@gnu.org>
+
+	* gtkutil.c (xg_create_frame_widgets): UNBLOCK_INPUT on error.
+
 2005-02-20  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pos_visible_p): Be sure to move to the specified
