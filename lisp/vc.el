@@ -128,12 +128,6 @@ walk file trees.")
 (defvar vc-checkin-hook nil
   "*List of functions called after a checkin is done.  See `run-hooks'.")
 
-(defvar vc-make-buffer-writable-hook nil
-  "*List of functions called when a buffer is made writable.  See `run-hooks.'
-This hook is only used when the version control system is CVS.  It
-might be useful for sites who uses locking with CVS, or who uses link
-farms to gold trees.")
-
 ;; Header-insertion hair
 
 (defvar vc-header-alist
@@ -666,7 +660,7 @@ to an optional list of FLAGS."
 
      ;; a checked-out version exists, but the user may not own the lock
      ((and (not (eq vc-type 'CVS))
-	   (not (string-equal owner (user-login-name))))
+	   (not (string-equal owner (vc-user-login-name))))
       (if comment
 	  (error "Sorry, you can't steal the lock on %s this way" file))
       (and (eq vc-type 'RCS)
@@ -1810,7 +1804,9 @@ default directory."
 	  nil)))
   (let ((odefault default-directory)
 	(full-name (or add-log-full-name
-		       (user-full-name)))
+		       (user-full-name)
+		       (user-login-name)
+		       (format "uid%d" (number-to-string (user-uid)))))
 	(mailing-address (or add-log-mailing-address
 			     user-mail-address)))
     (find-file-other-window (find-change-log))
@@ -1823,7 +1819,7 @@ default directory."
     (message "Computing change log entries... %s"
 	     (if (eq 0 (apply 'call-process "rcs2log" nil '(t nil) nil
 			      "-u"
-			      (concat (user-login-name)
+			      (concat (vc-user-login-name)
 				      "\t"
 				      full-name
 				      "\t"
@@ -2044,7 +2040,7 @@ default directory."
 	   ((not workfile)
 	    (vc-file-clear-masterprops file)
 	    (if writable 
-		(vc-file-setprop file 'vc-locking-user (user-login-name)))
+		(vc-file-setprop file 'vc-locking-user (vc-user-login-name)))
 	    (vc-file-setprop file
 			     'vc-checkout-time (nth 5 (file-attributes file)))))
 	  (message "Checking out %s...done" filename))))))
@@ -2204,7 +2200,7 @@ default directory."
 		  "-M" (concat "-u" rev) (concat "-l" rev))
    (error "You cannot steal a CVS lock; there are no CVS locks to steal") ;CVS
    )
-  (vc-file-setprop file 'vc-locking-user (user-login-name))
+  (vc-file-setprop file 'vc-locking-user (vc-user-login-name))
   (message "Stealing lock on %s...done" file)
   )  
 
