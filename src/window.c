@@ -4938,7 +4938,6 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
   FRAME_PTR f;
-  int old_point = -1;
 
   while (!WINDOW_CONFIGURATIONP (configuration))
     wrong_type_argument (Qwindow_configuration_p, configuration);
@@ -4949,11 +4948,6 @@ the return value is nil.  Otherwise the value is t.  */)
   new_current_buffer = data->current_buffer;
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
-  else
-    {
-      if (XBUFFER (new_current_buffer) == current_buffer)
-	old_point = PT;
-    }
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
@@ -5105,8 +5099,8 @@ the return value is nil.  Otherwise the value is t.  */)
 			       p->mark, w->buffer);
 
 		  /* As documented in Fcurrent_window_configuration, don't
-		     save the location of point in the buffer which was current
-		     when the window configuration was recorded.  */
+		     restore the location of point in the buffer which was
+		     current when the window configuration was recorded.  */
 		  if (!EQ (p->buffer, new_current_buffer)
 		      && XBUFFER (p->buffer) == current_buffer)
 		    Fgoto_char (w->pointm);
@@ -5144,6 +5138,11 @@ the return value is nil.  Otherwise the value is t.  */)
 	 That swapping out has already been done,
 	 near the beginning of this function.  */
       selected_window = Qnil;
+      if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
+	set_marker_restricted (XWINDOW (data->current_window)->pointm,
+			       make_number (BUF_PT (XBUFFER (XWINDOW (data->current_window)->buffer))),
+			       XWINDOW (data->current_window)->buffer);
+		  
       Fselect_window (data->current_window);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
@@ -5189,11 +5188,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  else if (EQ (leaf_windows[i]->buffer, new_current_buffer))
 	    ++n;
 	}
-
-      /* If more than one window shows the new and old current buffer,
-	 don't try to preserve point in that buffer.  */
-      if (old_point > 0 && n > 1)
-	old_point = -1;
       
       adjust_glyphs (f);
 
@@ -5213,15 +5207,7 @@ the return value is nil.  Otherwise the value is t.  */)
     }
 
   if (!NILP (new_current_buffer))
-    {
-      Fset_buffer (new_current_buffer);
-
-      /* If the buffer that is current now is the same
-	 that was current before setting the window configuration,
-	 don't alter its PT.  */
-      if (old_point >= 0)
-	SET_PT (old_point);
-    }
+    Fset_buffer (new_current_buffer);
 
   /* Restore the minimum heights recorded in the configuration.  */
   window_min_height = XINT (data->min_height);
