@@ -285,10 +285,49 @@
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different X displays."
   x-colors)
+
+;; From lisp/term/win32-win.el
 ;
-;; From lisp/select.el
-(defun x-get-selection (&rest rest) "")
-(fset 'x-set-selection 'ignore)
+;;;; Selections and cut buffers
+;
+;;; We keep track of the last text selected here, so we can check the
+;;; current selection against it, and avoid passing back our own text
+;;; from x-cut-buffer-or-selection-value.
+(defvar x-last-selected-text nil)
+
+(defvar x-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This is in addition to the primary selection.")
+
+(defun x-select-text (text &optional push)
+  (if x-select-enable-clipboard 
+      (win16-set-clipboard-data text))
+  (setq x-last-selected-text text))
+    
+;;; Return the value of the current selection.
+;;; Consult the selection, then the cut buffer.  Treat empty strings
+;;; as if they were unset.
+(defun x-get-selection-value ()
+  (if x-select-enable-clipboard 
+      (let (text)
+	;; Don't die if x-get-selection signals an error.
+	(condition-case c
+	    (setq text (win16-get-clipboard-data))
+	  (error (message "win16-get-clipboard-data:%s" c)))
+	(if (string= text "") (setq text nil))
+	(cond
+	 ((not text) nil)
+	 ((eq text x-last-selected-text) nil)
+	 ((string= text x-last-selected-text)
+	  ;; Record the newer string, so subsequent calls can use the 'eq' test.
+	  (setq x-last-selected-text text)
+	  nil)
+	 (t
+	  (setq x-last-selected-text text))))))
+
+;;; Arrange for the kill and yank functions to set and check the clipboard.
+(setq interprogram-cut-function 'x-select-text)
+(setq interprogram-paste-function 'x-get-selection-value)
 
 ;; From lisp/faces.el: we only have one font, so always return
 ;; it, no matter which variety they've asked for.
