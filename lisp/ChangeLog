@@ -1,3 +1,12 @@
+2002-01-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (ange-ftp-root-dir-p): New function.
+	(ange-ftp-file-name-all-completions, ange-ftp-file-name-completion):
+	Use it.
+	(ange-ftp-hook-function): Preserve match-data.
+	(ange-ftp-insert-directory): Typo.
+	(ange-ftp-shell-command): Check if regexp matched.
+
 2002-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el: help-map bindings moved to help.el.
@@ -8,9 +17,9 @@
 	Move view-emacs-FAQ from F to C-f.
 	Move view-emacs-problems from P to C-e.
 	Bindings moved here from mule-cmds.el.
-	C-l binding for describe-language-environment deleted.	
+	C-l binding for describe-language-environment deleted
 	(help-for-help): Update for all these changes.
-	
+
 	* emacs-lisp/copyright.el (copyright-regexp): Make (C) optional.
 
 2002-01-13  Dave Love  <fx@gnu.org>
@@ -32,15 +41,15 @@
 	* term/x-win.el (x-handle-initial-switch): New function.
 
 2002-01-13  Colin Walters  <walters@debian.org>
-	
+
 	* emacs-lisp/autoload.el (make-autoload): Handle
 	define-ibuffer-column, define-ibuffer-filter,
 	define-ibuffer-sorter, and define-ibuffer-op.
-	
+
 	* emacs-lisp/lisp-mode.el (toplevel): Ditto.
 
 	* ibuffer.el, ibuf-ext.el, ibuf-macs.el: New files.
-	
+
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* net/browse-url.el (browse-url-grail):
@@ -59,7 +68,7 @@
 	don't output newline, but maybe send eof.
 	(comint-send-input): New arg NO-NEWLINE.
 	(comint-send-eof): Call comint-send-eof with NO-NEWLINE.
-	
+
 2002-01-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Prevent
@@ -134,7 +143,7 @@
 
 2002-01-09  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el (viper-set-hooks): zap viper-unfriendly bindings in
+	* viper.el (viper-set-hooks): Zap viper-unfriendly bindings in
 	flyspell-mouse-map.
 
 2002-01-08  Richard M. Stallman  <rms@gnu.org>
@@ -147,8 +156,8 @@
 
 2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode): Do
-	not use make-local-hook.
+	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode):
+	Do not use make-local-hook.
 
 2002-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -159,7 +168,7 @@
 
 2002-01-08  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-hook.el: added an autoload cookie.
+	* ediff-hook.el: Add an autoload cookie.
 
 2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -177,89 +186,87 @@
 	new macro that replaces viper-emacs-p and viper-xemacs-p in many
 	cases. Used to reduce the number of warnings.
 
-	* viper-cmd.el: use viper-cond-compile-for-xemacs-or-emacs.
-	(viper-standard-value): moved here from viper.el.
-	(viper-set-unread-command-events): moved to viper-util.el
-	(viper-check-minibuffer-overlay): make sure
+	* viper-cmd.el: Use viper-cond-compile-for-xemacs-or-emacs.
+	(viper-standard-value): Move here from viper.el.
+	(viper-set-unread-command-events): Move to viper-util.el
+	(viper-check-minibuffer-overlay): Make sure
 	viper-minibuffer-overlay is moved to cover the entire input field.
 
 	* viper-util.el:  use viper-cond-compile-for-xemacs-or-emacs.
-	(viper-read-key-sequence, viper-set-unread-command-events,
-	viper-char-symbol-sequence-p, viper-char-array-p): moved here.
+	(viper-read-key-sequence, viper-set-unread-command-events)
+	(viper-char-symbol-sequence-p, viper-char-array-p): Moved here.
 
-	* viper-ex.el: use viper-cond-compile-for-xemacs-or-emacs.
+	* viper-ex.el: Use viper-cond-compile-for-xemacs-or-emacs.
 
-	* viper-keym.el: use viper-cond-compile-for-xemacs-or-emacs.
+	* viper-keym.el: Use viper-cond-compile-for-xemacs-or-emacs.
 
-	* viper-mous.el: use viper-cond-compile-for-xemacs-or-emacs.
+	* viper-mous.el: Use viper-cond-compile-for-xemacs-or-emacs.
 
-	* viper-macs.el (viper-char-array-p, viper-char-symbol-sequence-p,
-	viper-event-vector-p): moved to viper-util.el
+	* viper-macs.el (viper-char-array-p, viper-char-symbol-sequence-p)
+	(viper-event-vector-p): Move to viper-util.el
 
-	* viper.el (viper-standard-value): moved to viper-cmd.el.
+	* viper.el (viper-standard-value): Move to viper-cmd.el.
 	Use viper-cond-compile-for-xemacs-or-emacs.
 
-	* ediff-help.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	* ediff-help.el: Use ediff-cond-compile-for-xemacs-or-emacs.
 
-	* ediff-hook.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	* ediff-hook.el: Use ediff-cond-compile-for-xemacs-or-emacs.
 
-	* ediff-init.el (ediff-cond-compile-for-xemacs-or-emacs): new
-	macro designed to be used in many places where ediff-emacs-p or
-	ediff-xemacs-p was previously used. Reduces the number of
-	warnings.
-	Use ediff-cond-compile-for-xemacs-or-emacs in many places in lieue
+	* ediff-init.el (ediff-cond-compile-for-xemacs-or-emacs):
+	New macro designed to be used in many places where ediff-emacs-p or
+	ediff-xemacs-p was previously used.  Reduces the number of warnings.
+	Use ediff-cond-compile-for-xemacs-or-emacs in many places in lieu
 	of ediff-xemacs-p.
-	(ediff-make-current-diff-overlay, ediff-highlight-diff-in-one-buffer,
-	ediff-convert-fine-diffs-to-overlays, ediff-empty-diff-region-p,
-	ediff-whitespace-diff-region-p, ediff-get-region-contents):
-	moved to ediff-util.el.
-	(ediff-event-key): moved here.
+	(ediff-make-current-diff-overlay, ediff-highlight-diff-in-one-buffer)
+	(ediff-convert-fine-diffs-to-overlays, ediff-empty-diff-region-p)
+	(ediff-whitespace-diff-region-p, ediff-get-region-contents):
+	Move to ediff-util.el.
+	(ediff-event-key): Moved here.
 
-	* ediff-merge.el: got rid of unreferenced variables.
+	* ediff-merge.el: Got rid of unreferenced variables.
 
-	* ediff-mult.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	* ediff-mult.el: Use ediff-cond-compile-for-xemacs-or-emacs.
 
-	* ediff-util.el: use ediff-cond-compile-for-xemacs-or-emacs.
-	(ediff-cleanup-mess): improved the way windows are set up after
+	* ediff-util.el: Use ediff-cond-compile-for-xemacs-or-emacs.
+	(ediff-cleanup-mess): Improve the way windows are set up after
 	quitting ediff.
-	(ediff-janitor): use ediff-dispose-of-variant-according-to-user.
-	(ediff-dispose-of-variant-according-to-user): new function
+	(ediff-janitor): Use ediff-dispose-of-variant-according-to-user.
+	(ediff-dispose-of-variant-according-to-user): New function
 	designed to be smarter and also understands indirect buffers.
-	(ediff-highlight-diff-in-one-buffer,
-	ediff-unhighlight-diff-in-one-buffer,
-	ediff-unhighlight-diffs-totally-in-one-buffer,
-	ediff-highlight-diff, ediff-highlight-diff,
-	ediff-unhighlight-diff, ediff-unhighlight-diffs-totally,
-	ediff-empty-diff-region-p, ediff-whitespace-diff-region-p,
-	ediff-get-region-contents, ediff-make-current-diff-overlay):
-	moved here.
-	(ediff-format-bindings-of): new function by Hannu Koivisto
+	(ediff-highlight-diff-in-one-buffer)
+	(ediff-unhighlight-diff-in-one-buffer)
+	(ediff-unhighlight-diffs-totally-in-one-buffer)
+	(ediff-highlight-diff, ediff-highlight-diff)
+	(ediff-unhighlight-diff, ediff-unhighlight-diffs-totally)
+	(ediff-empty-diff-region-p, ediff-whitespace-diff-region-p)
+	(ediff-get-region-contents, ediff-make-current-diff-overlay):
+	Moved here.
+	(ediff-format-bindings-of): New function by Hannu Koivisto
 	<azure@iki.fi>.
-	(ediff-setup): make sure the merge buffer is always widened and
+	(ediff-setup): Make sure the merge buffer is always widened and
 	modifiable.
-	(ediff-write-merge-buffer-and-maybe-kill): refuse to write the
+	(ediff-write-merge-buffer-and-maybe-kill): Refuse to write the
 	result of a merge into a file visited by another buffer.
-	(ediff-arrange-autosave-in-merge-jobs): check if the merge file
+	(ediff-arrange-autosave-in-merge-jobs): Check if the merge file
 	is visited by another buffer and ask to save/delete that buffer.
-	(ediff-verify-file-merge-buffer): new function to do the above.
+	(ediff-verify-file-merge-buffer): New function to do the above.
 
-	* ediff-vers.el: load ediff-init.el at compile time.
+	* ediff-vers.el: Load ediff-init.el at compile time.
 
-	* ediff-wind.el: use ediff-cond-compile-for-xemacs-or-emacs.
+	* ediff-wind.el: Use ediff-cond-compile-for-xemacs-or-emacs.
 
-	* ediff.el (ediff-windows, ediff-regions-wordwise,
-	ediff-regions-linewise): use indirect buffers to improve
+	* ediff.el (ediff-windows, ediff-regions-wordwise)
+	(ediff-regions-linewise): Use indirect buffers to improve
 	robustness and make it possible to compare regions of the same
 	buffer (even overlapping regions).
-	(ediff-clone-buffer-for-region-comparison,
-	ediff-clone-buffer-for-window-comparison): new functions.
-	(ediff-files-internal): refuse to compare identical files.
-	(ediff-regions-internal): get rid of the warning about comparing
+	(ediff-clone-buffer-for-region-comparison)
+	(ediff-clone-buffer-for-window-comparison): New functions.
+	(ediff-files-internal): Refuse to compare identical files.
+	(ediff-regions-internal): Get rid of the warning about comparing
 	regions of the same buffer.
 
-	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): moved here.
-	Plus the following fixes courtesy of Dave Love:
-	Doc fixes.
+	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Moved here.
+	Plus the following fixes courtesy of Dave Love: Doc fixes.
 	(ediff-word-1): Use word class and move - to the
 	front per regexp documentation.
 	(ediff-wordify): Bind forward-word-function outside loop.
