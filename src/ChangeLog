@@ -1,5 +1,36 @@
 2004-11-12  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (struct glyph_row): New member extra_line_spacing.
+	(struct it): New member max_extra_line_spacing.
+	(MR_PARTIALLY_VISIBLE, MR_PARTIALLY_VISIBLE_AT_TOP)
+	(MR_PARTIALLY_VISIBLE_AT_BOTTOM): New helper macros.
+	(MATRIX_ROW_PARTIALLY_VISIBLE_P): Fix to return false if invisible
+	part of last line is only extra line spacing (so the text on the
+	line is fully visible). Use helper macros.
+	Add W arg (to use them).  All callers changed.
+	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P)
+	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P): Use helper macros.
+
+	* window.c (window_scroll_pixel_based, Frecenter): Use
+	move_it_vertically_backward directly.
+	(Frecenter): Fix calculation of new start pos for negative arg.
+	Before, the new start pos was sometimes chosen too far back, so
+	the last line became only partially visible, and thus would be
+	either only semi-visible or automatically scrolled to the middle
+	of the window by redisplay.
+
+	* xdisp.c (init_iterator): Clear it.max_extra_line_spacing.
+	(move_it_vertically_backward): Don't recure to move further back.
+	(move_it_vertically): Remove superfluous condition.
+	(move_it_by_lines): Clear last_height when moved 0 lines.
+	(resize_mini_window): use it.max_extra_line_spacing.
+	(display_tool_bar_line): Clear row->extra_line_spacing.
+	(try_scrolling): Use move_it_vertically_backward directly.
+	(redisplay_window): Likewise.
+	(compute_line_metrics): Set row->extra_line_spacing.
+	(display_line, display_string): Likewise.
+	(x_produce_glyphs): Update it->max_extra_line_spacing.
+
 	* xmenu.c (pop_down_menu): Return nil.
 
 2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
