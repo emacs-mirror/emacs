@@ -1302,12 +1302,38 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 void
 error (m, a1, a2, a3)
      char *m;
+     char *a1, *a2, *a3;
 {
   char buf[200];
-  sprintf (buf, m, a1, a2, a3);
+  int size = 200;
+  int mlen;
+  char *buffer = buf;
+  char *args[3];
+  int allocated = 0;
+  Lisp_Object string;
+
+  args[0] = a1;
+  args[1] = a2;
+  args[2] = a3;
+
+  mlen = strlen (m);
 
   while (1)
-    Fsignal (Qerror, Fcons (build_string (buf), Qnil));
+    {
+      int used = doprnt (buf, size, m, m + mlen, 3, args);
+      if (used < size)
+	break;
+      size *= 2;
+      if (allocated)
+	buffer = (char *) xrealloc (buffer, size);
+      buffer = (char *) xmalloc (size);
+    }
+
+  string = build_string (buf);
+  if (allocated)
+    free (buffer);
+
+  Fsignal (Qerror, Fcons (string, Qnil));
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 1, 0,
