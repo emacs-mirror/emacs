@@ -1,3 +1,8 @@
+2004-05-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face): Use min-colors.
+
 2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/close.pbm, toolbar/close.xpm
