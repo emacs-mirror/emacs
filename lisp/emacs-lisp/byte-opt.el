@@ -1,6 +1,7 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;; Copyright (c) 1991,1994,2000,01,02,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1991, 1994, 2000, 2001, 2002, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -266,7 +267,7 @@
 		     (cdr (assq name byte-compile-function-environment)))))
       (if (and (consp fn) (eq (car fn) 'autoload))
 	  (error "File `%s' didn't define `%s'" (nth 1 fn) name))
-      (if (symbolp fn)
+      (if (and (symbolp fn) (not (eq fn t)))
 	  (byte-compile-inline-expand (cons fn (cdr form)))
 	(if (byte-code-function-p fn)
 	    (let (string)
@@ -2037,5 +2038,5 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		 byte-optimize-lapcode))))
  nil)
 
-;;; arch-tag: 0f14076b-737e-4bef-aae6-908826ec1ff1
+;; arch-tag: 0f14076b-737e-4bef-aae6-908826ec1ff1
 ;;; byte-opt.el ends here
