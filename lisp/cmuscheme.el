@@ -1,9 +1,9 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el.
 
-
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
+;; Maintainer: FSF
 ;; Keywords: processes, lisp
 
 ;; This file is part of GNU Emacs.
@@ -187,7 +187,6 @@ to continue it."
   (setq mode-line-process '(": %s"))
   (use-local-map inferior-scheme-mode-map)
   (setq comint-input-filter (function scheme-input-filter))
-  (setq comint-input-sentinel (function ignore))
   (setq comint-get-old-input (function scheme-get-old-input))
   (run-hooks 'inferior-scheme-mode-hook))
 
