@@ -68,6 +68,9 @@ Boston, MA 02111-1307, USA.  */
 #define LIBS_SYSTEM -lutil
 #if __FreeBSD_version < 400000
 #define LIBS_TERMCAP -ltermcap
+#else
+#define TERMINFO
+#define LIBS_TERMCAP -lncurses
 #endif
 
 #define SYSV_SYSTEM_DIR
