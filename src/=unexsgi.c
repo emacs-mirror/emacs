@@ -458,6 +458,44 @@ round_up (x, y)
   return x - rem + y;
 }
 
+/* Return the index of the section named NAME.
+   SECTION_NAMES, FILE_NAME and FILE_H give information
+   about the file we are looking in.
+
+   If we don't find the section NAME, that is a fatal error
+   if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
+
+static int
+find_section (name, section_names, file_name, file_h, noerror)
+     char *name;
+     char *section_names;
+     char *file_name;
+     Elf32_Ehdr file_h;
+     int noerror;
+{
+  int idx;
+
+  for (idx = 1; idx < file_h->e_shnum; idx++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for %s - found %s\n", name,
+	       section_names + OLD_SECTION_H (idx).sh_name);
+#endif
+      if (!strcmp (section_names + OLD_SECTION_H (idx).sh_name,
+		   name))
+	break;
+    }
+  if (idx == file_h->e_shnum)
+    {
+      if (noerror)
+	return -1;
+      else
+	fatal ("Can't find .bss in %s.\n", file_name, 0);
+    }
+
+  return idx;
+}
+
 /* ****************************************************************
  * unexec
  *
@@ -526,51 +564,20 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     = (char *) old_base + OLD_SECTION_H (old_file_h->e_shstrndx).sh_offset;
 
   /* Find the mdebug section, if any.  */
-  for (old_mdebug_index = 1; old_mdebug_index < old_file_h->e_shnum; old_mdebug_index++)
-    {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .mdebug - found %s\n",
-	       old_section_names + OLD_SECTION_H(old_mdebug_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H(old_mdebug_index).sh_name,
-		   ".mdebug"))
-	break;
-    }
-  if (old_mdebug_index == old_file_h->e_shnum)
-    old_mdebug_index = -1;	/* just means no such section was present */
+
+  old_mdebug_index = find_section (".mdebug", old_section_names,
+				   old_name, old_file_h, 1);
 
   /* Find the old .bss section. */
 
-  for (old_bss_index = 1; old_bss_index < old_file_h->e_shnum; old_bss_index++)
-    {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .bss - found %s\n",
-	       old_section_names + OLD_SECTION_H(old_bss_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H(old_bss_index).sh_name,
-		   ".bss"))
-	break;
-    }
-  if (old_bss_index == old_file_h->e_shnum)
-    fatal ("Can't find .bss in %s.\n", old_name, 0);
+  old_bss_index = find_section (".bss", old_section_names,
+				old_name, old_file_h, 0);
 
   /* Find the old .data section.  Figure out parameters of
      the new data2 and bss sections.  */
 
-  for (old_data_index = 1;
-       old_data_index < old_file_h->e_shnum;
-       old_data_index++)
-    {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .data - found %s\n",
-	       old_section_names + OLD_SECTION_H(old_data_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H(old_data_index).sh_name,
-		   ".data"))
-	break;
-    }
-  if (old_data_index == old_file_h->e_shnum)
-    fatal ("Can't find .data in %s.\n", old_name, 0);
+  old_data_index = find_section (".data", old_section_names,
+				 old_name, old_file_h, 0);
 
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
@@ -713,16 +720,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     {
       caddr_t src;
 
-      if (n < old_bss_index)
+      /* If it is bss section, insert the new data2 section before it.  */
+      if (n == old_bss_index)
 	{
-	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
-		  old_file_h->e_shentsize);
-	  
-	}
-      else if (n == old_bss_index)
-	{
-	  
-	  /* If it is bss section, insert the new data2 section before it.  */
 	  /* Steal the data section header for this data2 section.  */
 	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (old_data_index),
 		  new_file_h->e_shentsize);
@@ -753,13 +753,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H (nn).sh_addralign = OLD_SECTION_H (nn).sh_addralign;
 	  NEW_SECTION_H (nn).sh_size = 0;
 	}
-      else			/* n > old_bss_index */
-	{
-	  
-	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
-		  old_file_h->e_shentsize);
-      
-	}
+      else
+	memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+		old_file_h->e_shentsize);
 
       /* Any section that was original placed AFTER the bss
 	 section must now be adjusted by NEW_OFFSETS_SHIFT.  */
