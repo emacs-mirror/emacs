@@ -523,11 +523,17 @@ ENDPOS is encountered."
   (interactive)
   (let ((indent-stack (list nil))
 	(next-depth 0)
-	(starting-point (point))
+	;; If ENDPOS is non-nil, use nil as STARTING-POINT
+	;; so that calculate-lisp-indent will find the beginning of
+	;; the defun we are in.
+	;; If ENDPOS is nil, it is safe not to scan before point
+	;; since every line we indent is more deeply nested than point is.
+	(starting-point (if endpos nil (point)))
 	(last-point (point))
 	last-depth bol outer-loop-done inner-loop-done state this-indent)
-    ;; Get error now if we don't have a complete sexp after point.
-    (save-excursion (forward-sexp 1))
+    (or endpos
+	;; Get error now if we don't have a complete sexp after point.
+	(save-excursion (forward-sexp 1)))
     (save-excursion
       (setq outer-loop-done nil)
       (while (if endpos (< (point) endpos)
@@ -568,7 +574,7 @@ ENDPOS is encountered."
 					  (make-list (- next-depth) nil))
 		     last-depth (- last-depth next-depth)
 		     next-depth 0)))
-	(or outer-loop-done
+	(or outer-loop-done endpos
 	    (setq outer-loop-done (<= next-depth 0)))
 	(if outer-loop-done
 	    (forward-line 1)
@@ -608,10 +614,10 @@ ENDPOS is encountered."
 ;; Indent every line whose first char is between START and END inclusive.
 (defun lisp-indent-region (start end)
   (save-excursion
-    (goto-char start)
-    (and (bolp) (not (eolp))
-	 (lisp-indent-line))
     (let ((endmark (copy-marker end)))
+      (goto-char start)
+      (and (bolp) (not (eolp))
+	   (lisp-indent-line))
       (indent-sexp endmark)
       (set-marker endmark nil))))
 
