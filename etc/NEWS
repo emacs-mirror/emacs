@@ -20,6 +20,9 @@ Emacs to not use X Input Methods (XIM), if they these are available.
 
 * Changes in Emacs 21.1
 
+** Variable `load-path' is no longer customizable because it contains
+a version-dependent component.
+
 ** The <delete> function key is now bound to `delete-char' by default.
 Note that this takes effect only on window systems.  On TTYs, Emacs
 will receive ASCII 127 when the DEL key is pressed.  This
@@ -39,7 +42,7 @@ insert a non-ASCII character from your current language environment,
 the file will be saved silently with the appropriate coding.
 Previously you would be prompted for a safe coding system.
 
-** New variable `inhibit-iso-eacape-detection' determines if the
+** New variable `inhibit-iso-escape-detection' determines if the
 coding system detector pays attention to ISO2022's escape sequences.
 If this variable is non-nil, the detector ignores such escape
 sequences.  The default value is nil, and it is recommended not to
@@ -2026,6 +2029,8 @@ strings that have been consed so far.
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
 
++++
+** Help strings in menu items are now used to provide `help-echo' text.
 
 ** The function `image-size' can be used to determine the size of an
 image.
