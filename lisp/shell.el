@@ -810,12 +810,11 @@ Returns t if successful."
 This function could be in the list `comint-output-filter-functions' or bound to
 a key."
   (interactive)
-  (let ((pmark (process-mark (get-buffer-process (current-buffer))))
-	(ctrl-m (concat (char-to-string 13) "$")))
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
       (goto-char
        (if (interactive-p) comint-last-input-end comint-last-output-start))
-      (while (re-search-forward ctrl-m pmark t)
+      (while (re-search-forward "\r+$" pmark t)
 	(replace-match "" t t)))))
 
 (provide 'shell)
