@@ -393,25 +393,6 @@ extern int minibuf_level;
 
 extern int update_mode_lines;
 
-/* Minimum value of GPT - BEG since last redisplay that finished.  */
-
-extern int beg_unchanged;
-
-/* Minimum value of Z - GPT since last redisplay that finished.  */
-
-extern int end_unchanged;
-
-/* MODIFF as of last redisplay that finished; if it matches MODIFF,
-   beg_unchanged and end_unchanged contain no useful information.  */
-
-extern int unchanged_modified;
-
-/* BUF_OVERLAY_MODIFF of current buffer, as of last redisplay that
-   finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
-   end_unchanged contain no useful information.  */
-
-extern int overlay_unchanged_modified;
-
 /* Nonzero if BEGV - BEG or Z - ZV of current buffer has changed since
    last redisplay that finished.  */
 
