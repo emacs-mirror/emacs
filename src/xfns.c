@@ -248,10 +248,11 @@ Lisp_Object Qundefined_color;
 Lisp_Object Qvertical_scroll_bars;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
+Lisp_Object Qvisibility;
 
 /* The below are defined in frame.c. */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
-extern Lisp_Object Qunsplittable;
+extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qicon;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -307,6 +308,8 @@ enum x_frame_parm
   X_PARM_AUTORAISE,
   X_PARM_AUTOLOWER,
   X_PARM_VERT_SCROLL_BAR,
+  X_PARM_VISIBILITY,
+  X_PARM_MENU_BAR_LINES
 };
 
 
@@ -330,6 +333,8 @@ void x_explicitly_set_name ();
 void x_set_autoraise ();
 void x_set_autolower ();
 void x_set_vertical_scroll_bars ();
+void x_set_visibility ();
+void x_set_menu_bar_lines ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -347,6 +352,8 @@ static struct x_frame_parm_table x_frame_parms[] =
   "auto-raise", x_set_autoraise,
   "auto-lower", x_set_autolower,
   "vertical-scroll-bars", x_set_vertical_scroll_bars,
+  "visibility", x_set_visibility,
+  "menu-bar-lines", x_set_menu_bar_lines,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -356,15 +363,15 @@ init_x_parm_symbols ()
 {
   int i;
 
-  for (i = 0; i < sizeof (x_frame_parms)/sizeof (x_frame_parms[0]); i++)
+  for (i = 0; i < sizeof (x_frame_parms) / sizeof (x_frame_parms[0]); i++)
     Fput (intern (x_frame_parms[i].name), Qx_frame_parameter,
 	  make_number (i));
 }
 
-#if 1
 /* Change the parameters of FRAME as specified by ALIST.
    If a parameter is not specially recognized, do nothing;
    otherwise call the `x_set_...' function for that parameter.  */
+
 void
 x_set_frame_parameters (f, alist)
      FRAME_PTR f;
@@ -429,29 +436,7 @@ x_set_frame_parameters (f, alist)
       Fset_frame_position (frame, left, top);
   }
 }
-#else
-/* Report to X that a frame parameter of frame F is being set or changed.
-   PARAM is the symbol that says which parameter.
-   VAL is the new value.
-   OLDVAL is the old value.
-   If the parameter is not specially recognized, do nothing;
-   otherwise the `x_set_...' function for this parameter.  */
 
-void
-x_set_frame_param (f, param, val, oldval)
-     register struct frame *f;
-     Lisp_Object param;
-     register Lisp_Object val;
-     register Lisp_Object oldval;
-{
-  register Lisp_Object tem;
-  tem = Fget (param, Qx_frame_parameter);
-  if (XTYPE (tem) == Lisp_Int
-      && XINT (tem) >= 0
-      && XINT (tem) < sizeof (x_frame_parms)/sizeof (x_frame_parms[0]))
-    (*x_frame_parms[XINT (tem)].setter)(f, val, oldval);
-}
-#endif
 /* Insert a description of internally-recorded parameters of frame X
    into the parameter alist *ALISTPTR that is to be given to the user.
    Only parameters that are specific to the X window system
@@ -473,6 +458,9 @@ x_report_frame_params (f, alistptr)
   sprintf (buf, "%d", FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
+  store_in_alist (alistptr, Qvisibility,
+		  (FRAME_VISIBLE_P (f) ? Qt
+		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
 }
 
 /* Decide if color named COLOR is valid for the display
@@ -928,6 +916,60 @@ x_set_internal_border_width (f, arg, oldval)
       UNBLOCK_INPUT;
       SET_FRAME_GARBAGED (f);
     }
+}
+
+void
+x_set_visibility (f, value, oldval)
+     struct frame *f;
+     Lisp_Object value, oldval;
+{
+  Lisp_Object frame;
+  XSET (frame, Lisp_Frame, f);
+
+  if (NILP (value))
+    Fmake_frame_invisible (frame);
+  else if (EQ (value, Qt))
+    Fmake_frame_visible (frame);
+  else
+    Ficonify_frame (frame);
+}
+
+static void
+x_set_menu_bar_lines_1 (window, n)
+  Lisp_Object window;
+  int n;
+{
+  for (; !NILP (window); window = XWINDOW (window)->next)
+    {
+      struct window *w = XWINDOW (window);
+
+      w->top += n;
+
+      if (!NILP (w->vchild))
+	x_set_menu_bar_lines_1 (w->vchild);
+
+      if (!NILP (w->hchild))
+	x_set_menu_bar_lines_1 (w->hchild);
+    }
+}
+
+void
+x_set_menu_bar_lines (f, value, oldval)
+     struct frame *f;
+     Lisp_Object value, oldval;
+{
+  int nlines;
+  int olines = FRAME_MENU_BAR_LINES (f);
+
+  if (XTYPE (value) == Lisp_Int)
+    nlines = XINT (value);
+  else
+    nlines = 0;
+
+  FRAME_MENU_BAR_LINES (f) = nlines;
+  x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
+  x_set_window_size (f, FRAME_WIDTH (f),
+		     FRAME_HEIGHT (f) + nlines - olines);
 }
 
 /* Change the name of frame F to ARG.  If ARG is nil, set F's name to
@@ -1801,13 +1843,13 @@ x_make_gc (f)
   /* Create the gray border tile used when the pointer is not in
      the frame.  Since this depends on the frame's pixel values,
      this must be done on a per-frame basis. */
-  f->display.x->border_tile =
-    XCreatePixmapFromBitmapData
-      (x_current_display, ROOT_WINDOW, 
-       gray_bits, gray_width, gray_height,
-       f->display.x->foreground_pixel,
-       f->display.x->background_pixel,
-       DefaultDepth (x_current_display, XDefaultScreen (x_current_display)));
+  f->display.x->border_tile
+    = (XCreatePixmapFromBitmapData
+       (x_current_display, ROOT_WINDOW, 
+	gray_bits, gray_width, gray_height,
+	f->display.x->foreground_pixel,
+	f->display.x->background_pixel,
+	DefaultDepth (x_current_display, XDefaultScreen (x_current_display))));
 }
 #endif /* HAVE_X11 */
 
@@ -1927,6 +1969,10 @@ be shared by the new frame.")
   height = f->height;
   f->height = f->width = 0;
   change_frame_size (f, height, width, 1, 0);
+
+  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
+		       "menuBarLines", "MenuBarLines", number);
+
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting);
   UNBLOCK_INPUT;
@@ -1934,9 +1980,18 @@ be shared by the new frame.")
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Make the window appear on the frame and enable display.  */
+  /* Make the window appear on the frame and enable display,
+     unless the caller says not to.  */
   if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0, boolean), Qt))
-    x_make_frame_visible (f);
+    {
+      tem = x_get_arg (parms, Qvisibility, 0, 0, boolean);
+      if (EQ (tem, Qicon))
+	x_iconify_frame (f);
+      /* Note that the default is Qunbound,
+	 so by default we do make visible.  */
+      else if (!EQ (tem, Qnil))
+	x_make_frame_visible (f);
+    }
 
   return frame;
 #else /* X10 */
@@ -3818,6 +3873,8 @@ syms_of_xfns ()
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
   /* This is the end of symbol initialization.  */
+  Qvisibility = intern ("visibility");
+  staticpro (&Qvisibility);
 
   Fput (Qundefined_color, Qerror_conditions,
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
