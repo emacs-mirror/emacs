@@ -16,7 +16,7 @@
 	(mode-line-bury-buffer): New function.
 	(mode-line-buffer-identification-keymap): Use it instead of
 	bury-buffer.  Bind down-mouse events to prevent global down-mouse
-	events to shine through.
+	events from shining through.
 
 2001-08-21  Stefan Monnier  <monnier@cs.yale.edu>
 
