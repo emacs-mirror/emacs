@@ -79,7 +79,7 @@ gettimeofday (tp, tzp)
  
 #endif
 
-void
+int
 main ()
 {
   int c;

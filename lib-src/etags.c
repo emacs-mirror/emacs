@@ -693,7 +693,7 @@ char *massage_name (s)
 #endif /* VMS */
 
 
-void
+int
 main (argc, argv)
      int argc;
      char *argv[];
