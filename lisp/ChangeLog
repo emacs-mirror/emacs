@@ -1,3 +1,8 @@
+2001-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* language/european.el: Fix the doc string of "Latin-5" language
+	environment.
+
 2001-12-26  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode-map): New keymap,
