@@ -214,7 +214,7 @@ screenful.  For example, C-u 8 C-v scrolls the screen by 8 lines.
 This should have scrolled the screen up by 8 lines.  If you would like
 to scroll it down again, you can give an argument to M-v.
 
-If you are using X Windows, there should be a tall rectangular area
+If you are using X11, there should be a tall rectangular area
 called a scroll bar at the left hand side of the Emacs window.  You
 can scroll the text by clicking the mouse in the scroll bar.
 

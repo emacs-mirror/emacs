@@ -1,5 +1,7 @@
 2000-09-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* woman.texi: Change copyright notice.
+
 	* basic.texi (Continuation Lines): Add description of
 	toggle-truncate-lines.
 
