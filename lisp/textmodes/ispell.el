@@ -2132,7 +2132,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	(forward-line 1))
       (setq case-fold-search nil)
       ;; Skip mail header, particularly for non-english languages.
-      (if (looking-at mail-header-separator)
+      (if (looking-at (concat (regexp-quote mail-header-separator) "$"))
 	  (forward-line 1))
       (while (< (point) limit)
 	;; Skip across text cited from other messages.
