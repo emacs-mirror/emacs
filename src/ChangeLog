@@ -1,3 +1,10 @@
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* alloc.c (PURE_BEF_ATTRS, PURE_AFT_ATTRS): New macros, by default empty.
+	(pure): Use new macros in decl.
+	(PURE_AFT_ATTRS) [VMS, __GNUC__]: Define.
+	(PURE_BEF_ATTRS) [VMS, not __GNUC__]: Define.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
