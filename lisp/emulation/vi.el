@@ -1077,15 +1077,12 @@ If the optional after-p is given, put after/below the cursor."
 	(error "Nothing in register %c" reg)
       (if (null reg) (setq reg ?1))	; the default is the last text killed
       (setq put-text
-	    (if (and (>= reg ?1) (<= reg ?9))
-		(let ((ring-length (length kill-ring)))
-		  (setq this-command 'yank) ; So we may yank-pop !!
-		  (nth (% (+ (- reg ?0 1) (- ring-length
-					     (length kill-ring-yank-pointer)))
-			  ring-length) kill-ring))
-	      (if (stringp (get-register reg))
-		  (get-register reg)
-		(error "Register %c is not containing text string" reg))))
+	    (cond
+	     ((and (>= reg ?1) (<= reg ?9))
+	      (setq this-command 'yank) ; So we may yank-pop !!
+	      (current-kill (- reg ?0 1) 'do-not-rotate))
+	     ((stringp (get-register reg)) (get-register reg))
+	     (t (error "Register %c is not containing text string" reg))))
       (if (vi-string-end-with-nl-p put-text) ; put back text as lines
 	  (if after-p
 	      (progn (next-line 1) (beginning-of-line))

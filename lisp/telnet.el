@@ -1,12 +1,11 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
-
-;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1988, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -29,6 +28,7 @@
 ;; manner
 
 (require 'comint)
+
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map nil)
 (defvar telnet-prompt-pattern "^[^#$%>]*[#$%>] *")
@@ -120,6 +120,7 @@ rejecting one login and prompting for the again for a username and password.")
       (set-buffer (process-buffer proc))
       (goto-char (process-mark proc))
       (let ((now (point)))
+	;; Insert STRING, omitting all C-m characters.
 	(let ((index 0) c-m)
 	  (while (setq c-m (string-match "\C-m" string index))
 	    (insert-before-markers (substring string index c-m))
@@ -137,7 +138,11 @@ rejecting one login and prompting for the again for a username and password.")
 
 (defun telnet-send-input ()
   (interactive)
-  (comint-send-input telnet-new-line telnet-remote-echoes))
+;  (comint-send-input telnet-new-line telnet-remote-echoes)
+  (comint-send-input)
+  (if telnet-remote-echoes
+      (delete-region comint-last-input-start
+		     comint-last-input-end)))
 
 ;;;###autoload
 (defun telnet (arg)

@@ -132,13 +132,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 			 (setq default-directory
 			       (file-name-as-directory value))))))
 		'("PWD" "HOME")))
-    (let ((tail directory-abbrev-alist))
-      (while tail
-	(if (string-match (car (car tail)) default-directory)
-	    (setq default-directory
-		  (concat (cdr (car tail))
-			  (substring default-directory (match-end 0)))))
-	(setq tail (cdr tail))))
+    (setq default-directory (abbreviate-file-name default-directory))
     (unwind-protect
 	(command-line)
       (run-hooks 'emacs-startup-hook)

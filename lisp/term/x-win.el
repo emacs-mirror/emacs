@@ -437,25 +437,36 @@ This returns ARGS with the arguments that have been processed removed."
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
 
-;; xterm.c depends on using interrupt-driven input, but we don't want
-;; the fcntls to apply to the terminal, so we do this after opening
-;; the display.
+;;; xterm.c depends on using interrupt-driven input, but we don't want
+;;; the fcntls to apply to the terminal, so we do this after opening
+;;; the display.
 (set-input-mode t nil t)
 
 (setq screen-creation-function 'x-create-screen)
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
-(setq interprogram-cut-function 'x-select-text)
 
-;; Make TEXT, a string, the primary and clipboard X selections.
-;; If you are running xclipboard, this means you can effectively
-;; have a window on a copy of the kill-ring.
+;;; Make TEXT, a string, the primary and clipboard X selections.
+;;; If you are running xclipboard, this means you can effectively
+;;; have a window on a copy of the kill-ring.
+;;; Also, set the value of X cut buffer 0, for backward compatibility
+;;; with older X application.
 (defun x-select-text (text)
-  (if (eq window-system 'x)
-      (progn
-	(x-own-selection text 'clipboard)
-	(x-own-selection text))))
+  (x-own-selection text 'cut-buffer0)
+  (x-own-selection text 'clipboard)
+  (x-own-selection text))
+
+;;; Return the value of the current X selection.  For compatibility
+;;; with older X applications, this checks cut buffer 0 before
+;;; retrieving the value of the primary selection.
+(defun x-cut-buffer-or-selection-value ()
+  (or (x-selection-value 'cut-buffer0)
+      (x-selection-value)))
+
+;;; Arrange for the kill and yank functions to set and check the clipboard.
+(setq interprogram-cut-function 'x-select-text)
+(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
 
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.

@@ -1,12 +1,11 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
-
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,12 +18,15 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(defun one-window-p (&optional arg)
+(defun one-window-p (&optional nomini)
   "Returns non-nil if there is only one window.
 Optional arg NOMINI non-nil means don't count the minibuffer
 even if it is active."
-  (eq (selected-window)
-      (next-window (selected-window) (if arg 'arg))))
+  (let ((base-window (selected-window)))
+    (if (and nomini (eq base-window (minibuffer-window)))
+	(setq base-window (next-window base-window)))
+    (eq base-window
+	(next-window base-window (if nomini 'arg)))))
 
 (defun walk-windows (proc &optional minibuf all-screens)
   "Cycle through all visible windows, calling PROC for each one.
@@ -202,10 +204,10 @@ The normal global definition of the character C-x indirects to this keymap.")
 (fset 'ctl-x-4-prefix ctl-x-4-map)
 (define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
-(defvar ctl-x-3-map (make-sparse-keymap)
+(defvar ctl-x-5-map (make-sparse-keymap)
   "Keymap for screen commands.")
-(fset 'ctl-x-3-prefix ctl-x-3-map)
-(define-key ctl-x-map "3" 'ctl-x-3-prefix)
+(fset 'ctl-x-5-prefix ctl-x-5-map)
+(define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 
 (defun run-hooks (&rest hooklist)
@@ -349,5 +351,3 @@ and then modifies one entry in it."
 instead of having to write (function (lambda ...)) or '(lambda ...), the
 latter of which won't get byte-compiled."
   (` (function (lambda (,@ cdr)))))
-
-;;; subr.el ends here
