@@ -90,6 +90,11 @@ This association list has elements of the form
 	  (if key
 	      (list 'define-key 'gud-mode-map key  (list 'quote func))))))
 
+;; Where gud-display-frame should put the debugging arrow.  This is
+;; set by the marker-filter, which scans the debugger's output for
+;; indications of the current pc.
+(defvar gud-last-frame nil)
+
 ;; All debugger-specific information is collected here
 ;; Here's how it works, in case you ever need to add a debugger to the table.
 ;;
