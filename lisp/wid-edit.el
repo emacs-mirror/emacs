@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9936
+;; Version: 1.9942
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -54,7 +54,7 @@
       "Character position of the end of event if that exists, or nil."
       (posn-point (event-end event))))
 
-(defalias 'widget-read-event (if (string-match "XEmacs" emacs-version)
+  (defalias 'widget-read-event (if (string-match "XEmacs" emacs-version)
 				   'next-event
 				 'read-event))
 
@@ -83,6 +83,14 @@
 	   (memq (event-basic-type event) '(mouse-1 mouse-2 mouse-3))
 	   (or (memq 'click (event-modifiers event))
 	       (memq  'drag (event-modifiers event))))))
+
+  (unless (fboundp 'functionp)
+    ;; Missing from Emacs 19.34 and earlier.
+    (defun functionp (object)
+      "Non-nil of OBJECT is a type of object that can be called as a function."
+      (or (subrp object) (byte-code-function-p object)
+	  (eq (car-safe object) 'lambda)
+	  (and (symbolp object) (fboundp object)))))
 
   (unless (fboundp 'error-message-string)
     ;; Emacs function missing in XEmacs.
@@ -169,6 +177,28 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for editable fields."
   :group 'widget-faces)
 
+(defface widget-single-line-field-face '((((class grayscale color)
+					   (background light))
+					  (:background "gray85"))
+					 (((class grayscale color)
+					   (background dark))
+					  (:background "dim gray"))
+					 (t 
+					  (:italic t)))
+  "Face used for editable fields spanning only a single line."
+  :group 'widget-faces)
+
+(defvar widget-single-line-display-table
+  (let ((table (make-display-table)))
+    (aset table 9  "^I")
+    (aset table 10 "^J")
+    table)
+  "Display table used for single-line editable fields.")
+
+(when (fboundp 'set-face-display-table)
+  (set-face-display-table 'widget-single-line-field-face
+			  widget-single-line-display-table))
+
 ;;; Utility functions.
 ;;
 ;; These are not really widget specific.
@@ -206,7 +236,7 @@ Larger menus are read through the minibuffer."
   :group 'widgets
   :type 'integer)
 
-(defcustom widget-menu-minibuffer-flag nil
+(defcustom widget-menu-minibuffer-flag (string-match "XEmacs" emacs-version)
   "*Control how to ask for a choice from the keyboard.
 Non-nil means use the minibuffer;
 nil means read a single character."
@@ -1816,6 +1846,9 @@ If END is omitted, it defaults to the length of LIST."
   (let ((size (widget-get widget :size))
 	(value (widget-get widget :value))
 	(from (point))
+	;; This is changed to a real overlay in `widget-setup'.  We
+	;; need the end points to behave differently until
+	;; `widget-setup' is called.   
 	(overlay (cons (make-marker) (make-marker))))
     (widget-put widget :field-overlay overlay)
     (insert value)
@@ -2873,6 +2906,7 @@ link for that string."
   "A regular expression."
   :match 'widget-regexp-match
   :validate 'widget-regexp-validate
+  :value-face 'widget-single-line-field-face
   :tag "Regexp")
 
 (defun widget-regexp-match (widget value)
@@ -2898,6 +2932,7 @@ It will read a file name from the minibuffer when invoked."
   :complete-function 'widget-file-complete
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
+  :value-face 'widget-single-line-field-face
   :tag "File")
 
 (defun widget-file-complete ()

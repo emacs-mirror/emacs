@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9936
+;; Version: 1.9942
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -568,6 +568,11 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-browse)
 
+(defcustom custom-browse-only-groups nil
+  "If non-nil, show group members only within each customization group."
+  :type 'boolean
+  :group 'custom-browse)
+
 (defcustom custom-buffer-sort-alphabetically nil
   "If non-nil, sort members of each customization group alphabetically."
   :type 'boolean
@@ -1118,9 +1123,27 @@ Reset all values in this buffer to their standard settings."
     (switch-to-buffer (get-buffer-create name)))
   (custom-mode)
   (widget-insert "\
-Invoke [+] below to expand items, and [-] to collapse items.
-Invoke the [Group], [Face], and [Option] buttons below to edit that
-item in another window.\n\n")
+Invoke [+] or [?] below to expand items, and [-] to collapse items.\n")
+  (if custom-browse-only-groups
+      (widget-insert "\
+Invoke the [Group] button below to edit that item in another window.\n\n")
+    (widget-insert "Invoke the ") 
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Group]"
+		   :tag-glyph "folder")
+    (widget-insert ", ")
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Face]"
+		   :tag-glyph "face")
+    (widget-insert ", and ")
+    (widget-create 'item 
+		   :format "%t"
+		   :tag "[Option]"
+		   :tag-glyph "option")
+    (widget-insert " buttons below to edit that
+item in another window.\n\n"))
   (let ((custom-buffer-style 'tree))
     (widget-create 'custom-group 
 		   :custom-last t
@@ -1129,52 +1152,52 @@ item in another window.\n\n")
 		   :value group))
   (goto-char (point-min)))
 
-(define-widget 'custom-tree-visibility 'item
+(define-widget 'custom-browse-visibility 'item
   "Control visibility of of items in the customize tree browser."
   :format "%[[%t]%]"
-  :action 'custom-tree-visibility-action)
+  :action 'custom-browse-visibility-action)
 
-(defun custom-tree-visibility-action (widget &rest ignore)
+(defun custom-browse-visibility-action (widget &rest ignore)
   (let ((custom-buffer-style 'tree))
     (custom-toggle-parent widget)))
 
-(define-widget 'custom-tree-group-tag 'push-button
+(define-widget 'custom-browse-group-tag 'push-button
   "Show parent in other window when activated."
   :tag "Group"
   :tag-glyph "folder"
-  :action 'custom-tree-group-tag-action)
+  :action 'custom-browse-group-tag-action)
 
-(defun custom-tree-group-tag-action (widget &rest ignore)
+(defun custom-browse-group-tag-action (widget &rest ignore)
   (let ((parent (widget-get widget :parent)))
     (customize-group-other-window (widget-value parent))))
 
-(define-widget 'custom-tree-variable-tag 'push-button
+(define-widget 'custom-browse-variable-tag 'push-button
   "Show parent in other window when activated."
   :tag "Option"
   :tag-glyph "option"
-  :action 'custom-tree-variable-tag-action)
+  :action 'custom-browse-variable-tag-action)
 
-(defun custom-tree-variable-tag-action (widget &rest ignore)
+(defun custom-browse-variable-tag-action (widget &rest ignore)
   (let ((parent (widget-get widget :parent)))
     (customize-variable-other-window (widget-value parent))))
 
-(define-widget 'custom-tree-face-tag 'push-button
+(define-widget 'custom-browse-face-tag 'push-button
   "Show parent in other window when activated."
   :tag "Face"
   :tag-glyph "face"
-  :action 'custom-tree-face-tag-action)
+  :action 'custom-browse-face-tag-action)
 
-(defun custom-tree-face-tag-action (widget &rest ignore)
+(defun custom-browse-face-tag-action (widget &rest ignore)
   (let ((parent (widget-get widget :parent)))
     (customize-face-other-window (widget-value parent))))
 
-(defconst custom-tree-alist '(("   " "space")
+(defconst custom-browse-alist '(("   " "space")
 			      (" | " "vertical")
 			      ("-\\ " "top")
 			      (" |-" "middle")
 			      (" `-" "bottom")))
 
-(defun custom-tree-insert-prefix (prefix)
+(defun custom-browse-insert-prefix (prefix)
   "Insert PREFIX.  On XEmacs convert it to line graphics."
   (if nil ; (string-match "XEmacs" emacs-version)
       (progn 
@@ -1183,7 +1206,7 @@ item in another window.\n\n")
 	  (let ((entry (substring prefix 0 3)))
 	    (setq prefix (substring prefix 3))
 	    (let ((overlay (make-overlay (1- (point)) (point) nil t nil))
-		  (name (nth 1 (assoc entry custom-tree-alist))))
+		  (name (nth 1 (assoc entry custom-browse-alist))))
 	      (overlay-put overlay 'end-glyph (widget-glyph-find name entry))
 	      (overlay-put overlay 'start-open t)
 	      (overlay-put overlay 'end-open t)))))
@@ -1567,8 +1590,31 @@ and `face'."
   "Load all dependencies for WIDGET."
   (custom-load-symbol (widget-value widget)))
 
+(defun custom-unloaded-symbol-p (symbol)
+  "Return non-nil if the dependencies of SYMBOL has not yet been loaded."
+  (let ((found nil)
+	(loads (get symbol 'custom-loads))
+	load)
+    (while loads
+      (setq load (car loads)
+	    loads (cdr loads))
+      (cond ((symbolp load)
+	     (unless (featurep load)
+	       (setq found t)))
+	    ((assoc load load-history))
+	    ((assoc (locate-library load) load-history)
+	     (message nil))
+	    (t
+	     (setq found t))))
+    found))
+
+(defun custom-unloaded-widget-p (widget)
+  "Return non-nil if the dependencies of WIDGET has not yet been loaded."
+  (custom-unloaded-symbol-p (widget-value widget)))
+
 (defun custom-toggle-hide (widget)
   "Toggle visibility of WIDGET."
+  (custom-load-widget widget)
   (let ((state (widget-get widget :custom-state)))
     (cond ((memq state '(invalid modified))
 	   (error "There are unset changes"))
@@ -1719,7 +1765,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (cond ((eq custom-buffer-style 'tree)
 	   (insert prefix (if last " `--- " " |--- "))
 	   (push (widget-create-child-and-convert
-		  widget 'custom-tree-variable-tag)
+		  widget 'custom-browse-variable-tag)
 		 buttons)
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
@@ -2153,7 +2199,7 @@ Match frames with dark backgrounds.")
     (cond ((eq custom-buffer-style 'tree)
 	   (insert prefix (if is-last " `--- " " |--- "))
 	   (push (widget-create-child-and-convert
-		  widget 'custom-tree-face-tag)
+		  widget 'custom-browse-face-tag)
 		 buttons)
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
@@ -2506,54 +2552,56 @@ and so forth.  The remaining group tags are shown with
 	(tag (widget-get widget :tag))
 	(symbol (widget-value widget)))
     (cond ((and (eq custom-buffer-style 'tree)
-		(eq state 'hidden))
-	   (custom-tree-insert-prefix prefix)
+		(eq state 'hidden)
+		(or (get symbol 'custom-group)
+		    (custom-unloaded-widget-p widget)))
+	   (custom-browse-insert-prefix prefix)
 	   (push (widget-create-child-and-convert
-		  widget 'custom-tree-visibility 
+		  widget 'custom-browse-visibility 
 		  ;; :tag-glyph "plus"
-		  :tag "+")
+		  :tag (if (custom-unloaded-widget-p widget) "?" "+"))
 		 buttons)
 	   (insert "-- ")
 	   ;; (widget-glyph-insert nil "-- " "horizontal")
 	   (push (widget-create-child-and-convert
-		  widget 'custom-tree-group-tag)
+		  widget 'custom-browse-group-tag)
 		 buttons)
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
 	  ((and (eq custom-buffer-style 'tree)
 		(zerop (length (get symbol 'custom-group))))
-	   (custom-tree-insert-prefix prefix)
+	   (custom-browse-insert-prefix prefix)
 	   (insert "[ ]-- ")
 	   ;; (widget-glyph-insert nil "[ ]" "empty")
 	   ;; (widget-glyph-insert nil "-- " "horizontal")
 	   (push (widget-create-child-and-convert 
-		  widget 'custom-tree-group-tag)
+		  widget 'custom-browse-group-tag)
 		 buttons)
 	   (insert " " tag "\n")
 	   (widget-put widget :buttons buttons))
 	  ((eq custom-buffer-style 'tree)
-	   (custom-tree-insert-prefix prefix)
+	   (custom-browse-insert-prefix prefix)
 	   (custom-load-widget widget)
 	   (if (zerop (length (get symbol 'custom-group)))
 	       (progn 
-		 (custom-tree-insert-prefix prefix)
+		 (custom-browse-insert-prefix prefix)
 		 (insert "[ ]-- ")
 		 ;; (widget-glyph-insert nil "[ ]" "empty")
 		 ;; (widget-glyph-insert nil "-- " "horizontal")
 		 (push (widget-create-child-and-convert 
-			widget 'custom-tree-group-tag)
+			widget 'custom-browse-group-tag)
 		       buttons)
 		 (insert " " tag "\n")
 		 (widget-put widget :buttons buttons))
 	     (push (widget-create-child-and-convert 
-		    widget 'custom-tree-visibility 
+		    widget 'custom-browse-visibility 
 		    ;; :tag-glyph "minus"
 		    :tag "-")
 		   buttons)
 	     (insert "-\\ ")
 	     ;; (widget-glyph-insert nil "-\\ " "top")
 	     (push (widget-create-child-and-convert 
-		    widget 'custom-tree-group-tag)
+		    widget 'custom-browse-group-tag)
 		   buttons)
 	     (insert " " tag "\n")
 	     (widget-put widget :buttons buttons)
@@ -2563,7 +2611,6 @@ and so forth.  The remaining group tags are shown with
 			      custom-browse-order-groups))
 		    (prefixes (widget-get widget :custom-prefixes))
 		    (custom-prefix-list (custom-prefix-add symbol prefixes))
-		    (length (length members))
 		    (extra-prefix (if (widget-get widget :custom-last)
 				      "   "
 				    " | "))
@@ -2572,17 +2619,18 @@ and so forth.  The remaining group tags are shown with
 	       (while members
 		 (setq entry (car members)
 		       members (cdr members))
-		 (push (widget-create-child-and-convert
-			widget (nth 1 entry)
-			:group widget
-			:tag (custom-unlispify-tag-name
-			      (nth 0 entry))
-			:custom-prefixes custom-prefix-list
-			:custom-level (1+ level)
-			:custom-last (null members)
-			:value (nth 0 entry)
-			:custom-prefix prefix)
-		       children))
+		 (when (or (not custom-browse-only-groups)
+			   (eq (nth 1 entry) 'custom-group))
+		   (push (widget-create-child-and-convert
+			  widget (nth 1 entry)
+			  :group widget
+			  :tag (custom-unlispify-tag-name (nth 0 entry))
+			  :custom-prefixes custom-prefix-list
+			  :custom-level (1+ level)
+			  :custom-last (null members)
+			  :value (nth 0 entry)
+			  :custom-prefix prefix)
+			 children)))
 	       (widget-put widget :children (reverse children)))
 	     (message "Creating group...done")))
 	  ;; Nested style.
@@ -2943,17 +2991,17 @@ Leave point at the location of the call, or after the last expression."
 (unless (string-match "XEmacs" emacs-version)
   (defconst custom-help-menu
     '("Customize"
-      ["Update menu..." Custom-menu-update t]
-      ["Browse..." (customize-browse 'emacs) t]
+      ["Update menu" Custom-menu-update t]
+      ["Browse" (customize-browse 'emacs) t]
       ["Group..." customize-group t]
-      ["Variable..." customize-variable t]
+      ["Option..." customize-option t]
       ["Face..." customize-face t]
       ["Saved..." customize-saved t]
       ["Set..." customize-customized t]
-      ["--" custom-menu-sep t]
+      "--"
       ["Apropos..." customize-apropos t]
       ["Group apropos..." customize-apropos-groups t]
-      ["Variable apropos..." customize-apropos-options t]
+      ["Option apropos..." customize-apropos-options t]
       ["Face apropos..." customize-apropos-faces t])
     ;; This menu should be identical to the one defined in `menu-bar.el'. 
     "Customize menu")
