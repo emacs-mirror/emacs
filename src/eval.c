@@ -1482,7 +1482,7 @@ error (m, a1, a2, a3)
 
   while (1)
     {
-      int used = doprnt (buf, size, m, m + mlen, 3, args);
+      int used = doprnt (buffer, size, m, m + mlen, 3, args);
       if (used < size)
 	break;
       size *= 2;
@@ -1495,7 +1495,7 @@ error (m, a1, a2, a3)
 	}
     }
 
-  string = build_string (buf);
+  string = build_string (buffer);
   if (allocated)
     free (buffer);
 
