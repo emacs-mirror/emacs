@@ -475,6 +475,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
             (if (marker-position Info-tag-table-marker)
 
                 (let (found-in-tag-table
+		      found-anchor
                       found-mode
                       (m Info-tag-table-marker))
                   (save-excursion
@@ -484,7 +485,9 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
                     ;; Search tag table
                     (setq found-in-tag-table
-                          (re-search-forward regexp nil t))
+                          (re-search-forward regexp nil t)
+			  found-anchor
+			  (string-equal "Ref:" (match-string 1)))
                     (if found-in-tag-table
                         (setq guesspos (1+ (read (current-buffer)))))
                     (setq found-mode major-mode))
@@ -503,9 +506,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                             (setq guesspos (Info-read-subfile guesspos)))))
 
                   ;; Handle anchor
-                  (if (and found-in-tag-table
-                           (string-equal "Ref:" (match-string 1)))
-                      (goto-char guesspos)
+                  (if found-anchor (goto-char guesspos)
 
                     ;; Else we may have a node, which we search for:
 		    (goto-char (max (point-min)
