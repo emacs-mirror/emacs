@@ -67,8 +67,9 @@ In any case, on screens which have an ordinary window and a
 minibuffer, prev of the minibuf window is the root window and next of
 the root window is the minibuf window.  On minibufferless screens or
 minibuffer-only screens, the root window and the minibuffer window are
-one and the same, so its prev and next members are nil.  */
+one and the same, so its prev and next members are nil.
 
+A dead window has its buffer, hchild, and vchild windows all nil.  */
 
 struct window
   {
