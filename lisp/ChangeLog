@@ -1,5 +1,8 @@
 2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* international/quail.el (quail-help): Require help-mode in
+	top-level instead.
+
 	* iswitchb.el (iswitchb-exhibit): Use insert instead of
 	insert-string.
 
