@@ -1,3 +1,7 @@
+2000-12-04  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl-indent.el: Remove erroneous spec for condition-case.
+
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-expunge) 
