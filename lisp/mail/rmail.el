@@ -1158,9 +1158,9 @@ and reverse search is specified by a negative numeric arg."
     (save-restriction
       (widen)
       (while (and (not found) (< current rmail-total-messages))
-	(setq current (1+ current))
 	(if (rmail-message-labels-p current ", ?\\(unseen\\),")
-	    (setq found current))))
+	    (setq found current))
+	(setq current (1+ current))))
     (if found
 	(rmail-show-message found))))
 
