@@ -801,9 +801,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	      for (i = 0; i < matrix->nrows && matrix->rows[i].enabled_p; ++i)
 		if (MATRIX_ROW_BOTTOM_Y (matrix->rows + i) >= window_height)
 		  {
-		    if (MATRIX_ROW_BOTTOM_Y (matrix->rows + i)
-			== window_height)
-		      ++i;
+		    ++i;
 		    break;
 		  }
 
