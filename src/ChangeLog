@@ -1,3 +1,8 @@
+2002-05-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding_charset, encode_coding_charset): Handle
+	multiple charsets correctly.
+
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* search.c (boyer_moore): Fix handling of mulitbyte character
