@@ -555,11 +555,11 @@ tgetent (bp, name)
       /* If BP is malloc'd by us, make sure it is big enough.  */
       if (malloc_size)
 	{
-	  malloc_size = bp1 - bp + buf.size;
-	  termcap_name = (char *) xrealloc (bp, malloc_size);
-	  bp1 += termcap_name - bp;
-	  tc_search_point += termcap_name - bp;
-	  bp = termcap_name;
+	  int offset1 = bp1 - bp, offset2 = tc_search_point - bp;
+	  malloc_size = offset1 + buf.size;
+	  bp = termcap_name = (char *) xrealloc (bp, malloc_size);
+	  bp1 = termcap_name + offset1;
+	  tc_search_point = termcap_name + offset2;
 	}
 
       /* Copy the line of the entry from buf into bp.  */
