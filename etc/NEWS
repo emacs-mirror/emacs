@@ -581,6 +581,9 @@ writes tags pointing to the source file.
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
+** The command `list-text-properties-at' has been deleted because
+C-u C-x = gives the same information and more.
+
 ** `buffer-menu' and `list-buffers' now list buffers whose names begin
 with a space, if they visit files.
 

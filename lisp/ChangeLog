@@ -1,3 +1,28 @@
+2002-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1):
+	When recognizing a def... construct, make that indentation
+	tentative, so that it can be overridden if the list in question
+	is not actually an expression.
+	(common-lisp-indent-call-method): New subroutine.
+
+	* emacs-lisp/bytecomp.el (batch-byte-compile-file):
+	Delete the output file if we get a file-error.
+
+	* tooltip.el (tooltip-mouse-motions-active): New variable.
+	(tooltip-activate-mouse-motions): Don't kill track-mouse local
+	if it was not made by us.
+
+	* mouse.el (mouse-set-font): Avoid misleading error message
+	if user makes no selection.
+
+	* info.el (Info-setup-header-line): Don't hide the links line.
+
+	* files.el (find-file-noselect-1): Return the buffer we created
+	even if it has been killed within `after-find-file'.
+
+	* files.el (auto-mode-alist): Use ada-mode for .ad[bs].dg files.
+
 2002-05-29  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (open-network-stream-server): Pass on optional args
