@@ -69,6 +69,8 @@
 ;; Don't call expand-file-name on nil.  mernst 7 Jan 96
 ;; Check whether list-buffers-directory is bound.  mernst 11 Oct 96
 ;; Ignore non-file non-dired buffers. Colin Rafferty <craffert@ml.com> 3 Mar 97
+;; Use last component, not "", for file name of directories.  mernst 27 Jun 97
+;; Use directory-file-name; code cleanup.  mernst 6 Sep 97
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,
@@ -150,17 +152,24 @@ variable is ignored."
 (defmacro uniquify-push (item list)
   (` (setq (, list) (cons (, item) (, list)))))
 
-(defmacro uniquify-fix-list-base (a)
+;; For directories, return the last component, not the empty string.
+(defun uniquify-file-name-nondirectory (file-name)
+  (file-name-nondirectory (directory-file-name file-name)))
+
+;; uniquify-fix-list data structure
+(defmacro uniquify-fix-item-base (a)
   (` (car (, a))))
-
-(defmacro uniquify-fix-list-filename (a)
+(defmacro uniquify-fix-item-filename (a)
   (` (car (cdr (, a)))))
-
-(defmacro uniquify-fix-list-buffer (a)
+(defmacro uniquify-fix-item-buffer (a)
   (` (car (cdr (cdr (, a))))))
+;; Not a macro: passed to mapcar.
+(defun uniquify-fix-item-unrationalized-buffer (item)
+  (or (car (cdr (cdr (cdr item)))) nil))	;maybe better in the future
 
-(defmacro uniquify-cadddr (a)
-  (` (car (cdr (cdr (cdr (, a)))))))
+(defun uniquify-fix-item-filename-lessp (fixlist1 fixlist2)
+  (uniquify-filename-lessp (uniquify-fix-item-filename fixlist1)
+			   (uniquify-fix-item-filename fixlist2)))
 
 ;; Internal variables used free
 (defvar uniquify-non-file-buffer-names nil)
@@ -174,14 +183,16 @@ If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.  Arguments cause only a subset of buffers to be renamed."
   (interactive)
   (let (fix-list
-	uniquify-non-file-buffer-names
-	(depth uniquify-min-dir-content))
+	uniquify-non-file-buffer-names)
     (let ((buffers (buffer-list)))
       (while buffers
 	(let* ((buffer (car buffers))
 	       (bfn (if (eq buffer newbuf)
-			(and newbuffile
-			     (expand-file-name newbuffile))
+                        (and newbuffile
+			     (expand-file-name
+			      (if (file-directory-p newbuffile)
+				  (directory-file-name newbuffile)
+			       newbuffile)))
 		      (uniquify-buffer-file-name buffer)))
 	       (rawname (and bfn (file-name-nondirectory bfn)))
 	       (deserving (and rawname
@@ -196,23 +207,23 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
     (setq fix-list
-	  (sort fix-list 'uniquify-fix-list-filename-lessp))
+	  (sort fix-list 'uniquify-fix-item-filename-lessp))
     ;; bringing conflicting names together
-    (uniquify-rationalize-a-list fix-list depth)
-    (mapcar 'uniquify-unrationalized-buffer fix-list)))
+    (uniquify-rationalize-a-list fix-list uniquify-min-dir-content)
+    (mapcar 'uniquify-fix-item-unrationalized-buffer fix-list)))
 
-;; uniquify's version of buffer-file-name
+;; uniquify's version of buffer-file-name; result never contains trailing slash
 (defun uniquify-buffer-file-name (buffer)
   "Return name of file BUFFER is visiting, or nil if none.
-Works on dired buffers as well as ordinary file-visiting buffers,
-but no others."
+Works on dired buffers and ordinary file-visiting buffers, but no others."
   (or (buffer-file-name buffer)
       (and (featurep 'dired)
       (save-excursion
 	(set-buffer buffer)
 	(when (eq major-mode 'dired-mode) ; do nothing if not a dired buffer
 	  (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
-	      list-buffers-directory
+		  (and list-buffers-directory
+		       (directory-file-name list-buffers-directory))
 	    ;; don't use default-directory if dired-directory is nil
 	    (and dired-directory
 		 (expand-file-name
@@ -220,11 +231,6 @@ but no others."
 		   (if (consp dired-directory)
 		       (car dired-directory)
 		     dired-directory))))))))))
-
-(defun uniquify-fix-list-filename-lessp (fixlist1 fixlist2)
-  (uniquify-filename-lessp
-   (uniquify-fix-list-filename fixlist1
-			       ) (uniquify-fix-list-filename fixlist2)))
 
 ;; This examines the filename components in reverse order.
 (defun uniquify-filename-lessp (s1 s2)
@@ -240,10 +246,6 @@ but no others."
 			     (uniquify-filename-lessp
 			      (substring s1d 0 -1)
 			      (substring s2d 0 -1))))))))))
-
-;; Was named do-the-buffers-you-couldnt-rationalize
-(defun uniquify-unrationalized-buffer (item)
-  (or (uniquify-cadddr item) nil))	;maybe better in the future
 
 (defun uniquify-rationalize-a-list (fix-list depth)
   (let (conflicting-sublist
@@ -267,8 +269,8 @@ but no others."
   (let (index
 	(extra-string "")
 	(n depth)
-	(base (uniquify-fix-list-base item))
-	(fn (uniquify-fix-list-filename item)))
+	(base (uniquify-fix-item-base item))
+	(fn (uniquify-fix-item-filename item)))
     (while (and (> n 0)
 		(setq index (string-match
 			     (concat "\\(^\\|/[^/]*\\)/"
@@ -320,8 +322,8 @@ but no others."
 		    uniquify-buffer-name-style)))))
 
 
-;; Deal with conflicting-sublist, which is set by uniquify-rationalize-a-list.
-;; This is only called by uniquify-rationalize-a-list.
+;; Deal with conflicting-sublist, all of whose elements have identical
+;; "base" components.
 (defun uniquify-rationalize-conflicting-sublist (conflicting-sublist old-name depth)
   (or (null conflicting-sublist)
       (and (null (cdr conflicting-sublist))
@@ -333,7 +335,7 @@ but no others."
 	  (uniquify-rationalize-a-list conflicting-sublist (1+ depth)))))
 
 (defun uniquify-rename-buffer (item newname)
-  (let ((buffer (uniquify-fix-list-buffer item)))
+  (let ((buffer (uniquify-fix-item-buffer item)))
     (if (not (equal newname (buffer-name buffer)))
 	(let ((unset (current-buffer))
 	      ;; avoid hooks on rename-buffer
