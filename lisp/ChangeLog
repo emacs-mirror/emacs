@@ -12,6 +12,16 @@
 
 2000-08-15  Dave Love  <fx@gnu.org>
 
+	* progmodes/cwarn.el (cwarn) <defgroup>: Add :version, :link.
+	(global-cwarn-mode): Don't make it a user option.  Unquote lambda.
+	(cwarn-font-lock-feature-keywords-alist): Don't make it a user
+	option.  Provide :type.
+	(cwarn-configuration): Provide :type.
+	(cwarn-mode): Doc fix.
+
+	* add-log.el (change-log-merge): Doc fix.
+	(change-log-redate): New command.
+
 	* net/browse-url.el (browse-url-filename-alist): Add a clause for
 	Doze and Dog.
 	(browse-url): Use dolist, not mapcar.
