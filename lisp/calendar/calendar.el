@@ -569,7 +569,7 @@ See the documentation of `diary-date-forms' for an explanation."
       european-date-diary-pattern
     american-date-diary-pattern)
   "*List of pseudo-patterns describing the forms of date used in the diary.
-The patterns on the list must be MUTUALLY EXCLUSIVE and must should not match
+The patterns on the list must be MUTUALLY EXCLUSIVE and should not match
 any portion of the diary entry itself, just the date component.
 
 A pseudo-pattern is a list of regular expressions and the keywords `month',
@@ -2081,7 +2081,7 @@ This must be a list of items that evaluate to strings--those strings are
 evaluated and concatenated together, evenly separated by blanks.  The variable
 `date' is available for use as the date under (or near) the cursor; `date'
 defaults to the current date if it is otherwise undefined.  Here is an example
-value that has the Hebrew date, the day number/days reamining in the year,
+value that has the Hebrew date, the day number/days remaining in the year,
 and the ISO week/year numbers in the mode.  When calendar-move-hook is set to
 'update-calendar-mode-line, these mode line shows these values for the date
 under the cursor:
