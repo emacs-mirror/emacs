@@ -1,3 +1,12 @@
+2000-02-22  Dave Love  <fx@gnu.org>
+
+	* xt-mouse.el: Doc fixes.
+	(xterm-mouse-position-function): New function, replacing advice of
+	mouse-position.
+	(xterm-mouse-mode): Use it.  Don't turn on under a window system.
+
+	* emacs-lisp/cl-indent.el: Remove bogus spec for define-condition.
+
 2000-02-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* format.el (format-annotate-single-property-change): Handle
