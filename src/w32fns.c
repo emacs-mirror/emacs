@@ -52,6 +52,9 @@ Boston, MA 02111-1307, USA.  */
 #include <shellapi.h>
 #include <ctype.h>
 
+#include <dlgs.h>
+#define FILE_NAME_TEXT_FIELD edt1
+
 extern void free_frame_menubar ();
 extern void x_compute_fringe_widths P_ ((struct frame *, int));
 extern double atof ();
@@ -14244,8 +14247,46 @@ Value is t if tooltip was open, nil otherwise.  */)
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
-
 extern Lisp_Object Qfile_name_history;
+
+/* Callback for altering the behaviour of the Open File dialog.
+   Makes the Filename text field contain "Current Directory" and be
+   read-only when "Directories" is selected in the filter.  This
+   allows us to work around the fact that the standard Open File
+   dialog does not support directories.  */
+UINT CALLBACK
+file_dialog_callback (hwnd, msg, wParam, lParam)
+     HWND hwnd;
+     UINT msg;
+     WPARAM wParam;
+     LPARAM lParam;
+{
+  if (msg == WM_NOTIFY)
+    {
+      OFNOTIFY * notify = (OFNOTIFY *)lParam;
+      /* Detect when the Filter dropdown is changed.  */
+      if (notify->hdr.code == CDN_TYPECHANGE)
+	{
+	  HWND dialog = GetParent (hwnd);
+	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
+
+	  /* Directories is in index 2.  */
+	  if (notify->lpOFN->nFilterIndex == 2)
+	    {
+	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
+					       "Current Directory");
+	      EnableWindow (edit_control, FALSE);
+	    }
+	  else
+	    {
+	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
+					       "");
+	      EnableWindow (edit_control, TRUE);
+	    }
+	}
+    }
+  return 0;
+}
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
@@ -14261,7 +14302,6 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];
-  int use_dialog_p = 1;
 
   GCPRO5 (prompt, dir, default_filename, mustmatch, file);
   CHECK_STRING (prompt);
@@ -14287,12 +14327,6 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
       else
         {
           file_name_only++;
-
-          /* If default_file_name is a directory, don't use the open
-             file dialog, as it does not support selecting
-             directories. */
-          if (!(*file_name_only))
-            use_dialog_p = 0;
         }
 
       strncpy (filename, file_name_only, MAX_PATH);
@@ -14301,46 +14335,54 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
   else
     filename[0] = '\0';
 
-  if (use_dialog_p)
-    {
-      OPENFILENAME file_details;
+  {
+    OPENFILENAME file_details;
 
-      /* Prevent redisplay.  */
-      specbind (Qinhibit_redisplay, Qt);
-      BLOCK_INPUT;
+    /* Prevent redisplay.  */
+    specbind (Qinhibit_redisplay, Qt);
+    BLOCK_INPUT;
 
-      bzero (&file_details, sizeof (file_details));
-      file_details.lStructSize = sizeof (file_details);
-      file_details.hwndOwner = FRAME_W32_WINDOW (f);
-      /* Undocumented Bug in Common File Dialog:
-         If a filter is not specified, shell links are not resolved.  */
-      file_details.lpstrFilter = "ALL Files (*.*)\0*.*\0\0";
-      file_details.lpstrFile = filename;
-      file_details.nMaxFile = sizeof (filename);
-      file_details.lpstrInitialDir = init_dir;
-      file_details.lpstrTitle = XSTRING (prompt)->data;
-      file_details.Flags = OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
+    bzero (&file_details, sizeof (file_details));
+    file_details.lStructSize = sizeof (file_details);
+    file_details.hwndOwner = FRAME_W32_WINDOW (f);
+    /* Undocumented Bug in Common File Dialog:
+       If a filter is not specified, shell links are not resolved.  */
+    file_details.lpstrFilter = "All Files (*.*)\0*.*\0Directories\0*|*\0\0";
+    file_details.lpstrFile = filename;
+    file_details.nMaxFile = sizeof (filename);
+    file_details.lpstrInitialDir = init_dir;
+    file_details.lpstrTitle = XSTRING (prompt)->data;
+    file_details.Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+			  | OFN_EXPLORER | OFN_ENABLEHOOK);
+    if (!NILP (mustmatch))
+      file_details.Flags |= OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 
-      if (!NILP (mustmatch))
-        file_details.Flags |= OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    file_details.lpfnHook = (LPOFNHOOKPROC) file_dialog_callback;
 
-      if (GetOpenFileName (&file_details))
-        {
-          dostounix_filename (filename);
-          file = DECODE_FILE(build_string (filename));
-        }
-      else
-        file = Qnil;
+    if (GetOpenFileName (&file_details))
+      {
+	dostounix_filename (filename);
+	if (file_details.nFilterIndex == 2)
+	  {
+	    /* "Folder Only" selected - strip dummy file name.  */
+	    char * last = strrchr (filename, '/');
+	    *last = '\0';
+	  }
 
-      UNBLOCK_INPUT;
-      file = unbind_to (count, file);
-    }
-  /* Open File dialog will not allow folders to be selected, so resort
-     to minibuffer completing reads for directories. */
-  else
-    file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-                             dir, mustmatch, dir, Qfile_name_history,
-                             default_filename, Qnil);
+	file = DECODE_FILE(build_string (filename));
+      }
+    /* User cancelled the dialog without making a selection.  */
+    else if (!CommDlgExtendedError ())
+      file = Qnil;
+    /* An error occurred, fallback on reading from the mini-buffer.  */
+    else
+      file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
+			       dir, mustmatch, dir, Qfile_name_history,
+			       default_filename, Qnil);
+
+    UNBLOCK_INPUT;
+    file = unbind_to (count, file);
+  }
 
   UNGCPRO;
 
