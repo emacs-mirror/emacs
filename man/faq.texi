@@ -2021,7 +2021,7 @@ You can make omitting the default for new dired buffers by putting the
 following in your @file{.emacs}:
 
 @lisp
-(setq initial-dired-omit-files-p t)
+(add-hook 'dired-mode-hook 'dired-omit-toggle)
 @end lisp
 
 If you're tired of seeing backup files whenever you do an "ls" at the
