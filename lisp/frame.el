@@ -366,7 +366,7 @@ A negative ARG moves in the opposite order."
       (setq frame (previous-frame frame))
       (while (not (eq (frame-visible-p frame) t))
 	(setq frame (previous-frame frame)))
-      (setq arg (1- arg)))
+      (setq arg (1+ arg)))
     (raise-frame frame)
     (select-frame frame)))
 
