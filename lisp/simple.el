@@ -47,7 +47,9 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
     ;; Set last-command-char to tell self-insert what to insert.
     (let ((last-command-char ?\n)
 	  ;; Don't auto-fill if we have a numeric argument.
-	  (auto-fill-function (if arg nil auto-fill-function)))
+	  ;; Also not if flag is true (it would fill wrong line);
+	  ;; there is no need to since we're at BOL.
+	  (auto-fill-function (if (or arg flag) nil auto-fill-function)))
       (self-insert-command (prefix-numeric-value arg)))
     ;; Mark the newline(s) `hard'.
     (if use-hard-newlines
