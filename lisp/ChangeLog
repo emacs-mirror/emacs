@@ -1,3 +1,10 @@
+2000-08-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (reset-language-environment): Set
+	default-process-coding-system to '(undecided . iso-latin-1), which
+	makes process I/O almost consistent with file I/O.   Call this
+	function when mule-cmds.el[c] is loaded.
+
 2000-08-22  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: New file.

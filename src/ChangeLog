@@ -1,3 +1,16 @@
+2000-08-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (create_process): Don't setup raw-text coding here.
+	(Fopen_network_stream): Don't set coding->src_multibyte and
+	coding->dst_multibyte here.
+	(read_process_output): For process filter, return unibyte string
+	if default-enable-multibyte-characters is nil.
+	(send_process): If OBJECT is multibyte text, be sure to encoded it
+	by the specified coding system for the process.  Otherwise, setup
+	raw-text coding.
+	(init_process): Don't initialize default-process-coding-system
+	here.
+
 2000-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* buffer.c (syms_of_buffer) <scroll-up-aggressively>: Doc fix.
