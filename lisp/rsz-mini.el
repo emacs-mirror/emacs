@@ -7,7 +7,7 @@
 ;;; Maintainer: friedman@prep.ai.mit.edu
 ;;; Keywords: minibuffer, window, frame, display
 ;;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;;; $Id: rsz-mini.el,v 1.3 1994/05/20 17:43:40 friedman Exp friedman $
+;;; $Id: rsz-mini.el,v 1.4 1994/06/22 22:14:28 friedman Exp friedman $
 
 ;; This file is part of GNU Emacs.
 
@@ -207,8 +207,10 @@ respectively."
 ;; its idea of the minibuffer window size when the minibuffer isn't in use
 ;; anyway; this is just a kludge because of the timing for that update).
 (defun resize-minibuffer-window-restore ()
-  (enlarge-window (- 1 (window-height)))
-  (sit-for 0))
+  (cond
+   ((> (window-height) 1)
+    (enlarge-window (- 1 (window-height)))
+    (sit-for 0))))
 
 
 ;; Resize the minibuffer frame to contain the minibuffer's contents.
