@@ -16,6 +16,8 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The variable `echo-keystrokes' may now have a floating point value.
+
 ** C-x 5 1 runs the new command delete-other-frames which deletes
 all frames except the selected one.
 
@@ -955,8 +957,6 @@ protocols.  It has a separate manual.
 
 *** windmove.el
 
-*** calculator.el
-
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
@@ -972,6 +972,10 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
++++
+** The new function `delete-and-extract-region' deletes text and
+returns it.
 
 ** The function `clear-this-command-keys' now also clears the vector
 returned by function `recent-keys'.
