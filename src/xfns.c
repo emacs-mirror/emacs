@@ -5403,6 +5403,22 @@ usual X keysyms.  */)
       return Qnil;
     }
 
+  /* In this code we check that the keyboard has physical keys with names
+     that start with BKSP (Backspace) and DELE (Delete), and that they
+     generate keysym XK_BackSpace and XK_Delete respectively.
+     This function is used to test if normal-erase-is-backspace should be
+     turned on.
+     An alternative approach would be to just check if XK_BackSpace and
+     XK_Delete are mapped to any key.  But if any of those are mapped to
+     some non-intuitive key combination (Meta-Shift-Ctrl-whatever) and the
+     user doesn't know about it, it is better to return false here.
+     It is more obvious to the user what to do if she/he has two keys
+     clearly marked with names/symbols and one key does something not
+     expected (i.e. she/he then tries the other).
+     The cases where Backspace/Delete is mapped to some other key combination
+     are rare, and in those cases, normal-erase-is-backspace can be turned on
+     manually.  */
+
   have_keys = Qnil;
   kb = XkbGetMap (dpy, XkbAllMapComponentsMask, XkbUseCoreKbd);
   if (kb)

@@ -1,3 +1,8 @@
+2005-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_backspace_delete_keys_p): Added comment about the
+	reason for the approach in the code.
+
 2005-02-07  Kim F. Storm  <storm@cua.dk>
 
 	* undo.c (Fprimitive_undo): Record max one dummmy apply element.
