@@ -1215,6 +1215,61 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
+(defun read-passwd (prompt &optional confirm default)
+  "Read a password, prompting with PROMPT, and return it.
+If optional CONFIRM is non-nil, read the password twice to make sure.
+Optional DEFAULT is a default password to use instead of empty input.
+
+This function echoes `.' for each character that the user types.
+The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+C-g quits; if `inhibit-quit' was non-nil around this function,
+then it returns nil if the user types C-g.
+
+Once the caller uses the password, it can erase the password
+by doing (clear-string STRING)."
+  (with-local-quit
+    (if confirm
+	(let (success)
+	  (while (not success)
+	    (let ((first (read-passwd prompt nil default))
+		  (second (read-passwd "Confirm password: " nil default)))
+	      (if (equal first second)
+		  (progn
+		    (and (arrayp second) (clear-string second))
+		    (setq success first))
+		(and (arrayp first) (clear-string first))
+		(and (arrayp second) (clear-string second))
+		(message "Password not repeated accurately; please start over")
+		(sit-for 1))))
+	  success)
+      (let ((pass nil)
+	    (c 0)
+	    (echo-keystrokes 0)
+	    (cursor-in-echo-area t))
+	(while (progn (message "%s%s"
+			       prompt
+			       (make-string (length pass) ?.))
+		      (setq c (read-char-exclusive nil t))
+		      (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+	  (clear-this-command-keys)
+	  (if (= c ?\C-u)
+	      (progn
+		(and (arrayp pass) (clear-string pass))
+		(setq pass ""))
+	    (if (and (/= c ?\b) (/= c ?\177))
+		(let* ((new-char (char-to-string c))
+		       (new-pass (concat pass new-char)))
+		  (and (arrayp pass) (clear-string pass))
+		  (clear-string new-char)
+		  (setq c ?\0)
+		  (setq pass new-pass))
+	      (if (> (length pass) 0)
+		  (let ((new-pass (substring pass 0 -1)))
+		    (and (arrayp pass) (clear-string pass))
+		    (setq pass new-pass))))))
+	(message nil)
+	(or pass default "")))))
+
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
   (let ((n nil))
