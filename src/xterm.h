@@ -1090,7 +1090,7 @@ extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
 extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
                                      int *, int *));
 
-extern void x_dispatch_event P_ ((XEvent *, Display *));
+extern int x_dispatch_event P_ ((XEvent *, Display *));
 
 /* Defined in xselect.c */
 

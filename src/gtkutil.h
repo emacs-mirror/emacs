@@ -123,7 +123,7 @@ typedef struct _widget_value
   struct _widget_value *free_list;
 } widget_value;
 
-extern widget_value *malloc_widget_value ();
+extern widget_value *malloc_widget_value P_ ((void));
 extern void free_widget_value P_ ((widget_value *));
 
 extern char *xg_get_file_name P_ ((FRAME_PTR f,
@@ -186,10 +186,10 @@ extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
 extern void xg_set_background_color P_ ((FRAME_PTR f, unsigned long bg));
 
 /* Mark all callback data that are Lisp_object:s during GC.  */
-extern void xg_mark_data ();
+extern void xg_mark_data P_ ((void));
 
 /* Initialize GTK specific parts.  */
-extern void xg_initialize ();
+extern void xg_initialize P_ ((void));
 
 /* Setting scrollbar values invokes the callback.  Use this variable
    to indicate that the callback should do nothing.  */

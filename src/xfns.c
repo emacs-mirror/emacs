@@ -4039,6 +4039,35 @@ x_window (f)
 {
   if (! xg_create_frame_widgets (f))
     error ("Unable to create window");
+
+#ifdef HAVE_X_I18N
+  FRAME_XIC (f) = NULL;
+#ifdef USE_XIM
+  BLOCK_INPUT;
+  create_frame_xic (f);
+  if (FRAME_XIC (f))
+    {
+      /* XIM server might require some X events. */
+      unsigned long fevent = NoEventMask;
+      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+
+      if (fevent != NoEventMask)
+        {
+          XSetWindowAttributes attributes;
+          XWindowAttributes wattr;
+          unsigned long attribute_mask;
+
+          XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                                &wattr);
+          attributes.event_mask = wattr.your_event_mask | fevent;
+          attribute_mask = CWEventMask;
+          XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                                   attribute_mask, &attributes);
+        }
+    }
+  UNBLOCK_INPUT;
+#endif
+#endif
 }
 
 #else /*! USE_GTK */
@@ -11761,7 +11790,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
     {
       XEvent event;
       XtAppNextEvent (Xt_app_con, &event);
-      x_dispatch_event (&event, FRAME_X_DISPLAY (f) );
+      (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f) );
     }
 
   /* Get the result.  */

@@ -10214,6 +10214,32 @@ enum
   X_EVENT_DROP
 };
 
+/* Filter events for the current X input method.
+   DPYINFO is the display this event is for.
+   EVENT is the X event to filter.
+
+   Returns non-zero if the event was filtered, caller shall not process
+   this event further.
+   Returns zero if event is wasn't filtered.  */
+   
+#ifdef HAVE_X_I18N
+static int
+x_filter_event (dpyinfo, event)
+     struct x_display_info *dpyinfo;
+     XEvent *event;
+{
+  /* XFilterEvent returns non-zero if the input method has
+   consumed the event.  We pass the frame's X window to
+   XFilterEvent because that's the one for which the IC
+   was created.  */
+
+  struct frame *f1 = x_any_window_to_frame (dpyinfo,
+                                            event->xclient.window);
+
+  return XFilterEvent (event, f1 ? FRAME_X_WINDOW (f1) : None);
+}
+#endif
+
 #ifdef USE_GTK
 static struct x_display_info *current_dpyinfo;
 static struct input_event **current_bufp;
@@ -10233,13 +10259,23 @@ event_handler_gdk (gxev, ev, data)
   XEvent *xev = (XEvent*)gxev;
 
   if (current_numcharsp)
-    current_count += handle_one_xevent (current_dpyinfo,
-                                        xev,
-                                        current_bufp,
-                                        current_numcharsp,
-                                        &current_finish);
+    {
+#ifdef HAVE_X_I18N
+      /* Filter events for the current X input method.
+         GTK calls XFilterEvent but not for key press and release,
+         so we do it here.  */
+      if (xev->type == KeyPress || xev->type == KeyRelease)
+        if (x_filter_event (current_dpyinfo, xev))
+          return GDK_FILTER_REMOVE;
+#endif
+      current_count += handle_one_xevent (current_dpyinfo,
+                                          xev,
+                                          current_bufp,
+                                          current_numcharsp,
+                                          &current_finish);
+    }
   else
-    x_dispatch_event (xev, GDK_DISPLAY ());
+    current_finish = x_dispatch_event (xev, GDK_DISPLAY ());
 
   if (current_finish == X_EVENT_GOTO_OUT || current_finish == X_EVENT_DROP)
     return GDK_FILTER_REMOVE;
@@ -11520,8 +11556,10 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
-   i.e. looping while a popup menu or a dialog is posted.  */
-void
+   i.e. looping while a popup menu or a dialog is posted.
+
+   Returns the value handle_one_xevent sets in the finish argument.  */
+int
 x_dispatch_event (event, display)
      XEvent *event;
      Display *display;
@@ -11530,7 +11568,7 @@ x_dispatch_event (event, display)
   struct input_event bufp[10];
   struct input_event *bufpp = bufp;
   int numchars = 10;
-  int finish;
+  int finish = X_EVENT_NORMAL;
       
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     if (dpyinfo->display == display)
@@ -11547,6 +11585,8 @@ x_dispatch_event (event, display)
       for (i = 0; i < events; ++i)
         kbd_buffer_store_event (&bufp[i]);
     }
+
+  return finish;
 }
 
 
@@ -11667,17 +11707,9 @@ XTread_socket (sd, bufp, numchars, expected)
 	  XNextEvent (dpyinfo->display, &event);
 
 #ifdef HAVE_X_I18N
-	  {
-	    /* Filter events for the current X input method.
-	       XFilterEvent returns non-zero if the input method has
-	       consumed the event.  We pass the frame's X window to
-	       XFilterEvent because that's the one for which the IC
-	       was created.  */
-	    struct frame *f1 = x_any_window_to_frame (dpyinfo,
-						      event.xclient.window);
-	    if (XFilterEvent (&event, f1 ? FRAME_X_WINDOW (f1) : None))
-	      break;
-	  }
+          /* Filter events for the current X input method.  */
+          if (x_filter_event (dpyinfo, &event))
+            break;
 #endif
 	  event_found = 1;
 
@@ -13025,7 +13057,7 @@ struct xim_inst_t
 };
 
 /* XIM instantiate callback function, which is called whenever an XIM
-   server is available.  DISPLAY is teh display of the XIM.
+   server is available.  DISPLAY is the display of the XIM.
    CLIENT_DATA contains a pointer to an xim_inst_t structure created
    when the callback was registered.  */
 
@@ -15167,6 +15199,10 @@ x_term_init (display_name, xrm_option, resource_name)
     argv[argc++] = "--name";
     argv[argc++] = resource_name;
     
+#ifdef HAVE_X11R5
+    XSetLocaleModifiers ("");
+#endif
+
     gtk_init (&argc, &argv2);
 
     /* gtk_init does set_locale.  We must fix locale after calling it.  */

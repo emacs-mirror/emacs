@@ -1462,10 +1462,6 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                                                  0);
               gtk_menu_item_set_submenu (GTK_MENU_ITEM (w), submenu);
             }
-
-          /* Assume "Help" is the last menu in the menubar.  */
-          if (menu_bar_p && ! item->next)
-            gtk_menu_item_set_right_justified (GTK_MENU_ITEM (w), TRUE);
         }
 
       gtk_menu_shell_append (GTK_MENU_SHELL (wmenu), w);

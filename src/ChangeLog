@@ -1,3 +1,20 @@
+2003-01-25  Jan D.  <jan.h.d@swipnet.se>
+
+	* xterm.h: Change to return value of x_dispatch_event to int.
+
+	* xterm.c (x_filter_event): New function.
+	(event_handler_gdk, XTread_socket): Call x_filter_event.
+	(x_dispatch_event): Change to return value of finish.
+	(event_handler_gdk): Use return value from x_dispatch_event.
+
+	* xfns.c (x_window): Call create_frame_xic for GTK version to
+	initialize input methods.
+
+	* gtkutil.h: Add (void) prototypes.
+
+	* gtkutil.c (create_menus): Remove code that puts the help menu to
+	the right.
+
 2003-01-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (XPutPixel): Handle monochrome images; used for masks.
