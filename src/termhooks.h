@@ -44,9 +44,6 @@ extern void (*clear_end_of_line_hook) P_ ((int));
 
 extern void (*ins_del_lines_hook) P_ ((int, int));
 
-extern void (*change_line_highlight_hook) P_ ((int, int, int, int));
-extern void (*reassert_line_highlight_hook) P_ ((int, int));
-
 extern void (*insert_glyphs_hook) P_ ((struct glyph *s, int n));
 extern void (*write_glyphs_hook) P_ ((struct glyph *s, int n));
 extern void (*delete_glyphs_hook) P_ ((int));
