@@ -1503,6 +1503,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
 		 (buffer-name buffer) status warning)))
 
+;;;###autoload
 (define-minor-mode flymake-mode
   "Minor mode to do on-the-fly syntax checking.
 When called interactively, toggles the minor mode.

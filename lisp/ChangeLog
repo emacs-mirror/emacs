@@ -1,5 +1,7 @@
 2005-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-mode): Add autoload cookie.
+
 	* emacs-lisp/debug.el (debugger-record-expression): Add a missing
 	format to `message'.  Inspired by Deepak Goel <deego@gnufans.org>.
 
