@@ -1236,27 +1236,31 @@ and selects that window."
 (defvar x-fixed-font-alist
   '("Font menu"
     ("Misc"
-     ("6x10" "-misc-fixed-medium-r-normal--10-100-75-75-c-60-*-1" "6x10")
-     ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1" "6x12")
-     ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1" "6x13")
-     ("lucida 13"
-      "-b&h-lucidatypewriter-medium-r-normal-sans-0-0-0-0-m-0-*-1")
-     ("7x13" "-misc-fixed-medium-r-normal--13-120-*-*-c-70-*-1" "7x13")
-     ("7x14" "-misc-fixed-medium-r-normal--14-130-*-*-c-70-*-1" "7x14")
-     ("8x13" "-misc-fixed-medium-r-normal--13-120-*-*-c-80-*-1" "8x13")
-     ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1" "9x15")
-     ("")
-     ("clean 8x8" "-schumacher-clean-medium-r-normal--*-80-*-*-c-*-*-1")
-     ("clean 8x14" "-schumacher-clean-medium-r-normal--*-140-*-*-c-*-*-1")
-     ("clean 8x10" "-schumacher-clean-medium-r-normal--*-100-*-*-c-*-*-1")
-     ("clean 8x16" "-schumacher-clean-medium-r-normal--*-160-*-*-c-*-*-1")
-     ("")
-     ("sony 8x16" "-sony-fixed-medium-r-normal--16-120-100-100-c-80-*-1")
-     ("")
+     ;; For these, we specify the pixel height and width.
      ("fixed" "fixed")
-     ("10x20" "10x20")
-     ("11x18" "11x18")
-     ("12x24" "12x24"))
+     ("6x10" "-misc-fixed-medium-r-normal--10-*-*-*-c-60-iso8859-1" "6x10")
+     ("6x12"
+      "-misc-fixed-medium-r-semicondensed--12-*-*-*-c-60-iso8859-1" "6x12")
+     ("6x13"
+      "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" "6x13")
+     ("7x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-70-iso8859-1" "7x13")
+     ("7x14" "-misc-fixed-medium-r-normal--14-*-*-*-c-70-iso8859-1" "7x14")
+     ("8x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-80-iso8859-1" "8x13")
+     ("9x15" "-misc-fixed-medium-r-normal--15-*-*-*-c-90-iso8859-1" "9x15")
+     ("10x20" "-misc-fixed-medium-r-normal--20-*-*-*-c-100-iso8859-1" "10x20")
+     ("11x18" "-misc-fixed-medium-r-normal--18-*-*-*-c-110-iso8859-1" "11x18")
+     ("12x24" "-misc-fixed-medium-r-normal--24-*-*-*-c-120-iso8859-1" "12x24")
+     ("")
+     ("clean 8x8"
+      "-schumacher-clean-medium-r-normal--8-*-*-*-c-80-iso8859-1")
+     ("clean 8x10"
+      "-schumacher-clean-medium-r-normal--10-*-*-*-c-80-iso8859-1")
+     ("clean 8x14"
+      "-schumacher-clean-medium-r-normal--14-*-*-*-c-80-iso8859-1")
+     ("clean 8x16"
+      "-schumacher-clean-medium-r-normal--16-*-*-*-c-80-iso8859-1")
+     ("")
+     ("sony 8x16" "-sony-fixed-medium-r-normal--16-*-*-*-c-80-iso8859-1"))
 ;;; We don't seem to have these; who knows what they are.
 ;;;    ("fg-18" "fg-18")
 ;;;    ("fg-25" "fg-25")
@@ -1266,6 +1270,7 @@ and selects that window."
 ;;;    ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
 ;;;    ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
     ("Courier"
+     ;; For these, we specify the point height.
      ("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
      ("10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
      ("12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-iso8859-1")
