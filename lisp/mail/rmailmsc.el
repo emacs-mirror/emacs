@@ -30,6 +30,10 @@
 You can specify one file name, or several names separated by commas.
 If FILE-NAME is empty, remove any existing inbox list."
   (interactive "sSet mailbox list to (comma-separated list of filenames): ")
+
+  (unless (eq major-mode 'rmail-mode)
+    (error "set-rmail-inbox-list works only for an Rmail file"))
+
   (save-excursion
     (let ((names (rmail-parse-file-inboxes))
 	  (standard-output nil))
