@@ -1,11 +1,11 @@
-;;; pcvs-util.el --- Utitlity functions for pcl-cvs
+;;; pcvs-util.el --- Utitlity functions for pcl-cvs  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1998-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-util.el,v 1.4 2000/08/06 09:18:02 gerd Exp $
+;; Revision: $Id: pcvs-util.el,v 1.5 2000/11/06 06:54:16 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,11 +1,11 @@
 ;;; pcvs-info.el --- Internal representation of a fileinfo entry
 
-;; Copyright (C) 1991-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-info.el,v 1.3 2000/06/12 04:37:50 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.4 2000/11/12 16:52:53 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-Copyright (c) 1985 Free Software Foundation, Inc;  See end for conditions.
+Copyright (c) 1985,96,97 Free Software Foundation, Inc;  See end for conditions.
 Emacs. Prvo berilo.
 
 Ukazi v Emacsu v splo¹nem vkljuèujejo tipki CONTROL (vèasih oznaèeni
@@ -1009,7 +1009,7 @@ Emacs. V sloven¹èino ga je prevedel Primo¾ Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright (c) 1985-1997 Free Software Foundation
+Copyright (c) 1985, 1996, 1997 Free Software Foundation
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o

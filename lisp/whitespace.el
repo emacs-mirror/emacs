@@ -1,6 +1,6 @@
 ;;; whitespace.el --- Warn about and clean bogus whitespaces in the file.
 
-;; Copyright (C) 1999-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience

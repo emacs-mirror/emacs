@@ -1,11 +1,11 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.10 2000/11/03 20:12:09 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.11 2000/11/06 07:01:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,9 +1,9 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.5 2000/10/29 05:46:42 johnw Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.6 2000/10/29 16:52:33 eliz Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
-@c Copyright (C) 1999-2000  Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
 
 @c This file is part of GNU Emacs
 
@@ -33,7 +33,7 @@
 @setchapternewpage on
      
 @ifinfo
-Copyright @copyright{} 1999-2000  Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000  Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -83,7 +83,7 @@ Software Foundation instead of in the original English.
 @c  manual.  This will not appear in the Info file.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999-2000  Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000  Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are

@@ -1,11 +1,11 @@
 ;;; cvs-status.el --- Major mode for browsing `cvs status' output
 
-;; Copyright (C) 1999-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.7 2000/09/29 02:19:10 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.8 2000/11/06 07:01:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -517,6 +517,16 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.8  2000/11/06 07:01:10  monnier
+;; (cvs-tree-merge): Use cvs-butlast (avoid CL).
+;; (cvs-status-get-tags): Fix regexp.
+;; (cvs-status-trees, cvs-status-cvstrees):
+;; Combine after change hooks and don't sit-for.
+;; (cvs-tree-use-jisx0208): Renamed from cvs-tree-dstr-2byte-ready.
+;; (cvs-tree-char-*): Renamed from cvs-tree-dstr-char-*.
+;; Use make-char rather than hard-coded cryptic data.
+;; (cvs-status-cvstrees): Convert the buffer to multibyte if necessary.
+;;
 ;; Revision 1.7  2000/09/29 02:19:10  monnier
 ;; (cvs-status-entry-leader-re): Minor fix.
 ;;

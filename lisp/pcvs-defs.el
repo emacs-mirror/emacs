@@ -1,11 +1,11 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.5 2000/06/13 19:06:07 fx Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.6 2000/11/06 06:56:03 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

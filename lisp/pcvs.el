@@ -1,6 +1,6 @@
 ;;; pcvs.el -- A Front-end to CVS.
 
-;; Copyright (C) 1991-2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 95, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.17 2000/11/09 23:55:05 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.18 2000/11/21 20:47:49 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

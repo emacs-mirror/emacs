@@ -1,9 +1,9 @@
 ;;; @(#) ada-prj.el --- Easy editing of project files for the ada-mode
 
-;; Copyright (C) 1998-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.44 $
+;; Ada Core Technologies's version:   $Revision: 1.3 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is not part of GNU Emacs.
