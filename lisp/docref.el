@@ -27,7 +27,7 @@
 ;; This package allows you to use a simple form of cross references in
 ;; your Emacs Lisp documentation strings. Cross-references look like
 ;; \\(type@[label@]data), where type defines a method for retrieving
-;; reference informatin, data is used by a method routine as an argument,
+;; reference information, data is used by a method routine as an argument,
 ;; and label "represents" the reference in text. If label is absent, data
 ;; is used instead.
 ;; 
@@ -127,7 +127,7 @@ Find cross-reference information in a buffer and
 highlight them with face defined by \\(v@docref-highlight-face).
 
 Cross-reference has the following format: \\ (TYPE[@LABEL]@DATA), where
-TYPE defines method used to retrive xref data (like reading from file or
+TYPE defines method used to retrieve xref data (like reading from file or
 calling \\(f@describe-function)), DATA is an argument to this method
 \(like file name or function name), and LABEL is displayed in text using
 \\(v@docref-highlight-face).
