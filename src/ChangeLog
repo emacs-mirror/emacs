@@ -1,10 +1,15 @@
 2002-07-14  Ken Raeburn  <raeburn@gnu.org>
 
+	* lisp.h (STRING_SET_CHARS): New macro.
+	(SCHARS, SBYTES): Produce rvalues.
+	* dired.c (directory_files_internal): Use STRING_SET_CHARS.
+	* fns.c (concat): Likewise.
+	* lread.c (read_vector): Likewise.
+
 	* lisp.h (SMBP): Deleted.  All uses changed to STRING_MULTIBYTE.
 	(STRING_SET_UNIBYTE): New macro.
 	(SET_STRING_BYTES): Deleted.  Callers (all of which supplied a
 	length of -1) changed to use STRING_SET_UNIBYTE.
-
 	* abbrev.c, alloc.c, buffer.c, bytecode.c, callint.c, callproc.c,
 	casefiddle.c, category.c, ccl.c, charset.c, charset.h, coding.c,
 	composite.c, data.c, dired.c, dispnew.c, disptab.h, doc.c,
