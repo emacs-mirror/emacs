@@ -121,6 +121,11 @@ fi
 ### Update getdate.c.
 (cd lib-src; make -f Makefile getdate.c YACC="bison -y")
 
+echo "Updating finder-inf.el."
+
+### update finder-inf.el.
+(cd src; emacs -batch -l finder -f finder-compile-keywords)
+
 echo "Creating staging directory: \`${tempparent}'"
 
 mkdir ${tempparent}
