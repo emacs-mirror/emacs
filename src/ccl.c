@@ -2035,21 +2035,27 @@ See the documentation of `define-ccl-program' for the detail of CCL program.")
   ccl.last_block = NILP (contin);
   ccl.multibyte = STRING_MULTIBYTE (str);
   produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
-			 STRING_BYTES (XSTRING (str)), outbufsize, (int *)0);
+			 STRING_BYTES (XSTRING (str)), outbufsize, (int *) 0);
   for (i = 0; i < 8; i++)
     XSET (XVECTOR (status)->contents[i], Lisp_Int, ccl.reg[i]);
   XSETINT (XVECTOR (status)->contents[8], ccl.ic);
   UNGCPRO;
 
   if (NILP (unibyte_p))
-    val = make_string (outbuf, produced);
+    {
+      int nchars;
+
+      produced = str_as_multibyte (outbuf, outbufsize, produced, &nchars);
+      val = make_multibyte_string (outbuf, nchars, produced);
+    }
   else
     val = make_unibyte_string (outbuf, produced);
   xfree (outbuf);
   QUIT;
+  if (ccl.status == CCL_STAT_SUSPEND_BY_DST)
+    error ("Output buffer for the CCL programs overflow");
   if (ccl.status != CCL_STAT_SUCCESS
-      && ccl.status != CCL_STAT_SUSPEND_BY_SRC
-      && ccl.status != CCL_STAT_SUSPEND_BY_DST)
+      && ccl.status != CCL_STAT_SUSPEND_BY_SRC)
     error ("Error in CCL program at %dth code", ccl.ic);
 
   return val;
