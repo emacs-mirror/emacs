@@ -252,6 +252,62 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 		  '(raw-text-dos . raw-text-dos)
 		'(undecided-dos . undecided-dos)))
 
+;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
+(defvar printer-name)
+
+(defun direct-print-region-function (start end
+					   &optional lpr-prog
+					   delete-text buf display
+					   &rest rest)
+  "DOS/Windows-specific function to print the region on a printer.
+Writes the region to the device or file which is a value of
+`printer-name' \(which see\).  Ignores any arguments beyond
+START and END."
+
+  ;; DOS printers need the lines to end with CR-LF pairs, so make
+  ;; sure it always happens that way, unless the buffer is binary.
+  (let* ((coding coding-system-for-write)
+	 (coding-base
+	  (if (null coding) 'undecided (coding-system-base coding)))
+	 (eol-type (coding-system-eol-type coding-base)))
+    (or (eq coding-system-for-write 'no-conversion)
+	(setq coding-system-for-write
+	      (aref eol-type 1)))	; force conversion to DOS EOLs
+    (write-region start end
+		  (or (and (boundp 'dos-printer) dos-printer)
+		      printer-name)
+		  t 0)
+    ;; Make each print-out start on a new page, but don't waste
+    ;; paper if there was a form-feed at the end of this file.
+    (if (not (char-equal (char-after (1- end)) ?\C-l))
+	(write-region "\f" nil
+		      (or (and (boundp 'dos-printer) dos-printer)
+			  printer-name)
+		      t 0))))
+
+;; Set this to nil if you have a port of the `lpr' program and
+;; you want to use it for printing.  If the default setting is
+;; in effect, `lpr-command' and its switches are ignored when
+;; printing with `lpr-xxx' and `print-xxx'.
+(setq print-region-function 'direct-print-region-function)
+
+;; Set this to nil if you have a port of the `pr' program
+;; (e.g., from GNU Textutils), or if you have an `lpr'
+;; program (see above) that can print page headers.
+;; If `lpr-headers-switches' is non-nil (the default) and
+;; `print-region-function' is set to `dos-print-region-function',
+;; then requests to print page headers will be silently
+;; ignored, and `print-buffer' and `print-region' produce
+;; the same output as `lpr-buffer' and `lpr-region', accordingly.
+(setq lpr-headers-switches "(page headers are not supported)")
+
+(defvar ps-printer-name)
+
+(setq ps-lpr-command "gs")
+
+(setq ps-lpr-switches '("-q" "-dNOPAUSE" "-sDEVICE=epson" "-r240x60"
+			  "-sOutputFile=LPT1" "-"))
+
 (provide 'dos-w32)
 
 ;;; dos-w32.el ends here
