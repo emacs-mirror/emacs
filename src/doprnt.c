@@ -48,8 +48,6 @@ Boston, MA 02111-1307, USA.  */
    another macro.  */
 #include "charset.h"
 
-extern long *xmalloc (), *xrealloc ();
-
 static int doprnt1 ();
 
 /* Generate output from a format-spec FORMAT,

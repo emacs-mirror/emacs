@@ -256,8 +256,6 @@ NOTE-END
 #undef bzero
 #undef bcmp
 
-extern long *xmalloc (), *xrealloc ();
-
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL
 /* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
