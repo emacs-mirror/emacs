@@ -1,3 +1,64 @@
+2001-11-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (note_mouse_highlight): Fix type of variable `ignore'.
+	(x_draw_bar_cursor): If the background color of the glyph under
+	the cursor equals the frame's cursor color, use the glyph's
+	foreground color for drawing the bar cursor.
+	(x_after_update_window_line): Clear internal border in different
+	circumstances.
+	(w32_set_vertical_scroll_bar): Check for width and height > 0.
+	(w32_draw_relief_rect): Correct relief by 1 pixel.
+	(x_set_glyph_string_background_width): Set
+	extends_to_end_of_line_p if the row's fill_line_p is set and
+	drawing the last glyph with DRAW_IMAGE_{RAISED,SUNKEN}.
+	(x_display_and_set_cursor): If cursor_in_echo_area, use NO_CURSOR
+	if cursor_in_non_selected_windows is false.
+	(show_mouse_face): Clean up.  Recognize overwritten cursor
+	differently.
+	(x_draw_glyphs): Remove parameters REAL_START and REAL_END.
+	Notice if cursor gets overwritten.
+	(notice_overwritten_cursor): Renamed from
+	note_overwritten_text_cursor.  Rewritten to take glyph widths
+	into account, and to take X positions as parameters.
+	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
+	around call to x_draw_glyphs.
+	(x_setup_relief_colors): Use `IMAGE_BACKGROUND' and
+	`IMAGE_BACKGROUND_TRANSPARENT' to calculate the correct background
+	color to use for image glyph reliefs.
+	(x_draw_image_relief): Accept zero tool_bar_button_relief.
+	(glyph_rect): Remove unused variable `area'.
+
+	* w32fns.c (x_set_frame_parameters): Avoid infinite recursion for
+	some items.
+	(x_set_internal_border_width): Set frame garbaged when window
+	doesn't exist yet.
+	(Fx_create_frame): Accept zero tool_bar_button_relief.
+	(x_clear_image_1, four_corners_best, image_background)
+	(image_background_transparent): New functions.
+	(xpm_format, png_format, jpeg_format, tiff_format, gif_format)
+	(gs_format): Add `:background' entry.
+	(lookup_image): Set IMG's background color if specified.
+	(pbm_load, xbm_load_image, png_load): Set IMG's background field
+	when appropriate.
+	(x_clear_image_1): Reset `background_valid' and
+	`background_transparent_valid' fields.
+	(x_build_heuristic_mask): Use IMAGE_BACKGROUND instead of
+	calculating it here.  Set IMG's background_transparent field.
+	(enum xpm_keyword_index): Add XPM_BACKGROUND.
+	(enum png_keyword_index): Add PNG_BACKGROUND.
+	(enum jpeg_keyword_index): Add JPEG_BACKGROUND.
+	(enum tiff_keyword_index): Add TIFF_BACKGROUND.
+	(enum gif_keyword_index): Add GIF_BACKGROUND.
+	(enum gs_keyword_index): Add GS_BACKGROUND.
+	(pbm_load, png_load, jpeg_load, tiff_load, gif_load):
+	Pre-calculate image background color where necessary.
+	(x_create_x_image_and_pixmap, xbm_load, gs_load): Use
+	display info's n_cbits entry for screen depth.
+	(Fx_show_tip): Remove unused variables `buffer', `top',
+	`left', `max_width' and `max_height'.
+
+	* w32menu.c (w32_menu_show, push_menu_pane): Doc fixes.
+
 2001-11-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 750000.
