@@ -290,7 +290,11 @@ If DIR is positive skip forward; if negative, skip backward."
               (= start end)
 	      (char-after start)
               (= (char-syntax (char-after start)) ?\())
-	 (list start (save-excursion (forward-sexp 1) (point))))
+	 (list start
+	       (save-excursion
+		 (goto-char start)
+		 (forward-sexp 1)
+		 (point))))
         ((and (= mode 1)
               (= start end)
 	      (char-after start)
