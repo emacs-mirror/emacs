@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Command Arguments, Antinews, Service, Top
+@node Command Arguments, X Resources, Service, Top
 @appendix Command Line Arguments
 @cindex command line arguments
 @cindex arguments (command line)
@@ -538,6 +538,15 @@ actually used.
 @item WINDOW_GFX
 Used when initializing the Sun windows system.
 @end table
+
+@node X Resources, Antinews, Command Arguments, Top
+@appendix X Resources
+
+  Some aspects of Emacs behavior can be customized using X resources,
+as with other programs that use X.  A few things, relating to toolkit
+menus and tooltip windows, can only be customized this way, since they
+are handled by libraries that are already set up to get their
+customizations thus.
 
 @node Display X
 @appendixsec Specifying the Display Name 
