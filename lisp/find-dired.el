@@ -159,7 +159,7 @@ The command run (after changing into DIR) is
     find . -name 'PATTERN' -ls"
   (interactive
    "DFind-name (directory): \nsFind-name (filename wildcard): ")
-  (find-dired dir (concat "-name '" pattern "'")))
+  (find-dired dir (concat "-name '" (shell-quote-argument pattern) "'")))
 
 ;; This functionality suggested by
 ;; From: oblanc@watcgl.waterloo.edu (Olivier Blanc)
