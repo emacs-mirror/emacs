@@ -240,7 +240,7 @@ CODE, where N and CODE are in the following relation:
 	  (setq size (read (current-buffer)))
 	  ;; The following kludgy code is t avoid bugs of several
 	  ;; fonts which have wrong SIZE record.
-	  (and (<= size (/ (aref font-bounding-box 1) 2))
+	  (and (<= size (/ (aref font-bounding-box 1) 3))
 	       (setq size (aref font-bounding-box 1)))
 
 	  (setq default-char (bdf-search-and-read "\nDEFAULT_CHAR" nil))
