@@ -1,3 +1,8 @@
+1999-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-move-to-filename-regexp): Fix long comment lines
+	that were split so that part of the comment appeared as Lisp code.
+
 1999-10-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-bdf.el: Doc fix.
@@ -91,6 +96,7 @@
 
 	* emacs-lisp/eval-reg.el: Removed -- not now needed by edebug.
 
+>>>>>>> 1.58
 1999-10-19  Sam Steingold  <sds@ksp.com>
 
 	* map-ynp.el (map-y-or-n-p): Remove extraneous `not' to
