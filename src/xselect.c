@@ -1679,12 +1679,18 @@ and t is the same as `SECONDARY'.)")
      Lisp_Object selection;
 {
   Window owner;
+  Atom atom;
   Display *dpy = x_current_display;
   CHECK_SYMBOL (selection, 0);
   if (!NILP (Fx_selection_owner_p (selection)))
     return Qt;
+  if (EQ (selection, Qnil)) selection = QPRIMARY;
+  if (EQ (selection, Qt)) selection = QSECONDARY;
+  atom = symbol_to_x_atom (dpy, selection);
+  if (atom == 0)
+    return Qnil;
   BLOCK_INPUT;
-  owner = XGetSelectionOwner (dpy, symbol_to_x_atom (dpy, selection));
+  owner = XGetSelectionOwner (dpy, atom);
   UNBLOCK_INPUT;
   return (owner ? Qt : Qnil);
 }
