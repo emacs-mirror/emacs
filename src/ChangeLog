@@ -1,3 +1,8 @@
+2000-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfns.c (Fx_create_frame): Don't bother calling
+	face-set-after-frame-default since the caller does it for us anyway.
+
 2000-10-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* window.c (coordinates_in_window): Fix detection of vertical line
