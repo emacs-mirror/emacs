@@ -830,10 +830,19 @@ mbx_write (line, mbf)
      char *line;
      FILE *mbf;
 {
+#ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
   if (IS_FROM_LINE (line))
     {
       if (fputc ('>', mbf) == EOF)
 	return (NOTOK);
+    }
+#endif
+  if (line[0] == '\037')
+    {
+      if (fputs ("^_", mbf) == EOF)
+	return (NOTOK);
+      line++;
+      len--;
     }
   if (fputs (line, mbf) == EOF) 
     return (NOTOK);
