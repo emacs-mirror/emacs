@@ -103,9 +103,9 @@
   :group 'rmail-retrieve)
 
 (defcustom rmail-movemail-flags nil
-  "*List of flags to pass to movemail.  Most commonly used to specify
-`-g' to enable GSS-API authentication or `-k' to enable Kerberos
-authentication."
+  "*List of flags to pass to movemail.
+Most commonly used to specify `-g' to enable GSS-API authentication
+or `-k' to enable Kerberos authentication."
   :type 'list
   :group 'rmail-retrieve)
 
