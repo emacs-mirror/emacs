@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!65.c(trunk.5) $
  summary = sort-of-leak in arena_collect
  language = c
  link = testlib.o exfmt.o
@@ -22,7 +22,9 @@ long int apppadcount;
 long int cutoff_id;
 size_t junk_size;
 
-static void test_apply(mps_addr_t addr, void *V, size_t S) {
+
+static void test_apply(mps_addr_t addr, void *V, size_t S)
+{
  mycell *a;
  long int id;
 
@@ -40,6 +42,7 @@ static void test_apply(mps_addr_t addr, void *V, size_t S) {
   apppadcount +=1;
  }
 }
+
 
 static void test(void)
 {
@@ -64,25 +67,25 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_EXACT, 0, &a, 1),
+  mps_root_create_table(&root1, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&a, 1),
   "root");
  cdie(
-  mps_root_create_table(&root2, space, MPS_RANK_EXACT, 0, &b, 1),
+  mps_root_create_table(&root2, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&b, 1),
   "root");
  cdie(
-  mps_root_create_table(&root3, space, MPS_RANK_EXACT, 0, &c, 1),
+  mps_root_create_table(&root3, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&c, 1),
   "root");
  cdie(
-  mps_root_create_table(&root4, space, MPS_RANK_EXACT, 0, &d, 1),
+  mps_root_create_table(&root4, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&d, 1),
   "root");
  cdie(
-  mps_root_create_table(&root5, space, MPS_RANK_EXACT, 0, &e, 1),
+  mps_root_create_table(&root5, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&e, 1),
   "root");
  cdie(
-  mps_root_create_table(&root6, space, MPS_RANK_EXACT, 0, &f, 1),
+  mps_root_create_table(&root6, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&f, 1),
   "root");
  cdie(
-  mps_root_create_table(&root7, space, MPS_RANK_EXACT, 0, &g, 1),
+  mps_root_create_table(&root7, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&g, 1),
   "root");
 
  cdie(
@@ -194,6 +197,7 @@ static void test(void)
  mps_space_destroy(space);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
