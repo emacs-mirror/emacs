@@ -296,10 +296,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.34 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.35 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.34 1997/08/27 23:10:59 rms Exp stephen $")
+  $Id: forms.el,v 2.35 1998/07/17 14:01:15 stephen Exp kwzh $")
 
 (defcustom forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode."
@@ -589,7 +589,7 @@ Commands:                        Equivalent keys in read-only mode:
 	;; Dynamic text support.
 	(make-local-variable 'forms--dynamic-text)
 
-	;; Prevent accidental overwrite of the control file and autosave.
+	;; Prevent accidental overwrite of the control file and auto-save.
 	(set-visited-file-name nil)
 
 	;; Prepare this buffer for further processing.

@@ -2859,7 +2859,7 @@ With prefix argument ARG, turn auto-saving on if positive, else off."
   (setq buffer-auto-save-file-name
         (and (if (null arg)
 		 (or (not buffer-auto-save-file-name)
-		     ;; If autosave is off because buffer has shrunk,
+		     ;; If auto-save is off because buffer has shrunk,
 		     ;; then toggling should turn it on.
 		     (< buffer-saved-size 0))
 	       (or (eq arg t) (listp arg) (and (integerp arg) (> arg 0))))

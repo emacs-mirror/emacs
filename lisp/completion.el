@@ -2346,14 +2346,14 @@ If file name is not specified, use `save-completions-file-name'."
 	   (record-save-completions total-in-db total-perm total-saved))
 	  ))))
 
-;;(defun autosave-completions ()
+;;(defun auto-save-completions ()
 ;;  (if (and save-completions-flag enable-completion cmpl-initialized-p
 ;;	      *completion-auto-save-period*
 ;;	      (> cmpl-emacs-idle-time *completion-auto-save-period*)
 ;;	      cmpl-completions-accepted-p)
 ;;    (save-completions-to-file)))
 
-;;(add-hook 'cmpl-emacs-idle-time-hooks 'autosave-completions)
+;;(add-hook 'cmpl-emacs-idle-time-hooks 'auto-save-completions)
 
 (defun load-completions-from-file (&optional filename no-message-p)
   "Loads a completion init file FILENAME.

@@ -701,7 +701,7 @@ the user from the mailer."
 	    (error))
 	  (setq mail-send-actions (cdr mail-send-actions)))
 	(message "Sending...done")
-	;; If buffer has no file, mark it as unmodified and delete autosave.
+	;; If buffer has no file, mark it as unmodified and delete auto-save.
 	(if (not buffer-file-name)
 	    (progn
 	      (set-buffer-modified-p nil)
