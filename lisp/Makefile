@@ -19,7 +19,7 @@ doit:
 custom-deps: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -29,7 +29,7 @@ custom-deps: doit
 finder-data: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -39,7 +39,7 @@ finder-data: doit
 autoloads: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -49,7 +49,7 @@ autoloads: doit
 update-subdirs: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
@@ -60,7 +60,7 @@ update-subdirs: doit
 updates: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
