@@ -322,11 +322,11 @@ CONDITION's value if non-nil is returned from the cond-form.")
       val = Feval (Fcar (clause));
       if (!NILP (val))
 	{
-	  if (!EQ (XCONS (clause)->cdr, Qnil))
-	    val = Fprogn (XCONS (clause)->cdr);
+	  if (!EQ (XCDR (clause), Qnil))
+	    val = Fprogn (XCDR (clause));
 	  break;
 	}
-      args = XCONS (args)->cdr;
+      args = XCDR (args);
     }
   UNGCPRO;
 
@@ -670,9 +670,9 @@ for the variable is `*'.")
     return Qt;
   /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
   if (CONSP (documentation)
-      && STRINGP (XCONS (documentation)->car)
-      && INTEGERP (XCONS (documentation)->cdr)
-      && XINT (XCONS (documentation)->cdr) < 0)
+      && STRINGP (XCAR (documentation))
+      && INTEGERP (XCDR (documentation))
+      && XINT (XCDR (documentation)) < 0)
     return Qt;
   return Qnil;
 }  
@@ -818,7 +818,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
       if (!CONSP (form))
 	break;
       /* Set SYM, give DEF and TEM right values in case SYM is not a symbol. */
-      def = sym = XCONS (form)->car;
+      def = sym = XCAR (form);
       tem = Qnil;
       /* Trace symbols aliases to other symbols
 	 until we get a symbol that is not an alias.  */
@@ -844,7 +844,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	  if (EQ (def, Qunbound) || !CONSP (def))
 	    /* Not defined or definition not suitable */
 	    break;
-	  if (EQ (XCONS (def)->car, Qautoload))
+	  if (EQ (XCAR (def), Qautoload))
 	    {
 	      /* Autoloading function: will it be a macro when loaded?  */
 	      tem = Fnth (make_number (4), def);
@@ -860,17 +860,17 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	      else
 		break;
 	    }
-	  else if (!EQ (XCONS (def)->car, Qmacro))
+	  else if (!EQ (XCAR (def), Qmacro))
 	    break;
-	  else expander = XCONS (def)->cdr;
+	  else expander = XCDR (def);
 	}
       else
 	{
-	  expander = XCONS (tem)->cdr;
+	  expander = XCDR (tem);
 	  if (NILP (expander))
 	    break;
 	}
-      form = apply1 (expander, XCONS (form)->cdr);
+      form = apply1 (expander, XCDR (form));
     }
   return form;
 }
@@ -1062,8 +1062,8 @@ See also the function `signal' for more info.")
       tem = Fcar (val);
       if (! (NILP (tem)
 	     || (CONSP (tem)
-		 && (SYMBOLP (XCONS (tem)->car)
-		     || CONSP (XCONS (tem)->car)))))
+		 && (SYMBOLP (XCAR (tem))
+		     || CONSP (XCAR (tem))))))
 	error ("Invalid condition handler", tem);
     }
 
@@ -1311,11 +1311,11 @@ wants_debugger (list, conditions)
   while (CONSP (conditions))
     {
       Lisp_Object this, tail;
-      this = XCONS (conditions)->car;
-      for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
-	if (EQ (XCONS (tail)->car, this))
+      this = XCAR (conditions);
+      for (tail = list; CONSP (tail); tail = XCDR (tail))
+	if (EQ (XCAR (tail), this))
 	  return 1;
-      conditions = XCONS (conditions)->cdr;
+      conditions = XCDR (conditions);
     }
   return 0;
 }
@@ -1333,16 +1333,16 @@ skip_debugger (conditions, data)
   Lisp_Object error_message;
 
   for (tail = Vdebug_ignored_errors; CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
-      if (STRINGP (XCONS (tail)->car))
+      if (STRINGP (XCAR (tail)))
 	{
 	  if (first_string)
 	    {
 	      error_message = Ferror_message_string (data);
 	      first_string = 0;
 	    }
-	  if (fast_string_match (XCONS (tail)->car, error_message) >= 0)
+	  if (fast_string_match (XCAR (tail), error_message) >= 0)
 	    return 1;
 	}
       else
@@ -1350,8 +1350,8 @@ skip_debugger (conditions, data)
 	  Lisp_Object contail;
 
 	  for (contail = conditions; CONSP (contail);
-	       contail = XCONS (contail)->cdr)
-	    if (EQ (XCONS (tail)->car, XCONS (contail)->car))
+	       contail = XCDR (contail))
+	    if (EQ (XCAR (tail), XCAR (contail)))
 	      return 1;
 	}
     }
@@ -1458,7 +1458,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	      tem = Fmemq (Fcar (condit), conditions);
 	      if (!NILP (tem))
 		return handler;
-	      condit = XCONS (condit)->cdr;
+	      condit = XCDR (condit);
 	    }
 	}
     }
@@ -1599,7 +1599,7 @@ this does nothing and returns nil.")
   /* If function is defined and not as an autoload, don't override */
   if (!EQ (XSYMBOL (function)->function, Qunbound)
       && !(CONSP (XSYMBOL (function)->function)
-	   && EQ (XCONS (XSYMBOL (function)->function)->car, Qautoload)))
+	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
     return Qnil;
 
 #ifdef NO_ARG_ARRAY
@@ -1929,7 +1929,7 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
     return Ffuncall (nargs - 1, args);
   else if (numargs == 1)
     {
-      args [nargs - 1] = XCONS (spread_arg)->car;
+      args [nargs - 1] = XCAR (spread_arg);
       return Ffuncall (nargs, args);
     }
 
@@ -1977,8 +1977,8 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   i = nargs - 1;
   while (!NILP (spread_arg))
     {
-      funcall_args [i++] = XCONS (spread_arg)->car;
-      spread_arg = XCONS (spread_arg)->cdr;
+      funcall_args [i++] = XCAR (spread_arg);
+      spread_arg = XCDR (spread_arg);
     }
 
   RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
@@ -2101,7 +2101,7 @@ run_hook_with_args (nargs, args, cond)
 
   if (EQ (val, Qunbound) || NILP (val))
     return ret;
-  else if (!CONSP (val) || EQ (XCONS (val)->car, Qlambda))
+  else if (!CONSP (val) || EQ (XCAR (val), Qlambda))
     {
       args[0] = val;
       return Ffuncall (nargs, args);
@@ -2115,9 +2115,9 @@ run_hook_with_args (nargs, args, cond)
 	   CONSP (val) && ((cond == to_completion)
 			   || (cond == until_success ? NILP (ret)
 			       : !NILP (ret)));
-	   val = XCONS (val)->cdr)
+	   val = XCDR (val))
 	{
-	  if (EQ (XCONS (val)->car, Qt))
+	  if (EQ (XCAR (val), Qt))
 	    {
 	      /* t indicates this hook has a local binding;
 		 it means to run the global binding too.  */
@@ -2126,9 +2126,9 @@ run_hook_with_args (nargs, args, cond)
 		   CONSP (globals) && ((cond == to_completion)
 				       || (cond == until_success ? NILP (ret)
 					   : !NILP (ret)));
-		   globals = XCONS (globals)->cdr)
+		   globals = XCDR (globals))
 		{
-		  args[0] = XCONS (globals)->car;
+		  args[0] = XCAR (globals);
 		  /* In a global value, t should not occur.  If it does, we
 		     must ignore it to avoid an endless loop.  */
 		  if (!EQ (args[0], Qt))
@@ -2137,7 +2137,7 @@ run_hook_with_args (nargs, args, cond)
 	    }
 	  else
 	    {
-	      args[0] = XCONS (val)->car;
+	      args[0] = XCAR (val);
 	      ret = Ffuncall (nargs, args);
 	    }
 	}
@@ -2169,18 +2169,18 @@ run_hook_list_with_args (funlist, nargs, args)
   globals = Qnil;
   GCPRO3 (sym, val, globals);
 
-  for (val = funlist; CONSP (val); val = XCONS (val)->cdr)
+  for (val = funlist; CONSP (val); val = XCDR (val))
     {
-      if (EQ (XCONS (val)->car, Qt))
+      if (EQ (XCAR (val), Qt))
 	{
 	  /* t indicates this hook has a local binding;
 	     it means to run the global binding too.  */
 
 	  for (globals = Fdefault_value (sym);
 	       CONSP (globals);
-	       globals = XCONS (globals)->cdr)
+	       globals = XCDR (globals))
 	    {
-	      args[0] = XCONS (globals)->car;
+	      args[0] = XCAR (globals);
 	      /* In a global value, t should not occur.  If it does, we
 		 must ignore it to avoid an endless loop.  */
 	      if (!EQ (args[0], Qt))
@@ -2189,7 +2189,7 @@ run_hook_list_with_args (funlist, nargs, args)
 	}
       else
 	{
-	  args[0] = XCONS (val)->car;
+	  args[0] = XCAR (val);
 	  Ffuncall (nargs, args);
 	}
     }
@@ -2675,8 +2675,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
       tem = read_doc_string (XVECTOR (object)->contents[COMPILED_BYTECODE]);
       if (!CONSP (tem))
 	error ("invalid byte code");
-      XVECTOR (object)->contents[COMPILED_BYTECODE] = XCONS (tem)->car;
-      XVECTOR (object)->contents[COMPILED_CONSTANTS] = XCONS (tem)->cdr;
+      XVECTOR (object)->contents[COMPILED_BYTECODE] = XCAR (tem);
+      XVECTOR (object)->contents[COMPILED_CONSTANTS] = XCDR (tem);
     }
   return object;
 }

@@ -231,7 +231,7 @@ get_keymap_1 (object, error, autoload)
   else
     {
       tem = indirect_function (object);
-      if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
+      if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
 	return tem;
     }
 
@@ -240,7 +240,7 @@ get_keymap_1 (object, error, autoload)
   if (autoload
       && SYMBOLP (object)
       && CONSP (tem)
-      && EQ (XCONS (tem)->car, Qautoload))
+      && EQ (XCAR (tem), Qautoload))
     {
       Lisp_Object tail;
 
@@ -287,11 +287,11 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
   keymap = get_keymap_1 (keymap, 1, 1);
 
   /* Skip past the initial element `keymap'.  */
-  list = XCONS (keymap)->cdr;
-  for (; CONSP (list); list = XCONS (list)->cdr)
+  list = XCDR (keymap);
+  for (; CONSP (list); list = XCDR (list))
     {
       /* See if there is another `keymap'.  */
-      if (EQ (Qkeymap, XCONS (list)->car))
+      if (EQ (Qkeymap, XCAR (list)))
 	return list;
     }
 
@@ -317,17 +317,17 @@ PARENT should be nil or another keymap.")
   prev = keymap;
   while (1)
     {
-      list = XCONS (prev)->cdr;
+      list = XCDR (prev);
       /* If there is a parent keymap here, replace it.
 	 If we came to the end, add the parent in PREV.  */
-      if (! CONSP (list) || EQ (Qkeymap, XCONS (list)->car))
+      if (! CONSP (list) || EQ (Qkeymap, XCAR (list)))
 	{
 	  /* If we already have the right parent, return now
 	     so that we avoid the loops below.  */
-	  if (EQ (XCONS (prev)->cdr, parent))
+	  if (EQ (XCDR (prev), parent))
 	    return parent;
 
-	  XCONS (prev)->cdr = parent;
+	  XCDR (prev) = parent;
 	  break;
 	}
       prev = list;
@@ -335,29 +335,29 @@ PARENT should be nil or another keymap.")
 
   /* Scan through for submaps, and set their parents too.  */
 
-  for (list = XCONS (keymap)->cdr; CONSP (list); list = XCONS (list)->cdr)
+  for (list = XCDR (keymap); CONSP (list); list = XCDR (list))
     {
       /* Stop the scan when we come to the parent.  */
-      if (EQ (XCONS (list)->car, Qkeymap))
+      if (EQ (XCAR (list), Qkeymap))
 	break;
 
       /* If this element holds a prefix map, deal with it.  */
-      if (CONSP (XCONS (list)->car)
-	  && CONSP (XCONS (XCONS (list)->car)->cdr))
-	fix_submap_inheritance (keymap, XCONS (XCONS (list)->car)->car,
-				XCONS (XCONS (list)->car)->cdr);
+      if (CONSP (XCAR (list))
+	  && CONSP (XCDR (XCAR (list))))
+	fix_submap_inheritance (keymap, XCAR (XCAR (list)),
+				XCDR (XCAR (list)));
 
-      if (VECTORP (XCONS (list)->car))
-	for (i = 0; i < XVECTOR (XCONS (list)->car)->size; i++)
-	  if (CONSP (XVECTOR (XCONS (list)->car)->contents[i]))
+      if (VECTORP (XCAR (list)))
+	for (i = 0; i < XVECTOR (XCAR (list))->size; i++)
+	  if (CONSP (XVECTOR (XCAR (list))->contents[i]))
 	    fix_submap_inheritance (keymap, make_number (i),
-				    XVECTOR (XCONS (list)->car)->contents[i]);
+				    XVECTOR (XCAR (list))->contents[i]);
 
-      if (CHAR_TABLE_P (XCONS (list)->car))
+      if (CHAR_TABLE_P (XCAR (list)))
 	{
 	  Lisp_Object indices[3];
 
-	  map_char_table (fix_submap_inheritance, Qnil, XCONS (list)->car,
+	  map_char_table (fix_submap_inheritance, Qnil, XCAR (list),
 			  keymap, 0, indices);
 	}
     }
@@ -381,37 +381,37 @@ fix_submap_inheritance (map, event, submap)
   if (CONSP (submap))
     {
       /* May be an old format menu item */
-      if (STRINGP (XCONS (submap)->car))
+      if (STRINGP (XCAR (submap)))
 	{
-	  submap = XCONS (submap)->cdr;
+	  submap = XCDR (submap);
 	  /* Also remove a menu help string, if any,
 	     following the menu item name.  */
-	  if (CONSP (submap) && STRINGP (XCONS (submap)->car))
-	    submap = XCONS (submap)->cdr;
+	  if (CONSP (submap) && STRINGP (XCAR (submap)))
+	    submap = XCDR (submap);
 	  /* Also remove the sublist that caches key equivalences, if any.  */
 	  if (CONSP (submap)
-	      && CONSP (XCONS (submap)->car))
+	      && CONSP (XCAR (submap)))
 	    {
 	      Lisp_Object carcar;
-	      carcar = XCONS (XCONS (submap)->car)->car;
+	      carcar = XCAR (XCAR (submap));
 	      if (NILP (carcar) || VECTORP (carcar))
-		submap = XCONS (submap)->cdr;
+		submap = XCDR (submap);
 	    }
 	}
 
       /* Or a new format menu item */
-      else if (EQ (XCONS (submap)->car, Qmenu_item)
-	       && CONSP (XCONS (submap)->cdr))
+      else if (EQ (XCAR (submap), Qmenu_item)
+	       && CONSP (XCDR (submap)))
 	{
-	  submap = XCONS (XCONS (submap)->cdr)->cdr;
+	  submap = XCDR (XCDR (submap));
 	  if (CONSP (submap))
-	    submap = XCONS (submap)->car;
+	    submap = XCAR (submap);
 	}
     }
 
   /* If it isn't a keymap now, there's no work to do.  */
   if (! CONSP (submap)
-      || ! EQ (XCONS (submap)->car, Qkeymap))
+      || ! EQ (XCAR (submap), Qkeymap))
     return;
 
   map_parent = Fkeymap_parent (map);
@@ -422,7 +422,7 @@ fix_submap_inheritance (map, event, submap)
 
   /* If MAP's parent has something other than a keymap,
      our own submap shadows it completely, so use nil as SUBMAP's parent.  */
-  if (! (CONSP (parent_entry) && EQ (XCONS (parent_entry)->car, Qkeymap)))
+  if (! (CONSP (parent_entry) && EQ (XCAR (parent_entry), Qkeymap)))
     parent_entry = Qnil;
 
   if (! EQ (parent_entry, submap))
@@ -436,7 +436,7 @@ fix_submap_inheritance (map, event, submap)
 	  if (EQ (tem, parent_entry))
 	    return;
           if (CONSP (tem)
-	      && EQ (XCONS (tem)->car, Qkeymap))
+	      && EQ (XCAR (tem), Qkeymap))
 	    submap_parent = tem;
 	  else
 	    break;
@@ -486,11 +486,11 @@ access_keymap (map, idx, t_ok, noinherit)
     Lisp_Object t_binding;
 
     t_binding = Qnil;
-    for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
+    for (tail = map; CONSP (tail); tail = XCDR (tail))
       {
 	Lisp_Object binding;
 
-	binding = XCONS (tail)->car;
+	binding = XCAR (tail);
 	if (SYMBOLP (binding))
 	  {
 	    /* If NOINHERIT, stop finding prefix definitions
@@ -500,24 +500,24 @@ access_keymap (map, idx, t_ok, noinherit)
 	  }
 	else if (CONSP (binding))
 	  {
-	    if (EQ (XCONS (binding)->car, idx))
+	    if (EQ (XCAR (binding), idx))
 	      {
-		val = XCONS (binding)->cdr;
-		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		val = XCDR (binding);
+		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
 		return val;
 	      }
-	    if (t_ok && EQ (XCONS (binding)->car, Qt))
-	      t_binding = XCONS (binding)->cdr;
+	    if (t_ok && EQ (XCAR (binding), Qt))
+	      t_binding = XCDR (binding);
 	  }
 	else if (VECTORP (binding))
 	  {
 	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (binding)->size)
 	      {
 		val = XVECTOR (binding)->contents[XFASTINT (idx)];
-		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
@@ -535,7 +535,7 @@ access_keymap (map, idx, t_ok, noinherit)
 			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
 	      {
 		val = Faref (binding, idx);
-		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
@@ -651,10 +651,10 @@ store_in_keymap (keymap, idx, def)
   /* If we are preparing to dump, and DEF is a menu element
      with a menu item indicator, copy it to ensure it is not pure.  */
   if (CONSP (def) && PURE_P (def)
-      && (EQ (XCONS (def)->car, Qmenu_item) || STRINGP (XCONS (def)->car)))
-    def = Fcons (XCONS (def)->car, XCONS (def)->cdr);
+      && (EQ (XCAR (def), Qmenu_item) || STRINGP (XCAR (def))))
+    def = Fcons (XCAR (def), XCDR (def));
 
-  if (!CONSP (keymap) || ! EQ (XCONS (keymap)->car, Qkeymap))
+  if (!CONSP (keymap) || ! EQ (XCAR (keymap), Qkeymap))
     error ("attempt to define a key in a non-keymap");
 
   /* If idx is a list (some sort of mouse click, perhaps?),
@@ -684,11 +684,11 @@ store_in_keymap (keymap, idx, def)
     Lisp_Object insertion_point;
 
     insertion_point = keymap;
-    for (tail = XCONS (keymap)->cdr; CONSP (tail); tail = XCONS (tail)->cdr)
+    for (tail = XCDR (keymap); CONSP (tail); tail = XCDR (tail))
       {
 	Lisp_Object elt;
 
-	elt = XCONS (tail)->car;
+	elt = XCAR (tail);
 	if (VECTORP (elt))
 	  {
 	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (elt)->size)
@@ -715,9 +715,9 @@ store_in_keymap (keymap, idx, def)
 	  }
 	else if (CONSP (elt))
 	  {
-	    if (EQ (idx, XCONS (elt)->car))
+	    if (EQ (idx, XCAR (elt)))
 	      {
-		XCONS (elt)->cdr = def;
+		XCDR (elt) = def;
 		return def;
 	      }
 	  }
@@ -737,8 +737,8 @@ store_in_keymap (keymap, idx, def)
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
-    XCONS (insertion_point)->cdr
-      = Fcons (Fcons (idx, def), XCONS (insertion_point)->cdr);
+    XCDR (insertion_point)
+      = Fcons (Fcons (idx, def), XCDR (insertion_point));
   }
 	  
   return def;
@@ -766,17 +766,17 @@ is not copied.")
 
   copy = Fcopy_alist (get_keymap (keymap));
 
-  for (tail = copy; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = copy; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt;
 
-      elt = XCONS (tail)->car;
+      elt = XCAR (tail);
       if (CHAR_TABLE_P (elt))
 	{
 	  Lisp_Object indices[3];
 
 	  elt = Fcopy_sequence (elt);
-	  XCONS (tail)->car = elt;
+	  XCAR (tail) = elt;
 
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
 	}
@@ -785,7 +785,7 @@ is not copied.")
 	  int i;
 
 	  elt = Fcopy_sequence (elt);
-	  XCONS (tail)->car = elt;
+	  XCAR (tail) = elt;
 
 	  for (i = 0; i < XVECTOR (elt)->size; i++)
 	    if (!SYMBOLP (XVECTOR (elt)->contents[i])
@@ -793,41 +793,41 @@ is not copied.")
 	      XVECTOR (elt)->contents[i]
 		= Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
-      else if (CONSP (elt) && CONSP (XCONS (elt)->cdr))
+      else if (CONSP (elt) && CONSP (XCDR (elt)))
 	{
 	  Lisp_Object tem;
-	  tem = XCONS (elt)->cdr;
+	  tem = XCDR (elt);
 
 	  /* Is this a new format menu item.  */
-	  if (EQ (XCONS (tem)->car,Qmenu_item))
+	  if (EQ (XCAR (tem),Qmenu_item))
 	    {
 	      /* Copy cell with menu-item marker.  */
-	      XCONS (elt)->cdr
-		= Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
-	      elt = XCONS (elt)->cdr;
-	      tem = XCONS (elt)->cdr;
+	      XCDR (elt)
+		= Fcons (XCAR (tem), XCDR (tem));
+	      elt = XCDR (elt);
+	      tem = XCDR (elt);
 	      if (CONSP (tem))
 		{
 		  /* Copy cell with menu-item name.  */
-		  XCONS (elt)->cdr
-		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
-		  elt = XCONS (elt)->cdr;
-		  tem = XCONS (elt)->cdr;
+		  XCDR (elt)
+		    = Fcons (XCAR (tem), XCDR (tem));
+		  elt = XCDR (elt);
+		  tem = XCDR (elt);
 		};
 	      if (CONSP (tem))
 		{
 		  /* Copy cell with binding and if the binding is a keymap,
 		     copy that.  */
-		  XCONS (elt)->cdr
-		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
-		  elt = XCONS (elt)->cdr;
-		  tem = XCONS (elt)->car;
+		  XCDR (elt)
+		    = Fcons (XCAR (tem), XCDR (tem));
+		  elt = XCDR (elt);
+		  tem = XCAR (elt);
 		  if (!(SYMBOLP (tem) || NILP (Fkeymapp (tem))))
-		    XCONS (elt)->car = Fcopy_keymap (tem);
-		  tem = XCONS (elt)->cdr;
-		  if (CONSP (tem) && CONSP (XCONS (tem)->car))
+		    XCAR (elt) = Fcopy_keymap (tem);
+		  tem = XCDR (elt);
+		  if (CONSP (tem) && CONSP (XCAR (tem)))
 		    /* Delete cache for key equivalences.  */
-		    XCONS (elt)->cdr = XCONS (tem)->cdr;
+		    XCDR (elt) = XCDR (tem);
 		}
 	    }
 	  else
@@ -835,33 +835,33 @@ is not copied.")
 	      /* It may be an old fomat menu item.
 		 Skip the optional menu string.
 	      */
-	      if (STRINGP (XCONS (tem)->car))
+	      if (STRINGP (XCAR (tem)))
 		{
 		  /* Copy the cell, since copy-alist didn't go this deep.  */
-		  XCONS (elt)->cdr
-		    = Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
-		  elt = XCONS (elt)->cdr;
-		  tem = XCONS (elt)->cdr;
+		  XCDR (elt)
+		    = Fcons (XCAR (tem), XCDR (tem));
+		  elt = XCDR (elt);
+		  tem = XCDR (elt);
 		  /* Also skip the optional menu help string.  */
-		  if (CONSP (tem) && STRINGP (XCONS (tem)->car))
+		  if (CONSP (tem) && STRINGP (XCAR (tem)))
 		    {
-		      XCONS (elt)->cdr
-			= Fcons (XCONS (tem)->car, XCONS (tem)->cdr);
-		      elt = XCONS (elt)->cdr;
-		      tem = XCONS (elt)->cdr;
+		      XCDR (elt)
+			= Fcons (XCAR (tem), XCDR (tem));
+		      elt = XCDR (elt);
+		      tem = XCDR (elt);
 		    }
 		  /* There may also be a list that caches key equivalences.
 		     Just delete it for the new keymap.  */
 		  if (CONSP (tem)
-		      && CONSP (XCONS (tem)->car)
-		      && (NILP (XCONS (XCONS (tem)->car)->car)
-			  || VECTORP (XCONS (XCONS (tem)->car)->car)))
-		    XCONS (elt)->cdr = XCONS (tem)->cdr;
+		      && CONSP (XCAR (tem))
+		      && (NILP (XCAR (XCAR (tem)))
+			  || VECTORP (XCAR (XCAR (tem)))))
+		    XCDR (elt) = XCDR (tem);
 		}
 	      if (CONSP (elt)
-		  && ! SYMBOLP (XCONS (elt)->cdr)
-		  && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
-		XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
+		  && ! SYMBOLP (XCDR (elt))
+		  && ! NILP (Fkeymapp (XCDR (elt))))
+		XCDR (elt) = Fcopy_keymap (XCDR (elt));
 	    }
 
 	}
@@ -1093,8 +1093,8 @@ define_as_prefix (keymap, c)
 	 make it define this key.  */
       Lisp_Object tail;
 
-      for (tail = Fcdr (keymap); CONSP (tail); tail = XCONS (tail)->cdr)
-	if (EQ (XCONS (tail)->car, Qkeymap))
+      for (tail = Fcdr (keymap); CONSP (tail); tail = XCDR (tail))
+	if (EQ (XCAR (tail), Qkeymap))
 	  break;
 
       if (!NILP (tail))
@@ -1169,9 +1169,9 @@ current_minor_maps (modeptr, mapptr)
   for (list_number = 0; list_number < 2; list_number++)
     for (alist = lists[list_number];
 	 CONSP (alist);
-	 alist = XCONS (alist)->cdr)
-      if ((assoc = XCONS (alist)->car, CONSP (assoc))
-	  && (var = XCONS (assoc)->car, SYMBOLP (var))
+	 alist = XCDR (alist))
+      if ((assoc = XCAR (alist), CONSP (assoc))
+	  && (var = XCAR (assoc), SYMBOLP (var))
 	  && (val = find_symbol_value (var), ! EQ (val, Qunbound))
 	  && ! NILP (val))
 	{
@@ -1225,7 +1225,7 @@ current_minor_maps (modeptr, mapptr)
 
 	  /* Get the keymap definition--or nil if it is not defined.  */
 	  temp = internal_condition_case_1 (Findirect_function,
-					    XCONS (assoc)->cdr,
+					    XCDR (assoc),
 					    Qerror, current_minor_maps_error);
 	  if (!NILP (temp))
 	    {
@@ -1536,7 +1536,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
      This is a breadth-first traversal, where tail is the queue of
      nodes, and maps accumulates a list of all nodes visited.  */
 
-  for (tail = maps; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = maps; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object thisseq, thismap;
       Lisp_Object last;
@@ -1551,11 +1551,11 @@ then the value includes only maps for prefixes that start with PREFIX.")
 		    && XINT (last) >= prefixlen
 		    && EQ (Faref (thisseq, last), meta_prefix_char));
 
-      for (; CONSP (thismap); thismap = XCONS (thismap)->cdr)
+      for (; CONSP (thismap); thismap = XCDR (thismap))
 	{
 	  Lisp_Object elt;
 
-	  elt = XCONS (thismap)->car;
+	  elt = XCAR (thismap);
 
 	  QUIT;
 
@@ -1602,8 +1602,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 			      /* This new sequence is the same length as
 				 thisseq, so stick it in the list right
 				 after this one.  */
-			      XCONS (tail)->cdr
-				= Fcons (Fcons (tem, cmd), XCONS (tail)->cdr);
+			      XCDR (tail)
+				= Fcons (Fcons (tem, cmd), XCDR (tail));
 			    }
 			  else
 			    {
@@ -1618,7 +1618,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	    {
 	      register Lisp_Object cmd, tem, filter;
 
-	      cmd = get_keyelt (XCONS (elt)->cdr, 0);
+	      cmd = get_keyelt (XCDR (elt), 0);
 	      /* Ignore definitions that aren't keymaps themselves.  */
 	      tem = Fkeymapp (cmd);
 	      if (!NILP (tem))
@@ -1629,7 +1629,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 		  if (NILP (tem))
 		    {
 		      /* Let elt be the event defined by this map entry.  */
-		      elt = XCONS (elt)->car;
+		      elt = XCAR (elt);
 
 		      /* If the last key in thisseq is meta-prefix-char, and
 			 this entry is a binding for an ascii keystroke,
@@ -1646,8 +1646,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 			  /* This new sequence is the same length as
 			     thisseq, so stick it in the list right
 			     after this one.  */
-			  XCONS (tail)->cdr
-			    = Fcons (Fcons (tem, cmd), XCONS (tail)->cdr);
+			  XCDR (tail)
+			    = Fcons (Fcons (tem, cmd), XCDR (tail));
 			}
 		      else
 			nconc2 (tail,
@@ -1665,11 +1665,11 @@ then the value includes only maps for prefixes that start with PREFIX.")
   /* Now find just the maps whose access prefixes start with PREFIX.  */
 
   good_maps = Qnil;
-  for (; CONSP (maps); maps = XCONS (maps)->cdr)
+  for (; CONSP (maps); maps = XCDR (maps))
     {
       Lisp_Object elt, thisseq;
-      elt = XCONS (maps)->car;
-      thisseq = XCONS (elt)->car;
+      elt = XCAR (maps);
+      thisseq = XCAR (elt);
       /* The access prefix must be at least as long as PREFIX,
 	 and the first elements must match those of PREFIX.  */
       if (XINT (Flength (thisseq)) >= prefixlen)
@@ -1700,9 +1700,9 @@ accessible_keymaps_char_table (args, index, cmd)
   if (NILP (cmd))
     return;
 
-  maps = XCONS (args)->car;
-  tail = XCONS (XCONS (args)->cdr)->car;
-  thisseq = XCONS (XCONS (args)->cdr)->cdr;
+  maps = XCAR (args);
+  tail = XCAR (XCDR (args));
+  thisseq = XCDR (XCDR (args));
 
   tem = Fkeymapp (cmd);
   if (!NILP (tem))
@@ -1787,9 +1787,9 @@ spaces are put between sequence elements, etc.")
 
       for (i = 0; i < len; i++)
 	{
-	  args[i * 2] = Fsingle_key_description (XCONS (keys)->car);
+	  args[i * 2] = Fsingle_key_description (XCAR (keys));
 	  args[i * 2 + 1] = sep;
-	  keys = XCONS (keys)->cdr;
+	  keys = XCDR (keys);
 	}
     }
   else
@@ -2106,10 +2106,10 @@ indirect definition itself.")
       minors = Fnreverse (Fcurrent_minor_mode_maps ());
       while (!NILP (minors))
 	{
-	  maps = nconc2 (Faccessible_keymaps (get_keymap (XCONS (minors)->car),
+	  maps = nconc2 (Faccessible_keymaps (get_keymap (XCAR (minors)),
 					      Qnil),
 			 maps);
-	  minors = XCONS (minors)->cdr;
+	  minors = XCDR (minors);
 	}
     }
 
@@ -2147,8 +2147,8 @@ indirect definition itself.")
 	     advance map to the next element until i indicates that we
 	     have finished off the vector.  */
 	  Lisp_Object elt, key, binding;
-	  elt = XCONS (map)->car;
-	  map = XCONS (map)->cdr;
+	  elt = XCAR (map);
+	  map = XCDR (map);
 
 	  sequences = Qnil;
 
@@ -2185,14 +2185,14 @@ indirect definition itself.")
 
 	      map_char_table (where_is_internal_2, Qnil, elt, args,
 			      0, indices);
-	      sequences = XCONS (XCONS (XCONS (args)->car)->cdr)->cdr;
+	      sequences = XCDR (XCDR (XCAR (args)));
 	    }
 	  else if (CONSP (elt))
 	    {
 	      Lisp_Object sequence;
 
-	      key = XCONS (elt)->car;
-	      binding = XCONS (elt)->cdr;
+	      key = XCAR (elt);
+	      binding = XCDR (elt);
 
 	      sequence = where_is_internal_1 (binding, key, definition,
 					      noindirect, keymap, this,
@@ -2202,11 +2202,11 @@ indirect definition itself.")
 	    }
 
 
-	  for (; ! NILP (sequences); sequences = XCONS (sequences)->cdr)
+	  for (; ! NILP (sequences); sequences = XCDR (sequences))
 	    {
 	      Lisp_Object sequence;
 
-	      sequence = XCONS (sequences)->car;
+	      sequence = XCAR (sequences);
 
 	      /* It is a true unshadowed match.  Record it, unless it's already
 		 been seen (as could happen when inheriting keymaps).  */
@@ -2254,20 +2254,20 @@ where_is_internal_2 (args, key, binding)
   Lisp_Object result, sequence;
   int nomenus, last_is_meta;
 
-  result = XCONS (XCONS (XCONS (args)->car)->cdr)->cdr;
-  definition = XCONS (XCONS (XCONS (args)->car)->car)->car;
-  noindirect = XCONS (XCONS (XCONS (args)->car)->car)->cdr;
-  keymap = XCONS (XCONS (XCONS (args)->car)->cdr)->car;
-  this = XCONS (XCONS (XCONS (args)->cdr)->car)->car;
-  last = XCONS (XCONS (XCONS (args)->cdr)->car)->cdr;
-  nomenus = XFASTINT (XCONS (XCONS (XCONS (args)->cdr)->cdr)->car);
-  last_is_meta = XFASTINT (XCONS (XCONS (XCONS (args)->cdr)->cdr)->cdr);
+  result = XCDR (XCDR (XCAR (args)));
+  definition = XCAR (XCAR (XCAR (args)));
+  noindirect = XCDR (XCAR (XCAR (args)));
+  keymap = XCAR (XCDR (XCAR (args)));
+  this = XCAR (XCAR (XCDR (args)));
+  last = XCDR (XCAR (XCDR (args)));
+  nomenus = XFASTINT (XCAR (XCDR (XCDR (args))));
+  last_is_meta = XFASTINT (XCDR (XCDR (XCDR (args))));
 
   sequence = where_is_internal_1 (binding, key, definition, noindirect, keymap,
 				  this, last, nomenus, last_is_meta);
 
   if (!NILP (sequence))
-    XCONS (XCONS (XCONS (args)->car)->cdr)->cdr
+    XCDR (XCDR (XCAR (args)))
       = Fcons (sequence, result);
 }
 
@@ -2298,8 +2298,8 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 	    }
 	  /* If the contents are (menu-item ...) or (STRING ...), reject.  */
 	  if (CONSP (definition)
-	      && (EQ (XCONS (definition)->car,Qmenu_item)
-		  || STRINGP (XCONS (definition)->car)))
+	      && (EQ (XCAR (definition),Qmenu_item)
+		  || STRINGP (XCAR (definition))))
 	    return Qnil;
 	}
       else
@@ -2404,11 +2404,11 @@ Keyboard translations:\n\n\
 You type        Translation\n\
 --------        -----------\n";
 
-  descbuf = XCONS (arg)->car;
-  arg = XCONS (arg)->cdr;
-  prefix = XCONS (arg)->car;
-  arg = XCONS (arg)->cdr;
-  nomenu = NILP (XCONS (arg)->car);
+  descbuf = XCAR (arg);
+  arg = XCDR (arg);
+  prefix = XCAR (arg);
+  arg = XCDR (arg);
+  nomenu = NILP (XCAR (arg));
 
   shadow = Qnil;
   GCPRO1 (shadow);
@@ -2566,7 +2566,7 @@ key             binding\n\
       Lisp_Object list;
 
       /* Delete from MAPS each element that is for the menu bar.  */
-      for (list = maps; !NILP (list); list = XCONS (list)->cdr)
+      for (list = maps; !NILP (list); list = XCDR (list))
 	{
 	  Lisp_Object elt, prefix, tem;
 
@@ -2606,11 +2606,11 @@ key             binding\n\
 
       sub_shadows = Qnil;
 
-      for (tail = shadow; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = shadow; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object shmap;
 
-	  shmap = XCONS (tail)->car;
+	  shmap = XCAR (tail);
 
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
@@ -2740,9 +2740,9 @@ shadow_lookup (shadow, key, flag)
 {
   Lisp_Object tail, value;
 
-  for (tail = shadow; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = shadow; CONSP (tail); tail = XCDR (tail))
     {
-      value = Flookup_key (XCONS (tail)->car, key, flag);
+      value = Flookup_key (XCAR (tail), key, flag);
       if (!NILP (value))
 	return value;
     }
@@ -2791,18 +2791,18 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 
   GCPRO3 (elt_prefix, definition, kludge);
 
-  for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
       QUIT;
 
-      if (VECTORP (XCONS (tail)->car)
-	  || CHAR_TABLE_P (XCONS (tail)->car))
-	describe_vector (XCONS (tail)->car,
+      if (VECTORP (XCAR (tail))
+	  || CHAR_TABLE_P (XCAR (tail)))
+	describe_vector (XCAR (tail),
 			 elt_prefix, elt_describer, partial, shadow, map,
 			 (int *)0, 0);
-      else if (CONSP (XCONS (tail)->car))
+      else if (CONSP (XCAR (tail)))
 	{
-	  event = XCONS (XCONS (tail)->car)->car;
+	  event = XCAR (XCAR (tail));
 
 	  /* Ignore bindings whose "keys" are not really valid events.
 	     (We get these in the frames and buffers menu.)  */
@@ -2812,7 +2812,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 	  if (nomenu && EQ (event, Qmenu_bar))
 	    continue;
 
-	  definition = get_keyelt (XCONS (XCONS (tail)->car)->cdr, 0);
+	  definition = get_keyelt (XCDR (XCAR (tail)), 0);
 
 	  /* Don't show undefined commands or suppressed commands.  */
 	  if (NILP (definition)) continue;
@@ -2854,13 +2854,13 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 	     for alignment purposes.  */
 	  (*elt_describer) (definition);
 	}
-      else if (EQ (XCONS (tail)->car, Qkeymap))
+      else if (EQ (XCAR (tail), Qkeymap))
 	{
 	  /* The same keymap might be in the structure twice, if we're
 	     using an inherited keymap.  So skip anything we've already
 	     encountered.  */
 	  tem = Fassq (tail, *seen);
-	  if (CONSP (tem) && !NILP (Fequal (XCONS (tem)->car, keys)))
+	  if (CONSP (tem) && !NILP (Fequal (XCAR (tem), keys)))
 	    break;
 	  *seen = Fcons (Fcons (tail, keys), *seen);
 	}

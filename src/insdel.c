@@ -2660,26 +2660,26 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   /* Scan the various individual changes,
      accumulating the range info in BEG, END and CHANGE.  */
   for (tail = combine_after_change_list; CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       Lisp_Object elt;
       int thisbeg, thisend, thischange;
 
       /* Extract the info from the next element.  */
-      elt = XCONS (tail)->car;
+      elt = XCAR (tail);
       if (! CONSP (elt))
 	continue;
-      thisbeg = XINT (XCONS (elt)->car);
+      thisbeg = XINT (XCAR (elt));
 
-      elt = XCONS (elt)->cdr;
+      elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thisend = XINT (XCONS (elt)->car);
+      thisend = XINT (XCAR (elt));
 
-      elt = XCONS (elt)->cdr;
+      elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thischange = XINT (XCONS (elt)->car);
+      thischange = XINT (XCAR (elt));
 
       /* Merge this range into the accumulated range.  */
       change += thischange;

@@ -867,7 +867,7 @@ adjust_intervals_for_insertion (tree, position, length)
       for (tail = i->plist; ! NILP (tail); tail = Fcdr (Fcdr (tail)))
 	{
 	  Lisp_Object prop;
-	  prop = XCONS (tail)->car;
+	  prop = XCAR (tail);
 
 	  /* Is this particular property rear-sticky?
 	     Note, if REAR isn't a cons, it must be non-nil,

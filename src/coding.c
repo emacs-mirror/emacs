@@ -2974,9 +2974,9 @@ setup_coding_system (coding_system, coding)
       bzero (coding->safe_charsets, MAX_CHARSET + 1);
       while (CONSP (val))
 	{
-	  if ((i = get_charset_id (XCONS (val)->car)) >= 0)
+	  if ((i = get_charset_id (XCAR (val))) >= 0)
 	    coding->safe_charsets[i] = 1;
-	  val = XCONS (val)->cdr;
+	  val = XCDR (val);
 	}
     }
 
@@ -3042,12 +3042,12 @@ setup_coding_system (coding_system, coding)
 	val = Vcharset_revision_alist;
 	while (CONSP (val))
 	  {
-	    charset = get_charset_id (Fcar_safe (XCONS (val)->car));
+	    charset = get_charset_id (Fcar_safe (XCAR (val)));
 	    if (charset >= 0
-		&& (temp = Fcdr_safe (XCONS (val)->car), INTEGERP (temp))
+		&& (temp = Fcdr_safe (XCAR (val)), INTEGERP (temp))
 		&& (i = XINT (temp), (i >= 0 && (i + '@') < 128)))
 	      CODING_SPEC_ISO_REVISION_NUMBER (coding, charset) = i;
-	    val = XCONS (val)->cdr;
+	    val = XCDR (val);
 	  }
 
 	/* Checks FLAGS[REG] (REG = 0, 1, 2 3) and decide designations.
@@ -3084,28 +3084,28 @@ setup_coding_system (coding_system, coding)
 		tail = flags[i];
 
 		coding->flags |= CODING_FLAG_ISO_DESIGNATION;
-		if (INTEGERP (XCONS (tail)->car)
-		    && (charset = XINT (XCONS (tail)->car),
+		if (INTEGERP (XCAR (tail))
+		    && (charset = XINT (XCAR (tail)),
 			CHARSET_VALID_P (charset))
-		    || (charset = get_charset_id (XCONS (tail)->car)) >= 0)
+		    || (charset = get_charset_id (XCAR (tail))) >= 0)
 		  {
 		    CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		    CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) =i;
 		  }
 		else
 		  CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = -1;
-		tail = XCONS (tail)->cdr;
+		tail = XCDR (tail);
 		while (CONSP (tail))
 		  {
-		    if (INTEGERP (XCONS (tail)->car)
-			&& (charset = XINT (XCONS (tail)->car),
+		    if (INTEGERP (XCAR (tail))
+			&& (charset = XINT (XCAR (tail)),
 			    CHARSET_VALID_P (charset))
-			|| (charset = get_charset_id (XCONS (tail)->car)) >= 0)
+			|| (charset = get_charset_id (XCAR (tail))) >= 0)
 		      CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 			= i;
-		    else if (EQ (XCONS (tail)->car, Qt))
+		    else if (EQ (XCAR (tail), Qt))
 		      reg_bits |= 1 << i;
-		    tail = XCONS (tail)->cdr;
+		    tail = XCDR (tail);
 		  }
 	      }
 	    else
@@ -3168,9 +3168,9 @@ setup_coding_system (coding_system, coding)
 	val = XVECTOR (coding_spec)->contents[4];
 	if (! CONSP (val)
 	    || setup_ccl_program (&(coding->spec.ccl.decoder),
-				  XCONS (val)->car) < 0
+				  XCAR (val)) < 0
 	    || setup_ccl_program (&(coding->spec.ccl.encoder),
-				  XCONS (val)->cdr) < 0)
+				  XCDR (val)) < 0)
 	  goto label_invalid_coding_system;
 
 	bzero (coding->spec.ccl.valid_codes, 256);
@@ -3179,18 +3179,18 @@ setup_coding_system (coding_system, coding)
 	  {
 	    Lisp_Object this;
 
-	    for (; CONSP (val); val = XCONS (val)->cdr)
+	    for (; CONSP (val); val = XCDR (val))
 	      {
-		this = XCONS (val)->car;
+		this = XCAR (val);
 		if (INTEGERP (this)
 		    && XINT (this) >= 0 && XINT (this) < 256)
 		  coding->spec.ccl.valid_codes[XINT (this)] = 1;
 		else if (CONSP (this)
-			 && INTEGERP (XCONS (this)->car)
-			 && INTEGERP (XCONS (this)->cdr))
+			 && INTEGERP (XCAR (this))
+			 && INTEGERP (XCDR (this)))
 		  {
-		    int start = XINT (XCONS (this)->car);
-		    int end = XINT (XCONS (this)->cdr);
+		    int start = XINT (XCAR (this));
+		    int end = XINT (XCDR (this));
 
 		    if (start >= 0 && start <= end && end < 256)
 		      while (start <= end)
@@ -4876,13 +4876,13 @@ detect_coding_system (src, src_bytes, highest)
 
   /* At first, gather possible coding systems in VAL.  */
   val = Qnil;
-  for (tmp = Vcoding_category_list; !NILP (tmp); tmp = XCONS (tmp)->cdr)
+  for (tmp = Vcoding_category_list; !NILP (tmp); tmp = XCDR (tmp))
     {
       int idx
-	= XFASTINT (Fget (XCONS (tmp)->car, Qcoding_category_index));
+	= XFASTINT (Fget (XCAR (tmp), Qcoding_category_index));
       if (coding_mask & (1 << idx))
 	{
-	  val = Fcons (Fsymbol_value (XCONS (tmp)->car), val);
+	  val = Fcons (Fsymbol_value (XCAR (tmp)), val);
 	  if (highest)
 	    break;
 	}
@@ -4891,18 +4891,18 @@ detect_coding_system (src, src_bytes, highest)
     val = Fnreverse (val);
 
   /* Then, replace the elements with subsidiary coding systems.  */
-  for (tmp = val; !NILP (tmp); tmp = XCONS (tmp)->cdr)
+  for (tmp = val; !NILP (tmp); tmp = XCDR (tmp))
     {
       if (eol_type != CODING_EOL_UNDECIDED
 	  && eol_type != CODING_EOL_INCONSISTENT)
 	{
 	  Lisp_Object eol;
-	  eol = Fget (XCONS (tmp)->car, Qeol_type);
+	  eol = Fget (XCAR (tmp), Qeol_type);
 	  if (VECTORP (eol))
-	    XCONS (tmp)->car = XVECTOR (eol)->contents[eol_type];
+	    XCAR (tmp) = XVECTOR (eol)->contents[eol_type];
 	}
     }
-  return (highest ? XCONS (val)->car : val);
+  return (highest ? XCAR (val) : val);
 }  
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
@@ -5324,18 +5324,18 @@ which is a list of all the arguments given to this function.")
   if (NILP (chain))
     return Qnil;
 
-  for (; CONSP (chain); chain = XCONS (chain)->cdr)
+  for (; CONSP (chain); chain = XCDR (chain))
     {
       Lisp_Object elt;
-      elt = XCONS (chain)->car;
+      elt = XCAR (chain);
 
       if (CONSP (elt)
 	  && ((STRINGP (target)
-	       && STRINGP (XCONS (elt)->car)
-	       && fast_string_match (XCONS (elt)->car, target) >= 0)
-	      || (INTEGERP (target) && EQ (target, XCONS (elt)->car))))
+	       && STRINGP (XCAR (elt))
+	       && fast_string_match (XCAR (elt), target) >= 0)
+	      || (INTEGERP (target) && EQ (target, XCAR (elt)))))
 	{
-	  val = XCONS (elt)->cdr;
+	  val = XCDR (elt);
 	  /* Here, if VAL is both a valid coding system and a valid
              function symbol, we return VAL as a coding system.  */
 	  if (CONSP (val))
@@ -5406,13 +5406,13 @@ This function is internal use only.")
 
   while (CONSP (val) && i < CODING_CATEGORY_IDX_MAX)
     {
-      if (! SYMBOLP (XCONS (val)->car))
+      if (! SYMBOLP (XCAR (val)))
 	break;
-      idx = XFASTINT (Fget (XCONS (val)->car, Qcoding_category_index));
+      idx = XFASTINT (Fget (XCAR (val), Qcoding_category_index));
       if (idx >= CODING_CATEGORY_IDX_MAX)
 	break;
       coding_priorities[i++] = (1 << idx);
-      val = XCONS (val)->cdr;
+      val = XCDR (val);
     }
   /* If coding-category-list is valid and contains all coding
      categories, `i' should be CODING_CATEGORY_IDX_MAX now.  If not,

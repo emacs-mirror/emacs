@@ -126,8 +126,8 @@ get_doc_string (filepos, unibyte, definition)
     }
   else if (CONSP (filepos))
     {
-      file = XCONS (filepos)->car;
-      position = XINT (XCONS (filepos)->cdr);
+      file = XCAR (filepos);
+      position = XINT (XCDR (filepos));
       if (position < 0)
 	position = - position;
     }
@@ -353,7 +353,7 @@ string is passed through `substitute-command-keys'.")
 	  /* Handle a doc reference--but these never come last
 	     in the function body, so reject them if they are last.  */
 	  else if ((NATNUMP (tem) || CONSP (tem))
-		   && ! NILP (XCONS (tem1)->cdr))
+		   && ! NILP (XCDR (tem1)))
 	    doc = get_doc_string (tem, 0, 0);
 	  else
 	    return Qnil;
@@ -424,15 +424,15 @@ store_function_docstring (fun, offset)
     {
       Lisp_Object tem;
 
-      tem = XCONS (fun)->car;
+      tem = XCAR (fun);
       if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
 	{
 	  tem = Fcdr (Fcdr (fun));
-	  if (CONSP (tem) && INTEGERP (XCONS (tem)->car))
-	    XSETFASTINT (XCONS (tem)->car, offset);
+	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
+	    XSETFASTINT (XCAR (tem), offset);
 	}
       else if (EQ (tem, Qmacro))
-	store_function_docstring (XCONS (fun)->cdr, offset);
+	store_function_docstring (XCDR (fun), offset);
     }
 
   /* Bytecode objects sometimes have slots for it.  */

@@ -2288,13 +2288,13 @@ save_restriction_restore (data)
   register Lisp_Object tem;
   int obegv, ozv;
 
-  buf = XBUFFER (XCONS (data)->car);
+  buf = XBUFFER (XCAR (data));
 
-  data = XCONS (data)->cdr;
+  data = XCDR (data);
 
-  tem = XCONS (data)->car;
+  tem = XCAR (data);
   newhead = XINT (tem);
-  tem = XCONS (data)->cdr;
+  tem = XCDR (data);
   newtail = XINT (tem);
   if (newhead + newtail > BUF_Z (buf) - BUF_BEG (buf))
     {
@@ -2761,7 +2761,7 @@ Use %% to put a single % into the output.")
 	      if (INTEGERP (args[n]))
 		sprintf (p, this_format, XINT (args[n]));
 	      else
-		sprintf (p, this_format, XFLOAT (args[n])->data);
+		sprintf (p, this_format, XFLOAT_DATA (args[n]));
 
 	      if (p > buf
 		  && multibyte

@@ -623,9 +623,9 @@ unlock_all_files ()
   register Lisp_Object tail;
   register struct buffer *b;
 
-  for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
     {
-      b = XBUFFER (XCONS (XCONS (tail)->car)->cdr);
+      b = XBUFFER (XCDR (XCAR (tail)));
       if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
 	  register char *lfname;

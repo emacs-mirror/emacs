@@ -344,19 +344,19 @@ use the standard functions without calling themselves recursively.")
     inhibited_handlers = Qnil;
 
   for (chain = Vfile_name_handler_alist; CONSP (chain);
-       chain = XCONS (chain)->cdr)
+       chain = XCDR (chain))
     {
       Lisp_Object elt;
-      elt = XCONS (chain)->car;
+      elt = XCAR (chain);
       if (CONSP (elt))
 	{
 	  Lisp_Object string;
-	  string = XCONS (elt)->car;
+	  string = XCAR (elt);
 	  if (STRINGP (string) && fast_string_match (string, filename) >= 0)
 	    {
 	      Lisp_Object handler, tem;
 
-	      handler = XCONS (elt)->cdr;
+	      handler = XCDR (elt);
 	      tem = Fmemq (handler, inhibited_handlers);
 	      if (NILP (tem))
 		return handler;
@@ -3375,8 +3375,8 @@ actually used.")
     {
       val = call6 (handler, Qinsert_file_contents, filename,
 		   visit, beg, end, replace);
-      if (CONSP (val) && CONSP (XCONS (val)->cdr))
-	inserted = XINT (XCONS (XCONS (val)->cdr)->car);
+      if (CONSP (val) && CONSP (XCDR (val)))
+	inserted = XINT (XCAR (XCDR (val)));
       goto handled;
     }
 
@@ -3550,7 +3550,7 @@ actually used.")
 	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
 	      coding_systems = Ffind_operation_coding_system (6, args);
 	      if (CONSP (coding_systems))
-		val = XCONS (coding_systems)->car;
+		val = XCAR (coding_systems);
 	    }
 	}
 
@@ -4083,7 +4083,7 @@ actually used.")
 	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = Qnil;
 	      coding_systems = Ffind_operation_coding_system (6, args);
 	      if (CONSP (coding_systems))
-		val = XCONS (coding_systems)->car;
+		val = XCAR (coding_systems);
 	    }
 	}
 
@@ -4357,8 +4357,8 @@ This does code conversion according to the value of\n\
 	    args[3] = filename; args[4] = append; args[5] = visit;
 	    args[6] = lockname;
 	    coding_systems = Ffind_operation_coding_system (7, args);
-	    if (CONSP (coding_systems) && !NILP (XCONS (coding_systems)->cdr))
-	      val = XCONS (coding_systems)->cdr;
+	    if (CONSP (coding_systems) && !NILP (XCDR (coding_systems)))
+	      val = XCDR (coding_systems);
 	  }
 
 	if (NILP (val)
@@ -5079,8 +5079,8 @@ do_auto_save_unwind (stream)  /* used as unwind-protect function */
 {
   auto_saving = 0;
   if (!NILP (stream))
-    fclose ((FILE *) (XFASTINT (XCONS (stream)->car) << 16
-		      | XFASTINT (XCONS (stream)->cdr)));
+    fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
+		      | XFASTINT (XCDR (stream))));
   return Qnil;
 }
 
@@ -5141,8 +5141,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	  /* Arrange to close that file whether or not we get an error.
 	     Also reset auto_saving to 0.  */
 	  lispstream = Fcons (Qnil, Qnil);
-	  XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
-	  XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
+	  XSETFASTINT (XCAR (lispstream), (EMACS_UINT)stream >> 16);
+	  XSETFASTINT (XCDR (lispstream), (EMACS_UINT)stream & 0xffff);
 	}
       else
 	lispstream = Qnil;
@@ -5165,9 +5165,9 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
      autosave perfectly ordinary files because it couldn't handle some
      ange-ftp'd file.  */
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
-    for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+    for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
       {
-	buf = XCONS (XCONS (tail)->car)->cdr;
+	buf = XCDR (XCAR (tail));
 	b = XBUFFER (buf);
 
 	/* Record all the buffers that have auto save mode
@@ -5524,7 +5524,7 @@ DIR defaults to current buffer's directory default.")
 			    Qfile_name_history, default_filename, Qnil);
 
   tem = Fsymbol_value (Qfile_name_history);
-  if (CONSP (tem) && EQ (XCONS (tem)->car, val))
+  if (CONSP (tem) && EQ (XCAR (tem), val))
     replace_in_history = 1;
 
   /* If Fcompleting_read returned the inserted default string itself
@@ -5563,14 +5563,14 @@ DIR defaults to current buffer's directory default.")
   if (replace_in_history)
     /* Replace what Fcompleting_read added to the history
        with what we will actually return.  */
-    XCONS (Fsymbol_value (Qfile_name_history))->car = double_dollars (val);
+    XCAR (Fsymbol_value (Qfile_name_history)) = double_dollars (val);
   else if (add_to_history)
     {
       /* Add the value to the history--but not if it matches
 	 the last value already there.  */
       Lisp_Object val1 = double_dollars (val);
       tem = Fsymbol_value (Qfile_name_history);
-      if (! CONSP (tem) || NILP (Fequal (XCONS (tem)->car, val1)))
+      if (! CONSP (tem) || NILP (Fequal (XCAR (tem), val1)))
 	Fset (Qfile_name_history,
 	      Fcons (val1, tem));
     }

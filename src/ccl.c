@@ -1328,7 +1328,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 		    /* Check map varidity.  */
 		    if (!CONSP (map)) continue;
-		    map = XCONS(map)->cdr;
+		    map = XCDR (map);
 		    if (!VECTORP (map)) continue;
 		    size = XVECTOR (map)->size;
 		    if (size <= 1) continue;
@@ -1372,8 +1372,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      }
 		    else if (CONSP (content))
 		      {
-			attrib = XCONS (content)->car;
-			value = XCONS (content)->cdr;
+			attrib = XCAR (content);
+			value = XCDR (content);
 			if (!NUMBERP (attrib) || !NUMBERP (value))
 			  continue;
 			reg[RRR] = i;
@@ -1437,7 +1437,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 		    /* Check map varidity.  */
 		    if (!CONSP (map)) continue;
-		    map = XCONS (map)->cdr;
+		    map = XCDR (map);
 		    if (!VECTORP (map)) continue;
 		    size = XVECTOR (map)->size;
 		    if (size <= 1) continue;
@@ -1477,8 +1477,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      }
 		    else if (CONSP (content))
 		      {
-			attrib = XCONS (content)->car;
-			value = XCONS (content)->cdr;
+			attrib = XCAR (content);
+			value = XCDR (content);
 			if (!NUMBERP (attrib) || !NUMBERP (value))
 			  continue;
 			reg[RRR] = i;
@@ -1522,7 +1522,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		    reg[RRR] = -1;
 		    break;
 		  }
-		map = XCONS(map)->cdr;
+		map = XCDR (map);
 		if (!VECTORP (map))
 		  {
 		    reg[RRR] = -1;
@@ -1546,8 +1546,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      reg[RRR] = i;
 		    else if (CONSP (content))
 		      {
-			attrib = XCONS (content)->car;
-			value = XCONS (content)->cdr;
+			attrib = XCAR (content);
+			value = XCDR (content);
 			if (!NUMBERP (attrib) || !NUMBERP (value))
 			  continue;
 			reg[rrr] = XUINT(value);
@@ -1663,8 +1663,8 @@ resolve_symbol_ccl_program (ccl)
       if (INTEGERP (contents))
 	continue;
       else if (CONSP (contents)
-	       && SYMBOLP (XCONS (contents)->car)
-	       && SYMBOLP (XCONS (contents)->cdr))
+	       && SYMBOLP (XCAR (contents))
+	       && SYMBOLP (XCDR (contents)))
 	{
 	  /* This is the new style for embedding symbols.  The form is
 	     (SYMBOL . PROPERTY).  (get SYMBOL PROPERTY) should give
@@ -1673,7 +1673,7 @@ resolve_symbol_ccl_program (ccl)
 	  if (EQ (result, ccl))
 	    result =  Fcopy_sequence (ccl);
 
-	  val = Fget (XCONS (contents)->car, XCONS (contents)->cdr);
+	  val = Fget (XCAR (contents), XCDR (contents));
 	  if (NATNUMP (val))
 	    XVECTOR (result)->contents[i] = val;
 	  else
@@ -2038,10 +2038,10 @@ Return index number of the registered map.")
       if (!CONSP (slot))
 	break;
 
-      if (EQ (symbol, XCONS (slot)->car))
+      if (EQ (symbol, XCAR (slot)))
 	{
 	  index = make_number (i);
-	  XCONS (slot)->cdr = map;
+	  XCDR (slot) = map;
 	  Fput (symbol, Qcode_conversion_map, map);
 	  Fput (symbol, Qcode_conversion_map_id, index);
 	  return index;
