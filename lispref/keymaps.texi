@@ -456,9 +456,9 @@ key.
 key.
 
 @item
-@cindex @kbd{M-g}
+@cindex @kbd{M-o}
 @vindex facemenu-keymap
-@code{facemenu-keymap} is the global keymap used for the @kbd{M-g}
+@code{facemenu-keymap} is the global keymap used for the @kbd{M-o}
 prefix key.
 
 @c Emacs 19 feature
