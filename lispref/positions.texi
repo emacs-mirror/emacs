@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
 @c  Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/positions
@@ -910,29 +910,6 @@ first (on the outside).  Otherwise, the old point value would be
 restored with temporary narrowing still in effect.  If the old point
 value were outside the limits of the temporary narrowing, this would
 fail to restore it accurately.
-
-The @code{save-restriction} special form records the values of the
-beginning and end of the accessible portion as distances from the
-beginning and end of the buffer.  In other words, it records the amount
-of inaccessible text before and after the accessible portion.
-
-This method yields correct results if @var{body} does further narrowing.
-However, @code{save-restriction} can become confused if the body widens
-and then makes changes outside the range of the saved narrowing.  When
-this is what you want to do, @code{save-restriction} is not the right
-tool for the job.  Here is what you must use instead:
-
-@example
-@group
-(let ((beg (point-min-marker))
-      (end (point-max-marker)))
-  (unwind-protect
-      (progn @var{body})
-    (save-excursion
-      (set-buffer (marker-buffer beg))
-      (narrow-to-region beg end))))
-@end group
-@end example
 
 Here is a simple example of correct use of @code{save-restriction}:
 
