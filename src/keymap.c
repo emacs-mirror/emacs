@@ -1,6 +1,6 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 01, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 1999, 2000,
+     2001, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -530,7 +530,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
       GCPRO1 (map);
       /* A strange value in which Meta is set would cause
 	 infinite recursion.  Protect against that.  */
-      if (meta_prefix_char & CHAR_META)
+      if (XINT (meta_prefix_char) & CHAR_META)
 	meta_prefix_char = make_number (27);
       meta_map = get_keymap (access_keymap (map, meta_prefix_char,
 					    t_ok, noinherit, autoload),
