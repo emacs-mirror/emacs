@@ -2179,6 +2179,7 @@ The value of this variable is used when Font Lock mode is turned on."
     "map" "multimap"
     "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
     "stack" "queue" "priority_queue"
+    "type_info"
     "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator"
     "reference" "const_reference")
   "*List of extra types to fontify in C++ mode.
