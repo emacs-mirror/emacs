@@ -289,7 +289,7 @@ Prefix arg means justify as well."
   "Return name of function definition point is in, or nil.
 
 Understands C, Lisp, LaTeX (\"functions\" are chapters, sections, ...),
-Texinfo (@node titles), and Fortran.
+Texinfo (@node titles), Perl, and Fortran.
 
 Other modes are handled by a heuristic that looks in the 10K before
 point for uppercase headings starting in the first column or
@@ -421,6 +421,10 @@ Has a preference of looking backwards."
 					   (point))))))
 		((eq major-mode 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
+		     (buffer-substring (match-beginning 1)
+				       (match-end 1))))
+		((eq major-mode 'perl-mode)
+		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
                 ((eq major-mode 'fortran-mode)
