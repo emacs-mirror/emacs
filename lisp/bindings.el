@@ -71,7 +71,7 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
 
-(defvar mode-line-modified (purecopy '("--%1*%1+"))
+(defvar mode-line-modified (purecopy '("-%1*%1+"))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
