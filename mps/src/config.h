@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.29) $
+ * $HopeName: MMsrc!config.h(trunk.30) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -109,7 +109,7 @@
  * We aren't interested in these.
  */
 
-#if defined(CONFIG_VAR_WI)
+#if defined(MPS_HOT_WHITE)
 
 /* "unreferenced formal parameter" */
 #pragma warning(disable: 4100)
@@ -117,7 +117,7 @@
 /* "unreferenced local function has been removed" */
 #pragma warning(disable: 4505)
 
-#endif /* CONFIG_VAR_WI */
+#endif /* MPS_HOT_WHITE */
 
 #endif /* MPS_BUILD_MV */
 
