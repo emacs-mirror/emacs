@@ -1,5 +1,5 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998, 1999 Free Software Foundation.
+   Copyright (C) 1998, 1999, 2001 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -25,13 +25,13 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined HAVE_SOUND
 
-#include <lisp.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <dispextern.h>
 #include <errno.h>
-#include <atimer.h>
+#include "lisp.h"
+#include "dispextern.h"
+#include "atimer.h"
 
 /* FreeBSD has machine/soundcard.h.  Voxware sound driver docs mention
    sys/soundcard.h.  So, let's try whatever's there.  */
