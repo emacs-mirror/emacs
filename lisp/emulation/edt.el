@@ -4,7 +4,6 @@
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
-;; Version: 3.0.3
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +24,7 @@
 
 ;;; Usage:
 
-;;  See edt-user.doc
+;;  See edt-user.doc in the Emacs etc directory.
 
 ;; ====================================================================
 
@@ -37,8 +36,6 @@
 ;;;;
 ;;;; VARIABLES and CONSTANTS
 ;;;;
-
-(defconst edt-version "3.0.3" "EDT version number.")
 
 (defvar edt-last-deleted-lines ""
   "Last text deleted by an EDT emulation line delete command.")
@@ -53,44 +50,44 @@
   "Key definition replaced with edt-define-key or edt-learn command.")
 
 (defvar edt-direction-string ""
-  "Current direction of movement.")
+  "String indicating current direction of movement.")
 
 (defvar edt-select-mode nil
-  "Select minor mode.")
+  "Non-nil means select mode is active.")
 
 (defvar edt-select-mode-text ""
-  "Select mode active text.")
+  "Text displayed in mode line when select mode is active.")
 
 (defconst edt-select-mode-string " Select"
-  "String used to indicated select mode is active.")
+  "String to indicate select mode is active.")
 
 (defconst edt-forward-string " ADVANCE"
-  "Direction string indicating forward movement.")
+  "Direction string in mode line to indicate forward movement.")
 
 (defconst edt-backward-string "  BACKUP"
-  "Direction string indicating backward movement.")
+  "Direction string in mode line to indicate backward movement.")
 
 (defvar edt-default-map-active nil
-  "Indicates, when true, that default EDT emulation key bindings are active;
-user-defined custom bindings are active when set to nil.")
+  "Non-nil indicates that default EDT emulation key bindings are active.
+Nil means user-defined custom bindings are active.")
 
 (defvar edt-user-map-configured nil
-  "Indicates, when true, that user custom EDT emulation key bindings are
-configured and available for use.")
+  "Non-nil indicates that user custom EDT key bindings are configured.
+This means that an edt-user.el file was found in the user's load-path.")
 
 (defvar edt-keep-current-page-delimiter nil
-  "If set to true, when edt-emulation-on is first invoked,
-modification of the page-delimiter varible to \"\\f\" is suppressed,
-thereby retaining current Emacs setting.") 
+  "Non-nil leaves current value of page-delimiter unchanged.
+Nil causes the page-delimiter variable to be set to to \"\\f\"
+when edt-emulation-on is first invoked.  Original value is restored
+when edt-emulation-off is called.")
 
 (defvar edt-use-EDT-control-key-bindings nil
-  "If set to true, EDT control key bindings are defined.
-When true, many standard Emacs control key bindings are overwritten.
-If set to nil (the default), EDT control key bindings are not used.
-Instead, the standard Emacs control key bindings are retained.")
+  "Non-nil causes the control key bindings to be replaced with EDT bindings.
+Nil (the default) means EDT control key bindings are not used and the current
+control key bindings are retained for use in the EDT emulation.")
 
 (defvar edt-word-entities '(?\t)
-  "*Specifies the list of word entity characters.")
+  "*Specifies the list of EDT word entity characters.")
 
 ;;;
 ;;;  Emacs version identifiers - currently referenced by
@@ -98,14 +95,14 @@ Instead, the standard Emacs control key bindings are retained.")
 ;;;     o edt-emulation-on      o edt-load-xkeys
 ;;;
 (defconst edt-emacs19-p (not (string-lessp emacs-version "19"))
-  "Non-NIL if we are running Lucid or GNU Emacs version 19.")
+  "Non-nil if we are running Lucid or GNU Emacs version 19.")
 
 (defconst edt-lucid-emacs19-p
   (and edt-emacs19-p (string-match "Lucid" emacs-version))
-  "Non-NIL if we are running Lucid Emacs version 19.")
+  "Non-nil if we are running Lucid Emacs version 19.")
 
 (defconst edt-gnu-emacs19-p (and edt-emacs19-p (not edt-lucid-emacs19-p))
-  "Non-NIL if we are running GNU Emacs version 19.")
+  "Non-nil if we are running GNU Emacs version 19.")
 
 (defvar edt-xkeys-file nil
   "File mapping X function keys to LK-201 keyboard function and keypad keys.")
@@ -402,7 +399,7 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 ;;;
 
 (defun edt-find-forward (&optional find)
-  "Find first occurance of a string in the forward direction and save the string."
+  "Find first occurance of a string in forward direction and save it."
   (interactive)
   (if (not find)
       (set 'search-last-string (read-string "Search forward: ")))
@@ -410,14 +407,14 @@ Accepts a positive prefix argument for the number of BOL marks to move."
       (search-backward search-last-string)))
 
 (defun edt-find-backward (&optional find)
-  "Find first occurance of a string in the backward direction and save the string."
+  "Find first occurance of a string in the backward direction and save it."
   (interactive)
   (if (not find)
       (set 'search-last-string (read-string "Search backward: ")))
   (search-backward search-last-string))
 
 (defun edt-find ()
-  "Find first occurance of string in current direction and save the string."
+  "Find first occurance of string in current direction and save it."
   (interactive)
   (set 'search-last-string (read-string "Search: "))
   (if (equal edt-direction-string edt-forward-string)
@@ -503,7 +500,7 @@ Accepts a positive prefix argument for the number of lines to delete."
 ;;;
 
 (defun edt-select-mode (arg)
-  "Turn EDT select mode off if arg is nil; otherwise, turn EDT select mode on.
+  "Turn EDT select mode off if ARG is nil; otherwise, turn EDT select mode on.
 In select mode, selected text is highlighted."
   (if arg
       (progn
@@ -540,7 +537,7 @@ In select mode, selected text is highlighted."
 ;;;
 
 (defun edt-delete-to-beginning-of-line (num)
-  "Delete from cursor to beginning of of line.
+  "Delete from cursor to beginning of line.
 Accepts a positive prefix argument for the number of lines to delete."
   (interactive "*p")
   (edt-check-prefix num)
@@ -620,7 +617,7 @@ Accepts a positive prefix argument for the number of characters to delete."
 ;;;
 
 (defun edt-undelete-word ()
-  "Yank words deleted by last EDT word-deletion command."
+  "Undelete previous deleted word(s)."
   (interactive "*")
   (point-to-register 1)
   (insert edt-last-deleted-words)
@@ -631,7 +628,7 @@ Accepts a positive prefix argument for the number of characters to delete."
 ;;;
 
 (defun edt-undelete-character ()
-  "Yank characters deleted by last EDT character-deletion command."
+  "Undelete previous deleted character(s)."
   (interactive "*")
   (point-to-register 1)
   (insert edt-last-deleted-chars)
@@ -655,7 +652,8 @@ Accepts a positive prefix argument for the number of characters to delete."
 ;;;
 
 (defun edt-advance ()
-  "Set movement direction forward."
+  "Set movement direction forward.
+Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-forward-string)
   (edt-update-mode-line)
@@ -668,7 +666,8 @@ Accepts a positive prefix argument for the number of characters to delete."
 ;;;
 
 (defun edt-backup ()
-  "Set movement direction backward."
+  "Set movement direction backward.
+Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-backward-string)
   (edt-update-mode-line)
@@ -791,13 +790,6 @@ Accepts a positive prefix argument for the number of tabs to insert."
 ;;; provided here.  Some of these have been motivated by similar
 ;;; TPU/EVE and EVE-Plus commands.  Others are new.
 
-(defun edt-version nil
-  "Print the EDT version number."
-  (interactive)
-  (message
-   "EDT version %s by Kevin Gallagher (kgallagh@spd.dsccc.com)"
-   edt-version))
-
 ;;;
 ;;; CHANGE DIRECTION
 ;;;
@@ -895,8 +887,8 @@ Accepts a positive prefix argument for the number of paragraph to move."
 ;;;
 
 (defun edt-restore-key ()
-  "Restore last replaced key definition, which is stored in 
-edt-last-replaced-key-definition."
+  "Restore last replaced key definition.
+Definition is stored in edt-last-replaced-key-definition."
   (interactive)
   (if edt-last-replaced-key-definition
       (progn
@@ -936,12 +928,12 @@ edt-last-replaced-key-definition."
 ;;;
 
 (defun edt-scroll-window-forward-line ()
-  "Move window forward one line leaving cursor at relative position in window."
+  "Move window forward one line leaving cursor at position in window."
   (interactive)
   (scroll-up 1))
 
 (defun edt-scroll-window-backward-line ()
-  "Move window backward one line leaving cursor at relative position in window."
+  "Move window backward one line leaving cursor at position in window."
   (interactive)
   (scroll-down 1))
 
@@ -1286,8 +1278,9 @@ Accepts a positive prefix argument for the number times to duplicate the line."
 ;;;
 
 (defun edt-cut-rectangle-overstrike-mode ()
-  "Cut a rectangle of text between mark and cursor to register, replacing 
-characters with spaces and moving cursor back to upper left corner."
+  "Cut a rectangle of text between mark and cursor to register.
+Replace cut characters with spaces and moving cursor back to
+upper left corner."
   (interactive "*")
   (edt-check-selection)
   (setq edt-rect-start-point (region-beginning))
@@ -1296,8 +1289,8 @@ characters with spaces and moving cursor back to upper left corner."
   (message "Selected rectangle CUT to register"))
 
 (defun edt-cut-rectangle-insert-mode ()
-  "Cut a rectangle of text between mark and cursor to register, deleting
-intermediate text and moving cursor back to upper left corner."
+  "Cut a rectangle of text between mark and cursor to register.
+Move cursor back to upper left corner."
   (interactive "*")         
   (edt-check-selection)
   (setq edt-rect-start-point (region-beginning))
@@ -1308,7 +1301,7 @@ intermediate text and moving cursor back to upper left corner."
 
 (defun edt-cut-rectangle ()
   "Cut a rectangular region of text to register.
-If overwrite mode is active, cut text is replace with whitespace."
+If overwrite mode is active, cut text is replaced with whitespace."
   (interactive "*")
   (if overwrite-mode
       (edt-cut-rectangle-overstrike-mode)
@@ -1416,7 +1409,8 @@ and the cursor is left to rest at the beginning of that word."
 ;;;
 ;;;  Emacs version 19 X-windows key definition support
 ;;;
-(defvar edt-last-answer nil "Most recent response to edt-y-or-n-p.")
+(defvar edt-last-answer nil 
+  "Most recent response to edt-y-or-n-p.")
 
 (defun edt-y-or-n-p (prompt &optional not-yes)
   "Prompt for a y or n answer with positive default.
@@ -1993,10 +1987,12 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
         (with-electric-help 'delete-other-windows name t))))
 
 (defun edt-electric-keypad-help ()
+  "Display default EDT bindings."
   (interactive)
   (edt-electric-helpify 'edt-keypad-help))
 
 (defun edt-electric-user-keypad-help ()
+  "Display user custom EDT bindings."
   (interactive)
   (edt-electric-helpify 'edt-user-keypad-help))
 
