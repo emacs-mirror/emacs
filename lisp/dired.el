@@ -1360,6 +1360,7 @@ Creates a buffer if necessary."
   (interactive)
   (set-buffer-modified-p nil)
   (find-alternate-file (dired-get-file-for-visit)))
+;; Don't override the setting from .emacs.
 ;;;###autoload (put 'dired-find-alternate-file 'disabled t)
 
 (defun dired-mouse-find-file-other-window (event)
