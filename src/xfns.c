@@ -8185,11 +8185,9 @@ x_build_heuristic_mask (f, img, how)
   
   if (CONSP (how))
     {
-      int rgb[3], i = 0;
+      int rgb[3], i;
 
-      while (i < 3
-	     && CONSP (how)
-	     && NATNUMP (XCAR (how)))
+      for (i = 0; i < 3 && CONSP (how) && NATNUMP (XCAR (how)); ++i)
 	{
 	  rgb[i] = XFASTINT (XCAR (how)) & 0xffff;
 	  how = XCDR (how);
