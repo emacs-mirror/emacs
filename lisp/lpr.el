@@ -42,7 +42,8 @@
       "lp" "lpr")
   "*Shell command for printing a file")
 
-(defvar lpr-headers-switches (or (memq system-type '(usg-unix-v hpux)) "-p")
+(defvar lpr-headers-switches
+  (if (memq system-type '(usg-unix-v hpux)) nil "-p")
   "*List of strings to use as options for `lpr' to request page headings.")
 
 (defvar print-region-function nil
