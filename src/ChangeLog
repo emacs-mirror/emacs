@@ -1,3 +1,9 @@
+2001-10-03  Miles Bader  <miles@gnu.org>
+
+	* callproc.c (syms_of_callproc): Explicitly state in the
+	documentation for `process-environment' that earlier entries take
+	precedence over later ones.
+
 2001-10-02  Miles Bader  <miles@gnu.org>
 
 	* textprop.c (Fnext_char_property_change)
