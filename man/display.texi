@@ -213,6 +213,9 @@ you previously set by @code{scroll-left}.
 @section Follow Mode
 @cindex Follow mode
 @cindex mode, Follow
+@findex follow-mode
+@cindex windows, synchronizing
+@cindex synchronizing windows
 
   @dfn{Follow mode} is a minor mode that makes two windows showing the
 same buffer scroll as one tall ``virtual window.''  To use Follow mode,
