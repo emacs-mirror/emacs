@@ -1012,7 +1012,7 @@ or nil meaning don't change it."
   :type '(repeat (cons regexp (choice (const :tag "On" "on")
 				      (const :tag "Off" "off")
 				      (const :tag "Don't change" nil))))
-  :version 21.3)
+  :version 21.4)
 
 ;;;; ------------------------------------------------------------
 ;;;; Hash table support.

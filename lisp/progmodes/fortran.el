@@ -142,7 +142,7 @@ You might want to change this to \"*\", for instance."
 (defcustom fortran-preprocessor-re
   "^[ \t]*#.*"
   "*Regexp to match the whole of a preprocessor line."
-  :version "21.3"
+  :version "21.4"
   :type 'regexp
   :group 'fortran-indent)
 

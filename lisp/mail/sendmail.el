@@ -309,7 +309,7 @@ support Delivery Status Notification."
   :type '(repeat (radio (const :tag "Failure" failure)
 			(const :tag "Delay" delay)
 			(const :tag "Success" success)))
-  :version "21.3")
+  :version "21.4")
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.

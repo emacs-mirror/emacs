@@ -339,7 +339,7 @@ If this variable is customized, the custom value is used always.
 Otherwise, it is set to be buffer-local when the file has
  a DOCTYPE or an XML declaration."
   :type 'boolean
-  :version "21.2"
+  :version "21.4"
   :group 'sgml)
 
 (defvar sgml-empty-tags nil

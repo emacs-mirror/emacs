@@ -119,7 +119,7 @@ this variable."
 
 (defcustom add-log-always-start-new-record nil
   "*If non-nil, `add-change-log-entry' will always start a new record."
-  :version "21.2"
+  :version "21.4"
   :type 'boolean
   :group 'change-log)
 

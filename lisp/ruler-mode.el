@@ -105,7 +105,7 @@
 
 (defgroup ruler-mode nil
   "Display a ruler in the header line."
-  :version "21.3"
+  :version "21.4"
   :group 'environment)
 
 (defcustom ruler-mode-show-tab-stops nil

@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.39 2002/04/08 13:38:48 sds Exp $
+;; $Id: vc-cvs.el,v 1.40 2002/04/09 17:13:51 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +42,7 @@
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.3"
+  :version "21.4"
   :group 'vc)
 
 (defcustom vc-cvs-register-switches nil
@@ -98,7 +98,7 @@ of a repository; then VC only stays local for hosts that match it."
 Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
-  :version "21.3"
+  :version "21.4"
   :group 'vc)
 
 (defcustom vc-cvs-sticky-tag-display t
@@ -137,7 +137,7 @@ displayed.  Date and time is displayed for sticky dates.
 
 See also variable `vc-cvs-sticky-date-format-string'."
   :type '(choice boolean function)
-  :version "21.3"
+  :version "21.4"
   :group 'vc)
 
 ;;;

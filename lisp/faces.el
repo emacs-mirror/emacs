@@ -1773,7 +1773,7 @@ created."
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30"))
   "Basic mode line face for non-selected windows."
-  :version "21.2"
+  :version "21.4"
   :group 'modeline
   :group 'basic-faces)
 
@@ -1834,7 +1834,7 @@ created."
 			     (((type pc)) :foreground "magenta")
 			     (t :foreground "dark blue"))
   "Face for minibuffer prompts."
-  :version "21.3"
+  :version "21.4"
   :group 'basic-faces)
 
 (setq minibuffer-prompt-properties

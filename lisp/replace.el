@@ -62,7 +62,7 @@ strings or patterns."
   "*Non-nil means `query-replace' and friends ignore read-only matches."
   :type 'boolean
   :group 'matching
-  :version "21.3")
+  :version "21.4")
 
 (defun query-replace-read-args (string regexp-flag &optional noerror)
   (unless noerror

@@ -30,7 +30,7 @@
 (defgroup w32 nil
   "MS-Windows specific features"
   :group 'environment
-  :version "21.3"
+  :version "21.4"
   :prefix "w32")
 
 ;; Redefine the font selection to use the standard W32 dialog
