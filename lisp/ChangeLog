@@ -1,3 +1,10 @@
+2000-12-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Setup indentation.
+	(easy-menu-current-active-maps): New function.
+	(easy-menu-get-map): Use it.
+	Make a proper menu entry when creating a new keymap.
+
 2000-12-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Fix cases and syntaxes for
@@ -46,7 +53,7 @@
 
 	* term/mac-win.el: Remove load for ls-lisp.
 
-	* loadup.el: Load ls-lisp for system-type macos.
+	* loadup.el: Load ls-lisp for system-type macros.
 
 2000-12-12  Miles Bader  <miles@gnu.org>
 
