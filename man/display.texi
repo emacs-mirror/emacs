@@ -106,6 +106,8 @@ the default face on non-windowed terminals.  @xref{Display Custom}.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
+@item minibuffer-prompt
+This face is used for the prompt strings displayed in the minibuffer.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
