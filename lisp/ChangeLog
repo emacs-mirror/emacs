@@ -1,3 +1,13 @@
+2001-04-05  Colin Walters <walters@cis.ohio-state.edu>
+
+	* eshell/eshell.el (eshell-command): Needed a "%s" format
+	specifier, in case the buffer contains percent characters.
+
+2001-04-04  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-generate-report): Added a
+	missing insert of the project name.
+
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* obsolete/profile.el: Moved from emacs-lisp/.

@@ -1,3 +1,7 @@
+2001-04-09  John Wiegley  <johnw@gnu.org>
+
+	* eshell.texi: A few additions.
+
 2001-03-30  Andreas Schwab  <schwab@suse.de>
 
 	* files.texi (Backup Names): Fix typo.
