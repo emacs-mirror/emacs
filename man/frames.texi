@@ -44,7 +44,7 @@ so that you can use many of the features described in this chapter.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
-* Drag and drop::       Using drag and drop to open files and insert text.
+* Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
@@ -813,12 +813,12 @@ buffers are scrolled.
 @section Drag and Drop
 @cindex drag and drop
 
-  Emacs supports @cindex{drag and drop} using the mouse.  For
-instance, dropping text onto an Emacs frame inserts the text where it
-is dropped.  Dropping a file onto an Emacs frame visits that file.  As
-a special case, dropping the file on a Dired buffer moves or copies
-the file (according to the conventions of the application it came
-from) into the directory displayed in that buffer.
+  Emacs supports @dfn{drag and drop} using the mouse.  For instance,
+dropping text onto an Emacs frame inserts the text where it is dropped.
+Dropping a file onto an Emacs frame visits that file.  As a special
+case, dropping the file on a Dired buffer moves or copies the file
+(according to the conventions of the application it came from) into the
+directory displayed in that buffer.
 
 @vindex x-dnd-open-file-other-window
   Dropping a file normally visits it in the window you drop it on.  If
