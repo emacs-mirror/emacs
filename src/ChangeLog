@@ -1,3 +1,8 @@
+2004-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (in_timer_check): New static var.
+	(timer_check): Use it to guard against reentry.
+
 2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* w32fns.c (Fw32_define_rgb_color): Avoid XSET.
