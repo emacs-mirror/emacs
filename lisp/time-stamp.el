@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright 1989, 1993, 1994, 1995, 1997, 2000
+;; Copyright 1989, 1993, 1994, 1995, 1997, 2000, 2001
 ;;;	Free Software Foundation, Inc.
 
 ;; Maintainer's Time-stamp: <2000-12-04 16:06:50 gildea>
@@ -48,7 +48,10 @@
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
 
-A string is used verbatim except for character sequences beginning with %:
+A string is used verbatim except for character sequences beginning
+with %, as follows.  The values of non-numeric formatted items depend
+on the locale setting recorded in `locale-coding-system'.  The
+examples here are for the default (`C') locale.
 
 %:a  weekday name: `Monday'.		%#A gives uppercase: `MONDAY'
 %3a  abbreviated weekday: `Mon'.	%3A gives uppercase: `MON'
@@ -432,10 +435,10 @@ Optionally use FORMAT."
 ;;;      The : modifier is a temporary conversion feature used to resolve
 ;;; ambiguous formats--formats that are changing (over time) incompatibly.
 (defun time-stamp-string-preprocess (format &optional time)
-  ;; Use a FORMAT to format date, time, file, and user information.
-  ;; Optional second argument TIME is only for testing.
-  ;; Implements non-time extensions to format-time-string
-  ;; and all time-stamp-format compatibility.
+  "Use a FORMAT to format date, time, file, and user information.
+Optional second argument TIME is only for testing.
+Implements non-time extensions to `format-time-string'
+and all time-stamp-format compatibility."
   (let ((fmt-len (length format))
 	(ind 0)
 	cur-char
@@ -461,7 +464,7 @@ Optionally use FORMAT."
 				  ?\0))
 		 (or (eq ?. cur-char)
 		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char) 
+		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
 		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
 		     (and (eq ?\( cur-char)
 			  (not (eq prev-char ?\\))
@@ -599,10 +602,9 @@ Optionally use FORMAT."
     result))
 
 (defun time-stamp-do-number (format-char alt-form field-width time)
-  ;; Handle a compatible FORMAT-CHAR where only
-  ;; the default width/padding will change.
-  ;; ALT-FORM is whether `#' specified.  FIELD-WIDTH is the string
-  ;; width specification or "".  TIME is the time to convert.
+  "Handle compatible FORMAT-CHAR where only default width/padding will change.
+ALT-FORM is whether `#' specified.  FIELD-WIDTH is the string
+width specification or \"\".  TIME is the time to convert."
   (let ((format-string (concat "%" (char-to-string format-char))))
     (and (not alt-form) (string-equal field-width "")
 	 (time-stamp-conv-warn format-string
@@ -623,7 +625,7 @@ The new forms being recommended now will continue to work then.")
 
 
 (defun time-stamp-conv-warn (old-form new-form)
-  ;; Display a warning about a soon-to-be-obsolete format.
+  "Display a warning about a soon-to-be-obsolete format."
   (cond
    (time-stamp-conversion-warn
     (save-excursion
