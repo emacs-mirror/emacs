@@ -1155,7 +1155,8 @@ For mouse click events in the text area, mode line, header line, or in
 the marginal areas, @var{position} has this form:
 
 @example
-(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp} @var{object} @var{text-pos} (@var{col} . @var{row}))
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
 @end example
 
 @table @asis
@@ -1179,9 +1180,11 @@ For the vertical line, @var{x} does not have meaningful data.
 This is the time at which the event occurred, in milliseconds.
 
 @item @var{object}
-This is the object on which the click occurred.  It is either nil (for
-a click in a marginal area with no associated object, or it has the
-form (@var{string} . @var{string-pos}).
+This is the object on which the click occurred.  It is either
+@code{nil} if there is no string property or image at the position
+clicked on, or it has the form (@var{string} . @var{string-pos}) when
+there is a string-type text property at the click position, or it is
+an image object as returned by @code{find-image} if click was in an image.
 
 @item @var{string}
 This is the string on which the click occurred, including any
@@ -1201,6 +1204,12 @@ the window.
 These are the actual coordinates of the glyph under the @var{x},
 @var{y} position, possibly padded with default character width
 glyphs if @var{x} is beyond the last glyph on the line.
+
+@item @var{dx}, @var{dy}
+These are the pixel-denominated coordinates of the click, relative to
+the top left corner of @var{object}, which is @code{(0 . 0)}.  If
+@var{object} is @code{nil}, the coordinates are relative to the top
+left corner of the character glyph clicked on.
 @end table
 
 For mouse clicks on a scroll-bar, @var{position} has this form:
@@ -1659,7 +1668,8 @@ a mouse button or motion event.
 mouse-button event, as a list of this form:
 
 @example
-(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp} @var{object} @var{text-pos} (@var{col} . @var{row}))
+(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
+ @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
 @end example
 
 @defun event-start event
@@ -1688,7 +1698,7 @@ Return the window that @var{position} is in.
 @end defun
 
 @defun posn-area position
-Return the window area recorded in @var{position}.  It returns nil
+Return the window area recorded in @var{position}.  It returns @code{nil}
 when the event occurred in the text area of the window; otherwise, it
 is a symbol identifying the area in which the the event occurred.
 @end defun
@@ -1698,11 +1708,6 @@ Return the buffer position in @var{position}.  When the event occurred
 in the text area of the window, in a marginal area, or on a fringe,
 this is an integer specifying a buffer position.  Otherwise, the value
 is undefined.
-@end defun
-
-@defun posn-timestamp
-Return the timestamp in @var{position}.  This is the time at which the
-event occurred, in milliseconds.
 @end defun
 
 @defun posn-x-y position
@@ -1721,14 +1726,26 @@ are computed from the @var{x} and @var{y} values actually found in
 Return the actual row and column in @var{position}, as a cons cell
 @code{(@var{col} . @var{row})}.  The values are the actual row number
 in the window, and the actual character number in that row.  Return
-nil if @var{position} does not include the actual positions; in that
+@code{nil} if @var{position} does not include the actual positions; in that
 case, @code{posn-col-row} can be used to get approximate values.
+@end defun
+
+@defun posn-object position
+Return the object in @var{position}, either @code{nil}, a cons
+cell @code{(@var{string} . @var{string-pos})}, or an image
+@code{(image ...)}.
+@end defun
+
+@defun posn-object-x-y position
+Return the pixel-based x and y coordinates relative to the upper left
+corner of the object in @var{position}, as a cons cell @code{(@var{dx} . @var{dy})}.
 @end defun
 
 @cindex mouse event, timestamp
 @cindex timestamp of a mouse event
-@defun posn-timestamp position
-Return the timestamp in @var{position}.
+@defun posn-timestamp
+Return the timestamp in @var{position}.  This is the time at which the
+event occurred, in milliseconds.
 @end defun
 
   These functions are useful for decoding scroll bar events.
