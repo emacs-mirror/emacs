@@ -1,3 +1,8 @@
+2002-06-17  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* comint.el (comint-insert-clicked-input): Insert clicked-on
+	previous input without properties.
+
 2002-06-16  Andrew Choi  <akochoi@shaw.ca>
 
 	* term/mac-win.el (scalable-fonts-allowed): Set to t.
