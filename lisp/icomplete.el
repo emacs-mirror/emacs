@@ -1,6 +1,6 @@
 ;;;_. icomplete.el - minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
@@ -23,10 +23,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
-;; This file is also part of XEmacs.
-;; Hacked for XEmacs: David Hughes 7th September 1995
-;; With some integration and refinement by Ken Manheimer, May 1997
 
 ;;; Commentary:
 
