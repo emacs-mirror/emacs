@@ -1736,7 +1736,7 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 the text that would appear in a mode line or header line
 based on certain mode-line specification.
 
-@defun format-mode-line &optional format window no-props
+@defun format-mode-line &optional format window no-props buffer
 This function formats a line of text according to @var{format} as if
 it were generating the mode line for @var{window}, but instead of
 displaying the text in the mode line or the header line, it returns
@@ -1752,6 +1752,8 @@ The argument @var{window} defaults to the selected window.
 The value string normally has text properties that correspond to the
 faces, keymaps, etc., that the mode line would have.  If
 @var{no-props} is non-@code{nil}, the value has no text properties.
+If @var{buffer} is non-@code{nil}, all the information used is taken 
+from @var{buffer}; by default,it comes from @var{window}'s buffer.
 @end defun
 
 @node Imenu

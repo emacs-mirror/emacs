@@ -171,7 +171,7 @@ them).  Others do more sophisticated things.
 @kindex UP
 @kindex DOWN
 @findex beginning-of-line
-@findex end-of-line
+@findex move-end-of-line
 @findex forward-char
 @findex backward-char
 @findex next-line
@@ -185,7 +185,7 @@ them).  Others do more sophisticated things.
 @item C-a
 Move to the beginning of the line (@code{beginning-of-line}).
 @item C-e
-Move to the end of the line (@code{end-of-line}).
+Move to the end of the line (@code{move-end-of-line}).
 @item C-f
 Move forward one character (@code{forward-char}).  The right-arrow key
 does the same thing.
@@ -380,24 +380,32 @@ mark ring (@pxref{Mark Ring}).
 
 @vindex undo-limit
 @vindex undo-strong-limit
+@vindex undo-outer-limit
 @cindex undo limit
   When the undo information for a buffer becomes too large, Emacs
 discards the oldest undo information from time to time (during garbage
 collection).  You can specify how much undo information to keep by
-setting two variables: @code{undo-limit} and @code{undo-strong-limit}.
-Their values are expressed in units of bytes of space.
+setting three variables: @code{undo-limit}, @code{undo-strong-limit},
+and @code{undo-outer-limit}.  Their values are expressed in units of
+bytes of space.
 
   The variable @code{undo-limit} sets a soft limit: Emacs keeps undo
-data for enough commands to reach this size, and perhaps exceed it, but
-does not keep data for any earlier commands beyond that.  Its default
-value is 20000.  The variable @code{undo-strong-limit} sets a stricter
-limit: the command which pushes the size past this amount is itself
-forgotten.  Its default value is 30000.
+data for enough commands to reach this size, and perhaps exceed it,
+but does not keep data for any earlier commands beyond that.  Its
+default value is 20000.  The variable @code{undo-strong-limit} sets a
+stricter limit: a previous command (not the most recent one) which
+pushes the size past this amount is itself forgotten.  The default
+value of @code{undo-strong-limit} is 30000.
 
-  Regardless of the values of those variables, the most recent change is
-never discarded, so there is no danger that garbage collection occurring
-right after an unintentional large change might prevent you from undoing
-it.
+  Regardless of the values of those variables, the most recent change
+is never discarded unless it gets bigger than @code{undo-outer-limit}
+(normally 300,000).  At that point, Emacs asks whether to discard the
+undo information even for the current command.  (You also have the
+option of quitting.)  So there is normally no danger that garbage
+collection occurring right after an unintentional large change might
+prevent you from undoing it.  But if you didn't expect the command
+to create such large undo data, you can get rid of it and prevent
+Emacs from running out of memory.
 
   The reason the @code{undo} command has two keys, @kbd{C-x u} and
 @kbd{C-_}, set up to run it is that it is worthy of a single-character

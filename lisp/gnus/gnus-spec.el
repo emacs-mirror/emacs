@@ -275,21 +275,15 @@ Return a list of updated types."
 
 (defun gnus-spec-tab (column)
   (if (> column 0)
-      `(insert (make-string (max (- ,column (current-column)) 0) ? ))
+      `(insert-char ?  (max (- ,column (current-column)) 0))
     (let ((column (abs column)))
-      (if gnus-use-correct-string-widths
-	  `(progn
-	     (if (> (current-column) ,column)
-		 (while (progn
-			  (delete-backward-char 1)
-			  (> (current-column) ,column))))
-	     (insert (make-string (max (- ,column (current-column)) 0) ? )))
-	`(progn
-	   (if (> (current-column) ,column)
-	       (delete-region (point)
-			      (- (point) (- (current-column) ,column)))
-	     (insert (make-string (max (- ,column (current-column)) 0)
-				  ? ))))))))
+      `(if (> (current-column) ,column)
+	   (let ((end (point)))
+	     (if (= (move-to-column ,column) ,column)
+		 (delete-region (point) end)
+	       (delete-region (1- (point)) end)
+	       (insert " ")))
+	 (insert-char ?  (max (- ,column (current-column)) 0))))))
 
 (defun gnus-correct-length (string)
   "Return the correct width of STRING."

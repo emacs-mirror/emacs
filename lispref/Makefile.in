@@ -31,7 +31,7 @@ infodir = $(srcdir)/../info
 TEXI2DVI = texi2dvi
 SHELL = /bin/sh
 INSTALL_INFO = install-info
-MAKEINFO = makeinfo
+MAKEINFO = makeinfo --force
 
 # The name of the manual:
 VERSION=2.9

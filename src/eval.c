@@ -88,7 +88,7 @@ struct catchtag *catchlist;
 int gcpro_level;
 #endif
 
-Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun, Qdefvar;
+Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
@@ -647,7 +647,7 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
       && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, fn_name));
   Ffset (fn_name, defn);
-  LOADHIST_ATTACH (fn_name);
+  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
   return fn_name;
 }
 
@@ -716,7 +716,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
       && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, fn_name));
   Ffset (fn_name, defn);
-  LOADHIST_ATTACH (fn_name);
+  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
   return fn_name;
 }
 
@@ -742,7 +742,7 @@ The return value is ALIASED.  */)
   sym->indirect_variable = 1;
   sym->value = aliased;
   sym->constant = SYMBOL_CONSTANT_P (aliased);
-  LOADHIST_ATTACH (Fcons (Qdefvar, symbol));
+  LOADHIST_ATTACH (symbol);
   if (!NILP (docstring))
     Fput (symbol, Qvariable_documentation, docstring);
 
@@ -810,7 +810,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	    tem = Fpurecopy (tem);
 	  Fput (sym, Qvariable_documentation, tem);
 	}
-      LOADHIST_ATTACH (Fcons (Qdefvar, sym));
+      LOADHIST_ATTACH (sym);
     }
   else
     /* Simple (defvar <var>) should not count as a definition at all.
@@ -853,7 +853,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
 	tem = Fpurecopy (tem);
       Fput (sym, Qvariable_documentation, tem);
     }
-  LOADHIST_ATTACH (Fcons (Qdefvar, sym));
+  LOADHIST_ATTACH (sym);
   return sym;
 }
 
@@ -3375,9 +3375,6 @@ before making `inhibit-quit' nil.  */);
 
   Qdefun = intern ("defun");
   staticpro (&Qdefun);
-
-  Qdefvar = intern ("defvar");
-  staticpro (&Qdefvar);
 
   Qand_rest = intern ("&rest");
   staticpro (&Qand_rest);

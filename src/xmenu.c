@@ -116,7 +116,7 @@ extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
 static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
-                                     LWLIB_ID, int, int));
+                                     LWLIB_ID, int));
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
@@ -1186,24 +1186,21 @@ x_menu_wait_for_event (void *data)
    popped down (deactivated).  This is used for x-popup-menu
    and x-popup-dialog; it is not used for the menu bar.
 
-   If DOWN_ON_KEYPRESS is nonzero, pop down if a key is pressed.
-
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 static void
-popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
+popup_get_selection (initial_event, dpyinfo, id, do_timers)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
      int do_timers;
-     int down_on_keypress;
 {
   XEvent event;
 
   while (popup_activated_flag)
     {
-       if (initial_event)
+      if (initial_event)
         {
           event = *initial_event;
           initial_event = 0;
@@ -1232,20 +1229,15 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
           event.xbutton.state = 0;
 #endif
         }
-      /* If the user presses a key that doesn't go to the menu,
-         deactivate the menu.
-         The user is likely to do that if we get wedged.
-         All toolkits now pop down menus on ESC.
-         For dialogs however, the focus may not be on the dialog, so
-         in that case, we pop down. */
+      /* Pop down on C-g and Escape.  */
       else if (event.type == KeyPress
-               && down_on_keypress
                && dpyinfo->display == event.xbutton.display)
         {
           KeySym keysym = XLookupKeysym (&event.xkey, 0);
-          if (!IsModifierKey (keysym)
-              && x_any_window_to_frame (dpyinfo, event.xany.window) != NULL)
-	    popup_activated_flag = 0;
+
+          if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+              || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
+            popup_activated_flag = 0;
         }
 
       x_dispatch_event (&event, event.xany.display);
@@ -2226,6 +2218,9 @@ set_frame_menubar (f, first_time, deep_p)
     }
   else
     {
+      char menuOverride[] = "Ctrl<KeyPress>g: MenuGadgetEscape()";
+      XtTranslations  override = XtParseTranslationTable (menuOverride);
+
       menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv,
 					 f->output_data.x->column_widget,
 					 0,
@@ -2234,6 +2229,9 @@ set_frame_menubar (f, first_time, deep_p)
 					 popup_deactivate_callback,
 					 menu_highlight_callback);
       f->output_data.x->menubar_widget = menubar_widget;
+
+      /* Make menu pop down on C-g.  */
+      XtOverrideTranslations (menubar_widget, override);
     }
 
   {
@@ -2597,7 +2595,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
                                   make_number (menu_id & ~(-1 << (fact)))));
 
     /* Process events that apply to the menu.  */
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1);
 
     unbind_to (specpdl_count, Qnil);
   }
@@ -2975,7 +2973,7 @@ create_and_show_dialog (f, first_wv)
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
     popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f),
-                         dialog_id, 1, 1);
+                         dialog_id, 1);
 
     unbind_to (count, Qnil);
   }
@@ -3155,6 +3153,9 @@ xdialog_show (f, keymaps, title, error)
 	    }
 	}
     }
+  else
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -3500,7 +3501,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
     case XM_FAILURE:
       *error = "Can't activate menu";
     case XM_IA_SELECT:
+      entry = Qnil;
+      break;
     case XM_NO_SELECT:
+      /* Make "Cancel" equivalent to C-g unless this menu was popped up by
+         a mouse press.  */
+      if (! for_click)
+        Fsignal (Qquit, Qnil);
       entry = Qnil;
       break;
     }

@@ -708,6 +708,23 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
   (when (file-exists-p file)
     (delete-file file)))
 
+(defun gnus-delete-directory (directory)
+  "Delete files in DIRECTORY.  Subdirectories remain.
+If there's no subdirectory, delete DIRECTORY as well."
+  (when (file-directory-p directory)
+    (let ((files (directory-files
+		  directory t "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+	  file dir)
+      (while files
+	(setq file (pop files))
+	(if (eq t (car (file-attributes file)))
+	    ;; `file' is a subdirectory.
+	    (setq dir t)
+	  ;; `file' is a file or a symlink.
+	  (delete-file file)))
+      (unless dir
+	(delete-directory directory)))))
+
 (defun gnus-strip-whitespace (string)
   "Return STRING stripped of all whitespace."
   (while (string-match "[\r\n\t ]+" string)

@@ -355,7 +355,7 @@ face (according to `face-differs-from-default-p')."
 	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
-	(setq file-name (symbol-file function)))
+	(setq file-name (symbol-file function 'defun)))
     (when (equal file-name "loaddefs.el")
       ;; Find the real def site of the preloaded function.
       ;; This is necessary only for defaliases.
@@ -614,7 +614,7 @@ it is displayed along with the global value."
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
-	    (let ((file-name (symbol-file (cons 'defvar variable))))
+	    (let ((file-name (symbol-file variable 'defvar)))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location

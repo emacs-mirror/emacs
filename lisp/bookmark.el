@@ -1049,6 +1049,8 @@ of the old one in the permanent bookmark record."
   (interactive
    (list (bookmark-completing-read "Jump to bookmark"
 				   bookmark-current-bookmark)))
+  (unless bookmark
+    (error "No bookmark specified"))
   (bookmark-maybe-historicize-string bookmark)
   (let ((cell (bookmark-jump-noselect bookmark)))
     (and cell

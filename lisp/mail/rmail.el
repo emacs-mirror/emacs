@@ -3435,6 +3435,8 @@ typically for purposes of moderating a list."
   (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
+	(mail-personal-alias-file
+	 (or mail-alias-file mail-personal-alias-file))
 	(mailbuf rmail-buffer))
     (unwind-protect
 	(with-current-buffer tembuf

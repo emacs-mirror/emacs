@@ -3052,8 +3052,6 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
-#ifndef HAVE_CARBON
-  /* MAC_TODO: fullscreen */
   if (FRAME_VISIBLE_P (f) && fullscreen_is_being_set)
     {
       /* If the frame is visible already and the fullscreen parameter is
@@ -3069,7 +3067,6 @@ x_set_frame_parameters (f, alist)
       if (new_top != f->top_pos || new_left != f->left_pos)
         x_set_offset (f, new_left, new_top, 1);
     }
-#endif
 
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
@@ -3230,14 +3227,11 @@ x_report_frame_params (f, alistptr)
   store_in_alist (alistptr, Qdisplay,
 		  XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
 
-#ifndef HAVE_CARBON
-/* A Mac Window is identified by a struct, not an integer.  */
   if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
     XSETFASTINT (tem, FRAME_X_OUTPUT (f)->parent_desc);
   store_in_alist (alistptr, Qparent_id, tem);
-#endif
 }
 
 
@@ -3249,7 +3243,6 @@ x_set_fullscreen (f, new_value, old_value)
      struct frame *f;
      Lisp_Object new_value, old_value;
 {
-#ifndef HAVE_CARBON
   if (NILP (new_value))
     f->want_fullscreen = FULLSCREEN_NONE;
   else if (EQ (new_value, Qfullboth))
@@ -3258,7 +3251,6 @@ x_set_fullscreen (f, new_value, old_value)
     f->want_fullscreen = FULLSCREEN_WIDTH;
   else if (EQ (new_value, Qfullheight))
     f->want_fullscreen = FULLSCREEN_HEIGHT;
-#endif
 }
 
 
@@ -3378,7 +3370,7 @@ x_set_border_width (f, arg, oldval)
   if (XINT (arg) == f->border_width)
     return;
 
-#ifndef HAVE_CARBON
+#ifndef MAC_OS
   if (FRAME_X_WINDOW (f) != 0)
     error ("Cannot change the border width of a window");
 #endif /* MAC_TODO */
@@ -4300,7 +4292,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(HAVE_CARBON)
+#if defined(HAVE_NTGUI) || defined(MAC_OS)
   /* MS-Windows has scroll bars on the right by default.  */
   Vdefault_frame_scroll_bars = Qright;
 #else

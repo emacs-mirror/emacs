@@ -378,6 +378,7 @@ if large.  You can use Info-split to do this manually."
     (find-file outfile)
     (texinfo-mode)
     (erase-buffer)
+    (buffer-disable-undo)
 
     (message "Formatting Info file: %s" outfile)
     (setq texinfo-format-filename

@@ -723,7 +723,7 @@ determined by DEFINITION.  */)
       && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));
   definition = Ffset (symbol, definition);
-  LOADHIST_ATTACH (symbol);
+  LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
   return definition;

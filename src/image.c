@@ -83,16 +83,19 @@ typedef struct w32_bitmap_record Bitmap_Record;
 
 #ifdef MAC_OS
 #include "macterm.h"
+#include <sys/stat.h>
 #ifndef MAC_OSX
 #include <alloca.h>
+#include <sys/param.h>
 #endif
 #ifdef MAC_OSX
-#include <sys/stat.h>
 #include <QuickTime/QuickTime.h>
 #else /* not MAC_OSX */
 #include <Windows.h>
 #include <Gestalt.h>
 #include <TextUtils.h>
+#include <ImageCompression.h>
+#include <QuickTimeComponents.h>
 #endif /* not MAC_OSX */
 
 /* MAC_TODO : Color tables on Mac.  */
@@ -6268,6 +6271,12 @@ jpeg_image_p (object)
 #define HAVE_STDLIB_H_1
 #undef HAVE_STDLIB_H
 #endif /* HAVE_STLIB_H */
+
+#if defined (HAVE_NTGUI) && !defined (__WIN32__)
+/* jpeglib.h will define boolean differently depending on __WIN32__,
+   so make sure it is defined.  */
+#define __WIN32__ 1
+#endif
 
 #include <jpeglib.h>
 #include <jerror.h>

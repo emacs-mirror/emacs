@@ -5877,7 +5877,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 		REQUIRE + LEN_BYTE = LEN_BYTE * (NEW / ORIG)
 		REQUIRE = LEN_BYTE * (NEW - ORIG) / ORIG
 	     Here, we are sure that NEW >= ORIG.  */
-	  float ratio;
 
 	  if (coding->produced <= coding->consumed)
 	    {
@@ -5887,7 +5886,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	    }
 	  else
 	    {
-	      ratio = (coding->produced - coding->consumed) / coding->consumed;
+	      float ratio = coding->produced - coding->consumed;
+	      ratio /= coding->consumed;
 	      require = len_byte * ratio;
 	    }
 	  first = 0;

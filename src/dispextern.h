@@ -62,7 +62,7 @@ typedef XImage *XImagePtr;
 typedef HDC XImagePtr_or_DC;
 #endif
 
-#ifdef HAVE_CARBON
+#ifdef MAC_OS
 #include "macgui.h"
 typedef struct mac_display_info Display_Info;
 /* Mac equivalent of XImage.  */
@@ -1166,7 +1166,7 @@ struct glyph_string
   unsigned for_overlaps_p : 1;
 
   /* The GC to use for drawing this glyph string.  */
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_CARBON)
+#if defined(HAVE_X_WINDOWS) || defined(MAC_OS)
   GC gc;
 #endif
 #if defined(HAVE_NTGUI)

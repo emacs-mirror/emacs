@@ -11712,21 +11712,23 @@ calculator, and a variable in a programming language.  (In fact, a Calc
 variable is really just an Emacs Lisp variable that contains a Calc number
 or formula.)  A variable's name is normally composed of letters and digits.
 Calc also allows apostrophes and @code{#} signs in variable names.
-The Calc variable @code{foo} corresponds to the Emacs Lisp variable
-@code{var-foo}.  Commands like @kbd{s s} (@code{calc-store}) that operate
-on variables can be made to use any arbitrary Lisp variable simply by
-backspacing over the @samp{var-} prefix in the minibuffer.
+(The Calc variable @code{foo} corresponds to the Emacs Lisp variable
+@code{var-foo}, but unless you access the variable from within Emacs
+Lisp, you don't need to worry about it.)
 
 In a command that takes a variable name, you can either type the full
 name of a variable, or type a single digit to use one of the special
-convenience variables @code{var-q0} through @code{var-q9}.  For example,
-@kbd{3 s s 2} stores the number 3 in variable @code{var-q2}, and
+convenience variables @code{q0} through @code{q9}.  For example,
+@kbd{3 s s 2} stores the number 3 in variable @code{q2}, and
 @w{@kbd{3 s s foo @key{RET}}} stores that number in variable
-@code{var-foo}.
+@code{foo}.
 
 To push a variable itself (as opposed to the variable's value) on the
 stack, enter its name as an algebraic expression using the apostrophe
-(@key{'}) key.  Variable names in algebraic formulas implicitly have
+(@key{'}) key.
+
+xxx
+  Variable names in algebraic formulas implicitly have
 @samp{var-} prefixed to their names.  The @samp{#} character in variable
 names used in algebraic formulas corresponds to a dash @samp{-} in the
 Lisp variable name.  If the name contains any dashes, the prefix @samp{var-}
@@ -14139,7 +14141,7 @@ mode is the same as @samp{a_i} in Normal mode.  Assignments
 turn into the @code{assign} function, which Calc normally displays
 using the @samp{:=} symbol.
 
-The variables @code{var-pi} and @code{var-e} would be displayed @samp{pi}
+The variables @code{pi} and @code{e} would be displayed @samp{pi}
 and @samp{e} in Normal mode, but in C mode they are displayed as
 @samp{M_PI} and @samp{M_E}, corresponding to the names of constants
 typically provided in the @file{<math.h>} header.  Functions whose
@@ -17220,7 +17222,9 @@ the corresponding generalized time zone (like @code{PGT}).
 
 If your system does not have a suitable @samp{date} command, you
 may wish to put a @samp{(setq var-TimeZone ...)} in your Emacs
-initialization file to set the time zone.  The easiest way to do
+initialization file to set the time zone.  (Since you are interacting
+with the variable @code{TimeZone} directly from Emacs Lisp, the
+@code{var-} prefix needs to be present.)  The easiest way to do
 this is to edit the @code{TimeZone} variable using Calc's @kbd{s T}
 command, then use the @kbd{s p} (@code{calc-permanent-variable})
 command to save the value of @code{TimeZone} permanently.
@@ -27847,14 +27851,8 @@ to variables use the @kbd{s} prefix key.
 The @kbd{s s} (@code{calc-store}) command stores the value at the top of
 the stack into a specified variable.  It prompts you to enter the
 name of the variable.  If you press a single digit, the value is stored
-immediately in one of the ``quick'' variables @code{var-q0} through
-@code{var-q9}.  Or you can enter any variable name.  The prefix @samp{var-}
-is supplied for you; when a name appears in a formula (as in @samp{a+q2})
-the prefix @samp{var-} is also supplied there, so normally you can simply
-forget about @samp{var-} everywhere.  Its only purpose is to enable you to
-use Calc variables without fear of accidentally clobbering some variable in
-another Emacs package.  If you really want to store in an arbitrary Lisp
-variable, just backspace over the @samp{var-}.
+immediately in one of the ``quick'' variables @code{q0} through
+@code{q9}.  Or you can enter any variable name.  
 
 @kindex s t
 @pindex calc-store-into
@@ -28038,10 +28036,10 @@ you change the value of one of these variables, or of one of the other
 special variables @code{inf}, @code{uinf}, and @code{nan} (which are
 normally void).
 
-Note that @code{var-pi} doesn't actually have 3.14159265359 stored
+Note that @code{pi} doesn't actually have 3.14159265359 stored
 in it, but rather a special magic value that evaluates to @cpi{}
-at the current precision.  Likewise @code{var-e}, @code{var-i}, and
-@code{var-phi} evaluate according to the current precision or polar mode.
+at the current precision.  Likewise @code{e}, @code{i}, and
+@code{phi} evaluate according to the current precision or polar mode.
 If you recall a value from @code{pi} and store it back, this magic
 property will be lost.
 
@@ -28052,9 +28050,9 @@ value of one variable to another.  It differs from a simple @kbd{s r}
 followed by an @kbd{s t} in two important ways.  First, the value never
 goes on the stack and thus is never rounded, evaluated, or simplified
 in any way; it is not even rounded down to the current precision.
-Second, the ``magic'' contents of a variable like @code{var-e} can
+Second, the ``magic'' contents of a variable like @code{e} can
 be copied into another variable with this command, perhaps because
-you need to unstore @code{var-e} right now but you wish to put it
+you need to unstore @code{e} right now but you wish to put it
 back when you're done.  The @kbd{s c} command is the only way to
 manipulate these magic values intact.
 
@@ -28216,7 +28214,7 @@ by hand.  (@xref{General Mode Commands}, for a way to tell Calc to
 use a different file instead of @file{.emacs}.)
 
 If you do not specify the name of a variable to save (i.e.,
-@kbd{s p @key{RET}}), all @samp{var-} variables with defined values
+@kbd{s p @key{RET}}), all Calc variables with defined values
 are saved except for the special constants @code{pi}, @code{e},
 @code{i}, @code{phi}, and @code{gamma}; the variables @code{TimeZone}
 and @code{PlotRejects};
@@ -28228,8 +28226,9 @@ explicitly naming them in an @kbd{s p} command.)
 @kindex s i
 @pindex calc-insert-variables
 The @kbd{s i} (@code{calc-insert-variables}) command writes
-the values of all @samp{var-} variables into a specified buffer.
-The variables are written in the form of Lisp @code{setq} commands
+the values of all Calc variables into a specified buffer.
+The variables are written with the prefix @code{var-} in the form of
+Lisp @code{setq} commands 
 which store the values in string form.  You can place these commands
 in your @file{.emacs} buffer if you wish, though in this case it
 would be easier to use @kbd{s p @key{RET}}.  (Note that @kbd{s i}

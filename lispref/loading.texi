@@ -36,15 +36,16 @@ Similarly, a ``Lisp library directory'' is a directory of files
 containing Lisp code.
 
 @menu
-* How Programs Do Loading::     The @code{load} function and others.
-* Library Search::              Finding a library to load.
-* Loading Non-ASCII::           Non-@acronym{ASCII} characters in Emacs Lisp files.
-* Autoload::                    Setting up a function to autoload.
-* Repeated Loading::            Precautions about loading a file twice.
-* Named Features::              Loading a library if it isn't already loaded.
-* Unloading::			How to ``unload'' a library that was loaded.
-* Hooks for Loading::		Providing code to be run when
-				  particular libraries are loaded.
+* How Programs Do Loading:: The @code{load} function and others.
+* Library Search::          Finding a library to load.
+* Loading Non-ASCII::       Non-@acronym{ASCII} characters in Emacs Lisp files.
+* Autoload::                Setting up a function to autoload.
+* Repeated Loading::        Precautions about loading a file twice.
+* Named Features::          Loading a library if it isn't already loaded.
+* Where Defined::           Finding which file defined a certain symbol.
+* Unloading::		      to ``unload'' a library that was loaded.
+* Hooks for Loading::	    Providing code to be run when
+			      particular libraries are loaded.
 @end menu
 
 @node How Programs Do Loading
@@ -714,6 +715,60 @@ with a call to @code{provide}.  The order of the elements in the
 @code{features} list is not significant.
 @end defvar
 
+@node Where Defined
+@section Which File Defined a Certain Symbol
+
+@defun symbol-file symbol &optional type
+This function returns the name of the file that defined @var{symbol}.
+If @var{type} is @code{nil}, then any kind of definition is
+acceptable.  If @var{type} is @code{defun} or @code{defvar}, that
+specifies function definition only or variable definition only.
+
+The value is the file name as it was specified to @code{load}:
+either an absolute file name, or a library name
+(with no directory name and no @samp{.el} or @samp{.elc} at the end).
+It can also be @code{nil}, if the definition is not associated with any file.
+@end defun
+
+  The basis for @code{symbol-file} is the data in the variable
+@code{load-history}.
+
+@defvar load-history
+This variable's value is an alist connecting library names with the
+names of functions and variables they define, the features they provide,
+and the features they require.
+
+Each element is a list and describes one library.  The @sc{car} of the
+list is the name of the library, as a string.  The rest of the list
+elements have these forms:
+
+@table @code
+@item @var{var}
+The symbol @var{var} was defined as a variable.
+@item (defun . @var{fun})
+The @var{fun} was defined by this library.
+@item (t . @var{fun})
+The function @var{fun} was previously an autoload before this library
+redefined it as a function.  The following element is always the
+symbol @var{fun}, which signifies that the library defined @var{fun}
+as a function.
+@item (autoload . @var{fun})
+The function @var{fun} was defined as an autoload.
+@item (require . @var{feature})
+The feature @var{feature} was required.
+@item (provide . @var{feature})
+The feature @var{feature} was provided.
+@end table
+
+The value of @code{load-history} may have one element whose @sc{car} is
+@code{nil}.  This element describes definitions made with
+@code{eval-buffer} on a buffer that is not visiting a file.
+@end defvar
+
+  The command @code{eval-region} updates @code{load-history}, but does so
+by adding the symbols defined to the element for the file being visited,
+rather than replacing that element.  @xref{Eval}.
+
 @node Unloading
 @section Unloading
 @cindex unloading
@@ -759,42 +814,6 @@ ignored and you can unload any library.
 
   The @code{unload-feature} function is written in Lisp; its actions are
 based on the variable @code{load-history}.
-
-@defvar load-history
-This variable's value is an alist connecting library names with the
-names of functions and variables they define, the features they provide,
-and the features they require.
-
-Each element is a list and describes one library.  The @sc{car} of the
-list is the name of the library, as a string.  The rest of the list
-elements have these forms:
-
-@table @code
-@item @var{fun}
-The function @var{fun} was defined by this library.
-@item (t . @var{fun})
-The function @var{fun} was previously an autoload before this library
-redefined it as a function.  The following element is always the
-symbol @var{fun}, which signifies that the library defined @var{fun}
-as a function.
-@item (autoload . @var{fun})
-The function @var{fun} was defined as an autoload.
-@item (defvar . @var{var})
-The symbol @var{var} was defined as a variable.
-@item (require . @var{feature})
-The feature @var{feature} was required.
-@item (provide . @var{feature})
-The feature @var{feature} was provided.
-@end table
-
-The value of @code{load-history} may have one element whose @sc{car} is
-@code{nil}.  This element describes definitions made with
-@code{eval-buffer} on a buffer that is not visiting a file.
-@end defvar
-
-  The command @code{eval-region} updates @code{load-history}, but does so
-by adding the symbols defined to the element for the file being visited,
-rather than replacing that element.  @xref{Eval}.
 
 @defvar unload-feature-special-hooks
 This variable holds a list of hooks to be scanned before unloading a

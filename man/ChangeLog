@@ -1,3 +1,19 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Mention Gtk+ 2.6 also, as that version is
+	out now.
+
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (MAKEINFO): Specify --force.
+
+	* basic.texi (Moving Point): C-e now runs move-end-of-line.
+	(Undo): Doc undo-outer-limit.
+
+2004-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (MAKEINFO): Add --force.
+
 2004-12-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Types Tutorial): Emphasized that you can't divide by
@@ -23,6 +39,7 @@
 	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
 	(Dealing with HTTP documents): @inforef->@xref.
 
+>>>>>>> 1.412
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* mark.texi (Transient Mark, Mark Ring): M-< and other
@@ -39,6 +56,7 @@
 
 	* calc.texi: Fix some TeX definitions.
 
+>>>>>>> 1.407
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
 	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
@@ -52,6 +70,7 @@
 	* mark.texi (Marking Objects): Marking commands also extend the
 	region when mark is active in Transient Mark mode.
 
+>>>>>>> 1.403
 2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* reftex.texi (Imprint): Remove erroneous @value's.

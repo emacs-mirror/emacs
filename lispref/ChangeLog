@@ -1,3 +1,18 @@
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (MAKEINFO): Specify --force.
+
+	* buffers.texi (Killing Buffers): Add buffer-save-without-query.
+
+	* modes.texi (Emulating Mode Line): Document format's BUFFER arg.
+
+	* display.texi (Line Height): Further clarify.
+
+	* elisp.texi (Top): Update Loading submenu.
+
+	* loading.texi (Where Defined): New node.
+	(Unloading): load-history moved to Where Defined.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Event Input Misc): Add while-no-input.

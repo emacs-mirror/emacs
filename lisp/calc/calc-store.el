@@ -174,13 +174,17 @@
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
-  (let ((var (let ((minibuffer-completion-table obarray)
-		   (minibuffer-completion-predicate 'boundp)
-		   (minibuffer-completion-confirm t))
-	       (read-from-minibuffer prompt "var-" calc-var-name-map nil))))
+  (let ((var (concat 
+              "var-"
+              (let ((minibuffer-completion-table
+                     (mapcar (lambda (x) (substring x 4)) 
+                             (all-completions "var-" obarray)))
+                    (minibuffer-completion-predicate 
+                     (lambda (x) (boundp (intern (concat "var-" x)))))
+                    (minibuffer-completion-confirm t))
+                (read-from-minibuffer prompt nil calc-var-name-map nil)))))
     (setq calc-aborted-prefix "")
-    (and (not (equal var ""))
-	 (not (equal var "var-"))
+    (and (not (equal var "var-"))
 	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
 	     (if (null calc-given-value-flag)
 		 (error "Assignment is not allowed in this command")

@@ -1878,13 +1878,27 @@ or a function symbol which, when called, returns such a cons cell."
 (defun decode-coding-inserted-region (from to filename
 					   &optional visit beg end replace)
   "Decode the region between FROM and TO as if it is read from file FILENAME.
+The idea is that the text between FROM and TO was just inserted somehow.
 Optional arguments VISIT, BEG, END, and REPLACE are the same as those
-of the function `insert-file-contents'."
+of the function `insert-file-contents'.
+Part of the job of this function is setting `buffer-undo-list' appropriately."
   (save-excursion
     (save-restriction
-      (narrow-to-region from to)
-      (goto-char (point-min))
-      (let ((coding coding-system-for-read))
+      (let ((coding coding-system-for-read)
+	    undo-list-saved)
+	(if visit
+	    ;; Temporarily turn off undo recording, if we're decoding the
+	    ;; text of a visited file.
+	    (setq buffer-undo-list t)
+	  ;; Otherwise, if we can recognize the undo elt for the insertion,
+	  ;; remove it and get ready to replace it later.
+	  ;; In the mean time, turn off undo recording.
+	  (let ((last (car buffer-undo-list))) 
+	    (if (and (consp last) (eql (car last) from) (eql (cdr last) to))
+		(setq undo-list-saved (cdr buffer-undo-list)
+		      buffer-undo-list t))))
+	(narrow-to-region from to)
+	(goto-char (point-min))
 	(or coding
 	    (setq coding (funcall set-auto-coding-function
 				  filename (- (point-max) (point-min)))))
@@ -1899,7 +1913,16 @@ of the function `insert-file-contents'."
 	  (setq coding nil))
 	(if coding
 	    (decode-coding-region (point-min) (point-max) coding)
-	  (setq last-coding-system-used coding))))))
+	  (setq last-coding-system-used coding))
+	;; If we're decoding the text of a visited file,
+	;; the undo list should start out empty.
+	(if visit
+	    (setq buffer-undo-list nil)
+	  ;; If we decided to replace the undo entry for the insertion,
+	  ;; do so now.
+	  (if undo-list-saved
+	      (setq buffer-undo-list
+		    (cons (cons from (point-max)) undo-list-saved))))))))
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.

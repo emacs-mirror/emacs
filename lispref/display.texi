@@ -1533,23 +1533,26 @@ or by adding additional vertical space below one or all lines.
   A newline can have a @code{line-height} text or overlay property
 that controls the total height of the display line ending in that
 newline.  If the property value is zero, the displayed height of the
-line is exactly what its contents need; no line-spacing is added.
+line is exactly what its contents demand; no line-spacing is added.
 This case is useful for tiling small images or image slices without
 adding blank areas between the images.
 
-  If the property value is not zero, it specifies a desired height,
-@var{line-height}.  There are several ways it can do this:
+  If the property value is not zero, it is a height spec.  A height
+spec stands for a numeric height value; this heigh spec specifies the
+actual line height, @var{line-height}.  There are several ways to
+write a height spec; here's how each of them translates into a numeric
+height:
 
 @table @code
 @item @var{integer}
-If the property is a positive integer, @var{line-height} is that integer.
+If the height spec is a positive integer, the height value is that integer.
 @item @var{float}
-If the property is a float, @var{float}, @var{line-height} is @var{float}
-times the frame's default line height.
+If the height spec is a float, @var{float}, the numeric height value
+is @var{float} times the frame's default line height.
 @item (@var{ratio} . @var{face})
-If the property is a cons of the format shown, @var{line-height} is
-@var{ratio} times the height of face @var{face}.  @var{ratio} can be
-any type of number.  If @var{face} is @code{t}, it refers to the
+If the height spec is a cons of the format shown, the numeric height
+is @var{ratio} times the height of face @var{face}.  @var{ratio} can
+be any type of number.  If @var{face} is @code{t}, it refers to the
 current face.
 @end table
 
@@ -1561,6 +1564,8 @@ the line to achieve the total height @var{line-height}.  Otherwise,
 
   If you don't specify the @code{line-height} propery, the line's
 height consists of the contents' height plus the line spacing.
+There are several ways to specify the line spacing for different
+parts of Emacs text.
 
 @vindex default-line-spacing
   You can specify the line spacing for all lines in a frame with the
@@ -1584,24 +1589,23 @@ property that controls the height of the display line ending with that
 newline.  The property value overrides the default frame line spacing
 and the buffer local @code{line-spacing} variable.
 
-  One way or another, these mechanisms specify a line spacing for each
-line.  Let's call the value @var{line-spacing}.
+  One way or another, these mechanisms specify a Lisp value for the
+spacing of each line.  The value is a height spec, and it translates
+into a Lisp value as described above.  However, in this case the
+numeric height value specifies the line spacing, rather than the line
+height.
 
-  If the @var{line-spacing} value is a positive integer, it specifies
-the number of pixels of additional vertical space.  This space appears
-below the display line contents.
+  There is one exception, however: if the @var{line-spacing} value is
+a cons @code{(total . @var{spacing})}, then @var{spacing} itself is
+treated as a heigh spec, and specifies the total displayed height of
+the line, so the line spacing equals the specified amount minus the
+line height.  This differs from using the @code{line-height} property
+because it adds space at the bottom of the line instead of the top.
 
-  If the @var{line-spacing} value is a floating point number or cons,
-the additional vertical space is @var{line-spacing} times the frame
-default line height.
-
-@ignore  @c I think we may want to delete this, so don't document it -- rms.
-  If the @var{line-spacing} value is a cons @code{(total . @var{spacing})}
-where @var{spacing} is any of the forms described above, the value of
-@var{spacing} specifies the total displayed height of the line,
-regardless of the height of the characters in it.  This is equivalent
-to using the @code{line-height} property.
-@end ignore
+  If you specify both @code{line-spacing} using @code{total} and
+@code{line-height}, they are not redundant.  First @code{line-height}
+goes to work, adding space above the line contents.  Then
+@code{line-spacing} goes to work, adding space below the contents.
 
 @node Faces
 @section Faces

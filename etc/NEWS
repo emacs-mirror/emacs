@@ -98,6 +98,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** calculator.el now has radix grouping mode.  In this mode a
+separator character is used between every few digits, making it
+easier to indicate byte boundries etc.  See the documentation of
+the `calculator-radix-grouping-mode' custom variable.
+
 ** You can now follow links by clicking Mouse-1 on the link.
 
 Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
@@ -979,6 +984,9 @@ be navigated with the arrow keys (like Gtk+, Mac and W32).
 ---
 ** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
 ESC, like they do for Gtk+, Mac and W32.
+
+---
+**  Dialogs and menus pop down when pressing C-g.
 
 ---
 ** The menu item "Open File..." has been split into two items, "New File..."
@@ -2143,6 +2151,11 @@ anyone has committed to the repository since you last executed
 "checkout", "update" or "commit".  That means using cvs diff options
 -rBASE -rHEAD.
 
+** New variable `hs-set-up-overlay' allows customization of the overlay
+used to effect hiding for hideshow minor mode.  Integration with isearch
+handles the overlay property `display' specially, preserving it during
+temporary overlay showing in the course of an isearch operation.
+
 
 * New modes and packages in Emacs 21.4
 
@@ -2389,6 +2402,15 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** If a buffer sets buffer-save-without-query to non-nil,
+save-some-buffers will always save that buffer without asking
+(if it's modified).
+
++++
+** The function symbol-file tells you which file defined
+a certain function or variable.
 
 ** Lisp code can now test if a given buffer position is inside a
 clickable link with the new function `mouse-on-link-p'.  This is the
@@ -3098,6 +3120,10 @@ be inserted is translated through it.
 ** `load-history' can now have elements of the form (t . FUNNAME),
 which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
+
++++
+** `load-history' now records (defun . FUNNAME) when a function is
+defined.  For a variable, it records just the variable name.
 
 +++
 ** New Lisp library testcover.el works with edebug to help you determine

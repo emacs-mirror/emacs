@@ -44,7 +44,7 @@ OptOption = # -opt speed			# alternatively set to -opt off or -opt size
 
 # The -noMapCR options and the two -d's must not be removed.
 
-PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int ¶
+PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int -alloca ¶
 	-typecheck relaxed -w off ¶
 	-includes unix -i {Includes},{Src} ¶
 	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8
@@ -63,7 +63,6 @@ BLOCKINPUT_H_GROUP = "{Src}blockinput.h" "{Src}atimer.h" "{Src}systime.h" ¶
 EmacsObjects = ¶
 	"{Src}abbrev.c.x" ¶
 	"{Src}alloc.c.x" ¶
-	"{Src}alloca.c.x" ¶
 	"{Src}atimer.c.x" ¶
 	"{Src}buffer.c.x" ¶
 	"{Src}bytecode.c.x" ¶
@@ -92,7 +91,9 @@ EmacsObjects = ¶
 	"{Src}fns.c.x" ¶
 	"{Src}fontset.c.x" ¶
 	"{Src}frame.c.x" ¶
+	"{Src}fringe.c.x" ¶
 	"{Src}getloadavg.c.x" ¶
+	"{Src}image.c.x" ¶
 	"{Src}indent.c.x" ¶
 	"{Src}insdel.c.x" ¶
 	"{Src}intervals.c.x" ¶
@@ -120,7 +121,8 @@ EmacsObjects = ¶
 	"{Src}undo.c.x" ¶
 	"{Src}window.c.x" ¶
 	"{Src}xdisp.c.x" ¶
-	"{Src}xfaces.c.x"
+	"{Src}xfaces.c.x" ¶
+	"{Src}lastfile.c.x"
 
 # The list of object files generated from new source files of the Macintosh port.
 
@@ -142,6 +144,7 @@ Emacs ÄÄ {Makefile} {DocTarget}DOC {EmacsObjects} {MacObjects}
 		"{SharedLibraries}AppleScriptLib" ¶
 		"{SharedLibraries}TextEncodingConverter" ¶
 		"{SharedLibraries}AppearanceLib" ¶
+		"{SharedLibraries}QuickTimeLib" ¶
 		"{PPCLibraries}StdCRuntime.o" ¶
 		"{PPCLibraries}PPCCRuntime.o" ¶
 		"{PPCLibraries}PPCToolLibs.o" ¶
@@ -495,9 +498,32 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h"
 
+{Src}fringe.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	{WINDOW_H_GROUP} ¶
+	"{Src}buffer.h" ¶
+	{BLOCKINPUT_H_GROUP}
+
 {Src}getloadavg.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h"
+
+{Src}image.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	{WINDOW_H_GROUP} ¶
+	{DISPEXTERN_H_GROUP} ¶
+	{BLOCKINPUT_H_GROUP} ¶
+	"{Includes}epaths.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	"{Includes}sys:stat.h" ¶
+	"{Includes}alloca.h" ¶
+	"{Includes}sys:param.h"
 
 {Src}indent.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -573,6 +599,9 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}puresize.h" ¶
 	{INTERVALS_H_GROUP}
+
+{Src}lastfile.c.x Ä ¶
+	{CONFIG_H_GROUP}
 
 {Src}lread.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -935,7 +964,6 @@ DistClean Ä Clean
 EmacsSource = ¶
 	"{Src}abbrev.c" ¶
 	"{Src}alloc.c" ¶
-	"{Src}alloca.c" ¶
 	"{Src}atimer.c" ¶
 	"{Src}buffer.c" ¶
 	"{Src}bytecode.c" ¶
@@ -964,12 +992,15 @@ EmacsSource = ¶
 	"{Src}fns.c" ¶
 	"{Src}fontset.c" ¶
 	"{Src}frame.c" ¶
+	"{Src}fringe.c" ¶
 	"{Src}getloadavg.c" ¶
+	"{Src}image.c" ¶
 	"{Src}indent.c" ¶
 	"{Src}insdel.c" ¶
 	"{Src}intervals.c" ¶
 	"{Src}keyboard.c" ¶
 	"{Src}keymap.c" ¶
+	"{Src}lastfile.c" ¶
 	"{Src}lread.c" ¶
 	"{Src}macros.c" ¶
 	"{Src}marker.c" ¶
@@ -1018,7 +1049,7 @@ LispSource = ¶
 	{Lisp}abbrev.elc ¶
 	{Lisp}buff-menu.elc ¶
 	{Lisp}server.elc ¶
-	{Lisp}byte-run.elc ¶
+	{Lisp}emacs-lisp:byte-run.elc ¶
 	{Lisp}cus-start.el ¶
 	{Lisp}custom.elc ¶
 	{Lisp}emacs-lisp:lisp-mode.elc ¶
@@ -1026,7 +1057,7 @@ LispSource = ¶
 	{Lisp}facemenu.elc ¶
 	{Lisp}faces.elc ¶
 	{Lisp}files.elc ¶
-	{Lisp}float-sup.elc ¶
+	{Lisp}emacs-lisp:float-sup.elc ¶
 	{Lisp}format.elc ¶
 	{Lisp}frame.elc ¶
 	{Lisp}help.elc ¶
@@ -1035,7 +1066,7 @@ LispSource = ¶
 	{Lisp}loadup.el ¶
 	{Lisp}loaddefs.el ¶
 	{Lisp}bindings.elc ¶
-	{Lisp}map-ynp.elc ¶
+	{Lisp}emacs-lisp:map-ynp.elc ¶
 	{Lisp}international:mule.elc ¶
 	{Lisp}international:mule-conf.el ¶
 	{Lisp}international:mule-cmds.elc ¶
