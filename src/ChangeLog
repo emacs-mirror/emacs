@@ -1,3 +1,19 @@
+2002-01-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_native_per_char_metric): Don't trust the metrics
+	that Windows returns.  If a double check fails, try to guess how
+	ExtTextOut is going to act.
+
+	* w32fns.c (w32_load_system_font, w32_to_x_charset): Use strnicmp
+	in place of stricmp.
+	(w32_list_synthesized_fonts): Removed.
+	(w32_to_all_x_charsets, enum_font_maybe_add_to_list): New functions.
+	(struct enumfont_t): New element; list.
+	(enum_font_cb2): List all style and charset variations of a font.
+	(Fw32_select_font): Exclude vertical fonts.
+	(w32_enable_synthesized_fonts): Change to a boolean.
+	(Fw32_send_sys_command): Doc fix.
+
 2002-01-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Bind redisplay-dont-pause around

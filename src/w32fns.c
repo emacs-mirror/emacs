@@ -127,7 +127,7 @@ Lisp_Object Vw32_scroll_lock_modifier;
 
 /* Switch to control whether we inhibit requests for synthesized bold
    and italic versions of fonts.  */
-Lisp_Object Vw32_enable_synthesized_fonts;
+int w32_enable_synthesized_fonts;
 
 /* Enable palette management. */
 Lisp_Object Vw32_enable_palette;
@@ -5746,7 +5746,7 @@ w32_load_system_font (f,fontname,size)
     /* SJIS fonts need to be set to type 4, all others seem to work as
        type FONT_ENCODING_NOT_DECIDED.  */
     encoding = strrchr (fontp->name, '-');
-    if (encoding && stricmp (encoding+1, "sjis") == 0)
+    if (encoding && strnicmp (encoding+1, "sjis", 4) == 0)
       fontp->encoding[1] = 4;
     else
       fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
@@ -5915,7 +5915,7 @@ x_to_w32_charset (lpcs)
 
   w32_charset = Fcar (Fcdr (this_entry));
 
-  // Translate Lisp symbol to number.
+  /* Translate Lisp symbol to number.  */
   if (w32_charset == Qw32_charset_ansi)
     return ANSI_CHARSET;
   if (w32_charset == Qw32_charset_symbol)
@@ -6091,13 +6091,13 @@ w32_to_x_charset (fncharset)
               best_match = x_charset;
             /* If this is an ISO codepage, and the best so far isn't,
                then this is better.  */
-            else if (stricmp (best_match, "iso") != 0
-                     && stricmp (x_charset, "iso") == 0)
+            else if (strnicmp (best_match, "iso", 3) != 0
+                     && strnicmp (x_charset, "iso", 3) == 0)
               best_match = x_charset;
             /* If both are ISO8859 codepages, choose the one with the
                lowest number in the encoding field.  */
-            else if (stricmp (best_match, "iso8859-") == 0
-                     && stricmp (x_charset, "iso8859-") == 0)
+            else if (strnicmp (best_match, "iso8859-", 8) == 0
+                     && strnicmp (x_charset, "iso8859-", 8) == 0)
               {
                 int best_enc = atoi (best_match + 8);
                 int this_enc = atoi (x_charset + 8);
@@ -6120,6 +6120,142 @@ w32_to_x_charset (fncharset)
   }
 }
 
+
+/* Return all the X charsets that map to a font.  */
+static Lisp_Object
+w32_to_all_x_charsets (fncharset)
+    int fncharset;
+{
+  static char buf[32];
+  Lisp_Object charset_type;
+  Lisp_Object retval = Qnil;
+
+  switch (fncharset)
+    {
+    case ANSI_CHARSET:
+      /* Handle startup case of w32-charset-info-alist not
+         being set up yet. */
+      if (NILP(Vw32_charset_info_alist))
+        return "iso8859-1";
+      charset_type = Qw32_charset_ansi;
+      break;
+    case DEFAULT_CHARSET:
+      charset_type = Qw32_charset_default;
+      break;
+    case SYMBOL_CHARSET:
+      charset_type = Qw32_charset_symbol;
+      break;
+    case SHIFTJIS_CHARSET:
+      charset_type = Qw32_charset_shiftjis;
+      break;
+    case HANGEUL_CHARSET:
+      charset_type = Qw32_charset_hangeul;
+      break;
+    case GB2312_CHARSET:
+      charset_type = Qw32_charset_gb2312;
+      break;
+    case CHINESEBIG5_CHARSET:
+      charset_type = Qw32_charset_chinesebig5;
+      break;
+    case OEM_CHARSET:
+      charset_type = Qw32_charset_oem;
+      break;
+
+      /* More recent versions of Windows (95 and NT4.0) define more
+         character sets.  */
+#ifdef EASTEUROPE_CHARSET
+    case EASTEUROPE_CHARSET:
+      charset_type = Qw32_charset_easteurope;
+      break;
+    case TURKISH_CHARSET:
+      charset_type = Qw32_charset_turkish;
+      break;
+    case BALTIC_CHARSET:
+      charset_type = Qw32_charset_baltic;
+      break;
+    case RUSSIAN_CHARSET:
+      charset_type = Qw32_charset_russian;
+      break;
+    case ARABIC_CHARSET:
+      charset_type = Qw32_charset_arabic;
+      break;
+    case GREEK_CHARSET:
+      charset_type = Qw32_charset_greek;
+      break;
+    case HEBREW_CHARSET:
+      charset_type = Qw32_charset_hebrew;
+      break;
+    case VIETNAMESE_CHARSET:
+      charset_type = Qw32_charset_vietnamese;
+      break;
+    case THAI_CHARSET:
+      charset_type = Qw32_charset_thai;
+      break;
+    case MAC_CHARSET:
+      charset_type = Qw32_charset_mac;
+      break;
+    case JOHAB_CHARSET:
+      charset_type = Qw32_charset_johab;
+      break;
+#endif
+
+#ifdef UNICODE_CHARSET
+    case UNICODE_CHARSET:
+      charset_type = Qw32_charset_unicode;
+      break;
+#endif
+    default:
+      /* Encode numerical value of unknown charset.  */
+      sprintf (buf, "*-#%u", fncharset);
+      return Fcons (build_string (buf), Qnil);
+    }
+  
+  {
+    Lisp_Object rest;
+    /* Look through w32-charset-info-alist for the character set.
+       Only return charsets for codepages which are installed.
+
+       Format of each entry in Vw32_charset_info_alist is
+         (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
+    */
+    for (rest = Vw32_charset_info_alist; CONSP (rest); rest = XCDR (rest))
+      {
+        Lisp_Object x_charset;
+        Lisp_Object w32_charset;
+        Lisp_Object codepage;
+
+        Lisp_Object this_entry = XCAR (rest);
+
+        /* Skip invalid entries in alist. */
+        if (!CONSP (this_entry) || !STRINGP (XCAR (this_entry))
+            || !CONSP (XCDR (this_entry))
+            || !SYMBOLP (XCAR (XCDR (this_entry))))
+          continue;
+
+        x_charset = XCAR (this_entry);
+        w32_charset = XCAR (XCDR (this_entry));
+        codepage = XCDR (XCDR (this_entry));
+
+        /* Look for Same charset and a valid codepage (or non-int
+           which means ignore).  */
+        if (w32_charset == charset_type
+            && (!INTEGERP (codepage) || codepage == CP_DEFAULT
+                || IsValidCodePage (XINT (codepage))))
+          {
+	    retval = Fcons (x_charset, retval);
+          }
+      }
+
+    /* If no match, encode the numeric value. */
+    if (NILP (retval))
+      {
+        sprintf (buf, "*-#%u", fncharset);
+        return Fcons (build_string (buf), Qnil);
+      }
+
+    return retval;
+  }
+}
 
 /* Get the Windows codepage corresponding to the specified font.  The
    charset info in the font name is used to look up
@@ -6635,8 +6771,12 @@ typedef struct enumfont_t
   LOGFONT logfont;
   XFontStruct *size_ref;
   Lisp_Object *pattern;
+  Lisp_Object list;
   Lisp_Object *tail;
 } enumfont_t;
+
+static void
+enum_font_maybe_add_to_list (enumfont_t *, LOGFONT *, char *, Lisp_Object);
 
 static int CALLBACK 
 enum_font_cb2 (lplf, lptm, FontType, lpef)
@@ -6665,6 +6805,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
   {
     char buf[100];
     Lisp_Object width = Qnil;
+    Lisp_Object charset_list = Qnil;
     char *charset = NULL;
 
     /* Truetype fonts do not report their true metrics until loaded */
@@ -6699,27 +6840,82 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
       {
         charset = xlfd_charset_of_font (XSTRING(*(lpef->pattern))->data);
 
-        /* Ensure that charset is valid for this font. */
+        /* Ensure that charset is valid for this font.
+	   Continue if invalid in case charset contains a wildcard.  */
         if (charset
             && (x_to_w32_charset (charset) != lplf->elfLogFont.lfCharSet))
           charset = NULL;
       }
 
-    /* TODO: List all relevant charsets if charset not specified. */
-    if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100, charset))
-      return 1;
+    if (charset)
+      charset_list = Fcons (build_string (charset), Qnil);
+    else
+      charset_list = w32_to_all_x_charsets (lplf->elfLogFont.lfCharSet);
 
-    if (NILP (*(lpef->pattern))
-        || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+    /* Loop through the charsets.  */
+    for ( ; CONSP (charset_list); charset_list = Fcdr (charset_list))
       {
-	*lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
-	lpef->tail = &(XCDR (*lpef->tail));
-	lpef->numFonts++;
+	Lisp_Object this_charset = Fcar (charset_list);
+	charset = XSTRING (this_charset)->data;
+
+	/* List bold and italic variations if w32-enable-synthesized-fonts
+	   is non-nil and this is a plain font.  */
+	if (w32_enable_synthesized_fonts
+	    && lplf->elfLogFont.lfWeight == FW_NORMAL
+	    && lplf->elfLogFont.lfItalic == FALSE)
+	  {
+	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+					 charset, width);
+	    /* bold.  */
+	    lplf->elfLogFont.lfWeight = FW_BOLD;
+	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+					 charset, width);
+	    /* bold italic.  */
+	    lplf->elfLogFont.lfItalic = TRUE;
+	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+					 charset, width);
+	    /* italic.  */
+	    lplf->elfLogFont.lfWeight = FW_NORMAL;
+	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+					 charset, width);
+	  }
+	else
+	  enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+				       charset, width);
       }
   }
 
   return 1;
 }
+
+static void
+enum_font_maybe_add_to_list (lpef, logfont, match_charset, width)
+     enumfont_t * lpef;
+     LOGFONT * logfont;
+     char * match_charset;
+     Lisp_Object width;
+{
+  char buf[100];
+
+  if (!w32_to_x_font (logfont, buf, 100, match_charset))
+    return;
+
+  if (NILP (*(lpef->pattern))
+      || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+    {
+      /* Check if we already listed this font.  This may happen if
+         w32_enable_synthesized_fonts is non-nil, and there are real
+         bold and italic versions of the font.  */
+      Lisp_Object font_name = build_string (buf);
+      if (NILP (Fmember (font_name, lpef->list)))
+	{
+	  *lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
+	  lpef->tail = &(XCDR (*lpef->tail));
+	  lpef->numFonts++;
+	}
+    }
+}
+
 
 static int CALLBACK 
 enum_font_cb1 (lplf, lptm, FontType, lpef)
@@ -6727,8 +6923,7 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
      NEWTEXTMETRIC * lptm;
      int FontType;
      enumfont_t * lpef;
-{
-  return EnumFontFamilies (lpef->hdc,
+{  return EnumFontFamilies (lpef->hdc,
 			   lplf->elfLogFont.lfFaceName,
 			   (FONTENUMPROC) enum_font_cb2,
 			   (LPARAM) lpef);
@@ -6803,10 +6998,6 @@ static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
   return newlist;
 }
 
-static Lisp_Object w32_list_synthesized_fonts (FRAME_PTR f,
-                                               Lisp_Object pattern,
-                                               int size, int max_names);
-
 /* Return a list of names of available fonts matching PATTERN on frame
    F.  If SIZE is not 0, it is the size (maximum bound width) of fonts
    to be listed.  Frame F NULL means we have not yet created any
@@ -6864,6 +7055,7 @@ w32_list_fonts (f, pattern, size, maxnames)
       /* At first, put PATTERN in the cache.  */
       list = Qnil;
       ef.pattern = &tpat;
+      ef.list = list;
       ef.tail = &list;
       ef.numFonts = 0;
 
@@ -7008,66 +7200,7 @@ w32_list_fonts (f, pattern, size, maxnames)
     newlist = Fnconc(2, combined);
   }
 
-  /* If we can't find a font that matches, check if Windows would be
-     able to synthesize it from a different style.  */
-  if (NILP (newlist) && !NILP (Vw32_enable_synthesized_fonts))
-    newlist = w32_list_synthesized_fonts (f, pattern, size, maxnames);
-
   return newlist;
-}
-
-static Lisp_Object
-w32_list_synthesized_fonts (f, pattern, size, max_names)
-     FRAME_PTR f;
-     Lisp_Object pattern;
-     int size;
-     int max_names;
-{
-  int fields;
-  char *full_pattn, *new_pattn, foundary[50], family[50], *pattn_part2;
-  char style[20], slant;
-  Lisp_Object matches, tem, synthed_matches = Qnil;
-
-  full_pattn = XSTRING (pattern)->data;
-
-  pattn_part2 = alloca (XSTRING (pattern)->size + 1);
-  /* Allow some space for wildcard expansion.  */
-  new_pattn = alloca (XSTRING (pattern)->size + 100);
-
-  fields = sscanf (full_pattn, "-%49[^-]-%49[^-]-%19[^-]-%c-%s",
-                   foundary, family, style, &slant, pattn_part2);
-  if (fields == EOF || fields < 5)
-    return Qnil;
-
-  /* If the style and slant are wildcards already there is no point
-     checking again (and we don't want to keep recursing).  */
-  if (*style == '*' && slant == '*')
-    return Qnil;
-
-  sprintf (new_pattn, "-%s-%s-*-*-%s", foundary, family, pattn_part2);
-
-  matches = w32_list_fonts (f, build_string (new_pattn), size, max_names);
-
-  for ( ; CONSP (matches); matches = XCDR (matches))
-    {
-      tem = XCAR (matches);
-      if (!STRINGP (tem))
-        continue;
-
-      full_pattn = XSTRING (tem)->data;
-      fields = sscanf (full_pattn, "-%49[^-]-%49[^-]-%*[^-]-%*c-%s",
-                       foundary, family, pattn_part2);
-      if (fields == EOF || fields < 3)
-        continue;
-
-      sprintf (new_pattn, "-%s-%s-%s-%c-%s", foundary, family, style,
-               slant, pattn_part2);
-
-      synthed_matches = Fcons (build_string (new_pattn),
-                               synthed_matches);
-    }
-
-  return synthed_matches;
 }
 
 
@@ -13078,7 +13211,7 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
 
   cf.lStructSize = sizeof (cf);
   cf.hwndOwner = FRAME_W32_WINDOW (f);
-  cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS;
+  cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
   cf.lpLogFont = &lf;
 
   /* Initialize as much of the font details as we can from the current
@@ -13107,9 +13240,9 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
 
 DEFUN ("w32-send-sys-command", Fw32_send_sys_command, Sw32_send_sys_command, 1, 2, 0,
    "Send frame a Windows WM_SYSCOMMAND message of type COMMAND.\n\
-Some useful values for command are 0xf030 to maximise frame (0xf020\n\
-to minimize), 0xf120 to restore frame to original size, and 0xf100\n\
-to activate the menubar for keyboard access.  0xf140 activates the\n\
+Some useful values for command are #xf030 to maximise frame (#xf020\n\
+to minimize), #xf120 to restore frame to original size, and #xf100\n\
+to activate the menubar for keyboard access.  #xf140 activates the\n\
 screen saver if defined.\n\
 \n\
 If optional parameter FRAME is not specified, use selected frame.")
@@ -13683,9 +13816,9 @@ respective modifier, or nil to appear as the key `apps'.\n\
 Any other value will cause the key to be ignored.");
   Vw32_apps_modifier = Qnil;
 
-  DEFVAR_LISP ("w32-enable-synthesized-fonts", &Vw32_enable_synthesized_fonts,
+  DEFVAR_BOOL ("w32-enable-synthesized-fonts", &w32_enable_synthesized_fonts,
     "Non-nil enables selection of artificially italicized and bold fonts.");
-  Vw32_enable_synthesized_fonts = Qnil;
+  w32_enable_synthesized_fonts = 0;
 
   DEFVAR_LISP ("w32-enable-palette", &Vw32_enable_palette,
     "Non-nil enables Windows palette management to map colors exactly.");
