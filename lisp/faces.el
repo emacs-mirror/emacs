@@ -357,7 +357,7 @@ If called interactively, prompts for a face name and face attributes."
   ;; Clear this before we install the new foreground and background;
   ;; otherwise, clearing it after would swap them!
   (when (and (or foreground background) (face-inverse-video-p face))
-    (set-face-inverse-video-p face frame nil)
+    (set-face-inverse-video-p face nil frame)
     ;; Arrange to restore it after, if we are not setting it now.
     (or (memq inverse-p '(t nil))
 	(setq inverse-p t)))
