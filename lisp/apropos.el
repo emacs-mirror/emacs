@@ -601,9 +601,11 @@ separate items with that string."
 	(set-buffer standard-output)
 	(apropos-mode)
 	(if (display-mouse-p)
-	    (insert "If moving the mouse over text changes the text's color,\n"
-		    (substitute-command-keys
-		     "you can click \\[push-button] on that text to get more information.\n")))
+	    (insert
+	     "If moving the mouse over text changes the text's color, "
+	     "you can click\n"
+	     "mouse-2 (second button from right) on that text to "
+	     "get more information.\n"))
 	(insert "In this buffer, go to the name of the command, or function,"
 		" or variable,\n"
 		(substitute-command-keys
