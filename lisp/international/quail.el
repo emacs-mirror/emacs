@@ -1461,41 +1461,37 @@ All possible translations of the current key and whole possible longer keys
 (defun quail-help ()
   "Show brief description of the current Quail package."
   (interactive)
-  (let ((package quail-current-package)
-	(buf (get-buffer-create "*Quail-help*")))
-    (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
-      (setq quail-current-package package)
-      (insert "Quail input method (name:"
-	      (quail-name)
-	      ", mode line indicator:["
-	      (quail-title)
-	      "])\n---- Documentation ----\n"
-	      (quail-docstring))
-      (newline)
-      (if (quail-show-layout) (quail-show-kbd-layout))
-      (insert )
-      (quail-help-insert-keymap-description
-       quail-mode-map
-       "---- Key bindings (before starting translation) ----
-key		binding
----		-------\n")
-      (quail-help-insert-keymap-description
-       (quail-translation-keymap)
-       "--- Key bindings (while translating) ---
-key		binding
----		-------\n")
-      (if (quail-conversion-keymap)
+  (let ((package quail-current-package))
+    (with-output-to-temp-buffer "*Quail-Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(let ((quail-current-package package))
+	  (insert "Quail input method (name:"
+		  (quail-name)
+		  ", mode line indicator:["
+		  (quail-title)
+		  "])\n---- Documentation ----\n"
+		  (quail-docstring))
+	  (newline)
+	  (if (quail-show-layout) (quail-show-kbd-layout))
 	  (quail-help-insert-keymap-description
-	   (quail-conversion-keymap)
-       "--- Key bindings (while converting) ---
+	   quail-mode-map
+	   "---- Key bindings (before starting translation) ----
+key		binding
+---		-------\n")
+	  (quail-help-insert-keymap-description
+	   (quail-translation-keymap)
+	   "--- Key bindings (while translating) ---
+key		binding
+---		-------\n")
+	  (if (quail-conversion-keymap)
+	      (quail-help-insert-keymap-description
+	       (quail-conversion-keymap)
+	       "--- Key bindings (while converting) ---
 key		binding
 ---		-------\n"))
-      (goto-char (point-min))
-      (set-buffer-modified-p nil)
-      (help-mode))
-    (display-buffer buf)))
+	  (help-mode))))))
+
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
   (let (from to)
@@ -1543,45 +1539,40 @@ key		binding
   "Show help message while translating in Quail mode."
   (interactive)
   (let ((package quail-current-package)
-	(current-key quail-current-key)
-	(buf (get-buffer-create "*Quail-Help*")))
-    (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
-      (setq quail-current-package package)
-      (insert
-       (format "You are translating the key sequence \"%s\" in Quail mode.\n"
-	       quail-current-key))
-      (quail-help-insert-keymap-description
-       (quail-translation-keymap)
-       "-----------------------
+	(current-key quail-current-key))
+    (with-output-to-temp-buffer "*Quail-Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(let ((quail-current-package package))
+	  (princ "You are translating the key sequence ")
+	  (prin1 quail-current-key)
+	  (princ" in Quail mode.\n")
+	  (quail-help-insert-keymap-description
+	   (quail-translation-keymap)
+	   "-----------------------
 key		binding
----		-------\n")
-      (goto-char (point-min))
-      (set-buffer-modified-p nil))
-    (display-buffer buf)))
-  
+---		-------\n"))
+	(help-mode)))))
+
 (defun quail-conversion-help ()
   "Show help message while converting in Quail mode."
   (interactive)
   (let ((package quail-current-package)
 	(str (buffer-substring (overlay-start quail-conv-overlay)
-				 (overlay-end quail-conv-overlay)))
-	(buf (get-buffer-create "*Quail-Help*")))
-    (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
-      (setq quail-current-package package)
-      (insert
-       (format "You are converting the string \"%s\" in Quail mode.\n" str))
-      (quail-help-insert-keymap-description
-       (quail-conversion-keymap)
+				 (overlay-end quail-conv-overlay))))
+    (with-output-to-temp-buffer "*Quail-Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(let ((quail-current-package package))
+	  (princ "You are converting the string ")
+	  (prin1 str)
+	  (princ " in Quail mode.\n")
+	  (quail-help-insert-keymap-description
+	   (quail-conversion-keymap)
        "-----------------------
 key		binding
----		-------\n")
-      (goto-char (point-min))
-      (set-buffer-modified-p nil))
-    (display-buffer buf)))
+---		-------\n"))
+	(help-mode)))))
 
 
 (defvar quail-directory-name "quail"
