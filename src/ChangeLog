@@ -1,5 +1,17 @@
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* sysdep.c (start_of_text): Don't define this function for NetBSD
+	with ELF.
+
+	* m/pmax.h (START_FILES, CANNOT_DUMP) [__NetBSD__ || __OpenBSD__]: 
+	Don't define.
+	(UNEXEC) [__NetBSD__ || __OpenBSD__]: Define to unexelf.o.
+	(LINKER): Don't undef if __NetBSD__ is defined.
+
+	* m/mips.h (LINKER) [__NetBSD__ || __OpenBSD__]: Don't define.
+
+	* fileio.c [__NetBSD__]: Define `unix'.
+
 	* xfns.c (start_busy_cursor): Allow floats for busy-cursor-delay.
 
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
@@ -61,7 +73,7 @@
 
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs.c (main): Remove code snipped commented out with `//'.
+	* emacs.c (main): Remove code snippet commented out with `//'.
 
 2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 	

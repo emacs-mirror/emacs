@@ -1,3 +1,8 @@
+2000-03-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (machine): Add `mipsel-*-netbsd*' and
+	`arm-*-netbsd*'.
+
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (C_OPTIMIZE_SWITCH) [__GNUC__]: Use -O2.

@@ -1,7 +1,75 @@
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* image.el (defimage): Look for image files in load-path.
+
 	* frame.el (busy-cursor-delay-seconds): Change type to 
 	`number'.
+
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf): Added version tag to the defgroup of
+	recentf.
+
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-cleanup): Changed to remove excluded file
+	too.
+	(recentf-edit-list-action): `recentf-edit-list' checkbox widget
+	action to select/unselect a file.
+	(recentf-edit-list): Code cleanup and improvement.
+	(recentf-open-more-files-action): `recentf-open-more-files' button
+	widget action to open a file.
+	(recentf-open-more-files): No more use standard completion but
+	widgets.
+	(recentf-more-collection): Deleted.
+	(recentf-more-history): Deleted.
+	(recentf-setup-more-completion): Deleted.
+
+2000-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-mode): No more needs that Emacs is running
+	under a window-system.
+
+1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-edit-list): New command to edit the recent
+	list which allow the user to remove files.
+	(recentf-edit-selected-items): New global variable, used by
+	`recentf-edit-list' to hold the list of files to be removed from
+	the recent list.
+	(recentf-make-menu-items): Updated to display a "Edit list..."
+	menu item.  Minor code cleanup.
+
+1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-open-more-files): New command to open files
+	that are not displayed in the menu.
+	(recentf-more-collection): New global variable holding the set of
+	permissible completions used by `recentf-open-more-files'.
+	(recentf-more-history): New global variable holding the history list
+	used by `recentf-open-more-files' completion.
+	(recentf-setup-more-completion): New function to setup completion for
+	`recentf-open-more-files'.
+	(recentf-make-menu-items): Updated to display a "More..." menu item.
+
+1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-menu-action): Doc fixed.
+
+1999-03-01  David Ponce  <david.ponce@wanadoo.fr>
+
+	* recentf.el (recentf-menu-filter): Doc updated.
+	(recentf-update-menu-hook): Allow menu filters to force menu update.
+	(recentf-make-menu-items): New menu filter handling.
+	(recentf-make-menu-item): New helper function.
+	(recentf-menu-elements): New menu handling function.
+	(recentf-sort-ascending): Updated to new menu filter handling.
+	(recentf-sort-descending): Updated to new menu filter handling.
+	(recentf-sort-basenames-ascending): New menu filter function.
+	(recentf-sort-basenames-descending): New menu filter function.
+	(recentf-show-basenames): New menu filter function.
+	(recentf-show-basenames-ascending): New menu filter function.
+	(recentf-show-basenames-descending): New menu filter function.
 
 2000-02-29  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
