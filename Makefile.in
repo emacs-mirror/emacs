@@ -204,8 +204,8 @@ SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile
 # When installing the info files, we need to do special things to
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
-COPYDIR = etc ${srcdir}/etc ${srcdir}/lisp ${srcdir}/external-lisp
-COPYDESTS = ${etcdir} ${etcdir} ${lispdir} ${externallispdir}
+COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/external-lisp
+COPYDESTS = ${etcdir} ${lispdir} ${externallispdir}
 
 all:	src/paths.h ${SUBDIR}
 
@@ -330,7 +330,12 @@ do-install: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
 	    archlibdir=${archlibdir})
 	-set ${COPYDESTS} ; \
-	 rm -rf ${COPYDESTS} ; \
+	 for dir in ${COPYDIR} ; do \
+	   if [ `(cd $$1 ; pwd)` != `(cd $${dir} ; pwd)` ] ; then \
+	     rm -rf $${dir} ; \
+	   fi ; \
+	 done
+	-set ${COPYDESTS} ; \
 	 mkdir ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
@@ -345,13 +350,23 @@ do-install: mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
-	-(cd ${srcdir}/info ; \
-	  if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
-	    ${INSTALL_DATA} dir ${infodir}/dir ; \
-	  fi ; \
-	  for f in cl* emacs* forms* info* vip* ; do \
-	    ${INSTALL_DATA} $$f ${infodir}/$$f ; \
-	  done)
+	-[ `(cd etc; /bin/pwd)` != `(cd ${etcdir}; /bin/pwd)` ] \
+	 && (echo "Copying ./etc..." ; \
+	       (cd ./etc; tar cf - . )|(cd ${etcdir}; umask 0; tar xvf - ); \
+	       for subdir in `find ${etcdir} -type d ! -name RCS -print` ; do \
+		 rm -rf $${subdir}/RCS ; \
+		 rm -rf $${subdir}/CVS ; \
+		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/*~ ; \
+	       done)
+	-[ `(cd ${srcdir}/info; /bin/pwd)` != `(cd ${infodir}; /bin/pwd)` ] \
+	 && (cd ${srcdir}/info ; \
+	     if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
+	       ${INSTALL_DATA} dir ${infodir}/dir ; \
+	     fi ; \
+	     for f in cl* emacs* forms* info* vip* ; do \
+	       ${INSTALL_DATA} $$f ${infodir}/$$f ; \
+	     done)
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
