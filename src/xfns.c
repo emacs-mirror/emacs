@@ -5524,23 +5524,18 @@ valid_image_p (object)
 }
 
 
-/* Display an error message with format string FORMAT and argument
-   ARG.  Signaling an error, e.g. when an image cannot be loaded,
-   is not a good idea because this would interrupt redisplay, and
-   the error message display would lead to another redisplay.  This
-   function therefore simply displays a message.  */
+/* Log error message with format string FORMAT and argument ARG.
+   Signaling an error, e.g. when an image cannot be loaded, is not a
+   good idea because this would interrupt redisplay, and the error
+   message display would lead to another redisplay.  This function
+   therefore simply displays a message.  */
 
 static void
 image_error (format, arg1, arg2)
      char *format;
      Lisp_Object arg1, arg2;
 {
-  Lisp_Object args[3];
-
-  args[0] = build_string (format);
-  args[1] = arg1;
-  args[2] = arg2;
-  Fmessage (make_number (DIM (args)), args);
+  add_to_log (format, arg1, arg2);
 }
 
 
