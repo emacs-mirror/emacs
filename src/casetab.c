@@ -177,21 +177,21 @@ compute_trt_identity (bytes, depth, trt, inverse)
      struct Lisp_Char_Table *trt, *inverse;
 {
   register int i;
+  int lim = (depth == 0 ? CHAR_TABLE_ORDINARY_SLOTS : SUB_CHAR_TABLE_ORDINARY_SLOTS);
 
-  for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+  for (i = 0; i < lim; i++)
     {
       if (NATNUMP (trt->contents[i]))
 	{
 	  bytes[depth] = i;
 	  XSETFASTINT (inverse->contents[i],
 		       (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
-			: MAKE_NON_ASCII_CHAR (bytes[0]-128,
-					       bytes[1], bytes[2])));
+			: MAKE_NON_ASCII_CHAR (bytes[0], bytes[1], bytes[2])));
 	}
-      else if (CHAR_TABLE_P (trt->contents[i]))
+      else if (SUB_CHAR_TABLE_P (trt->contents[i]))
 	{
-	  bytes[depth] = i;
-	  inverse->contents[i] = Fmake_char_table (Qnil, Qnil);
+	  bytes[depth] = i - 128;
+	  inverse->contents[i] = make_sub_char_table (Qnil);
 	  compute_trt_identity (bytes, depth + 1,
 				XCHAR_TABLE (trt->contents[i]),
 				XCHAR_TABLE (inverse->contents[i]));
@@ -210,14 +210,14 @@ compute_trt_shuffle (bytes, depth, ibase, trt, inverse)
 {
   register int i;
   Lisp_Object j, tem, q;
+  int lim = (depth == 0 ? CHAR_TABLE_ORDINARY_SLOTS : SUB_CHAR_TABLE_ORDINARY_SLOTS);
 
-  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+  for (i = 0; i < lim; i++)
     {
       bytes[depth] = i;
       XSETFASTINT (j,
 		   (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
-		    : MAKE_NON_ASCII_CHAR (bytes[0]-128,
-					   bytes[1], bytes[2])));
+		    : MAKE_NON_ASCII_CHAR (bytes[0], bytes[1], bytes[2])));
       q = trt->contents[i];
       if (NATNUMP (q) && XFASTINT (q) != XFASTINT (j))
 	{
@@ -225,9 +225,9 @@ compute_trt_shuffle (bytes, depth, ibase, trt, inverse)
 	  Faset (ibase, q, j);
 	  Faset (ibase, j, tem);
 	}
-      else if (CHAR_TABLE_P (q))
+      else if (SUB_CHAR_TABLE_P (q))
 	{
-	  bytes[depth] = i;
+	  bytes[depth] = i - 128;
 	  compute_trt_shuffle (bytes, depth + 1, ibase,
 			       XCHAR_TABLE (trt->contents[i]),
 			       XCHAR_TABLE (inverse->contents[i]));
