@@ -465,6 +465,11 @@ This function returns a translation table based on the argument
 . @var{to})}; this says to translate the character @var{from} into
 @var{to}.
 
+The arguments and the forms in each argument are processed in order,
+and if a previous form already translates @var{to} to some other
+character, say @var{to-alt}, @var{from} is also translated to
+@var{to-alt}.
+
 You can also map one whole character set into another character set with
 the same dimension.  To do this, you specify a generic character (which
 designates a character set) for @var{from} (@pxref{Splitting Characters}).
