@@ -571,6 +571,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      instead.  */
 #else /* not MSDOS */
   char **env;
+  char *pwd_var;
 
   int pid = getpid ();
 
@@ -595,11 +596,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      the superior's static variables as if the superior had done alloca
      and will be cleaned up in the usual way.  */
   {
-    register unsigned char *temp;
+    register char *temp;
     register int i;
 
     i = XSTRING (current_dir)->size;
-    temp = (unsigned char *) alloca (i + 2);
+    pwd_var = (char *) alloca (i + 6);
+    temp = pwd_var + 4;
+    bcopy ("PWD=", pwd_var, 4);
     bcopy (XSTRING (current_dir)->data, temp, i);
     if (temp[i - 1] != '/') temp[i++] = '/';
     temp[i] = 0;
@@ -611,6 +614,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        at least check.  */
     if (chdir (temp) < 0)
       exit (errno);
+
+    /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
+    while (i > 2 && temp[i - 1] == '/')
+      temp[--i] = 0;
   }
 
   /* Set `env' to a vector of the strings in Vprocess_environment.  */
@@ -626,8 +633,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 	 tem = XCONS (tem)->cdr)
       new_length++;
 
-    /* new_length + 1 to include terminating 0.  */
-    env = new_env = (char **) alloca ((new_length + 1) * sizeof (char *));
+    /* new_length + 2 to include PWD and terminating 0.  */
+    env = new_env = (char **) alloca ((new_length + 2) * sizeof (char *));
+
+    /* If we have a PWD envvar, pass one down,
+       but with corrected value.  */
+    if (getenv ("PWD"))
+      *new_env++ = pwd_var;
 
     /* Copy the Vprocess_environment strings into new_env.  */
     for (tem = Vprocess_environment;
