@@ -3539,10 +3539,10 @@ actually used.")
 
       setup_coding_system (Fcheck_coding_system (val), &coding);
 
-      if (NILP (Vcoding_system_for_read)
-	  && NILP (current_buffer->enable_multibyte_characters))
-	/* We must suppress all text conversion except for end-of-line
-	   conversion.  */
+      if (NILP (current_buffer->enable_multibyte_characters)
+	  && ! NILP (val))
+	/* We must suppress all character code conversion except for
+	   end-of-line conversion.  */
 	setup_raw_text_coding_system (&coding);
 
       coding_system_decided = 1;
@@ -4080,9 +4080,9 @@ actually used.")
 	bcopy (&temp_coding, &coding, sizeof coding);
       }
 
-      if (NILP (Vcoding_system_for_read)
-	  && NILP (current_buffer->enable_multibyte_characters))
-	/* We must suppress all text conversion except for
+      if (NILP (current_buffer->enable_multibyte_characters)
+	  && ! NILP (val))
+	/* We must suppress all character code conversion except for
 	   end-of-line conversion.  */
 	setup_raw_text_coding_system (&coding);
     }
