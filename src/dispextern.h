@@ -927,7 +927,7 @@ extern struct glyph_row scratch_glyph_row;
    This depends on whether the window is selected or not.  */
 
 #define CURRENT_MODE_LINE_FACE_ID(W)		\
-     ((W) == selected_window			\
+     ((W) == XWINDOW (selected_window)		\
       ? MODE_LINE_FACE_ID			\
       : MODE_LINE_INACTIVE_FACE_ID)
 
