@@ -308,10 +308,17 @@ nil for FUNCTION means all messages."
 	      (let* ((from (mail-strip-quoted-names
 			    (buffer-substring
 			     (1- (point))
-			     (progn (end-of-line)
-				    (skip-chars-backward " \t")
-				    (point)))))
-		     len mch lo)
+			     ;; Get all the lines of the From field
+			     ;; so that we get a whole comment if there is one,
+			     ;; so that mail-strip-quoted-names can discard it.
+			     (let ((opoint (point)))
+			       (while (progn (forward-line 1)
+					     (looking-at "[ \t]")))
+			       ;; Back up over newline, then trailing spaces or tabs
+			       (forward-char -1)
+			       (skip-chars-backward " \t")
+			       (point)))))
+                     len mch lo)
 		(if (string-match (concat "^"
 					  (regexp-quote (user-login-name))
 					  "\\($\\|@\\)")
