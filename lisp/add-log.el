@@ -471,20 +471,6 @@ Today's date is calculated according to `change-log-time-zone-rule' if
 non-nil, otherwise in local time."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
-  (or add-log-full-name
-      (setq add-log-full-name (user-full-name)))
-  (or add-log-mailing-address
-      (setq add-log-mailing-address user-mail-address))
-  (if whoami
-      (progn
-	(setq add-log-full-name (read-input "Full name: " add-log-full-name))
-	 ;; Note that some sites have room and phone number fields in
-	 ;; full name which look silly when inserted.  Rather than do
-	 ;; anything about that here, let user give prefix argument so that
-	 ;; s/he can edit the full name field in prompter if s/he wants.
-	(setq add-log-mailing-address
-	      (read-input "Mailing address: " add-log-mailing-address))))
-
   (let* ((defun (add-log-current-defun))
 	 (version (and change-log-version-info-enabled
 		       (change-log-version-number-search)))
@@ -495,7 +481,19 @@ non-nil, otherwise in local time."
 	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
 	 (item (add-log-file-name buffer-file file-name))
-	 bound)
+	 bound
+	 (full-name (or add-log-full-name (user-full-name)))
+	 (mailing-address (or add-log-mailing-address user-mail-address)))
+
+    (if whoami
+	(progn
+	  (setq full-name (read-input "Full name: " full-name))
+	  ;; Note that some sites have room and phone number fields in
+	  ;; full name which look silly when inserted.  Rather than do
+	  ;; anything about that here, let user give prefix argument so that
+	  ;; s/he can edit the full name field in prompter if s/he wants.
+	  (setq mailing-address
+		(read-input "Mailing address: " mailing-address))))
 
     (unless (equal file-name buffer-file-name)
       (if (or other-window (window-dedicated-p (selected-window)))
@@ -515,11 +513,11 @@ non-nil, otherwise in local time."
     ;; Advance into first entry if it is usable; else make new one.
     (let ((new-entries (mapcar (lambda (addr)
 				 (concat (funcall add-log-time-format)
-					 "  " add-log-full-name
+					 "  " full-name
 					 "  <" addr ">"))
-			       (if (consp add-log-mailing-address)
-				   add-log-mailing-address
-				 (list add-log-mailing-address)))))
+			       (if (consp mailing-address)
+				   mailing-address
+				 (list mailing-address)))))
       (if (and (not add-log-always-start-new-record)
                (let ((hit nil))
 		 (dolist (entry new-entries hit)
