@@ -27,8 +27,6 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(eval-when-compile
-  (require 'cc-defs))
 
 
 (defun c-calculate-state (arg prevstate)
@@ -1451,17 +1449,30 @@ If any of the current line is a comment or within a comment,
 fill the comment or the paragraph of it that point is in,
 preserving the comment indentation or line-starting decorations.
 
+If point is inside multiline string literal, fill it.  This currently
+does not respect escaped newlines, except for the special case when it
+is the very first thing in the string.  The intended use for this rule
+is in situations like the following:
+
+char description[] = \"\\
+A very long description of something that you want to fill to make
+nicely formatted output.\"\;
+
+If point is in any other situation, i.e. in normal code, do nothing.
+
 Optional prefix ARG means justify paragraph as well."
   (interactive "*P")
-  (let* (comment-start-place
+  (let* ((point-save (point-marker))
+	 limits
+	 comment-start-place
 	 (first-line
 	  ;; Check for obvious entry to comment.
 	  (save-excursion
 	    (beginning-of-line)
-	    (skip-chars-forward " \t\n")
+	    (skip-chars-forward " \t")
 	    (and (looking-at comment-start-skip)
 		 (setq comment-start-place (point)))))
-	 (re1 "\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$"))
+	 (re1 "\\|\\([ \t]*/\\*[ \t]*\\|[ \t]*\\*/[ \t]*\\|[ \t/*]*\\)"))
     (if (save-excursion
 	  (beginning-of-line)
 	  (looking-at ".*//"))
@@ -1469,8 +1480,8 @@ Optional prefix ARG means justify paragraph as well."
 	       ;; Lines containing just a comment start or just an end
 	       ;; should not be filled into paragraphs they are next
 	       ;; to.
-	      (paragraph-start (concat paragraph-start re1))
-	      (paragraph-separate (concat paragraph-separate re1)))
+	      (paragraph-start (concat paragraph-start re1 "$"))
+	      (paragraph-separate (concat paragraph-separate re1 "$")))
 	  (save-excursion
 	    (beginning-of-line)
 	    ;; Move up to first line of this comment.
@@ -1495,13 +1506,25 @@ Optional prefix ARG means justify paragraph as well."
 				      (looking-at (regexp-quote fill-prefix))
 				    (forward-line 1))
 				  (point)))
-	      (fill-paragraph arg)
-	      t)))
+	      (or (c-safe
+		   ;; fill-paragraph sometimes fails to detect when we
+		   ;; are between paragraphs.
+		   (beginning-of-line)
+		   (search-forward fill-prefix (c-point 'eol))
+		   (looking-at paragraph-separate))
+		  ;; Avoids recursion
+		  (let (fill-paragraph-function)
+		    (fill-paragraph arg))))))
       ;; else C style comments
       (if (or first-line
 	      ;; t if we enter a comment between start of function and
 	      ;; this line.
-	      (eq (c-in-literal) 'c)
+	      (save-excursion
+		(setq limits (c-literal-limits))
+		(and (consp limits)
+		     (save-excursion
+		       (goto-char (car limits))
+		       (looking-at c-comment-start-regexp))))
 	      ;; t if this line contains a comment starter.
 	      (setq first-line
 		    (save-excursion
@@ -1511,7 +1534,18 @@ Optional prefix ARG means justify paragraph as well."
 					     (save-excursion (end-of-line)
 							     (point))
 					     t)
-			(setq comment-start-place (point))))))
+			(setq comment-start-place (point)))))
+	      ;; t if we're in the whitespace after a comment ender
+	      ;; which ends its line.
+	      (and (not limits)
+		   (when (and (looking-at "[ \t]*$")
+			      (save-excursion
+				(beginning-of-line)
+				(looking-at ".*\\*/[ \t]*$")))
+		     (save-excursion
+		       (forward-comment -1)
+		       (setq comment-start-place (point)))
+		     t)))
 	  ;; Inside a comment: fill one comment paragraph.
 	  (let ((fill-prefix
 		 ;; The prefix for each line of this paragraph
@@ -1519,10 +1553,16 @@ Optional prefix ARG means justify paragraph as well."
 		 ;; up to the column at which text should be indented.
 		 (save-excursion
 		   (beginning-of-line)
-		   (if (looking-at "[ \t]*/\\*.*\\*/")
+		   (if (looking-at ".*/\\*.*\\*/")
 		       (progn (re-search-forward comment-start-skip)
 			      (make-string (current-column) ?\ ))
-		     (if first-line (forward-line 1))
+		     (if first-line
+			 (forward-line 1)
+		       (if (and (looking-at "[ \t]*\\*/")
+				(not (save-excursion
+				       (forward-line -1)
+				       (looking-at ".*/\\*"))))
+			   (forward-line -1)))
 
 		     (let ((line-width (progn (end-of-line) (current-column))))
 		       (beginning-of-line)
@@ -1533,7 +1573,6 @@ Optional prefix ARG means justify paragraph as well."
 			    ;; How shall we decide where the end of the
 			    ;; fill-prefix is?
 			    (progn
-			      (beginning-of-line)
 			      (skip-chars-forward " \t*" (c-point 'eol))
 			      ;; kludge alert, watch out for */, in
 			      ;; which case fill-prefix should *not*
@@ -1567,8 +1606,13 @@ Optional prefix ARG means justify paragraph as well."
 		;; Lines containing just a comment start or just an end
 		;; should not be filled into paragraphs they are next
 		;; to.
-		(paragraph-start (concat paragraph-start re1))
-		(paragraph-separate (concat paragraph-separate re1))
+		(paragraph-start (if (eq major-mode 'java-mode)
+				     (concat paragraph-start
+					     re1 "\\("
+					     c-Java-javadoc-paragraph-start
+					     "\\|$\\)")
+				   (concat paragraph-start re1 "$")))
+		(paragraph-separate (concat paragraph-separate re1 "$"))
 		(chars-to-delete 0)
 		)
 	    (save-restriction
@@ -1599,9 +1643,22 @@ Optional prefix ARG means justify paragraph as well."
 				  (if comment-start-place
 				      (goto-char (+ comment-start-place 2)))
 				  (search-forward "*/" nil 'move)
-				  (forward-line 1)
+				  (if (and (not c-hanging-comment-ender-p)
+					   (save-excursion
+					     (beginning-of-line)
+					     (looking-at "[ \t]*\\*/")))
+				      (beginning-of-line)
+				    (forward-line 1))
 				  (point)))
-	      (fill-paragraph arg)
+	      (or (c-safe
+		   ;; fill-paragraph sometimes fails to detect when we
+		   ;; are between paragraphs.
+		   (beginning-of-line)
+		   (search-forward fill-prefix (c-point 'eol))
+		   (looking-at paragraph-separate))
+		  ;; Avoids recursion
+		  (let (fill-paragraph-function)
+		    (fill-paragraph arg)))
 	      (save-excursion
 		;; Delete the chars we inserted to avoid clobbering
 		;; the stuff before the comment start.
@@ -1620,8 +1677,56 @@ Optional prefix ARG means justify paragraph as well."
 		    ;(delete-indentation)))))
 		    (let ((fill-column (+ fill-column 9999)))
 		      (forward-line -1)
-		      (fill-region-as-paragraph (point) (point-max))))))
-	    t)))))
+		      (fill-region-as-paragraph (point) (point-max))
+		      ;; If fill-prefix ended with a `*', it may be
+		      ;; taken away from the comment ender.  We got to
+		      ;; check this and put it back if that is the
+		      ;; case.
+		      (goto-char (- (point-max) 2))
+		      (if (not (= (char-before) ?*))
+			  (insert ?*))
+		      )))))
+	;; Else maybe a string.  Fill it if it's a multiline string.
+	;; FIXME: This currently doesn't handle escaped newlines.
+	;; Doing that correctly is a bit tricky.
+	(if (and limits
+		 (eq (char-syntax (char-after (car limits))) ?\")
+		 (save-excursion
+		   (goto-char (car limits))
+		   (end-of-line)
+		   (< (point) (cdr limits))))
+	    (let (fill-prefix
+		  fill-paragraph-function)
+	      (save-restriction
+		(narrow-to-region (save-excursion
+				    (goto-char (1+ (car limits)))
+				    (if (looking-at "\\\\$")
+					;; Some DWIM: Leave the start
+					;; line if it's nothing but an
+					;; escaped newline.
+					(1+ (match-end 0))
+				      (point)))
+				  (save-excursion
+				    (goto-char (1- (cdr limits)))
+				    ;; Inserting a newline and
+				    ;; removing it again after
+				    ;; fill-paragraph makes it more
+				    ;; predictable.
+				    (insert ?\n)
+				    (point)))
+		;; Do not compensate for the narrowed column.  This
+		;; way the literal will always be filled at the same
+		;; column internally.
+		(fill-paragraph arg)
+		(goto-char (1- (point-max)))
+		(delete-char 1)))
+	  )))
+    (goto-char (marker-position point-save))
+    (set-marker point-save nil)
+    ;; Always return t.  This has the effect that if filling isn't
+    ;; done above, it isn't done at all, and it's therefore
+    ;; effectively disabled in normal code.
+    t))
 
 
 (provide 'cc-cmds)
