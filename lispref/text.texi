@@ -1228,6 +1228,16 @@ relocated due to deletion of surrounding text, and that it moved
 @var{adjustment} character positions.  Undoing this element moves
 @var{marker} @minus{} @var{adjustment} characters.
 
+@item (apply @var{funname} . @var{args})
+This is an extensible undo item, which is undone by calling
+@var{funname} with arguments @var{args}.
+
+@item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
+This is an extensible undo item, which records a change limited to the
+range @var{beg} to @var{end}, which increased the size of the buffer
+by @var{delta}.  It is undone by calling @var{funname} with arguments
+@var{args}.
+
 @item nil
 This element is a boundary.  The elements between two boundaries are
 called a @dfn{change group}; normally, each change group corresponds to
