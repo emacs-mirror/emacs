@@ -542,37 +542,37 @@ x_load_resources (display, xrm_string, myname, myclass)
      will use some other default font.  */
 #ifdef USE_MOTIF
 
-  sprintf (line, "%s.pane.background: grey75", myname);
+  sprintf (line, "%s.pane.background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fontList: %s", myname, helv);
+  sprintf (line, "%s*fontList: %s", myclass, helv);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menu*background: grey75", myname);
+  sprintf (line, "%s*menu*background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menubar*background: grey75", myname, helv);
+  sprintf (line, "%s*menubar*background: grey75", myclass, helv);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.background: grey75", myname);
+  sprintf (line, "%s*verticalScrollBar.background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myname);
+  sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.dialog*.background: grey75", myname);
+  sprintf (line, "%s.dialog*.background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.background: white", myname);
+  sprintf (line, "%s*fsb.Text.background: white", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.background: white", myname);
+  sprintf (line, "%s*fsb.FilterText.background: white", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.background: white", myname);
+  sprintf (line, "%s*fsb*DirList.background: white", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.background: white", myname);
+  sprintf (line, "%s*fsb*ItemsList.background: white", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*background: grey75", myname);
+  sprintf (line, "%s*fsb*background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.fontList: %s", myname, courier);
+  sprintf (line, "%s*fsb.Text.fontList: %s", myclass, courier);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.fontList: %s", myname, courier);
+  sprintf (line, "%s*fsb.FilterText.fontList: %s", myclass, courier);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.fontList: %s", myname, courier);
+  sprintf (line, "%s*fsb*ItemsList.fontList: %s", myclass, courier);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.fontList: %s", myname, courier);
+  sprintf (line, "%s*fsb*DirList.fontList: %s", myclass, courier);
   XrmPutLineResource (&rdb, line);
 
   /* Set double click time of list boxes in the file selection
@@ -580,10 +580,10 @@ x_load_resources (display, xrm_string, myname, myclass)
   if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
     {
       sprintf (line, "%s*fsb*DirList.doubleClickInterval: %d",
-	       myname, XFASTINT (Vdouble_click_time));
+	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
       sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %d",
-	       myname, XFASTINT (Vdouble_click_time));
+	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }
 
