@@ -1983,6 +1983,16 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
   return TN_max_colors > 0 ? Qt : Qnil;
 }
 
+/* Return the number of supported colors.  */
+DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
+       Stty_display_color_cells, 0, 1, 0,
+  "Return the number of colors supported by TTY on FRAME.")
+     (frame)
+     Lisp_Object frame;
+{
+  return make_number (TN_max_colors);
+}
+
 #ifndef WINDOWSNT
 
 /* Save or restore the default color-related capabilities of this
@@ -2560,5 +2570,6 @@ The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 
   defsubr (&Stty_display_color_p);
+  defsubr (&Stty_display_color_cells);
 }
 
