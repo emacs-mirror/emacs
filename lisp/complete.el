@@ -110,7 +110,8 @@ When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
 nil) is enhanced so that if some string is divided into words and each word is
 delimited by a character in `PC-word-delimiters', partial words are completed
 as much as possible and `*' characters are treated likewise in file names.
-You must modify via \\[customize] for this variable to have an effect."
+You must modify via \\[customize] for this variable to have an effect;
+but also see the function `partial-completion-mode'."
   :set (lambda (symbol value)
 	 (partial-completion-mode (or value 0)))
   :initialize 'custom-initialize-default
@@ -179,14 +180,14 @@ nil) is enhanced so that if some string is divided into words and each word is
 delimited by a character in `PC-word-delimiters', partial words are completed
 as much as possible.
 
-For example, M-x p-c-b expands to M-x partial-completion-mode since no other
+For example, M-x p-c-m expands to M-x partial-completion-mode since no other
 command begins with that sequence of characters, and
 \\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
 other file in that directory begin with that sequence of characters.
 
 Unless `PC-disable-wildcards' is non-nil, the \"*\" wildcard is interpreted
 specially when entering file or directory names.  For example,
-\\[find-file] *.c RET finds each C file in the currenty directory, and
+\\[find-file] *.c RET finds each C file in the current directory, and
 \\[find-file] */foo_bar.c TAB completes the directory name as far as possible.
 
 Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
