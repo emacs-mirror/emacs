@@ -1,3 +1,8 @@
+2004-08-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-8-post-read-conversion): If the
+	buffer is unibyte, temporarily make it multibyte.
+
 2004-08-27  Masatake YAMATO  <jet@gyve.org>
 
 	* calendar/time-date.el (time-to-seconds): Add autoload cookies.
