@@ -444,6 +444,14 @@ Has a preference of looking backwards."
 				   ;; precede the name.
 				   (setq middle (point))
 				   (forward-word -1)
+				   ;; Ignore these subparts of a class decl
+				   ;; and move back to the class name itself.
+				   (while (looking-at "public \\|private ")
+				     (skip-chars-backward " \t:")
+				     (setq end (point))
+				     (backward-sexp 1)
+				     (setq middle (point))
+				     (forward-word -1))
 				   (and (bolp)
 					(looking-at "struct \\|union \\|class ")
 					(setq middle (point)))
