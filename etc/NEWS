@@ -2493,9 +2493,8 @@ symbol identifying a fringe bitmap, either built-in or defined with
 `define-fringe-bitmap', and FACE is an optional face name to be used
 for displaying the bitmap.
 
-*** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
-identifying the current fringe bitmaps in the display line at a given
-buffer position.  A nil value means no bitmap.
+*** New function `fringe-bitmaps-at-pos' returns the current fringe
+bitmaps in the display line at a given buffer position.
 
 ** Multiple overlay arrows can now be defined and managed via the new
 variable `overlay-arrow-variable-list'.  It contains a list of
