@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.3) $
+/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.4) $
 
    Format like exfmt but with rank-checking built in.
    This format will work without register roots, but to use it,
@@ -105,6 +105,13 @@ mycell *allocdumb(mps_ap_t ap, size_t bytes, mps_rank_t rank);
 
 mps_res_t allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank);
 mps_res_t allocrdumb(mps_addr_t *addr, mps_ap_t ap,
+                     size_t bytes, mps_rank_t rank);
+
+mycell *reservoir_allocone(mps_ap_t ap, int size, mps_rank_t rank);
+mycell *reservoir_allocdumb(mps_ap_t ap, size_t bytes, mps_rank_t rank);
+
+mps_res_t reservoir_allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank);
+mps_res_t reservoir_allocrdumb(mps_addr_t *addr, mps_ap_t ap,
                      size_t bytes, mps_rank_t rank);
 
 mps_addr_t getdata(mycell *obj);
