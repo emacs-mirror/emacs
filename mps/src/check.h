@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.15) $
+ * $HopeName: MMsrc!check.h(trunk.16) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -89,10 +89,18 @@ extern void AssertFail1(const char *s);
 
 /* NOTREACHED -- control should never reach this statement */
 
+#if defined(MPS_HOT_WHITE)
+
+#define NOTREACHED NOOP
+
+#else
+
 #define NOTREACHED \
   BEGIN \
     AssertFail1("unreachable statement" "\n" __FILE__ "\n" STR(__LINE__)); \
   END
+
+#endif
 
 
 /* CHECKT -- check type simply
@@ -107,27 +115,12 @@ extern void AssertFail1(const char *s);
 #if defined(MPS_HOT_WHITE)
 
 
-/* In white-hot varieties, check methods should never be called.
- * To verify this, we have NOTREACHED in the expansions.
- */
-
-#define CHECKS(type, val) \
-  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
-
-#define CHECKL(cond) \
-  BEGIN DISCARD(cond); NOTREACHED; END
-
-#define CHECKD(type, val) \
-  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
-
-#define CHECKD_NOSIG(type, val) \
-  BEGIN DISCARD((val) != NULL); NOTREACHED; END
-
-#define CHECKU(type, val) \
-  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
-
-#define CHECKU_NOSIG(type, val) \
-  BEGIN DISCARD((val) != NULL); NOTREACHED; END
+#define CHECKS(type, val) DISCARD(CHECKT(type, val))
+#define CHECKL(cond) DISCARD(cond)
+#define CHECKD(type, val) DISCARD(CHECKT(type, val))
+#define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
+#define CHECKU(type, val) DISCARD(CHECKT(type, val))
+#define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
 
 
 #elif defined(MPS_HOT_RED)
