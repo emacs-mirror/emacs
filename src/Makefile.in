@@ -640,9 +640,10 @@ lisp= \
 	${lispsource}byte-run.elc \
 	${lispsource}cus-start.el \
 	${lispsource}custom.elc \
+	${lispsource}emacs-lisp/lisp-mode.elc \
+	${lispsource}emacs-lisp/lisp.elc \
 	${lispsource}faces.elc \
 	${lispsource}files.elc \
-	${lispsource}fill.elc \
 	${lispsource}format.elc \
 	FACE_SUPPORT \
 	MOUSE_SUPPORT \
@@ -652,8 +653,6 @@ lisp= \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
-	${lispsource}lisp-mode.elc \
-	${lispsource}lisp.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}map-ynp.elc \
@@ -678,15 +677,16 @@ lisp= \
 	${lispsource}language/tibetan.elc \
 	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.elc \
-	${lispsource}page.elc \
-	${lispsource}paragraphs.elc \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
 	${lispsource}simple.elc \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
-	${lispsource}text-mode.elc \
+	${lispsource}textmodes/fill.elc \
+	${lispsource}textmodes/page.elc \
+	${lispsource}textmodes/paragraphs.elc \
+	${lispsource}textmodes/text-mode.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
@@ -706,15 +706,14 @@ shortlisp= \
 	../lisp/byte-run.elc \
 	../lisp/cus-start.el \
 	../lisp/custom.elc \
+	../lisp/emacs-lisp/lisp-mode.elc \
+	../lisp/emacs-lisp/lisp.elc \
 	../lisp/faces.elc \
 	../lisp/files.elc \
-	../lisp/fill.elc \
 	../lisp/format.elc \
 	../lisp/help.elc \
 	../lisp/indent.elc \
 	../lisp/isearch.elc \
-	../lisp/lisp-mode.elc \
-	../lisp/lisp.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/map-ynp.elc \
@@ -738,15 +737,16 @@ shortlisp= \
 	../lisp/language/tibetan.elc \
 	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.elc \
-	../lisp/page.elc \
-	../lisp/paragraphs.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
 	../lisp/replace.elc \
 	../lisp/simple.elc \
 	../lisp/startup.elc \
 	../lisp/subr.elc \
-	../lisp/text-mode.elc \
+	../lisp/textmodes/fill.elc \
+	../lisp/textmodes/page.elc \
+	../lisp/textmodes/paragraphs.elc \
+	../lisp/textmodes/text-mode.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
 	../lisp/widget.elc \
