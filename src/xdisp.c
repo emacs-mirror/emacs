@@ -201,7 +201,7 @@ Boston, MA 02111-1307, USA.  */
 #define INFINITY 10000000
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
-extern void set_frame_menubar ();
+extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
 #endif
 
@@ -609,6 +609,19 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
+static int invisible_text_between_p P_ ((struct it *, int, int));
+static int next_element_from_ellipsis P_ ((struct it *));
+static void pint2str P_ ((char *, int, int));
+static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
+							struct text_pos));
+static void reconsider_clip_changes P_ ((struct window *, struct buffer *));
+static int text_outside_line_unchanged_p P_ ((struct window *, int, int));
+static void store_frame_title_char P_ ((char));
+static int store_frame_title P_ ((unsigned char *, int, int));
+static void x_consider_frame_title P_ ((Lisp_Object));
+static void handle_stop P_ ((struct it *));
+static int tool_bar_lines_needed P_ ((struct frame *));
 static int single_display_prop_intangible_p P_ ((Lisp_Object));
 static void ensure_echo_area_buffers P_ ((void));
 static struct glyph_row *row_containing_pos P_ ((struct window *, int,
@@ -5515,7 +5528,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   xassert (BEGV >= BEG);
   xassert (ZV <= Z && ZV >= BEGV);
 
-  rc = fn (a1, a2, a3, a4, a5);
+  rc = fn (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
 
   xassert (BEGV >= BEG);
   xassert (ZV <= Z && ZV >= BEGV);
@@ -8293,7 +8306,6 @@ make_cursor_line_fully_visible (w)
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
-  int header_line_height;
   
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
