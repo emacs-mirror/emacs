@@ -106,14 +106,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
-     int backup_n;
+     Lisp_Object backup_n;
      int expflag;
      Lisp_Object histvar;
      Lisp_Object histpos;
 {
   register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+  Lisp_Object mini_frame;
   struct gcpro gcpro1, gcpro2;
 
   if (XTYPE (prompt) != Lisp_String)
@@ -153,11 +153,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
+#ifdef MULTI_FRAME
+  XSET (mini_frame, Lisp_Frame, WINDOW_FRAME (XWINDOW (minibuf_window)));
   if (XFRAME (mini_frame) != selected_frame)
-    {
-      record_unwind_protect (Fset_window_configuration,
-			     Fcurrent_window_configuration (mini_frame));
-    }
+    record_unwind_protect (Fset_window_configuration,
+			   Fcurrent_window_configuration (mini_frame));
+#endif
 
   val = current_buffer->directory;
   Fset_buffer (get_minibuffer (minibuf_level));
