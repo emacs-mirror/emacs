@@ -94,7 +94,8 @@ The buffer in question is current when this function is called."
   (save-window-excursion
     (let (answer)
       (while (null answer)
-	(message "File has changed on disk; really want to edit the buffer? (y, n or C-h) ")
+	(message "%s changed on disk; really edit the buffer? (y, n or C-h) "
+		 (file-name-nondirectory fn))
 	(let ((tem (downcase (let ((cursor-in-echo-area t))
 			       (read-char)))))
 	  (setq answer
