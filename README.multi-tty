@@ -29,7 +29,14 @@ Comments, bug reports, suggestions and patches are welcome!
 
 Retrieving the latest version of the branch:
 
-	tla register-archive lorentey@elte.hu--2004 http://lorentey.web.elte.hu/arch/2004/
+	tla register-archive lorentey@elte.hu--2004 http://lorentey.hu/arch/2004/
+	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+
+This incantation uses my private archive mirror that is hosted on a
+relatively low-bandwidth site; if you are outside Hungary, you will
+probably want to you use the Arch supermirror instead:
+
+	tla register-archive lorentey@elte.hu--2004 http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 (I use a recent arch development snapshot, but any of the released
@@ -47,7 +54,7 @@ system, I highly recommend it.
 If you don't have arch, the branch has a homepage from which you can
 download conventional patches against Emacs CVS HEAD:
 
-	http://lorentey.web.elte.hu/project/emacs.html
+	http://lorentey.hu/project/emacs.html
 
 If you want to be notified of new revisions, sign up to the
 multi-tty@listbox.elte.hu mailing list by visiting the

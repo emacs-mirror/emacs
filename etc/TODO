@@ -146,7 +146,7 @@ to the FSF.
 ** Support simultaneous tty and X frames.  [For a partial
   implementation, see tla branch
   lorentey@elte.hu--2004/emacs--multi-tty--0 at
-  http://lorentey.web.elte.hu/arch/2004]
+  http://lorentey.hu/arch/2004]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
