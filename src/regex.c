@@ -29,7 +29,7 @@
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>
 
-#if defined (HAVE_CONFIG_H) || defined (emacs)
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -3989,21 +3989,13 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 
             /* If we're at the end of the pattern, we can change.  */
             if (p2 == pend)
-              { /* But if we're also at the end of the string, we might
-                   as well skip changing anything.  For example, in `a+'
-                   against `a', we'll have already matched the `a', and
-                   I don't see the the point of changing the opcode,
-                   popping the failure point, finding out it fails, and
-                   then going into our endgame.  */
-                if (d == dend)
-                  {
-                    p = pend;
-                    DEBUG_PRINT1 ("  End of pattern & string => done.\n");
-                    continue;
-                  }
-                
+	      {
+		/* Consider what happens when matching ":\(.*\)"
+		   against ":/".  I don't really understand this code
+		   yet.  */
   	        p[-3] = (unsigned char) pop_failure_jump;
-                DEBUG_PRINT1 ("  End of pattern => pop_failure_jump.\n");
+                DEBUG_PRINT1
+                  ("  End of pattern: change to `pop_failure_jump'.\n");
               }
 
             else if ((re_opcode_t) *p2 == exactn
