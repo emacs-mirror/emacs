@@ -798,9 +798,9 @@ to give it focus.
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with
 description various information about a character, including its
-encodings and syntax, its text properties, overlays, and widgets at
-point.  You can get more information about some of them, by clicking
-on mouse-sensitive areas or moving there and pressing RET.
+encodings and syntax, its text properties, how to input, overlays, and
+widgets at point.  You can get more information about some of them, by
+clicking on mouse-sensitive areas or moving there and pressing RET.
 
 +++
 ** The new command `multi-occur' is just like `occur', except it can
