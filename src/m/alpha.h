@@ -139,10 +139,6 @@ NOTE-END
 /* #define NO_SOCK_SIGIO */
 
 
-#define HAVE_X11R4
-#define HAVE_X11R5
-
-
 /* Describe layout of the address space in an executing process.  */
 
 #define TEXT_START    0x120000000
