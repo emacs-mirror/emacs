@@ -2060,7 +2060,7 @@ bool-vector.  IDX starts at 0.  */)
 	  p1 = SDATA (array) + idxval_byte;
 	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
 		 nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE (nbytes);
+	  SAFE_FREE ();
 	  clear_string_char_byte_cache ();
 	}
       while (new_bytes--)
@@ -2102,7 +2102,7 @@ bool-vector.  IDX starts at 0.  */)
 	    *p1++ = *p0++;
 	  bcopy (str + idxval_byte + prev_bytes, p1,
 		 nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE (nbytes);
+	  SAFE_FREE ();
 	  clear_string_char_byte_cache ();
 	}
     }

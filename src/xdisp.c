@@ -6474,7 +6474,7 @@ add_to_log (format, arg1, arg2)
   bcopy (SDATA (msg), buffer, len);
 
   message_dolog (buffer, len - 1, 1, 0);
-  SAFE_FREE (len);
+  SAFE_FREE ();
 
   UNGCPRO;
 }
