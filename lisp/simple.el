@@ -2982,7 +2982,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
    (let* ((v (variable-at-point))
 	  (enable-recursive-minibuffers t)
 	  (val (completing-read
-		(if v
+		(if (user-variable-p v)
 		    (format "Set variable (default %s): " v)
 		  "Set variable: ")
 		obarray 'user-variable-p t))
