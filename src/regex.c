@@ -2558,8 +2558,8 @@ regex_compile (pattern, size, syntax, bufp)
 	      }
 	    /* If the spaces are followed by a repetition op,
 	       treat them normally.  */
-	    if (p1 == pend
-		|| (*p1 == '*' || *p1 == '+' || *p1 == '?'
+	    if (p1 != pend
+		&& (*p1 == '*' || *p1 == '+' || *p1 == '?'
 		    || (*p1 == '\\' && p1 + 1 != pend && p1[1] == '{')))
 	      goto normal_char;
 
