@@ -1501,9 +1501,6 @@ extern void init_system_name ();
 #ifndef DIRECTORY_SEP
 #define DIRECTORY_SEP '/'
 #endif
-#ifndef DEVICE_SEP
-#define DEVICE_SEP ':'
-#endif
 #ifndef IS_DIRECTORY_SEP
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
