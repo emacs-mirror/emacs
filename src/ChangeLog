@@ -1,3 +1,10 @@
+2002-08-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (x_load_font): Initialize fontp->fontset to -1.
+
+	* fontset.c (fs_load_font): If fontp->charset is not negative,
+	return fontp without setting its members.
+
 2002-07-31  Dave Love  <fx@gnu.org>
 
 	* config.in: Generated with autoheader.
