@@ -580,7 +580,7 @@ With argument, move up ARG levels."
   (interactive "p")
   (outline-back-to-heading)
   (if (eq (funcall outline-level) 1)
-      (error ""))
+      (error "Already at top level of the outline"))
   (while (and (> (funcall outline-level) 1)
 	      (> arg 0)
 	      (not (bobp)))
@@ -603,7 +603,7 @@ Stop at the first and last subheadings of a superior heading."
 	    (setq arg (1- arg)))
 	(progn
 	  (setq arg 0)
-	  (error ""))))))
+	  (error "No following same-level heading"))))))
 
 (defun outline-get-next-sibling ()
   "Move to next heading of the same level, and return point or nil if none."
@@ -630,7 +630,7 @@ Stop at the first and last subheadings of a superior heading."
 	    (setq arg (1- arg)))
 	(progn
 	  (setq arg 0)
-	  (error ""))))))
+	  (error "No previous same-level heading"))))))
 
 (defun outline-get-last-sibling ()
   "Move to next heading of the same level, and return point or nil if none."
