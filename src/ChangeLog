@@ -1,3 +1,9 @@
+2004-11-07  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmsdos_downcase_filename.
+	* dired.c: Don't declare Fmsdos_downcase_filename.
+	* fileio.c: Likewise.
+
 2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dosfns.c (Fdos_memget, Fdos_memput): Use integer variable offs in
