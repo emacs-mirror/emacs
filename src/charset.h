@@ -29,19 +29,19 @@ Boston, MA 02111-1307, USA.  */
   A character set ("charset" hereafter) is a meaningful collection
   (i.e. language, culture, functionality, etc) of characters.  Emacs
   handles multiple charsets at once.  Each charset corresponds to one
-  of ISO charsets.  Emacs identifies a charset by a unique
+  of the ISO charsets.  Emacs identifies a charset by a unique
   identification number, whereas ISO identifies a charset by a triplet
   of DIMENSION, CHARS and FINAL-CHAR.  So, hereafter, just saying
   "charset" means an identification number (integer value).
 
-  The value range of charset is 0x00, 0x81..0xFE.  There are four
+  The value range of charsets is 0x00, 0x81..0xFE.  There are four
   kinds of charset depending on DIMENSION (1 or 2) and CHARS (94 or
   96).  For instance, a charset of DIMENSION2_CHARS94 contains 94x94
   characters.
 
   Within Emacs Lisp, a charset is treated as a symbol which has a
   property `charset'.  The property value is a vector containing
-  various information about the charset.  For readability of C codes,
+  various information about the charset.  For readability of C code,
   we use the following convention for C variable names:
 	charset_symbol: Emacs Lisp symbol of a charset
 	charset_id: Emacs Lisp integer of an identification number of a charset
@@ -51,14 +51,14 @@ Boston, MA 02111-1307, USA.  */
   (range 0x80..0x9E).  In addition, a charset of greater than 0xA0
   (whose base leading-code is 0x9A..0x9D) is assigned an extended
   leading-code (range 0xA0..0xFE).  In this case, each base
-  leading-code specify the allowable range of extended leading-code as
-  shown in the table below.  A leading-code is used to represent a
+  leading-code specifies the allowable range of extended leading-code
+  as shown in the table below.  A leading-code is used to represent a
   character in Emacs' buffer and string.
 
-  We call a charset which has extended leading-code as "private
+  We call a charset which has extended leading-code a "private
   charset" because those are mainly for a charset which is not yet
   registered by ISO.  On the contrary, we call a charset which does
-  not have extended leading-code as "official charset".
+  not have extended leading-code an "official charset".
 
   ---------------------------------------------------------------------------
   charset	dimension	 base leading-code	extended leading-code
@@ -136,8 +136,8 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
 /*** GENERAL NOTE on CHARACTER REPRESENTATION ***
 
-  At first, the term "character" or "char" is used for a multilingual
-  character (of course, including ASCII character), not for a byte in
+  Firstly, the term "character" or "char" is used for a multilingual
+  character (of course, including ASCII characters), not for a byte in
   computer memory.  We use the term "code" or "byte" for the latter
   case.
 
@@ -149,14 +149,14 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
   POSITION-CODE is 0x20..0x7F.
 
   Emacs has two kinds of representation of a character: multi-byte
-  form (for buffer and string) and single-word form (for character
-  object in Emacs Lisp).  The latter is called "character code" here
-  after.  Both representations encode the information of charset and
-  POSITION-CODE but in a different way (for instance, MSB of
+  form (for buffers and strings) and single-word form (for character
+  objects in Emacs Lisp).  The latter is called "character code"
+  hereafter.  Both representations encode the information of charset
+  and POSITION-CODE but in a different way (for instance, the MSB of
   POSITION-CODE is set in multi-byte form).
 
-  For details of multi-byte form, see the section "2. Emacs internal
-  format handlers" of `coding.c'.
+  For details of the multi-byte form, see the section "2. Emacs
+  internal format handlers" of `coding.c'.
 
   Emacs uses 19 bits for a character code.  The bits are divided into
   3 fields: FIELD1(5bits):FIELD2(7bits):FIELD3(7bits).
@@ -220,9 +220,9 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 /* 1 if BYTE is an ASCII character in itself, in multibyte mode.  */
 #define ASCII_BYTE_P(byte) ((byte) < 0x80)
 
-/* A char-table containing information of each character set.
+/* A char-table containing information on each character set.
 
-   Unlike ordinary char-tables, this doesn't contain any nested table.
+   Unlike ordinary char-tables, this doesn't contain any nested tables.
    Only the top level elements are used.  Each element is a vector of
    the following information:
 	CHARSET-ID, BYTES, DIMENSION, CHARS, WIDTH, DIRECTION,
@@ -233,8 +233,8 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
    CHARSET-ID (integer) is the identification number of the charset.
 
-   BYTES (integer) is the length of multi-byte form of a character in
-   the charset: one of 1, 2, 3, and 4.
+   BYTES (integer) is the length of the multi-byte form of a character
+   in the charset: one of 1, 2, 3, and 4.
 
    DIMENSION (integer) is the number of bytes to represent a character: 1 or 2.
 
@@ -251,7 +251,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    charset.
 
    LEADING-CODE-EXT (integer) is the extended leading-code for the
-   charset.  All charsets of less than 0xA0 has the value 0.
+   charset.  All charsets of less than 0xA0 have the value 0.
 
    ISO-FINAL-CHAR (character) is the final character of the
    corresponding ISO 2022 charset.  It is -1 for such a character
@@ -266,7 +266,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    REVERSE-CHARSET (integer) is the charset which differs only in
    LEFT-TO-RIGHT value from the charset.  If there's no such a
    charset, the value is -1.
-   
+
    SHORT-NAME (string) is the short name to refer to the charset.
 
    LONG-NAME (string) is the long name to refer to the charset.
@@ -274,7 +274,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
    DESCRIPTION (string) is the description string of the charset.
 
    PLIST (property list) may contain any type of information a user
-   want to put and get by functions `put-charset-property' and
+   wants to put and get by functions `put-charset-property' and
    `get-charset-property' respectively.  */
 extern Lisp_Object Vcharset_table;
 
@@ -515,7 +515,7 @@ extern int iso_charset_table[2][2][128];
    : char_bytes (c))
 
 /* The following two macros CHAR_STRING and STRING_CHAR are the main
-   entry points to convert between Emacs two types of character
+   entry points to convert between Emacs's two types of character
    representations: multi-byte form and single-word form (character
    code).  */
 

@@ -1461,10 +1461,10 @@ multibyte_chars_in_text (ptr, nbytes)
   return chars;
 }
 
-/* Parse unibyte text at STR of LEN bytes as a multibyte text, and
+/* Parse unibyte text at STR of LEN bytes as multibyte text, and
    count the numbers of characters and bytes in it.  On counting
-   bytes, pay attention to that 8-bit characters in the range
-   0x80..0x9F are represented by 2-byte in a multibyte text.  */
+   bytes, pay attention to the fact that 8-bit characters in the range
+   0x80..0x9F are represented by 2 bytes in multibyte text.  */
 void
 parse_str_as_multibyte (str, len, nchars, nbytes)
      unsigned char *str;
@@ -1486,7 +1486,7 @@ parse_str_as_multibyte (str, len, nchars, nbytes)
   return;
 }
 
-/* Arrange unibyte text at STR of NBYTES bytes as a multibyte text.
+/* Arrange unibyte text at STR of NBYTES bytes as multibyte text.
    It actually converts only 8-bit characters in the range 0x80..0x9F
    that don't contruct multibyte characters to multibyte forms.  If
    NCHARS is nonzero, set *NCHARS to the number of characters in the
@@ -1535,7 +1535,7 @@ str_as_multibyte (str, len, nbytes, nchars)
   return (to - str);
 }
 
-/* Convert unibyte text at STR of NBYTES bytes to a multibyte text
+/* Convert unibyte text at STR of NBYTES bytes to multibyte text
    that contains the same single-byte characters.  It actually
    converts all 8-bit characters to multibyte forms.  It is assured
    that we can use LEN bytes at STR as a work area and that is
