@@ -512,7 +512,7 @@ detailed meanings of these arguments."
 	  (when coding
 	    (insert (format "preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
-	    (help-xref-button 0 'describe-coding-system coding)))))))
+	    (help-xref-button 0 'help-coding-system coding)))))))
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
