@@ -4049,7 +4049,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
          new buffer.  */
       struct buffer *prev = current_buffer, *new;
 
-      call2 (coding->pre_write_conversion, from, to);
+      call2 (coding->pre_write_conversion,
+	     make_number (from), make_number (to));
       if (current_buffer != prev)
 	{
 	  len = ZV - BEGV;
