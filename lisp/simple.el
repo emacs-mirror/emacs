@@ -2956,6 +2956,8 @@ Setting this variable automatically makes it local to the current buffer.")
 			(kinsoku (save-excursion
 				   (forward-line 0) (point))))
 		    ;; Let fill-point be set to the place where we end up.
+		    ;; But move back before any whitespace here.
+		    (skip-chars-backward " \t")
 		    (point)))))
 
 	  ;; See whether the place we found is any good.
