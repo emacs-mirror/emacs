@@ -133,11 +133,11 @@ Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
 Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
+Lisp_Object QCfilter_multibyte;
 Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
 extern Lisp_Object QCfamily, QCfilter;
-Lisp_Object QCfilter_multibyte;
 
 /* Qexit is declared and initialized in eval.c.  */
 
@@ -2619,9 +2619,9 @@ The stopped state is cleared by `continue-process' and set by
 
 :filter FILTER -- Install FILTER as the process filter.
 
-:filter-multibyte BOOL -- If BOOL is non-nil, a string given to the
-process filter is multibyte, otherwise it is unibyte.  If this keyword
-is not specified, the string is multibyte iff
+:filter-multibyte BOOL -- If BOOL is non-nil, strings given to the
+process filter are multibyte, otherwise they are unibyte.
+If this keyword is not specified, the strings are multibyte iff
 `default-enable-multibyte-characters' is non-nil.
 
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
@@ -6160,9 +6160,9 @@ DEFUN ("process-coding-system",
 
 DEFUN ("set-process-filter-multibyte", Fset_process_filter_multibyte,
        Sset_process_filter_multibyte, 2, 2, 0,
-       doc: /* Set multibyteness of a string given to PROCESS's filter.
-If FLAG is non-nil, the filter is given a multibyte string.
-If FLAG is nil, the filter is give a unibyte string.  In this case,
+       doc: /* Set multibyteness of the strings given to PROCESS's filter.
+If FLAG is non-nil, the filter is given multibyte strings.
+If FLAG is nil, the filter is given unibyte strings.  In this case,
 all character code conversion except for end-of-line conversion is
 suppressed.  */)
      (proc, flag)
@@ -6396,11 +6396,11 @@ syms_of_process ()
   staticpro (&QCoptions);
   QCplist = intern (":plist");
   staticpro (&QCplist);
+  QCfilter_multibyte = intern (":filter-multibyte");
+  staticpro (&QCfilter_multibyte);
 
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
-  QCfilter_multibyte = intern ("filter-multibyte");
-  staticpro (&QCfilter_multibyte);
 
   staticpro (&Vprocess_alist);
 
