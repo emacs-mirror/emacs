@@ -28,10 +28,15 @@ Boston, MA 02111-1307, USA.  */
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
-#define FONT_WIDTH(f)	((f)->tm.tmAveCharWidth)
-#define FONT_HEIGHT(f)	((f)->tm.tmHeight)
-#define FONT_BASE(f)    ((f)->tm.tmAscent)
-#define FONT_MAX_WIDTH(f) ((f)->tm.tmMaxCharWidth)
+#define FONT_WIDTH(f)       \
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
+#define FONT_HEIGHT(f)      \
+   ((f)->bdf ? (f)->bdf->height : (f)->tm.tmHeight)
+/* No idea why 5 seems to work in here, but it does */
+#define FONT_BASE(f)        \
+  ((f)->bdf ? (f)->bdf->ury : (f)->tm.tmAscent)
+#define FONT_MAX_WIDTH(f)   \
+  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
