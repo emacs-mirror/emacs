@@ -282,7 +282,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  val = Qraw_text;
 	else
 	  {
-	    if (!EQ (coding_systems, Qt))
+	    if (EQ (coding_systems, Qt))
 	      {
 		args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 		args2[0] = Qcall_process;
