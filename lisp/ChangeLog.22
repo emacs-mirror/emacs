@@ -1,3 +1,8 @@
+2004-04-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (unicode-data): Call
+	find-file-noselect with NOWARN t.
+
 2004-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (cp932-2-byte): Fix :code-space.
@@ -479,7 +484,7 @@
 	(utf-16-be-with-signature): Comment-out :endian.
 
 	* mule-diag.el (describe-character-set): Fix
-	printing dimensions.  Use `,AW', not `x'.
+	printing dimensions.  Use `×', not `x'.
 
 2003-04-12  Kenichi Handa  <handa@m17n.org>
 
@@ -949,7 +954,7 @@
 
 2002-09-05  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make ,_/(B and ,A a case pair.
+	* international/characters.el: Make Ÿ and ÿ a case pair.
 
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
