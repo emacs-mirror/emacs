@@ -197,7 +197,7 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 						     prefix1)))))
 		(setq i (1+ i))))))
       (setq scan (cdr scan)))))
-
+
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
   (if (vectorp key)
@@ -252,6 +252,57 @@ The value is an ASCII printing character (not upper case) or a symbol."
     (let ((base (logand event (1- (lsh 1 18)))))
       (downcase (if (< base 32) (logior base 64) base)))))
 
+(defsubst mouse-movement-p (object)
+  "Return non-nil if OBJECT is a mouse movement event."
+  (and (consp object)
+       (eq (car object) 'mouse-movement)))
+
+(defsubst event-start (event)
+  "Return the starting position of EVENT.
+If EVENT is a mouse press or a mouse click, this returns the location
+of the event.
+If EVENT is a drag, this returns the drag's starting position.
+The return value is of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+The `posn-' functions access elements of such lists."
+  (nth 1 event))
+
+(defsubst event-end (event)
+  "Return the ending location of EVENT.  EVENT should be a click or drag event.
+If EVENT is a click event, this function is the same as `event-start'.
+The return value is of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+The `posn-' functions access elements of such lists."
+  (nth (1- (length event)) event))
+
+(defsubst posn-window (position)
+  "Return the window in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 0 position))
+
+(defsubst posn-point (position)
+  "Return the buffer location in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 1 position))
+
+(defsubst posn-col-row (position)
+  "Return the row and column in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 2 position))
+
+(defsubst posn-timestamp (position)
+  "Return the timestamp of POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+nas returned by the `event-start' and `event-end' functions."
+  (nth 3 position))
+
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
   (let ((original (make-symbol "match-data")))
