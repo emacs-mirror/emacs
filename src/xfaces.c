@@ -1156,7 +1156,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (EQ (attr_name, intern ("font")))
     {
 #if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
-      face->font = 0; /* The one and only font.  */
+      /* The one and only font.  Must *not* be zero (which
+	 is taken to mean an unused face nowadays).  */
+      face->font = (XFontStruct *)1 ;
 #else
       XFontStruct *font = load_font (f, attr_value);
       if (face->font != f->output_data.x->font)
