@@ -1,3 +1,7 @@
+1999-12-20  Dave Love  <fx@gnu.org>
+
+	* xfns.c (Fx_show_tip): Add missing UNGCPRO.
+
 1999-12-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (debugger_may_continue): New variable.
