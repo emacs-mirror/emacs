@@ -6,6 +6,21 @@
 	has changed.
 	(gdb-append-to-inferior-io): Revert change from 2003-05-17.
 
+2003-06-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texinfo.el (texinfo-enable-quote-macros): Fix thinko.
+	(texinfo-insert-@table): Remove unused arg.
+	(texinfo-show-structure): Remove unused var `source-buffer'.
+
+	* info.el (Info-goto-node, Info-follow-reference, Info-menu-update)
+	(Info-fontify-node): Don't search past header-end.
+	Use match-string and line-end-position.
+
+	* skeleton.el (skeleton-proxy-new): Consume the mark-active state.
+
+	* textmodes/tex-mode.el (tex-mode-syntax-table)
+	(tex-latex-indent-syntax-table): Don't use easy-mmode-defsyntax.
+
 2003-06-07  Jason Rumney  <jasonr@gnu.org>
 
 	* mwheel.el (mouse-wheel-up-event, mouse-wheel-down-event):
