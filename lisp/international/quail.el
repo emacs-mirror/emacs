@@ -1165,7 +1165,9 @@ sequence counting from the head."
 	     ;; Then, return the length of "...AB".
 	     (- len 2))
 
-	    ((and quail-current-translations
+	    ((and (> len 0)
+		  (quail-lookup-key (substring quail-current-key 0 -1))
+		  quail-current-translations
 		  (not (quail-deterministic))
 		  (setq ch (aref quail-current-key (1- len)))
 		  (>= ch ?0) (<= ch ?9))
