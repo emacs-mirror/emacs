@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.17 2002/01/06 22:11:39 martin Exp $
+;; $Id: vc-cvs.el,v 1.30 2002/01/08 19:57:57 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -241,7 +241,7 @@ committed and support display of sticky tags."
 	 (sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
  	 (sticky-tag-printable (and sticky-tag
 				    (not (string= sticky-tag ""))
- 				    (concat "(" sticky-tag ")"))))
+ 				    (concat "[" sticky-tag "]"))))
     (cond ((string= rev "0")
 	   ;; A file that is added but not yet committed.
 	   "CVS @@")
