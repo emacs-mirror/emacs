@@ -66,9 +66,53 @@ char *superlock_path;
 
 /* Set LOCK to the name of the lock file for the filename FILE.
    char *LOCK; Lisp_Object FILE;  */
+
+#ifdef SHORT_FILE_NAMES
+
+#define MAKE_LOCK_PATH(lock, file) \
+  (lock = (char *) alloca (14 + strlen (lock_path) + 1), \
+   fill_in_lock_short_file_name (lock, (file)))
+
+
+fill_in_lock_short_file_name (lockfile, fn)
+     register char *lockfile;
+     register Lisp_Object fn;
+{
+  register union
+    {
+      unsigned int  word [2];
+      unsigned char byte [8];
+    } crc;
+  register unsigned char *p, new;
+  
+  /* 7-bytes cyclic code for burst correction on byte-by-byte basis.
+     the used polynomial is D^7 + D^6 + D^3 +1. pot@cnuce.cnr.it */
+
+  crc.word[0] = crc.word[1] = 0;
+
+  for (p = XSTRING (fn)->data; new = *p++; )
+    {
+      new += crc.byte[7];
+      crc.byte[7] = crc.byte[6];
+      crc.byte[6] = crc.byte[5] + new;
+      crc.byte[5] = crc.byte[4];
+      crc.byte[4] = crc.byte[3];
+      crc.byte[3] = crc.byte[2] + new;
+      crc.byte[2] = crc.byte[1];
+      crc.byte[1] = crc.byte[0];
+      crc.byte[0] = new;
+    }
+  sprintf (lockfile, "%s%.2x%.2x%.2x%.2x%.2x%.2x%.2x", lock_path,
+	   crc.byte[0], crc.byte[1], crc.byte[2], crc.byte[3],
+	   crc.byte[4], crc.byte[5], crc.byte[6]);
+}
+
+#else /* !defined SHORT_FILE_NAMES */
+
 #define MAKE_LOCK_PATH(lock, file) \
   (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_path) + 1), \
    fill_in_lock_file_name (lock, (file)))
+
 
 fill_in_lock_file_name (lockfile, fn)
      register char *lockfile;
@@ -88,6 +132,7 @@ fill_in_lock_file_name (lockfile, fn)
 	*p = '!';
     }
 }
+#endif /* SHORT_FILE_NAMES */
 
 static Lisp_Object
 lock_file_owner_name (lfname)
@@ -123,6 +168,11 @@ lock_file_owner_name (lfname)
 /* The lock file name is the file name with "/" replaced by "!"
    and put in the Emacs lock directory.  */
 /* (ie., /ka/king/junk.tex -> /!/!ka!king!junk.tex). */
+
+/* If SHORT_FILE_NAMES is defined, the lock file name is the hex
+   representation of a 14-bytes CRC generated from the file name
+   and put in the Emacs lock directory (not very nice, but it works).
+   (ie., /ka/king/junk.tex -> /!/ec92d3ed24a8f0). */
 
 void
 lock_file (fn)
