@@ -1622,6 +1622,10 @@ you need to put it somewhere into Emacs' load path and add the atom
 
 ** New modes and packages
 
+*** The new global minor mode `minibuffer-electric-default-mode'
+automatically hides the `(default ...)' part of minibuffer prompts when
+the default is not applicable.
+
 *** Artist is an Emacs lisp package that allows you to draw lines,
 rectangles and ellipses by using your mouse and/or keyboard.  The
 shapes are made up with the ascii characters |, -, / and \.
