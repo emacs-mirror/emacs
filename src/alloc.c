@@ -1163,6 +1163,8 @@ Does not copy symbols.")
       register int i, size;
 
       size = XVECTOR (obj)->size;
+      if (size & PSEUDOVECTOR_FLAG)
+	size &= PSEUDOVECTOR_SIZE_MASK;
       vec = XVECTOR (make_pure_vector (size));
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
