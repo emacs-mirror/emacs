@@ -255,7 +255,6 @@ to continue it."
   (use-local-map inferior-lisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter))
-  (setq comint-input-sentinel 'ignore)
   (run-hooks 'inferior-lisp-mode-hook))
 
 (defun lisp-get-old-input ()
@@ -282,7 +281,7 @@ of `inferior-lisp-program').  Runs the hooks from
 			 (read-string "Run lisp: " inferior-lisp-program)
 		       inferior-lisp-program)))
   (if (not (comint-check-proc "*inferior-lisp*"))
-      (let ((cmdlist (inferior-lisp-args-to-list cmd)))
+      (let ((cmdlist (split-string cmd)))
 	(set-buffer (apply (function make-comint)
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
@@ -292,22 +291,6 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
-
-;;; Break a string up into a list of arguments.
-;;; This will break if you have an argument with whitespace, as in
-;;; string = "-ab +c -x 'you lose'".
-(defun inferior-lisp-args-to-list (string)
-  (let ((where (string-match "[ \t]" string)))
-    (cond ((null where) (list string))
-	  ((not (= where 0))
-	   (cons (substring string 0 where)
-		 (inferior-lisp-args-to-list (substring string (+ 1 where)
-							(length string)))))
-	  (t (let ((pos (string-match "[^ \t]" string)))
-	       (if (null pos)
-		   nil
-		 (inferior-lisp-args-to-list (substring string pos
-							(length string)))))))))
 
 (defun lisp-eval-region (start end &optional and-go)
   "Send the current region to the inferior Lisp process.
