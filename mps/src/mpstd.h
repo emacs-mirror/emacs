@@ -9,10 +9,22 @@
 #ifndef mpstd_h
 #define mpstd_h
 
+/* Some random pickings from cc(1) on a mips IRIX 5.2 machine (atilla) */
+
+#if defined(__DSO__) && defined(__sgi) && defined(__unix) && defined(__mips)
+#define MPS_PF_I4R4CC
+#define MPS_OS_I4
+#define MPS_ARCH_R4
+#define MPS_BUILD_CC
+#define MPS_T_WORD	unsigned long
+#define MPS_WORD_WIDTH	32
+#define MPS_WORD_SHIFT	5
+#define MPS_PF_ALIGN	4
+
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference, */
 /* Chapter 1: The Preprocessor, Macros, Predefined Macros. */
 
-#if defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
 #define MPS_PF_W3I3MV
 #define MPS_OS_W3
 #define MPS_ARCH_I3
