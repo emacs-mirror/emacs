@@ -50,17 +50,24 @@ typedef struct {
 
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
+typedef XImage * XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #define NativeRectangle XRectangle
 #endif
 
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
 typedef struct w32_display_info Display_Info;
+typedef XImage *XImagePtr;
+typedef HDC XImagePtr_or_DC;
 #endif
 
 #ifdef HAVE_CARBON
 #include "macgui.h"
 typedef struct mac_display_info Display_Info;
+/* Mac equivalent of XImage.  */
+typedef Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
 #endif
 
 #ifndef NativeRectangle
@@ -2623,9 +2630,9 @@ void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));
 
 unsigned long image_background P_ ((struct image *, struct frame *,
-				    XImage *ximg));
+				    XImagePtr_or_DC ximg));
 int image_background_transparent P_ ((struct image *, struct frame *,
-				      XImage *mask));
+				      XImagePtr_or_DC mask));
 
 #endif
 
