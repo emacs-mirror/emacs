@@ -3,6 +3,7 @@
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Maintainer: FSF
 ;; Keywords: lisp, extensions
 
 ;; This file is part of GNU Emacs.

@@ -110,7 +110,7 @@
 ;; is not specific to generic-mode.
 ;; 
 
-;; Credit for suggestions, brainstorming, patches and bug-fixes:
+;; Credit for suggestions, brainstorming, help with debugging:
 ;;   ACorreir@pervasive-sw.com (Alfred Correira)
 
 ;;; Code:

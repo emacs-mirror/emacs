@@ -4,6 +4,7 @@
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Maintainer: FSF
 ;; Keywords: unix
 
 ;; This file is part of GNU Emacs.
