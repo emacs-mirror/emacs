@@ -1142,8 +1142,8 @@
 	 assoc assq
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring
-	 capitalize car-less-than-car car cdr ceiling concat
-	 coordinates-in-window-p
+	 capitalize car-less-than-car car cdr ceiling char-after char-before
+	 concat coordinates-in-window-p
 	 char-width copy-marker cos count-lines
 	 default-boundp default-value documentation downcase
 	 elt exp expt fboundp featurep
@@ -1158,9 +1158,9 @@
 	 logb logior lognot logxor lsh
 	 marker-buffer max member memq min mod
 	 next-window nth nthcdr number-to-string
-	 parse-colon-path prefix-numeric-value previous-window
+	 parse-colon-path prefix-numeric-value previous-window propertize
 	 radians-to-degrees rassq regexp-quote reverse round
-	 sin sqrt string< string= string-equal string-lessp string-to-char
+	 sin sqrt string string< string= string-equal string-lessp string-to-char
 	 string-to-int string-to-number substring symbol-function symbol-plist
 	 symbol-value
 	 tan unibyte-char-to-multibyte upcase user-variable-p vconcat
@@ -1173,7 +1173,8 @@
 	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps
-	 dot dot-marker eobp eolp eq equal eventp floatp framep
+	 dot dot-marker eobp eolp eq equal eventp
+	 floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
 	 identity ignore integerp integer-or-marker-p interactive-p
@@ -1184,7 +1185,7 @@
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
 	 one-window-p overlayp
-	 point point-marker point-min point-max processp
+	 point point-marker point-min point-max preceding-char processp
 	 recent-keys recursion-depth
 	 selected-frame selected-window sequencep stringp subrp symbolp
 	 standard-case-table standard-syntax-table syntax-table-p
