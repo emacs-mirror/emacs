@@ -201,7 +201,7 @@ the manpage buffer.")
 
 ;; Unless some system actually adds leading whitespace other than one space,
 ;; it is more reliable not to accept any other leading whitespace.
-(defvar Man-heading-regexp "^ ?*\\([A-Z][A-Z \t]+\\)$"
+(defvar Man-heading-regexp "^[ \t]*\\([A-Z][A-Z \t]+\\)$"
   "*Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
