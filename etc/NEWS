@@ -576,6 +576,10 @@ customizing face `fringe'.
 
 ** The mode line under X is now drawn with shadows by default.
 You can change its appearance by modifying the face `mode-line'.
+In particular, setting the `:box' attribute to nil turns off the 3D
+appearance of the mode line.  (The 3D appearance makes the mode line
+occupy more space, and thus might cause the first or the last line of
+the window to be partially obscured.)
 
 The variable `mode-line-inverse-video', which was used in older
 versions of emacs to make the mode-line stand out, now defaults to nil,

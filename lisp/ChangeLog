@@ -1,5 +1,8 @@
 2001-01-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mail/emacsbug.el (report-emacs-bug): Report the value of
+	LC_CTYPE, not LC_TYPE.
+
 	* isearch.el (isearch-forward): Add isearch-toggle-case-fold,
 	isearch-toggle-regexp and isearch-edit-string to doc string.
 
