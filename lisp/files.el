@@ -927,6 +927,7 @@ run `normal-mode' explicitly."
     ("\\.l\\'" . lisp-mode)
     ("\\.lisp\\'" . lisp-mode)
     ("\\.f\\'" . fortran-mode)
+    ("\\.F\\'" . fortran-mode)
     ("\\.for\\'" . fortran-mode)
     ("\\.p\\'" . pascal-mode)
     ("\\.pas\\'" . pascal-mode)
