@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.31) $
+ * $HopeName: MMsrc!poolamc.c(trunk.32) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.31) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.32) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -720,9 +720,9 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
   AVERT(AMC, amc);
   EVENT_PP(AMCInit, pool, amc);
   if (rankSet == RankSetEMPTY)
-    EVENT_PP(PoolInitAMCZ, pool, format);
+    EVENT_PP(PoolInitAMCZ, pool, pool->format);
   else
-    EVENT_PP(PoolInitAMC, pool, format);
+    EVENT_PP(PoolInitAMC, pool, pool->format);
   return ResOK;
 }
 
