@@ -465,7 +465,7 @@ active keymap.
 @defun define-prefix-command symbol &optional mapvar prompt
 @cindex prefix command
 This function prepares @var{symbol} for use as a prefix key's binding:
-it creates a full keymap and stores it as @var{symbol}'s function
+it creates a sparse keymap and stores it as @var{symbol}'s function
 definition.  Subsequently binding a key sequence to @var{symbol} will
 make that key sequence into a prefix key.  The return value is @code{symbol}.
 

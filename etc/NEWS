@@ -1086,6 +1086,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The functions base64-decode-region and base64-decode-string now
+signal an error instead of returning nil if decoding fails.
+
 ** The function sendmail-user-agent-compose now recognizes a `body'
 header is the list of headers passed to it.
 

@@ -1,5 +1,8 @@
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (Fbase64_decode_region, Fbase64_decode_string): Signal
+	an error if decoding fails.
+
 	* keyboard.c (lispy_mouse_names): Variable removed.
 	(Vlispy_mouse_stem): New variable.
 	(syms_of_keyboard): Initialize Vlispy_mouse_stem.

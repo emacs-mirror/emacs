@@ -1,5 +1,8 @@
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/compile.el (compile-internal): Display the compilation
+	buffer in a different frame, if it's already displayed there.
+
 	* mail/rfc2368.el: New file.
 
 	* simple.el (sendmail-user-agent-compose): Recognize a `body'
