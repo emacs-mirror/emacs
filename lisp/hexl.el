@@ -122,8 +122,10 @@ and \"-de\" when dehexlifying a buffer."
 
 ;;;###autoload
 (defun hexl-mode (&optional arg)
-  "\\<hexl-mode-map>
-A major mode for editing binary files in hex dump format.
+  "\\<hexl-mode-map>A mode for editing binary files in hex dump format.
+This is not an ordinary major mode; it alters some aspects
+if the current mode's behavior, but not all; also, you can exit
+Hexl mode and return to the previous mode using `hexl-mode-exit'.
 
 This function automatically converts a buffer into the hexl format
 using the function `hexlify-buffer'.
@@ -189,13 +191,11 @@ into the buffer at the current point.
 Note: saving the file with any of the usual Emacs commands
 will actually convert it back to binary format while saving.
 
-You can use \\[hexl-find-file] to visit a file in hexl-mode.
+You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 \\[describe-bindings] for advanced commands."
   (interactive "p")
-  (if (eq major-mode 'hexl-mode)
-      (error "You are already in hexl mode")
-
+  (unless (eq major-mode 'hexl-mode)
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
 	  (original-point (1- (point)))
