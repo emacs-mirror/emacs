@@ -130,10 +130,11 @@ static void silly_event_symbol_error P_ ((Lisp_Object));
 
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
        doc: /* Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).
-CHARTABLE is a char-table that holds the bindings for the ASCII
-characters.  ALIST is an assoc-list which holds bindings for function keys,
-mouse events, and any other things that appear in the input stream.
-All entries in it are initially nil, meaning "command undefined".
+CHARTABLE is a char-table that holds the bindings for all characters
+without modifiers.  All entries in it are initially nil, meaning
+"command undefined".  ALIST is an assoc-list which holds bindings for
+function keys, mouse events, and any other things that appear in the
+input stream.  Initially, ALIST is nil.
 
 The optional arg STRING supplies a menu name for the keymap
 in case you use it as a menu with `x-popup-menu'.  */)
@@ -728,7 +729,10 @@ map_keymap_call (key, val, fun, dummy)
 
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 2, 0,
        doc: /* Call FUNCTION for every binding in KEYMAP.
-FUNCTION is called with two arguments: the event and its binding.  */)
+FUNCTION is called with two arguments: the event and its binding.
+If KEYMAP has a parent, the parent's bindings are included as well.
+This works recursively: if the parent has itself a parent, then the
+grandparent's bindings are also included and so on.  */)
      (function, keymap)
      Lisp_Object function, keymap;
 {
@@ -2572,7 +2576,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
-If KEYMAP is non-nil, search only KEYMAP and the global keymap.
+If KEYMAP is a keymap, search only KEYMAP and the global keymap.
 If KEYMAP is nil, search all the currently active keymaps.
 If KEYMAP is a list of keymaps, search only those keymaps.
 
@@ -2580,8 +2584,8 @@ If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
 rather than a list of all possible key sequences.
 If FIRSTONLY is the symbol `non-ascii', return the first binding found,
 no matter what it is.
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,
-and entirely reject menu bindings.
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters
+\(or their meta variants) and entirely reject menu bindings.
 
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
 to other keymaps or slots.  This makes it possible to search for an
