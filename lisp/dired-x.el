@@ -173,7 +173,7 @@ files not writable by you are visited read-only.
 Read-only folders only work in VM 5, not in VM 4."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (sexp :tag "non-writable only" if-file-read-only))
+		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
 (defcustom dired-omit-files-p nil
