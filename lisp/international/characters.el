@@ -111,6 +111,9 @@
 (modify-category-entry '(#xF900 . #xFAFF) ?C)
 (modify-category-entry '(#xF900 . #xFAFF) ?c)
 (modify-category-entry '(#xF900 . #xFAFF) ?|)
+(modify-category-entry '(#x20000 . #x2AFFF) ?|)
+(modify-category-entry '(#x2F800 . #x2FFFF) ?|)
+
 
 ;; Chinese character set (GB2312)
 
@@ -119,7 +122,6 @@
 (map-charset-chars #'modify-syntax-entry 'chinese-gb2312 "_" #x2921 #x297E)
 
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)
-(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?|)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2330 #x2339)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2341 #x235A)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2361 #x237A)
@@ -135,8 +137,6 @@
 (map-charset-chars #'modify-category-entry 'big5 ?C #xA259 #xA25F)
 (map-charset-chars #'modify-category-entry 'big5 ?C #xA440 #xC67E)
 (map-charset-chars #'modify-category-entry 'big5 ?C #xC940 #xF9DF)
-(map-charset-chars #'modify-category-entry 'big5 ?|)
-
 
 ;; Chinese character set (CNS11643)
 
@@ -146,8 +146,7 @@
   (map-charset-chars #'modify-category-entry c ?c)
   (if (eq c 'chinese-cns11643-1)
       (map-charset-chars #'modify-category-entry c ?C #x4421 #x7E7E)
-    (map-charset-chars #'modify-category-entry c ?C))
-  (map-charset-chars #'modify-category-entry c ?|))
+    (map-charset-chars #'modify-category-entry c ?C)))
 
 ;; Japanese character set (JISX0201, JISX0208, JISX0212, JISX0213)
 
@@ -157,10 +156,7 @@
 
 (dolist (l '(katakana-jisx0201 japanese-jisx0208 japanese-jisx0212
 			       japanese-jisx0213-1 japanese-jisx0213-2))
-  (map-charset-chars #'modify-category-entry l ?j)
-  (if (eq l 'japanese-jisx0213-1)
-      (map-charset-chars #'modify-category-entry l ?\| #x2E21 #x7E7F)
-    (map-charset-chars #'modify-category-entry l ?\|)))
+  (map-charset-chars #'modify-category-entry l ?j))
 
 ;; Unicode equivalents of JISX0201-kana
 (let ((range '(#xff61 . #xff9f)))
@@ -178,7 +174,7 @@
 (let ((range '(#x3040 . #x309d)))
   ;; ?H is actually defined to be double width
   ;;(modify-category-entry range ?H)
-  ;;(modify-category-entry range ?\|)
+  (modify-category-entry range ?\|)
   )
 
 ;; JISX0208
