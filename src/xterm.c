@@ -395,8 +395,9 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
 static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
-static const XColor *x_color_cells P_ ((struct frame *, int *));
+static const XColor *x_color_cells P_ ((Display *, int *));
 static void x_update_window_end P_ ((struct window *, int, int));
 static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 void x_delete_display P_ ((struct x_display_info *));
@@ -3244,6 +3245,10 @@ x_draw_composite_glyph_string_foreground (s)
 #ifdef USE_X_TOOLKIT
 
 static struct frame *x_frame_of_widget P_ ((Widget));
+static Boolean cvt_string_to_pixel P_ ((Display *, XrmValue *, Cardinal *,
+					XrmValue *, XrmValue *, XtPointer *));
+static void cvt_pixel_dtor P_ ((XtAppContext, XrmValue *, XtPointer,
+				XrmValue *, Cardinal *));
 
 
 /* Return the frame on which widget WIDGET is used.. Abort if frame
@@ -3317,29 +3322,178 @@ x_alloc_lighter_color_for_widget (widget, display, cmap, pixel, factor, delta)
 }
 
 
+/* Structure specifying which arguments should be passed by Xt to
+   cvt_string_to_pixel.  We want the widget's screen and colormap.  */
+
+static XtConvertArgRec cvt_string_to_pixel_args[] =
+  {
+    {XtWidgetBaseOffset, (XtPointer) XtOffset (Widget, core.screen),
+     sizeof (Screen *)},
+    {XtWidgetBaseOffset, (XtPointer) XtOffset (Widget, core.colormap),
+     sizeof (Colormap)}
+  };
+
+
+/* The address of this variable is returned by
+   cvt_string_to_pixel.  */
+
+static Pixel cvt_string_to_pixel_value;
+
+
+/* Convert a color name to a pixel color.
+
+   DPY is the display we are working on.
+
+   ARGS is an array of *NARGS XrmValue structures holding additional
+   information about the widget for which the conversion takes place.
+   The contents of this array are determined by the specification
+   in cvt_string_to_pixel_args.
+
+   FROM is a pointer to an XrmValue which points to the color name to
+   convert.  TO is an XrmValue in which to return the pixel color.
+
+   CLOSURE_RET is a pointer to user-data, in which we record if
+   we allocated the color or not.
+
+   Value is True if successful, False otherwise.  */
+
+static Boolean
+cvt_string_to_pixel (dpy, args, nargs, from, to, closure_ret)
+     Display *dpy;
+     XrmValue *args;
+     Cardinal *nargs;
+     XrmValue *from, *to;
+     XtPointer *closure_ret;
+{
+  Screen *screen;
+  Colormap cmap;
+  Pixel pixel;
+  String color_name;
+  XColor color;
+
+  if (*nargs != 2)
+    {
+      XtAppWarningMsg (XtDisplayToApplicationContext (dpy),
+		       "wrongParameters", "cvt_string_to_pixel",
+		       "XtToolkitError",
+		       "Screen and colormap args required", NULL, NULL);
+      return False;
+    }
+
+  screen = *(Screen **) args[0].addr;
+  cmap = *(Colormap *) args[1].addr;
+  color_name = (String) from->addr;
+
+  if (strcmp (color_name, XtDefaultBackground) == 0)
+    {
+      *closure_ret = (XtPointer) False;
+      pixel = WhitePixelOfScreen (screen);
+    }
+  else if (strcmp (color_name, XtDefaultForeground) == 0)
+    {
+      *closure_ret = (XtPointer) False;
+      pixel = BlackPixelOfScreen (screen);
+    }
+  else if (XParseColor (dpy, cmap, color_name, &color)
+	   && x_alloc_nearest_color_1 (dpy, cmap, &color))
+    {
+      pixel = color.pixel;
+      *closure_ret = (XtPointer) True;
+    }
+  else
+    {
+      String params[1];
+      Cardinal nparams = 1;
+      
+      params[0] = color_name;
+      XtAppWarningMsg (XtDisplayToApplicationContext (dpy),
+		       "badValue", "cvt_string_to_pixel",
+		       "XtToolkitError", "Invalid color `%s'",
+		       params, &nparams);
+      return False;
+    }
+
+  if (to->addr != NULL)
+    {
+      if (to->size < sizeof (Pixel))
+	{
+	  to->size = sizeof (Pixel);
+	  return False;
+	}
+      
+      *(Pixel *) to->addr = pixel;
+    }
+  else
+    {
+      cvt_string_to_pixel_value = pixel;
+      to->addr = (XtPointer) &cvt_string_to_pixel_value;
+    }
+  
+  to->size = sizeof (Pixel);
+  return True;
+}
+
+
+/* Free a pixel color which was previously allocated via
+   cvt_string_to_pixel.  This is registered as the destructor
+   for this type of resource via XtSetTypeConverter.
+
+   APP is the application context in which we work.
+
+   TO is a pointer to an XrmValue holding the color to free.
+   CLOSURE is the value we stored in CLOSURE_RET for this color
+   in cvt_string_to_pixel.
+
+   ARGS and NARGS are like for cvt_string_to_pixel.  */
+
+static void
+cvt_pixel_dtor (app, to, closure, args, nargs)
+    XtAppContext app;
+    XrmValuePtr to;
+    XtPointer closure;
+    XrmValuePtr args;
+    Cardinal *nargs;
+{
+  if (*nargs != 2)
+    {
+      XtAppWarningMsg (app, "wrongParameters", "cvt_pixel_dtor",
+		       "XtToolkitError",
+		       "Screen and colormap arguments required",
+		       NULL, NULL);
+    }
+  else if (closure != NULL)
+    {
+      /* We did allocate the pixel, so free it.  */
+      Screen *screen = *(Screen **) args[0].addr;
+      Colormap cmap = *(Colormap *) args[1].addr;
+      x_free_dpy_colors (DisplayOfScreen (screen), screen, cmap,
+			 (Pixel *) to->addr, 1, 0);
+    }
+}
+
+
 #endif /* USE_X_TOOLKIT */
 
 
 /* Value is an array of XColor structures for the contents of the
-   color map of frame F.  Set *NCELLS to the size of the array.
+   color map of display DPY.  Set *NCELLS to the size of the array.
    Note that this probably shouldn't be called for large color maps,
    say a 24-bit TrueColor map.  */
 
 static const XColor *
-x_color_cells (f, ncells)
-     struct frame *f;
+x_color_cells (dpy, ncells)
+     Display *dpy;
      int *ncells;
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
 
   if (dpyinfo->color_cells == NULL)
     {
-      Display *display = FRAME_X_DISPLAY (f);
-      Screen *screen = FRAME_X_SCREEN (f);
+      Screen *screen = dpyinfo->screen;
       int i;
       
       dpyinfo->ncolor_cells
-	= XDisplayCells (display, XScreenNumberOfScreen (screen));
+	= XDisplayCells (dpy, XScreenNumberOfScreen (screen));
       dpyinfo->color_cells
 	= (XColor *) xmalloc (dpyinfo->ncolor_cells
 			      * sizeof *dpyinfo->color_cells);
@@ -3347,7 +3501,7 @@ x_color_cells (f, ncells)
       for (i = 0; i < dpyinfo->ncolor_cells; ++i)
 	dpyinfo->color_cells[i].pixel = i;
       
-      XQueryColors (display, FRAME_X_COLORMAP (f),
+      XQueryColors (dpy, dpyinfo->cmap,
 		    dpyinfo->color_cells, dpyinfo->ncolor_cells);
     }
 
@@ -3395,23 +3549,20 @@ x_query_color (f, color)
 }
      
 
-/* Allocate the color COLOR->pixel on SCREEN of DISPLAY, colormap
-   CMAP.  If an exact match can't be allocated, try the nearest color
-   available.  Value is non-zero if successful.  Set *COLOR to the
-   color allocated.  */
+/* Allocate the color COLOR->pixel on DISPLAY, colormap CMAP.  If an
+   exact match can't be allocated, try the nearest color available.
+   Value is non-zero if successful.  Set *COLOR to the color
+   allocated.  */
 
-int
-x_alloc_nearest_color (f, cmap, color)
-     struct frame *f;
+static int
+x_alloc_nearest_color_1 (dpy, cmap, color)
+     Display *dpy;
      Colormap cmap;
      XColor *color;
 {
-  Display *display = FRAME_X_DISPLAY (f);
-  Screen *screen = FRAME_X_SCREEN (f);
   int rc;
 
-  gamma_correct (f, color);
-  rc = XAllocColor (display, cmap, color);
+  rc = XAllocColor (dpy, cmap, color);
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
@@ -3421,7 +3572,7 @@ x_alloc_nearest_color (f, cmap, color)
       int nearest, i;
       unsigned long nearest_delta = ~0;
       int ncells;
-      const XColor *cells = x_color_cells (f, &ncells);
+      const XColor *cells = x_color_cells (dpy, &ncells);
 
       for (nearest = i = 0; i < ncells; ++i)
 	{
@@ -3440,14 +3591,14 @@ x_alloc_nearest_color (f, cmap, color)
       color->red   = cells[nearest].red;
       color->green = cells[nearest].green;
       color->blue  = cells[nearest].blue;
-      rc = XAllocColor (display, cmap, color);
+      rc = XAllocColor (dpy, cmap, color);
     }
   else
     {
       /* If allocation succeeded, and the allocated pixel color is not
          equal to a cached pixel color recorded earlier, there was a
          change in the colormap, so clear the color cache.  */
-      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
       XColor *cached_color;
       
       if (dpyinfo->color_cells
@@ -3468,6 +3619,22 @@ x_alloc_nearest_color (f, cmap, color)
 #endif /* DEBUG_X_COLORS */
   
   return rc;
+}
+
+
+/* Allocate the color COLOR->pixel on frame F, colormap CMAP.  If an
+   exact match can't be allocated, try the nearest color available.
+   Value is non-zero if successful.  Set *COLOR to the color
+   allocated.  */
+
+int
+x_alloc_nearest_color (f, cmap, color)
+     struct frame *f;
+     Colormap cmap;
+     XColor *color;
+{
+  gamma_correct (f, color);
+  return x_alloc_nearest_color_1 (FRAME_X_DISPLAY (f), cmap, color);
 }
 
 
@@ -14166,7 +14333,17 @@ x_initialize ()
 
 #ifdef USE_X_TOOLKIT
   XtToolkitInitialize ();
+
   Xt_app_con = XtCreateApplicationContext ();
+  
+  /* Register a converter from strings to pixels, which uses
+     Emacs' color allocation infrastructure.  */
+  XtAppSetTypeConverter (Xt_app_con,
+			 XtRString, XtRPixel, cvt_string_to_pixel,
+			 cvt_string_to_pixel_args,
+			 XtNumber (cvt_string_to_pixel_args),
+			 XtCacheByDisplay, cvt_pixel_dtor);
+
   XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
 
   /* Install an asynchronous timer that processes Xt timeout events
