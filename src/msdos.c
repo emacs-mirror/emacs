@@ -600,8 +600,8 @@ mouse_off_maybe ()
   mouse_off ();
 }
 
-static
-IT_ring_bell ()
+static void
+IT_ring_bell (void)
 {
   if (visible_bell)
     {
@@ -636,7 +636,7 @@ IT_set_face (int face)
   ScreenAttrib = (FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp);
 }
 
-static
+static void
 IT_write_glyphs (GLYPH *str, int len)
 {
   int newface;
@@ -669,8 +669,8 @@ IT_write_glyphs (GLYPH *str, int len)
   new_pos_X += len;
 }
 
-static
-IT_clear_end_of_line (first_unused)
+static void
+IT_clear_end_of_line (int first_unused)
 {
   char *spaces, *sp;
   int i, j;
@@ -694,7 +694,7 @@ IT_clear_end_of_line (first_unused)
     dosv_refresh_virtual_screen (offset, i / 2);
 }
 
-static
+static void
 IT_clear_screen (void)
 {
   if (termscript)
@@ -707,7 +707,7 @@ IT_clear_screen (void)
   new_pos_X = new_pos_Y = 0;
 }
 
-static
+static void
 IT_clear_to_end (void)
 {
   if (termscript)
@@ -720,7 +720,7 @@ IT_clear_to_end (void)
   }
 }
 
-static
+static void
 IT_cursor_to (int y, int x)
 {
   if (termscript)
@@ -765,9 +765,8 @@ IT_display_cursor (int on)
    Special treatment is required when the cursor is in the echo area,
    to put the cursor at the end of the text displayed there.  */
 
-static
-IT_cmgoto (f)
-     FRAME_PTR f;
+static void
+IT_cmgoto (FRAME_PTR f)
 {
   /* Only set the cursor to where it should be if the display is
      already in sync with the window contents.  */
@@ -798,16 +797,15 @@ IT_cmgoto (f)
     mouse_on ();
 }
 
-static
-IT_reassert_line_highlight (new, vpos)
-     int new, vpos;
+static void
+IT_reassert_line_highlight (int new, int vpos)
 {
   highlight = new;
   IT_set_face (0); /* To possibly clear the highlighting.  */
 }
 
-static
-IT_change_line_highlight (new_highlight, vpos, first_unused_hpos)
+static void
+IT_change_line_highlight (int new_highlight, int vpos, int first_unused_hpos)
 {
   highlight = new_highlight;
   IT_set_face (0); /* To possibly clear the highlighting.  */
@@ -815,16 +813,16 @@ IT_change_line_highlight (new_highlight, vpos, first_unused_hpos)
   IT_clear_end_of_line (first_unused_hpos);
 }
 
-static
-IT_update_begin ()
+static void
+IT_update_begin (struct frame *foo)
 {
   highlight = 0;
   IT_set_face (0); /* To possibly clear the highlighting.  */
   screen_face = -1;
 }
 
-static
-IT_update_end ()
+static void
+IT_update_end (struct frame *foo)
 {
 }
 
@@ -846,7 +844,7 @@ extern Lisp_Object Qtitle;
 /* IT_set_terminal_modes is called when emacs is started,
    resumed, and whenever the screen is redrawn!  */
 
-static
+static void
 IT_set_terminal_modes (void)
 {
   if (termscript)
@@ -909,7 +907,7 @@ IT_set_terminal_modes (void)
 /* IT_reset_terminal_modes is called when emacs is
    suspended or killed.  */
 
-static
+static void
 IT_reset_terminal_modes (void)
 {
   int display_row_start = (int) ScreenPrimary;
@@ -981,8 +979,8 @@ IT_reset_terminal_modes (void)
   term_setup_done = 0;
 }
 
-static
-IT_set_terminal_window (void)
+static void
+IT_set_terminal_window (int foo)
 {
 }
 
@@ -1956,7 +1954,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
      FRAME_PTR f;
      register int pix_x, pix_y;
      register int *x, *y;
-     void /* XRectangle */ *bounds;
+     XRectangle *bounds;
      int noclip;
 {
   if (bounds) abort ();
@@ -2077,7 +2075,7 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
   text = (GLYPH *) xmalloc ((width + 2) * sizeof (GLYPH));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
-  IT_update_begin ();
+  IT_update_begin (selected_frame);
   for (i = 0; i < menu->count; i++)
     {
       IT_cursor_to (y + i, x);
@@ -2104,7 +2102,7 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
       *p++ = FAST_MAKE_GLYPH (menu->submenu[i] ? 16 : ' ', face);
       IT_write_glyphs (text, width + 2);
     }
-  IT_update_end ();
+  IT_update_end (selected_frame);
   IT_cursor_to (row, col);
   xfree (text);
 }
