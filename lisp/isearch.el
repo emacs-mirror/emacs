@@ -1216,12 +1216,14 @@ If you want to search for just a space, type C-q SPC."
      ((or completion ; not nil, must be a string
 	  (= 0 (length isearch-string))) ; shouldn't have to say this
       (if (equal completion isearch-string)  ;; no extension?
-	  (if completion-auto-help
-	      (with-output-to-temp-buffer "*Isearch completions*"
-		(display-completion-list 
-		 (all-completions isearch-string alist))))
-	(setq isearch-string completion))
-      t)
+	  (progn
+	    (if completion-auto-help
+		(with-output-to-temp-buffer "*Isearch completions*"
+		  (display-completion-list 
+		   (all-completions isearch-string alist))))
+	    t)
+	(and completion
+	     (setq isearch-string completion))))
      (t
       (message "No completion") ; waits a second if in minibuffer
       nil))))
