@@ -398,7 +398,7 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 		     (setq m2-link-name (read-string "Name of executable: "
 						     modulename))))))
 
-(defun execute-monitor-command (command)
+(defun m2-execute-monitor-command (command)
   (let* ((shell shell-file-name)
 	 (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process shell nil t t "-cf" (concat "exec " command))))
@@ -412,7 +412,7 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
       (setq modulename
 	    (read-string "Module name: "))
       (switch-to-buffer "*Command Execution*")
-      (execute-monitor-command (concat "m2whereis " modulename))
+      (m2-execute-monitor-command (concat "m2whereis " modulename))
       (goto-char (point-min))
       (condition-case ()
 	  (progn (re-search-forward "\\(.*\\.def\\) *$")
