@@ -1,3 +1,7 @@
+2002-12-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-file-name): Removed debug message.
+
 2002-12-16  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* buff-menu.el (Buffer-menu, Buffer-menu-use-header-line)
