@@ -1,6 +1,11 @@
+2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Read Only Buffers): Mention optional ARG to
+	`toggle-read-only'.
+
 2004-04-14  Nick Roberts  <nick@nick.uklinux.net>
 
-	* windows.texi (Selecting Windows): Note that get-lru-window 
+	* windows.texi (Selecting Windows): Note that get-lru-window
 	returns a full-width window if possible.
 
 2004-04-13  Luc Teirlinck  <teirllm@auburn.edu>
