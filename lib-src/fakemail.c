@@ -216,7 +216,7 @@ readline (linebuffer, stream)
 	{
 	  linebuffer->size *= 2;
 	  buffer = ((char *) xrealloc (buffer, linebuffer->size));
-	  p += buffer - linebuffer->buffer;
+	  p = buffer + (p - linebuffer->buffer);
 	  end = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;
 	}
