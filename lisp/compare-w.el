@@ -134,19 +134,29 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 ;; and find the latest point at which a match ends.
 ;; Don't try starting points before START, though.
 ;; Value is non-nil if whitespace is found.
+
+;; If there is whitespace before point, but none after,
+;; then return t, but don't advance point.
 (defun compare-windows-skip-whitespace (start)
   (let ((end (point))
+	(beg (point))
 	(opoint (point)))
-    (while (and (looking-at compare-windows-whitespace)
-		(<= end (match-end 0))
-		;; This match goes past END, so advance END.
-		(progn (setq end (match-end 0))
-		       (> (point) start)))
+    (while (or (and (/= (point) start)
+		    ;; Consider at least the char before point,
+		    ;; unless it is also before START.
+		    (= (point) opoint))
+	       (and (looking-at compare-windows-whitespace)
+		    (<= end (match-end 0))
+		    ;; This match goes past END, so advance END.
+		    (progn (setq end (match-end 0))
+			   (> (point) start))))
       ;; keep going back until whitespace
       ;; doesn't extend to or past end
       (forward-char -1))
+    (setq beg (point))
     (goto-char end)
-    (/= end opoint)))
+    (or (/= beg opoint)
+	(/= end opoint))))
 
 (provide 'compare-w)
 
