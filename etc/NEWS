@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2000-08-14
-Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -9,6 +9,8 @@ For older news, see the file ONEWS
 * Installation Changes in Emacs 21.1
 
 ** Support for GNU/Linux on IA64 machines has been added.
+
+** Support for LynxOS has been added.
 
 ** `movemail' defaults to supporting POP.  You can turn this off using
 the --without-pop configure option, should that be necessary.
@@ -49,6 +51,7 @@ interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.
 
++++
 ** C-down-mouse-3 is bound differently.  Now if the menu bar is not
 displayed it pops up a menu containing the items which would be on the
 menu bar.  If the menu bar is displayed, it pops up the major mode
@@ -66,7 +69,7 @@ character is still bound as before.
 using that menu.
 
 ** New function executable-make-buffer-file-executable-if-script-p is
-suitable as an after-save-hook as an alternative to executable-chmod.
+suitable as an after-save-hook as an alternative to `executable-chmod'.
 
 ** The most preferred coding-system is now used to save a buffer if
 buffer-file-coding-system is `undecided' and it is safe for the buffer
@@ -89,6 +92,7 @@ RET C-x C-f filename RET.
 ** Variable `default-korean-keyboard' is initialized properly from the
 environment variable `HANGUL_KEYBOARD_TYPE'.
 
++++
 ** C-u C-x = provides detailed information about the character at
 point in a pop-up window.
 
@@ -101,28 +105,34 @@ coding systems such as cpXXX and cyrillic-koi8.
 ** M-; now calls comment-dwim which tries to do something clever based
 on the context.
 
++++
 ** The function `getenv' is now callable interactively.
 
 ** The many obsolete language `setup-...-environment' commands have
 been removed -- use `set-language-environment'.
 
++++
 ** New user options `display-time-mail-face' and
 `display-time-use-mail-icon' control the appearance of mode-line mail
 indicator used by the display-time package.  On a suitable display the
 indicator can be an icon and is mouse-sensitive.
 
++++
 ** Emacs' auto-save list files are now by default stored in a
 sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
 (On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
 You can customize `auto-save-list-prefix' to change this location.
 
++++
 ** On window-systems, additional space can be put between text lines
 on the display using several methods
 
++++
 - By setting frame parameter `line-spacing' to PIXELS.  PIXELS must be
 a positive integer, and specifies that PIXELS number of pixels should
 be put below text lines on the affected frame or frames.
 
++++
 - By setting X resource `lineSpacing', class `LineSpacing'.  This is
 equivalent ot specifying the frame parameter.
 
@@ -131,11 +141,13 @@ equivalent ot specifying the frame parameter.
 - By setting buffer-local variable `line-spacing'.  The meaning is
 the same, but applies to the a particular buffer only.
 
++++
 ** The new command `clone-indirect-buffer' can be used to create
 an indirect buffer that is a twin copy of the current buffer.  The
 command `clone-indirect-buffer-other-window', bound to C-x 4 c,
 does the same but displays the indirect buffer in another window.
 
++++
 ** New user options `backup-directory-alist' and
 `make-backup-file-name-function' control the placement of backups,
 typically in a single directory or in an invisible sub-directory.
@@ -151,6 +163,7 @@ The reason for this change is an incompatible change in XEmacs' byte
 compiler.  Files compiled with XEmacs can contain byte codes that let
 Emacs dump core.
 
++++
 ** New X resources recognized
 
 *** The X resource `synchronous', class `Synchronous', specifies
@@ -205,8 +218,10 @@ display the cursor in non-selected windows.  If nil, no cursor is
 shown, if non-nil a hollow box cursor is shown.  This option can
 be customized.
 
++++
 ** The variable `echo-keystrokes' may now have a floating point value.
 
++++
 ** C-x 5 1 runs the new command delete-other-frames which deletes
 all frames except the selected one.
 
@@ -255,10 +270,13 @@ use.  Default is 1000.
 ** New command M-x check-parens can be used to find unbalanced paren
 groups and strings in buffers in Lisp mode (or other modes).
 
-** You can now easily create new *Info* buffers using either M-x clone-buffer
-or C-u m <entry> RET.  M-x clone-buffer can also be used on *Help* and
-several other special buffers.
++++
+** You can now easily create new *Info* buffers using either
+M-x clone-buffer, C-u m <entry> RET or C-u g <entry> RET.
+M-x clone-buffer can also be used on *Help* and several other special
+buffers.
 
++++
 ** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
 under XFree86.  To enable this, simply put (mwheel-install) in your
 .emacs file.
@@ -269,14 +287,6 @@ determine where and by how much buffers are scrolled.
 ** Listing buffers with M-x list-buffers (C-x C-b) now shows
 abbreviated file names.  Abbreviations can be customized by changing
 `directory-abbrev-alist'.
-
-** Reading from the mini-buffer now reads from standard input if Emacs
-is running in batch mode.  For example,
-
-  (message "%s" (read t))
-
-will read a Lisp expression from standard input and print the result
-to standard output.
 
 ** Faces and frame parameters.
 
@@ -299,6 +309,7 @@ The face `menu' can be used to change colors and font of Emacs' menus.
 Setting the font of LessTif/Motif menus is currently not supported;
 attempts to set the font are ignored in this case.
 
++++
 ** New frame parameter `screen-gamma' for gamma correction.
 
 The new frame parameter `screen-gamma' specifies gamma-correction for
@@ -335,9 +346,10 @@ under Lisp changes, below.
 
 ** New default font is Courier 12pt.
 
-** When using a windowing terminal, Emacs window now has a cursor of
-its own.  When the window is selected, the cursor is solid; otherwise,
-it is hollow.
++++
+** When using a windowing terminal, each Emacs window now has a cursor
+of its own.  When the window is selected, the cursor is solid;
+otherwise, it is hollow.
 
 ** Bitmap areas to the left and right of windows are used to display
 truncation marks, continuation marks, overlay arrows and alike.  The
@@ -349,8 +361,8 @@ can change its appearance by modifying the face `modeline'.
 
 ** LessTif support.
 
-Emacs now runs with LessTif (see <http://www.lesstif.org>).  You will
-need a version 0.88.1 or later.
+Emacs now runs with the LessTif toolkit (see <http://www.lesstif.org>).
+You will need a version 0.88.1 or later.
 
 ** Toolkit scroll bars.
 
@@ -387,6 +399,7 @@ When compiled with LessTif (or Motif) support, Emacs uses toolkit
 widgets for radio and toggle buttons in menus.  When configured for
 Lucid, Emacs draws radio buttons and toggle buttons similar to Motif.
 
++++
 ** Highlighting of trailing whitespace.
 
 When `show-trailing-whitespace' is non-nil, Emacs displays trailing
@@ -401,6 +414,7 @@ whitespace.
 Emacs can optionally display a busy-cursor under X.  You can turn the
 display on or off by customizing group `cursor'.
 
++++
 ** Blinking cursor
 
 M-x blink-cursor-mode toggles a blinking cursor under X and on
@@ -427,6 +441,7 @@ Thus, tabs can be used to line up text in different fonts.
 
 ** Enhancements of the Lucid menu bar
 
++++
 *** The Lucid menu bar now supports the resource "margin".
 
 	emacs.pane.menubar.margin: 5
@@ -448,6 +463,7 @@ customized.
 Emacs supports a tool bar at the top of a frame under X.  For details
 how to define a tool bar, see the page describing Lisp-level changes.
 
++++
 ** Mouse-sensitive mode line.
 
 Different parts of the mode line under X have been made
@@ -466,8 +482,8 @@ M-mouse-2 switches to the previous buffer in the buffer list.
 
 - Mouse-3 on the buffer-name displays a buffer menu.
 
-- Mouse-2 on the read-only status in the mode line (`%' or `*')
-toggles the read-only status.
+- Mouse-2 on the read-only or modified status in the mode line (`%' or
+`*') toggles the status.
 
 - Mouse-3 on the mode name display a minor-mode menu.
 
@@ -493,6 +509,7 @@ Emacs supports playing sound files on GNU/Linux and FreeBSD (Voxware
 driver and native BSD driver, a.k.a. Luigi's driver).  Currently
 supported file formats are RIFF-WAVE (*.wav) and Sun Audio (*.au).
 
++++
 ** A new variable, backup-by-copying-when-privileged-mismatch, gives
 the highest file uid for which backup-by-copying-when-mismatch will be
 forced on.  The assumption is that uids less than or equal to this
@@ -533,6 +550,7 @@ notably at the end of lines.
 All these functions have been rewritten to avoid inserting unwanted
 spaces, and an optional prefix now allows them to behave the old way.
 
++++
 There is a new command M-x replace-rectangle.
 
 ** The new command M-x query-replace-regexp-eval acts like
@@ -542,7 +560,7 @@ after each match to get the replacement text.
 ** M-x query-replace recognizes a new command `e' (or `E') that lets
 you edit the replacement string.
 
-** The new command mail-abbrev-complete-alias, bound to `M-TAB', let's
+** The new command mail-abbrev-complete-alias, bound to `M-TAB', lets
 you complete mail aliases in the text, analogous to
 lisp-complete-symbol.
 
@@ -599,20 +617,26 @@ something like this in your .emacs.
 
 ** Changes to Change Log mode and Add-Log functions
 
++++
 If you invoke `add-change-log-entry' from a backup file, it makes an
 entry appropriate for the file's parent.  This is useful for making
 log entries by comparing a version with deleted functions.
 
++++
 New command M-x change-log-merge merges another log into the current
-buffer, fixing old-style date formats if necessary.
+buffer.
+
++++
+New command M-x change-log-redate fixes any old-style date entries in
+a log file.
 
 Change Log mode now adds a file's version number to change log entries
 if user-option `change-log-version-info-enabled' is non-nil.
 
-The search for a file's version number is performed based on regular
-expressions from `change-log-version-number-regexp-list' which can be
-cutomized.  Version numbers are only found in the first 10 percent of
-a file.
+Unless the file is under version control the search for a file's
+version number is performed based on regular expressions from
+`change-log-version-number-regexp-list' which can be cutomized.
+Version numbers are only found in the first 10 percent of a file.
 
 ** Changes in Font Lock
 
@@ -725,6 +749,7 @@ defaults to 1.
 ** Partial Completion mode now completes environment variables in
 file names.
 
++++
 ** Tooltips.
 
 Tooltips are small X windows displaying a help string at the current
@@ -736,6 +761,7 @@ variable values can be displayed in tooltips by pointing at them with
 the mouse in source buffers.  You can customize various aspects of the
 tooltip display in the group `tooltip'.
 
++++
 ** Customize changes
 
 *** Customize now supports comments about customized items.  Use the
@@ -1029,6 +1055,7 @@ numeric base.
 
 ** Changes to Ange-ftp
 
++++
 *** Ange-ftp allows you to specify of a port number in remote file
 names cleanly.  It is appended to the host name, separated by a hash
 sign, e.g. `/foo@bar.org#666:mumble'.  (This syntax comes from EFS.)
@@ -1110,6 +1137,7 @@ of tags in the output of M-x tags-apropos.
 *** Setting tags-apropos-verbose to a non-nil value displays the
 names of tags files in the *Tags List* buffer.
 
++++
 ** Emacs now attempts to determine the initial language environment
 and preferred and locale coding systems systematically from the
 LC_ALL, LC_CTYPE, and LANG environment variables during startup.
@@ -1119,12 +1147,14 @@ Latin-8 and Latin-9 correspond respectively to the ISO character sets
 8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
 There is currently no specific input method support for them.
 
++++
 ** Fortran mode has a new command `fortran-strip-sequence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now
 appropriate for C-style escape sequences in strings.
 
 ** SGML mode's default `sgml-validate-command' is now `nsgmls'.
 
++++
 ** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
 
 ** The Dabbrev package has a new user-option `dabbrev-ignore-regexps'
@@ -1158,6 +1188,7 @@ appropriate faces is provided.  The regexps can be written into the
 current buffer in a form that will be recognized the next time the
 corresponding file is read.
 
++++
 *** The new package zone.el plays games with Emacs' display when
 Emacs is idle.
 
@@ -1168,16 +1199,19 @@ parser. It doesn't parse the DTDs however.
 package which allows different styles of comment-region and should
 be more robust while offering the same functionality.
 
++++
 *** The Ebrowse package implements a C++ class browser and tags
 facilities tailored for use with C++.  It is documented in a
 separate Texinfo file.
 
-*** The PCL-CVS package available by either running M-x cvs-examine
-or by visiting a CVS administrative directory (with a prefix argument)
-provides an alternative interface to VC-dired for CVS.
-It comes with log-view-mode to view RCS and SCCS logs and log-edit-mode
-used to enter checkin log messages.
++++
+*** The PCL-CVS package available by either running M-x cvs-examine or
+by visiting a CVS administrative directory (with a prefix argument)
+provides an alternative interface to VC-dired for CVS.  It comes with
+`log-view-mode' to view RCS and SCCS logs and `log-edit-mode' used to
+enter checkin log messages.
 
++++
 *** The new package called `woman' allows to browse Unix man pages
 without invoking external programs.
 
@@ -1205,6 +1239,7 @@ matching parens to make them stand out.  On such a setup you will
 probably also want to use the sub-expression mode when the regexp
 contains such to get feedback about their respective limits.
 
++++
 *** glasses-mode is a minor mode that makes
 unreadableIdentifiersLikeThis readable.  It works as glasses, without
 actually modifying content of a buffer.
@@ -1247,9 +1282,11 @@ determine where the columns should be split.  In C and C++, for
 example, it will align variable names in declaration lists, or the
 equal signs of assignments.
 
++++
 *** `paragraph-indent-minor-mode' is a new minor mode supporting
 paragraphs in the same style as `paragraph-indent-text-mode'.
 
++++
 *** bs.el is a new package for buffer selection similar to
 list-buffers or electric-buffer-list.  Use M-x bs-show to display a
 buffer menu with this package.  You can use M-x bs-customize to
@@ -1264,6 +1301,7 @@ and can be customized easily to get many more functions.  It should
 not be confused with "calc" which is a much bigger mathematical tool
 which answers different needs.
 
++++
 *** The minor modes cwarn-mode and global-cwarn-mode highlights
 suspicious C and C++ constructions.  Currently, assignments inside
 expressions, semicolon following `if', `for' and `while' (except, of
@@ -1271,11 +1309,14 @@ course, after a `do .. while' statement), and C++ functions with
 reference parameters are recognized.  The modes require font-lock mode
 to be enabled.
 
++++
 *** smerge-mode.el provides `smerge-mode', a simple minor-mode for files
 containing diff3-style conflict markers, such as generated by RCS.
 
++++
 *** 5x5.el is a simple puzzle game.
 
++++
 *** hl-line.el provides a minor mode to highlight the current line.
 
 *** ansi-color.el translates ANSI terminal escapes into text-properties.
@@ -1288,6 +1329,7 @@ the text at point.
 
 *** sql.el provides an interface to SQL data bases.
 
++++
 *** fortune.el uses the fortune program to create mail/news signatures.
 
 *** whitespace.el ???
@@ -1345,6 +1387,7 @@ delim-col has the following commands:
    delimit-columns-region	Prettify all columns in a text region.
    delimit-columns-rectangle	Prettify all columns in a text rectangle.
 
++++
 *** The package recentf.el maintains a menu for visiting files that
 were operated on recently.
 
@@ -1367,14 +1410,17 @@ dynamically change the menu appearance.
 *** elide-head.el provides a mechanism for eliding boilerplate header
 text.
 
++++
 *** footnote.el provides `footnote-mode', a minor mode supporting use
 of footnotes.  It is intended for use with Message mode, but isn't
 specific to Message mode.
 
++++
 *** diff-mode.el provides `diff-mode', a major mode for
 viewing/editing context diffs (patches).  It is selected for files
 with extension `.diff', `.diffs', `.patch' and `.rej'.
 
++++
 *** EUDC, the Emacs Unified Directory Client, provides a common user
 interface to access directory servers using different directory
 protocols.  It has a separate manual.
@@ -1382,6 +1428,7 @@ protocols.  It has a separate manual.
 *** autoconf.el provides a major mode for editing configure.in files
 for Autoconf, selected automatically.
 
++++
 *** windmove.el provides moving between windows.
 
 *** crm.el provides a facility to read multiple strings from the
@@ -1409,6 +1456,19 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
++++
+** Reading from the mini-buffer now reads from standard input if Emacs
+is running in batch mode.  For example,
+
+  (message "%s" (read t))
+
+will read a Lisp expression from standard input and print the result
+to standard output.
+
++++
+** The argument of `down-list', `backward-up-list', `up-list',
+`kill-sexp', `backward-kill-sexp' and `mark-sexp' is now optional.
+
 ** If `display-buffer-reuse-frames' is set, function `display-buffer'
 will raise frames displaying a buffer, instead of creating a new
 frame or window.
@@ -1431,6 +1491,7 @@ comparison is done with `eq'.
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
 has been changed.
 
++++
 ** Function `aset' stores any multibyte character in any string
 without signaling "Attempt to change char length of a string".  It may
 convert a unibyte string to multibyte if necessary.
@@ -8467,7 +8528,7 @@ lm-synopsis extracts first line "synopsis'"information.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
