@@ -421,6 +421,26 @@ Returns the documentation as a string, also."
     ;; Return the text we displayed.
     (save-excursion (set-buffer standard-output) (buffer-string))))
 
+(defun where-is (definition)
+  "Print message listing key sequences that invoke specified command.
+Argument is a command definition, usually a symbol with a function definition."
+  (interactive
+   (let ((fn (function-called-at-point))
+	 (enable-recursive-minibuffers t)	     
+	 val)
+     (setq val (completing-read (if fn
+				    (format "Where is command (default %s): " fn)
+				  "Where is command: ")
+				obarray 'fboundp t))
+     (list (if (equal val "")
+	       fn (intern val)))))
+  (let* ((keys (where-is-internal definition overriding-local-map nil nil))
+	 (keys1 (mapconcat 'key-description keys ", ")))
+    (if (> (length keys1) 0)
+	(message "%s is on %s" definition keys1)
+      (message "%s is not on any key" definition)))
+  nil)
+
 (defun command-apropos (string)
   "Like apropos but lists only symbols that are names of commands
 \(interactively callable functions).  Argument REGEXP is a regular expression
