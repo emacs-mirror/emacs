@@ -4114,7 +4114,8 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
 }
 
 DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
-  "Return string of the keystrokes that invoked this command.")
+  "Return the key sequence that invoked this command.\n\
+The value is a string or a vector.")
   ()
 {
   return make_event_array (this_command_key_count,
