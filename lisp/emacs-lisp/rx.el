@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -169,6 +169,8 @@
     (eow		. word-end)	; SRE
     (word-boundary	. "\\b")
     (not-word-boundary	. "\\B")	; sregex
+    (symbol-start       . "\\_<")
+    (symbol-end         . "\\_>")
     (syntax		. (rx-syntax 1 1))
     (not-syntax		. (rx-not-syntax 1 1)) ; sregex
     (category		. (rx-category 1 1 rx-check-category))
@@ -969,5 +971,5 @@ enclosed in `(and ...)'.
 
 (provide 'rx)
 
-;;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b
+;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b
 ;;; rx.el ends here
