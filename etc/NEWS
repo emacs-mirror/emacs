@@ -17,6 +17,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** Item Save Options on the Options menu allows saving options set
+using that menu.
+
 ** New function executable-make-buffer-file-executable-if-script-p is
 suitable as an after-save-hook as an alternative to executable-chmod.
 
@@ -73,9 +76,9 @@ equivalent ot specifying the frame parameter.
 - By setting buffer-local variable `line-spacing'.  The meaning is
 the same, but applies to the a particular buffer only.
 
-** The new command `clone-buffer-indirectly' can be used to create
+** The new command `clone-indirect-buffer' can be used to create
 an indirect buffer that is a twin copy of the current buffer.  The
-command `clone-buffer-indirectly-other-window', bound to C-x 4 c,
+command `clone-indirect-buffer-other-window', bound to C-x 4 c,
 does the same but displays the indirect buffer in another window.
 
 ** New user options `backup-directory-alist' and
@@ -1235,7 +1238,7 @@ and event names in ange brackets.
 call to `message', the echo area will not be resized to display that
 message; it will be truncated instead.
 
-** The variable line-number-display-limit can now be set to nil,
+** The user option line-number-display-limit can now be set to nil,
 meaning no limit.
 
 ** select-safe-coding-system now also checks the most preferred
