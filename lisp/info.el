@@ -2245,7 +2245,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
     ("time-stamp" . "autotype") ("quickurl" . "autotype")
     ("tempo" . "autotype") ("hippie-expand" . "autotype")
     ("cvs" . "pcl-cvs")
-    "ebrowse" "cl" "idlwave" "reftex" "speedbar" "widget" "woman")
+    "ebrowse" "eshell" "cl" "idlwave" "reftex" "speedbar" "widget" "woman")
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
 where PREFIX is a name prefix and FILE is the file to look in.
