@@ -46,15 +46,6 @@
       (setq alist (delete entry alist)))
     alist))
 
-(defun ibuffer-depropertize-string (str &optional nocopy)
-  "Return a copy of STR with text properties removed.
-If optional argument NOCOPY is non-nil, actually modify the string directly."
-  (let ((str (if nocopy
-		 str
-	       (copy-sequence str))))
-    (set-text-properties 0 (length str) nil str)
-    str))
-
 (defcustom ibuffer-never-show-predicates nil
   "A list of predicates (a regexp or function) for buffers not to display.
 If a regexp, then it will be matched against the buffer's name.
@@ -85,11 +76,6 @@ Do not set this variable directly!  Use the function
 `ibuffer-auto-mode' instead.")
 
 (defvar ibuffer-auto-buffers-changed nil)
-
-(defcustom ibuffer-occur-match-face 'font-lock-warning-face
-  "Face used for displaying matched strings for `ibuffer-do-occur'."
-  :type 'face
-  :group 'ibuffer)
 
 (defcustom ibuffer-saved-filters '(("gnus"
 				    ((or (mode . message-mode)
@@ -1060,72 +1046,6 @@ You can then feed the file name(s) to other commands with C-y.
        (with-current-buffer buf
 	 (eq major-mode 'dired-mode)))))
 
-;;; An implementation of multi-buffer `occur'
-
-(defvar ibuffer-occur-props nil)
-
-(define-derived-mode ibuffer-occur-mode occur-mode "Ibuffer-Occur"
-  "A special form of Occur mode for multiple buffers.
-Note this major mode is not meant for interactive use!
-See also `occur-mode'."
-  (define-key ibuffer-occur-mode-map (kbd "n") 'forward-line)
-  (define-key ibuffer-occur-mode-map (kbd "q") 'bury-buffer)
-  (define-key ibuffer-occur-mode-map (kbd "p") 'previous-line)
-  (define-key ibuffer-occur-mode-map (kbd "RET") 'ibuffer-occur-display-occurence)
-  (define-key ibuffer-occur-mode-map (kbd "f") 'ibuffer-occur-goto-occurence)
-  (define-key ibuffer-occur-mode-map [(mouse-2)] 'ibuffer-occur-mouse-display-occurence)
-  (set (make-local-variable 'revert-buffer-function)
-       #'ibuffer-occur-revert-buffer-function)
-  (set (make-local-variable 'ibuffer-occur-props) nil)
-  (setq buffer-read-only nil)
-  (erase-buffer)
-  (setq buffer-read-only t)
-  (message (concat
-	    "Use RET "
-	    (if (or (and (< 21 emacs-major-version)
-			 window-system)
-		    (featurep 'mouse))
-	       "or mouse-2 ")
-	    "to display an occurence.")))
-
-(defun ibuffer-occur-mouse-display-occurence (e)
-  "Display occurence on this line in another window."
-  (interactive "e")
-  (let* ((occurbuf (save-window-excursion (mouse-select-window e)
-					  (selected-window)))
-	 (target (with-current-buffer occurbuf
-		   (get-text-property (save-excursion
-					(mouse-set-point e)
-					(point))
-				      'ibuffer-occur-target))))
-    (unless target
-      (error "No occurence on this line"))
-    (let ((buf (car target))
-	  (line (cdr target)))
-      (switch-to-buffer occurbuf)
-      (delete-other-windows)
-      (pop-to-buffer buf)
-      (goto-line line))))
-
-(defun ibuffer-occur-goto-occurence ()
-  "Switch to the buffer which has the occurence on this line."
-  (interactive)
-  (ibuffer-occur-display-occurence t))
-
-(defun ibuffer-occur-display-occurence (&optional goto)
-  "Display occurence on this line in another window."
-  (interactive "P")
-  (let ((target (get-text-property (point) 'ibuffer-occur-target)))
-    (unless target
-      (error "No occurence on this line"))
-    (let ((buf (car target))
-	  (line (cdr target)))
-      (delete-other-windows)
-      (if goto
-	  (switch-to-buffer buf)
-	(pop-to-buffer buf))
-      (goto-line line))))
-
 ;;;###autoload
 (defun ibuffer-do-occur (regexp &optional nlines)
   "View lines which match REGEXP in all marked buffers.
@@ -1157,146 +1077,7 @@ defaults to one."
     (ibuffer-map-marked-lines
      #'(lambda (buf mark)
 	 (push buf ibuffer-do-occur-bufs)))
-    (ibuffer-do-occur-1 regexp ibuffer-do-occur-bufs
-			(get-buffer-create "*Ibuffer-occur*")
-			nlines)))
-
-(defun ibuffer-do-occur-1 (regexp buffers out-buf nlines)
-  (let ((count (ibuffer-occur-engine regexp buffers out-buf nlines)))
-    (if (> count 0)
-	(progn
-	  (switch-to-buffer out-buf)
-	  (setq buffer-read-only t)
-	  (delete-other-windows)
-	  (goto-char (point-min))
-	  (message "Found %s matches in %s buffers" count (length buffers)))
-      (message "No matches found"))))
-
-
-(defun ibuffer-occur-revert-buffer-function (ignore-auto noconfirm)
-  "Update the *Ibuffer occur* buffer."
-  (assert (eq major-mode 'ibuffer-occur-mode))
-  (ibuffer-do-occur-1 (car ibuffer-occur-props)
-		      (cadr ibuffer-occur-props)
-		      (current-buffer)
-		      (caddr ibuffer-occur-props)))
-
-(defun ibuffer-occur-engine (regexp buffers out-buf nlines)
-  (macrolet ((insert-get-point
-	      (&rest args)
-	      `(progn
-		 (insert ,@args)
-		 (point)))
-	     (maybe-put-overlay
-	      (over prop value)
-	      `(when (ibuffer-use-fontification)
-		 (overlay-put ,over ,prop ,value)))
-	     (maybe-ibuffer-propertize
-	      (obj &rest args)
-	      (let ((objsym (gensym "--maybe-ibuffer-propertize-")))
-		`(let ((,objsym ,obj))
-		   (if (ibuffer-use-fontification)
-		       (propertize ,objsym ,@args)
-		     ,objsym)))))
-    (with-current-buffer out-buf
-      (ibuffer-occur-mode)
-      (setq buffer-read-only nil)
-      (let ((globalcount 0))
-	;; Map over all the buffers
-	(dolist (buf buffers)
-	  (when (buffer-live-p buf)
-	    (let ((c 0)	;; count of matched lines
-		  (l 1)	;; line count
-		  (headerpt (with-current-buffer out-buf (point))))
-	      (save-excursion
-		(set-buffer buf)
-		(save-excursion
-		  (goto-char (point-min)) ;; begin searching in the buffer
-		  (while (not (eobp))
-		    ;; The line we're matching against
-		    (let ((curline (buffer-substring
-				    (line-beginning-position)
-				    (line-end-position))))
-		      (when (string-match regexp curline)
-			(incf c) ;; increment match count
-			(incf globalcount)
-			;; Depropertize the string, and maybe highlight the matches
-			(setq curline
-			      (progn
-				(ibuffer-depropertize-string curline t)
-				(when (ibuffer-use-fontification)
-				  (let ((len (length curline))
-					(start 0))
-				    (while (and (< start len)
-						(string-match regexp curline start))
-				      (put-text-property (match-beginning 0)
-							 (match-end 0)
-							 'face ibuffer-occur-match-face
-							 curline)
-				      (setq start (match-end 0)))))
-				curline))
-			;; Generate the string to insert for this match
-			(let ((data
-			       (if (= nlines 1)
-				   ;; The simple display style
-				   (concat (maybe-ibuffer-propertize
-					    (format "%-6d:" l)
-					    'face 'bold)
-					   curline
-					   "\n")
-				 ;; The complex multi-line display style
-				 (let ((prevlines (nreverse
-						   (ibuffer-accumulate-lines (- nlines))))
-				       (nextlines (ibuffer-accumulate-lines nlines))
-				       ;; The lack of `flet' seriously sucks.
-				       (fun #'(lambda (lines)
-						(mapcar
-						 #'(lambda (line)
-						     (concat "      :" line "\n"))
-						 lines))))
-				   (setq prevlines (funcall fun prevlines))
-				   (setq nextlines (funcall fun nextlines))
-				   ;; Yes, I am trying to win the award for the
-				   ;; most consing.
-				   (apply #'concat
-					  (nconc
-					   prevlines
-					   (list
-					    (concat
-					     (maybe-ibuffer-propertize
-					      (format "%-6d" l)
-					      'face 'bold)
-					     ":"
-					     curline
-					     "\n"))
-					   nextlines))))))
-			  ;; Actually insert the match display data
-			  (with-current-buffer out-buf
-			    (let ((beg (point))
-				  (end (insert-get-point
-					data)))
-			      (unless (= nlines 1)
-				(insert "-------\n"))
-			      (put-text-property
-			       beg (1- end) 'ibuffer-occur-target (cons buf l))
-			      (put-text-property
-			       beg (1- end) 'mouse-face 'highlight))))))
-		    ;; On to the next line...
-		    (incf l)
-		    (forward-line 1))))
-	      (when (not (zerop c)) ;; is the count zero?
-		(with-current-buffer out-buf
-		  (goto-char headerpt)
-		  (let ((beg (point))
-			(end (insert-get-point
-			      (format "%d lines matching \"%s\" in buffer %s\n"
-				      c regexp (buffer-name buf)))))
-		    (let ((o (make-overlay beg end)))
-		      (maybe-put-overlay o 'face 'underline)))
-		  (goto-char (point-max)))))))
-	(setq ibuffer-occur-props (list regexp buffers nlines))
-	;; Return the number of matches
-	globalcount))))
+    (occur-1 regexp nlines ibuffer-do-occur-bufs)))
 
 (provide 'ibuf-ext)
 
