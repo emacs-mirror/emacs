@@ -639,6 +639,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
 
+  (setq isearch-lazy-highlight-start nil)
+
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-terminal-local-map nil)
