@@ -266,9 +266,9 @@ etc/TUTORIAL.cn
 etc/TUTORIAL.cs
 etc/TUTORIAL.de
 etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr
-etc/TUTORIAL.it
-etc/TUTORIAL.ja
+etc/TUTORIAL.fr          Thien-Thi Nguyen
+etc/TUTORIAL.it          Thien-Thi Nguyen
+etc/TUTORIAL.ja          Thien-Thi Nguyen (w/ help from Kenichi Handa)
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
