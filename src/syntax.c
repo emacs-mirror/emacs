@@ -577,14 +577,17 @@ between them, return t; otherwise return nil.")
   register int c;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
+  int found;
 
   immediate_quit = 1;
   QUIT;
 
   from = PT;
+  found = from;
 
   while (count > 0)
     {
+      found = from;
       stop = ZV;
       while (from < stop)
 	{
@@ -612,7 +615,7 @@ between them, return t; otherwise return nil.")
 		  if (from == stop)
 		    {
 		      immediate_quit = 0;
-		      SET_PT (from);
+		      SET_PT (found);
 		      return Qnil;
 		    }
 		  c = FETCH_CHAR (from);
@@ -637,7 +640,7 @@ between them, return t; otherwise return nil.")
 	  else if (code != Swhitespace)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (from);
+	      SET_PT (found);
 	      return Qnil;
 	    }
 	}
@@ -648,6 +651,8 @@ between them, return t; otherwise return nil.")
 
   while (count < 0)
     {
+      found = from;
+
       stop = BEGV;
       while (from > stop)
 	{
@@ -687,7 +692,7 @@ between them, return t; otherwise return nil.")
 		      if (from == stop)
 			{
 			  immediate_quit = 0;
-			  SET_PT (from);
+			  SET_PT (found);
 			  return Qnil;
 			}
 		      from--;
@@ -811,7 +816,7 @@ between them, return t; otherwise return nil.")
 	  else if (code != Swhitespace || quoted)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (from);
+	      SET_PT (found);
 	      return Qnil;
 	    }
 	}
