@@ -537,9 +537,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
     Lisp_Object t_binding;
     t_binding = Qnil;
 
-    /* If `t_ok' is 2, both `t' and generic-char bindings are accepted.
-       If it is 1, only generic-char bindings are accepted.
-       Otherwise, neither are.  */
+    /* If `t_ok' is 2, both `t' is accepted.  */
     t_ok = t_ok ? 2 : 0;
 
     for (tail = XCDR (map);
@@ -563,24 +561,6 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    
 	    if (EQ (key, idx))
 	      val = XCDR (binding);
-	    else if (t_ok
-		     && INTEGERP (idx)
-		     && (XINT (idx) & CHAR_MODIFIER_MASK) == 0
-		     && INTEGERP (key)
-		     && (XINT (key) & CHAR_MODIFIER_MASK) == 0
-		     && !SINGLE_BYTE_CHAR_P (XINT (idx))
-		     && !SINGLE_BYTE_CHAR_P (XINT (key))
-		     && CHAR_VALID_P (XINT (key), 1)
-		     && !CHAR_VALID_P (XINT (key), 0)
-		     && (CHAR_CHARSET (XINT (key))
-			 == CHAR_CHARSET (XINT (idx))))
-	      {
-		/* KEY is the generic character of the charset of IDX.
-		   Use KEY's binding if there isn't a binding for IDX
-		   itself.  */
-		t_binding = XCDR (binding);
-		t_ok = 0;
-	      }
 	    else if (t_ok > 1 && EQ (key, Qt))
 	      {
 		t_binding = XCDR (binding);
@@ -2044,7 +2024,7 @@ push_key_description (c, p, force_multibyte)
     {
       *p++ = c;
     }
-  else if (CHAR_VALID_P (c, 0))
+  else if (CHARACTERP (c))
     {
       if (NILP (current_buffer->enable_multibyte_characters))
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
