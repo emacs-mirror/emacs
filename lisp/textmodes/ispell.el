@@ -535,7 +535,11 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-word]
 	'("Check Word" . ispell-word))
       (define-key ispell-menu-map [ispell-buffer]
-	'("Check Buffer" . ispell-buffer))
+	'("Check Buffer" . ispell-buffer))))
+
+;;;###autoload
+(if ispell-menu-map-needed
+    (progn
       (define-key ispell-menu-map [ispell-message]
 	'("Check Message" . ispell-message))
       (define-key ispell-menu-map [ispell-help]
