@@ -1,3 +1,9 @@
+2004-05-11  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
+
+	* mail/rfc2368.el (rfc2368-parse-mailto-url): Make the results of
+	parsing "mailto:addr1%2C%20addr2", "mailto:?to=addr1%2C%20addr2",
+	and "mailto:addr1?to=addr2" equal.
+
 2004-05-11  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
 	* man.el (Man-getpage-in-background): Use shell-file-name
