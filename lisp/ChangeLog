@@ -1,4 +1,8 @@
-2005-02-19  Eli Zaretskii  <eliz@gnu.org>
+2005-02-19  Michael Mauger  <mmaug@yahoo.com>
+
+	* replace.el (query-replace-read-from): Set the value of
+	query-replace-from-history-variable to handle the case of an empty
+	string entered to accept the suggested default.
 
 	* net/tramp.el (tramp-file-name-for-operation): Use
 	dired-call-process instead of dired-call-process-command.
