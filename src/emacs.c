@@ -595,8 +595,14 @@ main (argc, argv, envp)
     {
       long newlim;
       extern int re_max_failures;
-      /* Approximate the amount regex.c needs, plus some more.  */
-      newlim = re_max_failures * 2 * 20 * sizeof (char *);
+      /* Approximate the amount regex.c needs per unit of re_max_failures.  */
+      int ratio = 20 * sizeof (char *);
+      /* Then add 33% to cover the size of the smaller stacks that regex.c
+	 successively allocates and discards, on its way to the maximum.  */
+      ratio += ratio / 3;
+      /* Add in some extra to cover
+	 what we're likely to use for other reasons.  */
+      newlim = re_max_failures * ratio + 200000;
 #ifdef __NetBSD__
       /* NetBSD (at least NetBSD 1.2G and former) has a bug in its
        stack allocation routine for new process that the allocation
@@ -607,8 +613,8 @@ main (argc, argv, envp)
       if (newlim > rlim.rlim_max)
 	{
 	  newlim = rlim.rlim_max;
-	  /* Don't let regex.c overflow the stack.  */
-	  re_max_failures = newlim / (2 * 20 * sizeof (char *));
+	  /* Don't let regex.c overflow the stack we have.  */
+	  re_max_failures = (newlim - 200000) / ratio;
 	}
       if (rlim.rlim_cur < newlim)
 	rlim.rlim_cur = newlim;
