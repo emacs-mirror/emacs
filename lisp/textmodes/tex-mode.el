@@ -42,7 +42,7 @@ and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 `\\input' commands with relative directories.")
 
 ;;;###autoload
-(defvar tex-main-file
+(defvar tex-main-file nil
   "*The main TeX source file which includes this buffer's file.
 The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil.")
 
@@ -1066,7 +1066,7 @@ This function is more useful than \\[tex-buffer] when you need the
     (tex-send-command tex-command source-file))
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer))
-  (setq tex-print-file (buffer-file-name)))
+  (setq tex-print-file source-file))
 
 (defun tex-generate-zap-file-name ()
   "Generate a unique name suitable for use as a file name."
