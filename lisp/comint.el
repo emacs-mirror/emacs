@@ -282,7 +282,6 @@ Entry to this mode runs the hooks on comint-mode-hook"
   (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
   (define-key comint-mode-map "\C-c\C-p" 'comint-prev-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
-  (define-key comint-mode-map "\C-c\C-y" 'comint-previous-input) ;v18 binding
   )
 
 
