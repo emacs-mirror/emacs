@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.28) $
+ * $HopeName: MMsrc!seg.c(trunk.29) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -29,7 +29,7 @@
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.28) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.29) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -1145,12 +1145,12 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   if (oldGrey == TraceSetEMPTY) {
     if (grey != TraceSetEMPTY) {
       AVER(RankSetIsSingle(seg->rankSet));
-      for(rank = 0; rank < RankMAX; ++rank)
+      for(rank = 0; rank < RankLIMIT; ++rank)
 	if (RankSetIsMember(seg->rankSet, rank)) {
 	  RingInsert(ArenaGreyRing(arena, rank), &gcseg->greyRing);
 	  break;
 	}
-      AVER(rank != RankMAX); /* there should've been a match */
+      AVER(rank != RankLIMIT); /* there should've been a match */
     }
   } else {
     if (grey == TraceSetEMPTY)
