@@ -42,7 +42,7 @@ extern int errno;
 #endif
 
 #include <sys/file.h>
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
@@ -1672,7 +1672,10 @@ Each element should be a string of the form ENVVARNAME=VALUE.
 If multiple entries define the same variable, the first one always
 takes precedence.
 The environment which Emacs inherits is placed in this variable
-when Emacs starts.  */);
+when Emacs starts.
+Non-ASCII characters are encoded according to the initial value of
+`locale-coding-system', i.e. the elements must normally be decoded for use.
+See `setenv' and `getenv'.  */);
 
 #ifndef VMS
   defsubr (&Scall_process);
