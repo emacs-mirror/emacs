@@ -26,16 +26,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define EMACS_UINT unsigned int
 #endif
 
-/* Define the fundamental Lisp data structures */
+/* Define the fundamental Lisp data structures.  */
 
-/* This is the set of Lisp data types */
+/* This is the set of Lisp data types.  */
 
 enum Lisp_Type
   {
-    /* Integer.  XINT(obj) is the integer value. */
+    /* Integer.  XINT (obj) is the integer value.  */
     Lisp_Int,
 
-    /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol. */
+    /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
     Lisp_Symbol,
 
     /* Miscellaneous.  XMISC (object) points to a union Lisp_Misc,
@@ -43,7 +43,7 @@ enum Lisp_Type
     Lisp_Misc,
 
     /* String.  XSTRING (object) points to a struct Lisp_String.
-       The length of the string, and its contents, are stored therein. */
+       The length of the string, and its contents, are stored therein.  */
     Lisp_String,
 
     /* Vector of Lisp objects, or something resembling it.
@@ -52,11 +52,8 @@ enum Lisp_Type
        information, if it's not a real vector object.  */
     Lisp_Vectorlike,
 
-    /* Cons.  XCONS (object) points to a struct Lisp_Cons. */
+    /* Cons.  XCONS (object) points to a struct Lisp_Cons.  */
     Lisp_Cons,
-
-    /* Editor buffer.  XBUFFER (obj) points to a struct buffer.  */
-    Lisp_Buffer,
 
 #ifdef LISP_FLOAT_TYPE
     Lisp_Float,
@@ -78,7 +75,12 @@ enum Lisp_Misc_Type
     Lisp_Misc_Buffer_Objfwd,
     Lisp_Misc_Buffer_Local_Value,
     Lisp_Misc_Some_Buffer_Local_Value,
-    Lisp_Misc_Overlay
+    Lisp_Misc_Overlay,
+    /* Currently floats are not a misc type,
+       but let's define this in case we want to change that.  */
+    Lisp_Misc_Float,
+    /* This is not a type code.  It is for range checking.  */
+    Lisp_Misc_Limit
   };
 
 #ifndef NO_UNION_TYPE
@@ -91,7 +93,7 @@ typedef
 union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
-       also, positive integers can be accessed fast this way. */
+       also, positive integers can be accessed fast this way.  */
     int i;
 
     struct
@@ -121,7 +123,7 @@ typedef
 union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
-       also, positive integers can be accessed fast this way. */
+       also, positive integers can be accessed fast this way.  */
     int i;
 
     struct
@@ -203,13 +205,19 @@ Lisp_Object;
 /* In a pseudo-vector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
    indicate the actual type.  */
-#define PVEC_BUFFER	0x100
-#define PVEC_PROCESS	0x200
-#define PVEC_FRAME	0x400
-#define PVEC_COMPILED	0x800
-#define PVEC_WINDOW	0x1000
-#define PVEC_WINDOW_CONFIGURATION	0x2000
-#define PVEC_SUBR       0x4000
+enum pvec_type
+{
+  PVEC_NORMAL_VECTOR = 0,
+  PVEC_BUFFER = 0x100,
+  PVEC_PROCESS = 0x200,
+  PVEC_FRAME = 0x400,
+  PVEC_COMPILED = 0x800,
+  PVEC_WINDOW = 0x1000,
+  PVEC_WINDOW_CONFIGURATION = 0x2000,
+  PVEC_SUBR = 0x4000,
+  PVEC_TYPE_MASK = 0x7f00,
+  PVEC_FLAG = PSEUDOVECTOR_FLAG,
+};
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0xff
@@ -222,7 +230,7 @@ you lose
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
- XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons. */
+ XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 #ifdef NO_UNION_TYPE
 
@@ -355,9 +363,9 @@ extern int pure_size;
 
 #endif /* NO_UNION_TYPE */
 
+/* Extract a value or address from a Lisp_Object.  */
 
 #define XCONS(a) ((struct Lisp_Cons *) XPNTR(a))
-#define XBUFFER(a) ((struct buffer *) XPNTR(a))
 #define XVECTOR(a) ((struct Lisp_Vector *) XPNTR(a))
 #define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
@@ -377,10 +385,13 @@ extern int pure_size;
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XWINDOW(a) ((struct window *) XPNTR(a))
 #define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
+#define XBUFFER(a) ((struct buffer *) XPNTR(a))
+
+
+/* Construct a Lisp_Object from a value or address.  */
 
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
-#define XSETBUFFER(a, b) XSET (a, Lisp_Buffer, b)
 #define XSETVECTOR(a, b) XSET (a, Lisp_Vectorlike, b)
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
 #define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
@@ -399,18 +410,19 @@ extern int pure_size;
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
+#define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 
 #ifdef USE_TEXT_PROPERTIES
-/* Basic data type for use of intervals.  See the macros in intervals.h */
+/* Basic data type for use of intervals.  See the macros in intervals.h.  */
 
 struct interval
 {
-  /* The first group of entries deal with the tree structure. */
+  /* The first group of entries deal with the tree structure.  */
 
-  unsigned int total_length;	/* Length of myself and both children. */
-  unsigned int position;	/* Cache of interval's character position  */
-  struct interval *left;	/* Intervals which precede me. */
-  struct interval *right;	/* Intervals which succeed me. */
+  unsigned int total_length;	/* Length of myself and both children.  */
+  unsigned int position;	/* Cache of interval's character position.  */
+  struct interval *left;	/* Intervals which precede me.  */
+  struct interval *right;	/* Intervals which succeed me.  */
 
   /* Parent in the tree, or the Lisp_Object containing this interval tree.
 
@@ -426,13 +438,13 @@ struct interval
 
   /* The remaining components are `properties' of the interval.
      The first four are duplicates for things which can be on the list,
-     for purposes of speed. */
+     for purposes of speed.  */
 
   unsigned char write_protect;	    /* Non-zero means can't modify.  */
-  unsigned char visible;	    /* Zero means don't display. */
+  unsigned char visible;	    /* Zero means don't display.  */
   unsigned char front_sticky;	    /* Non-zero means text inserted just
-				       before this interval goes into it. */
-  unsigned char rear_sticky;	    /* Likewise for just after it. */
+				       before this interval goes into it.  */
+  unsigned char rear_sticky;	    /* Likewise for just after it.  */
 
   /* Properties of this interval.
      The mark bit on this field says whether this particular interval
@@ -449,16 +461,16 @@ typedef struct interval *INTERVAL;
       x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
 
 /* Macro used to conditionally compile intervals into certain data
-   structures.  See, e.g., struct Lisp_String below. */
+   structures.  See, e.g., struct Lisp_String below.  */
 #define DECLARE_INTERVALS INTERVAL intervals;
 
 /* Macro used to conditionally compile interval initialization into
-   certain code.  See, e.g., alloc.c. */
+   certain code.  See, e.g., alloc.c.  */
 #define INITIALIZE_INTERVAL(ptr,val) ptr->intervals = val
 
 #else  /* No text properties */
 
-/* If no intervals are used, make the above definitions go away. */
+/* If no intervals are used, make the above definitions go away.  */
 
 #define CHECK_STRING_OR_BUFFER(x, i)
 
@@ -490,7 +502,7 @@ struct Lisp_Buffer_Cons
 struct Lisp_String
   {
     EMACS_INT size;
-    DECLARE_INTERVALS		/* `data' field must be last. */
+    DECLARE_INTERVALS		/* `data' field must be last.  */
     unsigned char data[1];
   };
 
@@ -611,7 +623,7 @@ struct Lisp_Buffer_Objfwd
    variable).
 
    If we want to examine or set the value and BUFFER is current,
-   we just examine or set REALVALUE. If BUFFER is not current, we
+   we just examine or set REALVALUE.  If BUFFER is not current, we
    store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
    then find the appropriate alist element for the buffer now
    current and set up CURRENT-ALIST-ELEMENT.  Then we set
@@ -671,7 +683,7 @@ struct Lisp_Float
 #endif /* LISP_FLOAT_TYPE */
 
 /* A character, declared with the following typedef, is a member
-   of some character set associated with the current buffer. */
+   of some character set associated with the current buffer.  */
 #ifndef _UCHAR_T  /* Protect against something in ctab.h on AIX.  */
 #define _UCHAR_T
 typedef unsigned char UCHAR;
@@ -790,8 +802,6 @@ typedef unsigned char UCHAR;
 #define GC_STRINGP(x) (XGCTYPE ((x)) == Lisp_String)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
-#define BUFFERP(x) (XTYPE ((x)) == Lisp_Buffer)
-#define GC_BUFFERP(x) (XGCTYPE ((x)) == Lisp_Buffer)
 
 #ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
@@ -844,6 +854,8 @@ typedef unsigned char UCHAR;
 #define GC_SUBRP(x) GC_PSEUDOVECTORP (x, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define GC_COMPILEDP(x) GC_PSEUDOVECTORP (x, PVEC_COMPILED)
+#define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
+#define GC_BUFFERP(x) GC_PSEUDOVECTORP (x, PVEC_BUFFER)
 
 #ifdef MULTI_FRAME
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
@@ -983,7 +995,7 @@ typedef unsigned char UCHAR;
 #else
 
 /* This version of DEFUN declares a function prototype with the right
-   arguments, so we can catch errors with maxargs at compile-time. */
+   arguments, so we can catch errors with maxargs at compile-time.  */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   struct Lisp_Subr sname =						\
@@ -992,7 +1004,7 @@ typedef unsigned char UCHAR;
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes
-   this work for MANY and UNEVALLED. */
+   this work for MANY and UNEVALLED.  */
 #define DEFUN_ARGS_MANY		(int, Lisp_Object *)
 #define DEFUN_ARGS_UNEVALLED	(Lisp_Object)
 #define DEFUN_ARGS_0	(void)
@@ -1009,7 +1021,7 @@ typedef unsigned char UCHAR;
 #endif
 
 /* defsubr (Sname);
- is how we define the symbol for function `name' at start-up time. */
+ is how we define the symbol for function `name' at start-up time.  */
 extern void defsubr ();
 
 #define MANY -2
@@ -1082,7 +1094,7 @@ extern Lisp_Object memory_signal_data;
    Tells GC how to save a copy of the stack.  */
 extern char *stack_bottom;
 
-/* Check quit-flag and quit if it is non-nil. */
+/* Check quit-flag and quit if it is non-nil.  */
 
 #define QUIT \
   if (!NILP (Vquit_flag) && NILP (Vinhibit_quit)) \
@@ -1117,7 +1129,7 @@ extern char *stack_bottom;
 
 #define UPCASE1(CH) (XSTRING (current_buffer->upcase_table)->data[CH])
 
-/* Downcase a character, or make no change if that cannot be done. */
+/* Downcase a character, or make no change if that cannot be done.  */
 
 #define DOWNCASE(CH) (XSTRING (current_buffer->downcase_table)->data[CH])
 
@@ -1132,15 +1144,15 @@ extern char *stack_bottom;
 extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
-/* number of bytes of structure consed since last GC */
+/* Number of bytes of structure consed since last GC.  */
 
 extern int consing_since_gc;
 
-/* threshold for doing another gc */
+/* Threshold for doing another gc.  */
 
 extern int gc_cons_threshold;
 
-/* Structure for recording stack slots that need marking */
+/* Structure for recording stack slots that need marking.  */
 
 /* This is a chain of structures, each of which points at a Lisp_Object variable
  whose value should be marked in garbage collection.
@@ -1151,7 +1163,7 @@ extern int gc_cons_threshold;
  link disappears.
 
  Every function that can call Feval must protect in this fashion all
- Lisp_Object variables whose contents will be used again. */
+ Lisp_Object variables whose contents will be used again.  */
 
 extern struct gcpro *gcprolist;
 
@@ -1192,7 +1204,7 @@ struct gcpro
   gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
   gcprolist = &gcpro5; }
 
-/* Call staticpro (&var) to protect static variable `var'. */
+/* Call staticpro (&var) to protect static variable `var'.  */
 
 void staticpro();
   
@@ -1517,7 +1529,7 @@ void shut_down_emacs ( /* int signal, int no_x, Lisp_Object stuff */ );
 extern int noninteractive;
 /* Nonzero means don't do use window-system-specific display code */
 extern int inhibit_window_system;
-/* Nonzero means that a filter or a sentinel is running. */
+/* Nonzero means that a filter or a sentinel is running.  */
 extern int running_asynch_code;
 
 /* defined in process.c */
