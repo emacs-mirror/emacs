@@ -323,6 +323,7 @@ This follows the rule [28] in the XML specifications."
   (condition-case nil
       (progn
 	(forward-word 1)  ;; name of the document
+	(goto-char (- (re-search-forward "[[:space:]]") 1))
 	(goto-char (- (re-search-forward "[^[:space:]]") 1))
 	(if (looking-at "\\[")
 	    (re-search-forward "\\][[:space:]]*>" end)
