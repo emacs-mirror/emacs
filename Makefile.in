@@ -219,7 +219,10 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in
 # something notable, so the only unnecessary work we do is in building
 # paths.h.tmp$$$$, which isn't much.
 # Note that sed is not in /bin on 386bsd.
-paths-force: FRC
+# We depend on src/paths.h here to prevent simultaneous execution of
+# that rule and this one, in a parallel make.
+# It is possible for paths.h to be updated twice--but that would happen anyway.
+paths-force: FRC src/paths.h
 	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
