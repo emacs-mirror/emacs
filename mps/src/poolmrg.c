@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.21) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.21) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.22) $");
 
 
 /* Types */
@@ -82,7 +82,7 @@ static Ref MRGRefPartRef(Arena arena, RefPart refPart)
   AVERT(Arena, arena);
   AVER(refPart != NULL);
 
-  ref = (Ref)ArenaPeek(arena, (Addr)&refPart->ref);
+  ref = ArenaPeek(arena, (Addr)&refPart->ref);
 
   return ref;
 }
@@ -99,7 +99,7 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
   AVERT(Arena, arena);
   AVER(refPart != NULL);
 
-  ArenaPoke(arena, (Addr)&refPart->ref, (Word)ref);
+  ArenaPoke(arena, (Addr)&refPart->ref, ref);
 }
 
 
