@@ -1,6 +1,8 @@
-/* test null space for ld_reset
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = null space for ld_reset
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

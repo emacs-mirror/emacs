@@ -1,6 +1,8 @@
-/* test highbit set root mode for mps_root_create_reg (with stack scan ambig)
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = highbit set root mode for mps_root_create_reg (with stack scan ambig)
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

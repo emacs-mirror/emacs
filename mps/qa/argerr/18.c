@@ -1,6 +1,8 @@
-/* test NULL arg to pool_destroy
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = NULL arg to pool_destroy
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test null base for mps_root_create_fmt
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = null base for mps_root_create_fmt
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

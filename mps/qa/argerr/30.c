@@ -1,6 +1,8 @@
-/* test NULL 2nd arg to mps_free
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = NULL 2nd arg to mps_free
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

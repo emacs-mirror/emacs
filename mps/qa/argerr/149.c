@@ -1,6 +1,8 @@
-/* test pointer to null addr to fix (function)
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = pointer to null addr to fix (function)
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"
