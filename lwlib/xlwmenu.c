@@ -1208,7 +1208,11 @@ fit_to_screen (mw, ws, previous_ws, horizontal_p)
   else if (ws->x + ws->width > screen_width)
     {
       if (!horizontal_p)
-	ws->x = previous_ws->x - ws->width;
+	/* The addition of shadow-thickness for a sub-menu's position is
+	   to reflect a similar adjustment when the menu is displayed to
+	   the right of the invoking menu-item; it makes the sub-menu
+	   look more `attached' to the menu-item.  */
+	ws->x = previous_ws->x - ws->width + mw->menu.shadow_thickness;
       else
 	ws->x = screen_width - ws->width;
       if (ws->x < 0)
@@ -1305,7 +1309,7 @@ remap_menubar (mw)
 
       ws->x = (previous_ws->x + selection_position.x
 	       + mw->menu.shadow_thickness);
-      if (i == 1)
+      if (mw->menu.horizontal && i == 1)
 	ws->x += mw->menu.margin;
 
 #if 0
@@ -1315,7 +1319,7 @@ remap_menubar (mw)
       
       ws->y = (previous_ws->y + selection_position.y
 	       + mw->menu.shadow_thickness);
-      if (i == 1)
+      if (mw->menu.horizontal && i == 1)
 	ws->y += mw->menu.margin;
 
       size_menu (mw, i);
