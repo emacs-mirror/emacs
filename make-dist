@@ -309,7 +309,7 @@ echo "Updating version number in README"
 
 echo "Creating subdirectories"
 for subdir in lisp site-lisp lispref lispintro \
-	      leim leim leim/CXTERM-DIC leim/MISC-DIC \
+	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
