@@ -43,7 +43,7 @@
 	   ((r1 = ?\x13) (r2 -= 256))
 	 ((r1 = ?\xfd) (r2 -= 208))
 	 ))))
-  "CCL program to encode an Ehitopic code to code point of Ehitopic font.")
+  "CCL program to encode an Ethiopic code to code point of Ethiopic font.")
 
 (setq font-ccl-encoder-alist
       (cons (cons "ethiopic" ccl-encode-ethio-font) font-ccl-encoder-alist))
