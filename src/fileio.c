@@ -2814,8 +2814,8 @@ Non-nil second argument means save only current buffer.")
 	}
     }
 
-  if (auto_saved)
-    record_auto_save ();
+  /* Prevent another auto save till enough input events come in.  */
+  record_auto_save ();
 
   if (auto_saved && NILP (nomsg))
     message1 (omessage ? omessage : "Auto-saving...done");
