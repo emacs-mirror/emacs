@@ -1707,7 +1707,7 @@ of buffer-file-coding-system set by this function."
     ("fi" . "Latin-1") ; Finnish
     ; fj Fiji
     ("fo" . "Latin-1") ; Faroese
-    ("fr" . "Latin-1") ; French
+    ("fr" . "French") ; French
     ("fy" . "Latin-1") ; Frisian
     ("ga" . "Latin-1") ; Irish Gaelic (new orthography)
     ("gd" . "Latin-1") ; Scots Gaelic
