@@ -1,6 +1,25 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Getting a Meta key on the FreeBSD console
+
+By default, neither Alt nor any other key acts as a Meta key on
+FreeBSD, but this can be changed using kbdcontrol(1).  Dump the
+current keymap to a file with the command
+
+  $ kbdcontrol -d >emacs.kbd
+
+Edit emacs.kbd, and give the key you want to be the Meta key the
+definition `meta'.  For instance, if your keyboard has a ``Windows''
+key with scan code 105, change the line for scan code 105 in emacs.kbd
+to look like this
+
+  105   meta   meta   meta   meta   meta   meta   meta   meta    O
+
+to make the Windows key the Meta key.  Load the new keymap with
+
+  $ kbdcontrol -l emacs.kbd
+
 * Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
 
 A symptom of this bug is that double-clicks insert a control sequence
