@@ -1967,7 +1967,10 @@ around function keys and event symbols.")
 	  nbytes = end - tem;
 	  nchars = multibyte_chars_in_text (tem, nbytes);
 	  if (nchars == nbytes)
-	    string = build_string (tem);
+	    {
+	      *end = '\0';
+	      string = build_string (tem);
+	    }
 	  else
 	    string = make_multibyte_string (tem, nchars, nbytes);
 	  return string;
