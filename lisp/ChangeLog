@@ -1,5 +1,7 @@
 2000-11-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (auto-mode-alist): Add an entry for antlr-mode.
+
 	* play/5x5.el: Remove version info.
 
 	* toolbar/tool-bar.el (tool-bar-mode): Doc fix.
