@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.54 $
+;; Version: $Revision: 1.55 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1999/07/18 05:19:57 $|$Revision: 1.54 $|~/modes/tcl.el.Z|
+;; $Date: 1999/07/18 05:21:33 $|$Revision: 1.55 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.55  1999/07/18 05:21:33  tromey
+;; (tcl-proc-list): Reverted; already had `body'.
+;;
 ;; Revision 1.54  1999/07/18 05:19:57  tromey
 ;; (tcl-proc-list): Added `body'.
 ;;
@@ -385,7 +388,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.54 $")
+(defconst tcl-version "$Revision: 1.55 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1001,8 +1004,9 @@ Commands:
   (make-local-variable 'outline-level)
   (setq outline-level 'tcl-outline-level)
 
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords tcl-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+	'(tcl-font-lock-keywords))
 
   ;; The following only really makes sense under GNU Emacs 19.
   (make-local-variable 'imenu-create-index-function)
