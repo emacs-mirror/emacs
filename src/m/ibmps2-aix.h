@@ -205,7 +205,9 @@ so disable it for them.  */
 #ifdef __GNUC__
 #define HAVE_ALLOCA
 #define alloca(n) __builtin_alloca(n)
+#if __GNUC__ < 2
 #define LIB_STANDARD /usr/local/lib/gcc-gnulib -lbsd -lrts -lc 
+#endif
 /* -g fails to work, so it is omitted.  */
 /* tranle says that -fstrength-reduce does not help.  */
 #define C_DEBUG_SWITCH -O -fwritable-strings
