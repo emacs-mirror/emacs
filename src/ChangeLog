@@ -1,5 +1,8 @@
 2001-12-07  Andreas Schwab  <schwab@suse.de>
 
+	* xdisp.c (display_mode_element): Don't read past end of string if
+	it ends with '%'.
+
 	* alloc.c (inhibit_garbage_collection): Don't exceed value an int
 	can hold.
 
