@@ -2,7 +2,8 @@
 
 	* lpr.el (lpr-page-header-switches, print-region-1):
 	Undo 2000-07-06 change.
-	
+	(lpr-add-switches): Default to t on gnu/linux.
+
 2001-02-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* bs.el (bs-attributes-list): Doc fix.
