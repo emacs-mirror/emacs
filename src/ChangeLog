@@ -1,3 +1,10 @@
+2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* xselect.c (Vx_lost_selection_functions, Vx_sent_selection_functions):
+	Rename from Vx_lost_selection_hooks and Vx_sent_selection_hooks.
+	(x_handle_selection_request, x_handle_selection_clear)
+	(x_clear_frame_selections, syms_of_xselect): Adjust accordingly.
+
 2004-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* w32fns.c (Fx_server_vendor, Fx_server_version): Doc fixes.

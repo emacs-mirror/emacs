@@ -3106,11 +3106,13 @@ KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
 
 +++
-** Renamed file hooks to follow the convention:
+** Renamed hooks to better follow the naming convention:
 find-file-hooks to find-file-hook,
 find-file-not-found-hooks to find-file-not-found-functions,
 write-file-hooks to write-file-functions,
-write-contents-hooks to write-contents-functions.
+write-contents-hooks to write-contents-functions,
+x-lost-selection-hooks to x-lost-selection-functions,
+x-sent-selection-hooks to x-sent-selection-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
 +++

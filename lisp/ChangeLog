@@ -1,3 +1,16 @@
+2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-show-mark): Adjust to new name and don't assume
+	x-lost-selection-functions is bound.
+
+	* mouse-sel.el (mouse-sel-mode):
+	* emacs-lisp/lselect.el: Adjust to new names for
+	x-(lost|sent)-selection-functions.
+
+	* subr.el (x-lost-selection-hooks, x-sent-selection-hooks):
+	New obsolete aliases of x-lost-selection-functions and
+	x-sent-selection-functions.
+
 2004-10-28  Kim F. Storm  <storm@cua.dk>
 
 	* imenu.el (imenu-scanning-message): Remove.
