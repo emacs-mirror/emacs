@@ -180,35 +180,14 @@ Lisp_Object last_command;
    instead of the actual command.  */
 Lisp_Object this_command;
 
-#ifndef HAVE_X11
-/* Window of last mouse click.  */
-extern Lisp_Object Vmouse_window;
-
-/* List containing details of last mouse click.  */
-extern Lisp_Object Vmouse_event;
-#endif /* defined HAVE_X11 */
-
-/* Hook to call on each mouse event after running its definition.  */
-Lisp_Object Vmouse_event_function;
-
-/* Hook to call when mouse leaves frame.  */
-Lisp_Object Vmouse_left_hook;
-
-/* Hook to call when a frame is mapped.  */
-Lisp_Object Vmap_frame_hook;
-
-/* Hook to call when a frame is unmapped.  */
-Lisp_Object Vunmap_frame_hook;
-
-/* Handler for non-grabbed (no keys depressed) mouse motion.  */
-Lisp_Object Vmouse_motion_handler;
-
+#ifdef MULTI_FRAME
 /* The frame in which the last input event occurred.
    command_loop_1 will select this frame before running the
    command bound to an event sequence, and read_key_sequence will
    toss the existing prefix if the user starts typing at a
    new frame.  */
 Lisp_Object Vlast_event_frame;
+#endif
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
@@ -849,39 +828,6 @@ command_loop_1 ()
       if (i == 0)		/* End of file -- happens only in */
 	return Qnil;		/* a kbd macro, at the end.  */
 
-#if 0
-#ifdef HAVE_X_WINDOWS
-      if (FRAME_X_P (selected_frame))
-	{
-	  if (i == -1)		/* Mouse event */
-	    {
-	      nonundocount = 0;
-	      if (NILP (Vprefix_arg) && NILP (Vexecuting_macro) &&
-		  !EQ (minibuf_window, selected_window))
-		Fundo_boundary ();
-
-	      if (defining_kbd_macro)
-		{
-		  /* Be nice if this worked...  */
-		}
-	      Fexecute_mouse_event (read_key_sequence_cmd);
-	      no_redisplay = 0;
-	      goto directly_done;
-	    }
-
-	  if (i == -2)		/* Lisp Symbol */
-	    {
-	      nonundocount = 0;
-	      if (NILP (Vprefix_arg) && NILP (Vexecuting_macro) &&
-		  !EQ (minibuf_window, selected_window))
-		Fundo_boundary ();
- 
-	      goto directly_done;
-	    }
-	}
-#endif /* HAVE_X_WINDOWS */
-#endif
-
       last_command_char = keybuf[i - 1];
 
       cmd = read_key_sequence_cmd;
@@ -1119,15 +1065,6 @@ read_char (commandflag)
       c = unread_command_char;
       unread_command_char = Qnil;
 
-#if 0       /* We're not handling mouse keys specially anymore. */
-      if (!EQ (XTYPE (obj), Lisp_Int)) /* Mouse thing */
-	{
-	  num_input_chars++;
-	  last_input_char = 0;
-	  return obj;
-	}
-#endif
-
       if (this_command_key_count == 0)
 	goto reread_first;
       else
@@ -1245,16 +1182,6 @@ read_char (commandflag)
 
   if (NILP (c))
     abort ();			/* Don't think this can happen. */
-
-#if 0 /* I think that all the different kinds of events should be
-	 handled together now... */
-  if (XTYPE (c) != Lisp_Int)
-    {
-      start_polling ();
-      return c;
-    }
-  c = XINT (obj);
-#endif
 
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && c < 0)
@@ -1486,12 +1413,16 @@ kbd_buffer_store_event (event)
       if (c == quit_char
 	  || ((c == (0200 | quit_char)) && !meta_key))
 	{
+	  extern SIGTYPE interrupt_signal ();
+
+#ifdef MULTI_FRAME
 	  /* If this results in a quit_char being returned to Emacs as
 	     input, set last-event-frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
-	  extern SIGTYPE interrupt_signal ();
 	  Vlast_event_frame = FRAME_FOCUS_FRAME (event->frame);
+#endif
+
 	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
 	  return;
@@ -1614,7 +1545,11 @@ kbd_buffer_get_event ()
 	 member now, before we return this event.  */
       kbd_fetch_ptr->frame =
 	XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame));
+
+#ifdef MULTI_FRAME
       XSET (Vlast_event_frame, Lisp_Frame, kbd_fetch_ptr->frame);
+#endif
+
       last_event_timestamp = kbd_fetch_ptr->timestamp;
       obj = make_lispy_event (kbd_fetch_ptr);
       kbd_fetch_ptr->kind = no_event;
@@ -1629,7 +1564,9 @@ kbd_buffer_get_event ()
       unsigned long time;
 
       (*mouse_position_hook) (&frame, &x, &y, &time);
+#ifdef MULTI_FRAME
       XSET (Vlast_event_frame, Lisp_Frame, frame);
+#endif
 
       obj = make_lispy_movement (frame, x, y, time);
     }
@@ -2879,111 +2816,6 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
   return Qnil;
 }
 
-#if 0
-DEFUN ("execute-mouse-event", Fexecute_mouse_event, Sexecute_mouse_event,
-  1, 1, 0,
-  "Execute the definition of the mouse-click event EVENT.\n\
-The handler function is found by looking the event's key sequence up\n\
-in the buffer's local mouse map and in `global-mouse-map'.\n\
-\n\
-After running the handler, call the value of `mouse-event-function'\n\
-with EVENT as arg.")
-  (event)
-     Lisp_Object event;
-{
-  Lisp_Object tem;
-  Lisp_Object mouse_cmd;
-  Lisp_Object keyseq, window, frame_part, pos, time;
-
-#ifndef HAVE_X11
-  Vmouse_event = event;
-#endif
-
-  if (EQ (event, Qnil))
-    {
-      bitch_at_user ();
-      return Qnil;
-    }
-
-  CHECK_CONS (event, 0);
-  pos = Fcar (event);
-  window = Fcar (Fcdr (event));
-  frame_part = Fcar (Fcdr (Fcdr (event)));
-  keyseq = Fcar (Fcdr (Fcdr (Fcdr (event))));
-  time = Fcar (Fcdr (Fcdr (Fcdr (Fcdr (event)))));
-  CHECK_STRING (keyseq, 0);
-  CHECK_WINDOW (window, 0);
-
-  /* Look up KEYSEQ in the buffer's local mouse map, then in global one.  */
-
-  mouse_cmd = Qnil;
-
-  if (!NILP (XWINDOW (window)->buffer))
-    {
-      Lisp_Object local_map;
-
-      local_map = XBUFFER (XWINDOW (window)->buffer)->mouse_map;
-      tem = Fkeymapp (local_map);
-      if (!NILP (tem))
-	mouse_cmd = Flookup_key (local_map, keyseq);
-      /* A number as value means the key is too long; treat as undefined.  */
-      if (XTYPE (mouse_cmd) == Lisp_Int)
-	mouse_cmd = Qnil;
-    }
-
-  tem = Fkeymapp (Vglobal_mouse_map);
-  if (NILP (mouse_cmd) && !NILP (tem))
-    mouse_cmd = Flookup_key (Vglobal_mouse_map, keyseq);
-  if (XTYPE (mouse_cmd) == Lisp_Int)
-    mouse_cmd = Qnil;
-
-  if (NILP (mouse_cmd))
-    {
-      /* This button/shift combination is not defined.
-	 If it is a button-down event, ring the bell.  */
-#ifdef HAVE_X11
-      if (XSTRING (keyseq)->data[XSTRING (keyseq)->size - 1] & 0x18 == 0)
-#else
-      if (XSTRING (keyseq)->data[XSTRING (keyseq)->size - 1] & 4 == 0)
-#endif
-	bitch_at_user ();
-    }
-  else
-    {
-      FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-
-#ifndef HAVE_X11
-      Vmouse_window = f->selected_window;
-#endif	/* HAVE_X11 */
-      /* It's defined; call the definition.  */
-      Vprefix_arg = Qnil;
-      if (!NILP (frame_part))
-	{
-	  /* For a scroll-bar click, set the prefix arg
-	     to the number of lines down from the top the click was.
-	     Many scroll commands want to scroll by this many lines.  */
-	  Lisp_Object position;
-	  Lisp_Object length;
-	  Lisp_Object offset;
-
-	  position = Fcar (pos);
-	  length = Fcar (Fcdr (pos));
-	  offset = Fcar (Fcdr (Fcdr (pos)));
-
-	  if (XINT (length) != 0)
-	    XSET (Vprefix_arg, Lisp_Int,
-		  (FRAME_HEIGHT (f) * (XINT (position) + XINT (offset))
-		   / (XINT (length) + 2 * XINT (offset))));
-	}
-      Fcommand_execute (mouse_cmd, Qnil);
-    }
-
-  if (!NILP (Vmouse_event_function))  /* Not `event' so no need for GCPRO */
-    call1 (Vmouse_event_function, Vmouse_event);
-  return Qnil;
-}
-#endif
-
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
   1, 1, "P",
   "Read function name, then read its arguments and call it.")
@@ -3149,9 +2981,6 @@ Also cancel any kbd macro being defined.")
   defining_kbd_macro = 0;
   update_mode_lines++;
 
-#if 0
-  unread_command_char = make_number (-1);
-#endif
   unread_command_char = Qnil;
 
   discard_tty_input ();
@@ -3392,9 +3221,6 @@ quit_throw_to_read_char ()
   clear_waiting_for_input ();
   input_pending = 0;
 
-#if 0
-  unread_command_char = make_number (-1);
-#endif
   unread_command_char = Qnil;
 
   _longjmp (getcjmp, 1);
@@ -3647,9 +3473,11 @@ Polling is automatically disabled in all other cases.");
     "*Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;
 
+#ifdef MULTI_FRAME
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
     "*The frame in which the most recently read event occurred.");
   Vlast_event_frame = Qnil;
+#endif
 
   DEFVAR_LISP ("help-char", &help_char,
     "Character to recognize as meaning Help.\n\
@@ -3673,30 +3501,6 @@ Useful to set before you dump a modified Emacs.");
 Each character is looked up in this string and the contents used instead.\n\
 If string is of length N, character codes N and up are untranslated.");
   Vkeyboard_translate_table = Qnil;
-
-#ifdef HAVE_X_WINDOWS
-  DEFVAR_LISP ("mouse-event-function", &Vmouse_event_function,
-    "Function to call for each mouse event, after the event's definition.\n\
-Called, if non-nil, with one argument, which is the event-list.\n\
-See the variable `mouse-event' for the format of this list.");
-  Vmouse_event_function = Qnil;
-
-  DEFVAR_LISP ("mouse-left-hook", &Vmouse_left_hook,
-	       "Function to call when mouse leaves window.  No arguments.");
-  Vmouse_left_hook = Qnil;
-
-  DEFVAR_LISP ("map-frame-hook", &Vmap_frame_hook,
-	       "Function to call when frame is mapped.  No arguments.");
-  Vmap_frame_hook = Qnil;
-
-  DEFVAR_LISP ("unmap-frame-hook", &Vunmap_frame_hook,
-	       "Function to call when frame is unmapped.  No arguments.");
-  Vunmap_frame_hook = Qnil;
-
-  DEFVAR_LISP ("mouse-motion-handler", &Vmouse_motion_handler,
-	       "Handler for motion events.  No arguments.");
-  Vmouse_motion_handler = Qnil;
-#endif
 
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
     "Non-nil means prompt with menus in echo area when appropriate.\n\
