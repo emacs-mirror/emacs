@@ -1,3 +1,11 @@
+2001-02-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (CCL_WRITE_CHAR): Check if CH is valid or not.  If
+	invalid, execute CCL_INVALID_CMD.
+	(ccl_driver): If the CCL program is terminated because of
+	CCL_STAT_INVALID_CMD, copy the remaining source data to the
+	destination instead of throwing them away.
+
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_font): If font hasn't changed, avoid recomputing
