@@ -1,3 +1,7 @@
+2001-11-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* quail/latin-ltx.el: Remove the call to IT-setup-unicode-display.
+
 2001-11-04  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (LATIN): Add welsh.
