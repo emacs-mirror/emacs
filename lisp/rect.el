@@ -41,6 +41,8 @@
 As for `move-to-column', passing anything but nil or t in FLAG will move to
 the desired column only if the line is long enough."
   (move-to-column column (or flag t)))
+
+;;;###autoload
 (make-obsolete 'move-to-column-force 'move-to-column "21.2")
 
 ;; not used any more --dv
