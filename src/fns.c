@@ -134,9 +134,9 @@ Symbols are also allowed; their print names are used instead.")
      register Lisp_Object s1, s2;
 {
   if (SYMBOLP (s1))
-    XSETSTRING (s1, XSYMBOL (s1)->name), XSETTYPE (s1, Lisp_String);
+    XSETSTRING (s1, XSYMBOL (s1)->name);
   if (SYMBOLP (s2))
-    XSETSTRING (s2, XSYMBOL (s2)->name), XSETTYPE (s2, Lisp_String);
+    XSETSTRING (s2, XSYMBOL (s2)->name);
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
 
@@ -158,9 +158,9 @@ Symbols are also allowed; their print names are used instead.")
   register int end;
 
   if (SYMBOLP (s1))
-    XSETSTRING (s1, XSYMBOL (s1)->name), XSETTYPE (s1, Lisp_String);
+    XSETSTRING (s1, XSYMBOL (s1)->name);
   if (SYMBOLP (s2))
-    XSETSTRING (s2, XSYMBOL (s2)->name), XSETTYPE (s2, Lisp_String);
+    XSETSTRING (s2, XSYMBOL (s2)->name);
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
 
