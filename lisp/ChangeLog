@@ -1,3 +1,19 @@
+2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texnfo-upd.el: Use `when', `dolist', `push', ...
+	(texinfo-update-node, texinfo-sequential-node-update):
+	Don't bind the obsolete `auto-fill-hook'.
+	(texinfo-multi-file-included-list,texinfo-multi-file-master-menu-list):
+	Use `set-buffer' rather than `switch-to-buffer'.
+	(texinfo-multi-file-update): Use "Top" rather than `up-node-name'.
+	Use `set-buffer' rather than `switch-to-buffer'.
+
+	* mail/sendmail.el (mail-mode-syntax-table): Let it inherit from
+	text-mode-syntax-table.
+	(mail-mode): Use define-derived-mode.
+	Fix ordering of alternatives in adaptive-fill-regexp.
+	(mail-mode-map): Don't rely on keymap's internal representation.
+
 2001-10-27  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/sgml-mode.el (sgml-xml): Renamed from `html-xhtml'.
