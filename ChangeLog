@@ -1,3 +1,11 @@
+2001-10-19  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Make ready for autoconf 2.5x.
+	(AC_PREREQ): Require autoconf 2.50.
+	* aclocal.m4: Removed.
+	* configure: Regenerated.
+	* Makefile.in (${srcdir}/configure): Don't depend on aclocal.m4.
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* README: Bump Emacs version to 21.1.50.
