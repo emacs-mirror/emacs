@@ -1,5 +1,10 @@
 2000-01-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* charset.c (Fstring): If there is a multibyte char among
+	the args, always return a multibyte string.
+
+2000-01-25  Gerd Moellmann  <gerd@gnu.org>
+
 	* sysdep.c (sys_select): Turn atimers off and on instead of
 	recording and restoring old alarm handler
 
