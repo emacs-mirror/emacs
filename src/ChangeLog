@@ -1,3 +1,13 @@
+2000-04-01  Ken Raeburn  <raeburn@gnu.org>
+
+	* window.c (CURBEG, CURSIZE): Don't overload lisp object lvalues
+	with int lvalues via casts; instead, just yield lisp object
+	lvalues.
+	(enlarge_window): Variable sizep now points to Lisp_Object.  Use
+	proper accessor macros.
+	(shrink_window_lowest_first): w->top is Lisp_Object; use XINT.
+	(grow_mini_window): Fix typo getting int value of root->height.
+
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (realize_basic_faces): Block input while realizing

@@ -3106,10 +3106,10 @@ window_width (window)
 
 	
 #define CURBEG(w) \
-  *(widthflag ? (int *) &(XWINDOW (w)->left) : (int *) &(XWINDOW (w)->top))
+  *(widthflag ? &(XWINDOW (w)->left) : &(XWINDOW (w)->top))
 
 #define CURSIZE(w) \
-  *(widthflag ? (int *) &(XWINDOW (w)->width) : (int *) &(XWINDOW (w)->height))
+  *(widthflag ? &(XWINDOW (w)->width) : &(XWINDOW (w)->height))
 
 
 /* Enlarge selected_window by DELTA.  WIDTHFLAG non-zero means
@@ -3124,7 +3124,8 @@ enlarge_window (window, delta, widthflag)
 {
   Lisp_Object parent, next, prev;
   struct window *p;
-  int *sizep, maximum;
+  Lisp_Object *sizep;
+  int maximum;
   int (*sizefun) P_ ((Lisp_Object))
     = widthflag ? window_width : window_height;
   void (*setsizefun) P_ ((Lisp_Object, int, int))
@@ -3164,7 +3165,7 @@ enlarge_window (window, delta, widthflag)
   {
     register int maxdelta;
 
-    maxdelta = (!NILP (parent) ? (*sizefun) (parent) - *sizep
+    maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
 		: !NILP (p->next) ? ((*sizefun) (p->next)
 				     - window_min_size (XWINDOW (p->next),
 							widthflag, 0, 0))
@@ -3182,7 +3183,7 @@ enlarge_window (window, delta, widthflag)
       delta = maxdelta;
   }
 
-  if (*sizep + delta < window_min_size (XWINDOW (window), widthflag, 0, 0))
+  if (XINT (*sizep) + delta < window_min_size (XWINDOW (window), widthflag, 0, 0))
     {
       delete_window (window);
       return;
@@ -3226,7 +3227,7 @@ enlarge_window (window, delta, widthflag)
 		    this_one = delta;
 		  
 		  (*setsizefun) (next, (*sizefun) (next) - this_one, 0);
-		  (*setsizefun) (window, *sizep + this_one, 0);
+		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
 
 		  delta -= this_one;
 		}
@@ -3250,7 +3251,7 @@ enlarge_window (window, delta, widthflag)
 		  first_affected = prev;
 		  
 		  (*setsizefun) (prev, (*sizefun) (prev) - this_one, 0);
-		  (*setsizefun) (window, *sizep + this_one, 0);
+		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
 
 		  delta -= this_one;
 		}
@@ -3268,7 +3269,7 @@ enlarge_window (window, delta, widthflag)
       for (next = XWINDOW (prev)->next; ! EQ (next, first_unaffected);
 	   prev = next, next = XWINDOW (next)->next)
 	{
-	  CURBEG (next) = CURBEG (prev) + (*sizefun) (prev);
+	  XSETINT (CURBEG (next), XINT (CURBEG (prev)) + (*sizefun) (prev));
 	  /* This does not change size of NEXT,
 	     but it propagates the new top edge to its children */
 	  (*setsizefun) (next, (*sizefun) (next), 0);
@@ -3282,7 +3283,7 @@ enlarge_window (window, delta, widthflag)
       /* If trying to grow this window to or beyond size of the parent,
 	 make delta1 so big that, on shrinking back down,
 	 all the siblings end up with less than one line and are deleted.  */
-      if (opht <= *sizep + delta)
+      if (opht <= XINT (*sizep) + delta)
 	delta1 = opht * opht * 2;
       else
 	{
@@ -3330,8 +3331,8 @@ enlarge_window (window, delta, widthflag)
 
       /* Add delta1 lines or columns to this window, and to the parent,
 	 keeping things consistent while not affecting siblings.  */
-      CURSIZE (parent) = opht + delta1;
-      (*setsizefun) (window, *sizep + delta1, 0);
+      XSETINT (CURSIZE (parent), opht + delta1);
+      (*setsizefun) (window, XINT (*sizep) + delta1, 0);
 
       /* Squeeze out delta1 lines or columns from our parent,
 	 shriking this window and siblings proportionately.
@@ -3429,7 +3430,7 @@ shrink_window_lowest_first (w, height)
 	}
 
       /* Compute new positions.  */
-      last_top = w->top;
+      last_top = XINT (w->top);
       for (child = w->vchild; !NILP (child); child = c->next)
 	{
 	  c = XWINDOW (child);
@@ -3546,7 +3547,7 @@ grow_mini_window (w, delta)
       shrink_window_lowest_first (root, XFASTINT (root->height) - delta);
 
       /* Grow the mini-window.  */
-      w->top = make_number (XFASTINT (root->top) + XFASTINT (root)->height);
+      w->top = make_number (XFASTINT (root->top) + XFASTINT (root->height));
       w->height = make_number (XFASTINT (w->height) + delta);
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
