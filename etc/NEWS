@@ -92,6 +92,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
+** The apropos commands don't sort by scores unless they show scores.
+The option apropos-show-scores controls both uses of scores.
+
 +++
 ** The old bindings C-M-delete and C-M-backspace have been deleted,
 since there are situations where one or the other will shut down

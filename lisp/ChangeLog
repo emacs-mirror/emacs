@@ -1,3 +1,10 @@
+2003-07-12  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-show-scores): Make it customizable.
+	Document new meaning.
+	(apropos): Compute scores from symbols.
+	(apropos-print): Don't sort by scores if apropos-show-scores is nil.
+
 2003-07-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-bdf.el: Fix copyright line.

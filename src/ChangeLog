@@ -1,3 +1,8 @@
+2003-07-12  Paul Eggert  <eggert@twinsun.com>
+
+	* unexelf.c (unexec): Consider a section to precede the .bss
+	section if its addresses overlap that of .bss.
+
 2003-07-12  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (CFLAGS) [!OPTIMIZE]: Set CFLAGS to -g.
