@@ -43,12 +43,12 @@ on.
 @cindex outlines
   The selective display feature is useful for looking at the overall
 structure of a function (@pxref{Selective Display}).  This feature
-causes only the lines that are indented less than a specified amount to
-appear on the screen.  Programming modes often support Outline minor
-mode (@pxref{Outline Mode}).  The Foldout package provides
-folding-editor features (@pxref{Foldout}).
+hides the lines that are indented more than a specified amount.
+Programming modes often support Outline minor mode (@pxref{Outline
+Mode}).  The Foldout package provides folding-editor features
+(@pxref{Foldout}).
 
-  The `automatic typing' features may be useful when writing programs.
+  The `automatic typing' features may be useful for writing programs.
 @xref{,Autotyping,, autotype, Autotyping}.
 
 @menu
@@ -1132,9 +1132,10 @@ style for the other C-like modes.
 
   The style @code{gnu} defines the formatting recommend by the GNU
 Project; it is the default, so as to encourage the indentation we
-recommend. If you make changes in variables such as
-@code{c-basic-offset} and @code{c-offsets-alist} in your @file{~/.emacs}
-file, they will however take precedence.
+recommend.  However, if you make changes in variables such as
+@code{c-basic-offset} and @code{c-offsets-alist} in your
+@file{~/.emacs} file, your changes override the what @code{gnu} style
+says.
 
 @findex c-add-style
   To define a new C indentation style, call the function
@@ -1192,16 +1193,14 @@ wasting lots of time when there is no match.  The default is 12,000.
 @cindex Show Paren mode
 @cindex highlighting matching parentheses
 @findex show-paren-mode
-  You can also request a more powerful alternative kind of automatic
-parenthesis matching by enabling Show Paren mode.  This mode turns off
-the usual kind of matching parenthesis display and instead uses
-highlighting to show what matches.  Whenever point is after a close
-parenthesis, the close parenthesis and its matching open parenthesis are
-both highlighted; otherwise, if point is before an open parenthesis, the
+  Show Paren mode provides a more powerful kind of automatic
+parenthesis matching.  Whenever point is after a close parenthesis,
+the close parenthesis and its matching open parenthesis are both
+highlighted; otherwise, if point is before an open parenthesis, the
 matching close parenthesis is highlighted.  (There is no need to
-highlight the open parenthesis after point because the cursor appears on
-top of that character.)  Use the command @kbd{M-x show-paren-mode} to
-enable or disable this mode.
+highlight the open parenthesis after point because the cursor appears
+on top of that character.)  Use the command @kbd{M-x show-paren-mode}
+to enable or disable this mode.
 
   By default, @code{show-paren-mode} uses colors to highlight the
 parentheses.  However, if your display doesn't support colors, you can
@@ -1224,25 +1223,19 @@ provides special commands for editing and inserting comments.
 
 @node Comment Commands
 @subsection Comment Commands
-
-@kindex M-;
 @cindex indentation for comments
-@findex indent-for-comment
-@findex comment-dwim
 
-  The comment commands insert, kill and align comments.
+  The comment commands in this table insert, kill and align comments.
+They are described in this section and following sections.
 
-@c WideCommands
 @table @kbd
 @item M-;
-Call the comment command that is appropriate for the context
-(@code{comment-dwim}).
-@item M-x indent-for-comment
-Insert or align comment.
+Insert or realign comment on current line; alternatively, comment or
+uncomment the region (@code{comment-dwim}).
+@item C-u M-;
+Kill comment on current line (@code{comment-kill}).
 @item C-x ;
 Set comment column (@code{set-comment-column}).
-@item C-u - C-x ;
-Kill comment on current line (@code{comment-kill}).
 @item C-M-j
 Like @key{RET} followed by inserting and aligning a comment
 (@code{indent-new-comment-line}).
@@ -1250,34 +1243,55 @@ Like @key{RET} followed by inserting and aligning a comment
 Add or remove comment delimiters on all the lines in the region.
 @end table
 
-  The command that creates a comment is @kbd{M-x indent-for-comment}.
-If there is no comment already on the line, a new comment is created,
-aligned at a specific column called the @dfn{comment column}.  The comment
-is created by inserting the string Emacs thinks comments should start with
-(the value of @code{comment-start}; see below).  Point is left after that
-string.  If the text of the line extends past the comment column, then the
-indentation is done to a suitable boundary (usually, at least one space is
-inserted).  If the major mode has specified a string to terminate comments,
-that is inserted after point, to keep the syntax valid.
+@kindex M-;
+@findex comment-dwim
+  The command to create or align a comment is @kbd{M-;}
+(@code{comment-dwim}).  The word ``dwim'' is an acronym for ``Do What
+I Mean''; it indicates that this command can be used for many
+different jobs relating to comments, depending on the situation where
+you use it.
 
-  @kbd{M-x indent-for-comment} can also be used to align an existing
-comment.  If a line already contains the string that starts comments,
-then @kbd{M-x indent-for-comment} just moves point after it and
-reindents it to the conventional place.  Exception: comments starting in
-column 0 are not moved.
+  If there is no comment already on the line, @kbd{M-;} inserts a new
+comment, aligned at a specific column called the @dfn{comment column}.
+The new comment begins with the string Emacs thinks comments should
+start with (the value of @code{comment-start}; see below).  Point is
+after that string, so you can insert the text of the comment right
+away.  If the major mode has specified a string to terminate comments,
+@kbd{M-;} inserts that too, to keep the syntax valid.
 
-  @kbd{M-;} (@code{comment-dwim}) conveniently combines
-@code{indent-for-comment} with @code{comment-region} and
-@code{uncomment-region}, described below in @ref{Multi-Line Comments},
-as appropriate for the current context.  If the region is active and the
-Transient Mark mode is on (@pxref{Transient Mark}), @kbd{M-;} invokes
-@code{comment-region}, unless the region consists only of comments, in
-which case it invokes @code{uncomment-region}.  Otherwise, if the
-current line is empty, @kbd{M-;} inserts a comment and indents it.  If
-the current line is not empty, @kbd{M-;} invokes @code{comment-kill} if
-a numeric argument was given, else it reindents the comment on the
-current line.  (The @dfn{dwim} in @code{comment-dwim} is an acronym for
-``Do What I Mean''.)
+  If the text of the line extends past the comment column, then the
+comment start string is indented to a suitable boundary (usually, at
+least one space is inserted).
+
+  You can also use @kbd{M-;} to align an existing comment.  If a line
+already contains the comment-start string, @kbd{M-;} reindents it to
+the conventional alignment and moves point after it.  (Exception:
+comments starting in column 0 are not moved.)  Even when an existing
+comment is properly aligned, @kbd{M-;} is still useful for moving
+directly to the start of the text inside the comment.
+
+@findex comment-kill
+@kindex C-u M-;
+  @kbd{C-u M-;} kills any comment on the current line, along with the
+whitespace before it.  To reinsert the comment on another line, move
+to the end of that line, do @kbd{C-y}, and then do @kbd{M-;} to
+realign it.
+
+  Note that @kbd{C-u M-;} is not a distinct key; it is @kbd{M-;}
+(@code{comment-dwim}) with a prefix argument.  That command is
+programmed so that when it receives a prefix argument it calls
+@code{comment-kill}.  However, @code{comment-kill} is a valid command
+in its own right, and you can bind it directly to a key if you wish.
+
+  @kbd{M-;} does two other jobs when used with an active region in
+Transient Mark mode (@pxref{Transient Mark}).  Then it either adds or
+removes comment delimiters on each line of the region.  (If every line
+is a comment, it removes comment delimiters from each; otherwise, it
+adds comment delimiters to each.)  If you are not using Transient Mark
+mode, then you should use the commands @code{comment-region} and
+@code{uncomment-region} to do these jobs (@pref{Multi-Line Comments}).
+A prefix argument used in these circumstances specifies how many
+comment delimiters to add or how many to delete.
 
   Some major modes have special rules for indenting certain kinds of
 comments in certain contexts.  For example, in Lisp code, comments which
@@ -1298,24 +1312,6 @@ and by not changing the indentation of a triple-semicolon comment at all.
 
   In C code, a comment preceded on its line by nothing but whitespace
 is indented like a line of code.
-
-  Even when an existing comment is properly aligned, @kbd{M-;} is still
-useful for moving directly to the start of the comment.
-
-@kindex C-u - C-x ;
-@findex kill-comment
-@findex comment-kill
-  @kbd{C-u - C-x ;} (@code{comment-kill}) kills the comment on the current line,
-if there is one.  The indentation before the start of the comment is killed
-as well.  If there does not appear to be a comment in the line, nothing is
-done.  To reinsert the comment on another line, move to the end of that
-line, do @kbd{C-y}, and then do @kbd{M-;} to realign it.  Note that
-@kbd{C-u - C-x ;} is not a distinct key; it is @kbd{C-x ;} (@code{set-comment-column})
-with a negative argument.  That command is programmed so that when it
-receives a negative argument it calls @code{comment-kill}.  However,
-@code{comment-kill} is a valid command which you could bind directly to a
-key if you wanted to.  (For compatibility with previous versions,
-@code{kill-comment} is provided as an alias to @code{comment-kill}.)
 
 @node Multi-Line Comments
 @subsection Multiple Lines of Comments
@@ -1348,11 +1344,6 @@ can also affect how the comment is indented.  In Lisp, for proper
 indentation, you should use an argument of two, if between defuns, and
 three, if within a defun.
 
-@vindex comment-padding
-  The variable @code{comment-padding} specifies how many spaces
-@code{comment-region} should insert on each line between the
-comment delimiter and the line's original text.  The default is 1.
-
 @node Options for Comments
 @subsection Options Controlling Comments
 
@@ -1364,8 +1355,7 @@ can set it to a number explicitly.  Alternatively, the command @kbd{C-x ;}
 (@code{set-comment-column}) sets the comment column to the column point is
 at.  @kbd{C-u C-x ;} sets the comment column to match the last comment
 before point in the buffer, and then does a @kbd{M-;} to align the
-current line's comment under the previous one.  Note that @kbd{C-u - C-x ;}
-runs the function @code{comment-kill} as described above.
+current line's comment under the previous one.
 
   The variable @code{comment-column} is per-buffer: setting the variable
 in the normal fashion affects only the current buffer, but there is a
@@ -1391,6 +1381,11 @@ in regexp syntax.  @xref{Regexps}.)
 inserted after point, so that it will follow the text that you will insert
 into the comment.  In C mode, @code{comment-start} has the value
 @w{@code{"/* "}} and @code{comment-end} has the value @w{@code{" */"}}.
+
+@vindex comment-padding
+  The variable @code{comment-padding} specifies how many spaces
+@code{comment-region} should insert on each line between the
+comment delimiter and the line's original text.  The default is 1.
 
 @vindex comment-multi-line
   The variable @code{comment-multi-line} controls how @kbd{C-M-j}
@@ -1451,8 +1446,8 @@ this.
 
 @findex check-parens
 @cindex unbalanced parentheses and quotes
-You can use @kbd{M-x check-parens} to find any unbalanced parentheses
-and unbalanced quotes in strings in a buffer.
+  You can use @kbd{M-x check-parens} to find any unbalanced
+parentheses and unbalanced string quotes in a buffer.
 
 @node Symbol Completion
 @section Completion for Symbol Names
@@ -1519,13 +1514,16 @@ the major modes that support Imenu.)
 @section Hideshow minor mode
 
 @findex hs-minor-mode
-Hideshow minor mode provides selective display of blocks.  Use @kbd{M-x
-hs-minor-mode} to toggle the mode or add @code{hs-minor-mode} to the
-hook for major modes with which you want to use it and which support it.
+  Hideshow minor mode provides selective display of portions of a
+file, known as @dfn{blocks}.  You can use @kbd{M-x hs-minor-mode} to
+enable or disable this mode, or add @code{hs-minor-mode} to the mode
+hook for certain major modes in order to enable it automatically for
+those modes.
 
-Blocks are defined dependent on the mode.  In C mode or C++ mode, they
-are delimited by braces, while in Lisp-ish modes they are delimited by
-parens.  Multi-line comments can also be hidden.
+  Just what constitutes a block depends on the major mode.  In C mode
+or C++ mode, they are delimited by braces, while in Lisp mode and
+similar modes they are delimited by parentheses.  Multi-line comments
+also count as blocks.
 
 @findex hs-hide-all
 @findex hs-hide-block
@@ -1534,53 +1532,66 @@ parens.  Multi-line comments can also be hidden.
 @findex hs-show-region
 @findex hs-hide-level
 @findex hs-minor-mode
-@kindex C-c h
-@kindex C-c s
-@kindex C-c H
-@kindex C-c S
-@kindex C-c R
-@kindex C-c L
-@kindex S-mouse-2
-The mode provides the commands @kbd{C-c h} (@kbd{M-x hs-hide-all}),
-@kbd{C-c s} (@kbd{M-x hs-hide-block}), @kbd{C-c H} (@kbd{M-x
-hs-show-all}), @kbd{C-c S} (@kbd{M-x hs-show-block}), @kbd{C-c R}
-(@kbd{M-x hs-show-region}) and @kbd{C-c L} (@kbd{M-x hs-hide-level})
-with obvious functions and @kbd{S-mouse-2} toggles hiding of a block
-with the mouse.
+@kindex C-c C-h
+@kindex C-c C-s
+@kindex C-c C-M-h
+@kindex C-c C-M-s
+@kindex C-c C-r
+@kindex C-c C-l
+@kindex S-Mouse-2
+@table @kbd
+@item C-c C-h
+Hide the current block (@code{hs-hide-block}).
+@item C-c C-s
+Show the current block (@code{hs-show-block}).
+@item C-c C-c
+Either hide or show the current block (@code{hs-toggle-hiding})
+@item S-Mouse-2
+Either hide or show the block you click on (@code{hs-mouse-toggle-hiding})
+@item C-c C-M-h
+Hide all top-level blocks (@code{hs-hide-all}).
+@item C-c C-M-s
+Show everything in the buffer (@code{hs-show-all}).
+@item C-c C-l
+Hide all blocks @var{n} levels below this block
+(@code{hs-hide-level}).
+@end table
 
 @vindex hs-hide-comments-when-hiding-all
 @vindex hs-show-hidden-short-form
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
-Hideshow is customized by the variables
+  These user options exist for customizing Hideshow mode.
+
 @table @code
 @item hs-hide-comments-when-hiding-all
-Specifies whether @kbd{hs-hide-all} should hide comments too.
+Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
 @item hs-show-hidden-short-form
-Specifies whether or not the last line in a form is omitted (saving
-screen space).
+Non-@code{nil} says to omit the last line in a form (saving screen
+space).
 @item hs-isearch-open
 Specifies what kind of hidden blocks to open in Isearch mode.
 @item hs-special-modes-alist
+Specifies
 Initializes Hideshow variables for different modes.
 @end table
 
 @node Glasses
 @section Glasses minor mode
 @cindex Glasses mode
-@cindex identifiers, unreadable
-@cindex StudlyCaps
+@cindex identifiers, making long ones readable
+@cindex StudlyCaps, making them readable
 @findex glasses-mode
 
-Glasses minor mode makes @samp{unreadableIdentifiersLikeThis} readable
-by displaying underscores between all the pairs of lower and upper
-English letters or by emboldening the capitals.  The text is not
-altered, only the display, so that you can use this mode on code written
-with such a convention for separating words in identifiers without
-modifying the code.  It can be customized under the group
-@samp{glasses}.  You can use it by adding @code{glasses-mode} to the
-mode hook of appropriate programming modes.
-
+  Glasses minor mode makes @samp{unreadableIdentifiersLikeThis}
+readable by altering the display.  It can do this in two different
+ways: by displaying underscores between an lower-case letter and the
+following capital letter, or by emboldening the capital letters.  It
+does not alter the buffer text, only the way they display, so you can
+use it even on read-only buffers.  You can use the command @kbd{M-x
+glasses-mode} to enable or disable the mode; you can also add
+@code{glasses-mode} to the mode hook of appropriate programming
+language major modes.
 
 @node Documentation
 @section Documentation Commands
@@ -1614,10 +1625,10 @@ You specify the symbol with the minibuffer; by default, it uses the
 symbol that appears in the buffer at point.  The major mode determines
 where to look for documentation for the symbol---which Info files and
 which indices.  You can also use @kbd{M-x info-lookup-file} to look for
-documentation for a file name.  Currently the modes supported by
-Info-lookup are: Awk, Autoconf, Bison, C, Emacs Lisp, LaTeX, M4,
-Makefile, Octave, Perl, Scheme and Texinfo.  The relevant Info files
-mostly must be obtained separately, typically from the appropriate GNU
+documentation for a file name.  Currently this supports the following
+modes: Awk, Autoconf, Bison, C, Emacs Lisp, LaTeX, M4,
+Makefile, Octave, Perl, Scheme and Texinfo, provided you have installed
+the relevant Info files, which are typically available with the appropriate GNU
 package.
 
 @findex manual-entry
@@ -1634,20 +1645,21 @@ Man mode, that facilitates scrolling and examining other manual pages.
 For details, type @kbd{C-h m} while in a man page buffer.
 
 @cindex sections of manual pages
-  Man pages are subdivided into @dfn{sections}, and some man pages have
-identical names, but belong to different sections.  To read a man page
-from a certain section, type @kbd{@var{topic}(@var{section})} or
-@kbd{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts for
-the topic.  For example, to read the man page for the C library function
-@code{chmod} (as opposed to a command by the same name), type @kbd{M-x
-manual-entry @key{RET} chmod(2v) @key{RET}} (assuming @code{chmod} is in
-section @code{2v}).
+  Man pages are classified into @dfn{sections}; sometimes there are
+man pages with the same name in different sections.  To read a man
+page from a specific section, type @samp{@var{topic}(@var{section})} or
+@samp{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts
+for the topic.  For example, to read the man page for the C library
+function @code{chmod} (as opposed to a command by the same name), type
+@kbd{M-x manual-entry @key{RET} chmod(2v) @key{RET}} (assuming
+@code{chmod} is in section @samp{2v}).
 
   If you do not specify a section, the results depend on how the
-@code{man} command works on your system.  Some of them display only the
-first man page they find, others display all the man pages, and you can
-page between them with the @kbd{M-n} and @kbd{M-p} keys.  The mode line
-shows how many manual pages are available in the Man buffer.
+@code{man} command works on your system.  Some of them display only
+the first man page they find.  Others display all man pages that have
+the specified name, so you can page between them with the @kbd{M-n}
+and @kbd{M-p} keys.  The mode line shows how many manual pages are
+available in the Man buffer.
 
 @vindex Man-fontify-manpage-flag
   For a long man page, setting the faces properly can take substantial
@@ -1664,17 +1676,17 @@ perform the same conversions that @kbd{M-x manual-entry} does.
 @cindex manual pages, on MS-DOS/MS-Windows
   An alternative way of reading manual pages is the @kbd{M-x woman}
 command@footnote{The name of the command, @code{woman}, is an acronym
-for ``w/o (without) man'', since it doesn't use the @code{man}
-program.}.  Unlike @kbd{M-x man}, it does not run any external programs
-to format and display the man pages, instead it does that entirely in
-Emacs Lisp.  Thus, it is useful on systems such as MS-Windows, where the
-@code{man} program and the programs it runs are not readily available.
-When invoked, @kbd{M-x woman} prompts for a name of a manual page and
-provides completion based on the list of manual pages that are installed
-on your machine; the list of available manual pages is computed
-automatically the first time you invoke @code{woman}.  The word at point
-in the current buffer is used to suggest the default name of the manual
-page.
+for ``w/o (without) man,'' since it doesn't use the @code{man}
+program.}.  Unlike @kbd{M-x man}, it does not run any external
+programs to format and display the man pages; instead it does the job
+in Emacs Lisp, so it works on systems such as MS-Windows, where the
+@code{man} program and other the programs it needs are not readily
+available.  @kbd{M-x woman} prompts for a name of a manual page, and
+provides completion based on the list of manual pages that are
+installed on your machine; the list of available manual pages is
+computed automatically the first time you invoke @code{woman}.  The
+word at point in the current buffer is used to suggest the default
+name of the manual page.
 
   With a numeric argument, @kbd{M-x woman} recomputes the list of the
 manual pages used for completion.  This is useful if you add or delete
@@ -1738,10 +1750,10 @@ useful to read manual pages.
 @findex add-change-log-entry-other-window
   The Emacs command @kbd{C-x 4 a} adds a new entry to the change log
 file for the file you are editing
-(@code{add-change-log-entry-other-window}).  If that file is actually a
-backup file, it makes an entry appropriate for the file's parent.  This
-is useful for making log entries by comparing a version with deleted
-functions.
+(@code{add-change-log-entry-other-window}).  If that file is actually
+a backup file, it makes an entry appropriate for the file's
+parent---that is useful for making log entries for functions that
+have been deleted in the current version.
 
   A change log file contains a chronological record of when and why you
 have changed a program, consisting of a sequence of entries describing
@@ -1783,25 +1795,25 @@ items are related (parts of the same change, in different places), group
 them by leaving no blank line between them.  The second entry above
 contains two items grouped in this way.
 
-@vindex add-log-keep-changes-together
   @kbd{C-x 4 a} visits the change log file and creates a new entry
-unless the most recent entry is for today's date and your name.  It also
-creates a new item for the current file.  For many languages, it can
-even guess the name of the function or other object that was changed.
-When the option @code{add-log-keep-changes-together} is set, @kbd{C-x 4
-a} adds to any existing entry for the file rather than starting a new
-entry.
+unless the most recent entry is for today's date and your name.  It
+also creates a new item for the current file.  For many languages, it
+can even guess the name of the function or other object that was
+changed.
+
+@vindex add-log-keep-changes-together
+  When the option @code{add-log-keep-changes-together} is
+non-@code{nil}, @kbd{C-x 4 a} adds to any existing entry for the file
+rather than starting a new entry.
 
 @vindex change-log-version-info-enabled
 @vindex change-log-version-number-regexp-list
 @cindex file version in change log entries
-  If the value of the variable @code{change-log-version-info-enabled} is
-non-nil, the file's version number is automatically added to change log
-entries.  The search for the file's version number is performed based on
-regular expressions from the variable
-@code{change-log-version-number-regexp-list}, which can be customized
-(versions of files that are under version control systems are known to
-Emacs through the version-control interface).
+  If the value of the variable @code{change-log-version-info-enabled}
+is non-@code{nil}, @kbd{C-x 4 a} ads the file's version number to the
+change log entry.  It finds the version number by searching the first
+ten percent of the file, using regular expressions from the variable
+@code{change-log-version-number-regexp-list}.
 
 @cindex Change Log mode
 @findex change-log-mode
@@ -1812,9 +1824,9 @@ entry is considered a page.  This facilitates editing the entries.
 this is convenient for entering the contents of an entry.
 
 @findex change-log-merge
-The command @kbd{M-x change-log-merge} can be used to merge other log
-files into a buffer in Change Log Mode, preserving the date ordering
-of entries with either the current or old-style date formats.
+  You can use the command @kbd{M-x change-log-merge} to merge other
+log files into a buffer in Change Log Mode, preserving the date
+ordering of entries.
 
 @findex change-log-redate
 @cindex converting change log date style
@@ -1826,11 +1838,11 @@ Fri May 25 11:23:23 1993 Richard Stallman  <rms@@gnu.org>
 @end smallexample
 
 @noindent
-The @kbd{M-x change-log-redate} command converts all the old-style date
-entries in the change log file visited in the current buffer to the new
-format, so that all entries are kept in unified format.  This is handy
-when the entries are contributed by many different people some of whom
-still use old versions of Emacs.
+The @kbd{M-x change-log-redate} command converts all the old-style
+date entries in the change log file visited in the current buffer to
+the new format, to make the file uniform in style.  This is handy when
+entries are contributed by many different people, some of whom use old
+versions of Emacs.
 
   Version control systems are another way to keep track of changes in your
 program and keep a change log.  @xref{Log Buffer}.
@@ -1852,6 +1864,11 @@ individual packages and people who made changes in source files, and
 puts the information it gleans into a buffer named @samp{*Authors*}.
 You can then edit the contents of that buffer and merge it with the
 exisiting @file{AUTHORS} file.
+
+  Do not assume that this command finds all the contributors; don't
+assume that a person not listed in the output was not a contributor.
+If you merged in someone's contribution and did not put his name
+in the change log, he won't show up in @kbd{M-x authors} either.
 
 @node Tags
 @section Tags Tables
@@ -1882,8 +1899,8 @@ recorded is called a @dfn{tag}.
 @cindex tags, C++
 @cindex class browser, C++
 @cindex Ebrowse
-The Ebrowse is a separate facility tailored for C++, with tags and a
-class browser.  @xref{,,, ebrowse, Ebrowse User's Manual}.
+  See also the Ebrowse facility, which is tailored for C++.  @xref{,,,
+ebrowse, Ebrowse User's Manual}.
 
 @menu
 * Tag Syntax::		Tag syntax for various types of code and text files.
@@ -1903,22 +1920,24 @@ class browser.  @xref{,,, ebrowse, Ebrowse User's Manual}.
 @itemize @bullet
 @item
 In C code, any C function or typedef is a tag, and so are definitions of
-@code{struct}, @code{union} and @code{enum}.  You can tag function
-declarations and external variables in addition to function definitions
-by giving the @samp{--declarations} option to @code{etags}.
+@code{struct}, @code{union} and @code{enum}.
 @code{#define} macro definitions and @code{enum} constants are also
 tags, unless you specify @samp{--no-defines} when making the tags table.
 Similarly, global variables are tags, unless you specify
 @samp{--no-globals}.  Use of @samp{--no-globals} and @samp{--no-defines}
 can make the tags table file much smaller.
 
+You can tag function declarations and external variables in addition
+to function definitions by giving the @samp{--declarations} option to
+@code{etags}.
+
 @item
 In C++ code, in addition to all the tag constructs of C code, member
 functions are also recognized, and optionally member variables if you
 use the @samp{--members} option.  Tags for variables and functions in
 classes are named @samp{@var{class}::@var{variable}} and
-@samp{@var{class}::@var{function}}.  @code{operator} functions tags are
-named, for example @samp{operator+}.
+@samp{@var{class}::@var{function}}.  @code{operator} definitions have
+tag names like @samp{operator+}.
 
 @item
 In Java code, tags include all the constructs recognized in C++, plus
@@ -1968,31 +1987,32 @@ In Ada code, functions, procedures, packages, tasks, and types are
 tags.  Use the @samp{--packages-only} option to create tags for
 packages only.
 
-With Ada, it is possible to have the same name used for different
-entity kinds (e.g.@: the same name for a procedure and a function).  Also,
-for things like packages, procedures and functions, there is the spec
-(i.e.@: the interface) and the body (i.e.@: the implementation).  To
-facilitate the choice to the user, a tag value is appended with a
-qualifier:
+In Ada, the same name can be used for different kinds of entity
+(e.g.@:, for a procedure and for a function).  Also, for things like
+packages, procedures and functions, there is the spec (i.e.@: the
+interface) and the body (i.e.@: the implementation).  To make it
+easier to pick the definition you want, Ada tag name have suffixes
+indicating the type of entity:
 
-@table @asis
-@item function
- @kbd{/f}
-@item procedure
- @kbd{/p}
-@item package spec
- @kbd{/s}
-@item package body
- @kbd{/b}
-@item type
- @kbd{/t}
-@item task
- @kbd{/k}
+@table @samp
+@item /b
+package body.
+@item /f
+function.
+@item /k
+task.
+@item /p
+procedure.
+@item /s
+package spec.
+@item /t
+type.
 @end table
 
-So, as an example, @kbd{M-x find-tag bidule/b} will go directly to the
-body of the package @var{bidule} while @kbd{M-x find-tag bidule} will
-just search for any tag @var{bidule}.
+  Thus, @kbd{M-x find-tag @key{RET} bidule/b @key{RET}} will go
+directly to the body of the package @code{bidule}, while @kbd{M-x
+find-tag @key{RET} bidule @key{RET}} will just search for any tag
+@code{bidule}.
 
 @item
 In assembler code, labels appearing at the beginning of a line,
@@ -2064,22 +2084,22 @@ etags @var{inputfiles}@dots{}
 
 @noindent
 The @code{etags} program reads the specified files, and writes a tags
-table named @file{TAGS} in the current working directory.  You can
-intermix compressed and plain text source file names.  @code{etags}
-knows about the most common compression formats, and does the right
-thing.  So you can compress all your source files and have @code{etags}
-look for compressed versions of its file name arguments, if it does not
-find uncompressed versions.  Under MS-DOS, @code{etags} also looks for
-file names like @samp{mycode.cgz} if it is given @samp{mycode.c} on the
-command line and @samp{mycode.c} does not exist.
+table named @file{TAGS} in the current working directory.
+
+  If the specified files don't exist, @code{etags} looks for
+compressed versions of them and uncompresses them to read them.  Under
+MS-DOS, @code{etags} also looks for file names like @file{mycode.cgz}
+if it is given @samp{mycode.c} on the command line and @file{mycode.c}
+does not exist.
 
   @code{etags} recognizes the language used in an input file based on
 its file name and contents.  You can specify the language with the
 @samp{--language=@var{name}} option, described below.
 
   If the tags table data become outdated due to changes in the files
-described in the table, the way to update the tags table is the same way it
-was made in the first place.  It is not necessary to do this often.
+described in the table, the way to update the tags table is the same
+way it was made in the first place.  But it is not necessary to do
+this very often.
 
   If the tags table fails to record a tag, or records it for the wrong
 file, then Emacs cannot possibly find its definition.  However, if the
@@ -2094,11 +2114,11 @@ to have listed, or when you move tag definitions from one file to another,
 or when changes become substantial.  Normally there is no need to update
 the tags table after each edit, or even every day.
 
-  One tags table can effectively include another.  Specify the included
-tags file name with the @samp{--include=@var{file}} option when creating
-the file that is to include it.  The latter file then acts as if it
-contained all the files specified in the included file, as well as the
-files it directly contains.
+  One tags table can virtually include another.  Specify the included
+tags file name with the @samp{--include=@var{file}} option when
+creating the file that is to include it.  The latter file then acts as
+if it covered all the source files specified in the included file, as
+well as the files it directly contains.
 
   If you specify the source files with relative file names when you run
 @code{etags}, the tags file will contain file names relative to the
@@ -2133,7 +2153,7 @@ entirely; then @code{etags} recognizes tags by regexp matching alone
 (@pxref{Etags Regexps}).
 
   @samp{etags --help} prints the list of the languages @code{etags}
-knows, and the file name rules for guessing the language. It also prints
+knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @code{etags} options, together with a short
 explanation.
 
@@ -2173,10 +2193,9 @@ pick out just the tag.  This will enable Emacs to find tags more
 accurately and to do completion on tag names more reliably.  You can
 find some examples below.
 
-  The option @samp{--ignore-case-regex} (or @samp{-c}) is like
-@samp{--regex}, except that the regular expression provided will be
-matched without regard to case, which is appropriate for various
-programming languages.
+  The option @samp{--ignore-case-regex} (or @samp{-c}) works like
+@samp{--regex}, except that matching ignores case.  This is
+appropriate for certain programming languages.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
@@ -2195,19 +2214,19 @@ Here @code{etags} chooses the parsing language for @file{voo.doo} and
 @file{bar.ber}.  @code{etags} uses the Lisp tags rules, and no regexp
 matching, to recognize tags in @file{los.er}.
 
-  A regular expression can be bound to a given language, by prepending
-it with @samp{@{lang@}}.  When you do this, @code{etags} will use the
-regular expression only for files of that language.  @samp{etags --help}
-prints the list of languages recognised by @code{etags}.  The following
-example tags the @code{DEFVAR} macros in the Emacs source files.
-@code{etags} applies this regular expression to C files only:
+  You can specify a regular expression for a particular language, by
+writing @samp{@{lang@}} in front of it.  Then @code{etags} will use
+the regular expression only for files of that language.  (@samp{etags
+--help} prints the list of languages recognised by @code{etags}.)  The
+following example tags the @code{DEFVAR} macros in the Emacs source
+files, for the C language only:
 
 @smallexample
 --regex='@{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/'
 @end smallexample
 
 @noindent
-This feature is particularly useful when storing a list of regular
+This feature is particularly useful when you store a list of regular
 expressions in a file.  The following option syntax instructs
 @code{etags} to read two files of regular expressions.  The regular
 expressions contained in the second file are matched without regard to
@@ -2220,15 +2239,17 @@ case.
 @noindent
 A regex file contains one regular expressions per line.  Empty lines,
 and lines beginning with space or tab are ignored.  When the first
-character in a line is @samp{@@}, @code{etags} assumes that the rest of
-the line is the name of a file of regular expressions.  This means that
-such files can be nested.  All the other lines are taken to be regular
-expressions.  For example, one can create a file called
-@samp{emacs.tags} with the following contents (the first line in the
-file is a comment):
+character in a line is @samp{@@}, @code{etags} assumes that the rest
+of the line is the name of a file of regular expressions; thus, one
+such file can include another file.  All the other lines are taken to
+be regular expressions.  If the first non-whitespace text on the line
+is @samp{--}, that line is a comment.
+
+  For example, one can create a file called @samp{emacs.tags} with the
+following contents:
 
 @smallexample
-        -- This is for GNU Emacs source files
+        -- This is for GNU Emacs C source files
 @{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/\1/
 @end smallexample
 
@@ -2256,9 +2277,9 @@ etags --language=none \
 @end smallexample
 
 @noindent
-Note that tags are not generated for scripts so that you have to add a
-line by yourself of the form `###key <script-name>' if you want to jump
-to it.
+Note that tags are not generated for scripts, so that you have to add
+a line by yourself of the form @samp{###key @var{scriptname}} if you
+want to jump to it.
 
 @item
 Tag Tcl files:
@@ -2271,10 +2292,10 @@ etags --language=none --regex='/proc[ \t]+\([^ \t]+\)/\1/' *.tcl
 Tag VHDL files:
 
 @smallexample
---language=none \
---regex='/[ \t]*\(ARCHITECTURE\|CONFIGURATION\) +[^ ]* +OF/' \
---regex='/[ \t]*\(ATTRIBUTE\|ENTITY\|FUNCTION\|PACKAGE\
-\( BODY\)?\|PROCEDURE\|PROCESS\|TYPE\)[ \t]+\([^ \t(]+\)/\3/'
+etags --language=none \
+  --regex='/[ \t]*\(ARCHITECTURE\|CONFIGURATION\) +[^ ]* +OF/' \
+  --regex='/[ \t]*\(ATTRIBUTE\|ENTITY\|FUNCTION\|PACKAGE\
+  \( BODY\)?\|PROCEDURE\|PROCESS\|TYPE\)[ \t]+\([^ \t(]+\)/\3/'
 @end smallexample
 @end itemize
 
@@ -2414,8 +2435,8 @@ that it does regexp matching instead of substring matching.
 
 @node Tags Search
 @subsection Searching and Replacing with Tags Tables
-@cindex search and replace in several program files
-@cindex multiple-file search and replace (with tag tables)
+@cindex search and replace in multiple files
+@cindex multiple-file search and replace
 
   The commands in this section visit and search all the files listed in the
 selected tags table, one by one.  For these commands, the tags table serves
@@ -2455,7 +2476,7 @@ tags-search}, but repeatedly, processing matches according to your
 input.  @xref{Replace}, for more information on query replace.
 
 @vindex tags-case-fold-search
-@cindex case-sensitivity, and tags search
+@cindex case-sensitivity and tags search
   You can control the case-sensitivity of tags search commands by
 customizing the value of the variable @code{tags-case-fold-search}.  The
 default is to use the same setting as the value of
@@ -2509,24 +2530,23 @@ the file name unless the file name recorded in the tags table includes a
 directory.
 
 @findex tags-apropos
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It reads a regexp, then finds all the tags in the
-selected tags table whose entries match that regexp, and displays the
-tag names found.
-@vindex tags-apropos-additional-actions
-You can display additional output with @kbd{M-x tags-apropos} by customizing
-the variable @code{tags-apropos-additional-actions}.  See its
-documentation for details.
 @vindex tags-apropos-verbose
-Setting the variable @code{tags-apropos-verbose} to a non-nil value
-causes @kbd{M-x tags-apropos} to display the names of the tags files
-together with the tag names.
-@vindex tags-tag-face
-The face @code{tags-tag-face} can be used to customize the appearance of
-tags in the output of @kbd{M-x tags-apropos}.
+  @kbd{M-x tags-apropos} is like @code{apropos} for tags
+(@pxref{Apropos}).  It finds all the tags in the selected tags table
+whose entries match @var{regexp}, and displays them.  If the variable
+@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
+of the tags files together with the tag names.
 
-  You can also perform completion in the buffer on the name space of tag
-names in the current tags tables.  @xref{Symbol Completion}.
+@vindex tags-tag-face
+@vindex tags-apropos-additional-actions
+You can customize the appearance of the output with the face
+@code{tags-tag-face}.  You can display additional output with @kbd{M-x
+tags-apropos} by customizing the variable
+@code{tags-apropos-additional-actions}---see its documentation for
+details.
+
+  You can also use the collection of tag names to complete a symbol
+name in the buffer.  @xref{Symbol Completion}.
 
 @node Imenu
 @section Imenu
@@ -2534,44 +2554,44 @@ names in the current tags tables.  @xref{Symbol Completion}.
 @cindex buffer content indexes
 @cindex tags
 
-The Imenu facility provides mode-specific indexes of the contents of
-single buffers and provides selection from a menu.  Selecting a menu
-item takes you to the indexed point in the buffer, in a similar way to
-the Tags facility.  Indexing is typically by names of program routines
-and variables but in Texinfo mode, for instance, node names are indexed.
-Most major modes for which it is appropriate have Imenu support.
+  The Imenu facility is another way to find definitions or sections
+in a file.  It is similar in spirit to Tags, but operates on a single
+buffer only, and works entirely within Emacs with no need for a separate
+tags table.
 
 @findex imenu
 @findex imenu-add-menu-bar-index
-@kbd{M-x imenu} builds the index if necessary and presents you with an
-electric buffer menu from which to select an entry (with completion).
-If you bind @code{imenu} to a mouse event (@pxref{Mouse Buttons}) and
-invoke it that way, the index will appear as a popup menu; there is no
-such binding by default.  You can add an index menubar on the menubar
-with @kbd{imenu-add-menu-bar-index}.
+  If you type @kbd{M-x imenu}, it reads the name of a section or
+definition in the current buffer, then goes to that section or
+definition.  You can use completion to specify the name, and a
+complete list of possible names is always displayed.
 
-Some major modes provide facilities for invoking Imenu; otherwise you
-could add @code{imenu-add-menu-bar-index} to a major mode's hook to
-generate an index for each buffer created in that mode.  (If you do
-that, it takes some time to generate the index when finding a file,
-depending on the file's size and the complexity of the indexing function
-for that mode.)
+  Alternatively you can bind the command @code{imenu} to a mouse
+click.  Then it displays mouse menus for you to select the section or
+definition you want.  You can also add the buffer's index to the menu
+bar by calling @code{imenu-add-menu-bar-index}.  If you want to have
+this menu bar item available for all buffers in a certain major mode,
+you can do this by adding @code{imenu-add-menu-bar-index} to its mode
+hook.  But then you will have to wait for the buffer to be searched
+for sections and definitions, each time you visit a file which uses
+that mode.
 
 @vindex imenu-auto-rescan
-The index should be regenerated (via the @samp{*Rescan*} menu item) when
-indexable items are added to or deleted from the buffer.  Rescanning is
-done when a menu selction is requested if the option
-@code{imenu-auto-rescan} is set.  By default buffer positions are in
-terms of markers, so that changing non-indexable text doesn't require
-rescanning.
+  When you change the contents of a buffer, if you add or delete
+definitions or sections, you can update the buffer's index to
+correspond to the new contents by invoking the @samp{*Rescan*} item in
+the menu.  Rescanning happens automatically if
+@code{imenu-auto-rescan} is non-@code{nil}.  There is no need to
+rescan because of small changes in the text.
 
 @vindex imenu-sort-function
-The way the menus are sorted can be customized via the option
-@code{imenu-sort-function}.  By default names are ordered as they occur
-in the buffer; alphabetic sorting is provided as an alternative.
+  You can customize the way the menus are sorted via the variable
+@code{imenu-sort-function}.  By default names are ordered as they
+occur in the buffer; alphabetic sorting is provided as an alternative.
 
-Imenu provides the information used by Which Function mode (@pxref{Which
-Function}).  It may also be used by Speedbar (@pxref{Speedbar}).
+  Imenu provides the information to guide Which Function mode
+(@pxref{Which Function}).  The Speedbar can also use it
+(@pxref{Speedbar}).
 
 @node Emerge, C Modes, Imenu, Programs
 @section Merging Files with Emerge
@@ -2976,12 +2996,11 @@ commands.
 @cindex mode, CORBA IDL
 @cindex mode, Pike
 
-  This section describes special features available in C, C++,
-Objective-C, Java, CORBA IDL, and Pike modes.  When we say ``C mode and
-related modes,'' those are the modes we mean.
-
-Additional information is available in the separate manual for these
-modes.  @xref{Top, CC Mode, ccmode, , CC Mode}.
+  This section gives a brief description of the special features
+available in C, C++, Objective-C, Java, CORBA IDL, and Pike modes.
+(These are called ``C mode and related modes.'')  @xref{Top, CC Mode,
+ccmode, , CC Mode}, for a more extensive description of these modes
+and their special features.
 
 @menu
 * Motion in C::
@@ -3276,11 +3295,11 @@ directs how the line is indented.
 @findex global-cwarn-mode
 @cindex CWarn mode
 @cindex suspicious constructions in C, C++
-CWarn minor mode highlights suspicious C and C++ constructions:
+CWarn minor mode highlights certain suspicious C and C++ constructions:
 
 @itemize @bullet{}
 @item
-Assignments inside expressions, including variations like @samp{+=};
+Assignments inside expressions.
 @item
 Semicolon following immediately after @samp{if}, @samp{for}, and @samp{while}
 (except after a @samp{do @dots{} while} statement);
@@ -3289,17 +3308,28 @@ C++ functions with reference parameters.
 @end itemize
 
 @noindent
-You can activate the mode either by customizing @code{global-cwarn-mode}
-or by adding @code{cwarn-mode} to @code{c-mode-common-hook}.  It
-requires Font Lock mode to be active.
+You can enable the mode for one buffer with the command @kbd{M-x
+cwarn-mode}, or for all suitable buffers with the command @kbd{M-x
+global-cwarn-mode} or by customizing the variable
+@code{global-cwarn-mode}.  You must also enable Font Lock mode to make
+it work.
 
 @item M-x hide-ifdef-mode
 @findex hide-ifdef-mode
 @cindex Hide-ifdef mode
 Hide-ifdef minor mode hides selected code within @samp{#if} and
-@samp{#ifdef} preprocessor blocks.  You can activate it by adding
-@code{hide-ifdef-mode} to @code{c-mode-common-hook}.  See the mode's
-help for more information.
+@samp{#ifdef} preprocessor blocks.  See the documentation string of
+@code{hide-ifdef-mode} for more information.
+
+@item M-x ff-find-related-file
+@cindex related files
+@findex ff-find-related-file
+@vindex ff-related-file-alist
+Find a file ``related'' in a special way to the file visited by the
+current buffer.  Typically this will be the header file corresponding
+to a C/C++ source file, or vice versa.  The variable
+@code{ff-related-file-alist} specifies how to compute related file
+names.
 @end table
 
 @node Comments in C
@@ -3338,7 +3368,6 @@ value is @code{t}, which puts the comment-start delimiter @samp{/*} at
 the beginning of the first line of the comment text.
 @end table
 
-
 @node Fortran
 @section Fortran Mode
 @cindex Fortran mode
@@ -3362,15 +3391,12 @@ runs the hook @code{fortran-mode-hook} (@pxref{Hooks}).
 @cindex Fortran90
 @findex f90-mode
 @findex fortran-mode
-Note that Fortan mode described here (obtained with the
-@code{fortran-mode} command) is for editing the old Fortran77
-idiosyncratic `fixed format' source form.  For editing the modern
-Fortran90 `free format' source form (which is supported by the GNU
-Fortran compiler) use @code{f90-mode}.
-
-By default @code{fortran-mode} is invoked on files with extension
-@samp{.f}, @samp{.F} or @samp{.for} and @code{f90-mode} is invoked for
-the extension @samp{.f90}.
+  Fortan mode is meant for editing Fortran77 ``fixed format'' source
+code.  For editing the modern Fortran90 ``free format'' source code,
+use F90 mode (@code{f90-mode}).  Emacs normally uses Fortran mode for
+files with extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode
+for the extension @samp{.f90}.  GNU Fortran supports both kinds of
+format.
 
 @menu
 * Motion: Fortran Motion.	 Moving point by statements or subprograms.
@@ -3379,25 +3405,24 @@ the extension @samp{.f90}.
 * Autofill: Fortran Autofill.	 Auto fill minor mode for Fortran.
 * Columns: Fortran Columns.	 Measuring columns for valid Fortran.
 * Abbrev: Fortran Abbrev.	 Built-in abbrevs for Fortran keywords.
-* Misc: Fortran Misc.            Other Fortran mode features.
 @end menu
 
 @node Fortran Motion
 @subsection Motion Commands
 
-In addition to the normal commands for moving by and operating on
-`defuns' (Fortran subprograms---functions
-and subroutines) Fortran mode provides special commands to move by statements.
-
-@kindex C-c C-p @r{(Fortran mode)}
-@kindex C-c C-n @r{(Fortran mode)}
-@findex fortran-previous-statement
-@findex fortran-next-statement
+  In addition to the normal commands for moving by and operating on
+``defuns'' (Fortran subprograms---functions and subroutines), Fortran
+mode provides special commands to move by statements.
 
 @table @kbd
+@kindex C-c C-n @r{(Fortran mode)}
+@findex fortran-next-statement
 @item C-c C-n
 Move to beginning of current or next statement
 (@code{fortran-next-statement}).
+
+@kindex C-c C-p @r{(Fortran mode)}
+@findex fortran-previous-statement
 @item C-c C-p
 Move to beginning of current or previous statement
 (@code{fortran-previous-statement}).
@@ -3420,7 +3445,7 @@ required for standard Fortran.
 @end menu
 
 @node ForIndent Commands
-@subsubsection Fortran-Specific Indentation and Filling Commands
+@subsubsection Fortran Indentation and Filling Commands
 
 @table @kbd
 @item C-M-j
@@ -3458,9 +3483,8 @@ the inverse of @code{fortran-split-line}.  The point must be on a
 continuation line when this command is invoked.
 
 @kindex M-q @r{(Fortran mode)}
-Fortran mode defines the function for filling paragraphs such that
-@kbd{M-q} fills the comment block or statement around point.  Filling a
-statement removes excess statement continuations.
+@kbd{M-q} in Fortran mode fills the comment block or statement that
+point is in.  This removes any excess statement continuations.
 
 @node ForIndent Cont
 @subsubsection Continuation Lines
@@ -3752,14 +3776,18 @@ Display a ``column ruler'' momentarily above the current line
 (@code{fortran-column-ruler}).
 @item C-c C-w
 Split the current window horizontally temporarily so that it is 72
-columns wide.  This may help you avoid making lines longer than the
-72-character limit that some Fortran compilers impose
-(@code{fortran-window-create-momentarily}).
+columns wide (@code{fortran-window-create-momentarily}).  This may
+help you avoid making lines longer than the 72-character limit that
+some Fortran compilers impose.
+@item C-u C-c C-w
+Split the current window horizontally so that it is 72 columns wide
+(@code{fortran-window-create}).  You can then continue editing.
+@item M-x fortran-strip-sequence-nos
+Delete all text in column 72 and beyond.
 @end table
 
 @kindex C-c C-r @r{(Fortran mode)}
 @findex fortran-column-ruler
-@vindex fortran-column-ruler
   The command @kbd{C-c C-r} (@code{fortran-column-ruler}) shows a column
 ruler momentarily above the current line.  The comment ruler is two lines
 of text that show you the locations of columns with special significance in
@@ -3772,6 +3800,8 @@ As a result, the numbers may be one less than those you are familiar
 with; but the positions they indicate in the line are standard for
 Fortran.
 
+@vindex fortran-column-ruler-fixed
+@vindex fortran-column-ruler-tabs
   The text used to display the column ruler depends on the value of
 the variable @code{indent-tabs-mode}.  If @code{indent-tabs-mode} is
 @code{nil}, then the value of the variable
@@ -3779,19 +3809,24 @@ the variable @code{indent-tabs-mode}.  If @code{indent-tabs-mode} is
 Otherwise, the variable @code{fortran-column-ruler-tab} is displayed.
 By changing these variables, you can change the column ruler display.
 
-@kindex C-u C-c C-w @r{(Fortran mode)}
-@findex fortran-window-create
-  For even more help, use @kbd{M-x fortran-window-create}), a
-command which splits the current window horizontally, making a window 72
-columns wide.  By editing in this window you can immediately see when you
-make a line too wide to be correct Fortran.
-
 @kindex C-c C-w @r{(Fortran mode)}
 @findex fortran-window-create-momentarily
-Also, @kbd{C-c C-w} (@code{fortran-window-create-momentarily}) can be
-used temporarily to split the current window horizontally, making a
-window 72 columns wide to check column widths rather than to edit in
-this mode.  The normal width is restored when you type a space.
+  @kbd{C-c C-w} (@code{fortran-window-create-momentarily}) temporarily
+splits the current window horizontally, making a window 72 columns
+wide, so you can see which lines that is too long.  Type a space to
+restore the normal width.
+
+@kindex C-u C-c C-w @r{(Fortran mode)}
+@findex fortran-window-create
+  You can also split the window horizontally and continue editing with
+the split in place.  To do this, use @kbd{C-u C-c C-w} (@code{M-x
+fortran-window-create}).  By editing in this window you can
+immediately see when you make a line too wide to be correct Fortran.
+
+@findex fortran-strip-sequence-nos
+  The command @kbd{M-x fortran-strip-sequence-nos} deletes all text in
+column 72 and beyond, on all lines in the current buffer.  This is the
+easiest way to get rid of old sequence numbers.
 
 @node Fortran Abbrev
 @subsection Fortran Keyword Abbrevs
@@ -3813,17 +3848,11 @@ to @samp{continue}, provided Abbrev mode is enabled.@refill
   Type @samp{;?} or @samp{;C-h} to display a list of all the built-in
 Fortran abbrevs and what they stand for.
 
-@node Fortran Misc
-@subsection Other Fortran Mode Commands
-
-The command @kbd{fortran-strip-sqeuence-nos} can be used to remove text
-past Fortran column 72, which is typically old `sequence numbers'.
-
 @node Asm Mode
 @section Asm Mode
 
 @cindex Asm mode
-@cindex Assembler mode
+@cindex assembler mode
 Asm mode is a major mode for editing files of assembler code.  It
 defines these commands:
 
