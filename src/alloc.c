@@ -286,7 +286,7 @@ enum mem_type
 Lisp_Object Vdead;
 
 struct mem_node;
-static void *lisp_malloc P_ ((size_t, enum mem_type));
+static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
 static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
 static void init_stack P_ ((Lisp_Object *));
@@ -541,15 +541,15 @@ lisp_free (block)
    GNU malloc.  */
 
 #ifndef SYSTEM_MALLOC
-
-extern void * (*__malloc_hook) ();
+#ifndef DOUG_LEA_MALLOC
+extern void * (*__malloc_hook) P_ ((size_t));
+extern void * (*__realloc_hook) P_ ((void *, size_t));
+extern void (*__free_hook) P_ ((void *));
+/* Else declared in malloc.h, perhaps with an extra arg.  */
+#endif /* DOUG_LEA_MALLOC */
 static void * (*old_malloc_hook) ();
-extern void * (*__realloc_hook) ();
 static void * (*old_realloc_hook) ();
-extern void (*__free_hook) ();
 static void (*old_free_hook) ();
-static void *emacs_blocked_malloc P_ ((size_t));
-static void *emacs_blocked_realloc P_ ((void *, size_t));
 
 /* This function is used as the hook for free to call.  */
 
