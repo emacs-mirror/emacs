@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.18) $
+ * $HopeName: MMsrc!testlib.h(trunk.19) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -10,6 +10,7 @@
 #define testlib_h
 
 #include "mps.h"
+#include "misc.h" /* for STR */
 
 #include <stdio.h>
 /* On SunOS, need ossu.h as well */
