@@ -1520,14 +1520,6 @@ Advanced commands:
 Like text mode with the addition of `Info-cease-edit'
 which returns to Info mode for browsing.
 \\{Info-edit-map}"
-  )
-
-(defun Info-edit ()
-  "Edit the contents of this Info node.
-Allowed only if variable `Info-enable-edit' is non-nil."
-  (interactive)
-  (or Info-enable-edit
-      (error "Editing info nodes is not enabled"))
   (use-local-map Info-edit-map)
   (setq major-mode 'Info-edit-mode)
   (setq mode-name "Info Edit")
@@ -1535,8 +1527,18 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   (setq buffer-read-only nil)
   ;; Make mode line update.
   (set-buffer-modified-p (buffer-modified-p))
+  (buffer-enable-undo (current-buffer))
+  (run-hooks 'Info-edit-mode-hook))
+
+(defun Info-edit ()
+  "Edit the contents of this Info node.
+Allowed only if variable `Info-enable-edit' is non-nil."
+  (interactive)
+  (or Info-enable-edit
+      (error "Editing info nodes is not enabled"))
+  (Info-edit-mode)
   (message (substitute-command-keys
-	     "Editing: Type \\<Info-edit-map>\\[Info-cease-edit] to return to info")))
+	    "Editing: Type \\<Info-edit-map>\\[Info-cease-edit] to return to info")))
 
 (defun Info-cease-edit ()
   "Finish editing Info node; switch back to Info proper."
