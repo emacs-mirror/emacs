@@ -134,7 +134,7 @@ The buffer is left in Command History mode."
 
 (defun Command-history-setup ()
   (kill-all-local-variables)
-  (use-local-map (or keymap command-history-map))
+  (use-local-map command-history-map)
   (lisp-mode-variables nil)
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (setq buffer-read-only t))
