@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.9 1993/01/15 05:33:29 eggert Exp $
+# $Id: rcs2log,v 1.10 1993/03/16 22:49:00 eggert Exp eggert $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -223,7 +223,7 @@ awk <$rlogout '
 	/^Working file:/ { filename = $3 }
 	/^date: /, /^(-----------*|===========*)$/ {
 		if ($0 ~ /^branches: /) { next }
-		if ($0 ~ /^date: [0-9][ /0-9:]*;/) {
+		if ($0 ~ /^date: [0-9][ \/0-9:]*;/) {
 			time = substr($3, 1, length($3)-1)
 			author = substr($5, 1, length($5)-1)
 			printf "%s %s %s %s %c", filename, $2, time, author, 13
