@@ -1,6 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -37,40 +37,62 @@
 
 ;; You probably don't really want to use this.
 
+;; Also provides `autoarg-kp-mode' which is similar, but leaves the
+;; digit keys alone and redefines the `keypad' keys, `kp-1' &c as
+;; digit arguments.  (Use `NumLock' if necessary to generate kp-N.)
+;; You're more likely to want to use this.
+
 ;;; Code:
 
-;;;###autoload
-(defcustom autoarg-mode nil
-  "Toggle Autoarg mode.
+(defvar autoarg-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Loop over digit characters to set up keymap.
+    (dotimes (i 10)
+      (define-key map `[,(+ ?0 i)] 'digit-argument)
+      (define-key map `[(control ,(+ ?0 i))] 'self-insert-command))
+    (define-key map " " 'autoarg-terminate)
+    map)
+  "Keymap for Autoarg mode.")
 
-You must modify via \\[customize] for this variable to have an effect."
-  :set (lambda (symbol value) (autoarg-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'editing
-  :require 'autoarg)
-;; If you wanted a local mode:
-;; (make-variable-buffer-local 'autoarg-mode)
-
-(defvar autoarg-mode-map (make-sparse-keymap)
-  "Keymap for Autoarg Mode.")
-
-;; Loop over digit characters to set up keymap.
-(let ((i ?0))
-  (while (<= i ?9)
-    (define-key autoarg-mode-map `[,i] 'digit-argument)
-    (define-key autoarg-mode-map `[(control ,i)] 'self-insert-command)
-    (setq i (1+ i))))
-(define-key autoarg-mode-map " " 'autoarg-terminate)
 ;; Logical additions:
 ;; (define-key autoarg-mode-map [?-] 'negative-argument)
 ;; (define-key autoarg-mode-map [(control ?-)] 'self-insert-command)
 ;; A sensible/addition?
 ;; (define-key autoarg-mode-map [?\r] 'autoarg-terminate)
 
+(defvar autoarg-kp-digits
+  (let (alist)
+    (dotimes (i 10 alist)
+      (push (cons (intern (format "kp-%d" i)) i) alist))))
+
+(defun autoarg-kp-digit-argument (arg)
+  "Part of the numeric argument for the next command, like `digit-argument'."
+  (interactive "P")
+  (let ((digit (cdr (assq last-command-char autoarg-kp-digits))))
+    (cond ((integerp arg)
+	   (setq prefix-arg (+ (* arg 10)
+			       (if (< arg 0) (- digit) digit))))
+	  ((eq arg '-)
+	   ;; Treat -0 as just -, so that -01 will work.
+	   (setq prefix-arg (if (zerop digit) '- (- digit))))
+	  (t
+	   (setq prefix-arg digit))))
+  (setq universal-argument-num-events (length (this-command-keys)))
+  (setq overriding-terminal-local-map universal-argument-map))
+
+(defvar autoarg-kp-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Loop over digit characters to set up keymap.
+    (dotimes (i 10)
+      (let ((sym (intern (format "kp-%d" i))))
+	(define-key map (vector sym) 'autoarg-kp-digit-argument)))
+    (define-key map [kp-subtract] 'negative-argument)
+    map)
+  "Keymap for Autoarg-KP mode.")
+
 ;;;###autoload
-(defun autoarg-mode (&optional arg)
-  "Toggle Autoarg mode minor mode globally.
+(define-minor-mode autoarg-mode
+  "Toggle Autoarg minor mode globally.
 With ARG, turn Autoarg mode on if ARG is positive, off otherwise.
 \\<autoarg-mode-map>
 In Autoarg mode digits are bound to `digit-argument' -- i.e. they
@@ -88,20 +110,29 @@ then invokes the normal binding of \\[autoarg-terminate].
 `C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
 
 \\{autoarg-mode-map}"
-  (interactive "P")
-  (let ((old-mode autoarg-mode))
-    (setq autoarg-mode (if (null arg)
-			   (not autoarg-mode)
-			 (> (prefix-numeric-value arg) 0))))
-  (if (interactive-p)
-      (message "Autoarg mode %sabled" (if autoarg-mode "en" "dis"))))
+  (global . nil) " Aarg" autoarg-mode-map)
 
-(add-to-list 'minor-mode-alist '(autoarg-mode " Aarg"))
-(add-to-list 'minor-mode-map-alist (cons 'autoarg-mode autoarg-mode-map))
+;;;###autoload
+(define-minor-mode autoarg-kp-mode
+  "Toggle Autoarg-KP minor mode globally.
+With ARG, turn Autoarg mode on if ARG is positive, off otherwise.
+\\<autoarg-kp-mode-map>
+This is similar to \\[autoarg-mode] but rebinds the keypad keys `kp-1'
+&c to supply digit arguments.
+
+\\{autoarg-kp-mode-map}"
+  (global . nil) " Aakp" autoarg-kp-mode-map
+  (if autoarg-kp-mode
+      (dotimes (i 10)
+	(let ((sym (intern (format "kp-%d" i))))
+	  (define-key universal-argument-map (vector sym)
+	    'autoarg-kp-digit-argument)))
+    (dotimes (i 10)
+      (let ((sym (intern (format "kp-%d" i))))
+	(define-key universal-argument-map (vector sym) nil)))))
 
 (defun autoarg-terminate (n)
   "Maybe terminate a digit prefix sequence.
-
 With a non-negative numeric prefix arg, insert the digits comprising
 the arg into the current buffer.  Otherwise use the binding of the key
 which invoked this function, excluding the Autoarg keymap."
