@@ -244,7 +244,11 @@ and ignores this variable.")
 (defun ange-ftp-completion-hook-function (op &rest args)
   (if (memq op '(file-name-completion file-name-all-completions))
       (apply 'ange-ftp-hook-function op args)
-    (let (file-name-handler-alist)
+    (let ((inhibit-file-name-handlers
+	   (cons 'ange-ftp-completion-hook-function
+		 (and (eq inhibit-file-name-operation op)
+		      inhibit-file-name-handlers)))
+	  (inhibit-file-name-operation op))
       (apply op args))))
 
 (defun pwd ()
