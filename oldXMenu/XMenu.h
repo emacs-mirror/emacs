@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/XMenu.h,v 1.1 1992/04/11 22:10:21 jimb Exp $ */
+/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/XMenu.h,v 1.1 1999/10/03 19:35:23 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -140,6 +140,7 @@ typedef struct _xmselect {
     struct _xmwindow *pad_l9;	/* ---- */
     char *data;			/* -- Selection data pointer. */
     struct _xmpane *parent_p;	/* -- Selection parent pane structure. */
+    char *help_string;		/* Help string or null.  */
 } XMSelect;
 
 
