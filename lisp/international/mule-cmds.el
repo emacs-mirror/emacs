@@ -1404,8 +1404,8 @@ The default status is as follows:
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
   ;; that it supported a minute ago.
-;;;  (set-terminal-coding-system-internal nil)
-;;;  (set-keyboard-coding-system-internal nil)
+  ;; (set-terminal-coding-system-internal nil)
+  ;; (set-keyboard-coding-system-internal nil)
 
   (setq nonascii-translation-table nil
 	nonascii-insert-offset 0))
@@ -1896,7 +1896,7 @@ specifies the coding system to prefer when using that locale.")
 (defconst standard-keyboard-coding-systems
   (purecopy
    '(iso-latin-1 iso-latin-2 iso-latin-3 iso-latin-4 iso-latin-5
-     iso-latin-6 iso-latin-7 iso-latin-8 iso-latin-9))
+     iso-latin-6 iso-latin-7 iso-latin-8 iso-latin-9 koi8-u koi8-r))
   "Coding systems that are commonly used for keyboards.
 `set-locale-environment' will set the `keyboard-coding-system' if the
 coding-system specified by the locale setting is a member of this list.")
