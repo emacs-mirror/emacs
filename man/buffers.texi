@@ -20,10 +20,11 @@ called the @dfn{current buffer}.  Often we say that a command operates on
 ``the buffer'' as if there were only one; but really this means that the
 command operates on the selected buffer (most commands do).
 
-  When Emacs has multiple windows, each window has a chosen buffer which
-is displayed there, but at any time only one of the windows is selected and
-its chosen buffer is the selected buffer.  Each window's mode line displays
-the name of the buffer that the window is displaying (@pxref{Windows}).
+  When Emacs has multiple windows, each window has its own chosen
+buffer and displays it; at any time, only one of the windows is
+selected, and its chosen buffer is the selected buffer.  Each window's
+mode line normally displays the name of the window's chosen buffer
+(@pxref{Windows}).
 
   Each buffer has a name, which can be of any length, and you can select
 any buffer by giving its name.  Most buffers are made by visiting files,
@@ -447,6 +448,9 @@ both @var{base-buffer} and @var{indirect-name} using the minibuffer.
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling
 
+   This section describes several modes and features that make it more
+convenient to switch between buffers.
+
 @menu
 * Uniquify::               Buffer names can contain directory parts.
 * Iswitchb::               Switching between buffers with substrings.
@@ -521,6 +525,10 @@ and @kbd{C-r} to rotate the list until the desired buffer is first.
 
   @key{TAB} while entering the buffer name performs completion on the
 string you have entered, based on the displayed list of buffers.
+
+  To enable Iswitchb mode, type @kbd{M-x iswitchb-mode}, or customize
+the variable @code{iswitchb-mode} to @code{t} (@pxref{Easy
+Customization}).
 
 @node Buffer Menus
 @subsection Customizing Buffer Menus

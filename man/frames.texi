@@ -19,7 +19,7 @@ minibuffer of another frame.
 instance, if you put text in the kill ring in one frame, you can yank it
 in another frame.  If you exit Emacs through @kbd{C-x C-c} in one frame,
 it terminates all the frames.  To delete just one frame, use @kbd{C-x 5
-0}.
+0} (that is zero, not @kbd{o}).
 
   To avoid confusion, we reserve the word ``window'' for the
 subdivisions that Emacs implements, and never use it to refer to a
@@ -193,8 +193,8 @@ Then yank it in Emacs with @kbd{C-y} or @kbd{Mouse-2}.
 of the kill ring, it sets the @dfn{primary selection} in the X server.
 This is how other X clients can access the text.  Emacs also stores the
 text in the cut buffer, but only if the text is short enough
-(@code{x-cut-buffer-max} specifies the maximum number of characters);
-putting long strings in the cut buffer can be slow.
+(the value of @code{x-cut-buffer-max} specifies the maximum number of
+characters); putting long strings in the cut buffer can be slow.
 
   The commands to yank the first entry in the kill ring actually check
 first for a primary selection in another program; after that, they check
@@ -216,7 +216,9 @@ without setting point or the mark.
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
 (@code{mouse-set-secondary}).  The highlighting appears and changes as
-you drag.
+you drag.  You can control the appearance of the highlighting by
+customizing the @code{secondary-selection} face (@pxref{Face
+Customization}).
 
 If you move the mouse off the top or bottom of the window while
 dragging, the window scrolls at a steady rate until you move the mouse
@@ -366,14 +368,14 @@ horizontally, above the place in the mode line where you click.
 
 @kindex C-Mouse-2 @r{(scroll bar)}
   @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
-vertically, unless you are using an X toolkit's implentation of
+vertically, unless you are using an X toolkit's implementation of
 scroll bars.  @xref{Split Window}.
 
   The commands above apply to areas of the mode line which do not have
 special mouse bindings of their own.  Some areas, such as the buffer
 name and the major mode name, have their own special mouse bindings.
 Emacs displays information about these bindings when you hold the
-mouse over such a place.
+mouse over such a place (@pxref{Tooltips}).
 
 @node Creating Frames
 @section Creating Frames
@@ -832,7 +834,8 @@ tooltip-mode}.  The customization group @code{tooltip} controls
 various aspects of how tooltips work.  When Tooltip mode is disabled,
 the help text is displayed in the echo area instead.
 
-As of Emacs 21.1, tooltips are not supported on MS-Windows.
+  As of Emacs 21.1, tooltips are not supported on MS-Windows.
+So help text always appears in the echo area.
 
 @node Mouse Avoidance
 @section Mouse Avoidance

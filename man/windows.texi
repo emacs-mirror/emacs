@@ -101,10 +101,11 @@ not appear in inverse video.
 
 @kindex C-Mouse-2 @r{(scroll bar)}
   You can split a window horizontally or vertically by clicking
-@kbd{C-Mouse-2} in the mode line or the scroll bar.  The line of
-splitting goes through the place where you click: if you click on the
-mode line, the new scroll bar goes above the spot; if you click in the
-scroll bar, the mode line of the split window is side by side with your
+@kbd{C-Mouse-2} in the mode line or the scroll bar.  (This does not
+work in scroll bars implemented by X toolkits.)  The line of splitting
+goes through the place where you click: if you click on the mode line,
+the new scroll bar goes above the spot; if you click in the scroll
+bar, the mode line of the split window is side by side with your
 click.
 
 @vindex truncate-partial-width-windows
@@ -119,14 +120,15 @@ independent of the buffer being displayed and its value for
 @xref{Display}.
 
 @vindex split-window-keep-point
-  If @code{split-window-keep-point} is non-@code{nil}, the default, both
-of the windows resulting from @kbd{C-x 2} inherit the value of point
-from the window that was split.  This means that scrolling is
+  If @code{split-window-keep-point} is non-@code{nil}, the default,
+both of the windows resulting from @kbd{C-x 2} inherit the value of
+point from the window that was split.  This means that scrolling is
 inevitable.  If this variable is @code{nil}, then @kbd{C-x 2} tries to
-avoid shifting any text the screen, by putting point in each window at a
-position already visible in the window.  It also selects whichever
-window contain the screen line that the cursor was previously on.  Some
-users prefer the latter mode on slow terminals.
+avoid scrolling the text currently visible on the screen, by putting
+point in each window at a position already visible in the window.  It
+also selects whichever window contain the screen line that the cursor
+was previously on.  Some users prefer the latter mode on slow
+terminals.
 
 @node Other Window
 @section Using Other Windows
