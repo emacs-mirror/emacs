@@ -96,6 +96,11 @@
 	* xdisp.c (resize_mini_window): Do nothing if frame is an X
 	frame that hasn't been initialized yet.
 
+1999-09-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* keymap.c (Fsingle_key_description): Make tem big enough.
+	(describe_buffer_bindings): Make buf big enough.
+
 1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* intervals.c (get_local_map): Use indirect_function,
