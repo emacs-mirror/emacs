@@ -6,7 +6,7 @@
 
 &options();
 
-require "headread";
+require "require";
 
 opendir(DIR, ".");
 
