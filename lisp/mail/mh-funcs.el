@@ -32,17 +32,13 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.28 2002/11/11 23:01:27 mbaushke Exp $
+;; $Id: mh-funcs.el,v 1.36 2002/12/23 05:52:07 satyaki Exp $
 
 ;;; Code:
 
 (require 'mh-e)
 
-;;; autoload
-(autoload 'mh-notate-seq "mh-seq")
-(autoload 'mh-speed-invalidate-map "mh-speed")
-
-;;; customization
+;;; Customization
 
 (defvar mh-sortm-args nil
   "Extra arguments to have \\[mh-sort-folder] pass to the \"sortm\" command.
@@ -59,6 +55,7 @@ For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
 
 ;;; Functions
 
+;;;###mh-autoload
 (defun mh-burst-digest ()
   "Burst apart the current message, which should be a digest.
 The message is replaced by its table of contents and the messages from the
@@ -66,7 +63,7 @@ digest are inserted into the folder after that message."
   (interactive)
   (let ((digest (mh-get-msg-num t)))
     (mh-process-or-undo-commands mh-current-folder)
-    (mh-set-folder-modified-p t)		; lock folder while bursting
+    (mh-set-folder-modified-p t)        ; lock folder while bursting
     (message "Bursting digest...")
     (mh-exec-cmd "burst" mh-current-folder digest "-inplace")
     (with-mh-folder-updating (t)
@@ -76,19 +73,29 @@ digest are inserted into the folder after that message."
     (mh-goto-cur-msg)
     (message "Bursting digest...done")))
 
+;;;###mh-autoload
 (defun mh-copy-msg (msg-or-seq folder)
   "Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
 Default is the displayed message. If optional prefix argument is provided,
 then prompt for the message sequence."
-  (interactive (list (if current-prefix-arg
-			 (mh-read-seq-default "Copy" t)
-			 (mh-get-msg-num t))
-		     (mh-prompt-for-folder "Copy to" "" t)))
-  (mh-exec-cmd "refile" msg-or-seq "-link" "-src" mh-current-folder folder)
+  (interactive (list (cond
+                      ((mh-mark-active-p t)
+                       (mh-region-to-msg-list (region-beginning) (region-end)))
+                      (current-prefix-arg
+                       (mh-read-seq-default "Copy" t))
+                      (t
+                       (mh-get-msg-num t)))
+                     (mh-prompt-for-folder "Copy to" "" t)))
+  (mh-exec-cmd "refile"
+               (cond ((numberp msg-or-seq) msg-or-seq)
+                     ((listp msg-or-seq) msg-or-seq)
+                     (t (mh-coalesce-msg-list (mh-seq-to-msgs msg-or-seq))))
+               "-link" "-src" mh-current-folder folder)
   (if (numberp msg-or-seq)
       (mh-notate msg-or-seq mh-note-copied mh-cmd-note)
-      (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))
+    (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))
 
+;;;###mh-autoload
 (defun mh-kill-folder ()
   "Remove the current folder and all included messages.
 Removes all of the messages (files) within the specified current folder,
@@ -99,54 +106,60 @@ with no arguments, after the folders has been removed."
   (if (yes-or-no-p (format "Remove folder %s (and all included messages)?"
                            mh-current-folder))
       (let ((folder mh-current-folder))
-	(if (null mh-folder-list)
-	    (mh-set-folder-list))
-	(mh-set-folder-modified-p t)	; lock folder to kill it
-	(mh-exec-cmd-daemon "rmf" folder)
-	(setq mh-folder-list
-	      (delq (assoc folder mh-folder-list) mh-folder-list))
+        (if (null mh-folder-list)
+            (mh-set-folder-list))
+        (mh-set-folder-modified-p t)    ; lock folder to kill it
+        (mh-exec-cmd-daemon "rmf" folder)
+        (setq mh-folder-list
+              (delq (assoc folder mh-folder-list) mh-folder-list))
         (when (boundp 'mh-speed-folder-map)
           (mh-speed-invalidate-map folder))
-	(run-hooks 'mh-folder-list-change-hook)
-	(message "Folder %s removed" folder)
-	(mh-set-folder-modified-p nil)	; so kill-buffer doesn't complain
-	(if (get-buffer mh-show-buffer)
-	    (kill-buffer mh-show-buffer))
-	(if (get-buffer folder)
-	    (kill-buffer folder)))
-      (message "Folder not removed")))
+        (run-hooks 'mh-folder-list-change-hook)
+        (message "Folder %s removed" folder)
+        (mh-set-folder-modified-p nil)  ; so kill-buffer doesn't complain
+        (if (get-buffer mh-show-buffer)
+            (kill-buffer mh-show-buffer))
+        (if (get-buffer folder)
+            (kill-buffer folder)))
+    (message "Folder not removed")))
 
 ;; Avoid compiler warning...
 (defvar view-exit-action)
 
+;;;###mh-autoload
 (defun mh-list-folders ()
   "List mail folders."
   (interactive)
   (let ((temp-buffer mh-temp-folders-buffer))
     (with-output-to-temp-buffer temp-buffer
       (save-excursion
-	(set-buffer temp-buffer)
-	(erase-buffer)
-	(message "Listing folders...")
-	(mh-exec-cmd-output "folders" t (if mh-recursive-folders-flag
-					    "-recurse"
-					  "-norecurse"))
-	(goto-char (point-min))
-	(view-mode 1)
-	(setq view-exit-action 'kill-buffer)
-	(message "Listing folders...done")))))
+        (set-buffer temp-buffer)
+        (erase-buffer)
+        (message "Listing folders...")
+        (mh-exec-cmd-output "folders" t (if mh-recursive-folders-flag
+                                            "-recurse"
+                                          "-norecurse"))
+        (goto-char (point-min))
+        (view-mode 1)
+        (setq view-exit-action 'kill-buffer)
+        (message "Listing folders...done")))))
 
+;;;###mh-autoload
 (defun mh-pack-folder (range)
   "Renumber the messages of a folder to be 1..n.
 First, offer to execute any outstanding commands for the current folder. If
 optional prefix argument provided, prompt for the RANGE of messages to display
 after packing. Otherwise, show the entire folder."
   (interactive (list (if current-prefix-arg
-			 (mh-read-msg-range
-			  "Range to scan after packing [all]? ")
-		       "all")))
-  (mh-pack-folder-1 range)
-  (mh-goto-cur-msg)
+                         (mh-read-msg-range mh-current-folder t)
+                       '("all"))))
+  (let ((threaded-flag (memq 'unthread mh-view-ops)))
+    (mh-pack-folder-1 range)
+    (mh-goto-cur-msg)
+    (when mh-index-data
+      (mh-index-update-maps mh-current-folder))
+    (cond (threaded-flag (mh-toggle-threads))
+          (mh-index-data (mh-index-insert-folder-headers))))
   (message "Packing folder...done"))
 
 (defun mh-pack-folder-1 (range)
@@ -155,13 +168,14 @@ Display the given RANGE of messages after packing. If RANGE is nil, show the
 entire folder."
   (mh-process-or-undo-commands mh-current-folder)
   (message "Packing folder...")
-  (mh-set-folder-modified-p t)		; lock folder while packing
+  (mh-set-folder-modified-p t)          ; lock folder while packing
   (save-excursion
     (mh-exec-cmd-quiet t "folder" mh-current-folder "-pack"
-		       "-norecurse" "-fast"))
+                       "-norecurse" "-fast"))
   (mh-reset-threads-and-narrowing)
   (mh-regenerate-headers range))
 
+;;;###mh-autoload
 (defun mh-pipe-msg (command include-headers)
   "Pipe the current message through the given shell COMMAND.
 If INCLUDE-HEADERS (prefix argument) is provided, send the entire message.
@@ -169,7 +183,7 @@ Otherwise just send the message's body without the headers."
   (interactive
    (list (read-string "Shell command on message: ") current-prefix-arg))
   (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
-	(message-directory default-directory))
+        (message-directory default-directory))
     (save-excursion
       (set-buffer (get-buffer-create mh-temp-buffer))
       (erase-buffer)
@@ -177,8 +191,9 @@ Otherwise just send the message's body without the headers."
       (goto-char (point-min))
       (if (not include-headers) (search-forward "\n\n"))
       (let ((default-directory message-directory))
-	(shell-command-on-region (point) (point-max) command nil)))))
+        (shell-command-on-region (point) (point-max) command nil)))))
 
+;;;###mh-autoload
 (defun mh-page-digest ()
   "Advance displayed message to next digested message."
   (interactive)
@@ -188,13 +203,14 @@ Otherwise just send the message's body without the headers."
     (let ((case-fold-search nil))
       ;; Search for blank line and then for From:
       (or (and (search-forward "\n\n" nil t)
-	       (re-search-forward "^From:" nil t))
-	  (error "No more messages in digest")))
+               (re-search-forward "^From:" nil t))
+          (error "No more messages in digest")))
     ;; Go back to previous blank line, then forward to the first non-blank.
     (search-backward "\n\n" nil t)
     (forward-line 2)
     (mh-recenter 0)))
 
+;;;###mh-autoload
 (defun mh-page-digest-backwards ()
   "Back up displayed message to previous digested message."
   (interactive)
@@ -204,66 +220,68 @@ Otherwise just send the message's body without the headers."
     (let ((case-fold-search nil))
       (beginning-of-line)
       (or (and (search-backward "\n\n" nil t)
-	       (re-search-backward "^From:" nil t))
-	  (error "No previous message in digest")))
+               (re-search-backward "^From:" nil t))
+          (error "No previous message in digest")))
     ;; Go back to previous blank line, then forward to the first non-blank.
     (if (search-backward "\n\n" nil t)
-	(forward-line 2))
+        (forward-line 2))
     (mh-recenter 0)))
 
+;;;###mh-autoload
 (defun mh-print-msg (msg-or-seq)
   "Print MSG-OR-SEQ (default: displayed message) on printer.
 If optional prefix argument provided, then prompt for the message sequence.
 The variable `mh-lpr-command-format' is used to generate the print command.
 The messages are formatted by mhl. See the variable `mhl-formfile'."
   (interactive (list (if current-prefix-arg
-			 (reverse (mh-seq-to-msgs
-				   (mh-read-seq-default "Print" t)))
-		       (mh-get-msg-num t))))
+                         (reverse (mh-seq-to-msgs
+                                   (mh-read-seq-default "Print" t)))
+                       (mh-get-msg-num t))))
   (if (numberp msg-or-seq)
       (message "Printing message...")
-      (message "Printing sequence..."))
+    (message "Printing sequence..."))
   (let ((print-command
-	 (if (numberp msg-or-seq)
-	     (format "%s -nobell -clear %s %s | %s"
-		     (expand-file-name "mhl" mh-lib-progs)
-		     (mh-msg-filename msg-or-seq)
-		     (if (stringp mhl-formfile)
-			 (format "-form %s" mhl-formfile)
-		       "")
-		     (format mh-lpr-command-format
-			     (if (numberp msg-or-seq)
-				 (format "%s/%d" mh-current-folder
-				       msg-or-seq)
-			         (format "Sequence from %s" mh-current-folder))))
-	     (format "(scan -clear %s ; %s -nobell -clear %s %s) | %s"
-		     (mapconcat (function (lambda (msg) msg)) msg-or-seq " ")
-		     (expand-file-name "mhl" mh-lib-progs)
-		     (if (stringp mhl-formfile)
-			 (format "-form %s" mhl-formfile)
-		       "")
-		     (mh-msg-filenames msg-or-seq)
-		     (format mh-lpr-command-format
-			     (if (numberp msg-or-seq)
-				 (format "%s/%d" mh-current-folder
-				       msg-or-seq)
-			         (format "Sequence from %s"
-					 mh-current-folder)))))))
+         (if (numberp msg-or-seq)
+             (format "%s -nobell -clear %s %s | %s"
+                     (expand-file-name "mhl" mh-lib-progs)
+                     (mh-msg-filename msg-or-seq)
+                     (if (stringp mhl-formfile)
+                         (format "-form %s" mhl-formfile)
+                       "")
+                     (format mh-lpr-command-format
+                             (if (numberp msg-or-seq)
+                                 (format "%s/%d" mh-current-folder
+                                         msg-or-seq)
+                               (format "Sequence from %s" mh-current-folder))))
+           (format "(scan -clear %s ; %s -nobell -clear %s %s) | %s"
+                   (mapconcat (function (lambda (msg) msg)) msg-or-seq " ")
+                   (expand-file-name "mhl" mh-lib-progs)
+                   (if (stringp mhl-formfile)
+                       (format "-form %s" mhl-formfile)
+                     "")
+                   (mh-msg-filenames msg-or-seq)
+                   (format mh-lpr-command-format
+                           (if (numberp msg-or-seq)
+                               (format "%s/%d" mh-current-folder
+                                       msg-or-seq)
+                             (format "Sequence from %s"
+                                     mh-current-folder)))))))
     (if mh-print-background-flag
-	(mh-exec-cmd-daemon shell-file-name "-c" print-command)
+        (mh-exec-cmd-daemon shell-file-name "-c" print-command)
       (call-process shell-file-name nil nil nil "-c" print-command))
     (if (numberp msg-or-seq)
-	(mh-notate msg-or-seq mh-note-printed mh-cmd-note)
-        (mh-notate-seq msg-or-seq mh-note-printed mh-cmd-note))
+        (mh-notate msg-or-seq mh-note-printed mh-cmd-note)
+      (mh-notate-seq msg-or-seq mh-note-printed mh-cmd-note))
     (mh-add-msgs-to-seq msg-or-seq 'printed t)
     (if (numberp msg-or-seq)
-	(message "Printing message...done")
-        (message "Printing sequence...done"))))
+        (message "Printing message...done")
+      (message "Printing sequence...done"))))
 
 (defun mh-msg-filenames (msgs &optional folder)
   "Return a list of file names for MSGS in FOLDER (default current folder)."
   (mapconcat (function (lambda (msg) (mh-msg-filename msg folder))) msgs " "))
 
+;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
   "Sort the messages in the current folder by date.
 Calls the MH program sortm to do the work.
@@ -272,36 +290,45 @@ argument EXTRA-ARGS is given."
   (interactive "P")
   (mh-process-or-undo-commands mh-current-folder)
   (setq mh-next-direction 'forward)
-  (mh-set-folder-modified-p t)		; lock folder while sorting
+  (mh-set-folder-modified-p t)          ; lock folder while sorting
   (message "Sorting folder...")
-  (mh-exec-cmd "sortm" mh-current-folder (if extra-args mh-sortm-args))
-  (message "Sorting folder...done")
-  (mh-scan-folder mh-current-folder "all"))
+  (let ((threaded-flag (memq 'unthread mh-view-ops)))
+    (mh-exec-cmd "sortm" mh-current-folder (if extra-args mh-sortm-args))
+    (when mh-index-data
+      (mh-index-update-maps mh-current-folder))
+    (message "Sorting folder...done")
+    (mh-reset-threads-and-narrowing)
+    (mh-scan-folder mh-current-folder "all")
+    (cond (threaded-flag (mh-toggle-threads))
+          (mh-index-data (mh-index-insert-folder-headers)))))
 
+;;;###mh-autoload
 (defun mh-undo-folder (&rest ignore)
   "Undo all pending deletes and refiles in current folder.
 Argument IGNORE is deprecated."
   (interactive)
   (cond ((or mh-do-not-confirm-flag
-	     (yes-or-no-p "Undo all commands in folder? "))
-	 (setq mh-delete-list nil
-	       mh-refile-list nil
-	       mh-seq-list nil
-	       mh-next-direction 'forward)
-	 (with-mh-folder-updating (nil)
-	   (mh-unmark-all-headers t)))
-	(t
-	 (message "Commands not undone.")
-	 (sit-for 2))))
+             (yes-or-no-p "Undo all commands in folder? "))
+         (setq mh-delete-list nil
+               mh-refile-list nil
+               mh-seq-list nil
+               mh-next-direction 'forward)
+         (with-mh-folder-updating (nil)
+           (mh-unmark-all-headers t)))
+        (t
+         (message "Commands not undone.")
+         (sit-for 2))))
 
+;;;###mh-autoload
 (defun mh-store-msg (directory)
   "Store the file(s) contained in the current message into DIRECTORY.
 The message can contain a shar file or uuencoded file.
 Default directory is the last directory used, or initially the value of
 `mh-store-default-directory' or the current directory."
-  (interactive (list (let ((udir (or mh-store-default-directory default-directory)))
-				 (read-file-name "Store message in directory: "
-						 udir udir nil))))
+  (interactive (list (let ((udir (or mh-store-default-directory
+                                     default-directory)))
+                       (read-file-name "Store message in directory: "
+                                       udir udir nil))))
   (let ((msg-file-to-store (mh-msg-filename (mh-get-msg-num t))))
     (save-excursion
       (set-buffer (get-buffer-create mh-temp-buffer))
@@ -309,58 +336,59 @@ Default directory is the last directory used, or initially the value of
       (insert-file-contents msg-file-to-store)
       (mh-store-buffer directory))))
 
+;;;###mh-autoload
 (defun mh-store-buffer (directory)
   "Store the file(s) contained in the current buffer into DIRECTORY.
 The buffer can contain a shar file or uuencoded file.
 Default directory is the last directory used, or initially the value of
 `mh-store-default-directory' or the current directory."
   (interactive (list (let ((udir (or mh-store-default-directory
-				     default-directory)))
-		       (read-file-name "Store buffer in directory: "
-				       udir udir nil))))
+                                     default-directory)))
+                       (read-file-name "Store buffer in directory: "
+                                       udir udir nil))))
   (let ((store-directory (expand-file-name directory))
-	(sh-start (save-excursion
-		    (goto-char (point-min))
-		    (if (re-search-forward
-			 "^#![ \t]*/bin/sh\\|^#\\|^: " nil t)
-			(progn
-			  ;; The "cut here" pattern was removed from above
-			  ;; because it seemed to hurt more than help.
-			  ;; But keep this to make it easier to put it back.
-			  (if (looking-at "^[^a-z0-9\"]*cut here\\b")
-			      (forward-line 1))
-			  (beginning-of-line)
-			  (if (looking-at "^[#:]....+\n\\( ?\n\\)?end$")
-			      nil	;most likely end of a uuencode
-			    (point))))))
-	(log-buffer (get-buffer-create "*Store Output*"))
-	(command "sh")
-	(uudecode-filename "(unknown filename)"))
+        (sh-start (save-excursion
+                    (goto-char (point-min))
+                    (if (re-search-forward
+                         "^#![ \t]*/bin/sh\\|^#\\|^: " nil t)
+                        (progn
+                          ;; The "cut here" pattern was removed from above
+                          ;; because it seemed to hurt more than help.
+                          ;; But keep this to make it easier to put it back.
+                          (if (looking-at "^[^a-z0-9\"]*cut here\\b")
+                              (forward-line 1))
+                          (beginning-of-line)
+                          (if (looking-at "^[#:]....+\n\\( ?\n\\)?end$")
+                              nil       ;most likely end of a uuencode
+                            (point))))))
+        (log-buffer (get-buffer-create "*Store Output*"))
+        (command "sh")
+        (uudecode-filename "(unknown filename)"))
     (if (not sh-start)
-	(save-excursion
-	  (goto-char (point-min))
-	  (if (re-search-forward "^begin [0-7]+ " nil t)
-	      (setq uudecode-filename
-		    (buffer-substring (point)
-				      (progn (end-of-line) (point)))))))
+        (save-excursion
+          (goto-char (point-min))
+          (if (re-search-forward "^begin [0-7]+ " nil t)
+              (setq uudecode-filename
+                    (buffer-substring (point)
+                                      (progn (end-of-line) (point)))))))
     (save-excursion
       (set-buffer log-buffer)
       (erase-buffer)
       (if (not (file-directory-p store-directory))
-	  (progn
-	    (insert "mkdir " directory "\n")
-	    (call-process "mkdir" nil log-buffer t store-directory)))
+          (progn
+            (insert "mkdir " directory "\n")
+            (call-process "mkdir" nil log-buffer t store-directory)))
       (insert "cd " directory "\n")
       (setq mh-store-default-directory directory)
       (if (not sh-start)
-	  (progn
-	    (setq command "uudecode")
-	    (insert uudecode-filename " being uudecoded...\n"))))
+          (progn
+            (setq command "uudecode")
+            (insert uudecode-filename " being uudecoded...\n"))))
     (set-window-start (display-buffer log-buffer) 0) ;watch progress
     (let (value)
       (let ((default-directory (file-name-as-directory store-directory)))
-	(setq value (call-process-region sh-start (point-max) command
-					 nil log-buffer t)))
+        (setq value (call-process-region sh-start (point-max) command
+                                         nil log-buffer t)))
       (set-buffer log-buffer)
       (mh-handle-process-error command value))
     (insert "\n(mh-store finished)\n")))
@@ -375,13 +403,15 @@ Default directory is the last directory used, or initially the value of
   (sit-for 5)
   (message ""))
 
+;;;###mh-autoload
 (defun mh-help ()
   "Display cheat sheet for the MH-Folder commands in minibuffer."
   (interactive)
   (mh-ephem-message
    (substitute-command-keys
     (mapconcat 'identity (cdr (assoc nil mh-help-messages)) ""))))
-	
+        
+;;;###mh-autoload
 (defun mh-prefix-help ()
   "Display cheat sheet for the commands of the current prefix in minibuffer."
   (interactive)
@@ -391,7 +421,7 @@ Default directory is the last directory used, or initially the value of
   ;; length-2. We use that information to obtain a suitable prefix character
   ;; from the recent keys.
   (let* ((keys (recent-keys))
-	 (prefix-char (elt keys (- (length keys) 2))))
+         (prefix-char (elt keys (- (length keys) 2))))
     (mh-ephem-message
      (substitute-command-keys
       (mapconcat 'identity (cdr (assoc prefix-char mh-help-messages)) "")))))
@@ -399,6 +429,7 @@ Default directory is the last directory used, or initially the value of
 (provide 'mh-funcs)
 
 ;;; Local Variables:
+;;; indent-tabs-mode: nil
 ;;; sentence-end-double-space: nil
 ;;; End:
 

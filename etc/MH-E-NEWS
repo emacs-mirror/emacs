@@ -1,3 +1,209 @@
+* Changes in mh-e 7.1
+
+This release includes the new features of multiple identities and
+alias completion. In addition, indexed searching has been revamped.
+Various other features have been added and a few bugs were fixed.
+
+** New Features in MH-E 7.1
+
+*** Multiple Identities
+
+MH-E now supports multiple identities (closes SF #628782). That means
+that you can have different From and Organization header fields (or
+any other header field of your choice) as well as different signatures
+depending on your context. Usually, the contexts are home and work.
+
+Add your identities to the variable `mh-identity-list' and set the
+default identity with the variable `mh-identity-default'. Your
+identity can be switched on the fly by using the Identity menu or by
+calling "M-x mh-insert-identity RET".
+
+This functionality can be customized within the mh-identity group.
+
+*** Alias Completion and Harvesting
+
+The contributed file mh-alias.el has been rewritten and incorporated
+into MH-E.
+
+By default, aliases are culled from the system files
+"/etc/nmh/MailAliases," "/usr/lib/mh/MailAliases," and "/etc/passwd"
+(see `mh-alias-system-aliases') and from your "AliasFile" MH profile
+component. These aliases are then used for completion in the
+minibuffer when entering addresses. Within the header of the message
+draft, "M-TAB (mh-letter-complete)" is used to do alias completion.
+
+The package also provides for alias creation based upon the From
+header field of the current message. Use the lasso button
+(mh-alias-grab-from-field).
+
+This functionality can be customized within the mh-alias group.
+
+*** Index Folder Updates
+
+The results of an index search "F i (mh-index-search)" are now stored
+in a bona fide folder so that you can refile messages and reply to
+messages directly from the result folder. This folder is a sub-folder
+of +mhe-index and the name is based upon the search string (closes SF
+#623321).
+
+If a prefix argument is given then the search in the current index
+buffer is redone.
+
+The index folder lists the names of the source folders as before.
+However, instead of using RET on the name of the folder to visit the
+folder, use "v (mh-show-index-visit-folder)" anywhere within the
+results to visit that folder narrowed to the results of the search.
+Additional functions have been added to navigate including "TAB
+(mh-index-next-folder)", and "SHIFT-TAB (mh-index-previous-folder)."
+
+*** mh-visit-folder Interface Updated
+
+A change was made to the prompting of the message range. In general,
+you can use the same format for messages and sequences as you can in
+MH with a single exception: a single number means to scan that many
+messages, rather than scan that message number. This turns out to be
+much more useful than visiting a single message and is consistent with
+Gnus and the MH-E speedbar (closes SF #655891).
+
+If mh-visit-folder is called non-interactively and RANGE is nil then
+all messages are displayed. This behavior is now documented and
+provides backwards compatibility.
+
+*** Threading Improvements
+
+After incorporating new mail into a threaded folder, unseen messages
+can be spread about. Two new functions have been added to make it
+easier to find them: these are "M-n (mh-next-unread-msg)" and "M-p
+(mh-previous-unread-msg)" (closes SF #630328)
+
+Two new functions were added to delete and refile threads. They are "T
+d (mh-thread-delete)" and "T o (mh-thread-refile)" respectively
+(closes SF #630493).
+
+In addition, the key "k" used to be bound to the function
+`mh-delete-subject': it is now bound to
+`mh-show-delete-subject-or-thread'.
+
+New functions to navigate threads include "T u (mh-thread-ancestor)",
+which can jump to the root message of the current thread given an
+optional argument, "T n (mh-thread-next-sibling)", and "T p
+(mh-thread-previous-sibling)"
+
+*** Refiling of Messages in Region
+
+If mark is active and `transient-mark-mode' is enabled then all the
+messages in the region are refiled.
+
+*** vCard Handling
+
+If a signature cannot be identified, but there is a vCard attachment,
+then that vCard will be presented as a signature (closes SF #649216).
+
+*** New Info Added to mh-version
+
+Information about Gnus versions available at both compile time and run
+time has been added.
+
+** New Variables in MH-E 7.1
+
+The defcustom groups were reorganized. Rather than iterate the
+specific changes here, you are invited to browse the groups with "M-x
+mh-customize RET".
+
+*** mh-alias-completion-ignore-case-flag
+
+Non-nil means don't consider case significant in MH alias completion.
+This is the default in plain MH, so it is the default here as well. It
+can be useful to set this to t if, for example, you use lowercase
+aliases for people and uppercase for mailing lists.
+
+*** mh-alias-expand-aliases-flag
+
+Non-nil means to expand aliases entered in the minibuffer. In other
+words, aliases entered in the minibuffer will be expanded to the full
+address in the message draft. By default, this expansion is not
+performed.
+
+*** mh-alias-flash-on-comma
+
+Specify whether to flash the translation of the alias or warn if there
+isn't a translation of the alias.
+
+*** mh-alias-insert-file
+
+Filename to use to store new MH-E aliases. This variable can also be a
+list of filenames, in which case MH-E will prompt for one of them. If
+nil, the default, then MH-E will use the first file found in the
+"AliasFile" component of the MH profile.
+
+*** mh-alias-insertion-location
+
+Specifies where new aliases are entered in alias files. Options are
+sorted alphabetically (the default), at the top of the file or at the
+bottom.
+
+*** mh-alias-local-users
+
+If t, local users are completed in MH-E To: and Cc: prompts.
+
+If you set this variable to a string, it will be executed to generate
+a password file. A value of "ypcat passwd" is helpful if NIS is in
+use.
+
+*** mh-alias-system-aliases
+
+A list of system files from which to cull aliases. If these files are
+modified, they are automatically reread. This list need include only
+system aliases and the passwd file, since personal alias files listed
+in your "AliasFile" MH profile component are automatically included.
+
+*** mh-identity-default
+
+Default identity to use when `mh-letter-mode' is called.
+
+*** mh-identity-list
+
+List holding MH-E identity.
+
+*** mh-invisible-header-fields
+
+Simple user interface to change `mh-invisible-headers'.
+
+*** mh-letter-complete-function
+
+Function to call when completing outside of fields specific to
+aliases. By default, it is bound to 'ispell-complete-word.
+
+*** mh-show-threads-flag
+
+Non-nil means new folders start in threaded mode. Threading large
+number of messages can be time consuming. So if the flag is non-nil
+then threading will be done only if the number of messages being
+threaded is less than `mh-large-folder' (closes SF #646794).
+
+*** mh-tool-bar-folder-buttons
+
+Buttons to include in MH-E folder/show toolbar.
+
+*** mh-tool-bar-letter-buttons
+
+Buttons to include in MH-E letter toolbar.
+
+** Bug Fixes in MH-E 7.1
+
+*** mh-get-new-mail
+
+Call new function `mh-add-cur-notation' to undo the work of
+`mh-remove-cur-notation' if there was no new mail (closes SF #647681).
+
+*** mh-set-cmd-note
+
+No longer updates the default `mh-cmd-note' value. This resulted in
+the misplacement of the current mark when the message number width
+changed (closes SF #643701).
+
+
+
 * Changes in mh-e 7.0
 
 This is a major release which includes a lot of new features including
@@ -62,7 +268,7 @@ You can now use the MH-Folder mode commands from the MH-Show buffer.
 Because of this, the MH-Show buffer is now read-only (closes SF
 #493749 and SF #527946) and you now have to use "M (mh-modify)" to
 edit a message.
- 
+
 *** Better Scanning
 
 You no longer have to modify your scan format if your folders have

@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-pick.el,v 1.21 2002/11/05 21:43:16 wohler Exp $
+;; $Id: mh-pick.el,v 1.25 2002/12/04 18:51:50 wohler Exp $
 
 ;;; Code:
 
@@ -38,46 +38,40 @@
 (require 'easymenu)
 (require 'gnus-util)
 
-;;; Hooks
-
-(defcustom mh-pick-mode-hook nil
-  "Invoked upon entry to `mh-pick-mode'."
-  :type 'hook
-  :group 'mh-hook)
-
 ;;; Internal variables:
 
 (defvar mh-pick-mode-map (make-sparse-keymap)
   "Keymap for searching folder.")
 
-(defvar mh-searching-folder nil)	;Folder this pick is searching.
+(defvar mh-searching-folder nil)        ;Folder this pick is searching.
 
+;;;###mh-autoload
 (defun mh-search-folder (folder)
   "Search FOLDER for messages matching a pattern.
 This function uses the MH command `pick' to do the work.
 Add the messages found to the sequence named `search'."
   (interactive (list (mh-prompt-for-folder "Search"
-					   mh-current-folder
-					   t)))
+                                           mh-current-folder
+                                           t)))
   (switch-to-buffer-other-window "pick-pattern")
   (if (or (zerop (buffer-size))
-	  (not (y-or-n-p "Reuse pattern? ")))
+          (not (y-or-n-p "Reuse pattern? ")))
       (mh-make-pick-template)
     (message ""))
   (setq mh-searching-folder folder)
   (message "%s" (substitute-command-keys
-		 (concat "Type \\[mh-do-pick-search] to search messages, "
-			 "\\[mh-help] for help."))))
+                 (concat "Type \\[mh-do-pick-search] to search messages, "
+                         "\\[mh-help] for help."))))
 
 (defun mh-make-pick-template ()
   "Initialize the current buffer with a template for a pick pattern."
   (erase-buffer)
   (insert "From: \n"
-	  "To: \n"
-	  "Cc: \n"
-	  "Date: \n"
-	  "Subject: \n"
-	  "---------\n")
+          "To: \n"
+          "Cc: \n"
+          "Date: \n"
+          "Subject: \n"
+          "---------\n")
   (mh-pick-mode)
   (goto-char (point-min))
   (end-of-line))
@@ -130,41 +124,42 @@ with no arguments, upon entry to this mode.
   (setq mh-help-messages mh-pick-mode-help-messages)
   (run-hooks 'mh-pick-mode-hook))
 
+;;;###mh-autoload
 (defun mh-do-pick-search ()
   "Find messages that match the qualifications in the current pattern buffer.
 Messages are searched for in the folder named in `mh-searching-folder'.
 Add the messages found to the sequence named `search'."
   (interactive)
   (let ((pattern-buffer (buffer-name))
-	(searching-buffer mh-searching-folder)
-	range
-	msgs
-	(pattern nil)
-	(new-buffer nil))
+        (searching-buffer mh-searching-folder)
+        range
+        msgs
+        (pattern nil)
+        (new-buffer nil))
     (save-excursion
       (cond ((get-buffer searching-buffer)
-	     (set-buffer searching-buffer)
-	     (setq range (list (format "%d-%d"
-				       mh-first-msg-num mh-last-msg-num))))
-	    (t
-	     (mh-make-folder searching-buffer)
-	     (setq range '("all"))
-	     (setq new-buffer t))))
+             (set-buffer searching-buffer)
+             (setq range (list (format "%d-%d"
+                                       mh-first-msg-num mh-last-msg-num))))
+            (t
+             (mh-make-folder searching-buffer)
+             (setq range '("all"))
+             (setq new-buffer t))))
     (message "Searching...")
     (goto-char (point-min))
     (while (and range
-		(setq pattern (mh-next-pick-field pattern-buffer)))
+                (setq pattern (mh-next-pick-field pattern-buffer)))
       (setq msgs (mh-seq-from-command searching-buffer
-				      'search
-				      (mh-list-to-string
-				       (list "pick" pattern searching-buffer
-					     "-list"
-					     (mh-coalesce-msg-list range)))))
-      (setq range msgs))		;restrict the pick range for next pass
+                                      'search
+                                      (mh-list-to-string
+                                       (list "pick" pattern searching-buffer
+                                             "-list"
+                                             (mh-coalesce-msg-list range)))))
+      (setq range msgs))                ;restrict the pick range for next pass
     (message "Searching...done")
     (if new-buffer
-	(mh-scan-folder searching-buffer msgs)
-	(switch-to-buffer searching-buffer))
+        (mh-scan-folder searching-buffer msgs)
+      (switch-to-buffer searching-buffer))
     (mh-add-msgs-to-seq msgs 'search)
     (delete-other-windows)))
 
@@ -173,17 +168,17 @@ Add the messages found to the sequence named `search'."
 COMMAND is a list.  The first element is a program name
 and the subsequent elements are its arguments, all strings."
   (let ((msg)
-	(msgs ())
-	(case-fold-search t))
+        (msgs ())
+        (case-fold-search t))
     (save-excursion
       (save-window-excursion
-	(if (eq 0 (apply 'mh-exec-cmd-quiet nil command))
-	    ;; "pick" outputs one number per line
-	    (while (setq msg (car (mh-read-msg-list)))
-	      (setq msgs (cons msg msgs))
-	      (forward-line 1))))
+        (if (eq 0 (apply 'mh-exec-cmd-quiet nil command))
+            ;; "pick" outputs one number per line
+            (while (setq msg (car (mh-read-msg-list)))
+              (setq msgs (cons msg msgs))
+              (forward-line 1))))
       (set-buffer folder)
-      (setq msgs (nreverse msgs))	;put in ascending order
+      (setq msgs (nreverse msgs))       ;put in ascending order
       msgs)))
 
 (defun mh-next-pick-field (buffer)
@@ -193,50 +188,51 @@ or nil if no pieces remain."
   (set-buffer buffer)
   (let ((case-fold-search t))
     (cond ((eobp)
-	   nil)
-	  ((re-search-forward "^\\([a-z][^: \t\n]*\\):[ \t]*\\([a-z0-9].*\\)$"
-			      nil t)
-	   (let* ((component
-		   (format "--%s"
-			   (downcase (buffer-substring (match-beginning 1)
-						       (match-end 1)))))
-		  (pat (buffer-substring (match-beginning 2) (match-end 2))))
-	       (forward-line 1)
-	       (list component pat)))
-	  ((re-search-forward "^-*$" nil t)
-	   (forward-char 1)
-	   (let ((body (buffer-substring (point) (point-max))))
-	     (if (and (> (length body) 0) (not (equal body "\n")))
-		 (list "-search" body)
-		 nil)))
-	  (t
-	   nil))))
+           nil)
+          ((re-search-forward "^\\([a-z][^: \t\n]*\\):[ \t]*\\([a-z0-9].*\\)$"
+                              nil t)
+           (let* ((component
+                   (format "--%s"
+                           (downcase (buffer-substring (match-beginning 1)
+                                                       (match-end 1)))))
+                  (pat (buffer-substring (match-beginning 2) (match-end 2))))
+             (forward-line 1)
+             (list component pat)))
+          ((re-search-forward "^-*$" nil t)
+           (forward-char 1)
+           (let ((body (buffer-substring (point) (point-max))))
+             (if (and (> (length body) 0) (not (equal body "\n")))
+                 (list "-search" body)
+               nil)))
+          (t
+           nil))))
 
 
 
 ;;; Build the pick-mode keymap:
 ;;; If this changes, modify mh-pick-mode-help-messages accordingly, above.
 (gnus-define-keys  mh-pick-mode-map
-  "\C-c?"		mh-help
-  "\C-c\C-c"		mh-do-pick-search
-  "\C-c\C-f\C-b"	mh-to-field
-  "\C-c\C-f\C-c"	mh-to-field
-  "\C-c\C-f\C-d"	mh-to-field
-  "\C-c\C-f\C-f"	mh-to-field
-  "\C-c\C-f\C-r"	mh-to-field
-  "\C-c\C-f\C-s"	mh-to-field
-  "\C-c\C-f\C-t"	mh-to-field
-  "\C-c\C-fb"		mh-to-field
-  "\C-c\C-fc"		mh-to-field
-  "\C-c\C-fd"		mh-to-field
-  "\C-c\C-ff"		mh-to-field
-  "\C-c\C-fr"		mh-to-field
-  "\C-c\C-fs"		mh-to-field
-  "\C-c\C-ft"		mh-to-field)
+  "\C-c?"               mh-help
+  "\C-c\C-c"            mh-do-pick-search
+  "\C-c\C-f\C-b"        mh-to-field
+  "\C-c\C-f\C-c"        mh-to-field
+  "\C-c\C-f\C-d"        mh-to-field
+  "\C-c\C-f\C-f"        mh-to-field
+  "\C-c\C-f\C-r"        mh-to-field
+  "\C-c\C-f\C-s"        mh-to-field
+  "\C-c\C-f\C-t"        mh-to-field
+  "\C-c\C-fb"           mh-to-field
+  "\C-c\C-fc"           mh-to-field
+  "\C-c\C-fd"           mh-to-field
+  "\C-c\C-ff"           mh-to-field
+  "\C-c\C-fr"           mh-to-field
+  "\C-c\C-fs"           mh-to-field
+  "\C-c\C-ft"           mh-to-field)
 
 (provide 'mh-pick)
 
 ;;; Local Variables:
+;;; indent-tabs-mode: nil
 ;;; sentence-end-double-space: nil
 ;;; End:
 

@@ -1,3 +1,13 @@
+2003-01-08  Bill Wohler  <wohler@newt.com>
+
+	* mail/mh-alias.el, mail/mh-customize.el, mail/mh-identity.el,
+	mail/mh-loaddefs.el, toolbar/alias.pbm, toolbar/alias.xpm: Added.
+	
+	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
+	mail/mh-index.el, mail/mh-mime.el, mail/mh-pick.el,
+	mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el,
+	mail/mh-xemacs-compat.el: Upgraded to MH-E version 7.1.
+
 2003-01-08  Kim F. Storm  <storm@cua.dk>
 
 	* mail/undigest.el (unforward-rmail-message): Don't use global

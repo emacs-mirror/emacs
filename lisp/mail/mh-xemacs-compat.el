@@ -28,7 +28,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-xemacs-compat.el,v 1.12 2002/11/02 19:56:50 wohler Exp $
+;; $Id: mh-xemacs-compat.el,v 1.13 2002/11/30 01:21:42 wohler Exp $
 
 ;;; Code:
 
@@ -52,10 +52,10 @@
 (unless (fboundp 'cancel-timer)
   (defalias 'cancel-timer 'delete-itimer))
 
-
 (provide 'mh-xemacs-compat)
 
 ;;; Local Variables:
+;;; indent-tabs-mode: nil
 ;;; sentence-end-double-space: nil
 ;;; End:
 

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Author: Bill Wohler <wohler@newt.com>
+;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
@@ -31,70 +31,14 @@
 
 ;;; Change Log:
 
-;; $Id: mh-speed.el,v 1.26 2002/11/13 19:36:00 wohler Exp $
+;; $Id: mh-speed.el,v 1.34 2003/01/07 21:15:20 satyaki Exp $
 
 ;;; Code:
 
 ;; Requires
 (require 'cl)
-(require 'mh-utils)
 (require 'mh-e)
 (require 'speedbar)
-
-;; Autoloads
-(autoload 'mh-index-goto-nearest-msg "mh-index")
-(autoload 'mh-index-parse-folder "mh-index")
-(autoload 'mh-visit-folder "mh-e")
-
-;; User customizable
-(defcustom mh-large-folder 200
-  "The number of messages that indicates a large folder.
-If the number of messages in a folder exceeds this value, confirmation is
-required when the folder is visited from the speedbar."
-  :type 'integer
-  :group 'mh)
-
-(defcustom mh-speed-flists-interval 60
-  "Time between calls to flists in seconds.
-If 0, flists is not called repeatedly."
-  :type 'integer
-  :group 'mh)
-
-(defcustom mh-speed-run-flists-flag t
-  "Non-nil means flists is used.
-If non-nil, flists is executed every `mh-speed-flists-interval' seconds to
-update the display of the number of unseen and total messages in each folder.
-If resources are limited, this can be set to nil and the speedbar display can
-be updated manually with the \\[mh-speed-flists] command."
-  :type 'boolean
-  :group 'mh)
-
-(defface mh-speedbar-folder-face
-    '((((class color) (background light))
-       (:foreground "blue4"))
-      (((class color) (background dark))
-       (:foreground "light blue")))
-  "Face used for folders in the speedbar buffer."
-  :group 'mh)
-
-(defface mh-speedbar-selected-folder-face
-    '((((class color) (background light))
-       (:foreground "red" :underline t))
-      (((class color) (background dark))
-       (:foreground "red" :underline t))
-      (t (:underline t)))
-  "Face used for the current folder."
-  :group 'mh)
-
-(defface mh-speedbar-folder-with-unseen-messages-face
-    '((t (:inherit mh-speedbar-folder-face :bold t)))
-  "Face used for folders in the speedbar buffer which have unread messages."
-  :group 'mh)
-
-(defface mh-speedbar-selected-folder-with-unseen-messages-face
-    '((t (:inherit mh-speedbar-selected-folder-face :bold t)))
-  "Face used for the current folder when it has unread messages."
-  :group 'mh)
 
 ;; Global variables
 (defvar mh-speed-refresh-flag nil)
@@ -116,6 +60,7 @@ be updated manually with the \\[mh-speed-flists] command."
         (cdr (assoc "files" speedbar-stealthy-function-list))))
 
 ;; Functions called by speedbar to initialize display...
+;;;###mh-autoload
 (defun mh-folder-speedbar-buttons (buffer)
   "Interface function to create MH-E speedbar buffer.
 BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
@@ -134,24 +79,22 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
     (when mh-speed-run-flists-flag
       (mh-speed-flists nil))))
 
+;;;###mh-autoload
 (defalias 'mh-show-speedbar-buttons 'mh-folder-speedbar-buttons)
-(defalias 'mh-index-folder-speedbar-buttons 'mh-folder-speedbar-buttons)
-(defalias 'mh-index-show-speedbar-buttons 'mh-folder-speedbar-buttons)
+;;;###mh-autoload
 (defalias 'mh-letter-speedbar-buttons 'mh-folder-speedbar-buttons)
 
 ;; Keymaps for speedbar...
 (defvar mh-folder-speedbar-key-map (speedbar-make-specialized-keymap)
   "Specialized speedbar keymap for MH-E buffers.")
 (gnus-define-keys mh-folder-speedbar-key-map
-  "+"		mh-speed-expand-folder
-  "-"		mh-speed-contract-folder
-  "\r"		mh-speed-view
-  "f"		mh-speed-flists
-  "i"		mh-speed-invalidate-map)
+  "+"           mh-speed-expand-folder
+  "-"           mh-speed-contract-folder
+  "\r"          mh-speed-view
+  "f"           mh-speed-flists
+  "i"           mh-speed-invalidate-map)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
-(defvar mh-index-folder-speedbar-key-map mh-folder-speedbar-key-map)
-(defvar mh-index-show-speedbar-key-map mh-folder-speedbar-key-map)
 (defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
 
 ;; Menus for speedbar...
@@ -171,8 +114,6 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
   "Extra menu items for speedbar.")
 
 (defvar mh-show-speedbar-menu-items mh-folder-speedbar-menu-items)
-(defvar mh-index-folder-speedbar-menu-items mh-folder-speedbar-menu-items)
-(defvar mh-index-show-speedbar-menu-items mh-folder-speedbar-menu-items)
 (defvar mh-letter-speedbar-menu-items mh-folder-speedbar-menu-items)
 
 (defmacro mh-speed-select-attached-frame ()
@@ -193,12 +134,12 @@ own when you are trying to navigate around in the speedbar buffer.
 
 The update is always carried out if FORCE is non-nil."
   (let* ((lastf (selected-frame))
-	 (newcf (save-excursion
+         (newcf (save-excursion
                   (mh-speed-select-attached-frame)
                   (prog1 (mh-speed-extract-folder-name (buffer-name))
                     (select-frame lastf))))
-	 (lastb (current-buffer))
-	 (case-fold-search t))
+         (lastb (current-buffer))
+         (case-fold-search t))
     (when (or force
               (and mh-speed-refresh-flag (not (eq lastf speedbar-frame)))
               (and (stringp newcf)
@@ -271,7 +212,7 @@ The function will expand out parent folders of FOLDER if needed."
         (suffix-list ())
         (last-slash t))
     (while (and (not (gethash prefix mh-speed-folder-map)) last-slash)
-      (setq last-slash (search "/" prefix :from-end t))
+      (setq last-slash (mh-search-from-end ?/ prefix))
       (when (integerp last-slash)
         (push (substring prefix (1+ last-slash)) suffix-list)
         (setq prefix (substring prefix 0 last-slash))))
@@ -306,15 +247,10 @@ Do the right thing for the different kinds of buffers that MH-E uses."
           ((eq major-mode 'mh-show-mode)
            (set-buffer mh-show-folder-buffer)
            mh-current-folder)
-          ((eq major-mode 'mh-index-folder-mode)
-           (save-excursion
-             (mh-index-goto-nearest-msg)
-             (mh-index-parse-folder)))
-          ((or (eq major-mode 'mh-index-show-mode)
-               (eq major-mode 'mh-letter-mode))
+          ((eq major-mode 'mh-letter-mode)
            (when (string-match mh-user-path buffer-file-name)
              (let* ((rel-path (substring buffer-file-name (match-end 0)))
-                    (directory-end (search "/" rel-path :from-end t)))
+                    (directory-end (mh-search-from-end ?/ rel-path)))
                (when directory-end
                  (format "+%s" (substring rel-path 0 directory-end)))))))))
 
@@ -347,12 +283,14 @@ Do the right thing for the different kinds of buffers that MH-E uses."
              (add-text-properties
               (line-beginning-position) (1+ (line-beginning-position))
               `(mh-folder ,folder-name
-                mh-expanded nil
-                mh-children-p ,(not (not (cdr f)))
-                ,@(if counts `(mh-count (,(car counts) . ,(cdr counts))) ())
-                mh-level ,level))))))
+                          mh-expanded nil
+                          mh-children-p ,(not (not (cdr f)))
+                          ,@(if counts `(mh-count
+                                         (,(car counts) . ,(cdr counts))) ())
+                          mh-level ,level))))))
      folder-list)))
 
+;;;###mh-autoload
 (defun mh-speed-toggle (&rest args)
   "Toggle the display of child folders.
 The otional ARGS are ignored and there for compatibilty with speedbar."
@@ -393,45 +331,14 @@ The otional ARGS are ignored and there for compatibilty with speedbar."
 (defalias 'mh-speed-expand-folder 'mh-speed-toggle)
 (defalias 'mh-speed-contract-folder 'mh-speed-toggle)
 
-(defun mh-speed-folder-size ()
-  "Find folder size if folder on current line."
-  (let ((folder (get-text-property (line-beginning-position) 'mh-folder)))
-    (or (cdr (get-text-property (line-beginning-position) 'mh-count))
-        (and (null folder) 0)
-        (with-temp-buffer
-          (call-process (expand-file-name "flist" mh-progs) nil t nil
-                        "-norecurse" folder)
-          (goto-char (point-min))
-          (unless (re-search-forward "out of " (line-end-position) t)
-            (error "Call to flist failed on folder %s" folder))
-          (car (read-from-string
-                (buffer-substring-no-properties (point)
-                                                (line-end-position))))))))
-
+;;;###mh-autoload
 (defun mh-speed-view (&rest args)
   "View folder on current line.
 Optional ARGS are ignored."
   (interactive)
   (declare (ignore args))
   (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
-         (range
-           (cond ((save-excursion
-                    (beginning-of-line)
-                    (re-search-forward "([1-9][0-9]*/[0-9]+)"
-                                       (line-end-position) t))
-                  mh-unseen-seq)
-		 ((> (mh-speed-folder-size) mh-large-folder)
-		  (let* ((size (mh-speed-folder-size))
-			 (prompt
-			  (format "How many messages from %s (default: %s): "
-				  folder size))
-			 (in (read-string prompt nil nil
-					  (number-to-string size)))
-			 (result (car (ignore-errors (read-from-string in)))))
-		    (cond ((null result) (format "last:%s" size))
-			  ((numberp result) (format "last:%s" result))
-			  (t (format "%s" result)))))
-		 (t nil))))
+         (range (and (stringp folder) (mh-read-msg-range folder))))
     (when (stringp folder)
       (speedbar-with-attached-buffer
        (mh-visit-folder folder range)
@@ -463,19 +370,22 @@ aren't usually mail folders are hidden."
       (apply #'call-process arg-list)
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
-        (let ((folder-end (or (search-forward "+ " (line-end-position) t)
-                              (search-forward " " (line-end-position) t))))
-          (when (integerp folder-end)
-            (let ((name (buffer-substring (line-beginning-position)
-                                          (match-beginning 0))))
+        (goto-char (line-end-position))
+        (let ((has-pos (search-backward " has " (line-beginning-position) t)))
+          (when (integerp has-pos)
+            (while (or (equal (char-after has-pos) ? )
+                       (equal (char-after has-pos) ?+))
+              (decf has-pos))
+            (incf has-pos)
+            (let ((name (buffer-substring (line-beginning-position) has-pos)))
               (let ((first-char (substring name 0 1)))
                 (unless (or (string-equal first-char ".")
                             (string-equal first-char "#")
                             (string-equal first-char ","))
                   (push
-                    (cons name
-                          (search-forward "(others)" (line-end-position) t))
-                    results)))))
+                   (cons name
+                         (search-forward "(others)" (line-end-position) t))
+                   results)))))
           (forward-line 1))))
     (setq results (nreverse results))
     (when (stringp folder)
@@ -487,6 +397,7 @@ aren't usually mail folders are hidden."
                               results))))
     results))
 
+;;;###mh-autoload
 (defun mh-speed-flists (force)
   "Execute flists -recurse and update message counts.
 If FORCE is non-nil the timer is reset."
@@ -509,7 +420,8 @@ If FORCE is non-nil the timer is reset."
                                    'exit)))
                (setq mh-speed-flists-process
                      (start-process (expand-file-name "flists" mh-progs) nil
-                                    "flists" "-recurse"))
+                                    "flists" "-recurse"
+                                    "-sequence" (symbol-name mh-unseen-seq)))
                (set-process-filter mh-speed-flists-process
                                    'mh-speed-parse-flists-output)))))))
 
@@ -527,61 +439,53 @@ next."
                              mh-speed-partial-line
                              (substring output position line-end))
                 mh-speed-partial-line "")
-          (when (string-match "+? " line)
-            (setq folder (format "+%s" (subseq line 0 (match-beginning 0))))
-            (when (string-match " has " line)
-              (setq unseen (car (read-from-string line (match-end 0))))
-              (when (string-match "; out of " line)
-                (setq total (car (read-from-string line (match-end 0))))
-                (setf (gethash folder mh-speed-flists-cache)
-                      (cons unseen total))
-                (save-excursion
-                  (when (buffer-live-p (get-buffer speedbar-buffer))
-                    (set-buffer speedbar-buffer)
-                    (speedbar-with-writable
-                      (when (get-text-property (point-min) 'mh-level)
-                        (let ((pos (gethash folder mh-speed-folder-map))
-                              face)
-                          (when pos
-                            (goto-char pos)
-                            (goto-char (line-beginning-position))
-                            (cond
-                              ((null (get-text-property (point) 'mh-count))
-                               (goto-char (line-end-position))
-                               (setq face (get-text-property (1- (point))
-                                                             'face))
-                               (insert (format " (%s/%s)" unseen total))
-                               (mh-speed-highlight 'unknown face)
-                               (goto-char (line-beginning-position))
-                               (add-text-properties
-                                (point) (1+ (point))
-                                `(mh-count (,unseen . ,total))))
-                              ((not
-                                (equal (get-text-property (point) 'mh-count)
-                                       (cons unseen total)))
-                               (goto-char (line-end-position))
-                               (setq face (get-text-property (1- (point))
-                                                             'face))
-                               (re-search-backward
-                                " " (line-beginning-position) t)
-                               (delete-region (point) (line-end-position))
-                               (insert (format " (%s/%s)" unseen total))
-                               (mh-speed-highlight 'unknown face)
-                               (goto-char (line-beginning-position))
-                               (add-text-properties
-                                (point) (1+ (point))
-                                `(mh-count (,unseen . ,total))))))))))))))
+          (multiple-value-setq (folder unseen total)
+            (mh-parse-flist-output-line line))
+          (when (and folder unseen total)
+            (setf (gethash folder mh-speed-flists-cache) (cons unseen total))
+            (save-excursion
+              (when (buffer-live-p (get-buffer speedbar-buffer))
+                (set-buffer speedbar-buffer)
+                (speedbar-with-writable
+                  (when (get-text-property (point-min) 'mh-level)
+                    (let ((pos (gethash folder mh-speed-folder-map))
+                          face)
+                      (when pos
+                        (goto-char pos)
+                        (goto-char (line-beginning-position))
+                        (cond
+                         ((null (get-text-property (point) 'mh-count))
+                          (goto-char (line-end-position))
+                          (setq face (get-text-property (1- (point)) 'face))
+                          (insert (format " (%s/%s)" unseen total))
+                          (mh-speed-highlight 'unknown face)
+                          (goto-char (line-beginning-position))
+                          (add-text-properties (point) (1+ (point))
+                                               `(mh-count (,unseen . ,total))))
+                         ((not (equal (get-text-property (point) 'mh-count)
+                                      (cons unseen total)))
+                          (goto-char (line-end-position))
+                          (setq face (get-text-property (1- (point)) 'face))
+                          (re-search-backward " " (line-beginning-position) t)
+                          (delete-region (point) (line-end-position))
+                          (insert (format " (%s/%s)" unseen total))
+                          (mh-speed-highlight 'unknown face)
+                          (goto-char (line-beginning-position))
+                          (add-text-properties
+                           (point) (1+ (point))
+                           `(mh-count (,unseen . ,total))))))))))))
           (setq position (1+ line-end)))
       (set-match-data prevailing-match-data))
-    (setq mh-speed-partial-line (subseq output position))))
+    (setq mh-speed-partial-line (substring output position))))
 
+;;;###mh-autoload
 (defun mh-speed-invalidate-map (folder)
   "Remove FOLDER from various optimization caches."
   (interactive (list ""))
   (save-excursion
     (set-buffer speedbar-buffer)
     (let* ((speedbar-update-flag nil)
-           (last-slash (search "/" folder :from-end t))
+           (last-slash (mh-search-from-end ?/ folder))
            (parent (if last-slash (substring folder 0 last-slash) nil))
            (parent-position (gethash parent mh-speed-folder-map))
            (parent-change nil))
@@ -615,13 +519,14 @@ next."
       (when (equal folder "")
         (clrhash mh-speed-folders-cache)))))
 
+;;;###mh-autoload
 (defun mh-speed-add-folder (folder)
   "Add FOLDER since it is being created.
 The function invalidates the latest ancestor that is present."
   (save-excursion
     (set-buffer speedbar-buffer)
     (let ((speedbar-update-flag nil)
-          (last-slash (search "/" folder :from-end t))
+          (last-slash (mh-search-from-end ?/ folder))
           (ancestor folder)
           (ancestor-pos nil))
       (block while-loop
@@ -630,7 +535,7 @@ The function invalidates the latest ancestor that is present."
           (setq ancestor-pos (gethash ancestor mh-speed-folder-map))
           (when ancestor-pos
             (return-from while-loop))
-          (setq last-slash (search "/" ancestor :from-end t))))
+          (setq last-slash (mh-search-from-end ?/ ancestor))))
       (unless ancestor-pos (setq ancestor nil))
       (goto-char (or ancestor-pos (gethash nil mh-speed-folder-map)))
       (speedbar-with-writable
@@ -650,17 +555,18 @@ The function invalidates the latest ancestor that is present."
   (save-excursion
     (beginning-of-line)
     (if (re-search-forward "\\[.\\]" (line-end-position) t)
-	(speedbar-with-writable
+        (speedbar-with-writable
           (backward-char 2)
-	  (delete-char 1)
-	  (insert-char char 1 t)
-	  (put-text-property (point) (1- (point)) 'invisible nil)
-	  ;; make sure we fix the image on the text here.
-	  (speedbar-insert-image-button-maybe (- (point) 2) 3)))))
+          (delete-char 1)
+          (insert-char char 1 t)
+          (put-text-property (point) (1- (point)) 'invisible nil)
+          ;; make sure we fix the image on the text here.
+          (speedbar-insert-image-button-maybe (- (point) 2) 3)))))
 
 (provide 'mh-speed)
 
 ;;; Local Variables:
+;;; indent-tabs-mode: nil
 ;;; sentence-end-double-space: nil
 ;;; End:
 
