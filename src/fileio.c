@@ -149,6 +149,10 @@ extern char *strerror ();
 #define O_RDONLY 0
 #endif
 
+#ifndef S_ISLNK
+#  define lstat stat
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
