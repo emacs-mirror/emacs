@@ -36,6 +36,8 @@
 ;; point". So if your current point is located after end of function
 ;; FOO but before begin of function BAR, FOO will be displayed in mode
 ;; line.
+;; - if two windows display the same buffer, both windows
+;;   show the same `which-func' information.
 
 ;; TODO LIST
 ;; ---------
@@ -73,8 +75,8 @@
   :version "20.3")
 
 (defcustom which-func-modes
-  '(emacs-lisp-mode c-mode c++-mode perl-mode makefile-mode sh-mode
-		    fortran-mode)
+  '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode makefile-mode
+		    sh-mode fortran-mode)
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
@@ -101,18 +103,6 @@ Zero means compute the Imenu menu regardless of size."
   "Format for displaying the function in the mode line."
   :group 'which-func
   :type 'sexp)
-
-;;;###autoload
-(defcustom which-func-mode-global nil
-  "*Toggle `which-func-mode' globally.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `which-func-mode'."
-  :set #'(lambda (symbol value)
-	   (which-func-mode (if value 1 0)))
-  :initialize 'custom-initialize-default
-  :type    'boolean
-  :group   'which-func
-  :require 'which-func)
 
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
@@ -176,20 +166,18 @@ It creates the Imenu index for the buffer, if necessary."
 
 ;; This is the name people would normally expect.
 ;;;###autoload
-(defalias 'which-function-mode 'which-func-mode)
-
+(defalias 'which-function-mode 'which-func-mode-global)
 ;;;###autoload
-(defun which-func-mode (&optional arg)
+(defalias 'which-func-mode 'which-func-mode-global)
+;;;###autoload
+(define-minor-mode which-func-mode-global
   "Toggle Which Function mode, globally.
 When Which Function mode is enabled, the current function name is
 continuously displayed in the mode line, in certain major modes.
 
 With prefix ARG, turn Which Function mode on iff arg is positive,
 and off otherwise."
-  (interactive "P")
-  (setq which-func-mode-global
-        (and (or arg (not which-func-mode-global))
-             (> (prefix-numeric-value arg) 0)))
+  :global t :group 'which-func
   (if which-func-mode-global
       ;;Turn it on
       (progn
@@ -206,8 +194,8 @@ and off otherwise."
 
 (defun which-function ()
   "Return current function name based on point.
-If `imenu--index-alist' does not exist, or is empty  or if point
-is located before first function, returns nil."
+Uses `imenu--index-alist' or `add-log-current-defun-function'.
+If no function name is found, return nil."
   (let (name)
     ;; First try using imenu support.
     (when (and (boundp 'imenu--index-alist) imenu--index-alist)
