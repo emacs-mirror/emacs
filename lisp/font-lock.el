@@ -954,10 +954,10 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	   (setq font-lock-buffers (buffer-list)))
 	  (t
 	   (remove-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
-	   (mapcar (function (lambda (buffer)
-			       (with-current-buffer buffer
-				 (when font-lock-mode
-				   (font-lock-mode)))))
+	   (mapc (function (lambda (buffer)
+			     (with-current-buffer buffer
+			       (when font-lock-mode
+				 (font-lock-mode)))))
 		   (buffer-list))))
     (when message
       (message "Global Font Lock mode %s." (if on-p "enabled" "disabled")))
@@ -1072,6 +1072,7 @@ The value of this variable is used when Font Lock mode is turned on."
 				      (const :tag "lazy lock" lazy-lock-mode)
 				      (const :tag "JIT lock" jit-lock-mode)))
 			 ))
+  :version "21.1"
   :group 'font-lock)
 
 (defvar fast-lock-mode nil)
@@ -1582,7 +1583,7 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
       (when (and font-lock-multiline
 		 (funcall (if (eq font-lock-multiline t) '>= '>)
 			  pre-match-value
-			  (save-excursion (forward-line 1) (point))))
+			  (line-beginning-position 2)))
 	;; this is a multiline anchored match
 	(setq font-lock-multiline t)
 	(put-text-property (point) limit 'font-lock-multiline t)))
