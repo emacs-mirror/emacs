@@ -5,7 +5,7 @@
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
-;; Version: 1.3.1
+;; Version: 1.4
 ;; Keywords: environment
 
 ;; This file is part of GNU Emacs.
@@ -438,75 +438,36 @@ C-mouse-2: hide tabs"
   "Right margin %S"
   "Help string shown when mouse is over the right margin area.")
 
-(defvar ruler-mode-left-fringe-cols nil
-  "Hold last result of function `ruler-mode-left-fringe-cols'.
-This cache is local to each frame.")
-(make-variable-frame-local 'ruler-mode-left-fringe-cols)
-
-(defun ruler-mode-left-fringe-cols (&optional check)
-  "Return the character width of fringe and left vertical scrollbar.
-That is a pair (FRINGE-COLS . VSCROLLBAR-COLS) where:
-
-- - FRINGE-COLS is the number of columns occupied by a fringe area.
-
-- - VSCROLLBAR-COLS is the number of columns occupied by the left
-    vertical scrollbar or 0 if there is no vertical scrollbar on the
-    left side.
-
-The first time this function is called its result is saved in a frame
-local cache and then returned on next calls.  If optional argument
-CHECK is non-nil or if the frame 'vertical-scroll-bars parameter has
-been changed the function re-computes the result."
-  (let* ((f   (selected-frame))
-         (vsb (frame-parameter f 'vertical-scroll-bars))
-         (lfc (frame-parameter f 'ruler-mode-left-fringe-cols)))
-    (if (or check (not (eq (cdr lfc) vsb)))
-        (let* ((w   (frame-first-window f))
-               (sbw (frame-pixel-width f))
-               (chw (frame-char-width f))
-               (chx (/ 1.0 (float chw)))
-               (pos (cons 0.0 0))
-               (lfw 0.0)
-               coord)
-          (if vsb
-              (modify-frame-parameters
-               f '((vertical-scroll-bars . nil))))
-          (setq coord (coordinates-in-window-p pos w))
-          (while (not (memq coord '(left-fringe mode-line)))
-            (setcdr pos (1+ (cdr pos)))
-            (setq coord (coordinates-in-window-p pos w)))
-          (while (eq coord 'left-fringe)
-            (setcar pos (+ (car pos) chx))
-            (setq lfw   (+ lfw chx)
-                  coord (coordinates-in-window-p pos w)))
-          (or vsb
-              (modify-frame-parameters
-               f '((vertical-scroll-bars . right))))
-          (setq sbw (/ (abs (- sbw (frame-pixel-width f))) chw)
-                lfw (floor lfw))
-          (setq lfc (cons (cons lfw (if (eq vsb 'left) sbw 0)) vsb))
-          (modify-frame-parameters
-           f (list (cons 'vertical-scroll-bars vsb)
-                   (cons 'ruler-mode-left-fringe-cols lfc)))))
-    (car lfc)))
+(defun ruler-mode-extra-left-cols ()
+  "Return number of extra columns on the left side of selected frame.
+That is the number of columns occupied by the left fringe area and
+vertical scrollbar on the left side of the selected frame."
+  (let ((w  (frame-first-window))
+        (xy (cons 0 0)))
+    (with-current-buffer (window-buffer w)
+      (let (header-line-format)
+        (while (not (listp (coordinates-in-window-p xy w)))
+          (setcar xy (1+ (car xy))))
+        (car xy)))))
 
 (defun ruler-mode-ruler ()
   "Return a string ruler."
   (if ruler-mode
-      (let* ((lfr   (ruler-mode-left-fringe-cols))
-             (w     (+ (window-width) 1 (cdr lfr)))
+      (let* ((j     (ruler-mode-extra-left-cols))
+             (k     (/ (or (frame-parameter nil 'right-fringe) 0)
+                       (frame-char-width)))
+             (w     (+ (window-width) j))
              (m     (window-margins))
              (l     (or (car m) 0))
              (r     (or (cdr m) 0))
-             (j     (+ (car lfr) (cdr lfr)))
              (o     (- (window-hscroll) l j))
              (i     0)
              (ruler (concat
                      ;; unit graduations
                      (make-string w ruler-mode-basic-graduation-char)
                      ;; extra space to fill the header line
-                     (make-string j ?\ )))
-             c k)
+                     (make-string k ?\ )))
+             c)
 
         ;; Setup default face and help echo.
         (put-text-property 0 (length ruler)
