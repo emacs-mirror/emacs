@@ -166,21 +166,48 @@ With prefix arg, prompt for diff switches."
   (message "Comparing files %s %s..." new old)
   (setq new (expand-file-name new)
 	old (expand-file-name old))
-  (let ((buf (compile-internal (mapconcat 'identity
-					  (append '("diff")
-						  (if (consp diff-switches)
-						      diff-switches
-						    (list diff-switches))
-						  (list old)
-						  (list new))
-					  " ")
-			       "No more differences" "Diff"
-			       'diff-parse-differences)))
-    (save-excursion
-      (set-buffer buf)
-      (set (make-local-variable 'diff-old-file) old)
-      (set (make-local-variable 'diff-new-file) new))
-    buf))
+  (let ((old-alt (diff-prepare old new))
+	(new-alt (diff-prepare new old))
+	buf)
+    (unwind-protect
+	(let ((command
+	       (mapconcat 'identity
+			  (append '("diff")
+				  (if (consp diff-switches)
+				      diff-switches
+				    (list diff-switches))
+				  (if (or old-alt new-alt)
+				      (list "-L" old "-L" new))
+				  (list (or old-alt old))
+				  (list (or new-alt new)))
+			  " ")))
+	  (setq buf
+		(compile-internal command
+				  "No more differences" "Diff"
+				  'diff-parse-differences)))
+	  (save-excursion
+	    (set-buffer buf)
+	    (set (make-local-variable 'diff-old-file) old)
+	    (set (make-local-variable 'diff-new-file) new))
+	  buf)
+      (if old-alt (delete-file old-alt))
+      (if new-alt (delete-file new-alt)))))
+
+;; Copy the file FILE into a temporary file if that is necessary
+;; for comparison.  (This is only necessary if the file name has a handler.)
+;; OTHER is the other file to be compared.
+(defun diff-prepare (file other)
+  (let (handler handlers)
+    (setq handlers file-name-handler-alist)
+    (while (and (consp handlers) (null handler))
+      (if (and (consp (car handlers))
+	       (stringp (car (car handlers)))
+	       (string-match (car (car handlers)) file))
+	  (setq handler (cdr (car handlers))))
+      (setq handlers (cdr handlers)))
+    (if handler
+	(funcall handler 'diff-prepare file other)
+      nil)))
 
 ;;;###autoload
 (defun diff-backup (file &optional switches)

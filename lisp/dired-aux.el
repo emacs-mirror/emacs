@@ -466,24 +466,36 @@ and use this command with a prefix argument (the value does not matter)."
   ;; Compress or uncompress the current file.
   ;; Return nil for success, offending filename else.
   (let* (buffer-read-only
-	 (from-file (dired-get-filename)))
-    (cond ((save-excursion (beginning-of-line)
-			   (looking-at dired-re-sym))
-	   (dired-log (concat "Attempt to compress a symbolic link:\n"
-			      from-file))
-	   (dired-make-relative from-file))
-	  ((string-match "\\.Z$" from-file)
+	 (from-file (dired-get-filename))
+	 (new-file (dired-compress-file from-file)))
+    (if new-file
+	(progn (dired-update-file-line new-file) nil)
+      (dired-log (concat "Failed to compress" from-file))
+      from-file)))
+
+(defun dired-compress-file (file)
+  ;; Compress or uncompress FILE.
+  ;; Return the name of the compressed or uncompressed file.
+  ;; Rerurn nil if no change in files.
+  (let (handler (handlers file-name-handler-alist))
+    (while (and (consp handlers) (null handler))
+      (if (and (consp (car handlers))
+	       (stringp (car (car handlers)))
+	       (string-match (car (car handlers)) file))
+	  (setq handler (cdr (car handlers))))
+      (setq handlers (cdr handlers)))
+    (cond (handler
+	   (funcall handler 'dired-compress-file file))
+	  ((file-symlink-p file)
+	   nil)
+	  ((string-match "\\.Z$" file)
 	   (if (dired-check-process (concat "Uncompressing " from-file)
 				    "uncompress" from-file)
-	       (dired-make-relative from-file)
-	     (dired-update-file-line (substring from-file 0 -2))))
+	       (substring file 0 -2)))
 	  (t
 	   (if (dired-check-process (concat "Compressing " from-file)
 				    "compress" "-f" from-file)
-	       ;; Errors from the process are already logged.
-	       (dired-make-relative from-file)
-	     (dired-update-file-line (concat from-file ".Z")))))
-    nil))
+	       (concat name ".Z"))))))
 
 (defun dired-mark-confirm (op-symbol arg)
   ;; Request confirmation from the user that the operation described
@@ -720,8 +732,9 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	    (let (buffer-read-only)
 	      (beginning-of-line)
 	      (dired-add-entry-do-indentation marker-char)
-	      (dired-ls (dired-make-absolute filename directory);; don't expand `.' !
-			(concat dired-actual-switches "d"))
+	      ;; don't expand `.' !
+	      (insert-directory (dired-make-absolute filename directory)
+				(concat dired-actual-switches "d"))
 	      (forward-line -1)
 	      ;; We want to have the non-directory part, only:
 	      (let* ((beg (dired-move-to-filename t)) ; error for strange output
@@ -1536,7 +1549,7 @@ This function takes some pains to conform to `ls -lR' output."
       (if (equal dirname (car (car (reverse dired-subdir-alist))))
 	  ;; top level directory may contain wildcards:
 	  (dired-readin-insert dired-directory)
-	(dired-ls dirname dired-actual-switches nil t)))
+	(insert-directory dirname dired-actual-switches nil t)))
     (message "Reading directory %s...done" dirname)
     (setq end (point-marker))
     (indent-rigidly begin end 2)
@@ -1634,38 +1647,6 @@ is always equal to STRING."
     (nreverse result)))
 
 ;;; moving by subdirectories
-
-(defun dired-subdir-index (dir)
-  ;; Return an index into alist for use with nth
-  ;; for the sake of subdir moving commands.
-  (let (found (index 0) (alist dired-subdir-alist))
-    (while alist
-      (if (string= dir (car (car alist)))
-	  (setq alist nil found t)
-	(setq alist (cdr alist) index (1+ index))))
-    (if found index nil)))
-
-;;;###autoload
-(defun dired-next-subdir (arg &optional no-error-if-not-found no-skip)
-  "Go to next subdirectory, regardless of level."
-  ;; Use 0 arg to go to this directory's header line.
-  ;; NO-SKIP prevents moving to end of header line, returning whatever
-  ;; position was found in dired-subdir-alist.
-  (interactive "p")
-  (let ((this-dir (dired-current-directory))
-	pos index)
-    ;; nth with negative arg does not return nil but the first element
-    (setq index (- (dired-subdir-index this-dir) arg))
-    (setq pos (if (>= index 0)
-		  (dired-get-subdir-min (nth index dired-subdir-alist))))
-    (if pos
-	(progn
-	  (goto-char pos)
-	  (or no-skip (skip-chars-forward "^\n\r"))
-	  (point))
-      (if no-error-if-not-found
-	  nil				; return nil if not found
-	(error "%s directory" (if (> arg 0) "Last" "First"))))))
 
 ;;;###autoload
 (defun dired-prev-subdir (arg &optional no-error-if-not-found no-skip)
