@@ -74,11 +74,6 @@ SHELL=/bin/sh
 #define NOT_C_CODE
 #include "config.h"
 
-#ifndef OPTIMIZE
-CFLAGS=-g
-#endif
-
-
 /* We won't really call alloca;
    don't let the file name alloca.c get messed up.  */
 #ifdef alloca
