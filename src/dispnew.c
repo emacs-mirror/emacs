@@ -4028,28 +4028,37 @@ set_window_cursor_after_update (w)
 	     line that has any text on it.  Note: either all lines
 	     are enabled or none.  Otherwise we wouldn't be able to
 	     determine Y.  */
-	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0);
-	  int vpos, last_row_vpos;
-	  struct glyph_row *last_row = NULL;
+	  struct glyph_row *row, *last_row;
+	  struct glyph *glyph;
+	  int yb = window_text_bottom_y (w);
 
-	  vpos = 0;
-	  while (vpos < w->current_matrix->nrows)
+	  last_row = NULL;
+	  for (row = MATRIX_ROW (w->current_matrix, 0);; ++row)
 	    {
-	      if (row->enabled_p && row->used[TEXT_AREA])
-		{
-		  last_row = row;
-		  last_row_vpos = vpos;
-		}
-	      ++row;
-	      ++vpos;
-	    }
+	      if (row->used[TEXT_AREA]
+		  && row->glyphs[TEXT_AREA][0].charpos >= 0)
+		last_row = row;
 
+	      if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
+		break;
+	    }
+	  
 	  if (last_row)
 	    {
-	      cx = last_row->pixel_width;
-	      hpos = last_row->used[TEXT_AREA];
+	      struct glyph *start = row->glyphs[TEXT_AREA];
+	      struct glyph *last = start + row->used[TEXT_AREA];
+
+	      while (last > start && (last - 1)->charpos < 0)
+		--last;
+	      
+	      for (glyph = start; glyph < last; ++glyph)
+		{
+		  cx += glyph->pixel_width;
+		  ++hpos;
+		}
+
 	      cy = last_row->y;
-	      vpos = last_row_vpos;
+	      vpos = MATRIX_ROW_VPOS (last_row, w->current_matrix);
 	    }
 	}
     }
