@@ -660,8 +660,10 @@ also the same size as FACE on FRAME, or fail."
 		   ;; for related fonts.
 		   "*"
 		   (substring font (match-end x-font-regexp-adstyle-subnum))))
-	  ((or (string-match x-font-regexp-head font)
-	       (string-match x-font-regexp-weight font))
+	  ((string-match x-font-regexp-head font)
+	   (concat (substring font 0 (match-beginning 1)) which
+		   (substring font (match-end 1))))
+	  ((string-match x-font-regexp-weight font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
 
@@ -678,8 +680,10 @@ also the same size as FACE on FRAME, or fail."
 		   ;; for related fonts.
 		   "*"
 		   (substring font (match-end x-font-regexp-adstyle-subnum))))
-	  ((or (string-match x-font-regexp-head font)
-	       (string-match x-font-regexp-slant font))
+	  ((string-match x-font-regexp-head font)
+	   (concat (substring font 0 (match-beginning 2)) which
+		   (substring font (match-end 2))))
+	  ((string-match x-font-regexp-slant font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
 
