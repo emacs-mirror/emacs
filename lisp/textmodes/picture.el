@@ -100,11 +100,11 @@ If scan reaches end of buffer, stop there without error."
   (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
   (setq picture-desired-column (current-column)))
 
-(defun picture-forward-column (arg)
+(defun picture-forward-column (arg &optional interactive)
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
-  (interactive "p")
-  (picture-update-desired-column (interactive-p))
+  (interactive "p\nd")
+  (picture-update-desired-column interactive)
   (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
   (let ((current-column (move-to-column picture-desired-column t)))
     (if (and (> current-column picture-desired-column)
@@ -113,11 +113,11 @@ With argument, move that many columns."
 	;; column of a multi-column character.
 	(forward-char -1))))
 
-(defun picture-backward-column (arg)
+(defun picture-backward-column (arg &optional interactive)
   "Move cursor left, making whitespace if necessary.
 With argument, move that many columns."
-  (interactive "p")
-  (picture-update-desired-column (interactive-p))
+  (interactive "p\nd")
+  (picture-update-desired-column interactive)
   (picture-forward-column (- arg)))
 
 (defun picture-move-down (arg)
