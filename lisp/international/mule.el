@@ -1727,12 +1727,31 @@ function by default."
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-(defun after-insert-file-set-coding (inserted)
+;; This variable is set in these two cases:
+;;   (1) A file is read by a coding system specified explicitly.
+;;       after-insert-file-set-coding sets this value to
+;;       coding-system-for-read.
+;;   (2) A buffer is saved.
+;;       After writing, basic-save-buffer-1 sets this value to
+;;       last-coding-system-used.
+;; This variable is used for decoding in revert-buffer.
+(defvar explicit-buffer-file-coding-system nil
+  "The file coding system explicitly specified for the current buffer.
+Internal use only.")
+(make-variable-buffer-local 'explicit-buffer-file-coding-system)
+(put 'explicit-buffer-file-coding-system 'permanent-local t)
+
+(defun after-insert-file-set-coding (inserted &optional visit)
   "Set `buffer-file-coding-system' of current buffer after text is inserted.
 INSERTED is the number of characters that were inserted, as figured
 in the situation before this function.  Return the number of characters
 inserted, as figured in the situation after.  The two numbers can be
-different if the buffer has become unibyte."
+different if the buffer has become unibyte.
+The optional second arg VISIT non-nil means that we are visiting a file."
+  (if (and visit
+	   coding-system-for-read
+	   (not (eq coding-system-for-read 'auto-save-coding)))
+      (setq explicit-buffer-file-coding-system coding-system-for-read))
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
