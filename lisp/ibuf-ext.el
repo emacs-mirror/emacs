@@ -541,11 +541,15 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
   "Set the current filter groups to filter by mode."
   (interactive)
   (setq ibuffer-filter-groups
-	(mapcar (lambda (mode)
-		  (cons (format "%s" mode) `((mode . ,mode))))
-		(delete-duplicates
-		 (mapcar (lambda (buf) (with-current-buffer buf major-mode))
-			 (buffer-list)))))
+        (mapcar (lambda (mode)
+                  (cons (format "%s" mode) `((mode . ,mode))))
+                (let ((modes
+                       (delete-duplicates
+                        (mapcar (lambda (buf) (with-current-buffer buf major-mode))
+                                (buffer-list)))))
+                  (if ibuffer-view-ibuffer
+		      modes
+		    (delq 'ibuffer-mode modes)))))
   (ibuffer-update nil t))
 
 ;;;###autoload
@@ -554,14 +558,17 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
   (interactive)
   (when (null ibuffer-filter-groups)
     (error "No filtering groups active"))
-  (pop ibuffer-filter-groups)
+  (setq ibuffer-hidden-filter-groups
+	(delete (pop ibuffer-filter-groups)
+		ibuffer-hidden-filter-groups))
   (ibuffer-update nil t))
 
 ;;;###autoload
 (defun ibuffer-clear-filter-groups ()
   "Remove all filtering groups."
   (interactive)
-  (setq ibuffer-filter-groups nil)
+  (setq ibuffer-filter-groups nil
+	ibuffer-hidden-filter-groups nil)
   (ibuffer-update nil t))
 
 (defun ibuffer-current-filter-groups-with-position ()
@@ -599,8 +606,11 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
     (setq name (completing-read "Kill filter group: "
 				ibuffer-filter-groups nil t)))
   (ibuffer-aif (assoc name ibuffer-filter-groups)
-      (setq ibuffer-filter-groups (ibuffer-delete-alist
-				   name ibuffer-filter-groups))
+      (progn
+	(setq ibuffer-filter-groups (ibuffer-delete-alist
+				     name ibuffer-filter-groups))
+	(setq ibuffer-hidden-filter-groups
+	      delete name ibuffer-hidden-filter-groups))
     (error "No filter group with name \"%s\"" name))
   (ibuffer-update nil t))
 
@@ -687,7 +697,8 @@ of replacing the current filters."
 	(error "No saved filters")
       (completing-read "Switch to saved filter group: "
 		       ibuffer-saved-filter-groups nil t))))
-  (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups)))
+  (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups))
+	ibuffer-hidden-filter-groups nil)
   (ibuffer-update nil t))
 
 ;;;###autoload
