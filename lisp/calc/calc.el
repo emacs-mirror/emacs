@@ -1049,6 +1049,7 @@ Notations:  3.14e6     3.14 * 10^6
   (mapcar (function (lambda (v) (make-local-variable v))) calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (setq major-mode 'calc-mode)
