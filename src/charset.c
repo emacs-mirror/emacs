@@ -233,7 +233,7 @@ char_to_string_1 (c, str)
 		      ? LEADING_CODE_PRIVATE_21
 		      : LEADING_CODE_PRIVATE_22)));
       *p++ = charset;
-      if (c1 > 0 && c1 < 32 || c2 > 0 && c2 < 32)
+      if ((c1 > 0 && c1 < 32) || (c2 > 0 && c2 < 32))
 	return -1;
       if (c1)
 	{
@@ -377,7 +377,7 @@ translate_char (table, c, charset, c1, c2)
 
   SPLIT_CHAR (XFASTINT (ch), alt_charset, alt_c1, alt_c2);
   dimension = CHARSET_DIMENSION (alt_charset);
-  if (dimension == 1 && alt_c1 > 0 || dimension == 2 && alt_c2 > 0)
+  if ((dimension == 1 && alt_c1 > 0) || (dimension == 2 && alt_c2 > 0))
     /* CH is not a generic character, just return it.  */
     return XFASTINT (ch);
 
@@ -686,7 +686,7 @@ DESCRIPTION (string) is the description string of the charset.  */)
       || !INTEGERP (vec[2]) || !(XINT (vec[2]) == 1 || XINT (vec[2]) == 2)
       || !INTEGERP (vec[3]) || !(XINT (vec[3]) == 0 || XINT (vec[3]) == 1)
       || !INTEGERP (vec[4])
-      || !(XINT (vec[4]) == -1 || XINT (vec[4]) >= '0' && XINT (vec[4]) <= '~')
+      || !(XINT (vec[4]) == -1 || (XINT (vec[4]) >= '0' && XINT (vec[4]) <= '~'))
       || !INTEGERP (vec[5])
       || !(XINT (vec[5]) == -1 || XINT (vec[5]) == 0 || XINT (vec[5]) == 1)
       || !STRINGP (vec[6])
