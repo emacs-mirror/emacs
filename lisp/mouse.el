@@ -685,14 +685,14 @@ If DIR is positive skip forward; if negative, skip backward."
 			     (forward-sexp 1)
 			     (point))
 			 (error end))))
-	     (list (1+ start)
-		   (save-excursion
+	     (list (save-excursion
 		     (condition-case nil
 			 (progn
 			   (goto-char (1+ start))
 			   (backward-sexp 1)
 			   (point))
-		       (error end)))))))
+		       (error end)))
+		   (1+ start)))))
         ((= mode 1)
 	 (list (save-excursion
 		 (goto-char start)
