@@ -2094,7 +2094,8 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 
   x_get_window_property (display, window, buffer_atom, &data, &bytes,
 			 &type, &format, &size, 0);
-  if (!data) return Qnil;
+  if (!data || !format)
+    return Qnil;
   
   if (format != 8 || type != XA_STRING)
     Fsignal (Qerror,
