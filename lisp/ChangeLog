@@ -12,19 +12,27 @@
 
 	* dos-w32.el: Added support for the `default-printer-name' function.
 
+2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-socket-name): Don't use the hostname in the
+	socket name since /tmp is local to the host anyway.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Use a more
+	robust check of widening and fix var-naming.
+
 2004-01-27  Eli Tziperman  <eli@deas.harvard.edu>
 
 	* rmail-spam-filter.el: Change rmail-spam-filter- or spam-filter-
 	or rmail-spam- to rsf- in all function and variable names.
 	(rsf-min-region-to-spam-list): New variable.
-	(rsf-bbdb-auto-delete-spam-entries): Renamed from
+	(rsf-bbdb-auto-delete-spam-entries): Rename from
 	rmail-bbdb-auto-delete-spam-bbdb-entries.  The cc: field is
 	scanned together with the recipients field for spam testing; Don't
 	delete spam message if rmail-delete-after-output is non-nil;
-	(check-field) New function, extracted from code in
+	(rsf-check-field): New function, extracted from code in
 	rmail-spam-filter to ease addition of header fields like
 	content-type:;
-	(message-content-type) New variable.  The content-type: field was
+	(message-content-type): New variable.  The content-type: field was
 	added also in defcustom of rsf-definitions-alist;
 	(rmail-spam-filter): Replace repeated test code for header fields
 	by calls to check-field; change the call to
@@ -32,15 +40,14 @@
 	the same to avoid wrong deletion of unseen flags.
 	(rmail-use-spam-filter): Add autoload cookie.
 
-2004-01-27 Sat  Jari Aalto  <jari.aalto@poboxes.com>
+2004-01-27  Jari Aalto  <jari.aalto@poboxes.com>
 
-        * filecache.el
-        (file-cache-find-posix-p): New function. Detect Cygwin.
-        (file-cache-add-directory-using-find): Added Cygwin support.
-        (file-cache-find-command-posix-flag): New user variable.
+	* filecache.el (file-cache-find-posix-p): New function.  Detect Cygwin.
+	(file-cache-add-directory-using-find): Add Cygwin support.
+	(file-cache-find-command-posix-flag): New user variable.
 
-        * filecache.el (file-cache-add-directory): Check for
-        directories an remove them from dir-files.
+	* filecache.el (file-cache-add-directory): Check for
+	directories an remove them from dir-files.
 
 2004-01-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -51,9 +58,8 @@
 	* textmodes/paragraphs.el (sentence-end-without-space): New variable.
 	(sentence-end): Define using sentence-end-without-space.
 
-	* textmodes/fill.el (fill-delete-newlines): Don't add a space if a
-	setence ends with one of a character in
-	sentence-end-without-space.
+	* textmodes/fill.el (fill-delete-newlines): Don't add a space if
+	a sentence ends with one of a character in sentence-end-without-space.
 
 2004-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
