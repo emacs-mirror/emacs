@@ -917,6 +917,14 @@ See also the function `substitute-in-file-name'.")
 	      goto look_again;
 	}
   }
+
+#ifdef WINDOWSNT
+  /* If we see "c://somedir", we want to strip the first slash after the
+     colon when stripping the drive letter.  Otherwise, this expands to
+     "//somedir".  */
+  if (drive && IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
+    nm++;
+#endif /* WINDOWSNT */
 #endif /* DOS_NT */
 
 #ifdef WINDOWSNT
@@ -2357,10 +2365,6 @@ This is what happens in interactive use with M-x.")
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0);
-#ifdef WINDOWSNT
-  /* Windows does not support this operation.  */
-  report_file_error ("Adding new name", Flist (2, &file));
-#else /* not WINDOWSNT */
 
   unlink (XSTRING (newname)->data);
   if (0 > link (XSTRING (file)->data, XSTRING (newname)->data))
@@ -2373,7 +2377,6 @@ This is what happens in interactive use with M-x.")
       report_file_error ("Adding new name", Flist (2, &file));
 #endif
     }
-#endif /* not WINDOWSNT */
 
   UNGCPRO;
   return Qnil;
