@@ -1746,19 +1746,16 @@ Garbage collection happens automatically if you cons more than\n\
   struct handler *handler;
   register struct backtrace *backlist;
   register Lisp_Object tem;
-  char *omessage = echo_area_glyphs;
-  Lisp_Object omessage_string = echo_area_message;
-  int omessage_length = echo_area_glyphs_length;
-  int oldmultibyte = message_enable_multibyte;
   char stack_top_variable;
   register int i;
-  struct gcpro gcpro1;
+  int message_p;
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
   consing_since_gc = 0;
 
-  GCPRO1 (omessage_string);
+  /* Save what's currently displayed in the echo area.  */
+  message_p = push_message ();
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
@@ -1942,15 +1939,14 @@ Garbage collection happens automatically if you cons more than\n\
 
   if (garbage_collection_messages)
     {
-      if (STRINGP (omessage_string))
-	message3_nolog (omessage_string, omessage_length, oldmultibyte);
-      if (omessage || minibuf_level > 0)
-	message2_nolog (omessage, omessage_length, oldmultibyte);
+      if (message_p || minibuf_level > 0)
+	restore_message ();
       else
 	message1_nolog ("Garbage collecting...done");
     }
 
-  UNGCPRO;
+  pop_message ();
+  
   return Fcons (Fcons (make_number (total_conses),
 		       make_number (total_free_conses)),
 		Fcons (Fcons (make_number (total_symbols),
