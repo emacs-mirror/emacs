@@ -1,3 +1,11 @@
+2001-09-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/rmail.el (top-level): Require mule-utils when compiling.
+	(rmail-decode-babyl-format): Use detect-coding-with-priority
+	instead of detect-coding-region, to favor detection of emacs-mule
+	encoded Babyl files written by rmailout.el etc.  Suggested by
+	Kenichi Handa <handa@etl.go.jp>.
+
 2001-09-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/em-unix.el (eshell-shuffle-files, eshell-shuffle-files):
