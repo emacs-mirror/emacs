@@ -54,8 +54,6 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include "syssignal.h"
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 /* This sucks: this is the first default that x-faces.el tries.  This won't
    be used unless neither the "Emacs.EmacsFrame" resource nor the
    "Emacs.EmacsFrame" resource is set; the frame
