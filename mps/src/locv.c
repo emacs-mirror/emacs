@@ -1,8 +1,6 @@
-/* impl.c.locv
+/* impl.c.locv: Leaf Object Pool Class Coverage Test
  *
- *           Leaf Object Pool Class Coverage Test
- *
- * $HopeName: MMsrc!locv.c(trunk.11) $
+ * $HopeName: MMsrc!locv.c(trunk.12) $
  *
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
@@ -44,8 +42,8 @@ static mps_fmt_A_s locv_fmt =
 
 static mps_addr_t roots[4];
 
-int
-main(void)
+
+int main(void)
 {
   mps_space_t space;
   mps_pool_t pool;
@@ -94,17 +92,16 @@ main(void)
   return 0;
 }
 
-static
-mps_res_t
-scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+
+static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
+  (void)(ss, base, limit);
   die(MPS_RES_FAIL, "Error in Test, scan called unexpectedly");
   return MPS_RES_FAIL;
 }
 
-static
-mps_addr_t
-skip(mps_addr_t object)
+
+static mps_addr_t skip(mps_addr_t object)
 {
   size_t bytes;
 
@@ -113,31 +110,31 @@ skip(mps_addr_t object)
   return (mps_addr_t)((char *)object + bytes);
 }
 
-static
-void
-move(mps_addr_t object, mps_addr_t to)
+
+static void move(mps_addr_t object, mps_addr_t to)
 {
+  (void)(object, to);
   assert(0);
 }
 
-static
-mps_addr_t
-isMoved(mps_addr_t object)
+
+static mps_addr_t isMoved(mps_addr_t object)
 {
+  (void)object;
   assert(0);
   return (mps_addr_t)NULL;
 }
 
-static
-void
-copy(mps_addr_t old, mps_addr_t new)
+
+static void copy(mps_addr_t old, mps_addr_t new)
 {
+  (void)(old, new);
   assert(0);
 }
 
-static
-void
-pad(mps_addr_t base, size_t size)
+
+static void pad(mps_addr_t base, size_t size)
 {
+  (void)(base, size);
   assert(0);
 }
