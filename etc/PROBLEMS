@@ -626,7 +626,7 @@ introduced with Emacs 21.1, could significantly slow down scrolling
 through the buffer, especially scrolling backwards, and also jumping
 to the end of a very large buffer.
 
-Beginning with version 21.3, a parenthesis or a brace in column zero
+Beginning with version 21.4, a parenthesis or a brace in column zero
 is highlighted in bold-red face if it is inside a string or a comment,
 to indicate that it could interfere with Font Lock (and also with
 indentation) and should be moved or escaped with a backslash.
