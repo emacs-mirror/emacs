@@ -1,3 +1,39 @@
+2002-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-default-comment-history): Hard code *vc*.
+	This is because print-log always prints there now.
+	(vc-annotate-font-lock-keywords): New var.
+	(vc-annotate-mode): Use it.  Set truncate-lines as well.
+	(vc-annotate-display-select): Unify the two error reports.
+	(vc-annotate-offset): New var.
+	(vc-annotate-lines): New fun extracted from vc-annotate-display.
+	(vc-annotate-display): Use it, via font-lock.
+
+	* help-fns.el (help-split-fundoc, help-function-arglist)
+	(help-make-usage): New funs, extracted from describe-function-1.
+	(describe-function-1): Use them.
+
+	* help.el (help-key-description): Show the untranslated keys
+	when they start with ESC and the ESC was not translated.
+
+	* help-mode.el (view): Always require.
+	(help-xref-mule-regexp): Don't use defconst for variables.
+	(help-setup-xref): Keep the last 10 elements of the stack.
+	(help-xref-override-view-map): New var.
+	(help-make-xrefs): Use it instead of building a new map each time.
+	(help-function-def): Allow help-fun to take a buffer as arg.
+
+	* diff-mode.el (diff-reverse-direction): Simplify.
+	(diff-after-change-function): Fix typo.
+	(diff-post-command-hook): Take care of edge cases.
+	(diff-current-defun): Do `goto-char' after setting the mode.
+
+	* mouse-sel.el (mouse-sel-mode): Use define-minor-mode.
+	Fold mouse-sel-bindings into it.
+	(mouse-sel-bound-events): Turn it into an alist.
+	(mouse-insert-selection): Delegate to mouse-yank-at-click if
+	mouse-sel-default-bindings asks for it.
+
 2002-07-16  Andre Spiegel  <spiegel@gnu.org>
 
 	* files.el: Bind toggle-read-only to C-x C-q.
@@ -10,11 +46,10 @@
 	(vc-checkout-model): Change doc string to refer to vc-next-action,
 	not vc-toggle-read-only.
 
-	* vc.el (vc-next-action-on-file): Ignore buffer-read-only while 
-	comparing to file on disk.  Fix the case when claiming the lock 
+	* vc.el (vc-next-action-on-file): Ignore buffer-read-only while
+	comparing to file on disk.  Fix the case when claiming the lock
 	on a file that has unlocked changes.
-	(vc-log-mode): Don't mention vc-toggle-read-only in the doc
-	string.
+	(vc-log-mode): Don't mention vc-toggle-read-only in the doc string.
 
 2002-07-16  Richard M. Stallman  <rms@gnu.org>
 
@@ -26,7 +61,7 @@
 	(custom-variable-standard-value, custom-face-standard-value): New fns.
 	(custom-face-save): Don't save a face whose value is standard.
 	(custom-save-faces): Use SYMBOL, not 'default, to set NOW and COMMENT.
-	
+
 	* cus-edit.el (custom-face-edit-fix-value):
 	If VALUE is not a list, pass it thru.
 
