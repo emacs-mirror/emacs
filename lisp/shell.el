@@ -738,7 +738,7 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 
 
 (defun shell-match-partial-variable ()
-  "Return the variable at point, or nil if non is found."
+  "Return the shell variable at point, or nil if none is found."
   (save-excursion
     (let ((limit (point)))
       (if (re-search-backward "[^A-Za-z0-9_{}]" nil 'move)
