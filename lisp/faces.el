@@ -355,45 +355,125 @@ FRAME nil or not specified means do it for all frames."
   (symbol-name (check-face face)))
 
 
-(defun face-attribute (face attribute &optional frame)
+(defun face-attribute (face attribute &optional frame inherit)
   "Return the value of FACE's ATTRIBUTE on FRAME.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (internal-get-lisp-face-attribute face attribute frame))
+If FRAME is omitted or nil, use the selected frame.
+
+If INHERIT is nil, only attributes directly defined by FACE are considered,
+  so the return value may be `unspecified', or a relative value.
+If INHERIT is non-nil, FACE's definition of ATTRIBUTE is merged with the
+  faces specified by its `:inherit' attribute; however the return value
+  may still be `unspecified' or relative.
+If INHERIT is a face or a list of faces, then the result is further merged
+  with that face (or faces), until it becomes specified and absolute.
+
+To ensure that the return value is always specified and absolute, use a
+value of `default' for INHERIT; this will resolve any unspecified or
+relative values by merging with the `default' face (which is always
+completely specified)."
+  (let ((value (internal-get-lisp-face-attribute face attribute frame)))
+    (when (and inherit (face-attribute-relative-p attribute value))
+      ;; VALUE is relative, so merge with inherited faces
+      (let ((inh-from (face-attribute face :inherit frame)))
+	(unless (or (null inh-from) (eq inh-from 'unspecified))
+	  (setq value
+		(face-attribute-merged-with attribute value inh-from frame)))))
+    (when (and inherit
+	       (not (eq inherit t))
+	       (face-attribute-relative-p attribute value))
+	;; We should merge with INHERIT as well
+      (setq value (face-attribute-merged-with attribute value inherit frame)))
+    value))
+
+(defun face-attribute-merged-with (attribute value faces &optional frame)
+  "Merges ATTRIBUTE, initially VALUE, with faces from FACES until absolute.
+FACES may be either a single face or a list of faces.
+\[This is an internal function]"
+  (cond ((not (face-attribute-relative-p attribute value))
+	 value)
+	((null faces)
+	 value)
+	((consp faces)
+	 (face-attribute-merged-with
+	  attribute
+	  (face-attribute-merged-with attribute value (car faces) frame)
+	  (cdr faces)
+	  frame))
+	(t
+	 (merge-face-attribute attribute
+			       value
+			       (face-attribute faces attribute frame t)))))
 
 
-(defun face-foreground (face &optional frame)
+(defmacro face-attribute-specified-or (value &rest body)
+  "Return VALUE, unless it's `unspecified', in which case evaluate BODY and return the result."
+  (let ((temp (make-symbol "value")))
+    `(let ((,temp ,value))
+       (if (not (eq ,temp 'unspecified))
+	   ,temp
+	 ,@body))))
+
+(defun face-foreground (face &optional frame inherit)
   "Return the foreground color name of FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (let ((value (internal-get-lisp-face-attribute face :foreground frame)))
-    (if (eq value 'unspecified)
-	nil
-      value)))
+If FRAME is omitted or nil, use the selected frame.
 
+If INHERIT is nil, only a foreground color directly defined by FACE is
+  considered, so the return value may be nil.
+If INHERIT is t, and FACE doesn't define a foreground color, then any
+  foreground color that FACE inherits through its `:inherit' attribute
+  is considered as well; however the return value may still be nil.
+If INHERIT is a face or a list of faces, then it is used to try to
+  resolve an unspecified foreground color.
 
-(defun face-background (face &optional frame)
+To ensure that a valid color is always returned, use a value of
+`default' for INHERIT; this will resolve any unspecified values by
+merging with the `default' face (which is always completely specified)."
+  (face-attribute-specified-or (face-attribute face :foreground frame inherit)
+			       nil))
+
+(defun face-background (face &optional frame inherit)
   "Return the background color name of FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (let ((value (internal-get-lisp-face-attribute face :background frame)))
-    (if (eq value 'unspecified)
-	nil
-      value)))
+If FRAME is omitted or nil, use the selected frame.
 
+If INHERIT is nil, only a background color directly defined by FACE is
+  considered, so the return value may be nil.
+If INHERIT is t, and FACE doesn't define a background color, then any
+  background color that FACE inherits through its `:inherit' attribute
+  is considered as well; however the return value may still be nil.
+If INHERIT is a face or a list of faces, then it is used to try to
+  resolve an unspecified background color.
 
-(defun face-stipple (face &optional frame)
+To ensure that a valid color is always returned, use a value of
+`default' for INHERIT; this will resolve any unspecified values by
+merging with the `default' face (which is always completely specified)."
+  (face-attribute-specified-or (face-attribute face :background frame inherit)
+			       nil))
+
+(defun face-stipple (face &optional frame inherit)
  "Return the stipple pixmap name of FACE, or nil if unspecified.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame."
-  (let ((value (internal-get-lisp-face-attribute face :stipple frame)))
-    (if (eq value 'unspecified)
-	nil
-      value)))
+If FRAME is omitted or nil, use the selected frame.
+
+If INHERIT is nil, only a stipple directly defined by FACE is
+  considered, so the return value may be nil.
+If INHERIT is t, and FACE doesn't define a stipple, then any stipple
+  that FACE inherits through its `:inherit' attribute is considered as
+  well; however the return value may still be nil.
+If INHERIT is a face or a list of faces, then it is used to try to
+  resolve an unspecified stipple.
+
+To ensure that a valid stipple or nil is always returned, use a value of
+`default' for INHERIT; this will resolve any unspecified values by merging
+with the `default' face (which is always completely specified)."
+  (face-attribute-specified-or (face-attribute face :stipple frame inherit)
+			       nil))
 
 
 (defalias 'face-background-pixmap 'face-stipple)
