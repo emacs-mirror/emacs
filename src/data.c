@@ -2108,7 +2108,7 @@ It ignores leading spaces and tabs.\n\
 \n\
 If BASE, interpret STRING as a number in that base.  If BASE isn't\n\
 present, base 10 is used.  BASE must be between 2 and 16 (inclusive).\n\
-Floating point numbers always use base 10.")
+If the base used is not 10, floating point is not recognized.")
    (string, base)
      register Lisp_Object string, base;
 {
@@ -2144,7 +2144,7 @@ Floating point numbers always use base 10.")
     p++;
   
 #ifdef LISP_FLOAT_TYPE
-  if (isfloat_string (p))
+  if (isfloat_string (p) && b == 10)
     return make_float (negative * atof (p));
 #endif /* LISP_FLOAT_TYPE */
 
