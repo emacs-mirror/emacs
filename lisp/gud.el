@@ -1182,7 +1182,7 @@ directories if your program contains sources from more than one directory."
 ;; "-d" in inserted as the first switch, and "-emacs" is inserted where
 ;; it will be $ARGV[0] (see perl5db.pl).
 (defun gud-perldb-massage-args (file args)
-  (let* ((new-args '("-d"))
+  (let* ((new-args (list "-d"))
 	 (seen-e nil)
 	 (shift (lambda ()
 		  (setq new-args (cons (car args) new-args))
