@@ -489,7 +489,7 @@ main (argc, argv)
   int i;
   int outfflag = 0;
   unsigned int nincluded_files = 0;
-  char **included_files = (char *) alloca (argc * sizeof (char *));
+  char **included_files = (char **) alloca (argc * sizeof (char *));
   char *this_file;
 #ifdef VMS
   char got_err;
