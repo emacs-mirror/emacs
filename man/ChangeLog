@@ -1,3 +1,8 @@
+2004-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* mini.texi (Repetition): Rename isearch-resume-enabled to
+	isearch-resume-in-command-history and change default to disabled.
+
 2004-09-10  Simon Josefsson  <jas@extundo.com>
 
 	* gnus.texi (IMAP): Add example.  Suggested and partially written
