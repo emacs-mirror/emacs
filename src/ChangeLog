@@ -1,5 +1,9 @@
 2001-07-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (unwind_read): Print a message when discarding inserted
+	text or switching the buffer to unibyte.  Change parameter.
+	(Finsert_file_contents): Don't pass VISIT to unwind_read.
+	
 	* fileio.c (unwind_read): New function.
 	(Finsert_file_contents): Record it as unwind-function for
 	the case that reading is interrupted by C-g.
