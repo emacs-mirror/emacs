@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.47) $
+ * $HopeName: MMsrc!poolams.c(trunk.48) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.47) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.48) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -993,6 +993,7 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   }
 
   trace->condemned += SegSize(seg);
+  ams->pgen.newSize -= SegSize(seg);
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   amsseg->ambiguousFixes = FALSE;
 

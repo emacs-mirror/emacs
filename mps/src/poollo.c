@@ -1,7 +1,7 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.16) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poollo.c(trunk.17) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -12,7 +12,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.16) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.17) $");
 
 
 #define LOGen ((Serial)1)
@@ -663,11 +663,12 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     AVERT(LOSeg, loseg);
 
     bits = SegSize(seg) >> lo->alignShift;
-    /* allocated objects should be whitened, free areas should */
-    /* be left "black" */
+    /* Allocated objects should be whitened, free areas should */
+    /* be left "black". */
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, bits);
     /* @@@@ We could subtract all the free grains. */
     trace->condemned += SegSize(seg);
+    lo->pgen.newSize -= SegSize(seg);
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
 
