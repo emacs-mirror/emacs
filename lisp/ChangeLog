@@ -1,3 +1,11 @@
+2002-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (auto-save-file-name-transforms): Don't run "\\2" via
+	expand-file-name.
+
+	* startup.el (command-line): Recompute auto-save-file-name-transforms
+	using the updated value of temporary-file-directory.
+
 2002-03-29  Simon Marshall  <simon.marshall@misys.com>
 
 	* font-lock.el (save-buffer-state): Use make-symbol to bind
