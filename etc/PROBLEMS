@@ -9,7 +9,7 @@ graphical file dialog boxes do not work properly.  The "OK", "Filter"
 and "Cancel" buttons do not respond to mouse clicks.  Dragging the
 file dialog window usually causes the buttons to work again.
 
-The solution is to use LessTi instead.  LessTif is a free replacement
+The solution is to use LessTif instead.  LessTif is a free replacement
 for Motif.  See the file INSTALL for information on how to do this.
 
 Another workaround is not to use the mouse to trigger file prompts,
