@@ -64,14 +64,23 @@ to return to regular RMAIL:
 (defvar rmail-old-pruned nil)
 (put 'rmail-old-pruned 'permanent-local t)
 
+(defvar rmail-edit-saved-coding-system nil)
+(put 'rmail-edit-saved-coding-system 'permanent-local t)
+
 ;;;###autoload
 (defun rmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
   (make-local-variable 'rmail-old-pruned)
   (setq rmail-old-pruned (rmail-msg-is-pruned))
+  (make-local-variable 'rmail-edit-saved-coding-system)
+  (setq rmail-edit-saved-coding-system save-buffer-coding-system)
   (rmail-toggle-header 0)
   (rmail-edit-mode)
+  ;; As the local value of save-buffer-coding-system is deleted by
+  ;; rmail-edit-mode, we restore the original value.
+  (make-local-variable 'save-buffer-coding-system)
+  (setq save-buffer-coding-system rmail-edit-saved-coding-system)
   (make-local-variable 'rmail-old-text)
   (setq rmail-old-text (buffer-substring (point-min) (point-max)))
   (setq buffer-read-only nil)
@@ -102,6 +111,9 @@ to return to regular RMAIL:
     (kill-all-local-variables)
     (rmail-mode-1)
     (rmail-variables)
+    ;; As the local value of save-buffer-coding-system is changed by
+    ;; rmail-variables, we restore the original value.
+    (setq save-buffer-coding-system rmail-edit-saved-coding-system)
     (if (and (= (length old) (- (point-max) (point-min)))
 	     (string= old (buffer-substring (point-min) (point-max))))
 	()
