@@ -5507,13 +5507,14 @@ resize_mini_window (w, exact_p)
 	  || BEGV == ZV)
 	{
 	  Lisp_Object old_selected_window;
+	  int old_height = XFASTINT (w->height);
 	      
 	  freeze_window_starts (f, height > XFASTINT (w->height));
 	  old_selected_window = selected_window;
 	  XSETWINDOW (selected_window, w);
 	  change_window_height (height - XFASTINT (w->height), 0);
 	  selected_window = old_selected_window;
-	  window_height_changed_p = 1;
+	  window_height_changed_p = XFASTINT (w->height) != old_height;
 	}
     }
 
