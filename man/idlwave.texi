@@ -1,8 +1,8 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
-@setfilename idlwave
+@setfilename ../info/idlwave
 @settitle IDLWAVE User Manual
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 @end direntry
