@@ -1077,12 +1077,16 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       ;; location, and the file and line number of the error.
 	       (save-excursion
 		 (beginning-of-line 1)
-		 (setq compilation-error-list
-		       (cons (cons (point-marker)
-				   (cons filename linenum))
-			     compilation-error-list)))
-	       (setq compilation-num-errors-found
-		     (1+ compilation-num-errors-found))
+		 (let ((this (cons (point-marker)
+				   (cons filename linenum))))
+		   ;; Don't add the same source line more than once.
+		   (if (equal (cdr this) (cdr (car compilation-error-list)))
+		       nil
+		     (setq compilation-error-list
+			   (cons this
+				 compilation-error-list))
+		     (setq compilation-num-errors-found
+			   (1+ compilation-num-errors-found)))))
 	       (and find-at-least (>= compilation-num-errors-found
 				      find-at-least)
 		    ;; We have found as many new errors as the user wants.
