@@ -1,5 +1,8 @@
 2001-07-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Bind TAB
+	to lisp-indent-line.
+
 	* net/ange-ftp.el (ange-ftp-file-modtime): Ignore 226 responses
 	from the server.  Call encode-time only when we are sure that we
 	got a 213 response.
