@@ -2817,8 +2817,13 @@ class of the file (using s to separate nested class ids)."
       (save-match-data
         (let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
               (fbuffer (get-file-buffer f))
-              class-found)
+              syntax-symbol syntax-point class-found)
           (setq f (file-name-sans-extension (file-truename f)))
+          ;; Syntax-symbol returns the symbol of the *first* element
+          ;; in the syntactical analysis result list, syntax-point
+          ;; returns the buffer position of same
+          (fset 'syntax-symbol (lambda (x) (c-langelem-sym (car x))))
+          (fset 'syntax-point (lambda (x) (c-langelem-pos (car x))))
           ;; Search through classpath list for an entry that is
           ;; contained in f
           (while (and cplist (not class-found))
@@ -2841,17 +2846,17 @@ class of the file (using s to separate nested class ids)."
                   ;; with the 'topmost-intro symbol, there may be
                   ;; nested classes...
                   (while (not (eq 'topmost-intro
-                                  (car (car (c-guess-basic-syntax)))))
+                                  (syntax-symbol (c-guess-basic-syntax))))
                     ;; Check if the current position c-syntactic
                     ;; analysis has 'inclass
                     (setq syntax (c-guess-basic-syntax))
                     (while
-                        (and (not (eq 'inclass (car (car syntax))))
+                        (and (not (eq 'inclass (syntax-symbol syntax)))
                              (cdr syntax))
                       (setq syntax (cdr syntax)))
-                    (if (eq 'inclass (car (car syntax)))
+                    (if (eq 'inclass (syntax-symbol syntax))
                         (progn
-                          (goto-char (cdr (car syntax)))
+                          (goto-char (syntax-point syntax))
                           ;; Now we're at the beginning of a class
                           ;; definition.  Find class name
                           (looking-at
@@ -2860,9 +2865,9 @@ class of the file (using s to separate nested class ids)."
                                 (append (list (match-string-no-properties 1))
                                         nclass)))
                       (setq syntax (c-guess-basic-syntax))
-                      (while (and (not (cdr (car syntax))) (cdr syntax))
+                      (while (and (not (syntax-point syntax)) (cdr syntax))
                         (setq syntax (cdr syntax)))
-                      (goto-char (cdr (car syntax)))
+                      (goto-char (syntax-point syntax))
                       ))
                   (string-match (concat (car nclass) "$") class-found)
                   (setq class-found
