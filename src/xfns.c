@@ -3522,7 +3522,9 @@ x_window (f, window_prompting, minibuffer_only)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
+#ifdef USE_XIM
   create_frame_xic (f);
+#endif
 #endif
 
   f->output_data.x->wm_hints.input = True;
@@ -3625,6 +3627,7 @@ x_window (f)
 		     attribute_mask, &attributes);
 
 #ifdef HAVE_X_I18N
+#ifdef USE_XIM
   create_frame_xic (f);
   if (FRAME_XIC (f))
     {
@@ -3636,6 +3639,7 @@ x_window (f)
       XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			       attribute_mask, &attributes);
     }
+#endif
 #endif /* HAVE_X_I18N */
   
   validate_x_resource_name ();
