@@ -340,26 +340,17 @@ load_color (f, name)
      struct frame *f;
      Lisp_Object name;
 {
-  Display *dpy = FRAME_X_DISPLAY (f);
-  Colormap cmap;
   XColor color;
   int result;
 
   if (NILP (name))
     return FACE_DEFAULT;
 
-  cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
-
   CHECK_STRING (name, 0);
-  BLOCK_INPUT;
-  result = XParseColor (dpy, cmap, (char *) XSTRING (name)->data, &color);
-  UNBLOCK_INPUT;
+  result = defined_color(f, (char *) XSTRING (name)->data, &color, 1);
   if (! result)
     Fsignal (Qerror, Fcons (build_string ("undefined color"),
 			    Fcons (name, Qnil)));
-  BLOCK_INPUT;
-  result = XAllocColor (dpy, cmap, &color);
-  UNBLOCK_INPUT;
   /* Ignore the return value of XallocColor, so that
      we use a color close to the one requested
      if we can't get the exact request.  */
