@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (c) 1989, 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (c) 1989,95,96,97,2001,2003  Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: FSF
@@ -186,7 +186,8 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
   "Make file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
-Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
+Arguments BASE, DIRNAME, and NEWBUF specify the new buffer that causes
+this rationaliztion."
   (interactive)
   (if (null dirname)
       (with-current-buffer newbuf (setq uniquify-managed nil))
@@ -203,6 +204,20 @@ Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
 		   ;; Don't re-add stuff we already have.  Actually this
 		   ;; whole `and' test should only match at most once.
 		   (not (memq (car items) fix-list)))
+	  (unless (cdr items)
+	    ;; If there was no conflict, the buffer-name is equal to the
+	    ;; base-name and we may have missed a rename-buffer because
+	    ;; of code like in set-visited-file-name:
+	    ;; (or (string= new-name (buffer-name)) (rename-buffer new-name t))
+	    ;; So we need to refresh the dirname of the uniquify-item.
+	    (setf (uniquify-item-dirname (car items))
+		  (uniquify-buffer-file-name
+		   (uniquify-item-buffer (car items))))
+	    ;; This shouldn't happen, but maybe there' no dirname any more.
+	    (unless (uniquify-item-dirname (car items))
+	      (setq items nil)
+	      (with-current-buffer (uniquify-item-buffer (car items))
+		(setq uniquify-managed nil))))
 	  (setq fix-list (append fix-list items))))
       ;; selects buffers whose names may need changing, and others that
       ;; may conflict, then bring conflicting names together
@@ -219,7 +234,10 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	       (if (memq major-mode uniquify-list-buffers-directory-modes)
 		   list-buffers-directory))))
       (when filename
-	(file-name-directory (expand-file-name (directory-file-name filename)))))))
+	(directory-file-name
+	 (file-name-directory
+	  (expand-file-name
+	   (directory-file-name filename))))))))
 
 (defun uniquify-rerationalize-w/o-cb (fix-list)
   "Re-rationalize the buffers in FIX-LIST, but ignoring current-buffer."
@@ -236,7 +254,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   ;; if there is a conflict.
   (dolist (item fix-list)
     (with-current-buffer (uniquify-item-buffer item)
-      ;; Reset the proposed names.
+      ;; Refresh the dirnames and proposed names.
       (setf (uniquify-item-proposed item)
 	    (uniquify-get-proposed-name (uniquify-item-base item)
 					(uniquify-item-dirname item)))
