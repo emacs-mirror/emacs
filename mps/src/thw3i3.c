@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc/!thnti3.c(trunk.1)$
+ *  $HopeName: MMsrc!thnti3.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -291,4 +291,10 @@ Error ThreadDequeScan(void *p, int i, Trace trace)
   }
 
   return ErrSUCCESS;
+}
+
+/* thread safe */
+Space ThreadSpace(Thread thread)
+{
+  return PARENT(SpaceStruct, threadDeque, &thread->spaceDeque);
 }

@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc/!than.c(trunk.2)$
+ *  $HopeName: MMsrc!than.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -145,4 +145,10 @@ Error ThreadDequeScan(void *p, int i, Trace trace)
   e = StackScan(thread->stackBot, trace, RefRankAMBIG);
 
   return e;
+}
+
+/* thread safe */
+Space ThreadSpace(Thread thread)
+{
+  return PARENT(SpaceStruct, threadDeque, &thread->spaceDeque);
 }
