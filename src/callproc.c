@@ -1581,9 +1581,13 @@ init_callproc ()
     Vtemp_file_name_pattern = build_string ("/tmp/emacsXXXXXX");
 #endif
 
+#ifdef DOS_NT
+  Vshared_game_score_directory = Qnil;
+#else
   Vshared_game_score_directory = build_string (PATH_GAME);
   if (NILP (Ffile_directory_p (Vshared_game_score_directory)))
     Vshared_game_score_directory = Qnil;
+#endif
 }
 
 void
@@ -1644,7 +1648,11 @@ includes this.  */);
   DEFVAR_LISP ("shared-game-score-directory", &Vshared_game_score_directory,
 	       doc: /* Directory of score files for games which come with GNU Emacs.
 If this variable is nil, then Emacs is unable to use a shared directory.  */);
+#ifdef DOS_NT
+  Vshared_game_score_directory = Qnil;
+#else
   Vshared_game_score_directory = build_string (PATH_GAME);
+#endif
 
   DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
 	       doc: /* Pattern for making names for temporary files.
