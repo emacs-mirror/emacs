@@ -1,3 +1,8 @@
+2003-09-22  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (perldb): Add gud-until to list of commands.
+	Update gud-remove.
+
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode-default-syntax-table): 
@@ -86,7 +91,7 @@
 
 	* progmodes/ebrowse.el: Fix broken magic autoload comments.
 
-2003-09-17  Mario Lang  <mlang@delysid.org> (tiny change)
+2003-09-17  Mario Lang  <mlang@delysid.org>
 
 	* progmodes/gud.el (perldb): Change gud-print from just "%e" to 
 	"p %e" to actually print the value in the GUD buffer.
