@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/03/29 15:45:24 vinicius>
-;; Version:	5.1.3
+;; Time-stamp:	<2000/04/09 14:06:12 vinicius>
+;; Version:	5.1.4
 
-(defconst ps-print-version "5.1.3"
-  "ps-print.el, v 5.1.3 <2000/03/29 vinicius>
+(defconst ps-print-version "5.1.4"
+  "ps-print.el, v 5.1.4 <2000/04/09 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -195,6 +195,11 @@ Please send all bug fixes and enhancements to
 ;; region on a PostScript printer.
 ;; See definition of `call-process-region' for calling conventions.  The fourth
 ;; and the sixth arguments are both nil.
+;;
+;; If you're using NTEmacs, don't forget to customize the following variables:
+;; `ps-printer-name', `ps-lpr-command', `ps-lpr-switches' and
+;; `ps-spool-config'.  See these variables documentation in the code or by
+;; typing, for example, C-h v ps-printer-name RET.
 ;;
 ;;
 ;; The Page Layout
@@ -1278,7 +1283,7 @@ For more information about PostScript, see:
    PostScript Language Reference Manual (2nd edition)
    Adobe Systems Incorporated"
   :type '(choice :tag "User Defined Prologue"
-		 string symbol (other :tag "nil" nil))
+		 string symbol (const :tag "none" nil))
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-prologue-header nil
@@ -1306,7 +1311,7 @@ For more information about PostScript document comments, see:
    Adobe Systems Incorporated
    Appendix G: Document Structuring Conventions -- Version 3.0"
   :type '(choice :tag "Prologue Header"
-		 string symbol (other :tag "nil" nil))
+		 string symbol (const :tag "none" nil))
   :group 'ps-print-miscellany)
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
@@ -1331,7 +1336,7 @@ discard the printed output, set this to \"NUL\"."
   :type '(choice :tag "Printer Name"
 		 (file :tag "Print to file")
 		 (string :tag "Pipe to ps-lpr-command")
-		 (other :tag "Same as printer-name" nil))
+		 (const :tag "Same as printer-name" nil))
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
@@ -1349,7 +1354,8 @@ argument."
 
 (defcustom ps-lpr-switches lpr-switches
   "*A list of extra switches to pass to `ps-lpr-command'."
-  :type '(repeat string)
+  :type '(repeat :tag "PostScript lpr Switches"
+		 (choice string symbol (repeat sexp)))
   :group 'ps-print-printer)
 
 (defcustom ps-print-region-function nil
@@ -1446,7 +1452,7 @@ Valid values are:
 Any other value is treated as nil."
   :type '(choice :tag "Control Char"
 		 (const 8-bit)   (const control-8-bit)
-		 (const control) (other :tag "nil" nil))
+		 (const control) (const :tag "nil" nil))
   :group 'ps-print-miscellany)
 
 (defcustom ps-n-up-printing 1
@@ -1725,10 +1731,10 @@ NOTE: page numbers are displayed as part of headers,
   :type 'boolean
   :group 'ps-print-headers)
 
-(defcustom ps-spool-config (if (memq system-type
-				     '(win32 w32 mswindows ms-dos windows-nt))
-			       nil
-			     'lpr-switches)
+(defcustom ps-spool-config
+  (if (memq system-type '(win32 w32 mswindows ms-dos windows-nt))
+      nil
+    'lpr-switches)
   "*Specify who is responsable for setting duplex and page size switches.
 
 Valid values are:
@@ -1756,7 +1762,7 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 	 the printed file isn't ok, set `ps-spool-config' to nil."
   :type '(choice :tag "Spool Config"
 		 (const lpr-switches) (const setpagedevice)
-		 (other :tag "nil" nil))
+		 (const :tag "nil" nil))
   :group 'ps-print-headers)
 
 (defcustom ps-spool-duplex nil		; Not many people have duplex printers,
@@ -2974,10 +2980,10 @@ page-height == bm + print-height + tm - ho - hh
 		  ps-header-pad)
 	       ps-print-height))))
 
-(defun ps-print-preprint (&optional filename)
-  (and filename
-       (or (numberp filename)
-	   (listp filename))
+(defun ps-print-preprint (prefix-arg)
+  (and prefix-arg
+       (or (numberp prefix-arg)
+	   (listp prefix-arg))
        (let* ((name   (concat (file-name-nondirectory (or (buffer-file-name)
 							  (buffer-name)))
 			      ".ps"))
@@ -4859,7 +4865,7 @@ If FACE is not a valid face name, it is used default face."
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$" nil t)
-	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
+	(buffer-substring (match-beginning 1) (match-end 1))
       "Subject ???")))
 
 ;; Look in an article or mail message for the From: line.  Sorta-kinda
@@ -4869,8 +4875,7 @@ If FACE is not a valid face name, it is used default face."
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "^From:[ \t]+\\(.*\\)$" nil t)
-	(let ((fromstring (buffer-substring-no-properties (match-beginning 1)
-							  (match-end 1))))
+	(let ((fromstring (buffer-substring (match-beginning 1) (match-end 1))))
 	  (cond
 
 	   ;; Try first to match addresses that look like
@@ -4879,9 +4884,10 @@ If FACE is not a valid face name, it is used default face."
 	    (substring fromstring (match-beginning 1) (match-end 1)))
 
 	   ;; Next try to match addresses that look like
-	   ;; Jim Thompson <thompson@wg2.waii.com>
-	   ((string-match "\\(.*\\)[ \t]+<.*>" fromstring)
-	    (substring fromstring (match-beginning 1) (match-end 1)))
+	   ;; Jim Thompson <thompson@wg2.waii.com> or
+	   ;; "Jim Thompson" <thompson@wg2.waii.com>
+	   ((string-match "\\(\"?\\)\\(.*\\)\\1[ \t]+<.*>" fromstring)
+	    (substring fromstring (match-beginning 2) (match-end 2)))
 
 	   ;; Couldn't find a real name -- show the address instead.
 	   (t fromstring)))
@@ -4937,7 +4943,7 @@ If FACE is not a valid face name, it is used default face."
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)" nil t)
-	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
+	(buffer-substring (match-beginning 1) (match-end 1))
       "File ???")))
 
 ;; Look in an article or mail message for the Subject: line.  To be
@@ -4946,7 +4952,7 @@ If FACE is not a valid face name, it is used default face."
   (save-excursion
     (goto-char (point-min))
     (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)" nil t)
-	(buffer-substring-no-properties (match-beginning 1) (match-end 1))
+	(buffer-substring (match-beginning 1) (match-end 1))
       "Node ???")))
 
 (defun ps-info-mode-hook ()
