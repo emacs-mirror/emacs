@@ -224,7 +224,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
     (let ((translated-vec
 	   (if enable-multibyte-characters
 	       (vector (+ (aref (cdr (car alist)) 0)
-			  quoted-insert-character-offset))
+			  nonascii-insert-offset))
 	     (cdr (car alist)))))
       (define-key iso-transl-ctl-x-8-map (car (car alist)) translated-vec)
       (let ((inchar (aref (car (car alist)) 0))
