@@ -1051,12 +1051,9 @@ print (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Display_Objfwd:
 	  strout (buf, "#<display_objfwd to ", -1, printcharfun);
-	  if (!current_perdisplay)
-	    strout ("no-current-perdisplay");
-	  else
-	    print (*(Lisp_Object *)((char *) current_perdisplay
-				    + XDISPLAY_OBJFWD (obj)->offset),
-		   printcharfun, escapeflag);
+	  print (*(Lisp_Object *)((char *) current_perdisplay
+				  + XDISPLAY_OBJFWD (obj)->offset),
+		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
