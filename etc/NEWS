@@ -172,7 +172,7 @@ icons will be used.
 
 To make the tool bar more useful, we need contributions of extra icons
 for specific modes (with copyright assignments).  Contributions would
-also be useful manually to touch up some of the PBM icons.
+also be useful to touch up some of the PBM icons manually.
 
 +++
 ** Tooltips.
@@ -192,7 +192,7 @@ of its own.  By default, when a window is selected, the cursor is
 solid; otherwise, it is hollow.  The user-option
 `show-cursor-in-non-selected-windows' controls how to display the
 cursor in non-selected windows.  If nil, no cursor is shown, if
-non-nil a hollow box cursor is shown.  This option can be customized.
+non-nil a hollow box cursor is shown.
 
 ** Fringes to the left and right of windows are used to display
 truncation marks, continuation marks, overlay arrows and alike.  The
@@ -929,9 +929,7 @@ in a log file.
 +++
 *** Change Log mode now adds a file's version number to change log
 entries if user-option `change-log-version-info-enabled' is non-nil.
-
-+++
-*** Unless the file is under version control the search for a file's
+Unless the file is under version control the search for a file's
 version number is performed based on regular expressions from
 `change-log-version-number-regexp-list' which can be customized.
 Version numbers are only found in the first 10 percent of a file.
@@ -1093,27 +1091,14 @@ file names.
 ** Customize changes
 
 *** Customize now supports comments about customized items.  Use the
-`State' menu to add comments.  Note that customization comments will
-cause the customizations to fail in earlier versions of Emacs.
+`State' menu to add comments, or give a prefix argument to
+M-x customize-set-variable or M-x customize-set-value.  Note that
+customization comments will cause the customizations to fail in
+earlier versions of Emacs.
 
 *** The new option `custom-buffer-done-function' says whether to kill
 Custom buffers when you've done with them or just bury them (the
 default).
-
-*** The keyword :set-after in defcustom allows to specify dependencies
-between custom options.  Example:
-
-  (defcustom default-input-method nil
-    "*Default input method for multilingual text (a string).
-  This is the input method activated automatically by the command
-  `toggle-input-method' (\\[toggle-input-method])."
-    :group 'mule
-    :type '(choice (const nil) string)
-    :set-after '(current-language-environment))
-
-This specifies that default-input-method should be set after
-current-language-environment even if default-input-method appears
-first in a custom-set-variables statement.
 
 ** New features in evaluation commands
 
@@ -1904,8 +1889,7 @@ paragraphs in the same style as `paragraph-indent-text-mode'.
 +++
 *** bs.el is a new package for buffer selection similar to
 list-buffers or electric-buffer-list.  Use M-x bs-show to display a
-buffer menu with this package.  You can use M-x bs-customize to
-customize the package.
+buffer menu with this package.  See the Custom group `bs'.
 
 *** find-lisp.el is a package emulating the Unix find command in Lisp.
 
@@ -2012,17 +1996,10 @@ delim-col has the following commands:
    delimit-columns-rectangle	Prettify all columns in a text rectangle.
 
 +++
-*** The package recentf.el maintains a menu for visiting files that
-were operated on recently.
-
-M-x recentf-mode RET toggles recentf mode.
-
-M-x customize-variable RET recentf-mode RET can be used to enable
-recentf at Emacs startup.
-
-M-x customize-variable RET recentf-menu-filter RET to specify a menu
-filter function to change the menu appearance. For example, the recent
-file list can be displayed:
+*** Recentf mode maintains a menu for visiting files that were
+operated on recently.  User option recentf-menu-filter specifies a
+menu filter function to change the menu appearance. For example, the
+recent file list can be displayed:
 
 - organized by major modes, directories or user defined rules.
 - sorted by file paths, file names, ascending or descending.
@@ -2044,7 +2021,6 @@ specific to Message mode.
 viewing/editing context diffs (patches).  It is selected for files
 with extension `.diff', `.diffs', `.patch' and `.rej'.
 
-+++
 *** EUDC, the Emacs Unified Directory Client, provides a common user
 interface to access directory servers using different directory
 protocols.  It has a separate manual.
@@ -2154,6 +2130,21 @@ probably not be read correctly by Emacs 21.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** The keyword :set-after in defcustom allows to specify dependencies
+between custom options.  Example:
+
+  (defcustom default-input-method nil
+    "*Default input method for multilingual text (a string).
+  This is the input method activated automatically by the command
+  `toggle-input-method' (\\[toggle-input-method])."
+    :group 'mule
+    :type '(choice (const nil) string)
+    :set-after '(current-language-environment))
+
+This specifies that default-input-method should be set after
+current-language-environment even if default-input-method appears
+first in a custom-set-variables statement.
 
 ** The new hook `kbd-macro-termination-hook' is run at the end of
 function execute-kbd-macro.  Functions on this hook are called with no
@@ -2467,7 +2458,10 @@ have been introduced for 8-bit characters in the ranges 0x80..0x9F and
 0xA0..0xFF respectively.  Note that the multibyte representation of
 eight-bit-control is never exposed; this leads to an exception in the
 emacs-mule coding system, which encodes everything else to the
-buffer/string internal representation.
+buffer/string internal representation.  Note that to search for
+eight-bit-graphic characters in a multibyte buffer, the search string
+must be multibyte, otherwise such characters will be converted to
+their multibyte equivalent.
 
 +++
 ** If the APPEND argument of `write-region' is an integer, it seeks to
@@ -2665,9 +2659,9 @@ instead of being optional.
 ** The new built-in error `text-read-only' is signaled when trying to
 modify read-only text.
 
-+++
 ** New functions and variables for locales.
 
++++
 The new variable `locale-coding-system' specifies how to encode and
 decode strings passed to low-level message functions like strerror and
 time functions like strftime.  The new variables
@@ -2949,8 +2943,8 @@ the hooks that track changes in the buffer.  This affects
 hooks attached to text properties and overlay properties.
 
 +++
-** assoc-delete-all is a new function that deletes all the
-elements of an alist which have a particular value as the car.
+** assq-delete-all is a new function that deletes all the
+elements of an alist which have a car `eq' to a particular value.
 
 +++
 ** make-temp-file provides a more reliable way to create a temporary file.
