@@ -301,7 +301,7 @@ being TIME.
 TIME is a pair with the first component being the number of Julian centuries
 elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
-(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
+\(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
 Uses binary search."
@@ -447,7 +447,7 @@ Corresponding value is nil if there is no sunrise/sunset."
 TIME is a pair with the first component being the number of Julian centuries
 elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
-(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
+\(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
 Result is in julian centuries of ephemeris time."
@@ -501,7 +501,7 @@ calendar-time-zone are used to interpret local time."
 TIME is a pair with the first component being the number of Julian centuries
 elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
-(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
+\(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
 The azimuth is given in degrees as well as the height (between -180 and 180)."
@@ -531,7 +531,7 @@ The azimuth is given in degrees as well as the height (between -180 and 180)."
 TIME is a pair with the first component being the number of Julian centuries
 elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
-(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
+\(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT."
    (let* ((tm (solar-ephemeris-time time)) 
           (ec (solar-ecliptic-coordinates tm for-sunrise-sunset)))
