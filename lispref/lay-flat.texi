@@ -10,7 +10,7 @@
 @w{ }
 @sp 4
 @tex
-\center {\secfonts \rm Lay Flat Binding}
+\center {\secfonts \rm Lay-Flat Binding}
 @end tex
 @sp 2
 
