@@ -107,7 +107,7 @@ CS is a base coding system or alias."
 		   (remq cs (aref char-coding-system-table k)))))
        chars))))
 
-;; Fix things that have been, or might be done by codepage.el.
+;; Fix things that have been, or might be, done by codepage.el.
 (eval-after-load "codepage"
   '(progn
 
@@ -188,9 +188,10 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	     ((loop
 	       (read-multibyte-character r0 r1)
 	       (translate-character ,encoder r0 r1)
-	       (if (r0 != ,(charset-id 'eight-bit-graphic))
-		   (if (r0 != ,(charset-id 'eight-bit-control))
-		     (r1 = ??)))
+	       (if (r0 != ,(charset-id 'ascii))
+		   (if (r0 != ,(charset-id 'eight-bit-graphic))
+		       (if (r0 != ,(charset-id 'eight-bit-control))
+			   (r1 = ??))))
 	       (write-repeat r1)))))))
     `(let ((translation-table (cp-make-translation-table ,v))
 	   (codes (cp-valid-codes ,v)))
