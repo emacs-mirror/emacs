@@ -38,15 +38,16 @@ evalcost (c)
      char c;
 {
   cost++;
+  return c;
 }
 
-void
 cmputc (c)
      char c;
 {
   if (termscript)
     fputc (c & 0177, termscript);
   putchar (c & 0177);
+  return c;
 }
 
 /* NEXT TWO ARE DONE WITH MACROS */
