@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -405,11 +405,9 @@ the matching is case-sensitive."
 		      (format "List lines matching regexp (default `%s'): "
 			      default)
 		    "List lines matching regexp: ")
-		  nil nil nil 'regexp-history nil t)))
-	   (if (string-equal input "")
-	       default
-	     (set-text-properties 0 (length input) nil input)
-	     input))
+		  nil nil nil 'regexp-history default t)))
+	   (set-text-properties 0 (length input) nil input)
+	   input)
 	 current-prefix-arg))
   (let ((nlines (if nlines
 		    (prefix-numeric-value nlines)
