@@ -180,25 +180,6 @@ with a definition that really does change some file names."
 		    (dos-8+3-filename dir))
 		  string))))))
 
-;; Make sure auto-save file names don't contain characters invalid for
-;; the underlying filesystem.  This is particularly annoying with
-;; `compose-mail's *mail* buffers: `*' is not allowed in file names on
-;; DOS/Windows, so Emacs bitches on you each time it tries to autosave
-;; the message being composed.
-(fset 'original-make-auto-save-file-name
-      (symbol-function 'make-auto-save-file-name))
-
-(defun make-auto-save-file-name ()
-  "Return file name to use for auto-saves of current buffer.
-Does not consider `auto-save-visited-file-name' as that variable is checked
-before calling this function.  You can redefine this for customization.
-See also `auto-save-file-name-p'."
-  (let ((filename (original-make-auto-save-file-name)))
-    ;; Don't modify remote (ange-ftp) filenames
-    (if (string-match "^/\\w+@[-A-Za-z0-9._]+:" filename)
-	filename
-      (convert-standard-filename filename))))
-
 ;; See dos-vars.el for defcustom.
 (defvar msdos-shells)
 
