@@ -5,8 +5,8 @@
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse
-;; Version:	 1.2.4
-;; Release-date: 25-Oct-2001
+;; Version:	 1.2.6
+;; Release-date: 6-Aug-2004
 ;; Location:     http://www.lysator.liu.se/~tab/artist/
 
 ;; This file is part of GNU Emacs.
@@ -136,6 +136,14 @@
 
 ;;; ChangeLog:
 
+;; 1.2.6	6-Aug-2004
+;; New:		Coerced with the artist.el that's in Emacs-21.3.
+;;              (minor editorial changes)
+;;
+;; 1.2.5	4-Aug-2004
+;; New:		Added tool selection via the mouse-wheel
+;;		Function provided by Andreas Leue <al@sphenon.de>
+;;
 ;; 1.2.4	25-Oct-2001
 ;; Bugfix:	Some operations (the edit menu) got hidden
 ;; Bugfix:      The first arrow for poly-lines was always pointing
@@ -187,7 +195,7 @@
 
 ;; Variables
 
-(defconst artist-version "1.2.4")
+(defconst artist-version "1.2.6")
 (defconst artist-maintainer-address "tab@lysator.liu.se")
 
 
@@ -471,6 +479,14 @@ strangely.")
 The fill char is used instead, if it is set.")
 (make-variable-buffer-local 'artist-borderless-shapes)
 
+(defvar artist-prev-next-op-alist nil
+  "Assoc list for looking up next and/or previous draw operation.
+The structure is as follows:  (OP . (PREV-OP . NEXT-OP))
+where the elements are as follows:
+* OP is an atom: the KEY-SYMBOL in the `artist-mt' structure
+* PREV-OP and NEXT-OP are strings: the KEYWORD in the `artist-mt' structure
+
+This variable is initialized by the artist-make-prev-next-op-alist function.")
 
 (eval-when-compile
   ;; Make rect available at compile-time
@@ -496,6 +512,8 @@ The fill char is used instead, if it is set.")
     (define-key map [S-down-mouse-2] 'artist-mouse-choose-operation)
     (define-key map [down-mouse-3] 'artist-down-mouse-3)
     (define-key map [S-down-mouse-3] 'artist-down-mouse-3)
+    (define-key map [C-mouse-4] 'artist-select-prev-op-in-list)
+    (define-key map [C-mouse-5] 'artist-select-next-op-in-list)
     (define-key map "\r" 'artist-key-set-point) ; return
     (define-key map [up] 'artist-previous-line)
     (define-key map "\C-p" 'artist-previous-line)
@@ -1063,6 +1081,73 @@ component is other than `artist-do-continously' or 1."
   "Retrieve the items component from a graphics operation INFO-PART."
   (elt info-part 1))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; mouse wheel cyclic operation selection
+
+(defun artist-get-last-non-nil-op (op-list &optional last-non-nil)
+  "Find the last non-nil draw operation in OP-LIST.
+Optional LAST-NON-NIL will be returned if OP-LIST is nil."
+  (if op-list
+      (artist-get-last-non-nil-op (cdr op-list)
+				  (or (car (car op-list)) last-non-nil))
+    last-non-nil))
+
+(defun artist-get-first-non-nil-op (op-list)
+  "Find the first non-nil draw operation in OP-LIST."
+  (or (car (car op-list)) (artist-get-first-non-nil-op (cdr op-list))))
+
+(defun artist-is-in-op-list-p (op op-list)
+  "Check whether OP is in OP-LIST."
+  (and op-list
+       (or (and (car (car op-list)) (string= op (car (car op-list))))
+	   (artist-is-in-op-list-p op (cdr op-list)))))
+
+(defun artist-make-prev-next-op-alist (op-list
+				       &optional
+				       last-non-nil-arg first-non-nil-arg
+				       prev-entry prev-op-arg)
+  "Build an assoc-list of OP-LIST.
+The arguments LAST-NON-NIL-ARG, FIRST-NON-NIL-ARG, PREV-ENTRY and
+PREV-OP-ARG are used when invoked recursively during the build-up."
+  (let* ((last-non-nil  (or last-non-nil-arg
+			    (artist-get-last-non-nil-op
+			     artist-key-compl-table)))
+         (first-non-nil (or first-non-nil-arg
+			    (artist-get-first-non-nil-op
+			     artist-key-compl-table)))
+         (prev-op       (or prev-op-arg last-non-nil))
+         (op            (car (car op-list)))
+         (opsym         (artist-mt-get-symbol-from-keyword op))
+         (entry         (cons opsym (cons prev-op nil))))
+    (if (or (and op-list (not op))
+	    (artist-is-in-op-list-p op (cdr op-list)))
+        (artist-make-prev-next-op-alist (cdr op-list)
+					last-non-nil first-non-nil
+					prev-entry prev-op)
+      (if prev-entry (setcdr (cdr prev-entry) op))
+      (if op-list
+          (cons entry (artist-make-prev-next-op-alist
+		       (cdr op-list)
+		       last-non-nil first-non-nil
+		       entry op))
+        (progn (setcdr (cdr prev-entry) first-non-nil) nil)))))
+
+(defun artist-select-next-op-in-list ()
+  "Cyclically select next drawing mode operation."
+  (interactive)
+  (let ((next-op (cdr (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
+    (artist-select-operation next-op)
+    (message next-op)))
+
+(defun artist-select-prev-op-in-list ()
+  "Cyclically select previous drawing mode operation."
+  (interactive)
+  (let ((prev-op (car (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
+    (artist-select-operation prev-op)
+    (message prev-op)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; ---------------------------------
 ;;; The artist-mode
 ;;; ---------------------------------
@@ -1317,6 +1402,7 @@ Keymap summary
   (make-local-variable 'artist-key-draw-how)
   (make-local-variable 'artist-popup-menu-table)
   (make-local-variable 'artist-key-compl-table)
+  (make-local-variable 'artist-prev-next-op-alist)
   (make-local-variable 'artist-rb-save-data)
   (make-local-variable 'artist-arrow-point-1)
   (make-local-variable 'artist-arrow-point-2)
@@ -1326,6 +1412,8 @@ Keymap summary
   (setq artist-key-shape nil)
   (setq artist-popup-menu-table (artist-compute-popup-menu-table artist-mt))
   (setq artist-key-compl-table (artist-compute-key-compl-table artist-mt))
+  (setq artist-prev-next-op-alist
+	(artist-make-prev-next-op-alist artist-key-compl-table))
   (setq artist-rb-save-data (make-vector 7 0))
   (setq artist-arrow-point-1 nil)
   (setq artist-arrow-point-2 nil)
