@@ -1,5 +1,7 @@
 2002-10-15  Dave Love  <fx@gnu.org>
 
+	* coding.c (Fcheck_coding_system): Doc fix.
+
 	* editfns.c (Finsert_byte): Return a proper value.
 
 2002-10-14  Kenichi Handa  <handa@etl.go.jp>
