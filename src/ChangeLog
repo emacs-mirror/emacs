@@ -16,6 +16,8 @@
 	(last_window): New variable.
 	(XTread_socket): Generate SELECT_WINDOW_EVENTs.
 	(note_mouse_movement): Remove reimplemented code in #if 0.
+	(XTread_socket): Generate SELECT_WINDOW_EVENTs only for
+	Emacs windows.
 
 	* termhooks.h (enum event_kind): New event type
 	`SELECT_WINDOW_EVENT'.
