@@ -1879,6 +1879,9 @@ Use %% to put a single % into the output.")
 	  strings[i++] = XSTRING (args[n])->data;
       }
 
+    /* Make room in result for all the non-%-codes in the control string.  */
+    total += XSTRING (args[0])->size;
+
     /* Format it in bigger and bigger buf's until it all fits. */
     while (1)
       {
