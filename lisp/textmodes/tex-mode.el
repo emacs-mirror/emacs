@@ -379,8 +379,8 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
     '("BibTeX File" . tex-bibtex-file))
   (define-key tex-mode-map [menu-bar tex tex-validate-region]
     '("Validate Region" . tex-validate-region))
-  (define-key tex-mode-map [menu-bar tex validate-tex-buffer]
-    '("Validate Buffer" . validate-tex-buffer))
+  (define-key tex-mode-map [menu-bar tex tex-validate-buffer]
+    '("Validate Buffer" . tex-validate-buffer))
   (define-key tex-mode-map [menu-bar tex tex-region]
     '("TeX Region" . tex-region))
   (define-key tex-mode-map [menu-bar tex tex-buffer]
@@ -465,7 +465,7 @@ running TeX under a special subshell.  \\[tex-buffer] does the whole buffer.
 \\[tex-view] previews the .dvi file made by any of these.
 \\[tex-bibtex-file] runs bibtex on the file of the current buffer.
 
-Use \\[validate-tex-buffer] to check buffer for paragraphs containing
+Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
@@ -519,7 +519,7 @@ running LaTeX under a special subshell.  \\[tex-buffer] does the whole buffer.
 \\[tex-view] previews the .dvi file made by any of these.
 \\[tex-bibtex-file] runs bibtex on the file of the current buffer.
 
-Use \\[validate-tex-buffer] to check buffer for paragraphs containing
+Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
@@ -597,7 +597,7 @@ running SliTeX under a special subshell.  \\[tex-buffer] does the whole buffer.
 \\[tex-view] previews the .dvi file made by any of these.
 \\[tex-bibtex-file] runs bibtex on the file of the current buffer.
 
-Use \\[validate-tex-buffer] to check buffer for paragraphs containing
+Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
@@ -782,24 +782,24 @@ inserts \" characters."
 	   (t
 	    tex-close-quote)))))
 
-(defun validate-tex-buffer ()
-  "Check current buffer for paragraphs containing mismatched $s.
+(defun tex-validate-buffer ()
+  "Check current buffer for paragraphs containing mismatched braces or $s.
 Their positions are recorded in the buffer `*Occur*'.
-To find a particular invalidity from `*Occur*',
-switch to to that buffer and type C-c C-c on the line
-for the invalidity you want to see."
+To find a particular invalidity from `*Occur*', switch to that buffer
+and type C-c C-c or click with mouse-2
+on the line for the invalidity you want to see."
   (interactive)
   (let ((buffer (current-buffer))
 	(prevpos (point-min))
-	(linenum nil))
+	(linenum nil)
+	(num-matches 0))
     (with-output-to-temp-buffer "*Occur*"
       (princ "Mismatches:\n")
       (save-excursion
 	(set-buffer standard-output)
 	(occur-mode)
 	(setq occur-buffer buffer)
-	(setq occur-nlines 0)
-	(setq occur-pos-list nil))
+	(setq occur-nlines 0))
       (save-excursion
 	(goto-char (point-max))
 	(while (and (not (input-pending-p)) (not (bobp)))
@@ -825,25 +825,32 @@ for the invalidity you want to see."
 		  (setq prevpos (point))
 		  ;; Mention this mismatch in *Occur*.  
 		  ;; Since we scan from end of buffer to beginning,
-		  ;; add each mismatch at the beginning of *Occur*
-		  ;; and at the beginning of occur-pos-list.
+		  ;; add each mismatch at the beginning of *Occur*.
 		  (save-excursion
 		    (setq tem (point-marker))
 		    (set-buffer standard-output)
 		    (goto-char (point-min))
 		    ;; Skip "Mismatches:" header line.
 		    (forward-line 1)
-		    (setq occur-pos-list (cons tem occur-pos-list))
+		    (setq num-matches (1+ num-matches))
 		    (insert-buffer-substring buffer start end)
-		    (forward-char (- start end))
-		    (insert (format "%3d: " linenum)))))
+		    (let (text-beg (text-end (point-marker)))
+		      (forward-char (- start end))
+		      (setq text-beg (point-marker))
+		      (insert (format "%3d: " linenum))
+		      (put-text-property (marker-position text-beg)
+					 (- (marker-position text-end) 1)
+					 'mouse-face 'highlight)
+		      (put-text-property (marker-position text-beg)
+					 (- (marker-position text-end) 1)
+					 'occur tem)))))
 	    (goto-char prev-end))))
       (save-excursion
 	(set-buffer standard-output)
-	(if (null occur-pos-list)
+	(if (eq num-matches 0)
 	    (insert "None!\n"))
 	(if (interactive-p)
-	    (message "%d mismatches found" (length occur-pos-list)))))))
+	    (message "%d mismatches found" num-matches))))))
 
 (defun tex-validate-region (start end)
   "Check for mismatched braces or $'s in region.
@@ -857,7 +864,7 @@ area if a mismatch is found."
 	    (narrow-to-region start end)
 	    ;; First check that the open and close parens balance in numbers.
 	    (goto-char start)
-	    (while (< 0 (setq max-possible-sexps (1- max-possible-sexps)))
+	    (while (<= 0 (setq max-possible-sexps (1- max-possible-sexps)))
 	      (forward-sexp 1))
 	    ;; Now check that like matches like.
 	    (goto-char start)
@@ -1280,7 +1287,8 @@ The value of `tex-command' specifies the command to use to run TeX."
 			  tex-out-file t nil))))
     ;; Record the file name to be deleted afterward.
     (setq tex-last-temp-file tex-out-file)
-    (tex-send-command tex-shell-cd-command zap-directory)
+    (let (shell-dirtrack-verbose)
+      (tex-send-command tex-shell-cd-command zap-directory))
     ;; Use a relative file name here because (1) the proper dir
     ;; is already current, and (2) the abs file name is sometimes
     ;; too long and can make tex crash.
@@ -1312,7 +1320,8 @@ This function is more useful than \\[tex-buffer] when you need the
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))
-    (tex-send-command tex-shell-cd-command file-dir)
+    (let (shell-dirtrack-verbose)
+      (tex-send-command tex-shell-cd-command file-dir))
     (tex-start-tex tex-command source-file)
     (tex-display-shell)
     (setq tex-last-buffer-texed (current-buffer))
@@ -1459,7 +1468,8 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (let ((tex-out-file
+  (let (shell-dirtrack-verbose
+	(tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
     (tex-send-command tex-shell-cd-command file-dir)
