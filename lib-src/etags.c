@@ -34,7 +34,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.4";
+char pot_etags_version[] = "@(#) pot revision number is 16.10";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -349,7 +349,7 @@ static compressor *get_compressor_from_suffix __P((char *, char **));
 static language *get_language_from_langname __P((const char *));
 static language *get_language_from_interpreter __P((char *));
 static language *get_language_from_filename __P((char *, bool));
-static long readline __P((linebuffer *, FILE *));
+static void readline __P((linebuffer *, FILE *));
 static long readline_internal __P((linebuffer *, FILE *));
 static bool nocase_tail __P((char *));
 static char *get_tag __P((char *));
@@ -711,9 +711,6 @@ linked with GNU getopt.");
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
 
-  puts ("--parse-stdin=NAME\n\
-        Read from standard input and record tags as belonging to file NAME.");
-
   if (!CTAGS)
     puts ("-a, --append\n\
         Append tag entries to existing tags file.");
@@ -784,13 +781,15 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("-R, --no-regex\n\
         Don't create tags from regexps for the following files.");
 #endif /* ETAGS_REGEXPS */
-  puts ("-o FILE, --output=FILE\n\
-        Write the tags to FILE.");
   puts ("-I, --ignore-indentation\n\
         Don't rely on indentation quite as much as normal.  Currently,\n\
         this means not to assume that a closing brace in the first\n\
         column is the final brace of a function or structure\n\
         definition in C and C++.");
+  puts ("-o FILE, --output=FILE\n\
+        Write the tags to FILE.");
+  puts ("--parse-stdin=NAME\n\
+        Read from standard input and record tags as belonging to file NAME.");
 
   if (CTAGS)
     {
@@ -1049,6 +1048,8 @@ main (argc, argv)
 	argbuffer[current_arg].what     = optarg;
 	++current_arg;
 	++file_count;
+	if (parsing_stdin)
+	  fatal ("cannot parse standard input more than once", (char *)NULL);
 	parsing_stdin = TRUE;
 	break;
 
@@ -1702,7 +1703,6 @@ find_entries (inf)
   /* We rewind here, even if inf may be a pipe.  We fail if the
      length of the first line is longer than the pipe block size,
      which is unlikely. */
-  if (parser == NULL)
     rewind (inf);
 
   /* Else try to guess the language given the case insensitive file name. */
@@ -1750,6 +1750,11 @@ find_entries (inf)
 
   if (parser != NULL)
     {
+      /* Generic initialisations before reading from file. */
+      lineno = 0;		/* reset global line number */
+      charno = 0;		/* reset global char number */
+      linecharno = 0;		/* reset global char number of line start */
+
       parser (inf);
       return;
     }
@@ -1757,7 +1762,7 @@ find_entries (inf)
   /* Else try Fortran. */
   old_last_node = last_node;
   curfdp->lang = get_language_from_langname ("fortran");
-  Fortran_functions (inf);
+  find_entries (inf);
 
   if (old_last_node == last_node)
     /* No Fortran entries found.  Try C. */
@@ -1766,7 +1771,7 @@ find_entries (inf)
 	 Only the file name will be recorded in the tags file. */
       rewind (inf);
       curfdp->lang = get_language_from_langname (cplusplus ? "c++" : "c");
-      default_C_entries (inf);
+      find_entries (inf);
     }
   return;
 }
@@ -2951,9 +2956,7 @@ static struct
 #define CNL_SAVE_DEFINEDEF()						\
 do {									\
   curlinepos = charno;							\
-  lineno++;								\
-  linecharno = charno;							\
-  charno += readline (&curlb, inf);					\
+  readline (&curlb, inf);						\
   lp = curlb.buffer;							\
   quotednl = FALSE;							\
   newndx = curndx;							\
@@ -3045,8 +3048,6 @@ C_entries (c_ext, inf)
 
   tokoff = toklen = typdefcblev = 0; /* keep compiler quiet */
   curndx = newndx = 0;
-  lineno = 0;
-  charno = 0;
   lp = curlb.buffer;
   *lp = 0;
 
@@ -3828,12 +3829,10 @@ Yacc_entries (inf)
 
 /* Useful macros. */
 #define LOOP_ON_INPUT_LINES(file_pointer, line_buffer, char_pointer)	\
-  for (lineno = charno = 0;	/* loop initialization */		\
+  for (;			/* loop initialization */		\
        !feof (file_pointer)	/* loop test */				\
-       && (lineno++,		/* instructions at start of loop */	\
-	   linecharno = charno,						\
-	   charno += readline (&line_buffer, file_pointer),		\
-	   char_pointer = lb.buffer,					\
+       && (char_pointer = lb.buffer, /* instructions at start of loop */ \
+	   readline (&line_buffer, file_pointer),			\
 	   TRUE);							\
       )
 #define LOOKING_AT(cp, keyword)	/* keyword is a constant string */	\
@@ -3893,9 +3892,7 @@ F_getit (inf)
   dbp = skip_spaces (dbp);
   if (*dbp == '\0')
     {
-      lineno++;
-      linecharno = charno;
-      charno += readline (&lb, inf);
+      readline (&lb, inf);
       dbp = lb.buffer;
       if (dbp[5] != '&')
 	return;
@@ -4010,9 +4007,7 @@ Ada_getit (inf, name_qualifier)
       if (*dbp == '\0'
 	  || (dbp[0] == '-' && dbp[1] == '-'))
 	{
-	  lineno++;
-	  linecharno = charno;
-	  charno += readline (&lb, inf);
+	  readline (&lb, inf);
 	  dbp = lb.buffer;
 	}
       switch (lowcase(*dbp))
@@ -4456,8 +4451,6 @@ Pascal_functions (inf)
 
   save_lcno = save_lineno = save_len = 0; /* keep compiler quiet */
   namebuf = NULL;		/* keep compiler quiet */
-  lineno = 0;
-  charno = 0;
   dbp = lb.buffer;
   *dbp = '\0';
   initbuffer (&tline);
@@ -4474,9 +4467,7 @@ Pascal_functions (inf)
       c = *dbp++;
       if (c == '\0')		/* if end of line */
 	{
-	  lineno++;
-	  linecharno = charno;
-	  charno += readline (&lb, inf);
+	  readline (&lb, inf);
 	  dbp = lb.buffer;
 	  if (*dbp == '\0')
 	    continue;
@@ -4987,8 +4978,7 @@ prolog_skip_comment (plb, inf)
       for (cp = plb->buffer; *cp != '\0'; cp++)
 	if (cp[0] == '*' && cp[1] == '/')
 	  return;
-      lineno++;
-      linecharno += readline (plb, inf);
+      readline (plb, inf);
     }
   while (!feof(inf));
 }
@@ -5280,7 +5270,8 @@ static char *substitute __P((char *, char *, struct re_registers *));
 /* Take a string like "/blah/" and turn it into "blah", making sure
    that the first and last characters are the same, and handling
    quoted separator characters.  Actually, stops on the occurrence of
-   an unquoted separator.  Also turns "\t" into a Tab character.
+   an unquoted separator.  Also turns "\t" into a Tab character, and
+   similarly for all character escape sequences supported by Gcc.
    Returns pointer to terminating separator.  Works in place.  Null
    terminates name string. */
 static char *
@@ -5295,15 +5286,27 @@ scan_separators (name)
     {
       if (quoted)
 	{
-	  if (*name == 't')
-	    *copyto++ = '\t';
-	  else if (*name == sep)
-	    *copyto++ = sep;
-	  else
+	  switch (*name)
 	    {
-	      /* Something else is quoted, so preserve the quote. */
-	      *copyto++ = '\\';
-	      *copyto++ = *name;
+	    case 'a': *copyto++ = '\007'; break;
+	    case 'b': *copyto++ = '\b'; break;
+	    case 'd': *copyto++ = 0177; break;
+	    case 'e': *copyto++ = 033; break;
+	    case 'f': *copyto++ = '\f'; break;
+	    case 'n': *copyto++ = '\n'; break;
+	    case 'r': *copyto++ = '\r'; break;
+	    case 't': *copyto++ = '\t'; break;
+	    case 'v': *copyto++ = '\v'; break;
+	    default:
+	      if (*name == sep)
+		*copyto++ = sep;
+	      else
+		{
+		  /* Something else is quoted, so preserve the quote. */
+		  *copyto++ = '\\';
+		  *copyto++ = *name;
+		}
+	      break;
 	    }
 	  quoted = FALSE;
 	}
@@ -5630,13 +5633,17 @@ readline_internal (lbp, stream)
  * Like readline_internal, above, but in addition try to match the
  * input line against relevant regular expressions.
  */
-static long
+static void
 readline (lbp, stream)
      linebuffer *lbp;
      FILE *stream;
 {
-  /* Read new line. */
-  long result = readline_internal (lbp, stream);
+  long result;
+
+  linecharno = charno;		/* update global char number of line start */
+  result = readline_internal (lbp, stream); /* read line */
+  lineno += 1;			/* increment global line number */
+  charno += result;		/* increment global char number */
 
   /* Honour #line directives. */
   if (!no_line_directive)
@@ -5733,8 +5740,9 @@ readline (lbp, stream)
 			}
 		    }
 		  free (taggedabsname);
-		  lineno = lno;
-		  return readline (lbp, stream);
+		  lineno = lno - 1;
+		  readline (lbp, stream);
+		  return;
 		} /* if a real #line directive */
 	    } /* if #line is followed by a a number */
 	} /* if line begins with "#line " */
@@ -5743,12 +5751,15 @@ readline (lbp, stream)
       if (discard_until_line_directive)
 	{
 	  if (result > 0)
+	    {
 	    /* Do a tail recursion on ourselves, thus discarding the contents
 	       of the line buffer. */
-	    return readline (lbp, stream);
+	      readline (lbp, stream);
+	      return;
+	    }
 	  /* End of file. */
 	  discard_until_line_directive = FALSE;
-	  return 0;
+	  return;
 	}
     } /* if #line directives should be considered */
 
@@ -5800,8 +5811,6 @@ readline (lbp, stream)
 	}
   }
 #endif /* ETAGS_REGEXPS */
-
-  return result;
 }
 
 
