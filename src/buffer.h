@@ -318,7 +318,7 @@ extern struct buffer buffer_local_symbols;
    equal to that integer.  When a tag does not match, the function
    buffer_slot_type_mismatch will signal an error.  The value Qnil may
    always be safely stored in any slot.  */
-struct buffer buffer_local_types;
+extern struct buffer buffer_local_types;
 
 /* Point in the current buffer. */
 
@@ -380,3 +380,6 @@ whatever you like.  */
 
 /* A search buffer, with a fastmap allocated and ready to go.  */
 extern struct re_pattern_buffer searchbuf;
+
+extern Lisp_Object Fbuffer_name ();
+extern Lisp_Object Fget_file_buffer ();
