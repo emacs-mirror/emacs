@@ -1327,42 +1327,36 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
+	      int len, actual_len;
 
 	      pos--;		/* rewind POS */
-	      ptr = POS_ADDR (pos);
 
-	      if (c == LEADING_CODE_COMPOSITION)
+	      ptr = (((pos) >= GPT ? GAP_SIZE : 0) + (pos) + BEG_ADDR - 1);
+	      len = ((pos) >= GPT ? ZV : GPT) - (pos);
+
+	      c = STRING_CHAR_AND_LENGTH (ptr, len, actual_len);
+
+	      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+		hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	      else if (actual_len == 1)
+		hpos += 4;
+	      else if (COMPOSITE_CHAR_P (c))
 		{
-		  int cmpchar_id = str_cmpchar_id (ptr, next_boundary - pos);
-
-		  if (cmpchar_id >= 0)
-		    {
-		      if (cmpchar_table[cmpchar_id]->width >= 2)
-			wide_column = 1;
-		      hpos += cmpchar_table[cmpchar_id]->width;
-		      pos += cmpchar_table[cmpchar_id]->len;
-		    }
-		  else
-		    {		/* invalid composite character */
-		      hpos += 4;
-		      pos ++;
-		    }
+		  int id = COMPOSITE_CHAR_ID (c);
+		  int width = (id < n_cmpchars) ? cmpchar_table[id]->width : 0;
+		  hpos += width;
+		  if (width > 1)
+		    wide_column = 1;
 		}
 	      else
 		{
-		  /* Here, we check that the following bytes are valid
-		     constituents of multi-byte form.  */
-		  int len = BYTES_BY_CHAR_HEAD (c), i;
-
-		  for (i = 1, ptr++; i < len; i++, ptr++)
-		    /* We don't need range checking for PTR because
-		       there are anchors ('\0') both at GPT and Z.  */
-		    if (CHAR_HEAD_P (ptr)) break;
-		  if (i < len)
-		    hpos += 4, pos++;
-		  else
-		    hpos += WIDTH_BY_CHAR_HEAD (c), pos += i, wide_column = 1;
+		  int width = WIDTH_BY_CHAR_HEAD (*ptr);
+		  hpos += width;
+		  if (width > 1)
+		    wide_column = 1;
 		}
+
+	      pos += actual_len;
 	    }
 	  else
 	    hpos += (ctl_arrow && c < 0200) ? 2 : 4;
