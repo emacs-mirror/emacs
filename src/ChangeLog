@@ -1,5 +1,9 @@
 2001-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (free_frame_menubar) [USE_MOTIF]: If the shell widget's
+	x/y position is (0, 0) after destroying the menu bar, restore
+	its original position.
+
 	* xdisp.c (in_ellipses_for_invisible_text_p): New function.
 	(init_from_display_pos): Use it.
 	(try_window_reusing_current_matrix): Don't use cursor_row_p.
