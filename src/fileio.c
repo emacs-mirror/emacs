@@ -3056,8 +3056,8 @@ and (2) it puts less data in the undo list.")
 #ifdef CLASH_DETECTION
       if (NILP (handler))
 	{
-	  if (!NILP (current_buffer->filename))
-	    unlock_file (current_buffer->filename);
+	  if (!NILP (current_buffer->file_truename))
+	    unlock_file (current_buffer->file_truename);
 	  unlock_file (filename);
 	}
 #endif /* CLASH_DETECTION */
