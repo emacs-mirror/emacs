@@ -37,6 +37,10 @@ Boston, MA 02111-1307, USA.  */
 
 extern char *sbrk ();
 
+#ifdef DOUG_LEA_MALLOC
+#include <malloc.h>
+#define __malloc_size_t int
+#else
 /* The following come from gmalloc.c.  */
 
 #if defined (__STDC__) && __STDC__
@@ -47,6 +51,7 @@ extern char *sbrk ();
 #endif
 extern __malloc_size_t _bytes_used;
 extern int __malloc_extra_blocks;
+#endif /* !defined(DOUG_LEA_MALLOC) */
 
 extern Lisp_Object Vhistory_length;
 
@@ -208,12 +213,18 @@ display_malloc_warning ()
   internal_with_output_to_temp_buffer (" *Danger*", malloc_warning_1, val);
 }
 
+#ifdef DOUG_LEA_MALLOC
+  #define BYTES_USED (mallinfo ().arena)
+#else
+  #define BYTES_USED _bytes_used
+#endif
+
 /* Called if malloc returns zero */
 
 memory_full ()
 {
 #ifndef SYSTEM_MALLOC
-  bytes_used_when_full = _bytes_used;
+  bytes_used_when_full = BYTES_USED;
 #endif
 
   /* The first time we get here, free the spare memory.  */
@@ -333,7 +344,7 @@ emacs_blocked_free (ptr)
 	 The code here is correct as long as SPARE_MEMORY
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
-	  > _bytes_used + max (malloc_hysteresis, 4) * SPARE_MEMORY))
+	  > BYTES_USED + max (malloc_hysteresis, 4) * SPARE_MEMORY))
     spare_memory = (char *) malloc (SPARE_MEMORY);
 
   __free_hook = emacs_blocked_free;
@@ -363,7 +374,11 @@ emacs_blocked_malloc (size)
 
   BLOCK_INPUT;
   __malloc_hook = old_malloc_hook;
-  __malloc_extra_blocks = malloc_hysteresis;
+  #ifdef DOUG_LEA_MALLOC
+    mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
+  #else
+    __malloc_extra_blocks = malloc_hysteresis;
+  #endif
   value = (void *) malloc (size);
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
@@ -731,8 +746,16 @@ allocate_vectorlike (len)
   struct Lisp_Vector *p;
 
   allocating_for_lisp = 1;
+#ifdef DOUG_LEA_MALLOC
+  /* Prevent mmap'ing the chunk (which is potentially very large). */
+  mallopt (M_MMAP_MAX, 0);
+#endif
   p = (struct Lisp_Vector *)xmalloc (sizeof (struct Lisp_Vector)
 				     + (len - 1) * sizeof (Lisp_Object));
+#ifdef DOUG_LEA_MALLOC
+  /* Back to a reasonable maximum of mmap'ed areas. */
+  mallopt (M_MMAP_MAX, 64);
+#endif
   allocating_for_lisp = 0;
   VALIDATE_LISP_STORAGE (p, 0);
   consing_since_gc += (sizeof (struct Lisp_Vector)
@@ -1180,7 +1203,15 @@ make_uninit_string (length)
     {
       register struct string_block *new;
       allocating_for_lisp = 1;
+#ifdef DOUG_LEA_MALLOC
+      /* Prevent mmap'ing the chunk (which is potentially very large).  */
+      mallopt (M_MMAP_MAX, 0);
+#endif
       new = (struct string_block *) xmalloc (sizeof (struct string_block_head) + fullsize);
+#ifdef DOUG_LEA_MALLOC
+      /* Back to a reasonable maximum of mmap'ed areas. */
+      mallopt (M_MMAP_MAX, 64);
+#endif
       allocating_for_lisp = 0;
       VALIDATE_LISP_STORAGE (new, 0);
       consing_since_gc += sizeof (struct string_block_head) + fullsize;
@@ -2579,6 +2610,11 @@ init_alloc_once ()
 #endif
   all_vectors = 0;
   ignore_warnings = 1;
+#ifdef DOUG_LEA_MALLOC
+  mallopt (M_TRIM_THRESHOLD, 128*1024); /* trim threshold */
+  mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
+  mallopt (M_MMAP_MAX, 64); /* max. number of mmap'ed areas */
+#endif
   init_strings ();
   init_cons ();
   init_symbol ();
