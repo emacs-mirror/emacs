@@ -1,7 +1,7 @@
-/* impl.h.mpscasnc: MEMORY POOL SYSTEM CLASS "SNC"
+/* impl.h.mpscsnc: MEMORY POOL SYSTEM CLASS "SNC"
  *
  * $HopeName: MMsrc!mpscsnc.h(trunk.1) $
- * Copyright (C) 1997 The Harlequin Group.  All rights reserved.
+ * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpscsnc_h
