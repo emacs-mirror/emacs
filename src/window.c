@@ -1611,7 +1611,7 @@ decode_next_window_args (window, minibuf, all_frames)
 		   : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;
-  else if (XFASTINT (*all_frames) == 0)
+  else if (EQ (*all_frames, make_number (0)))
     ;
   else if (FRAMEP (*all_frames))
     ;
@@ -1885,7 +1885,7 @@ window_loop (type, obj, mini, frames)
 
   if (f)
     frame_arg = Qlambda;
-  else if (XFASTINT (frames) == 0)
+  else if (EQ (frames, make_number (0)))
     frame_arg = frames;
   else if (EQ (frames, Qvisible))
     frame_arg = frames;
@@ -6181,10 +6181,12 @@ If TYPE is t, use the frame's scroll-bar type.  */)
   struct window *w = decode_window (window);
 
   if (!NILP (width))
-    CHECK_NATNUM (width);
+    {
+      CHECK_NATNUM (width);
 
-  if (XINT (width) == 0)
-    vertical_type = Qnil;
+      if (XINT (width) == 0)
+	vertical_type = Qnil;
+    }
 
   if (!(EQ (vertical_type, Qnil)
 	|| EQ (vertical_type, Qleft)
