@@ -5402,6 +5402,7 @@ Chinese, Japanese, and Korean.");
   get_font_info_func = x_get_font_info;
   list_fonts_func = x_list_fonts;
   load_font_func = x_load_font;
+  find_ccl_program_func = x_find_ccl_program;
   query_font_func = x_query_font;
   set_frame_fontset_func = x_set_font;
   check_window_system_func = check_x;
