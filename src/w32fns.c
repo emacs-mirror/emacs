@@ -4101,6 +4101,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       {
   	PAINTSTRUCT paintStruct;
         RECT update_rect;
+	bzero (&update_rect, sizeof (update_rect));
 
 	f = x_window_to_frame (dpyinfo, hwnd);
 	if (f == 0)
@@ -4112,18 +4113,15 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
         /* MSDN Docs say not to call BeginPaint if GetUpdateRect
            fails.  Apparently this can happen under some
            circumstances.  */
-        if (!w32_strict_painting || GetUpdateRect (hwnd, &update_rect, FALSE))
+        if (GetUpdateRect (hwnd, &update_rect, FALSE) || !w32_strict_painting)
           {
             enter_crit ();
             BeginPaint (hwnd, &paintStruct);
 
-	    if (w32_strict_painting)
-	      /* The rectangles returned by GetUpdateRect and BeginPaint
-		 do not always match.  GetUpdateRect seems to be the
-		 more reliable of the two.  */
-	      wmsg.rect = update_rect;
-	    else
-	      wmsg.rect = paintStruct.rcPaint;
+	    /* The rectangles returned by GetUpdateRect and BeginPaint
+	       do not always match.  Play it safe by assuming both areas
+	       are invalid.  */
+	    UnionRect (&(wmsg.rect), &update_rect, &(paintStruct.rcPaint));
 
 #if defined (W32_DEBUG_DISPLAY)
             DebPrint (("WM_PAINT (frame %p): painting %d,%d-%d,%d\n",
