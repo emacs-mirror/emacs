@@ -1,4 +1,4 @@
-/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/Activate.c,v 1.2 2000/01/27 15:31:20 gerd Exp $ */
+/* $Header: /cvsroot/emacs//emacs/oldXMenu/Activate.c,v 1.3 2000/07/21 14:36:24 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 #include "copyright.h"
@@ -82,6 +82,9 @@
 
 #include <config.h>
 #include "XMenuInt.h"
+
+/* For debug, set this to 0 to not grab the keyboard on menu popup */
+int x_menu_grab_keyboard = 1;
 
 int
 XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
@@ -225,6 +228,18 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 			  menu->mouse_cursor,
 			  CurrentTime
 			  );
+    if (status == Success && x_menu_grab_keyboard)
+      {
+        status = XGrabKeyboard (display,
+                                menu->parent,
+                                False,
+                                GrabModeAsync,
+                                GrabModeAsync,
+                                CurrentTime);
+        if (status != Success)
+          XUngrabPointer(display, CurrentTime);
+      }
+    
     if (status == _X_FAILURE) {
 	_XMErrorCode = XME_GRAB_MOUSE;
 	return(XM_FAILURE);
@@ -465,6 +480,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * Ungrab the mouse.
      */
     XUngrabPointer(display, CurrentTime);
+    XUngrabKeyboard(display, CurrentTime);
 
     /* 
      * Restore bits under where the menu was if we managed
