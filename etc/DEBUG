@@ -41,7 +41,7 @@ The src/.gdbinit file in the Emacs distribution arranges for SIGINT
 (C-g in Emacs) to be passed to Emacs and not give control back to GDB.
 On modern POSIX systems, you can override that with this command:
 
-   handle int stop nopass
+   handle SIGINT stop nopass
 
 After this `handle' command, SIGINT will return control to GDB.  If
 you want the C-g to cause a QUIT within Emacs as well, omit the
