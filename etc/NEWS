@@ -43,6 +43,10 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
+** The <home> end <end> keys now more to the beginning or end of the
+current line, respectively.  C-<home> and C-<end> move to the
+beginning and end of the buffer.
+
 ** In Cperl mode `cperl-invalid-face' should now be a normal face
 symbol, not double-quoted.
 
