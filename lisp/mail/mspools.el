@@ -1,4 +1,4 @@
-;;; mspools.el --- Show mail spools waiting to be read
+;;; mspools.el --- show mail spools waiting to be read.
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -57,73 +57,92 @@
 ;; `mspools-using-vm' for details.
 
 
-;;; Installation
+;;; Basic installation.
+;; (autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
+;; (setq mspools-folder-directory "~/MAIL/")
+;;
+;; If you use VM, mspools-folder-directory will default to vm-folder-directory
+;; unless you have already given it a value.
 
-;; Basic
-;(autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
-; Point to directory where spool files and folders are:
-; (setq mspools-folder-directory "~/MAIL/")
-;
-; If you use VM, mspools-folder-directory will default to vm-folder-directory
-; unless you have already given it a value.
+;; Extras.
+;; 
+;; (global-set-key '[S-f1] 'mspools-show) ;Bind mspools-show to Shift F1.
+;; (setq mspools-update t)                ;Automatically update buffer. 
 
-;; Extras
-; possibly bind it to a key:
-;(global-set-key  '[S-f1] 'mspools-show)
-;(setq mspools-update t)
+;; Interface with the mail filter.
+;; We assume that the mail filter drops new mail into the spool
+;; `folder.spool'.  If your spool files are something like folder.xyz
+;; for inbox `folder', then do:
+;; (setq mspools-suffix "xyz")
+;; If you use other conventions for your spool files, this code will
+;; need rewriting.
 
-;; Interface with the mail filter
-; We assume that the mail filter drops new mail into the spool
-; `folder.spool'.  If your spool files are something like folder.xyz
-; for inbox `folder', then do
-; (setq spool-suffix "xyz")
-; If you use other conventions for your spool files, this code will
-; need rewriting.
-
-;;; Warning for VM users
-;; Dont use if you are not sure what you are doing!  The value of
+;; Warning for VM users
+;; Don't use if you are not sure what you are doing.  The value of
 ;; vm-spool-files is altered, so you may not be able to read incoming
 ;; mail with VM if this is incorrectly set.
 
 ;; Useful settings for VM
-;vm-auto-get-new-mail should be t (default t)
+;; vm-auto-get-new-mail should be t (the default).
 
-;;; Acknowledgements
-;; The code for setting up vm-spool-files came from 
-;;http://www-users.informatik.rwth-aachen.de/~berg/archive/procmail/0047.html
-;;  Thanks to jond@mitre.org (Jonathan Doughty)
+;; Acknowledgements
+;; Thanks to jond@mitre.org (Jonathan Doughty) for help with code for
+;; setting up vm-spool-files.
 
 ;;; TODO
 
 ;; What if users have mail spools in more than one directory?  Extend
-;; mspools-folder-directory to be a list of files?
+;; mspools-folder-directory to be a list of directories?  Currently,
+;; if mail spools are in other directories, the way to read them is to
+;; put a symbolic link to the spool into the mspools-folder-directory.
 
 ;; I was going to add mouse support so that you could click on a line
 ;; to visit the buffer.  Tell me if you want it, and I can put the
-;; code in (I dont use the mouse much, so I havent bothered with it so
-;; far).
-
+;; code in (I don't use the mouse much, so I haven't bothered with it
+;; so far).
 
 ;; Rather than showing size in bytes, could we see the number of msgs
 ;; waiting?  (Could be more time demanding / system dependent).
-;; Perl script counts the number of /^From / occurences.
-;; ?
-;; Include date
-;; (substring  (current-time-string (nth 4 (file-attributes "~/INBOX")))  4 19)
 ;; Maybe just call a perl script to do all the hard work, and
 ;; visualise the results in the buffer.
 
 ;; Shrink wrap the buffer to remove excess white-space?
 
+;;; Code:
 
 ;;; User Variables
 
+(defgroup mspools nil
+  "Show mail spools waiting to be read."
+  :group 'mail
+  :link '(emacs-commentary-link :tag "Commentary" "mspools.el")
+)
 
-(defvar mspools-update nil
-  "*Non-nil means update *spools* buffer after visiting any folder.")
+(defcustom mspools-update nil
+  "*Non-nil means update *spools* buffer after visiting any folder."
+  :type 'boolean
+  :group 'mspools)
 
-(defvar mspools-suffix "spool"
-  "*Extension used for spool files (not including full stop).")
+(defcustom mspools-suffix "spool"
+  "*Extension used for spool files (not including full stop)."
+  :type 'string
+  :group 'mspools)
+
+
+(defcustom mspools-using-vm  (fboundp 'vm)
+  "*Non-nil if VM is used as mail reader, otherwise RMAIL is used."
+  :type 'boolean
+  :group 'mspools)
+
+
+(defcustom mspools-folder-directory
+  (if (boundp 'vm-folder-directory)
+      vm-folder-directory
+    nil)
+  "*Directory where mail folders are kept.  Ensure it has a trailing /.
+Defaults to `vm-folder-directory' if bound else nil."
+  :type 'directory
+  :group 'mspools)
 
 ;;; Internal Variables
 
@@ -134,7 +153,6 @@
   (concat mspools-vm-system-mail ".crash")
   "Crash box for main mailbox.  See also `mspools-vm-system-mail'.  
 Only used by VM." )
-
 
 (defvar mspools-files nil
   "List of entries (SPOOL . SIZE) giving spool name and file size.")
@@ -147,20 +165,6 @@ Only used by VM." )
 
 (defvar mspools-mode-map nil
   "Keymap for the *spools* buffer.")
-
-(defvar mspools-folder-directory
-  (if (boundp 'vm-folder-directory)
-      vm-folder-directory
-    nil)
-  "Directory where mail folders are kept.  Defaults to
-`vm-folder-directory' if bound else nil.  Make sure it has a trailing /
-at the end. ")
-
-
-(defvar mspools-using-vm 
-  (fboundp 'vm)
-  "*Non-nil if VM is used as mail reader, otherwise RMAIL is used.")
-
 
 ;;; Code
 
@@ -177,6 +181,8 @@ at the end. ")
 
 (defun mspools-set-vm-spool-files ()
   "Set value of `vm-spool-files'.  Only needed for VM."
+  (if (null mspools-vm-system-mail)
+      (error "need to reset mspools-vm-system-mail to the spool for primary inbox"))
   (setq		
    vm-spool-files 
    (append
@@ -215,7 +221,7 @@ Buffer is not displayed if SHOW is non-nil."
 	(set-buffer mspools-buffer)	
 	(setq buffer-read-only nil)      
 	(delete-region (point-min) (point-max)))
-    ;; else buff. doesnt exist so create it
+    ;; else buffer doesn't exist so create it
     (get-buffer-create mspools-buffer))
   
   ;; generate the list of spool files
@@ -237,44 +243,46 @@ Buffer is not displayed if SHOW is non-nil."
   (interactive)
   (let ( spool-name folder-name)
     (setq spool-name (mspools-get-spool-name))
-    (setq folder-name (mspools-get-folder-from-spool spool-name))
+    (if (null spool-name)
+	(message "No spool on current line")
+      
+      (setq folder-name (mspools-get-folder-from-spool spool-name))
+      
+      ;; put in a little "*" to indicate spool file has been read.
+      (if (not mspools-update)
+	  (save-excursion
+	    (setq buffer-read-only nil)
+	    (beginning-of-line)
+	    (insert "*")
+	    (delete-char 1)
+	    (setq buffer-read-only t)
+	    ))
 
-    ;; put in a little "*" to indicate spool file has been read.
-    (if (not mspools-update)
-	(save-excursion
-	  (setq buffer-read-only nil)
-	  (beginning-of-line)
-	  (insert "*")
-	  (delete-char 1)
-	  (setq buffer-read-only t)
-	  ))
-    
+      (message "folder %s spool %s" folder-name spool-name)
+      (if (eq (count-lines (point-min) 
+			   (save-excursion
+			     (end-of-line)
+			     (point)))
+	      mspools-files-len)
+	  (next-line (- 1 mspools-files-len)) ;back to top of list
+	;; else just on to next line
+	(next-line 1))
+      
+      ;; Choose whether to use VM or RMAIL for reading folder.
+      (if mspools-using-vm 
+	  (vm-visit-folder (concat mspools-folder-directory folder-name))
+	;; else using RMAIL 
+	(rmail (concat mspools-folder-directory folder-name))
+	(setq rmail-inbox-list 
+	      (list (concat mspools-folder-directory spool-name)))
+	(rmail-get-new-mail))
+      
+      
+      (if mspools-update
+	  ;; generate new list of spools.
+	  (save-excursion 
+	    (mspools-show-again 'noshow))))))
 
-    (message "folder %s spool %s" folder-name spool-name)
-    (if (eq (count-lines (point-min) 
-			 (save-excursion
-			   (end-of-line)
-			   (point)))
-	    mspools-files-len)
-	(next-line (- 1 mspools-files-len)) ;back to top of list
-      ;; else just on to next line
-      (next-line 1))
-
-    ;; Choose whether to use VM or RMAIL for reading folder.
-    (if mspools-using-vm 
-	(vm-visit-folder (concat mspools-folder-directory folder-name))
-      ;; else using RMAIL 
-      (rmail (concat mspools-folder-directory folder-name))
-      (setq rmail-inbox-list 
-	    (list (concat mspools-folder-directory spool-name)))
-      (rmail-get-new-mail))
-    
-    
-    (if mspools-update
-	;; generate new list of spools.
-	(save-excursion 
-	  (mspools-show-again 'noshow)))
-    ))
 
 
 
@@ -397,7 +405,9 @@ nil."
 	size)
     (setq file (or (file-symlink-p file) file))
     (setq size (nth 7 (file-attributes file)))
-    (if (> size 0)
+    ;; size could be nil if the sym-link points to a non-existent file
+    ;; so check this first.
+    (if (and size  (> size 0))
 	(cons spool  size)
       ;; else SPOOL is empty
       nil)))
