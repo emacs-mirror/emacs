@@ -1,13 +1,14 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: extensions, timers
-;; Status: Works in GNU Emacs 19.25 or later
+;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
-;; $Id: type-break.el,v 1.10 1994/10/06 19:12:46 friedman Exp friedman $
+
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -38,14 +39,24 @@
 ;; least, you will want to turn off the keystroke thresholds and rest
 ;; interval tracking.
 
-;; This program has no hope of working in Emacs 18, and it doesn't
-;; presently work in Lucid Emacs/XEmacs because the timer.el package is
-;; entirely different.
+;; If you prefer not to be queried about taking breaks, but instead just
+;; want to be reminded, do the following:
+;;
+;;   (setq type-break-query-mode nil)
+;;
+;; Or call the command `type-break-query-mode' with a negative prefix
+;; argument.
+
+;; If you find echo area messages annoying and would prefer to see messages
+;; in the mode line instead, do M-x type-break-mode-line-message-mode
+;; or set the variable of the same name to `t'.
 
 ;; This program can truly cons up a storm because of all the calls to
 ;; `current-time' (which always returns 3 fresh conses).  I'm dismayed by
 ;; this, but I think the health of my hands is far more important than a
 ;; few pages of virtual memory.
+
+;; This program has no hope of working in Emacs 18.
 
 ;; This package was inspired by Roland McGrath's hanoi-break.el.
 ;; Several people contributed feedback and ideas, including
@@ -53,23 +64,15 @@
 ;;      Kleanthes Koniaris <kgk@martigny.ai.mit.edu>
 ;;      Mark Ashton <mpashton@gnu.ai.mit.edu>
 ;;      Matt Wilding <wilding@cli.com>
+;;      Robert S. Boyer <boyer@cs.utexas.edu>
 
 ;;; Code:
 
 
-(require 'timer)
-
-;; Make this nil initially so that the call to type-break-mode at the end
-;; will cause scheduling and so forth to happen.
 ;;;###autoload
 (defvar type-break-mode nil
   "*Non-`nil' means typing break mode is enabled.
 See the docstring for the `type-break-mode' command for more information.")
-
-(defvar type-break-warning-message-mode t
-  "*Non-`nil' means warn about imminent typing breaks in echo area.
-See the docstring for the `type-break-warning-message-mode' command for
-more information.")
 
 ;;;###autoload
 (defvar type-break-interval (* 60 60)
@@ -122,25 +125,17 @@ keystroke even though they really require multiple keys to generate them.
 The command `type-break-guesstimate-keystroke-threshold' can be used to
 guess a reasonably good pair of values for this variable.")
 
+(defvar type-break-query-mode t
+  "*Non-`nil' means ask whether or not to prompt user for breaks.
+If so, call the function specified in the value of the variable
+`type-break-query-function' to do the asking.")
+
 (defvar type-break-query-function 'yes-or-no-p
   "Function to use for making query for a typing break.
 It should take a string as an argument, the prompt.
 Usually this should be set to `yes-or-no-p' or `y-or-n-p'.
 
-Some people prefer a less intrusive way of being reminded to take a typing
-break.  One possibility is simply to beep a couple of times.  To accomplish
-this, one could do:
-
-    (defun my-type-break-query (&optional ignored-args)
-      (beep t)
-      (message \"You should take a typing break now.  Do `M-x type-break'.\")
-      (sit-for 1)
-      (beep t)
-      ;; return nil so query caller knows to reset reminder, as if user
-      ;; said \"no\" in response to yes-or-no-p.
-      nil)
-
-    (setq type-break-query-function 'my-type-break-query)")
+To avoid being queried at all, set `type-break-query-mode' to `nil'.")
 
 (defvar type-break-query-interval 60
   "*Number of seconds between queries to take a break, if put off.
@@ -164,36 +159,6 @@ Will occur.")
 That is, for each of this many keystrokes the warning is redisplayed
 in the echo area to make sure it's really seen.")
 
-(defvar type-break-warning-countdown-string nil
-  "If non-nil, this is a countdown for the next typing break.
-
-This variable, in conjunction with `type-break-warning-countdown-string-type'
-(which indicates whether this value is a number of keystrokes or seconds)
-can be installed by the user somewhere in mode-line-format to notify of
-imminent typing breaks there.
-
-For example, you could do
-
-    (defvar type-break-mode-line-string
-      '(type-break-warning-countdown-string
-        (\" ***Break in \"
-         type-break-warning-countdown-string
-         \" \"
-         type-break-warning-countdown-string-type
-         \"***\")))
-
-    (setq global-mode-string
-          (append global-mode-string '(type-break-mode-line-string)))
-
-If you do this, you may also wish to disable the warning messages in the
-minibuffer.  To do this, either set the variable
-`type-break-warning-message-mode' to `nil' or call the function of the same
-name with a negative argument.")
-
-(defvar type-break-warning-countdown-string-type nil
-  "Indicates the unit type of `type-break-warning-countdown-string'.
-It will be either \"seconds\" or \"keystrokes\".")
-
 (defvar type-break-demo-functions
   '(type-break-demo-boring type-break-demo-life type-break-demo-hanoi)
   "*List of functions to consider running as demos during typing breaks.
@@ -203,7 +168,7 @@ to have emacs do something interesting.
 Any function in this list should start a demo which ceases as soon as a
 key is pressed.")
 
-(defvar type-break-post-command-hook nil
+(defvar type-break-post-command-hook '(type-break-check)
   "Hook run indirectly by post-command-hook for typing break functions.
 This is not really intended to be set by the user, but it's probably
 harmless to do so.  Mainly it is used by various parts of the typing break
@@ -212,6 +177,51 @@ It exists because `post-command-hook' itself is inaccessible while its
 functions are being run, and some type-break--related functions want to
 remove themselves after running.")
 
+
+;; Mode line frobs
+
+(defvar type-break-mode-line-message-mode nil
+  "*Non-`nil' means put type-break related messages in the mode line.
+Otherwise, messages typically go in the echo area.
+
+See also `type-break-mode-line-format' and its members.")
+
+(defvar type-break-mode-line-format
+  '(type-break-mode-line-message-mode
+    (""
+     type-break-mode-line-break-message
+     type-break-mode-line-warning))
+  "*Format of messages in the mode line concerning typing breaks.")
+
+(defvar type-break-mode-line-break-message
+  '(type-break-mode-line-break-message-p
+    type-break-mode-line-break-string))
+
+(defvar type-break-mode-line-break-message-p nil)
+(defvar type-break-mode-line-break-string " *** TAKE A TYPING BREAK ***")
+
+(defvar type-break-mode-line-warning
+      '(type-break-mode-line-break-message-p
+        ("")
+        (type-break-warning-countdown-string
+         (" ***Break in "
+          type-break-warning-countdown-string
+          " "
+          type-break-warning-countdown-string-type
+          "***"))))
+
+(defvar type-break-warning-countdown-string nil
+  "If non-nil, this is a countdown for the next typing break.
+
+This variable, in conjunction with `type-break-warning-countdown-string-type'
+(which indicates whether this value is a number of keystrokes or seconds)
+is installed in mode-line-format to notify of imminent typing breaks.")
+
+(defvar type-break-warning-countdown-string-type nil
+  "Indicates the unit type of `type-break-warning-countdown-string'.
+It will be either \"seconds\" or \"keystrokes\".")
+
+
 ;; These are internal variables.  Do not set them yourself.
 
 (defvar type-break-alarm-p nil)
@@ -223,45 +233,38 @@ remove themselves after running.")
 (defvar type-break-current-keystroke-warning-interval nil)
 (defvar type-break-time-warning-count 0)
 (defvar type-break-keystroke-warning-count 0)
-
-;; This should return t if warnings were enabled, nil otherwise.
-(defsubst type-break-check-keystroke-warning ()
-  ;; This is safe because the caller should have checked that the cdr was
-  ;; non-nil already.
-  (let ((left (- (cdr type-break-keystroke-threshold)
-                 type-break-keystroke-count)))
-    (cond
-     ((null (car type-break-current-keystroke-warning-interval))
-      nil)
-     ((> left (car type-break-current-keystroke-warning-interval))
-      nil)
-     (t
-      (while (and (car type-break-current-keystroke-warning-interval)
-                  (< left (car type-break-current-keystroke-warning-interval)))
-        (setq type-break-current-keystroke-warning-interval
-              (cdr type-break-current-keystroke-warning-interval)))
-      (setq type-break-keystroke-warning-count type-break-warning-repeat)
-      (add-hook 'type-break-post-command-hook 'type-break-keystroke-warning)
-      (setq type-break-warning-countdown-string (number-to-string left))
-      (setq type-break-warning-countdown-string-type "keystrokes")
-      t))))
 
-;; Compute the difference, in seconds, between a and b, two structures
-;; similar to those returned by `current-time'.
-;; Use addition rather than logand since that is more robust; the low 16
-;; bits of the seconds might have been incremented, making it more than 16
-;; bits wide.
-(defsubst type-break-time-difference (a b)
-  (+ (lsh (- (car b) (car a)) 16)
-     (- (car (cdr b)) (car (cdr a)))))
+;; Constant indicating emacs variant.
+;; This can be one of `xemacs', `lucid', `epoch', `mule', etc.
+(defconst type-break-emacs-variant
+  (let ((data (match-data))
+        (version (cond
+                  ((fboundp 'nemacs-version)
+                   (nemacs-version))
+                  (t
+                   (emacs-version))))
+        (alist '(("\\bXEmacs\\b"  . xemacs)
+                 ("\\bLucid\\b"   . lucid)
+                 ("^Nemacs\\b"    . nemacs)
+                 ("^GNU Emacs 19" . standard19)
+                 ("^GNU Emacs 18" . emacs18)))
+        result)
+    (while alist
+      (cond
+       ((string-match (car (car alist)) version)
+        (setq result (cdr (car alist)))
+        (setq alist nil))
+       (t
+        (setq alist (cdr alist)))))
+    (store-match-data data)
+    (cond ((eq result 'lucid)
+           (and (string= emacs-version "19.8 Lucid")
+                (setq result 'lucid-19-8)))
+          ((memq result '(nemacs emacs18))
+           (signal 'error
+                   "type-break not supported in this version of emacs.")))
+    result))
 
-(defsubst type-break-format-time (secs)
-  (let ((mins (/ secs 60)))
-    (cond
-     ((= mins 1) (format "%d minute" mins))
-     ((> mins 0) (format "%d minutes" mins))
-     ((= secs 1) (format "%d second" secs))
-     (t (format "%d seconds" secs)))))
 
 ;;;###autoload
 (defun type-break-mode (&optional prefix)
@@ -308,24 +311,23 @@ approximate good values for this.
 There are several variables that affect how or when warning messages about
 imminent typing breaks are displayed.  They include:
 
-        type-break-warning-message-mode
+        type-break-mode-line-message-mode
         type-break-time-warning-intervals
         type-break-keystroke-warning-intervals
         type-break-warning-repeat
         type-break-warning-countdown-string
         type-break-warning-countdown-string-type
 
-There are several variables that affect how and when queries to begin a
-typing break occur.  They include:
+There are several variables that affect if, how, and when queries to begin
+a typing break occur.  They include:
 
+        type-break-query-mode
         type-break-query-function
         type-break-query-interval
 
 Finally, the command `type-break-statistics' prints interesting things."
   (interactive "P")
-  ;; make sure it's there.
-  (add-hook 'post-command-hook 'type-break-run-tb-post-command-hook 'append)
-  (add-hook 'type-break-post-command-hook 'type-break-check)
+  (type-break-check-post-command-hook)
 
   (let ((already-enabled type-break-mode))
     (setq type-break-mode (>= (prefix-numeric-value prefix) 0))
@@ -333,18 +335,58 @@ Finally, the command `type-break-statistics' prints interesting things."
     (cond
      ((and already-enabled type-break-mode)
       (and (interactive-p)
-           (message "type-break-mode is enabled")))
+           (message "type-break-mode is already enabled")))
      (type-break-mode
+      (or global-mode-string
+          (setq global-mode-string '("")))
+      (or (memq 'type-break-mode-line-format
+                (default-value 'global-mode-string))
+          (setq-default global-mode-string
+                        (nconc (default-value 'global-mode-string)
+                               '(type-break-mode-line-format))))
       (type-break-keystroke-reset)
+      (type-break-mode-line-countdown-or-break nil)
       (type-break-schedule)
       (and (interactive-p)
            (message "type-break-mode is enabled and reset")))
-     ((interactive-p)
-      (message "type-break-mode is disabled"))))
+     (t
+      (type-break-keystroke-reset)
+      (type-break-mode-line-countdown-or-break nil)
+      (type-break-cancel-schedule)
+      (and (interactive-p)
+           (message "type-break-mode is disabled")))))
   type-break-mode)
 
-(defun type-break-warning-message-mode (&optional prefix)
-  "Enable or disable warnings in the echo area about imminent typing breaks.
+(defun type-break-mode-line-message-mode (&optional prefix)
+  "Enable or disable warnings in the mode line about typing breaks.
+
+A negative prefix argument disables this mode.
+No argument or any non-negative argument enables it.
+
+The user may also enable or disable this mode simply by setting the
+variable of the same name.
+
+Variables controlling the display of messages in the mode line include:
+
+        mode-line-format
+        global-mode-string
+        type-break-mode-line-break-message
+        type-break-mode-line-warning"
+  (interactive "P")
+  (setq type-break-mode-line-message-mode
+        (>= (prefix-numeric-value prefix) 0))
+  (and (interactive-p)
+       (if type-break-mode-line-message-mode
+           (message "type-break-mode-line-message-mode is enabled")
+         (message "type-break-mode-line-message-mode is disabled")))
+  type-break-mode-line-message-mode)
+
+(defun type-break-query-mode (&optional prefix)
+  "Enable or disable warnings in the mode line about typing breaks.
+
+When enabled, the user is periodically queried about whether to take a
+typing break at that moment.  The function which does this query is
+specified by the variable `type-break-query-function'.
 
 A negative prefix argument disables this mode.
 No argument or any non-negative argument enables it.
@@ -352,15 +394,15 @@ No argument or any non-negative argument enables it.
 The user may also enable or disable this mode simply by setting the
 variable of the same name."
   (interactive "P")
-  (setq type-break-warning-message-mode (>= (prefix-numeric-value prefix) 0))
-  (cond
-   ((not (interactive-p)))
-   (type-break-warning-message-mode
-    (message "type-break-warning-message-mode is enabled"))
-   (t
-    (message "type-break-warning-message-mode is disabled")))
-  type-break-warning-message-mode)
+  (setq type-break-query-mode
+        (>= (prefix-numeric-value prefix) 0))
+  (and (interactive-p)
+       (if type-break-query-mode
+           (message "type-break-query-mode is enabled")
+         (message "type-break-query-mode is disabled")))
+  type-break-query-mode)
 
+
 ;;;###autoload
 (defun type-break ()
   "Take a typing break.
@@ -414,6 +456,7 @@ as per the function `type-break-schedule'."
        (t (setq continue nil)))))
 
   (type-break-keystroke-reset)
+  (type-break-mode-line-countdown-or-break nil)
   (type-break-schedule))
 
 
@@ -423,24 +466,23 @@ If time is not specified, default to `type-break-interval'."
   (interactive (list (and current-prefix-arg
                           (prefix-numeric-value current-prefix-arg))))
   (or time (setq time type-break-interval))
-  (let ((type-break-mode t))
-    (type-break-mode 1))
+  (type-break-check-post-command-hook)
   (type-break-cancel-schedule)
   (type-break-time-warning-schedule time 'reset)
-  (run-at-time (max 1 time) nil 'type-break-alarm)
+  (type-break-run-at-time (max 1 time) nil 'type-break-alarm)
   (setq type-break-time-next-break
         (type-break-time-sum (current-time) time)))
 
 (defun type-break-cancel-schedule ()
   (type-break-cancel-time-warning-schedule)
-  (let ((timer-dont-exit t))
-    (cancel-function-timers 'type-break-alarm))
+  (type-break-cancel-function-timers 'type-break-alarm)
   (setq type-break-alarm-p nil)
   (setq type-break-time-next-break nil))
 
 (defun type-break-time-warning-schedule (&optional time resetp)
   (let ((type-break-current-time-warning-interval nil))
     (type-break-cancel-time-warning-schedule))
+  (add-hook 'type-break-post-command-hook 'type-break-time-warning 'append)
   (cond
    (type-break-time-warning-intervals
     (and resetp
@@ -464,7 +506,7 @@ If time is not specified, default to `type-break-interval'."
 
       ;(let (type-break-current-time-warning-interval)
       ;  (type-break-cancel-time-warning-schedule))
-      (run-at-time (max 1 time) nil 'type-break-time-warning-alarm)
+      (type-break-run-at-time (max 1 time) nil 'type-break-time-warning-alarm)
 
       (cond
        (resetp
@@ -474,24 +516,23 @@ If time is not specified, default to `type-break-interval'."
         (setq type-break-warning-countdown-string-type "seconds"))))))))
 
 (defun type-break-cancel-time-warning-schedule ()
-  (let ((timer-dont-exit t))
-    (cancel-function-timers 'type-break-time-warning-alarm))
+  (type-break-cancel-function-timers 'type-break-time-warning-alarm)
   (remove-hook 'type-break-post-command-hook 'type-break-time-warning)
   (setq type-break-current-time-warning-interval
         type-break-time-warning-intervals)
   (setq type-break-warning-countdown-string nil))
 
 (defun type-break-alarm ()
-  (let ((type-break-mode t))
-    (type-break-mode 1))
-  (setq type-break-alarm-p t))
+  (type-break-check-post-command-hook)
+  (setq type-break-alarm-p t)
+  (type-break-mode-line-countdown-or-break 'break))
 
 (defun type-break-time-warning-alarm ()
-  (let ((type-break-mode t))
-    (type-break-mode 1))
+  (type-break-check-post-command-hook)
   (type-break-time-warning-schedule)
   (setq type-break-time-warning-count type-break-warning-repeat)
-  (add-hook 'type-break-post-command-hook 'type-break-time-warning 'append))
+  (type-break-time-warning)
+  (type-break-mode-line-countdown-or-break 'countdown))
 
 
 (defun type-break-run-tb-post-command-hook ()
@@ -512,6 +553,7 @@ keystroke threshold has been exceeded."
                    type-break-good-rest-interval)
                 (progn
                   (type-break-keystroke-reset)
+                  (type-break-mode-line-countdown-or-break nil)
                   (setq type-break-time-last-break (current-time))
                   (type-break-schedule)))
            (setq type-break-time-last-command (current-time))))
@@ -559,7 +601,7 @@ keystroke threshold has been exceeded."
       (type-break-query)))))
 
 ;; This should return t if warnings were enabled, nil otherwise.
-(defsubst type-break-check-keystroke-warning ()
+(defun type-break-check-keystroke-warning ()
   ;; This is safe because the caller should have checked that the cdr was
   ;; non-nil already.
   (let ((left (- (cdr type-break-keystroke-threshold)
@@ -578,18 +620,20 @@ keystroke threshold has been exceeded."
       (add-hook 'type-break-post-command-hook 'type-break-keystroke-warning)
       (setq type-break-warning-countdown-string (number-to-string left))
       (setq type-break-warning-countdown-string-type "keystrokes")
+      (type-break-mode-line-countdown-or-break 'countdown)
       t))))
 
 ;; Arrange for a break query to be made, when the user stops typing furiously.
 (defun type-break-query ()
   (add-hook 'type-break-post-command-hook 'type-break-do-query))
 
-;; Ask to take a break, but only after the user stops typing continuously
-;; for at least a second.  Renaming the minibuffer because you did M-x
-;; rename-buffer just as type-break popped the question is... annoying.
 (defun type-break-do-query ()
   (cond
-   ((sit-for 1)
+   ((not type-break-query-mode)
+    (type-break-noninteractive-query)
+    (type-break-schedule type-break-query-interval)
+    (remove-hook 'type-break-post-command-hook 'type-break-do-query))
+   ((sit-for 2)
     (condition-case ()
         (cond
          ((let ((type-break-mode nil)
@@ -606,6 +650,21 @@ keystroke threshold has been exceeded."
        (type-break-schedule type-break-query-interval)))
     (remove-hook 'type-break-post-command-hook 'type-break-do-query))))
 
+(defun type-break-noninteractive-query (&optional ignored-args)
+  "Null query function which doesn't interrupt user and assumes `no'.
+It prints a reminder in the echo area to take a break, but doesn't enforce
+this or ask the user to start one right now."
+  (cond
+   (type-break-mode-line-message-mode)
+   (t
+    (beep t)
+    (message "You should take a typing break now.  Do `M-x type-break'.")
+    (sit-for 1)
+    (beep t)
+    ;; return nil so query caller knows to reset reminder, as if user
+    ;; said "no" in response to yes-or-no-p.
+    nil)))
+
 (defun type-break-time-warning ()
   (cond
    ((and (car type-break-keystroke-threshold)
@@ -618,8 +677,10 @@ keystroke threshold has been exceeded."
        ((eq (selected-window) (minibuffer-window)))
        ;; Do nothing if the command was just a prefix arg, since that will
        ;; immediately be followed by some other interactive command.
+       ;; Otherwise, it is particularly annoying for the sit-for below to
+       ;; delay redisplay when one types sequences like `C-u -1 C-l'.
        ((memq this-command '(digit-argument universal-argument)))
-       (type-break-warning-message-mode
+       ((not type-break-mode-line-message-mode)
         ;; Pause for a moment so any previous message can be seen.
         (sit-for 2)
         (message "Warning: typing break due in %s."
@@ -638,7 +699,12 @@ keystroke threshold has been exceeded."
                                type-break-keystroke-count)))
     (cond
      ((eq (selected-window) (minibuffer-window)))
-     (type-break-warning-message-mode
+     ;; Do nothing if the command was just a prefix arg, since that will
+     ;; immediately be followed by some other interactive command.
+     ;; Otherwise, it is particularly annoying for the sit-for below to
+     ;; delay redisplay when one types sequences like `C-u -1 C-l'.
+     ((memq this-command '(digit-argument universal-argument)))
+     ((not type-break-mode-line-message-mode)
       (sit-for 2)
       (message "Warning: typing break due in %s keystrokes."
                (- (cdr type-break-keystroke-threshold)
@@ -650,6 +716,26 @@ keystroke threshold has been exceeded."
                  'type-break-keystroke-warning)
     (setq type-break-warning-countdown-string nil))))
 
+(defun type-break-mode-line-countdown-or-break (&optional type)
+  (cond
+   ((not type-break-mode-line-message-mode))
+   ((eq type 'countdown)
+    ;(setq type-break-mode-line-break-message-p nil)
+    (add-hook 'type-break-post-command-hook
+              'type-break-force-mode-line-update 'append))
+   ((eq type 'break)
+    ;; Alternate
+    (setq type-break-mode-line-break-message-p
+          (not type-break-mode-line-break-message-p))
+    (remove-hook 'type-break-post-command-hook
+                 'type-break-force-mode-line-update))
+   (t
+    (setq type-break-mode-line-break-message-p nil)
+    (setq type-break-warning-countdown-string nil)
+    (remove-hook 'type-break-post-command-hook
+                 'type-break-force-mode-line-update)))
+  (type-break-force-mode-line-update))
+
 
 ;;;###autoload
 (defun type-break-statistics ()
@@ -660,7 +746,8 @@ scheduled, the keystroke thresholds and the current keystroke count, etc."
   (with-output-to-temp-buffer "*Typing Break Statistics*"
     (princ (format "Typing break statistics\n-----------------------\n
 Typing break mode is currently %s.
-Warnings of imminent typing breaks in echo area is %s.
+Interactive query for breaks is %s.
+Warnings of imminent typing breaks in mode line is %s.
 
 Last typing break ended     : %s
 Next scheduled typing break : %s\n
@@ -668,7 +755,8 @@ Minimum keystroke threshold : %s
 Maximum keystroke threshold : %s
 Current keystroke count     : %s"
                    (if type-break-mode "enabled" "disabled")
-                   (if type-break-warning-message-mode "enabled" "disabled")
+                   (if type-break-query-mode "enabled" "disabled")
+                   (if type-break-mode-line-message-mode "enabled" "disabled")
                    (if type-break-time-last-break
                        (current-time-string type-break-time-last-break)
                      "never")
@@ -692,7 +780,7 @@ If called interactively, the user is prompted for their guess as to how
 many words per minute they usually type.  This value should not be your
 maximum WPM, but your average.  Of course, this is harder to gauge since it
 can vary considerably depending on what you are doing.  For example, one
-tends actually to type less when debugging a program, as opposed to writing
+tends to type less when debugging a program as opposed to writing
 documentation.  (Perhaps a separate program should be written to estimate
 average typing speed.)
 
@@ -725,7 +813,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; Use addition rather than logand since that is more robust; the low 16
 ;; bits of the seconds might have been incremented, making it more than 16
 ;; bits wide.
-(defsubst type-break-time-difference (a b)
+(defun type-break-time-difference (a b)
   (+ (lsh (- (car b) (car a)) 16)
      (- (car (cdr b)) (car (cdr a)))))
 
@@ -735,7 +823,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; This function keeps the high and low 16 bits of the seconds properly
 ;; balanced so that the lower value never exceeds 16 bits.  Otherwise, when
 ;; the result is passed to `current-time-string' it will toss some of the
-;; "low" bits and return the wrong value.
+;; "low" bits and format the time incorrectly.
 (defun type-break-time-sum (&rest tmlist)
   (let ((high 0)
         (low 0)
@@ -766,7 +854,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
     (list high low micro)))
 
-(defsubst type-break-format-time (secs)
+(defun type-break-format-time (secs)
   (let ((mins (/ secs 60)))
     (cond
      ((= mins 1) (format "%d minute" mins))
@@ -780,6 +868,61 @@ FRAC should be the inverse of the fractional value; for example, a value of
   (setq type-break-current-keystroke-warning-interval
         type-break-keystroke-warning-intervals)
   (remove-hook 'type-break-post-command-hook 'type-break-keystroke-warning))
+
+(defun type-break-force-mode-line-update (&optional all)
+  "Force the mode-line of the current buffer to be redisplayed.
+With optional non-nil ALL, force redisplay of all mode-lines."
+  (and all (save-excursion (set-buffer (other-buffer))))
+  (set-buffer-modified-p (buffer-modified-p)))
+
+;; If an exception occurs in emacs while running the post command hook, the
+;; value of that hook is clobbered.  This is because the value of the
+;; variable is temporarily set to nil while it's running to prevent
+;; recursive application, but it also means an exception aborts the routine
+;; of restoring it.  This function is called from the timers to restore it,
+;; just in case.
+(defun type-break-check-post-command-hook ()
+  (add-hook 'post-command-hook 'type-break-run-tb-post-command-hook 'append))
+
+
+;;; Timer wrapper functions
+;;;
+;;; These shield type-break from variations in the interval timer packages
+;;; for different versions of emacs.
+
+(defun type-break-run-at-time (time repeat function)
+  (cond ((eq type-break-emacs-variant 'standard19)
+         (require 'timer)
+         (funcall 'run-at-time time repeat function))
+        ((eq type-break-emacs-variant 'lucid-19-8)
+         (let ((name (if (symbolp function)
+                         (symbol-name function)
+                       "type-break")))
+           (require 'timer)
+           (funcall 'start-timer name function time repeat)))
+        ((memq type-break-emacs-variant '(xemacs lucid))
+         (let ((name (if (symbolp function)
+                         (symbol-name function)
+                       "type-break")))
+           (require 'itimer)
+           (funcall 'start-itimer name function time repeat)))))
+
+(defun type-break-cancel-function-timers (function)
+  (cond ((eq type-break-emacs-variant 'standard19)
+         (let ((timer-dont-exit t))
+           (funcall 'cancel-function-timers function)))
+        ((eq type-break-emacs-variant 'lucid-19-8)
+         (let ((list timer-list))
+           (while list
+             (and (eq (funcall 'timer-function (car list)) function)
+                  (funcall 'delete-timer (car list)))
+             (setq list (cdr list)))))
+        ((memq type-break-emacs-variant '(xemacs lucid))
+         (let ((list itimer-list))
+           (while list
+             (and (eq (funcall 'itimer-function (car list)) function)
+                  (funcall 'delete-itimer (car list)))
+             (setq list (cdr list)))))))
 
 
 ;;; Demo wrappers
@@ -879,13 +1022,5 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 
 (provide 'type-break)
-
-;; Do not do this at load time because it makes it impossible to load this
-;; file into temacs and then dump it.
-;(type-break-mode t)
-
-;; local variables:
-;; vc-make-backup-files: t
-;; end:
 
 ;;; type-break.el ends here
