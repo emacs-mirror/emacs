@@ -1,3 +1,26 @@
+2000-04-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (PTR_TO_OFFSET) [!emacs]: Remove.
+	(RE_MULTIBYTE_P, RE_STRING_CHAR_AND_LENGTH): New macros.
+	(GET_CHAR_BEFORE_2): Moved from charset.h plus fixed minor bug when
+	we are between str1 and str2.
+	(MAX_MULTIBYTE_LENGTH, CHAR_STRING) [!emacs]: Provide trivial default.
+	(PATFETCH): Use `TRANSLATE'.
+	(PATFETCH_RAW): Fetch multibyte char if applicable.
+	(PATUNFETCH): Remove.
+	(regex_compile): Rely on PATFETCH to do most of the multibyte magic.
+	When writing a char, write it directly into the pattern buffer rather
+	than going needlessly through a temp char-array.
+	(re_match_2_internal): Similarly, rely on RE_STRING_CHAR to do the
+	multibyte magic and remove the useless `#ifdef emacs'.
+	(bcmp_translate): Don't compare as multibyte chars when in a unibyte
+	buffer.
+
+	* regex.h (struct re_pattern_buffer): Make field `multibyte'
+	conditional on `emacs'.
+
+	* charset.h (GET_CHAR_BEFORE_2): Moved to regex.c.
+
 2000-04-01  Ken Raeburn  <raeburn@gnu.org>
 
 	* alloc.c (MARK_STRING, UNMARK_STRING, STRING_MARKED_P): Expand

@@ -362,9 +362,11 @@ struct re_pattern_buffer
         /* If true, an anchor at a newline matches.  */
   unsigned newline_anchor : 1;
 
+#ifdef emacs
   /* If true, multi-byte form in the `buffer' should be recognized as a
      multibyte character. */
   unsigned multibyte : 1;
+#endif
 
 /* [[[end pattern_buffer]]] */
 };
