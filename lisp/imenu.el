@@ -488,16 +488,18 @@ or 'imenu-create-index-function")
   ;; Sets the markers in imenu--index-alist 
   ;; point nowhere.
   ;; if alist is provided use that list.
-  (and imenu--index-alist
+  (or alist
+      (setq alist imenu--index-alist))
+  (and alist
        (mapcar
 	(function
 	 (lambda (item)
 	   (cond
 	    ((markerp (cdr item))
 	     (set-marker (cdr item) nil))
-	    ((listp (cdr item))
+	    ((consp (cdr item))
 	     (imenu--cleanup (cdr item))))))
-	(if alist alist imenu--index-alist))
+	alist)
        t))
 
 (defun imenu-default-create-index-function ()
