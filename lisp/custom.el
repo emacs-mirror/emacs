@@ -86,9 +86,9 @@ or (last of all) VALUE."
 
 (defun custom-initialize-changed (symbol value)
   "Initialize SYMBOL with VALUE.
-Like `custom-initialize-reset', but only use the `:set' function if the
+Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
-For the standard setting, use the `set-default'."
+For the standard setting, use `set-default'."
   (cond ((default-boundp symbol)
 	 (funcall (or (get symbol 'custom-set) 'set-default)
 		  symbol
@@ -165,7 +165,6 @@ The remaining arguments should have the form
 The following keywords are meaningful:
 
 :type	VALUE should be a widget type for editing the symbols value.
-	The default is `sexp'.
 :options VALUE should be a list of valid members of the widget type.
 :group  VALUE should be a customization group.
         Add SYMBOL to that group.
