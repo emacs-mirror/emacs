@@ -885,7 +885,7 @@ the user from the mailer."
 			       ;; since some systems have broken sendmails.
 			       ;; unless user has said no.
 			       (if (memq mail-from-style '(angles parens nil))
-				   (list "-f" (user-login-name)))
+				   (list "-f" user-mail-address))
 ;;; 			       ;; Don't say "from root" if running under su.
 ;;; 			       (and (equal (user-real-login-name) "root")
 ;;; 				    (list "-f" (user-login-name)))
