@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.23 2002/04/26 11:56:35 eliz Exp $
+@comment $Id: info.texi,v 1.24 2002/07/07 11:31:31 rms Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -17,7 +17,7 @@
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright (C) 1989, 92, 96, 97, 98, 99, 2000, 2001, 2002
+Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002
 Free Software Foundation, Inc.
 
 
@@ -46,8 +46,8 @@ license to the document, as described in section 6 of the license.
 @author and the GNU Texinfo community
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1989, 92, 93, 96, 97, 98, 99, 2000, 2001
-Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1992, 1993, 1996, 1997, 1998, 1999, 2000,
+2001, 2002 Free Software Foundation, Inc.
 @sp 2
 Published by the Free Software Foundation @*
 59 Temple Place - Suite 330 @*
