@@ -1,6 +1,6 @@
 /* impl.c.dumper: Simple Event Dumper
  *
- * $HopeName: MMsrc!dumper.c(MMdevel_event_string.2) $
+ * $HopeName: MMsrc!dumper.c(trunk.2) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -80,7 +80,7 @@ static void readEvent(char *type, char *format, Word code, Word length,
         v = malloc(length * sizeof(Word));
         if(v == NULL)
           error("Can't allocate string space %u", (unsigned)length);
-        n = fread(&v, length * sizeof(Word), 1, stdin); 
+        n = fread((void *)v, sizeof(Word), length, stdin); 
         if(n < 1) 
           error("Can't read data for string"); 
         printf("%s  ", v); 

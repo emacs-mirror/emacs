@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.40) $
+ * $HopeName: MMsrc!mpsi.c(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.40) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.41) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1154,11 +1154,22 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
 }
 
 
-/* Telemetry control */
+/* Telemetry */
 
 mps_word_t mps_telemetry_control(mps_word_t resetMask, 
                                  mps_word_t flipMask)
 {
   /* Doesn't require locking and isn't arena-specific. */
   return EventControl((Word)resetMask, (Word)flipMask);
+}
+
+mps_word_t mps_telemetry_intern(char *label)
+{
+  AVER(label != NULL);
+  return (mps_word_t)EventInternString(label);
+}
+
+void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
+{
+  EventLabelAddr((Addr)addr, (Word)intern_id);
 }
