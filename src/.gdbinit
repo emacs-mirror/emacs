@@ -8,6 +8,10 @@ Print the emacs s-expression which is $.
 Works only when an inferior emacs is executing.
 end
 
+# Set this to the same thing as the DATA_SEG_BITS macro in your
+# machine-description files.
+set $data_seg_bits = 0
+
 define xtype
 output (enum Lisp_Type) (($ >> 24) & 0x7f)
 echo \n
@@ -24,14 +28,14 @@ Print $, assuming it is an Elisp integer.  This gets the sign right.
 end
 
 define xptr
-print (void *) ($ & 0x00ffffff)
+print (void *) (($ & 0x00ffffff) | $data_seg_bits)
 end
 document xptr
 Print the pointer portion of $, assuming it is an Elisp value.
 end
 
 define xwindow
-print (struct window *) ($ & 0x00ffffff)
+print (struct window *) (($ & 0x00ffffff) | $data_seg_bits)
 printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
 end
 document xwindow
@@ -40,15 +44,15 @@ Print the window's position as "WIDTHxHEIGHT+LEFT+TOP".
 end
 
 define xmarker
-print (struct Lisp_Marker *) ($ & 0x00ffffff)
+print (struct Lisp_Marker *) (($ & 0x00ffffff) | $data_seg_bits)
 end
 document xmarker
 Print $ as a marker pointer, assuming it is an Elisp marker value.
 end
 
 define xbuffer
-print (struct buffer *) ($ & 0x00ffffff)
-output &((struct Lisp_String *) (($->name) & 0x00ffffff))->data
+print (struct buffer *) (($ & 0x00ffffff) | $data_seg_bits)
+output &((struct Lisp_String *) ((($->name) & 0x00ffffff) | $data_seg_bits))->data
 echo \n
 end
 document xbuffer
@@ -57,7 +61,7 @@ Print the name of the buffer.
 end
 
 define xsymbol
-print (struct Lisp_Symbol *) ($ & 0x00ffffff)
+print (struct Lisp_Symbol *) (($ & 0x00ffffff) | $data_seg_bits)
 output &$->name->data
 echo \n
 end
@@ -67,7 +71,7 @@ This command assumes that $ is an Elisp symbol value.
 end
 
 define xstring
-print (struct Lisp_String *) ($ & 0x00ffffff)
+print (struct Lisp_String *) (($ & 0x00ffffff) | $data_seg_bits)
 output ($->size > 10000) ? "big string" : ($->data[0])@($->size)
 echo \n
 end
@@ -77,7 +81,7 @@ This command assumes that $ is an Elisp string value.
 end
 
 define xvector
-print (struct Lisp_Vector *) ($ & 0x00ffffff)
+print (struct Lisp_Vector *) (($ & 0x00ffffff) | $data_seg_bits)
 output ($->size > 1000) ? "big vector" : ($->contents[0])@($->size)
 echo \n
 end
@@ -86,15 +90,15 @@ Print the contents and address of the vector $.
 This command assumes that $ is an Elisp vector value.
 end
 
-define xscreen
-print (struct screen *) ($ & 0x00ffffff)
+define xframe
+print (struct frame *) (($ & 0x00ffffff) | $data_seg_bits)
 end
-document xwindow
-Print $ as a screen pointer, assuming it is an Elisp screen value.
+document xframe
+Print $ as a frame pointer, assuming it is an Elisp frame value.
 end
 
 define xcons
-print (struct Lisp_Cons *) ($ & 0x00ffffff)
+print (struct Lisp_Cons *) (($ & 0x00ffffff) | $data_seg_bits)
 output *$
 echo \n
 end
@@ -103,17 +107,26 @@ Print the contents of $, assuming it is an Elisp cons.
 end
 
 define xcar
-print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) ($ & 0x00ffffff))->car : 0)
+print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x00ffffff) | $data_seg_bits))->car : 0)
 end
 document xcar
 Print the car of $, assuming it is an Elisp pair.
 end
 
 define xcdr
-print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) ($ & 0x00ffffff))->cdr : 0)
+print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x00ffffff) | $data_seg_bits))->cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Elisp pair.
+end
+
+define xsubr
+print (struct Lisp_Subr *) (($ & 0x00ffffff) | $data_seg_bits)
+output *$
+echo \n
+end
+document xsubr
+Print the address of the subr which the Lisp_Object $ points to.
 end
 
 set print pretty on

@@ -40,13 +40,13 @@
 (defun mouse-delete-window (click)
   "Delete the window clicked on.
 This must be bound to a mouse click."
-  (interactive "K")
+  (interactive "e")
   (delete-window (event-window click)))
 
 (defun mouse-delete-other-windows (click)
   "Select Emacs window clicked on, then kill all other Emacs windows.
 This must be bound to a mouse click."
-  (interactive "K")
+  (interactive "e")
   (select-window (event-window click))
   (delete-other-windows))
 
@@ -54,14 +54,14 @@ This must be bound to a mouse click."
   "Select Emacs window mouse is on, then split it vertically in half.
 The window is split at the line clicked on.
 This command must be bound to a mouse click."
-  (interactive "K")
+  (interactive "e")
   (select-window (event-window click))
   (split-window-vertically (1+ (cdr (mouse-coords click)))))
 
 (defun mouse-set-point (click)
   "Move point to the position clicked on with the mouse.
 This must be bound to a mouse click."
-  (interactive "K")
+  (interactive "e")
   (select-window (event-window click))
   (if (numberp (event-point click))
       (goto-char (event-point click))))
@@ -70,7 +70,7 @@ This must be bound to a mouse click."
   "Set mark at the position clicked on with the mouse.
 Display cursor at that position for a second.
 This must be bound to a mouse click."
-  (interactive "K")
+  (interactive "e")
   (let ((point-save (point)))
     (unwind-protect
 	(progn (mouse-set-point click)
@@ -81,7 +81,7 @@ This must be bound to a mouse click."
 (defun mouse-kill (click)
   "Kill the region between point and the mouse click.
 The text is saved in the kill ring, as with \\[kill-region]."
-  (interactive "K")
+  (interactive "e")
   (let ((click-posn (event-point click)))
     (if (numberp click-posn)
 	(kill-region (min (point) click-posn)
@@ -90,20 +90,20 @@ The text is saved in the kill ring, as with \\[kill-region]."
 (defun mouse-yank-at-click (click arg)
   "Insert the last stretch of killed text at the position clicked on.
 Prefix arguments are interpreted as with \\[yank]."
-  (interactive "K\nP")
+  (interactive "e\nP")
   (mouse-set-point click)
   (yank arg))
 
 (defun mouse-kill-ring-save (click)
   "Copy the region between point and the mouse click in the kill ring.
 This does not delete the region; it acts like \\[kill-ring-save]."
-  (interactive "K")
+  (interactive "e")
   (mouse-set-mark click)
   (call-interactively 'kill-ring-save))
 
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse."
-  (interactive "K")
+  (interactive "e")
   (let ((menu
 	 (list "Buffer Menu"
 	       (cons "Select Buffer"

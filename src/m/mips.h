@@ -1,11 +1,11 @@
-/* machine description file for Mips machines.
-   Copyright (C) 1987, 1990 Free Software Foundation, Inc.
+/* m- file for Mips machines.
+   Copyright (C) 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -23,8 +23,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    USUAL-OPSYS="note"
 
 NOTE-START
-Use -opsystem=usg5-2-2 normally, or -opsystem=bsd4-3 with the BSD
-world.
+Use m-mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
+Note that the proper m- file for the Decstation is m-pmax.h.
 NOTE-END  */
 
 /* The following three symbols give information on
@@ -50,6 +50,11 @@ NOTE-END  */
  * to be corrected before they can be used as byte counts.  */
 
 #undef WORD_MACHINE
+
+/* Define how to take a char and sign-extend into an int.
+   On machines where char is signed, this is a no-op.  */
+
+#define SIGN_EXTEND_CHAR(c) ((signed char)(c))
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
@@ -102,8 +107,11 @@ NOTE-END  */
    Define neither one if an assembler-language alloca
    in the file alloca.s should be used.  */
 
+#ifdef __GNUC__
+#define HAVE_ALLOCA
+#else
 #define C_ALLOCA
-/* #define HAVE_ALLOCA */
+#endif
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -126,13 +134,32 @@ NOTE-END  */
 
 #ifdef BSD
 
-/* Supposedly the dec machine doesn't have this library.
+/* DECstations don't have this library.
    #define LIBS_MACHINE -lmld  */
 
 #define LD_SWITCH_MACHINE -D 800000
 #define LIBS_DEBUG
 
+#define LINKER /bsd43/bin/ld
+  
+#else /* not BSD */
+#ifdef NEWSOS5
+
+#define LIBS_MACHINE -lmld
+#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o
+#define LIB_STANDARD -lsocket -lnsl -lc /usr/ccs/lib/crtn.o /usr/ccs/lib/values-Xt.o
+
+#ifdef __GNUC__
+#define C_DEBUG_SWITCH -g
+#define C_OPTIMIZE_SWITCH -g -O
+#define LD_SWITCH_MACHINE -g -Xlinker -D -Xlinker 800000
 #else
+#define C_DEBUG_SWITCH -g3
+#define C_OPTIMIZE_SWITCH -g3
+#define LD_SWITCH_MACHINE -g3 -D 800000
+#endif
+
+#else /* not NEWSOS5 */
 
 #define LIBS_MACHINE -lmld
 #define LD_SWITCH_MACHINE -D 800000 -g3
@@ -140,27 +167,36 @@ NOTE-END  */
 #define LIB_STANDARD -lbsd -lc /usr/lib/crtn.o
 #define LIBS_TERMCAP -lcurses
 
-#define C_SWITCH_SYSTEM -I/usr/include/bsd
+#define C_SWITCH_MACHINE -I/usr/include/bsd
 #define C_DEBUG_SWITCH -O -g3
 
 #if defined(HAVE_X_WINDOWS) && defined(HAVE_X11)
 #define HAVE_VFORK		/* Graciously provided by libX.a */
 #endif
-#endif
+
+#endif /* not NEWSOS5 */
+#endif /* not BSD */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
-#define XUINT(a) (((unsigned)(a) << INTBITS-VALBITS) >> INTBITS-VALBITS)
+#define XUINT(a) (((unsigned)(a) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS))
 
-#define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << INTBITS-VALBITS) >> INTBITS-VALBITS))
+#define XSET(var, type, ptr)						\
+  ((var) =								\
+   ((int)(type) << VALBITS)						\
+   + (((unsigned) (ptr) << (INTBITS-VALBITS)) >> (INTBITS-VALBITS)))
 
 #define XSETINT(a, b)  XSET(a, XTYPE(a), b)
 #define XSETUINT(a, b) XSET(a, XTYPE(a), b)
 #define XSETPNTR(a, b) XSET(a, XTYPE(a), b)
 
-#define XUNMARK(a) ((a) = (((unsigned)(a) << INTBITS-GCTYPEBITS-VALBITS) >> INTBITS-GCTYPEBITS-VALBITS))
+#define XUNMARK(a)							\
+  ((a) =								\
+   (((unsigned)(a) << (INTBITS-GCTYPEBITS-VALBITS))			\
+    >> (INTBITS-GCTYPEBITS-VALBITS)))
+
+#ifndef NEWSOS5
 #ifdef USG
 
 /* Cancel certain parts of standard sysV support.  */
@@ -177,7 +213,7 @@ NOTE-END  */
 #define HAVE_SYSVIPC
 
 #define HAVE_TIMEVAL
-#if defined(emacs)
+#if defined(emacs) && !defined(INHIBIT_BSD_TIME)
 #include <bsd/sys/time.h>
 #endif
 
@@ -198,7 +234,7 @@ NOTE-END  */
 /* ??? */
 #define IRIS
 
-#endif
+#endif /* USG */
 
 #ifdef BSD
 #define COFF
@@ -206,3 +242,5 @@ NOTE-END  */
 #undef MAIL_USE_FLOCK  /* Someone should check this.  */
 #undef HAVE_UNION_WAIT
 #endif /* BSD */
+
+#endif /* not NEWSOS5 */

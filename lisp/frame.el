@@ -115,10 +115,14 @@ These supercede the values given in default-frame-alist.")
 (defun frame-notice-user-settings ()
   (if frame-initial-frame
       (progn
-	
 	;; If the user wants a minibuffer-only frame, we'll have to
 	;; make a new one; you can't remove or add a root window to/from
 	;; an existing frame.
+	;; NOTE: default-frame-alist was nil when we created the
+	;; existing frame.  We need to explicitly include
+	;; default-frame-alist in the parameters of the screen we
+	;; create here, so that its new value, gleaned from the user's
+	;; .emacs file, will be applied to the existing screen.
 	(if (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			 '(minibuffer . t)))
 		     'only)
@@ -126,10 +130,18 @@ These supercede the values given in default-frame-alist.")
 	      (setq default-minibuffer-frame
 		    (new-frame
 		     (append initial-frame-alist
+			     default-frame-alist
 			     (frame-parameters frame-initial-frame))))
+
+	      ;; Redirect events enqueued at this frame to the new frame.
+	      ;; Is this a good idea?
+	      (redirect-frame-focus frame-initial-frame
+				    default-minibuffer-frame)
+
 	      (delete-frame frame-initial-frame))
 	  (modify-frame-parameters frame-initial-frame
-				    initial-frame-alist))))
+				   (append initial-frame-alist
+					   default-frame-alist)))))
 
   ;; Make sure the initial frame can be GC'd if it is ever deleted.
   (makunbound 'frame-initial-frame))

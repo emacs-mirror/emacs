@@ -1,3 +1,7 @@
+# DIST: This is the distribution Makefile for Emacs.  configure can
+# DIST: make most of the changes to this file you might want, so try
+# DIST: that first.
+
 MAKE = make
 # BSD doesn't have it as a default.
 
@@ -16,7 +20,7 @@ doall:
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean:
-	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ \#* *.o
+	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ m/*~ s/*~ \#* *.o
 
 clean:
 	-rm -f temacs xemacs xmakefile* core \#* *.o

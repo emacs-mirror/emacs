@@ -66,3 +66,6 @@ extern Lisp_Object Qscrollbar_click;
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line;
 
+/* User-supplied string to translate input characters through.  */
+extern Lisp_Object Vkeyboard_translate_table;
+

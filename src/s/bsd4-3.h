@@ -23,12 +23,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Define all the symbols that apply correctly.
  */
 
+/* We give these symbols the numeric values found in <sys/param.h> to
+   avoid warnings about redefined macros.  */
 #ifndef BSD4_3
-#define BSD4_3
+#define BSD4_3 1
 #endif /* BSD4_3 */
 
 #ifndef BSD
-#define BSD
+#define BSD 43
 #endif /* BSD */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
