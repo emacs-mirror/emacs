@@ -727,6 +727,21 @@ is converted into a string by expressing it in decimal."
 
 (defalias 'focus-frame 'ignore)
 (defalias 'unfocus-frame 'ignore)
+
+
+;;;; Obsolescence declarations for variables.
+
+(make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
+(make-obsolete-variable 'mode-line-inverse-video "use the appropriate faces instead." "21.1")
+(make-obsolete-variable 'unread-command-char
+  "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
+  "before 19.15")
+(make-obsolete-variable 'executing-macro 'executing-kbd-macro "before 19.34")
+(make-obsolete-variable 'post-command-idle-hook
+  "use timers instead, with `run-with-idle-timer'." "before 19.34")
+(make-obsolete-variable 'post-command-idle-delay
+  "use timers instead, with `run-with-idle-timer'." "before 19.34")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
