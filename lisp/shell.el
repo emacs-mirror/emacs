@@ -240,16 +240,16 @@ to match their respective commands."
   "Run an inferior shell, with I/O through buffer *shell*.
 If buffer exists but shell process is not running, make new shell.
 If buffer exists and shell process is running, 
- just switch to buffer *shell*.
+ just switch to buffer `*shell*'.
 Program used comes from variable explicit-shell-file-name,
  or (if that is nil) from the ESHELL environment variable,
  or else from SHELL if there is no ESHELL.
-If a file ~/.emacs_SHELLNAME exists, it is given as initial input
+If a file `~/.emacs_SHELLNAME' exists, it is given as initial input
  (Note that this may lose due to a timing error if the shell
   discards input when it starts up.)
-The buffer is put in shell-mode, giving commands for sending input
-and controlling the subjobs of the shell.  See shell-mode.
-See also variable shell-prompt-pattern.
+The buffer is put in Shell mode, giving commands for sending input
+and controlling the subjobs of the shell.  See `shell-mode'.
+See also the variable `shell-prompt-pattern'.
 
 The shell file name (sans directories) is used to make a symbol name
 such as `explicit-csh-arguments'.  If that symbol is a variable,
