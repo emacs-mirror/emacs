@@ -2072,12 +2072,12 @@ dnl with `--with-xim=no'.
 if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
 	    [Define to 1 if we should use XIM, if it is available.])
+fi
+if test "${HAVE_X11}" = "yes"; then
   late_CFLAGS=$CFLAGS
   if test "$GCC" = yes; then
     CFLAGS="$CFLAGS --pedantic-errors"
   fi
-fi
-if test "${HAVE_X11}" = "yes"; then
   AC_TRY_COMPILE([
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>],
