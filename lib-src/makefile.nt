@@ -202,7 +202,7 @@ install:	$(INSTALL_FILES)
 # 
 clean:;		- $(DEL) *~ *.pdb DOC*
 		- $(DEL_TREE) deleted
-		- $(DEL_TREE) obj
+		- $(DEL_TREE) $(OBJDIR)
 
 #
 # Headers we would preprocess if we could.
