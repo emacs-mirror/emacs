@@ -1,3 +1,32 @@
+2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-mode-marked): New arg `noquery'.
+	Prompt user for a file rather than raising an error.
+	(cvs-enabledp): Fix call to cvs-mode-marked.
+	(cvs-insert-file): New function (extracted from cvs-mode-insert).
+	(cvs-mode-insert): Use it.  Change the init prompt' value.
+	(cvs-mode-tree): Use cvs-status-cvstrees instead of cvs-status-trees.
+
+	* emacs-lisp/ewoc.el (ewoc-goto-prev, ewoc-goto-next):
+	Don't pass default arg to ewoc-locate.
+	(ewoc-collect): Return result in the right order.
+
+	* log-edit.el (log-edit-show-files): Use cvs-insert-strings.
+
+	* cvs-status.el (cvs-tree-merge): Use cvs-butlast (avoid CL).
+	(cvs-status-get-tags): Fix regexp.
+	(cvs-status-trees, cvs-status-cvstrees):
+	Combine after change hooks and don't sit-for.
+	(cvs-tree-use-jisx0208): Renamed from cvs-tree-dstr-2byte-ready.
+	(cvs-tree-char-*): Renamed from cvs-tree-dstr-char-*.
+	Use make-char rather than hard-coded cryptic data.
+	(cvs-status-cvstrees): Convert the buffer to multibyte if necessary.
+
+	* pcvs-defs.el (cvs-menu): Add entries for tree and insert.
+
+	* pcvs-util.el (cvs-butlast, cvs-nbutlast): New (copied from CL).
+	(cvs-insert-strings): New function.
+
 2000-11-06  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* mwheel.el (mouse-wheel-scroll-amount): Renamed from
