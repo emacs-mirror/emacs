@@ -4840,14 +4840,11 @@ update_frame_line (frame, vpos)
 	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
 	  --nlen;
 
+      cursor_to (vpos, 0);
       if (nlen)
-	{
-	  cursor_to (vpos, 0);
-	  write_glyphs (nbody, nlen);
-	}
+	write_glyphs (nbody, nlen);
       
-      cursor_to (vpos, nlen);
-      clear_end_of_line (olen);
+      clear_end_of_line (FRAME_WINDOW_WIDTH (frame));
       make_current (desired_matrix, current_matrix, vpos);
       return;
     }
