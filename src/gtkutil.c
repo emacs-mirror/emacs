@@ -1576,11 +1576,9 @@ remove_from_container (wcont, list)
      GtkWidget *wcont;
      GList *list;
 {
-  /* We must copy list because gtk_container_remove changes it.  */
-  GList *clist = g_list_copy (list);
   GList *iter;
 
-  for (iter = clist; iter; iter = g_list_next (iter))
+  for (iter = list; iter; iter = g_list_next (iter))
     {
       GtkWidget *w = GTK_WIDGET (iter->data);
 
@@ -1595,39 +1593,44 @@ remove_from_container (wcont, list)
          removing the detached window also if there was one.  */
       gtk_widget_destroy (w);
     }
-  g_list_free (clist);
 }
 
 /* Update the top level names in MENUBAR (i.e. not submenus).
    F is the frame the menu bar belongs to.
-   LIST is a list with the current menu bar names (menu item widgets).
+   *LIST is a list with the current menu bar names (menu item widgets).
+   ITER is the item within *LIST that shall be updated.
+   POS is the numerical position, starting at 0, of ITER in *LIST.
    VAL describes what the menu bar shall look like after the update.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
+   CL_DATA points to the callback data to be used for this menu bar.
 
    This function calls itself to walk through the menu bar names.  */
 static void
-xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
+xg_update_menubar (menubar, f, list, iter, pos, val,
+                   select_cb, highlight_cb, cl_data)
      GtkWidget *menubar;
      FRAME_PTR f;
-     GList *list;
+     GList **list;
+     GList *iter;
+     int pos;
      widget_value *val;
      GCallback select_cb;
      GCallback highlight_cb;
      xg_menu_cb_data *cl_data;
 {
-  if (! list && ! val)
+  if (! iter && ! val)
     return;
-  else if (list && ! val)
+  else if (iter && ! val)
     {
-      /* Item(s) have been removed.  Remove all remaining items from list.  */
-      remove_from_container (menubar, list);
+      /* Item(s) have been removed.  Remove all remaining items.  */
+      remove_from_container (menubar, iter);
 
       /* All updated.  */
       val = 0;
-      list = 0;
+      iter = 0;
     }
-  else if (! list && val)
+  else if (! iter && val)
     {
       /* Item(s) added.  Add all new items in one call.  */
       create_menus (val, f, select_cb, 0, highlight_cb,
@@ -1635,51 +1638,43 @@ xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
 
       /* All updated.  */
       val = 0;
-      list = 0;
+      iter = 0;
     }
-  /* Below this neither list or val is NULL */
-  else if (xg_item_label_same_p (GTK_MENU_ITEM (list->data), val->name))
+  /* Below this neither iter or val is NULL */
+  else if (xg_item_label_same_p (GTK_MENU_ITEM (iter->data), val->name))
     {
       /* This item is still the same, check next item.  */
       val = val->next;
-      list = g_list_next (list);
+      iter = g_list_next (iter);
+      ++pos;
     }
   else /* This item is changed.  */
     {
-      GtkMenuItem *witem = GTK_MENU_ITEM (list->data);
+      GtkMenuItem *witem = GTK_MENU_ITEM (iter->data);
       GtkMenuItem *witem2 = 0;
-      int pos = 0;
       int val_in_menubar = 0;
-      int list_in_new_menubar = 0;
-      GList *list2;
-      GList *iter;
+      int iter_in_new_menubar = 0;
+      GList *iter2;
       widget_value *cur;
 
-
-      /* Get position number for witem.  */
-      list2 = gtk_container_get_children (GTK_CONTAINER (menubar));
-      for (iter = list2; iter; iter = g_list_next (iter))
-        {
-          if (list->data == iter->data) break;
-          ++pos;
-        }
-
       /* See if the changed entry (val) is present later in the menu bar  */
-      for (iter = g_list_next (list);
-           iter && ! val_in_menubar;
-           iter = g_list_next (iter))
+      for (iter2 = iter;
+           iter2 && ! val_in_menubar;
+           iter2 = g_list_next (iter2))
         {
-          witem2 = GTK_MENU_ITEM (iter->data);
+          witem2 = GTK_MENU_ITEM (iter2->data);
           val_in_menubar = xg_item_label_same_p (witem2, val->name);
         }
 
-      /* See if the current entry (list) is present later in the
+      /* See if the current entry (iter) is present later in the
          specification for the new menu bar.  */
-      for (cur = val; cur && ! list_in_new_menubar; cur = cur->next)
-        list_in_new_menubar = xg_item_label_same_p (witem, cur->name);
+      for (cur = val; cur && ! iter_in_new_menubar; cur = cur->next)
+        iter_in_new_menubar = xg_item_label_same_p (witem, cur->name);
 
-      if (val_in_menubar && ! list_in_new_menubar)
+      if (val_in_menubar && ! iter_in_new_menubar)
         {
+          int nr = pos;
+
           /*  This corresponds to:
                 Current:  A B C
                 New:      A C
@@ -1690,10 +1685,11 @@ xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
           gtk_widget_destroy (GTK_WIDGET (witem));
 
           /* Must get new list since the old changed.  */
-          list = gtk_container_get_children (GTK_CONTAINER (menubar));
-          while (pos-- > 0) list = g_list_next (list);
+          g_list_free (*list);
+          *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));
+          while (nr-- > 0) iter = g_list_next (iter);
         }
-      else if (! val_in_menubar && ! list_in_new_menubar)
+      else if (! val_in_menubar && ! iter_in_new_menubar)
         {
           /*  This corresponds to:
                 Current:  A B C
@@ -1714,16 +1710,18 @@ xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
           
           gtk_label_set_text_with_mnemonic (wlabel, utf8_label);
 
-          list = g_list_next (list);
+          iter = g_list_next (iter);
           val = val->next;
+          ++pos;
         }
-      else if (! val_in_menubar && list_in_new_menubar)
+      else if (! val_in_menubar && iter_in_new_menubar)
         {
           /*  This corresponds to:
                 Current:  A B C
                 New:      A X B C
               Insert X.  */
 
+          int nr = pos;
           GList *group = 0;
           GtkWidget *w = xg_create_one_menuitem (val,
                                                  f,
@@ -1735,13 +1733,16 @@ xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
           gtk_widget_set_name (w, MENU_ITEM_NAME);
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar), w, pos);
 
-          list = gtk_container_get_children (GTK_CONTAINER (menubar));
-          while (pos-- > 0) list = g_list_next (list);
-          list = g_list_next (list);
+          g_list_free (*list);
+          *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));
+          while (nr-- > 0) iter = g_list_next (iter);
+          iter = g_list_next (iter);
           val = val->next;
+          ++pos;
         }
-      else /* if (val_in_menubar && list_in_new_menubar) */
+      else /* if (val_in_menubar && iter_in_new_menubar) */
         {
+          int nr = pos;
           /*  This corresponds to:
                 Current:  A B C
                 New:      A C B
@@ -1753,16 +1754,17 @@ xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data)
                                  GTK_WIDGET (witem2), pos);
           gtk_widget_unref (GTK_WIDGET (witem2));
 
+          g_list_free (*list);
+          *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));
+          while (nr-- > 0) iter = g_list_next (iter);
           val = val->next;
-          list = gtk_container_get_children (GTK_CONTAINER (menubar));
-          while (pos-- > 0) list = g_list_next (list);
-          list = g_list_next (list);
+          ++pos;
       }
-      
     }
 
   /* Update the rest of the menu bar.  */
-  xg_update_menubar (menubar, f, list, val, select_cb, highlight_cb, cl_data);
+  xg_update_menubar (menubar, f, list, iter, pos, val,
+                     select_cb, highlight_cb, cl_data);
 }
 
 /* Update the menu item W so it corresponds to VAL.
@@ -1797,6 +1799,8 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
 
       wlbl = GTK_LABEL (list->data);
       wkey = GTK_LABEL (list->next->data);
+      g_list_free (list);
+
       if (! utf8_key)
         {
           /* Remove the key and keep just the label.  */
@@ -1805,6 +1809,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
           gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (wlbl));
           wkey = 0;
         }
+
     }
   else /* Just a label.  */
     {
@@ -1815,8 +1820,10 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
         {
           GtkWidget *wtoadd = make_widget_for_menu_item (utf8_label, utf8_key);
           GList *list = gtk_container_get_children (GTK_CONTAINER (wtoadd));
+
           wlbl = GTK_LABEL (list->data);
           wkey = GTK_LABEL (list->next->data);
+          g_list_free (list);
 
           gtk_container_remove (GTK_CONTAINER (w), wchild);
           gtk_container_add (GTK_CONTAINER (w), wtoadd);
@@ -2056,6 +2063,8 @@ xg_update_submenu (submenu, f, val,
                              0);
     }
     
+  if (list) g_list_free (list);
+
   return newsub;
 }
 
@@ -2080,7 +2089,6 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
 {
   xg_menu_cb_data *cl_data;
   GList *list = gtk_container_get_children (GTK_CONTAINER (menubar));
-  GList *iter;
 
   if (! list) return;
   
@@ -2090,7 +2098,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   if (! deep_p)
     {
       widget_value *cur = val->contents;
-      xg_update_menubar (menubar, f, list, cur,
+      xg_update_menubar (menubar, f, &list, list, 0, cur,
                          select_cb, highlight_cb, cl_data);
     }
   else
@@ -2106,6 +2114,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
 
       for (cur = val->contents; cur; cur = cur->next)
         {
+          GList *iter;
           GtkWidget *sub = 0;
           GtkWidget *newsub;
           GtkMenuItem *witem;
@@ -2137,6 +2146,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
         }
     }
 
+  g_list_free (list);
   gtk_widget_show_all (menubar);
 }
 
@@ -2424,34 +2434,35 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
      int width;
      int height;
 {
-    GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
 
-    if (wscroll)
-      {
-        int gheight = max (height, 1);
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
 
-        gtk_fixed_move (GTK_FIXED (f->output_data.x->edit_widget),
-                        wscroll, left, top);
+  if (wscroll)
+    {
+      int gheight = max (height, 1);
 
-        gtk_widget_set_size_request (wscroll, width, gheight);
+      gtk_fixed_move (GTK_FIXED (f->output_data.x->edit_widget),
+                      wscroll, left, top);
 
-        /* Must force out update so wscroll gets the resize.
-           Otherwise, the gdk_window_clear clears the old window size.  */
-        gdk_window_process_all_updates ();
+      gtk_widget_set_size_request (wscroll, width, gheight);
 
-        /* The scroll bar doesn't explicitly redraw the whole window
-           when a resize occurs.  Since the scroll bar seems to be fixed
-           in width it doesn't fill the space reserved, so we must clear
-           the whole window.  */
-        gdk_window_clear (wscroll->window);
+      /* Must force out update so wscroll gets the resize.
+         Otherwise, the gdk_window_clear clears the old window size.  */
+      gdk_window_process_all_updates ();
 
-        /* Since we are not using a pure gtk event loop, we must force out
-           pending update events with this call.  */
-        gdk_window_process_all_updates ();
+      /* The scroll bar doesn't explicitly redraw the whole window
+         when a resize occurs.  Since the scroll bar seems to be fixed
+         in width it doesn't fill the space reserved, so we must clear
+         the whole window.  */
+      gdk_window_clear (wscroll->window);
 
-        SET_FRAME_GARBAGED (f);
-        cancel_mouse_face (f);
-      }
+      /* Since we are not using a pure gtk event loop, we must force out
+         pending update events with this call.  */
+      gdk_window_process_all_updates ();
+
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+    }
 }
 
 /* Set the thumb size and position of scroll bar BAR.  We are currently
@@ -2698,6 +2709,7 @@ update_frame_tool_bar (f)
   int i;
   GtkRequisition old_req, new_req;
   GList *icon_list;
+  GList *iter;
   struct x_output *x = f->output_data.x;
 
   if (! FRAME_GTK_WIDGET (f))
@@ -2711,7 +2723,8 @@ update_frame_tool_bar (f)
   gtk_widget_size_request (x->toolbar_widget, &old_req);
 
   icon_list = gtk_container_get_children (GTK_CONTAINER (x->toolbar_widget));
-
+  iter = icon_list;
+  
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
@@ -2722,9 +2735,9 @@ update_frame_tool_bar (f)
       int img_id;
       struct image *img;
       Lisp_Object image;
-      GtkWidget *wicon = icon_list ? GTK_WIDGET (icon_list->data) : 0;
+      GtkWidget *wicon = iter ? GTK_WIDGET (iter->data) : 0;
 
-      if (icon_list) icon_list = g_list_next (icon_list);
+      if (iter) iter = g_list_next (iter);
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -2812,10 +2825,11 @@ update_frame_tool_bar (f)
           /* The child of the tool bar is a button.  Inside that button
              is a vbox.  Inside that vbox is the GtkImage.  */
           GtkWidget *wvbox = gtk_bin_get_child (GTK_BIN (wicon));
-          GList *ch = gtk_container_get_children (GTK_CONTAINER (wvbox));
-          GtkImage *wimage = GTK_IMAGE (ch->data);
+          GList *chlist = gtk_container_get_children (GTK_CONTAINER (wvbox));
+          GtkImage *wimage = GTK_IMAGE (chlist->data);
           struct image *old_img = g_object_get_data (G_OBJECT (wimage),
                                                      XG_TOOL_BAR_IMAGE_DATA);
+          g_list_free (chlist);
 
           if (! old_img
               || old_img->pixmap != img->pixmap
@@ -2840,11 +2854,11 @@ update_frame_tool_bar (f)
 
   /* Remove buttons not longer needed.  We just hide them so they
      can be reused later on.  */
-  while (icon_list)
+  while (iter)
     {
-      GtkWidget *w = GTK_WIDGET (icon_list->data);
+      GtkWidget *w = GTK_WIDGET (iter->data);
       gtk_widget_hide (w);
-      icon_list = g_list_next (icon_list);
+      iter = g_list_next (iter);
     }
 
   gtk_widget_size_request (x->toolbar_widget, &new_req);
@@ -2856,6 +2870,8 @@ update_frame_tool_bar (f)
 
   /* Must force out update so changed images gets redrawn.  */
   gdk_window_process_all_updates ();
+
+  if (icon_list) g_list_free (icon_list);
 
   UNBLOCK_INPUT;
 }

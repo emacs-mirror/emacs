@@ -1,3 +1,10 @@
+2003-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (remove_from_container): Copying list is not needed.
+	(xg_update_menubar, xg_update_menu_item, xg_update_submenu)
+	(xg_modify_menubar_widgets, update_frame_tool_bar): Call g_list_free
+	on list returned from gtk_container_get_children to avoid memory leak.
+
 2003-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_create_pixmap_from_bitmap_data): Use alloca for
