@@ -625,11 +625,11 @@ For CVS, the full name of CVS/Entries is returned."
       ((eq (vc-backend file) 'SCCS)
        (or (vc-lock-from-permissions file)
 	   (vc-file-setprop file 'vc-locking-user 
-			    (vc-master-locking-user file))))))
+			    (vc-master-locking-user file)))))
   
       ;; convert a possible 'none value
       (setq locking-user (vc-file-getprop file 'vc-locking-user))
-      (if (eq locking-user 'none) nil locking-user)))
+      (if (eq locking-user 'none) nil locking-user))))
 
 ;;; properties to store current and recent version numbers
 
