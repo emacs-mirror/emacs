@@ -365,6 +365,17 @@ ScreenVisualBell (void)
 
 #ifndef HAVE_X_WINDOWS
 
+/* Enable bright background colors.  */
+static void
+bright_bg (void)
+{
+  union REGS regs;
+
+  regs.h.bl = 0;
+  regs.x.ax = 0x1003;
+  int86 (0x10, &regs, &regs);
+}
+
 /* Set the screen dimensions so that it can show no less than
    ROWS x COLS frame.  */
 
@@ -400,9 +411,6 @@ dos_set_window_size (rows, cols)
       && (video_mode_value = XINT (video_mode)) > 0)
     {
       regs.x.ax = video_mode_value;
-      int86 (0x10, &regs, &regs);
-      regs.h.bl = 0;
-      regs.x.ax = 0x1003;
       int86 (0x10, &regs, &regs);
 
       if (have_mouse)
@@ -494,6 +502,9 @@ dos_set_window_size (rows, cols)
   /* Tell the caller what dimensions have been REALLY set.  */
   *rows = ScreenRows ();
   *cols = ScreenCols ();
+
+  /* Enable bright background colors.  */
+  bright_bg ();
 }
 
 /* If we write a character in the position where the mouse is,
@@ -726,6 +737,8 @@ IT_set_terminal_modes (void)
   if (termscript)
     fprintf (termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
              screen_size_X, screen_size_Y);
+
+  bright_bg ();
 }
 
 /* IT_reset_terminal_modes is called when emacs is
@@ -826,6 +839,8 @@ IT_set_frame_parameters (frame, alist)
 	    {
 	      FRAME_FOREGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
+	      if (termscript)
+		fprintf (termscript, "<FGCOLOR %d>\n", new_color);
 	    }
 	}
       else if (EQ (prop, intern ("background-color")))
@@ -833,8 +848,10 @@ IT_set_frame_parameters (frame, alist)
 	  unsigned long new_color = load_color (f, val);
 	  if (new_color != ~0)
 	    {
-	      FRAME_BACKGROUND_PIXEL (f) = new_color & ~8;
+	      FRAME_BACKGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
+	      if (termscript)
+		fprintf (termscript, "<BGCOLOR %d>\n", new_color);
 	    }
 	}
       else if (EQ (prop, intern ("menu-bar-lines")))
@@ -893,15 +910,22 @@ internal_terminal_init ()
   bzero (&the_only_x_display, sizeof the_only_x_display);
   the_only_x_display.background_pixel = 7; /* White */
   the_only_x_display.foreground_pixel = 0; /* Black */
+  bright_bg ();
   colors = getenv ("EMACSCOLORS");
   if (colors && strlen (colors) >= 2)
     {
-      /* Foreground colrs use 4 bits, background only 3.  */
-      if (isxdigit (colors[0]) && !isdigit (colors[0]))
-        colors[0] += 10 - (isupper (colors[0]) ? 'A' : 'a');
+      /* The colors use 4 bits each (we enable bright background).  */
+      if (isdigit (colors[0]))
+        colors[0] -= '0';
+      else if (isxdigit (colors[0]))
+        colors[0] -= (isupper (colors[0]) ? 'A' : 'a') - 10;
       if (colors[0] >= 0 && colors[0] < 16)
         the_only_x_display.foreground_pixel = colors[0];
-      if (colors[1] >= 0 && colors[1] < 8)
+      if (isdigit (colors[1]))
+        colors[1] -= '0';
+      else if (isxdigit (colors[1]))
+        colors[1] -= (isupper (colors[1]) ? 'A' : 'a') - 10;
+      if (colors[1] >= 0 && colors[1] < 16)
         the_only_x_display.background_pixel = colors[1];
     }
   the_only_x_display.line_height = 1;
