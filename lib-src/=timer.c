@@ -293,8 +293,12 @@ main (argc, argv)
     }
 #endif /* USG */
 
+  /* In case Emacs sent some input before we set up
+     the handling of SIGIO, read it now.  */
+  kill (0, SIGIO);
+
   for (;;)
-      pause ();
+    pause ();
 }
 
 /* timer.c ends here */
