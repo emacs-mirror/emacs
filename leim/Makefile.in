@@ -133,13 +133,13 @@ ${TIT-GB} ${TIT-BIG5}: ${EMACS}
 # distributed as is.  So, we just make symbolic links to them if
 # ${srcdir} is different form the current directory.
 %.el:
-	ln -s ${srcdir}/$@ $@
+	@LN_S@ ${srcdir}/$@ $@
 
 stamp-bytecomp: ${WORLD} ${EMACS}
 	${RUN-EMACS} -batch	--eval '(byte-recompile-directory "quail" 0)'
 	if test ! -f skk/skkdic.elc; then \
 	  if test -f ${srcdir}/skk/skkdic.elc; then \
-	    ln -s ${srcdir}/skk/skkdic.elc skk; \
+	    @LN_S@ ${srcdir}/skk/skkdic.elc skk; \
 	  else \
 	    ${RUN-EMACS} -batch -l skkdic-cnv \
 		--eval '(byte-recompile-directory "skk" 0)'; \
@@ -267,9 +267,15 @@ install-misc: all ${MISC}
 mostlyclean:
 	rm -f quail/*.elc stamp-bytecomp
 
+# This used to use test -L, but that is not portable.
+# If Makefile.in doesn't exist in the build directory
+# then it isn't the source directory, so we should delete the file.
 clean:
 	rm -rf ${TIT-GB} ${TIT-BIG5} quail/*.elc stamp-bytecomp leim-list.el
-	test -L skk/skkdic.elc || rm skk/skkdic.elc
+# If this is not a dot-srcdir build, then remove the link made to skkdic.elc.
+	if test ! -f Makefile.in; then \
+	  rm -f skk/skkdic.elc; \
+	else; true; fi
 
 distclean maintainer-clean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
