@@ -267,7 +267,7 @@ don't define this value.")
 
 	    ;; MAIL FROM: <sender>
 ;	    (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	    (smtpmail-send-command process (format "MAIL FROM:%s" user-mail-address))
+	    (smtpmail-send-command process (format "MAIL FROM: <%s>" user-mail-address))
 
 	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		    (not (integerp (car response-code)))
@@ -278,7 +278,7 @@ don't define this value.")
 	    ;; RCPT TO: <recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO: %s" (nth n recipient)))
+		(smtpmail-send-command process (format "RCPT TO: <%s>" (nth n recipient)))
 		(setq n (1+ n))
 
 		(if (or (null (car (setq response-code (smtpmail-read-response process))))
