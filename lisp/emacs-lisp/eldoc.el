@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.14 1997/07/09 12:44:15 friedman Exp $
+;; $Id: eldoc.el,v 1.15 1998/09/19 02:15:26 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -101,7 +101,9 @@ If this variable is set to 0, no idle time is required."
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
 returns another string is acceptable."
-  :type '(choice (const upcase) (const downcase))
+  :type '(radio function
+		(function-item upcase)
+		(function-item downcase))
   :group 'eldoc)
 
 ;; No user options below here.
