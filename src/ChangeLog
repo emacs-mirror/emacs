@@ -1,3 +1,15 @@
+2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* charset.c (char_to_string_1, translate_char, Fdefine_charset):
+	Add parentheses around && within ||.
+
+	* indent.c (compute_motion): Likewise.
+
+	* intervals.c (merge_properties_sticky): Likewise.
+
+	* coding.c (setup_coding_system, shrink_encoding_region)
+	(Fdecode_sjis_char): Likewise.
+
 2001-12-07  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (display_mode_element): Don't read past end of string if
