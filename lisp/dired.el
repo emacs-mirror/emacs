@@ -334,66 +334,65 @@ Subexpression 2 must end right before the \\n or \\r.")
        (and (> count 0) count))))
 
 (defmacro dired-map-over-marks (body arg &optional show-progress)
-;;  "Macro: Perform BODY with point somewhere on each marked line
-;;and return a list of BODY's results.
-;;If no marked file could be found, execute BODY on the current line.
-;;  If ARG is an integer, use the next ARG (or previous -ARG, if ARG<0)
-;;  files instead of the marked files.
-;;  In that case point is dragged along.  This is so that commands on
-;;  the next ARG (instead of the marked) files can be chained easily.
-;;  If ARG is otherwise non-nil, use current file instead.
-;;If optional third arg SHOW-PROGRESS evaluates to non-nil,
-;;   redisplay the dired buffer after each file is processed.
-;;No guarantee is made about the position on the marked line.
-;;  BODY must ensure this itself if it depends on this.
-;;Search starts at the beginning of the buffer, thus the car of the list
-;;  corresponds to the line nearest to the buffer's bottom.  This
-;;  is also true for (positive and negative) integer values of ARG.
-;;BODY should not be too long as it is expanded four times."
-;;
-;;Warning: BODY must not add new lines before point - this may cause an
-;;endless loop.
-;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
-  (` (prog1
-	 (let (buffer-read-only case-fold-search found results)
-	   (if (, arg)
-	       (if (integerp (, arg))
-		   (progn;; no save-excursion, want to move point.
-		     (dired-repeat-over-lines
-		      (, arg)
-		      (function (lambda ()
-				  (if (, show-progress) (sit-for 0))
-				  (setq results (cons (, body) results)))))
-		     (if (< (, arg) 0)
-			 (nreverse results)
-		       results))
-		 ;; non-nil, non-integer ARG means use current file:
-		 (list (, body)))
-	     (let ((regexp (dired-marker-regexp)) next-position)
-	       (save-excursion
-		 (goto-char (point-min))
-		 ;; remember position of next marked file before BODY
-		 ;; can insert lines before the just found file,
-		 ;; confusing us by finding the same marked file again
-		 ;; and again and...
+  "Eval BODY with point on each marked line.  Return a list of BODY's results.
+If no marked file could be found, execute BODY on the current line.
+  If ARG is an integer, use the next ARG (or previous -ARG, if ARG<0)
+  files instead of the marked files.
+  In that case point is dragged along.  This is so that commands on
+  the next ARG (instead of the marked) files can be chained easily.
+  If ARG is otherwise non-nil, use current file instead.
+If optional third arg SHOW-PROGRESS evaluates to non-nil,
+  redisplay the dired buffer after each file is processed.
+No guarantee is made about the position on the marked line.
+  BODY must ensure this itself if it depends on this.
+Search starts at the beginning of the buffer, thus the car of the list
+  corresponds to the line nearest to the buffer's bottom.  This
+  is also true for (positive and negative) integer values of ARG.
+BODY should not be too long as it is expanded four times."
+  ;;
+  ;;Warning: BODY must not add new lines before point - this may cause an
+  ;;endless loop.
+  ;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
+  `(prog1
+       (let (buffer-read-only case-fold-search found results)
+	 (if ,arg
+	     (if (integerp ,arg)
+		 (progn	;; no save-excursion, want to move point.
+		   (dired-repeat-over-lines
+		    ,arg
+		    (function (lambda ()
+				(if ,show-progress (sit-for 0))
+				(setq results (cons ,body results)))))
+		   (if (< ,arg 0)
+		       (nreverse results)
+		     results))
+	       ;; non-nil, non-integer ARG means use current file:
+	       (list ,body))
+	   (let ((regexp (dired-marker-regexp)) next-position)
+	     (save-excursion
+	       (goto-char (point-min))
+	       ;; remember position of next marked file before BODY
+	       ;; can insert lines before the just found file,
+	       ;; confusing us by finding the same marked file again
+	       ;; and again and...
+	       (setq next-position (and (re-search-forward regexp nil t)
+					(point-marker))
+		     found (not (null next-position)))
+	       (while next-position
+		 (goto-char next-position)
+		 (if ,show-progress (sit-for 0))
+		 (setq results (cons ,body results))
+		 ;; move after last match
+		 (goto-char next-position)
+		 (forward-line 1)
+		 (set-marker next-position nil)
 		 (setq next-position (and (re-search-forward regexp nil t)
-					  (point-marker))
-		       found (not (null next-position)))
-		 (while next-position
-		   (goto-char next-position)
-		   (if (, show-progress) (sit-for 0))
-		   (setq results (cons (, body) results))
-		   ;; move after last match
-		   (goto-char next-position)
-		   (forward-line 1)
-		   (set-marker next-position nil)
-		   (setq next-position (and (re-search-forward regexp nil t)
-					    (point-marker)))))
-	       (if found
-		   results
-		 (list (, body))))))
-       ;; save-excursion loses, again
-       (dired-move-to-filename))))
+					  (point-marker)))))
+	     (if found
+		 results
+	       (list ,body)))))
+     ;; save-excursion loses, again
+     (dired-move-to-filename)))
 
 (defun dired-get-marked-files (&optional localp arg)
   "Return the marked files' names as list of strings.
