@@ -139,12 +139,6 @@ You might also use mode hooks to specify it in certain modes, like this:
 				    (concat \"make -k \"
 					    buffer-file-name))))))")
 
-;;;###autoload
-(defvar grep-command "grep -n "
-  "Last shell command used to do a grep search; default for next search.
-Typically \"grep -n\" or \"egrep -n\".
-\(The \"-n\" option tells grep to output line numbers.)")
-
 (defconst compilation-enter-directory-regexp
   ": Entering directory `\\(.*\\)'$"
   "Regular expression for a line in the compilation log that
@@ -169,6 +163,11 @@ The default value matches lines printed by the `-w' option of GNU Make.")
 \`compilation-leave-directory-regexp'.  The head element is the directory
 the compilation was started in.")
 
+;; History of compile commands.
+(defvar compile-history nil)
+;; History of grep commands.
+(defvar grep-history nil)
+
 ;;;###autoload
 (defun compile (command)
   "Compile the program including the current buffer.  Default: run `make'.
@@ -185,7 +184,9 @@ Then start the next one.
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
-  (interactive (list (read-string "Compile command: " compile-command)))
+  (interactive (list (read-from-minibuffer "Compile command: "
+					   compile-command nil
+					   '(compile-history . 1))))
   (setq compile-command command)
   (save-some-buffers nil nil)
   (compile-internal compile-command "No more errors"))
@@ -196,26 +197,12 @@ to a function that generates a unique name."
 While grep runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
-The variable `grep-command' holds the last grep command run,
-and is the default for future runs.  The command should use the `-n'
-flag, so that line numbers are displayed for each match.
-What the user enters in response to the prompt for grep args is
-appended to everything up to and including the `-n' in `grep-command'."
+This command uses a special history list for its arguments, so you can
+easily repeat a grep command."
   (interactive
-   (list (read-string (concat "Run "
-			      (substring grep-command 0
-					 (string-match "[\t ]+" grep-command))
-			      " (with args): ")
-		      (progn
-			(string-match "-n[\t ]+" grep-command)
-			(substring grep-command (match-end 0))))))
-  ;; why a redundant string-match?  It might not be interactive ...
-  (setq grep-command (concat (substring grep-command 0
-					(progn
-					  (string-match "-n" grep-command)
-					  (match-end 0)))
-			     " " command-args))
-  (compile-internal (concat grep-command " /dev/null")
+   (list (read-from-minibuffer "Run grep (like this): "
+			       "grep -n " nil nil 'grep-history)))
+  (compile-internal (concat command-args " /dev/null")
 		    "No more grep hits" "grep"))
 
 (defun compile-internal (command error-message

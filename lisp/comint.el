@@ -538,8 +538,8 @@ Buffer local variable.")
   "Searches backwards through input history for substring match."
   (interactive (let* ((last-command last-command) ; preserve around r-f-m
 		      (s (read-from-minibuffer 
-			 (format "Command substring (default %s): "
-				 comint-last-input-match))))
+			  (format "Command substring (default %s): "
+				  comint-last-input-match))))
 		 (list (if (string= s "") comint-last-input-match s))))
 ; (interactive "sCommand substring: ")
   (setq comint-last-input-match str) ; update default

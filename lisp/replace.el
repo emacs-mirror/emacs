@@ -23,6 +23,18 @@
 (defconst case-replace t "\
 *Non-nil means query-replace should preserve case in replacements.")
 
+(defvar query-replace-history nil)
+
+(defun query-replace-read-args (string)
+  (let (from to)
+    (setq from (read-from-minibuffer (format "%s: " string)
+				     nil nil nil
+				     'query-replace-history))
+    (setq to (read-from-minibuffer (format "%s %s with: " string from)
+				   nil nil nil
+				   'query-replace-history))
+    (list from to current-prefix-arg)))
+
 (defun query-replace (from-string to-string &optional arg)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
@@ -32,7 +44,7 @@ Preserves case in each replacement if  case-replace  and  case-fold-search
 are non-nil and FROM-STRING has no uppercase letters.
 Third arg DELIMITED (prefix arg if interactive) non-nil means replace
 only matches surrounded by word boundaries."
-  (interactive "sQuery replace: \nsQuery replace %s with: \nP")
+  (interactive (query-replace-read-args "Query replace"))
   (perform-replace from-string to-string t nil arg)
   (message "Done"))
 (define-key esc-map "%" 'query-replace)
@@ -48,7 +60,7 @@ Third arg DELIMITED (prefix arg if interactive) non-nil means replace
 only matches surrounded by word boundaries.
 In TO-STRING, \\& means insert what matched REGEXP,
 and \\=\\<n> means insert what matched <n>th \\(...\\) in REGEXP."
-  (interactive "sQuery replace regexp: \nsQuery replace regexp %s with: \nP")
+  (interactive (query-replace-read-args "Query replace regexp"))
   (perform-replace regexp to-string t t arg)
   (message "Done"))
 
@@ -63,7 +75,17 @@ Non-interactively, TO-STRINGS may be a list of replacement strings.
 
 A prefix argument N says to use each replacement string N times
 before rotating to the next."
-  (interactive "sMap query replace (regexp): \nsQuery replace %s with (space-separated strings): \nP")
+  (interactive
+   (let (from to)
+     (setq from (read-from-minibuffer "Map query replace (regexp): "
+				      nil nil nil
+				      'query-replace-history))
+     (setq to (read-from-minibuffer
+	       (format "Query replace %s with (space-separated strings): "
+		       from)
+	       nil nil nil
+	       'query-replace-history))
+     (list from to current-prefix-arg)))
   (let (replacements)
     (if (listp to-strings)
 	(setq replacements to-strings)
@@ -92,7 +114,7 @@ What you probably want is a loop like this:
   (while (search-forward OLD-STRING nil t)
     (replace-match REPLACEMENT nil t))
 which will run faster and will not set the mark or print anything."
-  (interactive "sReplace string: \nsReplace string %s with: \nP")
+  (interactive (query-replace-read-args "Replace string"))
   (perform-replace from-string to-string nil nil delimited)
   (message "Done"))
 
@@ -110,7 +132,7 @@ What you probably want is a loop like this:
   (while (re-search-forward REGEXP nil t)
     (replace-match REPLACEMENT nil nil))
 which will run faster and will not set the mark or print anything."
-  (interactive "sReplace regexp: \nsReplace regexp %s with: \nP")
+  (interactive (query-replace-read-args "Replace regexp"))
   (perform-replace regexp to-string nil t delimited)
   (message "Done"))
 

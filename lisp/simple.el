@@ -391,7 +391,9 @@ Whilst editing the command, the following commands are available:
 	  (setq newcmd (read-from-minibuffer "Redo: "
 					     (prin1-to-string elt)
 					     minibuffer-local-map
-					     t))
+					     t
+					     (cons 'command-history
+						   arg)))
 	  ;; If command to be redone does not match front of history,
 	  ;; add it to the history.
 	  (or (equal newcmd (car command-history))
@@ -415,7 +417,7 @@ Whilst editing the command, the following commands are available:
 	(insert
 	 (if minibuffer-history-sexp-flag
 	     (prin1-to-string elt)
-	   elt))))
+	   elt)))
       (goto-char (point-min)))))
 
 (defun previous-history-element (n)
