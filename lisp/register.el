@@ -105,7 +105,6 @@ REGISTER is a character."
 	    (if (consp val)
 		(progn
 		  (princ "the rectangle:\n")
-		  (setq val (cdr val))
 		  (while val
 		    (princ (car val))
 		    (terpri)
