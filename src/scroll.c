@@ -185,13 +185,13 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
 	else
 	  {
 	    cost = p1->writecost + first_insert_cost[i];
-	    if (p1->insertcount > i)
+	    if ((int) p1->insertcount > i)
 	      abort ();
 	    cost1 = p1->insertcost + next_insert_cost[i - p1->insertcount];
 	  }
 	p->insertcost = min (cost, cost1) + draw_cost[i] + extra_cost;
 	p->insertcount = (cost < cost1) ? 1 : p1->insertcount + 1;
-	if (p->insertcount > i)
+	if ((int) p->insertcount > i)
 	  abort ();
 
 	/* Calculate the cost if we do a delete line after
