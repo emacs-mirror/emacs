@@ -102,14 +102,16 @@ Cut buffers are considered obsolete; you should use selections instead."
 	     which-one)
      'CUT_BUFFER0)))
 
-(defun x-set-cut-buffer (string)
+(defun x-set-cut-buffer (string &optional push)
   "Store STRING into the X server's primary cut buffer.
-The previous value of the primary cut buffer is rotated to the secondary
+If PUSH is non-nil, also rotate the cut buffers:
+this means the previous value of the primary cut buffer moves the second
 cut buffer, and the second to the third, and so on (there are 8 buffers.)
 Cut buffers are considered obsolete; you should use selections instead."
   ;; Check the data type of STRING.
   (substring string 0 0)
-  (x-rotate-cut-buffers-internal 1)
+  (if push
+      (x-rotate-cut-buffers-internal 1))
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
 
 
