@@ -1,6 +1,6 @@
 /* impl.c.sacss: SAC MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!sacss.c(trunk.2) $
+ * $HopeName: MMsrc!sacss.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
@@ -47,7 +47,7 @@ static mps_res_t make(mps_addr_t *p, mps_sac_t sac, size_t size)
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t classes_count, mps_sac_classes_t classes,
+                        size_t classes_count, mps_sac_classes_s *classes,
                         size_t (*size)(int i), ...)
 {
   mps_res_t res;
@@ -142,8 +142,8 @@ static size_t randomSize8(int i)
 
 static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
 
-static mps_sac_classes_t classes = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
-                                     {topClassSIZE, 9, 4} };
+static mps_sac_classes_s classes[4] = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
+                                        {topClassSIZE, 9, 4} };
 
 static int testInArena(mps_arena_t arena)
 {
