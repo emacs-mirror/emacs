@@ -1,3 +1,17 @@
+2000-11-22  Dave Love  <fx@gnu.org>
+
+	* rect.el (string-rectangle): Revert last change.
+	(string-rectangle-line): New arg DELETE.
+	(string-rectangle): Check delete-selection-mode.
+
+	* emacs-lisp/edebug.el (edebug-version)
+	(edebug-maintainer-address): Deleted.
+	(edebug-submit-bug-report): Just alias to report-emacs-bug.
+	(edebug-read-function): Account for other `'#' read forms.
+	(edebug-mode-menus): Make some items toggles.
+	(edebug-outside-unread-command-event, unread-command-event):
+	Remove these to avoid warnings.
+
 2000-11-22  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-menu-items-for-commands)
