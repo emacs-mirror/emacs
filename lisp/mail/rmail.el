@@ -891,6 +891,7 @@ It returns t if it got any new messages."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
+  (run-hooks 'rmail-before-get-new-mail-hook)
   ;; If the disk file has been changed from under us,
   ;; revert to it before we get new mail.
   (or (verify-visited-file-modtime (current-buffer))
