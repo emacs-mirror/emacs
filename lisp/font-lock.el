@@ -1027,14 +1027,8 @@ delimit the region to fontify."
 (defun font-lock-fontify-syntactically-region (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
-  (let ((synstart (cond (font-lock-comment-start-regexp
-			 (concat "\\s\"\\|" font-lock-comment-start-regexp))
-			(comment-start-skip
-			 (concat "\\s\"\\|" comment-start-skip))
-			(t
-			 "\\s\"")))
-	(cache (marker-position font-lock-cache-position))
-	state prev here beg)
+  (let (state prev here comment
+	      (cache (marker-position font-lock-cache-position)))
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
     ;;
@@ -1058,73 +1052,33 @@ START should be at the beginning of a line."
       (set-marker font-lock-cache-position start))
     ;;
     ;; If the region starts inside a string, show the extent of it.
-    (when (nth 3 state)
-      (setq here (point))
-      (while (and (re-search-forward "\\s\"" end 'move)
-		  ;; Verify the state so we don't get fooled by quoting.
-		  (nth 3 (parse-partial-sexp here (point) nil nil state))))
-      (put-text-property here (point) 'face font-lock-string-face)
-      (setq state (parse-partial-sexp here (point) nil nil state)))
-    ;;
-    ;; Likewise for a comment.
-    (when (or (nth 4 state) (nth 7 state))
-      (let ((comstart (cond (font-lock-comment-start-regexp
-			     font-lock-comment-start-regexp)
-			    (comment-start-skip
-			     (concat "\\s<\\|" comment-start-skip))
-			    (t
-			     "\\s<")))
-	    (count 1))
-	(setq here (point))
-	(condition-case nil
-	    (save-restriction
-	      (narrow-to-region (point-min) end)
-	      ;; Go back to the real start of the comment.
-	      (re-search-backward comstart)
-	      (forward-comment 1)
-	      ;; If there is more than one comment type, then the previous
-	      ;; comment start might not be the real comment start.
-	      ;; For example, in C++ code, `here' might be on a line following
-	      ;; a // comment that is actually within a /* */ comment.
-	      (while (<= (point) here)
-		(goto-char here)
-		(re-search-backward comstart nil nil (incf count))
-		(forward-comment 1))
-	      ;; Go back to the real end of the comment.
-	      (skip-chars-backward " \t"))
-	  (error (goto-char end)))
-	(put-text-property here (point) 'face font-lock-comment-face)
-	(setq state (parse-partial-sexp here (point) nil nil state))))
+    (when (or (nth 4 state) (nth 3 state))
+      (setq comment (nth 4 state) here (point))
+      (setq state (parse-partial-sexp (point) end
+				      nil nil state 'syntax-table))
+      (put-text-property here (point) 'face 
+			 (if comment 
+			     font-lock-comment-face
+			   font-lock-string-face)))
     ;;
     ;; Find each interesting place between here and `end'.
     (while (and (< (point) end)
-		(setq prev (point))
-		(re-search-forward synstart end t)
-		(setq state (parse-partial-sexp prev (point) nil nil state)))
-      (cond ((nth 3 state)
-	     ;;
-	     ;; Found a real string start.
-	     (setq here (point) beg (match-beginning 0))
-	     (condition-case nil
-		 (save-restriction
-		   (narrow-to-region (point-min) end)
-		   (goto-char (scan-sexps beg 1)))
-	       (error (goto-char end)))
-	     (put-text-property beg (point) 'face font-lock-string-face)
-	     (setq state (parse-partial-sexp here (point) nil nil state)))
-	    ((or (nth 4 state) (nth 7 state))
-	     ;;
-	     ;; Found a real comment start.
-	     (setq here (point) beg (or (match-end 1) (match-beginning 0)))
-	     (goto-char beg)
-	     (condition-case nil
-		 (save-restriction
-		   (narrow-to-region (point-min) end)
-		   (forward-comment 1)
-		   (skip-chars-backward " \t"))
-	       (error (goto-char end)))
-	     (put-text-property beg (point) 'face font-lock-comment-face)
-	     (setq state (parse-partial-sexp here (point) nil nil state)))))))
+		(progn
+		  (setq prev (point)
+			state (parse-partial-sexp (point) end
+						  nil nil state 'syntax-table))
+		  (or (nth 3 state) (nth 4 state))))
+      (setq here (nth 8 state) comment (nth 4 state))
+      (setq state (parse-partial-sexp (point) end 
+				      nil nil state 'syntax-table))
+      (put-text-property here (point) 'face 
+			 (if comment 
+			     font-lock-comment-face
+			   font-lock-string-face))
+      ;;
+      ;; Make sure `prev' is non-nil after the loop
+      ;; only if it was set on the very last iteration.
+      (setq prev nil))))
 
 ;;; End of Syntactic fontification functions.
 
