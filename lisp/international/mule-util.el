@@ -31,20 +31,23 @@
 (defun string-to-sequence (string type)
   "Convert STRING to a sequence of TYPE which contains characters in STRING.
 TYPE should be `list' or `vector'."
-  (or (eq type 'list) (eq type 'vector)
-      (error "Invalid type: %s" type))
-  (let* ((len (length string))
-	 (i 0)
-	 l ch)
-    (while (< i len)
-      (setq ch (if enable-multibyte-characters
-		   (sref string i) (aref string i)))
-      (setq l (cons ch l))
-      (setq i (+ i (char-bytes ch))))
-    (setq l (nreverse l))
-    (if (eq type 'list)
-	l
-      (vconcat l))))
+  (let ((len (length string))
+	(i 0)
+	val)
+    (cond ((eq type 'list)
+	   (setq val (make-list len 0))
+	   (let ((l val))
+	     (while (< i len)
+	       (setcar l (aref string i))
+	       (setq l (cdr l) i (1+ i)))))
+	  ((eq type 'vector)
+	   (setq val (make-vector len 0))
+	   (while (< i len)
+	     (aset val i (aref string i))
+	     (setq i (1+ i))))
+	  (t
+	   (error "Invalid type: %s" type)))
+    val))
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -59,18 +62,15 @@ TYPE should be `list' or `vector'."
 ;;;###autoload
 (defun store-substring (string idx obj)
   "Embed OBJ (string or character) at index IDX of STRING."
-  (let* ((str (cond ((stringp obj) obj)
-		    ((integerp obj) (char-to-string obj))
-		    (t (error
-			"Invalid argument (should be string or character): %s"
-			obj))))
-	 (string-len (length string))
-	 (len (length str))
-	 (i 0))
-    (while (and (< i len) (< idx string-len))
-      (aset string idx (aref str i))
-      (setq idx (1+ idx) i (1+ i)))
-    string))
+  (if (integerp obj)
+      (aset string idx obj)
+    (let ((len1 (length obj))
+	  (len2 (length string))
+	  (i 0))
+      (while (< i len1)
+	(aset string (+ idx i) (aref obj i))
+	(setq i (1+ i)))))
+  string)
 
 ;;;###autoload
 (defun truncate-string-to-width (str end-column &optional start-column padding)
@@ -96,14 +96,14 @@ the resulting string may be narrower than END-COLUMN."
 	ch last-column last-idx from-idx)
     (condition-case nil
 	(while (< column start-column)
-	  (setq ch (sref str idx)
+	  (setq ch (aref str idx)
 		column (+ column (char-width ch))
-		idx (+ idx (char-bytes ch))))
+		idx (1+ idx)))
       (args-out-of-range (setq idx len)))
     (if (< column start-column)
 	(if padding (make-string end-column padding) "")
       (if (and padding (> column start-column))
-	  (setq head-padding (make-string (- column start-column) ?\ )))
+	  (setq head-padding (make-string (- column start-column) padding)))
       (setq from-idx idx)
       (if (< end-column column)
 	  (setq idx from-idx)
@@ -111,9 +111,9 @@ the resulting string may be narrower than END-COLUMN."
 	    (while (< column end-column)
 	      (setq last-column column
 		    last-idx idx
-		    ch (sref str idx)
+		    ch (aref str idx)
 		    column (+ column (char-width ch))
-		    idx (+ idx (char-bytes ch))))
+		    idx (1+ idx)))
 	  (args-out-of-range (setq idx len)))
 	(if (> column end-column)
 	    (setq column last-column idx last-idx))
@@ -288,36 +288,31 @@ or one is an alias of the other."
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 ;;;###autoload
-(defun find-safe-coding-system (from to)
-  "Return a list of proper coding systems to encode a text between FROM and TO.
-All coding systems in the list can safely encode any multibyte characters
-in the region.
+(defmacro detect-coding-with-priority (from to priority-list)
+  "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
+PRIORITY-LIST is an alist of coding categories vs the corresponding
+coding systems ordered by priority."
+  `(let* ((prio-list ,priority-list)
+	  (coding-category-list coding-category-list)
+	  ,@(mapcar (function (lambda (x) (list x x))) coding-category-list))
+     (mapcar (function (lambda (x) (set (car x) (cdr x))))
+	     prio-list)
+     (set-coding-priority (mapcar (function (lambda (x) (car x))) prio-list))
+     (detect-coding-region ,from ,to)))
 
-If the region contains no multibyte charcters, the returned list
-contains a single element `undecided'.
-
-Kludgy feature: if FROM is a string, then that string is the target
-for finding proper coding systems, and TO is ignored."
-  (let ((found (if (stringp from)
-		   (find-charset-string from)
-		 (find-charset-region from to)))
-	(l coding-system-list)
-	codings coding safe)
-    (if (and (= (length found) 1)
-	     (eq 'ascii (car found)))
-	'(undecided)
-      (while l
-	(setq coding (car l) l (cdr l))
-	(if (and (eq coding (coding-system-base coding))
-		 (setq safe (coding-system-get coding 'safe-charsets))
-		 (or (eq safe t)
-		     (catch 'tag
-		       (mapcar (function (lambda (x)
-					   (if (not (memq x safe))
-					       (throw 'tag nil))))
-			       found))))
-	    (setq codings (cons coding codings))))
-      codings)))
+;;;###autoload
+(defun detect-coding-with-language-environment (from to lang-env)
+  "Detect a coding system of the text between FROM and TO with LANG-ENV.
+The detection takes into accont the coding system priorities for the
+language environment LANG-ENV."
+  (let ((coding-priority (get-language-info lang-env 'coding-priority)))
+    (if coding-priority
+	(detect-coding-with-priority
+	 from to
+	 (mapcar (function (lambda (x)
+			     (cons (coding-system-get x 'coding-category) x)))
+		 coding-priority))
+      (detect-coding-region from to))))
 
 
 ;;; Composite charcater manipulations.
@@ -341,30 +336,40 @@ Composite characters are broken up into individual components.
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the region."
   (interactive "r")
-  (save-restriction
-    (narrow-to-region start end)
-    (goto-char (point-min))
-    (let ((enable-multibyte-characters nil)
-	  ;; This matches the whole bytes of single composite character.
-	  (re-cmpchar "\200[\240-\377]+")
-	  p ch str)
-      (while (re-search-forward re-cmpchar nil t)
-	(setq str (buffer-substring (match-beginning 0) (match-end 0)))
-	(delete-region (match-beginning 0) (match-end 0))
-	(insert (decompose-composite-char (string-to-char str)))))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region start end)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(let ((ch (following-char)))
+	  (if (>= ch min-composite-char)
+	      (progn
+		(delete-char 1)
+		(insert (decompose-composite-char ch)))
+	    (forward-char 1)))))))
 
 ;;;###autoload
 (defun decompose-string (string)
   "Decompose all composite characters in STRING."
-  (let* ((l (string-to-list string))
-	 (tail l)
-	 ch)
-    (while tail
-      (setq ch (car tail))
-      (setcar tail (if (cmpcharp ch) (decompose-composite-char ch)
-		     (char-to-string ch)))
-      (setq tail (cdr tail)))
-    (apply 'concat l)))
+  (let ((len (length string))
+	(idx 0)
+	(i 0)
+	(str-list nil)
+	ch)
+    (while (< idx len)
+      (setq ch (aref string idx))
+      (if (>= ch min-composite-char)
+	  (progn
+	    (if (> idx i)
+		(setq str-list (cons (substring string i idx) str-list)))
+	    (setq str-list (cons (decompose-composite-char ch) str-list))
+	    (setq i (1+ idx))))
+      (setq idx (1+ idx)))
+    (if (not str-list)
+	(copy-sequence string)
+      (if (> idx i)
+	  (setq str-list (cons (substring string i idx) str-list)))
+      (apply 'concat (nreverse str-list)))))
 
 ;;;###autoload
 (defconst reference-point-alist
@@ -483,7 +488,7 @@ even if WITH-COMPOSITION-RULE is t."
       (setq i (1- i)))
     (setq l (cons (composite-char-component char 0) l))
     (cond ((eq type 'string)
-	   (apply 'concat-chars l))
+	   (apply 'string l))
 	  ((eq type 'list)
 	   l)
 	  (t				; i.e. TYPE is vector
