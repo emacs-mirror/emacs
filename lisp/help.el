@@ -600,7 +600,9 @@ It can also be nil, if the definition is not associated with any file."
     (message "You didn't specify a function")))
 
 (defun describe-function-1 (function parens)
-  (let* ((def (symbol-function function))
+  (let* ((def (if (symbolp function)
+		  (symbol-function function)
+		function))
 	 file-name string need-close
 	 (beg (if (commandp def) "an interactive " "a ")))
     (setq string
