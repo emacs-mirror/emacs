@@ -278,7 +278,7 @@ NON-ISO-CHARSET is a name (symbol) of the non-ISO charset.
 CHARSET-LIST is a list of Emacs' charsets into which characters of
 NON-ISO-CHARSET are mapped.
 
-TRANSLATION-METHOD is a translatin table (symbol) to translate a
+TRANSLATION-METHOD is a translation table (symbol) to translate a
 character code of NON-ISO-CHARSET to the corresponding Emacs character
 code.  It can also be a function to call with one argument, a
 character code in NON-ISO-CHARSET.
@@ -491,7 +491,7 @@ detailed meanings of these arguments."
 		(if (= (aref info 2) 1)
 		    (format "%d\n" (aref info 3))
 		  (format "%dx%d\n" (aref info 3) (aref info 3))))
-	(insert "the final char of ISO2022's desgination sequence: ")
+	(insert "the final char of ISO2022's designation sequence: ")
 	(if (aref info 8)
 	    (insert (format "`%c'\n" (aref info 8)))
 	  (insert "not assigned\n"))
@@ -501,7 +501,7 @@ detailed meanings of these arguments."
 			(charset-multibyte-form-string charset)))
 	(let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
 	  (when coding
-	    (insert (format "prefered coding system: %s\n" coding))
+	    (insert (format "preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
 	    (help-xref-button 0 #'describe-coding-system coding
 			      "mouse-2, RET: describe this coding system")))
@@ -593,7 +593,7 @@ which font is being used for displaying the character."
 	      (insert " " clm))
 	    (insert "\n")))
 	(when composition
-	  (insert "\nComposed with the following characerter(s) "
+	  (insert "\nComposed with the following character(s) "
 		  (mapconcat (lambda (x) (format "`%c'" x))
 			     (substring composed 1)
 			     ", ")
