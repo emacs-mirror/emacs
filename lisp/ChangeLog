@@ -1,3 +1,7 @@
+2002-12-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* progmodes/antlr-mode.el (antlr): New URL.
+
 2002-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* finder.el (finder-commentary): Use *Finder-package* buffer.
