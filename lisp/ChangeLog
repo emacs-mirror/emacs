@@ -1,3 +1,9 @@
+2001-09-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/sendmail.el (mail-send): Obey mail-send-nonascii when
+	enable-multibyte-characters = nil.  From Hallvard B Furuseth
+	<h.b.furuseth@usit.uio.no>.
+	
 2001-09-09  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-init.el (ediff-highest-priority): bug fix.
