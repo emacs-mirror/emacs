@@ -1222,6 +1222,10 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** If the variable `message-truncate-lines' is bound to t around a
+call to `message', the echo area will not be resized to display that
+message; it will be truncated instead.
+
 ** The variable line-number-display-limit can now be set to nil,
 meaning no limit.
 

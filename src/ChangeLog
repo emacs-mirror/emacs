@@ -1,3 +1,22 @@
+2000-06-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (message_truncate_lines, Qmessage_truncate_lines): New
+	variables.
+	(ensure_echo_area_buffers): Initialize echo buffer's
+	truncate lines setting to nil.
+	(with_echo_area_buffer): Don't set the echo buffer's truncate
+	lines setting here.
+	(set_message_1): Set it here, instead, based on the value
+	of message_truncate_lines.
+	(resize_mini_window): Handle case that lines are truncated.
+	(syms_of_xdisp): Initialize Qmessage_truncate_lines.  DEFVAR_BOOL
+	message-truncate-lines.
+
+	* keyboard.c (read_char): Bind message-truncate-lines to t
+	while displaying a help-echo.
+
+	* lisp.h (Qmessage_truncate_lines): External declaration.
+
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (Vline_number_display_limit): Renamed from
