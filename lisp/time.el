@@ -89,9 +89,8 @@ This runs the normal hook `display-time-hook' after each update."
 		    (append global-mode-string '(display-time-string))))
 	  ;; Set up the time timer.
 	  (setq display-time-timer
-		;; Start timer at the beginning of the next minute.
-		(run-at-time (apply 'encode-time 60 (cdr (decode-time)))
-			     display-time-interval 'display-time-event-handler))
+		(run-at-time t display-time-interval
+			     'display-time-event-handler))
 	  ;; Make the time appear right away.
 	  (display-time-update)
 	  ;; When you get new mail, clear "Mail" from the mode line.
