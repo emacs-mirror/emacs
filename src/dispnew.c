@@ -2409,7 +2409,7 @@ Each element can be:\n\
  integer: a glyph code which this glyph is an alias for.\n\
  string: output this glyph using that string (not impl. in X windows).\n\
  nil: this glyph mod 256 is char code to output,\n\
-    and this glyph / 256 is face code for X windows (see `x-set-face').");
+    and this glyph / 256 is face code for X windows (see `face-id').");
   Vglyph_table = Qnil;
 
   DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
