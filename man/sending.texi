@@ -57,6 +57,15 @@ Buffer}).  Then you can use @kbd{C-x m} or its variants described above
 to make a new @samp{*mail*} buffer.  Once you've done that, you can work
 with each mail buffer independently.
 
+@cindex directory servers
+@cindex LDAP
+@cindex PH/QI
+@cindex names and addresses
+There is an interface to directory servers using various protocols such
+as LDAP or the CCSO white pages directory system (PH/QI), described in a
+separate manual.  It may be useful for looking up names and addresses.
+@xref{Top,,EUDC, eudc, EUDC Manual}.
+
 @menu
 * Format: Mail Format.	     Format of the mail being composed.
 * Headers: Mail Headers.     Details of permitted mail header fields.
