@@ -1,5 +1,11 @@
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* eval.c (specbind): If binding a per-buffer variable which
+	doesn't have a buffer-local value in the current buffer, change
+	the global value by changing the value of the symbol bound in all
+	buffers not having their own value, to make it consistent with
+	what happens with other buffer-local variables.
+
 	* xterm.c (x_initialize): Set char_ins_del_ok to 1.
 
 	* xdisp.c (forward_to_next_line_start): Stop at end of buffer
