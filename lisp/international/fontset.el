@@ -349,14 +349,14 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	    name))
       fontset)))
 
-(defvar uninstanciated-fontset-alist nil
-  "Alist of fontset names vs. information for instanciating them.
+(defvar uninstantiated-fontset-alist nil
+  "Alist of fontset names vs. information for instantiating them.
 Each element has the form (FONTSET STYLE BASE-FONTSET), where
-FONTSET is a name of fontset not yet instanciated.
+FONTSET is a name of fontset not yet instantiated.
 STYLE is a style of FONTSET, one of the followings:
   bold, demobold, italic, oblique,
   bold-italic, demibold-italic, bold-oblique, demibold-oblique.
-BASE-FONTSET is a name of fontset base from which FONSET is instanciated.")
+BASE-FONTSET is a name of fontset base from which FONSET is instantiated.")
 
 (defun create-fontset-from-fontset-spec (fontset-spec &optional style noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
@@ -421,8 +421,8 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 	  (while funcs
 	    (setq new-name (funcall (car funcs) new-name))
 	    (setq funcs (cdr funcs)))
-	  (setq uninstanciated-fontset-alist
-		(cons (list new-name style name) uninstanciated-fontset-alist))
+	  (setq uninstantiated-fontset-alist
+		(cons (list new-name style name) uninstantiated-fontset-alist))
 	  (setq funcs-alist (cdr funcs-alist)))))
 
     (if (and noerror (query-fontset name))
@@ -438,10 +438,10 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 		(setq fontset-alias-alist
 		      (cons (cons name alias) fontset-alias-alist))))))))
 
-(defun instanciate-fontset (fontset)
-  "Create a new fontset FONTSET if it is not yet instanciated.
+(defun instantiate-fontset (fontset)
+  "Create a new fontset FONTSET if it is not yet instantiated.
 Return FONTSET if it is created successfully, else return nil."
-  (let ((fontset-data (assoc fontset uninstanciated-fontset-alist)))
+  (let ((fontset-data (assoc fontset uninstantiated-fontset-alist)))
     (if (null fontset-data)
 	nil
       (let ((style (nth 1 fontset-data))
@@ -456,8 +456,8 @@ Return FONTSET if it is created successfully, else return nil."
 	       (bold-oblique x-make-font-bold x-make-font-oblique)
 	       (demibold-oblique x-make-font-demibold x-make-font-oblique)))
 	    ascii-font font font2 funcs)
-	(setq uninstanciated-fontset-alist
-	      (delete fontset-data uninstanciated-fontset-alist))
+	(setq uninstantiated-fontset-alist
+	      (delete fontset-data uninstantiated-fontset-alist))
 	(setq fontset-data (assoc base-fontset global-fontset-alist))
 	(setq ascii-font (cdr (assq 'ascii (cdr fontset-data))))
 	(setq funcs (cdr (assq style funcs-alist)))
