@@ -3789,7 +3789,7 @@ update_window (w, force_p)
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
       struct glyph_row *header_line_row = NULL;
-      int yb, changed_p = 0, mouse_face_overwritten_p = 0;
+      int yb, changed_p = 0, mouse_face_overwritten_p = 0, n_updated;
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
@@ -3844,7 +3844,7 @@ update_window (w, force_p)
 	}
 
       /* Update the rest of the lines.  */
-      for (; row < end && (force_p || !input_pending); ++row)
+      for (n_updated = 0; row < end && (force_p || !input_pending); ++row)
 	if (row->enabled_p)
 	  {
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
@@ -3854,7 +3854,7 @@ update_window (w, force_p)
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
-	    if (!force_p && vpos % preempt_count == 0)
+	    if (!force_p && ++n_updated % preempt_count == 0)
 	      detect_input_pending ();
 
 	    changed_p |= update_window_line (w, vpos,
