@@ -760,7 +760,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		font = FACE_FONT (face);
 		if (font == (XFontStruct *) FACE_DEFAULT)
 		  font = f->output_data.x->font;
-		baseline = FONT_BASE (font);
+		baseline = FONT_BASE (f->output_data.x->font);
 		if (charset == charset_latin_iso8859_1)
 		  {
 		    if (font->max_char_or_byte2 < 0x80)
@@ -865,8 +865,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	  {
 	    /* Fill a area for the current run in background pixle of GC.  */
 	    XGCValues xgcv;
-	    unsigned long mask = GCForeground | GCBackground;
-	    unsigned long fore, back;
+	    unsigned long mask = GCForeground | GCBackground | GCFillStyle;
 
 	    /* The current code at first set foreground to background,
 	      fill the area, then recover the original foreground.
@@ -874,6 +873,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	    XGetGCValues (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
 	    XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
+	    XSetFillStyle (FRAME_X_DISPLAY (f), gc, FillSolid);
 	    XFillRectangle (FRAME_X_DISPLAY (f), window, gc,
 			    left, top, run_width, line_height);
 	    XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
@@ -6547,7 +6547,7 @@ x_load_font (f, fontname, size)
       fontp->full_name = fontp->name;
 
     fontp->size = font->max_bounds.width;
-    fontp->height = font->ascent + font->descent;
+    fontp->height = font->max_bounds.ascent + font->max_bounds.descent;
 
     if (NILP (font_names))
       {
