@@ -1520,7 +1520,7 @@ Also remove the continuation mark if easily detected."
 (defun dcl-option-value-offset (option-assoc)
   "Guess a value for an offset.
 Find the column of the first non-blank character on the line.
-Returns a number as a string."
+Returns the column offset."
   (save-excursion
     (beginning-of-line)
     (re-search-forward "^$[ \t]*" nil t)
