@@ -1317,6 +1317,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       XSET (internal_last_event_frame, Lisp_Frame, selected_frame);
       Vlast_event_frame = internal_last_event_frame;
 #endif
+      /* If we report the quit char as an event,
+	 don't do so more than once.  */
+      if (!NILP (Vinhibit_quit))
+	Vquit_flag = Qnil;
 
       goto non_reread;
     }
