@@ -1,3 +1,9 @@
+2002-01-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* minibuf.c (Fminibuffer_contents)
+	(Fminibuffer_contents_no_properties, Fread_from_minibuffer)
+	(Fread_string, Fread_no_blanks_input, Fcompleting_read): Doc fixes.
+
 2002-01-21  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (check_frame_size): Fix minimum height calculation.
