@@ -1,5 +1,7 @@
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* configure.in: New entry for HP/UX-11.
+
 	* Makefile.in (SOURCES): Replace GETTING.GNU.SOFTWARE with FTP.
 	From Eric S. Raymond <esr@golux.thyrsus.com>.
 
