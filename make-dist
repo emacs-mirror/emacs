@@ -164,10 +164,10 @@ then
   rm -f /tmp/el /tmp/elc
 
   ### Check for .el files with no corresponding .elc file.
-  ((cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)
-   (cd leim; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)) > /tmp/el
-  ((cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)
-   (cd leim; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)) | sed 's/\.elc$/.el/' > /tmp/elc
+  (cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el ; \
+   cd ../leim; ls -1 [a-z]*.el [a-z]*/[a-z]*.el) > /tmp/el
+  (cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc; \
+   cd ../leim; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc) | sed 's/\.elc$/.el/' > /tmp/elc
   losers="`comm -23 /tmp/el /tmp/elc`"
   bogosities=
   for file in $losers; do
