@@ -297,7 +297,6 @@ static Lisp_Object Qvendor_specific_keysyms;
 static Lisp_Object Qlatin_1, Qutf_8;
 
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-extern Lisp_Object x_icon_type P_ ((struct frame *));
 
 
 static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
@@ -8391,53 +8390,6 @@ x_check_fullscreen_move (f)
 }
 
 
-/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
-   wanted positions of the WM window (not emacs window).
-   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
-   window (FRAME_X_WINDOW).
- */
-void
-x_fullscreen_adjust (f, width, height, top_pos, left_pos)
-     struct frame *f;
-     int *width;
-     int *height;
-     int *top_pos;
-     int *left_pos;
-{
-  int newwidth = f->width, newheight = f->height;
-
-  *top_pos = f->output_data.x->top_pos;
-  *left_pos = f->output_data.x->left_pos;
-
-  if (f->output_data.x->want_fullscreen & FULLSCREEN_HEIGHT)
-    {
-      int ph;
-
-      ph = FRAME_X_DISPLAY_INFO (f)->height;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
-      ph = CHAR_TO_PIXEL_HEIGHT (f, newheight)
-        - f->output_data.x->y_pixels_diff;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
-      *top_pos = 0;
-    }
-
-  if (f->output_data.x->want_fullscreen & FULLSCREEN_WIDTH)
-    {
-      int pw;
-
-      pw = FRAME_X_DISPLAY_INFO (f)->width;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
-      pw = CHAR_TO_PIXEL_WIDTH (f, newwidth)
-        - f->output_data.x->x_pixels_diff;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
-      *left_pos = 0;
-    }
-
-  *width = newwidth;
-  *height = newheight;
-}
-
-
 /* Change the size of frame F's X window to COLS/ROWS in the case F
    doesn't have a widget.  If CHANGE_GRAVITY is 1, we change to
    top-left-corner window gravity for this size change and subsequent
@@ -10679,8 +10631,11 @@ x_process_timeouts (timer)
 
 /* Set up use of X before we make the first connection.  */
 
+extern frame_parm_handler x_frame_parm_handlers[];
+
 static struct redisplay_interface x_redisplay_interface =
 {
+  x_frame_parm_handlers,
   x_produce_glyphs,
   x_write_glyphs,
   x_insert_glyphs,
