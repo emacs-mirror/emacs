@@ -1,23 +1,23 @@
 ;;; checkdoc --- Check documentation strings for style requirements
 
-;;;  Copyright (C) 1997  Free Software Foundation, Inc.
+;;;  Copyright (C) 1997, 1998  Free Software Foundation
 ;;
-;; Author: Eric M. Ludlam <zappo@gnu.ai.mit.edu>
-;; Version: 0.4.1
+;; Author: Eric M. Ludlam <zappo@gnu.org>
+;; Version: 0.4.2
 ;; Keywords: docs, maint, lisp
 ;;
 ;; This file is part of GNU Emacs.
-
+;;
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-
+;;
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -73,6 +73,19 @@
 ;; install into ispell on the fly, but only if ispell is not already
 ;; running.  Use `ispell-kill-ispell' to make checkdoc restart it with
 ;; these words enabled.
+;;
+;; Checking parameters
+;;
+;;   You might not always want a function to have it's parameters listed
+;; in order.  When this is the case, put the following comment just in
+;; front of the documentation string: "; checkdoc-order: nil"  This
+;; overrides the value of `checkdoc-arguments-in-order-flag'.
+;;
+;;   If you specifically wish to avoid mentioning a parameter of a
+;; function in the doc string (such as a hidden parameter, or a
+;; parameter which is very obvious like events), you can have checkdoc
+;; skip looking for it by putting the following comment just in front
+;; of the documentation string: "; checkdoc-params: (args go here)"
 ;;
 ;; Adding your own checks:
 ;;
@@ -153,6 +166,9 @@
 ;;       Added `checkdoc-tripple-semi-comment-check-flag'.
 ;;       `checkdoc-spellcheck-documentation-flag' off by default.
 ;;       Re-sorted check order so white space is removed before adding a .
+;; 0.4.2 Added some more comments in the commentary.
+;;       You can now `quote' symbols that look like keystrokes
+;;       When spell checking, meta variables can end in `th' or `s'.
 
 ;;; TO DO:
 ;;   Hook into the byte compiler on a defun/defver level to generate
@@ -166,7 +182,7 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.4.1"
+(defvar checkdoc-version "0.4.2"
   "Release version of checkdoc you are currently running.")
 
 ;; From custom web page for compatibility between versions of custom:
@@ -181,7 +197,7 @@
       nil)
     (defmacro custom-add-option (&rest args)
       nil)
-    (defmacro defcustom (var value doc &rest args) 
+    (defmacro defcustom (var value doc &rest args)
       (` (defvar (, var) (, value) (, doc))))))
 
 (defcustom checkdoc-autofix-flag 'semiautomatic
@@ -278,7 +294,7 @@ Must return nil if no errors are found, or a string describing the
 problem discovered.  This is useful for adding additional checks.")
 
 (defvar checkdoc-diagnostic-buffer "*Style Warnings*"
-  "Name of the buffer where checkdoc stores warning messages.")
+  "Name of warning message buffer.")
 
 (defvar checkdoc-defun-regexp
   "^(def\\(un\\|var\\|custom\\|macro\\|const\\|subst\\|advice\\)\
@@ -1104,7 +1120,7 @@ may require more formatting.")
      ;;     Instead, use the `\\[...]' construct to stand for them.
      (save-excursion
        (let ((f nil) (m nil) (start (point))
-	     (re "\\<\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
+	     (re "[^`]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
 mouse-[0-3]\\)\\)\\>"))
 	 ;; Find the first key sequence not in a sample
 	 (while (and (not f) (setq m (re-search-forward re e t)))
@@ -1422,7 +1438,9 @@ before using the ispell engine on it."
 		nil
 	      ;; Find out how we spell-check this word.
 	      (if (or
-		   (not (string-match "[a-z]" word)) ;all caps meta variable
+		   ;; All caps w/ option th, or s tacked on the end
+		   ;; for pluralization or nuberthness.
+		   (string-match "^[A-Z][A-Z]+\\(s\\|th\\)?$" word)
 		   (looking-at "}") ; a keymap expression
 		   )
 		  nil
