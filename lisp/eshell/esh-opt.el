@@ -1,6 +1,6 @@
 ;;; esh-opt.el --- command options processing
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2003 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -98,7 +98,7 @@ This code doesn't really need to be macro expanded everywhere."
 			last-value (eval (append (list 'progn)
 						 body-forms)))
 		  nil))
-	   (error usage-msg))))
+	   (error "%s" usage-msg))))
       (throw 'eshell-external
 	     (eshell-external-command ext-command args))
     last-value))
