@@ -803,7 +803,12 @@ earlier versions.
       ((consp (sgml-entity-text entity)) ; external id?
        (let* ((extid (sgml-entity-text entity))
 
-* Running TeX from AUXTeX package with Emacs 20.3 gives a Lisp error
+* Emacs 21 freezes when visiting a TeX file with AUC TeX installed.
+
+Emacs 21 needs version 10 or later of AUC TeX; upgrading should solve
+these problems.
+
+* Running TeX from AUC TeX package with Emacs 20.3 gives a Lisp error
 about a read-only tex output buffer.
 
 This problem appeared for AUC TeX version 9.9j and some earlier
