@@ -100,10 +100,6 @@ Pop back to the last location with \\[negative-argument] \\[find-tag].")
 ;; Tags table state.
 ;; These variables are local in tags table buffers.
 
-(defvar tag-lines-already-matched nil
-  "List of positions of beginnings of lines within the tags table
-that are already matched.")
-
 (defvar tags-table-files nil
   "List of file names covered by current tags table.
 nil means it has not yet been computed; use `tags-table-files' to do so.")
@@ -164,7 +160,6 @@ One argument, the tag info returned by `snarf-tag-function'.")
 ;; non-nil return, the tags table state variable are
 ;; made buffer-local and initialized to nil.
 (defun initialize-new-tags-table ()
-  (set (make-local-variable 'tag-lines-already-matched) nil)
   (set (make-local-variable 'tags-table-files) nil)
   (set (make-local-variable 'tags-completion-table) nil)
   (set (make-local-variable 'tags-included-tables) nil)
@@ -876,6 +871,8 @@ See documentation of variable `tags-file-name'."
 ;; specified source file and return.  Qualified matches are remembered to
 ;; avoid repetition.  State is saved so that the loop can be continued.
 
+(defvar tag-lines-already-matched nil)	;matches remembered here between calls
+
 (defun find-tag-in-order (pattern
 			  search-forward-func
 			  order
@@ -886,11 +883,23 @@ See documentation of variable `tags-file-name'."
 	tag-info			;where to find the tag in FILE
 	(first-table t)
 	(tag-order order)
+	(match-marker (make-marker))
 	goto-func
 	)
     (save-excursion
-      (or first-search			;find-tag-noselect has already done it.
-	  (visit-tags-table-buffer 'same))
+
+      (if first-search
+	  ;; This is the start of a search for a fresh tag.
+	  ;; Clear the list of tags matched by the previous search.
+	  ;; find-tag-noselect has already put us in the first tags table
+	  ;; buffer before we got called.
+	  (setq tag-lines-already-matched nil)
+	;; Continuing to search for the tag specified last time.
+	;; tag-lines-already-matched lists locations matched in previous
+	;; calls so we don't visit the same tag twice if it matches twice
+	;; during two passes with different qualification predicates.
+	;; Switch to the current tags table buffer.
+	(visit-tags-table-buffer 'same))
 
       ;; Get a qualified match.
       (catch 'qualified-match-found
@@ -898,9 +907,6 @@ See documentation of variable `tags-file-name'."
 	;; Iterate over the list of tags tables.
 	(while (or first-table
 		   (visit-tags-table-buffer t))
-
-	  (if first-search
-	      (setq tag-lines-already-matched nil))
 
 	  (and first-search first-table
 	       ;; Start at beginning of tags file.
@@ -914,9 +920,10 @@ See documentation of variable `tags-file-name'."
 	      ;; Naive match found.  Qualify the match.
 	      (and (funcall (car order) pattern)
 		   ;; Make sure it is not a previous qualified match.
-		   ;; Use of `memq' depends on numbers being eq.
-		   (not (memq (save-excursion (beginning-of-line) (point))
-			      tag-lines-already-matched))
+		   (not (member (set-marker match-marker (save-excursion
+							   (beginning-of-line)
+							   (point)))
+				tag-lines-already-matched))
 		   (throw 'qualified-match-found nil))
 	      (if next-line-after-failure-p
 		  (forward-line 1)))
@@ -925,12 +932,18 @@ See documentation of variable `tags-file-name'."
 	    (goto-char (point-min)))
 	  (setq order tag-order))
 	;; We throw out on match, so only get here if there were no matches.
+	;; Clear out the markers we use to avoid duplicate matches so they
+	;; don't slow down editting and are immediately available for GC.
+	(while tag-lines-already-matched
+	  (set-marker (car tag-lines-already-matched) nil nil)
+	  (setq tag-lines-already-matched (cdr tag-lines-already-matched)))
+	(set-marker match-marker nil nil)
 	(error "No %stags %s %s" (if first-search "" "more ")
 	       matching pattern))
 
       ;; Found a tag; extract location info.
       (beginning-of-line)
-      (setq tag-lines-already-matched (cons (point)
+      (setq tag-lines-already-matched (cons match-marker
 					    tag-lines-already-matched))
       ;; Expand the filename, using the tags table buffer's default-directory.
       (setq file (expand-file-name (file-of-tag))
