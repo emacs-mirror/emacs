@@ -468,17 +468,10 @@ single_keymap_panes (keymap, panes, vector, names, items,
   /* Get the length of the list level of the keymap.  */
   i = XFASTINT (Flength (keymap));
 
-#if 0
-  /* If the keymap has a dense table, put it in TABLE,
-     and leave only the list level in KEYMAP.
-     Include the length of the dense table in I.  */
-  table = keymap_table (keymap);
-  if (!NILP (table))
-    {
-      i += XFASTINT (Flength (table));
-      keymap = XCONS (XCONS (keymap)->cdr)->cdr;
-    }
-#endif
+  /* Add in lengths of any arrays.  */
+  for (tail = keymap; XTYPE (tail) == Lisp_Cons; tail = XCONS (tail)->cdr)
+    if (XTYPE (XCONS (tail)->car) == Lisp_Vector)
+      i += XVECTOR (XCONS (tail)->car)->size;
 
   /* Create vectors for the names and values of the items in the pane.
      I is an upper bound for the number of items.  */
@@ -511,6 +504,37 @@ single_keymap_panes (keymap, panes, vector, names, items,
 		      /* The menu item "value" is the key bound here.  */
 		      (*vector)[*p_ptr][i] = XCONS (item)->car;
 		      i++;
+		    }
+		}
+	    }
+	}
+      else if (XTYPE (item) == Lisp_Vector)
+	{
+	  /* Loop over the char values represented in the vector.  */
+	  int len = XVECTOR (item)->size;
+	  int c;
+	  for (c = 0; c < len; c++)
+	    {
+	      Lisp_Object character;
+	      XFASTINT (character) = c;
+	      item1 = XVECTOR (item)->contents[c];
+	      if (XTYPE (item1) == Lisp_Cons)
+		{
+		  item2 = XCONS (item1)->car;
+		  if (XTYPE (item2) == Lisp_String)
+		    {
+		      Lisp_Object tem;
+		      tem = Fkeymapp (Fcdr (item1));
+		      if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
+			pending_maps = Fcons (Fcons (Fcdr (item1), item2),
+					      pending_maps);
+		      else
+			{
+			  (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
+			  /* The menu item "value" is the key bound here.  */
+			  (*vector)[*p_ptr][i] = character;
+			  i++;
+			}
 		    }
 		}
 	    }
