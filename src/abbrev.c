@@ -237,12 +237,13 @@ Returns the abbrev symbol, if expansion took place.  */)
 {
   register char *buffer, *p;
   int wordstart, wordend;
-  register int wordstart_byte, wordend_byte, idx;
+  register int wordstart_byte, wordend_byte, idx, idx_byte;
   int whitecnt;
   int uccount = 0, lccount = 0;
   register Lisp_Object sym;
   Lisp_Object expansion, hook, tem;
   Lisp_Object value;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   value = Qnil;
 
@@ -288,26 +289,38 @@ Returns the abbrev symbol, if expansion took place.  */)
 
   p = buffer = (char *) alloca (wordend_byte - wordstart_byte);
 
-  for (idx = wordstart_byte; idx < wordend_byte; idx++)
+  for (idx = wordstart, idx_byte = wordstart_byte; idx < wordend;)
     {
-      /* ??? This loop needs to go by characters!  */
-      register int c = FETCH_BYTE (idx);
+      register int c;
+
+      FETCH_CHAR_ADVANCE (c, idx, idx_byte);
+      if (! multibyte)
+	{
+	  MAKE_CHAR_MULTIBYTE (c);
+	}
+
       if (UPPERCASEP (c))
 	c = DOWNCASE (c), uccount++;
       else if (! NOCASEP (c))
 	lccount++;
-      *p++ = c;
+      if (multibyte)
+	CHAR_STRING_ADVANCE (c, p);
+      else
+	{
+	  MAKE_CHAR_UNIBYTE (c);
+	  *p++ = c;
+	}
     }
 
   if (VECTORP (current_buffer->abbrev_table))
     sym = oblookup (current_buffer->abbrev_table, buffer,
-		    wordend - wordstart, wordend_byte - wordstart_byte);
+		    wordend - wordstart, p - buffer);
   else
     XSETFASTINT (sym, 0);
 
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     sym = oblookup (Vglobal_abbrev_table, buffer,
-		    wordend - wordstart, wordend_byte - wordstart_byte);
+		    wordend - wordstart, p - buffer);
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     return value;
 
