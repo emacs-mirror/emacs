@@ -1,3 +1,8 @@
+2002-11-13   Markus Rost  <rost@math.ohio-state.edu>
+
+	* custom.el (custom-handle-all-keywords): Fix arg passed to
+	custom-add-to-group.
+
 2002-11-12   Markus Rost  <rost@math.ohio-state.edu>
 
 	* vc-rcs.el (vc-rcs-registered): Handle the autoload cookie so
