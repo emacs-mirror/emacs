@@ -711,13 +711,15 @@ unshow_buffer (w)
      register struct window *w;
 {
   Lisp_Object buf;
+  struct buffer *b;
 
   buf = w->buffer;
-  if (XBUFFER (buf) != XMARKER (w->pointm)->buffer)
+  b = XBUFFER (buf);
+  if (b != XMARKER (w->pointm)->buffer)
     abort ();
 
-  if (w == XWINDOW (XBUFFER (buf)->last_selected_window))
-    XBUFFER (buf)->last_selected_window = Qnil;
+  if (w == XWINDOW (b->last_selected_window))
+    b->last_selected_window = Qnil;
 
 #if 0
   if (w == XWINDOW (selected_window)
@@ -732,16 +734,19 @@ unshow_buffer (w)
        selected window, while last_window_start reflects another
        window which was recently showing the same buffer.
        Some people might say that might be a good thing.  Let's see.  */
-    XBUFFER (buf)->last_window_start = marker_position (w->start);
+    b->last_window_start = marker_position (w->start);
 
   /* Point in the selected window's buffer
      is actually stored in that buffer, and the window's pointm isn't used.
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer))
-    BUF_PT (XBUFFER (buf))
-      = clip_to_bounds (BUF_BEGV (XBUFFER (buf)),
-			marker_position (w->pointm),
-			BUF_ZV (XBUFFER (buf)));
+    temp_set_point_both (b,
+			 clip_to_bounds (BUF_BEGV (b),
+					 XMARKER (w->pointm)->charpos,
+					 BUF_ZV (b)),
+			 clip_to_bounds (BUF_BEGV_BYTE (b),
+					 marker_byte_position (w->pointm),
+					 BUF_ZV_BYTE (b)));
 }
 
 /* Put replacement into the window structure in place of old. */
@@ -1595,9 +1600,9 @@ value is reasonable when this function is called.")
 	 have unwanted side effects due to text properties.  */
       pos = *vmotion (startpos, -top, w);
 
-      Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
-      w->start_at_line_beg = ((pos.bufpos == BEGV
-			       || FETCH_BYTE (pos.bufpos - 1) == '\n') ? Qt
+      set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
+      w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
+			       || FETCH_BYTE (pos.bytepos - 1) == '\n') ? Qt
 			      : Qnil);
       /* We need to do this, so that the window-scroll-functions
 	 get called.  */
@@ -1900,9 +1905,8 @@ BUFFER can be a buffer or buffer name.")
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
   XSETFASTINT (w->hscroll, 0);
-  Fset_marker (w->pointm,
-	       make_number (BUF_PT (XBUFFER (buffer))),
-	       buffer);
+  set_marker_both (w->pointm, buffer,
+		   BUF_PT (XBUFFER (buffer)), BUF_PT_BYTE (XBUFFER (buffer)));
   set_marker_restricted (w->start,
 			 make_number (XBUFFER (buffer)->last_window_start),
 			 buffer);
@@ -1959,8 +1963,9 @@ before each command.")
   if (EQ (window, selected_window))
     return window;
 
-  Fset_marker (ow->pointm, make_number (BUF_PT (XBUFFER (ow->buffer))),
-	       ow->buffer);
+  set_marker_both (ow->pointm, ow->buffer,
+		   BUF_PT (XBUFFER (ow->buffer)),
+		   BUF_PT_BYTE (XBUFFER (ow->buffer)));
 
   selected_window = window;
   if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
@@ -2302,8 +2307,8 @@ temp_output_buffer_show (buf)
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
       XSETFASTINT (w->hscroll, 0);
-      set_marker_restricted (w->start, make_number (1), buf);
-      set_marker_restricted (w->pointm, make_number (1), buf);
+      set_marker_restricted_both (w->start, buf, 1, 1);
+      set_marker_restricted_both (w->pointm, buf, 1, 1);
 
       /* Run temp-buffer-show-hook, with the chosen window selected.  */
       if (!NILP (Vrun_hooks))
@@ -2761,7 +2766,8 @@ window_scroll (window, n, whole, noerror)
 {
   register struct window *w = XWINDOW (window);
   register int opoint = PT;
-  register int pos;
+  register int opoint_byte = PT;
+  register int pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
   int lose;
@@ -2791,8 +2797,9 @@ window_scroll (window, n, whole, noerror)
   lose = n < 0 && PT == BEGV;
   Fvertical_motion (make_number (n), window);
   pos = PT;
+  pos_byte = PT_BYTE;
   bolp = Fbolp ();
-  SET_PT (opoint);
+  SET_PT_BOTH (opoint, opoint_byte);
 
   if (lose)
     {
@@ -2813,7 +2820,7 @@ window_scroll (window, n, whole, noerror)
       if (XINT (w->height) < 4 * scroll_margin)
 	this_scroll_margin = XINT (w->height) / 4;
 
-      set_marker_restricted (w->start, make_number (pos), w->buffer);
+      set_marker_restricted_both (w->start, w->buffer, pos, pos_byte);
       w->start_at_line_beg = bolp;
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
@@ -2824,7 +2831,7 @@ window_scroll (window, n, whole, noerror)
 
       if (whole && scroll_preserve_screen_position)
 	{
-	  SET_PT (pos);
+	  SET_PT_BOTH (pos, pos_byte);
 	  Fvertical_motion (make_number (original_vpos), window);
 	}
       /* If we scrolled forward, put point enough lines down
@@ -2835,7 +2842,7 @@ window_scroll (window, n, whole, noerror)
 
 	  if (this_scroll_margin > 0)
 	    {
-	      SET_PT (pos);
+	      SET_PT_BOTH (pos, pos_byte);
 	      Fvertical_motion (make_number (this_scroll_margin), window);
 	      top_margin = PT;
 	    }
@@ -2843,10 +2850,10 @@ window_scroll (window, n, whole, noerror)
 	    top_margin = pos;
 
 	  if (top_margin <= opoint)
-	    SET_PT (opoint);
+	    SET_PT_BOTH (opoint, opoint_byte);
 	  else if (scroll_preserve_screen_position)
 	    {
-	      SET_PT (pos);
+	      SET_PT_BOTH (pos, pos_byte);
 	      Fvertical_motion (make_number (original_vpos), window);
 	    }
 	  else
@@ -2858,7 +2865,7 @@ window_scroll (window, n, whole, noerror)
 
 	  /* If we scrolled backward, put point near the end of the window
 	     but not within the scroll margin.  */
-	  SET_PT (pos);
+	  SET_PT_BOTH (pos, pos_byte);
 	  tem = Fvertical_motion (make_number (ht - this_scroll_margin), window);
 	  if (XFASTINT (tem) == ht - this_scroll_margin)
 	    bottom_margin = PT;
@@ -2866,12 +2873,12 @@ window_scroll (window, n, whole, noerror)
 	    bottom_margin = PT + 1;
 
 	  if (bottom_margin > opoint)
-	    SET_PT (opoint);
+	    SET_PT_BOTH (opoint, opoint_byte);
 	  else
 	    {
 	      if (scroll_preserve_screen_position)
 		{
-		  SET_PT (pos);
+		  SET_PT_BOTH (pos, pos_byte);
 		  Fvertical_motion (make_number (original_vpos), window);
 		}
 	      else
@@ -3032,7 +3039,7 @@ showing that buffer, popping the buffer up if necessary.")
       window_scroll (window, XINT (arg), 0, 1);
     }
 
-  Fset_marker (w->pointm, make_number (PT), Qnil);
+  set_marker_both (w->pointm, Qnil, PT, PT_BYTE);
   unbind_to (count, Qnil);
 
   return Qnil;
@@ -3108,9 +3115,9 @@ redraws with point in the center of the current window.")
 
   pos = *vmotion (PT, - XINT (arg), w);
 
-  Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
-  w->start_at_line_beg = ((pos.bufpos == BEGV
-			   || FETCH_BYTE (pos.bufpos - 1) == '\n')
+  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
+  w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
+			   || FETCH_BYTE (pos.bytepos - 1) == '\n')
 			  ? Qt : Qnil);
   w->force_start = Qt;
 
@@ -3145,12 +3152,12 @@ negative means relative to bottom of window.")
   if (start < BEGV || start > ZV)
     {
       Fvertical_motion (make_number (- (height / 2)), window);
-      Fset_marker (w->start, make_number (PT), w->buffer);
+      set_marker_both (w->start, w->buffer, PT, PT_BYTE);
       w->start_at_line_beg = Fbolp ();
       w->force_start = Qt;
     }
   else
-    SET_PT (start);
+    Fgoto_char (w->start);
 
   return Fvertical_motion (arg, window);
 }
@@ -3344,14 +3351,10 @@ by `current-window-configuration' (which see).")
 		{
 		  w->buffer = p->buffer;
 		  w->start_at_line_beg = p->start_at_line_beg;
-		  set_marker_restricted (w->start,
-					 Fmarker_position (p->start),
-					 w->buffer);
-		  set_marker_restricted (w->pointm,
-					 Fmarker_position (p->pointm),
-					 w->buffer);
+		  set_marker_restricted (w->start, p->start, w->buffer);
+		  set_marker_restricted (w->pointm, p->pointm, w->buffer);
 		  Fset_marker (XBUFFER (w->buffer)->mark,
-			       Fmarker_position (p->mark), w->buffer);
+			       p->mark, w->buffer);
 
 		  /* As documented in Fcurrent_window_configuration, don't
 		     save the location of point in the buffer which was current
@@ -3379,10 +3382,9 @@ by `current-window-configuration' (which see).")
 		    set_marker_restricted (w->start, make_number (0),
 					   w->buffer);
 		  if (XMARKER (w->pointm)->buffer == 0)
-		    set_marker_restricted (w->pointm,
-					   (make_number
-					    (BUF_PT (XBUFFER (w->buffer)))),
-					   w->buffer);
+		    set_marker_restricted_both (w->pointm, w->buffer,
+						BUF_PT (XBUFFER (w->buffer)),
+						BUF_PT_BYTE (XBUFFER (w->buffer)));
 		  w->start_at_line_beg = Qt;
 		}
 	    }
@@ -3524,9 +3526,9 @@ save_window_save (window, vector, i)
 	  if (EQ (window, selected_window))
 	    {
 	      p->pointm = Fmake_marker ();
-	      Fset_marker (p->pointm,
-			   make_number (BUF_PT (XBUFFER (w->buffer))),
-			   w->buffer);
+	      set_marker_both (p->pointm, w->buffer,
+			       BUF_PT (XBUFFER (w->buffer)),
+			       BUF_PT_BYTE (XBUFFER (w->buffer)));
 	    }
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
