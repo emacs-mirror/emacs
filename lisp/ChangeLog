@@ -1,3 +1,12 @@
+2000-09-13  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-output-filter): Revert to using
+	`insert-before-markers'.  Add bletcherous hack to undo damage
+	caused by `insert-before-markers'.  Put `front-sticky' property on
+	overlays created here so that the field code understands how the
+	overlay works.  Use a let when making comint-last-prompt-overlay,
+	so that the code is easier to read.
+
 2000-09-12  Dave Love  <fx@gnu.org>
 
 	* simple.el (read-mail-command): Doc fix.
