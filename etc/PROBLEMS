@@ -115,7 +115,8 @@ Some modes do not use colors unless you turn on the Font-lock mode.
 Some people have long ago set their `~/.emacs' files to turn on
 Font-lock on X only, so they won't see colors on a tty.  The
 recommended way of turning on Font-lock is by typing "M-x
-global-font-lock-mode RET" or by customizing`global-font-lock-mode'.
+global-font-lock-mode RET" or by customizing the variable
+`global-font-lock-mode'.
 
 * Problems in Emacs built with LessTif.
 
@@ -163,6 +164,26 @@ characters, is copied and pasted into a buffer.
 
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
+
+Windows 2000 input methods are not recognized by Emacs (as of v21.1).
+These input methods cause the keyboard to send characters encoded in
+the appropriate coding system (e.g., ISO 8859-1 for Latin-1
+characters, ISO 8859-8 for Hebrew characters, etc.).  To make this
+work, set the keyboard coding system to the appropriate value after
+you activate the Windows input method.  For example, if you activate
+the Hebrew input method, type "C-x RET k iso-8859-8 RET".  (Emacs
+ought to recognize the Windows language-change event and set up the
+appropriate keyboard encoding automatically, but it doesn't do that
+yet.)
+
+Multilingual text put into the Windows 2000 clipboard by Windows
+applications cannot be safely pasted into Emacs (as of v21.1).  This
+is because Windows 2000 uses Unicode to represent multilingual text,
+but Emacs does not yet support Unicode well enough to decode it.  This
+means that Emacs can only interchange non-ASCII text with other
+Windows 2000 programs if the characters are in the system codepage.
+Reportedly, a partial solution is to install the Mule-UCS package and
+set selection-coding-system to utf-16-le-dos.
 
 * The `configure' script doesn't find the jpeg library.
 
