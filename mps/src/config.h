@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.40) $
+ * $HopeName: MMsrc!config.h(trunk.41) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -166,7 +166,8 @@
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
 #define ARENA_DEFAULT_SEG_HIGH          TRUE
-#define ARENA_DEFAULT_REFSET            BS_UPPER_HALF(RefSet)
+#define ARENA_DEFAULT_REFSET ((RefSet)-1 << (MPS_WORD_WIDTH / 2))
+/* @@@@ knows the implementation of RefSets */
 
 
 /* Stack configuration */
