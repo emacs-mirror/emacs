@@ -1,3 +1,7 @@
+2002-06-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* strftime.c [__hpux]: Include sys/_mbstate_t.h.
+
 2002-06-15  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (Fset_window_configuration): Explicitly preserve
