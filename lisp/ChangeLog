@@ -1,5 +1,9 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.el (shrink-window-if-larger-than-buffer): If face
+	`mode-line' has a :box, and we're on a graphical frame, add 1
+	to the needed window height.
+
 	* frame.el (frame-notice-user-settings): Add a last parameter nil
 	to a call to `append', because the last list passed to `append' is
 	not copied, and so subsequent calls to assq-delete-all will modify
