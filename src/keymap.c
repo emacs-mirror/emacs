@@ -419,9 +419,9 @@ fix_submap_inheritance (map, event, submap)
     parent_entry = Qnil;
 
   /* If MAP's parent has something other than a keymap,
-     our own submap shadows it completely, so use nil as SUBMAP's parent.  */
+     our own submap shadows it completely.  */
   if (! KEYMAPP (parent_entry))
-    parent_entry = Qnil;
+    return;
 
   if (! EQ (parent_entry, submap))
     {
@@ -430,12 +430,16 @@ fix_submap_inheritance (map, event, submap)
       while (1)
 	{
 	  Lisp_Object tem;
+
 	  tem = Fkeymap_parent (submap_parent);
-	  if (keymap_memberp (tem, parent_entry))
-	    /* Fset_keymap_parent could create a cycle.  */
-	    return;
-          if (KEYMAPP (tem))
-	    submap_parent = tem;
+
+	  if (KEYMAPP (tem))
+	    {
+	      if (keymap_memberp (tem, parent_entry))
+		/* Fset_keymap_parent could create a cycle.  */
+		return;
+	      submap_parent = tem;
+	    }
 	  else
 	    break;
 	}
@@ -483,15 +487,15 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
   /* Handle the special meta -> esc mapping. */
   if (INTEGERP (idx) && XUINT (idx) & meta_modifier)
     {
-      Lisp_Object meta_map;
-
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
-      meta_map = access_keymap (map, meta_prefix_char, t_ok, noinherit,
-				autoload);
-      if (KEYMAPP (meta_map))
+      Lisp_Object meta_map =
+	get_keymap_1 (access_keymap
+		      (map, meta_prefix_char, t_ok, noinherit, autoload),
+		      0, autoload);
+      if (!NILP (meta_map))
 	{
-	  map = get_keymap_1 (meta_map, 0, autoload);
+	  map = meta_map;
 	  idx = make_number (XUINT (idx) & ~meta_modifier);
 	}
       else if (t_ok)
