@@ -170,7 +170,7 @@ echo "Creating subdirectories."
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/src \
-	      etc etc/e lock cpp info man msdos shortnames vms; do
+	      etc etc/e lock cpp info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
 
@@ -320,11 +320,6 @@ echo "Making links to \`man'."
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
 
-echo "Making links to \`shortnames'."
-(cd shortnames
- ln *.c ../${tempdir}/shortnames
- ln Makefile reserved special ../${tempdir}/shortnames)
-
 echo "Making links to \`vms'."
 (cd vms
  ln [0-9a-zA-Z]* ../${tempdir}/vms
@@ -336,7 +331,7 @@ echo "Making links to \`vms'."
 echo "Making sure copying notices are all copies of \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
 cp etc/COPYING ${tempdir}/etc/COPYING
-for subdir in lisp src lib-src info shortnames msdos; do
+for subdir in lisp src lib-src info msdos; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
