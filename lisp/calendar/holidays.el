@@ -90,6 +90,7 @@
 Requires floating point."
   t)
 
+;;;###autoload
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument, prompts for month and year.
