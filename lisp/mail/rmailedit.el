@@ -63,8 +63,7 @@ to return to regular RMAIL:
   (make-local-variable 'rmail-old-text)
   (setq rmail-old-text (buffer-substring (point-min) (point-max)))
   (setq buffer-read-only nil)
-  (set-buffer-modified-p (buffer-modified-p))
-  ;; Make mode line update.
+  (force-mode-line-update)
   (if (and (eq (key-binding "\C-c\C-c") 'rmail-cease-edit)
 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))
       (message "Editing: Type C-c C-c to return to Rmail, C-c C-] to abort")
@@ -87,8 +86,7 @@ to return to regular RMAIL:
     (set-marker (aref rmail-message-vector (1+ rmail-current-message))
 		(point)))
   (let ((old rmail-old-text))
-    ;; Update the mode line.
-    (set-buffer-modified-p (buffer-modified-p))
+    (force-mode-line-update)
     (rmail-mode-1)
     (if (and (= (length old) (- (point-max) (point-min)))
 	     (string= old (buffer-substring (point-min) (point-max))))
