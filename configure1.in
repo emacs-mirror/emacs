@@ -1,0 +1,471 @@
+#!/bin/sh
+# Configuration script for GNU Emacs
+#   Copyright (C) 1992 Free Software Foundation, Inc.
+
+#This file is part of GNU Emacs.
+
+#GNU Emacs is free software; you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation; either version 1, or (at your option)
+#any later version.
+
+#GNU Emacs is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with GNU Emacs; see the file COPYING.  If not, write to
+#the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# Shell script to edit files and make symlinks in preparation for
+# compiling Emacs.
+# 
+# Usage: configure machine
+#
+# If configure succeeds, it leaves its status in config.status.
+# If configure fails after disturbing the status quo, 
+# 	config.status is removed.
+#
+
+progname=$0
+
+short_usage="Type \`${progname} -usage' for more information about options."
+
+usage_message="Usage: ${progname} MACHINENAME [-OPTION[=VALUE] ...]
+Set compilation and installation parameters for GNU Emacs, and report.
+MACHINENAME is the machine to build for.  See \`etc/MACHINES'.
+Options are:
+  -opsystem=SYSTEM - operating system to build for; see \`etc/MACHINES'.
+  -libroot=DIR - where to install Emacs's library files
+These options have reasonable defaults (in []s), and may not be needed:
+  -g, -O - Passed to the compiler.  If omitted, use -O only.
+  -cc=COMPILER - Which compiler to use.  Defaults to gcc if available.
+  -libdir=DIR - where to look for arch-dependent library files
+  -datadir=DIR - where to look for architecture-independent library files
+  -installbin=DIR - where to install the Emacs executable, and some friends
+  -lisppath=PATH - colon-separated list of Elisp directories
+  -lockdir=DIR - where Emacs should do its file-locking stuff
+  -window_system=none or [x11, if it is installed] - what window system to use
+  -have_x_menu=yes or [no] - include menu support under X11
+  -gnu_malloc=[yes] or no - use the GNU memory allocator
+  -rel_alloc=[yes] or no - use compacting allocator for buffers
+  -highpri=N - run at N points higher-than-normal priority
+  -lisp_float_type=[yes] or no - Support floating point in Elisp
+If successful, ${progname} leaves its status in config.status.  If
+unsuccessful after disturbing the status quo, config.status is removed."
+
+if [ ! -r ./src/lisp.h ]; then
+  echo "${progname}: Can't find Emacs sources in \`./src'.
+Run this config script in the top directory of the Emacs source tree." 1>&2
+  exit 1
+fi
+
+options=":\
+usage:help:\
+machine:opsystem:\
+g:O:cc:\
+libroot:datadir:libdir:installbin:lisppath:lockdir:\
+gnu_malloc:rel_alloc:highpri:lisp_float_type:\
+window_system:have_x_menu:\
+"
+
+boolean_opts=":\
+g:O:\
+gnu_malloc:rel_alloc:lisp_float_type:have_x_menu:\
+"
+
+config_h_opts=":\
+highpri:gnu_malloc:rel_alloc:lisp_float_type:\
+have_x_windows:have_x11:have_x_menu:\
+c_switch_site:sigtype:\
+"
+
+libroot=
+installbin=/usr/local/bin
+gnu_malloc=yes
+lisp_float_type=yes
+
+# The default values for the following options are guessed at after other
+# options have been checked and given values, so we set them to null here.
+lisppath=""
+datadir=""
+libdir=""
+lockdir=""
+window_system=""
+have_x_menu=""
+
+# This must be the only option on the line, and it can't be abbreviated.
+# This keeps it from interfering with the other, documented options.
+if [ "$*" = "+distribute" ]; then
+  libroot=/usr/local/lib/emacs
+  machine=hp300bsd
+  opsystem=bsd4-3
+  shift
+fi
+
+echo "Examining options..."
+for arg in $*; do
+  case "${arg}" in
+    -*)
+      # Separate the switch name from the value it's being given.
+      case "${arg}" in
+        -*=* )
+	  opt=`echo ${arg} | sed 's:^-\([^=]*\)=.*$:\1:'`
+	  val=`echo ${arg} | sed 's:^-[^=]*=\(.*\)$:\1:'`
+	  valomitted=no
+	;;
+        -* )
+          # If FOO is a boolean argument, -FOO is equivalent to -FOO=yes.
+	  opt=`echo ${arg} | sed 's:^-\(.*\)$:\1:'`
+          val="yes"
+          valomitted=yes
+        ;;
+      esac
+
+      # Make sure the argument is valid and unambiguous.
+      case ${options} in
+        *:${opt}:* )	# Exact match.
+          optvar=${opt}
+        ;;
+        *:${opt}*:${opt}*:* )	# Ambiguous prefix.
+	  echo "\`-${opt}' is an ambiguous switch; it could be any of the following:"
+	  echo `echo ${options} | tr ':' '\012' | grep '^'${opt}`
+	  echo ${short_usage}
+	  exit 1
+	;;
+        *:${opt}*:* )		# Unambigous prefix.
+	  optvar=`echo ${options} | sed 's/^.*:\('${opt}'[^:]*\):.*$/\1/'`
+        ;;
+	* )
+	  (echo "\`-${opt}' is not a valid option."
+	   echo "${short_usage}") | more
+	  exit 1
+	;;
+      esac
+
+      case "${optvar}" in
+        usage | help)
+          echo "${usage_message}" | more
+          exit 1
+        ;;
+      esac
+
+      # If the variable is supposed to be boolean, make sure the value
+      # given is either "yes" or "no".  If not, make sure some value
+      # was given.
+      case "${boolean_opts}" in
+        *:${optvar}:* )
+	  case "${val}" in
+	    y | ye | yes )	val=yes ;;
+	    n | no )		val=no  ;;
+	    * )
+	      echo "The \`-${optvar}' option (\`-${opt}') is supposed to have a boolean
+  value - set it to either \`yes' or \`no'." 1>&2
+	      exit 1
+	    ;;
+	  esac
+        ;;
+        *)
+	  if [ "${valomitted}" = "yes" ]; then
+	    (echo "${progname}: You must give a value for the \`-${opt}' option, as in
+  \`-${opt}=FOO'."
+	     echo "${short_usage}") | more
+	    exit 1
+	  fi
+        ;;
+      esac
+
+      eval "${optvar}=\"${val}\""
+    ;;
+    *)
+      machine=${arg}
+    ;;
+  esac
+done
+
+if [ "${machine}" = "" ]; then
+  (echo "You must specify a machine name as an argument to ${progname}."
+   echo "${short_usage}") | more
+  exit 1
+fi
+
+echo "Checking machine..."
+machfile="m/${machine}.h"
+if [ ! -r src/${machfile} ]; then
+  echo "${progname}: Emacs has no configuration info for the machine called
+\`${machine}'.  Look at etc/MACHINES for the names of machines
+that Emacs has been ported to." 1>&2
+  exit 1
+fi
+
+echo "Checking operating system..."
+if [ "${opsystem}" = "" ]; then
+
+  echo "  No operating system explicitly specified."
+  echo "  Guessing, based on machine..."
+  # Get the default operating system to go with the specified machine.
+  opsystem=`grep 'USUAL-OPSYS="' src/${machfile} \
+	    | sed 's/^.*USUAL-OPSYS="\([^"]*\)".*$/\1/'`
+
+  if [ "${opsystem}" = "" ]; then
+    echo "${progname}: Emacs's configuration files don't suggest what operating
+system a \`${machine}' machine might run.  Try specifying the
+operating system explicitly by passing ${progname} an
+\`-opsystem=SYSTEM-NAME' flag.  Look at etc/MACHINES for the
+names of operating systems that Emacs has been ported to." 1>&2
+    exit 1
+  fi
+
+  if [ "${opsystem}" = "note" ]; then
+    echo "The \`${machine}' machine can be used with more than one operating
+system, and Emacs's configuration info isn't clever enough to figure
+out which one you're running.  Run ${progname} with -machine and
+-opsystem arguments as specified below for the appropriate system.
+(This information comes from the file \`etc/MACHINES' - see that
+file for more detail.)
+
+" 1>&2
+    sed < src/${machfile} -e '1,/NOTE-START/d' -e '/NOTE-END/,$d' | more
+    echo
+    exit 1
+  fi
+
+  opsysfile="s/${opsystem}.h"
+  if [ ! -r src/${opsysfile} ]; then
+    echo "${progname}: Emacs's configuration files say that the default
+operating system for the machine \`${machine}' is \`${opsystem}',
+but there is no configuration file for \`${opsystem}', so Emacs's
+default info is screwed up.  Try specifying the operating system
+explicitly by passing ${progname} an \`-opsystem=SYSTEM-NAME' flag." 1>&2
+    exit 1
+  fi
+else
+  opsysfile="s/${opsystem}.h"
+  if [ ! -r src/${opsysfile} ]; then
+    echo "${progname}: Emacs has no configuration info for the operating system
+\`${opsystem}'.  Look at etc/MACHINES for the names of operating
+systems that Emacs has been ported to." 1>&2
+    exit 1
+  fi
+fi
+
+if [ "${libroot}" = "" ]; then
+  echo "Guessing library directory..."
+  libroot=`/bin/pwd`
+fi
+
+echo "Checking window system..."
+window_system="`echo ${window_system} | tr A-Z a-z`"
+case "${window_system}" in
+  "none" | "x11" | "x10" ) ;;
+  "x" ) window_system=x11 ;;
+  "" )
+    echo "  No window system specifed.  Looking for X Windows."    
+    window_system=none
+    if [ -r /usr/lib/libX11.a -a -d /usr/include/X11 ]; then
+      window_system=x11
+    fi        
+  ;;
+  * )
+    echo "The \`-window_system' option must be set to \`none' or \`X11'." 1>&2
+    exit 1
+  ;;
+esac
+
+case "${window_system}" in
+  x11 )
+    have_x_windows=yes
+    have_x11=yes
+  ;;
+  x10 )
+    have_x_windows=yes
+    have_x11=no
+  ;;
+  none )
+    have_x_windows=no
+    have_x11=no
+  ;;
+esac
+
+# What is the return type of a signal handler?  We grep
+# /usr/include/signal.h for the declaration of the signal function.
+# Yuck.
+echo "Looking for return type of signal handler functions..."
+if [ -r /usr/include/signal.h ]; then
+  sigpattern='[ 	]*([ 	]*\*[ 	]*signal[ 	]*('
+  sigtype=void
+  if grep -s "int${sigpattern}" /usr/include/signal.h; then
+    sigtype=int
+  fi
+fi
+
+
+# Do the opsystem or machine files prohibit the use of the GNU malloc?
+echo "Checking to see if the GNU malloc routines are permissible..."
+if (cd ./src;grep SYSTEM_MALLOC ${opsysfile} ${machfile} > /dev/null); then
+  gnu_malloc=no
+  gnu_malloc_reason="
+  (The GNU allocators don't work with this machine and/or operating system.)"
+fi
+
+rel_alloc=${gnu_malloc}
+
+if [ "${have_x_menu}" = "" ]; then
+  have_x_menu=no
+fi
+
+if [ "${lisppath}" = "" ]; then
+  lisppath=${libroot}/local-lisp:${libroot}/lisp
+fi
+
+if [ "${datadir}" = "" ]; then
+  datadir=${libroot}/etc
+fi
+
+if [ "${libdir}" = "" ]; then
+  libdir=${libroot}/arch-lib
+fi
+
+if [ "${lockdir}" = "" ]; then
+  lockdir=${libroot}/lock
+fi
+
+echo "Checking for GCC..."
+case "${cc}" in
+  "" )
+    temppath=`echo $PATH | sed 's/^:/.:/
+				s/::/:.:/g
+				s/:$/:./
+				s/:/ /g'`
+    cc=`(
+      for dir in ${temppath}; do
+        if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
+      done
+      echo cc
+    )`
+  ;;
+esac
+
+case "${O},${g},${cc}" in
+  ,,gcc ) O=yes; g=yes ;;
+  ,,*   ) O=yes; g=no  ;;
+esac
+
+echo "Guessing which libraries the lib-src programs will want,"
+echo "  based on the machine- and system-dependent files..."
+echo '#include "src/'${machfile}'"
+#include "src/'${opsysfile}'"
+#ifndef LIBS_MACHINE
+#define LIBS_MACHINE
+#endif
+#ifndef LIBS_SYSTEM
+#define LIBS_SYSTEM
+#endif
+libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+' > config-tmp-$$.c
+eval `${cc} -E config-tmp-$$.c | grep 'libsrc_libs='`
+rm config-tmp-$$.c
+
+rm -f config.status
+set -e
+
+# Make the proper settings in the config file.
+echo "Making src/config.h from src/config.h-dist"
+if [ "${highpri}" != "" ]; then
+  highpri="(-${highpri})"
+fi
+case "${g}" in
+  "yes" ) c_switch_site="${c_switch_site} -g" ;;
+esac
+case "${O}" in
+  "yes" ) c_switch_site="${c_switch_site} -O" ;;
+esac
+sed_flags="-e 's:@machine@:${machfile}:'"
+sed_flags="${sed_flags} -e 's:@opsystem@:${opsysfile}:'"
+for flag in `echo ${config_h_opts} | tr ':' ' '`; do
+  cflagname=`echo ${flag} | tr a-z A-Z`
+  val=`eval echo '$'${flag}`
+  case ${val} in
+    no | "")
+      f="-e 's:.*#define ${cflagname}.*:/\\* #define ${cflagname} \\*/:'"
+    ;;
+    yes)
+      f="-e 's:.*#define ${cflagname}.*:#define ${cflagname}:'"
+    ;;
+    *)
+      f="-e 's:.*#define ${cflagname}.*:#define ${cflagname} ${val}:'"
+    ;;
+  esac
+  sed_flags="${sed_flags} ${f}"
+done
+eval '/bin/sed '${sed_flags}' < src/config.h-dist > src/config.h'
+
+# Modify the parameters in the top makefile.
+echo "Editing ./Makefile..."
+tempMakefile="tempMakefile"$$
+/bin/sed < Makefile > ${tempMakefile}			\
+-e 's;^\(LIBROOT=\).*$;\1'"${libroot};"			\
+-e 's;^\(INSTALLBIN=\).*$;\1'"${installbin};"		\
+-e 's;^\(LISPPATH=\).*$;\1'"${lisppath};"		\
+-e 's;^\(DATADIR=\).*$;\1'"${datadir};"			\
+-e 's;^\(LOCKDIR=\).*$;\1'"${lockdir};"			\
+-e 's;^\(LIBDIR=\).*$;\1'"${libdir};"
+mv ${tempMakefile} Makefile
+
+# Modify the parameters in the `build-install' script.
+echo "Editing ./build-install..."
+tempbi="tempbi"$$
+/bin/sed < build-install > ${tempbi}		\
+-e 's;^\(LIBROOT=\).*$;\1'"${libroot};"		\
+-e 's;^\(BINDIR=\).*$;\1'"${installbin};"	\
+-e 's;^\(LISPPATH=\).*$;\1'"${lisppath};"	\
+-e 's;^\(DATADIR=\).*$;\1'"${datadir};"		\
+-e 's;^\(LOCKDIR=\).*$;\1'"${lockdir};"		\
+-e 's;^\(LIBDIR=\).*$;\1'"${libdir};"
+mv ${tempbi} build-install
+chmod a+x build-install
+
+# Modify the parameters in the src makefile.
+echo "Editing src/Makefile..."
+tempMakefile="tempMakefile"$$
+/bin/sed < src/Makefile > ${tempMakefile}		\
+-e 's;^\(CC[ ]*=\).*$;\1'"${cc};"
+mv ${tempMakefile} src/Makefile
+
+# Modify the parameters in the lib-src makefile.
+echo "Editing lib-src/Makefile..."
+tempMakefile="tempMakefile"$$
+/bin/sed < lib-src/Makefile > ${tempMakefile}		\
+-e 's;^\(CFLAGS=\).*$;\1'"${c_switch_site};"		\
+-e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
+-e 's;^\(CC=\).*$;\1'"${cc};"
+mv ${tempMakefile} lib-src/Makefile
+
+# Document the damage we have done.
+echo
+echo "Configured for machine \`${machine}' running \`${opsystem}'.
+The following values have been set in ./Makefile and ./build-install:
+  Executables will be placed in
+	  ${installbin}.
+  Emacs's lisp search path will be
+	  \`${lisppath}'.
+  Emacs will look for its architecture-independent data in
+	  ${datadir}.
+  Emacs will look for its utility programs and other architecture-
+  dependent data in
+	  ${libdir}.
+  Emacs will keep track of file-locking in
+	  ${lockdir}.
+The following values have been set in src/config.h:
+  At how much higher than normal priority should Emacs run? ${highpri-none}
+  Should Emacs use the GNU version of malloc?		    ${gnu_malloc}${gnu_malloc_reason}
+  Should Emacs use the relocating allocator for buffers?    ${rel_alloc}
+  Should Emacs support a floating point Elisp type?	    ${lisp_float_type}
+  What window system should Emacs use?			    ${window_system}
+  Should Emacs support mouse menus, which require X11?	    ${have_x_menu}
+  What compiler should emacs be built with?                 ${cc}
+  Should the compilation use \`-g' and/or \`-O'?             ${c_switch_site- neither}" \
+| tee config.status 1>&2
+
+exit 0
