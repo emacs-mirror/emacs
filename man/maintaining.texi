@@ -343,6 +343,9 @@ In HTML input files, the tags are the @code{title} and the @code{h1},
 and all occurrences of @code{id=}.
 
 @item
+In Lua input files, all functions are tags.
+
+@item
 In makefiles, targets are tags; additionally, variables are tags
 unless you specify @samp{--no-globals}.
 
