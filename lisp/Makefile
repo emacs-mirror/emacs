@@ -46,6 +46,10 @@ EL	= $(lisptagsfiles1) $(lisptagsfiles2)
 
 emacs = $(EMACS) $(EMACSOPT)
 
+# The Emacs used to compile Lisp files from scratch.
+
+temacs=../src/temacs -batch -l ./loadup.el 
+
 
 doit:
 
@@ -124,7 +128,7 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 
 compile: doit
 	wd=`pwd`;						\
-	find $$wd -name "*.elc" | xargs chmod +w;		\
+	find $$wd -name "*.elc" -print | xargs chmod +w;	\
 	subdirs=`find $$wd -type d -print`; 			\
 	for dir in $$subdirs; do 				\
 	   case $$dir in 					\
@@ -147,6 +151,37 @@ compile: doit
             echo "Don't compile $$el";				\
           fi;							\
 	done
+
+# Compile Lisp files when all we have is the temacs in ../src.  All
+# .elc files under the current directory are deleted first to make
+# sure we start from a clean basis.
+
+bootstrap-compile: doit
+	wd=`pwd`;						\
+	find $$wd -name "*.elc" -print | xargs rm -f            \
+	subdirs=`find $$wd -type d -print`; 			\
+	for dir in $$subdirs; do 				\
+	   case $$dir in 					\
+	     */Old | */RCS | */CVS | */=* ) ;; 			\
+	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
+	   esac; 						\
+        done; 							\
+	loadpath="(setq load-path '($$loadpath))";		\
+	dont_compile=`echo $(DONTCOMPILE)`;			\
+	for el in $(EL); do					\
+	  compile_it=y;						\
+	  for dont in $$dont_compile; do			\
+	    if test $$el = $$dont; then				\
+	      compile_it=n;					\
+            fi;							\
+          done;							\
+          if test $$compile_it = y; then			\
+            $(temacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
+          else							\
+            echo "Don't compile $$el";				\
+          fi;							\
+	done
+
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
