@@ -1,3 +1,9 @@
+2004-02-02  David Kastrup  <dak@gnu.org>
+
+	* replace.el (perform-replace): Allow 'literal argument in
+	regexp-flag to indicate literal replacement.
+	(query-replace-regexp-eval): Use it.
+
 2004-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/executable.el (executable-command-find-posix-p): Doc
