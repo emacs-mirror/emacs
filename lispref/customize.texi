@@ -300,17 +300,17 @@ those other variables already have their intended values.
 operation of a certain feature.  Assuming that the package is coded to
 check the value of the option, you still need to arrange for the package
 to be loaded.  You can do that with @code{:require}.  @xref{Common
-Keywords}.  Here is an example, from the library @file{paren.el}:
+Keywords}.  Here is an example, from the library @file{tooltip.el}:
 
 @example
-(defcustom show-paren-mode nil
-  "Toggle Show Paren mode..."
+(defcustom tooltip-mode nil
+  "Non-nil if Tooltip mode is enabled..."
   :set (lambda (symbol value)
-         (show-paren-mode (or value 0)))
+	 (tooltip-mode (or value 0)))
   :initialize 'custom-initialize-default
   :type 'boolean
-  :group 'paren-showing
-  :require 'paren)
+  :require 'tooltip
+  :group 'tooltip)
 @end example
 
 If a customization item has a type such as @code{hook} or @code{alist},
@@ -529,7 +529,7 @@ value.
 The @code{group} widget is used here instead of @code{list} only because
 the formatting is better suited for the purpose.
 
-Similarily, you can have alists with more values associated with each
+Similarly, you can have alists with more values associated with each
 key, using variations of this trick:
 
 @smallexample
@@ -538,7 +538,7 @@ key, using variations of this trick:
                          ("ken"    52 t))
   "Alist of basic info about people.
 Each element has the form (NAME AGE MALE-FLAG)."
-  :type '(alist :value-type (group age boolean)))
+  :type '(alist :value-type (group integer boolean)))
 
 (defcustom pets '(("brian")
                   ("dorith" "dog" "guppy")
@@ -665,7 +665,7 @@ verbatim, you might write the customization type this way,
 @end example
 
 @noindent
-so that the menu offers @samp{Number of spaces} and @samp{Literal Text}.
+so that the menu offers @samp{Number of spaces} and @samp{Literal text}.
 
 In any alternative for which @code{nil} is not a valid value, other than
 a @code{const}, you should specify a valid default for that alternative
@@ -824,8 +824,8 @@ purposes.  This is useful for a type that appears inside of a
 Use @var{criteria} to match possible values.  This is used only in
 @code{restricted-sexp}.
 
-@item :args @var{argumentlist}
-Use the elements of @var{argumentlist} as the arguments of the type
+@item :args @var{argument-list}
+Use the elements of @var{argument-list} as the arguments of the type
 construct.  For instance, @code{(const :args (foo))} is equivalent to
 @code{(const foo)}.  You rarely need to write @code{:args} explicitly,
 because normally the arguments are recognized automatically as
@@ -1066,12 +1066,12 @@ arguments, which will be used when creating the @code{radio-button} or
 @subsection Defining New Types
 
 In the previous sections we have described how to construct elaborate
-type specifications for @code{defcustom}.  In some cases you may want to
-give such a type specification a name.  The obvious case is when you are
-using the same type for many user options, rather than repeat the
-specification for each option, you can give the type specification a
-name once, and use that name each @code{defcustom}.  The other case is
-when a user option accept a recursive datastructure.  To make it
+type specifications for @code{defcustom}.  In some cases you may want
+to give such a type specification a name.  The obvious case is when
+you are using the same type for many user options: rather than repeat
+the specification for each option, you can give the type specification
+a name, and use that name each @code{defcustom}.  The other case is
+when a user option's value is a recursive data structure.  To make it
 possible for a datatype to refer to itself, it needs to have a name.
 
 Since custom types are implemented as widgets, the way to define a new
@@ -1097,40 +1097,39 @@ types by a simple example.
   :type 'binary-tree-of-string)
 @end example
 
-The function to define a new widget is name @code{define-widget}.  The
+The function to define a new widget is called @code{define-widget}.  The
 first argument is the symbol we want to make a new widget type.  The
 second argument is a symbol representing an existing widget, the new
 widget is going to be defined in terms of difference from the existing
 widget.  For the purpose of defining new customization types, the
-@code{lazy} widget is perfect, because it accept a @code{:type} keyword
+@code{lazy} widget is perfect, because it accepts a @code{:type} keyword
 argument with the same syntax as the keyword argument to
 @code{defcustom} with the same name.  The third argument is a
 documentation string for the new widget.  You will be able to see that
 string with the @kbd{M-x widget-browse @key{ret} binary-tree-of-string
 @key{ret}} command.
 
-After these mandatory arguments follows the keyword arguments.  The most
-important is @code{:type}, which describes the datatype we want to match
+After these mandatory arguments follow the keyword arguments.  The most
+important is @code{:type}, which describes the data type we want to match
 with this widget.  Here a @code{binary-tree-of-string} is described as
 being either a string, or a cons-cell whose car and cdr are themselves
 both @code{binary-tree-of-string}.  Note the reference to the widget
 type we are currently in the process of defining.  The @code{:tag}
 attribute is a string to name the widget in the user interface, and the
-@code{:offset} argument are there to ensure that child nodes are
-indented four spaces relatively to the parent node, making the tree
+@code{:offset} argument is there to ensure that child nodes are
+indented four spaces relative to the parent node, making the tree
 structure apparent in the customization buffer.
 
 The @code{defcustom} shows how the new widget can be used as an ordinary
 customization type.
 
-If you wonder about the name @code{lazy}, know that the other composite
-widgets convert their inferior widgets to internal form when the widget
-is instantiated in a buffer.  This conversion is recursive, so the
-inferior widgets will convert @emph{their} inferior widgets.  If the
-datastructure is itself recursive, this conversion will go on forever,
-or at least until Emacs run out of stack space.  The @code{lazy} widget
-stop this recursion, it will only convert its @code{:type} argument when
-needed.
+The reason for the name @code{lazy} is that the other composite
+widgets convert their inferior widgets to internal form when the
+widget is instantiated in a buffer.  This conversion is recursive, so
+the inferior widgets will convert @emph{their} inferior widgets.  If
+the data structure is itself recursive, this conversion is an infinite
+recursion.  The @code{lazy} widget prevents the recursion: it convert
+its @code{:type} argument only when needed.
 
 @ignore
    arch-tag: d1b8fad3-f48c-4ce4-a402-f73b5ef19bd2
