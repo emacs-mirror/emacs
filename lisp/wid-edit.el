@@ -1302,13 +1302,13 @@ If that does not exists, call the value of `widget-complete-field'."
     (cond ((eq escape ?h)
 	   (let* ((doc-property (widget-get widget :documentation-property))
 		  (doc-try (cond ((widget-get widget :doc))
+				 ((functionp doc-property)
+				  (funcall doc-property
+					   (widget-get widget :value)))
 				 ((symbolp doc-property)
 				  (documentation-property
 				   (widget-get widget :value)
-				   doc-property))
-				 (t
-				  (funcall doc-property
-					   (widget-get widget :value)))))
+				   doc-property))))
 		  (doc-text (and (stringp doc-try)
 				 (> (length doc-try) 1)
 				 doc-try))
@@ -1635,7 +1635,7 @@ If END is omitted, it defaults to the length of LIST."
   :action 'widget-field-action
   :validate 'widget-field-validate
   :valid-regexp ""
-  :error "Field's value doesn't match allowed form"
+  :error "Field's value doesn't match allowed forms"
   :value-create 'widget-field-value-create
   :value-delete 'widget-field-value-delete
   :value-get 'widget-field-value-get
