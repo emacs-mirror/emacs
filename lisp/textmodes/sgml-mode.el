@@ -794,7 +794,7 @@ With prefix argument ARG, repeat this ARG times."
 	    (let ((pos (point-min)))
 	      (while (< (setq pos (next-overlay-change pos)) (point-max))
 		(dolist (ol (overlays-at pos))
-		  (if (overlay-get 'sgml-tag)
+		  (if (overlay-get ol 'sgml-tag)
 		      (delete-overlay ol)))))
 	    (remove-text-properties (point-min) (point-max) '(category nil))))
       (restore-buffer-modified-p modified))
