@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun setenv (variable value)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE and VALUE should both be strings.
