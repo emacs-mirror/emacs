@@ -1,3 +1,7 @@
+2002-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ebrowse.c (add_declarator): Fix the first call to add_member_defn.
+
 2002-03-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (add_declarator, skip_initializer): New functions.
