@@ -81,7 +81,7 @@ substring of the tag pattern.  We define a set of rules to decide
 whether it is possible to deduce the tag name from the pattern, and make
 an unnamed tag in those cases.  The name deduced from the pattern of an
 unnamed tag is the implicit name of that tag.
-  When the user looks for a tag, and Emacs founds no explicit tag names
+  When the user looks for a tag, and Emacs finds no explicit tag names
 that match it, Emacs then looks for an tag whose implicit tag name
 matches the request.  etags.c uses implicit tag names when possible, in
 order to reduce the size of the tags file.
