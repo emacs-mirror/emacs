@@ -124,6 +124,7 @@ and then returns."
 					 prev-frame))
 				(setq new-frame (window-frame (selected-window))
 				      config nil))
+			   (setq buffer-read-only nil)
 			   (erase-buffer)
 			   (insert help-screen)
 			   (help-mode)
