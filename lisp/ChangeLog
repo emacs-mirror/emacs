@@ -1,3 +1,19 @@
+2002-12-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-delete-display): Rename (gdb-delete-expression).
+	(gdb-goto-bp-this-line): Rename (gdb-goto-breakpoint).
+	(gdb-toggle-bp-this-line): Rename (gdb-toggle-breakpoint).
+	(gdb-delete-bp-this-line): Rename (gdb-delete-breakpoint).
+	(gdb-toggle-disp-this-line): Rename (gdb-toggle-display).
+	(gdb-delete-disp-this-line): Rename (gdb-delete-display).
+	(gud-gdba-marker-filter): Remove unnecessary save-match-data.
+	(gdb-mouse-goto-breakpoint, gdb-frames-select): New functions.
+	(gdb-frames-mouse-select): Simplify.
+	Make keybindings (gdb-goto-breakpoint, gdb-frames-select, etc)
+	consistent with other modes in emacs.
+	(gdb-display-source-buffer): Return window of source buffer
+	for (gud-display-line).
+
 2002-12-29  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-edit.el (customize-browse): Call `widget-setup'.
