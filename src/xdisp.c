@@ -1369,6 +1369,8 @@ update_menu_bar (f, save_match_data)
 	    call0 (Qrecompute_lucid_menubar);
 	  safe_run_hooks (Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+	  /* Make sure to redisplay the menu bar in case we change it.  */
+	  w->update_mode_line = Qt;
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	  if (FRAME_WINDOW_P (f))
 	    set_frame_menubar (f, 0, 0);
@@ -3260,14 +3262,14 @@ display_menu_bar (w)
   get_display_line (f, vpos, 0);
 
   items = FRAME_MENU_BAR_ITEMS (f);
-  for (i = 0; i < XVECTOR (items)->size; i += 3)
+  for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
       Lisp_Object pos, string;
       string = XVECTOR (items)->contents[i + 1];
       if (NILP (string))
 	break;
 
-      XSETFASTINT (XVECTOR (items)->contents[i + 2], hpos);
+      XSETFASTINT (XVECTOR (items)->contents[i + 3], hpos);
 
       if (hpos < maxendcol)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
