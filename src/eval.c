@@ -2040,16 +2040,25 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
   if (SYMBOLP (form))
     {
+      /* If there's an active lexical environment, and the variable
+	 isn't declared special, look up its binding in the lexical
+	 environment.  */
       if (!NILP (Vinternal_interpreter_environment)
 	  && !XSYMBOL (form)->declared_special)
 	{
 	  Lisp_Object lex_binding
 	    = Fassq (form, Vinternal_interpreter_environment);
+
+	  /* If we found a lexical binding for FORM, return the value.
+	     Otherwise, we just drop through and look for a dynamic
+	     binding -- the variable isn't declared special, but there's
+	     not much else we can do, and Fsymbol_value will take care
+	     of signaling an error if there is no binding at all.  */
 	  if (CONSP (lex_binding))
 	    return XCDR (lex_binding);
 	}
-      else
-	return Fsymbol_value (form);
+      
+      return Fsymbol_value (form);
     }
 
   if (!CONSP (form))
