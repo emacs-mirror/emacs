@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(trunk.11) $
+# $HopeName: MMsrc!gc.gmk(trunk.12) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -15,8 +15,6 @@
 # %%PART: Add a new parameter for the files included in the part.
 # Parameters:
 #   PFM		platform code, e.g. "suspgc"
-#   PFMDEFS	-D options to define platform preprocessor symbols to
-#               the compiler, e.g. "-DOS_SUNOS -DARCH_SPARC -DBUILD_GCC"
 #   STD		list of sources which make up the "std" part for this
 #               platform
 #   MPM		as above for the "mpm" part
@@ -52,9 +50,6 @@
 
 ifndef PFM
 error "gc.gmk: PFM not defined"
-endif
-ifndef PFMDEFS
-error "gc.gmk: PFMDEFS not defined"
 endif
 ifndef STD
 error "gc.gmk: STD not defined"
@@ -93,7 +88,6 @@ endif
 
 # These flags are included in all compilations.
 CFLAGSCOMMON = \
-	$(PFMDEFS) \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
@@ -154,8 +148,8 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss lockcov stdcover mpmstres std.a poolncv protcv \
-     faultcv schedcv qs
+all: mpmss amcss lockcov stdcover mpmstres std.a poolncv \
+     qs
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -163,7 +157,7 @@ all: mpmss amcss lockcov stdcover mpmstres std.a poolncv protcv \
 # %%TARGET: Add a pseudo-target for the new target here.
 
 mpmss amcss dwstress amcdev lockcov stdcover mpmstres std.a poolncv \
-     protcv faultcv schedcv lo.a locv qs: phony
+     lo.a locv qs: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the
@@ -226,22 +220,8 @@ $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
 	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
-$(PFM)/$(VARIETY)/protcv: $(PFM)/$(VARIETY)/protcv.o \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/faultcv: $(PFM)/$(VARIETY)/faultcv.o \
-	$(PFM)/$(VARIETY)/fault.o \
-	$(MPMOBJ) $(STDOBJ)
-
-$(PFM)/$(VARIETY)/schedcv: $(PFM)/$(VARIETY)/schedcv.o \
-	$(PFM)/$(VARIETY)/sched.o \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
-
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(PFM)/$(VARIETY)/pooln.o \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/protcv: $(PFM)/$(VARIETY)/protcv.o \
 	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
