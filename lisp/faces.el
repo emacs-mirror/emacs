@@ -196,13 +196,10 @@ should not be used anymore."
 If the optional argument FRAME is given, this gets the face NAME for
 that frame; otherwise, it uses the selected frame.
 If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned.
-
-This function is defined for compatibility with Emacs 20.2.  It
-should not be used anymore."
+If NAME is already a face, it is simply returned."
   (or (facep name)
       (check-face name)))
-(make-obsolete 'internal-get-face "See `facep' and `check-face'." "21.1")
+(make-obsolete 'internal-get-face "see `facep' and `check-face'." "21.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1755,7 +1752,7 @@ created."
 ;; Update a frame's faces when we change its default font.
 
 (defalias 'frame-update-faces 'ignore)
-(make-obsolete 'frame-update-faces "No longer necessary" "21.1")
+(make-obsolete 'frame-update-faces "no longer necessary." "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
 ;; changed.
