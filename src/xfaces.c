@@ -2215,8 +2215,8 @@ split_font_name (f, font, numeric_p)
 	     indicated by tilde characters which we replace with
 	     `-' characters, here.  */
 	  if (*p == '['
-	      && (i == XLFD_PIXEL_SIZE
-		  || i == XLFD_POINT_SIZE))
+	      && (i - 1 == XLFD_PIXEL_SIZE
+		  || i - 1 == XLFD_POINT_SIZE))
 	    {
 	      char *start, *end;
 	      int j;
