@@ -2362,9 +2362,10 @@ search string to change or the window to scroll)."
 	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
 	    isearch-lazy-highlight-regexp	isearch-regexp
             isearch-lazy-highlight-wrapped      nil)
-      (setq isearch-lazy-highlight-timer
-            (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
-                                 'isearch-lazy-highlight-update)))))
+      (unless (equal isearch-string "")
+	(setq isearch-lazy-highlight-timer
+	      (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
+				   'isearch-lazy-highlight-update))))))
 
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.
