@@ -1,23 +1,17 @@
 ;;; foldout.el --- Folding extensions for outline-mode and outline-minor-mode.
 
-;; Copyright (C) 1994 Kevin Broadey.
+;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Created: 27 Jan 1994
 ;; Version: foldout.el 1.8 dated 94/03/15 at 13:30:59
 ;; Keywords: folding, outline
 
-;; LCD Archive Entry:
-;; foldout|Kevin Broadey|KevinB@bartley.demon.co.uk|
-;; Folding editor extensions for outline-mode and outline-minor-mode|
-;; Date: 94/03/15|Version: 1.8|~/misc/foldout.el.Z|
-
-;; This file is not part of GNU Emacs, but it is distributed under the same
-;; conditions.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
