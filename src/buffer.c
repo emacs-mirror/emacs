@@ -3912,28 +3912,8 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
      (overlay, prop)
      Lisp_Object overlay, prop;
 {
-  Lisp_Object plist, fallback;
-
   CHECK_OVERLAY (overlay);
-
-  fallback = Qnil;
-
-  for (plist = XOVERLAY (overlay)->plist;
-       CONSP (plist) && CONSP (XCDR (plist));
-       plist = XCDR (XCDR (plist)))
-    {
-      if (EQ (XCAR (plist), prop))
-	return XCAR (XCDR (plist));
-      else if (EQ (XCAR (plist), Qcategory))
-	{
-	  Lisp_Object tem;
-	  tem = Fcar (Fcdr (plist));
-	  if (SYMBOLP (tem))
-	    fallback = Fget (tem, prop);
-	}
-    }
-
-  return fallback;
+  return lookup_char_property (XOVERLAY (overlay)->plist, prop, 0);
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
