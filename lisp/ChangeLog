@@ -15,6 +15,8 @@
 	(utf-translate-cjk-unicode-range): Make it customizable.
 	(utf-8-post-read-conversion): Use
 	utf-translate-cjk-unicode-range-string.
+	(ccl-decode-mule-utf-8): Check utf-subst-table-for-decode for more
+	Unicode ranges.
 
 2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
 
