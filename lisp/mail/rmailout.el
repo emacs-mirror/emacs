@@ -59,8 +59,8 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		     (setq answer (eval (cdr (car tail)))))
 		 (setq tail (cdr tail))))
 	     ;; If not suggestions, use same file as last time.
-	     (or answer rmail-last-rmail-file))))
-     (list (setq rmail-last-rmail-file
+	     (or answer rmail-default-rmail-file))))
+     (list (setq rmail-default-rmail-file
 		 (let ((read-file
 			(read-file-name
 			 (concat "Output message to Rmail file: (default "
@@ -78,7 +78,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
-			  (file-name-directory rmail-last-rmail-file)))
+			  (file-name-directory rmail-default-rmail-file)))
   (if (and (file-readable-p file-name) (not (rmail-file-p file-name)))
       (rmail-output file-name count)
     (rmail-maybe-set-message-counters)
@@ -183,22 +183,22 @@ to set the `filed' attribute, and not to display a message.
 
 The optional fourth argument FROM-GNUS is set when called from GNUS."
   (interactive
-   (list (setq rmail-last-file
+   (list (setq rmail-default-file
 	       (read-file-name
 		(concat "Output message to Unix mail file"
-			(if rmail-last-file
+			(if rmail-default-file
 			    (concat " (default "
-				    (file-name-nondirectory rmail-last-file)
+				    (file-name-nondirectory rmail-default-file)
 				    "): " )
 			  ": "))			
-		(and rmail-last-file (file-name-directory rmail-last-file))
-		rmail-last-file))
+		(and rmail-default-file (file-name-directory rmail-default-file))
+		rmail-default-file))
 	 (prefix-numeric-value current-prefix-arg)))
   (or count (setq count 1))
   (setq file-name
 	(expand-file-name file-name
-			  (and rmail-last-file
-			       (file-name-directory rmail-last-file))))
+			  (and rmail-default-file
+			       (file-name-directory rmail-default-file))))
   (if (and (file-readable-p file-name) (rmail-file-p file-name))
       (rmail-output-to-rmail-file file-name count)
     (let ((orig-count count)
