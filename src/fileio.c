@@ -3536,7 +3536,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     desc = open (fn, O_WRONLY);
 #endif /* not DOS_NT */
 
-  if (desc < 0)
+  if (desc < 0 && (NILP (append) || errno == ENOENT) )
 #ifdef VMS
     if (auto_saving)    /* Overwrite any previous version of autosave file */
       {
