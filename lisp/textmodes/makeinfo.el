@@ -178,8 +178,8 @@ command to gain use of `next-error'."
 				;; If we do want to parse errors, pass nil.
 				;; Otherwise, use this function, which won't
 				;; ever find any errors.
-				'(lambda (&rest ignore)
-				   (setq compilation-error-list nil))))))
+				(lambda (&rest ignore)
+				  (setq compilation-error-list nil))))))
     (set-process-sentinel (get-buffer-process buffer)
 			  'makeinfo-compilation-sentinel)))
 
