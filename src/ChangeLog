@@ -1,3 +1,7 @@
+2001-11-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* buffer.h (Fbuffer_local_value): Add prototype.
+
 2001-11-04  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (Fbuffer_local_value): Remove extra args from CHECK_SYMBOL
