@@ -129,7 +129,7 @@ sub unix_mailfile {
  local ($file, $to, $subj) = @_;
 
  &mysystem(
-  "{ echo \"To: $to\"; echo \"Subject: $subj\"; cat $file; } | mail -t");
+  "{ echo \"To: $to\"; echo \"Subject: $subj\"; cat $file; } | /usr/lib/sendmail -t");
 }
 
 #
