@@ -5171,7 +5171,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   for (s = head; s; s = s->next)
     x_draw_glyph_string (s);
 
-  if (area == TEXT_AREA)
+  if (area == TEXT_AREA && !row->full_width_p)
     {
       int x0 = head ? head->x : x;
       int x1 = tail ? tail->x + tail->background_width : x;
