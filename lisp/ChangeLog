@@ -1,3 +1,7 @@
+1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el: new file.  A mode for viewing/editing context diffs.
+
 1999-10-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile (bootstrap-compile): New target.  Compile Lisp
