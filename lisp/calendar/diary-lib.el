@@ -1436,7 +1436,15 @@ Do nothing if DATE or STRING is nil."
 If omitted, NONMARKING defaults to nil and FILE defaults to diary-file."
   (find-file-other-window
    (substitute-in-file-name (if file file diary-file)))
+  (widen)
   (goto-char (point-max))
+  (when (let ((case-fold-search t))
+          (search-backward "Local Variables:"
+                           (max (- (point-max) 3000) (point-min))
+                           t))
+    (beginning-of-line)
+    (insert "\n")
+    (previous-line 1))
   (insert
    (if (bolp) "" "\n")
    (if nonmarking diary-nonmarking-symbol "")

@@ -1,3 +1,8 @@
+2002-11-16  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/diary-lib.el (make-diary-entry): Allow for local variables
+	at end of diary file.
+
 2002-11-16  Ivan Zakharyaschev <imz@altlinux.org>  (tiny change)
 
 	* international/codepage.el (cp866-decode-table): Fix the
