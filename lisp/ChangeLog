@@ -1,3 +1,16 @@
+2000-11-19  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-state): Call vc-workfile-unchanged-p only here, 
+	and differentiate according to checkout model.
+	(vc-rcs-fetch-master-state): Don't call vc-workfile-unchanged-p,
+	since this function is only concerned with master state.
+
+	* vc-hooks.el (vc-workfile-unchanged-p, 
+	vc-default-workfile-unchanged-p): Moved here from vc.el.
+
+	* vc.el (vc-workfile-unchanged-p, 
+	vc-default-workfile-unchanged-p): See above.
+
 2000-11-19  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (insert-image-file): Make `intangible' and
