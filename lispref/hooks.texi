@@ -40,6 +40,7 @@ however, we have renamed all of those.)
 @item after-make-frame-functions
 @item after-revert-hook
 @item after-save-hook
+@item apropos-mode-hook
 @item auto-fill-function
 @item auto-save-hook
 @item before-change-functions
@@ -72,6 +73,7 @@ however, we have renamed all of those.)
 @item fortran-mode-hook
 @item indent-mim-hook
 @item initial-calendar-window-hook
+@item kbd-macro-termination-hook
 @item kill-buffer-hook
 @item kill-buffer-query-functions
 @item kill-emacs-hook
