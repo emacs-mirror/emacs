@@ -106,7 +106,7 @@ or else the correct item might not be found in the `*Completions*' buffer."
   "A place to store minibuffer map.")
 
 (defcustom tmm-completion-prompt
-  "Press PageUp Key to reach this buffer from the minibuffer.
+  "Press PageUp key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the
 marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
