@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.96) $
+ * $HopeName: MMsrc!mpmst.h(trunk.97) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -12,12 +12,10 @@
  * aggregate types for an abstract data type.  See
  * guide.impl.c.naming.type.adt-aggregate.relate.
  *
- * .rationale.sig: Object signatures (PoolSig, etc.) are defined
- * here, along with the structures, so that any code which can see
- * a structure can also check its signature before using any of its
- * fields.  See design.mps.sig.test.uniq to check that signatures are
- * unique.
- */
+ * .rationale.sig: Object signatures (PoolSig, etc.) are defined here,
+ * along with the structures, so that any code which can see a structure
+ * can also check its signature before using any of its fields.  See
+ * design.mps.sig.test.uniq to check that signatures are unique.  */
 
 #ifndef mpmst_h
 #define mpmst_h
@@ -41,10 +39,9 @@
  * PoolClassXXX() returning a PoolClass pointing to a PoolClassStruct
  * of methods which implement the memory management policy.
  *
- * .class.end-sig: The class structure has a signature at the 
- * end.  This causes the compiler to complain if the class 
- * structure is extended without modifying static initializers.
- */
+ * .class.end-sig: The class structure has a signature at the end.  This
+ * causes the compiler to complain if the class structure is extended
+ * without modifying static initializers.  */
 
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
@@ -84,13 +81,12 @@ typedef struct PoolClassStruct {
 
 /* PoolStruct -- generic structure
  *
- * .pool: A generic structure is created when a pool is created
- * and holds the generic part of the pool's state.  Each pool class
- * defines a "subclass" of the pool structure (the "outer structure")
- * which contains PoolStruct as a a field.  The outer structure holds
- * the class-specific part of the pool's state.  See impl.c.pool,
- * design.mps.pool.
- */
+ * .pool: A generic structure is created when a pool is created and
+ * holds the generic part of the pool's state.  Each pool class defines
+ * a "subclass" of the pool structure (the "outer structure") which
+ * contains PoolStruct as a a field.  The outer structure holds the
+ * class-specific part of the pool's state.  See impl.c.pool,
+ * design.mps.pool.  */
 
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
@@ -117,13 +113,12 @@ typedef struct PoolStruct {     /* generic structure */
  *
  * .mfs: See impl.c.poolmfs, design.mps.poolmfs.
  *
- * The MFS outer structure is declared here because it is in-lined
- * in the control pool structure which is in-lined in the arena.  Normally,
+ * The MFS outer structure is declared here because it is inlined
+ * in the control pool structure which is inlined in the arena.  Normally,
  * pool outer structures are declared with the pools.
  *
  * The signature is placed at the end, see
- * design.mps.pool.outer-structure.sig
- */
+ * design.mps.pool.outer-structure.sig. */
 
 #define MFSSig          ((Sig)0x5193F599) /* SIGnature MFS */ 
 
@@ -144,12 +139,8 @@ typedef struct MFSStruct {      /* MFS outer structure */
  * .mv: See impl.c.poolmv, design.mps.poolmv.
  *
  * The MV pool outer structure is declared here because it is the
- * control pool structure which is in-lined in the arena.  Normally,
- * pool outer structures are declared with the pools.
- *
- * The signature is placed at the end, see
- * design.mps.pool.outer-structure.sig
- */
+ * control pool structure which is inlined in the arena.  Normally,
+ * pool outer structures are declared with the pools.  */
 
 #define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
 
@@ -171,15 +162,11 @@ typedef struct MVStruct {       /* MV pool outer structure */
  *
  * .reservoir: See impl.c.reserv, design.mps.reservoir.
  *
- * The Reservoir structure is declared here because it is in-lined 
- * in the arena for storing segments for the low-memory reservoir.
- * It is implemented as a pool - but doesn't follow the normal
- * pool naming conventions because it's not intended for general use
- * and the use of a pool is an incidental detail.
- *
- * The signature is placed at the end, see
- * design.mps.pool.outer-structure.sig
- */
+ * The Reservoir structure is declared here because it is in-lined in
+ * the arena for storing segments for the low-memory reservoir.  It is
+ * implemented as a pool - but doesn't follow the normal pool naming
+ * conventions because it's not intended for general use and the use of
+ * a pool is an incidental detail.  */
 
 #define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */ 
 
@@ -194,9 +181,8 @@ typedef struct ReservoirStruct {   /* Reservoir structure */
 
 /* MessageClassStruct -- Message Class structure 
  *
- * see design.mps.message.class.struct (and design.mps.message.message,
- * and design.mps.message.class).
- */
+ * See design.mps.message.class.struct (and design.mps.message.message,
+ * and design.mps.message.class).  */
 
 #define MessageClassSig ((Sig)0x519359c1) /* SIGnature MeSsaGe CLass */
 
@@ -222,8 +208,7 @@ typedef struct MessageClassStruct {
 
 /* MessageStruct -- Message structure
  *
- * see design.mps.message.message.struct.
- */
+ * See design.mps.message.message.struct.  */
 
 typedef struct MessageStruct {
   Sig sig;                      /* design.mps.sig */
@@ -236,12 +221,11 @@ typedef struct MessageStruct {
 
 /* SegClassStruct -- segment class structure
  *
- * See design.mps.seg & design.mps.protocol
+ * See design.mps.seg & design.mps.protocol.
  *
- * .seg.class: The segment class structure is defined by each 
- * segment class implementation in order to provide a generic 
- * interface to segments.
- */
+ * .seg.class: The segment class structure is defined by each segment
+ * class implementation in order to provide a generic interface to
+ * segments.  */
 
 #define SegClassSig    ((Sig)0x5195E9C7) /* SIGnature SEG CLass */
 
@@ -267,9 +251,8 @@ typedef struct SegClassStruct {
 
 /* SegStruct -- segment structure
  *
- * .seg: Segments are the basic units of protection and tracer
- * activity for allocated memory.  See design.mps.seg.
- */
+ * .seg: Segments are the basic units of protection and tracer activity
+ * for allocated memory.  See design.mps.seg.  */
 
 #define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */ 
 
@@ -291,9 +274,8 @@ typedef struct SegStruct {      /* segment structure */
 
 /* GCSegStruct -- GCable segment structure
  *
- * .seggc: GCSeg is a subclass of Seg with support for
- * buffered allocation and GC.  See design.mps.seg.
- */
+ * .seggc: GCSeg is a subclass of Seg with support for buffered
+ * allocation and GC.  See design.mps.seg.  */
 
 #define GCSegSig      ((Sig)0x5199C5E9) /* SIGnature GC SEG  */ 
 
@@ -306,16 +288,13 @@ typedef struct GCSegStruct {    /* GC segment structure */
 } GCSegStruct;
 
 
-
-
 /* SegPrefStruct -- segment preference structure
  * 
  * .seg-pref: arena memory users (pool class code) need a way of 
  * expressing preferences about the segments they allocate.
  * 
  * .seg-pref.misleading: The name is historical and misleading. SegPref
- * objects need have nothing to do with segments. @@@@
- */
+ * objects need have nothing to do with segments. @@@@ */
 
 #define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */ 
 
@@ -331,12 +310,11 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
 
 /* BufferClassStruct -- buffer class structure
  *
- * See design.mps.buffer & design.mps.protocol
+ * See design.mps.buffer & design.mps.protocol.
  *
- * .buffer.class: The buffer class structure is defined by each 
- * buffer class implementation in order to provide a generic 
- * interface to buffers.
- */
+ * .buffer.class: The buffer class structure is defined by each buffer
+ * class implementation in order to provide a generic interface to
+ * buffers.  */
 
 #define BufferClassSig    ((Sig)0x519B0FC7) /* SIGnature BUFfer CLass */
 
@@ -366,9 +344,8 @@ typedef struct BufferClassStruct {
  * The allocation point is exported to the client code so that it can
  * do in-line buffered allocation.
  *
- * .ap: This structure must match impl.h.mps.ap.
- * See also impl.c.mpsi.check.ap.
- */
+ * .ap: This structure must match impl.h.mps.ap.  See also
+ * impl.c.mpsi.check.ap.  */
 
 typedef struct APStruct {
   Addr init;                    /* limit of initialized area */
@@ -384,8 +361,7 @@ typedef struct APStruct {
  *
  * See impl.c.buffer, design.mps.buffer.
  *
- * The buffer contains an AP which may be exported to the client.
- */
+ * The buffer contains an AP which may be exported to the client.  */
 
 #define BufferSig       ((Sig)0x519B0FFE) /* SIGnature BUFFEr */
 
@@ -411,9 +387,8 @@ typedef struct BufferStruct {
 
 /* SegBufStruct -- Buffer structure associated with segments
  *
- * .segbuf: SegBuf is a subclass of Buffer with support for
- * attachment to segments.
- */
+ * .segbuf: SegBuf is a subclass of Buffer with support for attachment
+ * to segments.  */
 
 #define SegBufSig ((Sig)0x51959B0F) /* SIGnature SeG BUFfer  */ 
 
@@ -429,11 +404,8 @@ typedef struct SegBufStruct {
  *
  * See design.mps.format-interface, impl.c.format.
  *
- * .single: The only format actually implemented is variant "A" described
- * by the MPS Interface (impl.c.mpsi, impl.h.mps).  In future, when
- * more variants are added, the FormatStruct will have to be adapted in
- * some way to cope.
- */
+ * .single: In future, when more variants are added, FormatStruct should
+ * really be replaced by a collection of format classes.  */
 
 #define FormatSig       ((Sig)0x519F63A2) /* Signature FoRMAT */
 
@@ -459,66 +431,14 @@ typedef struct FormatStruct {
  *
  * See design.mps.ld, and impl.c.ld.
  *
- * A version of this structure is exported to the client.
- * .ld.struct: This must be kept in sync with impl.h.mps.ld.
- * See also impl.c.mpsi.check.ld.
- */
+ * A version of this structure is exported to the client.  .ld.struct:
+ * This must be kept in sync with impl.h.mps.ld.  See also
+ * impl.c.mpsi.check.ld.  */
+
 typedef struct LDStruct {
   Epoch epoch;          /* epoch when ld was last reset / init'ed */
   RefSet rs;            /* RefSet of Add'ed references */
 } LDStruct;
-
-
-/* RootStruct -- tracing root structure
- *
- * See impl.c.root.
- *
- * Synchronize with impl.c.root.
- */
-
-#define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
-
-typedef struct RootStruct {
-  Sig sig;
-  Serial serial;                /* from arena->rootSerial */
-  Arena arena;                  /* owning arena */
-  RingStruct arenaRing;         /* attachment to arena */
-  Rank rank;                    /* rank of references in this root */
-  TraceSet grey;                /* traces for which root is grey */
-  RefSet summary;               /* summary of references in root */
-  RootMode mode;                /* mode */
-  Bool protectable;             /* Can protect root? */
-  Addr protBase;                /* base of protectable area */
-  Addr protLimit;               /* limit of protectable area */
-  AccessSet pm;                 /* Protection Mode */
-  RootVar var;                  /* union discriminator */
-  union RootUnion {
-    struct {
-      RootScanMethod scan;      /* the function which does the scanning */
-      void *p;                  /* environment for scan */
-      size_t s;                 /* environment for scan */
-    } fun;
-    struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
-    } table;
-    struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
-      Word mask;                /* tag mask for scanning */
-    } tableMasked;
-    struct {
-      RootScanRegMethod scan;   /* function for scanning registers */
-      Thread thread;            /* passed to scan */
-      void *p;                  /* passed to scan */
-      size_t s;                 /* passed to scan */
-    } reg;
-    struct {
-      FormatScanMethod scan;    /* format-like scanner */
-      Addr base, limit;         /* passed to scan */
-    } fmt;
-  } the;
-} RootStruct;
 
 
 /* ScanState
@@ -531,12 +451,9 @@ typedef struct RootStruct {
  *   ss->zoneShift      mps_ss->w0
  *   ss->white          mps_ss->w1
  *   ss->unfixedSummary mps_ss->w2
- * See impl.h.mps.ss and impl.c.mpsi.check.ss.  This is why the
- * Sig field is in the middle of this structure.
- *
- * .ss.zone: The zoneShift field is therefore declared as Word
- * rather than Shift.
- */
+ * See impl.h.mps.ss and impl.c.mpsi.check.ss.  This is why the Sig
+ * field is in the middle of this structure.  .ss.zone: The zoneShift
+ * field is therefore declared as Word rather than Shift.  */
 
 #define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
@@ -609,9 +526,8 @@ typedef struct TraceStruct {
 } TraceStruct;
 
 
-/* ChunkCacheEntryStruct */
+/* ChunkCacheEntryStruct -- cache entry in the chunk cache */
 
-/* SIGnature Arena VM Chunk Cache */
 #define ChunkCacheEntrySig ((Sig)0x519C80CE) /* SIGnature CHUnk Cache Entry */
 
 typedef struct ChunkCacheEntryStruct {
@@ -649,11 +565,10 @@ typedef struct ArenaClassStruct {
 
 /* GlobalsStruct -- the global state associated with an arena
  *
- * .space: The arena structure holds the entire state of the
- * MPS, and as such contains a lot of fields which are considered
- * "global".  These fields belong to different modules.  The module
- * which owns each group of fields is commented.
- */
+ * .space: The arena structure holds the entire state of the MPS, and as
+ * such contains a lot of fields which are considered "global".  These
+ * fields belong to different modules.  The module which owns each group
+ * of fields is commented.  */
 
 #define GlobalsSig ((Sig)0x519970BA) /* SIGnature GLOBAls */
 
@@ -671,13 +586,20 @@ typedef struct GlobalsStruct {
 
   /* buffer fields (impl.c.buffer) */
   Bool bufferLogging;           /* design.mps.buffer.logging.control */
+
+  /* pool fields (impl.c.pool) */
+  RingStruct poolRing;          /* ring of pools in arena */
+  Serial poolSerial;            /* serial of next created pool */
+
+  /* root fields (impl.c.root) */
+  RingStruct rootRing;          /* ring of roots attached to arena */
+  Serial rootSerial;            /* serial of next root */
 } GlobalsStruct;
 
 
 /* ArenaStruct -- generic arena
  *
- * See impl.c.arena.
- */
+ * See impl.c.arena.  */
 
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
@@ -717,14 +639,6 @@ typedef struct ArenaStruct {
 
   /* locus fields (impl.c.locus) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
-
-  /* pool fields (impl.c.pool) */
-  RingStruct poolRing;          /* ring of pools in arena */
-  Serial poolSerial;            /* serial of next created pool */
-
-  /* root fields (impl.c.root) */
-  RingStruct rootRing;          /* ring of roots attached to arena */
-  Serial rootSerial;            /* serial of next root */
 
   /* format fields (impl.c.format) */
   RingStruct formatRing;        /* ring of formats attached to arena */
