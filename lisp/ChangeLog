@@ -1,3 +1,23 @@
+2004-04-30  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-drag-copy-region): New defcustom.
+	(mouse-set-region, mouse-drag-region-1): Use it.
+
+	* simple.el (kill-ring-save): If region face background color is
+	unspecified (if no highlighting), show extent of fully visible
+	region even if transient-mark-mode is enabled.
+
+	* emulation/cua-base.el (cua--standard-movement-commands):
+	Add cua-scroll-up and cua-scroll-down.
+	(cua-scroll-up, cua-scroll-down): New commands.
+	(cua--init-keymaps): Remap scroll-up and scroll-down.
+
+	* emulation/cua-rect.el (cua--convert-rectangle-as):
+	New defmacro.
+	(cua-upcase-rectangle, cua-downcase-rectangle): Use it.
+	(cua-upcase-initials-rectangle, cua-capitalize-rectangle):
+	New commands (suggested by Jordan Breeding)..
+
 2004-04-30  Juanma Barranquero  <lektu@terra.es>
 
 	* smerge-mode.el (smerge-diff-switches): Fix typo in docstring.
