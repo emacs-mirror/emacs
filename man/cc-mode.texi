@@ -663,13 +663,13 @@ this list are: @code{class-open}, @code{class-close}, @code{defun-open},
 @code{statement-case-open},
 @code{extern-lang-open}, @code{extern-lang-close},
 @code{namespace-open}, and @code{namespace-close}.
-@xref{Syntactic Symbols} for a more
+@xref{Syntactic Symbols}, for a more
 detailed description of these syntactic symbols.
 
 @cindex Custom Indentation Functions
 The value associated with each syntactic symbol in this association list
 is called an @var{ACTION} which can be either a function or a list.
-@xref{Custom Brace and Colon Hanging} for a more detailed discussion of
+@xref{Custom Brace and Colon Hanging}, for a more detailed discussion of
 using a function as a brace hanging @var{ACTION}.
 
 When the @var{ACTION} is a list, it can contain any combination of the
@@ -720,7 +720,7 @@ A word of caution: it is not a good idea to hang top-level construct
 introducing braces, such as @code{class-open} or @code{defun-open}.
 Emacs makes an assumption that such braces will always appear in column
 zero, hanging such braces can introduce performance problems.
-@xref{Performance Issues} for more information.
+@xref{Performance Issues}, for more information.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -746,7 +746,7 @@ Hanging} for details.
 In C++, double-colons are used as a scope operator but because these
 colons always appear right next to each other, newlines before and after
 them are controlled by a different mechanism, called @dfn{clean-ups} in
-@ccmode{}.  @xref{Clean-ups} for details.
+@ccmode{}.  @xref{Clean-ups}, for details.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -761,7 +761,7 @@ Semicolons and commas are also electric in @ccmode{}, but since
 these characters do not correspond directly to syntactic symbols, a
 different mechanism is used to determine whether newlines should be
 automatically inserted after these characters.  @xref{Customizing
-Semi-colons and Commas} for details.
+Semi-colons and Commas}, for details.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1148,7 +1148,7 @@ printed when indentation is started and completed.
 
 Also, except as noted below, re-indentation is always driven by the
 same mechanisms that control on-the-fly indentation of code.  @xref{New
-Indentation Engine} for details.
+Indentation Engine}, for details.
 
 @findex c-indent-command
 @findex indent-command (c-)
@@ -1402,7 +1402,7 @@ and from your mode hook.  Also, you can set up @emph{styles} of
 indentatio.  Most likely, you'll
 find one of the pre-defined styles will suit your needs, but if not,
 this section will describe how to set up basic editing configurations.
-@xref{Styles} for an explanation of how to set up named styles.
+@xref{Styles}, for an explanation of how to set up named styles.
 
 @cindex c-basic-offset
 @cindex basic-offset (c-)
@@ -1681,7 +1681,7 @@ Here's a simplified example of what you can add to your @file{.emacs}
 file to make the changes described in the previous section
 (@ref{Interactive Customization}) more permanent.  See the Emacs manuals
 for more information on customizing Emacs via hooks.  @xref{Sample
-.emacs File} for a more complete sample @file{.emacs} file.
+.emacs File}, for a more complete sample @file{.emacs} file.
 @example
 @group
 
@@ -1795,7 +1795,7 @@ you customize @ccmode{} by using either the new Custom interface or by
 doing @code{setq}'s at the top level of your @file{.emacs} file, these
 settings will be captured in the @code{user} style.  Also, all other
 styles implicitly inherit their settings from @code{user} style.  This
-means that for any styles you add via @code{c-add-style} (@xref{Adding
+means that for any styles you add via @code{c-add-style} (@pxref{Adding
 Styles}) you need only define the differences between your new style and
 @code{user} style.
 

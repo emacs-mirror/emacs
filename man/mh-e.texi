@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.17 95/08/23 07:00:16 wohler Exp $
+@c $Id: mh-e.texi,v 1.1 1999/09/29 15:17:04 fx Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -2384,7 +2384,7 @@ very nice feature indeed.
                      (append my-mh-keywords font-lock-keywords)))))
   (font-lock-mode 1))                  ; @r{change the typefaces}
 
-(if window-system                      ; @r{can't do this on @sc{ASCII} terminal}
+(if window-system                      ; @r{can't do this on @sc{ascii} terminal}
     (add-hook 'mh-show-mode-hook 'my-mh-show-mode-hook))
 @end group
 @end lisp

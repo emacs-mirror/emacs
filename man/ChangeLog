@@ -1,3 +1,10 @@
+1999-11-01  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* cc-mode.texi: Fix complaints from makeinfo 4.0.
+	* mh-e.texi: Likewise.
+	* viper.texi: Likewise.
+	* ada-mode.texi: Likewise.
+
 1999-11-01  Dave Love  <fx@gnu.org>
 
 	* misc.texi, gnus.texi:  Fix complaints from makeinfo 4.0.

@@ -3424,7 +3424,7 @@ Mark the current file and position with the specified letter.
 @item m .
 Set the Emacs mark (@pxref{Emacs Preliminaries}) at point.
 @item m ^
-Set the Emacs mark (@xref{Emacs Preliminaries}) back to where it was last
+Set the Emacs mark (@pxref{Emacs Preliminaries}) back to where it was last
 set with the @kbd{m.} command. This is useful when you set the mark with
 @kbd{m.}, but then some other command (such as @kbd{L} or @kbd{G}) changes
 it in a way that you didn't like.
