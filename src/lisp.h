@@ -604,6 +604,34 @@ typedef unsigned char UCHAR;
 #define CHAR_CTL   (0x400000)
 #define CHAR_META  (0x800000)
 
+#ifdef USE_X_TOOLKIT
+#ifdef NO_UNION_TYPE
+/* Use this for turning a (void *) into a Lisp_Object, as when the
+   Lisp_Object is passed into a toolkit callback function.  */
+#define VOID_TO_LISP(larg,varg) \
+  do { ((larg) = ((Lisp_Object) (varg))); } while (0)
+#define CVOID_TO_LISP VOID_TO_LISP
+
+/* Use this for turning a Lisp_Object into a  (void *), as when the
+   Lisp_Object is passed into a toolkit callback function.  */
+#define LISP_TO_VOID(larg) ((void *) (larg))
+#define LISP_TO_CVOID(varg) ((const void *) (larg))
+
+#else /* not NO_UNION_TYPE */
+/* Use this for turning a (void *) into a Lisp_Object, as when the
+  Lisp_Object is passed into a toolkit callback function.  */
+#define VOID_TO_LISP(larg,varg) \
+  do { ((larg).v = (void *) (varg)); } while (0)
+#define CVOID_TO_LISP(larg,varg) \
+  do { ((larg).cv = (const void *) (varg)); } while (0)
+
+/* Use this for turning a Lisp_Object into a  (void *), as when the
+   Lisp_Object is passed into a toolkit callback function.  */
+#define LISP_TO_VOID(larg) ((larg).v)
+#define LISP_TO_CVOID(larg) ((larg).cv)
+#endif /* not NO_UNION_TYPE */
+#endif /* USE_X_TOOLKIT */
+
 
 /* The glyph datatype, used to represent characters on the display.  */
 
@@ -1300,6 +1328,7 @@ extern Lisp_Object Frubber_band_rectangle ();
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path ();
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
+extern Lisp_Object Vinstallation_directory;
 void shut_down_emacs ( /* int signal, int no_x, Lisp_Object stuff */ );
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
