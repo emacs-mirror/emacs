@@ -121,10 +121,11 @@
 ;; 6. rogue
 
 ;;    There is no standard value.  This means that the variable was
-;;    not defined with defcustom.  You can not create a Custom buffer
-;;    for such variables using the normal interactive Custom commands.
-;;    However, such Custom buffers can be created in other ways, for
-;;    instance, by calling `customize-option' non-interactively.
+;;    not defined with defcustom, nor handled in cus-start.el.  You
+;;    can not create a Custom buffer for such variables using the
+;;    normal interactive Custom commands.  However, such Custom
+;;    buffers can be created in other ways, for instance, by calling
+;;    `customize-option' non-interactively.
 
 ;; 7. hidden
 
