@@ -169,6 +169,9 @@ Lisp_Object Vauto_save_file_format;
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
+/* Function to be called to decide a coding system of a reading file.  */
+Lisp_Object Vauto_file_coding_system_function;
+
 /* Functions to be called to process text properties in inserted file.  */
 Lisp_Object Vafter_insert_file_functions;
 
@@ -3063,26 +3066,6 @@ This does code conversion according to the value of\n\
       goto handled;
     }
 
-  /* Decide the coding-system of the file.  */
-  {
-    Lisp_Object val;
-
-    if (!NILP (Vcoding_system_for_read))
-      val = Vcoding_system_for_read;
-    else if (NILP (current_buffer->enable_multibyte_characters))
-      val = Qemacs_mule;
-    else
-      {
-	Lisp_Object args[6], coding_systems;
-
-	args[0] = Qinsert_file_contents, args[1] = filename, args[2] = visit,
-	  args[3] = beg, args[4] = end, args[5] = replace;
-	coding_systems = Ffind_operation_coding_system (6, args);
-	val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
-      }
-    setup_coding_system (Fcheck_coding_system (val), &coding);
-  }
-
   fd = -1;
 
 #ifndef APOLLO
@@ -3153,6 +3136,50 @@ This does code conversion according to the value of\n\
 	    error ("Maximum buffer size exceeded");
 	}
     }
+
+  /* Decide the coding-system of the file.  */
+  {
+    Lisp_Object val = Qnil;
+
+    if (!NILP (Vcoding_system_for_read))
+      val = Vcoding_system_for_read;
+    else if (NILP (current_buffer->enable_multibyte_characters))
+      val = Qemacs_mule;
+    else
+      {
+	if (SYMBOLP (Vauto_file_coding_system_function)
+	    && Fboundp (Vauto_file_coding_system_function))
+	  {
+	    /* Find a coding system specified in a few lines at the
+	       head of the file.  We assume that the fist 1K bytes is
+	       sufficient fot this purpose.  */
+	    int nread = read (fd, read_buf, 1024);
+	 
+	    if (nread < 0)
+	      error ("IO error reading %s: %s",
+		     XSTRING (filename)->data, strerror (errno));
+	    else if (nread > 0)
+	      {
+		val = call1 (Vauto_file_coding_system_function,
+			     make_string (read_buf, nread));
+		/* Rewind the file for the actual read done later.  */
+		if (lseek (fd, 0, 0) < 0)
+		  report_file_error ("Setting file position",
+				     Fcons (filename, Qnil));
+	      }
+	  }
+	if (NILP (val))
+	  {
+	    Lisp_Object args[6], coding_systems;
+
+	    args[0] = Qinsert_file_contents, args[1] = filename,
+	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
+	    coding_systems = Ffind_operation_coding_system (6, args);
+	    if (CONSP (coding_systems)) val = XCONS (coding_systems)->car;
+	  }
+      }
+    setup_coding_system (Fcheck_coding_system (val), &coding);
+  }
 
   /* If requested, replace the accessible part of the buffer
      with the file contents.  Avoid replacing text at the
@@ -5125,6 +5152,16 @@ and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
 The function `find-file-name-handler' checks this list for a handler\n\
 for its argument.");
   Vfile_name_handler_alist = Qnil;
+
+  DEFVAR_LISP ("auto-file-coding-system-function",
+	       &Vauto_file_coding_system_function,
+    "If non-nil, a function to call to decide a coding system of file.
+One argument is passed to this function: the string of the first
+few lines of a file to be read.
+This function should return a coding system to decode the file contents
+specified in the heading lines with the format:
+	-*- ... coding: CODING-SYSTEM; ... -*-");
+  Vauto_file_coding_system_function = Qnil;
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
     "A list of functions to be called at the end of `insert-file-contents'.\n\
