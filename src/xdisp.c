@@ -6413,11 +6413,15 @@ move_it_by_lines (it, dvpos, need_y_p)
       it->current_y -= it2.current_y;
       it->current_x = it->hpos = 0;
 
-      /* If we moved too far, move IT some lines forward.  */
+      /* If we moved too far back, move IT some lines forward.  */
       if (it2.vpos > -dvpos)
 	{
 	  int delta = it2.vpos + dvpos;
+	  it2 = *it;
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
+	  /* Move back again if we got too far ahead.  */
+	  if (IT_CHARPOS (*it) >= start_charpos)
+	    *it = it2;
 	}
     }
 }
