@@ -110,3 +110,10 @@
 
 * Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
+
+* Add a --pristine startup flag which does -q --no-site-file plus
+  ignoring X resources (Doze equivalents?) and most of the
+  environment.  What should not be ignored needs consideration.
+
+* Investigate using the language environment to set up more things,
+  such as the default Ispell dictionary.
