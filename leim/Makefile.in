@@ -54,11 +54,9 @@ TIT-GB=\
 	quail/CTLau.elc		\
 	quail/CCDOSPY.elc	\
 	quail/Punct.elc		\
-	quail/PY.elc		\
 	quail/QJ.elc		\
 	quail/SW.elc		\
-	quail/TONEPY.elc	\
-	quail/ZIRANMA.elc
+	quail/TONEPY.elc
 
 # Files generated from TIT dictionaries for Chinese BIG5 character set.
 TIT-BIG5=\
@@ -76,18 +74,13 @@ CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
 
 NON-TIT-GB=${srcdir}/quail/py-punct.elc
 
-NON-TIT-BIG5=${srcdir}/quail/quick-b5.elc ${srcdir}/quail/tsang-b5.elc \
-	     ${srcdir}/quail/pypunct-b5.elc
+NON-TIT-BIG5=${srcdir}/quail/pypunct-b5.elc
 
-NON-TIT-CNS=${srcdir}/quail/quick-cns.elc ${srcdir}/quail/tsang-cns.elc
-
-CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5} ${NON-TIT-CNS}
+CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5}
 
 CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
 
 CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5} 
-
-CHINESE-CNS=${NON-TIT-CNS} 
 
 JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 
@@ -125,11 +118,19 @@ MISC= \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc
 
-CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
+MISC-DIC=\
+	quail/tsang-b5.elc	\
+	quail/quick-b5.elc	\
+	quail/tsang-cns.elc	\
+	quail/quick-cns.elc	\
+	quail/PY.elc		\
+	quail/ZIRANMA.elc
+
+CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
 EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
-WORLD=${ASIA} ${EUROPEAN} ${MISC}
+WORLD=${ASIA} ${EUROPEAN} ${MISC} ${MISC-DIC}
 
 TIT=${CHINESE-TIT}
 NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
@@ -139,7 +140,7 @@ NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} ${TIT} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} ${TIT} ${MISC-DIC} leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -171,6 +172,16 @@ ${TIT}:
 	 ${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile ${TIT:.elc=.el}; fi
 
+# Rule to generate quail/*.el from MISC-DIC/*.
+${MISC-DIC}:
+	if [ -d quail ]; then true; else make quail; fi
+	if [ -f $@ ]; then true; else \
+	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	    -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; fi
+	if [ -f $@ ]; then true; else \
+	 ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	  -f batch-byte-compile ${MISC-DIC:.elc=.el}; fi
+
 leim-list.el: ${SUBDIRS} ${WORLD}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
@@ -199,7 +210,8 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	rm -f ${TIT} ${NON-TIT} ${WORLD} ${TIT:.elc=.el} leim-list.el
+	rm -f ${TIT} ${NON-TIT} ${WORLD} ${TIT:.elc=.el} \
+	  ${MISC-DIC} ${MISC-DIC:.elc=.el} leim-list.el
 
 distclean maintainer-clean:
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
