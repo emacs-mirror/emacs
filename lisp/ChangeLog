@@ -1,3 +1,8 @@
+2002-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/compile.el (compile-internal): Fix the change from
+	2001-07-23.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.

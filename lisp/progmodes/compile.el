@@ -841,7 +841,7 @@ Returns the compilation buffer created."
 				    (window-width)))))
 	      ;; Set the EMACS variable, but
 	      ;; don't override users' setting of $EMACS.
-	      (if (getenv "EMACS")
+	      (or (getenv "EMACS")
 		  (setq process-environment
 			(cons "EMACS=t" process-environment)))
 	      (set-process-sentinel proc 'compilation-sentinel)
