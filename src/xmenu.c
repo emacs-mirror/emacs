@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1183,15 +1183,11 @@ menu_item_equiv_key (item1, savedkey_ptr, descrip_ptr)
 
   /* Get out the saved equivalent-keyboard-key info.  */
   savedkey = descrip = Qnil;
-  if (CONSP (overdef)
-      && (STRINGP (XCONS (overdef)->car)
-	  || VECTORP (XCONS (overdef)->car)))
+  if (CONSP (overdef) && VECTORP (XCONS (overdef)->car))
     {
       savedkey = XCONS (overdef)->car;
       def = XCONS (def)->cdr;
-      if (CONSP (def)
-	  && (STRINGP (XCONS (def)->car)
-	      || VECTORP (XCONS (def)->car)))
+      if (CONSP (def) && STRINGP (XCONS (def)->car))
 	{
 	  descrip = XCONS (def)->car;
 	  def = XCONS (def)->cdr;
@@ -1222,17 +1218,13 @@ menu_item_equiv_key (item1, savedkey_ptr, descrip_ptr)
   /* Store back the recorded keyboard key sequence
      if we changed it.  */
   if (!NILP (savedkey)
-      && CONSP (overdef)
-      && (STRINGP (XCONS (overdef)->car)
-	  || VECTORP (XCONS (overdef)->car)))
+      && CONSP (overdef) && VECTORP (XCONS (overdef)->car))
     {
       if (changed)
 	{
 	  XCONS (overdef)->car = savedkey;
 	  def1 = XCONS (overdef)->cdr;
-	  if (CONSP (def1)
-	      && (STRINGP (XCONS (def1)->car)
-		  || VECTORP (XCONS (def1)->car)))
+	  if (CONSP (def1) && STRINGP (XCONS (def1)->car))
 	    XCONS (def1)->car = descrip;
 	}
     }
@@ -1240,16 +1232,11 @@ menu_item_equiv_key (item1, savedkey_ptr, descrip_ptr)
   else if (!NILP (savedkey))
     XCONS (item1)->cdr
       = overdef = Fcons (savedkey, Fcons (descrip, def));
-  /* If we had one but no longer should have one,
-     delete it.  */
-  else if (CONSP (overdef)
-	   && (STRINGP (XCONS (overdef)->car)
-	       || VECTORP (XCONS (overdef)->car)))
+  /* If we had one but no longer should have one, delete it.  */
+  else if (CONSP (overdef) && VECTORP (XCONS (overdef)->car))
     {
       XCONS (item1)->cdr = overdef = XCONS (overdef)->cdr;
-      if (CONSP (overdef)
-	  && (STRINGP (XCONS (overdef)->car)
-	      || VECTORP (XCONS (overdef)->car)))
+      if (CONSP (overdef) && STRINGP (XCONS (overdef)->car))
 	XCONS (item1)->cdr = overdef = XCONS (overdef)->cdr;
     }
 
@@ -1333,7 +1320,8 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 {
   int i;
   Lisp_Object pending_maps;
-  Lisp_Object tail, item, item1, item2, table;
+  Lisp_Object tail, item, item1, item_string, table;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   pending_maps = Qnil;
 
@@ -1396,8 +1384,8 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 	  item1 = XCONS (item)->cdr;
 	  if (XTYPE (item1) == Lisp_Cons)
 	    {
-	      item2 = XCONS (item1)->car;
-	      if (XTYPE (item2) == Lisp_String)
+	      item_string = XCONS (item1)->car;
+	      if (XTYPE (item_string) == Lisp_String)
 		{
 		  /* This is the real definition--the function to run.  */
 		  Lisp_Object def;
@@ -1405,6 +1393,12 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 		     and its key-description.  */
 		  Lisp_Object savedkey, descrip;
 		  Lisp_Object tem, enabled;
+
+		  /* If a help string follows the item string,
+		     skip it.  */
+		  if (CONSP (XCONS (item1)->cdr)
+		      && STRINGP (XCONS (XCONS (item1)->cdr)->car))
+		    item1 = XCONS (item1)->cdr;
 
 		  def = menu_item_equiv_key (item1, &savedkey, &descrip);
 
@@ -1414,24 +1408,30 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 		      /* No property, or nil, means enable.
 			 Otherwise, enable if value is not nil.  */
 		      tem = Fget (def, Qmenu_enable);
+		      /* GCPRO because we will call eval.
+			 Protecting KEYMAP preserves everything we use;
+			 aside from that, must protect whatever might be
+			 a string.  */
+		      GCPRO3 (keymap, def, descrip, item_string);
 		      if (!NILP (tem))
 			/* (condition-case nil (eval tem)
 			   (error nil))  */
 			enabled = internal_condition_case_1 (Feval, tem,
 							     Qerror,
 							     single_keymap_panes_1);
+		      UNGCPRO;
 		    }
 		  tem = Fkeymapp (def);
-		  if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-		    pending_maps = Fcons (Fcons (def, Fcons (item2, XCONS (item)->car)),
+		  if (XSTRING (item_string)->data[0] == '@' && !NILP (tem))
+		    pending_maps = Fcons (Fcons (def, Fcons (item_string, XCONS (item)->car)),
 					  pending_maps);
 		  else
 		    {
 		      Lisp_Object concat;
 		      if (!NILP (descrip))
-			concat = concat2 (item2, descrip);
+			concat = concat2 (item_string, descrip);
 		      else
-			concat = item2;
+			concat = item_string;
 		      (*names)[*p_ptr][i] = (char *) XSTRING (concat)->data;
 		      /* The menu item "value" is the key bound here.  */
 		      (*vector)[*p_ptr][i] = XCONS (item)->car;
@@ -1454,8 +1454,8 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 	      item1 = XVECTOR (item)->contents[c];
 	      if (XTYPE (item1) == Lisp_Cons)
 		{
-		  item2 = XCONS (item1)->car;
-		  if (XTYPE (item2) == Lisp_String)
+		  item_string = XCONS (item1)->car;
+		  if (XTYPE (item_string) == Lisp_String)
 		    {
 		      Lisp_Object def;
 
@@ -1464,12 +1464,23 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 		      Lisp_Object savedkey, descrip;
 		      Lisp_Object tem, enabled;
 
+		      /* If a help string follows the item string,
+			 skip it.  */
+		      if (CONSP (XCONS (item1)->cdr)
+			  && STRINGP (XCONS (XCONS (item1)->cdr)->car))
+			item1 = XCONS (item1)->cdr;
+
 		      def = menu_item_equiv_key (item1, &savedkey, &descrip);
 
 		      enabled = Qt;
 		      if (XTYPE (def) == Lisp_Symbol)
 			{
 			  tem = Fget (def, Qmenu_enable);
+			  /* GCPRO because we will call eval.
+			     Protecting KEYMAP preserves everything we use;
+			     aside from that, must protect whatever might be
+			     a string.  */
+			  GCPRO3 (keymap, def, descrip, item_string);
 			  /* No property, or nil, means enable.
 			     Otherwise, enable if value is not nil.  */
 			  if (!NILP (tem))
@@ -1478,19 +1489,20 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 			    enabled = internal_condition_case_1 (Feval, tem,
 								 Qerror,
 								 single_keymap_panes_1);
+			  UNGCPRO;
 			}
 
 		      tem = Fkeymapp (def);
-		      if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-			pending_maps = Fcons (Fcons (def, Fcons (item2, character)),
+		      if (XSTRING (item_string)->data[0] == '@' && !NILP (tem))
+			pending_maps = Fcons (Fcons (def, Fcons (item_string, character)),
 					      pending_maps);
 		      else
 			{
 			  Lisp_Object concat;
 			  if (!NILP (descrip))
-			    concat = concat2 (item2, descrip);
+			    concat = concat2 (item_string, descrip);
 			  else
-			    concat = item2;
+			    concat = item_string;
 			  (*names)[*p_ptr][i]
 			    = (char *) XSTRING (concat)->data;
 			  /* The menu item "value" is the key bound here.  */
