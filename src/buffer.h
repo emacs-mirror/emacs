@@ -477,9 +477,14 @@ struct buffer
        In an ordinary buffer, it is 0.  */
     struct buffer *base_buffer;
 
-    /* Flags saying which DEFVAR_PER_BUFFER variables
-       are local to this buffer.  */
-    int local_var_flags;
+    /* A non-zero value in slot IDX means that per-buffer variable
+       with index IDX has a local value in this buffer.  The index IDX
+       for a buffer-local variable is stored in that variable's slot
+       in buffer_local_flags as a Lisp integer.  If the index is -1,
+       this means the variable is always local in all buffers.  */
+#define MAX_BUFFER_LOCAL_VARS 30
+    char local_flags[MAX_BUFFER_LOCAL_VARS];
+    
     /* Set to the modtime of the visited file when read or written.
        -1 means visited file was nonexistent.
        0 means visited file modtime unknown; in no case complain
@@ -749,8 +754,8 @@ extern struct buffer buffer_defaults;
    The value has only one nonzero bit.
 
    When a buffer has its own local value for a slot,
-   the bit for that slot (found in the same slot in this structure)
-   is turned on in the buffer's local_var_flags slot.
+   the entry for that slot (found in the same slot in this structure)
+   is turned on in the buffer's local_flags array.
 
    If a slot in this structure is zero, then even though there may
    be a Lisp-level local variable for the slot, it has no default value,
@@ -850,3 +855,73 @@ extern char *r_re_alloc P_ ((char **, unsigned long));
 #define R_ALLOC_DECLARE(var,data)
 #endif
 
+/***********************************************************************
+			Buffer-local Variables
+ ***********************************************************************/
+
+/* Number of per-buffer variables used.  */
+
+extern int max_buffer_local_idx;
+
+/* Return the offset in bytes of member VAR of struct buffer
+   from the start of a buffer structure.  */
+
+#define BUFFER_LOCAL_VAR_OFFSET(VAR) \
+    ((char *) &buffer_local_flags.VAR - (char *) &buffer_local_flags)
+
+/* Return the index of buffer-local variable VAR.  Each per-buffer
+   variable has an index > 0 associated with it, except when it always
+   has buffer-local values, in which case the index is -1.  If this is
+   0, this is a bug and means that the slot of VAR in
+   buffer_local_flags wasn't intiialized.  */
+
+#define BUFFER_LOCAL_VAR_IDX(VAR) \
+    BUFFER_LOCAL_IDX (BUFFER_LOCAL_VAR_OFFSET (VAR))
+
+/* Value is non-zero if the variable with index IDX has a local value
+   in buffer B.  */
+
+#define BUFFER_HAS_LOCAL_VALUE_P(B, IDX)	\
+    (((IDX) < 0 || IDX >= max_buffer_local_idx)	\
+     ? (abort (), 0)				\
+     : ((B)->local_flags[IDX] != 0))
+
+/* Set whether per-buffer variable with index IDX has a buffer-local
+   value in buffer B.  VAL zero means it hasn't.  */
+
+#define SET_BUFFER_HAS_LOCAL_VALUE_P(B, IDX, VAL)	\
+     do {						\
+       if ((IDX) < 0 || (IDX) >= max_buffer_local_idx)	\
+	 abort ();					\
+       (B)->local_flags[IDX] = (VAL);			\
+     } while (0)
+
+/* Return the index of the per-buffer variable at offset OFFSET in the
+   buffer structure.  */
+
+#define BUFFER_LOCAL_IDX(OFFSET) \
+      XINT (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))
+
+/* Return the default value of the per-buffer variable at offset
+   OFFSET in the buffer structure.  */
+
+#define BUFFER_LOCAL_DEFAULT_VALUE(OFFSET) \
+      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_defaults))
+
+/* Return the buffer-local value of the per-buffer variable at offset
+   OFFSET in the buffer structure.  */
+
+#define BUFFER_LOCAL_VALUE(BUFFER, OFFSET) \
+      (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
+
+/* Return the symbol of the per-buffer variable at offset OFFSET in
+   the buffer structure.  */
+
+#define BUFFER_LOCAL_SYMBOL(OFFSET) \
+      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
+
+/* Return the type of the per-buffer variable at offset OFFSET in the
+   buffer structure.  */
+
+#define BUFFER_LOCAL_TYPE(OFFSET) \
+      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_types))
