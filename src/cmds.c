@@ -468,7 +468,9 @@ internal_self_insert (c, noautofill)
   else
     insert_and_inherit (str, len);
 
-  if ((c == ' ' || c == '\n')
+  if ((CHAR_TABLE_P (Vauto_fill_chars)
+       ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
+       : (c == ' ' || c == '\n'))
       && !noautofill
       && !NILP (current_buffer->auto_fill_function))
     {
