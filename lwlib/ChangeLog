@@ -1,11 +1,11 @@
 2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* Makefile.in (TAGS): Don't use -t, it's the default behafior for
+	* Makefile.in (TAGS): Don't use -t, it's the default behavior for
 	etags, so it barfs if invoked with -t.
 
 2002-03-17  Richard M. Stallman  <rms@gnu.org>
 
-	* lwlib.c (P_): Definitions deleted. 
+	* lwlib.c (P_): Definitions deleted.
 
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -37,7 +37,7 @@
 	* xlwmenu.c, lwlib-Xaw.c, lwlib-Xlw.c: Include ../src/lisp.h.
 	* lwlib-Xm.c, lwlib-Xol.c, lwlib/lwlib-Xolmb.c: Include ../src/lisp.h.
 	* lwlib/lwlib-utils.c: Include ../src/lisp.h.
-	
+
 	* lwlib.c: Include ../src/lisp.h.  Don't declare xmalloc.
 	(free_widget_value_tree): Don't free `help' field.
 	(copy_widget_value_tree): Copy `help' simply, without safe_strdup.
@@ -59,7 +59,7 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenu.c (xlwmenu_window_p): New function.
@@ -80,7 +80,7 @@
 	* lwlib-Xm.c (make_menu_in_widget): Add an XmNpopdownCallback
 	instead of an XmNunmapCallback.
 	(xm_unmap_callback): Removed.
-	
+
 	* lwlib-Xm.c (make_menubar): Take out code in #if 0.
 
 	* lwlib-Xm.c (xm_popup_menu): Don't set XmNmenuPost unless
@@ -1069,7 +1069,7 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001
+    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
