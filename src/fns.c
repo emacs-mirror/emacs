@@ -1135,7 +1135,7 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
 	str_as_multibyte (SDATA (new_string), nbytes,
 			  SBYTES (string), NULL);
       string = new_string;
-      STRING_INTERVALS (string) = NULL_INTERVAL;
+      STRING_SET_INTERVALS (string, NULL_INTERVAL);
     }
   return string;
 }
