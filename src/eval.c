@@ -1199,7 +1199,7 @@ See also the function `condition-case'.")
 	  struct handler *h = handlerlist;
 
 	  handlerlist = allhandlers;
-	  if (data == memory_signal_data)
+	  if (EQ (data, memory_signal_data))
 	    unwind_data = memory_signal_data;
 	  else
 	    unwind_data = Fcons (error_symbol, data);
