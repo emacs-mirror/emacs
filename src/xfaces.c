@@ -3195,16 +3195,16 @@ merge_face_vectors (f, from, to, cycle_check)
    CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
    the caller should make sure that's ok.  */
 
-#define CYCLE_CHECK(check, el, suspicious)				      \
-  (NILP (check)								      \
-   ? make_number (0)							      \
-   : INTEGERP (check)							      \
-   ? (XFASTINT (check) < (suspicious)					      \
-      ? make_number (XFASTINT (check) + 1)				      \
-      : Fcons (el, Qnil))						      \
-   : Fmemq ((el), (check))						      \
-   ? Qnil								      \
-   : Fcons ((el), (check)))
+#define CYCLE_CHECK(check, el, suspicious)	\
+  (NILP (check)					\
+   ? make_number (0)				\
+   : (INTEGERP (check)				\
+      ? (XFASTINT (check) < (suspicious)	\
+	 ? make_number (XFASTINT (check) + 1)	\
+	 : Fcons (el, Qnil))			\
+      : (!NILP (Fmemq ((el), (check)))		\
+	 ? Qnil					\
+	 : Fcons ((el), (check)))))
 
 
 /* Merge face attributes from the face on frame F whose name is
