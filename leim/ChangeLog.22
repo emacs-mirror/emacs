@@ -1,3 +1,10 @@
+2004-01-08  KAWABATA, Taichi  <kawabata@m17n.org>
+
+	* quail/indian.el (quail-indian-flatten-list): Delete it.
+	(quail-define-inscript-package): Pay attention to `nil' values of
+	char/key-table.
+	(inscript-tml-keytable): New variable.  Use it for Tamil inscript.
+	
 2003-02-13  Dave Love  <fx@gnu.org>
 
 	* quail/latin-post.el ("turkish-latin-3-postfix"): Make it
