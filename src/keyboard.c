@@ -5801,8 +5801,9 @@ parse_menu_item (item, notreal, inmenubar)
   def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
   if (!NILP (filter))
     {
-      def = menu_item_eval_property (Fcons (XCONS (filter)->car,
-					    Fcons (def, Qnil)));
+      def = menu_item_eval_property (list2 (XCONS (filter)->car,
+					    list2 (Qquote, def)));
+
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = def;
     }
 
