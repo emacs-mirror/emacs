@@ -1,3 +1,13 @@
+2004-09-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi: Various minor changes in addition to:
+	(Major Mode Conventions): Final call to `run-mode-hooks' should
+	not be inside the `delay-mode-hooks' form.
+	(Mode Hooks): New node.
+	(Hooks): Delete obsolete example.
+	Move definitions of `run-mode-hooks' and `delay-mode-hooks' to new
+	node "Mode Hooks".
+
 2004-09-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi: Correct various typos.
