@@ -1136,8 +1136,8 @@ list_buffers_1 (files)
   current_buffer->read_only = Qnil;
 
   write_string ("\
- MR Buffer         Size   Mode           File\n\
- -- ------         ----   ----           ----\n", -1);
+ MR Buffer         Size   Mode          File\n\
+ -- ------         ----   ----          ----\n", -1);
 
   for (tail = Vbuffer_alist; !NILP (tail); tail = Fcdr (tail))
     {
