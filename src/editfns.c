@@ -2131,6 +2131,15 @@ minibuffer contents show.")
   return Fmessage (nargs, args);
 }
 
+DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
+  "Return the string currently displayed in the echo area, or nil if none.")
+  ()
+{
+  return (echo_area_glyphs
+	  ? make_string (echo_area_glyphs, echo_area_glyphs_length)
+	  : Qnil);
+}
+
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
   "Format a string out of a control-string and arguments.\n\
 The first argument is a control string.\n\
@@ -2787,6 +2796,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Smessage);
   defsubr (&Smessage_box);
   defsubr (&Smessage_or_box);
+  defsubr (&Scurrent_message);
   defsubr (&Sformat);
 
   defsubr (&Sinsert_buffer_substring);
