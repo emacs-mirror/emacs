@@ -163,8 +163,6 @@ and the file name is displayed in the echo area."
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
-		((eq (car-safe def) 'mocklisp)
-		 "a mocklisp function")
 		((eq (car-safe def) 'autoload)
 		 (setq file-name (nth 1 def))
 		 (format "%s autoloaded %s"
