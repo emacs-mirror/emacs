@@ -32,6 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "macros.h"
 #include "disptab.h"
+#include "termhooks.h"
 
 extern int interrupt_input;
 extern int command_loop_level;
@@ -497,8 +498,20 @@ redisplay ()
       buffer_shared = 0;
 
       FOR_EACH_FRAME (tail, f)
-	if (FRAME_VISIBLE_P (f))
-	  redisplay_windows (FRAME_ROOT_WINDOW (f));
+	{
+	  /* Mark all the scrollbars to be removed; we'll redeem the ones
+	     we want when we redisplay their windows.  */
+	  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+	    (*condemn_scrollbars_hook) (f);
+
+	  if (FRAME_VISIBLE_P (f))
+	    redisplay_windows (FRAME_ROOT_WINDOW (f));
+
+	  /* Any scrollbars which redisplay_windows should have nuked
+	     should now go away.  */
+	  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+	    (*judge_scrollbars_hook) (f);
+	}
     }
   else if (FRAME_VISIBLE_P (selected_frame))
     {
@@ -530,7 +543,7 @@ update:
 	    continue;
 
 	  f = XFRAME (XCONS (tail)->car);
-	  if (f->visible)
+	  if (FRAME_VISIBLE_P (f))
 	    {
 	      pause |= update_frame (f, 0, 0);
 	      if (!pause)
@@ -697,13 +710,12 @@ redisplay_window (window, just_this_one)
      int just_this_one;
 {
   register struct window *w = XWINDOW (window);
-  FRAME_PTR f = XFRAME (w->frame);
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int height;
   register int lpoint = point;
   struct buffer *old = current_buffer;
   register int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left)
-       != FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))));
+    - (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f));
   register int startp;
   register int hscroll = XINT (w->hscroll);
   struct position pos;
@@ -958,6 +970,25 @@ done:
   SET_PT (opoint);
   current_buffer = old;
   SET_PT (lpoint);
+
+  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+    {
+      struct scrollbar *bar = WINDOW_VERTICAL_SCROLLBAR (w);
+
+      /* This isn't guaranteed to be right.  For the moment, we'll pretend
+	 it is.  */
+      int endp = Z - XINT (w->window_end_pos);
+
+      /* Indicate what this scrollbar ought to be displaying now.  */
+      bar = ((*set_vertical_scrollbar_hook)
+	     (bar, w, endp - startp, Z - BEG, startp));
+
+      /* Note that we actually used the scrollbar attached to this window,
+	 so it shouldn't be deleted at the end of redisplay.  */
+      (*redeem_scrollbar_hook) (bar);
+
+      XSET (w->vertical_scrollbar, Lisp_Int, bar);
+    }
 }
 
 /* Do full redisplay on one window, starting at position `pos'. */
