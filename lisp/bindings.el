@@ -138,14 +138,12 @@ corresponding to the mode line clicked."
 (defvar mode-line-mule-info
   `(""
     (current-input-method
-     (:eval
-      ,(purecopy
-	'(propertize current-input-method-title
-		     'help-echo (concat
-				 "Input method: "
-				 current-input-method
-				 ".  mouse-2: disable, mouse-3: describe")
-		     'local-map mode-line-input-method-map))))
+     (:propertize ("" current-input-method-title)
+		  help-echo (concat
+			     "Input method: "
+			     current-input-method
+			     ".  mouse-2: disable, mouse-3: describe")
+		  local-map ,mode-line-input-method-map))
     ,(propertize
       "%Z"
       'help-echo
