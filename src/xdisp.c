@@ -512,18 +512,18 @@ redisplay ()
 
       FOR_EACH_FRAME (tail, f)
 	{
-	  /* Mark all the scrollbars to be removed; we'll redeem the ones
+	  /* Mark all the scroll bars to be removed; we'll redeem the ones
 	     we want when we redisplay their windows.  */
-	  if (condemn_scrollbars_hook)
-	    (*condemn_scrollbars_hook) (f);
+	  if (condemn_scroll_bars_hook)
+	    (*condemn_scroll_bars_hook) (f);
 
 	  if (FRAME_VISIBLE_P (f))
 	    redisplay_windows (FRAME_ROOT_WINDOW (f));
 
-	  /* Any scrollbars which redisplay_windows should have nuked
+	  /* Any scroll bars which redisplay_windows should have nuked
 	     should now go away.  */
-	  if (judge_scrollbars_hook)
-	    (*judge_scrollbars_hook) (f);
+	  if (judge_scroll_bars_hook)
+	    (*judge_scroll_bars_hook) (f);
 	}
     }
   else if (FRAME_VISIBLE_P (selected_frame))
@@ -760,7 +760,7 @@ redisplay_window (window, just_this_one)
 	{
 	  if (echo_area_glyphs)
 	    /* We've already displayed the echo area glyphs, if any.  */
-	    goto finish_scrollbars;
+	    goto finish_scroll_bars;
 	}
       else
 	{
@@ -775,7 +775,7 @@ redisplay_window (window, just_this_one)
 	      display_string (w, vpos + i, "", 0, 0, 0, width);
 	    }
 	  
-	  goto finish_scrollbars;
+	  goto finish_scroll_bars;
 	}
     }
 
@@ -979,8 +979,8 @@ done:
       && height != XFASTINT (w->height))
     display_mode_line (w);
 
- finish_scrollbars:
-  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+ finish_scroll_bars:
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     {
       int start, end, whole;
 
@@ -998,12 +998,12 @@ done:
       else
 	start = end = whole = 0;
 
-      /* Indicate what this scrollbar ought to be displaying now.  */
-      (*set_vertical_scrollbar_hook) (w, end - start, whole, start - 1);
+      /* Indicate what this scroll bar ought to be displaying now.  */
+      (*set_vertical_scroll_bar_hook) (w, end - start, whole, start - 1);
 
-      /* Note that we actually used the scrollbar attached to this window,
+      /* Note that we actually used the scroll bar attached to this window,
 	 so it shouldn't be deleted at the end of redisplay.  */
-      (*redeem_scrollbar_hook) (w);
+      (*redeem_scroll_bar_hook) (w);
     }
 
   SET_PT (opoint);
@@ -1761,11 +1761,11 @@ display_text_line (w, start, vpos, hpos, taboffset)
       if (p1 < startp) p1 = startp;
       while (p1 < endp) *p1++ = SPACEGLYPH;
 
-      /* Don't draw vertical bars if we're using scrollbars.  They're
-         covered up by the scrollbars, and it's distracting to see
-         them when the scrollbar windows are flickering around to be
+      /* Don't draw vertical bars if we're using scroll bars.  They're
+         covered up by the scroll bars, and it's distracting to see
+         them when the scroll bar windows are flickering around to be
          reconfigured.  */
-      *p1++ = (FRAME_HAS_VERTICAL_SCROLLBARS (f)
+      *p1++ = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
 	       ? ' ' : '|');
     }
   desired_glyphs->used[vpos] = max (desired_glyphs->used[vpos],
@@ -2258,11 +2258,11 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 
   if ((window_width + XFASTINT (w->left)) != FRAME_WIDTH (f))
     {
-      if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	{
 	  int i;
 
-	  for (i = 0; i < VERTICAL_SCROLLBAR_WIDTH; i++)
+	  for (i = 0; i < VERTICAL_SCROLL_BAR_WIDTH; i++)
 	    *end-- = ' ';
 	}
       else
