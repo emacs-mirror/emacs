@@ -311,11 +311,11 @@ composed.")
 	 (compose (get mail-user-agent 'composefunc)))
     ;; Sanity check.  If this fails then we'll try to use the SENDMAIL
     ;; protocol, otherwise we must signal an error.
-    (if (not (and compose (fboundp compose)))
+    (if (not (and compose (functionp compose)))
 	(progn
 	  (setq agent 'sendmail-user-agent
 		compose (get agent 'composefunc))
-	  (if (not (and compose (fboundp compose)))
+	  (if (not (and compose (functionp compose)))
 	      (error "Could not find a valid `mail-user-agent'")
 	    (ding)
 	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'"
