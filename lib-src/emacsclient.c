@@ -112,7 +112,7 @@ decode_options (argc, argv)
 {
   alternate_editor = getenv ("ALTERNATE_EDITOR");
   display = getenv ("DISPLAY");
-  if (strlen (display) == 0)
+  if (display && strlen (display) == 0)
     display = NULL;
   
   if (display)
