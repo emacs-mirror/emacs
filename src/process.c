@@ -1880,7 +1880,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if (XINT (read_kbd) && detect_input_pending ())
+      if ((XINT (read_kbd) || wait_for_cell)
+	  && detect_input_pending ())
 	{
 	  swallow_events ();
 	  if (detect_input_pending ())
@@ -1906,7 +1907,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If checking input just got us a size-change event from X,
 	 obey it now if we should.  */
-      if (XINT (read_kbd))
+      if (XINT (read_kbd) || wait_for_cell)
 	do_pending_window_change ();
 
       /* Check for data from a process or a command channel */
