@@ -1,3 +1,8 @@
+2000-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnweb.el (nnweb-decode-entities): Work for non-character
+	entities. 
+
 2000-11-09  Simon Josefsson  <simon@josefsson.org>
 
 	* rfc2104.el: Add SHA-1 example.
@@ -12,6 +17,9 @@
 	(gnus-score-use-all-scores): New variable.
 	(gnus-all-score-files): Use it.
 	(gnus-score-find-bnews): Use directory-sep-char.
+
+	* nnweb.el (nnweb-url-retrieve-asynch): url-retrieve is 
+	asynchronous in Exp version.
 
 2000-11-08  Dave Love  <fx@gnu.org>
 
