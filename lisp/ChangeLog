@@ -1,3 +1,7 @@
+2005-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-calc-cont-indent-relative): Doc fix.
+
 2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/dcl-mode.el (dcl-mode-syntax-table):
