@@ -229,7 +229,7 @@ CHANGES is an alist of entries (FILE ACTION...), as produced by
 	    (insert author " (wrote) " file "\n")
 	  (setq nchanged (1+ nchanged)))))
     (if (> nchanged authors-many-files)
-	(insert author " (changed) [changes in more than "
+	(insert author " (changed) [more than "
 		(int-to-string authors-many-files) " files]\n")
       (dolist (change changes)
 	(let ((actions (cdr change))
