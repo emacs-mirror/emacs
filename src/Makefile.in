@@ -112,12 +112,12 @@ CC = C_COMPILER
 #define LIBS_DEBUG -lg
 #endif
 
-/* Some s/*.h files define this to request special libraries.  */
+/* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
 
-/* Some m/*.h files define this to request special libraries.  */
+/* Some m/MACHINE.h files define this to request special libraries.  */
 #ifndef LIBS_MACHINE
 #define LIBS_MACHINE
 #endif
@@ -130,7 +130,7 @@ CC = C_COMPILER
 # endif /* ! defined (LISP_FLOAT_TYPE) */
 #endif /* LIB_MATH */
 
-/* Some s/*.h files define this to request special switches in ld.  */
+/* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
 #if !defined (__GNUC__) && (defined(COFF_ENCAPSULATE) || (defined (BSD) && !defined (COFF)))
 #define LD_SWITCH_SYSTEM -X
@@ -139,17 +139,17 @@ CC = C_COMPILER
 #endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
-/* Some m/*.h files define this to request special switches in ld.  */
+/* Some m/MACHINE.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE
 #endif
 
-/* Some m/*.h files define this to request special switches in cc.  */
+/* Some m/MACHINE.h files define this to request special switches in cc.  */
 #ifndef C_SWITCH_MACHINE
 #define C_SWITCH_MACHINE
 #endif
 
-/* Some s/*.h files define this to request special switches in cc.  */
+/* Some s/SYSTEM.h files define this to request special switches in cc.  */
 #ifndef C_SWITCH_SYSTEM
 #define C_SWITCH_SYSTEM
 #endif
@@ -513,7 +513,7 @@ SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o intervals.o textprop.o \
 
 #ifdef TERMINFO
 /* Used to be -ltermcap here.  If your machine needs that,
-   define LIBS_TERMCAP in the m/*.h file.  */
+   define LIBS_TERMCAP in the m/MACHINE.h file.  */
 #ifndef LIBS_TERMCAP
 #define LIBS_TERMCAP -lcurses
 #endif /* LIBS_TERMCAP */

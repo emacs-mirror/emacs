@@ -156,12 +156,12 @@ MOVE_LIBS=
 #endif
 #endif
 
-/* Some s/*.h files define this to request special libraries.  */
+/* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
 
-/* Some m/*.h files define this to request special libraries.  */
+/* Some m/MACHINE.h files define this to request special libraries.  */
 #ifndef LIBS_MACHINE
 #define LIBS_MACHINE
 #endif

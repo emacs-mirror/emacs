@@ -323,7 +323,7 @@ extern char *getenv ();
 #endif /* EMACS_CONFIG_H */
 
 /* These default definitions are good for almost all machines.
-   The exceptions override them in m/*.h.  */
+   The exceptions override them in m/MACHINE.h.  */
 
 #ifndef BITS_PER_CHAR
 #define BITS_PER_CHAR 8
