@@ -185,7 +185,7 @@ REGISTER is a character."
 Normally puts point before and mark after the inserted text.
 If optional second arg is non-nil, puts mark before and point after.
 Interactively, second arg is non-nil if prefix arg is supplied."
-  (interactive "cInsert register: \nP")
+  (interactive "*cInsert register: \nP")
   (push-mark)
   (let ((val (get-register char)))
     (cond
