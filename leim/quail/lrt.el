@@ -113,7 +113,7 @@
     ("ai" "(1d(B" (?(1d(B 0))
     ("ei" "(1c(B" (?(1c(B 0))
     ("ao" "(1`[R(B" (?(1`(B 0 ?(1[(B ?(1R(B))
-    ("aM" "(1S(B" (?(1S(B 0))))
+    ("aM" "(1S(B" (0 ?(1S(B))))
 
 ;; Maa-sakod is put at the tail.
 (defconst lrt-maa-sakod-table
@@ -381,7 +381,11 @@
 
 (quail-define-package
  "lao-lrt" "Lao" "(1E(BR" t
- "Lao input method using LRT (Lao Roman Transcription)"
+ "Lao input method using LRT (Lao Roman Transcription).
+`\\' (backslash) + number-key	=> (1p(B,(1q(B,(1r(B,...	LAO DIGIT ZERO, ONE, TWO, ...
+`\\' (backslash) + `\\'		=> (1f(B		LAO KO LA (REPETITION)
+`\\' (backslash) + `$'		=> (1O(B		LAO ELLIPSIS
+"
  '(("k" . lrt-handle-maa-sakod)
    ("g" . lrt-handle-maa-sakod)
    ("y" . lrt-handle-maa-sakod)
@@ -412,5 +416,7 @@
 (quail-defrule "\\7" ?(1w(B)
 (quail-defrule "\\8" ?(1x(B)
 (quail-defrule "\\9" ?(1y(B)
+(quail-defrule "\\\\" ?(1f(B)
+(quail-defrule "\\$" ?(1O(B)
 
 ;;; quail/lrt.el ends here
