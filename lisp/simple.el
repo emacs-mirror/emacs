@@ -3006,6 +3006,49 @@ Each action has the form (FUNCTION . ARGS)."
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-frame yank-action send-actions))
 
+(defvar set-variable-value-history nil
+  "History of values entered with `set-variable'.")
+
+(defun set-variable (var val)
+  "Set VARIABLE to VALUE.  VALUE is a Lisp object.
+When using this interactively, enter a Lisp object for VALUE.
+If you want VALUE to be a string, you must surround it with doublequotes.
+VALUE is used literally, not evaluated.
+
+If VARIABLE has a `variable-interactive' property, that is used as if
+it were the arg to `interactive' (which see) to interactively read VALUE.
+
+If VARIABLE has been defined with `defcustom', then the type information
+in the definition is used to check that VALUE is valid."
+  (interactive (let* ((var (read-variable "Set variable: "))
+		      (minibuffer-help-form '(describe-variable var))
+		      (prop (get var 'variable-interactive))
+		      (prompt (format "Set %s to value: " var))
+		      (val (if prop
+			       ;; Use VAR's `variable-interactive' property
+			       ;; as an interactive spec for prompting.
+			       (call-interactively `(lambda (arg)
+						      (interactive ,prop)
+						      arg))
+			     (read
+			      (read-string prompt nil
+					   'set-variable-value-history)))))
+		 (list var val)))
+
+  (let ((type (get var 'custom-type))
+	widget)
+    (when type
+      ;; Match with custom type.
+      (require 'wid-edit)
+      (unless (listp type)
+	(setq widget (list type)))
+      (setq type (widget-convert type))
+      (unless (widget-apply type :match val)
+	(error "Value `%S' does not match type %S of %S" 
+	       val (car type) var))))
+  (set var val))
+
+
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
 When using this interactively, supply a Lisp expression for VALUE.
@@ -3022,24 +3065,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 		  "Set variable: ")
 		obarray 'user-variable-p t))
 	  (var (if (equal val "") v (intern val)))
-	  (minibuffer-help-form
-	   '(funcall myhelp))
-	  (myhelp
-	   (function
-	    (lambda ()
-	      (with-output-to-temp-buffer "*Help*"
-		(prin1 var)
-		(princ "\nDocumentation:\n")
-		(princ (substring (documentation-property var 'variable-documentation)
-				  1))
-		(if (boundp var)
-		    (let ((print-length 20))
-		      (princ "\n\nCurrent value: ")
-		      (prin1 (symbol-value var))))
-		(save-excursion
-		  (set-buffer standard-output)
-		  (help-mode))
-		nil)))))
+)
      (list var
 	   (let ((prop (get var 'variable-interactive)))
 	     (if prop
@@ -3050,6 +3076,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 					   'arg))
 	       (eval-minibuffer (format "Set %s to value: " var)))))))
   (set var val))
+
 
 ;; Define the major mode for lists of completions.
 
