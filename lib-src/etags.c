@@ -25,8 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 10.7
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
+
+char etags_version[] = "@(#) pot revision number is 10.15";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -48,9 +50,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "getopt.h"
 
 extern char *getenv ();
+extern char *getcwd ();
 
-char *etags_index (), *etags_rindex ();
-char *savenstr ();
 
 /* Define the symbol ETAGS to make the program "etags",
  which makes emacs-style tag tables by default.
@@ -151,19 +152,20 @@ struct nd_st
   struct nd_st *left, *right;	/* left and right sons		*/
 };
 
-long ftell ();
 typedef struct nd_st NODE;
 
 logical header_file;		/* TRUE if .h file, FALSE o.w.  */
 /* boolean "functions" (see init)	*/
 logical _wht[0177], _etk[0177], _itk[0177], _btk[0177];
 
+char cwd [BUFSIZ];		/* current working directory */
+char *outfiledir;		/* directory of tagfile */
 
 char *concat ();
-char *savenstr ();
-char *savestr ();
-char *xmalloc ();
-char *xrealloc ();
+char *savenstr (), *savestr ();
+char *etags_index (), *etags_rindex ();
+char *relative_filename (), *absolute_filename (), *absolute_dirname ();
+char *xmalloc (), *xrealloc ();
 int L_isdef (), L_isquote ();
 int PF_funcs ();
 int total_size_of_entries ();
@@ -241,7 +243,7 @@ char *curfile,			/* current input file name		*/
  *endtk = " \t\n\"'#()[]{}=-+%*/&|^~!<>;,.:?",	/* token ending chars	*/
 				/* token starting chars			*/
  *begtk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$~",
-				  /* valid in-token chars		*/
+				/* valid in-token chars			*/
  *intk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 int append_to_tagfile;		/* -a: append to tags */
@@ -442,7 +444,7 @@ main (argc, argv)
   extern char *gfnames ();
   extern char *massage_name ();
 #endif
-
+ 
 #ifdef MSDOS
   _fmode = O_BINARY;   /* all of files are treated as binary files */
 #endif /* MSDOS */
@@ -465,7 +467,7 @@ main (argc, argv)
   for (;;)
     {
       int opt;
-      opt = getopt_long (argc, argv, "aACdDo:f:StTi:BFuvxwVH", longopts, 0);
+      opt = getopt_long (argc, argv, "aCdDo:f:StTi:BFuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -569,9 +571,19 @@ main (argc, argv)
       exit (BAD);
     }
 
-  if (outfile == 0)
+  if (outfile == NULL)
     {
       outfile = emacs_tags_format ? "TAGS" : "tags";
+    }
+  getcwd (cwd, BUFSIZ);		/* the current working directory */
+  strcat (cwd, "/");
+  if (streq (outfile, "-"))
+    {
+      outfiledir = cwd;
+    }
+  else
+    {
+      outfiledir = absolute_dirname (outfile, cwd);
     }
 
   init ();			/* set up boolean "functions"		*/
@@ -619,18 +631,18 @@ main (argc, argv)
       this_file = argv[optind];
 #endif
       /* Input file named "-" means read file names from stdin and use them. */
-	  if (streq (this_file, "-"))
+      if (streq (this_file, "-"))
+	{
+	  while (!feof (stdin))
 	    {
-	      while (!feof (stdin))
-		{
-		  (void) readline (&filename_lb, stdin);
-		  if (strlen (filename_lb.buffer) > 0)
-		    process_file (filename_lb.buffer);
-		}
+	      (void) readline (&filename_lb, stdin);
+	      if (strlen (filename_lb.buffer) > 0)
+		process_file (filename_lb.buffer);
 	    }
-	  else
-	    process_file (this_file);
 	}
+      else
+	process_file (this_file);
+    }
 
   if (emacs_tags_format)
     {
@@ -701,7 +713,20 @@ process_file (file)
     }
   if (emacs_tags_format)
     {
-      fprintf (outf, "\f\n%s,%d\n", file, total_size_of_entries (head));
+      char *filename;
+
+      if (file[0] == '/')
+	{
+	  /* file is an absolute filename.  Canonicalise it. */
+	  filename = absolute_filename (file, cwd);
+	}
+      else
+	{
+	  /* file is a filename relative to cwd.  Make it relative
+	     to the directory of the tags file. */
+	  filename = relative_filename (file, outfiledir);
+	}
+      fprintf (outf, "\f\n%s,%d\n", filename, total_size_of_entries (head));
       put_entries (head);
       free_tree (head);
       head = NULL;
@@ -1318,7 +1343,8 @@ typedef enum
 FUNCST funcdef;
 
 
- /* typedefs are recognized using a simple finite automaton.
+ /*
+  * typedefs are recognized using a simple finite automaton.
   * typeddef is its state variable.
   */
 typedef enum
@@ -1326,16 +1352,16 @@ typedef enum
   tnone,			/* nothing seen */
   ttypedseen,			/* typedef keyword seen */
   tinbody,			/* inside typedef body */
-  tend				/* just before typedef tag */
+  tend,				/* just before typedef tag */
+  tignore			/* junk after typedef tag */
 } TYPEDST;
 TYPEDST typdef;
 
 
- /* struct tags for C++ are recognized using another simple
-  * finite automaton.  `structdef' is its state variable.
-  * This machinery is only invoked for C++; otherwise structdef
-  * should remain snone.  However, this machinery can easily be
-  * adapted to find structure tags in normal C code.
+ /* 
+  * struct-like structures (enum, struct and union) are recognized
+  * using another simple finite automaton.  `structdef' is its state
+  * variable.
   */
 typedef enum
 {
@@ -1346,6 +1372,7 @@ typedef enum
   sinbody			/* in struct body: recognize member func defs*/
 } STRUCTST;
 STRUCTST structdef;
+
 /*
  * When structdef is stagseen, scolonseen, or sinbody, structtag is the
  * struct tag, and structtype is the type of the preceding struct-like  
@@ -1448,7 +1475,7 @@ C_entries (c_ext)
   lp = curlb.buffer;
   *lp = 0;
 
-  definedef = dnone; funcdef = fnone; typdef= tnone; structdef= snone;
+  definedef = dnone; funcdef = fnone; typdef = tnone; structdef = snone;
   next_token_is_func = yacc_rules = FALSE;
   midtoken = inquote = inchar = incomm = quotednl = FALSE;
   cblev = 0;
@@ -1515,7 +1542,7 @@ C_entries (c_ext)
 	      CNL;
 	      /* FALLTHRU */
 	    case '\'':
-	    inchar = FALSE;
+	      inchar = FALSE;
 	      break;
 	    }
 	  continue;
@@ -1553,7 +1580,7 @@ C_entries (c_ext)
 		/* entering or exiting rules section in yacc file */
 		lp++;
 		definedef = dnone; funcdef = fnone;
-		typdef= tnone; structdef= snone;
+		typdef = tnone; structdef = snone;
 		next_token_is_func = FALSE;
 		midtoken = inquote = inchar = incomm = quotednl = FALSE;
 		cblev = 0;
@@ -1572,9 +1599,10 @@ C_entries (c_ext)
       /* Consider token only if some complicated conditions are satisfied. */
       if (((cblev == 0 && structdef != scolonseen)
 	   || (cblev == 1 && cplpl && structdef == sinbody))
+	  && typdef != tignore
 	  && definedef != dignorerest
 	  && (funcdef != finlist
-	      || (definedef != dnone && definedef != dignorerest)))
+	      || definedef != dnone))
 	{
 	  if (midtoken)
 	    {
@@ -1714,19 +1742,37 @@ C_entries (c_ext)
 	case ';':
 	  if (definedef != dnone)
 	    break;
-	  if (cblev == 0 && typdef == tend)
-	    {
-	      typdef = tnone;
-	      MAKE_TAG_FROM_OTH_LB (FALSE);
-	    }
+	  if (cblev == 0)
+	    switch (typdef)
+	      {
+	      case tend:
+		MAKE_TAG_FROM_OTH_LB (FALSE);
+		/* FALLTHRU */
+	      default:
+		typdef = tnone;
+	      }
 	  if (funcdef != fignore)
 	    funcdef = fnone;
-	  /* FALLTHRU */
+	  if (structdef == stagseen)
+	    structdef = snone;
+	  break;
 	case ',':
-	  /* FALLTHRU */
+	  if (definedef != dnone)
+	    break;
+	  if (funcdef != finlist && funcdef != fignore)
+	    funcdef = fnone;
+	  if (structdef == stagseen)
+	    structdef = snone;
+	  break;
 	case '[':
 	  if (definedef != dnone)
 	    break;
+	  if (cblev == 0 && typdef == tend)
+	    {
+	      typdef = tignore;
+	      MAKE_TAG_FROM_OTH_LB (FALSE);
+	      break;
+	    }
 	  if (funcdef != finlist && funcdef != fignore)
 	    funcdef = fnone;
 	  if (structdef == stagseen)
@@ -1758,6 +1804,11 @@ C_entries (c_ext)
 		  funcdef = flistseen;
 		  break;
 		}
+	      if (cblev == 0 && typdef == tend)
+		{
+		  typdef = tignore;
+		  MAKE_TAG_FROM_OTH_LB (FALSE);
+		}
 	    }
 	  else if (parlev < 0)	/* can happen due to ill-conceived #if's. */
 	    parlev = 0;
@@ -1786,6 +1837,11 @@ C_entries (c_ext)
 	      /* FALLTHRU */
 	    case fignore:
 	      funcdef = fnone;
+	      break;
+	    case fnone:
+	      /* Neutralize `extern "C" {' grot.
+	      if (cblev == 0 && structdef == snone && typdef == tnone)
+		cblev--; */;
 	    }
 	  cblev++;
 	  break;
@@ -1910,6 +1966,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	{
 	  if (typedefs)
 	    typdef = ttypedseen;
+	  funcdef = fnone;
 	  return (FALSE);
 	}
       break;
@@ -2015,7 +2072,8 @@ consider_token (c, tokp, c_ext, cblev, is_func)
   switch (toktype)
     {
     case st_C_typespec:
-      funcdef = fnone;		/* should be useless */
+      if (funcdef != finlist && funcdef != fignore)
+        funcdef = fnone;		/* should be useless */
       return (FALSE);
     default:
       if (funcdef == fnone)
@@ -2176,7 +2234,7 @@ getit (fi)
 	dbp++;
     }
   if (!isalpha (*dbp)
-	  && *dbp != '_'
+      && *dbp != '_'
       && *dbp != '$')
     return;
   for (cp = dbp + 1;
@@ -2364,7 +2422,7 @@ PAS_funcs (fi)
 		  verify_tag = FALSE;
 		}
 	    }
-	  if ((found_tag) && (verify_tag))	/* not external proc, so make tag */
+	  if ((found_tag) && (verify_tag)) /* not external proc, so make tag */
 	    {
 	      found_tag = FALSE;
 	      verify_tag = FALSE;
@@ -3073,7 +3131,8 @@ error (s1, s2)
   fprintf (stderr, "\n");
 }
 
-/* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
+/* Return a newly-allocated string whose contents
+   concatenate those of s1, s2, s3.  */
 
 char *
 concat (s1, s2, s3)
@@ -3085,9 +3144,117 @@ concat (s1, s2, s3)
   strcpy (result, s1);
   strcpy (result + len1, s2);
   strcpy (result + len1 + len2, s3);
-  *(result + len1 + len2 + len3) = 0;
+  result[len1 + len2 + len3] = '\0';
 
   return result;
+}
+
+/* Return a newly allocated string containing the filename of FILE relative
+   to the absolute directory DIR (which should end with a slash). */
+
+char *
+relative_filename (file, dir)
+     char *file, *dir;
+{
+  char *fp, *dp, *res;
+
+  /* Find the common root of file and dir. */
+  fp = absolute_filename (file, cwd);
+  dp = dir;
+  while (*fp++ == *dp++)
+    continue;
+  do
+    {
+      fp--;
+      dp--;
+    }
+  while (*fp != '/');
+
+  /* Build a sequence of "../" strings for the resulting relative filename. */
+  for (dp = etags_index (dp + 1, '/'), res = "";
+       dp != NULL;
+       dp = etags_index (dp + 1, '/'))
+    {
+      res = concat (res, "../", "");
+    }
+
+  /* Add the filename relative to the common root of file and dir. */
+  res = concat (res, fp + 1, "");
+
+  return res;			/* temporary stub */
+}
+
+/* Return a newly allocated string containing the
+   absolute filename of FILE given CWD (which should end with a slash). */
+char *
+absolute_filename (file, cwd)
+     char *file, *cwd;
+{
+  char *slashp, *cp, *res;
+
+  if (file[0] == '/')
+    res = concat (file, "", "");
+  else
+    res = concat (cwd, file, "");
+
+  /* Delete the "/dirname/.." and "/." substrings. */
+  slashp = etags_index (res, '/');
+  while (slashp != NULL && slashp[0] != '\0')
+    {
+      if (slashp[1] == '.')
+	{
+	  if (slashp[2] == '.'
+	      && (slashp[3] == '/' || slashp[3] == '\0'))
+	    {
+	      cp = slashp;
+	      do
+		cp--;
+	      while (cp >= res && *cp != '/');
+	      if (*cp == '/')
+		{
+		  strcpy (cp, slashp + 3);
+		}
+	      else		/* else (cp == res) */
+		{
+		  if (slashp[3] != NULL)
+		    strcpy (cp, slashp + 4);
+		  else
+		    return ".";
+		}
+	      slashp = cp;
+	    }
+	  else if (slashp[2] == '/' || slashp[2] == '\0')
+	    {
+	      strcpy (slashp, slashp + 2);
+	    }
+	}
+      else
+	{
+	  slashp = etags_index (slashp + 1, '/');
+	}
+    }
+
+  return res;
+}
+
+/* Return a newly allocated string containing the absolute filename
+   of dir where FILE resides given CWD (which should end with a slash). */
+char *
+absolute_dirname (file, cwd)
+     char *file, *cwd;
+{
+  char *slashp, *res;
+  char save;
+
+  slashp = etags_rindex (file, '/');
+  if (slashp == NULL)
+    return cwd;
+  save = slashp[1];
+  slashp[1] = '\0';
+  res = absolute_filename (file, cwd);
+  slashp[1] = save;
+
+  return res;
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
