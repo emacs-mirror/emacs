@@ -56,6 +56,7 @@
       (load "mouse")
       (garbage-collect)
       (load "faces")
+      (load "facemenu")
       (garbage-collect)
       (load "menu-bar")
       (load "scroll-bar")
@@ -203,6 +204,7 @@
       ;; under the name `xemacs'), and it's inconsistent with every
       ;; other GNU product's build process.
       (dump-emacs "emacs" "temacs")
+      (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
       (if (not (eq system-type 'ms-dos))
 	  (let ((name (concat "emacs-" emacs-version)))
