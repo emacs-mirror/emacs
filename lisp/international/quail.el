@@ -849,9 +849,13 @@ The returned value is a Quail map specific to KEY."
 ;; If set to non-nil, exit conversion mode before starting new translation.
 (defvar quail-exit-conversion-mode nil)
 
-(defun quail-start-translation ()
+(defvar quail-prefix-arg nil)
+
+(defun quail-start-translation (arg)
   "Start translating the typed character in Quail mode."
-  (interactive "*")
+  (interactive "*p")
+  (setq prefix-arg arg)
+  (setq quail-prefix-arg arg)
   (setq unread-command-events
 	(cons last-command-event unread-command-events))
   ;; Check the possibility of translating the last key.
@@ -917,39 +921,36 @@ The returned value is a Quail map specific to KEY."
     ;; `post-command-hook'.
     (add-hook 'post-command-hook 'quail-toggle-mode-temporarily nil t)))
 
+(defsubst quail-delete-region ()
+  "Delete the text in the current translation region of Quail."
+  (delete-region (overlay-start quail-overlay) (overlay-end quail-overlay)))
+
 (defun quail-terminate-translation ()
   "Terminate the translation of the current key."
   (let ((start (overlay-start quail-overlay)))
     (if (and start
 	     (< start (overlay-end quail-overlay)))
 	;; Here we simulate self-insert-command.
-	(let (last-command-char)
+	(let ((seq (string-to-sequence
+		    (buffer-substring (overlay-start quail-overlay)
+				      (overlay-end quail-overlay))
+		    'list))
+	      last-command-char)
 	  (goto-char start)
-	  ;; The first one might want to expand an abbrev.
-	  (setq last-command-char (following-char))
-	  (delete-char 1)
-	  (self-insert-command 1)
-	  (if (< (point) (overlay-end quail-overlay))
-	      (if overwrite-mode
-		  (while (< (point) (overlay-end quail-overlay))
-		    (setq last-command-char (following-char))
-		    (delete-char 1)
-		    (self-insert-command 1))
-		;; The last one might still want to auto-fill.
-		(goto-char (overlay-end quail-overlay))
-		(let ((last-command-char (preceding-char)))
-		  (delete-char -1)
-		  (self-insert-command 1)))))))
+	  (quail-delete-region)
+	  (setq last-command-char (car seq))
+	  (self-insert-command (or quail-prefix-arg 1))
+	  (setq seq (cdr seq))
+	  (while seq
+	    (setq last-command-char (car seq))
+	    (self-insert-command 1)
+	    (setq seq (cdr seq))))))
   (delete-overlay quail-overlay)
   (if (buffer-live-p quail-guidance-buf)
       (save-excursion
 	(set-buffer quail-guidance-buf)
 	(erase-buffer)))
   (throw 'exit nil))
-
-(defsubst quail-delete-region ()
-  "Delete the text in the current translation region of Quail."
-  (delete-region (overlay-start quail-overlay) (overlay-end quail-overlay)))
 
 (defun quail-select-current ()
   "Select the current text shown in Quail translation region."
