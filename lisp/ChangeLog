@@ -1,3 +1,8 @@
+2002-02-25  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* ps-print.el (ps-print-printer): Added `lpr' customize group
+	member. 
+
 2002-02-25  Juanma Barranquero  <lektu@terra.es>
 
 	* ielm.el (ielm-prompt): Allow customization; make it read-only.

@@ -1584,7 +1584,7 @@ Please send all bug fixes and enhancements to
   :tag "Background"
   :group 'ps-print)
 
-(defgroup ps-print-printer nil
+(defgroup ps-print-printer '((lpr custom-group))
   "Printer customization"
   :prefix "ps-"
   :tag "Printer"
