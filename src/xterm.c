@@ -5889,6 +5889,9 @@ x_destroy_window (f)
       XFlush (FRAME_X_DISPLAY (f));
     }
 
+  if (f->output_data.x.saved_input_event)
+    free (f->output_data.x.saved_menu_event);
+
   xfree (f->output_data.x);
   f->output_data.x = 0;
   if (f == dpyinfo->x_focus_frame)
