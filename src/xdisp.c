@@ -1169,8 +1169,8 @@ string_pos_nchars_ahead (pos, string, nchars)
 
   if (STRING_MULTIBYTE (string))
     {
-      int rest = STRING_BYTES (XSTRING (string)) - BYTEPOS (pos);
-      unsigned char *p = XSTRING (string)->data + BYTEPOS (pos);
+      int rest = SBYTES (string) - BYTEPOS (pos);
+      unsigned char *p = SDATA (string) + BYTEPOS (pos);
       int len;
 
       while (nchars--)
@@ -1864,8 +1864,8 @@ init_from_display_pos (it, w, pos)
 
   for (i = 0; i < it->n_overlay_strings; ++i)
     {
-      char *s = XSTRING (it->overlay_strings[i])->data;
-      char *e = s + STRING_BYTES (XSTRING (it->overlay_strings[i]));
+      char *s = SDATA (it->overlay_strings[i]);
+      char *e = s + SBYTES (it->overlay_strings[i]);
       
       while (s < e && *s != '\n')
 	++s;
@@ -2435,7 +2435,7 @@ face_before_or_after_it_pos (it, before_p)
       /* No face change past the end of the string (for the case
 	 we are padding with spaces).  No face change before the
 	 string start.  */
-      if (IT_STRING_CHARPOS (*it) >= XSTRING (it->string)->size
+      if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string)
 	  || (IT_STRING_CHARPOS (*it) == 0 && before_p))
 	return it->face_id;
 
@@ -2471,8 +2471,8 @@ face_before_or_after_it_pos (it, before_p)
 	 suitable for unibyte text if IT->string is unibyte.  */
       if (STRING_MULTIBYTE (it->string))
 	{
-	  unsigned char *p = XSTRING (it->string)->data + BYTEPOS (pos);
-	  int rest = STRING_BYTES (XSTRING (it->string)) - BYTEPOS (pos);
+	  unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
+	  int rest = SBYTES (it->string) - BYTEPOS (pos);
 	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
       
@@ -2558,9 +2558,9 @@ handle_invisible_prop (it)
 	     invisible text property can be found in IT->string.
 	     Value will be nil if the property value is the same for
 	     all the rest of IT->string.  */
-	  XSETINT (limit, XSTRING (it->string)->size);
+	  XSETINT (limit, SCHARS (it->string));
 	  end_charpos = Fnext_single_property_change (charpos, Qinvisible,
-						  it->string, limit);
+						      it->string, limit);
 	  
 	  /* Text at current position is invisible.  The next
 	     change in the property is at position end_charpos.
@@ -2587,9 +2587,8 @@ handle_invisible_prop (it)
 		}
 	      else
 		{
-		  struct Lisp_String *s = XSTRING (it->string);
-		  IT_STRING_CHARPOS (*it) = s->size;
-		  IT_STRING_BYTEPOS (*it) = STRING_BYTES (s);
+		  IT_STRING_CHARPOS (*it) = SCHARS (it->string);
+		  IT_STRING_BYTEPOS (*it) = SBYTES (it->string);
 		}
 	    }
 	}
@@ -3045,8 +3044,7 @@ handle_single_display_prop (it, prop, object, position,
 	      it->multibyte_p = STRING_MULTIBYTE (it->string);
 	      it->current.overlay_string_index = -1;
 	      IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
-	      it->end_charpos = it->string_nchars
-		= XSTRING (it->string)->size;
+	      it->end_charpos = it->string_nchars = SCHARS (it->string);
 	      it->method = next_element_from_string;
 	      it->stop_charpos = 0;
 	      it->string_from_display_prop_p = 1;
@@ -3574,13 +3572,13 @@ load_overlay_strings (it, charpos)
       /* If overlay has a non-empty before-string, record it.  */
       if ((start == charpos || (end == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && XSTRING (str)->size)
+	  && SCHARS (str))
 	RECORD_OVERLAY_STRING (overlay, str, 0);
       
       /* If overlay has a non-empty after-string, record it.  */
       if ((end == charpos || (start == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && XSTRING (str)->size)
+	  && SCHARS (str))
 	RECORD_OVERLAY_STRING (overlay, str, 1);
     }
       
@@ -3613,13 +3611,13 @@ load_overlay_strings (it, charpos)
       /* If overlay has a non-empty before-string, record it.  */
       if ((start == charpos || (end == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-	  && XSTRING (str)->size)
+	  && SCHARS (str))
 	RECORD_OVERLAY_STRING (overlay, str, 0);
 			       
       /* If overlay has a non-empty after-string, record it.  */
       if ((end == charpos || (start == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-	  && XSTRING (str)->size)
+	  && SCHARS (str))
 	RECORD_OVERLAY_STRING (overlay, str, 1);
     }
 
@@ -3684,9 +3682,9 @@ get_overlay_strings (it, charpos)
       IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
       it->string = it->overlay_strings[0];
       it->stop_charpos = 0;
-      it->end_charpos = XSTRING (it->string)->size;
-      it->multibyte_p = STRING_MULTIBYTE (it->string);
       xassert (STRINGP (it->string));
+      it->end_charpos = SCHARS (it->string);
+      it->multibyte_p = SMBP (it->string);
       it->method = next_element_from_string;
     }
   else
@@ -4112,7 +4110,7 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
       xassert (STRINGP (string));
       it->string = string;
       it->s = NULL;
-      it->end_charpos = it->string_nchars = XSTRING (string)->size;
+      it->end_charpos = it->string_nchars = SCHARS (string);
       it->method = next_element_from_string;
       it->current.string_pos = string_pos (charpos, string);
     }
@@ -4465,7 +4463,7 @@ set_iterator_to_next (it, reseat_p)
 	{
 	  /* IT->string is an overlay string.  Advance to the
 	     next, if there is one.  */
-	  if (IT_STRING_CHARPOS (*it) >= XSTRING (it->string)->size)
+	  if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	    next_overlay_string (it);
 	}
       else
@@ -4474,7 +4472,7 @@ set_iterator_to_next (it, reseat_p)
 	     its end, and there is something on IT->stack, proceed
 	     with what is on the stack.  This can be either another
 	     string, this time an overlay string, or a buffer.  */
-	  if (IT_STRING_CHARPOS (*it) == XSTRING (it->string)->size
+	  if (IT_STRING_CHARPOS (*it) == SCHARS (it->string)
 	      && it->sp > 0)
 	    {
 	      pop_it (it);
@@ -4592,22 +4590,20 @@ next_element_from_string (it)
       /* Get the next character from an overlay string.  In overlay
 	 strings, There is no field width or padding with spaces to
 	 do.  */
-      if (IT_STRING_CHARPOS (*it) >= XSTRING (it->string)->size)
+      if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	{
 	  it->what = IT_EOB;
 	  return 0;
 	}
       else if (STRING_MULTIBYTE (it->string))
 	{
-	  int remaining = (STRING_BYTES (XSTRING (it->string))
-			   - IT_STRING_BYTEPOS (*it));
-	  unsigned char *s = (XSTRING (it->string)->data
-			      + IT_STRING_BYTEPOS (*it));
+	  int remaining = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
+	  unsigned char *s = SDATA (it->string) + IT_STRING_BYTEPOS (*it);
 	  it->c = string_char_and_length (s, remaining, &it->len);
 	}
       else
 	{
-	  it->c = XSTRING (it->string)->data[IT_STRING_BYTEPOS (*it)];
+	  it->c = SREF (it->string, IT_STRING_BYTEPOS (*it));
 	  it->len = 1;
 	}
     }
@@ -4630,15 +4626,13 @@ next_element_from_string (it)
 	}
       else if (STRING_MULTIBYTE (it->string))
 	{
-	  int maxlen = (STRING_BYTES (XSTRING (it->string))
-			- IT_STRING_BYTEPOS (*it));
-	  unsigned char *s = (XSTRING (it->string)->data
-			      + IT_STRING_BYTEPOS (*it));
+	  int maxlen = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
+	  unsigned char *s = SDATA (it->string) + IT_STRING_BYTEPOS (*it);
 	  it->c = string_char_and_length (s, maxlen, &it->len);
 	}
       else
 	{
-	  it->c = XSTRING (it->string)->data[IT_STRING_BYTEPOS (*it)];
+	  it->c = SREF (it->string, IT_STRING_BYTEPOS (*it));
 	  it->len = 1;
 	}
     }
@@ -5603,9 +5597,9 @@ add_to_log (format, arg1, arg2)
   args[2] = arg2;
   msg = Fformat (3, args);
 
-  len = STRING_BYTES (XSTRING (msg)) + 1;
+  len = SBYTES (msg) + 1;
   buffer = (char *) alloca (len);
-  bcopy (XSTRING (msg)->data, buffer, len);
+  bcopy (SDATA (msg), buffer, len);
   
   message_dolog (buffer, len - 1, 1, 0);
   UNGCPRO;
@@ -5930,7 +5924,7 @@ message3 (m, nbytes, multibyte)
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
   if (STRINGP (m))
-    message_dolog (XSTRING (m)->data, nbytes, 1, multibyte);
+    message_dolog (SDATA (m), nbytes, 1, multibyte);
   message3_nolog (m, nbytes, multibyte);
 
   UNGCPRO;
@@ -5953,7 +5947,7 @@ message3_nolog (m, nbytes, multibyte)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
       if (STRINGP (m))
-	fwrite (XSTRING (m)->data, nbytes, 1, stderr);
+	fwrite (SDATA (m), nbytes, 1, stderr);
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
@@ -5980,7 +5974,7 @@ message3_nolog (m, nbytes, multibyte)
 	  && !FRAME_VISIBLE_P (f))
 	Fmake_frame_visible (frame);
 
-      if (STRINGP (m) && XSTRING (m)->size)
+      if (STRINGP (m) && SCHARS (m) > 0)
 	{
 	  set_message (NULL, m, nbytes, multibyte);
 	  if (minibuffer_auto_raise)
@@ -6039,7 +6033,7 @@ message_with_string (m, string, log)
 	  if (noninteractive_need_newline)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
-	  fprintf (stderr, m, XSTRING (string)->data);
+	  fprintf (stderr, m, SDATA (string));
 	  if (cursor_in_echo_area == 0)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
@@ -6074,11 +6068,9 @@ message_with_string (m, string, log)
 	  message = Fformat (2, args);
 
 	  if (log)
-	    message3 (message, STRING_BYTES (XSTRING (message)),
-		      STRING_MULTIBYTE (message));
+	    message3 (message, SBYTES (message), SMBP (message));
 	  else
-	    message3_nolog (message, STRING_BYTES (XSTRING (message)),
-			    STRING_MULTIBYTE (message));
+	    message3_nolog (message, SBYTES (message), SMBP (message));
 
 	  UNGCPRO;
 
@@ -6187,7 +6179,7 @@ update_echo_area ()
     {
       Lisp_Object string;
       string = Fcurrent_message ();
-      message3 (string, XSTRING (string)->size, 
+      message3 (string, SBYTES (string), 
 		!NILP (current_buffer->enable_multibyte_characters));
     }
 }
@@ -6797,7 +6789,7 @@ restore_message ()
   xassert (CONSP (Vmessage_stack));
   msg = XCAR (Vmessage_stack);
   if (STRINGP (msg))
-    message3_nolog (msg, STRING_BYTES (XSTRING (msg)), STRING_MULTIBYTE (msg));
+    message3_nolog (msg, SBYTES (msg), SMBP (msg));
   else
     message3_nolog (msg, 0, 0);
 }
@@ -6923,7 +6915,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
       int nchars;
       
       if (nbytes == 0)
-	nbytes = XSTRING (string)->size_byte;
+	nbytes = SBYTES (string);
       nchars = string_byte_to_char (string, nbytes);
       
       /* This function takes care of single/multibyte conversion.  We
@@ -7272,8 +7264,8 @@ x_consider_frame_title (frame)
 	 display_mode_element, then we might need to optimize at a
 	 higher level than this.)  */
       if (! STRINGP (f->name) 
-	  || STRING_BYTES (XSTRING (f->name)) != len
-	  || bcmp (frame_title_buf, XSTRING (f->name)->data, len) != 0)
+	  || SBYTES (f->name) != len
+	  || bcmp (frame_title_buf, SDATA (f->name), len) != 0)
 	x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
     }
 }
@@ -7592,7 +7584,7 @@ build_desired_tool_bar_string (f)
   
   /* The size of the string we might be able to reuse.  */
   size = (STRINGP (f->desired_tool_bar_string)
-	  ? XSTRING (f->desired_tool_bar_string)->size
+	  ? SCHARS (f->desired_tool_bar_string)
 	  : 0);
 
   /* We need one space in the string for each image.  */
@@ -7724,7 +7716,7 @@ build_desired_tool_bar_string (f)
          string.  The string can be longer than needed when we reuse a
          previous string.  */
       if (i + 1 == f->n_tool_bar_items)
-	end = XSTRING (f->desired_tool_bar_string)->size;
+	end = SCHARS (f->desired_tool_bar_string);
       else
 	end = i + 1;
       Fadd_text_properties (make_number (i), make_number (end),
@@ -7988,7 +7980,7 @@ tool_bar_item_info (f, glyph, prop_idx)
   /* This function can be called asynchronously, which means we must
      exclude any possibility that Fget_text_property signals an
      error.  */
-  charpos = min (XSTRING (f->current_tool_bar_string)->size, glyph->charpos);
+  charpos = min (SCHARS (f->current_tool_bar_string), glyph->charpos);
   charpos = max (0, charpos);
   
   /* Get the text property `menu-item' at pos. The value of that
@@ -8243,7 +8235,7 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
 	     w,
 	     ((BUFFERP (w->buffer)
 	       && STRINGP (XBUFFER (w->buffer)->name))
-	      ? (char *) XSTRING (XBUFFER (w->buffer)->name)->data
+	      ? (char *) SDATA (XBUFFER (w->buffer)->name)
 	      : "no buffer"),
 	     buffer);
 }
@@ -12393,7 +12385,7 @@ DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
      Lisp_Object *args;
 {
   Lisp_Object s = Fformat (nargs, args);
-  fprintf (stderr, "%s", XSTRING (s)->data);
+  fprintf (stderr, "%s", SDATA (s));
   return Qnil;
 }
 	
@@ -12415,8 +12407,8 @@ get_overlay_arrow_glyph_row (w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct buffer *buffer = XBUFFER (w->buffer);
   struct buffer *old = current_buffer;
-  unsigned char *arrow_string = XSTRING (Voverlay_arrow_string)->data;
-  int arrow_len = XSTRING (Voverlay_arrow_string)->size;
+  unsigned char *arrow_string = SDATA (Voverlay_arrow_string);
+  int arrow_len = SCHARS (Voverlay_arrow_string);
   unsigned char *arrow_end = arrow_string + arrow_len;
   unsigned char *p;
   struct it it;
@@ -13388,7 +13380,7 @@ display_menu_bar (w)
       /* Display the item, pad with one space.  */
       if (it.current_x < it.last_visible_x)
 	display_string (NULL, string, Qnil, 0, 0, &it,
-			XSTRING (string)->size + 1, 0, 0, -1);
+			SCHARS (string) + 1, 0, 0, -1);
     }
 
   /* Fill out the line with spaces.  */
@@ -13644,14 +13636,14 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 	      }
 	  }
 
-	this = XSTRING (elt)->data;
+	this = SDATA (elt);
 	lisp_string = this;
 
 	if (literal)
 	  {
 	    prec = precision - n;
 	    if (frame_title_ptr)
-	      n += store_frame_title (XSTRING (elt)->data, -1, prec);
+	      n += store_frame_title (SDATA (elt), -1, prec);
 	    else
 	      n += display_string (NULL, elt, Qnil, 0, 0, it,
 				   0, prec, 0, STRING_MULTIBYTE (elt));
@@ -14016,8 +14008,8 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       /* Mention the EOL conversion if it is not the usual one.  */
       if (STRINGP (eoltype))
 	{
-	  eol_str = XSTRING (eoltype)->data;
-	  eol_str_len = XSTRING (eoltype)->size;
+	  eol_str = SDATA (eoltype);
+	  eol_str_len = SBYTES (eoltype);
 	}
       else if (INTEGERP (eoltype)
 	       && CHAR_VALID_P (XINT (eoltype), 0))
@@ -14146,9 +14138,9 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
     case 'F':
       /* %F displays the frame name.  */
       if (!NILP (f->title))
-	return (char *) XSTRING (f->title)->data;
+	return (char *) SDATA (f->title);
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
-	return (char *) XSTRING (f->name)->data;
+	return (char *) SDATA (f->name);
       return "Emacs";
 
     case 'f': 
@@ -14394,7 +14386,7 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
   if (STRINGP (obj))
     {
       *multibyte = STRING_MULTIBYTE (obj);
-      return (char *) XSTRING (obj)->data;
+      return (char *) SDATA (obj);
     }
   else
     return "";
