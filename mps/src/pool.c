@@ -1,7 +1,7 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.48) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!pool.c(trunk.49) $
+ * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
  *
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.48) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.49) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -251,6 +251,9 @@ void PoolDestroy(Pool pool)
   ArenaFree(arena, base, (Size)(class->size));
 }
 
+
+/* PoolAlloc -- allocate a block of memory from a pool */
+
 Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Res res;
@@ -265,24 +268,30 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
     return res;
 
   /* Make sure that the allocated address was in the pool's memory. */
-  AVER(PoolHasAddr(pool, *pReturn));
+  /* .hasaddr.critical: The PoolHasAddr check is expensive, and in */
+  /* allocation-bound programs this is on the critical path. */
+  AVER_CRITICAL(PoolHasAddr(pool, *pReturn));
 
   EVENT_PAW(PoolAlloc, pool, *pReturn, size);
 
   return ResOK;
 }
 
+
+/* PoolFree -- deallocate a block of memory allocated from the pool */
+
 void PoolFree(Pool pool, Addr old, Size size)
 {
   AVERT(Pool, pool);
   AVER((pool->class->attr & AttrFREE) != 0);
   AVER(old != NULL);
-  AVER(PoolHasAddr(pool, old));
+  /* The pool methods should check that old is in pool. */
   AVER(size > 0);
   (*pool->class->free)(pool, old, size);
   
   EVENT_PAW(PoolFree, pool, old, size);
 }
+
 
 Res PoolTraceBegin(Pool pool, Trace trace)
 {
