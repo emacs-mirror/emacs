@@ -4,6 +4,11 @@
 	(invalidate_nodes): Bug corrected.
 	(print_help): Better help for regexps.
 
+2002-06-13  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (lisp): Add international/ucs-tables.elc and
+	font-core.elc.
+
 2002-06-12  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: New multi-line regexp and new regexp syntax.
