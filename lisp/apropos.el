@@ -243,9 +243,16 @@ Returns list of symbols and documentation found."
 
 (defun apropos-match-keys (alist &optional regexp)
   (let* ((current-local-map (current-local-map))
-	 (maps (append (and current-local-map
-			    (accessible-keymaps current-local-map))
-		       (accessible-keymaps (current-global-map))))
+	 ;; Get a list of the top-level maps now active.
+	 (top-maps
+	  (if overriding-local-map
+	      (list overriding-local-map (current-global-map))
+	    (append (current-minor-mode-maps)
+		    (if current-local-map
+			(list current-local-map (current-global-map))
+		      (list (current-global-map))))))
+	 ;; Turn that into a list of all the maps including submaps.
+	 (maps (apply 'append (mapcar 'accessible-keymaps top-maps)))
 	 map				;map we are now inspecting
 	 sequence			;key sequence to reach map
 	 i				;index into vector map
@@ -263,12 +270,17 @@ Returns list of symbols and documentation found."
 	  (setq map (cdr map)))
       (while (stringp (car-safe map))
 	(setq map (cdr map)))
+
       (while (consp map)
 	(cond ((consp (car map))
 	       (setq command (cdr (car map))
 		     key (car (car map)))
-	       ;; Skip any menu prompt in this key binding.
-	       (and (consp command) (symbolp (cdr command))
+	       ;; Skip any menu prompt and help string in this key binding.
+	       (while (and (consp command) (stringp (car command)))
+		 (setq command (cdr command)))
+	       ;; Skip any cached equivalent key.
+	       (and (consp command)
+		    (consp (car command))
 		    (setq command (cdr command)))
 	       ;; if is a symbol, and matches optional regexp, and is a car
 	       ;; in alist, and is not shadowed by a different local binding,
