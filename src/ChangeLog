@@ -1,5 +1,8 @@
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (set_buffer_internal_1) [REL_ALLOC_MMAP]: If 
+	buffer's text buffer is null, map new memory.
+
 	* ralloc.c (POINTER, SIZE) [emacs]: Define in terms of
 	POINTER_TYPE and size_t.
 	(struct mmap_region) [REL_ALLOC_MMAP]: New structure.

@@ -1,5 +1,8 @@
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* configure.in (REL_ALLOC_MMAP): Recognize in system configuration
+	file and print informational message.
+	
 	* configure.in (AC_FUNC_MMAP): Add.
 
 2000-09-01  Gerd Moellmann  <gerd@gnu.org>
