@@ -1,3 +1,8 @@
+2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* bindings.el (completion-ignored-extensions):
+	Remove ".lis" for `vax-vms', and ".log" in general.
+
 2005-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/dcl-mode.el (dcl-font-lock-keywords):
