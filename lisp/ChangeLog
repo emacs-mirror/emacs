@@ -1,3 +1,7 @@
+2003-07-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-svn.el (vc-svn-diff-switches): Don't default to vc-diff-switches.
+
 2003-07-23  John Paul Wallington  <jpw@gnu.org>
 
 	* tooltip.el (defface tooltip): Inherit from variable-pitch.
