@@ -972,8 +972,8 @@ is provided for use as part of the nongregorian-diary-marking-hook."
       (setq d (cdr d)))))
 
 (defun mark-hebrew-calendar-date-pattern (month day year)
-  "Mark all dates in the calendar window that conform to the Hebrew date
-MONTH/DAY/YEAR.  A value of 0 in any position is a wild-card."
+  "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
+A value of 0 in any position is a wild-card."
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (/= 0 month) (/= 0 day))
@@ -1244,8 +1244,9 @@ best if they are nonmarking."
         nil))))
 
 (defun diary-block (m1 d1 y1 m2 d2 y2)
-  "Block diary entry--entry applies if date is between two dates.  Order of
-the parameters is M1, D1, Y1, M2, D2, Y2 `european-calendar-style' is nil, and
+  "Block diary entry.
+Entry applies if date is between two dates.  Order of the parameters is
+M1, D1, Y1, M2, D2, Y2 `european-calendar-style' is nil, and
 D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
   (let ((date1 (calendar-absolute-from-gregorian
                 (if european-calendar-style
@@ -1274,9 +1275,10 @@ backward from the end of the month."
         entry)))
 
 (defun diary-anniversary (month day year)
-  "Anniversary diary entry--entry applies if date is the anniversary of
-MONTH, DAY, YEAR if `european-calendar-style' is nil, and DAY, MONTH, YEAR
-if `european-calendar-style' is t.  Diary entry can contain `%d' or `%d%s'; the
+  "Anniversary diary entry.
+Entry applies if date is the anniversary of MONTH, DAY, YEAR if
+`european-calendar-style' is nil, and DAY, MONTH, YEAR if
+`european-calendar-style' is t.  Diary entry can contain `%d' or `%d%s'; the
 %d will be replaced by the number of years since the MONTH DAY, YEAR and the
 %s will be replaced by the ordinal ending of that number (that is, `st', `nd',
 `rd' or `th', as appropriate.  The anniversary of February 29 is considered
@@ -1372,8 +1374,8 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
           (+ 1721425 (calendar-absolute-from-gregorian date))))
 
 (defun diary-omer ()
-  "Omer count diary entry--entry applies if date is within 50 days after
-Passover."
+  "Omer count diary entry.
+Entry applies if date is within 50 days after Passover."
   (let* ((passover
           (calendar-absolute-from-hebrew
            (list 1 15 (+ (extract-calendar-year date) 3760))))
@@ -1423,8 +1425,8 @@ order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR."
                       (t "th"))))))
 
 (defun diary-rosh-hodesh ()
-  "Rosh Hodesh diary entry--entry applies if date is Rosh Hodesh, the day
-before, or the Saturday before."
+  "Rosh Hodesh diary entry.
+Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
   (let* ((d (calendar-absolute-from-gregorian date))
          (h-date (calendar-hebrew-from-absolute d))
          (h-month (extract-calendar-month h-date))
@@ -1853,8 +1855,8 @@ provided for use as part of the nongregorian-diary-marking-hook."
       (setq d (cdr d)))))
 
 (defun mark-islamic-calendar-date-pattern (month day year)
-  "Mark all dates in the calendar window that conform to the Islamic date
-MONTH/DAY/YEAR.  A value of 0 in any position is a wild-card."
+  "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
+A value of 0 in any position is a wild-card."
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (/= 0 month) (/= 0 day))
