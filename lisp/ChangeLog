@@ -1,3 +1,29 @@
+2000-09-21  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-index-of, vc-transfer-file, vc-default-receive-file):
+	New functions.
+	(vc-next-action-on-file): Call vc-transfer-file at appropriate
+	places.
+	(vc-switch-backend): New function.
+	(vc-prefix-map): Bind `vc-switch-backend' to `b'.
+	(vc-register): Fix prompt.
+	(vc-unregister, vc-default-unregister): New functions.
+	(vc-version-diff): Handle empty buffer in sentinel.
+
+	* vc-rcs.el (vc-rcs-workfile-is-newer): New function.
+	(vc-rcs-state-heuristic): Use it to guess the state of files with
+	non-strict locking.
+	(vc-rcs-find-most-recent-rev): Handle the case when a branch has
+	been set with -b, but not created yet.
+	(vc-rcs-fetch-master-state): With non-strict locking, compare file
+	contents in order to find the state.
+	(vc-rcs-checkin): Allow creation of branches with no changes.
+	(vc-rcs-unregister, vc-rcs-receive-file,
+	vc-rcs-set-non-strict-locking): New functions.
+
+	* vc-hooks.el (vc-name): Force correct computation of the value 
+	in case it is missing.
+	
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-tail): Use a different foreground
