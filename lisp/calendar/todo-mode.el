@@ -1,52 +1,75 @@
-;;; todomode.el -- Major mode for editing TODO list files
-;;; Copyright (C) 1997 by Oliver Seidel
+;;; todo-mode.el -- Major mode for editing TODO list files
 
-;; ---------------------------------------------------------------------------
+;; Copyright (C) 1997 Free Software Foundation, Inc.
 
-;;
-;; Author:       Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
-;; Created:      August 2, 1997
-;; Version:      $Id: todomode.el,v 1.11 1997/08/06 09:14:25 os10000 Exp os10000 $
-;; Keywords:     Categorised TODO list editor, todo-mode
-;; Availability: newsgroup "gnu.emacs.sources" and archives thereof
-;;
+;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
+;; Created: 2 Aug 1997
+;; Version: $Id:$
+;; Keywords: Categorised TODO list editor, todo-mode
 
-;; ---------------------------------------------------------------------------
+;; This file is part of GNU Emacs.
 
-;;
-;; This program is intended for use with GNU Emacs.
-;;
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-;;
 
 ;; ---------------------------------------------------------------------------
 
-;;
+;;; Commentary:
+
 ;; Quickstart Installation:
 ;; ========================
 ;;
 ;; To get this to work, make emacs execute the line
 ;;
-;; (require 'todomode)				;; load the TODO package
+;; (require 'todo-mode)				;; load the TODO package
 ;;
-;; I would also recommend executing the following commands
-;; so as to extend the bindings in your global keymap:
+;; You may now enter new items by typing "M-x todo-cmd-inst", or enter
+;; your the TODO list file by typing "M-x todo-show".
+;;
+;; The TODO list file has a special format and some auxiliary information,
+;; which will be added by the todo-show function if it attempts to visit
+;; an un-initialised file.  Hence it is recommended to use the todo-show
+;; function for the first time, in order to initialise the file, but it
+;; is not necessary afterwards.
+;;
+;; As these commands are quite long to type, I would recommend the addition
+;; of two bindings to your to your global keymap.  I personally have the
+;; following in my initialisation file:
 ;;
 ;; (global-set-key "\C-ct" 'todo-show)		;; switch to TODO buffer
 ;; (global-set-key "\C-ci" 'todo-cmd-inst)	;; insert new item
+;;
+;; Note, however, that this recommendation has prompted some criticism,
+;; since the keys C-c LETTER are reserved for user functions.  I believe
+;; my recommendation is acceptable, since the Emacs Lisp Manual *Tips*
+;; section also details that the mode itself should not bind any functions
+;; to those keys.  The express aim of the above two bindings is to work
+;; outside the mode, which doesn't need the show function and offers
+;; a different binding for the insert function.  They serve as shortcuts
+;; and are not even needed (since the TODO mode will be entered by
+;; visiting the TODO file, and later by switching to its buffer).
+;;
+;;
+;;
+;; Pre-Requisites
+;; ==============
+;;
+;; This package will require the following packages to be available on
+;; the load-path:
+;;                 - time-stamp
+;;                 - easymenu
 ;;
 ;;
 ;;
@@ -152,9 +175,25 @@
 ;; If you set the threshhold to i.e. 8, it will stop as soon as the window
 ;; size drops below that amount and will insert the item in the approximate
 ;; centre of that window.  I got the idea for this feature after reading
-;; a very helpful e-mail reply from Trey Jackson <tjackson@ichips.intel.com>
+;; a very helpful e-mail reply from Trey Jackson <trey@cs.berkeley.edu>
 ;; who corrected some of my awful coding and pointed me towards some good
 ;; reading.  Thanks Trey!
+;;
+;;
+;;
+;;
+;; Things to do:
+;; =============
+;;
+;; - licence / version function
+;; - export to diary file
+;; - todo-report-bug
+;; - GNATS support
+;; - add idea from Urban Boquist <boquist@cs.chalmers.se>: multi-line-entries
+;; - 'e' opens buffer for multi-line entry
+;; - elide multiline
+;; - rewrite complete package to store data as lisp objects and have
+;;   display modes for display, for diary export, etc.
 ;;
 ;;
 ;;
@@ -164,14 +203,6 @@
 ;; Many thanks to all the ones who have contributed to the evolution of this
 ;; package!  I hope I have listed all of you somewhere in the documentation
 ;; or at least in the RCS history!
-;;
-;; Just for the case that you are wondering about the ugly name of this
-;; package: I am one of those unfortunate people who have DOS, LINUX and
-;; OS/2 on one of their computers, so part of my home-filespace is shared
-;; and stored on a DOS partition, which is accessible to all systems.  If
-;; you wish, you can of course rename the name of the file (and the "provide"
-;; command near the end of this package) to something more aisthetically
-;; (please don't argue about this spelling ...) pleasing, like i.e. todo-mode.
 ;;
 ;; Enjoy this package and express your gratitude by sending nice things
 ;; to my parents' address!
@@ -183,8 +214,14 @@
 
 ;; ---------------------------------------------------------------------------
 
+;; ---------------------------------------------------------------------------
+
+;;; Change Log:
+
+;; $Log: todo-mode.el,v $
+;; Revision 1.12  1997/08/06  10:56:15  os10000
+;; Fixed header, typos, layout, documentation.
 ;;
-;; $Log: todomode.el,v $
 ;; Revision 1.11  1997/08/06  09:14:25  os10000
 ;; Applied patch from Istvan Marko <istvan@cmdmail.amd.com>
 ;; to make menus work anywhere.
@@ -199,11 +236,11 @@
 ;; rest of the Emacs distribution files.
 ;;
 ;; Revision 1.8  1997/08/05 22:39:04  os10000
-;; Made todomode.el available under GPL.
+;; Made todo-mode.el available under GPL.
 ;;
 ;; Revision 1.7  1997/08/05 22:34:14  os10000
 ;; Fixed insertion routine with help from Trey Jackson
-;; <tjackson@ichips.intel.com>; added todo-ins-thresh;
+;; <trey@cs.berkeley.edu>; added todo-ins-thresh;
 ;; fixed keyboard layout to remove unwanted keys.
 ;;
 ;; Revision 1.6  1997/08/05 16:47:01  os10000
@@ -229,6 +266,8 @@
 
 ;; ---------------------------------------------------------------------------
 
+;;; Code:
+
 ;; User-configurable variables:
 
 (defvar todo-prefix	"*/*"		"TODO mode prefix for entries.")
@@ -236,6 +275,14 @@
 (defvar todo-file-done	"~/.todo-done"	"TODO mode archive file.")
 (defvar todo-mode-hook	nil		"TODO mode hooks.")
 (defvar todo-ins-thresh	0		"TODO mode insertion accuracy.")
+
+
+;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
+;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
+;;
+(defvar todo-time-string-format "%y-%02m-%02d %02H:%02M"
+  "TODO mode time string format for done entries.
+For details see the variable `time-stamp-format'.")
 
 ;; ---------------------------------------------------------------------------
 
@@ -382,7 +429,7 @@
         (while (> (- todo-lst todo-fst) todo-ins-thresh)
           (let* ((todo-cur (/ (+ todo-fst todo-lst) 2))
                  (todo-ans (if (< todo-cur todo-lst)
-			       (todo-ask todo-cur) nil)))
+			       (todo-ask-p todo-cur) nil)))
             (if todo-ans
                 (setq todo-lst todo-cur)
               (setq todo-fst (+ todo-cur 1)))))
@@ -395,9 +442,10 @@
       (insert (concat todo-entry "\n"))
       (forward-line -1))
     (beginning-of-line nil)
+    (save-buffer)
     (message "")))
 
-(defun todo-ask (lne) 
+(defun todo-ask-p (lne) 
   "Ask whether entry is more important than at LNE."
   (if (not (equal todo-prv-lne lne))
       (progn
@@ -421,7 +469,7 @@
 		(delete-region (point-at-bol) (+ 1 (point-at-eol))) 
 		(forward-line -1))))
 	(message ""))
-    (message "No TODO list entry to delete."))
+    (error "No TODO list entry to delete"))
   (beginning-of-line nil))
 
 (defun todo-cmd-rais () "Raise priority of current entry."
@@ -434,7 +482,7 @@
 	(insert (concat todo-entry "\n"))
 	(forward-line -1)
 	(message ""))
-    (message "No TODO list entry to raise."))
+    (error "No TODO list entry to raise"))
   (beginning-of-line nil))
 
 (defun todo-cmd-lowr () "Lower priority of current entry."
@@ -447,24 +495,25 @@
 	(insert (concat todo-entry "\n"))
 	(forward-line -1)
 	(message ""))
-    (message "No TODO list entry to raise."))
+    (error "No TODO list entry to lower"))
   (beginning-of-line nil))
 
 (defun todo-cmd-file () "File away the current TODO list entry."
   (interactive)
   (if (> (count-lines (point-min) (point-max)) 0)
       (progn
-	(let ((time-stamp-format "%3b %2d, %y, %02I:%02M%p"))
+	(let ((todo-comment (read-from-minibuffer "Comment: "))
+	      (time-stamp-format todo-time-string-format))
 	  (beginning-of-line nil)
 	  (delete-region (point-at-bol) (search-forward todo-prefix))
 	  (insert (time-stamp-string))
 	  (end-of-line nil)
-	  (insert (concat " (" (read-from-minibuffer "Comment: ") ")"))
+	  (insert (concat " (" todo-comment ")"))
 	  (append-to-file (point-at-bol) (+ 1 (point-at-eol)) todo-file-done)
 	  (delete-region (point-at-bol) (+ 1 (point-at-eol)))
 	  (forward-line -1))
 	(message ""))
-    (message "No TODO list entry to delete."))
+    (error "No TODO list entry to file away"))
   (beginning-of-line nil))
 
 ;; ---------------------------------------------------------------------------
@@ -486,25 +535,25 @@
 ;; ---------------------------------------------------------------------------
 
 (easy-menu-define todo-menu todo-mode-map "Todo Menu"
-		'("Todo"
-              ["Forward item"         todo-cmd-forw t]
-              ["Backward item"        todo-cmd-back t]
-              "---"
-              ["Edit item"            todo-cmd-edit t]
-              ["File item"            todo-cmd-file t]
-              ["Insert new item"      todo-cmd-inst t]
-              ["Kill item"            todo-cmd-kill t]
-              "---"
-              ["Lower item priority"  todo-cmd-lowr t]
-              ["Raise item priority"  todo-cmd-rais t]
-              "---"
-              ["Next item"            todo-cmd-next t]
-              ["Previous item"        todo-cmd-prev t]
-              "---"
-              ["Save"                 todo-cmd-save t]
-              "---"
-              ["Quit"                 todo-cmd-done t]
-              ))
+		  '("Todo"
+		    ["Next category"        todo-cmd-forw t]
+		    ["Previous category"    todo-cmd-back t]
+		    "---"
+		    ["Edit item"            todo-cmd-edit t]
+		    ["File item"            todo-cmd-file t]
+		    ["Insert new item"      todo-cmd-inst t]
+		    ["Kill item"            todo-cmd-kill t]
+		    "---"
+		    ["Lower item priority"  todo-cmd-lowr t]
+		    ["Raise item priority"  todo-cmd-rais t]
+		    "---"
+		    ["Next item"            todo-cmd-next t]
+		    ["Previous item"        todo-cmd-prev t]
+		    "---"
+		    ["Save"                 todo-cmd-save t]
+		    "---"
+		    ["Quit"                 todo-cmd-done t]
+		    ))
 
 (defun todo-mode () "Major mode for editing TODO lists.\n\n\\{todo-mode-map}"
   (interactive)
@@ -535,10 +584,10 @@
   (beginning-of-line nil)
   (todo-cat-slct))
 
-(provide 'todomode)
+(provide 'todo-mode)
 
 ;; ---------------------------------------------------------------------------
 
-;; todomode.el ends here
+;;; todo-mode.el ends here
 
 ;; ---------------------------------------------------------------------------
