@@ -1077,6 +1077,16 @@ current_minor_maps (modeptr, mapptr)
 	{
 	  Lisp_Object temp;
 
+	  /* If a variable has an entry in Vminor_mode_overriding_map_alist,
+	     and also an entry in Vminor_mode_map_alist,
+	     ignore the latter.  */
+	  if (list_number == 1)
+	    {
+	      val = assq_no_quit (var, lists[0]);
+	      if (!NILP (val))
+		break;
+	    }
+
 	  if (i >= cmm_size)
 	    {
 	      Lisp_Object *newmodes, *newmaps;
