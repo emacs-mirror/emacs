@@ -97,8 +97,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
 ** Help commands `describe-funcion' and `describe-key' now show function
-arguments in italics.  To change the default highlighting customize the
-face `help-argument-name'.
+arguments in lowercase italics.  To change the default, customize the face
+`help-argument-name' or see variable `help-arg-highlighting-function'.
 
 ---
 ** The comint prompt can now be made read-only, using the new user

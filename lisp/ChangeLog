@@ -1,3 +1,12 @@
+2004-05-12  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-split-fundoc, help-add-fundoc-usage):
+	Make arguments match their use in docstring.
+	(help-arg-highlighting-function): New variable.
+	(help-argument-name): Mention it in the docstring.
+	(help-do-arg-highlight): Use it.  Expand regexp to accept also
+	ARG-xxx and xxx-ARG references.
+
 2004-05-11  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
 
 	* mail/rfc2368.el (rfc2368-parse-mailto-url): Make the results of
@@ -16,7 +25,8 @@
 
 2004-05-11  Juanma Barranquero  <lektu@terra.es>
 
-	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
+	* custom.el (custom-initialize-default, defcustom): Fix typo
+	in docstring.
 
 	* files.el (set-visited-file-name, file-expand-wildcards):
 	Fix docstring.
@@ -6877,7 +6887,7 @@
 2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Print line number correctly in a region.  Reported by
-	Tim Allen <timallen@ls83.fsnet.co.uk>
+	Tim Allen <timallen@ls83.fsnet.co.uk>.
 	(ps-print-version): New version number (6.6.2).
 	(ps-printing-region): Code fix.
 
