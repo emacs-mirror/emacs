@@ -1,5 +1,9 @@
 2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* TUTORIAL.it: Move "copying conditions at end" sentence after title.
+
+2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* TUTORIAL.ja: Update text before first period.
 	Reported by Kenichi Handa.
 
