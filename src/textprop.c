@@ -43,9 +43,6 @@ Lisp_Object Qmouse_left;
 Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
-Lisp_Object Qmodification_hooks;
-Lisp_Object Qinsert_in_front_hooks;
-Lisp_Object Qinsert_behind_hooks;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
 
@@ -1212,12 +1209,6 @@ percentage by which the left interval tree should not differ from the right.");
   Qpoint_left = intern ("point-left");
   staticpro (&Qpoint_entered);
   Qpoint_entered = intern ("point-entered");
-  staticpro (&Qmodification_hooks);
-  Qmodification_hooks = intern ("modification-hooks");
-  staticpro (&Qinsert_in_front_hooks);
-  Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
-  staticpro (&Qinsert_behind_hooks);
-  Qinsert_behind_hooks = intern ("insert-behind-hooks");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
