@@ -257,20 +257,23 @@ format style.")
 
 (let ((comment-chars "c!*")
       (fortran-type-types
-       (eval-when-compile
-         (regexp-opt
-          (let ((simple-types '("character" "byte" "integer" "logical"
-                                "none" "real" "complex"
-                                "double[ \t]*precision" "double[ \t]*complex"))
-                (structured-types '("structure" "union" "map"))
-                (other-types '("record" "dimension" "parameter" "common" "save"
-                               "external" "intrinsic" "data" "equivalence")))
-            (append
-             (mapcar (lambda (x) (concat "implicit[ \t]*" x)) simple-types)
-             simple-types
-             (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
-             structured-types
-             other-types)))))
+;       (eval-when-compile
+;         (regexp-opt
+;          (let ((simple-types '("character" "byte" "integer" "logical"
+;                                "none" "real" "complex"
+;                                "double[ \t]*precision" "double[ \t]*complex"))
+;                (structured-types '("structure" "union" "map"))
+;                (other-types '("record" "dimension" "parameter" "common" "save"
+;                               "external" "intrinsic" "data" "equivalence")))
+;            (append
+;             (mapcar (lambda (x) (concat "implicit[ \t]*" x)) simple-types)
+;             simple-types
+;             (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
+;             structured-types
+;             other-types))))
+       ;; Derived from the above, changing the escaped `[ \t]*'s back.
+       ;; Should be done with a `replace all in string' function...
+       "byte\\|c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|d\\(ata\\|imension\\|ouble[ \t]*\\(complex\\|precision\\)\\)\\|e\\(nd[ \t]*\\(map\\|structure\\|union\\)\\|quivalence\\|xternal\\)\\|i\\(mplicit[ \t]*\\(byte\\|c\\(haracter\\|omplex\\)\\|double[ \t]*\\(complex\\|precision\\)\\|integer\\|logical\\|none\\|real\\)\\|nt\\(eger\\|rinsic\\)\\)\\|logical\\|map\\|none\\|parameter\\|re\\(al\\|cord\\)\\|s\\(ave\\|tructure\\)\\|union")
       (fortran-keywords
        (eval-when-compile
          (regexp-opt '("continue" "format" "end" "enddo" "if" "then"
