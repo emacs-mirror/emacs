@@ -27,7 +27,6 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "keyboard.h"
 #include "window.h"
-#include "mocklisp.h"
 #include "keymap.h"
 
 #ifdef HAVE_INDEX
@@ -277,11 +276,6 @@ supply if the command inquires which events were used to invoke it.  */)
       if (NILP (specs))
 	goto lose;
       specs = Fcar (Fcdr (specs));
-    }
-  else if (EQ (funcar, Qmocklisp))
-    {
-      single_kboard_state ();
-      return ml_apply (fun, Qinteractive);
     }
   else
     goto lose;
