@@ -64,7 +64,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
-#include <sys/param.h>
+/* Caused redefinition of DBL_DIG on Netbsd; seems not to be needed.  */
+/* #include <sys/param.h>  */
 
 #include "frame.h"
 #include "dispextern.h"
