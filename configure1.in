@@ -480,6 +480,20 @@ fi
 machine='' opsys='' unported='false'
 case "${canonical}" in
 
+  ## NetBSD ports
+  *-*-netbsd* )
+    opsys=netbsd
+    case "${canonical}" in
+      sparc-*-netbsd*)	machine=sparc ;;
+      i386-*-netbsd*)	machine=intel386 ;;
+      hp300-*-netbsd* | amiga-*-netbsd* | sun3-*-netbsd* | mac68k-*-netbsd* | da30-*-netbsd*)
+			# Yes, this is somewhat bogus.
+			machine=hp9000s300 ;;
+      pc532-*-netbsd*)	machine=ns32000 ;;
+      pmax-*-netbsd*)	machine=pmax ;;
+    esac
+  ;;
+
   ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
   ## system to choose the right machine file, but currently the
@@ -663,9 +677,6 @@ case "${canonical}" in
   ## HP 9000 series 200 or 300
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
-  ;;
-  m68*-hp-netbsd* )
-    machine=hp9000s300 opsys=netbsd
   ;;
   ## HP/UX 7, 8 and 9 are supported on these machines.
   m68*-hp-hpux* )
@@ -1045,7 +1056,6 @@ case "${canonical}" in
       *-bsd386* | *-bsdi* )	opsys=bsd386 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
-      *-netbsd* )	        opsys=netbsd ;;
       *-nextstep* )             opsys=mach2 ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
