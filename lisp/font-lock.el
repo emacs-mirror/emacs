@@ -496,89 +496,97 @@ This does fairly subdued highlighting.")
  "For consideration as a value of `c-font-lock-keywords'.
 This does a lot more highlighting.")
 
-(let ((storage "auto\\|extern\\|register\\|static\\|volatile")
-      (prefixes "unsigned\\|short\\|long")
-      (types (concat "int\\|char\\|float\\|double\\|void\\|struct\\|"
-		     "union\\|enum\\|typedef"))
-      (ctoken "[a-zA-Z0-9_:~*]+")
-      )
-  (setq c-font-lock-keywords-1
+(let* ((storage "auto\\|extern\\|register\\|static\\|typedef")
+       (struct "struct\\|union\\|enum")
+       (prefixes "signed\\|unsigned\\|short\\|long")
+       (types (concat prefixes "\\|int\\|char\\|float\\|double\\|void"))
+       (ctoken "[a-zA-Z0-9_:~*]+"))
+ (setq c-font-lock-keywords-1
+  (list
+   ;; fontify preprocessor directives as comments.
+   '("^#[ \t]*[a-z]+" . font-lock-comment-face)
+   ;;
+   ;; fontify names being defined.
+   '("^#[ \t]*\\(define\\|undef\\)[ \t]+\\(\\(\\sw\\|\\s_\\)+\\)" 2
+     font-lock-function-name-face)
+   ;;
+   ;; fontify other preprocessor lines.
+   '("^#[ \t]*\\(if\\|elif\\|else\\|endif\\)[ \t]+\\([^\n]+\\)"
+     2 font-lock-function-name-face keep)
+   '("^#[ \t]*\\(ifn?def\\)[ \t]+\\([^ \t\n]+\\)"
+     2 font-lock-function-name-face t)
+   ;;
+   ;; fontify the filename in #include <...>
+   ;; don't need to do this for #include "..." because those were
+   ;; already fontified as strings by the syntactic pass.
+   '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
+   ;;
+   ;; fontify the names of functions being defined.
+   (list (concat
+	  "^\\(" ctoken "[ \t]+\\)?"	; type specs; there can be no
+	  "\\(" ctoken "[ \t]+\\)?"	; more than 3 tokens, right?
+	  "\\(" ctoken "[ \t]+\\)?"
+	  "\\([*&]+[ \t]*\\)?"		; pointer
+	  "\\(" ctoken "\\)[ \t]*(")		; name
+    5 'font-lock-function-name-face)
+   ;;
+   ;;
+   ;; Fontify structure names (in structure definition form).
+   (list (concat "^\\(" storage "\\)?[ \t]*\\<\\(" struct "\\)"
+	  "[ \t]+\\(" ctoken "\\)[ \t]*\\(\{\\|$\\)")
+    3 'font-lock-function-name-face)
+   ;;
+   ;; Fontify declarations of simple identifiers (including typedefs).
+   ;; (Should this be in c-font-lock-keywords-2 instead?)
+   (list (concat "^[ \t]*\\(\\(" storage "\\)[ \t]+\\)?\\(\\(\\(" prefixes
+	  "\\)\\>[ \t]*\\)*\\(" types "\\)\\)[ \t]+\\(" ctoken
+	  "\\)[ \t]*[=;]")
+    7 'font-lock-function-name-face 'keep)
+   ;;
+   ;; And likewise for structs
+   (list (concat "^[ \t]*\\(\\(" storage "\\)[ \t]+\\)?\\(" struct
+	  "\\)[ \t]+" ctoken "[ \t]+\\(" ctoken "\\);")
+    4 'font-lock-function-name-face 'keep)
+   ;;
+   ;; Fontify case clauses.  This is fast because its anchored on the left.
+   '("case[ \t]+\\(\\(\\sw\\|\\s_\\)+\\):". 1)
+   '("\\<\\(default\\):". 1)
+   ))
+
+ (setq c-font-lock-keywords-2
+  (append c-font-lock-keywords-1
    (list
-    ;; fontify preprocessor directives as comments.
-    '("^#[ \t]*[a-z]+" . font-lock-comment-face)
     ;;
-    ;; fontify names being defined.
-    '("^#[ \t]*\\(define\\|undef\\)[ \t]+\\(\\(\\sw\\|\\s_\\)+\\)" 2
-      font-lock-function-name-face)
+    ;; fontify all storage classes and type specifiers
+    (cons (concat "\\<\\(" storage "\\)\\>") 'font-lock-type-face)
+    (cons (concat "\\<\\(\\(\\(" prefixes "\\)\\>[ \t]*\\)*\\(" types
+	   "\\)\\)\\>")
+     'font-lock-type-face)
+    (list (concat "\\<\\(" struct "\\)[ \t]+" ctoken)
+     0 'font-lock-type-face 'keep)
     ;;
-    ;; fontify other preprocessor lines.
-    '("^#[ \t]*\\(if\\)[ \t]+\\([^\n]+\\)"
-      2 font-lock-function-name-face keep)
-    '("^#[ \t]*\\(endif\\|else\\)[ \t]+\\([^\n]+\\)"
-      2 font-lock-function-name-face keep)
-    '("^#[ \t]*\\(ifn?def\\)[ \t]+\\([^ \t\n]+\\)"
-      2 font-lock-function-name-face t)
+    ;; fontify all builtin tokens
+    (cons (concat
+	   "[ \t]\\("
+	   (mapconcat 'identity
+	    '("for" "while" "do" "return" "goto" "case" "break" "switch"
+	      "if" "else" "default" "continue" "default")
+	    "\\|")
+	   "\\)[ \t\n(){};,]")
+     1)
     ;;
-    ;; fontify the filename in #include <...>
-    ;; don't need to do this for #include "..." because those were
-    ;; already fontified as strings by the syntactic pass.
-    '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
+    ;; fontify case targets and goto-tags.  This is slow because the
+    ;; expression is anchored on the right.
+    "\\(\\(\\sw\\|\\s_\\)+\\):"
     ;;
-    ;; fontify the names of functions being defined.
-    (list (concat
-	   "^\\(" ctoken "[ \t]+\\)?"	; type specs; there can be no
-	   "\\(" ctoken "[ \t]+\\)?"	; more than 3 tokens, right?
-	   "\\(" ctoken "[ \t]+\\)?"
-	   "\\([*&]+[ \t]*\\)?"		; pointer
-	   "\\(" ctoken "\\)[ \t]*(")		; name
-	  5 'font-lock-function-name-face)
+    ;; Fontify variables declared with structures, or typedef names.
+    '("}[ \t*]*\\(\\(\\sw\\|\\s_\\)+\\)[ \t]*[,;]"
+      1 font-lock-function-name-face)
     ;;
-    ;;
-    ;; Fontify structure names (in structure definition form).
-    (list (concat "^\\(typedef[ \t]+struct\\|struct\\|static[ \t]+struct\\)"
-		  "[ \t]+\\(" ctoken "\\)[ \t]*\\(\{\\|$\\)")
-	  2 'font-lock-function-name-face)
-    ;;
-    ;; Fontify case clauses.  This is fast because its anchored on the left.
-    '("case[ \t]+\\(\\(\\sw\\|\\s_\\)+\\):". 1)
-    '("\\<\\(default\\):". 1)
-    ))
-
-  (setq c-font-lock-keywords-2
-   (append c-font-lock-keywords-1
-    (list
-     ;;
-     ;; fontify all storage classes and type specifiers
-     (cons (concat "\\<\\(" storage "\\)\\>") 'font-lock-type-face)
-     (cons (concat "\\<\\(" types "\\)\\>") 'font-lock-type-face)
-     (cons (concat "\\<\\(" prefixes "[ \t]+" types "\\)\\>")
-	   'font-lock-type-face)
-     ;;
-     ;; fontify all builtin tokens
-     (cons (concat
-	    "[ \t]\\("
-	    (mapconcat 'identity
-	     '("for" "while" "do" "return" "goto" "case" "break" "switch"
-	       "if" "then" "else if" "else" "return" "default" "continue"
-	       "default"
-	       )
-	     "\\|")
-	    "\\)[ \t\n(){};,]")
-	   1)
-     ;;
-     ;; fontify case targets and goto-tags.  This is slow because the
-     ;; expression is anchored on the right.
-     "\\(\\(\\sw\\|\\s_\\)+\\):"
-     ;;
-     ;; Fontify variables declared with structures, or typedef names.
-     '("}[ \t*]*\\(\\(\\sw\\|\\s_\\)+\\)[ \t]*[,;]"
-       1 font-lock-function-name-face)
-     ;;
-     ;; Fontify global variables without a type.
-;     '("^\\([_a-zA-Z0-9:~*]+\\)[ \t]*[[;={]" 1 font-lock-function-name-face)
-
-     )))
-  )
+    ;; Fontify global variables without a type.
+;    '("^\\([_a-zA-Z0-9:~*]+\\)[ \t]*[[;={]" 1 font-lock-function-name-face)
+    )))
+ )
 
 ; default to the gaudier variety?
 ;(defvar c-font-lock-keywords c-font-lock-keywords-2
