@@ -2170,7 +2170,7 @@ init_system_name ()
 	}
       if (hp)
 	{
-	  char *fqdn = hp->h_name;
+	  char *fqdn = (char *) hp->h_name;
 	  char *p;
 
 	  if (!index (fqdn, '.'))
@@ -2884,10 +2884,19 @@ sys_open (path, oflag, mode)
 sys_close (fd)
      int fd;
 {
+  int did_retry = 0;
   register int rtnval;
 
   while ((rtnval = close (fd)) == -1
-	 && (errno == EINTR));
+	 && (errno == EINTR))
+    did_retry = 1;
+
+  /* If close is interrupted SunOS 4.1 may or may not have closed the
+     file descriptor.  If it did the second close will fail with
+     errno = EBADF.  That means we have succeeded.  */
+  if (rtnval == -1 && did_retry && errno == EBADF)
+    return 0;
+
   return rtnval;
 }
 
