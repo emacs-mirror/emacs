@@ -324,17 +324,33 @@ struct x_display
      scroll bars, in pixels.  */
   int vertical_scroll_bar_extra;
 
-  /* Table of faces for this frame.  */
-  struct face **faces;
-  /* Length of that table.  */
-  int n_faces;
+  /* Table of parameter faces for this frame.  Any X resources (pixel
+     values, fonts) referred to here have been allocated explicitly
+     for this face, and should be freed if we change the face.  */
+  struct face **param_faces;
+  int n_param_faces;
+
+  /* Table of computed faces for this frame.  These are the faces
+     whose indexes go into the upper bits of a glyph, computed by
+     combining the parameter faces specified by overlays, text
+     properties, and what have you.  The X resources mentioned here
+     are all shared with parameter faces.  */
+  struct face **computed_faces;
+  int n_computed_faces;		/* How many are valid */
+  int size_computed_faces;	/* How many are allocated */
 };
 
-/* Get at the faces of an X window frame.  */
-#define FRAME_FACES(f) ((f)->display.x->faces)
-#define FRAME_N_FACES(f) ((f)->display.x->n_faces)
-#define FRAME_DEFAULT_FACE(f) ((f)->display.x->faces[0])
-#define FRAME_MODE_LINE_FACE(f) ((f)->display.x->faces[1])
+/* Get at the computed faces of an X window frame.  */
+#define FRAME_PARAM_FACES(f) ((f)->display.x->param_faces)
+#define FRAME_N_PARAM_FACES(f) ((f)->display.x->n_param_faces)
+#define FRAME_DEFAULT_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[0])
+#define FRAME_MODE_LINE_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[1])
+
+#define FRAME_COMPUTED_FACES(f) ((f)->display.x->computed_faces)
+#define FRAME_N_COMPUTED_FACES(f) ((f)->display.x->n_computed_faces)
+#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->display.x->size_computed_faces)
+#define FRAME_DEFAULT_FACE(f) ((f)->display.x->computed_faces[0])
+#define FRAME_MODE_LINE_FACE(f) ((f)->display.x->computed_faces[1])
 
 /* Return the window associated with the frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
@@ -574,13 +590,14 @@ struct selection_input_event
 
 /* Interface to the face code functions.  */
 
-/* Create the first two faces for a frame -- the ones that have GC's.  */
+/* Create the first two computed faces for a frame -- the ones that
+   have GC's.  */
 extern void init_frame_faces (/* FRAME_PTR */);
 
 /* Free the resources for the faces associated with a frame.  */
 extern void free_frame_faces (/* FRAME_PTR */);
 
-/* Given a non-display face, find or make an equivalent display face
+/* Given a computed face, find or make an equivalent display face
    in face_vector, and return a pointer to it.  */
 extern struct face *intern_face (/* FRAME_PTR, struct face * */);
 
@@ -597,11 +614,11 @@ extern int same_size_fonts (/* XFontStruct *, XFontStruct * */);
    depend.  */
 extern void recompute_basic_faces (/* FRAME_PTR */);
 
-/* Return the face ID associated with a buffer position POS.
-   Store into *ENDPTR the position at which a different face is needed.
-   This does not take account of glyphs that specify their own face codes.
-   F is the frame in use for display, and W is a window displaying
-   the current buffer.
+/* Return the face ID associated with a buffer position POS.  Store
+   into *ENDPTR the next position at which a different face is
+   needed.  This does not take account of glyphs that specify their
+   own face codes.  F is the frame in use for display, and W is a
+   window displaying the current buffer.
 
    REGION_BEG, REGION_END delimit the region, so it can be highlighted.  */
 extern int compute_char_face (/* FRAME_PTR frame,

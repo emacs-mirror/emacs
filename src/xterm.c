@@ -389,8 +389,8 @@ XTcursor_to (row, col)
    Since the display generation code is responsible for calling
    compute_char_face and compute_glyph_face on everything it puts in
    the display structure, we can assume that the face code on each
-   glyph is a valid index into FRAME_FACES (f), and the one to which
-   we can actually apply intern_face.  */
+   glyph is a valid index into FRAME_COMPUTED_FACES (f), and the one
+   to which we can actually apply intern_face.  */
 
 #if 1
 /* This is the multi-face code.  */
@@ -451,13 +451,14 @@ dumpglyphs (f, left, top, gp, n, hl)
 	  {
 	    /* The face codes on the glyphs must be valid indices into the
 	       frame's face table.  */
-	    if (cf < 0 || cf >= FRAME_N_FACES (f))
+	    if (cf < 0 || cf >= FRAME_N_COMPUTED_FACES (f)
+		|| FRAME_COMPUTED_FACES (f) [cf] == 0)
 	      abort ();
 
 	    if (cf == 1)
 	      face = FRAME_MODE_LINE_FACE (f);
 	    else
-	      face = intern_face (f, FRAME_FACES (f) [cf]);
+	      face = intern_face (f, FRAME_COMPUTED_FACES (f) [cf]);
 	    font = FACE_FONT (face);
 	    gc = FACE_GC (face);
 	    defaulted = 0;
