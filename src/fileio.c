@@ -1803,6 +1803,10 @@ A prefix arg makes KEEP-TIME non-nil.")
 	report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
+  /* Closing the output clobbers the file times on some systems.  */
+  if (close (ofd) < 0)
+    report_file_error ("I/O error", Fcons (newname, Qnil));
+
   if (input_file_statable_p)
     {
       if (!NILP (keep_date))
@@ -1818,12 +1822,10 @@ A prefix arg makes KEEP-TIME non-nil.")
 	chmod (XSTRING (newname)->data, st.st_mode & 07777);
     }
 
+  close (ifd);
+
   /* Discard the unwind protects.  */
   specpdl_ptr = specpdl + count;
-
-  close (ifd);
-  if (close (ofd) < 0)
-    report_file_error ("I/O error", Fcons (newname, Qnil));
 
   UNGCPRO;
   return Qnil;
