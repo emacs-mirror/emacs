@@ -293,7 +293,7 @@ region_limit (beginningp)
   
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m))
-    error ("There is no region now");
+    error ("The mark is not set now, so there is no region");
   
   if ((PT < XFASTINT (m)) == beginningp)
     m = make_number (PT);
