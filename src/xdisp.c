@@ -8032,6 +8032,12 @@ redisplay_internal (preserve_echo_area)
       fonts_changed_p = 0;
     }
 
+  /* If face_change_count is non-zero, init_iterator will free all
+     realized faces, which includes the faces referenced from current
+     matrices.  So, we can't reuse current matrices in this case.  */
+  if (face_change_count)
+    ++windows_or_buffers_changed;
+
   if (! FRAME_WINDOW_P (sf)
       && previous_terminal_frame != sf)
     {
