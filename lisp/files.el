@@ -2061,7 +2061,8 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			  file)))))))
 
 (defvar kill-emacs-query-functions nil
-  "Functions to call with no arguments to query about killing Emacs.")
+  "Functions to call with no arguments to query about killing Emacs.
+If any of these functions returns nil, killing Emacs is cancelled.")
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
