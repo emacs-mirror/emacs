@@ -49,7 +49,7 @@ clear_charpos_cache (b)
 /* Converting between character positions and byte positions.  */
 
 /* There are several places in the buffer where we know
-   the corrspondence: BEG, BEGV, PT, GPT, ZV and Z,
+   the correspondence: BEG, BEGV, PT, GPT, ZV and Z,
    and everywhere there is a marker.  So we find the one of these places
    that is closest to the specified position, and scan from there.  */
 
