@@ -1284,7 +1284,7 @@ specifies the character set for the major languages of Western Europe."
 	(dos-table
 	 (if (eq window-system 'pc)
 	     (intern
-	      (concat "cp" dos-codepage "-nonascii-translation-table")))))
+	      (format "cp%d-nonascii-translation-table" dos-codepage)))))
     (cond
      ((char-table-p nonascii)
       (setq nonascii-translation-table nonascii))
