@@ -170,6 +170,10 @@ static Lisp_Object previous_help_echo;
 
 static int any_help_event_p;
 
+/* Non-zero means autoselect window with the mouse cursor.  */
+
+int x_autoselect_window_p;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -6290,6 +6294,26 @@ note_mouse_movement (frame, msg)
   memcpy (&last_mouse_motion_event, msg, sizeof (last_mouse_motion_event));
   XSETFRAME (last_mouse_motion_frame, frame);
 
+  if (x_autoselect_window_p)
+    {
+      int area;
+      Lisp_Object window;
+      static Lisp_Object last_window;
+
+      window = window_from_coordinates (frame, mouse_x, mouse_y, &area, 0);
+
+      /* Window will be selected only when it is not selected now and
+	 last mouse movement event was not in it.  Minubuffer window
+	 will be selected iff it is active.  */
+      if (!EQ (window, last_window)
+	  && !EQ (window, selected_window)
+	  && (!MINI_WINDOW_P (XWINDOW (window))
+	      || (EQ (window, minibuf_window) && minibuf_level > 0)))
+	Fselect_window (window);
+
+      last_window=window;
+    }
+
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
       frame->mouse_moved = 1;
@@ -7568,6 +7592,8 @@ cancel_mouse_face (f)
 
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
+static void x_check_fullscreen P_ ((struct frame *));
+static void x_check_fullscreen_move P_ ((struct frame *));
 static int glyph_rect P_ ((struct frame *f, int, int, RECT *));
 
 
@@ -8867,8 +8893,22 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  }
 	  
 	case WM_WINDOWPOSCHANGED:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    {
+	      x_check_fullscreen_move(f);
+	      if (f->output_data.w32->want_fullscreen & FULLSCREEN_WAIT)
+		f->output_data.w32->want_fullscreen &=
+		  ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
+	    }
+	  check_visibility = 1;
+	  break;
+
 	case WM_ACTIVATE:
 	case WM_ACTIVATEAPP:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    x_check_fullscreen (f);
 	  check_visibility = 1;
 	  break;
 
@@ -10236,6 +10276,115 @@ x_set_offset (f, xoff, yoff, change_gravity)
   UNBLOCK_INPUT;
 }
 
+
+/* Check if we need to resize the frame due to a fullscreen request.
+   If so needed, resize the frame. */
+static void
+x_check_fullscreen (f)
+     struct frame *f;
+{
+  if (f->output_data.w32->want_fullscreen & FULLSCREEN_BOTH)
+    {
+      int width, height, ign;
+                      
+      x_real_positions (f, &f->output_data.w32->left_pos,
+                        &f->output_data.w32->top_pos);
+
+      x_fullscreen_adjust (f, &width, &height, &ign, &ign);
+                  
+      /* We do not need to move the window, it shall be taken care of
+         when setting WM manager hints.
+         If the frame is visible already, the position is checked by
+         x_check_fullscreen_move. */
+      if (f->width != width || f->height != height)
+        {
+          change_frame_size (f, height, width, 0, 1, 0);
+          SET_FRAME_GARBAGED (f);
+          cancel_mouse_face (f);
+
+          /* Wait for the change of frame size to occur */
+          f->output_data.w32->want_fullscreen |= FULLSCREEN_WAIT;
+        }
+    }
+}
+
+/* If frame parameters are set after the frame is mapped, we need to move
+   the window.  This is done in xfns.c.
+   Some window managers moves the window to the right position, some
+   moves the outer window manager window to the specified position.
+   Here we check that we are in the right spot.  If not, make a second
+   move, assuming we are dealing with the second kind of window manager. */
+static void
+x_check_fullscreen_move (f)
+     struct frame *f;
+{
+  if (f->output_data.w32->want_fullscreen & FULLSCREEN_MOVE_WAIT)
+  {
+    int expect_top = f->output_data.w32->top_pos;
+    int expect_left = f->output_data.w32->left_pos;
+
+    if (f->output_data.w32->want_fullscreen & FULLSCREEN_HEIGHT)
+      expect_top = 0;
+    if (f->output_data.w32->want_fullscreen & FULLSCREEN_WIDTH)
+      expect_left = 0;
+    
+    if (expect_top != f->output_data.w32->top_pos
+        || expect_left != f->output_data.w32->left_pos)
+      x_set_offset (f, expect_left, expect_top, 1);
+
+    /* Just do this once */
+    f->output_data.w32->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
+  }
+}
+
+
+/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
+   wanted positions of the WM window (not emacs window).
+   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
+   window (FRAME_X_WINDOW).
+ */
+void
+x_fullscreen_adjust (f, width, height, top_pos, left_pos)
+     struct frame *f;
+     int *width;
+     int *height;
+     int *top_pos;
+     int *left_pos;
+{
+  int newwidth = f->width, newheight = f->height;
+
+  *top_pos = f->output_data.w32->top_pos;
+  *left_pos = f->output_data.w32->left_pos;
+  
+  if (f->output_data.w32->want_fullscreen & FULLSCREEN_HEIGHT)
+    {
+      int ph;
+      
+      ph = FRAME_X_DISPLAY_INFO (f)->height;
+      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
+      ph = CHAR_TO_PIXEL_HEIGHT (f, newheight)
+        - f->output_data.w32->y_pixels_diff;
+      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
+      *top_pos = 0;
+    }
+
+  if (f->output_data.w32->want_fullscreen & FULLSCREEN_WIDTH)
+    {
+      int pw;
+      
+      pw = FRAME_X_DISPLAY_INFO (f)->width;
+      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
+      pw = CHAR_TO_PIXEL_WIDTH (f, newwidth)
+        - f->output_data.w32->x_pixels_diff;
+      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
+      *left_pos = 0;
+    }
+
+  *width = newwidth;
+  *height = newheight;
+}
+
+
 /* Call this to change the size of frame F's x-window.
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
    for this size change and subsequent size changes.
@@ -11209,6 +11358,10 @@ affect on NT machines.  */);
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
+
+  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
+    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
+  x_autoselect_window_p = 0;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
 	       &w32_use_visible_system_caret,
