@@ -1137,6 +1137,10 @@ init_sys_modes ()
       tty = old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
+#ifdef DGUX
+      /* This allows meta to be sent on 8th bit.  */
+      tty.main.c_iflag &= ~INPCK;	/* don't check input for parity */
+#endif
       tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
       tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef ISTRIP
@@ -1200,6 +1204,12 @@ init_sys_modes ()
 #ifdef VDISCARD
       tty.main.c_cc[VDISCARD] = CDISABLE;
 #endif /* VDISCARD */
+#ifdef VSTART
+      tty.main.c_cc[VSTART] = CDISABLE;
+#endif /* VSTART */
+#ifdef VSTOP
+      tty.main.c_cc[VSTOP] = CDISABLE;
+#endif /* VSTOP */
 #endif /* mips or HAVE_TCATTR */
 #ifdef AIX
 #ifndef IBMR2AIX
