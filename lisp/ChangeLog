@@ -1,5 +1,8 @@
 2001-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/ispell.el (ispell-alternate-dictionary): Add
+	/usr/share/lib/dict/words, for Irix.
+
 	* bindings.el: Bind shifted and control-shifted kp-* keys to the
 	corresponding non-kp keys.  Suggested by Stephen Gildea
 	<gildea@alum.mit.edu>.
