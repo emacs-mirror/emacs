@@ -121,6 +121,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
 #undef HAVE_LIBRESOLV
+#undef HAVE_LIBXMU
 
 #undef HAVE_ALLOCA_H
 
@@ -217,15 +218,6 @@ and this notice must be preserved on all copies.  */
    See m/template.h for documentation on writing m/MACHINE.h files.  */
 #undef config_machfile
 #include config_machfile
-
-/* These typedefs shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
-#ifndef SPECIAL_EMACS_INT
-typedef long EMACS_INT;
-typedef unsigned long EMACS_UINT;
-#endif
-#endif
 
 /* Load in the conversion definitions if this system
    needs them and the source file being compiled has not
