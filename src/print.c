@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 2003
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -596,8 +596,8 @@ temp_output_buffer_setup (bufname)
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
   current_buffer->undo_list = Qt;
-  current_buffer->overlays_before = Qnil;
-  current_buffer->overlays_after = Qnil;
+  current_buffer->overlays_before = NULL;
+  current_buffer->overlays_after = NULL;
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
