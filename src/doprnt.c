@@ -104,6 +104,11 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    size_bound = -size_bound;
 	  size_bound += 50;
 
+	  if (size_bound > bufsize)
+	    /* This is certainly enough that it doesn't matter
+	       to lose the rest.  */
+	    size_bound = bufsize + 100;
+
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
 	    {
@@ -125,7 +130,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'o':
 	    case 'x':
 	      if (cnt == nargs)
-		error ("not enough arguments for format string");
+		error ("Not enough arguments for format string");
 	      if (sizeof (int) == sizeof (EMACS_INT))
 		;
 	      else if (sizeof (long) == sizeof (EMACS_INT))
