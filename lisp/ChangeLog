@@ -1,3 +1,8 @@
+2001-02-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el: Remove unused charsets
+	mac-roman-lower and mac-roman-upper.
+
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/fill.el (set-fill-prefix): Cancel fill prefix if point
