@@ -81,7 +81,7 @@ C-x 8}.
   The rest of this chapter describes these issues in detail.
 
 @menu
-* International Intro::     Basic concepts of multibyte characters.
+* International Chars::     Basic concepts of multibyte characters.
 * Enabling Multibyte::      Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
@@ -100,7 +100,7 @@ C-x 8}.
                             to use without multibyte characters.
 @end menu
 
-@node International Intro
+@node International Chars
 @section Introduction to International Character Sets
 
   The users of international character sets and scripts have established
