@@ -465,22 +465,34 @@ init_frame_faces (f)
 
   recompute_basic_faces (f);
 
-  /* Supposedly, we only apply this function to newly-created frames.  */
-  if (selected_frame == f)
-    abort ();
+  /* Find another X frame.  */
+  {
+    Lisp_Object tail, frame, result;
+    
+    result = Qnil;
+    FOR_EACH_FRAME (tail, frame)
+      if (FRAME_X_P (XFRAME (frame))
+	  && XFRAME (frame) != f)
+	{
+	  result = frame;
+	  break;
+	}
 
-  /* Make sure that all faces valid on the selected frame are also valid
-     on this new frame.  */
-  if (FRAME_X_P (selected_frame))
-    {
-      int i;
-      int n_faces = selected_frame->display.x->n_faces;
-      struct face **faces = selected_frame->display.x->faces;
+    /* If we didn't find any X frames other than f, then we don't need
+       any faces other than 0 and 1, so we're okay.  Otherwise, make
+       sure that all faces valid on the selected frame are also valid
+       on this new frame.  */
+    if (FRAMEP (result))
+      {
+	int i;
+	int n_faces = XFRAME (result)->display.x->n_faces;
+	struct face **faces = XFRAME (result)->display.x->faces;
 
-      for (i = 2; i < n_faces; i++)
-	if (faces[i])
-	  ensure_face_ready (f, i);
-    }
+	for (i = 2; i < n_faces; i++)
+	  if (faces[i])
+	    ensure_face_ready (f, i);
+      }
+  }
 }
 
 
