@@ -219,7 +219,7 @@ Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, Qwhen;
+Lisp_Object QCeval, Qwhen, QCfile;
 Lisp_Object Qfontified;
 
 /* Functions called to fontify regions of text.  */
@@ -4808,6 +4808,7 @@ message2_nolog (m, len, multibyte)
      char *m;
      int len;
 {
+  struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
   if (noninteractive)
@@ -4825,19 +4826,19 @@ message2_nolog (m, len, multibyte)
      initialized yet.  Error messages get reported properly by
      cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE 
-	   && selected_frame->glyphs_initialized_p
-	   && FRAME_MESSAGE_BUF (selected_frame))
+	   && sf->glyphs_initialized_p
+	   && FRAME_MESSAGE_BUF (sf))
     {
       Lisp_Object mini_window;
       struct frame *f;
 
       /* Get the frame containing the mini-buffer
 	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
       FRAME_SAMPLE_VISIBILITY (f);
-      if (FRAME_VISIBLE_P (selected_frame)
+      if (FRAME_VISIBLE_P (sf)
 	  && ! FRAME_VISIBLE_P (f))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (mini_window)));
 
@@ -4891,6 +4892,7 @@ message3_nolog (m, nbytes, multibyte)
      Lisp_Object m;
      int nbytes, multibyte;
 {
+  struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
   if (noninteractive)
@@ -4908,8 +4910,8 @@ message3_nolog (m, nbytes, multibyte)
      initialized yet.  Error messages get reported properly by
      cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE 
-	   && selected_frame->glyphs_initialized_p
-	   && FRAME_MESSAGE_BUF (selected_frame))
+	   && sf->glyphs_initialized_p
+	   && FRAME_MESSAGE_BUF (sf))
     {
       Lisp_Object mini_window;
       Lisp_Object frame;
@@ -4917,12 +4919,12 @@ message3_nolog (m, nbytes, multibyte)
 
       /* Get the frame containing the mini-buffer
 	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
       frame = XWINDOW (mini_window)->frame;
       f = XFRAME (frame);
 
       FRAME_SAMPLE_VISIBILITY (f);
-      if (FRAME_VISIBLE_P (selected_frame)
+      if (FRAME_VISIBLE_P (sf)
 	  && !FRAME_VISIBLE_P (f))
 	Fmake_frame_visible (frame);
 
@@ -4997,11 +4999,11 @@ message_with_string (m, string, log)
 	 It may be larger than the selected frame, so we need
 	 to use its buffer, not the selected frame's buffer.  */
       Lisp_Object mini_window;
-      FRAME_PTR f;
+      struct frame *f, *sf = SELECTED_FRAME ();
 
       /* Get the frame containing the minibuffer
 	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
       /* A null message buffer means that the frame hasn't really been
@@ -5059,11 +5061,11 @@ message (m, a1, a2, a3)
 	 on.  It may be larger than the selected frame, so we need to
 	 use its buffer, not the selected frame's buffer.  */
       Lisp_Object mini_window;
-      struct frame *f;
+      struct frame *f, *sf = SELECTED_FRAME ();
 
       /* Get the frame containing the mini-buffer
 	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
       /* A null message buffer means that the frame hasn't really been
@@ -5344,8 +5346,9 @@ setup_echo_area_for_printing (multibyte_p)
       /* Raise the frame containing the echo area.  */
       if (minibuffer_auto_raise)
 	{
+	  struct frame *sf = SELECTED_FRAME ();
 	  Lisp_Object mini_window;
-	  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+	  mini_window = FRAME_MINIBUF_WINDOW (sf);
 	  Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
 	}
 
@@ -5619,9 +5622,12 @@ truncate_echo_area (nchars)
      cmd_error, so this must be just an informative message; toss it.  */
   else if (!noninteractive
 	   && INTERACTIVE
-	   && FRAME_MESSAGE_BUF (selected_frame)
 	   && !NILP (echo_area_buffer[0]))
-    with_echo_area_buffer (0, 0, (int (*) ()) truncate_message_1, nchars);
+    {
+      struct frame *sf = SELECTED_FRAME ();
+      if (FRAME_MESSAGE_BUF (sf))
+	with_echo_area_buffer (0, 0, (int (*) ()) truncate_message_1, nchars);
+    }
 }
 
 
@@ -5794,8 +5800,8 @@ clear_garbaged_frames ()
 }
 
 
-/* Redisplay the echo area of selected_frame.  If UPDATE_FRAME_P is
-   non-zero update selected_frame.  Value is non-zero if the
+/* Redisplay the echo area of the selected frame.  If UPDATE_FRAME_P
+   is non-zero update selected_frame.  Value is non-zero if the
    mini-windows height has been changed.  */
 
 static int
@@ -5806,8 +5812,9 @@ echo_area_display (update_frame_p)
   struct window *w;
   struct frame *f;
   int window_height_changed_p = 0;
+  struct frame *sf = SELECTED_FRAME ();
 
-  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+  mini_window = FRAME_MINIBUF_WINDOW (sf);
   w = XWINDOW (mini_window);
   f = XFRAME (WINDOW_FRAME (w));
 
@@ -5819,7 +5826,7 @@ echo_area_display (update_frame_p)
      frame, even if we run under a window system.  If we let this
      through, a message would be displayed on the terminal.  */
 #ifdef HAVE_WINDOW_SYSTEM
-  if (!inhibit_window_system && !FRAME_WINDOW_P (selected_frame))
+  if (!inhibit_window_system && !FRAME_WINDOW_P (sf))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -6107,9 +6114,10 @@ prepare_menu_bars ()
     }
   else
     {
-      update_menu_bar (selected_frame, 1);
+      struct frame *sf = SELECTED_FRAME ();
+      update_menu_bar (sf, 1);
 #ifdef HAVE_WINDOW_SYSTEM
-      update_tool_bar (selected_frame, 1);
+      update_tool_bar (sf, 1);
 #endif
     }
 
@@ -6933,6 +6941,7 @@ redisplay_internal (preserve_echo_area)
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
   int count;
+  struct frame *sf = SELECTED_FRAME ();
 
   /* Non-zero means redisplay has to consider all windows on all
      frames.  Zero means, only selected_window is considered.  */
@@ -6986,17 +6995,17 @@ redisplay_internal (preserve_echo_area)
       fonts_changed_p = 0;
     }
 
-  if (! FRAME_WINDOW_P (selected_frame)
-      && previous_terminal_frame != selected_frame)
+  if (! FRAME_WINDOW_P (sf)
+      && previous_terminal_frame != sf)
     {
       /* Since frames on an ASCII terminal share the same display
 	 area, displaying a different frame means redisplay the whole
 	 thing.  */
       windows_or_buffers_changed++;
-      SET_FRAME_GARBAGED (selected_frame);
-      XSETFRAME (Vterminal_frame, selected_frame);
+      SET_FRAME_GARBAGED (sf);
+      XSETFRAME (Vterminal_frame, sf);
     }
-  previous_terminal_frame = selected_frame;
+  previous_terminal_frame = sf;
 
   /* Set the visible flags for all frames.  Do this before checking
      for resized or garbaged frames; they want to know if their frames
@@ -7350,7 +7359,7 @@ redisplay_internal (preserve_echo_area)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-	  if (FRAME_WINDOW_P (f) || f == selected_frame)
+	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
@@ -7367,8 +7376,8 @@ redisplay_internal (preserve_echo_area)
 	    }
 	}
     }
-  else if (FRAME_VISIBLE_P (selected_frame)
-	   && !FRAME_OBSCURED_P (selected_frame))
+  else if (FRAME_VISIBLE_P (sf)
+	   && !FRAME_OBSCURED_P (sf))
     redisplay_window (selected_window, 1);
 
   
@@ -7403,7 +7412,7 @@ update:
 	    f = XFRAME (XCAR (tail));
 	    
 	    if ((FRAME_WINDOW_P (f)
-		 || f == selected_frame)
+		 || f == sf)
 		&& FRAME_VISIBLE_P (f)
 		&& !FRAME_OBSCURED_P (f)
 		&& hscroll_windows (f->root_window))
@@ -7420,7 +7429,7 @@ update:
 
 	  f = XFRAME (XCAR (tail));
 
-	  if ((FRAME_WINDOW_P (f) || f == selected_frame)
+	  if ((FRAME_WINDOW_P (f) || f == sf)
 	      && FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 	    {
 	      /* Mark all windows as to be updated.  */
@@ -7437,14 +7446,14 @@ update:
     }
   else
     {
-      if (FRAME_VISIBLE_P (selected_frame)
-	  && !FRAME_OBSCURED_P (selected_frame))
+      if (FRAME_VISIBLE_P (sf)
+	  && !FRAME_OBSCURED_P (sf))
 	{
 	  if (hscroll_windows (selected_window))
 	    goto retry;
 	  
 	  XWINDOW (selected_window)->must_be_updated_p = 1;
-	  pause = update_frame (selected_frame, 0, 0);
+	  pause = update_frame (sf, 0, 0);
 	}
       else
 	pause = 0;
@@ -7458,10 +7467,10 @@ update:
 	Lisp_Object mini_window;
 	struct frame *mini_frame;
 
-	mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+	mini_window = FRAME_MINIBUF_WINDOW (sf);
 	mini_frame = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 	
-	if (mini_frame != selected_frame && FRAME_WINDOW_P (mini_frame))
+	if (mini_frame != sf && FRAME_WINDOW_P (mini_frame))
 	  {
 	    XWINDOW (mini_window)->must_be_updated_p = 1;
 	    pause |= update_frame (mini_frame, 0, 0);
@@ -7506,7 +7515,7 @@ update:
       BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
 
       if (consider_all_windows_p)
-	mark_window_display_accurate (FRAME_ROOT_WINDOW (selected_frame), 1);
+	mark_window_display_accurate (FRAME_ROOT_WINDOW (sf), 1);
       else
 	{
 	  XSETFASTINT (w->last_point, BUF_PT (b));
@@ -7535,7 +7544,7 @@ update:
 	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
 	  last_arrow_string = Voverlay_arrow_string;
 	  if (frame_up_to_date_hook != 0)
-	    (*frame_up_to_date_hook) (selected_frame);
+	    (*frame_up_to_date_hook) (sf);
 
 	  w->current_matrix->buffer = b;
 	  w->current_matrix->begv = BUF_BEGV (b);
@@ -10437,7 +10446,8 @@ DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row,
        0, 0, "", "")
   ()
 {
-  struct glyph_matrix *m = (XWINDOW (selected_frame->tool_bar_window)
+  struct frame *sf = SELECTED_FRAME ();
+  struct glyph_matrix *m = (XWINDOW (sf->tool_bar_window)
 			    ->current_matrix);
   dump_glyph_row (m, 0, 1);
   return Qnil;
@@ -12615,6 +12625,8 @@ syms_of_xdisp ()
   QCeval = intern (":eval");
   staticpro (&QCeval);
   Qwhen = intern ("when");
+  QCfile = intern (":file");
+  staticpro (&QCfile);
   staticpro (&Qwhen);
   Qfontified = intern ("fontified");
   staticpro (&Qfontified);
