@@ -1,3 +1,10 @@
+2005-02-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Cancel previous change. for
+	I-WITH-DOT-ABOVE and DOTLESS-i.
+
+	* international/latin-5.el: Cancel previous change.
+
 2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el: Correction to syntax in gud-menu-map.
