@@ -1382,6 +1382,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 
   Position root_x, root_y;
 
+  int first_pane;
+
   *error = NULL;
 
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
@@ -1438,6 +1440,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   wv->value = 0;
   wv->enabled = 1;
   first_wv = wv;
+  first_pane = 1;
  
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
@@ -1448,12 +1451,14 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
 	  prev_wv = 0;
+	  first_pane = 1;
 	  i++;
 	}
       else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
 	{
 	  prev_wv = save_wv;
 	  save_wv = submenu_stack[--submenu_depth];
+	  first_pane = 0;
 	  i++;
 	}
       else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
@@ -1480,7 +1485,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  /* If the pane has a meaningful name,
 	     make the pane a top-level menu item
 	     with its items as a submenu beneath it.  */
-	  if (strcmp (pane_string, ""))
+	  if (!keymaps && strcmp (pane_string, ""))
 	    {
 	      wv = malloc_widget_value ();
 	      if (save_wv)
@@ -1492,9 +1497,15 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 		wv->name++;
 	      wv->value = 0;
 	      wv->enabled = 1;
+	      save_wv = wv;
+	      prev_wv = 0;
 	    }
-	  save_wv = wv;
-	  prev_wv = 0;
+	  else if (first_pane)
+	    {
+	      save_wv = wv;
+	      prev_wv = 0;
+	    }
+	  first_pane = 0;
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
       else
