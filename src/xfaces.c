@@ -278,10 +278,21 @@ Lisp_Object Qunspecified;
 
 Lisp_Object Qx_charset_registry;
 
+/* The name of the function to call when the background of the frame
+   has changed, frame_update_face_colors.  */
+
+Lisp_Object Qframe_update_face_colors;
+
 /* Names of basic faces.  */
 
-Lisp_Object Qdefault, Qmodeline, Qtool_bar, Qregion, Qfringe;
+Lisp_Object Qdefault, Qmode_line, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse;;
+
+/* The symbol `face-alias'.  A symbols having that property is an
+   alias for another face.  Value of the property is the name of
+   the aliased face.  */
+
+Lisp_Object Qface_alias;
 
 /* Names of frame parameters related to faces.  */
 
@@ -2274,7 +2285,7 @@ font_list (f, pattern, family, registry_and_encoding, fonts)
 
 
 /* Remove elements from LIST whose cars are `equal'.  Called from
-   x-font-list and x-font-family-list to remove duplicate font
+   x-family-fonts and x-font-family-list to remove duplicate font
    entries.  */
 
 static void
@@ -2294,7 +2305,7 @@ remove_duplicates (list)
 }
 
 
-DEFUN ("x-font-list", Fxfont_list, Sx_font_list, 0, 2, 0,
+DEFUN ("x-family-fonts", Fx_family_fonts, Sx_family_fonts, 0, 2, 0,
   "Return a list of available fonts of family FAMILY on FRAME.\n\
 If FAMILY is omitted or nil, list all families.\n\
 Otherwise, FAMILY must be a string, possibly containing wildcards\n\
@@ -2610,9 +2621,11 @@ check_lface (lface)
 /* Return the face definition of FACE_NAME on frame F.  F null means
    return the global definition.  FACE_NAME may be a string or a
    symbol (apparently Emacs 20.2 allows strings as face names in face
-   text properties; ediff uses that).  If SIGNAL_P is non-zero, signal
-   an error if FACE_NAME is not a valid face name.  If SIGNAL_P is
-   zero, value is nil if FACE_NAME is not a valid face name.  */
+   text properties; ediff uses that).  If FACE_NAME is an alias for
+   another face, return that face's definition.  If SIGNAL_P is
+   non-zero, signal an error if FACE_NAME is not a valid face name.
+   If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
+   name.  */
 
 static INLINE Lisp_Object
 lface_from_face_name (f, face_name, signal_p)
@@ -2620,10 +2633,16 @@ lface_from_face_name (f, face_name, signal_p)
      Lisp_Object face_name;
      int signal_p;
 {
-  Lisp_Object lface;
+  Lisp_Object lface, alias;
 
   if (STRINGP (face_name))
     face_name = intern (XSTRING (face_name)->data);
+
+  /* If FACE_NAME is an alias for another face, return the definition
+     of the aliased face.  */
+  alias = Fget (face_name, Qface_alias);
+  if (!NILP (alias))
+    face_name = alias;
 
   if (f)
     lface = assq_no_quit (face_name, f->face_alist);
@@ -3557,7 +3576,7 @@ update_face_from_frame_parameter (f, param, new_value)
 
   /* If there are no faces yet, give up.  This is the case when called
      from Fx_create_frame, and we do the necessary things later in
-     face-set-after-frame-defaults. */
+     face-set-after-frame-defaults.  */
   if (NILP (f->face_alist))
     return;
   
@@ -3570,6 +3589,14 @@ update_face_from_frame_parameter (f, param, new_value)
     }
   else if (EQ (param, Qbackground_color))
     {
+      Lisp_Object frame;
+
+      /* Changing the background color might change the background
+	 mode, so that we have to load new defface specs.  Call
+	 frame-update-face-colors to do that.  */
+      XSETFRAME (frame, f);
+      call1 (Qframe_update_face_colors, frame);
+      
       lface = lface_from_face_name (f, Qdefault, 1);
       LFACE_BACKGROUND (lface) = (STRINGP (new_value)
 				  ? new_value : Qunspecified);
@@ -5235,7 +5262,7 @@ realize_basic_faces (f)
   
   if (realize_default_face (f))
     {
-      realize_named_face (f, Qmodeline, MODE_LINE_FACE_ID);
+      realize_named_face (f, Qmode_line, MODE_LINE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qfringe, BITMAP_AREA_FACE_ID);
       realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
@@ -6249,7 +6276,9 @@ syms_of_xfaces ()
   staticpro (&Qface);
   Qpixmap_spec_p = intern ("pixmap-spec-p");
   staticpro (&Qpixmap_spec_p);
-
+  Qframe_update_face_colors = intern ("frame-update-face-colors");
+  staticpro (&Qframe_update_face_colors);
+  
   /* Lisp face attribute keywords.  */
   QCfamily = intern (":family");
   staticpro (&QCfamily);
@@ -6348,10 +6377,12 @@ syms_of_xfaces ()
 
   Qx_charset_registry = intern ("x-charset-registry");
   staticpro (&Qx_charset_registry);
+  Qface_alias = intern ("face-alias");
+  staticpro (&Qface_alias);
   Qdefault = intern ("default");
   staticpro (&Qdefault);
-  Qmodeline = intern ("modeline");
-  staticpro (&Qmodeline);
+  Qmode_line = intern ("mode-line");
+  staticpro (&Qmode_line);
   Qtool_bar = intern ("tool-bar");
   staticpro (&Qtool_bar);
   Qregion = intern ("region");
@@ -6436,7 +6467,7 @@ scaled if its name matches a regular expression in the list.");
   defsubr (&Spixmap_spec_p);
   defsubr (&Sx_list_fonts);
   defsubr (&Sinternal_face_x_get_resource);
-  defsubr (&Sx_font_list);
+  defsubr (&Sx_family_fonts);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_X_WINDOWS */
 
