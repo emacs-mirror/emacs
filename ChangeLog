@@ -1,3 +1,7 @@
+2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* Makefile.in (maybe_bootstrap): Fix previous change.
+
 2001-11-28  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): Don't bootstrap, just suggest it.
