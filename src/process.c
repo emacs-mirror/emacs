@@ -1717,23 +1717,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) >= 0)
 	QUIT;
 
-      /* If status of something has changed, and no input is available,
-	 notify the user of the change right away */
-      if (update_tick != process_tick && do_display)
-	{
-	  Atemp = input_wait_mask;
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if (select (MAXDESC, &Atemp, 0, 0, &timeout) <= 0)
-	    status_notify ();
-	}
-
-      /* Don't wait for output from a non-running process.  */
-      if (wait_proc != 0 && !NILP (wait_proc->raw_status_low))
-	update_status (wait_proc);
-      if (wait_proc != 0
-	  && ! EQ (wait_proc->status, Qrun))
-	break;
-
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
       if (time_limit == -1)
@@ -1757,9 +1740,32 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       /* Cause C-g and alarm signals to take immediate action,
-	 and cause input available signals to zero out timeout */
+	 and cause input available signals to zero out timeout.
+
+	 It is important that we do this before checking for process
+	 activity.  If we get a SIGCHLD after the explicit checks for
+	 process activity, timeout is the only way we will know.  */
       if (XINT (read_kbd) < 0)
 	set_waiting_for_input (&timeout);
+
+      /* If status of something has changed, and no input is
+	 available, notify the user of the change right away.  After
+	 this explicit check, we'll let the SIGCHLD handler zap
+	 timeout to get our attention.  */
+      if (update_tick != process_tick && do_display)
+	{
+	  Atemp = input_wait_mask;
+	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  if (select (MAXDESC, &Atemp, 0, 0, &timeout) <= 0)
+	    status_notify ();
+	}
+
+      /* Don't wait for output from a non-running process.  */
+      if (wait_proc != 0 && !NILP (wait_proc->raw_status_low))
+	update_status (wait_proc);
+      if (wait_proc != 0
+	  && ! EQ (wait_proc->status, Qrun))
+	break;
 
       /* Wait till there is something to do */
 
@@ -2326,6 +2332,35 @@ process_send_signal (process, signo, current_group, nomsg)
       /* If possible, send signals to the entire pgrp
 	 by sending an input character to it.  */
 
+      /* TERMIOS is the latest and bestest, and seems most likely to
+         work.  If the system has it, use it.  */
+#ifdef HAVE_TERMIOS
+      struct termios t;
+
+      switch (signo)
+	{
+	case SIGINT:
+	  tcgetattr (XFASTINT (p->infd), &t);
+	  send_process (proc, &t.c_cc[VINTR], 1);
+	  return Qnil;
+
+	case SIGQUIT:
+	  tcgetattr (XFASTINT (p->infd), &t);
+  	  send_process (proc, &t.c_cc[VQUIT], 1);
+  	  return Qnil;
+
+  	case SIGTSTP:
+	  tcgetattr (XFASTINT (p->infd), &t);
+#ifdef VSWTCH
+  	  send_process (proc, &t.c_cc[VSWTCH], 1);
+#else
+	  send_process (proc, &t.c_cc[VSUSP], 1);
+#endif
+  	  return Qnil;
+	}
+
+#else /* ! HAVE_TERMIOS */
+
       /* On Berkeley descendants, the following IOCTL's retrieve the
 	 current control characters.  */
 #if defined (TIOCGLTC) && defined (TIOCGETC)
@@ -2380,6 +2415,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	 you'd better be using one of the alternatives above!  */
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
+#endif /* ! defined HAVE_TERMIOS */
 #endif /* ! defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP 
@@ -2631,6 +2667,7 @@ sigchld_handler (signo)
   int old_errno = errno;
   Lisp_Object proc;
   register struct Lisp_Process *p;
+  extern EMACS_TIME *input_available_clear_time;
 
 #ifdef BSD4_1
   extern int sigheld;
@@ -2713,6 +2750,11 @@ sigchld_handler (signo)
 	  if (WIFSIGNALED (w) || WIFEXITED (w))
 	    if (XFASTINT (p->infd))
 	      FD_CLR (XFASTINT (p->infd), &input_wait_mask);
+
+	  /* Tell wait_reading_process_input that it needs to wake up and
+	     look around.  */
+	  if (input_available_clear_time)
+	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 	}
 
 	/* There was no asynchronous process found for that id.  Check
@@ -2730,6 +2772,11 @@ sigchld_handler (signo)
 #else
 	    synch_process_death = sys_errlist[WTERMSIG (w)];
 #endif
+
+	  /* Tell wait_reading_process_input that it needs to wake up and
+	     look around.  */
+	  if (input_available_clear_time)
+	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 	}
 
       /* On some systems, we must return right away.
