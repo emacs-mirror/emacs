@@ -359,10 +359,6 @@ actually occur.")
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
-(defcustom mail-send-hook nil
-  "Normal hook run before sending mail, in Mail mode."
-  :type 'hook
-  :group 'sendmail)
 
 (defun sendmail-sync-aliases ()
   (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
