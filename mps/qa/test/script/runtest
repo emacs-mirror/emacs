@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.14) $
+# $HopeName: MMQA_harness!script:runtest(trunk.15) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -25,7 +25,8 @@ sub mpslibvers {
     if (/product\.(\w+)/) { $mpslibvers{product} = $1; }
     if (/variety\.(\w+)/) { $mpslibvers{variety} = $1; }
     if (/platform\.(\w+)/) { $mpslibvers{platform} = $1; }
-    if (/\$HopeName:\s*([^\$]+)\s*\$\s*([^,]+)/) {
+# the \b in the next line is just to stop hope from expanding the RCS keyword
+    if (/\$\bHopeName:\s+([^\$]+)\s*\$\s*([^,]+)/) {
      $mpslibvers{hopeversion} = $1;
      $mpslibvers{version}     = $2; 
     }
