@@ -1260,6 +1260,7 @@ x_explicitly_set_name (f, arg, oldval)
 /* This function should be called by Emacs redisplay code to set the
    name; names set this way will never override names set by the user's
    lisp code.  */
+void
 x_implicitly_set_name (f, arg, oldval)
      FRAME_PTR f;
      Lisp_Object arg, oldval;
