@@ -768,18 +768,14 @@ into icons, regardless of the window manager.")
       (run-hooks 'ediff-before-setup-control-frame-hooks))
   
     (setq old-ctl-frame (ediff-eval-in-buffer ctl-buffer ediff-control-frame))
-    (if (and (ediff-frame-live-p old-ctl-frame)
-	     (eq (window-frame (cdr (assq 'minibuffer (frame-parameters old-ctl-frame))))
-		 designated-minibuffer-frame))
-	(setq ctl-frame old-ctl-frame)
-      (redraw-display)
-      ;; Make the frame while ctl-buff is current, so that
-      ;; ediff-control-frame-parameters will have the right value.
-      (ediff-eval-in-buffer ctl-buffer
-	(let ((default-minibuffer-frame designated-minibuffer-frame))
-	  (setq ctl-frame (ediff-make-frame 
-			   ediff-control-frame-parameters))))
-      (ediff-eval-in-buffer ctl-buffer (setq ediff-control-frame ctl-frame)))
+    (if (frame-live-p old-ctl-frame) (delete-frame old-ctl-frame))
+    (redraw-display)
+    ;; Make the frame while ctl-buff is current, so that
+    ;; ediff-control-frame-parameters will have the right value.
+    (ediff-eval-in-buffer ctl-buffer
+      (let ((default-minibuffer-frame designated-minibuffer-frame))
+	(setq ctl-frame (ediff-make-frame ediff-control-frame-parameters)
+	      ctl-buffer (setq ediff-control-frame ctl-frame))))
     
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (ediff-select-frame ctl-frame)
