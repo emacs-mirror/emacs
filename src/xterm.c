@@ -10032,6 +10032,12 @@ XTread_socket (sd, bufp, numchars, expected)
 	  x_io_error_quitter (dpyinfo->display);
 	}
 
+#ifdef HAVE_X_SM
+      BLOCK_INPUT;
+      count += x_session_check_input (bufp, &numchars);
+      UNBLOCK_INPUT;
+#endif
+
       while (XPending (dpyinfo->display))
 	{
 	  XNextEvent (dpyinfo->display, &event);
@@ -10114,11 +10120,17 @@ XTread_socket (sd, bufp, numchars, expected)
 			   the session manager, who's looking for such a
 			   PropertyNotify.  Can restart processing when
 			   a keyboard or mouse event arrives.  */
-			if (numchars > 0)
+                        /* If we have a session manager, don't set this.
+                           KDE will then start two Emacsen, one for the
+                           session manager and one for this. */
+			if (numchars > 0
+#ifdef HAVE_X_SM
+                            && ! x_session_have_connection ()
+#endif
+                            )
 			  {
 			    f = x_top_window_to_frame (dpyinfo,
 						       event.xclient.window);
-
 			    /* This is just so we only give real data once
 			       for a single Emacs process.  */
 			    if (f == SELECTED_FRAME ())
@@ -15056,6 +15068,10 @@ x_initialize ()
 #endif /* ! defined (SIGWINCH) */
 
   signal (SIGPIPE, x_connection_signal);
+
+#ifdef HAVE_X_SM
+  x_session_initialize ();
+#endif
 }
 
 
