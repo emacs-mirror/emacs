@@ -116,8 +116,8 @@
 (fset 'unfocus-frame 'ignore)
 (defun x-list-fonts (pattern &optional face frame) (list "default"))
 (defun x-color-defined-p (color) (numberp (msdos-color-translate color)))
-(defun x-display-pixel-width (&optional frame) (* 8 (frame-width frame)))
-(defun x-display-pixel-height (&optional frame) (* 8 (frame-height frame)))
+(defun x-display-pixel-width (&optional frame) (frame-width frame))
+(defun x-display-pixel-height (&optional frame) (frame-height frame))
 (defun x-display-planes (&optional frame) 4) ; 3 for background, actually
 (defun x-display-color-cells (&optional frame) 16) ; ???
 (defun x-server-max-request-size (&optional frame) 1000000) ; ???
