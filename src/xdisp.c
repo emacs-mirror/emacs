@@ -1245,7 +1245,7 @@ redisplay_window (window, just_this_one)
   struct position pos;
   int opoint = PT;
   int tem;
-  int window_needs_modeline;
+  int update_mode_line;
 
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
 
@@ -1291,12 +1291,15 @@ redisplay_window (window, just_this_one)
 	}
     }
 
-  if (update_mode_lines)
-    w->update_mode_line = Qt;
+  update_mode_line = (!NILP (w->update_mode_line) || update_mode_lines);
 
   /* Otherwise set up data on this window; select its buffer and point value */
 
-  set_buffer_temp (XBUFFER (w->buffer));
+  if (update_mode_line)
+    set_buffer_internal (XBUFFER (w->buffer));
+  else
+    set_buffer_temp (XBUFFER (w->buffer));
+
   opoint = PT;
 
   /* Count number of windows showing the selected buffer.
@@ -1366,7 +1369,14 @@ redisplay_window (window, just_this_one)
     {
       /* Forget any recorded base line for line number display.  */
       w->base_line_number = Qnil;
-      w->update_mode_line = Qt;
+      /* Redisplay the mode line.  Select the buffer properly for that.  */
+      if (!update_mode_line)
+	{
+	  set_buffer_temp (old);
+	  set_buffer_internal (XBUFFER (w->buffer));
+	  update_mode_line = 1;
+	  w->update_mode_line = Qt;
+	}
       w->force_start = Qnil;
       XSETFASTINT (w->last_modified, 0);
       if (startp < BEGV) startp = BEGV;
@@ -1504,7 +1514,14 @@ redisplay_window (window, just_this_one)
     }
 
   XSETFASTINT (w->last_modified, 0);
-  w->update_mode_line = Qt;
+  /* Redisplay the mode line.  Select the buffer properly for that.  */
+  if (!update_mode_line)
+    {
+      set_buffer_temp (old);
+      set_buffer_internal (XBUFFER (w->buffer));
+      update_mode_line = 1;
+      w->update_mode_line = Qt;
+    }
 
   /* Try to scroll by specified few lines */
 
@@ -1551,7 +1568,7 @@ recenter:
     = (startp == BEGV || FETCH_CHAR (startp - 1) == '\n') ? Qt : Qnil;
 
 done:
-  if ((!NILP (w->update_mode_line)
+  if ((update_mode_line
        /* If window not full width, must redo its mode line
 	  if the window to its side is being redone */
        || (!just_this_one && width < FRAME_WIDTH (f) - 1)
@@ -1568,7 +1585,7 @@ done:
     }
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
-  if (!NILP (w->update_mode_line)
+  if (update_mode_line
 #ifdef USE_X_TOOLKIT
       && FRAME_EXTERNAL_MENU_BAR (f) 
 #else
@@ -1613,7 +1630,10 @@ done:
     }
 
   BUF_PT (current_buffer) = opoint;
-  set_buffer_temp (old);
+  if (update_mode_line)
+    set_buffer_internal (old);
+  else
+    set_buffer_temp (old);
   BUF_PT (current_buffer) = lpoint;
 }
 
