@@ -1,5 +1,6 @@
 /* Lock files for editing.
-   Copyright (C) 1985, 86, 87, 93, 94, 96, 98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 96, 98, 1999, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -660,12 +661,7 @@ unlock_all_files ()
       b = XBUFFER (XCDR (XCAR (tail)));
       if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
-	  register char *lfname;
-
-	  MAKE_LOCK_NAME (lfname, b->file_truename);
-
-	  if (current_lock_owner (0, lfname) == 2)
-	    unlink (lfname);
+	  unlock_file(b->file_truename);
 	}
     }
 }
