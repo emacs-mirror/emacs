@@ -63,6 +63,13 @@
 ;; Use ";" instead of ":" as a path separator (from files.el).
 (setq path-separator ";")
 
+;; Set the null device (for compile.el).
+(setq grep-null-device "NUL")
+
+;; Set the grep regexp to match entries with drive letters.
+(setq grep-regexp-alist
+  '(("^\\(\\([a-zA-Z]:\\)?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 3)))
+
 ;; Taken from dos-fn.el ... don't want all that's in the file, maybe
 ;; separate it out someday.
 
@@ -123,8 +130,30 @@ against the file name, and TYPE is nil for text, t for binary.")
 ;;; To set the default file type on new files.
 (add-hook 'find-file-not-found-hooks 'find-file-not-found-set-buffer-file-type)
 
+;;; For using attached Unix filesystems.
+(defun save-to-unix-hook ()
+  (save-excursion
+    (setq buffer-file-type t))
+  nil)
+
+(defun revert-from-unix-hook ()
+  (save-excursion
+    (setq buffer-file-type (find-buffer-file-type (buffer-file-name))))
+  nil)
+
+;; Really should provide this capability at the drive letter granularity.
+(defun using-unix-filesystems (flag)
+  (if flag
+      (progn
+	(add-hook 'write-file-hooks 'save-to-unix-hook)
+	(add-hook 'write-contents-hooks 'save-to-unix-hook)
+	(add-hook 'after-save-hook 'revert-from-unix-hook))
+    (progn
+      (remove-hook 'write-file-hooks 'save-to-unix-hook)
+      (remove-hook 'write-contents-hooks 'save-to-unix-hook)
+      (remove-hook 'after-save-hook 'revert-from-unix-hook))))
+
 ;;; Fix interface to (X-specific) mouse.el
-(defalias 'window-frame 'ignore)
 (defalias 'x-set-selection 'ignore)
 (fset 'x-get-selection '(lambda (&rest rest) ""))
 (fmakunbound 'font-menu-add-default)
