@@ -534,7 +534,7 @@ lisp= \
 	${lispdir}vc-hooks.elc \
 	VMS_SUPPORT \
 	${lispdir}window.elc \
-	${lispdir}version.elc
+	${lispdir}version.el
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
