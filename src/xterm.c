@@ -52,11 +52,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef BSD
 #include <sys/ioctl.h>
-#include <strings.h>
-#else /* ! defined (BSD) */
-#ifndef VMS
-#include <string.h>
-#endif
 #endif /* ! defined (BSD) */
 
 #include "systty.h"
