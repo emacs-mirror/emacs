@@ -1,3 +1,7 @@
+2004-08-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* netrc.el, tls.el: Removed; use files from ../net instead.
+
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-mule.el, smiley-ems.el: Removed obsolete files.
