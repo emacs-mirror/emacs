@@ -76,6 +76,8 @@
  '("Mark all" . mark-diary-entries))
 (define-key calendar-mode-map [menu-bar diary view]
   '("Cursor date" . view-diary-entries))
+(define-key calendar-mode-map [menu-bar diary view]
+  '("Other file" . view-other-diary-entries))
 
 (define-key calendar-mode-map [menu-bar holidays]
   (cons "Holidays" (make-sparse-keymap "Holidays")))
@@ -171,6 +173,7 @@
 (put 'calendar-sunrise-sunset 'menu-enable '(calendar-event-to-date))
 (put 'calendar-cursor-holidays 'menu-enable '(calendar-cursor-to-date))
 (put 'view-diary-entries 'menu-enable '(calendar-cursor-to-date))
+(put 'view-other-diary-entries 'menu-enable '(calendar-cursor-to-date))
 (put 'calendar-mouse-insert-hebrew-diary-entry
      'menu-enable
      '(calendar-cursor-to-date))
@@ -239,6 +242,13 @@ ERROR is t, otherwise just returns nil."
     (calendar-goto-date (calendar-event-to-date))
     (view-diary-entries 1)))
 
+(defun calendar-mouse-view-other-diary-entries ()
+  "View diary entries from alternative file on mouse-selected date."
+  (interactive)
+  (save-excursion
+    (calendar-goto-date (calendar-event-to-date))
+    (call-interactively 'view-other-diary-entries)))
+
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
   (interactive)
@@ -291,12 +301,15 @@ ERROR is t, otherwise just returns nil."
            (list "Menu"
                  (list
                   (calendar-date-string date t t)
-                  '("Diary entries" . calendar-mouse-view-diary-entries)
-                  '("Insert diary entry" . calendar-mouse-insert-diary-entry)
                   '("Holidays" . calendar-mouse-holidays)
                   '("Mark date" . calendar-mouse-set-mark)
                   '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
-                  '("Other calendars" . calendar-mouse-print-dates))))))
+                  '("Other calendars" . calendar-mouse-print-dates)
+                  '("Diary entries" . calendar-mouse-view-diary-entries)
+                  '("Insert diary entry" . calendar-mouse-insert-diary-entry)
+                  '("Other diary file entries"
+                    . calendar-mouse-view-other-diary-entries)
+                  )))))
     (and selection (call-interactively selection))))
 
 (define-key calendar-mouse-3-map [exit-calendar]
