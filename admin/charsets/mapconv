@@ -38,7 +38,7 @@ BASE=`basename $1`
 
 case "$3" in
     GLIBC*)
-	SOURCE=`echo $1 | sed 's/.*\(glibc.*$\)/\1/'`;;
+	SOURCE=`glibc/localedata/charmaps/${BASE}`;;
     CZYBORRA)
 	SOURCE="http://czyborra.com/charsets/${BASE}";;
     IANA)
