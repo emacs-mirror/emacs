@@ -31,14 +31,14 @@ doall: xmakefile
 	$(MAKE) ${SUBMAKEFLAGS} -f xmakefile ${MFLAGS} all
 
 mostlyclean:
-	rm -f temacs emacs prefix-args xmakefile* core \#* *.o libXMenu11.a
+	rm -f temacs prefix-args xmakefile* core \#* *.o libXMenu11.a
 	rm -f ../etc/DOC
 clean: mostlyclean
-	true
+	rm emacs-* emacs
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean: clean
-	rm -f paths.h config.h emacs-* ../etc/DOC-*
+	rm -f paths.h config.h ../etc/DOC-*
 realclean: distclean
 	rm -f TAGS
 versionclean:
