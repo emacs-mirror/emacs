@@ -255,8 +255,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 				   (set-buffer name)
 				   (dehexlify-buffer)
 				   ;; Prevent infinite recursion.
-				   (let ((hexl-in-save-buffer t)
-					 (buffer-file-type t)) ; for ms-dos
+				   (let ((hexl-in-save-buffer t))
 				     (save-buffer))
 				   (setq modified (buffer-modified-p))
 				   (delete-region (point-min) (point-max))
@@ -273,9 +272,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
   "Edit file FILENAME in hexl-mode.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
   (interactive "fFilename: ")
-  (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-      (find-file-binary filename)
-    (find-file filename))
+  (find-file-literally filename)
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
@@ -581,7 +578,8 @@ This discards the buffer's undo information."
 	   (error "Aborted")))
   (setq buffer-undo-list nil)
   (let ((binary-process-output nil) ; for Ms-Dos
-	(binary-process-input t)
+	(binary-process-input buffer-file-type)
+	(coding-system-for-write 'no-conversion)
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) hexlify-command t)))
 
@@ -593,8 +591,9 @@ This discards the buffer's undo information."
        (or (y-or-n-p "Converting from hexl format discards undo info; ok? ")
 	   (error "Aborted")))
   (setq buffer-undo-list nil)
-  (let ((binary-process-output t) ; for Ms-Dos
+  (let ((binary-process-output buffer-file-type) ; for Ms-Dos
 	(binary-process-input nil)
+	(coding-system-for-read 'no-conversion)
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
