@@ -2227,6 +2227,10 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** `auto-save-file-format' has been renamed to
+`buffer-auto-save-file-format' and made into a permanent local.
+
++++
 ** Both the variable and the function `disabled-command-hook' have
 been renamed to `disabled-command-function'.  The variable
 `disabled-command-hook' has been kept as an obsolete alias.

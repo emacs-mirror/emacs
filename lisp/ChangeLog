@@ -1,3 +1,7 @@
+2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* format.el (buffer-auto-save-file-format): Make it permanent local.
+
 2004-09-07  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases): Add more aliases.

@@ -1,12 +1,10 @@
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.h (struct buffer): Add auto_save_file_format field.
-
 	* buffer.c (reset_buffer, init_buffer_once): Handle
 	auto_save_file_format field.
 	(syms_of_buffer): Add DEFVAR_PER_BUFFER for
 	`buffer-auto-save-file-format'.
-
 	* fileio.c: Delete declaration for removed Vauto_save_file_format.
 	(build_annotations): Adapt to replacement of
 	`auto-save-file-format' with the new buffer-local variable
