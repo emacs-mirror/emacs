@@ -780,14 +780,13 @@ void
 set_default_ascii_font (fontname)
      Lisp_Object fontname;
 {
-  if (! CONSP (FONTSET_ASCII (Vdefault_fontset)))
+  if (! STRINGP (FONTSET_ASCII (Vdefault_fontset)))
     {
       int id = fs_query_fontset (fontname, 2);
 
       if (id >= 0)
-	fontname = XCDR (FONTSET_ASCII (FONTSET_FROM_ID (id)));
-      FONTSET_ASCII (Vdefault_fontset)
-	= Fcons (make_number (0), fontname);
+	fontname = FONTSET_ASCII (FONTSET_FROM_ID (id));
+      FONTSET_ASCII (Vdefault_fontset)= fontname;
     }
 }
 
