@@ -3422,9 +3422,12 @@ specifying headers which should not be copied into the new message."
 			  (insert "BCC: " (user-login-name) "\n"))))
 		  (goto-char (point-min))
 		  (mail-position-on-field (if resending "Resent-To" "To") t)))))
-      (with-current-buffer rmail-this-buffer
-	(if pruned
-	    (rmail-toggle-header 1))))))
+      ;; save-window-excursion is needed because of the switch-to-buffer
+      ;; in rmail-toggle-header.
+      (save-window-excursion
+	(with-current-buffer rmail-this-buffer
+	  (if pruned
+	      (rmail-toggle-header 1)))))))
 
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
