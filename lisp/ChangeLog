@@ -1,3 +1,16 @@
+2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
+	programming.  Doc fix.
+	(ebnf-version): New version (3.6).
+	(ebnf-eps-begin): Data fix.
+	(ebnf-begin-file): Code fix.
+
+	* ebnf-bnf.el: Doc fix.
+	(ebnf-bnf-lex): Fix regexp for non-terminal and terminal tokens.
+
+	* ebnf-iso.el, ebnf-otz.el, ebnf-yac.el: Doc fix.
+
 2001-09-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Better face mapping for black/white PostScript printers.
