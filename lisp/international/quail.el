@@ -2289,8 +2289,8 @@ should be made by `quail-build-decode-map' (which see)."
 			  (or (> (length x) (length y))
 			      (and (= (length x) (length y))
 				   (not (string< x y))))))))
-  (let ((frame-width (frame-width (window-frame (get-buffer-window
-						 (current-buffer) 'visible))))
+  (let ((window-width (window-width (get-buffer-window
+                                     (current-buffer) 'visible)))
 	(single-key-width 3)
 	(single-trans-width 4)
 	(multiple-key-width 3)
@@ -2319,7 +2319,7 @@ should be made by `quail-build-decode-map' (which see)."
 	  (setq multiple-key-width width)))
     (when single-list
       (setq col-width (+ single-key-width 1 single-trans-width 1)
-	    cols (/ frame-width col-width)
+	    cols (/ window-width col-width)
 	    rows (/ (length single-list) cols))
       (if (> (% (length single-list) cols) 0)
 	  (setq rows (1+ rows)))
@@ -2365,7 +2365,7 @@ should be made by `quail-build-decode-map' (which see)."
 		   (lambda (x)
 		     (let ((width (if (integerp x) (char-width x)
 				    (string-width x))))
-		       (when (> (+ (current-column) 1 width) frame-width)
+		       (when (> (+ (current-column) 1 width) window-width)
 			 (insert "\n")
 			 (indent-to multiple-key-width))
 		       (insert " " x))))
@@ -2402,7 +2402,7 @@ package to describe."
 	(with-current-buffer standard-output
 	  (setq quail-current-package package-def))))
     ;; Then, insert text in the help buffer while paying attention to
-    ;; the width of the frame in which the buffer displayed.
+    ;; the width of the window in which the buffer displayed.
     (with-current-buffer (help-buffer)
       (setq buffer-read-only nil)
       (insert "Input method: " (quail-name)

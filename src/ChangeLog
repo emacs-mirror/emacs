@@ -57,6 +57,61 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-03-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* data.c (Fbyteorder): Make test work even if unsigned is not 4
+	bytes.
+
+2004-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Fformat): Fix initialization of the array info.
+
+2004-03-30  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_mouse_click_focus_ignore_position): New var.
+	(syms_of_xterm): DEFVAR_BOOL it.
+	(ignore_next_mouse_click_timeout): New var.
+	(handle_one_xevent): Clear it on KeyPress, set it on EnterNotify.
+	Use it to filter mouse clicks following focus event.
+
+2004-03-29  David Ponce  <david@dponce.com>
+
+	* callint.c (Fcall_interactively): Fix last change.
+
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fcommandp): Simplify.
+
+	* data.c (Finteractive_form): Rename from Fsubr_interactive_form.
+	Extend to handle all kinds of functions.
+
+	* lisp.h (Finteractive_form): Declare.
+
+	* callint.c (Fcall_interactively): Use it.
+
+2004-03-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (syms_of_xdisp): Include `void-variable' in list_of_error
+	to catch errors in calc_pixel_width_or_height during redisplay.
+
+2004-03-26  Masatake YAMATO  <jet@gyve.org>
+
+	* buffer.c (fix_start_end_in_overlays): Rename fix_overlays_in_range.
+
+	* lisp.h (fix_start_end_in_overlays): Likewise.
+
+	* insdel.c (adjust_markers_for_insert): Call fix_start_end_in_overlays.
+
+	* editfns.c (Ftranspose_regions): Likewise.
+
+2004-03-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Do not pass key press events to GTK.
+
+2004-03-19  Richard M. Stallman  <rms@gnu.org>
+
+	* s/sol2-6.h: Delete previous change.
+
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to): Fix MOVE_TO_POS case when
@@ -75,7 +130,7 @@
 	* image.c (Qcenter): Move to xdisp.c.
 
 	* xdisp.c (Qcenter): Declare here.
-	(syms_of_xdisp): intern and staticpro it.
+	(syms_of_xdisp): Intern and staticpro it.
 	(handle_single_display_prop): Allow space display property on all
 	platforms.
 	(display_mode_line): Set mode_line_p before displaying line.
@@ -103,8 +158,7 @@
 
 2004-03-14  Steven Tamm <steventamm@mac.com>
 
-	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
-	HAVE_CARBON is defined.
+	* Makefile.in (XMENU_OBJ) [HAVE_CARBON]: Do not include xmenu.o.
 
 2004-03-14  Kim F. Storm  <storm@cua.dk>
 

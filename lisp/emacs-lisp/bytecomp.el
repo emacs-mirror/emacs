@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985,86,87,92,94,1998,2000,01,02,03,2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.143 $")
+(defconst byte-compile-version "$Revision: 2.144 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1573,7 +1573,8 @@ recompile every `.el' file that already has a `.elc' file."
 	       source dest)
 	   (dolist (file files)
 	     (setq source (expand-file-name file directory))
-	     (if (and (not (member file '("." ".." "RCS" "CVS")))
+	     (if (and (not (member file '("RCS" "CVS")))
+		      (not (eq ?\. (aref file 0)))
 		      (file-directory-p source)
 		      (not (file-symlink-p source)))
 		 ;; This file is a subdirectory.  Handle them differently.
@@ -1691,11 +1692,14 @@ The value is non-nil if there were no errors, nil if errors."
     ;; compile this file.
     (if (with-current-buffer input-buffer no-byte-compile)
 	(progn
-	  (message "%s not compiled because of `no-byte-compile: %s'"
-		   (file-relative-name filename)
-		   (with-current-buffer input-buffer no-byte-compile))
-	  (if (file-exists-p target-file)
-	      (condition-case nil (delete-file target-file) (error nil)))
+	  ;; (message "%s not compiled because of `no-byte-compile: %s'"
+	  ;; 	   (file-relative-name filename)
+	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
+	  (when (file-exists-p target-file)
+	    (message "%s deleted because of `no-byte-compile: %s'"
+		     (file-relative-name target-file)
+		     (buffer-local-value 'no-byte-compile input-buffer))
+	    (condition-case nil (delete-file target-file) (error nil)))
 	  ;; We successfully didn't compile this file.
 	  'no-byte-compile)
       (when byte-compile-verbose

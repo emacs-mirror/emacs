@@ -239,7 +239,11 @@ to the action header."
   (setq imenu-generic-expression cfengine-imenu-expression)
   (set (make-local-variable 'beginning-of-defun-function)
        #'cfengine-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) #'cfengine-end-of-defun))
+  (set (make-local-variable 'end-of-defun-function) #'cfengine-end-of-defun)
+  ;; Like Lisp mode.  Without this, we lose with, say,
+  ;; `backward-up-list' when there's an unbalanced quote in a
+  ;; preceding comment.
+  (set (make-local-variable 'parse-sexp-ignore-comments) t))
 
 (provide 'cfengine)
 

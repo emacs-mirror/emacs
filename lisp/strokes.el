@@ -78,7 +78,7 @@
 
 ;;       however, if you would probably just have the user enter in the
 ;;       stroke interactively and then set the stroke to whatever he/she
-;;       entered. The Lisp function to interactively read a stroke is
+;;       entered.  The Lisp function to interactively read a stroke is
 ;;       `strokes-read-stroke'.  This is especially helpful when you're
 ;;       on a fast computer that can handle a 9x9 stroke grid.
 
@@ -435,7 +435,9 @@ or for window START-WINDOW if that is specified."
 Operated just like `global-set-key', except for strokes.
 COMMAND is a symbol naming an interactively-callable function.  STROKE
 is a list of sampled positions on the stroke grid as described in the
-documentation for the `strokes-define-stroke' function."
+documentation for the `strokes-define-stroke' function.
+
+See also `strokes-global-set-stroke-string'."
   (interactive
    (list
     (and (or strokes-mode (strokes-mode t))
@@ -443,6 +445,22 @@ documentation for the `strokes-define-stroke' function."
 	  "Draw with mouse button 1 (or 2).  End with button 3..."))
     (read-command "Command to map stroke to: ")))
   (strokes-define-stroke strokes-global-map stroke command))
+
+(defun strokes-global-set-stroke-string (stroke string)
+  "Interactively give STROKE the global binding as STRING.
+Operated just like `global-set-key', except for strokes.  STRING
+is a string to be inserted by the stroke.  STROKE is a list of
+sampled positions on the stroke grid as described in the
+documentation for the `strokes-define-stroke' function.
+
+Compare `strokes-global-set-stroke'."
+  (interactive
+   (list
+    (and (or strokes-mode (strokes-mode t))
+	 (strokes-read-complex-stroke
+	  "Draw with mouse button 1 (or 2).  End with button 3..."))
+    (read-string "String to map stroke to: ")))
+  (strokes-define-stroke strokes-global-map stroke string))
 
 ;;(defun global-unset-stroke (stroke); FINISH THIS DEFUN!
 ;;  "delete all strokes matching STROKE from `strokes-global-map',
@@ -1319,7 +1337,9 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
      "-------                                     ------")
     (loop for def in strokes-map do
 	  (let ((stroke (car def))
-		(command-name (symbol-name (cdr def))))
+		(command-name (if (symbolp (cdr def))
+				  (symbol-name (cdr def))
+				(prin1-to-string (cdr def)))))
 	    (strokes-xpm-for-stroke stroke " *strokes-xpm*")
 	    (newline 2)
 	    (insert-char ?\  45)
@@ -1327,9 +1347,13 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 	    (insert command-name)
 	    (beginning-of-line)
 	    (forward-char 45)
-	    (insert-image (create-image (with-current-buffer " *strokes-xpm*"
-					  (buffer-string))
-					'xpm t)))
+	    (insert-image
+	     (create-image (with-current-buffer " *strokes-xpm*"
+			     (buffer-string))
+			   'xpm t
+			   :color-symbols
+			   `(("foreground"
+			      . ,(frame-parameter nil 'foreground-color))))))
 	  finally do (kill-region (1+ (point)) (point-max)))
     (view-buffer "*Strokes List*" nil)
     (set (make-local-variable 'view-mode-map)

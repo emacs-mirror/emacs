@@ -1273,6 +1273,25 @@ then
   ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
+dnl We need -znocombreloc if we're using a relatively recent GNU ld.
+dnl If we can link with the flag, it shouldn't do any harm anyhow.
+dnl (Don't use `-z nocombreloc' as -z takes no arg on Irix.)
+dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
+dnl if not built to support GNU ld.
+
+late_LDFLAGS=$LDFLAGS
+if test $GCC = yes; then
+  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+else
+  LDFLAGS="$LDFLAGS -znocombreloc"
+fi
+
+AC_MSG_CHECKING([For -znocombreloc])
+AC_LINK_IFELSE([main(){return 0;}],
+  [AC_MSG_RESULT(yes)],
+  LDFLAGS=$late_LDFLAGS
+  [AC_MSG_RESULT(no)])
+
 dnl checks for Unix variants
 AC_AIX
 

@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992,97,98,1999,2001,2004  Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -61,7 +61,7 @@
     (calendar	. "calendar and time management support")
     (comm	. "communications, networking, remote access to files")
     (convenience . "convenience features for faster editing")
-    (data	. "support editing files of data")
+    (data	. "support for editing files of data")
     (docs	. "support for Emacs documentation")
     (emulations	. "emulations of other editors")
     (extensions	. "Emacs Lisp language extensions")
@@ -87,25 +87,24 @@
     (outlines   . "support for hierarchical outlining")
     (processes	. "process, subshell, compilation, and job control support")
     (terminals	. "support for terminal types")
-    (tex	. "code related to the TeX formatter")
+    (tex	. "supporting code for the TeX formatter")
     (tools	. "programming tools")
-    (unix	. "front-ends/assistants for, or emulators of, UNIX features")
+    (unix	. "front-ends/assistants for, or emulators of, UNIX-like features")
 ;; Not a custom group and not currently useful.
 ;;    (vms	. "support code for vms")
     (wp		. "word processing")
     ))
 
-(defvar finder-mode-map nil)
-(or finder-mode-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map " "	'finder-select)
-      (define-key map "f"	'finder-select)
-      (define-key map [mouse-2]	'finder-mouse-select)
-      (define-key map "\C-m"	'finder-select)
-      (define-key map "?"	'finder-summary)
-      (define-key map "q"	'finder-exit)
-      (define-key map "d"	'finder-list-keywords)
-      (setq finder-mode-map map)))
+(defvar finder-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " "	'finder-select)
+    (define-key map "f"	'finder-select)
+    (define-key map [mouse-2]	'finder-mouse-select)
+    (define-key map "\C-m"	'finder-select)
+    (define-key map "?"	'finder-summary)
+    (define-key map "q"	'finder-exit)
+    (define-key map "d"	'finder-list-keywords)
+    map))
 
 
 ;;; Code for regenerating the keyword list.
@@ -336,13 +335,13 @@ FILE should be in a form suitable for passing to `locate-library'."
 \\[finder-select]	more help for the item on the current line
 \\[finder-exit]	exit Finder mode and kill the Finder buffer."
   (interactive)
+  (kill-all-local-variables)
   (use-local-map finder-mode-map)
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (setq mode-name "Finder")
   (setq major-mode 'finder-mode)
-  (make-local-variable 'finder-headmark)
-  (setq finder-headmark nil)
-  (run-hooks 'finder-mode-hook))
+  (set (make-local-variable 'finder-headmark) nil)
+  (run-mode-hooks 'finder-mode-hook))
 
 (defun finder-summary ()
   "Summarize basic Finder commands."

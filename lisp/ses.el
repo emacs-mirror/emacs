@@ -2658,27 +2658,6 @@ WANT-FORMULAS is non-nil.  Newlines and tabs in the export text are escaped."
 ;;;; Other user commands
 ;;;----------------------------------------------------------------------------
 
-;; This should be used by `call-interactively'.
-(defun ses-read-number (prompt &optional default)
-  (let ((n nil))
-    (when default
-      (setq prompt
-	    (if (string-match "\\(\\):[^:]*" prompt)
-		(replace-match (format " [%s]" default) t t prompt 1)
-	      (concat prompt (format " [%s] " default)))))
-    (while
-	(progn
-	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (number-to-string default))))
-	    (setq n (cond
-		     ((zerop (length str)) default)
-		     ((stringp str) (read str)))))
-	  (unless (numberp n)
-	    (message "Please enter a number.")
-	    (sit-for 1)
-	    t)))
-    n))
-
 (defun ses-unset-header-row ()
   "Select the default header row."
   (interactive)
@@ -2694,7 +2673,7 @@ The top row is row 1.  Selecting row 0 displays the default header row."
    (list (if (numberp current-prefix-arg) current-prefix-arg
 	   (let ((currow (1+ (car (ses-sym-rowcol ses--curcell)))))
 	     (if current-prefix-arg
-		 (ses-read-number "Header row: " currow)
+		 (read-number "Header row: " currow)
 	       currow)))))
   (if (or (< row 0) (> row ses--numrows))
       (error "Invalid header-row"))

@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 2003
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -347,25 +347,17 @@ supply if the command inquires which events were used to invoke it.  */)
 	goto lose;
       specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
     }
-  else if (!CONSP (fun))
-    goto lose;
-  else if (funcar = XCAR (fun), EQ (funcar, Qautoload))
-    {
-      GCPRO2 (function, prefix_arg);
-      do_autoload (fun, function);
-      UNGCPRO;
-      goto retry;
-    }
-  else if (EQ (funcar, Qlambda))
-    {
-      specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
-      if (NILP (specs))
-	goto lose;
-      filter_specs = Fnth (make_number (1), specs);
-      specs = Fcar (Fcdr (specs));
-    }
   else
-    goto lose;
+    {
+      Lisp_Object form;
+      GCPRO2 (function, prefix_arg);
+      form = Finteractive_form (function);
+      UNGCPRO;
+      if (CONSP (form))
+	specs = filter_specs = Fcar (XCDR (form));
+      else
+	goto lose;
+    }
 
   /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))

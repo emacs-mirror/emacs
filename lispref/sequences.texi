@@ -172,8 +172,8 @@ list.  However, the actual values of the properties are shared.
 @xref{Text Properties}.
 
 See also @code{append} in @ref{Building Lists}, @code{concat} in
-@ref{Creating Strings}, and @code{vconcat} in @ref{Vectors}, for other
-ways to copy sequences.
+@ref{Creating Strings}, and @code{vconcat} in @ref{Vector Functions},
+for other ways to copy sequences.
 
 @example
 @group

@@ -34,7 +34,7 @@ is intended to be a functional replacement for command shells such as
 bash, zsh, rc, 4dos; since Emacs itself is capable of handling most of
 the tasks accomplished by such tools."
   :tag "The Emacs shell"
-  :link '(info-link "(eshell)The Emacs shell")
+  :link '(info-link "(eshell)Top")
   :version "21.1"
   :group 'applications)
 

@@ -1,6 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
-;; Copyright (C) 1989, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -120,12 +120,10 @@ in the variable `values'."
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))
     (with-output-to-temp-buffer "*Pp Eval Output*"
-      (pp (car values)))
-    (save-excursion
-      (set-buffer "*Pp Eval Output*")
-      (emacs-lisp-mode)
-      (make-local-variable 'font-lock-verbose)
-      (setq font-lock-verbose nil))))
+      (pp (car values))
+      (with-current-buffer standard-output
+	(emacs-lisp-mode)
+	(set (make-local-variable 'font-lock-verbose) nil)))))
 
 ;;;###autoload
 (defun pp-eval-last-sexp (arg)

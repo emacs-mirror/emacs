@@ -163,9 +163,6 @@ Other features we would like:
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
-* Implement some variety of (non-gtk) drag-and-drop support under X.
-  Using libdnd might be a good start.
-
 * Add horizontal scroll bars.
 
 * Provide an optional feature which computes a scroll bar slider's

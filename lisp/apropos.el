@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1989,94,1995,2001,02,03,2004  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -58,6 +58,7 @@
 ;;; Code:
 
 (require 'button)
+(eval-when-compile (require 'cl))
 
 (defgroup apropos nil
   "Apropos commands for users and programmers"
@@ -348,7 +349,6 @@ This requires that at least 2 keywords (unless only one was given)."
   "Return t if DOC is really matched by the current keywords."
   (apropos-true-hit doc apropos-all-words))
 
-;;;###autoload
 (define-derived-mode apropos-mode fundamental-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
 
@@ -452,37 +452,42 @@ show unbound symbols and key bindings, which is a little more
 time-consuming.  Returns list of symbols and documentation found."
   (interactive "sApropos symbol (regexp or words): \nP")
   (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
-  (setq apropos-accumulator
-	(apropos-internal apropos-regexp
+  (apropos-symbols-internal
+   (apropos-internal apropos-regexp
 			  (and (not do-all)
 			       (not apropos-do-all)
 			       (lambda (symbol)
 				 (or (fboundp symbol)
 				     (boundp symbol)
 				     (facep symbol)
-				     (symbol-plist symbol))))))
-  (let ((tem apropos-accumulator))
-    (while tem
-      (if (get (car tem) 'apropos-inhibit)
-	  (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
-      (setq tem (cdr tem))))
-  (let ((p apropos-accumulator)
-	symbol doc properties)
-    (while p
-      (setcar p (list
-		 (setq symbol (car p))
-		 (apropos-score-symbol symbol)
-		 (when (fboundp symbol)
-		   (if (setq doc (condition-case nil
-				     (documentation symbol t)
-				   (void-function
-				    "(alias for undefined function)")
-				   (error
-				    "(error retrieving function documentation)")))
-		       (substring doc 0 (string-match "\n" doc))
-		     "(not documented)"))
-		 (when (boundp symbol)
-		   (apropos-documentation-property
+				     (symbol-plist symbol)))))
+   (or do-all apropos-do-all)))
+
+(defun apropos-symbols-internal (symbols keys &optional text)
+  ;; Filter out entries that are marked as apropos-inhibit.
+  (let ((all nil))
+    (dolist (symbol symbols)
+      (unless (get symbol 'apropos-inhibit)
+	(push symbol all)))
+    (setq symbols all))
+  (let ((apropos-accumulator
+	 (mapcar
+	  (lambda (symbol)
+	    (let (doc properties)
+	      (list
+	       symbol
+	       (apropos-score-symbol symbol)
+	       (when (fboundp symbol)
+		 (if (setq doc (condition-case nil
+				   (documentation symbol t)
+				 (void-function
+				  "(alias for undefined function)")
+				 (error
+				  "(can't retrieve function documentation)")))
+		     (substring doc 0 (string-match "\n" doc))
+		   "(not documented)"))
+	       (when (boundp symbol)
+		 (apropos-documentation-property
 		    symbol 'variable-documentation t))
 		 (when (setq properties (symbol-plist symbol))
 		   (setq doc (list (car properties)))
@@ -492,16 +497,14 @@ time-consuming.  Returns list of symbols and documentation found."
 		 (when (get symbol 'widget-type)
 		   (apropos-documentation-property
 		    symbol 'widget-documentation t))
-		 (when (facep symbol)
+	       (when (facep symbol)
+		 (apropos-documentation-property
+		  symbol 'face-documentation t))
+	       (when (get symbol 'custom-group)
 		   (apropos-documentation-property
-		    symbol 'face-documentation t))
-		 (when (get symbol 'custom-group)
-		   (apropos-documentation-property
-		    symbol 'group-documentation t))))
-      (setq p (cdr p))))
-  (apropos-print
-   (or do-all apropos-do-all)
-   nil))
+		    symbol 'group-documentation t)))))
+	  symbols)))
+    (apropos-print keys nil text)))
 
 
 ;;;###autoload
@@ -755,7 +758,7 @@ Will return nil instead."
     function))
 
 
-(defun apropos-print (do-keys spacing)
+(defun apropos-print (do-keys spacing &optional text)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
 Each element should have the format
@@ -764,8 +767,8 @@ The return value is the list that was in `apropos-accumulator', sorted
 alphabetically by symbol name; but this function also sets
 `apropos-accumulator' to nil before returning.
 
-If SPACING is non-nil, it should be a string;
-separate items with that string."
+If SPACING is non-nil, it should be a string; separate items with that string.
+If non-nil TEXT is a string that will be printed as a heading."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-orig-regexp)
     (setq apropos-accumulator
@@ -794,6 +797,7 @@ separate items with that string."
 		" or variable,\n"
 		(substitute-command-keys
 		 "and type \\[apropos-follow] to get full documentation.\n\n"))
+	(if text (insert text "\n\n"))
 	(while (consp p)
 	  (when (and spacing (not (bobp)))
 	    (princ spacing))
@@ -907,13 +911,15 @@ separate items with that string."
 
 (defun apropos-describe-plist (symbol)
   "Display a pretty listing of SYMBOL's plist."
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref (list 'apropos-describe-plist symbol) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (set-buffer standard-output)
     (princ "Symbol ")
     (prin1 symbol)
     (princ "'s plist is\n (")
     (if apropos-symbol-face
-	(put-text-property 8 (- (point) 14) 'face apropos-symbol-face))
+	(put-text-property (+ (point-min) 7) (- (point) 14)
+			   'face apropos-symbol-face))
     (insert (apropos-format-plist symbol "\n  "))
     (princ ")")
     (print-help-return-message)))

@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.67 2004/01/20 17:41:18 uid65624 Exp $
+;; $Id: vc-cvs.el,v 1.68 2004/03/21 15:45:31 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -533,14 +533,14 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-cvs-print-log (file)
+(defun vc-cvs-print-log (file &optional buffer)
   "Get change log associated with FILE."
   (vc-cvs-command
-   nil
+   buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
-(defun vc-cvs-diff (file &optional oldvers newvers)
+(defun vc-cvs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using CVS between two versions of FILE."
   (if (string= (vc-workfile-version file) "0")
       ;; This file is added but not yet committed; there is no master file.
@@ -549,13 +549,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; We regard this as "changed".
 	;; Diff it against /dev/null.
 	;; Note: this is NOT a "cvs diff".
-	(apply 'vc-do-command "*vc-diff*"
+	(apply 'vc-do-command (or buffer "*vc-diff*")
 	       1 "diff" file
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
     (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
-	   (status (apply 'vc-cvs-command "*vc-diff*"
+	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
 			  file "diff"
 			  (and oldvers (concat "-r" oldvers))

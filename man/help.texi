@@ -71,7 +71,7 @@ Similar, but searches for @var{topic} (which can be a regular
 expression) in the @emph{text} of the manual rather than in its
 indices.
 
-@item C-h F
+@item C-h C-f
 This brings up the Emacs FAQ, where you can use the usual search
 commands (@pxref{Search}) to find the information.
 
@@ -343,38 +343,40 @@ use:
 
 @multitable {emulations} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @item abbrev@tab abbreviation handling, typing shortcuts, macros.
-@item bib@tab support for the bibliography processor @code{bib}.
-@item c@tab C and C++ language support.
+@item bib@tab code related to the @code{bib} bibliography processor.
+@item c@tab support for the C language and related languages.
 @item calendar@tab calendar and time management support.
 @item comm@tab communications, networking, remote access to files.
+@item convenience@tab convenience features for faster editing.
 @item data@tab support for editing files of data.
 @item docs@tab support for Emacs documentation.
 @item emulations@tab emulations of other editors.
 @item extensions@tab Emacs Lisp language extensions.
-@item faces@tab support for using faces (fonts and colors; @pxref{Faces}).
+@item faces@tab support for multiple fonts.
+@item files@tab support for editing and manipulating files.
 @item frames@tab support for Emacs frames and window systems.
 @item games@tab games, jokes and amusements.
 @item hardware@tab support for interfacing with exotic hardware.
 @item help@tab support for on-line help systems.
-@item hypermedia@tab support for links within text, or other media types.
+@item hypermedia@tab support for links between text or other media types.
 @item i18n@tab internationalization and alternate character-set support.
 @item internal@tab code for Emacs internals, build process, defaults.
 @item languages@tab specialized modes for editing programming languages.
-@item lisp@tab support for using Lisp (including Emacs Lisp).
-@item local@tab libraries local to your site.
+@item lisp@tab Lisp support, including Emacs Lisp.
+@item local@tab code local to your site.
 @item maint@tab maintenance aids for the Emacs development group.
 @item mail@tab modes for electronic-mail handling.
-@item matching@tab searching and matching.
+@item matching@tab various sorts of searching and matching.
+@item mouse@tab mouse support.
+@item multimedia@tab images and sound support.
 @item news@tab support for netnews reading and posting.
-@item non-text@tab support for editing files that are not ordinary text.
 @item oop@tab support for object-oriented programming.
-@item outlines@tab hierarchical outlining.
+@item outlines@tab support for hierarchical outlining.
 @item processes@tab process, subshell, compilation, and job control support.
 @item terminals@tab support for terminal types.
-@item tex@tab support for the @TeX{} formatter.
+@item tex@tab supporting code for the @TeX{} formatter.
 @item tools@tab programming tools.
-@item unix@tab front-ends/assistants for, or emulators of, system features.
-@item vms@tab support code for VMS.
+@item unix@tab front-ends/assistants for, or emulators of, UNIX-like features.
 @item wp@tab word processing.
 @end multitable
 

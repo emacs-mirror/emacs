@@ -2172,9 +2172,10 @@ which you might like to bind to keys, such as
 @code{browse-url-browser-function}.  You can invoke actions dependent
 on the type of URL by defining @code{browse-url-browser-function} as
 an association list.  The package's commentary available via @kbd{C-h
-p} provides more information.  Packages with facilities for following
-URLs should always go through Browse-URL, so that the customization
-options for Browse-URL will affect all browsing in Emacs.
+p} under the @samp{hypermedia} keyword provides more information.
+Packages with facilities for following URLs should always go through
+Browse-URL, so that the customization options for Browse-URL will
+affect all browsing in Emacs.
 
 @node Goto-address
 @subsection Activating URLs
@@ -2221,14 +2222,14 @@ view it.
 
   This feature is useful for following references in mail or news
 buffers, @file{README} files, @file{MANIFEST} files, and so on.  The
-@samp{ffap} package's commentary available via @kbd{C-h p} and the
-@code{ffap} Custom group provide details.
+@samp{ffap} package's commentary available via @kbd{C-h p} under the
+@samp{files} keyword and the @code{ffap} Custom group provide details.
 
 @cindex FFAP minor mode
 @findex ffap-mode
-  You can turn on FFAP minor mode to make the following key bindings
-and to install hooks for using @code{ffap} in Rmail, Gnus and VM
-article buffers.
+  You can turn on FFAP minor mode by calling @code{ffap-bindings} to
+make the following key bindings and to install hooks for using
+@code{ffap} in Rmail, Gnus and VM article buffers.
 
 @table @kbd
 @item C-x C-f @var{filename} @key{RET}

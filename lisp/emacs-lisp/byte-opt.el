@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;;; Copyright (c) 1991, 1994, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1991,1994,2000,01,02,03,04  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -148,37 +148,37 @@
 
 ;; Other things to consider:
 
-;;;;; Associative math should recognize subcalls to identical function:
-;;;(disassemble (lambda (x) (+ (+ (foo) 1) (+ (bar) 2))))
-;;;;; This should generate the same as (1+ x) and (1- x)
-
-;;;(disassemble (lambda (x) (cons (+ x 1) (- x 1))))
-;;;;; An awful lot of functions always return a non-nil value.  If they're
-;;;;; error free also they may act as true-constants.
-
-;;;(disassemble (lambda (x) (and (point) (foo))))
-;;;;; When
-;;;;;   - all but one arguments to a function are constant
-;;;;;   - the non-constant argument is an if-expression (cond-expression?)
-;;;;; then the outer function can be distributed.  If the guarding
-;;;;; condition is side-effect-free [assignment-free] then the other
-;;;;; arguments may be any expressions.  Since, however, the code size
-;;;;; can increase this way they should be "simple".  Compare:
-
-;;;(disassemble (lambda (x) (eq (if (point) 'a 'b) 'c)))
-;;;(disassemble (lambda (x) (if (point) (eq 'a 'c) (eq 'b 'c))))
-
-;;;;; (car (cons A B)) -> (progn B A)
-;;;(disassemble (lambda (x) (car (cons (foo) 42))))
-
-;;;;; (cdr (cons A B)) -> (progn A B)
-;;;(disassemble (lambda (x) (cdr (cons 42 (foo)))))
-
-;;;;; (car (list A B ...)) -> (progn B ... A)
-;;;(disassemble (lambda (x) (car (list (foo) 42 (bar)))))
-
-;;;;; (cdr (list A B ...)) -> (progn A (list B ...))
-;;;(disassemble (lambda (x) (cdr (list 42 (foo) (bar)))))
+;; ;; Associative math should recognize subcalls to identical function:
+;; (disassemble (lambda (x) (+ (+ (foo) 1) (+ (bar) 2))))
+;; ;; This should generate the same as (1+ x) and (1- x)
+   
+;; (disassemble (lambda (x) (cons (+ x 1) (- x 1))))
+;; ;; An awful lot of functions always return a non-nil value.  If they're
+;; ;; error free also they may act as true-constants.
+   
+;; (disassemble (lambda (x) (and (point) (foo))))
+;; ;; When
+;; ;;   - all but one arguments to a function are constant
+;; ;;   - the non-constant argument is an if-expression (cond-expression?)
+;; ;; then the outer function can be distributed.  If the guarding
+;; ;; condition is side-effect-free [assignment-free] then the other
+;; ;; arguments may be any expressions.  Since, however, the code size
+;; ;; can increase this way they should be "simple".  Compare:
+   
+;; (disassemble (lambda (x) (eq (if (point) 'a 'b) 'c)))
+;; (disassemble (lambda (x) (if (point) (eq 'a 'c) (eq 'b 'c))))
+   
+;; ;; (car (cons A B)) -> (prog1 A B)
+;; (disassemble (lambda (x) (car (cons (foo) 42))))
+   
+;; ;; (cdr (cons A B)) -> (progn A B)
+;; (disassemble (lambda (x) (cdr (cons 42 (foo)))))
+   
+;; ;; (car (list A B ...)) -> (prog1 A B ...)
+;; (disassemble (lambda (x) (car (list (foo) 42 (bar)))))
+   
+;; ;; (cdr (list A B ...)) -> (progn A (list B ...))
+;; (disassemble (lambda (x) (cdr (list 42 (foo) (bar)))))
 
 
 ;;; Code:
@@ -217,10 +217,8 @@
 	       args)))))
 
 (defmacro byte-compile-log-lap (format-string &rest args)
-  (list 'and
-	'(memq byte-optimize-log '(t byte))
-	(cons 'byte-compile-log-lap-1
-	      (cons format-string args))))
+  `(and (memq byte-optimize-log '(t byte))
+	(byte-compile-log-lap-1 ,format-string ,@args)))
 
 
 ;;; byte-compile optimizers to support inlining
@@ -274,10 +272,11 @@
 	    (let (string)
 	      (fetch-bytecode fn)
 	      (setq string (aref fn 1))
+	      ;; Isn't it an error for `string' not to be unibyte??  --stef
 	      (if (fboundp 'string-as-unibyte)
 		  (setq string (string-as-unibyte string)))
-	      (cons (list 'lambda (aref fn 0)
-			  (list 'byte-code string (aref fn 2) (aref fn 3)))
+	      (cons `(lambda ,(aref fn 0)
+		       (byte-code ,string ,(aref fn 2) ,(aref fn 3)))
 		    (cdr form)))
 	  (if (eq (car-safe fn) 'lambda)
 	      (macroexpand-all (cons fn (cdr form))
@@ -285,8 +284,7 @@
 	    ;; Give up on inlining.
 	    form))))))
 
-;;; ((lambda ...) ...)
-;;;
+;; ((lambda ...) ...)
 (defun byte-compile-unfold-lambda (form &optional name)
   (or name (setq name "anonymous lambda"))
   (let ((lambda (car form))
@@ -605,14 +603,14 @@
     (nreverse result)))
 
 
-;;; some source-level optimizers
-;;;
-;;; when writing optimizers, be VERY careful that the optimizer returns
-;;; something not EQ to its argument if and ONLY if it has made a change.
-;;; This implies that you cannot simply destructively modify the list;
-;;; you must return something not EQ to it if you make an optimization.
-;;;
-;;; It is now safe to optimize code such that it introduces new bindings.
+;; some source-level optimizers
+;;
+;; when writing optimizers, be VERY careful that the optimizer returns
+;; something not EQ to its argument if and ONLY if it has made a change.
+;; This implies that you cannot simply destructively modify the list;
+;; you must return something not EQ to it if you make an optimization.
+;;
+;; It is now safe to optimize code such that it introduces new bindings.
 
 ;; I'd like this to be a defsubst, but let's not be self-referential...
 (defmacro byte-compile-trueconstp (form)
@@ -722,10 +720,10 @@
 	 (condition-case ()
 	     (eval form)
 	   (error form)))
-;;; It is not safe to delete the function entirely
-;;; (actually, it would be safe if we know the sole arg
-;;; is not a marker).
-;;	((null (cdr (cdr form))) (nth 1 form))
+;;;  It is not safe to delete the function entirely
+;;;  (actually, it would be safe if we know the sole arg
+;;;  is not a marker).
+;;;	((null (cdr (cdr form))) (nth 1 form))
 	((null (cddr form))
 	 (if (numberp (nth 1 form))
 	     (nth 1 form)
@@ -764,9 +762,9 @@
 		(numberp last))
 	   (setq form (nconc (list '- (- (nth 1 form) last) (nth 2 form))
 			     (delq last (copy-sequence (nthcdr 3 form))))))))
-;;; It is not safe to delete the function entirely
-;;; (actually, it would be safe if we know the sole arg
-;;; is not a marker).
+;;;  It is not safe to delete the function entirely
+;;;  (actually, it would be safe if we know the sole arg
+;;;  is not a marker).
 ;;;  (if (eq (nth 2 form) 0)
 ;;;      (nth 1 form)			; (- x 0)  -->  x
     (byte-optimize-predicate
@@ -781,9 +779,9 @@
   (setq form (byte-optimize-delay-constants-math form 1 '*))
   ;; If there is a constant in FORM, it is now the last element.
   (cond ((null (cdr form)) 1)
-;;; It is not safe to delete the function entirely
-;;; (actually, it would be safe if we know the sole arg
-;;; is not a marker or if it appears in other arithmetic).
+;;;  It is not safe to delete the function entirely
+;;;  (actually, it would be safe if we know the sole arg
+;;;  is not a marker or if it appears in other arithmetic).
 ;;;	((null (cdr (cdr form))) (nth 1 form))
 	((let ((last (car (reverse form))))
 	   (cond ((eq 0 last)  (cons 'progn (cdr form)))
@@ -1118,8 +1116,16 @@
 	(byte-optimize-predicate form))
     form))
 
-(put 'concat 'byte-optimizer 'byte-optimize-concat)
-(defun byte-optimize-concat (form)
+(put 'concat 'byte-optimizer 'byte-optimize-pure-func)
+(put 'symbol-name 'byte-optimizer 'byte-optimize-pure-func)
+(put 'regexp-opt 'byte-optimizer 'byte-optimize-pure-func)
+(put 'regexp-quote 'byte-optimizer 'byte-optimize-pure-func)
+(defun byte-optimize-pure-func (form)
+  "Do constant folding for pure functions.
+This assumes that the function will not have any side-effects and that
+its return value depends solely on its arguments.
+If the function can signal an error, this might change the semantics
+of FORM by signalling the error at compile-time."
   (let ((args (cdr form))
 	(constant t))
     (while (and args constant)
@@ -1182,28 +1188,28 @@
       `(progn ,(cadr form) (setq ,(cadr var) ,@(cddr form))))
      (t form))))
 
-;;; enumerating those functions which need not be called if the returned
-;;; value is not used.  That is, something like
-;;;    (progn (list (something-with-side-effects) (yow))
-;;;           (foo))
-;;; may safely be turned into
-;;;    (progn (progn (something-with-side-effects) (yow))
-;;;           (foo))
-;;; Further optimizations will turn (progn (list 1 2 3) 'foo) into 'foo.
+;; enumerating those functions which need not be called if the returned
+;; value is not used.  That is, something like
+;;    (progn (list (something-with-side-effects) (yow))
+;;           (foo))
+;; may safely be turned into
+;;    (progn (progn (something-with-side-effects) (yow))
+;;           (foo))
+;; Further optimizations will turn (progn (list 1 2 3) 'foo) into 'foo.
 
-;;; Some of these functions have the side effect of allocating memory
-;;; and it would be incorrect to replace two calls with one.
-;;; But we don't try to do those kinds of optimizations,
-;;; so it is safe to list such functions here.
-;;; Some of these functions return values that depend on environment
-;;; state, so that constant folding them would be wrong,
-;;; but we don't do constant folding based on this list.
+;; Some of these functions have the side effect of allocating memory
+;; and it would be incorrect to replace two calls with one.
+;; But we don't try to do those kinds of optimizations,
+;; so it is safe to list such functions here.
+;; Some of these functions return values that depend on environment
+;; state, so that constant folding them would be wrong,
+;; but we don't do constant folding based on this list.
 
-;;; However, at present the only optimization we normally do
-;;; is delete calls that need not occur, and we only do that
-;;; with the error-free functions.
+;; However, at present the only optimization we normally do
+;; is delete calls that need not occur, and we only do that
+;; with the error-free functions.
 
-;;; I wonder if I missed any :-\)
+;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
 	 assoc assq
@@ -1299,8 +1305,8 @@
 (defconst byte-constref-ops
   '(byte-constant byte-constant2 byte-varref byte-varset byte-varbind))
 
-;;; This function extracts the bitfields from variable-length opcodes.
-;;; Originally defined in disass.el (which no longer uses it.)
+;; This function extracts the bitfields from variable-length opcodes.
+;; Originally defined in disass.el (which no longer uses it.)
 
 (defun disassemble-offset ()
   "Don't call this!"
@@ -1338,11 +1344,11 @@
 	 (aref bytes ptr))))
 
 
-;;; This de-compiler is used for inline expansion of compiled functions,
-;;; and by the disassembler.
-;;;
-;;; This list contains numbers, which are pc values,
-;;; before each instruction.
+;; This de-compiler is used for inline expansion of compiled functions,
+;; and by the disassembler.
+;;
+;; This list contains numbers, which are pc values,
+;; before each instruction.
 (defun byte-decompile-bytecode (bytes constvec)
   "Turns BYTECODE into lapcode, referring to CONSTVEC."
   (let ((byte-compile-constants nil)
@@ -1472,35 +1478,35 @@
      byte-member byte-assq byte-quo byte-rem byte-vec-ref)
    byte-compile-side-effect-and-error-free-ops))
 
-;;; This crock is because of the way DEFVAR_BOOL variables work.
-;;; Consider the code
-;;;
-;;;	(defun foo (flag)
-;;;	  (let ((old-pop-ups pop-up-windows)
-;;;		(pop-up-windows flag))
-;;;	    (cond ((not (eq pop-up-windows old-pop-ups))
-;;;		   (setq old-pop-ups pop-up-windows)
-;;;		   ...))))
-;;;
-;;; Uncompiled, old-pop-ups will always be set to nil or t, even if FLAG is
-;;; something else.  But if we optimize
-;;;
-;;;	varref flag
-;;;	varbind pop-up-windows
-;;;	varref pop-up-windows
-;;;	not
-;;; to
-;;;	varref flag
-;;;	dup
-;;;	varbind pop-up-windows
-;;;	not
-;;;
-;;; we break the program, because it will appear that pop-up-windows and
-;;; old-pop-ups are not EQ when really they are.  So we have to know what
-;;; the BOOL variables are, and not perform this optimization on them.
+;; This crock is because of the way DEFVAR_BOOL variables work.
+;; Consider the code
+;;
+;;	(defun foo (flag)
+;;	  (let ((old-pop-ups pop-up-windows)
+;;		(pop-up-windows flag))
+;;	    (cond ((not (eq pop-up-windows old-pop-ups))
+;;		   (setq old-pop-ups pop-up-windows)
+;;		   ...))))
+;;
+;; Uncompiled, old-pop-ups will always be set to nil or t, even if FLAG is
+;; something else.  But if we optimize
+;;
+;;	varref flag
+;;	varbind pop-up-windows
+;;	varref pop-up-windows
+;;	not
+;; to
+;;	varref flag
+;;	dup
+;;	varbind pop-up-windows
+;;	not
+;;
+;; we break the program, because it will appear that pop-up-windows and
+;; old-pop-ups are not EQ when really they are.  So we have to know what
+;; the BOOL variables are, and not perform this optimization on them.
 
-;;; The variable `byte-boolean-vars' is now primitive and updated
-;;; automatically by DEFVAR_BOOL.
+;; The variable `byte-boolean-vars' is now primitive and updated
+;; automatically by DEFVAR_BOOL.
 
 (defmacro byte-opt-update-stack-params (stack-adjust stack-depth lap0 rest lap)
   "...macro used by byte-optimize-lapcode..."
@@ -1535,7 +1541,8 @@
      ))
 
 (defun byte-optimize-lapcode (lap &optional for-effect)
-  "Simple peephole optimizer.  LAP is both modified and returned."
+  "Simple peephole optimizer.  LAP is both modified and returned.
+If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
   (let (lap0
 	lap1
 	lap2

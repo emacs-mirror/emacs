@@ -25,22 +25,21 @@
 ;;; Commentary:
 
 ;; The home page of the Arch version control system is at
-;; 
+;;
 ;;      http://www.gnuarch.org/
-;; 
+;;
 ;; This is derived from vc-mcvs.el as follows:
 ;; - cp vc-mcvs.el vc-arch.el and then M-% mcvs RET arch RET
 ;;
 ;; Then of course started the hacking.
 ;;
 ;; What has been partly tested:
-;; - Open a file
-;; - C-x v =  without any prefix arg
-;; - C-x v v  to commit a change to a single file
+;; - Open a file.
+;; - C-x v =  without any prefix arg.
+;; - C-x v v  to commit a change to a single file.
 
 ;; Bugs:
 
-;; - Opening a new file prompts "blabla was lost; check out? (yes or no)".
 ;; - *VC-log*'s initial content lacks the `Summary:' lines.
 ;; - All files under the tree are considered as "under Arch's control"
 ;;   without regards to =tagging-method and such.
@@ -56,7 +55,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'vc))
+(eval-when-compile (require 'vc) (require 'cl))
 
 ;;;
 ;;; Customization options
@@ -86,16 +85,102 @@
 ;;;###autoload           (load "vc-arch")
 ;;;###autoload           (vc-arch-registered file)))))
 
-(defun vc-arch-add-tag ()
+(defun vc-arch-add-tagline ()
   "Add an `arch-tag' to the end of the current file."
   (interactive)
+  (comment-normalize-vars)
   (goto-char (point-max))
   (forward-comment -1)
   (unless (bolp) (insert "\n"))
-  (let ((beg (point)))
+  (let ((beg (point))
+	(idfile (and buffer-file-name
+		     (expand-file-name
+		      (concat ".arch-ids/"
+			      (file-name-nondirectory buffer-file-name)
+			      ".id")
+		      (file-name-directory buffer-file-name)))))
     (insert "arch-tag: ")
-    (call-process "uuidgen" nil t)	;Also inserts a terminal newline.
+    (if (and idfile (file-exists-p idfile))
+	;; If the file is unreadable, we do want to get an error here.
+	(progn
+	  (insert-file-contents idfile)
+	  (forward-line 1)
+	  (delete-file idfile))
+      (condition-case nil
+	  (call-process "uuidgen" nil t)
+	(file-error (insert (format "%s <%s> %s"
+				    (current-time-string)
+				    user-mail-address
+				    (+ (nth 2 (current-time))
+				       (buffer-size)))))))
     (comment-region beg (point))))
+
+(defconst vc-arch-tagline-re "^\\W*arch-tag:[ \t]*\\(.*[^ \t\n]\\)")
+
+(defun vc-arch-file-source-p (file)
+  "Can return nil, `maybe' or a non-nil value.
+Only the value `maybe' can be trusted :-(."
+  ;; FIXME: Check the tag and name of parent dirs.
+  (unless (string-match "\\`[,+]" (file-name-nondirectory file))
+    (or (string-match "\\`{arch}/"
+		      (file-relative-name file (vc-arch-root file)))
+	(file-exists-p
+	 ;; Check the presence of an ID file.
+	 (expand-file-name
+	  (concat ".arch-ids/" (file-name-nondirectory file) ".id")
+	  (file-name-directory file)))
+	;; Check the presence of a tagline.
+	(with-current-buffer (find-file-noselect file)
+	  (save-excursion
+	    (goto-char (point-max))
+	    (or (re-search-backward vc-arch-tagline-re (- (point) 1000) t)
+		(progn
+		  (goto-char (point-min))
+		  (re-search-forward vc-arch-tagline-re (+ (point) 1000) t)))))
+	;; FIXME: check =tagging-method to see whether untagged files might
+	;; be source or not.
+	(with-current-buffer
+	    (find-file-noselect (expand-file-name "{arch}/=tagging-method"
+						  (vc-arch-root file)))
+	  (let ((untagged-source t))	;Default is `names'.
+	    (save-excursion
+	      (goto-char (point-min))
+	      (if (re-search-forward "^[ \t]*\\(\\(tagline\\|implicit\\|names\\)\\|explicit\\)" nil t)
+		  (setq untagged-source (match-end 2)))
+	      (if (re-search-forward "^[ \t]*untagged-source[ \t]+\\(\\(source\\)\\|precious\\|backup\\|junk\\|unrecognized\\)" nil t)
+		  (setq untagged-source (match-end 2))))
+	    (if untagged-source 'maybe))))))
+
+(defun vc-arch-file-id (file)
+  ;; Don't include the kind of ID this is because it seems to be too messy.
+  (let ((idfile (expand-file-name
+		 (concat ".arch-ids/" (file-name-nondirectory file) ".id")
+		 (file-name-directory file))))
+    (if (file-exists-p idfile)
+	(with-temp-buffer
+	  (insert-file-contents idfile)
+	  (looking-at ".*[^ \n\t]")
+	  (match-string 0)))
+      (with-current-buffer (find-file-noselect file)
+	(save-excursion
+	  (goto-char (point-max))
+	  (if (or (re-search-backward vc-arch-tagline-re (- (point) 1000) t)
+		  (progn
+		    (goto-char (point-min))
+		    (re-search-forward vc-arch-tagline-re (+ (point) 1000) t)))
+	      (match-string 1)
+	    (concat "./" (file-relative-name file (vc-arch-root file))))))))
+
+(defun vc-arch-tagging-method (file)
+  (with-current-buffer
+      (find-file-noselect
+       (expand-file-name "{arch}/=tagging-method" (vc-arch-root file)))
+    (save-excursion
+      (goto-char (point-min))
+      (if (re-search-forward
+	   "^[ \t]*\\(tagline\\|implicit\\|names\\|explicit\\)" nil t)
+	  (intern (match-string 1))
+	'names))))
 
 (defun vc-arch-root (file)
   "Return the root directory of a Arch project, if any."
@@ -111,11 +196,20 @@
 	     (setq file (directory-file-name file))))
 	 root))))
 
+(defun vc-arch-register (file &optional rev comment)
+  (if rev (error "Explicit initial revision not supported for Arch."))
+  (let ((tagmet (vc-arch-tagging-method file)))
+    (if (and (memq tagmet '(tagline implicit)) comment-start)
+	(with-current-buffer (find-file-noselect file)
+	  (vc-arch-add-tagline))
+      (vc-arch-command nil 0 file "add"))))
+
 (defun vc-arch-registered (file)
-  ;; Don't check whether it's source or not.  Checking would require
-  ;; running TLA, so it's better to not do it, so it also works if TLA is
-  ;; not installed.
-  (vc-arch-root file))
+  ;; Don't seriously check whether it's source or not.  Checking would
+  ;; require running TLA, so it's better to not do it, so it also works if
+  ;; TLA is not installed.
+  (and (vc-arch-root file)
+       (vc-arch-file-source-p file)))
 
 (defun vc-arch-default-version (file)
   (or (vc-file-getprop (vc-arch-root file) 'arch-default-version)
@@ -138,8 +232,47 @@ Return non-nil if FILE is unchanged."
   ;; There's no checkout operation and merging is not done from VC
   ;; so the only operation that's state dependent that VC supports is commit
   ;; which is only activated if the file is `edited'.
-  'edited)
-
+  (let* ((root (vc-arch-root file))
+	 (ver (vc-arch-default-version file))
+	 (pat (concat "\\`" (subst-char-in-string ?/ ?% ver)))
+	 (dir (expand-file-name ",,inode-sigs/"
+				(expand-file-name "{arch}" root)))
+	 (sigfile nil))
+    (dolist (f (if (file-directory-p dir) (directory-files dir t pat)))
+      (if (or (not sigfile) (file-newer-than-file-p f sigfile))
+	  (setq sigfile f)))
+    (if (not sigfile)
+	'edited				;We know nothing.
+      (let ((id (vc-arch-file-id file)))
+	(setq id (replace-regexp-in-string "[ \t]" "_" id))
+	(with-current-buffer (find-file-noselect sigfile)
+	  (goto-char (point-min))
+	  (while (and (search-forward id nil 'move)
+		      (progn (goto-char (- (match-beginning 0) 2))
+			     ;; Ignore E_ entries used for foo.id files.
+			     (or (not (bolp)) (looking-at "E_")))))
+	  (if (eobp)
+	      ;; ID not found.
+	      (if (equal (file-name-nondirectory sigfile)
+			 (subst-char-in-string
+			  ?/ ?% (vc-arch-workfile-version file)))
+		  'added
+		;; Might be `added' or `up-to-date' as well.
+		;; FIXME: Check in the patch logs to find out.
+		'edited)
+	    ;; Found the ID, let's check the inode.
+	    (if (not (re-search-forward
+		      "\t.*mtime=\\([0-9]+\\):size=\\([0-9]+\\)"
+		      (line-end-position) t))
+		;; Buh?  Unexpected format.
+		'edited
+	      (let ((ats (file-attributes file)))
+		(if (and (= (nth 7 ats) (string-to-number (match-string 2)))
+			 (equal (format-time-string "%s" (nth 5 ats))
+				(match-string 1)))
+		    'up-to-date
+		  'edited)))))))))
+	    
 (defun vc-arch-workfile-version (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))
@@ -180,15 +313,19 @@ Return non-nil if FILE is unchanged."
       (if (string-match (car rule) rev)
 	  (setq rev (replace-match (cdr rule) t nil rev))))
     (format "Arch%c%s"
-	    (if (memq (vc-state file) '(up-to-date needs-patch)) ?- ?:)
+	    (case (vc-state file)
+	      ((up-to-date needs-patch) ?-)
+	      (added ?@)
+	      (t ?:))
 	    rev)))
 
 (defun vc-arch-diff3-rej-p (rej)
-  (and (eq (nth 7 (file-attributes rej)) 56)
-       (with-temp-buffer
-	 (insert-file-contents rej)
-	 (goto-char (point-min))
-	 (looking-at "Conflicts occured, diff3 conflict markers left in file\\.$"))))
+  (let ((attrs (file-attributes rej)))
+    (and attrs (< (nth 7 attrs) 60)
+	 (with-temp-buffer
+	   (insert-file-contents rej)
+	   (goto-char (point-min))
+	   (looking-at "Conflicts occured, diff3 conflict markers left in file\\.")))))
 
 (defun vc-arch-delete-rej-if-obsolete ()
   "For use in `write-file-functions'."
@@ -216,6 +353,11 @@ Return non-nil if FILE is unchanged."
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
 
+(defun vc-arch-find-file-not-found-hook ()
+  ;; Do nothing.  We are not sure whether the file is `source' or not,
+  ;; so we shouldn't ask the user whether she wants to check it out.
+  )
+
 (defun vc-arch-checkout-model (file) 'implicit)
 
 (defun vc-arch-checkin (file rev comment)
@@ -231,6 +373,12 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-diff (file &optional oldvers newvers)
   "Get a difference report using Arch between two versions of FILE."
+  (if (and newvers
+	   (vc-up-to-date-p file)
+	   (equal newvers (vc-workfile-version file)))
+      ;; Newvers is the base revision and the current file is unchanged,
+      ;; so we can diff with the current file.
+      (setq newvers nil))
   (if newvers
       (error "Diffing specific revisions not implemented.")
     (let* ((async (fboundp 'start-process))

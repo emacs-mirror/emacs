@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -733,13 +733,13 @@ scientific notation in calc-mode.")
     (define-key map "\M-\C-m" 'calc-last-args-stub)
     (define-key map "\C-j" 'calc-over)
 
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'undefined))
-	    "lOW")
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
-	    (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
-		    ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
-	    "_0123456789.#@")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
+	  "lOW")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
+	  (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
+		  ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
+	  "_0123456789.#@")
     map))
 
 (defvar calc-digit-map
@@ -2952,8 +2952,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (if (eq calc-language 'big)
 	(setq s (concat s "\n"))
       (when calc-line-numbering
-	(aset s 0 ?1)
-	(aset s 1 ?:)))
+	(setq s (concat "1:" (substring s 2)))))
     (setcar (cdr entry) (calc-count-lines s))
     s))
 

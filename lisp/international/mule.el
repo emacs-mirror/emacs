@@ -1251,7 +1251,7 @@ See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
 On non-windowing terminals, this is set from the locale by default.
 
 Setting this variable directly does not take effect;
-use either M-x customize or \\[set-keyboard-coding-system]."
+use either \\[customize] or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
   :link '(info-link "(emacs)Specify Coding")
   :link '(info-link "(emacs)Single-Byte Character Support")

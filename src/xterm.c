@@ -217,6 +217,17 @@ static String Xt_default_resources[] = {0};
 
 static int toolkit_scroll_bar_interaction;
 
+/* Non-zero means to not move point as a result of clicking on a
+   frame to focus it (when focus-follows-mouse is nil).  */
+
+int x_mouse_click_focus_ignore_position;
+
+/* Non-zero timeout value means ignore next mouse click if it arrives
+   before that timeout elapses (i.e. as part of the same sequence of
+   events resulting from clicking on a frame to select it).  */
+
+static unsigned long ignore_next_mouse_click_timeout;
+
 /* Mouse movement.
 
    Formerly, we used PointerMotionHintMask (in standard_event_mask)
@@ -747,13 +758,13 @@ x_draw_fringe_bitmap (w, row, p)
 
       if (p->overlay_p)
 	{
-	  clipmask = XCreatePixmapFromBitmapData (display, 
+	  clipmask = XCreatePixmapFromBitmapData (display,
 						  FRAME_X_DISPLAY_INFO (f)->root_window,
-						  bits, p->wd, p->h, 
+						  bits, p->wd, p->h,
 						  1, 0, 1);
 	  gcv.clip_mask = clipmask;
 	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y; 
+	  gcv.clip_y_origin = p->y;
 	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
 	}
 
@@ -5725,7 +5736,7 @@ event_handler_gdk (gxev, ev, data)
       else
 	{
 	  current_count +=
-	    handle_one_xevent (dpyinfo, xev, &current_finish, 
+	    handle_one_xevent (dpyinfo, xev, &current_finish,
 			       current_hold_quit);
 	}
     }
@@ -6167,6 +6178,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
     case KeyPress:
 
+      ignore_next_mouse_click_timeout = 0;
+
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
       /* Dispatch KeyPress events when in menu.  */
       if (popup_activated ())
@@ -6216,6 +6229,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           int modifiers;
           Lisp_Object coding_system = Qlatin_1;
 	  Lisp_Object c;
+
+#ifdef USE_GTK
+          /* Don't pass keys to GTK.  A Tab will shift focus to the
+             tool bar in GTK 2.4.  Keys will still go to menus and
+             dialogs because in that case popup_activated is TRUE
+             (see above).  */
+          *finish = X_EVENT_DROP;
+#endif
 
           event.xkey.state
             |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
@@ -6518,6 +6539,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
       f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
+      if (f && x_mouse_click_focus_ignore_position)
+	ignore_next_mouse_click_timeout = event.xmotion.time + 200;
+
 #if 0
       if (event.xcrossing.focus)
 	{
@@ -6761,7 +6785,21 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
                   if (! popup_activated ())
 #endif
-                    construct_mouse_click (&inev, &event, f);
+		    {
+		      if (ignore_next_mouse_click_timeout)
+			{
+			  if (event.type == ButtonPress
+			      && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
+			    {
+			      ignore_next_mouse_click_timeout = 0;
+			      construct_mouse_click (&inev, &event, f);
+			    }
+			  if (event.type == ButtonRelease)
+			    ignore_next_mouse_click_timeout = 0;
+			}
+		      else
+			construct_mouse_click (&inev, &event, f);
+		    }
                 }
           }
         else
@@ -6909,7 +6947,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	  any_help_event_p = 1;
 	  gen_help_event (help_echo_string, frame, help_echo_window,
 			  help_echo_object, help_echo_pos);
-	} 
+	}
       else
 	{
 	  help_echo_string = Qnil;
@@ -8221,7 +8259,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
       f->win_gravity = NorthWestGravity;
     }
   x_calc_absolute_position (f);
- 
+
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
@@ -10342,7 +10380,7 @@ x_term_init (display_name, xrm_option, resource_name)
       get_bits_and_offset (dpyinfo->visual->green_mask,
                            &dpyinfo->green_bits, &dpyinfo->green_offset);
     }
-      
+
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
@@ -10729,6 +10767,7 @@ x_initialize ()
   x_noop_count = 0;
   last_tool_bar_item = -1;
   any_help_event_p = 0;
+  ignore_next_mouse_click_timeout = 0;
 
 #ifdef USE_GTK
   current_count = -1;
@@ -10815,6 +10854,16 @@ nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
+
+  DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
+	       &x_mouse_click_focus_ignore_position,
+    doc: /* Non-nil means that a mouse click to focus a frame does not move point.
+This variable is only used when the window manager requires that you
+click on a frame to select it (give it focus).  In that case, a value
+of nil, means that the selected window and cursor position changes to
+reflect the mouse click position, while a non-nil value means that the
+selected window or cursor position is preserved.  */);
+  x_mouse_click_focus_ignore_position = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
     doc: /* What X toolkit scroll bars Emacs uses.

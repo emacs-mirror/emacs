@@ -2198,7 +2198,7 @@ Make the region right-filled (@code{set-justification-right}).
 @kindex M-j f @r{(Enriched mode)}
 @findex set-justification-full
 @item M-j f
-Make the region fully-justified (@code{set-justification-full}).
+Make the region fully justified (@code{set-justification-full}).
 @kindex M-j c @r{(Enriched mode)}
 @kindex M-S @r{(Enriched mode)}
 @findex set-justification-center

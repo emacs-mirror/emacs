@@ -137,17 +137,17 @@ emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
-setwins=subdirs=`find $$wd -type d -print`; \
+setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins $$wd/$$file" ;; \
 	   esac; \
         done
 
-setwins_almost=subdirs=`find $$wd -type d -print`; \
+setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins $$wd/$$file" ;; \
 	   esac; \
         done
 

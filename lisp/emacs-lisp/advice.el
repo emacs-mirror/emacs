@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993,1994,2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,2000,01,2004  Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -2563,29 +2563,31 @@ supplied to make subr arglist lookup more efficient."
 Either use the one stored under the `ad-subr-arglist' property,
 or try to retrieve it from the docstring and cache it under
 that property, or otherwise use `(&rest ad-subr-args)'."
-  (cond ((ad-subr-args-defined-p subr-name)
-	 (ad-get-subr-args subr-name))
-	;; says jwz: Should use this for Lemacs 19.8 and above:
-	;;((fboundp 'subr-min-args)
-	;;  ...)
-	;; says hans: I guess what Jamie means is that I should use the values
-	;; of `subr-min-args' and `subr-max-args' to construct the subr arglist
-	;; without having to look it up via parsing the docstring, e.g.,
-	;; values 1 and 2 would suggest `(arg1 &optional arg2)' as an
-	;; argument list.  However, that won't work because there is no
-	;; way to distinguish a subr with args `(a &optional b &rest c)' from
-	;; one with args `(a &rest c)' using that mechanism. Also, the argument
-	;; names from the docstring are more meaningful. Hence, I'll stick with
-	;; the old way of doing things.
-	(t (let ((doc (or (ad-real-documentation subr-name t) "")))
-	     (cond ((string-match "^\\(([^\)]+)\\)\n?\\'" doc)
-		    (ad-define-subr-args
-		     subr-name
-		     (cdr (car (read-from-string
-				(downcase (match-string 1 doc))))))
-		    (ad-get-subr-args subr-name))
-		   ;; This is actually an error.
-		   (t '(&rest ad-subr-args)))))))
+  (if (ad-subr-args-defined-p subr-name)
+      (ad-get-subr-args subr-name)
+    ;; says jwz: Should use this for Lemacs 19.8 and above:
+    ;;((fboundp 'subr-min-args)
+    ;;  ...)
+    ;; says hans: I guess what Jamie means is that I should use the values
+    ;; of `subr-min-args' and `subr-max-args' to construct the subr arglist
+    ;; without having to look it up via parsing the docstring, e.g.,
+    ;; values 1 and 2 would suggest `(arg1 &optional arg2)' as an
+    ;; argument list.  However, that won't work because there is no
+    ;; way to distinguish a subr with args `(a &optional b &rest c)' from
+    ;; one with args `(a &rest c)' using that mechanism. Also, the argument
+    ;; names from the docstring are more meaningful. Hence, I'll stick with
+    ;; the old way of doing things.
+    (let ((doc (or (ad-real-documentation subr-name t) "")))
+      (if (not (string-match "\n\n\\((.+)\\)\\'" doc))
+	  ;; Signalling an error leads to bugs during bootstrapping because
+	  ;; the DOC file is not yet built (which is an error, BTW).
+	  ;; (error "The usage info is missing from the subr %s" subr-name)
+	  '(&rest ad-subr-args)
+	(ad-define-subr-args
+	 subr-name
+	 (cdr (car (read-from-string
+		    (downcase (match-string 1 doc))))))
+	(ad-get-subr-args subr-name)))))
 
 (defun ad-docstring (definition)
   "Return the unexpanded docstring of DEFINITION."

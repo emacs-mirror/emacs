@@ -153,21 +153,6 @@
 (modify-syntax-entry ?\$A#)(B ")$A#((B")
 (modify-syntax-entry ?\$A#}(B ")$A#{(B")
 (modify-syntax-entry ?\$A#](B ")$A#[(B")
-;; Unicode equivalents of above
-(modify-syntax-entry ?\$,2=T(B "($,2=U(B")
-(modify-syntax-entry ?\$,2=H(B "($,2=I(B")
-(modify-syntax-entry ?\$,2=J(B "($,2=K(B")
-(modify-syntax-entry ?\$,2=L(B "($,2=M(B")
-(modify-syntax-entry ?\$,2=N(B "($,2=O(B")
-(modify-syntax-entry ?\$,2=V(B "($,2=W(B")
-(modify-syntax-entry ?\$,2=P(B "($,2=Q(B")
-(modify-syntax-entry ?\$,2=U(B ")$,2=T(B")
-(modify-syntax-entry ?\$,2=I(B ")$,2=H(B")
-(modify-syntax-entry ?\$,2=K(B ")$,2=J(B")
-(modify-syntax-entry ?\$,2=M(B ")$,2=L(B")
-(modify-syntax-entry ?\$,2=O(B ")$,2=N(B")
-(modify-syntax-entry ?\$,2=W(B ")$,2=V(B")
-(modify-syntax-entry ?\$,2=Q(B ")$,2=P(B")
 
 (let ((chars "$A#,!"!##.!$#;#:#?#!!C!-!'#|#_!.!/!0!1#"!e#`!d(B"))
   (dotimes (i (length chars))
@@ -186,8 +171,6 @@
     (setq row (1+ row))))
 
 ;; Chinese character set (BIG5)
-
-
 
 (let ((from (decode-big5-char #xA141))
       (to (decode-big5-char #xA15D)))
@@ -1141,6 +1124,65 @@
 
   ;; Fixme: syntax for symbols &c
   )
+
+(let ((pairs
+       '("$,1sEsF(B"				; U+2045 U+2046
+	 "$,1s}s~(B"				; U+207D U+207E
+	 "$,1t-t.(B"				; U+208D U+208E
+	 "$,1{){*(B"				; U+2329 U+232A
+	 "$,1|T|U(B"				; U+23B4 U+23B5
+	 "$,2&H&I(B"				; U+2768 U+2769
+	 "$,2&J&K(B"				; U+276A U+276B
+	 "$,2&L&M(B"				; U+276C U+276D
+	 "$,2&P&Q(B"				; U+2770 U+2771
+	 "$,2&R&S(B"				; U+2772 U+2773
+	 "$,2&T&U(B"				; U+2774 U+2775
+	 "$,2'f'g(B"				; U+27E6 U+27E7
+	 "$,2'h'i(B"				; U+27E8 U+27E9
+	 "$,2'j'k(B"				; U+27EA U+27EB
+	 "$,2,#,$(B"				; U+2983 U+2984
+	 "$,2,%,&(B"				; U+2985 U+2986
+	 "$,2,',((B"				; U+2987 U+2988
+	 "$,2,),*(B"				; U+2989 U+298A
+	 "$,2,+,,(B"				; U+298B U+298C
+	 "$,2,-,.(B"				; U+298D U+298E
+	 "$,2,/,0(B"				; U+298F U+2990
+	 "$,2,1,2(B"				; U+2991 U+2992
+	 "$,2,3,4(B"				; U+2993 U+2994
+	 "$,2,5,6(B"				; U+2995 U+2996
+	 "$,2,7,8(B"				; U+2997 U+2998
+	 "$,2-<-=(B"				; U+29FC U+29FD
+	 "$,2=H=I(B"				; U+3008 U+3009
+	 "$,2=J=K(B"				; U+300A U+300B
+	 "$,2=L=M(B"				; U+300C U+300D
+	 "$,2=N=O(B"				; U+300E U+300F
+	 "$,2=P=Q(B"				; U+3010 U+3011
+	 "$,2=T=U(B"				; U+3014 U+3015
+	 "$,2=V=W(B"				; U+3016 U+3017
+	 "$,2=X=Y(B"				; U+3018 U+3019
+	 "$,2=Z=[(B"				; U+301A U+301B
+	 "$,3m~m(B"				; U+FD3E U+FD3F
+	 "$,3pUpV(B"				; U+FE35 U+FE36
+	 "$,3pWpX(B"				; U+FE37 U+FE38
+	 "$,3pYpZ(B"				; U+FE39 U+FE3A
+	 "$,3p[p\(B"				; U+FE3B U+FE3C
+	 "$,3p]p^(B"				; U+FE3D U+FE3E
+	 "$,3p_p`(B"				; U+FE3F U+FE40
+	 "$,3papb(B"				; U+FE41 U+FE42
+	 "$,3pcpd(B"				; U+FE43 U+FE44
+	 "$,3pypz(B"				; U+FE59 U+FE5A
+	 "$,3p{p|(B"				; U+FE5B U+FE5C
+	 "$,3p}p~(B"				; U+FE5D U+FE5E
+	 "$,3rhri(B"				; U+FF08 U+FF09
+	 "$,3s;s=(B"				; U+FF3B U+FF3D
+	 "$,3s[s](B"				; U+FF5B U+FF5D
+	 "$,3s_s`(B"				; U+FF5F U+FF60
+	 "$,3sbsc(B"				; U+FF62 U+FF63
+	 )))
+  (dolist (elt pairs)
+    (modify-syntax-entry (aref elt 0) (string ?\( (aref elt 1)))
+    (modify-syntax-entry (aref elt 1) (string ?\) (aref elt 0)))))
+
 
 ;;; Setting word boundary.
 

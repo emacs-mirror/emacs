@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.46 2004/03/01 22:44:04 lektu Exp $||
+;; Version: $Id: allout.el,v 1.47 2004/03/21 15:21:38 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.46 $"))
+  (let ((rcs-rev "$Revision: 1.47 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -1049,7 +1049,7 @@ and many other features.
 Below is a description of the bindings, and then explanation of
 special `allout-mode' features and terminology.  See also the outline
 menubar additions for quick reference to many of the features, and see
-the docstring of the variable `allout-init' for instructions on
+the docstring of the function `allout-init' for instructions on
 priming your emacs session for automatic activation of `allout-mode'.
 
 

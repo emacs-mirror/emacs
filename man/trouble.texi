@@ -124,8 +124,8 @@ about the undo facility.
 normally, and how to recognize them and correct them.  For a list of
 additional problems you might encounter, see @ref{Bugs and problems, ,
 Bugs and problems, efaq, GNU Emacs FAQ}, and the file @file{etc/PROBLEMS}
-in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
-@kbd{C-h P} to read the @file{PROBLEMS} file.
+in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
+@kbd{C-h C-e} to read the @file{PROBLEMS} file.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
@@ -426,7 +426,7 @@ to do so effectively, you must know when and how to do it.
 
   Before reporting a bug, it is a good idea to see if it is already
 known.  You can find the list of known problems in the file
-@file{etc/PROBLEMS} in the Emacs distribution; type @kbd{C-h P} to read
+@file{etc/PROBLEMS} in the Emacs distribution; type @kbd{C-h C-e} to read
 it.  Some additional user-level problems can be found in @ref{Bugs and
 problems, , Bugs and problems, efaq, GNU Emacs FAQ}.  Looking up your
 problem in these two documents might provide you with a solution or a

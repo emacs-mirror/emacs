@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,2003
+;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,03,2004
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2905,9 +2905,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (or
 	   ;; Test for different drives on DOS/Windows
 	   (and
+	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (string-equal (substring filename  0 2)
-			       (substring directory 0 2))))
+	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
 	   ;; Test for different remote file handlers
 	   (not (eq hf hd))
 	   ;; Test for different remote file system identification
@@ -2925,21 +2925,22 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  filename
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))
-          (while
-	      (and
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename-dir))
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename)))
+          (while (not
+		  (or
+		   (eq t (compare-strings filename-dir nil (length directory)
+					  directory nil nil case-fold-search))
+		   (eq t (compare-strings filename nil (length directory)
+					  directory nil nil case-fold-search))))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
-          (if (string-match (concat "^" (regexp-quote directory)) filename)
+          (if (eq t (compare-strings filename nil (length directory)
+				     directory nil nil case-fold-search))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
-	      (let ((rest (substring filename (match-end 0))))
+	      (let ((rest (substring filename (length directory))))
 		(if (and (equal ancestor ".") (not (equal rest "")))
 		    ;; But don't bother with ANCESTOR if it would give us `./'.
 		    rest
@@ -3452,6 +3453,18 @@ Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.
 
 The function you specify is responsible for updating (or preserving) point.")
+
+(defvar buffer-stale-function nil
+  "Function to check whether a non-file buffer needs reverting.
+This should be a function with one optional argument NOCONFIRM.
+Auto Revert Mode sets NOCONFIRM to t.  The function should return
+non-nil if the buffer should be reverted.  The buffer is current
+when this function is called.
+
+The idea behind the NOCONFIRM argument is that it should be
+non-nil if the buffer is going to be reverted without asking the
+user.  In such situations, one has to be careful with potentially
+time consuming operations.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
@@ -4205,14 +4218,20 @@ program specified by `directory-free-space-program' if that is non-nil."
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
-SWITCHES may be a string of options, or a list of strings.
+SWITCHES may be a string of options, or a list of strings
+representing individual options.
 Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
 This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
-If WILDCARD, it also runs the shell specified by `shell-file-name'."
+If WILDCARD, it also runs the shell specified by `shell-file-name'.
+
+When SWITCHES contains the long `--dired' option,this function
+treats it specially, for the sake of dired.  However, the
+normally equivalent short `-D' option is just passed on to
+`insert-directory-program', as any other option."
   ;; We need the directory in order to find the right handler.
   (let ((handler (find-file-name-handler (expand-file-name file)
 					 'insert-directory)))
@@ -4301,7 +4320,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (access-file file "Reading directory")
 	      (error "Listing directory failed but `access-file' worked")))
 
-	  (when (string-match "--dired\\>" switches)
+	  (when (if (stringp switches)
+		    (string-match "--dired\\>" switches)
+		  (member "--dired" switches))
 	    (forward-line -2)
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))

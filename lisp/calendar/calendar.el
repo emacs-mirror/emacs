@@ -1915,6 +1915,7 @@ Or, for optional MON, YR."
 	     font-lock-mode)
 	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
+;;;         (calendar-date-is-legal-p today) ; useful for BC dates
          (mark-calendar-holidays)
          (sit-for 0))
     (unwind-protect
@@ -2933,7 +2934,10 @@ Defaults to today's date if DATE is not given."
 (defun calendar-set-mode-line (str)
   "Set mode line to STR, centered, surrounded by dashes."
   (setq mode-line-format
-        (calendar-string-spread (list str) ?- (frame-width))))
+        (calendar-string-spread
+         (list str) ?-
+         ;; As per doc of window-width, total visible mode-line length.
+         (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))))))
 
 (defun calendar-mod (m n)
   "Non-negative remainder of M/N with N instead of 0."

@@ -1,3 +1,14 @@
+2004-03-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-prin1.ps: Clip the header and footer area, so text will not be
+	printed outside header or footer, respectively.
+	(HeaderClip, FooterClip): New PostScript funs.
+	(HeaderText, FooterText): Adjust PostScript code.
+
+2004-03-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* TODO: Removed drag-and-drop entry (DONE).
+
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* TODO: Remove entries for fringe related issues (DONE).

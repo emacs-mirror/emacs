@@ -1,26 +1,26 @@
-;;; info-xref.el --- check external references in an Info document.
+;;; info-xref.el --- check external references in an Info document
 
-;; Copyright 2003 Free Software Foundation, Inc
-;;
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
-;;
-;; info-xref.el is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by the
-;; Free Software Foundation; either version 2, or (at your option) any later
-;; version.
-;;
-;; info-xref.el is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-;; Public License for more details.
-;;
-;; You can get a copy of the GNU General Public License online at
-;; http://www.gnu.org/licenses/gpl.txt, or you should have one in the file
-;; COPYING which comes with GNU Emacs and other GNU programs.  Failing that,
-;; write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -59,31 +59,10 @@
 ;; this is that if for instance there's a source code directory in
 ;; `Info-directory-list' then a lot of extraneous files might be read, which
 ;; will be time consuming but should be harmless.
-
-
-;;; Install:
-
-;; Put info-xref.el somewhere in your `load-path', and in your .emacs put
 ;;
-;;     (autoload 'info-xref-check     "info-xref" nil t)
-;;     (autoload 'info-xref-check-all "info-xref" nil t)
-;;
-;; then
-;;
-;;     M-x info-xref-check
-;;
-;; and enter an info file name.
-
-
-;;; Emacsen:
-
-;; Designed for use with GNU Emacs 21.
-
-
-;;; History:
-
-;; Version 1 - the first version.
-
+;; `M-x info-xref-check-all-custom' is a related command, it goes through
+;; all info document references in customizable variables, checking them
+;; like info file cross references.
 
 ;;; Code:
 
@@ -204,32 +183,37 @@ should open up the purported top file and see what subfiles it says."
 This should be the raw file contents, not `Info-mode'."
   (goto-char (point-min))
   (while (re-search-forward
-          "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]+)\\)[^.,]+\\)[.,]"
+          "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]*)\\)[^.,]+\\)[.,]"
           nil t)
     (let* ((file (match-string 2))
            (node ;; Canonicalize spaces: we could use "[\t\n ]+" but
 	    ;; we try to avoid uselessly replacing " " with " ".
 	    (replace-regexp-in-string "[\t\n][\t\n ]*\\| [\t\n ]+" " "
 				      (match-string 1) t t)))
-      ;; see if the file exists, if we haven't tried it before
-      (unless (assoc file info-xref-xfile-alist)
-        (let ((found (info-xref-goto-node-p file)))
-          (push (cons file found) info-xref-xfile-alist)
-          (unless found
-	    (info-xref-output (format "Not available to check: %s\n" file)))))
-      ;; if the file exists, try the node, if we haven't before
-      (when (cdr (assoc file info-xref-xfile-alist))
-        (unless (assoc node info-xref-xfile-alist)
+      (if (string-equal "()" file)
+          (info-xref-output "Empty filename part: %s\n" node)
+        ;; see if the file exists, if we haven't tried it before
+        (unless (assoc file info-xref-xfile-alist)
+          (let ((found (info-xref-goto-node-p file)))
+            (push (cons file found) info-xref-xfile-alist)
+            (unless found
+              (info-xref-output "Not available to check: %s\n" file))))
+        ;; if the file exists, try the node
+        (when (cdr (assoc file info-xref-xfile-alist))
           (if (info-xref-goto-node-p node)
               (setq info-xref-good (1+ info-xref-good))
             (setq info-xref-bad (1+ info-xref-bad))
-            (info-xref-output (format "No such node: %s\n" node))))))))
+            (info-xref-output "No such node: %s\n" node)))))))
 
-(defun info-xref-output (str)
-  "Emit STR as an info-xref result message."
+(defun info-xref-output (str &rest args)
+  "Emit a `format'-ed message STR+ARGS to the info-xref output buffer."
   (with-current-buffer info-xref-results-buffer
-    (insert info-xref-filename-heading str)
-    (setq info-xref-filename-heading "")))
+    (insert info-xref-filename-heading
+            (apply 'format str args))
+    (setq info-xref-filename-heading "")
+    ;; all this info-xref can be pretty slow, display now so the user can
+    ;; see some progress
+    (sit-for 0)))
 
 ;; When asking Info-goto-node to fork, *info* needs to be the current
 ;; buffer, otherwise it seems to clone the current buffer but then do the
@@ -258,6 +242,67 @@ This should be the raw file contents, not `Info-mode'."
               (error nil))
           (unless (equal (current-buffer) oldbuf)
             (kill-buffer (current-buffer))))))))
+
+;;;###autoload
+(defun info-xref-check-all-custom ()
+  "Check info references in all customize groups and variables.
+`custom-manual' and `info-link' entries in the `custom-links' list are checked.
+
+`custom-load' autoloads for all symbols are loaded in order to get all the
+link information.  This will be a lot of lisp packages loaded, and can take
+quite a while."
+
+  (interactive)
+  (pop-to-buffer info-xref-results-buffer t)
+  (erase-buffer)
+  (let ((info-xref-filename-heading ""))
+
+    ;; `custom-load-symbol' is not used, since it quietly ignores errors,
+    ;; but we want to show them (since they may mean incomplete checking).
+    ;;
+    ;; Just one pass through mapatoms is made.  There shouldn't be any new
+    ;; custom-loads setup by packages loaded.
+    ;;
+    (info-xref-output "Loading custom-load autoloads ...\n")
+    (require 'cus-start)
+    (require 'cus-load)
+    (let ((viper-mode nil)) ;; tell viper.el not to ask about viperizing
+      (mapatoms
+       (lambda (symbol)
+         (dolist (load (get symbol 'custom-loads))
+           (cond ((symbolp load)
+                  (condition-case cause (require load)
+                    (error
+                     (info-xref-output "Symbol `%s': cannot require '%s: %s\n"
+                                       symbol load cause))))
+                 ;; skip if previously loaded
+                 ((assoc load load-history))
+                 ((assoc (locate-library load) load-history))
+                 (t
+                  (condition-case cause (load load)
+                    (error
+                     (info-xref-output "Symbol `%s': cannot load \"%s\": %s\n"
+                                       symbol load cause)))))))))
+
+    ;; Don't bother to check whether the info file exists as opposed to just
+    ;; a missing node.  If you have the lisp then you should have the
+    ;; documentation, so missing node name will be the usual fault.
+    ;;
+    (info-xref-output "\nChecking custom-links references ...\n")
+    (let ((good 0)
+          (bad  0))
+      (mapatoms
+       (lambda (symbol)
+         (dolist (link (get symbol 'custom-links))
+           (when (memq (car link) '(custom-manual info-link))
+             (if (info-xref-goto-node-p (cadr link))
+                 (setq good (1+ good))
+               (setq bad (1+ bad))
+               ;; symbol-file gives nil for preloaded variables, would need
+               ;; to copy what describe-variable does to show the right place
+               (info-xref-output "Symbol `%s' (in %s): cannot goto node: %s\n"
+                                 symbol (symbol-file symbol) (cadr link)))))))
+      (info-xref-output "%d good, %d bad\n" good bad))))
 
 (provide 'info-xref)
 

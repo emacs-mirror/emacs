@@ -5,9 +5,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/29 14:06:59 vinicius>
+;; Time-stamp: <2004/03/30 21:49:21 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.0
+;; Version: 4.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -27,8 +27,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "4.0"
-  "ebnf2ps.el, v 4.0 <2004/02/28 vinicius>
+(defconst ebnf-version "4.1"
+  "ebnf2ps.el, v 4.1 <2004/03/18 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -319,6 +319,10 @@ Please send all bug fixes and enhancements to
 ;;			The following variable *ONLY* has effect with this
 ;;			setting:
 ;;			`ebnf-yac-ignore-error-recovery'.
+;;
+;;    `ebnfx'		ebnf2ps recognizes the syntax described in the URL:
+;;		     `http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+;;		     ("Extensible Markup Language (XML) 1.0 (Third Edition)")
 ;;
 ;; Any other value is treated as `ebnf'.
 ;;
@@ -1679,9 +1683,14 @@ Valid values are:
 		setting:
 		`ebnf-yac-ignore-error-recovery'.
 
+   `ebnfx'	ebnf2ps recognizes the syntax described in the URL:
+		`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+		(\"Extensible Markup Language (XML) 1.0 (Third Edition)\")
+
 Any other value is treated as `ebnf'."
   :type '(radio :tag "Syntax"
-		(const ebnf) (const abnf) (const iso-ebnf) (const yacc))
+		(const ebnf) (const abnf)  (const iso-ebnf)
+		(const yacc) (const ebnfx))
   :group 'ebnf-syntactic)
 
 
@@ -2393,6 +2402,10 @@ See also `ebnf-syntax-buffer'."
     (yacc
      default
      (ebnf-syntax                      . 'yacc))
+    ;; ebnfx default
+    (ebnfx
+     default
+     (ebnf-syntax                      . 'ebnfx))
     )
   "Style database.
 
@@ -4650,7 +4663,8 @@ killed after process termination."
   '((iso-ebnf  ebnf-iso-parser  ebnf-iso-initialize)
     (yacc      ebnf-yac-parser  ebnf-yac-initialize)
     (abnf      ebnf-abn-parser  ebnf-abn-initialize)
-    (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize))
+    (ebnf      ebnf-bnf-parser  ebnf-bnf-initialize)
+    (ebnfx     ebnf-ebx-parser  ebnf-ebx-initialize))
   "Alist associating ebnf syntax with a parser and a initializer.")
 
 
@@ -4748,52 +4762,53 @@ killed after process termination."
 
 
 (defun ebnf-eps-finish-and-write (buffer filename)
-  (save-excursion
-    (set-buffer buffer)
-    (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
-	  ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
-			       ebnf-eps-max-height
-			     (+ ebnf-eps-upper-y
-				ebnf-production-vertical-space
-				ebnf-eps-max-height)))
-    ;; prologue
-    (goto-char (point-min))
-    (insert
-     "%!PS-Adobe-3.0 EPSF-3.0"
-     "\n%%BoundingBox: 0 0 "
-     (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
-     "\n%%Title: " filename
-     "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
-     "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
-     "\n%%DocumentNeededResources: font "
-     (or ebnf-fonts-required
-	 (setq ebnf-fonts-required
-	       (mapconcat 'identity
-			  (ps-remove-duplicates
-			   (mapcar 'ebnf-font-name-select
-				   (list ebnf-production-font
-					 ebnf-terminal-font
-					 ebnf-non-terminal-font
-					 ebnf-special-font
-					 ebnf-except-font
-					 ebnf-repeat-font)))
-			  "\n%%+ font ")))
-     "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
-     ebnf-eps-prologue)
-    (ebnf-insert-ebnf-prologue)
-    (insert ebnf-eps-begin
-	    "\n0 " (ebnf-format-float
-		    (- ebnf-eps-upper-y (* ebnf-font-height-P 0.7)))
-	    " #ebnf2ps#begin\n")
-    ;; epilogue
-    (goto-char (point-max))
-    (insert ebnf-eps-end)
-    ;; write file
-    (message "Saving...")
-    (setq filename (expand-file-name filename))
-    (let ((coding-system-for-write 'raw-text-unix))
-      (write-region (point-min) (point-max) filename))
-    (message "Wrote %s" filename)))
+  (when (buffer-modified-p buffer)
+    (save-excursion
+      (set-buffer buffer)
+      (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
+	    ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
+				 ebnf-eps-max-height
+			       (+ ebnf-eps-upper-y
+				  ebnf-production-vertical-space
+				  ebnf-eps-max-height)))
+      ;; prologue
+      (goto-char (point-min))
+      (insert
+       "%!PS-Adobe-3.0 EPSF-3.0"
+       "\n%%BoundingBox: 0 0 "
+       (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
+       "\n%%Title: " filename
+       "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
+       "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
+       "\n%%DocumentNeededResources: font "
+       (or ebnf-fonts-required
+	   (setq ebnf-fonts-required
+		 (mapconcat 'identity
+			    (ps-remove-duplicates
+			     (mapcar 'ebnf-font-name-select
+				     (list ebnf-production-font
+					   ebnf-terminal-font
+					   ebnf-non-terminal-font
+					   ebnf-special-font
+					   ebnf-except-font
+					   ebnf-repeat-font)))
+			    "\n%%+ font ")))
+       "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
+       ebnf-eps-prologue)
+      (ebnf-insert-ebnf-prologue)
+      (insert ebnf-eps-begin
+	      "\n0 " (ebnf-format-float
+		      (- ebnf-eps-upper-y (* ebnf-font-height-P 0.7)))
+	      " #ebnf2ps#begin\n")
+      ;; epilogue
+      (goto-char (point-max))
+      (insert ebnf-eps-end)
+      ;; write file
+      (message "Saving...")
+      (setq filename (expand-file-name filename))
+      (let ((coding-system-for-write 'raw-text-unix))
+	(write-region (point-min) (point-max) filename))
+      (message "Wrote %s" filename))))
 
 
 (defun ebnf-insert-ebnf-prologue ()
@@ -5687,6 +5702,12 @@ killed after process termination."
 
 (autoload 'ebnf-yac-initialize        "ebnf-yac"
   "Initializations for Yacc/Bison parser.")
+
+(autoload 'ebnf-ebx-parser            "ebnf-ebx"
+  "EBNFX parser.")
+
+(autoload 'ebnf-ebx-initialize        "ebnf-ebx"
+  "Initializations for EBNFX parser.")
 
 (autoload 'ebnf-eliminate-empty-rules "ebnf-otz"
   "Eliminate empty rules.")

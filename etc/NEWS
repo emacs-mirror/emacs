@@ -88,12 +88,18 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** M-x compile has been completely overhauled
+** M-x compile has become more robust and reliable
 
-It now uses font-lock for turning compiler output into hypertext.  Quite a few
-more kinds of messages are recognized.  Messages that are recognized as
-warnings or informational come in orange or green, instead of red. 
-Informational messages are by default skipped with `next-error'.
+Quite a few more kinds of messages are recognized.  Messages that are
+recognized as warnings or informational come in orange or green, instead of
+red.  Informational messages are by default skipped with `next-error'
+(controlled by `compilation-skip-threshold').
+
+The variable `compilation-error-regexp-alist' has now become customizable.  If
+you had added your own regexps to this, you'll probably need to include a
+leading `^', otherwise they'll match anywhere on a line.  There is now also a
+`compilation-mode-font-lock-keywords' and it nicely handles all the checks
+that configure outputs and -o options so you see at a glance where you are.
 
 The new file etc/compilation.txt gives examples of each type of message.
 
@@ -103,6 +109,11 @@ Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and will again be loaded with the new `grep-mode'.
 
 ** M-x diff uses diff-mode instead of compilation-mode.
+
+** New command `strokes-global-set-stroke-string'.
+This is like `strokes-global-set-stroke', but it allows you to bind
+the stroke directly to a string to insert.  This is convenient for
+using strokes as an input method.
 
 ---
 ** The saveplace.el package now filters out unreadable files.
@@ -233,7 +244,7 @@ highlighted in `font-lock-doc-face'.
 *** Microsoft SQLServer support has been significantly improved.
 Keyword highlighting for SqlServer 2000 is implemented.
 sql-interactive-mode defaults to use osql, rather than isql, because
-osql flushes it's error stream more frequently.  Thus error messages
+osql flushes its error stream more frequently.  Thus error messages
 are displayed when they occur rather than when the session is
 terminated.
 
@@ -632,6 +643,13 @@ mouse-autoselect-window to non-nil value, moving the mouse to a
 different Emacs window will select that window (minibuffer window can
 be selected only when it is active).  The default is nil, so that this
 feature is not enabled.
+
+** On X, when the window manager requires that you click on a frame to
+select it (give it focus), the selected window and cursor position
+normally changes according to the mouse click position.  If you set
+the variable x-mouse-click-focus-ignore-position to t, the selected
+window and cursor position do not changes when you click on a frame
+to give it focus.
 
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with
@@ -1627,7 +1645,7 @@ to view diffs or log entries directly from vc-annotate-mode:
     L:  shows the log of the revision at line
     W:  annotates the workfile (most up to date) version
 
-* New modes and packages in 21.4
+* New modes and packages in Emacs 21.4
 
 +++
 ** The new global minor mode `size-indication-mode' (off by default)
@@ -1857,7 +1875,7 @@ supported on text terminals.
 
 The display property stretch specification form `(space PROPS)', where
 PROPS is a property list now allows pixel based width and height
-specifications, as well as enhanced horisontal text alignment.
+specifications, as well as enhanced horizontal text alignment.
 
 The value of these properties can now be a (primitive) expression
 which is evaluated during redisplay.  The following expressions
@@ -1883,7 +1901,7 @@ the image.
 
 The `left-fringe', `right-fringe', `left-margin', `right-margin',
 `scroll-bar', and `text' elements specify to the width of the
-corresponding area of the window.  
+corresponding area of the window.
 
 The `left', `center', and `right' positions can be used with :align-to
 to specify a position relative to the left edge, center, or right edge

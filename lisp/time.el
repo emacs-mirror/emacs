@@ -177,7 +177,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
      (format-time-string (or display-time-format
 			     (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			 now)
-     'help-echo (format-time-string "%s %b %e, %Y" now))
+     'help-echo (format-time-string "%a %b %e, %Y" now))
     load
     (if mail
 	;; Build the string every time to act on customization.

@@ -809,7 +809,7 @@ Only useful when run on a graphic display such as X or MS-Windows."
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
-  "*If non-nil then most of the frame width is used."
+  "*If non-nil then most of the window width is used."
   :type 'boolean
   :group 'woman-formatting)
 
@@ -2211,7 +2211,7 @@ Currently set only from '\" t in the first line of the source file.")
     ;; Based loosely on a suggestion by Theodore Jump:
     (if (or woman-fill-frame
 	    (not (and (integerp woman-fill-column) (> woman-fill-column 0))))
-	(setq woman-fill-column (- (frame-width) woman-default-indent)))
+	(setq woman-fill-column (- (window-width) woman-default-indent)))
 
     ;; Check for preprocessor requests:
     (goto-char from)
@@ -3239,7 +3239,7 @@ If optional arg CONCAT is non-nil then join arguments."
   ;; Paragraph .LP/PP/HP/IP/TP and font .B/.BI etc. macros reset font.
   ;; Should .SH/.SS reset font?
   ;; Font size setting macros (?) should reset font.
-  (let ((woman-font-alist woman-font-alist) ; for local updating
+  (let ((font-alist woman-font-alist) ; for local updating
 	(previous-pos (point))
 	(previous-font 'default)
 	(current-font 'default))
@@ -3270,15 +3270,15 @@ If optional arg CONCAT is non-nil then join arguments."
 	  ;; Get font name:
 	  (or font
 	      (let ((fontstring (match-string 0)))
-		(setq font (assoc fontstring woman-font-alist)
-		      ;; NB: woman-font-alist contains VARIABLE NAMES.
+		(setq font (assoc fontstring font-alist)
+		      ;; NB: font-alist contains VARIABLE NAMES.
 		      font (if font
 			       (cdr font)
 			     (WoMan-warn "Unknown font %s." fontstring)
 			     ;; Output this message once only per call ...
-			     (setq woman-font-alist
+			     (setq font-alist
 				   (cons (cons fontstring 'woman-unknown-face)
-					 woman-font-alist))
+					 font-alist))
 			     'woman-unknown-face)
 		      )))
 	  ;; Delete font control line or escape sequence:

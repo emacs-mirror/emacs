@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/28 17:40:41 vinicius>
+;; Time-stamp: <2004/03/18 23:49:58 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.0
 
@@ -233,6 +233,8 @@
     (setq token (ebnf-abn-lex))
     (and (eq token 'end-of-input)
 	 (error "Invalid ABNF file format"))
+    (and (eq token 'end-of-rule)
+	 (setq token (ebnf-abn-lex)))
     (while (not (eq token 'end-of-input))
       (ebnf-message-float
        "Parsing...%s%%"

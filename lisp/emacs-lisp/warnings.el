@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file implements the entry points `warn', `lwarn'
-;; and `display-warnings'.
+;; and `display-warning'.
 
 ;;; Code:
 

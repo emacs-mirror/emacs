@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 04 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -895,7 +895,8 @@ to temp files when Ediff needs to find fine differences."
 	 (sit-for 1)))))
 
 (defun ediff-hide-face (face)
-  (if (and (ediff-has-face-support-p) ediff-emacs-p)
+  (if (and (ediff-has-face-support-p) (boundp 'add-to-list)
+	   (boundp 'facemenu-unlisted-faces))
       (add-to-list 'facemenu-unlisted-faces face)))
 
 
@@ -1288,7 +1289,7 @@ This property can be toggled interactively."
 ;;; Misc
 
 ;; if nil, this silences some messages
-(defconst ediff-verbose-p t)
+(defvar ediff-verbose-p t)
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.

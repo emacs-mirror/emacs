@@ -7,7 +7,7 @@
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -887,9 +887,17 @@ dired."
 
 (defvar dired-guess-shell-alist-default
   (list
-   (list "\\.tar$" '(if dired-guess-shell-gnutar
-                        (concat dired-guess-shell-gnutar " xvf")
-                      "tar xvf"))
+   (list "\\.tar$"
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " xvf")
+            "tar xvf")
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -xvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; tar -C " (file-name-sans-extension file) " -xvf")))
 
    ;; REGEXPS for compressed archives must come before the .Z rule to
    ;; be recognized:
@@ -907,31 +915,67 @@ dired."
          '(if dired-guess-shell-gnutar
               (concat dired-guess-shell-gnutar " zxvf")
             (concat "gunzip -qc * | tar xvf -"))
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -zxvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; gunzip -qc * | tar -C "
+                    (file-name-sans-extension file) " -xvf -"))
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" "")))
+
    ;; bzip2'ed archives
-   (list "\\.tar\\.bz2$"
+   (list "\\.t\\(ar\\.bz2\\|bz\\)$"
 	 "bunzip2 -c * | tar xvf -"
+         ;; Extract files into a separate subdirectory
+         '(concat "mkdir " (file-name-sans-extension file)
+                  "; bunzip2 -c * | tar -C "
+                  (file-name-sans-extension file) " -xvf -")
 	 ;; Optional decompression.
          "bunzip2")
 
-   '("\\.shar.Z$" "zcat * | unshar")
-   '("\\.shar.g?z$" "gunzip -qc * | unshar")
+   '("\\.shar\\.Z$" "zcat * | unshar")
+   '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
 
    '("\\.e?ps$" "ghostview" "xloadimage" "lpr")
-   (list "\\.e?ps.g?z$" "gunzip -qc * | ghostview -"
+   (list "\\.e?ps\\.g?z$" "gunzip -qc * | ghostview -"
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.e?ps.Z$" "zcat * | ghostview -"
+   (list "\\.e?ps\\.Z$" "zcat * | ghostview -"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
                   " " dired-guess-shell-znew-switches))
+
    '("\\.patch$" "cat * | patch")
-   '("\\.patch.g?z$" "gunzip -qc * | patch")
-   (list "\\.patch.Z$" "zcat * | patch"
+   (list "\\.patch\\.g?z$" "gunzip -qc * | patch"
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.patch\\.Z$" "zcat * | patch"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
                   " " dired-guess-shell-znew-switches))
+
+   ;; The following four extensions are useful with dired-man ("N" key)
+   (list "\\.[0-9]$" '(progn (require 'man)
+                             (if (Man-support-local-filenames)
+                                 "man -l"
+                               "cat * | tbl | nroff -man -h")))
+   (list "\\.[0-9]\\.g?z$" '(progn (require 'man)
+                                   (if (Man-support-local-filenames)
+                                       "man -l"
+                                     "gunzip -qc * | tbl | nroff -man -h"))
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.[0-9]\\.Z$" '(progn (require 'man)
+                                 (if (Man-support-local-filenames)
+                                     "man -l"
+                                   "zcat * | tbl | nroff -man -h"))
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+   '("\\.pod$" "perldoc" "pod2man * | nroff -man")
 
    '("\\.dvi$" "xdvi" "dvips")          ; preview and printing
    '("\\.au$" "play")                   ; play Sun audiofiles
@@ -945,7 +989,7 @@ dired."
    '("\\.gif$" "xloadimage")                    ; view gif pictures
    '("\\.tif$" "xloadimage")
    '("\\.png$" "display")		; xloadimage 4.1 doesn't grok PNG
-   '("\\.jpg$" "xloadimage")
+   '("\\.jpe?g$" "xloadimage")
    '("\\.fig$" "xfig")                  ; edit fig pictures
    '("\\.out$" "xgraph")                ; for plotting purposes.
    '("\\.tex$" "latex" "tex")
@@ -953,14 +997,18 @@ dired."
    '("\\.pdf$" "xpdf")              ; edit PDF files
 
    ;; Some other popular archivers.
+   (list "\\.zip$" "unzip"
+         ;; Extract files into a separate subdirectory
+         '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
+                  " -d " (file-name-sans-extension file)))
    '("\\.zoo$" "zoo x//")
-   '("\\.zip$" "unzip")
    '("\\.lzh$" "lharc x")
    '("\\.arc$" "arc x")
    '("\\.shar$" "unshar")
 
    ;; Compression.
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.dz$" "dictunzip")
    (list "\\.bz2$" "bunzip2")
    (list "\\.Z$" "uncompress"
          ;; Optional conversion to gzip format.
@@ -998,9 +1046,11 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
-(defvar dired-guess-shell-case-fold-search nil
-  "*If non-nil, `dired-guess-shell-alist-default' and
-`dired-guess-shell-alist-user' are matched case-insensitively.")
+(defcustom dired-guess-shell-case-fold-search t
+  "If non-nil, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are matched case-insensitively."
+  :group 'dired-x
+  :type 'boolean)
 
 (defun dired-guess-default (files)
   "Guess a shell commands for FILES.  Return command or list of commands.
@@ -1278,8 +1328,10 @@ NOSELECT the files are merely found but not selected."
 Uses ../lisp/man.el of \\[manual-entry] fame."
   (interactive)
   (require 'man)
-  (let ((file (dired-get-filename))
-        (manual-program "nroff -man -h"))
+  (let* ((file (dired-get-filename))
+         (manual-program (replace-regexp-in-string "\\*" "%s"
+                          (dired-guess-shell-command
+                           "Man command: " (list file)))))
     (Man-getpage-in-background file)))
 
 ;;; Run Info on files.
@@ -1465,8 +1517,7 @@ to mark all zero length files."
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
               (setq uid (buffer-substring (+ (point) 1)
 					  (progn (forward-word 1) (point))))
-              (re-search-forward "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|\
-Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)")
+              (re-search-forward dired-move-to-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
               (setq size (string-to-int (buffer-substring (save-excursion

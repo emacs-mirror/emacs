@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001, 2003
+   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -761,17 +761,39 @@ function with `&rest' args, or `unevalled' for a special form.  */)
     return Fcons (make_number (minargs), make_number (maxargs));
 }
 
-DEFUN ("subr-interactive-form", Fsubr_interactive_form, Ssubr_interactive_form, 1, 1, 0,
-       doc: /* Return the interactive form of SUBR or nil if none.
-SUBR must be a built-in function.  Value, if non-nil, is a list
+DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
+       doc: /* Return the interactive form of CMD or nil if none.
+CMD must be a command.  Value, if non-nil, is a list
 \(interactive SPEC).  */)
-     (subr)
-     Lisp_Object subr;
+     (cmd)
+     Lisp_Object cmd;
 {
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
-  if (XSUBR (subr)->prompt)
-    return list2 (Qinteractive, build_string (XSUBR (subr)->prompt));
+  Lisp_Object fun = indirect_function (cmd);
+
+  if (SUBRP (fun))
+    {
+      if (XSUBR (fun)->prompt)
+	return list2 (Qinteractive, build_string (XSUBR (fun)->prompt));
+    }
+  else if (COMPILEDP (fun))
+    {
+      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE)
+	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
+    }
+  else if (CONSP (fun))
+    {
+      Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qlambda))
+	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
+      else if (EQ (funcar, Qautoload))
+	{
+	  struct gcpro gcpro1;
+	  GCPRO1 (cmd);
+	  do_autoload (fun, cmd);
+	  UNGCPRO;
+	  return Finteractive_form (cmd);
+	}
+    }
   return Qnil;
 }
 
@@ -2887,7 +2909,7 @@ lowercase l) for small endian machines.  */)
      ()
 {
   unsigned i = 0x04030201;
-  int order = *(char *)&i == 4 ? 66 : 108;
+  int order = *(char *)&i == 1 ? 108 : 66;
 
   return make_number (order);
 }
@@ -3209,7 +3231,7 @@ syms_of_data ()
   staticpro (&Qhash_table);
 
   defsubr (&Sindirect_variable);
-  defsubr (&Ssubr_interactive_form);
+  defsubr (&Sinteractive_form);
   defsubr (&Seq);
   defsubr (&Snull);
   defsubr (&Stype_of);

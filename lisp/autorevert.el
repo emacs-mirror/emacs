@@ -103,13 +103,27 @@ Global Auto-Revert Mode applies to all buffers."
 Never set this variable directly, use the command `auto-revert-mode' instead.")
 (put 'auto-revert-mode 'permanent-local t)
 
+(defvar auto-revert-timer nil
+  "Timer used by Auto-Revert Mode.")
+
 (defcustom auto-revert-interval 5
   "Time, in seconds, between Auto-Revert Mode file checks.
-Setting this variable has no effect on buffers that are already in
-auto-revert-mode; it only affects buffers that are put into
-auto-revert-mode afterwards."
+The value may be an integer or floating point number.
+
+If a timer is already active, there are two ways to make sure
+that the new value will take effect immediately.  You can set
+this variable through Custom or you can call the command
+`auto-revert-set-timer' after setting the variable.  Otherwise,
+the new value will take effect the first time Auto Revert Mode
+calls `auto-revert-set-timer' for internal reasons or in your
+next editing session."
   :group 'auto-revert
-  :type 'integer)
+  :type 'number
+  :set (lambda (variable value)
+	 (set-default variable value)
+	 (and (boundp 'auto-revert-timer)
+	      auto-revert-timer
+	      (auto-revert-set-timer))))
 
 (defcustom auto-revert-stop-on-user-input t
   "When non-nil Auto-Revert Mode stops checking files on user input."
@@ -118,9 +132,7 @@ auto-revert-mode afterwards."
 
 (defcustom auto-revert-verbose t
   "When nil, Auto-Revert Mode will not generate any messages.
-
-Currently, messages are generated when the mode is activated or
-deactivated, and whenever a file is reverted."
+When non-nil, a message is generated whenever a file is reverted."
   :group 'auto-revert
   :type 'boolean)
 
@@ -156,9 +168,15 @@ would only waste precious space."
   "When nil only file buffers are reverted by Global Auto-Revert Mode.
 
 When non-nil, both file buffers and buffers with a custom
-`revert-buffer-function' are reverted by Global Auto-Revert Mode.
+`revert-buffer-function' and a `buffer-stale-function' are
+reverted by Global Auto-Revert Mode.
 
-Use this option with care since it could lead to excessive reverts."
+Use this option with care since it could lead to excessive reverts.
+Note also that for some non-file buffers the check whether the
+buffer needs updating may be imperfect, due to efficiency
+considerations, and may not take all information listed in the
+buffer into account.  Hence, a non-nil value for this option does
+not necessarily make manual updates useless for non-file buffers."
   :group 'auto-revert
   :type 'boolean)
 
@@ -179,7 +197,6 @@ Use this option with care since it could lead to excessive reverts."
 This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
-
 ;; Internal variables:
 
 (defvar auto-revert-buffer-list '()
@@ -190,9 +207,6 @@ buffers to this list.
 
 The timer function `auto-revert-buffers' is responsible for purging
 the list of old buffers.")
-
-(defvar auto-revert-timer nil
-  "Timer used by Auto-Revert Mode.")
 
 (defvar auto-revert-remaining-buffers '()
   "Buffers not checked when user input stopped execution.")
@@ -229,7 +243,7 @@ This function is designed to be added to hooks, for example:
 
 ;;;###autoload
 (define-minor-mode global-auto-revert-mode
-  "Revert any buffer when file on disk change.
+  "Revert any buffer when file on disk changes.
 
 With arg, turn Auto Revert mode on globally if and only if arg is positive.
 This is a minor mode that affects all buffers.
@@ -241,7 +255,12 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 
 (defun auto-revert-set-timer ()
-  "Restart or cancel the timer."
+  "Restart or cancel the timer used by Auto-Revert Mode.
+If such a timer is active, cancel it.  Start a new timer if
+Global Auto-Revert Mode is active or if Auto-Revert Mode is active
+in some buffer.  Restarting the timer ensures that Auto-Revert Mode
+will use an up-to-date value of `auto-revert-interval'"
+  (interactive)
   (if (timerp auto-revert-timer)
       (cancel-timer auto-revert-timer))
   (setq auto-revert-timer
@@ -259,61 +278,6 @@ Use `auto-revert-mode' to revert a particular buffer."
        (not global-auto-revert-ignore-buffer)
        (not (memq major-mode
 		  global-auto-revert-ignore-modes)))))
-
-(defun auto-revert-list-diff (a b)
-  "Check if strings in list A differ from list B."
-  (when (and a b)
-    (setq a (sort a 'string-lessp))
-    (setq b (sort b 'string-lessp))
-    (let (elt1 elt2)
-      (catch 'break
-	(while (and (setq elt1 (and a (pop a)))
-		    (setq elt2 (and b (pop b))))
-	  (if (not (string= elt1 elt2))
-	      (throw 'break t)))))))
-
-(defun auto-revert-dired-file-list ()
-  "Return list of dired files."
-  (let (file list)
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-	(if (setq file (dired-get-filename t t))
-	    (push file list))
-	(forward-line 1)))
-    list))
-
-(defun auto-revert-dired-changed-p ()
-  "Check if dired buffer has changed."
-  (when (and (stringp dired-directory)
-	     ;;	  Exclude remote buffers, would be too slow for user
-	     ;;	  modem, timeouts, network lag ... all is possible
-	     (not (string-match "@" dired-directory))
-	     (file-directory-p dired-directory))
-    (let ((files (directory-files dired-directory))
-	  (dired (auto-revert-dired-file-list)))
-      (or (not (eq (length files) (length dired)))
-	  (auto-revert-list-diff files dired)))))
-
-(defun auto-revert-buffer-p ()
-  "Check if current buffer should be reverted."
-  ;;  - Always include dired buffers to list.  It would be too expensive
-  ;;  to test the "revert" status here each time timer launches.
-  ;;  - Same for VC buffers.
-  (or (and (eq major-mode 'dired-mode)
-	   (or (and global-auto-revert-mode
-		    global-auto-revert-non-file-buffers)
-	       auto-revert-mode))
-      (and (not (buffer-modified-p))
-	   (auto-revert-vc-buffer-p))
-      (and (not (buffer-modified-p))
-	   (if (buffer-file-name)
-	       (and (file-readable-p (buffer-file-name))
-		    (not (verify-visited-file-modtime (current-buffer))))
-	     (and revert-buffer-function
-		  (or (and global-auto-revert-mode
-			   global-auto-revert-non-file-buffers)
-		      auto-revert-mode))))))
 
 (defun auto-revert-vc-cvs-file-version (file)
   "Get version of FILE by reading control file on disk."
@@ -370,26 +334,32 @@ Use `auto-revert-mode' to revert a particular buffer."
 	  ))))))
 
 (defun auto-revert-handler ()
-  "Revert current buffer."
-  (let (revert)
-    (cond
-     ((eq major-mode 'dired-mode)
-      ;;  Dired includes revert-buffer-function
-      (when (and revert-buffer-function
-		 (auto-revert-dired-changed-p))
+  "Revert current buffer, if appropriate.
+This is an internal function used by Auto-Revert Mode."
+  (unless (buffer-modified-p)
+    (let (revert)
+      (cond
+       ((auto-revert-vc-buffer-p)
+ 	(when (auto-revert-handler-vc)
+ 	  (setq revert 'vc)))
+       ((or (and (buffer-file-name)
+		 (file-readable-p (buffer-file-name))
+		 (not (verify-visited-file-modtime (current-buffer))))
+	    (and (or auto-revert-mode global-auto-revert-non-file-buffers)
+		 revert-buffer-function
+		 (boundp 'buffer-stale-function)
+		 (functionp buffer-stale-function)
+		 (funcall buffer-stale-function t)))
 	(setq revert t)))
-     ((auto-revert-vc-buffer-p)
-      (when (auto-revert-handler-vc)
-	(setq revert 'vc)))
-     ((or (buffer-file-name)
-	  revert-buffer-function)
-      (setq revert t)))
-    (when revert
-      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
-      (if (eq revert 'vc)
-	  (vc-mode-line buffer-file-name))
-      (if auto-revert-verbose
-	  (message "Reverting buffer `%s'." (buffer-name))))))
+      (when revert
+	(when auto-revert-verbose
+	  (message "Reverting buffer `%s'." (buffer-name)))
+	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	;; `preserve-modes' avoids changing the (minor) modes.  But we
+	;; do want to reset the mode for VC, so we do it explicitly.
+	(vc-find-file-hook)
+ 	(if (eq revert 'vc)
+ 	    (vc-mode-line buffer-file-name))))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
@@ -399,10 +369,11 @@ Should `global-auto-revert-mode' be active all file buffers are checked.
 Should `auto-revert-mode' be active in some buffers, those buffers
 are checked.
 
-Non-file buffers that have a custom `revert-buffer-function' are
-reverted either when Auto-Revert Mode is active in that buffer, or
-when the variable `global-auto-revert-non-file-buffers' is non-nil
-and Global Auto-Revert Mode is active.
+Non-file buffers that have a custom `revert-buffer-function' and
+a `buffer-stale-function' are reverted either when Auto-Revert
+Mode is active in that buffer, or when the variable
+`global-auto-revert-non-file-buffers' is non-nil and Global
+Auto-Revert Mode is active.
 
 This function stops whenever there is user input.  The buffers not
 checked are stored in the variable `auto-revert-remaining-buffers'.
@@ -441,12 +412,7 @@ the timer when no buffers need to be checked."
 		       (memq buf auto-revert-buffer-list))
 		  (setq auto-revert-buffer-list
 			(delq buf auto-revert-buffer-list)))
-	      (when (and (auto-revert-active-p)
-			 (auto-revert-buffer-p))
-		(auto-revert-handler)
-		;; `preserve-modes' avoids changing the (minor) modes.  But we
-		;; do want to reset the mode for VC, so we do it explicitly.
-		(vc-find-file-hook)))
+	      (when (auto-revert-active-p) (auto-revert-handler)))
 	  ;; Remove dead buffer from `auto-revert-buffer-list'.
 	  (setq auto-revert-buffer-list
 		(delq buf auto-revert-buffer-list))))

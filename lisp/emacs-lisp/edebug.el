@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000, 01, 2003
+;; Copyright (C) 1988,89,90,91,92,93,94,95,97,1999,2000,01,03,2004
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -2509,6 +2509,11 @@ MSG is printed after `::::} '."
 
 
 (defun edebug-display ()
+  (unless (marker-position edebug-def-mark)
+    ;; The buffer holding the source has been killed.
+    ;; Let's at least show a backtrace so the user can figure out
+    ;; which function we're talking about.
+    (debug))
   ;; Setup windows for edebug, determine mode, maybe enter recursive-edit.
   ;; Uses local variables of edebug-enter, edebug-before, edebug-after
   ;; and edebug-debugger.
@@ -3681,17 +3686,14 @@ Return the result of the last expression."
     (edebug-prin1-to-string value)))
 
 (defun edebug-compute-previous-result (edebug-previous-value)
+  (if edebug-unwrap-results
+      (setq edebug-previous-value
+	    (edebug-unwrap* edebug-previous-value)))
   (setq edebug-previous-result
-	(if (and (integerp edebug-previous-value)
-		 (< edebug-previous-value 256)
-		 (>= edebug-previous-value 0))
-	    (format "Result: %s = %s" edebug-previous-value
-		    (single-key-description edebug-previous-value))
-	  (if edebug-unwrap-results
-	      (setq edebug-previous-value
-		    (edebug-unwrap* edebug-previous-value)))
-	  (concat "Result: "
-		  (edebug-safe-prin1-to-string edebug-previous-value)))))
+	(concat "Result: "
+		(edebug-safe-prin1-to-string edebug-previous-value)
+		(let ((name (prin1-char edebug-previous-value)))
+		  (if name (concat " = " name))))))
 
 (defun edebug-previous-result ()
   "Print the previous result."

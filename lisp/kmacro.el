@@ -609,7 +609,7 @@ command.  See `kmacro-call-repeat-key' and `kmacro-call-repeat-with-arg'
 for details on how to adjust or disable this behaviour.
 
 To make a macro permanent so you can call it even after defining
-others, use M-x name-last-kbd-macro."
+others, use \\[name-last-kbd-macro]."
   (interactive "p")
   (let ((repeat-key (and (null no-repeat)
 			 (> (length (this-single-command-keys)) 1)

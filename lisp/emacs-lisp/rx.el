@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -799,15 +799,20 @@ CHAR
 `(repeat N M SEXP)'
      matches N to M occurrences of what SEXP matches.
 
+`(backref N)'
+     matches what was matched previously by submatch N.
+
+`(backref N)'
+    matches what was matched previously by submatch N.
+
 `(eval FORM)'
-      evaluate FORM and insert result.  If result is a string,
-      `regexp-quote' it.
+     evaluate FORM and insert result.  If result is a string,
+     `regexp-quote' it.
 
 `(regexp REGEXP)'
-      include REGEXP in string notation in the result."
+     include REGEXP in string notation in the result."
 
-  `(rx-to-string ',regexp))
-
+  (rx-to-string regexp))
 
 (provide 'rx)
 

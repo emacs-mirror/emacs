@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1313,6 +1313,27 @@ Optional DEFAULT is a default password to use instead of empty input."
 		  (setq pass new-pass))))))
       (message nil)
       (or pass default ""))))
+
+;; This should be used by `call-interactively' for `n' specs.
+(defun read-number (prompt &optional default)
+  (let ((n nil))
+    (when default
+      (setq prompt
+	    (if (string-match "\\(\\):[^:]*" prompt)
+		(replace-match (format " [%s]" default) t t prompt 1)
+	      (concat prompt (format " [%s] " default)))))
+    (while
+	(progn
+	  (let ((str (read-from-minibuffer prompt nil nil nil nil
+					   (number-to-string default))))
+	    (setq n (cond
+		     ((zerop (length str)) default)
+		     ((stringp str) (read str)))))
+	  (unless (numberp n)
+	    (message "Please enter a number.")
+	    (sit-for 1)
+	    t)))
+    n))
 
 ;;; Atomic change groups.
 
@@ -2244,28 +2265,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defun interactive-form (function)
-  "Return the interactive form of FUNCTION.
-If function is a command (see `commandp'), value is a list of the form
-\(interactive SPEC).  If function is not a command, return nil."
-  (setq function (indirect-function function))
-  (when (commandp function)
-    (cond ((byte-code-function-p function)
-	   (when (> (length function) 5)
-	     (let ((spec (aref function 5)))
-	       (if spec
-		   (list 'interactive spec)
-		 (list 'interactive)))))
-	  ((subrp function)
-	   (subr-interactive-form function))
-	  ((eq (car-safe function) 'lambda)
-	   (setq function (cddr function))
-	   (when (stringp (car function))
-	     (setq function (cdr function)))
-	   (let ((form (car function)))
-	     (when (eq (car-safe form) 'interactive)
-	       (copy-sequence form)))))))
 
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.

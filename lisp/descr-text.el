@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 02, 03 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 95, 96, 2001, 02, 03, 04 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -99,8 +99,8 @@ if that value is non-nil."
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
-The `category' property is made into a widget button that call
-`describe-text-category' when pushed."
+The `category' and `face' properties are made into widget buttons
+that call `describe-text-category' or `describe-face' when pushed."
   ;; Sort the properties by the size of their value.
   (dolist (elt (sort (let ((ret nil)
 			   (key nil)
@@ -110,7 +110,7 @@ The `category' property is made into a widget button that call
 			 (setq key (pop properties)
 			       val (pop properties)
 			       len 0)
-			 (unless (or (eq key 'category)
+			 (unless (or (memq key '(category face))
 				     (widgetp val))
 			   (setq val (pp-to-string val)
 				 len (length val)))
@@ -127,6 +127,11 @@ The `category' property is made into a widget button that call
 	     (widget-create 'link
 			    :notify `(lambda (&rest ignore)
 				       (describe-text-category ',value))
+			    (format "%S" value)))
+            ((eq key 'face)
+	     (widget-create 'link
+			    :notify `(lambda (&rest ignore)
+				       (describe-face ',value))
 			    (format "%S" value)))
 	    ((widgetp value)
 	     (describe-text-widget value))
@@ -338,7 +343,7 @@ otherwise."
 ;;; 			   (string-to-number (nth 2 fields))
 ;;; 			   '((0 . "Spacing")
 ;;; 			     (1 . "Overlays and interior")
-;;; 			     (7 . "Nuktas") 
+;;; 			     (7 . "Nuktas")
 ;;; 			     (8 . "Hiragana/Katakana voicing marks")
 ;;; 			     (9 . "Viramas")
 ;;; 			     (10 . "Start of fixed position classes")
@@ -589,7 +594,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(when (>= (+ (current-column)
 			     (or (string-match "\n" clm)
 				 (string-width clm)) 1)
-			  (frame-width))
+			  (window-width))
 		  (insert "\n")
 		  (indent-to (1+ max-width)))
 		(insert " " clm))
@@ -611,7 +616,7 @@ as well as widgets, buttons, overlays, and text properties."
 			  "\n ")))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
-	      (insert (car (aref disp-vector i)) 
+	      (insert (car (aref disp-vector i))
 		      (propertize " " 'display '(space :align-to 5))
 		      (or (cdr (aref disp-vector i)) "-- not encodable --")
 		      "\n"))))

@@ -58,20 +58,18 @@ xrealloc().  Relinking the application (by deleting src/temacs and
 running make) will solve the problem.  It appears to be caused by some
 problems with the unexec code and its interaction with libSystem.B.
 
-* Emacs crashes with SIGSEGV on Solaris in XtInitializeWidgetClass
+* Emacs crashes with SIGSEGV in XtInitializeWidgetClass
 
 It crashes on X, but runs fine when called with option "-nw".
 
-This has been observed when emacs is linked with GNU ld instead of
-Solaris ld. To check which ld is used by gcc add "-V" to
-TEMACS_LDFLAGS in src/Makefile. Alternatively the executable size may
-be used as an indication of which linker is used. The size is
-approximately 15M when linked with solaris ld compared to 9M when
-linked with GNU ld.
+This has been observed when Emacs is linked with GNU ld but without passing
+the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
+flag when needed, so if you come across a situation where the flag is
+necessary but missing, please report it via M-x report-emacs-bug.
 
-The fix is to reconfigure/install gcc, making sure that the SUN linker
-is used.
-
+On platforms such as Solaris, you can also work around this problem by
+configuring your compiler to use the native linker instead of GNU ld.
+	
 * Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have

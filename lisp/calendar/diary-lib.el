@@ -554,7 +554,6 @@ This function is provided for optional use as the `diary-display-hook'."
             (message "%s" msg)
           (set-buffer (get-buffer-create holiday-buffer))
           (setq buffer-read-only nil)
-          (calendar-set-mode-line date-string)
           (erase-buffer)
           (insert (mapconcat 'identity holiday-list "\n"))
           (goto-char (point-min))
@@ -658,6 +657,7 @@ This function is provided for optional use as the `diary-display-hook'."
       (setq buffer-read-only t)
       (display-buffer fancy-diary-buffer)
       (fancy-diary-display-mode)
+      (calendar-set-mode-line date-string)
       (message "Preparing diary...done"))))
 
 (defun make-fancy-diary-buffer ()

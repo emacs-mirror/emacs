@@ -173,8 +173,6 @@
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
-  (make-local-variable 'normal-auto-fill-function)
-  (setq normal-auto-fill-function 'lisp-mode-auto-fill)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'indent-region-function)
@@ -195,8 +193,6 @@
   (setq comment-add 1)			;default to `;;' in comment-region
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'lisp-comment-indent)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
   (set (make-local-variable 'comment-use-global-state) t)
   (make-local-variable 'imenu-generic-expression)
@@ -207,14 +203,14 @@
   (setq font-lock-defaults
 	'((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+	  nil nil (("+-*/.<>=!?$%_&~^:" . "w")) nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function))))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
-  (if (looking-at "(")
+  (if (looking-at "(\\|;;;###autoload")
       1000
     (looking-at outline-regexp)
     (- (match-end 0) (match-beginning 0))))
@@ -453,14 +449,18 @@ alternative printed representations that can be displayed."
 If CHAR is not a character, return nil."
   (and (integerp char)
        (char-valid-p (event-basic-type char))
-       (concat
-	"?"
-	(mapconcat
-	 (lambda (modif)
-	   (cond ((eq modif 'super) "\\s-")
-		 (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
-	 (event-modifiers char) "")
-	(string (event-basic-type char)))))
+       (let ((c (event-basic-type char)))
+	 (concat
+	  "?"
+	  (mapconcat
+	   (lambda (modif)
+	     (cond ((eq modif 'super) "\\s-")
+		   (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
+	   (event-modifiers char) "")
+	  (cond
+	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
+	   ((eq c 127) "\\C-?")
+	   (t (string c)))))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -671,8 +671,8 @@ which see."
 ;; This function just forces a more costly detection of comments (using
 ;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of
 ;; taking a `;' inside a string started on another line for a comment starter.
-;; Note: `newcomment' gets it right in 99% of the cases if you're using
-;;       font-lock, anyway, so we could get rid of it.   -stef
+;; Note: `newcomment' gets it right now since we set comment-use-global-state
+;; so we could get rid of it.   -stef
 (defun lisp-mode-auto-fill ()
   (if (> (current-column) (current-fill-column))
       (if (save-excursion

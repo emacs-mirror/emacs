@@ -187,10 +187,489 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
+	(gdb-source-info): Don't display source at startup, if required.
+	(gdb-show-main): New option.
+	(gdba): Update documentation.
+	(gdb-source): Cover case of auto-display output.
+
+2004-03-31  Juri Linkov  <juri@jurta.org>
+
+	* dired.el: Add autoload for `dired-do-touch'.
+	(dired-touch-program): New var.
+	(dired-mode-map): Bind `dired-do-touch' to T and add menu-item.
+	(dired-no-confirm): Add `touch' to docstring.
+
+	* dired-aux.el (dired-do-touch): New fun.
+	(dired-do-chxxx): Add argument -t for touch operation.
+
+	* dired-x.el (dired-mark-sexp): Replace hard-coded month names by
+	`dired-move-to-filename-regexp'.
+
+2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
+
+	* dired.el (dired-move-to-filename-regexp): Add . to HH:MM.
+
+2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-finish-and-write): Write a buffer if
+	and only if the buffer was modified.
+
+2004-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Delete pairs for U+2308..U+230B.
+
+2004-03-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-gdb-marker-filter): Include "\n" in regexp
+	to detect the beginning of a level 2 or 3 annotation.
+
+2004-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-tables.el (ucs-insert): Fix the error message.
+
+2004-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Fix generation
+	of XLFD file name.
+
+	* Makefile.in (setwins, setwins_almost): Change directory to $wd
+	before finding directories by `find'.
+
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (interactive-form): Delete.  Now implemented in C.
+
+	* pcvs.el (cvs-parse-process): Workaround for Darwin.
+
+	* vc.el (vc-version-diff, vc-default-diff-tree): Change `rel' -> `rev'.
+	(vc-diff-label): New fun.
+	(vc-diff-internal): Use it.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Fix test.
+
+2004-03-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-parser): Handle initial comments.
+
+	* progmodes/ebnf-ebx.el: New file, implement a parser for EBNF used to
+	specify XML (EBNFX).
+
+	* progmodes/ebnf2ps.el: Doc fix.
+	(ebnf-version): New version number (4.1).
+	(ebnf-syntax): Adjust customization.
+	(ebnf-style-database): Add ebnfx entry.
+	(ebnf-syntax-alist): Add ebnfx initialization.
+	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoloaded funs from ebnf-ebx.
+
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.7.3).
+	(pr-menu-position): Adjust X and Y positions when mouse-pixel-position
+	returns nil for mouse position.  Reported by Drew Adams
+	<drew.adams@oracle.com>.
+	(pr-update-menus): Modify interactive declaration.  Reported by Drew
+	Adams <drew.adams@oracle.com>.
+
+2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
+	(gud-gdba-marker-filter): Log the process input and output, if
+	required. (from Stefan Monnier)
+	(gdb-debug-log, gdb-enable-debug-log): New variables.
+	(gdb-post-prompt): Don't do gdb-var-update on Mac OS X.
+
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
+	From lorentey@elte.hu (L,Bu(Brentey K,Ba(Broly).
+
+2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Handle auto-revert-mode.
+	Call vc-find-file-hook here instead of in auto-revert-buffers.
+	(auto-revert-buffers): Delete call to vc-find-file-hook.
+	(auto-revert-verbose, global-auto-revert-non-file-buffers)
+	(global-auto-revert-mode, auto-revert-set-timer)
+	(auto-revert-handler, auto-revert-buffers): Doc fixes.
+
+2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-change-fonts): Rename local variable
+	woman-font-alist to font-alist to avoid a compiler warning.
+
+2004-03-27  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/rx.el (rx): Doc fix.
+	Fix copyright years.
+
+	* strokes.el (strokes-global-set-stroke-string): New function.
+	(strokes-list-strokes): Cope with strings, not just commands.
+	Set foreground colour of image.
+	(strokes-global-set-stroke): Doc fix.
+
+2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-revert-function): Make it suitable for
+	Auto Revert mode.
+	(Buffer-menu-files-only): New variable.
+	(Buffer-menu-toggle-files-only): New function.
+	(Buffer-menu-mode-map): Bind it to `T'.
+	(Buffer-menu-mode): Mention `T' in docstring.
+	Set buffer-stale-function.
+	(list-buffers-noselect): Mark buffer non-modified and set
+	Buffer-menu-files-only.
+
+	* dired.el (buffer-stale-function): Remove no longer needed defvar.
+
+	* autorevert.el (auto-revert-handler): Print revert message
+	before, rather than after, reverting.
+	(buffer-stale-function): Move to files.el.
+
+	* files.el (buffer-stale-function): Move here from autorevert.el.
+
+2004-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-maybe-resolve-conflicts): Don't prompt the user.
+
+	* calc/calc.el (calc-mode-map): Use mapc.
+
+	* apropos.el (apropos-mode): Don't autoload.
+	(apropos-symbols-internal): New fun.  Extracted from `apropos'.
+	(apropos): Use it.
+	(apropos-print): Add optional `text' argument.
+	(apropos-describe-plist): Use help-buffer and hexlp-setup-xref.
+	Don't assume point-min == 1.
+
+	* bs.el (bs-buffer-list): Use buffer-local-value.
+	(bs--set-toggle-to-show): Use with-current-buffer.
+
+	* buff-menu.el (Buffer-menu-sort, Buffer-menu-make-sort-button):
+	New funs.
+	(list-buffers-noselect): Use them.  Adjust :align-to to new style.
+
+	* cvs-status.el (cvs-tree-use-jisx0208): Use char-displayable-p.
+
+	* dabbrev.el (dabbrev-expand): Fix regexp construction.
+	(dabbrev--find-expansion): Use pop.
+	(dabbrev--search): Use match-string-no-properties.
+
+	* dired.el (dired-mode): Use run-mode-hooks.
+	(dired-move-to-end-of-filename): Use match-string.
+
+	* ediff-init.el (ediff-hide-face): Check that facemenu-unlisted-faces
+	is bound before using it.
+	(ediff-verbose-p): Make it into a var since it's not constant.
+
+	* electric.el (Electric-pop-up-window): Avoid popping up a new frame.
+
+	* faces.el (read-face-font): Don't cons up unnecessarily.
+	(header-line, tool-bar): Share common parts.
+
+	* files.el (file-relative-name): Use compare-strings.
+
+	* finder.el (finder-mode): Follow coding convention.
+
+	* subr.el (read-number): New function.
+
+	* ses.el (ses-read-number): Move to subr.el.
+	(ses-set-header-row): Use read-number.
+
+2004-03-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): New function, which handles both
+	compiled and uncompiled code.
+	(vc-default-workfile-unchanged-p): Use it.
+
+	* vc.el (vc-print-log): Undo prev change, use new function
+	vc-arg-list from vc-hooks.el.
+
+2004-03-26  Masatake YAMATO  <jet@gyve.org>
+
+	* simple.el (completion-setup-function): Emphasize the
+	first uncommon characters in the completions; and de-emphasize
+	the common prefix substrings.
+	(completion-emphasis): New face.
+	(completion-de-emphasis): New face.
+
+2004-03-25  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/cperl-mode.el (cperl-indent-alist, cperl-where-am-i):
+	Comment out (it's unused and unfinished code).
+
+2004-03-25  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-print-log): Fix a bug in the last patch:
+	backend-function may be a byte-compiled object, not a lambda.
+
+2004-03-25  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-property-list): Add a button
+	for `face' property that calls `describe-face'.
+	Suggested by luis fernandes <elf@ee.ryerson.ca>
+
+	* international/mule.el (keyboard-coding-system):
+	* kmacro.el (kmacro-call-macro): Fix docstring.
+
+	* dired.el: Fix comments.
+
+	* textmodes/fill.el (fill): Fix Info link.
+
+	* font-lock.el (fast-lock, lazy-lock):
+	* jit-lock.el (jit-lock): Remove links to removed Support Modes
+	Info node.
+
+	* eshell/eshell.el (eshell): Fix broken info-link.
+
+	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance):
+	* eshell/em-banner.el (eshell-banner):
+	* eshell/em-smart.el (eshell-smart):
+	* eshell/esh-cmd.el (eshell-cmd):
+	Comment out broken info-links to incomplete Info manual.
+
+	* info-xref.el: Fix commentary.
+
+2004-03-25  Kevin Ryde  <user42@zip.com.au>
+
+	* info-xref.el (info-xref-check-buffer): Report empty filename parts.
+	Remove spurious node duplicate suppression, doesn't work, not wanted.
+	(info-xref-output): Take format style args, add "sit-for 0" to let
+	user see the results as they progress.
+	(info-xref-check-all-custom): New function.
+
+2004-03-25  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el: Moved to progmodes.
+
+2004-03-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-check): Remove superfluous progn.
+	When finished with diary buffer: if it was not being displayed
+	before, kill it; otherwise restore its original state.
+	Suggested by Matthew Mundell <matt@mundell.ukfsn.org>.
+
+	* calendar/calendar.el (calendar-set-mode-line): Use total
+	available mode-line width, rather than frame-width.
+
+	* calendar/diary-lib.el (fancy-diary-display): Set mode-line
+	after mode change so effect not lost.
+
+2004-03-23  Dave Love  <fx@gnu.org>
+
+	* dired.el (dired) <defgroup>: Add link to manual.
+	(dired-font-lock-keywords): Add highlighting on unusual permissions.
+	(dired-revert): Use dolist.
+	(dired-mode-map): Add U binding.
+	(dired-mode): Add font-lock-beginning-of-syntax-function.
+	(dired-garbage-files-regexp): Make it a defcustom.
+
+2004-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-diff): Handle the special case where `newvers'
+	is equivalent to nil.
+	(vc-arch-diff3-rej-p): Be a bit more flexible in what we accept.
+	(vc-arch-mode-line-string): Accept `added' state.
+	(vc-arch-state): Use inode-sigs if available.
+	(vc-arch-add-tagline): Rename from vc-arch-add-tag.
+	Copy&delete existing id file if any.  Fallback if uuidgen is absent.
+	(vc-arch-tagline-re): New var.
+	(vc-arch-file-source-p, vc-arch-file-id, vc-arch-tagging-method):
+	New functions.
+	(vc-arch-find-file-not-found-hook, vc-arch-register): New backend ops.
+	(vc-arch-registered): Try our best guess using vc-arch-file-source-p.
+
+	* vc-hooks.el (vc-default-find-file-not-found-hook): New fun.
+	(vc-file-not-found-hook): Use it.
+
+	* diff-mode.el (diff-default-read-only): Change default.
+	(diff-mode-hook): Make it a defcustom.  Add some options.
+	(diff-mode-map): Bind diff-refine-hook.
+	(diff-yank-handler): New var.
+	(diff-yank-function): New fun.
+	(diff-font-lock-keywords): Use them.
+	(diff-end-of-file): Handle case where file-header looks like diff text.
+	(diff-hunk-kill): Adjust to "new" hunk-next behavior.
+	(diff-file-kill): Delete a subsequent empty line, if applicable.
+	(diff-hunk-file-names): New fun, extracted from diff-tell-file-name.
+	(diff-find-file-name): Use it.
+	(diff-tell-file-name): New command.
+	(diff-mode): Be careful with view-mode.
+	(diff-delete-if-empty, diff-delete-empty-files, diff-make-unified):
+	New functions, for use in diff-mode-hook.
+	(diff-find-source-location): Catch "regex too large" errors.
+	(diff-apply-hunk, diff-test-hunk): Go to old or new file.
+	(diff-refine-hunk): New command.
+
+	* smerge-mode.el (smerge-mode-menu): Fix activate pred for resolve.
+	(smerge-context-menu-map): Remove unused var.
+	(smerge-keep-all): Preserve markers.
+	(smerge-keep-n): New fun.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine)
+	(smerge-keep-current, smerge-ediff): Use it.
+	(smerge-kill-current): Use it.  Make it work on some 3-part conflicts.
+	(smerge-popup-context-menu): Also use context-menu on 3-part conflicts.
+	(smerge-resolve): Resolve trivial 3-part conflicts.
+
+2004-03-23  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-width): New var.
+	(Man-getpage-in-background): Use it.
+	(Man-support-local-filenames): New var and fun.
+	(Man-build-man-command): Don't add a second %s.
+	(Man-fontify-manpage): Clean up message.
+	(Man-mode): Set outline-regexp, outline-level,
+	imenu-generic-expression.
+
+	* woman.el (woman-fill-frame): Doc fix.
+	(woman-decode-region): Use window-width instead of frame-width.
+
+	* abbrevlist.el (list-one-abbrev-table):
+	* descr-text.el (describe-char):
+	* international/mule-diag.el (describe-current-coding-system):
+	* international/quail.el (quail-insert-decode-map):
+	Use window-width instead of frame-width.
+
+	* jka-compr.el (jka-compr-compression-info-list): Add tbz and dz.
+	(jka-compr-mode-alist-additions): Add tbz.
+	(jka-compr-write-region, jka-compr-insert-file-contents):
+	Add message for undefined compress-program.
+	(jka-compr-write-region): Remove redundant var bindings.
+
+	* dired-x.el (dired-guess-shell-alist-default): Add choices for
+	extracting files into subdirectory.  Add tbz and dz.  Fix regexps.
+	Add extensions .[0-9] for man and nroff, and .pod for perldoc.
+	(dired-man): Use dired-guess-shell-command.
+	(dired-guess-shell-case-fold-search): Change defvar to defcustom.
+	Change default nil to t.
+
+	* dired-aux.el (dired-compress-file-suffixes): Add dz and tbz.
+	(dired-compare-directories): Add default value for empty input.
+
+	* help-at-pt.el: Move suggestions for key bindings to Commentary.
+
+	* time.el (display-time-string-forms): Fix help-echo date format.
+
+2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Expand docstring.
+	(buffer-stale-function): New variable.
+	(auto-revert-list-diff, auto-revert-dired-file-list)
+	(auto-revert-dired-changed-p, auto-revert-buffer-p): Delete.
+	(auto-revert-handler): Take over some functionality of deleted
+	functions.
+	(auto-revert-buffers): Delete call to auto-revert-buffer-p.
+
+	* dired.el (dired-directory-changed-p): New fun, extracted from
+	dired-internal-noselect.
+	(dired-buffer-stale-p): New fun.
+	(dired-internal-noselect): Use dired-directory-changed-p.
+	Eliminate revert messages.
+	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
+
+2004-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Setup syntaxes for more parentheses
+	Unicode characters.
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Merge coding-system and auto-cs before comparing them.
+
+2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Simplify.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
+	normal-auto-fill-function and comment-indent-function.
+	The default values now work just as well.
+	Don't set font-lock-beginning-of-syntax-function since we already set
+	syntax-begin-function.
+	(lisp-outline-level): Put ;;;###autoload at same level as (.
+	(prin1-char): Quote special chars.
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-finder-p): Use defvar rather
+	than with-no-warnings.
+
+	* emacs-lisp/edebug.el (edebug-display): Bring up a debug trace
+	if the source location can't be found.
+	(edebug-compute-previous-result): Use prin1-char.
+
+	* emacs-lisp/checkdoc.el (checkdoc-error): Dont' assume point-min == 1.
+	(debug-ignored-errors): Add an entry.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Ignore hidden dir.
+	(byte-compile-file): Output warning when deleting a file.
+
+	* emacs-lisp/byte-run.el (defsubst): Add edebug spec and use backquote.
+	(dont-compile, eval-when-compile, eval-and-compile): Add edebug spec.
+
+	* emacs-lisp/byte-opt.el (byte-compile-log-lap)
+	(byte-compile-inline-expand): Use backquote.
+	(byte-optimize-pure-func): Rename from byte-optimize-concat.
+	(symbol-name, regexp-opt, regexp-quote): Mark as pure.
+
+	* emacs-lisp/backquote.el (backquote-list*-macro): Use nreverse.
+
+	* emacs-lisp/advice.el (ad-subr-arglist): Simplify.
+
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-known-keywords): Fix data, tex, unix.
+
+	* play/landmark.el: Fix keywords.
+
+	* language/ethio-util.el (ethio-find-file): Doc fix.
+
+	* emacs-lisp/warnings.el: Doc fix.
+
+	* textmodes/ispell.el (ispell-help): Doc fix.
+
+2004-03-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* format.el (format-insert-file): Always return a list of two
+	elements, like insert-file-contents does.
+
+2004-03-21  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el Add new optional BUFFER argument to vc-BACKEND-print-log
+	and vc-BACKEND-diff.
+	(vc-print-log): If the print-log implementation supports it, use
+	the new BUFFER argument to direct output to *vc-change-log*, not *vc*.
+	(vc-version-diff, vc-diff-internal): Doc fixes.
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): If the
+	implementation supports it, let diff output go to *vc*,
+	not *vc-diff*, since this is an internal call.
+
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Add optional BUFFER arg.
+
+	* vc-rcs.el (vc-rcs-print-log, vc-rcs-diff): Likewise.
+
+	* vc-sccs.el (vc-sccs-print-log, vc-sccs-diff): Likewise.
+
+2004-03-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/cfengine.el (cfengine-mode):
+	Set parse-sexp-ignore-comments.
+
+	* emacs-lisp/rx.el (rx): Work at compile time, not run time.
+
+2004-03-21  Juanma Barranquero  <lektu@terra.es>
+
+	* allout.el (allout-mode): Fix docstring.
+
+2004-03-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (insert-directory): Fix bug if SWITCHES is a list.
+
+	* autorevert.el (auto-revert-interval): Make new value take
+	effect immediately when set through Custom.
+	(auto-revert-set-timer): Add interactive declaration.
+
 2004-03-19  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el (ruler-mode-header-line-format-old): Don't
-	`make-variable-buffer-local'.
+	* ruler-mode.el (ruler-mode-header-line-format-old):
+	Don't `make-variable-buffer-local'.
 	(ruler-mode-ruler-function): Default to `ruler-mode-ruler'.
 	(ruler-mode-header-line-format): Simply funcall the above.
 	(ruler-mode): Use `make-local-variable' and `kill-local-variable'
@@ -198,7 +677,27 @@
 	(ruler-mode-space): Don't depend on a numeric WIDTH value.
 	(ruler-mode-ruler): Use symbolic display elements for scrollbar,
 	fringes and margins width.
-	(ruler-mode-ruler-function): Default to ruler-mode-ruler
+	(ruler-mode-ruler-function): Default to ruler-mode-ruler.
+
+2004-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-font-lock-keywords): Typo.
+
+	* textmodes/tex-mode.el (tex-shell): Set error parsing function here.
+	(tex-send-tex-command): Rather than here.
+	(tex-compilation-parse-errors): Simplify.
+
+	* info.el (Info-default-dirs): Don't ignore last part of I-d-d-l.
+
+	* time.el (display-time-string-forms): Add help-echo with date on time.
+
+	* composite.el (compose-region): Use restore-buffer-modified-p.
+
+	* disp-table.el (standard-display-8bit): Simplify.
+
+	* server.el (server-process-filter): Delete temp frame.
+
+	* add-log.el (add-change-log-entry): Simplify.
 
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
@@ -653,7 +1152,7 @@
 	to 'pty.  Suggested by Piet van Oostrum <piet@cs.uu.nl>.
 	(top-level): Setting default value in `tramp-default-method-alist'
 	corrected.  Order of USER and HOST have been wrong.
-	Nobody complaimed for months ...
+	Nobody complained for months ...
 	(tramp-smb-maybe-open-connection): Use `tramp-process-connection-type'.
 	(tramp-smb-open-connection): Clear password cache if login has failed.
 
@@ -717,12 +1216,12 @@
 
 2004-02-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: Doc fix.
+	* progmodes/ebnf-abn.el: Doc fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-repeat): Code fix.
 
-	* ebnf2ps.el: Doc fix.
+	* progmodes/ebnf2ps.el: Doc fix.
 	(ebnf-syntax-directory, ebnf-syntax-file): New funs.
 
 2004-02-28  Juri Linkov  <juri@jurta.org>
@@ -788,8 +1287,8 @@
 
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf2ps.el: Doc fix.  For compatibility with Emacs 20, define
-	assq-delete-all if it's not defined.
+	* progmodes/ebnf2ps.el: Doc fix.  For compatibility with Emacs 20,
+	define assq-delete-all if it's not defined.
 	(ebnf-generate-region): Code fix.
 
 	* printing.el: Doc fix.
@@ -798,12 +1297,13 @@
 
 2004-02-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: New file, implements an ABNF parser.
+	* progmodes/ebnf-abn.el: New file, implements an ABNF parser.
 
-	* ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New arrow shapes:
-	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.
-	Fix a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
-	Reported by Markus Dreyer <mdreyer@ix.urz.uni-heidelberg.de>.
+	* progmodes/ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New
+	arrow shapes: semi-up-hollow, semi-up-full, semi-down-hollow and
+	semi-down-full.  Fix a bug on productions like test = {"test"}* | (
+	"tt" ["test"] ).  Reported by Markus Dreyer
+	<mdreyer@ix.urz.uni-heidelberg.de>.
 	(ebnf-version): New version number (4.0).
 	(ebnf-print-directory, ebnf-print-file, ebnf-spool-directory)
 	(ebnf-spool-file, ebnf-eps-directory, ebnf-eps-file)
@@ -823,18 +1323,19 @@
 	(ebnf-make-terminal1, ebnf-make-or-more1, ebnf-make-repeat)
 	(ebnf-token-repeat): Code fix.
 
-	* ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc, %right, %left
-	and %prec.  Suggested by Matthew K. Junker <junker@alum.mit.edu>.
+	* progmodes/ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc,
+	%right, %left and %prec.  Suggested by Matthew K. Junker
+	<junker@alum.mit.edu>.
 	(ebnf-yac-definitions, ebnf-yac-lex): Code fix.
 
-	* ebnf-iso.el: Doc fix.
+	* progmodes/ebnf-iso.el: Doc fix.
 	(ebnf-iso-token-table, ebnf-iso-non-terminal-chars): Adjust vars.
 	(ebnf-iso-lex): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Code fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -1015,8 +1516,7 @@
 	(rsf-bbdb-dont-create-entries-for-deleted-messages): Rename from
 	rsf-bbdb-dont-create-entries-for-spam.
 	(check-field): New function, extracted from code in
-	rmail-spam-filter to ease addition of header fields like
-	content-type.
+	rmail-spam-filter to ease addition of header fields like content-type.
 	(message-content-type): New variable to check the content-type:
 	field added, also in defcustom of rsf-definitions-alist.
 	(rmail-spam-filter): Replace repeated test code for header fields
@@ -1072,9 +1572,8 @@
 
 2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
 
-	Autorevert: Add support to detect changed dired buffers and for
-	VC controlled files.
-	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
+	* autorevert.el: Add support to detect changed dired and VC buffers.
+	(auto-revert-active-p, auto-revert-list-diff)
 	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
 	(auto-revert-handler, auto-revert-active-p): New functions.
 	(auto-revert-buffers): Move revert logic to `auto-revert-handler'
@@ -1184,7 +1683,7 @@
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
-	handeled by x-dnd-handle-file-name.
+	handled by x-dnd-handle-file-name.
 	(x-dnd-known-types): Add COMPOUND_TEXT.
 	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.
 	(x-dnd-get-state-cons-for-frame): Must do copy-sequence on
