@@ -111,7 +111,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
   '((latex-mode
      ("\\\\\\\\" . "")		; do not remove this
      ("\\\\begin{verbatim}" . "\\\\end{verbatim}")
-     ("\\\\verb*?\\(.\\)" . (1))
+     ("\\\\verb\\*?\\(.\\)" . (1))
      ("\\$\\$" . "\\$\\$")
      ("\\$" . "\\$")
      ("\\\\(" . "\\\\)")
