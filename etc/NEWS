@@ -44,6 +44,10 @@ description of aspects specific to the Mac.
 * Changes in Emacs 21.1
 
 +++
+** The new user-option `even-window-heights' can be set to nil
+to prevent `display-buffer' from evening out window heights.
+
++++
 ** The new command `msdos-set-mouse-buttons' forces Emacs to behave
 as if the mouse had a specified number of buttons.  This comes handy
 with mice that don't report their number of buttons correctly.  One
@@ -2042,6 +2046,10 @@ appropriate for reading truly binary files.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
++++
+** The new user-option `even-window-heights' can be set to nil
+to prevent `display-buffer' from evening out window heights.
 
 +++
 ** The user-option `face-font-registry-alternatives' specifies
