@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2001/09/17 14:50:19 vinicius>
-;; Version: 6.5.5
+;; Time-stamp: <2002/09/06 20:11:00 vinicius>
+;; Version: 6.5.6
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.5"
-  "ps-print.el, v 6.5.5 <2001/09/17 vinicius>
+(defconst ps-print-version "6.5.6"
+  "ps-print.el, v 6.5.6 <2002/09/06 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1507,7 +1507,14 @@ Please send all bug fixes and enhancements to
   (defconst ps-windows-system
     (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
   (defconst ps-lp-system
-    (memq system-type '(usg-unix-v dgux hpux irix))))
+    (memq system-type '(usg-unix-v dgux hpux irix)))
+
+
+  (defvar ps-print-emacs-type
+    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	  ((string-match "Lucid" emacs-version) 'lucid)
+	  ((string-match "Epoch" emacs-version) 'epoch)
+	  (t 'emacs))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1735,10 +1742,11 @@ the string \"/D:\".
 
 For any other printing utility, see its documentation.
 
-Set this to \"\" or nil, if the utility given by `ps-lpr-command' needs an empty
-printer name option.
+Set this to \"\" or nil, if the utility given by `ps-lpr-command'
+needs an empty printer name option--that is, pass the printer name
+with no special option preceding it.
 
-Any other value is treated as nil, that is, an empty printer name option.
+Any value that is not a string is treated as nil.
 
 This variable is used only when `ps-printer-name' is a non-empty string."
   :type '(choice :menu-tag "Printer Name Option"
@@ -1808,6 +1816,7 @@ If it's nil, automatic feeding takes place."
 ;; B4         10.125 inch x 14.33  inch
 ;; B5          7.16  inch x 10.125 inch
 
+;;;###autoload
 (defcustom ps-page-dimensions-database
   (list (list 'a4    (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4")
 	(list 'a3    (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3")
@@ -2853,6 +2862,9 @@ uses the fonts resident in your printer."
 ;;; Colors
 
 ;; Printing color requires x-color-values.
+;; XEmacs change: Need autoload for the "Options->Printing->Color Printing"
+;;                widget to work.
+;;;###autoload
 (defcustom ps-print-color-p
   (or (and (fboundp 'color-values)	; Emacs
 	   (ps-e-color-values "Green"))
@@ -3137,9 +3149,16 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :group 'ps-print-headers)
 
 (defcustom ps-postscript-code-directory
-  (or (and (fboundp 'locate-data-directory) ; xemacs
-	   (locate-data-directory "ps-print"))
-      data-directory)			; emacs
+  (or (cond
+       ((eq ps-print-emacs-type 'emacs)	; emacs
+	data-directory)
+       ((fboundp 'locate-data-directory) ; emacsens (xemacs, etc.)
+	(locate-data-directory "ps-print"))
+       ((boundp 'data-directory)	; emacsens (xemacs, etc.)
+	data-directory)
+       (t				; don't know what to do
+	nil))
+      (error "ps-postscript-code-directory isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -3520,9 +3539,9 @@ generated is:
 
 If `ps-prefix-quote' is nil, it's set to t after generating string."
   (cond
-   ((null elt)    "")
    ((stringp elt) elt)
-   (t
+   ((and (consp elt) (integerp (car elt))
+	 (symbolp (cdr elt)) (boundp (cdr elt)))
     (let* ((col (car elt))
 	   (sym (cdr elt))
 	   (key (symbol-name sym))
@@ -3540,6 +3559,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 		    ((eq val t) "t")
 		    ((or (symbolp val) (listp val)) (format "'%S" val))
 		    (t          (format "%S" val))))))
+   (t "")
    ))
 
 
@@ -3597,14 +3617,10 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (eval-and-compile
-  (defvar ps-print-emacs-type
-    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	  ((string-match "Lucid" emacs-version) 'lucid)
-	  ((string-match "Epoch" emacs-version) 'epoch)
-	  (t 'emacs)))
-
   (if (memq ps-print-emacs-type '(lucid xemacs))
-      (if (< emacs-minor-version 12)
+      ;; XEmacs change: Need to check for emacs-major-version too.
+      (if (or (< emacs-major-version 19)
+	      (and (= emacs-major-version 19) (< emacs-minor-version 12)))
 	  (setq ps-print-color-p nil))
     (require 'faces))			; face-font, face-underline-p,
 					; x-font-regexp
@@ -3614,7 +3630,10 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   ;; can handle colors.
   ;; This function is not yet implemented for GNU emacs.
   (cond ((and (eq ps-print-emacs-type 'xemacs)
-	      (>= emacs-minor-version 12)) ; xemacs
+	      ;; XEmacs change: Need to check for emacs-major-version too.
+	      (or (> emacs-major-version 19)
+		  (and (= emacs-major-version 19)
+		       (>= emacs-minor-version 12)))) ; xemacs >= 19.12
 	 (defun ps-color-device ()
 	   (eq (ps-x-device-class) 'color)))
 
@@ -4411,7 +4430,10 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix-arg)
-  (or mark-active
+  (or (and (fboundp 'mark-active)
+	   (mark-active))
+      (and (fboundp 'region-active-p)
+	   (region-active-p))
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix-arg)))
 
