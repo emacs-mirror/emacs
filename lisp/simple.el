@@ -1018,7 +1018,11 @@ system cut and paste."
   nil)
 
 (defun kill-ring-save (beg end)
-  "Save the region as if killed, but don't kill it."
+  "Save the region as if killed, but don't kill it.
+This command is similar to copy-region-as-kill, except that it gives
+visual feedback indicating the extent of the region being copied.
+If `interprogram-cut-function' is non-nil, also save the text for a window
+system cut and paste."
   (interactive "r")
   (copy-region-as-kill beg end)
   (if (interactive-p)
@@ -1067,7 +1071,8 @@ comes the newest one."
     (delete-region (point) (mark))
     (set-mark (point))
     (insert (current-kill arg))
-    (if before (exchange-point-and-mark))))
+    (if before (exchange-point-and-mark)))
+  nil)
 
 (defun yank (&optional arg)
   "Reinsert the last stretch of killed text.
@@ -1084,7 +1089,8 @@ See also the command \\[yank-pop]."
 			 ((eq arg '-) -1)
 			 (t (1- arg)))))
   (if (consp arg)
-      (exchange-point-and-mark)))
+      (exchange-point-and-mark))
+  nil)
 
 (defun rotate-yank-pointer (arg)
   "Rotate the yanking point in the kill ring.
