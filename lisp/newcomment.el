@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.13 2000/05/22 04:23:37 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.14 2000/05/23 20:06:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,11 +57,16 @@
 
 ;;; Code:
 
+;;;###autoload
 (defalias 'indent-for-comment 'comment-indent)
+;;;###autoload
 (defalias 'set-comment-column 'comment-set-column)
+;;;###autoload
 (defalias 'kill-comment 'comment-kill)
+;;;###autoload
 (defalias 'indent-new-comment-line 'comment-indent-new-line)
 
+;;;###autoload
 (defgroup comment nil
   "Indenting and filling of comments."
   :prefix "comment-"
@@ -74,6 +79,7 @@ be used to try to determine whether syntax-tables should be trusted
 to understand comments or not in the given buffer.
 Major modes should set this variable.")
 
+;;;###autoload
 (defcustom comment-column 32
   "*Column to indent right-margin comments to.
 Setting this variable automatically makes it local to the current buffer.
@@ -83,26 +89,26 @@ can set the value for a particular mode using that mode's hook."
   :group 'comment)
 (make-variable-buffer-local 'comment-column)
 
+;;;###autoload
 (defvar comment-start nil
   "*String to insert to start a new comment, or nil if no comment syntax.")
 
+;;;###autoload
 (defvar comment-start-skip nil
   "*Regexp to match the start of a comment plus everything up to its body.
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
 
+;;;###autoload
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything up to its body.")
 
+;;;###autoload
 (defvar comment-end ""
   "*String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 
-(defvar comment-indent-hook nil
-  "Obsolete variable for function to compute desired indentation for a comment.
-This function is called with no args with point at the beginning of
-the comment's starting delimiter.")
-
+;;;###autoload
 (defvar comment-indent-function
   (lambda () comment-column)
   "Function to compute desired indentation for a comment.
@@ -150,13 +156,17 @@ EXTRA specifies that an extra line should be used before and after the
 INDENT specifies that the `comment-start' markers should not be put at the
   left margin but at the current indentation of the region to comment.")
 
+;;;###autoload
 (defcustom comment-style 'plain
   "*Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :group 'comment
-  :type `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles)))
+  :type (if (boundp 'comment-styles)
+	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
+	  'symbol))
 
-(defcustom comment-padding 1
+;;;###autoload
+(defcustom comment-padding " "
   "Padding string that `comment-region' puts between comment chars and text.
 Can also be an integer which will be automatically turned into a string
 of the corresponding number of spaces.
@@ -164,6 +174,7 @@ of the corresponding number of spaces.
 Extra spacing between the comment characters and the comment text
 makes the comment easier to read.  Default is 1.  nil means 0.")
 
+;;;###autoload
 (defcustom comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
 on new line, with no new terminator or starter.
@@ -379,6 +390,7 @@ Point is assumed to be just at the end of a comment."
 ;;;; Commands
 ;;;;
 
+;;;###autoload
 (defun comment-indent (&optional continue)
   "Indent this line's comment to comment column, or insert an empty comment.
 If CONTINUE is non-nil, use the `comment-continuation' markers if any."
@@ -402,9 +414,9 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 	    (goto-char begpos))
           ;; Compute desired indent.
           (if (= (current-column)
-                 (setq indent (if comment-indent-hook
-                                  (funcall comment-indent-hook)
-                                (funcall comment-indent-function))))
+                 (setq indent (funcall (or (and (boundp 'comment-indent-hook)
+						comment-indent-hook)
+					   comment-indent-function))))
               (goto-char begpos)
             ;; If that's different from current, change it.
             (skip-chars-backward " \t")
@@ -418,6 +430,7 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
             (save-excursion
               (insert ender))))))))
 
+;;;###autoload
 (defun comment-set-column (arg)
   "Set the comment column based on point.
 With no ARG, set the comment column to the current column.
@@ -439,6 +452,7 @@ With any other arg, set comment column to indentation of the previous comment
    (t (setq comment-column (current-column))
       (message "Comment column set to %d" comment-column))))
 
+;;;###autoload
 (defun comment-kill (arg)
   "Kill the comment on this line, if any.
 With prefix ARG, kill comments on that many lines starting with this one."
@@ -529,6 +543,7 @@ If N is `re', a regexp is returned instead, that would match
 		(if multi (concat (regexp-quote (string c)) "*"))
 		(regexp-quote s))))))
 
+;;;###autoload
 (defun uncomment-region (beg end &optional arg)
   "Uncomment each line in the BEG..END region.
 The numeric prefix ARG can specify a number of chars to remove from the
@@ -744,13 +759,15 @@ rather than at left margin."
 		(end-of-line)
 		(not (or (eobp) (progn (forward-line) nil))))))))))
 
+;;;###autoload
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
 With just \\[universal-prefix] prefix arg, uncomment each line in region BEG..END.
 Numeric prefix arg ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
-Comments are terminated on each line, even for syntax in which newline does
-not end the comment.  Blank lines do not get comments.
+By default, comments start at the left margin, are terminated on each line,
+even for syntax in which newline does not end the comment and blank lines
+do not get comments.  This can be changed with `comment-style'.
 
 The strings used as comment starts are built from
 `comment-start' without trailing spaces and `comment-padding'."
@@ -817,6 +834,7 @@ end- comment markers additionally to what `comment-add' already specifies."
 			   'box-multi 'box)))
     (comment-region beg end (+ comment-add arg))))
 
+;;;###autoload
 (defun comment-dwim (arg)
   "Call the comment command you want (Do What I Mean).
 If the region is active and `transient-mark-mode' is on, call
@@ -854,6 +872,7 @@ This has no effect in modes that do not define a comment syntax."
   :type 'boolean
   :group 'comment)
 
+;;;###autoload
 (defun comment-indent-new-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
 This indents the body of the continued comment
@@ -944,6 +963,9 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.14  2000/05/23 20:06:10  monnier
+;; (comment-make-extra-lines): Don't use `assert'.
+;;
 ;; Revision 1.13  2000/05/22 04:23:37  monnier
 ;; (comment-region-internal): Go back to BEG after quoting
 ;; the nested comment markers.
