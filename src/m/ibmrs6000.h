@@ -117,7 +117,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define OBJECTS_MACHINE hftctl.o
 #define C_SWITCH_MACHINE -D_BSD
-/* cdfwz@r2d2.giss.nasa.gov says -lIM -liconv is needed.  */
+/* IBM's X11R5 use -lIM and -liconv in AIX 3.2.2.  */
 #define LIBS_MACHINE -lrts -lIM -liconv
 #define START_FILES
 #define HAVE_SYSVIPC

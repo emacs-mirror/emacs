@@ -19,8 +19,3 @@
    3.2, and a cc-compiled Emacs works with this undefined.
    --karl@cs.umb.edu.  */
 #undef SYSTEM_MALLOC
-
-/*
-   IBM's X11R5 use these libraries in AIX 3.2.2.  */
-
-#define LIBS_SYSTEM -lIM -liconv
