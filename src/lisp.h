@@ -2513,7 +2513,7 @@ EXFUN (Funwind_protect, UNEVALLED);
 EXFUN (Fcondition_case, UNEVALLED);
 EXFUN (Fsignal, 2);
 EXFUN (Fautoload, 5);
-EXFUN (Fcommandp, 1);
+EXFUN (Fcommandp, 2);
 EXFUN (Feval, 1);
 EXFUN (Fapply, MANY);
 EXFUN (Ffuncall, MANY);
