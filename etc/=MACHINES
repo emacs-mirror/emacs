@@ -421,11 +421,8 @@ IBM RS/6000 (-machine=ibmrs6000; -opsystem=aix3-1)
 
   Changes merged in version 19.
 
-  Dumping does not work.  Code has been written to implement it, but
-  it fails because the address of bss seems to vary occasionally
-  between Emacs runs.  It does not seem to vary from minute to minute,
-  but every few days or weeks it changes to a new steady state.
-  When this happens, the dumped Emacs data file becomes invalid.
+  Compiling with -O using the IBM compiler has been known
+  to make Emacs work incorrectly.
 
 IBM RT/PC (-machine=ibmrt or -machine=ibmrt-aix;
 	   -opsystem=bsd4-2 or -opsystem=usg5-2-2)
@@ -643,6 +640,9 @@ Prime EXL (-machine=intel386; -opsystem=usg5-3)
 
 Pyramid (-machine=pyramid; -opsystem=bsd4-2)
 
+  You need to build Emacs in the Berkeley universe with
+  the `ucb' command, as in `ucb make' or `ucb build-install'.
+  
   In OSx 4.0, it seems necessary to add the following two lines
   to src/m/pyramid.h:
      #define _longjmp longjmp
