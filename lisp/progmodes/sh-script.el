@@ -828,7 +828,7 @@ See `sh-feature'.")
 (defun sh-font-lock-close-heredoc (bol eof indented)
   "Determine the syntax of the \\n after an EOF.
 If non-nil INDENTED indicates that the EOF was indented."
-  (let* ((eof-re (regexp-quote eof))
+  (let* ((eof-re (if eof (regexp-quote eof) ""))
          ;; A rough regexp that should find the opening <<EOF back.
 	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
 		      ;; Use \s| to cheaply check it's an open-heredoc.
@@ -921,7 +921,8 @@ be indented (i.e. a <<- was used rather than just <<)."
 	 (match-beginning 0) (match-string 1)) nil t)
      (5 (sh-font-lock-close-heredoc
 	 (match-beginning 0) (match-string 4)
-         (/= (match-beginning 3) (match-end 3))) nil t))
+         (and (match-beginning 3) (/= (match-beginning 3) (match-end 3))))
+      nil t))
     ;; Distinguish the special close-paren in `case'.
     (")" 0 (sh-font-lock-paren (match-beginning 0)))))
 

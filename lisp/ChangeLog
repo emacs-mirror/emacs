@@ -1,3 +1,9 @@
+2001-10-26  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
+	Protect the /= test by checking that the args are non-nil.
+	(sh-font-lock-close-heredoc): check eof for being non-nil.
+
 2001-10-26  Tomas Abrahamsson  <tab@lysator.liu.se>
 
 	* textmodes/artist.el (artist-version): 1.2.4.
@@ -25,7 +31,7 @@
 	`eval'.
 	(numerous places): Add back-tick and tick around names in
 	docstrings, fix punctuation in docstrings, remove trailing spaces.
-	
+
 2001-10-25  Sam Steingold  <sds@gnu.org>
 
 	* add-log.el (add-log-always-start-new-record): New user option.
