@@ -304,9 +304,9 @@ be set in `.emacs' instead."
 				(setq gnus-mode-line-image-cache
 				      (find-image
 				       '((:type xpm :file "gnus-pointer.xpm"
-						:ascent 100)
+						:ascent 80)
 					 (:type xbm :file "gnus-pointer.xbm"
-						:ascent 100))))
+						:ascent 80))))
 			      gnus-mode-line-image-cache)
 			    'help-echo "This is Gnus")
 		      str)
