@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
-;; Maintainer: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
+;; Author: Oscar Figueiredo <oscar@cpe.fr>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Created: April 1998
 ;; Keywords: comm
 
