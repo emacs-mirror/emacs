@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1995/02/03 12:07:37 $
-;; Version:		$Revision: 1.61 $
+;; Last-Modified:	$Date: 1995/05/29 13:20:51 $
+;; Version:		$Revision: 1.62 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -487,7 +487,7 @@ default section number is selected from `Man-auto-section-alist'."
 				  Man-section-regexp "\\)[ \t]*)"))
 			 (format "(%s)" (Man-match-substring 1))))))
 	(set-text-properties 0 (length result) nil result)
-	))))
+	result))))
 
 
 ;; ======================================================================
