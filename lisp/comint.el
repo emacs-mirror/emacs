@@ -2086,7 +2086,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      (setq env-var-val (if (getenv env-var-name)
 				    (getenv env-var-name)
 				  ""))
-	      (setq name (replace-match env-var-val nil nil name))))))
+	      (setq name (replace-match env-var-val t t name))))))
     name))
 
 (defun comint-match-partial-filename ()
