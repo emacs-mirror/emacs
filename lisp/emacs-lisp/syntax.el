@@ -92,7 +92,10 @@ point (where the PPSS is equivalent to nil).")
 (defvar syntax-ppss-stats
   [(0 . 0.0) (0 . 0.0) (0 . 0.0) (0 . 0.0) (0 . 0.0) (1 . 2500.0)])
 (defun syntax-ppss-stats ()
-  (mapcar (lambda (x) (cons (car x) (truncate (/ (cdr x) (car x)))))
+  (mapcar (lambda (x)
+	    (condition-case nil
+		(cons (car x) (truncate (/ (cdr x) (car x))))
+	      (error nil)))
 	  syntax-ppss-stats))
 
 ;;;###autoload
