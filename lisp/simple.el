@@ -794,7 +794,9 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	     (let ((print-level nil))
 	       (prin1-to-string elt))
 	   elt))
-	(goto-char (minibuffer-prompt-end)))))
+	(if (boundp 'minibuffer-prompt-in-buffer)
+	    (goto-char (minibuffer-prompt-width))
+	  (goto-char (point-min))))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
@@ -2847,12 +2849,7 @@ In programs, it is faster to call `forward-word' with negative arg."
   "Kill characters forward until encountering the end of a word.
 With argument, do this that many times."
   (interactive "*p")
-  (let ((start (point))
-	(end (progn (forward-word arg) (point)))
-	(prompt-end (minibuffer-prompt-end)))
-    (when (< end prompt-end)
-      (goto-char (setq end prompt-end)))
-    (kill-region start end)))
+  (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
   "Kill characters backward until encountering the end of a word.
