@@ -265,6 +265,8 @@ primary selection and region."
     (remove-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
     (dolist (binding mouse-sel-original-bindings)
       (global-set-key (car binding) (cdr binding)))
+    ;; Restore the old values of these variables,
+    ;; only if they were actually saved previously.
     (if mouse-sel-has-been-enabled
 	(setq interprogram-cut-function
 	      mouse-sel-original-interprogram-cut-function
