@@ -1784,7 +1784,20 @@ init_lread ()
 
       dump_path = decode_env_path (0, PATH_DUMPLOADSEARCH);
       if (! NILP (Fequal (dump_path, Vload_path)))
-	Vload_path = decode_env_path (0, normal);
+	{
+	  Vload_path = decode_env_path (0, normal);
+	  if (!NILP (Vinvocation_directory))
+	    {
+	      /* Add to the path the ../lisp dir of the Emacs executable,
+		 if that dir exists.  */
+	      Lisp_Object tem, tem1;
+	      tem = Fexpand_file_name (build_string ("../lisp"),
+				       Vinvocation_directory);
+	      tem1 = Ffile_exists_p (tem);
+	      if (!NILP (tem1) && NILP (Fmember (tem, Vload_path)))
+		Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+	    }
+	}
     }
   else
     Vload_path = decode_env_path (0, normal);
