@@ -54,6 +54,7 @@ main ()
 #include <sys/un.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 extern int errno;
 
@@ -89,6 +90,7 @@ main ()
   FILE *infile;
   FILE **openfiles;
   int openfiles_size;
+  struct stat statbuf;
 
 #ifndef convex
   char *getenv ();
@@ -136,7 +138,13 @@ main ()
       exit (1);
     }
   /* Only this user can send commands to this Emacs.  */
-  chmod (server.sun_path, 0600);
+  if (stat (server.sun_path, &statbuf) < 0)
+    {
+      perror_1 ("bind");
+      exit (1);
+    }
+
+  chmod (server.sun_path, statbuf.st_mode & 0600);
   /*
    * Now, just wait for everything to come in..
    */
