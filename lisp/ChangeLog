@@ -1,5 +1,7 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/doctor.el (make-doctor-variables): Remove a '($ please)'.
+
 	* mail/mh-utils.el (mh-recenter): Call `recenter' with arg t
 	if ARG is nil.
 

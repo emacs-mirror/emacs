@@ -1,5 +1,9 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (sync_window_with_frame_matrix_rows): Fix 
+	handling of windows which aren't full-width, fix handling
+	of marginal areas.
+
 	* lread.c (syms_of_lread)<recursive-load-depth-limit>: Raise to
 	50.
 
