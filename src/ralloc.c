@@ -96,9 +96,6 @@ static POINTER virtual_break_value;
 /* The break value, viewed by the relocatable blocs. */
 static POINTER break_value;
 
-/* The REAL (i.e., page aligned) break value of the process. */
-static POINTER page_break_value;
-
 /* This is the size of a page.  We round memory requests to this boundary.  */
 static int page_size;
 
@@ -113,82 +110,26 @@ static int extra_bytes;
 #define ROUNDUP(size) (((unsigned long int) (size) + page_size - 1) \
 		       & ~(page_size - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
+
+#define MEM_ALIGN sizeof(double)
+#define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
+				   & ~(MEM_ALIGN - 1))
 
-/* Functions to get and return memory from the system.  */
-
-/* Obtain SIZE bytes of space.  If enough space is not presently available
-   in our process reserve, (i.e., (page_break_value - break_value)),
-   this means getting more page-aligned space from the system.
-
-   Return non-zero if all went well, or zero if we couldn't allocate
-   the memory.  */
-static int
-obtain (size)
-     SIZE size;
+/* Data structures of heaps and blocs */
+typedef struct heap
 {
-  SIZE already_available = page_break_value - break_value;
+  struct heap *next;
+  struct heap *prev;
+  POINTER start;
+  POINTER end;
+  POINTER bloc_start;		/* start of relocatable blocs */
+} *heap_ptr;
 
-  if (already_available < size)
-    {
-      SIZE get = ROUNDUP (size - already_available);
-      /* Get some extra, so we can come here less often.  */
-      get += extra_bytes;
+#define NIL_HEAP ((heap_ptr) 0)
+#define HEAP_PTR_SIZE (sizeof (struct heap))
 
-      if ((*real_morecore) (get) == 0)
-	return 0;
-
-      page_break_value += get;
-    }
-
-  break_value += size;
-
-  return 1;
-}
-
-/* Obtain SIZE bytes of space and return a pointer to the new area.
-   If we could not allocate the space, return zero.  */
-
-static POINTER
-get_more_space (size)
-     SIZE size;
-{
-  POINTER ptr = break_value;
-  if (obtain (size))
-    return ptr;
-  else
-    return 0;
-}
-
-/* Note that SIZE bytes of space have been relinquished by the process.
-   If SIZE is more than a page, return the space to the system. */
-
-static void
-relinquish (size)
-     SIZE size;
-{
-  POINTER new_page_break;
-  int excess;
-
-  break_value -= size;
-  new_page_break = (POINTER) ROUNDUP (break_value);
-  excess = (char *) page_break_value - (char *) new_page_break;
-  
-  if (excess > extra_bytes * 2)
-    {
-      /* Keep extra_bytes worth of empty space.
-	 And don't free anything unless we can free at least extra_bytes.  */
-      if ((*real_morecore) (extra_bytes - excess) == 0)
-	abort ();
-
-      page_break_value += extra_bytes - excess;
-    }
-
-  /* Zero the space from the end of the "official" break to the actual
-     break, so that bugs show up faster.  */
-  bzero (break_value, ((char *) page_break_value - (char *) break_value));
-}
-
-/* The meat - allocating, freeing, and relocating blocs.  */
+/* Head and tail of the list of heaps. */
+static heap_ptr first_heap, last_heap;
 
 /* These structures are allocated in the malloc arena.
    The linked list is kept in order of increasing '.data' members.
@@ -201,6 +142,7 @@ typedef struct bp
   POINTER *variable;
   POINTER data;
   SIZE size;
+  POINTER new_data;		/* tmporarily used for relocation */
 } *bloc_ptr;
 
 #define NIL_BLOC ((bloc_ptr) 0)
@@ -208,6 +150,124 @@ typedef struct bp
 
 /* Head and tail of the list of relocatable blocs. */
 static bloc_ptr first_bloc, last_bloc;
+
+
+/* Functions to get and return memory from the system.  */
+
+/* Obtain SIZE bytes of space starting at ADDRESS in a heap.
+   If enough space is not presently available in our reserve, this means
+   getting more page-aligned space from the system. If the retuned space
+   is not contiguos to the last heap, allocate a new heap, and append it
+   to the heap list.
+
+   Return the address of the space if all went well, or zero if we couldn't
+   allocate the memory.  */
+static POINTER
+obtain (address, size)
+    POINTER address;
+    SIZE size;
+{
+  heap_ptr heap;
+  SIZE already_available;
+
+  for (heap = last_heap; heap; heap = heap->prev)
+    {
+      if (heap->start <= address && address <= heap->end)
+	break;
+    }
+
+  if (! heap)
+    abort();
+
+  while (heap && address + size > heap->end)
+    {
+      heap = heap->next;
+      if (heap == NIL_HEAP)
+	break;
+      address = heap->bloc_start;
+    }
+
+  if (heap == NIL_HEAP)
+    {
+      POINTER new = (*real_morecore)(0);
+      SIZE get;
+
+      already_available = (char *)last_heap->end - (char *)address;
+
+      if (new != last_heap->end)
+	{
+	  /* Someone else called sbrk(). */
+	  heap_ptr new_heap = (heap_ptr) MEM_ROUNDUP(new);
+	  POINTER bloc_start = (POINTER) MEM_ROUNDUP((POINTER)(new_heap + 1));
+
+	  if ((*real_morecore) (bloc_start - new) != new)
+	    return 0;
+
+	  new_heap->start = new;
+	  new_heap->end = bloc_start;
+	  new_heap->bloc_start = bloc_start;
+	  new_heap->next = NIL_HEAP;
+	  new_heap->prev = last_heap;
+	  last_heap->next = new_heap;
+	  last_heap = new_heap;
+
+	  address = bloc_start;
+	  already_available = 0;
+	}
+
+      /* Get some extra, so we can come here less often.  */
+      get = size + extra_bytes - already_available;
+      get = (char *) ROUNDUP((char *)last_heap->end + get)
+	- (char *) last_heap->end;
+
+      if ((*real_morecore) (get) != last_heap->end)
+	return 0;
+
+      last_heap->end += get;
+    }
+
+  return address;
+}
+
+/* If the last heap has a excessive space, return it to the system. */
+static void
+relinquish ()
+{
+  register heap_ptr h;
+  int excess = 0;
+
+  for (h = last_heap; h && break_value < h->end; h = h->prev)
+    {
+      excess += (char *) h->end - (char *) ((break_value < h->bloc_start)
+					    ? h->bloc_start : break_value);
+    }
+
+  if (excess > extra_bytes * 2 && (*real_morecore) (0) == last_heap->end)
+    {
+      /* Keep extra_bytes worth of empty space.
+	 And don't free anything unless we can free at least extra_bytes.  */
+      excess -= extra_bytes;
+
+      if ((char *)last_heap->end - (char *)last_heap->bloc_start <= excess)
+	{
+	  /* Return the last heap with its header to the system */
+	  excess = (char *)last_heap->end - (char *)last_heap->start;
+	  last_heap = last_heap->prev;
+	  last_heap->next = NIL_HEAP;
+	}
+      else
+	{
+	  excess = (char *) last_heap->end
+			- (char *) ROUNDUP((char *)last_heap->end - excess);
+	  last_heap->end -= excess;
+	}
+
+      if ((*real_morecore) (- excess) == 0)
+	abort ();
+    }
+}
+
+/* The meat - allocating, freeing, and relocating blocs.  */
 
 /* Find the bloc referenced by the address in PTR.  Returns a pointer
    to that block. */
@@ -240,7 +300,7 @@ get_bloc (size)
   register bloc_ptr new_bloc;
 
   if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
-      || ! (new_bloc->data = get_more_space (size)))
+      || ! (new_bloc->data = obtain (break_value, size)))
     {
       if (new_bloc)
 	free (new_bloc);
@@ -248,9 +308,12 @@ get_bloc (size)
       return 0;
     }
 
+  break_value = new_bloc->data + size;
+
   new_bloc->size = size;
   new_bloc->next = NIL_BLOC;
   new_bloc->variable = (POINTER *) NIL;
+  new_bloc->new_data = 0;
 
   if (first_bloc)
     {
@@ -267,36 +330,122 @@ get_bloc (size)
   return new_bloc;
 }
 
-/* Relocate all blocs from BLOC on upward in the list to the zone
-   indicated by ADDRESS.  Direction of relocation is determined by
-   the position of ADDRESS relative to BLOC->data.
+/* Calculate new locations of blocs in the list begining with BLOC,
+   whose spaces is started at ADDRESS in HEAP.  If enough space is
+   not presently available in our reserve, obtain() is called for
+   more space. 
+   
+   Do not touch the contents of blocs or break_value. */
 
-   If BLOC is NIL_BLOC, nothing is done.
-
-   Note that ordering of blocs is not affected by this function. */
-
-static void
-relocate_some_blocs (bloc, address)
-     bloc_ptr bloc;
-     POINTER address;
+static int
+relocate_blocs (bloc, heap, address)
+    bloc_ptr bloc;
+    heap_ptr heap;
+    POINTER address;
 {
-  if (bloc != NIL_BLOC)
+  register bloc_ptr b = bloc;
+
+  while (b)
     {
-      register SIZE offset = address - bloc->data;
-      register SIZE data_size = 0;
-      register bloc_ptr b;
-      
-      for (b = bloc; b != NIL_BLOC; b = b->next)
+      while (heap && address + b->size > heap->end)
 	{
-	  data_size += b->size;
-	  b->data += offset;
-	  *b->variable = b->data;
+	  heap = heap->next;
+	  if (heap == NIL_HEAP)
+	    break;
+	  address = heap->bloc_start;
 	}
 
-      safe_bcopy (address - offset, address, data_size);
+      if (heap == NIL_HEAP)
+	{
+	  register bloc_ptr tb = b;
+	  register SIZE s = 0;
+
+	  while (tb != NIL_BLOC)
+	    {
+	      s += tb->size;
+	      tb = tb->next;
+	    }
+
+	  if (! (address = obtain(address, s)))
+	    return 0;
+
+	  heap = last_heap;
+	}
+
+      b->new_data = address;
+      address += b->size;
+      b = b->next;
     }
+
+  return 1;
 }
 
+/* Resize BLOC to SIZE bytes. */
+static int
+resize_bloc (bloc, size)
+    bloc_ptr bloc;
+    SIZE size;
+{
+  register bloc_ptr b;
+  heap_ptr heap;
+  POINTER address;
+  SIZE old_size;
+
+  if (bloc == NIL_BLOC || size == bloc->size)
+    return 1;
+
+  for (heap = first_heap; heap != NIL_HEAP; heap = heap->next)
+    {
+      if (heap->bloc_start <= bloc->data && bloc->data <= heap->end)
+	break;
+    }
+
+  if (heap == NIL_HEAP)
+    abort();
+
+  old_size = bloc->size;
+  bloc->size = size;
+
+  /* Note that bloc could be moved into the previous heap. */
+  address = bloc->prev ? bloc->prev->data + bloc->prev->size
+			  : first_heap->bloc_start;
+  while (heap)
+    {
+      if (heap->bloc_start <= address && address <= heap->end)
+	break;
+      heap = heap->prev;
+    }
+
+  if (! relocate_blocs (bloc, heap, address))
+    {
+      bloc->size = old_size;
+      return 0;
+    }
+
+  if (size > old_size)
+    {
+      for (b = last_bloc; b != bloc; b = b->prev)
+	{
+	  safe_bcopy (b->data, b->new_data, b->size);
+	  *b->variable = b->data = b->new_data;
+	}
+      safe_bcopy (bloc->data, bloc->new_data, old_size);
+      bzero (bloc->new_data + old_size, size - old_size);
+      *bloc->variable = bloc->data = bloc->new_data;
+    }
+  else
+    {
+      for (b = bloc; b != NIL_BLOC; b = b->next)
+	{
+	  safe_bcopy (b->data, b->new_data, b->size);
+	  *b->variable = b->data = b->new_data;
+	}
+    }
+
+  break_value = last_bloc ? last_bloc->data + last_bloc->size
+		    : first_heap->bloc_start;
+  return 1;
+}
 
 /* Free BLOC from the chain of blocs, relocating any blocs above it
    and returning BLOC->size bytes to the free area. */
@@ -305,6 +454,8 @@ static void
 free_bloc (bloc)
      bloc_ptr bloc;
 {
+  resize_bloc (bloc, 0);
+
   if (bloc == first_bloc && bloc == last_bloc)
     {
       first_bloc = last_bloc = NIL_BLOC;
@@ -325,8 +476,7 @@ free_bloc (bloc)
       bloc->prev->next = bloc->next;
     }
 
-  relocate_some_blocs (bloc->next, bloc->data);
-  relinquish (bloc->size);
+  relinquish ();
   free (bloc);
 }
 
@@ -350,53 +500,125 @@ POINTER
 r_alloc_sbrk (size)
      long size;
 {
-  /* This is the first address not currently available for the heap.  */
-  POINTER top;
-  /* Amount of empty space below that.  */
-  /* It is not correct to use SIZE here, because that is usually unsigned.
-     ptrdiff_t would be okay, but is not always available.
-     `long' will work in all cases, in practice.  */
-  long already_available;
-  POINTER ptr;
+  register bloc_ptr b;
+  POINTER address;
 
   if (! use_relocatable_buffers)
     return (*real_morecore) (size);
 
-  top = first_bloc ? first_bloc->data : page_break_value;
-  already_available = (char *) top - (char *) virtual_break_value;
+  if (size == 0)
+    return virtual_break_value;
 
-  /* Do we not have enough gap already?  */
-  if (size > 0 && already_available < size)
+  if (size > 0)
     {
-      /* Get what we need, plus some extra so we can come here less often.  */
-      SIZE get = size - already_available + extra_bytes;
+      /* Allocate a page-aligned space. GNU malloc would reclaim an
+	 extra space if we passed an unaligned one. But we could
+	 not always find a space which is contiguos to the previous. */
+      POINTER new_bloc_start;
+      heap_ptr h = first_heap;
+      SIZE get = ROUNDUP(size);
 
-      if (r_alloc_freeze_level > 0 || ! obtain (get))
-	return 0;
+      address = (POINTER) ROUNDUP(virtual_break_value);
 
-      if (first_bloc)
-	relocate_some_blocs (first_bloc, first_bloc->data + get);
+      /* Search the list upward for a heap which is large enough. */
+      while ((char *) h->end < (char *) MEM_ROUNDUP((char *)address + get))
+	{
+	  h = h->next;
+	  if (h == NIL_HEAP)
+	    break;
+	  address = (POINTER) ROUNDUP(h->start);
+	}
 
-      /* Zero out the space we just allocated, to help catch bugs
-	 quickly.  */
-      bzero (virtual_break_value, get);
+      /* If not found, obatin more space. */
+      if (h == NIL_HEAP)
+	{
+	  get += extra_bytes + page_size;
+
+	  if (r_alloc_freeze_level > 0 || ! obtain(address, get))
+	    return 0;
+
+	  if (first_heap == last_heap)
+	      address = (POINTER) ROUNDUP(virtual_break_value);
+	  else
+	      address = (POINTER) ROUNDUP(last_heap->start);
+	  h = last_heap;
+	}
+
+      new_bloc_start = (POINTER) MEM_ROUNDUP((char *)address + get);
+
+      if (first_heap->bloc_start < new_bloc_start)
+	{
+	  /* Move all blocs upward. */
+	  if (r_alloc_freeze_level > 0
+	      || ! relocate_blocs (first_bloc, h, new_bloc_start))
+	    return 0;
+
+	  /* Note that (POINTER)(h+1) <= new_bloc_start since
+	     get >= page_size, so the following does not destroy the heap
+	     header. */
+	  for (b = last_bloc; b != NIL_BLOC; b = b->prev)
+	    {
+	      safe_bcopy (b->data, b->new_data, b->size);
+	      *b->variable = b->data = b->new_data;
+	    }
+
+	  h->bloc_start = new_bloc_start;
+	}
+
+      if (h != first_heap)
+	{
+	  /* Give up managing heaps below the one the new
+	     virtual_break_value points to. */
+	  first_heap->prev = NIL_HEAP;
+	  first_heap->next = h->next;
+	  first_heap->start = h->start;
+	  first_heap->end = h->end;
+	  first_heap->bloc_start = h->bloc_start;
+
+	  if (first_heap->next)
+	    first_heap->next->prev = first_heap;
+	  else
+	    last_heap = first_heap;
+	}
+
+      bzero (address, size);
     }
-  /* Can we keep extra_bytes of gap while freeing at least extra_bytes?  */
-  else if (size < 0 && already_available - size > 2 * extra_bytes
-	   && r_alloc_freeze_level == 0)
+  else /* size < 0 */
     {
-      /* Ok, do so.  This is how many to free.  */
-      SIZE give_back = already_available - size - extra_bytes;
+      SIZE excess = (char *)first_heap->bloc_start
+		      - ((char *)virtual_break_value + size);
 
-      if (first_bloc)
-	relocate_some_blocs (first_bloc, first_bloc->data - give_back);
-      relinquish (give_back);
+      address = virtual_break_value;
+
+      if (r_alloc_freeze_level == 0 && excess > 2 * extra_bytes)
+	{
+	  excess -= extra_bytes;
+	  first_heap->bloc_start
+	      = (POINTER) MEM_ROUNDUP((char *)first_heap->bloc_start - excess);
+
+	  relocate_blocs(first_bloc, first_heap, first_heap->bloc_start);
+
+	  for (b = first_bloc; b != NIL_BLOC; b = b->next)
+	    {
+	      safe_bcopy (b->data, b->new_data, b->size);
+	      *b->variable = b->data = b->new_data;
+	    }
+	}
+
+      if ((char *)virtual_break_value + size < (char *)first_heap->start)
+	{
+	  /* We found an additional space below the first heap */
+	  first_heap->start = (POINTER) ((char *)virtual_break_value + size);
+	}
     }
 
-  ptr = virtual_break_value;
-  virtual_break_value += size;
+  virtual_break_value = (POINTER) ((char *)address + size);
+  break_value = last_bloc ? last_bloc->data + last_bloc->size
+		    : first_heap->bloc_start;
+  if (size < 0)
+    relinquish();
 
-  return ptr;
+  return address;
 }
 
 /* Allocate a relocatable bloc of storage of size SIZE.  A pointer to
@@ -416,7 +638,7 @@ r_alloc (ptr, size)
   if (! r_alloc_initialized)
     r_alloc_init ();
 
-  new_bloc = get_bloc (size);
+  new_bloc = get_bloc (MEM_ROUNDUP(size));
   if (new_bloc)
     {
       new_bloc->variable = ptr;
@@ -470,16 +692,8 @@ r_re_alloc (ptr, size)
     /* Wouldn't it be useful to actually resize the bloc here?  */
     return *ptr;
 
-  if (! obtain (size - bloc->size))
+  if (! resize_bloc (bloc, MEM_ROUNDUP(size)))
     return 0;
-
-  relocate_some_blocs (bloc->next, bloc->data + size);
-
-  /* Zero out the new space in the bloc, to help catch bugs faster.  */
-  bzero (bloc->data + bloc->size, size - bloc->size);
-
-  /* Indicate that this block has a new size.  */
-  bloc->size = size;
 
   return *ptr;
 }
@@ -519,6 +733,9 @@ extern POINTER (*__morecore) ();
 static void
 r_alloc_init ()
 {
+  static struct heap heap_base;
+  POINTER end;
+
   if (r_alloc_initialized)
     return;
 
@@ -526,14 +743,17 @@ r_alloc_init ()
   real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
 
-  virtual_break_value = break_value = (*real_morecore) (0);
+  first_heap = last_heap = &heap_base;
+  first_heap->next = first_heap->prev = NIL_HEAP;
+  first_heap->start = first_heap->bloc_start
+    = virtual_break_value = break_value = (*real_morecore) (0);
   if (break_value == NIL)
     abort ();
 
   page_size = PAGE;
   extra_bytes = ROUNDUP (50000);
 
-  page_break_value = (POINTER) ROUNDUP (break_value);
+  first_heap->end = (POINTER) ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
      address space is a multiple of page_size, even if page_size is
@@ -541,13 +761,100 @@ r_alloc_init ()
      which page_size is stored.  This allows a binary to be built on a
      system with one page size and run on a system with a smaller page
      size. */
-  (*real_morecore) (page_break_value - break_value);
+  (*real_morecore) (first_heap->end - first_heap->start);
 
   /* Clear the rest of the last page; this memory is in our address space
      even though it is after the sbrk value.  */
   /* Doubly true, with the additional call that explicitly adds the
      rest of that page to the address space.  */
-  bzero (break_value, (page_break_value - break_value));
-  virtual_break_value = break_value = page_break_value;
+  bzero (first_heap->start, first_heap->end - first_heap->start);
+  virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
   use_relocatable_buffers = 1;
 }
+#ifdef DEBUG
+#include <assert.h>
+
+int
+r_alloc_check ()
+{
+    int found = 0;
+    heap_ptr h, ph = 0;
+    bloc_ptr b, pb = 0;
+
+    if (!r_alloc_initialized)
+      return;
+
+    assert(first_heap);
+    assert(last_heap->end <= (POINTER) sbrk(0));
+    assert((POINTER) first_heap < first_heap->start);
+    assert(first_heap->start <= virtual_break_value);
+    assert(virtual_break_value <= first_heap->end);
+
+    for (h = first_heap; h; h = h->next)
+      {
+	assert(h->prev == ph);
+	assert((POINTER) ROUNDUP(h->end) == h->end);
+	assert((POINTER) MEM_ROUNDUP(h->start) == h->start);
+	assert((POINTER) MEM_ROUNDUP(h->bloc_start) == h->bloc_start);
+	assert(h->start <= h->bloc_start && h->bloc_start <= h->end);
+
+	if (ph)
+	  {
+	    assert (ph->end < h->start);
+	    assert (h->start <= (POINTER)h && (POINTER)(h+1) <= h->bloc_start);
+	  }
+
+	if (h->bloc_start <= break_value && break_value <= h->end)
+	    found = 1;
+
+	ph = h;
+      }
+
+    assert(found);
+    assert(last_heap == ph);
+
+    for (b = first_bloc; b; b = b->next)
+      {
+	assert(b->prev == pb);
+	assert((POINTER) MEM_ROUNDUP(b->data) == b->data);
+	assert((SIZE) MEM_ROUNDUP(b->size) == b->size);
+
+	ph = 0;
+	for (h = first_heap; h; h = h->next)
+	  {
+	    if (h->bloc_start <= b->data && b->data + b->size <= h->end)
+		break;
+	    ph = h;
+	  }
+
+	assert(h);
+
+	if (pb && pb->data + pb->size != b->data)
+	  {
+	    assert(ph && b->data == h->bloc_start);
+	    while (ph)
+	      {
+		if (ph->bloc_start <= pb->data
+		    && pb->data + pb->size <= ph->end)
+		  {
+		    assert(pb->data + pb->size + b->size > ph->end);
+		    break;
+		  }
+		else
+		  {
+		    assert(ph->bloc_start + b->size > ph->end);
+		  }
+		ph = ph->prev;
+	      }
+	  }
+	pb = b;
+      }
+
+    assert(last_bloc == pb);
+
+    if (last_bloc)
+	assert(last_bloc->data + last_bloc->size == break_value);
+    else
+	assert(first_heap->bloc_start == break_value);
+}
+#endif /* DEBUG */
