@@ -2151,7 +2151,7 @@ if there are no flagged files."
     ;; let window shrink to fit:
     (let ((window (selected-window))
 	  target-lines w2)
-      (cond ;; if split-window-threshold is enabled, use the largest window
+      (cond ;; if split-height-threshold is enabled, use the largest window
             ((and (> (window-height (setq w2 (get-largest-window)))
 		     split-height-threshold)
 		  (= (frame-width) (window-width w2)))
