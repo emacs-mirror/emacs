@@ -841,7 +841,8 @@ If RAW, don't highlight the article."
     (if (re-search-forward
 	 (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	(replace-match "\n"))
-    (mml-to-mime)
+    (let ((mail-header-separator "")) ;; mail-header-separator is removed.
+      (mml-to-mime))
     (if raw
 	(when (fboundp 'set-buffer-multibyte)
 	  (let ((s (buffer-string)))
