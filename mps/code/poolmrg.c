@@ -1,7 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
  * $Id$
- * $HopeName: MMsrc!poolmrg.c(trunk.42) $
  * Copyright (c) 2001 Ravenbrook Limited.
  * 
  * DESIGN

@@ -1,7 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * $HopeName: MMsrc!arenavm.c(trunk.74) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  *

@@ -1,7 +1,6 @@
 /*  impl.h.th: THREAD MANAGER
  *
  *  $Id$
- *  $HopeName: MMsrc!th.h(trunk.9) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  *  .purpose: Provides thread suspension facilities to the shield.

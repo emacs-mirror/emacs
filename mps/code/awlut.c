@@ -1,7 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
  * $Id$
- * $HopeName: MMsrc!awlut.c(trunk.18) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

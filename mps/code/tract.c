@@ -1,7 +1,6 @@
 /* impl.c.tract: PAGE TABLES
  *
  * $Id$
- * $HopeName: MMsrc!tract.c(trunk.6) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as

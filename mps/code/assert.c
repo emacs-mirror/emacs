@@ -1,7 +1,6 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!assert.c(trunk.12) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * This source provides the AssertFail function which is

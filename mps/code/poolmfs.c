@@ -1,7 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * $HopeName: MMsrc!poolmfs.c(trunk.35) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * This is the implementation of the MFS pool class.

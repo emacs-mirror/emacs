@@ -1,7 +1,6 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
 # $Id$
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.44) $
 # Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = w3ppmv

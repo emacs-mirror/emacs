@@ -1,7 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
  * $Id$
- * $HopeName: MMsrc!poolmvff.c(trunk.22) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a pool class for manually managed objects of

@@ -1,7 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!poolams.h(trunk.17) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Internal interface to AMS functionality.

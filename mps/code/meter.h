@@ -1,7 +1,6 @@
 /* impl.h.meter: METER INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!meter.h(trunk.7) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: mps.design.metrics.

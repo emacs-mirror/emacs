@@ -3,7 +3,6 @@
  *                    MANUAL FIXED SMALL UNIT POOL
  *
  *  $Id$
- *  $HopeName: MMsrc!poolmfs.h(trunk.5) $
  *
  *  Copyright (c) 2001 Ravenbrook Limited.
  *

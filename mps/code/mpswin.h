@@ -1,7 +1,6 @@
 /* impl.h.mpswin: RAVENBROOK MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!mpswin.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: For MPS client application developers, MPS developers.

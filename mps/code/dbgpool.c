@@ -1,7 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
  * $Id$
- * $HopeName: MMsrc!dbgpool.c(trunk.14) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: design.mps.object-debug

@@ -1,7 +1,6 @@
 /* impl.h.dbgpool: POOL DEBUG MIXIN
  *
  * $Id$
- * $HopeName: MMsrc!dbgpool.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

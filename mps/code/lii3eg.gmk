@@ -1,7 +1,6 @@
 # impl.gmk.lii3eg: BUILD FOR LINUX/INTEL/EGCS PLATFORM
 #
 # $Id$
-# $HopeName: MMsrc!lii3eg.gmk(trunk.4) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This is the GNU makefile for platform.lii3eg.

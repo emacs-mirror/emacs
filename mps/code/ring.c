@@ -1,7 +1,6 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!ring.c(trunk.8) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .intro: This is a portable implementation of Rings.

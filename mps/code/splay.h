@@ -1,7 +1,6 @@
 /* impl.h.splay: SPLAY TREE HEADER
  *
  * $Id$
- * $HopeName: MMsrc!splay.h(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: design.mps.splay

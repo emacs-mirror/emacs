@@ -1,7 +1,6 @@
 /* impl.c.vmi5: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
  *
  * $Id$
- * $HopeName: MMsrc!vmi5.c(trunk.6) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * Design: design.mps.vm

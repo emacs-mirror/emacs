@@ -1,7 +1,6 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
  * $Id$
- * $HopeName: MMsrc!reserv.c(trunk.6) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * IMPROVEMENTS

@@ -1,7 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
  * $Id$
- * $HopeName: MMsrc!bt.c(trunk.25) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * READERSHIP

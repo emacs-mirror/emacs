@@ -1,7 +1,6 @@
 /* impl.h.abq: ABQ INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!abq.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: A FIFO queue substrate for impl.c.poolmv2

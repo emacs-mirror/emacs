@@ -1,7 +1,6 @@
 /* impl.c.prmcan: PROTECTION MUTATOR CONTEXT (ANSI)
  *
  * $Id$
- * $HopeName: MMsrc!prmcan.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: See design.mps.prot for the generic design of the interface

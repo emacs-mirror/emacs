@@ -1,7 +1,6 @@
 /* impl.c.span: ANSI STACK PROBE
  *
  * $Id$
- * $HopeName: MMsrc!span.c(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE

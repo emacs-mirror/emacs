@@ -1,7 +1,6 @@
 /* impl.c.vman: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
  *
  * $Id$
- * $HopeName: MMsrc!vman.c(trunk.22) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

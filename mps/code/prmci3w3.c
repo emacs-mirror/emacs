@@ -1,7 +1,6 @@
 /* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
- * $HopeName: MMsrc!prmci3w3.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE

@@ -3,7 +3,6 @@
  *                   LEAF OBJECT POOL CLASS
  *
  *  $Id$
- *  $HopeName: MMsrc!lo.h(trunk.3) $
  *
  *  Copyright (c) 2001 Ravenbrook Limited.
  *

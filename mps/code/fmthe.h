@@ -1,7 +1,6 @@
 /* impl.h.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
  * $Id$
- * $HopeName: MMsrc!fmthe.h(trunk.1) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

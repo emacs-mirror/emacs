@@ -1,7 +1,6 @@
 /* impl.h.mpstd: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
- * $HopeName: MMsrc!mpstd.h(trunk.28) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * Detect the target platform using predefined preprocessor symbols

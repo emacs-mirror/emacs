@@ -1,7 +1,6 @@
 /* impl.c.lockcov: LOCK COVERAGE TEST
  *
  * $Id$
- * $HopeName: MMsrc!lockcov.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

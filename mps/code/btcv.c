@@ -1,7 +1,6 @@
 /* impl.c.btss: BIT TABLE COVERAGE TEST
  *
  * $Id$
- * $HopeName: MMsrc!btcv.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers

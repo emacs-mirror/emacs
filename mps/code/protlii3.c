@@ -1,7 +1,6 @@
 /*  impl.c.protlii3: PROTECTION FOR LINUX (INTEL 386)
  *
  *  $Id$
- *  $HopeName: MMsrc!protlii3.c(trunk.4) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * SOURCES

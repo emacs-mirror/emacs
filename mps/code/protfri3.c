@@ -1,7 +1,6 @@
 /*  impl.c.protfri3: PROTECTION FOR FREEBSD (INTEL 386)
  *
  *  $Id$
- *  $HopeName: MMsrc!protlii3.c(trunk.3) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * SOURCES

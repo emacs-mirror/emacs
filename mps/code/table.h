@@ -2,7 +2,6 @@
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
- * $HopeName: MMsrc!table.h(trunk.2) $
  */
 
 #ifndef table_h

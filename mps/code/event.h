@@ -2,7 +2,6 @@
  *
  * Copyright (c) 2001 Ravenbrook Limited.
  * $Id$
- * $HopeName: MMsrc!event.h(trunk.15) $
  *
  * READERSHIP
  *

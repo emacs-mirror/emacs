@@ -1,7 +1,6 @@
 # impl.gmk.fri4gc: BUILD FOR FreeBSD/INTEL/GCC PLATFORM
 #
 # $Id$
-# $HopeName: MMsrc!lii4gc.gmk(trunk.5) $
 # Copyright (c) 2001 Ravenbrook Limited.
 
 PFM = fri4gc

@@ -1,7 +1,6 @@
 /* impl.c.ssw3i3: WIN32/INTEL STACK SCANNING
  *
  * $Id$
- * $HopeName: MMsrc!ssw3i3.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  *  This scans the stack and fixes the registers which may contain 

@@ -1,7 +1,6 @@
 /* impl.h.osxc: MacOS X (Carbon-compatible) system header hacks
  *
  * $Id$
- * $HopeName: MMsrc!osxc.h(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This header fixes bugs in the system headers.

@@ -1,7 +1,6 @@
 /* impl.c.lockfr: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * $HopeName$
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .freebsd: This implementation supports FreeBSD (platform

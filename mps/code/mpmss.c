@@ -1,7 +1,6 @@
 /* impl.c.mpmss: MPM STRESS TEST
  *
  * $Id$
- * $HopeName: MMsrc!mpmss.c(trunk.24) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

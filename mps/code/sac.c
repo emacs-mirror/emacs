@@ -1,7 +1,6 @@
 /* impl.c.sac: SEGREGATED ALLOCATION CACHES
  *
  * $Id$
- * $HopeName: MMsrc!sac.c(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

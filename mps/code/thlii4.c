@@ -1,7 +1,6 @@
 /*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
  *
  *  $Id$
- *  $HopeName: MMsrc!thlii4.c(trunk.3) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This is a pthreads implementation of the threads manager.

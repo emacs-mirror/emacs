@@ -1,7 +1,6 @@
 /* impl.c.lockutw3: LOCK UTILIZATION TEST
  *
  * $Id$
- * $HopeName: MMsrc!lockutw3.c(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

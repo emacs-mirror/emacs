@@ -1,7 +1,6 @@
 /* impl.h.mpsavm: MEMORY POOL SYSTEM ARENA CLASS "VM"
  *
  * $Id$
- * $HopeName: MMsrc!mpsavm.h(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

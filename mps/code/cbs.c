@@ -1,7 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!cbs.c(trunk.21) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .intro: This is a portable implementation of coalescing block

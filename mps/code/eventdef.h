@@ -1,7 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
  * $Id$
- * $HopeName: MMsrc!eventdef.h(trunk.25) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: design.mps.telemetry

@@ -1,7 +1,6 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * $HopeName: MMsrc!splay.c(trunk.9) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Splay trees are used to manage potentially unbounded 

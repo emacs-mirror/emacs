@@ -1,7 +1,6 @@
 /* impl.c.bttest: BIT TABLE TEST
  *
  * $Id$
- * $HopeName: MMsrc!bttest.c(trunk.5) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,7 +1,6 @@
 /* impl.h.ring: RING INTERFACE
  *
  * $Id$
- * $HopeName: MMsrc!ring.h(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

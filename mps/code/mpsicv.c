@@ -1,7 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
  * $Id$
- * $HopeName: MMsrc!mpsicv.c(trunk.20) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 
