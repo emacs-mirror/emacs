@@ -27,6 +27,11 @@ main ()
 {
 }
 #else /* not BSD 4.2 (or newer) */
+#ifdef MSDOS
+main ()
+{
+}
+#else /* not MSDOS */
 /* This conditional contains all the rest of the file.  */
 
 /* These are defined in config in some versions. */
@@ -658,4 +663,5 @@ main (argc, argv)
   exit (close_the_streams ());
 }
 
+#endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
