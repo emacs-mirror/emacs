@@ -137,9 +137,8 @@ one optional arguments, diff-number to refine.")
    (ediff-extract-diffs
     ediff-diff-buffer ediff-word-mode ediff-narrow-bounds)))
 
-;; fill in DIFF-BUFFER with the output from the diff program run on FILE1 and
-;; FILE2
-;; Return the length of that buffer.
+;; Run the diff program on FILE1 and FILE2 and put the output in DIFF-BUFFER
+;; Return the size of DIFF-BUFFER
 (defun ediff-make-diff2-buffer (diff-buffer file1 file2)
   (cond ((< (ediff-file-size file1) 0)
 	 (message "Can't diff remote files: %s"

@@ -1,15 +1,6 @@
-;;; viper.el --- A full-featured Vi emulator for GNU Emacs 19 and XEmacs 19,
-;;		 a VI Plan for Emacs Rescue,
-;;		 and a venomous VI PERil.
-;;		 Viper Is also a Package for Emacs Rebels.
-;;
-;;  Keywords: emulations
-;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
+;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
 ;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
-
-(defconst viper-version "2.90 of June 19, 1996"
-  "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
 
@@ -24,5616 +15,1995 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:
-
-;; Viper is a full-featured Vi emulator for Emacs 19.  It emulates and
-;; improves upon the standard features of Vi and, at the same time, allows
-;; full access to all Emacs facilities.  Viper supports multiple undo,
-;; file name completion, command, file, and search history and it extends
-;; Vi in many other ways. Viper is highly customizable through the various
-;; hooks, user variables, and keymaps.  It is implemented as a collection
-;; of minor modes and it is designed to provide full access to all Emacs
-;; major and minor modes.
-;;
-;;; History
-;;
-;; Viper is a new name for a package formerly known as VIP-19,
-;; which was a successor of VIP version 3.5 by Masahiko Sato
-;; <ms@sail.stanford.edu> and VIP version 4.2 by Aamod Sane
-;; <sane@cs.uiuc.edu>. Some ideas from vip 4.4.2 by Aamod Sane
-;; were also shamelessly plagiarized.
-;;
-;; Viper maintains some degree of compatibility with these older
-;; packages. See the documentation for customization.
-;;
-;; The main difference between Viper and these older packages are:
-;;
-;; 1. Viper emulates Vi at several levels, from almost complete conformity
-;;    to a rather loose Vi-compliance.
-;;
-;; 2. Viper provides full access to all major and minor modes of Emacs
-;;    without the need to type extra keys.
-;;    The older versions of VIP (and other Vi emulators) do not work with
-;;    some major and minor modes.
-;;
-;; 3. Viper supports vi-style undo.
-;;
-;; 4. Viper fully emulates (and improves upon) vi's replacement mode.
-;;
-;; 5. Viper has a better interface to ex, including command, variable, and
-;;    file name completion.
-;;
-;; 6. Viper uses native Emacs history and completion features; it doesn't
-;;    rely on other packages (such as gmhist.el and completer.el) to provide
-;;    these features.
-;;
-;; 7. Viper supports Vi-style editing in the minibuffer, by allowing the
-;;    user to switch from Insert state to Vi state to Replace state, etc.
-;;
-;; 8. Viper keeps history of recently inserted pieces of text and recently
-;;    executed Vi-style destructive commands, such as `i', `d', etc.
-;;    These pieces of text can be inserted in later insertion commands;
-;;    the previous destructive commands can be re-executed.
-;;
-;; 9. Viper has Vi-style keyboard macros, which enhances the similar
-;;    facility in the original Vi.
-;;    First, one can execute any Emacs command while defining a
-;;    macro, not just the Vi commands. Second, macros are defined in a
-;;    WYSYWYG mode, using an interface to Emacs' WYSIWYG style of defining
-;;    macros. Third, in Viper, one can define macros that are specific to
-;;    a given buffer, a given major mode, or macros defined for all buffers.
-;;    The same macro name can have several different definitions:
-;;    one global, several definitions for various major modes, and
-;;    definitions for specific buffers.
-;;    Bffer-specific definitions override mode-specific
-;;    definitions, which, in turn, override global definitions.
-;;
-;;
-;;; Installation:
-;;  -------------
-;;
-;;  (require 'viper)
-;;
-
-;;; Acknowledgements:
-;;  -----------------
-;;  Bug reports and ideas contributed by the following users
-;;  have helped improve Viper and the various versions of VIP.
-;;  See the on-line manual for a complete list of contributors. 
-;;
-;;
-;;; Notes:
-;;
-;; 1. Major modes.
-;; In most cases, Viper handles major modes correctly, i.e., they come up
-;; in the right state (either  vi-state or emacs-state). For instance, text
-;; files come up in vi-state, while, say, Dired appears in emacs-state by
-;; default. 
-;; However, some modes do not appear in the right mode in the beginning,
-;; usually because they neglect to follow Emacs conventions (e.g., they don't
-;; use kill-all-local-variables when they start). Some major modes
-;; may fail to come up in emacs-state if they call hooks, such as
-;; text-hook, for no good reason. 
-;; 
-;; As an immediate solution, you can hit C-z to bring about the right mode.
-;; An interim solution is to add an appropriate hook to the mode like this:
-;; 
-;;     (add-hook 'your-favorite-mode 'viper-mode)
-;; or    
-;;     (add-hook 'your-favorite-mode 'vip-change-state-to-emacs)
-;; 
-;; whichever applies. The right thing to do, however, is to complain to the
-;; author of the respective package. (Sometimes they also neglect to equip
-;; their  modes with hooks, which is one more reason for complaining.)
-;; 
-;; 2. Keymap handling
-;;    Because Emacs 19 has an elegant mechanism for turning minor mode keymaps
-;;    on and off, implementation of Viper has been greatly simplified. Viper
-;;    has several minor modes.
-;;
-;; Viper's  Vi state consists of seven minor modes:
-;;
-;;  vip-vi-intercept-minor-mode
-;;  vip-vi-local-user-minor-mode
-;;  vip-vi-global-user-minor-mode
-;;  vip-vi-kbd-minor-mode
-;;  vip-vi-state-modifier-minor-mode
-;;  vip-vi-diehard-minor-mode
-;;  vip-vi-basic-minor-mode
-;;
-;;  Bindings done to the keymap of the first mode overshadow those done to
-;;  the second, which, in turn, overshadows those done to the third, etc.
-;;
-;;  The last vip-vi-basic-minor-mode contains most of the usual Vi bindings
-;;  in its edit mode. This mode provides access to all Emacs facilities.
-;;  Novice users, however, may want to set their vip-expert-level to 1
-;;  in their .vip file. This will enable vip-vi-diehard-minor-mode. This
-;;  minor mode's bindings make Viper simulate the usual Vi very closely.
-;;  For instance,  C-c will not have its standard Emacs binding
-;;  and so many of the goodies of Emacs are not available.
-;;
-;;  An skilled user, should set vip-expert-level to at least 3. This will
-;;  enable ;;  C-c and many Emacs facilities will become available.
-;;  In this case, vip-vi-diehard-minor-mode is inactive.
-;;
-;;  Viper gurus should have at least
-;;      (setq vip-expert-level 4)
-;;  in their ~/.vip files. This will unsuppress all Emacs keys that are not
-;;  essential for VI-style editing.
-;;  Pick-and-choose users may want to put
-;;      (setq vip-expert-level 5)
-;;  in ~/.vip. Viper will then leave it up to the user to set the variables
-;;  vip-want-*  See vip-set-expert-level for details.
-;;
-;;  The very first minor mode, vip-vi-intercept-minor-mode, is of no
-;;  concern for the user. It is needed to bind Viper's vital keys, such as
-;;  ESC and C-z.
-;;
-;;  The second mode,  vip-vi-local-user-minor-mode, usually has an
-;;  empty keymap. However, the user can set bindings in this keymap, which
-;;  will overshadow the corresponding bindings in the other two minor
-;;  modes. This is useful, for example, for setting up ZZ in gnus,
-;;  rmail, mh-e, etc., to send  message instead of saving it in a file.
-;;  Likewise, in Dired mode, you may want to bind ZN and ZP to commands
-;;  that would visit the next or the previous file in the Dired buffer.
-;;  Setting local keys is tricky, so don't do it directly. Instead, use
-;;  vip-add-local-keys function (see its doc).
-;;
-;;  The third minor mode, vip-vi-global-user-minor-mode, is also intended
-;;  for the users but, unlike vip-vi-local-user-minor-mode, its key
-;;  bindings are seen in all Viper buffers. This mode keys can be done
-;;  with define-key command.
-;;
-;;  The fourth minor mode, vip-vi-kbd-minor-mode, is used by keyboard
-;;  macros. Users are NOT supposed to modify this keymap directly.
-;;
-;;  The fifth mode, vip-vi-state-modifier-minor-mode, can be used to set
-;;  key bindings that are visible in some major modes but not in others.
-;;
-;;  Users are allowed to modify keymaps that belong to
-;;  vip-vi-local-user-minor-mode, vip-vi-global-user-minor-mode,
-;;  and vip-vi-state-modifier-minor-mode only.
-;;
-;;  Viper's Insert state also has seven minor modes:
-;;
-;;      vip-insert-intercept-minor-mode
-;;  	vip-insert-local-user-minor-mode
-;;  	vip-insert-global-user-minor-mode
-;;  	vip-insert-kbd-minor-mode
-;;      vip-insert-state-modifier-minor-mode
-;;  	vip-insert-diehard-minor-mode
-;;  	vip-insert-basic-minor-mode
-;;
-;;  As with VI's editing modes, the first mode, vip-insert-intercept-minor-mode
-;;  is used to bind vital keys that are not to be changed by the user.
-;;
-;;  The next mode, vip-insert-local-user-minor-mode, is used to customize
-;;  bindings in the insert state of Viper. The third mode,
-;;  vip-insert-global-user-minor-mode is like
-;;  vip-insert-local-user-minor-mode, except that its bindings are seen in 
-;;  all Viper buffers. As with vip-vi-local-user-minor-mode, its bindings
-;;  should be done via the function vip-add-local-keys. Bindings for
-;;  vip-insert-global-user-minor-mode can be set with the define-key command.
-;;
-;;  The next minor mode, vip-insert-kbd-minor-mode,
-;;  is used for keyboard VI-style macros defined with :map!. 
-;;
-;;  The fifth minor mode, vip-insert-state-modifier-minor-mode, is like
-;;  vip-vi-state-modifier-minor-mode, except that it is used in the Insert
-;;  state; it can be used to modify keys in a mode-specific fashion. 
-;;
-;;  The minor mode vip-insert-diehard-minor-mode is in effect when
-;;  the user wants a high degree of Vi compatibility (a bad idea, really!).
-;;  The last minor mode, vip-insert-basic-minor-mode, is always in effect
-;;  when Viper is in insert state. It binds a small number of keys needed for
-;;  Viper's operation. 
-;;
-;;  Finally, Viper provides minor modes for overriding bindings set by Emacs
-;;  modes when Viper is in Emacs state:
-;;
-;; 	vip-emacs-local-user-minor-mode
-;;  	vip-emacs-global-user-minor-mode
-;;      vip-emacs-kbd-minor-mode
-;;      vip-emacs-state-modifier-minor-mode
-;;
-;;  These minor modes are in effect when Viper is in Emacs state. The keymap
-;;  associated with vip-emacs-global-user-minor-mode,
-;;  vip-emacs-global-user-map, overrides the global and local keymaps as
-;;  well as the minor mode keymaps set by other modes. The keymap of
-;;  vip-emacs-local-user-minor-mode, vip-emacs-local-user-map, overrides
-;;  everything, but it is used on a per buffer basis.
-;;  The keymap associated with vip-emacs-state-modifier-minor-mode
-;;  overrides keys on a per-major-mode basis. The mode
-;;  vip-emacs-kbd-minor-mode is used to define Vi-style macros in Emacs
-;;  state.
-;;
-;;  3. There is also one minor mode that is used when Viper is in its
-;;     replace-state (used for commands like cw, C, etc.). This mode is
-;;     called
-;;
-;;       vip-replace-minor-mode
-;;
-;;     and its keymap is vip-replace-map. Replace minor mode is always
-;;     used in conjunction with the minor modes for insert-state, and its
-;;     keymap overshadows the keymaps for insert minor modes.
-;;
-;;  4. Defining buffer-local bindings in Vi and Insert modes. 
-;;  As mentioned before, sometimes, it is convenient to have
-;;  buffer-specific of mode-specific key bindings in Vi and insert modes.
-;;  Viper provides a special function, vip-add-local-keys, to do precisely
-;;  this. For instance, is you need to add couple of mode-specific bindings
-;;  to Insert mode, you can put 
-;;
-;;       (vip-add-local-keys 'insert-state '((key1 . func1) (key2 .func2))) 
-;;
-;;  somewhere in a hook of this major mode. If you put something like this
-;;  in your own elisp function, this will define bindings specific to the
-;;  buffer that was current at the time of the call to vip-add-local-keys.
-;;  The only thing to make sure here is that the major mode of this buffer
-;;  is written according to Emacs conventions, which includes a call to
-;;  (kill-all-local-variables). See vip-add-local-keys for more details.
-;;
-;;
-;;  TO DO (volunteers?):
-;;
-;; 1. Some of the code that is inherited from VIP-3.5 is rather
-;;    convoluted. Instead of vip-command-argument, keymaps should bind the
-;;    actual commands. E.g., "dw" should be bound to a generic command
-;;    vip-delete that will delete things based on the value of
-;;    last-command-char. This would greatly simplify the logic and the code.
-;;
-;; 2. Somebody should venture to write a customization package a la
-;;    options.el that would allow the user to change values of variables
-;;    that meet certain specs (e.g., match a regexp) and whose doc string
-;;    starts with a '*'. Then, the user should be offered to save
-;;    variables that were changed. This will make user's customization job
-;;    much easier.
-;;
 
 ;; Code
-
-(require 'advice)
-(require 'cl)
-(require 'ring)
 
 (require 'viper-util)
 
 ;; Compiler pacifier
-(defvar vip-minibuffer-current-face)
-(defvar vip-minibuffer-insert-face)
-(defvar vip-minibuffer-vi-face)
-(defvar vip-minibuffer-emacs-face)
-(defvar iso-accents-mode)
-(defvar zmacs-region-stays)
-;; end pacifier
+(defvar read-file-name-map)
+;; end compiler pacifier
 
-
 ;;; Variables
-	      
-;; Is t until viper-mode executes for the very first time. 
-;; Prevents recursive descend into startup messages.
-(defvar vip-first-time t)
 
-(defvar vip-expert-level 0
-  "User's expert level.
-The minor mode vip-vi-diehard-minor-mode is in effect when
-vip-expert-level is 1 or 2 or when vip-want-emacs-keys-in-vi is t.
-The minor mode vip-insert-diehard-minor-mode is in effect when
-vip-expert-level is 1 or 2 or if vip-want-emacs-keys-in-insert is t.
-Use `M-x vip-set-expert-level' to change this.")
+(defconst vip-ex-work-buf-name " *ex-working-space*")
+(defconst vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
+(defconst vip-ex-tmp-buf-name " *ex-tmp*")
 
-;; Max expert level supported by Viper. This is NOT a user option.
-;; It is here to make it hard for the user from resetting it.
-(defconst vip-max-expert-level 5)
 
-;; Contains user settings for vars affected by vip-set-expert-level function.
-;; Not a user option.
-(defvar vip-saved-user-settings nil)
-	       
-
-;;; Viper minor modes
-
-;; This is not local in Emacs, so we make it local.
-(make-variable-buffer-local 'minor-mode-map-alist)
-
-;; Mode for vital things like \e, C-z.
-(vip-deflocalvar vip-vi-intercept-minor-mode nil)
-
-(vip-deflocalvar vip-vi-basic-minor-mode nil
-  "Viper's minor mode for Vi bindings.")
+;;; Variable completion in :set command
   
-(vip-deflocalvar vip-vi-local-user-minor-mode nil
-  "Auxiliary minor mode for user-defined local bindings in Vi state.")
-
-(vip-deflocalvar vip-vi-global-user-minor-mode nil
-  "Auxiliary minor mode for user-defined global bindings in Vi state.")
-
-(vip-deflocalvar vip-vi-state-modifier-minor-mode nil
-  "Minor mode used to make major-mode-specific modification to Vi state.")
-
-(vip-deflocalvar vip-vi-diehard-minor-mode nil
-  "This minor mode is in effect when the user wants Viper to be Vi.")
-
-(vip-deflocalvar vip-vi-kbd-minor-mode nil
-  "Minor mode for Ex command macros in Vi state.
-The corresponding keymap stores key bindings of Vi macros defined with
-the Ex command :map.")
-
-;; Mode for vital things like \e, C-z.
-(vip-deflocalvar vip-insert-intercept-minor-mode nil)
-
-(vip-deflocalvar vip-insert-basic-minor-mode nil
-  "Viper's minor mode for bindings in Insert mode.")
-
-(vip-deflocalvar vip-insert-local-user-minor-mode nil
-  "Auxiliary minor mode for buffer-local user-defined bindings in Insert state.
-This is a way to overshadow normal Insert mode bindings locally to certain
-designated buffers.")
-
-(vip-deflocalvar vip-insert-global-user-minor-mode nil
-  "Auxiliary minor mode for global user-defined bindings in Insert state.")
-
-(vip-deflocalvar vip-insert-state-modifier-minor-mode nil
-  "Minor mode used to make major-mode-specific modification to Insert state.")
-
-(vip-deflocalvar vip-insert-diehard-minor-mode nil
-  "Minor mode that simulates Vi very closely.
-Not recommened, except for the novice user.")
-
-(vip-deflocalvar vip-insert-kbd-minor-mode nil
-"Minor mode for Ex command macros Insert state.
-The corresponding keymap stores key bindings of Vi macros defined with
-the Ex command :map!.")
-
-(vip-deflocalvar vip-replace-minor-mode nil
-  "Minor mode in effect in replace state (cw, C, and the like commands).")
-
-;; Mode for vital things like \C-z and \C-x)
-;; This is t, by default. So, any new buffer will have C-z defined as
-;; switch to Vi, unless we switched states in this buffer
-(vip-deflocalvar vip-emacs-intercept-minor-mode t)
-  
-(vip-deflocalvar vip-emacs-local-user-minor-mode t
-  "Minor mode for local user bindings effective in Emacs state.
-Users can use it to override Emacs bindings when Viper is in its Emacs
-state.")  
-  
-(vip-deflocalvar vip-emacs-global-user-minor-mode t
-  "Minor mode for global user bindings in effect in Emacs state.
-Users can use it to override Emacs bindings when Viper is in its Emacs
-state.")  
-
-(vip-deflocalvar vip-emacs-kbd-minor-mode t
-  "Minor mode for Vi style macros in Emacs state.
-The corresponding keymap stores key bindings of Vi macros defined with
-`vip-record-kbd-macro' command. There is no Ex-level command to do this
-interactively.")
-
-(vip-deflocalvar vip-emacs-state-modifier-minor-mode t
-  "Minor mode used to make major-mode-specific modification to Emacs state.
-For instance, a Vi purist may want to bind `dd' in Dired mode to a function
-that deletes a file.")
-
-
-
-;;; ISO characters
-  
-(vip-deflocalvar vip-automatic-iso-accents nil
-  "*If non-nil, ISO accents will be turned on in insert/replace emacs states and turned off in vi-state. 
-For some users, this behavior may be too primitive. In this case, use
-insert/emacs/vi state hooks.")
-  
-  
-;;; Emacs keys in other states.  
-
-(defvar vip-want-emacs-keys-in-insert t
-  "*Set to nil if you want complete Vi compatibility in insert mode.
-Complete compatibility with Vi is not recommended for power use of Viper.")
-
-(defvar vip-want-emacs-keys-in-vi t
-  "*Set to nil if you want complete Vi compatibility in Vi mode.
-Full Vi compatibility is not recommended for power use of Viper.")
-
-
-
-;; VI-style Undo
-
-;; Used to 'undo' complex commands, such as replace and insert commands.
-(vip-deflocalvar vip-undo-needs-adjustment nil)
-(put 'vip-undo-needs-adjustment 'permanent-local t)
-
-;; A mark that Viper puts on buffer-undo-list.  Marks the beginning of a
-;; complex command that must be undone atomically. If inserted, it is
-;; erased by vip-change-state-to-vi and vip-repeat.
-(defconst vip-buffer-undo-list-mark 'viper)
-
-(defvar vip-keep-point-on-undo nil
-  "*Non-nil means not to move point while undoing commands.
-This style is different from Emacs and Vi. Try it to see if
-it better fits your working style.")  
-
-;; Replace mode and changing text
-
-;; Viper's own after/before change functions, which get vip-add-hook'ed to
-;; Emacs's
-(vip-deflocalvar vip-after-change-functions nil "")
-(vip-deflocalvar vip-before-change-functions nil "")
-(vip-deflocalvar vip-post-command-hooks nil "")
-(vip-deflocalvar vip-pre-command-hooks nil "")
-
-;; Can be used to pass global states around for short period of time
-(vip-deflocalvar vip-intermediate-command nil "")
-
-;; Indicates that the current destructive command has started in replace mode.
-(vip-deflocalvar vip-began-as-replace nil "")
-
-(defvar vip-replace-overlay-cursor-color "Red"
-  "*Cursor color to use in Replace state")
-
-  
-(vip-deflocalvar vip-replace-overlay nil "")
-(put 'vip-replace-overlay 'permanent-local t)
-
-(if (vip-has-face-support-p)
-    (progn
-      (make-face 'vip-replace-overlay-face)
-      (vip-hide-face 'vip-replace-overlay-face)
-      (or (face-differs-from-default-p 'vip-replace-overlay-face)
-	  (progn
-	    (if (vip-can-use-colors "darkseagreen2" "Black")
-		(progn
-		  (set-face-background
-		   'vip-replace-overlay-face "darkseagreen2")
-		  (set-face-foreground 'vip-replace-overlay-face "Black")))
-	    (set-face-underline-p 'vip-replace-overlay-face t))
-	  )))
-	    
-(defvar vip-replace-overlay-face 'vip-replace-overlay-face
-  "*Face for highlighting replace regions on a window display.")
-  
-(defvar vip-replace-region-end-delimiter "$"
-  "A string marking the end of replacement regions.
-It is used only with TTYs or if `vip-use-replace-region-delimiters'
-is non-nil.")
-(defvar vip-replace-region-start-delimiter ""
-  "A string marking the beginning of replacement regions.
-It is used only with TTYs or if `vip-use-replace-region-delimiters'
-is non-nil.")
-(defvar vip-use-replace-region-delimiters 
-  (or (not (vip-has-face-support-p)) (not (vip-color-display-p)))
-  "*If non-nil, Viper will always use `vip-replace-region-end-delimiter' and
-`vip-replace-region-start-delimiter' to delimit replacement regions, even on
-color displays. By default, the delimiters are used only on TTYs or
-monochrome displays.")
-  
-;; XEmacs requires glyphs
-(if vip-xemacs-p
-    (progn
-      (or (glyphp vip-replace-region-end-delimiter)
-	  (setq vip-replace-region-end-delimiter
-		(make-glyph vip-replace-region-end-delimiter)))
-      (or (glyphp vip-replace-region-start-delimiter)
-	  (setq vip-replace-region-start-delimiter
-		(make-glyph vip-replace-region-start-delimiter)))
-      ))
-      
-  
-;; These are local marker that must be initialized to nil and moved with
-;; `vip-move-marker-locally'
-;;
-;; Remember the last position inside the replace region.
-(vip-deflocalvar vip-last-posn-in-replace-region nil)
-;; Remember the last position while inserting
-(vip-deflocalvar vip-last-posn-while-in-insert-state nil)
-(put 'vip-last-posn-in-replace-region 'permanent-local t)
-(put 'vip-last-posn-while-in-insert-state 'permanent-local t)
-
-(vip-deflocalvar vip-sitting-in-replace nil "")
-(put 'vip-sitting-in-replace 'permanent-local t)
-  
-;; Remember the number of characters that have to be deleted in replace
-;; mode to compensate for the inserted characters.
-(vip-deflocalvar vip-replace-chars-to-delete 0 "")
-(vip-deflocalvar vip-replace-chars-deleted 0 "")
-
-;; Insertion ring and command ring
-(defvar vip-insertion-ring-size 14
-  "The size of the insertion ring.")
-;; The insertion ring.
-(defvar vip-insertion-ring nil)
-;; This is temp insertion ring. Used to do rotation for display purposes.
-;; When rotation just started, it is initialized to vip-insertion-ring.
-(defvar vip-temp-insertion-ring nil)
-(defvar vip-last-inserted-string-from-insertion-ring "")
-
-(defvar vip-command-ring-size 14
-  "The size of the command ring.")
-;; The command ring.
-(defvar vip-command-ring nil)
-;; This is temp command ring. Used to do rotation for display purposes.
-;; When rotation just started, it is initialized to vip-command-ring.
-(defvar vip-temp-command-ring nil)
-
-;; Modes and related variables
-
-;; Current mode.  One of: `emacs-state', `vi-state', `insert-state'
-(vip-deflocalvar vip-current-state 'emacs-state)
-
-
-(defvar vip-toggle-key "\C-z"
-  "The key used to change states from emacs to Vi and back.
-In insert mode, this key also functions as Meta. 
-Must be set in .vip file or prior to loading Viper.
-This setting cannot be changed interactively.")
-
-(defvar vip-ESC-key "\e" 
-  "Key used to ESC. 
-Must be set in .vip file or prior to loading Viper.
-This setting cannot be changed interactively.")
-
-(defvar vip-no-multiple-ESC  t
-  "*If true, multiple ESC in Vi mode will cause bell to ring.
-\_ is then mapped to Meta.
-This is set to t on a windowing terminal and to 'twice on a dumb
-terminal (unless the user level is 1, 2, or 5). On a dumb terminal, this
-enables cursor keys and is generally more convenient, as terminals usually
-don't have a convenient Meta key.
-Setting vip-no-multiple-ESC to nil will allow as many multiple ESC,
-as is allowed by the major mode in effect.") 
-
-
-(defvar vip-want-ctl-h-help nil
-  "*If t then C-h is bound to help-command in insert mode, if nil then it is
-bound to delete-backward-char.")
-
-;; Autoindent in insert
-
-;; Variable that keeps track of whether C-t has been pressed.
-(vip-deflocalvar vip-cted nil "")
-
-;; Preserve the indent value, used by C-d in insert mode.
-(vip-deflocalvar vip-current-indent 0)
-
-;; Whether to preserve the indent, used by C-d in insert mode.
-(vip-deflocalvar vip-preserve-indent nil)
-
-(vip-deflocalvar vip-auto-indent nil
-  "*Autoindent if t.")
-(vip-deflocalvar vip-electric-mode t
-  "*If t, enable electric behavior. 
-Currently only enables auto-indentation `according to mode'.")
-
-(defconst vip-shift-width 8
-  "*The shiftwidth variable.")
-
-;; Variables for repeating destructive commands
-
-(defconst vip-keep-point-on-repeat t
-  "*If t, don't move point when repeating previous command.
-This is useful for doing repeated changes with the '.' key.
-The user can change this to nil, if she likes when the cursor moves
-to a new place after repeating previous Vi command.") 
-
-;; Remember insert point as a marker.  This is a local marker that must be
-;; initialized to nil and moved with `vip-move-marker-locally'.
-(vip-deflocalvar vip-insert-point nil)
-(put 'vip-insert-point 'permanent-local t)
-
-;; This remembers the point before dabbrev-expand was called.
-;; If vip-insert-point turns out to be bigger than that, it is reset
-;; back to vip-pre-command-point.
-;; The reason this is needed is because dabbrev-expand (and possibly
-;; others) may jump to before the insertion point, delete something and
-;; then reinsert a bigger piece. For instance:  bla^blo
-;; If dabbrev-expand is called after `blo' and ^ undicates vip-insert-point,
-;; then point jumps to the beginning of `blo'. If expansion is found, `blablo'
-;; is deleted, and we have |^, where | denotes point. Next, dabbrev-expand
-;; will insert the expansion, and we get: blablo^
-;; Whatever we insert next goes before the ^, i.e., before the
-;; vip-insert-point marker. So, Viper will think that nothing was
-;; inserted. Remembering the orig position of the marker circumvents the
-;; problem.
-;; We don't know of any command, except dabbrev-expand, that has the same
-;; problem. However, the same trick can be used if such a command is
-;; discovered later.
-;;
-(vip-deflocalvar vip-pre-command-point nil)
-(put 'vip-pre-command-point 'permanent-local t) ; this is probably an overkill
-
-;; This is used for saving inserted text.
-(defvar vip-last-insertion  nil)
-  
-;; Remembers the last replaced region.
-(defvar vip-last-replace-region "")
-  
-;; Remember com point as a marker.
-;; This is a local marker. Should be moved with `vip-move-marker-locally'
-(vip-deflocalvar vip-com-point nil)
-
-;; If non-nil, the value is a list (M-COM VAL COM REG inserted-text cmd-keys)
-;; It is used to re-execute last destructive command.
-;; M-COM is a Lisp symbol representing the function to be executed.
-;; VAL is the prefix argument that was used with that command.
-;; COM is an internal descriptor, such as ?r, ?c, ?C, which contains
-;; additional information on how the function in M-COM is to be handled.
-;; REG is the register used by command
-;; INSERTED-TEXT is text inserted by that command (in case of o, c, C, i, r
-;; commands).
-;; COMMAND-KEYS are the keys that were typed to invoke the command.
-(defvar vip-d-com nil)
-
-;; The character remembered by the Vi `r' command.
-(defvar vip-d-char nil)
-
-;; Name of register to store deleted or yanked strings
-(defvar vip-use-register nil)
-
-
-
-;; Variables for Moves and Searches
-
-;; For use by `;' command.
-(defvar vip-f-char nil)
-
-;; For use by `.' command.
-(defvar vip-F-char nil)
-
-;; For use by `;' command.
-(defvar vip-f-forward nil)
-
-;; For use by `;' command.
-(defvar vip-f-offset nil)
-
-;; Last search string
-(defvar vip-s-string "")
-
-(defvar vip-quote-string "> "
-  "String inserted at the beginning of quoted region.")
-
-;; If t, search is forward.
-(defvar vip-s-forward nil)
-
-(defconst vip-case-fold-search nil
-  "*If t, search ignores cases.")
-
-(defconst vip-re-search t
-  "*If t, search is reg-exp search, otherwise vanilla search.")
-
-(defconst vip-re-query-replace t
-  "*If t then do regexp replace, if nil then do string replace.")
-
-(defconst vip-re-replace t
-  "*If t, do regexp replace. nil means do string replace.")
-
-(vip-deflocalvar vip-ex-style-motion t
-  "*Ex-style: the commands l,h do not cross lines, etc.")
-
-(vip-deflocalvar vip-ex-style-editing-in-insert t
-  "*The keys ^H, ^? don't jump lines in insert, ESC moves cursor back, etc.
-Note: this doesn't preclude ^H and ^? from deleting characters by moving
-past the insertion point. This is a feature, not a bug. ")
-
-(vip-deflocalvar vip-delete-backwards-in-replace nil
-  "*If t, DEL key will delete characters while moving the cursor backwards.
-If nil, the cursor will move backwards without deleting anything.")
-
-(defconst vip-buffer-search-char nil
-  "*Key bound for buffer-searching.")
-
-(defconst vip-search-wrap-around-t t
-  "*If t, search wraps around.")
-  
-(vip-deflocalvar vip-related-files-and-buffers-ring nil
-  "*Ring of file and buffer names that are considered to be related to the
-current buffer.
-These buffers can be cycled through via :R and :P commands.")
-(put 'vip-related-files-and-buffers-ring 'permanent-local t)
-
-;; Used to find out if we are done with searching the current buffer.
-(vip-deflocalvar vip-local-search-start-marker nil)
-;; As above, but global
-(defvar vip-search-start-marker (make-marker))
-
-;; the search overlay
-(vip-deflocalvar vip-search-overlay nil)
-
-
-(defvar vip-heading-start 
-  (concat "^\\s-*(\\s-*defun\\s-\\|"			        ; lisp
-	  "^{\\s-*$\\|^[_a-zA-Z][^()]*[()].*{\\s-*$\\|"	        ; C/C++
-	  "^\\s-*class.*{\\|^\\s-*struct.*{\\|^\\s-*enum.*{\\|"
-	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
-	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
-	  "^.+:-")			                        ; prolog
-  "*Regexps for Headings. Used by \[\[ and \]\].")
-
-(defvar vip-heading-end 
-  (concat "^}\\|"						; C/C++
-	  "^\\\\end{\\|"					; latex
-	  "^@end \\|"						; texinfo
-	  ")\n\n[ \t\n]*\\|"					; lisp
-	  "\\.\\s-*$")						; prolog
-      "*Regexps to end Headings/Sections. Used by \[\].")
-
-
-;; These two vars control the interaction of jumps performed by ' and `.
-;; In this new version, '' doesn't erase the marks set by ``, so one can
-;; use both kinds of jumps interchangeably and without loosing positions
-;; inside the lines.
-
-;; Remembers position of the last jump done using ``'.
-(vip-deflocalvar vip-last-jump  nil)
-;; Remembers position of the last jump done using `''.
-(vip-deflocalvar vip-last-jump-ignore 0)
-
-;; Some common error messages
-
-(defconst vip-SpuriousText "Spurious text after command"  "")
-(defconst vip-BadExCommand "Not an editor command"   "")
-(defconst vip-InvalidCommandArgument "Invalid command argument"   "")
-(defconst vip-NoPrevSearch "No previous search string"   "")
-(defconst vip-EmptyRegister "`%c': Nothing in this register"   "")
-(defconst vip-InvalidRegister "`%c': Invalid register"   "")
-(defconst vip-EmptyTextmarker "`%c': Text marker doesn't point anywhere"   "")
-(defconst vip-InvalidTextmarker "`%c': Invalid text marker"   "")
-(defconst vip-InvalidViCommand "Invalid command"   "")
-(defconst vip-BadAddress "Ill-formed address"   "")
-(defconst vip-FirstAddrExceedsSecond "First address exceeds second"   "")
-(defconst vip-NoFileSpecified "No file specified"   "")
-
-
-;; History variables
-
-;; History of search strings.
-(defvar vip-search-history  (list ""))
-;; History of query-replace strings used as a source.
-(defvar vip-replace1-history nil)
-;; History of query-replace strings used as replacement.
-(defvar vip-replace2-history nil)
-;; History of region quoting strings.
-(defvar vip-quote-region-history (list vip-quote-string))
-;; History of Ex-style commands.
-(defvar vip-ex-history nil)
-;; History of shell commands.
-(defvar vip-shell-history nil)
-
-
-;; Last shell command. There are two of these, one for Ex (in viper-ex)
-;; and one for Vi.
-
-;; Last shell command executed with ! command.
-(defvar vip-last-shell-com nil)
-
-
-
-;;; Miscellaneous
-
-;; don't bark when mark is inactive
-(setq mark-even-if-inactive t)
-
-(defvar vip-inhibit-startup-message nil
-  "Whether Viper startup message should be inhibited.")
-
-(defvar vip-always t
-  "t means, arrange that vi-state will be a default.")
-
-(defvar vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
-  "Tells is Emacs is running under an MS-style OS: ms-dos, window-nt, W95.")
-(defvar vip-vms-os-p (memq system-type '(vax-vms axp-vms))
-  "Tells if Emacs is running under VMS.")
-
-(defvar vip-custom-file-name (cond (vip-vms-os-p "sys$login:.vip")
-				   ((memq system-type '(emx ms-dos))
-				    "/_vip")
-				   ((memq system-type '(windows-nt windows-95))
-				    "~/_vip")
-				   (t ; Unix
-				    "~/.vip"))
-  "Viper customisation file.
-This variable must be set _before_ loading Viper.")
-
-
-(defvar vip-spell-function 'ispell-region
-  "Spell function used by #s<move> command to spell.")
-
-(defvar vip-tags-file-name "TAGS"
-  "The tags file used by Viper.")
-
-;; Minibuffer
-
-(defvar vip-vi-style-in-minibuffer t
-  "If t, use vi-style editing in minibuffer.
-Should be set in `~/.vip' file.")
-  
-;; overlay used in the minibuffer to indicate which state it is in
-(vip-deflocalvar vip-minibuffer-overlay nil)
-
-;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
-;; Beginning with Emacs 19.26, the standard `minibuffer-exit-hook' is run
-;; *after* exiting the minibuffer
-(defvar vip-minibuffer-exit-hook nil)
-
-(vip-deflocalvar vip-vi-minibuffer-minor-mode nil
-   "Minor mode that forces Vi-style when the Minibuffer is in Vi state.")
-(vip-deflocalvar vip-insert-minibuffer-minor-mode nil
-   "Minor mode that forces Vi-style when the Minibuffer is in Insert state.")
-  
-;; setup emacs-supported vi-style feel
-(setq next-line-add-newlines nil
-      require-final-newline t)
-
-(make-variable-buffer-local 'require-final-newline)
-       
-
-;; Mode line
-(defconst vip-vi-state-id  	"<V> "
-  "Mode line tag identifying the Vi mode of Viper.")
-(defconst vip-emacs-state-id	"<E> "
-  "Mode line tag identifying the Emacs mode of Viper.")
-(defconst vip-insert-state-id	"<I> "
-  "Mode line tag identifying the Insert mode of Viper.")
-(defconst vip-replace-state-id	"<R> "
-  "Mode line tag identifying the Replace mode of Viper.")
-
-;; Viper changes the default mode-line-buffer-identification
-(setq-default mode-line-buffer-identification '(" %b"))
-
-;; Variable displaying the current Viper state in the mode line.
-(vip-deflocalvar vip-mode-string vip-emacs-state-id)
-(or (memq 'vip-mode-string global-mode-string)
-    (setq global-mode-string
-	  (append '("" vip-mode-string) (cdr global-mode-string))))
-
-
-(defvar vip-vi-state-hook nil
-  "*Hooks run just before the switch to Vi mode is completed.")
-(defvar vip-insert-state-hook nil
-  "*Hooks run just before the switch to Insert mode is completed.")
-(defvar vip-replace-state-hook nil
-  "*Hooks run just before the switch to Replace mode is completed.")
-(defvar vip-emacs-state-hook nil
-  "*Hooks run just before the switch to Emacs mode is completed.")
-  
-(defvar vip-load-hook nil
-  "Hooks run just after loading Viper.")
-  
-
-;; Generic predicates
-
-;; These test functions are shamelessly lifted from vip 4.4.2 by Aamod Sane
-
-;; generate test functions
-;; given symbol foo, foo-p is the test function, foos is the set of
-;; Viper command keys
-;; (macroexpand '(vip-test-com-defun foo))
-;; (defun foo-p (com) (consp (memq (if (< com 0) (- com) com) foos)))
-
-(defmacro vip-test-com-defun (name)
-  (let* ((snm (symbol-name name))
-	 (nm-p (intern (concat snm "-p")))
-	 (nms (intern (concat snm "s"))))
-    (` (defun (, nm-p) (com) 
-	 (consp (memq (if (< com 0) (- com) com) (, nms)))))))
-  
-;; Variables for defining VI commands
-
-;; Modifying commands that can be prefixes to movement commands
-(defconst vip-prefix-commands '(?c ?d ?y ?! ?= ?# ?< ?> ?\"))
-(vip-test-com-defun vip-prefix-command)
-  
-;; Commands that are pairs eg. dd. r and R here are a hack
-(defconst vip-charpair-commands '(?c ?d ?y ?! ?= ?< ?> ?r ?R))
-(vip-test-com-defun vip-charpair-command)
-
-(defconst vip-movement-commands '(?b ?B ?e ?E ?f ?F ?G ?h ?H ?j ?k ?l
-				     ?H ?M ?n ?t ?T ?w ?W ?$ ?%
-				     ?^ ?( ?) ?- ?+ ?| ?{ ?} ?[ ?] ?' ?`
-				     ?; ?, ?0 ?? ?/
-				     )
-				     "Movement commands")
-(vip-test-com-defun vip-movement-command)
-
-;; Commands that can be repeated by .(dotted)
-(defconst vip-dotable-commands '(?c ?d ?C ?D ?> ?<))
-(vip-test-com-defun vip-dotable-command)
-
-;; Commands that can follow a #
-(defconst vip-hash-cmds '(?c ?C ?g ?q ?S))
-(vip-test-com-defun vip-hash-cmd)
-
-;; Commands that may have registers as prefix
-(defconst vip-regsuffix-commands '(?d ?y ?Y ?D ?p ?P ?x ?X))
-(vip-test-com-defun vip-regsuffix-command)
-
-
-
-;;; Arrange the keymaps
-(require 'viper-keym)
-
-
-;;; CODE
-
-;; sentinels
-
-;; Runs vip-after-change-functions inside after-change-functions
-(defun vip-after-change-sentinel (beg end len)
-  (let ((list vip-after-change-functions))
-    (while list
-      (funcall (car list) beg end len)
-      (setq list (cdr list)))))
-      
-;; Runs vip-before-change-functions inside before-change-functions
-(defun vip-before-change-sentinel (beg end)
-  (let ((list vip-before-change-functions))
-    (while list
-      (funcall (car list) beg end)
-      (setq list (cdr list)))))
-
-(defsubst vip-post-command-sentinel ()
-  (run-hooks 'vip-post-command-hooks))
-  
-(defsubst vip-pre-command-sentinel ()
-  (run-hooks 'vip-pre-command-hooks))
-  
-;; Needed so that Viper will be able to figure the last inserted
-;; chunk of text with reasonable accuracy.
-(defsubst vip-insert-state-post-command-sentinel ()
-  (if (and (memq vip-current-state '(insert-state replace-state))
-	   vip-insert-point
-	   (>= (point) vip-insert-point))
-      (setq vip-last-posn-while-in-insert-state (point-marker)))
-  (if (and (eq this-command 'dabbrev-expand)
-	   (integerp vip-pre-command-point)
-	   (> vip-insert-point vip-pre-command-point))
-      (move-marker vip-insert-point vip-pre-command-point))
-  )
-  
-(defsubst vip-insert-state-pre-command-sentinel ()
-  (if (and (eq this-command 'dabbrev-expand)
-	   (markerp vip-insert-point)
-	   (marker-position vip-insert-point))
-      (setq vip-pre-command-point (marker-position vip-insert-point))))
-	
-(defsubst vip-R-state-post-command-sentinel ()
-  ;; Restoring cursor color is needed despite
-  ;; vip-replace-state-pre-command-sentinel: When you jump to another buffer in
-  ;; another frame, the pre-command hook won't change cursor color to default
-  ;; in that other frame.  So, if the second frame cursor was red and we set
-  ;; the point outside the replacement region, then the cursor color will
-  ;; remain red. Restoring the default, below, prevents this.
-  (if (and (<= (vip-replace-start) (point))
-	   (<=  (point) (vip-replace-end)))
-      (vip-change-cursor-color vip-replace-overlay-cursor-color)
-    (vip-restore-cursor-color)
+;; The list of Ex commands. Used for completing command names.
+(defconst ex-token-alist
+  '(("!") ("=") (">") ("&") ("~")
+    ("yank") ("xit") ("WWrite") ("Write") ("write") ("wq") ("visual") 
+    ("version") ("vglobal") ("unmap") ("undo") ("tag") ("transfer") ("suspend")
+    ("substitute") ("submitReport") ("stop")  ("sr") ("source") ("shell")
+    ("set") ("rewind") ("recover") ("read") ("quit") ("pwd")
+    ("put") ("preserve") ("PreviousRelatedFile") ("RelatedFile")
+    ("next") ("Next") ("move") ("mark") ("map") ("kmark") ("join")
+    ("help") ("goto") ("global") ("file") ("edit") ("delete") ("copy")
+    ("chdir") ("cd") ("Buffer") ("buffer") ("args"))  )
+
+;; A-list of Ex variables that can be set using the :set command.
+(defconst ex-variable-alist 
+  '(("wrapscan") ("ws") ("wrapmargin") ("wm")
+    ("global-tabstop") ("gts") ("tabstop") ("ts")
+    ("showmatch") ("sm") ("shiftwidth") ("sw") ("shell") ("sh")
+    ("readonly") ("ro") 
+    ("nowrapscan") ("nows") ("noshowmatch") ("nosm")
+    ("noreadonly") ("noro") ("nomagic") ("noma")
+    ("noignorecase") ("noic")
+    ("global-noautoindent") ("gnoai") ("noautoindent") ("noai")
+    ("magic") ("ma") ("ignorecase") ("ic")
+    ("global-autoindent") ("gai") ("autoindent") ("ai")
     ))
 
-;; to speed up, don't change cursor color before self-insert
-;; and common move commands
-(defsubst vip-replace-state-pre-command-sentinel ()
-  (or (memq this-command '(self-insert-command))
-      (memq (vip-event-key last-command-event)
-	    '(up down left right (meta f) (meta b)
-		 (control n) (control p) (control f) (control b)))
-      (vip-restore-cursor-color)))
   
-(defun vip-replace-state-post-command-sentinel ()
-  ;; Restoring cursor color is needed despite
-  ;; vip-replace-state-pre-command-sentinel: When one jumps to another buffer
-  ;; in another frame, the pre-command hook won't change cursor color to
-  ;; default in that other frame.  So, if the second frame cursor was red and
-  ;; we set the point outside the replacement region, then the cursor color
-  ;; will remain red. Restoring the default, below, fixes this problem.
-  ;;
-  ;; We optimize for self-insert-command's here, since they either don't change
-  ;; cursor color or, if they terminate replace mode, the color will be changed
-  ;; in vip-finish-change
-  (or (memq this-command '(self-insert-command))
-      (vip-restore-cursor-color))
-  (cond 
-   ((eq vip-current-state 'replace-state)
-    ;; delete characters to compensate for inserted chars.
-    (let ((replace-boundary (vip-replace-end)))
-      (save-excursion
-	(goto-char vip-last-posn-in-replace-region)
-	(delete-char vip-replace-chars-to-delete)
-	(setq vip-replace-chars-to-delete 0
-	      vip-replace-chars-deleted 0)
-	;; terminate replace mode if reached replace limit
-	(if (= vip-last-posn-in-replace-region 
-	       (vip-replace-end))
-	    (vip-finish-change vip-last-posn-in-replace-region)))
-      
-      (if (and (<= (vip-replace-start) (point))
-	       (<=  (point) replace-boundary))
-	  (progn
-	    ;; the state may have changed in vip-finish-change above
-	    (if (eq vip-current-state 'replace-state)
-		(vip-change-cursor-color vip-replace-overlay-cursor-color))
-	    (setq vip-last-posn-in-replace-region (point-marker))))
-      ))
-   
-   (t ;; terminate replace mode if changed Viper states.
-    (vip-finish-change vip-last-posn-in-replace-region))))
+
+;; Token recognized during parsing of Ex commands (e.g., "read", "comma")
+(defvar ex-token nil)
+
+;; Type of token. 
+;; If non-nil, gives type of address; if nil, it is a command.
+(defvar ex-token-type nil)
+
+;; List of addresses passed to Ex command
+(defvar ex-addresses nil)
+
+;; It seems that this flag is used only for `#', `print', and `list', which
+;; aren't implemented. Check later.
+(defvar ex-flag nil)
+
+;; "buffer" where Ex commands keep deleted data.
+;; In Emacs terms, this is a register.
+(defvar ex-buffer nil)
+
+;; Value of ex count.
+(defvar ex-count nil)
+
+;; Flag for global command.
+(defvar ex-g-flag nil)
+
+;; If t, global command is executed on lines not matching ex-g-pat.
+(defvar ex-g-variant nil)
+
+;; Save reg-exp used in substitute.
+(defvar ex-reg-exp nil)
 
 
-;; changing mode
+;; Replace pattern for substitute.
+(defvar ex-repl nil)
 
-;; Change state to NEW-STATE---either emacs-state, vi-state, or insert-state.
-(defun vip-change-state (new-state)
-  ;; Keep vip-post/pre-command-hooks fresh.
-  ;; We remove then add vip-post/pre-command-sentinel since it is very
-  ;; desirable that vip-pre-command-sentinel is the last hook and
-  ;; vip-post-command-sentinel is the first hook.
-  (remove-hook 'post-command-hook 'vip-post-command-sentinel)
-  (add-hook 'post-command-hook 'vip-post-command-sentinel)
-  (remove-hook 'pre-command-hook 'vip-pre-command-sentinel)
-  (add-hook 'pre-command-hook 'vip-pre-command-sentinel t)
-  ;; These hooks will be added back if switching to insert/replace mode
-  (vip-remove-hook 'vip-post-command-hooks
-		   'vip-insert-state-post-command-sentinel)
-  (vip-remove-hook 'vip-pre-command-hooks
-		   'vip-insert-state-pre-command-sentinel)
-  (cond ((eq new-state 'vi-state)
-	 (cond ((member vip-current-state '(insert-state replace-state))
-		    
-		;; move vip-last-posn-while-in-insert-state
-		;; This is a normal hook that is executed in insert/replace
-		;; states after each command. In Vi/Emacs state, it does
-		;; nothing. We need to execute it here to make sure that
-		;; the last posn was recorded when we hit ESC.
-		;; It may be left unrecorded if the last thing done in
-		;; insert/repl state was dabbrev-expansion or abbrev
-		;; expansion caused by hitting ESC
-		(vip-insert-state-post-command-sentinel)
-		
-		(condition-case conds
-		    (progn
-		      (vip-save-last-insertion
-		       vip-insert-point 
-		       vip-last-posn-while-in-insert-state)
-		      (if vip-began-as-replace
-			  (setq vip-began-as-replace nil)
-			;; repeat insert commands if numerical arg > 1
-			(save-excursion
-			  (vip-repeat-insert-command))))
-		  (error
-		   (vip-message-conditions conds)))
-		     
-		(if (> (length vip-last-insertion) 0)
-		    (vip-push-onto-ring vip-last-insertion
-					'vip-insertion-ring))
-		
-		(if vip-ex-style-editing-in-insert
-		    (or (bolp) (backward-char 1))))
-	       ))
-	 
-	;; insert or replace
-	((memq new-state '(insert-state replace-state))
-	 (if (memq vip-current-state '(emacs-state vi-state))
-	     (vip-move-marker-locally 'vip-insert-point (point)))
-	 (vip-move-marker-locally 'vip-last-posn-while-in-insert-state (point))
-	 (vip-add-hook 'vip-post-command-hooks
-		       'vip-insert-state-post-command-sentinel t)
-	 (vip-add-hook 'vip-pre-command-hooks
-		       'vip-insert-state-pre-command-sentinel t))
-	) ; outermost cond
-  
-  ;; Nothing needs to be done to switch to emacs mode! Just set some
-  ;; variables, which is already done in vip-change-state-to-emacs!
-
-  (setq vip-current-state new-state)
-  (vip-normalize-minor-mode-map-alist)
-  (vip-adjust-keys-for new-state)
-  (vip-set-mode-vars-for new-state)
-  (vip-refresh-mode-line)
-  )
+;; Pattern for global command.
+(defvar ex-g-pat nil)
 
 
-    
-(defun vip-adjust-keys-for (state)
-  "Make necessary adjustments to keymaps before entering STATE."
-  (cond ((memq state '(insert-state replace-state))
-	 (if vip-auto-indent
-	     (progn
-	       (define-key vip-insert-basic-map "\C-m" 'vip-autoindent)
-	       (if vip-want-emacs-keys-in-insert
-		   ;; expert
-		   (define-key vip-insert-basic-map "\C-j" nil)
-		 ;; novice
-		 (define-key vip-insert-basic-map "\C-j" 'vip-autoindent))))
-		    
-	 (setq vip-insert-diehard-minor-mode
-	       (not vip-want-emacs-keys-in-insert))
-		   
-	 (if vip-want-ctl-h-help
-	     (progn 
-	       (define-key vip-insert-basic-map "\C-h" 'help-command)
-	       (define-key vip-replace-map "\C-h" 'help-command))
-	   (define-key vip-insert-basic-map 
-	     "\C-h" 'vip-del-backward-char-in-insert)
-	   (define-key vip-replace-map
-	     "\C-h" 'vip-del-backward-char-in-replace)))
-		     
-	(t
-	 (setq vip-vi-diehard-minor-mode (not vip-want-emacs-keys-in-vi))
-	 (if vip-want-ctl-h-help
-	     (define-key vip-vi-basic-map "\C-h" 'help-command)
-	   (define-key vip-vi-basic-map "\C-h" 'vip-backward-char)))
+(defvar ex-unix-type-shell
+  (let ((case-fold-search t))
+    (and (stringp shell-file-name)
+	 (string-match
+	  (concat
+	   "\\("
+	   "csh$\\|csh.exe$"
+	   "\\|"
+	   "ksh$\\|ksh.exe$"
+	   "\\|"
+	   "^sh$\\|sh.exe$"
+	   "\\|"
+	   "[^a-z]sh$\\|[^a-z]sh.exe$"
+	   "\\|"
+	   "bash$\\|bash.exe$"
+	   "\\)")
+	  shell-file-name)))
+  "Is the user using a unix-type shell?")
+
+(defvar ex-unix-type-shell-options
+  (let ((case-fold-search t))
+    (if ex-unix-type-shell
+	(cond ((string-match "\\(csh$\\|csh.exe$\\)" shell-file-name)
+	       "-f") ; csh: do it fast
+	      ((string-match "\\(bash$\\|bash.exe$\\)" shell-file-name)
+	       "-noprofile") ; bash: ignore .profile
+	      )))
+  "Options to pass to the Unix-style shell. 
+Don't put `-c' here, as it is added automatically.")
+
+(defvar ex-nontrivial-find-file-function
+  (cond (ex-unix-type-shell 'vip-ex-nontrivial-find-file-unix)
+	((eq system-type 'emx) 'vip-ex-nontrivial-find-file-ms) ; OS/2
+	(vip-ms-style-os-p 'vip-ex-nontrivial-find-file-ms) ; a Microsoft OS
+	(vip-vms-os-p 'vip-ex-nontrivial-find-file-unix) ; VMS
+	(t  'vip-ex-nontrivial-find-file-unix) ; presumably UNIX
 	))
-	     
-    
-;; Normalizes minor-mode-map-alist by putting Viper keymaps first.
-;; This ensures that Viper bindings are in effect, regardless of which minor
-;; modes were turned on by the user or by other packages.
-(defun vip-normalize-minor-mode-map-alist ()
-  (setq minor-mode-map-alist 
-	(vip-append-filter-alist
-	 (list
-	       (cons 'vip-vi-intercept-minor-mode vip-vi-intercept-map)
-	       (cons 'vip-vi-minibuffer-minor-mode vip-minibuffer-map) 
-	       (cons 'vip-vi-local-user-minor-mode vip-vi-local-user-map)
-	       (cons 'vip-vi-kbd-minor-mode vip-vi-kbd-map)
-	       (cons 'vip-vi-global-user-minor-mode vip-vi-global-user-map)
-	       (cons 'vip-vi-state-modifier-minor-mode
-		     (if (keymapp
-			  (cdr (assoc major-mode vip-vi-state-modifier-alist)))
-			 (cdr (assoc major-mode vip-vi-state-modifier-alist))
-		       vip-empty-keymap))
-	       (cons 'vip-vi-diehard-minor-mode  vip-vi-diehard-map)
-	       (cons 'vip-vi-basic-minor-mode     vip-vi-basic-map)
-	       (cons 'vip-insert-intercept-minor-mode vip-insert-intercept-map)
-	       (cons 'vip-replace-minor-mode  vip-replace-map)
-	       ;; vip-insert-minibuffer-minor-mode must come after
-	       ;; vip-replace-minor-mode 
-	       (cons 'vip-insert-minibuffer-minor-mode
-		     vip-minibuffer-map) 
-	       (cons 'vip-insert-local-user-minor-mode
-		     vip-insert-local-user-map)
-	       (cons 'vip-insert-kbd-minor-mode vip-insert-kbd-map)
-	       (cons 'vip-insert-global-user-minor-mode
-		     vip-insert-global-user-map)
-	       (cons 'vip-insert-state-modifier-minor-mode
-		     (if (keymapp
-			  (cdr
-			   (assoc major-mode vip-insert-state-modifier-alist)))
-			 (cdr
-			  (assoc major-mode vip-insert-state-modifier-alist))
-		       vip-empty-keymap))
-	       (cons 'vip-insert-diehard-minor-mode vip-insert-diehard-map)
-	       (cons 'vip-insert-basic-minor-mode vip-insert-basic-map)
-	       (cons 'vip-emacs-intercept-minor-mode
-		     vip-emacs-intercept-map)
-	       (cons 'vip-emacs-local-user-minor-mode
-		     vip-emacs-local-user-map)
-	       (cons 'vip-emacs-kbd-minor-mode vip-emacs-kbd-map)
-	       (cons 'vip-emacs-global-user-minor-mode
-		     vip-emacs-global-user-map)
-	       (cons 'vip-emacs-state-modifier-minor-mode
-		     (if (keymapp
-			  (cdr
-			   (assoc major-mode vip-emacs-state-modifier-alist)))
-			 (cdr
-			  (assoc major-mode vip-emacs-state-modifier-alist))
-		       vip-empty-keymap))
-	       )
-	 minor-mode-map-alist)))
-	 
- 
 
+;; Remembers the previous Ex tag.
+(defvar ex-tag nil)
 
-
-;; Viper mode-changing commands and utilities
+;; file used by Ex commands like :r, :w, :n
+(defvar ex-file nil)
 
-;; Modifies mode-line-buffer-identification.
-(defun vip-refresh-mode-line ()
-  (setq vip-mode-string	
-	(cond ((eq vip-current-state 'emacs-state) vip-emacs-state-id)
-	      ((eq vip-current-state 'vi-state) vip-vi-state-id)
-	      ((eq vip-current-state 'replace-state) vip-replace-state-id)
-	      ((eq vip-current-state 'insert-state) vip-insert-state-id)))
-    
-  ;; Sets Viper mode string in global-mode-string
-  (force-mode-line-update))
+;; If t, tells Ex that this is a variant-command, i.e., w>>, r!, etc.
+(defvar ex-variant nil)
+
+;; Specified the offset of an Ex command, such as :read.
+(defvar ex-offset nil)
+
+;; Tells Ex that this is a w>> command.
+(defvar ex-append nil)
+
+;; File containing the shell command to be executed at Ex prompt,
+;; e.g., :r !date
+(defvar ex-cmdfile nil)
   
-;;;###autoload
-(defun viper-mode ()
-  "Turn on Viper emulation of Vi."
+;; flag used in vip-ex-read-file-name to indicate that we may be reading
+;; multiple file names. Used for :edit and :next
+(defvar vip-keep-reading-filename nil)
+
+(defconst ex-cycle-other-window t
+  "*If t, :n and :b cycles through files and buffers in other window.
+Then :N and :B cycles in the current window. If nil, this behavior is
+reversed.")
+
+(defconst ex-cycle-through-non-files nil
+  "*Cycle through *scratch* and other buffers that don't visit any file.")
+
+;; Last shell command executed with :! command.
+(defvar vip-ex-last-shell-com nil)
+  
+;; Indicates if Minibuffer was exited temporarily in Ex-command.
+(defvar vip-incomplete-ex-cmd nil)
+  
+;; Remembers the last ex-command prompt.
+(defvar vip-last-ex-prompt "")
+
+
+;;; Code
+  
+;; Check if ex-token is an initial segment of STR
+(defun vip-check-sub (str)
+  (let ((length (length ex-token)))
+    (if (and (<= length (length str))
+  	     (string= ex-token (substring str 0 length)))
+	(setq ex-token str)
+      (setq ex-token-type 'non-command))))
+
+;; Get a complete ex command
+(defun vip-get-ex-com-subr ()
+  (let (case-fold-search)
+    (set-mark (point))
+    (re-search-forward "[a-zA-Z][a-zA-Z]*")
+    (setq ex-token-type 'command)
+    (setq ex-token (buffer-substring (point) (mark t)))
+    (exchange-point-and-mark)
+    (cond ((looking-at "a")
+	   (cond ((looking-at "ab") (vip-check-sub "abbreviate"))
+		 ((looking-at "ar") (vip-check-sub "args"))
+		 (t (vip-check-sub "append"))))
+	  ((looking-at "h") (vip-check-sub "help"))
+	  ((looking-at "c")
+	   (cond ((looking-at "cd") (vip-check-sub "cd"))
+		 ((looking-at "ch") (vip-check-sub "chdir"))
+		 ((looking-at "co") (vip-check-sub "copy"))
+		 (t (vip-check-sub "change"))))
+	  ((looking-at "d") (vip-check-sub "delete"))
+	  ((looking-at "b") (vip-check-sub "buffer"))
+	  ((looking-at "B") (vip-check-sub "Buffer"))
+	  ((looking-at "e")
+	   (if (looking-at "ex") (vip-check-sub "ex")
+	     (vip-check-sub "edit")))
+	  ((looking-at "f") (vip-check-sub "file"))
+	  ((looking-at "g") (vip-check-sub "global"))
+	  ((looking-at "i") (vip-check-sub "insert"))
+	  ((looking-at "j") (vip-check-sub "join"))
+	  ((looking-at "l") (vip-check-sub "list"))
+	  ((looking-at "m")
+	   (cond ((looking-at "map") (vip-check-sub "map"))
+		 ((looking-at "mar") (vip-check-sub "mark"))
+		 (t (vip-check-sub "move"))))
+	  ((looking-at "k[a-z][^a-z]")
+	   (setq ex-token "kmark")
+	   (forward-char 1)
+	   (exchange-point-and-mark))   ; this is canceled out by another
+					; exchange-point-and-mark at the end
+	  ((looking-at "k") (vip-check-sub "kmark"))
+	  ((looking-at "n") (if (looking-at "nu")
+				(vip-check-sub "number")
+			      (vip-check-sub "next")))
+	  ((looking-at "N") (vip-check-sub "Next"))
+	  ((looking-at "o") (vip-check-sub "open"))
+	  ((looking-at "p")
+	   (cond ((looking-at "pre") (vip-check-sub "preserve"))
+		 ((looking-at "pu") (vip-check-sub "put"))
+		 ((looking-at "pw") (vip-check-sub "pwd"))
+		 (t (vip-check-sub "print"))))
+	  ((looking-at "P") (vip-check-sub "PreviousRelatedFile"))
+	  ((looking-at "R") (vip-check-sub "RelatedFile"))
+	  ((looking-at "q") (vip-check-sub "quit"))
+	  ((looking-at "r")
+	   (cond ((looking-at "rec") (vip-check-sub "recover"))
+		 ((looking-at "rew") (vip-check-sub "rewind"))
+		 (t (vip-check-sub "read"))))
+	  ((looking-at "s")
+	   (cond ((looking-at "se") (vip-check-sub "set"))
+		 ((looking-at "sh") (vip-check-sub "shell"))
+		 ((looking-at "so") (vip-check-sub "source"))
+		 ((looking-at "sr") (vip-check-sub "sr"))
+		 ((looking-at "st") (vip-check-sub "stop"))
+		 ((looking-at "sus") (vip-check-sub "suspend"))
+		 ((looking-at "subm") (vip-check-sub "submitReport"))
+		 (t (vip-check-sub "substitute"))))
+	  ((looking-at "t")
+	   (if (looking-at "ta") (vip-check-sub "tag")
+	     (vip-check-sub "transfer")))
+	  ((looking-at "u")
+	   (cond ((looking-at "una") (vip-check-sub "unabbreviate"))
+		 ((looking-at "unm") (vip-check-sub "unmap"))
+		 (t (vip-check-sub "undo"))))
+	  ((looking-at "v")
+	   (cond ((looking-at "ve") (vip-check-sub "version"))
+		 ((looking-at "vi") (vip-check-sub "visual"))
+		 (t (vip-check-sub "vglobal"))))
+	  ((looking-at "w")
+	   (if (looking-at "wq") (vip-check-sub "wq")
+	     (vip-check-sub "write")))
+	  ((looking-at "W")
+	   (if (looking-at "WW") 
+	       (vip-check-sub "WWrite")
+	     (vip-check-sub "Write")))
+	  ((looking-at "x") (vip-check-sub "xit"))
+	  ((looking-at "y") (vip-check-sub "yank"))
+	  ((looking-at "z") (vip-check-sub "z")))
+    (exchange-point-and-mark)
+    ))
+
+;; Get an ex-token which is either an address or a command.
+;; A token has a type, \(command, address, end-mark\), and a value
+(defun vip-get-ex-token ()
+  (save-window-excursion
+    (set-buffer vip-ex-work-buf)
+    (skip-chars-forward " \t|")
+    (cond ((looking-at "#")
+	   (setq ex-token-type 'command)
+	   (setq ex-token (char-to-string (following-char)))
+	   (forward-char 1))
+	  ((looking-at "[a-z]") (vip-get-ex-com-subr))
+	  ((looking-at "\\.")
+	   (forward-char 1)
+	   (setq ex-token-type 'dot))
+	  ((looking-at "[0-9]")
+	   (set-mark (point))
+	   (re-search-forward "[0-9]*")
+	   (setq ex-token-type
+		 (cond ((eq ex-token-type 'plus) 'add-number)
+		       ((eq ex-token-type 'minus) 'sub-number)
+		       (t 'abs-number)))
+	   (setq ex-token (string-to-int (buffer-substring (point) (mark t)))))
+	  ((looking-at "\\$")
+	   (forward-char 1)
+	   (setq ex-token-type 'end))
+	  ((looking-at "%")
+	   (forward-char 1)
+	   (setq ex-token-type 'whole))
+	  ((looking-at "+")
+	   (cond ((or (looking-at "+[-+]") (looking-at "+[\n|]"))
+		  (forward-char 1)
+		  (insert "1")
+		  (backward-char 1)
+		  (setq ex-token-type 'plus))
+		 ((looking-at "+[0-9]")
+		  (forward-char 1)
+		  (setq ex-token-type 'plus))
+		 (t
+		  (error vip-BadAddress))))
+	  ((looking-at "-")
+	   (cond ((or (looking-at "-[-+]") (looking-at "-[\n|]"))
+		  (forward-char 1)
+		  (insert "1")
+		  (backward-char 1)
+		  (setq ex-token-type 'minus))
+		 ((looking-at "-[0-9]")
+		  (forward-char 1)
+		  (setq ex-token-type 'minus))
+		 (t
+		  (error vip-BadAddress))))
+	  ((looking-at "/")
+	   (forward-char 1)
+	   (set-mark (point))
+	   (let ((cont t))
+	     (while (and (not (eolp)) cont)
+	       ;;(re-search-forward "[^/]*/")
+	       (re-search-forward "[^/]*\\(/\\|\n\\)")
+	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+		   (setq cont nil))))
+	   (backward-char 1)
+	   (setq ex-token (buffer-substring (point) (mark t)))
+	   (if (looking-at "/") (forward-char 1))
+	   (setq ex-token-type 'search-forward))
+	  ((looking-at "\\?")
+	   (forward-char 1)
+	   (set-mark (point))
+	   (let ((cont t))
+	     (while (and (not (eolp)) cont)
+	       ;;(re-search-forward "[^\\?]*\\?")
+	       (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
+	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
+		   (setq cont nil))
+	       (backward-char 1)
+	       (if (not (looking-at "\n")) (forward-char 1))))
+	   (setq ex-token-type 'search-backward)
+	   (setq ex-token (buffer-substring (1- (point)) (mark t))))
+	  ((looking-at ",")
+	   (forward-char 1)
+	   (setq ex-token-type 'comma))
+	  ((looking-at ";")
+	   (forward-char 1)
+	   (setq ex-token-type 'semi-colon))
+	  ((looking-at "[!=><&~]")
+	   (setq ex-token-type 'command)
+	   (setq ex-token (char-to-string (following-char)))
+	   (forward-char 1))
+	  ((looking-at "'")
+	   (setq ex-token-type 'goto-mark)
+	   (forward-char 1)
+	   (cond ((looking-at "'") (setq ex-token nil))
+		 ((looking-at "[a-z]") (setq ex-token (following-char)))
+		 (t (error "Marks are ' and a-z")))
+	   (forward-char 1))
+	  ((looking-at "\n")
+	   (setq ex-token-type 'end-mark)
+	   (setq ex-token "goto"))
+	  (t
+	   (error vip-BadExCommand)))))
+
+;; Reads Ex command. Tries to determine if it has to exit because command
+;; is complete or invalid. If not, keeps reading command.
+(defun ex-cmd-read-exit ()
   (interactive)
-  (if (not noninteractive)
-      (progn
-	(if vip-first-time ; This check is important. Without it, startup and 
-	    (progn	   ; expert-level msgs mix up when viper-mode recurses
-	      (setq vip-first-time nil)
-	      (if (not vip-inhibit-startup-message)
-		  (save-window-excursion
-		    (setq vip-inhibit-startup-message t)
-		    (delete-other-windows)
-		    (switch-to-buffer "Viper Startup Message")
-		    (erase-buffer)
-		    (insert
-		     (substitute-command-keys
-		      "Viper Is a Package for Emacs Rebels.
-It is also a VI Plan for Emacs Rescue and a venomous VI PERil.
-
-Technically speaking, Viper is a Vi emulation package for GNU Emacs 19 and
-XEmacs 19.  It supports virtually all of Vi and Ex functionality, extending
-and improving upon much of it.
-
-   1. Viper supports Vi at several levels. Level 1 is the closest to Vi,
-      level 5 provides the most flexibility to depart from many Vi conventions.
-      
-      You will be asked to specify your user level in a following screen.
-   
-      If you select user level 1 then the keys ^X, ^C, ^Z, and ^G will behave
-      as in VI, to smooth transition to Viper for the beginners. However, to
-      use Emacs productively, you are advised to reach user level 3 or higher. 
-      
-      If your user level is 2 or higher, ^X and ^C will invoke Emacs
-      functions,as usual in Emacs; ^Z will toggle vi/emacs modes, and 
-      ^G will be the usual Emacs's keyboard-quit (something like ^C in VI).
-   
-   2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
-      do not cause Emacs to quit, except at user level 1 (a novice).
-   3. ^X^C EXITS EMACS.
-   4. Viper supports multiple undo: `u' will undo. Typing `.' will repeat
-      undo. Another `u' changes direction.
-   
-   6. Emacs Meta functions are invoked by typing `_' or `\\ ESC'.
-      On a window system, the best way is to use the Meta-key.
-   7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
-      something funny happens. This would abort the current editing command. 
-      
-You can get more information on Viper by:
-
-   a. Typing `:help' in Vi state
-   b. Printing Viper manual, found in ./etc/viper.dvi
-   c. Printing ViperCard, the Quick Reference, found in ./etc/viperCard.dvi
+  (setq vip-incomplete-ex-cmd t)
+  (let ((quit-regex1 (concat
+		      "\\(" "set[ \t]*"
+		      "\\|" "edit[ \t]*"
+		      "\\|" "[nN]ext[ \t]*"
+		      "\\|" "unm[ \t]*"
+		      "\\|" "^[ \t]*rep"
+		      "\\)"))
+	(quit-regex2 (concat
+		      "[a-zA-Z][ \t]*"
+		      "\\(" "!" "\\|" ">>"
+		      "\\|" "\\+[0-9]+"
+		      "\\)"
+		      "*[ \t]*$"))
+	(stay-regex (concat
+		     "\\(" "^[ \t]*$"
+		     "\\|" "[?/].*[?/].*"
+		     "\\|" "[ktgjmsz][ \t]*$"
+		     "\\|" "^[ \t]*ab.*"
+		     "\\|" "tr[ansfer \t]*"
+		     "\\|" "sr[ \t]*"
+		     "\\|" "mo.*"
+		     "\\|" "^[ \t]*k?ma[^p]*"
+		     "\\|" "^[ \t]*fi.*"
+		     "\\|" "v?gl.*"
+		     "\\|" "[vg][ \t]*$"
+		     "\\|" "jo.*"
+		     "\\|" "^[ \t]*ta.*"
+		     "\\|" "^[ \t]*una.*"
+		     "\\|" "^[ \t]*su.*"
+		     "\\|['`][a-z][ \t]*"
+		     "\\|" "![ \t]*[a-zA-Z].*"
+		     "\\)"
+		     "!*")))
+	
+    (save-window-excursion ;; put cursor at the end of the Ex working buffer
+      (set-buffer vip-ex-work-buf)
+      (goto-char (point-max)))
+    (cond ((vip-looking-back quit-regex1) (exit-minibuffer))
+	  ((vip-looking-back stay-regex)  (insert " "))
+	  ((vip-looking-back quit-regex2) (exit-minibuffer))
+	  (t (insert " ")))))
+  
+;; complete Ex command
+(defun ex-cmd-complete ()
+  (interactive)
+  (let (save-pos dist compl-list string-to-complete completion-result)
     
-This startup message appears whenever you load Viper, unless you type `y' now."
+    (save-excursion
+      (setq dist (skip-chars-backward "[a-zA-Z!=>&~]")
+	    save-pos (point)))
+	
+    (if (or (= dist 0)
+	    (vip-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	    (vip-looking-back
+	     "^[ \t]*[a-zA-Z!=>&~][ \t]*[/?]*+[ \t]+[a-zA-Z!=>&~]+"))
+	;; Preceding characters are not the ones allowed in an Ex command
+	;; or we have typed past command name.
+	;; Note: we didn't do parsing, so there may be surprises.
+	(if (or (vip-looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
+		(vip-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+		(looking-at "[^ \t\n\C-m]"))
+	    nil
+	  (with-output-to-temp-buffer "*Completions*" 
+	    (display-completion-list
+	     (vip-alist-to-list ex-token-alist))))
+      ;; Preceding chars may be part of a command name
+      (setq string-to-complete (buffer-substring save-pos (point)))
+      (setq completion-result
+	    (try-completion string-to-complete ex-token-alist))
+      
+      (cond ((eq completion-result t)  ; exact match--do nothing
+	     (vip-tmp-insert-at-eob " (Sole completion)"))
+	    ((eq completion-result nil)
+	     (vip-tmp-insert-at-eob " (No match)"))
+	    (t  ;; partial completion
+	     (goto-char save-pos)
+	     (delete-region (point) (point-max))
+	     (insert completion-result)
+	     (let (case-fold-search)
+	       (setq compl-list
+		     (vip-filter-alist (concat "^" completion-result)
+				       ex-token-alist)))
+	     (if (> (length compl-list) 1)
+		 (with-output-to-temp-buffer "*Completions*" 
+		   (display-completion-list
+		    (vip-alist-to-list (reverse compl-list)))))))
+      )))
+    
+
+;; Read Ex commands 
+;; Ex commands themselves are implemented in viper-ex.el
+(defun vip-ex (&optional string)
+  (interactive)
+  (or string
+      (setq ex-g-flag nil
+	    ex-g-variant nil))
+  (let* ((map (copy-keymap minibuffer-local-map))
+	 (address nil)
+	 (cont t)
+	 (dot (point))
+	 prev-token-type com-str)
+	 
+    (vip-add-keymap vip-ex-cmd-map map)
+    
+    (setq com-str (or string (vip-read-string-with-history
+			      ":" 
+			      nil
+			      'vip-ex-history
+			      (car vip-ex-history)
+			      map)))
+    (save-window-excursion
+      ;; just a precaution
+      (or (vip-buffer-live-p vip-ex-work-buf)
+	  (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)))
+      (set-buffer vip-ex-work-buf)
+      (delete-region (point-min) (point-max))
+      (insert com-str "\n")
+      (goto-char (point-min)))
+    (setq ex-token-type nil
+	  ex-addresses nil)
+    (while cont
+      (vip-get-ex-token)
+      (cond ((memq ex-token-type '(command end-mark))
+	     (if address (setq ex-addresses (cons address ex-addresses)))
+	     (cond ((string= ex-token "global")
+		    (ex-global nil)
+		    (setq cont nil))
+		   ((string= ex-token "vglobal")
+		    (ex-global t)
+		    (setq cont nil))
+		   (t
+		    (vip-execute-ex-command)
+		    (save-window-excursion
+		      (set-buffer vip-ex-work-buf)
+		      (skip-chars-forward " \t")
+		      (cond ((looking-at "|")
+			     (forward-char 1))
+			    ((looking-at "\n")
+			     (setq cont nil))
+			    (t (error "`%s': %s" ex-token vip-SpuriousText)))
 		      ))
-		    (goto-char (point-min))
-		    (if (y-or-n-p "Inhibit Viper startup message? ")
-			(vip-save-setting
-			 'vip-inhibit-startup-message
-			 "Viper startup message inhibited"
-			 vip-custom-file-name t))
-		    ;;(kill-buffer (current-buffer))
-		    (message
-		     "The last message is in buffer `Viper Startup Message'")
-		    (sit-for 4)
-		    ))
-	      (vip-set-expert-level 'dont-change-unless)))
-	(vip-change-state-to-vi))))
-	
-;;;###autoload
-(defalias 'vip-mode 'viper-mode)
-
-
-;; Switch from Insert state to Vi state.
-(defun vip-exit-insert-state ()
-  (interactive)
-  (vip-change-state-to-vi))
-
-(defun vip-set-mode-vars-for (state)
-  "Sets Viper minor mode variables to put Viper's state STATE in effect."
-  
-  ;; Emacs state
-  (setq vip-vi-minibuffer-minor-mode	   nil
-        vip-insert-minibuffer-minor-mode   nil
-	vip-vi-intercept-minor-mode	   nil
-	vip-insert-intercept-minor-mode	   nil
-	
-	vip-vi-local-user-minor-mode       nil
-	vip-vi-kbd-minor-mode        	   nil
-	vip-vi-global-user-minor-mode      nil
-	vip-vi-state-modifier-minor-mode   nil
-	vip-vi-diehard-minor-mode     	   nil
-        vip-vi-basic-minor-mode       	   nil
-	
-	vip-replace-minor-mode 	      	   nil
-	
-	vip-insert-local-user-minor-mode     nil
-	vip-insert-kbd-minor-mode     	     nil
-	vip-insert-global-user-minor-mode    nil
-	vip-insert-state-modifier-minor-mode nil
-	vip-insert-diehard-minor-mode 	     nil
-	vip-insert-basic-minor-mode   	     nil
-	vip-emacs-intercept-minor-mode       t
-	vip-emacs-local-user-minor-mode      t
-	vip-emacs-kbd-minor-mode             (not (vip-is-in-minibuffer))
-	vip-emacs-global-user-minor-mode     t
-	vip-emacs-state-modifier-minor-mode  t
-	)
-  
-  ;; Vi state
-  (if (eq state 'vi-state) ; adjust for vi-state
-      (setq 
-       vip-vi-intercept-minor-mode	   t 
-       vip-vi-minibuffer-minor-mode	   (vip-is-in-minibuffer)
-       vip-vi-local-user-minor-mode	   t
-       vip-vi-kbd-minor-mode        	   (not (vip-is-in-minibuffer))
-       vip-vi-global-user-minor-mode	   t
-       vip-vi-state-modifier-minor-mode    t
-       ;; don't let the diehard keymap block command completion 
-       ;; and other things in the minibuffer
-       vip-vi-diehard-minor-mode    	   (not
-					    (or vip-want-emacs-keys-in-vi
-						(vip-is-in-minibuffer)))
-       vip-vi-basic-minor-mode      	    t 
-       vip-emacs-intercept-minor-mode       nil
-       vip-emacs-local-user-minor-mode      nil
-       vip-emacs-kbd-minor-mode     	    nil
-       vip-emacs-global-user-minor-mode     nil
-       vip-emacs-state-modifier-minor-mode  nil
-       ))
-  
-  ;; Insert and Replace states
-  (if (member state '(insert-state replace-state))
-      (setq 
-       vip-insert-intercept-minor-mode	    t 
-       vip-replace-minor-mode	     	    (eq state 'replace-state)
-       vip-insert-minibuffer-minor-mode	    (vip-is-in-minibuffer)
-       vip-insert-local-user-minor-mode     t
-       vip-insert-kbd-minor-mode     	    (not (vip-is-in-minibuffer))
-       vip-insert-global-user-minor-mode    t
-       vip-insert-state-modifier-minor-mode  t
-       ;; don't let the diehard keymap block command completion 
-       ;; and other things in the minibuffer
-       vip-insert-diehard-minor-mode 	    (not
-					     (or vip-want-emacs-keys-in-insert
-						 (vip-is-in-minibuffer)))
-       vip-insert-basic-minor-mode   	    t
-       vip-emacs-intercept-minor-mode       nil
-       vip-emacs-local-user-minor-mode      nil
-       vip-emacs-kbd-minor-mode     	    nil
-       vip-emacs-global-user-minor-mode     nil
-       vip-emacs-state-modifier-minor-mode  nil
-       ))
-       
-  ;; minibuffer faces
-  (if (vip-has-face-support-p)
-      (setq vip-minibuffer-current-face
-	    (cond ((eq state 'emacs-state) vip-minibuffer-emacs-face)
-		  ((eq state 'vi-state) vip-minibuffer-vi-face)
-		  ((memq state '(insert-state replace-state))
-		   vip-minibuffer-insert-face))))
-  
-  (if (vip-is-in-minibuffer)
-      (vip-set-minibuffer-overlay))
-  )
-
-;; This also takes care of the annoying incomplete lines in files.
-;; Also, this fixes `undo' to work vi-style for complex commands.
-(defun vip-change-state-to-vi ()
-  "Change Viper state to Vi."
-  (interactive)
-  (if (and vip-first-time (not (vip-is-in-minibuffer)))
-      (viper-mode)
-    (if overwrite-mode (overwrite-mode nil))
-    (if abbrev-mode (expand-abbrev))
-    (if (and auto-fill-function (> (current-column) fill-column))
-	(funcall auto-fill-function))
-    ;; don't leave whitespace lines around
-    (if (and (memq last-command
-		   '(vip-autoindent
-		     vip-open-line vip-Open-line
-		     vip-replace-state-exit-cmd))
-	     (vip-over-whitespace-line))
-	(indent-to-left-margin))
-    (vip-add-newline-at-eob-if-necessary)
-    (if vip-undo-needs-adjustment  (vip-adjust-undo))
-    (vip-change-state 'vi-state)
-
-    ;; always turn off iso-accents-mode, or else we won't be able to use the
-    ;; keys `,',^ in Vi state, as they will do accents instead of Vi actions.
-    (if (and (boundp 'iso-accents-mode) iso-accents-mode)
-	(iso-accents-mode -1))
-    
-    ;; Protection against user errors in hooks
-    (condition-case conds
-	(run-hooks 'vip-vi-state-hook)
-      (error
-       (vip-message-conditions conds)))))
-
-(defun vip-change-state-to-insert ()
-  "Change Viper state to Insert."
-  (interactive)
-  (vip-change-state 'insert-state)
-  (if (and vip-automatic-iso-accents (fboundp 'iso-accents-mode))
-      (iso-accents-mode 1)) ; turn iso accents on
-  
-  ;; Protection against user errors in hooks
-  (condition-case conds
-      (run-hooks 'vip-insert-state-hook)
-    (error
-     (vip-message-conditions conds))))
-     
-(defsubst vip-downgrade-to-insert ()
- (setq vip-current-state 'insert-state
-       vip-replace-minor-mode nil)
- )
-
-    
-  
-;; Change to replace state. When the end of replacement region is reached,
-;; replace state changes to insert state.
-(defun vip-change-state-to-replace (&optional non-R-cmd)
-  (vip-change-state 'replace-state)
-  (if (and vip-automatic-iso-accents (fboundp 'iso-accents-mode))
-      (iso-accents-mode 1)) ; turn iso accents on
-  ;; Run insert-state-hook
-  (condition-case conds
-      (run-hooks 'vip-insert-state-hook 'vip-replace-state-hook)
-    (error
-     (vip-message-conditions conds)))
-  
-  (if non-R-cmd
-      (vip-start-replace)
-    ;; 'R' is implemented using Emacs's overwrite-mode
-    (vip-start-R-mode))
-  )
-
-    
-(defun vip-change-state-to-emacs ()
-  "Change Viper state to Emacs."
-  (interactive)
-  (vip-change-state 'emacs-state)
-  (if (and vip-automatic-iso-accents (fboundp 'iso-accents-mode))
-      (iso-accents-mode 1)) ; turn iso accents on
-  
-  ;; Protection agains user errors in hooks
-  (condition-case conds
-      (run-hooks 'vip-emacs-state-hook)
-    (error
-     (vip-message-conditions conds))))
-  
-;; escape to emacs mode termporarily
-(defun vip-escape-to-emacs (arg &optional events)
-  "Escape to Emacs state from Vi state for one Emacs command.
-ARG is used as the prefix value for the executed command.  If
-EVENTS is a list of events, which become the beginning of the command."
-  (interactive "P")
-  (vip-escape-to-state arg events 'emacs-state))
-  
-;; escape to Vi mode termporarily
-(defun vip-escape-to-vi ()
-  "Escape from Emacs state to Vi state for one Vi 1-character command.
-This doesn't work with prefix arguments or most complex commands like
-cw, dw,  etc. But it does work with some 2-character commands,
-like dd or dr."
-  (interactive)
-  (vip-escape-to-state nil nil 'vi-state))  
-  
-;; Escape to STATE mode for one Emacs command.
-(defun vip-escape-to-state (arg events state)
-  (let (com key prefix-arg)
-    ;; this temporarily turns off Viper's minor mode keymaps
-    (vip-set-mode-vars-for state)
-    (vip-normalize-minor-mode-map-alist)
-    (if events (vip-set-unread-command-events events))
-    
-    ;; protect against keyboard quit and other errors
-    (condition-case nil
-	(progn
-	  (unwind-protect
-	      (progn
-		(setq com (key-binding (setq key 
-					     (if vip-xemacs-p
-						 (read-key-sequence nil)
-					       (read-key-sequence nil t)))))
-		;; In case of indirection--chase definitions.
-		;; Have to do it here because we execute this command under
-		;; different keymaps, so command-execute may not do the
-		;; right thing there
-		(while (vectorp com) (setq com (key-binding com))))
-	    nil)
-	  ;; exec command in the right Viper state
-	  ;; otherwise, if we switch buffers in the escaped command,
-	  ;; Viper's mode vars will remain those of `state'. When we return
-	  ;; to the orig buffer, the bindings will be screwed up.
-	  (vip-set-mode-vars-for vip-current-state)
-	  
-	  ;; this-command, last-command-char, last-command-event
-	  (setq this-command com)
-	  (if vip-xemacs-p ; XEmacs represents key sequences as vectors
-	      (setq last-command-event (vip-seq-last-elt key)
-		    last-command-char (event-to-character last-command-event))
-	    ;; Emacs represents them as sequences (str or vec)
-	    (setq last-command-event (vip-seq-last-elt key)
-		  last-command-char last-command-event))
-	    
-	  (if (commandp com)
-	      (progn
-		(setq prefix-arg arg)
-		(command-execute com)))
-	  )
-      (quit (ding))
-      (error (beep 1))))
-  (vip-set-mode-vars-for vip-current-state)) ; set state in new buffer
+		   ))
+	    ((eq ex-token-type 'non-command)
+	     (error "`%s': %s" ex-token vip-BadExCommand))
+	    ((eq ex-token-type 'whole)
+	     (setq address nil)
+	     (setq ex-addresses
+		   (if ex-addresses
+		       (cons (point-max) ex-addresses)
+		     (cons (point-max) (cons (point-min) ex-addresses)))))
+	    ((eq ex-token-type 'comma)
+	     (if (eq prev-token-type 'whole)
+		 (setq address (point-min)))
+	     (setq ex-addresses
+		   (cons (if (null address) (point) address) ex-addresses)))
+	    ((eq ex-token-type 'semi-colon)
+	     (if (eq prev-token-type 'whole)
+		 (setq address (point-min)))
+	     (if address (setq dot address))
+	     (setq ex-addresses
+		   (cons (if (null address) (point) address) ex-addresses)))
+	    (t (let ((ans (vip-get-ex-address-subr address dot)))
+		 (if ans (setq address ans)))))
+      (setq prev-token-type ex-token-type))))
       
-(defun vip-exec-form-in-emacs  (form)
-  "Execute FORM in Emacs, temporarily disabling Viper's minor modes.
-Similar to vip-escape-to-emacs, but accepts forms rather than keystrokes."
-  (let ((buff (current-buffer))
-	result)
-    (vip-set-mode-vars-for 'emacs-state)
-    (setq result (eval form))
-    (if (not (equal buff (current-buffer))) ; cmd switched buffer
-	(save-excursion
-	  (set-buffer buff)
-	  (vip-set-mode-vars-for vip-current-state)))
-    (vip-set-mode-vars-for vip-current-state)
-    result))
 
-  
-;; This is needed because minor modes sometimes override essential Viper
-;; bindings. By letting Viper know which files these modes are in, it will
-;; arrange to reorganize minor-mode-map-alist so that things will work right.
-(defun vip-harness-minor-mode (load-file)
-  "Familiarize Viper with a minor mode defined in LOAD_FILE.
-Minor modes that have their own keymaps may overshadow Viper keymaps.
-This function is designed to make Viper aware of the packages that define
-such minor modes.
-Usage:
-    (vip-harness-minor-mode load-file)
-
-LOAD-FILE is a name of the file where the specific minor mode is defined.
-Suffixes such as .el or .elc should be stripped."
-
-  (interactive "sEnter name of the load file: ")
-  
-  (vip-eval-after-load load-file '(vip-normalize-minor-mode-map-alist))
-  
-  ;; Change the default for minor-mode-map-alist each time a harnessed minor
-  ;; mode adds its own keymap to the a-list.
-  (vip-eval-after-load
-   load-file '(setq-default minor-mode-map-alist minor-mode-map-alist))
-  )
-
-
-(defun vip-ESC (arg)
-  "Emulate ESC key in Emacs.
-Prevents multiple escape keystrokes if vip-no-multiple-ESC is true. In that
-case \@ will be bound to ESC. If vip-no-multiple-ESC is 'twice double ESC
-would dings in vi-state. Other ESC sequences are emulated via the current
-Emacs's major mode keymap. This is more convenient on dumb terminals and in
-Emacs -nw, since this won't block functional keys such as up,down,
-etc. Meta key also will work. When vip-no-multiple-ESC is nil, ESC key
-behaves as in Emacs, any number of multiple escapes is allowed."
-  (interactive "P")
-  (let (char)
-    (cond ((and (not vip-no-multiple-ESC) (eq vip-current-state 'vi-state))
-	   (setq char (vip-read-char-exclusive))
-	   (vip-escape-to-emacs arg (list ?\e char) ))
-	  ((and (eq vip-no-multiple-ESC 'twice) 
-		(eq vip-current-state 'vi-state))
-	   (setq char (vip-read-char-exclusive))
-	   (if (= char (string-to-char vip-ESC-key))
-	       (ding)
-	     (vip-escape-to-emacs arg (list ?\e char) )))
-	  (t (ding)))
-    ))
-
-(defun vip-alternate-ESC (arg)
-  "ESC key without checking for multiple keystrokes."
-  (interactive "P")
-  (vip-escape-to-emacs arg '(?\e)))
-  
-
-;; Intercept ESC sequences on dumb terminals.
-;; Based on the idea contributed by Marcelino Veiga Tuimil <mveiga@dit.upm.es>
-
-;; Check if last key was ESC and if so try to reread it as a function key.
-;; But only if there are characters to read during a very short time.
-;; Returns the last event, if any.
-(defun vip-envelop-ESC-key ()
-  (let ((event last-input-event)
-	(keyseq [nil])
-	inhibit-quit)
-    (if (vip-ESC-event-p event)
-	(progn 
-	  (if (vip-fast-keysequence-p)
-	      (progn
-		(let (minor-mode-map-alist)
-		  (vip-set-unread-command-events event)
-		  (setq keyseq
-			(funcall
-			 (ad-get-orig-definition 'read-key-sequence) nil))
-		  ) ; let
-		;; If keyseq translates into something that still has ESC
-		;; at the beginning, separate ESC from the rest of the seq.
-		;; In XEmacs we check for events that are keypress meta-key
-		;; and convert them into [escape key]
-		;;
-		;; This is needed for the following reason:
-		;; If ESC is the first symbol, we interpret it as if the
-		;; user typed ESC and then quickly some other symbols.
-		;; If ESC is not the first one, then the key sequence
-		;; entered was apparently translated into a function key or
-		;; something (e.g., one may have
-		;; (define-key function-key-map "\e[192z" [f11])
-		;; which would translate the escape-sequence generated by
-		;; f11 in an xterm window into the symbolic key f11.
-		;;
-		;; If `first-key' is not an ESC event, we make it into the
-		;; last-command-event in order to pretend that this key was
-		;; pressed. This is needed to allow arrow keys to be bound to
-		;; macros. Otherwise, vip-exec-mapped-kbd-macro will think that
-		;; the last event was ESC and so it'll execute whatever is
-		;; bound to ESC. (Viper macros can't be bound to
-		;; ESC-sequences).
-		(let* ((first-key (elt keyseq 0))
-		       (key-mod (event-modifiers first-key)))
-		  (cond ((vip-ESC-event-p first-key)
-			 ;; put keys following ESC on the unread list
-			 ;; and return ESC as the key-sequence
-			 (vip-set-unread-command-events (subseq keyseq 1))
-			 (setq last-input-event event
-			       keyseq (if vip-emacs-p
-					  "\e"
-					(vector (character-to-event ?\e)))))
-			((and vip-xemacs-p
-			      (key-press-event-p first-key)
-			      (equal '(meta) key-mod))
-			 (vip-set-unread-command-events 
-			  (vconcat (vector
-				    (character-to-event (event-key first-key)))
-				   (subseq keyseq 1)))
-			 (setq last-input-event event
-			       keyseq (vector (character-to-event ?\e))))
-			((eventp first-key)
-			 (setq last-command-event first-key))
-			))
-		) ; end progn
-		
-	    ;; this is escape event with nothing after it
-	    ;; put in unread-command-event and then re-read
-	    (vip-set-unread-command-events event)
-	    (setq keyseq
-		  (funcall (ad-get-orig-definition 'read-key-sequence) nil))
-	    ))
-      ;; not an escape event
-      (setq keyseq (vector event)))
-    keyseq))
-
-    
-    
-(defadvice read-key-sequence (around vip-read-keyseq-ad activate)
-  "Harness to work for Viper. This advice is harmless---don't worry!"
-  (let (inhibit-quit event keyseq)
-    (setq keyseq ad-do-it)
-    (setq event (if vip-xemacs-p
-		    (elt keyseq 0) ; XEmacs returns vector of events
-		  (elt (listify-key-sequence keyseq) 0)))
-    (if (vip-ESC-event-p event)
-	(let (unread-command-events)
-	  (vip-set-unread-command-events keyseq)
-	  (if (vip-fast-keysequence-p)
-	      (let ((vip-vi-global-user-minor-mode  nil)
-		    (vip-vi-local-user-minor-mode  nil)
-		    (vip-replace-minor-mode nil) ; actually unnecessary
-		    (vip-insert-global-user-minor-mode  nil)
-		    (vip-insert-local-user-minor-mode  nil))
-		(setq keyseq ad-do-it)) 
-	    (setq keyseq ad-do-it))))
-    keyseq))
-    
-(defadvice describe-key (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key: ")))))
-
-(defadvice describe-key-briefly (before vip-read-keyseq-ad protect activate)
-  "Force to read key via `read-key-sequence'."
-  (interactive (list (vip-events-to-keys
-		      (read-key-sequence "Describe key briefly: ")))))
-
-;; Listen to ESC key.
-;; If a sequence of keys starting with ESC is issued with very short delays,
-;; interpret these keys in Emacs mode, so ESC won't be interpreted as a Vi key.
-(defun vip-intercept-ESC-key ()
-  "Function that implements ESC key in Viper emulation of Vi."
-  (interactive)
-  (let ((cmd (or (key-binding (vip-envelop-ESC-key)) 
-		 '(lambda () (interactive) (error "")))))
-    
-    ;; call the actual function to execute ESC (if no other symbols followed)
-    ;; or the key bound to the ESC sequence (if the sequence was issued
-    ;; with very short delay between characters.
-    (if (eq cmd 'vip-intercept-ESC-key)
-	(setq cmd
-	      (cond ((eq vip-current-state 'vi-state)
-		     'vip-ESC)
-		    ((eq vip-current-state 'insert-state)
-		     'vip-exit-insert-state) 
-		    ((eq vip-current-state 'replace-state)
-		     'vip-replace-state-exit-cmd)
-		    (t 'vip-change-state-to-vi)
-		    )))
-    (call-interactively cmd)))
-	   
-
-
-;; prefix argument for Vi mode
-
-;; In Vi mode, prefix argument is a dotted pair (NUM . COM) where NUM
-;; represents the numeric value of the prefix argument and COM represents
-;; command prefix such as "c", "d", "m" and "y".
-
-;; Get value part of prefix-argument ARG.
-(defsubst vip-p-val (arg)
-  (cond ((null arg) 1)
-	((consp arg)
-	 (if (or (null (car arg)) (equal (car arg) '(nil)))
-	     1 (car arg)))
-	(t arg)))
-
-;; Get raw value part of prefix-argument ARG.
-(defsubst vip-P-val (arg)
-  (cond ((consp arg) (car arg))
-	(t arg)))
-
-;; Get com part of prefix-argument ARG.
-(defsubst vip-getcom (arg)
-  (cond ((null arg) nil)
-	((consp arg) (cdr arg))
-	(t nil)))
-
-;; Get com part of prefix-argument ARG and modify it.
-(defun vip-getCom (arg)
-  (let ((com (vip-getcom arg)))
-    (cond ((equal com ?c) ?C)
-	  ((equal com ?d) ?D)
-	  ((equal com ?y) ?Y)
-	  (t com))))
-
-
-;; Compute numeric prefix arg value. 
-;; Invoked by CHAR. COM is the command part obtained so far.
-(defun vip-prefix-arg-value (event com)
-  (let (value)
-    ;; read while number
-    (while (and (vip-characterp event) (>= event ?0) (<= event ?9))
-      (setq value (+ (* (if (vip-characterp value) value 0) 10) (- event ?0)))
-      (setq event (vip-read-event-convert-to-char)))
-    
-    (setq prefix-arg value)
-    (if com (setq prefix-arg (cons prefix-arg com)))
-    (while (eq event ?U)
-      (vip-describe-arg prefix-arg)
-      (setq event (vip-read-event-convert-to-char)))
-    (vip-set-unread-command-events event)))
-
-;; Vi operator as prefix argument."
-(defun vip-prefix-arg-com (char value com)
-  (let ((cont t))
-    (while (and cont
-		(memq char
-		      (list ?c ?d ?y ?! ?< ?> ?= ?# ?r ?R ?\"
-			    vip-buffer-search-char)))
-      (if com
-	  ;; this means that we already have a command character, so we
-	  ;; construct a com list and exit while.  however, if char is "
-	  ;; it is an error.
+;; Get a regular expression and set `ex-variant', if found
+(defun vip-get-ex-pat ()
+  (save-window-excursion
+    (set-buffer vip-ex-work-buf)
+    (skip-chars-forward " \t")
+    (if (looking-at "!")
+	(progn
+	  (setq ex-g-variant (not ex-g-variant)
+		ex-g-flag (not ex-g-flag))
+	  (forward-char 1)
+	  (skip-chars-forward " \t")))
+    (let ((c (following-char)))
+      (if (string-match "[0-9A-Za-z]" (format "%c" c))
+	  (error
+	   "Global regexp must be inside matching non-alphanumeric chars"))
+      (if (looking-at "[^\\\\\n]")
 	  (progn
-	    ;; new com is (CHAR . OLDCOM)
-	    (if (memq char '(?# ?\")) (error ""))
-	    (setq com (cons char com))
-	    (setq cont nil))
-	;; If com is nil we set com as char, and read more.  Again, if char
-	;; is ", we read the name of register and store it in vip-use-register.
-	;; if char is !, =, or #, a complete com is formed so we exit the
-	;; while loop.
-	(cond ((memq char '(?! ?=))
-	       (setq com char)
-	       (setq char (read-char))
-	       (setq cont nil))
-	      ((= char ?#)
-	       ;; read a char and encode it as com
-	       (setq com (+ 128 (read-char)))
-	       (setq char (read-char)))
-	      ((= char ?\")
-	       (let ((reg (read-char)))
-		 (if (vip-valid-register reg)
-		     (setq vip-use-register reg)
-		   (error ""))
-		 (setq char (read-char))))
-	      (t
-	       (setq com char)
-	       (setq char (vip-read-char-exclusive)))))))
-  (if (atom com)
-      ;; com is a single char, so we construct prefix-arg 
-      ;; and if char is ?, describe prefix arg, otherwise exit by
-      ;; pushing the char back into vip-set-unread-command-events
-      ;; Since char is a command, the command will execute with the prefix
-      ;; argument that we just constructed.
-      (progn
-	(setq prefix-arg (cons value com))
-	(while (= char ?U)
-	  (vip-describe-arg prefix-arg)
-	  (setq char (read-char)))
-	(vip-set-unread-command-events char)
-	)
-    ;; as com is non-nil, this means that we have a command to execute
-    (if (memq (car com) '(?r ?R))
-	;; execute apropriate region command.
-	(let ((char (car com)) (com (cdr com)))
-	  (setq prefix-arg (cons value com))
-	  (if (= char ?r) (vip-region prefix-arg)
-	    (vip-Region prefix-arg))
-	  ;; reset prefix-arg
-	  (setq prefix-arg nil))
-      ;; otherwise, reset prefix arg and call appropriate command
-      (setq value (if (null value) 1 value))
-      (setq prefix-arg nil)
-      (cond ((equal com '(?c . ?c)) (vip-line (cons value ?C)))
-	    ((equal com '(?d . ?d)) (vip-line (cons value ?D)))
-	    ((equal com '(?d . ?y)) (vip-yank-defun))
-	    ((equal com '(?y . ?y)) (vip-line (cons value ?Y)))
-	    ((equal com '(?< . ?<)) (vip-line (cons value ?<)))
-	    ((equal com '(?> . ?>)) (vip-line (cons value ?>)))
-	    ((equal com '(?! . ?!)) (vip-line (cons value ?!)))
-	    ((equal com '(?= . ?=)) (vip-line (cons value ?=)))
-	    (t (error ""))))))
-
-(defun vip-describe-arg (arg)
-  (let (val com)
-    (setq val (vip-P-val arg)
-	  com (vip-getcom arg))
-    (if (null val)
-	(if (null com)
-	    (message "Value is nil, and command is nil")
-	  (message "Value is nil, and command is `%c'" com))
-      (if (null com)
-	  (message "Value is `%d', and command is nil" val)
-	(message "Value is `%d', and command is `%c'" val com)))))
-
-(defun vip-digit-argument (arg)
-  "Begin numeric argument for the next command."
-  (interactive "P")
-  (vip-leave-region-active)
-  (vip-prefix-arg-value last-command-char
-			(if (consp arg) (cdr arg) nil)))
-
-(defun vip-command-argument (arg)
-  "Accept a motion command as an argument."
-  (interactive "P")
-  (condition-case nil
-      (vip-prefix-arg-com
-       last-command-char   
-       (cond ((null arg) nil)
-	     ((consp arg) (car arg))
-	     ((integerp arg) arg)
-	     (t (error vip-InvalidCommandArgument)))
-       (cond ((null arg) nil)
-	     ((consp arg) (cdr arg))
-	     ((integerp arg) nil)
-	     (t (error vip-InvalidCommandArgument))))
-    (quit (setq vip-use-register nil)
-	  (signal 'quit nil)))
-  (vip-deactivate-mark))
-
-
-;; repeat last destructive command
-
-;; Append region to text in register REG.
-;; START and END are buffer positions indicating what to append.
-(defsubst vip-append-to-register (reg start end)
-  (set-register reg (concat (if (stringp (get-register reg))
-				(get-register reg) "")
-			    (buffer-substring start end))))
-
-;; Saves last inserted text for possible use by vip-repeat command.
-(defun vip-save-last-insertion (beg end)
-  (setq vip-last-insertion (buffer-substring beg end))
-  (or (< (length vip-d-com) 5)
-      (setcar (nthcdr 4 vip-d-com) vip-last-insertion))
-  (or (null vip-command-ring)
-      (ring-empty-p vip-command-ring)
-      (progn
-	(setcar (nthcdr 4 (vip-current-ring-item vip-command-ring))
-		vip-last-insertion)
-	;; del most recent elt, if identical to the second most-recent
-	(vip-cleanup-ring vip-command-ring)))
-  )
-    
-(defsubst vip-yank-last-insertion ()
-  "Inserts the text saved by the previous vip-save-last-insertion command."
-  (condition-case nil
-      (insert vip-last-insertion)
-    (error nil)))
-  
-			    
-;; define functions to be executed
-
-;; invoked by the `C' command
-(defun vip-exec-change (m-com com) 
-  ;; handle C cmd at the eol and at eob.
-  (if (or (and (eolp) (= vip-com-point (point)))
-	  (= vip-com-point (point-max)))
-      (progn
-	(insert " ")(backward-char 1)))
-  (if (= vip-com-point (point))
-      (vip-forward-char-carefully))
-  (if (= com ?c)
-      (vip-change vip-com-point (point))
-    (vip-change-subr vip-com-point (point))))
-
-;; this is invoked by vip-substitute-line
-(defun vip-exec-Change (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (if vip-use-register
-	(progn
-	  (cond ((vip-valid-register vip-use-register '(letter digit))
-		 ;;(vip-valid-register vip-use-register '(letter)
-		 (copy-to-register
-		  vip-use-register (mark t) (point) nil))
-		((vip-valid-register vip-use-register '(Letter))
-		 (vip-append-to-register
-		  (downcase vip-use-register) (mark t) (point)))
-		(t (setq vip-use-register nil)
-		   (error vip-InvalidRegister vip-use-register)))
-	  (setq vip-use-register nil)))
-    (delete-region (mark t) (point)))
-  (open-line 1)
-  (if (= com ?C) (vip-change-mode-to-insert) (vip-yank-last-insertion)))
-
-(defun vip-exec-delete (m-com com)
-  (if vip-use-register
-      (progn
-	(cond ((vip-valid-register vip-use-register '(letter digit))
-	       ;;(vip-valid-register vip-use-register '(letter))
-	       (copy-to-register
-		vip-use-register vip-com-point (point) nil))
-	      ((vip-valid-register vip-use-register '(Letter))
-	       (vip-append-to-register
-		(downcase vip-use-register) vip-com-point (point)))
-	      (t (setq vip-use-register nil)
-		 (error vip-InvalidRegister vip-use-register)))
-	(setq vip-use-register nil)))
-  (setq last-command
-	(if (eq last-command 'd-command) 'kill-region nil))
-  (kill-region vip-com-point (point))
-  (setq this-command 'd-command)
-  (if vip-ex-style-motion
-      (if (and (eolp) (not (bolp))) (backward-char 1))))
-
-(defun vip-exec-Delete (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (if vip-use-register
-	(progn
-	  (cond ((vip-valid-register vip-use-register '(letter digit))
-		 ;;(vip-valid-register vip-use-register '(letter))
-		 (copy-to-register
-		  vip-use-register (mark t) (point) nil))
-		((vip-valid-register vip-use-register '(Letter))
-		 (vip-append-to-register
-		  (downcase vip-use-register) (mark t) (point)))
-		(t (setq vip-use-register nil)
-		   (error vip-InvalidRegister vip-use-register)))
-	  (setq vip-use-register nil)))
-    (setq last-command
-	  (if (eq last-command 'D-command) 'kill-region nil))
-    (kill-region (mark t) (point))
-    (if (eq m-com 'vip-line) (setq this-command 'D-command)))
-  (back-to-indentation))
-
-(defun vip-exec-yank (m-com com)
-  (if vip-use-register
-      (progn
-	(cond ((vip-valid-register vip-use-register '(letter digit))
-	       ;; (vip-valid-register vip-use-register '(letter))
-	       (copy-to-register
-		vip-use-register vip-com-point (point) nil))
-	      ((vip-valid-register vip-use-register '(Letter))
-	       (vip-append-to-register
-		(downcase vip-use-register) vip-com-point (point)))
-	      (t (setq vip-use-register nil)
-		 (error vip-InvalidRegister vip-use-register)))
-	(setq vip-use-register nil)))
-  (setq last-command nil)
-  (copy-region-as-kill vip-com-point (point))
-  (goto-char vip-com-point))
-
-(defun vip-exec-Yank (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (if vip-use-register
-	(progn
-	  (cond ((vip-valid-register vip-use-register '(letter digit))
-		 (copy-to-register
-		  vip-use-register (mark t) (point) nil))
-		((vip-valid-register vip-use-register '(Letter))
-		 (vip-append-to-register
-		  (downcase vip-use-register) (mark t) (point)))
-		(t (setq vip-use-register nil)
-		   (error vip-InvalidRegister  vip-use-register)))
-	  (setq vip-use-register nil)))
-    (setq last-command nil)
-    (copy-region-as-kill (mark t) (point)))
-  (vip-deactivate-mark)
-  (goto-char vip-com-point))
-
-(defun vip-exec-bang (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (shell-command-on-region
-     (mark t) (point)
-     (if (= com ?!)
-	 (setq vip-last-shell-com
-	       (vip-read-string-with-history 
-		"!"
-		nil
-		'vip-shell-history
-		(car vip-shell-history)
-		))
-       vip-last-shell-com)
-     t)))
-
-(defun vip-exec-equals (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (if (> (mark t) (point)) (exchange-point-and-mark))
-    (indent-region (mark t) (point) nil)))
-
-(defun vip-exec-shift (m-com com)
-  (save-excursion
-    (set-mark vip-com-point)
-    (vip-enlarge-region (mark t) (point))
-    (if (> (mark t) (point)) (exchange-point-and-mark))
-    (indent-rigidly (mark t) (point) 
-		    (if (= com ?>)
-			vip-shift-width
-		      (- vip-shift-width))))
-  ;; return point to where it was before shift
-  (goto-char vip-com-point))
-
-;; this is needed because some commands fake com by setting it to ?r, which
-;; denotes repeated insert command.
-(defsubst vip-exec-dummy (m-com com)
-  nil)
-
-(defun vip-exec-buffer-search (m-com com)
-  (setq vip-s-string (buffer-substring (point) vip-com-point))
-  (setq vip-s-forward t)
-  (setq vip-search-history (cons vip-s-string vip-search-history))
-  (vip-search vip-s-string vip-s-forward 1))
-
-(defvar vip-exec-array (make-vector 128 nil))
-
-;; Using a dispatch array allows adding functions like buffer search
-;; without affecting other functions. Buffer search can now be bound
-;; to any character.
-
-(aset vip-exec-array ?c 'vip-exec-change)
-(aset vip-exec-array ?C 'vip-exec-Change)
-(aset vip-exec-array ?d 'vip-exec-delete)
-(aset vip-exec-array ?D 'vip-exec-Delete)
-(aset vip-exec-array ?y 'vip-exec-yank)
-(aset vip-exec-array ?Y 'vip-exec-Yank)
-(aset vip-exec-array ?r 'vip-exec-dummy)
-(aset vip-exec-array ?! 'vip-exec-bang)
-(aset vip-exec-array ?< 'vip-exec-shift)
-(aset vip-exec-array ?> 'vip-exec-shift)
-(aset vip-exec-array ?= 'vip-exec-equals)
-
-
-
-;; This function is called by various movement commands to execute a
-;; destructive command on the region specified by the movement command. For
-;; instance, if the user types cw, then the command vip-forward-word will
-;; call vip-execute-com to execute vip-exec-change, which eventually will
-;; call vip-change to invoke the replace mode on the region.
-;;
-;; The list (M-COM VAL COM REG INSETED-TEXT COMMAND-KEYS) is set to
-;; vip-d-com for later use by vip-repeat.
-(defun vip-execute-com (m-com val com)
-  (let ((reg vip-use-register))
-    ;; this is the special command `#'
-    (if (> com 128)
-	(vip-special-prefix-com (- com 128))
-      (let ((fn (aref vip-exec-array (if (< com 0) (- com) com))))
-	(if (null fn)
-	    (error "%c: %s" com vip-InvalidViCommand)
-	  (funcall fn m-com com))))
-    (if (vip-dotable-command-p com)
-	(vip-set-destructive-command
-	 (list m-com val
-	       (if (memq com (list ?c ?C ?!)) (- com) com)
-	       reg nil nil)))
-    ))
-
-
-(defun vip-repeat (arg)
-  "Re-execute last destructive command.
-Use the info in vip-d-com, which has the form
-\(com val ch reg inserted-text command-keys\),
-where `com' is the command to be re-executed, `val' is the
-argument to `com', `ch' is a flag for repeat, and `reg' is optional;
-if it exists, it is the name of the register for `com'.
-If the prefix argument, ARG, is non-nil, it is used instead of `val'."
-  (interactive "P")
-  (let ((save-point (point)) ; save point before repeating prev cmd
-	;; Pass along that we are repeating a destructive command
-	;; This tells vip-set-destructive-command not to update
-	;; vip-command-ring
-	(vip-intermediate-command 'vip-repeat))
-    (if (eq last-command 'vip-undo)
-	;; if the last command was vip-undo, then undo-more
-	(vip-undo-more)
-      ;; otherwise execute the command stored in vip-d-com.  if arg is non-nil
-      ;; its prefix value is used as new prefix value for the command.
-      (let ((m-com (car vip-d-com))
-	    (val (vip-P-val arg))
-	    (com (nth 2 vip-d-com))
-	    (reg (nth 3 vip-d-com)))
-        (if (null val) (setq val (nth 1 vip-d-com)))
-        (if (null m-com) (error "No previous command to repeat."))
-        (setq vip-use-register reg)
-	(if (nth 4 vip-d-com) ; text inserted by command
-	    (setq vip-last-insertion (nth 4 vip-d-com)
-		  vip-d-char (nth 4 vip-d-com)))
-        (funcall m-com (cons val com))
-        (if (and vip-keep-point-on-repeat (< save-point (point)))
-	    (goto-char save-point)) ; go back to before repeat.
-	(if (and (eolp) (not (bolp)))
+	    (forward-char 1)
+	    (set-mark (point))
+	    (let ((cont t))
+	      (while (and (not (eolp)) cont)
+		(if (not (re-search-forward (format "[^%c]*%c" c c) nil t))
+		    (if (member ex-token '("global" "vglobal"))
+			(error
+			 "Missing closing delimiter for global regexp")
+		      (goto-char (point-max))))
+		(if (not (vip-looking-back
+			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)))
+		    (setq cont nil))))
+	    (setq ex-token
+		  (if (= (mark t) (point)) ""
+		    (buffer-substring (1- (point)) (mark t))))
 	    (backward-char 1))
-     ))
-  (if vip-undo-needs-adjustment (vip-adjust-undo)) ; take care of undo
-  ;; If the prev cmd was rotating the command ring, this means that `.' has
-  ;; just executed a command from that ring. So, push it on the ring again.
-  ;; If we are just executing previous command , then don't push vip-d-com
-  ;; because vip-d-com is not fully constructed in this case (its keys and
-  ;; the inserted text may be nil). Besides, in this case, the command
-  ;; executed by `.' is already on the ring.
-  (if (eq last-command 'vip-display-current-destructive-command)
-      (vip-push-onto-ring vip-d-com 'vip-command-ring))
-  (vip-deactivate-mark)
-  ))
-  
-(defun vip-repeat-from-history ()
-  "Repeat a destructive command from history.
-Doesn't change vip-command-ring in any way, so `.' will work as before
-executing this command.
-This command is supposed to be bound to a two-character Vi macro where
-the second character is a digit 0 to 9. The digit indicates which
-history command to execute. `<char>0' is equivalent to `.', `<char>1'
-invokes the command before that, etc."
-  (interactive)
-  (let* ((vip-intermediate-command 'repeating-display-destructive-command)
-	 (idx (cond (vip-this-kbd-macro
-		      (string-to-number
-		       (symbol-name (elt vip-this-kbd-macro 1))))
-		    (t 0)))
-	 (num idx)
-	 (vip-d-com vip-d-com))
+	(setq ex-token nil))
+      c)))
 
-    (or (and (numberp num) (<= 0 num) (<= num 9))
-	(progn
-	  (setq idx 0
-		num 0)
-	  (message
-	   "`vip-repeat-from-history' must be invoked as a Vi macro bound to `<key><digit>'")))
-    (while (< 0 num)
-      (setq vip-d-com (vip-special-ring-rotate1 vip-command-ring -1))
-      (setq num (1- num)))
-    (vip-repeat nil)
-    (while (> idx num)
-      (vip-special-ring-rotate1 vip-command-ring 1)
-      (setq num (1+ num)))
-    ))
-      
+;; get an ex command
+(defun vip-get-ex-command ()
+  (save-window-excursion
+    (set-buffer vip-ex-work-buf)
+    (if (looking-at "/") (forward-char 1))
+    (skip-chars-forward " \t")
+    (cond ((looking-at "[a-z]")
+	   (vip-get-ex-com-subr)
+	   (if (eq ex-token-type 'non-command)
+	       (error "`%s': %s" ex-token vip-BadExCommand)))
+	  ((looking-at "[!=><&~]")
+	   (setq ex-token (char-to-string (following-char)))
+	   (forward-char 1))
+	  (t (error vip-BadExCommand)))))
 
-;; This command is invoked interactively by the key sequence #<char>
-(defun vip-special-prefix-com (char)
-  (cond ((= char ?c)
-	 (downcase-region (min vip-com-point (point))
-			  (max vip-com-point (point))))
-	((= char ?C)
-	 (upcase-region (min vip-com-point (point))
-			(max vip-com-point (point))))
-	((= char ?g)
-	 (push-mark vip-com-point t)
-	 (vip-global-execute))
-	((= char ?q)
-	 (push-mark vip-com-point t)
-	 (vip-quote-region))
-	((= char ?s) (funcall vip-spell-function vip-com-point (point)))
-	(t (error "#%c: %s" char vip-InvalidViCommand))))
+;; Get an Ex option g or c
+(defun vip-get-ex-opt-gc (c)
+  (save-window-excursion
+    (set-buffer vip-ex-work-buf)
+    (if (looking-at (format "%c" c)) (forward-char 1))
+    (skip-chars-forward " \t")
+    (cond ((looking-at "g")
+	   (setq ex-token "g")
+	   (forward-char 1)
+	   t)
+	  ((looking-at "c")
+	   (setq ex-token "c")
+	   (forward-char 1)
+	   t)
+	  (t nil))))
 
-
-;; undoing
+;; Compute default addresses.  WHOLE-FLAG means use the whole buffer
+(defun vip-default-ex-addresses (&optional whole-flag)
+  (cond ((null ex-addresses)
+	 (setq ex-addresses
+	       (if whole-flag
+		   (cons (point-max) (cons (point-min) nil))
+		 (cons (point) (cons (point) nil)))))
+	((null (cdr ex-addresses))
+	 (setq ex-addresses
+	       (cons (car ex-addresses) ex-addresses)))))
 
-(defun vip-undo ()
-  "Undo previous change."
-  (interactive)
-  (message "undo!")
-  (let ((modified (buffer-modified-p))
-        (before-undo-pt (point-marker))
-	(after-change-functions after-change-functions)
-	undo-beg-posn undo-end-posn)
-	
-    ;; no need to remove this hook, since this var has scope inside a let.
-    (add-hook 'after-change-functions
-	      '(lambda (beg end len)
-		 (setq undo-beg-posn beg
-		       undo-end-posn (or end beg))))
-  
-    (undo-start)
-    (undo-more 2)
-    (setq undo-beg-posn (or undo-beg-posn before-undo-pt)
-	  undo-end-posn (or undo-end-posn undo-beg-posn))
-    
-    (goto-char undo-beg-posn)
-    (sit-for 0)
-    (if (and vip-keep-point-on-undo
-	     (pos-visible-in-window-p before-undo-pt))
-	(progn
-	  (push-mark (point-marker) t) 
-	  (vip-sit-for-short 300)
-	  (goto-char undo-end-posn)
-	  (vip-sit-for-short 300)
-	  (if (and (> (abs (- undo-beg-posn before-undo-pt)) 1)
-		  (> (abs (- undo-end-posn before-undo-pt)) 1))
-	      (goto-char before-undo-pt)
-	    (goto-char undo-beg-posn)))
-      (push-mark before-undo-pt t))
-    (if (and (eolp) (not (bolp))) (backward-char 1))
-    (if (not modified) (set-buffer-modified-p t)))
-  (setq this-command 'vip-undo))
+;; Get an ex-address as a marker and set ex-flag if a flag is found
+(defun vip-get-ex-address ()
+  (let ((address (point-marker)) (cont t))
+    (setq ex-token "")
+    (setq ex-flag nil)
+    (while cont
+      (vip-get-ex-token)
+      (cond ((eq ex-token-type 'command)
+	     (if (member ex-token '("print" "list" "#"))
+		 (progn
+		   (setq ex-flag t
+			 cont nil))
+	       (error "Address expected in this Ex command")))
+	    ((eq ex-token-type 'end-mark)
+	     (setq cont nil))
+	    ((eq ex-token-type 'whole)
+	     (error "Trailing address expected"))
+	    ((eq ex-token-type 'comma)
+	     (error "`%s': %s" ex-token vip-SpuriousText))
+	    (t (let ((ans (vip-get-ex-address-subr address (point-marker))))
+		 (if ans (setq address ans))))))
+    address))
 
-;; Continue undoing previous changes.
-(defun vip-undo-more ()
-  (message "undo more!")
-  (condition-case nil
-      (undo-more 1)
-    (error (beep)
-	   (message "No further undo information in this buffer")))
-  (if (and (eolp) (not (bolp))) (backward-char 1))
-  (setq this-command 'vip-undo))
-
-;; The following two functions are used to set up undo properly.
-;; In VI, unlike Emacs, if you open a line, say, and add a bunch of lines,
-;; they are undone all at once.  
-(defun vip-adjust-undo ()
-  (let ((inhibit-quit t)
-	tmp tmp2)
-    (setq vip-undo-needs-adjustment nil)
-    (if (listp buffer-undo-list)
-	(if (setq tmp (memq vip-buffer-undo-list-mark buffer-undo-list))
-	    (progn
-	      (setq tmp2 (cdr tmp)) ; the part after mark
-	      
-	      ;; cut tail from buffer-undo-list temporarily by direct
-	      ;; manipulation with pointers in buffer-undo-list
-	      (setcdr tmp nil)
-	      
-	      (setq buffer-undo-list (delq nil buffer-undo-list))
-	      (setq buffer-undo-list
-		    (delq vip-buffer-undo-list-mark buffer-undo-list))
-	      ;; restore tail of buffer-undo-list
-	      (setq buffer-undo-list (nconc buffer-undo-list tmp2)))
-	  (setq buffer-undo-list (delq nil buffer-undo-list))))))
-  
-
-(defun vip-set-complex-command-for-undo ()  
-  (if (listp buffer-undo-list)
-      (if (not vip-undo-needs-adjustment)
-	  (let ((inhibit-quit t))
-	    (setq buffer-undo-list 
-		  (cons vip-buffer-undo-list-mark buffer-undo-list))
-	    (setq vip-undo-needs-adjustment t)))))
+;; Returns an address as a point
+(defun vip-get-ex-address-subr (old-address dot)
+  (let ((address nil))
+    (if (null old-address) (setq old-address dot))
+    (cond ((eq ex-token-type 'dot)
+	   (setq address dot))
+	  ((eq ex-token-type 'add-number)
+	   (save-excursion
+	     (goto-char old-address)
+	     (forward-line (if (= old-address 0) (1- ex-token) ex-token))
+	     (setq address (point-marker))))
+	  ((eq ex-token-type 'sub-number)
+	   (save-excursion
+	     (goto-char old-address)
+	     (forward-line (- ex-token))
+	     (setq address (point-marker))))
+	  ((eq ex-token-type 'abs-number)
+	   (save-excursion
+	     (goto-char (point-min))
+	     (if (= ex-token 0) (setq address 0)
+	       (forward-line (1- ex-token))
+	       (setq address (point-marker)))))
+	  ((eq ex-token-type 'end)
+	   (setq address (point-max-marker)))
+	  ((eq ex-token-type 'plus) t)  ; do nothing
+	  ((eq ex-token-type 'minus) t) ; do nothing
+	  ((eq ex-token-type 'search-forward)
+	   (save-excursion
+	     (ex-search-address t)
+	     (setq address (point-marker))))
+	  ((eq ex-token-type 'search-backward)
+	   (save-excursion
+	     (ex-search-address nil)
+	     (setq address (point-marker))))
+	  ((eq ex-token-type 'goto-mark)
+	   (save-excursion
+	     (if (null ex-token)
+		 (exchange-point-and-mark)
+	       (goto-char (vip-register-to-point
+			   (1+ (- ex-token ?a)) 'enforce-buffer)))
+	     (setq address (point-marker)))))
+    address))
 
 
-
-      
-(defun vip-display-current-destructive-command ()
-  (let ((text (nth 4 vip-d-com))
-	(keys (nth 5 vip-d-com))
-	(max-text-len 30))
-    
-    (setq this-command 'vip-display-current-destructive-command)
-	
-    (message " `.' runs  %s%s"
-	     (concat "`" (vip-array-to-string keys) "'")
-	     (vip-abbreviate-string text max-text-len
-				    "  inserting  `" "'" "    ......."))
-    ))
-    
-    
-;; don't change vip-d-com if it was vip-repeat command invoked with `.'
-;; or in some other way (non-interactively).
-(defun vip-set-destructive-command (list)
-  (or (eq vip-intermediate-command 'vip-repeat)
-      (progn
-	(setq vip-d-com list)
-	(setcar (nthcdr 5 vip-d-com)
-		(vip-array-to-string (this-command-keys)))
-	(vip-push-onto-ring vip-d-com 'vip-command-ring))))
-    
-(defun vip-prev-destructive-command (next)
-  "Find previous destructive command in the history of destructive commands.
-With prefix argument, find next destructive command."
-  (interactive "P")
-  (let (cmd vip-intermediate-command)
-    (if (eq last-command 'vip-display-current-destructive-command)
-	;; repeated search through command history
-	(setq vip-intermediate-command 'repeating-display-destructive-command)
-      ;; first search through command history--set temp ring
-      (setq vip-temp-command-ring (copy-list vip-command-ring))) 
-    (setq cmd (if next
-		  (vip-special-ring-rotate1 vip-temp-command-ring 1)
-		(vip-special-ring-rotate1 vip-temp-command-ring -1)))
-    (if (null cmd)
-	()
-      (setq vip-d-com cmd))
-    (vip-display-current-destructive-command)))
-      
-(defun vip-next-destructive-command ()
-  "Find next destructive command in the history of destructive commands."
-  (interactive)
-  (vip-prev-destructive-command 'next))
-  
-(defun vip-insert-prev-from-insertion-ring (arg)
-  "Cycle through insertion ring in the direction of older insertions.
-Undoes previous insertion and inserts new.
-With prefix argument, cycles in the direction of newer elements.
-In minibuffer, this command executes whatever the invocation key is bound
-to in the global map, instead of cycling through the insertion ring."
-  (interactive "P")
-  (let (vip-intermediate-command)
-    (if (eq last-command 'vip-insert-from-insertion-ring)
-	(progn  ; repeated search through insertion history
-	  (setq vip-intermediate-command 'repeating-insertion-from-ring)
-	  (if (eq vip-current-state 'replace-state)
-	      (undo 1)
-	    (if vip-last-inserted-string-from-insertion-ring
-		(backward-delete-char
-		 (length vip-last-inserted-string-from-insertion-ring))))
-	  )
-      ;;first search through insertion history
-      (setq vip-temp-insertion-ring (copy-list vip-insertion-ring)))
-    (setq this-command 'vip-insert-from-insertion-ring)
-    ;; so that things will be undone properly
-    (setq buffer-undo-list (cons nil buffer-undo-list))
-    (setq vip-last-inserted-string-from-insertion-ring
-	  (vip-special-ring-rotate1 vip-temp-insertion-ring (if arg 1 -1)))
-    
-    ;; this change of vip-intermediate-command must come after
-    ;; vip-special-ring-rotate1, so that the ring will rotate, but before the
-    ;; insertion.
-    (setq vip-intermediate-command nil)
-    (if vip-last-inserted-string-from-insertion-ring
-	(insert vip-last-inserted-string-from-insertion-ring))
-    ))
-
-(defun vip-insert-next-from-insertion-ring ()
-  "Cycle through insertion ring in the direction of older insertions.
-Undo previous insertion and inserts new."
-  (interactive)
-  (vip-insert-prev-from-insertion-ring 'next))
-    
-
-;; some region utilities
-
-;; If at the last line of buffer, add \\n before eob, if newline is missing.
-(defun vip-add-newline-at-eob-if-necessary ()
-  (save-excursion
-      (end-of-line)
-      ;; make sure all lines end with newline, unless in the minibuffer or
-      ;; when requested otherwise (require-final-newline is nil)
-      (if (and (eobp)
-	       (not (bolp))
-	       require-final-newline
-	       (not (vip-is-in-minibuffer))
-	       (not buffer-read-only))
-	  (insert "\n"))))
-
-(defun vip-yank-defun ()
-  (mark-defun)
-  (copy-region-as-kill (point) (mark t)))
-
-;; Enlarge region between BEG and END.
-(defun vip-enlarge-region (beg end)
-  (or beg (setq beg end)) ; if beg is nil, set to end
-  (or end (setq end beg)) ; if end is nil, set to beg
-  
-  (if (< beg end)
-      (progn (goto-char beg) (set-mark end))
-    (goto-char end)
-    (set-mark beg))
-  (beginning-of-line)
-  (exchange-point-and-mark)
-  (if (or (not (eobp)) (not (bolp))) (forward-line 1))
-  (if (not (eobp)) (beginning-of-line))
-  (if (> beg end) (exchange-point-and-mark)))
-
-
-;; Quote region by each line with a user supplied string.
-(defun vip-quote-region ()
-  (setq vip-quote-string
-	(vip-read-string-with-history
-	 "Quote string: "
-	 nil
-	 'vip-quote-region-history
-	 vip-quote-string))
-  (vip-enlarge-region (point) (mark t))
-  (if (> (point) (mark t)) (exchange-point-and-mark))
-  (insert vip-quote-string)
-  (beginning-of-line)
-  (forward-line 1)
-  (while (and (< (point) (mark t)) (bolp))
-    (insert vip-quote-string)
-    (beginning-of-line)
-    (forward-line 1)))
-
-;;  Tells whether BEG is on the same line as END.
-;;  If one of the args is nil, it'll return nil.
-(defun vip-same-line (beg end)
-   (let ((selective-display nil))
-     (cond ((and beg end)
-	    ;; This 'if' is needed because Emacs treats the next empty line
-	    ;; as part of the previous line.
-	    (if (or (> beg (point-max)) (> end (point-max))) ; out of range
-		()
-	      (if (and (> end beg) (= (vip-line-pos 'start) end))
-		  (setq end (min (1+ end) (point-max))))
-	      (if (and (> beg end) (= (vip-line-pos 'start) beg))
-		  (setq beg (min (1+ beg) (point-max))))
-	      (<= (count-lines beg end) 1) ))
-	   
-	   (t nil))
-	 ))
-	 
-	 
-;; Check if the string ends with a newline.
-(defun vip-end-with-a-newline-p (string)
-  (or (string= string "")
-      (= (vip-seq-last-elt string) ?\n)))
-
-(defun vip-tmp-insert-at-eob (msg)
-  (let ((savemax (point-max)))
-      (goto-char savemax)
-      (insert msg)
-      (sit-for 2)
-      (goto-char savemax) (delete-region (point) (point-max))
-      ))  
-      
-
-
-;;; Minibuffer business
-	    
-(defsubst vip-set-minibuffer-style ()
-  (add-hook 'minibuffer-setup-hook 'vip-minibuffer-setup-sentinel))
-  
-  
-(defun vip-minibuffer-setup-sentinel ()
-  (let ((hook (if vip-vi-style-in-minibuffer
-		  'vip-change-state-to-insert
-		'vip-change-state-to-emacs)))
-    (funcall hook)
-    ))
-  
-;; Interpret last event in the local map
-(defun vip-exit-minibuffer ()
-  (interactive)
-  (let (command)
-    (setq command (local-key-binding (char-to-string last-command-char)))
-    (if command
-	(command-execute command)
-      (exit-minibuffer))))
-  
-
-(defun vip-set-search-face ()
-  (if (vip-has-face-support-p)
-      (defvar vip-search-face
-	(progn
-	  (make-face 'vip-search-face)
-	  (vip-hide-face 'vip-search-face)
-	  (or (face-differs-from-default-p 'vip-search-face)
-	      ;; face wasn't set in .vip or .Xdefaults
-	      (if (vip-can-use-colors "Black" "khaki")
-		  (progn
-		    (set-face-background 'vip-search-face "khaki")
-		    (set-face-foreground 'vip-search-face "Black"))
-		(copy-face 'italic 'vip-search-face)
-		(set-face-underline-p 'vip-search-face t)))
-	  'vip-search-face)
-        "*Face used to flash out the search pattern.")
-    ))
-  
-  
-(defun vip-set-minibuffer-faces ()
-  (if (not (vip-has-face-support-p))
-      ()
-    (defvar vip-minibuffer-emacs-face
-      (progn
-	(make-face 'vip-minibuffer-emacs-face)
-	(vip-hide-face 'vip-minibuffer-emacs-face)
-	(or (face-differs-from-default-p 'vip-minibuffer-emacs-face)
-	    ;; face wasn't set in .vip or .Xdefaults
-	    (if vip-vi-style-in-minibuffer
-		;; emacs state is an exception in the minibuffer
-		(if (vip-can-use-colors "darkseagreen2" "Black")
-		    (progn
-		      (set-face-background
-		       'vip-minibuffer-emacs-face "darkseagreen2")
-		      (set-face-foreground
-		       'vip-minibuffer-emacs-face "Black"))
-		  (copy-face 'modeline 'vip-minibuffer-emacs-face))
-	      ;; emacs state is the main state in the minibuffer
-	      (if (vip-can-use-colors "Black" "pink")
-		  (progn
-		    (set-face-background 'vip-minibuffer-emacs-face "pink") 
-		    (set-face-foreground
-		     'vip-minibuffer-emacs-face "Black"))
-		(copy-face 'italic 'vip-minibuffer-emacs-face))
-	      ))
-	'vip-minibuffer-emacs-face)
-      "Face used in the Minibuffer when it is in Emacs state.")
-    
-    (defvar vip-minibuffer-insert-face
-      (progn
-	(make-face 'vip-minibuffer-insert-face)
-	(vip-hide-face 'vip-minibuffer-insert-face)
-	(or (face-differs-from-default-p 'vip-minibuffer-insert-face)
-	    (if vip-vi-style-in-minibuffer
-		(if (vip-can-use-colors "Black" "pink")
-		    (progn
-		      (set-face-background 'vip-minibuffer-insert-face "pink") 
-		      (set-face-foreground
-		       'vip-minibuffer-insert-face "Black"))
-		  (copy-face 'italic 'vip-minibuffer-insert-face))
-	      ;; If Insert state is an exception
-	      (if (vip-can-use-colors "darkseagreen2" "Black")
-		  (progn
-		    (set-face-background
-		     'vip-minibuffer-insert-face "darkseagreen2")
-		    (set-face-foreground
-		     'vip-minibuffer-insert-face "Black"))
-		(copy-face 'modeline 'vip-minibuffer-insert-face))
-	      (vip-italicize-face 'vip-minibuffer-insert-face)))
-	'vip-minibuffer-insert-face)
-      "Face used in the Minibuffer when it is in Insert state.")
-    
-    (defvar vip-minibuffer-vi-face
-      (progn
-	(make-face 'vip-minibuffer-vi-face)
-	(vip-hide-face 'vip-minibuffer-vi-face)
-	(or (face-differs-from-default-p 'vip-minibuffer-vi-face)
-	    (if vip-vi-style-in-minibuffer
-		(if (vip-can-use-colors "Black" "grey")
-		    (progn
-		      (set-face-background 'vip-minibuffer-vi-face "grey")
-		      (set-face-foreground 'vip-minibuffer-vi-face "Black"))
-		  (copy-face 'bold 'vip-minibuffer-vi-face))
-	      (copy-face 'bold 'vip-minibuffer-vi-face)
-	      (invert-face 'vip-minibuffer-vi-face)))
-	'vip-minibuffer-vi-face)
-      "Face used in the Minibuffer when it is in Vi state.")
-    
-    ;; the current face used in the minibuffer
-    (vip-deflocalvar vip-minibuffer-current-face vip-minibuffer-emacs-face "")
-    ))
-    
-  
-
-;;; Reading string with history  
-    
-(defun vip-read-string-with-history (prompt &optional initial 
-					    history-var default keymap)
-  ;; Read string, prompting with PROMPT and inserting the INITIAL
-  ;; value. Uses HISTORY-VAR. DEFAULT is the default value to accept if the
-  ;; input is an empty string. Use KEYMAP, if given, or the
-  ;; minibuffer-local-map.
-  ;; Default value is displayed until the user types something in the
-  ;; minibuffer. 
-  (let ((minibuffer-setup-hook 
-	 '(lambda ()
-	    (if (stringp initial)
-		(progn
-		  ;; don't wait if we have unread events or in kbd macro
-		  (or unread-command-events
-		      executing-kbd-macro
-		      (sit-for 840))
-		  (erase-buffer)
-		  (insert initial)))
-	    (vip-minibuffer-setup-sentinel)))
-	(val "")
-	(padding "")
-	temp-msg)
-    
-    (setq keymap (or keymap minibuffer-local-map)
-	  initial (or initial "")
-	  temp-msg (if default
-		       (format "(default: %s) " default)
-		     ""))
-		   
-    (setq vip-incomplete-ex-cmd nil)
-    (setq val (read-from-minibuffer prompt 
-				    (concat temp-msg initial val padding)
-				    keymap nil history-var))
-    (setq minibuffer-setup-hook nil
-	  padding (vip-array-to-string (this-command-keys))
-	  temp-msg "")
-    ;; the following tries to be smart about what to put in history
-    (if (not (string= val (car (eval history-var))))
-	(set history-var (cons val (eval history-var))))
-    (if (or (string= (nth 0 (eval history-var)) (nth 1 (eval history-var)))
-	    (string= (nth 0 (eval history-var)) ""))
-	(set history-var (cdr (eval history-var))))
-    ;; If the user enters nothing but the prev cmd wasn't vip-ex,
-    ;; vip-command-argument, or `! shell-command', this probably means 
-    ;; that the user typed something then erased. Return "" in this case, not
-    ;; the default---the default is too confusing in this case.
-    (cond ((and (string= val "")
-		(not (string= prompt "!")) ; was a `! shell-command'
-		(not (memq last-command
-			   '(vip-ex
-			     vip-command-argument
-			     t)
-			   )))
-	   "")
-	  ((string= val "") (or default ""))
-	  (t val))
-    ))
-  
-
-
-;; insertion commands
-
-;; Called when state changes from Insert Vi command mode.
-;; Repeats the insertion command if Insert state was entered with prefix
-;; argument > 1.
-(defun vip-repeat-insert-command ()
-  (let ((i-com (car vip-d-com))
-	(val   (nth 1 vip-d-com))
-	(char  (nth 2 vip-d-com)))
-    (if (and val (> val 1)) ; first check that val is non-nil
-	(progn        
-	  (setq vip-d-com (list i-com (1- val) ?r nil nil nil))
-	  (vip-repeat nil)
-	  (setq vip-d-com (list i-com val char nil nil nil))
-	  ))))
-
-(defun vip-insert (arg)
-  "Insert before point."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-insert val ?r nil nil nil))
-    (if com
-	(vip-loop val (vip-yank-last-insertion))
-      (vip-change-state-to-insert))))
-
-(defun vip-append (arg)
-  "Append after point."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-append val ?r nil nil nil))
-    (if (not (eolp)) (forward-char))
-    (if (equal com ?r)
-	(vip-loop val (vip-yank-last-insertion))
-      (vip-change-state-to-insert))))
-
-(defun vip-Append (arg)
-  "Append at end of line."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-Append val ?r nil nil nil))
-    (end-of-line)
-    (if (equal com ?r)
-	(vip-loop val (vip-yank-last-insertion))
-      (vip-change-state-to-insert))))
-
-(defun vip-Insert (arg)
-  "Insert before first non-white."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-Insert val ?r nil nil nil))
-    (back-to-indentation)
-    (if (equal com ?r)
-	(vip-loop val (vip-yank-last-insertion))
-      (vip-change-state-to-insert))))
-
-(defun vip-open-line (arg)
-  "Open line below."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-open-line val ?r nil nil nil))
-    (let ((col (current-indentation)))
-      (if (equal com ?r)
-	  (vip-loop val
-		    (progn
-		      (end-of-line)
-		      (newline 1)
-		      (if vip-auto-indent 
-			  (progn
-			    (setq vip-cted t)
-			    (if vip-electric-mode
-				(indent-according-to-mode)
-			      (indent-to col))
-			    ))
-		      (vip-yank-last-insertion)))
-	(end-of-line)
-	(newline 1)
-	(if vip-auto-indent
-	    (progn
-	      (setq vip-cted t)
-	      (if vip-electric-mode
-		  (indent-according-to-mode)
-		(indent-to col))
-	      ))
-	(vip-change-state-to-insert)
-	))))
-
-(defun vip-Open-line (arg)
-  "Open line above."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command (list 'vip-Open-line val ?r nil nil nil))
-    (let ((col (current-indentation)))
-      (if (equal com ?r)
-	  (vip-loop val
-		    (progn
-		      (beginning-of-line)
-		      (open-line 1)
-		      (if vip-auto-indent 
-			  (progn
-			    (setq vip-cted t)
-			    (if vip-electric-mode
-				(indent-according-to-mode)
-			      (indent-to col))
-			    ))
-		      (vip-yank-last-insertion)))
-	(beginning-of-line)
-	(open-line 1)
-	(if vip-auto-indent
-	    (progn
-	      (setq vip-cted t)
-	      (if vip-electric-mode
-		  (indent-according-to-mode)
-		(indent-to col))
-	      ))
-	(vip-change-state-to-insert)))))
-
-(defun vip-open-line-at-point (arg)
-  "Open line at point."
-  (interactive "P")
-  (vip-set-complex-command-for-undo)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-set-destructive-command
-     (list 'vip-open-line-at-point val ?r nil nil nil))
-    (if (equal com ?r)
-	(vip-loop val
-		  (progn
-		    (open-line 1)
-		    (vip-yank-last-insertion)))
-      (open-line 1)
-      (vip-change-state-to-insert))))
-
-(defun vip-substitute (arg)
-  "Substitute characters."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (push-mark nil t)
-    (forward-char val)
-    (if (equal com ?r)
-	(vip-change-subr (mark t) (point))
-      (vip-change (mark t) (point)))
-    (vip-set-destructive-command (list 'vip-substitute val ?r nil nil nil))
-    ))
-
-(defun vip-substitute-line (arg)
-  "Substitute lines."
-  (interactive "p")
-  (vip-set-complex-command-for-undo)
-  (vip-line (cons arg ?C)))
-
-;; Prepare for replace
-(defun vip-start-replace ()
-  (setq vip-began-as-replace t
-	vip-sitting-in-replace t
-	vip-replace-chars-to-delete 0
-	vip-replace-chars-deleted 0)
-  (vip-add-hook 'vip-after-change-functions 'vip-replace-mode-spy-after t)
-  (vip-add-hook 'vip-before-change-functions 'vip-replace-mode-spy-before t)
-  ;; this will get added repeatedly, but no harm
-  (add-hook 'after-change-functions 'vip-after-change-sentinel t)
-  (add-hook 'before-change-functions 'vip-before-change-sentinel t)
-  (vip-move-marker-locally 'vip-last-posn-in-replace-region
-			   (vip-replace-start))
-  (vip-add-hook
-   'vip-post-command-hooks 'vip-replace-state-post-command-sentinel t)
-  (vip-add-hook
-   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
-  )
-  
-
-;; checks how many chars were deleted by the last change
-(defun vip-replace-mode-spy-before (beg end)
-  (setq vip-replace-chars-deleted
-	(- end beg
-	   (max 0 (- end (vip-replace-end)))
-	   (max 0 (- (vip-replace-start) beg))
-	   )))
-
-;; Invoked as an after-change-function to set up parameters of the last change
-(defun vip-replace-mode-spy-after (beg end length)
-  (if (memq vip-intermediate-command '(repeating-insertion-from-ring))
-      (progn
-	(setq vip-replace-chars-to-delete 0)
-	(vip-move-marker-locally 
-	 'vip-last-posn-in-replace-region (point)))
-    
-    (let (beg-col end-col real-end chars-to-delete)
-      (setq real-end (min end (vip-replace-end)))
-      (save-excursion
-	(goto-char beg)
-	(setq beg-col (current-column))
-	(goto-char real-end)
-	(setq end-col (current-column)))
-      
-      ;; If beg of change is outside the replacement region, then don't
-      ;; delete anything in the repl region (set chars-to-delete to 0).
-      ;;
-      ;; This works fine except that we have to take special care of
-      ;; dabbrev-expand.  The problem stems from new-dabbrev.el, which
-      ;; sometimes simply shifts the repl region rightwards, without
-      ;; deleting an equal amount of characters.
-      ;;
-      ;; The reason why new-dabbrev.el causes this are this:
-      ;; if one dinamically completes a partial word that starts before the
-      ;; replacement region (but ends inside) then new-dabbrev.el first
-      ;; moves cursor backwards, to the beginning of the word to be
-      ;; completed (say, pt A). Then it inserts the 
-      ;; completed word and then deletes the old, incomplete part.
-      ;; Since the complete word is inserted at position before the repl
-      ;; region, the next If-statement would have set chars-to-delete to 0
-      ;; unless we check for the current command, which must be
-      ;; dabbrev-expand.
-      ;;
-      ;; In fact, it might be also useful to have overlays for insert
-      ;; regions as well, since this will let us capture the situation when
-      ;; dabbrev-expand goes back past the insertion point to find the
-      ;; beginning of the word to be expanded.
-      (if (or (and (<= (vip-replace-start) beg)
-		   (<= beg (vip-replace-end)))
-	      (and (= length 0) (eq this-command 'dabbrev-expand)))
-	  (setq chars-to-delete
-		(max (- end-col beg-col) (- real-end beg) 0))
-	(setq chars-to-delete 0))
-      
-      ;; if beg = last change position, it means that we are within the
-      ;; same command that does multiple changes. Moreover, it means
-      ;; that we have two subsequent changes (insert/delete) that
-      ;; complement each other.
-      (if (= beg (marker-position vip-last-posn-in-replace-region))
-	  (setq vip-replace-chars-to-delete 
-		(- (+ chars-to-delete vip-replace-chars-to-delete)
-		   vip-replace-chars-deleted)) 
-	(setq vip-replace-chars-to-delete chars-to-delete))
-      
-      (vip-move-marker-locally 
-       'vip-last-posn-in-replace-region
-       (max (if (> end (vip-replace-end)) (vip-replace-start) end)
-	    (or (marker-position vip-last-posn-in-replace-region)
-		(vip-replace-start)) 
-	    ))
-      
-      (setq vip-replace-chars-to-delete
-	    (max 0 (min vip-replace-chars-to-delete
-			(- (vip-replace-end)
-			   vip-last-posn-in-replace-region))))
-      )))
-
-
-;; Delete stuff between posn and the end of vip-replace-overlay-marker, if
-;; posn is within the overlay.
-(defun vip-finish-change (posn)
-  (vip-remove-hook 'vip-after-change-functions 'vip-replace-mode-spy-after)
-  (vip-remove-hook 'vip-before-change-functions 'vip-replace-mode-spy-before)
-  (vip-remove-hook 'vip-post-command-hooks
-		   'vip-replace-state-post-command-sentinel) 
-  (vip-remove-hook
-   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel) 
-  (vip-restore-cursor-color)
-  (setq vip-sitting-in-replace nil) ; just in case we'll need to know it
-  (save-excursion
-    (if (and 
-	 vip-replace-overlay
-	 (>= posn (vip-replace-start))
-	 (<  posn (vip-replace-end)))
-	   (delete-region posn (vip-replace-end)))
-    )
-  
-  (if (eq vip-current-state 'replace-state)
-      (vip-downgrade-to-insert))
-  ;; replace mode ended => nullify vip-last-posn-in-replace-region
-  (vip-move-marker-locally 'vip-last-posn-in-replace-region nil)
-  (vip-hide-replace-overlay)
-  (vip-refresh-mode-line)
-  (vip-put-string-on-kill-ring vip-last-replace-region)
-  )
-
-;; Make STRING be the first element of the kill ring.
-(defun vip-put-string-on-kill-ring (string)
-  (setq kill-ring (cons string kill-ring))
-  (if (> (length kill-ring) kill-ring-max)
-      (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
-  (setq kill-ring-yank-pointer kill-ring))
-
-(defun vip-finish-R-mode ()
-  (vip-remove-hook 'vip-post-command-hooks 'vip-R-state-post-command-sentinel)
-  (vip-remove-hook
-   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel)
-  (vip-downgrade-to-insert))
-  
-(defun vip-start-R-mode ()
-  ;; Leave arg as 1, not t: XEmacs insists that it must be a pos number
-  (overwrite-mode 1)
-  (vip-add-hook
-   'vip-post-command-hooks 'vip-R-state-post-command-sentinel t)
-  (vip-add-hook
-   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
-  )
-
-
-  
-(defun vip-replace-state-exit-cmd ()
-  "Binding for keys that cause Replace state to switch to Vi or to Insert.
-These keys are ESC, RET, and LineFeed"
-  (interactive)
-  (if overwrite-mode  ;; If you are in replace mode invoked via 'R'
-      (vip-finish-R-mode)
-    (vip-finish-change vip-last-posn-in-replace-region))
-  (let (com)
-    (if (eq this-command 'vip-intercept-ESC-key)
-	(setq com 'vip-exit-insert-state)
-      (vip-set-unread-command-events last-input-char)
-      (setq com (key-binding (read-key-sequence nil))))
-      
-    (condition-case conds
-	(command-execute com)
-      (error
-       (vip-message-conditions conds)))
-    )
-  (vip-hide-replace-overlay))
-
-  
-;; This is the function bound to 'R'---unlimited replace.
-;; Similar to Emacs's own overwrite-mode.
-(defun vip-overwrite (arg) 
-  "Begin overwrite mode."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)) (len))
-    (vip-set-destructive-command (list 'vip-overwrite val ?r nil nil nil))
-    (if com
-	(progn 
-	  ;; Viper saves inserted text in vip-last-insertion
-	  (setq len (length vip-last-insertion))
-	  (delete-char len)	
-	  (vip-loop val (vip-yank-last-insertion)))
-      (setq last-command 'vip-overwrite)
-      (vip-set-complex-command-for-undo)
-      (vip-set-replace-overlay (point) (vip-line-pos 'end))
-      (vip-change-state-to-replace)
-      )))
-
-
-;; line commands
-
-(defun vip-line (arg)
-  (let ((val (car arg))
-	(com (cdr arg)))
-    (vip-move-marker-locally 'vip-com-point (point))
-    (if (not (eobp))
-	(vip-next-line-carefully (1- val)))
-    ;; this ensures that dd, cc, D, yy will do the right thing on the last
-    ;; line of buffer when this line has no \n.
-    (vip-add-newline-at-eob-if-necessary)
-    (vip-execute-com 'vip-line val com))
-  (if (and (eobp) (not (bobp))) (forward-line -1))
-  )
-
-(defun vip-yank-line (arg)
-  "Yank ARG lines (in Vi's sense)."
-  (interactive "P")
-  (let ((val (vip-p-val arg)))
-    (vip-line (cons val ?Y))))
-
-
-;; region commands
-
-(defun vip-region (arg)
-  "Execute command on a region."
-  (interactive "P")
-  (let ((val (vip-P-val arg))
-	(com (vip-getcom arg)))
-    (vip-move-marker-locally 'vip-com-point (point))
-    (exchange-point-and-mark)
-    (vip-execute-com 'vip-region val com)))
-
-(defun vip-Region (arg)
-  "Execute command on a Region."
-  (interactive "P")
-  (let ((val (vip-P-val arg))
-	(com (vip-getCom arg)))
-    (vip-move-marker-locally 'vip-com-point (point))
-    (exchange-point-and-mark)
-    (vip-execute-com 'vip-Region val com)))
-
-(defun vip-replace-char (arg)
-  "Replace the following ARG chars by the character read."
-  (interactive "P")
-  (if (and (eolp) (bolp)) (error "No character to replace here"))
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-replace-char-subr com val)
-    (if (and (eolp) (not (bolp))) (forward-char 1))
-    (vip-set-destructive-command
-     (list 'vip-replace-char val ?r nil vip-d-char nil))
-  ))
-
-(defun vip-replace-char-subr (com arg)
-  (let ((take-care-of-iso-accents
-	 (and (boundp 'iso-accents-mode) vip-automatic-iso-accents))
-	char)
-    (setq char (if (equal com ?r)
-		   vip-d-char
-		 (read-char)))
-    (if (and  take-care-of-iso-accents (memq char '(?' ?\" ?^ ?~)))
-	;; get European characters
-	(progn
-	  (iso-accents-mode 1)
-	  (vip-set-unread-command-events char)
-	  (setq char (aref (read-key-sequence nil) 0))
-	  (iso-accents-mode -1)))
-    (delete-char arg t)
-    (setq vip-d-char char)
-    (vip-loop (if (> arg 0) arg (- arg)) 
-	    (if (eq char ?\C-m) (insert "\n") (insert char)))
-    (backward-char arg)))
-
-
-;; basic cursor movement.  j, k, l, h commands.
-
-(defun vip-forward-char (arg)
-  "Move point right ARG characters (left if ARG negative).
-On reaching end of line, stop and signal error."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (if vip-ex-style-motion
-	(progn
-	  ;; the boundary condition check gets weird here because
-	  ;; forward-char may be the parameter of a delete, and 'dl' works
-	  ;; just like 'x' for the last char on a line, so we have to allow
-	  ;; the forward motion before the 'vip-execute-com', but, of
-	  ;; course, 'dl' doesn't work on an empty line, so we have to
-	  ;; catch that condition before 'vip-execute-com'
-	  (if (and (eolp) (bolp)) (error "") (forward-char val))
-	  (if com (vip-execute-com 'vip-forward-char val com))
-	  (if (eolp) (progn (backward-char 1) (error ""))))
-      (forward-char val)
-      (if com (vip-execute-com 'vip-forward-char val com)))))
-
-(defun vip-backward-char (arg)
-  "Move point left ARG characters (right if ARG negative). 
-On reaching beginning of line, stop and signal error."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (if vip-ex-style-motion
-	(progn
-	  (if (bolp) (error "") (backward-char val))
-	  (if com (vip-execute-com 'vip-backward-char val com)))
-      (backward-char val)
-      (if com (vip-execute-com 'vip-backward-char val com)))))
-      
-;; Like forward-char, but doesn't move at end of buffer.
-(defun vip-forward-char-carefully (&optional arg)      
-  (setq arg (or arg 1))
-  (if (>= (point-max) (+ (point) arg))
-      (forward-char arg)
-    (goto-char (point-max))))
-      
-;; Like backward-char, but doesn't move at end of buffer.
-(defun vip-backward-char-carefully (&optional arg)      
-  (setq arg (or arg 1))
-  (if (<= (point-min) (- (point) arg))
-      (backward-char arg)
-    (goto-char (point-min))))
-
-(defun vip-next-line-carefully (arg)
-  (condition-case nil
-      (next-line arg)
-    (error nil)))
-
-
-
-;;; Word command
-
-;; Words are formed from alpha's and nonalphas - <sp>,\t\n are separators
-;; for word movement. When executed with a destructive command, \n is
-;; usually left untouched for the last word.
-;; Viper uses syntax table to determine what is a word and what is a
-;; separator. However, \n is always a separator. Also, if vip-syntax-preference
-;; is 'vi, then `_' is part of the word.
-
-;; skip only one \n
-(defun vip-skip-separators (forward)
+;; Search pattern and set address
+(defun ex-search-address (forward)
+  (if (string= ex-token "")
+      (if (null vip-s-string)
+	  (error vip-NoPrevSearch)
+	(setq ex-token vip-s-string))
+    (setq vip-s-string ex-token))
   (if forward
       (progn
-	(vip-skip-all-separators-forward 'within-line)
-	(if (looking-at "\n")
-	    (progn
-	      (forward-char)
-	      (vip-skip-all-separators-forward  'within-line))))
-    (vip-skip-all-separators-backward 'within-line)
-    (backward-char)
-    (if (looking-at "\n")
-	(vip-skip-all-separators-backward 'within-line)
-      (forward-char))))
-      
-(defun vip-forward-word-kernel (val)
-  (while (> val 0)
-    (cond ((vip-looking-at-alpha)
-	   (vip-skip-alpha-forward "_")
-	   (vip-skip-separators t))
-	  ((vip-looking-at-separator)
-	   (vip-skip-separators t))
-	  ((not (vip-looking-at-alphasep))
-	   (vip-skip-nonalphasep-forward)
-	   (vip-skip-separators t)))
-    (setq val (1- val))))
-
-;; first search backward for pat. Then skip chars backwards using aux-pat
-(defun vip-fwd-skip (pat aux-pat lim)
-  (if (and (save-excursion 
-	     (re-search-backward pat lim t))
-	   (= (point) (match-end 0)))
-      (goto-char (match-beginning 0)))
-  (skip-chars-backward aux-pat lim)
-  (if (= (point) lim)
-      (vip-forward-char-carefully))
-  )
-
-	  
-(defun vip-forward-word (arg)
-  "Forward word."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-forward-word-kernel val)
-    (if com (progn
-	      (cond ((memq com (list ?c (- ?c)))
-		     (vip-fwd-skip "\n[ \t]*" " \t" vip-com-point))
-		    ;; Yank words including the whitespace, but not newline
-		    ((memq com (list ?y (- ?y)))
-		     (vip-fwd-skip "\n[ \t]*" "" vip-com-point))
-		    ((vip-dotable-command-p com)
-		     (vip-fwd-skip "\n[ \t]*" "" vip-com-point)))
-	      (vip-execute-com 'vip-forward-word val com)))))
-	  
-
-(defun vip-forward-Word (arg)
-  "Forward word delimited by white characters."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-loop val
-	      (progn
-		(vip-skip-nonseparators 'forward)
-		(vip-skip-separators t)))
-    (if com (progn
-	      (cond ((memq com (list ?c (- ?c)))
-		     (vip-fwd-skip "\n[ \t]*" " \t" vip-com-point))
-		    ;; Yank words including the whitespace, but not newline
-		    ((memq com (list ?y (- ?y)))
-		     (vip-fwd-skip "\n[ \t]*" "" vip-com-point))
-		    ((vip-dotable-command-p com)
-		     (vip-fwd-skip "\n[ \t]*" "" vip-com-point)))
-	      (vip-execute-com 'vip-forward-Word val com)))))
-
-
-;; this is a bit different from Vi, but Vi's end of word 
-;; makes no sense whatsoever
-(defun vip-end-of-word-kernel ()
-  (if (vip-end-of-word-p) (forward-char))
-  (if (vip-looking-at-separator)
-      (vip-skip-all-separators-forward))
-  
-  (cond ((vip-looking-at-alpha) (vip-skip-alpha-forward "_"))
-	((not (vip-looking-at-alphasep)) (vip-skip-nonalphasep-forward)))
-  (vip-backward-char-carefully))
-
-(defun vip-end-of-word-p ()
-  (or (eobp) 
-      (save-excursion
-	(cond ((vip-looking-at-alpha)
-	       (forward-char)
-	       (not (vip-looking-at-alpha)))
-	      ((not (vip-looking-at-alphasep))
-	       (forward-char)
-	       (vip-looking-at-alphasep))))))
-
-
-(defun vip-end-of-word (arg &optional careful)
-  "Move point to end of current word."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-loop val (vip-end-of-word-kernel))
-    (if com 
-	(progn
-	  (forward-char)
-	  (vip-execute-com 'vip-end-of-word val com)))))
-
-(defun vip-end-of-Word (arg)
-  "Forward to end of word delimited by white character."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-loop val
-	      (progn
-		(vip-end-of-word-kernel)
-		(vip-skip-nonseparators 'forward)
-		(backward-char)))
-    (if com 
-	(progn
-	  (forward-char)
-	  (vip-execute-com 'vip-end-of-Word val com)))))
-
-(defun vip-backward-word-kernel (val)
-  (while (> val 0)
-    (backward-char)
-    (cond ((vip-looking-at-alpha)
-	   (vip-skip-alpha-backward "_"))
-	  ((vip-looking-at-separator)
-	   (forward-char)
-	   (vip-skip-separators nil)
-	   (backward-char)
-	   (cond ((vip-looking-at-alpha)
-		  (vip-skip-alpha-backward "_"))
-		 ((not (vip-looking-at-alphasep))
-		  (vip-skip-nonalphasep-backward))
-		 (t (forward-char))))
-	  ((not (vip-looking-at-alphasep))
-	   (vip-skip-nonalphasep-backward)))
-    (setq val (1- val))))
-
-(defun vip-backward-word (arg)
-  "Backward word."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com
-	(let (i)
-	  (if (setq i (save-excursion (backward-char) (looking-at "\n")))
-	      (backward-char))
-	  (vip-move-marker-locally 'vip-com-point (point))
-	  (if i (forward-char))))
-    (vip-backward-word-kernel val)
-    (if com (vip-execute-com 'vip-backward-word val com))))
-
-(defun vip-backward-Word (arg)
-  "Backward word delimited by white character."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com
-	(let (i)
-	  (if (setq i (save-excursion (backward-char) (looking-at "\n")))
-	      (backward-char))
-	  (vip-move-marker-locally 'vip-com-point (point))
-	  (if i (forward-char))))
-    (vip-loop val
-	      (progn 
-		(vip-skip-separators nil)
-		(vip-skip-nonseparators 'backward)))
-    (if com (vip-execute-com 'vip-backward-Word val com))))
-
-
-
-;; line commands
-
-(defun vip-beginning-of-line (arg)
-  "Go to beginning of line."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (beginning-of-line val)
-    (if com (vip-execute-com 'vip-beginning-of-line val com))))
-
-(defun vip-bol-and-skip-white (arg)
-  "Beginning of line at first non-white character."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (forward-to-indentation (1- val))
-    (if com (vip-execute-com 'vip-bol-and-skip-white val com))))
-
-(defun vip-goto-eol (arg)
-  "Go to end of line."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (end-of-line val)
-    (if com (vip-execute-com 'vip-goto-eol val com))
-    (if vip-ex-style-motion
-	(if (and (eolp) (not (bolp)) 
-		 ;; a fix for vip-change-to-eol
-		 (not (equal vip-current-state 'insert-state)))
-	    (backward-char 1)
-    ))))
-
-
-(defun vip-goto-col (arg)
-  "Go to ARG's column."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (save-excursion
-      (end-of-line)
-      (if (> val (1+ (current-column))) (error "")))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (beginning-of-line)
-    (forward-char (1- val))
-    (if com (vip-execute-com 'vip-goto-col val com))))
-    
-
-(defun vip-next-line (arg)
-  "Go to next line."
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (next-line val)
-    (if vip-ex-style-motion
-	(if (and (eolp) (not (bolp))) (backward-char 1)))
-    (setq this-command 'next-line)
-    (if com (vip-execute-com 'vip-next-line val com))))
-
-(defun vip-next-line-at-bol (arg)
-  "Next line at beginning of line."
-  (interactive "P")
-  (vip-leave-region-active)
-  (save-excursion
-    (end-of-line)
-    (if (eobp) (error "Last line in buffer")))
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (forward-line val)
-    (back-to-indentation)
-    (if com (vip-execute-com 'vip-next-line-at-bol val com))))
-
-(defun vip-previous-line (arg)	 
-  "Go to previous line."    	
-  (interactive "P")
-  (vip-leave-region-active)
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (previous-line val)
-    (if vip-ex-style-motion
-	(if (and (eolp) (not (bolp))) (backward-char 1)))
-    (setq this-command 'previous-line)
-    (if com (vip-execute-com 'vip-previous-line val com))))
-
-
-(defun vip-previous-line-at-bol (arg)
-  "Previous line at beginning of line."
-  (interactive "P")
-  (vip-leave-region-active)
-  (save-excursion
-    (beginning-of-line)
-    (if (bobp) (error "First line in buffer")))
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (forward-line (- val))
-    (back-to-indentation)
-    (if com (vip-execute-com 'vip-previous-line val com))))
-
-(defun vip-change-to-eol (arg)
-  "Change to end of line."
-  (interactive "P")
-  (vip-goto-eol (cons arg ?c)))
-
-(defun vip-kill-line (arg)
-  "Delete line."
-  (interactive "P")
-  (vip-goto-eol (cons arg ?d)))
-
-(defun vip-erase-line (arg)
-  "Erase line."
-  (interactive "P")
-  (vip-beginning-of-line (cons arg ?d)))
-
-
-;;; Moving around
-
-(defun vip-goto-line (arg)
-  "Go to ARG's line.  Without ARG go to end of buffer."
-  (interactive "P")
-  (let ((val (vip-P-val arg))
-	(com (vip-getCom arg)))
-    (vip-move-marker-locally 'vip-com-point (point))
-    (vip-deactivate-mark)
-    (push-mark nil t)
-    (if (null val)
-	(goto-char (point-max))
-      (goto-char (point-min))
-      (forward-line (1- val)))
-    
-    ;; positioning is done twice: before and after command execution
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    
-    (if com (vip-execute-com 'vip-goto-line val com))
-    
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    ))
-
-;; Find ARG's occurrence of CHAR on the current line. 
-;; If FORWARD then search is forward, otherwise backward.  OFFSET is used to
-;; adjust point after search.
-(defun vip-find-char (arg char forward offset)
-  (or (char-or-string-p char) (error ""))
-  (let ((arg (if forward arg (- arg)))
-	(cmd (if (eq vip-intermediate-command 'vip-repeat)
-		 (nth 5 vip-d-com)
-	       (vip-array-to-string (this-command-keys))))
-	point)
-    (save-excursion
-      (save-restriction
-	(if (> arg 0)
-	    (narrow-to-region
-	     ;; forward search begins here
-	     (if (eolp) (error "Command `%s':  At end of line" cmd) (point))
-	     ;; forward search ends here
-	     (progn (end-of-line) (point)))
-	  (narrow-to-region
-	   ;; backward search begins from here
-	   (if (bolp)
-	       (error "Command `%s':  At beginning of line" cmd) (point))
-	   ;; backward search ends here
-	   (progn (beginning-of-line) (point))))
-	;; if arg > 0, point is forwarded before search.
-	(if (> arg 0) (goto-char (1+ (point-min)))
-	  (goto-char (point-max)))
-	(if (let ((case-fold-search nil))
-	      (search-forward (char-to-string char) nil 0 arg))
-	    (setq point (point))
-	  (error "Command `%s':  `%c' not found" cmd char))))
-    (goto-char (+ point (if (> arg 0) (if offset -2 -1) (if offset 1 0))))))
-
-(defun vip-find-char-forward (arg)
-  "Find char on the line. 
-If called interactively read the char to find from the terminal, and if
-called from vip-repeat, the char last used is used.  This behaviour is
-controlled by the sign of prefix numeric value."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg))
-	(cmd-representation (nth 5 vip-d-com)))
-    (if (> val 0)
-	;; this means that the function was called interactively
-	(setq vip-f-char (read-char)
-	      vip-f-forward t
-	      vip-f-offset nil)
-      ;; vip-repeat --- set vip-F-char from command-keys
-      (setq vip-F-char (if (stringp cmd-representation)
-			   (vip-seq-last-elt cmd-representation)
-			 vip-F-char)
-	    vip-f-char vip-F-char)
-      (setq val (- val)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char val (if (> (vip-p-val arg) 0) vip-f-char vip-F-char) t nil)
-    (setq val (- val))
-    (if com
-	(progn
-	  (setq vip-F-char vip-f-char) ; set new vip-F-char
-	  (forward-char)
-	  (vip-execute-com 'vip-find-char-forward val com)))))
-
-(defun vip-goto-char-forward (arg)
-  "Go up to char ARG forward on line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg))
-	(cmd-representation (nth 5 vip-d-com)))
-    (if (> val 0)
-	;; this means that the function was called interactively
-	(setq vip-f-char (read-char)
-	      vip-f-forward t
-	      vip-f-offset t)
-      ;; vip-repeat --- set vip-F-char from command-keys
-      (setq vip-F-char (if (stringp cmd-representation)
-			   (vip-seq-last-elt cmd-representation)
-			 vip-F-char)
-	    vip-f-char vip-F-char)
-      (setq val (- val)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char val (if (> (vip-p-val arg) 0) vip-f-char vip-F-char) t t)
-    (setq val (- val))
-    (if com
-	(progn
-	  (setq vip-F-char vip-f-char) ; set new vip-F-char
-	  (forward-char)
-	  (vip-execute-com 'vip-goto-char-forward val com)))))
-
-(defun vip-find-char-backward (arg)
-  "Find char ARG on line backward."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg))
-	(cmd-representation (nth 5 vip-d-com)))
-    (if (> val 0)
-	;; this means that the function was called interactively
-	(setq vip-f-char (read-char)
-	      vip-f-forward nil
-	      vip-f-offset nil)
-      ;; vip-repeat --- set vip-F-char from command-keys
-      (setq vip-F-char (if (stringp cmd-representation)
-			   (vip-seq-last-elt cmd-representation)
-			 vip-F-char)
-	    vip-f-char vip-F-char)
-      (setq val (- val)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char
-     val (if (> (vip-p-val arg) 0) vip-f-char vip-F-char) nil nil)
-    (setq val (- val))
-    (if com
-	(progn
-	  (setq vip-F-char vip-f-char) ; set new vip-F-char
-	  (vip-execute-com 'vip-find-char-backward val com)))))
-
-(defun vip-goto-char-backward (arg)
-  "Go up to char ARG backward on line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg))
-	(cmd-representation (nth 5 vip-d-com)))
-    (if (> val 0)
-	;; this means that the function was called interactively
-	(setq vip-f-char (read-char)
-	      vip-f-forward nil
-	      vip-f-offset t)
-      ;; vip-repeat --- set vip-F-char from command-keys
-      (setq vip-F-char (if (stringp cmd-representation)
-			   (vip-seq-last-elt cmd-representation)
-			 vip-F-char)
-	    vip-f-char vip-F-char)
-      (setq val (- val)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char val (if (> (vip-p-val arg) 0) vip-f-char vip-F-char) nil t)
-    (setq val (- val))
-    (if com
-	(progn
-	  (setq vip-F-char vip-f-char) ; set new vip-F-char
-	  (vip-execute-com 'vip-goto-char-backward val com)))))
-
-(defun vip-repeat-find (arg)
-  "Repeat previous find command."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-deactivate-mark)
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char val vip-f-char vip-f-forward vip-f-offset)
-    (if com
-	(progn
-	  (if vip-f-forward (forward-char))
-	  (vip-execute-com 'vip-repeat-find val com)))))
-
-(defun vip-repeat-find-opposite (arg)
-  "Repeat previous find command in the opposite direction."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (vip-deactivate-mark)
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (vip-find-char val vip-f-char (not vip-f-forward) vip-f-offset)
-    (if com
-	(progn
-	  (if vip-f-forward (forward-char))
-	  (vip-execute-com 'vip-repeat-find-opposite val com)))))
-
-
-;; window scrolling etc.
-
-(defun vip-other-window (arg)
-  "Switch to other window."
-  (interactive "p")
-  (other-window arg)
-  (or (not (eq vip-current-state 'emacs-state))
-      (string= (buffer-name (current-buffer)) " *Minibuf-1*")
-      (vip-change-state-to-vi)))
-
-(defun vip-window-top (arg)
-  "Go to home window line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (push-mark nil t) 
-    (move-to-window-line (1- val))
-
-    ;; positioning is done twice: before and after command execution
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    
-    (if com (vip-execute-com 'vip-window-top val com))
-    
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    ))
-
-(defun vip-window-middle (arg)
-  "Go to middle window line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg))
-	lines)
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (push-mark nil t) 
-    (if (not (pos-visible-in-window-p (point-max)))
-	(move-to-window-line (+ (/ (1- (window-height)) 2) (1- val)))
-      (setq lines (count-lines (window-start) (point-max)))
-      (move-to-window-line (+ (/ lines 2) (1- val))))
-      
-    ;; positioning is done twice: before and after command execution
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-
-    (if com (vip-execute-com 'vip-window-middle val com))
-    
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    ))
-
-(defun vip-window-bottom (arg)
-  "Go to last window line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (push-mark nil t) 
-    (move-to-window-line (- val))
-    
-    ;; positioning is done twice: before and after command execution
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-
-    (if com (vip-execute-com 'vip-window-bottom val com))
-    
-    (if (and (eobp) (bolp) (not (bobp))) (forward-line -1))
-    (back-to-indentation)
-    ))
-
-(defun vip-line-to-top (arg)
-  "Put current line on the home line."
-  (interactive "p")
-  (recenter (1- arg)))
-
-(defun vip-line-to-middle (arg)
-  "Put current line on the middle line."
-  (interactive "p")
-  (recenter (+ (1- arg) (/ (1- (window-height)) 2))))
-
-(defun vip-line-to-bottom (arg)
-  "Put current line on the last line."
-  (interactive "p")
-  (recenter (- (window-height) (1+ arg))))
-
-
-;; paren match
-;; must correct this to only match ( to ) etc. On the other hand
-;; it is good that paren match gets confused, because that way you
-;; catch _all_ imbalances. 
-
-(defun vip-paren-match (arg)
-  "Go to the matching parenthesis."
-  (interactive "P")
-  (let ((com (vip-getcom arg))
-	anchor-point)
-    (if (integerp arg)
-	(if (or (> arg 99) (< arg 1))
-	    (error "Prefix must be between 1 and 99")
-	  (goto-char
-	   (if (> (point-max) 80000)
-	       (* (/ (point-max) 100) arg)
-	     (/ (* (point-max) arg) 100)))
-	  (back-to-indentation))
-      (let (beg-lim end-lim)
-	(if (and (eolp) (not (bolp))) (forward-char -1))
-	(if (not (looking-at "[][(){}]"))
-	    (setq anchor-point (point)))
-	(save-excursion
-	  (beginning-of-line)
-	  (setq beg-lim (point))
-	  (end-of-line)
-	  (setq end-lim (point)))
-	(cond ((re-search-forward "[][(){}]" end-lim t) 
-	       (backward-char) )
-	      ((re-search-backward "[][(){}]" beg-lim t))
-	      (t
-	       (error "No matching character on line"))))
-      (cond ((looking-at "[\(\[{]")
-	     (if com (vip-move-marker-locally 'vip-com-point (point)))
-	     (forward-sexp 1)
-	     (if com
-		 (vip-execute-com 'vip-paren-match nil com)
-	       (backward-char)))
-	    (anchor-point
-	     (if com
-		 (progn
-		   (vip-move-marker-locally 'vip-com-point anchor-point)
-		   (forward-char 1)
-		   (vip-execute-com 'vip-paren-match nil com)
-		   )))
-	    ((looking-at "[])}]")
-	     (forward-char)
-	     (if com (vip-move-marker-locally 'vip-com-point (point)))
-	     (backward-sexp 1)
-	     (if com (vip-execute-com 'vip-paren-match nil com)))
-	    (t (error ""))))))
-
-
-;; sentence ,paragraph and heading
-
-(defun vip-forward-sentence (arg)
-  "Forward sentence."
-  (interactive "P")
-  (push-mark nil t) 
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (forward-sentence val)
-    (if com (vip-execute-com 'vip-forward-sentence nil com))))
-
-(defun vip-backward-sentence (arg)
-  "Backward sentence."
-  (interactive "P")
-  (push-mark nil t) 
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (backward-sentence val)
-    (if com (vip-execute-com 'vip-backward-sentence nil com))))
-
-(defun vip-forward-paragraph (arg)
-  "Forward paragraph."
-  (interactive "P")
-  (push-mark nil t) 
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (forward-paragraph val)
-    (if com
-	(progn
-	  (backward-char 1)
-	  (vip-execute-com 'vip-forward-paragraph nil com)))))
-
-(defun vip-backward-paragraph (arg)
-  "Backward paragraph."
-  (interactive "P")
-  (push-mark nil t) 
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (backward-paragraph val)
-    (if com
-	(progn
-	  (forward-char 1)
-	  (vip-execute-com 'vip-backward-paragraph nil com)
-	  (backward-char 1)))))
-
-;; should be mode-specific etc.
-
-(defun vip-prev-heading (arg)
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (re-search-backward vip-heading-start nil t val)
-    (goto-char (match-beginning 0))
-    (if com (vip-execute-com 'vip-prev-heading nil com))))
-
-(defun vip-heading-end (arg)
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (re-search-forward vip-heading-end nil t val)
-    (goto-char (match-beginning 0))
-    (if com (vip-execute-com 'vip-heading-end nil com))))
-
-(defun vip-next-heading (arg)
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getCom arg)))
-    (if com (vip-move-marker-locally 'vip-com-point (point)))
-    (end-of-line)
-    (re-search-forward vip-heading-start nil t val)
-    (goto-char (match-beginning 0))
-    (if com (vip-execute-com 'vip-next-heading nil com))))
-
-
-;; scrolling
-
-(setq scroll-step 1)
-
-(defun vip-scroll (arg)
-  "Scroll to next screen."
-  (interactive "p")
-  (if (> arg 0)
-      (while (> arg 0)
-	(scroll-up)
-	(setq arg (1- arg)))
-    (while (> 0 arg)
-      (scroll-down)
-      (setq arg (1+ arg)))))
-
-(defun vip-scroll-back (arg)
-  "Scroll to previous screen."
-  (interactive "p")
-  (vip-scroll (- arg)))
-
-(defun vip-scroll-down (arg)
-  "Pull down half screen."
-  (interactive "P")
-  (condition-case nil
-      (if (null arg)
-	  (scroll-down (/ (window-height) 2))
-	(scroll-down arg))
-    (error (beep 1)
-	   (message "Beginning of buffer")
-	   (goto-char (point-min)))))
-
-(defun vip-scroll-down-one (arg)
-  "Scroll up one line."
-  (interactive "p")
-  (scroll-down arg))
-
-(defun vip-scroll-up (arg)
-  "Pull up half screen."
-  (interactive "P")
-  (condition-case nil
-      (if (null arg)
-	  (scroll-up (/ (window-height) 2))
-	(scroll-up arg))
-    (error (beep 1)
-	   (message "End of buffer")
-	   (goto-char (point-max)))))
-
-(defun vip-scroll-up-one (arg)
-  "Scroll down one line."
-  (interactive "p")
-  (scroll-up arg))
-
-
-;; searching
-
-(defun vip-if-string (prompt)
-  (let ((s (vip-read-string-with-history
-	    prompt
-	    nil ; no initial
-	    'vip-search-history
-	    (car vip-search-history))))
-    (if (not (string= s ""))
-	(setq vip-s-string s))))  
-	
-    
-(defun vip-toggle-search-style (arg) 
-  "Toggle the value of vip-case-fold-search/vip-re-search.
-Without prefix argument, will ask which search style to toggle. With prefix
-arg 1,toggles vip-case-fold-search; with arg 2 toggles vip-re-search.
-
-Although this function is bound to \\[vip-toggle-search-style], the most
-convenient way to use it is to bind `//' to the macro
-`1 M-x vip-toggle-search-style' and `///' to
-`2 M-x vip-toggle-search-style'. In this way, hitting `//' quickly will
-toggle case-fold-search and hitting `/' three times witth toggle regexp
-search. Macros are more convenient in this case because they don't affect
-the Emacs binding of `/'."
-  (interactive "P")
-  (let (msg)
-    (cond ((or (eq arg 1)
-	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'. Want '%s'? "
-				      (if vip-case-fold-search
-					  "case-insensitive" "case-sensitive")
-				      (if vip-case-fold-search
-					  "case-sensitive"
-					"case-insensitive")))))
-	   (setq vip-case-fold-search (null vip-case-fold-search))
-	   (if vip-case-fold-search
-	       (setq msg "Search becomes case-insensitive")
-	     (setq msg "Search becomes case-sensitive")))
-	  ((or (eq arg 2)
-	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'. Want '%s'? "
-				      (if vip-re-search
-					  "regexp-search" "vanilla-search")
-				      (if vip-re-search
-					  "vanilla-search"
-					"regexp-search")))))
-	   (setq vip-re-search (null vip-re-search))
-	   (if vip-re-search
-	       (setq msg "Search becomes regexp-style")
-	     (setq msg "Search becomes vanilla-style")))
-	  (t
-	   (setq msg "Search style remains unchanged")))
-    (prin1 msg t)))
-
-
-(defun vip-search-forward (arg)
-  "Search a string forward. 
-ARG is used to find the ARG's occurrence of the string.
-Null string will repeat previous search."
-  (interactive "P")
-  (let ((val (vip-P-val arg))
-	(com (vip-getcom arg))
-	(old-str vip-s-string))
-    (setq vip-s-forward t)
-    (vip-if-string "/")
-    ;; this is not used at present, but may be used later
-    (if (or (not (equal old-str vip-s-string))
-	    (not (markerp vip-local-search-start-marker))
-	    (not (marker-buffer vip-local-search-start-marker)))
-	(setq vip-local-search-start-marker (point-marker)))
-    (vip-search vip-s-string t val)
-    (if com
-	(progn
-	  (vip-move-marker-locally 'vip-com-point (mark t))
-	  (vip-execute-com 'vip-search-next val com)))))
-
-(defun vip-search-backward (arg)
-  "Search a string backward. 
-ARG is used to find the ARG's occurrence of the string.
-Null string will repeat previous search."
-  (interactive "P")
-  (let ((val (vip-P-val arg))
-	(com (vip-getcom arg))
-	(old-str vip-s-string))
-    (setq vip-s-forward nil)
-    (vip-if-string "?")
-    ;; this is not used at present, but may be used later
-    (if (or (not (equal old-str vip-s-string))
-	    (not (markerp vip-local-search-start-marker))
-	    (not (marker-buffer vip-local-search-start-marker)))
-	(setq vip-local-search-start-marker (point-marker)))
-    (vip-search vip-s-string nil val)
-    (if com
-	(progn
-	  (vip-move-marker-locally 'vip-com-point (mark t))
-	  (vip-execute-com 'vip-search-next val com)))))
-	  
-
-;; Search for COUNT's occurrence of STRING.
-;; Search is forward if FORWARD is non-nil, otherwise backward.
-;; INIT-POINT is the position where search is to start.
-;; Arguments:
-;;   (STRING FORW COUNT &optional NO-OFFSET INIT-POINT LIMIT FAIL-IF-NOT-FOUND)
-(defun vip-search (string forward arg
-			  &optional no-offset init-point fail-if-not-found)
-  (if (not (equal string ""))
-    (let ((val (vip-p-val arg))
-	  (com (vip-getcom arg))
-	  (offset (not no-offset))
-	  (case-fold-search vip-case-fold-search)
-	  (start-point (or init-point (point))))
-      (vip-deactivate-mark)
-      (if forward
-	  (condition-case nil
-	      (progn
-	        (if offset (vip-forward-char-carefully))
-	        (if vip-re-search
-		    (progn
-		      (re-search-forward string nil nil val)
-		      (re-search-backward string))
-		  (search-forward string nil nil val)
-		  (search-backward string))
-		;; don't wait and don't flash in macros
-		(or executing-kbd-macro
-		    (vip-flash-search-pattern))
-		(if (not (equal start-point (point)))
-		    (push-mark start-point t))) 
-	    (search-failed
-	     (if (and (not fail-if-not-found) vip-search-wrap-around-t)
-	         (progn
-		   (message "Search wrapped around end of buffer")
-		   (goto-char (point-min))
-		   (vip-search string forward (cons 1 com) t start-point 'fail)
-		   ;; don't wait in macros
-		   (or executing-kbd-macro (sit-for 2))
-		   ;; delete the wrap-around message
-		   (message "")
-		   )
-	       (goto-char start-point)
-	       (error "`%s': %s not found"
-		      string
-		      (if vip-re-search "Pattern" "String"))
-	       )))
-	;; backward
-        (condition-case nil
-	    (progn
-	      (if vip-re-search
-		  (re-search-backward string nil nil val)
-	        (search-backward string nil nil val))
-	      ;; don't wait and don't flash in macros
-	      (or executing-kbd-macro
-		  (vip-flash-search-pattern))
-	      (if (not (equal start-point (point)))
-		  (push-mark start-point t))) 
-	  (search-failed
-	   (if (and (not fail-if-not-found) vip-search-wrap-around-t)
-	       (progn
-		 (message "Search wrapped around beginning of buffer")
-	         (goto-char (point-max))
-	         (vip-search string forward (cons 1 com) t start-point 'fail)
-		 ;; don't wait in macros
-		 (or executing-kbd-macro (sit-for 2))
-		 ;; delete the wrap-around message
-		 (message "")
-		 )
-	     (goto-char start-point)
-	     (error "`%s': %s not found"
-		    string
-		    (if vip-re-search "Pattern" "String"))
-	     )))))))
-
-(defun vip-search-next (arg)
-  "Repeat previous search."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if (null vip-s-string) (error vip-NoPrevSearch))
-    (vip-search vip-s-string vip-s-forward arg)
-    (if com
-	(progn
-	  (vip-move-marker-locally 'vip-com-point (mark t))
-	  (vip-execute-com 'vip-search-next val com)))))
-
-(defun vip-search-Next (arg)
-  "Repeat previous search in the reverse direction."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(com (vip-getcom arg)))
-    (if (null vip-s-string) (error vip-NoPrevSearch))
-    (vip-search vip-s-string (not vip-s-forward) arg)
-    (if com
-	(progn
-	  (vip-move-marker-locally 'vip-com-point (mark t))
-	  (vip-execute-com 'vip-search-Next val com)))))
-
-
-;; Search contents of buffer defined by one of Viper's motion commands.
-;; Repeatable via `n' and `N'.
-(defun vip-buffer-search-enable (&optional c)
-  (cond (c (setq vip-buffer-search-char c))
-	((null vip-buffer-search-char)
-	 (setq vip-buffer-search-char ?g)))
-  (define-key vip-vi-basic-map
-    (char-to-string vip-buffer-search-char) 'vip-command-argument)
-  (aset vip-exec-array vip-buffer-search-char 'vip-exec-buffer-search)
-  (setq vip-prefix-commands (cons vip-buffer-search-char vip-prefix-commands)))
-
-;; This is a Viper wraper for isearch-forward.
-(defun vip-isearch-forward (arg)
-  "Do incremental search forward."
-  (interactive "P")
-  ;; emacs bug workaround
-  (if (listp arg) (setq arg (car arg)))
-  (vip-exec-form-in-emacs (list 'isearch-forward arg)))
-
-;; This is a Viper wraper for isearch-backward."
-(defun vip-isearch-backward (arg)
-  "Do incremental search backward."
-  (interactive "P")
-  ;; emacs bug workaround
-  (if (listp arg) (setq arg (car arg)))
-  (vip-exec-form-in-emacs (list 'isearch-backward arg)))
-
-
-;; visiting and killing files, buffers
-
-(defun vip-switch-to-buffer ()
-  "Switch to buffer in the current window."
-  (interactive)
-  (let (buffer)
-    (setq buffer
-	  (read-buffer
-	   (format "Switch to buffer in this window \(%s\): "
-		   (buffer-name (other-buffer (current-buffer))))))
-    (switch-to-buffer buffer)
-    ))
-
-(defun vip-switch-to-buffer-other-window ()
-  "Switch to buffer in another window."
-  (interactive)
-  (let (buffer)
-    (setq buffer
-	  (read-buffer
-	   (format "Switch to buffer in another window \(%s\): "
-		   (buffer-name (other-buffer (current-buffer))))))
-    (switch-to-buffer-other-window buffer)
-    ))
-
-(defun vip-kill-buffer ()
-  "Kill a buffer."
-  (interactive)
-  (let (buffer buffer-name)
-    (setq buffer-name
-	  (read-buffer
-	   (format "Kill buffer \(%s\): "
-		   (buffer-name (current-buffer)))))
-    (setq buffer
-	  (if (null buffer-name)
-	      (current-buffer)
-	    (get-buffer buffer-name)))
-    (if (null buffer) (error "`%s': No such buffer" buffer-name))
-    (if (or (not (buffer-modified-p buffer))
-	    (y-or-n-p 
-	     (format
-	      "Buffer `%s' is modified, are you sure you want to kill it? "
-	      buffer-name)))
-	(kill-buffer buffer)
-      (error "Buffer not killed"))))
-
-
-(defvar vip-smart-suffix-list '("" "tex" "c" "cc" "el" "p")
-  "*List of suffixes that Viper automatically tries to append to filenames ending with a `.'.
-This is useful when you the current directory contains files with the same
-prefix and many different suffixes. Usually, only one of the suffixes
-represents an editable file. However, file completion will stop at the `.'
-The smart suffix feature lets you hit RET in such a case, and Viper will
-select the appropriate suffix.
-
-Suffixes are tried in the order given and the first suffix for which a
-corresponding file exists is selected. If no file exists for any of the
-suffixes, the user is asked to confirm.
-
-To turn this feature off, set this variable to nil.")
-    
-;; Try to add suffix to files ending with a `.'
-;; Useful when the user hits RET on a non-completed file name.
-(defun vip-file-add-suffix ()
-  (let ((count 0)
-	(len (length vip-smart-suffix-list))
-	(file (buffer-string))
-	found key cmd suff)
-    (goto-char (point-max))
-    (if (and vip-smart-suffix-list (string-match "\\.$" file))
-	(progn
-	  (while (and (not found) (< count len))
-	    (setq suff (nth count vip-smart-suffix-list)
-		  count (1+ count))
-	    (if (file-exists-p (format "%s%s" file suff))
-		(progn
-		  (setq found t)
-		  (insert suff))))
-      
-	  (if found
-	      ()
-	    (vip-tmp-insert-at-eob " [Please complete file name]")
-	    (unwind-protect 
-		(while (not (memq cmd '(exit-minibuffer vip-exit-minibuffer)))
-		  (setq cmd
-			(key-binding (setq key (read-key-sequence nil))))
-		  (cond ((eq cmd 'self-insert-command)
-			 (if vip-xemacs-p
-			     (insert (events-to-keys key))
-			   (insert key)))
-			((memq cmd '(exit-minibuffer vip-exit-minibuffer))
-			 nil)
-			(t (command-execute cmd)))
-		  )))
-	      ))
-    ))
-
-
-;; Advice for use in find-file and read-file-name commands.
-(defadvice exit-minibuffer (before vip-exit-minibuffer-advice activate)
-  "Run `vip-minibuffer-exit-hook' just before exiting the minibuffer."
-  (run-hooks 'vip-minibuffer-exit-hook))
-
-(defadvice find-file (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (list (read-file-name "Find file: "
-				     nil default-directory))))
-    
-(defadvice find-file-other-window (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (list (read-file-name "Find file in other window: "
-				     nil default-directory))))
-    
-(defadvice find-file-other-frame (before vip-add-suffix-advice activate)
-  "Use `read-file-name' for reading arguments."
-  (interactive (list (read-file-name "Find file in other frame: "
-				     nil default-directory))))
-
-(defadvice read-file-name (around vip-suffix-advice activate)
-  "Tell `exit-minibuffer' to run `vip-file-add-suffix' as a hook."
-  (let ((vip-minibuffer-exit-hook 'vip-file-add-suffix))
-    ad-do-it))
-
-     
-
-;; yank and pop
-
-(defsubst vip-yank (text)
-  "Yank TEXT silently. This works correctly with Emacs's yank-pop command."
-    (insert text)
-    (setq this-command 'yank))
-
-(defun vip-put-back (arg)
-  "Put back after point/below line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(text (if vip-use-register
-		  (cond ((vip-valid-register vip-use-register '(digit))
-			 (current-kill (- vip-use-register ?1) 'do-not-rotate))
-			((vip-valid-register vip-use-register)
-			 (get-register (downcase vip-use-register)))
-			(t (error vip-InvalidRegister vip-use-register)))
-		(current-kill 0))))
-    (if (null text)
-	(if vip-use-register
-	    (let ((reg vip-use-register))
-	      (setq vip-use-register nil)
-	      (error vip-EmptyRegister reg))
-	  (error "")))
-    (setq vip-use-register nil)
-    (if (vip-end-with-a-newline-p text)
-	(progn
-	  (if (eobp)
-	      (insert "\n")
-	    (forward-line 1))
-	  (beginning-of-line))
-      (if (not (eolp)) (vip-forward-char-carefully)))
-    (set-marker (vip-mark-marker) (point) (current-buffer))
-    (vip-set-destructive-command
-     (list 'vip-put-back val nil vip-use-register nil nil))
-    (vip-loop val (vip-yank text)))
-  ;; Vi puts cursor on the last char when the yanked text doesn't contain a
-  ;; newline; it leaves the cursor at the beginning when the text contains 
-  ;; a newline
-  (if (vip-same-line (point) (mark))
-      (or (= (point) (mark)) (vip-backward-char-carefully))
-    (exchange-point-and-mark)
-    (if (bolp)
-	(back-to-indentation)))
-  (vip-deactivate-mark))
-
-(defun vip-Put-back (arg)
-  "Put back at point/above line."
-  (interactive "P")
-  (let ((val (vip-p-val arg))
-	(text (if vip-use-register
-		  (cond ((vip-valid-register vip-use-register '(digit))
-			 (current-kill (- vip-use-register ?1) 'do-not-rotate))
-			((vip-valid-register vip-use-register)
-			 (get-register (downcase vip-use-register)))
-			(t (error vip-InvalidRegister vip-use-register)))
-		(current-kill 0))))
-    (if (null text)
-	(if vip-use-register
-	    (let ((reg vip-use-register))
-	      (setq vip-use-register nil)
-	      (error vip-EmptyRegister reg))
-	  (error "")))
-    (setq vip-use-register nil)
-    (if (vip-end-with-a-newline-p text) (beginning-of-line))
-    (vip-set-destructive-command
-     (list 'vip-Put-back val nil vip-use-register nil nil))
-    (set-marker (vip-mark-marker) (point) (current-buffer))
-    (vip-loop val (vip-yank text)))
-  ;; Vi puts cursor on the last char when the yanked text doesn't contain a
-  ;; newline; it leaves the cursor at the beginning when the text contains 
-  ;; a newline
-  (if (vip-same-line (point) (mark))
-      (or (= (point) (mark)) (vip-backward-char-carefully))
-    (exchange-point-and-mark)
-    (if (bolp)
-	(back-to-indentation)))
-  (vip-deactivate-mark))
-    
-
-;; Copy region to kill-ring.
-;; If BEG and END do not belong to the same buffer, copy empty region.
-(defun vip-copy-region-as-kill (beg end)
-  (condition-case nil
-      (copy-region-as-kill beg end)
-    (error (copy-region-as-kill beg beg))))
-    
-
-(defun vip-delete-char (arg)
-  "Delete character."
-  (interactive "P")
-  (let ((val (vip-p-val arg)))
-    (vip-set-destructive-command (list 'vip-delete-char val nil nil nil nil))
-    (if (> val 1)
-	(save-excursion
-	  (let ((here (point)))
-	    (end-of-line)
-	    (if (> val (- (point) here))
-		(setq val (- (point) here))))))
-    (if (and (eq val 0) (not vip-ex-style-motion)) (setq val 1))
-    (if (and vip-ex-style-motion (eolp))
-	(if (bolp) (error "") (setq val 0))) ; not bol---simply back 1 ch
-    (if vip-use-register
-	(progn
-	  (cond ((vip-valid-register vip-use-register '((Letter)))
-		 (vip-append-to-register
-		  (downcase vip-use-register) (point) (- (point) val)))
-		((vip-valid-register vip-use-register)
-		 (copy-to-register
-		  vip-use-register (point) (- (point) val) nil))
-		(t (error vip-InvalidRegister vip-use-register)))
-	  (setq vip-use-register nil)))
-    (if vip-ex-style-motion
-	(progn
-	  (delete-char val t)
-	  (if (and (eolp) (not (bolp))) (backward-char 1)))
-      (if (eolp)
-          (delete-backward-char val t)
-        (delete-char val t)))))
-
-(defun vip-delete-backward-char (arg)
-  "Delete previous character. On reaching beginning of line, stop and beep."
-  (interactive "P")
-  (let ((val (vip-p-val arg)))
-    (vip-set-destructive-command
-     (list 'vip-delete-backward-char val nil nil nil nil))
-    (if (> val 1)
-	(save-excursion
-	  (let ((here (point)))
-	    (beginning-of-line)
-	    (if (> val (- here (point)))
-		(setq val (- here (point)))))))
-    (if vip-use-register
-	(progn
-	  (cond ((vip-valid-register vip-use-register '(Letter))
-		 (vip-append-to-register
-		  (downcase vip-use-register) (point) (+ (point) val)))
-		((vip-valid-register vip-use-register)
-		 (copy-to-register
-		  vip-use-register (point) (+ (point) val) nil))
-		(t (error vip-InvalidRegister vip-use-register)))
-	  (setq vip-use-register nil)))
-    (if (bolp) (ding)
-      (delete-backward-char val t))))
-      
-(defun vip-del-backward-char-in-insert ()
-  "Delete 1 char backwards while in insert mode."
-  (interactive)      
-  (if (and vip-ex-style-editing-in-insert (bolp))
-      (beep 1)
-    (delete-backward-char 1 t)))
-      
-(defun vip-del-backward-char-in-replace ()
-  "Delete one character in replace mode.
-If `vip-delete-backwards-in-replace' is t, then DEL key actually deletes
-charecters. If it is nil, then the cursor just moves backwards, similarly
-to Vi. The variable `vip-ex-style-editing-in-insert', if t, doesn't let the
-cursor move past the beginning of line."
-  (interactive)
-  (cond (vip-delete-backwards-in-replace
-	 (cond ((not (bolp))
-		(delete-backward-char 1 t))
-	       (vip-ex-style-editing-in-insert
-		(beep 1))
-	       ((bobp)
-		(beep 1))
-	       (t
-		(delete-backward-char 1 t))))
-	(vip-ex-style-editing-in-insert
-	 (if (bolp)
-	     (beep 1)
-	   (backward-char 1)))
-	(t 
-	 (backward-char 1))))
-
-
-
-;; join lines.
-
-(defun vip-join-lines (arg)
-  "Join this line to next, if ARG is nil.  Otherwise, join ARG lines."
-  (interactive "*P")
-  (let ((val (vip-P-val arg)))
-    (vip-set-destructive-command (list 'vip-join-lines val nil nil nil nil))
-    (vip-loop (if (null val) 1 (1- val))
-	      (progn
-		(end-of-line)
-		(if (not (eobp))
-		    (progn
-		      (forward-line 1)
-		      (delete-region (point) (1- (point)))
-		      (fixup-whitespace)))))))
-
-
-;; Replace state
-
-(defun vip-change (beg end)
-  (if (markerp beg) (setq beg (marker-position beg)))
-  (if (markerp end) (setq end (marker-position end)))
-  ;; beg is sometimes (mark t), which may be nil
-  (or beg (setq beg end))
-  
-  (vip-set-complex-command-for-undo)
-  (if vip-use-register
-      (progn
-	(copy-to-register vip-use-register beg end nil)
-	(setq vip-use-register nil)))
-  (vip-set-replace-overlay beg end)
-  (setq last-command nil) ; separate repl text from prev kills
-  
-  (if (= (vip-replace-start) (point-max))
-      (error "End of buffer"))
-      
-  (setq vip-last-replace-region
-	(buffer-substring (vip-replace-start)
-			  (vip-replace-end)))
-  
-  ;; protect against error while inserting "@" and other disasters
-  ;; (e.g., read-only buff)
-  (condition-case conds
-      (if (vip-same-line (vip-replace-start)
-			 (vip-replace-end))
-	  (progn
-	    ;; tabs cause problems in replace, so untabify
-	    (goto-char (vip-replace-end))
-	    (insert-before-markers "@") ; put placeholder after the TAB
-	    (untabify (vip-replace-start) (point))
-	    ;; del @, don't put on kill ring 
-	    (delete-backward-char 1)
-	    
-	    (vip-set-replace-overlay-glyphs
-	     vip-replace-region-start-delimiter
-	     vip-replace-region-end-delimiter)
-	    ;; this move takes care of the last posn in the overlay, which
-	    ;; has to be shifted because of insert. We can't simply insert
-	    ;; "$" before-markers because then overlay-start will shift the
-	    ;; beginning of the overlay in case we are replacing a single
-	    ;; character. This fixes the bug with `s' and `cl' commands.
-	    (vip-move-replace-overlay (vip-replace-start) (point))
-	    (goto-char (vip-replace-start))
-	    (vip-change-state-to-replace t))
-	(kill-region (vip-replace-start)
-		     (vip-replace-end))
-	(vip-hide-replace-overlay)
-	(vip-change-state-to-insert))
-    (error ;; make sure that the overlay doesn't stay.
-           ;; go back to the original point
-     (goto-char (vip-replace-start))
-     (vip-hide-replace-overlay)
-     (vip-message-conditions conds))))
-
-
-(defun vip-change-subr (beg end)
-  ;; beg is sometimes (mark t), which may be nil
-  (or beg (setq beg end))
-  
-  (if vip-use-register
-      (progn
-	(copy-to-register vip-use-register beg end nil)
-	(setq vip-use-register nil)))
-  (kill-region beg end)
-  (setq this-command 'vip-change)
-  (vip-yank-last-insertion))
-
-(defun vip-toggle-case (arg)
-  "Toggle character case."
-  (interactive "P")
-  (let ((val (vip-p-val arg)) (c))
-    (vip-set-destructive-command (list 'vip-toggle-case val nil nil nil nil))
-    (while (> val 0)
-      (setq c (following-char))
-      (delete-char 1 nil)
-      (if (eq c (upcase c))
-	  (insert-char (downcase c) 1)
-	(insert-char (upcase c) 1))
-      (if (eolp) (backward-char 1))
-      (setq val (1- val)))))
-
-
-;; query replace
-
-(defun vip-query-replace ()
-  "Query replace. 
-If a null string is suplied as the string to be replaced,
-the query replace mode will toggle between string replace
-and regexp replace."
-  (interactive)
-  (let (str)
-    (setq str (vip-read-string-with-history
-	       (if vip-re-query-replace "Query replace regexp: "
-		 "Query replace: ")
-	       nil  ; no initial
-	       'vip-replace1-history
-	       (car vip-replace1-history) ; default
-	       ))
-    (if (string= str "")
-	(progn
-	  (setq vip-re-query-replace (not vip-re-query-replace))
-	  (message "Query replace mode changed to %s"
-		   (if vip-re-query-replace "regexp replace"
-		     "string replace")))
-      (if vip-re-query-replace
-	  (query-replace-regexp
-	   str
-	   (vip-read-string-with-history
-	    (format "Query replace regexp `%s' with: " str)
-	    nil  ; no initial
-	    'vip-replace1-history
-	    (car vip-replace1-history) ; default
-	    ))
-	(query-replace
-	 str
-	 (vip-read-string-with-history
-	  (format "Query replace `%s' with: " str)
-	  nil  ; no initial
-	  'vip-replace1-history
-	  (car vip-replace1-history) ; default
-	  ))))))
-
-
-;; marking
-
-(defun vip-mark-beginning-of-buffer ()
-  "Mark beginning of buffer."
-  (interactive)
-  (push-mark (point))
-  (goto-char (point-min))
-  (exchange-point-and-mark)
-  (message "Mark set at the beginning of buffer"))
-
-(defun vip-mark-end-of-buffer ()
-  "Mark end of buffer."
-  (interactive)
-  (push-mark (point))
-  (goto-char (point-max))
-  (exchange-point-and-mark)
-  (message "Mark set at the end of buffer"))
-
-(defun vip-mark-point ()
-  "Set mark at point of buffer."
-  (interactive)
-  (let ((char (vip-read-char-exclusive)))
-  (cond ((and (<= ?a char) (<= char ?z))
-	 (point-to-register (1+ (- char ?a))))
-	((= char ?<) (vip-mark-beginning-of-buffer))
-	((= char ?>) (vip-mark-end-of-buffer))
-	((= char ?.) (vip-set-mark-if-necessary))
-	((= char ?,) (vip-cycle-through-mark-ring))
-	((= char ?D) (mark-defun))
-	(t (error ""))
-	)))
-	
-;; Algorithm: If first invocation of this command save mark on ring, goto
-;; mark, M0, and pop the most recent elt from the mark ring into mark,
-;; making it into the new mark, M1.
-;; Push this mark back and set mark to the original point position, p1.
-;; So, if you hit '' or `` then you can return to p1.
-;;
-;; If repeated command, pop top elt from the ring into mark and
-;; jump there. This forgets the position, p1, and puts M1 back into mark.
-;; Then we save the current pos, which is M0, jump to M1 and pop M2 from
-;; the ring into mark.  Push M2 back on the ring and set mark to M0.
-;; etc.
-(defun vip-cycle-through-mark-ring ()
-  "Visit previous locations on the mark ring.
-One can use `` and '' to temporarily jump 1 step back."
-  (let* ((sv-pt (point)))
-       ;; if repeated `m,' command, pop the previously saved mark.
-       ;; Prev saved mark is actually prev saved point. It is used if the
-       ;; user types `` or '' and is discarded 
-       ;; from the mark ring by the next `m,' command. 
-       ;; In any case, go to the previous or previously saved mark.
-       ;; Then push the current mark (popped off the ring) and set current
-       ;; point to be the mark. Current pt as mark is discarded by the next
-       ;; m, command.
-       (if (eq last-command 'vip-cycle-through-mark-ring)
-	   ()
-	 ;; save current mark if the first iteration
-	 (setq mark-ring (delete (vip-mark-marker) mark-ring))
-	 (if (mark t)
-	     (push-mark (mark t) t)) )
-       (pop-mark)
-       (set-mark-command 1)
-       ;; don't duplicate mark on the ring
-       (setq mark-ring (delete (vip-mark-marker) mark-ring))
-       (push-mark sv-pt t)
-       (vip-deactivate-mark)
-       (setq this-command 'vip-cycle-through-mark-ring)
-       ))
-       
-
-(defun vip-goto-mark (arg)
-  "Go to mark."
-  (interactive "P")
-  (let ((char (read-char))
-	(com (vip-getcom arg)))
-    (vip-goto-mark-subr char com nil)))
-
-(defun vip-goto-mark-and-skip-white (arg)
-  "Go to mark and skip to first non-white character on line."
-  (interactive "P")
-  (let ((char (read-char))
-	(com (vip-getCom arg)))
-    (vip-goto-mark-subr char com t)))
-
-(defun vip-goto-mark-subr (char com skip-white)
-  (if (eobp) 
-      (if (bobp)
-	  (error "Empty buffer")
-	(backward-char 1)))
-  (cond ((vip-valid-register char '(letter))
-	 (let* ((buff (current-buffer))
-	        (reg (1+ (- char ?a)))
-	        (text-marker (get-register reg)))
-	   (if com (vip-move-marker-locally 'vip-com-point (point)))
-	   (if (not (vip-valid-marker text-marker))
-	       (error vip-EmptyTextmarker char))
-	   (if (and (vip-same-line (point) vip-last-jump)
-		    (= (point) vip-last-jump-ignore))
-	       (push-mark vip-last-jump t) 
-	     (push-mark nil t)) ; no msg
-	   (vip-register-to-point reg)
-	   (setq vip-last-jump (point-marker))
-	   (cond (skip-white 
-		  (back-to-indentation)
-		  (setq vip-last-jump-ignore (point))))
-	   (if com
-	       (if (equal buff (current-buffer))
-		   (vip-execute-com (if skip-white
-					'vip-goto-mark-and-skip-white
-				      'vip-goto-mark)
-				    nil com)
-		 (switch-to-buffer buff)
-		 (goto-char vip-com-point)
-		 (vip-change-state-to-vi)
-		 (error "")))))
-	((and (not skip-white) (= char ?`))
-	 (if com (vip-move-marker-locally 'vip-com-point (point)))
-	 (if (and (vip-same-line (point) vip-last-jump)
-		  (= (point) vip-last-jump-ignore))
-	     (goto-char vip-last-jump))
-	 (if (= (point) (mark t)) (pop-mark))
-	 (exchange-point-and-mark)
-	 (setq vip-last-jump (point-marker)
-	       vip-last-jump-ignore 0)
-	 (if com (vip-execute-com 'vip-goto-mark nil com)))
-	((and skip-white (= char ?'))
-	 (if com (vip-move-marker-locally 'vip-com-point (point)))
-	 (if (and (vip-same-line (point) vip-last-jump)
-		  (= (point) vip-last-jump-ignore))
-	     (goto-char vip-last-jump))
-	 (if (= (point) (mark t)) (pop-mark))
-	 (exchange-point-and-mark)
-	 (setq vip-last-jump (point))
-	 (back-to-indentation)
-	 (setq vip-last-jump-ignore (point))
-	 (if com (vip-execute-com 'vip-goto-mark-and-skip-white nil com)))
-	(t (error vip-InvalidTextmarker char))))
-	
-(defun vip-insert-tab ()
-  (interactive)
-  (insert-tab))
-
-(defun vip-exchange-point-and-mark ()
-  (interactive)
-  (exchange-point-and-mark)
-  (back-to-indentation))
-
-;; Input Mode Indentation
-
-;; Returns t, if the string before point matches the regexp STR.
-(defsubst vip-looking-back (str)
-  (and (save-excursion (re-search-backward str nil t))
-       (= (point) (match-end 0))))
-
-
-(defun vip-forward-indent ()
-  "Indent forward -- `C-t' in Vi."
-  (interactive)
-  (setq vip-cted t)
-  (indent-to (+ (current-column) vip-shift-width)))
-
-(defun vip-backward-indent ()
-  "Backtab, C-d in VI"
-  (interactive)
-  (if vip-cted
-      (let ((p (point)) (c (current-column)) bol (indent t))
-	(if (vip-looking-back "[0^]")
-	    (progn
-	      (if (eq ?^ (preceding-char))
-		  (setq vip-preserve-indent t))
-	      (delete-backward-char 1)
-	      (setq p (point))
-	      (setq indent nil)))
-	(save-excursion
-	  (beginning-of-line)
-	  (setq bol (point)))
-	(if (re-search-backward "[^ \t]" bol 1) (forward-char))
-	(delete-region (point) p)
-	(if indent
-	    (indent-to (- c vip-shift-width)))
-	(if (or (bolp) (vip-looking-back "[^ \t]"))
-	    (setq vip-cted nil)))))
-
-(defun vip-autoindent ()
-  "Auto Indentation, Vi-style."
-  (interactive)
-  (let ((col (current-indentation)))
-    (if vip-preserve-indent
-	(setq vip-preserve-indent nil)
-      (setq vip-current-indent col))
-    ;; don't leave whitespace lines around
-    (if (memq last-command
-	      '(vip-autoindent
-		vip-open-line vip-Open-line
-		vip-replace-state-exit-cmd))
-	(indent-to-left-margin))
-    (newline 1)
-    (if vip-auto-indent
-	(progn
-	  (setq vip-cted t)
-	  (if vip-electric-mode
-	      (indent-according-to-mode)
-	    (indent-to vip-current-indent))
-	  ))
-    ))
-
-	   
-;; Viewing registers
-
-(defun vip-ket-function (arg)
-  "Function called by \], the ket. View registers and call \]\]."
-  (interactive "P")
-  (let ((reg (read-char)))
-    (cond ((vip-valid-register reg '(letter Letter))
-	   (view-register (downcase reg)))
-	  ((vip-valid-register reg '(digit))
-	   (let ((text (current-kill (- reg ?1) 'do-not-rotate)))
-	     (save-excursion 
-	       (set-buffer (get-buffer-create "*Output*"))
-	       (delete-region (point-min) (point-max))
-	       (insert (format "Register %c contains the string:\n" reg))
-	       (insert text)
-	       (goto-char (point-min)))
-	     (display-buffer "*Output*")))
-	  ((= ?\] reg)
-	   (vip-next-heading arg))
-	  (t (error
-	      vip-InvalidRegister reg)))))
-
-(defun vip-brac-function (arg)
-  "Function called by \[, the brac. View textmarkers and call \[\["
-  (interactive "P")
-  (let ((reg (read-char)))
-    (cond ((= ?\[ reg)
-	   (vip-prev-heading arg))
-	  ((= ?\] reg)
-	   (vip-heading-end arg))
-	  ((vip-valid-register reg '(letter))
-	   (let* ((val (get-register (1+ (- reg ?a))))
-		  (buf (if (not val) 
-			   (error vip-EmptyTextmarker reg)
-			 (marker-buffer val)))
-		  (pos (marker-position val))
-		  line-no text (s pos) (e pos))
-	     (save-excursion 
-	       (set-buffer (get-buffer-create "*Output*"))
-	       (delete-region (point-min) (point-max))
-	       (if (and buf pos)
-		   (progn
-		     (save-excursion 
-		       (set-buffer buf)
-		       (setq line-no (1+ (count-lines (point-min) val)))
-		       (goto-char pos)
-		       (beginning-of-line)
-		       (if (re-search-backward "[^ \t]" nil t)
-			   (progn
-			     (beginning-of-line)
-			     (setq s (point))))
-		       (goto-char pos)
-		       (forward-line 1)
-		       (if (re-search-forward "[^ \t]" nil t)
-			   (progn
-			     (end-of-line)
-			     (setq e (point))))
-		       (setq text (buffer-substring s e))
-		       (setq text (format "%s<%c>%s" 
-					  (substring text 0 (- pos s)) 
-					  reg (substring text (- pos s)))))
-		     (insert
-		      (format
-		       "Textmarker `%c' is in buffer `%s' at line %d.\n"
-				     reg (buffer-name buf) line-no))
-		     (insert (format "Here is some text around %c:\n\n %s" 
-				     reg text)))
-		 (insert (format vip-EmptyTextmarker reg)))
-	       (goto-char (point-min)))
-	     (display-buffer "*Output*")))
-	  (t (error vip-InvalidTextmarker reg)))))
-  
-
-
-;; commands in insertion mode
-
-(defun vip-delete-backward-word (arg)
-  "Delete previous word."
-  (interactive "p")
-  (save-excursion
-    (push-mark nil t)
-    (backward-word arg)
-    (delete-region (point) (mark t))
-    (pop-mark)))
-
-
-(defun vip-set-expert-level (&optional dont-change-unless)
-  "Sets the expert level for a Viper user.
-Can be called interactively to change (temporarily or permanently) the
-current expert level.
-
-The optional argument DONT-CHANGE-UNLESS if not nil, says that
-the level should not be changed, unless its current value is
-meaningless (i.e., not one of 1,2,3,4,5).
-
-User level determines the setting of Viper variables that are most
-sensitive for VI-style look-and-feel."
-  
-  (interactive)
-  
-  (if (not (natnump vip-expert-level)) (setq vip-expert-level 0))
-  
+	(forward-line 1)
+	(re-search-forward ex-token))
+    (forward-line -1)
+    (re-search-backward ex-token)))
+
+;; Get a buffer name and set `ex-count' and `ex-flag' if found
+(defun vip-get-ex-buffer ()
+  (setq ex-buffer nil)
+  (setq ex-count nil)
+  (setq ex-flag nil)
   (save-window-excursion
-    (delete-other-windows)
-    ;; if 0 < vip-expert-level < vip-max-expert-level
-    ;;    & dont-change-unless = t -- use it; else ask
-    (vip-ask-level dont-change-unless))
-  
-  (setq vip-always          	    	t
-	vip-ex-style-motion 	    	t
-	vip-ex-style-editing-in-insert  t
-	vip-want-ctl-h-help nil)
+    (set-buffer vip-ex-work-buf)
+    (skip-chars-forward " \t")
+    (if (looking-at "[a-zA-Z]")
+	(progn
+	  (setq ex-buffer (following-char))
+	  (forward-char 1)
+	  (skip-chars-forward " \t")))
+    (if (looking-at "[0-9]")
+	(progn
+	  (set-mark (point))
+	  (re-search-forward "[0-9][0-9]*")
+	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (skip-chars-forward " \t")))
+    (if (looking-at "[pl#]")
+	(progn
+	  (setq ex-flag t)
+	  (forward-char 1)))
+    (if (not (looking-at "[\n|]"))
+	(error "`%s': %s" ex-token vip-SpuriousText))))
 
-  (cond
-	;; a novice or a beginner
-	((eq vip-expert-level 1)
-	 (global-set-key vip-toggle-key   ;; in emacs-state
-			 (if (vip-window-display-p)
-			     'vip-iconify
-			   'suspend-emacs))
-	 (setq vip-no-multiple-ESC	     t
-	       vip-re-search	    	     t
-	       vip-vi-style-in-minibuffer    t
-	       vip-search-wrap-around-t	     t
-	       vip-want-emacs-keys-in-vi     nil
-	       vip-want-emacs-keys-in-insert nil))
-	
-	;; an intermediate to guru
-	((and (> vip-expert-level 1) (< vip-expert-level 5))
-	 (setq vip-no-multiple-ESC     (if (vip-window-display-p) t 'twice)
-	       vip-want-emacs-keys-in-vi     t
-	       vip-want-emacs-keys-in-insert (> vip-expert-level 2))
+(defun vip-get-ex-count ()
+  (setq ex-variant nil
+	ex-count nil
+	ex-flag nil)
+  (save-window-excursion
+    (set-buffer vip-ex-work-buf)
+    (skip-chars-forward " \t")
+    (if (looking-at "!")
+	(progn
+	  (setq ex-variant t)
+	  (forward-char 1)))
+    (skip-chars-forward " \t")
+    (if (looking-at "[0-9]")
+	(progn
+	  (set-mark (point))
+	  (re-search-forward "[0-9][0-9]*")
+	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (skip-chars-forward " \t")))
+    (if (looking-at "[pl#]")
+	(progn
+	  (setq ex-flag t)
+	  (forward-char 1)))
+    (if (not (looking-at "[\n|]"))
+	(error "`%s': %s"
+	       (buffer-substring (point-min) (1- (point-max))) vip-BadExCommand))))
 
-	 (if (eq vip-expert-level 4) ; respect user's ex-style motions
-	     	    	    	     ; and vip-no-multiple-ESC
-	     (progn
-	       (setq-default vip-ex-style-editing-in-insert
-			     (cdr (assoc 'vip-ex-style-editing-in-insert
-					 vip-saved-user-settings))
-			     vip-ex-style-motion
-			     (cdr (assoc 'vip-ex-style-motion
-					 vip-saved-user-settings)))
-	       (setq vip-ex-style-motion 
-		     (cdr (assoc 'vip-ex-style-motion vip-saved-user-settings))
-		     vip-ex-style-editing-in-insert
-		     (cdr (assoc 'vip-ex-style-editing-in-insert
-				 vip-saved-user-settings))
-		     vip-re-search
-		     (cdr (assoc 'vip-re-search vip-saved-user-settings))
-		     vip-no-multiple-ESC 
-		     (cdr (assoc 'vip-no-multiple-ESC
-				 vip-saved-user-settings))))))
-	       
-	;; A wizard
-	;; Ideally, if 5 is selected, a buffer should pop up to let the
-	;; user toggle variable values.
-	(t (setq-default vip-ex-style-editing-in-insert
-			 (cdr (assoc 'vip-ex-style-editing-in-insert
-				     vip-saved-user-settings))
-			 vip-ex-style-motion
-			 (cdr (assoc 'vip-ex-style-motion
-				     vip-saved-user-settings)))
-	   (setq  vip-want-ctl-h-help 
-		  (cdr (assoc 'vip-want-ctl-h-help vip-saved-user-settings))
-		  vip-always
-		  (cdr (assoc 'vip-always vip-saved-user-settings))
-		  vip-no-multiple-ESC 
-		  (cdr (assoc 'vip-no-multiple-ESC vip-saved-user-settings))
-		  vip-ex-style-motion 
-		  (cdr (assoc 'vip-ex-style-motion vip-saved-user-settings))
-		  vip-ex-style-editing-in-insert
-		  (cdr (assoc 'vip-ex-style-editing-in-insert
-			      vip-saved-user-settings))
-		  vip-re-search
-		  (cdr (assoc 'vip-re-search vip-saved-user-settings))
-		  vip-want-emacs-keys-in-vi 
-		  (cdr (assoc 'vip-want-emacs-keys-in-vi
-			      vip-saved-user-settings))
-		  vip-want-emacs-keys-in-insert
-		  (cdr (assoc 'vip-want-emacs-keys-in-insert
-			      vip-saved-user-settings)))))
-  (vip-set-mode-vars-for vip-current-state)
-  (if (or vip-always
-	  (and (> vip-expert-level 0) (> 5 vip-expert-level)))
-      (vip-set-hooks)))
+;; Expand \% and \# in ex command
+(defun ex-expand-filsyms (cmd buf)
+  (let (cf pf ret)
+    (save-excursion 
+      (set-buffer buf)
+      (setq cf buffer-file-name)
+      (setq pf (ex-next nil t))) ; this finds alternative file name
+    (if (and (null cf) (string-match "[^\\]%\\|\\`%" cmd))
+	(error "No current file to substitute for `%%'"))
+    (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
+	(error "No alternate file to substitute for `#'"))
+    (save-excursion
+      (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
+      (erase-buffer)
+      (insert cmd)
+      (goto-char (point-min))
+      (while (re-search-forward "%\\|#" nil t)
+	(let ((data (match-data)) 
+	      (char (buffer-substring (match-beginning 0) (match-end 0))))
+	  (if (vip-looking-back (concat "\\\\" char))
+	      (replace-match char)
+	    (store-match-data data)
+	    (if (string= char "%")
+		(replace-match cf)
+	      (replace-match pf)))))
+      (end-of-line)
+      (setq ret (buffer-substring (point-min) (point)))
+      (message "%s" ret))
+    ret))
 
-;; Ask user expert level.
-(defun vip-ask-level (dont-change-unless)
-  (let ((ask-buffer " *vip-ask-level*")
-	level-changed repeated)
-    (save-window-excursion
-      (switch-to-buffer ask-buffer)
-	      
-      (or (eq this-command 'vip-set-expert-level)
-	  (and
-	   (<= vip-expert-level vip-max-expert-level)
-	   (>= vip-expert-level 1))
-	  (progn
-	    (insert "
-	      
-	      *** Important Notice for VIP users***
-	      
-			  This is VIPER
-	      
-@joke
-Viper Is a Package for Emacs Rebels,
-a VI Plan for Emacs Rescue,
-and a venomous VI PERil.
-@end joke
-
-Technically speaking, Viper is a new Vi emulator that replaces
-the old VIP package.
-
-Viper emulates Vi much better than VIP.  It also significantly
-extends and improves upon Vi in many useful ways.
-
-Although many VIP settings in your ~/.vip are compatible with Viper,
-you may have to change some of them. Please refer to the documentation,
-which can be obtained by executing
-
-:help
-
-when Viper is in Vi state.
-
-If you will be so lucky as to find a bug, report it via the command
-
-:submitReport
-
-Type any key to continue... ")
-	    
-	    (read-char)
-	    (erase-buffer)))
-	      
-      (while (or (> vip-expert-level vip-max-expert-level)
-		 (< vip-expert-level 1)
-		 (null dont-change-unless))
-	(erase-buffer)
-	(if repeated
+;; Get a file name and set ex-variant, `ex-append' and `ex-offset' if found
+(defun vip-get-ex-file ()
+  (let (prompt)
+    (setq ex-file nil
+	  ex-variant nil
+	  ex-append nil
+	  ex-offset nil
+	  ex-cmdfile nil)
+    (save-excursion
+      (save-window-excursion
+	(set-buffer vip-ex-work-buf)
+	(skip-chars-forward " \t")
+	(if (looking-at "!")
+	    (if (and (not (vip-looking-back "[ \t]"))
+		     ;; read doesn't have a corresponding :r! form, so ! is
+		     ;; immediately interpreted as a shell command.
+		     (not (string= ex-token "read")))
+		(progn
+		  (setq ex-variant t)
+		  (forward-char 1)
+		  (skip-chars-forward " \t"))
+	      (setq ex-cmdfile t)
+	      (forward-char 1)
+	      (skip-chars-forward " \t")))
+	(if (looking-at ">>")
 	    (progn
-	      (message "Invalid user level")
-	      (beep 1))
-	  (setq repeated t))
-	(setq dont-change-unless t
-	      level-changed t)
-	(insert "
-Please specify your level of familiarity with the venomous VI PERil
-(and the VI Plan for Emacs Rescue).
-You can change it at any time by typing `M-x vip-set-expert-level RET'
-	
- 1 -- BEGINNER: Almost all Emacs features are suppressed.
-          Feels almost like straight Vi. File name completion and
-          command history in the minibuffer are thrown in as a bonus. 
-          To use Emacs productively, you must reach level 3 or higher.
- 2 -- MASTER: C-c now has its standard Emacs meaning in Vi command state,
-	  so most Emacs commands can be used when Viper is in Vi state.
-	  Good progress---you are well on the way to level 3!
- 3 -- GRAND MASTER: Like 3, but most Emacs commands are available also
-          in Viper's insert state.
- 4 -- GURU: Like 3, but user settings are respected for vip-no-multiple-ESC,
-	  vip-re-search, vip-ex-style-motion, & vip-ex-style-editing-in-insert
-	  variables. Adjust these settings to your taste.
- 5 -- WIZARD: Like 4, but user settings are also respected for vip-always,
-	  vip-want-ctl-h-help, vip-want-emacs-keys-in-vi, and 
-	  vip-want-emacs-keys-in-insert. Adjust these to your taste.
-      
-Please, specify your level now: ")
-	  
-	(setq vip-expert-level (- (vip-read-char-exclusive) ?0))
-	) ; end while
-      
-      ;; tell the user if level was changed
-      (and level-changed
-	   (progn
-	     (insert
-	      (format "\n\n\n\n\n\t\tYou have selected user level %d"
-		      vip-expert-level))
-	     (if (y-or-n-p "Do you wish to make this change permanent? ")
-		 ;; save the setting for vip-expert-level
-		 (vip-save-setting
-		  'vip-expert-level
-		  (format "Saving user level %d ..." vip-expert-level)
-		  vip-custom-file-name))
-	     ))
-      (bury-buffer) ; remove ask-buffer from screen
-      (message "")
-      )))
+	      (setq ex-append t
+		    ex-variant t)
+	      (forward-char 2)
+	      (skip-chars-forward " \t")))
+	(if (looking-at "+")
+	    (progn
+	      (forward-char 1)
+	      (set-mark (point))
+	      (re-search-forward "[ \t\n]")
+	      (backward-char 1)
+	      (setq ex-offset (buffer-substring (point) (mark t)))
+	      (forward-char 1)
+	      (skip-chars-forward " \t")))
+	;; this takes care of :r, :w, etc., when they get file names
+	;; from the history list
+	(if (member ex-token '("read" "write" "edit" "visual" "next"))
+	    (progn
+	      (setq ex-file (buffer-substring (point)  (1- (point-max))))
+	      (setq ex-file
+		    ;; For :e, match multiple non-white strings separated
+		    ;; by white. For others, find the first non-white string
+		    (if (string-match
+			 (if (string= ex-token "edit")
+			     "[^ \t\n]+\\([ \t]+[^ \t\n]+\\)*"
+			   "[^ \t\n]+")
+			 ex-file)
+			(progn
+			  ;; if file name comes from history, don't leave
+			  ;; minibuffer when the user types space
+			  (setq vip-incomplete-ex-cmd nil)
+			  ;; this must be the last clause in this progn
+			  (substring ex-file (match-beginning 0) (match-end 0))
+			  )
+		      ""))
+	      ;; this leaves only the command name in the work area
+	      ;; file names are gone
+	      (delete-region (point) (1- (point-max)))
+	      ))
+	(goto-char (point-max))
+	(skip-chars-backward " \t\n")
+	(setq prompt (buffer-substring (point-min) (point)))
+	))
+    
+    (setq vip-last-ex-prompt prompt)
+    
+    ;; If we just finished reading command, redisplay prompt
+    (if vip-incomplete-ex-cmd
+	(setq ex-file (vip-ex-read-file-name (format ":%s " prompt)))
+      ;; file was typed in-line
+      (setq ex-file (or ex-file "")))
+    ))
 
 
-(defun viper-version ()
+;; Completes file name or exits minibuffer. If Ex command accepts multiple
+;; file names, arranges to re-enter the minibuffer.
+(defun vip-complete-filename-or-exit ()
   (interactive)
-  (message "Viper version is %s" viper-version)) 
+  (setq vip-keep-reading-filename t) 
+  ;; don't exit if directory---ex-commands don't 
+  (cond ((ex-cmd-accepts-multiple-files-p ex-token) (exit-minibuffer))
+	;; apparently the argument to an Ex command is
+	;; supposed to be a shell command
+	((vip-looking-back "^[ \t]*!.*")
+	 (setq ex-cmdfile t)
+	 (insert " "))
+	(t
+	 (setq ex-cmdfile nil)
+	 (minibuffer-complete-word))))
+
+(defun vip-handle-! ()
+  (interactive)
+  (if (and (string=
+	    (buffer-string) (vip-abbreviate-file-name default-directory))
+	   (member ex-token '("read" "write")))
+      (erase-buffer))
+  (insert "!"))
+
+(defun ex-cmd-accepts-multiple-files-p (token)
+  (member token '("edit" "next" "Next")))
+
+;; If user doesn't enter anything, then "" is returned, i.e., the
+;; prompt-directory is not returned.
+(defun vip-ex-read-file-name (prompt)
+  (let* ((str "")
+	 (minibuffer-local-completion-map
+	  (copy-keymap minibuffer-local-completion-map))
+	 beg end cont val)
+    
+    (vip-add-keymap ex-read-filename-map
+		    (if vip-emacs-p 
+			minibuffer-local-completion-map
+		      read-file-name-map)) 
+		    
+    (setq cont (setq vip-keep-reading-filename t))
+    (while cont
+      (setq vip-keep-reading-filename nil
+	    val (read-file-name (concat prompt str) nil default-directory))
+      (if (string-match " " val)
+	  (setq val (concat "\\\"" val "\\\"")))
+      (setq str  (concat str (if (equal val "") "" " ")
+			 val (if (equal val "") "" " ")))
+			 
+      ;; Only edit, next, and Next commands accept multiple files.
+      ;; vip-keep-reading-filename is set in the anonymous function that is
+      ;; bound to " " in ex-read-filename-map.
+      (setq cont (and vip-keep-reading-filename
+		      (ex-cmd-accepts-multiple-files-p ex-token)))
+      )
+    
+    (setq beg (string-match "[^ \t]" str)   ; delete leading blanks
+	  end (string-match "[ \t]*$" str)) ; delete trailing blanks
+    (if (member ex-token '("read" "write"))
+	  (if (string-match "[\t ]*!" str)
+	      ;; this is actually a shell command
+	      (progn
+		(setq ex-cmdfile t)
+		(setq beg (1+ beg))
+		(setq vip-last-ex-prompt (concat vip-last-ex-prompt " !")))))
+    (substring str (or beg 0) end)))
+
+;; Execute ex command using the value of addresses
+(defun vip-execute-ex-command ()
+  (vip-deactivate-mark)
+  (cond ((string= ex-token "args") (ex-args))
+	((string= ex-token "copy") (ex-copy nil))
+	((string= ex-token "cd") (ex-cd))
+	((string= ex-token "chdir") (ex-cd))
+	((string= ex-token "delete") (ex-delete))
+	((string= ex-token "edit") (ex-edit))
+	((string= ex-token "file") (vip-info-on-file))
+	((string= ex-token "goto") (ex-goto))
+	((string= ex-token "help") (ex-help))
+	((string= ex-token "join") (ex-line "join"))
+	((string= ex-token "kmark") (ex-mark))
+	((string= ex-token "mark") (ex-mark))
+	((string= ex-token "map") (ex-map))
+	((string= ex-token "move") (ex-copy t))
+	((string= ex-token "next") (ex-next ex-cycle-other-window))
+	((string= ex-token "Next") (ex-next (not ex-cycle-other-window)))
+	((string= ex-token "RelatedFile") (ex-next-related-buffer 1))
+	((string= ex-token "put") (ex-put))
+	((string= ex-token "pwd") (ex-pwd))
+	((string= ex-token "preserve") (ex-preserve))
+	((string= ex-token "PreviousRelatedFile") (ex-next-related-buffer -1))
+	((string= ex-token "quit") (ex-quit))
+	((string= ex-token "read") (ex-read))
+	((string= ex-token "recover") (ex-recover))
+	((string= ex-token "rewind") (ex-rewind))
+	((string= ex-token "submitReport") (vip-submit-report))
+	((string= ex-token "set") (ex-set))
+	((string= ex-token "shell") (ex-shell))
+	((string= ex-token "source") (ex-source))
+	((string= ex-token "sr") (ex-substitute t t))
+	((string= ex-token "substitute") (ex-substitute))
+	((string= ex-token "suspend") (suspend-emacs))
+	((string= ex-token "stop") (suspend-emacs))
+	((string= ex-token "transfer") (ex-copy nil))
+	((string= ex-token "buffer") (if ex-cycle-other-window
+					 (vip-switch-to-buffer-other-window)
+					 (vip-switch-to-buffer)))
+	((string= ex-token "Buffer") (if ex-cycle-other-window
+					 (vip-switch-to-buffer)
+					 (vip-switch-to-buffer-other-window)))
+	((string= ex-token "tag") (ex-tag))
+	((string= ex-token "undo") (vip-undo))
+	((string= ex-token "unmap") (ex-unmap))
+	((string= ex-token "version") (vip-version))
+	((string= ex-token "visual") (ex-edit))
+	((string= ex-token "write") (ex-write nil))
+	((string= ex-token "Write") (save-some-buffers))
+	((string= ex-token "wq") (ex-write t))
+	((string= ex-token "WWrite") (save-some-buffers t)) ; don't ask
+	((string= ex-token "xit") (ex-write t))
+	((string= ex-token "yank") (ex-yank))
+	((string= ex-token "!") (ex-command))
+	((string= ex-token "=") (ex-line-no))
+	((string= ex-token ">") (ex-line "right"))
+	((string= ex-token "<") (ex-line "left"))
+	((string= ex-token "&") (ex-substitute t))
+	((string= ex-token "~") (ex-substitute t t))
+	((or (string= ex-token "append")
+	     (string= ex-token "change")
+	     (string= ex-token "insert")
+	     (string= ex-token "open"))
+	 (error "`%s': Obsolete command, not supported by Viper" ex-token))
+	((or (string= ex-token "abbreviate")
+	     (string= ex-token "unabbreviate"))
+	 (error
+	  "`%s': Vi abbrevs are obsolete. Use the more powerful Emacs abbrevs"
+	  ex-token))
+	((or (string= ex-token "list")
+	     (string= ex-token "print")
+	     (string= ex-token "z")
+	     (string= ex-token "#"))
+	 (error "`%s': Command not implemented in Viper" ex-token))
+	(t (error "`%s': %s" ex-token vip-BadExCommand))))
+
+(defun vip-undisplayed-files ()
+  (mapcar
+   (function 
+    (lambda (b) 
+      (if (null (get-buffer-window b))
+	  (let ((f (buffer-file-name b)))
+	    (if f f
+	      (if ex-cycle-through-non-files 
+		  (let ((s (buffer-name b)))
+		    (if (string= " " (substring s 0 1))
+			nil
+		      s))
+		nil)))
+	nil)))
+   (buffer-list)))
+
+
+(defun ex-args ()
+  (let ((l (vip-undisplayed-files))
+	(args "")
+	(file-count 1))
+    (while (not (null l))
+      (if (car l) 
+	  (setq args (format "%s %d) %s\n" args file-count (car l))
+		file-count (1+ file-count)))
+      (setq l (cdr l)))
+    (if (string= args "")
+	(message "All files are already displayed")
+      (save-excursion
+	(save-window-excursion
+	  (with-output-to-temp-buffer " *vip-info*"
+	    (princ "\n\nThese files are not displayed in any window.\n")
+	    (princ "\n=============\n")
+	    (princ args)
+	    (princ "\n=============\n")
+	    (princ "\nThe numbers can be given as counts to :next. ")
+	    (princ "\n\nPress any key to continue...\n\n"))
+	  (vip-read-event))))))
+
+;; Ex cd command. Default directory of this buffer changes
+(defun ex-cd ()
+  (vip-get-ex-file)
+  (if (string= ex-file "")
+      (setq ex-file "~"))
+  (setq default-directory (file-name-as-directory (expand-file-name ex-file))))
+
+;; Ex copy and move command.  DEL-FLAG means delete
+(defun ex-copy (del-flag)
+  (vip-default-ex-addresses)
+  (let ((address (vip-get-ex-address))
+	(end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+    (goto-char end)
+    (save-excursion
+      (push-mark beg t)
+      (vip-enlarge-region (mark t) (point))
+      (if del-flag
+	  (kill-region (point) (mark t))
+	(copy-region-as-kill (point) (mark t)))
+      (if ex-flag
+	  (progn
+	    (with-output-to-temp-buffer "*copy text*"
+	      (princ
+	       (if (or del-flag ex-g-flag ex-g-variant)
+		   (current-kill 0)
+		 (buffer-substring (point) (mark t)))))
+	    (condition-case nil
+		(progn
+		  (read-string "[Hit return to continue] ")
+		  (save-excursion (kill-buffer "*copy text*")))
+	      (quit (save-excursion (kill-buffer "*copy text*"))
+		    (signal 'quit nil))))))
+    (if (= address 0)
+	(goto-char (point-min))
+      (goto-char address)
+      (forward-line 1))
+      (insert (current-kill 0))))
+
+;; Ex delete command
+(defun ex-delete ()
+  (vip-default-ex-addresses)
+  (vip-get-ex-buffer)
+  (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (save-excursion
+      (vip-enlarge-region beg end)
+      (exchange-point-and-mark)
+      (if ex-count
+	  (progn
+	    (set-mark (point))
+	    (forward-line (1- ex-count)))
+	(set-mark end))
+      (vip-enlarge-region (point) (mark t))
+      (if ex-flag
+	  ;; show text to be deleted and ask for confirmation
+	  (progn
+	    (with-output-to-temp-buffer " *delete text*"
+	      (princ (buffer-substring (point) (mark t))))
+	    (condition-case nil
+		(read-string "[Hit return to continue] ")
+	      (quit
+	       (save-excursion (kill-buffer " *delete text*"))
+	       (error "")))
+	    (save-excursion (kill-buffer " *delete text*")))
+	(if ex-buffer
+	    (cond ((vip-valid-register ex-buffer '(Letter))
+		   (vip-append-to-register
+		    (downcase ex-buffer) (point) (mark t)))
+		  ((vip-valid-register ex-buffer)
+		   (copy-to-register ex-buffer (point) (mark t) nil))
+		  (t (error vip-InvalidRegister ex-buffer))))
+	(kill-region (point) (mark t))))))
+
+
+
+;; Ex edit command
+;; In Viper, `e' and `e!' behave identically. In both cases, the user is
+;; asked if current buffer should really be discarded.
+;; This command can take multiple file names. It replaces the current buffer
+;; with the first file in its argument list
+(defun ex-edit (&optional file)
+  (if (not file)
+      (vip-get-ex-file))
+  (cond ((and (string= ex-file "") buffer-file-name)
+	 (setq ex-file  (vip-abbreviate-file-name (buffer-file-name))))
+	((string= ex-file "")
+	 (error vip-NoFileSpecified)))
+      
+  (let (msg do-edit)
+    (if buffer-file-name
+	(cond ((buffer-modified-p)
+	       (setq msg
+		     (format "Buffer %s is modified. Discard changes? "
+			     (buffer-name))
+		     do-edit t))
+	      ((not (verify-visited-file-modtime (current-buffer)))
+	       (setq msg
+		     (format "File %s changed on disk.  Reread from disk? "
+			     buffer-file-name)
+		     do-edit t))
+	      (t (setq do-edit nil))))
+      
+    (if do-edit
+	(if (yes-or-no-p msg)
+	    (progn
+	      (set-buffer-modified-p nil)
+	      (kill-buffer (current-buffer)))
+	  (message "Buffer %s was left intact" (buffer-name))))
+    ) ; let
   
-(defalias 'vip-version 'viper-version)
+  (if (null (setq file (get-file-buffer ex-file)))
+      (progn 
+	(ex-find-file ex-file)
+	(vip-change-state-to-vi)
+	(goto-char (point-min)))
+    (switch-to-buffer file))
+  (if ex-offset
+      (progn
+	(save-window-excursion
+	  (set-buffer vip-ex-work-buf)
+	  (delete-region (point-min) (point-max))
+	  (insert ex-offset "\n")
+	  (goto-char (point-min)))
+	(goto-char (vip-get-ex-address))
+	(beginning-of-line)))
+  (ex-fixup-history vip-last-ex-prompt ex-file))
 
-(defun vip-nil ()
-  (interactive)
-  (beep 1))
+;; Splits the string FILESPEC into substrings separated by newlines.
+;; Each line is assumed to be a file name. find-file's each file thus obtained.
+(defun ex-find-file (filespec)
+  (let ((nonstandard-filename-chars "[^a-zA-Z0-9_.-/,\\]"))
+    (if (string-match nonstandard-filename-chars  filespec)
+	(funcall ex-nontrivial-find-file-function filespec)
+      (find-file filespec))
+    ))
+
+
+;; Ex global command
+(defun ex-global (variant)
+  (let ((gcommand ex-token))
+    (if (or ex-g-flag ex-g-variant)
+	(error "`%s' within `global' is not allowed" gcommand)
+      (if variant
+	  (setq ex-g-flag nil
+		ex-g-variant t)
+	(setq ex-g-flag t
+	      ex-g-variant nil)))
+    (vip-get-ex-pat)
+    (if (null ex-token)
+	(error "`%s': Missing regular expression" gcommand)))
+  
+  (if (string= ex-token "")
+      (if (null vip-s-string)
+	  (error vip-NoPrevSearch)
+	(setq ex-g-pat vip-s-string))
+    (setq ex-g-pat ex-token
+	  vip-s-string ex-token))
+  (if (null ex-addresses)
+      (setq ex-addresses (list (point-max) (point-min)))
+    (vip-default-ex-addresses))
+  (let ((marks nil) (mark-count 0)
+	com-str (end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (save-excursion
+      (vip-enlarge-region beg end)
+      (exchange-point-and-mark)
+      (let ((cont t) (limit (point-marker)))
+	(exchange-point-and-mark)
+	;; skip the last line if empty
+	(beginning-of-line)
+	(if (eobp) (vip-backward-char-carefully))
+	(while (and cont (not (bobp)) (>= (point) limit))
+	  (beginning-of-line)
+	  (set-mark (point))
+	  (end-of-line)
+	  (let ((found (re-search-backward ex-g-pat (mark t) t)))
+	    (if (or (and ex-g-flag found)
+		    (and ex-g-variant (not found)))
+		(progn
+		  (end-of-line)
+		  (setq mark-count (1+ mark-count))
+		  (setq marks (cons (point-marker) marks)))))
+	  (beginning-of-line)
+	  (if (bobp) (setq cont nil)
+	    (forward-line -1)
+	    (end-of-line)))))
+    (save-window-excursion
+      (set-buffer vip-ex-work-buf)
+      (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
+    (while marks
+      (goto-char (car marks))
+      (vip-ex com-str)
+      (setq mark-count (1- mark-count))
+      (setq marks (cdr marks)))))
+
+;; Ex goto command
+(defun ex-goto ()
+  (if (null ex-addresses)
+      (setq ex-addresses (cons (point) nil)))
+  (push-mark (point) t)
+  (goto-char (car ex-addresses))
+  (beginning-of-line))
+
+;; Ex line commands.  COM is join, shift-right or shift-left
+(defun ex-line (com)
+  (vip-default-ex-addresses)
+  (vip-get-ex-count)
+  (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) point)
+    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (save-excursion
+      (vip-enlarge-region beg end)
+      (exchange-point-and-mark)
+      (if ex-count
+	  (progn
+	    (set-mark (point))
+	    (forward-line ex-count)))
+      (if ex-flag
+	  ;; show text to be joined and ask for confirmation
+	  (progn
+	    (with-output-to-temp-buffer " *text*"
+	      (princ (buffer-substring (point) (mark t))))
+	    (condition-case nil
+		(progn
+		  (read-string "[Hit return to continue] ")
+		  (ex-line-subr com (point) (mark t)))
+	      (quit (ding)))
+	    (save-excursion (kill-buffer " *text*")))
+	(ex-line-subr com (point) (mark t)))
+      (setq point (point)))
+    (goto-char (1- point))
+    (beginning-of-line)))
+
+(defun ex-line-subr (com beg end)
+  (cond ((string= com "join")
+	 (goto-char (min beg end))
+	 (while (and (not (eobp)) (< (point) (max beg end)))
+	   (end-of-line)
+	   (if (and (<= (point) (max beg end)) (not (eobp)))
+	       (progn
+		 (forward-line 1)
+		 (delete-region (point) (1- (point)))
+		 (if (not ex-variant) (fixup-whitespace))))))
+	((or (string= com "right") (string= com "left"))
+	 (indent-rigidly
+	  (min beg end) (max beg end)
+	  (if (string= com "right") vip-shift-width (- vip-shift-width)))
+	 (goto-char (max beg end))
+	 (end-of-line)
+	 (vip-forward-char-carefully))))
+
+
+;; Ex mark command
+(defun ex-mark ()
+  (let (char)
+    (if (null ex-addresses)
+	(setq ex-addresses
+	      (cons (point) nil)))
+    (save-window-excursion
+      (set-buffer vip-ex-work-buf)
+      (skip-chars-forward " \t")
+      (if (looking-at "[a-z]")
+	  (progn
+	    (setq char (following-char))
+	    (forward-char 1)
+	    (skip-chars-forward " \t")
+	    (if (not (looking-at "[\n|]"))
+		(error "`%s': %s" ex-token vip-SpuriousText)))
+	(error "`%s' requires a following letter" ex-token)))
+    (save-excursion
+      (goto-char (car ex-addresses))
+      (point-to-register (1+ (- char ?a))))))
+
+    
+      
+;; Alternate file is the file next to the first one in the buffer ring
+(defun ex-next (cycle-other-window &optional find-alt-file)
+  (catch 'ex-edit
+    (let (count l)
+      (if (not find-alt-file) 
+	  (progn
+	    (vip-get-ex-file)
+	    (if (or (char-or-string-p ex-offset)
+		    (and (not (string= "" ex-file)) 
+		         (not (string-match "^[0-9]+$" ex-file))))
+		(progn
+		  (ex-edit t)
+		  (throw 'ex-edit nil))
+	      (setq count (string-to-int ex-file))
+	      (if (= count 0) (setq count 1))
+	      (if (< count 0) (error "Usage: `next <count>' (count >= 0)"))))
+	(setq count 1))
+      (setq l (vip-undisplayed-files))
+      (while (> count 0)
+	(while (and (not (null l)) (null (car l)))
+	  (setq l (cdr l)))
+	(setq count (1- count))
+	(if (> count 0)
+	    (setq l (cdr l))))
+      (if find-alt-file (car l)
+	(progn
+	  (if (and (car l) (get-file-buffer (car l)))
+	      (let* ((w (if cycle-other-window
+			    (get-lru-window) (selected-window)))
+		     (b (window-buffer w)))
+		(set-window-buffer w (get-file-buffer (car l)))
+		(bury-buffer b)
+		;; this puts "next <count>" in the ex-command history
+		(ex-fixup-history vip-last-ex-prompt ex-file))
+	    (error "Not that many undisplayed files")))))))
+
+
+(defun ex-next-related-buffer (direction &optional no-recursion)
+  
+  (vip-ring-rotate1 vip-related-files-and-buffers-ring direction)
+  
+  (let ((file-or-buffer-name 
+	 (vip-current-ring-item vip-related-files-and-buffers-ring))
+	(old-ring vip-related-files-and-buffers-ring)
+	(old-win (selected-window))
+	skip-rest buf wind)
+    
+    (or (and (ring-p vip-related-files-and-buffers-ring)
+	     (> (ring-length vip-related-files-and-buffers-ring) 0))
+	(error "This buffer has no related files or buffers"))
+	
+    (or (stringp file-or-buffer-name)
+	(error
+	 "File and buffer names must be strings, %S" file-or-buffer-name))
+    
+    (setq buf (cond ((get-buffer file-or-buffer-name))
+		    ((file-exists-p file-or-buffer-name)
+		     (find-file-noselect file-or-buffer-name))
+		    ))
+    
+    (if (not (vip-buffer-live-p buf))
+	(error "Didn't find buffer %S or file %S"
+	       file-or-buffer-name
+	       (vip-abbreviate-file-name
+		(expand-file-name file-or-buffer-name))))
+	  
+    (if (equal buf (current-buffer))
+	(or no-recursion
+	    ;; try again
+	    (progn
+	      (setq skip-rest t)
+	      (ex-next-related-buffer direction 'norecursion))))
+	
+    (if skip-rest
+	()
+      ;; setup buffer
+      (if (setq wind (vip-get-visible-buffer-window buf))
+	  ()
+	(setq wind (get-lru-window (if vip-xemacs-p nil 'visible)))
+	(set-window-buffer wind buf))
+	    
+      (if (vip-window-display-p)
+	  (progn
+	    (raise-frame (window-frame wind))
+	    (if (equal (window-frame wind) (window-frame old-win))
+		(save-window-excursion (select-window wind) (sit-for 1))
+	      (select-window wind)))
+	(save-window-excursion (select-window wind) (sit-for 1)))
+	
+      (save-excursion
+	(set-buffer buf)
+	(setq vip-related-files-and-buffers-ring old-ring))
+      
+      (setq vip-local-search-start-marker (point-marker))
+      )))
   
     
-;; if ENFORCE-BUFFER is not nil, error if CHAR is a marker in another buffer
-(defun vip-register-to-point (char &optional enforce-buffer)
-  "Like jump-to-register, but switches to another buffer in another window."
-  (interactive "cViper register to point: ")
-  (let ((val (get-register char)))
-    (cond
-     ((and (fboundp 'frame-configuration-p)
-	   (frame-configuration-p val))
-      (set-frame-configuration val))
-     ((window-configuration-p val)
-      (set-window-configuration val))
-     ((vip-valid-marker val)
-      (if (and enforce-buffer
-	       (not (equal (current-buffer) (marker-buffer val))))
-	  (error (concat vip-EmptyTextmarker " in this buffer")
-		 (1- (+ char ?a))))
-      (pop-to-buffer  (marker-buffer val))
-      (goto-char val))
-     ((and (consp val) (eq (car val) 'file))
-      (find-file (cdr val)))
-     (t
-      (error vip-EmptyTextmarker (1- (+ char ?a)))))))
+;; Force auto save
+(defun ex-preserve ()
+  (message "Autosaving all buffers that need to be saved...")
+  (do-auto-save t))
 
+;; Ex put
+(defun ex-put ()
+  (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
+    (vip-get-ex-buffer)
+    (setq vip-use-register ex-buffer)
+    (goto-char point)
+    (if (bobp) (vip-Put-back 1) (vip-put-back 1))))
 
-(defun vip-save-kill-buffer ()
-  "Save then kill current buffer. "
-  (interactive)
-  (if (< vip-expert-level 2)
+;; Ex print working directory
+(defun ex-pwd ()
+  (message default-directory))
+
+;; Ex quit command
+(defun ex-quit ()
+  ;; skip "!", if it is q!. In Viper q!, w!, etc., behave as q, w, etc.
+  (save-excursion
+    (set-buffer vip-ex-work-buf)
+    (if (looking-at "!") (forward-char 1)))
+  (if (< vip-expert-level 3)
       (save-buffers-kill-emacs)
-    (save-buffer)
     (kill-buffer (current-buffer))))
 
 
-
-;;; Bug Report
-
-(defun vip-submit-report ()
-  "Submit bug report on Viper."
-  (interactive)
-  (let ((reporter-prompt-for-summary-p t)
-	(vip-device-type (vip-device-type))
-	color-display-p frame-parameters
-	minibuffer-emacs-face minibuffer-vi-face minibuffer-insert-face
-	varlist salutation window-config)
-    
-    ;; If mode info is needed, add variable to `let' and then set it below,
-    ;; like we did with color-display-p.
-    (setq color-display-p (if (vip-window-display-p) 
-			      (vip-color-display-p)
-			    'non-x)
-	  minibuffer-vi-face (if (vip-has-face-support-p)
-				 (vip-get-face vip-minibuffer-vi-face)
-			       'non-x)
-	  minibuffer-insert-face (if (vip-has-face-support-p)
-				     (vip-get-face vip-minibuffer-insert-face)
-				   'non-x)
-	  minibuffer-emacs-face (if (vip-has-face-support-p)
-				    (vip-get-face vip-minibuffer-emacs-face)
-				  'non-x)
-	  frame-parameters (if (fboundp 'frame-parameters)
-			       (frame-parameters (selected-frame))))
-    
-    (setq varlist (list 'vip-vi-minibuffer-minor-mode
-		        'vip-insert-minibuffer-minor-mode
-		        'vip-vi-intercept-minor-mode
-		        'vip-vi-local-user-minor-mode     
-		        'vip-vi-kbd-minor-mode        	
-		        'vip-vi-global-user-minor-mode
-		        'vip-vi-state-modifier-minor-mode
-		        'vip-vi-diehard-minor-mode   
-		        'vip-vi-basic-minor-mode    
-		        'vip-replace-minor-mode 	  
-		        'vip-insert-intercept-minor-mode
-		        'vip-insert-local-user-minor-mode 
-		        'vip-insert-kbd-minor-mode     	
-		        'vip-insert-global-user-minor-mode
-		        'vip-insert-state-modifier-minor-mode
-		        'vip-insert-diehard-minor-mode 	
-		        'vip-insert-basic-minor-mode   
-		        'vip-emacs-intercept-minor-mode 
-		        'vip-emacs-local-user-minor-mode 
-		        'vip-emacs-kbd-minor-mode 
-		        'vip-emacs-global-user-minor-mode
-		        'vip-emacs-state-modifier-minor-mode
-		        'vip-automatic-iso-accents
-		        'vip-want-emacs-keys-in-insert
-		        'vip-want-emacs-keys-in-vi
-		        'vip-keep-point-on-undo
-		        'vip-no-multiple-ESC
-		        'vip-ESC-key
-		        'vip-want-ctl-h-help
-		        'vip-ex-style-editing-in-insert
-		        'vip-delete-backwards-in-replace
-		        'vip-vi-style-in-minibuffer
-		        'vip-vi-state-hook
-		        'vip-insert-state-hook
-		        'vip-replace-state-hook
-		        'vip-emacs-state-hook
-		        'ex-cycle-other-window
-		        'ex-cycle-through-non-files
-		        'vip-expert-level
-		        'major-mode
-		        'vip-device-type
-			'color-display-p
-			'frame-parameters
-			'minibuffer-vi-face
-			'minibuffer-insert-face
-			'minibuffer-emacs-face
-			))
-	  (setq salutation "
-Congratulations! You may have unearthed a bug in Viper!
-Please mail a concise, accurate summary of the problem to the address above.
-
--------------------------------------------------------------------")
-	  (setq window-config (current-window-configuration))
-	  (with-output-to-temp-buffer " *vip-info*"
-	    (switch-to-buffer " *vip-info*")
-	    (delete-other-windows)
-	    (princ "
-PLEASE FOLLOW THESE PROCEDURES
-------------------------------
-
-Before reporting a bug, please verify that it is related to Viper, and is
-not cause by other packages you are using.
-
-Don't report compilation warnings, unless you are certain that there is a
-problem. These warnings are normal and unavoidable.
-
-Please note that users should not modify variables and keymaps other than
-those advertised in the manual. Such `customization' is likely to crash
-Viper, as it would any other improperly customized Emacs package.
-
-If you are reporting an error message received while executing one of the
-Viper commands, type:
-
-    M-x set-variable <Return> debug-on-error <Return> t <Return>
-	
-Then reproduce the error. The above command will cause Emacs to produce a
-back trace of the execution that leads to the error. Please include this
-trace in your bug report.
-
-If you believe that one of Viper's commands goes into an infinite loop
-\(e.g., Emacs freezes\), type:
-
-    M-x set-variable <Return> debug-on-quit <Return> t <Return>
-	
-Then reproduce the problem. Wait for a few seconds, then type C-g to abort
-the current command. Include the resulting back trace in the bug report.
-
-Mail anyway (y or n)? ")
-	    (if (y-or-n-p "Mail anyway? ")
-		()
-	      (set-window-configuration window-config)
-	      (error "Bug report aborted")))
-
-	  (require 'reporter)
-	  (set-window-configuration window-config)
-    
-	  (reporter-submit-bug-report "kifer@cs.sunysb.edu"
-				      (vip-version)
-				      varlist
-				      nil 'delete-other-windows
-				      salutation)
-	  ))
-		    
-
-    
-		
-;; Smoothes out the difference between Emacs' unread-command-events
-;; and XEmacs unread-command-event. Arg is a character, an event, a list of
-;; events or a sequence of keys.
-;;
-;; Due to the way unread-command-events in Emacs (not XEmacs), a non-event
-;; symbol in unread-command-events list may cause Emacs to turn this symbol
-;; into an event. Below, we delete nil from event lists, since nil is the most
-;; common symbol that might appear in this wrong context.
-(defun vip-set-unread-command-events (arg)
-  (if vip-emacs-p
-      (setq
-       unread-command-events
-       (let ((new-events
-	      (cond ((eventp arg) (list arg))
-		    ((listp arg) arg)
-		    ((sequencep arg)
-		     (listify-key-sequence arg))
-		    (t (error
-			"vip-set-unread-command-events: Invalid argument, %S"
-			arg)))))
-	 (if (not (eventp nil))
-	     (setq new-events (delq nil new-events)))
-	 (append new-events unread-command-events)))
-    ;; XEmacs
-    (setq
-     unread-command-events
-     (append
-      (cond ((vip-characterp arg) (list (character-to-event arg)))
-	    ((eventp arg)  (list arg))
-	    ((stringp arg) (mapcar 'character-to-event arg))
-	    ((vectorp arg) (append arg nil)) ; turn into list
-	    ((listp arg) (vip-eventify-list-xemacs arg))
-	    (t (error
-		"vip-set-unread-command-events: Invalid argument, %S" arg)))
-      unread-command-events))))
-
-;; list is assumed to be a list of events of characters
-(defun vip-eventify-list-xemacs (lis)
-  (mapcar
-   (function (lambda (elt)
-	       (cond ((vip-characterp elt) (character-to-event elt))
-		     ((eventp elt)  elt)
-		     (t (error
-			 "vip-eventify-list-xemacs: can't convert to event, %S"
-			 elt)))))
-   lis))
+;; Ex read command
+(defun ex-read ()
+  (vip-get-ex-file)
+  (let ((point (if (null ex-addresses) (point) (car ex-addresses)))
+	command)
+    (goto-char point)
+    (vip-add-newline-at-eob-if-necessary)
+    (if (not (or (bobp) (eobp))) (forward-line 1))
+    (if (and (not ex-variant) (string= ex-file ""))
+	(progn
+	  (if (null buffer-file-name)
+	      (error vip-NoFileSpecified))
+	  (setq ex-file buffer-file-name)))
+    (if ex-cmdfile
+	(progn
+	  (setq command (ex-expand-filsyms ex-file (current-buffer)))
+	  (shell-command command t))
+      (insert-file-contents ex-file)))
+  (ex-fixup-history vip-last-ex-prompt ex-file))
   
-  
-
-;;; Bring in the rest of the files
-(require 'viper-mous)
-(require 'viper-macs)
-(require 'viper-ex)
-
-
-
-;; The following is provided for compatibility with older VIP's
-
-(defalias 'vip-change-mode-to-vi 'vip-change-state-to-vi)
-(defalias 'vip-change-mode-to-insert 'vip-change-state-to-insert)
-(defalias 'vip-change-mode-to-emacs 'vip-change-state-to-emacs)
-   
-
-
-;;; Load .vip and set up hooks
-
-;; This hook designed to enable Vi-style editing in comint-based modes."
-(defun vip-comint-mode-hook ()
-  (setq require-final-newline nil)
-  (setq vip-ex-style-editing-in-insert nil
-	vip-ex-style-motion nil)
-  (vip-add-local-keys 'vi-state
-		      '(("\C-m" . comint-send-input) ; return
-			("\C-d" . comint-delchar-or-maybe-eof))) ; \C-d
-  (vip-add-local-keys 'insert-state
-		      '(("\C-m" . comint-send-input) ; return
-			("\C-d" . comint-delchar-or-maybe-eof))) ; \C-d
-  )
+;; this function fixes ex-history for some commands like ex-read, ex-edit
+(defun ex-fixup-history (&rest args)  
+  (setq vip-ex-history
+	(cons (mapconcat 'identity args " ") (cdr vip-ex-history))))
   
 
-;; This sets major mode hooks to make them come up in vi-state.
-(defun vip-set-hooks ()
-  
-  ;; It is of course a misnomer to call viper-mode a `major mode'.
-  ;; However, this has the effect that if the user didn't specify the
-  ;; default mode, new buffers that fall back on the default will come up
-  ;; in Fundamental Mode and Vi state.
-  (setq default-major-mode 'viper-mode)
-  
-  ;; The following major modes should come up in vi-state
-  (defadvice fundamental-mode (after vip-fundamental-mode-ad activate)
-    "Run `vip-change-state-to-vi' on entry."
-    (vip-change-state-to-vi))
-
-  (defvar makefile-mode-hook)
-  (add-hook 'makefile-mode-hook 'viper-mode)
-
-  (defvar help-mode-hook)
-  (add-hook 'help-mode-hook 'viper-mode)
-
-  (defvar awk-mode-hook)
-  (add-hook 'awk-mode-hook 'viper-mode)
-  
-  (defvar html-mode-hook)
-  (add-hook 'html-mode-hook 'viper-mode)
-  (defvar html-helper-mode-hook)
-  (add-hook 'html-helper-mode-hook 'viper-mode)
-  
-  (defvar emacs-lisp-mode-hook)
-  (add-hook 'emacs-lisp-mode-hook 'viper-mode)
-
-  (defvar lisp-mode-hook)
-  (add-hook 'lisp-mode-hook 'viper-mode)
-  
-  (defvar bibtex-mode-hook)
-  (add-hook 'bibtex-mode-hook 'viper-mode) 	  
-      
-  (defvar cc-mode-hook)
-  (add-hook 'cc-mode-hook 'viper-mode)
-      
-  (defvar c-mode-hook)
-  (add-hook 'c-mode-hook 'viper-mode)
-      
-  (defvar c++-mode-hook)
-  (add-hook 'c++-mode-hook 'viper-mode)
-  
-  (defvar lisp-interaction-mode-hook)
-  (add-hook 'lisp-interaction-mode-hook 'viper-mode)
-
-  (defvar fortran-mode-hook)
-  (add-hook 'fortran-mode-hook 'vip-mode)
-      
-  (defvar text-mode-hook)
-  (add-hook 'text-mode-hook 'viper-mode)
-      
-  (add-hook 'completion-list-mode-hook 'viper-mode)  
-  (add-hook 'compilation-mode-hook     'viper-mode)  
-
-  (add-hook 'perl-mode-hook     'viper-mode)  
-  (add-hook 'tcl-mode-hook     'viper-mode)  
-  
-  (defvar emerge-startup-hook)
-  (add-hook 'emerge-startup-hook 'vip-change-state-to-emacs)
-  ;; Run vip-change-state-to-vi after quitting emerge.
-  (vip-eval-after-load
-   "emerge"
-   '(defadvice emerge-quit (after vip-emerge-advice activate)
-      "Run `vip-change-state-to-vi' after quitting emerge."
-      (vip-change-state-to-vi)))
-  ;; In case Emerge was loaded before Viper.
-  (defadvice emerge-quit (after vip-emerge-advice activate)
-    "Run `vip-change-state-to-vi' after quitting emerge."
-    (vip-change-state-to-vi))
-  
-  (vip-eval-after-load
-   "asm-mode"
-   '(defadvice asm-mode (after vip-asm-mode-ad activate)
-      "Run `vip-change-state-to-vi' on entry."
-      (vip-change-state-to-vi)))
-  
-  ;; passwd.el sets up its own buffer, which turns up in Vi mode,
-  ;; thus overriding the local map. We don't need Vi mode here.
-  (vip-eval-after-load
-   "passwd"
-   '(defadvice read-passwd-1 (before vip-passwd-ad activate)
-      "Switch to emacs state while reading password."
-      (vip-change-state-to-emacs)))
-
-  (vip-eval-after-load
-   "prolog"
-   '(defadvice prolog-mode (after vip-prolog-ad activate)
-      "Switch to Vi state in Prolog mode."
-      (vip-change-state-to-vi)))
-  
-  ;; Emacs shell, ange-ftp, and comint-based modes
-  (defvar comint-mode-hook)
-  (add-hook 'comint-mode-hook 'vip-change-state-to-insert)
-  (add-hook 'comint-mode-hook 'vip-comint-mode-hook)
-  
-  ;; Shell scripts
-  (defvar sh-mode-hook)
-  (add-hook 'sh-mode-hook 'viper-mode)
-  (defvar ksh-mode-hook)
-  (add-hook 'ksh-mode-hook 'viper-mode)
-  
-  ;; Dired
-  ;; This is only necessary when the user uses vip-modify-major-mode
-  (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
-
-  (if vip-emacs-p
+;; Ex recover from emacs \#file\#
+(defun ex-recover ()
+  (vip-get-ex-file)
+  (if (or ex-append ex-offset)
+      (error "`recover': %s" vip-SpuriousText))
+  (if (string= ex-file "")
       (progn
-	(defvar view-mode-hook)
-	(add-hook 'view-mode-hook 'vip-change-state-to-emacs))
-    (defadvice view-minor-mode (after vip-view-ad activate)
-      "Switch to Emacs state in View mode."
-      (vip-change-state-to-emacs))
-    (defvar view-hook)
-    (add-hook 'view-hook 'vip-change-state-to-emacs))
+	(if (null buffer-file-name)
+	    (error "This buffer isn't visiting any file"))
+	(setq ex-file buffer-file-name))
+    (setq ex-file (expand-file-name ex-file)))
+  (if (and (not (string= ex-file (buffer-file-name)))
+	   (buffer-modified-p)
+	   (not ex-variant))
+      (error "No write since last change \(:rec! overrides\)"))
+  (recover-file ex-file))
+
+;; Tell that `rewind' is obsolete and to use `:next count' instead
+(defun ex-rewind ()
+  (message
+   "Use `:n <count>' instead. Counts are obtained from the `:args' command"))
+
+
+;; read variable name for ex-set
+(defun ex-set-read-variable ()
+  (let ((minibuffer-local-completion-map
+	 (copy-keymap minibuffer-local-completion-map))
+	(cursor-in-echo-area t)
+	str batch)
+    (define-key
+      minibuffer-local-completion-map " " 'minibuffer-complete-and-exit)
+    (define-key minibuffer-local-completion-map "=" 'exit-minibuffer)
+    (if (vip-set-unread-command-events
+	 (ex-get-inline-cmd-args "[ \t]*[a-zA-Z]*[ \t]*" nil "\C-m"))
+	(progn
+	  (setq batch t)
+	  (vip-set-unread-command-events ?\C-m)))
+    (message ":set  <Variable> [= <Value>]")
+    (or batch (sit-for 2))
+    
+    (while (string-match "^[ \\t\\n]*$"
+			 (setq str
+			       (completing-read ":set " ex-variable-alist)))
+      (message ":set <Variable> ")
+      ;; if there are unread events, don't wait
+      (or (vip-set-unread-command-events "") (sit-for 2))
+      ) ; while
+    str))
+
+
+(defun ex-set ()
+  (let ((var (ex-set-read-variable))
+	(val 0)
+	(set-cmd "setq")
+	(ask-if-save t)
+	(auto-cmd-label "; don't touch or else...")
+	(delete-turn-on-auto-fill-pattern
+	 "([ \t]*add-hook[ \t]+'vip-insert-state-hooks[ \t]+'turn-on-auto-fill.*)")
+	actual-lisp-cmd lisp-cmd-del-pattern
+	val2 orig-var)
+    (setq orig-var var)
+    (cond ((member var '("ai" "autoindent"))
+	   (setq var "vip-auto-indent"
+		 set-cmd "setq"
+		 ask-if-save nil
+		 val "t"))
+	  ((member var '("gai" "global-autoindent"))
+	   (kill-local-variable 'vip-auto-indent)
+	   (setq var "vip-auto-indent"
+		 set-cmd "setq-default"
+		 val "t"))
+	  ((member var '("noai" "noautoindent"))
+	   (setq var "vip-auto-indent"
+		 ask-if-save nil
+		 val "nil"))
+	  ((member var '("gnoai" "global-noautoindent"))
+	   (kill-local-variable 'vip-auto-indent)
+	   (setq var "vip-auto-indent"
+		 set-cmd "setq-default"
+		 val "nil"))
+	  ((member var '("ic" "ignorecase"))
+	   (setq var "vip-case-fold-search"
+		 val "t"))
+	  ((member var '("noic" "noignorecase"))
+	   (setq var "vip-case-fold-search"
+		 val "nil"))
+	  ((member var '("ma" "magic"))
+	   (setq var "vip-re-search"
+		 val "t"))
+	  ((member var '("noma" "nomagic"))
+	   (setq var "vip-re-search"
+		 val "nil"))
+	  ((member var '("ro" "readonly"))
+	   (setq var "buffer-read-only"
+		 val "t"))
+	  ((member var '("noro" "noreadonly"))
+	   (setq var "buffer-read-only"
+		 val "nil"))
+	  ((member var '("sm" "showmatch"))
+	   (setq var "blink-matching-paren"
+		 val "t"))
+	  ((member var '("nosm" "noshowmatch"))
+	   (setq var "blink-matching-paren"
+		 val "nil"))
+	  ((member var '("ws" "wrapscan"))
+	   (setq var "vip-search-wrap-around-t"
+		 val "t"))
+	  ((member var '("nows" "nowrapscan"))
+	   (setq var "vip-search-wrap-around-t"
+		 val "nil")))
+    (if (eq val 0) ; value must be set by the user
+	(let ((cursor-in-echo-area t))
+	  (message ":set %s = <Value>" var)
+	  ;; if there are unread events, don't wait
+	  (or (vip-set-unread-command-events "") (sit-for 2))
+	  (setq val (read-string (format ":set %s = " var)))
+	  (ex-fixup-history "set" orig-var val)
+	  
+	  ;; check numerical values
+	  (if (member var
+		      '("sw" "shiftwidth"
+			"ts" "tabstop"
+			"gts" "global-tabstop"
+			"wm" "wrapmargin")) 
+	      (condition-case nil
+		  (or (numberp (setq val2 (car (read-from-string val))))
+		      (error "%s: Invalid value, numberp, %S" var val))
+		(error
+		 (error "%s: Invalid value, numberp, %S" var val))))
+		  
+	  (cond
+	   ((member var '("sw" "shiftwidth"))
+	    (setq var "vip-shift-width"))
+	   ((member var '("ts" "tabstop"))
+	    ;; make it take effect in curr buff and new bufs
+	    (setq var "tab-width"
+		  set-cmd "setq"
+		  ask-if-save nil))
+	   ((member var '("gts" "global-tabstop"))
+	    (kill-local-variable 'tab-width)
+	    (setq var "tab-width"
+		  set-cmd "setq-default"))
+	   ((member var '("wm" "wrapmargin"))
+	    ;; make it take effect in curr buff and new bufs
+	    (kill-local-variable 'fill-column) 
+	    (setq var "fill-column" 
+		  val (format "(- (window-width) %s)" val)
+		  set-cmd "setq-default"))
+	   ((member var '("sh" "shell"))
+	    (setq var "explicit-shell-file-name"
+		  val (format "\"%s\"" val)))))
+      (ex-fixup-history "set" orig-var))
+    
+    (setq actual-lisp-cmd (format "\n(%s %s %s) %s"
+				  set-cmd var val auto-cmd-label))
+    (setq lisp-cmd-del-pattern
+	  (format "^\n?[ \t]*([ \t]*%s[ \t]+%s[ \t].*)[ \t]*%s"
+		  set-cmd var auto-cmd-label))
+    
+    (if (and ask-if-save
+	     (y-or-n-p (format "Do you want to save this setting in %s "
+			       vip-custom-file-name)))
+	(progn
+	  (vip-save-string-in-file 
+	   actual-lisp-cmd vip-custom-file-name
+	   ;; del pattern
+	   lisp-cmd-del-pattern)
+	  (if (string= var "fill-column")
+	      (if (> val2 0)
+		  (vip-save-string-in-file
+		   (concat
+		    "(add-hook 'vip-insert-state-hooks 'turn-on-auto-fill) "
+		    auto-cmd-label)
+		   vip-custom-file-name
+		   delete-turn-on-auto-fill-pattern)
+		(vip-save-string-in-file
+		 nil vip-custom-file-name delete-turn-on-auto-fill-pattern)
+		(vip-save-string-in-file
+		 nil vip-custom-file-name
+		 ;; del pattern
+		 lisp-cmd-del-pattern)
+		))
+	  ))
+    
+    (message "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
+					(format "%S" val)
+				      val))
+    (eval (car (read-from-string actual-lisp-cmd)))
+	(if (string= var "fill-column")
+		(if (> val2 0)
+			(auto-fill-mode 1)
+		  (auto-fill-mode -1)))
+		
+    ))
+
+;; In inline args, skip regex-forw and (optionally) chars-back.
+;; Optional 3d arg is a string that should replace ' ' to prevent its
+;; special meaning
+(defun ex-get-inline-cmd-args (regex-forw &optional chars-back replace-str)
+  (save-excursion
+    (set-buffer vip-ex-work-buf)
+    (goto-char (point-min))
+    (re-search-forward regex-forw nil t)
+    (let ((beg (point))
+	  end)
+      (goto-char (point-max))
+      (if chars-back
+	  (skip-chars-backward chars-back)
+	(skip-chars-backward " \t\n\C-m"))
+      (setq end (point))
+      ;; replace SPC with `=' to suppress the special meaning SPC has
+      ;; in Ex commands
+      (goto-char beg)
+      (if replace-str
+	  (while (re-search-forward " +" nil t)
+	    (replace-match replace-str nil t)
+	    (vip-forward-char-carefully)))
+      (goto-char end)
+      (buffer-substring beg end))))
+
+
+;; Ex shell command
+(defun ex-shell ()
+  (shell))
   
-  ;; For VM users.
-  ;; Put summary and other VM buffers in Emacs state.
-  (defvar vm-mode-hooks)
-  (defvar vm-summary-mode-hooks)
-  (add-hook 'vm-mode-hooks   'vip-change-state-to-emacs)
-  (add-hook 'vm-summary-mode-hooks   'vip-change-state-to-emacs)
-  
-  ;; For RMAIL users.
-  ;; Put buf in Emacs state after edit.
-  (vip-eval-after-load
-   "rmailedit"
-   '(defadvice rmail-cease-edit (after vip-rmail-advice activate)
-      "Switch to emacs state when done editing message."
-      (vip-change-state-to-emacs)))
-  ;; In case RMAIL was loaded before Viper.
-  (defadvice rmail-cease-edit (after vip-rmail-advice activate)
-    "Switch to emacs state when done editing message."
-    (vip-change-state-to-emacs))
-  ) ; vip-set-hooks
+;; Viper help. Invokes Info
+(defun ex-help ()
+  (condition-case nil
+      (progn
+	(pop-to-buffer (get-buffer-create "*info*"))
+	(info (if vip-xemacs-p "viper.info" "viper"))
+	(message "Type `i' to search for a specific topic"))
+    (error (beep 1)
+	   (with-output-to-temp-buffer " *vip-info*"
+	     (princ (format "
+The Info file for Viper does not seem to be installed.
+
+This file is part of the standard distribution of %sEmacs.
+Please contact your system administrator. "
+			    (if vip-xemacs-p "X" "")
+			    ))))))
+
+;; Ex source command. Loads the file specified as argument or `~/.vip'
+(defun ex-source ()
+  (vip-get-ex-file)
+  (if (string= ex-file "")
+      (load vip-custom-file-name)
+    (load ex-file)))
+
+;; Ex substitute command
+;; If REPEAT use previous regexp which is ex-reg-exp or vip-s-string
+(defun ex-substitute (&optional repeat r-flag) 
+  (let ((opt-g nil)
+	(opt-c nil)
+	(matched-pos nil)
+	(case-fold-search vip-case-fold-search)
+	delim pat repl)
+    (if repeat (setq ex-token nil) (setq delim (vip-get-ex-pat)))
+    (if (null ex-token)
+	(progn
+	  (setq pat (if r-flag vip-s-string ex-reg-exp))
+	  (or (stringp pat)
+	      (error "No previous pattern to use in substitution"))
+	  (setq repl ex-repl
+		delim (string-to-char pat)))
+      (setq pat (if (string= ex-token "") vip-s-string ex-token))
+      (setq vip-s-string pat
+	    ex-reg-exp pat)
+      (setq delim (vip-get-ex-pat))
+      (if (null ex-token)
+	  (setq ex-token ""
+		ex-repl "")
+	(setq repl ex-token
+	      ex-repl ex-token)))
+    (while (vip-get-ex-opt-gc delim)
+      (if (string= ex-token "g") (setq opt-g t) (setq opt-c t)))
+    (vip-get-ex-count)
+    (if ex-count
+	(save-excursion
+	  (if ex-addresses (goto-char (car ex-addresses)))
+	  (set-mark (point))
+	  (forward-line (1- ex-count))
+	  (setq ex-addresses (cons (point) (cons (mark t) nil))))
+      (if (null ex-addresses)
+	  (setq ex-addresses (cons (point) (cons (point) nil)))
+	(if (null (cdr ex-addresses))
+	    (setq ex-addresses (cons (car ex-addresses) ex-addresses)))))
+					;(setq G opt-g)
+    (let ((beg (car ex-addresses))
+	  (end (car (cdr ex-addresses)))
+	  eol-mark)
+      (save-excursion
+	(vip-enlarge-region beg end)
+	(let ((limit (save-excursion
+		       (goto-char (max (point) (mark t)))
+		       (point-marker))))
+	  (goto-char (min (point) (mark t)))
+	  (while (< (point) limit)
+	    (end-of-line)
+	    (setq eol-mark (point-marker))
+	    (beginning-of-line)
+	    (if opt-g
+		(progn
+		  (while (and (not (eolp))
+			      (re-search-forward pat eol-mark t))
+		    (if (or (not opt-c) (y-or-n-p "Replace? "))
+			(progn
+			  (setq matched-pos (point))
+			  (if (not (stringp repl))
+			      (error "Can't perform Ex substitution: No previous replacement pattern"))
+			  (replace-match repl t))))
+		  (end-of-line)
+		  (vip-forward-char-carefully))
+	      (if (null pat)
+		  (error
+		   "Can't repeat Ex substitution: No previous regular expression"))
+	      (if (and (re-search-forward pat eol-mark t)
+		       (or (not opt-c) (y-or-n-p "Replace? ")))
+		  (progn
+		    (setq matched-pos (point))
+		    (if (not (stringp repl))
+			(error "Can't perform Ex substitution: No previous replacement pattern"))
+		    (replace-match repl t)))
+	      (end-of-line)
+	      (vip-forward-char-carefully))))))
+    (if matched-pos (goto-char matched-pos))
+    (beginning-of-line)
+    (if opt-c (message "done"))))
+
+;; Ex tag command
+(defun ex-tag ()
+  (let (tag)
+    (save-window-excursion
+      (set-buffer vip-ex-work-buf)
+      (skip-chars-forward " \t")
+      (set-mark (point))
+      (skip-chars-forward "^ |\t\n")
+      (setq tag (buffer-substring (mark t) (point))))
+    (if (not (string= tag "")) (setq ex-tag tag))
+    (vip-change-state-to-emacs)
+    (condition-case conds
+	(progn
+	  (if (string= tag "")
+	      (find-tag ex-tag t)
+	    (find-tag-other-window ex-tag))
+	  (vip-change-state-to-vi))
+      (error
+       (vip-change-state-to-vi)
+       (vip-message-conditions conds)))))
+
+;; Ex write command
+(defun ex-write (q-flag)
+  (vip-default-ex-addresses t)
+  (vip-get-ex-file)
+  (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) 
+	temp-buf writing-same-file region
+	file-exists writing-whole-file)
+    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if ex-cmdfile
+	(progn
+	  (vip-enlarge-region beg end)
+	  (shell-command-on-region (point) (mark t) ex-file))
+      (if (and (string= ex-file "") (not (buffer-file-name)))
+	  (setq ex-file
+		(read-file-name
+		 (format "Buffer %s isn't visiting any file. File to save in: "
+			 (buffer-name)))))
       
-;; Set some useful macros
-;; These must be before we load .vip, so the user can unrecord them.
+      (setq writing-whole-file (and (= (point-min) beg) (= (point-max) end))
+	    ex-file (if (string= ex-file "")
+			(buffer-file-name)
+		      (expand-file-name ex-file)))
+      ;; if ex-file is a directory use the file portion of the buffer file name
+      (if (and (file-directory-p ex-file)
+	       buffer-file-name
+	       (not (file-directory-p buffer-file-name)))
+	  (setq ex-file
+		(concat ex-file (file-name-nondirectory buffer-file-name))))
 
-;; repeat the 2nd previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\1) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
-;; repeat the 3d previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\2) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
- 
-;; toggle case sensitivity in search
-(vip-record-kbd-macro
- "//" 'vi-state
- [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
-;; toggle regexp/vanila search
-(vip-record-kbd-macro
- "///" 'vi-state
- [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
- 
+      (setq file-exists (file-exists-p ex-file)
+	    writing-same-file (string= ex-file (buffer-file-name)))
 
-;; ~/.vip is loaded if it exists
-(if (and (file-exists-p vip-custom-file-name)
-	 (not noninteractive))
-    (load vip-custom-file-name))
+      (if (and writing-whole-file writing-same-file)
+	  (if (not (buffer-modified-p))
+	      (message "(No changes need to be saved)")
+	    (save-buffer)
+	    (ex-write-info file-exists ex-file beg end))
+	;; writing some other file or portion of the currents
+	;; file---create temp buffer for it
+	;; disable undo in that buffer, for efficiency
+	(buffer-disable-undo (setq temp-buf (create-file-buffer ex-file)))
+	(unwind-protect 
+	    (save-excursion
+	      (if (and file-exists
+		       (not writing-same-file)
+		       (not (yes-or-no-p
+			     (format "File %s exists. Overwrite? " ex-file))))
+		  (error "Quit")
+		(vip-enlarge-region beg end)
+		(setq region (buffer-substring (point) (mark t)))
+		(set-buffer temp-buf)
+		(set-visited-file-name ex-file)
+		(erase-buffer)
+		(if (and file-exists ex-append)
+		    (insert-file-contents ex-file))
+		(goto-char (point-max))
+		(insert region)
+		(save-buffer)
+		(ex-write-info file-exists ex-file (point-min) (point-max))
+		)
+	      (set-buffer temp-buf)
+	      (set-buffer-modified-p nil)
+	      (kill-buffer temp-buf)
+	      ))
+	)
+      ;; this prevents the loss of data if writing part of the buffer
+      (if (and (buffer-file-name) writing-same-file)
+	  (set-visited-file-modtime))
+      (or writing-whole-file 
+	  (not writing-same-file)
+	  (set-buffer-modified-p t))
+      (if q-flag
+	  (if (< vip-expert-level 2)
+	      (save-buffers-kill-emacs)
+	    (kill-buffer (current-buffer))))
+      )))
+	  
 
-;; VIP compatibility: merge whatever the user has in vip-mode-map into
-;; Viper's basic map.
-(vip-add-keymap vip-mode-map vip-vi-global-user-map)
+(defun ex-write-info (exists file-name beg end)
+  (message "`%s'%s %d lines, %d characters"
+	   (vip-abbreviate-file-name file-name)
+	   (if exists "" " [New file]")
+	   (count-lines beg (min (1+ end) (point-max)))
+	   (- end beg)))
 
-
-;; Applying Viper customization -- runs after (load .vip)
+;; Ex yank command
+(defun ex-yank ()
+  (vip-default-ex-addresses)
+  (vip-get-ex-buffer)
+  (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (save-excursion
+      (vip-enlarge-region beg end)
+      (exchange-point-and-mark)
+      (if (or ex-g-flag ex-g-variant)
+	  (error "Can't execute `yank' within `global'"))
+      (if ex-count
+	  (progn
+	    (set-mark (point))
+	    (forward-line (1- ex-count)))
+	(set-mark end))
+      (vip-enlarge-region (point) (mark t))
+      (if ex-flag (error "`yank': %s" vip-SpuriousText))
+      (if ex-buffer
+	  (cond ((vip-valid-register ex-buffer '(Letter))
+		 (vip-append-to-register
+		  (downcase ex-buffer) (point) (mark t)))
+		((vip-valid-register ex-buffer)
+		 (copy-to-register ex-buffer (point) (mark t) nil))
+		(t (error vip-InvalidRegister ex-buffer))))
+      (copy-region-as-kill (point) (mark t)))))
 
-;; Save user settings or Viper defaults for vars controled by vip-expert-level
-(setq vip-saved-user-settings 
-      (list (cons 'vip-want-ctl-h-help vip-want-ctl-h-help)
-	    (cons 'vip-always vip-always)
-	    (cons 'vip-no-multiple-ESC vip-no-multiple-ESC)
-	    (cons 'vip-ex-style-motion vip-ex-style-motion)
-	    (cons 'vip-ex-style-editing-in-insert
-		    	    	    	    vip-ex-style-editing-in-insert) 
-	    (cons 'vip-want-emacs-keys-in-vi vip-want-emacs-keys-in-vi)
-	    (cons 'vip-want-emacs-keys-in-insert vip-want-emacs-keys-in-insert)
-	    (cons 'vip-re-search vip-re-search)))
-	      
+;; Execute shell command
+(defun ex-command ()
+  (let (command)
+    (save-window-excursion
+      (set-buffer vip-ex-work-buf)
+      (skip-chars-forward " \t")
+      (setq command (buffer-substring (point) (point-max)))
+      (end-of-line))
+    (setq command (ex-expand-filsyms command (current-buffer)))
+    (if (and (> (length command) 0) (string= "!" (substring command 0 1)))
+	(if vip-ex-last-shell-com
+	    (setq command (concat vip-ex-last-shell-com (substring command 1)))
+	  (error "No previous shell command")))
+    (setq vip-ex-last-shell-com command)
+    (if (null ex-addresses)
+	(shell-command command)
+      (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+	(if (null beg) (setq beg end))
+	(save-excursion
+	  (goto-char beg)
+	  (set-mark end)
+	  (vip-enlarge-region (point) (mark t))
+	  (shell-command-on-region (point) (mark t) command t))
+	(goto-char beg)))))
 
-(vip-set-minibuffer-style)
-(vip-set-minibuffer-faces)
-(vip-set-search-face)
-(if vip-buffer-search-char
-    (vip-buffer-search-enable))
-(vip-update-alphanumeric-class)
-   
-;;; Familiarize Viper with some minor modes that have their own keymaps
-(vip-harness-minor-mode "compile")
-(vip-harness-minor-mode "outline")
-(vip-harness-minor-mode "allout")
-(vip-harness-minor-mode "xref")
-(vip-harness-minor-mode "lmenu")
-(vip-harness-minor-mode "vc")
-(vip-harness-minor-mode "ltx-math") ; LaTeX-math-mode in AUC-TeX
-(vip-harness-minor-mode "latex")    ; which is in one of these two files
-(vip-harness-minor-mode "cyrillic")
-(vip-harness-minor-mode "russian")
-(vip-harness-minor-mode "view-less")
-(vip-harness-minor-mode "view")
+;; Print line number
+(defun ex-line-no ()
+  (message "%d"
+	   (1+ (count-lines
+		(point-min)
+		(if (null ex-addresses) (point-max) (car ex-addresses))))))
+
+;; Give information on the file visited by the current buffer
+(defun vip-info-on-file ()
+  (interactive)
+  (let ((pos1 (vip-line-pos 'start))
+	(pos2 (vip-line-pos 'end))
+	lines file info)
+    (setq lines (count-lines (point-min) (vip-line-pos 'end))
+	  file (if (buffer-file-name)
+		   (concat (vip-abbreviate-file-name (buffer-file-name)) ":")
+		 (concat (buffer-name) " [Not visiting any file]:"))
+	  info (format "line=%d/%d pos=%d/%d col=%d %s"
+		       (if (= pos1 pos2)
+			   (1+ lines)
+			 lines)
+		       (count-lines (point-min) (point-max))
+		       (point) (1- (point-max))
+		       (1+ (current-column))
+		       (if (buffer-modified-p) "[Modified]" "[Unchanged]")))
+    (if (< (+ 1 (length info) (length file))
+	   (window-width (minibuffer-window)))
+	(message (concat file " " info))
+      (save-window-excursion
+	(with-output-to-temp-buffer " *vip-info*"
+	  (princ (concat "\n"
+			 file "\n\n\t" info
+			 "\n\n\nPress any key to continue...\n\n")))
+	(vip-read-event)
+	(kill-buffer " *vip-info*")))
+    ))
 
 
-;; Intercept maps could go in viper-keym.el
-;; We keep them here in case someone redefines them in ~/.vip
+(provide 'viper-ex)
 
-(define-key vip-vi-intercept-map vip-ESC-key 'vip-intercept-ESC-key)
-(define-key vip-insert-intercept-map vip-ESC-key 'vip-intercept-ESC-key)
-
-;; This is taken care of by vip-insert-global-user-map.
-;;(define-key vip-replace-map vip-ESC-key 'vip-intercept-ESC-key)
-
-(define-key vip-insert-intercept-map vip-toggle-key 'vip-alternate-ESC)
-;; The default vip-toggle-key is \C-z; for the novice, it suspends or
-;; iconifies Emacs
-(define-key vip-vi-intercept-map vip-toggle-key
-  '(lambda () (interactive)
-     (if (and (< vip-expert-level 2) (equal vip-toggle-key "\C-z"))
-	 (if (vip-window-display-p) (vip-iconify) (suspend-emacs))
-       (vip-change-state-to-emacs))))
-
-(define-key vip-emacs-intercept-map vip-toggle-key 'vip-change-state-to-vi)
-
-
-(if (or vip-always 
-	(and (< vip-expert-level 5) (> vip-expert-level 0)))
-    (vip-set-hooks))
-    
-;; Let all minor modes take effect after loading
-;; this may not be enough, so we also set default minor-mode-alist.
-;; Without setting the default, new buffers that come up in emacs mode have
-;; minor-mode-map-alist = nil, unless we call vip-change-state-*
-(if (eq vip-current-state 'emacs-state)
-    (progn
-      (vip-change-state-to-emacs)
-      (setq-default minor-mode-map-alist minor-mode-map-alist)
-      ))
-    
-
-(run-hooks 'vip-load-hook) ; the last chance to change something
-
-(provide 'viper)
-(provide 'vip19)
-(provide 'vip)
-
-;;;  viper.el ends here
+;;;  viper-ex.el ends here
