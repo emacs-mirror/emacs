@@ -116,40 +116,44 @@ arguments compiles from `load-path'."
       (insert "\n(setq finder-package-info '(\n")
       (mapcar
        (lambda (d)
-	 (mapcar
-	  (lambda (f) 
-	    (if (and (or (string-match "^[^=].*\\.el$" f)
-			 ;; Allow compressed files also.  Fixme:
-			 ;; generalize this, especially for
-			 ;; MS-DOG-type filenames.
-			 (and (string-match "^[^=].*\\.el\\.\\(gz\\|Z\\)$" f)
-			      (require 'jka-compr)))
-		     (not (member f processed)))
-		(let (summary keystart keywords)
-		  (setq processed (cons f processed))
-		  (save-excursion
-		    (set-buffer (get-buffer-create "*finder-scratch*"))
-		    (buffer-disable-undo (current-buffer))
-		    (erase-buffer)
-		    (insert-file-contents
-		     (concat (file-name-as-directory (or d ".")) f))
-		    (setq summary (lm-synopsis))
-		    (setq keywords (lm-keywords)))
-		  (insert
-		   (format "    (\"%s\"\n        "
-			   (if (string-match "\\.\\(gz\\|Z\\)$" f)
-			       (file-name-sans-extension f) 
-			     f)))
-		  (prin1 summary (current-buffer))
-		  (insert
-		   "\n        ")
-		  (setq keystart (point))
-		  (insert
-		   (if keywords (format "(%s)" keywords) "nil")
-		   ")\n")
-		  (subst-char-in-region keystart (point) ?, ? )
-		  )))
-	  (directory-files (or d "."))))
+	 (when (file-exists-p (directory-file-name d))
+	   (message "Directory %s" d)
+	   (mapcar
+	    (lambda (f) 
+	      (if (and (or (string-match "^[^=].*\\.el$" f)
+			   ;; Allow compressed files also.  Fixme:
+			   ;; generalize this, especially for
+			   ;; MS-DOG-type filenames.
+			   (and (string-match "^[^=].*\\.el\\.\\(gz\\|Z\\)$" f)
+				(require 'jka-compr)))
+		       ;; Ignore lock files.
+		       (not (string-match "^.#" f))
+		       (not (member f processed)))
+		  (let (summary keystart keywords)
+		    (setq processed (cons f processed))
+		    (save-excursion
+		      (set-buffer (get-buffer-create "*finder-scratch*"))
+		      (buffer-disable-undo (current-buffer))
+		      (erase-buffer)
+		      (insert-file-contents
+		       (concat (file-name-as-directory (or d ".")) f))
+		      (setq summary (lm-synopsis))
+		      (setq keywords (lm-keywords)))
+		    (insert
+		     (format "    (\"%s\"\n        "
+			     (if (string-match "\\.\\(gz\\|Z\\)$" f)
+				 (file-name-sans-extension f) 
+			       f)))
+		    (prin1 summary (current-buffer))
+		    (insert
+		     "\n        ")
+		    (setq keystart (point))
+		    (insert
+		     (if keywords (format "(%s)" keywords) "nil")
+		     ")\n")
+		    (subst-char-in-region keystart (point) ?, ? )
+		    )))
+	    (directory-files (or d ".")))))
        (or dirs load-path))
       (insert "))\n\n(provide 'finder-inf)\n\n;;; finder-inf.el ends here\n")
       (kill-buffer "*finder-scratch*")
