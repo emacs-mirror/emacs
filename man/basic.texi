@@ -506,6 +506,7 @@ nonblank line.
 @cindex continuation line
 @cindex wrapping
 @cindex line wrapping
+@cindex fringes, and continuation lines
   If you add too many characters to one line without breaking it with
 @key{RET}, the line grows to occupy two (or more) lines on the screen.
 On graphical displays, Emacs indicates line wrapping with small bent
@@ -529,6 +530,7 @@ Auto Fill mode (@pxref{Filling}) if that's what you want.
 
 @vindex truncate-lines
 @cindex truncation
+@cindex line truncation, and fringes
   As an alternative to continuation, Emacs can display long lines by
 @dfn{truncation}.  This means that all the characters that do not fit
 in the width of the screen or window do not appear at all.  They
