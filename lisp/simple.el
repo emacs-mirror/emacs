@@ -2205,6 +2205,25 @@ even beep.)"
 		       (goto-char end))))
 		 (point))))
 
+(defun kill-whole-line (&optional arg)
+  "Kill current line.
+With prefix arg, kill that many lines from point.
+If arg is negative, kill backwards.
+If arg is zero, kill current line but exclude the trailing newline."
+  (interactive "P")
+  (setq arg (prefix-numeric-value arg))
+  (cond ((zerop arg)
+	 (kill-region (point) (progn (forward-visible-line 0) (point)))
+	 (kill-region (point) (progn (end-of-visible-line) (point))))
+	((< arg 0)
+	 (kill-line 1)
+	 (kill-line (1+ arg))
+	 (unless (bobp) (forward-visible-line -1)))
+	(t
+	 (kill-line 0)
+	 (if (eobp)
+	     (signal 'end-of-buffer nil)
+	   (kill-line arg)))))
 
 (defun forward-visible-line (arg)
   "Move forward by ARG lines, ignoring currently invisible newlines only.
