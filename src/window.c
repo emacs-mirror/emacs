@@ -2569,8 +2569,8 @@ by `current-window-configuration' (which see).")
 		      XBUFFER (p->buffer) == current_buffer)
 		    Fgoto_char (w->pointm);
 		}
-	      else if (NILP (XBUFFER (w->buffer)->name))
-		/* Else if window's old buffer is dead too, get a live one.  */
+	      else if (NILP (w->buffer) || NILP (XBUFFER (w->buffer)->name))
+		/* Else unless window has a live buffer, get one.  */
 		{
 		  w->buffer = Fcdr (Fcar (Vbuffer_alist));
 		  /* This will set the markers to beginning of visible
@@ -2581,8 +2581,7 @@ by `current-window-configuration' (which see).")
 		}
 	      else
 		/* Keeping window's old buffer; make sure the markers
-		   are real.  Else if window's old buffer is dead too,
-		   get a live one.  */
+		   are real.  */
 		{
 		  /* Set window markers at start of visible range.  */
 		  if (XMARKER (w->start)->buffer == 0)
@@ -2900,7 +2899,6 @@ work using this function.");
     "If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.");
   Vother_window_scroll_buffer = Qnil;
 
-#ifdef MULTI_FRAME
   DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
     "*Non-nil means `display-buffer' should make a separate frame.");
   pop_up_frames = 0;
@@ -2912,7 +2910,6 @@ It is called with no arguments and should return a newly created frame.\n\
 A typical value might be `(lambda () (new-frame pop-up-frame-alist))'\n\
 where `pop-up-frame-alist' would hold the default frame parameters.");
   Vpop_up_frame_function = Qnil;
-#endif
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
     "*Non-nil means display-buffer should make new windows.");
