@@ -1000,6 +1000,13 @@ removes the text properties in the `yank-excluded-properties' list.
 
 ** New function insert-buffer-substring-no-properties.
 
+** New function display-supports-face-attributes-p may be used to test
+whether a given set of face attributes is actually displayable.
+
+A new predicate `supports' has also been added to the `defface' face
+specification language, which can be used to do this test for faces
+defined with defface.
+
 ** Enhanced networking support.
 
 *** There is a new `make-network-process' function which supports

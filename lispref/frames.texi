@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/frames
@@ -1715,6 +1715,33 @@ is still supported as an alias.
 @tindex display-grayscale-p
 This function returns @code{t} if the screen can display shades of gray.
 (All color displays can do this.)
+@end defun
+
+@anchor{Display Face Attribute Testing}
+@defun display-supports-face-attributes-p attributes &optional display
+@tindex display-supports-face-attributes-p
+This function returns non-@code{nil} if all the face attributes in
+@var{attributes} are supported (@pxref{Face Attributes}).
+
+The definition of `supported' is somewhat heuristic, but basically
+means that a face containing all the attributes in @var{attributes},
+when merged with the default face for display, can be represented in a
+way that's
+
+@enumerate
+@item
+different in appearance than the default face, and
+
+@item
+`close in spirit' to what the attributes specify, if not exact.
+@end enumerate
+
+Point (2) implies that a @code{:weight black} attribute will be
+satisfied by any display that can display bold, as will
+@code{:foreground "yellow"} as long as some yellowish color can be
+displayed, but @code{:slant italic} will @emph{not} be satisified by
+the tty display code's automatic substitution of a `dim' face for
+italic.
 @end defun
 
 @defun display-selections-p &optional display
