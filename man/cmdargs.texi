@@ -170,8 +170,8 @@ the initial Emacs frame.  @xref{Display X}, for more details.
 
 @item -nw
 @opindex -nw
-@itemx --no-windows
-@opindex --no-windows
+@itemx --no-window-system
+@opindex --no-window-system
 @cindex disable window system
 Don't communicate directly with the window system, disregarding the
 @env{DISPLAY} environment variable even if it is set.  This forces Emacs
