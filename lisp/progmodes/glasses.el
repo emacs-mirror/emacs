@@ -1,9 +1,9 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Author: Milan Zamazal <pdm@freesoft.cz>
-;; Maintainer: Milan Zamazal <pdm@freesoft.cz>
+;; Author: Milan Zamazal <pdm@zamazal.org>
+;; Maintainer: Milan Zamazal <pdm@zamazal.org>
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
@@ -198,7 +198,7 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
-	  (while (re-search-forward "[a-zA-Z]\\(\(\\)" end t)
+	  (while (re-search-forward "[a-zA-Z]_*\\(\(\\)" end t)
 	    (glasses-make-overlay (match-beginning 1) (match-end 1)
 				  'glasses-parenthesis)))))))
 
