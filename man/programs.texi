@@ -44,7 +44,7 @@ Mode}).  The Foldout package provides folding-editor features
 (@pxref{Foldout}).
 
   The ``automatic typing'' features may be useful for writing programs.
-@xref{,Autotyping,, autotype, Autotyping}.
+@xref{Top,,Autotyping, autotype, Autotyping}.
 
 @menu
 * Program Modes::       Major modes for editing programs.
@@ -1894,8 +1894,8 @@ convenient.  Each name recorded is called a @dfn{tag}.
 @cindex tags, C++
 @cindex class browser, C++
 @cindex Ebrowse
-  See also the Ebrowse facility, which is tailored for C++.  @xref{,,,
-ebrowse, Ebrowse User's Manual}.
+  See also the Ebrowse facility, which is tailored for C++.
+@xref{Top,, Ebrowse, ebrowse, Ebrowse User's Manual}.
 
 @menu
 * Tag Syntax::		Tag syntax for various types of code and text files.
