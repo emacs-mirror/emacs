@@ -544,9 +544,9 @@ Optionally use FORMAT."
 	 ((eq cur-char ?y)		;year
 	  (or alt-form (not (string-equal field-width ""))
 	      (time-stamp-conv-warn "%y" "%:y"))
-          (format-time-string "%Y" time))
+	  (string-to-int (format-time-string "%Y" time)))
 	 ((eq cur-char ?Y)		;4-digit year, new style
-          (format-time-string "%Y" time))
+	  (string-to-int (format-time-string "%Y" time)))
 	 ((eq cur-char ?z)		;time zone lower case
 	  (if change-case
 	      ""			;discourage %z variations
