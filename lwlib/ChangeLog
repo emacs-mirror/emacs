@@ -1,3 +1,11 @@
+2000-09-03  Miles Bader  <miles@gnu.org>
+
+	* xlwmenu.c (x_alloc_lighter_color_for_widget): New extern declaration.
+	(make_shadow_gcs) [emacs]: Use x_alloc_lighter_color_for_widget to
+	do shadow calculation.
+	(make_shadow_gcs): Remove code that tests whether the top shadow
+	is dimmer than the bottom shadow--it shouldn't ever happen.
+
 2000-08-30  Miles Bader  <miles@gnu.org>
 
 	* xlwmenu.c (XlwMenuSetValues): If the background color has

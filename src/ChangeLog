@@ -1,3 +1,7 @@
+2000-09-03  Miles Bader  <miles@gnu.org>
+
+	* xterm.c (x_alloc_lighter_color_for_widget): New function.
+
 2000-09-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_mode_lines): New function.
