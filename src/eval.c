@@ -2160,6 +2160,10 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
   backtrace_list = backtrace.next;
+
+#ifdef HAVE_CARBON
+  mac_check_for_quit_char();
+#endif  
   return val;
 }
 
