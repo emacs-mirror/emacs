@@ -24,26 +24,8 @@
 
 ;;; Code:
 
-(defvar encoded-kbd-mode nil
-  "Non-nil if in Encoded-kbd minor mode.")
-(put 'encoded-kbd-mode 'permanent-local t)
-
-;;; (let ((slot (assq 'encoded-kbd-mode minor-mode-alist))
-;;;       (name " Encoded-kbd"))
-;;;   (if slot
-;;;       (setcar (cdr slot) name)
-;;;     (setq minor-mode-alist
-;;; 	  (cons '(encoded-kbd-mode " Encoded-kbd") minor-mode-alist))))
-
 (defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
-
-(let ((slot (assq 'encoded-kbd-mode minor-mode-map-alist)))
-  (if slot
-      (setcdr slot encoded-kbd-mode-map)
-    (setq minor-mode-map-alist
-	  (cons (cons 'encoded-kbd-mode encoded-kbd-mode-map)
-		minor-mode-map-alist))))
 
 ;; Subsidiary keymaps for handling ISO2022 escape sequences.
 
@@ -305,8 +287,9 @@ The following key sequence may cause multilingual text insertion."
 ;; Input mode at the time Encoded-kbd mode is turned on is saved here.
 (defvar saved-input-mode nil)
 
+(put 'encoded-kbd-mode 'permanent-local t)
 ;;;###autoload
-(defun encoded-kbd-mode (&optional arg)
+(define-minor-mode encoded-kbd-mode
   "Toggle Encoded-kbd minor mode.
 With arg, turn Encoded-kbd mode on if and only if arg is positive.
 
@@ -317,12 +300,9 @@ automatically.
 In Encoded-kbd mode, a text sent from keyboard is accepted
 as a multilingual text encoded in a coding system set by
 \\[set-keyboard-coding-system]."
-  (if encoded-kbd-mode
-      ;; We must at first reset input-mode to the original.
-      (apply 'set-input-mode saved-input-mode))
-  (setq encoded-kbd-mode
-	(if (null arg) (null encoded-kbd-mode)
-	  (> (prefix-numeric-value arg) 0)))
+  :global t
+  ;; We must at first reset input-mode to the original.
+  (if saved-input-mode (apply 'set-input-mode saved-input-mode))
   (if encoded-kbd-mode
       (let ((coding (keyboard-coding-system)))
 	(setq saved-input-mode  (current-input-mode))
@@ -374,7 +354,6 @@ as a multilingual text encoded in a coding system set by
 	       (setq encoded-kbd-mode nil)
 	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
 		      (keyboard-coding-system))))
-	(encoded-kbd-setup-keymap coding)
-	(run-hooks 'encoded-kbd-mode-hook))))
+	(encoded-kbd-setup-keymap coding))))
 
 ;;; encoded-kb.el ends here
