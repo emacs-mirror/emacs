@@ -431,6 +431,7 @@ every time a file is saved or written.  The default is @code{nil}.
 * Backup::              How Emacs saves the old version of your file.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
+* Shadowing: File Shadowing. Copying files to `shadows' automatically.
 @end menu
 
 @node Backup
@@ -513,11 +514,12 @@ original file's directory.  The directories are created if necessary
 when the backup is made.
 
   If you choose to have a series of numbered backup files, backup file
-names are made by appending @samp{.~}, the number, and another @samp{~} to
-the original file name.  Thus, the backup files of @file{eval.c} would be
-called @file{eval.c.~1~}, @file{eval.c.~2~}, and so on, through names
-like @file{eval.c.~259~} and beyond.  @code{backup-directory-alist} can
-be used to control their location as for single backups.
+names are made by appending @samp{.~}, the number, and another @samp{~}
+to the original file name.  Thus, the backup files of @file{eval.c}
+would be called @file{eval.c.~1~}, @file{eval.c.~2~}, and so on, through
+names like @file{eval.c.~259~} and beyond.  As for single backups,
+@code{backup-directory-alist} can be used to control the location of
+numbered backups.
 
   If protection stops you from writing backup files under the usual names,
 the backup file is written as @file{%backup%~} in your home directory.
@@ -712,6 +714,52 @@ should attempt to contact him to warn him not to continue editing.
 Often the next step is to save the contents of your Emacs buffer under a
 different name, and use @code{diff} to compare the two files.@refill
 
+@node File Shadowing
+@subsection Shadowing Files
+@cindex shadow files
+@cindex file shadows
+
+@table @kbd
+@item M-x shadow-initialize
+Set up file shadowing.
+@item M-x shadow-define-cluster @key{RET} @var{name} @key{RET}
+Define a shadow file cluster @var{name}.
+@item M-x shadow-define-regexp-group
+Make each of a group of files be shared between hosts.
+@item M-x shadow-define-literal-group
+Declare a single file to be shared between sites.
+@item M-x shadow-copy-files
+Copy all pending shadow files.
+@item M-x shadow-cancel ()
+Cancel the instruction to copy some files.
+@end table
+
+You can arrange to keep identical copies of files in more than one
+place---possibly on different machines.  When you save a file, Emacs can
+check whether it is on the list of files with @dfn{shadows}, and if so,
+it tries to copy it when you exit Emacs (or use the @kbd{M-x
+shadow-copy-files} command).
+
+A @dfn{cluster} is a group of hosts that share directories, so that
+copying to or from one of them is sufficient to update the file on all
+of them.  Clusters are defined by a name, the network address of a
+primary host (the one we copy files to), and a regular expression that
+matches the hostnames of all the sites in the cluster.  A @dfn{file
+group} is a set of identically-named files shared between a list of
+sites.
+
+Add clusters (if necessary) and file groups with @kbd{M-x
+shadow-define-cluster}, @kbd{M-x shadow-define-literal-group}, and
+@kbd{M-x shadow-define-regexp-group} (see the documentation for these
+functions for information on how and when to use them).  After doing
+this once, everything should be automatic.  The lists of clusters and
+shadows are remembered from one emacs session to another.
+
+If you do not want to copy a particular file, you can answer "no" and be
+asked again next time you hit @kbd{C-x 4 s} or exit Emacs.  If you do
+not want to be asked again, use @kbd{M-x shadow-cancel}, and you will
+not be asked until you change the file and save it again.
+
 @node Reverting
 @section Reverting a Buffer
 @findex revert-buffer
@@ -900,7 +948,8 @@ this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
   Interrupted sessions are recorded for later recovery in files named
-@file{~/.saves-@var{pid}-@var{hostname}}.  The @samp{~/.saves} portion of
+@file{~/.emacs.d/auto-save-list/.saves-@var{pid}-@var{hostname}}.  The
+@samp{~/.emacs.d/auto-save-list/.saves-} portion of
 these names comes from the value of @code{auto-save-list-file-prefix}.
 You can arrange to record sessions in a different place by setting that
 variable in your @file{.emacs} file, but you'll have to redefine
@@ -953,6 +1002,9 @@ description of what was changed in that version.
 with three version control systems---RCS, CVS and SCCS.  The GNU project
 recommends RCS and CVS, which are free software and available from the
 Free Software Foundation.
+@cindex CSSC
+There is a GNU clone of SCCS called CSSC, but RCS is technically
+superior.
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -1403,6 +1455,14 @@ with CVS.
 
 @node VC Dired Mode
 @subsubsection Dired under VC
+
+@cindex PCL-CVS
+@pindex cvs
+@cindex CVS Dired Mode
+The VC Dired Mode described here works with all the VC-supported version
+control systems.  There is a similar facility specialized for use with
+CVS, called PCL-CVS.  @xref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The
+Emacs Front-End to CVS}.
 
 @kindex C-x v d
 @findex vc-directory
@@ -2296,8 +2356,28 @@ the command is finished.  For more information about windows in Emacs,
 whitespace.  If the variable @code{compare-ignore-case} is
 non-@code{nil}, it ignores differences in case as well.
 
-  See also @ref{Emerge}, for convenient facilities for merging two
-similar files.
+@findex diff-mode
+@cindex diffs
+@cindex patches
+@cindex Diff mode
+Differences between versions of files are often distributed as
+@dfn{patches} output by @command{diff} or a version control system.
+@kbd{M-x diff-mode} turns on Diff mode, a major mode for viewing and
+editing patches, either as `unified diffs' or `context diffs'.
+
+  See also @ref{Emerge} and @ref{Top,,, ediff, The Ediff Manual}, for
+convenient facilities for merging two similar files.
+
+@cindex Smerge mode
+@findex smerge-mode
+@cindex failed merges
+@cindex merges, failed
+@pindex diff3
+Use @kbd{M-x smerge-mode} to turn on Smerge mode, a minor mode for
+editing output from the @command{diff3} program.  This is typically the
+result of a failed merge from a version control system `update' outside
+VC, due to conflicting changes to a file.  Smerge mode provides commands
+to resolve conflicts by selecting specific changes.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
@@ -2441,6 +2521,9 @@ Tar mode or Archive mode---Emacs reads the archives directly.  For
 compressed archives such as @code{.tar.gz}, you need the appropriate
 uncompress program to be available to Emacs.
 
+It is not necessary to have the @code{tar} program available to use Tar
+mode or Archive mode---Emacs reads the archives directly.
+
 @cindex Archive mode
 @cindex mode, archive
 @cindex @code{arc}
@@ -2546,14 +2629,18 @@ Another way is to specify @file{/tmp/foo[*]bar}.
 @node File Conveniences
 @section Convenience Features for Finding Files
 
-@findex recentf-mode
-@vindex recentf-mode
-@findex recentf-save-list
-@findex recentf-edit-list
-The command @kbd{M-x recentf-mode} or the Customize option of the same
-name adds to the Files menu a submenu containing a list of recently
-opened files.  @kbd{recentf-save-list} saves the current file list to a
-file and @kbd{recentf-edit-list} edits it.
+@table @kbd
+@item M-x ff-find-other-file
+Find the header or source file corresponding to the current buffer's
+file.
+@item M-x file-cache-add-directory @key{RET} @var{directory} @key{RET}
+Add @var{directory} to the file cache.
+@item M-x locate @key{RET} @var{pattern} @key{RET} 
+Run the program @command{locate} to match @var{pattern} in the database,
+putting results in a buffer.
+@item M-x locate-with-filter @key{RET} @var{pattern} @key{RET} @var{filter} @key{RET}
+Like @code{locate}, but use a @var{filter} on the results.
+@end table
 
 @findex ff-find-other-file
 @vindex ff-other-file-alist
@@ -2563,56 +2650,26 @@ Typically this will be the header file corresponding to a C/C++ source
 file, or vice versa.  The patterns describing the corresponding files
 are customizable via @code{ff-other-file-alist}.
 
-@findex ffap
-@findex find-file-at-point
-@cindex finding file at point
-The command @kbd{M-x find-file-at-point} (or @kbd{M-x ffap}) can be used
-as a replacement for @kbd{M-x find-file}.  With a prefix argument it
-behaves as @kbd{M-x find-file}.  Otherwise it tries to guess a default
-file or URL from the text around point.  This is useful for following
-references in mail or news buffers, @file{README}s, @file{MANIFEST}s,
-and so on.  @kbd{M-x ffap-bindings} makes these global key bindings:
-
-@table @kbd
-@item C-x C-f
-@kbd{find-file-at-point};
-@item C-x 4 f
-@kbd{ffap-other-window}, analagous to @kbd{find-file-other-window};
-@item C-x 5 f
-@kbd{ffap-other-frame}, analagous to @kbd{find-file-other-frame};
-@item S-mouse-3
-@kbd{ffap-at-mouse} finds the file guessed from text around the position
-of a mouse click;
-@item C-S-mouse-3
-@kbd{ffap-menu} puts up a selectable menu of files and URLs mentioned in
-the current buffer.
-@end table
-
-Partial Completion mode offers other features extending @kbd{M-x
-find-file} which can be used with @code{ffap}.  @xref{Completion
-Options}.
-
 @cindex filename caching
 @cindex cache of file names
 @pindex find
 @pindex locate
 @vindex file-cache-delete-regexps
-The Filecache package attempts to make it easy to locate files by name
-without having to remember exactly where they are.  When typing a
-filename in the minibuffer you can use @kbd{C-tab} to complete it using
-the filename cache and to cycle through possible completions.  (The
-@kbd{C-tab} binding assumes a window system; otherwise you can make
-another binding for @code{file-cache-minibuffer-complete}.)  @kbd{M-x
-file-cache-add-directory} adds the files in a directory to the cache and
-@kbd{file-cache-add-directory-list} acts on a list of directories like
-@kbd{load-path} or @kbd{exec-path}.
-@kbd{file-cache-add-directory-using-find} uses the @code{find} program
-to add a directory tree to the cache and
-@kbd{file-cache-add-directory-using-locate} uses the @kbd{locate}
-program to add files matching a pattern.  Use @kbd{M-x
-file-cache-clear-cache} to remove all items from the cache and @kbd{M-x
-file-cache-delete-regexps} and similar functions to remove items from it
-selectively.
+@findex file-cache-add-directory
+You can use a cache to make it easy to locate files by name without
+having to remember exactly where they are.  When typing a filename in
+the minibuffer you can @kbd{C-tab} will complete it using the filename
+cache and cycle through possible completions.  (The @kbd{C-tab} key
+can't be distinguished from @kbd{TAB} on all terminals.)  The command
+@kbd{M-x file-cache-add-directory} adds the files in a directory to the
+cache and @kbd{M-x file-cache-add-directory-list} acts on a list of
+directories like @code{load-path} or @code{exec-path}.  @kbd{M-x
+file-cache-add-directory-using-find} uses the @command{find} program to
+add a directory tree to the cache and @kbd{M-x
+file-cache-add-directory-using-locate} uses the @command{locate} program
+to add files matching a pattern.  Use @kbd{M-x file-cache-clear-cache}
+to remove all items from the cache; @kbd{M-x file-cache-delete-regexps}
+and similar functions remove items from it selectively.
 
 @pindex locate
 @findex locate
@@ -2621,14 +2678,21 @@ selectively.
 @vindex locate-command
 @kbd{M-x locate} runs an interface to the @code{locate} program for
 searching a pre-built database of file names; most Dired commands are
-avilable for use on the result.  @xref{Top, , Overview, find, GNU
-Findutils}.  @kbd{M-x locate-with-filter} is similar, but keeps only
-lines matching a regular expression.  Customize the option
-@code{locate-command} to use another program than the default, GNU
-@code{locate}.
+avilable for use on the result.  @xref{, ,Find , find, GNU Findutils}.
+@kbd{M-x locate-with-filter} is similar, but keeps only lines matching a
+regular expression.  Customize the option @code{locate-command} to use
+another program than the default, GNU @code{locate}.
 
-@c The Shadowfile package provides automatic file copying, allowing you to
-@c keep identical copies of files in more than one place---possibly on
-@c different machines.  When you save a file, it checks whether it is on
-@c the list of files with `shadows', and if so, it tries to copy it when
-@c you exit emacs (or use the @kbd{M-x shadow-copy-files} command).
+The @kbd{M-x ffap} command generalizes @kbd{M-x find-file}. @xref{FFAP}.
+Partial Completion mode offers other features extending @kbd{M-x
+find-file} which can be used with @code{ffap}.  @xref{Completion
+Options}.
+
+@findex recentf-mode
+@vindex recentf-mode
+@findex recentf-save-list
+@findex recentf-edit-list
+The command @kbd{M-x recentf-mode} or the Customize option of the same
+name adds to the Files menu a submenu containing a list of recently
+opened files.  @kbd{recentf-save-list} saves the current file list to a
+file and @kbd{recentf-edit-list} edits it.
