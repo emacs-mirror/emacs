@@ -93,12 +93,16 @@ int (*set_terminal_window_hook) ();
 
 int (*read_socket_hook) ();
 
-/* Return the current position of the mouse.  This should clear
-   mouse_moved until the next motion event arrives.  */
+/* Return the current position of the mouse.
+   Set `bar' to point to the scrollbar if the mouse movement started
+   in a scrollbar, or zero if it started elsewhere in the frame.
+   This should clear mouse_moved until the next motion event arrives.  */
 void (*mouse_position_hook) ( /* FRAME_PTR *f,
-					Lisp_Object *x,
-					Lisp_Object *y,
-					unsigned long *time */ );
+				 struct scrollbar **bar,
+				 enum scrollbar_part *part,
+				 Lisp_Object *x,
+				 Lisp_Object *y,
+				 unsigned long *time */ );
 
 /* When reading from a minibuffer in a different frame, Emacs wants
    to shift the highlight from the selected frame to the minibuffer's
@@ -106,6 +110,38 @@ void (*mouse_position_hook) ( /* FRAME_PTR *f,
    This hook tells the window system code to re-decide where to put
    the highlight.  */
 void (*frame_rehighlight_hook) ( /* FRAME_PTR f */ );
+
+/* Set vertical scollbar BAR to have its upper left corner at (TOP,
+   LEFT), and be LENGTH rows high.  Set its handle to indicate that we
+   are displaying PORTION characters out of a total of WHOLE
+   characters, starting at POSITION.  Return BAR.  If BAR is zero,
+   create a new scrollbar and return a pointer to it.  */
+struct scrollbar *(*set_vertical_scrollbar_hook)
+     ( /* struct scrollbar *BAR,
+	  struct window *window,
+	  int portion, int whole, int position */ );
+
+/* The following three hooks are used when we're doing a thorough
+   redisplay of the frame.  We don't explicitly know which scrollbars
+   are going to be deleted, because keeping track of when windows go
+   away is a real pain - can you say set-window-configuration?
+   Instead, we just assert at the beginning of redisplay that *all*
+   scrollbars are to be removed, and then save scrollbars from the
+   firey pit when we actually redisplay their window.  */
+
+/* Arrange for all scrollbars on FRAME to be removed at the next call
+   to `*judge_scrollbars_hook'.  A scrollbar may be spared if
+   `*redeem_scrollbar_hook' is applied to it before the judgement.  */
+void (*condemn_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+
+/* Unmark BAR for deletion in this judgement cycle.  */
+void (*redeem_scrollbar_hook)( /* struct scrollbar *BAR */ );
+
+/* Remove all scrollbars on FRAME that haven't been saved since the
+   last call to `*condemn_scrollbars_hook'.  */
+void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+
+
 
 /* Strings, numbers and flags taken from the termcap entry.  */
 
@@ -1414,6 +1450,9 @@ It may be necessary to do `unsetenv TERMCAP' as well.\n",
   if (read_socket_hook)		/* Baudrate is somewhat */
 				/* meaningless in this case */
     baud_rate = 9600;
+
+  FRAME_CAN_HAVE_SCROLLBARS (selected_frame) = 0;
+  FRAME_HAS_VERTICAL_SCROLLBARS (selected_frame) = 0;
 }
 
 /* VARARGS 1 */

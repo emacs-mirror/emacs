@@ -45,9 +45,19 @@ extern int (*set_terminal_window_hook) ();
 
 extern int (*read_socket_hook) ();
 
-/* Return the current position of the mouse.  This should clear
-   mouse_moved until the next motion event arrives.  */
+enum scrollbar_part {
+  scrollbar_above_handle,
+  scrollbar_handle,
+  scrollbar_below_handle
+};
+
+/* Return the current position of the mouse.
+   Set `bar' to point to the scrollbar if the mouse movement started
+   in a scrollbar, or zero if it started elsewhere in the frame.
+   This should clear mouse_moved until the next motion event arrives.  */
 extern void (*mouse_position_hook) ( /* FRAME_PTR *f,
+					struct scrollbar **bar,
+					enum scrollbar_part *part,
 					Lisp_Object *x,
 					Lisp_Object *y,
 					unsigned long *time */ );
@@ -61,6 +71,39 @@ extern int mouse_moved;
    window system code to re-decide where to put the highlight.  Under
    X, this means that Emacs lies about where the focus is.  */
 extern void (*frame_rehighlight_hook) ( /* void */ );
+
+/* Set vertical scollbar BAR to have its upper left corner at (TOP,
+   LEFT), and be LENGTH rows high.  Set its handle to indicate that we
+   are displaying PORTION characters out of a total of WHOLE
+   characters, starting at POSITION.  Return BAR.  If BAR is zero,
+   create a new scrollbar and return a pointer to it.  */
+extern struct scrollbar *(*set_vertical_scrollbar_hook)
+     ( /* struct scrollbar *BAR,
+	  struct window *window,
+	  int portion, int whole, int position */ );
+
+
+/* The following three hooks are used when we're doing a thorough
+   redisplay of the frame.  We don't explicitly know which scrollbars
+   are going to be deleted, because keeping track of when windows go
+   away is a real pain - can you say set-window-configuration?
+   Instead, we just assert at the beginning of redisplay that *all*
+   scrollbars are to be removed, and then save scrollbars from the
+   firey pit when we actually redisplay their window.  */
+
+/* Arrange for all scrollbars on FRAME to be removed at the next call
+   to `*judge_scrollbars_hook'.  A scrollbar may be spared if
+   `*redeem_scrollbar_hook' is applied to it before the judgement.  */
+extern void (*condemn_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+
+/* Unmark BAR for deletion in this judgement cycle.  */
+extern void (*redeem_scrollbar_hook)( /* struct scrollbar *BAR */ );
+
+/* Remove all scrollbars on FRAME that haven't been saved since the
+   last call to `*condemn_scrollbars_hook'.  */
+extern void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+
+
 
 /* If nonzero, send all terminal output characters to this stream also.  */
 extern FILE *termscript;
@@ -112,31 +155,32 @@ struct input_event {
 				   click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-    scrollbar_click,		/* .code gives the number of the mouse
-				   button that was clicked.
+
+    scrollbar_click,		/* .code gives the number of the mouse button
+				   that was clicked.
+				   .modifiers holds the state of the modifier
+				   keys.
 				   .part is a lisp symbol indicating which
-				   part of the scrollbar got clicked.  This
-				   indicates whether the scroll bar was
-				   horizontal or vertical.
-				   .modifiers gives the state of the
-				   modifier keys.
-				   .x gives the distance from the start
-				   of the scroll bar of the click; .y gives
-				   the total length of the scroll bar.
-				   .frame gives the frame the click
-				   should apply to.
+				   part of the scrollbar got clicked.
+				   .scrollbar is a pointer to the scrollbar
+				   clicked on.  Since redisplay may delete
+				   scrollbars at any time, you may not assume
+				   that this scrollbar still exists when you
+				   dequeue this event.  You have to traverse
+				   the window tree to make it's in a valid
+				   window.
+				   .x gives the distance from the start of the
+				   scroll bar of the click; .y gives the total
+				   length of the scroll bar.
+				   .frame gives the frame the click should
+				   apply to.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-#if 0
-    frame_selected,		/* The user has moved the focus to another
-				   frame.
-				   .frame is the frame that should become
-				   selected at the next convenient time.  */
-#endif
   } kind;
   
   Lisp_Object code;
-  Lisp_Object part;
+  enum scrollbar_part part;
+  struct scrollbar *scrollbar;
 
 /* This is obviously wrong, but I'm not sure what else I should do.
    Obviously, this should be a FRAME_PTR.  But that would require that

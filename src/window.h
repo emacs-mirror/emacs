@@ -123,6 +123,12 @@ struct window
     Lisp_Object last_modified;
     /* Value of point at that time */
     Lisp_Object last_point;
+    /* Pointer to this window's vertical scrollbar, tagged as an
+       integer.  If this window is newly created and we haven't
+       displayed a scrollbar in it yet, or if the frame doesn't have
+       any scrollbars, this is nil.  */
+    Lisp_Object vertical_scrollbar;
+
 /* The rest are currently not used or only half used */
     /* Frame coords of point at that time */
     Lisp_Object last_point_x;
