@@ -1,5 +1,8 @@
 2000-11-23  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* subr.el (add-hook, remove-hook): Don't call make-local-hook
+	if the variable is make-variable-buffer-local.
+
 	* progmodes/ada-stmt.el (ada-template-map): Initialize
 	and bind it to C-c t in ada-mode-map.
 	(ada-stmt-mode-hook): New function extracted from old code.
@@ -887,7 +890,7 @@
 	* complete.el (partial-completion-mode): Drop unneeded positional args.
 
 	* info.el (Info-mode):
-	* comint.el (comint-mode): Don't both with make-local-hook.
+	* comint.el (comint-mode): Don't bother with make-local-hook.
 
 	* log-edit.el (log-edit-menu): New menu.
 
