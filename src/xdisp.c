@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 1986, 1987, 1988, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1433,21 +1433,42 @@ try_window_id (window)
   return 1;
 }
 
-/* Copy glyphs from the rope FROM to T.
+/* Copy glyphs from the vector FROM to the rope T.
    But don't actually copy the parts that would come in before S.
-   Value is T, advanced past the copied data.
-
-   Characters in FROM are grouped into units of `sizeof GLYPH' chars;
-   any extra chars at the end of FROM are ignored.  */
+   Value is T, advanced past the copied data.  */
 
 GLYPH *
 copy_rope (t, s, from)
      register GLYPH *t; /* Copy to here. */
      register GLYPH *s; /* Starting point. */
-     Lisp_Object from;    /* Data to copy; known to be a string.  */
+     Lisp_Object from;    /* Data to copy; known to be a vector.  */
 {
-  register int n = XSTRING (from)->size / sizeof (GLYPH);
-  register GLYPH *f = (GLYPH *) XSTRING (from)->data;
+  register int n = XVECTOR (from)->size;
+  register Lisp_Object *f = XVECTOR (from)->contents;
+
+  while (n--)
+    {
+      if (t >= s) *t = *f;
+      ++t;
+      ++f;
+    }
+  return t;
+}
+
+/* Similar but copy at most LEN glyphs.  */
+
+GLYPH *
+copy_part_of_rope (t, s, from, len)
+     register GLYPH *t; /* Copy to here. */
+     register GLYPH *s; /* Starting point. */
+     Lisp_Object from;    /* Data to copy; known to be a vector.  */
+     int len;
+{
+  register int n = XVECTOR (from)->size;
+  register Lisp_Object *f = XVECTOR (from)->contents;
+
+  if (n > len)
+    n = len;
 
   while (n--)
     {
@@ -1513,8 +1534,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   register struct Lisp_Vector *dp = window_display_table (w);
   int selective_rlen
-    = (selective && dp && XTYPE (DISP_INVIS_ROPE (dp)) == Lisp_String
-       ? XSTRING (DISP_INVIS_ROPE (dp))->size / sizeof (GLYPH) : 0);
+    = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
   GLYPH truncator = (dp == 0 || XTYPE (DISP_TRUNC_GLYPH (dp)) != Lisp_Int
 		    ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
   GLYPH continuer = (dp == 0 || XTYPE (DISP_CONTINUE_GLYPH (dp)) != Lisp_Int
@@ -1568,7 +1589,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	}
       c = *p++;
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
+	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  if (p1 >= startp)
 	    *p1 = c;
@@ -1591,8 +1612,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      bcopy (XSTRING (DISP_INVIS_ROPE (dp))->data, p1prev,
-                     (p1 - p1prev) * sizeof (GLYPH));
+	      copy_part_of_rope (p1prev, p1prev,
+				 XVECTOR (DISP_INVIS_VECTOR (dp))->contents,
+				 (p1 - p1prev));
 	    }
 	  break;
 	}
@@ -1617,14 +1639,15 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      bcopy (XSTRING (DISP_INVIS_ROPE (dp))->data, p1prev,
-                     (p1 - p1prev) * sizeof (GLYPH));
+	      copy_part_of_rope (p1prev, p1prev,
+				 XVECTOR(DISP_INVIS_VECTOR (dp))->contents,
+				 (p1 - p1prev));
 	    }
 	  break;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
+      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
-	  p1 = copy_rope (p1, startp, DISP_CHAR_ROPE (dp, c));
+	  p1 = copy_rope (p1, startp, DISP_CHAR_VECTOR (dp, c));
 	}
       else if (c < 0200 && ctl_arrow)
 	{
@@ -2279,7 +2302,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
       c = *string++;
       if (!c) break;
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
+	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  if (p1 >= start)
 	    *p1 = c;
@@ -2295,8 +2318,8 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	    }
 	  while ((p1 - start + hscroll - (hscroll > 0)) % tab_width);
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-        p1 = copy_rope (p1, start, DISP_CHAR_ROPE (dp, c));
+      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+        p1 = copy_rope (p1, start, DISP_CHAR_VECTOR (dp, c));
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
