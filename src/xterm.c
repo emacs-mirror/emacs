@@ -10526,7 +10526,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			   || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 			   || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 			   /* Any "vendor-specific" key is ok.  */
-			   || (orig_keysym & (1 << 28)))
+			   || (orig_keysym & (1 << 28))
+			   || (keysym != NoSymbol && nbytes == 0))
 			  && ! (IsModifierKey (orig_keysym)
 #ifndef HAVE_X11R5
 #ifdef XK_Mode_switch
@@ -11877,6 +11878,21 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 			  Handling X errors
  ************************************************************************/
 
+/* Error message passed to x_connection_closed.  */
+
+static char *error_msg;
+
+/* Function installed as fatal_error_signal_hook.in
+   x_connection_closed.  Print the X error message, and exit normally,
+   instead of dumping core when XtCloseDisplay fails.  */
+
+static void
+x_fatal_error_signal ()
+{
+  fprintf (stderr, "%s\n", error_msg);
+  exit (70);
+}
+
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
@@ -11888,10 +11904,9 @@ x_connection_closed (dpy, error_message)
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
   int count;
-  char *msg;
   
-  msg = (char *) alloca (strlen (error_message) + 1);
-  strcpy (msg, error_message);
+  error_msg = (char *) alloca (strlen (error_message) + 1);
+  strcpy (error_msg, error_message);
   handling_signal = 0;
   
   /* Prevent being called recursively because of an error condition
@@ -11919,7 +11934,12 @@ x_connection_closed (dpy, error_message)
   /* If DPYINFO is null, this means we didn't open the display
      in the first place, so don't try to close it.  */
   if (dpyinfo)
-    XtCloseDisplay (dpy);
+    {
+      extern void (*fatal_error_signal_hook) P_ ((void));
+      fatal_error_signal_hook = x_fatal_error_signal;
+      XtCloseDisplay (dpy);
+      fatal_error_signal_hook = NULL;
+    }
 #endif
 
   /* Indicate that this display is dead.  */
@@ -11960,7 +11980,7 @@ x_connection_closed (dpy, error_message)
   
   if (x_display_list == 0)
     {
-      fprintf (stderr, "%s\n", msg);
+      fprintf (stderr, "%s\n", error_msg);
       shut_down_emacs (0, 0, Qnil);
       exit (70);
     }
@@ -11973,7 +11993,7 @@ x_connection_closed (dpy, error_message)
   TOTALLY_UNBLOCK_INPUT;
 
   clear_waiting_for_input ();
-  error ("%s", msg);
+  error ("%s", error_msg);
 }
 
 
