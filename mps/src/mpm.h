@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.135) $
+ * $HopeName$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -8,8 +8,8 @@
 #define mpm_h
 
 #include "config.h"
-#include "misc.h"       /* miscellaneous non-specific bits and bobs */
-#include "check.h"      /* assertion and consistency checking support */
+#include "misc.h"
+#include "check.h"
 
 #include "event.h"
 #include "lock.h"
@@ -169,21 +169,20 @@ extern char *MPSVersion(void);
 
 /* design.mps.bt.if.size */
 extern size_t (BTSize)(unsigned long length);
-#define BTSize(n) (((n)+MPS_WORD_WIDTH-1)/MPS_WORD_WIDTH*sizeof(Word))
+#define BTSize(n) (((n) + MPS_WORD_WIDTH-1) / MPS_WORD_WIDTH * sizeof(Word))
 
 
 /* design.mps.bt.if.get */
 extern Bool (BTGet)(BT bt, Index index);
-#define BTGet(a, i) ((Bool)(((a)[((i)>>MPS_WORD_SHIFT)] \
-                             >> ((i)&~((Word)-1<<MPS_WORD_SHIFT))) \
+#define BTGet(a, i) ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
+                             >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
                             & (Word)1))
 
 /* design.mps.bt.if.set */
 extern void (BTSet)(BT bt, Index index);
 #define BTSet(a, i) \
   BEGIN \
-    (a)[((i)>>MPS_WORD_SHIFT)] |= \
-    (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
+    (a)[((i)>>MPS_WORD_SHIFT)] |= (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
   END
 
 /* design.mps.bt.if.res */
@@ -191,7 +190,7 @@ extern void (BTRes)(BT bt, Index index);
 #define BTRes(a, i) \
   BEGIN \
     (a)[((i)>>MPS_WORD_SHIFT)] &= \
-    ~((Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT))); \
+      ~((Word)1 << ((i) & ~((Word)-1<<MPS_WORD_SHIFT))); \
   END
 
 extern Res BTCreate(BT *btReturn, Arena arena, Count length);
@@ -586,6 +585,7 @@ extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
 
+
 /* Peek/Poke
  *
  * These are provided so that modules in the MPS can make occasional
@@ -603,6 +603,7 @@ extern Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
 extern void ArenaPoke(Arena arena, Addr addr, Ref ref);
 /* Same, but addr must be in seg */
 extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
+
 
 /* Read/Write
  *
@@ -625,8 +626,7 @@ Ref ArenaRead(Arena arena, Addr addr);
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
-#define ArenaGreyRing(arena, rank) \
-  (&(arena)->greyRing[rank])
+#define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
@@ -646,9 +646,7 @@ extern Res ArenaFinalize(Arena arena, Ref obj);
 
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
-
 extern Reservoir ArenaReservoir(Arena arena);
-
 extern Bool ReservoirCheck(Reservoir reservoir);
 extern Res ReservoirInit(Reservoir reservoir, Arena arena);
 extern void ReservoirFinish (Reservoir reservoir);
@@ -688,7 +686,6 @@ extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
                     Bool withReservoirPermit, ...);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
-extern RefSet SegSummary(Seg seg);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
@@ -725,10 +722,12 @@ extern Addr (SegLimit)(Seg seg);
 #define SegDepth(seg)           ((unsigned)(seg)->depth)
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
-#define SegNailed(seg)          ((seg)->nailed)
+#define SegNailed(seg)          ((TraceSet)(seg)->nailed)
 #define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
+
+#define SegSummary(seg)         (((GCSeg)(seg))->summary)
 
 #define SegSetPM(seg, mode)     ((void)((seg)->pm = (mode)))
 #define SegSetSM(seg, mode)     ((void)((seg)->sm = (mode)))
@@ -875,10 +874,6 @@ extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
 
 /* Shield Interface -- see impl.c.shield */
-
-#define AccessSetIsMember(as, a) BS_IS_MEMBER((as), (a))
-#define AccessSetAdd(as, a)      BS_ADD(AccessSet, (as), (a))
-#define AccessSetDel(as, a)      BS_DEL(AccessSet, (as), (a))
 
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
