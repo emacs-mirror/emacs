@@ -147,6 +147,15 @@ The expansion is entirely correct because it uses the C preprocessor."
   (modify-syntax-entry ?| "." perl-mode-syntax-table)
 )
 
+(defvar perl-imenu-generic-expression
+  '(
+    ;; Functions
+    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)\\(\\s-\\|\n\\)*{" 1 )
+    ;;Variables
+    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1 )
+    )
+  "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
+
 (defvar perl-font-lock-keywords
   (list
 ;   ("if" "until" "while" "elsif" "else" "unless" "for" "foreach" "continue"
@@ -273,6 +282,9 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(perl-font-lock-keywords))
+  ;; Tell imenu how to handle Perl.
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression perl-imenu-generic-expression)
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
