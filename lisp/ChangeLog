@@ -1,3 +1,19 @@
+2001-10-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/byte-opt.el: Downcase error messages.
+
+	* emacs-lisp/bytecomp.el (byte-compile-display-log-head-p): New
+	function extracted from byte-compile-log-1.
+	(byte-compile-log-1): Change output to be more in line with 
+	the output of other GNU tools.
+	(byte-compile-warn): Emit `warning' instead of `**' for warnings.
+	(byte-compile-report-error): Downcase error message.  Use 
+	`error' instead of `!!' for error messages.
+	(byte-compile-print-syms): Treat non-interactive case specially.
+	(displaying-byte-compile-warnings): Use backquote.
+	(byte-compile-from-buffer): Bind byte-compile-last-line.
+	(batch-byte-compile): Remove `Done' message.
+
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/copyright.el (copyright): Add final \n.
