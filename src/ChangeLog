@@ -1,5 +1,10 @@
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (code_convert_region): Fix the secoding arg to
+	update_compositions.
+
+1999-12-15  Kenichi Handa  <handa@etl.go.jp>
+
 	The following changes are for the new composition mechanism.  We
 	have deleted `composition' charset and composite characters,
 	instead introduced a special text property `composition'.
