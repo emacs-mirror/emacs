@@ -1419,6 +1419,7 @@ find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
 	      int j;
 	      struct input_event buf;
 	      Lisp_Object frame;
+	      EVENT_INIT (buf);
 
 	      XSETFRAME (frame, f);
 	      buf.kind = MENU_BAR_EVENT;
