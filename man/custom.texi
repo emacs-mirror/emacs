@@ -1712,41 +1712,8 @@ As you see, you represent a multi-character key sequence with a vector
 by listing each of the characters within the square brackets that
 delimit the vector.
 
-  Language and encoding settings can be a reason for failing key
-binding.  For instance, say you have put the following in your init
-file:
-
-@example
-(global-set-key [?\M-ö] 'shell)
-@end example
-
-@noindent
-Now it can happen that the ö character read from the keyboard is
-actually different from the ö character read from your init file, even
-though they look the same.  In this case, Emacs will not do what you
-intended.  First you should check whether they are the same or
-different.  In the above example, you would position point (the cursor)
-on the ö character and hit @kbd{C-u C-x =} (the @kbd{C-u} part is
-important).  The second line of the output will contain the charset.
-Now hit the ö key and position point on the character thus produced.
-Again, hit @kbd{C-u C-x =}.  If the two charsets are different, then you
-have found the problem.  The solution involves putting a `coding cookie'
-in your init file, @pxref{File Variables}.  For example, suppose that
-the ö character from the init file has charset latin-iso8859-1 whereas
-the ö character from the keyboard has charset latin-iso8859-15.  The
-solution is to put a coding cookie into the first line of the
-@file{.emacs} file, as follows:
-
-@example
-;; -*- coding: iso8859-15; -*-
-@end example
-
-@noindent
-@xref{Non-ASCII Rebinding}, if the charset printed by @kbd{C-u C-x =} is
-`eight-bit-graphic'.
-
-  If the variable @code{keyboard-coding-system} is nil, it is probably
-best to set it to the right value, according to the locale you work in.
+  Language and coding systems can cause problems with key bindings
+for non-ASCII characters.  @xref{Non-ASCII Rebinding}.
 
 @node Function Keys
 @subsection Rebinding Function Keys
@@ -1885,10 +1852,15 @@ Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 @noindent
 Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
-If you don't specify the keyboard coding system, that approach won't
+Since this puts a non-ASCII character in the @file{.emacs}, you should
+specify the proper coding system for that file.  @xref{Init Syntax}.
+Specify the same coding system for the file that you use for your
+keyboard.
+
+If you don't specify a keyboard coding system, that approach won't
 work.  Instead, you need to find out the actual code that the terminal
-sends.  The easiest way to do this in Emacs is to create an empty buffer
-with @kbd{C-x b temp @key{RET}}, make it unibyte with @kbd{M-x
+sends.  The easiest way to do this in Emacs is to create an empty
+buffer with @kbd{C-x b temp @key{RET}}, make it unibyte with @kbd{M-x
 toggle-enable-multibyte-characters @key{RET}}, then type the key to
 insert the character into this buffer.
 
