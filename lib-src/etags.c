@@ -28,7 +28,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` reorganised C and C++ based on work by Joe Wells.
  *	Regexp tags by Tom Tromey.
  *
- *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
+ *	Francesco Potorti` (pot@gnu.org) is the current maintainer.
  */
 
 char pot_etags_version[] = "@(#) pot revision number is 13.31";
