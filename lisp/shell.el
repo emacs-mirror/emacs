@@ -71,8 +71,8 @@
 ;;; m-S     comint-next-matching-input-from-input     -"- matching input
 ;;; m-c-l   comint-show-output		    Show last batch of process output
 ;;; return  comint-send-input
-;;; c-a     comint-bol                      Beginning of line; skip prompt
 ;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
+;;; c-c c-a comint-bol                      Beginning of line; skip prompt
 ;;; c-c c-u comint-kill-input	    	    ^u
 ;;; c-c c-w backward-kill-word    	    ^w
 ;;; c-c c-c comint-interrupt-subjob 	    ^c
