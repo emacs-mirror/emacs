@@ -2779,6 +2779,23 @@ reset_modifiers ()
      keyboard focus.  */
 }
 
+/* Synchronize modifier state with what is reported with the current
+   keystroke.  Even if we cannot distinguish between left and right
+   modifier keys, we know that, if no modifiers are set, then neither
+   the left or right modifier should be set.  */
+static void
+sync_modifiers ()
+{
+  if (!modifiers_recorded)
+    return;
+
+  if (!(GetKeyState (VK_CONTROL) & 0x8000)) 
+    modifiers[EMACS_RCONTROL] = modifiers[EMACS_LCONTROL] = 0;
+
+  if (!(GetKeyState (VK_MENU) & 0x8000)) 
+    modifiers[EMACS_RMENU] = modifiers[EMACS_LMENU] = 0;
+}
+
 static int
 modifier_set (int vkey)
 {
@@ -2948,6 +2965,9 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
+      /* Synchronize modifiers with current keystroke.  */
+      sync_modifiers ();
+
       record_keydown (wParam, lParam);
 
       wParam = map_keypad_keys (wParam, lParam);
