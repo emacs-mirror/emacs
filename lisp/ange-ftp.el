@@ -2900,7 +2900,8 @@ system TYPE.")
 	       (user (nth 1 parsed))
 	       (name (ange-ftp-quote-string (nth 2 parsed)))
 	       (temp (ange-ftp-make-tmp-name host))
-	       (binary (ange-ftp-binary-file filename))
+	       (binary (or (ange-ftp-binary-file filename)
+			   (eq (ange-ftp-host-type host user) 'unix)))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename)))
 	  (unwind-protect
@@ -2962,7 +2963,8 @@ system TYPE.")
 		     (user (nth 1 parsed))
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
-		     (binary (ange-ftp-binary-file filename))
+		     (binary (or (ange-ftp-binary-file filename)
+				 (eq (ange-ftp-host-type host user) 'unix)))
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     size)
 		(unwind-protect
@@ -3242,7 +3244,9 @@ system TYPE.")
 	     (t-name (and t-parsed (ange-ftp-quote-string (nth 2 t-parsed))))
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
-			 (ange-ftp-binary-file newname)))
+			 (ange-ftp-binary-file newname)
+			 (and (eq (ange-ftp-host-type f-host f-user) 'unix)
+			      (eq (ange-ftp-host-type t-host t-user) 'unix))))
 	     temp1
 	     temp2)
 
@@ -3401,8 +3405,7 @@ system TYPE.")
 ;;;; File renaming support.
 ;;;; ------------------------------------------------------------
 
-(defun ange-ftp-rename-remote-to-remote (filename newname f-parsed t-parsed
-						  binary)
+(defun ange-ftp-rename-remote-to-remote (filename newname f-parsed t-parsed)
   "Rename remote file FILE to remote file NEWNAME."
   (let ((f-host (nth 0 f-parsed))
 	(f-user (nth 1 f-parsed))
@@ -3454,8 +3457,7 @@ system TYPE.")
   (setq filename (expand-file-name filename))
   (setq newname (expand-file-name newname))
   (let* ((f-parsed (ange-ftp-ftp-name filename))
-	 (t-parsed (ange-ftp-ftp-name newname))
-	 (binary (if (or f-parsed t-parsed) (ange-ftp-binary-file filename))))
+	 (t-parsed (ange-ftp-ftp-name newname)))
     (if (and (or f-parsed t-parsed)
 	     (or (not ok-if-already-exists)
 		 (numberp ok-if-already-exists)))
@@ -3466,7 +3468,7 @@ system TYPE.")
     (if f-parsed
 	(if t-parsed
 	    (ange-ftp-rename-remote-to-remote filename newname f-parsed
-					      t-parsed binary)
+					      t-parsed)
 	  (ange-ftp-rename-remote-to-local filename newname))
       (if t-parsed
 	  (ange-ftp-rename-local-to-remote filename newname)
@@ -3672,8 +3674,7 @@ system TYPE.")
   (let* ((fn1 (expand-file-name file))
 	 (pa1 (ange-ftp-ftp-name fn1)))
     (if pa1
-	(let* ((tmp1 (ange-ftp-make-tmp-name (car pa1)))
-	       (bin1 (ange-ftp-binary-file fn1)))
+	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1))))
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))
