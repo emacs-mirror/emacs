@@ -1,3 +1,9 @@
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* ibuffer.el (ibuffer-redisplay-engine): Do not remove folded
+	filter groups from the buffer when rebuilding the Ibuffer buffer
+	and `ibuffer-show-empty-filter-groups' is nil.
+
 2004-05-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-print-quote): Call ps-value-string.
