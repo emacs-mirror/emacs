@@ -86,6 +86,8 @@ if that value is non-nil."
   (easy-menu-add widget-browse-mode-menu)
   (run-hooks 'widget-browse-mode-hook))
 
+(put 'widget-browse-mode 'mode-class 'special)
+
 ;;; Commands.
 
 ;;;###autoload
