@@ -1700,7 +1700,7 @@ specifies the character set for the major languages of Western Europe."
 
   ;; Put higher priorities to such charsets that are supported by the
   ;; coding systems of higher priorities in this environment.
-  (let ((charsets nil))
+  (let ((charsets (get-language-info language-name 'charset)))
     (dolist (coding (get-language-info language-name 'coding-priority))
       (setq charsets (append charsets (coding-system-charset-list coding))))
     (if charsets
