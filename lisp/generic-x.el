@@ -1482,12 +1482,15 @@ you must reload generic-x to enable the specified modes."
    "if"
    "ignore"
    "set"
+   "source"
    "unset"
    )
   '(("^\\s-*\\(alias\\|group\\)\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
      (2 font-lock-constant-face) (3 font-lock-variable-name-face))
     ("^\\s-*\\(unset\\|set\\|ignore\\)\\s-+\\([-A-Za-z0-9_]+\\)=?\\([^\n\r#]*\\)\\(#.*\\)?$"
-     (2 font-lock-constant-face) (3 font-lock-variable-name-face)))
+     (2 font-lock-constant-face) (3 font-lock-variable-name-face))
+    ("^\\s-*\\(source\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
+     (2 font-lock-variable-name-face)))
   (list "\\.mailrc\\'")
   nil
   "Mode for mailrc files.")
