@@ -101,3 +101,4 @@ extern Lisp_Object read_char ();
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 
+extern Lisp_Object map_prompt ();
