@@ -1628,7 +1628,7 @@ Both LENGTH and INIT must be numbers.")
     }
   else
     {
-      unsigned char str[4];
+      unsigned char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (c, str);
 
       nbytes = len * XINT (length);
