@@ -27,8 +27,8 @@ CC=@CC@
 CPP=@CPP@
 CFLAGS=@CFLAGS@
 LN_S=@LN_S@
-# These escaped doublequotes become part of the macro definition in emacs.c.
-# Thus, the definition is a C string constant.
+/* These escaped doublequotes become part of the macro definition in emacs.c.
+   Thus, the definition is a C string constant. */
 configuration=\"@configuration@\"
 
 /* On Xenix and the IBM RS6000, double-dot gets screwed up.  */
