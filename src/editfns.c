@@ -1383,7 +1383,7 @@ determines whether case is significant or ignored.")
       buf2 = Fget_buffer (buffer2);
       if (NILP (buf2))
 	nsberror (buffer2);
-      bp2 = XBUFFER (buffer2);
+      bp2 = XBUFFER (buf2);
     }
 
   if (NILP (start2))
