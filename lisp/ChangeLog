@@ -1,3 +1,8 @@
+2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.el (save-selected-window, one-window-p)
+	(split-window-keep-point, split-window-horizontally): Doc fixes.
+
 2004-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  Now it uses call-process instead of
