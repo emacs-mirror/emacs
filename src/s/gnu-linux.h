@@ -207,9 +207,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
 
-/* Work around a bug in glibc with _longjmp. */
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE
-
 /* Let's try this out, just in case.
    Nah.  Rik Faith <faith@cs.unc.edu> says it doesn't work well.  */
 /* #define SIGNALS_VIA_CHARACTERS */
@@ -217,7 +214,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Rob Malouf <malouf@csli.stanford.edu> says:
    SYSV IPC is standard a standard part of Linux since version 0.99pl10,
    and is a very common addition to previous versions.  */
+
+#ifdef TERM
+#define LIBS_MACHINE -lclient
+#define C_SWITCH_SYSTEM -D_BSD_SOURCE -I/usr/src/term
+#else
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
 #define LIBS_MACHINE
+#define C_SWITCH_SYSTEM -D_BSD_SOURCE
+#endif
+
 #define HAVE_SYSVIPC
