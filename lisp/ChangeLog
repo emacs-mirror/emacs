@@ -1,5 +1,13 @@
 1999-12-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/mule-cmds.el (default-input-method): Specify
+	that it should be set after current-language-environment.
+
+	* custom.el (custom-handle-keyword): Add :set-after.
+	(custom-add-dependencies): New function.
+	(custom-set-variables): Take dependencies between args into
+	account.
+	
 	* battery.el (battery): Doc fix.
 
 1999-12-12  Gerd Moellmann  <gerd@gnu.org>
