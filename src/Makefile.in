@@ -540,7 +540,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o strftime.o intervals.o textprop.o composite.o \
+	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
 	$(MSDOS_OBJ)
 
 /* Object files used on some machine or other.
