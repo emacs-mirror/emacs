@@ -1,3 +1,11 @@
+2004-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Require `cl' when compiling.
+	Remove XEmacs and Emacs 19 compatibility.
+	Use `dolist' and `add-to-list' for load-time actions.
+	(hs-discard-overlays): Use `dolist'.
+	(hs-show-block): Likewise.
+
 2004-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* faces.el (mode-line, mode-line-inactive): Use min-colors.
