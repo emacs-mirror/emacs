@@ -1,5 +1,9 @@
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-read-input-ring): Move reference to
+	comint-input-ring-size outside of the save-excursion.  It was
+	causing the default value to be the only one ever seen.
+	
 	* font-lock.el: Update copyright.  Remove Simon Marshall's email
 	address on request from him.
 
