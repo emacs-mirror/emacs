@@ -852,12 +852,6 @@ with no args, if that value is non-nil."
   (setq f90-startup-message nil))
 
 ;; inline-functions
-(defsubst f90-get-beg-of-line ()
-  (save-excursion (beginning-of-line) (point)))
-
-(defsubst f90-get-end-of-line ()
-  (save-excursion (end-of-line) (point)))
-
 (defsubst f90-in-string ()
   (let ((beg-pnt
 	 (if (and f90-cache-position (> (point) f90-cache-position))
@@ -874,9 +868,9 @@ with no args, if that value is non-nil."
 
 (defsubst f90-line-continued ()
   (save-excursion
-	(beginning-of-line)
-	(while (and (looking-at "[ \t]*\\(!\\|$\\)") (zerop (forward-line -1))))
-    (let ((bol (f90-get-beg-of-line)))
+    (beginning-of-line)
+    (while (and (looking-at "[ \t]*\\(!\\|$\\)") (zerop (forward-line -1))))
+    (let ((bol (line-beginning-position)))
       (end-of-line)
       (while (f90-in-comment)
 	(search-backward "!" bol)
@@ -888,8 +882,7 @@ with no args, if that value is non-nil."
   "Return indentation of current line.
 Line-numbers are considered whitespace characters."
   (save-excursion
-    (beginning-of-line) (skip-chars-forward " \t0-9")
-    (current-column)))
+    (beginning-of-line) (skip-chars-forward " \t0-9")))
 
 (defsubst f90-indent-to (col &optional no-line-number)
   "Indent current line to column COL.
@@ -902,20 +895,16 @@ If no-line-number nil, jump over a possible line-number."
       (indent-to col)
     (indent-to col 1)))
 
-(defsubst f90-match-piece (arg)
-  (if (match-beginning arg)
-      (buffer-substring (match-beginning arg) (match-end arg))))
-
 (defsubst f90-get-present-comment-type ()
   (save-excursion
-    (let ((type nil) (eol (f90-get-end-of-line)))
+    (let ((type nil) (eol (line-end-position)))
       (if (f90-in-comment)
 	  (progn
 	    (beginning-of-line)
 	    (re-search-forward "[!]+" eol)
 	    (while (f90-in-string)
 	      (re-search-forward "[!]+" eol))
-	    (setq type (buffer-substring (match-beginning 0) (match-end 0)))))
+	    (setq type (match-string 0))))
       type)))
 
 (defsubst f90-equal-symbols (a b)
@@ -932,9 +921,9 @@ If no-line-number nil, jump over a possible line-number."
 Name is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(do\\)\\>")
       (let (label
-	    (struct (f90-match-piece 3)))
+	    (struct (match-string 3)))
 	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (f90-match-piece 1)))
+	    (setq label (match-string 1)))
 	(list struct label))))
 
 (defsubst f90-looking-at-select-case ()
@@ -942,9 +931,9 @@ Name is nil if the statement has no label."
 Name is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(select\\)[ \t]*case[ \t]*(")
       (let (label
-	    (struct (f90-match-piece 3)))
+	    (struct (match-string 3)))
 	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (f90-match-piece 1)))
+	    (setq label (match-string 1)))
 	(list struct label))))
 
 (defsubst f90-looking-at-if-then ()
@@ -954,9 +943,9 @@ Name is nil if the statement has no label."
     (let (struct (label nil))
       (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
 	  (progn
-	    (setq struct (f90-match-piece 3))
+	    (setq struct (match-string 3))
 	    (if (looking-at "\\(\\sw+\\)[ \t]*\:")
-		(setq label (f90-match-piece 1)))
+		(setq label (match-string 1)))
 	    (let ((pos (scan-lists (point) 1 0)))
 	      (and pos (goto-char pos)))
 	    (skip-chars-forward " \t")
@@ -973,9 +962,9 @@ Name is nil if the statement has no label."
 Name is nil if the statement has no label."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)")
       (let (label
-	    (struct (f90-match-piece 3)))
+	    (struct (match-string 3)))
 	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (f90-match-piece 1)))
+	    (setq label (match-string 1)))
 	(list struct label))))
 
 (defsubst f90-looking-at-type-like ()
@@ -983,27 +972,27 @@ Name is nil if the statement has no label."
 Name is non-nil only for type."
   (cond 
    ((looking-at f90-type-def-re)
-    (list (f90-match-piece 1) (f90-match-piece 4)))
+    (list (match-string 1) (match-string 4)))
    ((looking-at "\\(interface\\|block[\t]*data\\)\\>")
-    (list (f90-match-piece 1) nil))))
+    (list (match-string 1) nil))))
 
 (defsubst f90-looking-at-program-block-start ()
   "Return (kind name) if a program block with name name starts after point."
   (cond
    ((looking-at "\\(program\\)[ \t]+\\(\\sw+\\)\\>")
-    (list (f90-match-piece 1) (f90-match-piece 2)))
+    (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "module[ \t]*procedure\\>"))
 	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
-    (list (f90-match-piece 1) (f90-match-piece 2)))
+    (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
 	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)"))
-    (list (f90-match-piece 1) (f90-match-piece 2)))))
+    (list (match-string 1) (match-string 2)))))
 
 (defsubst f90-looking-at-program-block-end ()
   "Return list of type and name of end of block."
   (if (looking-at (concat "end[ \t]*" f90-blocks-re 
 			  "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
-      (list (f90-match-piece 1) (f90-match-piece 3))))
+      (list (match-string 1) (match-string 3))))
 
 (defsubst f90-comment-indent ()
   (cond ((looking-at "!!!") 0)
@@ -1040,7 +1029,7 @@ Name is non-nil only for type."
   (skip-chars-forward " \t0-9"))
 
 (defsubst f90-no-block-limit ()
-  (let ((eol (f90-get-end-of-line)))
+  (let ((eol (line-end-position)))
     (save-excursion
       (not (or (looking-at "end")
 	       (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
@@ -1054,8 +1043,8 @@ block[ \t]*data\\)\\>")
 (defsubst f90-update-line ()
   (let (bol eol)
     (if f90-auto-keyword-case
-	(progn (setq bol (f90-get-beg-of-line)
-		     eol (f90-get-end-of-line))
+	(progn (setq bol (line-beginning-position)
+		     eol (line-end-position))
 	       (if f90-auto-keyword-case
 		   (f90-change-keywords f90-auto-keyword-case bol eol))))))
 
@@ -1069,7 +1058,7 @@ block[ \t]*data\\)\\>")
 (defun f90-get-correct-indent ()
   "Get correct indent for a line starting with line number.
 Does not check type and subprogram indentation."
-  (let ((epnt (f90-get-end-of-line)) icol cont)
+  (let ((epnt (line-end-position)) icol cont)
     (save-excursion
       (while (and (f90-previous-statement)
 		  (or (progn
@@ -1079,7 +1068,7 @@ Does not check type and subprogram indentation."
       (setq icol (current-indentation))
       (beginning-of-line)
       (if (re-search-forward "\\(if\\|do\\|select\\|where\\|forall\\)"
-			     (f90-get-end-of-line) t)
+			     (line-end-position) t)
 	  (progn
 	    (beginning-of-line) (skip-chars-forward " \t")
 	    (cond ((f90-looking-at-do)
@@ -1445,7 +1434,7 @@ If run in the middle of a line, the line is not broken."
   
 (defun f90-find-breakpoint ()
   "From fill-column, search backward for break-delimiter."
-  (let ((bol (f90-get-beg-of-line)))
+  (let ((bol (line-beginning-position)))
     (re-search-backward f90-break-delimiters bol)
     (if f90-break-before-delimiters
 	(progn (backward-char)
@@ -1523,7 +1512,7 @@ If run in the middle of a line, the line is not broken."
 (defun f90-block-match (beg-block beg-name end-block end-name)
   "Match end-struct with beg-struct and complete end-block if possible.
 Leave point at the end of line."
-  (search-forward "end" (f90-get-end-of-line))
+  (search-forward "end" (line-end-position))
   (catch 'no-match
     (if (not (f90-equal-symbols beg-block end-block))
 	(if end-block
@@ -1595,8 +1584,8 @@ Leave point at the end of line."
 		      (message "Matches %s: %s"
 			       (what-line)
 			       (buffer-substring
-				(progn (beginning-of-line) (point))
-				(progn (end-of-line) (point))))
+				(line-beginning-position)
+				(line-end-position)))
 		    (sit-for 1)))
 	      (setq beg-block (car matching-beg))
 	      (setq beg-name (car (cdr matching-beg)))
