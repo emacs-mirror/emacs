@@ -327,6 +327,7 @@ x
 @end example
 @end defmac
 
+@anchor{Definition of nth}
 @defun nth n list
 This function returns the @var{n}th element of @var{list}.  Elements
 are numbered starting with zero, so the @sc{car} of @var{list} is
@@ -391,6 +392,7 @@ this link is the list's last element.  If @var{list} is null,
 if @var{n} is bigger than @var{list}'s length.
 @end defun
 
+@anchor{Definition of safe-length}
 @defun safe-length list
 This function returns the length of @var{list}, with no risk
 of either an error or an infinite loop.
@@ -565,7 +567,7 @@ object.  The final argument is not copied or converted; it becomes the
 @sc{cdr} of the last cons cell in the new list.  If the final argument
 is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
-``dotted list'' since its final @sc{cdr} is not @code{nil} as required
+dotted list since its final @sc{cdr} is not @code{nil} as required
 in a true list.
 
 In Emacs 20 and before, the @code{append} function also allowed
@@ -708,7 +710,7 @@ x
 @end defun
 
 @defun copy-tree tree &optional vecp
-This function returns a copy the tree @code{tree}.  If @var{tree} is a
+This function returns a copy of the tree @code{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
 @sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
 same way.
@@ -732,7 +734,7 @@ All arguments can be integers or floating point numbers.  However,
 floating point arguments can be tricky, because floating point
 arithmetic is inexact.  For instance, depending on the machine, it may
 quite well happen that @code{(number-sequence 0.4 0.6 0.2)} returns
-the one element list @code{(0.4)}, whereas 
+the one element list @code{(0.4)}, whereas
 @code{(number-sequence 0.4 0.8 0.2)} returns a list with three
 elements.  The @var{n}th element of the list is computed by the exact
 formula @code{(+ @var{from} (* @var{n} @var{separation}))}.  Thus, if
