@@ -161,6 +161,7 @@
 	("ISO8859-15" . iso-8859-15)
 	("JISX0213.2000-1" . japanese-jisx0213-1)
 	("JISX0213.2000-2" . japanese-jisx0213-2)
+	("abobe-symbol" . symbol)
 	("ISO10646-1" . unicode)))
 
 ;; Set arguments in `font-encoding-alist' (which see).
