@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/01/11 02:24:09 $|$Revision: 1.83 $
+;; |$Date: 1995/03/16 23:31:39 $|$Revision: 1.84 $
 
 ;; This file is part of GNU Emacs.
 
@@ -800,8 +800,10 @@ Use `isearch-exit' to quit without signalling."
 	     (setq isearch-success nil)
 	     (isearch-done t)   ; exit isearch
 	     (signal 'quit nil))  ; and pass on quit signal
-    ;; If search is failing, rub out until it is once more successful.
-    (while (not isearch-success) (isearch-pop-state))
+    ;; If search is failing, or has an incomplete regexp,
+    ;; rub out until it is once more successful.
+    (while (or (not isearch-success) isearch-invalid-regexp)
+      (isearch-pop-state))
     (isearch-update)))
 
 (defun isearch-repeat (direction)
