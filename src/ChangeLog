@@ -1,3 +1,10 @@
+2004-07-25  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fcoordinates_in_window_p): 
+	Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* alloc.c (check_cons_list): New function (contents commented out).
+
 2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* xfaces.c (Fcolor_supported_p): Doc fix.
