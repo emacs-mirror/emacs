@@ -28,7 +28,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 10.31";
+char pot_etags_version[] = "@(#) pot revision number is 10.32";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -263,7 +263,6 @@ struct option longopts[] = {
   { "c++",			no_argument,	   NULL, 'C' },
   { "cxref",			no_argument,	   NULL, 'x' },
   { "defines",			no_argument,	   NULL, 'd' },
-  { "forward-search",		no_argument,	   NULL, 'F' }, 
   { "help",			no_argument,	   NULL, 'H' },
   { "ignore-indentation",	no_argument,	   NULL, 'S' },
   { "include",			required_argument, NULL, 'i' },
@@ -325,7 +324,7 @@ names from stdin.\n\n", progname);
   if (CTAGS)
     puts ("-B, --backward-search\n\
         Write the search commands for the tag entries using '?', the\n\
-        backward-search command.");
+        backward-search command instead of '/', the forward-search command.");
 
   puts ("-C, --c++\n\
         Treat files with `.c' and `.h' extensions as C++ code, not C\n\
@@ -339,11 +338,6 @@ names from stdin.\n\n", progname);
     puts ("-D, --no-defines\n\
         Don't create tag entries for C #defines.  This makes the tags\n\
 	file smaller.");
-
-  if (CTAGS)
-    puts ("-F, --forward-search\n\
-        Write the search commands for the tag entries using '/', the\n\
-        forward-search command.");
 
   if (!CTAGS)
     puts ("-i FILE, --include=FILE\n\
@@ -429,7 +423,7 @@ main (argc, argv)
   for (;;)
     {
       int opt;
-      opt = getopt_long (argc, argv, "aCdDf:o:StTi:BFuvxwVH", longopts, 0);
+      opt = getopt_long (argc, argv, "aCdDf:o:StTi:BuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -486,9 +480,6 @@ main (argc, argv)
 	  /* Ctags options. */
 	case 'B':
 	  searchar = '?';
-	  break;
-	case 'F':
-	  searchar = '/';
 	  break;
 	case 't':
 	  typedefs++;
