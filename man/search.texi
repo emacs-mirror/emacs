@@ -1018,12 +1018,13 @@ performs the inverse transformation.
 
   You can also use arbitrary Lisp expressions evaluated at replacement
 time by placing @samp{\,} before them in the replacement string.  Inside
-of those expressions, the symbols @samp{\&} and @samp{\@var{d}} refer to
-match and submatch strings like described above (a submatch not matching
-anything will be @samp{nil}), and @samp{\&#} and @samp{\@var{d}#} to
-those strings converted to numbers.  @samp{\#} is short for
-@samp{replace-count}, the number of already completed replacements.
-This particular shorthand can also be used outside of @samp{\,}.
+of those expressions, the symbols @samp{\&} and @samp{\@var{n}} refer to
+match and submatch strings like described above (though @var{n} may
+exceed 9 here, and you get @code{nil} if nothing matches).  @samp{\#&}
+and @samp{\#@var{n}} refer to those strings converted to numbers.
+@samp{\#} is short for @samp{replace-count}, the number of already
+completed replacements.  This particular shorthand can also be used
+outside of @samp{\,}.
 
   Repeating our example to exchange @samp{x} and @samp{y}, we can thus
 do it also this way:
@@ -1033,11 +1034,21 @@ M-x replace-regexp @key{RET} \(x\)\|y @key{RET}
 \,(if \1 "y" "x") @key{RET}
 @end example
 
+  One function that comes handy in Lisp replacements is @samp{format}
+(@pxref{Formatting Strings,,,elisp, GNU Emacs Lisp Reference Manual}).
+For example, to add consecutively numbered strings like @samp{ABC00042}
+to columns 73 @w{to 80} (unless they are already occupied), you can use
+
+@example
+M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
+\,(format "%-72sABC%05d" \& \#) @key{RET}
+@end example
+
   Another feature you can use in the replacement string of Regexp
 commands is @samp{\?}.  In that case you will be allowed to edit the
 replacement string at the given position before the replacement gets
-performed.  Lisp style replacements have already been done before
-@samp{\?} is executed.  For example,
+performed.  Lisp style replacements are performed before @samp{\?} gets
+executed.  For example,
 
 @example
 M-x replace-regexp @key{RET} \footnote@{ @key{RET}
@@ -1049,15 +1060,6 @@ will add labels starting with @samp{\label@{fn:0@}} to occurences of
 @samp{\footnote@{}, but letting you edit each replacement before
 performing it.  If you want labels starting at 1, use @samp{\,(1+ \#)}
 instead of @samp{\#}.
-
-As another example, to add consecutively numbered strings like
-@samp{ABC00042} to column 73 to~80 (unless they are already occupied),
-you can use
-
-@example
-M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
-\,(format "%-72sABC%05d" \& \#) @key{RET}
-@end example
 
 @node Replacement and Case, Query Replace, Regexp Replace, Replace
 @subsection Replace Commands and Case
