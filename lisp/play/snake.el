@@ -326,7 +326,6 @@ snake-mode keybindings:
 "
   (kill-all-local-variables)
 
-  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map snake-null-map)
