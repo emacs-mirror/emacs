@@ -1,3 +1,24 @@
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (single_display_spec_string_p): Renamed from
+	single_display_prop_string_p.
+	(single_display_spec_intangible_p): Renamed from
+	single_display_prop_intangible_p.
+	(handle_single_display_spec): Renamed from handle_single_display_prop.
+	Rewritten to be easier to understand.
+
+	* Change in load-history format.  Functions now get (defun . NAME),
+	and variables get just NAME.
+
+	* data.c (Fdefalias): Use (defun . FN_NAME) in LOADHIST_ATTACH.
+
+	* eval.c (Fdefun, Fdefmacro): Use (defun . FN_NAME) in LOADHIST_ATTACH.
+	(Fdefvaralias, Fdefvar, Fdefconst): Use just SYM in LOADHIST_ATTACH.
+	(Qdefvar): Var deleted.
+	(syms_of_eval): Don't initialze it.
+
+	* lread.c (syms_of_lread) <load-history>: Doc fix.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Pop down on C-g.
