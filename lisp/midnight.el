@@ -219,8 +219,7 @@ to its second argument."
 
 (defun midnight-timer-function ()
   "This is the function run by the `midnight-mode' timer once each day."
-  (when midnight-mode
-    (run-hooks 'midnight-hook)))
+  (run-hooks 'midnight-hook))
 
 (defcustom midnight-delay 3600
   "*The number of seconds after the midnight when the `midnight-timer' is run.
