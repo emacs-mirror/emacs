@@ -1305,7 +1305,9 @@ In the latter case, you have to do \\[dired-build-subdir-alist] to
 parse the buffer again."
   (interactive)
   (let (buffer-read-only)
-    (undo)))
+    (undo)
+    (message "Change in Dired buffer undone.
+Actual changes in files cannot be undone by Emacs.")))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
