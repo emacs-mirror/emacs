@@ -121,27 +121,28 @@ kill instead, since they can erase more than one character this way.
 have typed.  Regardless of the actual name on the key, in Emacs it is
 equivalent to @key{DEL}---or it should be.
 
-  Many keyboards have a @key{BACKSPACE} key a short ways above
-@key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  In that
-case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
-is equivalent to @kbd{C-d}---or it should be.
+  Many keyboards (including standard PC keyboards) have a
+@key{BACKSPACE} key a short ways above @key{RET} or @key{ENTER}, and a
+@key{DELETE} key elsewhere.  In that case, the @key{BACKSPACE} key is
+@key{DEL}, and the @key{DELETE} key is equivalent to @kbd{C-d}---or it
+should be.
 
   Why do we say ``or it should be''?  When Emacs starts up using a
 window system, it determines automatically which key or keys should be
 equivalent to @key{DEL}.  So the @key{BACKSPACE} and/or @key{DELETE}
 keys normally do the right things.  But in some unusual cases Emacs
 gets the wrong information from the system.  If these keys don't do
-what they ought to do, you should tell Emacs which key to use for
+what they ought to do, you need to tell Emacs which key to use for
 @key{DEL}.  @xref{DEL Gets Help}, for how to do this.
 
 @findex normal-erase-is-backspace-mode
-  On most text-only terminals, Emacs cannot tell which key is where,
-so it follows a uniform plan which may or may not fit your keyboard.
-The uniform plan is that the ASCII @key{DEL} character deletes, and
-the ASCII @key{BS} (backspace) character asks for help (it is the same
-as @kbd{C-h}).  If this is not right for your keyboard, if you find
-that the key which ought to delete backwards enters Help instead, see
-@ref{DEL Gets Help}.
+  On most text-only terminals, Emacs cannot tell which keys the
+keyboard really has, so it follows a uniform plan which may or may not
+fit your keyboard.  The uniform plan is that the ASCII @key{DEL}
+character deletes, and the ASCII @key{BS} (backspace) character asks
+for help (it is the same as @kbd{C-h}).  If this is not right for your
+keyboard, if you find that the key which ought to delete backwards
+enters Help instead, see @ref{DEL Gets Help}.
 
 @kindex M-\
 @findex delete-horizontal-space

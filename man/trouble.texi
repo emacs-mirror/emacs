@@ -159,8 +159,8 @@ what happened---Emacs ought to be treating the @key{DELETE} key as
 @key{BACKSPACE} and there is a @key{DELETE} key elsewhere, but the
 @key{DELETE} key deletes backward instead of forward, that too
 suggests Emacs got the wrong information---but in the opposite sense.
-It ought to be treating the @key{BACKSPACE} key as @key{DEL}, but it
-isn't.
+It ought to be treating the @key{BACKSPACE} key as @key{DEL}, and
+treating @key{DELETE} differently, but it isn't.
 
   On a text-only terminal, if you find the usual erasure key prompts
 for a Help command, like @kbd{Control-h}, instead of deleting a
@@ -176,15 +176,17 @@ want to ask for help, use @key{F1} or @kbd{C-?}.
 @findex normal-erase-is-backspace-mode
   To fix the problem automatically for every Emacs session, you can
 put one of the following lines into your @file{.emacs} file
-(@pxref{Init File}).  For the first case above, where @key{DEL}
-deletes forwards instead of backwards, use this line:
+(@pxref{Init File}).  For the first case above, where @key{DELETE}
+deletes forwards instead of backwards, use this line to make
+@key{DELETE} act as @key{DEL}:
 
 @lisp
 (normal-erase-is-backspace-mode 0)
 @end lisp
 
 @noindent
-For the other two cases, use this line:
+For the other two cases, where @key{BACKSPACE} ought to act as
+@key{DEL}, use this line:
 
 @lisp
 (normal-erase-is-backspace-mode 1)
