@@ -1,3 +1,33 @@
+2005-03-08  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/sgml-mode.el (sgml-tag, html-tag-alist)
+	(html-horizontal-rule, html-line, html-image, html-checkboxes)
+	(html-radio-buttons): Add a space before the trailing `/>' where
+	sgml-xml-mode is non-nil.
+	(sgml-delete-tag): Check if the tag ends with `/>' to not delete
+	the subsequent tag of the empty XML tag.
+	(html-href-anchor): Don't set initial input to "http:".
+	(html-image): Ask for the image URL and set point inside alt="".
+	(html-name-anchor): Duplicate the name in the `id' attribute when
+	sgml-xml-mode is non-nil.
+	(html-paragraph): Remove \n before <p>.
+	(html-checkboxes, html-radio-buttons): Insert `checked="checked"'
+	instead of `checked' when sgml-xml-mode is non-nil.
+
+	* facemenu.el (list-colors-print): Print #RRGGBB in default face.
+	Remove 1 space before #RRGGBB to not truncate it on terminal
+	windows w/o fringes.  Remove 1 space between bg and fg examples
+	to get more space.
+	(list-colors-duplicates): Replace `and' with `if' for `boundp' to
+	avoid byte-compile warnings.
+
+	* image-file.el (image-file-handler): Put `safe-magic' property to
+	`image-file-handler'.
+
+	* info.el (Info-isearch-search): Emulate word search in
+	isearching through multiple Info nodes with Info-search.
+	(Info-isearch-wrap): Allow isearch-word.
+
 2005-03-08  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-step-through): Make sure that
