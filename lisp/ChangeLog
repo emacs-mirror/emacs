@@ -37,14 +37,18 @@
 	* progmodes/fortran.el (fortran-fill): Fill lines that do not have
 	comments.
 
+2003-02-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/fortran.el (fortran-mode): Set comment-use-syntax.
+	(fortran-fill-paragraph): Use fill-comment-paragraph.
+
 2003-02-12  Juanma Barranquero  <lektu@terra.es>
 
 	* files.el (file-truename): Revert change from 2002-11-27.
 
 2003-02-12  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
-	* help-fns.el (describe-function-1): Change output for keyboard
-	macros.
+	* help-fns.el (describe-function-1): Change output for keyboard macros.
 
 2003-02-12  Andreas Schwab  <schwab@suse.de>
 
@@ -59,9 +63,9 @@
 
 2003-02-12  Simon Marshall  <simon@gnu.org>
 
-	* progmodes/make-mode.el (makefile-font-lock-keywords): Fontify
-	single character variable references, but protect shell variables
-	references.
+	* progmodes/make-mode.el (makefile-font-lock-keywords):
+	Fontify single character variable references, but protect shell
+	variables references.
 	(makefile-mode): Make `$' be punctuation in font-lock-defaults.
 
 2003-02-12  Ami Fischman  <ami@fischman.org>
@@ -97,8 +101,41 @@
 	(mark-calendar-days-named, mark-calendar-days-named)
 	(mark-calendar-date-pattern, mark-calendar-month)
 	(add-to-diary-list): Add optional paramater `color' for passing
-	face attribute info through the callchain.  Pass this parameter
-	around.
+	face attribute info through the callchain.  Pass this parameter around.
+
+2003-02-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/etags.el (find-tag-tag): Move (default foo) to before
+	`:' in the prompt.
+	(find-tag): Make sure we move point in the proper window.
+
+	* progmodes/meta-mode.el (meta-fill-paragraph): Remove.
+	(meta-common-initialization): Don't set fill-paragraph-function
+	now that fill-paragraph takes care of comments.
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Don't switch
+	the current buffer's syntax-table.
+
+	* progmodes/simula.el (simula-font-lock-syntactic-keywords): New var.
+	(simula-font-lock-keywords-1): Simplify.
+	(simula-font-lock-keywords-2): Use regexp-opt.
+	(simula-emacs-features): Remove.
+	(simula-mode-syntax-table): Setup %...\n as comment style b.
+	(simula-mode-map): Remove compatibility cruft.
+	(simula-keep-region-active): Remove.
+	(simula-popup-menu): Simplify.
+	(simula-mode): Move abbrev-table setup to top-level.
+	(simula-match-string-or-comment): Remove.
+
+	* progmodes/tcl.el (tcl-omit-ws-regexp): Correctly handle cases
+	like `proc foo {a {b c} d} {'.
+	(tcl-mode): Make comment-start-skip more selective.
+
+	* info-xref.el (info-xref-check): Use line-beginning-position.
+	(info-xref-all-info-files): Cons a bit less.
+	(info-xref-check-buffer): Use push and replace-regexp-in-string.
+	(info-xref-output): Call insert only once.
+	(info-xref-whitespace): Remove.
 
 2003-02-11  John Paul Wallington  <jpw@gnu.org>
 
@@ -160,6 +197,26 @@
 	* info-xref.el: New file.
 
 2003-02-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/page-ext.el (pages-directory-mode-map): New.
+	(pages-directory-map): Redefine as an varalias.
+	(pages-directory-mode): Use new map var and run mode hook.
+	(pages-directory-address-mode): Use define-derived-mode.
+
+	* textmodes/texinfmt.el (texinfo-format-iftex, texinfo-format-ifhtml)
+	(texinfo-format-ifplaintext, texinfo-format-tex, texinfo-format-html)
+	(texinfo-format-ifnotinfo, texinfo-format-titlepage)
+	(texinfo-format-titlespec, texinfo-format-ignore, texinfo-if-set)
+	(texinfo-if-clear): Use re-search-forward's return value.
+	(texinfo-sort-startkeyfun, texinfo-format-buffer-1)
+	(texinfo-format-region): Use line-{end,beginning}-position.
+	(texinfo-append-refill, texinfo-alias): Use match-string-no-properties.
+
+	* emacs-lisp/eldoc.el (eldoc-echo-area-multiline-supported-p)
+	(eldoc-use-idle-timer-p): Remove.
+	(timer): Never require.  It only works in current Emacs anyway.
+	(eldoc-mode, eldoc-message, eldoc-display-message-p)
+	(eldoc-docstring-format-sym-doc, eldoc-remove-command): Simplify.
 
 	* ffap.el (ffap-complete-as-file-p):
 	Use minibuffer-completing-file-name.
