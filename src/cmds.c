@@ -241,7 +241,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   arg = Fprefix_numeric_value (arg1);
 
   if (!NILP (current_buffer->read_only))
-    Fsignal (Qbuffer_read_only, Qnil);
+    Fbarf_if_buffer_read_only ();
 
   /* Inserting a newline at the end of a line produces better
      redisplay in try_window_id than inserting at the ebginning fo a
