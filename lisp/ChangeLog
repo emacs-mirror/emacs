@@ -1,3 +1,8 @@
+2000-12-09  Miles Bader  <miles@gnu.org>
+
+	* window.el (fit-window-to-buffer): Don't pass last argument to
+	pos-visible-in-window-p, now that its meaning is inverted.
+
 2000-12-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* image.el (create-image): Doc fix; spotted by Per Cederqvist
@@ -42,6 +47,7 @@
 
 	* textmodes/ispell.el (ispell): Doc fix.
 
+>>>>>>> 1.1667
 2000-12-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-insert-decode-map): Check the

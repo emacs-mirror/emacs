@@ -4,8 +4,8 @@
 	with PARTIALLY, inverting the sense.
 	(window_scroll_pixel_based): Scroll partially visible lines into
 	place if we hit the beginning or end of the buffer.
-	(displayed_window_lines): Don't include partially visible line at
-	bottom.
+	(displayed_window_lines): Don't include partially visible lines.
+	(Fmove_to_window_line): Skip past any partially visible first line.
 
 2000-12-08  Gerd Moellmann  <gerd@gnu.org>
 
