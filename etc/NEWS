@@ -55,10 +55,11 @@ of text properties, overlays, and widgets at point, and lets you get
 more information about them, by clicking on mouse-sensitive areas or
 moving there and pressing RET.
 
-** The highlight shown when the mouse is over a mouse-sensitive areas
-is now cleared when you use the keyboard.  The highlight is shown
-again when you move the mouse.  You can control this behaviour and
-disable mouse highlight entirely using the new variable `mouse-highlight'.
+** Emacs normally highlights mouse sensitive text whenever the mouse
+is over the text.  By setting the new variable `mouse-highlight', you
+can optionally enable mouse highlighting only after you move the
+mouse, so that highlighting disappears when you press a key.  You can
+also disable mouse highlighting.
 
 ** font-lock: in modes like C and Lisp where the fontification assumes that
 an open-paren in column 0 is always outside of any string or comment,
