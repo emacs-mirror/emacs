@@ -2953,8 +2953,20 @@ display_mode_line (w)
   w->column_number_displayed = Qnil;
 
   get_display_line (f, vpos, left);
-  display_mode_element (w, vpos, left, 0, right, right,
-			current_buffer->mode_line_format);
+#ifdef MULTI_PERDISPLAY
+  {
+    /* Sigh, mode-line-format can reference display-local variables like
+       defining-kbd-macro.  Use the one associated with the frame we're
+       updating.  */
+    PERDISPLAY *orig_perdisplay = current_perdisplay;
+    current_perdisplay = get_perdisplay (f);
+#endif
+    display_mode_element (w, vpos, left, 0, right, right,
+			  current_buffer->mode_line_format);
+#ifdef MULTI_PERDISPLAY
+    current_perdisplay = orig_perdisplay;
+  }
+#endif
   FRAME_DESIRED_GLYPHS (f)->bufp[vpos] = 0;
 
   /* Make the mode line inverse video if the entire line
