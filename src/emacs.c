@@ -447,7 +447,7 @@ main (argc, argv, envp)
 	}
       else
 	{
-	  printf ("%s\n", XSTRING (tem)->data);
+	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
 	  exit (0);
 	}
     }
