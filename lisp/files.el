@@ -3362,7 +3362,10 @@ non-nil, it is called instead of rereading visited file contents."
 		     (funcall revert-buffer-insert-file-contents-function
 			      file-name auto-save-p)
 		   (if (not (file-exists-p file-name))
-		       (error "File %s no longer exists!" file-name))
+		       (error (if buffer-file-number
+				  "File %s no longer exists!"
+				"Cannot revert nonexistent file %s")
+			      file-name))
 		   ;; Bind buffer-file-name to nil
 		   ;; so that we don't try to lock the file.
 		   (let ((buffer-file-name nil))
