@@ -43,8 +43,10 @@ NEWS.
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
 
+** Changes in support of colors on character terminals
+
 +++
-** The new command-line option --color=MODE lets you specify a standard
+*** The new command-line option --color=MODE lets you specify a standard
 mode for a tty color support.  It is meant to be used on character
 terminals whose capabilities are not set correctly in the terminal
 database, or with terminal emulators which support colors, but don't
@@ -53,6 +55,16 @@ terminal.  "emacs --color" uses the same color commands as GNU `ls'
 when invoked with "ls --color", so if your terminal can support colors
 in "ls --color", it will support "emacs --color" as well.  See the
 user manual for the possible values of the MODE parameter.
+
+---
+*** Emacs now supports several character terminals which provide more
+than 8 colors.  For example, for `xterm', 16-color, 88-color, and
+256-color modes are supported.  Emacs automatically notes at startup
+the extended number of colors, and defines the appropriate entries for
+all of these colors.
+
+---
+*** There's a new support for colors on `rxvt' terminal emulator.
 
 +++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
@@ -378,6 +390,10 @@ SQL buffer.
 * Lisp Changes in Emacs 21.3
 
 ** New function substring-no-properties.
+
++++
+** The new primitive `tty-display-color-cells' returns the number of
+distinct colors supported by a character terminal.
 
 +++
 ** New function window-body-height.
