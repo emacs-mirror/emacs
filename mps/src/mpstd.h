@@ -1,5 +1,8 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
+ * $HopeName$
+ * Copyright (C) 1996 Harlequin Group, all rights reserved
+ *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
  * documentation, or, in the case of GCC, from the compiler itself.
