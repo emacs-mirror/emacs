@@ -504,9 +504,9 @@ charset, and a longer list means no appropriate charset."
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
-		   (let ((cs (or (coding-system-get (pop systems)
-						    :mime-charset)
-				 (coding-system-get systems 'mime-charset))))
+		   (let* ((head (pop systems))
+			  (cs (or (coding-system-get head :mime-charset)
+				  (coding-system-get head 'mime-charset))))
 		     (if cs
 			 (setq systems nil
 			       charsets (list cs))))))
@@ -537,7 +537,7 @@ Use unibyte mode for this."
 (put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
-  "Evaluate FORMS with current current buffer temporarily made unibyte.
+  "Evaluate FORMS with current buffer temporarily made unibyte.
 Also bind `default-enable-multibyte-characters' to nil.
 Equivalent to `progn' in XEmacs"
   (let ((multibyte (make-symbol "multibyte"))
@@ -632,7 +632,7 @@ Equivalent to `progn' in XEmacs"
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
 find-file-hooks, etc.
-If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers.
+If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
   This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
 	(auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
