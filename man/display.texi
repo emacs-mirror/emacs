@@ -120,9 +120,9 @@ This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
 @item isearch
 This face is used for highlighting Isearch matches.
-@item isearch-lazy-highlight-face
-This face is used for lazy highlighting of Isearch matches other than
-the current one.
+@item lazy-highlight
+This face is used for lazy highlighting of Isearch and Query Replace
+matches other than the current one.
 @item region
 This face is used for displaying a selected region (when Transient Mark
 mode is enabled---see below).
