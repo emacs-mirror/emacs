@@ -134,6 +134,9 @@ struct w32_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
+  /* Resource data base */
+  char *xrdb;
+
   /* color palette information.  */
   int has_palette;
   struct w32_palette_entry * color_list;
