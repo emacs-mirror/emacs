@@ -3284,6 +3284,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
   register RE_TRANSLATE_TYPE translate = bufp->translate;
   int total_size = size1 + size2;
   int endpos = startpos + range;
+  int anchored_start = 0;
 
   /* Check for out-of-range STARTPOS.  */
   if (startpos < 0 || startpos > total_size)
@@ -3323,9 +3324,26 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
     if (re_compile_fastmap (bufp) == -2)
       return -2;
 
+  /* See whether the pattern is anchored.  */
+  if (bufp->buffer[0] == begline)
+    anchored_start = 1;
+
   /* Loop through the string, looking for a place to start matching.  */
   for (;;)
     {
+      /* If the pattern is anchored,
+	 skip quickly past places we cannot match.
+	 We don't bother to treat startpos == 0 specially
+	 because that case doesn't repeat.  */
+      if (anchored_start && startpos > 0)
+	{
+	  if (! (bufp->newline_anchor
+		 && ((startpos <= size1 ? string1[startpos - 1]
+		      : string2[startpos - size1 - 1])
+		     == '\n')))
+	    goto advance;
+	}
+
       /* If a fastmap is supplied, skip quickly over characters that
          cannot be the start of a match.  If the pattern can match the
          null string, however, we don't need to skip characters; we want
@@ -3461,7 +3479,7 @@ static boolean alt_match_null_string_p (),
 
 /* Free everything we malloc.  */
 #ifdef MATCH_MAY_ALLOCATE
-#define FREE_VAR(var) if (var) then { REGEX_FREE (var); var = NULL; } else
+#define FREE_VAR(var) if (var) { REGEX_FREE (var); var = NULL; } else
 #define FREE_VARIABLES()						\
   do {									\
     REGEX_FREE_STACK (fail_stack.stack);				\
