@@ -1,5 +1,9 @@
 2002-05-12  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/smtpmail.el (smtpmail-mail-address): New variable.
+	(smtpmail-send-it): Bind and use that instead of `mail-address'.
+	(smtpmail-via-smtp): Likewise.
+
 	* ansi-color.el (ansi-color-get-face): Avoid add-to-list on local var.
 	(ansi-color-apply-sequence): Avoid duplicates in combined face list.
 
