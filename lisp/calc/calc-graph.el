@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -40,18 +39,18 @@
 ;;; Note that some of the following initial values also occur in calc.el.
 (defvar calc-gnuplot-tempfile "calc")
 
-(defvar calc-gnuplot-default-device "default")
-(defvar calc-gnuplot-default-output "STDOUT")
-(defvar calc-gnuplot-print-device "postscript")
-(defvar calc-gnuplot-print-output "auto")
+(defvar calc-gnuplot-default-device)
+(defvar calc-gnuplot-default-output)
+(defvar calc-gnuplot-print-device)
+(defvar calc-gnuplot-print-output)
 (defvar calc-gnuplot-keep-outfile nil)
 (defvar calc-gnuplot-version nil)
 
 (defvar calc-gnuplot-display (getenv "DISPLAY"))
-(defvar calc-gnuplot-geometry nil)
+(defvar calc-gnuplot-geometry)
 
-(defvar calc-graph-default-resolution 15)
-(defvar calc-graph-default-resolution-3d 5)
+(defvar calc-graph-default-resolution)
+(defvar calc-graph-default-resolution-3d)
 (defvar calc-graph-default-precision 5)
 
 (defvar calc-gnuplot-buffer nil)
