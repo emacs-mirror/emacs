@@ -1,9 +1,10 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95,1997
-;;       Free Software Foundation, Inc
+;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 1997
+;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <dlaliberte@gte.com>
+;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.
@@ -39,17 +40,13 @@
 ;; through the code with SPC, mark breakpoints with b, go until a
 ;; breakpoint is reached with g, and quit execution with q.  Use the
 ;; "?" command in edebug to describe other commands. 
-;; See the Emacs 19 Lisp Reference Manual for more instructions.
+;; See the Emacs Lisp Reference Manual for more details.
 
 ;; If you wish to change the default edebug global command prefix, change:
 ;; (setq edebug-global-prefix "\C-xX")
 
-;; Send me your enhancements, ideas, bugs, or fixes.
-;; For bugs, you can call edebug-submit-bug-report.
-;; There is an edebug mailing list if you want to keep up
-;; with the latest developments.  Requests to: edebug-request@cs.uiuc.edu
-
-;; Daniel LaLiberte    617-466-3291
+;; Edebug was written by
+;; Daniel LaLiberte
 ;; GTE Labs
 ;; 40 Sylvan Rd
 ;; Waltham, MA  02254
@@ -69,7 +66,7 @@
 
 ;;; Bug reporting
 
-(defconst edebug-maintainer-address "liberte@cs.uiuc.edu")
+(defconst edebug-maintainer-address "bug-gnu-emacs@gnu.org")
 
 (defun edebug-submit-bug-report ()
   "Submit, via mail, a bug report on edebug."
@@ -83,7 +80,6 @@
                'edebug-all-defs
                'edebug-all-forms
                'edebug-eval-macro-args
-               'edebug-stop-before-symbols
                'edebug-save-windows
                'edebug-save-displayed-buffer-points
                'edebug-initial-mode
@@ -137,17 +133,7 @@ If this variable is nil, the default, Edebug will *not* wrap
 macro call arguments as if they will be evaluated.  
 For each macro, a `edebug-form-spec' overrides this option.
 So to specify exceptions for macros that have some arguments evaluated
-and some not, you should specify an `edebug-form-spec'.
-
-This option is going away soon."
-  :type 'boolean
-  :group 'edebug)
-
-(defcustom edebug-stop-before-symbols nil
-  "*Non-nil causes Edebug to stop before symbols as well as after.  
-In any case, a breakpoint or interrupt may stop before a symbol.
-
-This option is going away soon."
+and some not, you should specify an `edebug-form-spec'."
   :type 'boolean
   :group 'edebug)
 
@@ -1261,8 +1247,6 @@ This controls how we read comma constructs.")
   ;; given FORM.  Looks like: 
   ;; (edebug-after (edebug-before BEFORE-INDEX) AFTER-INDEX FORM)
   ;; Also increment the offset index for subsequent use.
-  ;; if (not edebug-stop-before-symbols) and form is a symbol,
-  ;; then don't call edebug-before.
   (list 'edebug-after 
 	(list 'edebug-before before-index)
 	after-index form))
@@ -1455,14 +1439,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   ((or (memq form '(t nil))
 		(and (fboundp 'edebug-keywordp) (edebug-keywordp form)))
 	    form)
-
-	   ;; This option may go away.
-	   (edebug-stop-before-symbols
-	    (edebug-make-before-and-after-form 
-	     (edebug-inc-offset (car offset))
-	     form
-	     (edebug-inc-offset (cdr offset))
-	     ))
 
 	   (t ;; just a variable
 	    (edebug-make-after-form form (edebug-inc-offset (cdr offset))))))
