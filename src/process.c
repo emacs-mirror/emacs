@@ -211,13 +211,6 @@ char *sys_siglist[] =
 #endif
 #endif /* VMS */
 
-#ifdef vipc
-
-#include "vipc.h"
-extern int comm_server;
-extern int net_listen_address;
-#endif /* vipc */
-
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
 Lisp_Object Vprocess_connection_type;
@@ -1658,8 +1651,9 @@ static int waiting_for_user_input_p;
    read_kbd is a lisp value:
      0 to ignore keyboard input, or
      1 to return when input is available, or
-     -1 means caller will actually read the input, so don't throw to
+     -1 meaning caller will actually read the input, so don't throw to
        the quit handler, or
+     a cons cell, meaning wait wait until its car is non-nil, or
      a process object, meaning wait until something arrives from that
        process.  The return value is true iff we read some input from
        that process.
@@ -1686,6 +1680,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   int wait_channel = 0;
   struct Lisp_Process *wait_proc = 0;
   int got_some_input = 0;
+  Lisp_Object *wait_for_cell = 0;
 
   FD_ZERO (&Available);
 
@@ -1695,6 +1690,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     {
       wait_proc = XPROCESS (read_kbd);
       wait_channel = XFASTINT (wait_proc->infd);
+      XFASTINT (read_kbd) = 0;
+    }
+
+  /* If waiting for non-nil in a cell, record where.  */
+  if (XTYPE (read_kbd) == Lisp_Cons)
+    {
+      wait_for_cell = &XCONS (read_kbd)->car;
       XFASTINT (read_kbd) = 0;
     }
 
@@ -1846,28 +1848,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) && detect_input_pending ())
 	break;
 
+      /* Exit now if the cell we're waiting for became non-nil.  */
+      if (wait_for_cell && ! NILP (*wait_for_cell))
+	break;
+
 #ifdef SIGIO
       /* If we think we have keyboard input waiting, but didn't get SIGIO
 	 go read it.  This can happen with X on BSD after logging out.
 	 In that case, there really is no input and no SIGIO,
 	 but select says there is input.  */
 
-      /*
-	if (XINT (read_kbd) && interrupt_input && (Available & fileno (stdin)))
-	*/
       if (XINT (read_kbd) && interrupt_input && (FD_ISSET (fileno (stdin), &Available)))
 	kill (0, SIGIO);
 #endif
-
-#ifdef vipc
-      /* Check for connection from other process */
-
-      if (Available & ChannelMask (comm_server))
-	{
-	  Available &= ~(ChannelMask (comm_server));
-	  create_commchan ();
-	}
-#endif /* vipc */
 
       if (! wait_proc)
 	got_some_input |= nfds > 0;
@@ -1896,24 +1889,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      proc = chan_process[channel];
 	      if (NILP (proc))
 		continue;
-
-#ifdef vipc
-	      /* It's a command channel */
-	      if (!NILP (XPROCESS (proc)->command_channel_p))
-		{
-		  ProcessCommChan (channel, proc);
-		  if (NILP (XPROCESS (proc)->command_channel_p))
-		    {
-		      /* It has ceased to be a command channel! */
-		      int bytes_available;
-		      if (ioctl (channel, FIONREAD, &bytes_available) < 0)
-			bytes_available = 0;
-		      if (bytes_available)
-			FD_SET (channel, &Available);
-		    }
-		  continue;
-		}
-#endif				/* vipc */
 
 	      /* Read data from the process, starting with our
 		 buffered-ahead character if we have one.  */
