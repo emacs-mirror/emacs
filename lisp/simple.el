@@ -3533,6 +3533,12 @@ each time it has found what it thinks is one completion.
 Point is at the end of the completion in the completion list buffer.
 If this function moves point, it can alter the end of that completion.")
 
+(defvar completion-setup-hook nil
+  "Normal hook run at the end of setting up a completion list buffer.
+When this hook is run, the current buffer is the one in which the
+command to display the completion list buffer was run.
+The completion list buffer is available as the value of `standard-output'.")
+
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 
