@@ -344,6 +344,12 @@ struct x_display_info
 
   /* Cache of images.  */
   struct image_cache *image_cache;
+
+#ifdef HAVE_X_I18N
+  /* XIM (X Input method).  */
+  XIM xim;
+  XIMStyles *xim_styles;
+#endif
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
@@ -547,10 +553,10 @@ struct x_output
   char has_been_visible;
 
 #ifdef HAVE_X_I18N
-  /* Input method. */
-  XIM xim;
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
+  XIMStyle xic_style;
+  XFontSet xic_xfs;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -580,6 +586,7 @@ struct x_output
 #define FRAME_FONT(f) ((f)->output_data.x->font)
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
 #define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.x->internal_border_width)
+#define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
 #define FRAME_LINE_HEIGHT(f) ((f)->output_data.x->line_height)
 
 /* Width of the default font of frame F.  Must be defined by each
@@ -604,8 +611,11 @@ struct x_output
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
 
-#define FRAME_XIM(f) ((f)->output_data.x->xim)
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
+#define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
+#define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
+#define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
+#define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -992,6 +1002,11 @@ extern int defined_color P_ ((struct frame *, char *, XColor *, int));
 extern void x_set_border_pixel P_ ((struct frame *, int));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void create_frame_xic P_ ((struct frame *));
+extern void destroy_frame_xic P_ ((struct frame *));
+extern void xic_set_preeditarea P_ ((struct window *, int, int));
+extern void xic_set_statusarea P_ ((struct frame *));
+extern void xic_set_xfontset P_ ((struct frame *, char *));
 extern int x_pixel_width P_ ((struct frame *));
 extern int x_pixel_height P_ ((struct frame *));
 extern int x_char_width P_ ((struct frame *));
