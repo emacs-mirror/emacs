@@ -1,12 +1,12 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1994,1998,1999,2000,2001,2002  Free Software Foundation, Inc.
 
-;; Maintainer: FSF
-;; Author: Tom Tromey <tromey@busco.lanl.gov>
+;; Maintainer: Tom Tromey <tromey@redhat.com>
+;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.64 $
+;; Version: $Revision: 1.64.4.1 $
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.64 $")
+(defconst tcl-version "$Revision: 1.64.4.1 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1542,14 +1542,14 @@ This is faster that `tcl-hairy-in-comment', but is correct less often."
 	       p-start p-end)
 	   ;; Search backwards.
 	   (save-excursion
-	     (while (looking-at "^[ \t]*#")
+	     (while (and (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
+			 (not (bobp)))
 	       (forward-line -1))
-	     (forward-line)
 	     (setq p-start (point)))
 
 	   ;; Search forwards.
 	   (save-excursion
-	     (while (looking-at "^[ \t]*#")
+	     (while (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
 	       (forward-line))
 	     (setq p-end (point)))
 

@@ -1,3 +1,8 @@
+2002-04-12  Tom Tromey  <tromey@cachet>
+
+	* progmodes/tcl.el (tcl-do-fill-paragraph): Find and fill on more
+	natural paragraph boundaries.  Don't fail at beginning of buffer.
+
 2002-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/compile.el (compile-internal): Fix the change from
