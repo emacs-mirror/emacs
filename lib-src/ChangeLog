@@ -1,3 +1,8 @@
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* update-game-score.c (difftime) [!HAVE_DIFFTIME]: Define.
+	(strerror) [!HAVE_STRERROR && !WINDOWSNT]: New.
+
 2003-05-20  Dave Love  <fx@gnu.org>
 
 	* movemail.c: Check HAVE_LIBLOCKFILE like HAVE_LIBMAIL.

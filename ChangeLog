@@ -1,3 +1,8 @@
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* configure.in: Remove redundant test for term.h.  Test for
+	difftime.
+
 2003-05-20  Dave Love  <fx@gnu.org>
 
 	* configure.in: Append * to s390-*-linux-gnu case.
