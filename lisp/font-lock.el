@@ -597,39 +597,6 @@ This is normally set via `font-lock-defaults'.")
 (defvar font-lock-mode-hook nil
   "Function or functions to run on entry to Font Lock mode.")
 
-;; Originally these variable values were face names such as `bold' etc.
-;; Now we create our own faces, but we keep these variables for compatibility
-;; and they give users another mechanism for changing face appearance.
-;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
-;; returns a face.  So the easiest thing is to continue using these variables,
-;; rather than sometimes evaling FACENAME and sometimes not.  sm.
-(defvar font-lock-comment-face		'font-lock-comment-face
-  "Face name to use for comments.")
-
-(defvar font-lock-string-face		'font-lock-string-face
-  "Face name to use for strings.")
-
-(defvar font-lock-keyword-face		'font-lock-keyword-face
-  "Face name to use for keywords.")
-
-(defvar font-lock-builtin-face		'font-lock-builtin-face
-  "Face name to use for builtins.")
-
-(defvar font-lock-function-name-face	'font-lock-function-name-face
-  "Face name to use for function names.")
-
-(defvar font-lock-variable-name-face	'font-lock-variable-name-face
-  "Face name to use for variable names.")
-
-(defvar font-lock-type-face		'font-lock-type-face
-  "Face name to use for type names.")
-
-(defvar font-lock-reference-face	'font-lock-reference-face
-  "Face name to use for reference names.")
-
-(defvar font-lock-warning-face		'font-lock-warning-face
-  "Face name to use for things that should stand out.")
-
 ;; Font Lock mode.
 
 (eval-when-compile
@@ -649,7 +616,13 @@ This is normally set via `font-lock-defaults'.")
 	 (,@ body)
 	 (when (and (not modified) (buffer-modified-p))
 	   (set-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1))
+  (put 'save-buffer-state 'lisp-indent-function 1)
+  ;;
+  ;; Shut up the byte compiler.
+  (defvar global-font-lock-mode)	; Now a defcustom.
+  (defvar font-lock-face-attributes)	; Obsolete but respected if set.
+  (defvar font-lock-string-face)	; Used in syntactic fontification.
+  (defvar font-lock-comment-face))
 
 ;;;###autoload
 (defun font-lock-mode (&optional arg)
@@ -836,8 +809,6 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 
 (defvar font-lock-buffers nil)		; For remembering buffers.
 
-(defvar global-font-lock-mode)		;Prevent warnings in defun below.
-
 ;;;###autoload
 (defun global-font-lock-mode (&optional arg message)
   "Toggle Global Font Lock mode.
@@ -863,7 +834,7 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 				   (font-lock-mode)))))
 		   (buffer-list))))
     (when message
-      (message "Global Font Lock mode %s" (if on-p "enabled" "disabled")))
+      (message "Global Font Lock mode %s." (if on-p "enabled" "disabled")))
     (setq global-font-lock-mode on-p)))
 
 ;; Naughty hack.  This variable was originally a `defvar' to keep track of
@@ -1616,7 +1587,38 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;;; Colour etc. support.
 
-(defvar font-lock-face-attributes)	;Avoid compiler warnings below.
+;; Originally these variable values were face names such as `bold' etc.
+;; Now we create our own faces, but we keep these variables for compatibility
+;; and they give users another mechanism for changing face appearance.
+;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
+;; returns a face.  So the easiest thing is to continue using these variables,
+;; rather than sometimes evaling FACENAME and sometimes not.  sm.
+(defvar font-lock-comment-face		'font-lock-comment-face
+  "Face name to use for comments.")
+
+(defvar font-lock-string-face		'font-lock-string-face
+  "Face name to use for strings.")
+
+(defvar font-lock-keyword-face		'font-lock-keyword-face
+  "Face name to use for keywords.")
+
+(defvar font-lock-builtin-face		'font-lock-builtin-face
+  "Face name to use for builtins.")
+
+(defvar font-lock-function-name-face	'font-lock-function-name-face
+  "Face name to use for function names.")
+
+(defvar font-lock-variable-name-face	'font-lock-variable-name-face
+  "Face name to use for variable names.")
+
+(defvar font-lock-type-face		'font-lock-type-face
+  "Face name to use for type names.")
+
+(defvar font-lock-reference-face	'font-lock-reference-face
+  "Face name to use for reference names.")
+
+(defvar font-lock-warning-face		'font-lock-warning-face
+  "Face name to use for things that should stand out.")
 
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
 ;; Users then changed the default face attributes by setting that variable.
@@ -1919,7 +1921,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "(" (regexp-opt
 		  '("cond" "if" "while" "catch" "throw" "let" "let*"
 		    "prog" "progn" "progv" "prog1" "prog2" "prog*"
-		    "closure" "preparse-closure" "make-closure"
 		    "inline" "save-restriction" "save-excursion"
 		    "save-window-excursion" "save-selected-window"
 		    "save-match-data" "save-current-buffer" "unwind-protect"
@@ -2332,6 +2333,7 @@ See also `c-font-lock-extra-types'.")
       (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
     ;; Anders Lindgren <andersl@csd.uu.se> points out that it is quicker to use
     ;; MATCH-ANCHORED to effectively anchor the regexp on the left.
+    ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-reference-face)))
@@ -2432,8 +2434,7 @@ See also `c++-font-lock-extra-types'.")
 	(eval-when-compile
 	  (regexp-opt
 	   '("break" "continue" "do" "else" "for" "if" "return" "switch"
-	     "while" "asm" "catch" "delete" "new" "operator" "sizeof" "this"
-	     "throw" "try"
+	     "while" "asm" "catch" "delete" "new" "sizeof" "this" "throw" "try"
 	     ;; Eric Hopper <hopper@omnifarious.mn.org> says these are new.
 	     "static_cast" "dynamic_cast" "const_cast" "reinterpret_cast") t)))
        (c++-operators
@@ -2513,6 +2514,7 @@ See also `c++-font-lock-extra-types'.")
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
+    ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:\\($\\|[^:]\\)"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-reference-face)))
@@ -2662,12 +2664,13 @@ See also `objc-font-lock-extra-types'.")
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
     ;; Fontify tags iff sole statement on line, otherwise we detect selectors.
+    ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*$"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-reference-face)))
     ;;
     ;; Fontify null object pointers.
-    '("\\<\\(Nil\\|nil\\)\\>" 1 font-lock-reference-face)
+    '("\\<[Nn]il\\>" . font-lock-reference-face)
     )))
 
  (setq objc-font-lock-keywords-3
@@ -2788,6 +2791,7 @@ See also `java-font-lock-extra-types'.")
     ;; Fontify keywords and targets, and case default/goto tags.
     (list "\\<\\(break\\|case\\|continue\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
 	  '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+    ;; This must come after the one for keywords and targets.
     '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-reference-face)))
