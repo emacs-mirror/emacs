@@ -1205,11 +1205,6 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
 	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
 
-	      /* If we are searching for something strange,
-		 an invalid multibyte code, don't use boyer-moore.  */
-	      if (! ASCII_BYTE_P (c))
-		boyer_moore_ok = 0;
-
 	      /* Translate the character, if requested.  */
 	      TRANSLATE (translated, trt, c);
 	      /* If translation changed the byte-length, go back
@@ -1221,6 +1216,14 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  charlen = CHAR_STRING (c, workbuf, str);
 		}
 
+	      /* If we are searching for something strange,
+		 an invalid multibyte code, don't use boyer-moore.  */
+	      if (! ASCII_BYTE_P (translated)
+		  && (charlen == 1 /* 8bit code */
+		      || charlen != in_charlen /* invalid multibyte code */
+		      ))
+		boyer_moore_ok = 0;
+
 	      TRANSLATE (inverse, inverse_trt, c);
 
 	      /* Did this char actually get translated?
@@ -1229,7 +1232,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		{
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
-		  int charset_base_code = c & ~0xff;
+		  int charset_base_code = c & ~CHAR_FIELD3_MASK;
 		  if (charset_base == -1)
 		    charset_base = charset_base_code;
 		  else if (charset_base != charset_base_code)
