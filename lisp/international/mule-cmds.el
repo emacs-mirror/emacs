@@ -1247,19 +1247,16 @@ specifies the character set for the major languages of Western Europe."
 	  (setq input-method-history
 		(cons input-method
 		      (delete input-method input-method-history))))))
-  (let ((nonascii (get-language-info language-name 'nonascii-translation)))
+  (let ((nonascii (get-language-info language-name 'nonascii-translation))
+	(dos-table
+	 (intern (concat "cp" dos-codepage "-nonascii-translation-table"))))
     (cond
      ((char-table-p nonascii)
       (setq nonascii-translation-table nonascii))
-     ((eq window-system 'pc)
+     ((and (eq window-system 'pc) (boundp dos-table))
       ;; DOS terminals' default is to use a special non-ASCII translation
       ;; table as appropriate for the installed codepage.
-      (setq
-       nonascii-translation-table (symbol-value
-				   (intern
-				    (concat "cp"
-					    dos-codepage
-					    "-nonascii-translation-table")))))
+      (setq nonascii-translation-table (symbol-value dos-table)))
      ((charsetp nonascii)
       (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
 
