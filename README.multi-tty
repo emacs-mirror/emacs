@@ -114,10 +114,6 @@ above screen dependency.)
 
 Problems:
 
-	* Suspending Emacs is disabled if there are multiple tty
-	  devices.  Also, there is no way to suspend emacsclient. This
-	  will be fixed.
-
 	* Mac, Windows and DOS support is broken, probably doesn't
 	  even compile -- this will be solved later.
 
@@ -184,11 +180,6 @@ See arch logs.
 
 THINGS TO DO
 ------------
-
-** There is a flicker during the startup of `emacs -nw'; it's as if
-   the terminal is initialized, reset and then initialialized again.
-   Debug this.  (Hint: narrow_foreground_group is called twice during
-   startup.)
 
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
@@ -704,6 +695,13 @@ DIARY OF CHANGES
    (Done.  I needed to play with signal handling and the server
    protocol a bit to make emacsclient behave as a normal UNIX program
    wrt foreground/background process groups.)
+
+-- There is a flicker during the startup of `emacs -nw'; it's as if
+   the terminal is initialized, reset and then initialialized again.
+   Debug this.  (Hint: narrow_foreground_group is called twice during
+   startup.)
+
+   (This is gone.)
 
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
