@@ -386,9 +386,9 @@ macros
   -------------------------
   C-c C-c C-s	@strong
   C-c C-c C-e	@emph
-  C-c C-c u	    @url
+  C-c C-c u	@uref
   C-c C-c q     @quotation
-  C-c C-c m	    @email
+  C-c C-c m	@email
   C-c C-o       @<block> ... @end <block>
   M-RET         @item
 
@@ -1552,7 +1552,9 @@ number.  This format is similar to that used by C-x v ~
 (vc-version-other-window), except for the trailing dot.  As a matter
 of fact, the two features can each use the files created by the other,
 the only difference being that files with a trailing `.' are deleted
-automatically after commit.
+automatically after commit.  (This feature doesn't work on MS-DOS,
+since DOS disallows more than a single dot in the trunk of a file
+name.)
 
 If `vc-cvs-stay-local' is on, and there have been changes in the
 repository, VC notifies you about it when you actually try to commit.
