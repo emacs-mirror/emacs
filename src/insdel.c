@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86,93,94,95,97,98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -366,13 +366,32 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	  m->charpos -= to - from;
 	  m->bytepos -= to_byte - from_byte;
 	}
-
       /* Here's the case where a marker is inside text being deleted.  */
       else if (charpos > from)
 	{
-	  record_marker_adjustment (marker, from - charpos);
+	  if (! m->insertion_type)
+	    /* Normal markers will end up at the beginning of the
+	       re-inserted text after undoing a deletion, and must be
+	       adjusted to move them to the correct place.  */ 
+	    record_marker_adjustment (marker, from - charpos);
+	  else if (charpos < to)
+	    /* Before-insertion markers will automatically move forward
+	       upon re-inserting the deleted text, so we have to arrange
+	       for them to move backward to the correct position.  */
+	    record_marker_adjustment (marker, charpos - to);
+
 	  m->charpos = from;
 	  m->bytepos = from_byte;
+	}
+      /* Here's the case where a before-insertion marker is immediately
+	 before the deleted region.  */
+      else if (charpos == from && m->insertion_type)
+	{
+	  /* Undoing the change uses normal insertion, which will
+	     incorrectly make MARKER move forward, so we arrange for it
+	     to then move backward to the correct place at the beginning
+	     of the deleted region.  */
+	  record_marker_adjustment (marker, to - from);
 	}
 
       marker = m->chain;
