@@ -1168,6 +1168,11 @@ init_sys_modes ()
 #endif
 
       tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | old_tty.lmode;
+#ifdef ultrix
+      /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
+	 anything, and leaving it in breaks the meta key.  Go figure.  */
+      tty.lmode &= ~LLITOUT;
+#endif
       
 #ifdef BSD4_1
       lmode = tty.lmode;
