@@ -4,7 +4,7 @@
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Keywords: unix, comm
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.14 1993/12/01 09:57:04 friedman Exp friedman $
+;; $Id: rlogin.el,v 1.15 1993/12/01 13:04:24 friedman Exp roland $
 
 ;;; Todo:
 
@@ -70,11 +70,11 @@ It's also possible to selectively enter passwords without echoing them in
 the minibuffer using the command `rlogin-password' explicitly.")
 
 ;; Initialize rlogin mode map.
-;;;###autoload
 (defvar rlogin-mode-map '())
 (cond ((not rlogin-mode-map)
        (setq rlogin-mode-map (cons 'keymap shell-mode-map)) 
        (define-key rlogin-mode-map "\C-c\C-c" 'rlogin-send-Ctrl-C)
+       (define-key rlogin-mode-map "\C-c\C-d" 'rlogin-send-Ctrl-D)
        (define-key rlogin-mode-map "\C-c\C-z" 'rlogin-send-Ctrl-Z)
        (define-key rlogin-mode-map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
        (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)))
@@ -132,7 +132,6 @@ the rlogin when starting.  They are added after any arguments given in ARGS."
                ;; If this is wrong, M-x dirs will fix it.
                (cd-absolute (concat "/" (car args) ":~/")))))))
 
-;;;###autoload
 (defun rlogin-password (&optional proc)
   "Read a password and send it to an rlogin session.
 For each character typed, a `*' is echoed in the minibuffer.
@@ -154,7 +153,6 @@ is intended primarily for use by `rlogin-filter'."
            (insert-before-markers "\n")
            (comint-send-string proc (format "%s\n" pass))))))
 
-;;;###autoload
 (defun rlogin-mode ()
   "Set major-mode for rlogin sessions. 
 If `rlogin-mode-hook' is set, run it."
@@ -194,22 +192,22 @@ If `rlogin-mode-hook' is set, run it."
        (string= "Password:" string)
        (rlogin-password proc)))
 
-;;;###autoload
 (defun rlogin-send-Ctrl-C ()
   (interactive)
   (send-string nil "\C-c"))
 
-;;;###autoload
+(defun rlogin-send-Ctrl-D ()
+  (interactive)
+  (send-string nil "\C-d"))
+
 (defun rlogin-send-Ctrl-Z ()
   (interactive)
   (send-string nil "\C-z"))
 
-;;;###autoload
 (defun rlogin-send-Ctrl-backslash ()
   (interactive)
   (send-string nil "\C-\\"))
 
-;;;###autoload
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
   "Delete ARG characters forward, or send a C-d to process if at end of
 buffer."  
