@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.42) $
+ * $HopeName: MMsrc!arenavm.c(trunk.43) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -9,8 +9,6 @@
  * DESIGN
  *
  * See design.mps.arena.vm.
- *
- * .new.chunk: Places that need examining to work with chunks are tagged
  *
  *
  * TRANSGRESSIONS
@@ -31,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.42) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.43) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -540,8 +538,6 @@ static void VMArenaChunkDestroy(VMArenaChunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-
-/* .new.chunk currently completely broken */
 
 static Res VMArenaInit(Arena *arenaReturn, va_list args)
 {
