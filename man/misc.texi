@@ -1804,7 +1804,7 @@ saving, set @code{desktop-files-not-to-save} to @code{"^$"}.
 There is a simpler mechanism provided by Saveplace library which records
 your position in each file when you kill its buffer (or kill Emacs), and
 jumps to the same position when you visit the file again (even in
-another Emacs session).  Use @key{M-x toggle-save-place} to turn on
+another Emacs session).  Use @kbd{M-x toggle-save-place} to turn on
 place-saving in a given file.  Customize the option @code{save-place} to
 turn it on for all files in each session.
 
@@ -1952,6 +1952,7 @@ move.  The copy, cut and paste functions (as in many other programs)
 operate on the active region, bound to @kbd{C-insert}, @kbd{S-delete}
 and @kbd{S-insert} respectively.
 
+@cindex s-region package
 The @code{s-region} package provides similar, but less complete,
 facilities.
 
