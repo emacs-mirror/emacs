@@ -1,5 +1,7 @@
 2000-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_cursor_type): If ARG is nil, give frame no cursor.
+
 	* xdisp.c (display_echo_area): Temporarily inhibit garbage
 	collection.
 

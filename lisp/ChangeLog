@@ -1,5 +1,9 @@
 2000-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile (compile-files): Compile files one by one because
+	that's the only way to ensure a clean compilation environment for
+	each individual file.
+
 	* frame.el (other-frame): Call x-focus-frame.
 
 2000-03-07  Dave Love  <fx@gnu.org>

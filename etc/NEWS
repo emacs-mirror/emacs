@@ -2806,6 +2806,18 @@ current codepage when it starts.
 
 ** Mail changes
 
+*** When mail is sent using compose-mail (C-x m), and if
+`mail-send-nonascii' is set to the new default value `mime',
+appropriate MIME headers are added.  The headers are added only if
+non-ASCII characters are present in the body of the mail, and no other
+MIME headers are already present.  For example, the following three
+headers are added if the coding system used in the *mail* buffer is
+latin-1:
+
+  MIME-version: 1.0
+  Content-type: text/plain; charset=iso-8859-1
+  Content-Transfer-Encoding: 8bit
+
 *** The new variable default-sendmail-coding-system specifies the
 default way to encode outgoing mail.  This has higher priority than
 default-buffer-file-coding-system but has lower priority than
