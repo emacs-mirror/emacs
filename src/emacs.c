@@ -469,12 +469,6 @@ main (argc, argv, envp)
       mapin_data (file);
   }
 
-#ifdef REL_ALLOC
-  /* Make some hysteresis in malloc
-     if it has to get its space from the relocating allocator.  */
-  __malloc_extra_blocks = 32;
-#endif
-
 #ifdef LINK_CRTL_SHARE
 #ifdef SHAREABLE_LIB_BUG
   /* Bletcherous shared libraries! */
@@ -489,6 +483,15 @@ main (argc, argv, envp)
 #endif /* SHAREABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
+
+#ifdef REL_ALLOC
+  /* Make some hysteresis in malloc
+     if it has to get its space from the relocating allocator.  */
+  {
+    extern int __malloc_extra_blocks;
+    __malloc_extra_blocks = 32;
+  }
+#endif
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
