@@ -4515,11 +4515,6 @@ x_connection_closed (display, error_message)
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
   Lisp_Object frame, tail;
 
-  /* Whatever we were in the middle of, we are going to throw out of it,
-     so reassure various things that have error checks about being
-     called with input blocked.  */
-  TOTALLY_UNBLOCK_INPUT;
-
   if (_Xdebug)
     abort ();
 
