@@ -1986,6 +1986,8 @@ EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
 extern int clip_to_bounds P_ ((int, int, int));
+extern Lisp_Object make_buffer_string P_ ((int, int, int));
+extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
