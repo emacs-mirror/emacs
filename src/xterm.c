@@ -9443,11 +9443,11 @@ x_list_fonts (f, pattern, size, maxnames)
   Display *dpy = dpyinfo->display;
   int try_XLoadQueryFont = 0;
   int count;
-  int allow_scalable_fonts_p = 0;
+  int allow_auto_scaled_font = 0;
 
   if (size < 0)
     {
-      allow_scalable_fonts_p = 1;
+      allow_auto_scaled_font = 1;
       size = 0;
     }
 
@@ -9470,7 +9470,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	 ((((PATTERN . MAXNAMES) . SCALABLE) (FONTNAME . WIDTH) ...) ...)  */
       tem = XCDR (dpyinfo->name_list_element);
       key = Fcons (Fcons (pattern, make_number (maxnames)),
-		   allow_scalable_fonts_p ? Qt : Qnil);
+		   allow_auto_scaled_font ? Qt : Qnil);
       list = Fassoc (key, tem);
       if (!NILP (list))
 	{
@@ -9576,25 +9576,28 @@ x_list_fonts (f, pattern, size, maxnames)
 	    {
 	      int width = 0;
 	      char *p = names[i];
-	      int average_width = -1, dashes = 0;
+	      int average_width = -1, resx = 0, dashes = 0;
 
 	      /* Count the number of dashes in NAMES[I].  If there are
-		 14 dashes, and the field value following 12th dash
-		 (AVERAGE_WIDTH) is 0, this is a auto-scaled font which
-		 is usually too ugly to be used for editing.  Let's
-		 ignore it.  */
+		 14 dashes, the field value following 9th dash
+		 (RESOLUTION_X) is nonzero, and the field value
+		 following 12th dash (AVERAGE_WIDTH) is 0, this is a
+		 auto-scaled font which is usually too ugly to be used
+		 for editing.  Let's ignore it.  */
 	      while (*p)
 		if (*p++ == '-')
 		  {
 		    dashes++;
 		    if (dashes == 7) /* PIXEL_SIZE field */
 		      width = atoi (p);
+		    else if (dashes == 9)
+		      resx = atoi (p);
 		    else if (dashes == 12) /* AVERAGE_WIDTH field */
 		      average_width = atoi (p);
 		  }
 
-	      if (allow_scalable_fonts_p
-		  || dashes < 14 || average_width != 0)
+	      if (allow_auto_scaled_font
+		  || dashes < 14 || average_width != 0 || resx == 0)
 		{
 		  tem = build_string (names[i]);
 		  if (NILP (Fassoc (tem, list)))
