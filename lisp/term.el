@@ -691,9 +691,9 @@ Buffer local variable.")
 
 ;;; faces -mm
 
-(defmacro term-ignore-error (body)
+(defmacro term-ignore-error (&rest body)
   `(condition-case nil
-       (progn @,body)
+       (progn ,@body)
      (error nil)))
 
 (defvar term-default-fg-color "SkyBlue")
