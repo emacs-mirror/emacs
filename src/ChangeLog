@@ -1,3 +1,7 @@
+2000-05-25  Dave Love  <fx@gnu.org>
+
+	* coding.c (encode_eol): Add null statement after label.
+
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w16select.c (Fw16_set_clipboard_data): Fix the change from
