@@ -363,7 +363,7 @@ which prepares for a second click to delete the text."
 		  (setq tail (cdr tail)))
 		;; Replace it with an entry for the entire deleted text.
 		(and tail
-		     (setcar tail (cons (car kill-ring) (point))))))))
+		     (setcar tail (cons (car kill-ring) (point)))))))
       ;; Otherwise, save this region.
       (mouse-set-mark-fast click)
       (kill-ring-save (point) (mark t))
