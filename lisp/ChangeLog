@@ -1,3 +1,7 @@
+2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* menu-bar.el (menu-bar-edit-menu) <copy>: Put an explicit key binding.
+
 2001-11-15  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/ada-mode.el (ada-add-extensions): Quote regexp special

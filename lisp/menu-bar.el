@@ -407,7 +407,8 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-edit-menu [copy]
   '(menu-item "Copy" menu-bar-kill-ring-save
 	      :enable mark-active
-	      :help "Copy text in region between mark and current position"))
+	      :help "Copy text in region between mark and current position"
+	      :keys "\\[kill-ring-save]"))
 (define-key menu-bar-edit-menu [cut]
   '(menu-item "Cut" kill-region
 	      :enable (and mark-active (not buffer-read-only))
