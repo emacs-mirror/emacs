@@ -1,5 +1,10 @@
 @echo off
 
+rem This batch file doesn't work with Cygwin tar because #files#
+rem has DOS line endings, which Cygwin tar misinterprets.
+rem I use the version of tar from
+rem    ftp://ftp.gnu.org/gnu/windows/emacs/utilities/i386/tar-1.11.2a.exe
+rem renamed as wtar.exe.
 set TAR=wtar
 
 rem Make a copy of current Emacs source
@@ -26,24 +31,14 @@ rem Keep this list in sync with the DONTCOMPILE list in lisp/Makefile.in
 
 set elfiles=%eld%/cus-load.el %eld%/cus-start.el %eld%/emacs-lisp/cl-specs.el %eld%/eshell/esh-maint.el %eld%/eshell/esh-groups.el %eld%/finder-inf.el %eld%/forms-d2.el %eld%/forms-pass.el %eld%/generic-x.el %eld%/international/latin-1.el %eld%/international/latin-2.el %eld%/international/latin-3.el %eld%/international/latin-4.el %eld%/international/latin-5.el %eld%/international/latin-8.el %eld%/international/latin-9.el %eld%/international/mule-conf.el %eld%/loaddefs.el %eld%/loadup.el %eld%/mail/blessmail.el %eld%/patcomp.el %eld%/paths.el %eld%/play/bruce.el %eld%/subdirs.el %eld%/term/internal.el %eld%/term/AT386.el  %eld%/term/apollo.el %eld%/term/bobcat.el %eld%/term/iris-ansi.el %eld%/term/keyswap.el %eld%/term/linux.el %eld%/term/lk201.el %eld%/term/news.el %eld%/term/vt102.el %eld%/term/vt125.el %eld%/term/vt200.el %eld%/term/vt201.el %eld%/term/vt220.el %eld%/term/vt240.el %eld%/term/vt300.el %eld%/term/vt320.el %eld%/term/vt400.el %eld%/term/vt420.el %eld%/term/wyse50.el %eld%/term/xterm.el %eld%/version.el
 
-rem set term_elfiles=%eld%/term/AT386.el %eld%/term/apollo.el %eld%/term/bg-mouse.el %eld%/term/bobcat.el %eld%/term/internal.el %eld%/term/iris-ansi.el %eld%/term/keyswap.el %eld%/term/linux.el %eld%/term/lk201.el %eld%/term/news.el %eld%/term/pc-win.el %eld%/term/sun-mouse.el %eld%/term/sun.el %eld%/term/sup-mouse.el %eld%/term/tvi970.el %eld%/term/vt100.el %eld%/term/vt102.el %eld%/term/vt125.el %eld%/term/vt200.el %eld%/term/vt201.el %eld%/term/vt220.el %eld%/term/vt240.el %eld%/term/vt300.el %eld%/term/vt320.el %eld%/term/vt400.el %eld%/term/vt420.el %eld%/term/w32-win.el %eld%/term/wyse50.el %eld%/term/x-win.el %eld%/term/xterm.el
-
-rem set elcfiles=%eld%/*.elc %eld%/emacs-lisp/*.elc %eld%/emulation/*.elc %eld%/gnus/*.elc %eld%/international/*.elc %eld%/language/*.elc %eld%/mail/*.elc %eld%/play/*.elc %eld%/progmodes/*.elc %eld%/term/*.elc %eld%/textmodes/*.elc
-
 set fns_el=
 for %%f in (emacs-%1/bin/fns*) do set fns_el=%fns_el% emacs-%1/bin/%%f
 
 echo Create bin distribution
 copy %3\README.W32 emacs-%1\README.W32
 
-rem %TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb
-rem --exclude *.opt --exclude *.el --exclude *~ -cvf - emacs-%1/BUGS
-rem emacs-%1/GETTING.GNU.SOFTWARE emacs-%1/README emacs-%1/README.W32
-rem emacs-%1/bin %fns_el% emacs-%1/etc emacs-%1/info emacs-%1/lisp %elfiles%
-rem %term_elfiles% emacs-%1/lock emacs-%1/site-lisp -cvf - | gzip -9 > %2-bin-i386.tar.gz
-
 del #files#
-for %%f in (emacs-%1/BUGS emacs-%1/GETTING.GNU.SOFTWARE emacs-%1/README emacs-%1/README.W32) do echo %%f>>#files#
+for %%f in (emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32) do echo %%f>>#files#
 for %%f in (emacs-%1/bin/fns*) do echo emacs-%1/bin/%%f>>#files#
 for %%f in (emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp %elfiles%) do echo %%f>>#files#
 for %%f in (%eld%/term/*.el) do echo %eld%/term/%%f>>#files#
