@@ -1,6 +1,6 @@
 ;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals.
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1995 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -34,102 +34,111 @@
 
 (require 'disp-table)
 
-(standard-display-ascii 160 "{_}")   ; NBSP (no-break space)
-(standard-display-ascii 161 "{!}")   ; inverted exclamation mark
-(standard-display-ascii 162 "{c}")   ; cent sign
-(standard-display-ascii 163 "{GBP}") ; pound sign
-(standard-display-ascii 164 "{$}")   ; general currency sign
-(standard-display-ascii 165 "{JPY}") ; yen sign
-(standard-display-ascii 166 "{|}")   ; broken vertical line
-(standard-display-ascii 167 "{S}")   ; section sign
-(standard-display-ascii 168 "{\"}")  ; diaeresis
-(standard-display-ascii 169 "{C}")   ; copyright sign
-(standard-display-ascii 170 "{_a}")  ; ordinal indicator, feminine
-(standard-display-ascii 171 "{<<}")  ; left angle quotation mark
-(standard-display-ascii 172 "{~}")   ; not sign
-(standard-display-ascii 173 "{-}")   ; soft hyphen
-(standard-display-ascii 174 "{R}")   ; registered sign
-(standard-display-ascii 175 "{=}")   ; macron
-(standard-display-ascii 176 "{o}")   ; degree sign
-(standard-display-ascii 177 "{+-}")  ; plus or minus sign
-(standard-display-ascii 178 "{2}")   ; superscript two
-(standard-display-ascii 179 "{3}")   ; superscript three
-(standard-display-ascii 180 "{'}")   ; acute accent
-(standard-display-ascii 181 "{u}")   ; micro sign
-(standard-display-ascii 182 "{P}")   ; pilcrow
-(standard-display-ascii 183 "{.}")   ; middle dot
-(standard-display-ascii 184 "{,}")   ; cedilla
-(standard-display-ascii 185 "{1}")   ; superscript one
-(standard-display-ascii 186 "{_o}")  ; ordinal indicator, masculine
-(standard-display-ascii 187 "{>>}")  ; right angle quotation mark
-(standard-display-ascii 188 "{1/4}") ; fraction one-quarter
-(standard-display-ascii 189 "{1/2}") ; fraction one-half
-(standard-display-ascii 190 "{3/4}") ; fraction three-quarters
-(standard-display-ascii 191 "{?}")   ; inverted question mark
-(standard-display-ascii 192 "{`A}")  ; A with grave accent
-(standard-display-ascii 193 "{'A}")  ; A with acute accent
-(standard-display-ascii 194 "{^A}")  ; A with circumflex accent
-(standard-display-ascii 195 "{~A}")  ; A with tilde
-(standard-display-ascii 196 "{\"A}") ; A with diaeresis or umlaut mark
-(standard-display-ascii 197 "{AA}")  ; A with ring
-(standard-display-ascii 198 "{AE}")  ; AE diphthong
-(standard-display-ascii 199 "{,C}")  ; C with cedilla
-(standard-display-ascii 200 "{`E}")  ; E with grave accent
-(standard-display-ascii 201 "{'E}")  ; E with acute accent
-(standard-display-ascii 202 "{^E}")  ; E with circumflex accent
-(standard-display-ascii 203 "{\"E}") ; E with diaeresis or umlaut mark
-(standard-display-ascii 204 "{`I}")  ; I with grave accent
-(standard-display-ascii 205 "{'I}")  ; I with acute accent
-(standard-display-ascii 206 "{^I}")  ; I with circumflex accent
-(standard-display-ascii 207 "{\"I}") ; I with diaeresis or umlaut mark
-(standard-display-ascii 208 "{-D}")  ; D with stroke, Icelandic eth
-(standard-display-ascii 209 "{~N}")  ; N with tilde
-(standard-display-ascii 210 "{`O}")  ; O with grave accent
-(standard-display-ascii 211 "{'O}")  ; O with acute accent
-(standard-display-ascii 212 "{^O}")  ; O with circumflex accent
-(standard-display-ascii 213 "{~O}")  ; O with tilde
-(standard-display-ascii 214 "{\"O}") ; O with diaeresis or umlaut mark
-(standard-display-ascii 215 "{x}")   ; multiplication sign
-(standard-display-ascii 216 "{/O}")  ; O with slash
-(standard-display-ascii 217 "{`U}")  ; U with grave accent
-(standard-display-ascii 218 "{'U}")  ; U with acute accent
-(standard-display-ascii 219 "{^U}")  ; U with circumflex accent
-(standard-display-ascii 220 "{\"U}") ; U with diaeresis or umlaut mark
-(standard-display-ascii 221 "{'Y}")  ; Y with acute accent
-(standard-display-ascii 222 "{TH}")  ; capital thorn, Icelandic
-(standard-display-ascii 223 "{ss}")  ; small sharp s, German
-(standard-display-ascii 224 "{`a}")  ; a with grave accent
-(standard-display-ascii 225 "{'a}")  ; a with acute accent
-(standard-display-ascii 226 "{^a}")  ; a with circumflex accent
-(standard-display-ascii 227 "{~a}")  ; a with tilde
-(standard-display-ascii 228 "{\"a}") ; a with diaeresis or umlaut mark
-(standard-display-ascii 229 "{aa}")  ; a with ring
-(standard-display-ascii 230 "{ae}")  ; ae diphthong
-(standard-display-ascii 231 "{,c}")  ; c with cedilla
-(standard-display-ascii 232 "{`e}")  ; e with grave accent
-(standard-display-ascii 233 "{'e}")  ; e with acute accent
-(standard-display-ascii 234 "{^e}")  ; e with circumflex accent
-(standard-display-ascii 235 "{\"e}") ; e with diaeresis or umlaut mark
-(standard-display-ascii 236 "{`i}")  ; i with grave accent
-(standard-display-ascii 237 "{'i}")  ; i with acute accent
-(standard-display-ascii 238 "{^i}")  ; i with circumflex accent
-(standard-display-ascii 239 "{\"i}") ; i with diaeresis or umlaut mark
-(standard-display-ascii 240 "{-d}")  ; d with stroke, Icelandic eth
-(standard-display-ascii 241 "{~n}")  ; n with tilde
-(standard-display-ascii 242 "{`o}")  ; o with grave accent
-(standard-display-ascii 243 "{'o}")  ; o with acute accent
-(standard-display-ascii 244 "{^o}")  ; o with circumflex accent
-(standard-display-ascii 245 "{~o}")  ; o with tilde
-(standard-display-ascii 246 "{\"o}") ; o with diaeresis or umlaut mark
-(standard-display-ascii 247 "{/}")   ; division sign
-(standard-display-ascii 248 "{/o}")  ; o with slash
-(standard-display-ascii 249 "{`u}")  ; u with grave accent
-(standard-display-ascii 250 "{'u}")  ; u with acute accent
-(standard-display-ascii 251 "{^u}")  ; u with circumflex accent
-(standard-display-ascii 252 "{\"u}") ; u with diaeresis or umlaut mark
-(standard-display-ascii 253 "{'y}")  ; y with acute accent
-(standard-display-ascii 254 "{th}")  ; small thorn, Icelandic
-(standard-display-ascii 255 "{\"y}") ; small y with diaeresis or umlaut mark
+(defvar iso-ascii-convenient nil
+  "*Non-nil means `iso-ascii' should aim for convenience, not precision.")
+
+(defun iso-ascii-display (code string &optional convenient-string)
+  (if iso-ascii-convenient
+      (setq string (or convenient-string string))
+    (setq string (concat "{" string "}")))
+  (standard-display-ascii code string))
+
+(iso-ascii-display 160 "_" " ")   ; NBSP (no-break space)
+(iso-ascii-display 161 "!")   ; inverted exclamation mark
+(iso-ascii-display 162 "c")   ; cent sign
+(iso-ascii-display 163 "GBP") ; pound sign
+(iso-ascii-display 164 "$")   ; general currency sign
+(iso-ascii-display 165 "JPY") ; yen sign
+(iso-ascii-display 166 "|")   ; broken vertical line
+(iso-ascii-display 167 "S" "(S)")   ; section sign
+(iso-ascii-display 168 "\"")  ; diaeresis
+(iso-ascii-display 169 "C" "(C)")   ; copyright sign
+(iso-ascii-display 170 "_a")  ; ordinal indicator, feminine
+(iso-ascii-display 171 "<<")  ; left angle quotation mark
+(iso-ascii-display 172 "~")   ; not sign
+(iso-ascii-display 173 "-")   ; soft hyphen
+(iso-ascii-display 174 "R" "(R)")   ; registered sign
+(iso-ascii-display 175 "=")   ; macron
+(iso-ascii-display 176 "o")   ; degree sign
+(iso-ascii-display 177 "+-")  ; plus or minus sign
+(iso-ascii-display 178 "2")   ; superscript two
+(iso-ascii-display 179 "3")   ; superscript three
+(iso-ascii-display 180 "'")   ; acute accent
+(iso-ascii-display 181 "u")   ; micro sign
+(iso-ascii-display 182 "P" "{P}")   ; pilcrow
+(iso-ascii-display 183 ".")   ; middle dot
+(iso-ascii-display 184 ",")   ; cedilla
+(iso-ascii-display 185 "1")   ; superscript one
+(iso-ascii-display 186 "_o")  ; ordinal indicator, masculine
+(iso-ascii-display 187 ">>")  ; right angle quotation mark
+(iso-ascii-display 188 "1/4") ; fraction one-quarter
+(iso-ascii-display 189 "1/2") ; fraction one-half
+(iso-ascii-display 190 "3/4") ; fraction three-quarters
+(iso-ascii-display 191 "?")   ; inverted question mark
+(iso-ascii-display 192 "`A")  ; A with grave accent
+(iso-ascii-display 193 "'A")  ; A with acute accent
+(iso-ascii-display 194 "^A")  ; A with circumflex accent
+(iso-ascii-display 195 "~A")  ; A with tilde
+(iso-ascii-display 196 "\"A") ; A with diaeresis or umlaut mark
+(iso-ascii-display 197 "AA")  ; A with ring
+(iso-ascii-display 198 "AE")  ; AE diphthong
+(iso-ascii-display 199 ",C")  ; C with cedilla
+(iso-ascii-display 200 "`E")  ; E with grave accent
+(iso-ascii-display 201 "'E")  ; E with acute accent
+(iso-ascii-display 202 "^E")  ; E with circumflex accent
+(iso-ascii-display 203 "\"E") ; E with diaeresis or umlaut mark
+(iso-ascii-display 204 "`I")  ; I with grave accent
+(iso-ascii-display 205 "'I")  ; I with acute accent
+(iso-ascii-display 206 "^I")  ; I with circumflex accent
+(iso-ascii-display 207 "\"I") ; I with diaeresis or umlaut mark
+(iso-ascii-display 208 "-D")  ; D with stroke, Icelandic eth
+(iso-ascii-display 209 "~N")  ; N with tilde
+(iso-ascii-display 210 "`O")  ; O with grave accent
+(iso-ascii-display 211 "'O")  ; O with acute accent
+(iso-ascii-display 212 "^O")  ; O with circumflex accent
+(iso-ascii-display 213 "~O")  ; O with tilde
+(iso-ascii-display 214 "\"O") ; O with diaeresis or umlaut mark
+(iso-ascii-display 215 "x")   ; multiplication sign
+(iso-ascii-display 216 "/O")  ; O with slash
+(iso-ascii-display 217 "`U")  ; U with grave accent
+(iso-ascii-display 218 "'U")  ; U with acute accent
+(iso-ascii-display 219 "^U")  ; U with circumflex accent
+(iso-ascii-display 220 "\"U") ; U with diaeresis or umlaut mark
+(iso-ascii-display 221 "'Y")  ; Y with acute accent
+(iso-ascii-display 222 "TH")  ; capital thorn, Icelandic
+(iso-ascii-display 223 "ss")  ; small sharp s, German
+(iso-ascii-display 224 "`a")  ; a with grave accent
+(iso-ascii-display 225 "'a")  ; a with acute accent
+(iso-ascii-display 226 "^a")  ; a with circumflex accent
+(iso-ascii-display 227 "~a")  ; a with tilde
+(iso-ascii-display 228 "\"a") ; a with diaeresis or umlaut mark
+(iso-ascii-display 229 "aa")  ; a with ring
+(iso-ascii-display 230 "ae")  ; ae diphthong
+(iso-ascii-display 231 ",c")  ; c with cedilla
+(iso-ascii-display 232 "`e")  ; e with grave accent
+(iso-ascii-display 233 "'e")  ; e with acute accent
+(iso-ascii-display 234 "^e")  ; e with circumflex accent
+(iso-ascii-display 235 "\"e") ; e with diaeresis or umlaut mark
+(iso-ascii-display 236 "`i")  ; i with grave accent
+(iso-ascii-display 237 "'i")  ; i with acute accent
+(iso-ascii-display 238 "^i")  ; i with circumflex accent
+(iso-ascii-display 239 "\"i") ; i with diaeresis or umlaut mark
+(iso-ascii-display 240 "-d")  ; d with stroke, Icelandic eth
+(iso-ascii-display 241 "~n")  ; n with tilde
+(iso-ascii-display 242 "`o")  ; o with grave accent
+(iso-ascii-display 243 "'o")  ; o with acute accent
+(iso-ascii-display 244 "^o")  ; o with circumflex accent
+(iso-ascii-display 245 "~o")  ; o with tilde
+(iso-ascii-display 246 "\"o") ; o with diaeresis or umlaut mark
+(iso-ascii-display 247 "/")   ; division sign
+(iso-ascii-display 248 "/o")  ; o with slash
+(iso-ascii-display 249 "`u")  ; u with grave accent
+(iso-ascii-display 250 "'u")  ; u with acute accent
+(iso-ascii-display 251 "^u")  ; u with circumflex accent
+(iso-ascii-display 252 "\"u") ; u with diaeresis or umlaut mark
+(iso-ascii-display 253 "'y")  ; y with acute accent
+(iso-ascii-display 254 "th")  ; small thorn, Icelandic
+(iso-ascii-display 255 "\"y") ; small y with diaeresis or umlaut mark
 
 (provide 'iso-ascii)
 
