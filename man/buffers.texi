@@ -217,6 +217,7 @@ the new name as a minibuffer argument.  There is no default.  If you
 specify a name that is in use for some other buffer, an error happens and
 no renaming is done.
 
+@findex rename-uniquely
   @kbd{M-x rename-uniquely} renames the current buffer to a similar
 name with a numeric suffix added to make it both different and unique.
 This command does not need an argument.  It is useful for creating
