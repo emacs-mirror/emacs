@@ -2497,7 +2497,7 @@ face_before_or_after_it_pos (it, before_p)
 	 suitable for unibyte text if current_buffer is unibyte.  */
       if (it->multibyte_p)
 	{
-	  int c = FETCH_MULTIBYTE_CHAR (CHARPOS (pos));
+	  int c = FETCH_MULTIBYTE_CHAR (BYTEPOS (pos));
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
 	  face_id = FACE_FOR_CHAR (it->f, face, c);
 	}
