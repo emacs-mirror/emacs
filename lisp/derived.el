@@ -151,7 +151,7 @@ been generated automatically, with a reference to the keymap."
 	 ,docstring
 	 (interactive)
 					; Run the parent.
-	 ;; (combine-run-hooks
+	 (delay-mode-hooks
 
 	  (,(or parent 'kill-all-local-variables))
 					; Identify the child mode.
@@ -181,12 +181,13 @@ been generated automatically, with a reference to the keymap."
 	  (setq local-abbrev-table ,abbrev)
 					; Splice in the body (if any).
 	  ,@body
-	  ;; )
+	  )
 					; Run the hooks, if any.
-	 (run-hooks ',hook)))))
+	 (run-mode-hooks ',hook)))))
 
 ;; PUBLIC: find if the current mode derives from another.
 
+;;; ;;;###autoload
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
