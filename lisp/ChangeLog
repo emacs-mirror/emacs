@@ -1,3 +1,11 @@
+2002-01-13  Colin Walters  <walters@debian.org>
+	
+	* emacs-lisp/autoload.el (make-autoload): Handle
+	define-ibuffer-column, define-ibuffer-filter,
+	define-ibuffer-sorter, and define-ibuffer-op.
+	
+	* emacs-lisp/lisp-mode.el (toplevel): Ditto.
+	
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* net/browse-url.el (browse-url-grail):
