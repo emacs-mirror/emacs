@@ -253,8 +253,22 @@ if [ "${newer}" ]; then
 fi
 
 if [ "${make_tar}" = yes ]; then
+  echo "Looking for gzip."
+  temppath=`echo $PATH | sed 's/^:/.:/
+			      s/::/:.:/g
+			      s/:$/:./
+			      s/:/ /g'`
+  default_compress=`(
+    for dir in ${temppath}; do
+      if [ -f ${dir}/gzip ]; then echo 'gzip --best'; exit 0; fi
+    done
+    echo compress
+  )`
   echo "Creating tar file."
-  (cd ${tempparent}; tar cvf - ${emacsname}) | compress > ${emacsname}.tar.Z
+  (cd ${tempparent}
+   tar cvf - ${emacsname}) \
+   | ${default_compress} > ${emacsname}.tar.Z
+  )
 fi
 
 if [ "${clean_up}" = yes ]; then
