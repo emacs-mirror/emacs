@@ -37,6 +37,10 @@ and this notice must be preserved on all copies.  */
 #define MULTI_FRAME
 #endif
 
+/* Define USE_TEXT_PROPERTIES to support visual and other properties
+   on text. */
+/* #define USE_TEXT_PROPERTIES */
+
 /* Define USER_FULL_NAME to return a string
    that is the user's full name.
    It can assume that the variable `pw'
@@ -84,6 +88,13 @@ and this notice must be preserved on all copies.  */
 #define GLYPH unsigned short
 #else
 #define GLYPH unsigned char
+#endif
+
+/* If using GNU, then support inline function declarations. */
+#ifdef __GNUC__
+#define INLINE __inline__
+#else
+#define INLINE
 #endif
 
 /* The configuration script replaces the string @opsystem@ with the
