@@ -48,7 +48,8 @@ It should move point to the end of the record.
 STARTKEYFUN may moves from the start of the record to the start of the key.
 It may return either return a non-nil value to be used as the key, or
 else the key will be the substring between the values of point after
-STARTKEYFUNC and ENDKEYFUN are called.
+STARTKEYFUN and ENDKEYFUN are called.  If STARTKEYFUN is nil, the key
+starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
@@ -65,20 +66,15 @@ same as ENDRECFUN."
 	(setq sort-lists
 	      (if (fboundp 'sortcar)
 		  (sortcar sort-lists
-			   (cond ((floatp (car (car sort-lists)))
-				  'f<)
-				 ((numberp (car (car sort-lists)))
+			   (cond ((numberp (car (car sort-lists)))
+				  ;; This handles both ints and floats.
 				  '<)
 				 ((consp (car (car sort-lists)))
 				  'buffer-substring-lessp)
 				 (t
 				  'string<)))
 		  (sort sort-lists
-			(cond ((floatp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (f< (car a) (car b)))))
-			      ((numberp (car (car sort-lists)))
+			(cond ((numberp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
 				  (< (car a) (car b)))))
@@ -135,8 +131,8 @@ same as ENDRECFUN."
 					  (equal (car key) start-rec)
 					  (equal (cdr key) (point)))
 				     (cons key key)
-				     (list key start-rec (point)))
-				sort-lists)))
+				   (cons key (cons start-rec (point))))
+				 sort-lists)))
       (and (not done) nextrecfun (funcall nextrecfun)))
     sort-lists))
 
@@ -158,8 +154,8 @@ same as ENDRECFUN."
       (goto-char (point-max))
       (insert-buffer-substring (current-buffer)
 			       (nth 1 (car sort-lists))
-			       (nth 2 (car sort-lists)))
-      (setq last (nth 2 (car old))
+			       (cdr (cdr (car sort-lists))))
+      (setq last (cdr (cdr (car old)))
 	    sort-lists (cdr sort-lists)
 	    old (cdr old)))
     (goto-char (point-max))
