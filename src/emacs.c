@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -140,9 +140,7 @@ fatal_error_signal (sig)
 #endif /* uses pgrp */
 
   /* Clean up */
-#ifdef subprocesses
   kill_buffer_processes (Qnil);
-#endif
   Fdo_auto_save (Qt, Qnil);
 
 #ifdef CLASH_DETECTION
@@ -443,9 +441,7 @@ main (argc, argv, envp)
 #ifdef VMS
   init_vmsfns ();
 #endif /* VMS */
-#ifdef subprocesses
   init_process ();
-#endif /* subprocesses */
 
 /* Intern the names of all standard functions and variables; define standard keys */
 
@@ -490,9 +486,7 @@ main (argc, argv, envp)
       syms_of_marker ();
       syms_of_minibuf ();
       syms_of_mocklisp ();
-#ifdef subprocesses
       syms_of_process ();
-#endif /* subprocesses */
       syms_of_search ();
 #ifdef MULTI_SCREEN
       syms_of_screen ();
@@ -576,9 +570,7 @@ all of which are called before Emacs is actually killed.")
   if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
-#ifdef subprocesses
   kill_buffer_processes (Qnil);
-#endif /* subprocesses */
 
 #ifdef VMS
   kill_vms_processes ();

@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1990 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1780,9 +1780,6 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
   (n, millisec)
      Lisp_Object n, millisec;
 {
-#ifndef subprocesses
-  EMACS_TIME timeout, end_time;
-#endif /* no subprocesses */
   int usec = 0;
   int sec;
 
@@ -1801,9 +1798,9 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
 #endif
     }
 
-#ifdef subprocesses
   wait_reading_process_input (sec, usec, 0, 0);
-#else /* No subprocesses */
+
+#if 0 /* No wait_reading_process_input */
   immediate_quit = 1;
   QUIT;
 
@@ -1816,7 +1813,7 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
 #ifdef HAVE_SELECT
   EMACS_GET_TIME (end_time);
   EMACS_SET_SECS_USECS (timeout, sec, usec);
-  EMACS_ADD_TIME (end_time, timeout);
+  EMACS_ADD_TIME (end_time, end_time, timeout);
  
   while (1)
     {
@@ -1847,10 +1844,6 @@ Value is t if waited the full time with no input arriving.")
   (n, millisec, nodisp)
      Lisp_Object n, millisec, nodisp;
 {
-#ifndef subprocesses
-  EMACS_TIME timeout;
-  int waitchannels;
-#endif /* no subprocesses */
   int usec = 0;
   int sec;
 
@@ -1876,12 +1869,12 @@ Value is t if waited the full time with no input arriving.")
 #endif
     }
 
-#ifdef subprocesses
 #ifdef SIGIO
   gobble_input ();
 #endif				/* SIGIO */
   wait_reading_process_input (sec, usec, 1, 1);
-#else				/* no subprocesses */
+
+#if 0 /* No wait_reading_process_input available.  */
   immediate_quit = 1;
   QUIT;
 
@@ -1889,12 +1882,18 @@ Value is t if waited the full time with no input arriving.")
 #ifdef VMS
   input_wait_timeout (XINT (n));
 #else				/* not VMS */
-  EMACS_SET_SECS_USECS (timeout, sec, usec);
+#ifndef HAVE_TIMEVAL
+  timeout_sec = sec;
+  select (1, &waitchannels, 0, 0, &timeout_sec);
+#else /* HAVE_TIMEVAL */
+  timeout.tv_sec = sec;  
+  timeout.tv_usec = usec;
   select (1, &waitchannels, 0, 0, &timeout);
+#endif /* HAVE_TIMEVAL */
 #endif /* not VMS */
 
   immediate_quit = 0;
-#endif /* no subprocesses */
+#endif 
 
   return detect_input_pending () ? Qnil : Qt;
 }
