@@ -185,7 +185,7 @@
 ;; doesn't work.  Or maybe it allows you to think less and drift off to sleep.
 ;;
 ;; So, here are my opinions/advice/guidelines:
-;; 
+;;
 ;; - Highlight conceptual objects, such as function and variable names, and
 ;;   different objects types differently, i.e., (a) and (b) above, highlight
 ;;   function names differently to variable names.
@@ -279,7 +279,7 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (symbol :tag "name"))
 			       (radio :tag "Decoration"
 				      (const :tag "default" nil)
-				      (const :tag "maximum" t) 
+				      (const :tag "maximum" t)
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
@@ -446,7 +446,7 @@ and those for buffer-specialised fontification functions,
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
-	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
+	 '((c++-font-lock-keywords c++-font-lock-keywords-1
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
@@ -1084,7 +1084,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; The following must be rethought, since keywords can override fontification.
 ;      ;; Now scan for keywords, but not if we are inside a comment now.
 ;      (or (and (not font-lock-keywords-only)
-;	       (let ((state (parse-partial-sexp beg end nil nil 
+;	       (let ((state (parse-partial-sexp beg end nil nil
 ;						font-lock-cache-state)))
 ;		 (or (nth 4 state) (nth 7 state))))
 ;	  (font-lock-fontify-keywords-region beg end))
@@ -1349,8 +1349,8 @@ START should be at the beginning of a line."
     (when (or (nth 3 state) (nth 4 state))
       (setq string (nth 3 state) beg (point))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
+      (put-text-property beg (point) 'face
+			 (if string
 			     font-lock-string-face
 			   font-lock-comment-face)))
     ;;
@@ -1362,8 +1362,8 @@ START should be at the beginning of a line."
 		  (or (nth 3 state) (nth 4 state))))
       (setq string (nth 3 state) beg (nth 8 state))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
+      (put-text-property beg (point) 'face
+			 (if string
 			     font-lock-string-face
 			   font-lock-comment-face)))))
 
@@ -1971,7 +1971,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       '("\\<:\\sw\\sw+\\>" 0 font-lock-builtin-face)
       ;;
       ;; ELisp and CLisp `&' keywords as types.
-      '("\\<\\&\\sw+\\>" . font-lock-type-face)
+      '("\\&\\sw+\\>" . font-lock-type-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 
@@ -2255,7 +2255,7 @@ See also `c-font-lock-extra-types'.")
 	(regexp-opt-depth c-type-specs))
        (c-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("char" "short" "int" "long" "signed" "unsigned"
@@ -2454,7 +2454,7 @@ See also `c++-font-lock-extra-types'.")
 	(regexp-opt-depth c++-type-specs))
        (c++-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("signed" "unsigned" "short" "long"
@@ -2795,7 +2795,7 @@ See also `java-font-lock-extra-types'.")
        ;; Classes immediately followed by an object name.
        (java-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt '("boolean" "char" "byte" "short" "int" "long"
 			       "float" "double" "void"))))
