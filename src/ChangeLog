@@ -1,3 +1,12 @@
+2000-06-27  Dave Love  <fx@gnu.org>
+
+	* s/osf1.h (C_SWITCH_SYSTEM, LIBS_SYSTEM): Revert last change
+	(moved to osf5-0.h).
+	[!NOT_C_CODE]: Protect string.h stuff.
+
+	* s/osf5-0.h (C_SWITCH_SYSTEM, WAIT_USE_INT, SYS_SIGLIST_DECLARED)
+	(sys_siglist, NSIG): Definitions moved here from osf1.h.
+
 2000-06-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Subract the extra line spacing
