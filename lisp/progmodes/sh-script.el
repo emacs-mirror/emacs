@@ -90,7 +90,7 @@ sh		Bourne Shell
 
 
 (defvar sh-alias-alist
-  (nconc (if (eq system-type 'linux)
+  (nconc (if (eq system-type 'lignux)
 	     '((csh . tcsh)
 	       (ksh . pdksh)))
 	 ;; for the time being
