@@ -535,38 +535,25 @@
     (modify-category-entry (decode-char 'ucs c) ?i)
     (setq c (1+ c))))
 
-;;; Commented out since the categories appear not to be used anywhere
-;;; and word syntax is the default.
-;; (let ((deflist				;
-;; 	'(;; chars	syntax	category
-;; 	  ("(5!"#(B"	"w"	?7) ; vowel-modifying diacritical mark
-;; 				    ; chandrabindu, anuswar, visarga
-;; 	  ("(5$(B-(52(B"	"w"	?1) ; base (independent) vowel
-;; 	  ("(53(B-(5X(B"	"w"	?0) ; consonant
-;; 	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
-;; 	  ("(5q(B-(5z(B"	"w"	?6) ; digit
-;; 	  ))
-;;       elm chars len syntax category to ch i)
-;;   (while deflist
-;;     (setq elm (car deflist))
-;;     (setq chars (car elm)
-;; 	  len (length chars)
-;; 	  syntax (nth 1 elm)
-;; 	  category (nth 2 elm)
-;; 	  i 0)
-;;     (while (< i len)
-;;       (if (= (aref chars i) ?-)
-;; 	  (setq i (1+ i)
-;; 		to (aref chars i))
-;; 	(setq ch (aref chars i)
-;; 	      to ch))
-;;       (while (<= ch to)
-;; 	(modify-syntax-entry ch syntax)
-;; 	(modify-category-entry ch category)
-;; 	(setq ch (1+ ch)))
-;;       (setq i (1+ i)))
-;;     (setq deflist (cdr deflist))))
-
+(let ((l '(;; RANGE   CATEGORY		MEANINGS
+	   (#x01 #x03 ?7)		; vowel modifier
+	   (#x05 #x14 ?1)		; base vowel
+	   (#x15 #x39 ?0)		; consonants
+	   (#x3e #x4d ?8)		; vowel modifier
+	   (#x51 #x54 ?4)		; stress/tone mark
+	   (#x58 #x5f ?0)		; consonants
+	   (#x60 #x61 ?1)		; base vowel
+	   (#x62 #x63 ?8)		; vowel modifier
+	   (#x66 #x6f ?6)		; digits
+	   )))
+  (dolist (elt1 '(#x900 #x980 #xa00 #xa80 #xb00 #xb80 #xc00 #xc80 #xd00))
+    (dolist (elt2 l)
+      (let* ((from (car elt2))
+	     (counts (1+ (- (nth 1 elt2) from)))
+	     (category (nth 2 elt2)))
+	(dotimes (i counts)
+	  (modify-category-entry (decode-char 'ucs (+ elt1 from i)) 
+				 category))))))
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
