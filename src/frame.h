@@ -240,6 +240,10 @@ struct frame
   Lisp_Object menu_bar_vector;
   /* Number of elements in the vector that have meaningful data.  */
   int menu_bar_items_used;
+
+  /* Width of the scroll bar, in pixels and in characters.  */
+  int scroll_bar_pixel_width;
+  int scroll_bar_cols;
 };
 
 #ifdef MULTI_FRAME
@@ -293,6 +297,8 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
 #define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((f)->has_vertical_scroll_bars)
+#define FRAME_SCROLL_BAR_PIXEL_WIDTH(f) ((f)->scroll_bar_pixel_width)
+#define FRAME_SCROLL_BAR_COLS(f) ((f)->scroll_bar_cols)
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
@@ -423,6 +429,8 @@ extern EMACS_INT last_nonminibuf_frame;
 #define FRAME_CAN_HAVE_SCROLL_BARS(f) (the_only_frame.can_have_scroll_bars)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) \
   (the_only_frame.has_vertical_scroll_bars)
+#define FRAME_SCROLL_BAR_PIXEL_WIDTH(f) (the_only_frame.scroll_bar_pixel_width)
+#define FRAME_SCROLL_BAR_COLS(f) (the_only_frame.scroll_bar_cols)
 #define FRAME_SCROLL_BARS(f) (the_only_frame.scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) (the_only_frame.condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) (the_only_frame.menu_bar_items)
@@ -451,9 +459,6 @@ extern EMACS_INT last_nonminibuf_frame;
 
 /* Device- and MULTI_FRAME-independent scroll bar stuff.  */
 
-/* The number of columns a vertical scroll bar occupies.  */
-#define VERTICAL_SCROLL_BAR_WIDTH (2)
-
 /* Return the starting column (zero-based) of the vertical scroll bar
    for window W.  The column before this one is the last column we can
    use for text.  If the window touches the right edge of the frame,
@@ -462,7 +467,8 @@ extern EMACS_INT last_nonminibuf_frame;
 #define WINDOW_VERTICAL_SCROLL_BAR_COLUMN(w) \
   (((XINT ((w)->left) + XINT ((w)->width)) \
     < FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
-   ? XINT ((w)->left) + XINT ((w)->width) - VERTICAL_SCROLL_BAR_WIDTH \
+   ? (XINT ((w)->left) + XINT ((w)->width) \
+      - FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (w)))) \
    : FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
 
 /* Return the height in lines of the vertical scroll bar in w.  If the
