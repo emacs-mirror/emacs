@@ -6212,7 +6212,7 @@ detect_coding_system (src, src_bytes, highest, multibytep)
 	  Lisp_Object eol;
 	  eol = Fget (XCAR (tmp), Qeol_type);
 	  if (VECTORP (eol))
-	    XCAR (tmp) = XVECTOR (eol)->contents[eol_type];
+	    XSETCAR (tmp, XVECTOR (eol)->contents[eol_type]);
 	}
     }
   return (highest ? XCAR (val) : val);

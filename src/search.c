@@ -2691,16 +2691,16 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.")
        i++, tail = XCDR (tail))
     {
       if (i < 2 * len + 2)
-	XCAR (tail) = data[i];
+	XSETCAR (tail, data[i]);
       else
-	XCAR (tail) = Qnil;
+	XSETCAR (tail, Qnil);
       prev = tail;
     }
 
   /* If we couldn't fit all value elements into REUSE,
      cons up the rest of them and add them to the end of REUSE.  */
   if (i < 2 * len + 2)
-    XCDR (prev) = Flist (2 * len + 2 - i, data + i);
+    XSETCDR (prev, Flist (2 * len + 2 - i, data + i));
 
   return reuse;
 }

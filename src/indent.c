@@ -1755,18 +1755,18 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 
   CHECK_NUMBER_COERCE_MARKER (from, 0);
   CHECK_CONS (frompos, 0);
-  CHECK_NUMBER (XCAR (frompos), 0);
-  CHECK_NUMBER (XCDR (frompos), 0);
+  CHECK_NUMBER_CAR (frompos, 0);
+  CHECK_NUMBER_CDR (frompos, 0);
   CHECK_NUMBER_COERCE_MARKER (to, 0);
   CHECK_CONS (topos, 0);
-  CHECK_NUMBER (XCAR (topos), 0);
-  CHECK_NUMBER (XCDR (topos), 0);
+  CHECK_NUMBER_CAR (topos, 0);
+  CHECK_NUMBER_CDR (topos, 0);
   CHECK_NUMBER (width, 0);
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets, 0);
-      CHECK_NUMBER (XCAR (offsets), 0);
-      CHECK_NUMBER (XCDR (offsets), 0);
+      CHECK_NUMBER_CAR (offsets, 0);
+      CHECK_NUMBER_CDR (offsets, 0);
       hscroll = XINT (XCAR (offsets));
       tab_offset = XINT (XCDR (offsets));
     }

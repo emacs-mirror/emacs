@@ -994,8 +994,8 @@ name of a font, REGSITRY is a registry name of a font.")
     {
       /* CH should be (FROM . TO) where FROM and TO are non-generic
 	 characters.  */
-      CHECK_NUMBER (XCAR (character), 1);
-      CHECK_NUMBER (XCDR (character), 1);
+      CHECK_NUMBER_CAR (character, 1);
+      CHECK_NUMBER_CDR (character, 1);
       from = XINT (XCAR (character));
       to = XINT (XCDR (character));
       if (!char_valid_p (from, 0) || !char_valid_p (to, 0))
@@ -1214,7 +1214,7 @@ accumulate_font_info (arg, character, elt)
 	{
 	  if (this_charset == CHAR_CHARSET (XINT (XCAR (last_char))))
 	    {
-	      XCDR (last_char) = character;
+	      XSETCDR (last_char, character);
 	      return;
 	    }
 	}
@@ -1222,12 +1222,12 @@ accumulate_font_info (arg, character, elt)
 	return;
       else if (this_charset == CHAR_CHARSET (XINT (last_char)))
 	{
-	  XCAR (XCAR (last)) = Fcons (last_char, character);
+	  XSETCAR (XCAR (last), Fcons (last_char, character));
 	  return;
 	}
     }
-  XCDR (last) = Fcons (Fcons (character, Fcons (elt, Qnil)), Qnil);
-  XCAR (arg) = XCDR (last);
+  XSETCDR (last, Fcons (Fcons (character, Fcons (elt, Qnil)), Qnil));
+  XSETCAR (arg, XCDR (last));
 }
 
 
@@ -1306,7 +1306,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 	  c = XINT (XCAR (elt));
 	  SPLIT_CHAR (c, charset, c1, c2);
 	  if (c1 == 0)
-	    XCAR (elt) = CHARSET_SYMBOL (charset);
+	    XSETCAR (elt, CHARSET_SYMBOL (charset));
 	}
       else
 	c = XINT (XCAR (XCAR (elt)));
@@ -1323,7 +1323,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 		{
 		  font = build_string (face->font_name);
 		  if (NILP (Fmember (font, XCDR (XCDR (elt)))))
-		    XCDR (XCDR (elt)) = Fcons (font, XCDR (XCDR (elt)));
+		    XSETCDR (XCDR (elt), Fcons (font, XCDR (XCDR (elt))));
 		}
 	    }
 	}

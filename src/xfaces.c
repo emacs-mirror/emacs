@@ -2684,7 +2684,7 @@ remove_duplicates (list)
     {
       Lisp_Object next = XCDR (tail);
       if (!NILP (Fequal (XCAR (next), XCAR (tail))))
-	XCDR (tail) = XCDR (next);
+	XSETCDR (tail, XCDR (next));
       else
 	tail = XCDR (tail);
     }
@@ -4199,8 +4199,8 @@ FRAME 0 means change the face on all frames, and change the default
 	  {
 	    Lisp_Object cons;
 	    cons = XCAR (Vparam_value_alist);
-	    XCAR (cons) = param;
-	    XCDR (cons) = value;
+	    XSETCAR (cons, param);
+	    XSETCDR (cons, value);
 	    Fmodify_frame_parameters (frame, Vparam_value_alist);
 	  }
     }

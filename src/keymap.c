@@ -363,7 +363,7 @@ PARENT should be nil or another keymap.")
 	  if (EQ (XCDR (prev), parent))
 	    RETURN_UNGCPRO (parent);
 
-	  XCDR (prev) = parent;
+	  XSETCDR (prev, parent);
 	  break;
 	}
       prev = list;
@@ -769,7 +769,7 @@ store_in_keymap (keymap, idx, def)
 	  {
 	    if (EQ (idx, XCAR (elt)))
 	      {
-		XCDR (elt) = def;
+		XSETCDR (elt, def);
 		return def;
 	      }
 	  }
@@ -786,8 +786,8 @@ store_in_keymap (keymap, idx, def)
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
-    XCDR (insertion_point)
-      = Fcons (Fcons (idx, def), XCDR (insertion_point));
+    XSETCDR (insertion_point,
+	     Fcons (Fcons (idx, def), XCDR (insertion_point)));
   }
   
   return def;
@@ -830,7 +830,7 @@ is not copied.")
 	  Lisp_Object indices[3];
 
 	  elt = Fcopy_sequence (elt);
-	  XCAR (tail) = elt;
+	  XSETCAR (tail, elt);
 
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
 	}
@@ -839,7 +839,7 @@ is not copied.")
 	  int i;
 
 	  elt = Fcopy_sequence (elt);
-	  XCAR (tail) = elt;
+	  XSETCAR (tail, elt);
 
 	  for (i = 0; i < ASIZE (elt); i++)
 	    if (CONSP (AREF (elt, i)) && EQ (XCAR (AREF (elt, i)), Qkeymap))
@@ -854,15 +854,15 @@ is not copied.")
 	  if (EQ (XCAR (tem),Qmenu_item))
 	    {
 	      /* Copy cell with menu-item marker.  */
-	      XCDR (elt)
-		= Fcons (XCAR (tem), XCDR (tem));
+	      XSETCDR (elt,
+		       Fcons (XCAR (tem), XCDR (tem)));
 	      elt = XCDR (elt);
 	      tem = XCDR (elt);
 	      if (CONSP (tem))
 		{
 		  /* Copy cell with menu-item name.  */
-		  XCDR (elt)
-		    = Fcons (XCAR (tem), XCDR (tem));
+		  XSETCDR (elt,
+			   Fcons (XCAR (tem), XCDR (tem)));
 		  elt = XCDR (elt);
 		  tem = XCDR (elt);
 		};
@@ -870,16 +870,16 @@ is not copied.")
 		{
 		  /* Copy cell with binding and if the binding is a keymap,
 		     copy that.  */
-		  XCDR (elt)
-		    = Fcons (XCAR (tem), XCDR (tem));
+		  XSETCDR (elt,
+			   Fcons (XCAR (tem), XCDR (tem)));
 		  elt = XCDR (elt);
 		  tem = XCAR (elt);
 		  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
-		    XCAR (elt) = Fcopy_keymap (tem);
+		    XSETCAR (elt, Fcopy_keymap (tem));
 		  tem = XCDR (elt);
 		  if (CONSP (tem) && CONSP (XCAR (tem)))
 		    /* Delete cache for key equivalences.  */
-		    XCDR (elt) = XCDR (tem);
+		    XSETCDR (elt, XCDR (tem));
 		}
 	    }
 	  else
@@ -890,15 +890,15 @@ is not copied.")
 	      if (STRINGP (XCAR (tem)))
 		{
 		  /* Copy the cell, since copy-alist didn't go this deep.  */
-		  XCDR (elt)
-		    = Fcons (XCAR (tem), XCDR (tem));
+		  XSETCDR (elt,
+			   Fcons (XCAR (tem), XCDR (tem)));
 		  elt = XCDR (elt);
 		  tem = XCDR (elt);
 		  /* Also skip the optional menu help string.  */
 		  if (CONSP (tem) && STRINGP (XCAR (tem)))
 		    {
-		      XCDR (elt)
-			= Fcons (XCAR (tem), XCDR (tem));
+		      XSETCDR (elt,
+			       Fcons (XCAR (tem), XCDR (tem)));
 		      elt = XCDR (elt);
 		      tem = XCDR (elt);
 		    }
@@ -908,12 +908,12 @@ is not copied.")
 		      && CONSP (XCAR (tem))
 		      && (NILP (XCAR (XCAR (tem)))
 			  || VECTORP (XCAR (XCAR (tem)))))
-		    XCDR (elt) = XCDR (tem);
+		    XSETCDR (elt, XCDR (tem));
 		}
 	      if (CONSP (elt)
 		  && CONSP (XCDR (elt))
 		  && EQ (XCAR (XCDR (elt)), Qkeymap))
-		XCDR (elt) = Fcopy_keymap (XCDR (elt));
+		XSETCDR (elt, Fcopy_keymap (XCDR (elt)));
 	    }
 
 	}
@@ -1548,8 +1548,8 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
 	      /* This new sequence is the same length as
 		 thisseq, so stick it in the list right
 		 after this one.  */
-	      XCDR (tail)
-		= Fcons (Fcons (tem, cmd), XCDR (tail));
+	      XSETCDR (tail,
+		       Fcons (Fcons (tem, cmd), XCDR (tail)));
 	    }
 	  else
 	    {
@@ -2396,7 +2396,7 @@ where_is_internal_2 (args, key, binding)
 				  this, last, nomenus, last_is_meta);
 
   if (!NILP (sequence))
-    XCDR (XCAR (args)) = Fcons (sequence, result);
+    XSETCDR (XCAR (args), Fcons (sequence, result));
 
   UNGCPRO;
 }

@@ -2367,7 +2367,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   int wait_channel = -1;
   struct Lisp_Process *wait_proc = 0;
   int got_some_input = 0;
-  Lisp_Object *wait_for_cell = 0;
+  /* Either nil or a cons cell, the car of which is of interest and
+     may be changed outside of this routine.  */
+  Lisp_Object wait_for_cell = Qnil;
 
   FD_ZERO (&Available);
 
@@ -2383,7 +2385,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
     {
-      wait_for_cell = &XCAR (read_kbd);
+      wait_for_cell = read_kbd;
       XSETFASTINT (read_kbd, 0);
     }
 
@@ -2417,7 +2419,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	QUIT;
 
       /* Exit now if the cell we're waiting for became non-nil.  */
-      if (wait_for_cell && ! NILP (*wait_for_cell))
+      if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
       /* Compute time from now till when time limit is up */
@@ -2446,7 +2448,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 But not if wait_for_cell; in those cases,
 	 the wait is supposed to be short,
 	 and those callers cannot handle running arbitrary Lisp code here.  */
-      if (! wait_for_cell)
+      if (NILP (wait_for_cell))
 	{
 	  EMACS_TIME timer_delay;
 
@@ -2567,7 +2569,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do */
 
-      if (wait_for_cell)
+      if (!NILP (wait_for_cell))
 	Available = non_process_wait_mask;
       else if (! XINT (read_kbd))
 	Available = non_keyboard_wait_mask;
@@ -2723,7 +2725,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       /* Exit now if the cell we're waiting for became non-nil.  */
-      if (wait_for_cell && ! NILP (*wait_for_cell))
+      if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
 #ifdef SIGIO
@@ -2742,7 +2744,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If checking input just got us a size-change event from X,
 	 obey it now if we should.  */
-      if (XINT (read_kbd) || wait_for_cell)
+      if (XINT (read_kbd) || ! NILP (wait_for_cell))
 	do_pending_window_change (0);
 
       /* Check for data from a process.  */
@@ -4768,12 +4770,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   EMACS_TIME end_time, timeout;
   SELECT_TYPE waitchannels;
   int xerrno;
-  Lisp_Object *wait_for_cell = 0;
+  /* Either nil or a cons cell, the car of which is of interest and
+     may be changed outside of this routine.  */
+  Lisp_Object wait_for_cell = Qnil;
 
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
     {
-      wait_for_cell = &XCAR (read_kbd);
+      wait_for_cell = read_kbd;
       XSETFASTINT (read_kbd, 0);
     }
 
@@ -4800,7 +4804,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	QUIT;
 
       /* Exit now if the cell we're waiting for became non-nil.  */
-      if (wait_for_cell && ! NILP (*wait_for_cell))
+      if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
       /* Compute time from now till when time limit is up */
@@ -4829,7 +4833,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 run timer events directly.
 	 (Callers that will immediately read keyboard events
 	 call timer_delay on their own.)  */
-      if (! wait_for_cell)
+      if (NILP (wait_for_cell))
 	{
 	  EMACS_TIME timer_delay;
 
@@ -4870,7 +4874,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do.  */
 
-      if (! XINT (read_kbd) && wait_for_cell == 0)
+      if (! XINT (read_kbd) && NILP (wait_for_cell))
 	FD_ZERO (&waitchannels);
       else
 	FD_SET (0, &waitchannels);
@@ -4946,7 +4950,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 input at all when wait_for_cell, but the code
 	 has been this way since July 1994.
 	 Try changing this after version 19.31.)  */
-      if (wait_for_cell
+      if (! NILP (wait_for_cell)
 	  && detect_input_pending ())
 	{
 	  swallow_events (do_display);
@@ -4955,7 +4959,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       /* Exit now if the cell we're waiting for became non-nil.  */
-      if (wait_for_cell && ! NILP (*wait_for_cell))
+      if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
     }
 

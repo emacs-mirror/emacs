@@ -2087,8 +2087,8 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       XSETCONS (val, &cons_block->conses[cons_block_index++]);
     }
   
-  XCAR (val) = car;
-  XCDR (val) = cdr;
+  XSETCAR (val, car);
+  XSETCDR (val, cdr);
   consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
@@ -3878,8 +3878,8 @@ pure_cons (car, cdr)
 
   p = (struct Lisp_Cons *) pure_alloc (sizeof *p, Lisp_Cons);
   XSETCONS (new, p);
-  XCAR (new) = Fpurecopy (car);
-  XCDR (new) = Fpurecopy (cdr);
+  XSETCAR (new, Fpurecopy (car));
+  XSETCDR (new, Fpurecopy (cdr));
   return new;
 }
 
@@ -4189,7 +4189,10 @@ Garbage collection happens automatically if you cons more than
 		    if (NILP (prev))
 		      nextb->undo_list = tail = XCDR (tail);
 		    else
-		      tail = XCDR (prev) = XCDR (tail);
+		      {
+			tail = XCDR (tail);
+			XSETCDR (prev, tail);
+		      }
 		  }
 		else
 		  {
@@ -4800,8 +4803,8 @@ mark_buffer (buf)
 	      && ! XMARKBIT (XCAR (ptr->car))
 	      && GC_MARKERP (XCAR (ptr->car)))
 	    {
-	      XMARK (XCAR (ptr->car));
-	      mark_object (&XCDR (ptr->car));
+	      XMARK (XCAR_AS_LVALUE (ptr->car));
+	      mark_object (&XCDR_AS_LVALUE (ptr->car));
 	    }
 	  else
 	    mark_object (&ptr->car);
@@ -4812,7 +4815,7 @@ mark_buffer (buf)
 	    break;
 	}
 
-      mark_object (&XCDR (tail));
+      mark_object (&XCDR_AS_LVALUE (tail));
     }
   else
     mark_object (&buffer->undo_list);

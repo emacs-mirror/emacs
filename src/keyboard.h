@@ -260,6 +260,7 @@ extern Lisp_Object item_properties;
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCAR (posn))
 #define POSN_BUFFER_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_BUFFER_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
 #define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
 #define POSN_TIMESTAMP(posn) \
   (XCAR (XCDR (XCDR (XCDR (posn)))))

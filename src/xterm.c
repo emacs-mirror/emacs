@@ -13714,8 +13714,8 @@ x_list_fonts (f, pattern, size, maxnames)
 	}
 
       /* Now store the result in the cache.  */
-      XCDR (dpyinfo->name_list_element)
-        = Fcons (Fcons (key, list), XCDR (dpyinfo->name_list_element));
+      XSETCDR (dpyinfo->name_list_element,
+	       Fcons (Fcons (key, list), XCDR (dpyinfo->name_list_element)));
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
@@ -13758,10 +13758,10 @@ x_list_fonts (f, pattern, size, maxnames)
 
 	      if (thisinfo)
 		{
-		  XCDR (tem)
-		    = (thisinfo->min_bounds.width == 0
-		       ? make_number (0)
-		       : make_number (thisinfo->max_bounds.width));
+		  XSETCDR (tem,
+			   (thisinfo->min_bounds.width == 0
+			    ? make_number (0)
+			    : make_number (thisinfo->max_bounds.width)));
 		  BLOCK_INPUT;
 		  XFreeFont (dpy, thisinfo);
 		  UNBLOCK_INPUT;
@@ -13770,7 +13770,7 @@ x_list_fonts (f, pattern, size, maxnames)
 		/* For unknown reason, the previous call of XListFont had
 		  returned a font which can't be opened.  Record the size
 		  as 0 not to try to open it again.  */
-		XCDR (tem) = make_number (0);
+		XSETCDR (tem, make_number (0));
 	    }
 
 	  found_size = XINT (XCDR (tem));
@@ -14036,22 +14036,22 @@ x_load_font (f, fontname, size)
 	Lisp_Object key = Fcons (Fcons (lispy_name, make_number (256)),
 				 Qnil);
 
-	XCDR (dpyinfo->name_list_element)
-	  = Fcons (Fcons (key,
-			  Fcons (Fcons (lispy_full_name,
-					make_number (fontp->size)),
-				 Qnil)),
-		   XCDR (dpyinfo->name_list_element));
+	XSETCDR (dpyinfo->name_list_element,
+		 Fcons (Fcons (key,
+			       Fcons (Fcons (lispy_full_name,
+					     make_number (fontp->size)),
+				      Qnil)),
+			XCDR (dpyinfo->name_list_element)));
 	if (full_name)
 	  {
 	    key = Fcons (Fcons (lispy_full_name, make_number (256)),
 			 Qnil);
-	    XCDR (dpyinfo->name_list_element)
-	      = Fcons (Fcons (key,
-			      Fcons (Fcons (lispy_full_name,
-					    make_number (fontp->size)),
-				     Qnil)),
-		       XCDR (dpyinfo->name_list_element));
+	    XSETCDR (dpyinfo->name_list_element,
+		     Fcons (Fcons (key,
+				   Fcons (Fcons (lispy_full_name,
+						 make_number (fontp->size)),
+					  Qnil)),
+			    XCDR (dpyinfo->name_list_element)));
 	  }
       }
 
@@ -14622,7 +14622,7 @@ x_delete_display (dpyinfo)
 	{
 	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
 	    {
-	      XCDR (tail) = XCDR (XCDR (tail));
+	      XSETCDR (tail, XCDR (XCDR (tail)));
 	      break;
 	    }
 	  tail = XCDR (tail);

@@ -73,7 +73,7 @@ record_insert (beg, length)
 	  && INTEGERP (XCDR (elt))
 	  && XINT (XCDR (elt)) == beg)
 	{
-	  XSETINT (XCDR (elt), beg + length);
+	  XSETCDR (elt, make_number (beg + length));
 	  return;
 	}
     }
@@ -273,7 +273,7 @@ but another undo command will undo to the previous boundary.")
 	{
 	  /* If we have preallocated the cons cell to use here,
 	     use that one.  */
-	  XCDR (pending_boundary) = current_buffer->undo_list;
+	  XSETCDR (pending_boundary, current_buffer->undo_list);
 	  current_buffer->undo_list = pending_boundary;
 	  pending_boundary = Qnil;
 	}
@@ -378,7 +378,7 @@ truncate_undo_list (list, minsize, maxsize)
   /* Truncate at the boundary where we decided to truncate.  */
   if (!NILP (last_boundary))
     {
-      XCDR (last_boundary) = Qnil;
+      XSETCDR (last_boundary, Qnil);
       return list;
     }
   else

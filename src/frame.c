@@ -543,7 +543,7 @@ Note that changing the size of one terminal frame automatically affects all.")
      the vectors which are the CDRs of associations in face_alist to
      be copied as well.  */
   for (tem = f->face_alist; CONSP (tem); tem = XCDR (tem))
-    XCDR (XCAR (tem)) = Fcopy_sequence (XCDR (XCAR (tem)));
+    XSETCDR (XCAR (tem), Fcopy_sequence (XCDR (XCAR (tem))));
   return frame;
 }
 

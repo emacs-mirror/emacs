@@ -338,7 +338,7 @@ x_own_selection (selection_name, selection_value)
 	for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
 	  if (EQ (prev_value, Fcar (XCDR (rest))))
 	    {
-	      XCDR (rest) = Fcdr (XCDR (rest));
+	      XSETCDR (rest, Fcdr (XCDR (rest)));
 	      break;
 	    }
       }
@@ -905,7 +905,7 @@ x_handle_selection_clear (event)
       for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
 	if (EQ (local_selection_data, Fcar (XCDR (rest))))
 	  {
-	    XCDR (rest) = Fcdr (XCDR (rest));
+	    XSETCDR (rest, Fcdr (XCDR (rest)));
 	    break;
 	  }
     }
@@ -982,7 +982,7 @@ x_clear_frame_selections (f)
 	    redisplay_preserve_echo_area (22);
 #endif
 	  }
-	XCDR (rest) = Fcdr (XCDR (rest));
+	XSETCDR (rest, Fcdr (XCDR (rest)));
 	break;
       }
 }
@@ -1076,13 +1076,13 @@ wait_for_property_change (location)
   Lisp_Object tem;
 
   tem = Fcons (Qnil, Qnil);
-  XSETFASTINT (XCAR (tem), (EMACS_UINT)location >> 16);
-  XSETFASTINT (XCDR (tem), (EMACS_UINT)location & 0xffff);
+  XSETCARFASTINT (tem, (EMACS_UINT)location >> 16);
+  XSETCDRFASTINT (tem, (EMACS_UINT)location & 0xffff);
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind, tem);
 
-  XCAR (property_change_reply) = Qnil;
+  XSETCAR (property_change_reply, Qnil);
 
   property_change_reply_object = location;
   /* If the event we are waiting for arrives beyond here, it will set
@@ -1128,7 +1128,7 @@ x_handle_property_notify (event)
 	  /* If this is the one wait_for_property_change is waiting for,
 	     tell it to wake up.  */
 	  if (rest == property_change_reply_object)
-	    XCAR (property_change_reply) = Qt;
+	    XSETCAR (property_change_reply, Qt);
 
 	  if (prev)
 	    prev->next = rest->next;
@@ -1239,7 +1239,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   /* Prepare to block until the reply has been read.  */
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
-  XCAR (reading_selection_reply) = Qnil;
+  XSETCAR (reading_selection_reply, Qnil);
 
   frame = some_frame_on_display (dpyinfo);
 
@@ -1942,8 +1942,8 @@ x_handle_selection_notify (event)
     return;
 
   TRACE0 ("Received SelectionNotify");
-  XCAR (reading_selection_reply)
-    = (event->property != 0 ? Qt : Qlambda);
+  XSETCAR (reading_selection_reply,
+	   (event->property != 0 ? Qt : Qlambda));
 }
 
 

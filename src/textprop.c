@@ -1738,7 +1738,7 @@ extend_property_ranges (list, old_end, new_end)
       end = XCAR (XCDR (item));
 
       if (EQ (end, old_end))
-	XCAR (XCDR (item)) = new_end;
+	XSETCAR (XCDR (item), new_end);
     }
 }
 

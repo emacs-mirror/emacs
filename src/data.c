@@ -582,7 +582,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
     cell = wrong_type_argument (Qconsp, cell);
 
   CHECK_IMPURE (cell);
-  XCAR (cell) = newcar;
+  XSETCAR (cell, newcar);
   return newcar;
 }
 
@@ -595,7 +595,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
     cell = wrong_type_argument (Qconsp, cell);
 
   CHECK_IMPURE (cell);
-  XCDR (cell) = newcdr;
+  XSETCDR (cell, newcdr);
   return newcdr;
 }
 
@@ -937,7 +937,7 @@ swap_in_global_binding (symbol)
 	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
   
   /* Select the global binding in the symbol.  */
-  XCAR (cdr) = cdr;
+  XSETCAR (cdr, cdr);
   store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
@@ -991,7 +991,7 @@ swap_in_symval_forwarding (symbol, valcontents)
 	XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 
       /* Load the new binding.  */
-      XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = tem1;
+      XSETCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr, tem1);
       XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, current_buffer);
       XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
       store_symval_forwarding (symbol,
@@ -1210,8 +1210,8 @@ set_internal (symbol, newval, buf, bindflag)
 	    }
 
 	  /* Record which binding is now loaded.  */
-	  XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr)
-	    = tem1;
+	  XSETCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr,
+		   tem1);
 
 	  /* Set `buffer' and `frame' slots for thebinding now loaded.  */
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
@@ -1243,7 +1243,7 @@ set_internal (symbol, newval, buf, bindflag)
 	 the default binding is loaded, the loaded binding may be the
 	 wrong one.  */
       if (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
-	XCDR (current_alist_element) = newval;
+	XSETCDR (current_alist_element, newval);
     }
 
   return newval;
@@ -1362,7 +1362,7 @@ for this variable.")
     return Fset (symbol, value);
 
   /* Store new value into the DEFAULT-VALUE slot.  */
-  XCDR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = value;
+  XSETCDR (XBUFFER_LOCAL_VALUE (valcontents)->cdr, value);
 
   /* If the default binding is now loaded, set the REALVALUE slot too.  */
   current_alist_element
@@ -1448,7 +1448,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   if (EQ (valcontents, Qunbound))
     SET_SYMBOL_VALUE (variable, Qnil);
   tem = Fcons (Qnil, Fsymbol_value (variable));
-  XCAR (tem) = tem;
+  XSETCAR (tem, tem);
   newval = allocate_misc ();
   XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
@@ -1505,7 +1505,7 @@ Use `make-local-hook' instead.")
     {
       Lisp_Object newval;
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
-      XCAR (tem) = tem;
+      XSETCAR (tem, tem);
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
@@ -1644,7 +1644,7 @@ See `modify-frame-parameters'.")
   if (EQ (valcontents, Qunbound))
     SET_SYMBOL_VALUE (variable, Qnil);
   tem = Fcons (Qnil, Fsymbol_value (variable));
-  XCAR (tem) = tem;
+  XSETCAR (tem, tem);
   newval = allocate_misc ();
   XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);

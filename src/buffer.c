@@ -1415,9 +1415,9 @@ record_buffer (buf)
   if (NILP (prev))
     Vbuffer_alist = XCDR (Vbuffer_alist);
   else
-    XCDR (prev) = XCDR (XCDR (prev));
+    XSETCDR (prev, XCDR (XCDR (prev)));
 	
-  XCDR (link) = Vbuffer_alist;
+  XSETCDR (link, Vbuffer_alist);
   Vbuffer_alist = link;
 
   /* Now move this buffer to the front of frame_buffer_list also.  */
@@ -1439,9 +1439,9 @@ record_buffer (buf)
 	set_frame_buffer_list (frame,
 			       XCDR (frame_buffer_list (frame)));
       else
-	XCDR (prev) = XCDR (XCDR (prev));
+	XSETCDR (prev, XCDR (XCDR (prev)));
 	
-      XCDR (link) = frame_buffer_list (frame);
+      XSETCDR (link, frame_buffer_list (frame));
       set_frame_buffer_list (frame, link);
     }
   else
@@ -1863,7 +1863,7 @@ selected window if it is displayed there.  */
       aelt = Frassq (buffer, Vbuffer_alist);
       link = Fmemq (aelt, Vbuffer_alist);
       Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-      XCDR (link) = Qnil;
+      XSETCDR (link, Qnil);
       Vbuffer_alist = nconc2 (Vbuffer_alist, link);
 
       frames_bury_buffer (buffer);
@@ -2286,10 +2286,10 @@ swap_out_buffer_local_variables (b)
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again
 	     later in Fkill_all_local_variables, we don't lose the value.  */
-	  XCDR (XCAR (tem))
-	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue);
+	  XSETCDR (XCAR (tem),
+		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue));
 	  /* Switch to the symbol's default-value alist entry.  */
-	  XCAR (tem) = tem;
+	  XSETCAR (tem, tem);
 	  /* Mark it as current for buffer B.  */
 	  XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer = buffer;
 	  /* Store the current value into any forwarding in the symbol.  */
@@ -3008,7 +3008,7 @@ recenter_overlay_lists (buf, pos)
 
 	  /* Splice the cons cell TAIL out of overlays_before.  */
 	  if (!NILP (prev))
-	    XCDR (prev) = next;
+	    XSETCDR (prev, next);
 	  else
 	    buf->overlays_before = next;
 
@@ -3030,9 +3030,9 @@ recenter_overlay_lists (buf, pos)
 	    }
 
 	  /* Add TAIL to overlays_after before OTHER.  */
-	  XCDR (tail) = other;
+	  XSETCDR (tail, other);
 	  if (!NILP (other_prev))
-	    XCDR (other_prev) = tail;
+	    XSETCDR (other_prev, tail);
 	  else
 	    buf->overlays_after = tail;
 	  tail = prev;
@@ -3085,7 +3085,7 @@ recenter_overlay_lists (buf, pos)
 
 	  /* Splice the cons cell TAIL out of overlays_after.  */
 	  if (!NILP (prev))
-	    XCDR (prev) = next;
+	    XSETCDR (prev, next);
 	  else
 	    buf->overlays_after = next;
 
@@ -3107,9 +3107,9 @@ recenter_overlay_lists (buf, pos)
 	    }
 
 	  /* Add TAIL to overlays_before before OTHER.  */
-	  XCDR (tail) = other;
+	  XSETCDR (tail, other);
 	  if (!NILP (other_prev))
-	    XCDR (other_prev) = tail;
+	    XSETCDR (other_prev, tail);
 	  else
 	    buf->overlays_before = tail;
 	  tail = prev;
@@ -3841,7 +3841,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
     if (EQ (XCAR (tail), prop))
       {
 	changed = !EQ (XCAR (XCDR (tail)), value);
-	XCAR (XCDR (tail)) = value;
+	XSETCAR (XCDR (tail), value);
 	goto found;
       }
   /* It wasn't in the list, so add it to the front.  */

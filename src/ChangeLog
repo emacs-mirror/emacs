@@ -1,3 +1,81 @@
+2001-10-16  Ken Raeburn  <raeburn@gnu.org>
+
+	Avoid the assumption that car and cdr slots of cons cells are
+	addressable lvalues; this allows for easier experimentation with
+	other lisp implementations that may not permit such accesses for
+	various reasons.  Not quite complete -- buffer.c still needs some
+	work, and w32/mac files need rechecking -- so compile-time
+	enforcement is left disabled for now.
+
+	* lisp.h (LISP_MAKE_RVALUE): New macro, or function in the case of
+	gcc with a union-based Lisp object rep.  Redefine as no-op for
+	now.
+	(XCAR_AS_LVALUE, XCDR_AS_LVALUE): Rename from old XCAR, XCDR.
+	(XCAR, XCDR): Apply LISP_MAKE_RVALUE to the _AS_LVALUE versions.
+	(XSETCAR, XSETCDR): New macros.
+	(XSETCARFASTINT, XSETCDRFASTINT): New macros.
+	(CHECK_NUMBER_CAR, CHECK_NUMBER_CDR): New macros.
+	* keyboard.h (POSN_BUFFER_SET_POSN): New macro.
+	* alloc.c (Fcons, pure_cons, Fgarbage_collect): Use XSETCAR and
+	XSETCDR.
+	(mark_buffer): Use XCAR_AS_LVALUE, XCDR_AS_LVALUE.
+	* buffer.c (record_buffer, Fbury_buffer,
+	swap_out_buffer_local_variables, recenter_overlay_lists,
+	Foverlay_put): Use XSETCAR and XSETCDR to set the car and cdr
+	fields of a cons cell respectively.
+	* callint.c (quotify_args, Fcall_interactively): Likewise.
+	* ccl.c (Fregister_code_conversion_map): Likewise.
+	* coding.c (detect_coding_system): Likewise.
+	* composite.c (get_composition_id, make_composition_value_copy):
+	Likewise.
+	* data.c (Fsetcar, Fsetcdr, swap_in_global_binding,
+	swap_in_symval_forwarding, set_internal, Fset_default,
+	Fmake_variable_buffer_local, Fmake_local_variable,
+	Fmake_variable_frame_local): Likewise.
+	* fns.c (concat, Fcopy_alist, Fwidget_put): Likewise.
+	* keymap.c (Fset_keymap_parent, store_in_keymap,
+	accessible_keymaps_1, where_is_internal_2, Fcopy_keymap):
+	Likewise.
+	* minibuf.c (get_minibuffer): Likewise.
+	* search.c (Fmatch_data): Likewise.
+	* textprop.c (extend_property_ranges): Likewise.
+	* undo.c (record_insert, Fundo_boundary, truncate_undo_list):
+	Likewise.
+	* w32fns.c (w32_msg_pump, Fw32_register_hot_key, w32_list_fonts):
+	Likewise.
+	* w32term.c (x_delete_display): Likewise.
+	* xfaces.c (remove_duplicates, Finternal_set_lisp_face_attribute):
+	Likewise.
+	* xterm.c (x_list_fonts, x_load_font, x_delete_display):
+	Likewise.
+	* doc.c (store_function_docstring): Use XSETCARFASTINT.
+	* fileio.c (Fdo_auto_save): Use XSETCARFASTINT and
+	XSETCDRFASTINT.
+	(Fread_file_name): Use XSETCAR.
+	* fontset.c (Fset_fontset_font): Use CHECK_NUMBER_CAR and
+	CHECK_NUMBER_CDR.
+	(accumulate_font_info, Ffontset_info): Use XSETCAR and XSETCDR.
+	* frame.c (Fmake_terminal_frame): Use XSETCDR.
+	* indent.c (Fcompute_motion): Use CHECK_NUMBER_CAR and
+	CHECK_NUMBER_CDR.
+	* keyboard.c (read_char): Alter list traversal to avoid taking the
+	address of cons cell slots.  Use POSN_BUFFER_SET_POSN.
+	(parse_menu_item): Use XSETCAR and XSETCDR.
+	(reach_char_x_menu_prompt): Use XSETCAR.
+	(read_key_sequence): Use POSN_BUFFER_SET_POSN.
+	(Fcommand_execute): Use XSETCDR.
+	* lread.c (Fload): Use XSETCARFASTINT and XSETCDRFASTINT.
+	(openp): Change list traversal to avoid using XCAR as lvalue.
+	(read_list): Use XSETCDR.
+	* process.c (wait_reading_process_input): Change wait_for_cell
+	handling to avoid taking addresses of cons cell slots.
+	* xselect.c (x_own_selection, x_handle_selection_clear,
+	x_clear_frame_selections): Use XSETCDR.
+	(wait_for_property_change): Use XSETCARFASTINT and
+	XSETCDRFASTINT.
+	(x_handle_property_notify, x_get_foreign_selection,
+	x_handle_selection_notify): Use XSETCAR.
+
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buffer.c: Put doc strings in comments.

@@ -2358,15 +2358,21 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	KBOARD *kb = FRAME_KBOARD (XFRAME (selected_frame));
 	if (kb != current_kboard)
 	  {
-	    Lisp_Object *tailp = &kb->kbd_queue;
+	    Lisp_Object link = kb->kbd_queue;
 	    /* We shouldn't get here if we were in single-kboard mode!  */
 	    if (single_kboard)
 	      abort ();
-	    while (CONSP (*tailp))
-	      tailp = &XCDR (*tailp);
-	    if (!NILP (*tailp))
-	      abort ();
-	    *tailp = Fcons (c, Qnil);
+	    if (CONSP (link))
+	      {
+		while (CONSP (XCDR (link)))
+		  link = XCDR (link);
+		if (!NILP (XCDR (link)))
+		  abort ();
+	      }
+	    if (!CONSP (link))
+	      kb->kbd_queue = Fcons (c, Qnil);
+	    else
+	      XSETCDR (link, Fcons (c, Qnil));
 	    kb->kbd_queue_has_data = 1;
 	    current_kboard = kb;
 	    /* This is going to exit from read_char
@@ -2581,12 +2587,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 #ifdef MULTI_KBOARD
       if (! NILP (c) && (kb != current_kboard))
 	{
-	  Lisp_Object *tailp = &kb->kbd_queue;
-	  while (CONSP (*tailp))
-	    tailp = &XCDR (*tailp);
-	  if (!NILP (*tailp))
-	    abort ();
-	  *tailp = Fcons (c, Qnil);
+	  Lisp_Object link = kb->kbd_queue;
+	  if (CONSP (link))
+	    {
+	      while (CONSP (XCDR (link)))
+		link = XCDR (link);
+	      if (!NILP (XCDR (link)))
+		abort ();
+	    }
+	  if (!CONSP (link))
+	    kb->kbd_queue = Fcons (c, Qnil);
+	  else
+	    XSETCDR (link, Fcons (c, Qnil));
 	  kb->kbd_queue_has_data = 1;
 	  c = Qnil;
 	  if (single_kboard)
@@ -2702,7 +2714,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 	{
 	  /* Change menu-bar to (menu-bar) as the event "position".  */
-	  POSN_BUFFER_POSN (EVENT_START (c)) = Fcons (posn, Qnil);
+	  POSN_BUFFER_SET_POSN (EVENT_START (c), Fcons (posn, Qnil));
 
 	  also_record = c;
 	  Vunread_command_events = Fcons (c, Vunread_command_events);
@@ -6854,19 +6866,19 @@ parse_menu_item (item, notreal, inmenubar)
     {
       /* We have to create a cachelist.  */
       CHECK_IMPURE (start);
-      XCDR (start) = Fcons (Fcons (Qnil, Qnil), XCDR (start));
+      XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
       cachelist = XCAR (XCDR (start));
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))
 	{
-	  XCAR (cachelist) = XCAR (keyhint);
+	  XSETCAR (cachelist, XCAR (keyhint));
 	  newcache = 0;
 	}
       else if (STRINGP (tem))
 	{
-	  XCDR (cachelist) = Fsubstitute_command_keys (tem);
-	  XCAR (cachelist) = Qt;
+	  XSETCDR (cachelist, Fsubstitute_command_keys (tem));
+	  XSETCAR (cachelist, Qt);
 	}
     }
   
@@ -6924,10 +6936,10 @@ parse_menu_item (item, notreal, inmenubar)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil);
-	  XCAR (cachelist) = tem;
+	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
-	      XCDR (cachelist) = Qnil;
+	      XSETCDR (cachelist, Qnil);
 	      chkcache = 0;
 	    }
 	}
@@ -6948,7 +6960,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      if (STRINGP (XCDR (prefix)))
 		tem = concat2 (tem, XCDR (prefix));
 	    }
-	  XCDR (cachelist) = tem;
+	  XSETCDR (cachelist, tem);
 	}
     }
 
@@ -6956,7 +6968,7 @@ parse_menu_item (item, notreal, inmenubar)
   if (newcache && !NILP (tem))
     {
       tem = concat3 (build_string ("  ("), tem, build_string (")"));
-      XCDR (cachelist) = tem;
+      XSETCDR (cachelist, tem);
     }
 
   /* If we only want to precompute equivalent key bindings, stop here. */
@@ -7474,7 +7486,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	      record_menu_key (XCAR (tem));
 	      if (SYMBOLP (XCAR (tem))
 		  || INTEGERP (XCAR (tem)))
-		XCAR (tem) = Fcons (XCAR (tem), Qdisabled);
+		XSETCAR (tem, Fcons (XCAR (tem), Qdisabled));
 	    }
 
 	  /* If we got more than one event, put all but the first
@@ -8466,8 +8478,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  /* Zap the position in key, so we know that we've
 		     expanded it, and don't try to do so again.  */
-		  POSN_BUFFER_POSN (EVENT_START (key))
-		    = Fcons (posn, Qnil);
+		  POSN_BUFFER_SET_POSN (EVENT_START (key),
+					Fcons (posn, Qnil));
 
 		  mock_input = t + 2;
 		  goto replay_sequence;
@@ -9203,7 +9215,7 @@ a special event, so ignore the prefix argument and don't clear it.")
 	    {
 	      tem = Fnthcdr (Vhistory_length, Vcommand_history);
 	      if (CONSP (tem))
-		XCDR (tem) = Qnil;
+		XSETCDR (tem, Qnil);
 	    }
 	}
 

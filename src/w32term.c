@@ -10286,7 +10286,7 @@ x_delete_display (dpyinfo)
 	{
 	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
 	    {
-	      XCDR (tail) = XCDR (XCDR (tail));
+	      XSETCDR (tail, XCDR (XCDR (tail)));
 	      break;
 	    }
 	  tail = XCDR (tail);

@@ -2274,7 +2274,7 @@ Return index number of the registered map.")
       if (EQ (symbol, XCAR (slot)))
 	{
 	  index = make_number (i);
-	  XCDR (slot) = map;
+	  XSETCDR (slot, map);
 	  Fput (symbol, Qcode_conversion_map, map);
 	  Fput (symbol, Qcode_conversion_map_id, index);
 	  return index;

@@ -445,7 +445,7 @@ store_function_docstring (fun, offset)
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
-	    XSETFASTINT (XCAR (tem), offset);
+	    XSETCARFASTINT (tem, offset);
 	}
       else if (EQ (tem, Qmacro))
 	store_function_docstring (XCDR (fun), offset);

@@ -3784,7 +3784,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  thread-safe.  The next line is okay because the cons
                  cell is never made into garbage and is not relocated by
                  GC.  */
-	      XCAR ((Lisp_Object) msg.lParam) = Qnil;
+	      XSETCAR ((Lisp_Object) msg.lParam, Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		abort ();
 	      break;
@@ -6866,9 +6866,9 @@ w32_list_fonts (f, pattern, size, maxnames)
 
       /* Make a list of the fonts we got back.
          Store that in the font cache for the display. */
-      XCDR (dpyinfo->name_list_element)
-        = Fcons (Fcons (tpat, list),
-                 XCDR (dpyinfo->name_list_element));
+      XSETCDR (dpyinfo->name_list_element,
+	       Fcons (Fcons (tpat, list),
+		      XCDR (dpyinfo->name_list_element)));
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
@@ -6915,9 +6915,9 @@ w32_list_fonts (f, pattern, size, maxnames)
               hdc = GetDC (dpyinfo->root_window);
               oldobj = SelectObject (hdc, thisinfo.hfont);
               if (GetTextMetrics (hdc, &thisinfo.tm))
-                XCDR (tem) = make_number (FONT_WIDTH (&thisinfo));
+                XSETCDR (tem, make_number (FONT_WIDTH (&thisinfo)));
               else
-                XCDR (tem) = make_number (0);
+                XSETCDR (tem, make_number (0));
               SelectObject (hdc, oldobj);
               ReleaseDC (dpyinfo->root_window, hdc);
               DeleteObject(thisinfo.hfont);
@@ -13240,7 +13240,7 @@ The return value is the hotkey-id if registered, otherwise nil.")
       if (NILP (item))
 	w32_grabbed_keys = Fcons (key, w32_grabbed_keys);
       else
-	XCAR (item) = key;
+	XSETCAR (item, key);
 
       /* Notify input thread about new hot-key definition, so that it
 	 takes effect without needing to switch focus.  */

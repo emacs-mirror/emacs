@@ -5499,8 +5499,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	  /* Arrange to close that file whether or not we get an error.
 	     Also reset auto_saving to 0.  */
 	  lispstream = Fcons (Qnil, Qnil);
-	  XSETFASTINT (XCAR (lispstream), (EMACS_UINT)stream >> 16);
-	  XSETFASTINT (XCDR (lispstream), (EMACS_UINT)stream & 0xffff);
+	  XSETCARFASTINT (lispstream, (EMACS_UINT)stream >> 16);
+	  XSETCDRFASTINT (lispstream, (EMACS_UINT)stream & 0xffff);
 	}
       else
 	lispstream = Qnil;
@@ -5939,7 +5939,7 @@ provides a file dialog box..")
   if (replace_in_history)
     /* Replace what Fcompleting_read added to the history
        with what we will actually return.  */
-    XCAR (Fsymbol_value (Qfile_name_history)) = double_dollars (val);
+    XSETCAR (Fsymbol_value (Qfile_name_history), double_dollars (val));
   else if (add_to_history)
     {
       /* Add the value to the history--but not if it matches

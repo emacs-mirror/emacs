@@ -156,7 +156,7 @@ quotify_args (exp)
   for (tail = exp; CONSP (tail); tail = next)
     {
       next = XCDR (tail);
-      XCAR (tail) = quotify_arg (XCAR (tail));
+      XSETCAR (tail, quotify_arg (XCAR (tail)));
     }
   return exp;
 }
@@ -358,7 +358,7 @@ supply if the command inquires which events were used to invoke it.")
 	    {
 	      teml = Fnthcdr (Vhistory_length, Vcommand_history);
 	      if (CONSP (teml))
-		XCDR (teml) = Qnil;
+		XSETCDR (teml, Qnil);
 	    }
 	}
       single_kboard_state ();
@@ -776,7 +776,7 @@ supply if the command inquires which events were used to invoke it.")
 	{
 	  teml = Fnthcdr (Vhistory_length, Vcommand_history);
 	  if (CONSP (teml))
-	    XCDR (teml) = Qnil;
+	    XSETCDR (teml, Qnil);
 	}
     }
 

@@ -248,6 +248,16 @@ Lisp_Object;
 
 #endif /* WORDS_BIG_ENDIAN */
 
+#ifdef __GNUC__
+static __inline__ Lisp_Object
+LISP_MAKE_RVALUE (Lisp_Object o)
+{
+    return o;
+}
+#else
+#define LISP_MAKE_RVALUE(o) (o) /* XXX - keeps arg as rvalue.  */
+#endif
+
 #endif /* NO_UNION_TYPE */
 
 
@@ -255,6 +265,7 @@ Lisp_Object;
 
 #ifdef NO_UNION_TYPE
 #define Lisp_Object EMACS_INT
+#define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
 #ifndef VALMASK
@@ -616,13 +627,42 @@ struct Lisp_Cons
   };
 
 /* Take the car or cdr of something known to be a cons cell.  */
+/* The _AS_LVALUE macros shouldn't be used outside of the minimal set
+   of code that has to know what a cons cell looks like.  Other code not
+   part of the basic lisp implementation should assume that the car and cdr
+   fields are not accessible as lvalues.  (What if we want to switch to
+   a copying collector someday?  Cached cons cell field addresses may be
+   invalidated at arbitrary points.)  */
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XCAR(c) (XCONS ((c))->car_)
-#define XCDR(c) (XCONS ((c))->cdr_)
+#define XCAR_AS_LVALUE(c) (XCONS ((c))->car_)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr_)
 #else
-#define XCAR(c) (XCONS ((c))->car)
-#define XCDR(c) (XCONS ((c))->cdr)
+#define XCAR_AS_LVALUE(c) (XCONS ((c))->car)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr)
 #endif
+
+/* Okay, we're not quite ready to turn this on yet.  A few files still
+   need to be updated and tested.  */
+#undef LISP_MAKE_RVALUE
+#define LISP_MAKE_RVALUE(x) (x)
+
+/* Use these from normal code.  */
+#define XCAR(c)	LISP_MAKE_RVALUE(XCAR_AS_LVALUE(c))
+#define XCDR(c) LISP_MAKE_RVALUE(XCDR_AS_LVALUE(c))
+
+/* Use these to set the fields of a cons cell.
+
+   Note that both arguments may refer to the same object, so 'n'
+   should not be read after 'c' is first modified.  Also, neither
+   argument should be evaluated more than once; side effects are
+   especially common in the second argument.  */
+#define XSETCAR(c,n) (XCAR_AS_LVALUE(c) = (n))
+#define XSETCDR(c,n) (XCDR_AS_LVALUE(c) = (n))
+
+/* For performance: Fast storage of positive integers into the
+   fields of a cons cell.  See above caveats.  */
+#define XSETCARFASTINT(c,n)  XSETFASTINT(XCAR_AS_LVALUE(c),(n))
+#define XSETCDRFASTINT(c,n)  XSETFASTINT(XCDR_AS_LVALUE(c),(n))
 
 /* Take the car or cdr of something whose type is not known.  */
 #define CAR(c)					\
@@ -1473,6 +1513,22 @@ typedef unsigned char UCHAR;
 
 #define CHECK_OVERLAY(x, i) \
   do { if (!OVERLAYP ((x))) x = wrong_type_argument (Qoverlayp, (x));} while (0)
+
+/* Since we can't assign directly to the CAR or CDR fields of a cons
+   cell, use these when checking that those fields contain numbers.  */
+#define CHECK_NUMBER_CAR(x, i) \
+  do {					\
+    Lisp_Object tmp = XCAR (x);		\
+    CHECK_NUMBER (tmp, (i));		\
+    XSETCAR ((x), tmp);			\
+  } while (0)
+
+#define CHECK_NUMBER_CDR(x, i) \
+  do {					\
+    Lisp_Object tmp = XCDR (x);		\
+    CHECK_NUMBER (tmp, (i));		\
+    XSETCDR ((x), tmp);			\
+  } while (0)
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
 #ifndef PNTR_COMPARISON_TYPE

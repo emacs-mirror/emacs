@@ -723,7 +723,7 @@ get_minibuffer (depth)
 	 enabled in it.  */
       Fbuffer_enable_undo (buf);
 
-      XCAR (tail) = buf;
+      XSETCAR (tail, buf);
     }
   else
     {

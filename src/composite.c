@@ -249,8 +249,8 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 	 modify the cons cell of PROP because it is not shared.  */
       key = HASH_KEY (hash_table, hash_index);
       id = HASH_VALUE (hash_table, hash_index);
-      XCAR (prop) = id;
-      XCDR (prop) = Fcons (make_number (nchars), Fcons (key, XCDR (prop)));
+      XSETCAR (prop, id);
+      XSETCDR (prop, Fcons (make_number (nchars), Fcons (key, XCDR (prop))));
       return XINT (id);
     }
 
@@ -297,8 +297,8 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   /* Change PROP from Form-A above to Form-B.  We can directly modify
      the cons cell of PROP because it is not shared.  */
   XSETFASTINT (id, n_compositions);
-  XCAR (prop) = id;
-  XCDR (prop) = Fcons (make_number (nchars), Fcons (key, XCDR (prop)));
+  XSETCAR (prop, id);
+  XSETCDR (prop, Fcons (make_number (nchars), Fcons (key, XCDR (prop))));
 
   /* Register the composition in composition_hash_table.  */
   hash_index = hash_put (hash_table, key, id, hash_code);
@@ -569,7 +569,7 @@ make_composition_value_copy (list)
 	{
 	  if (EQ (XCAR (plist), Qcomposition)
 	      && (val = XCAR (XCDR (plist)), CONSP (val)))
-	    XCAR (XCDR (plist)) = Fcons (XCAR (val), XCDR (val));
+	    XSETCAR (XCDR (plist), Fcons (XCAR (val), XCDR (val)));
 	  plist = XCDR (XCDR (plist));
 	}
     }

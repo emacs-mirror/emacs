@@ -782,7 +782,7 @@ concat (nargs, args, target_type, last_special)
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
 	      {
-		XCAR (tail) = elt;
+		XSETCAR (tail, elt);
 		prev = tail;
 		tail = XCDR (tail);
 	      }
@@ -823,7 +823,7 @@ concat (nargs, args, target_type, last_special)
 	  }
     }
   if (!NILP (prev))
-    XCDR (prev) = last_tail;
+    XSETCDR (prev, last_tail);
 
   if (num_textprops > 0)
     {
@@ -1159,7 +1159,7 @@ Elements of ALIST that are not conses are also shared.  */
       car = XCAR (tem);
 
       if (CONSP (car))
-	XCAR (tem) = Fcons (XCAR (car), XCDR (car));
+	XSETCAR (tem, Fcons (XCAR (car), XCDR (car)));
     }
   return alist;
 }
@@ -3153,7 +3153,7 @@ The value can later be retrieved with `widget-get'.  */
      Lisp_Object widget, property, value;
 {
   CHECK_CONS (widget, 1);
-  XCDR (widget) = Fplist_put (XCDR (widget), property, value);
+  XSETCDR (widget, Fplist_put (XCDR (widget), property, value));
   return value;
 }
 
