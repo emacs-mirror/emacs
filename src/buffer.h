@@ -730,6 +730,8 @@ struct buffer
        window.  Nil means that scrolling method isn't used.  */
     Lisp_Object scroll_down_aggressively;
 
+    Lisp_Object cursor_type;
+
     /* These are so we don't have to recompile everything
        the next few times we add a new slot.  */
     Lisp_Object extra2, extra3;
