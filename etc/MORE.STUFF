@@ -15,9 +15,8 @@ listed here fail.
 * The LCD archive
 
 There is a large collection of Emacs Lisp code available for FTP at
-ftp.cis.ohio-state.edu and various mirrors.  Unfortunately it isn't
-currently actively maintained; a volunteer to take it over would be
-welcome.
+ftp.cis.ohio-state.edu and various mirrors.  Unfortunately its
+maintenance is currently very slow.
 
 To get started using this archive, do:
 
@@ -37,6 +36,12 @@ and exit.  Then do:
 The lispdir.el package will help you search for useful packages in the
 LCD-datafile, which is a list of the archive constants.  It will even
 fetch them for you on command.
+
+* gnu.emacs.sources
+
+Packages posted to the gnu.emacs.sources newsgroup (see
+etc/MAILINGLISTS) might be archived specifically (try a web search
+engine) or retrievable from general Usenet archive services.
 
 * Maintenace versions of some packages distributed with Emacs
 
