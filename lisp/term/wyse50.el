@@ -1,3 +1,6 @@
+; Like all the other files in this dir, this one needs to be redone
+; for the new way of handling function keys.
+
 ; Terminal mode for Wyse 50
 ; should work well for Televideo Tvi 925 though it's an overkill
 ; Author Daniel Pfeiffer <pfeiffer@cix.cict.fr> january 1991
