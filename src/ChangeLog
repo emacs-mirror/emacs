@@ -1,5 +1,9 @@
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* keyboard.c (lucid-menu-bar-dirty-flag): Doc fix.
+	(last-input-char): Revert doc-string to be the same as the
+	doc-string of `last-input-event'.
+
 	* xdisp.c:  Fix typos in comments.
 
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
