@@ -2675,7 +2675,10 @@ make_lispy_event (event)
 	    window = window_from_coordinates (f, column, row, &part);
 
 	    if (XTYPE (window) != Lisp_Window)
-	      posn = Qnil;
+	      {
+		window = event->frame_or_window;
+		posn = Qnil;
+	      }
 	    else
 	      {
 		int pixcolumn, pixrow;
