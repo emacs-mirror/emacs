@@ -24,11 +24,6 @@ unexec (char *new_name, char *old_name, unsigned int data_start,
   errstring = code_convert_string_norecord (build_string (dlerror ()),
 					    Vlocale_coding_system, 0);
 
-  /* System error messages are capitalized.  Downcase the initial
-     unless it is followed by a slash.  */
-  if (SREF (errstring, 1) != '/')
-    SSET (errstring, 0, DOWNCASE (SREF (errstring, 0)));
-
   Fsignal (Qfile_error,
 	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
