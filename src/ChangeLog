@@ -1,6 +1,6 @@
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* delta.h: Removed (obsolete).
+	* m/delta.h: Removed (obsolete).
 
 2003-01-13  Francesco Potort,Al(B  <pot@gnu.org>
 

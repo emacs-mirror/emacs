@@ -1,5 +1,6 @@
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
+	* config.sub (motorola-delta-3300): Removed (obsolete).
 	* config.guess (m68k-motorola-sysv): Removed (obsolete).
 	* configure (m68k-motorola-sysv): Removed (obsolete).
 
