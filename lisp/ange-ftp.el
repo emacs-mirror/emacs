@@ -3017,11 +3017,15 @@ logged in as user USER and cd'd to directory DIR."
 	  ;; If name starts with //, preserve that, for apollo system.
 	  (if (not (string-match "^//" name))
 	      (progn
-		(setq name (ange-ftp-real-expand-file-name name))
-		;; Strip off drive specifier added on windows-nt
-		(if (and (eq system-type 'windows-nt)
-			 (string-match "^[a-zA-Z]:" name))
-		    (setq name (substring name 2)))
+		(if (not (eq system-type 'windows-nt))
+		    (setq name (ange-ftp-real-expand-file-name name))
+		  ;; Windows UNC default dirs do not make sense for ftp.
+		  (if (string-match "^//" default-directory)
+		      (setq name (ange-ftp-real-expand-file-name name "c:/"))
+		    (setq name (ange-ftp-real-expand-file-name name)))
+		  ;; Strip off possible drive specifier.
+		  (if (string-match "^[a-zA-Z]:" name)
+		      (setq name (substring name 2))))
 		(if (string-match "^//" name)
 		    (setq name (substring name 1)))))
 	  
