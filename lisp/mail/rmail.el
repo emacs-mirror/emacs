@@ -797,9 +797,11 @@ argument causes us to read a file name and use that file as the inbox."
 	       (insert ?\^_)
 	       (narrow-to-region (point) (point-max)))
 	      ;;
-	      ;;This is a kludge, in case we're wrong about mmdf not
-	      ;;allowing anything in between.  If it loses, we'll have
-	      ;;to look for something else
+	      ;; This kludge is because some versions of sendmail.el
+	      ;; insert an extra newline at the beginning that shouldn't
+	      ;; be there.  sendmail.el has been fixed, but old versions
+	      ;; may still be in use.  -- rms, 7 May 1993.
+	      ((eolp) (delete-char 1))
 	      (t (error "Cannot convert to babyl format")))))
     count))
 
