@@ -1,3 +1,7 @@
+2002-02-25  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (lisp): Add missing backslash.
+
 2002-02-24  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (WINNT_SUPPORT, MOUSE_SUPPORT, lisp): Revert to
