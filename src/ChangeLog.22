@@ -1,3 +1,34 @@
+2004-01-13  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (FACE_FOR_CHAR): New args POS and OBJECT.
+
+	* fontset.c (reorder_font_vector): Adjusted for the change of
+	FONT_DEF format.
+	(fontset_face): New arg id.  Caller changed.
+	(face_for_char): New args pos and object.
+	(make_fontset_for_ascii_face): Adjusted for the change of FONT_DEF
+	format.n
+	(fs_query_fontset): Check NAME by Fassoc too.
+	(Fset_fontset_font): Allow non-XLFD font name.
+	(Ffontset_info): Adjusted for the change of FONT_DEF format.
+
+	* fontset.h (face_for_char): Prototype adjusted.
+
+	* xdisp.c (face_before_or_after_it_pos): Call FACE_FOR_CHAR with
+	POS and OBJECT args.
+	(get_next_display_element): Likewise.
+	(append_space): Likewise.
+	(extend_face_to_end_of_line): Likewise.
+	(get_char_face_and_encoding): Likewise.
+	(BUILD_COMPOSITE_GLYPH_STRING): Likewise.
+	(x_produce_glyphs): Likewise.
+
+	* xfaces.c (compute_char_face): Call FACE_FOR_CHAR with
+	POS and OBJECT args.
+
+	* xterm.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with
+	POS and OBJECT args.
+
 2004-01-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Avoid potential realloc
