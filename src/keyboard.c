@@ -1910,9 +1910,15 @@ make_ctrl_char (c)
    WINDOW is the window in which the help was generated, if any.
    It is nil if not in a window.
 
-   OBJECT is the object where a `help-echo' property was found; POS
-   is the position within OBJECT where it was found.  OBJECT is nil
-   if HELP isn't from a `help-echo' text property.
+   If OBJECT is a buffer, POS is the position in the buffer where the
+   `help-echo' text property was found.
+
+   If OBJECT is an overlay, that overlay has a `help-echo' property,
+   and POS is the position in the overlay's buffer under the mouse.
+
+   If OBJECT is a string (an overlay string or a string displayed with
+   the `display' property).  POS is the position in that string under
+   the mouse.
 
    OK_TO_IVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
    echo overwrites a keystroke echo currently displayed in the echo
@@ -3172,9 +3178,9 @@ kbd_buffer_store_event (event)
    HELP is the help form.
 
    FRAME is the frame on which the help is generated.  OBJECT is the
-   Lisp object where the help was found (a buffer, a string, or nil if
-   neither from a string nor from a buffer.  POS is the position
-   within OBJECT where the help was found.
+   Lisp object where the help was found (a buffer, a string, an
+   overlay, or nil if neither from a string nor from a buffer.  POS is
+   the position within OBJECT where the help was found.
 
    Value is the number of input_events generated.  */
 
