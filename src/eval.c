@@ -163,6 +163,11 @@ int when_entered_debugger;
 
 Lisp_Object Vdebugger;
 
+/* The function from which the last `signal' was called.  Set in
+   Fsignal.  */
+
+Lisp_Object Vsignaling_function;
+
 void specbind (), record_unwind_protect ();
 
 Lisp_Object run_hook_with_args ();
@@ -1274,6 +1279,7 @@ See also the function `condition-case'.")
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   extern int display_busy_cursor_p;
+  struct backtrace *bp;
 
   immediate_quit = 0;
   if (gc_in_progress || waiting_for_input)
@@ -1296,6 +1302,14 @@ See also the function `condition-case'.")
     call2 (Vsignal_hook_function, error_symbol, data);
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
+
+  /* Remember from where signal was called.  Skip over the frame for
+     `signal' itself.  If a frame for `error' follows, skip that,
+     too.  */
+  bp = backtrace_list->next;
+  if (bp && bp->function && EQ (*bp->function, Qerror))
+    bp = bp->next;
+  Vsignaling_function = bp && bp->function ? *bp->function : Qnil;
 
   for (; handlerlist; handlerlist = handlerlist->next)
     {
@@ -3066,6 +3080,7 @@ If NFRAMES is more than the number of frames, the value is nil.")
       return Fcons (Qt, Fcons (*backlist->function, tem));
     }
 }
+
 
 void
 syms_of_eval ()
@@ -3197,6 +3212,8 @@ still determine whether to handle the particular condition.");
 
   staticpro (&Vautoload_queue);
   Vautoload_queue = Qnil;
+  staticpro (&Vsignaling_function);
+  Vsignaling_function = Qnil;
 
   defsubr (&Sor);
   defsubr (&Sand);
