@@ -22,17 +22,16 @@ and this notice must be preserved on all copies.  */
 
 /* The configuration script links system.h to a s- file that describes
    the system type you are using.
-   See the file ../etc/MACHINES for a list of systems and
+   See the file ../share-lib/MACHINES for a list of systems and
    the names of the s- files to use for them.
    See s-template.h for documentation on writing s- files.  */
-#include "system.h"
+#include "opsystem.h"
 
 /* The configuration script links machine.h to a m- file that
    describes the machine and system you use.
-   See the file ../etc/MACHINES for a list of machines and
+   See the file ../share-lib/MACHINES for a list of machines and
    the names of the m- files to use for them.
-   See m-template.h for info on what m- files should define.
-   */
+   See m-template.h for info on what m- files should define.  */
 #include "machine.h"
 
 /* Load in the conversion definitions if this system
@@ -48,18 +47,24 @@ and this notice must be preserved on all copies.  */
 
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
 
+#ifndef HAVE_X_WINDOWS
 /* #define HAVE_X_WINDOWS */
+#endif
 
 /* Define HAVE_X11 if you want to use version 11 of X windows.
    Otherwise, Emacs expects to use version 10.  */
 
-#define HAVE_X11
+#ifndef HAVE_X11
+/* #define HAVE_X11 */
+#endif
 
 /* Define HAVE_X_MENU if you want to use the X window menu system.
    This appears to work on some machines that support X
    and not on others.  */
 
+#ifndef HAVE_X_MENU
 /* #define HAVE_X_MENU */
+#endif
 
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
@@ -69,7 +74,7 @@ and this notice must be preserved on all copies.  */
 
 #ifndef VMS
 #ifndef USG
-#define subprocesses
+/* #define subprocesses */
 #endif
 #endif
 
@@ -90,50 +95,47 @@ and this notice must be preserved on all copies.  */
 
 /* #define AMPERSAND_FULL_NAME */
 
-/* Maximum screen width we handle. */
-
-#define MScreenWidth 300
-
-/* Maximum screen length we handle. */
-
-#define MScreenLength 300
-
-/* # bytes of pure Lisp code to leave space for.
-   Note that s-vms.h, m-sun2.h and m-sparc.h may override this default.  */
-
-#ifndef PURESIZE
-#ifdef HAVE_X_WINDOWS
-#define PURESIZE 122000
-#else
-#define PURESIZE 118000
-#endif
-#endif
-
 /* Define HIGHPRI as a negative number
    if you want Emacs to run at a higher than normal priority.
    For this to take effect, you must install Emacs with setuid root.
    Emacs will change back to the users's own uid after setting
    its priority.  */
 
+#ifndef HIGHPRI
 /* #define HIGHPRI */
+#endif
 
 /* support `getenv' and `setenv' in Emacs (unix only) */
-#define MAINTAIN_ENVIRONMENT
+
+#ifndef MAINTAIN_ENVIRONMENT
+/* #define MAINTAIN_ENVIRONMENT */
+#endif
 
 /* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
    numbers. */
 
+#ifndef LISP_FLOAT_TYPE
 /* #define LISP_FLOAT_TYPE */
+#endif
 
 /* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
 
+#ifndef GNU_MALLOC
 /* #define GNU_MALLOC */
+#endif
 
 /* Define REL_ALLOC if you want to use the relocating allocator for
    buffer space. */
 
+#ifndef REL_ALLOC
 /* #define REL_ALLOC */
+#endif
   
+/* If we're using any sort of window system, define MULTI_SCREEN.  */
+#ifdef HAVE_X_WINDOWS
+#define MULTI_SCREEN
+#endif
+
 /* Define LD_SWITCH_SITE to contain any special flags your loader may
    need.  For instance, if you've defined HAVE_X_WINDOWS above and your
    X libraries aren't in a place that your loader can find on its own,
@@ -147,3 +149,24 @@ and this notice must be preserved on all copies.  */
    own, you might want to add "-I/..." or something similar.  */
 
 /* #define C_SWITCH_SITE */
+
+/* Define this macro if you want to use 16-bit GLYPHs.  Currently this
+   option isn't terribly useful (the current distribution doesn't
+   support large characters in buffer text), so the configuration
+   script doesn't provide an option to select it.
+
+   A character is displayed on a given terminal by means of a sequence
+   of one or more GLYPHs.  A GLYPH is something that takes up exactly
+   one display position on the screen.
+
+   Emacs can use 8-bit or 16-bit values to represent GLYPHs.  Under X
+   windows, 16-bit GLYPHs allow you to display characters from fonts
+   too large to be indexed by 8 bits alone, but drawing with 16-bit GLYPHs 
+   is usually quite a bit slower than drawing with 8-bit GLYPHs.  */
+/* #define GLYPH_16_BIT */
+
+#ifdef GLYPH_16_BIT
+#define GLYPH unsigned short
+#else
+#define GLYPH unsigned char
+#endif
