@@ -3781,7 +3781,7 @@ x_connection_closed ()
   if (_Xdebug)
     abort ();
 
-  shut_down_emacs (0, 1);
+  shut_down_emacs (0, 1, Qnil);
 
   exit (70);
 }
