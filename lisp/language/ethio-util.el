@@ -832,14 +832,10 @@ and the body into FIDEL using `ethio-sera-to-fidel-region'."
 	border)
     (save-excursion
 
-      ;; look for the header-body separator
-      (goto-char (point-min))
-      (if (search-forward
-	   (if (eq major-mode 'rmail-mode)
-	       "\n\n" (concat "\n" mail-header-separator "\n"))
-	   nil t)
-	  (setq border (point))
-	(error "header separator not found"))
+      ;; follow RFC822 rules instead of looking for a fixed separator
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (setq border (point))
 
       ;; note that the point is placed at the border
       (if (or (re-search-forward "^<sera>$" nil t)
@@ -1225,15 +1221,11 @@ The very same procedure applies to the subject field, too."
 	border)
     (save-excursion
 
-      ;; look for the header-body separator
-      (goto-char (point-min))
-      (if (search-forward
-	   (if (eq major-mode 'rmail-mode)
-	       "\n\n" (concat "\n" mail-header-separator "\n"))
-	   nil t)
-	  (setq border (point))
-	(error "header separator not found"))
-			     
+      ;; follow RFC822 rules instead of looking for a fixed separator
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (setq border (point))
+
       ;; process body first not to change the border
       ;; note that the point is already at the border
       (if (re-search-forward "\\ce" nil t)
