@@ -1,3 +1,11 @@
+2000-10-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* editfns.c (save_excursion_save): Additionally record the
+	selected window.
+	(save_excursion_restore): If buffer was visible in a window, and a
+	different window was selected, and the old selected window is
+	still live, restore point in that window.
+
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (x_produce_glyphs): Handle
