@@ -189,27 +189,26 @@ satisfy the predicate VAR-PREDICATE."
 	(if (get (car tem) 'apropos-inhibit)
 	    (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
 	(setq tem (cdr tem))))
-    (if (apropos-print
-	 t
-	 (lambda (p)
-	   (let (doc symbol)
-	     (while p
-	       (setcar p (list
-			  (setq symbol (car p))
-			  (unless var-predicate
-			    (if (functionp symbol)
-				(if (setq doc (documentation symbol t))
-				    (substring doc 0 (string-match "\n" doc))
-				  "(not documented)")))
-			  (and var-predicate
-			       (funcall var-predicate symbol)
-			       (if (setq doc (documentation-property
-					      symbol 'variable-documentation t))
-				   (substring doc 0
-					      (string-match "\n" doc))))))
-	       (setq p (cdr p)))))
-	 nil)
-	(and message (message message)))))
+    (let ((p apropos-accumulator)
+	  doc symbol)
+      (while p
+	(setcar p (list
+		   (setq symbol (car p))
+		   (unless var-predicate
+		     (if (functionp symbol)
+			 (if (setq doc (documentation symbol t))
+			     (substring doc 0 (string-match "\n" doc))
+			   "(not documented)")))
+		   (and var-predicate
+			(funcall var-predicate symbol)
+			(if (setq doc (documentation-property
+				       symbol 'variable-documentation t))
+			    (substring doc 0
+				       (string-match "\n" doc))))))
+	(setq p (cdr p))))
+    (and (apropos-print t nil)
+	 message
+	 (message message))))
 
 
 ;;;###autoload
@@ -233,49 +232,49 @@ Returns list of symbols and documentation found."
       (if (get (car tem) 'apropos-inhibit)
 	  (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
       (setq tem (cdr tem))))
+  (let ((p apropos-accumulator)
+	symbol doc properties)
+    (while p
+      (setcar p (list
+		 (setq symbol (car p))
+		 (when (fboundp symbol)
+		   (if (setq doc (condition-case nil
+				     (documentation symbol t)
+				   (void-function
+				    "(alias for undefined function)")))
+		       (substring doc 0 (string-match "\n" doc))
+		     "(not documented)"))
+		 (when (boundp symbol)
+		   (if (setq doc (documentation-property
+				  symbol 'variable-documentation t))
+		       (substring doc 0 (string-match "\n" doc))
+		     "(not documented)"))
+		 (when (setq properties (symbol-plist symbol))
+		   (setq doc (list (car properties)))
+		   (while (setq properties (cdr (cdr properties)))
+		     (setq doc (cons (car properties) doc)))
+		   (mapconcat #'symbol-name (nreverse doc) " "))
+		 (when (get symbol 'widget-type)
+		   (if (setq doc (documentation-property
+				  symbol 'widget-documentation t))
+		       (substring doc 0
+				  (string-match "\n" doc))
+		     "(not documented)"))
+		 (when (facep symbol)
+		   (if (setq doc (documentation-property
+				  symbol 'face-documentation t))
+		       (substring doc 0
+				  (string-match "\n" doc))
+		     "(not documented)"))
+		 (when (get symbol 'custom-group)
+		   (if (setq doc (documentation-property
+				  symbol 'group-documentation t))
+		       (substring doc 0
+				  (string-match "\n" doc))
+		     "(not documented)"))))
+      (setq p (cdr p))))
   (apropos-print
    (or do-all apropos-do-all)
-   (lambda (p)
-     (let (symbol doc properties)
-       (while p
-	 (setcar p (list
-		    (setq symbol (car p))
-		    (when (fboundp symbol)
-                      (if (setq doc (condition-case nil
-                                        (documentation symbol t)
-                                      (void-function
-                                       "(alias for undefined function)")))
-			  (substring doc 0 (string-match "\n" doc))
-			"(not documented)"))
-		    (when (boundp symbol)
-		      (if (setq doc (documentation-property
-				     symbol 'variable-documentation t))
-			  (substring doc 0 (string-match "\n" doc))
-			"(not documented)"))
-		    (when (setq properties (symbol-plist symbol))
-		      (setq doc (list (car properties)))
-		      (while (setq properties (cdr (cdr properties)))
-			(setq doc (cons (car properties) doc)))
-		      (mapconcat #'symbol-name (nreverse doc) " "))
-		    (when (get symbol 'widget-type)
-		      (if (setq doc (documentation-property
-				     symbol 'widget-documentation t))
-			  (substring doc 0
-				     (string-match "\n" doc))
-			"(not documented)"))
-		    (when (facep symbol)
-		      (if (setq doc (documentation-property
-				     symbol 'face-documentation t))
-			  (substring doc 0
-				     (string-match "\n" doc))
-			"(not documented)"))
-		    (when (get symbol 'custom-group)
-		      (if (setq doc (documentation-property
-				     symbol 'group-documentation t))
-			  (substring doc 0
-				     (string-match "\n" doc))
-			"(not documented)"))))
-	 (setq p (cdr p)))))
    nil))
 
 
@@ -301,7 +300,7 @@ Returns list of symbols and values found."
 	(if (or f v p)
 	    (setq apropos-accumulator (cons (list symbol f v p)
 					    apropos-accumulator))))))
-  (apropos-print nil nil t))
+  (apropos-print nil t))
 
 
 ;;;###autoload
@@ -339,7 +338,7 @@ Returns list of symbols and documentation found."
 		       (setq apropos-accumulator
 			     (cons (list symbol f v)
 				   apropos-accumulator)))))))
-	  (apropos-print nil nil t))
+	  (apropos-print nil t))
       (kill-buffer standard-input))))
 
 
@@ -495,16 +494,15 @@ Will return nil instead."
 
 
 
-(defun apropos-print (do-keys doc-fn spacing)
-  "Output result of various apropos commands with `apropos-regexp'.
-APROPOS-ACCUMULATOR is a list.  Optional DOC-FN is called for each element
-of apropos-accumulator and may modify it resulting in (SYMBOL FN-DOC
-VAR-DOC [PLIST-DOC]).  Returns sorted list of symbols and documentation
-found."
+(defun apropos-print (do-keys spacing)
+  "Output result of apropos searching into buffer `*Apropos*'.
+The value of `apropos-accumulator' is the list of items to output.
+Each element should have the format (SYMBOL FN-DOC VAR-DOC [PLIST-DOC]).
+The return value is the list that was in `apropos-accumulator', sorted
+alphabetically by symbol name; but this function also sets
+`apropos-accumulator' to nil before returning."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-regexp)
-    (if doc-fn
-	(funcall doc-fn apropos-accumulator))
     (setq apropos-accumulator
 	  (sort apropos-accumulator (lambda (a b)
 				      (string-lessp (car a) (car b)))))
@@ -599,7 +597,8 @@ found."
 	  (apropos-print-doc 'customize-face-other-window 5 "Face" t)
 	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" t)
 	  (apropos-print-doc 'apropos-describe-plist 3
-			     "Plist" nil)))))
+			     "Plist" nil))
+	(setq buffer-read-only t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
