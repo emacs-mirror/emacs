@@ -274,8 +274,9 @@ Returns the count of paragraphs left to move."
 				   (not (looking-at parsep)))
 			    (not (and (looking-at parstart)
 				      (or (not use-hard-newlines)
-					  (get-text-property (1- start) 'hard)
-					  (bobp)))))
+					  (bobp)
+					  (get-text-property
+					   (1- start) 'hard)))))
 		  (setq found-start nil)
 		  (goto-char start))
 		found-start)

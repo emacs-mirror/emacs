@@ -1,3 +1,17 @@
+2004-10-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-toggle-header): Make it work even if
+	there's no visible header.
+
+2004-10-01  Simon Josefsson  <jas@extundo.com>
+
+	* mailcap.el (mailcap-mime-data): Add pdf.  Remove non-free
+	acroread.
+
+2004-09-29  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus.el (gnus-method-to-server): Oops, move it don't delete it.
+
 2004-09-28  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-picon.el: Require cl.

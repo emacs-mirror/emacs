@@ -124,6 +124,9 @@
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
 
+;; This file is not always loaded.  See note above.
+(cc-external-require 'cl)
+
 
 ;;; Setup for the `c-lang-defvar' system.
 

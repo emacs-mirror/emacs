@@ -5646,8 +5646,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	coding_allocate_composition_data (coding, from);
     }
 
-  /* Try to skip the heading and tailing ASCIIs.  */
-  if (coding->type != coding_type_ccl)
+  /* Try to skip the heading and tailing ASCIIs.  We can't skip them
+     if we must run CCL program or there are compositions to
+     encode.  */
+  if (coding->type != coding_type_ccl
+      && (! coding->cmp_data || coding->cmp_data->used == 0))
     {
       int from_byte_orig = from_byte, to_byte_orig = to_byte;
 
@@ -5663,6 +5666,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  if (!replace)
 	    /* We must record and adjust for this new text now.  */
 	    adjust_after_insert (from, from_byte_orig, to, to_byte_orig, len);
+	  coding_free_composition_data (coding);
 	  return 0;
 	}
 
@@ -6293,13 +6297,19 @@ encode_coding_string (str, coding, nocopy)
   if (coding->composing != COMPOSITION_DISABLED)
     coding_save_composition (coding, from, to, str);
 
-  /* Try to skip the heading and tailing ASCIIs.  */
-  if (coding->type != coding_type_ccl)
+  /* Try to skip the heading and tailing ASCIIs.  We can't skip them
+     if we must run CCL program or there are compositions to
+     encode.  */
+  if (coding->type != coding_type_ccl
+      && (! coding->cmp_data || coding->cmp_data->used == 0))
     {
       SHRINK_CONVERSION_REGION (&from, &to_byte, coding, SDATA (str),
 				1);
       if (from == to_byte)
-	return (nocopy ? str : Fcopy_sequence (str));
+	{
+	  coding_free_composition_data (coding);
+	  return (nocopy ? str : Fcopy_sequence (str));
+	}
       shrinked_bytes = from + (SBYTES (str) - to_byte);
     }
 

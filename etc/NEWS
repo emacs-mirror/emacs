@@ -382,18 +382,15 @@ This behavior is activated by setting the buffer-local variable
 this variable is found in `default-indicate-buffer-boundaries'.
 
 If value is `left' or `right', both angle and arrow bitmaps are
-displayed in the left or right fringe, resp.  Any other non-nil value
-causes the bitmap on the top line to be displayed in the left fringe,
-and the bitmap on the bottom line in the right fringe.
+displayed in the left or right fringe, resp.
 
-If value is a cons (ANGLES . ARROWS), the car specifies the position
-of the angle bitmaps, and the cdr specifies the position of the arrow
-bitmaps.
+Value may also be an alist which specifies the presense and position
+of each bitmap individually.
 
-For example, (t .  right) places the top angle bitmap in left fringe,
-the bottom angle bitmap in right fringe, and both arrow bitmaps in
-right fringe.  To show just the angle bitmaps in the left fringe, but
-no arrow bitmaps, use (left . nil).
+For example, ((top . left) (t .  right)) places the top angle bitmap
+in left fringe, the bottom angle bitmap in right fringe, and both
+arrow bitmaps in right fringe.  To show just the angle bitmaps in the
+left fringe, but no arrow bitmaps, use ((top . left) (bottom . left)).
 
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
@@ -2463,13 +2460,11 @@ use of the capabilities of the display.
 +++
 ** Customizable fringe bitmaps
 
-*** New function 'define-fringe-bitmap' can now be used to change the
-built-in fringe bitmaps, as well as create new fringe bitmaps.
-The return value is a number identifying the new fringe bitmap.
+*** New function 'define-fringe-bitmap' can now be used to create new
+fringe bitmaps, as well as change the built-in fringe bitmaps.
 
-To change a built-in bitmap, do (require 'fringe) and identify the
-bitmap to change with the value of the corresponding symbol, like
-`left-truncation-fringe-bitmap' or `continued-line-fringe-bitmap'.
+To change a built-in bitmap, do (require 'fringe) and use the symbol
+identifing the bitmap such as `left-truncation or `continued-line'.
 
 *** New function 'destroy-fringe-bitmap' may be used to destroy a
 previously created bitmap, or restore a built-in bitmap.
@@ -2484,7 +2479,7 @@ that can be used to show a specific bitmap in the left or right fringe
 bitmap of the display line.
 
 Format is 'display '(left-fringe BITMAP [FACE]), where BITMAP is a
-number identifying a fringe bitmap, either built-in or as returned by
+symbol identifying a fringe bitmap, either built-in or defined with
 `define-fringe-bitmap', and FACE is an optional face name to be used
 for displaying the bitmap.
 

@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Copyright (C) 1985, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -198,11 +198,14 @@ Args FROM and TO are optional; default is the whole buffer."
       (forward-line 1))
     (move-marker to nil)))
 
-(defun set-left-margin (from to lm)
+(defun set-left-margin (from to width)
   "Set the left margin of the region to WIDTH.
-If `auto-fill-mode' is active, re-fill the region to fit the new margin."
+If `auto-fill-mode' is active, re-fill the region to fit the new margin.
+
+Interactively, WIDTH is the prefix argument, if specified.
+Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet left margin to column: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
+  (if (interactive-p) (setq width (prefix-numeric-value width)))
   (save-excursion
     ;; If inside indentation, start from BOL.
     (goto-char from)
@@ -214,21 +217,24 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
     (setq to (point-marker)))
   ;; Delete margin indentation first, but keep paragraph indentation.
   (delete-to-left-margin from to)
-  (put-text-property from to 'left-margin lm)
-  (indent-rigidly from to lm)
+  (put-text-property from to 'left-margin width)
+  (indent-rigidly from to width)
   (if auto-fill-function (save-excursion (fill-region from to nil t t)))
   (move-marker to nil))
 
-(defun set-right-margin (from to lm)
+(defun set-right-margin (from to width)
   "Set the right margin of the region to WIDTH.
-If `auto-fill-mode' is active, re-fill the region to fit the new margin."
+If `auto-fill-mode' is active, re-fill the region to fit the new margin.
+
+Interactively, WIDTH is the prefix argument, if specified.
+Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet right margin to width: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
+  (if (interactive-p) (setq width (prefix-numeric-value width)))
   (save-excursion
     (goto-char from)
     (skip-chars-backward " \t")
     (if (bolp) (setq from (point))))
-  (put-text-property from to 'right-margin lm)
+  (put-text-property from to 'right-margin width)
   (if auto-fill-function (save-excursion (fill-region from to nil t t))))
 
 (defun alter-text-property (from to prop func &optional object)
