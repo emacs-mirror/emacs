@@ -1,5 +1,9 @@
 2000-12-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_cursor_movement): Fix last change.  The real
+	condition is that PT is at the end of the row, and should
+	be displayed at the start of the next row.
+	
 	* xdisp.c (try_cursor_movement): If we end on a partially
 	visible line, end we already decided to scroll, return -1.
 
