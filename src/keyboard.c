@@ -6841,14 +6841,16 @@ input_available_signal (signo)
   sigisheld (SIGIO);
 #endif
 
-  if (input_available_clear_time)
-    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
-
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
 #else
-
   SIGNAL_THREAD_CHECK (signo);
+#endif
+  
+  if (input_available_clear_time)
+    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+
+#ifndef SYNC_INPUT
   handle_async_input ();
 #endif
 

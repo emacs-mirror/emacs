@@ -1,3 +1,9 @@
+2004-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (input_available_signal): Call SIGNAL_THREAD_CHECK
+	before touching input_available_clear_time, to avoid accessing it
+	from multiple threads.
+
 2004-12-23  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behaviour
