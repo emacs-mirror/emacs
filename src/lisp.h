@@ -261,21 +261,14 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 /* Two flags that are set during GC.  On some machines, these flags
    are defined differently by the m- file.  */
 
-/* This is set in the car of a cons and in the plist slot of a symbol
-   to indicate it is marked.  Likewise in the plist slot of an interval,
-   the chain slot of a marker, the type slot of a float, and the name
-   slot of a buffer.
-
-   In strings, this bit in the size field indicates that the string
-   is a "large" one, one which was separately malloc'd
-   rather than being part of a string block.  */
+/* This is set in the car of a cons to indicate it is marked.
+   Likewise in the type slot of a float and in the size slot of strings.  */
 
 #ifndef MARKBIT
 #define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS)))
 #endif /*MARKBIT */
 
-/* In the size word of a vector, this bit means the vector has been marked.
-   In the size word of a large string, likewise.  */
+/* In the size word of a vector, this bit means the vector has been marked.  */
 
 #ifndef ARRAY_MARK_FLAG
 #define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
