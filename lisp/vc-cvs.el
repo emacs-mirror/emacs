@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.67 2004/01/20 17:41:18 uid65624 Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -89,12 +89,12 @@ and past information to determine the current status of a file.
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
 only stays local for hosts that match it.  Alternatively, the value
-can be a list of regular expressions where the first element is the 
-symbol `except'; then VC always stays local except for hosts matched 
+can be a list of regular expressions where the first element is the
+symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
                 (const :tag "Don't stay local" nil)
-                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
+                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
                        (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
                        (regexp :format " stay local,\n%t: %v" :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
@@ -590,7 +590,11 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg VERSION is a version to annotate from."
-  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version))))
+  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version)))
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (re-search-forward "^[0-9]")
+    (delete-region (point-min) (1- (point)))))
 
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
@@ -839,7 +843,7 @@ CVS/Entries should only be accessed through this function."
   (let ((coding-system-for-read (or file-name-coding-system
                                     default-file-name-coding-system)))
     (vc-insert-file (expand-file-name "CVS/Entries" dir))))
-     
+
 (defun vc-cvs-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."
   ;; According to the CVS manual, a valid symbolic tag must start with
@@ -929,7 +933,7 @@ is non-nil."
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
-		     (vc-cvs-parse-sticky-tag (match-string 4) 
+		     (vc-cvs-parse-sticky-tag (match-string 4)
                                               (match-string 5)))
     ;; Compare checkout time and modification time.
     ;; This is intentionally different from the algorithm that CVS uses
