@@ -231,37 +231,6 @@ Default value, nil, means edit the string instead.")
       (define-key map "\C-w" 'isearch-yank-word)
       (define-key map "\C-y" 'isearch-yank-line)
 
-      ;; Bind the ASCII-equivalent "function keys" explicitly to nil
-      ;; so that the default binding does not apply.
-      ;; As a result, these keys translate thru function-key-map
-      ;; as normal, and they have the effect of the equivalent ASCII char.
-      ;; We bind [escape] below.
-      (define-key map [tab] 'nil)
-      (define-key map [kp-0] 'nil)
-      (define-key map [kp-1] 'nil)
-      (define-key map [kp-2] 'nil)
-      (define-key map [kp-3] 'nil)
-      (define-key map [kp-4] 'nil)
-      (define-key map [kp-5] 'nil)
-      (define-key map [kp-6] 'nil)
-      (define-key map [kp-7] 'nil)
-      (define-key map [kp-8] 'nil)
-      (define-key map [kp-9] 'nil)
-      (define-key map [kp-add] 'nil)
-      (define-key map [kp-subtract] 'nil)
-      (define-key map [kp-multiply] 'nil)
-      (define-key map [kp-divide] 'nil)
-      (define-key map [kp-decimal] 'nil)
-      (define-key map [kp-separator] 'nil)
-      (define-key map [kp-equal] 'nil)
-      (define-key map [kp-tab] 'nil)
-      (define-key map [kp-space] 'nil)
-      (define-key map [kp-enter] 'nil)
-      (define-key map [delete] 'nil)
-      (define-key map [backspace] 'nil)
-      (define-key map [return] 'nil)
-      (define-key map [newline] 'nil)
-
       ;; Define keys for regexp chars * ? |.
       ;; Nothing special for + because it matches at least once.
       (define-key map "*" 'isearch-*-char)
@@ -1037,7 +1006,20 @@ and the meta character is unread so that it applies to editing the string."
   (let* ((key (this-command-keys))
 	 (main-event (aref key 0))
 	 (keylist (listify-key-sequence key)))
-    (cond (
+    (cond ((and (= (length key) 1)
+		(lookup-key function-key-map key))
+	   ;; Handle a function key that translates into something else.
+	   ;; If the key has a global definition too,
+	   ;; exit and unread the key itself, so its global definition runs.
+	   ;; Otherwise, unread the translation,
+	   ;; so that the translated key takes effect within isearch.
+	   (if (lookup-key global-map key)
+	       (progn 
+		 (isearch-done)
+		 (apply 'isearch-unread keylist))
+	     (apply 'isearch-unread
+		    (listify-key-sequence (lookup-key function-key-map key)))))
+	  (
 	   ;; Handle an undefined shifted control character
 	   ;; by downshifting it if that makes it defined.
 	   ;; (As read-key-sequence would normally do,
