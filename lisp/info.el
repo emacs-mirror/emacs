@@ -1919,37 +1919,38 @@ If no reference to follow, moves to the next node, or up if none."
       (Info-extract-pointer item)
     (error nil)))
 
-(easy-menu-define Info-mode-menu Info-mode-map
-		  "Menu for info files."
-		  '("Info"
-		    ["Up" Info-up (Info-check-pointer "up")
-		     :help "Go up in the Info tree"]
-		    ["Next" Info-next (Info-check-pointer "next")
-		     :help "Go to the next node"]
-		    ["Previous" Info-prev (Info-check-pointer "prev[ious]*")
-		     :help "Go to the previous node"]
-		    ["Backward" Info-backward-node t
-		     :help "Go backward one node, considering all as a sequence"]
-		    ["Forward" Info-forward-node t
-		     :help "Go forward one node, considering all as a sequence"]
-		    ["Top" Info-top-node t
-		     :help "Go to top node of file"]
-		    ["Final node" Info-final-node t
-		     :help "Go to final node in this file"]
-		    ("Menu item" ["You should never see this" report-emacs-bug t])
-		    ("Reference" ["You should never see this" report-emacs-bug t])
-		    ["Search..." Info-search t
-		     :help "Search for regular expression in this Info file"]
-		    ["Goto node..." Info-goto-node t
-		     :help "Go to a named node]"]
-		    ["Last" Info-last Info-history
-		     :help "Go to the last node you were at"]
-		    ("Index..."
-		     ["Lookup a String" Info-index t
-		      :help "Look for a string in the index items"]
-		     ["Next Matching Item" Info-index-next t
-		      :help "Look for another occurrence of previous item"])
-		    ["Exit" Info-exit t]))
+(easy-menu-define
+ Info-mode-menu Info-mode-map
+ "Menu for info files."
+ '("Info"
+   ["Up" Info-up :active (Info-check-pointer "up")
+    :help "Go up in the Info tree"]
+   ["Next" Info-next :active (Info-check-pointer "next")
+    :help "Go to the next node"]
+   ["Previous" Info-prev :active (Info-check-pointer "prev[ious]*")
+    :help "Go to the previous node"]
+   ["Backward" Info-backward-node
+    :help "Go backward one node, considering all as a sequence"]
+   ["Forward" Info-forward-node
+    :help "Go forward one node, considering all as a sequence"]
+   ["Top" Info-top-node
+    :help "Go to top node of file"]
+   ["Final Node" Info-final-node
+    :help "Go to final node in this file"]
+   ("Menu Item" ["You should never see this" report-emacs-bug t])
+   ("Reference" ["You should never see this" report-emacs-bug t])
+   ["Search..." Info-search
+    :help "Search for regular expression in this Info file"]
+   ["Goto Node..." Info-goto-node
+    :help "Go to a named node"]
+   ["Last" Info-last Info-history
+    :help "Go to the last node you were at"]
+   ("Index..."
+    ["Lookup a String" Info-index
+     :help "Look for a string in the index items"]
+    ["Next Matching Item" Info-index-next
+     :help "Look for another occurrence of previous item"])
+   ["Exit" Info-exit t]))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
@@ -1982,7 +1983,7 @@ If no reference to follow, moves to the next node, or up if none."
 	      (setq entries (cons ["Other..." Info-menu t] entries)))
 	  (or entries
 	      (setq entries (list ["No menu" nil nil])))
-	  (easy-menu-change '("Info") "Menu item" (nreverse entries)))
+	  (easy-menu-change '("Info") "Menu Item" (nreverse entries)))
 	;; Update reference menu.  Code stolen from `Info-follow-reference'.
 	(let ((items nil)
 	      str i entries current
