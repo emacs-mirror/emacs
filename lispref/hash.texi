@@ -205,6 +205,7 @@ table.
 @end defun
 
 @tindex maphash
+@anchor{Definition of maphash}
 @defun maphash function table
 This function calls @var{function} once for each of the associations in
 @var{table}.  The function @var{function} should accept two
