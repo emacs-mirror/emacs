@@ -38,12 +38,16 @@ existing support and the extra stuff at
 	ISO10646 fonts, Emacs checks their repertories to avoid such
 	fonts that don't have a glyph for a specific character.
 
+	fx has worked on fontset customization, but was stymied by
+	basic problems with the way the default face is dealt with
+	(and something else, I think).  This needs revisiting.
+
  * Work is also needed on charset and coding system priorities.
 
  * The relevant bits of latin1-disp.el need porting (and probably
    re-naming/updating).  See also cyril-util.el.
 
- * Quail files need more work now the encoding is irrelevant.
+ * Quail files need more work now the encoding is largely irrelevant.
 
  * What to do with the old coding categories stuff?
 
@@ -54,8 +58,6 @@ existing support and the extra stuff at
 
  * Implement Korean cp949/UHC, BIG5-HKSCS and any other important missing
    charsets.
-
- * Check up on definition of alternativnj.
 
  * Lazy-load tables for unify-charset somehow?
 
@@ -96,7 +98,7 @@ existing support and the extra stuff at
    specific to Unicode.)
 
  * Need multibyte text in menus, e.g. for the above.  (Not specific to
-   Unicode.)
+   Unicode -- see Emacs etc/TODO, but now mostly works with gtk.)
 
  * There's currently no support for Unicode normalization.
 
