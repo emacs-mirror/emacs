@@ -1,6 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmsu.c(trunk.10) $
+ * $HopeName: MMsrc!vmso.c(trunk.2) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -44,7 +44,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmsu.c(trunk.10) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.2) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -85,7 +85,7 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size)
+Res VMCreate(Space *spaceReturn, Size size, Addr base)
 {
   caddr_t addr;
   Align align;
@@ -100,6 +100,7 @@ Res VMCreate(Space *spaceReturn, Size size)
   AVER(SizeIsAligned(size, align));
   AVER(size != 0);
   AVER(size <= INT_MAX); /* see .assume.size */
+  AVER(base == NULL);
 
   zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)
