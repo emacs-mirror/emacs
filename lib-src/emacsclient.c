@@ -425,7 +425,7 @@ main (argc, argv)
       if (*argv[i] == '+')
 	{
 	  char *p = argv[i] + 1;
-	  while (isdigit (*p) || *p == ':') p++;
+	  while (isdigit ((unsigned char) *p) || *p == ':') p++;
 	  if (*p != 0)
 	    fprintf (out, "%s/", quote_file_name (cwd));
 	}
