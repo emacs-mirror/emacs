@@ -1,3 +1,10 @@
+2002-07-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-multi-file-name-structure-unified): Add
+	missing slash and move colon from start to end of each hop.
+	(tramp-multi-file-name-hop-structure-unified): Move colon from
+	start to end of each hop.
+
 2002-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/compile.el (grep-tree): Fixed autoload.

@@ -1024,9 +1024,9 @@ Also see `tramp-make-tramp-file-format', `tramp-file-name-structure', and `tramp
   :type 'string)
 
 (defconst tramp-multi-file-name-structure-unified
-  (list (concat "\\`\\([a-zA-Z0-9]+\\)\\)?" ;method
+  (list (concat "\\`/\\(\\([a-zA-Z0-9]+\\)?:\\)" ;method
 		"\\(\\(%s\\)+\\)"	;hops
-		":\\(.*\\)\\'")		;path
+		"\\(.*\\)\\'")		;path
 	2 3 -1)
   "Value for `tramp-multi-file-name-structure' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and Tramp.
@@ -1035,7 +1035,7 @@ See `tramp-file-name-structure-unified' for details.")
 (defconst tramp-file-name-structure-separate
   (list (concat
          ;; prefix
-         "\\`/\\[\\(\\([a-z0-9]+\\)\\)?"
+         "\\`/\\[\\(\\([a-z0-9]+\\)?\\)"
          ;; regexp specifying the hops
          "\\(\\(%s\\)+\\)"
          ;; path name
@@ -1079,9 +1079,9 @@ string, but I haven't actually tried what happens if it doesn't..."
                (integer :tag "Paren pair to match path")))
 
 (defconst tramp-multi-file-name-hop-structure-unified
-  (list (concat ":\\([a-zA-z0-9_]+\\):" ;hop method
+  (list (concat "\\([a-zA-z0-9_]+\\):" ;hop method
 		"\\([^@:/]+\\)@"	;user
-		"\\([^:/]+\\)")		;host
+		"\\([^:/]+\\):")	;host
 	1 2 3)
   "Value of `tramp-multi-file-name-hop-structure' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and Tramp.
