@@ -269,6 +269,9 @@ is okay.  See `mode-line-format'.")
 	"^Buffer .* doesn't exist$"
 	"^There is no file to merge$"
 	"^Version control package .*.el not found. Use vc.el instead$"
+	
+	;; cus-edit
+	"^No user options have changed defaults in recent Emacs versions$"
 
 	;; BBDB
 	"^no previous record$"

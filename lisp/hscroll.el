@@ -67,7 +67,8 @@ You must modify via \\[customize] for this variable to have an effect."
   :initialize 'custom-initialize-default
   :group 'hscroll
   :type 'boolean
-  :require 'hscroll)
+  :require 'hscroll
+  :version "20.3")
 
 (defcustom hscroll-margin 5 
   "*How many columns away from the edge of the window point is allowed to get

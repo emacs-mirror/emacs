@@ -278,7 +278,8 @@ error every time you do \\[msb]."
   "The sort key for files sorted by mode."
   :type 'integer
   :set 'msb-custom-set
-  :group 'msb)
+  :group 'msb
+  :version "20.3")
 
 (defcustom msb-separator-diff 100
   "*Non-nil means use separators.

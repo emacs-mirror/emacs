@@ -42,7 +42,8 @@ You must modify via \\[customize] for this variable to have an effect."
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'display-time
-  :require 'time)
+  :require 'time
+  :version "20.3")
 
 
 (defcustom display-time-mail-file nil

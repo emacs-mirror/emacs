@@ -89,7 +89,8 @@ You must modify via \\[customize] for this variable to have an effect."
 		 (const animate) (const exile) (const proteus)
 		 )
   :group 'avoid
-  :require 'avoid)
+  :require 'avoid
+  :version "20.3")
 
 
 (defcustom mouse-avoidance-nudge-dist 15

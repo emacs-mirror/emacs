@@ -141,7 +141,8 @@
   :set '(lambda (symbol value)
 	  (setq mail-abbrevs-mode value)
 	  (if value (mail-abbrevs-enable) (mail-abbrevs-disable)))
-  :initialize 'custom-initialize-default)
+  :initialize 'custom-initialize-default
+  :version "20.3")
 
 (defcustom mail-abbrevs-only nil
   "*Non-nil means only mail abbrevs should expand automatically.

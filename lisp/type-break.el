@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.13 1998/01/29 09:26:38 stephen Exp rms $
+;; $Id: type-break.el,v 1.14 1998/03/14 04:47:44 rms Exp done $
 
 ;; This file is part of GNU Emacs.
 
@@ -84,7 +84,8 @@ You must modify via \\[customize] for this variable to have an effect."
   :initialize 'custom-initialize-default  
   :type 'boolean
   :group 'type-break
-  :require 'type-break)
+  :require 'type-break
+  :version "20.3")
 
 ;;;###autoload
 (defcustom type-break-interval (* 60 60)
