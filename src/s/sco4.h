@@ -71,7 +71,12 @@ Boston, MA 02111-1307, USA.  */
 /* This is safe since we already assumed HAVE_SOCKET
    if using X windows.  */
 #undef LIBX11_SYSTEM
+/* Motif needs -lintl on some (maybe all) ofthese systems.  */
+#if defined (HAVE_LIBINTL) && defined (MOTIF)
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s -lsocket -lintl
+#else
 #define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s -lsocket
+#endif
 
 #ifdef HAVE_INET_SOCKETS /* This comes from autoconf.  */
 #define HAVE_SOCKETS
