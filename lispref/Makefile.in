@@ -40,7 +40,7 @@ MAKEINFO=makeinfo
 texinputdir = TEXINPUTS=$(srcdir):"$(TEXINPUTS)"
 
 # The name of the manual:
-VERSION=2.8
+VERSION=2.9
 manual = elisp-manual-21-$(VERSION)
 
 # Uncomment this line for permuted index.
