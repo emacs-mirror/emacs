@@ -1468,6 +1468,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
+     ("\\.com\\'" . dcl-mode)
      ;; Get rid of any trailing .n.m and try again.
      ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
      ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
