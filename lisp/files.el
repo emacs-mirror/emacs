@@ -2128,21 +2128,23 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 					     switches
 					   (mapconcat 'identity switches " ")
 					 " "
-					 pattern)))
+					 pattern))))
 	  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 	  ;; directory if FILE is a symbolic link.
 	  (apply 'call-process
 		 insert-directory-program nil t nil
 		 (let (list)
-		   (if (consp switches)
+		   (if (listp switches)
 		       (setq list switches)
-		     ;; Split the switches at any spaces
-		     ;; so we can pass separate options as separate args.
-		     (while (string-match " " switches)
-		       (setq list (cons (substring switches 0 (match-beginning 0))
-					list)
-			     switches (substring switches (match-end 0))))
-		     (setq list (cons switches list)))
+		     (if (not (equal switches ""))
+			 (progn
+			   ;; Split the switches at any spaces
+			   ;; so we can pass separate options as separate args.
+			   (while (string-match " " switches)
+			     (setq list (cons (substring switches 0 (match-beginning 0))
+					      list)
+				   switches (substring switches (match-end 0))))
+			   (setq list (cons switches list)))))
 		   (append list
 			   (list
 			    (if full-directory-p
