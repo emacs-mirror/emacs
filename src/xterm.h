@@ -79,6 +79,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #endif
 
+#ifdef XlibSpecificationRelease
+#if XlibSpecificationRelease >= 6
+#define HAVE_X11R6 1
+#endif
+#endif
+
 #ifdef HAVE_X11R5
 #define HAVE_X_I18N
 #include <X11/Xlocale.h>
