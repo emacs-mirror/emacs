@@ -457,6 +457,47 @@ LOAD should be either a library file name, or a feature name."
     (unless (member load loads)
       (put symbol 'custom-loads (cons (purecopy load) loads)))))
 
+;;; Loading files needed to customize a symbol.
+;;; This is in custom.el because menu-bar.el needs it for toggle cmds.
+
+(defvar custom-load-recursion nil
+  "Hack to avoid recursive dependencies.")
+
+(defun custom-load-symbol (symbol)
+  "Load all dependencies for SYMBOL."
+  (unless custom-load-recursion
+    (let ((custom-load-recursion t)
+	  (loads (get symbol 'custom-loads))
+	  load)
+      (while loads
+	(setq load (car loads)
+	      loads (cdr loads))
+	(cond ((symbolp load)
+	       (condition-case nil
+		   (require load)
+		 (error nil)))
+	      ;; Don't reload a file already loaded.
+	      ((and (boundp 'preloaded-file-list)
+		    (member load preloaded-file-list)))
+	      ((assoc load load-history))
+	      ;; This was just (assoc (locate-library load) load-history)
+	      ;; but has been optimized not to load locate-library
+	      ;; if not necessary.
+	      ((let (found (regexp (regexp-quote load)))
+		 (dolist (loaded load-history)
+		   (and (string-match regexp (car loaded))
+			(eq (locate-library load) (car loaded))
+			(setq found t)))
+		 found))
+	      ;; Without this, we would load cus-edit recursively.
+	      ;; We are still loading it when we call this,
+	      ;; and it is not in load-history yet.
+	      ((equal load "cus-edit"))
+	      (t
+	       (condition-case nil
+		   (load-library load)
+		 (error nil))))))))
+
 ;;; Initializing.
 
 (defvar custom-local-buffer nil
