@@ -1,3 +1,17 @@
+2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	These changes avoid warnings from the byte compiler in faces.el:
+	
+	* faces.el (internal-get-face): Use facep instead of the obsolete
+	internal-find-face.
+	(internal-frob-font-weight, internal-frob-font-slant): New
+	defailiases for obsolete functions.
+	(x-make-font-bold, x-make-font-demibold, x-make-font-unbold) 
+	(x-make-font-italic, x-make-font-oblique, x-make-font-unitalic) 
+	(x-make-font-bold-italic): Use internal-frob-font-weight and
+	internal-frob-font-slant aliases instead of the obsolete
+	x-frob-... functions.
+
 2001-10-26  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/sgml-mode.el (html-mode): Set `html-xhtml' from the
