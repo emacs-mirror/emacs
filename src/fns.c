@@ -1186,7 +1186,7 @@ If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 Characters 0200 through 0237 are converted to eight-bit-control
 characters of the same character code.  Characters 0240 through 0377
-are converted to eight-bit-control characters of the same character
+are converted to eight-bit-graphic characters of the same character
 codes.  */)
      (string)
      Lisp_Object string;
