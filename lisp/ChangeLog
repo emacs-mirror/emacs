@@ -1,3 +1,11 @@
+2000-05-14  Dave Love  <fx@gnu.org>
+
+	* viet-util.el, thai-util.el, tibet-util.el.elc, slovak.el
+	* misc-lang.el, romanian.el, korea-util.el.elc, lao-util.el
+	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
+	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
+	Remove all the setup-...-environment functions.
+
 2000-05-13  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* speedbar.el: Updated the commentary section.
