@@ -1,5 +1,7 @@
 2001-07-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* font-lock.el (c++-keywords): Add Standard C++ operator names.
+
 	* mail/mh-utils.el (mh-find-progs): Also search in `lib'.
 	From Mats Bengtsson <mats.bengtsson@s3.kth.se>,
 	

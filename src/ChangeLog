@@ -1,5 +1,8 @@
 2001-07-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_window): Don't set the cursor at the end
+	of the update if display update has been paused.
+
 	* composite.h (syms_of_composite): Renamed from
 	syms_of_composition.
 
