@@ -3,8 +3,8 @@
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
-;; Author: Jim Salem <salem@think.com> and Brewster Kahle <brewster@think.com>
-;;   of Thinking Machines Inc.
+;; Author: Jim Salem <salem@think.com> of Thinking Machines Inc.
+;;  (ideas suggested by Brewster Kahle)
 
 ;; This file is part of GNU Emacs.
 
