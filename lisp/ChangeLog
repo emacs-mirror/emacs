@@ -1,3 +1,7 @@
+2000-01-05  Andreas Schwab  <schwab@suse.de>
+
+	* hscroll.el (hscroll): Doc fix.
+
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
 	* progmodes/idlw-shell.el (idlwave-shell-toggle-toolbar): require
