@@ -26,15 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Sam Kendall added C++.
  */
 
-#include <stdio.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include "../src/config.h"
 #undef static
-
-#include "getopt.h"
 
 /* AIX requires this to be the first thing in the file. */
 #ifdef __GNUC__
@@ -52,6 +45,13 @@ char *alloca ();
 #endif /* not _AIX */
 #endif /* not HAVE_ALLOCA_H */
 #endif /* not __GNUC__ */
+
+#include <stdio.h>
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "getopt.h"
 
 extern char *malloc (), *realloc ();
 extern char *getenv ();
