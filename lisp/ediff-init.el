@@ -816,7 +816,8 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
     (setq overlay extent-or-window))
   (let ((is-current (ediff-overlay-get overlay 'ediff))
 	(face (ediff-overlay-get overlay 'face))
-	(diff-num (ediff-overlay-get overlay 'ediff-diff-num)))
+	(diff-num (ediff-overlay-get overlay 'ediff-diff-num))
+	face-help)
 
     ;; This happens only for refinement overlays
     (if (stringp face)
