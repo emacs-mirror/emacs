@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.121 2000/10/02 12:02:37 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.122 2000/10/04 09:50:21 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -508,7 +508,7 @@ be backed up locally.  The default is to switch off this feature."
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
-  (interactive (list buffer-file-name nil))
+  (interactive (list buffer-file-name))
   (unless (not (vc-backend file))
     (setq vc-mode (concat " " (if vc-display-status
 				  (vc-call mode-line-string file)
