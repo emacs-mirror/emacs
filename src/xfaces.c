@@ -1,5 +1,6 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001
+   Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -2296,24 +2297,12 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
      int nfonts, try_alternatives_p;
      int scalable_fonts_p;
 {
-  int n, i, j;
-  char **names;
-#ifdef HAVE_X_WINDOWS
-  Display *dpy = f ? FRAME_X_DISPLAY (f) : x_display_list->display;
+  int n;
 
-  /* Get the list of fonts matching PATTERN from the X server.  */
-  BLOCK_INPUT;
-  names = XListFonts (dpy, pattern, nfonts, &n);
-  UNBLOCK_INPUT;
-#endif /* HAVE_X_WINDOWS */
-#if defined (WINDOWSNT) || defined (macintosh)
   /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
      better to do it the other way around. */
   Lisp_Object lfonts;
   Lisp_Object lpattern, tem;
-
-  n = 0;
-  names = NULL;
 
   lpattern = build_string (pattern);
 
@@ -2321,74 +2310,46 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
   BLOCK_INPUT;
 #ifdef WINDOWSNT
   lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
-#else /* macintosh */
-  lfonts = x_list_fonts (f, lpattern, 0, nfonts);
+#else
+  lfonts = x_list_fonts (f, lpattern, -1, nfonts);
 #endif
   UNBLOCK_INPUT;
 
-  /* Count fonts returned */
+  /* Make a copy of the font names we got from X, and
+     split them into fields.  */
+  n = 0;
   for (tem = lfonts; CONSP (tem); tem = XCDR (tem))
-    n++;
-
-  /* Allocate array.  */
-  if (n)
-    names = (char **) xmalloc (n * sizeof (char *));
-
-  /* Extract font names into char * array.  */
-  tem = lfonts;
-  for (i = 0; i < n; i++)
     {
-      names[i] = XSTRING (XCAR (tem))->data;
-      tem = XCDR (tem);
-    }
-#endif /* defined (WINDOWSNT) || defined (macintosh) */
+      Lisp_Object elt, tail;
+      char *name = XSTRING (XCAR (tem))->data;
 
-  if (names)
-    {
-      /* Make a copy of the font names we got from X, and
-	 split them into fields.  */
-      for (i = j = 0; i < n; ++i)
+      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object elt, tail;
-
-	  for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
-	    {
-	      elt = XCAR (tail);
-	      if (STRINGP (elt)
-		  && fast_c_string_match_ignore_case (elt, names[i]) >= 0)
-		break;
-	    }
-	  if (!NILP (tail))
-	    continue;
-
-	  /* Make a copy of the font name.  */
-	  fonts[j].name = xstrdup (names[i]);
-
-	  /* Ignore fonts having a name that we can't parse.  */
-	  if (!split_font_name (f, fonts + j, 1))
-	    xfree (fonts[j].name);
-	  else if (font_scalable_p (fonts + j))
-	    {
-	      if (!scalable_fonts_p
-		  || !may_use_scalable_font_p (fonts + j, names[i]))
-		xfree (fonts[j].name);
-	      else
-		++j;
-	    }
-	  else
-	    ++j;
+	  elt = XCAR (tail);
+	  if (STRINGP (elt)
+	      && fast_c_string_match_ignore_case (elt, name) >= 0)
+	    break;
 	}
+      if (!NILP (tail))
+	continue;
 
-      n = j;
+      /* Make a copy of the font name.  */
+      fonts[n].name = xstrdup (name);
 
-#ifdef HAVE_X_WINDOWS
-      /* Free font names.  */
-      BLOCK_INPUT;
-      XFreeFontNames (names);
-      UNBLOCK_INPUT;
-#endif
+      /* Ignore fonts having a name that we can't parse.  */
+      if (!split_font_name (f, fonts + n, 1))
+	xfree (fonts[n].name);
+      else if (font_scalable_p (fonts + n))
+	{
+	  if (!scalable_fonts_p
+	      || !may_use_scalable_font_p (fonts + n, name))
+	    xfree (fonts[n].name);
+	  else
+	    ++n;
+	}
+      else
+	++n;
     }
-
 
   /* If no fonts found, try patterns from Valternate_fontname_alist.  */
   if (n == 0 && try_alternatives_p)
