@@ -43,9 +43,13 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
+** In Cperl mode `cperl-invalid-face' should now be a normal face
+symbol, not double-quoted.
+
 ** Some packages are declared obsolete, to be removed in a future
-version.  They are:  auto-show, c-mode, hscroll, ooutline.  Their
-implementations have been moved to lisp/obsolete.
+version.  They are:  auto-show, c-mode, hilit19, hscroll, ooutline,
+rnews, rnewspost.  Their implementations have been moved to
+lisp/obsolete.
 
 +++
 ** The new Custom option `keyboard-coding-system' specifies a coding
