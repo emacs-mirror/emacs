@@ -130,14 +130,14 @@
 
 (if window-system
     (progn
-      (setq blink-paren-function nil)
+      (setq blink-matching-paren-on-screen nil)
       (add-hook 'post-command-idle-hook 'show-paren-command-hook)))
 ;;; This is in case paren.el is preloaded.
 (add-hook 'window-setup-hook
 	  (function (lambda ()
 		      (if window-system
 			  (progn
-			    (setq blink-paren-function nil)
+			    (setq blink-matching-paren-on-screen nil)
 			    (add-hook 'post-command-idle-hook
 				      'show-paren-command-hook))))))
 (provide 'paren)
