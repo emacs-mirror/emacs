@@ -4056,153 +4056,117 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
   Lisp_Object prop, overlay, tail;
   /* 1 if this change is an insertion.  */
   int insertion = (after ? XFASTINT (arg3) == 0 : EQ (start, end));
-  int tail_copied;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   overlay = Qnil;
   tail = Qnil;
-  GCPRO5 (overlay, tail, arg1, arg2, arg3);
 
-  if (after)
+  if (!after)
     {
-      /* Call the functions recorded in last_overlay_modification_hooks
-	 rather than scanning the overlays again.
-	 First copy the vector contents, in case some of these hooks
-	 do subsequent modification of the buffer.  */
-      int size = last_overlay_modification_hooks_used;
-      Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
-      int i;
-
-      bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
-	     copy, size * sizeof (Lisp_Object));
-      gcpro1.var = copy;
-      gcpro1.nvars = size;
-
-      for (i = 0; i < size;)
+      /* We are being called before a change.
+	 Scan the overlays to find the functions to call.  */
+      last_overlay_modification_hooks_used = 0;
+      for (tail = current_buffer->overlays_before;
+	   CONSP (tail);
+	   tail = XCDR (tail))
 	{
-	  Lisp_Object prop, overlay;
-	  prop = copy[i++];
-	  overlay = copy[i++];
-	  call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
-	}
-      UNGCPRO;
-      return;
-    }
+	  int startpos, endpos;
+	  Lisp_Object ostart, oend;
 
-  /* We are being called before a change.
-     Scan the overlays to find the functions to call.  */
-  last_overlay_modification_hooks_used = 0;
-  tail_copied = 0;
-  for (tail = current_buffer->overlays_before;
-       CONSP (tail);
-       tail = XCDR (tail))
-    {
-      int startpos, endpos;
-      Lisp_Object ostart, oend;
+	  overlay = XCAR (tail);
 
-      overlay = XCAR (tail);
-
-      ostart = OVERLAY_START (overlay);
-      oend = OVERLAY_END (overlay);
-      endpos = OVERLAY_POSITION (oend);
-      if (XFASTINT (start) > endpos)
-	break;
-      startpos = OVERLAY_POSITION (ostart);
-      if (insertion && (XFASTINT (start) == startpos
-			|| XFASTINT (end) == startpos))
-	{
-	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
-	  if (!NILP (prop))
+	  ostart = OVERLAY_START (overlay);
+	  oend = OVERLAY_END (overlay);
+	  endpos = OVERLAY_POSITION (oend);
+	  if (XFASTINT (start) > endpos)
+	    break;
+	  startpos = OVERLAY_POSITION (ostart);
+	  if (insertion && (XFASTINT (start) == startpos
+			    || XFASTINT (end) == startpos))
 	    {
-	      /* Copy TAIL in case the hook recenters the overlay lists.  */
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	      prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
+	    }
+	  if (insertion && (XFASTINT (start) == endpos
+			    || XFASTINT (end) == endpos))
+	    {
+	      prop = Foverlay_get (overlay, Qinsert_behind_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
+	    }
+	  /* Test for intersecting intervals.  This does the right thing
+	     for both insertion and deletion.  */
+	  if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
+	    {
+	      prop = Foverlay_get (overlay, Qmodification_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
 	    }
 	}
-      if (insertion && (XFASTINT (start) == endpos
-			|| XFASTINT (end) == endpos))
-	{
-	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
-	  if (!NILP (prop))
-	    {
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
-	    }
-	}
-      /* Test for intersecting intervals.  This does the right thing
-	 for both insertion and deletion.  */
-      if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
-	{
-	  prop = Foverlay_get (overlay, Qmodification_hooks);
-	  if (!NILP (prop))
-	    {
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
-	    }
-	}
-    }
 
-  tail_copied = 0;
-  for (tail = current_buffer->overlays_after;
-       CONSP (tail);
-       tail = XCDR (tail))
-    {
-      int startpos, endpos;
-      Lisp_Object ostart, oend;
+      for (tail = current_buffer->overlays_after;
+	   CONSP (tail);
+	   tail = XCDR (tail))
+	{
+	  int startpos, endpos;
+	  Lisp_Object ostart, oend;
 
-      overlay = XCAR (tail);
+	  overlay = XCAR (tail);
 
-      ostart = OVERLAY_START (overlay);
-      oend = OVERLAY_END (overlay);
-      startpos = OVERLAY_POSITION (ostart);
-      endpos = OVERLAY_POSITION (oend);
-      if (XFASTINT (end) < startpos)
-	break;
-      if (insertion && (XFASTINT (start) == startpos
-			|| XFASTINT (end) == startpos))
-	{
-	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
-	  if (!NILP (prop))
+	  ostart = OVERLAY_START (overlay);
+	  oend = OVERLAY_END (overlay);
+	  startpos = OVERLAY_POSITION (ostart);
+	  endpos = OVERLAY_POSITION (oend);
+	  if (XFASTINT (end) < startpos)
+	    break;
+	  if (insertion && (XFASTINT (start) == startpos
+			    || XFASTINT (end) == startpos))
 	    {
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	      prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
 	    }
-	}
-      if (insertion && (XFASTINT (start) == endpos
-			|| XFASTINT (end) == endpos))
-	{
-	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
-	  if (!NILP (prop))
+	  if (insertion && (XFASTINT (start) == endpos
+			    || XFASTINT (end) == endpos))
 	    {
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	      prop = Foverlay_get (overlay, Qinsert_behind_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
 	    }
-	}
-      /* Test for intersecting intervals.  This does the right thing
-	 for both insertion and deletion.  */
-      if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
-	{
-	  prop = Foverlay_get (overlay, Qmodification_hooks);
-	  if (!NILP (prop))
+	  /* Test for intersecting intervals.  This does the right thing
+	     for both insertion and deletion.  */
+	  if (XFASTINT (end) > startpos && XFASTINT (start) < endpos)
 	    {
-	      if (!tail_copied)
-		tail = Fcopy_sequence (tail);
-	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	      prop = Foverlay_get (overlay, Qmodification_hooks);
+	      if (!NILP (prop))
+		add_overlay_mod_hooklist (prop, overlay);
 	    }
 	}
     }
 
+  GCPRO4 (overlay, arg1, arg2, arg3);
+  {
+    /* Call the functions recorded in last_overlay_modification_hooks.
+       First copy the vector contents, in case some of these hooks
+       do subsequent modification of the buffer.  */
+    int size = last_overlay_modification_hooks_used;
+    Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
+    int i;
+
+    bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
+	   copy, size * sizeof (Lisp_Object));
+    gcpro1.var = copy;
+    gcpro1.nvars = size;
+
+    for (i = 0; i < size;)
+      {
+	Lisp_Object prop, overlay;
+	prop = copy[i++];
+	overlay = copy[i++];
+	call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+      }
+  }
   UNGCPRO;
 }
 
@@ -4215,8 +4179,6 @@ call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   GCPRO4 (list, arg1, arg2, arg3);
-  if (! after)
-    add_overlay_mod_hooklist (list, overlay);
 
   while (CONSP (list))
     {
