@@ -46,7 +46,7 @@
 ;; Silence the compiler.
 (cc-bytecomp-defun get-char-table)	; XEmacs 20+
 (cc-bytecomp-defun char-table-range)	; Emacs 19+
-;; (cc-bytecomp-defun char-table-p)	; Emacs 19+, XEmacs 20+
+(cc-bytecomp-defun char-table-p)	; Emacs 19+, XEmacs 20+
 
 ;; Pull in custom if it exists and is recent enough (the one in Emacs
 ;; 19.34 isn't).
