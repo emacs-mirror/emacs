@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'custom)
   (require 'cl))
 
 (require 'cus-face)
@@ -536,6 +535,7 @@ will be used.
 For compatibility with Emacs 20, keywords `:bold' and `:italic' can
 be used to specify that a bold or italic font should be used.  VALUE
 must be t or nil in that case.  A value of `unspecified' is not allowed."
+  (setq args (purecopy args))
   (cond ((null frame)
 	 ;; Change face on all frames.
 	 (dolist (frame (frame-list))
@@ -555,7 +555,7 @@ must be t or nil in that case.  A value of `unspecified' is not allowed."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font weight."
-  (interactive (list (read-face-name "Make which face bold: ")))
+  (interactive (list (read-face-name "Make which face bold ")))
   (set-face-attribute face frame :weight 'bold))
 
 
@@ -563,7 +563,7 @@ Use `set-face-attribute' for finer control of the font weight."
   "Make the font of FACE be non-bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
-  (interactive (list (read-face-name "Make which face non-bold: ")))
+  (interactive (list (read-face-name "Make which face non-bold ")))
   (set-face-attribute face frame :weight 'normal))
 
   
@@ -572,14 +572,14 @@ Argument NOERROR is ignored and retained for compatibility."
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font slant."
-  (interactive (list (read-face-name "Make which face italic: ")))
+  (interactive (list (read-face-name "Make which face italic ")))
   (set-face-attribute face frame :slant 'italic))
 
 
 (defun make-face-unitalic (face &optional frame noerror)
   "Make the font of FACE be non-italic, if possible.
 FRAME nil or not specified means change face on all frames."
-  (interactive (list (read-face-name "Make which face non-italic: ")))
+  (interactive (list (read-face-name "Make which face non-italic ")))
   (set-face-attribute face frame :slant 'normal))
 
   
@@ -703,7 +703,7 @@ FRAME nil or not specified means change face on all frames.
 If FACE specifies neither foreground nor background color,
 set its foreground and background to the background and foreground
 of the default face.  Value is FACE."
-  (interactive (list (read-face-name "Invert face: ")))
+  (interactive (list (read-face-name "Invert face ")))
   (let ((fg (face-attribute face :foreground frame))
 	(bg (face-attribute face :background frame)))
     (if (or fg bg)
@@ -725,8 +725,14 @@ of the default face.  Value is FACE."
 Value is a symbol naming a known face."
   (let ((face-list (mapcar #'(lambda (x) (cons (symbol-name x) x))
 			   (face-list)))
+	(def (thing-at-point 'symbol))
 	face)
-    (while (equal "" (setq face (completing-read prompt face-list nil t))))
+    (cond ((assoc def face-list)
+	   (setq prompt (concat prompt "(default " def "): ")))
+	  (t (setq def nil)
+	     (setq prompt (concat prompt ": "))))
+    (while (equal "" (setq face (completing-read
+				 prompt face-list nil t nil nil def))))
     (intern face)))
 
 
@@ -911,7 +917,7 @@ Value is a property list of attribute names and new values."
 If optional argument FRAME is nil or omitted, modify the face used
 for newly created frame, i.e. the global face."
   (interactive)
-  (let ((face (read-face-name "Modify face: ")))
+  (let ((face (read-face-name "Modify face ")))
     (apply #'set-face-attribute face frame
 	   (read-all-face-attributes face frame))))
 
@@ -923,13 +929,13 @@ FRAME nil or unspecified means read attribute value of global face.
 Value is a list (FACE NEW-VALUE) where FACE is the face read
 (a symbol), and NEW-VALUE is value read."
   (cond ((eq attribute :font)
-	 (let* ((prompt (format "Set font-related attributes of face: "))
+	 (let* ((prompt (format "Set font-related attributes of face "))
 		(face (read-face-name prompt))
 		(font (read-face-font face frame)))
 	   (list face font)))
 	(t
 	 (let* ((attribute-name (face-descriptive-attribute-name attribute))
-		(prompt (format "Set %s of face: " attribute-name))
+		(prompt (format "Set %s of face " attribute-name))
 		(face (read-face-name prompt))
 		(new-value (read-face-attribute face attribute frame)))
 	   (list face new-value)))))
@@ -956,17 +962,37 @@ The sample text is a string that comes from the variable
   (let ((faces (sort (face-list) #'string-lessp))
 	(face nil)
 	(frame (selected-frame))
-	disp-frame window)
+	disp-frame window face-name)
     (with-output-to-temp-buffer "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
 	(setq truncate-lines t)
+	(insert
+	 (substitute-command-keys
+	  (concat
+	   "Use "
+	   (if window-system "\\[help-follow-mouse] or ")
+	   "\\[help-follow] or on a face name to customize it\n"
+	   "or on its sample text for a decription of the face.\n\n")))
+	(setq help-xref-stack nil)
 	(while faces
 	  (setq face (car faces))
 	  (setq faces (cdr faces))
-	  (insert (format "%25s " (face-name face)))
+	  (setq face-name (symbol-name face))
+	  (insert (format "%25s " face-name))
+	  ;; Hyperlink to a customization buffer for the face.  Using
+	  ;; the help xref mechanism may not be the best way.
+	  (save-excursion
+	    (save-match-data
+	      (search-backward face-name)
+	      (help-xref-button 0 #'customize-face face-name)))
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
+	    ;; Hyperlink to a help buffer for the face.
+	    (save-excursion
+	      (save-match-data
+		(search-backward list-faces-sample-text)
+		(help-xref-button 0 #'describe-face face)))
 	    (insert "\n")
 	    (put-text-property beg (1- (point)) 'face face)
 	    ;; If the sample text has multiple lines, line up all of them.
@@ -995,7 +1021,7 @@ The sample text is a string that comes from the variable
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face: ")))
+  (interactive (list (read-face-name "Describe face ")))
   (let* ((attrs '((:family . "Family")
 		  (:width . "Width")
 		  (:height . "Height")
@@ -1458,6 +1484,7 @@ created."
      (:inverse-video t)))
   "Basic mode line face."
   :version "21.1"
+  :group 'modeline
   :group 'basic-faces)
 
 ;; Make `modeline' an alias for `mode-line', for compatibility.
@@ -1506,12 +1533,14 @@ created."
      (:background "gray")))
   "Basic face for the fringes to the left and right of windows under X."
   :version "21.1"
+  :group 'frames
   :group 'basic-faces)
 
 
 (defface scroll-bar '()
   "Basic face for the scroll bar colors under X."
   :version "21.1"
+  :group 'frames
   :group 'basic-faces)
 
 
@@ -1520,24 +1549,28 @@ created."
     (t (:inverse-video t)))
   "Basic menu face."
   :version "21.1"
+  :group 'menu
   :group 'basic-faces)
 
 
 (defface border '()
   "Basic face for the frame border under X."
   :version "21.1"
+  :group 'frames
   :group 'basic-faces)
 
 
 (defface cursor '()
   "Basic face for the cursor color under X."
   :version "21.1"
+  :group 'cursor
   :group 'basic-faces)
 
 
 (defface mouse '()
   "Basic face for the mouse color under X."
   :version "21.1"
+  :group 'mouse
   :group 'basic-faces)
 
 
@@ -1603,6 +1636,7 @@ created."
     (t (:inverse-video t)))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
+  :group 'font-lock			; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 
