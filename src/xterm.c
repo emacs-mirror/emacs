@@ -4058,8 +4058,6 @@ x_draw_image_foreground (s)
 	}
       else
 	{
-	  unsigned long mask = GCClipXOrigin | GCClipYOrigin | GCFunction;
-	  XGCValues xgcv;
 	  XRectangle clip_rect, image_rect, r;
 
 	  x_get_glyph_string_clip_rect (s, &clip_rect);
@@ -5298,7 +5296,7 @@ x_insert_glyphs (start, len)
   int line_height, shift_by_width, shifted_region_width;
   struct glyph_row *row;
   struct glyph *glyph;
-  int frame_x, frame_y, hpos, real_start, real_end;
+  int frame_x, frame_y, hpos;
 
   xassert (updated_window && updated_row);
   BLOCK_INPUT;
@@ -7895,7 +7893,6 @@ glyph_rect (f, x, y, rect)
       struct window *w = XWINDOW (window);
       struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
       struct glyph_row *end = r + w->current_matrix->nrows - 1;
-      int area;
 
       frame_to_window_pixel_xy (w, &x, &y);
       
