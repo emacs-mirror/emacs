@@ -114,6 +114,8 @@ static void mark_object (), mark_buffer ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
 
+/* Versions of malloc and realloc that print warnings as memory gets full.  */
+
 Lisp_Object
 malloc_warning_1 (str)
      Lisp_Object str;
@@ -179,6 +181,8 @@ xrealloc (block, size)
   return val;
 }
 
+/* Interval allocation.  */
+
 #ifdef USE_TEXT_PROPERTIES
 #define INTERVAL_BLOCK_SIZE \
   ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
@@ -260,19 +264,22 @@ mark_interval_tree (tree)
   if (XMARKBIT (tree->plist))
     return;
 
-  traverse_intervals (tree, 1, 0, &mark_interval);
+  traverse_intervals (tree, 1, 0, mark_interval);
 }
 
 #define MARK_INTERVAL_TREE(i) \
   { if (!NULL_INTERVAL_P (i)) mark_interval_tree (i); }
 
-#define UNMARK_BALANCE_INTERVALS(i) \
-{                                   \
-   if (! NULL_INTERVAL_P (i))       \
-     {                              \
-       XUNMARK ((Lisp_Object) (i->parent)); \
-       i = balance_intervals (i);           \
-     } \
+/* The oddity in the call to XUNMARK is necessary because XUNMARK
+   expands to an assigment to its argument, and most C compilers don't
+   support casts on the left operand of `='.  */
+#define UNMARK_BALANCE_INTERVALS(i) 				\
+{                                   				\
+   if (! NULL_INTERVAL_P (i))       				\
+     {                              				\
+       XUNMARK (* (Lisp_Object *) (&(i)->parent));		\
+       (i) = balance_intervals (i);				\
+     } 								\
 }
 
 #else  /* no interval use */
@@ -284,6 +291,8 @@ mark_interval_tree (tree)
 
 #endif /* no interval use */
 
+/* Floating point allocation.  */
+
 #ifdef LISP_FLOAT_TYPE
 /* Allocation of float cells, just like conses */
 /* We store float cells inside of float_blocks, allocating a new
@@ -883,6 +892,8 @@ make_array (nargs, args)
   }
 }
 
+/* Allocation of ropes.  */
+
 /* Note: the user cannot manipulate ropes portably by referring
    to the chars of the string, because combining two chars to make a GLYPH
    depends on endianness.  */
@@ -932,6 +943,8 @@ See variable `buffer-display-table' for the uses of ropes.")
   return ((GLYPH *) XSTRING (r)->data)[XFASTINT (n)];
 }
 
+/* Pure storage management.  */
+
 /* Must get an error if pure storage is full,
  since if it cannot hold a large string
  it may be able to hold conses that point to that string;
@@ -978,6 +991,12 @@ make_pure_float (num)
      double num;
 {
   register Lisp_Object new;
+
+  /* Make sure that pureptr is aligned on at least a sizeof (double)
+     boundary.  Some architectures (like the sparc) require this, and
+     I suspect that floats are rare enough that it's no tragedy for
+     those that do.  */
+  pureptr = (pureptr + sizeof (num) - 1) & - sizeof (num);
 
   if (pureptr + sizeof (struct Lisp_Float) > PURESIZE)
     error ("Pure Lisp storage exhausted");
@@ -1120,6 +1139,8 @@ struct backtrace
 you lose
 #endif
 
+/* Garbage collection!  */
+
 int total_conses, total_markers, total_symbols, total_string_size, total_vector_size;
 int total_free_conses, total_free_markers, total_free_symbols;
 #ifdef LISP_FLOAT_TYPE
@@ -1366,8 +1387,9 @@ clear_marks ()
 }
 #endif
 
-/* Mark reference to a Lisp_Object.  If the object referred to
-   has not been seen yet, recursively mark all the references contained in it.
+/* Mark reference to a Lisp_Object.
+  If the object referred to has not been seen yet, recursively mark
+  all the references contained in it.
 
    If the object referenced is a short string, the referrencing slot
    is threaded into a chain of such slots, pointed to from
@@ -1485,7 +1507,6 @@ mark_object (objptr)
       {
 	register struct frame *ptr = XFRAME (obj);
 	register int size = ptr->size;
-	register int i;
 
 	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
@@ -1589,7 +1610,6 @@ static void
 mark_buffer (buf)
      Lisp_Object buf;
 {
-  Lisp_Object tem;
   register struct buffer *buffer = XBUFFER (buf);
   register Lisp_Object *ptr;
 
@@ -1627,7 +1647,7 @@ mark_buffer (buf)
     mark_object (ptr);
 }
 
-/* Find all structures not marked, and free them. */
+/* Sweep: find all structures not marked, and free them. */
 
 static void
 gc_sweep ()
@@ -1886,8 +1906,7 @@ gc_sweep ()
   }
 }
 
-/* Compactify strings, relocate references to them, and
-   free any string blocks that become empty.  */
+/* Compactify strings, relocate references, and free empty string blocks.  */
 
 static void
 compact_strings ()
