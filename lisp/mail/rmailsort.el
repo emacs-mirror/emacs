@@ -121,8 +121,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (rmail-sort-messages reverse
 		       (function
 			(lambda (msg)
-			  (count-lines (rmail-msgbeg msg)
-				       (rmail-msgend msg))))))
+			  (count-lines (rmail-desc-get-start msg)
+				       (rmail-desc-get-end msg))))))
 
 ;;;###autoload
 (defun rmail-sort-by-labels (reverse labels)
@@ -167,14 +167,15 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
       (message "Finding sort keys...")
+      (rmail-header-show-headers)
       (widen)
       (let ((msgnum 1))
 	(while (>= rmail-total-messages msgnum)
 	  (setq sort-lists
 		(cons (list (funcall keyfun msgnum) ;Make sorting key
 			    (eq rmail-current-message msgnum) ;True if current
-			    (aref rmail-message-vector msgnum)
-			    (aref rmail-message-vector (1+ msgnum)))
+			    (rmail-desc-get-marker-start msgnum)
+			    (rmail-desc-get-marker-end msgnum))
 		      sort-lists))
 	  (if (zerop (% msgnum 10))
 	      (message "Finding sort keys...%d" msgnum))
@@ -198,7 +199,7 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	    (msginfo nil))
 	;; There's little hope that we can easily undo after that.
 	(buffer-disable-undo (current-buffer))
-	(goto-char (rmail-msgbeg 1))
+	(goto-char (rmail-desc-get-start 1))
 	;; To force update of all markers.
 	(insert-before-markers ?Z)
 	(backward-char 1)
@@ -220,26 +221,23 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	(delete-char 1)
 	(setq quit-flag nil)
 	(buffer-enable-undo)
-	(rmail-set-message-counters)
+        (goto-char (point-min))
+	(rmail-initialize-messages)
 	(rmail-show-message current-message)
-	(goto-char (+ point-offset (point-min)))
 	(if (rmail-summary-exists)
 	    (rmail-select-summary
 	     (rmail-update-summary)))))))
 
+;; mbox: ready
 (defun rmail-fetch-field (msg field)
   "Return the value of the header FIELD of MSG.
 Arguments are MSG and FIELD."
   (save-restriction
     (widen)
-    (let ((next (rmail-msgend msg)))
-      (goto-char (rmail-msgbeg msg))
-      (narrow-to-region (if (search-forward "\n*** EOOH ***\n" next t)
-			    (point)
-			  (forward-line 1)
-			  (point))
-			(progn (search-forward "\n\n" nil t) (point)))
-      (mail-fetch-field field))))
+    (narrow-to-region
+     (rmail-desc-get-start msg)
+     (rmail-desc-get-end msg))
+    (rmail-header-get-header field)))
 
 (defun rmail-make-date-sortable (date)
   "Make DATE sortable using the function string-lessp."
