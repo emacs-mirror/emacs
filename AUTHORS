@@ -371,7 +371,6 @@ E. Jay Berkenbilt (changed) flyspell.el
 E. Jay Berkenbilt (changed) ispell.el
 E. Jay Berkenbilt (changed) window.h
 Ed Reingold (changed) [more than 20 files]
-Edward M. Reingold (changed) Holidays
 Edward M. Reingold (changed) cal-chinese.el
 Edward M. Reingold (changed) cal-dst.el
 Edward M. Reingold (changed) cal-hebrew.el
@@ -379,16 +378,12 @@ Edward M. Reingold (changed) cal-islamic.el
 Edward M. Reingold (changed) cal-mayan.el
 Edward M. Reingold (changed) cal-tex.el
 Edward M. Reingold (changed) cal-x.el
-Edward M. Reingold (changed) diary
 Edward M. Reingold (changed) diary-ins.el
 Edward M. Reingold (changed) diary-insert.el
 Edward M. Reingold (changed) diary.el
 Edward M. Reingold (changed) holiday.el
-Edward M. Reingold (changed) integrated
-Edward M. Reingold (changed) into
 Edward M. Reingold (changed) list-holidays.el
 Edward M. Reingold (changed) tex-mode.el
-Edward M. Reingold (changed) the
 Edward M. Reingold (wrote) cal-china.el
 Edward M. Reingold (wrote) cal-coptic.el
 Edward M. Reingold (wrote) cal-french.el
@@ -1017,6 +1012,7 @@ Kevin Blake (changed) font-lock.el
 Kevin Blake (changed) ring.el
 Kevin Broadey (wrote) foldout.el
 Kevin Christian (changed) gnus-score.el
+Kevin Gallagher (changed) edt-user.doc
 Kevin Gallagher (wrote) edt-lk201.el
 Kevin Gallagher (wrote) edt-mapper.el
 Kevin Gallagher (wrote) edt-pc.el
@@ -1398,31 +1394,14 @@ Mike Mcewan (changed) gnus-score.el
 Mike Mcewan (changed) gnus-sum.el
 Mike Mcewan (changed) gnus.texi
 Mike Mcewan (changed) mml.el
-Mike Newton (changed) --
-Mike Newton (changed) 0.99c
-Mike Newton (changed) better
-Mike Newton (changed) bibtex
 Mike Newton (changed) bibtex.el
-Mike Newton (changed) by
-Mike Newton (changed) conform
-Mike Newton (changed) to
-Mike Newton (changed) updated
-Mike Newton (changed) with
 Mike Rowan (changed) alloc.c
-Mike Rowan (changed) and
 Mike Rowan (changed) dispnew.c
-Mike Rowan (changed) globally
 Mike Rowan (changed) keyboard.c
 Mike Rowan (changed) process.
 Mike Rowan (changed) process.c
-Mike Rowan (changed) replaced
 Mike Rowan (changed) sysdep.c
 Mike Rowan (changed) xdisp.c
-Mike Williams (changed) Rewrite
-Mike Williams (changed) secondary
-Mike Williams (changed) selection.
-Mike Williams (changed) support
-Mike Williams (changed) to
 Mike Williams (wrote) mouse-sel.el
 Mike Williams (wrote) thingatpt.el
 Mikio Nakajima (changed) viper-util.el
@@ -1434,6 +1413,7 @@ Milan Zamazal (wrote) glasses.el
 Milan Zamazal (wrote) tildify.el
 Miles Bader (changed) [more than 20 files]
 Miles Bader (wrote) image-file.el
+Miles Bader (wrote) minibuf-eldef.el
 Miyashita Hisashi (changed) ccl.c
 Miyashita Hisashi (changed) charset.c
 Miyashita Hisashi (changed) coding.c
@@ -1855,9 +1835,7 @@ Stefan Monnier (wrote) smerge-mode.el
 Stefan Schoef (wrote) bibtex.el
 Stefan Waldherr (changed) nnweb.el
 Steinar Bang (changed) nnweb.el
-Stephen A. Wood (changed) 1.28.8
 Stephen A. Wood (changed) fortran.el
-Stephen A. Wood (changed) version
 Stephen Eglen (changed) [more than 20 files]
 Stephen Eglen (wrote) iswitchb.el
 Stephen Eglen (wrote) mspools.el
