@@ -53,3 +53,6 @@
 /* jpff@maths.bath.ac.uk reports `struct exception' is not defined
    on this system, so inhibit use of matherr.  */
 #define NO_MATHERR
+
+/* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
+#define GETPGRP_NO_ARG
