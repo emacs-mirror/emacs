@@ -1,3 +1,53 @@
+2002-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* category.c (Fmodify_category_entry): Don't modify the contents
+	of category_set for characters out of the range.  Avoid
+	unnecessary modification.
+
+	* character.h (MAYBE_UNIFY_CHAR): Adjusted for the change of
+	Vchar_unify_table.  The default value of the table is now nil.
+
+	* character.c (syms_of_character): Setup Vchar_width_table for
+	eight-bit-control and raw-byte chars.
+
+	* charset.h (enum define_charset_arg_index): Delete
+	charset_arg_parents and add charset_arg_subset and
+	charset_arg_superset,.
+	(enum charset_attr_index): Delete charset_parents and add
+	charset_subset and charset_superset.
+	(enum charset_method): Delete CHARSET_METHOD_INHERIT and add
+	CHARSET_METHOD_SUBSET and CHARSET_METHOD_SUPERSET.
+	(CHARSET_ATTR_PARENTS, CHARSET_PARENTS): Macros deleted.
+	(CHARSET_ATTR_SUBSET, CHARSET_ATTR_SUPERSET, CHARSET_SUBSET,
+	CHARSET_SUPERSET): New macros.
+	(charset_work): Extern it.
+	(ENCODE_CHAR): Use charset_work.
+	(CHAR_CHARSET_P): Adjusted for the change of encoder format.
+	(map_charset_chars): Extern it.
+
+	* charset.c (load_charset_map): Set the default value of encoder
+	and deunifier char-tables to nil.
+	(map_charset_chars): Argument changed.  Callers changed.  Use
+	map_char_table_for_charset instead of map_char_table.
+	(Fmap_charset_chars): New optional args from_code and to_code.
+	(Fdefine_charset_internal): Adjusted for the change of
+	`define-charset' (:parents -> :subset or :superset).
+	(charset_work): New variable.
+	(encode_char): Adjusted for the change of
+	Fdefine_charset_internal.
+	(syms_of_charset): Likewise.
+
+	* chartab.c (sub_char_table_ref_and_range): New arg defalt.  Fix
+	the previous change.
+	(char_table_ref_and_range): Adjusted for the above change.
+	(map_sub_char_table_for_charset): New function.
+	(map_char_table_for_charset): New function.
+
+	* keymap.c (describe_vector): Handle a char-table directly here.
+	(describe_char_table): Deleted.
+
+	* lisp.h (map_charset_chars): Deleted.
+
 2002-06-11  Dave Love  <fx@gnu.org>
 
 	* fns.c (count_combining): Comment out (unused).
