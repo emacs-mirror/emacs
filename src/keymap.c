@@ -1734,7 +1734,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
      (keymap, prefix)
      Lisp_Object keymap, prefix;
 {
-  Lisp_Object maps, good_maps, tail;
+  Lisp_Object maps, tail;
   int prefixlen = 0;
 
   /* no need for gcpro because we don't autoload any keymaps.  */
