@@ -281,25 +281,63 @@ ERROR is t, otherwise just returns nil."
     (calendar-cursor-holidays)))
 
 (defun calendar-mouse-holidays ()
-  "Show holidays for mouse-selected date."
+  "Pop up menu of holidays for mouse selected date."
   (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
-    (calendar-cursor-holidays)))
+  (let* ((date (calendar-event-to-date))
+         (l (mapcar '(lambda (x) (list x))
+                    (check-calendar-holidays date)))
+         (selection
+          (x-popup-menu
+           event
+           (list
+            (format "Holidays for %s" (calendar-date-string date))
+            (append
+             (list (format "Holidays for %s" (calendar-date-string date)))
+             (if l l '("None")))))))
+    (and selection (call-interactively selection))))
 
 (defun calendar-mouse-view-diary-entries ()
-  "View diary entries on mouse-selected date."
+  "Pop up menu of diary entries for mouse selected date."
   (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
-    (view-diary-entries 1)))
+  (let* ((date (calendar-event-to-date))
+         (l (mapcar '(lambda (x) (list (car (cdr x))))
+                    (let ((diary-list-include-blanks nil)
+                          (diary-display-hook nil))
+                      (list-diary-entries date 1))))
+         (selection
+          (x-popup-menu
+           event
+           (list
+            (format "Diary entries for %s" (calendar-date-string date))
+            (append
+             (list (format "Diary entries for %s" (calendar-date-string date)))
+             (if l l '("None")))))))
+    (and selection (call-interactively selection))))
 
 (defun calendar-mouse-view-other-diary-entries ()
-  "View diary entries from alternative file on mouse-selected date."
+  "Pop up menu of diary entries from alternative file on mouse-selected date."
   (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
-    (call-interactively 'view-other-diary-entries)))
+  (let* ((date (calendar-event-to-date))
+         (l (mapcar '(lambda (x) (list (car (cdr x))))
+                    (let ((diary-list-include-blanks nil)
+                          (diary-display-hook nil)
+                          (diary-file (read-file-name
+                                       "Enter diary file name: "
+                                       default-directory nil t)))
+                      (list-diary-entries date 1))))
+         (selection
+          (x-popup-menu
+           event
+           (list
+            (format "Diary entries from %s for %s"
+                    diary-file
+                    (calendar-date-string date))
+            (append
+             (list (format "Diary entries from %s for %s"
+                            diary-file
+                           (calendar-date-string date)))
+             (if l l '("None")))))))
+    (and selection (call-interactively selection))))
 
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
