@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.42 1998/06/24 09:23:00 schwab Exp $
+;; $Id: rlogin.el,v 1.43 1998/09/11 01:22:53 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -339,19 +339,19 @@ local one share the same directories (through NFS)."
 
 (defun rlogin-send-Ctrl-C ()
   (interactive)
-  (send-string nil "\C-c"))
+  (process-send-string nil "\C-c"))
 
 (defun rlogin-send-Ctrl-D ()
   (interactive)
-  (send-string nil "\C-d"))
+  (process-send-string nil "\C-d"))
 
 (defun rlogin-send-Ctrl-Z ()
   (interactive)
-  (send-string nil "\C-z"))
+  (process-send-string nil "\C-z"))
 
 (defun rlogin-send-Ctrl-backslash ()
   (interactive)
-  (send-string nil "\C-\\"))
+  (process-send-string nil "\C-\\"))
 
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
   "\
