@@ -5893,9 +5893,7 @@ w32_load_system_font (f,fontname,size)
            ended up with. */
       return NULL;
 
-    /* Specify anti-aliasing to prevent Cleartype fonts being used,
-       since those fonts leave garbage behind.  */
-    lf.lfQuality = ANTIALIASED_QUALITY;
+    lf.lfQuality = DEFAULT_QUALITY;
 
     font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
     bzero (font, sizeof (*font));
