@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.146 2002/10/17 15:46:06 lektu Exp $
+;; $Id: vc-hooks.el,v 1.147 2003/02/05 23:14:06 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +45,7 @@
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defcustom vc-handled-backends '(RCS CVS SCCS)
+(defcustom vc-handled-backends '(RCS CVS SVN MCVS SCCS)
   "*List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
@@ -281,7 +281,7 @@ backend is tried first."
 (defun vc-backend (file)
   "Return the version control type of FILE, nil if it is not registered."
   ;; `file' can be nil in several places (typically due to the use of
-  ;; code like (vc-backend (buffer-file-name))).
+  ;; code like (vc-backend buffer-file-name)).
   (when (stringp file)
     (let ((property (vc-file-getprop file 'vc-backend)))
       ;; Note that internally, Emacs remembers unregistered
@@ -487,7 +487,7 @@ in or out whenever you toggle the read-only flag."
   (interactive "P")
   (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
 	  ;; use boundp because vc.el might not be loaded
-	  (vc-backend (buffer-file-name)))
+	  (vc-backend buffer-file-name))
       (vc-next-action verbose)
     (toggle-read-only)))
 
@@ -533,7 +533,7 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; If the file on disk is still in sync with the repository,
   ;; and version backups should be made, copy the file to
   ;; another name.  This enables local diffs and local reverting.
-  (let ((file (buffer-file-name)))
+  (let ((file buffer-file-name))
     (and (vc-backend file)
 	 (vc-up-to-date-p file)
 	 (eq (vc-checkout-model file) 'implicit)
@@ -545,7 +545,7 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; If the file in the current buffer is under version control,
   ;; up-to-date, and locking is not used for the file, set
   ;; the state to 'edited and redisplay the mode line.
-  (let ((file (buffer-file-name)))
+  (let ((file buffer-file-name))
     (and (vc-backend file)
 	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
 			 (nth 5 (file-attributes file)))
@@ -568,28 +568,29 @@ Before doing that, check if there are any old backups and get rid of them."
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name))
-  (if (not (vc-backend file))
-      (setq vc-mode nil)
-    (setq vc-mode (concat " " (if vc-display-status
-				  (vc-call mode-line-string file)
-				(symbol-name (vc-backend file)))))
-    ;; If the file is locked by some other user, make
-    ;; the buffer read-only.  Like this, even root
-    ;; cannot modify a file that someone else has locked.
-    (and (equal file (buffer-file-name))
-         (stringp (vc-state file))
-	 (setq buffer-read-only t))
-    ;; If the user is root, and the file is not owner-writable,
-    ;; then pretend that we can't write it
-    ;; even though we can (because root can write anything).
-    ;; This way, even root cannot modify a file that isn't locked.
-    (and (equal file (buffer-file-name))
-	 (not buffer-read-only)
-	 (zerop (user-real-uid))
-	 (zerop (logand (file-modes (buffer-file-name)) 128))
-	 (setq buffer-read-only t)))
-  (force-mode-line-update)
-  (vc-backend file))
+  (let ((backend (vc-backend file)))
+    (if (not backend)
+	(setq vc-mode nil)
+      (setq vc-mode (concat " " (if vc-display-status
+				    (vc-call mode-line-string file)
+				  (symbol-name backend))))
+      ;; If the file is locked by some other user, make
+      ;; the buffer read-only.  Like this, even root
+      ;; cannot modify a file that someone else has locked.
+      (and (equal file buffer-file-name)
+	   (stringp (vc-state file))
+	   (setq buffer-read-only t))
+      ;; If the user is root, and the file is not owner-writable,
+      ;; then pretend that we can't write it
+      ;; even though we can (because root can write anything).
+      ;; This way, even root cannot modify a file that isn't locked.
+      (and (equal file buffer-file-name)
+	   (not buffer-read-only)
+	   (zerop (user-real-uid))
+	   (zerop (logand (file-modes buffer-file-name) 128))
+	   (setq buffer-read-only t)))
+    (force-mode-line-update)
+    backend))
 
 (defun vc-default-mode-line-string (backend file)
   "Return string for placement in modeline by `vc-mode-line' for FILE.
@@ -698,8 +699,8 @@ Used in `find-file-not-found-hooks'."
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
-  (if (buffer-file-name)
-      (vc-file-clearprops (buffer-file-name))))
+  (if buffer-file-name
+      (vc-file-clearprops buffer-file-name)))
 
 (add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
