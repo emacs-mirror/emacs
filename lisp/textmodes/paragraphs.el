@@ -130,6 +130,7 @@ text indented by a margin setting."
 
 (defcustom sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
   "*Regexp describing the end of a sentence.
+The value includes the whitespace following the sentence.
 All paragraph boundaries also end sentences, regardless.
 
 The default value specifies that in order to be recognized as the end
