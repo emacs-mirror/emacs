@@ -1,3 +1,9 @@
+2000-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el (mode-line-modified): Fix a typo.
+	(mode-line-toggle-modified, mode-line-widen) 
+	(mode-line-abbrev-mode, mode-line-auto-fill-mode): Fix typos.
+
 2000-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* ps-print.el: Minor fixes from author.
