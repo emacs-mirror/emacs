@@ -4660,9 +4660,13 @@ zero means top of window, negative means relative to bottom of window.")
 	XSETINT (arg, XINT (arg) + lines);
     }
 
+#if 0 /* I don't understand why this is done.  Among other things,
+         it means that C-u 0 M-r moves to line 1, and C-u -1 M-r
+         moves to the line below the window end.  2000-02-05, gerd */
   if (w->vscroll)
     /* Skip past a partially visible first line.  */
     XSETINT (arg, XINT (arg) + 1);
+#endif
 
   return Fvertical_motion (arg, window);
 }
