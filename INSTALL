@@ -136,31 +136,6 @@ each character set.
 The intlfonts distribution contains its own installation instructions,
 in the intlfonts/README file.
 
-* elisp-manual-M.N.tar.gz
-
-This distribution contains the Emacs Lisp Reference Manual which
-complements the Emacs Manual.  (The Emacs Manual is accessible from
-within the editor by typing "C-h i", then selecting the "Emacs" item
-from the menu, or by clicking "Help" in the menu bar and selecting
-"Read Emacs Manual".)  It is a good idea to install the Emacs Lisp
-Reference Manual after installing Emacs, to complete the on-line
-documentation of Emacs in Info.
-
-If you have installed Texinfo, you can install the Emacs Lisp
-Reference Manual this way (after unpacking the elisp-manual-M.N.tar.gz
-file):
-
-     cd elisp-manual-M.N
-     ./configure --prefix=PREFIXDIR
-     make install
-
-Otherwise, you can install it manually.  Just copy the files elisp and
-elisp-* from the elisp-manual-M.N directory to your site's info
-directory (see the description of `infodir', below), and make sure
-that file `dir' in this directory contains an entry like this:
-
-    * Elisp: (elisp).	The Emacs Lisp Reference Manual.
-
 * Image support libraries
 
 Emacs needs optional libraries to be able to display images (with the
