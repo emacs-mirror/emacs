@@ -787,7 +787,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		size = decoding_buffer_size (&process_coding, nread);
 		decoding_buf = (char *) xmalloc (size);
 		
-		if (CODING_REQUIRE_DETECTION (&process_coding))
+		/* We can't use the macro CODING_REQUIRE_DETECTION
+		   because it always returns nonzero if the coding
+		   system requires EOL detection.  Here, we have to
+		   check only whether or not the coding system
+		   requires text-encoding detection.  */
+		if (process_coding.type == coding_type_undecided)
 		  {
 		    detect_coding (&process_coding, bufptr, nread);
 		    if (process_coding.composing != COMPOSITION_DISABLED)
