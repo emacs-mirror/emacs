@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.16 $
+;; Version: $Revision: 1.17 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/26 05:06:14 $|$Revision: 1.16 $|~/modes/tcl.el.Z|
+;; $Date: 1994/06/03 00:47:15 $|$Revision: 1.17 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.17  1994/06/03  00:47:15  tromey
+; Fixed bug in bug-reporting code.
+;
 ; Revision 1.16  1994/05/26  05:06:14  tromey
 ; Menu items now sensitive as appropriate.
 ;
@@ -246,7 +249,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.16 $")
+(defconst tcl-version "$Revision: 1.17 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -375,11 +378,11 @@ quoted for Tcl.")
     "----"
     ["Show Tcl process buffer" inferior-tcl t]
     ["Send function to Tcl process" tcl-eval-defun
-     (get-buffer inferior-tcl-buffer)]
+     (and inferior-tcl (get-buffer inferior-tcl-buffer))]
     ["Send region to Tcl process" tcl-eval-region
-     (get-buffer inferior-tcl-buffer)]
+     (and inferior-tcl (get-buffer inferior-tcl-buffer))]
     ["Send file to Tcl process" tcl-load-file
-     (get-buffer inferior-tcl-buffer)]
+     (and inferior-tcl (get-buffer inferior-tcl-buffer))]
     ["Restart Tcl process with file" tcl-restart-with-file t]
     "----"
     ["Tcl help" tcl-help-on-word tcl-help-directory-list]
