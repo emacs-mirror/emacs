@@ -14248,6 +14248,7 @@ always hide."
        (goto-char (point-min))
        (or (search-forward "\n\n" nil t) (point-max)))
 
+      (goto-char (point-min))
       (while (re-search-forward 
 	      "=\\?iso-8859-1\\?q\\?\\([^?\t\n]*\\)\\?=" nil t)
 	(setq string (match-string 1))
