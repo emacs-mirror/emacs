@@ -6862,12 +6862,12 @@ prepare_menu_bars ()
   int all_windows;
   struct gcpro gcpro1, gcpro2;
   struct frame *f;
-  struct frame *tooltip_frame;
+  Lisp_Object tooltip_frame;
 
 #ifdef HAVE_X_WINDOWS
   tooltip_frame = tip_frame;
 #else
-  tooltip_frame = NULL;
+  tooltip_frame = Qnil;
 #endif
 
   /* Update all frame titles based on their buffer names, etc.  We do
@@ -6881,7 +6881,7 @@ prepare_menu_bars ()
       FOR_EACH_FRAME (tail, frame)
 	{
 	  f = XFRAME (frame);
-	  if (f != tooltip_frame
+	  if (!EQ (frame, tooltip_frame)
 	      && (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f)))
 	    x_consider_frame_title (frame);
 	}
@@ -6905,7 +6905,7 @@ prepare_menu_bars ()
 	  f = XFRAME (frame);
 
 	  /* Ignore tooltip frame.  */
-	  if (f == tooltip_frame)
+	  if (EQ (frame, tooltip_frame))
 	    continue;
 	  
 	  /* If a window on this frame changed size, report that to
