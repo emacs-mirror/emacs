@@ -400,7 +400,7 @@ install-arch-indep: mkdir
 	     ${INSTALL_INFO} --dir-file=${infodir}/dir --info-file=${infodir}/$$f); \
 	  done; \
 	else true; fi
-	-chmod -R a+r ${COPYDESTS} ${infodir}
+	-chmod -R a+r ${datadir}/emacs ${COPYDESTS} ${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
 	for page in emacs etags ctags ; do \
@@ -425,8 +425,12 @@ install-strip:
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 mkdir: FRC
+	if [ -d ${datadir} ]; then true; else \
+	  $(srcdir)/mkinstalldirs ${datadir}; \
+	  chmod a+r ${datadir};\
+	fi
 	$(srcdir)/mkinstalldirs ${COPYDESTS} ${infodir} ${man1dir} \
-	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
+	  ${bindir} ${docdir} ${libexecdir} \
 	  ${datadir}/emacs/site-lisp \
 	  ${datadir}/emacs/${version}/site-lisp \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
