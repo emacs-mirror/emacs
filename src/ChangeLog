@@ -1,3 +1,8 @@
+2000-07-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* keymap.c (get_keyelt): Temporarily inhibit GC while evaluating
+	a menu filter.
+
 2000-07-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.h (make_composition_value_copy): Extern it.
