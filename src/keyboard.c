@@ -6441,6 +6441,7 @@ init_perdisplay (perd)
   perd->kbd_macro_buffer = 0;
   perd->kbd_macro_bufsize = 0;
   perd->defining_kbd_macro = Qnil;
+  perd->Vlast_kbd_macro = Qnil;
 }
 
 /*
