@@ -1,3 +1,8 @@
+2002-12-18  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in ($(DOC)): Use -o and -a options to make-docfile,
+	because GNU make doesn't append when using >> redirection.
+
 2002-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* emacsclient.c (main): Test HAVE_GETCWD, not BSD_SYSTEM.
