@@ -1,3 +1,28 @@
+2004-05-28  Juanma Barranquero  <lektu@terra.es>
+
+	* cus-edit.el (customize-face, customize-face-other-window)
+	(custom-face-edit-delete): Make arguments match their use in
+	docstring.
+	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Fix typo in
+	docstring.
+
+	* cvs-status.el (cvs-tree-merge, cvs-tags->tree): Use `butlast',
+	not `cvs-butlast'.
+
+	* pcvs-util.el (cvs-butlast, cvs-nbutlast): Remove (`butlast' and
+	`nbutlast' are in subr.el).
+
+	* w32-fns.el (w32-using-nt, w32-shell-dos-semantics)
+	(set-w32-system-coding-system): Doc fixes.
+
+	* textmodes/artist.el (artist-last, artist-remove-nulls):
+	Simplify.
+	(artist-draw-ellipse-general, artist-draw-ellipse-with-0-height):
+	Make arguments match their use in docstring.
+	(artist-draw-region-trim-line-endings)
+	(artist-mouse-choose-operation): Fix typo in docstring.
+	(artist-key-set-point-common): Doc fix.
+
 2004-05-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Bind
@@ -8,11 +33,11 @@
 	* starttls.el: Merge with my GNUTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New
-	variables.
+	(starttls-connect, starttls-failure, starttls-success):
+	New variables.
 	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New
-	functions.
+	(starttls-negotiate-gnutls, starttls-open-stream-gnutls):
+	New functions.
 	(starttls-negotiate, starttls-open-stream): Check
 	`starttls-use-gnutls' and pass on to corresponding *-gnutls
 	function if it is set.
