@@ -296,8 +296,9 @@ CODING-SYSTEM, use \\[list-coding-systems]."
             default))))
   (check-coding-system coding-system)
   (setq w32-system-coding-system coding-system))
-;; Set system coding system initially to iso-latin-1
-(set-w32-system-coding-system 'iso-latin-1)
+;; Set system coding system initially from locale-coding-system.
+;; In future, when defvaralias is available, this will become an alias.
+(set-w32-system-coding-system locale-coding-system)
 
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
