@@ -1,3 +1,8 @@
+2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* filesets.el (filesets-data): Doc fix.
+	(filesets-running-xemacs): Define even when compiling.
+
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-context-prefix): Fix last change with
