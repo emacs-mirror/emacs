@@ -661,6 +661,12 @@ This variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
+@tindex real-last-command
+@defvar real-last-command
+This variable is set up by Emacs just like @code{last-command},
+but never altered by Lisp programs.
+@end defvar
+
 @defvar this-command
 @cindex current command
 This variable records the name of the command now being executed by
@@ -2350,6 +2356,11 @@ The value of this variable is the raw prefix argument for the
 @emph{next} editing command.  Commands such as @code{universal-argument}
 that specify prefix arguments for the following command work by setting
 this variable.
+@end defvar
+
+@tindex last-prefix-arg
+@defvar last-prefix-arg
+The raw prefix argument value used by the previous command.
 @end defvar
 
   The following commands exist to set up prefix arguments for the
