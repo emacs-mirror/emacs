@@ -8,6 +8,9 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** The default values of `tooltip-delay' and `tooltip-hide-delay'
+were changed.
+
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
 
