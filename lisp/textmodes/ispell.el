@@ -448,10 +448,12 @@ for language-specific arguments.")
 (defvar ispell-dictionary-alist-1	; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
-    ("english"				; make english explicitly selectable
+    ("english"				; make English explicitly selectable
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
-    ("british"				; british version
+    ("british"				; British version
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B" "-d" "british") nil)
+    ("american"				; American version
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B" "-d" "american") nil)
     ("deutsch"				; deutsch.aff
      "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex")
     ("deutsch8"
@@ -2389,7 +2391,7 @@ Both should not be used to define a buffer-local dictionary."
 ;;; Local Variables:
 ;;; mode: emacs-lisp
 ;;; comment-column: 40
-;;; ispell-local-dictionary: "english"
+;;; ispell-local-dictionary: "american"
 ;;; End:
 
 
