@@ -1095,8 +1095,8 @@ This finishes the change group by reverting all of its changes."
 	(setq buffer-undo-list elt)))))
 
 (defun force-mode-line-update (&optional all)
-  "Force the mode-line of the current buffer to be redisplayed.
-With optional non-nil ALL, force redisplay of all mode-lines."
+  "Force the mode line of the current buffer to be redisplayed.
+With optional non-nil ALL, force redisplay of all mode lines."
   (if all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
