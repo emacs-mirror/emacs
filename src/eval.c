@@ -1451,7 +1451,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	{
-#ifdef __STDC__
+#ifdef PROTOTYPES
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
 					       Qnil);
