@@ -52,7 +52,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.
    Some s- files override this because their stdio internals differ.  */
+#ifdef __GNU_LIBRARY__
+#define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
+#else
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
+#endif
 #endif
 
 /* Nonzero upon entry to redisplay means do not assume anything about
