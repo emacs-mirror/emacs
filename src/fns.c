@@ -5134,7 +5134,8 @@ Emacsen and is ignored.")
 		  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 		/* Confirm that VAL can surely encode the current region.  */
 		coding_system = call3 (Vselect_safe_coding_system_function,
-				       b, e, coding_system);
+				       make_number (b), make_number (e),
+				       coding_system);
 
 	      if (force_raw_text)
 		coding_system = Qraw_text;
