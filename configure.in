@@ -1313,7 +1313,7 @@ AC_SUBST(LIBSOUND)
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h term.h)
+  termcap.h stdio_ext.h fcntl.h term.h strings.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1907,7 +1907,7 @@ rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
-__fpending mblen mbrlen strsignal setitimer ualarm)
+__fpending mblen mbrlen strsignal setitimer ualarm index rindex)
 
 AC_FUNC_MKTIME
 if test "$ac_cv_func_working_mktime" = no; then
