@@ -1,3 +1,7 @@
+2004-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Delete pairs for U+2308..U+230B.
+
 2004-03-29  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gud-gdb-marker-filter): Include "\n" in regexp
