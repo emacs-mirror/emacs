@@ -289,7 +289,10 @@ FIELD/REGEXP pairs continue in the list.
 
 examples:
   (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
-  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.")
+  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS."
+  :group 'rmail
+  :version "21.1"
+  :type '(repeat (sexp :tag "Directive")))
   
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
