@@ -1,5 +1,12 @@
 2001-04-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/titdic-cnv.el (miscdic-convert): For MS-DOS, if
+	long file names aren't supported, truncate the file names in
+	quail-misc-package-ext-info to 8+3 before matching them against
+	FILENAME.
+
+	* dos-fns.el (dos-truncate-to-8+3): New function.
+
 	* progmodes/compile.el (grep-compute-defaults): Use null-device
 	instead of literal /dev/null. Reported by Jens Schmidt
 	<schmidt@mathematik.uni-kl.de>.
