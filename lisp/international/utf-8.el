@@ -376,35 +376,37 @@ Others are encoded as U+FFFD.")
 ;; display.  We try to compose an appropriate character from a hash
 ;; table of CJK characters to display correctly.  Otherwise we use
 ;; U+FFFD.  What we really should have is hash table lookup from CCL
-;; so that we could do this properly.
+;; so that we could do this properly.  This function GCs too much.
 (defsubst utf-8-compose ()
-  "Put a suitable composition on an untrnslatable sequence.
+  "Put a suitable composition on an untranslatable sequence.
 Return the sequence's length."
   (let* ((u (utf-8-untranslated-to-ucs))
 	 (l (and u (if (>= u ?\x10000)
 		       4
 		     3)))
-	 (subst (or (and utf-8-subst-table (gethash u utf-8-subst-table))
-		    ?$,3u=(B)))
+	 (subst (and utf-8-subst-table (gethash u utf-8-subst-table))))
     (when u
       (put-text-property (point) (min (point-max) (+ l (point)))
 			 'untranslated-utf-8 u)
       (unless subst
-	(put-text-property (point) (min (point-max) (+ l (point)))
-			   'help-echo 'utf-8-help-echo))
+	  (put-text-property (point) (min (point-max) (+ l (point)))
+			     'help-echo 'utf-8-help-echo)
+	  (setq subst ?$,3u=(B))
       (compose-region (point) (+ l (point)) subst)
       l)))
 
 (defun utf-8-post-read-conversion (length)
   "Compose untranslated utf-8 sequences into single characters."
   (save-excursion
-    (while (and (skip-chars-forward (string-as-multibyte "^\341-\377"))
+    (while (and (skip-chars-forward
+		 (eval-and-compile	; missing optimization
+		   (string-as-multibyte "^\341-\377")))
 		(not (eobp)))
       (forward-char (utf-8-compose))))
   length)
 
 (defun utf-8-pre-write-conversion (beg end)
-  (require 'ucs-tables)			; ensure translation table is loaded
+  (require 'ucs-tables)		  ; ensure translation table is loaded
   (when (stringp beg)
     (set-buffer (generate-new-buffer " *temp*"))
     (insert beg)
@@ -416,7 +418,8 @@ Return the sequence's length."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char beg)
-      (while (and (skip-chars-forward (string-as-multibyte "^\240-\377"))
+      (while (and (skip-chars-forward (eval-and-compile
+					(string-as-multibyte "^\240-\377")))
 		  (not (eobp)))
 	(if (get-text-property (point) 'untranslated-utf-8)
 	    (forward-char)
@@ -428,7 +431,8 @@ Return the sequence's length."
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
-The supported Emacs character sets are:
+The supported Emacs character sets are the following, determined by the
+translation table `ucs-mule-8859-to-mule-unicode':
    ascii
    eight-bit-control
    eight-bit-graphic
@@ -498,3 +502,5 @@ are encoded into U+FFFD."
 ;; 	(+ 128 i)
 ;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
 ;; 	   . utf-8-compose-function))))
+
+;;; utf-8.el ends here
