@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:logging(trunk.4) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -37,6 +37,12 @@ sub describe_test {
   %keyrelations = %spec_rel;
   print $log_test_spec;
   &dispvals;
+  if (%parmdefs) {
+   %keyvalues = %parmdefs;
+   %keyrelations = ();
+   print $log_test_params;
+   &dispvals;
+  }
   %keyvalues = %real_output;
   %keyrelations = ();
    print $log_test_res;
@@ -131,11 +137,12 @@ $barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min      
 # what the output looks like:
 #
 
-$log_test_spec = "SPECIFIED RESULTS\n";
-$log_test_res  = "RESULTS\n";
-$log_test_conc = "CONCLUSION\n";
-$log_test_tran = "TRANSCRIPT\n";
-$log_test_end  = "END OF TRANSCRIPT\n\n";
+$log_test_spec   = "SPECIFIED RESULTS\n";
+$log_test_params = "PARAMETER SETTINGS\n";
+$log_test_res    = "RESULTS\n";
+$log_test_conc   = "CONCLUSION\n";
+$log_test_tran   = "TRANSCRIPT\n";
+$log_test_end    = "END OF TRANSCRIPT\n\n";
 
 format LOGHEAD =
 ------------------------------------------------------------------------
