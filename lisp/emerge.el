@@ -3106,18 +3106,21 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	(setq name "Buffer has no file name."))
     (save-window-excursion
       (select-window (minibuffer-window))
-      (erase-buffer)
-      (insert name)
-      (if (not (pos-visible-in-window-p))
-	  (let ((echo-keystrokes 0))
-	    (while (and (not (pos-visible-in-window-p))
-			(> (1- (frame-height)) (window-height)))
-	      (enlarge-window 1))
-	    (let ((c (read-event)))
+      (unwind-protect
+	  (progn
+	    (erase-buffer)
+	    (insert name)
+	    (if (not (pos-visible-in-window-p))
+		(while (and (not (pos-visible-in-window-p))
+			    (> (1- (frame-height)) (window-height)))
+		  (enlarge-window 1)))
+	    (let* ((echo-keystrokes 0)
+		   (c (read-event)))
 	      (if (not (eq c 32))
-		  (setq unread-command-events (list c)))))))))
+		  (setq unread-command-events (list c)))))
+	(erase-buffer)))))
 
-;; Improved auto-save file names.
+;; Improved auto-save gfile names.
 ;; This function fixes many problems with the standard auto-save file names:
 ;; Auto-save files for non-file buffers get put in the default directory
 ;; for the buffer, whether that makes sense or not.
