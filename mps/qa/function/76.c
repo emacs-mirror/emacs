@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!76.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!76.c(trunk.5) $
  summary = destroy space when messages are on the queue
  language = c
  link = testlib.o rankfmt.o
@@ -15,6 +15,12 @@ END_HEADER
 #include "rankfmt.h"
 
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
+
 void *stackpointer;
 
 mps_arena_t arena;
@@ -22,12 +28,14 @@ mps_arena_t arena;
 int final_count = 0;
 
 
-static void test(void) {
+static void test(void)
+{
  mps_pool_t poolamc, poolawl, poollo;
  mps_thr_t thread;
  mps_root_t root0, root1;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t apamc, apawl, aplo;
 
  mycell *a, *b, *c, *d;
@@ -38,7 +46,6 @@ static void test(void) {
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
-
  cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
@@ -50,20 +57,22 @@ static void test(void) {
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
- cdie(mps_pool_create(&poolamc, arena, mps_class_amc(), format),
-      "create pool");
+ die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool(amc)");
 
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
-      "create pool");
+      "create pool(awl)");
 
  cdie(mps_pool_create(&poollo, arena, mps_class_lo(), format),
       "create pool");
 
  cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
-      "create ap");
+      "create ap(amc)");
 
  cdie(mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
-      "create ap");
+      "create ap(awl)");
  
  cdie(mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
       "create ap");
@@ -122,18 +131,16 @@ static void test(void) {
  mps_pool_destroy(poollo);
  comment("Destroyed pools.");
 
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 }
 
 
-int main(void) {
+int main(void)
+{
  void *m;
  stackpointer=&m; /* hack to get stack pointer */
 
