@@ -85,7 +85,7 @@ static int get_doc_string_buffer_size;
 
    If UNIBYTE is nonzero, always return the result as a unibyte string.  */
 
-static Lisp_Object
+Lisp_Object
 get_doc_string (filepos, unibyte)
      Lisp_Object filepos;
      int unibyte;
