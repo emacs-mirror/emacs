@@ -1,3 +1,7 @@
+2005-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Easy Customization): Adapt menu to node name change.
+
 2005-01-30  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Easy Customization): Defn of "User Option" now
@@ -11,8 +15,8 @@
 
 	* picture.texi (Picture): Mention artist.el.
 
-	* sending.texi, screen.texi, programs.texi, misc.texi: 
-	* mini.texi, major.texi, maintaining.texi, macos.texi: 
+	* sending.texi, screen.texi, programs.texi, misc.texi:
+	* mini.texi, major.texi, maintaining.texi, macos.texi:
 	* help.texi, frames.texi, files.texi:
 	Don't say just "option" when talking about variables.
 
