@@ -1,3 +1,8 @@
+2001-09-05  Edward M. Reingold <reingold@iit.edu>
+
+	* cal-menu.el (calendar-mouse-view-other-diary-entries): Fix name
+	of file in header of menu.
+
 2001-09-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* env.el (setenv): Interactively, if VARIABLE has a current value,

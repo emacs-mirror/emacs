@@ -1,3 +1,8 @@
+2001-09-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (string_buffer_position): Use *single_char_property*
+	functions instead of the *single_property* functions.
+	
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (w32_read_socket): Add more information to debugging output.
