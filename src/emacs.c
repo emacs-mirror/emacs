@@ -1118,7 +1118,6 @@ main (argc, argv, envp)
     }
 
   init_eval ();
-  init_coding ();
   init_data ();
 #ifdef CLASH_DETECTION
   init_filelock ();;
