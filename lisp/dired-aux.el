@@ -693,6 +693,8 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
        (if arg (read-string "Switches for listing: " dired-actual-switches)))
     (message "Redisplaying...")
     ;; message much faster than making dired-map-over-marks show progress
+    (dired-uncache
+     (if (consp dired-directory) (car dired-directory) dired-directory))
     (dired-map-over-marks (let ((fname (dired-get-filename)))
 			    (message "Redisplaying... %s" fname)
 			    (dired-update-file-line fname))
