@@ -403,8 +403,13 @@ With prefix argument, delete and move backward."
   (let (end)
     (rmail-summary-goto-msg)
     (pop-to-buffer rmail-buffer)
-    (rmail-delete-forward backward)
-    (pop-to-buffer rmail-summary-buffer)))
+    (rmail-delete-message)
+    (let ((del-msg rmail-current-message))
+      (pop-to-buffer rmail-summary-buffer)
+      (rmail-summary-mark-deleted del-msg)
+      (while (and (not (if backward (bobp) (eobp)))
+		  (save-excursion (beginning-of-line) (looking-at " [0-9]+D")))
+	(forward-line (if backward -1 1))))))
 
 (defun rmail-summary-delete-backward ()
   "Delete this message and move to previous nondeleted one.
