@@ -18,6 +18,9 @@
 
 2000-10-25  Dave Love  <fx@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-mode): Set
+	normal-auto-fill-function correctly.
+
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Don't
 	inherit from global-map and don't nullify menu-bar and tool-bar
 	bindings since keymap properties DTRT.
