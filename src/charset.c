@@ -124,13 +124,89 @@ invalid_character (c)
   error ("Invalid character: 0%o, %d, 0x%x", c, c, c);
 }
 
+/* Parse string STR of length LENGTH (>= 2) and check if a composite
+   character is at STR.  If there is a valid composite character, set
+   CHARSET, C1, and C2 to proper values so that MAKE_CHAR can compose
+   the composite character from them.  Otherwise, set CHARSET to
+   CHARSET_COMPOSITION, but set C1 to the second byte of the sequence,
+   C2 to -1 so that MAKE_CHAR can compose the invalid multibyte
+   character whose string representation is two bytes of STR[0] and
+   STR[1].  In any case, set BYTES to LENGTH.  */
+
+#define SPLIT_COMPOSITE_SEQ(str, length, bytes, charset, c1, c2)	\
+  do {									\
+    int cmpchar_id = str_cmpchar_id ((str), (length));			\
+    									\
+    (charset) = CHARSET_COMPOSITION;					\
+    (bytes) = (length);							\
+    if (cmpchar_id >= 0)						\
+      {									\
+	(c1) = CHAR_FIELD2 (cmpchar_id);				\
+	(c2) = CHAR_FIELD3 (cmpchar_id);				\
+      }									\
+    else								\
+      {									\
+	(c1) = (str)[1] & 0x7F;						\
+	(c2) = -1;							\
+      }									\
+  } while (0)
+
+/* Parse string STR of length LENGTH (>= 2) and check if a
+   non-composite multibyte character is at STR.  Set BYTES to the
+   actual length, CHARSET, C1, and C2 to proper values so that
+   MAKE_CHAR can compose the multibyte character from them.  */
+
+#define SPLIT_CHARACTER_SEQ(str, length, bytes, charset, c1, c2)	\
+  do {									\
+    (bytes) = 1;							\
+    (charset) = (str)[0];						\
+    if ((charset) >= LEADING_CODE_PRIVATE_11				\
+	&& (charset) <= LEADING_CODE_PRIVATE_22)			\
+      (charset) = (str)[(bytes)++];					\
+    if ((bytes) < (length))						\
+      {									\
+	(c1) = (str)[(bytes)++] & 0x7F;					\
+	if ((bytes) < (length))						\
+	  (c2) = (str)[(bytes)++] & 0x7F;				\
+	else								\
+	  (c2) = -1;							\
+      }									\
+    else								\
+      (c1) = (c2) = -1;							\
+  } while (0)
+
+/* Parse string STR of length LENGTH and check if a multibyte
+   characters is at STR.  set BYTES to the actual length, CHARSET, C1,
+   C2 to proper values for that character.  */
+
+#define SPLIT_MULTIBYTE_SEQ(str, length, bytes, charset, c1, c2)	\
+  do {									\
+    int i;								\
+    for (i = 1; i < (length) && ! CHAR_HEAD_P ((str)[i]); i++);		\
+    if (i == 1)								\
+      (bytes) = 1, (charset) = CHARSET_ASCII, (c1) = (str)[0] ;		\
+    else if ((str)[0] == LEADING_CODE_COMPOSITION)			\
+      SPLIT_COMPOSITE_SEQ (str, i, bytes, charset, c1, c2);		\
+    else								\
+      {									\
+	if (i > BYTES_BY_CHAR_HEAD ((str)[0]))				\
+	  i = BYTES_BY_CHAR_HEAD ((str)[0]);				\
+	SPLIT_CHARACTER_SEQ (str, i, bytes, charset, c1, c2);		\
+      }									\
+  } while (0)
+
+/* 1 if CHARSET, C1, and C2 compose a valid character, else 0.  */
+#define CHAR_COMPONENT_VALID_P(charset, c1, c2)	\
+  (CHARSET_DIMENSION (charset) == 1		\
+   ? ((c1) >= 0x20 && (c1) <= 0x7F)		\
+   : ((c1) >= 0x20 && (c1) <= 0x7F && (c2) >= 0x20 && (c2) <= 0x7F))
 
 /* Set STR a pointer to the multi-byte form of the character C.  If C
    is not a composite character, the multi-byte form is set in WORKBUF
    and STR points WORKBUF.  The caller should allocate at least 4-byte
    area at WORKBUF in advance.  Returns the length of the multi-byte
-   form.  If C is an invalid character to have a multi-byte form,
-   signal an error.
+   form.  If C is an invalid character, store (C & 0xFF) in WORKBUF[0]
+   and return 1.
 
    Use macro `CHAR_STRING (C, WORKBUF, STR)' instead of calling this
    function directly if C can be an ASCII character.  */
@@ -140,8 +216,6 @@ non_ascii_char_to_string (c, workbuf, str)
      int c;
      unsigned char *workbuf, **str;
 {
-  int charset, c1, c2;
-
   if (c & CHAR_MODIFIER_MASK)	/* This includes the case C is negative.  */
     {
       /* Multibyte character can't have a modifier bit.  */
@@ -183,111 +257,79 @@ non_ascii_char_to_string (c, workbuf, str)
 	invalid_character (c);
 
       *str = workbuf;
-      *workbuf = c;
-      return 1;
+      *workbuf++ = c;
     }
-
-  if (c < 0)
-    invalid_character (c);
-
-  if (COMPOSITE_CHAR_P (c))
+  else
     {
-      int cmpchar_id = COMPOSITE_CHAR_ID (c);
+      int charset, c1, c2;
 
-      if (cmpchar_id < n_cmpchars)
+      SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+      if (charset == CHARSET_COMPOSITION)
 	{
-	  *str = cmpchar_table[cmpchar_id]->data;
-	  return cmpchar_table[cmpchar_id]->len;
+	  if (c >= MAX_CHAR)
+	    invalid_character (c);
+	  if (c >= MIN_CHAR_COMPOSITION)
+	    {
+	      /* Valid composite character.  */
+	      *str = cmpchar_table[COMPOSITE_CHAR_ID (c)]->data;
+	      workbuf = *str + cmpchar_table[COMPOSITE_CHAR_ID (c)]->len;
+	    }
+	  else
+	    {
+	      /* Invalid but can have multibyte form.  */
+	      *str = workbuf;
+	      *workbuf++ = LEADING_CODE_COMPOSITION;
+	      *workbuf++ = c1 | 0x80;
+	    }
 	}
+      else if (charset > CHARSET_COMPOSITION)
+	{
+	  *str = workbuf;
+	  if (charset >= LEADING_CODE_EXT_11)
+	    *workbuf++ = (charset < LEADING_CODE_EXT_12
+			  ? LEADING_CODE_PRIVATE_11
+			  : (charset < LEADING_CODE_EXT_21
+			     ? LEADING_CODE_PRIVATE_12
+			     : (charset < LEADING_CODE_EXT_22
+				? LEADING_CODE_PRIVATE_21
+				: LEADING_CODE_PRIVATE_22)));
+	  *workbuf++ = charset;
+	  if (c1 > 0 && c1 < 32 || c2 > 0 && c2 < 32)
+	    invalid_character (c);
+	  if (c1)
+	    {
+	      *workbuf++ = c1 | 0x80;
+	      if (c2 > 0)
+		*workbuf++ = c2 | 0x80;
+	    }
+	}
+      else if (charset == CHARSET_ASCII)
+	*workbuf++= c & 0x7F;
       else
-	{
-	  invalid_character (c);
-	}
+	invalid_character (c);
     }
-
-  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
-  if (!charset
-      || ! CHARSET_DEFINED_P (charset)
-      || c1 >= 0 && c1 < 32
-      || c2 >= 0 && c2 < 32)
-    invalid_character (c);
-
-  *str = workbuf;
-  *workbuf++ = CHARSET_LEADING_CODE_BASE (charset);
-  if (*workbuf = CHARSET_LEADING_CODE_EXT (charset))
-    workbuf++;
-  *workbuf++ = c1 | 0x80;
-  if (c2 >= 0)
-    *workbuf++ = c2 | 0x80;
 
   return (workbuf - *str);
 }
 
 /* Return a non-ASCII character of which multi-byte form is at STR of
-   length LEN.  If ACTUAL_LEN is not NULL, the actual length of the
+   length LEN.  If ACTUAL_LEN is not NULL, the byte length of the
    multibyte form is set to the address ACTUAL_LEN.
-
-   If exclude_tail_garbage is nonzero, ACTUAL_LEN excludes gabage
-   bytes following the non-ASCII character.
 
    Use macro `STRING_CHAR (STR, LEN)' instead of calling this function
    directly if STR can hold an ASCII character.  */
 
 int
-string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
+string_to_non_ascii_char (str, len, actual_len)
      const unsigned char *str;
-     int len, *actual_len, exclude_tail_garbage;
+     int len, *actual_len;
 {
-  int charset;
-  unsigned char c1, c2;
-  int c, bytes;
-  const unsigned char *begp = str;
+  int c, bytes, charset, c1, c2;
 
-  c = *str++;
-  bytes = 1;
-
-  if (BASE_LEADING_CODE_P (c))
-    do {
-      while (bytes < len && ! CHAR_HEAD_P (begp[bytes])) bytes++;
-
-      if (c == LEADING_CODE_COMPOSITION)
-	{
-	  int cmpchar_id = str_cmpchar_id (begp, bytes);
-
-	  if (cmpchar_id >= 0)
-	    {
-	      c = MAKE_COMPOSITE_CHAR (cmpchar_id);
-	      str += cmpchar_table[cmpchar_id]->len - 1;
-	    }
-	  else
-	    str += bytes - 1;
-	}
-      else
-	{
-	  const unsigned char *endp = begp + bytes;
-	  int charset = c, c1, c2 = 0;
-
-	  if (str >= endp) break;
-	  if (c >= LEADING_CODE_PRIVATE_11 && c <= LEADING_CODE_PRIVATE_22)
-	    {
-	      charset = *str++;
-	      if (str < endp)
-		c1 = *str++ & 0x7F;
-	      else
-		c1 = charset, charset = c;
-	    }
-	  else
-	    c1 = *str++ & 0x7f;
-	  if (CHARSET_DEFINED_P (charset)
-	      && CHARSET_DIMENSION (charset) == 2
-	      && str < endp)
-	    c2 = *str++ & 0x7F;
-	  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
-	}
-    } while (0);
-
+  SPLIT_MULTIBYTE_SEQ (str, len, bytes, charset, c1, c2);
+  c = MAKE_CHAR (charset, c1, c2);
   if (actual_len)
-    *actual_len = exclude_tail_garbage ? str - begp : bytes;
+    *actual_len = bytes;
   return c;
 }
 
@@ -297,53 +339,59 @@ multibyte_form_length (str, len)
      const unsigned char *str;
      int len;
 {
-  int bytes = 1;
+  int bytes;
 
-  if (BASE_LEADING_CODE_P (*str))
-    while (bytes < len && ! CHAR_HEAD_P (str[bytes])) bytes++;
-
+  PARSE_MULTIBYTE_SEQ (str, len, bytes);
   return bytes;
 }
 
-/* Check if string STR of length LEN contains valid multi-byte form of
-   a character.  If valid, charset and position codes of the character
-   is set at *CHARSET, *C1, and *C2, and return 0.  If not valid,
+/* Check multibyte form at string STR of length LEN and set variables
+   pointed by CHARSET, C1, and C2 to charset and position codes of the
+   character at STR, and return 0.  If there's no multibyte character,
    return -1.  This should be used only in the macro SPLIT_STRING
    which checks range of STR in advance.  */
 
 int
 split_non_ascii_string (str, len, charset, c1, c2)
-     register const unsigned char *str;
-     register unsigned char *c1, *c2;
-     register int len, *charset;
+     const unsigned char *str;
+     unsigned char *c1, *c2;
+     int len, *charset;
 {
-  register unsigned int cs = *str++;
+  register int bytes, cs, code1, code2 = -1;
 
-  if (cs == LEADING_CODE_COMPOSITION)
-    {
-      int cmpchar_id = str_cmpchar_id (str - 1, len);
-
-      if (cmpchar_id < 0)
-	return -1;
-      *charset = cs, *c1 = cmpchar_id >> 7, *c2 = cmpchar_id & 0x7F;
-    }
-  else if ((cs < LEADING_CODE_PRIVATE_11 || (cs = *str++) >= 0xA0)
-	   && CHARSET_DEFINED_P (cs))
-    {
-      *charset = cs;
-      if (*str < 0xA0)
-	return -1;
-      *c1 = (*str++) & 0x7F;
-      if (CHARSET_DIMENSION (cs) == 2)
-	{
-	  if (*str < 0xA0)
-	    return -1;
-	  *c2 = (*str++) & 0x7F;
-	}
-    }
-  else
+  SPLIT_MULTIBYTE_SEQ (str, len, bytes, cs, code1, code2);
+  if (cs == CHARSET_ASCII)
     return -1;
-  return 0;
+  *charset = cs;
+  *c1 = code1;
+  *c2 = code2;
+}
+
+/* Return 1 iff character C has valid printable glyph.  */
+int
+char_printable_p (c)
+     int c;
+{
+  int charset, c1, c2, chars;
+
+  if (SINGLE_BYTE_CHAR_P (c))
+    return 1;
+  if (c >= MIN_CHAR_COMPOSITION)
+    return (c < MAX_CHAR);
+  
+  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  if (! CHARSET_DEFINED_P (charset))
+    return 0;
+  if (CHARSET_CHARS (charset) == 94
+      ? c1 <= 32 || c1 >= 127
+      : c1 < 32)
+    return 0;
+  if (CHARSET_DIMENSION (charset) == 2
+      && (CHARSET_CHARS (charset) == 94
+	  ? c2 <= 32 || c2 >= 127
+	  : c2 < 32))
+    return 0;
+  return 1;
 }
 
 /* Translate character C by translation table TABLE.  If C
@@ -360,8 +408,7 @@ translate_char (table, c, charset, c1, c2)
 
   if (c < 0) c = MAKE_CHAR (charset, c1, c2);
   if (!CHAR_TABLE_P (table)
-      || (ch = Faref (table, make_number (c)), !INTEGERP (ch))
-      || XINT (ch) < 0)
+      || (ch = Faref (table, make_number (c)), !NATNUMP (ch)))
     return c;
 
   SPLIT_CHAR (XFASTINT (ch), alt_charset, alt_c1, alt_c2);
@@ -396,13 +443,13 @@ unibyte_char_to_multibyte (c)
       if (! NILP (Vnonascii_translation_table))
 	{
 	  c = XINT (Faref (Vnonascii_translation_table, make_number (c)));
-	  if (c >= 0400 && ! VALID_MULTIBYTE_CHAR_P (c))
+	  if (c >= 0400 && ! char_valid_p (c, 0))
 	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
 	}
       else if (c >= 0240 && nonascii_insert_offset > 0)
 	{
 	  c += nonascii_insert_offset;
-	  if (c < 0400 || ! VALID_MULTIBYTE_CHAR_P (c))
+	  if (c < 0400 || ! char_valid_p (c, 0))
 	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
 	}
       else if (c >= 0240)
@@ -987,21 +1034,40 @@ DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
   (charset, code1, code2)
      Lisp_Object charset, code1, code2;
 {
+  int charset_id, c1, c2;
+
   CHECK_NUMBER (charset, 0);
+  charset_id = XINT (charset);
+  if (!CHARSET_DEFINED_P (charset_id))
+    error ("Invalid charset ID: %d", XINT (charset));
 
   if (NILP (code1))
-    XSETFASTINT (code1, 0);
+    c1 = 0;
   else
-    CHECK_NUMBER (code1, 1);
+    {
+      CHECK_NUMBER (code1, 1);
+      c1 = XINT (code1);
+    }
   if (NILP (code2))
-    XSETFASTINT (code2, 0);
+    c2 = 0;
   else
-    CHECK_NUMBER (code2, 2);
+    {
+      CHECK_NUMBER (code2, 2);
+      c2 = XINT (code2);
+    }
 
-  if (!CHARSET_DEFINED_P (XINT (charset)))
-    error ("Invalid charset: %d", XINT (charset));
+  if (c1 < 0 || c1 > 0xFF || c2 < 0 || c2 > 0xFF)
+    error ("Invalid code points: %d %d", c1, c2);
+  c1 &= 0x7F;
+  c2 &= 0x7F;
+  if (c1 == 0
+      ? c2 != 0
+      : (c2 == 0
+	 ? !CHAR_COMPONENT_VALID_P (charset, c1, 0x20)
+	 : !CHAR_COMPONENT_VALID_P (charset, c1, c2)))
+    error ("Invalid code points: %d %d", c1, c2);
 
-  return make_number (MAKE_CHAR (XINT (charset), XINT (code1), XINT (code2)));
+  return make_number (MAKE_CHAR (charset_id, c1, c2));
 }
 
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
@@ -1036,13 +1102,13 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
 }
 
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
-  "Return charset of a character in current buffer at position POS.\n\
+  "Return charset of a character in the current buffer at position POS.\n\
 If POS is nil, it defauls to the current point.\n\
 If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
 {
-  register int pos_byte, c, charset;
+  register int pos_byte, bytes, charset, c1, c2;
   register unsigned char *p;
 
   if (NILP (pos))
@@ -1061,8 +1127,15 @@ If POS is out of range, the value is nil.")
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
   p = BYTE_POS_ADDR (pos_byte);
-  c = STRING_CHAR (p, Z_BYTE - pos_byte);
-  charset = CHAR_CHARSET (c);
+  if (BASE_LEADING_CODE_P (*p))
+    {
+      SPLIT_MULTIBYTE_SEQ (p, Z_BYTE - pos_byte, bytes, charset, c1, c2);
+      if (charset < 0)
+	charset = 1;
+    }
+  else
+    charset = CHARSET_ASCII;
+
   return CHARSET_SYMBOL (charset);
 }
 
@@ -1103,15 +1176,23 @@ char_valid_p (c, genericp)
   if (SINGLE_BYTE_CHAR_P (c))
     return 1;
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
-  if (charset != CHARSET_COMPOSITION && !CHARSET_DEFINED_P (charset))
-    return 0;
-  return (c < MIN_CHAR_COMPOSITION
-	  ? ((c & CHAR_FIELD1_MASK) /* i.e. dimension of C is two.  */
-	     ? (genericp && c1 == 0 && c2 == 0
-		|| c1 >= 32 && c2 >= 32)
-	     : (genericp && c1 == 0
-		|| c1 >= 32))
-	  : c < MIN_CHAR_COMPOSITION + n_cmpchars);
+  if (charset == CHARSET_COMPOSITION)
+    return ((c >= MIN_CHAR_COMPOSITION
+	     && c < MIN_CHAR_COMPOSITION + n_cmpchars)
+	    || (genericp && c == GENERIC_COMPOSITION_CHAR));
+  if (genericp)
+    {
+      if (c1)
+	{
+	  if (c2 <= 0) c2 = 0x20;
+	}
+      else
+	{
+	  if (c2 <= 0) c1 = c2 = 0x20;
+	}
+    }
+  return (CHARSET_DEFINED_P (charset)
+	  && CHAR_COMPONENT_VALID_P (charset, c1, c2));
 }
 
 DEFUN ("char-valid-p", Fchar_valid_p, Schar_valid_p, 1, 2, 0,
@@ -1158,7 +1239,7 @@ The conversion is done based on `nonascii-translation-table' (which see)\n\
 
   CHECK_NUMBER (ch, 0);
   c = XINT (ch);
-  if (c < 0)
+  if (! CHAR_VALID_P (c, 0))
     error ("Invalid multibyte character: %d", c);
   c = multibyte_char_to_unibyte (c, Qnil);
   if (c < 0)
@@ -1369,27 +1450,12 @@ chars_in_text (ptr, nbytes)
      unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp, c;
-  int chars;
-
   /* current_buffer is null at early stages of Emacs initialization.  */
   if (current_buffer == 0
       || NILP (current_buffer->enable_multibyte_characters))
     return nbytes;
 
-  endp = ptr + nbytes;
-  chars = 0;
-
-  while (ptr < endp)
-    {
-      c = *ptr++;
-
-      if (BASE_LEADING_CODE_P (c))
-	while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
-      chars++;
-    }
-
-  return chars;
+  return multibyte_chars_in_text (ptr, nbytes);
 }
 
 /* Return the number of characters in the NBYTES bytes at PTR.
@@ -1401,18 +1467,25 @@ multibyte_chars_in_text (ptr, nbytes)
      unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp, c;
-  int chars;
+  unsigned char *endp;
+  int chars, bytes;
 
   endp = ptr + nbytes;
   chars = 0;
 
   while (ptr < endp)
     {
-      c = *ptr++;
-
-      if (BASE_LEADING_CODE_P (c))
-	while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
+      if (BASE_LEADING_CODE_P (*ptr))
+	{
+	  PARSE_MULTIBYTE_SEQ (ptr, nbytes, bytes);
+	  ptr += bytes;
+	  nbytes -= bytes;
+	}
+      else
+	{
+	  ptr++;
+	  nbytes--;
+	}
       chars++;
     }
 
@@ -1514,7 +1587,7 @@ str_cmpchar_id (str, len)
   int i;
   struct cmpchar_info *cmpcharp;
 
-  /* The second byte 0xFF means compostion rule is embedded.  */
+  /* The second byte 0xFF means COMPOSITION rule is embedded.  */
   embedded_rule = (str[1] == 0xFF);
 
   /* At first, get the actual length of the composite character.  */
@@ -1650,7 +1723,7 @@ str_cmpchar_id (str, len)
 	    /* Make `bufp' point normal multi-byte form temporally.  */
 	    *bufp -= 0x20;
 	    cmpcharp->glyph[i]
-	      = FAST_MAKE_GLYPH (string_to_non_ascii_char (bufp, 4, 0, 0), 0);
+	      = FAST_MAKE_GLYPH (string_to_non_ascii_char (bufp, 4, 0), 0);
 	    width = WIDTH_BY_CHAR_HEAD (*bufp);
 	    *bufp += 0x20;
 	    bufp += BYTES_BY_CHAR_HEAD (*bufp - 0x20);
@@ -1870,7 +1943,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 	{
 	  /* Add 0x20 to the base leading-code, keep the remaining
              bytes unchanged.  */
-	  int c = STRING_CHAR_AND_CHAR_LENGTH (p, pend - p, len);
+	  int c = STRING_CHAR_AND_LENGTH (p, pend - p, len);
 
 	  if (len <= 1 || ! CHAR_VALID_P (c, 0))
 	    error ("Can't compose an invalid character");
