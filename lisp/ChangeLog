@@ -1,3 +1,9 @@
+2002-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (mouse-show-mark): Use display-mouse-p, not
+	display-graphic-p, to decide whether to move point or use the
+	highlighting.
+
 2002-02-28  Colin Walters  <walters@verbum.org>
 
 	* eshell/esh-var.el (eshell-parse-variable-ref): Use
