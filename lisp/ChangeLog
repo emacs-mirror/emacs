@@ -1,3 +1,29 @@
+2004-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-choice-list): New dynamic var for `list' context.
+	(ido-context-switch-command): New dynamic var.
+	(ido-define-mode-map): Generalize switch between file/buffer contexts.
+	(ido-read-internal): Handle new `list' context.
+	Handle insert-buffer and insert-file ido-exit values.
+	(ido-buffer-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command. Handle insert-file ido-exit value.
+	(ido-read-buffer): Set ido-context-switch-command to 'ignore
+	unless it is already bound by caller.
+	(ido-file-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command.  Handle insert-buffer ido-exit value.
+	(ido-enter-insert-buffer, ido-enter-insert-file): New commands
+	used for context switching.
+	(ido-all-completions): Handle new `list' context.
+	(ido-make-choice-list): Return choices for `list' context.
+	(ido-find-file-in-dir, ido-display-file, ido-write-file)
+	(ido-display-buffer, ido-kill-buffer): Disable context switching.
+	(ido-insert-buffer, ido-insert-file): Setup context switching.
+	(ido-exhibit): Handle `list' context.
+	(ido-read-file-name): Disable context switching.  Handle fallback.
+	(ido-read-directory-name): Disable context switching.
+	(ido-completing-read): New defun like completing-read.  Setup and
+	use new `list' context.
+
 2004-09-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
