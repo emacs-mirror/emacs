@@ -1188,7 +1188,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	{
 	  while (--len >= 0)
 	    {
-	      unsigned char workbuf[4], *str;
+	      unsigned char str[MAX_MULTIBYTE_LENGTH];
 	      int c, translated, inverse;
 	      int in_charlen, charlen;
 
@@ -1208,11 +1208,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	      TRANSLATE (translated, trt, c);
 	      /* If translation changed the byte-length, go back
 		 to the original character.  */
-	      charlen = CHAR_STRING (translated, workbuf, str);
+	      charlen = CHAR_STRING (translated, str);
 	      if (in_charlen != charlen)
 		{
 		  translated = c;
-		  charlen = CHAR_STRING (c, workbuf, str);
+		  charlen = CHAR_STRING (c, str);
 		}
 
 	      /* If we are searching for something strange,
@@ -1238,8 +1238,6 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		    /* If two different rows appear, needing translation,
 		       then we cannot use boyer_moore search.  */
 		    boyer_moore_ok = 0;
-		    /* ??? Handa: this must do boyer_moore_ok = 0
-		       if c is a composite character.  */
 		}
 
 	      /* Store this character into the translated pattern.  */
