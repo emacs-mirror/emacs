@@ -982,6 +982,7 @@ If FORK is a string, it is the name to use for the new buffer."
 			    (cons (list (buffer-substring (match-beginning 1)
 							  (match-end 1)))
 				  compl))))))))
+	(setq compl (cons '("*") compl))
 	(setq Info-current-file-completions compl))))
 
 (defun Info-restore-point (hl)
