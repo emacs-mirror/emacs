@@ -1175,6 +1175,9 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** `set-fontset-font', `fontset-info', `fontset-font' now operate on
+the default fontset if the argument NAME is nil..
+
 ** The escape sequence \s is now interpreted as a SPACE character, 
 unless it is followed by a `-' in a character constant (e.g. ?\s-A),
 in which case it is still interpreted as the super modifier.

@@ -10,6 +10,8 @@
 
 2003-02-20  Kenichi Handa  <handa@m17n.org>
 
+	* term/w32-win.el: Call set-fontset-font with NAME nil.
+
 	* international/mule-diag.el (print-fontset): If FONTSET is nil,
 	use the default fontset.
 	(describe-fontset): If the current frame is not using a fontset,

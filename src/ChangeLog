@@ -1,5 +1,15 @@
 2003-02-20  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (check_fontset_name): If NAME is nil, return the
+	default fontset.
+	(override_font_info): New function.
+	(Fset_fontset_font): Document that NAME nil means the default
+	fontset.
+	(Ffontset_info): If FONTSET is not the default fontset, merge
+	FONTSET onto the copy of the default fontset, and work on that
+	copy.  Document that NAME nil means the default fontset.
+	(Ffontset_font): Document that NAME nil means the default fontset.
+
 	* process.c (setup_process_coding_systems): If the process's
 	in/out descriptor is -1, do nothing.
 
