@@ -13702,7 +13702,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
   {
     extern int gray_bitmap_width, gray_bitmap_height;
-    extern unsigned char *gray_bitmap_bits;
+    extern char *gray_bitmap_bits;
     dpyinfo->gray
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				     gray_bitmap_bits,
