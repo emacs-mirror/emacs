@@ -2240,15 +2240,13 @@ If PROMPT (the prefix), prompt for a coding system to use."
 	    (inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
-	(while (re-search-forward "\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
+	(while (re-search-forward "@.*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
 	  (let (ace unicode)
 	    (when (save-match-data
 		    (and (setq ace (match-string 1))
 			 (save-excursion
 			   (and (re-search-backward "^[^ \t]" nil t)
 				(looking-at "From\\|To\\|Cc")))
-			 (save-excursion (backward-char)
-					 (message-idna-inside-rhs-p))
 			 (setq unicode (idna-to-unicode ace))))
 	      (unless (string= ace unicode)
 		(replace-match unicode nil nil nil 1)))))))))
