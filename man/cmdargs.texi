@@ -735,8 +735,9 @@ negative, but that doesn't change their meaning, only their direction.
 
   Emacs uses the same units as @code{xterm} does to interpret the geometry.
 The @var{width} and @var{height} are measured in characters, so a large font
-creates a larger frame than a small font.  The @var{xoffset}
-and @var{yoffset} are measured in pixels.
+creates a larger frame than a small font.  (If you specify a proportional
+font, Emacs uses its maximum bounds width as the width unit.)  The
+@var{xoffset} and @var{yoffset} are measured in pixels.
 
   Since the mode line and the echo area occupy the last 2 lines of the
 frame, the height of the initial text window is 2 less than the height
