@@ -1747,7 +1747,7 @@ the earlier input."
   (setq widget-field-list (delq widget widget-field-list))
   ;; These are nil if the :format string doesn't contain `%v'.
   (let ((overlay (widget-get widget :field-overlay)))
-    (when overlay
+    (when (overlayp overlay)
       (delete-overlay overlay))))
 
 (defun widget-field-value-get (widget)
