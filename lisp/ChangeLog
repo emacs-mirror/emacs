@@ -9,6 +9,7 @@
 	* pcvs.el: Update references to CVS-Edit (now Log-Edit).
 	(cvs-mode-diff-help): Remove.
 	(cvs-mode-commit): Use the new `log-edit' BUFFER argument.
+	(cvs-mode-marked): Set up the default for CMD manually.
 
 	* pcvs-defs.el (cvs-mode-diff-map): Use minibuffer menu prompt.
 	Remove binding for ? now made unnecessary.
