@@ -204,8 +204,8 @@ These supersede the values given in `default-frame-alist'."
     ;; we support that feature, otherwise arrange to cause errors.
     (or (eq window-system 'pc)
 	(setq frame-creation-function
-	      (if (fboundp 'make-terminal-frame)
-		  'make-terminal-frame
+	      (if (fboundp 'tty-create-frame-with-faces)
+		  'tty-create-frame-with-faces
 		(function
 		 (lambda (parameters)
 		   (error
@@ -445,6 +445,9 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   "Functions to run after a frame is created.
 The functions are run with one arg, the newly created frame.")
 
+(defvar after-setting-font-hooks nil
+  "Functions to run after a frame's font has been changed.")
+
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
 
@@ -662,7 +665,8 @@ To get the frame's current default font, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name)))
   ;; Update faces that want a bold or italic version of the default font.
-  (frame-update-faces (selected-frame)))
+  (frame-update-faces (selected-frame))
+  (run-hooks 'after-setting-font-hooks))
 
 (defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR.
@@ -768,6 +772,119 @@ should use `set-frame-height' instead."
 (make-obsolete 'screen-width  'frame-width)
 (make-obsolete 'set-screen-width 'set-frame-width)
 (make-obsolete 'set-screen-height 'set-frame-height)
+
+
+;;; Highlighting trailing whitespace.
+
+(make-variable-buffer-local 'show-trailing-whitespace)
+
+(defcustom show-trailing-whitespace nil
+  "*Non-nil means highlight trailing whitespace in face `trailing-whitespace'."
+  :tag "Highlight trailing whitespace."
+  :set #'(lambda (symbol value) (set-default symbol value))
+  :type 'boolean
+  :group 'font-lock)
+
+
+
+;;; Blinking cursor
+
+(defgroup cursor nil
+  "Cursor on frames."
+  :group 'frames)
+
+(defcustom blink-cursor-delay 0.5
+  "*Seconds of Emacs idle time after which cursor starts to blink."
+  :tag "Delay in seconds."
+  :type 'number
+  :group 'cursor)
+
+(defcustom blink-cursor-interval 0.5
+  "*Length of cursor blink interval in seconds."
+  :tag "Blink interval in seconds."
+  :type 'number
+  :group 'cursor)
+
+(defvar blink-cursor-idle-timer nil
+  "Timer started after blink-cursor-delay seconds of Emacs idle time.
+The function blink-cursor-start is called when the timer fires.")
+
+(defvar blink-cursor-timer nil
+  "Time started from blink-cursor-start.  This timer calls blink-cursor
+every blink-cursor-interval seconds.")
+
+(defvar blink-cursor-mode nil
+  "Non-nil means blinking cursor is active.")
+
+(defun blink-cursor-mode (arg)
+  "Toggle blinking cursor mode.
+With arg, turn blinking cursor mode on iff arg is positive.
+When blinking cursor mode is enabled, the cursor of the selected
+window blinks."
+  (interactive "P")
+  (let ((on-p (if (null arg)
+		  (not blink-cursor-mode)
+		(> (prefix-numeric-value arg) 0))))
+    (if blink-cursor-idle-timer
+	(cancel-timer blink-cursor-idle-timer))
+    (if blink-cursor-timer
+	(cancel-timer blink-cursor-timer))
+    (setq blink-cursor-idle-timer nil
+	  blink-cursor-timer nil
+	  blink-cursor-mode nil)
+    (if on-p
+	(progn
+	  ;; Hide the cursor.
+	  (show-cursor 0)
+	  (setq blink-cursor-idle-timer
+		(run-with-idle-timer blink-cursor-delay
+				     blink-cursor-delay
+				     'blink-cursor-start))
+	  (setq blink-cursor-mode t)))))
+
+(defcustom blink-cursor t
+  "*Non-nil means blink-cursor-mode is active."
+  :tag "Blinking cursor"
+  :type 'boolean
+  :group 'cursor
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (blink-cursor-mode (or value 0))))
+
+(defun blink-cursor-start ()
+  "Timer function called from timer blink-cursor-idle-timer.
+Starts the timer blink-cursor-timer which lets the cursor blink
+if the selected frame has a non-nil `cursor-blinking' frame parameter.
+Arranges to cancel that timer by installing a pre command hook."
+  (when (null blink-cursor-timer)
+    (add-hook 'pre-command-hook 'blink-cursor-end)
+    (setq blink-cursor-timer
+	  (run-with-timer blink-cursor-interval blink-cursor-interval
+			  'show-cursor))))
+
+(defun blink-cursor-end ()
+  "Stop cursor blinking.
+Installed as a pre-command hook by blink-cursor-start.  Cancels
+the timer blink-cursor-timer and removes itself from the hook."
+  (remove-hook 'pre-command-hook 'blink-cursor-end)
+  (show-cursor 0)
+  (cancel-timer blink-cursor-timer)
+  (setq blink-cursor-timer nil))
+
+
+
+;;; Busy-cursor.
+
+(defcustom busy-cursor t
+  "*Non-nil means show a busy-cursor when running under a window-system."
+  :tag "Busy-cursor"
+  :type 'boolean
+  :group 'cursor
+  :get #'(lambda (symbol) display-busy-cursor)
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (setq display-busy-cursor value)))
+
 
 
 ;;;; Key bindings
