@@ -308,6 +308,13 @@ Holidays are included if `cal-tex-holidays' is t."
     (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week-monday nil)))
 
+(defun cal-tex-mouse-filofax-daily ()
+  "Day-per-page Filofax calendar for week indicated by cursor."
+  (interactive)
+  (save-excursion
+    (calendar-mouse-goto-date (calendar-event-to-date))
+    (cal-tex-cursor-filofax-daily nil)))
+
 (defun cal-tex-mouse-filofax-2week ()
   "One page Filofax calendar for week indicated by cursor."
   (interactive)
@@ -470,6 +477,8 @@ The output is in landscape format, one month to a page."
            (list (calendar-date-string date t nil)
                  (list
                   ""
+                  '("Filofax Daily (one-day-per-page)" .
+                    cal-tex-mouse-filofax-daily)
                   '("Filofax Weekly (2-weeks-at-a-glance)" .
                     cal-tex-mouse-filofax-2week)
                   '("Filofax Weekly (week-at-a-glance)" .
