@@ -256,7 +256,6 @@ install:
 	if not exist .\same-dir.tst $(CP) subdirs.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) version.el $(INSTALL_DIR)\lisp
 	if not exist .\same-dir.tst $(CP) mail\blessmail.el $(INSTALL_DIR)\lisp\mail
-	if not exist .\same-dir.tst $(CP) mail\sc.el $(INSTALL_DIR)\lisp\mail
 	if not exist .\same-dir.tst $(CP) play\bruce.el $(INSTALL_DIR)\lisp\play
 	if not exist .\same-dir.tst $(CP) international\latin-*.el $(INSTALL_DIR)\lisp\international
 	if not exist .\same-dir.tst $(CP) international\mule-conf.el $(INSTALL_DIR)\lisp\international
