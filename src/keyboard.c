@@ -1952,7 +1952,7 @@ adjust_point_for_property (last_pt, modified)
 			 less than we actually did, so that we still have
 			 more freedom below in choosing which end of the range
 			 to go to.  */
-		      ? (PT < last_pt ? end : beg)
+		      ? (orig_pt = -1, PT < last_pt ? end : beg)
 		      /* We either have moved already or the last point
 			 was already in the range: we don't get to choose
 			 which end of the range we have to go to.  */
