@@ -781,7 +781,10 @@ It can also be nil, if the definition is not associated with any file."
 			   (goto-char (point-min))
 			   (forward-paragraph)
 			   (insert
-			    "[Missing arglist.  Please make a bug report.]\n")))
+			    (or (cdr (assq (intern name)
+					   help-manyarg-func-alist))
+			    "[Missing arglist.  Please make a bug report.]")
+			    ?\n)))
 		       (goto-char (point-max))))
 		 (help-setup-xref (list #'describe-function function)
 				  interactive-p))
