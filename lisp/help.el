@@ -1550,6 +1550,8 @@ out of view."
      (ml-provide-prefix-argument . "(ml-provide-prefix-argument ARG1 ARG2)")
      (with-output-to-temp-buffer
 	 . "(with-output-to-temp-buffer BUFFNAME BODY ...)")
-     (save-window-excursion . "(save-window-excursion BODY ...)"))))
+     (save-window-excursion . "(save-window-excursion BODY ...)")
+     (find-operation-coding-system
+      . "(find-operation-coding-system OPERATION ARGUMENTS ...)"))))
 
 ;;; help.el ends here
