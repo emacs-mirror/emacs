@@ -107,19 +107,27 @@ The user's .emacs file is altered so that this will apply
 to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
-  (save-excursion
-   (set-buffer (find-file-noselect
-		(substitute-in-file-name user-init-file)))
-   (goto-char (point-min))
-   (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
-       (delete-region
-	(progn (beginning-of-line) (point))
-	(progn (forward-line 1) (point))))
-   ;; Explicitly enable, in case this command is disabled by default
-   ;; or in case the code we deleted was actually a comment.
-   (goto-char (point-max))
-   (insert "\n(put '" (symbol-name command) " 'disabled nil)\n")
-   (save-buffer)))
+  (let ((init-file user-init-file))
+    (when (or (not (stringp init-file))
+	      (not (file-exists-p init-file)))
+      (setq init-file (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs"))
+      (if (and (not (file-exists-p init-file))
+	       (eq system-type 'windows-nt)
+	       (file-exists-p "~/_emacs"))
+	  (setq init-file "~/_emacs")))
+    (save-excursion
+      (set-buffer (find-file-noselect
+		   (substitute-in-file-name init-file)))
+      (goto-char (point-min))
+      (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
+	  (delete-region
+	   (progn (beginning-of-line) (point))
+	   (progn (forward-line 1) (point))))
+      ;; Explicitly enable, in case this command is disabled by default
+      ;; or in case the code we deleted was actually a comment.
+      (goto-char (point-max))
+      (insert "\n(put '" (symbol-name command) " 'disabled nil)\n")
+      (save-buffer))))
 
 ;;;###autoload
 (defun disable-command (command)
