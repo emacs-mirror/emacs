@@ -1,5 +1,5 @@
 ;;; nnfolder.el --- mail folder access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Scott Byer <byer@mv.us.adobe.com>
@@ -740,6 +740,7 @@ deleted.  Point is left where the deleted region was."
 		  (let ((nnheader-file-coding-system 
 			 nnfolder-file-coding-system))
 		    (nnheader-find-file-noselect file)))))
+    (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
     (if (equal (cadr (assoc group nnfolder-scantime-alist))
 	       (nth 5 (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
