@@ -377,8 +377,11 @@ With argument, print output into current buffer."
 			   expr))
 		     (set-syntax-table stab))))))
       (let ((print-length eval-expression-print-length)
-	    (print-level eval-expression-print-level))
-	(prin1 value)))))
+	    (print-level eval-expression-print-level)
+	    (start (point)))
+	(prin1 value)
+	(when (bufferp standard-output)
+	  (put-text-property start (point) 'printed-value value))))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
