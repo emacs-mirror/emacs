@@ -452,7 +452,7 @@ static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *));
+static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
 static int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
@@ -10053,9 +10053,10 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row)
+x_draw_bar_cursor (w, row, width)
      struct window *w;
      struct glyph_row *row;
+     int width;
 {
   /* If cursor hpos is out of bounds, don't draw garbage.  This can
      happen in mini-buffer windows when switching between echo area
@@ -10091,13 +10092,15 @@ x_draw_bar_cursor (w, row)
 	  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
 	}
 
+      if (width < 0)
+	width = f->output_data.x->cursor_width;
+
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       x_clip_to_row (w, row, gc, 0);
       XFillRectangle (dpy, window, gc,
 		      x,
 		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      min (cursor_glyph->pixel_width,
-			   f->output_data.x->cursor_width),
+		      min (cursor_glyph->pixel_width, width),
 		      row->height);
       XSetClipMask (dpy, gc, None);
     }
@@ -10254,6 +10257,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 {
   struct frame *f = XFRAME (w->frame);
   int new_cursor_type;
+  int new_cursor_width;
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
@@ -10292,6 +10296,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      the cursor type given by the frame parameter.  If explicitly
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
+  new_cursor_width = -1;
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
       && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
@@ -10316,7 +10321,15 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       else if (w->cursor_off_p)
 	new_cursor_type = NO_CURSOR;
       else
-	new_cursor_type = FRAME_DESIRED_CURSOR (f);
+	{
+	  struct buffer *b = XBUFFER (w->buffer);
+
+	  if (EQ (b->cursor_type, Qt))
+	    new_cursor_type = FRAME_DESIRED_CURSOR (f);
+	  else
+	    new_cursor_type = x_specified_cursor_type (b->cursor_type, 
+						       &new_cursor_width);
+	}
     }
 
   /* If cursor is currently being shown and we don't want it to be or
@@ -10356,7 +10369,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row);
+	  x_draw_bar_cursor (w, glyph_row, new_cursor_width);
 	  break;
 
 	case NO_CURSOR:
