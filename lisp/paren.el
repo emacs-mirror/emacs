@@ -91,7 +91,7 @@ Returns the new status of Show Paren mode (non-nil means on).
 
 When Show Paren mode is enabled, any matching parenthesis is highlighted
 in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
-  nil nil nil :global t :group 'paren-showing
+  :global t :group 'paren-showing
     ;; Turn off the usual paren-matching method
     ;; when this one is turned on.
     (if (local-variable-p 'show-paren-mode)
