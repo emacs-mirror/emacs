@@ -1,10 +1,9 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header.
 
-;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
-;; Maintainer: Jamie Zawinski <jwz@lucid.com>
-;; Version: 1.8
+;; Maintainer: FSF
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -28,7 +27,7 @@
 
 ;; The entry point of this code is
 ;;
-;;    mail-extract-address-components: (address)
+;;    mail-extract-address-components: (address &optional all)
 ;;  
 ;;    Given an RFC-822 ADDRESS, extract full name and canonical address.
 ;;    Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
@@ -39,6 +38,10 @@
 ;;     consing a string.)
 ;;    If ADDRESS contains more than one RFC-822 address, only the first is
 ;;     returned.
+;;
+;;    If ALL is non-nil, that means return info about all the addresses
+;;     that are found in ADDRESS.  The value is a list of elements of
+;;     the form (FULL-NAME CANONICAL-ADDRESS), one per address.
 ;;
 ;; This code is more correct (and more heuristic) parser than the code in
 ;; rfc822.el.  And despite its size, it's fairly fast.
@@ -706,44 +709,28 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
 (defvar cend)				; dynamic assignment
 
 ;;;###autoload
-(defun mail-extract-address-components (address)
-  "Given an RFC-822 ADDRESS, extract full name and canonical address.
+(defun mail-extract-address-components (address &optional all)
+  "Given an RFC-822 address ADDRESS, extract full name and canonical address.
 Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
 If no name can be extracted, FULL-NAME will be nil.
+
+If the optional argument ALL is non-nil, then ADDRESS can contain zero
+or more recipients, separated by commas, and we return a list of
+the form ((FULL-NAME CANONICAL-ADDRESS) ...) with one element for
+each recipient.  If ALL is nil, then if ADDRESS contains more than
+one recipients, all but the first is ignored.
+
 ADDRESS may be a string or a buffer.  If it is a buffer, the visible 
  (narrowed) portion of the buffer will be interpreted as the address.
  (This feature exists so that the clever caller might be able to avoid
- consing a string.)
-If ADDRESS contains more than one RFC-822 address, only the first is
- returned.  Some day this function may be extended to extract multiple
- addresses, or perhaps return the position at which parsing stopped."
+ consing a string.)"
   (let ((canonicalization-buffer (get-buffer-create " *canonical address*"))
 	(extraction-buffer (get-buffer-create " *extract address components*"))
-	char
-;;	multiple-addresses
-	<-pos >-pos @-pos :-pos comma-pos !-pos %-pos \;-pos
-	group-:-pos group-\;-pos route-addr-:-pos
-	record-pos-symbol
-	first-real-pos last-real-pos
-	phrase-beg phrase-end
-	cbeg cend			; dynamically set from -voodoo
-	quote-beg quote-end
-	atom-beg atom-end
-	mbox-beg mbox-end
-	\.-ends-name
-	temp
-;;	name-suffix
-	fi mi li			; first, middle, last initial
-	saved-%-pos saved-!-pos saved-@-pos
-	domain-pos \.-pos insert-point
-;;	mailbox-name-processed-flag
-	disable-initial-guessing-flag	; dynamically set from -voodoo
-	)
-    
+	value-list)
+
     (save-excursion
       (set-buffer extraction-buffer)
       (fundamental-mode)
-      (kill-all-local-variables)
       (buffer-disable-undo extraction-buffer)
       (set-syntax-table mail-extr-address-syntax-table)
       (widen)
@@ -763,672 +750,718 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	     (error "Invalid address: %s" address)))
 
       (set-text-properties (point-min) (point-max) nil)
+
+      (save-excursion
+	(set-buffer canonicalization-buffer)
+	(fundamental-mode)
+	(buffer-disable-undo canonicalization-buffer)
+	(set-syntax-table mail-extr-address-syntax-table)
+	(setq case-fold-search nil))
+
       
-      ;; stolen from rfc822.el
       ;; Unfold multiple lines.
       (goto-char (point-min))
       (while (re-search-forward "\\([^\\]\\(\\\\\\\\\\)*\\)\n[ \t]" nil t)
 	(replace-match "\\1 " t))
       
-      ;; first pass grabs useful information about address
-      (goto-char (point-min))
-      (while (progn
-	       (mail-extr-skip-whitespace-forward)
-	       (not (eobp)))
-	(setq char (char-after (point)))
-	(or first-real-pos
-	    (if (not (eq char ?\())
-		(setq first-real-pos (point))))
-	(cond
-	 ;; comment
-	 ((eq char ?\()
-	  (set-syntax-table mail-extr-address-comment-syntax-table)
-	  ;; only record the first non-empty comment's position
-	  (if (and (not cbeg)
-		   (save-excursion
-		     (forward-char 1)
-		     (mail-extr-skip-whitespace-forward)
-		     (not (eq ?\) (char-after (point))))))
-	      (setq cbeg (point)))
-	  ;; TODO: don't record if unbalanced
-	  (or (mail-extr-safe-move-sexp 1)
-	      (forward-char 1))
-	  (set-syntax-table mail-extr-address-syntax-table)
-	  (if (and cbeg
-		   (not cend))
-	      (setq cend (point))))
-	 ;; quoted text
-	 ((eq char ?\")
-	  ;; only record the first non-empty quote's position
-	  (if (and (not quote-beg)
-		   (save-excursion
-		     (forward-char 1)
-		     (mail-extr-skip-whitespace-forward)
-		     (not (eq ?\" (char-after (point))))))
-	      (setq quote-beg (point)))
-	  ;; TODO: don't record if unbalanced
-	  (or (mail-extr-safe-move-sexp 1)
-	      (forward-char 1))
-	  (if (and quote-beg
-		   (not quote-end))
-	      (setq quote-end (point))))
-	 ;; domain literals
-	 ((eq char ?\[)
-	  (set-syntax-table mail-extr-address-domain-literal-syntax-table)
-	  (or (mail-extr-safe-move-sexp 1)
-	      (forward-char 1))
-	  (set-syntax-table mail-extr-address-syntax-table))
-	 ;; commas delimit addresses when outside < > pairs.
-	 ((and (eq char ?,)
-	       (or (and (null <-pos)
-			;; Handle ROUTE-ADDR address that is missing its <.
-			(not (eq ?@ (char-after (1+ (point))))))
-		   (and >-pos
-			;; handle weird munged addresses
-			;; BUG FIX: This test was reversed.  Thanks to the
-			;; brilliant Rod Whitby <rwhitby@research.canon.oz.au>
-			;; for discovering this!
-			(< (mail-extr-last <-pos) (car >-pos)))))
-;; It'd be great if some day this worked, but for now, punt.
-;;	  (setq multiple-addresses t)
-;;	  ;; *** Why do I want this:
-;;	  (mail-extr-delete-char 1)
-;;	  (narrow-to-region (point-min) (point))
-	  (delete-region (point) (point-max))
-	  (setq char ?\() ; HAVE I NO SHAME??
-	  )
-	 ;; record the position of various interesting chars, determine
-	 ;; legality later.
-	 ((setq record-pos-symbol
-		(cdr (assq char
-			   '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
-			     (?: . :-pos) (?, . comma-pos) (?! . !-pos)
-			     (?% . %-pos) (?\; . \;-pos)))))
-	  (set record-pos-symbol
-	       (cons (point) (symbol-value record-pos-symbol)))
-	  (forward-char 1))
-	 ((eq char ?.)
-	  (forward-char 1))
-	 ((memq char '(
-		       ;; comment terminator illegal
-		       ?\)
-		       ;; domain literal terminator illegal
-		       ?\]
-		       ;; \ allowed only within quoted strings,
-		       ;; domain literals, and comments
-		       ?\\
-		       ))
-	  (mail-extr-nuke-char-at (point))
-	  (forward-char 1))
-	 (t
-	  (forward-word 1)))
-	(or (eq char ?\()
-	    ;; At the end of first address of a multiple address header.
-	    (and (eq char ?,)
-		 (eobp))
-	    (setq last-real-pos (point))))
-      
-      ;; Use only the leftmost <, if any.  Replace all others with spaces.
-      (while (cdr <-pos)
-	(mail-extr-nuke-char-at (car <-pos))
-	(setq <-pos (cdr <-pos)))
-      
-      ;; Use only the rightmost >, if any.  Replace all others with spaces.
-      (while (cdr >-pos)
-	(mail-extr-nuke-char-at (nth 1 >-pos))
-	(setcdr >-pos (nthcdr 2 >-pos)))
-      
-      ;; If multiple @s and a :, but no < and >, insert around buffer.
-      ;; Example: @foo.bar.dom,@xxx.yyy.zzz:mailbox@aaa.bbb.ccc
-      ;; This commonly happens on the UUCP "From " line.  Ugh.
-      (cond ((and (> (length @-pos) 1)
-		  (eq 1 (length :-pos))	;TODO: check if between last two @s
-		  (not \;-pos)
-		  (not <-pos))
-	     (goto-char (point-min))
-	     (mail-extr-delete-char 1)
-	     (setq <-pos (list (point)))
-	     (insert ?<)))
-      
-      ;; If < but no >, insert > in rightmost possible position
-      (cond ((and <-pos
-		  (null >-pos))
-	     (goto-char (point-max))
-	     (setq >-pos (list (point)))
-	     (insert ?>)))
-      
-      ;; If > but no <, replace > with space.
-      (cond ((and >-pos
-		  (null <-pos))
-	     (mail-extr-nuke-char-at (car >-pos))
-	     (setq >-pos nil)))
+      ;; Loop over addresses until we have as many as we want.
+      (while (and (or all (null value-list))
+		  (progn (goto-char (point-min))
+			 (skip-chars-forward " \t")
+			 (not (eobp))))
+	(let (char
+	      end-of-address
+	      <-pos >-pos @-pos :-pos comma-pos !-pos %-pos \;-pos
+	      group-:-pos group-\;-pos route-addr-:-pos
+	      record-pos-symbol
+	      first-real-pos last-real-pos
+	      phrase-beg phrase-end
+	      cbeg cend			; dynamically set from -voodoo
+	      quote-beg quote-end
+	      atom-beg atom-end
+	      mbox-beg mbox-end
+	      \.-ends-name
+	      temp
+	      ;;	name-suffix
+	      fi mi li			; first, middle, last initial
+	      saved-%-pos saved-!-pos saved-@-pos
+	      domain-pos \.-pos insert-point
+	      ;;	mailbox-name-processed-flag
+	      disable-initial-guessing-flag) ; dynamically set from -voodoo
 
-      ;; Turn >-pos and <-pos into non-lists
-      (setq >-pos (car >-pos)
-	    <-pos (car <-pos))
-      
-      ;; Trim other punctuation lists of items outside < > pair to handle
-      ;; stupid MTAs.
-      (cond (<-pos			; don't need to check >-pos also
-	     ;; handle bozo software that violates RFC 822 by sticking
-	     ;; punctuation marks outside of a < > pair
-	     (mail-extr-nuke-outside-range @-pos <-pos >-pos t)
-	     ;; RFC 822 says nothing about these two outside < >, but
-	     ;; remove those positions from the lists to make things
-	     ;; easier.
-	     (mail-extr-nuke-outside-range !-pos <-pos >-pos t)
-	     (mail-extr-nuke-outside-range %-pos <-pos >-pos t)))
-      
-      ;; Check for : that indicates GROUP list and for : part of
-      ;; ROUTE-ADDR spec.
-      ;; Can't possibly be more than two :.  Nuke any extra.
-      (while :-pos
-	(setq temp (car :-pos)
-	      :-pos (cdr :-pos))
-	(cond ((and <-pos >-pos
-		    (> temp <-pos)
-		    (< temp >-pos))
-	       (if (or route-addr-:-pos
-		       (< (length @-pos) 2)
-		       (> temp (car @-pos))
-		       (< temp (nth 1 @-pos)))
-		   (mail-extr-nuke-char-at temp)
-		 (setq route-addr-:-pos temp)))
-	      ((or (not <-pos)
-		   (and <-pos
-			(< temp <-pos)))
-	       (setq group-:-pos temp))))
-      
-      ;; Nuke any ; that is in or to the left of a < > pair or to the left
-      ;; of a GROUP starting :.  Also, there may only be one ;.
-      (while \;-pos
-	(setq temp (car \;-pos)
-	      \;-pos (cdr \;-pos))
-	(cond ((and <-pos >-pos
-		    (> temp <-pos)
-		    (< temp >-pos))
-	       (mail-extr-nuke-char-at temp))
-	      ((and (or (not group-:-pos)
-			(> temp group-:-pos))
-		    (not group-\;-pos))
-	       (setq group-\;-pos temp))))
-      
-      ;; Nuke unmatched GROUP syntax characters.
-      (cond ((and group-:-pos (not group-\;-pos))
-	     ;; *** Do I really need to erase it?
-	     (mail-extr-nuke-char-at group-:-pos)
-	     (setq group-:-pos nil)))
-      (cond ((and group-\;-pos (not group-:-pos))
-	     ;; *** Do I really need to erase it?
-	     (mail-extr-nuke-char-at group-\;-pos)
-	     (setq group-\;-pos nil)))
-      
-      ;; Handle junk like ";@host.company.dom" that sendmail adds.
-      ;; **** should I remember comment positions?
-      (cond
-       (group-\;-pos
-	;; this is fine for now
-	(mail-extr-nuke-outside-range !-pos group-:-pos group-\;-pos t)
-	(mail-extr-nuke-outside-range @-pos group-:-pos group-\;-pos t)
-	(mail-extr-nuke-outside-range %-pos group-:-pos group-\;-pos t)
-	(mail-extr-nuke-outside-range comma-pos group-:-pos group-\;-pos t)
-	(and last-real-pos
-	     (> last-real-pos (1+ group-\;-pos))
-	     (setq last-real-pos (1+ group-\;-pos)))
-	;; *** This may be wrong:
-        (and cend
-             (> cend group-\;-pos)
-             (setq cend nil
-                   cbeg nil))
-	(and quote-end
-	     (> quote-end group-\;-pos)
-	     (setq quote-end nil
-		   quote-beg nil))
-	;; This was both wrong and unnecessary:
-	;;(narrow-to-region (point-min) group-\;-pos)
+	  (goto-char (point-min))
 
-	;; *** The entire handling of GROUP addresses seems rather lame.
-	;; *** It deserves a complete rethink, except that these addresses
-	;; *** are hardly ever seen.
-	))
-      
-      ;; Any commas must be between < and : of ROUTE-ADDR.  Nuke any
-      ;; others.
-      ;; Hell, go ahead an nuke all of the commas.
-      ;; **** This will cause problems when we start handling commas in
-      ;; the PHRASE part .... no it won't ... yes it will ... ?????
-      (mail-extr-nuke-outside-range comma-pos 1 1)
-      
-      ;; can only have multiple @s inside < >.  The fact that some MTAs
-      ;; put de-bracketed ROUTE-ADDRs in the UUCP-style "From " line is
-      ;; handled above.
-      
-      ;; Locate PHRASE part of ROUTE-ADDR.
-      (cond (<-pos
-	     (goto-char <-pos)
-	     (mail-extr-skip-whitespace-backward)
-	     (setq phrase-end (point))
-	     (goto-char (or ;;group-:-pos
-			    (point-min)))
-	     (mail-extr-skip-whitespace-forward)
-	     (if (< (point) phrase-end)
-		 (setq phrase-beg (point))
-	       (setq phrase-end nil))))
-      
-      ;; handle ROUTE-ADDRS with real ROUTEs.
-      ;; If there are multiple @s, then we assume ROUTE-ADDR syntax, and
-      ;; any % or ! must be semantically meaningless.
-      ;; TODO: do this processing into canonicalization buffer
-      (cond (route-addr-:-pos
-	     (setq !-pos nil
-		   %-pos nil
-		   >-pos (copy-marker >-pos)
-		   route-addr-:-pos (copy-marker route-addr-:-pos))
-	     (goto-char >-pos)
-	     (insert-before-markers ?X)
-	     (goto-char (car @-pos))
-	     (while (setq @-pos (cdr @-pos))
-	       (mail-extr-delete-char 1)
-	       (setq %-pos (cons (point-marker) %-pos))
-	       (insert "%")
-	       (goto-char (1- >-pos))
-	       (save-excursion
-		 (insert-buffer-substring extraction-buffer
-					  (car @-pos) route-addr-:-pos)
-		 (delete-region (car @-pos) route-addr-:-pos))
-	       (or (cdr @-pos)
-		   (setq saved-@-pos (list (point)))))
-	     (setq @-pos saved-@-pos)
-	     (goto-char >-pos)
-	     (mail-extr-delete-char -1)
-	     (mail-extr-nuke-char-at route-addr-:-pos)
-	     (mail-extr-demarkerize route-addr-:-pos)
-	     (setq route-addr-:-pos nil
-		   >-pos (mail-extr-demarkerize >-pos)
-		   %-pos (mapcar 'mail-extr-demarkerize %-pos))))
-      
-      ;; de-listify @-pos
-      (setq @-pos (car @-pos))
-      
-      ;; TODO: remove comments in the middle of an address
-      
-      (set-buffer canonicalization-buffer)
-      (fundamental-mode)
-      (kill-all-local-variables)
-      (buffer-disable-undo canonicalization-buffer)
-      (set-syntax-table mail-extr-address-syntax-table)
-      (setq case-fold-search nil)
-      
-      (widen)
-      (erase-buffer)
-      (insert-buffer-substring extraction-buffer)
-      
-      (if <-pos
-	  (narrow-to-region (progn
-			      (goto-char (1+ <-pos))
-			      (mail-extr-skip-whitespace-forward)
-			      (point))
-			    >-pos)
-	(if (and first-real-pos last-real-pos)
-	    (narrow-to-region first-real-pos last-real-pos)
-	  ;; ****** Oh no!  What if the address is completely empty!
-	  ;; *** Is this correct?
-	  (narrow-to-region (point-max) (point-max))
-	  ))
-      
-      (and @-pos %-pos
-	   (mail-extr-nuke-outside-range %-pos (point-min) @-pos))
-      (and %-pos !-pos
-	   (mail-extr-nuke-outside-range !-pos (point-min) (car %-pos)))
-      (and @-pos !-pos (not %-pos)
-	   (mail-extr-nuke-outside-range !-pos (point-min) @-pos))
-      
-      ;; Error condition:?? (and %-pos (not @-pos))
-      
-      ;; WARNING: THIS CODE IS DUPLICATED BELOW.
-      (cond ((and %-pos
-		  (not @-pos))
-	     (goto-char (car %-pos))
-	     (mail-extr-delete-char 1)
-	     (setq @-pos (point))
-	     (insert "@")
-	     (setq %-pos (cdr %-pos))))
+	  ;; Insert extra space at beginning to allow later replacement with <
+	  ;; without having to move markers.
+	  (or (eq (following-char) ?\ )
+	      (insert ?\ ))
 
-      (if mail-extr-mangle-uucp
-      (cond (!-pos
-	     ;; **** I don't understand this save-restriction and the
-	     ;; narrow-to-region inside it.  Why did I do that?
-	     (save-restriction
-	       (cond ((and @-pos
-			   mail-extr-@-binds-tighter-than-!)
-		      (goto-char @-pos)
-		      (setq %-pos (cons (point) %-pos)
-			    @-pos nil)
-		      (mail-extr-delete-char 1)
-		      (insert "%")
-		      (setq insert-point (point-max)))
-		     (mail-extr-@-binds-tighter-than-!
-		      (setq insert-point (point-max)))
-		     (%-pos
-		      (setq insert-point (mail-extr-last %-pos)
-			    saved-%-pos (mapcar 'mail-extr-markerize %-pos)
-			    %-pos nil
-			    @-pos (mail-extr-markerize @-pos)))
-		     (@-pos
-		      (setq insert-point @-pos)
-		      (setq @-pos (mail-extr-markerize @-pos)))
-		     (t
-		      (setq insert-point (point-max))))
-	       (narrow-to-region (point-min) insert-point)
-	       (setq saved-!-pos (car !-pos))
-	       (while !-pos
+	  ;; First pass grabs useful information about address.
+	  (while (progn
+		   (mail-extr-skip-whitespace-forward)
+		   (not (eobp)))
+	    (setq char (char-after (point)))
+	    (or first-real-pos
+		(if (not (eq char ?\())
+		    (setq first-real-pos (point))))
+	    (cond
+	     ;; comment
+	     ((eq char ?\()
+	      (set-syntax-table mail-extr-address-comment-syntax-table)
+	      ;; only record the first non-empty comment's position
+	      (if (and (not cbeg)
+		       (save-excursion
+			 (forward-char 1)
+			 (mail-extr-skip-whitespace-forward)
+			 (not (eq ?\) (char-after (point))))))
+		  (setq cbeg (point)))
+	      ;; TODO: don't record if unbalanced
+	      (or (mail-extr-safe-move-sexp 1)
+		  (forward-char 1))
+	      (set-syntax-table mail-extr-address-syntax-table)
+	      (if (and cbeg
+		       (not cend))
+		  (setq cend (point))))
+	     ;; quoted text
+	     ((eq char ?\")
+	      ;; only record the first non-empty quote's position
+	      (if (and (not quote-beg)
+		       (save-excursion
+			 (forward-char 1)
+			 (mail-extr-skip-whitespace-forward)
+			 (not (eq ?\" (char-after (point))))))
+		  (setq quote-beg (point)))
+	      ;; TODO: don't record if unbalanced
+	      (or (mail-extr-safe-move-sexp 1)
+		  (forward-char 1))
+	      (if (and quote-beg
+		       (not quote-end))
+		  (setq quote-end (point))))
+	     ;; domain literals
+	     ((eq char ?\[)
+	      (set-syntax-table mail-extr-address-domain-literal-syntax-table)
+	      (or (mail-extr-safe-move-sexp 1)
+		  (forward-char 1))
+	      (set-syntax-table mail-extr-address-syntax-table))
+	     ;; commas delimit addresses when outside < > pairs.
+	     ((and (eq char ?,)
+		   (or (and (null <-pos)
+			    ;; Handle ROUTE-ADDR address that is missing its <.
+			    (not (eq ?@ (char-after (1+ (point))))))
+		       (and >-pos
+			    ;; handle weird munged addresses
+			    ;; BUG FIX: This test was reversed.  Thanks to the
+			    ;; brilliant Rod Whitby <rwhitby@research.canon.oz.au>
+			    ;; for discovering this!
+			    (< (mail-extr-last <-pos) (car >-pos)))))
+	      ;; The argument contains more than one address.
+	      ;; Temporarily hide everything after this one.
+	      (setq end-of-address (copy-marker (1+ (point))))
+	      (narrow-to-region (point-min) (1+ (point)))
+	      (mail-extr-delete-char 1)
+	      (setq char ?\() ; HAVE I NO SHAME??
+	      )
+	     ;; record the position of various interesting chars, determine
+	     ;; legality later.
+	     ((setq record-pos-symbol
+		    (cdr (assq char
+			       '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
+				 (?: . :-pos) (?, . comma-pos) (?! . !-pos)
+				 (?% . %-pos) (?\; . \;-pos)))))
+	      (set record-pos-symbol
+		   (cons (point) (symbol-value record-pos-symbol)))
+	      (forward-char 1))
+	     ((eq char ?.)
+	      (forward-char 1))
+	     ((memq char '(
+			   ;; comment terminator illegal
+			   ?\)
+			   ;; domain literal terminator illegal
+			   ?\]
+			   ;; \ allowed only within quoted strings,
+			   ;; domain literals, and comments
+			   ?\\
+			   ))
+	      (mail-extr-nuke-char-at (point))
+	      (forward-char 1))
+	     (t
+	      (forward-word 1)))
+	    (or (eq char ?\()
+		;; At the end of first address of a multiple address header.
+		(and (eq char ?,)
+		     (eobp))
+		(setq last-real-pos (point))))
+
+	  ;; Use only the leftmost <, if any.  Replace all others with spaces.
+	  (while (cdr <-pos)
+	    (mail-extr-nuke-char-at (car <-pos))
+	    (setq <-pos (cdr <-pos)))
+
+	  ;; Use only the rightmost >, if any.  Replace all others with spaces.
+	  (while (cdr >-pos)
+	    (mail-extr-nuke-char-at (nth 1 >-pos))
+	    (setcdr >-pos (nthcdr 2 >-pos)))
+
+	  ;; If multiple @s and a :, but no < and >, insert around buffer.
+	  ;; Example: @foo.bar.dom,@xxx.yyy.zzz:mailbox@aaa.bbb.ccc
+	  ;; This commonly happens on the UUCP "From " line.  Ugh.
+	  (cond ((and (> (length @-pos) 1)
+		      (eq 1 (length :-pos))	;TODO: check if between last two @s
+		      (not \;-pos)
+		      (not <-pos))
+		 (goto-char (point-min))
+		 (mail-extr-delete-char 1)
+		 (setq <-pos (list (point)))
+		 (insert ?<)))
+
+	  ;; If < but no >, insert > in rightmost possible position
+	  (cond ((and <-pos
+		      (null >-pos))
 		 (goto-char (point-max))
-		 (cond ((and (not @-pos)
-			     (not (cdr !-pos)))
-			(setq @-pos (point))
-			(insert-before-markers "@ "))
-		       (t
-			(setq %-pos (cons (point) %-pos))
-			(insert-before-markers "% ")))
-		 (backward-char 1)
-		 (insert-buffer-substring 
-		  (current-buffer)
-		  (if (nth 1 !-pos)
-		      (1+ (nth 1 !-pos))
-		    (point-min))
-		  (car !-pos))
-		 (mail-extr-delete-char 1)
-		 (or (save-excursion
-		       (mail-extr-safe-move-sexp -1)
-		       (mail-extr-skip-whitespace-backward)
-		       (eq ?. (preceding-char)))
-		     (insert-before-markers
-		      (if (save-excursion
-			    (mail-extr-skip-whitespace-backward)
-			    (eq ?. (preceding-char)))
-			  ""
-			".")
-		      "uucp"))
-		 (setq !-pos (cdr !-pos))))
-	     (and saved-%-pos
-		  (setq %-pos (append (mapcar 'mail-extr-demarkerize
-					      saved-%-pos)
-				      %-pos)))
-	     (setq @-pos (mail-extr-demarkerize @-pos))
-	     (narrow-to-region (1+ saved-!-pos) (point-max)))))
+		 (setq >-pos (list (point)))
+		 (insert ?>)))
 
-      ;; WARNING: THIS CODE IS DUPLICATED ABOVE.
-      (cond ((and %-pos
-		  (not @-pos))
-	     (goto-char (car %-pos))
-	     (mail-extr-delete-char 1)
-	     (setq @-pos (point))
-	     (insert "@")
-	     (setq %-pos (cdr %-pos))))
+	  ;; If > but no <, replace > with space.
+	  (cond ((and >-pos
+		      (null <-pos))
+		 (mail-extr-nuke-char-at (car >-pos))
+		 (setq >-pos nil)))
 
-      (setq %-pos (nreverse %-pos))
-      (cond (%-pos			; implies @-pos valid
-	     (setq temp %-pos)
-	     (catch 'truncated
-	       (while temp
-		 (goto-char (or (nth 1 temp)
-				@-pos))
+	  ;; Turn >-pos and <-pos into non-lists
+	  (setq >-pos (car >-pos)
+		<-pos (car <-pos))
+
+	  ;; Trim other punctuation lists of items outside < > pair to handle
+	  ;; stupid MTAs.
+	  (cond (<-pos			; don't need to check >-pos also
+		 ;; handle bozo software that violates RFC 822 by sticking
+		 ;; punctuation marks outside of a < > pair
+		 (mail-extr-nuke-outside-range @-pos <-pos >-pos t)
+		 ;; RFC 822 says nothing about these two outside < >, but
+		 ;; remove those positions from the lists to make things
+		 ;; easier.
+		 (mail-extr-nuke-outside-range !-pos <-pos >-pos t)
+		 (mail-extr-nuke-outside-range %-pos <-pos >-pos t)))
+
+	  ;; Check for : that indicates GROUP list and for : part of
+	  ;; ROUTE-ADDR spec.
+	  ;; Can't possibly be more than two :.  Nuke any extra.
+	  (while :-pos
+	    (setq temp (car :-pos)
+		  :-pos (cdr :-pos))
+	    (cond ((and <-pos >-pos
+			(> temp <-pos)
+			(< temp >-pos))
+		   (if (or route-addr-:-pos
+			   (< (length @-pos) 2)
+			   (> temp (car @-pos))
+			   (< temp (nth 1 @-pos)))
+		       (mail-extr-nuke-char-at temp)
+		     (setq route-addr-:-pos temp)))
+		  ((or (not <-pos)
+		       (and <-pos
+			    (< temp <-pos)))
+		   (setq group-:-pos temp))))
+
+	  ;; Nuke any ; that is in or to the left of a < > pair or to the left
+	  ;; of a GROUP starting :.  Also, there may only be one ;.
+	  (while \;-pos
+	    (setq temp (car \;-pos)
+		  \;-pos (cdr \;-pos))
+	    (cond ((and <-pos >-pos
+			(> temp <-pos)
+			(< temp >-pos))
+		   (mail-extr-nuke-char-at temp))
+		  ((and (or (not group-:-pos)
+			    (> temp group-:-pos))
+			(not group-\;-pos))
+		   (setq group-\;-pos temp))))
+
+	  ;; Nuke unmatched GROUP syntax characters.
+	  (cond ((and group-:-pos (not group-\;-pos))
+		 ;; *** Do I really need to erase it?
+		 (mail-extr-nuke-char-at group-:-pos)
+		 (setq group-:-pos nil)))
+	  (cond ((and group-\;-pos (not group-:-pos))
+		 ;; *** Do I really need to erase it?
+		 (mail-extr-nuke-char-at group-\;-pos)
+		 (setq group-\;-pos nil)))
+
+	  ;; Handle junk like ";@host.company.dom" that sendmail adds.
+	  ;; **** should I remember comment positions?
+	  (cond
+	   (group-\;-pos
+	    ;; this is fine for now
+	    (mail-extr-nuke-outside-range !-pos group-:-pos group-\;-pos t)
+	    (mail-extr-nuke-outside-range @-pos group-:-pos group-\;-pos t)
+	    (mail-extr-nuke-outside-range %-pos group-:-pos group-\;-pos t)
+	    (mail-extr-nuke-outside-range comma-pos group-:-pos group-\;-pos t)
+	    (and last-real-pos
+		 (> last-real-pos (1+ group-\;-pos))
+		 (setq last-real-pos (1+ group-\;-pos)))
+	    ;; *** This may be wrong:
+	    (and cend
+		 (> cend group-\;-pos)
+		 (setq cend nil
+		       cbeg nil))
+	    (and quote-end
+		 (> quote-end group-\;-pos)
+		 (setq quote-end nil
+		       quote-beg nil))
+	    ;; This was both wrong and unnecessary:
+	    ;;(narrow-to-region (point-min) group-\;-pos)
+
+	    ;; *** The entire handling of GROUP addresses seems rather lame.
+	    ;; *** It deserves a complete rethink, except that these addresses
+	    ;; *** are hardly ever seen.
+	    ))
+
+	  ;; Any commas must be between < and : of ROUTE-ADDR.  Nuke any
+	  ;; others.
+	  ;; Hell, go ahead an nuke all of the commas.
+	  ;; **** This will cause problems when we start handling commas in
+	  ;; the PHRASE part .... no it won't ... yes it will ... ?????
+	  (mail-extr-nuke-outside-range comma-pos 1 1)
+
+	  ;; can only have multiple @s inside < >.  The fact that some MTAs
+	  ;; put de-bracketed ROUTE-ADDRs in the UUCP-style "From " line is
+	  ;; handled above.
+
+	  ;; Locate PHRASE part of ROUTE-ADDR.
+	  (cond (<-pos
+		 (goto-char <-pos)
 		 (mail-extr-skip-whitespace-backward)
-		 (save-excursion
-		   (mail-extr-safe-move-sexp -1)
-		   (setq domain-pos (point))
-		   (mail-extr-skip-whitespace-backward)
-		   (setq \.-pos (eq ?. (preceding-char))))
-		 (cond ((and \.-pos
-			     ;; #### string consing
-			     (let ((s (intern-soft
-				       (buffer-substring domain-pos (point))
-				       mail-extr-all-top-level-domains)))
-			       (and s (get s 'domain-name))))
-			(narrow-to-region (point-min) (point))
-			(goto-char (car temp))
-			(mail-extr-delete-char 1)
-			(setq @-pos (point))
-			(setcdr temp nil)
-			(setq %-pos (delq @-pos %-pos))
-			(insert "@")
-			(throw 'truncated t)))
-		 (setq temp (cdr temp))))))
-      (setq mbox-beg (point-min)
-	    mbox-end (if %-pos (car %-pos)
-		       (or @-pos
-			   (point-max))))
-      
-      ;; Done canonicalizing address.
-      
-      (set-buffer extraction-buffer)
-      
-      ;; Decide what part of the address to search to find the full name.
-      (cond (
-	     ;; Example: "First M. Last" <fml@foo.bar.dom>
-	     (and phrase-beg
-		  (eq quote-beg phrase-beg)
-		  (<= quote-end phrase-end))
-	     (narrow-to-region (1+ quote-beg) (1- quote-end))
-	     (mail-extr-undo-backslash-quoting (point-min) (point-max)))
+		 (setq phrase-end (point))
+		 (goto-char (or ;;group-:-pos
+				(point-min)))
+		 (mail-extr-skip-whitespace-forward)
+		 (if (< (point) phrase-end)
+		     (setq phrase-beg (point))
+		   (setq phrase-end nil))))
 
-	    ;; Example: First Last <fml@foo.bar.dom>
-	    (phrase-beg
-	     (narrow-to-region phrase-beg phrase-end))
-
-	    ;; Example: fml@foo.bar.dom (First M. Last)
-	    (cbeg
-	     (narrow-to-region (1+ cbeg) (1- cend))
-	     (mail-extr-undo-backslash-quoting (point-min) (point-max))
-	     
-	     ;; Deal with spacing problems
-	     (goto-char (point-min))
-;	     (cond ((not (search-forward " " nil t))
-;		    (goto-char (point-min))
-;		    (cond ((search-forward "_" nil t)
-;			   ;; Handle the *idiotic* use of underlines as spaces.
-;			   ;; Example: fml@foo.bar.dom (First_M._Last)
-;			   (goto-char (point-min))
-;			   (while (search-forward "_" nil t)
-;			     (replace-match " " t)))
-;			  ((search-forward "." nil t)
-;			   ;; Fix . used as space
-;			   ;; Example: danj1@cb.att.com (daniel.jacobson)
-;			   (goto-char (point-min))
-;			   (while (re-search-forward mail-extr-bad-dot-pattern nil t)
-;			     (replace-match "\\1 \\2" t))))))
-	     )
-	    
-	    ;; Otherwise we try to get the name from the mailbox portion
-	    ;; of the address.
-	    ;; Example: First_M_Last@foo.bar.dom
-	    (t
-	     ;; *** Work in canon buffer instead?  No, can't.  Hmm.
-	     (goto-char (point-max))
-	     (narrow-to-region (point) (point))
-	     (insert-buffer-substring canonicalization-buffer
-				      mbox-beg mbox-end)
-	     (goto-char (point-min))
-	     
-	     ;; Example: First_Last.XXX@foo.bar.dom
-	     (setq \.-ends-name (re-search-forward "[_0-9]" nil t))
-	     
-	     (goto-char (point-min))
-
-	     (if (not mail-extr-mangle-uucp)
-		 (modify-syntax-entry ?! "w" (syntax-table)))
-
-	     (while (progn
-		      (mail-extr-skip-whitespace-forward)
-		      (not (eobp)))
-	       (setq char (char-after (point)))
-	       (cond
-		((eq char ?\")
-		 (setq quote-beg (point))
-		 (or (mail-extr-safe-move-sexp 1)
-		     ;; TODO: handle this error condition!!!!!
-		     (forward-char 1))
-		 ;; take into account deletions
-		 (setq quote-end (- (point) 2))
-		 (save-excursion
-		   (backward-char 1)
+	  ;; handle ROUTE-ADDRS with real ROUTEs.
+	  ;; If there are multiple @s, then we assume ROUTE-ADDR syntax, and
+	  ;; any % or ! must be semantically meaningless.
+	  ;; TODO: do this processing into canonicalization buffer
+	  (cond (route-addr-:-pos
+		 (setq !-pos nil
+		       %-pos nil
+		       >-pos (copy-marker >-pos)
+		       route-addr-:-pos (copy-marker route-addr-:-pos))
+		 (goto-char >-pos)
+		 (insert-before-markers ?X)
+		 (goto-char (car @-pos))
+		 (while (setq @-pos (cdr @-pos))
 		   (mail-extr-delete-char 1)
-		   (goto-char quote-beg)
-		   (or (eobp)
-		       (mail-extr-delete-char 1)))
-		 (mail-extr-undo-backslash-quoting quote-beg quote-end)
-		 (or (eq ?\  (char-after (point)))
-		     (insert " "))
-;;		 (setq mailbox-name-processed-flag t)
-		 (setq \.-ends-name t))
-		((eq char ?.)
-		 (if (memq (char-after (1+ (point))) '(?_ ?=))
-		     (progn
-		       (forward-char 1)
-		       (mail-extr-delete-char 1)
-		       (insert ?\ ))
-		   (if \.-ends-name
-		       (narrow-to-region (point-min) (point))
-		     (mail-extr-delete-char 1)
-		     (insert " ")))
-;;		 (setq mailbox-name-processed-flag t)
+		   (setq %-pos (cons (point-marker) %-pos))
+		   (insert "%")
+		   (goto-char (1- >-pos))
+		   (save-excursion
+		     (insert-buffer-substring extraction-buffer
+					      (car @-pos) route-addr-:-pos)
+		     (delete-region (car @-pos) route-addr-:-pos))
+		   (or (cdr @-pos)
+		       (setq saved-@-pos (list (point)))))
+		 (setq @-pos saved-@-pos)
+		 (goto-char >-pos)
+		 (mail-extr-delete-char -1)
+		 (mail-extr-nuke-char-at route-addr-:-pos)
+		 (mail-extr-demarkerize route-addr-:-pos)
+		 (setq route-addr-:-pos nil
+		       >-pos (mail-extr-demarkerize >-pos)
+		       %-pos (mapcar 'mail-extr-demarkerize %-pos))))
+
+	  ;; de-listify @-pos
+	  (setq @-pos (car @-pos))
+
+	  ;; TODO: remove comments in the middle of an address
+
+	  (save-excursion
+	    (set-buffer canonicalization-buffer)
+
+	    (widen)
+	    (erase-buffer)
+	    (insert-buffer-substring extraction-buffer)
+
+	    (if <-pos
+		(narrow-to-region (progn
+				    (goto-char (1+ <-pos))
+				    (mail-extr-skip-whitespace-forward)
+				    (point))
+				  >-pos)
+	      (if (and first-real-pos last-real-pos)
+		  (narrow-to-region first-real-pos last-real-pos)
+		;; ****** Oh no!  What if the address is completely empty!
+		;; *** Is this correct?
+		(narrow-to-region (point-max) (point-max))
+		))
+
+	    (and @-pos %-pos
+		 (mail-extr-nuke-outside-range %-pos (point-min) @-pos))
+	    (and %-pos !-pos
+		 (mail-extr-nuke-outside-range !-pos (point-min) (car %-pos)))
+	    (and @-pos !-pos (not %-pos)
+		 (mail-extr-nuke-outside-range !-pos (point-min) @-pos))
+
+	    ;; Error condition:?? (and %-pos (not @-pos))
+
+	    ;; WARNING: THIS CODE IS DUPLICATED BELOW.
+	    (cond ((and %-pos
+			(not @-pos))
+		   (goto-char (car %-pos))
+		   (mail-extr-delete-char 1)
+		   (setq @-pos (point))
+		   (insert "@")
+		   (setq %-pos (cdr %-pos))))
+
+	    (if mail-extr-mangle-uucp
+		(cond (!-pos
+		       ;; **** I don't understand this save-restriction and the
+		       ;; narrow-to-region inside it.  Why did I do that?
+		       (save-restriction
+			 (cond ((and @-pos
+				     mail-extr-@-binds-tighter-than-!)
+				(goto-char @-pos)
+				(setq %-pos (cons (point) %-pos)
+				      @-pos nil)
+				(mail-extr-delete-char 1)
+				(insert "%")
+				(setq insert-point (point-max)))
+			       (mail-extr-@-binds-tighter-than-!
+				(setq insert-point (point-max)))
+			       (%-pos
+				(setq insert-point (mail-extr-last %-pos)
+				      saved-%-pos (mapcar 'mail-extr-markerize %-pos)
+				      %-pos nil
+				      @-pos (mail-extr-markerize @-pos)))
+			       (@-pos
+				(setq insert-point @-pos)
+				(setq @-pos (mail-extr-markerize @-pos)))
+			       (t
+				(setq insert-point (point-max))))
+			 (narrow-to-region (point-min) insert-point)
+			 (setq saved-!-pos (car !-pos))
+			 (while !-pos
+			   (goto-char (point-max))
+			   (cond ((and (not @-pos)
+				       (not (cdr !-pos)))
+				  (setq @-pos (point))
+				  (insert-before-markers "@ "))
+				 (t
+				  (setq %-pos (cons (point) %-pos))
+				  (insert-before-markers "% ")))
+			   (backward-char 1)
+			   (insert-buffer-substring 
+			    (current-buffer)
+			    (if (nth 1 !-pos)
+				(1+ (nth 1 !-pos))
+			      (point-min))
+			    (car !-pos))
+			   (mail-extr-delete-char 1)
+			   (or (save-excursion
+				 (mail-extr-safe-move-sexp -1)
+				 (mail-extr-skip-whitespace-backward)
+				 (eq ?. (preceding-char)))
+			       (insert-before-markers
+				(if (save-excursion
+				      (mail-extr-skip-whitespace-backward)
+				      (eq ?. (preceding-char)))
+				    ""
+				  ".")
+				"uucp"))
+			   (setq !-pos (cdr !-pos))))
+		       (and saved-%-pos
+			    (setq %-pos (append (mapcar 'mail-extr-demarkerize
+							saved-%-pos)
+						%-pos)))
+		       (setq @-pos (mail-extr-demarkerize @-pos))
+		       (narrow-to-region (1+ saved-!-pos) (point-max)))))
+
+	    ;; WARNING: THIS CODE IS DUPLICATED ABOVE.
+	    (cond ((and %-pos
+			(not @-pos))
+		   (goto-char (car %-pos))
+		   (mail-extr-delete-char 1)
+		   (setq @-pos (point))
+		   (insert "@")
+		   (setq %-pos (cdr %-pos))))
+
+	    (setq %-pos (nreverse %-pos))
+	    (cond (%-pos			; implies @-pos valid
+		   (setq temp %-pos)
+		   (catch 'truncated
+		     (while temp
+		       (goto-char (or (nth 1 temp)
+				      @-pos))
+		       (mail-extr-skip-whitespace-backward)
+		       (save-excursion
+			 (mail-extr-safe-move-sexp -1)
+			 (setq domain-pos (point))
+			 (mail-extr-skip-whitespace-backward)
+			 (setq \.-pos (eq ?. (preceding-char))))
+		       (cond ((and \.-pos
+				   ;; #### string consing
+				   (let ((s (intern-soft
+					     (buffer-substring domain-pos (point))
+					     mail-extr-all-top-level-domains)))
+				     (and s (get s 'domain-name))))
+			      (narrow-to-region (point-min) (point))
+			      (goto-char (car temp))
+			      (mail-extr-delete-char 1)
+			      (setq @-pos (point))
+			      (setcdr temp nil)
+			      (setq %-pos (delq @-pos %-pos))
+			      (insert "@")
+			      (throw 'truncated t)))
+		       (setq temp (cdr temp))))))
+	    (setq mbox-beg (point-min)
+		  mbox-end (if %-pos (car %-pos)
+			     (or @-pos
+				 (point-max)))))
+
+	  ;; Done canonicalizing address.
+	  ;; We are now back in extraction-buffer.
+
+	  ;; Decide what part of the address to search to find the full name.
+	  (cond (
+		 ;; Example: "First M. Last" <fml@foo.bar.dom>
+		 (and phrase-beg
+		      (eq quote-beg phrase-beg)
+		      (<= quote-end phrase-end))
+		 (narrow-to-region (1+ quote-beg) (1- quote-end))
+		 (mail-extr-undo-backslash-quoting (point-min) (point-max)))
+
+		;; Example: First Last <fml@foo.bar.dom>
+		(phrase-beg
+		 (narrow-to-region phrase-beg phrase-end))
+
+		;; Example: fml@foo.bar.dom (First M. Last)
+		(cbeg
+		 (narrow-to-region (1+ cbeg) (1- cend))
+		 (mail-extr-undo-backslash-quoting (point-min) (point-max))
+
+		 ;; Deal with spacing problems
+		 (goto-char (point-min))
+;;;	     (cond ((not (search-forward " " nil t))
+;;;		    (goto-char (point-min))
+;;;		    (cond ((search-forward "_" nil t)
+;;;			   ;; Handle the *idiotic* use of underlines as spaces.
+;;;			   ;; Example: fml@foo.bar.dom (First_M._Last)
+;;;			   (goto-char (point-min))
+;;;			   (while (search-forward "_" nil t)
+;;;			     (replace-match " " t)))
+;;;			  ((search-forward "." nil t)
+;;;			   ;; Fix . used as space
+;;;			   ;; Example: danj1@cb.att.com (daniel.jacobson)
+;;;			   (goto-char (point-min))
+;;;			   (while (re-search-forward mail-extr-bad-dot-pattern nil t)
+;;;			     (replace-match "\\1 \\2" t))))))
 		 )
-		((memq (char-syntax char) '(?. ?\\))
-		 (mail-extr-delete-char 1)
-		 (insert " ")
-;;		 (setq mailbox-name-processed-flag t)
-		 )
+
+		;; Otherwise we try to get the name from the mailbox portion
+		;; of the address.
+		;; Example: First_M_Last@foo.bar.dom
 		(t
-		 (setq atom-beg (point))
-		 (forward-word 1)
-		 (setq atom-end (point))
-		 (goto-char atom-beg)
-		 (save-restriction
-		   (narrow-to-region atom-beg atom-end)
+		 ;; *** Work in canon buffer instead?  No, can't.  Hmm.
+		 (goto-char (point-max))
+		 (narrow-to-region (point) (point))
+		 (insert-buffer-substring canonicalization-buffer
+					  mbox-beg mbox-end)
+		 (goto-char (point-min))
+
+		 ;; Example: First_Last.XXX@foo.bar.dom
+		 (setq \.-ends-name (re-search-forward "[_0-9]" nil t))
+
+		 (goto-char (point-min))
+
+		 (if (not mail-extr-mangle-uucp)
+		     (modify-syntax-entry ?! "w" (syntax-table)))
+
+		 (while (progn
+			  (mail-extr-skip-whitespace-forward)
+			  (not (eobp)))
+		   (setq char (char-after (point)))
 		   (cond
-		    
-		    ;; Handle X.400 addresses encoded in RFC-822.
-		    ;; *** Shit!  This has to handle the case where it is
-		    ;; *** embedded in a quote too!
-		    ;; *** Shit!  The input is being broken up into atoms
-		    ;; *** by periods!
-		    ((looking-at mail-extr-x400-encoded-address-pattern)
-		     
-		     ;; Copy the contents of the individual fields that
-		     ;; might hold name data to the beginning.
-		     (mapcar
-		      (function
-		       (lambda (field-pattern)
-			 (cond
-			  ((save-excursion
-			     (re-search-forward field-pattern nil t))
-			   (insert-buffer-substring (current-buffer)
-						    (match-beginning 1)
-						    (match-end 1))
-			   (insert " ")))))
-		      (list mail-extr-x400-encoded-address-given-name-pattern
-			    mail-extr-x400-encoded-address-surname-pattern
-			    mail-extr-x400-encoded-address-full-name-pattern))
-		     
-		     ;; Discard the rest, since it contains stuff like
-		     ;; routing information, not part of a name.
-		     (mail-extr-skip-whitespace-backward)
-		     (delete-region (point) (point-max))
-		     
-		     ;; Handle periods used for spacing.
-		     (while (re-search-forward mail-extr-bad-dot-pattern nil t)
-		       (replace-match "\\1 \\2" t))
-		     
-;;		     (setq mailbox-name-processed-flag t)
+		    ((eq char ?\")
+		     (setq quote-beg (point))
+		     (or (mail-extr-safe-move-sexp 1)
+			 ;; TODO: handle this error condition!!!!!
+			 (forward-char 1))
+		     ;; take into account deletions
+		     (setq quote-end (- (point) 2))
+		     (save-excursion
+		       (backward-char 1)
+		       (mail-extr-delete-char 1)
+		       (goto-char quote-beg)
+		       (or (eobp)
+			   (mail-extr-delete-char 1)))
+		     (mail-extr-undo-backslash-quoting quote-beg quote-end)
+		     (or (eq ?\  (char-after (point)))
+			 (insert " "))
+		     ;;		 (setq mailbox-name-processed-flag t)
+		     (setq \.-ends-name t))
+		    ((eq char ?.)
+		     (if (memq (char-after (1+ (point))) '(?_ ?=))
+			 (progn
+			   (forward-char 1)
+			   (mail-extr-delete-char 1)
+			   (insert ?\ ))
+		       (if \.-ends-name
+			   (narrow-to-region (point-min) (point))
+			 (mail-extr-delete-char 1)
+			 (insert " ")))
+		     ;;		 (setq mailbox-name-processed-flag t)
 		     )
-		    
-		    ;; Handle normal addresses.
+		    ((memq (char-syntax char) '(?. ?\\))
+		     (mail-extr-delete-char 1)
+		     (insert " ")
+		     ;;		 (setq mailbox-name-processed-flag t)
+		     )
 		    (t
-		     (goto-char (point-min))
-		     ;; Handle _ and = used for spacing.
-		     (while (re-search-forward "\\([^_=]+\\)[_=]" nil t)
-		       (replace-match "\\1 " t)
-;;		       (setq mailbox-name-processed-flag t)
-		       )
-		     (goto-char (point-max))))))))
+		     (setq atom-beg (point))
+		     (forward-word 1)
+		     (setq atom-end (point))
+		     (goto-char atom-beg)
+		     (save-restriction
+		       (narrow-to-region atom-beg atom-end)
+		       (cond
 
-	     ;; undo the dirty deed
-	     (if (not mail-extr-mangle-uucp)
-		 (modify-syntax-entry ?! "." (syntax-table)))
-	     ;;
-	     ;; If we derived the name from the mailbox part of the address,
-	     ;; and we only got one word out of it, don't treat that as a
-	     ;; name.  "foo@bar" --> (nil "foo@bar"), not ("foo" "foo@bar")
-             ;; (if (not mailbox-name-processed-flag)
-             ;;     (delete-region (point-min) (point-max)))
-	     ))
-      
-      (set-syntax-table mail-extr-address-text-syntax-table)
-      
-      (mail-extr-voodoo mbox-beg mbox-end canonicalization-buffer)
-      (goto-char (point-min))
+			;; Handle X.400 addresses encoded in RFC-822.
+			;; *** Shit!  This has to handle the case where it is
+			;; *** embedded in a quote too!
+			;; *** Shit!  The input is being broken up into atoms
+			;; *** by periods!
+			((looking-at mail-extr-x400-encoded-address-pattern)
 
-      ;; If name is "First Last" and userid is "F?L", then assume
-      ;; the middle initial is the second letter in the userid.
-      ;; Initial code by Jamie Zawinski <jwz@lucid.com>
-      ;; *** Make it work when there's a suffix as well.
-      (goto-char (point-min))
-      (cond ((and mail-extr-guess-middle-initial
-		  (not disable-initial-guessing-flag)
-		  (eq 3 (- mbox-end mbox-beg))
-		  (progn
-		    (goto-char (point-min))
-		    (looking-at mail-extr-two-name-pattern)))
-	     (setq fi (char-after (match-beginning 0))
-		   li (char-after (match-beginning 3)))
-	     (save-excursion
-	       (set-buffer canonicalization-buffer)
-	       ;; char-equal is ignoring case here, so no need to upcase
-	       ;; or downcase.
-	       (let ((case-fold-search t))
-		 (and (char-equal fi (char-after mbox-beg))
-		      (char-equal li (char-after (1- mbox-end)))
-		      (setq mi (char-after (1+ mbox-beg))))))
-	     (cond ((and mi
-			 ;; TODO: use better table than syntax table
-			 (eq ?w (char-syntax mi)))
-		    (goto-char (match-beginning 3))
-		    (insert (upcase mi) ". ")))))
-      
-      ;; Nuke name if it is the same as mailbox name.
-      (let ((buffer-length (- (point-max) (point-min)))
-	    (i 0)
-	    (names-match-flag t))
-	(cond ((and (> buffer-length 0)
-		    (eq buffer-length (- mbox-end mbox-beg)))
-	       (goto-char (point-max))
-	       (insert-buffer-substring canonicalization-buffer
-					mbox-beg mbox-end)
-	       (while (and names-match-flag
-			   (< i buffer-length))
-		 (or (eq (downcase (char-after (+ i (point-min))))
-			 (downcase
-			  (char-after (+ i buffer-length (point-min)))))
-		     (setq names-match-flag nil))
-		 (setq i (1+ i)))
-	       (delete-region (+ (point-min) buffer-length) (point-max))
-	       (if names-match-flag
-		   (narrow-to-region (point) (point))))))
-      
-      ;; Nuke name if it's just one word.
-      (goto-char (point-min))
-      (and mail-extr-ignore-single-names
-	   (not (re-search-forward "[- ]" nil t))
-	   (narrow-to-region (point) (point)))
-      
-      ;; Result
-      (list (if (not (= (point-min) (point-max)))
-		(buffer-string))
-	    (progn
-	      (set-buffer canonicalization-buffer)
-	      (if (not (= (point-min) (point-max)))
-		  (buffer-string))))
-      )))
+			 ;; Copy the contents of the individual fields that
+			 ;; might hold name data to the beginning.
+			 (mapcar
+			  (function
+			   (lambda (field-pattern)
+			     (cond
+			      ((save-excursion
+				 (re-search-forward field-pattern nil t))
+			       (insert-buffer-substring (current-buffer)
+							(match-beginning 1)
+							(match-end 1))
+			       (insert " ")))))
+			  (list mail-extr-x400-encoded-address-given-name-pattern
+				mail-extr-x400-encoded-address-surname-pattern
+				mail-extr-x400-encoded-address-full-name-pattern))
+
+			 ;; Discard the rest, since it contains stuff like
+			 ;; routing information, not part of a name.
+			 (mail-extr-skip-whitespace-backward)
+			 (delete-region (point) (point-max))
+
+			 ;; Handle periods used for spacing.
+			 (while (re-search-forward mail-extr-bad-dot-pattern nil t)
+			   (replace-match "\\1 \\2" t))
+
+			 ;;		     (setq mailbox-name-processed-flag t)
+			 )
+
+			;; Handle normal addresses.
+			(t
+			 (goto-char (point-min))
+			 ;; Handle _ and = used for spacing.
+			 (while (re-search-forward "\\([^_=]+\\)[_=]" nil t)
+			   (replace-match "\\1 " t)
+			   ;;		       (setq mailbox-name-processed-flag t)
+			   )
+			 (goto-char (point-max))))))))
+
+		 ;; undo the dirty deed
+		 (if (not mail-extr-mangle-uucp)
+		     (modify-syntax-entry ?! "." (syntax-table)))
+		 ;;
+		 ;; If we derived the name from the mailbox part of the address,
+		 ;; and we only got one word out of it, don't treat that as a
+		 ;; name.  "foo@bar" --> (nil "foo@bar"), not ("foo" "foo@bar")
+		 ;; (if (not mailbox-name-processed-flag)
+		 ;;     (delete-region (point-min) (point-max)))
+		 ))
+
+	  (set-syntax-table mail-extr-address-text-syntax-table)
+
+	  (mail-extr-voodoo mbox-beg mbox-end canonicalization-buffer)
+	  (goto-char (point-min))
+
+	  ;; If name is "First Last" and userid is "F?L", then assume
+	  ;; the middle initial is the second letter in the userid.
+	  ;; Initial code by Jamie Zawinski <jwz@lucid.com>
+	  ;; *** Make it work when there's a suffix as well.
+	  (goto-char (point-min))
+	  (cond ((and mail-extr-guess-middle-initial
+		      (not disable-initial-guessing-flag)
+		      (eq 3 (- mbox-end mbox-beg))
+		      (progn
+			(goto-char (point-min))
+			(looking-at mail-extr-two-name-pattern)))
+		 (setq fi (char-after (match-beginning 0))
+		       li (char-after (match-beginning 3)))
+		 (save-excursion
+		   (set-buffer canonicalization-buffer)
+		   ;; char-equal is ignoring case here, so no need to upcase
+		   ;; or downcase.
+		   (let ((case-fold-search t))
+		     (and (char-equal fi (char-after mbox-beg))
+			  (char-equal li (char-after (1- mbox-end)))
+			  (setq mi (char-after (1+ mbox-beg))))))
+		 (cond ((and mi
+			     ;; TODO: use better table than syntax table
+			     (eq ?w (char-syntax mi)))
+			(goto-char (match-beginning 3))
+			(insert (upcase mi) ". ")))))
+
+	  ;; Nuke name if it is the same as mailbox name.
+	  (let ((buffer-length (- (point-max) (point-min)))
+		(i 0)
+		(names-match-flag t))
+	    (cond ((and (> buffer-length 0)
+			(eq buffer-length (- mbox-end mbox-beg)))
+		   (goto-char (point-max))
+		   (insert-buffer-substring canonicalization-buffer
+					    mbox-beg mbox-end)
+		   (while (and names-match-flag
+			       (< i buffer-length))
+		     (or (eq (downcase (char-after (+ i (point-min))))
+			     (downcase
+			      (char-after (+ i buffer-length (point-min)))))
+			 (setq names-match-flag nil))
+		     (setq i (1+ i)))
+		   (delete-region (+ (point-min) buffer-length) (point-max))
+		   (if names-match-flag
+		       (narrow-to-region (point) (point))))))
+
+	  ;; Nuke name if it's just one word.
+	  (goto-char (point-min))
+	  (and mail-extr-ignore-single-names
+	       (not (re-search-forward "[- ]" nil t))
+	       (narrow-to-region (point) (point)))
+
+	  ;; Record the result
+	  (setq value-list
+		(cons (list (if (not (= (point-min) (point-max)))
+				(buffer-string))
+			    (save-excursion
+			      (set-buffer canonicalization-buffer)
+			      (if (not (= (point-min) (point-max)))
+				  (buffer-string))))
+		      value-list))
+
+	  ;; Unless one address is all we wanted,
+	  ;; delete this one from extraction-buffer
+	  ;; and get ready to extract the next address.
+	  (when all
+	    (if end-of-address
+		(narrow-to-region 1 end-of-address)
+	      (widen))
+	    (delete-region (point-min) (point-max))
+	    (widen))
+	  )))
+    (if all (nreverse value-list) (car value-list))
+    ))
 
 (defun mail-extr-voodoo (mbox-beg mbox-end canonicalization-buffer)
   (let ((word-count 0)
