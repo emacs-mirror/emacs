@@ -1081,10 +1081,12 @@ Optional second argument EXITING means ask about certain non-file buffers
 		   (save-buffer)))
 		(buffer-list)
 		'("buffer" "buffers" "save")
-		(list (list ?v (lambda (buf)
-				 (display-buffer buf)
-				 ;; Return nil to ask about BUF again.
-				 nil)
+		(list (list ?\C-r (lambda (buf)
+				    (view-buffer buf)
+				    (setq view-exit-action 'exit-recursive-edit)
+				    (recursive-edit)
+				    ;; Return nil to ask about BUF again.
+				    nil)
 			    "display the current buffer"))
 		))
 	(message "(No files need saving)"))))
