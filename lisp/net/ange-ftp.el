@@ -385,6 +385,66 @@
 ;; 2. Ange-ftp cannot send "write passwords" for a minidisk. Hopefully, we
 ;;    can fix this.
 ;;
+;; BS2000 support:
+;;
+;; Ange-ftp has full support for BS2000 hosts.  It should be able to
+;; automatically recognize any BS2000 machine. However, if it fails to
+;; do this, you can use the command ange-ftp-add-bs2000-host.  As well,
+;; you can set the variable ange-ftp-bs2000-host-regexp in your .emacs
+;; file. We would be grateful if you would report any failures to auto-
+;; matically recognize a BS2000 host as a bug.
+;;
+;; If you want to access the POSIX subsystem on BS2000 you MUST use
+;; command ange-ftp-add-bs2000-posix-host for that particular
+;; hostname.  ange-ftp can't decide if you want to access the native
+;; filesystem or the POSIX filesystem, so it accesses the native
+;; filesystem by default.  And if you have an ASCII filesystem in
+;; your BS2000 POSIX subsystem you must use
+;; ange-ftp-binary-file-name-regexp to access its files.
+;;
+;; Filename Syntax:
+;;
+;; For ease of *implementation*, the user enters the BS2000 filename
+;; syntax in a UNIX-y way.  For example:
+;;  :PUB:$PUBLIC.ANONYMOUS.SDSCPUB.NEXT.README.TXT
+;; would be entered as:
+;;  /:PUB:/$$PUBLIC/ANONYMOUS.SDSCPUB.NEXT.README.TXT
+;; You dont't have to type pubset and account, if they have default values,
+;; i.e. to log in as anonymous on bs2000.anywhere.com and grab the file
+;; IMPORTANT.TEXT.ON.BS2000 on the default pubset X on userid PUBLIC
+;; (there are only 8 characters in a valid username), you could type:
+;;  C-x C-f /public@bs2000.anywhere.com:/IMPORTANT.TEXT.ON.BS2000
+;; or
+;;  C-x C-f /anonym@bs2000.anywhere.com:/:X:/$$PUBLIC/IMPORTANT.TEXT.ON.BS2000
+;;
+;; If X is not your default pubset, you could add it as 'subdirectory' (BS2000
+;; has a flat architecture) with the command
+;; (setq ange-ftp-bs2000-additional-pubsets '(":X:"))
+;; and then you could type:
+;;  C-x C-f /anonym@bs2000.anywhere.com:/:X:/IMPORTANT.TEXT.ON.BS2000
+;;
+;; Valid characters in an BS2000 filename are A-Z 0-9 $ # @ . -
+;; If the first character in a filename is # or @, this is replaced with
+;; ange-ftp-bs2000-special-prefix because names starting with # or @
+;; are reserved for temporary files.
+;; This is especially important for auto-save files.
+;; Valid file generations are ending with ([+|-|*]0-9...) . 
+;; File generations are not supported yet!
+;; A filename must at least contain one character (A-Z) and cannot be longer
+;; than 41 characters.
+;;
+;; Tips:
+;; 1. Although BS2000 is not case sensitive, EMACS running under UNIX is.
+;;    Therefore, to access a BS2000 file, you must enter the filename with
+;;    upper case letters.
+;; 2. EMACS has a feature in which it does environment variable substitution
+;;    in filenames. Therefore, to enter a $ in a filename, you must quote it
+;;    by typing $$.
+;; 3. BS2000 machines, with the exception of anonymous accounts, nearly
+;;    always need an account password. To have ange-ftp send an account
+;;    password, you can either include it in your .netrc file, or use
+;;    ange-ftp-set-account.
+;;
 ;; ------------------------------------------------------------------
 ;; Bugs:
 ;; ------------------------------------------------------------------
@@ -1994,6 +2054,13 @@ on the gateway machine to do the ftp instead."
     (make-local-variable 'paragraph-start)
     (setq paragraph-start comint-prompt-regexp)))
 
+(defcustom ange-ftp-raw-login nil
+  "*Use raw ftp commands for login, if account password is not nil.
+Some ftp implementations need this, e.g. ftp in NT 4.0."
+  :group 'ange-ftp
+  :version "21.3"
+  :type 'boolean)
+
 (defun ange-ftp-smart-login (host user pass account proc)
   "Connect to the FTP-server on HOST as USER using PASSWORD and ACCOUNT.
 PROC is the FTP-client's process.  This routine uses the smart-gateway
@@ -2044,13 +2111,42 @@ suffix of the form #PORT to specify a non-default port"
 	  (ange-ftp-error host user
 			  (concat "OPEN request failed: "
 				  (cdr result))))
-      (setq result (ange-ftp-raw-send-cmd
-		    proc
-		    (if (and (ange-ftp-use-smart-gateway-p host)
-			     ange-ftp-gateway-host)
-			(format "user \"%s\"@%s %s %s" user nshost pass account)
-		      (format "user \"%s\" %s %s" user pass account))
-		    (format "Logging in as user %s@%s" user host)))
+      (if (not (and ange-ftp-raw-login (string< "" account)))
+	  (setq result (ange-ftp-raw-send-cmd
+			proc
+			(if (and (ange-ftp-use-smart-gateway-p host)
+				 ange-ftp-gateway-host)
+			    (format "user \"%s\"@%s %s %s"
+				    user nshost pass account)
+			  (format "user \"%s\" %s %s" user pass account))
+			(format "Logging in as user %s@%s" user host)))
+	(let ((good ange-ftp-good-msgs)
+	      (skip ange-ftp-skip-msgs))
+	  (setq ange-ftp-good-msgs (concat ange-ftp-good-msgs
+					   "\\|^331 \\|^332 "))
+	  (if (string-match (regexp-quote "\\|^331 ") ange-ftp-skip-msgs)
+	      (setq ange-ftp-skip-msgs
+		    (replace-match "" t t ange-ftp-skip-msgs)))
+	  (if (string-match (regexp-quote "\\|^332 ") ange-ftp-skip-msgs)
+	      (setq ange-ftp-skip-msgs
+		    (replace-match "" t t ange-ftp-skip-msgs)))
+	  (setq result (ange-ftp-raw-send-cmd
+			proc
+			(format "quote \"USER %s\"" user)
+			(format "Logging in as user %s@%s" user host)))
+	  (and (car result)
+	       (setq result (ange-ftp-raw-send-cmd
+			     proc
+			     (format "quote \"PASS %s\"" pass)
+			     (format "Logging in as user %s@%s" user host)))
+	       (and (car result)
+		    (setq result (ange-ftp-raw-send-cmd
+				  proc
+				  (format "quote \"ACCT %s\"" account)
+				  (format "Logging in as user %s@%s" user host)))
+		    ))
+	  (setq ange-ftp-good-msgs good
+		ange-ftp-skip-msgs skip)))
       (or (car result)
 	  (progn
 	    (ange-ftp-set-passwd host user nil) ;reset password.
@@ -2174,6 +2270,12 @@ host-type by logging in as USER."
 		     ((and (fboundp 'ange-ftp-cms-host)
 			   (ange-ftp-cms-host host))
 		      'cms)
+		     ((and (fboundp 'ange-ftp-bs2000-posix-host)
+			   (ange-ftp-bs2000-posix-host host))
+		      'text-unix)	; POSIX is a non-ASCII Unix
+		     ((and (fboundp 'ange-ftp-bs2000-host)
+			   (ange-ftp-bs2000-host host))
+		      'bs2000)
 		     (t
 		      'unix))))))
 
@@ -2324,6 +2426,20 @@ and NOWAIT."
   "^[-A-Z0-9_$]+:\\[[-A-Z0-9_$]+\\(\\.[-A-Z0-9_$]+\\)*\\]$")
 (defconst ange-ftp-mts-name-template
   "^[A-Z0-9._][A-Z0-9._][A-Z0-9._][A-Z0-9._]:$")
+(defconst ange-ftp-bs2000-filename-pubset-regexp
+  ":[A-Z0-9]+:"
+  "Valid pubset for an BS2000 file name.")
+(defconst ange-ftp-bs2000-filename-username-regexp
+  (concat
+   "\\$[A-Z0-9]*\\.")
+  "Valid username for an BS2000 file name.")
+(defconst ange-ftp-bs2000-filename-prefix-regexp
+  (concat
+   ange-ftp-bs2000-filename-pubset-regexp
+   ange-ftp-bs2000-filename-username-regexp)
+  "Valid prefix for an BS2000 file name (pubset and user).")
+(defconst ange-ftp-bs2000-name-template
+  (concat "^" ange-ftp-bs2000-filename-prefix-regexp "$"))
 
 (defun ange-ftp-guess-host-type (host user)
   "Guess the host type of HOST.
@@ -2370,6 +2486,17 @@ Works by doing a pwd and examining the directory syntax."
 		   (setq ange-ftp-host-cache host
 			 ange-ftp-host-type-cache 'cms))
 
+		  ;; try for BS2000-POSIX
+		  ((ange-ftp-bs2000-posix-host host)
+		   (ange-ftp-add-bs2000-host host)
+		   (setq ange-ftp-host-cache host
+			 ange-ftp-host-type-cache 'text-unix))
+		  ;; try for BS2000
+		  ((and (string-match ange-ftp-bs2000-name-template dir)
+			(not (ange-ftp-bs2000-posix-host host)))
+		   (ange-ftp-add-bs2000-host host)
+		   (setq ange-ftp-host-cache host
+			 ange-ftp-host-type-cache 'bs2000))
 		  ;; assume UN*X
 		  (t
 		   (setq ange-ftp-host-cache host
@@ -2825,14 +2952,17 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;;;       (or
 ;;;        ;; Deal with dired
 ;;;        (and (boundp 'dired-local-variables-file) ; in the dired-x package
-;;;             (stringp dired-local-variables-file)
-;;;             (string-equal dired-local-variables-file efile))
+;;;		(stringp dired-local-variables-file)
+;;;		(string-equal dired-local-variables-file efile))
 ;;;        ;; No dots in dir names in vms.
 ;;;        (and (eq host-type 'vms)
-;;;             (string-match "\\." efile))
+;;;		(string-match "\\." efile))
 ;;;        ;; No subdirs in mts of cms.
-;;;        (and (memq host-type '(mts cms))
-;;;             (not (string-equal "/" (nth 2 parsed)))))))
+;;;	   (and (memq host-type '(mts cms))
+;;;		(not (string-equal "/" (nth 2 parsed))))
+;;;	   ;; No dots in pseudo-dir names in bs2000.
+;;;	   (and (eq host-type 'bs2000)
+;;;	        (string-match "\\." efile)))))))
 
 (defun ange-ftp-file-entry-p (name)
   "Given NAME, return whether there is a file entry for it."
@@ -5806,6 +5936,237 @@ Other orders of $ and _ seem to all work just fine.")
 ;;    (setq ange-ftp-dired-get-filename-alist
 ;;	  (cons '(cms . ange-ftp-dired-cms-get-filename)
 ;;		ange-ftp-dired-get-filename-alist)))
+
+;;;; ------------------------------------------------------------
+;;;; BS2000 support
+;;;; ------------------------------------------------------------
+
+;; There seems to be an error with regexps. '-' has to be the first
+;; character inside of the square brackets.
+(defconst ange-ftp-bs2000-short-filename-regexp
+  "[-A-Z0-9$#@.]*[A-Z][-A-Z0-9$#@.]*"
+  "Regular expression to match for a valid short BS2000 file name.")
+
+(defconst ange-ftp-bs2000-fix-name-regexp-reverse
+  (concat
+   "^\\(" ange-ftp-bs2000-filename-pubset-regexp "\\)?"
+   "\\(" ange-ftp-bs2000-filename-username-regexp "\\)?"
+   "\\(" ange-ftp-bs2000-short-filename-regexp "\\)?")
+"Regular expression used in ange-ftp-fix-name-for-bs2000.")
+
+(defconst ange-ftp-bs2000-fix-name-regexp
+  (concat
+   "/?\\(" ange-ftp-bs2000-filename-pubset-regexp "/\\)?"
+   "\\(\\$[A-Z0-9]*/\\)?"
+   "\\(" ange-ftp-bs2000-short-filename-regexp "\\)?")
+"Regular expression used in ange-ftp-fix-name-for-bs2000.")
+
+(defcustom ange-ftp-bs2000-special-prefix
+  "X"
+  "*Prefix used for filenames starting with '#' or '@'."
+  :group 'ange-ftp
+  :type 'string)
+
+;; Convert NAME from UNIX-ish to BS2000. If REVERSE given then convert from
+;; BS2000 to UNIX-ish.
+(defun ange-ftp-fix-name-for-bs2000 (name &optional reverse)
+  (save-match-data
+    (if reverse
+	(if (string-match
+	     ange-ftp-bs2000-fix-name-regexp-reverse
+	     name)
+	    (let ((pubset (if (match-beginning 1)
+			      (substring name 0 (match-end 1))))
+		  (userid (if (match-beginning 2)
+			      (substring name
+					 (match-beginning 2)
+					 (1- (match-end 2)))))
+		  (filename (if (match-beginning 3)
+				(substring name (match-beginning 3)))))
+	      (concat
+	       "/"
+	       ;; we have to insert "_/" here to prevent expand-file-name to
+	       ;; interpret BS2000 pubsets as the special escape prefix:
+	       (and pubset (concat "_/" pubset "/"))
+	       (and userid (concat userid "/"))
+	       filename))
+	  (error "name %s didn't match" name))
+      ;; and here we (maybe) have to remove the inserted "_/" 'cause
+      ;; of our prevention of the special escape prefix above:
+      (if (string-match (concat "^/_/") name)
+	  (setq name (substring name 2)))
+      (if (string-match
+	   ange-ftp-bs2000-fix-name-regexp
+	   name)
+	  (let ((pubset (if (match-beginning 1)
+			    (substring name
+				       (match-beginning 1)
+				       (1- (match-end 1)))))
+		(userid (if (match-beginning 2)
+			    (substring name
+				       (match-beginning 2)
+				       (1- (match-end 2)))))
+		(filename (if (match-beginning 3)
+			      (substring name (match-beginning 3)))))
+	    (if (and (boundp 'filename)
+		     (stringp filename)
+		     (string-match "[#@].+" filename))
+		(setq filename (concat ange-ftp-bs2000-special-prefix
+				       (substring filename 1))))
+	    (upcase
+	     (concat
+	      pubset
+	      (and userid (concat userid "."))
+	      ;; change every '/' in filename to a '.', normally not neccessary
+	      (and filename
+		   (apply (function concat)
+			  (mapcar (function (lambda (char)
+					      (if (= char ?/)
+						  (vector ?.)
+						(vector char))))
+				  filename))))))
+	;; Let's hope that BS2000 recognize this anyway:
+	name))))
+
+(or (assq 'bs2000 ange-ftp-fix-name-func-alist)
+    (setq ange-ftp-fix-name-func-alist
+	  (cons '(bs2000 . ange-ftp-fix-name-for-bs2000)
+		ange-ftp-fix-name-func-alist)))
+
+;; Convert name from UNIX-ish to BS2000 ready for a DIRectory listing.
+;; Remember that there are no directories in BS2000.
+(defun ange-ftp-fix-dir-name-for-bs2000 (dir-name)
+  (if (string-equal dir-name "/")
+      "*" ;; Don't use an empty string here!
+    (ange-ftp-fix-name-for-bs2000 dir-name)))
+
+(or (assq 'bs2000 ange-ftp-fix-dir-name-func-alist)
+    (setq ange-ftp-fix-dir-name-func-alist
+	  (cons '(bs2000 . ange-ftp-fix-dir-name-for-bs2000)
+		ange-ftp-fix-dir-name-func-alist)))
+
+(or (memq 'bs2000 ange-ftp-dumb-host-types)
+    (setq ange-ftp-dumb-host-types
+	  (cons 'bs2000 ange-ftp-dumb-host-types)))
+
+(defvar ange-ftp-bs2000-host-regexp nil)
+(defvar ange-ftp-bs2000-posix-host-regexp nil)
+
+;; Return non-nil if HOST is running BS2000.
+(defun ange-ftp-bs2000-host (host)
+  (and ange-ftp-bs2000-host-regexp
+       (save-match-data
+	 (string-match ange-ftp-bs2000-host-regexp host))))
+;; Return non-nil if HOST is running BS2000 with POSIX subsystem.
+(defun ange-ftp-bs2000-posix-host (host)
+  (and ange-ftp-bs2000-posix-host-regexp
+       (save-match-data
+	 (string-match ange-ftp-bs2000-posix-host-regexp host))))
+
+(defun ange-ftp-add-bs2000-host (host)
+  "Mark HOST as the name of a machine running BS2000."
+  (interactive
+   (list (read-string "Host: "
+		      (let ((name (or (buffer-file-name) default-directory)))
+			(and name (car (ange-ftp-ftp-name name)))))))
+  (if (not (ange-ftp-bs2000-host host))
+      (setq ange-ftp-bs2000-host-regexp
+	    (concat "^" (regexp-quote host) "$"
+		    (and ange-ftp-bs2000-host-regexp "\\|")
+		    ange-ftp-bs2000-host-regexp)
+	    ange-ftp-host-cache nil)))
+
+(defun ange-ftp-add-bs2000-posix-host (host)
+  "Mark HOST as the name of a machine running BS2000 with POSIX subsystem."
+  (interactive
+   (list (read-string "Host: "
+		      (let ((name (or (buffer-file-name) default-directory)))
+			(and name (car (ange-ftp-ftp-name name)))))))
+  (if (not (ange-ftp-bs2000-posix-host host))
+      (setq ange-ftp-bs2000-posix-host-regexp
+	    (concat "^" (regexp-quote host) "$"
+		    (and ange-ftp-bs2000-posix-host-regexp "\\|")
+		    ange-ftp-bs2000-posix-host-regexp)
+	    ange-ftp-host-cache nil))
+  ;; Install CD hook to cd to posix on connecting:
+  (and (not ange-ftp-bs2000-posix-hook-installed)
+       (add-hook 'ange-ftp-process-startup-hook 'ange-ftp-bs2000-cd-to-posix)
+       (setq ange-ftp-bs2000-posix-hook-installed t))
+  host)
+
+(defconst ange-ftp-bs2000-filename-regexp
+  (concat
+   "\\(" ange-ftp-bs2000-filename-prefix-regexp "\\)?"
+   "\\(" ange-ftp-bs2000-short-filename-regexp "\\)")
+  "Regular expression to match for a valid BS2000 file name.")
+
+(defcustom ange-ftp-bs2000-additional-pubsets
+  nil
+  "*List of additional pubsets available to all users."
+  :group 'ange-ftp
+  :type 'string)
+
+;; These parsing functions are as general as possible because the syntax
+;; of ftp listings from BS2000 hosts is a bit erratic. What saves us is that
+;; the BS2000 filename syntax is so rigid.
+
+;; Extract the next filename from a BS2000 dired-like listing.
+(defun ange-ftp-parse-bs2000-filename ()
+  (if (re-search-forward ange-ftp-bs2000-filename-regexp nil t)
+	(buffer-substring (match-beginning 2) (match-end 2))))
+
+;; Parse the current buffer which is assumed to be in (some) BS2000 FTP dir
+;; format, and return a hashtable as the result.
+(defun ange-ftp-parse-bs2000-listing ()
+  (let ((tbl (ange-ftp-make-hashtable))
+	pubset
+	file)
+    ;; get current pubset
+    (goto-char (point-min))
+    (if (re-search-forward ange-ftp-bs2000-filename-pubset-regexp nil t)
+	(setq pubset (buffer-substring (match-beginning 0) (match-end 0))))
+    ;; add files to hashtable
+    (goto-char (point-min))
+    (save-match-data
+      (while (setq file (ange-ftp-parse-bs2000-filename))
+	(ange-ftp-put-hash-entry file nil tbl)))
+    ;; add . and ..
+    (ange-ftp-put-hash-entry "." t tbl)
+    (ange-ftp-put-hash-entry ".." t tbl)
+    ;; add all additional pubsets, if not listing one of them
+    (if (not (member pubset ange-ftp-bs2000-additional-pubsets))
+	(mapcar (function (lambda (pubset)
+			    (ange-ftp-put-hash-entry pubset t tbl)))
+		ange-ftp-bs2000-additional-pubsets))
+    tbl))
+
+(or (assq 'bs2000 ange-ftp-parse-list-func-alist)
+    (setq ange-ftp-parse-list-func-alist
+	  (cons '(bs2000 . ange-ftp-parse-bs2000-listing)
+		ange-ftp-parse-list-func-alist)))
+
+(defvar ange-ftp-bs2000-posix-hook-installed nil)
+(defun ange-ftp-bs2000-cd-to-posix ()
+  "cd to POSIX subsystem if the current host matches
+ange-ftp-bs2000-posix-host-regexp.  All BS2000 hosts with POSIX subsystem
+MUST BE EXPLICITLY SET with ange-ftp-add-bs2000-posix-host for they cannot
+be recognized automatically (they are all valid BS2000 hosts too)."
+  (if (and host (ange-ftp-bs2000-posix-host host))
+      (progn
+	;; change to POSIX:
+;	(ange-ftp-raw-send-cmd proc "cd %POSIX")
+	(ange-ftp-cd host user "%POSIX")
+	;; put new home directory in the expand-dir hashtable.
+	(ange-ftp-put-hash-entry (concat host "/" user "/~")
+				 (car (ange-ftp-get-pwd host user))
+				 ange-ftp-expand-dir-hashtable))))
+
+;; Not available yet:
+;; ange-ftp-bs2000-delete-file-entry
+;; ange-ftp-bs2000-add-file-entry
+;; ange-ftp-bs2000-file-name-as-directory
+;; ange-ftp-bs2000-make-compressed-filename
+;; ange-ftp-bs2000-file-name-sans-versions
 
 ;;;; ------------------------------------------------------------
 ;;;; Finally provide package.
