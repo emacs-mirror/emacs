@@ -1,12 +1,12 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
-   Copyright (C) 1986, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -351,29 +351,22 @@ error (s1, s2, s3)
 pfatal_with_name (name)
      char *name;
 {
-  extern int errno, sys_nerr;
-  extern char *sys_errlist[];
+  extern int errno;
+  extern char *strerror ();
   char *s;
 
-  if (errno < sys_nerr)
-    s = concat ("", sys_errlist[errno], " for %s");
-  else
-    s = "cannot open %s";
+  s = concat ("", strerror (errno), " for %s");
   fatal (s, name);
 }
 
 pfatal_and_delete (name)
      char *name;
 {
-  extern int errno, sys_nerr;
-  extern char *sys_errlist[];
+  extern int errno;
+  extern char *strerror ();
   char *s;
 
-  if (errno < sys_nerr)
-    s = concat ("", sys_errlist[errno], " for %s");
-  else
-    s = "cannot open %s";
-
+  s = concat ("", strerror (errno), " for %s");
   unlink (name);
   fatal (s, name);
 }
@@ -735,15 +728,9 @@ multiline (buf, n, f)
 char *
 get_errmsg ()
 {
-  extern int errno, sys_nerr;
-  extern char *sys_errlist[];
-  char *s;
-
-  if (errno < sys_nerr)
-    s = sys_errlist[errno];
-  else
-    s = "unknown error";
-  return (s);
+  extern int errno;
+  extern char *strerror ();
+  return strerror (errno);
 }
 
 putline (buf, err, f)
