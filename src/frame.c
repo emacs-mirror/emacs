@@ -1723,6 +1723,7 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sselected_frame);
   defsubr (&Swindow_frame);
   defsubr (&Sframe_root_window);
+  defsubr (&Sframe_first_window);
   defsubr (&Sframe_selected_window);
   defsubr (&Sset_frame_selected_window);
   defsubr (&Sframe_list);
