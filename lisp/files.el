@@ -1172,35 +1172,40 @@ nil or empty string as argument means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument."
   (interactive "FSet visited file name: ")
-  (if filename
-      (setq filename
-	    (if (string-equal filename "")
-		nil
-	      (expand-file-name filename))))
-  (or (equal filename buffer-file-name)
-      (progn
-	(and filename (lock-buffer filename))
-	(unlock-buffer)))
-  (setq buffer-file-name filename)
-  (if filename				; make buffer name reflect filename.
-      (let ((new-name (file-name-nondirectory buffer-file-name)))
-	(if (string= new-name "")
-	    (error "Empty file name"))
-	(if (eq system-type 'vax-vms)
-	    (setq new-name (downcase new-name)))
-	(setq default-directory (file-name-directory buffer-file-name))
-	(or (string= new-name (buffer-name))
-	    (rename-buffer new-name t))))
-  (setq buffer-backed-up nil)
-  (clear-visited-file-modtime)
-  (if filename
-      (progn
-	(setq buffer-file-truename
-	      (abbreviate-file-name (file-truename buffer-file-name)))
-	(if find-file-visit-truename
-	    (setq buffer-file-name buffer-file-truename))
-	(setq buffer-file-number (nth 10 (file-attributes buffer-file-name))))
-    (setq buffer-file-truename nil buffer-file-number nil))
+  (let (truename)
+    (if filename
+	(setq filename
+	      (if (string-equal filename "")
+		  nil
+		(expand-file-name filename))))
+    (if filename
+	(progn
+	  (setq truename (file-truename filename))
+	  (if find-file-visit-truename
+	      ;; Do not use the abbreviated filename, because
+	      ;; write-region will reset it to the expanded filename
+	      (setq filename truename))))
+    (or (equal filename buffer-file-name)
+	(progn
+	  (and filename (lock-buffer filename))
+	  (unlock-buffer)))
+    (setq buffer-file-name filename)
+    (if filename			; make buffer name reflect filename.
+	(let ((new-name (file-name-nondirectory buffer-file-name)))
+	  (if (string= new-name "")
+	      (error "Empty file name"))
+	  (if (eq system-type 'vax-vms)
+	      (setq new-name (downcase new-name)))
+	  (setq default-directory (file-name-directory buffer-file-name))
+	  (or (string= new-name (buffer-name))
+	      (rename-buffer new-name t))))
+    (setq buffer-backed-up nil)
+    (clear-visited-file-modtime)
+    (setq buffer-file-truename (abbreviate-file-name truename))
+    (setq buffer-file-number
+	  (if filename
+	      (nth 10 (file-attributes buffer-file-name))
+	      nil)))
   ;; write-file-hooks is normally used for things like ftp-find-file
   ;; that visit things that are not local files as if they were files.
   ;; Changing to visit an ordinary local file instead should flush the hook.
