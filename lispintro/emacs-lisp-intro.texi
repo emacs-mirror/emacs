@@ -9,21 +9,20 @@
 @finalout
 
 @c ---------
-@c <<<< Now set for smallbook, which works well with all
-@c      sizes of paper and no included PostScript figures
-@c      (this setting uses ASCII figures instead). >>>>
-
-@c @smallbook
-@c @clear largebook
-@c @clear print-postscript-figures
-@set largebook
+@c <<<< For hard copy printing, this file is now
+@c      set for smallbook, which works for all sizes 
+@c      of paper, and with Postscript figures >>>>
+@smallbook
+@clear largebook
 @set print-postscript-figures
+@c set largebook
+@c clear print-postscript-figures
 @c ---------
 
 @comment %**end of header
 
-@set edition-number 2.01
-@set update-date 2001 Nov 24
+@set edition-number 2.02
+@set update-date 2001 Nov 25
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -35,7 +34,6 @@
     texi2dvi emacs-lisp-intro.texi
 
     ## HTML output
-    texi2html emacs-lisp-intro.texi
     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
 
     ## Plain text output
@@ -106,9 +104,10 @@
 @c     tex emacs-lisp-intro.texi
 @c     lpr -d emacs-lisp-intro.dvi
 
-@c If you include the PostScript figures, you must convert the .dvi
-@c file to a .ps file before printing.  Run either of the
-@c following command sequences, or one similar:
+@c If you include the PostScript figures, and you have old software,
+@c you may need to convert the .dvi file to a .ps file before
+@c printing.  Run either of the following command sequences, or one
+@c similar:
 @c
 @c     dvips -f < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
 @c
@@ -119,9 +118,6 @@
 
 @c (Note: if you edit the book so as to change the length of the
 @c table of contents, you may have to change the value of `pageno' below.)
-
-@c Remember that TeX places the Table of Contents at the end of the
-@c print run; you need to put those pages in front of the Preface.
 
 @c ================ End of Formatting Sections ================
 
@@ -300,16 +296,27 @@ entitled ``GNU Free Documentation License''.
 @oddheading @thissection @| @| @thispage
 @end iftex
 
-@ifnottex
-@node Top, Preface, (dir), (dir)
-@top An Introduction to Programming in Emacs Lisp
+@ifnothtml
 
-This is an introduction to @cite{Programming in Emacs Lisp}, for
-people who are not programmers.
+@c Keep T.O.C. short by tightening up.
+@ifset largebook
+@tex
+\global\parskip 2pt plus 1pt
+\global\advance\baselineskip by -1pt
+@end tex
+@end ifset
 
-This master menu first lists each chapter and index; then it lists
-every node in every chapter.
-@end ifnottex
+@shortcontents
+@contents
+
+@ifset largebook
+@tex
+\global\parskip 6pt plus 1pt
+\global\advance\baselineskip by 1pt
+@end tex
+@end ifset
+
+@end ifnothtml
 
 @c >>>> Set pageno appropriately <<<<
 
@@ -330,6 +337,17 @@ every node in every chapter.
 @pageno = -11
 @end iftex
 @end ifclear
+
+@ifnottex
+@node Top, Preface, (dir), (dir)
+@top An Introduction to Programming in Emacs Lisp
+
+This is an introduction to @cite{Programming in Emacs Lisp}, for
+people who are not programmers.
+
+This master menu first lists each chapter and index; then it lists
+every node in every chapter.
+@end ifnottex
 
 @menu
 * Preface::                     What to look for.
@@ -15777,7 +15795,12 @@ We can test @code{graph-body-print} with a short list of numbers.
 @item
 Install @code{graph-symbol}, @code{graph-blank},
 @code{column-of-graph}, which are in
-@ref{Columns of a graph, , Printing the Columns of a Graph},
+@iftex
+@ref{Readying a Graph, , Readying a Graph},
+@end iftex
+@ifinfo
+@ref{Columns of a graph},
+@end ifinfo
 and @code{graph-body-print}.
 
 @need 800
@@ -21447,16 +21470,5 @@ airplane.
 @evenheading @thispage @| @| @thistitle
 @oddheading            @| @| @thispage
 @end iftex
-
-@c Keep T.O.C. short by tightening up.
-@ifset largebook
-@tex
-\global\parskip 2pt plus 1pt
-\global\advance\baselineskip by -1pt
-@end tex
-@end ifset
-
-@shortcontents
-@contents
 
 @bye
