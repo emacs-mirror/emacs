@@ -1,3 +1,11 @@
+2000-06-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (set-buffer-file-coding-system): If one of
+	undecided-XXX is specified, change only EOL conversion. 
+
+	* international/mule-conf.el (unix): New alias for the coding
+	system undecided-unix.
+
 2000-06-09  Dave Love  <fx@gnu.org>
 
 	* tar-mode.el (tar-copy): Supply MUSTBENEW arg to write-region.
