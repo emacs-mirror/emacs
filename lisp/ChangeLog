@@ -1,3 +1,13 @@
+2002-05-27  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (push-mark-command): Added optional NOMSG arg.
+
+	* emulation/cua-base.el (cua-set-mark): Align pop to mark
+	behaviour with standard set-mark-command.
+	(cua--pre-command-handler): Use push-mark-command.
+	(cua-repeat-replace-region): Improve functionality when
+	repeated after moving point or changing buffer.
+
 2002-05-26  Colin Walters  <walters@verbum.org>
 
 	* startup.el (command-line): Use `when', `unless'.
