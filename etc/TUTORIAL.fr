@@ -20,14 +20,7 @@ utiliserons les abréviations suivantes :
 
 Remarque importante : tapez C-x C-c (deux caractères) pour terminer
 une session Emacs.
-
-Les caractères ">>" en marge gauche indiquent les directions à suivre
-pour utiliser une commande. Par exemple :
-
-[Lignes blanches insérées par le lancement de help-with-tutorial]
-
-
-
+<<Blank lines inserted here by startup of help-with-tutorial>>
 >>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
     (faites-le, pressez la touche CTRL tout en pressant la touche v).
 
