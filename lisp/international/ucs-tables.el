@@ -1100,7 +1100,7 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
   ;; Convert the lists to the basic char tables.
   ;; Ensure `decode-char' doesn't use the fragmentation table.
   ;; Fixme: handa suggests using the RESTRICTION arg.
-  (let (utf-8-translation-table-for-decode)
+  (let ((utf-8-translation-table-for-decode (make-translation-table)))
     (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
       (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
 	(dolist (pair alist)
