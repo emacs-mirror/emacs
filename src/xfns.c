@@ -2371,6 +2371,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
+  XtSetArg (al[ac], XtNborderWidth, f->display.x->border_width); ac++;
   shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
 				   topLevelShellWidgetClass,
 				   FRAME_X_DISPLAY (f), al, ac);
@@ -2429,6 +2430,8 @@ x_window (f, window_prompting, minibuffer_only)
         menubar_size += ibw;
       }
 
+    f->display.x->menubar_height = menubar_size;
+
     /* Convert our geometry parameters into a geometry string
        and specify it.
        Note that we do not specify here whether the position
@@ -2460,8 +2463,6 @@ x_window (f, window_prompting, minibuffer_only)
     XtSetArg (al[ac], XtNgeometry, tem); ac++;
     XtSetValues (shell_widget, al, ac);
   }
-
-  x_calc_absolute_position (f);
 
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
@@ -2518,12 +2519,6 @@ x_window (f, window_prompting, minibuffer_only)
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
 
-  /* If we have a program-specified position, communicate it to
-     the window manager thus.  */
-  if (FRAME_X_WINDOW (f))
-    XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
-		 f->display.x->left_pos, f->display.x->top_pos);
-
   UNBLOCK_INPUT;
 
   if (FRAME_X_WINDOW (f) == 0)
@@ -2571,6 +2566,10 @@ x_window (f)
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &class_hints);
+
+  /* The menubar is part of the ordinary display;
+     it does not count in addition to the height of the window.  */
+  f->display.x->menubar_height = 0;
 
   /* This indicates that we use the "Passive Input" input model.
      Unless we do this, we don't get the Focus{In,Out} events that we
