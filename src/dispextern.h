@@ -2287,6 +2287,7 @@ void bitch_at_user P_ ((void));
 Lisp_Object sit_for P_ ((int, int, int, int, int));
 void init_display P_ ((void));
 void syms_of_display P_ ((void));
+extern Lisp_Object Qredisplay_dont_pause;
 
 /* Defined in term.c */
 
