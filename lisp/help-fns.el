@@ -127,16 +127,17 @@ and the file name is displayed in the echo area."
   (if (null function)
       (message "You didn't specify a function")
     (help-setup-xref (list #'describe-function function) (interactive-p))
-    (with-output-to-temp-buffer (help-buffer)
-      (prin1 function)
-      ;; Use " is " instead of a colon so that
-      ;; it is easier to get out the function name using forward-sexp.
-      (princ " is ")
-      (describe-function-1 function)
-      (print-help-return-message)
-      (with-current-buffer standard-output
-	;; Return the text we displayed.
-	(buffer-string)))))
+    (save-excursion
+      (with-output-to-temp-buffer (help-buffer)
+	(prin1 function)
+	;; Use " is " instead of a colon so that
+	;; it is easier to get out the function name using forward-sexp.
+	(princ " is ")
+	(describe-function-1 function)
+	(print-help-return-message)
+	(with-current-buffer standard-output
+	  ;; Return the text we displayed.
+	  (buffer-string))))))
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -193,15 +194,15 @@ and the file name is displayed in the echo area."
 	(setq file-name (symbol-file function)))
     (cond
      (file-name
-	  (princ " in `")
-	  ;; We used to add .el to the file name,
-	  ;; but that's completely wrong when the user used load-file.
-	  (princ file-name)
-	  (princ "'")
-	  ;; Make a hyperlink to the library.
+      (princ " in `")
+      ;; We used to add .el to the file name,
+      ;; but that's completely wrong when the user used load-file.
+      (princ file-name)
+      (princ "'")
+      ;; Make a hyperlink to the library.
       (with-current-buffer standard-output
-	    (save-excursion
-	      (re-search-backward "`\\([^`']+\\)'" nil t)
+	(save-excursion
+	  (re-search-backward "`\\([^`']+\\)'" nil t)
 	  (help-xref-button 1 'help-function-def function file-name)))))
     (princ ".")
     (terpri)
@@ -315,123 +316,124 @@ it is displayed along with the global value."
   (unless (bufferp buffer) (setq buffer (current-buffer)))
   (if (not (symbolp variable))
       (message "You did not specify a variable")
-    (let (valvoid)
-      (help-setup-xref (list #'describe-variable variable buffer)
-		       (interactive-p))
-      (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer buffer
-	  (prin1 variable)
-	  (if (not (boundp variable))
-	      (progn
-		(princ " is void")
-		(setq valvoid t))
-	    (let ((val (symbol-value variable)))
-	      (with-current-buffer standard-output
-		(princ "'s value is ")
-		(terpri)
-		(let ((from (point)))
-		  (pp val)
-		  (help-xref-on-pp from (point))
-		  (if (< (point) (+ from 20))
-		      (save-excursion
-			(goto-char from)
-			(delete-char -1)))))))
-	  (terpri)
-	  (when (local-variable-p variable)
-	    (princ (format "Local in buffer %s; " (buffer-name)))
-	    (if (not (default-boundp variable))
-		(princ "globally void")
-	      (let ((val (default-value variable)))
+    (save-excursion
+      (let (valvoid)
+	(help-setup-xref (list #'describe-variable variable buffer)
+			 (interactive-p))
+	(with-output-to-temp-buffer (help-buffer)
+	  (with-current-buffer buffer
+	    (prin1 variable)
+	    (if (not (boundp variable))
+		(progn
+		  (princ " is void")
+		  (setq valvoid t))
+	      (let ((val (symbol-value variable)))
 		(with-current-buffer standard-output
-		  (princ "global value is ")
+		  (princ "'s value is ")
 		  (terpri)
-		  ;; Fixme: pp can take an age if you happen to
-		  ;; ask for a very large expression.  We should
-		  ;; probably print it raw once and check it's a
-		  ;; sensible size before prettyprinting.  -- fx
 		  (let ((from (point)))
-			(pp val)
-			(help-xref-on-pp from (point))
-			(if (< (point) (+ from 20))
-			    (save-excursion
-			      (goto-char from)
-			      (delete-char -1)))))))
-	    (terpri))
-	  (terpri)
-	  (with-current-buffer standard-output
-	    (when (> (count-lines (point-min) (point-max)) 10)
-	      ;; Note that setting the syntax table like below
-	      ;; makes forward-sexp move over a `'s' at the end
-	      ;; of a symbol.
-	      (set-syntax-table emacs-lisp-mode-syntax-table)
-	      (goto-char (point-min))
-	      (if valvoid
-		  (forward-line 1)
-		(forward-sexp 1)
-		(delete-region (point) (progn (end-of-line) (point)))
-		(insert " value is shown below.\n\n")
+		    (pp val)
+		    (help-xref-on-pp from (point))
+		    (if (< (point) (+ from 20))
+			(save-excursion
+			  (goto-char from)
+			  (delete-char -1)))))))
+	    (terpri)
+	    (when (local-variable-p variable)
+	      (princ (format "Local in buffer %s; " (buffer-name)))
+	      (if (not (default-boundp variable))
+		  (princ "globally void")
+		(let ((val (default-value variable)))
+		  (with-current-buffer standard-output
+		    (princ "global value is ")
+		    (terpri)
+		    ;; Fixme: pp can take an age if you happen to
+		    ;; ask for a very large expression.  We should
+		    ;; probably print it raw once and check it's a
+		    ;; sensible size before prettyprinting.  -- fx
+		    (let ((from (point)))
+		      (pp val)
+		      (help-xref-on-pp from (point))
+		      (if (< (point) (+ from 20))
+			  (save-excursion
+			    (goto-char from)
+			    (delete-char -1)))))))
+	      (terpri))
+	    (terpri)
+	    (with-current-buffer standard-output
+	      (when (> (count-lines (point-min) (point-max)) 10)
+		;; Note that setting the syntax table like below
+		;; makes forward-sexp move over a `'s' at the end
+		;; of a symbol.
+		(set-syntax-table emacs-lisp-mode-syntax-table)
+		(goto-char (point-min))
+		(if valvoid
+		    (forward-line 1)
+		  (forward-sexp 1)
+		  (delete-region (point) (progn (end-of-line) (point)))
+		  (insert " value is shown below.\n\n")
+		  (save-excursion
+		    (insert "\n\nValue:"))))
+	      ;; Add a note for variables that have been make-var-buffer-local.
+	      (when (and (local-variable-if-set-p variable)
+			 (or (not (local-variable-p variable))
+			     (with-temp-buffer
+			       (local-variable-if-set-p variable))))
 		(save-excursion
-		  (insert "\n\nValue:"))))
-	    ;; Add a note for variables that have been make-var-buffer-local.
-	    (when (and (local-variable-if-set-p variable)
-		       (or (not (local-variable-p variable))
-			   (with-temp-buffer
-			     (local-variable-if-set-p variable))))
-	      (save-excursion
-		(forward-line -1)
-		(insert "Automatically becomes buffer-local when set in any fashion.\n"))))
-	  (princ "Documentation:")
-	  (terpri)
-	  (let ((doc (documentation-property variable 'variable-documentation)))
-	    (princ (or doc "not documented as a variable.")))
+		  (forward-line -1)
+		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
+	    (princ "Documentation:")
+	    (terpri)
+	    (let ((doc (documentation-property variable 'variable-documentation)))
+	      (princ (or doc "not documented as a variable.")))
 	  
-	  ;; Make a link to customize if this variable can be customized.
-	  ;; Note, it is not reliable to test only for a custom-type property
-	  ;; because those are only present after the var's definition
-	  ;; has been loaded.
-	  (if (or (get variable 'custom-type) ; after defcustom
-		  (get variable 'custom-loads) ; from loaddefs.el
-		  (get variable 'standard-value)) ; from cus-start.el
-	      (let ((customize-label "customize"))
-		(terpri)
-		(terpri)
-		(princ (concat "You can " customize-label " this variable."))
+	    ;; Make a link to customize if this variable can be customized.
+	    ;; Note, it is not reliable to test only for a custom-type property
+	    ;; because those are only present after the var's definition
+	    ;; has been loaded.
+	    (if (or (get variable 'custom-type) ; after defcustom
+		    (get variable 'custom-loads) ; from loaddefs.el
+		    (get variable 'standard-value)) ; from cus-start.el
+		(let ((customize-label "customize"))
+		  (terpri)
+		  (terpri)
+		  (princ (concat "You can " customize-label " this variable."))
+		  (with-current-buffer standard-output
+		    (save-excursion
+		      (re-search-backward
+		       (concat "\\(" customize-label "\\)") nil t)
+		      (help-xref-button 1 'help-customize-variable variable)))))
+	    ;; Make a hyperlink to the library if appropriate.  (Don't
+	    ;; change the format of the buffer's initial line in case
+	    ;; anything expects the current format.)
+	    (let ((file-name (symbol-file variable)))
+	      (when (equal file-name "loaddefs.el")
+		;; Find the real def site of the preloaded variable.
+		(let ((location
+		       (condition-case nil
+			   (find-variable-noselect variable file-name)
+			 (error nil))))
+		  (when location
+		    (with-current-buffer (car location)
+		      (goto-char (cdr location))
+		      (when (re-search-backward
+			     "^;;; Generated autoloads from \\(.*\\)" nil t)
+			(setq file-name (match-string 1)))))))
+	      (when file-name
+		(princ "\n\nDefined in `")
+		(princ file-name)
+		(princ "'.")
 		(with-current-buffer standard-output
 		  (save-excursion
-		    (re-search-backward
-		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 'help-customize-variable variable)))))
-	  ;; Make a hyperlink to the library if appropriate.  (Don't
-	  ;; change the format of the buffer's initial line in case
-	  ;; anything expects the current format.)
-	  (let ((file-name (symbol-file variable)))
-	    (when (equal file-name "loaddefs.el")
-	      ;; Find the real def site of the preloaded variable.
-	      (let ((location
-		     (condition-case nil
-			 (find-variable-noselect variable file-name)
-		       (error nil))))
-		(when location
-		  (with-current-buffer (car location)
-		    (goto-char (cdr location))
-		    (when (re-search-backward
-			   "^;;; Generated autoloads from \\(.*\\)" nil t)
-		      (setq file-name (match-string 1)))))))
-	    (when file-name
-	      (princ "\n\nDefined in `")
-	      (princ file-name)
-	      (princ "'.")
-	      (with-current-buffer standard-output
-		(save-excursion
-		  (re-search-backward "`\\([^`']+\\)'" nil t)
-		  (help-xref-button 1 'help-variable-def
-				    variable file-name)))))
+		    (re-search-backward "`\\([^`']+\\)'" nil t)
+		    (help-xref-button 1 'help-variable-def
+				      variable file-name)))))
 
-	  (print-help-return-message)
-	  (save-excursion
-	    (set-buffer standard-output)
-	    ;; Return the text we displayed.
-	    (buffer-string)))))))
+	    (print-help-return-message)
+	    (save-excursion
+	      (set-buffer standard-output)
+	      ;; Return the text we displayed.
+	      (buffer-string))))))))
 
 
 ;;;###autoload
