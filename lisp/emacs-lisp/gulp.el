@@ -171,4 +171,6 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 	(if (= (length mnt) 0) (setq mnt nil))) ;; "^;; Author: $" --> nil
       (cons mnt timest))))
 
+(provide 'gulp)
+
 ;;; gulp.el ends here

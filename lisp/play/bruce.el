@@ -145,4 +145,6 @@
 ;; cleaned up, generalized, gratuitously broken by esr, and now resides in
 ;; cookie1.el.
 
+(provide 'bruce)
+
 ;;; bruce.el ends here
