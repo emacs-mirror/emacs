@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.30 2003/07/08 01:21:43 teirllm Exp $
+@comment $Id: info.texi,v 1.31 2003/07/08 03:28:42 teirllm Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -435,10 +435,9 @@ Thus it is useful to know it is there.
 
 @findex visible-mode
 You can make invisible text visible by using the command @kbd{M-x
-visible-mode}.  @dfn{Visible mode} is a minor mode, so using the
-command a second time will make the text invisible again.  Watch the
-effects of the command on the ``menu'' below and the top line of this
-node.
+visible-mode}.  Visible mode is a minor mode, so using the command a
+second time will make the text invisible again.  Watch the effects of
+the command on the ``menu'' below and the top line of this node.
 
 If you prefer to @emph{always} see the invisible text, you can set
 @code{Info-hide-note-references} to @code{nil}.  Enabling Visible mode
