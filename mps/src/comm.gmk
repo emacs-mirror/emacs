@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.19) $
+# $HopeName: MMsrc!comm.gmk(trunk.20) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -146,6 +146,14 @@ CFCE = -DCONFIG_VAR_CE          $(CFLAGSCOOL) $(CFLAGSEXTERNAL)
 CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSHOT)  $(CFLAGSINTERNAL)
 
 
+# == Common definitions ==
+# %%PART: Add your part here, unless it's platform-specific
+# These values are defined here because they have no variation between
+# platforms.
+ 
+FMTDY = fmtdy.c fmtdytst.c
+  
+   
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
 # 
@@ -182,6 +190,8 @@ endif
 endif
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
+FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
@@ -281,8 +291,7 @@ $(PFM)/$(VARIETY)/mpmconft: $(PFM)/$(VARIETY)/mpmconft.o \
 	$(MPMOBJ)
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
-	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
 	$(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)
@@ -294,23 +303,19 @@ $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ)
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
-	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
-	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
-	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
-	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ) $(ARENAANOBJ)
@@ -377,7 +382,7 @@ ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
-	$(AWLDEP) $(DWDEP) $(POOLNDEP) $(ARENAANDEP) $(TESTLIBDEP)
+  $(AWLDEP) $(DWDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(ARENAANDEP)
 endif
 endif
 

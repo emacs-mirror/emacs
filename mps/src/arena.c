@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.8) $
+ * $HopeName: MMsrc!arena.c(trunk.9) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.8) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.9) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -110,6 +110,7 @@ Bool ArenaCheck(Arena arena)
 
   /* no check possible on arena->pollThreshold */
   CHECKL(BoolCheck(arena->insidePoll));
+  CHECKL(BoolCheck(arena->clamped));
 
   /* no check on arena->actionInterval */
   CHECKL(arena->allocTime >= 0.0);
@@ -232,6 +233,7 @@ void ArenaInit(Arena arena, ArenaClass class)
     arena->shCache[i] = (Seg)0;
   arena->pollThreshold = (Size)0;
   arena->insidePoll = FALSE;
+  arena->clamped = FALSE;
   /* design.mps.arena.poll.interval */
   arena->actionInterval = ARENA_POLL_MAX;  
   arena->epoch = (Epoch)0;              /* impl.c.ld */
@@ -512,6 +514,9 @@ void ArenaPoll(Arena arena)
   Count i;
 
   AVERT(Arena, arena);
+
+  if(arena->clamped)
+    return;
 
   size = ArenaCommitted(arena);
   if(arena->insidePoll || size < arena->pollThreshold)
