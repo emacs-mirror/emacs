@@ -284,7 +284,7 @@ install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $${file} ${bindir}/$${file} ; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/$${file} ; \
 	  chmod a+rx ${bindir}/$${file}; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
