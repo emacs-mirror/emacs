@@ -1752,7 +1752,7 @@ x_scrollbar_create (window, top, left, width, height)
 
     a.background_pixel = frame->display.x->background_pixel;
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
-		    | ButtonMotionMask
+		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = x_vertical_scrollbar_cursor;
 
