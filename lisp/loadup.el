@@ -76,7 +76,8 @@
   (load "latin-1")
   (load "latin-2")
   (load "latin-3")
-  (load "latin-4"))
+  (load "latin-4")
+  (load "latin-5"))
 (garbage-collect)
 ;; Load langauge specific files.
 (load "language/chinese")
