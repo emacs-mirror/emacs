@@ -15334,9 +15334,7 @@ of the top or bottom of the window.  */);
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
     doc: /* nil means display the mode-line/header-line/menu-bar in the default face.
 Any other value means to use the appropriate face, `mode-line',
-`header-line', or `menu' respectively.
-
-This variable is deprecated; please change the above faces instead.  */);
+`header-line', or `menu' respectively.  */);
   mode_line_inverse_video = 1;
 
   DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
