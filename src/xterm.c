@@ -5106,8 +5106,9 @@ x_new_font (f, newname)
 }
 #endif /* ! defined (HAVE_X11) */
 
-x_calc_absolute_position (f)
+x_calc_absolute_position (f, flags)
      struct frame *f;
+     int flags;
 {
 #ifdef HAVE_X11
   Window win, child;
@@ -5134,13 +5135,13 @@ x_calc_absolute_position (f)
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
-  if (f->display.x->left_pos < 0)
+  if (flags & XNegative)
     f->display.x->left_pos = (x_screen_width 
 			      - 2 * f->display.x->border_width - win_x
 			      - PIXEL_WIDTH (f)
 			      + f->display.x->left_pos);
 
-  if (f->display.x->top_pos < 0)
+  if (flags & YNegative)
     f->display.x->top_pos = (x_screen_height
 			     - 2 * f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
@@ -5168,7 +5169,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   f->display.x->top_pos = yoff;
   f->display.x->left_pos = xoff;
-  x_calc_absolute_position (f);
+  x_calc_absolute_position (f, 0);
 
   BLOCK_INPUT;
 #ifdef USE_X_TOOLKIT
@@ -5752,19 +5753,6 @@ x_wm_set_size_hint (f, flags, user_position)
 
   size_hints.x = f->display.x->left_pos;
   size_hints.y = f->display.x->top_pos;
-
-  /* Treat negative positions as relative to the leftmost bottommost
-     position that fits on the screen.  */
-  if (flags & XNegative)
-    size_hints.x = (x_screen_width 
-		    - 2 * f->display.x->border_width
-		    - PIXEL_WIDTH (f)
-		    + f->display.x->left_pos);
-  if (flags & YNegative)
-    size_hints.y = (x_screen_height
-		    - 2 * f->display.x->border_width
-		    - PIXEL_HEIGHT (f)
-		    + f->display.x->top_pos);
 
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
