@@ -316,7 +316,6 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (setq Info-current-file nil
 		    Info-current-subfile nil
 		    Info-current-file-completions nil
-		    Info-index-alternatives nil
 		    buffer-file-name nil)
 	      (erase-buffer)
 	      (if (eq filename t)
@@ -1388,7 +1387,7 @@ Give a blank topic name to go to the Index node itself."
   "Go to the next matching index item from the last `i' command."
   (interactive "p")
   (or Info-index-alternatives
-      (error "No previous `i' command in this file"))
+      (error "No previous `i' command"))
   (while (< num 0)
     (setq num (+ num (length Info-index-alternatives))))
   (while (> num 0)
