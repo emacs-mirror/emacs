@@ -984,7 +984,8 @@ Digits or minus sign following \\[universal-argument] make up the numeric argume
 Repeating \\[universal-argument] without digits or minus sign
  multiplies the argument by 4 each time.
 For some commands, just \\[universal-argument] by itself serves as a flag
-which is different in effect from any particular numeric argument."
+which is different in effect from any particular numeric argument.
+These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
   (setq prefix-arg (list 4))
   (setq universal-argument-num-events (length (this-command-keys)))
