@@ -1571,6 +1571,10 @@ struct it
      OVERLAY_STRING_CHUNK_SIZE.  */
   int n_overlay_strings;
 
+  /* If non-zero, an additional overlay start position to take overlay
+     strings from.  */
+  int add_overlay_start;
+
   /* If non-nil, a Lisp string being processed.  If
      current.overlay_string_index >= 0, this is an overlay string from
      pos.  */
