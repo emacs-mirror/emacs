@@ -1,6 +1,6 @@
 ;;; @(#) ada-prj.el --- Easy editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 1999 Ada Core Technologies, Inc
+;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Ada Core Technologies's version:   $Revision: 1.30 $
@@ -66,7 +66,7 @@
 ;; ------ Functions -------------------------------------------------------
 
 (defun ada-prj-add-ada-menu ()
-  "Add a new submenu to the Ada menu"
+  "Add a new submenu to the Ada menu."
   (interactive)
 
   (if ada-xemacs
@@ -78,12 +78,12 @@
     ))
 
 (defun ada-prj-add-keymap ()
-  "Add new keybindings for ada-prj"
+  "Add new keybindings for ada-prj."
   (define-key ada-mode-map "\C-cu"  'ada-customize))
 
 (defun ada-customize (&optional new-file)
-  "Edit the project file associated with the current buffer, or
-a new one if none is found"
+  "Edit the project file associated with the current buffer.
+If there is none or NEW-FILE is non-nil, make a new one."
   (interactive)
   (if new-file
       (progn
@@ -94,7 +94,7 @@ a new one if none is found"
     (ada-prj-customize)))
 
 (defun ada-prj-save ()
-  "save the edited project file"
+  "Save the currently edited project file."
   (interactive)
   (let ((file-name (widget-value ada-prj-widget-prj-dir))
         value output)
@@ -156,7 +156,7 @@ a new one if none is found"
   )
 
 (defun ada-prj-customize ()
-  "Edit the project file whose name is given by prj-file."
+  "Edit the project file associated with the current Ada buffer."
   (let* ((old-name (buffer-file-name))
          prj-file)
 
@@ -201,15 +201,15 @@ a new one if none is found"
           (mapcar 'delete-overlay (car all))
           (mapcar 'delete-overlay (cdr all))))
 
-    (use-local-map widget-keymap)
+    (use-local-map (copy-keymap custom-mode-map))
     (local-set-key "\C-x\C-s" 'ada-prj-save)
 
     (widget-insert "
 ----------------------------------------------------------------
---  Customize your emacs ada mode for the current application --
+--  Customize your Emacs Ada mode for the current application --
 ----------------------------------------------------------------
 This buffer will allow you to create easily a project file for your application.
-This file will tell emacs where to find the ada sources, the cross-referencing
+This file will tell Emacs where to find the ada sources, the cross-referencing
 informations, how to compile and run your application, ...
 
 Please use the RETURN key, or middle mouse button to activate the fields.\n\n")
@@ -235,7 +235,7 @@ Put a new name here if you want to create a new project file\n"))
     (setq ada-prj-widget-src-dir
           (ada-prj-list 'ada-prj-widget-src-dir prj-file "src_dir"
                         (get 'ada-prj-default 'src_dir)
-                        "\nYou should enter below all the directories where emacs
+                        "\nYou should enter below all the directories where Emacs
 will find your ada sources for the current application\n"))
 
     (setq ada-prj-widget-obj-dir
@@ -243,7 +243,7 @@ will find your ada sources for the current application\n"))
                         (get 'ada-prj-default 'obj_dir)
                         "\nBelow are the directories where the object files generated
 by the compiler will be found. This files are required for the cross-referencing
-capabilities of the emacs ada-mode.\n"))
+capabilities of the Emacs' Ada-mode.\n"))
 
     (setq ada-prj-widget-comp-opt
           (ada-prj-new 'ada-prj-widget-comp-opt prj-file "comp_opt"
@@ -346,9 +346,13 @@ If you choose `OK', your settings will be saved to the file whose name is given 
 ;; ---------------- Utilities --------------------------------
 
 (defun ada-prj-new (variable prj-file text default message)
-  "Create a buffer-local text variable, whose value is either read in
-the prj-file or default
-Then adds a text field (with MESSAGE), and returns the created widget"
+  "Create a buffer-local variable with name VARIABLE.
+If PRJ-FILE exists, read its value from that file, otherwise set it to
+DEFAULT.
+It also creates a widget in the current buffer to edit this variable,
+which MESSAGE explaning what the variable is supposed to do.
+TEXT is put just before the editable field, and should display the name
+of the variable."
 
   ;; create local variable
   (make-local-variable variable)
@@ -377,9 +381,13 @@ Then adds a text field (with MESSAGE), and returns the created widget"
 
 
 (defun ada-prj-list (variable prj-file text default message)
-  "Create a buffer-local list variable, whose value is either read in
-the prj-file or default
-Then adds a list widget (with MESSAGE), and returns the created widget"
+  "Create a buffer-local list variable with name VARIABLE.
+If PRJ-FILE exists, read its value from that file, otherwise set it to
+DEFAULT.
+It also creates a widget in the current buffer to edit this variable,
+which MESSAGE explaning what the variable is supposed to do.
+TEXT is put just before the editable field, and should display the name
+of the variable."
 
   ;; create local variable
   (make-local-variable variable)
@@ -409,21 +417,18 @@ Then adds a list widget (with MESSAGE), and returns the created widget"
                  :value variable
                  (list 'editable-field :keymap widget-keymap)))
 
-(defun ada-prj-set-list (string ada-dir-list)
-  "Creates a single string of blank-separated directory names"
+(defsubst ada-prj-set-list (string ada-dir-list)
+  "Join the strings in ADA-DIR-LIST into a single string. Each name is put
+on a separate line that begins with STRING."
   (mapconcat (lambda (x)
-               (concat string "="
-                       x
-                       (unless (string=
-                                (substring x -1)
-                                "/")
+               (concat string "=" x
+                       (unless (string= (substring x -1) "/")
                          "/")))
              ada-dir-list "\n"))
 
 (defun ada-prj-get-prj-dir (&optional ada-file)
-  "returns a string which is the directory/name of the prj file.
-If no-standard-prj is t, do not use the default algorithm, just
-use a default name"
+  "Returns the directory/name of the project file for ADA-FILE.
+If ADA-FILE is nil, returns the project file for the current buffer."
   (unless ada-file
     (setq ada-file (buffer-file-name)))
 
