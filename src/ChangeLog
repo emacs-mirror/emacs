@@ -1,3 +1,7 @@
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.in: Rebuild (added HAVE_GTK_FILE_*).
+
 2004-11-01  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (connect_wait_mask, num_pending_connects): Only
