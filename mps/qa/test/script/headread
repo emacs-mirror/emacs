@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:headread(trunk.7) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -71,6 +71,7 @@ sub readheader {
  %spec_rel    = %keyrelations;
 
  close(IN);
+ &get_parmdefs();
 }
 
 sub readvals {
@@ -163,3 +164,27 @@ sub verdict {
  }
 }
 
+#
+# &get_parmdefs gets parameter definitions from the environment, as
+# specified in the test header
+#
+
+sub get_parmdefs {
+ local ($var, $missing);
+ $missing = "";
+ %parmdefs = ();
+ if (exists $test_header{"params"}) {
+  foreach (split /\s+/, $test_header{"params"}) {
+   $var = $ENV{"MMQA_".$_};
+   if (defined $var) {
+    $parmdefs{$_} = $var;
+   } else {
+    $missing .= "\n  MMQA_".$_.",";
+   }
+  }
+  if ($missing ne "") {
+   chop $missing;
+   die "Unspecified test parameters:$missing.\n";
+  }
+ }
+}
