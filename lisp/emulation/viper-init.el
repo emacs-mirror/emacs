@@ -970,9 +970,11 @@ Should be set in `~/.viper' file."
   :group 'viper-hooks)
 
 (defun viper-restore-cursor-type ()
-  (if viper-xemacs-p
-      (setq bar-cursor nil)
-    (setq cursor-type default-cursor-type)))
+  (condition-case nil
+      (if viper-xemacs-p
+	  (setq bar-cursor nil)
+	(setq cursor-type default-cursor-type))
+    (error)))
 
 (defun viper-set-insert-cursor-type ()
   (if viper-xemacs-p
