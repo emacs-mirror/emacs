@@ -1046,7 +1046,8 @@ The following commands are available:
       (gnus-group-insert-group-line "dummy.group" 0 nil 0 nil)
       (goto-char (point-min))
       (setq gnus-group-mark-positions
-	    (list (cons 'process (and (search-forward "\200" nil t)
+	    (list (cons 'process (and (search-forward
+				       (string-as-multibyte "\200") nil t)
 				      (- (point) 2))))))))
 
 (defun gnus-mouse-pick-group (e)
