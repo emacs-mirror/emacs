@@ -1,3 +1,31 @@
+2005-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* ses.el (undo-more): defadvice deleted.
+	(ses-begin-change): Doc fix.
+
+	* dired.el (dired-mode-map): Remap `undo' and `advertised-undo'
+	instead of rebinding C-x u and C-_.
+
+	* files.el (normal-backup-enable-predicate): Return nil for files
+	in /tmp, regardless of temporary-file-directory.
+
+	* man.el (Man-getpage-in-background): Disable undo in Man buffer.
+
+	* rect.el (delete-rectangle-line, delete-extract-rectangle-line)
+	(open-rectangle, delete-whitespace-rectangle-line)
+	(clear-rectangle-line): If FILL, pass t instead of FILL 
+	for move-to-column's 2nd arg.
+
+	* simple.el (undo): Fix the test for continuing a series of undos.
+	(undo-more): Set pending-undo-list to t when we reach end.
+	(pending-undo-list): defvar moved up.
+
+	* wid-edit.el (widget-button-click):
+	Shorten the range of the track-mouse binding.
+
+	* comint.el (comint-insert-input): Undo previous changes;
+	use last-input-event in interactive spec.
+
 2005-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/compile.el (compilation-start): Bind buffer-read-only
