@@ -186,9 +186,11 @@ case "${canonical}" in
 			machine=hp9000s300 ;;
       powerpc-apple-netbsd*) machine=macppc ;;
       mips-*-netbsd*)	machine=pmax ;;
+      mipsel-*-netbsd*)	machine=pmax ;;
       ns32k-*-netbsd*)	machine=ns32000 ;;
       sparc-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
+      arm-*-netbsd*)	machine=arm ;;
     esac
   ;;
 
