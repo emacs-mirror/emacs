@@ -2105,6 +2105,16 @@ long promised.
 ** `scroll-left' and `scroll-right' are only effective when
 `automatic-hscrolling' is nil.
 
+** The new character sets occupy private charset slots.
+
+The new charsets `japanese-jisx0213-2', `mule-unicode-0100-24ff',
+`mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' take up 4 slots
+for new charsets in the private area of the Mule internal character
+representation.  This might cause add-on packages which add
+dimension-2 charsets to fail, because there's no only 1 slot left for
+such charsets.  (There are still many free slots for dimension-1
+charsets.)
+
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
