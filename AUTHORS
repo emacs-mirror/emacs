@@ -909,7 +909,7 @@ Jonathan I. Kamens (changed) vc.el
 Jonathan Stigelman (wrote) hilit19.el
 Jonathan Vail (changed) vc.el
 Josef Arceneaux (changed) bytecode.c
-Josef Arceneaux (changed) sink.hsinkmask.h
+Josef Arceneaux (changed) sink.h sinkmask.h
 Josef Arceneaux (changed) xfns.c
 Josef Arceneaux (changed) xterm.c
 Josef Arceneaux (changed) ymakefile
