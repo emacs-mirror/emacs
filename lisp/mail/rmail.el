@@ -1914,15 +1914,15 @@ Interactively, empty argument means use same regexp used last time."
 With prefix argument N, do this N times.
 If N is negative, go backwards instead."
   (interactive "p")
-  (let* ((subject (mail-fetch-field "Subject"))
-	 (search-regexp (concat "^Subject: *\\(Re: *\\)?"
-				(regexp-quote subject)
-				"\n"))
-	 (forward (> n 0))
-	 (i rmail-current-message)
-	 found)
+  (let ((subject (mail-fetch-field "Subject"))
+	(forward (> n 0))
+	(i rmail-current-message)
+	search-regexp found)
     (if (string-match "Re:[ \t]*" subject)
 	(setq subject (substring subject (match-end 0))))
+    (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
+				(regexp-quote subject)
+				"\n"))
     (save-excursion
       (save-restriction
 	(widen)
