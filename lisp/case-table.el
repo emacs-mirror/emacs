@@ -112,9 +112,41 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table uc lc)
   (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc)
+    (aset up lc uc))
   ;; Clear out the extra slots so that they will be
-  ;; recomputed from the main (downcase) table.
-  (set-char-table-extra-slot table 0 nil)
+  ;; recomputed from the main (downcase) table and upcase table.
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
+  (modify-syntax-entry lc "w   " (standard-syntax-table))
+  (modify-syntax-entry uc "w   " (standard-syntax-table)))
+
+(defun set-upcase-syntax (uc lc table)
+  "Make character UC an upcase of character LC.
+It also modifies `standard-syntax-table' to give them the syntax of
+word constituents."
+  (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc)
+    (aset up lc uc))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
+  (modify-syntax-entry lc "w   " (standard-syntax-table))
+  (modify-syntax-entry uc "w   " (standard-syntax-table)))
+
+(defun set-downcase-syntax (uc lc table)
+  "Make character LC a downcase of character UC.
+It also modifies `standard-syntax-table' to give them the syntax of
+word constituents."
+  (aset table uc lc)
+  (aset table lc lc)
+  (let ((up (get-upcase-table table)))
+    (aset up uc uc))
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table and upcase table.
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
