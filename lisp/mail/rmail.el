@@ -1403,7 +1403,7 @@ Optional DEFAULT is password to start with."
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (or rmail-enable-mime
 		   (not rmail-enable-decoding-message)
-		   (decode-coding-region start (point) 'automatic-conversion))
+		   (decode-coding-region start (point) 'undecided))
 	       (narrow-to-region (point) (point-max))
 	       (setq count (1+ count)))
 	      ;;*** Mail format
@@ -1466,7 +1466,7 @@ Optional DEFAULT is password to start with."
 	       (insert ?\^_)
 	       (or rmail-enable-mime
 		   (not rmail-enable-decoding-message)
-		   (decode-coding-region start (point) 'automatic-conversion))
+		   (decode-coding-region start (point) 'undecided))
 	       (narrow-to-region (point) (point-max)))
 	      ;;
 	      ;; This kludge is because some versions of sendmail.el

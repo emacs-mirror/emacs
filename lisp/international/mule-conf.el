@@ -214,23 +214,23 @@
      (vector nil ?= "Do no conversion" nil nil))
 (put 'no-conversion 'eol-type 0)
 
-(put 'automatic-conversion-unix 'coding-system 'automatic-conversion)
-(put 'automatic-conversion-unix 'eol-type 0)
-(put 'automatic-conversion-dos 'coding-system 'automatic-conversion)
-(put 'automatic-conversion-dos 'eol-type 1)
-(put 'automatic-conversion-mac 'coding-system 'automatic-conversion)
-(put 'automatic-conversion-mac 'eol-type 2)
-(put 'automatic-conversion 'coding-system
+(put 'undecided-unix 'coding-system 'undecided)
+(put 'undecided-unix 'eol-type 0)
+(put 'undecided-dos 'coding-system 'undecided)
+(put 'undecided-dos 'eol-type 1)
+(put 'undecided-mac 'coding-system 'undecided)
+(put 'undecided-mac 'eol-type 2)
+(put 'undecided 'coding-system
      (vector t ?+ "Detect coding-system automatically" nil nil))
-(put 'automatic-conversion 'eol-type
-     (vector 'automatic-conversion-unix
-	     'automatic-conversion-dos
-	     'automatic-conversion-mac))
+(put 'undecided 'eol-type
+     (vector 'undecided-unix
+	     'undecided-dos
+	     'undecided-mac))
 
 ;; Coding systems not specific to each language environment.
 
 (make-coding-system
- 'internal 0 ?=
+ 'emacs-mule 0 ?=
  "Internal coding system used in a buffer.")
 
 (make-coding-system
@@ -277,15 +277,15 @@
 ;; The other coding-systems are defined in each language specific
 ;; section of languages.el.
 
-;; Setting coding system 'automatic-conversion for reading any files.
-;; Though, compiled Emacs Lisp files (*.elc) should never be decoded
-;; nor encoded.
+;; Setting coding system 'undecided for reading any files.  Though,
+;; compiled Emacs Lisp files (*.elc) should never be decoded nor
+;; encoded.
 
 (setq coding-system-alist
       '((insert-file-contents
 	 ("\\.elc$" . (no-conversion . nil))
 	 ("loaddefs.el$" . (no-conversion . nil))
-	 ("" . (automatic-conversion . nil)))
+	 ("" . (undecided . nil)))
 	(write-region
 	 ("\\.elc$" . (nil . no-conversion))
 	 ("loaddefs.el$" . (nil . no-conversion)))))
@@ -298,7 +298,7 @@
 ;; values are set by the command `setup-language-environment' for each
 ;; language environment.
 
-(setq coding-category-internal	'internal
+(setq coding-category-emacs-mule 'emacs-mule
       coding-category-sjis	'sjis
       coding-category-iso-7	'iso-2022-7
       coding-category-iso-8-1	'iso-8859-1
@@ -315,6 +315,6 @@
    coding-category-sjis 
    coding-category-big5
    coding-category-binary
-   coding-category-internal))
+   coding-category-emacs-mule))
 
 ;;; mule-conf.el ends here

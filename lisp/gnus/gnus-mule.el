@@ -208,7 +208,7 @@ coding-system for reading and writing respectively."
   (add-hook 'message-send-mail-hook
 	    'gnus-mule-message-send-mail-function))
 
-(gnus-mule-add-group "" 'automatic-conversion)
+(gnus-mule-add-group "" 'undecided)
 (gnus-mule-add-group "fj" 'iso-2022-7)
 (gnus-mule-add-group "alt.chinese.text" 'hz-gb-2312)
 (gnus-mule-add-group "alt.hk" 'hz-gb-2312)
