@@ -5,9 +5,9 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.3 1993/04/14 03:34:42 eric Exp rms $
+;; Version: $Id: lisp-mnt.el,v 1.4 1993/07/26 18:40:03 rms Exp friedman $
 ;; Keywords: docs
-;; Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
+;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
 ;; This file is part of GNU Emacs.
 
@@ -89,9 +89,10 @@
 ;;    * Keywords line --- used by the finder code (now under construction)
 ;; for finding elisp code related to a topic.
 ;;
-;;    * Bogus-Bureaucratic-Cruft line --- this is a joke.  I figured I should
-;; satirize this design before someone else did.  Also, it illustrates the
-;; possibility that other headers may be added in the future for new purposes.
+;;    * X-Bogus-Bureaucratic-Cruft line --- this is a joke and an example
+;; of a comment header.  Headers starting with `X-' should never be used
+;; for any real purpose; this is the way to safely add random headers
+;; without invoking the wrath of any program.
 ;;
 ;;    * Commentary line --- enables lisp code to find the developer's and
 ;; maintainers' explanations of the package internals.
