@@ -373,6 +373,11 @@ define hook-run
   xreload
 end
 
+# Call xreload if a new Emacs executable is loaded.
+define hookpost-run
+  xreload
+end
+
 set print pretty on
 set print sevenbit-strings
 
