@@ -701,7 +701,7 @@ If HDR is non-nil, insert a header line with the directory name."
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
     (unless (save-excursion
-	      (beginning-of-buffer)
+	      (goto-char opoint)
 	      (looking-at "  "))
       (let ((indent-tabs-mode nil))
 	(indent-rigidly opoint (point) 2)))
