@@ -1,3 +1,8 @@
+2003-06-03  Markus Rost  <rost@math.ohio-state.edu>
+
+	* progmodes/ps-mode.el (ps-mode): Use autoload cookie in the
+	standard way.
+
 2003-06-02  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* emacs-lisp/lisp-mnt.el (lm-synopsis): Use relative filenames
