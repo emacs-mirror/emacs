@@ -220,7 +220,6 @@ right will make the clicked-on window thinner or wider."
 				      (- left x)
 				    (- x right -1))
 			   wconfig (current-window-configuration))
-		     (message "%s" growth)
 		     (enlarge-window growth t)
 		     ;; if this window's growth caused another
 		     ;; window to be deleted because it was too
