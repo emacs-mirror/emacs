@@ -1,7 +1,6 @@
-2002-03-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-03-02  Milan Zamazal  <pdm@zamazal.org>
 
-	* textmodes/tildify.el (tildify-string-alist): Entry for xml-mode
-	added.  From Milan Zamazal <pdm@zamazal.org>.
+	* textmodes/tildify.el (tildify-string-alist): Add entry for xml-mode.
 
 2002-03-02  Miles Bader  <miles@gnu.org>
 
