@@ -49,6 +49,7 @@ Return t if file exists."
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
+	   (enable-multibyte-characters t)
 	   (load-in-progress t))
       (or nomessage (message "Loading %s..." file))
       (unwind-protect
@@ -360,7 +361,7 @@ FLAGS specifies more precise information of each TYPE.
       CHARSET0, CHARSET1, CHARSET2, CHARSET3, SHORT-FORM,
       ASCII-EOL, ASCII-CNTL, SEVEN, LOCKING-SHIFT, SINGLE-SHIFT,
       USE-ROMAN, USE-OLDJIS, NO-ISO6429, INIT-BOL, DESIGNATION-BOL,
-      SAFE.
+      SAFE, ACCEPT-LATIN-EXTRA-CODE.
     CHARSETn are character sets initially designated to Gn graphic registers.
       If CHARSETn is nil, Gn is never used.
       If CHARSETn is t, Gn can be used but nothing designated initially.
@@ -382,6 +383,9 @@ FLAGS specifies more precise information of each TYPE.
       at beginning of line on output.
     SAFE non-nil means convert unexpected characters to `?' on output.
       Unexpected characters are what not specified in CHARSETn directly.
+    ACCEPT-LATIN-EXTRA-CODE non-nil means code-detection routine accepts
+      a code specified in `latin-extra-code-table' (which see) as a valid
+      code of the coding system.
 
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
     for encoding and decoding.  See the documentation of CCL for more detail."
