@@ -1,3 +1,7 @@
+2002-08-30  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
+
+	* ps-print.el (ps-lp-system): Fixed typo in `usg-unix-v'.
+
 2002-08-30  Markus Rost  <rost@math.ohio-state.edu>
 
 	* menu-bar.el (menu-bar-read-mail): Doc fix.
@@ -49,6 +53,21 @@
 	(occur-hook): Set default to nil.
 
 2002-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix): 
+	Decide here whether to print which form we're compiling.
+	If we do that, still print file and line.  Make file name
+	relative to default-directory.	Print fewer newlines.
+	(byte-compile-log-file): Print something even if no file.
+	Print messages for entering and leaving directories,
+	and set default-directory.
+	(displaying-byte-compile-warnings): Only sometimes bind warning-series.
+	(byte-compile-warning-series): New function.
+	(byte-compile-file): Set byte-compile-last-logged-file, don't bind it.
+	(byte-compile-display-log-head-p): Function deleted.
+	
+	* warnings.el (warning-series): Now can be a marker, not an integer.
+	(display-warning): Handle new value for warning-series.
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-file): Use \f.
 	(byte-compile-cl-warn): Add cl-macroexpand-all, cl-compiling-file
