@@ -27,9 +27,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <time.h>
 #endif
 #endif
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif
 
 #ifdef HAVE_TZNAME
 #ifndef tzname		/* For SGI.  */
