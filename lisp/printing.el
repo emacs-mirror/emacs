@@ -2474,9 +2474,6 @@ See `pr-ps-printer-alist'.")
 
 (eval-and-compile
   (defun pr-get-symbol (name)
-    ;; Recent versions of easy-menu downcase names before interning them.
-    (and (fboundp 'easy-menu-name-match)
-	 (setq name (downcase name)))
     (or (intern-soft name)
 	(make-symbol name)))
 
@@ -6385,5 +6382,5 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (provide 'printing)
 
 
-;;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
+;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
 ;;; printing.el ends here
