@@ -212,9 +212,9 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       cp = *cpp;
       /* Entries are initialized to nil, and may be set to nil by
 	 compile_pattern_1 if the pattern isn't valid.  Don't apply
-	 XSTRING in those cases.  However, compile_pattern_1 is only
-	 applied to the cache entry we pick here to reuse.  So nil
-	 should never appear before a non-nil entry.  */
+	 string accessors in those cases.  However, compile_pattern_1
+	 is only applied to the cache entry we pick here to reuse.  So
+	 nil should never appear before a non-nil entry.  */
       if (NILP (cp->regexp))
 	goto compile_it;
       if (SCHARS (cp->regexp) == SCHARS (pattern)
