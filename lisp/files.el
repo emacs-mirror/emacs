@@ -1455,7 +1455,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("configure\\.in\\'" . autoconf-mode)
+     ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
