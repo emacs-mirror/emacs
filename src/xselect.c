@@ -1776,6 +1776,7 @@ lisp_data_to_selection_data (display, obj,
 	  unibyte_string = string_make_unibyte (obj);
 	  *data_ret = XSTRING (unibyte_string)->data;
 	  *nofree_ret = 1;
+	  *size_ret = STRING_BYTES (*data_ret);
 	}
       else
 	{
