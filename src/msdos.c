@@ -3395,6 +3395,7 @@ dos_rawgetc ()
     {
       int but, press, x, y, ok;
       int mouse_prev_x = mouse_last_x, mouse_prev_y = mouse_last_y;
+      Lisp_Object mouse_window = Qnil;
 
       /* Check for mouse movement *before* buttons.  */
       mouse_check_moved ();
@@ -3409,34 +3410,33 @@ dos_rawgetc ()
 	      clear_mouse_face (dpyinfo);
 	    }
 
-#if 0
-	  /* Lisp must not be called asynchronously, so this must not
-	     be done.  */
-	  if (x_autoselect_window_p)
+	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
+	  if (autoselect_window_p)
 	    {
 	      int mouse_area;
-	      Lisp_Object mouse_window;
 
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
 						      &mouse_area, 0);
 	      /* A window will be selected only when it is not
-		 selected now.  A minibuffer window will be selected
-		 iff it is active.  */
-	      if (!EQ (mouse_window, last_mouse_window)
-		  && !EQ (mouse_window, selected_window)
-		  && (!MINI_WINDOW_P (XWINDOW (mouse_window))
-		      || (EQ (mouse_window, minibuf_window)
-			  && minibuf_level > 0)))
+		 selected now, and the last mouse movement event was
+		 not in it.  A minibuffer window will be selected iff
+		 it is active.  */
+	      if (WINDOWP (mouse_window)
+		  && !EQ (mouse_window, last_mouse_window)
+		  && !EQ (mouse_window, selected_window))
 		{
-		  Fselect_window (mouse_window);
+		  event.kind = SELECT_WINDOW_EVENT;
+		  event.frame_or_window = mouse_window;
+		  event.arg = Qnil;
+		  event.timestamp = event_timestamp ();
+		  kbd_buffer_store_event (&event);
 		}
 	      last_mouse_window = mouse_window;
 	    }
 	  else
 	    last_mouse_window = Qnil;
-#endif
 
 	  previous_help_echo = help_echo;
 	  help_echo = help_echo_object = help_echo_window = Qnil;
