@@ -1,3 +1,8 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/iso-acc.el (iso-accents-compose): Push SECOND-CHAR
+	as is on unread-command-events instead of `(SECOND-CHAR)'.
+
 2001-10-29  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el: Mention vc-*-switches in backend API documentation.
