@@ -90,12 +90,12 @@ STRING is included in the mode line iff VARIABLE's value is non-nil.
 
 Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
-(setq minor-mode-alist (mapcar 'purecopy
-			       '((abbrev-mode " Abbrev")
-				 (overwrite-mode overwrite-mode)
-				 (auto-fill-function " Fill")
-				 ;; not really a minor mode...
-				 (defining-kbd-macro " Def"))))
+;; Don't use purecopy here--some people want to change these strings.
+(setq minor-mode-alist '((abbrev-mode " Abbrev")
+			 (overwrite-mode overwrite-mode)
+			 (auto-fill-function " Fill")
+			 ;; not really a minor mode...
+			 (defining-kbd-macro " Def")))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
