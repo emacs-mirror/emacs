@@ -43,8 +43,7 @@
 ;; The hidden code is marked by ellipses (...).  Be
 ;; cautious when editing near ellipses, since the hidden text is
 ;; still in the buffer, and you can move the point into it and modify
-;; text unawares.  If you don't want to see the ellipses, set 
-;; selective-display-ellipses to nil.  But this can be dangerous.
+;; text unawares.
 ;; You can make your buffer read-only while hide-ifdef-hiding by setting
 ;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
 ;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
@@ -66,15 +65,13 @@
 ;; up a list of symbols that may be used by hide-ifdefs as in the
 ;; following example:
 ;;
-;; (setq hide-ifdef-mode-hook
+;; (add-hook 'hide-ifdef-mode-hook
 ;;      (lambda ()
-;;	 (if (not hide-ifdef-define-alist)
-;;	     (setq hide-ifdef-define-alist
-;;		  '((list1 ONE TWO)
-;;		    (list2 TWO THREE)
-;;		    )))
-;;	 (hide-ifdef-use-define-alist 'list2) ; use list2 by default
-;;	 ))
+;;	 (unless hide-ifdef-define-alist
+;;	   (setq hide-ifdef-define-alist
+;;		'((list1 ONE TWO)
+;;		  (list2 TWO THREE))))
+;;	 (hide-ifdef-use-define-alist 'list2))) ; use list2 by default
 ;;
 ;; You can call hide-ifdef-use-define-alist (C-c @ U) at any time to specify
 ;; another list to use.
@@ -116,76 +113,51 @@
   "Hide selected code within `ifdef'."
   :group 'c)
 
-(defvar hide-ifdef-mode-submap nil
-  "Keymap used with Hide-Ifdef mode.")
+(defvar hide-ifdef-mode-submap
+  ;; Set up the submap that goes after the prefix key.
+  (let ((map (make-sparse-keymap)))
+    (define-key map "d" 'hide-ifdef-define)
+    (define-key map "u" 'hide-ifdef-undef)
+    (define-key map "D" 'hide-ifdef-set-define-alist)
+    (define-key map "U" 'hide-ifdef-use-define-alist)
 
-(defvar hide-ifdef-mode-map nil
-  "Keymap used with Hide-Ifdef mode.")
+    (define-key map "h" 'hide-ifdefs)
+    (define-key map "s" 'show-ifdefs)
+    (define-key map "\C-d" 'hide-ifdef-block)
+    (define-key map "\C-s" 'show-ifdef-block)
+
+    (define-key map "\C-q" 'hide-ifdef-toggle-read-only)
+    (substitute-key-definition
+     'toggle-read-only 'hide-ifdef-toggle-outside-read-only map)
+    map)
+  "Keymap used by `hide-ifdef-mode' under `hide-ifdef-mode-prefix-key'.")
 
 (defconst hide-ifdef-mode-prefix-key "\C-c@"
   "Prefix key for all Hide-Ifdef mode commands.")
 
-;; Set up the submap that goes after the prefix key.
-(if hide-ifdef-mode-submap
-    ()				; Don't redefine it.
-  (setq hide-ifdef-mode-submap (make-sparse-keymap))
-  (define-key hide-ifdef-mode-submap "d" 'hide-ifdef-define)
-  (define-key hide-ifdef-mode-submap "u" 'hide-ifdef-undef)
-  (define-key hide-ifdef-mode-submap "D" 'hide-ifdef-set-define-alist)
-  (define-key hide-ifdef-mode-submap "U" 'hide-ifdef-use-define-alist)
-
-  (define-key hide-ifdef-mode-submap "h" 'hide-ifdefs)
-  (define-key hide-ifdef-mode-submap "s" 'show-ifdefs)
-  (define-key hide-ifdef-mode-submap "\C-d" 'hide-ifdef-block)
-  (define-key hide-ifdef-mode-submap "\C-s" 'show-ifdef-block)
-
-  (define-key hide-ifdef-mode-submap "\C-q" 'hide-ifdef-toggle-read-only)
-  (let ((where (where-is-internal 'toggle-read-only '(keymap) t)))
-    (if where
-	(define-key hide-ifdef-mode-submap
-	  where
-	  'hide-ifdef-toggle-outside-read-only)))
-  )
-
-;; Set up the mode's main map, which leads via the prefix key to the submap.
-(if hide-ifdef-mode-map
-    ()
-  (setq hide-ifdef-mode-map (make-sparse-keymap))
-  (define-key hide-ifdef-mode-map hide-ifdef-mode-prefix-key
-    hide-ifdef-mode-submap))
-
-;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
-;;;###autoload
-(defvar hide-ifdef-mode nil
-  "Non-nil when hide-ifdef-mode is activated.")
+(defvar hide-ifdef-mode-map
+  ;; Set up the mode's main map, which leads via the prefix key to the submap.
+  (let ((map (make-sparse-keymap)))
+    (define-key map hide-ifdef-mode-prefix-key hide-ifdef-mode-submap)
+    map)
+  "Keymap used with `hide-ifdef-mode'.")
 
 (defvar hide-ifdef-hiding nil
   "Non-nil when text may be hidden.")
-
-;; Arrange to use the mode's map when the mode is enabled.
-(or (assq 'hide-ifdef-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-          (cons (cons 'hide-ifdef-mode hide-ifdef-mode-map)
-                minor-mode-map-alist)))
 
 (or (assq 'hide-ifdef-hiding minor-mode-alist)
     (setq minor-mode-alist
           (cons '(hide-ifdef-hiding " Hiding")
                 minor-mode-alist)))
 
-(or (assq 'hide-ifdef-mode minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(hide-ifdef-mode " Ifdef")
-                minor-mode-alist)))
-
 ;; fix c-mode syntax table so we can recognize whole symbols.
 (defvar hide-ifdef-syntax-table
-  (copy-syntax-table c-mode-syntax-table)
+  (let ((st (copy-syntax-table c-mode-syntax-table)))
+    (modify-syntax-entry ?_ "w" st)
+    (modify-syntax-entry ?& "." st)
+    (modify-syntax-entry ?\| "." st)
+    st)
   "Syntax table used for tokenizing #if expressions.")
-
-(modify-syntax-entry ?_ "w" hide-ifdef-syntax-table)
-(modify-syntax-entry ?& "." hide-ifdef-syntax-table)
-(modify-syntax-entry ?\| "." hide-ifdef-syntax-table)
 
 (defvar hide-ifdef-env nil
   "An alist of defined symbols and their values.")
@@ -194,113 +166,86 @@
   "Internal variable.  Saves the value of `buffer-read-only' while hiding.")
 
 ;;;###autoload
-(defun hide-ifdef-mode (arg)
+(define-minor-mode hide-ifdef-mode
   "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
 With ARG, turn Hide-Ifdef mode on if arg is positive, off otherwise.
 In Hide-Ifdef mode, code within #ifdef constructs that the C preprocessor
 would eliminate may be hidden from view.  Several variables affect
 how the hiding is done:
 
-hide-ifdef-env
+`hide-ifdef-env'
 	An association list of defined and undefined symbols for the
 	current buffer.  Initially, the global value of `hide-ifdef-env'
 	is used.
 
-hide-ifdef-define-alist
+`hide-ifdef-define-alist'
 	An association list of defined symbol lists.  
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
 
-hide-ifdef-lines
+`hide-ifdef-lines'
 	Set to non-nil to not show #if, #ifdef, #ifndef, #else, and
 	#endif lines when hiding.
 
-hide-ifdef-initially
+`hide-ifdef-initially'
 	Indicates whether `hide-ifdefs' should be called when Hide-Ifdef mode
 	is activated.
 
-hide-ifdef-read-only
+`hide-ifdef-read-only'
 	Set to non-nil if you want to make buffers read only while hiding.
 	After `show-ifdefs', read-only status is restored to previous value.
 
 \\{hide-ifdef-mode-map}"
-
-  (interactive "P")
-  (make-local-variable 'hide-ifdef-mode)
-  (setq hide-ifdef-mode
-	(if (null arg)
-	    (not hide-ifdef-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  
-  (force-mode-line-update)
-
+  nil " Ifdef" nil
   (if hide-ifdef-mode
       (progn
-	; inherit global values
-	(make-local-variable 'hide-ifdef-env)
-	(setq hide-ifdef-env (default-value 'hide-ifdef-env))
+	;; inherit global values
+	(set (make-local-variable 'hide-ifdef-env)
+	     (default-value 'hide-ifdef-env))
+	(set (make-local-variable 'hide-ifdef-hiding)
+	     (default-value 'hide-ifdef-hiding))
+	(set (make-local-variable 'hif-outside-read-only) buffer-read-only)
 
-	(make-local-variable 'hide-ifdef-hiding)
-	(setq hide-ifdef-hiding (default-value 'hide-ifdef-hiding))
-
-	(make-local-variable 'hif-outside-read-only)
-	(setq hif-outside-read-only buffer-read-only)
-
-	(run-hooks 'hide-ifdef-mode-hook)
+	(add-to-invisibility-spec '(hide-ifdef . t))
 
 	(if hide-ifdef-initially
 	    (hide-ifdefs)
-	  (show-ifdefs))
-	(message "Enter Hide-Ifdef mode")
-	)
-     ; else end hide-ifdef-mode
+	  (show-ifdefs)))
+    ;; else end hide-ifdef-mode
     (if hide-ifdef-hiding
-	(show-ifdefs))
-    (message "Exit Hide-Ifdef mode")
-    ))
+	(show-ifdefs))))
   
-
-;; from outline.el with docstring fixed.
-(defun hif-outline-flag-region (from to flag)
-  "Hides or shows lines from FROM to TO, according to FLAG.
-If FLAG is \\n (newline character) then text is shown, while if FLAG is \\^M
-\(control-M) the text is hidden."
-  (let ((modp (buffer-modified-p)))
-    (unwind-protect (progn
-		      (subst-char-in-region from to
-			      (if (= flag ?\n) ?\^M ?\n)
-			      flag t) )
-      (set-buffer-modified-p modp))
-    ))
 
 (defun hif-show-all ()
   "Show all of the text in the current buffer."
   (interactive)
-  (hif-outline-flag-region (point-min) (point-max) ?\n))
+  (hif-show-ifdef-region (point-min) (point-max)))
 
 ;; By putting this on after-revert-hook, we arrange that it only
 ;; does anything when revert-buffer avoids turning off the mode.
 ;; (That can happen in VC.)
-(defun hif-before-revert-function ()
+(defun hif-after-revert-function ()
   (and hide-ifdef-mode hide-ifdef-hiding
        (hide-ifdefs t)))
-(add-hook 'after-revert-hook 'hif-before-revert-function)
+(add-hook 'after-revert-hook 'hif-after-revert-function)
 
 (defun hide-ifdef-region (start end)
   "START is the start of a #if or #else form.  END is the ending part.
 Everything including these lines is made invisible."
-  (hif-outline-flag-region start end ?\^M)
-  )
+  (save-excursion
+    (goto-char start) (end-of-line) (setq start (point))
+    (goto-char end) (end-of-line) (setq end (point))
+    (remove-overlays start end 'invisible 'hide-ifdef)
+    (let ((o (make-overlay start end)))
+      (overlay-put o 'invisible 'hide-ifdef))))
 
 (defun hif-show-ifdef-region (start end)
   "Everything between START and END is made visible."
-  (hif-outline-flag-region start end ?\n)
-  )
+  (remove-overlays start end 'invisible 'hide-ifdef))
 
 
-
-;===%%SF%% evaluation (Start)  ===
+;;===%%SF%% evaluation (Start)  ===
 
 ;; It is not useful to set this to anything but `eval'.
 ;; In fact, the variable might as well be eliminated.
@@ -319,7 +264,7 @@ that form should be displayed.")
 
 
 (defun hif-lookup (var)
-;  (message "hif-lookup %s" var)
+  ;; (message "hif-lookup %s" var)
   (let ((val (assoc var hide-ifdef-env)))
     (if val
 	(cdr val)
@@ -327,18 +272,18 @@ that form should be displayed.")
 
 (defun hif-defined (var)
   (hif-lookup var)
-  ; when #if expressions are fully supported, defined result should be 1
-  ;  (if (assoc var  hide-ifdef-env)
-  ;      1
-  ;    nil)
-)
+  ;; when #if expressions are fully supported, defined result should be 1
+  ;;  (if (assoc var  hide-ifdef-env)
+  ;;      1
+  ;;    nil)
+  )
 
 
-;===%%SF%% evaluation (End)  ===
+;;===%%SF%% evaluation (End)  ===
 
 
 
-;===%%SF%% parsing (Start)  ===
+;;===%%SF%% parsing (Start)  ===
 ;;;  The code that understands what ifs and ifdef in files look like.
 
 (defconst hif-cpp-prefix "\\(^\\|\r\\)[ \t]*#[ \t]*")
@@ -349,83 +294,76 @@ that form should be displayed.")
 (defconst hif-ifx-else-endif-regexp
   (concat hif-ifx-regexp "\\|" hif-else-regexp "\\|" hif-endif-regexp))
 
-; Used to store the current token and the whole token list during parsing.
-; Only bound dynamically.
+;; Used to store the current token and the whole token list during parsing.
+;; Only bound dynamically.
 (defvar hif-token)
 (defvar hif-token-list)
 
 (defun hif-infix-to-prefix (token-list)
-  "Convert list of tokens in infix into prefix list"
-					;  (message "hif-infix-to-prefix: %s" token-list)
+  "Convert list of tokens in infix into prefix list."
+  ;;  (message "hif-infix-to-prefix: %s" token-list)
   (if (= 1 (length token-list))
       `(hif-lookup (quote ,(car token-list)))
-    (hif-parse-if-exp token-list))
-  )
+    (hif-parse-if-exp token-list)))
 
-; pattern to match initial identifier, !, &&, ||, (, or ).
-; Added ==, + and -: garyo@avs.com 8/9/94
+;; pattern to match initial identifier, !, &&, ||, (, or ).
+;; Added ==, + and -: garyo@avs.com 8/9/94
 (defconst hif-token-regexp "^\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|[<>]=?\\|\\w+\\)")
 (defconst hif-end-of-comment "\\*/")
 
 
 (defun hif-tokenize (expr-string)
-  "Separate string into a list of tokens"
+  "Separate string into a list of tokens."
   (let ((token-list nil)
 	(expr-start 0)
-	(expr-length (length expr-string))
-	(current-syntax-table (syntax-table)))
-    (unwind-protect
-	(progn
-	  (set-syntax-table hide-ifdef-syntax-table)
-	  (while (< expr-start expr-length) 
-;	    (message "expr-start = %d" expr-start) (sit-for 1)
-	    (cond
-	     ((string-match "^[ \t]+" expr-string expr-start)
-	      ;; skip whitespace
-	      (setq expr-start (match-end 0))
-	      ;; stick newline in string so ^ matches on the next string-match
-	      (aset expr-string (1- expr-start) ?\n))
+	(expr-length (length expr-string)))
+    (with-syntax-table hide-ifdef-syntax-table
+      (while (< expr-start expr-length) 
+	;; (message "expr-start = %d" expr-start) (sit-for 1)
+	(cond
+	 ((string-match "^[ \t]+" expr-string expr-start)
+	  ;; skip whitespace
+	  (setq expr-start (match-end 0))
+	  ;; stick newline in string so ^ matches on the next string-match
+	  (aset expr-string (1- expr-start) ?\n))
 
-	     ((string-match "^/\\*" expr-string expr-start)
-	      (setq expr-start (match-end 0))
-	      (aset expr-string (1- expr-start) ?\n)
-	      (or
-	       (string-match hif-end-of-comment
-			     expr-string expr-start) ; eat comment
-	       (string-match "$" expr-string expr-start)) ; multi-line comment
-	      (setq expr-start (match-end 0))
-	      (aset expr-string (1- expr-start) ?\n))
+	 ((string-match "^/\\*" expr-string expr-start)
+	  (setq expr-start (match-end 0))
+	  (aset expr-string (1- expr-start) ?\n)
+	  (or
+	   (string-match hif-end-of-comment
+			 expr-string expr-start) ; eat comment
+	   (string-match "$" expr-string expr-start)) ; multi-line comment
+	  (setq expr-start (match-end 0))
+	  (aset expr-string (1- expr-start) ?\n))
 
-	     ((string-match "^//" expr-string expr-start)
-	      (string-match "$" expr-string expr-start)
-	      (setq expr-start (match-end 0)))
+	 ((string-match "^//" expr-string expr-start)
+	  (string-match "$" expr-string expr-start)
+	  (setq expr-start (match-end 0)))
 
-	     ((string-match hif-token-regexp expr-string expr-start)
-	      (let ((token (substring expr-string expr-start (match-end 0))))
-		(setq expr-start (match-end 0))
-		(aset expr-string (1- expr-start) ?\n)
-;		(message "token: %s" token) (sit-for 1)
-		(setq token-list
-		      (cons
-		       (cond
-			((string-equal token "||") 'or)
-			((string-equal token "&&") 'and)
-			((string-equal token "==") 'equal)
-			((string-equal token "!=") 'hif-notequal)
-			((string-equal token "!")  'not)
-			((string-equal token "defined") 'hif-defined)
-			((string-equal token "(") 'lparen)
-			((string-equal token ")") 'rparen)
-			((string-equal token ">") 'hif-greater)
-			((string-equal token "<") 'hif-less)
-			((string-equal token ">=") 'hif-greater-equal)
-			((string-equal token "<=") 'hif-less-equal)
-			((string-equal token "+") 'hif-plus)
-			((string-equal token "-") 'hif-minus)
-			(t (intern token)))
-		       token-list))))
-	     (t (error "Bad #if expression: %s" expr-string)))))
-      (set-syntax-table current-syntax-table))
+	 ((string-match hif-token-regexp expr-string expr-start)
+	  (let ((token (substring expr-string expr-start (match-end 0))))
+	    (setq expr-start (match-end 0))
+	    (aset expr-string (1- expr-start) ?\n)
+	    ;; (message "token: %s" token) (sit-for 1)
+	    (push (cond
+		   ((string-equal token "||") 'or)
+		   ((string-equal token "&&") 'and)
+		   ((string-equal token "==") 'equal)
+		   ((string-equal token "!=") 'hif-notequal)
+		   ((string-equal token "!")  'not)
+		   ((string-equal token "defined") 'hif-defined)
+		   ((string-equal token "(") 'lparen)
+		   ((string-equal token ")") 'rparen)
+		   ((string-equal token ">") 'hif-greater)
+		   ((string-equal token "<") 'hif-less)
+		   ((string-equal token ">=") 'hif-greater-equal)
+		   ((string-equal token "<=") 'hif-less-equal)
+		   ((string-equal token "+") 'hif-plus)
+		   ((string-equal token "-") 'hif-minus)
+		   (t (intern token)))
+		  token-list)))
+	 (t (error "Bad #if expression: %s" expr-string)))))
     (nreverse token-list)))
 
 ;;;-----------------------------------------------------------------
@@ -510,27 +448,22 @@ that form should be displayed.")
       (if (memq hif-token '(or and not hif-defined lparen rparen))
 	  (error "Error: unexpected token: %s" hif-token))
       (hif-nexttoken)
-      (if (not (eq hif-token 'rparen))
-	  (error "Error: expected \")\" after identifier"))
+      (unless (eq hif-token 'rparen)
+	(error "Error: expected \")\" after identifier"))
       (hif-nexttoken)
-      `(hif-defined (quote ,ident))
-      ))
+      `(hif-defined (quote ,ident))))
 
    (t					; identifier
     (let ((ident hif-token))
       (if (memq ident '(or and))
 	  (error "Error: missing identifier"))
       (hif-nexttoken)
-      `(hif-lookup (quote ,ident))
-      ))
-   ))
+      `(hif-lookup (quote ,ident))))))
 
 (defun hif-mathify (val)
   "Treat VAL as a number: if it's t or nil, use 1 or 0."
-  (cond ((eq val t)
-	 1)
-	((null val)
-	 0)
+  (cond ((eq val t) 1)
+	((null val) 0)
 	(t val)))
 
 (defun hif-plus (a b)
@@ -558,7 +491,7 @@ that form should be displayed.")
 
 
 (defun hif-canonicalize ()
-  "When at beginning of #ifX, returns a Lisp expression for its condition."
+  "When at beginning of #ifX, return a Lisp expression for its condition."
   (save-excursion
     (let ((negate (looking-at hif-ifndef-regexp)))
       (re-search-forward hif-ifx-regexp)
@@ -566,7 +499,7 @@ that form should be displayed.")
 	      (buffer-substring (point)
 				(progn (skip-chars-forward "^\n\r") (point))))
 	     (expr (hif-infix-to-prefix (hif-tokenize expr-string))))
-;	(message "hif-canonicalized: %s" expr)
+	;; (message "hif-canonicalized: %s" expr)
 	(if negate
 	    (list 'not expr)
 	  expr)))))
@@ -574,7 +507,7 @@ that form should be displayed.")
 
 (defun hif-find-any-ifX ()
   "Move to next #if..., or #ifndef, at point or after."
-;  (message "find ifX at %d" (point))
+  ;; (message "find ifX at %d" (point))
   (prog1
       (re-search-forward hif-ifx-regexp (point-max) t)
     (beginning-of-line)))
@@ -582,17 +515,17 @@ that form should be displayed.")
 
 (defun hif-find-next-relevant ()
   "Move to next #if..., #else, or #endif, after the current line."
-;  (message "hif-find-next-relevant at %d" (point))
+  ;; (message "hif-find-next-relevant at %d" (point))
   (end-of-line)
-  ; avoid infinite recursion by only going to beginning of line if match found
+  ;; avoid infinite recursion by only going to beginning of line if match found
   (if (re-search-forward hif-ifx-else-endif-regexp (point-max) t)
       (beginning-of-line)))
 
 (defun hif-find-previous-relevant ()
   "Move to previous #if..., #else, or #endif, before the current line."
-;  (message "hif-find-previous-relevant at %d" (point))
+  ;; (message "hif-find-previous-relevant at %d" (point))
   (beginning-of-line)
-  ; avoid infinite recursion by only going to beginning of line if match found
+  ;; avoid infinite recursion by only going to beginning of line if match found
   (if (re-search-backward hif-ifx-else-endif-regexp (point-min) t)
      (beginning-of-line)))
 
@@ -608,7 +541,7 @@ that form should be displayed.")
 
 (defun hif-ifdef-to-endif ()
   "If positioned at #ifX or #else form, skip to corresponding #endif."
-;  (message "hif-ifdef-to-endif at %d" (point)) (sit-for 1)
+  ;; (message "hif-ifdef-to-endif at %d" (point)) (sit-for 1)
   (hif-find-next-relevant)
   (cond ((hif-looking-at-ifX)
 	 (hif-ifdef-to-endif) ; find endif of nested if
@@ -623,7 +556,7 @@ that form should be displayed.")
 
 (defun hif-endif-to-ifdef ()
   "If positioned at #endif form, skip backward to corresponding #ifX."
-;  (message "hif-endif-to-ifdef at %d" (point))
+  ;; (message "hif-endif-to-ifdef at %d" (point))
   (let ((start (point)))
     (hif-find-previous-relevant)
     (if (= start (point))
@@ -643,18 +576,16 @@ that form should be displayed.")
 With argument, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
-  (if (< arg 0)
-      (backward-ifdef (- arg)))
-  (while (< 0 arg)
-    (setq arg (- arg))
-    (let ((start (point)))
-      (if (not (hif-looking-at-ifX))
+  (if (< arg 0) (backward-ifdef (- arg))
+    (while (< 0 arg)
+      (setq arg (- arg))
+      (let ((start (point)))
+	(unless (hif-looking-at-ifX)
 	  (hif-find-next-relevant))
-      (if (hif-looking-at-ifX)
-	  (hif-ifdef-to-endif)
-	(goto-char start)
-	(error "No following #ifdef")
-	))))
+	(if (hif-looking-at-ifX)
+	    (hif-ifdef-to-endif)
+	  (goto-char start)
+	  (error "No following #ifdef"))))))
 
 
 (defun backward-ifdef (&optional arg)
@@ -662,18 +593,17 @@ With argument, do this that many times."
 With argument, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
-  (if (< arg 0)
-      (forward-ifdef (- arg)))
-  (while (< 0 arg)
-    (setq arg (1- arg))
-    (beginning-of-line)
-    (let ((start (point)))
-      (if (not (hif-looking-at-endif))
+  (if (< arg 0) (forward-ifdef (- arg))
+    (while (< 0 arg)
+      (setq arg (1- arg))
+      (beginning-of-line)
+      (let ((start (point)))
+	(unless (hif-looking-at-endif)
 	  (hif-find-previous-relevant))
-      (if (hif-looking-at-endif)
-	  (hif-endif-to-ifdef)
-	(goto-char start)
-	(error "No previous #ifdef")))))
+	(if (hif-looking-at-endif)
+	    (hif-endif-to-ifdef)
+	  (goto-char start)
+	  (error "No previous #ifdef"))))))
 
 
 (defun down-ifdef ()
@@ -692,8 +622,8 @@ With argument, do this that many times."
   (interactive)
   (beginning-of-line)
   (let ((start (point)))
-    (if (not (hif-looking-at-endif))
-	(hif-find-previous-relevant))
+    (unless (hif-looking-at-endif)
+      (hif-find-previous-relevant))
     (if (hif-looking-at-endif)
 	(hif-endif-to-ifdef))
       (if (= start (point))
@@ -704,36 +634,32 @@ With argument, do this that many times."
 With argument, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
-  (if (< arg 0)
-      (previous-ifdef (- arg)))
-  (while (< 0 arg)
-    (setq arg (1- arg))
-    (hif-find-next-relevant)
-    (if (eolp)
-	(progn
-	  (beginning-of-line)
-	  (error "No following #ifdefs, #elses, or #endifs")))))
+  (if (< arg 0) (previous-ifdef (- arg))
+    (while (< 0 arg)
+      (setq arg (1- arg))
+      (hif-find-next-relevant)
+      (when (eolp)
+	(beginning-of-line)
+	(error "No following #ifdefs, #elses, or #endifs")))))
 
 (defun previous-ifdef (&optional arg)
   "Move to the beginning of the previous #ifX, #else, or #endif.
 With argument, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
-  (if (< arg 0)
-      (next-ifdef (- arg)))
-  (while (< 0 arg)
-    (setq arg (1- arg))
-    (let ((start (point)))
-      (hif-find-previous-relevant)
-      (if (= start (point))
-	  (error "No previous #ifdefs, #elses, or #endifs")
-	))))
+  (if (< arg 0) (next-ifdef (- arg))
+    (while (< 0 arg)
+      (setq arg (1- arg))
+      (let ((start (point)))
+	(hif-find-previous-relevant)
+	(if (= start (point))
+	    (error "No previous #ifdefs, #elses, or #endifs"))))))
 
 
-;===%%SF%% parsing (End)  ===
+;;===%%SF%% parsing (End)  ===
 
 
-;===%%SF%% hide-ifdef-hiding (Start)  ===
+;;===%%SF%% hide-ifdef-hiding (Start)  ===
 
 
 ;;; A range is a structure with four components:
@@ -743,13 +669,12 @@ With argument, do this that many times."
 ;;;			Only valid if ELSE-P is true.
 ;;; END		The end of the range.  (beginning of line)
 
-(defun hif-make-range (else-p start end &optional else)
-  (list else-p start else end))
+(defun hif-make-range (start end &optional else)
+  (list start else end))
 
-(defun hif-range-else-p (range)  (elt range 0))
-(defun hif-range-start (range) (elt range 1))
-(defun hif-range-else (range) (elt range 2))
-(defun hif-range-end (range) (elt range 3))
+(defun hif-range-start (range) (elt range 0))
+(defun hif-range-else (range) (elt range 1))
+(defun hif-range-end (range) (elt range 2))
 
 
 
@@ -759,40 +684,35 @@ With argument, do this that many times."
 ;;; an #else was found, skip some more, looking for the true #endif.
 
 (defun hif-find-range ()
-  "Returns a Range structure describing the current #if region.
+  "Return a Range structure describing the current #if region.
 Point is left unchanged."
-;  (message "hif-find-range at %d" (point))
+  ;; (message "hif-find-range at %d" (point))
   (save-excursion
     (beginning-of-line)
     (let ((start (point))
-	  (else-p nil)
 	  (else nil)
 	  (end nil))
       ;; Part one.  Look for either #endif or #else.
       ;; This loop-and-a-half dedicated to E. Dijkstra.
-      (hif-find-next-relevant)
-      (while (hif-looking-at-ifX)		; Skip nested ifdef
-	(hif-ifdef-to-endif)
-	(hif-find-next-relevant))
+      (while (progn
+	       (hif-find-next-relevant)
+	       (hif-looking-at-ifX))		; Skip nested ifdef
+	(hif-ifdef-to-endif))
       ;; Found either a #else or an #endif.
       (cond ((hif-looking-at-else)
-	     (setq else-p t)
 	     (setq else (point)))
 	    (t
-	     (setq end (point)) ; (save-excursion (end-of-line) (point))
-	     ))
+	     (setq end (point)))) ; (save-excursion (end-of-line) (point))
       ;; If found #else, look for #endif.
-      (if else-p
-	  (progn
-	    (hif-find-next-relevant)
-	    (while (hif-looking-at-ifX)	; Skip nested ifdef
-	      (hif-ifdef-to-endif)
-	      (hif-find-next-relevant))
-	    (if (hif-looking-at-else)
-		(error "Found two elses in a row?  Broken!"))
-	    (setq end (point))  ; (save-excursion (end-of-line) (point))
-	    ))
-      (hif-make-range else-p start end else))))
+      (when else
+	(while (progn
+		 (hif-find-next-relevant)
+		 (hif-looking-at-ifX))	; Skip nested ifdef
+	  (hif-ifdef-to-endif))
+	(if (hif-looking-at-else)
+	    (error "Found two elses in a row?  Broken!"))
+	(setq end (point)))	       ; (save-excursion (end-of-line) (point))
+      (hif-make-range start end else))))
 
 	  
 ;;; A bit slimy.
@@ -805,15 +725,7 @@ Point is left unchanged."
   (if hide-ifdef-lines
       (save-excursion
 	(goto-char point)
-	(let ((modp (buffer-modified-p)))
-	  (unwind-protect
-	      (progn
-		(beginning-of-line)
-		(if (not (= (point) 1))
-		    (hide-ifdef-region (1- (point)) (point))))
-	    (set-buffer-modified-p modp))
-	  ))
-    ))
+	(hide-ifdef-region (line-end-position 0) (line-end-position)))))
 		  
 
 ;;;  Hif-Possibly-Hide
@@ -851,52 +763,50 @@ Point is left unchanged."
 (defun hif-possibly-hide ()
   "Called at #ifX expression, this hides those parts that should be hidden.
 It uses the judgement of `hide-ifdef-evaluator'."
-;  (message "hif-possibly-hide") (sit-for 1)
-    (let ((test (hif-canonicalize))
-	  (range (hif-find-range)))
-;      (message "test = %s" test) (sit-for 1)
+  ;; (message "hif-possibly-hide") (sit-for 1)
+  (let ((test (hif-canonicalize))
+	(range (hif-find-range)))
+    ;; (message "test = %s" test) (sit-for 1)
       
-      (hif-hide-line (hif-range-end range))
-      (if (funcall hide-ifdef-evaluator test)
-	  (cond ((hif-range-else-p range) ; case 1
-		 (hif-hide-line (hif-range-else range))
-		 (hide-ifdef-region (hif-range-else range) 
-				    (1- (hif-range-end range)))
-		 (hif-recurse-on (hif-range-start range)
-				 (hif-range-else range)))
-		(t ; case 2
-		 (hif-recurse-on (hif-range-start range)
-				 (hif-range-end range))))
-	(cond ((hif-range-else-p range) ; case 3
+    (hif-hide-line (hif-range-end range))
+    (if (funcall hide-ifdef-evaluator test)
+	(cond ((hif-range-else range) ; case 1
 	       (hif-hide-line (hif-range-else range))
-	       (hide-ifdef-region (hif-range-start range)
-				  (1- (hif-range-else range)))
-	       (hif-recurse-on (hif-range-else range)
-			       (hif-range-end range)))
-	      (t ; case 4
-	       (hide-ifdef-region (point)
-				  (1- (hif-range-end range))))
-	      ))
-      (hif-hide-line (hif-range-start range))	; Always hide start.
-      (goto-char (hif-range-end range))
-      (end-of-line)
-      ))
+	       (hide-ifdef-region (hif-range-else range) 
+				  (1- (hif-range-end range)))
+	       (hif-recurse-on (hif-range-start range)
+			       (hif-range-else range)))
+	      (t			; case 2
+	       (hif-recurse-on (hif-range-start range)
+			       (hif-range-end range))))
+      (cond ((hif-range-else range)	; case 3
+	     (hif-hide-line (hif-range-else range))
+	     (hide-ifdef-region (hif-range-start range)
+				(1- (hif-range-else range)))
+	     (hif-recurse-on (hif-range-else range)
+			     (hif-range-end range)))
+	    (t				; case 4
+	     (hide-ifdef-region (point)
+				(1- (hif-range-end range))))))
+    (hif-hide-line (hif-range-start range)) ; Always hide start.
+    (goto-char (hif-range-end range))
+    (end-of-line)))
 
 
 
 (defun hide-ifdef-guts ()
   "Does most of the work of `hide-ifdefs'.
 It does not do the work that's pointless to redo on a recursive entry."
-;  (message "hide-ifdef-guts")
+  ;; (message "hide-ifdef-guts")
   (save-excursion
     (goto-char (point-min))
     (while (hif-find-any-ifX)
       (hif-possibly-hide))))
 
-;===%%SF%% hide-ifdef-hiding (End)  ===
+;;===%%SF%% hide-ifdef-hiding (End)  ===
 
 
-;===%%SF%% exports (Start)  ===
+;;===%%SF%% exports (Start)  ===
 
 ;;;###autoload
 (defcustom hide-ifdef-initially nil
@@ -917,7 +827,7 @@ It does not do the work that's pointless to redo on a recursive entry."
   :group 'hide-ifdef)
 
 (defun hide-ifdef-toggle-read-only ()
-  "Toggle hide-ifdef-read-only."
+  "Toggle `hide-ifdef-read-only'."
   (interactive)
   (setq hide-ifdef-read-only (not hide-ifdef-read-only))
   (message "Hide-Read-Only %s"
@@ -934,8 +844,7 @@ It does not do the work that's pointless to redo on a recursive entry."
 	   (if hif-outside-read-only "ON" "OFF"))
   (setq buffer-read-only
 	(or (and hide-ifdef-hiding hide-ifdef-read-only)
-	    hif-outside-read-only)
-	)
+	    hif-outside-read-only))
   (force-mode-line-update))
 
       
@@ -963,14 +872,11 @@ Turn off hiding by calling `show-ifdefs'."
   (interactive)
   (message "Hiding...")
   (setq hif-outside-read-only buffer-read-only)
-  (if (not hide-ifdef-mode)
-      (hide-ifdef-mode 1)) ; turn on hide-ifdef-mode
+  (unless hide-ifdef-mode (hide-ifdef-mode 1)) ; turn on hide-ifdef-mode
   (if hide-ifdef-hiding
       (show-ifdefs))			; Otherwise, deep confusion.
-  (let ((inhibit-read-only t))
-    (setq selective-display t)
-    (setq hide-ifdef-hiding t)
-    (hide-ifdef-guts))
+  (setq hide-ifdef-hiding t)
+  (hide-ifdef-guts)
   (setq buffer-read-only (or hide-ifdef-read-only hif-outside-read-only))
   (or nomsg
       (message "Hiding done")))
@@ -980,9 +886,7 @@ Turn off hiding by calling `show-ifdefs'."
   "Cancel the effects of `hide-ifdef': show the contents of all #ifdefs."
   (interactive)
   (setq buffer-read-only hif-outside-read-only)
-  (setq selective-display nil)	; defaults
-  (let ((inhibit-read-only t))
-    (hif-show-all))
+  (hif-show-all)
   (setq hide-ifdef-hiding nil))
 
 
@@ -992,15 +896,15 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
   (let (max-bottom)
     (cons (save-excursion
 	    (beginning-of-line)
-	    (if (not (or (hif-looking-at-else) (hif-looking-at-ifX)))
-		(up-ifdef))
+	    (unless (or (hif-looking-at-else) (hif-looking-at-ifX))
+	      (up-ifdef))
 	    (prog1 (point)
 	      (hif-ifdef-to-endif)
 	      (setq max-bottom (1- (point)))))
 	  (save-excursion
 	    (beginning-of-line)
-	    (if (not (hif-looking-at-endif))
-		(hif-find-next-relevant))
+	    (unless (hif-looking-at-endif)
+	      (hif-find-next-relevant))
 	    (while (hif-looking-at-ifX)
 	      (hif-ifdef-to-endif)
 	      (hif-find-next-relevant))
@@ -1010,16 +914,12 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 (defun hide-ifdef-block ()
   "Hide the ifdef block (true or false part) enclosing or before the cursor."
   (interactive)
-  (if (not hide-ifdef-mode)
-      (hide-ifdef-mode 1))
-  (setq selective-display t)
-  (let ((top-bottom (hif-find-ifdef-block))
-	(inhibit-read-only t))
+  (unless hide-ifdef-mode (hide-ifdef-mode 1))
+  (let ((top-bottom (hif-find-ifdef-block)))
     (hide-ifdef-region (car top-bottom) (cdr top-bottom))
-    (if hide-ifdef-lines
-	(progn
-	  (hif-hide-line (car top-bottom))
-	  (hif-hide-line (1+ (cdr top-bottom)))))
+    (when hide-ifdef-lines
+      (hif-hide-line (car top-bottom))
+      (hif-hide-line (1+ (cdr top-bottom))))
     (setq hide-ifdef-hiding t))
   (setq buffer-read-only (or hide-ifdef-read-only hif-outside-read-only)))
 
@@ -1027,39 +927,30 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 (defun show-ifdef-block ()
   "Show the ifdef block (true or false part) enclosing or before the cursor."
   (interactive)
-  (let ((inhibit-read-only t))
-    (if hide-ifdef-lines
-	(save-excursion
-	  (beginning-of-line)
-	  (hif-show-ifdef-region (1- (point)) (progn (end-of-line) (point))))
-
-      (let ((top-bottom (hif-find-ifdef-block)))
-	(hif-show-ifdef-region (1- (car top-bottom)) (cdr top-bottom))))))
+  (if hide-ifdef-lines
+      (save-excursion
+	(beginning-of-line)
+	(hif-show-ifdef-region (1- (point)) (progn (end-of-line) (point))))
+    (let ((top-bottom (hif-find-ifdef-block)))
+      (hif-show-ifdef-region (1- (car top-bottom)) (cdr top-bottom)))))
 
 
 ;;;  definition alist support
 
 (defvar hide-ifdef-define-alist nil
-  "A global assoc list of pre-defined symbol lists")
+  "A global assoc list of pre-defined symbol lists.")
 
 (defun hif-compress-define-list (env)
   "Compress the define list ENV into a list of defined symbols only."
-  (let ((defs (mapcar (lambda (arg)
-			(if (hif-lookup (car arg)) (car arg)))
-		      env))
-	(new-defs nil))
-    (while defs
-      (if (car defs)
-	  (setq new-defs (cons (car defs) new-defs)))
-      (setq defs (cdr defs)))
-    new-defs))
+  (let ((new-defs nil))
+    (dolist (def env new-defs)
+      (if (hif-lookup (car def)) (push (car env) new-defs)))))
 
 (defun hide-ifdef-set-define-alist (name)
   "Set the association for NAME to `hide-ifdef-env'."
   (interactive "SSet define list: ")
-  (setq hide-ifdef-define-alist
-	(cons (cons name (hif-compress-define-list hide-ifdef-env))
-	      hide-ifdef-define-alist)))
+  (push (cons name (hif-compress-define-list hide-ifdef-env))
+	hide-ifdef-define-alist))
 
 (defun hide-ifdef-use-define-alist (name)
   "Set `hide-ifdef-env' to the define list specified by NAME."
