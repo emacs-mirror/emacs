@@ -1,3 +1,7 @@
+2004-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/cp932.awk: Append user defined area of CP932.
+
 2004-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/Makefile (JISX2131.map): Convert 0x2015 to 0x2014,
