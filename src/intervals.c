@@ -1651,17 +1651,54 @@ set_point (position, buffer)
       return;
     }
 
-  /* If the new position is before an intangible character,
-     move forward over all such.  */
-  while (! NULL_INTERVAL_P (to)
-	 && ! NILP (textget (to->plist, Qintangible)))
+  /* If the new position is between two intangible characters,
+     move forward or backward across all such characters.  */
+  if (NILP (Vinhibit_point_motion_hooks) && ! NULL_INTERVAL_P (to)
+      && ! NULL_INTERVAL_P (toprev))
     {
-      toprev = to;
-      to = next_interval (to);
-      if (NULL_INTERVAL_P (to))
-	position = BUF_ZV (buffer);
+      if (backwards)
+	{
+	  /* Make sure the following character is intangible
+	     if the previous one is.  */
+	  if (toprev == to
+	      || ! NILP (textget (to->plist, Qintangible)))
+	    /* Ok, that is so.  Back up across intangible text.  */
+	    while (! NULL_INTERVAL_P (toprev)
+		   && ! NILP (textget (toprev->plist, Qintangible)))
+	      {
+		to = toprev;
+		toprev = previous_interval (toprev);
+		if (NULL_INTERVAL_P (toprev))
+		  position = BUF_BEGV (buffer);
+		else
+		  /* This is the only line that's not
+		     dual to the following loop.
+		     That's because we want the position
+		     at the end of TOPREV.  */
+		  position = to->position;
+	      }
+	}
       else
-	position = to->position;
+	{
+	  /* Make sure the previous character is intangible
+	     if the following one is.  */
+	  if (toprev == to
+	      || ! NILP (textget (toprev->plist, Qintangible)))
+	    /* Ok, that is so.  Advance across intangible text.  */
+	    while (! NULL_INTERVAL_P (to)
+		   && ! NILP (textget (to->plist, Qintangible)))
+	      {
+		toprev = to;
+		to = next_interval (to);
+		if (NULL_INTERVAL_P (to))
+		  position = BUF_ZV (buffer);
+		else
+		  position = to->position;
+	      }
+	}
+      /* Here TO is the interval after the stopping point
+	 and TOPREV is the interval before the stopping point.
+	 One or the other may be null.  */
     }
 
   buffer->text.pt = position;
