@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.4 1992/09/27 01:31:15 roland Exp roland $	
+;;	$Id: vc.el,v 1.5 1992/09/27 01:51:04 roland Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -781,11 +781,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	    (while buffers
 	      (setq file (buffer-file-name (car buffers)))
 	      (and file (vc-backend-deduce file)
-		   (setq files (cons (if (equal (file-name-directory file)
-						default-directory)
-					 (file-name-nondirectory file)
-				       file)
-				     files)))
+		   (setq files (cons (file-relative-name file) files)))
 	      (setq buffers (cdr buffers)))
 	    files))))
   (find-file-other-window "ChangeLog")
