@@ -1,3 +1,8 @@
+2003-03-24  John Paul Wallington  <jpw@gnu.org>
+
+	* cus-theme.el (customize-create-theme): Rename from
+	`custom-theme-create'.
+
 2003-03-24  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* cus-edit.el (custom-mode): Make `custom-local-buffer' local.
