@@ -115,7 +115,6 @@ clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys
 	rm -f make.out core
-	rm -f index.texi
 
 distclean: clean
 
