@@ -1,3 +1,7 @@
+2001-04-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (install-arch-indep): Remove .cvsignore files.
+
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (.PHONY): Add for bootstrap targets.

@@ -1,5 +1,7 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (install): Remove .cvsignore files.
+
 	* quail/japanese.el ("japanese-hankaku-kana"): Don't use
 	the same translations as for `japanese'.
 

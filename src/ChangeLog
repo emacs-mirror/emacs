@@ -1,5 +1,8 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (Fcurrent_time_zone): Accept spaces in timezone
+	names.
+
 	* xfns.c (Vmotif_version_string) [USE_MOTIF]: New variable.
 	(syms_of_xfns): DEFVAR_LISP it.  Initialize from XmVERSION_STRING.
 
