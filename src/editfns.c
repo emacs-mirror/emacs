@@ -3201,7 +3201,7 @@ usage: (format STRING &rest OBJECTS)  */)
   register int n;		/* The number of the next arg to substitute */
   register int total;		/* An estimate of the final length */
   char *buf, *p;
-  register unsigned char *format, *end;
+  register unsigned char *format, *end, *format_start;
   int nchars;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
@@ -3220,9 +3220,20 @@ usage: (format STRING &rest OBJECTS)  */)
   int *precision = (int *) (alloca(nargs * sizeof (int)));
   int longest_format;
   Lisp_Object val;
+  int arg_intervals = 0;
+
+  /* discarded[I] is 1 if byte I of the format
+     string was not copied into the output.
+     It is 2 if byte I was not the first byte of its character.  */
+  char *discarded;
+
+  /* Each element records, for one argument,
+     the start and end bytepos in the output string,
+     and whether the argument is a string with intervals.
+     info[0] is unused.  Unused elements have -1 for start.  */
   struct info
   {
-    int start, end;
+    int start, end, intervals;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -3232,12 +3243,13 @@ usage: (format STRING &rest OBJECTS)  */)
      This is not always right; sometimes the result needs to be multibyte
      because of an object that we will pass through prin1,
      and in that case, we won't know it here.  */
-  for (n = 0; n < nargs; n++) {
-    if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
-      multibyte = 1;
-    /* Piggyback on this loop to initialize precision[N]. */
-    precision[n] = -1;
-  }
+  for (n = 0; n < nargs; n++)
+    {
+      if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
+	multibyte = 1;
+      /* Piggyback on this loop to initialize precision[N]. */
+      precision[n] = -1;
+    }
 
   CHECK_STRING (args[0]);
   /* We may have to change "%S" to "%s". */
@@ -3248,11 +3260,24 @@ usage: (format STRING &rest OBJECTS)  */)
  retry:
 
   format = SDATA (args[0]);
+  format_start = format;
   end = format + SBYTES (args[0]);
   longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
   total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]);
+
+  /* Allocate the info and discarded tables.  */ 
+  {
+    int nbytes = nargs * sizeof *info;
+    int i;
+    info = (struct info *) alloca (nbytes);
+    bzero (info, nbytes);
+    for (i = 0; i <= nargs; i++)
+      info[i].start = -1;
+    discarded = (char *) alloca (SBYTES (args[0]));
+    bzero (discarded, SBYTES (args[0]));
+  }
 
   /* Add to TOTAL enough space to hold the converted arguments.  */
 
@@ -3458,6 +3483,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  int negative = 0;
 	  unsigned char *this_format_start = format;
 
+	  discarded[format - format_start] = 1;
 	  format++;
 
 	  /* Process a numeric arg and skip it.  */
@@ -3471,7 +3497,10 @@ usage: (format STRING &rest OBJECTS)  */)
              fixed. */
 	  while ((*format >= '0' && *format <= '9')
 		 || *format == '-' || *format == ' ' || *format == '.')
-	    format++;
+	    {
+	      discarded[format - format_start] = 1;
+	      format++;
+	    }
 
 	  if (*format++ == '%')
 	    {
@@ -3481,6 +3510,9 @@ usage: (format STRING &rest OBJECTS)  */)
 	    }
 
 	  ++n;
+
+	  discarded[format - format_start - 1] = 1;
+	  info[n].start = nchars;
 
 	  if (STRINGP (args[n]))
 	    {
@@ -3541,17 +3573,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* If this argument has text properties, record where
 		 in the result string it appears.  */
 	      if (STRING_INTERVALS (args[n]))
-		{
-		  if (!info)
-		    {
-		      int nbytes = nargs * sizeof *info;
-		      info = (struct info *) alloca (nbytes);
-		      bzero (info, nbytes);
-		    }
-
-		  info[n].start = start;
-		  info[n].end = end;
-		}
+		info[n].intervals = arg_intervals = 1;
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
 	    {
@@ -3578,6 +3600,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		p += this_nchars;
 	      nchars += this_nchars;
 	    }
+
+	  info[n].end = nchars;
 	}
       else if (STRING_MULTIBYTE (args[0]))
 	{
@@ -3588,7 +3612,11 @@ usage: (format STRING &rest OBJECTS)  */)
 	      && !CHAR_HEAD_P (*format))
 	    maybe_combine_byte = 1;
 	  *p++ = *format++;
-	  while (! CHAR_HEAD_P (*format)) *p++ = *format++;
+	  while (! CHAR_HEAD_P (*format))
+	    {
+	      discarded[format - format_start] = 2;
+	      *p++ = *format++;
+	    }
 	  nchars++;
 	}
       else if (multibyte)
@@ -3619,7 +3647,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (STRING_INTERVALS (args[0]) || info)
+  if (STRING_INTERVALS (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -3631,15 +3659,75 @@ usage: (format STRING &rest OBJECTS)  */)
 
       if (CONSP (props))
 	{
-	  new_len = make_number (SCHARS (val));
-	  extend_property_ranges (props, len, new_len);
+	  int bytepos = 0, position = 0, translated = 0, argn = 1;
+	  Lisp_Object list;
+
+	  /* Adjust the bounds of each text property
+	     to the proper start and end in the output string.  */
+	  /* We take advantage of the fact that the positions in PROPS
+	     are in increasing order, so that we can do (effectively)
+	     one scan through the position space of the format string.
+
+	     BYTEPOS is the byte position in the format string,
+	     POSITION is the untranslated char position in it,
+	     TRANSLATED is the translated char position in BUF,
+	     and ARGN is the number of the next arg we will come to.  */
+	  for (list = props; CONSP (list); list = XCDR (list))
+	    {
+	      Lisp_Object item, pos;
+
+	      item = XCAR (list);
+
+	      /* First adjust the property start position.  */
+	      pos = XINT (XCAR (item));
+
+	      /* Advance BYTEPOS, POSITION, TRANSLATED and ARGN
+		 up to this position.  */
+	      for (; position < pos; bytepos++)
+		{
+		  if (! discarded[bytepos])
+		    position++, translated++;
+		  else if (discarded[bytepos] == 1)
+		    {
+		      position++;
+		      if (translated == info[argn].start)
+			{
+			  translated += info[argn].end - info[argn].start;
+			  argn++;
+			}
+		    }
+		}
+
+	      XSETCAR (item, make_number (translated));
+
+	      /* Likewise adjust the property end position.  */
+	      pos = XINT (XCAR (XCDR (item)));
+
+	      for (; bytepos < pos; bytepos++)
+		{
+		  if (! discarded[bytepos])
+		    position++, translated++;
+		  else if (discarded[bytepos] == 1)
+		    {
+		      position++;
+		      if (translated == info[argn].start)
+			{
+			  translated += info[argn].end - info[argn].start;
+			  argn++;
+			}
+		    }
+		}
+
+	      XSETCAR (XCDR (item), make_number (translated));
+	    }
+
 	  add_text_properties_from_list (val, props, make_number (0));
 	}
 
       /* Add text properties from arguments.  */
-      if (info)
+      if (arg_intervals)
 	for (n = 1; n < nargs; ++n)
-	  if (info[n].end)
+	  if (info[n].intervals)
 	    {
 	      len = make_number (SCHARS (args[n]));
 	      new_len = make_number (info[n].end - info[n].start);
