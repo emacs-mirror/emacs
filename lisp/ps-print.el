@@ -2896,20 +2896,19 @@ The table depends on the current ps-print setup."
 	 sym)))
 
 
-(defvar ps-print-emacs-type
-  (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	((string-match "Lucid" emacs-version) 'lucid)
-	((string-match "Epoch" emacs-version) 'epoch)
-	(t 'emacs)))
+(eval-and-compile
+  (defvar ps-print-emacs-type
+    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	  ((string-match "Lucid" emacs-version) 'lucid)
+	  ((string-match "Epoch" emacs-version) 'epoch)
+	  (t 'emacs)))
 
-(if (memq ps-print-emacs-type '(lucid xemacs))
-    (if (< emacs-minor-version 12)
-	(setq ps-print-color-p nil))
-  (require 'faces))			; face-font, face-underline-p,
+  (if (memq ps-print-emacs-type '(lucid xemacs))
+      (if (< emacs-minor-version 12)
+	  (setq ps-print-color-p nil))
+    (require 'faces))			; face-font, face-underline-p,
 					; x-font-regexp
 
-
-(eval-and-compile
   ;; Return t if the device (which can be changed during an emacs session)
   ;; can handle colors.
   ;; This is function is not yet implemented for GNU emacs.
