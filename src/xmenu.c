@@ -1399,6 +1399,11 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 
   *error = NULL;
 
+  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
+    {
+      *error = "Empty menu";
+      return Qnil;
+    }
   this_menu_bar_item_beg = -1;
   this_menu_bar_item_end = -1;
   last_menu_bar_item_end = -1;
@@ -2009,6 +2014,12 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   *error = 0;
   if (menu_items_n_panes == 0)
     return Qnil;
+
+  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
+    {
+      *error = "Empty menu";
+      return Qnil;
+    }
 
   /* Figure out which root window F is on.  */
   XGetGeometry (x_current_display, FRAME_X_WINDOW (f), &root,
