@@ -20,7 +20,7 @@ symbol.  The use of a symbol as a variable is independent of its use as
 a function name.  @xref{Symbol Components}.
 
   The Lisp objects that constitute a Lisp program determine the textual
-form of the program--it is simply the read syntax for those Lisp
+form of the program---it is simply the read syntax for those Lisp
 objects.  This is why, for example, a variable in a textual Lisp program
 is written using the read syntax for the symbol that represents the
 variable.
@@ -166,7 +166,7 @@ binding.
 local bindings.
 
 @defspec let (bindings@dots{}) forms@dots{}
-This function binds variables according to @var{bindings} and then
+This special form binds variables according to @var{bindings} and then
 evaluates all of the @var{forms} in textual order.  The @code{let}-form
 returns the value of the last form in @var{forms}.
 
@@ -217,7 +217,7 @@ form.  Compare the following example with the example above for
 @end example
 @end defspec
 
-  Here is a complete list of the other facilities which create local
+  Here is a complete list of the other facilities that create local
 bindings:
 
 @itemize @bullet
@@ -365,9 +365,11 @@ more precisely, if its current binding is not void.  It returns
 
 @node Defining Variables
 @section Defining Global Variables
+@cindex variable definition
 
   You may announce your intention to use a symbol as a global variable
-with a definition, using @code{defconst} or @code{defvar}.
+with a @dfn{variable definition}: a special form, either @code{defconst}
+or @code{defvar}.
 
   In Emacs Lisp, definitions serve three purposes.  First, they inform
 people who read the code that certain symbols are @emph{intended} to be
@@ -381,7 +383,7 @@ variables in a program.
 a matter of intent, serving to inform human readers of whether programs
 will change the variable.  Emacs Lisp does not restrict the ways in
 which a variable can be used based on @code{defconst} or @code{defvar}
-declarations.  However, it also makes a difference for initialization:
+declarations.  However, it does make a difference for initialization:
 @code{defconst} unconditionally initializes the variable, while
 @code{defvar} initializes it only if it is void.
 
@@ -518,7 +520,7 @@ pi
 
 @defun user-variable-p variable
 @cindex user option
-This function returns @code{t} if @var{variable} is a user option--- a
+This function returns @code{t} if @var{variable} is a user option---a
 variable intended to be set by the user for customization---and
 @code{nil} otherwise.  (Variables other than user options exist for the
 internal purposes of Lisp programs, and users need not know about them.)
@@ -647,8 +649,7 @@ This function sets @var{symbol}'s value to @var{value}, then returns
 @var{symbol} is evaluated to obtain the symbol to set.
 
 The most-local existing binding of the variable is the binding that is
-set; shadowed bindings are not affected.  If @var{symbol} is not
-actually a symbol, a @code{wrong-type-argument} error is signaled.
+set; shadowed bindings are not affected.
 
 @example
 @group
@@ -681,18 +682,26 @@ one
 @end group
 @end example
 
+If @var{symbol} is not actually a symbol, a @code{wrong-type-argument}
+error is signaled.
+
+@example
+(set '(x y) 'z)
+@error{} Wrong type argument: symbolp, (x y)
+@end example
+
 Logically speaking, @code{set} is a more fundamental primitive than
 @code{setq}.  Any use of @code{setq} can be trivially rewritten to use
 @code{set}; @code{setq} could even be defined as a macro, given the
 availability of @code{set}.  However, @code{set} itself is rarely used;
-beginners hardly need to know about it.  It is needed for choosing which
-variable to set is made at run time.  For example, the command
+beginners hardly need to know about it.  It is useful only for choosing
+at run time which variable to set.  For example, the command
 @code{set-variable}, which reads a variable name from the user and then
 sets the variable, needs to use @code{set}.
 
 @cindex CL note---@code{set} local
 @quotation
-@b{Common Lisp note:} in Common Lisp, @code{set} always changes the
+@b{Common Lisp note:} In Common Lisp, @code{set} always changes the
 symbol's special value, ignoring any lexical bindings.  In Emacs Lisp,
 all variables and all bindings are (in effect) special, so @code{set}
 always affects the most local existing binding.
@@ -726,7 +735,7 @@ located textually within the function or block that binds the variable.
 @cindex CL note---special variables
 @quotation
 @b{Common Lisp note:} variables declared ``special'' in Common Lisp
-are dynamically scoped like variables in Emacs Lisp.
+are dynamically scoped, like variables in Emacs Lisp.
 @end quotation
 
 @menu
@@ -1012,7 +1021,7 @@ But @code{save-excursion} as shown here avoids the problem:
 buffer-local binding of buffer @samp{b}.
 
   When a file specifies local variable values, these become buffer-local
-value when you visit the file.  @xref{Auto Major Mode}.
+values when you visit the file.  @xref{Auto Major Mode}.
 
 @node Creating Buffer-Local
 @subsection Creating and Deleting Buffer-Local Bindings
@@ -1116,6 +1125,10 @@ buffer.  However, if you set the variable again, that will once again
 create a local binding for it.
 
 @code{kill-local-variable} returns @var{variable}.
+
+This function is a command because it is sometimes useful to kill one
+buffer-local variable interactively, just as it is useful to create
+buffer-local variables interactively.
 @end deffn
 
 @defun kill-all-local-variables
@@ -1156,7 +1169,7 @@ change a variable's default value regardless of whether the current
 buffer has a buffer-local binding.  For example, you could use
 @code{setq-default} to change the default setting of
 @code{paragraph-start} for most buffers; and this would work even when
-you are in a C or Lisp mode buffer which has a buffer-local value for
+you are in a C or Lisp mode buffer that has a buffer-local value for
 this variable.
 
 @c Emacs 19 feature
@@ -1172,8 +1185,8 @@ variable.  If @var{symbol} is not buffer-local, this is equivalent to
 @end defun
 
 @c Emacs 19 feature
-@defun default-boundp variable
-The function @code{default-boundp} tells you whether @var{variable}'s
+@defun default-boundp symbol
+The function @code{default-boundp} tells you whether @var{symbol}'s
 default value is nonvoid.  If @code{(default-boundp 'foo)} returns
 @code{nil}, then @code{(default-value 'foo)} would get an error.
 
