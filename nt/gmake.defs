@@ -73,7 +73,7 @@ else
 USING_SH = 1
 THE_SHELL = $(SHELL)
 SHELLTYPE=SH
-SETLOADPATH=EMACSLOADPATH=../lisp
+SETLOADPATH=EMACSLOADPATH=$(CURDIR)/../lisp
 endif
 
 # Cygwin has changed quoting rules somewhat since b20, in a way that
@@ -86,7 +86,6 @@ NEW_CYGWIN = 1
 endif
 endif
 
-MAKEDIR = $(CURDIR)
 ALL_DEPS	= $^
 EMPTY =
 SPACE = $(EMPTY) $(EMPTY)
@@ -97,7 +96,7 @@ SUBSYSTEM_CONSOLE=-Wl,-subsystem,console
 # INSTALL_DIR is the directory into which emacs will be installed.
 #
 ifndef INSTALL_DIR
-INSTALL_DIR     = $(MAKEDIR)/..
+INSTALL_DIR     = $(CURDIR)/..
 endif
 
 # Determine the architecture we're running on.
