@@ -890,6 +890,14 @@ window is not this tall, it is split only if it is the sole window and
 @code{pop-up-windows} is non-@code{nil}.
 @end defopt
 
+@defopt even-window-heights
+This variable determines if @code{display-buffer} should even out window
+heights if the buffer gets displayed in an existing window, above or
+beneath another existing window.  If @code{even-window-heights} is
+@code{t}, the default, window heights will be evened out.  If
+@code{even-window-heights} is @code{nil}, the orginal window heights
+will be left alone.
+
 @c Emacs 19 feature
 @defopt pop-up-frames
 This variable controls whether @code{display-buffer} makes new frames.
