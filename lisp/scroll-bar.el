@@ -105,7 +105,7 @@ Setting the variable with a customization buffer also takes effect."
 ;; If it is set again, that is for real.
 (setq scroll-bar-mode-explicit t)
 
-(defun scroll-bar-mode (flag)
+(defun scroll-bar-mode (&optional flag)
   "Toggle display of vertical scroll bars on all frames.
 This command applies to all frames that exist and frames to be
 created in the future.
