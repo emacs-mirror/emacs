@@ -67,45 +67,6 @@ HINSTANCE hinst = NULL;
 HINSTANCE hprevinst = NULL;
 LPSTR lpCmdLine = "";
 int nCmdShow = 0;
-    
-int __stdcall 
-WinMain (_hinst, _hPrevInst, _lpCmdLine, _nCmdShow)
-     HINSTANCE _hinst;
-     HINSTANCE _hPrevInst;
-     LPSTR _lpCmdLine;
-     int _nCmdShow;
-{
-  int i, j, new_argc;
-  char **new_argv;
-
-  /* Need to parse command line */
-    
-  hinst = _hinst;
-  hprevinst = _hPrevInst;
-  lpCmdLine = _lpCmdLine;
-  nCmdShow = _nCmdShow;
-
-  new_argc = __argc;
-  new_argv = (char **) xmalloc (sizeof (char *) * new_argc);
-  if (!new_argv)
-    return main (__argc, __argv, _environ);
-
-  for (i = j = 0; i < __argc; i++) 
-    {
-      /* Allocate a console window for stdout and stderr if requested.
-	 We want to allocate as soon as we possibly can to catch
-	 debugging output.  */
-      if (!strcmp ("-output_console", __argv[i]))
-	{
-	  AllocConsole ();
-	  new_argc--;
-	  continue;
-	}
-      new_argv[j++] = __argv[i];
-    }
-
-  return main (new_argc, new_argv, _environ);
-}
 #endif /* HAVE_NTGUI */
 
 /* Startup code for running on NT.  When we are running as the dumped
@@ -115,11 +76,7 @@ WinMain (_hinst, _hPrevInst, _lpCmdLine, _nCmdShow)
 void
 _start (void)
 {
-#ifdef HAVE_NTGUI
-  extern void WinMainCRTStartup (void);
-#else
   extern void mainCRTStartup (void);
-#endif /* HAVE_NTGUI */
 
   /* Cache system info, e.g., the NT page size.  */
   cache_system_info ();
@@ -153,10 +110,12 @@ _start (void)
   /* Invoke the NT CRT startup routine now that our housecleaning
      is finished.  */
 #ifdef HAVE_NTGUI
-  WinMainCRTStartup ();
-#else
+  /* determine WinMain args like crt0.c does */
+  hinst = GetModuleHandle(NULL);
+  lpCmdLine = GetCommandLine();
+  nCmdShow = SW_SHOWDEFAULT;
+#endif
   mainCRTStartup ();
-#endif /* HAVE_NTGUI */
 }
 
 /* Dump out .data and .bss sections into a new executable.  */
@@ -415,7 +374,7 @@ get_section_info (file_data *p_infile)
 
 	  /* The .data section.  */
 	  data_section = section;
-	  ptr  = (char *) nt_header->OptionalHeader.ImageBase +
+	  ptr = (char *) nt_header->OptionalHeader.ImageBase +
 	    section->VirtualAddress;
 	  data_start_va = ptr;
 	  data_start_file = section->PointerToRawData;
