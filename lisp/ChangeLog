@@ -1,3 +1,9 @@
+2004-03-11  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-read-response): Abort if process has
+	died to avoid infloop.  Reported by Jonathan Glauner
+	<jglauner@sbum.org>.
+
 2004-03-10  John Paul Wallington  <jpw@gnu.org>
 
 	* foldout.el (foldout-fold-list, foldout-modeline-string): 
