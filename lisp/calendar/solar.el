@@ -3,7 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: sunrise, sunset, equinox, solstice, calendar, diary, holidays
+;; Keywords: calendar
+;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary,
+;;	holidays
 
 ;; This file is part of GNU Emacs.
 
