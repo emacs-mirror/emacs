@@ -1,3 +1,8 @@
+2004-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type, display_and_set_cursor):
+	Fix last change.
+
 2004-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (fast_find_position): Fix return value of new version;
