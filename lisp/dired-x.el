@@ -208,7 +208,7 @@ toggle between those two."
   :type 'boolean
   :group 'dired-x)
 
-(defcustom dired-omit-size-limit 20000
+(defcustom dired-omit-size-limit 30000
   "*Maximum size for the \"omitting\" feature.
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
@@ -580,7 +580,12 @@ This functions works by temporarily binding `dired-marker-char' to
   (if (and dired-omit-files-p
            (or (interactive-p)
                (not dired-omit-size-limit)
-               (< (buffer-size) dired-omit-size-limit)))
+               (< (buffer-size) dired-omit-size-limit)
+	       (progn
+		 (message "Not omitting: directory larger than %d characters."
+			  dired-omit-size-limit)
+		 (setq dired-omit-files-p nil)
+		 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
             count)
