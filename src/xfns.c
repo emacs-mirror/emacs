@@ -2282,8 +2282,8 @@ DEFUN ("x-defined-color", Fx_defined_color, Sx_defined_color, 1, 1, 0,
     return Qnil;
 }
 
-DEFUN ("x-color-display-p", Fx_color_display_p, Sx_color_display_p, 0, 0, 0,
-  "Return t if the X display used currently supports color.")
+DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 0, 0,
+  "Return t if the X screen currently in use supports color.")
   ()
 {
   if (x_screen_planes <= 2)
@@ -3936,7 +3936,7 @@ syms_of_xfns ()
   defsubr (&Sx_contour_region);
   defsubr (&Sx_uncontour_region);
 #endif
-  defsubr (&Sx_color_display_p);
+  defsubr (&Sx_display_color_p);
   defsubr (&Sx_defined_color);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
