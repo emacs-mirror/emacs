@@ -1,5 +1,8 @@
 2004-02-17  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (fast_find_position): Fix return value of new version
+	(was inverted compared to the 21.1 version).
+
 	* keyboard.c: Rework previous change; it didn't consider that the
 	buf array was allocated on the stack.
 	(prev_read): Remove variable.
