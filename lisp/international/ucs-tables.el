@@ -1254,7 +1254,7 @@ input method to search for e-acute in a Latin-1 buffer.
 See also command `unify-8859-on-decoding-mode'."
   :group 'mule
   :global t
-  :init-value nil
+  :init-value t
   (if unify-8859-on-encoding-mode
       (ucs-unify-8859 t)
     (ucs-fragment-8859 t)))
@@ -2482,10 +2482,11 @@ Intended to be added to `quail-activate-hook'."
 ;; the above to work in it.
 (defun ucs-minibuffer-setup ()
   "Set up an appropriate `buffer-file-coding-system' for current buffer.
-Does so by inheriting it from the cadr of the current buffer list.
 Intended to be added to `minibuffer-setup-hook'."
   (set (make-local-variable 'buffer-file-coding-system)
-       (with-current-buffer (cadr (buffer-list))
+       (with-current-buffer (let ((win (minibuffer-selected-window)))
+			      (if (window-live-p win) (window-buffer win)
+				(cadr (buffer-list))))
 	 buffer-file-coding-system)))
 
 ;; Modified to allow display of arbitrary characters with an
