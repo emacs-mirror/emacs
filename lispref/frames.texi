@@ -485,7 +485,7 @@ face @code{scroll-bar}.
 
 @item scroll-bar-background
 If non-@code{nil}, the color for the background of scroll bars.
-Changing this parameter is equivalent to setting the foreground color of
+Changing this parameter is equivalent to setting the background color of
 face @code{scroll-bar}.
 
 @item display-type

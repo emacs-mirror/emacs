@@ -1,3 +1,8 @@
+2001-10-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/etags.el (tags-query-replace): Make tags-loop-scan
+	bind case-fold-search if FROM is not all lower case.
+
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (normal-top-level): Check for frame-initial-frame

@@ -1481,12 +1481,13 @@ The value can be a string; that should be the name of a file containing
 external-format X bitmap data.  The file is found in the directories
 listed in the variable @code{x-bitmap-file-path}.
 
-Alternatively, the value can specify the bitmap directly, with a list of
-the form @code{(@var{width} @var{height} @var{data})}.  Here,
-@var{width} and @var{height} specify the size in pixels, and @var{data}
-is a string containing the raw bits of the bitmap, row by row.  Each row
-occupies @math{(@var{width} + 7) / 8} consecutie bytes in the string
-(which should be a unibyte string for best results).
+Alternatively, the value can specify the bitmap directly, with a list
+of the form @code{(@var{width} @var{height} @var{data})}.  Here,
+@var{width} and @var{height} specify the size in pixels, and
+@var{data} is a string containing the raw bits of the bitmap, row by
+row.  Each row occupies @math{(@var{width} + 7) / 8} consecutive bytes
+in the string (which should be a unibyte string for best results).
+This means that each row always occupies at least one whole byte.
 
 If the value is @code{nil}, that means use no stipple pattern.
 
