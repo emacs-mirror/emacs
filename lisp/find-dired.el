@@ -6,9 +6,6 @@
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.20 $" 11 -2)
-  "$Id: find-dired.el,v 1.20 1995/03/16 04:27:11 rms Exp kwzh $")
-
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
 ;;; the Free Software Foundation; either version 2, or (at your option)
@@ -81,7 +78,14 @@ The command run (after changing into DIR) is
   ;; The next statement will bomb in classic dired (no optional arg allowed)
   (dired-mode dir (cdr find-ls-option))
   ;; Set subdir-alist so that Tree Dired will work:
-  (dired-simple-subdir-alist)
+  (if (fboundp 'dired-simple-subdir-alist)
+      ;; will work even with nested dired format (dired-nstd.el,v 1.15
+      ;; and later)
+      (dired-simple-subdir-alist)
+    ;; else we have an ancient tree dired (or classic dired, where
+    ;; this does no harm) 
+    (set (make-local-variable 'dired-subdir-alist)
+	 (list (cons default-directory (point-min-marker)))))
   (setq buffer-read-only nil)
   ;; Subdir headlerline must come first because the first marker in
   ;; subdir-alist points there.
