@@ -527,20 +527,7 @@ There should be no more than seven characters after the final `/'."
 	      (local-copy
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
-	      size start
-              (coding-system-for-read
-	       (or coding-system-for-read
-		   ;; If multibyte characters are disabled,
-		   ;; don't do that conversion.
-		   (and (null enable-multibyte-characters)
-			(or (auto-coding-alist-lookup
-			     (jka-compr-byte-compiler-base-file-name file))
-			    'raw-text))
-		   (let ((coding (find-operation-coding-system
-				  'insert-file-contents
-				  (jka-compr-byte-compiler-base-file-name file))))
-		     (and (consp coding) (car coding)))
-		   'undecided)) )
+	      size start)
 
 	  (setq local-file (or local-copy filename))
 
@@ -558,7 +545,7 @@ There should be no more than seven characters after the final `/'."
 
 		(condition-case error-code
 
-		    (progn
+		    (let ((coding-system-for-read 'no-conversion))
 		      (if replace
 			  (goto-char (point-min)))
 		      (setq start (point))
@@ -605,6 +592,11 @@ There should be no more than seven characters after the final `/'."
 	     local-copy
 	     (file-exists-p local-copy)
 	     (delete-file local-copy)))
+
+	  (decode-region-as-inserted-from-file
+	   (point) (+ (point) size) 
+	   (jka-compr-byte-compiler-base-file-name file)
+	   visit beg end replace)
 
 	  (and
 	   visit
