@@ -360,7 +360,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	  ;; the new parameters.
 	  (let (newparms allparms tail)
 	    (setq allparms (append initial-frame-alist
-				   default-frame-alist))
+				   default-frame-alist nil))
 	    (if (assq 'height frame-initial-geometry-arguments)
 		(setq allparms (assq-delete-all 'height allparms)))
 	    (if (assq 'width frame-initial-geometry-arguments)
