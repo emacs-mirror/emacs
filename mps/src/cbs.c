@@ -1,6 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.11) $
+ * $HopeName: MMsrc!cbs.c(trunk.12) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.11) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.12) $");
 
 typedef void **CBSEmergencyBlock; /* next, limit */
 typedef void **CBSEmergencyGrain; /* next */
@@ -1346,6 +1346,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   AVER(size > 0);
   AVER(sizeof(unsigned long) >= sizeof(Size));
+  AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 
@@ -1381,6 +1382,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
         base = CBSEmergencyBlockBase(block);
         limit = CBSEmergencyBlockLimit(block);
         deleteMethod = &CBSDeleteFromEmergencyBlockList;
+        /* @@@ Could remove in place more efficiently */
         break;
       }      
     }
@@ -1415,6 +1417,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 {
   Bool found;
   Addr base = (Addr)0, limit = (Addr)0; /* only defined in found is TRUE */
+  CBSDeleteMethod deleteMethod = NULL;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -1423,6 +1426,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   AVER(size > 0);
   AVER(sizeof(unsigned long) >= sizeof(Size));
+  AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 
@@ -1439,9 +1443,9 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
       block = CBSBlockOfSplayNode(node);
       AVER(CBSBlockSize(block) >= size);
-      CBSFindDeleteRange(&base, &limit, cbs, 
-                         CBSBlockBase(block), CBSBlockLimit(block), 
-                         size, &CBSDeleteFromTree, findDelete);
+      base = CBSBlockBase(block);
+      limit = CBSBlockLimit(block);
+      deleteMethod = &CBSDeleteFromTree;
     }
   }
 
@@ -1454,12 +1458,10 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
       if(CBSEmergencyBlockSize(block) >= size &&
          (!found || CBSEmergencyBlockBase(block) > base)) {
         found = TRUE;
-        /* @@@ could be done more efficiently */
-        CBSFindDeleteRange(&base, &limit, cbs,
-                           CBSEmergencyBlockBase(block),
-                           CBSEmergencyBlockLimit(block),
-                           size, &CBSDeleteFromEmergencyBlockList,
-                           findDelete);
+        base = CBSEmergencyBlockBase(block);
+        limit = CBSEmergencyBlockLimit(block);
+        deleteMethod = &CBSDeleteFromEmergencyBlockList;
+        /* @@@ Could remove in place more efficiently */
       }      
     }
   }
@@ -1476,19 +1478,17 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
     if(!found || CBSEmergencyGrainBase(grain) > base) {
       found = TRUE;
-      /* @@@ could be done more efficiently */
-      CBSFindDeleteRange(&base, &limit, cbs,
-                         CBSEmergencyGrainBase(grain),
-                         CBSEmergencyGrainLimit(cbs, grain),
-                         size, &CBSDeleteFromEmergencyGrainList,
-                         findDelete);
+      base = CBSEmergencyGrainBase(grain);
+      limit = CBSEmergencyGrainLimit(cbs, grain);
+      deleteMethod = &CBSDeleteFromEmergencyGrainList;
+      /* @@@ Could remove in place more efficiently */
     }
   }
 
   if(found) {
     AVER(AddrOffset(base, limit) >= size);
-    *baseReturn = base;
-    *limitReturn = limit;
+    CBSFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
+                       deleteMethod, findDelete);
   }
 
   CBSLeave(cbs);
