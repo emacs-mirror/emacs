@@ -597,7 +597,8 @@ If the argument is left out or nil, then the current buffer is considered."
 	(while (and tmp-rest
 		    (<= (length buffers) max-clumped-together)
 		    (>= (length (car item)) (length path))
-		    (compare-strings path 0 nil (car item) 0 (length path)))
+		    (eq t (compare-strings path 0 nil
+					   (car item) 0 (length path))))
 	  (setq found-p t)
 	  (setq buffers (append buffers (cdr item))) ;nconc is faster than append
 	  (setq tmp-rest (cdr tmp-rest)
@@ -635,11 +636,13 @@ If the argument is left out or nil, then the current buffer is considered."
 	      (setq last-path path))
 	  (when (and last-path
 		     (or (and (>= (length path) (length last-path))
-			      (compare-strings last-path 0 nil
-					       path 0 (length last-path)))
+			      (eq t (compare-strings last-path 0 nil
+						     path 0 (length
+							     last-path))))
 			 (and (< (length path) (length last-path))
-			      (compare-strings path 0 nil
-					       last-path 0 (length path)))))
+			      (eq t (compare-strings path 0 nil
+						     last-path 0 (length
+								  path))))))
 	    ;; We have reached the same place in the file hierarchy as
 	    ;; the last result, so we should quit at this point and
 	    ;; take what we have as result.
