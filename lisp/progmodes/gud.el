@@ -1401,7 +1401,7 @@ and source-file directory for your debugger."
 
     output))
 
-(defcustom gud-pdb-command-name "pdb"
+(defcustom gud-pdb-command-name "pydb"
   "File name for executing the Python debugger.
 This should be an executable on your path, or an absolute file name."
   :type 'string

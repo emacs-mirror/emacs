@@ -111,6 +111,7 @@ With prefix arg, prompt for diff switches."
 		       ,(shell-quote-argument (or new-alt new)))
 		     " "))
 	 (buf (get-buffer-create "*Diff*"))
+	 (thisdir default-directory)
 	 proc)
     (save-excursion
       (display-buffer buf)
@@ -125,6 +126,7 @@ With prefix arg, prompt for diff switches."
 	      (diff ',old ',new ',switches ',no-async)))
       (set (make-local-variable 'diff-old-temp-file) old-alt)
       (set (make-local-variable 'diff-new-temp-file) new-alt)
+      (setq default-directory thisdir)
       (insert command "\n")
       (if (and (not no-async) (fboundp 'start-process))
 	  (progn

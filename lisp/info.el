@@ -2467,7 +2467,8 @@ Build a menu of the possible matches."
 	  (dolist (entry matches)
 	    (insert "* " (car entry) " [" (nth 2 entry)
 		    "]: (" (nth 2 entry) ")" (nth 1 entry) ".\n")))
-	(Info-find-node "apropos" "top")))))
+	(Info-find-node "apropos" "top")
+	(setq Info-complete-cache nil)))))
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
@@ -2907,8 +2908,8 @@ Advanced commands:
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
-  (make-local-variable 'desktop-buffer-misc-data-function)
-  (setq desktop-buffer-misc-data-function 'Info-desktop-buffer-misc-data)
+  (make-local-variable 'desktop-save-buffer)
+  (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (Info-set-mode-line)

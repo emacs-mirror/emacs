@@ -67,6 +67,69 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member use_default_face.
+
+	* xdisp.c (Qline_height): New variable.
+	(syms_of_xdisp): Intern and staticpro it.
+	(append_space_for_newline): Partially undo 2004-04-25 change;
+	add default_face_p arg, and restore callers.
+	Clear it->use_default_face after use.
+	(x_produce_glyphs): Set default font for ascii char if
+	it->use_default_font is set.  Change line-spacing property to set
+	just extra line spacing.  Handle new line-height property.
+
+2004-04-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Print non-ascii characters in bool
+	vector representation as octal escapes.
+
+	* lisp.h (BOOL_VECTOR_BITS_PER_CHAR): Define.
+	* print.c (print_object): Use it instead of BITS_PER_CHAR for
+	bool vectors.
+	* lread.c (read1): Likewise.
+	* alloc.c (Fmake_bool_vector): Likewise.
+	* data.c (Faref, Faset): Likewise.
+	* fns.c (Fcopy_sequence, concat, internal_equal, Ffillarray)
+	(mapcar1): Likewise.
+
+2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+
+2004-04-26  Miles Bader  <miles@gnu.org>
+
+	* lisp.h (CYCLE_CHECK): Macro moved from xfaces.c.
+
+2004-04-26  Juanma Barranquero  <lektu@terra.es>
+
+	* buffer.c (Fpop_to_buffer): Fix docstring.
+
+2004-04-26  Steven Tamm  <steventamm@mac.com>
+
+	* lread.c (init_lread): Don't display missing lisp directory
+	warnings with Carbon Emacs because self-contained bundled Emacs
+	may be built without correct installation path.
+
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
+	* xterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
+	* xdisp.c (append_space_for_newline): Rename from append_space.
+	Remove DEFAULT_FACE_P arg; always use current face.  Callers changed.
+	(x_produce_glyphs): Handle line-spacing property on newline char.
+	If value is t, adjust ascent and descent to fit current row height.
+	If value is an integer or float, set extra_line_spacing to integer
+	value, or to float value x current line height.
+
+2004-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): If POSITION is nil, return
+	font for displaying CH with the default face.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
@@ -101,7 +164,7 @@
 
 	* lisp.h (pos_visible_p): Fix prototype.
 
-	* macterm.c (x_draw_relief_rect):  Add top_p and bot_p args.
+	* macterm.c (x_draw_relief_rect): Add top_p and bot_p args.
 	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
 	(x_draw_image_foreground, x_draw_image_relief)
 	(x_draw_image_foreground_1, x_draw_image_glyph_string):
@@ -8398,12 +8461,11 @@
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
-	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
-	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
-
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
 
 	* fileio.c (syms_of_fileio): Likewise.
+	(Ffile_name_as_directory): Fix argument name in docstring.
+	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
 
 2002-07-18  Richard M. Stallman  <rms@gnu.org>
 
@@ -12053,9 +12115,9 @@
 
 	* abbrev.c (Fexpand_abbrev): Use Frun_hooks instead of Vrun_hooks.
 
-	* buffer.c (Fkill_buffer): Use Frun_hooks, not Vrun_hooks.
+	* buffer.c (Fkill_buffer): Likewise.
 
-	* print.c (temp_output_buffer_setup): Use Frun_hooks, not Vrun_hooks.
+	* print.c (temp_output_buffer_setup): Likewise.
 
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 2003
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -513,7 +513,8 @@ with the original. */)
     {
       Lisp_Object val;
       int size_in_chars
-	= (XBOOL_VECTOR (arg)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	= ((XBOOL_VECTOR (arg)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
       bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
@@ -783,8 +784,8 @@ concat (nargs, args, target_type, last_special)
 	    else if (BOOL_VECTOR_P (this))
 	      {
 		int byte;
-		byte = XBOOL_VECTOR (this)->data[thisindex / BITS_PER_CHAR];
-		if (byte & (1 << (thisindex % BITS_PER_CHAR)))
+		byte = XBOOL_VECTOR (this)->data[thisindex / BOOL_VECTOR_BITS_PER_CHAR];
+		if (byte & (1 << (thisindex % BOOL_VECTOR_BITS_PER_CHAR)))
 		  elt = Qt;
 		else
 		  elt = Qnil;
@@ -2245,7 +2246,8 @@ internal_equal (o1, o2, depth, props)
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    int size_in_chars
-	      = (XBOOL_VECTOR (o1)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	      = ((XBOOL_VECTOR (o1)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		 / BOOL_VECTOR_BITS_PER_CHAR);
 
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
@@ -2356,7 +2358,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
       int size_in_chars
-	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	= ((XBOOL_VECTOR (array)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       charval = (! NILP (item) ? -1 : 0);
       for (index = 0; index < size_in_chars - 1; index++)
@@ -2364,8 +2367,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       if (index < size_in_chars)
 	{
 	  /* Mask out bits beyond the vector size.  */
-	  if (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)
-	    charval &= (1 << (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)) - 1;
+	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
+	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	  p[index] = charval;
 	}
     }
@@ -2958,8 +2961,8 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  int byte;
-	  byte = XBOOL_VECTOR (seq)->data[i / BITS_PER_CHAR];
-	  if (byte & (1 << (i % BITS_PER_CHAR)))
+	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
+	  if (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)))
 	    dummy = Qt;
 	  else
 	    dummy = Qnil;

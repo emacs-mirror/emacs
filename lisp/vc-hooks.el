@@ -44,8 +44,8 @@
                         "set `vc-handled-backends' to nil to disable VC.")
 
 (defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates 
- "to define master templates for a given BACKEND, use 
+(make-obsolete-variable 'vc-master-templates
+ "to define master templates for a given BACKEND, use
 vc-BACKEND-master-templates.  To enable or disable VC for a given
 BACKEND, use `vc-handled-backends'.")
 
@@ -474,8 +474,8 @@ Return non-nil if FILE is unchanged."
                              (indirect-function
                               (vc-find-backend-function (vc-backend file)
                                                         'diff))))
-                    (not (eq (caddr err) 5)))
-                (signal 'wrong-number-of-arguments err)
+                    (not (eq (caddr err) 4)))
+                (signal (car err) (cdr err))
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)

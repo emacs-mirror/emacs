@@ -1924,8 +1924,11 @@ struct it
   unsigned face_before_selective_p : 1;
 
   /* If 1, adjust current glyph so it does not increase current row
-     descent/ascent.  */
+     descent/ascent (line-height property).  Reset after this glyph.  */
   unsigned constrain_row_ascent_descent_p : 1;
+
+  /* If 1, show current glyph in default face.  Reset after this glyph.  */
+  unsigned use_default_face : 1;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */

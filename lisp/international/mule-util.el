@@ -373,27 +373,7 @@ basis, this may not be accurate."
 	 ;; On a window system, a character is displayable if we have
 	 ;; a font for that character in the default face of the
 	 ;; currently selected frame.
-	 (let ((fontset (frame-parameter (selected-frame) 'font))
-	       font-pattern)
-	   (if (query-fontset fontset)
-	       (setq font-pattern (fontset-font fontset char)))
-	   (or font-pattern
-	       (setq font-pattern (fontset-font "fontset-default" char)))
-	   (if font-pattern
-	       (progn
-		 ;; Now FONT-PATTERN is a string or a cons of family
-		 ;; field pattern and registry field pattern.
-		 (or (stringp font-pattern)
-		     (let ((family (or (car font-pattern) "*"))
-			   (registry (or (cdr font-pattern) "*")))
-		       (or (string-match "-" family)
-			   (setq family (concat "*-" family)))
-		       (or (string-match "-" registry)
-			   (setq registry (concat registry "-*")))
-		       (setq font-pattern
-			     (format "-%s-*-*-*-*-*-*-*-*-*-*-%s"
-				     family registry))))
-		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
+	 (car (internal-char-font nil char)))
 	(t
 	 (let ((coding (terminal-coding-system)))
 	   (if coding

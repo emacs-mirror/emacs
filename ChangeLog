@@ -1,3 +1,7 @@
+2004-04-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* autogen.sh: Update filename in "please read" message.
+
 2004-04-17  Richard M. Stallman  <rms@gnu.org>
 
 	* INSTALL: Move the info about site-lisp dirs,

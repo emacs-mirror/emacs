@@ -1,3 +1,7 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
 2004-04-09  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (distclean clean): Remove nmake specific
@@ -31,7 +35,7 @@
 2004-01-22  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
 
 	* quail/cyrillic.el ("bulgarian-phonetic"): Docstring fixed.
-	Duplicated entry removed.
+	Duplicate entry removed.
 	("bulgarian-bds"): Docstring fixed.
 
 2003-10-06  Dave Love  <fx@gnu.org>
@@ -52,7 +56,7 @@
 
 2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
 
-	* quail/indian.el (quail-indian-update-translation): Adjusted the
+	* quail/indian.el (quail-indian-update-translation): Adjust the
 	behaviour according to the change of quail-translate-key.
 
 2003-05-22  Kenichi Handa  <handa@m17n.org>
@@ -71,11 +75,11 @@
 
 2003-02-27  David Kastrup  <dak@gnu.org>
 
-	* quail/greek.el (greek-babel): add koronis transliteration.
+	* quail/greek.el (greek-babel): Add koronis transliteration.
 
 2003-02-23  David Kastrup  <dak@gnu.org>
 
-	* quail/greek.el (greek-babel): fix <' accent.
+	* quail/greek.el (greek-babel): Fix <' accent.
 
 2003-02-17  Dave Love  <fx@gnu.org>
 
@@ -89,7 +93,7 @@
 2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (punjabi-itrans, gujarati-itrans, oriya-itrans)
-	(bengali-itrans, assamese-itrans, telugu-itrans kannada-itrans)
+	(bengali-itrans, assamese-itrans, telugu-itrans, kannada-itrans)
 	(malayalam-itrans, tamil-itrans): New ITRANS based input methods.
 	(punjabi-inscript, gujarati-inscript, oriya-inscript)
 	(bengali-inscript, assamese-inscript, telugu-inscript)
@@ -104,7 +108,7 @@
 
 2003-02-05  David Kastrup  <dak@gnu.org>
 
-	* quail/greek.el: fix iota accent typos in greek-babel
+	* quail/greek.el: Fix iota accent typos in greek-babel
 	encoding.
 
 2003-01-05  Dave Love  <fx@gnu.org>
@@ -234,8 +238,8 @@
 
 2002-01-07  Jaeyoun Chung  <jay@kldp.org>
 
-	* quail/hangul.el: removed key sequence mapping for O[rsfaqtTd].
-	Not used for Korean Hangul Type 2. (request from emacs-kr mailing
+	* quail/hangul.el: Remove key sequence mapping for O[rsfaqtTd].
+	Not used for Korean Hangul Type 2 (request from emacs-kr mailing
 	list).
 
 2002-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -282,7 +286,7 @@
 
 2001-12-03  Jaeyoun Chung  <jay@kldp.org>
 
-	* quail/hangul3.el: Added a few convenient composing sequences for
+	* quail/hangul3.el: Add a few convenient composing sequences for
 	Korean keyboard type 3 users.
 
 2001-11-29  Dave Love  <fx@gnu.org>
@@ -293,7 +297,7 @@
 
 2001-11-28  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in (INDIAN): Adjusted for the file name change;
+	* makefile.w32-in (INDIAN): Adjust for the file name change;
 	quail/devanagari.elc -> quail/indian.elc.
 
 	* makefile.nt (INDIAN): Likewise.

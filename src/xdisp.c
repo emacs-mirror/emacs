@@ -304,6 +304,7 @@ Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
+Lisp_Object Qline_height;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
@@ -850,7 +851,7 @@ static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
 							  Lisp_Object));
 static void extend_face_to_end_of_line P_ ((struct it *));
-static int append_space P_ ((struct it *, int));
+static int append_space_for_newline P_ ((struct it *, int));
 static int make_cursor_line_fully_visible P_ ((struct window *, int));
 static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
@@ -14145,8 +14146,7 @@ compute_line_metrics (it)
 
 
 /* Append one space to the glyph row of iterator IT if doing a
-   window-based redisplay.  DEFAULT_FACE_P non-zero means let the
-   space have the default face, otherwise let it have the same face as
+   window-based redisplay.  The space has the same face as
    IT->face_id.  Value is non-zero if a space was added.
 
    This function is called to make sure that there is always one glyph
@@ -14158,7 +14158,7 @@ compute_line_metrics (it)
    end of the line if the row ends in italic text.  */
 
 static int
-append_space (it, default_face_p)
+append_space_for_newline (it, default_face_p)
      struct it *it;
      int default_face_p;
 {
@@ -14172,7 +14172,7 @@ append_space (it, default_face_p)
 	  /* Save some values that must not be changed.
 	     Must save IT->c and IT->len because otherwise
 	     ITERATOR_AT_END_P wouldn't work anymore after
-	     append_space has been called.  */
+	     append_space_for_newline has been called.  */
 	  enum display_element_type saved_what = it->what;
 	  int saved_c = it->c, saved_len = it->len;
 	  int saved_x = it->current_x;
@@ -14197,11 +14197,9 @@ append_space (it, default_face_p)
 	  face = FACE_FROM_ID (it->f, it->face_id);
 	  it->face_id = FACE_FOR_CHAR (it->f, face, 0);
 
-	  if (it->max_ascent > 0 || it->max_descent > 0)
-	    it->constrain_row_ascent_descent_p = 1;
-
 	  PRODUCE_GLYPHS (it);
 
+	  it->use_default_face = 0;
 	  it->constrain_row_ascent_descent_p = 0;
 	  it->current_x = saved_x;
 	  it->object = saved_object;
@@ -14484,7 +14482,7 @@ display_line (it)
 	    row->exact_window_width_line_p = 1;
 	  else
 #endif /* HAVE_WINDOW_SYSTEM */
-	  if ((append_space (it, 1) && row->used[TEXT_AREA] == 1)
+	  if ((append_space_for_newline (it, 1) && row->used[TEXT_AREA] == 1)
 	      || row->used[TEXT_AREA] == 0)
 	    {
 	      row->glyphs[TEXT_AREA]->charpos = -1;
@@ -14726,7 +14724,7 @@ display_line (it)
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
 	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
-	    append_space (it, 0);
+	    append_space_for_newline (it, 0);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Extend the face to the end of the line.  */
@@ -18515,6 +18513,8 @@ void
 x_produce_glyphs (it)
      struct it *it;
 {
+  int extra_line_spacing = it->extra_line_spacing;
+
   it->glyph_not_available_p = 0;
 
   if (it->what == IT_CHARACTER)
@@ -18590,6 +18590,12 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
+	  if (it->use_default_face)
+	    {
+	      font = FRAME_FONT (it->f);
+	      boff = FRAME_BASELINE_OFFSET (it->f);
+	    }
+
 	  pcm = rif->per_char_metric (font, &char2b,
 				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
 
@@ -18613,18 +18619,19 @@ x_produce_glyphs (it)
 	  if (it->constrain_row_ascent_descent_p)
 	    {
 	      if (it->descent > it->max_descent)
-		{
-		  it->ascent += it->descent - it->max_descent;
-		  it->descent = it->max_descent;
-		}
-	      if (it->ascent> it->max_ascent)
-		{
-		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
-		  it->ascent = it->max_ascent;
-		}
-	      it->phys_ascent = min (it->phys_ascent, it->ascent);
-	      it->phys_descent = min (it->phys_descent, it->descent);
-	    }
+ 		{
+ 		  it->ascent += it->descent - it->max_descent;
+ 		  it->descent = it->max_descent;
+ 		}
+ 	      if (it->ascent > it->max_ascent)
+ 		{
+ 		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
+ 		  it->ascent = it->max_ascent;
+ 		}
+ 	      it->phys_ascent = min (it->phys_ascent, it->ascent);
+ 	      it->phys_descent = min (it->phys_descent, it->descent);
+ 	      extra_line_spacing = 0;
+  	    }
 
 	  /* If this is a space inside a region of text with
 	     `space-width' property, change its width.  */
@@ -18696,32 +18703,68 @@ x_produce_glyphs (it)
 	     But if previous part of the line set a height, don't
 	     increase that height */
 
+	  Lisp_Object lsp, lh;
+
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
+
+	  lh = Fget_text_property (IT_CHARPOS (*it), Qline_height, it->w->buffer);
+
+	  if (EQ (lh, Qt))
+	    {
+	      it->use_default_face = 1;
+	      font = FRAME_FONT (it->f);
+	      boff = FRAME_BASELINE_OFFSET (it->f);
+	      font_info = NULL;
+	    }
 
 	  it->ascent = FONT_BASE (font) + boff;
 	  it->descent = FONT_DESCENT (font) - boff;
 
-	  if (it->max_ascent > 0 || it->max_descent > 0)
+	  if (EQ (lh, make_number (0)))
 	    {
-	      it->ascent = it->descent = 0;
+	      if (it->descent > it->max_descent)
+		{
+		  it->ascent += it->descent - it->max_descent;
+		  it->descent = it->max_descent;
+		}
+	      if (it->ascent > it->max_ascent)
+		{
+		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
+		  it->ascent = it->max_ascent;
+		}
+	      it->phys_ascent = min (it->phys_ascent, it->ascent);
+	      it->phys_descent = min (it->phys_descent, it->descent);
+	      it->constrain_row_ascent_descent_p = 1;
+	      extra_line_spacing = 0;
 	    }
 	  else
 	    {
-	      it->ascent = FONT_BASE (font) + boff;
-	      it->descent = FONT_DESCENT (font) - boff;
+	      int explicit_height = -1;
+	      it->phys_ascent = it->ascent;
+	      it->phys_descent = it->descent;
+
+	      if ((it->max_ascent > 0 || it->max_descent > 0)
+		  && face->box != FACE_NO_BOX
+		  && face->box_line_width > 0)
+		{
+		  it->ascent += face->box_line_width;
+		  it->descent += face->box_line_width;
+		}
+	      if (INTEGERP (lh))
+		explicit_height = XINT (lh);
+	      else if (FLOATP (lh))
+		explicit_height = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lh);
+
+	      if (explicit_height > it->ascent + it->descent)
+		it->ascent = explicit_height - it->descent;
 	    }
 
-	  it->phys_ascent = it->ascent;
-	  it->phys_descent = it->descent;
-
-	  if ((it->max_ascent > 0 || it->max_descent > 0)
-	      && face->box != FACE_NO_BOX
-	      && face->box_line_width > 0)
-	    {
-	      it->ascent += face->box_line_width;
-	      it->descent += face->box_line_width;
-	    }
+	  lsp = Fget_text_property (IT_CHARPOS (*it), Qline_spacing, it->w->buffer);
+	  if (INTEGERP (lsp))
+	    extra_line_spacing = XINT (lsp);
+	  else if (FLOATP (lsp))
+	    extra_line_spacing = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lsp);
 	}
       else if (it->char_to_display == '\t')
 	{
@@ -19098,7 +19141,7 @@ x_produce_glyphs (it)
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
 
-  it->descent += it->extra_line_spacing;
+  it->descent += extra_line_spacing;
 
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
@@ -21744,6 +21787,8 @@ syms_of_xdisp ()
   staticpro (&Qright_margin);
   Qcenter = intern ("center");
   staticpro (&Qcenter);
+  Qline_height = intern ("line-height");
+  staticpro (&Qline_height);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
   QCrelative_width = intern (":relative-width");

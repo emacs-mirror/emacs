@@ -145,8 +145,11 @@ The base name of the file is specified in `desktop-base-file-name'."
   :group 'desktop)
 
 (defcustom desktop-missing-file-warning nil
-  "*If non-nil then `desktop-read' warns when a file no longer exists.
-Otherwise it simply ignores that file."
+  "*If non-nil then `desktop-read' asks if a non-existent file should be recreated.
+Also pause for a moment to display message about errors signaled in
+`desktop-buffer-mode-handlers'.
+
+If nil, just print error messages in the message buffer."
   :type 'boolean
   :group 'desktop)
 
@@ -244,15 +247,6 @@ The variables are saved only when they really are local."
   :type 'regexp
   :group 'desktop)
 
-(defcustom desktop-buffer-modes-to-save
-  '(Info-mode rmail-mode)
-  "If a buffer is of one of these major modes, save the buffer state.
-This applies to buffers not visiting a file and not beeing a dired buffer.
-Modes specified here must have a handler in `desktop-buffer-mode-handlers'
-to be restored."
-  :type '(repeat symbol)
-  :group 'desktop)
-
 (defcustom desktop-modes-not-to-save nil
   "List of major modes whose buffers should not be saved."
   :type '(repeat symbol)
@@ -268,21 +262,25 @@ Possible values are:
   :group 'desktop)
 
 ;;;###autoload
-(defvar desktop-buffer-misc-data-function nil
-  "Function returning major mode specific data for desktop file.
+(defvar desktop-save-buffer nil
+  "When non-nil, save buffer status in desktop file.
 This variable becomes buffer local when set.
-The function specified is called by `desktop-save', with argument
-DESKTOP-DIRNAME.  If it returns non-nil, its value is saved along
-with the state of the buffer for which it was called.
+
+If the value is a function, it called by `desktop-save' with argument
+DESKTOP-DIRNAME to obtain auxiliary information to saved in the desktop
+file along with the state of the buffer for which it was called.
 
 When file names are returned, they should be formatted using the call
 \"(desktop-file-name FILE-NAME DESKTOP-DIRNAME)\".
 
 Later, when `desktop-read' calls a function in `desktop-buffer-mode-handlers'
-to restore the buffer, the auxiliary information is passed as argument.")
-(make-variable-buffer-local 'desktop-buffer-misc-data-function)
+to restore the buffer, the auxiliary information is passed as the argument
+DESKTOP-BUFFER-MISC.")
+(make-variable-buffer-local 'desktop-save-buffer)
+(make-obsolete-variable 'desktop-buffer-modes-to-save
+                        'desktop-save-buffer)
 (make-obsolete-variable 'desktop-buffer-misc-functions
-                        'desktop-buffer-misc-data-function)
+                        'desktop-save-buffer)
 
 (defcustom desktop-buffer-mode-handlers '(
   (dired-mode . dired-restore-desktop-buffer)
@@ -541,21 +539,20 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode &rest dummy)
-  "Return t if the desktop should record a particular buffer for next startup.
+  "Return t if buffer should have its state saved in the desktop file.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
   (let ((case-fold-search nil))
     (and (not (string-match desktop-buffers-not-to-save bufname))
-	 (not (memq mode desktop-modes-not-to-save))
-	 (or (and filename
-		  (not (string-match desktop-files-not-to-save filename)))
-	     (and (eq mode 'dired-mode)
-		  (save-excursion
-		    (set-buffer (get-buffer bufname))
-		    (not (string-match desktop-files-not-to-save
-				       default-directory))))
-	     (and (null filename)
-		  (memq mode desktop-buffer-modes-to-save))))))
+         (not (memq mode desktop-modes-not-to-save))
+         (or (and filename
+                  (not (string-match desktop-files-not-to-save filename)))
+             (and (eq mode 'dired-mode)
+                  (with-current-buffer bufname
+                    (not (string-match desktop-files-not-to-save
+                                       default-directory))))
+             (and (null filename)
+		  (with-current-buffer bufname desktop-save-buffer))))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-file-name (filename dirname)
@@ -610,8 +607,8 @@ See also `desktop-base-file-name'."
                     (list (mark t) mark-active)
                     buffer-read-only
                     ;; Auxiliary information
-                    (when desktop-buffer-misc-data-function
-                      (funcall desktop-buffer-misc-data-function dirname))
+                    (when (functionp desktop-save-buffer)
+                      (funcall desktop-save-buffer dirname))
                     (let ((locals desktop-locals-to-save)
                           (loclist (buffer-local-variables))
                           (ll))

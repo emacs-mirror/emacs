@@ -218,6 +218,107 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Use line-height instead of
+	line-spacing property on newline.
+
+2004-04-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-misc-data-function): Rename to
+	desktop-save-buffer and change docstring.
+	(desktop-buffer-modes-to-save): Delete.
+	(desktop-save-buffer-p): Use desktop-save-buffer instead of
+	desktop-buffer-modes-to-save.
+	(desktop-save): Rename desktop-buffer-misc-data-function to
+	desktop-save-buffer and allow non-function value.
+	(desktop-missing-file-warning): Correct docstring.
+	* dired.el (dired-mode): Rename desktop-buffer-misc-data-function
+	to desktop-save-buffer.
+	* info.el (Info-mode): Rename desktop-buffer-misc-data-function	to
+	desktop-save-buffer.
+	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
+	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
+
+2004-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only, ielm-prompt): Expand docstring.
+	(ielm): Only go to the end of the buffer when starting a new process.
+
+2004-04-25  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Display working buffer on the
+	mode line.  Bind `inhibit-read-only' to t before modifying
+	properties of text in the buffer.
+	(ielm): Force point to the end of buffer, even when running ielm
+	from inside itself.
+
+2004-04-25  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Reset Info-complete-cache.
+
+2004-04-25  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Also recognize severe Irix et al. messages.
+	(compilation-normalize-filename, compile-abbreviate-directory):
+	Delete functions.
+	(compilation-get-file-structure): New function inherits
+	functionality of the two preceding ones.
+	(compilation-internal-error-properties, compilation-fake-loc): Use
+	it so that different paths to the same file share the same
+	markers.  Also optimize finding adjacent marker slightly.
+
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Add line-spacing t property
+	to newlines separating image lines.
+
+2004-04-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-delete-output): Bind inhibit-read-only to t.
+
+	* ielm.el (ielm-prompt-read-only): New user option.
+	(ielm-prompt): Expand docstring to describe new behavior.
+	(inferior-emacs-lisp-mode): Implement ielm-prompt-read-only and
+	mention it in the docstring.
+
+2004-04-24  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-leading-keywords) <sh>: Add "!".
+
+	* diff.el (diff): Set default-directory in diff buffer.
+
+2004-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Don't delete the frame where the
+	mail was being composed if the terminal cannot display more than
+	one frame; instead, switch to previous frame.
+
+	* mail/rmail.el (rmail-mail-new-frame): Doc fix.
+	(rmail-start-mail): Support rmail-mail-new-frame even on
+	terminals that can display only one frame at a time.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Fix docstring.
+
+	* pcomplete.el (pcomplete-opt, pcomplete-actual-arg)
+	(pcomplete-match-string, pcomplete-comint-setup, pcomplete-here)
+	(pcomplete--help, pcomplete--here): Doc fixes.
+
+2004-04-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Fix code that
+	handles wrong-number-of-arguments in backend call.
+
+	* vc.el (vc-print-log): Likewise.
+
+2004-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Simplified by
+	using internal-char-font.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
@@ -336,9 +437,11 @@
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
 	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(dired-mode): Bind desktop-buffer-misc-data-function.
 	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(Info-mode): Bind desktop-buffer-misc-data-function.
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.

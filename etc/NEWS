@@ -88,6 +88,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+---
+** The IELM prompt is now, by default, read-only.  This can be
+controlled with the new user option `ielm-prompt-read-only'.
+
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
 
@@ -1984,9 +1988,35 @@ specify image slice (X Y WIDTH HEIGHT).
 *** New function insert-sliced-image inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
-*** Trailing newlines no longer contribute to the height of a display
-row; instead the height of the newline glyph is reduced.  This allows
-sliced images to use a height less than the default line height.
+** New line-height and line-spacing properties for newline characters
+
+A newline may now have line-height and line-spacing text properties that
+control the height of the corresponding display row.
+
+If the line-height property value is 0, the newline does not
+contribute to the height of the display row; instead the height of the
+newline glyph is reduced.  This can be used to tile small images or
+image slices without adding blank areas between the images.
+
+If the line-height property value is a positive integer, the value
+specifies the minimum line height in pixels.  If necessary, the line
+height it increased by increasing the line's ascent.
+
+If the line-height property value is a float, the minimum line height
+is calculated by multiplying the height of the current face font by
+the given value.
+
+If the line-height property value is t, the minimum line height is
+the height of the default frame font.
+
+If the line-spacing property value is an integer, the value is used as
+additional space to put after the display line; this overrides the
+default frame line-spacing and any buffer local value of the
+line-spacing variable.
+
+If the line-spacing property value is a float, the value is multiplied
+by the current height of the display row to determine the additional
+space to put after the display line.
 
 ** Enhancements to stretch display properties
 

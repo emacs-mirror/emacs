@@ -278,6 +278,10 @@ enum pvec_type
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
+
+/* Number of bits to put in each character in the internal representation
+   of bool vectors.  This should not vary across implementations.  */
+#define BOOL_VECTOR_BITS_PER_CHAR 8
 
 /***** Select the tagging scheme.  *****/
 
@@ -3191,6 +3195,32 @@ extern Lisp_Object Vdirectory_sep_char;
    (FIXNUM_OVERFLOW_P (val) \
     ? make_float (val) \
     : make_number ((EMACS_INT)(val)))
+
+
+/* Checks the `cycle check' variable CHECK to see if it indicates that
+   EL is part of a cycle; CHECK must be either Qnil or a value returned
+   by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
+   elements after which a cycle might be suspected; after that many
+   elements, this macro begins consing in order to keep more precise
+   track of elements.
+
+   Returns nil if a cycle was detected, otherwise a new value for CHECK
+   that includes EL.
+
+   CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
+   the caller should make sure that's ok.  */
+
+#define CYCLE_CHECK(check, el, suspicious)	\
+  (NILP (check)					\
+   ? make_number (0)				\
+   : (INTEGERP (check)				\
+      ? (XFASTINT (check) < (suspicious)	\
+	 ? make_number (XFASTINT (check) + 1)	\
+	 : Fcons (el, Qnil))			\
+      : (!NILP (Fmemq ((el), (check)))		\
+	 ? Qnil					\
+	 : Fcons ((el), (check)))))
+
 
 #endif /* EMACS_LISP_H */
 
