@@ -42,19 +42,17 @@ A page boundary is any line whose beginning matches the regexp
       (goto-char (point-max)))
     (setq count (1- count)))
   (while (and (< count 0) (not (bobp)))
+    ;; In case the page-delimiter matches the null string,
+    ;; don't find a match without moving.
+    (and (save-excursion (re-search-backward page-delimiter nil t))
+	 (= (match-end 0) (point))
+	 (goto-char (match-beginning 0)))
     (forward-char -1)
-    (let (result (end (point)))
-      ;; If we find a match that ends where we started searching,
-      ;; look for another one.
-      (while (and (setq result (re-search-backward page-delimiter nil t))
-		  (= (match-end 0) end))
-	;; Just search again.
-	)
-      (if result
-	  ;; We found one--move to the end of it.
-	  (goto-char (match-end 0))
-	;; We found nothing--go to beg of buffer.
-	(goto-char (point-min))))
+    (if (re-search-backward page-delimiter nil t)
+	;; We found one--move to the end of it.
+	(goto-char (match-end 0))
+      ;; We found nothing--go to beg of buffer.
+      (goto-char (point-min)))
     (setq count (1+ count))))
 
 (defun backward-page (&optional count)
