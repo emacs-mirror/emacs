@@ -6,7 +6,7 @@
 PFM = xcppgc
 
 MPMPF = lockan.c than.c vmxc.c \
-        protan.c prmcan.c span.c
+        protxc.c protxcpp.c prmcan.c span.c
 MPMS = ssxcpp.s
 SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
 
