@@ -176,6 +176,22 @@ If N is bigger than the length of X, return X."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
+(defun number-sequence (from &optional to)
+  "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
+The Nth element of the list is (+ FROM N) where N counts from zero.
+If TO is nil, it defaults to FROM.
+If TO is less than FROM, the value is nil."
+  (if to
+      (if (< to from)
+	  (setq to (1- from)))
+    (setq to from))
+  (let* ((list (make-list (- (1+ to) from) from))
+	 (tail (cdr list)))
+    (while tail
+      (setcar tail (setq from (1+ from)))
+      (setq tail (cdr tail)))
+    list))
+
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.
 SEQ must be a list, vector, or string.  The comparison is done with `equal'."
