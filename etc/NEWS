@@ -1627,7 +1627,7 @@ to view diffs or log entries directly from vc-annotate-mode:
     L:  shows the log of the revision at line
     W:  annotates the workfile (most up to date) version
 
-* New modes and packages in 21.4
+* New modes and packages in Emacs 21.4
 
 +++
 ** The new global minor mode `size-indication-mode' (off by default)
