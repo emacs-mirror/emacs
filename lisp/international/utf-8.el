@@ -143,7 +143,7 @@ Setting this variable outside customize has no effect."
 	 (setq utf-8-translation-table-for-decode
 	       (if v
 		   utf-8-fragmentation-table
-		 (make-char-table)))
+		 (make-translation-table)))
 	 (define-translation-table 'utf-8-translation-table-for-decode
 	   utf-8-translation-table-for-decode)
 	 (set-default s v))
