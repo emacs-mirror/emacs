@@ -1301,11 +1301,18 @@ Font weight---a symbol from this series (from most dense to most faint):
 @code{normal}, @code{semi-light}, @code{light}, @code{extra-light},
 @code{ultra-light}, or else @code{nil} meaning this attribute is not
 specified.
-   
+
+On a text-only terminal, any weight greater than normal is displayed as
+extra bright, and any weight less than normal is displayed as
+half-bright (This is provided the terminal supports the feature.)
+
 @item :slant
 Font slant---one of the symbols @code{italic}, @code{oblique}, @code{normal},
 @code{reverse-italic}, or @code{reverse-oblique}.
-   
+
+On a text-only terminal, slanted text is displayed as half-bright, if
+the terminal supports the feature.
+
 @item :foreground
 Foreground color, a string.
    
