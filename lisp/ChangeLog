@@ -1,3 +1,7 @@
+2002-09-11  Juanma Barranquero  <lektu@terra.es>
+
+	* newcomment.el (uncomment-region): Fix let/let* use.
+
 2002-09-11  Simon Josefsson  <jas@extundo.com>
 
 	* gud.el (gud-gdb-massage-args): Don't secretly add -fullname.
