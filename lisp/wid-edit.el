@@ -157,6 +157,10 @@ This exists as a variable so it can be set locally in certain buffers.")
   :group 'widget-documentation
   :group 'widget-faces)
 
+(defvar widget-button-face 'widget-button-face
+  "Face used for buttons in widges.
+This exists as a variable so it can be set locally in certain buffers.")
+
 (defface widget-button-face '((t (:bold t)))
   "Face used for widget buttons."
   :group 'widget-faces)
@@ -1533,17 +1537,13 @@ If that does not exists, call the value of `widget-complete-field'."
 	   (error "Unknown escape `%c'" escape)))
     (widget-put widget :buttons buttons)))
 
-(defvar widget-button-face nil
-  "Face to use for buttons.
-This is a variable so that it can be buffer-local.")
-
 (defun widget-default-button-face-get (widget)
   ;; Use :button-face or widget-button-face
   (or (widget-get widget :button-face)
       (let ((parent (widget-get widget :parent)))
 	(if parent
 	    (widget-apply parent :button-face-get)
-	  'widget-button-face))))
+	  widget-button-face))))
 
 (defun widget-default-sample-face-get (widget)
   ;; Use :sample-face.
@@ -3388,6 +3388,30 @@ To use this type, you must define :match or :match-alternatives."
       (widget-value-set widget answer)
       (widget-setup)
       (widget-apply widget :notify widget event))))
+
+;;; The alternative `editable-color' widget and its subroutine.
+
+(define-widget 'color-sample 'choice-item
+  "A color name (with sample)."
+  :format "(%{sample%})"
+  :sample-face-get 'widget-color-item-button-face-get)
+
+(define-widget 'editable-color 'editable-field
+  "A color name, editable"
+  :tag "Color"
+  :format "%{%t%}: %v"
+  :complete-function 'widget-color-complete
+  :value-create 'widget-editable-color-value-create
+  :prompt-match '(lambda (color) (member color widget-color-choice-list))
+  :prompt-history 'widget-string-prompt-value-history)
+
+(defun widget-editable-color-value-create (widget)
+  (widget-field-value-create widget)
+  (forward-line -1)
+  (end-of-line)
+  (let ((child (widget-create-child-and-convert
+		widget 'color-sample (widget-get widget :value))))
+    (widget-put widget :children (list child))))
 
 ;;; The Help Echo
 
