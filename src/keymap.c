@@ -395,6 +395,11 @@ store_in_keymap (keymap, idx, def)
      register Lisp_Object idx;
      register Lisp_Object def;
 {
+  /* If we are preparing to dump, and DEF might be pure,
+     copy it to ensure it is not pure.  */
+  if (!NILP (Vpurify_flag) && CONSP (def))
+    def = Fcons (XCONS (def)->car, XCONS (def)->cdr);
+
   if (!CONSP (keymap) || ! EQ (XCONS (keymap)->car, Qkeymap))
     error ("attempt to define a key in a non-keymap");
 
@@ -463,8 +468,8 @@ store_in_keymap (keymap, idx, def)
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
-    XCONS (insertion_point)->cdr =
-      Fcons (Fcons (idx, def), XCONS (insertion_point)->cdr);
+    XCONS (insertion_point)->cdr
+      = Fcons (Fcons (idx, def), XCONS (insertion_point)->cdr);
   }
 	  
   return def;
