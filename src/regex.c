@@ -146,6 +146,7 @@
 # define POS_AS_IN_BUFFER(p) ((p) + (NILP (re_match_object) || BUFFERP (re_match_object)))
 
 # define RE_MULTIBYTE_P(bufp) ((bufp)->multibyte)
+# define RE_TARGET_MULTIBYTE_P(bufp) ((bufp)->target_multibyte)
 # define RE_STRING_CHAR(p, s) \
   (multibyte ? (STRING_CHAR (p, s)) : (*(p)))
 # define RE_STRING_CHAR_AND_LENGTH(p, s, len) \
@@ -154,17 +155,21 @@
 /* Set C a (possibly multibyte) character before P.  P points into a
    string which is the virtual concatenation of STR1 (which ends at
    END1) or STR2 (which ends at END2).  */
-# define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2)		\
-  do {									\
-    if (multibyte)							\
-       {						    		\
-	 re_char *dtemp = (p) == (str2) ? (end1) : (p);		    	\
-	 re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
-	 while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp));		\
-	 c = STRING_CHAR (dtemp, (p) - dtemp);				\
-       }						    		\
-     else						    		\
-       (c = ((p) == (str2) ? (end1) : (p))[-1]);			\
+# define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2)		     \
+  do {									     \
+    if (target_multibyte)						     \
+      {									     \
+	re_char *dtemp = (p) == (str2) ? (end1) : (p);			     \
+	re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
+	while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp));		     \
+	c = STRING_CHAR (dtemp, (p) - dtemp);				     \
+      }									     \
+    else								     \
+      {									     \
+	(c = ((p) == (str2) ? (end1) : (p))[-1]);			     \
+	if (multibyte)							     \
+	  MAKE_CHAR_MULTIBYTE (c);					     \
+      }									     \
   } while (0)
 
 
@@ -233,6 +238,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 # define CHARSET_LEADING_CODE_BASE(c) 0
 # define MAX_MULTIBYTE_LENGTH 1
 # define RE_MULTIBYTE_P(x) 0
+# define RE_TARGET_MULTIBYTE_P(x) 0
 # define WORD_BOUNDARY_P(c1, c2) (0)
 # define CHAR_HEAD_P(p) (1)
 # define SINGLE_BYTE_CHAR_P(c) (1)
@@ -248,6 +254,8 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 # define MAKE_CHAR(charset, c1, c2) (c1)
 # define BYTE8_TO_CHAR(c) (c)
 # define CHAR_BYTE8_P(c) (0)
+# define MAKE_CHAR_MULTIBYTE(c) 0
+# define CHAR_LEADING_CODE(c) (c)
 #endif /* not emacs */
 
 #ifndef RE_TRANSLATE
@@ -1665,6 +1673,8 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 #define PATFETCH(c)							\
   do {									\
     PATFETCH_RAW (c);							\
+    if (! multibyte)							\
+      MAKE_CHAR_MULTIBYTE (c);						\
     c = TRANSLATE (c);							\
   } while (0)
 
@@ -1916,6 +1926,54 @@ struct range_table_work_area
 /* Set the bit for character C in a list.  */
 #define SET_LIST_BIT(c) (b[((c)) / BYTEWIDTH] |= 1 << ((c) % BYTEWIDTH))
 
+
+#ifdef emacs
+
+/* It is better to implement this jumbo macro by a function, but it's
+   not that easy because macros called within it assumes various
+   variables being defined.  */
+
+#define HANDLE_UNIBYTE_RANGE(work_area, c1, c2)				\
+  do {									\
+    int char_table[257];						\
+    int i, j, c;							\
+									\
+    char_table[(c1) - 1] = -2;	/* head sentinel */			\
+    for (i = (c1); i <= (c2); i++)					\
+      char_table[i] = TRANSLATE (unibyte_char_to_multibyte (i));	\
+    char_table[i] = MAX_CHAR + 2;	/* tail sentinel */		\
+									\
+    /* As the number of data is small (at most 128) and we can expect	\
+       that data in char_table are mostly sorted, we use fairly simple	\
+       `insertion sort'.  */						\
+    for (i = (c1) + 1; i <= (c2); i++)					\
+      {									\
+	c = char_table[i];						\
+	j = i;								\
+	while (char_table[j - 1] > c)					\
+	  char_table[j] = char_table[j - 1], j--;			\
+	char_table[j] = c;						\
+      }									\
+									\
+    for (i = (c1); i <= (c2); i++)					\
+      {									\
+	c = char_table[i];						\
+	if (! IS_REAL_ASCII (c))					\
+	  break;							\
+	SET_LIST_BIT (c);						\
+      }									\
+    while (i <= (c2))							\
+      {									\
+	c = char_table[i];						\
+	for (j = i + 1; j <= (c2); j++)					\
+	  if (char_table[j] - c != j - i)				\
+	    break;							\
+	SET_RANGE_TABLE_WORK_AREA ((work_area), c, char_table[j - 1]);	\
+	i = j;								\
+      }									\
+  } while (0)
+
+#endif /* emacs */
 
 /* Get the next unsigned number in the uncompiled pattern.  */
 #define GET_UNSIGNED_NUMBER(num)					\
@@ -2264,7 +2322,7 @@ regex_compile (pattern, size, syntax, bufp)
   /* Loop through the uncompiled pattern until we're at the end.  */
   while (p != pend)
     {
-      PATFETCH (c);
+      PATFETCH_RAW (c);
 
       switch (c)
 	{
@@ -2346,15 +2404,15 @@ regex_compile (pattern, size, syntax, bufp)
 		    if (p+1 == pend)
 		      FREE_STACK_RETURN (REG_EESCAPE);
 		    if (p[1] == '+' || p[1] == '?')
-		      PATFETCH (c); /* Gobble up the backslash.  */
+		      PATFETCH_RAW (c); /* Gobble up the backslash.  */
 		    else
 		      break;
 		  }
 		else
 		  break;
 		/* If we get here, we found another repeat character.  */
-		PATFETCH (c);
-	       }
+		PATFETCH_RAW (c);
+	      }
 
 	    /* Star, etc. applied to an empty pattern is equivalent
 	       to an empty pattern.  */
@@ -2495,14 +2553,14 @@ regex_compile (pattern, size, syntax, bufp)
 
 		if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
-		PATFETCH (c);
+		PATFETCH_RAW (c);
 
 		/* \ might escape characters inside [...] and [^...].  */
 		if ((syntax & RE_BACKSLASH_ESCAPE_IN_LISTS) && c == '\\')
 		  {
 		    if (p == pend) FREE_STACK_RETURN (REG_EESCAPE);
 
-		    PATFETCH (c);
+		    PATFETCH_RAW (c);
 		    escaped_char = true;
 		  }
 		else
@@ -2528,7 +2586,7 @@ regex_compile (pattern, size, syntax, bufp)
 		    unsigned char str[CHAR_CLASS_MAX_LENGTH + 1];
 		    const unsigned char *class_beg;
 
-		    PATFETCH (c);
+		    PATFETCH_RAW (c);
 		    c1 = 0;
 		    class_beg = p;
 
@@ -2537,7 +2595,7 @@ regex_compile (pattern, size, syntax, bufp)
 
 		    for (;;)
 		      {
-		        PATFETCH (c);
+		        PATFETCH_RAW (c);
 		        if ((c == ':' && *p == ']') || p == pend)
 		          break;
 			if (c1 < CHAR_CLASS_MAX_LENGTH)
@@ -2564,7 +2622,7 @@ regex_compile (pattern, size, syntax, bufp)
 
                         /* Throw away the ] at the end of the character
                            class.  */
-                        PATFETCH (c);
+                        PATFETCH_RAW (c);
 
                         if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
@@ -2573,17 +2631,20 @@ regex_compile (pattern, size, syntax, bufp)
 			   is_digit, is_cntrl, and is_xdigit, since
 			   they can only match ASCII characters.  We
 			   don't need to handle them for multibyte.
-			   They are distinguished by a negative wctype.  */
-
-			if (multibyte)
-			  SET_RANGE_TABLE_WORK_AREA_BIT (range_table_work,
-							 re_wctype_to_bit (cc));
+			   They are distinguished by a negative wctype.
+			   We need this only for Emacs.  */
+#ifdef emacs
+			SET_RANGE_TABLE_WORK_AREA_BIT (range_table_work,
+						       re_wctype_to_bit (cc));
+#endif
 
                         for (ch = 0; ch < 1 << BYTEWIDTH; ++ch)
 			  {
-			    int translated = TRANSLATE (ch);
-			    if (re_iswctype (btowc (ch), cc))
-			      SET_LIST_BIT (translated);
+			    MAKE_CHAR_MULTIBYTE (ch);
+			    ch = TRANSLATE (ch);
+			    if (IS_REAL_ASCII (ch)
+				& re_iswctype (btowc (ch), cc))
+			      SET_LIST_BIT (ch);
 			  }
 
 			/* Repeat the loop. */
@@ -2606,35 +2667,51 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 
 		    /* Discard the `-'. */
-		    PATFETCH (c1);
+		    PATFETCH_RAW (c1);
 
 		    /* Fetch the character which ends the range. */
-		    PATFETCH (c1);
-
-		    if (SINGLE_BYTE_CHAR_P (c)
-			&& ! SINGLE_BYTE_CHAR_P (c1))
+		    PATFETCH_RAW (c1);
+#ifdef emacs
+		    if (multibyte)
 		      {
-			/* Handle a range starting with a character
-			   fitting in a bitmap to a character not
-			   fitting in a bitmap (thus require range
-			   table).  We use both a bitmap (for the
-			   range from C to 255) and a range table (for
-			   the remaining range).  Here, we setup only
-			   a range table.  A bitmap is setup later.  */
-			re_wchar_t c2
-			  = CHAR_BYTE8_P (c1) ? BYTE8_TO_CHAR (0x80) : 256;
-
-			SET_RANGE_TABLE_WORK_AREA (range_table_work, c2, c1);
-			c1 = 255;
+			c = TRANSLATE (c);
+			c1 = TRANSLATE (c1);
+			if (! IS_REAL_ASCII (c1))
+			  {
+			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
+						       c, c1);
+			    c1 = 127;
+			  }
 		      }
+		    else
+		      {
+			if (! IS_REAL_ASCII (c1))
+			  {
+			    int c2 = MAX (c, 128);
+
+			    HANDLE_UNIBYTE_RANGE (range_table_work, c2, c1);
+			    c1 = 127;
+			  }
+		      }
+#endif
 		  }
 		else
-		  /* Range from C to C. */
-		  c1 = c;
+		  {
+		    /* Range from C to C. */
+		    if (! multibyte)
+		      MAKE_CHAR_MULTIBYTE (c);
+		    c = TRANSLATE (c);
+		    if (IS_REAL_ASCII (c))
+		      c1 = c;
+		    else
+		      {
+			SET_RANGE_TABLE_WORK_AREA (range_table_work, c, c);
+			c = -1;	/* Suppress setting bitmap.  */
+		      }
+		  }
 
-		/* Set the range ... */
-		if (SINGLE_BYTE_CHAR_P (c))
-		  /* ... into bitmap.  */
+		/* Set the range into bitmap */
+		if (c >= 0)
 		  {
 		    re_wchar_t this_char;
 		    int range_start = c, range_end = c1;
@@ -2653,9 +2730,6 @@ regex_compile (pattern, size, syntax, bufp)
 			  SET_LIST_BIT (TRANSLATE (this_char));
 		      }
 		  }
-		else
-		  /* ... into range table.  */
-		  SET_RANGE_TABLE_WORK_AREA (range_table_work, c, c1);
 	      }
 
 	    /* Discard any (non)matching list bytes that are all 0 at the
@@ -2750,7 +2824,7 @@ regex_compile (pattern, size, syntax, bufp)
 		    /* Look for a special (?...) construct */
 		    if ((syntax & RE_SHY_GROUPS) && *p == '?')
 		      {
-			PATFETCH (c); /* Gobble up the '?'.  */
+			PATFETCH_RAW (c); /* Gobble up the '?'.  */
 			PATFETCH (c);
 			switch (c)
 			  {
@@ -3230,10 +3304,10 @@ regex_compile (pattern, size, syntax, bufp)
 	  {
 	    int len;
 
-	    if (multibyte)
-	      len = CHAR_STRING (c, b);
-	    else
-	      *b = c, len = 1;
+	    if (! multibyte)
+	      MAKE_CHAR_MULTIBYTE (c);
+	    c = TRANSLATE (c);
+	    len = CHAR_STRING (c, b);
 	    b += len;
 	    (*pending_exact) += len;
 	  }
@@ -3439,6 +3513,8 @@ group_in_compile_stack (compile_stack, regnum)
    bother filling it up (obviously) and only return whether the
    pattern could potentially match the empty string.
 
+   MULTIBYTE is always 1 for Emacs, and 0 otherwise.
+
    Return 1  if p..pend might match the empty string.
    Return 0  if p..pend matches at least one char.
    Return -1 if fastmap was not updated accurately.  */
@@ -3505,14 +3581,11 @@ analyse_first (p, pend, fastmap, multibyte)
 
 	case exactn:
 	  if (fastmap)
-	    {
-	      int c = RE_STRING_CHAR (p + 1, pend - p);
-
-	      if (SINGLE_BYTE_CHAR_P (c))
-		fastmap[c] = 1;
-	      else
-		fastmap[p[1]] = 1;
-	    }
+	    /* If multibyte is nonzero, the first byte of each
+	       character is an ASCII or a leading code.  Otherwise,
+	       each byte is a character.  Thus, this works in both
+	       cases. */
+	    fastmap[p[1]] = 1;
 	  break;
 
 
@@ -3524,14 +3597,17 @@ analyse_first (p, pend, fastmap, multibyte)
 
 
 	case charset_not:
-	  /* Chars beyond end of bitmap are possible matches.
-	     All the single-byte codes can occur in multibyte buffers.
-	     So any that are not listed in the charset
-	     are possible matches, even in multibyte buffers.  */
 	  if (!fastmap) break;
-	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
-	       j < (1 << BYTEWIDTH); j++)
-	    fastmap[j] = 1;
+	  {
+	    /* Chars beyond end of bitmap are possible matches.  */
+	    /* Emacs uses the bitmap only for ASCII characters.  */
+	    int limit = multibyte ? 128 : (1 << BYTEWIDTH);
+
+	    for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
+		 j < limit; j++)
+	      fastmap[j] = 1;
+	  }
+
 	  /* Fallthrough */
 	case charset:
 	  if (!fastmap) break;
@@ -3542,7 +3618,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	      fastmap[j] = 1;
 
 	  if ((not && multibyte)
-	      /* Any character set can possibly contain a character
+	      /* Any leading code can possibly start a character
 		 which doesn't match the specified set of characters.  */
 	      || (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
 		  && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
@@ -3562,11 +3638,10 @@ analyse_first (p, pend, fastmap, multibyte)
 	  else if (!not && CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
 		   && match_any_multibyte_characters == false)
 	    {
-	      /* Set fastmap[I] to 1 where I is a base leading code of each
+	      /* Set fastmap[I] to 1 where I is a leading code of each
 		 multibyte characer in the range table. */
 	      int c, count;
-	      unsigned char buf1[MAX_MULTIBYTE_LENGTH];
-	      unsigned char buf2[MAX_MULTIBYTE_LENGTH];
+	      unsigned char lc1, lc2;
 
 	      /* Make P points the range table.  `+ 2' is to skip flag
 		 bits for a character class.  */
@@ -3578,11 +3653,11 @@ analyse_first (p, pend, fastmap, multibyte)
 		{
 		  /* Extract the start and end of each range.  */
 		  EXTRACT_CHARACTER (c, p);
-		  CHAR_STRING (c, buf1);
+		  lc1 = CHAR_LEADING_CODE (c);
 		  p += 3;
 		  EXTRACT_CHARACTER (c, p);
-		  CHAR_STRING (c, buf2);
-		  for (j = buf1[0]; j <= buf2[0]; j++)
+		  lc2 = CHAR_LEADING_CODE (c);
+		  for (j = lc1; j <= lc2; j++)
 		    fastmap[j] = 1;
 		}
 	    }
@@ -3608,7 +3683,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	  if (!fastmap) break;
 	  not = (re_opcode_t)p[-1] == notcategoryspec;
 	  k = *p++;
-	  for (j = 0; j < (1 << BYTEWIDTH); j++)
+	  for (j = (multibyte ? 127 : (1 << BYTEWIDTH)); j >= 0; j--)
 	    if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
 	      fastmap[j] = 1;
 
@@ -3754,7 +3829,15 @@ re_compile_fastmap (bufp)
   bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
 
   analysis = analyse_first (bufp->buffer, bufp->buffer + bufp->used,
-			    fastmap, RE_MULTIBYTE_P (bufp));
+			    fastmap, 
+#ifdef emacs
+			    /* The compiled pattern buffer is always
+			       setup for multibyte characters.  */
+			    1
+#else
+			    0
+#endif
+			    );
   bufp->can_be_null = (analysis != 0);
   return 0;
 } /* re_compile_fastmap */
@@ -3860,8 +3943,14 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
   int endpos = startpos + range;
   boolean anchored_start;
 
-  /* Nonzero if we have to concern multibyte character.	 */
-  const boolean multibyte = RE_MULTIBYTE_P (bufp);
+  /* Nonzero if BUFP is setup for multibyte characters.  */
+#ifdef emacs
+  const boolean multibyte = 1;
+#else 
+  const boolean multibyte = 0;
+#endif
+  /* Nonzero if STR1 and STR2 contains multibyte characters.  */
+  const boolean target_multibyte = RE_TARGET_MULTIBYTE_P (bufp);
 
   /* Check for out-of-range STARTPOS.  */
   if (startpos < 0 || startpos > total_size)
@@ -3950,7 +4039,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 		 inside the loop.  */
 	      if (RE_TRANSLATE_P (translate))
 		{
-		  if (multibyte)
+		  if (target_multibyte)
 		    while (range > lim)
 		      {
 			int buf_charlen;
@@ -3959,12 +4048,23 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 							 buf_charlen);
 
 			buf_ch = RE_TRANSLATE (translate, buf_ch);
-			if (buf_ch >= 0400
-			    || fastmap[buf_ch])
+			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
 
 			range -= buf_charlen;
 			d += buf_charlen;
+		      }
+		  else if (multibyte)
+		    while (range > lim)
+		      {
+			buf_ch = *d;
+			MAKE_CHAR_MULTIBYTE (buf_ch);
+			buf_ch = RE_TRANSLATE (translate, buf_ch);
+			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
+			  break;
+
+			d++;
+			range--;
 		      }
 		  else
 		    while (range > lim
@@ -3973,6 +4073,16 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 			d++;
 			range--;
 		      }
+		}
+	      else if (multibyte && ! target_multibyte)
+		{
+		  buf_ch = *d;
+		  MAKE_CHAR_MULTIBYTE (buf_ch);
+		  if (fastmap[CHAR_LEADING_CODE (buf_ch)])
+		    break;
+
+		  d++;
+		  range--;
 		}
 	      else
 		while (range > lim && !fastmap[*d])
@@ -3989,10 +4099,11 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 			  ? size2 + size1 - startpos
 			  : size1 - startpos);
 	      buf_ch = RE_STRING_CHAR (d, room);
+	      if (! target_multibyte)
+		MAKE_CHAR_MULTIBYTE (buf_ch);
 	      buf_ch = TRANSLATE (buf_ch);
 
-	      if (! (buf_ch >= 0400
-		     || fastmap[buf_ch]))
+	      if (! fastmap[CHAR_LEADING_CODE (buf_ch)])
 		goto advance;
 	    }
 	}
@@ -4022,7 +4133,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
       else if (range > 0)
 	{
 	  /* Update STARTPOS to the next character boundary.  */
-	  if (multibyte)
+	  if (target_multibyte)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos);
 	      re_char *pend = STOP_ADDR_VSTRING (startpos);
@@ -4045,7 +4156,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	  startpos--;
 
 	  /* Update STARTPOS to the previous character boundary.  */
-	  if (multibyte)
+	  if (target_multibyte)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos);
 	      int len = 0;
@@ -4502,6 +4613,17 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 }
 WEAK_ALIAS (__re_match_2, re_match_2)
 
+#ifdef emacs
+#define TARGET_CHAR_AND_LENGTH(d, len, actual_len)	\
+  (target_multibyte					\
+   ? STRING_CHAR_AND_LENGTH (d, len, actual_len)	\
+   : (actual_len = 1, unibyte_char_to_multibyte (*d)))
+#else
+#define TARGET_CHAR_AND_LENGTH(d, len, actual_len)	\
+  (actual_len = 1, *d)
+#endif
+
+
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.	*/
 static int
@@ -4541,8 +4663,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   /* We use this to map every character in the string.	*/
   RE_TRANSLATE_TYPE translate = bufp->translate;
 
-  /* Nonzero if we have to concern multibyte character.	 */
-  const boolean multibyte = RE_MULTIBYTE_P (bufp);
+  /* Nonzero if BUFP is setup for multibyte characters.	 */
+#ifdef emacs
+  const boolean multibyte = 1;
+#else
+  const boolean multibyte = 0;
+#endif
+  /* Nonzero if STR1 and STR2 contains multibyte characters.  */
+  const boolean target_multibyte = RE_TARGET_MULTIBYTE_P (bufp);
 
   /* Failure point stack.  Each place that can handle a failure further
      down the line pushes a failure point on this stack.  It consists of
@@ -4907,7 +5035,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 		    PREFETCH ();
 		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
-		    buf_ch = STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+		    buf_ch = TARGET_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
 
 		    if (RE_TRANSLATE (translate, buf_ch)
 			!= pat_ch)
@@ -4936,16 +5064,37 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    }
 	  else
 	    {
-	      do
-		{
-		  PREFETCH ();
-		  if (*d++ != *p++)
-		    {
-		      d = dfail;
-		      goto fail;
-		    }
-		}
-	      while (--mcnt);
+	      if (multibyte == target_multibyte)
+		do
+		  {
+		    PREFETCH ();
+		    if (*d++ != *p++)
+		      {
+			d = dfail;
+			goto fail;
+		      }
+		  }
+		while (--mcnt);
+	      else		/* i.e. multibyte && ! target_multibyte */
+		do
+		  {
+		    int pat_charlen, buf_charlen;
+		    unsigned int pat_ch, buf_ch;
+
+		    PREFETCH ();
+		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
+		    buf_ch = TARGET_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+
+		    if (pat_ch != buf_ch)
+		      {
+			d = dfail;
+			goto fail;
+		      }
+		    p += pat_charlen;
+		    d += buf_charlen;
+		    mcnt -= pat_charlen;
+		  }
+		while (mcnt > 0);
 	    }
 	  break;
 
@@ -4959,7 +5108,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    DEBUG_PRINT1 ("EXECUTING anychar.\n");
 
 	    PREFETCH ();
-	    buf_ch = RE_STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+	    buf_ch = TARGET_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
 	    buf_ch = TRANSLATE (buf_ch);
 
 	    if ((!(bufp->syntax & RE_DOT_NEWLINE)
@@ -5003,10 +5152,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      }
 
 	    PREFETCH ();
-	    c = RE_STRING_CHAR_AND_LENGTH (d, dend - d, len);
+	    c = TARGET_CHAR_AND_LENGTH (d, dend - d, len);
 	    c = TRANSLATE (c); /* The character to match.  */
 
-	    if (SINGLE_BYTE_CHAR_P (c))
+	    if (! multibyte || IS_REAL_ASCII (c))
 	      {			/* Lookup bitmap.  */
 		/* Cast to `unsigned' instead of `unsigned char' in
 		   case the bit list is a full 32 bytes long.  */
@@ -5146,7 +5295,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		/* Compare that many; failure if mismatch, else move
 		   past them.  */
 		if (RE_TRANSLATE_P (translate)
-		    ? bcmp_translate (d, d2, mcnt, translate, multibyte)
+		    ? bcmp_translate (d, d2, mcnt, translate, target_multibyte)
 		    : memcmp (d, d2, mcnt))
 		  {
 		    d = dfail;
@@ -5169,7 +5318,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    }
 	  else
 	    {
-	      unsigned char c;
+	      unsigned c;
 	      GET_CHAR_BEFORE_2 (c, d, string1, end1, string2, end2);
 	      if (c == '\n')
 		break;
@@ -5421,6 +5570,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      re_wchar_t c1, c2;
 	      int s1, s2;
+	      int dummy;
 #ifdef emacs
 	      int offset = PTR_TO_OFFSET (d - 1);
 	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
@@ -5432,7 +5582,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
 	      PREFETCH_NOLIMIT ();
-	      c2 = RE_STRING_CHAR (d, dend - d);
+	      c2 = TARGET_CHAR_AND_LENGTH (d, dend - d, dummy);
 	      s2 = SYNTAX (c2);
 
 	      if (/* Case 2: Only one of S1 and S2 is Sword.  */
@@ -5461,13 +5611,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      re_wchar_t c1, c2;
 	      int s1, s2;
+	      int dummy;
 #ifdef emacs
 	      int offset = PTR_TO_OFFSET (d);
 	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      PREFETCH ();
-	      c2 = RE_STRING_CHAR (d, dend - d);
+	      c2 = TARGET_CHAR_AND_LENGTH (d, dend - d, dummy);
 	      s2 = SYNTAX (c2);
 	
 	      /* Case 2: S2 is not Sword. */
@@ -5505,6 +5656,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      re_wchar_t c1, c2;
 	      int s1, s2;
+	      int dummy;
 #ifdef emacs
 	      int offset = PTR_TO_OFFSET (d) - 1;
 	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
@@ -5521,7 +5673,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      if (!AT_STRINGS_END (d))
 		{
 		  PREFETCH_NOLIMIT ();
-		  c2 = RE_STRING_CHAR (d, dend - d);
+		  c2 = TARGET_CHAR_AND_LENGTH (d, dend - d, dummy);
 #ifdef emacs
 		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
 #endif
@@ -5552,8 +5704,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    int len;
 	    re_wchar_t c;
 
-	    c = RE_STRING_CHAR_AND_LENGTH (d, dend - d, len);
-
+	    c = TARGET_CHAR_AND_LENGTH (d, dend - d, len);
 	    if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
 	      goto fail;
 	    d += len;
@@ -5589,7 +5740,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    int len;
 	    re_wchar_t c;
 
-	    c = RE_STRING_CHAR_AND_LENGTH (d, dend - d, len);
+	    c = TARGET_CHAR_AND_LENGTH (d, dend - d, len);
 
 	    if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
 	      goto fail;
@@ -5665,11 +5816,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (s1, s2, len, translate, multibyte)
+bcmp_translate (s1, s2, len, translate, target_multibyte)
      re_char *s1, *s2;
      register int len;
      RE_TRANSLATE_TYPE translate;
-     const int multibyte;
+     const int target_multibyte;
 {
   register re_char *p1 = s1, *p2 = s2;
   re_char *p1_end = s1 + len;
@@ -5682,8 +5833,8 @@ bcmp_translate (s1, s2, len, translate, multibyte)
       int p1_charlen, p2_charlen;
       re_wchar_t p1_ch, p2_ch;
 
-      p1_ch = RE_STRING_CHAR_AND_LENGTH (p1, p1_end - p1, p1_charlen);
-      p2_ch = RE_STRING_CHAR_AND_LENGTH (p2, p2_end - p2, p2_charlen);
+      p1_ch = TARGET_CHAR_AND_LENGTH (p1, p1_end - p1, p1_charlen);
+      p2_ch = TARGET_CHAR_AND_LENGTH (p2, p2_end - p2, p2_charlen);
 
       if (RE_TRANSLATE (translate, p1_ch)
 	  != RE_TRANSLATE (translate, p2_ch))
