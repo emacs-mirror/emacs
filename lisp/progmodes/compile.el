@@ -327,18 +327,24 @@ Returns the compilation buffer created."
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
-(defvar compilation-mode-map
+(defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
-    (define-key map " " 'scroll-up)
-    (define-key map "\^?" 'scroll-down)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     map)
-  "Keymap for compilation log buffers.")
+  "Keymap for compilation-minor-mode.")
+
+(defvar compilation-mode-map
+  (let ((map (cons 'keymap compilation-minor-mode-map)))
+    (define-key map " " 'scroll-up)
+    (define-key map "\^?" 'scroll-down)
+    map)
+  "Keymap for compilation log buffers.
+compilation-minor-mode-map is a cdr of this.")
 
 (defun compilation-mode ()
   "Major mode for compilation log buffers.
@@ -350,16 +356,43 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (interactive)
   (fundamental-mode)
   (use-local-map compilation-mode-map)
-  (setq major-mode 'compilation-mode)
-  (setq mode-name "Compilation")
-  ;; Make buffer's mode line show process state
+  (setq major-mode 'compilation-mode
+	mode-name "Compilation")
+  (compilation-setup)
+  (run-hooks 'compilation-mode-hook))
+
+;; Prepare the buffer for the compilation parsing commands to work.
+(defun compilation-setup ()
+  ;; Make the buffer's mode line show process state.
   (setq mode-line-process '(": %s"))
   (set (make-local-variable 'compilation-error-list) nil)
   (set (make-local-variable 'compilation-old-error-list) nil)
   (set (make-local-variable 'compilation-parsing-end) 1)
   (set (make-local-variable 'compilation-directory-stack) nil)
-  (setq compilation-last-buffer (current-buffer))
-  (run-hooks 'compilation-mode-hook))
+  (setq compilation-last-buffer (current-buffer)))
+
+(defvar compilation-minor-mode nil
+  "Non-nil when in compilation-minor-mode.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available.")
+
+(or (assq 'compilation-minor-mode minor-mode-alist)
+    (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
+				 minor-mode-alist)))
+(or (assq 'compilation-minor-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist (cons '(compilation-minor-mode
+				       . compilation-minor-mode-map)
+				     minor-mode-map-alist)))
+
+(defun compilation-minor-mode (&optional arg)
+  "Toggle compilation minor mode.
+With arg, turn compilation mode on if and only if arg is positive.
+See `compilation-mode'."
+  (interactive "P")
+  (if (setq compilation-minor-mode (if (null arg)
+				       (null compilation-minor-mode)
+				     (> (prefix-numeric-value arg) 0)))
+      (compilation-setup)))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
