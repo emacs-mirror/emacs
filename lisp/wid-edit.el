@@ -120,7 +120,12 @@ This exists as a variable so it can be set locally in certain buffers.")
   :type 'face
   :group 'widget-faces)
 
-(defface widget-field-face '((((class grayscale color)
+;; TTY gets special definitions here and in the next defface, because
+;; the gray colors defined for other displays cause black text on a black
+;; background, at least on light-background TTYs.
+(defface widget-field-face '((((type tty))
+			      (:background "yellow3"))
+			     (((class grayscale color)
 			       (background light))
 			      (:background "gray85"))
 			     (((class grayscale color)
@@ -131,7 +136,9 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for editable fields."
   :group 'widget-faces)
 
-(defface widget-single-line-field-face '((((class grayscale color)
+(defface widget-single-line-field-face '((((type tty))
+					  (:background "green3"))
+					 (((class grayscale color)
 					   (background light))
 					  (:background "gray85"))
 					 (((class grayscale color)
