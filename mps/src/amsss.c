@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.7) $
+ * $HopeName: MMsrc!amsss.c(trunk.8) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
@@ -72,7 +72,7 @@ static void *test(void *arg, size_t s)
   mps_fmt_t format;
   mps_root_t exactRoot, ambigRoot;
   size_t lastStep = 0;
-  unsigned long i;
+  size_t objs, i, r;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
@@ -105,38 +105,39 @@ static void *test(void *arg, size_t s)
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
-  i = 0;
+  objs = 0;
   while(totalSize < totalSizeMAX) {
-    size_t r;
-
     if(totalSize > lastStep + totalSizeSTEP) {
       lastStep = totalSize;
       printf("\nSize %lu bytes, %lu objects.\n",
-             (unsigned long)totalSize, i);
+             (unsigned long)totalSize, objs);
       fflush(stdout);
-      for(r = 0; r < exactRootsCOUNT; ++r)
-        assert(exactRoots[r] == objNULL ||
-               dylan_check(exactRoots[r]));
+      for(i = 0; i < exactRootsCOUNT; ++i)
+        assert(exactRoots[i] == objNULL ||
+               dylan_check(exactRoots[i]));
     }
 
-    if(rnd() & 1)
-      exactRoots[rnd() % exactRootsCOUNT] = make();
-    else
-      ambigRoots[rnd() % ambigRootsCOUNT] = make();
-
-    /* Create random interior pointers */
-    r = rnd() % ambigRootsCOUNT;
-    ambigRoots[r] = (mps_addr_t)((char *)(ambigRoots[r/2]) + 1);
-
-    r = rnd() % exactRootsCOUNT;
-    if(exactRoots[r] != objNULL)
-      assert(dylan_check(exactRoots[r]));
+    r = (size_t)rnd();
+    if(r & 1) {
+      i = (r >> 1) % exactRootsCOUNT;
+      if(exactRoots[i] != objNULL)
+        assert(dylan_check(exactRoots[i]));
+      exactRoots[i] = make();
+      if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+        dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
+                    exactRoots, exactRootsCOUNT);
+    } else {
+      i = (r >> 1) % ambigRootsCOUNT;
+      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
+      /* Create random interior pointers */
+      ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
+    }
 
     if(rnd() % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
-    ++i;
-    if (i % 256 == 0) {
+    ++objs;
+    if (objs % 256 == 0) {
       printf(".");
       fflush(stdout);
     }
