@@ -412,7 +412,7 @@ Return the sequence's length."
 Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
   (save-excursion
     (while (and (skip-chars-forward
-		 (eval-and-compile	; missing optimization
+		 (eval-when-compile	; missing optimization
 		   (string-as-multibyte "^\341-\377")))
 		(not (eobp)))
       (forward-char (utf-8-compose))))
