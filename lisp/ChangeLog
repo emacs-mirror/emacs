@@ -1,3 +1,9 @@
+2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (encoding-vector, mac-font-encoder-list)
+	(ccl-encode-mac-centraleurroman-font): Use centraleurroman
+	instead of centraleuropean as the name
+
 2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.46.

@@ -1,3 +1,10 @@
+2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (endif, x_font_name_to_mac_font_name): Use
+	maccentraleurroman instead of maccentraleuropean
+	(mac_c_string_match, mac_do_list_fonts): Speed up font search by
+	quickly finding a specific font without needing regexps.
+
 2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* syssignal.h: Declare main_thread.
