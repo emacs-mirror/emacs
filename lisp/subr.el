@@ -1486,17 +1486,17 @@ If DIR-FLAG is non-nil, create a new empty directory instead of a file."
     file))
 
 
-(defun add-minor-mode (symbol name map)
+(defun add-minor-mode (symbol name &optional map)
   "Register a new minor mode.
 SYMBOL is the name of a buffer-local variable that is toggled on
 or off to say whether the minor mode is active or not.  NAME is the
 string that will appear in the mode line when the minor mode is
-active.  MAP is the keymap for the minor mode."
+active.  Optional MAP is the keymap for the minor mode."
   (make-local-variable symbol)
   (setq symbol t)
   (unless (assq symbol minor-mode-alist)
     (add-to-list 'minor-mode-alist (list symbol name)))
-  (unless (assq symbol minor-mode-map-alist)
+  (when (and map (not (assq symbol minor-mode-map-alist)))
     (add-to-list 'minor-mode-map-alist (cons symbol map))))
 
 
