@@ -751,7 +751,8 @@ original copy."
       ;; Don't sort here.
       (let ((files (directory-files start t
 				    rmail-secondary-file-regexp t))
-	    (ret nil))
+	    (ret nil)
+	    file)
 	(while files
 	  (setq file (car files))
 	  (setq files (cdr files))
@@ -840,12 +841,10 @@ It returns t if it got any new messages."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
+  ;; If the disk file has been changed from under us,
+  ;; revert to it before we get new mail.
   (or (verify-visited-file-modtime (current-buffer))
-      (progn
-	(find-file (buffer-file-name))
-	(setq buffer-read-only t)
-	(if (verify-visited-file-modtime (current-buffer))
-	    (rmail-forget-messages))))
+      (find-file (buffer-file-name)))
   (rmail-maybe-set-message-counters)
   (widen)
   ;; Get rid of all undo records for this buffer.
@@ -2280,9 +2279,19 @@ typically for purposes of moderating a list."
 	    ;; Expand abbrevs in the recipients.
 	    (save-excursion
 	      (if (featurep 'mailabbrev)
-		  (progn
-		    (mail-abbrevs-setup)
-		    (expand-region-abbrevs before (point) t))
+		  (let ((end (point-marker))
+			(local-abbrev-table mail-abbrevs)
+			(old-syntax-table (syntax-table)))
+		    (if (and (not (vectorp mail-abbrevs))
+			     (file-exists-p mail-personal-alias-file))
+			(build-mail-abbrevs))
+		    (set-syntax-table mail-abbrev-syntax-table)
+		    (goto-char before)
+		    (while (and (< (point) end)
+				(progn (forward-word 1)
+				       (<= (point) end)))
+		      (expand-abbrev))
+		    (set-syntax-table old-syntax-table))
 		(expand-mail-aliases before (point)))))
 	  ;;>> Set up comment, if any.
 	  (if (and (sequencep comment) (not (zerop (length comment))))
