@@ -1,7 +1,5 @@
-;; -*- coding: cyrillic-koi8; -*-
-Copyright (c) 1985, 1996 Free Software Foundation, Inc. See end for conditions.
-
-Вы читаете учебник Emacs.
+Вы читаете учебник Emacs.  Условия копирования в конце файла.
+Copyright (c) 1985, 1996, 2004 Free Software Foundation, Inc.
 
 Для управления Emacs обычно используется ключ (сочетание клавиш клавиатуры
 и/или кнопок мыши), включающий в себя клавишу CONTROL (иногда отмечаемая
@@ -1078,5 +1076,10 @@ Copyright (c) 1985, 1996 Free Software Foundation
 // Alex Ott.
 // Большое спасибо Владимиру Бормотову, на базе перевода которого был сделан
 // этот перевод
+
+;;; Local Variables:
+;;; coding: cyrillic-koi8
+;;; sentence-end-double-space: nil
+;;; End:
 
 ;;; arch-tag: ad4e5698-ea8b-45b7-b236-ed5ad5b72d2b
