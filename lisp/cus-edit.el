@@ -1993,9 +1993,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;; the global custom one
 (defun custom-comment-show (widget)
   (widget-put widget :comment-shown t)
-  (trace-to-stderr (format "1: %s\n" (widget-value widget)))
   (custom-redraw widget)
-  (trace-to-stderr (format "2: %s\n" (widget-value widget)))
   (widget-setup))
 
 (defun custom-comment-invisible-p (widget)
