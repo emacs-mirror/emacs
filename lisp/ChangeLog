@@ -1,3 +1,20 @@
+2004-11-28  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-windows-highlight): Attach each overlay
+	to its window to properly highlight differences while comparing
+	two windows of the same buffer.  Fix arguments.
+	(compare-windows-sync-default-function): Fix arguments of
+	`compare-windows-highlight'.
+
+	* emacs-lisp/edebug.el (edebug-set-global-break-condition):
+	Use `read-expression-history'.  Set initial contents only if
+	`edebug-global-break-condition' is non-nil.  Set histpos to 1
+	if initial contents is equal to the last history element.
+	(edebug-set-conditional-breakpoint): Instead of temporarily
+	prepending the current condition to the history, set initial
+	contents to the current condition.  Set histpos to 1 if initial
+	contents is equal to the last history element.
+
 2004-11-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fringe.el (fringe-indicators): Add fake defvar to avoid compiler
