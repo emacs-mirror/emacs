@@ -1,6 +1,6 @@
 /* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
  *
- * $HopeName$
+ * $HopeName: MMsrc!fmtdytst.c(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers, Dylan developers
@@ -17,7 +17,15 @@
 /* windows.h causes warnings about "unreferenced inline function */
 /* has been removed". */
 #pragma warning(disable: 4514)
-#endif
+#endif /* MPS_BUILD_MV */
+
+#ifdef MPS_PF_SUS8LC
+/* .hack.malloc: builder.lc (LCC) uses Sun's header files.  Sun's
+ * stdlib.h is broken, as it has an incorrect declaration of malloc.
+ * We fix that here in a very hacky way.
+ */
+#define malloc(x) (void *)malloc(x)
+#endif /* MPS_PF_SUS8LC */
 
 
 static mps_word_t *ww = NULL;
