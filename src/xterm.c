@@ -305,7 +305,7 @@ static Lisp_Object Qvendor_specific_keysyms;
 static Lisp_Object Qlatin_1;
 
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-
+extern int x_bitmap_mask P_ ((FRAME_PTR, int));
 
 static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
 static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
