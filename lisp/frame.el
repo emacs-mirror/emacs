@@ -1191,9 +1191,8 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-variable-buffer-local 'show-trailing-whitespace)
 
 (defcustom show-trailing-whitespace nil
-  "*Non-nil means highlight trailing whitespace in face `trailing-whitespace'.
-
-Setting this variable makes it local to the current buffer."
+  "*Non-nil means highlight trailing whitespace.
+This is done in the face `trailing-whitespace'."
   :tag "Highlight trailing whitespace."
   :type 'boolean
   :group 'font-lock)
