@@ -1232,7 +1232,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	    ["Faces" (describe-variable 'cperl-tips-faces) t]
 	    ["CPerl mode" (describe-function 'cperl-mode) t]
 	    ["CPerl version"
-	     (message "The version of master-file for this CPerl is %s"
+	     (message "The version of master-file for this CPerl is %s-emacs"
 		      cperl-version) t]))))
   (error nil))
 
