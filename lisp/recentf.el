@@ -141,18 +141,13 @@ displayed in the menu and must return a new list of filenames."
   "*If nil (default), non-readable files are not kept in `recentf-list'."
   :group 'recentf
   :type 'boolean
-
-(defcustom recentf-keep-non-readable-files-p nil
-  "*If nil (default), non-readable files are not kept in `recentf-list'."
-  :group 'recentf
-  :type 'boolean
   :require 'recentf
   :initialize 'custom-initialize-default
   :set  (lambda (sym val)
 	  (if val
 	      (remove-hook 'kill-buffer-hook 'recentf-remove-file-hook)
 	    (add-hook 'kill-buffer-hook 'recentf-remove-file-hook))
-	  (custom-set-default sym val))))
+	  (custom-set-default sym val)))
 
 (defcustom recentf-mode nil
   "Toggle recentf mode.
