@@ -1,0 +1,135 @@
+#!/usr/local/perl
+#
+# provides subroutines to run tests and testsets
+#
+
+1;
+
+# general routines first
+
+# file, "yes", "result" for try
+# file, "no", "full" for run
+
+sub run_exe {
+ local ($exefile, $interact, $report_type) = @_;
+
+ &log_system($exefile, $interact, $testlogfile);
+ &read_results($testlogfile);
+ &verdict;
+}
+
+sub clib {
+ local ($success) = (1);
+
+ &logcomment("Compiling test libraries from $testlib_dir.");
+
+ open(MANIFEST, "$testlib_dir/manifest");
+ &compiler_settings;
+ while ($tlfile = <MANIFEST>) {
+  chop($tlfile);
+  $tlfile = $testlib_dir."/".$tlfile;
+  $tlobj = $tlfile;
+  $tlobj =~ s/\.c/$obj_suffix/;
+  $tlobj =~ s/$testlib_dir/$obj_dir/;
+
+  if (&compile($tlfile, $tlobj)) {
+  } else {
+   $success = 0;
+   &logcomment(" failed on %tlfile.");
+  }
+ }
+ close(MANIFEST);
+ $success;
+}
+
+sub try_test {
+ local ($testfile) = @_;
+
+ &readheader($testfile);
+ unless ($test_header{"language"} eq "c") {
+  die "Don't know how to try test in this language.\n";
+ }
+
+ $linkfiles = $test_header{"link"};
+ $objfile = "$obj_dir/tmp_test";
+
+ unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
+  die "Compilation failed on test ".$testfile.".\n";
+ }
+
+ &log_system($objfile, "yes", "no");
+}
+
+sub run_test {
+ local ($testfile, $interact, $report_type) = @_;
+
+ &readheader($testfile);
+ unless ($test_header{"language"} eq "c") {
+  die "Don't know how to run test in this language.\n";
+ }
+
+ $linkfiles = $test_header{"link"};
+ $objfile = "$obj_dir/tmp_test";
+
+ unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
+  die "Compilation failed on test ".$testfile.".\n";
+ }
+ $testlogfile = "$obj_dir/tmp_log.log";
+ &run_exe($objfile, $interact);
+ &describe_test($report_type);
+}
+
+sub run_from_testset {
+ local ($testfile) = @_;
+
+ &readheader($testfile);
+ unless ($test_header{"language"} eq "c") {
+  &logcomment("Skipping test $testfile: don't know how to run it.");
+ } else {
+  $linkfiles = $test_header{"link"};
+  $objfile = "$obj_dir/tmp_test";
+  $testlogfile = "$obj_dir/tmp_log.log";
+
+  unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
+   &logcomment("Compilation failed on $testfile.");
+  } else {
+   &run_exe($objfile, "no");
+   &describe_test("summary");
+   &describe_test("summary", LOG_SUMMARY);
+   &describe_test("results", LOG_RESULTS);
+   &describe_test("full", LOG_FULL);
+  }
+ }
+}
+
+sub run_testset {
+ local ($testsetfile, $logsummfile, $logresfile, $logfullfile) = @_;
+
+ open(TESTSET, $testsetfile) ||
+  die "Failed to open testset $testsetfile.";
+
+ &ensuredir($LOG_DIR);
+
+ open(LOG_SUMMARY, ">".$logsummfile);
+ open(LOG_RESULTS, ">".$logresfile);
+ open(LOG_FULL,    ">".$logfullfile);
+ @LOG_FILES = (STDOUT, LOG_SUMMARY, LOG_RESULTS, LOG_FULL);
+ &logcomment("Test set $testsetfile");
+ &logcomment("");
+
+ unless (&clib) {
+  &logcomment("Failed to compile libraries.");
+ } else {
+  while (<TESTSET>) {
+   unless (/(^%)|(^\s*$)/) {
+    chop;
+    &run_from_testset($_);
+   }
+  }
+ }
+
+ close(LOG_SUMMARY);
+ close(LOG_RESULTS);
+ close(LOG_FULL);
+}
+ 
