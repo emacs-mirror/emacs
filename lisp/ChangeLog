@@ -1,5 +1,8 @@
 2005-03-31  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/autoload.el (make-autoload):
+	Handle define-global-minor-mode.
+
 	* emacs-lisp/easy-mmode.el (define-global-minor-mode):
 	Renamed from easy-mmode-define-global-mode.
 	(easy-mmode-define-global-mode): Alias for define-global-minor-mode.
