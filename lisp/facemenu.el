@@ -516,14 +516,18 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list
 of colors that the current display can handle."
   (interactive)
-  (when (null list)
+  (when (and (null list) (> (display-color-cells) 0))
     (setq list (defined-colors))
     ;; Delete duplicate colors.
     (let ((l list))
       (while (cdr l)
 	(if (facemenu-color-equal (car l) (car (cdr l)))
 	    (setcdr l (cdr (cdr l)))
-	  (setq l (cdr l))))))
+	  (setq l (cdr l)))))
+    ;; Don't show more than what the display can handle.
+    (let ((lc (nthcdr (1- (display-color-cells)) list)))
+      (if lc
+	  (setcdr lc nil))))
   (with-output-to-temp-buffer "*Colors*"
     (save-excursion
       (set-buffer standard-output)
