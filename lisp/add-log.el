@@ -52,13 +52,6 @@ This defaults to the value of `user-mail-address'.")
     ("(\\([^)\n]+\\)):" 1 font-lock-keyword-face))	; Function name.
   "Additional expressions to highlight in Change Log mode.")
 
-(defvar change-log-mode-map nil
-  "Keymap for Change Log major mode.")
-(if change-log-mode-map
-    nil
-  (setq change-log-mode-map (make-sparse-keymap))
-  (define-key change-log-mode-map "\M-q" 'change-log-fill-paragraph))
-
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
@@ -283,9 +276,10 @@ Runs `change-log-mode-hook'."
 	mode-name "Change Log"
 	left-margin 8
 	fill-column 74
-    indent-tabs-mode t
-    tab-width 8)
-  (use-local-map change-log-mode-map)
+	indent-tabs-mode t
+	tab-width 8)
+  (set (make-local-variable 'fill-paragraph-function)
+       'change-log-fill-paragraph)
   ;; Let each entry behave as one paragraph:
   ;; We really do want "^" in paragraph-start below: it is only the lines that
   ;; begin at column 0 (despite the left-margin of 8) that we are looking for.
