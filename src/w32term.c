@@ -1284,7 +1284,10 @@ w32_cache_char_metrics (font)
     }
   else
     {
-      if ((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH) != 0)
+      if (((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH) != 0)
+          /* Some fonts (eg DBCS fonts) are marked as fixed width even
+             though they contain characters of different widths. */
+          || (font->tm.tmMaxCharWidth != font->tm.tmAveCharWidth))
 	{
 	  /* Font is not fixed pitch, so cache per_char info for the
              ASCII characters.  It would be much more work, and probably
