@@ -318,16 +318,16 @@ This should be bound to a down-mouse event."
 		  (let ((end-row (cdr (cdr (mouse-position)))))
 		    (cond
 		     ((and end-row (not (bobp)) (< end-row top))
-		      (mouse-scroll-subr (- end-row top)
+		      (mouse-scroll-subr orig-window (- end-row top)
 					 mouse-drag-overlay max))
 		     ((and end-row (not (eobp)) (>= end-row bottom))
-		      (mouse-scroll-subr (1+ (- end-row bottom))
+		      (mouse-scroll-subr orig-window (1+ (- end-row bottom))
 					 mouse-drag-overlay min))
 		     )))
 
 		 ;; On the mode line
 		 ((eq (posn-point end) 'mode-line)
-		  (mouse-scroll-subr 1 mouse-drag-overlay min))
+		  (mouse-scroll-subr orig-window 1 mouse-drag-overlay min))
 
 		 ;; In original window
 		 (t (goto-char (posn-point end)))
