@@ -405,9 +405,11 @@ static unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
 						unsigned));
 static int fast_find_position P_ ((struct window *, int, int *, int *,
 				   int *, int *));
+static int fast_find_string_pos P_ ((struct window *, int, Lisp_Object,
+				     int *, int *, int *, int *, int));
 static void set_output_cursor P_ ((struct cursor_pos *));
 static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
-					   int *, int *, int *));
+					   int *, int *, int *, int));
 static void note_mode_line_highlight P_ ((struct window *, int, int));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
 static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
@@ -6446,10 +6448,11 @@ note_mouse_movement (frame, event)
    date.  */
 
 static struct glyph *
-x_y_to_hpos_vpos (w, x, y, hpos, vpos, area)
+x_y_to_hpos_vpos (w, x, y, hpos, vpos, area, buffer_only_p)
      struct window *w;
      int x, y;
      int *hpos, *vpos, *area;
+     int buffer_only_p;
 {
   struct glyph *glyph, *end;
   struct glyph_row *row = NULL;
@@ -6507,7 +6510,7 @@ x_y_to_hpos_vpos (w, x, y, hpos, vpos, area)
 	{
 	  if (w->pseudo_window_p)
 	    break;
-	  else if (BUFFERP (glyph->object))
+	  else if (!buffer_only_p || BUFFERP (glyph->object))
 	    break;
 	}
       
@@ -6710,9 +6713,10 @@ note_mouse_highlight (f, x, y)
     {
       int hpos, vpos, pos, i, area;
       struct glyph *glyph;
+      Lisp_Object object;
 
       /* Find the glyph under X/Y.  */
-      glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, &area);
+      glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, &area, 0);
 
       /* Clear mouse face if X/Y not over text.  */
       if (glyph == NULL
@@ -6724,18 +6728,19 @@ note_mouse_highlight (f, x, y)
 	}
 
       pos = glyph->charpos;
-      xassert (w->pseudo_window_p || BUFFERP (glyph->object));
+      object = glyph->object;
+      if (!STRINGP (object) && !BUFFERP (object))
+	return;
 
-      /* Check for mouse-face and help-echo.  */
       {
-	Lisp_Object mouse_face = Qnil, overlay, position;
-	Lisp_Object *overlay_vec;
+	Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
+	Lisp_Object *overlay_vec = NULL;
 	int len, noverlays;
 	struct buffer *obuf;
 	int obegv, ozv;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
-	if (pos > BUF_Z (XBUFFER (w->buffer)))
+	if (BUFFERP (object) && pos > BUF_Z (XBUFFER (w->buffer)))
 	  return;
 
 	/* Make the window's buffer temporarily current for
@@ -6748,23 +6753,28 @@ note_mouse_highlight (f, x, y)
 	ZV = Z;
 
 	/* Is this char mouse-active or does it have help-echo?  */
-	XSETINT (position, pos);
+	position = make_number (pos);
 
-	/* Put all the overlays we want in a vector in overlay_vec.
-	   Store the length in len.  If there are more than 10, make
-	   enough space for all, and try again.  */
-	len = 10;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	if (noverlays > len)
+	if (BUFFERP (object))
 	  {
-	    len = noverlays;
+	    /* Put all the overlays we want in a vector in overlay_vec.
+	       Store the length in len.  If there are more than 10, make
+	       enough space for all, and try again.  */
+	    len = 10;
 	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
-	  }
+	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
+	    if (noverlays > len)
+	      {
+		len = noverlays;
+		overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+		noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
+	      }
 
-	/* Sort overlays into increasing priority order.  */
-	noverlays = sort_overlays (overlay_vec, noverlays, w);
+	    /* Sort overlays into increasing priority order.  */
+	    noverlays = sort_overlays (overlay_vec, noverlays, w);
+	  }
+	else
+	  noverlays = 0;
 
 	/* Check mouse-face highlighting.  */
 	if (! (EQ (window, dpyinfo->mouse_face_window)
@@ -6786,24 +6796,21 @@ note_mouse_highlight (f, x, y)
 	    /* Clear the display of the old active region, if any.  */
 	    clear_mouse_face (dpyinfo);
 
-	    /* Find the highest priority overlay that has a mouse-face prop.  */
+	    /* Find the highest priority overlay that has a mouse-face
+	       property.  */
 	    overlay = Qnil;
-	    for (i = noverlays - 1; i >= 0; --i)
+	    for (i = noverlays - 1; i >= 0 && NILP (overlay); --i)
 	      {
 		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
 		if (!NILP (mouse_face))
-		  {
-		    overlay = overlay_vec[i];
-		    break;
-		  }
+		  overlay = overlay_vec[i];
 	      }
-
-	    /* If no overlay applies, get a text property.  */
-	    if (NILP (overlay))
-	      mouse_face = Fget_text_property (position, Qmouse_face, w->buffer);
-
 	    dpyinfo->mouse_face_overlay = overlay;
 	    
+	    /* If no overlay applies, get a text property.  */
+	    if (NILP (overlay))
+	      mouse_face = Fget_text_property (position, Qmouse_face, object);
+
 	    /* Handle the overlay case.  */
 	    if (!NILP (overlay))
 	      {
@@ -6835,7 +6842,7 @@ note_mouse_highlight (f, x, y)
 		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	      }
 	    /* Handle the text property case.  */
-	    else if (! NILP (mouse_face))
+	    else if (!NILP (mouse_face) && BUFFERP (object))
 	      {
 		/* Find the range of text around this char that
 		   should be active.  */
@@ -6843,15 +6850,16 @@ note_mouse_highlight (f, x, y)
 		int ignore;
 
 		beginning = Fmarker_position (w->start);
-		XSETINT (end, (BUF_Z (XBUFFER (w->buffer))
-			       - XFASTINT (w->window_end_pos)));
+		end = make_number (BUF_Z (XBUFFER (object))
+				   - XFASTINT (w->window_end_pos));
 		before
 		  = Fprevious_single_property_change (make_number (pos + 1),
 						      Qmouse_face,
-						      w->buffer, beginning);
+						      object, beginning);
 		after
 		  = Fnext_single_property_change (position, Qmouse_face,
-						  w->buffer, end);
+						  object, end);
+		
 		/* Record this as the current active region.  */
 		fast_find_position (w, XFASTINT (before),
 				    &dpyinfo->mouse_face_beg_col,
@@ -6865,11 +6873,44 @@ note_mouse_highlight (f, x, y)
 					 &dpyinfo->mouse_face_end_x,
 					 &dpyinfo->mouse_face_end_y);
 		dpyinfo->mouse_face_window = window;
-		dpyinfo->mouse_face_face_id
-		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+
+		if (BUFFERP (object))
+		  dpyinfo->mouse_face_face_id
+		    = face_at_buffer_position (w, pos, 0, 0,
+					       &ignore, pos + 1, 1);
 
 		/* Display it as active.  */
+		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+	      }
+	    else if (!NILP (mouse_face) && STRINGP (object))
+	      {
+		Lisp_Object b, e;
+		int ignore;
+		
+		b = Fprevious_single_property_change (make_number (pos + 1),
+						      Qmouse_face,
+						      object, Qnil);
+		e = Fnext_single_property_change (position, Qmouse_face,
+						  object, Qnil);
+		if (NILP (b))
+		  b = make_number (0);
+		if (NILP (e))
+		  e = make_number (XSTRING (object)->size) - 1;
+		fast_find_string_pos (w, XINT (b), object,
+				      &dpyinfo->mouse_face_beg_col,
+				      &dpyinfo->mouse_face_beg_row,
+				      &dpyinfo->mouse_face_beg_x,
+				      &dpyinfo->mouse_face_beg_y, 0);
+		fast_find_string_pos (w, XINT (e), object,
+				      &dpyinfo->mouse_face_end_col,
+				      &dpyinfo->mouse_face_end_row,
+				      &dpyinfo->mouse_face_end_x,
+				      &dpyinfo->mouse_face_end_y, 1);
+		dpyinfo->mouse_face_past_end = 0;
+		dpyinfo->mouse_face_window = window;
+		dpyinfo->mouse_face_face_id
+		  = face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
+					     glyph->face_id, 1);
 		show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	      }
 	  }
@@ -6969,7 +7010,7 @@ x_tool_bar_item (f, x, y, glyph, hpos, vpos, prop_idx)
   int area;
 
   /* Find the glyph under X/Y.  */
-  *glyph = x_y_to_hpos_vpos (w, x, y, hpos, vpos, &area);
+  *glyph = x_y_to_hpos_vpos (w, x, y, hpos, vpos, &area, 0);
   if (*glyph == NULL)
     return -1;
 
@@ -7167,7 +7208,7 @@ fast_find_position (w, pos, hpos, vpos, x, y)
   int maybe_next_line_p = 0;
   int line_start_position;
   int yb = window_text_bottom_y (w);
-  struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0);
+  struct glyph_row *row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   struct glyph_row *best_row = row;
   int row_vpos = 0, best_row_vpos = 0;
   int current_x;
@@ -7243,6 +7284,88 @@ fast_find_position (w, pos, hpos, vpos, x, y)
   *x = current_x;
   *y = best_row->y;
   return 0;
+}
+
+
+/* Find the position of the the glyph for position POS in OBJECT in
+   window W's current matrix, and return in *X/*Y the pixel
+   coordinates, and return in *HPOS/*VPOS the column/row of the glyph.
+
+   RIGHT_P non-zero means return the position of the right edge of the
+   glyph, RIGHT_P zero means return the left edge position.
+
+   If no glyph for POS exists in the matrix, return the position of
+   the glyph with the next smaller position that is in the matrix, if
+   RIGHT_P is zero.  If RIGHT_P is non-zero, and no glyph for POS
+   exists in the matrix, return the position of the glyph with the
+   next larger position in OBJECT.
+
+   Value is non-zero if a glyph was found.  */
+
+static int
+fast_find_string_pos (w, pos, object, hpos, vpos, x, y, right_p)
+     struct window *w;
+     int pos;
+     Lisp_Object object;
+     int *hpos, *vpos, *x, *y;
+     int right_p;
+{
+  int yb = window_text_bottom_y (w);
+  struct glyph_row *r;
+  struct glyph *best_glyph = NULL;
+  struct glyph_row *best_row = NULL;
+  int best_x = 0;
+
+  for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+       r->enabled_p && r->y < yb;
+       ++r)
+    {
+      struct glyph *g = r->glyphs[TEXT_AREA];
+      struct glyph *e = g + r->used[TEXT_AREA];
+      int gx;
+
+      for (gx = r->x; g < e; gx += g->pixel_width, ++g)
+	if (EQ (g->object, object))
+	  {
+	    if (g->charpos == pos)
+	      {
+		best_glyph = g;
+		best_x = gx;
+		best_row = r;
+		goto found;
+	      }
+	    else if (best_glyph == NULL
+		     || ((abs (g->charpos - pos)
+			 < abs (best_glyph->charpos - pos))
+			 && (right_p
+			     ? g->charpos < pos
+			     : g->charpos > pos)))
+	      {
+		best_glyph = g;
+		best_x = gx;
+		best_row = r;
+	      }
+	  }
+    }
+
+ found:
+
+  if (best_glyph)
+    {
+      *x = best_x;
+      *hpos = best_glyph - best_row->glyphs[TEXT_AREA];
+
+      if (right_p)
+	{
+	  *x += best_glyph->pixel_width;
+	  ++*hpos;
+	}
+      
+      *y = best_row->y;
+      *vpos = best_row - w->current_matrix->rows;
+    }
+
+  return best_glyph != NULL;
 }
 
 
