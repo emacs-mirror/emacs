@@ -522,7 +522,7 @@ the user from the mailer."
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
 	    (if (not (re-search-forward "^From:" delimline t))
-		(let* ((login (user-login-name))
+		(let* ((login user-mail-address)
 		       (fullname (user-full-name)))
 		  (cond ((eq mail-from-style 'angles)
 			 (insert "From: " fullname)
