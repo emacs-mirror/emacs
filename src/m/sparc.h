@@ -106,7 +106,6 @@ NOTE-END  */
 
 #ifdef __arch64__		/* GCC, 64-bit ABI.  */
 #define BITS_PER_LONG 64
-#define BITS_PER_EMACS_INT 64
 #ifndef _LP64
 #define _LP64			/* Done on Alpha -- not sure if it
 				   should be here.  -- fx */
