@@ -1415,7 +1415,8 @@ single_submenu (item_key, item_name, maps)
 
 extern void EmacsFrameSetCharSize ();
 
-/* Recompute the menu bar of frame F.  */
+/* Recompute all the widgets of frame F, when the menu bar
+   has been changed.  */
 
 static void
 update_frame_menubar (f)
@@ -1472,6 +1473,10 @@ update_frame_menubar (f)
 
   UNBLOCK_INPUT;
 }
+
+/* Set the contents of the menubar widgets of frame F.
+   The argument FIRST_TIME is currently ignored;
+   it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
 set_frame_menubar (f, first_time)
@@ -1586,9 +1591,7 @@ set_frame_menubar (f, first_time)
   
   free_menubar_widget_value_tree (first_wv);
 
-  /* Don't update the menubar the first time it is created via x_window.  */
-  if (!first_time)
-    update_frame_menubar (f);
+  update_frame_menubar (f);
 
   UNBLOCK_INPUT;
 }
