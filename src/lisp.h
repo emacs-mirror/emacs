@@ -1396,6 +1396,7 @@ extern unsigned long cons_to_long ();
 extern void args_out_of_range ();
 extern void args_out_of_range_3 ();
 extern Lisp_Object wrong_type_argument ();
+extern void store_symval_forwarding ();
 #ifdef LISP_FLOAT_TYPE
 extern Lisp_Object Ffloat_to_int(), Fint_to_float();
 extern double extract_float();
