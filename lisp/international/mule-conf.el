@@ -303,7 +303,7 @@
       coding-category-iso-7	'iso-2022-7
       coding-category-iso-8-1	'iso-8859-1
       coding-category-iso-8-2	'iso-8859-1
-      coding-category-iso-else	'iso-8859-1
+      coding-category-iso-else	'iso-2022-lock
       coding-category-big5	'big5
       coding-category-binary	'no-conversion)
 
@@ -312,9 +312,9 @@
    coding-category-iso-8-1
    coding-category-iso-8-2
    coding-category-iso-else
+   coding-category-emacs-mule
    coding-category-sjis 
    coding-category-big5
-   coding-category-binary
-   coding-category-emacs-mule))
+   coding-category-binary))
 
 ;;; mule-conf.el ends here
