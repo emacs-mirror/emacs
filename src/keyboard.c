@@ -3465,7 +3465,7 @@ parse_modifiers (symbol)
   else
     {
       int end;
-      int modifiers = parse_modifiers_uncached (symbol, &end);
+      EMACS_INT modifiers = parse_modifiers_uncached (symbol, &end);
       Lisp_Object unmodified;
       Lisp_Object mask;
 
