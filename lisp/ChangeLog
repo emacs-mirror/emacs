@@ -1,3 +1,8 @@
+2002-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (clone-indirect-buffer-other-window): Fix a typo in
+	`popup-windows'.
+
 2002-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* menu-bar.el (menu-bar-goto-menu): Fix bindings for next-tag and
