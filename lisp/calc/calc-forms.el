@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-forms () nil)
-
 
 (defun calc-time ()
   (interactive)
@@ -1857,6 +1853,8 @@ and ends on the last Sunday of October at 2 a.m."
     (setq math-exp-pos (1+ last))
     (math-read-token)
     res))
+
+(provide 'calc-forms)
 
 ;;; arch-tag: a3d8f33b-9508-4043-8060-d02b8c9c750c
 ;;; calc-forms.el ends here
