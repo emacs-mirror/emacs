@@ -167,12 +167,29 @@ Commands:
     (and (symbolp type)
 	 (memq 'down (event-modifiers type))
 	 (read-event)))
-  (let ((defn (key-binding key)))
-    (if (or (null defn) (integerp defn))
-        (message "%s is undefined" (key-description key))
-      (message "%s runs the command %s"
-	       (key-description key)
-	       (if (symbolp defn) defn (prin1-to-string defn))))))
+  (save-excursion
+    (let ((modifiers (event-modifiers (aref key 0)))
+	  window position)
+      ;; For a mouse button event, go to the button it applies to
+      ;; to get the right key bindings.  And go to the right place
+      ;; in case the keymap depends on where you clicked.
+      (if (or (memq 'click modifiers) (memq 'down modifiers)
+	      (memq 'drag modifiers))
+	  (setq window (posn-window (event-start (aref key 0)))
+		position (posn-point (event-start (aref key 0)))))
+      (if (windowp window)
+	  (progn
+	    (set-buffer (window-buffer window))
+	    (goto-char position)))
+      ;; Ok, now look up the key and name the command.
+      (let ((defn (key-binding key)))
+	(if (or (null defn) (integerp defn))
+	    (message "%s is undefined" (key-description key))
+	  (message (if (windowp window)
+		       "%s at that spot runs the command %s"
+		     "%s runs the command %s")
+		   (key-description key)
+		   (if (symbolp defn) defn (prin1-to-string defn))))))))
 
 (defun print-help-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
@@ -255,19 +272,37 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
     (and (symbolp type)
 	 (memq 'down (event-modifiers type))
 	 (read-event)))
-  (let ((defn (key-binding key)))
-    (if (or (null defn) (integerp defn))
-        (message "%s is undefined" (key-description key))
-      (with-output-to-temp-buffer "*Help*"
-	(prin1 defn)
-	(princ ":\n")
-	(if (documentation defn)
-	    (princ (documentation defn))
-	  (princ "not documented"))
-	(save-excursion
-	  (set-buffer standard-output)
-	  (help-mode))
-	(print-help-return-message)))))
+  (save-excursion
+    (let ((modifiers (event-modifiers (aref key 0)))
+	  window position)
+      ;; For a mouse button event, go to the button it applies to
+      ;; to get the right key bindings.  And go to the right place
+      ;; in case the keymap depends on where you clicked.
+      (if (or (memq 'click modifiers) (memq 'down modifiers)
+	      (memq 'drag modifiers))
+	  (setq window (posn-window (event-start (aref key 0)))
+		position (posn-point (event-start (aref key 0)))))
+      (if (windowp window)
+	  (progn
+	    (set-buffer (window-buffer window))
+	    (goto-char position)))
+      (let ((defn (key-binding key)))
+	(if (or (null defn) (integerp defn))
+	    (message "%s is undefined" (key-description key))
+	  (with-output-to-temp-buffer "*Help*"
+	    (princ (key-description key))
+	    (if (windowp window)
+		(princ " at that spot"))
+	    (princ " runs the command ")
+	    (prin1 defn)
+	    (princ ":\n")
+	    (if (documentation defn)
+		(princ (documentation defn))
+	      (princ "not documented"))
+	    (save-excursion
+	      (set-buffer standard-output)
+	      (help-mode))
+	    (print-help-return-message)))))))
 
 (defun describe-mode ()
   "Display documentation of current major mode and minor modes.
