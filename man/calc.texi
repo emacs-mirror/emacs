@@ -29881,6 +29881,17 @@ Note that @kbd{M-# e} is not to be used in the Calc stack buffer
 like most Calc commands, but rather in regular editing buffers that
 are visiting your own files.
 
+Calc will try to guess an appropriate language based on the major mode
+of the editing buffer. (@xref{Language Modes}.) If the current buffer is
+in @code{latex-mode}, for example, Calc will set its language to La@TeX{}.
+Similarly, Calc will use @TeX{} language for @code{tex-mode},
+@code{plain-tex-mode} and @code{context-mode}, C language for
+@code{c-mode} and @code{c++-mode}, FORTRAN language for
+@code{fortran-mode} and @code{f90-mode}, Pascal for @code{pascal-mode},
+and eqn for @code{nroff-mode}.  These can be overridden with Calc's mode
+changing commands (@pxref{Mode Settings in Embedded Mode}).  If no
+suitable language is available, Calc will continue with its current language.
+
 Calc normally scans backward and forward in the buffer for the
 nearest opening and closing @dfn{formula delimiters}.  The simplest
 delimiters are blank lines.  Other delimiters that Embedded mode
@@ -29922,8 +29933,7 @@ forward and backward to delimit the formula.  @kbd{M-# w}
 
 When you enable Embedded mode for a formula, Calc reads the text
 between the delimiters and tries to interpret it as a Calc formula.
-It's best if the current Calc language mode is correct for the
-formula, but Calc can generally identify @TeX{} formulas and
+Calc can generally identify @TeX{} formulas and
 Big-style formulas even if the language mode is wrong.  If Calc
 can't make sense of the formula, it beeps and refuses to enter
 Embedded mode.  But if the current language is wrong, Calc can
@@ -30034,11 +30044,9 @@ be written in multi-line Big mode, it is parsed in Big mode.  Otherwise,
 it is parsed according to the current language mode.
 
 Note that Calc does not change the current language mode according
-to what it finds.  Even though it can read a La@TeX{} formula when
+the formula it reads in.  Even though it can read a La@TeX{} formula when
 not in La@TeX{} mode, it will immediately rewrite this formula using
-whatever language mode is in effect.  You must then type @kbd{d L}
-to switch Calc permanently into La@TeX{} mode if that is what you
-desire.
+whatever language mode is in effect.
 
 @tex
 \bigskip
@@ -30441,6 +30449,11 @@ use @kbd{M-# u} to update the buffer by hand.
 @section Mode Settings in Embedded Mode
 
 @noindent
+The mode settings can be changed while Calc is in embedded mode, but
+will revert to their original values when embedded mode is ended
+(except for the modes changed while the mode-setting mode was
+@code{Save}). 
+
 Embedded mode has a rather complicated mechanism for handling mode
 settings in Embedded formulas.  It is possible to put annotations
 in the file that specify mode settings either global to the entire
