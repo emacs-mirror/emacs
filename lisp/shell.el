@@ -205,6 +205,18 @@ This mirrors the optional behavior of tcsh.")
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
 Value is a list of strings, which may be nil.")
 
+(defvar shell-input-autoexpand 'history
+  "*If non-nil, expand input command history references on completion.
+This mirrors the optional behavior of tcsh (its autoexpand and histlit).
+
+If the value is `input', then the expansion is seen on input.
+If the value is `history', then the expansion is only when inserting
+into the buffer's input ring.  See also `comint-magic-space' and
+`comint-dynamic-complete'.
+
+This variable supplies a default for `comint-input-autoexpand',
+for Shell mode only.")
+
 ;;; All the above vars aren't prefixed "cmushell-" to make them
 ;;; backwards compatible w/shell.el and old .emacs files.
 
@@ -292,6 +304,7 @@ cause the window to scroll to the end of the buffer."
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
   (setq comint-input-sentinel 'shell-directory-tracker)
+  (setq comint-input-autoexpand shell-input-autoexpand)
   ;; shell-dependent assignments.
   (let ((shell (car (process-command (get-buffer-process (current-buffer))))))
     (setq comint-input-ring-file-name
@@ -301,8 +314,7 @@ cause the window to scroll to the end of the buffer."
 		    ((string-match "ksh$" shell) "~/.sh_history")
 		    (t "~/.history")))))
   (run-hooks 'shell-mode-hook)
-  (comint-read-input-ring t)
-  (shell-dirstack-message))
+  (comint-read-input-ring t))
 
 ;;;###autoload
 (defun shell ()
