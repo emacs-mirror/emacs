@@ -482,7 +482,7 @@ it is displayed along with the global value."
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
-	    (let ((file-name (symbol-file variable)))
+	    (let ((file-name (symbol-file (cons 'defvar variable))))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location
