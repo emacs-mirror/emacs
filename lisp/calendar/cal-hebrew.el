@@ -441,7 +441,10 @@ nil if it is not visible in the current calendar window."
                    "Passover (seventh day)")
              (list (calendar-gregorian-from-absolute (+ abs-p 7))
                    "Passover (eighth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 12))
+             (list (calendar-gregorian-from-absolute
+                    (if (zerop (% (+ abs-p 12) 7))
+                        (+ abs-p 13)
+                      (+ abs-p 12)))
                    "Yom HaShoah")
              (list (calendar-gregorian-from-absolute
                     (if (zerop (% abs-p 7))
