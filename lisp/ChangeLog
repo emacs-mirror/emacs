@@ -49,11 +49,6 @@
 	latter needs the autoloaded define-minor-mode macro during the
 	bootstrap.
 
-2000-10-06  Miles Bader  <miles@lsi.nec.co.jp>
-
-	* simple.el (shell-command-on-region): If the output is short
-	enough to display in an expanded echo area, show it here.
-
 	* startup.el (command-line): For now, activate tool-bar-mode only
 	if XPM images are supported.
 
