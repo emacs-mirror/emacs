@@ -129,24 +129,24 @@ and the cdr extra OTHERWISE indentation."
 (defconst simula-abbrev-keyword-default 'upcase
   "Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table' or nil if they should not be changed.")
+\(as in) `abbrev-table' or nil if they should not be changed.")
 
 (defcustom simula-abbrev-keyword simula-abbrev-keyword-default
   "*Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table' or nil if they should not be changed."
+\(as in) `abbrev-table' or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)(const nil))
   :group 'simula)
 
 (defconst simula-abbrev-stdproc-default 'abbrev-table
   "Specify how to convert case for standard SIMULA procedure and class names.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table', or nil if they should not be changed.")
+\(as in) `abbrev-table', or nil if they should not be changed.")
 
 (defcustom simula-abbrev-stdproc simula-abbrev-stdproc-default
   "*Specify how to convert case for standard SIMULA procedure and class names.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table', or nil if they should not be changed."
+\(as in) `abbrev-table', or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)
 (const abbrev-table) (const nil))
   :group 'simula)

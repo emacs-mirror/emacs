@@ -372,7 +372,7 @@ normal variables."
 
 ;; For auld lang syne:
 ;;;###autoload
-(fset 'command-apropos 'apropos-command)
+(defalias 'command-apropos 'apropos-command)
 ;;;###autoload
 (defun apropos-command (apropos-regexp &optional do-all var-predicate)
   "Show commands (interactively callable functions) that match APROPOS-REGEXP.

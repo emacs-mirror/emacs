@@ -3597,7 +3597,7 @@ This has an effect only if a summary buffer exists."
 (eval-when-compile (require 'speedbar))
 
 (defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "*This regex us used to match folder names to be displayed in speedbar.
+  "*This regex is used to match folder names to be displayed in speedbar.
 Enabling this will permit speedbar to display your folders for easy
 browsing, and moving of messages.")
 

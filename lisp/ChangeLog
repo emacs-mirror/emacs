@@ -1,3 +1,17 @@
+2002-08-24  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* startup.el (normal-splash-screen): Ensure splash buffer is
+	killed.  Use tabs in output.  Fix test whether previous buffer was
+	*scratch* buffer.
+
+	* progmodes/simula.el (simula-abbrev-keyword-default)
+	(simula-abbrev-keyword, simula-abbrev-stdproc-default)
+	(simula-abbrev-stdproc): Doc fix - escape open parens in column 0.
+	
+	* apropos.el (command-apropos): Use `defalias' instead of `fset'.
+
+	* mail/rmail.el (rmail-speedbar-match-folder-regexp): Doc fix.
+
 2002-08-23  Richard M. Stallman  <rms@gnu.org>
 
 	* loadhist.el (unload-feature): Distinguish functions from
@@ -9,7 +23,7 @@
 	* subr.el (symbol-file-load-history-loaded)
 	(load-symbol-file-load-history): Deleted.
 	(symbol-file): Don't call load-symbol-file-load-history.
-	
+
 2002-08-22  Katsumi Yamaoka <yamaoka@jpl.org>  (tiny change)
 
 	* frame.el (select-frame-by-name, select-frame-set-input-focus):
