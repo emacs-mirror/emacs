@@ -1,5 +1,8 @@
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lwlib-Xm.c (xm_update_label, xm_update_list): Use the recommended
+	XmStringCreateLocalized function.  Add missing copyright.
+
 	* lwlib-Xm.h: Add missing copyright and license notice.
 
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
