@@ -1,3 +1,7 @@
+2004-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Fix previous change.
+
 2004-09-13  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_16): Don't set detect_info->found if
