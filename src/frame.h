@@ -615,7 +615,6 @@ typedef struct frame *FRAME_PTR;
 
 extern Lisp_Object Qframep, Qframe_live_p, Qicon;
 
-extern struct frame *selected_frame;
 extern struct frame *last_nonminibuf_frame;
 
 extern struct frame *make_terminal_frame P_ ((void));
@@ -655,6 +654,18 @@ extern Lisp_Object Vterminal_frame;
      
 #define WINDOW_VERTICAL_SCROLL_BAR_HEIGHT(w) (window_internal_height (w))
 
+/* The currently selected frame.  */
+
+extern Lisp_Object selected_frame;
+
+/* Value is a pointer to the selected frame.  If the selected frame
+   isn't life, abort.  */
+
+#define SELECTED_FRAME()				\
+     ((FRAMEP (selected_frame)				\
+       && FRAME_LIVE_P (XFRAME (selected_frame)))	\
+      ? XFRAME (selected_frame)				\
+      : (struct frame *) (abort (), 0))
 
 
 /***********************************************************************
