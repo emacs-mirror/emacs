@@ -210,7 +210,7 @@ getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
-etags: ${srcdir}/etags.c $(GETOPTDEPS)
+etags: ${srcdir}/etags.c $(GETOPTDEPS) ../src/config.h
 	$(CC) ${CPP_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
 # We depend on etags to assure that parallel makes don't write two
