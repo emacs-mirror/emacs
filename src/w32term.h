@@ -25,8 +25,8 @@ Boston, MA 02111-1307, USA.  */
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
-#define BLACK_PIX_DEFAULT(f) RGB(0,0,0)
-#define WHITE_PIX_DEFAULT(f) RGB(255,255,255)
+#define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
+#define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
 #define FONT_WIDTH(f)	((f)->tm.tmAveCharWidth)
 #define FONT_HEIGHT(f)	((f)->tm.tmHeight)
