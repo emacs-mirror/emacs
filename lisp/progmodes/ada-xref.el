@@ -2154,17 +2154,17 @@ This is a GNAT specific function that uses gnatkrunch."
   adaname
   )
 
-(defun ada-make-body-gnatstub ()
+(defun ada-make-body-gnatstub (&optional interactive)
   "Create an Ada package body in the current buffer.
 This function uses the `gnatstub' program to create the body.
 This function typically is to be hooked into `ff-file-created-hooks'."
-  (interactive)
+  (interactive "p")
 
   (save-some-buffers nil nil)
 
   ;; If the current buffer is the body (as is the case when calling this
   ;; function from ff-file-created-hooks), then kill this temporary buffer
-  (unless (interactive-p)
+  (unless interactive
     (progn
       (set-buffer-modified-p nil)
       (kill-buffer (current-buffer))))
