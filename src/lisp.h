@@ -190,7 +190,7 @@ Lisp_Object;
    rather than being part of a string block.  */
 
 #ifndef MARKBIT
-#define MARKBIT (1 << (VALBITS + GCTYPEBITS))
+#define MARKBIT ((int) ((unsigned int) 1 << (VALBITS + GCTYPEBITS)))
 #endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.
