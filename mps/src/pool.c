@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.71) $
+ * $HopeName: MMsrc!pool.c(trunk.72) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -19,7 +19,7 @@
  * etc.).
  * .purpose.core: A selection of default, trivial, or useful methods
  * that Pool Classes can use as the implementations for some of their
- * methods (such as PoolTrivWhiten, PoolNoFix, PoolCollectAct, etc.).
+ * methods (such as PoolTrivWhiten, PoolNoFix, etc.).
  *
  * SOURCES
  *
@@ -32,7 +32,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.71) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.72) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -447,10 +447,10 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
   AVER_CRITICAL(SegPool(seg) == pool);
 
   /* There shouldn't be any grey things left for this trace. */
-  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace->ti));
+  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
   /* Should only be reclaiming segments which are still white. */
-  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace->ti));
+  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
   (*pool->class->reclaim)(pool, trace, seg);
 }
@@ -733,13 +733,6 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     PoolFree(pool, init, AddrOffset(init, limit));
 }
 
-Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream)
-{
-  AVERT(Pool, pool);
-  AVER(stream != NULL);
-  NOTREACHED;
-  return ResUNIMPL;
-}
 
 Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
 {
@@ -747,6 +740,7 @@ Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
   AVER(stream != NULL);
   return WriteF(stream, "  No class-specific description available.\n", NULL);
 }
+
 
 Res PoolNoTraceBegin(Pool pool, Trace trace)
 {
@@ -883,7 +877,7 @@ Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
 
   return ResOK;
 }
@@ -896,6 +890,7 @@ Res PoolNoWhiten(Pool pool, Trace trace, Seg seg)
   NOTREACHED;
   return ResUNIMPL;
 }
+
 
 void PoolNoGrey(Pool pool, Trace trace, Seg seg)
 {
@@ -913,9 +908,10 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
 
   /* @@@@ The trivial grey method probably shouldn't exclude */
   /* the white segments, since they might also contain grey objects. */
-  if(!TraceSetIsMember(SegWhite(seg), trace->ti))
-    SegSetGrey(seg, TraceSetSingle(trace->ti));
+  if(!TraceSetIsMember(SegWhite(seg), trace))
+    SegSetGrey(seg, TraceSetSingle(trace));
 }
+
 
 void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
@@ -931,10 +927,11 @@ void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
-  /* the trivial blacken method does nothing; for pool classes which do
-   * not keep additional colour information. */
+  /* The trivial blacken method does nothing; for pool classes which do */
+  /* not keep additional colour information. */
   NOOP;
 }
+
 
 Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
@@ -980,59 +977,6 @@ Res PoolNoAct(Pool pool, Action action)
   AVER(action->pool == pool);
   NOTREACHED;
   return ResUNIMPL;
-}
-
-
-/* PoolCollectAct -- perform the action of collecting the entire pool
- *
- * @@@@ This should be in a module such as collect.c, but this is a
- * short term patch for change.dylan.sunflower.10.170440.
- */
-
-Res PoolCollectAct(Pool pool, Action action)
-{
-  Trace trace;
-  Res res;
-  Arena arena;
-  Ring ring, node, nextNode;
-  Seg seg;
-
-  AVERT(Pool, pool);
-  AVERT(Action, action);
-  AVER(action->pool == pool);
-
-  arena = PoolArena(pool);
-
-  res = TraceCreate(&trace, arena);
-  if(res != ResOK)
-    goto failCreate;
-
-  res = PoolTraceBegin(pool, trace);
-  if(res != ResOK)
-    goto failBegin;
-  
-  /* Identify the condemned set and turn it white. */
-  ring = PoolSegRing(pool);
-  RING_FOR(node, ring, nextNode) {
-    seg = SegOfPoolRing(node);
-
-    res = TraceAddWhite(trace, seg);
-    if(res != ResOK)
-      goto failAddWhite;
-  }
-
-  /* @@@@ mortality and finishing time are set to reasonable values, */
-  /* while we wait for a more intelligent strategy. */
-  TraceStart(trace, 0.5, 0.5 * trace->condemned);
-
-  return ResOK;
-
-failAddWhite:
-  NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
-failBegin:
-  TraceDestroy(trace);
-failCreate:
-  return res;
 }
 
 
