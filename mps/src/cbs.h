@@ -1,6 +1,6 @@
 /* impl.h.cbs: CBS -- Coalescing Block Structure
  *
- * $HopeName: MMsrc!cbs.h(trunk.2) $
+ * $HopeName: MMsrc!cbs.h(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.cbs.
@@ -18,8 +18,7 @@ typedef struct CBSStruct *CBS;
 typedef struct CBSBlockStruct *CBSBlock;
 typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
               Size oldSize, Size newSize);
-typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
-                                 void *closureP, unsigned long closureS);
+typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block, void *closureP);
 
 
 /* See design.mps.cbs.impl.low-mem.inline.block */
@@ -81,19 +80,17 @@ extern Res CBSInsert(CBS cbs, Addr base, Addr limit);
 extern Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
                                    CBS cbs, Addr base, Addr limit);
 extern Res CBSDelete(CBS cbs, Addr base, Addr limit);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, 
-                       void *closureP, unsigned long closureS);
-extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, 
-                            void *closureP, unsigned long closureS);
+extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP);
+extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP);
 extern void CBSSetMinSize(CBS cbs, Size minSize);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 extern Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream);
 
+/* CBSBlockBase -- See design.mps.cbs.function.cbs.block.base */
 #define CBSBlockBase(block) ((block)->base)
-extern Addr (CBSBlockBase)(CBSBlock block);
+/* CBSBlockLimit -- See design.mps.cbs.function.cbs.block.limit */
 #define CBSBlockLimit(block) ((block)->limit)
-extern Addr (CBSBlockLimit)(CBSBlock block);
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 extern Size (CBSBlockSize)(CBSBlock block);
 
@@ -104,6 +101,7 @@ enum {
   CBSFindDeleteHIGH,    /* delete precise size from high end */
   CBSFindDeleteENTIRE   /* delete entire range */
 };
+
 extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                          CBS cbs, Size size, CBSFindDelete findDelete);
 extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
