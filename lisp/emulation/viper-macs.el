@@ -903,7 +903,7 @@ there."
 	       (setq vip-last-macro-reg reg)
 	       (vip-set-register-macro reg))))
 	  (t
-	   (error (format "`%c': Unknown register" reg))))))
+	   (error "`%c': Unknown register" reg)))))
 	   
 
 (defun vip-global-execute ()
