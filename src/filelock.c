@@ -428,6 +428,7 @@ if it should normally be locked.")
 
 /* Unlock the file visited in buffer BUFFER.  */
 
+void
 unlock_buffer (buffer)
      struct buffer *buffer;
 {
