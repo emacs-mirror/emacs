@@ -130,6 +130,25 @@ Remove indentation from each line."
 		(re-search-forward "[.?!][])}\"']*$" end t))
       (insert-and-inherit ? ))))
 
+(defun fill-context-prefix (from to)
+  "Compute a fill prefix from the text between FROM and TO.
+This uses the variables `adapive-fill-prefix' and `adaptive-fill-function'."
+  (save-excursion
+    (goto-char from)
+    (if (eolp) (forward-line 1))
+    ;; Move to the second line unless there is just one.
+    (let ((firstline (point)))
+      (forward-line 1)
+      (if (>= (point) to)
+	  (goto-char firstline)))
+    (move-to-left-margin)
+    (let ((start (point))
+	  (eol (save-excursion (end-of-line) (point))))
+      (if (not (looking-at paragraph-start))
+	  (cond ((re-search-forward adaptive-fill-regexp nil t)
+		 (buffer-substring-no-properties start (point)))
+		(t (funcall adaptive-fill-function)))))))
+
 (defun fill-region-as-paragraph (from to &optional justify nosqueeze)
   "Fill the region as one paragraph.
 Removes any paragraph breaks in the region and extra newlines at the end,
@@ -187,24 +206,7 @@ space does not end a sentence, so don't break a line there."
       ;; Figure out how this paragraph is indented, if desired.
       (if (and adaptive-fill-mode
 	       (or (null fill-prefix) (string= fill-prefix "")))
-	  (save-excursion
-	    (goto-char from)
-	    (if (eolp) (forward-line 1))
-	    ;; Move to the second line unless there is just one.
-	    (let ((firstline (point)))
-	      (forward-line 1)
-	      (if (>= (point) to)
-		  (goto-char firstline)))
-	    (move-to-left-margin)
-	    (let ((start (point))
-		  (eol (save-excursion (end-of-line) (point)))
-		  temp)
-	      (if (not (looking-at paragraph-start))
-		  (cond ((re-search-forward adaptive-fill-regexp nil t)
-			 (setq fill-prefix
-			       (buffer-substring-no-properties start (point))))
-			((setq temp (funcall adaptive-fill-function))
-			 (setq fill-prefix temp)))))))
+	  (setq fill-prefix (fill-context-prefix from to)))
 
       (save-restriction
 	(goto-char from)
@@ -258,7 +260,7 @@ space does not end a sentence, so don't break a line there."
 	  ;; Make sure sentences ending at end of line get an extra space.
 	  ;; loses on split abbrevs ("Mr.\nSmith")
 	  (while (re-search-forward "[.?!][])}\"']*$" nil t)
-	    (insert-and-inherit ? ))
+	    (or (eobp) (insert-and-inherit ?\ )))
 	  (goto-char from)
 	  (skip-chars-forward " \t")
 	  ;; Then change all newlines to spaces.
@@ -565,8 +567,10 @@ it will not be stretched by full justification.
 Third arg NOSQUEEZE non-nil means to leave interior whitespace unchanged,
 otherwise it is made canonical."
   (interactive)
-  (if (eq t how) (setq how (or (current-justification) 'none)))
-  (if (null how) (setq how 'full))
+  (if (eq t how) (setq how (or (current-justification) 'none))
+    (if (null how) (setq how 'full)
+      (or (memq how '(none left right center))
+	  (setq how 'full))))
   (or (memq how '(none left))  ; No action required for these.
       (let ((fc (current-fill-column))
 	    (pos (point-marker))
@@ -756,9 +760,9 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
       (narrow-to-region (point) max)
       (if mailp 
 	  (while (and (not (eobp))
-		      (or (looking-at "[ \t]*[^ \t\n]*:")
+		      (or (looking-at "[ \t]*[^ \t\n]+:")
 			  (looking-at "[ \t]*$")))
-	    (if (looking-at "[ \t]*[^ \t\n]*:")
+	    (if (looking-at "[ \t]*[^ \t\n]+:")
 		(search-forward "\n\n" nil 'move)
 	      (forward-line 1))))
       (narrow-to-region (point) max)
