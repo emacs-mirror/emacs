@@ -2,7 +2,7 @@
  *
  *                   NULL POOL COVERAGE TEST
  *
- *  $HopeName: MMsrc!poolncv.c(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!poolncv.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -23,7 +23,7 @@ main(void)
   Res res;
   Addr p;
 
-  die(SpaceCreate(&space), "SpaceCreate");
+  die(SpaceCreate(&space, (Addr)0, (Size)0), "SpaceCreate");
 
   die(PoolCreate(&pool, PoolClassN(), space), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1);
