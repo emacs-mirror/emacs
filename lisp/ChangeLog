@@ -1,3 +1,10 @@
+2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* simple.el (transient-mark-mode, line-number-mode,
+	column-number-mode): Undo the recent change in revision 1.566.
+	The use of define-minor-mode in simple.el creates bootstrap
+	problems.
+
 2002-09-10  Miles Bader  <miles@gnu.org>
 
 	* simple.el (do-auto-fill): `fill-indent-according-to-mode' is a
