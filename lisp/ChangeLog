@@ -1,3 +1,12 @@
+2000-12-08  Andrew Innes  <andrewi@gnu.org>
+
+	* w32-fns.el: Add clipboard support from term/w32-win.el, so it is
+	accessible in -nw mode.
+
+	* term/w32-win.el: Remove stuff about selection timeout, which is
+	irrelevant on Windows.  Move clipboard support to w32-fns.el, so
+	it is accessible in -nw mode.
+
 2000-12-08  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode): Set
