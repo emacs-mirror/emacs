@@ -1,3 +1,8 @@
+2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_write_glyphs): Compute the glyph face from
+	str->face_id.
+
 2000-12-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* process.c (read_process_output): Don't run a filter if the code
