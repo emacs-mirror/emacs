@@ -1,3 +1,17 @@
+2005-03-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (HASHKEY_TERMINAL): Remove.
+	(HASHKEY_MAX_NID): New macro.
+	(xrm_q_get_resource_1): Rename from xrm_q_get_resource.  Add extra
+	argument.
+	(xrm_q_get_resource): Call xrm_q_get_resource_1 with extra
+	argument.
+	(xrm_create_database, xrm_q_put_resource)
+	(xrm_merge_string_database, xrm_q_get_resource_1)
+	(xrm_q_get_resource): Change resource database representation so
+	that it may not use multiple hash tables for a single database.
+	[TARGET_API_MAC_CARBON] (xrm_cfproperty_list_to_value): YAILOM.
+
 2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (ENCODE_MENU_STRING) [HAVE_X_I18N]: Use ENCODE_SYSTEM.
