@@ -1,3 +1,9 @@
+2003-12-29  Michael R. Wolf  <MichaelRWolf@att.net>  (tiny change)
+
+	* net/ange-ftp.el (ange-ftp-name-format): Allow USER to contain
+	"@", as required by some ISP hosting service.  Fix defcustom
+	argument syntax errors that prevented use of customization.
+
 2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
 
 	* xml.el (xml-get-attribute-or-nil): Doc fix.
