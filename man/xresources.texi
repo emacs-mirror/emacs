@@ -559,12 +559,10 @@ the standard GTK @file{~/.gtkrc-2.0} file or with the Emacs specific
 customizing specific GTK widget features.  To customize Emacs font,
 background, faces etc., use the normal X resources, see @ref{Resources}.
 
-  NOTE:  Some themes does not allow cutomizations and the mechanisms
-described here may not work for those themes.  The theme may ignore the
-attempt to customization, or things are just not drawn correctly.
-Also, it is recommended that you use @file{~/.emacs.d/gtkrc} for
-customizations, @file{~/.gtkrc-2.0} seems to be ignored when running
-GConf with Gnome.
+  Some GTK themes override these mechanisms, which means that using
+these mechanisms will not work to customize them.  We recommend that
+you use @file{~/.emacs.d/gtkrc} for customizations, since
+@file{~/.gtkrc-2.0} seems to be ignored when running GConf with GNOME.
 
   In these files you first defines a style and then how to apply that style
 to widgets (@pxref{GTK widget names}).  Here is an example of how to
@@ -583,6 +581,7 @@ widget "*emacs-menuitem*" style "menufont"
 
   Here is a more elaborate example, showing how to change the parts of
 the scroll bar:
+
 @smallexample
 style "scroll"
 @{
@@ -593,7 +592,6 @@ style "scroll"
 @}
 
 widget "*verticalScrollBar*" style "scroll"
-
 @end smallexample
 
   There are some things you can set without using any style or widget name,
