@@ -1,7 +1,7 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.8) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ *  $HopeName: MMsrc!cbstest.c(trunk.9) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #include "cbs.h"
@@ -18,7 +18,7 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.8) $");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.9) $");
 
 
 #define ArraySize ((Size)123456)
@@ -138,8 +138,7 @@ static void cbsShrinkCallback(CBS cbs, CBSBlock cbsBlock,
 }
 
 
-static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock,
-                           void *p, unsigned long s)
+static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock, void *p)
 {
   Addr base, limit;
   CheckCBSClosure closure = (CheckCBSClosure)p;
@@ -147,7 +146,6 @@ static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock,
   /* Don't need to check cbs every time */
   UNUSED(cbs);
   Insist(closure != NULL);
-  Insist(s == 0);
 
   base = CBSBlockBase(cbsBlock);
   limit = CBSBlockLimit(cbsBlock);
@@ -181,7 +179,7 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
   closure.limit = addrOfIndex(closure.base, ArraySize);
   closure.oldLimit = closure.base;
 
-  CBSIterate(cbs, checkCBSAction, (void *)&closure, (unsigned long)0);
+  CBSIterate(cbs, checkCBSAction, (void *)&closure);
 
   if (closure.oldLimit == closure.base)
     Insist(BTIsSetRange(allocTable, 0, 
