@@ -3987,12 +3987,14 @@ decode_coding_sjis (coding)
 		  SJIS_TO_JIS (c);
 		  charset = charset_kanji;
 		}
-	      else
+	      else if (c > 0xA0)
 		{
 		  /* SJIS -> JISX0201-Kana */
 		  c &= 0x7F;
 		  charset = charset_kana;
 		}
+	      else
+		goto invalid_code;
 	    }
 	  if (charset->id != charset_ascii
 	      && last_id != charset->id)
