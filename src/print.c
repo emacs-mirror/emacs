@@ -130,6 +130,11 @@ int print_escape_newlines;
 
 Lisp_Object Qprint_escape_newlines;
 
+/* Nonzero means to print single-byte non-ascii characters in strings as
+   octal escapes.  */
+
+int print_escape_nonascii;
+
 /* Nonzero means print (quote foo) forms as 'foo, etc.  */
 
 int print_quoted;
@@ -1248,9 +1253,10 @@ print (obj, printcharfun, escapeflag)
 		}
 	      else if (SINGLE_BYTE_CHAR_P (c)
 		       && ! ASCII_BYTE_P (c)
-		       && ! NILP (current_buffer->enable_multibyte_characters))
+		       && (! NILP (current_buffer->enable_multibyte_characters)
+			   || print_escape_nonascii))
 		{
-		  /* When multibyte is enabled,
+		  /* When multibyte is enabled or when explicitly requested,
 		     print single-byte non-ASCII string chars
 		     using octal escapes.  */
 		  unsigned char outbuf[5];
@@ -1806,6 +1812,12 @@ A value of nil means no limit.");
     "Non-nil means print newlines in strings as backslash-n.\n\
 Also print formfeeds as backslash-f.");
   print_escape_newlines = 0;
+
+  DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
+    "Non-nil means print non-ASCII characters in strings as backslash-NNN.\n\
+NNN is the octal representation of the character's value.\n\
+Only single-byte characters are affected.");
+  print_escape_nonascii = 0;
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
     "Non-nil means print quoted forms with reader syntax.\n\
