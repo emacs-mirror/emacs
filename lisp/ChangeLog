@@ -7,6 +7,10 @@
 
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/sh-script.el (sh-font-lock-heredoc): Allow
+	optional backslash at the start of the here-document delimiter.
+	(sh-font-lock-syntactic-keywords): Likewise.
+
 	* mail/rmail.el (rmail-message-regexp-p): Yet another fix.
 
 2001-04-29  Eli Zaretskii  <eliz@is.elta.co.il>

@@ -1,5 +1,8 @@
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* undo.c (Fprimitive_undo): In a writable buffer, enable undoing
+	read-only text that is so because of text properties.
+
 	* xterm.c (x_window_to_menu_bar) [USE_LUCID]: New function.
 	(XTread_socket) <Expose> [USE_LUCID]: Handle events for 
 	windows that are components of a Lucid menu bar.

@@ -1,3 +1,7 @@
+2001-04-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (xlwmenu_window_p): New function.
+
 2001-03-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xlw.c (x_print_complete_resource_name) [0]: New function.
