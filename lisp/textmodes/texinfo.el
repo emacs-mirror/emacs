@@ -92,7 +92,7 @@ menus in the buffer (incorporating descriptions from pre-existing
 menus) before it constructs the master menu.
 
 The function removes the detailed part of an already existing master
-menu.  This action depends on the pre-exisitng master menu using the
+menu.  This action depends on the pre-existing master menu using the
 standard `texinfo-master-menu-header'.
 
 The master menu has the following format, which is adapted from the
@@ -198,7 +198,7 @@ chapter."
   (modify-syntax-entry ?\' "w" texinfo-mode-syntax-table))
 
 ;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
-;; To overide this example, set either `imenu-generic-expression'
+;; To override this example, set either `imenu-generic-expression'
 ;; or `imenu-create-index-function'.
 (defvar texinfo-imenu-generic-expression
   '((nil "^@node[ \t]+\\([^,\n]*\\)" 1)

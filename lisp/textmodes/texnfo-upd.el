@@ -749,7 +749,7 @@ menus in the buffer (incorporating descriptions from pre-existing
 menus) before it constructs the master menu.
 
 The function removes the detailed part of an already existing master
-menu.  This action depends on the pre-exisitng master menu using the
+menu.  This action depends on the pre-existing master menu using the
 standard `texinfo-master-menu-header'.
 
 The master menu has the following format, which is adapted from the
