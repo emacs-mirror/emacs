@@ -1122,41 +1122,73 @@ create_dialog (wv, select_cb, deactivate_cb)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
-enum
-{
-  XG_FILE_NOT_DONE,
-  XG_FILE_OK,
-  XG_FILE_CANCEL,
-  XG_FILE_DESTROYED,
-};
-
 #ifdef HAVE_GTK_FILE_BOTH
 int use_old_gtk_file_dialog;
 #endif
 
+/* Function that is called when the file dialog pops down.
+   W is the dialog widget, RESPONSE is the response code.
+   USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
+
+static void
+xg_file_response_cb (w,
+                     response,
+                     user_data)
+     GtkDialog *w;
+     gint response;
+     gpointer user_data;
+{
+  int *ptr = (int *) user_data;
+  *ptr = response;
+}
+
+
+/*  Destroy the dialog.  This makes it pop down.  */
+
+static Lisp_Object
+pop_down_file_dialog (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  gtk_widget_destroy (GTK_WIDGET (p->pointer));
+  return Qnil;
+}
+
+typedef char * (*xg_get_file_func) P_ ((GtkWidget *));
 
 #ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+
+/* Return the selected file for file chooser dialog W.
+   The returned string must be free:d.  */
+
+static char *
+xg_get_file_name_from_chooser (w)
+     GtkWidget *w;
+{
+  return gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (w));
+}
+
 /* Read a file name from the user using a file chooser dialog.
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
    If MUSTMATCH_P is non-zero, the returned file name must be an existing
-   file.
+   file.  *FUNC is set to a function that can be used to retrieve the
+   selected file name from the returned widget.
 
-   Returns a file name or NULL if no file was selected.
-   The returned string must be freed by the caller.  */
+   Returns the created widget.  */
 
-static char *
-xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
+static GtkWidget *
+xg_get_file_with_chooser (f, prompt, default_filename,
+                          mustmatch_p, only_dir_p, func)
      FRAME_PTR f;
      char *prompt;
      char *default_filename;
      int mustmatch_p, only_dir_p;
+     xg_get_file_func *func;
 {
   GtkWidget *filewin;
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
-
-  char *fn = 0;
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
@@ -1170,12 +1202,6 @@ xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
                                           GTK_STOCK_OPEN : GTK_STOCK_OK),
                                          GTK_RESPONSE_OK,
                                          NULL);
-
-  xg_set_screen (filewin, f);
-  gtk_widget_set_name (filewin, "emacs-filedialog");
-  gtk_window_set_transient_for (GTK_WINDOW (filewin), gwin);
-  gtk_window_set_destroy_with_parent (GTK_WINDOW (filewin), TRUE);
-
 
   if (default_filename)
     {
@@ -1197,103 +1223,48 @@ xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
       UNGCPRO;
     }
 
-  gtk_widget_show (filewin);
-
-  if (gtk_dialog_run (GTK_DIALOG (filewin)) == GTK_RESPONSE_OK)
-    fn = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filewin));
-
-  gtk_widget_destroy (filewin);
-
-  return fn;
+  *func = xg_get_file_name_from_chooser;
+  return filewin;
 }
 #endif /* HAVE_GTK_FILE_CHOOSER_DIALOG_NEW */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
-/* Callback function invoked when the Ok button is pressed in
-   a file dialog.
-   W is the file dialog widget,
-   ARG points to an integer where we record what has happend.  */
 
-static void
-xg_file_sel_ok (w, arg)
+/* Return the selected file for file selector dialog W.
+   The returned string must be free:d.  */
+
+static char *
+xg_get_file_name_from_selector (w)
      GtkWidget *w;
-     gpointer arg;
 {
-  *(int*)arg = XG_FILE_OK;
+  GtkFileSelection *filesel = GTK_FILE_SELECTION (w);
+  return xstrdup ((char*) gtk_file_selection_get_filename (filesel));
 }
 
-/* Callback function invoked when the Cancel button is pressed in
-   a file dialog.
-   W is the file dialog widget,
-   ARG points to an integer where we record what has happend.  */
-
-static void
-xg_file_sel_cancel (w, arg)
-     GtkWidget *w;
-     gpointer arg;
-{
-  *(int*)arg = XG_FILE_CANCEL;
-}
-
-/* Callback function invoked when the file dialog is destroyed (i.e.
-   popped down).  We must keep track of this, because if this
-   happens, GTK destroys the widget.  But if for example, Ok is pressed,
-   the dialog is popped down, but the dialog widget is not destroyed.
-   W is the file dialog widget,
-   ARG points to an integer where we record what has happend.  */
-
-static void
-xg_file_sel_destroy (w, arg)
-     GtkWidget *w;
-     gpointer arg;
-{
-  *(int*)arg = XG_FILE_DESTROYED;
-}
-
-/* Read a file name from the user using a file selection dialog.
+/* Create a file selection dialog.
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
    If MUSTMATCH_P is non-zero, the returned file name must be an existing
-   file.
+   file.  *FUNC is set to a function that can be used to retrieve the
+   selected file name from the returned widget.
 
-   Returns a file name or NULL if no file was selected.
-   The returned string must be freed by the caller.  */
+   Returns the created widget.  */
 
-static char *
+static GtkWidget *
 xg_get_file_with_selection (f, prompt, default_filename,
-                            mustmatch_p, only_dir_p)
+                            mustmatch_p, only_dir_p, func)
      FRAME_PTR f;
      char *prompt;
      char *default_filename;
      int mustmatch_p, only_dir_p;
+     xg_get_file_func *func;
 {
   GtkWidget *filewin;
   GtkFileSelection *filesel;
-  int filesel_done = XG_FILE_NOT_DONE;
-  char *fn = 0;
 
   filewin = gtk_file_selection_new (prompt);
   filesel = GTK_FILE_SELECTION (filewin);
-
-  xg_set_screen (filewin, f);
-  gtk_widget_set_name (filewin, "emacs-filedialog");
-  gtk_window_set_transient_for (GTK_WINDOW (filewin),
-                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-  gtk_window_set_destroy_with_parent (GTK_WINDOW (filewin), TRUE);
-
-  g_signal_connect (G_OBJECT (filesel->ok_button),
-                    "clicked",
-                    G_CALLBACK (xg_file_sel_ok),
-                    &filesel_done);
-  g_signal_connect (G_OBJECT (filesel->cancel_button),
-                    "clicked",
-                    G_CALLBACK (xg_file_sel_cancel),
-                    &filesel_done);
-  g_signal_connect (G_OBJECT (filesel),
-                    "destroy",
-                    G_CALLBACK (xg_file_sel_destroy),
-                    &filesel_done);
 
   if (default_filename)
     gtk_file_selection_set_filename (filesel, default_filename);
@@ -1305,19 +1276,9 @@ xg_get_file_with_selection (f, prompt, default_filename,
       gtk_file_selection_hide_fileop_buttons (filesel);
     }
 
+  *func = xg_get_file_name_from_selector;
 
-  gtk_widget_show_all (filewin);
-
-  while (filesel_done == XG_FILE_NOT_DONE)
-    gtk_main_iteration ();
-
-  if (filesel_done == XG_FILE_OK)
-    fn = xstrdup ((char*) gtk_file_selection_get_filename (filesel));
-
-  if (filesel_done != XG_FILE_DESTROYED)
-    gtk_widget_destroy (filewin);
-
-  return fn;
+  return filewin;
 }
 #endif /* HAVE_GTK_FILE_SELECTION_NEW */
 
@@ -1341,26 +1302,63 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
      char *default_filename;
      int mustmatch_p, only_dir_p;
 {
+  GtkWidget *w;
+  int count = SPECPDL_INDEX ();
+  char *fn = 0;
+  int filesel_done = 0;
+  xg_get_file_func func;
+
 #ifdef HAVE_GTK_FILE_BOTH
   if (use_old_gtk_file_dialog)
-    return xg_get_file_with_selection (f, prompt, default_filename,
-                                       mustmatch_p, only_dir_p);
-  return xg_get_file_with_chooser (f, prompt, default_filename,
-                                   mustmatch_p, only_dir_p);
+    w = xg_get_file_with_selection (f, prompt, default_filename,
+                                    mustmatch_p, only_dir_p, &func);
+  else
+    w = xg_get_file_with_chooser (f, prompt, default_filename,
+                                  mustmatch_p, only_dir_p, &func);
 
 #else /* not HAVE_GTK_FILE_BOTH */
 
 #ifdef HAVE_GTK_FILE_SELECTION_DIALOG_NEW
-  return xg_get_file_with_selection (f, prompt, default_filename,
-                                     mustmatch_p, only_dir_p);
+  w = xg_get_file_with_selection (f, prompt, default_filename,
+                                  mustmatch_p, only_dir_p, &func);
 #endif
 #ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
-  return xg_get_file_with_chooser (f, prompt, default_filename,
-                                   mustmatch_p, only_dir_p);
+  w = xg_get_file_with_chooser (f, prompt, default_filename,
+                                mustmatch_p, only_dir_p, &func);
 #endif
 
 #endif /* HAVE_GTK_FILE_BOTH */
-  return 0;
+
+  xg_set_screen (w, f);
+  gtk_widget_set_name (w, "emacs-filedialog");
+  gtk_window_set_transient_for (GTK_WINDOW (w),
+                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+  gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
+  gtk_window_set_modal (GTK_WINDOW (w), TRUE);
+
+  g_signal_connect (G_OBJECT (w),
+                    "response",
+                    G_CALLBACK (xg_file_response_cb),
+                    &filesel_done);
+
+  /* Don't destroy the widget if closed by the window manager close button.  */
+  g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
+
+  gtk_widget_show (w);
+
+  record_unwind_protect (pop_down_file_dialog, make_save_value (w, 0));
+  while (! filesel_done)
+    {
+      x_menu_wait_for_event (0);
+      gtk_main_iteration ();
+    }
+
+  if (filesel_done == GTK_RESPONSE_OK)
+    fn = (*func) (w);
+
+  unbind_to (count, Qnil);
+
+  return fn;
 }
 
 
@@ -1999,6 +1997,7 @@ xg_create_widget (type, name, f, val,
                                     GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
       gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
       gtk_widget_set_name (w, "emacs-dialog");
+      gtk_window_set_modal (GTK_WINDOW (w), TRUE);
     }
   else if (menu_bar_p || pop_up_p)
     {

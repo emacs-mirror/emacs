@@ -1,5 +1,19 @@
 2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
+	(xg_file_sel_destroy): Removed.
+	(xg_file_response_cb, pop_down_file_dialog,
+	xg_get_file_name_from_chooser, xg_get_file_name_from_selector):
+	New functions.
+	(xg_get_file_with_chooser, xg_get_file_with_selection): Take
+	new argument func, set it to xg_get_file_name_from_chooser/selector.
+	Move common code to xg_get_file_name.  Return widget created.
+	(xg_get_file_name): Set name, transient for, modal and destroy
+	with parent here.  Connect response signal to xg_file_response_cb,
+	connect delete-event to gtk_true.  Record pop_down_file_dialog
+	for unwind.  Do event loop and call x_menu_wait_for_event in loop.
+	(xg_create_widget): Make dialogs modal.
+
 	* xmenu.c (unuse_menu_items, pop_down_menu): Arg is of type
 	Lisp_Object.
 	(popup_get_selection): Move unwind protect ...
