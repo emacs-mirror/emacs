@@ -3766,9 +3766,6 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines, make_number (0),
 		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
-		       "scrollBarWidth", "ScrollBarWidth",
-		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
 		       RES_TYPE_SYMBOL);
@@ -3830,6 +3827,9 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
+		       "scrollBarWidth", "ScrollBarWidth",
+		       RES_TYPE_NUMBER);
 
   /* Dimensions, especially f->height, must be done via change_frame_size.
      Change will not be effected unless different from the current
