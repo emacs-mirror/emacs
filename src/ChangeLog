@@ -1,3 +1,8 @@
+2001-03-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (ccl_driver) <CCL_ReadMultibyteChar2>: Fix for the case
+	that the source is unibyte.
+
 2001-03-05  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTmouse_position): Fix tyypo.
