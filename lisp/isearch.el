@@ -1744,7 +1744,7 @@ If there is no completion possible, say so and continue searching."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (unless (or (null search-highlight) (null (display-color-p)))
+  (unless (null search-highlight)
     (cond (isearch-overlay
 	   ;; Overlay already exists, just move it.
 	   (move-overlay isearch-overlay beg end (current-buffer)))
