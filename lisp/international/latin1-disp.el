@@ -26,7 +26,7 @@
 
 ;; This package sets up display of ISO 8859-n for n>1 by substituting
 ;; Latin-1 characters and sequences of them for characters which can't
-;; be displayed, either beacuse we're on a tty or beacuse we don't
+;; be displayed, either because we're on a tty or because we don't
 ;; have the relevant window system fonts available.  For instance,
 ;; Latin-9 is very similar to Latin-1, so we can display most Latin-9
 ;; characters using the Latin-1 characters at the same code point and
