@@ -1,5 +1,7 @@
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
+	* server.el (server-edit, server-done): Doc fix.
+
 	* simple.el (clone-indirect-buffer): Error if major mode symbol
 	has a no-clone-indirect property.
 	(clone-buffer): Check for obvious errors before reading clone name.

@@ -1,3 +1,10 @@
+2001-11-12  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (XTread_socket): Don't update focus for EnterNotify or
+	LeaveNotify events.  Only FocusIn and FocusOut do that now.
+	(x_display_and_set_cursor): Do display hollow cursors in active
+	minibuffer windows when they are not selected.
+
 2001-11-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32console.c, w32fns.c, w32menu.c, w32proc.c, w32select.c,

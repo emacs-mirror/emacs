@@ -140,6 +140,17 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** If a major mode function has a non-nil `no-clone-indirect'
+property, `clone-indirect-buffer' signals an error if you use
+it in that buffer.
+
+** If you set `query-replace-skip-read-only' non-nil,
+`query-replace' and related functions simply ignore
+a match if part of it has a read-only property.
+
+** In `replace-match', the replacement replacement text no longer
+inherits properties from surrounding text.
+
 ** New function `buffer-local-value'.
 
 - Function: buffer-local-value variable buffer
@@ -148,9 +159,9 @@ This function returns the buffer-local binding of VARIABLE (a symbol)
 in buffer BUFFER.  If VARIABLE does not have a buffer-local binding in
 buffer BUFFER, it returns the default value of VARIABLE instead.
 
-** The default value of paragraph-start and indent-line-function has
-been changed to reflect the one used in text-mode rather than the one
-used in indented-text-mode.
+** The default value of `paragraph-start' and `indent-line-function' has
+been changed to reflect the one used in Text mode rather than the one
+used in Indented Text mode.
 
 ** New function `text-clone-create'.  Text clones are chunks of text
 that are kept identical by transparently propagating changes from one
