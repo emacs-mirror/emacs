@@ -90,7 +90,7 @@ extern void _XEditResCheckMessages ();
 extern LWLIB_ID widget_id_tick;
 
 /* This is part of a kludge--see lwlib/xlwmenu.c.  */
-XFontStruct *xlwmenu_default_font;
+extern XFontStruct *xlwmenu_default_font;
 
 extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
