@@ -4560,7 +4560,7 @@ normally equivalent short `-D' option is just passed on to
 		    error-lines)
 		;; Find all the lines that are error messages,
 		;; and record the bounds of each one.
-		(goto-char (point-min))
+		(goto-char beg)
 		(while (< (point) linebeg)
 		  (or (eql (following-char) ?\s)
 		      (push (list (point) (line-end-position)) error-lines))
@@ -4586,11 +4586,9 @@ normally equivalent short `-D' option is just passed on to
 		      (end-of-line))))
 		(goto-char end)
 		(beginning-of-line)
-		(delete-region (point) (progn (forward-line 2) (point))))
-	      (forward-line 1)
+		(delete-region (point) (progn (forward-line 1) (point))))
 	      (if (looking-at "//DIRED-OPTIONS//")
-		  (delete-region (point) (progn (forward-line 1) (point)))
-		(forward-line 1))))
+		  (delete-region (point) (progn (forward-line 1) (point))))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read
