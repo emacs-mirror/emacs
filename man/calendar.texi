@@ -754,6 +754,7 @@ other than Mayan; for the Mayan calendar, see the following section.
 
 @kindex g @var{char} @r{(Calendar mode)}
 @findex calendar-goto-iso-date
+@findex calendar-goto-iso-week
 @findex calendar-goto-julian-date
 @findex calendar-goto-astro-day-number
 @findex calendar-goto-hebrew-date
@@ -767,6 +768,9 @@ other than Mayan; for the Mayan calendar, see the following section.
 @item g c
 Move to a date specified in the ISO commercial calendar
 (@code{calendar-goto-iso-date}).
+@item g w
+Move to a week specified in the ISO commercial calendar
+(@code{calendar-goto-iso-week}).
 @item g j
 Move to a date specified in the Julian calendar
 (@code{calendar-goto-julian-date}).
