@@ -573,7 +573,7 @@ ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	  ${lisp} ${lispdir}version.el > ${etc}DOC
 
 ${libsrc}make-docfile:
-	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile ../arch-lib
+	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile
 
 /* Some systems define this to cause parallel Make-ing.  */
 #ifndef MAKE_PARALLEL
