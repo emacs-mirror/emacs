@@ -1,3 +1,7 @@
+2000-10-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (keymap_memberp): Ensure that nil is not a member.
+
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (set_iterator_to_next): Reset box start and end flags of
