@@ -531,18 +531,14 @@ Commands for sorting the summary:
 
 ;; Summary features need to be disabled during edit mode.
 (defun rmail-summary-disable ()
-  (save-excursion
-    (set-buffer rmail-summary-buffer)
-    (use-local-map text-mode-map)
-    (remove-hook 'post-command-hook 'rmail-summary-rmail-update)
-    (setq revert-buffer-function nil)))
+  (use-local-map text-mode-map)
+  (remove-hook 'post-command-hook 'rmail-summary-rmail-update)
+  (setq revert-buffer-function nil))
 
 (defun rmail-summary-enable ()
-  (save-excursion
-    (set-buffer rmail-summary-buffer)
-    (use-local-map rmail-summary-mode-map)
-    (add-hook 'post-command-hook 'rmail-summary-rmail-update)
-    (setq revert-buffer-function 'rmail-update-summary)))
+  (use-local-map rmail-summary-mode-map)
+  (add-hook 'post-command-hook 'rmail-summary-rmail-update)
+  (setq revert-buffer-function 'rmail-update-summary))
 
 ;; Show in Rmail the message described by the summary line that point is on,
 ;; but only if the Rmail buffer is already visible.
