@@ -286,13 +286,13 @@ Set it to either \`yes' or \`no'."
 	  x_libraries="${val}"
         ;;
 
-	## Should this use the "development configuration"?
+	## Should this use the "development" file organization?
 	"run_in_place" )
 	  single_tree=
 	  run_in_place=1
 	;;
 
-        ## Should this use the "single tree" configuration?
+        ## Should this use the "single tree" file organization?
 	"single_tree" )
 	   run_in_place=
 	   single_tree=1
@@ -1510,7 +1510,7 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 
-AC_DEFINE_UNQUOTED(CONFIGURATION,  "\"${configuration}\"")
+AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "\"${configuration}\"")
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
