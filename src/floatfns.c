@@ -122,7 +122,9 @@ extern int errno;
 #define sinh(x) ((exp(x)-exp(-x))*0.5)
 #endif /* VMS */
 
+#ifdef FLOAT_CATCH_SIGILL
 static SIGTYPE float_error ();
+#endif
 
 /* Nonzero while executing in floating point.
    This tells float_error what to do.  */
