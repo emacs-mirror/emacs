@@ -42,6 +42,30 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
+static void enable(mps_arena_t arena)
+{
+    mps_message_type_enable(arena, mps_message_type_gc());
+}
+
+static void report(mps_arena_t arena)
+{
+    mps_message_t message;
+
+    while (mps_message_get(&message, arena, mps_message_type_gc())) {
+        size_t live, condemned, not_condemned;
+
+        live = mps_message_gc_live_size(arena, message);
+        condemned = mps_message_gc_condemned_size(arena, message);
+        not_condemned = mps_message_gc_not_condemned_size(arena, message);
+
+        mps_message_discard(arena, message);
+
+        printf("live %d\n", live);
+        printf("condemned %d\n", condemned);
+        printf("not_condemned %d\n", not_condemned);
+    }
+}
+
 static mps_addr_t make(void)
 {
   size_t length = rnd() % (2*avLEN);
@@ -132,6 +156,7 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %lu, %lu objects.\n",
              c, objs);
+      report(arena);
       for(r = 0; r < exactRootsCOUNT; ++r)
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
@@ -204,7 +229,6 @@ static void *test(void *arg, size_t s)
   return NULL;
 }
 
-
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
@@ -215,10 +239,12 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
+  enable(arena);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
+  report(arena);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */
