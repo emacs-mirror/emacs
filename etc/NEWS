@@ -569,7 +569,9 @@ comparison.
 
 ** Etags changes.
 
-*** New syntax for regular expressions, multi-line regular expressions.
+*** New regular expressions features
+
+**** New syntax for regular expressions, multi-line regular expressions.
 The syntax --ignore-case-regexp=/regex/ is now undocumented and retained
 only for backward compatibility.  The new equivalent syntax is
 --regex=/regex/i.  More generally, it is --regex=/TAGREGEX/TAGNAME/MODS,
@@ -581,32 +583,34 @@ expressions: `m' allows regexps to match more than one line, while `s'
 span newlines allows writing of much more powerful regular expressions
 and rapid prototyping for tagging new languages.
 
-*** Regular expressions can use char escape sequences as in Gcc
+**** Regular expressions can use char escape sequences as in Gcc
 The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
 respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
 CR, TAB, VT,
 
-*** Regular expressions can be bound to a given language
+**** Regular expressions can be bound to a given language
 The syntax --regex={LANGUAGE}REGEX means that REGEX is used to make tags
 only for files of language LANGUAGE, and ignored otherwise.  This is
 particularly useful when storing regexps in a file.
 
-*** Regular expressions can be read from a file
+**** Regular expressions can be read from a file
 The --regex=@regexfile option means read the regexps from a file, one
 per line.  Lines beginning with space or tab are ignored.
 
-*** In Prolog, etags creates tags for rules in addition to predicates.
+*** New language parsing features
 
-*** In Perl, packages are tags.
+**** In Prolog, etags creates tags for rules in addition to predicates.
+
+**** In Perl, packages are tags.
 Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
 package::sub.
 
-*** New default keywords for TeX.
+**** New default keywords for TeX.
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
-*** New language PHP: tags are functions, classes and defines.
+**** New language PHP: tags are functions, classes and defines.
 If the --members option is specified to etags, tags are vars also.
 
 *** Honour #line directives.
