@@ -737,6 +737,9 @@ store_symval_forwarding (sym, valcontents, newval)
 	case Lisp_Misc_Intfwd:
 	  CHECK_NUMBER (newval, 1);
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
+	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
+	    error ("Value out of range for variable `%s'",
+		   XSYMBOL (sym)->name->data);
 	  break;
 
 	case Lisp_Misc_Boolfwd:
@@ -1664,7 +1667,12 @@ NUM may be an integer or a floating point number.")
     }
 #endif /* LISP_FLOAT_TYPE */
 
-  sprintf (buffer, "%d", XINT (num));
+  if (sizeof (int) == sizeof (EMACS_INT))
+    sprintf (buffer, "%d", XINT (num));
+  else if (sizeof (long) == sizeof (EMACS_INT))
+    sprintf (buffer, "%ld", XINT (num));
+  else
+    abort ();
   return build_string (buffer);
 }
 
@@ -1675,6 +1683,7 @@ It ignores leading spaces and tabs.")
   (str)
      register Lisp_Object str;
 {
+  Lisp_Object value;
   unsigned char *p;
 
   CHECK_STRING (str, 0);
@@ -1691,7 +1700,13 @@ It ignores leading spaces and tabs.")
     return make_float (atof (p));
 #endif /* LISP_FLOAT_TYPE */
 
-  return make_number (atoi (p));
+  if (sizeof (int) == sizeof (EMACS_INT))
+    XSETINT (value, atoi (p));
+  else if (sizeof (long) == sizeof (EMACS_INT))
+    XSETINT (value, atol (p));
+  else
+    abort ();
+  return value;
 }
 
 enum arithop
