@@ -1900,7 +1900,7 @@ may generate incorrect code.")
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
   lap)
 
-(provide 'byte-optimize)
+(provide 'byte-opt)
 
 
 ;; To avoid "lisp nesting exceeds max-lisp-eval-depth" when this file compiles
