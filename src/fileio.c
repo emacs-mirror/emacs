@@ -847,7 +847,10 @@ See also the function `substitute-in-file-name'.")
     {
       /* Get rid of any slash at the end of newdir.  */
       int length = strlen (newdir);
-      if (length > 1 && newdir[length - 1] == '/')
+      /* Adding `length > 1 &&' makes ~ expand into / when homedir
+	 is the root dir.  People disagree about whether that is right.
+	 Anyway, we can't take the risk of this change now.  */
+      if (newdir[length - 1] == '/')
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
 	  bcopy (newdir, temp, length - 1);
