@@ -1,3 +1,9 @@
+2000-02-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* help.el (describe-variable): Set syntax table to
+	emacs-lisp-mode-syntax-table when moving forward over the
+	symbol's name.
+
 2000-02-22  Dave Love  <fx@gnu.org>
 
 	* xt-mouse.el: Doc fixes.
