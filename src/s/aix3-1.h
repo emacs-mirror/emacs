@@ -218,6 +218,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define SYSTEM_MALLOC
 
+/* Include unistd.h, even though we don't define POSIX.  */
+#define NEED_UNISTD_H
+
 /* AIX doesn't define this.  */
 #define unix 1
 

@@ -10,6 +10,9 @@
 
 #undef NEED_SIOCTL
 
+/* Include unistd.h, even though we don't define POSIX.  */
+#define NEED_UNISTD_H
+
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
 #define SIGNALS_VIA_CHARACTERS
 

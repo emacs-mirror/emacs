@@ -4,6 +4,9 @@
 
 #define AIX
 
+/* Include unistd.h, even though we don't define POSIX.  */
+#define NEED_UNISTD_H
+
 /* these were defined in "ibmps2-aix.h" */
 #undef INTEL386
 #undef aix386
