@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 02, 2003
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98,1999,2000,01,02,03,2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -294,7 +294,7 @@ region_limit (beginningp)
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
 
-  if ((PT < XFASTINT (m)) == beginningp)
+  if ((PT < XFASTINT (m)) == (beginningp != 0))
     m = make_number (PT);
   return m;
 }
@@ -1133,7 +1133,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
        doc: /* Return character in current buffer at position POS.
-POS is an integer or a marker.
+POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
      (pos)
      Lisp_Object pos;
@@ -1166,7 +1166,7 @@ If POS is out of range, the value is nil.  */)
 
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
        doc: /* Return character in current buffer preceding position POS.
-POS is an integer or a marker.
+POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
      (pos)
      Lisp_Object pos;
@@ -1659,6 +1659,9 @@ Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
 If you want them to stand for years in this century, you must do that yourself.
+
+Years before 1970 are not guaranteed to work.  On some systems,
+year values as low as 1901 do work.
 
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
      (nargs, args)
@@ -2752,13 +2755,73 @@ Both characters must have the same length of multi-byte form.  */)
   return Qnil;
 }
 
+
+static Lisp_Object check_translation P_ ((int, int, int, Lisp_Object));
+
+/* Helper function for Ftranslate_region_internal.
+
+   Check if a character sequence at POS (POS_BYTE) matches an element
+   of VAL.  VAL is a list (([FROM-CHAR ...] . TO) ...).  If a matching
+   element is found, return it.  Otherwise return Qnil.  */
+
+static Lisp_Object
+check_translation (pos, pos_byte, end, val)
+     int pos, pos_byte, end;
+     Lisp_Object val;
+{
+  int buf_size = 16, buf_used = 0;
+  int *buf = alloca (sizeof (int) * buf_size);
+
+  for (; CONSP (val); val = XCDR (val))
+    {
+      Lisp_Object elt;
+      int len, i;
+
+      elt = XCAR (val);
+      if (! CONSP (elt))
+	continue;
+      elt = XCAR (elt);
+      if (! VECTORP (elt))
+	continue;
+      len = ASIZE (elt);
+      if (len <= end - pos)
+	{
+	  for (i = 0; i < len; i++)
+	    {
+	      if (buf_used <= i)
+		{
+		  unsigned char *p = BYTE_POS_ADDR (pos_byte);
+		  int len;
+
+		  if (buf_used == buf_size)
+		    {
+		      int *newbuf;
+
+		      buf_size += 16;
+		      newbuf = alloca (sizeof (int) * buf_size);
+		      memcpy (newbuf, buf, sizeof (int) * buf_used);
+		      buf = newbuf;
+		    }
+		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, 0, len);
+		  pos_byte += len;
+		}
+	      if (XINT (AREF (elt, i)) != buf[i])
+		break;
+	    }
+	  if (i == len)
+	    return XCAR (val);
+	}
+    }
+  return Qnil;
+}
+
+
 DEFUN ("translate-region-internal", Ftranslate_region_internal,
        Stranslate_region_internal, 3, 3, 0,
        doc: /* Internal use only.
 From START to END, translate characters according to TABLE.
-TABLE is a string; the Nth character in it is the mapping
-for the character with code N.
-This function does not alter multibyte characters.
+TABLE is a string or a char-table; the Nth character in it is the
+mapping for the character with code N.
 It returns the number of characters changed.  */)
      (start, end, table)
      Lisp_Object start;
@@ -2769,14 +2832,18 @@ It returns the number of characters changed.  */)
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int pos, pos_byte;
+  int pos, pos_byte, end_pos;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
   Lisp_Object val;
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
-    tt = NULL;
+    {
+      if (! EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table))
+	error ("Not a translation table");
+      tt = NULL;
+    }
   else
     {
       CHECK_STRING (table);
@@ -2792,18 +2859,20 @@ It returns the number of characters changed.  */)
 
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
-  modify_region (current_buffer, XINT (start), XINT (end));
+  end_pos = XINT (end); 
+  modify_region (current_buffer, pos, end_pos);
 
   cnt = 0;
-  for (; pos < XINT (end); )
+  for (; pos < end_pos; )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str, buf[MAX_MULTIBYTE_LENGTH];
       int len, str_len;
       int oc;
+      Lisp_Object val;
 
       if (multibyte)
-	nc = oc = STRING_CHAR_AND_LENGTH (p, stop - pos_byte, len);
+	nc = oc = STRING_CHAR_AND_LENGTH (p, 0, len);
       else
 	nc = oc = *p, len = 1;
       if (tt)
@@ -2824,8 +2893,6 @@ It returns the number of characters changed.  */)
 	}
       else
 	{
-	  Lisp_Object val;
-
 	  val = CHAR_TABLE_REF (table, oc);
 	  if (CHARACTERP (val))
 	    {
@@ -2833,29 +2900,79 @@ It returns the number of characters changed.  */)
 	      str_len = CHAR_STRING (nc, buf);
 	      str = buf;
 	    }
+	  else if (VECTORP (val) || (CONSP (val)))
+	    {
+	      /* VAL is [TO_CHAR ...] or (([FROM-CHAR ...] .  TO) ...)
+		 where TO is TO-CHAR or [TO-CHAR ...].  */
+	      nc = -1;
+	    }
 	}
 
       if (nc != oc)
 	{
-	  if (len != str_len)
+	  if (nc >= 0)
 	    {
-	      Lisp_Object string;
+	      /* Simple one char to one char translation.  */
+	      if (len != str_len)
+		{
+		  Lisp_Object string;
 
-	      /* This is less efficient, because it moves the gap,
-		 but it should multibyte characters correctly.  */
-	      string = make_multibyte_string (str, 1, str_len);
-	      replace_range (pos, pos + 1, string, 1, 0, 1);
-	      len = str_len;
+		  /* This is less efficient, because it moves the gap,
+		     but it should handle multibyte characters correctly.  */
+		  string = make_multibyte_string (str, 1, str_len);
+		  replace_range (pos, pos + 1, string, 1, 0, 1);
+		  len = str_len;
+		}
+	      else
+		{
+		  record_change (pos, 1);
+		  while (str_len-- > 0)
+		    *p++ = *str++;
+		  signal_after_change (pos, 1, 1);
+		  update_compositions (pos, pos + 1, CHECK_BORDER);
+		}
+	      ++cnt;
 	    }
 	  else
 	    {
-	      record_change (pos, 1);
-	      while (str_len-- > 0)
-		*p++ = *str++;
-	      signal_after_change (pos, 1, 1);
-	      update_compositions (pos, pos + 1, CHECK_BORDER);
+	      Lisp_Object string;
+
+	      if (CONSP (val))
+		{
+		  val = check_translation (pos, pos_byte, end_pos, val);
+		  if (NILP (val))
+		    {
+		      pos_byte += len;
+		      pos++;
+		      continue;
+		    }
+		  /* VAL is ([FROM-CHAR ...] . TO).  */
+		  len = ASIZE (XCAR (val));
+		  val = XCDR (val);
+		}
+	      else
+		len = 1;
+
+	      if (VECTORP (val))
+		{
+		  int i;
+
+		  string = Fmake_string (make_number (ASIZE (val)),
+					 AREF (val, 0));
+		  for (i = 1; i < ASIZE (val); i++)
+		    Faset (string, make_number (i), AREF (val, i));
+		}
+	      else
+		{
+		  string = Fmake_string (make_number (1), val);
+		}
+	      replace_range (pos, pos + len, string, 1, 0, 1);
+	      pos_byte += SBYTES (string);
+	      pos += SCHARS (string);
+	      cnt += SCHARS (string);
+	      end_pos += SCHARS (string) - len;
+	      continue;
 	    }
-	  ++cnt;
 	}
       pos_byte += len;
       pos++;
@@ -3231,6 +3348,10 @@ It may contain %-sequences meaning to substitute the next argument.
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
 Use %% to put a single % into the output.
 
+The basic structure of a %-sequence is
+  % <flags> <width> <precision> character
+where flags is [- #0]+, width is [0-9]+, and precision is .[0-9]+
+
 usage: (format STRING &rest OBJECTS)  */)
      (nargs, args)
      int nargs;
@@ -3315,7 +3436,7 @@ usage: (format STRING &rest OBJECTS)  */)
     int i;
     info = (struct info *) alloca (nbytes);
     bzero (info, nbytes);
-    for (i = 0; i <= nargs; i++)
+    for (i = 0; i < nargs; i++)
       info[i].start = -1;
     discarded = (char *) alloca (SBYTES (args[0]));
     bzero (discarded, SBYTES (args[0]));
@@ -3338,7 +3459,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	   where
 
-	   flags	::= [#-* 0]+
+	   flags	::= [- #0]+
 	   field-width	::= [0-9]+
 	   precision	::= '.' [0-9]*
 
@@ -3350,14 +3471,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	   digits to print after the '.' for floats, or the max.
 	   number of chars to print from a string.  */
 
-	/* NOTE the handling of specifiers here differs in some ways
-           from the libc model.  There are bugs in this code that lead
-           to incorrect formatting when flags recognized by C but
-           neither parsed nor rejected here are used.  Further
-           revisions will be made soon.  */
-
-        /* incorrect list of flags to skip; will be fixed */
-	while (index ("-*# 0", *format))
+	while (index ("-0# ", *format))
 	  ++format;
 
 	if (*format >= '0' && *format <= '9')
@@ -3485,7 +3599,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    /* Anything but a string, convert to a string using princ.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qt);
-	    if (STRING_MULTIBYTE (tem) & ! multibyte)
+	    if (STRING_MULTIBYTE (tem) && ! multibyte)
 	      {
 		multibyte = 1;
 		goto retry;
@@ -3532,17 +3646,19 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  /* Process a numeric arg and skip it.  */
-	  /* NOTE atoi is the wrong thing to use here; will be fixed */
-	  minlen = atoi (format);
-	  if (minlen < 0)
-	    minlen = - minlen, negative = 1;
+	  while (index("-0# ", *format))
+	    {
+	      if (*format == '-')
+		{
+		  negative = 1;
+		}
+	      discarded[format - format_start] = 1;
+	      ++format;
+	    }
 
-	  /* NOTE the parsing here is not consistent with the first
-             pass, and neither attempt is what we want to do.  Will be
-             fixed. */
-	  while ((*format >= '0' && *format <= '9')
-		 || *format == '-' || *format == ' ' || *format == '.')
+	  minlen = atoi (format);
+
+	  while ((*format >= '0' && *format <= '9') || *format == '.')
 	    {
 	      discarded[format - format_start] = 1;
 	      format++;
@@ -4358,3 +4474,6 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
+
+/* arch-tag: fc3827d8-6f60-4067-b11e-c3218031b018
+   (do not change this comment) */
