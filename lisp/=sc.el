@@ -3,13 +3,9 @@
 
 ;; ========== Introduction ==========
 ;; Citation and attribution package for various GNU emacs news and
-;; electronic mail reading subsystems.  This version of supercite will
-;; interface to VM 4.40+ and MH-E 3.7 (shipped w/ emacs 18.57) as is.
-;; It will also interface with GNUS 3.12+, RMAIL 18.55+, GNEWS, and
-;; probably most other news/mail subsystems by using the overloading
-;; functions provided in sc-oloads.el (see that file or the README for
-;; more information on interfacing supercite with your reader subsystem).
-;; This version should now be compatible with Lucid Emacs 19.x emacses.
+;; electronic mail reading subsystems.  This version of supercite should
+;; work with Rmail and GNUS as found in Emacs 19.  It may also work with
+;; VM 4.40+ and MH-E 3.7.
 
 ;; This package does not do any yanking of messages, but instead
 ;; massages raw reply buffers set up by the reply/forward functions in
@@ -84,15 +80,6 @@
 ;; replies that personalized flair, but the instructions in this
 ;; section should be sufficient for getting started.
 
-;; With this release of supercite overloading is the only supported
-;; way to get supercite hooked into your favorite news/mail reading
-;; subsystems.  Overloading will be necessary for RMAIL, GNUS, GNEWS,
-;; RNEWS and PCMAIL. Overloading will not be needed for VM 4.37+ or
-;; MH-E 3.7+.  MH-E comes with emacs 18.57 but if you have an earlier
-;; version of emacs, you should be able to ftp MH-E 3.7 separately. Or
-;; you can extract the MH-E overloading stuff from version 2.1's
-;; sc-oloads.el.
-
 ;; First, to connect supercite to any mail/news reading subsystem, put
 ;; this in your .emacs file:
 ;;
@@ -104,15 +91,6 @@
 ;; add the following autoload:
 ;;
 ;; (autoload 'sc-cite-original "sc" "Supercite 2.3" t)
-;;
-;; Then, if you need to overload, put the following in your .emacs file:
-;;
-;; (defun my-sc-overload-hook ()
-;;   (require 'sc-oloads)      ; be sure this file is on your load-path
-;;   (sc-overload-functions))
-;;
-;; (setq news-reply-mode-hook 'my-sc-overload-hook) ; for RNEWS,GNUS,GNEWS
-;; (setq mail-setup-hook      'my-sc-overload-hook) ; for RMAIL, PCMAIL
 ;;
 ;; Finally, if you want to customize supercite, you should do it in a
 ;; function called my-supercite-hook and:
