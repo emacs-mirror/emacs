@@ -2254,6 +2254,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	{
 	  pos_byte = CHAR_TO_BYTE (pos);
 	  multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+	}
       else
 	{
 	  pos_byte = string_char_to_byte (string, pos);
