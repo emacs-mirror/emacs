@@ -1,5 +1,5 @@
 ;;; mh-comp --- mh-e functions for composing messages
-;; Time-stamp: <94/12/31 14:07:28 gildea>
+;; Time-stamp: <95/04/20 19:16:23 gildea>
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.3 1995/04/09 22:31:08 kwzh Exp kwzh $
+;; $Id: mh-comp.el,v 1.4 1995/04/10 00:19:27 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -595,7 +595,7 @@ See also documentation for `\\[mh-send]' function."
 (defun mh-goto-header-end (arg)
   ;; Find the end of the message header in the current buffer and position
   ;; the cursor at the ARG'th newline after the header.
-  (if (re-search-forward "^$\\|^-+$" nil nil)
+  (if (re-search-forward "^-*$" nil nil)
       (forward-line arg)))
 
 
@@ -685,11 +685,10 @@ invoked with no args, if those values are non-nil."
 (defun mh-auto-fill-for-letter ()
   ;; Auto-fill in letters treats the header specially by inserting a tab
   ;; before continuation line.
-  (do-auto-fill)
   (if (mh-in-header-p)
-      (save-excursion
-	(beginning-of-line nil)
-	(insert-char ?\t 1))))
+      (let ((fill-prefix "\t"))
+	(do-auto-fill))
+    (do-auto-fill)))
 
 
 (defun mh-in-header-p ()
@@ -991,24 +990,24 @@ Use \\[kill-buffer] if you don't want to delete the draft message file."
 ;;; autoloads from mh-mime
 
 (autoload 'mh-mhn-compose-insertion "mh-mime"
-  "Add a directive to insert a message part from a file.
+  "Add a directive to insert a MIME message part from a file.
 This is the typical way to insert non-text parts in a message.
 See also \\[mh-edit-mhn]." t)
 
 (autoload 'mh-mhn-compose-anon-ftp "mh-mime"
-  "Add a directive for an anonymous ftp external body part.
+  "Add a directive for a MIME anonymous ftp external body part.
 This directive tells MH to include a reference to a
 message/external-body part retrievable by anonymous FTP.
 See also \\[mh-edit-mhn]." t)
 
 (autoload 'mh-mhn-compose-external-compressed-tar "mh-mime"
-  "Add a directive to include a reference to a compressed tar file.
+  "Add a directive to include a MIME reference to a compressed tar file.
 The file should be available via anonymous ftp.  This directive
 tells MH to include a reference to a message/external-body part.
 See also \\[mh-edit-mhn]." t)
 
 (autoload 'mh-mhn-compose-forw "mh-mime"
-  "Add a forw directive to this message.
+  "Add a forw directive to this message, to forward a message with MIME.
 This directive tells MH to include another message in this one.
 See also \\[mh-edit-mhn]." t)
 
