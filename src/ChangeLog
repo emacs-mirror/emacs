@@ -1,3 +1,8 @@
+2004-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_text_out): Use s->font, for consistency with
+	callers.
+
 2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* print.c (Ferror_message_string): Add hyperlink in the docstring
