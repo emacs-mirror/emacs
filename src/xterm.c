@@ -2765,15 +2765,18 @@ static void
 XTcondemn_scroll_bars (frame)
      FRAME_PTR frame;
 {
-  /* The condemned list should be empty at this point; if it's not,
-     then the rest of Emacs isn't using the condemn/redeem/judge
-     protocol correctly.  */
-  if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
-    abort ();
-
-  /* Move them all to the "condemned" list.  */
-  FRAME_CONDEMNED_SCROLL_BARS (frame) = FRAME_SCROLL_BARS (frame);
-  FRAME_SCROLL_BARS (frame) = Qnil;
+  /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
+  while (! NILP (FRAME_SCROLL_BARS (frame)))
+    {
+      Lisp_Object bar;
+      bar = FRAME_SCROLL_BARS (frame);
+      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
+      XSCROLL_BAR (bar)->prev = Qnil;
+      if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
+	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
+      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+    }
 }
 
 /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
@@ -3796,6 +3799,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		dpyinfo->x_focus_event_frame = f;
 	      if (f)
 		x_new_focus_frame (dpyinfo, f);
+
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -3833,6 +3837,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		dpyinfo->x_focus_event_frame = 0;
 	      if (f && f == dpyinfo->x_focus_frame)
 		x_new_focus_frame (dpyinfo, 0);
+
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -4530,18 +4535,6 @@ x_connection_closed (display, error_message)
   error ("%s", error_message);
 }
 
-static SIGTYPE
-x_connection_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls. */
-{
-  /* We really ought to close the connection to the display
-     that actually failed.
-     But do we actually get this signal ever with X11?  */
-  fprintf (stderr, "X connection closed");
-  shut_down_emacs (0, 0, Qnil);
-  exit (70);
-}
-
 /* This is the usual handler for X protocol errors.
    It kills all frames on the display that we got the error for.
    If that was the only one, it prints an error message and kills Emacs.  */
@@ -4574,6 +4567,56 @@ x_io_error_quitter (display)
 
   sprintf (buf, "Connection lost to X server `%s'", DisplayString (display));
   x_connection_closed (display, buf);
+}
+
+/* Handle SIGPIPE, which can happen when the connection to a server
+   simply goes away.  SIGPIPE is handled by x_connection_signal.
+   It works by sending a no-op command to each X server connection.
+   When we try a connection that has closed, we get SIGPIPE again.
+   But this time, it is handled by x_connection_signal_1.
+   That function knows which connection we were testing,
+   so it closes that one.
+   
+   x_connection_closed never returns,
+   so if more than one connection was lost at once,
+   we only find one.  But XTread_socket keeps trying them all,
+   so it will notice the other closed one sooner or later.  */
+   
+
+static struct x_display_info *x_connection_signal_dpyinfo;
+
+static SIGTYPE x_connection_signal ();
+
+static SIGTYPE
+x_connection_signal_1 (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+  signal (SIGPIPE, x_connection_signal);
+  x_connection_closed (x_connection_signal_dpyinfo,
+		       "connection was lost");
+}
+
+static SIGTYPE
+x_connection_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+  x_connection_signal_dpyinfo = x_display_list;
+
+  sigunblock (SIGPIPE);
+
+  while (x_connection_signal_dpyinfo)
+    {
+      signal (SIGPIPE, x_connection_signal_1);
+
+      XNoOp (x_connection_signal_dpyinfo->display);
+      XSync (x_connection_signal_dpyinfo->display, False);
+
+      /* Each time we get here, cycle through the displays now open.  */
+      x_connection_signal_dpyinfo = x_connection_signal_dpyinfo->next;
+    }
+
+  /* We should have found some closed connection.  */
+  abort ();
 }
 
 /* A buffer for storing X error messages.  */
