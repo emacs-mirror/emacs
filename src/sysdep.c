@@ -737,6 +737,10 @@ sys_subshell ()
 
 #ifdef MSDOS
   pid = 0;
+#if __DJGPP__ > 1
+  save_signal_handlers (saved_handlers);
+  synch_process_alive = 1;
+#endif /* __DJGPP__ > 1 */
 #else  
   pid = vfork ();
   if (pid == -1)
@@ -798,12 +802,17 @@ sys_subshell ()
 #endif /* not MSDOS */
     }
 
+  /* Do this now if we did not do it before.  */
+#if !defined (MSDOS) || __DJGPP__ == 1
   save_signal_handlers (saved_handlers);
   synch_process_alive = 1;
+#endif
+
 #ifndef MSDOS
   wait_for_termination (pid);
 #endif
   restore_signal_handlers (saved_handlers);
+  synch_process_alive = 0;
 #endif /* !VMS */
 }
 
