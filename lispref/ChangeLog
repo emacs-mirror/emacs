@@ -1,5 +1,7 @@
 2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* frames.texi (Window System Selections): Add anchor.
+
 	* syntax.texi (Syntax Table Functions): Clarify and correct
 	descriptions of make-syntax-table and copy-syntax-table.
 	(Motion and Syntax): Clarify SYNTAXES argument to
