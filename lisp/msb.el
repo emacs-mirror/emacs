@@ -1,8 +1,6 @@
 ;;; msb.el --- Customizable buffer-selection with multiple menus.
 
-;; Copyright (C) 1993, 1994, 1995, 1997 Lars Lindberg
-;; <Lars.G.Lindberg@capgemini.se>
-;; <Lars.G.Lindberg@mailbox.swipnet.se>
+;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <Lars.G.Lindberg@capgemini.se>
 ;; Created: 8 Oct 1993
@@ -339,7 +337,7 @@ error every time you do \\[msb].")
 ;;;
 
 ;; Home directory for the current user
-(defvar msb--home-path
+(defvar msb--home-dir
   (condition-case nil
       (substitute-in-file-name "$HOME")
     ;; If $HOME isn't defined, use nil
@@ -456,16 +454,16 @@ If the argument is left out or nil, then the current buffer is considered."
   (and (> (length (buffer-name buffer)) 0)
        (eq ?\ (aref (buffer-name buffer) 0))))
 
-;; Strip one hierarchy level from the end of PATH.
-(defun msb--strip-path (path)
+;; Strip one hierarchy level from the end of DIR.
+(defun msb--strip-dir (dir)
   (save-match-data
     (cond
-     ((string-match "^\\([^/]*/.+/\\)[^/]+$" path)
-      (substring path (match-beginning 1) (match-end 1)))
-     ((string-match "^\\([^/]*/\\)" path)
-      (substring path (match-beginning 1) (match-end 1)))
+     ((string-match "^\\([^/]*/.+/\\)[^/]+$" dir)
+      (substring dir (match-beginning 1) (match-end 1)))
+     ((string-match "^\\([^/]*/\\)" dir)
+      (substring dir (match-beginning 1) (match-end 1)))
      (t
-      (error "msb: Path '%s' has an unrecognized format" path)))))
+      (error "msb: Directory `%s' has an unrecognized format" dir)))))
 
 ;; Create an alist with all buffers from LIST that lies under the same
 ;; directory will be in the same item as the directory string.
@@ -482,7 +480,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		   (let ((file-name (expand-file-name (buffer-file-name buffer))))	=
 ;LGL 971218
 		     (when file-name
-		       (list (cons (msb--strip-path file-name) buffer))))))
+		       (list (cons (msb--strip-dir file-name) buffer))))))
 		list)
 	       (function (lambda (item1 item2)
 			   (string< (car item1) (car item2)))))))
@@ -516,8 +514,8 @@ If the argument is left out or nil, then the current buffer is considered."
 ;; Format a suitable title for the menu item.
 (defun msb--format-title (top-found-p path number-of-items)
   (let ((new-path path))
-    (when (and msb--home-path
-	       (string-match (concat "^" msb--home-path) path))
+    (when (and msb--home-dir
+	       (string-match (concat "^" msb--home-dir) path))
       (setq new-path (concat "~/"
 			     (substring path (match-end 0)))))
     (format (if top-found-p "%s... (%d)" "%s (%d)")
@@ -582,7 +580,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		  rest tmp-rest))
 	  ;; Now see if we can clump more buffers together if we go up
 	  ;; one step in the file hierarchy.
-	  (setq path (msb--strip-path path)
+	  (setq path (msb--strip-dir path)
 		buffers (cdr first))
 	  (when (and last-path
 		     (or (and (>= (length path) (length last-path))
