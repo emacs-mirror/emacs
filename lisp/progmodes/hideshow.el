@@ -77,7 +77,7 @@
 
 (defvar hs-unbalance-handler-method 'top-level
   "*Symbol representing how \"unbalanced parentheses\" should be handled.
-This error is usually signalled by hs-show-block.  One of four values:
+This error is usually signaled by hs-show-block.  One of four values:
 `top-level', `next-line', `signal' or `ignore'.  Default is `top-level'.
 
 - `top-level' -- Show top-level block containing the currently troublesome
@@ -345,7 +345,7 @@ hs-hide-hooks is called.  See documentation for `run-hooks'."
 	 (cond ((string= comment-end "")
 		(message "can't hide a single-line comment"))
 	       ((< (count-lines (car c-reg) (nth 1 c-reg)) 2)
-		(message "not enougn comment lines to hide"))
+		(message "not enough comment lines to hide"))
 	       (t
 		(goto-char (nth 1 c-reg))
 		(forward-line -1)
@@ -363,7 +363,7 @@ hs-hide-hooks is called.  See documentation for `run-hooks'."
 (defun hs-show-block (&optional end)
   "Selects a block and shows it.  With prefix arg, reposition at end.
 Upon completion, point is repositioned hs-show-hooks are called.  See
-documetation for `hs-hide-block' and `run-hooks'."
+documentation for `hs-hide-block' and `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
    (let ((c-reg (hs-inside-comment-p)))
