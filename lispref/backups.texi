@@ -624,11 +624,11 @@ file on disk.  This action undoes all changes since the file was visited
 or saved.
 
 By default, if the latest auto-save file is more recent than the visited
-file, and the argument @var{ignore-auto} is non-@code{nil},
+file, and the argument @var{ignore-auto} is @code{nil},
 @code{revert-buffer} asks the user whether to use that auto-save
 instead.  When you invoke this command interactively, @var{ignore-auto}
-is @code{t} unless there is a numeric prefix argument; thus, the
-interactive default is to check the auto-save file.
+is @code{t} if there is no numeric prefix argument; thus, the
+interactive default is not to check the auto-save file.
 
 Normally, @code{revert-buffer} asks for confirmation before it changes
 the buffer; but if the argument @var{noconfirm} is non-@code{nil},
