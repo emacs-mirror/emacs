@@ -1,3 +1,7 @@
+2002-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/sol2.h (HAVE_LIBKSTAT): Define only if not already defined.
+
 2002-04-17  Juanma Barranquero  <lektu@terra.es>
 
 	* indent.c (Fmove_to_column): Remove unused local variable
