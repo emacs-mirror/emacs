@@ -1,6 +1,8 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* README: remove obsolete part mentioning removed VMS file.
+	* Makefile.in: Fix typo.
+
+	* README: Remove obsolete part mentioning removed VMS file.
 
 2001-10-07  Miles Bader  <miles@gnu.org>
 
