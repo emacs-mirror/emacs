@@ -364,19 +364,6 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 
 /* Producing databases for individual sources.  */
 
-#define X_DEFAULT_SEARCH_PATH "/usr/X11R6/lib/X11/%L/%T/%N%C%S:\
-/usr/X11R6/lib/X11/%l/%T/%N%C%S:\
-/usr/X11R6/lib/X11/%T/%N%C%S:\
-/usr/X11R6/lib/X11/%L/%T/%N%S:\
-/usr/X11R6/lib/X11/%l/%T/%N%S:\
-/usr/X11R6/lib/X11/%T/%N%S:\
-/usr/lib/X11/%L/%T/%N%C%S:\
-/usr/lib/X11/%l/%T/%N%C%S:\
-/usr/lib/X11/%T/%N%C%S:\
-/usr/lib/X11/%L/%T/%N%S:\
-/usr/lib/X11/%l/%T/%N%S:\
-/usr/lib/X11/%T/%N%S"
-
 static XrmDatabase
 get_system_app (class)
      char *class;
@@ -385,7 +372,7 @@ get_system_app (class)
   char *path;
 
   path = getenv ("XFILESEARCHPATH");
-  if (! path) path = X_DEFAULT_SEARCH_PATH;
+  if (! path) path = PATH_X_DEFAULTS;
 
   path = search_magic_path (path, class, 0, 0);
   if (path)
