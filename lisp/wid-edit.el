@@ -1750,6 +1750,26 @@ If END is omitted, it defaults to the length of LIST."
   (require 'browse-url)
   (funcall browse-url-browser-function (widget-value widget)))
 
+;;; The `function-link' Widget.
+
+(define-widget 'function-link 'link
+  "A link to an Emacs function."
+  :action 'widget-function-link-action)
+
+(defun widget-function-link-action (widget &optional event)
+  "Show the function specified by WIDGET."
+  (describe-function (widget-value widget)))
+
+;;; The `variable-link' Widget.
+
+(define-widget 'variable-link 'link
+  "A link to an Emacs variable."
+  :action 'widget-variable-link-action)
+
+(defun widget-variable-link-action (widget &optional event)
+  "Show the variable specified by WIDGET."
+  (describe-variable (widget-value widget)))
+
 ;;; The `file-link' Widget.
 
 (define-widget 'file-link 'link
