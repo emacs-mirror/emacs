@@ -71,6 +71,14 @@
 (provide 'help-macro)
 (require 'backquote)
 
+;;;###autoload
+(defvar three-step-help nil
+  "*Non-nil means give more info about Help command in three steps.
+The three steps are simple prompt, prompt with all options,
+and window listing and describing the options.
+A value of nil means skip the middle step, so that
+\\[help-command] \\[help-command] gives the window that lists the options.")
+
 (defmacro make-help-screen (fname help-line help-text helped-map)
   "Construct help-menu function name FNAME.
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
@@ -83,7 +91,8 @@ and then returns."
 	   (interactive)
 	   (let ((line-prompt
 		  (substitute-command-keys (, help-line))))
-	     (message line-prompt)
+	     (if three-step-help
+		 (message line-prompt))
 	     (let* ((overriding-local-map (make-sparse-keymap))
 		    (minor-mode-map-alist nil)
 		    config key char help-screen)
@@ -92,8 +101,10 @@ and then returns."
 		     (setcdr overriding-local-map (, helped-map))
 		     (define-key overriding-local-map [t] 'undefined)
 		     (setq help-screen (documentation (quote (, fname))))
-		     (setq key (read-key-sequence nil))
-		     (setq char (aref key 0))
+		     (if three-step-help
+			 (setq key (read-key-sequence nil)
+			       char (aref key 0))
+		       (setq char ??))
 		     (if (or (eq char ??) (eq char help-char))
 			 (progn
 			   (setq config (current-window-configuration))
@@ -101,23 +112,23 @@ and then returns."
 			   (erase-buffer)
 			   (insert help-screen)
 			   (goto-char (point-min))
-			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
+			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 delete ?\M-v)))
 				      (equal key "\M-v"))
 			     (setq list (cons key list))
 			     (condition-case nil
 				 (progn
 				   (if (memq char '(?\C-v ?\ ))
 				       (scroll-up))
-				   (if (or (memq char '(?\177 ?\M-v))
+				   (if (or (memq char '(?\177 ?\M-v delete))
 					   (equal key "\M-v"))
 				       (scroll-down)))
 			       (error nil))
-			     (message "%s%s: "
-				      line-prompt
-				      (if (pos-visible-in-window-p (point-max))
-					  "" " or Space to scroll"))
 			     (let ((cursor-in-echo-area t))
-			       (setq key (read-key-sequence nil)
+			       (setq key (read-key-sequence
+					  (format "Type one of the options listed%s: "
+						  (if (pos-visible-in-window-p
+						       (point-max))
+						      "" " or Space to scroll")))
 				     char (aref key 0))))
 			   (setq list (cons key list))))
 		     ;; Mouse clicks are not part of the help feature,
