@@ -119,7 +119,9 @@ struct frame_glyphs
     /* highlight[n] != 0 iff line n is highlighted.  */
     char *highlight;
 
-    /* Buffer offset of this line's first char.  */
+    /* Buffer offset of this line's first char.
+       This is not really implemented, and cannot be,
+       and should be deleted.  */
     int   *bufp;
 
 #ifdef HAVE_X_WINDOWS
@@ -137,9 +139,30 @@ struct frame_glyphs
     short *max_ascent;
 #endif	/* HAVE_X_WINDOWS */
 
-    /* A vector indexed by vertical position.
-       Each element is a vector indexed by horizontal position
-       giving, for each glyph, the buffer position it corresponds to.  */
+    /* Mapping of coordinate pairs to buffer positions.
+       This field holds a vector indexed by row number.
+       Its elements are vectors indexed by column number.
+       Each element of these vectors is a buffer position, 0, or -1.
+
+       For a column where the image of a text character starts,
+       the element value is the buffer position of that character.
+       When a window's screen line starts in mid character,
+       the element for the line's first column (at the window's left margin)
+       is that character's position.
+       For successive columns within a multicolumn character,
+       the element is -1.
+       For the column just beyond the last glyph on a line,
+       the element is the buffer position of the end of the line.
+       For following columns within the same window, the element is 0.
+       For rows past the end of the accessible buffer text,
+       the window's first column has ZV and other columns have 0.
+
+       Mode lines and vertical separator lines have 0.
+
+       The column of a window's left margin
+       always has a positive value (a buffer position), not 0 or -1,
+       for each line in that window's interior.  */
+
     int **charstarts;
 
     /* This holds all the space in the subvectors of the charstarts field.  */
