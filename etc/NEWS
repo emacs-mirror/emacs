@@ -79,6 +79,7 @@ By default, Emacs now knows how to translate latin-N chars between their
 charset and some other latin-N charset or unicode.  You can force a
 more complete unification by calling (unify-8859-on-decoding-mode 1).
 
+---
 ** The scrollbar under Motif has a smoother drag-scrolling.
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
@@ -101,6 +102,7 @@ in them.
 ** PO translation files are decoded according to their MIME headers
 when Emacs visits them.
 
+---
 ** The game `mpuz' is enhanced.
 
 `mpuz' now allows the 2nd factor not to have two identical digits.  By
@@ -135,6 +137,7 @@ window so as to center point.  If its value is an integer, it says how
 many columns to scroll.  If the value is a floating-point number, it
 gives the fraction of the window's width to scroll the window.
 
++++
 ** The user option `tex-start-options-string' has been replaced
 by two new user options: `tex-start-options', which should hold
 command-line options to feed to TeX, and `tex-start-commands' which should hold
@@ -144,6 +147,7 @@ TeX commands to use at startup.
 ** The variable `automatic-hscrolling' was renamed to `auto-hscroll-mode'.
 The old name is still available as an alias.
 
++++
 ** New display feature: focus follows mouse.  If you set the variable
 mouse-autoselect-window to non-nil value, moving the mouse to a different
 Emacs window will select that window (minibuffer window can be selected
@@ -162,12 +166,14 @@ search multiple buffers.  There is also a new command
 buffers to search by their filename.  Internally, Occur mode has been
 rewritten, and now uses font-lock, among other changes.
 
++++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
 can optionally enable mouse highlighting only after you move the
 mouse, so that highlighting disappears when you press a key.  You can
 also disable mouse highlighting.
 
++++
 ** font-lock: in modes like C and Lisp where the fontification assumes that
 an open-paren in column 0 is always outside of any string or comment,
 font-lock now highlights any such open-paren-in-column-zero in bold-red
@@ -197,8 +203,9 @@ and column number in the mode-line.
 
 ** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
 
-** Emacs can now indicate in the mode-line the presence of new e-mails in
-directory in addition to file.  See the documentation of the user option
++++
+** Emacs can now indicate in the mode-line the presence of new e-mails
+in a directory or in a file.  See the documentation of the user option
 `display-time-mail-directory'.
 
 +++
@@ -562,13 +569,16 @@ from the file name or buffer contents.
 This option can be disabled, to avoid the normal behaviour of isearch
 which puts calls to `isearch-resume' in the command history.
 
+---
 ** When the *scratch* buffer is recreated, its mode is set from
 initial-major-mode, which normally is lisp-interaction-mode,
 instead of using default-major-mode.
 
+---
 ** Byte compiler warning and error messages have been brought more
 in line with the output of other GNU tools.
 
+---
 ** Lisp-mode now uses font-lock-doc-face for the docstrings.
 
 ** perl-mode has a new variable `perl-indent-continued-arguments'.
@@ -592,23 +602,28 @@ completing file names.  Elements of `completion-ignored-extensions'
 which do not end in a slash are never considered when a completion
 candidate is a directory.
 
++++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
+---
 ** Rmail now displays 5-digit message ids in its summary buffer.
 
 ** When using M-x revert-buffer in a compilation buffer to rerun a
 compilation, it is now made sure that the compilation buffer is reused
 in case it has been renamed.
 
+---
 ** On MS Windows, the "system caret" now follows the cursor.
 This enables Emacs to work better with programs that need to track
 the cursor, for example screen magnifiers and text to speech programs.
 
+---
 ** Tooltips now work on MS Windows.
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
+---
 ** Some images are now supported on Windows.
 PBM and XBM images are supported, other formats which require external
 libraries may be supported in future.
@@ -631,16 +646,6 @@ Meta and Alt:
 
 ---
 ** A French translation of the Emacs Tutorial is available.
-
----
-** Indentation of simple and extended loop forms has been added to the
-cl-indent package.  The new user options
-`lisp-loop-keyword-indentation', `lisp-loop-forms-indentation', and
-`lisp-simple-loop-indentation' can be used to customize the
-indentation of keywords and forms in loop forms.
-
-** Indentation of backquoted forms has been made customizable in the
-cl-indent package.  See the new user option `lisp-backquote-indentation'.
 
 ** When emacs is configured to use `xaw3d' scroll-bars, emacs will
 tell the scroll-bar library which colors to use for the bevels, to
@@ -704,6 +709,18 @@ Emacs build procedure and installed together with the Emacs User
 Manual.  A menu item was added to the menu bar that makes it easy
 accessible (Help->More Manuals->Emacs Lisp Reference).
 
+---
+** Indentation of simple and extended loop forms has been added to the
+cl-indent package.  The new user options
+`lisp-loop-keyword-indentation', `lisp-loop-forms-indentation', and
+`lisp-simple-loop-indentation' can be used to customize the
+indentation of keywords and forms in loop forms.
+
+---
+** Indentation of backquoted forms has been made customizable in the
+cl-indent package.  See the new user option `lisp-backquote-indentation'.
+
+---
 *** The Introduction to Programming in Emacs Lisp manual is now part of
 the distribution.
 
@@ -725,36 +742,19 @@ method may be displayed by customizing the variable
 change the `fill-column', `window-margins' and `tab-stop-list'
 settings.
 
-*** The reveal.el package provides the minor modes `reveal-mode' and
-`global-reveal-mode' which will make text visible on the fly as you
+*** The minor mode Reveal mode makes text visible on the fly as you
 move your cursor into hidden region of the buffer.
 It should work with any package that uses overlays to hide parts
 of a buffer, such as outline-minor-mode, hs-minor-mode, hide-ifdef-mode, ...
 
-*** master-mode.el implements a minor mode for scrolling a slave
-buffer without leaving your current buffer, the master buffer.
+There is also Global Reveal mode which affects all buffers.
 
-It can be used by sql.el, for example: the SQL buffer is the master
-and its SQLi buffer is the slave.  This allows you to scroll the SQLi
-buffer containing the output from the SQL buffer containing the
-commands.
-
-This is how to use sql.el and master.el together: the variable
-sql-buffer contains the slave buffer.  It is a local variable in the
-SQL buffer.
-
-(add-hook 'sql-mode-hook
-   (function (lambda ()
-	       (master-mode t)
-	       (master-set-slave sql-buffer))))
-(add-hook 'sql-set-sqli-hook
-   (function (lambda ()
-	       (master-set-slave sql-buffer))))
-
+---
 *** The new package ibuffer provides a powerful, completely
 customizable replacement for buff-menu.el.
 
-** Support for `magic cooky' standout modes has been removed.
+---
+** Support for `magic cookie' standout modes has been removed.
 Emacs will still work on terminals that require magic cookies in order
 to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
@@ -974,6 +974,26 @@ the bindings that were made with easymenu.
 argument.  If it is non-nil, then `commandp' checks
 for a function that could be called with `call-interactively',
 and does not return t for keyboard macros.
+
+** master-mode.el implements a minor mode for scrolling a slave
+buffer without leaving your current buffer, the master buffer.
+
+It can be used by sql.el, for example: the SQL buffer is the master
+and its SQLi buffer is the slave.  This allows you to scroll the SQLi
+buffer containing the output from the SQL buffer containing the
+commands.
+
+This is how to use sql.el and master.el together: the variable
+sql-buffer contains the slave buffer.  It is a local variable in the
+SQL buffer.
+
+(add-hook 'sql-mode-hook
+   (function (lambda ()
+	       (master-mode t)
+	       (master-set-slave sql-buffer))))
+(add-hook 'sql-set-sqli-hook
+   (function (lambda ()
+	       (master-set-slave sql-buffer))))
 
 ** File local variables.
 
