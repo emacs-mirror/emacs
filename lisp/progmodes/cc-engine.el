@@ -708,7 +708,7 @@
 			    (<= placeholder here)
 			    (eq (char-after (1- placeholder)) ?\}))
 		       (while t
-			 (setq last-bod (c-safe (scan-lists last-bod -1 1)))
+			 (setq last-bod (c-safe (scan-lists last-pos -1 1)))
 			 (if (not last-bod)
 			     (save-excursion
 			       ;; bogus, but what can we do here?
