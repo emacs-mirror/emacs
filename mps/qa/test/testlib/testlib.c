@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.21) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.22) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -14,6 +14,7 @@ some useful functions for testing the MPS */
 #ifdef MMQA_HEADER_mpsavm
 #include "mpsavm.h"
 #endif
+
 
 /* err_text
    mps_res_t -> textual description
@@ -41,6 +42,7 @@ const char *err_text(mps_res_t err) {
  return "*** Unknown result code ***";
 }
 
+
 /* finish, pass 
    report completed=yes and exit(0)
 */
@@ -50,9 +52,11 @@ void finish(void) {
  exit(0);
 }
 
+
 void pass(void) {
  finish();
 }
+
 
 /* fail
    report completed=no and exit(1)
@@ -67,9 +71,11 @@ void fail(void) {
    write a var=value line on stdout
 */
 
+
 void report_res(const char *str, mps_res_t res) {
  report(str, err_text(res));
 }
+
 
 void report(const char *str, const char *format, ...) {
  va_list args;
@@ -79,12 +85,14 @@ void report(const char *str, const char *format, ...) {
  va_end(args);
 }
 
+
 void vreport(const char *str, const char *format, va_list args) {
  fprintf(stdout, "!%s=", str);
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
  fflush(stdout);
 }
+
 
 /* cdie
    report mps result code, and exit if it's not ok
@@ -97,6 +105,7 @@ void cdie(mps_res_t err, const char *str) {
  else comment("%s: OK", str);
 }
 
+
 /* die
    check mps result code it ok; it not, report and exit 
 */
@@ -107,6 +116,7 @@ void die(mps_res_t err, const char *str) {
  }
 }
 
+
 /* adie
    report mps result code as error, whatever it is
 */
@@ -114,6 +124,7 @@ void die(mps_res_t err, const char *str) {
 void adie(mps_res_t err, const char *str) {
  error("%s: %s\n", str, err_text(err));
 }
+
 
 /* comment
    print comment on stdout
@@ -127,12 +138,14 @@ void comment(const char *format, ...) {
  va_end(args);
 }
 
+
 void vcomment(const char *format, va_list args) {
  fprintf(stdout, "%% ");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
  fflush(stdout);
 }
+
 
 /* commentif(boolean, "comment")
 */
@@ -147,6 +160,7 @@ void commentif(int cond, const char *format, ...) {
  }
 }
 
+
 /* error
    print error on stdout and exit
 */
@@ -159,9 +173,11 @@ void error(const char *format, ...) {
  va_end(args);
 }
 
+
 void myabort(void) {
  exit(EXIT_FAILURE);
 }
+
 
 void verror(const char *format, va_list args) {
  fprintf(stdout, "%% ERROR \n!error=true\n");
@@ -171,6 +187,7 @@ void verror(const char *format, va_list args) {
  fflush(stdout);
  myabort();
 }
+
 
 /* asserts(1<0, "Axiom violation.");
    assert, with textual message instead of expr printed
@@ -191,7 +208,9 @@ void asserts(int expr, const char *format, ...) {
  }
 }
 
+
 /* routines for easy use of the MPS */
+
 
 /* my own assertion handler, insalled by easy_tramp
 */
@@ -236,6 +255,7 @@ static void my_assert_handler(const char *cond, const char *id,
  myabort();
 }
 
+
 /* easy_tramp
    simplified trampoline, for those who don't want to
    pass anything into or out of it -- it takes
@@ -250,6 +270,7 @@ static void *call_f(void *p, size_t s) {
  (**f)(); 
  return NULL;
 }
+
 
 #if defined(MMQA_PROD_epcore)
 
@@ -266,6 +287,7 @@ static void easy_tramp2(void (*f)(void)) {
 }
 
 #endif
+
 
 #ifdef MPS_OS_W3
 
@@ -285,10 +307,11 @@ void easy_tramp(void (*f)(void)) {
 
 #endif
 
-/* pause(n) waits for n seconds
+
+/* mmqa_pause(n) waits for n seconds
 */
 
-void pause(unsigned long sec) {
+void mmqa_pause(unsigned long sec) {
  clock_t c;
 
  c = clock();
@@ -297,6 +320,7 @@ void pause(unsigned long sec) {
   while (clock() < c);
  }
 }
+
 
 /* nabbed from "ML for the Working Programmer"
  * Originally from:
@@ -330,9 +354,11 @@ unsigned long ranint(unsigned long x) {
  return y%x;
 }
 
+
 unsigned long ranrange(unsigned long min, unsigned long max) {
  return min+ranint(max-min);
 }
+
 
 /* Event log running
 
@@ -378,11 +404,13 @@ int read_event(log_event* event) {
  return 0;
 }
 
+
 /* A useful function the MPS doesn't provide */
 
 size_t arena_committed_and_used(mps_arena_t arena) {
  return mps_arena_committed(arena)-mps_arena_spare_committed(arena);
 }
+
 
 /* A function to make it easy to parameterise tests by arena
    class 
@@ -474,6 +502,7 @@ void *TQElement(TimeQueue TQ) {
  return (TQ->element[0].ref);
 }
 
+
 void *TQPop(TimeQueue TQ) {
  void *ref;
  void *nref;
@@ -504,5 +533,3 @@ void *TQPop(TimeQueue TQ) {
  }
  return NULL;
 }
-
-
