@@ -2588,8 +2588,9 @@ See `term-prompt-regexp'."
 		   (- (term-vertical-motion -9999))))))))
 
 (defun term-adjust-current-row-cache (delta)
-  (if term-current-row
-      (setq term-current-row (+ term-current-row delta))))
+  (when term-current-row
+    (setq term-current-row 
+	  (max 0 (+ term-current-row delta)))))
 
 (defun term-terminal-pos ()
   (save-excursion ;    save-restriction
@@ -2764,7 +2765,17 @@ See `term-prompt-regexp'."
 			    (when (not (or (eobp) term-insert-mode))
 			      (setq pos (point))
 			      (term-move-columns columns)
-			      (delete-region pos (point))))
+			      (delete-region pos (point)))
+			    ;; In insert if the if the current line
+			    ;; has become too long it needs to be
+			    ;; chopped off.
+			    (when term-insert-mode 
+			      (setq pos (point))
+			      (end-of-line)
+			      (when (> (current-column) term-width)
+				(delete-region (- (point) (- (current-column) term-width)) 
+					       (point)))
+			      (goto-char pos)))
 			  (setq term-current-column nil)
 
 			  (put-text-property old-point (point)
@@ -2778,12 +2789,21 @@ See `term-prompt-regexp'."
 			  (setq i (1- funny)))
 			 ((and (setq term-terminal-state 0)
 			       (eq char ?\^I)) ; TAB (terminfo: ht)
-			  ;; FIXME:  Does not handle line wrap!
 			  (setq count (term-current-column))
-			  (setq count (+ count 8 (- (mod count 8))))
-			  (if (< (move-to-column count nil) count)
-			      (term-insert-char char 1))
-			  (setq term-current-column count))
+			  ;; The line cannot exceed term-width. TAB at
+			  ;; the end of a line should not cause wrapping.
+			  (setq count (min term-width 
+					   (+ count 8 (- (mod count 8)))))
+			  (if (> term-width count)
+			    (progn
+			      (term-move-columns 
+			       (- count (term-current-column)))
+			      (setq term-current-column count))
+			    (when (> term-width (term-current-column))
+			      (term-move-columns 
+			       (1- (- term-width (term-current-column)))))
+			    (when (= term-width (term-current-column))
+			      (term-move-columns -1))))
 			 ((eq char ?\r)
 			  ;; Optimize CRLF at end of buffer:
 			  (cond ((and (< (setq temp (1+ i)) str-length)
@@ -2851,8 +2871,14 @@ See `term-prompt-regexp'."
 			  (term-handle-deferred-scroll)
 			  (term-down 1 t)
 			  (setq term-terminal-state 0))
-			 ((eq char ?M) ;; scroll reversed
-			  (term-insert-lines 1)
+			 ;; ((eq char ?E) ;; (terminfo: nw), not used for
+			 ;; 	       ;; now, but this is a working
+			 ;; 	       ;; implementation
+			 ;;  (term-down 1)
+			 ;;  (term-goto term-current-row 0)
+			 ;;  (setq term-terminal-state 0))
+			 ((eq char ?M) ;; scroll reversed (terminfo: ri)
+			  (term-down -1)
 			  (setq term-terminal-state 0))
 			 ((eq char ?7) ;; Save cursor (terminfo: sc)
 			  (term-handle-deferred-scroll)
@@ -2865,6 +2891,13 @@ See `term-prompt-regexp'."
 			      (term-goto (car term-saved-cursor)
 					 (cdr term-saved-cursor)))
 			  (setq term-terminal-state 0))
+			 ;; The \E#8 reset sequence for xterm. We
+			 ;; probably don't need to handle it, but this
+			 ;; is the code to parse it.
+			 ;; ((eq char ?#)
+			 ;;  (when (eq (aref str (1+ i)) ?8)
+			 ;;    (setq i (1+ i))
+			 ;;    (setq term-terminal-state 0)))
 			 ((setq term-terminal-state 0))))
 		  ((eq term-terminal-state 3) ; Seen Esc [
 		   (cond ((and (>= char ?0) (<= char ?9))
@@ -3121,7 +3154,10 @@ See `term-prompt-regexp'."
 
 (defun term-handle-ansi-escape (proc char)
   (cond
-   ((eq char ?H) ; cursor motion
+   ((or (eq char ?H)  ; cursor motion (terminfo: cup)
+	;; (eq char ?f) ; xterm seems to handle this sequence too, not
+	;; needed for now
+	) 
     (if (<= term-terminal-parameter 0)
 	(setq term-terminal-parameter 1))
     (if (<= term-terminal-previous-parameter 0)
@@ -3133,17 +3169,21 @@ See `term-prompt-regexp'."
     (term-goto
      (1- term-terminal-previous-parameter)
      (1- term-terminal-parameter)))
-   ;; \E[A - cursor up (terminfo: cuu1)
+   ;; \E[A - cursor up (terminfo: cuu, cuu1)
    ((eq char ?A)
     (term-handle-deferred-scroll)
     (term-down (- (max 1 term-terminal-parameter)) t))
-   ;; \E[B - cursor down
+   ;; \E[B - cursor down (terminfo: cud)
    ((eq char ?B)
     (term-down (max 1 term-terminal-parameter) t))
-   ;; \E[C - cursor right
+   ;; \E[C - cursor right (terminfo: cuf)
    ((eq char ?C)
-    (term-move-columns (max 1 term-terminal-parameter)))
-   ;; \E[D - cursor left
+    (term-move-columns 
+     (max 1 
+	  (if (>= (+ term-terminal-parameter (term-current-column)) term-width)
+	      (- term-width (term-current-column)  1)
+	    term-terminal-parameter))))
+   ;; \E[D - cursor left (terminfo: cub)
    ((eq char ?D)
     (term-move-columns (- (max 1 term-terminal-parameter))))
    ;; \E[J - clear to end of screen (terminfo: ed, clear)
@@ -3201,7 +3241,7 @@ See `term-prompt-regexp'."
 				 (1+ (term-current-row))
 				 (1+ (term-horizontal-column)))))
    ;; \E[r - Set scrolling region
-   ((eq char ?r)
+   ((eq char ?r) ;; (terminfo: csr)
     (term-scroll-region
      (1- term-terminal-previous-parameter)
      term-terminal-parameter))
@@ -3223,7 +3263,10 @@ The top-most line is line 0."
   (setq term-scroll-with-delete
 	(or (term-using-alternate-sub-buffer)
 	    (not (and (= term-scroll-start 0)
-		      (= term-scroll-end term-height))))))
+		      (= term-scroll-end term-height)))))
+  (term-move-columns (- (term-current-column)))
+  (term-goto 
+   term-scroll-start (term-current-column)))
 
 ;; (defun term-switch-to-alternate-sub-buffer (set)
 ;;   ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
@@ -3601,8 +3644,8 @@ Should only be called when point is at the start of a screen line."
 	      (end-region (if (eq kind 1) (point) (point-max))))
 	   (delete-region start-region end-region)
 	   (term-unwrap-line)
-	   (if (eq kind 1)
-	       (term-insert-char ?\n row))
+	   (when (eq kind 1)
+	     (term-insert-char ?\n row))
 	   (setq term-current-column nil)
 	   (setq term-current-row nil)
 	   (term-goto row col)))))
