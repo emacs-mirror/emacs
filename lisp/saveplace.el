@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: FSF
 ;; Created: July, 1993
-;; Version: 1.2
+;; Version: See variable `save-place-version'.
 ;; Keywords: bookmarks, placeholders
 
 ;; This file is part of GNU Emacs.
@@ -25,8 +25,6 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:
-
 ;; Automatically save place in files, so that visiting them later
 ;; (even during a different Emacs session) automatically moves point
 ;; to the saved position, when the file is first found.  Uses the
@@ -36,10 +34,12 @@
 ;; Thanks to Stefan Schoef, who sent a patch with the
 ;; `save-place-version-control' stuff in it.
 
-;;; Code:
-
 ;; this is what I was using during testing:
 ;; (define-key ctl-x-map "p" 'toggle-save-place)
+
+(defconst save-place-version "1.4"
+  "The version number of this release of saveplace.  This is unrelated
+to the version of Emacs itself, except that they change colinearly.")
 
 (defvar save-place-alist nil
   "Alist of saved places to go back to when revisiting files.
@@ -114,8 +114,8 @@ To save places automatically in all files, put this in your `.emacs' file:
               (setq save-place-alist (delq cell save-place-alist))))
         (if save-place
             (setq save-place-alist
-                  (cons (cons buffer-file-name
-			      (if (not (eq major-mode 'hexl-mode))
+                  (cons (cons buffer-file-name 
+                              (if (not (eq major-mode 'hexl-mode))
 				  (point)
 				(1+ (hexl-current-address))))
                         save-place-alist))))))
@@ -205,8 +205,8 @@ To save places automatically in all files, put this in your `.emacs' file:
   (let ((cell (assoc buffer-file-name save-place-alist)))
     (if cell
         (progn
-	  (or after-find-file-from-revert-buffer
-	      (goto-char (cdr cell)))
+          (or after-find-file-from-revert-buffer
+              (goto-char (cdr cell)))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
 
