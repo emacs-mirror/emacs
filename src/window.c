@@ -4433,60 +4433,6 @@ Default for ARG is window width minus 2.")
 				      - XINT (arg)));
 }
 
-DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-  "Center point in window and redisplay frame.  With ARG, put point on line ARG.\n\
-The desired position of point is always relative to the current window.\n\
-Just C-u as prefix means put point in the center of the window.\n\
-If ARG is omitted or nil, erases the entire frame and then\n\
-redraws with point in the center of the current window.")
-  (arg)
-     register Lisp_Object arg;
-{
-  register struct window *w = XWINDOW (selected_window);
-  register int ht = window_internal_height (w);
-  struct position pos;
-  struct buffer *buf = XBUFFER (w->buffer);
-  struct buffer *obuf = current_buffer;
-
-  if (NILP (arg))
-    {
-      extern int frame_garbaged;
-      int i;
-
-      /* Invalidate pixel data calculated for all compositions.  */
-      for (i = 0; i < n_compositions; i++)
-	composition_table[i]->font = NULL;
-
-      Fredraw_frame (w->frame);
-      SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
-      XSETFASTINT (arg, ht / 2);
-    }
-  else if (CONSP (arg)) /* Just C-u. */
-    {
-      XSETFASTINT (arg, ht / 2);
-    }
-  else
-    {
-      arg = Fprefix_numeric_value (arg);
-      CHECK_NUMBER (arg, 0);
-    }
-
-  if (XINT (arg) < 0)
-    XSETINT (arg, XINT (arg) + ht);
-
-  set_buffer_internal (buf);
-  pos = *vmotion (PT, - XINT (arg), w);
-
-  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
-  w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
-			   || FETCH_BYTE (pos.bytepos - 1) == '\n')
-			  ? Qt : Qnil);
-  w->force_start = Qt;
-  set_buffer_internal (obuf);
-
-  return Qnil;
-}
-
 
 /* Value is the number of lines actually displayed in window W,
    as opposed to its height.  */
@@ -4532,6 +4478,61 @@ displayed_window_lines (w)
     }
 
   return it.vpos;
+}
+
+
+DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
+  "Center point in window and redisplay frame.  With ARG, put point on line ARG.\n\
+The desired position of point is always relative to the current window.\n\
+Just C-u as prefix means put point in the center of the window.\n\
+If ARG is omitted or nil, erases the entire frame and then\n\
+redraws with point in the center of the current window.")
+  (arg)
+     register Lisp_Object arg;
+{
+  register struct window *w = XWINDOW (selected_window);
+  register int ht = displayed_window_lines (w);
+  struct position pos;
+  struct buffer *buf = XBUFFER (w->buffer);
+  struct buffer *obuf = current_buffer;
+
+  if (NILP (arg))
+    {
+      extern int frame_garbaged;
+      int i;
+
+      /* Invalidate pixel data calculated for all compositions.  */
+      for (i = 0; i < n_compositions; i++)
+	composition_table[i]->font = NULL;
+
+      Fredraw_frame (w->frame);
+      SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
+      XSETFASTINT (arg, ht / 2);
+    }
+  else if (CONSP (arg)) /* Just C-u. */
+    {
+      XSETFASTINT (arg, ht / 2);
+    }
+  else
+    {
+      arg = Fprefix_numeric_value (arg);
+      CHECK_NUMBER (arg, 0);
+    }
+
+  if (XINT (arg) < 0)
+    XSETINT (arg, XINT (arg) + ht);
+
+  set_buffer_internal (buf);
+  pos = *vmotion (PT, - XINT (arg), w);
+
+  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
+  w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
+			   || FETCH_BYTE (pos.bytepos - 1) == '\n')
+			  ? Qt : Qnil);
+  w->force_start = Qt;
+  set_buffer_internal (obuf);
+
+  return Qnil;
 }
 
 
