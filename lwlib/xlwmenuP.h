@@ -40,6 +40,10 @@ typedef struct _XlwMenu_part
   XtCallbackList	select, highlight;
   widget_value*	contents;
   int		horizontal;
+
+  /* True means top_shadow_color and/or bottom_shadow_color must be freed.  */
+  unsigned free_top_shadow_color_p : 1;
+  unsigned free_bottom_shadow_color_p : 1;
   
   /* State of the XlwMenu */
   int			old_depth;
