@@ -1,3 +1,11 @@
+2000-08-03  Sam Steingold  <sds@gnu.org>
+
+	* pcvs.el (cvs-do-commit): Use `buffer-substring-no-properties'
+	instead of `buffer-string'.
+	(require 'cl): Always, not just when compiling.
+	`ignore-errors' in `interactive', `list*', `defun*' &c make this
+	necessary.
+
 2000-08-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule-cmds.el (select-safe-coding-system): Make
@@ -35,7 +43,7 @@
 	fix.
 	(ebnf-version): New version number (3.2).
 	(ebnf-format-color, ebnf-begin-job): Code fix.
-	
+
 2000-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* net/net-utils.el (nslookup-font-lock-keywords): Don't condition
