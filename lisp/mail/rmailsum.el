@@ -754,7 +754,7 @@ Commands for sorting the summary:
   '("Output (Rmail Menu)..." . rmail-summary-output-menu))
 
 (define-key rmail-summary-mode-map [menu-bar classify input-menu]
-  '("Input Rmail file (menu)..." . rmail-input-menu))
+  '("Input Rmail File (menu)..." . rmail-input-menu))
 
 (define-key rmail-summary-mode-map [menu-bar classify input-menu]
   '(nil))

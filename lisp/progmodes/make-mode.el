@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.19 1994/10/30 21:20:42 rms Exp rms $
+;; $Id: makefile.el,v 1.20 1995/05/01 17:16:40 rms Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -305,16 +305,16 @@ interface:
     (cons "Makefile" (make-sparse-keymap "Makefile")))
 
   (define-key makefile-mode-map [menu-bar makefile-mode browse]
-    '("Pop up Makefile browser" . makefile-switch-to-browser))
+    '("Pop up Makefile Browser" . makefile-switch-to-browser))
   (define-key makefile-mode-map [menu-bar makefile-mode complete]
-    '("Complete target or macro" . makefile-complete))
+    '("Complete Target or Macro" . makefile-complete))
   (define-key makefile-mode-map [menu-bar makefile-mode pickup]
-    '("Find targets and macros" . makefile-pickup-everything))
+    '("Find Targets and Macros" . makefile-pickup-everything))
 
   (define-key makefile-mode-map [menu-bar makefile-mode prev]
-    '("Move to previous dependency" . makefile-previous-dependency))
+    '("Move to Previous Dependency" . makefile-previous-dependency))
   (define-key makefile-mode-map [menu-bar makefile-mode next]
-    '("Move to next dependency" . makefile-next-dependency)))
+    '("Move to Next Dependency" . makefile-next-dependency)))
 
 (defvar makefile-browser-map nil
   "The keymap that is used in the macro- and target browser.")

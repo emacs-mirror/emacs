@@ -2038,7 +2038,7 @@ one most recently used in this file, if any\)."
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [load]
-  '("Load a bookmark file" . bookmark-load))
+  '("Load a Bookmark File" . bookmark-load))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [write]
@@ -2054,27 +2054,27 @@ one most recently used in this file, if any\)."
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [delete]
-  '("Delete bookmark" . bookmark-menu-delete))
+  '("Delete Bookmark" . bookmark-menu-delete))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [rename]
-  '("Rename bookmark" . bookmark-menu-rename))
+  '("Rename Bookmark" . bookmark-menu-rename))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [locate]
-  '("Insert location" . bookmark-menu-locate))
+  '("Insert Location" . bookmark-menu-locate))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [insert]
-  '("Insert contents" . bookmark-menu-insert))
+  '("Insert Contents" . bookmark-menu-insert))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [set]
-  '("Set bookmark" . bookmark-set))
+  '("Set Bookmark" . bookmark-set))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [jump] 
-  '("Jump to bookmark" . bookmark-menu-jump))
+  '("Jump to Bookmark" . bookmark-menu-jump))
 
 ;;;; end bookmark menu stuff ;;;;
 

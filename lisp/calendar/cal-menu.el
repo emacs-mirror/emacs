@@ -49,7 +49,7 @@
   (cons "Moon" (make-sparse-keymap "Moon")))
 
 (define-key calendar-mode-map [menu-bar moon moon]
-  '("Lunar phases" . calendar-phases-of-moon))
+  '("Lunar Phases" . calendar-phases-of-moon))
 
 (define-key calendar-mode-map [menu-bar diary]
   (cons "Diary" (make-sparse-keymap "Diary")))
@@ -59,27 +59,27 @@
 (define-key calendar-mode-map [menu-bar diary isl]
   '("Insert Islamic" . calendar-mouse-insert-islamic-diary-entry))
 (define-key calendar-mode-map [menu-bar diary cyc]
-  '("Insert cyclic" . insert-cyclic-diary-entry))
+  '("Insert Cyclic" . insert-cyclic-diary-entry))
 (define-key calendar-mode-map [menu-bar diary blk]
-  '("Insert block" . insert-block-diary-entry))
+  '("Insert Block" . insert-block-diary-entry))
 (define-key calendar-mode-map [menu-bar diary ann]
-  '("Insert anniversary" . insert-anniversary-diary-entry))
+  '("Insert Anniversary" . insert-anniversary-diary-entry))
 (define-key calendar-mode-map [menu-bar diary yr]
-  '("Insert yearly" . insert-yearly-diary-entry))
+  '("Insert Yearly" . insert-yearly-diary-entry))
 (define-key calendar-mode-map [menu-bar diary mon]
-  '("Insert monthly" . insert-monthly-diary-entry))
+  '("Insert Monthly" . insert-monthly-diary-entry))
 (define-key calendar-mode-map [menu-bar diary wk]
-  '("Insert weekly" . insert-weekly-diary-entry))
+  '("Insert Weekly" . insert-weekly-diary-entry))
 (define-key calendar-mode-map [menu-bar diary ent]
-  '("Insert daily". insert-diary-entry))
+  '("Insert Daily". insert-diary-entry))
 (define-key calendar-mode-map [menu-bar diary all]
-  '("Show all" . show-all-diary-entries))
+  '("Show All" . show-all-diary-entries))
 (define-key calendar-mode-map [menu-bar diary mark]
- '("Mark all" . mark-diary-entries))
+ '("Mark All" . mark-diary-entries))
 (define-key calendar-mode-map [menu-bar diary view]
-  '("Cursor date" . view-diary-entries))
+  '("Cursor Date" . view-diary-entries))
 (define-key calendar-mode-map [menu-bar diary view]
-  '("Other file" . view-other-diary-entries))
+  '("Other File" . view-other-diary-entries))
 
 (define-key calendar-mode-map [menu-bar holidays]
   (cons "Holidays" (make-sparse-keymap "Holidays")))
@@ -89,41 +89,41 @@
 (define-key calendar-mode-map [menu-bar holidays mark]
   '("Mark" . mark-calendar-holidays))
 (define-key calendar-mode-map [menu-bar holidays 3-mon]
-  '("3 months" . list-calendar-holidays))
+  '("3 Months" . list-calendar-holidays))
 (define-key calendar-mode-map [menu-bar holidays 1-day]
-  '("One day" . calendar-cursor-holidays))
+  '("One Day" . calendar-cursor-holidays))
 
 (define-key calendar-mode-map [menu-bar goto]
   (cons "Goto" (make-sparse-keymap "Goto")))
 
 (define-key calendar-mode-map [menu-bar goto french]
-  '("French date" . calendar-goto-french-date))
+  '("French Date" . calendar-goto-french-date))
 (define-key calendar-mode-map [menu-bar goto mayan]
-  (cons "Mayan date" (make-sparse-keymap "Mayan")))
+  (cons "Mayan Date" (make-sparse-keymap "Mayan")))
 (define-key calendar-mode-map [menu-bar goto julian]
-  '("Julian date" . calendar-goto-julian-date))
+  '("Julian Date" . calendar-goto-julian-date))
 (define-key calendar-mode-map [menu-bar goto islamic]
-  '("Islamic date" . calendar-goto-islamic-date))
+  '("Islamic Date" . calendar-goto-islamic-date))
 (define-key calendar-mode-map [menu-bar goto hebrew]
-  '("Hebrew date" . calendar-goto-hebrew-date))
+  '("Hebrew Date" . calendar-goto-hebrew-date))
 (define-key calendar-mode-map [menu-bar goto astro]
-  '("Astronomical date" . calendar-goto-astro-day-number))
+  '("Astronomical Date" . calendar-goto-astro-day-number))
 (define-key calendar-mode-map [menu-bar goto iso]
-  '("ISO date" . calendar-goto-iso-date))
+  '("ISO Date" . calendar-goto-iso-date))
 (define-key calendar-mode-map [menu-bar goto gregorian]
-  '("Other date" . calendar-goto-date))
+  '("Other Date" . calendar-goto-date))
 (define-key calendar-mode-map [menu-bar goto end-of-year]
-  '("End of year" . calendar-end-of-year))
+  '("End of Year" . calendar-end-of-year))
 (define-key calendar-mode-map [menu-bar goto beginning-of-year]
-  '("Beginning of year" . calendar-beginning-of-year))
+  '("Beginning of Year" . calendar-beginning-of-year))
 (define-key calendar-mode-map [menu-bar goto end-of-month]
-  '("End of month" . calendar-end-of-month))
+  '("End of Month" . calendar-end-of-month))
 (define-key calendar-mode-map [menu-bar goto beginning-of-month]
-  '("Beginning of month" . calendar-beginning-of-month))
+  '("Beginning of Month" . calendar-beginning-of-month))
 (define-key calendar-mode-map [menu-bar goto end-of-week]
-  '("End of week" . calendar-end-of-week))
+  '("End of Week" . calendar-end-of-week))
 (define-key calendar-mode-map [menu-bar goto beginning-of-week]
-  '("Beginning of week" . calendar-beginning-of-week))
+  '("Beginning of Week" . calendar-beginning-of-week))
 (define-key calendar-mode-map [menu-bar goto today]
   '("Today" . calendar-goto-today))
 

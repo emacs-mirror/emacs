@@ -439,24 +439,24 @@ variables to default values and disables the hideshow commands."
    ((eq hs-emacs-type 'lucid)
     (setq hs-menu-bar			; build top down for lucid
 	  '("hideshow"
-	    ["hide block" hs-hide-block t]
-	    ["show block" hs-show-block t]
-	    ["hide all" hs-hide-all t]
-	    ["show all" hs-show-all t]
-	    ["show region" hs-show-region t])))
+	    ["Hide Block" hs-hide-block t]
+	    ["Show Block" hs-show-block t]
+	    ["Hide All" hs-hide-all t]
+	    ["Show All" hs-show-all t]
+	    ["Show Region" hs-show-region t])))
    (t					; build bottom up for others
     (define-key hs-minor-mode-map [menu-bar hideshow]
       (cons "hideshow" (make-sparse-keymap "hideshow")))
     (define-key hs-minor-mode-map [menu-bar hideshow hs-show-region]
-      '("show region" . hs-show-region))
+      '("Show Region" . hs-show-region))
     (define-key hs-minor-mode-map [menu-bar hideshow hs-show-all]
-      '("show all" . hs-show-all))
+      '("Show All" . hs-show-all))
     (define-key hs-minor-mode-map [menu-bar hideshow hs-hide-all]
-      '("hide all" . hs-hide-all))
+      '("Hide All" . hs-hide-all))
     (define-key hs-minor-mode-map [menu-bar hideshow hs-show-block]
-      '("show block" . hs-show-block))
+      '("Show Block" . hs-show-block))
     (define-key hs-minor-mode-map [menu-bar hideshow hs-hide-block]
-      '("hide block" . hs-hide-block)))))
+      '("Hide Block" . hs-hide-block)))))
 
 ;; some housekeeping
 (or (assq 'hs-minor-mode minor-mode-map-alist)
