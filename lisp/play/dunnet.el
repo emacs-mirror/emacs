@@ -2384,7 +2384,7 @@ nil
 "It has your picture on it!"
 "They are old coins from the 19th century."
 "It is a valuable Fabrege egg."
-"It is a a plain glass jar."
+"It is a plain glass jar."
 nil
 nil
 nil
