@@ -1262,7 +1262,7 @@ purposes.  See the documentation of `set-mark' for more information."
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
 Display `Mark set' unless the optional second arg NOMSG is non-nil.
-Activate the mark if optional third arg ACTIVATE is non-nil.
+In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information.
@@ -1278,7 +1278,8 @@ In Transient Mark mode, this does not activate the mark."
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   (or nomsg executing-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
-  (if activate (set-mark (mark t)))
+  (if (or activate (not transient-mark-mode))
+      (set-mark (mark t)))
   nil)
 
 (defun pop-mark ()
