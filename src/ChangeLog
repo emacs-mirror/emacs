@@ -1,5 +1,7 @@
 2002-10-06  Dave Love  <fx@gnu.org>
 
+	* charset.c (define_charset_internal): Rename `supprementary'.
+
 	* Makefile.in (lisp, shortlisp): Remove latin-N.
 
 2002-10-05  Dave Love  <fx@gnu.org>

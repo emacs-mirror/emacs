@@ -1,3 +1,9 @@
+2002-10-06  Dave Love  <fx@gnu.org>
+
+	* quail/indian.el (quail-indian-preceding-char-position) 
+	(quail-indian-update-translation, quail-define-inscript-package):
+	Use characterp, not char-valid-p.
+
 2002-07-30  Dave Love  <fx@gnu.org>
 
 	* quail/welsh.el ("welsh"): Doc fix.
