@@ -2548,7 +2548,8 @@ it were the arg to `interactive' (which see) to interactively read the value."
 	(set-window-point window (point)))
       ;; If completing for the minibuffer, exit it with this choice.
       (and (equal buffer (window-buffer (minibuffer-window)))
-	   (minibuffer-complete-and-exit)))))
+	   minibuffer-completion-table
+	   (exit-minibuffer)))))
 
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
