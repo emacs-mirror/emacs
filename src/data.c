@@ -2126,6 +2126,7 @@ syms_of_data ()
   staticpro (&Qbeginning_of_buffer);
   staticpro (&Qend_of_buffer);
   staticpro (&Qbuffer_read_only);
+  staticpro (&Qmark_inactive);
 
   staticpro (&Qlistp);
   staticpro (&Qconsp);
