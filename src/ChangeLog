@@ -1,3 +1,7 @@
+2002-10-10  Dave Love  <fx@gnu.org>
+
+	* unexelf.c (unexec): Make last change conditional on Irix 6.5.
+
 2002-10-10  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_8): Check incomplete byte sequence.
@@ -28,6 +32,10 @@
 	string_char_with_unification.
 	(STRING_CHAR_AND_LENGTH): Likewise.
 	(STRING_CHAR_ADVANCE): Likewise.
+
+2002-10-09  Dave Love  <fx@gnu.org>
+
+	* coding.c (decode_coding_utf_8): Treat surrogates as invalid.
 
 2002-10-07  Kenichi Handa  <handa@m17n.org>
 
