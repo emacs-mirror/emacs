@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -1969,6 +1969,19 @@ with the command \\[tags-loop-continue]."
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
   (tags-query-replace from to delimited '(dired-get-marked-files)))
 
+;;;###autoload
+(defun dired-show-file-type (file &optional deref-symlinks)
+  "Print the type of FILE, according to the `file' command.
+If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
+true then the type of the file linked to by FILE is printed instead." 
+  (interactive (list (dired-get-filename t) current-prefix-arg))
+  (with-temp-buffer 
+    (if deref-symlinks
+	(call-process "file" nil t t "-L" file)
+      (call-process "file" nil t t file))
+    (when (bolp)
+      (backward-delete-char 1))
+    (message (buffer-string))))
 
 (provide 'dired-aux)
 
