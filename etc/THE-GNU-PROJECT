@@ -665,7 +665,7 @@
 
   Secret hardware
 
-   Hardware manufactures increasingly tend to keep hardware
+   Hardware manufacturers increasingly tend to keep hardware
    specifications secret.  This makes it difficult to write free drivers
    so that Linux and XFree86 can support new hardware.  We have complete
    free systems today, but we will not have them tomorrow if we cannot
