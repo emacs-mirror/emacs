@@ -65,6 +65,10 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
     (setq file-name (if (file-directory-p file-name)
 			(expand-file-name (change-log-name) file-name)
 		      (expand-file-name file-name)))
+    ;; Chase links before visiting the file.
+    ;; This makes it easier to use a single change log file
+    ;; for several related directories.
+    (setq file-name (or (file-symlink-p file-name) file-name))
     (set (make-local-variable 'change-log-default-name) file-name)
     (if buffer-file-name
 	(setq entry (if (string-match
@@ -119,7 +123,7 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	   (goto-char entry-position)
 	   (re-search-forward "^\\s *$")
 	   (beginning-of-line)
-	   (while (looking-at "^\\s *$")
+	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (save-excursion (forward-line 1) (point))))
 	   (insert "\n\n")
 	   (forward-line -2)
@@ -134,7 +138,7 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	   (forward-line 1)
 	   (while (looking-at "\\sW")
 	     (forward-line 1))
-	   (while (looking-at "^\\s *$")
+	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (save-excursion (forward-line 1) (point))))
 	   (insert "\n\n\n")
 	   (forward-line -2)
@@ -175,7 +179,7 @@ Interactively, with a prefix argument, the file name is prompted for."
 
 (defun change-log-mode ()
   "Major mode for editting change logs; like Indented Text Mode.
-Prevents numeric backups and sets `left-margin' to 8 and `fill-column'to 74.
+Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry]."
   (interactive)
   (kill-all-local-variables)
@@ -220,16 +224,32 @@ Has a preference of looking backwards."
 	     ;; If we are now precisely a the beginning of a defun,
 	     ;; make sure beginning-of-defun finds that one
 	     ;; rather than the previous one.
-	     (forward-char 1)
+	     (or (eobp) (forward-char 1))
 	     (beginning-of-defun)
 	     ;; Make sure we are really inside the defun found, not after it.
-	     (if (save-excursion (end-of-defun)
-				 (< location (point)))
+	     (if (and (progn (end-of-defun)
+			     (< location (point)))
+		      (progn (forward-sexp -1)
+			     (>= location (point))))
 		 (progn
 		   (forward-word 1)
 		   (skip-chars-forward " ")
 		   (buffer-substring (point)
 				     (progn (forward-sexp 1) (point))))))
+	    ((and (or (eq major-mode 'c-mode)
+		      (eq major-mode 'c++-mode))
+		  (save-excursion (beginning-of-line)
+				  (while (= (char-after (- (point) 2)) ?\\)
+				    (forward-line -1))
+				  (looking-at "[ \t]*#[ \t]*define[ \t]")))
+	     ;; Handle a C macro definition.
+	     (beginning-of-line)
+	     (while (= (char-after (- (point) 2)) ?\\)
+	       (forward-line -1))
+	     (search-forward "define")
+	     (skip-chars-forward " \t")
+	     (buffer-substring (point)
+			       (progn (forward-sexp 1) (point))))
 	    ((or (eq major-mode 'c-mode)
 		 (eq major-mode 'c++-mode))
 	     ;; See if we are in the beginning part of a function,
@@ -237,20 +257,59 @@ Has a preference of looking backwards."
 	     (while (not (or (looking-at "{")
 			     (looking-at "\\s *$")))
 	       (forward-line 1))
-	     (forward-char 1)
+	     (or (eobp) (forward-char 1))
 	     (beginning-of-defun)
-	     (if (save-excursion (end-of-defun)
-				 (< location (point)))
+	     (if (progn (end-of-defun)
+			(< location (point)))
 		 (progn
-		   (forward-line -1)
-		   (while (looking-at "[ \t\n]") ; skip typedefs of arglist
-		     (forward-line -1))
-		   (down-list 1)		; into arglist
-		   (backward-up-list 1)
-		   (skip-chars-backward " \t")
-		   (buffer-substring (point)
-				     (progn (backward-sexp 1)
-					    (point))))))
+		   (backward-sexp 1)
+		   (let (beg tem)
+		   
+		     (forward-line -1)
+		     ;; Skip back over typedefs of arglist.
+		     (while (and (not (bobp))
+				 (looking-at "[ \t\n]"))
+		       (forward-line -1))
+		     ;; See if this is using the DEFUN macro used in Emacs.
+		     (if (save-excursion
+			   (while (and (not (bobp))
+				       (looking-at "[^\n\f]")
+				       (not (looking-at ".*\\*/")))
+			     (forward-line -1))
+			   (forward-line 1)
+			   (setq tem (point))
+			   (and (looking-at "DEFUN ")
+				(>= location (point))))
+			 (progn
+			   (goto-char tem)
+			   (down-list 1)
+			   (forward-sexp 1)
+			   (skip-chars-forward " ,")
+			   (buffer-substring (point)
+					     (progn (forward-sexp 1) (point))))
+		       ;; Ordinary C function syntax.
+		       (setq beg (point))
+		       (down-list 1)	; into arglist
+		       (backward-up-list 1)
+		       (skip-chars-backward " \t")
+		       ;; Verify initial pos was after real start of function.
+		       (if (and (save-excursion
+				  (goto-char beg)
+				  ;; For this purpose, include the line
+				  ;; that has the decl keywords.
+				  ;; This may also include some of the comments
+				  ;; before the function.
+				  (while (and (not (bobp))
+					      (save-excursion (forward-line -1)
+							      (looking-at "[^\n\f]")))
+				    (forward-line -1))
+				  (>= location (point)))
+				;; Consistency check: going down and up
+				;; shouldn't take us back before BEG.
+				(> (point) beg))
+			   (buffer-substring (point)
+					     (progn (backward-sexp 1)
+						    (point)))))))))
 	    ((memq major-mode
 		   '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
 			      plain-tex-mode latex-mode;; cmutex.el
