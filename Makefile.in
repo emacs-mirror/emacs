@@ -294,7 +294,7 @@ oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
 	  echo "# running \`make oldXMenu/Makefile' at the top of the" ; \
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/oldXMenu/Makefile.in' itself." ;		\
-	  sed < ${srcdir}/oldXMenu/Makefile				\
+	  sed < ${srcdir}/oldXMenu/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
 	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
