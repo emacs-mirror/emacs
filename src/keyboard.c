@@ -560,7 +560,7 @@ echo_prompt (str)
 
   current_kboard->echo_after_prompt = len;
 
-  echo ();
+  echo_now ();
 }
 
 /* Add C to the echo string, if echoing is going on.
@@ -608,7 +608,7 @@ echo_char (c)
       *ptr = 0;
       current_kboard->echoptr = ptr;
 
-      echo ();
+      echo_now ();
     }
 }
 
@@ -633,13 +633,13 @@ echo_dash ()
   current_kboard->echoptr[0] = '-';
   current_kboard->echoptr[1] = 0;
 
-  echo ();
+  echo_now ();
 }
 
 /* Display the current echo string, and begin echoing if not already
    doing so.  */
 
-echo ()
+echo_now ()
 {
   if (!current_kboard->immediate_echo)
     {
@@ -1825,7 +1825,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
       if (EVENT_HAS_PARAMETERS (prev_event))
-	echo ();
+	echo_now ();
       else
 	{
 	  save_getcjmp (save_jump);
@@ -1833,7 +1833,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  tem0 = sit_for (echo_keystrokes, 0, 1, 1);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt))
-	    echo ();
+	    echo_now ();
 	}
     }
 
