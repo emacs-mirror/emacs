@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -238,6 +238,20 @@ int dos_timezone_offset;
 int dos_decimal_point;
 int dos_keyboard_layout;
 unsigned char dos_country_info[DOS_COUNTRY_INFO];
+static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
+  0, 0,				/* date format */
+  '$', 0, 0, 0, 0,		/* currency string */
+  ',', 0,			/* thousands separator */
+  '.', 0,			/* decimal separator */
+  '/', 0,			/* date separator */
+  ':', 0,			/* time separator */
+  0,				/* currency format */
+  2,				/* digits after decimal in currency */
+  0,				/* time format */
+  0, 0, 0, 0,			/* address of case map routine, GPF if used */
+  ' ', 0,			/* data-list separator (?) */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* reserved */
+};
 
 int dos_hyper_key;
 int dos_super_key;
@@ -250,8 +264,8 @@ void
 init_dosfns ()
 {
   union REGS regs;
-  _go32_dpmi_seginfo info;
   _go32_dpmi_registers dpmiregs;
+  unsigned long xbuf = _go32_info_block.linear_address_of_transfer_buffer;
 
 #ifndef SYSTEM_MALLOC
   get_lim_data (); /* why the hell isn't this called elsewhere? */
@@ -261,21 +275,23 @@ init_dosfns ()
   intdos (&regs, &regs);
   Vdos_version = Fcons (make_number (regs.h.al), make_number (regs.h.ah));
 
-  /* Obtain the country code by calling Dos via Dpmi.  Don't rely on GO32.  */
-  info.size = (sizeof(dos_country_info) + 15) / 16;
-  if (_go32_dpmi_allocate_dos_memory (&info))
-    dos_country_code = 1;
+  /* Obtain the country code via DPMI, use DJGPP transfer buffer.  */
+  dpmiregs.x.ax = 0x3800;
+  dpmiregs.x.ds = xbuf;
+  dpmiregs.x.dx = 0;
+  dpmiregs.x.ss = dpmiregs.x.sp = dpmiregs.x.flags = 0;
+  _go32_dpmi_simulate_int (0x21, &dpmiregs);
+  if (dpmiregs.x.flags & 1)
+    {
+      dos_country_code = 1;	/* assume USA if 213800 failed */
+      memcpy (dos_country_info, usa_country_info, DOS_COUNTRY_INFO);
+    }
   else
     {
-      dpmiregs.x.ax = 0x3800;
-      dpmiregs.x.ds = info.rm_segment;
-      dpmiregs.x.dx = 0;
-      dpmiregs.x.ss = dpmiregs.x.sp = 0;
-      _go32_dpmi_simulate_int (0x21, &dpmiregs);
       dos_country_code = dpmiregs.x.bx;
-      dosmemget (info.rm_segment * 16, DOS_COUNTRY_INFO, dos_country_info);
-      _go32_dpmi_free_dos_memory (&info);
+      dosmemget (xbuf, DOS_COUNTRY_INFO, dos_country_info);
     }
+
   dos_set_keyboard (dos_country_code, 0);
 
   regs.x.ax = 0x6601;
