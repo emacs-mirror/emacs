@@ -19,7 +19,10 @@
 
 2004-08-27  Richard M. Stallman  <rms@gnu.org>
 
-	* faq.texi (Difference between Emacs and XEmacs):
+	* faq.texi: Fix texinfo usage, esp. doublequotes.
+	(Difference between Emacs and XEmacs): Some clarification.
+	
+	* faq.texi (Difference between Emacs and XEmacs): 
 	Explain not to contrast XEmacs with GNU Emacs.
 
 2004-08-26  Richard M. Stallman  <rms@gnu.org>
