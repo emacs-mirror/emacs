@@ -858,8 +858,8 @@ relock:
 	chmod -w $(SOURCES)
 	chmod +w paths.h
 
-# Arrange to make a tags table in ../lisp, and another in this dir
-# which includes ../lisp/TAGS by reference.
+/* Arrange to make a tags table in ../lisp, and another in this dir
+   which includes ../lisp/TAGS by reference.  */
 ctagsfiles = [a-zA-Z]*.h [a-zA-Z]*.c
 lisptagsfiles = ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
 TAGS: $(ctagsfiles)
