@@ -2829,7 +2829,7 @@ SPEC must be a full face spec."
     ("Just current attributes" custom-face-edit-selected
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'selected))))
-    ("Show as Lisp expression" custom-face-edit-lisp
+    ("Show initial Lisp expression" custom-face-edit-lisp
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'lisp)))))
   "Alist of actions for the `custom-face' widget.
