@@ -1,7 +1,51 @@
+2004-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (Fmake_string): Doc fix.
+
+	* buffer.c (clone_per_buffer_values): Copy the alist of local vars,
+	and the alist pairs too.
+
+	* casefiddle.c (casify_object): Return OBJ unchanged if not real char.
+
+	* emacs.c (main): Update copyright year.
+
+	* fileio.c (Fread_file_name): Expand DIR if not absolute.
+
+	* insdel.c (del_range_2, replace_range): Don't write an anchor
+	if the gap is empty.
+
+	* xdisp.c (try_scrolling): If scroll-up-aggressively or
+	scroll-down-aggressively is small but positive, put point
+	near the screen edge.
+
+2004-05-22  Juanma Barranquero  <lektu@terra.es>
+
+	* keymap.c (Fdefine_key): Doc fix.
+
+2004-05-22  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (struct backtrace): Add debug_on_exit member.
+	(Fgarbage_collect): Clear out buffer undo_list markers after gc_sweep.
+	Identify those markers as Lisp_Misc_Free objects.  Clear car and cdr of
+	the removed cons cells.
+	(mark_object): Undo previous change - disallow Lisp_Misc_Free objects.
+	(gc_sweep): Clear cons_blocks before sweeping strings, so we don't have
+	any cons cells pointing to unallocated stings.
+	Do not lisp_free any marker blocks, as there may still be pointers
+	to them from buffer undo lists at this stage of GC.
+
+	* keyboard.c (struct backtrace): Add debug_on_exit member.
+	(Fcommand_execute): Clear it.
+
+2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intervals.c (lookup_char_property): Do not prematurely return nil.
+
 2004-05-19  Jim Blandy  <jimb@redhat.com>
 
 	Add support for new '\_<' and '\_>' regexp operators, matching the
-	beginning and ends of symbols.
+	beginning and end of symbols.
+
 	* regex.c (enum syntaxcode): Add Ssymbol.
 	(init_syntax_once): Set the syntax for '_' to Ssymbol, not Sword.
 	(re_opcode_t): New opcodes `symbeg' and `symend'.
@@ -1219,7 +1263,7 @@
 
 	* macterm.c (XTread_socket): Remove bufp_r and
 	numcharsp args.  Add hold_quit arg.
-	Rework to use just one, local, inev input_event. Store inev
+	Rework to use just one, local, inev input_event.  Store inev
 	directly in fifo using kbd_buffer_store_event_hold.
 
 	* sysdep.c (BUFFER_SIZE_FACTOR): Remove.
@@ -1235,14 +1279,14 @@
 
 	* w32inevt.c (w32_console_read_socket): Remove bufp_r and
 	numcharsp args.  Add hold_quit arg.
-	Rework to use just one, local, inev input_event. Store inev
+	Rework to use just one, local, inev input_event.  Store inev
 	directly in fifo using kbd_buffer_store_event_hold.
 
 	* w32inevt.h (w32_console_mouse_position): Fix prototype.
 
 	* w32term.c (w32_read_socket): Remove bufp_r and numcharsp args.
-	Add hold_quit arg. Rework to use just one, local, inev
-	input_event. Store inev directly in fifo using
+	Add hold_quit arg.  Rework to use just one, local, inev
+	input_event.  Store inev directly in fifo using
 	kbd_buffer_store_event_hold.  Update count in one place.
 	Postpone call to gen_help_event until inev is stored; use new
 	local do_help for this.
@@ -1261,8 +1305,8 @@
 	(current_hold_quit) [USE_GTK]: Add.
 	(event_handler_gdk): Adapt to new handle_one_xevent.
 	(handle_one_xevent): Remove bufp_r and numcharsp args.
-	Add hold_quit arg. Rework to use just one, local, inev
-	input_event. Store inev directly in fifo using
+	Add hold_quit arg.  Rework to use just one, local, inev
+	input_event.  Store inev directly in fifo using
 	kbd_buffer_store_event_hold.  Update count in one place.
 	Postpone call to gen_help_event until inev is stored; use new
 	local do_help for this.
@@ -1274,7 +1318,7 @@
 	`goto done' to clarify code flow in deeply nested blocks.
 	(x_dispatch_event): Simplify as handle_one_xevent now calls
 	kbd_buffer_store_event itself.
-	(XTread_socket): Remove bufp_r and numcharsp args. Add hold_quit
+	(XTread_socket): Remove bufp_r and numcharsp args.  Add hold_quit
 	arg.  Call handle_one_xevent with new arglist.  Store event from
 	x_session_check_input in fifo.
 	[USE_GTK]: Setup current_hold_quit.
@@ -2203,7 +2247,7 @@
 	(marginal_area_string): Fix prototypes.
 
 	* keyboard.h (POSN_POSN, POSN_SET_POSN): Rename macros from
-	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN. All uses changed.
+	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN.  All uses changed.
 	(POSN_INBUFFER_P, POSN_BUFFER_POSN): New macros.
 
 	* keyboard.c (make_lispy_position): Use modified mode_line_string,
@@ -2370,7 +2414,7 @@
 	control frame pointer shape.  Detect image hot-spots for pointer
 	and help_echo properties.  Use define_frame_cursor1.
 	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
-	(syms_of_xdisp): Defsubr new defun. Intern and staticpro new variables.
+	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new variables.
 	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
 
 	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
@@ -2491,7 +2535,7 @@
 	(glyph_to_pixel_coords): Don't use negative hpos.
 	(x_y_to_hpos_vpos): Fix for partially visible first glyph.
 	(append_stretch_glyph): Change ascent arg to be actual value
-	in pixels rather than ratio to height. Callers changed.
+	in pixels rather than ratio to height.  Callers changed.
 	(calc_pixel_width_or_height): New aux function, implementing
 	pixel based artihmetic for glyph widths and heights.
 	(produce_stretch_glyph): Use calc_pixel_width_or_height for
@@ -2693,7 +2737,7 @@
 	x_display_info_for_display instead.  Use Display in xev instead
 	of GDK_DISPLAY.
 	(x_dispatch_event): Call x_display_info_for_display.
-	(XTread_socket): Move GTK part out of loop. current_dpyinfo removed.
+	(XTread_socket): Move GTK part out of loop.  current_dpyinfo removed.
 	(x_connection_closed): Call xg_display_close for GTK.
 	(x_term_init): Call xg_display_open for additional displays.
 	Initiate dpyinfo->xg_cursor with call to xg_create_default_cursor
@@ -4195,7 +4239,7 @@
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_height.
 	(FRAME_PIXEL_WIDTH): Renamed from PIXEL_WIDTH and moved
-	from x/w32/macterm.h files.  All uses changed. 	Also change code
+	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_width.
 	(FRAME_LINES): Renamed from FRAME_HEIGHT.  All uses changed.
 	Also change code which referred to f->height.
@@ -4505,7 +4549,7 @@
 	* xdisp.c: Make (many) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(window_box_width): Adapt to per-window fringes and scroll bars,
-	and new fringe vs. display margin position. Note that returned
+	and new fringe vs. display margin position.  Note that returned
 	value is no longer guaranteed to be a whole multiple of the frame
 	column width, since per-window fringes may now be any width.
 	(window_box_left_offset): New function like window_box_left, but
@@ -5255,7 +5299,7 @@
 
 	* xfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(enum x_frame_parms): Remove (bogus, unused enum).
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
@@ -5275,7 +5319,7 @@
 	(syms_of_xfns): Don't intern/staticpro removed vars.
 
 	* xterm.c: Remove unnecessary extern declarations.
-	(x_fullscreen_adjust): Remove. Use generic instead.
+	(x_fullscreen_adjust): Remove.  Use generic instead.
 	(x_redisplay_interface): Add x_frame_parm_handlers member.
 
 	* w32gui.h (XrmDatabase): New (dummy) typedef.
@@ -5287,7 +5331,7 @@
 
 	* w32fns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(enum x_frame_parms): Remove (bogus, unused enum).
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
@@ -5320,7 +5364,7 @@
 
 	* macfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
 	(init_x_parm_symbols, x_set_frame_parameters, x_report_frame_params)
@@ -6301,7 +6345,7 @@
 	[HAVE_XPM]: Avoid clashes with XColor, XImage and Pixel
 	definitions in xpm.h.
 	(init_xpm_functions): New function.
-	(xpm_load): Sync with xfns.c. Adapt for Windows version of libXpm.
+	(xpm_load): Sync with xfns.c.  Adapt for Windows version of libXpm.
 	(init_external_image_libraries): Try to load libXpm.dll.
 
 	* fileio.c (Fcopy_file) [WINDOWSNT]: Reverse logic for setting
@@ -6330,8 +6374,8 @@
 	* w32fns.c (DrawText): Kludge to avoid a redefinition on Windows
 	when including gif_lib.h.
 	(init_gif_functions, init_tiff_functions): New functions.
-	(gif_load, tiff_load): Sync with xfns.c version. Adjust colors for
-	Windows. Disable color table lookups. Call library functions
+	(gif_load, tiff_load): Sync with xfns.c version.  Adjust colors for
+	Windows.  Disable color table lookups.  Call library functions
 	through pointers determined at runtime.
 	(init_external_image_libraries): Try to load libungif.dll and
 	libtiff.dll.
@@ -6397,8 +6441,8 @@
 
 	* w32fns.c (init_jpeg_functions, jpeg_resync_to_restart_wrapper):
 	New functions.
-	(jpeg_load): Sync with xfns.c version. Adjust colors for Windows.
-	Disable color table lookups. Call jpeg library functions
+	(jpeg_load): Sync with xfns.c version.  Adjust colors for Windows.
+	Disable color table lookups.  Call jpeg library functions
 	through pointers determined at runtime.
 	(init_external_image_libraries): Try to load jpeg.dll.
 
@@ -6435,8 +6479,8 @@
 
 	* w32fns.c (XPutPixel): Handle monochrome images; used for masks.
 	[HAVE_PNG]: Sync with xfns.c version.
-	(png_load): Adjust colors for Windows. Use Windows
-	bitmaps. Disable color table lookups.
+	(png_load): Adjust colors for Windows.  Use Windows
+	bitmaps.  Disable color table lookups.
 	(DEF_IMGLIB_FN, LOAD_IMGLIB_FN): New macros.
 	(init_png_functions): New function.
 	(png_read_from_memory, png_load): Call png library functions
@@ -6533,7 +6577,7 @@
 2003-01-21  David Ponce  <david@dponce.com>
 
 	* w32term.c (w32_encode_char): For DIM=1 charset, set
-	ccl->reg[2] to -1 before calling ccl_driver. (Sync. with xterm.c
+	ccl->reg[2] to -1 before calling ccl_driver.  (Sync. with xterm.c
 	x_encode_char change by Kenichi Handa <handa@m17n.org> on
 	2002-09-30.)
 	(w32_draw_relief_rect): Declare all args.
@@ -7066,7 +7110,7 @@
 	only if g_b_init_get_sid_identifier_authority is equal to 0.
 	On initialization set g_b_init_get_sid_identifier_authority equal to 1.
 
-	* w32fns.c (globals_of_w32fns): New function. Used to initialize
+	* w32fns.c (globals_of_w32fns): New function.  Used to initialize
 	those global variables that must always be initialized on startup
 	even when the global variable initialized is non zero.
 	Its primary purpose at this time is to initialize the global variable
@@ -7077,7 +7121,7 @@
 
 	* w32fns.c (syms_of_w32fns): Call globals_of_w32fns.
 
-	* w32menu.c (globals_of_w32menu): New function. Used to
+	* w32menu.c (globals_of_w32menu): New function.  Used to
 	initialize those global variables that must always be initialized
 	on startup even when the global variable initialized is non zero.
 	Its primary purpose at this time is to initialize the global
@@ -9299,7 +9343,7 @@
 2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* m/pmax.h (START_FILES): Define START_FILES for NetBSD and
-	OpenBSD. Add support for mipseb-*-netbsd* machines.
+	OpenBSD.  Add support for mipseb-*-netbsd* machines.
 
 2002-06-17  Andrew Choi  <akochoi@shaw.ca>
 
@@ -10701,7 +10745,7 @@
 	(server_accept_connection): New function.
 	(wait_reading_process_input): Use it to handle incoming connects.
 	Do not enable input on a new connection if process is stopped.
-	(read_process_output): Handle datagram sockets. Use 2k buffer for them.
+	(read_process_output): Handle datagram sockets.  Use 2k buffer for them.
 	(send_process): Handle datagram sockets.
 	(Fstop_process, Fcontinue_process): Apply to network processes.  A stopped
 	network process is indicated by setting command field to t .
@@ -12287,7 +12331,7 @@
 
 2001-12-01  Jason Rumney  <jasonr@gnu.org>
 
-	* window.c (Qleft_fringe, Qright_fringe): Remove. Now in frame.c.
+	* window.c (Qleft_fringe, Qright_fringe): Remove.  Now in frame.c.
 
 	* w32term.h (WM_MOUSELEAVE, TME_LEAVE, TRACKMOUSEEVENT)
 	[!WM_MOUSELEAVE]: Define.
@@ -12339,7 +12383,7 @@
 
 	* xterm.c (zv_height, zv_bits, zv_period): Changed zv bitmap to
 	fill fringe evenly with small dashes.
-	(x_draw_fringe_bitmap): Clear background if necessary. Align and
+	(x_draw_fringe_bitmap): Clear background if necessary.  Align and
 	clip the new ZV bitmap to avoid jitter between rows.
 	(x_draw_row_fringe_bitmaps): Rely on x_draw_fringe_bitmap to clear
 	background.  Don't draw fringe bitmaps if fringe width is zero.
@@ -12404,7 +12448,7 @@
 	menu items.  From David Ponce <dponce@wanadoo.fr>.
 	(w32_dialog_show) [HAVE_DIALOGS]: Compile whole function
 	conditionally.
-	(w32_menu_display_help): New argument OWNER. Rewritten to store a
+	(w32_menu_display_help): New argument OWNER.  Rewritten to store a
 	help event in the owner frame's keyboard buffer.
 
 	* w32fns.c (w32_wnd_proc) <WM_MENUSELECT>: Display help directly.
@@ -12520,7 +12564,7 @@
 	(my_create_tip_window): Assign tip_window.
 	(x_create_tip_frame): Use same defaults as X.
 	(compute_tip_xy): Remove unused variable.  Use full screen width.
-	(Fx_show_tip): Do not double height. Call ShowWindow directly.
+	(Fx_show_tip): Do not double height.  Call ShowWindow directly.
 
 	* w32term.c (x_after_update_window_line): Doc fix.
 	(w32_read_socket): Doc fix.  Avoid SET_FRAME_GARBAGED for tip
@@ -12757,9 +12801,9 @@
 	`bitmaps':
 
 	* dispextern.h (FRINGE_FACE_ID): Renamed from BITMAP_AREA_FACE_ID.
-	Comments fixed. Use renamed symbols.
+	Comments fixed.  Use renamed symbols.
 
-	* dispnew.c: Comment fix. Use renamed symbols.
+	* dispnew.c: Comment fix.  Use renamed symbols.
 
 	* frame.h (FRAME_FRINGE_COLS): Renamed from FRAME_FLAGS_AREA_COLS.
 	(FRAME_FRINGE_WIDTH): Renamed from FRAME_FLAGS_AREA_WIDTH.
@@ -12769,13 +12813,13 @@
 
 	* w32fns.c: Use renamed symbols.
 
-	* w32term.c: Comment fixes. Use renamed symbols.
+	* w32term.c: Comment fixes.  Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(w32_draw_fringe_bitmap): Renamed from w32_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
 
-	* w32term.h: Comment fixes. Use renamed symbols.
+	* w32term.h: Comment fixes.  Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
@@ -12788,22 +12832,22 @@
 
 	* widget.c: Use renamed symbols.
 
-	* window.c: Comment fixes. Use renamed symbols.
+	* window.c: Comment fixes.  Use renamed symbols.
 	(coordinates-in-window-p): Doc fix.
 
-	* xdisp.c: Comment fixes. Use renamed symbols.
+	* xdisp.c: Comment fixes.  Use renamed symbols.
 
 	* xfaces.c (realize_basic_faces): Use FRINGE_FACE_ID.
 
 	* xfns.c: Use renamed symbols.
 
-	* xterm.c: Comment fixes. Use renamed symbols.
+	* xterm.c: Comment fixes.  Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(x_draw_fringe_bitmap): Renamed from x_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
 
-	* xterm.h: Comment fixes. Use renamed symbols.
+	* xterm.h: Comment fixes.  Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
@@ -12921,8 +12965,8 @@
 2001-11-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32console.c, w32fns.c, w32menu.c, w32proc.c, w32select.c,
-	* w32term.c: Change doc-string comments to `new style'.
-	[w/`doc:' keyword]. Doc fixes.
+	* w32term.c: Change doc-string comments to `new style'
+	[w/`doc:' keyword].  Doc fixes.
 
 	* w32fns.c: Don't define max.
 	(Fx_open_connection): Only execute once.
@@ -12957,7 +13001,7 @@
 2001-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Use leading @ on face name to detect
-	vertical fonts. Allow them if face name is explicitly specified.
+	vertical fonts.  Allow them if face name is explicitly specified.
 	Do not give up if we find a font that cannot be converted to an xlfd.
 
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
@@ -13767,7 +13811,7 @@
 	full-width rows.
 	(x_dump_glyph_string): Put in #if GLYPH_DEBUG.
 	(w32_draw_relief_rect): Extend left shadow to the bottom and left;
-	change bottom shadow accordingly. Some cleanup.
+	change bottom shadow accordingly.  Some cleanup.
 	(x_update_window_end): Handle overwritten mouse face
 	also for tool bar windows.
 	(show_mouse_face): Set the glyph row's mouse_face_p flag also when
@@ -13813,7 +13857,7 @@
 	(Fv_max_tooltip_size): New variable.
 	(syns_of_xfns): DEFVAR_LISP it.
 	(Fx_show_tip): Add parameter TEXT.  Set the tip frame's root
-	window buffer to *tip* right after creating the frame. Set frame's
+	window buffer to *tip* right after creating the frame.  Set frame's
 	window_width.  Use a maximum tooltip size specified by
 	Vx_max_tooltip_size, if that has valid contents.
 	(compute_tip_xy): Add parameters WIDTH and HEIGHT.

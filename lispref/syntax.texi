@@ -135,10 +135,10 @@ modes.
 @end deffn
 
 @deffn {Syntax class} @w{word constituent}
-@dfn{Word constituents} (designated by @samp{w}) are parts of normal
-English words and are typically used in variable and command names in
-programs.  All upper- and lower-case letters, and the digits, are typically
-word constituents.
+@dfn{Word constituents} (designated by @samp{w}) are parts of words in
+human languages, and are typically used in variable and command names
+in programs.  All upper- and lower-case letters, and the digits, are
+typically word constituents.
 @end deffn
 
 @deffn {Syntax class} @w{symbol constituent}

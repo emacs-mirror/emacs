@@ -1248,7 +1248,11 @@ where they were found."
 
 
 (defun etags-tags-completion-table ()
-  (let ((table (make-vector 511 0)))
+  (let ((table (make-vector 511 0))
+	(point-max (/ (float (point-max)) 100.0))
+	(msg-fmt (format 
+		  "Making tags completion table for %s...%%d%%%%"
+		  buffer-file-name)))
     (save-excursion
       (goto-char (point-min))
       ;; This monster regexp matches an etags tag line.
@@ -1264,11 +1268,12 @@ where they were found."
 \\([-a-zA-Z0-9_+*$?:]+\\)[^-a-zA-Z0-9_+*$?:\177]*\\)\177\
 \\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\)?,\\([0-9]+\\)?\n"
 	      nil t)
-	(intern	(if (match-beginning 5)
-		    ;; There is an explicit tag name.
-		    (buffer-substring (match-beginning 5) (match-end 5))
-		  ;; No explicit tag name.  Best guess.
-		  (buffer-substring (match-beginning 3) (match-end 3)))
+	(intern	(prog1 (if (match-beginning 5)
+			   ;; There is an explicit tag name.
+			   (buffer-substring (match-beginning 5) (match-end 5))
+			 ;; No explicit tag name.  Best guess.
+			 (buffer-substring (match-beginning 3) (match-end 3)))
+		  (message msg-fmt (/ (point) point-max)))
 		table)))
     table))
 
@@ -1866,6 +1871,7 @@ directory specification."
 	(or gotany
 	    (error "File %s not in current tags tables" file)))))
   (with-current-buffer "*Tags List*"
+    (require 'apropos)
     (apropos-mode)
     (setq buffer-read-only t)))
 
@@ -1884,6 +1890,7 @@ directory specification."
 	  (funcall tags-apropos-function regexp))))
     (etags-tags-apropos-additional regexp))
   (with-current-buffer "*Tags List*"
+    (require 'apropos)
     (apropos-mode)
     ;; apropos-mode is derived from fundamental-mode and it kills
     ;; all local variables.

@@ -1357,41 +1357,42 @@ that are visiting the various files."
 				rawfile truename number))))))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
-  (let ((inhibit-read-only t)
-	error)
+  (let (error)
     (with-current-buffer buf
       (kill-local-variable 'find-file-literally)
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
       (kill-local-variable 'buffer-file-coding-system)
       (kill-local-variable 'cursor-type)
-      (erase-buffer)
-      (and (default-value 'enable-multibyte-characters)
-	   (not rawfile)
-	   (set-buffer-multibyte t))
-      (if rawfile
-	  (condition-case ()
-	      (insert-file-contents-literally filename t)
-	    (file-error
-	     (when (and (file-exists-p filename)
-			(not (file-readable-p filename)))
-	       (kill-buffer buf)
-	       (signal 'file-error (list "File is not readable"
-					 filename)))
-	     ;; Unconditionally set error
-	     (setq error t)))
-	(condition-case ()
-	    (insert-file-contents filename t)
-	  (file-error
-	   (when (and (file-exists-p filename)
-		      (not (file-readable-p filename)))
-	     (kill-buffer buf)
-	     (signal 'file-error (list "File is not readable"
-				       filename)))
-	   ;; Run find-file-not-found-hooks until one returns non-nil.
-	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
-	       ;; If they fail too, set error.
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(and (default-value 'enable-multibyte-characters)
+	     (not rawfile)
+	     (set-buffer-multibyte t))
+	(if rawfile
+	    (condition-case ()
+		(insert-file-contents-literally filename t)
+	      (file-error
+	       (when (and (file-exists-p filename)
+			  (not (file-readable-p filename)))
+		 (kill-buffer buf)
+		 (signal 'file-error (list "File is not readable"
+					   filename)))
+	       ;; Unconditionally set error
 	       (setq error t)))))
+      (condition-case ()
+	  (let ((inhibit-read-only t))
+	    (insert-file-contents filename t))
+	(file-error
+	 (when (and (file-exists-p filename)
+		    (not (file-readable-p filename)))
+	   (kill-buffer buf)
+	   (signal 'file-error (list "File is not readable"
+				     filename)))
+	 ;; Run find-file-not-found-hooks until one returns non-nil.
+	 (or (run-hook-with-args-until-success 'find-file-not-found-functions)
+	     ;; If they fail too, set error.
+	     (setq error t))))
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
@@ -4486,10 +4487,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (directory-file-name . nil)
 			  (file-name-sans-versions . nil)
 			  ;; `identity' means just return the first arg
-			  ;; as stripped of its quoting.
-			  (substitute-in-file-name . identity)
+			  ;; not stripped of its quoting.
+			  (substitute-in-file-name identity)
 			  (file-name-completion 1)
 			  (file-name-all-completions 1)
+			  ;; t means add "/:" to the result.
+			  (file-truename t 0)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -4497,9 +4500,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 		  ;; For all other operations, treat the first argument only
 		  ;; as the file name.
 		  '(nil 0))))
+	method
 	;; Copy ARGUMENTS so we can replace elements in it.
 	(arguments (copy-sequence arguments)))
-    ;; Strip off the /: from the file names that have this handler.
+    (if (symbolp (car file-arg-indices))
+	(setq method (pop file-arg-indices)))
+    ;; Strip off the /: from the file names that have it.
     (save-match-data
       (while (consp file-arg-indices)
 	(let ((pair (nthcdr (car file-arg-indices) arguments)))
@@ -4510,9 +4516,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (if (eq file-arg-indices 'identity)
-	(car arguments)
-      (apply operation arguments))))
+    (cond ((eq method 'identity)
+	   (car arguments))
+	  (method
+	   (concat "/:" (apply operation arguments)))
+	  (t
+	   (apply operation arguments)))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)

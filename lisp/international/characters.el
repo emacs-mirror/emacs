@@ -657,7 +657,7 @@
 (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
 (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
 
-(let ((parens "〔〕〈〉《》「」『』【】" )
+(let ((parens "〔〕〈〉《》「」『』【】（）［］｛｝" )
       open close)
   (dotimes (i (/ (length parens) 2))
     (setq open (aref parens (* i 2))

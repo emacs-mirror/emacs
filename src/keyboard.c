@@ -113,6 +113,8 @@ struct backtrace
 			   args points to slot holding list of
 			   unevalled args */
     char evalargs;
+    /* Nonzero means call value of debugger when done with this operation. */
+    char debug_on_exit;
   };
 
 #ifdef MULTI_KBOARD
@@ -9747,6 +9749,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       backtrace.args = &cmd;
       backtrace.nargs = 1;
       backtrace.evalargs = 0;
+      backtrace.debug_on_exit = 0;
 
       tem = Fcall_interactively (cmd, record_flag, keys);
 

@@ -1556,7 +1556,7 @@ replace_range (from, to, new, prepare, inherit, markers)
   Z_BYTE -= nbytes_del;
   GPT = from;
   GPT_BYTE = from_byte;
-  *(GPT_ADDR) = 0;		/* Put an anchor.  */
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
   if (GPT_BYTE < GPT)
     abort ();
@@ -1839,7 +1839,7 @@ del_range_2 (from, from_byte, to, to_byte, ret_string)
   Z -= nchars_del;
   GPT = from;
   GPT_BYTE = from_byte;
-  *(GPT_ADDR) = 0;		/* Put an anchor.  */
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
   if (GPT_BYTE < GPT)
     abort ();

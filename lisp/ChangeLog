@@ -1,3 +1,87 @@
+2004-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
+	as a close quote.
+
+	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
+
+	* progmodes/idlw-shell.el (idlwave-shell-get-object-class): 
+	Use assoc-string, not assoc-ignore-case.
+	
+	* progmodes/ada-mode.el: Use assoc-string, not assoc-ignore-case.
+
+	* emacs-lisp/lisp.el (mark-defun, narrow-to-defun):
+	If moving back then fwd gets a defun that ends before point,
+	try again moving fwd then back.
+
+	* files.el (file-name-non-special): Allow t in file-arg-indices
+	to mean requote the return value.  Use `identity' as an element
+	rather than as the whole value.
+
+	* gs.el (gs-options): Add -dSAFER.  Mark it risky.
+
+2004-05-22  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-add-fundoc-usage): Use %S only for output of
+	`help-make-usage'.
+	(help-highlight-arguments): Skip function name before searching
+	for arguments.
+
+2004-05-21  Juanma Barranquero  <lektu@terra.es>
+
+	* allout.el (allout-chart-subtree, allout-rebullet-topic-grunt):
+	Don't mention in the docstring these arguments meant for
+	internal (recursive) use only.
+	(allout-char-spec): Comment out (it's not implemented).
+	(allout-old-expose-topic, allout-exposure): Fix docstring and add
+	obsolescence declaration.
+	(allout-flatten-exposed-to-buffer)
+	(allout-indented-exposed-to-buffer): Fix typos in docstring.
+	(my-mark-marker): Doc fix.
+	(produce-allout-mode-map, allout-sibling-index)
+	(allout-isearch-expose, allout-distinctive-bullet)
+	(allout-open-topic, allout-reindent-body)
+	(allout-rebullet-heading, allout-process-exposed)
+	(allout-insert-listified, allout-latex-verb-quote)
+	(allout-insert-latex-header, allout-insert-latex-trailer):
+	Make arguments match their use in docstring.
+	(allout-primary-bullet, allout-old-style-prefixes)
+	(allout-inhibit-protection, allout-init, allout-mode)
+	(allout-before-change-protect, allout-flag-region):
+	Use "Emacs" instead of "emacs" in docstrings.
+
+2004-05-21  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
+
+	* international/characters.el: Modify syntax of more characters.
+
+2004-05-21  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el (tags-apropos, list-tags): Require
+	apropos.
+	(etags-tags-completion-table): Show parsing progress.
+
+2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el (locate-prompt-for-command): Shorten first line of
+	docstring.
+	(locate-mode): Expand docstring and include keymap summary.
+
+	* files.el (find-file-noselect-1): Limit the scope of the
+	`inhibit-read-only' binding.  Make sure that `inhibit-read-only'
+	is, by default, nil during the execution of
+	`find-file-not-found-functions' and `find-file-hook'.
+
+2004-05-20  Michael Mauger  <mmaug@yahoo.com>
+
+	* facemenu.el (facemenu-color-name-equal): New function.
+	(list-colors-display): Use it to compare colors instead of
+	facemenu-color-equal.
+
+2004-05-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* compare-w.el (compare-windows-face): Use min-colors instead of
+	checking for tty or pc types.
+
 2004-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (do-auto-fill): Remove unused vars `bol' and `opoint'.
@@ -23,7 +107,7 @@
 2004-05-19  Masatake YAMATO  <jet@gyve.org>
 
 	* wid-edit.el (widget-radio-button-notify): Revert my last
-	change. Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
+	change.  Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
 
 2004-05-19  Kenichi Handa  <handa@m17n.org>
 
@@ -598,7 +682,7 @@
 	list of arguments in a string.
 	(help-highlight-arguments): Highlight the function arguments and
 	all uses of them in the docstring.
-	(describe-function-1): Use it. Do docstring output via `insert',
+	(describe-function-1): Use it.  Do docstring output via `insert',
 	not 'princ', so text attributes are preserved.
 
 	* winner.el (winner-mode-map): Move `winner-undo' and
@@ -623,7 +707,7 @@
 	(bibtex-parse-entry): Fix docstring.
 	(bibtex-print-help-message): Use bibtex-field-list.
 	(bibtex-make-field): Use bibtex-field-list.
-	(bibtex-entry-index): Bugfix. Return crossref key if required.
+	(bibtex-entry-index): Bugfix.  Return crossref key if required.
 	(bibtex-lessp): Fix docstring.
 
 2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>

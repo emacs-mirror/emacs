@@ -160,7 +160,7 @@
   :group 'locate)
 
 (defcustom locate-prompt-for-command nil
-  "If non-nil, the default behavior of the locate command is to prompt for a command to run.
+  "If non-nil, the locate command prompts for a command to run.
 Otherwise, that behavior is invoked via a prefix argument."
   :group 'locate
   :type 'boolean
@@ -329,7 +329,11 @@ shown; this is often useful to constrain a big search."
 ;; Default directory is set to "/" so that dired commands, which
 ;; expect to be in a tree, will work properly
 (defun locate-mode ()
-  "Major mode for the `*Locate*' buffer made by \\[locate]."
+  "Major mode for the `*Locate*' buffer made by \\[locate].
+In that buffer, you can use almost all the usual dired bindings.
+\\[locate-find-directory] visits the directory of the file on the current line.
+
+\\{locate-mode-map}"
   (kill-all-local-variables)
   ;; Avoid clobbering this variables
   (make-local-variable 'dired-subdir-alist)

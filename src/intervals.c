@@ -1899,11 +1899,13 @@ lookup_char_property (plist, prop, textprop)
     return fallback;
   /* Check for alternative properties */
   tail = Fassq (prop, Vchar_property_alias_alist);
-  if (NILP (tail))
-    return tail;
-  tail = XCDR (tail);
-  for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
-    fallback = Fplist_get (plist, XCAR (tail));
+  if (! NILP (tail))
+    {
+      tail = XCDR (tail);
+      for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
+	fallback = Fplist_get (plist, XCAR (tail));
+    }
+
   if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
     fallback = Fplist_get (Vdefault_text_properties, prop);
   return fallback;

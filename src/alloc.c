@@ -1894,8 +1894,9 @@ compact_small_strings ()
 
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
-       doc: /* Return a newly created string of length LENGTH, with each element being INIT.
-Both LENGTH and INIT must be numbers.  */)
+       doc: /* Return a newly created string of length LENGTH, with INIT in each element.
+LENGTH must be an integer.
+INIT must be an integer that represents a character.  */)
      (length, init)
      Lisp_Object length, init;
 {
@@ -2334,7 +2335,6 @@ free_cons (ptr)
 #endif
   cons_free_list = ptr;
 }
-
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
        doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
@@ -4287,6 +4287,8 @@ struct backtrace
   /* If nargs is UNEVALLED, args points to slot holding list of
      unevalled args.  */
   char evalargs;
+  /* Nonzero means call value of debugger when done with this operation. */
+  char debug_on_exit;
 };
 
 
@@ -4478,34 +4480,42 @@ returns nil, because real GC can't be done.  */)
   }
 #endif
 
-  /* Look thru every buffer's undo list
-     for elements that update markers that were not marked,
-     and delete them.  */
+  gc_sweep ();
+
+  /* Look thru every buffer's undo list for elements that used to
+     contain update markers that were changed to Lisp_Misc_Free
+     objects and delete them.  This may leave a few cons cells
+     unchained, but we will get those on the next sweep.  */
   {
     register struct buffer *nextb = all_buffers;
 
     while (nextb)
       {
 	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
+	   turned off in that buffer.  */
 	if (! EQ (nextb->undo_list, Qt))
 	  {
-	    Lisp_Object tail, prev;
+	    Lisp_Object tail, prev, elt, car;
 	    tail = nextb->undo_list;
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if (GC_CONSP (XCAR (tail))
-		    && GC_MARKERP (XCAR (XCAR (tail)))
-		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
+		if ((elt = XCAR (tail), GC_CONSP (elt))
+		    && (car = XCAR (elt), GC_MISCP (car))
+		    && XMISCTYPE (car) == Lisp_Misc_Free)
 		  {
+		    Lisp_Object cdr = XCDR (tail);
+		    /* Do not use free_cons here, as we don't know if
+		       anybody else has a pointer to these conses.  */
+		    XSETCAR (elt, Qnil);
+		    XSETCDR (elt, Qnil);
+		    XSETCAR (tail, Qnil);
+		    XSETCDR (tail, Qnil);
 		    if (NILP (prev))
-		      nextb->undo_list = tail = XCDR (tail);
+		      nextb->undo_list = tail = cdr;
 		    else
 		      {
-			tail = XCDR (tail);
+			tail = cdr;
 			XSETCDR (prev, tail);
 		      }
 		  }
@@ -4520,8 +4530,6 @@ returns nil, because real GC can't be done.  */)
 	nextb = nextb->next;
       }
   }
-
-  gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
 
@@ -4978,14 +4986,6 @@ mark_object (arg)
       break;
 
     case Lisp_Misc:
-      if (XMISCTYPE (obj) == Lisp_Misc_Free)
-	{
-	  /* This is (probably) a freed marker which may still exist on
-	     a buffer undo list, so accept it here, as check below will
-	     fail (not live).  KFS 2004-05-17 */
-	  XMARKER (obj)->gcmarkbit = 1;
-	  break;
-	}
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
       if (XMARKER (obj)->gcmarkbit)
 	break;
@@ -5211,16 +5211,6 @@ survives_gc_p (obj)
 static void
 gc_sweep ()
 {
-  /* Remove or mark entries in weak hash tables.
-     This must be done before any object is unmarked.  */
-  sweep_weak_hash_tables ();
-
-  sweep_strings ();
-#ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive)
-    check_string_bytes (1);
-#endif
-
   /* Put all unmarked conses on free list */
   {
     register struct cons_block *cblk;
@@ -5270,6 +5260,16 @@ gc_sweep ()
     total_conses = num_used;
     total_free_conses = num_free;
   }
+
+  /* Remove or mark entries in weak hash tables.
+     This must be done before any object is unmarked.  */
+  sweep_weak_hash_tables ();
+
+  sweep_strings ();
+#ifdef GC_CHECK_STRING_BYTES
+  if (!noninteractive)
+    check_string_bytes (1);
+#endif
 
   /* Put all unmarked floats on free list */
   {
@@ -5469,6 +5469,9 @@ gc_sweep ()
 	/* If this block contains only free markers and we have already
 	   seen more than two blocks worth of free markers then deallocate
 	   this block.  */
+#if 0
+	/* There may still be pointers to these markers from a buffer's
+	   undo list, so don't free them.  KFS 2004-05-21  /
 	if (this_free == MARKER_BLOCK_SIZE && num_free > MARKER_BLOCK_SIZE)
 	  {
 	    *mprev = mblk->next;
@@ -5478,6 +5481,7 @@ gc_sweep ()
 	    n_marker_blocks--;
 	  }
 	else
+#endif
 	  {
 	    num_free += this_free;
 	    mprev = &mblk->next;

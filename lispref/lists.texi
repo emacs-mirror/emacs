@@ -51,15 +51,36 @@ the @sc{car} and the @sc{cdr} is entirely a matter of convention; at the
 level of cons cells, the @sc{car} and @sc{cdr} slots have the same
 characteristics.
 
+@cindex true list
+  Since @code{nil} is the conventional value to put in the @sc{cdr} of
+the last cons cell in the list, we call that case a @dfn{true list}.
+
+  In Lisp, we consider the symbol @code{nil} a list as well as a
+symbol; it is the list with no elements.  For convenience, the symbol
+@code{nil} is considered to have @code{nil} as its @sc{cdr} (and also
+as its @sc{car}).  Therefore, the @sc{cdr} of a true list is always a
+true list.
+
+@cindex dotted list
+@cindex circular list
+  If the @sc{cdr} of a list's last cons cell is some other value,
+neither @code{nil} nor another cons cell, we call the structure a
+@dfn{dotted list}, since its printed representation would use
+@samp{.}.  There is one other possibility: some cons cell's @sc{cdr}
+could point to one of the previous cons cells in the list.  We call
+that structure a @dfn{circular list}.
+
+  For some purposes, it does not matter whether a list is true,
+circular or dotted.  If the program doesn't look far enough down the
+list to see the @sc{cdr} of the final cons cell, it won't care.
+However, some functions that operate on lists demand true lists and
+signal errors if given a dotted list.  Most functions that try to find
+the end of a list enter infinite loops if given a circular list.
+
 @cindex list structure
   Because most cons cells are used as part of lists, the phrase
 @dfn{list structure} has come to mean any structure made out of cons
 cells.
-
-  The symbol @code{nil} is considered a list as well as a symbol; it is
-the list with no elements.  For convenience, the symbol @code{nil} is
-considered to have @code{nil} as its @sc{cdr} (and also as its
-@sc{car}).
 
   The @sc{cdr} of any nonempty list @var{l} is a list containing all the
 elements of @var{l} except the first.
@@ -394,12 +415,13 @@ if @var{n} is bigger than @var{list}'s length.
 
 @anchor{Definition of safe-length}
 @defun safe-length list
-This function returns the length of @var{list}, with no risk
-of either an error or an infinite loop.
+This function returns the length of @var{list}, with no risk of either
+an error or an infinite loop.  It generally returns the number of
+distinct cons cells in the list.  However, for circular lists,
+the value is just an upper bound; it is often too large.
 
-If @var{list} is not really a list, @code{safe-length} returns 0.  If
-@var{list} is circular, it returns a finite value which is at least the
-number of distinct elements.
+If @var{list} is not @code{nil} or a cons cell, @code{safe-length}
+returns 0.
 @end defun
 
   The most common way to compute the length of a list, when you are not

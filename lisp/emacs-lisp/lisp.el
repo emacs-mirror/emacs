@@ -281,15 +281,31 @@ already marked."
 	    (end-of-defun)
 	    (point))))
 	(t
-	 ;; Do it in this order for the sake of languages with nested
-	 ;; functions where several can end at the same place as with
-	 ;; the offside rule, e.g. Python.
-	 (push-mark (point))
-	 (beginning-of-defun)
-	 (push-mark (point) nil t)
-	 (end-of-defun)
-	 (exchange-point-and-mark)
-	 (re-search-backward "^\n" (- (point) 1) t))))
+	 (let ((opoint (point))
+	       beg end)
+	   (push-mark opoint)
+	   ;; Try first in this order for the sake of languages with nested
+	   ;; functions where several can end at the same place as with
+	   ;; the offside rule, e.g. Python.
+	   (beginning-of-defun)
+	   (setq beg (point))
+	   (end-of-defun)
+	   (setq end (point))
+	   (while (looking-at "^\n")
+	     (forward-line 1))
+	   (if (> (point) opoint)
+	       (progn
+		 ;; We got the right defun.
+		 (push-mark beg nil t)
+		 (goto-char end)
+		 (exchange-point-and-mark))
+	     ;; beginning-of-defun moved back one defun
+	     ;; so we got the wrong one.
+	     (goto-char opoint)
+	     (end-of-defun)
+	     (push-mark (point) nil t)
+	     (beginning-of-defun))
+	   (re-search-backward "^\n" (- (point) 1) t)))))
 
 (defun narrow-to-defun (&optional arg)
   "Make text outside current defun invisible.
@@ -298,13 +314,28 @@ Optional ARG is ignored."
   (interactive)
   (save-excursion
     (widen)
-    ;; Do it in this order for the sake of languages with nested
-    ;; functions where several can end at the same place as with the
-    ;; offside rule, e.g. Python.
-    (beginning-of-defun)
-    (let ((beg (point)))
+    (let ((opoint (point))
+	  beg end)
+      ;; Try first in this order for the sake of languages with nested
+      ;; functions where several can end at the same place as with
+      ;; the offside rule, e.g. Python.
+      (beginning-of-defun)
+      (setq beg (point))
       (end-of-defun)
-      (narrow-to-region beg (point)))))
+      (setq end (point))
+      (while (looking-at "^\n")
+	(forward-line 1))
+      (unless (> (point) opoint)
+	;; beginning-of-defun moved back one defun
+	;; so we got the wrong one.
+	(goto-char opoint)
+	(end-of-defun)
+	(setq end (point))
+	(beginning-of-defun)
+	(setq beg (point)))
+      (goto-char end)
+      (re-search-backward "^\n" (- (point) 1) t)
+      (narrow-to-region beg end))))
 
 (defun insert-pair (arg &optional open close)
   "Enclose following ARG sexps in a pair of OPEN and CLOSE characters.

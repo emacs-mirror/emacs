@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 2001, 02, 2004 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
@@ -46,7 +46,7 @@
 ;;
 ;; The outline menubar additions provide quick reference to many of
 ;; the features, and see the docstring of the function `allout-init'
-;; for instructions on priming your emacs session for automatic
+;; for instructions on priming your Emacs session for automatic
 ;; activation of `allout-mode'.
 ;;
 ;; See the docstring of the variables `allout-layout' and
@@ -162,7 +162,7 @@ prefix, which is concluded by bullets that includes the value of this
 var and the respective allout-*-bullets-string vars.
 
 The value of an asterisk (`*') provides for backwards compatibility
-with the original emacs outline mode.  See `allout-plain-bullets-string'
+with the original Emacs outline mode.  See `allout-plain-bullets-string'
 and `allout-distinctive-bullets-string' for the range of available
 bullets."
   :type 'string
@@ -263,7 +263,7 @@ from regular comments that start at bol.")
 
 Non-nil restricts the topic creation and modification
 functions to asterix-padded prefixes, so they look exactly
-like the original emacs-outline style prefixes.
+like the original Emacs-outline style prefixes.
 
 Whatever the setting of this variable, both old and new style prefixes
 are always respected by the topic maneuvering functions."
@@ -491,7 +491,7 @@ those that do not have the variable `comment-start' set.  A value of
 (defcustom allout-inhibit-protection nil
   "*Non-nil disables warnings and confirmation-checks for concealed-text edits.
 
-Outline mode uses emacs change-triggered functions to detect unruly
+Outline mode uses Emacs change-triggered functions to detect unruly
 changes to concealed regions.  Set this var non-nil to disable the
 protection, potentially increasing text-entry responsiveness a bit.
 
@@ -708,7 +708,7 @@ Works with respect to `allout-plain-bullets-string' and
 (defvar allout-mode-map nil "Keybindings for (allout) outline minor mode.")
 ;;;_   > produce-allout-mode-map (keymap-alist &optional base-map)
 (defun produce-allout-mode-map (keymap-list &optional base-map)
-  "Produce keymap for use as allout-mode-map, from keymap-list.
+  "Produce keymap for use as allout-mode-map, from KEYMAP-LIST.
 
 Built on top of optional BASE-MAP, or empty sparse map if none specified.
 See doc string for allout-keybindings-list for format of binding list."
@@ -939,7 +939,7 @@ MODE is one of the following symbols:
  - anything else \(eg, t) for auto-activation and auto-layout, without
    any confirmation check.
 
-Use this function to setup your emacs session for automatic activation
+Use this function to setup your Emacs session for automatic activation
 of allout outline mode, contingent to the buffer-specific setting of
 the `allout-layout' variable.  (See `allout-layout' and
 `allout-expose-topic' docstrings for more details on auto layout).
@@ -948,8 +948,8 @@ the `allout-layout' variable.  (See `allout-layout' and
 `allout-find-file-hook' in `find-file-hook', and giving
 `allout-auto-activation' a suitable setting.
 
-To prime your emacs session for full auto-outline operation, include
-the following two lines in your emacs init file:
+To prime your Emacs session for full auto-outline operation, include
+the following two lines in your Emacs init file:
 
 \(require 'allout)
 \(allout-init t)"
@@ -1044,7 +1044,7 @@ Below is a description of the bindings, and then explanation of
 special `allout-mode' features and terminology.  See also the outline
 menubar additions for quick reference to many of the features, and see
 the docstring of the function `allout-init' for instructions on
-priming your emacs session for automatic activation of `allout-mode'.
+priming your Emacs session for automatic activation of `allout-mode'.
 
 
 The bindings are dictated by the `allout-keybindings-list' and
@@ -1102,7 +1102,7 @@ C-c = p	allout-flatten-exposed-to-buffer
 				Like above 'copy-exposed', but convert topic
 				prefixes to section.subsection... numeric
 				format.
-ESC ESC (allout-init t)	Setup emacs session for outline mode
+ESC ESC (allout-init t)	Setup Emacs session for outline mode
 				auto-activation.
 
 		 HOT-SPOT Operation
@@ -1132,7 +1132,7 @@ twice in a row to get to the hot-spot.
 
 Topic hierarchy constituents - TOPICS and SUBTOPICS:
 
-TOPIC:	A basic, coherent component of an emacs outline.  It can
+TOPIC:	A basic, coherent component of an Emacs outline.  It can
 	contain other topics, and it can be subsumed by other topics,
 CURRENT topic:
 	The visible topic most immediately containing the cursor.
@@ -1303,7 +1303,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 	)
 
 				       ; selective-display is the
-				       ; emacs conditional exposure
+				       ; Emacs conditional exposure
 				       ; mechanism:
       (allout-resumptions 'selective-display '(t))
       (if allout-inhibit-protection
@@ -1537,7 +1537,7 @@ Actually, returns prefix beginning point."
 (defun allout-sibling-index (&optional depth)
   "Item number of this prospective topic among its siblings.
 
-If optional arg depth is greater than current depth, then we're
+If optional arg DEPTH is greater than current depth, then we're
 opening a new level, and return 0.
 
 If less than this depth, ascend to that depth and count..."
@@ -1622,8 +1622,7 @@ Return the location of the beginning of the heading, or nil if not found."
   "Produce a location \"chart\" of subtopics of the containing topic.
 
 Optional argument LEVELS specifies the depth \(relative to start
-depth) for the chart.  Subsequent optional args are not for public
-use.
+depth) for the chart.
 
 Charts are used to capture outline structure, so that outline altering
 routines need assess the structure only once, and then use the chart
@@ -1636,9 +1635,11 @@ list containing, recursively, the charts for the respective subtopics.
 The chart for a topics' offspring precedes the entry for the topic
 itself.
 
-The other function parameters are for internal recursion, and should
-not be specified by external callers.  ORIG-DEPTH is depth of topic at
-starting point, and PREV-DEPTH is depth of prior topic."
+\(fn &optional levels)"
+
+  ;; The other function parameters are for internal recursion, and should
+  ;; not be specified by external callers.  ORIG-DEPTH is depth of topic at
+  ;; starting point, and PREV-DEPTH is depth of prior topic."
 
   (let ((original (not orig-depth))	; `orig-depth' set only in recursion.
 	chart curr-depth)
@@ -1652,7 +1653,7 @@ starting point, and PREV-DEPTH is depth of prior topic."
 
     ;; Loop over the current levels' siblings.  Besides being more
     ;; efficient than tail-recursing over a level, it avoids exceeding
-    ;; the typically quite constrained emacs max-lisp-eval-depth.
+    ;; the typically quite constrained Emacs max-lisp-eval-depth.
     ;;
     ;; Probably would speed things up to implement loop-based stack
     ;; operation rather than recursing for lower levels.  Bah.
@@ -1741,36 +1742,36 @@ start point."
 	(setq chart (cdr chart))))
     result))
 ;;;_   X allout-chart-spec (chart spec &optional exposing)
-(defun allout-chart-spec (chart spec &optional exposing)
-  "Not yet \(if ever) implemented.
+;; (defun allout-chart-spec (chart spec &optional exposing)
+;;   "Not yet \(if ever) implemented.
 
-Produce exposure directives given topic/subtree CHART and an exposure SPEC.
+;; Produce exposure directives given topic/subtree CHART and an exposure SPEC.
 
-Exposure spec indicates the locations to be exposed and the prescribed
-exposure status.  Optional arg EXPOSING is an integer, with 0
-indicating pending concealment, anything higher indicating depth to
-which subtopic headers should be exposed, and negative numbers
-indicating (negative of) the depth to which subtopic headers and
-bodies should be exposed.
+;; Exposure spec indicates the locations to be exposed and the prescribed
+;; exposure status.  Optional arg EXPOSING is an integer, with 0
+;; indicating pending concealment, anything higher indicating depth to
+;; which subtopic headers should be exposed, and negative numbers
+;; indicating (negative of) the depth to which subtopic headers and
+;; bodies should be exposed.
 
-The produced list can have two types of entries.  Bare numbers
-indicate points in the buffer where topic headers that should be
-exposed reside.
+;; The produced list can have two types of entries.  Bare numbers
+;; indicate points in the buffer where topic headers that should be
+;; exposed reside.
 
- - bare negative numbers indicates that the topic starting at the
-   point which is the negative of the number should be opened,
-   including their entries.
- - bare positive values indicate that this topic header should be
-   opened.
- - Lists signify the beginning and end points of regions that should
-   be flagged, and the flag to employ.  (For concealment: `\(\?r\)', and
-   exposure:"
-  (while spec
-    (cond ((listp spec)
-	   )
-	  )
-    (setq spec (cdr spec)))
-  )
+;;  - bare negative numbers indicates that the topic starting at the
+;;    point which is the negative of the number should be opened,
+;;    including their entries.
+;;  - bare positive values indicate that this topic header should be
+;;    opened.
+;;  - Lists signify the beginning and end points of regions that should
+;;    be flagged, and the flag to employ.  (For concealment: `\(\?r\)', and
+;;    exposure:"
+;;   (while spec
+;;     (cond ((listp spec)
+;; 	   )
+;; 	  )
+;;     (setq spec (cdr spec)))
+;;   )
 
 ;;;_  - Within Topic
 ;;;_   > allout-goto-prefix ()
@@ -2138,7 +2139,7 @@ Changes to concealed regions are ignored while file is being written.
 writes, like crypt and zip modes.)
 
 Locally bound in outline buffers to `before-change-functions', which
-in emacs 19 is run before any change to the buffer.
+in Emacs 19 is run before any change to the buffer.
 
 Any functions which set [`this-command' to `undo', or which set]
 `allout-override-protect' non-nil (as does, eg, allout-flag-chars)
@@ -2153,7 +2154,7 @@ are exempt from this restriction."
 					; Both beginning and end chars must
 					; be exposed:
 	     (save-excursion (if (memq this-command '(newline open-line))
-				 ;; Compensate for stupid emacs {new,
+				 ;; Compensate for stupid Emacs {new,
 				 ;; open-}line display optimization:
 				 (setq beg (1+ beg)
 				       end (1+ end)))
@@ -2165,7 +2166,7 @@ are exempt from this restriction."
       (save-match-data
 	(if (equal this-command 'undo)
 		 ;; Allow undo without inhibition.
-		 ;; - Undoing new and open-line hits stupid emacs redisplay
+		 ;; - Undoing new and open-line hits stupid Emacs redisplay
 		 ;;   optimization (em 19 cmds.c, ~ line 200).
 		 ;; - Presumably, undoing what was properly protected when
 		 ;;   done.
@@ -2331,7 +2332,7 @@ return to regular interpretation of self-insert characters."
 	(let* ((this-key-num (cond
 			      ((numberp last-command-char)
 			       last-command-char)
-			      ;; XXX Only xemacs has characterp.
+			      ;; XXX Only XEmacs has characterp.
 			      ((and (fboundp 'characterp)
 				    (characterp last-command-char))
 			       (char-to-int last-command-char))
@@ -2385,7 +2386,7 @@ Called as part of `allout-post-command-business'."
 
 ;;;_   > allout-flag-region (from to flag)
 (defmacro allout-flag-region (from to flag)
-  "Hide or show lines from FROM to TO, via emacs selective-display FLAG char.
+  "Hide or show lines from FROM to TO, via Emacs selective-display FLAG char.
 Ie, text following flag C-m \(carriage-return) is hidden until the
 next C-j (newline) char.
 
@@ -2398,7 +2399,7 @@ Returns the endpoint of the region."
 
 ;;;_   > allout-isearch-expose (mode)
 (defun allout-isearch-expose (mode)
-  "Mode is either 'clear, 'start, 'continue, or 'final."
+  "MODE is either 'clear, 'start, 'continue, or 'final."
   ;; allout-isearch-prior-pos encodes exposure status of prior pos:
   ;; (pos was-vis header-pos end-pos)
   ;; pos	- point of concern
@@ -2507,7 +2508,7 @@ Offer one suitable for current depth DEPTH as default."
   )
 ;;;_   > allout-distinctive-bullet (bullet)
 (defun allout-distinctive-bullet (bullet)
-  "True if bullet is one of those on `allout-distinctive-bullets-string'."
+  "True if BULLET is one of those on `allout-distinctive-bullets-string'."
   (string-match (regexp-quote bullet) allout-distinctive-bullets-string))
 ;;;_   > allout-numbered-type-prefix (&optional prefix)
 (defun allout-numbered-type-prefix (&optional prefix)
@@ -2679,7 +2680,7 @@ index for each successive sibling)."
   )
 ;;;_   > allout-open-topic (relative-depth &optional before use_sib_bullet)
 (defun allout-open-topic (relative-depth &optional before use_sib_bullet)
-  "Open a new topic at depth DEPTH.
+  "Open a new topic at depth RELATIVE-DEPTH.
 
 New topic is situated after current one, unless optional flag BEFORE
 is non-nil, or unless current line is complete empty (not even
@@ -2900,7 +2901,7 @@ Maintains outline hanging topic indentation if
         (do-auto-fill))))
 ;;;_    > allout-reindent-body (old-depth new-depth &optional number)
 (defun allout-reindent-body (old-depth new-depth &optional number)
-  "Reindent body lines which were indented at old-depth to new-depth.
+  "Reindent body lines which were indented at OLD-DEPTH to NEW-DEPTH.
 
 Optional arg NUMBER indicates numbering is being added, and it must
 be accommodated.
@@ -2974,15 +2975,13 @@ Note that refill of indented paragraphs is not done."
 
   "Adjust bullet of current topic prefix.
 
-All args are optional.
-
 If SOLICIT is non-nil, then the choice of bullet is solicited from
 user.  If it's a character, then that character is offered as the
 default, otherwise the one suited to the context \(according to
 distinction or depth) is offered.  If non-nil, then the
 context-specific bullet is just used.
 
-Second arg DEPTH forces the topic prefix to that depth, regardless
+Second arg NEW-DEPTH forces the topic prefix to that depth, regardless
 of the topic's current depth.
 
 Third arg NUMBER-CONTROL can force the prefix to or away from
@@ -3095,13 +3094,13 @@ With repeat count, shift topic depth by that amount."
 contained subtopics.  See `allout-rebullet-heading' for rebulleting
 behavior.
 
-All arguments are optional.
-
-First arg RELATIVE-DEPTH means to shift the depth of the entire
+Arg RELATIVE-DEPTH means to shift the depth of the entire
 topic that amount.
 
-The rest of the args are for internal recursive use by the function
-itself.  The are STARTING-DEPTH, STARTING-POINT, and INDEX."
+\(fn &optional RELATIVE-DEPTH)"
+
+  ;; All args except the first one are for internal recursive use by the
+  ;; function itself.
 
   (let* ((relative-depth (or relative-depth 0))
          (new-depth (allout-depth))
@@ -3900,11 +3899,7 @@ Examples:
       max-pos)))
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
-
-  "Deprecated.  Use `allout-expose-topic' \(with different schema
-format) instead.
-
-Dictate wholesale exposure scheme for current topic, according to SPEC.
+  "Dictate wholesale exposure scheme for current topic, according to SPEC.
 
 SPEC is either a number or a list.  Optional successive args
 dictate exposure for subsequent siblings of current topic.
@@ -3931,7 +3926,7 @@ dictates the exposure depth of the topic as a whole.  Subsequent
 elements of the list are nested SPECs, dictating the specific exposure
 for the corresponding offspring of the topic.
 
-Optional FOLLOWER arguments dictate exposure for succeeding siblings."
+Optional FOLLOWERS arguments dictate exposure for succeeding siblings."
 
   (interactive "xExposure spec: ")
   (let ((depth (allout-current-depth))
@@ -3976,6 +3971,9 @@ Optional FOLLOWER arguments dictate exposure for succeeding siblings."
       (allout-old-expose-topic (car followers))
       (setq followers (cdr followers)))
     max-pos))
+(make-obsolete 'allout-old-expose-topic
+               "use `allout-expose-topic' (with different schema format) instead."
+               "19.23")
 ;;;_   > allout-new-exposure '()
 (defmacro allout-new-exposure (&rest spec)
   "Literal frontend for `allout-expose-topic', doesn't evaluate arguments.
@@ -4006,9 +4004,7 @@ Examples:
 	(list 'allout-expose-topic (list 'quote spec))))
 ;;;_   > allout-exposure '()
 (defmacro allout-exposure (&rest spec)
-  "Being deprecated - use more recent `allout-new-exposure' instead.
-
-Literal frontend for `allout-old-expose-topic', doesn't evaluate arguments
+  "Literal frontend for `allout-old-expose-topic', doesn't evaluate arguments
 and retains start position."
   (list 'save-excursion
 	'(if (not (or (allout-goto-prefix)
@@ -4016,6 +4012,7 @@ and retains start position."
 	     (error "Can't find any outline topics"))
 	(cons 'allout-old-expose-topic
 	      (mapcar (function (lambda (x) (list 'quote x))) spec))))
+(make-obsolete 'allout-exposure 'allout-new-exposure "19.23")
 
 ;;;_ #7 Systematic outline presentation - copying, printing, flattening
 
@@ -4223,12 +4220,10 @@ header and body.  The elements of that list are:
 ;;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
 (defun allout-process-exposed (&optional func from to frombuf tobuf
-					  format &optional start-num)
+					  format start-num)
   "Map function on exposed parts of current topic; results to another buffer.
 
-All args are options; default values itemized below.
-
-Apply FUNCTION to exposed portions FROM position TO position in buffer
+Apply FUNC to exposed portions FROM position TO position in buffer
 FROMBUF to buffer TOBUF.  Sixth optional arg, FORMAT, designates an
 alternate presentation form:
 
@@ -4241,7 +4236,7 @@ alternate presentation form:
 		       except for distinctive bullets.
 
 Defaults:
-  FUNCTION:	`allout-insert-listified'
+  FUNC:		`allout-insert-listified'
   FROM:		region start, if region active, else start of buffer
   TO:		region end, if region active, else end of buffer
   FROMBUF:	current buffer
@@ -4286,11 +4281,13 @@ Defaults:
 (defun allout-insert-listified (listified)
   "Insert contents of listified outline portion in current buffer.
 
-Listified is a list representing each topic header and body:
+LISTIFIED is a list representing each topic header and body:
 
  \`(depth prefix text)'
 
-or \`(depth prefix text bullet-plus)'
+or
+
+ \`(depth prefix text bullet-plus)'
 
 If `bullet-plus' is specified, it is inserted just after the entire prefix."
   (setq listified (cdr listified))
@@ -4356,14 +4353,14 @@ alternate presentation format for the outline:
 (defun allout-flatten-exposed-to-buffer (&optional arg tobuf)
   "Present numeric outline of outline's exposed portions in another buffer.
 
-The resulting outline is not compatable with outline mode - use
+The resulting outline is not compatible with outline mode - use
 `allout-copy-exposed-to-buffer' if you want that.
 
 Use `allout-indented-exposed-to-buffer' for indented presentation.
 
 With repeat count, copy the exposed portions of only current topic.
 
-Other buffer has current buffers name with \" exposed\" appended to
+Other buffer has current buffer's name with \" exposed\" appended to
 it, unless optional second arg TOBUF is specified, in which case it is
 used verbatim."
   (interactive "P")
@@ -4372,22 +4369,22 @@ used verbatim."
 (defun allout-indented-exposed-to-buffer (&optional arg tobuf)
   "Present indented outline of outline's exposed portions in another buffer.
 
-The resulting outline is not compatable with outline mode - use
+The resulting outline is not compatible with outline mode - use
 `allout-copy-exposed-to-buffer' if you want that.
 
 Use `allout-flatten-exposed-to-buffer' for numeric sectional presentation.
 
 With repeat count, copy the exposed portions of only current topic.
 
-Other buffer has current buffers name with \" exposed\" appended to
+Other buffer has current buffer's name with \" exposed\" appended to
 it, unless optional second arg TOBUF is specified, in which case it is
 used verbatim."
   (interactive "P")
   (allout-copy-exposed-to-buffer arg tobuf 'indent))
 
 ;;;_  - LaTeX formatting
-;;;_   > allout-latex-verb-quote (str &optional flow)
-(defun allout-latex-verb-quote (str &optional flow)
+;;;_   > allout-latex-verb-quote (string &optional flow)
+(defun allout-latex-verb-quote (string &optional flow)
   "Return copy of STRING for literal reproduction across latex processing.
 Expresses the original characters \(including carriage returns) of the
 string across latex processing."
@@ -4397,7 +4394,7 @@ string across latex processing."
 		       (concat "\\char" (number-to-string char) "{}"))
 		      ((= char ?\n) "\\\\")
 		      (t (char-to-string char)))))
-	     str
+	     string
 	     ""))
 ;;;_   > allout-latex-verbatim-quote-curr-line ()
 (defun allout-latex-verbatim-quote-curr-line ()
@@ -4418,12 +4415,12 @@ environment.  Leaves point at the end of the line."
       (insert "\\")
       (setq end (1+ end))
       (goto-char (1+ (match-end 0))))))
-;;;_   > allout-insert-latex-header (buf)
-(defun allout-insert-latex-header (buf)
+;;;_   > allout-insert-latex-header (buffer)
+(defun allout-insert-latex-header (buffer)
   "Insert initial latex commands at point in BUFFER."
   ;; Much of this is being derived from the stuff in appendix of E in
   ;; the TeXBook, pg 421.
-  (set-buffer buf)
+  (set-buffer buffer)
   (let ((doc-style (format "\n\\documentstyle{%s}\n"
 			   "report"))
 	(page-numbering (if allout-number-pages
@@ -4492,10 +4489,10 @@ environment.  Leaves point at the end of the line."
 		    hoffset
 		    vspace)
 	    )))
-;;;_   > allout-insert-latex-trailer (buf)
-(defun allout-insert-latex-trailer (buf)
+;;;_   > allout-insert-latex-trailer (buffer)
+(defun allout-insert-latex-trailer (buffer)
   "Insert concluding latex commands at point in BUFFER."
-  (set-buffer buf)
+  (set-buffer buffer)
   (insert "\n\\end{document}\n"))
 ;;;_   > allout-latexify-one-item (depth prefix bullet text)
 (defun allout-latexify-one-item (depth prefix bullet text)
@@ -4706,9 +4703,9 @@ function.  If HOOK is void, it is first set to nil."
 		 (cons function (symbol-value hook)))))))
 ;;;_  : my-mark-marker to accommodate divergent emacsen:
 (defun my-mark-marker (&optional force buffer)
-  "Accommodate the different signature for mark-marker across emacsen.
+  "Accommodate the different signature for mark-marker across Emacsen.
 
-GNU XEmacs takes two optional args, while mainline GNU Emacs does not,
+XEmacs takes two optional args, while GNU Emacs does not,
 so pass them along when appropriate."
   (if (featurep 'xemacs)
       (mark-marker force buffer)

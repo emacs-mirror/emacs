@@ -14,6 +14,10 @@
 
 	* nnimap.el (nnimap-demule): Avoid string-as-multibyte.
 
+2004-04-21  Richard M. Stallman  <rms@gnu.org>
+
+	* mailcap.el (mailcap-mime-data): Mark as risky.
+
 2004-03-27  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-srvr.el (gnus-server-prepare): Remove spurious call to `cdr'.

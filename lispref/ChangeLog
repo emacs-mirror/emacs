@@ -1,3 +1,22 @@
+2004-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Syntax Class Table): Word syntax not just for English.
+
+	* streams.texi (Output Variables): Doc float-output-format.
+
+	* searching.texi (Regexp Special): Nested repetition can be infloop.
+
+	* eval.texi (Eval): Increasing max-lisp-eval-depth can cause
+	real stack overflow.
+
+	* compile.texi: Minor cleanups.
+
+2004-05-22  Luc Teirlinck  <teirllm@dms.auburn.edu>
+
+	* lists.texi (Cons Cells): Explain dotted lists, true lists,
+	circular lists.
+	(List Elements): Explain handling of circular and dotted lists.
+	
 2004-05-19  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* modes.texi (Search-based Fontification): Fix typo.

@@ -244,13 +244,15 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.@refill
 
-Nested repetition operators can be extremely slow if they specify
-backtracking loops.  For example, it could take hours for the regular
-expression @samp{\(x+y*\)*a} to try to match the sequence
-@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}, before it ultimately fails.
-The slowness is because Emacs must try each imaginable way of grouping
-the 35 @samp{x}s before concluding that none of them can work.  To make
-sure your regular expressions run fast, check nested repetitions
+Nested repetition operators can be extremely slow or loop infinitely
+if they use repetition operators inside repetition operators.  For
+example, it could take hours for the regular expression
+@samp{\(x+y*\)*a} to try to match the sequence
+@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}, before it ultimately
+fails.  Emacs must try each way of grouping the 35 @samp{x}s before
+concluding that none of them can work.  Even worse, @samp{\(x*\)*} can
+match the null string in infinitely many ways, so it causes an
+infinite loop.  To avoid these problems, check nested repetitions
 carefully.
 
 @item @samp{+}

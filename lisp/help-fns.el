@@ -181,14 +181,14 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   (unless (stringp docstring) (setq docstring "Not documented"))
   (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring) (eq arglist t))
       docstring
-    (format "%s%s%S" docstring
+    (concat docstring
 	    (if (string-match "\n?\n\\'" docstring)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
 	    (if (and (stringp arglist)
 		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
 		(concat "(fn" (match-string 1 arglist) ")")
-	      (help-make-usage 'fn arglist)))))
+	      (format "%S" (help-make-usage 'fn arglist))))))
 
 (defun help-function-arglist (def)
   ;; Handle symbols aliased to other symbols.
@@ -275,6 +275,7 @@ else ARG is returned in uppercase normal."
             (next (not (or args (looking-at "\\["))))
             (opt nil))
         ;; Make a list of all arguments
+        (skip-chars-forward "^ ")
         (while next
           (or opt (not (looking-at " &")) (setq opt t))
           (if (not (re-search-forward " \\([\\[(]*\\)\\([^] &)\.]+\\)" nil t))
