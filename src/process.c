@@ -1442,11 +1442,9 @@ create_process (process, new_argv, current_dir)
       /* In unibyte mode, character code conversion should not take
 	 place but EOL conversion should.  So, setup raw-text or one
 	 of the subsidiary according to the information just setup.  */
-      if (NILP (Vcoding_system_for_read)
-	  && !NILP (XPROCESS (process)->decode_coding_system))
+      if (!NILP (XPROCESS (process)->decode_coding_system))
 	setup_raw_text_coding_system (proc_decode_coding_system[inchannel]);
-      if (NILP (Vcoding_system_for_write)
-	  && !NILP (XPROCESS (process)->encode_coding_system))
+      if (!NILP (XPROCESS (process)->encode_coding_system))
 	setup_raw_text_coding_system (proc_encode_coding_system[outchannel]);
     }
 
