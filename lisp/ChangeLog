@@ -1,3 +1,9 @@
+2004-05-12  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gud.el (gud-mode): Add gud-kill-buffer-hook to
+	kill-buffer-hook here and make it local.
+	(gud-kill-buffer-hook): Use kill-process for a sure kill.
+
 2004-05-12  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-set-window-height): Use
