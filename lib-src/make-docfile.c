@@ -64,7 +64,7 @@ main (argc, argv)
 #endif VMS
 }
 
-/* Read file FILENAME and output its doc strings to stdout.  */
+/* Read file FILENAME and output its doc strings to outfile.  */
 /* Return 1 if file is not found, 0 if it is found.  */
 
 scan_file (filename)
@@ -83,7 +83,7 @@ char buf[128];
 
 /* Skip a C string from INFILE,
  and return the character that follows the closing ".
- If printflag is positive, output string contents to stdout.
+ If printflag is positive, output string contents to outfile.
  If it is negative, store contents in buf.
  Convert escape sequences \n and \t to newline and tab;
  discard \ followed by newline.  */
@@ -341,6 +341,7 @@ scan_c_file (filename)
   (defvar NAME VALUE DOCSTRING)
   (defconst NAME VALUE DOCSTRING)
   (fset (quote NAME) (make-byte-code (quote ARGS) ... "\
+      DOCSTRING")
  starting in column zero.
  ARGS, FILE or VALUE is ignored.  We do not know how to parse Lisp code
  so we use a kludge to skip them:
@@ -384,6 +385,8 @@ scan_lisp_file (filename)
       c = getc (infile);
       if (c != '(')
 	continue;
+
+      /* Handle an autoload.  */
       c = getc (infile);
       if (c == 'a')
 	{
@@ -463,6 +466,8 @@ scan_lisp_file (filename)
 	    }
 	  c = read_c_string (infile, 0);
 	}
+
+      /* Handle def* clauses.  */
       else if (c == 'd')
 	{
 	  c = getc (infile);
@@ -472,6 +477,8 @@ scan_lisp_file (filename)
 	  if (c != 'f')
 	    continue;
 	  c = getc (infile);
+
+	  /* Is this a defun?  */
 	  if (c == 'u')
 	    {
 	      c = getc (infile);
@@ -479,6 +486,8 @@ scan_lisp_file (filename)
 		continue;
 	      defvarflag = 0;
 	    }
+
+	  /* Or a defvar?  */
 	  else if (c == 'v')
 	    {
 	      c = getc (infile);
@@ -489,6 +498,8 @@ scan_lisp_file (filename)
 		continue;
 	      defvarflag = 1;
 	    }
+
+	  /* Or a defconst?  */
 	  else if (c == 'c')
 	    {
 	      c = getc (infile);
@@ -575,6 +586,155 @@ scan_lisp_file (filename)
 		}
 	      continue;
 	    }
+	}
+      
+      /* Handle an fset clause.  */
+      else if (c == 'f') 
+	{
+	  c = getc (infile);
+	  if (c != 's')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'e')
+	    continue;
+	  c = getc (infile);
+	  if (c != 't')
+	    continue;
+
+	  /* Skip white space */
+	  do
+	    c = getc (infile);
+	  while (c == ' ' || c == '\n' || c == '\t');
+
+	  /* Recognize "(quote".  */
+	  if (c != '(')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'q')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'u')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'o')
+	    continue;
+	  c = getc (infile);
+	  if (c != 't')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'e')
+	    continue;
+	  
+	  /* Skip white space */
+	  do
+	    c = getc (infile);
+	  while (c == ' ' || c == '\n' || c == '\t');
+
+	  /* Read and store name of function or variable being defined
+	     Discard backslashes that are for quoting.  */
+	  p = buf;
+	  while (c != ')' && c != ' ' && c != '\n' && c != '\t')
+	    {
+	      if (c == '\\')
+		c = getc (infile);
+	      *p++ = c;
+	      c = getc (infile);
+	    }
+	  *p = '\0';
+
+	  /* Skip white space */
+	  do
+	    c = getc (infile);
+	  while (c == ' ' || c == '\n' || c == '\t');
+
+	  /* Recognize "(make-byte-code".  */
+	  if (c != '(')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'm')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'a')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'k')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'e')
+	    continue;
+	  c = getc (infile);
+	  if (c != '-')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'b')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'y')
+	    continue;
+	  c = getc (infile);
+	  if (c != 't')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'e')
+	    continue;
+	  c = getc (infile);
+	  if (c != '-')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'c')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'o')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'd')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'e')
+	    continue;
+
+	  /* Scan for a \" followed by a newline, or for )) followed by
+	     a newline.  If we find the latter first, this function has
+	     no docstring.  */
+	  {
+	    char c1 = 0, c2 = 0;
+
+	    for (;;)
+	      {
+
+		/* Find newlines, and remember the two previous characters.  */
+		for (;;)
+		  {
+		    c = getc (infile);
+
+		    if (c == '\n' || c < 0)
+		      break;
+
+		    c2 = c1;
+		    c1 = c;
+		  }
+		
+		/* If we've hit eof, quit.  */
+		if (c == EOF)
+		  break;
+
+		/* If the last two characters were \", this is a docstring.  */
+		else if (c2 == '"' && c1 == '\\')
+		  {
+		    putc (037, outfile);
+		    putc ('F', outfile);
+		    fprintf (outfile, "%s\n", buf);
+		    read_c_string (infile, 1);
+		    break;
+		  }
+		
+		/* If the last two characters were )), there is no
+		   docstring.  */
+		else if (c2 == ')' && c1 == ')')
+		  break;
+	      }
+	    continue;
+	  }
 	}
       else
 	continue;
