@@ -1104,12 +1104,13 @@ The output appears in the buffer `*Async Shell Command*'.
 That buffer is in shell mode.
 
 Otherwise, COMMAND is executed synchronously.  The output appears in the
-buffer `*Shell Command Output*'.
-If the output is one line, it is displayed in the echo area *as well*,
-but it is nonetheless available in buffer `*Shell Command Output*',
-even though that buffer is not automatically displayed.
-If there is no output, or if output is inserted in the current buffer,
-then `*Shell Command Output*' is deleted.
+buffer `*Shell Command Output*'.  If the output is short enough to
+display in the echo area (which is determined by the variable
+`max-mini-window-height'), it is shown there, but it is nonetheless
+available in buffer `*Shell Command Output*' even though that buffer is
+not automatically displayed.  If there is no output, or if output is
+inserted in the current buffer, then `*Shell Command Output*' is
+deleted.
 
 To specify a coding system for converting non-ASCII characters
 in the shell command output, use \\[universal-coding-system-argument]
@@ -1242,11 +1243,12 @@ REPLACE, ERROR-BUFFER.  Noninteractive callers can specify coding
 systems by binding `coding-system-for-read' and
 `coding-system-for-write'.
 
-If the output is one line, it is displayed in the echo area,
-but it is nonetheless available in buffer `*Shell Command Output*'
-even though that buffer is not automatically displayed.
-If there is no output, or if output is inserted in the current buffer,
-then `*Shell Command Output*' is deleted.
+If the output is short enough to display in the echo area (which is
+determined by the variable `max-mini-window-height'), it is shown there,
+but it is nonetheless available in buffer `*Shell Command Output*' even
+though that buffer is not automatically displayed.  If there is no
+output, or if output is inserted in the current buffer, then `*Shell
+Command Output*' is deleted.
 
 If the optional fourth argument OUTPUT-BUFFER is non-nil,
 that says to put the output in some other buffer.
@@ -1360,13 +1362,20 @@ specifies the value of ERROR-BUFFER."
 				  "succeed"
 				"fail")))
 		   (kill-buffer buffer))
-		  ((= lines 1)
+		  ((or (= lines 1)
+		       (<= lines
+			   (cond ((floatp max-mini-window-height)
+				  (* (frame-height) max-mini-window-height))
+				 ((integerp max-mini-window-height)
+				  max-mini-window-height)
+				 (t
+				  1))))
 		   (message "%s"
-			    (save-excursion
-			      (set-buffer buffer)
-			      (goto-char (point-min))
-			      (buffer-substring (point)
-						(progn (end-of-line) (point))))))
+			    (with-current-buffer buffer
+			      (goto-char (point-max))
+			      (when (bolp)
+				(backward-char 1))
+			      (buffer-substring (point-min) (point)))))
 		  (t
 		   (save-excursion
 		     (set-buffer buffer)
