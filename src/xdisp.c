@@ -139,6 +139,10 @@ static int highlight_nonselected_windows;
    Try scrolling this many lines up or down if that will bring it back.  */
 static int scroll_step;
 
+/* Non-0 means scroll just far enough to bring point back on the screen,
+   when appropriate.  */
+static int scroll_conservatively;
+
 /* Nonzero if try_window_id has made blank lines at window bottom
  since the last redisplay that paused */
 static int blank_end_of_window;
@@ -1777,6 +1781,74 @@ redisplay_window (window, just_this_one, preserve_echo_area)
     }
 
   /* Try to scroll by specified few lines */
+
+  if (scroll_conservatively && !current_buffer->clip_changed
+      && startp >= BEGV && startp <= ZV)
+    {
+      if (PT >= Z - XFASTINT (w->window_end_pos))
+	{
+	  struct position pos;
+	  pos = *compute_motion (Z - XFASTINT (w->window_end_pos), 0, 0, 0,
+				 PT, XFASTINT (w->height), 0,
+				 XFASTINT (w->width), XFASTINT (w->hscroll),
+				 pos_tab_offset (w, startp), w);
+	  if (pos.vpos > scroll_conservatively)
+	    goto scroll_fail_1;
+
+	  pos = *vmotion (startp, pos.vpos + 1, w);
+
+	  if (! NILP (Vwindow_scroll_functions))
+	    {
+	      Fset_marker (w->start, make_number (pos.bufpos), Qnil);
+	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				    make_number (pos.bufpos));
+	      pos.bufpos = marker_position (w->start);
+	    }
+	  try_window (window, pos.bufpos);
+	  if (cursor_vpos >= 0)
+	    {
+	      if (!just_this_one || current_buffer->clip_changed
+		  || beg_unchanged < startp)
+		/* Forget any recorded base line for line number display.  */
+		w->base_line_number = Qnil;
+	      goto done;
+	    }
+	  else
+	    cancel_my_columns (w);
+	}
+      if (PT < startp)
+	{
+	  struct position pos;
+	  pos = *compute_motion (PT, 0, 0, 0,
+				 startp, XFASTINT (w->height), 0,
+				 XFASTINT (w->width), XFASTINT (w->hscroll),
+				 pos_tab_offset (w, startp), w);
+	  if (pos.vpos >= scroll_conservatively)
+	    goto scroll_fail_1;
+
+	  pos = *vmotion (startp, - pos.vpos, w);
+
+	  if (! NILP (Vwindow_scroll_functions))
+	    {
+	      Fset_marker (w->start, make_number (pos.bufpos), Qnil);
+	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				    make_number (pos.bufpos));
+	      pos.bufpos = marker_position (w->start);
+	    }
+	  try_window (window, pos.bufpos);
+	  if (cursor_vpos >= 0)
+	    {
+	      if (!just_this_one || current_buffer->clip_changed
+		  || beg_unchanged < startp)
+		/* Forget any recorded base line for line number display.  */
+		w->base_line_number = Qnil;
+	      goto done;
+	    }
+	  else
+	    cancel_my_columns (w);
+	}
+    scroll_fail_1: ;
+    }
 
   if (scroll_step && !current_buffer->clip_changed
       && startp >= BEGV && startp <= ZV)
@@ -4376,6 +4448,10 @@ See also `overlay-arrow-string'.");
     "*The number of lines to try scrolling a window by when point moves out.\n\
 If that fails to bring point back on frame, point is centered instead.\n\
 If this is zero, point is always centered after it moves off frame.");
+
+  DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
+    "*Scroll up to this many lines, to bring point back on screen.");
+  scroll_conservatively = 0;
 
   DEFVAR_INT ("debug-end-pos", &debug_end_pos, "Don't ask");
 
