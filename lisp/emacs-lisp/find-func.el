@@ -60,7 +60,7 @@
   ;;  (define-derived-mode foo ...), (easy-mmode-define-minor-mode foo)
   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 \[^cgv\W]\\w+\\*?\\)\\|easy-mmode-define-minor-mode\\)\\s-+'?\
-%s\\(\\s-\\|$\\)"
+%s\\(\\s-\\|$\\|\(\\|\)\\)"
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
