@@ -6812,8 +6812,8 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
       GCPRO2 (coding->src_object, coding->dst_object);
-      val = call1 (CODING_ATTR_POST_READ (attrs),
-		   make_number (coding->produced_char));
+      val = safe_call1 (CODING_ATTR_POST_READ (attrs),
+			make_number (coding->produced_char));
       UNGCPRO;
       CHECK_NATNUM (val);
       coding->produced_char += Z - prev_Z;
@@ -6911,8 +6911,14 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	  set_buffer_internal (XBUFFER (coding->src_object));
 	}
 
-      call2 (CODING_ATTR_PRE_WRITE (attrs),
-	     make_number (BEG), make_number (Z));
+      {
+	Lisp_Object args[3];
+
+	args[0] = CODING_ATTR_PRE_WRITE (attrs);
+	args[1] = make_number (BEG);
+	args[2] = make_number (Z);
+	safe_call (3, args);
+      }
       coding->src_object = Fcurrent_buffer ();
       if (BEG != GPT)
 	move_gap_both (BEG, BEG_BYTE);
