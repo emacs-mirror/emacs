@@ -350,6 +350,22 @@ the user during startup."
   (cdr param-list))
 
 
+(defun other-frame (arg)
+  "Select the ARG'th different frame, deiconify and raise it.
+All frames are arranged in a cyclic order.
+This command selects the frame ARG steps away in that order.
+A negative ARG moves in the opposite order."
+  (interactive "p")
+  (let ((frame (selected-frame)))
+    (while (> arg 0)
+      (setq frame (next-frame frame)
+	    arg (1- arg)))
+    (while (< arg 0)
+      (setq frame (previous-frame frame)
+	    arg (1- arg)))
+    (make-frame-visible frame)
+    (raise-frame frame)
+    (select-frame frame)))
 
 ;;;; Frame configurations
 
@@ -535,6 +551,7 @@ should use `set-frame-width' instead."
 
 (define-key ctl-x-5-map "2" 'new-frame)
 (define-key ctl-x-5-map "0" 'delete-frame)
+(define-key ctl-x-5-map "o" 'other-frame)
 
 (provide 'frame)
 
