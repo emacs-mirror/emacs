@@ -8,6 +8,11 @@
 
 	* emacs-lisp/advice.el (documentation): Add ad-define-subr-args call.
 
+2002-04-29  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Use
+	replace-match only if search was successful.
+
 2002-04-29  Richard M. Stallman  <rms@gnu.org>
 
 	* net/zone-mode.el (zone-mode): Add write-file-hooks hook locally.
