@@ -1,4 +1,8 @@
-2005-02-17  Nick Roberts  <nickrob@snap.net.nz>
+2005-02-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-fallback-command): Pass user input to fallback command.
+
+2005-02-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
 	(gdb-find-file-hook): Add server prefix.
@@ -25,7 +29,7 @@
 
 	* cus-start.el (all): Use default-boundp.
 
-2005-02-14  David Casperson  <casper@unbc.ca>  (tiny change)
+2005-02-15  David Casperson  <casper@unbc.ca>  (tiny change)
 
 	* menu-bar.el (menu-bar-select-frame): Handle current frame.
 
