@@ -44,13 +44,11 @@ Boston, MA 02111-1307, USA.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
-#ifndef USG
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
 #include <sys/types.h>
 #endif /* makedev */
-#endif /* USG */
 
 #ifdef BSD_SYSTEM
 #include <sys/ioctl.h>
@@ -94,7 +92,6 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/Shell.h>
 #endif
 
-#include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -11114,6 +11111,7 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_X11R6
       destroy.callback = xim_destroy_callback;
       destroy.client_data = (XPointer)dpyinfo;
+      /* This isn't prptotyped in OSF 5.0.  */
       XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
     }
