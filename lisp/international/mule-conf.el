@@ -419,6 +419,24 @@
   :code-space [33 126 33 126]
   :code-offset #x150000)
 
+(define-charset 'katakana-sjis
+  "Katakana part of Shift-JIS"
+  :dimension 1
+  :superset '((katakana-jisx0201 . 128))
+  :supplementary-p t)
+
+(define-charset 'cp932-2-byte
+  "2-byte part of CP932"
+  :map "CP932-2BYTE"
+  :code-space [#x00 #xFF #x00 #xFE]
+  :supplementary-p t)
+
+(define-charset 'cp932
+  "CP932 (Microsoft shift-jis)"
+  :code-space [#x00 #xFF #x00 #xFE]
+  :short-name "CP932"
+  :superset '(ascii katakana-sjis cp932-2-byte))
+
 (define-charset 'korean-ksc5601
   "KSC5601 Korean Hangul and Hanja: ISO-IR-149"
   :short-name "KSC5601"
