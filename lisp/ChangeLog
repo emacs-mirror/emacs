@@ -1,3 +1,8 @@
+2004-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix require-match check when
+	ido-directory-too-big is set.
+
 2004-11-23  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (math-read-replacement-list)
