@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef _LIBC
 
 #include <sys/resource.h>
+#define BSD4_2			/* Tell code below to use getrlimit.  */
 
 #else
 
