@@ -895,7 +895,7 @@ declarations when given the --declarations option.
 *** New language Ada: tags are functions, procedures, packages, tasks, and
 types.
 
-*** In Fortran, procedure is no more tagged.
+*** In Fortran, `procedure' is not tagged.
 
 *** In Java, tags are created for "interface".
 
@@ -1198,6 +1198,9 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
+** The function `sub-arity' provides information on the argument list
+of a primitive.
 
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
