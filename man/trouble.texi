@@ -128,7 +128,7 @@ in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
 @kbd{C-h P} to read the @file{PROBLEMS} file.
 
 @menu
-* DEL Gets Help::       What to do if @key{DEL} doesn't delete.
+* DEL Doesn't Delete::  What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::     `[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
@@ -140,7 +140,7 @@ in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
 * Total Frustration::   When you are at your wits' end.
 @end menu
 
-@node DEL Gets Help
+@node DEL Doesn't Delete
 @subsection If @key{DEL} Fails to Delete
 @cindex @key{DEL} vs @key{BACKSPACE}
 @cindex @key{BACKSPACE} vs @key{DEL}
