@@ -31,12 +31,6 @@
 
 (require 'gud)
 
-(defcustom gdb-many-windows t
-  "If t, using gdba, start gdb with ancillary buffers visible.
-Use `toggle-gdb-windows' to change this value during a gdb session"
-  :type 'boolean
-  :group 'gud)
-
 (defvar gdb-main-or-pc nil "Initialisation for Assembler buffer.")
 (defvar gdb-current-address nil)
 (defvar gdb-display-in-progress nil)
@@ -90,7 +84,7 @@ the GUD and the source buffer.
 
 The following interactive lisp functions help control operation :
 
-`toggle-gdb-windows'  - Toggle the number of windows gdb uses.
+`gdb-many-windows'  - Toggle the number of windows gdb uses.
 `gdb-restore-windows' - to restore the layout if its lost.
 `gdb-quit'            - to delete (most) of the buffers used by gdb."
 
@@ -2074,10 +2068,6 @@ buffer."
 (if (display-graphic-p)
     (gdb-make-frames-menu gud-minor-mode-map))
 
-;; end of functions from gdba.el
-
-;; new functions for gdb-ui.el
-
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
 ;; layout for all the windows
@@ -2109,6 +2099,12 @@ buffer."
   (switch-to-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
+(define-minor-mode gdb-many-windows
+  "Toggle the number of windows in the basic arrangement."
+  :group 'gud
+  :init-value t
+  (gdb-restore-windows))
+
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
 This arrangement depends on the value of `gdb-many-windows'."
@@ -2128,27 +2124,6 @@ This arrangement depends on the value of `gdb-many-windows'."
 	 (gud-find-file (car gud-last-last-frame))
        (gud-find-file gdb-main-file)))
     (other-window 1)))
-
-(defun toggle-gdb-windows ()
-  "Toggle the number of windows in the basic arrangement."
-  (interactive)
-  (if gdb-many-windows
-      (progn
-	(switch-to-buffer gud-comint-buffer)
-	(delete-other-windows)
-	(split-window)
-	(other-window 1)
-	(switch-to-buffer
-	 (if gud-last-last-frame
-	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file)))
-	(other-window 1)
-	(setq gdb-many-windows nil))
-;else
-    (switch-to-buffer gud-comint-buffer)
-    (delete-other-windows)
-    (gdb-setup-windows)
-    (setq gdb-many-windows t)))
 
 (defconst breakpoint-xpm-data "/* XPM */
 static char *magick[] = {
