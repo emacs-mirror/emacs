@@ -1210,11 +1210,15 @@ read1 (readcharfun)
 		if (p == read_buffer)
 		  cancel = 1;
 	      }
-	    else if (c & CHAR_META)
-	      /* Move the meta bit to the right place for a string.  */
-	      *p++ = (c & ~CHAR_META) | 0x80;
 	    else
-	      *p++ = c;
+	      {
+		if (c & CHAR_META)
+		  /* Move the meta bit to the right place for a string.  */
+		  c = (c & ~CHAR_META) | 0x80;
+		if (c & ~0xff)
+		  error ("Invalid modifier in string");
+		*p++ = c;
+	      }
 	  }
 	if (c < 0) return Fsignal (Qend_of_file, Qnil);
 
