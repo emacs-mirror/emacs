@@ -3,7 +3,6 @@
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.10
 ;; Keywords: customization
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -124,7 +123,11 @@ Otherwise it simply ignores that file.")
 	'register-alist
 	;; 'desktop-globals-to-save	; Itself!
 	)
-  "List of global variables to save when killing Emacs.")
+  "List of global variables to save when killing Emacs.
+An element may be variable name (a symbol)
+or a cons cell of the form  (VAR . MAX-SIZE),
+which means to truncate VAR's value to at most MAX-SIZE elements
+\(if the value is a list) before saving the value.")
 
 (defvar desktop-locals-to-save
   (list 'desktop-locals-to-save		; Itself!  Think it over.
@@ -309,14 +312,27 @@ Not all types of values are supported."
 	(concat "'" txt)
       txt)))
 ;; ----------------------------------------------------------------------------
-(defun desktop-outvar (var)
-  "Output a setq statement for VAR to the desktop file."
-  (if (boundp var)
-      (insert "(setq "
-	      (symbol-name var)
-	      " "
-	      (desktop-value-to-string (symbol-value var))
-	      ")\n")))
+(defun desktop-outvar (varspec)
+  "Output a setq statement for variable VAR to the desktop file.
+The argument VARSPEC may be the variable name VAR (a symbol),
+or a cons cell of the form  (VAR . MAX-SIZE),
+which means to truncate VAR's value to at most MAX-SIZE elements
+\(if the value is a list) before saving the value."
+  (let (var size)
+    (if (consp varspec)
+	(setq var (car varspec) size (cdr varspec))
+      (setq var varspec))
+    (if (boundp var)
+	(progn
+	  (if (and (integerp size)
+		   (> size 0)
+		   (listp (eval var)))
+	      (desktop-truncate (eval var) size)) 
+	  (insert "(setq "
+		  (symbol-name var)
+		  " "
+		  (desktop-value-to-string (symbol-value var))
+		  ")\n")))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode &rest dummy)
   "Return t if the desktop should record a particular buffer for next startup.
