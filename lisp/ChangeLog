@@ -1,3 +1,8 @@
+2003-03-05  Reto Zimmermann  <reto@gnu.org>
+
+	* progmodes/vhdl-mode.el: Version 3.32.12 released.  Major
+	revision.
+
 2003-03-04  Rob Kaut  <rob@siworks.com>  (tiny change)
 
 	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region): Remove
@@ -35,7 +40,7 @@
 	backquote do not get disturbed.  Revise the comments.
 
 2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
-	
+
 	* startup.el (command-line): Call menu-bar-mode with 1 instead of t.
 
 	* menu-bar.el (menu-bar-mode): Change to define-minor-mode
@@ -71,9 +76,9 @@
 	First black-listed constellation is GNU Emacs/ hpux.
 	(tramp-send-region): Correct debug message.
 	(tramp-bug): Add `tramp-chunksize'.
-	
+
 2003-02-26  Matt Swift  <swift@alum.mit.edu>
-	
+
 	* startup.el: Streamline code in several functions for efficiency
 	and readability.  Rephrase booleans to avoid `(not noninteractive)'.
 	Clarify several booleans expressions using De Morgan's laws.
@@ -83,7 +88,7 @@
 	(command-line-1): Restore intended behavior of the --directory/-L
 	command-line option: "-L a -L b -L c" on the command-line now puts
 	'(a b c) at the front of `load-path'.
-	
+
 2003-02-26  Oliver Scholz  <alkibiades@gmx.de>
 
 	* play/gamegrid.el (gamegrid-add-score): Add info to docstring.
@@ -1202,7 +1207,7 @@
 	mail/mh-funcs.el, mail/mh-identity.el, mail/mh-index.el,
 	mail/mh-loaddefs.el, mail/mh-mime.el, mail/mh-pick.el,
 	mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el,
-	mail/mh-xemacs-compat.el: Moved to mh-e directory. 
+	mail/mh-xemacs-compat.el: Moved to mh-e directory.
 	Note that reply2.pbm and reply2.xpm, which were created by the
 	MH-E package, were left in mail since they can probably be used by
 	other mail packages.
