@@ -1,3 +1,8 @@
+2004-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): Optimize for the case that
+	PATTERN is full XLFD.
+
 2004-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* regex.h (enum reg_errcode_t): New value REG_ERANGEX.
