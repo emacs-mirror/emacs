@@ -7720,6 +7720,9 @@ usage: (define-coding-system-internal ...)  */)
 		      ? coding_category_iso_8_1
 		      : coding_category_iso_8_2);
 	}
+      if (category != coding_category_iso_8_1
+	  && category != coding_category_iso_8_2)
+	CODING_ATTR_ASCII_COMPAT (attrs) = Qnil;
     }
   else if (EQ (coding_type, Qemacs_mule))
     {
