@@ -1828,6 +1828,7 @@ For values specific to the separate minibuffer frame, see\n\
 keys_of_frame ()
 {
   initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
+  initial_define_lispy_key (global_map, "delete-frame", "handle-delete-frame");
 }
 
 #else /* not MULTI_FRAME */
