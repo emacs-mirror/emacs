@@ -672,13 +672,19 @@ cached information about equivalent key sequences.")
       if (EQ (position, Qt))
 	{
 	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f;
+	  FRAME_PTR new_f = 0;
 	  Lisp_Object bar_window;
 	  int part;
 	  unsigned long time;
 
-	  (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
-	  XSET (window, Lisp_Frame, new_f);
+	  if (new_f != 0)
+	    XSET (window, Lisp_Frame, new_f);
+	  else
+	    {
+	      window = selected_window;
+	      XFASTINT (x) = 0;
+	      XFASTINT (y) = 0;
+	    }
 	}
       else
 	{
@@ -884,13 +890,21 @@ cached information about equivalent key sequences.")
       if (EQ (position, Qt))
 	{
 	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f;
+	  FRAME_PTR new_f = 0;
 	  Lisp_Object bar_window;
 	  int part;
 	  unsigned long time;
 
 	  (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
-	  XSET (window, Lisp_Frame, new_f);
+
+	  if (new_f != 0)
+	    XSET (window, Lisp_Frame, new_f);
+	  else
+	    {
+	      window = selected_window;
+	      XFASTINT (x) = 0;
+	      XFASTINT (y) = 0;
+	    }
 	}
 
       CHECK_NUMBER (x, 0);
@@ -1807,7 +1821,6 @@ xdialog_show (f, x, y, menubarp, keymaps, title, error)
 
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
-
 
   /* Display the menu.  */
   lw_pop_up_all_widgets (dialog_id);
