@@ -112,8 +112,11 @@
 
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list):
-	New function checking that lambda-list consists of non-constant
+	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): 
+	Turn error for repeated variables into warning.
+	
+	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): New
+	function checking that lambda-list consists of non-constant
 	symbols, that &rest and &optional are followed by variable names,
 	that &rest VAR is the last element, and that variables aren't doubled.
 	(byte-compile-lambda): Use it.
