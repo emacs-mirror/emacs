@@ -481,6 +481,11 @@ int message_buf_print;
 
 static Lisp_Object Vmax_mini_window_height;
 
+/* Non-zero means we want a hollow cursor in windows that are not
+   selected.  Zero means there's no cursor in such windows.  */
+
+int cursor_in_non_selected_windows;
+
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
 
@@ -13049,6 +13054,12 @@ If a float, it specifies a fraction of the mini-window frame's height.\n\
 If an integer, it specifies a number of lines.\n\
 If nil, don't resize.");
   Vmax_mini_window_height = make_float (0.25);
+  
+  DEFVAR_BOOL ("cursor-in-non-selected-windows",
+	       &cursor_in_non_selected_windows,
+    "*Non-nil means display a hollow cursor in non-selected windows.\n\
+Nil means don't display a cursor there.");
+  cursor_in_non_selected_windows = 1;
 }
 
 
