@@ -1,3 +1,8 @@
+2000-11-18  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (message_log_check_duplicate): Let "..."-detection match
+	lines that *end* with "..." too (that's the most common case!).
+
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Temporarily change to the
