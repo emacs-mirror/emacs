@@ -906,7 +906,7 @@ alloca.o : alloca.s $(config_h)
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
-abbrev.o: abbrev.c buffer.h commands.h $(config_h)
+abbrev.o: abbrev.c buffer.h window.h commands.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    INTERVAL_SRC blockinput.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
@@ -933,6 +933,8 @@ emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
 filelock.o: filelock.c buffer.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
+frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
+   buffer.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h
@@ -945,22 +947,20 @@ keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h $(config_h)
 malloc.o: malloc.c $(config_h)
-msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
-   termopts.h frame.h window.h $(config_h)
-mktime.o: mktime.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
 marker.o: marker.c buffer.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
    buffer.h commands.h $(config_h)
+mktime.o: mktime.c $(config_h)
 mocklisp.o: mocklisp.c buffer.h $(config_h)
+msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
+   termopts.h frame.h window.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h)
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h
 region-cache.o: region-cache.c buffer.h region-cache.h
-frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   buffer.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
    blockinput.h $(config_h)
@@ -1012,14 +1012,14 @@ lread.o: lread.c commands.h keyboard.h buffer.h paths.h $(config_h) \
  termhooks.h
 
 /* Text properties support */
-textprop.o: textprop.c buffer.h intervals.h $(config_h)
+textprop.o: textprop.c buffer.h window.h intervals.h $(config_h)
 intervals.o: intervals.c buffer.h intervals.h keyboard.h puresize.h $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES, OBJECTS_SYSTEM and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
-sunfns.o: sunfns.c buffer.h $(config_h)
+sunfns.o: sunfns.c buffer.h window.h $(config_h)
 
 ${libsrc}emacstool: ${libsrc}emacstool.c
 	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool
