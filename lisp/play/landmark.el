@@ -59,10 +59,6 @@
 ;;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
 ;;; concise problem description.
 
-;;;_* Provide
-
-(provide 'lm)
-
 ;;;_* Require
 (require 'cl)
 
@@ -1096,8 +1092,6 @@ If the game is finished, this command requests for another game."
   (move-to-column (+ lm-x-offset
 		     (* lm-square-width (1- lm-board-width)))))
 
-(provide 'lm)
-
 
 ;;;_ + Simulation variables
 
@@ -1711,5 +1705,7 @@ Use \\[describe-mode] for more info."
 ;;;Local variables:
 ;;;outline-layout: (0 : -1 -1 0)
 ;;;End:
+
+(provide 'landmark)
 
 ;;; landmark.el ends here
