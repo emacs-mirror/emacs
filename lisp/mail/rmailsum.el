@@ -1051,7 +1051,8 @@ advance to the previous message."
       ;; Get the proper new message number.
       (setq msg rmail-current-message))
     ;; Make sure that message is displayed.
-    (rmail-summary-goto-msg msg)))
+    (or (zerop msg)
+	(rmail-summary-goto-msg msg))))
 
 (defun rmail-summary-input (filename)
   "Run Rmail on file FILENAME."
