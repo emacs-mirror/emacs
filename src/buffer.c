@@ -1972,6 +1972,7 @@ init_buffer ()
   char buf[MAXPATHLEN+1];
   char *pwd;
   struct stat dotstat, pwdstat;
+  Lisp_Object temp;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
 
@@ -1994,6 +1995,9 @@ init_buffer ()
     strcat (buf, "/");
 #endif /* not VMS */
   current_buffer->directory = build_string (buf);
+
+  temp = get_minibuffer (0);
+  XBUFFER (temp)->directory = current_buffer->directory;
 }
 
 /* initialize the buffer routines */
