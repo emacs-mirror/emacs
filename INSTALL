@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992 Free software Foundation, Inc.
+Copyright (c) 1992, 1994 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -26,12 +26,12 @@ insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in.in', or possibly when
 running the final dumped Emacs.
  
-Building Emacs requires about 30 Mb of disk space (including the Emacs
+Building Emacs requires about 50 Mb of disk space (including the Emacs
 sources).  Once installed, Emacs occupies about 20 Mb in the file
 system where it is installed; this includes the executable files, Lisp
 libraries, miscellaneous data files, and on-line documentation.  If
 the building and installation take place in different directories,
-then the installation procedure momentarily requires 30+20 Mb.
+then the installation procedure momentarily requires 50+20 Mb.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file sometimes offers hints for
@@ -62,8 +62,10 @@ only be necessary if you have your X Window System files installed in
 unusual places.
 
 You can specify toolkit operation when you configure Emacs; use the
-option --with-x-toolkit=athena, --with-x-toolkit=motif, or
---with-x-toolkit=open-look.
+option --with-x-toolkit.
+
+Note: on some systems, it does not work to use the toolkit with shared
+libraries.
 
 The `--run-in-place' option sets up default values for the path
 variables in `./Makefile' so that Emacs will expect to find its data
@@ -153,15 +155,15 @@ Lisp code you want Emacs to load before it is dumped out.  Use
 site-load.el for additional libraries if you arrange for their
 documentation strings to be in the etc/DOC file (see
 src/Makefile.in.in if you wish to figure out how to do that).  For all
-else, use site-load.el.
+else, use site-init.el.
 
 Note that, on some systems, the code you place in site-init.el must
 not use expand-file-name or any other function which may look
 something up in the system's password and user information database.
 See `./PROBLEMS' for more details on which systems this affects.
 
-This file is nonexistent in the distribution.  You do not need to
-create it if you have nothing to put in it.
+The `site-*.el' files are nonexistent in the distribution.  You do not
+need to create them if you have nothing to put in them.
 
 6) Refer to the file `./etc/TERMS' for information on fields you may
 wish to add to various termcap entries.  The files `./etc/termcap.ucb'
@@ -460,7 +462,7 @@ distribution.
 in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `cvtmail', `emacsserver', `env', `fakemail', `hexl',
+- The programs `cvtmail', `emacsserver', `fakemail', `hexl',
     `movemail', `timer', `vcdiff', `wakeup', and `yow' are used by
     Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs2log'
@@ -508,16 +510,18 @@ problems sometimes encountered, and what to do about them.
 
 Installation on MSDOG (a.k.a. MSDOS)
 
-To install on MSDOG, you need to have the GNU C compiler (also known
-as djgpp), GNU Make, rm, mv, chmod, and sed.  Type these commands:
+To install on MSDOG, you need to have the GNU C compiler for MSDOG
+(also known as djgpp), GNU Make, rm, mv, chmod, and sed.  Type these
+commands:
 
 config msdos
 make install
 
-To save disk space, Emacs is built in-place.  As the /usr/local/
-subtree does not exist on most MSDOG systems, the executables are
-placed in /emacs/bin/.
+To save disk space, Emacs is built with the idea that you will execute
+it from the same place in the file system where you built it.  As the
+/usr/local/ subtree does not exist on most MSDOG systems, the
+executables are placed in /emacs/bin/.
 
-MSDOG is a not a multi-tasking operating system, so Emacs features
-that depend on multitasking will not work.  Synchronous subprocesses
-do work.
+MSDOG is a not a multitasking operating system, so Emacs features such
+as asynchronous subprocesses that depend on multitasking will not
+work.  Synchronous subprocesses do work.
