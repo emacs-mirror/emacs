@@ -1448,10 +1448,11 @@ static int x_meta_mod_mask;
 static void
 x_find_modifier_meanings ()
 {
-  KeyCode min_code, max_code;
+  int min_code, max_code;
   KeySym *syms;
   int syms_per_code;
   XModifierKeymap *mods;
+  int alt_mod_mask = 0;
 
   x_meta_mod_mask = 0;
   
@@ -1480,11 +1481,18 @@ x_find_modifier_meanings ()
 
 	    for (code_col = 0; code_col < syms_per_code; code_col++)
 	      {
-		int sym = syms[(code * syms_per_code) + code_col];
+		int sym = syms[((code - min_code) * syms_per_code) + code_col];
 
-		if (sym == XK_Meta_L || sym == XK_Meta_R)
+		switch (sym)
 		  {
+		  case XK_Meta_L:
+		  case XK_Meta_R:
 		    x_meta_mod_mask |= (1 << row);
+		    break;
+
+		  case XK_Alt_L:
+		  case XK_Alt_R:
+		    alt_mod_mask |= (1 << row);
 		    break;
 		  }
 	      }
@@ -1492,8 +1500,12 @@ x_find_modifier_meanings ()
 	}
   }
 
+  /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
+  if (! x_meta_mod_mask)
+    x_meta_mod_mask = alt_mod_mask;
+
   XFree ((char *) syms);
-  XFreeModifierMap (mods);
+  XFreeModifiermap (mods);
 }
 
 
@@ -1535,7 +1547,9 @@ construct_mouse_click (result, event, f, part, prefix)
   XSET (result->code, Lisp_Int, event->button);
   result->timestamp = event->time;
   result->modifiers = (x_convert_modifiers (event->state)
-		       | (event->type == ButtonRelease ? up_modifier : 0));
+		       | (event->type == ButtonRelease
+			  ? up_modifier 
+			  : down_modifier));
 
   /* Notice if the mouse is still grabbed.  */
   if (event->type == ButtonPress)
@@ -2061,7 +2075,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		      if (nbytes == 1)
 			{
-			  if (modifiers & Mod1Mask)
+			  if (modifiers & x_meta_mod_mask)
 			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
@@ -2390,6 +2404,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    /* Someone has changed the keyboard mapping - flush the
 	       local cache.  */
 	    XRefreshKeyboardMapping (&event.xmapping);
+	  else if (event.xmapping.request == MappingModifier)
+	    x_find_modifier_meanings ();
 	  break;
 
 	default:
