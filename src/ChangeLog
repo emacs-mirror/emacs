@@ -1,5 +1,8 @@
 2001-10-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* keyboard.c (Fcommand_execute): Remove unnecessary prototype (it
+	is already prototyped in included lisp.h).
+
 	* frame.c (Fset_mouse_position): Improve style of comment to
 	follow other comments.
 	(Fset_mouse_pixel_position): Improve style of comment to follow
