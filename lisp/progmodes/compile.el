@@ -357,6 +357,16 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
      1 2 3)
+
+    ;; RXP - GPL XML validator at http://www.cogsci.ed.ac.uk/~richard/rxp.html:
+    ;; Error: Mismatched end tag: expected </geroup>, got </group>
+    ;; in unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml
+    ("Error:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
+     3 1 2)
+    ;; Warning: Start tag for undeclared element geroup
+    ;; in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
+    ("Warning:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
+     3 1 2)
     )
 
   "Alist that specifies how to match errors in compiler output.
