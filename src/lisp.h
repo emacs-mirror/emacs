@@ -3246,6 +3246,37 @@ extern Lisp_Object Vdirectory_sep_char;
 	 : Fcons ((el), (check)))))
 
 
+/* SAFE_ALLOCA normally allocates memory on the stack, but if size is
+   larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
+
+#define MAX_ALLOCA 16*1024
+
+extern Lisp_Object safe_alloca_unwind (Lisp_Object);
+
+#define USE_SAFE_ALLOCA			\
+  int sa_count = SPECPDL_INDEX ()
+
+#define SAFE_ALLOCA(buf, type, size)			  \
+  do {							  \
+    if ((size) < MAX_ALLOCA)				  \
+      buf = (type) alloca (size);			  \
+    else						  \
+      {							  \
+	buf = (type) xmalloc (size);			  \
+	record_unwind_protect (safe_alloca_unwind,	  \
+			       make_save_value (buf, 0)); \
+      }							  \
+  } while (0)
+
+#define SAFE_FREE(size)			\
+  do {					\
+    if ((size) >= MAX_ALLOCA)		\
+      unbind_to (sa_count, Qnil);	\
+  } while (0)
+
+
+
+
 #endif /* EMACS_LISP_H */
 
 /* arch-tag: 9b2ed020-70eb-47ac-94ee-e1c2a5107d5e
