@@ -1,3 +1,8 @@
+2003-04-09  Kenichi Handa  <handa@etlken2>
+
+	* lread.c (read1): Before calling index, check if the 2nd
+	arguemnt is in ASCII range.
+
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffile_symlink_p): Doc fix.
