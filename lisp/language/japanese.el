@@ -190,10 +190,10 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (tutorial . "TUTORIAL.ja")
-	      (charset japanese-jisx0208 japanese-jisx0208-1978
+	      (charset japanese-jisx0208
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201
 		       japanese-jisx0213.2004-1 japanese-jisx0213-1 
-                       japanese-jisx0213-2)
+		       japanese-jisx0213-2 japanese-jisx0208-1978)
 	      (coding-system iso-2022-jp japanese-iso-8bit
 			     japanese-shift-jis japanese-iso-7bit-1978-irv
                              iso-2022-jp-2004 japanese-shift-jis-2004
