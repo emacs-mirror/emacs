@@ -139,7 +139,7 @@ These directories are searched after those in `Info-directory-list'."
   :type '(repeat directory)
   :group 'info)
 
-(defcustom Info-scroll-prefer-subnodes t
+(defcustom Info-scroll-prefer-subnodes nil
   "*If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
 If this is non-nil, and you scroll far enough in a node that its menu
 appears on the screen, the next \\<Info-mode-map>\\[Info-scroll-up]
@@ -1547,9 +1547,10 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   (skip-chars-forward " \t\n")
   (let ((beg (point))
 	str)
-    (while (not (looking-at ":*[,.;() \t\n]"))
-      (skip-chars-forward "^:")
-      (forward-char 1))
+    (while (progn
+	     (skip-chars-forward "^:")
+	     (forward-char 1)
+	     (not (looking-at ":*[,.;() \t\n]"))))
     (setq str
 	  (if (looking-at ":")
 	      (buffer-substring-no-properties beg (1- (point)))
@@ -2747,7 +2748,7 @@ the variable `Info-file-list-for-emacs'."
   "Add the face `info-menu-header' to any header before a menu entry."
   (save-excursion
     (goto-char (point-min))
-    (when (re-search-forward "\\* Menu:" nil t)
+    (when (re-search-forward "^\\* Menu:" nil t)
       (put-text-property (match-beginning 0) (match-end 0)
 			 'font-lock-face 'info-menu-header)
       (while (re-search-forward "\n\n\\([^*\n ].*\\)\n\n?[*]" nil t)
