@@ -1834,7 +1834,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 
 /* But patterns can have more than `MAX_REGNUM' registers.  We just
    ignore the excess.  */
-typedef unsigned regnum_t;
+typedef int regnum_t;
 
 
 /* Macros for the compile stack.  */
