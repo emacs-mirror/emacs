@@ -1,5 +1,9 @@
 2000-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* net/net-utils.el (nslookup-font-lock-keywords): Don't condition
+	font lock support on window-system.
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Likewise.
+
 	* textmodes/ispell.el (ispell-highlight-spelling-error): Use
 	display-color-p, if fboundp, instead of window-system.
 
