@@ -1,3 +1,7 @@
+2000-03-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* info.el (Info-fontify-maximum-menu-size): Increase to 100000.
+
 2000-03-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* pcvs-defs.el (toplevel): Remove autoload cookie for form

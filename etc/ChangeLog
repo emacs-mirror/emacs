@@ -1,3 +1,8 @@
+2000-03-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+	
+	* ps-print0.ps: Change /setduplexmode, /settumble, add
+	/packedarray.
+	
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print0.ps: New file.
