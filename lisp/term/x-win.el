@@ -61,14 +61,8 @@
 (if (not (eq window-system 'x))
     (error "Loading x-win.el but not compiled for X"))
 	 
-;; This is a temporary work-around while we the separate keymap
-;; stuff isn't yet fixed.  These variables aren't used anymore,
-;; but the lisp code wants them to exist.  -JimB
-(setq global-mouse-map (make-sparse-keymap))
-(setq global-function-map (make-sparse-keymap))
-
-(require 'x-mouse)
 (require 'screen)
+(require 'mouse)
 
 (setq command-switch-alist
       (append '(("-bw" .	x-handle-numeric-switch)
