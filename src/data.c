@@ -19,6 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include <signal.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "lisp.h"
@@ -67,7 +68,7 @@ wrong_type_argument (predicate, value)
 	{
 	 if (XTYPE (value) == Lisp_String &&
 	     (EQ (predicate, Qintegerp) || EQ (predicate, Qinteger_or_marker_p)))
-	   return Fstring_to_int (value, Qt);
+	   return Fstring_to_number (value);
 	 if (XTYPE (value) == Lisp_Int && EQ (predicate, Qstringp))
 	   return Fint_to_string (value);
 	}
@@ -1344,6 +1345,9 @@ arithcompare (num1, num2, comparison)
       if (floatp ? f1 >= f2 : XINT (num1) >= XINT (num2))
 	return Qt;
       return Qnil;
+
+    default:
+      abort ();
     }
 }
 
@@ -1420,8 +1424,9 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
 }
 
 DEFUN ("int-to-string", Fint_to_string, Sint_to_string, 1, 1, 0,
-  "Convert INT to a string by printing it in decimal.\n\
-Uses a minus sign if negative.")
+  "Convert NUM to a string by printing it in decimal.\n\
+Uses a minus sign if negative.\n\
+NUM may be an integer or a floating point number.")
   (num)
      Lisp_Object num;
 {
@@ -1445,19 +1450,29 @@ Uses a minus sign if negative.")
   return build_string (buffer);
 }
 
-DEFUN ("string-to-int", Fstring_to_int, Sstring_to_int, 1, 1, 0,
-  "Convert STRING to an integer by parsing it as a decimal number.")
+DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 1, 0,
+  "Convert STRING to a number by parsing it as a decimal number.\n\
+This parses both integers and floating point numbers.")
   (str)
      register Lisp_Object str;
 {
+  char *p;
+
   CHECK_STRING (str, 0);
 
+  p = XSTRING (str)->data;
+
+  /* Skip any whitespace at the front of the number.  Some versions of
+     atoi do this anyway, so we might as well make Emacs lisp consistent.  */
+  while (isspace (*p))
+    p++;
+
 #ifdef LISP_FLOAT_TYPE
-  if (isfloat_string (XSTRING (str)->data))
-    return make_float (atof (XSTRING (str)->data));
+  if (isfloat_string (p))
+    return make_float (atof (p));
 #endif /* LISP_FLOAT_TYPE */
 
-  return make_number (atoi (XSTRING (str)->data));
+  return make_number (atoi (p));
 }
   
 enum arithop
@@ -2061,7 +2076,7 @@ syms_of_data ()
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Sint_to_string);
-  defsubr (&Sstring_to_int);
+  defsubr (&Sstring_to_number);
   defsubr (&Seqlsign);
   defsubr (&Slss);
   defsubr (&Sgtr);
