@@ -1,8 +1,8 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 
 ;; This file is part of GNU Emacs.
 
@@ -136,7 +136,8 @@ distribution.  Mixed-case symbols are convenience aliases.")
       (?s    . "\\citep[see][]{%l}")
       (?a    . "\\citeauthor{%l}")
       (?A    . "\\citeauthor*{%l}")
-      (?y    . "\\citeyear{%l}")))
+      (?y    . "\\citeyear{%l}")
+      (?n    . "\\nocite{%l}")))
     (bibentry "The Bibentry package"
       "\\bibentry{%l}")
     (harvard "The Harvard package"
@@ -205,11 +206,56 @@ distribution.  Mixed-case symbols are convenience aliases.")
   :prefix "reftex-"
   :group 'tex)
 
+
 ;; Table of contents configuration --------------------------------------
 
 (defgroup reftex-table-of-contents-browser nil
   "A multifile table of contents browser."
   :group 'reftex)
+
+(defcustom reftex-include-file-commands '("include" "input")
+  "LaTeX commands which input another file.
+The file name is expected after the command, either in braces or separated
+by whitespace."
+  :group 'reftex-table-of-contents-browser
+  :type '(repeat string))
+
+(defcustom reftex-max-section-depth 12
+  "Maximum depth of section levels in document structure.
+Standard LaTeX needs default is 7, but there are packages for which this
+needs to be larger."
+  :group 'reftex-table-of-contents-browser
+  :type 'integer)
+
+;; LaTeX section commands and level numbers
+(defcustom reftex-section-levels
+  '(
+    ("part"            .  0)
+    ("chapter"         .  1)
+    ("section"         .  2)
+    ("subsection"      .  3)
+    ("subsubsection"   .  4)
+    ("paragraph"       .  5)
+    ("subparagraph"    .  6)
+    ("subsubparagraph" .  7)
+    ("addchap"         . -1) ; KOMA-Script
+    ("addsec"          . -2) ; KOMA-Script
+;;; ("minisec"         . -7) ; KOMA-Script
+    )
+  "Commands and levels used for defining sections in the document.
+This is an alist with each element like (COMMAND-NAME . LEVEL).
+The car of each cons cell is the name of the section macro (without
+the backslash).  The cdr is a number indicating its level.  A negative
+level means the same level as the positive value, but the section will
+never get a number.  The cdr may also be a function which will be called
+to after the section-re matched to determine the level."
+  :group 'reftex-table-of-contents-browser
+  :set 'reftex-set-dirty
+  :type '(repeat
+          (cons (string :tag "sectioning macro" "")
+		(choice
+		 (number :tag "level           " 0)
+		 (symbol :tag "function        " my-level-func)))))
 
 (defcustom reftex-toc-max-level 100
   "*The maximum level of toc entries which will be included in the TOC.
@@ -218,6 +264,17 @@ are level 1, sections are level 2 etc.
 This variable can be changed from within the *toc* buffer with the `t' key."
   :group 'reftex-table-of-contents-browser
   :type 'integer)
+
+(defcustom reftex-toc-split-windows-horizontally nil
+  "*Non-nil means, create TOC window by splitting window horizontally."
+  :group 'reftex-table-of-contents-browser
+  :type 'boolean)
+
+(defcustom reftex-toc-split-windows-horizontally-fraction .5
+  "*Fraction of the horizontal width of the frame to be used for TOC window.
+Only relevant when `reftex-toc-split-windows-horizontally' is non-nil."
+  :group 'reftex-table-of-contents-browser
+  :type 'number)
 
 (defcustom reftex-toc-keep-other-windows t
   "*Non-nil means, split the selected window to display the *toc* buffer.
@@ -478,43 +535,6 @@ list.  However, builtin defaults should normally be set with the variable
 	   (list 'const :tag (concat (symbol-name (nth 0 x)))
 		 (nth 0 x)))
 	 reftex-label-alist-builtin)))))
-
-(defcustom reftex-max-section-depth 12
-  "Maximum depth of section levels in document structure.
-Standard LaTeX needs default is 7, but there are packages for which this
-needs to be larger."
-  :group 'reftex-defining-label-environments
-  :type 'integer)
-
-;; LaTeX section commands and level numbers
-(defcustom reftex-section-levels
-  '(
-    ("part"            .  0)
-    ("chapter"         .  1)
-    ("section"         .  2)
-    ("subsection"      .  3)
-    ("subsubsection"   .  4)
-    ("paragraph"       .  5)
-    ("subparagraph"    .  6)
-    ("subsubparagraph" .  7)
-    ("addchap"         . -1) ; KOMA-Script
-    ("addsec"          . -2) ; KOMA-Script
-;;; ("minisec"         . -7) ; KOMA-Script
-    )
-  "Commands and levels used for defining sections in the document.
-This is an alist with each element like (COMMAND-NAME . LEVEL).
-The car of each cons cell is the name of the section macro (without
-the backslash).  The cdr is a number indicating its level.  A negative
-level means the same level as the positive value, but the section will
-never get a number.  The cdr may also be a function which will be called
-to after the section-re matched to determine the level."
-  :group 'reftex-defining-label-environments
-  :set 'reftex-set-dirty
-  :type '(repeat
-          (cons (string :tag "sectioning macro" "")
-		(choice
-		 (number :tag "level           " 0)
-		 (symbol :tag "function        " my-level-func)))))
 
 (defcustom reftex-section-prefixes '((0 . "part:") (1 . "cha:") (t . "sec:"))
   "Prefixes for section labels.
@@ -855,6 +875,12 @@ string to insert into the buffer."
   "Support for referencing bibliographic data with BibTeX."
   :group 'reftex)
 
+(defcustom reftex-bibliography-commands '("bibliography" "nobibliography")
+  "LaTeX commands which specify the BibTeX databases to use with the document."
+  :group 'reftex-citation-support
+  :type '(repeat string))
+
+
 (defvar reftex-bibfile-ignore-list nil) ; compatibility
 (defcustom reftex-bibfile-ignore-regexps nil
   "*List of regular expressions to exclude files in \\bibliography{..}.
@@ -898,7 +924,7 @@ If `reftex-cite-format' is a string, it will be used as the format.
 In the format, the following percent escapes will be expanded.
 
 %l   The BibTeX label of the citation.
-%a   List of author names, see also `reftex-cite-punctuation.
+%a   List of author names, see also `reftex-cite-punctuation'.
 %2a  Like %a, but abbreviate more than 2 authors like Jones et al.
 %A   First author name only.
 %e   Works like %a, but on list of editor names. (%2e and %E work a well)
@@ -1174,6 +1200,14 @@ at one of these points, no word boundary is required there."
   "*Non-nil means, searching for index phrases will ignore case."
   :group 'reftex-index-support
   :type 'boolean)
+
+(defcustom reftex-index-verify-function nil
+  "A function which is called  at each match during global indexing.
+If the function returns nil, the current match is skipped."
+  :group 'reftex-index-support
+  :type '(choice
+	  (const :tag "No verification" nil)
+	  (function)))
 
 (defcustom reftex-index-phrases-skip-indexed-matches nil
   "*Non-nil means, skip matches which appear to be indexed already.

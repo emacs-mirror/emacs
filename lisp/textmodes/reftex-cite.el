@@ -1,8 +1,8 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 
 ;; This file is part of GNU Emacs.
 
@@ -52,6 +52,15 @@
  a / A      Put all (marked) entries into one/many \\cite commands.")
 
 ;; Find bibtex files
+
+
+(defmacro reftex-with-special-syntax-for-bib (&rest body)
+  `(let ((saved-syntax (syntax-table)))
+     (unwind-protect
+	 (progn
+	   (set-syntax-table reftex-syntax-table-for-bib)
+	   ,@body)
+       (set-syntax-table saved-syntax))))
 
 (defun reftex-default-bibliography ()
   ;; Return the expanded value of `reftex-default-bibliography'.
@@ -193,63 +202,64 @@
             (message "Scanning bibliography database %s" buffer1))
 
           (set-buffer buffer1)
-          (save-excursion
-            (goto-char (point-min))
-            (while (re-search-forward first-re nil t)
-              (catch 'search-again
-                (setq key-point (point))
-                (unless (re-search-backward
-                         "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
-                  (throw 'search-again nil))
-                (setq start-point (point))
-                (goto-char (match-end 0))
-                (condition-case nil
-                    (up-list 1)
-                  (error (goto-char key-point)
+	  (reftex-with-special-syntax-for-bib
+	   (save-excursion
+	     (goto-char (point-min))
+	     (while (re-search-forward first-re nil t)
+	       (catch 'search-again
+		 (setq key-point (point))
+		 (unless (re-search-backward
+			  "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
+		   (throw 'search-again nil))
+		 (setq start-point (point))
+		 (goto-char (match-end 0))
+		 (condition-case nil
+		     (up-list 1)
+		   (error (goto-char key-point)
                           (throw 'search-again nil)))
-                (setq end-point (point))
-
-                ;; Ignore @string, @comment and @c entries or things
-                ;; outside entries
-                (when (or (string= (downcase (match-string 2)) "string")
-                          (string= (downcase (match-string 2)) "comment")
-                          (string= (downcase (match-string 2)) "c")
-                          (< (point) key-point)) ; this means match not in {}
-                  (goto-char key-point)
-                  (throw 'search-again nil))
-
-                ;; Well, we have got a match
-                (setq entry (concat
-                             (buffer-substring start-point (point)) "\n"))
-
-                ;; Check if other regexp match as well
-                (setq re-list rest-re)
-                (while re-list
-                  (unless (string-match (car re-list) entry)
-                    ;; nope - move on
-                    (throw 'search-again nil))
-                  (pop re-list))
-
-                (setq alist (reftex-parse-bibtex-entry
-                             nil start-point end-point))
-                (push (cons "&entry" entry) alist)
-
-                ;; check for crossref entries
-                (if (assoc "crossref" alist)
-                    (setq alist
-                          (append
-                           alist (reftex-get-crossref-alist alist))))
-
-                ;; format the entry
-                (push (cons "&formatted" (reftex-format-bib-entry alist))
-                      alist)
-
-		;; make key the first element
-		(push (reftex-get-bib-field "&key" alist) alist)
-
-                ;; add it to the list
-                (push alist found-list))))
-          (reftex-kill-temporary-buffers))))
+		 (setq end-point (point))
+		 
+		 ;; Ignore @string, @comment and @c entries or things
+		 ;; outside entries
+		 (when (or (string= (downcase (match-string 2)) "string")
+			   (string= (downcase (match-string 2)) "comment")
+			   (string= (downcase (match-string 2)) "c")
+			   (< (point) key-point)) ; this means match not in {}
+		   (goto-char key-point)
+		   (throw 'search-again nil))
+		 
+		 ;; Well, we have got a match
+		 (setq entry (concat
+			      (buffer-substring start-point (point)) "\n"))
+		 
+		 ;; Check if other regexp match as well
+		 (setq re-list rest-re)
+		 (while re-list
+		   (unless (string-match (car re-list) entry)
+		     ;; nope - move on
+		     (throw 'search-again nil))
+		   (pop re-list))
+		 
+		 (setq alist (reftex-parse-bibtex-entry
+			      nil start-point end-point))
+		 (push (cons "&entry" entry) alist)
+		 
+		 ;; check for crossref entries
+		 (if (assoc "crossref" alist)
+		     (setq alist
+			   (append
+			    alist (reftex-get-crossref-alist alist))))
+		 
+		 ;; format the entry
+		 (push (cons "&formatted" (reftex-format-bib-entry alist))
+		       alist)
+		 
+		 ;; make key the first element
+		 (push (reftex-get-bib-field "&key" alist) alist)
+		 
+		 ;; add it to the list
+		 (push alist found-list)))))
+	  (reftex-kill-temporary-buffers))))
     (setq found-list (nreverse found-list))
 
     ;; Sorting
@@ -390,6 +400,7 @@
             (progn
               (set-buffer (get-buffer-create " *RefTeX-scratch*"))
               (fundamental-mode)
+	      (set-syntax-table reftex-syntax-table-for-bib)
               (erase-buffer)
               (insert entry))
           (widen)
@@ -834,6 +845,7 @@ While entering the regexp, completion on knows citation keys is possible.
 
 (defun reftex-format-names (namelist n)
   (let (last (len (length namelist)))
+    (if (= n 0) (setq n len))
     (cond
      ((< len 1) "")
      ((= 1 len) (car namelist))

@@ -1,8 +1,8 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.16"
+(defconst reftex-version "RefTeX version 4.17"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -312,6 +312,7 @@
 
 (defvar reftex-mode-menu nil)
 (defvar reftex-syntax-table nil)
+(defvar reftex-syntax-table-for-bib nil)
 
 (defvar reftex-auto-view-crossref-timer nil
   "The timer used for auto-view-crossref.")
@@ -371,6 +372,12 @@ on the menu bar.
 	  (setq reftex-syntax-table (copy-syntax-table (syntax-table)))
 	  (modify-syntax-entry ?\( "." reftex-syntax-table)
 	  (modify-syntax-entry ?\) "." reftex-syntax-table))
+	(unless reftex-syntax-table-for-bib
+	  (setq reftex-syntax-table-for-bib (copy-syntax-table reftex-syntax-table))
+	  (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
+	  (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
+	  (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
+	  (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
         (run-hooks 'reftex-mode-hook))
     ;; Mode was turned off
     (easy-menu-remove reftex-mode-menu)))
@@ -610,49 +617,49 @@ the label information is recompiled on next use."
 ;; The following constants are derived from `reftex-label-alist'.
 
 ;; Prompt used for label type queries directed to the user.
-(defconst reftex-type-query-prompt nil)
+(defvar reftex-type-query-prompt nil)
 
 ;; Help string for label type queries.
-(defconst reftex-type-query-help nil)
+(defvar reftex-type-query-help nil)
 
 ;; Alist relating label type to reference format.
-(defconst reftex-typekey-to-format-alist nil)
+(defvar reftex-typekey-to-format-alist nil)
 
 ;; Alist relating label type to label prefix.
-(defconst reftex-typekey-to-prefix-alist nil)
+(defvar reftex-typekey-to-prefix-alist nil)
 
 ;; Alist relating environments or macros to label type and context regexp.
-(defconst reftex-env-or-mac-alist nil)
+(defvar reftex-env-or-mac-alist nil)
 
 ;; List of special environment parser functions
-(defconst reftex-special-env-parsers nil)
+(defvar reftex-special-env-parsers nil)
 
 ;; List of macros carrying a label.
-(defconst reftex-label-mac-list nil)
+(defvar reftex-label-mac-list nil)
 
 ;; List of environments carrying a label.
-(defconst reftex-label-env-list nil)
+(defvar reftex-label-env-list nil)
 
 ;; List of all typekey letters in use.
-(defconst reftex-typekey-list nil)
+(defvar reftex-typekey-list nil)
 
 ;; Alist relating magic words to a label type.
-(defconst reftex-words-to-typekey-alist nil)
+(defvar reftex-words-to-typekey-alist nil)
 
 ;; The last list-of-labels entry used in a reference.
 (defvar reftex-last-used-reference (list nil nil nil nil))
 
 ;; Alist relating index macros to other info.
-(defconst reftex-key-to-index-macro-alist nil)
+(defvar reftex-key-to-index-macro-alist nil)
 ;; Prompt for index macro queries
-(defconst reftex-query-index-macro-prompt nil)
+(defvar reftex-query-index-macro-prompt nil)
 ;; Help string for index macro queries
-(defconst reftex-query-index-macro-help nil)
+(defvar reftex-query-index-macro-help nil)
 
 ;; The message when follow-mode is suspended
-(defconst reftex-no-follow-message
+(defvar reftex-no-follow-message
   "No follow-mode into unvisited file.  Press SPC to visit it.")
-(defconst reftex-no-info-message
+(defvar reftex-no-info-message
   "%s: info not available, use `\\[reftex-view-crossref]' to get it.")
 
 ;; Global variables used for communication between functions.
@@ -1092,9 +1099,15 @@ This enforces rescanning the buffer on next use."
 		  reftex-section-levels))
 
     ;; Calculate the regular expressions
-    (let* ((wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+    (let* (
+;	   (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+	   (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
 	   (label-re "\\\\label{\\([^}]*\\)}")
-	   (include-re (concat wbol "\\\\\\(include\\|input\\)[{ \t]+\\([^} \t\n\r]+\\)"))
+	   (include-re (concat wbol 
+			       "\\\\\\("
+			       (mapconcat 'identity 
+					  reftex-include-file-commands "\\|")
+			       "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
 	   (section-re
 	    (concat wbol "\\\\\\("
 		    (mapconcat (lambda (x) (regexp-quote (car x)))

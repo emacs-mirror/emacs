@@ -1,8 +1,8 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -198,6 +198,7 @@ of master file."
         toc-entry index-entry next-buf buf)
 
     (catch 'exit
+      (debug)
       (setq file-found (reftex-locate-file file "tex" master-dir))
       (if (and (not file-found)
 	       (setq buf (reftex-get-buffer-visiting file)))
@@ -334,7 +335,10 @@ of master file."
     (save-excursion
       (goto-char (point-min))
       (if (re-search-forward
-	   "\\(\\`\\|[\n\r]\\)[ \t]*\\\\\\(no\\)?bibliography{[ \t]*\\([^}]+\\)" nil t)
+	   (concat
+	    "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+	    (mapconcat 'identity reftex-bibliography-commands "\\|")
+	    "\\){[ \t]*\\([^}]+\\)") nil t)
 	  (setq files 
 		(split-string (reftex-match-string 3)
 			      "[ \t\n\r]*,[ \t\n\r]*")))))

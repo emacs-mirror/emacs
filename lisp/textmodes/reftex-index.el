@@ -1,8 +1,8 @@
 ;;; reftex-index.el --- index support with RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 
 ;; This file is part of GNU Emacs.
 
@@ -1819,6 +1819,9 @@ both ends."
     (unwind-protect
 	(while (re-search-forward re nil t)
 	  (catch 'next-match
+	    (if (and (fboundp reftex-index-verify-function)
+		     (not (funcall reftex-index-verify-function)))
+		(throw 'next-match nil))
 	    (setq match (match-string 0))
 	    (setq mathp
 		  (save-match-data

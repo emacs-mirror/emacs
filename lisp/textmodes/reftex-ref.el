@@ -1,8 +1,8 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 
 ;; This file is part of GNU Emacs.
 

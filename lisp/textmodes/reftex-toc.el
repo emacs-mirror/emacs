@@ -1,8 +1,8 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.17
 
 ;; This file is part of GNU Emacs.
 
@@ -72,6 +72,7 @@ Here are all local bindings.
   "Stores the file name from which `reftex-toc' was called.  For redo command.")
 
 (defvar reftex-last-window-height nil)
+(defvar reftex-last-window-width nil)
 (defvar reftex-toc-include-labels-indicator nil)
 (defvar reftex-toc-include-index-indicator nil)
 (defvar reftex-toc-max-level-indicator nil)
@@ -127,7 +128,7 @@ When called with a raw C-u prefix, rescan the document first."
 	 (docstruct-symbol reftex-docstruct-symbol)
 	 (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
 	 (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
-	 (here-I-am (if rebuild 
+	 (here-I-am (if rebuild
 			(get 'reftex-toc :reftex-data)
 		      (car (reftex-where-am-I))))
 	 offset)
@@ -137,8 +138,14 @@ When called with a raw C-u prefix, rescan the document first."
       (when (or (not reftex-toc-keep-other-windows)
 		(< (window-height) (* 2 window-min-height)))
 	(delete-other-windows))
-      (setq reftex-last-window-height (window-height))  ; remember
-      (split-window)
+
+      (setq reftex-last-window-width (window-width)
+	    reftex-last-window-height (window-height))  ; remember
+      (if reftex-toc-split-windows-horizontally
+	  (split-window-horizontally
+	   (floor (* (frame-width) reftex-toc-split-windows-horizontally-fraction)))
+	(split-window))
+
       (let ((default-major-mode 'reftex-toc-mode))
 	(switch-to-buffer "*toc*")))
 
@@ -237,9 +244,13 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 
 (defun reftex-re-enlarge ()
   ;; Enlarge windiw to a remembered size
-  (enlarge-window
-   (max 0 (- (or reftex-last-window-height (window-height))
-	     (window-height)))))
+  (if reftex-toc-split-windows-horizontally
+      (enlarge-window-horizontally
+       (max 0 (- (or reftex-last-window-width (window-width))
+		 (window-width))))
+    (enlarge-window
+     (max 0 (- (or reftex-last-window-height (window-height))
+	       (window-height))))))
 
 (defun reftex-toc-show-help ()
   "Show a summary of special key bindings."
