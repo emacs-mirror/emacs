@@ -98,10 +98,11 @@ function `string-to-number'."
 
 (defcustom eshell-ange-ls-uids nil
   "*List of user/host/id strings, used to determine remote ownership."
-  :type '(alist :key-type (string :tag "Hostname")
-		:value-type (alist :tag "User/UID List"
-				   :key-type (string :tag "Username")
-				   :value-type (repeat :tag "UIDs" string)))
+  :type '(repeat (cons :tag "Host for User/UID map"
+		       (string :tag "Hostname")
+		       (repeat (cons :tag "User/UID List"
+				     (string :tag "Username")
+				     (repeat :tag "UIDs" string)))))
   :group 'eshell-util)
 
 ;;; Internal Variables:

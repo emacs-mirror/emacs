@@ -1,3 +1,8 @@
+2001-01-25  John Wiegley  <johnw@gnu.org>
+
+	* eshell.texi: Editing and completion of first chapter (Overview),
+	and layout of the remaining six.
+
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff.texi: add credits.

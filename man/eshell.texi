@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.6 2000/10/29 16:52:33 eliz Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.7 2000/12/06 20:02:30 fx Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
@@ -123,13 +123,19 @@ handling the sort of tasks accomplished by those tools.
 @end ifinfo
 
 @menu
-* What is Eshell?::        A brief introduction to the Emacs Shell.
-* Installation::           For users of Emacs 20 and XEmacs.
-* Command basics::         The basics of command usage.     
-* Bugs and ideas::         Known problems, and future ideas.
-* Concept Index::
-* Function and Variable Index::
-* Key Index::
+* What is Eshell?::             A brief introduction to the Emacs Shell.
+* Installation::                For users of Emacs 20 and XEmacs.
+* Command basics::              The basics of command usage.     
+* Commands::                    
+* Arguments::                   
+* Input/Output::                
+* Process control::             
+* Extension modules::           
+* Extras and Goodies::          
+* Bugs and ideas::              Known problems, and future ideas.
+* Concept Index::               
+* Function and Variable Index::  
+* Key Index::                   
 @end menu
 
 @node What is Eshell?, Installation, Top, Top
@@ -138,7 +144,7 @@ handling the sort of tasks accomplished by those tools.
 @cindex Eshell, what it is
 
 Eshell is a @dfn{command shell} written in Emacs Lisp.  Everything it
-does it uses Emacs' facilities to do.  This means that Eshell is as
+does, it uses Emacs' facilities to do.  This means that Eshell is as
 portable as Emacs itself.  It also means that cooperation with Lisp code
 is natural and seamless.
 
@@ -356,7 +362,7 @@ using the command @kbd{M-x eshell-report-bug}.
 
 @item
 Edit the file @file{Makefile} in the directory containing the Eshell
-sources to reflect the location of certain Emacs dircetories at your
+sources to reflect the location of certain Emacs directories at your
 site.  The only things you really have to change are the definitions of
 @code{lispdir} and @code{infodir}.  The elisp files will be copied to
 @code{lispdir}, and the info file to @code{infodir}.
@@ -421,14 +427,14 @@ you can use.  For other printers, use a suitable DVI driver,
 e.g., @code{dvilj4} for LaserJet-compatible printers.
 @end enumerate
 
-@node Command basics, Bugs and ideas, Installation, Top
-@chapter Command basics
+@node Command basics, Commands, Installation, Top
+@chapter Basic overview
 
-A command shell is a mechanism for entering verbally-formed commands.
-This is really all that it does, and every feature described in this
-manual is a means to that end.  Therefore, it's important to get a firm
-grasp on exactly what a command is, and how it fits into the overall
-picture of things.
+A command shell is a means of entering verbally-formed commands.  This
+is really all that it does, and every feature described in this manual
+is a means to that end.  Therefore, it's important to take firm hold on
+exactly what a command is, and how it fits in the overall picture of
+things.
 
 @menu
 * Commands verbs::              Commands always begin with a verb.
@@ -439,11 +445,10 @@ picture of things.
 @section Commands verbs
 
 Commands are expressed using @dfn{script}, a special shorthand language
-that computers can understand without trouble.
-
-Script is an extremely simplified language.  Oddly enough, this actually
-makes it look more complicated than it is.  Whereas normal languages use
-a variety of embellishments, the form of a script command is always:
+computers can understand with no trouble.  Script is an extremely simple
+language; oddly enough, this is what makes it look so complicated!
+Whereas normal languages use a variety of embellishments, the form of a
+script command is always:
 
 @example
   VERB [ARGUMENTS]
@@ -455,36 +460,165 @@ author's computer, it reaches almost 1400 in number.  But of course,
 only a handful of these are really necessary.
 
 Sometimes, the verb is all that's written.  A verb is always a single
-word, usually related to the task it will perform.  @command{reboot} is
-a good example.  Entering that will cause your computer to reboot,
-assuming you have sufficient privileges.
+word, usually related to the task it performs.  @command{reboot} is a
+good example.  Entering that on Linux will cause your computer to
+reboot---assuming you have sufficient privileges.
 
-Other verbs require more information.  These are usually very capable of
-verbs, and must be told more specifically what to do.  This extra
-information is given in the form of arguments.  Arguments are also
-single words, that appear after the verb.  For example, @command{echo}
-is a command verb that prints back whatever you say.  @command{echo}
-requires arguments, so that it knows what to echo.  A proper use of
+Other verbs require more information.  These are usually very capable
+verbs, and must be told specifically what to do.  The extra information
+is given in the form of @dfn{arguments}.  For example, the
+@command{echo} verb prints back whatever arguments you type.  It
+requires these arguments to know what to echo.  A proper use of
 @command{echo} looks like this:
 
 @example
-echo This is an example of using echo!
+  echo This is an example of using echo!
 @end example
 
-This piece of script expresses a command that causes the computer to
-print back: ``This is an example of using echo!''.
+This script command causes the computer to echo back: ``This is an
+example of using echo!''.
 
-Although command verbs always take the form of simple words, such as
-@command{reboot} and @command{echo}, arguments have a wide vaierty of
-forms.  There are textual arguments, numerical arguments---even Lisp
-arguments.  Distinguishing between these different types of arguments
-requires special typing, since the computer needs to know exactly what
-you mean.
+Although command verbs are always simple words, like @command{reboot} or
+@command{echo}, arguments may have a wide variety of forms.  There are
+textual arguments, numerical arguments---even Lisp arguments.
+Distinguishing these different types of arguments requires special
+typing, for the computer to know exactly what you mean.
 
 @node Command arguments,  , Commands verbs, Command basics
 @section Command arguments
 
-@node Bugs and ideas, Concept Index, Command basics, Top
+Eshell recognizes several different kinds of command arguments:
+
+@enumerate
+@item Strings (also called textual arguments)
+@item Numbers (floating point or integer)
+@item Lisp lists
+@item Lisp symbols
+@item Emacs buffers
+@item Emacs process handles
+@end enumerate
+
+Most users need worry only about the first two.  The third, Lisp lists,
+occur very frequently, but almost always behind the scenes.
+
+Strings are the most common type of argument, and consist of nearly any
+character.  Special characters---those used by Eshell
+specifically---must be preceded by a backslash (\).  When in doubt, it
+safe to add backslashes anywhere and everywhere.
+
+Here is a more complicated @command{echo} example:
+
+@example
+  echo A\ Multi-word\ Argument\ With\ A\ \$\ dollar
+@end example
+
+Beyond this, things get a bit more complicated.  While not beyond the
+reach of someone wishing to learn, it is definitely beyond the scope of
+this manual to present it all in a simplistic manner.  Get comfortable
+with Eshell as a basic command invocation tool, and learn more about the
+commands on your system; then come back when it all sits more familiarly
+on your mind.  Have fun!
+
+@node Commands, Arguments, Command basics, Top
+@chapter Commands
+
+@menu
+* Invocation::                  
+* Completion::                  
+* Aliases::                     
+* History::                     
+* Scripts::                     
+@end menu
+
+@node Invocation, Completion, Commands, Commands
+@section Invocation
+
+@node Completion, Aliases, Invocation, Commands
+@section Completion
+
+@node Aliases, History, Completion, Commands
+@section Aliases
+
+@node History, Scripts, Aliases, Commands
+@section History
+
+@node Scripts,  , History, Commands
+@section Scripts
+
+
+@node Arguments, Input/Output, Commands, Top
+@chapter Arguments
+
+@menu
+* The Parser::                  
+* Variables::                   
+* Substitution::                
+* Globbing::                    
+* Predicates::                  
+@end menu
+
+@node The Parser, Variables, Arguments, Arguments
+@section The Parser
+
+@node Variables, Substitution, The Parser, Arguments
+@section Variables
+
+@node Substitution, Globbing, Variables, Arguments
+@section Substitution
+
+@node Globbing, Predicates, Substitution, Arguments
+@section Globbing
+
+@node Predicates,  , Globbing, Arguments
+@section Predicates
+
+
+@node Input/Output, Process control, Arguments, Top
+@chapter Input/Output
+
+@node Process control, Extension modules, Input/Output, Top
+@chapter Process control
+
+
+@node Extension modules, Extras and Goodies, Process control, Top
+@chapter Extension modules
+
+@menu
+* Writing a module::            
+* Module testing::              
+* Directory handling::          
+* Key rebinding::               
+* Smart scrolling::             
+* Terminal emulation::          
+* Built-in UNIX commands::      
+@end menu
+
+@node Writing a module, Module testing, Extension modules, Extension modules
+@section Writing a module
+
+@node Module testing, Directory handling, Writing a module, Extension modules
+@section Module testing
+
+@node Directory handling, Key rebinding, Module testing, Extension modules
+@section Directory handling
+
+@node Key rebinding, Smart scrolling, Directory handling, Extension modules
+@section Key rebinding
+
+@node Smart scrolling, Terminal emulation, Key rebinding, Extension modules
+@section Smart scrolling
+
+@node Terminal emulation, Built-in UNIX commands, Smart scrolling, Extension modules
+@section Terminal emulation
+
+@node Built-in UNIX commands,  , Terminal emulation, Extension modules
+@section Built-in UNIX commands
+
+
+@node Extras and Goodies, Bugs and ideas, Extension modules, Top
+@chapter Extras and Goodies
+
+@node Bugs and ideas, Concept Index, Extras and Goodies, Top
 @chapter Bugs and ideas
 @cindex reporting bugs and ideas
 @cindex bugs, how to report them
@@ -511,8 +645,8 @@ find this package useful!
 @cindex known bugs
 @cindex bugs, known
 
-Below is a partial list of currently known problems with Eshell version
-2.4, which is the version distributed with Emacs 21.1.
+Below is complete list of known problems with Eshell version 2.4.1,
+which is the version included with Emacs 21.1.
 
 @table @asis
 @item Differentiate between aliases and functions
@@ -587,7 +721,7 @@ called with the input strings as arguments.  This will require changing
 
 See the above entry.
 
-@item Problem running @command{less} without argument on Windows
+@item Problem running @command{less} without arguments on Windows
 
 The result in the Eshell buffer is:
 
@@ -782,7 +916,7 @@ way@dots{}).  If input redirection is added, also update the
 With the handling of @emph{word} specified by an
 @code{eshell-special-alist}.
 
-@item In @code{eshell-eval-using-options}, allow a @code{:complete} tag
+@item In @code{eshell-veal-using-options}, allow a @code{:complete} tag
 
 It would be used to provide completion rules for that command.  Then the
 macro will automagically define the completion function.
@@ -894,7 +1028,7 @@ auto-revert mode in that buffer at frequent intervals---and a
 
 @item Make @command{dgrep} load @code{dired}, mark everything, then invoke @code{dired-do-search}
 
-@item Write emsh.c
+@item Write mesh.c
 
 This would run Emacs with the appropriate arguments to invoke Eshell
 only.  That way, it could be listed as a login shell.

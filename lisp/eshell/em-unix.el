@@ -1,6 +1,6 @@
 ;;; em-unix --- UNIX command aliases
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -974,9 +974,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (defun eshell/occur (&rest args)
   "Alias \"occur\" to call Emacs `occur' function."
   (let ((inhibit-read-only t))
-    (if args
-	(error "usage: occur: (REGEXP)")
-      (occur (car args)))))
+    (if (> (length args) 2)
+	(error "usage: occur: (REGEXP &optional NLINES)")
+      (apply 'occur args))))
 
 ;;; Code:
 

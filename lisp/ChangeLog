@@ -1,3 +1,15 @@
+2001-01-25  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-util.el (eshell-ange-ls-uids): Changed use of `alist'
+	to `repeat' in the :type field.
+
+	* pcomplete.el (pcomplete-file-ignore): Changed a :type field to
+	allow a choice of regexp or nil.
+	(pcomplete-dir-ignore): same.
+
+	* eshell/em-unix.el (eshell/occur): Fixed bug causing `occur' (as
+	a command) to always fail.
+
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* iswitchb.el (iswitchb-make-buflist): When nconc'ing lists, don't

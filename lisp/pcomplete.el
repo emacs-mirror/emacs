@@ -1,6 +1,6 @@
 ;;; pcomplete --- programmable completion
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -131,12 +131,12 @@
 
 (defcustom pcomplete-file-ignore nil
   "*A regexp of filenames to be disregarded during file completion."
-  :type 'regexp
+  :type '(choice regexp (const :tag "None" nil))
   :group 'pcomplete)
 
 (defcustom pcomplete-dir-ignore nil
   "*A regexp of names to be disregarded during directory completion."
-  :type 'regexp
+  :type '(choice regexp (const :tag "None" nil))
   :group 'pcomplete)
 
 (defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt))
