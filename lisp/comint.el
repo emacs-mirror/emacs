@@ -207,21 +207,20 @@ This variable is buffer-local."
 
 (defcustom comint-highlight-input t
   "*If non-nil, highlight input; also allow choosing previous input with a mouse.
-See also `comint-highlight-face'."
+The face used is `comint-highlight-input'."
   :type 'boolean
   :group 'comint)
 
-(defface comint-highlight-input-face '((t (:bold t)))
+(defface comint-highlight-input '((t (:bold t)))
   "Face to use to highlight input when `comint-highlight-input' is non-nil."
   :group 'comint)
 
 (defcustom comint-highlight-prompt t
   "*If non-nil, highlight program prompts.
-See also `comint-highlight-face'."
-  :type 'boolean
+The face used is `comint-highlight-prompt'."
   :group 'comint)
 
-(defface comint-highlight-prompt-face
+(defface comint-highlight-prompt
   '((((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
   "Face to use to highlight prompt when `comint-highlight-prompt' is non-nil."
@@ -1415,7 +1414,7 @@ Similarly for Soar, Scheme, etc."
 		  (overlay-put over 'field 'input)
 		  (overlay-put over 'front-sticky t))
 		(when comint-highlight-input
-		  (overlay-put over 'face 'comint-highlight-input-face)
+		  (overlay-put over 'face 'comint-highlight-input)
 		  (overlay-put over 'mouse-face 'highlight)
 		  (overlay-put over 'evaporate t))))
 	    (unless comint-use-prompt-regexp-instead-of-fields
@@ -1583,7 +1582,7 @@ This variable is permanent-local.")
 				    prompt-start (point))
 		    ;; Need to create the overlay
 		    (let ((over (make-overlay prompt-start (point))))
-		      (overlay-put over 'face 'comint-highlight-prompt-face)
+		      (overlay-put over 'face 'comint-highlight-prompt)
 		      (overlay-put over 'front-sticky t)
 		      (overlay-put over 'rear-nonsticky t)
 		      (setq comint-last-prompt-overlay over))))))
