@@ -1,5 +1,7 @@
 2002-05-25  Dave Love  <fx@gnu.org>
 
+	* charset.c (Fdefine_charset_alias): Update Vcharset_list.
+
 	* fontset.c (Ffontset_info): Doc fix.  Return charset names, not
 	ids.
 	(font-encoding-alist): Doc fix.
