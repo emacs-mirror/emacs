@@ -92,7 +92,7 @@
 ;; m-c-f   shell-forward-command	Forward a shell command
 ;; m-c-b   shell-backward-command	Backward a shell command
 ;; 	    dirs			Resync the buffer's dir stack
-;; 	    dirtrack-toggle		Turn dir tracking on/off
+;; 	    dirtrack-mode		Turn dir tracking on/off
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;
 ;; The shell mode hook is shell-mode-hook
@@ -342,7 +342,7 @@ While directory tracking is enabled, the shell's working directory is displayed
 by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
 \\[dirs] queries the shell and resyncs Emacs' idea of what the current 
     directory stack is.
-\\[dirtrack-toggle] turns directory tracking on and off.
+\\[dirtrack-mode] turns directory tracking on and off.
 
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
@@ -513,7 +513,7 @@ This function is called on each input passed to the shell.
 It watches for cd, pushd and popd commands and sets the buffer's
 default directory to track these commands.
 
-You may toggle this tracking on and off with M-x dirtrack-toggle.
+You may toggle this tracking on and off with M-x dirtrack-mode.
 If emacs gets confused, you can resync with the shell with M-x dirs.
 
 See variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp',
@@ -638,7 +638,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
        (string-to-int str)))
 
 
-(defun shell-dirtrack-toggle ()
+(defun shell-dirtrack-mode ()
   "Turn directory tracking on and off in a shell buffer."
   (interactive)
   (if (setq shell-dirtrackp (not shell-dirtrackp))
@@ -647,7 +647,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (message "Directory tracking %s" (if shell-dirtrackp "ON" "OFF")))
 
 ;;; For your typing convenience:
-(defalias 'dirtrack-toggle 'shell-dirtrack-toggle)
+(defalias 'shell-dirtrack-toggle 'shell-dirtrack-mode)
+(defalias 'dirtrack-toggle 'shell-dirtrack-mode)
+(defalias 'dirtrack-mode 'shell-dirtrack-mode)
 
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
