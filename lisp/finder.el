@@ -276,7 +276,7 @@ arguments compiles from `load-path'."
 (defun finder-summary ()
   "Summarize basic Finder commands."
   (interactive)
-  (message
+  (message "%s"
    (substitute-command-keys
     "\\<finder-mode-map>\\[finder-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
