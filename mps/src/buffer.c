@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.35) $
+ * $HopeName: MMsrc!buffer.c(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.35) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.36) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -39,6 +39,8 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(buffer->arena == buffer->pool->arena);
   CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
   CHECKL(BoolCheck(buffer->isMutator));
+  CHECKL(buffer->fillSize >= 0.0);
+  CHECKL(buffer->emptySize >= 0.0);
   CHECKL(RankSetCheck(buffer->rankSet));
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
@@ -127,8 +129,8 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                "  Pool $P\n",        (WriteFP)buffer->pool,
 	       buffer->isMutator ?
 	         "  Mutator Buffer\n" : "  Internal Buffer\n",
-	       "  fill $U\n",        (WriteFU)buffer->fill,
-	       "  empty $U\n",       (WriteFU)buffer->empty,
+	       "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+	       "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
                "  Seg $P\n",         (WriteFP)buffer->seg,
                "  rankSet $U\n",     (WriteFU)buffer->rankSet,
                "  alignment $W\n",   (WriteFW)buffer->alignment,
@@ -164,8 +166,8 @@ static Res BufferInitV(Buffer buffer, Pool pool, Bool isMutator, va_list args)
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
   buffer->isMutator = isMutator;
-  buffer->fill = (Count)0;
-  buffer->empty = (Count)0;
+  buffer->fillSize = 0.0;
+  buffer->emptySize = 0.0;
   buffer->alignment = pool->alignment; /* .trans.mod */
   buffer->seg = NULL;
   buffer->rankSet = RankSetEMPTY;
@@ -260,9 +262,23 @@ void BufferDetach(Buffer buffer, Pool pool)
   AVER(BufferIsReady(buffer));
 
   if(!BufferIsReset(buffer)) {
+    Size spare;
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
     (*pool->class->bufferEmpty)(pool, buffer);
+
+    spare = AddrOffset(buffer->apStruct.alloc, 
+		       buffer->apStruct.limit);
+    buffer->emptySize += spare;
+    if(buffer->isMutator) {
+      buffer->pool->emptyMutatorSize += spare;
+      buffer->arena->emptyMutatorSize += spare;
+      buffer->arena->allocMutatorSize += AddrOffset(buffer->base,
+                                                    buffer->apStruct.alloc);
+    } else {
+      buffer->pool->emptyInternalSize += spare;
+      buffer->arena->emptyInternalSize += spare;
+    }
 
     /* Reset the buffer. */
     SegSetBuffer(buffer->seg, NULL);
@@ -413,6 +429,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   Pool pool;
   Seg seg;
   Addr base, limit, next;
+  Size filled;
 
   AVER(pReturn != NULL);
   AVERT(Buffer, buffer);
@@ -448,7 +465,8 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   /* Ask the pool for a segment and some memory. */
   res = (*pool->class->bufferFill)(&seg, &base, &limit,
                                    pool, buffer, size);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
   AVER(SegCheck(seg));
   AVER(SegBuffer(seg) == NULL);
@@ -466,6 +484,16 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
   buffer->apStruct.limit = limit;
   AVER(buffer->initAtFlip == (Addr)0);
   buffer->poolLimit = limit;
+
+  filled = AddrOffset(base, limit);
+  buffer->fillSize += filled;
+  if(buffer->isMutator) {
+    buffer->pool->fillMutatorSize += filled;
+    buffer->arena->fillMutatorSize += filled;
+  } else {
+    buffer->pool->fillInternalSize += filled;
+    buffer->arena->fillInternalSize += filled;
+  }
 
   AVERT(Buffer, buffer);
 

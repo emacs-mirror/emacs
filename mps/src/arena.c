@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.23) $
+ * $HopeName: MMsrc!arena.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -35,7 +35,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.23) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.24) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -109,7 +109,13 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->clamped));
 
   /* no check on arena->actionInterval */
-  CHECKL(arena->allocTime >= 0.0);
+  CHECKL(arena->fillMutatorSize >= 0.0);
+  CHECKL(arena->emptyMutatorSize >= 0.0);
+  CHECKL(arena->allocMutatorSize >= 0.0);
+  CHECKL(arena->fillMutatorSize - arena->emptyMutatorSize >=
+         arena->allocMutatorSize);
+  CHECKL(arena->fillInternalSize >= 0.0);
+  CHECKL(arena->emptyInternalSize >= 0.0);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(AlignCheck(arena->alignment));
@@ -236,7 +242,11 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < ARENA_LD_LENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
-  arena->allocTime = 0.0;
+  arena->fillMutatorSize = 0.0;
+  arena->emptyMutatorSize = 0.0;
+  arena->allocMutatorSize = 0.0;
+  arena->fillInternalSize = 0.0;
+  arena->emptyInternalSize = 0.0;
   /* usually overridden by init */
   arena->alignment = MPS_PF_ALIGN;
   /* usually overridden by init */
@@ -669,11 +679,11 @@ failCreate:
  * See design.mps.describe.
  */
 
+
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   Ring node, nextNode;
-  Word megs; /* @@@@ */
   Index i;
 
   AVERT(Arena, arena);
@@ -690,18 +700,20 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  lock $P\n",          (WriteFP)&arena->lockStruct,
                "  pollThreshold $U\n", (WriteFU)arena->pollThreshold,
                "  insidePoll $S\n",    arena->insidePoll ? "YES" : "NO",
+	       "  fillMutatorSize $UKb\n",
+	         (WriteFU)(arena->fillMutatorSize / 1024),
+	       "  emptyMutatorSize $UKb\n",
+	         (WriteFU)(arena->emptyMutatorSize / 1024),
+	       "  allocMutatorSize $UKb\n",
+	         (WriteFU)(arena->allocMutatorSize / 1024),
+	       "  fillInternalSize $UKb\n",
+	         (WriteFU)(arena->fillInternalSize / 1024),
+	       "  emptyInternalSize $UKb\n",
+	         (WriteFU)(arena->emptyInternalSize / 1024),
                NULL);
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
 
-  megs = (Word)(arena->allocTime / 1048576.0); /* @@@@ */
-
-  res = WriteF(stream,
-               "  allocTime $UM+$U\n",
-               (WriteFU)megs,
-               (WriteFU)(arena->allocTime - megs * 1048576.0),
-               NULL);
-  if(res != ResOK) return res;
-  
   res = WriteF(stream,
                "  actionInterval $U\n", (WriteFU)arena->actionInterval,
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
@@ -957,6 +969,13 @@ Size ArenaCommitted(Arena arena)
 {
   AVERT(Arena, arena);
   return (*arena->class->committed)(arena);
+}
+
+
+double ArenaMutatorAllocSize(Arena arena)
+{
+  AVERT(Arena, arena);
+  return arena->fillMutatorSize - arena->emptyMutatorSize;
 }
 
 
