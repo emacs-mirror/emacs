@@ -814,6 +814,9 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar summary]
   (cons "Summary" (make-sparse-keymap "Summary")))
 
+(define-key rmail-summary-mode-map [menu-bar summary senders]
+  '("By Senders..." . rmail-summary-by-senders))
+
 (define-key rmail-summary-mode-map [menu-bar summary labels]
   '("By Labels..." . rmail-summary-by-labels))
 
