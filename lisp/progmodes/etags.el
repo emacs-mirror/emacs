@@ -935,7 +935,8 @@ See documentation of variable `tags-file-name'."
       ;;   \7 is the char to start searching at.
       (while (re-search-forward
 	      "^\\(\\(.+[^-a-zA-Z0-9_$]+\\)?\\([-a-zA-Z0-9_$]+\\)\
-\[^-a-zA-Z0-9_$]*\\)\177\\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\),\\([0-9]+\\)\n"
+\[^-a-zA-Z0-9_$]*\\)\177\\(\\([^\n\001]+\\)\001\\)?\
+\\([0-9]+\\)?,\\([0-9]+\\)?\n"
 	      nil t)
 	(intern	(if (match-beginning 5)
 		    ;; There is an explicit tag name.
@@ -946,29 +947,36 @@ See documentation of variable `tags-file-name'."
     table))
 
 (defun etags-snarf-tag ()
-  (let (tag-text startpos)
+  (let (tag-text line startpos)
     (search-forward "\177")
     (setq tag-text (buffer-substring (1- (point))
 				     (save-excursion (beginning-of-line)
 						     (point))))
     ;; Skip explicit tag name if present.
     (search-forward "\001" (save-excursion (forward-line 1) (point)) t)
-    (search-forward ",")
-    (setq startpos (string-to-int (buffer-substring
+    (if (looking-at "[0-9]")
+	(setq line (string-to-int (buffer-substring
 				   (point)
 				   (progn (skip-chars-forward "0-9")
-					  (point)))))
+					  (point))))))
+    (search-forward ",")
+    (if (looking-at "[0-9]")
+	(setq startpos (string-to-int (buffer-substring
+				       (point)
+				       (progn (skip-chars-forward "0-9")
+					      (point))))))
     ;; Leave point on the next line of the tags file.
     (forward-line 1)
-    (cons tag-text startpos)))
+    (cons tag-text (cons line startpos))))
 
-;; TAG-INFO is a cons (TEXT . POSITION) where TEXT is the initial part of a
-;; line containing the tag and POSITION is the character position of TEXT
-;; within the file (starting from 1).  If the tag isn't exactly at the
-;; given position then look around that position using a search window
-;; which expands until it hits the start of file.
+;; TAG-INFO is a cons (TEXT LINE . POSITION) where TEXT is the initial part
+;; of a line containing the tag and POSITION is the character position of
+;; TEXT within the file (starting from 1); LINE is the line number.  Either
+;; LINE or POSITION may be nil; POSITION is used if present.  If the tag
+;; isn't exactly at the given position then look around that position using
+;; a search window which expands until it hits the start of file.
 (defun etags-goto-tag-location (tag-info)
-  (let ((startpos (cdr tag-info))
+  (let ((startpos (cdr (cdr tag-info)))
 	;; This constant is 1/2 the initial search window.
 	;; There is no sense in making it too small,
 	;; since just going around the loop once probably
@@ -978,6 +986,11 @@ See documentation of variable `tags-file-name'."
 	(pat (concat (if (eq selective-display t)
 			 "\\(^\\|\^m\\)" "^")
 		     (regexp-quote (car tag-info)))))
+    ;; If no char pos was given, try the given line number.
+    (or startpos
+	(if (car (cdr tag-info))
+	    (setq startpos (progn (goto-line (car (cdr tag-info)))
+				  (point)))))
     (or startpos
 	(setq startpos (point-min)))
     ;; First see if the tag is right at the specified location.
