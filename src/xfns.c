@@ -4046,7 +4046,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
      Lisp_Object display;
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
-  int i;
 
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");

@@ -10767,7 +10767,8 @@ static struct redisplay_interface x_redisplay_interface =
 void
 x_delete_frame_display (struct display *display)
 {
-  struct x_display_info *dpyinfo = display->display_info;
+  struct x_display_info *dpyinfo = display->display_info.x;
+  int i;
 
   BLOCK_INPUT;
   /* Free the fonts in the font table.  */
