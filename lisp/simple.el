@@ -3952,44 +3952,4 @@ corresponing syntax code as it is stored in a syntax cell, and
 can be used as value of a `syntax-table' property.
 DESCRIPTION is the descriptive string for the syntax.")
 
-(defconst syntax-flag-table
-  '((?1 . #b10000000000000000)
-    (?2 . #b100000000000000000)
-    (?3 . #b1000000000000000000)
-    (?4 . #b10000000000000000000)
-    (?p . #b100000000000000000000)
-    (?b . #b1000000000000000000000)
-    (?n . #b10000000000000000000000))
-  "Alist of pairs (CHAR . FLAG) mapping characters to syntax flags.
-CHAR is a character that is allowed as second or following character
-in the string argument to `modify-syntax-entry' specifying the syntax.
-FLAG is the corresponding syntax flag value that is stored in a
-syntax table.")
-
-(defun string-to-syntax (string)
-  "Convert a syntax specification STRING into syntax cell form.
-STRING should be a string as it is allowed as argument of
-`modify-syntax-entry'.  Value is the equivalent cons cell
-\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
-text property."
-  (let* ((first-char (aref string 0))
-	 (code (or (nth 1 (assq first-char syntax-code-table))
-		   (error "Invalid syntax specification `%s'" string)))
-	 (length (length string))
-	 (i 1)
-	 matching-char)
-    ;; Determine the matching character, if any.
-    (when (and (> length 1)
-	       (memq first-char '(?\( ?\))))
-      (setq matching-char (aref string i)))
-    (setq i (1+ i))
-    ;; Add any flags to the syntax code.
-    (while (< i length)
-      (let ((flag (or (cdr (assq (aref string i) syntax-flag-table))
-		      (error "Invalid syntax flag in `%s'" string))))
-	(setq code (logior flag code))
-	(setq i (1+ i))))
-    
-    (cons code matching-char)))
-
 ;;; simple.el ends here
