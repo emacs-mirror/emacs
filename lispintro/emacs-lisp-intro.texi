@@ -5681,7 +5681,7 @@ returns true, the @code{not} expression returns false and vice-versa:
 what is ``not true'' is false and what is ``not false'' is true.
 
 Using this test, the @code{if} expression works as follows: when the
-value of the variable @code{buffer} is actually a buffer rather then
+value of the variable @code{buffer} is actually a buffer rather than
 its name, the true-or-false-test returns false and the @code{if}
 expression does not evaluate the then-part.  This is fine, since we do
 not need to do anything to the variable @code{buffer} if it really is
@@ -8337,7 +8337,7 @@ evaluated, it is bound to the value returned by evaluating the actual
 argument.  In this case, this is the expression @code{(< end beg)}.
 This expression does not directly determine whether the killed text in
 this command is located before or after the kill text of the last
-command; what is does is determine whether the value of the variable
+command; what it does is determine whether the value of the variable
 @code{end} is less than the value of the variable @code{beg}.  If it
 is, it means that the user is most likely heading towards the
 beginning of the buffer.  Also, the result of evaluating the predicate
