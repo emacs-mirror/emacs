@@ -1,3 +1,8 @@
+2001-01-30  Andrew Innes  <andrewi@gnu.org>
+
+	* etags.c (assert) [__MINGW32__]: Redefine assert to work around a
+	bug in the Mingw32 assert.h header file.
+
 2001-01-30  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: [WIN32-NATIVE]: #undef MSDOS, #undef WINDOWSNT and
