@@ -2431,8 +2431,7 @@ along with the characters; this includes such diverse functions as
                              only when text is examined.
 * Clickable Text::         Using text properties to make regions of text
                              do something when you click on them.
-* Enabling Mouse-1 to Follow Links::
-                           How to make @key{mouse-1} follow a link.
+* Links and Mouse-1::      How to make @key{Mouse-1} follow a link.
 * Fields::                 The @code{field} property defines
                              fields within the buffer.
 * Not Intervals::	   Why text properties do not use
@@ -3390,9 +3389,10 @@ clickable pieces of text.  Also, the major mode definition (or the
 global definition) remains available for the rest of the text in the
 buffer.
 
-@node Enabling Mouse-1 to Follow Links
-@subsection Enabling Mouse-1 to Follow Links
+@node Links and Mouse-1
+@subsection Links and Mouse-1
 @cindex follow links
+@cindex mouse-1
 
   The normal Emacs command for activating text in read-only buffers is
 @key{Mouse-2}, which includes following textual links.  However, most
@@ -3402,9 +3402,10 @@ click on a link quickly without moving the mouse.  The user can
 customize this behaviour through the variable
 @code{mouse-1-click-follows-link}.
 
-  To define text as a link at the Lisp level, you should bind
-@key{Mouse-2} to a command to follow the link.  Then, to indicate
-that @key{Mouse-1} should also follow the link, here is what you do:
+  To define text as a link at the Lisp level, you should bind the
+@code{mouse-2} event to a command to follow the link.  Then, to
+indicate that @key{Mouse-1} should also follow the link, here is what
+you do:
 
 @table @asis
 @item @code{follow-link} property
@@ -3479,13 +3480,30 @@ translated into a @code{mouse-2} event at the same position.
   To define @key{Mouse-1} to activate a button defined with
 @code{define-button-type}, give the button a @code{follow-link}
 property with a value as specified above to determine how to follow
-the link.
-@c ??? That is not clear.  This needs an example or an xref.
+the link.  For example, here is how Help mode handles @key{Mouse-1}:
+
+@smallexample
+(define-button-type 'help-xref
+  'follow-link t
+  'action #'help-button-action)
+@end smallexample
 
   To define @key{Mouse-1} on a widget defined with
 @code{define-widget}, give the widget a @code{:follow-link} property
 with a value as specified above to determine how to follow the link.
-@c ??? That is not clear.  This needs an example or an xref.
+
+For example, here is how the @code{link} widget specifies that
+a @key{Mouse-1} click shall be translated to @key{RET}:
+
+@smallexample
+(define-widget 'link 'item
+  "An embedded link."
+  :button-prefix 'widget-link-prefix
+  :button-suffix 'widget-link-suffix
+  :follow-link "\C-m"
+  :help-echo "Follow the link."
+  :format "%[%t%]")
+@end smallexample
 
 @defun mouse-on-link-p pos
 @tindex mouse-on-link-p
