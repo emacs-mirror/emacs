@@ -709,7 +709,7 @@ This expects to be called from point-min in a bookmark file."
 
 
 (defun bookmark-insert-file-format-version-stamp ()
-  "Insert text indicating current version of bookmark file-format."
+  "Insert text indicating current version of bookmark file format."
   (insert
    (format ";;;; Emacs Bookmark Format Version %d ;;;;\n"
            bookmark-file-format-version))
@@ -808,8 +808,9 @@ Does not affect the kill-ring."
 
 
 (defun bookmark-send-annotation ()
-  "After remove lines beginning with '#', use the contents of this buffer
-as the annotation for a bookmark, and store it in the bookmark list with
+  "Use buffer contents as the annotation for a bookmark.
+Exclude lines that begin with `#'.
+Store the annotation text in the bookmark list with
 the bookmark (and file, and point) specified in buffer local variables."
   (interactive)
   (if (not (eq major-mode 'bookmark-read-annotation-mode))
@@ -849,10 +850,8 @@ the bookmark (and file, and point) specified in buffer local variables."
 
 
 (defvar bookmark-read-annotation-text-func 'bookmark-default-annotation-text
-  "A variable containing a function which returns the text to insert
-into an annotation composition buffer.  It takes the name of the bookmark,
-as a string, as an arg.")
-
+  "Function to return default text to use for a bookmark annotation.
+It takes the name of the bookmark, as a string, as an arg.")
 
 (defun bookmark-read-annotation-mode (buf point parg bookmark)
   "Mode for composing annotations for a bookmark.
@@ -881,8 +880,8 @@ the annotation.
 
 
 (defun bookmark-read-annotation (parg bookmark)
-  "Pop up a buffer for entering a bookmark annotation.  Text surrounding
-the bookmark is PARG; the bookmark name is BOOKMARK."
+  "Pop up a buffer for entering a bookmark annotation.
+Text surrounding the bookmark is PARG; the bookmark name is BOOKMARK."
   (let ((buf (current-buffer))
 	(point (point)))
     (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
@@ -918,8 +917,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
 
 
 (defun bookmark-send-edited-annotation ()
-  "After remove lines beginning with '#', use the contents of this buffer
-as the new annotation for a bookmark."
+  "Use buffer contents (minus beginning with `#' as annotation for a bookmark."
   (interactive)
   (if (not (eq major-mode 'bookmark-edit-annotation-mode))
       (error "Not in bookmark-edit-annotation-mode"))
@@ -945,8 +943,8 @@ as the new annotation for a bookmark."
 
 
 (defun bookmark-insert-current-bookmark ()
-  "Insert this buffer's value of bookmark-current-bookmark, default
-to file name if it's nil."
+  "Insert this buffer's value of bookmark-current-bookmark.
+Default to file name if it's nil."
   (interactive)
   (let ((str
 	 (save-excursion
@@ -956,8 +954,8 @@ to file name if it's nil."
 
 
 (defun bookmark-insert-buffer-name ()
-  "Insert the name (sans path) of the current file into the bookmark
-name that is being set."
+  "Insert the current file name into the bookmark name being set.
+The directory part of the file name is not used."
   (interactive)
   (let ((str
          (save-excursion
@@ -1021,7 +1019,6 @@ For example, if this is a Info buffer, return the Info file's name."
 (defun bookmark-maybe-load-default-file ()
   (and (not bookmarks-already-loaded)
        (null bookmark-alist)
-
        (prog2
            (and
             ;; Possibly the old bookmark file, "~/.emacs-bkmrks", needs
@@ -1143,10 +1140,10 @@ of the old one in the permanent bookmark record."
 
 ;;;###autoload
 (defun bookmark-relocate (bookmark)
-  "Relocate BOOKMARK -- prompts for a filename, and makes an already
-existing bookmark point to that file, instead of the one it used to
-point at.  Useful when a file has been renamed after a bookmark was
-set in it."
+  "Relocate BOOKMARK to another file (reading file name with minibuffer).
+This makes an already existing bookmark point to that file, instead of
+the one it used to point at.  Useful when a file has been renamed
+after a bookmark was set in it."
   (interactive (bookmark-completing-read "Bookmark to relocate"))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
@@ -1178,11 +1175,11 @@ minibuffer history list `bookmark-history'."
 
 ;;;###autoload
 (defun bookmark-rename (old &optional new)
-  "Change the name of OLD bookmark to NEW name.  If called from
-keyboard, prompts for OLD and NEW.  If called from menubar, OLD is
-selected from a menu, and prompts for NEW.
+  "Change the name of OLD bookmark to NEW name.
+If called from keyboard, prompt for OLD and NEW.  If called from
+menubar, select OLD from a menu and prompt for NEW.
 
-If called from Lisp, prompts for NEW if only OLD was passed as an
+If called from Lisp, prompt for NEW if only OLD was passed as an
 argument.  If called with two strings, then no prompting is done.  You
 must pass at least OLD when calling from Lisp.
 
@@ -1283,9 +1280,8 @@ probably because we were called from there."
 
 ;;;###autoload
 (defun bookmark-write ()
-  "Write bookmarks to a file \(for which the user will be prompted
-interactively\).  Don't use this in Lisp programs; use bookmark-save
-instead."
+  "Write bookmarks to a file (reading the file name with the minibuffer).
+Don't use this in Lisp programs; use `bookmark-save' instead."
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-save t))
@@ -1705,7 +1701,7 @@ if an annotation exists."
 
 
 (defun bookmark-bmenu-mark ()
-  "Mark bookmark on this line to be displayed by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-select] command."
+  "Mark bookmark on this line to be displayed by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-select]."
   (interactive)
   (beginning-of-line)
   (if (bookmark-bmenu-check-position)
@@ -1890,7 +1886,8 @@ Optional BACKUP means move up."
 
 
 (defun bookmark-bmenu-delete ()
-  "Mark bookmark on this line to be deleted by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions] command."
+  "Mark bookmark on this line to be deleted.
+To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions]."
   (interactive)
   (beginning-of-line)
   (if (bookmark-bmenu-check-position)
@@ -1901,8 +1898,8 @@ Optional BACKUP means move up."
 
 
 (defun bookmark-bmenu-delete-backwards ()
-  "Mark bookmark on this line to be deleted by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions] command
-and then move up one line"
+  "Mark bookmark on this line to be deleted, then move up one line.
+To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions]."
   (interactive)
   (bookmark-bmenu-delete)
   (forward-line -2)
@@ -2150,9 +2147,7 @@ corresponding bookmark function from Lisp \(the one without the
 ;; We MUST autoload EACH form used to set up this variable's value, so
 ;; that the whole job is done in loaddefs.el.
 
-;; FSF Emacs menubar stuff
-;; The odd conditional structure is due to the limitations of autoload
-;; cookies.
+;; Emacs menubar stuff.
 
 ;;;###autoload
 (defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions"))
