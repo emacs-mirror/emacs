@@ -31,13 +31,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
-/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
-   memory.  Can do this only if using gmalloc.c.  */
-
-#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
-#undef GC_MALLOC_CHECK
-#endif
-
 /* This file is part of the core Lisp implementation, and thus must
    deal with the real data structures.  If the Lisp implementation is
    replaced, this file likely will not be used.  */
@@ -55,6 +48,13 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "syssignal.h"
 #include <setjmp.h>
+
+/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
+   memory.  Can do this only if using gmalloc.c.  */
+
+#if defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC
+#undef GC_MALLOC_CHECK
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
