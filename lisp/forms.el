@@ -1,8 +1,8 @@
 ;;; forms.el -- Forms mode: edit a file as a form to fill in.
-;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1994 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.9 $
+;; Version: $Revision: 2.13 $
 
 ;; This file is part of GNU Emacs.
 
@@ -232,7 +232,8 @@
 ;;; \C-c \C-l	 forms-jump-record
 ;;; \C-c \C-n	 forms-next-record
 ;;; \C-c \C-p	 forms-prev-record
-;;; \C-c \C-s	 forms-search
+;;; \C-c \C-r	 forms-search-backward
+;;; \C-c \C-s	 forms-search-forward
 ;;; \C-c \C-x	 forms-exit
 ;;; 
 ;;; Read-only mode commands:
@@ -244,7 +245,8 @@
 ;;; l	 forms-jump-record
 ;;; n	 forms-next-record
 ;;; p	 forms-prev-record
-;;; s	 forms-search
+;;; r	 forms-search-backward
+;;; s	 forms-search-forward
 ;;; x	 forms-exit
 ;;; 
 ;;; Of course, it is also possible to use the \C-c prefix to obtain the
@@ -279,10 +281,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.9 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.13 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.9 1994/07/26 19:47:39 rms Exp rms $")
+  $Id: forms.el,v 2.13 1994/10/15 10:59:17 jv Exp $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -376,7 +378,7 @@ Defaults to t if this emacs is capable of handling text properties.")
    "List of strings of the current record, as parsed from the file.")
 
 (defvar forms--search-regexp nil
-  "Last regexp used by forms-search.")
+  "Last regexp used by forms-search functions.")
 
 (defvar forms--format nil
   "Formatting routine.")
@@ -416,7 +418,8 @@ Commands:                        Equivalent keys in read-only mode:
  \\C-c \\C-l      forms-jump-record          l
  \\C-c \\C-n      forms-next-record          n
  \\C-c \\C-p      forms-prev-record          p
- \\C-c \\C-s      forms-search               s
+ \\C-c \\C-r      forms-search-reverse       r
+ \\C-c \\C-s      forms-search-forward       s
  \\C-c \\C-x      forms-exit                 x
 "
   (interactive)
@@ -603,9 +606,10 @@ Commands:                        Equivalent keys in read-only mode:
     (if read-file-filter
 	(save-excursion
 	  (set-buffer forms--file-buffer)
-	  (let ((inhibit-read-only t))
-	    (run-hooks 'read-file-filter))
-	  (set-buffer-modified-p nil)
+	  (let ((inhibit-read-only t)
+		(file-modified (buffer-modified-p)))
+	    (run-hooks 'read-file-filter)
+	    (if (not file-modified) (set-buffer-modified-p nil)))
 	  (if write-file-filter
 	      (progn
 		(make-variable-buffer-local 'local-write-file-hooks)
@@ -1220,7 +1224,8 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key forms-mode-map "\C-l" 'forms-jump-record)
   (define-key forms-mode-map "\C-n" 'forms-next-record)
   (define-key forms-mode-map "\C-p" 'forms-prev-record)
-  (define-key forms-mode-map "\C-s" 'forms-search)
+  (define-key forms-mode-map "\C-r" 'forms-search-backward)
+  (define-key forms-mode-map "\C-s" 'forms-search-forward)
   (define-key forms-mode-map "\C-x" 'forms-exit)
   (define-key forms-mode-map "<" 'forms-first-record)
   (define-key forms-mode-map ">" 'forms-last-record)
@@ -1236,22 +1241,118 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key forms-mode-ro-map "l" 'forms-jump-record)
   (define-key forms-mode-ro-map "n" 'forms-next-record)
   (define-key forms-mode-ro-map "p" 'forms-prev-record)
-  (define-key forms-mode-ro-map "s" 'forms-search)
+  (define-key forms-mode-ro-map "r" 'forms-search-backward)
+  (define-key forms-mode-ro-map "s" 'forms-search-forward)
   (define-key forms-mode-ro-map "x" 'forms-exit)
   (define-key forms-mode-ro-map "<" 'forms-first-record)
   (define-key forms-mode-ro-map ">" 'forms-last-record)
   (define-key forms-mode-ro-map "?" 'describe-mode)
   (define-key forms-mode-ro-map " " 'forms-next-record)
   (forms--mode-commands1 forms-mode-ro-map)
+  (forms--mode-menu-ro forms-mode-ro-map)
 
   ;; This is the normal, local map.
   (setq forms-mode-edit-map (make-keymap))
   (define-key forms-mode-edit-map "\t"   'forms-next-field)
   (define-key forms-mode-edit-map "\C-c" forms-mode-map)
   (forms--mode-commands1 forms-mode-edit-map)
+  (forms--mode-menu-edit forms-mode-edit-map)
   )
 
-(defun forms--mode-commands1 (map)
+(defun forms--mode-menu-ro (map)
+;;; Menu initialisation
+;  (define-key map [menu-bar] (make-sparse-keymap))
+  (define-key map [menu-bar forms]
+    (cons "Forms" (make-sparse-keymap "Forms")))
+  (define-key map [menu-bar forms menu-forms-exit]
+    '("Exit" . forms-exit))
+  (define-key map [menu-bar forms menu-forms-sep1]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-save]
+    '("Save data" . forms-save-buffer))
+  (define-key map [menu-bar forms menu-forms-print]
+    '("Print data" . forms-print))
+  (define-key map [menu-bar forms menu-forms-describe]
+    '("Describe mode" . describe-mode))
+  (define-key map [menu-bar forms menu-forms-toggle-ro]
+    '("Toggle View/Edit" . forms-toggle-read-only))
+  (define-key map [menu-bar forms menu-forms-jump-record]
+    '("Jump" . forms-jump-record))
+  (define-key map [menu-bar forms menu-forms-search-backward]
+    '("Search backward" . forms-search-backward))
+  (define-key map [menu-bar forms menu-forms-search-forward]
+    '("Search forward" . forms-search-forward))
+  (define-key map [menu-bar forms menu-forms-delete-record]
+    '("Delete" . forms-delete-record))
+  (define-key map [menu-bar forms menu-forms-insert-record]
+    '("Insert" . forms-insert-record))
+  (define-key map [menu-bar forms menu-forms-sep2]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-last-record]
+    '("Last record" . forms-last-record))
+  (define-key map [menu-bar forms menu-forms-first-record]
+    '("First record" . forms-first-record))
+  (define-key map [menu-bar forms menu-forms-prev-record]
+    '("Previous record" . forms-prev-record))
+  (define-key map [menu-bar forms menu-forms-next-record]
+    '("Next record" . forms-next-record))
+  (define-key map [menu-bar forms menu-forms-sep3]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-prev-field]
+    '("Previous field" . forms-prev-field))
+  (define-key map [menu-bar forms menu-forms-next-field]
+    '("Next field" . forms-next-field))
+  (put 'forms-insert-record 'menu-enable '(not forms-read-only))
+  (put 'forms-delete-record 'menu-enable '(not forms-read-only))
+)
+(defun forms--mode-menu-edit (map)
+;;; Menu initialisation
+;  (define-key map [menu-bar] (make-sparse-keymap))
+  (define-key map [menu-bar forms]
+    (cons "Forms" (make-sparse-keymap "Forms")))
+  (define-key map [menu-bar forms menu-forms-edit--exit]
+    '("Exit" . forms-exit))
+  (define-key map [menu-bar forms menu-forms-edit-sep1]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-edit-save]
+    '("Save data" . forms-save-buffer))
+  (define-key map [menu-bar forms menu-forms-edit-print]
+    '("Print data" . forms-print))
+  (define-key map [menu-bar forms menu-forms-edit-describe]
+    '("Describe mode" . describe-mode))
+  (define-key map [menu-bar forms menu-forms-edit-toggle-ro]
+    '("Toggle View/Edit" . forms-toggle-read-only))
+  (define-key map [menu-bar forms menu-forms-edit-jump-record]
+    '("Jump" . forms-jump-record))
+  (define-key map [menu-bar forms menu-forms-edit-search-backward]
+    '("Search backward" . forms-search-backward))
+  (define-key map [menu-bar forms menu-forms-edit-search-forward]
+    '("Search forward" . forms-search-forward))
+  (define-key map [menu-bar forms menu-forms-edit-delete-record]
+    '("Delete" . forms-delete-record))
+  (define-key map [menu-bar forms menu-forms-edit-insert-record]
+    '("Insert" . forms-insert-record))
+  (define-key map [menu-bar forms menu-forms-edit-sep2]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-edit-last-record]
+    '("Last record" . forms-last-record))
+  (define-key map [menu-bar forms menu-forms-edit-first-record]
+    '("First record" . forms-first-record))
+  (define-key map [menu-bar forms menu-forms-edit-prev-record]
+    '("Previous record" . forms-prev-record))
+  (define-key map [menu-bar forms menu-forms-edit-next-record]
+    '("Next record" . forms-next-record))
+  (define-key map [menu-bar forms menu-forms-edit-sep3]
+    '("----"))
+  (define-key map [menu-bar forms menu-forms-edit-prev-field]
+    '("Previous field" . forms-prev-field))
+  (define-key map [menu-bar forms menu-forms-edit-next-field]
+    '("Next field" . forms-next-field))
+  (put 'forms-insert-record 'menu-enable '(not forms-read-only))
+  (put 'forms-delete-record 'menu-enable '(not forms-read-only))
+)
+
+(defun forms--mode-commands1 (map) 
   "Helper routine to define keys."
   (define-key map [TAB] 'forms-next-field)
   (define-key map [S-tab] 'forms-prev-field)
@@ -1694,10 +1795,10 @@ it is called to fill (some of) the fields with default values."
 	(forms-jump-record forms--current-record)))
   (message ""))
 
-(defun forms-search (regexp)
-  "Search REGEXP in file buffer."
+(defun forms-search-forward (regexp)
+  "Search forward for record containing REGEXP."
   (interactive 
-   (list (read-string (concat "Search for" 
+   (list (read-string (concat "Search forward for" 
 				  (if forms--search-regexp
 				   (concat " ("
 					   forms--search-regexp
@@ -1714,6 +1815,38 @@ it is called to fill (some of) the fields with default values."
 	  (setq here (point))
 	  (end-of-line)
 	  (if (null (re-search-forward regexp nil t))
+	      (progn
+		(goto-char here)
+		(message (concat "\"" regexp "\" not found."))
+		nil)
+	    (setq the-record (forms--get-record))
+	    (setq the-line (1+ (count-lines (point-min) (point))))))
+	(progn
+	  (setq forms--current-record the-line)
+	  (forms--show-record the-record)
+	  (re-search-forward regexp nil t))))
+  (setq forms--search-regexp regexp))
+
+(defun forms-search-backward (regexp)
+  "Search backward for record containing REGEXP."
+  (interactive 
+   (list (read-string (concat "Search backward for" 
+				  (if forms--search-regexp
+				   (concat " ("
+					   forms--search-regexp
+					   ")"))
+				  ": "))))
+  (if (equal "" regexp)
+      (setq regexp forms--search-regexp))
+  (forms--checkmod)
+
+  (let (the-line the-record here
+		 (fld-sep forms-field-sep))
+    (if (save-excursion
+	  (set-buffer forms--file-buffer)
+	  (setq here (point))
+	  (beginning-of-line)
+	  (if (null (re-search-backward regexp nil t))
 	      (progn
 		(goto-char here)
 		(message (concat "\"" regexp "\" not found."))
@@ -1802,6 +1935,32 @@ Calls `forms-write-file-filter' before writing out the data."
 		    (throw 'done t))))))
 	nil
       (goto-char (aref forms--markers (1- (length forms--markers)))))))
+
+(defun forms-print ()
+  "Send the records to the printer with 'print-buffer', one record per page."
+  (interactive)
+  (let ((inhibit-read-only t)
+	(save-record forms--current-record)
+	(nb-record 1)
+	(record nil))
+    (while (<= nb-record forms--total-records)
+      (forms-jump-record nb-record)
+      (setq record (buffer-string))
+      (save-excursion
+	(set-buffer (get-buffer-create "*forms-print*"))
+	(goto-char (buffer-end 1))
+	(insert record)
+	(setq buffer-read-only nil)
+	(if (< nb-record forms--total-records)
+	    (insert "\n\n")))
+      (setq nb-record (1+ nb-record)))
+    (save-excursion
+      (set-buffer "*forms-print*")
+      (print-buffer)
+      (set-buffer-modified-p nil)
+      (kill-buffer (current-buffer)))
+    (forms-jump-record save-record)))
+
 ;;;
 ;;; Special service
 ;;;
