@@ -209,5 +209,5 @@ sub identify_unix {
  }
  &comvar("c_version", "gcc -v", "version");
  &comvar("OS", "uname", "");
- &comvar("arch", "arch", "");
+ &comvar("arch", "uname -a", "");
 }
