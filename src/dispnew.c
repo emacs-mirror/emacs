@@ -5920,7 +5920,8 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 			   Blinking cursor
  ***********************************************************************/
 
-DEFUN ("show-cursor", Fshow_cursor, Sshow_cursor, 0, 2, 0,
+DEFUN ("internal-show-cursor", Finternal_show_cursor,
+       Sinternal_show_cursor, 0, 2, 0,
   "Change visibility flag of the text cursor of WINDOW.\n\
 ON_P nil means toggle the flag.  Otherwise, ON_P must be an integer,\n\
 and the flag is set according to the value of ON_P.  WINDOW nil or\n\
@@ -5970,7 +5971,7 @@ syms_of_display ()
   defsubr (&Ssit_for);
   defsubr (&Ssleep_for);
   defsubr (&Ssend_string_to_terminal);
-  defsubr (&Sshow_cursor);
+  defsubr (&Sinternal_show_cursor);
 
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
