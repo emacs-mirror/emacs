@@ -2692,9 +2692,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    struct frame *f = x_window_to_frame (event.xclient.window);
 
 		    if (f)
-		      if (numchars > 0)
-			{
-			}
+		      {
+			if (numchars == 0)
+			  abort ();
+
+			bufp->kind = delete_window_event;
+			XSET (bufp->frame_or_window, Lisp_Frame, f);
+			bufp++;
+
+			count += 1;
+			numchars -= 1;
+		      }
 		  }
 	      }
 	    else if (event.xclient.message_type == Xatom_wm_configure_denied)
@@ -2703,9 +2711,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    else if (event.xclient.message_type == Xatom_wm_window_moved)
 	      {
 		int new_x, new_y;
-
+		struct frame *f = x_window_to_frame (event.xclient.window);
+		
 		new_x = event.xclient.data.s[0];
 		new_y = event.xclient.data.s[1];
+
+		if (f)
+		  {
+		    f->display.x->left_pos = new_x;
+		    f->display.x->top_pos = new_y;
+		  }
 	      }
 	  }
 	  break;
@@ -4326,7 +4341,9 @@ x_set_mouse_position (f, x, y)
 x_focus_on_frame (f)
      struct frame *f;
 {
+#if 0  /* This proves to be unpleasant.  */
   x_raise_frame (f);
+#endif
 #if 0
   /* I don't think that the ICCCM allows programs to do things like this
      without the interaction of the window manager.  Whatever you end up
