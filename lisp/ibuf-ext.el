@@ -896,6 +896,13 @@ of replacing the current filters."
 		       ibuffer-saved-filters nil t))))
   (setq ibuffer-filtering-qualifiers (list (cons 'saved name)))
   (ibuffer-update nil t))
+
+(defun ibuffer-format-filter-group-data (filter)
+  (if (equal filter "Default")
+      ""
+    (concat "Filter: " (mapconcat #'ibuffer-format-qualifier
+				  (cdr (assq filter ibuffer-filter-groups))
+				  " ") "\n")))
   
 (defun ibuffer-format-qualifier (qualifier)
   (if (eq (car-safe qualifier) 'not)
