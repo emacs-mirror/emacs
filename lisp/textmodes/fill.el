@@ -565,7 +565,9 @@ space does not end a sentence, so don't break a line there."
 		;; further fills will assume it ends a sentence.
 		;; If we now know it does not end a sentence,
 		;; avoid putting it at the end of the line.
-		(while (and (> (point) linebeg) (fill-nobreak-p))
+		(while (and (> (point) linebeg)
+			    (fill-nobreak-p)
+			    (skip-chars-backward " \t"))
 		  (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
 		      (forward-char 1)))
 		;; If the left margin and fill prefix by themselves
