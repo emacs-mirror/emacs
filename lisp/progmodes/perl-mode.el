@@ -72,14 +72,16 @@
 ;; 2)  The globbing syntax <pattern> is not recognized, so special
 ;;       characters in the pattern string must be backslashed.
 ;; 3)  The q, qq, and << quoting operators are not recognized; see below.
-;; 4)  \ (backslash) always quotes the next character, so '\' is
-;;       treated as the start of a string.  Use "\\" as a work-around.
-;; 5)  To make variables such a $' and $#array work, perl-mode treats
-;;       $ just like backslash, so '$' is the same as problem 5.
-;; 6)  Unfortunately, treating $ like \ makes ${var} be treated as an
-;;       unmatched }.  See below.
+;; 5)  To make '$' work correctly, $' is not recognized as a variable.
+;;     Use "$'" or $POSTMATCH instead.
 ;; 7)  When ' (quote) is used as a package name separator, perl-mode
 ;;       doesn't understand, and thinks it is seeing a quoted string.
+;;
+;; If you don't use font-lock, additional problems will appear:
+;; 5)  To make variables such a $' and $#array work, perl-mode treats
+;;       $ just like backslash, so '$' is not treated correctly.
+;; 6)  Unfortunately, treating $ like \ makes ${var} be treated as an
+;;       unmatched }.  See below.
 
 ;; Here are some ugly tricks to bypass some of these problems:  the perl
 ;; expression /`/ (that's a back-tick) usually evaluates harmlessly,
@@ -116,7 +118,7 @@
     (define-key map "\177" 'backward-delete-char-untabify)
     (define-key map "\t" 'perl-indent-command)
     map)
-  "Keymap used in `perl-mode'.")
+  "Keymap used in Perl mode.")
 
 (autoload 'c-macro-expand "cmacexp"
   "Display the result of expanding all C macros occurring in the region.
@@ -211,6 +213,17 @@ The expansion is entirely correct because it uses the C preprocessor."
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
   "Default expressions to highlight in Perl mode.")
 
+(defvar perl-font-lock-syntactic-keywords
+  ;; Turn POD into b-style comments
+  '(("^\\(=\\)\\(head1\\|pod\\)\\([ \t]\\|$\\)" (1 "< b"))
+    ("^=cut[ \t]*\\(\n\\)" (1 "> b"))
+    ;; Catch ${ so that ${var} doesn't screw up indentation.
+    ("\\(\\$\\)[{']" (1 "."))))
+
+(defun perl-font-lock-syntactic-face-function (state)
+  (if (nth 3 state)
+      font-lock-string-face
+    (if (nth 7 state) font-lock-doc-face font-lock-comment-face)))
 
 (defcustom perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block."
@@ -327,11 +340,15 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   ;; Tell font-lock.el how to handle Perl.
-  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '((perl-font-lock-keywords
 			      perl-font-lock-keywords-1
 			      perl-font-lock-keywords-2)
-			     nil nil ((?\_ . "w"))))
+			     nil nil ((?\_ . "w")) nil
+			     (font-lock-syntactic-keywords
+			      . perl-font-lock-syntactic-keywords)
+			     (font-lock-syntactic-face-function
+			      . perl-font-lock-syntactic-face-function)
+			     (parse-sexp-lookup-properties . t)))
   ;; Tell imenu how to handle Perl.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression perl-imenu-generic-expression)
@@ -480,6 +497,24 @@ changed by, or (parse-state) if line starts in a quoted string."
 	(goto-char (- (point-max) pos)))
     shift-amt))
 
+(defun perl-continuation-line-p (limit)
+  "Move to end of previous line and return non-nil if continued."
+  ;; Statement level.  Is it a continuation or a new statement?
+  ;; Find previous non-comment character.
+  (perl-backward-to-noncomment)
+  ;; Back up over label lines, since they don't
+  ;; affect whether our line is a continuation.
+  (while (or (eq (preceding-char) ?\,)
+	     (and (eq (preceding-char) ?:)
+		  (memq (char-syntax (char-after (- (point) 2)))
+			'(?w ?_))))
+    (if (eq (preceding-char) ?\,)
+	(perl-backward-to-start-of-continued-exp limit)
+      (beginning-of-line))
+    (perl-backward-to-noncomment))
+  ;; Now we get the answer.
+  (not (memq (preceding-char) '(?\; ?\} ?\{))))
+
 (defun perl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Perl code.
 In usual case returns an integer: the column to indent to.
@@ -528,26 +563,18 @@ Returns (parse-state) if line starts inside a string."
 	     (current-column))
 	    (t
 	     ;; Statement level.  Is it a continuation or a new statement?
-	     ;; Find previous non-comment character.
-	     (perl-backward-to-noncomment)
-	     ;; Back up over label lines, since they don't
-	     ;; affect whether our line is a continuation.
-	     (while (or (eq (preceding-char) ?\,)
-			(and (eq (preceding-char) ?:)
-			     (memq (char-syntax (char-after (- (point) 2)))
-				   '(?w ?_))))
-	       (if (eq (preceding-char) ?\,)
-		   (perl-backward-to-start-of-continued-exp containing-sexp)
-		 (beginning-of-line))
-	       (perl-backward-to-noncomment))
-	     ;; Now we get the answer.
-	     (if (not (memq (preceding-char) '(?\; ?\} ?\{)))
+	     (if (perl-continuation-line-p containing-sexp)
 		 ;; This line is continuation of preceding line's statement;
 		 ;; indent  perl-continued-statement-offset  more than the
 		 ;; previous line of the statement.
 		 (progn
 		   (perl-backward-to-start-of-continued-exp containing-sexp)
-		   (+ perl-continued-statement-offset (current-column)
+		   (+ (if (save-excursion
+			    (perl-continuation-line-p containing-sexp))
+			  ;; If the continued line is itself a continuation
+			  ;; line, then align, otherwise add an offset.
+			  0 perl-continued-statement-offset)
+		      (current-column)
 		      (if (save-excursion (goto-char indent-point)
 					  (looking-at "[ \t]*{"))
 			  perl-continued-brace-offset 0)))
