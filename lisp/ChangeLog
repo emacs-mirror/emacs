@@ -1,3 +1,9 @@
+2002-04-29  Colin Walters  <walters@verbum.org>
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
+	Test whether or not update-game-score is setuid, and do the right
+	thing.
+
 2002-04-29  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (remove-yank-excluded-properties): New helper function.

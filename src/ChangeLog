@@ -1,3 +1,8 @@
+2002-04-28  Colin Walters  <walters@verbum.org>
+
+	* callproc.c (Vgame_score_directory): Default to
+	"~/.emacs.d/games".
+
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textprop.c (remove_properties): Don't use XCAR without CONSP.
