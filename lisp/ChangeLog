@@ -1,5 +1,7 @@
 2002-11-05  Juanma Barranquero  <lektu@terra.es>
 
+	* language/cyrillic.el ("Bulgarian"): Fix typo.
+
 	* international/mule.el (coding-system-eol-type-mnemonic): Move from
 	mule-util.el.
 
