@@ -264,9 +264,11 @@ system."
 When this command is called interactively, it reads SYMBOL from the minibuffer.
 In the minibuffer, use M-n to yank the default argument value
 into the minibuffer so you can edit it.
-The default symbol is the one found at point."
+The default symbol is the one found at point.
+
+With prefix arg a query for the symbol help mode is offered."
   (interactive
-   (info-lookup-interactive-arguments 'symbol))
+   (info-lookup-interactive-arguments 'symbol current-prefix-arg))
   (info-lookup 'symbol symbol mode))
 
 ;;;###autoload
@@ -275,16 +277,21 @@ The default symbol is the one found at point."
 When this command is called interactively, it reads FILE from the minibuffer.
 In the minibuffer, use M-n to yank the default file name
 into the minibuffer so you can edit it.
-The default file name is the one found at point."
+The default file name is the one found at point.
+
+With prefix arg a query for the file help mode is offered."
   (interactive
-   (info-lookup-interactive-arguments 'file))
+   (info-lookup-interactive-arguments 'file current-prefix-arg))
   (info-lookup 'file file mode))
 
-(defun info-lookup-interactive-arguments (topic)
-  "Read and return argument value (and help mode) for help topic TOPIC."
-  (let* ((mode (if (info-lookup->mode-value topic (info-lookup-select-mode))
-		   info-lookup-mode
-		 (info-lookup-change-mode topic)))
+(defun info-lookup-interactive-arguments (topic &optional query)
+  "Read and return argument value (and help mode) for help topic TOPIC.
+If optional argument QUERY is non-nil, query for the help mode."
+  (let* ((mode (cond (query
+		      (info-lookup-change-mode topic))
+		     ((info-lookup->mode-value topic (info-lookup-select-mode))
+		      info-lookup-mode)
+		     ((info-lookup-change-mode topic))))
 	 (completions (info-lookup->completions topic mode))
 	 (default (info-lookup-guess-default topic mode))
 	 (completion-ignore-case (info-lookup->ignore-case topic mode))
@@ -331,7 +338,8 @@ The default file name is the one found at point."
 	(modes (info-lookup->all-modes topic mode))
 	(window (selected-window))
 	found doc-spec node prefix suffix doc-found)
-    (if (not info-lookup-other-window-flag)
+    (if (or (not info-lookup-other-window-flag)
+	    (eq (current-buffer) (get-buffer "*info*")))
 	(info)
       (save-window-excursion (info))
       (switch-to-buffer-other-window "*info*"))
