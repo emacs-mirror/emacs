@@ -263,7 +263,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs
+etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          Thien-Thi Nguyen
