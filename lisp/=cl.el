@@ -1940,8 +1940,9 @@ updating called for."
            (prin1-to-string accessfn)))
   ;; update properties
   (list 'progn
-        (list 'put (list 'quote accessfn)
-              :setf-update-fn (list 'function updatefn))
+	(list 'eval-and-compile
+	      (list 'put (list 'quote accessfn)
+		    :setf-update-fn (list 'function updatefn)))
         (list 'put (list 'quote accessfn) :setf-update-doc docstring)
         ;; any better thing to return?
         (list 'quote accessfn)))
