@@ -29,9 +29,9 @@ all:
 install:;	- mkdir $(INSTALL_DIR)\lisp
 		- del /q .\same-dir.tst
 		- del /q $(INSTALL_DIR)\lisp\same-dir.tst
-		echo SameDirTest > .\same-dir.tst
-		if not exist $(INSTALL_DIR)\lisp\same-dir.tst $(CP_DIR) . $(INSTALL_DIR)\lisp
-		- del /q .\same-dir.tst
+		echo SameDirTest > $(INSTALL_DIR)\lisp\same-dir.tst
+		if not exist .\same-dir.tst $(CP_DIR) . $(INSTALL_DIR)\lisp
+		- del /q $(INSTALL_DIR)\lisp\same-dir.tst
 		
 
 #
