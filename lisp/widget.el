@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.84
+;; Version: 1.90
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -44,8 +44,8 @@
 	     (set (car keywords) (car keywords)))
 	 (setq keywords (cdr keywords)))))))
 
-(define-widget-keywords :text-format :deactivate :active :inactive 
-  :activate :sibling-args :delete-button-args
+(define-widget-keywords :prompt-value :text-format :deactivate :active
+  :inactive :activate :sibling-args :delete-button-args
   :insert-button-args :append-button-args :button-args 
   :tag-glyph :off-glyph :on-glyph :valid-regexp
   :secret :sample-face :sample-face-get :case-fold :widget-doc 
@@ -66,9 +66,11 @@
   (autoload 'widget-apply "wid-edit")
   (autoload 'widget-create "wid-edit")
   (autoload 'widget-insert "wid-edit")
+  (autoload 'widget-prompt-value "wid-edit")
   (autoload 'widget-browse "wid-browse" nil t)
   (autoload 'widget-browse-other-window "wid-browse" nil t)
-  (autoload 'widget-browse-at "wid-browse" nil t))
+  (autoload 'widget-browse-at "wid-browse" nil t)
+  (autoload 'widget-minor-mode "wid-browse" nil t))
 
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.
@@ -85,7 +87,8 @@ create identical widgets:
 
 The third argument DOC is a documentation string for the widget."
   (put name 'widget-type (cons class args))
-  (put name 'widget-documentation doc))
+  (put name 'widget-documentation doc)
+  name)
 
 ;;; The End.
 
