@@ -222,10 +222,15 @@ address, and postmaster of the mail relay used."
 	 (cond ((eq uce-mail-reader 'gnus) gnus-original-article-buffer)
 	       ((eq uce-mail-reader 'rmail) "RMAIL")
 	       (t (error 
-		   "Variable uce-mail-reader set to unrecognized value")))))
+		   "Variable uce-mail-reader set to unrecognized value"))))
+	(full-header-p (and (eq uce-mail-reader 'rmail)
+			    (not (rmail-msg-is-pruned)))))
     (or (get-buffer message-buffer)
 	(error (concat "No buffer " message-buffer ", cannot find UCE")))
     (switch-to-buffer message-buffer)
+    ;; We need the message with headers pruned.
+    (if full-header-p
+	(rmail-toggle-header 1))
     (let ((to (mail-strip-quoted-names (mail-fetch-field "from" t)))
 	  (reply-to (mail-fetch-field "reply-to"))
 	  temp)
@@ -254,6 +259,9 @@ address, and postmaster of the mail relay used."
 		 (rmail-maybe-set-message-counters)
 		 (copy-region-as-kill (rmail-msgbeg rmail-current-message) 
 				      (rmail-msgend rmail-current-message))))))
+      ;; Restore the pruned header state we found.
+      (if full-header-p
+	  (rmail-toggle-header 0))
       (switch-to-buffer "*mail*")
       (erase-buffer)
       (setq temp (point))

@@ -1,3 +1,13 @@
+2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/uce.el (uce-reply-to-uce): Prune the headers before copying
+	the message text into the *mail* buffer, and restore the pruned
+	state after that.
+
+	* mail/rmail.el (rmail-redecode-body): Prune the headers before
+	looking for X-Coding-System header, and restore the pruned state
+	before returning.
+
 2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-edit.el (customize-save-variable): Fix typo in prompt.
