@@ -1,18 +1,32 @@
 2004-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/flymake.el: Use (featurep 'xemacs).
-	(flymake-makehash): Change to defsubst. Use fboundp.
+	(flymake-makehash): Change to defsubst.  Use fboundp.
 	(flymake-time-to-float): Remove.
 	(flymake-float-time): Merge code from flymake-time-to-float here.
 	(flymake-replace-regexp-in-string): Change to defsubst.
-	(flymake-split-string-remove-empty-edges): Rename to flymake-split-string.
+	(flymake-split-string-remove-empty-edges):
+	Rename to flymake-split-string.
 	(flymake-split-string): Remove previous defalias.
 	(flymake-get-temp-dir): Change to defsubst.
-	(flymake-make-xemacs-menu, flymake-xemacs-window-edges): Define
-	for xemacs only.
+	(flymake-make-xemacs-menu, flymake-xemacs-window-edges):
+	Define for xemacs only.
 	(flymake-master-file-count-limit): Change into compiler defvar only.
 	(flymake-find-possible-master-files): Let-bind it dynamically while
 	sorting files using flymake-master-file-compare.
+
+2004-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-compile-keywords): Don't complain if the end
+	of defun-prompt-regexp matches inside a comment/string but the
+	beginning is correctly outside everything.
+
+	* progmodes/tcl.el (tcl-omit-ws-regexp): Avoid the case where { or [
+	appears within a string or a comment.
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause, labels): Use gensym
+	rather than make-symbol for symbols which are used in
+	a symbol-macrolet or equivalent.
 
 2004-11-26  Jay Belanger  <belanger@truman.edu>
 
@@ -29,8 +43,7 @@
 	(calc-one-window, calc-edit-handler, calc-restore-trail)
 	(calc-allow-ret): Declare them.
 
-	* calc/calc-stuff.el (calc-flush-caches): Remove unnecessary
-	variables.
+	* calc/calc-stuff.el (calc-flush-caches): Remove unnecessary variables.
 	(math-lud-cache, math-log2-cache, math-radix-digits-cache)
 	(math-radix-float-cache-tag, math-random-cache)
 	(math-max-digits-cache, math-integral-cache, math-units-table)
@@ -47,8 +60,7 @@
 	Replace variable pos by declared variable.
 
 	* calc/calc-mtx.el (calc-det-lu): New variable.
-	(math-det-raw, math-det-step): Replace variable lu by declared
-	variable.
+	(math-det-raw, math-det-step): Replace variable lu by declared variable.
 
 	* calc/calc-map.el (math-ms-temp, math-ms-args): New variables.
 	(math-multi-subst, math-multi-subst-rec): Replace variables temp
@@ -62,8 +74,7 @@
 	(calc-digit-value): Declare them.
 
 	* calc/calc-help.el (Info-history): Declare it.
-	(calc-describe-key): Make calc-summary-indentation a local
-	variable.
+	(calc-describe-key): Make calc-summary-indentation a local variable.
 	(calc-help-long-names): Move declaration to earlier in file.
 
 	* calc/calc-embed.el (calc-original-buffer): Declare it.
@@ -71,9 +82,8 @@
 	(calc-embed-bot): New variables.
 	(calc-do-embedded, calc-embedded-mark-formula)
 	(calc-embedded-find-bounds, calc-embedded-duplicate)
-	(calc-embedded-new-formula, calc-embedded-make-info): Replace
-	variables outer-top, outer-bot, bot and top by declared
-	variables.
+	(calc-embedded-new-formula, calc-embedded-make-info):
+	Replace vars outer-top, outer-bot, bot and top by declared variables.
 	(calc-embed-prev-modes): New variable.
 	(calc-embedded-set-modes, calc-embedded-update): Replace variable
 	prev-modes with declared variable.
@@ -82,8 +92,7 @@
 	(calc-embedded-update, calc-embedded-find-vars): Replace variable
 	vars-used by declared variable.
 
-	* calc/calc-bin.el (math-format-radix-float): Make pos a local
-	variable.
+	* calc/calc-bin.el (math-format-radix-float): Make pos a local variable.
 	(math-format-radix-float): Remove unnecessary setq.
 	(math-radix-float-cache): Declare it.
 
