@@ -1,3 +1,8 @@
+2002-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (mode-line-inactive, header-line): Add the :inherit
+	attribute for the tty case.
+
 2002-02-17  stanislav shalunov  <shalunov@internet2.edu>
 
 	* mail/uce.el (uce-reply-to-uce): Fix incorrect behavior when
