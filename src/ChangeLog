@@ -1,3 +1,27 @@
+2003-04-09  Kenichi Handa  <handa@etlken2>
+
+	The following changes are to make the font rescaling facility
+	compatible with Emacs 21.
+
+	* xfaces.c (Vface_font_rescale_alist): Renamed from
+	Vface_resizing_fonts.
+	(struct font_name): Rename member resizing_ratio to rescale_ratio.
+	(font_rescale_ratio): Renamed from font_resizing_ratio.
+	(split_font_name): Set font->rescale_ratio.
+	(better_font_p): Pay attention to font->rescale_ratio.
+	(build_scalable_font_name): Likewise.  Change RESX, and RESY
+	fields.
+	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
+	variable.
+
+2003-03-28  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (Qutf_16_be_nosig, Qutf_16_be, Qutf_16_le_nosig)
+	(Qutf_16_le): Remove these variables.
+	(syms_of_coding): Don't DEFSYM them.
+	(decode_coding_utf_16): Fix handling of BOM.
+	(encode_coding_utf_16): Fix handling of BOM.
+
 2003-03-14  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): On replacing, before decoding
