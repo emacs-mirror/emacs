@@ -250,7 +250,8 @@ Move point to where the autoload section
 for %s should be inserted.
 Then do \\[exit-recursive-edit]."
 			      file))))
-	    (recursive-edit))
+	    (recursive-edit)
+	    (beginning-of-line))
 	  (generate-file-autoloads file)))
       (if (and (null existing-buffer)
 	       (setq existing-buffer (get-file-buffer file)))
