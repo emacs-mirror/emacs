@@ -1,3 +1,7 @@
+2001-07-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.el (gnus-local-domain): Removed because unused.
+
 2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* qp.el (quoted-printable-decode-region): If called interactively,
