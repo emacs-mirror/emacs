@@ -242,6 +242,7 @@ then
   echo "Updating Info files"
   (cd man; make -f Makefile.in srcdir=. info)
   (cd lispref; make -f Makefile.in srcdir=. info)
+  (cd lispintro; make -f Makefile.in srcdir=. info)
 
   echo "Updating finder, custom and autoload data"
   (cd lisp; make updates EMACS="$EMACS")
@@ -307,7 +308,7 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp site-lisp lispref \
+for subdir in lisp site-lisp lispref lispintro \
 	      leim real-leim real-leim/CXTERM-DIC real-leim/MISC-DIC \
 	      real-leim/SKK-DIC real-leim/ja-dic real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
@@ -611,6 +612,17 @@ echo "Making links to \`lispref'"
  cd ../${tempdir}/lispref
  rm -f \#*\# =* *~ core elisp-index* *.Z *.z xmail
  rm -f elisp.?? *.log *.toc *.dvi *.oaux)
+
+echo "Making links to \`lispintro'"
+(cd lispintro
+ ln *.texi *.aux *.cps *.fns *.kys *.vrs *.eps ../${tempdir}/lispintro
+ test -f texinfo.tex && ln texinfo.tex ../${tempdir}/lispintro
+ test -f README && ln README ../${tempdir}/lispintro
+ test -f Makefile.in && ln Makefile.in ../${tempdir}/lispintro
+ ln ChangeLog ../${tempdir}/lispintro
+ cd ../${tempdir}/lispintro
+ rm -f \#*\# =* *~ core *.Z *.z xmail
+ rm -f emacs-lisp-intro.?? *.log *.toc *.dvi *.oaux)
 
 echo "Making links to \`vms'"
 (cd vms
