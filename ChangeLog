@@ -1,3 +1,21 @@
+2003-05-20  Dave Love  <fx@gnu.org>
+
+	* configure.in: Append * to s390-*-linux-gnu case.
+	(LIBMAIL) <lockfile>: Don't define.
+
+2003-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
+
+2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* configure.in:  Undo last (RMS') change, as it is useless, per
+	Dave Love.
+
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Put #include of jpeglib.h at start of line.
+
 2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* INSTALL (* GNU/Linux development packages): Mention Debian and
