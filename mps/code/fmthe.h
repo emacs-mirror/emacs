@@ -29,10 +29,13 @@ extern mps_res_t HeaderFormatCheck(mps_addr_t addr);
 #define ALIGN sizeof(mps_word_t)    /* alignment for Dylan format */
 
 
-#define headerSIZE (8)
+#define headerSIZE (32)
+#define headerTypeBits 1
 #define realTYPE 0
-#define pad1TYPE 1
-#define pad2TYPE 2
-
+#define realHeader realTYPE
+#define padTYPE  1
+#define headerType(header) ((header) & ((1 << headerTypeBits) - 1))
+#define headerPadSize(header) ((header) >> headerTypeBits)
+#define padHeader(size) ((size << headerTypeBits) | padTYPE)
 
 #endif /* fmthe_h */

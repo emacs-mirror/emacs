@@ -153,7 +153,7 @@ static mps_addr_t make(void)
     res = init(userP, size, exactRoots, exactRootsCOUNT);
     if (res)
       die(res, "dylan_init");
-    ((int*)p)[0] = realTYPE;
+    ((int*)p)[0] = realHeader;
     ((int*)p)[1] = 0xED0ED;
   } while(!mps_commit(ap, p, size + headerSIZE));
 
