@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate August 29, 1999
+@set lastupdate September 15, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -119,8 +119,10 @@ and then contact the Guile developers at @email{guile@@gnu.org}.
 A package to convert programs written using MS Access into Scheme,
 making use of a free data base system and the GTK toolkit.
 
+@ignore
 @item
 Help develop XmHTML.  See @uref{http://www.xs4all.nl/~ripley/XmHTML/}.
+@end ignore
 
 @item
 Help develop software to emulate Windows NT on top of GNU systems.
@@ -189,6 +191,9 @@ A reference manual for the GNU Hurd features in GNU libc.
 
 @item
 A manual for writing Hurd servers.
+
+@item
+A manual for GNU sed.
 
 @item
 Reference manuals for C++, Objective C, Pascal, Fortran 77, and Java.
@@ -372,9 +377,11 @@ GNU program for music typesetting.
 @item
 An ear-training program for students of music.
 
+@ignore  @c GNUskies should do this
 @item
 An ephemeris program to replace xephem (which is, alas, too restricted
 to qualify as free software).
+@end ignore
 
 @item
 A program to edit dance notation (such as labanotation) and display
@@ -385,6 +392,11 @@ Make sure the Vibrant toolkit works with LessTif instead of Motif.
 
 @item
 A program to display and edit Hypercard stacks.
+
+@item
+A two-dimensional outliner program, which lets you draw
+graph structures of textual items, and then display them
+in various ways.
 
 @item
 A program for graphic morphing of scanned photographs.
@@ -478,9 +490,11 @@ An imitation of @code{dbase2} or @code{dbase3}.  (How dbased!)
 @uref{http://www.startech.keller.tx.us/xbase/xbase.html} may contain
 some useful stuff to start with.
 
+@ignore  @c being done by Jonas etc.
 @item
 A general ledger program, including support for accounts payable, 
 account receivables, payroll, inventory control, order processing, etc.
+@end ignore
 
 @item
 A free replacement for Glimpse, which is not free software.
