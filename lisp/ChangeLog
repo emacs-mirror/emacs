@@ -1,3 +1,10 @@
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-math.el (calc-arctan, calc-tanh, calc-arctanh):
+	Removed extra definitions.
+	(calc-coth): New function.
+	(calcFunc-cot): Fix `let'.
+
 2005-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* faces.el (escape-glyph, minibuffer-prompt): Add commentary for
