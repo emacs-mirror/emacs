@@ -1,3 +1,8 @@
+2002-05-26  Simon Josefsson  <jas@extundo.com>
+
+	* fringe.el (set-fringe-mode): Work when updating
+	`default-frame-alist'.
+
 2002-05-26  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--repeat-replace-text): New variable.
