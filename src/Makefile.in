@@ -1061,7 +1061,7 @@ category.o: category.c category.h buffer.h charset.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
 charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
 	$(config_h)
-coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h window.h $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h window.h frame.h termhooks.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
 	msdos.h dispextern.h
@@ -1089,8 +1089,8 @@ filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h charset.h fontset.h \
-   msdos.h dosfns.h dispextern.h $(config_h)
-fringe.o: fringe.c dispextern.h frame.h window.h buffer.h $(config_h)
+   msdos.h dosfns.h dispextern.h termchar.h $(config_h)
+fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h charset.h frame.h \
    keyboard.h termhooks.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
@@ -1153,17 +1153,17 @@ w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    $(srcdir)/../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
-   termhooks.h disptab.h keyboard.h dispextern.h msdos.h composite.h \
+   disptab.h keyboard.h dispextern.h msdos.h composite.h \
    $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
    msdos.h composite.h fontset.h blockinput.h atimer.h systime.h keymap.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h \
-   termchar.h $(config_h)
+   termchar.h termhooks.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   charset.h gtkutil.h termchar.h $(config_h)
+   charset.h gtkutil.h termchar.h termhooks.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h \
    gtkutil.h msdos.h coding.h $(config_h)
@@ -1172,7 +1172,7 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
   keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
   coding.h process.h gtkutil.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
-  buffer.h atimer.h systime.h $(config_h)
+  buffer.h atimer.h systime.h termhooks.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
@@ -1209,7 +1209,7 @@ composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
-sunfns.o: sunfns.c buffer.h window.h dispextern.h $(config_h)
+sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
 
 #ifdef HAVE_CARBON
 abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \

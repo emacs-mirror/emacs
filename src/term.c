@@ -619,7 +619,8 @@ tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
    return value is the number of bytes store in DST.  */
 
 int
-encode_terminal_code (src, dst, src_len, dst_len, consumed)
+encode_terminal_code (coding, src, dst, src_len, dst_len, consumed)
+     struct coding_system *coding;
      struct glyph *src;
      int src_len;
      unsigned char *dst;
@@ -634,13 +635,12 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   int result;
-  struct coding_system *coding;
 
-  /* If terminal_coding does any conversion, use it, otherwise use
+  /* If the specified coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
-     because it always return 1 if the member src_multibyte is 1.  */
-  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
-	    ? &terminal_coding
+     because it always returns 1 if the member src_multibyte is 1.  */
+  coding = (coding->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? coding
 	    : &safe_terminal_coding);
 
   while (src < src_end)
@@ -757,7 +757,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  FRAME_TERMINAL_CODING (f)->mode &= ~CODING_MODE_LAST_BLOCK;
 
   while (len > 0)
     {
@@ -778,7 +778,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 	  /* We use a fixed size (1024 bytes) of conversion buffer.
 	     Usually it is sufficient, but if not, we just repeat the
 	     loop.  */
-	  produced = encode_terminal_code (string, conversion_buffer,
+	  produced = encode_terminal_code (FRAME_TERMINAL_CODING (f),
+                                           string, conversion_buffer,
 					   n, conversion_buffer_size,
 					   &consumed);
 	  if (produced > 0)
@@ -802,19 +803,21 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
     }
 
   /* We may have to output some codes to terminate the writing.  */
-  if (CODING_REQUIRE_FLUSHING (&terminal_coding))
+  if (CODING_REQUIRE_FLUSHING (FRAME_TERMINAL_CODING (f)))
     {
-      terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&terminal_coding, "", conversion_buffer,
-		     0, conversion_buffer_size);
-      if (terminal_coding.produced > 0)
+      FRAME_TERMINAL_CODING (f)->mode |= CODING_MODE_LAST_BLOCK;
+      encode_coding (FRAME_TERMINAL_CODING (f), "",
+                     conversion_buffer, 0, conversion_buffer_size);
+      if (FRAME_TERMINAL_CODING (f)->produced > 0)
 	{
-	  fwrite (conversion_buffer, 1, terminal_coding.produced,
+	  fwrite (conversion_buffer, 1,
+                  FRAME_TERMINAL_CODING (f)->produced,
                   tty->output);
 	  if (ferror (tty->output))
 	    clearerr (tty->output);
 	  if (tty->termscript)
-	    fwrite (conversion_buffer, 1, terminal_coding.produced,
+	    fwrite (conversion_buffer, 1,
+                    FRAME_TERMINAL_CODING (f)->produced,
 		    tty->termscript);
 	}
     }
@@ -859,7 +862,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
   turn_on_insert (tty);
   cmplus (tty, len);
   /* The bit CODING_MODE_LAST_BLOCK should be set to 1 only at the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  FRAME_TERMINAL_CODING (f)->mode &= ~CODING_MODE_LAST_BLOCK;
   while (len-- > 0)
     {
       int produced, consumed;
@@ -888,7 +891,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
 	  if (len <= 0)
 	    /* This is the last glyph.  */
-	    terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
+	    FRAME_TERMINAL_CODING (f)->mode |= CODING_MODE_LAST_BLOCK;
 
 	  /* The size of conversion buffer (1024 bytes) is surely
 	     sufficient for just one glyph.  */
@@ -3105,19 +3108,27 @@ mark_ttys ()
 struct display *
 create_display (void)
 {
-  struct display *dev = (struct display *) xmalloc (sizeof (struct display));
+  struct display *display = (struct display *) xmalloc (sizeof (struct display));
   
-  bzero (dev, sizeof (struct display));
-  dev->next_display = display_list;
-  display_list = dev;
+  bzero (display, sizeof (struct display));
+  display->next_display = display_list;
+  display_list = display;
 
-  return dev;
+  display->keyboard_coding =
+    (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  display->terminal_coding =
+    (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  
+  setup_coding_system (Qnil, display->keyboard_coding);
+  setup_coding_system (Qnil, display->terminal_coding);
+  
+  return display;
 }
 
 /* Remove a display from the display list and free its memory. */
 
 void
-delete_display (struct display *dev)
+delete_display (struct display *display)
 {
   struct display **dp;
   Lisp_Object tail, frame;
@@ -3127,19 +3138,24 @@ delete_display (struct display *dev)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && f->display == dev)
+      if (FRAME_LIVE_P (f) && f->display == display)
         {
           Fdelete_frame (frame, Qt);
         }
     }
 
-  for (dp = &display_list; *dp != dev; dp = &(*dp)->next_display)
+  for (dp = &display_list; *dp != display; dp = &(*dp)->next_display)
     if (! *dp)
       abort ();
-  *dp = dev->next_display;
+  *dp = display->next_display;
 
-  bzero (dev, sizeof (struct display));
-  xfree (dev);
+  if (display->keyboard_coding)
+    xfree (display->keyboard_coding);
+  if (display->terminal_coding)
+    xfree (display->terminal_coding);
+
+  bzero (display, sizeof (struct display));
+  xfree (display);
 }
 
 

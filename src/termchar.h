@@ -70,6 +70,11 @@ struct tty_display_info
   /* The previous terminal frame we displayed on this tty.  */
   struct frame *previous_terminal_frame;
 
+#ifdef MULTI_KBOARD
+  /* The terminal's keyboard object. */
+  struct kboard *kboard;
+#endif  
+
   /* Strings, numbers and flags taken from the termcap entry.  */
 
   char *TS_ins_line;		/* "al" */
@@ -185,10 +190,6 @@ struct tty_display_info
   /* Nonzero means use ^S/^Q for flow control.  */
   int flow_control;
 
-#ifdef MULTI_KBOARD
-  /* The terminal's keyboard object. */
-  struct kboard *kboard;
-#endif  
 };
 
 /* A chain of structures for all tty devices currently in use. */

@@ -296,6 +296,17 @@ struct display
   } display_info;
 
 
+  /* Coding-system to be used for encoding terminal output.  This
+     structure contains information of a coding-system specified by
+     the function `set-terminal-coding-system'.  Also see
+     `safe_terminal_coding' in coding.h.  */
+  struct coding_system *terminal_coding;
+
+  /* Coding-system of what is sent from terminal keyboard.  This
+     structure contains information of a coding-system specified by
+     the function `set-keyboard-coding-system'.  */
+  struct coding_system *keyboard_coding;
+
   /* Terminal characteristics. */
   /* XXX Are these really used on non-termcap displays? */
   
@@ -528,6 +539,9 @@ extern struct display *display_list;
 #define FRAME_SCROLL_REGION_OK(f) ((f)->display->scroll_region_ok)
 #define FRAME_SCROLL_REGION_COST(f) ((f)->display->scroll_region_cost)
 #define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display->memory_below_frame)
+
+#define FRAME_TERMINAL_CODING(f) ((f)->display->terminal_coding)
+#define FRAME_KEYBOARD_CODING(f) ((f)->display->keyboard_coding)
 
 #define FRAME_RIF(f) ((f)->display->rif)
 

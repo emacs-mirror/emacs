@@ -16357,8 +16357,8 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
-	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
-	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
+	    p = decode_mode_spec_coding (FRAME_KEYBOARD_CODING (f)->symbol, p, 0);
+	    p = decode_mode_spec_coding (FRAME_TERMINAL_CODING (f)->symbol, p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
 				     p, eol_flag);
