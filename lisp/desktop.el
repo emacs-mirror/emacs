@@ -783,9 +783,18 @@ This function always sets `desktop-enable' to t."
   (when (eq major-mode 'dired-mode)
     (eval-when-compile (defvar dirname))
     (cons
-      ;; dired directory in portable form
-      (file-name-as-directory (desktop-file-name dired-directory dirname))
-      (cdr (nreverse (mapcar (function car) dired-subdir-alist))))))
+     ;; Value of `dired-directory'.
+     (if (consp dired-directory)
+	 ;; Directory name followed by list of files.
+	 (cons (desktop-file-name (car dired-directory) dirname) (cdr dired-directory))
+       ;; Directory name, optionally with with shell wildcard.
+       (desktop-file-name dired-directory dirname))
+     ;; Subdirectories in `dired-subdir-alist'.
+     (cdr
+      (nreverse
+       (mapcar
+	(function (lambda (f) (desktop-file-name (car f) dirname)))
+	dired-subdir-alist))))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-info () "Load an info file."
@@ -823,14 +832,19 @@ This function always sets `desktop-enable' to t."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (eq 'dired-mode desktop-buffer-major-mode)
-      (if (file-directory-p (file-name-directory (car desktop-buffer-misc)))
-	  (progn
-            (dired (car desktop-buffer-misc))
-	    (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
-	    (current-buffer))
-	(message "Directory %s no longer exists." (car desktop-buffer-misc))
-	(sit-for 1)
-	'ignored)))
+      ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
+      ;; This value is a directory name, optionally with with shell wildcard or
+      ;; a directory name followed by list of files.
+      (let* ((dired-directory (car desktop-buffer-misc))
+	     (dir (if (consp dired-directory) (car dired-directory) dired-directory)))
+	(if (file-directory-p (file-name-directory dir))
+	    (progn
+	      (dired dired-directory)
+	      (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+	      (current-buffer))
+	  (message "Directory %s no longer exists." dir)
+	  (sit-for 1)
+	  'ignored))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-file ()
