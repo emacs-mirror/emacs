@@ -768,7 +768,7 @@ List}.
 
 The @code{switch-to-buffer} function is often used interactively, as
 the binding of @kbd{C-x b}.  It is also used frequently in programs.  It
-always returns @code{nil}.
+returns the buffer that it switched to.
 @end deffn
 
 @deffn Command switch-to-buffer-other-window buffer-or-name &optional norecord
@@ -791,7 +791,7 @@ unless @var{norecord} is non-@code{nil}.
 This function makes @var{buffer-or-name} the current buffer and
 switches to it in some window, preferably not the window previously
 selected.  The ``popped-to'' window becomes the selected window within
-its frame.
+its frame.  The return value is the buffer that was switched to.
 
 If the variable @code{pop-up-frames} is non-@code{nil},
 @code{pop-to-buffer} looks for a window in any visible frame already
