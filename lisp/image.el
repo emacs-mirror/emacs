@@ -24,6 +24,12 @@
 
 ;;; Code:
 
+
+(defgroup image ()
+  "Image support."
+  :group 'multimedia)
+
+
 (defconst image-type-regexps
   '(("^/\\*.*XPM.\\*/" . xpm)
     ("^P[1-6]" . pbm)
