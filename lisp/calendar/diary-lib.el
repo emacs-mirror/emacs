@@ -1,4 +1,4 @@
-;;; diary.el --- diary functions.
+;;; diary-lib.el --- diary functions.
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995 Free Software Foundation,
 ;; Inc.
@@ -1368,6 +1368,6 @@ Prefix arg will make the entry nonmarking."
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
 
-(provide 'diary)
+(provide 'diary-lib)
 
-;;; diary.el ends here
+;;; diary-lib.el ends here
