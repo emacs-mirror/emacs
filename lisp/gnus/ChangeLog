@@ -1,3 +1,8 @@
+2002-05-09  Miles Bader  <miles@gnu.org>
+
+	* gnus-cite.el (gnus-cite-blank-line-after-header): New variable.
+	(gnus-article-hide-citation): Respect it.
+
 2002-04-12  Juanma Barranquero  <lektu@terra.es>
 
 	* pop3.el (pop3-open-server): Fix typo.
@@ -95,7 +100,7 @@
 
 	* mml.el (mml-preview): Bind `q'.
 	
-2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* binhex.el (binhex-decoder-switches): Doc fix.
 
@@ -139,7 +144,7 @@
 	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 
 	Adapt face definitions to use :weight and :slant.
 
-2001-12-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* gnus-mlspl.el (gnus-group-split-fancy): Doc fix (add reference
 	to variable, follow doc-string conventions).
@@ -215,7 +220,7 @@
 
 	* gnus-score.el: Fixed some doc strings to properly quote symbols.
 
-2001-11-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* gnus.el (gnus-local-domain): Reformat the doc-string to refer to
 	function `system-name' instead of both function and variable.
@@ -333,7 +338,7 @@
 	* imap.el (imap-mailbox-examine, imap-mailbox-examine-1): Fix a
 	typo: `exmine' --> `examine'.
 
-2001-08-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* earcon.el (earcon-auto-play): Remove unused option.
 
@@ -377,7 +382,7 @@
 	(gnus-ask-server-for-new-groups): Ditto.
 	(gnus-check-first-time-used): Ditto.
 
-2001-07-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* gnus-setup.el (gnus-use-installed-gnus): Fix a typo.
 
@@ -3113,7 +3118,7 @@
 	* gnus-draft.el (gnus-draft-send): Move gnus-draft-setup inside of
 	let.
 
-2000-04-26  Pavel Jan,Bm(Bk <Pavel@Janik.cz>
+2000-04-26  Pavel Jan,Am(Bk <Pavel@Janik.cz>
 
 	* gnus-draft.el (gnus-draft-setup): Fix comments.
 
