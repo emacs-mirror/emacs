@@ -6,13 +6,13 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.31 2003/07/08 03:28:42 teirllm Exp $
+@comment $Id: info.texi,v 1.6 2003/07/08 12:17:59 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002
+Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 Free Software Foundation, Inc.
 
 @quotation
@@ -782,13 +782,14 @@ items in a menu, also move between cross references outside of menus.
 other words another ``manual''), or, on occasion, even a file on a
 remote machine (although Info files distributed with Emacs or the
 stand-alone Info avoid using remote links).  Such a cross reference
-looks like this: @xref{Overview,,,texinfo}.  (After following this
-link, type @kbd{l} to get back to this node.)  Here the name
-@samp{texinfo} between parentheses (shown in the stand-alone version)
-refers to the file name.  This file name appears in cross references
-and node names if it differs from the current file.  In Emacs, the
-file name is hidden (along with other text).  (Use @kbd{M-x
-visible-mode} to show or hide it.)
+looks like this: @xref{Top,, Overview of Texinfo, texinfo, Texinfo:
+The GNU Documentation Format}.  (After following this link, type
+@kbd{l} to get back to this node.)  Here the name @samp{texinfo}
+between parentheses (shown in the stand-alone version) refers to the
+file name.  This file name appears in cross references and node names
+if it differs from the current file.  In Emacs, the file name is
+hidden (along with other text).  (Use @kbd{M-x visible-mode} to show
+or hide it.)
 
   The remainder of this node applies only to the Emacs version.  If
 you use the stand-alone version, you can type @kbd{n} immediately.
