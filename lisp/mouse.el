@@ -581,6 +581,7 @@ regardless of where you click."
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
   (setq this-command 'yank)
+  (setq mouse-selection-click-count 0)
   (yank arg))
 
 (defun mouse-kill-ring-save (click)
