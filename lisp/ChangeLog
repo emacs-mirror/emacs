@@ -1,3 +1,8 @@
+2003-06-07  Jason Rumney  <jasonr@gnu.org>
+
+	* mwheel.el (mouse-wheel-up-event, mouse-wheel-down-event): 
+	Use wheel-* events on darwin.
+
 2003-06-06  Era Eriksson  <era@iki.fi>  (tiny change)
 
 	* shell.el (shell-resync-dirs): Tolerate an extra line of output
