@@ -2198,6 +2198,8 @@ See also `c-font-lock-extra-types'.")
 	     "typeid"
 	     ;; Branko Cibej <branko.cibej@hermes.si> says this is new.
 	     "export"
+	     ;; Copied from C.  wsnyder@wsnyder.org says C++ needs it too.
+	     "restrict"
 	     ;; Mark Mitchell <mmitchell@usa.net> says these are new.
 	     "mutable" "explicit"
 	     ;; Alain Picard <ap@abelard.apana.org.au> suggests treating these
