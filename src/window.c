@@ -2129,27 +2129,27 @@ temp_output_buffer_show (buf)
       XSETFASTINT (w->hscroll, 0);
       set_marker_restricted (w->start, make_number (1), buf);
       set_marker_restricted (w->pointm, make_number (1), buf);
-    }
 
-  /* Run temp-buffer-show-hook, with the chosen window selected.  */ 
-  if (!NILP (Vrun_hooks))
-    {
-      Lisp_Object tem;
-      tem = Fboundp (Qtemp_buffer_show_hook);
-      if (!NILP (tem))
+      /* Run temp-buffer-show-hook, with the chosen window selected.  */ 
+      if (!NILP (Vrun_hooks))
 	{
-	  tem = Fsymbol_value (Qtemp_buffer_show_hook);
+	  Lisp_Object tem;
+	  tem = Fboundp (Qtemp_buffer_show_hook);
 	  if (!NILP (tem))
 	    {
-	      int count = specpdl_ptr - specpdl;
+	      tem = Fsymbol_value (Qtemp_buffer_show_hook);
+	      if (!NILP (tem))
+		{
+		  int count = specpdl_ptr - specpdl;
 
-	      /* Select the window that was chosen, for running the hook.  */
-	      record_unwind_protect (Fset_window_configuration,
-				     Fcurrent_window_configuration (Qnil));
+		  /* Select the window that was chosen, for running the hook.  */
+		  record_unwind_protect (Fset_window_configuration,
+					 Fcurrent_window_configuration (Qnil));
 
-	      Fselect_window (window);
-	      call1 (Vrun_hooks, Qtemp_buffer_show_hook);
-	      unbind_to (count, Qnil);
+		  Fselect_window (window);
+		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
+		  unbind_to (count, Qnil);
+		}
 	    }
 	}
     }
@@ -3381,7 +3381,9 @@ syms_of_window ()
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
     "Non-nil means call as function to display a help buffer.\n\
 The function is called with one argument, the buffer to be displayed.\n\
-Used by `with-output-to-temp-buffer'.");
+Used by `with-output-to-temp-buffer'.\n\
+If this function is used, then it must do the entire job of showing\n\
+the buffer; `temp-buffer-show-hook' is not run unless this function runs it.");
   Vtemp_buffer_show_function = Qnil;
 
   DEFVAR_LISP ("display-buffer-function", &Vdisplay_buffer_function,
