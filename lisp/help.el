@@ -444,7 +444,7 @@ With numeric argument, display information on correspondingly older changes."
 		     (t
 		      (nth (- arg 2)
 			   (nreverse (directory-files data-directory
-						      nil "^NEWS\\.[0-9]+$"
+						      nil "^ONEWS\\.[0-9]+$"
 						      nil)))))))
     (if file
 	(find-file-read-only (expand-file-name file data-directory))
