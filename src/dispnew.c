@@ -3312,7 +3312,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   if (FRAME_MSDOS_P (f))
     set_terminal_modes (FRAME_DISPLAY (f));
 #endif
-  clear_frame ();
+  clear_frame (f);
   clear_current_matrices (f);
   update_end (f);
   if (FRAME_TERMCAP_P (f))
@@ -3622,9 +3622,9 @@ direct_output_for_insert (g)
   else
     {
       if (glyphs == end - n)
-	write_glyphs (glyphs, n);
+	write_glyphs (f, glyphs, n);
       else
-	insert_glyphs (glyphs, n);
+	insert_glyphs (f, glyphs, n);
     }
 
   w->cursor.hpos += n;
@@ -3647,7 +3647,7 @@ direct_output_for_insert (g)
 	      ? XFASTINT (w->left_margin_cols)
 	      : 0));
       y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
-      cursor_to (y, x);
+      cursor_to (f, y, x);
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3747,7 +3747,7 @@ direct_output_forward_char (n)
 	      ? XFASTINT (w->left_margin_cols)
 	      : 0));
       y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
-      cursor_to (y, x);
+      cursor_to (f, y, x);
     }
 
   if (FRAME_TERMCAP_P (f))
@@ -5234,7 +5234,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		}
 	    }
 
-	  cursor_to (row, col);
+	  cursor_to (f, row, col);
 	}
       else
 	{
@@ -5256,7 +5256,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		x += XFASTINT (w->left_margin_cols);
 
 	      /* x = max (min (x, FRAME_TOTAL_COLS (f) - 1), 0); */
-	      cursor_to (y, x);
+	      cursor_to (f, y, x);
 	    }
 	}
     }
@@ -5472,8 +5472,8 @@ update_frame_line (f, vpos)
       /* Write the contents of the desired line.  */
       if (nlen)
 	{
-          cursor_to (vpos, 0);
-	  write_glyphs (nbody, nlen);
+          cursor_to (f, vpos, 0);
+	  write_glyphs (f, nbody, nlen);
 	}
 
       /* Don't call clear_end_of_line if we already wrote the whole
@@ -5481,13 +5481,13 @@ update_frame_line (f, vpos)
 	 case but in the line below.  */
       if (nlen < FRAME_TOTAL_COLS (f))
 	{
-	  cursor_to (vpos, nlen);
-          clear_end_of_line (FRAME_TOTAL_COLS (f));
+	  cursor_to (f, vpos, nlen);
+          clear_end_of_line (f, FRAME_TOTAL_COLS (f));
 	}
       else
 	/* Make sure we are in the right row, otherwise cursor movement
 	   with cmgoto might use `ch' in the wrong row.  */
-	cursor_to (vpos, 0);
+	cursor_to (f, vpos, 0);
 
       make_current (desired_matrix, current_matrix, vpos);
       return;
@@ -5519,8 +5519,8 @@ update_frame_line (f, vpos)
 		++j;
 
 	      /* Output this run of non-matching chars.  */
-	      cursor_to (vpos, i);
-	      write_glyphs (nbody + i, j - i);
+	      cursor_to (f, vpos, i);
+	      write_glyphs (f, nbody + i, j - i);
 	      i = j - 1;
 
 	      /* Now find the next non-match.  */
@@ -5530,8 +5530,8 @@ update_frame_line (f, vpos)
       /* Clear the rest of the line, or the non-clear part of it.  */
       if (olen > nlen)
 	{
-	  cursor_to (vpos, nlen);
-	  clear_end_of_line (olen);
+	  cursor_to (f, vpos, nlen);
+	  clear_end_of_line (f, olen);
 	}
 
       /* Make current row = desired row.  */
@@ -5553,8 +5553,8 @@ update_frame_line (f, vpos)
 
       if (nlen > nsp)
 	{
-	  cursor_to (vpos, nsp);
-	  write_glyphs (nbody + nsp, nlen - nsp);
+	  cursor_to (f, vpos, nsp);
+	  write_glyphs (f, nbody + nsp, nlen - nsp);
 	}
 
       /* Exchange contents between current_frame and new_frame.  */
@@ -5626,8 +5626,8 @@ update_frame_line (f, vpos)
 
   if (osp > nsp)
     {
-      cursor_to (vpos, nsp);
-      delete_glyphs (osp - nsp);
+      cursor_to (f, vpos, nsp);
+      delete_glyphs (f, osp - nsp);
     }
   else if (nsp > osp)
     {
@@ -5636,12 +5636,12 @@ update_frame_line (f, vpos)
 	 must delete first to avoid losing data in the insert */
       if (endmatch && nlen < olen + nsp - osp)
 	{
-	  cursor_to (vpos, nlen - endmatch + osp - nsp);
-	  delete_glyphs (olen + nsp - osp - nlen);
+	  cursor_to (f, vpos, nlen - endmatch + osp - nsp);
+	  delete_glyphs (f, olen + nsp - osp - nlen);
 	  olen = nlen - (nsp - osp);
 	}
-      cursor_to (vpos, osp);
-      insert_glyphs (0, nsp - osp);
+      cursor_to (f, vpos, osp);
+      insert_glyphs (f, 0, nsp - osp);
     }
   olen += nsp - osp;
 
@@ -5662,8 +5662,8 @@ update_frame_line (f, vpos)
 	     unnecessary cursor movement.  */
 	  if (nlen - tem > 0)
 	    {
-	      cursor_to (vpos, nsp + begmatch);
-	      write_glyphs (nbody + nsp + begmatch, nlen - tem);
+	      cursor_to (f, vpos, nsp + begmatch);
+	      write_glyphs (f, nbody + nsp + begmatch, nlen - tem);
 	    }
 	}
       else if (nlen > olen)
@@ -5678,27 +5678,27 @@ update_frame_line (f, vpos)
 	  int out = olen - tem;	/* Columns to be overwritten originally.  */
 	  int del;
 
-	  cursor_to (vpos, nsp + begmatch);
+	  cursor_to (f, vpos, nsp + begmatch);
 
 	  /* Calculate columns we can actually overwrite.  */
 	  while (CHAR_GLYPH_PADDING_P (nbody[nsp + begmatch + out]))
 	    out--;
-	  write_glyphs (nbody + nsp + begmatch, out);
+	  write_glyphs (f, nbody + nsp + begmatch, out);
 
 	  /* If we left columns to be overwritten, we must delete them.  */
 	  del = olen - tem - out;
 	  if (del > 0)
-	    delete_glyphs (del);
+	    delete_glyphs (f, del);
 
 	  /* At last, we insert columns not yet written out.  */
-	  insert_glyphs (nbody + nsp + begmatch + out, nlen - olen + del);
+	  insert_glyphs (f, nbody + nsp + begmatch + out, nlen - olen + del);
 	  olen = nlen;
 	}
       else if (olen > nlen)
 	{
-	  cursor_to (vpos, nsp + begmatch);
-	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
-	  delete_glyphs (olen - nlen);
+	  cursor_to (f, vpos, nsp + begmatch);
+	  write_glyphs (f, nbody + nsp + begmatch, nlen - tem);
+	  delete_glyphs (f, olen - nlen);
 	  olen = nlen;
 	}
     }
@@ -5707,8 +5707,8 @@ update_frame_line (f, vpos)
   /* If any unerased characters remain after the new line, erase them.  */
   if (olen > nlen)
     {
-      cursor_to (vpos, nlen);
-      clear_end_of_line (olen);
+      cursor_to (f, vpos, nlen);
+      clear_end_of_line (f, olen);
     }
 
   /* Exchange contents between current_frame and new_frame.  */
@@ -6275,9 +6275,7 @@ terminate any keyboard macro currently executing.  */)
       if (noninteractive)
 	putchar (07);
       else
-	ring_bell ();
-      if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-        fflush (CURTTY ()->output);
+	ring_bell (XFRAME (selected_frame));
     }
   else
     bitch_at_user ();
@@ -6293,9 +6291,7 @@ bitch_at_user ()
   else if (!INTERACTIVE)  /* Stop executing a keyboard macro.  */
     error ("Keyboard macro terminated by a command ringing the bell");
   else
-    ring_bell ();
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-    fflush (CURTTY ()->output);
+    ring_bell (XFRAME (selected_frame));
 }
 
 

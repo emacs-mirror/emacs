@@ -1370,10 +1370,8 @@ x_set_tool_bar_lines (f, value, oldval)
      below the menu bar.  */
   if (FRAME_X_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      updating_frame = f;
-      clear_frame ();
+      clear_frame (f);
       clear_current_matrices (f);
-      updating_frame = NULL;
     }
 
   /* If the tool bar gets smaller, the internal border below it

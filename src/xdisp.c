@@ -13347,36 +13347,36 @@ try_window_id (w)
 	    {
 	      /* Scroll last_unchanged_at_beg_row to the end of the
 		 window down dvpos lines.  */
-	      set_terminal_window (end);
+	      set_terminal_window (f, end);
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
 	      if (!FRAME_SCROLL_REGION_OK (f))
-		ins_del_lines (end - dvpos, -dvpos);
+		ins_del_lines (f, end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
                  last_unchanged_at_beg_row.  */
-	      ins_del_lines (from, dvpos);
+	      ins_del_lines (f, from, dvpos);
 	    }
 	  else if (dvpos < 0)
 	    {
 	      /* Scroll up last_unchanged_at_beg_vpos to the end of
 		 the window to last_unchanged_at_beg_vpos - |dvpos|.  */
-	      set_terminal_window (end);
+	      set_terminal_window (f, end);
 
 	      /* Delete dvpos lines in front of
 		 last_unchanged_at_beg_vpos.  ins_del_lines will set
 		 the cursor to the given vpos and emit |dvpos| delete
 		 line sequences.  */
-	      ins_del_lines (from + dvpos, dvpos);
+	      ins_del_lines (f, from + dvpos, dvpos);
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
 	      if (!FRAME_SCROLL_REGION_OK (f))
-		ins_del_lines (end + dvpos, -dvpos);
+		ins_del_lines (f, end + dvpos, -dvpos);
 	    }
 
-	  set_terminal_window (0);
+	  set_terminal_window (f, 0);
 	}
 
       update_end (f);

@@ -171,11 +171,6 @@ int max_frame_cols;
 
 int max_frame_lines;
 
-/* Frame currently being redisplayed; 0 if not currently redisplaying.
-   (Direct output does not count).  */
-
-FRAME_PTR updating_frame;
-
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
 static int no_controlling_tty;
@@ -201,10 +196,8 @@ extern char *tgetstr ();
 #endif /* WINDOWSNT */
 
 void
-ring_bell ()
+ring_bell (struct frame *f)
 {
-  struct frame *f = XFRAME (selected_frame);
-
   if (!NILP (Vring_bell_function))
     {
       Lisp_Object function;
@@ -225,20 +218,20 @@ ring_bell ()
       Vring_bell_function = function;
     }
   else if (FRAME_DISPLAY (f)->ring_bell_hook)
-    (*FRAME_DISPLAY (f)->ring_bell_hook) ();
+    (*FRAME_DISPLAY (f)->ring_bell_hook) (f);
 }
 
 /* Ring the bell on a tty. */
 
 void
-tty_ring_bell ()
+tty_ring_bell (struct frame *f)
 {
-  struct frame *f = XFRAME (selected_frame);
   struct tty_display_info *tty = FRAME_TTY (f);
 
   OUTPUT (tty, (tty->TS_visible_bell && visible_bell
                 ? tty->TS_visible_bell
                 : tty->TS_bell));
+  fflush (tty->output);
 }
 
 /* Set up termcap modes for Emacs. */
@@ -282,7 +275,6 @@ void
 update_begin (f)
      struct frame *f;
 {
-  updating_frame = f;
   if (FRAME_DISPLAY (f)->update_begin_hook)
     (*FRAME_DISPLAY (f)->update_begin_hook) (f);
 }
@@ -293,7 +285,6 @@ update_end (f)
 {
   if (FRAME_DISPLAY (f)->update_end_hook)
     (*FRAME_DISPLAY (f)->update_end_hook) (f);
-  updating_frame = NULL;
 }
 
 /* Flag the end of a display update on a termcap display. */
@@ -315,36 +306,32 @@ tty_update_end (struct frame *f)
    that is bounded by calls to update_begin and update_end.  */
 
 void
-set_terminal_window (size)
+set_terminal_window (f, size)
+     struct frame *f;
      int size;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->set_terminal_window_hook)
-    (*FRAME_DISPLAY (f)->set_terminal_window_hook) (size);
+    (*FRAME_DISPLAY (f)->set_terminal_window_hook) (f, size);
 }
 
 /* The implementation of set_terminal_window for termcap frames. */
 
 void
-tty_set_terminal_window (int size)
+tty_set_terminal_window (struct frame *f, int size)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   struct tty_display_info *tty = FRAME_TTY (f);
 
   tty->specified_window = size ? size : FRAME_LINES (f);
   if (FRAME_SCROLL_REGION_OK (f))
-    set_scroll_region (0, tty->specified_window);
+    set_scroll_region (f, 0, tty->specified_window);
 }
 
 void
-set_scroll_region (start, stop)
+set_scroll_region (f, start, stop)
+     struct frame *f;
      int start, stop;
 {
   char *buf;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_set_scroll_region)
@@ -463,20 +450,17 @@ highlight_if_desired (struct tty_display_info *tty)
    frame-relative coordinates.  */
 
 void
-cursor_to (vpos, hpos)
+cursor_to (f, vpos, hpos)
+     struct frame *f;
      int vpos, hpos;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->cursor_to_hook)
-    (*FRAME_DISPLAY (f)->cursor_to_hook) (vpos, hpos);
+    (*FRAME_DISPLAY (f)->cursor_to_hook) (f, vpos, hpos);
 }
 
 void
-tty_cursor_to (int vpos, int hpos)
+tty_cursor_to (struct frame *f, int vpos, int hpos)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  
   struct tty_display_info *tty = FRAME_TTY (f);
 
   /* Detect the case where we are called from reset_sys_modes
@@ -497,20 +481,17 @@ tty_cursor_to (int vpos, int hpos)
 /* Similar but don't take any account of the wasted characters.  */
 
 void
-raw_cursor_to (row, col)
+raw_cursor_to (f, row, col)
+     struct frame *f;
      int row, col;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
-    (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (row, col);  
+    (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (f, row, col);  
 }
 
 void
-tty_raw_cursor_to (int row, int col)
+tty_raw_cursor_to (struct frame *f, int row, int col)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (curY (tty) == row
@@ -527,21 +508,18 @@ tty_raw_cursor_to (int row, int col)
 
 /* Clear from cursor to end of frame. */
 void
-clear_to_end ()
+clear_to_end (struct frame *f)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->clear_to_end_hook)
-    (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
+    (*FRAME_DISPLAY (f)->clear_to_end_hook) (f);
 }
 
 /* Clear from cursor to end of frame on a termcap device. */
 
 void
-tty_clear_to_end (void)
+tty_clear_to_end (struct frame *f)
 {
   register int i;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_clr_to_bottom)
@@ -553,8 +531,8 @@ tty_clear_to_end (void)
     {
       for (i = curY (tty); i < FRAME_LINES (f); i++)
 	{
-	  cursor_to (i, 0);
-	  clear_end_of_line (FRAME_COLS (f));
+	  cursor_to (f, i, 0);
+	  clear_end_of_line (f, FRAME_COLS (f));
 	}
     }
 }
@@ -562,21 +540,17 @@ tty_clear_to_end (void)
 /* Clear entire frame */
 
 void
-clear_frame ()
+clear_frame (struct frame *f)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->clear_frame_hook)
-    (*FRAME_DISPLAY (f)->clear_frame_hook) ();
+    (*FRAME_DISPLAY (f)->clear_frame_hook) (f);
 }
 
 /* Clear an entire termcap frame. */
 
 void
-tty_clear_frame ()
+tty_clear_frame (struct frame *f)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_clr_frame)
@@ -587,8 +561,8 @@ tty_clear_frame ()
     }
   else
     {
-      cursor_to (0, 0);
-      clear_to_end ();
+      cursor_to (f, 0, 0);
+      clear_to_end (f);
     }
 }
 
@@ -598,13 +572,12 @@ tty_clear_frame ()
    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
 void
-clear_end_of_line (first_unused_hpos)
+clear_end_of_line (f, first_unused_hpos)
+     struct frame *f;
      int first_unused_hpos;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
-    (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
+    (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (f, first_unused_hpos);
 }
 
 /* An implementation of clear_end_of_line for termcap frames.
@@ -612,10 +585,9 @@ clear_end_of_line (first_unused_hpos)
    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
 void
-tty_clear_end_of_line (int first_unused_hpos)
+tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
 {
   register int i;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty = FRAME_TTY (f);
 
   /* Detect the case where we are called from reset_sys_modes
@@ -763,26 +735,23 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
    Advance the nominal cursor over the text.  */
 
 void
-write_glyphs (string, len)
+write_glyphs (f, string, len)
+     struct frame *f;
      register struct glyph *string;
      register int len;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->write_glyphs_hook)
-    (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
+    (*FRAME_DISPLAY (f)->write_glyphs_hook) (f, string, len);
 }
 
 /* An implementation of write_glyphs for termcap frames. */
 
 void
-tty_write_glyphs (struct glyph *string, int len)
+tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 {
   int produced, consumed;
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
-
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -873,27 +842,25 @@ tty_write_glyphs (struct glyph *string, int len)
    If start is zero, insert blanks instead of a string at start */
 
 void
-insert_glyphs (start, len)
+insert_glyphs (f, start, len)
+     struct frame *f;
      register struct glyph *start;
      register int len;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (len <= 0)
     return;
 
   if (FRAME_DISPLAY (f)->insert_glyphs_hook)
-    (*FRAME_DISPLAY (f)->insert_glyphs_hook) (start, len);
+    (*FRAME_DISPLAY (f)->insert_glyphs_hook) (f, start, len);
 }
 
 /* An implementation of insert_glyphs for termcap frames. */
 
 void
-tty_insert_glyphs (struct glyph *start, int len)
+tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 {
   char *buf;
   struct glyph *glyph = NULL;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -903,7 +870,7 @@ tty_insert_glyphs (struct glyph *start, int len)
       OUTPUT1 (tty, buf);
       xfree (buf);
       if (start)
-	write_glyphs (start, len);
+	write_glyphs (f, start, len);
       return;
     }
 
@@ -972,23 +939,21 @@ tty_insert_glyphs (struct glyph *start, int len)
 /* Delete N glyphs at the nominal cursor position. */
 
 void
-delete_glyphs (n)
+delete_glyphs (f, n)
+     struct frame *f;
      register int n;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   if (FRAME_DISPLAY (f)->delete_glyphs_hook)
-    (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
+    (*FRAME_DISPLAY (f)->delete_glyphs_hook) (f, n);
 }
 
 /* An implementation of delete_glyphs for termcap frames. */
 
 void
-tty_delete_glyphs (int n)
+tty_delete_glyphs (struct frame *f, int n)
 {
   char *buf;
   register int i;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -1018,22 +983,19 @@ tty_delete_glyphs (int n)
 /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
 
 void
-ins_del_lines (vpos, n)
+ins_del_lines (f, vpos, n)
+     struct frame *f;
      int vpos, n;
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  
   if (FRAME_DISPLAY (f)->ins_del_lines_hook)
-    (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
+    (*FRAME_DISPLAY (f)->ins_del_lines_hook) (f, vpos, n);
 }
 
 /* An implementation of ins_del_lines for termcap frames. */
 
 void
-tty_ins_del_lines (int vpos, int n)
+tty_ins_del_lines (struct frame *f, int vpos, int n)
 {
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-
   struct tty_display_info *tty = FRAME_TTY (f);
   char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
   char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
@@ -1075,7 +1037,7 @@ tty_ins_del_lines (int vpos, int n)
     }
   else
     {
-      set_scroll_region (vpos, tty->specified_window);
+      set_scroll_region (f, vpos, tty->specified_window);
       if (n < 0)
         raw_cursor_to (tty->specified_window - 1, 0);
       else
@@ -1083,15 +1045,15 @@ tty_ins_del_lines (int vpos, int n)
       background_highlight (tty);
       while (--i >= 0)
         OUTPUTL (tty, scroll, tty->specified_window - vpos);
-      set_scroll_region (0, tty->specified_window);
+      set_scroll_region (f, 0, tty->specified_window);
     }
   
   if (!FRAME_SCROLL_REGION_OK (f)
       && FRAME_MEMORY_BELOW_FRAME (f)
       && n < 0)
     {
-      cursor_to (FRAME_LINES (f) + n, 0);
-      clear_to_end ();
+      cursor_to (f, FRAME_LINES (f) + n, 0);
+      clear_to_end (f);
     }
 }
 

@@ -344,7 +344,7 @@ static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
 static void XTset_terminal_modes P_ ((struct display *));
 static void XTreset_terminal_modes P_ ((struct display *));
-static void x_clear_frame P_ ((void));
+static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
@@ -2747,7 +2747,8 @@ x_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
    for X frames.  */
 
 static void
-x_delete_glyphs (n)
+x_delete_glyphs (f, n)
+     struct frame *f;
      register int n;
 {
   abort ();
@@ -2774,15 +2775,8 @@ x_clear_area (dpy, window, x, y, width, height, exposures)
    frame.  Otherwise clear the selected frame.  */
 
 static void
-x_clear_frame ()
+x_clear_frame (struct frame *f)
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -3032,7 +3026,8 @@ XTset_terminal_window (n)
    lines or deleting -N lines at vertical position VPOS.  */
 
 static void
-x_ins_del_lines (vpos, n)
+x_ins_del_lines (f, vpos, n)
+     struct frame *f;
      int vpos, n;
 {
   abort ();

@@ -329,26 +329,27 @@ struct display
   
   /* Text display hooks.  */
 
-  void (*cursor_to_hook) P_ ((int vpos, int hpos));
-  void (*raw_cursor_to_hook) P_ ((int, int));
+  void (*cursor_to_hook) P_ ((struct frame *f, int vpos, int hpos));
+  void (*raw_cursor_to_hook) P_ ((struct frame *, int, int));
   
-  void (*clear_to_end_hook) P_ ((void));
-  void (*clear_frame_hook) P_ ((void));
-  void (*clear_end_of_line_hook) P_ ((int));
+  void (*clear_to_end_hook) P_ ((struct frame *));
+  void (*clear_frame_hook) P_ ((struct frame *));
+  void (*clear_end_of_line_hook) P_ ((struct frame *, int));
   
-  void (*ins_del_lines_hook) P_ ((int, int));
+  void (*ins_del_lines_hook) P_ ((struct frame *f, int, int));
   
-  void (*insert_glyphs_hook) P_ ((struct glyph *s, int n));
-  void (*write_glyphs_hook) P_ ((struct glyph *s, int n));
-  void (*delete_glyphs_hook) P_ ((int));
+  void (*insert_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
+  void (*write_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
+  void (*delete_glyphs_hook) P_ ((struct frame *, int));
   
-  void (*ring_bell_hook) P_ ((void));
+  void (*ring_bell_hook) P_ ((struct frame *f));
   
   void (*reset_terminal_modes_hook) P_ ((struct display *));
   void (*set_terminal_modes_hook) P_ ((struct display *));
+
   void (*update_begin_hook) P_ ((struct frame *));
   void (*update_end_hook) P_ ((struct frame *));
-  void (*set_terminal_window_hook) P_ ((int));
+  void (*set_terminal_window_hook) P_ ((struct frame *, int));
 
   /* Multi-frame and mouse support hooks.  */
 
@@ -547,7 +548,6 @@ extern struct display *display_list;
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) (0)
 #endif
-
 
 extern struct display *create_display P_ ((void));
 extern void delete_display P_ ((struct display *));

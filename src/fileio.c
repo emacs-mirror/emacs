@@ -78,6 +78,8 @@ extern int errno;
 #include "charset.h"
 #include "coding.h"
 #include "window.h"
+#include "frame.h"
+#include "dispextern.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1
@@ -5619,7 +5621,7 @@ auto_save_error (error)
   int i, nbytes;
   struct gcpro gcpro1;
 
-  ring_bell ();
+  ring_bell (XFRAME (selected_frame));
 
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = current_buffer->name;

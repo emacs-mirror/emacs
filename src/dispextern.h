@@ -968,10 +968,6 @@ extern int fonts_changed_p;
 
 extern struct glyph space_glyph;
 
-/* Frame being updated by update_window/update_frame.  */
-
-extern struct frame *updating_frame;
-
 /* Window being updated by update_window.  This is non-null as long as
    update_window has not finished, and null otherwise.  It's role is
    analogous to updating_frame.  */
@@ -2777,8 +2773,8 @@ void clear_glyph_row P_ ((struct glyph_row *));
 void prepare_desired_row P_ ((struct glyph_row *));
 int line_hash_code P_ ((struct glyph_row *));
 void set_window_update_flags P_ ((struct window *, int));
-void write_glyphs P_ ((struct glyph *, int));
-void insert_glyphs P_ ((struct glyph *, int));
+void write_glyphs P_ ((struct frame *, struct glyph *, int));
+void insert_glyphs P_ ((struct frame *, struct glyph *, int));
 void redraw_frame P_ ((struct frame *));
 void redraw_garbaged_frames P_ ((void));
 int scroll_cost P_ ((struct frame *, int, int, int));
@@ -2797,20 +2793,20 @@ extern Lisp_Object Qredisplay_dont_pause;
 
 /* Defined in term.c */
 
-extern void ring_bell P_ ((void));
+extern void ring_bell P_ ((struct frame *));
 extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
-extern void set_terminal_window P_ ((int));
-extern void set_scroll_region P_ ((int, int));
+extern void set_terminal_window P_ ((struct frame *, int));
+extern void set_scroll_region P_ ((struct frame *, int, int));
 extern void turn_off_insert P_ ((struct tty_display_info *));
 extern void turn_off_highlight P_ ((struct tty_display_info *));
 extern void background_highlight P_ ((struct tty_display_info *));
-extern void clear_frame P_ ((void));
-extern void clear_end_of_line P_ ((int));
-extern void clear_end_of_line_raw P_ ((int));
-extern void tty_clear_end_of_line P_ ((int));
-extern void delete_glyphs P_ ((int));
-extern void ins_del_lines P_ ((int, int));
+extern void clear_frame P_ ((struct frame *));
+extern void clear_end_of_line P_ ((struct frame *, int));
+extern void clear_end_of_line_raw P_ ((struct frame *, int));
+extern void tty_clear_end_of_line P_ ((struct frame *, int));
+extern void delete_glyphs P_ ((struct frame *, int));
+extern void ins_del_lines P_ ((struct frame *, int, int));
 extern int string_cost P_ ((char *));
 extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
@@ -2822,7 +2818,7 @@ extern struct display *init_initial_display P_ ((void));
 extern struct display *term_init P_ ((char *, char *, int));
 extern void delete_tty P_ ((struct display *));
 extern void fatal P_ ((/* char *, ... */));
-extern void cursor_to P_ ((int, int));
+extern void cursor_to P_ ((struct frame *, int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
 extern void tty_set_terminal_modes P_ ((struct display *));
 extern void tty_reset_terminal_modes P_ ((struct display *));
