@@ -5007,8 +5007,12 @@ mark_object (arg)
 	    struct Lisp_Overlay *ptr = XOVERLAY (obj);
 	    mark_object (ptr->start);
 	    mark_object (ptr->end);
-	    obj = ptr->plist;
-	    goto loop;
+	    mark_object (ptr->plist);
+	    if (ptr->next)
+	      {
+		XSETMISC (obj, ptr->next);
+		goto loop;
+	      }
 	  }
 	  break;
 
@@ -5062,7 +5066,7 @@ mark_buffer (buf)
      Lisp_Object buf;
 {
   register struct buffer *buffer = XBUFFER (buf);
-  register Lisp_Object *ptr;
+  register Lisp_Object *ptr, tmp;
   Lisp_Object base_buffer;
 
   VECTOR_MARK (buffer);
@@ -5104,6 +5108,17 @@ mark_buffer (buf)
     }
   else
     mark_object (buffer->undo_list);
+
+  if (buffer->overlays_before)
+    {
+      XSETMISC (tmp, buffer->overlays_before);
+      mark_object (tmp);
+    }
+  if (buffer->overlays_after)
+    {
+      XSETMISC (tmp, buffer->overlays_after);
+      mark_object (tmp);
+    }
 
   for (ptr = &buffer->name;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
