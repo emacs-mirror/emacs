@@ -1779,12 +1779,14 @@ displayed.");
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
     "Alist of default values for frame creation.\n\
 These may be set in your init file, like this:\n\
-  (setq default-frame-alist '((width . 80) (height . 55)))\n\
-These override values given in window system configuration data, like\n\
-X Windows' defaults database.\n\
+  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
+These override values given in window system configuration data,\n\
+ including X Windows' defaults database.\n\
 For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
 For values specific to the separate minibuffer frame, see\n\
-`minibuffer-frame-alist'.");
+ `minibuffer-frame-alist'.\n\
+The `menu-bar-lines' element of the list controls whether new frames\n\
+ have menu bars; `menu-bar-mode' works by altering this element.")
   Vdefault_frame_alist = Qnil;
 
   defsubr (&Sframep);
