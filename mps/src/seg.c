@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.18) $
+ * $HopeName: MMsrc!seg.c(trunk.19) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.18) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.19) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -186,16 +186,25 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   }
   AVER(addr == seg->limit);
 
-  RingInit(&seg->poolRing);
+  RingInit(SegPoolRing(seg));
 
   /* Class specific initialization cames last */
   res = class->init(seg, pool, base, size, withReservoirPermit, args);
-  if (ResOK != res)
-    return res;
+  if(res != ResOK) {
+    goto failInit;
+  }
     
   AVERT(Seg, seg);
   RingAppend(&pool->segRing, SegPoolRing(seg));
   return ResOK;
+
+failInit:
+  RingFinish(SegPoolRing(seg));
+  seg->sig = SigInvalid;
+  TRACT_FOR(tract, addr, arena, base, limit) {
+    TRACT_UNSET_SEG(tract);
+  }
+  return res;
 }
 
 
