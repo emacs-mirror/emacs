@@ -152,7 +152,7 @@ in the file it applies to."
 					 (cons '(--- "---") (cdr x))))
 				   outline-mode-menu-bar-map))))))
     map))
-	      
+
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
@@ -213,6 +213,9 @@ in the file it applies to."
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
 
+(defvar outline-mode-hook nil
+  "*This hook is run when outline mode starts.")
+
 ;;;###autoload
 (define-derived-mode outline-mode text-mode "Outline"
   "Set major mode for editing outlines with selective display.
@@ -268,7 +271,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
        '(outline-font-lock-keywords t nil nil backward-paragraph))
   (setq imenu-generic-expression
 	(list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0)))
-  (add-hook 'change-major-mode-hook 'show-all nil t))
+  (add-hook 'change-major-mode-hook 'show-all nil t)
+  (run-hooks 'outline-mode-hook))
 
 (defcustom outline-minor-mode-prefix "\C-c@"
   "*Prefix key to use for Outline commands in Outline minor mode.
@@ -440,10 +444,10 @@ in the region."
 			  (save-match-data
 			    (outline-up-heading 1 t)
 			    (match-string 0))))))
-      
+
       (unless (rassoc level outline-heading-alist)
 	(push (cons head level) outline-heading-alist))
-      
+
       (replace-match up-head nil t)))))
 
 (defun outline-demote (&optional children)
@@ -555,7 +559,7 @@ the match data is set appropriately."
   "Move the currrent subtree down past ARG headlines of the same level."
   (interactive "p")
   (let ((re (concat "^" outline-regexp))
-	(movfunc (if (> arg 0) 'outline-get-next-sibling 
+	(movfunc (if (> arg 0) 'outline-get-next-sibling
 		   'outline-get-last-sibling))
 	(ins-point (make-marker))
 	(cnt (abs arg))
@@ -563,8 +567,8 @@ the match data is set appropriately."
     ;; Select the tree
     (outline-back-to-heading)
     (setq beg (point))
-    (save-match-data 
-      (save-excursion (outline-end-of-heading) 
+    (save-match-data
+      (save-excursion (outline-end-of-heading)
 		      (setq folded (outline-invisible-p)))
       (outline-end-of-subtree))
     (if (= (char-after) ?\n) (forward-char 1))
@@ -578,7 +582,7 @@ the match data is set appropriately."
       (setq cnt (1- cnt)))
     (if (> arg 0)
 	;; Moving forward - still need to move over subtree
-	(progn (outline-end-of-subtree) 
+	(progn (outline-end-of-subtree)
 	       (if (= (char-after) ?\n) (forward-char 1))))
     (move-marker ins-point (point))
     (insert (delete-and-extract-region beg end))
@@ -657,7 +661,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	;; reveal do the rest, by simply doing:
 	;; (remove-overlays (overlay-start o) (overlay-end o)
 	;;                  'invisible 'outline)
-	;; 
+	;;
 	;; That works fine as long as everything is in sync, but if the
 	;; structure of the document is changed while revealing parts of it,
 	;; the resulting behavior can be ugly.  I.e. we need to make
