@@ -1159,13 +1159,6 @@ internal_equal (o1, o2, depth)
       if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
 		XSTRING (o1)->size))
 	return 0;
-#ifdef USE_TEXT_PROPERTIES
-      /* If the strings have intervals, verify they match;
-	 if not, they are unequal.  */
-      if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
-	  && ! compare_string_intervals (o1, o2))
-	return 0;
-#endif
       return 1;
     }
   return 0;
