@@ -1,3 +1,7 @@
+2005-01-02  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (Fgarbage_collect): Don't truncate_undo_list on dead buffers.
+
 2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.

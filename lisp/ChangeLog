@@ -1,5 +1,8 @@
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
 
+	* loadhist.el (file-loadhist-lookup): New function.
+	(file-provides, file-requires): Use it.
+
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
