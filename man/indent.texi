@@ -35,9 +35,55 @@ Indent from point to the next prespecified tab stop column
 Indent from point to under an indentation point in the previous line.
 @end table
 
+  Emacs supports four general categories of operations that could all
+be called `indentation':
+
+@enumerate
+@item
+The most simple operation is to just insert a tab character.  This
+operation does not have a convenient key binding, because it is
+subsumed by the more general operation described next.  But you can use
+@kbd{C-q @key{TAB}} to insert a literal tab character.
+
+A tab character is displayed as a stretch of whitespace which extends
+to the next display tab stop position, and the default width of a tab
+stop is eight.  @xref{Display Custom}, for more details.
+
+@item
+Emacs also supports tab stops.  You can set them at arbitrary
+positions, and then use @kbd{M-i} to advance to the next tab stop.  The
+default tab stop list contains positions (columns) that are a multiple
+of eight, and so the effect of @kbd{M-i} is the same as that of
+@kbd{C-q @key{TAB}} in the default case.
+
+You can set the tab stops with @kbd{M-x edit-tab-stops}.
+
+@item
+You can align successive lines with each other.  This is called
+@dfn{relative indentation} in Emacs and is performed by the command
+@kbd{M-x indent-relative}.  The effect is best shown by an example:
+@example
+This shows the effect of relative indentation.
+^    ^     ^   ^      ^  ^        ^
+@end example
+The positions for the @code{^} characters on the second line were
+obtained using @kbd{M-x indent-relative}.
+
+In Fundamental mode and in Text mode, @key{TAB} runs the command
+@code{indent-relative}.
+
+@item
+The most sophisticated method is called @dfn{syntax-driven indentation}
+and is the default behavior of the @key{TAB} key in Emacs.
+
   Most programming languages have some indentation convention.  For Lisp
 code, lines are indented according to their nesting in parentheses.  The
 same general idea is used for C code, though many details are different.
+
+  For some languages, different kinds of indentation styles are
+commonly used.  Emacs accomodates this by allowing users to customize
+the indentation.  For example, see @ref{Customizing Indentation,,,ccmode},
+for a description of these facilities for the C language.
 
 @kindex TAB
   Whatever the language, to indent a line, use the @key{TAB} command.  Each
@@ -48,13 +94,20 @@ line you are when you type @key{TAB}, it aligns the line as a whole.  In C
 mode, @key{TAB} implements a subtle and sophisticated indentation style that
 knows about many aspects of C syntax.
 
-  In Text mode, @key{TAB} runs the command @code{tab-to-tab-stop}, which
-indents to the next tab stop column.  You can set the tab stops with
-@kbd{M-x edit-tab-stops}.
+@end enumerate
 
-  Normally, @key{TAB} inserts an optimal mix of tabs and spaces for
-the intended indentation.  @xref{Just Spaces}, for how to prevent use
-of tabs.
+  Normally, all of the above methods insert an optimal mix of tabs and
+spaces for the needed indentation.  @xref{Just Spaces}, for how to
+prevent use of tabs.  However, the first method (@kbd{C-q @key{TAB}})
+always inserts a tab, even if you prevented their use.
+
+@c   In Text mode, @key{TAB} runs the command @code{tab-to-tab-stop}, which
+@c indents to the next tab stop column.  You can set the tab stops with
+@c @kbd{M-x edit-tab-stops}.
+
+@c   Normally, @key{TAB} inserts an optimal mix of tabs and spaces for
+@c the intended indentation.  @xref{Just Spaces}, for how to prevent use
+@c of tabs.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.
@@ -207,6 +260,11 @@ this, set @code{indent-tabs-mode} to @code{nil}.  This is a per-buffer
 variable, so altering the variable affects only the current buffer,
 but there is a default value which you can change as well.
 @xref{Locals}.
+
+  A tab is not always displayed in the same way.  By default, tabs are
+eight columns wide, but some people like to customize their tools to
+use a different tab width.  So by using spaces only, you can make sure
+that your file looks the same regardless of the tab width setting.
 
 @findex tabify
 @findex untabify

@@ -1,3 +1,9 @@
+2003-05-22  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* indent.texi (Indentation): Explain the concepts.
+	(Just Spaces): Explain why preventing tabs for indentation might
+	be useful.
+
 2003-05-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* faq.texi: Improve previous changes.
