@@ -1259,8 +1259,8 @@
 2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term.c (produce_glyphs): Treat characters from the eight-bit-*
-        charsets as unibyte, with 1-column screen width.  Sent by Kenichi
-        Handa.
+	charsets as unibyte, with 1-column screen width.  Sent by Kenichi
+	Handa.
 
 2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -3585,7 +3585,7 @@
 2000-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fdelete_frame): Don't let echo_area_window remain on
-        a deleted frame.
+	a deleted frame.
 
 2000-02-21  Gerd Moellmann  <gerd@gnu.org>
 
@@ -7669,11 +7669,11 @@
 	* syntax.h (SYNTAX_COMMENT_NESTED, SYNTAX_FLAGS_COMMENT_NESTED):
 	Add support for nested comments.
 
- 	* syntax.c (Fforward_comment, scan_lists, scan_sexps_forward):
- 	Consolidate the forward comment code into the new `forw_comment'.
- 	(forw_comment): New subroutine.  Added support for nested comments.
- 	(lisp_parse_state, back_comment, Fmodify_syntax_entry)
- 	(Fparse_partial_sexp): Add support for nested comments.
+	* syntax.c (Fforward_comment, scan_lists, scan_sexps_forward):
+	Consolidate the forward comment code into the new `forw_comment'.
+	(forw_comment): New subroutine.  Added support for nested comments.
+	(lisp_parse_state, back_comment, Fmodify_syntax_entry)
+	(Fparse_partial_sexp): Add support for nested comments.
 
 1999-08-28  Ken Raeburn  <raeburn@gnu.org>
 
@@ -7859,7 +7859,7 @@
 1999-08-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c: Call change_frame_size and do_pending_window_change with
-        new parameter.
+	new parameter.
 
 1999-08-21  Gerd Moellmann  <gerd@gnu.org>
 
@@ -8648,7 +8648,7 @@
 
 1999-07-21  Joe Ramey  <ramey@ti.com>
 
-        * filelock.c (lock_if_free): Return -1 if check_lock_owner
+	* filelock.c (lock_if_free): Return -1 if check_lock_owner
 	has returned -1 (lockfile exists but is not a symlink?).
 
 1999-07-20  Gerd Moellmann  <gerd@gnu.org>
@@ -14425,10 +14425,10 @@ Sun Aug 24 08:50:52 1997  Gerd Moellmann  <gerd@acm.org>
 	(expose_window): Use it.
 
 	* xdisp.c (display_string): Catch case that we are called with
- 	current_x already beyond max_x.
+	current_x already beyond max_x.
 	(global): Fix usage of FRAME_WINDOW_P <-> FRAME_WINDOW_REDISPLAY_P.
 	(init_display_info): Subtract vertical border glyph from
- 	last_visible_x.
+	last_visible_x.
 
 	* scroll.c (scrolling_window_1): Removed.
 
@@ -14459,8 +14459,7 @@ Sun Aug 24 08:50:52 1997  Gerd Moellmann  <gerd@acm.org>
 
 Fri Aug 22 18:46:43 1997  Gerd Moellmann  <gerd@acm.org>
 
-	* xterm.c (XTupdate_end): Draw horizontal border at right
- 	position.
+	* xterm.c (XTupdate_end): Draw horizontal border at right position.
 	(expose_window): Draw vertical border.
 	(XTclear_end_of_line): Accept width <= 0 and height <= 0 but
 	don't do anything.
@@ -14484,9 +14483,8 @@ Fri Aug 22 18:46:43 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (clear_glyph_matrix): Additional argument specifiying
 	that rows should really be cleared.  Used for current matrices.
 
-        * dispnew.c (scrolling_window):  Bug fix.
-	(line_dance_hook):  Formerly line_dance_fn, take only one
-	parameter.
+	* dispnew.c (scrolling_window):  Bug fix.
+	(line_dance_hook):  Formerly line_dance_fn, take only one parameter.
 
 	* dispextern.h (struct run): Remove current_vpos.
 
@@ -14546,11 +14544,11 @@ Wed Aug 20 11:23:28 1997  Gerd Moellmann  <gerd@acm.org>
 Tue Aug 19 14:38:05 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xterm.c (x_display_and_set_cursor): Use FONT_WIDTH if width
- 	unknown.  Some fonts have min_width zero.
+	unknown.  Some fonts have min_width zero.
 	(draw_glyphs): Don't draw underlines to the end of the display
- 	line if face is merely extended to that point.
+	line if face is merely extended to that point.
 	(draw_glyphs): Don't assume background is filled if
- 	just_foreground_p but extending to end of line.
+	just_foreground_p but extending to end of line.
 
 	* xterm.c (XTclear_end_of_line): Clip only to display_height - 1
 	for partially visible last lines.
@@ -14600,7 +14598,7 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispextern.h (WINDOW_TO_FRAME_HPOS/VPOS): Moved to dispnew.c
 
-        * xfns.c (x_contour_region):  Use pixel coordinates from window
+	* xfns.c (x_contour_region):  Use pixel coordinates from window
 	cursor instead of WINDOW_TO_FRAME_H/VPOS.
 
 	* dispextern.h (FRAME_TO_WINDOW_HPOS, FRAME_TO_WINDOW_VPOS):
@@ -14742,8 +14740,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	glyphs for to_pos.
 	(start_display): Remove assertion.
 
-	* dispnew.c (direct_output_forward_char): Bug fix, = instead of
- 	==.
+	* dispnew.c (direct_output_forward_char): Bug fix, = instead of ==.
 	(update_window): Don't set row->y here.
 
 	* xdisp.c (next_display_element): Don't translate control chars
@@ -14765,7 +14762,7 @@ Wed Aug 13 10:46:12 1997  Gerd Moellmann  <gerd@acm.org>
 	* xterm.c (x_draw_3d_borders): Use CapRound. Struct rect
 	replaced by XRectangle.
 
-        * dispnew.c (scrolling_window): New method.
+	* dispnew.c (scrolling_window): New method.
 
 	* xterm.c (do_line_dance): New implementation, new method.
 
@@ -14865,7 +14862,7 @@ Mon Aug 11 12:32:34 1997  Gerd Moellmann  <gerd@acm.org>
 	* window.h: phys_cursor_ascent + descent instead of height.
 
 	* xterm.c (XTget_char_info): Use per char metrics for multi-byte
- 	chars with charset width 1.
+	chars with charset width 1.
 
 	* dispnew.c (direct_output_for_insert): Set updated_row.
 
@@ -14946,7 +14943,7 @@ Tue Jul 29 12:52:40 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispextern.h (struct char_info ): WHAT field.
 
 	* term.c (encode_terminal_code): Don't use GLYPH_CHAR, use
- 	FAST_GLYPH_CHAR instead because GLYPH_CHAR won't remove faces.
+	FAST_GLYPH_CHAR instead because GLYPH_CHAR won't remove faces.
 
 Mon Jul 28 14:23:06 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -15049,7 +15046,7 @@ Mon Jul 21 12:22:02 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispextern.h (cursor_in_echo_area): Extern declaration.
 
 	* xterm.c (dumpglyphs): 8-bit version to test if my Xserver
- 	freezes stem from 16-bit functions.
+	freezes stem from 16-bit functions.
 
 	* xterm.c (x_display_and_set_cursor): Don't display hollow
 	cursor in mini windows.
@@ -15064,7 +15061,7 @@ Mon Jul 21 12:22:02 1997  Gerd Moellmann  <gerd@acm.org>
 	(x_update_window_cursor): Use it.
 
 	* xdisp.c (display_text_line): Set cursor for window even if not
- 	selected.
+	selected.
 
 	* xterm.c (x_display_bar_cursor): Use HPOS and VPOS instead
 	of X and Y to denote matrix positions.
@@ -15112,18 +15109,17 @@ Tue Jul 15 13:58:33 1997  Gerd Moellmann  <gerd@acm.org>
 	* xterm.h: Prototype for X_DISPLAY_CURSOR.
 
 	* xterm.c (XTcursor_to): Void return type.  Test for
- 	UPDATED_WINDOW.  Call x_display_cursor with window.
+	UPDATED_WINDOW.  Call x_display_cursor with window.
 	(x_display_cursor): Void return type.  Window instead of frame
- 	parameter.
+	parameter.
 
-	* window.h (WINDOW_RIGHTMOST_P, WINDOW_TOPMOST_P): Use functions
- 	below.
+	* window.h (WINDOW_RIGHTMOST_P, WINDOW_TOPMOST_P): Use functions below.
 
 	* window.c (window_rightmost_p, window_topmost_p): Based on
 	window tree.
 
 	* dispnew.c (adjust_frame_message_buffer): Allocate with
- 	FRAME_MESSAGE_BUF_SIZE.
+	FRAME_MESSAGE_BUF_SIZE.
 
 	* window.h: PHYS_CURSOR_.* added.
 
@@ -15137,11 +15133,9 @@ Tue Jul 15 13:58:33 1997  Gerd Moellmann  <gerd@acm.org>
 	* window.c (window_internal_width): Scroll bars no longer
 	part of window.
 
-	* xterm.c (XTclear_end_of_line): FRAME_LEFT_SCROLL_BAR_WIDTH
- 	removed.
+	* xterm.c (XTclear_end_of_line): FRAME_LEFT_SCROLL_BAR_WIDTH removed.
 
-	* xfns.c (x_set_scroll_bar_width): FRAME_LEFT_SCROLL_BAR_WIDTH
- 	removed.
+	* xfns.c (x_set_scroll_bar_width): FRAME_LEFT_SCROLL_BAR_WIDTH removed.
 
 	* xdisp.c (echo_area_display): FRAME_LEFT_SCROLL_BAR_WIDTH removed.
 	(redisplay_internal): Ditto.
@@ -15160,7 +15154,7 @@ Tue Jul 15 13:58:33 1997  Gerd Moellmann  <gerd@acm.org>
 Mon Jul 14 12:30:03 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispnew.c (updated_window): Set by UPDATE_WINDOW to the window
- 	being updated.
+	being updated.
 	(update_window): Set and clear it.
 
 	* dispnew.c (update_window_line, update_window, scrolling_window):
@@ -15196,8 +15190,7 @@ Mon Jul 14 12:30:03 1997  Gerd Moellmann  <gerd@acm.org>
 	* xterm.c (XTupdate_begin): Set CURS_X/Y from selected window.
 	(XTwrite_glyphs): Use cursor position of selected window.
 
-	* xfns.c (x_set_scroll_bar_width): Set cursor pos of selected
- 	window.
+	* xfns.c (x_set_scroll_bar_width): Set cursor pos of selected window.
 
 	* dispnew.c (set_cursor_to): Set window cursor position.
 	(direct_output_for_insert): Use window cursor position.
@@ -15212,8 +15205,7 @@ Mon Jul 14 12:30:03 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (direct_output_for_insert): LAST_POINT_X removed.
 	(direct_output_forward_char): Ditto.
 
-	* xdisp.c (redisplay_internal): LAST_POINT_X and LAST_POINT_Y
- 	removed.
+	* xdisp.c (redisplay_internal): LAST_POINT_X and LAST_POINT_Y removed.
 
 	* window.c (make_window): LAST_POINT_X and LAST_POINT_Y removed.
 
@@ -15245,8 +15237,8 @@ Sat Jul 12 12:58:48 1997  Gerd Moellmann  <gerd@acm.org>
 	* minibuf.c (read_minibuf): Build frame matrix.
 
 	* xdisp.c (this_line_start_hpos): Renamed to
- 	THIS_LINE_START_WINDOW_HPOS to make it clear that this is window
- 	relative.
+	THIS_LINE_START_WINDOW_HPOS to make it clear that this is window
+	relative.
 	(this_line_vpos): Renamed to THIS_LINE_WINDOW_VPOS for the same
 	reason.
 
@@ -15256,8 +15248,8 @@ Sat Jul 12 12:58:48 1997  Gerd Moellmann  <gerd@acm.org>
 	(clear_frame_records): Clear window and frame rows.
 	(clear_glyph_matrix): Set all rows of a matrix to empty.
 
-	* xdisp.c (echo_area_display): Parameter UPDATE_FRAME_P.  Update
- 	frame if set.
+	* xdisp.c (echo_area_display): Parameter UPDATE_FRAME_P.
+	Update frame if set.
 	(message2_nolog): Pass 1 to ECHO_AREA_DISPLAY.  UPDATE_FRAME
 	removed.
 	(redisplay_internal): Pass 0 to ECHO_AREA_DISPLAY.
@@ -15324,7 +15316,7 @@ Fri Jul 11 13:16:50 1997  Gerd Moellmann  <gerd@acm.org>
 	matrix.  Change name to scroll_full_width_window.
 
 	* xdisp.c (message2_nolog): Don't fwrite NULL message If
- 	NONINTERACTIVE.
+	NONINTERACTIVE.
 
 Mon Jul  7 14:44:38 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -15344,9 +15336,9 @@ Mon Jul  7 14:44:38 1997  Gerd Moellmann  <gerd@acm.org>
 Sun Jul  6 17:02:26 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispnew.c (adjust_frame_glyphs): Allocate window matrices from
- 	(0, 0).
+	(0, 0).
 	(allocate_leaf_matrix): Add FRAME_MENU_BAR_LINES to the height of
- 	top-most windows.
+	top-most windows.
 
 	* window.h (WINDOW_TOPMOST_P): Added.
 
@@ -15362,12 +15354,11 @@ Sun Jul  6 17:02:26 1997  Gerd Moellmann  <gerd@acm.org>
 	(echo_area_display): Work with window matrix for mini window.
 	(redisplay_window): Use window marix for mini window.
 	(display_text_line): Assume HPOS and VPOS are window relative and
- 	use that for DISPLAY_STRING.
+	use that for DISPLAY_STRING.
 
 	* dispextern.h: Prototype for prepare_desired_row.
 
-	* dispnew.c (prepare_desired_row): Replacement for
- 	GET_DISPLAY_LINE.
+	* dispnew.c (prepare_desired_row): Replacement for GET_DISPLAY_LINE.
 
 	* dispnew.c (adjust_window_charstarts): Always allocate window
 	matrices.
@@ -15400,20 +15391,20 @@ Sat Jul  5 14:55:44 1997  Gerd Moellmann  <gerd@acm.org>
 	(direct_output_for_insert): Don't add null-glyph end marker.
 
 	* scroll.c (do_direct_scrolling): Change algorithm to construct
- 	vector of lines assigned.  Call MIRRORED_LINE_DANCE:
+	vector of lines assigned.  Call MIRRORED_LINE_DANCE:
 	(do_scrolling): Ditto.
 
 	* dispnew.c (mirror_line_dance): Mirror line assignments in a
- 	frame matrix in window matrices.
+	frame matrix in window matrices.
 	(mirrored_line_dance): Do line assignments during scrolling.
-  	Maybe do corresponding assignments in window matrices.
+	Maybe do corresponding assignments in window matrices.
 	(check_window_matrix_pointers): Check that window rows and frame
- 	rows agree about glyph pointers.
+	rows agree about glyph pointers.
 	(check_matrix_pointers): Ditto.
 	(mirrored_make_current): Make a row of a desired matrix current;
- 	maybe mirror the operation in window matrices.
+	maybe mirror the operation in window matrices.
 	(mirror_make_current): Make window desired matrix row current when
- 	frame matrix row was made current.
+	frame matrix row was made current.
 
 Fri Jul  4 13:27:46 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -15424,7 +15415,7 @@ Fri Jul  4 13:27:46 1997  Gerd Moellmann  <gerd@acm.org>
 	* scroll.c (do_scrolling): Simplified.
 	(do_direct_scrolling): Simplified.
 	(scrolling_1): Pass CURRENT_MATRIX instead of FRAME to
- 	DO_.*SCROLLING.
+	DO_.*SCROLLING.
 
 
 	* dispnew.c (ins_del_glyph_rows): Insert/delete rows in a matrix.
@@ -15455,7 +15446,7 @@ Wed Jul  2 13:43:35 1997  Gerd Moellmann  <gerd@acm.org>
 	* all files: use above new names.
 
 	* dispnew.c (scroll_frame_lines): Simplified.  Use
- 	SCROLL_GLYPH_MATRIX.
+	SCROLL_GLYPH_MATRIX.
 	(make_glyph_row_empty): Mark a glyph row empty.
 	(increment_glyph_row_buffer_positions): Increment
 	buffer positions in a glyph row.
@@ -15494,7 +15485,7 @@ Tue Jul  1 13:49:55 1997  Gerd Moellmann  <gerd@acm.org>
 	(direct_output_for_insert): Ditto.
 
 	* dispextern.h (struct glyph_row): Use a vector of pointers
- 	instead of individual members.  Use a vector of used counters.
+	instead of individual members.  Use a vector of used counters.
 	(MATRIX_ROW_SWAP_CONTENTS): Use vectors.
 	(MATRIX_ROW_GLYPH_START): Ditto.
 	(MATRIX_ROW_GLYPH_END): Ditto.
@@ -15517,16 +15508,16 @@ Mon Jun 30 20:39:38 1997  Gerd Moellmann  <gerd@acm.org>
 	(syms_of_display): Ditto.
 
 	* dispextern.h: add prototypes for REDRAW_FRAME,
- 	REDRAW_GARBAGED_FRAMES, CANCEL_LINE, CLEAR_FRAME_RECORDS,
- 	INIT_DESIRED_GLYPHS, SCROLL_FRAME_LINES, PRESERVE_OTHER_COLUMNS,
- 	ADJUST_WINDOW_CHARSTARTS, CANCEL_MY_COLUMNS,
- 	DIRECT_OUTPUT_FOR_INSERT, DIRECT_OUTPUT_FORWARD_CHAR,
- 	UPDATE_FRAME, SCROLLING, BUFFER_POSN_FROM_COORDS,
- 	DO_PENDING_WINDOW_CHANGE, CHANGE_FRAME_SIZE, BITCH_AT_USER,
+	REDRAW_GARBAGED_FRAMES, CANCEL_LINE, CLEAR_FRAME_RECORDS,
+	INIT_DESIRED_GLYPHS, SCROLL_FRAME_LINES, PRESERVE_OTHER_COLUMNS,
+	ADJUST_WINDOW_CHARSTARTS, CANCEL_MY_COLUMNS,
+	DIRECT_OUTPUT_FOR_INSERT, DIRECT_OUTPUT_FORWARD_CHAR,
+	UPDATE_FRAME, SCROLLING, BUFFER_POSN_FROM_COORDS,
+	DO_PENDING_WINDOW_CHANGE, CHANGE_FRAME_SIZE, BITCH_AT_USER,
 	SIT_FOR, INIT_DISPLAY, SYMS_OF_DISPLAY,
 
 	* dispnew.c (redraw_frame): FRAME_PTR -> struct frame.  Return
- 	void.
+	void.
 	(cancel_line): Return void.
 	(clear_frame_records):	Return void.
 
@@ -15548,10 +15539,10 @@ Mon Jun 30 20:39:38 1997  Gerd Moellmann  <gerd@acm.org>
 	* term.c (reassert_line_highlight): Check CHARS_WASTED == 0.
 
 	* window.h (struct window): Add comment that no Lisp data may
- 	come below CURRENT_MATRIX.
+	come below CURRENT_MATRIX.
 
 	* alloc.c (mark_object): Change window mark code to stop with
- 	member CURRENT_MATRIX.
+	member CURRENT_MATRIX.
 
 Sat Jun 28 13:54:55 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -15562,16 +15553,16 @@ Sat Jun 28 13:54:55 1997  Gerd Moellmann  <gerd@acm.org>
 	(new_glyph_pool): Formerly new_FRAME_GLYPH_MATRIX.
 	(free_glyph_pool): Formerly FREE_FRAME_GLYPH_MATRIX
 	(realloc_glyph_pool): Formerly REALLOC_FRAME_GLYPH_MATRIX.
-  	Returns 1 if pool changed.
+	Returns 1 if pool changed.
 	(matrix_row): Additional check for lost pointers to glyph rows.
 	(compute_matrices): Additional parameter DIM_P set means that no
- 	allocation should take place.  Addtional parameter
- 	ANY_WINDOWS_CHANGED_P set if any windows matrix has changed.
+	allocation should take place.  Addtional parameter
+	ANY_WINDOWS_CHANGED_P set if any windows matrix has changed.
 	(compute_leaf_matrix): Additional parameter CHANGED_P set to 1
- 	when window matrix changes.  Additional parameter DIM_ONLY_P set
- 	to 1 to indicate that no allocation should take place.
+	when window matrix changes.  Additional parameter DIM_ONLY_P set
+	to 1 to indicate that no allocation should take place.
 	(adjust_frame_glyphs): Construct new glyph pools and glyph
- 	matrices.  Optimize frame redraws.
+	matrices.  Optimize frame redraws.
 	(free_glyphs): Free pools.
 	(check_glyph_memory): Check pools not freed.
 	(rotate_pointers): Rotate pointers in a vector of glyph rows.
@@ -15580,7 +15571,7 @@ Sat Jun 28 13:54:55 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* dispextern.h (struct glyph_row): Use pointers to areas in a row.
 	(global): All macro names changed from prefix FRAME_MATRIX to
- 	MATRIX.
+	MATRIX.
 
 Fri Jun 27 14:51:15 1997  Gerd Moellmann  <gerd@acm.org>
 
@@ -15918,8 +15909,8 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* w32term.c (cancel_mouse_face): New function. See equiv
 	changes to xterm.c on 1996-10-31.
 	(x_set_window_size): Use cancel_mouse_face.
-        (w32_read_socket): Use cancel_mouse_face.
-        Update frame position when size is restored.
+	(w32_read_socket): Use cancel_mouse_face.
+	Update frame position when size is restored.
 
 1999-06-04  Richard M. Stallman  <rms@gnu.org>
 
