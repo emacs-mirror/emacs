@@ -94,7 +94,11 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
     (message (concat 
 	      "XON/XOFF adjustment for " 
 	      (getenv "TERM") 
-	      ":  use C-\\ for C-s  and  use C-^ for C-q."))
+	      ": use "
+	      (single-key-description flow-control-c-s-replacement)
+	      " for C-s, and use "
+	      (single-key-description flow-control-c-q-replacement)
+	      " for C-q"))
     (sleep-for 2)))			; Give user a chance to see message.
 
 ;;;###autoload
