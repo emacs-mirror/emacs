@@ -11707,7 +11707,7 @@ try_window_id (w)
 	}
 
       xassert (row != NULL);
-      w->window_end_vpos = make_number (vpos);
+      w->window_end_vpos = make_number (vpos + 1);
       w->window_end_pos = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       xassert (w->window_end_bytepos >= 0);
