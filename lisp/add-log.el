@@ -42,6 +42,46 @@
 		     nil default))))
 
 ;;;###autoload
+(defun find-change-log (&optional file-name)
+  "Find a change log file for \\[add-change-log-entry] and return the name.
+Optional arg FILE-NAME is a name to try first.
+If FILE-NAME is nil, use the value of `change-log-default-name' if non-nil.
+Failing that, use \"ChangeLog\" in the current directory.
+If the file does not exist in the named directory, successive parent
+directories are tried.
+
+Once a file is found, `change-log-default-name' is set locally in the
+current buffer to the complete file name."
+  (or file-name
+      (setq file-name (or change-log-default-name
+			  default-directory)))
+  (if (file-directory-p file-name)
+      (setq file-name (expand-file-name (change-log-name) file-name)))
+  ;; Chase links before visiting the file.
+  ;; This makes it easier to use a single change log file
+  ;; for several related directories.
+  (setq file-name
+	(expand-file-name (or (file-symlink-p file-name) file-name)))
+  ;; Move up in the dir hierarchy till we find a change log file.
+  (let ((file1 file-name)
+	parent-dir)
+    (while (and (not (file-exists-p file1))
+		(progn (setq parent-dir
+			     (file-name-directory
+			      (directory-file-name
+			       (file-name-directory file1))))
+		       ;; Give up if we are already at the root dir.
+		       (not (string= (file-name-directory file1) parent-dir))))
+      ;; Move up to the parent dir and try again.
+      (setq file1 (expand-file-name (change-log-name) parent-dir)))
+    ;; If we found a change log in a parent, use that.
+    (if (file-exists-p file1)
+	(setq file-name file1)))
+  ;; Make a local variable in this buffer so we needn't search again.
+  (set (make-local-variable 'change-log-default-name) file-name)
+  file-name)
+
+;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window)
   "Find change log file and add an entry for today.
 Optional arg (interactive prefix) non-nil means prompt for user name and site.
@@ -64,34 +104,8 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 		      (system-name)))
 	 (defun (add-log-current-defun))
 	 paragraph-end entry)
-    (or file-name
-	(setq file-name (or change-log-default-name
-			    default-directory)))
-    (setq file-name (if (file-directory-p file-name)
-			(expand-file-name (change-log-name) file-name)
-		      (expand-file-name file-name)))
-    ;; Chase links before visiting the file.
-    ;; This makes it easier to use a single change log file
-    ;; for several related directories.
-    (setq file-name
-	  (expand-file-name (or (file-symlink-p file-name) file-name)))
-    ;; Move up in the dir hierarchy till we find a change log file.
-    (let ((file1 file-name)
-	  parent-dir)
-      (while (and (not (file-exists-p file1))
-		  (progn (setq parent-dir
-			       (file-name-directory
-				(directory-file-name
-				 (file-name-directory file1))))
-			 ;; Give up if we are already at the root dir.
-			 (not (string= (file-name-directory file1) parent-dir))))
-	;; Move up to the parent dir and try again.
-	(setq file1 (expand-file-name (change-log-name) parent-dir)))
-      ;; If we found a change log in a parent, use that.
-      (if (file-exists-p file1)
-	  (setq file-name file1)))
 
-    (set (make-local-variable 'change-log-default-name) file-name)
+    (setq file-name (find-change-log file-name))
 
     ;; Set ENTRY to the file name to use in the new entry.
     (and buffer-file-name
