@@ -1824,13 +1824,13 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   IN_ADDR numeric_addr;
   struct hostent host_info_fixed;
   int port;
-#else /* ! HAVE_GETADDRINFO */
+#else /* HAVE_GETADDRINFO */
   struct addrinfo hints, *res, *lres;
   int ret = 0;
   int xerrno = 0;
-  char *portstring, portbuf [128];
-#endif /* ! HAVE_GETADDRINFO */
-  int s, outch, inch;
+  char *portstring, portbuf[128];
+#endif /* HAVE_GETADDRINFO */
+  int s = -1, outch, inch;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int retry = 0;
   int count = specpdl_ptr - specpdl;
@@ -1886,34 +1886,24 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     immediate_quit = 1;
     QUIT;
     memset (&hints, 0, sizeof (hints));
-    hints.ai_flags = AI_NUMERICHOST;
+    hints.ai_flags = 0;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
     ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
-    if (!ret)	  /* numeric */
-      {
-	freeaddrinfo (res);
-	hints.ai_flags = AI_CANONNAME;
-      }
-    else	  /* non-numeric */
-      {
-	hints.ai_flags = 0;
-      }
-    ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
     if (ret)
       {
 	error ("%s/%s %s", XSTRING (host)->data, portstring,
-	      gai_strerror (ret));
+	       gai_strerror (ret));
       }
     immediate_quit = 0;
   }
 
-  for (lres = res; lres ; lres = lres->ai_next)
+  for (lres = res; lres; lres = lres->ai_next)
     {
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0) 
-	report_file_error ("error creating socket", Fcons (name, Qnil));
+	continue;
 
       /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
 	 when connect is interrupted.  So let's not let it get interrupted.
@@ -1924,38 +1914,18 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       if (interrupt_input)
 	unrequest_sigio ();
 
-  loop:
-
       immediate_quit = 1;
       QUIT;
 
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
-
-      if (ret == -1 && errno != EISCONN)
-	{
-	  xerrno = errno;
-
-	  immediate_quit = 0;
-
-	  if (errno == EINTR)
-	    goto loop;
-	  if (errno == EADDRINUSE && retry < 20)
-	    {
-	      /* A delay here is needed on some FreeBSD systems,
-		 and it is harmless, since this retrying takes time anyway
-		 and should be infrequent.  */
-	      Fsleep_for (make_number (1), Qnil);
-	      retry++;
-	      goto loop;
-	    }
-
-	  close (s);
-	}
-      if (ret == 0)		/* We got a valid connect */
+      if (ret == 0)
 	break;
-  } /* address loop */
+      close (s);
+      s = -1;
+    }
+
   freeaddrinfo (res);
-  if (ret != 0)
+  if (s < 0)
     {
       if (interrupt_input)
 	request_sigio ();
