@@ -49,7 +49,7 @@ Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have. */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only, Qhidden;
+Lisp_Object Qinvisible, Qread_only, Qintangible;
 
 /* Sticky properties */
 Lisp_Object Qfront_sticky, Qrear_nonsticky;
@@ -1334,8 +1334,8 @@ percentage by which the left interval tree should not differ from the right.");
   Qread_only = intern ("read-only");
   staticpro (&Qinvisible);
   Qinvisible = intern ("invisible");
-  staticpro (&Qhidden);
-  Qhidden = intern ("hidden");
+  staticpro (&Qintangible);
+  Qintangible = intern ("intangible");
   staticpro (&Qcategory);
   Qcategory = intern ("category");
   staticpro (&Qlocal_map);
