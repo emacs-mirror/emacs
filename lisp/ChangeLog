@@ -1,3 +1,11 @@
+1999-10-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (read-input-method-name): Handle the
+	case that the arg DEFAULT is symbol.
+
+	* international/mule-diag.el (mule-diag): Handle the case that
+	default-input-method is symbol.
+
 1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/tildify.el: New file.
