@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.17) $
+ * $HopeName: MMsrc!seg.c(trunk.18) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.17) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.18) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -37,37 +37,31 @@ SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.17) $");
 
 /* SegPoolRing -- Pool ring accessor */
 
-#define SegPoolRing(gcseg)        (&(gcseg)->poolRing)
+#define SegPoolRing(seg)          (&(seg)->poolRing)
 
+
+/* forward declarations */
+
+static void SegFinish(Seg seg);
+
+static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
+                   Bool withReservoirPermit, va_list args);
 
 
 /* Generic interface support */
 
 
-/* SegAlloc -- allocate a segment from the arena
- *
- * The allocated segment is of class GCSeg - and is fully
- * compatible with "historic" segments.
- */
+/* SegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
-             Bool withReservoirPermit)
-{
-  return SegOfClassAlloc(segReturn, EnsureGCSegClass(), pref,
-                         size, pool, withReservoirPermit);
-}
-
-
-/* SegOfClassAlloc -- allocate a segment from the arena */
-
-Res SegOfClassAlloc(Seg *segReturn, SegClass class, SegPref pref, 
-                    Size size, Pool pool,
-                    Bool withReservoirPermit)
+Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref, 
+             Size size, Pool pool,
+             Bool withReservoirPermit, ...)
 {
   Res res;
   Arena arena;
   Seg seg;
   Addr base;
+  va_list args;
 
   AVER(segReturn != NULL);
   AVERT(SegClass, class);
@@ -93,13 +87,20 @@ Res SegOfClassAlloc(Seg *segReturn, SegClass class, SegPref pref,
     goto failControl;
   }
 
+  va_start(args, withReservoirPermit);
   seg->class = class;
-  SegInit(seg, pool, base, size);
+  res = SegInit(seg, pool, base, size, withReservoirPermit, args);
+  va_end(args);
+  if(res != ResOK) {
+    goto failInit;
+  }
 
   EVENT_PPAWP(SegAlloc, arena, seg, SegBase(seg), size, pool);
   *segReturn = seg;
   return ResOK;
 
+failInit:
+  ControlFree(arena, seg, class->size);
 failControl:
   ArenaFree(base, size, pool);
 failArena:
@@ -138,13 +139,15 @@ void SegFree(Seg seg)
 
 /* SegInit -- initialize a segment */
 
-void SegInit(Seg seg, Pool pool, Addr base, Size size)
+static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
+                   Bool withReservoirPermit, va_list args)
 {
   Tract tract;
   Addr addr, limit;
   Size align;
   Arena arena;
   SegClass class;
+  Res res;
 
   AVER(seg != NULL);
   AVERT(Pool, pool);
@@ -154,6 +157,7 @@ void SegInit(Seg seg, Pool pool, Addr base, Size size)
   AVER(SizeIsAligned(size, align));
   class = seg->class;
   AVERT(SegClass, class);
+  AVER(BoolCheck(withReservoirPermit));
 
   limit = AddrAdd(base, size);
   seg->limit = limit;
@@ -182,16 +186,22 @@ void SegInit(Seg seg, Pool pool, Addr base, Size size)
   }
   AVER(addr == seg->limit);
 
+  RingInit(&seg->poolRing);
+
   /* Class specific initialization cames last */
-  class->init(seg, pool, base, size);
+  res = class->init(seg, pool, base, size, withReservoirPermit, args);
+  if (ResOK != res)
+    return res;
     
   AVERT(Seg, seg);
+  RingAppend(&pool->segRing, SegPoolRing(seg));
+  return ResOK;
 }
 
 
 /* SegFinish -- finish the generic part of a segment */
 
-void SegFinish(Seg seg)
+static void SegFinish(Seg seg)
 {
   Arena arena;
   Addr addr, base, limit;
@@ -222,6 +232,9 @@ void SegFinish(Seg seg)
     TRACT_UNSET_SEG(tract);
   }
   AVER(addr == seg->limit);
+
+  RingRemove(SegPoolRing(seg));
+  RingFinish(SegPoolRing(seg));
 
   seg->sig = SigInvalid;
 
@@ -325,24 +338,6 @@ void SegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
-/* SegP -- return the P field of a segment */
-
-void *SegP(Seg seg)
-{
-  AVERT_CRITICAL(Seg, seg); /* .seg.critical */
-  return seg->class->p(seg);
-}
-
-
-/* SegSetP -- set the P fielf of a segment */
-
-void SegSetP(Seg seg, void *p)
-{
-  AVERT_CRITICAL(Seg, seg); /* .seg.critical */
-  seg->class->setP(seg, p);
-}
-
-
 /* SegDescribe -- describe a segment */
 
 Res SegDescribe(Seg seg, mps_lib_FILE *stream)
@@ -360,6 +355,8 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
+               "  class $P (\"$S\")\n", 
+               (WriteFP)seg->class, seg->class->name,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
@@ -531,6 +528,13 @@ Bool SegCheck(Seg seg)
     CHECKL(TractPool(tract) == pool);
   }
   CHECKL(addr == seg->limit);
+
+  /* The segment must belong to some pool, so it should be on a */
+  /* pool's segment ring.  (Actually, this isn't true just after */
+  /* the segment is initialized.) */
+  /*  CHECKL(RingNext(&seg->poolRing) != &seg->poolRing); */
+
+  CHECKL(RingCheck(&seg->poolRing));
     
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
@@ -558,7 +562,8 @@ Bool SegCheck(Seg seg)
 
 /* segTrivInit -- method to initialize the base fields of a segment */
 
-static void segTrivInit(Seg seg, Pool pool, Addr base, Size size)
+static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size, 
+                       Bool reservoirPermit, va_list args)
 {
   /* all the initialization happens in SegInit so checks are safe */
   Size align;
@@ -573,6 +578,9 @@ static void segTrivInit(Seg seg, Pool pool, Addr base, Size size)
   AVER(SegBase(seg) == base);
   AVER(SegSize(seg) == size);
   AVER(SegPool(seg) == pool);
+  AVER(BoolCheck(reservoirPermit));
+  UNUSED(args);
+  return ResOK;
 }
 
 
@@ -668,26 +676,6 @@ static void segNoSetBuffer(Seg seg, Buffer buffer)
 }
 
 
-/* segNoP -- non-method to return the P field of a segment */
-
-static void *segNoP(Seg seg)
-{
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return NULL;
-}
-
-
-/* segNoSetP -- non-method to set the P field of a segment */
-
-static void segNoSetP(Seg seg, void *p)
-{
-  AVERT(Seg, seg);
-  UNUSED(p);
-  NOTREACHED;
-}
-
-
 /* segTrivDescribe -- Basic Seg description method */
 
 static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
@@ -779,13 +767,6 @@ Bool GCSegCheck(GCSeg gcseg)
     CHECKL(BufferRankSet(gcseg->buffer) == SegRankSet(seg));
   }
 
-  /* The segment must belong to some pool, so it should be on a */
-  /* pool's segment ring.  (Actually, this isn't true just after */
-  /* the segment is initialized.) */
-  /*  CHECKL(RingNext(&gcseg->poolRing) != &gcseg->poolRing); */
-
-  CHECKL(RingCheck(&gcseg->poolRing));
-
   /* The segment should be on a grey ring if and only if it is grey. */
   CHECKL(RingCheck(&gcseg->greyRing));
   CHECKL((seg->grey == TraceSetEMPTY) ==
@@ -802,12 +783,14 @@ Bool GCSegCheck(GCSeg gcseg)
 
 /* gcSegInit -- method to initialize a GC segment */
 
-static void gcSegInit(Seg seg, Pool pool, Addr base, Size size)
+static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
+                     Bool withReservoirPermit, va_list args)
 {
   SegClass super;
   GCSeg gcseg;
   Arena arena;
   Align align;
+  Res res;
 
   AVERT(Seg, seg);
   AVERT(Pool, pool);
@@ -817,20 +800,21 @@ static void gcSegInit(Seg seg, Pool pool, Addr base, Size size)
   AVER(SizeIsAligned(size, align));
   gcseg = SegGCSeg(seg);
   AVER(&gcseg->segStruct == seg);
+  AVER(BoolCheck(withReservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
   super = EnsureSegClass();
-  super->init(seg, pool, base, size);
+  res = super->init(seg, pool, base, size, withReservoirPermit, args);
+  if (ResOK != res)
+    return res;
 
   gcseg->summary = RefSetEMPTY;
   gcseg->buffer = NULL;
-  RingInit(&gcseg->poolRing);
   RingInit(&gcseg->greyRing);
-  gcseg->p = NULL;
   gcseg->sig = GCSegSig;
 
   AVERT(GCSeg, gcseg);
-  RingAppend(&pool->segRing, SegPoolRing(gcseg));
+  return ResOK;
 }
 
 
@@ -858,8 +842,6 @@ static void gcSegFinish(Seg seg)
   AVER(gcseg->buffer == NULL);
 
   RingFinish(&gcseg->greyRing);
-  RingRemove(SegPoolRing(gcseg));
-  RingFinish(SegPoolRing(gcseg));
 
   /* finish the superclass fields last */
   super = EnsureSegClass();
@@ -1152,36 +1134,6 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
-/* gcSegP -- GCSeg method to return the P field of a segment */
-
-static void *gcSegP(Seg seg)
-{
-  GCSeg gcseg;
-
-  AVERT_CRITICAL(Seg, seg);             /* .seg.method.check */
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
-
-  return gcseg->p;
-}
-
-
-/* gcSegSetP -- GCSeg method to set the P field of a segment */
-
-static void gcSegSetP(Seg seg, void *p)
-{
-  GCSeg gcseg;
-
-  AVERT_CRITICAL(Seg, seg);             /* .seg.method.check */
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
-
-  gcseg->p = p;
-}
-
-
 /* gcSegDescribe -- GCSeg  description method */
 
 static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
@@ -1230,7 +1182,6 @@ Bool SegClassCheck(SegClass class)
   CHECKL(FUNCHECK(class->setRankSet));
   CHECKL(FUNCHECK(class->setRankSummary));
   CHECKL(FUNCHECK(class->describe));
-  CHECKL(FUNCHECK(class->setP));
   CHECKS(SegClass, class);
   return TRUE;
 } 
@@ -1254,8 +1205,6 @@ DEFINE_CLASS(SegClass, class)
   class->setRankSet = segNoSetRankSet;
   class->setRankSummary = segNoSetRankSummary;
   class->describe = segTrivDescribe;
-  class->p = segNoP;
-  class->setP = segNoSetP;
   class->sig = SegClassSig;
 }
 
@@ -1279,7 +1228,5 @@ DEFINE_CLASS(GCSegClass, class)
   class->setRankSet = gcSegSetRankSet;
   class->setRankSummary = gcSegSetRankSummary;
   class->describe = gcSegDescribe;
-  class->p = gcSegP;
-  class->setP = gcSegSetP;
 }
 
