@@ -795,7 +795,8 @@ This function always sets `desktop-enable' to t."
 	      (second (nth 1 desktop-buffer-misc)))
 	(when (and first second)
 	  (require 'info)
-	  (Info-find-node first second)
+	  (with-no-warnings
+	   (Info-find-node first second))
 	  (current-buffer))))))
 
 ;; ----------------------------------------------------------------------------
@@ -814,7 +815,7 @@ This function always sets `desktop-enable' to t."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-mh () "Load a folder in the mh system."
   (if (eq 'mh-folder-mode desktop-buffer-major-mode)
-      (progn
+      (with-no-warnings
 	(mh-find-path)
         (mh-visit-folder desktop-buffer-name)
 	(current-buffer))))
