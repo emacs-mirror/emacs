@@ -2463,7 +2463,7 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
 #endif
 
   if (nfonts < 0 && CONSP (lfonts))
-    num_fonts = Flength (lfonts);
+    num_fonts = XFASTINT (Flength (lfonts));
   
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
