@@ -1,3 +1,18 @@
+2000-10-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (FONT_DESCENT): Negate descent of BDF fonts.
+
+	* w32term.c (w32_bdf_per_char_metric): Negate descent.
+	(w32_cache_char_metrics): Handle possibility that 'x' does not
+	exist in a BDF font.
+	(W32_TEXTOUT): w32_BDF_TextOut wants number of bytes not chars.
+
+	* w32bdf.h (bdffont): Add nchars.
+
+	* w32bdf.c (set_bdf_font_info): Set it.
+	(w32_BDF_TextOut): Swap byte order of double byte characters.
+	(w32_load_bdf_font): Set double_byte_p based on bdf_font->nchars.
+
 2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_parameters): Fix the change from 2000-10-16:
