@@ -799,9 +799,9 @@ If the value is nil, don't highlight the buffer names specially."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(if (and keep-props font-lock-mode
+	(if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
 		 (text-property-not-all beg end 'fontified t))
-	    (font-lock-fontify-region beg end))
+	    (jit-lock-fontify-now beg end))
 	(push
 	 (funcall (if keep-props
 		      #'buffer-substring
@@ -1008,9 +1008,9 @@ See also `multi-occur'."
 			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (if (and keep-props font-lock-mode
+		    (if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
 			     (text-property-not-all begpt endpt 'fontified t))
-			(font-lock-fontify-region begpt endpt))
+			(jit-lock-fontify-now begpt endpt))
 		    (setq curstring (buffer-substring begpt endpt))
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
