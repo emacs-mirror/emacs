@@ -688,7 +688,7 @@ switches to the next node if and when that is necessary.  You type
 To search for the same string again, just @kbd{s} followed by @key{RET}
 will do.  The file's nodes are scanned in the order they are in in the
 file, which has no necessary relationship to the order that they may be
-in in the tree structure of menus and @samp{next} pointers.  But
+in the tree structure of menus and @samp{next} pointers.  But
 normally the two orders are not very different.  In any case, you can
 always do a @kbd{b} to find out what node you have reached, if the
 header is not visible (this can happen, because @kbd{s} puts your cursor
