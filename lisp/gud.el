@@ -330,8 +330,10 @@ and source-file directory for your debugger."
 
   (gud-common-init command-line)
 
-  (gud-def gud-break  "stop at \"%f\":%l"
+  (gud-def gud-break  "file \"%f\"\nstop at %l"
 	   			  "\C-b" "Set breakpoint at current line.")
+;;  (gud-def gud-break  "stop at \"%f\":%l"
+;;	   			  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step %p"	  "\C-s" "Step one line with display.")
   (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
