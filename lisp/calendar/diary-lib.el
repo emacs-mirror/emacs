@@ -341,14 +341,13 @@ These hooks have the following distinct roles:
                                         (car d)))
                           (backup (equal (car (car d)) 'backup))
                           (dayname
-                           (concat
-                            (calendar-day-name date) "\\|"
-                            (substring (calendar-day-name date) 0 3) ".?"))
+                           (format "%s\\|%s\\.?"
+                            (calendar-day-name date)
+                            (calendar-day-name date 'abbrev)))
                           (monthname
-                           (concat
-                            "\\*\\|"
-                            (calendar-month-name month) "\\|"
-                            (substring (calendar-month-name month) 0 3) ".?"))
+                           (format "\\*\\|%s\\|%s\\.?"
+                            (calendar-month-name month)
+                            (calendar-month-name month 'abbrev)))
                           (month (concat "\\*\\|0*" (int-to-string month)))
                           (day (concat "\\*\\|0*" (int-to-string day)))
                           (year
@@ -410,6 +409,7 @@ These hooks have the following distinct roles:
                    'list-diary-entries-hook)
         (if diary-display-hook
             (run-hooks 'diary-display-hook)
+          ;; FIXME Error if calendar-setup 'calendar-only -- gm.
           (simple-diary-display))
         (run-hooks 'diary-hook)
         diary-entries-list))))
@@ -757,26 +757,23 @@ to run it every morning at 1am."
        "No entries found"))
     (call-interactively (get mail-user-agent 'sendfunc))))
 
-
-(defun diary-name-pattern (string-array &optional fullname)
-  "Convert a STRING-ARRAY, an array of strings to a pattern.
-The pattern will match any of the strings, either entirely or abbreviated
-to three characters.  An abbreviated form will match with or without a period;
-If the optional FULLNAME is t, abbreviations will not match, just the full
-name."
-  (let ((pattern ""))
-    (calendar-for-loop i from 0 to (1- (length string-array)) do
-      (setq pattern
-            (concat
-             pattern
-             (if (string-equal pattern "") "" "\\|")
-             (aref string-array i)
-             (if fullname
-                 ""
-               (concat
-                "\\|"
-                (substring (aref string-array i) 0 3) ".?")))))
-    pattern))
+(defun diary-name-pattern (string-array &optional abbrev-array paren)
+  "Return a regexp matching the strings in the array STRING-ARRAY.
+If the optional argument ABBREV-ARRAY is present, then the function
+`calendar-abbrev-construct' is used to construct abbreviations from the
+two supplied arrays. The returned regexp will then also match these
+abbreviations, with or without final `.' characters.  If the optional
+argument PAREN is non-nil, the regexp is surrounded by parentheses."
+  (regexp-opt (append string-array
+                      (if abbrev-array
+                          (calendar-abbrev-construct abbrev-array
+                                                     string-array))
+                      (if abbrev-array
+                          (calendar-abbrev-construct abbrev-array
+                                                     string-array
+                                                     'period))
+                      nil)
+              paren))
 
 (defvar marking-diary-entries nil
   "True during the marking of diary entries, nil otherwise.")
@@ -805,11 +802,13 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
           (let* ((date-form (if (equal (car (car d)) 'backup)
                                 (cdr (car d))
                               (car d)));; ignore 'backup directive
-                 (dayname (diary-name-pattern calendar-day-name-array))
+                 (dayname
+                  (diary-name-pattern calendar-day-name-array
+                                      calendar-day-abbrev-array))
                  (monthname
-                  (concat
-                   (diary-name-pattern calendar-month-name-array)
-                   "\\|\\*"))
+                  (format "%s\\|\\*"
+                   (diary-name-pattern calendar-month-name-array
+                                       calendar-month-abbrev-array)))
                  (month "[0-9]+\\|\\*")
                  (day "[0-9]+\\|\\*")
                  (year "[0-9]+\\|\\*")
@@ -883,21 +882,18 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                 (if dd-name
                     (mark-calendar-days-named
                      (cdr (assoc-ignore-case
-                           (substring dd-name 0 3)
+                           dd-name
                            (calendar-make-alist
                             calendar-day-name-array
-                            0
-                            (lambda (x) (substring x 0 3))))) marks)
+                            0 nil calendar-day-abbrev-array))) marks)
                   (if mm-name
-                      (if (string-equal mm-name "*")
-                          (setq mm 0)
-                        (setq mm
+                      (setq mm
+                            (if (string-equal mm-name "*") 0
                               (cdr (assoc-ignore-case
-                                    (substring mm-name 0 3)
+                                    mm-name
                                     (calendar-make-alist
                                      calendar-month-name-array
-                                     1
-                                     (lambda (x) (substring x 0 3))))))))
+                                     1 nil calendar-month-abbrev-array))))))
                   (mark-calendar-date-pattern mm dd yy marks))))
             (setq d (cdr d))))
         (mark-sexp-diary-entries)
@@ -1718,14 +1714,8 @@ Prefix arg will make the entry nonmarking."
   (list
    (cons
     (concat
-     (let ((dayname
-	    (concat "\\("
-		    (diary-name-pattern calendar-day-name-array t)
-		    "\\)"))
-	   (monthname
-	    (concat "\\("
-		    (diary-name-pattern calendar-month-name-array t)
-		    "\\)"))
+     (let ((dayname (diary-name-pattern calendar-day-name-array nil t))
+           (monthname (diary-name-pattern calendar-month-name-array nil t))
 	   (day "[0-9]+")
            (month "[0-9]+")
 	   (year "-?[0-9]+"))
@@ -1758,15 +1748,17 @@ Prefix arg will make the entry nonmarking."
 	      t))
 	(error t))))
 
-(defun font-lock-diary-date-forms (month-list &optional symbol noabbrev)
-  "Create a list of font-lock patterns for `diary-date-forms' with MONTH-LIST.
+(defun font-lock-diary-date-forms (month-array &optional symbol abbrev-array)
+  "Create font-lock patterns for `diary-date-forms' using MONTH-ARRAY.
 If given, optional SYMBOL must be a prefix to entries.
-If optional NOABBREV is t, do not allow abbreviations in names."
-  (let ((dayname
-         (concat "\\(" (diary-name-pattern calendar-day-name-array) "\\)"))
-        (monthname (concat "\\("
-                           (diary-name-pattern month-list noabbrev)
-                           "\\|\\*\\)"))
+If optional ABBREV-ARRAY is present, the abbreviations constructed
+from this array by the function `calendar-abbrev-construct' are
+matched (with or without a final `.'), in addition to the full month
+names."
+  (let ((dayname (diary-name-pattern calendar-day-name-array
+                                     calendar-day-abbrev-array t))
+        (monthname (format "\\(%s\\|\\*\\)"
+                           (diary-name-pattern month-array abbrev-array)))
         (month "\\([0-9]+\\|\\*\\)")
         (day "\\([0-9]+\\|\\*\\)")
         (year "-?\\([0-9]+\\|\\*\\)"))
@@ -1788,9 +1780,13 @@ If optional NOABBREV is t, do not allow abbreviations in names."
                 '(1 diary-face)))
             diary-date-forms)))
 
+(eval-when-compile (require 'cal-hebrew)
+                   (require 'cal-islam))
+
 (defvar diary-font-lock-keywords
       (append
-       (font-lock-diary-date-forms calendar-month-name-array)
+       (font-lock-diary-date-forms calendar-month-name-array
+                                   nil calendar-month-abbrev-array)
        (when (or (memq 'mark-hebrew-diary-entries
                        nongregorian-diary-marking-hook)
                  (memq 'list-hebrew-diary-entries
@@ -1798,7 +1794,7 @@ If optional NOABBREV is t, do not allow abbreviations in names."
          (require 'cal-hebrew)
          (font-lock-diary-date-forms
           calendar-hebrew-month-name-array-leap-year
-          hebrew-diary-entry-symbol t))
+          hebrew-diary-entry-symbol))
        (when (or (memq 'mark-islamic-diary-entries
                        nongregorian-diary-marking-hook)
                  (memq 'list-islamic-diary-entries
@@ -1806,7 +1802,7 @@ If optional NOABBREV is t, do not allow abbreviations in names."
          (require 'cal-islam)
          (font-lock-diary-date-forms
           calendar-islamic-month-name-array
-          islamic-diary-entry-symbol t))
+          islamic-diary-entry-symbol))
        (list
         (cons
          (concat "^" (regexp-quote diary-include-string) ".*$")
