@@ -395,7 +395,9 @@ extern int width_by_char_head[256];
    : (((charset) == CHARSET_8_BIT_CONTROL				    \
        || (charset) == CHARSET_8_BIT_GRAPHIC)				    \
       ? ((c1) & 0x7F) | 0x80						    \
-      : (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1  \
+      : ((CHARSET_DEFINED_P (charset)					    \
+	  ? CHARSET_DIMENSION (charset) == 1				    \
+	  : (charset) < MIN_CHARSET_PRIVATE_DIMENSION2)			    \
 	 ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))		    \
 	 : ((((charset)							    \
 	      - ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
@@ -466,19 +468,20 @@ extern int width_by_char_head[256];
    position-codes of C are stored in C1 and C2.
    We store -1 in C2 if the dimension of the charset is 1.  */
 
-#define SPLIT_CHAR(c, charset, c1, c2)					  \
-  (SINGLE_BYTE_CHAR_P (c)						  \
-   ? ((charset = ASCII_BYTE_P (c)					  \
-       ? CHARSET_ASCII							  \
-       : (c) < 0xA0 ? CHARSET_8_BIT_CONTROL : CHARSET_8_BIT_GRAPHIC),	  \
-      c1 = (c), c2 = -1)						  \
-   : ((c) & CHAR_FIELD1_MASK						  \
-      ? (charset = (CHAR_FIELD1 (c)					  \
-		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)), \
-	 c1 = CHAR_FIELD2 (c),						  \
-	 c2 = CHAR_FIELD3 (c))						  \
-      : (charset = CHAR_FIELD2 (c) + 0x70,				  \
-	 c1 = CHAR_FIELD3 (c),						  \
+#define SPLIT_CHAR(c, charset, c1, c2)					    \
+  (SINGLE_BYTE_CHAR_P (c)						    \
+   ? ((charset								    \
+       = (ASCII_BYTE_P (c)						    \
+	  ? CHARSET_ASCII						    \
+	  : ((c) < 0xA0 ? CHARSET_8_BIT_CONTROL : CHARSET_8_BIT_GRAPHIC))), \
+      c1 = (c), c2 = -1)						    \
+   : ((c) & CHAR_FIELD1_MASK						    \
+      ? (charset = (CHAR_FIELD1 (c)					    \
+		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)),   \
+	 c1 = CHAR_FIELD2 (c),						    \
+	 c2 = CHAR_FIELD3 (c))						    \
+      : (charset = CHAR_FIELD2 (c) + 0x70,				    \
+	 c1 = CHAR_FIELD3 (c),						    \
 	 c2 = -1)))
 
 /* Return 1 iff character C has valid printable glyph.  */
