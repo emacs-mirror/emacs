@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.8) $
+ * $HopeName: MMsrc!global.c(trunk.9) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -27,7 +27,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.8) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.9) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -58,12 +58,12 @@ static void arenaReleaseRingLock(void)
 }
 
 
-/* ArenaAnnounce -- add a new arena into the global ring of arenas
+/* arenaAnnounce -- add a new arena into the global ring of arenas
  *
  * On entry, the arena must not be locked (there should be no need,
  * because other threads can't know about it).  On exit, it will be.
  */
-void ArenaAnnounce(Arena arena)
+static void arenaAnnounce(Arena arena)
 {
   Globals arenaGlobals;
 
@@ -78,14 +78,14 @@ void ArenaAnnounce(Arena arena)
 }
 
 
-/* ArenaDenounce -- remove an arena from the global ring of arenas
+/* arenaDenounce -- remove an arena from the global ring of arenas
  *
  * After this, no other thread can access the arena through ArenaAccess.
  * On entry, the arena should be locked.  On exit, it will still be, but
  * the lock has been released and reacquired in the meantime, so callers
  * should not assume anything about the state of the arena.
  */
-void ArenaDenounce(Arena arena)
+static void arenaDenounce(Arena arena)
 {
   Globals arenaGlobals;
 
@@ -123,7 +123,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   CHECKL(MPSVersion() == arenaGlobals->mpsVersionString);
 
-  CHECKD_NOSIG(Lock, arenaGlobals->lock);
+  if (arenaGlobals->lock != NULL)
+    CHECKD_NOSIG(Lock, arenaGlobals->lock);
 
   /* no check possible on pollThreshold */
   CHECKL(BoolCheck(arenaGlobals->insidePoll));
@@ -200,13 +201,11 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
 /* GlobalsInit -- initialize the globals of the arena */
 
-Res GlobalsInit(Globals arenaGlobals, Lock lock)
+Res GlobalsInit(Globals arenaGlobals)
 {
   Arena arena;
   Index i;
   Rank rank;
-
-  /* We do not check the lock argument, because it's uninitialized. */
 
   /* This is one of the first things that happens, */
   /* so check static consistency here. */
@@ -231,8 +230,7 @@ Res GlobalsInit(Globals arenaGlobals, Lock lock)
 
   RingInit(&arenaGlobals->globalRing);
 
-  LockInit(lock);
-  arenaGlobals->lock = lock;
+  arenaGlobals->lock = NULL;
 
   arenaGlobals->pollThreshold = 0.0;
   arenaGlobals->insidePoll = FALSE;
@@ -281,6 +279,45 @@ Res GlobalsInit(Globals arenaGlobals, Lock lock)
 }
 
 
+/* GlobalsCompleteCreate -- complete creating the globals of the arena
+ *
+ * This is like the final initializations in a Create method, except there's
+ * no separate GlobalsCreate.
+ */
+Res GlobalsCompleteCreate(Globals arenaGlobals)
+{
+  Arena arena;
+  Res res;
+  void *p;
+
+  AVERT(Globals, arenaGlobals);
+  arena = GlobalsArena(arenaGlobals);
+
+  /* initialize the message stuff, design.mps.message */
+  {
+    void *v;
+
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    if (res != ResOK)
+      return res;
+    arena->enabledMessageTypes = v;
+    BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
+  }
+
+  res = ControlAlloc(&p, arena, LockSize(), FALSE);
+  if (res != ResOK)
+    return res;
+  arenaGlobals->lock = (Lock)p;
+  LockInit(arenaGlobals->lock);
+
+  arenaAnnounce(arena);
+
+  return ResOK;
+
+  /* @@@@ error path */
+}
+
+
 /* GlobalsFinish -- finish the globals of the arena */
 
 void GlobalsFinish(Globals arenaGlobals)
@@ -294,6 +331,53 @@ void GlobalsFinish(Globals arenaGlobals)
   STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena,
                           arena->writeBarrierHitCount));
 
+  arenaGlobals->sig = SigInvalid;
+
+  RingFinish(&arena->poolRing);
+  RingFinish(&arena->formatRing);
+  RingFinish(&arena->messageRing);
+  RingFinish(&arena->rootRing);
+  RingFinish(&arena->threadRing);
+  RingFinish(&arenaGlobals->globalRing);
+  for(rank = 0; rank < RankLIMIT; ++rank)
+    RingFinish(&arena->greyRing[rank]);
+}
+
+
+/* GlobalsPrepareToDestroy -- prepare to destroy the globals of the arena
+ *
+ * This is like the final initializations in a Destroy method, except there's
+ * no separate GlobalsDestroy.
+ */
+void GlobalsPrepareToDestroy(Globals arenaGlobals)
+{
+  Arena arena;
+
+  AVERT(Globals, arenaGlobals);
+
+  arena = GlobalsArena(arenaGlobals);
+  arenaDenounce(arena);
+
+  LockReleaseMPM(arenaGlobals->lock);
+  /* Theoretically, another thread could grab the lock here, but it's */
+  /* not worth worrying about, since an attempt after the lock has been */
+  /* destroyed would lead to a crash just the same. */
+  LockFinish(arenaGlobals->lock);
+
+  /* .message.queue.empty: Empty the queue of messages before */
+  /* proceeding to finish the arena.  It is important that this */
+  /* is done before destroying the finalization pool as otherwise */
+  /* the message queue would have dangling pointers to messages */
+  /* whose memory has been unmapped. */
+  MessageEmpty(arena);
+
+  /* throw away the BT used by messages */
+  if (arena->enabledMessageTypes != NULL) {
+    ControlFree(arena, (void *)arena->enabledMessageTypes, 
+                BTSize(MessageTypeLIMIT));
+    arena->enabledMessageTypes = NULL;
+  }
+
   /* destroy the final pool (see design.mps.finalize) */
   if (arena->isFinalPool) {
     /* All this subtlety is because PoolDestroy will call */
@@ -306,23 +390,6 @@ void GlobalsFinish(Globals arenaGlobals)
     arena->finalPool = NULL;
     PoolDestroy(pool);
   }
-
-  arenaGlobals->sig = SigInvalid;
-
-  RingFinish(&arena->poolRing);
-  RingFinish(&arena->formatRing);
-  RingFinish(&arena->messageRing);
-  RingFinish(&arena->rootRing);
-  RingFinish(&arena->threadRing);
-  RingFinish(&arenaGlobals->globalRing);
-  for(rank = 0; rank < RankLIMIT; ++rank)
-    RingFinish(&arena->greyRing[rank]);
-
-  LockReleaseMPM(arenaGlobals->lock);
-  /* Theoretically, another thread could grab the lock here, but it's */
-  /* not worth worrying about, since an attempt after the lock has been */
-  /* destroyed would lead to a crash just the same. */
-  LockFinish(arenaGlobals->lock);
 }
 
 
