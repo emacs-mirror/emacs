@@ -8,6 +8,15 @@
 	
 2002-04-01  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (info-tool-bar-map): Use tool-bar-local-item-from-menu.
+
+	* toolbar/tool-bar.el (tool-bar-local-item): Renamed from
+	tool-bar-add-item, and new arg MAP.
+	(tool-bar-add-item): Now calls tool-bar-local-item.
+	(tool-bar-local-item-from-menu): Renamed from 
+	tool-bar-add-item-from-menu, and new arg IN-MAP.
+	(tool-bar-add-item-from-menu): Now calls tool-bar-local-item-from-menu.
+
 	* help-fns.el (help-with-tutorial): Allow various ways
 	to specify the text in the [...] line, in handling the <...> line.
 

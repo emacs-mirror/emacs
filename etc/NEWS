@@ -740,8 +740,10 @@ When the non-blocking connect completes, the sentinel is called with
 the status matching "open" or "failed".
 
 *** New function open-network-stream-server.
+MORE INFO NEEDED HERE.
 
 *** New functions process-datagram-address and set-process-datagram-address.
+MORE INFO NEEDED HERE.
 
 *** By default, the function process-contact still returns (HOST SERVICE)
 for a network process.  Using the new optional KEY arg, the complete list
@@ -783,6 +785,13 @@ or the header line.
 
 These functions are like `plist-get' and `plist-put' except that they
 compare the property name using `equal' rather than `eq'.
+
+** New function `tool-bar-local-item-from-menu'
+
+The `tool-bar-add-item-from-menu' most not be used (as previously
+recommended) for making entries in the tool bar for local keymaps.
+Instead, use the function `tool-bar-local-item-from-menu', which lets
+you specify the map to use as an argument.
 
 +++
 ** The function `atan' now accepts an optional second argument.
