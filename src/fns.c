@@ -3578,7 +3578,7 @@ Lisp_Object Vweak_hash_tables;
 
 Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey, Qvalue;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
-Lisp_Object Qhash_table_test;
+Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
 /* Function prototypes.  */
 
@@ -3848,7 +3848,7 @@ user-supplied hash function"),
    (table size) is >= REHASH_THRESHOLD.
 
    WEAK specifies the weakness of the table.  If non-nil, it must be
-   one of the symbols `key', `value' or t.  */
+   one of the symbols `key', `value', `key-or-value', or `key-and-value'.  */
 
 Lisp_Object
 make_hash_table (test, size, rehash_size, rehash_threshold, weak,
@@ -4225,8 +4225,10 @@ sweep_weak_table (h, remove_entries_p)
 	    remove_p = !key_known_to_survive_p;
 	  else if (EQ (h->weak, Qvalue))
 	    remove_p = !value_known_to_survive_p;
-	  else if (EQ (h->weak, Qt))
+	  else if (EQ (h->weak, Qkey_or_value))
 	    remove_p = !key_known_to_survive_p || !value_known_to_survive_p;
+	  else if (EQ (h->weak, Qkey_and_value))
+	    remove_p = !key_known_to_survive_p && !value_known_to_survive_p;
 	  else
 	    abort ();
 		      
@@ -4531,27 +4533,29 @@ DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
 Arguments are specified as keyword/argument pairs.  The following\n\
 arguments are defined:\n\
 \n\
-:TEST TEST -- TEST must be a symbol that specifies how to compare keys.\n\
+:test TEST -- TEST must be a symbol that specifies how to compare keys.\n\
 Default is `eql'.  Predefined are the tests `eq', `eql', and `equal'.\n\
 User-supplied test and hash functions can be specified via\n\
 `define-hash-table-test'.\n\
 \n\
-:SIZE SIZE -- A hint as to how many elements will be put in the table.\n\
+:size SIZE -- A hint as to how many elements will be put in the table.\n\
 Default is 65.\n\
 \n\
-:REHASH-SIZE REHASH-SIZE - Indicates how to expand the table when\n\
+:rehash-size REHASH-SIZE - Indicates how to expand the table when\n\
 it fills up.  If REHASH-SIZE is an integer, add that many space.\n\
 If it is a float, it must be > 1.0, and the new size is computed by\n\
 multiplying the old size with that factor.  Default is 1.5.\n\
 \n\
-:REHASH-THRESHOLD THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
+:rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.\n\
 Resize the hash table when ratio of the number of entries in the table.\n\
 Default is 0.8.\n\
 \n\
-:WEAKNESS WEAK -- WEAK must be one of nil, t, `key', or `value'.\n\
-If WEAK is not nil, the table returned is a weak table.  Key/value\n\
-pairs are removed from a weak hash table when their key, value or both\n\
-(WEAK t) are otherwise unreferenced.  Default is nil.")
+:weakness WEAK -- WEAK must be one of nil, t, `key', `value',\n\
+`key-or-value', or `key-and-value'.  If WEAK is not nil, the table returned\n\
+is a weak table.  Key/value pairs are removed from a weak hash table when\n\
+there are no non-weak references pointing to their key, value, one of key\n\
+or value, or both key and value, depending on WEAK.  WEAK t is equivalent
+to `key-and-value'.  Default value of WEAK is nil.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -4615,10 +4619,13 @@ pairs are removed from a weak hash table when their key, value or both\n\
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
   weak = i < 0 ? Qnil : args[i];
+  if (EQ (weak, Qt))
+    weak = Qkey_and_value;
   if (!NILP (weak)
-      && !EQ (weak, Qt)
       && !EQ (weak, Qkey)
-      && !EQ (weak, Qvalue))
+      && !EQ (weak, Qvalue)
+      && !EQ (weak, Qkey_or_value)
+      && !EQ (weak, Qkey_and_value))
     Fsignal (Qerror, list2 (build_string ("Illegal hash table weakness"), 
 			    weak));
   
@@ -4852,6 +4859,10 @@ syms_of_fns ()
   staticpro (&Qvalue);
   Qhash_table_test = intern ("hash-table-test");
   staticpro (&Qhash_table_test);
+  Qkey_or_value = intern ("key-or-value");
+  staticpro (&Qkey_or_value);
+  Qkey_and_value = intern ("key-and-value");
+  staticpro (&Qkey_and_value);
 
   defsubr (&Ssxhash);
   defsubr (&Smake_hash_table);
