@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
@@ -199,14 +199,14 @@ With prefix arg, prompt for diff switches."
 	(setq newf (buffer-file-name)
 	      newf (if (and newf (file-exists-p newf))
 		       (read-file-name
-			(concat "Diff new file: ("
+			(concat "Diff new file: (default "
 				(file-name-nondirectory newf) ") ")
 			nil newf t)
 		     (read-file-name "Diff new file: " nil nil t)))
 	(setq oldf (file-newest-backup newf)
 	      oldf (if (and oldf (file-exists-p oldf))
 		       (read-file-name
-			(concat "Diff original file: ("
+			(concat "Diff original file: (default "
 				(file-name-nondirectory oldf) ") ")
 			(file-name-directory oldf) oldf t)
 		     (read-file-name "Diff original file: "
