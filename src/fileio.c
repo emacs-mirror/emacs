@@ -2109,21 +2109,11 @@ This is what happens in interactive use with M-x.")
 #ifndef BSD4_1
   if (0 > rename (XSTRING (file)->data, XSTRING (newname)->data))
 #else
-#ifdef WINDOWSNT
-  if (!MoveFile (XSTRING (file)->data, XSTRING (newname)->data))
-#else  /* not WINDOWSNT */
   if (0 > link (XSTRING (file)->data, XSTRING (newname)->data)
       || 0 > unlink (XSTRING (file)->data))
-#endif /* not WINDOWSNT */
 #endif
     {
-#ifdef  WINDOWSNT
-      /* Why two?  And why doesn't MS document what MoveFile will return?  */
-      if (GetLastError () == ERROR_FILE_EXISTS
-	  || GetLastError () == ERROR_ALREADY_EXISTS)
-#else  /* not WINDOWSNT */
       if (errno == EXDEV)
-#endif /* not WINDOWSNT */
 	{
 	  Fcopy_file (file, newname,
 		      /* We have already prompted if it was an integer,
