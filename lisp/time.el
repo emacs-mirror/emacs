@@ -22,6 +22,10 @@
   "*File name of mail inbox file, for indicating existence of new mail.
 Default is system-dependent, and is the same as used by Rmail.")
 
+;;;###autoload
+(defconst display-time-day-and-date nil "\
+*Non-nil means \\[display-time] should display day and date as well as time.")
+
 (defvar display-time-process nil)
 
 (defvar display-time-interval 60
@@ -32,6 +36,7 @@ Default is system-dependent, and is the same as used by Rmail.")
 (defvar display-time-hook nil
   "* List of functions to be called when the time is updated on the mode line.")
 
+;;;###autoload
 (defun display-time ()
   "Display current time and load level in mode line of each buffer.
 Updates automatically every minute.
@@ -52,7 +57,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	  (setq display-time-string "")
 	  (setq display-time-process
 		(start-process "display-time" nil
-			       "wakeup"
+			       (concat exec-directory "wakeup")
 			       (int-to-string display-time-interval)))
 	  (process-kill-without-query display-time-process)
 	  (set-process-sentinel display-time-process 'display-time-sentinel)
@@ -68,7 +73,10 @@ After each update, `display-time-hook' is run with `run-hooks'."
 
 (defun display-time-filter (proc string)
   (let ((time (current-time-string))
-	(load (format "%03d" (car (load-average))))
+	(load (condition-case ()
+		  (if (zerop (car (load-average))) ""
+		    (format "%03d" (car (load-average))))
+		(error "")))
 	(mail-spool-file (or display-time-mail-file
 			     (getenv "MAIL")
 			     (concat rmail-spool-directory
@@ -88,7 +96,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
 		  (substring load 0 -2) "." (substring load -2)
 		  (if (and (file-exists-p mail-spool-file)
 			   ;; file not empty?
-			   (> (nth 7 (file-attributes mail-spool-file)) 0))
+			   (display-time-file-nonempty-p mail-spool-file))
 		      " Mail"
 		    "")))
     ;; Append the date if desired.
@@ -101,3 +109,8 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (set-buffer-modified-p (buffer-modified-p))
   ;; Do redisplay right now, if no input pending.
   (sit-for 0))
+
+(defun display-time-file-nonempty-p (file)
+  (while (file-symlink-p file)
+    (setq file (file-symlink-p file)))
+  (> (nth 7 (file-attributes file)) 0))

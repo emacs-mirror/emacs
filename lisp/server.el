@@ -114,6 +114,7 @@ by the programs that invoke the emacs server.")
 	((eq (process-status proc) 'signal)
 	 (server-log (message "Server subprocess killed")))))
 
+;;;###autoload
 (defun server-start (&optional leave-dead)
   "Allow this Emacs process to be a server for client processes.
 This starts a server communications subprocess through which

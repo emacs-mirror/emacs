@@ -140,6 +140,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
 ;;; This would be a lot simpler if we just used a regexp search,
 ;;; but then it would be too slow.
+;;;###autoload
 (defun tex-mode ()
   "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
 Tries to determine (by looking at the beginning of the file) whether
@@ -164,10 +165,10 @@ is used."
 		       'plain-tex-mode))))
     (if mode (funcall mode)
       (funcall tex-default-mode))))
+;;;###autoload (fset 'TeX-mode 'tex-mode)
+;;;###autoload (fset 'LaTeX-mode 'latex-mode)
 
-(fset 'plain-TeX-mode 'plain-tex-mode)
-(fset 'LaTeX-mode 'latex-mode)
-
+;;;###autoload
 (defun plain-tex-mode ()
   "Major mode for editing files of input for plain TeX.
 Makes $ and } display the characters they match.
@@ -214,7 +215,9 @@ subshell is initiated, the value of tex-shell-hook is called."
   (setq tex-end-of-header "%**end of header")
   (setq tex-trailer "\\bye\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'plain-tex-mode-hook))
+;;;###autoload (fset 'plain-TeX-mode 'plain-tex-mode)
 
+;;;###autoload
 (defun latex-mode ()
   "Major mode for editing files of input for LaTeX.
 Makes $ and } display the characters they match.

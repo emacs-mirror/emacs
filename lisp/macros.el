@@ -18,6 +18,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
 (defun name-last-kbd-macro (symbol)
   "Assign a name to the last keyboard macro defined.
 Argument SYMBOL is the name to define.
@@ -32,6 +33,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 	      symbol))
   (fset symbol last-kbd-macro))
 
+;;;###autoload
 (defun insert-kbd-macro (macroname &optional keys)
   "Insert in buffer the definition of kbd macro NAME, as Lisp code.
 Optional second arg KEYS means also record the keys it is on
@@ -61,6 +63,7 @@ use this command, and then save the file."
 	  (insert ")\n")
 	  (setq keys (cdr keys))))))
 
+;;;###autoload
 (defun kbd-macro-query (flag)
   "Query user during kbd macro execution.
   With prefix argument, enters recursive edit, reading keyboard
@@ -100,3 +103,5 @@ C-l -- redisplay screen and ask again."
 		  ((= char ?\C-r)
 		   (let (executing-macro defining-kbd-macro)
 		     (recursive-edit))))))))))
+
+;;;###autoload (define-key ctl-x-map "q" 'kbd-macro-query)

@@ -90,6 +90,7 @@ a list-value atom"
 
 
 ;;; This is the interface 
+;;;###autoload
 (defmacro ` (form)
   "(` FORM)  is a macro that expands to code to construct FORM.
 Note that this is very slow in interpreted code, but fast if you compile.

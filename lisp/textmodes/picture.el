@@ -450,6 +450,7 @@ Leaves the region surrounding the rectangle."
   "If non-nil, it's value is called on entry to Picture mode.
 Picture mode is invoked by the command \\[edit-picture].")
 
+;;;###autoload
 (defun edit-picture ()
   "Switch to Picture mode, in which a quarter-plane screen model is used.
 Printing characters replace instead of inserting themselves with motion
@@ -532,7 +533,7 @@ they are not defaultly assigned to keys."
       "Type \\[picture-mode-exit] in this buffer to return it to %s mode.")
      picture-mode-old-mode-name)))
 
-(fset 'picture-mode 'edit-picture)	; for the confused
+;;;###autoload (fset 'picture-mode 'edit-picture)
 
 (defun picture-mode-exit (&optional nostrip)
   "Undo edit-picture and return to previous major mode.

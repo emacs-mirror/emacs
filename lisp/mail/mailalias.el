@@ -130,6 +130,7 @@ removed from alias expansions."
 
 ;; Always autoloadable in case the user wants to define aliases
 ;; interactively or in .emacs.
+;;;###autoload
 (defun define-mail-alias (name definition)
   "Define NAME as a mail alias that translates to DEFINITION.
 This means that sending a message to NAME will actually send to DEFINITION.

@@ -982,6 +982,7 @@ of the virtual terminal to be appropriate for interactive use.")
 (defvar explicit-shell-file-name nil
   "*If non-nil, is file name to use for explicitly requested inferior shell.")
 
+;;;###autoload
 (defun terminal-emulator (buffer program args &optional width height)
   "Under a display-terminal emulator in BUFFER, run PROGRAM on arguments ARGS.
 ARGS is a list of argument-strings.  Remaining arguments are WIDTH and HEIGHT.

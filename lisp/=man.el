@@ -17,6 +17,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;;###autoload
 (defun manual-entry (topic &optional section)
   "Display the Unix manual entry for TOPIC.
 TOPIC is either the title of the entry, or has the form TITLE(SECTION)

@@ -185,6 +185,7 @@ word		any word is checked for spelling.  Result is
 (defun ispell-tex-buffer-p ()
   (memq major-mode '(plain-TeX-mode LaTeX-mode)))
 
+;;;###autoload
 (defun ispell (&optional buf start end)
   "Run ispell over current buffer's visited file.
 First the file is scanned for misspelled words, then ispell
@@ -287,6 +288,7 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
   (ispell-dump))
 
 
+;;;###autoload
 (defun ispell-word ()
   "Check the spelling of the word under the cursor.
 See `ispell' for more information."
@@ -301,7 +303,9 @@ See `ispell' for more information."
 	    (load-library "spell")
 	    (define-key esc-map "$" 'spell-word)
 	    (spell-word))))))
+;;;###autoload (define-key esc-map "$" 'ispell-word)
 
+;;;###autoload
 (defun ispell-region (start &optional end)
   "Check the spelling for all of the words in the region."
   (interactive "r")

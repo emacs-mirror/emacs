@@ -23,6 +23,8 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
+;;;###autoload (setq disabled-command-hook 'disabled-command-hook)
+;;;###autoload
 (defun disabled-command-hook (&rest ignore)
   (let (char)
     (save-window-excursion
@@ -67,6 +69,7 @@ N to do nothing (command remains disabled)."))
     (if (/= char ?n)
 	(call-interactively this-command))))
 
+;;;###autoload
 (defun enable-command (command)
   "Allow COMMAND to be executed without special confirmation from now on.
 The user's .emacs file is altered so that this will apply
@@ -86,6 +89,7 @@ to future sessions."
    (setq foo (buffer-modified-p))
    (save-buffer)))
 
+;;;###autoload
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
 The user's .emacs file is altered so that this will apply

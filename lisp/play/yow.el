@@ -25,6 +25,7 @@
 ; Expects file emacs/etc/yow.lines to be in ITS-style LINS format
 ;  (ie strings terminated by ascii 0 characters.  Leading whitespace ignored)
 ; Everything up to the first \000 is a comment.
+;;;###autoload
 (defun yow (&optional n interactive)
   "Return or display a Zippy quotation."
   (interactive "P\np")
@@ -69,6 +70,7 @@
 ;
 ; written by Kayvan Aghaiepour
 
+;;;###autoload
 (defun psychoanalyze-pinhead ()
   "Zippy goes to the analyst."
   (interactive)

@@ -18,8 +18,9 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;(defconst lpr-switches nil
-;  "*List of strings to pass as extra switch args to lpr when it is invoked.")
+;;;###autoload
+(defconst lpr-switches nil
+  "*List of strings to pass as extra switch args to lpr when it is invoked.")
 
 (defvar lpr-command (if (eq system-type 'usg-unix-v)
 			"lp" "lpr")
@@ -29,24 +30,28 @@
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions.")
 
+;;;###autoload
 (defun lpr-buffer ()
   "Print buffer contents as with Unix command `lpr'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive)
   (print-region-1 (point-min) (point-max) lpr-switches nil))
 
+;;;###autoload
 (defun print-buffer ()
   "Print buffer contents as with Unix command `lpr -p'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive)
   (print-region-1 (point-min) (point-max) lpr-switches t))
 
+;;;###autoload
 (defun lpr-region (start end)
   "Print region contents as with Unix command `lpr'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive "r")
   (print-region-1 start end lpr-switches nil))
 
+;;;###autoload
 (defun print-region (start end)
   "Print region contents as with Unix command `lpr -p'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."

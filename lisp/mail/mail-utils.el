@@ -20,7 +20,7 @@
 
 (provide 'mail-utils)
 		     
-;; should be in loaddefs
+;;;###autoload
 (defvar mail-use-rfc822 nil
   "*If non-nil, use a full, hairy RFC822 parser on mail addresses.
 Otherwise, (the default) use a smaller, somewhat faster, and

@@ -90,6 +90,7 @@
   )
 
 
+;;;###autoload
 (defun view-file (file-name)
   "View FILE in View mode, returning to previous buffer when done.
 The usual Emacs commands are not available; instead,
@@ -108,6 +109,7 @@ Calls the value of  view-hook  if that is non-nil."
 	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
 		    'kill-buffer))))
 
+;;;###autoload
 (defun view-buffer (buffer-name)
   "View BUFFER in View mode, returning to previous buffer when done.
 The usual Emacs commands are not available; instead,
@@ -122,6 +124,7 @@ Calls the value of  view-hook  if that is non-nil."
     (switch-to-buffer buffer-name t)
     (view-mode old-buf nil)))
 
+;;;###autoload
 (defun view-mode (&optional prev-buffer action)
   "Major mode for viewing text but not editing it.
 Letters do not insert themselves.  Instead these commands are provided.
