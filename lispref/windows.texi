@@ -1306,6 +1306,9 @@ window.  If the value is a positive integer @var{n}, then redisplay
 scrolls the window up to @var{n} lines in either direction, if that will
 bring point back into view.  Otherwise, it centers point.  The default
 value is zero.
+
+A value of @code{nil} is equivalent to .5, since it centers point.  This
+variable automatically becomes buffer-local when set in any fashion.
 @end defopt
 
 @defopt scroll-up-aggressively
