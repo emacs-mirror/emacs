@@ -1,3 +1,7 @@
+2001-03-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Undo last change.
+
 2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* print.c (Fprin1, Fprin1_to_string, Fprinc, Fprint): Doc fix.
