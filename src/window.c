@@ -561,13 +561,15 @@ have been if redisplay had finished, do this:\n\
       (vertical-motion (1- (window-height window)) window)\n\
       (point))")  */
 
-DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 1, 0,
+DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
   "Return position at which display currently ends in WINDOW.\n\
 This is updated by redisplay, when it runs to completion.\n\
 Simply changing the buffer text or setting `window-start'\n\
-does not update this value.")
-  (window)
-     Lisp_Object window;
+does not update this value.\n\
+If UP-TO-DATE is non-nil, compute the up-to-date position\n\
+if it isn't already recorded.")
+  (window, update)
+     Lisp_Object window, update;
 {
   Lisp_Object value;
   struct window *w = decode_window (window);
@@ -585,8 +587,20 @@ does not update this value.")
     return Qnil;
 #endif
 
-  XSETINT (value,
-	   BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+  if (! NILP (update)
+      && ! (! NILP (w->window_end_valid)
+	    && XFASTINT (w->last_modified) >= MODIFF))
+    {
+      int opoint = PT, opoint_byte = PT_BYTE;
+      TEMP_SET_PT_BOTH (XMARKER (w->start)->charpos,
+			XMARKER (w->start)->bytepos);
+      Fvertical_motion (make_number (window_internal_height (w)), Qnil);
+      XSETINT (value, PT);
+      TEMP_SET_PT_BOTH (opoint, opoint_byte);
+    }
+  else
+    XSETINT (value,
+	     BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -3105,6 +3119,8 @@ redraws with point in the center of the current window.")
   register struct window *w = XWINDOW (selected_window);
   register int ht = window_internal_height (w);
   struct position pos;
+  struct buffer *buf = XBUFFER (w->buffer);
+  struct buffer *obuf = current_buffer;
 
   if (NILP (arg))
     {
@@ -3126,6 +3142,7 @@ redraws with point in the center of the current window.")
   if (XINT (arg) < 0)
     XSETINT (arg, XINT (arg) + ht);
 
+  set_buffer_internal (buf);
   pos = *vmotion (PT, - XINT (arg), w);
 
   set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
@@ -3133,6 +3150,7 @@ redraws with point in the center of the current window.")
 			   || FETCH_BYTE (pos.bytepos - 1) == '\n')
 			  ? Qt : Qnil);
   w->force_start = Qt;
+  set_buffer_internal (obuf);
 
   return Qnil;
 }
@@ -3441,19 +3459,19 @@ by `current-window-configuration' (which see).")
 #endif
 
       UNBLOCK_INPUT;
+
+      /* Fselect_window will have made f the selected frame, so we
+	 reselect the proper frame here.  Fhandle_switch_frame will change the
+	 selected window too, but that doesn't make the call to
+	 Fselect_window above totally superfluous; it still sets f's
+	 selected window.  */
+      if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
+	do_switch_frame (data->selected_frame, Qnil, 0);
+
+      if (! NILP (Vwindow_configuration_change_hook)
+	  && ! NILP (Vrun_hooks))
+	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
     }
-
-  /* Restore the minimum heights recorded in the configuration.  */
-  window_min_height = XINT (data->min_height);
-  window_min_width = XINT (data->min_width);
-
-  /* Fselect_window will have made f the selected frame, so we
-     reselect the proper frame here.  Fhandle_switch_frame will change the
-     selected window too, but that doesn't make the call to
-     Fselect_window above totally superfluous; it still sets f's
-     selected window.  */
-  if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-    do_switch_frame (data->selected_frame, Qnil, 0);
 
   if (!NILP (new_current_buffer))
     {
@@ -3466,13 +3484,13 @@ by `current-window-configuration' (which see).")
 	SET_PT (old_point);
     }
 
+  /* Restore the minimum heights recorded in the configuration.  */
+  window_min_height = XINT (data->min_height);
+  window_min_width = XINT (data->min_width);
+
   Vminibuf_scroll_window = data->minibuf_scroll_window;
 
-  if (! NILP (Vwindow_configuration_change_hook)
-      && ! NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
-
-  return (Qnil);
+  return Qnil;
 }
 
 /* Mark all windows now on frame as deleted
