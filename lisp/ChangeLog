@@ -1,3 +1,19 @@
+2004-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/flymake.el: Use (featurep 'xemacs).
+	(flymake-makehash): Change to defsubst. Use fboundp.
+	(flymake-time-to-float): Remove.
+	(flymake-float-time): Merge code from flymake-time-to-float here.
+	(flymake-replace-regexp-in-string): Change to defsubst.
+	(flymake-split-string-remove-empty-edges): Rename to flymake-split-string.
+	(flymake-split-string): Remove previous defalias.
+	(flymake-get-temp-dir): Change to defsubst.
+	(flymake-make-xemacs-menu, flymake-xemacs-window-edges): Define
+	for xemacs only.
+	(flymake-master-file-count-limit): Change into compiler defvar only.
+	(flymake-find-possible-master-files): Let-bind it dynamically while
+	sorting files using flymake-master-file-compare.
+
 2004-11-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc-misc.el (calc-last-why-command): Declare it.
