@@ -1,9 +1,8 @@
-;; f90.el --- Fortran-90 mode (free format) for GNU Emacs 19.x.
+;; f90.el --- Fortran-90 mode (free format) for GNU Emacs.
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <tfkte@fy.chalmers.se>
 ;; Created: Jan 21, 1995
-;; Version: 1.03
 ;; Keywords: fortran, f90, languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -479,7 +478,7 @@ This highlights variable types, \"keywords,\" etc.")
 		  "-----"
 		  ["Toggle abbrev-mode"   abbrev-mode             t]
 		  ["Toggle auto-fill"     f90-auto-fill-mode      t])))
-  ;; FSF Emacs
+  ;; Emacs
   (define-key f90-mode-map [menu-bar] (make-sparse-keymap))
   (define-key f90-mode-map [menu-bar f90] 
     (cons "F90" (make-sparse-keymap "f90"))) 
@@ -685,9 +684,9 @@ with no args, if that value is non-nil."
   ;; Setting up things for font-lock
   (if (string-match "Lucid" emacs-version)
       (put 'f90-mode 'font-lock-keywords-case-fold-search t)
-    ;; (make-local-variable 'font-lock-keywords) ; for FSF version <= 19.28 
+    ;; (make-local-variable 'font-lock-keywords) ; for version <= 19.28 
     ;; (setq font-lock-keywords f90-font-lock-keywords)
-    (make-local-variable 'font-lock-defaults) ; for FSF version > 19.28
+    (make-local-variable 'font-lock-defaults) ; for version > 19.28
     (setq font-lock-defaults '(f90-font-lock-keywords t))
     )
   (make-local-variable 'font-lock-keywords-case-fold-search)
@@ -1559,4 +1558,5 @@ Any other key combination is executed normally."
 	      (funcall change-word -1)))))))
 
 (provide 'f90)
+
 ;;; f90.el ends here
