@@ -1,5 +1,9 @@
 2001-12-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacsclient.c: Include "config.h", not <../src/config.h>.
+	(main): Parenthesize assignment when used as truth value to
+	prevent gcc warnings.
+
 	* ebrowse.c: Include stdlib.h and string.h conditionally.
 
 2001-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
