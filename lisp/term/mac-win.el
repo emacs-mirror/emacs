@@ -125,15 +125,16 @@
 ;; mac-paste-function are defined in mac.c.
 (set-selection-coding-system 'compound-text-mac)
 
-(setq interprogram-cut-function 
-      '(lambda (str push) 
+(setq interprogram-cut-function
+      '(lambda (str push)
 	 (mac-cut-function
-	  (encode-coding-string str selection-coding-system t) push))) 
+	  (encode-coding-string str selection-coding-system t) push)))
 
-(setq interprogram-paste-function 
-      '(lambda () 
-	 (decode-coding-string
-	  (mac-paste-function) selection-coding-system t)))
+(setq interprogram-paste-function
+      '(lambda ()
+	 (let ((clipboard (mac-paste-function)))
+	   (if clipboard
+	       (decode-coding-string clipboard selection-coding-system t)))))
 
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop event.\n\
