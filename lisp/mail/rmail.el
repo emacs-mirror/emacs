@@ -182,7 +182,7 @@ Called with region narrowed to the message, including headers.")
 ;;; that knows the exact ordering of the \\( \\) subexpressions.
 (defvar rmail-unix-mail-delimiter
   (let ((time-zone-regexp
-	 (concat "\\([A-Z]?[A-Z][A-Z][A-Z]\\( DST\\)?"
+	 (concat "\\([A-Z]?[A-Z]?[A-Z][A-Z]\\( DST\\)?"
 		 "\\|[-+]?[0-9][0-9][0-9][0-9]"
 		 "\\|"
 		 "\\) *")))
