@@ -23,3 +23,6 @@
 #endif
 
 #undef SA_RESTART
+
+/* Canced the #define that is in irix5-0.h.  */
+#undef ospeed
