@@ -1110,7 +1110,8 @@ command_loop_1 ()
       /* If minibuffer on and echo area in use,
 	 wait 2 sec and redraw minibuffer.  */
 
-      if (minibuf_level && echo_area_glyphs)
+      if (minibuf_level && echo_area_glyphs
+	  && EQ (minibuf_window, echo_area_window))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
