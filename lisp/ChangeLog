@@ -1,3 +1,12 @@
+2003-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-make-file-list, ido-make-dir-list): Don't move
+	visited directories to end of list; it's the wrong thing to do if
+	we want to find a file or directory in such directories.
+
+	* simple.el: Doc fixes.
+	* subr.el: Doc fixes.
+
 2003-01-20  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gud.el (gud-display-line): If the current file is newer than its
