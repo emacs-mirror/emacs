@@ -130,6 +130,10 @@ anything else means an ordinary menu item.
 SELECTED is an expression; the checkbox or radio button is selected
 whenever this expression's value is non-nil.
 
+   :help HELP
+
+HELP is a string, the help to display for the menu item.
+
 A menu item can be a string.  Then that string appears in the menu as
 unselectable text.  A string consisting solely of hyphens is displayed
 as a solid horizontal line.
@@ -168,7 +172,7 @@ This function returns the right thing in the two cases."
 MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
 possibly preceded by keyword pairs as described in `easy-menu-define'."
   (let ((menu (make-sparse-keymap menu-name))
-	prop keyword arg label enable filter visible)
+	prop keyword arg label enable filter visible help)
     ;; Look for keywords.
     (while (and menu-items (cdr menu-items)
 		(symbolp (setq keyword (car menu-items)))
@@ -179,6 +183,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
        ((eq keyword :filter) (setq filter arg))
        ((eq keyword :active) (setq enable (or arg ''nil)))
        ((eq keyword :label) (setq label arg))
+       ((eq keyword :help) (setq help arg))
        ((or (eq keyword :included) (eq keyword :visible))
 	(setq visible (or arg ''nil)))))
     (if (equal visible ''nil) nil	; Invisible menu entry, return nil.
@@ -187,6 +192,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
       (if (and enable (not (easy-menu-always-true enable)))
 	  (setq prop (cons :enable (cons enable prop))))
       (if filter (setq prop (cons :filter (cons filter prop))))
+      (if help (setq prop (cons :help (cons help prop))))
       (if label (setq prop (cons nil (cons label prop))))
       (while menu-items
 	(easy-menu-do-add-item menu (car menu-items))
@@ -210,7 +216,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
   ;; Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
   ;; put item before BEFORE in MENU, otherwise if item is already present in
   ;; MENU, just change it, otherwise put it last in MENU.
-  (let (name command label prop remove)
+  (let (name command label prop remove help)
     (cond
      ((stringp item)			; An item or separator.
       (setq label item))
@@ -250,6 +256,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 		 ((eq keyword :keys) (setq keys arg no-name nil))
 		 ((eq keyword :label) (setq label arg))
 		 ((eq keyword :active) (setq active (or arg ''nil)))
+		 ((eq keyword :help) (setq prop (cons :help (cons arg prop))))
 		 ((eq keyword :suffix) (setq suffix arg))
 		 ((eq keyword :style) (setq style arg))
 		 ((eq keyword :selected) (setq selected (or arg ''nil)))))
