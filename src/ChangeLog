@@ -1,3 +1,46 @@
+2000-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_show): Call free_menubar_widget_value_tree
+	after menu is finished with.
+	(add_menu_item): Only consider wv->title as a menu title.
+	(w32_menu_display_help): Add OBJECT and POS to show_help_echo.
+
+	* w32fns.c (w32_wnd_proc) [WM_DRAW_ITEM]: Do not try to draw a
+	null title.
+	(FONT_REGEXP): Remove unused macro, and its sub-components.
+	(syms_of_w32fns): Replace underscore in w32-enable-synthesized-fonts.
+
+	* w32term.c (help_echo_object, help_echo_pos): New variables.
+	(note_mode_line_highlight): Store additional information about the
+	help-echo in help_echo_object and help_echo_pos.  Check both
+	`local-map' and `keymap' properties for changing the cursor
+	(note_mouse_highlight): Store additional information about the
+	help-echo in help_echo_object and help_echo_pos.
+	(note_tool_bar_highlight): Set help_echo_object to nil and
+	help_echo_pos to -1.
+	(w32_read_socket): Use gen_help_event instead of filling
+	input_events manually.
+	(syms_of_w32term): Staticpro help_echo_object.
+	(x_update_window_end): Add parameter MOUSE_FACE_OVERWRITTEN_P. If
+	set, arrange for a mouse-highlight redisplay in
+	XTframe_up_to_date.
+	(x_clear_mouse_face): New function.
+	(w32_redisplay_interface): Add pointer to x_clear_mouse_face.
+	(x_update_window_begin): No need to turn off the mouse
+	highlight here.
+	(show_mouse_face): Set the mouse_face_p flag of glyph rows
+	depending on whether they contain glyphs highlighted in
+	mouse-face.
+	(x_fill_stretch_glyph_string): Consume runs of stretch
+	glyphs instead of a single one.
+	(BUILD_STRETCH_GLYPH_STRING): Call x_fill_stretch_glyph_string
+	with new argument list.
+	(x_set_glyph_string_gc): Make sure the face's GC is valid.
+	(x_append_glyph, x_append_composite_glyph)
+	(x_produce_image_glyph, x_append_stretch_glyph): Accomodate to
+	changes in struct glyph starting 1999-12-27. See comments for
+	xterm.c on 2000-07-05.
+
 2000-07-14  Sam Steingold  <sds@gnu.org>
 
 	* xfaces.c (realize_x_face): Fix the last patch:

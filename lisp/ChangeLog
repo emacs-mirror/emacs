@@ -1,3 +1,10 @@
+2000-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-enable-italics, w32-charset-to-codepage-alist):
+	Declare as obsolete.
+
+	* term/w32-win.el: Make FONTNAME arg to set-fontset-font a cons.
+
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* hilit-chg.el: Fix typo.
