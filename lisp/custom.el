@@ -298,8 +298,8 @@ following REQ are defined:
 
 `type' (the value of `window-system')
   Under X, in addition to the values `window-system' can take,
-  `motif', `lucid' and `x-toolkit' are allowed, and match when
-  the Motif toolkit, Lucid toolkit, or any X toolkit is in use.
+  `motif', `lucid', `gtk' and `x-toolkit' are allowed, and match when
+  the Motif toolkit, Lucid toolkit, GTK toolkit or any X toolkit is in use.
 
 `class' (the frame's color support)
   Should be one of `color', `grayscale', or `mono'.
