@@ -1866,7 +1866,7 @@ unrequest_sigio ()
  *
  */
 
-#if !defined (CANNOT_UNEXEC) && !defined (HAVE_TEXT_START)
+#ifndef HAVE_TEXT_START
 char *
 start_of_text ()
 {
@@ -1882,7 +1882,7 @@ start_of_text ()
 #endif /* GOULD */
 #endif /* TEXT_START */
 }
-#endif /* not CANNOT_UNEXEC and not HAVE_TEXT_START */
+#endif /* not HAVE_TEXT_START */
 
 /*
  *	Return the address of the start of the data segment prior to
