@@ -96,7 +96,7 @@
        ((eq bar-part 'above-handle)
 	(scroll-down))
        ((eq bar-part 'handle)
-	(scroll-bar-drag-1 event))
+	(scroll-bar-maybe-set-window-start event))
        ((eq bar-part 'below-handle)
 	(scroll-up))
        ((eq bar-part 'down)
