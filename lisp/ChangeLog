@@ -1,3 +1,13 @@
+2002-07-20  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-insert-file): When called with a LIMIT regexp,
+	delete anything that comes after LIMIT from the buffer.
+
+	* vc-rcs.el (vc-rcs-fetch-master-state): Be more careful to check
+	if this is really an RCS master file.
+
+	* vc.el: Improve comment of vc-BACKEND-workfile-unchanged-p.
+
 2002-07-18  Dave Love  <fx@gnu.org>
 
 	* help.el (describe-function-1): Cope with alias of manyarg
