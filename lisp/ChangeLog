@@ -1,3 +1,10 @@
+2001-10-26  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/sgml-mode.el (html-mode): Set `html-xhtml' from the
+	DOCTYPE.
+	(html-tag-alist): Use `html-xhtml' for "li", "dt" and "dd".
+	(sgml-tag): Close empty tags in XHTML.
+
 2001-10-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el: (w32-charset-info-alist): Use ANSI for iso10646-1

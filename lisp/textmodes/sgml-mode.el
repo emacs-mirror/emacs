@@ -516,14 +516,15 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
 	   (completing-read "Tag: " sgml-tag-alist))
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
-  `(("") '(setq v2 (sgml-attributes ,str t)) ?>
+  `(("") '(setq v2 (sgml-attributes ,str t))
+    (if (and (eq major-mode html-mode) html-xhtml (eq v2 t)) "/>" ">")
     (if (string= "![" ,str)
 	(prog1 '(("") " [ " _ " ]]")
 	  (backward-char))
-      (unless (or (sgml-skip-close-p v2) ; (eq v2 t)
+      (unless (or (eq v2 t)
                   (string-match "^[/!?]" ,str))
 	(if (symbolp v2)
-	    ;; We go use `identity' to prevent skeleton from passing
+	    ;; We use `identity' to prevent skeleton from passing
 	    ;; `str' through skeleton-transformation a second time.
 	    '(("") v2 _ v2 "</" (identity ',str) ?>)
 	  (if (eq (car v2) t)
@@ -970,7 +971,10 @@ This takes effect when first loading the library.")
 
 
 (defcustom html-xhtml nil
-  "*When non-nil, tag insertion functions will be XHTML-compliant."
+  "*When non-nil, tag insertion functions will be XHTML-compliant.
+If this variable is customized, the custom value is used always.
+Otherwise, it is set to be buffer-local when the file has
+ a DOCTYPE declaration."
   :type 'boolean
   :version "21.2"
   :group 'sgml)
@@ -1059,7 +1063,7 @@ This takes effect when first loading the library.")
       ("center" \n)
       ("cite")
       ("code" \n)
-      ("dd" t)
+      ("dd" ,(not html-xhtml))
       ("del")
       ("dfn")
       ("div")
@@ -1067,7 +1071,8 @@ This takes effect when first loading the library.")
 		 ( "Term: "
 		   "<dt>" str (if html-xhtml "</dt>")
                    "<dd>" _ (if html-xhtml "</dd>") \n)))
-      ("dt" (t _ "<dd>"))
+      ("dt" (t _ (if html-xhtml "</dt>")
+             "<dd>" (if html-xhtml "</dd>") \n))
       ("em")
       ;("fn" "id" "fn")  ; ???
       ("head" \n)
@@ -1086,7 +1091,7 @@ This takes effect when first loading the library.")
       ("isindex" t ("action") ("prompt"))
       ("kbd")
       ("lang")
-      ("li" t)
+      ("li" ,(not html-xhtml))
       ("math" \n)
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
@@ -1269,6 +1274,15 @@ To work around that, do:
 	outline-level (lambda ()
 			(char-after (1- (match-end 0)))))
   (setq imenu-create-index-function 'html-imenu-index)
+  (unless (get 'html-xhtml 'saved-value)
+    ;; not customized -- set from the DocType
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward
+             "<!DOCTYPE\\s-+html\\s-+PUBLIC\\s-+\"-//W3C//DTD \\(X?\\)HTML"
+             nil t)
+        (set (make-local-variable 'html-xhtml)
+             (string= "X" (match-string 1))))))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
