@@ -116,6 +116,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   "Sort messages of current Rmail file.
 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUNC is called with message number, and should return a key."
+ (or (eq major-mode 'rmail-mode)
+     (error "Current buffer not in Rmail mode"))
   (let ((buffer-read-only nil)
 	(sort-lists nil))
     (message "Finding sort keys...")
