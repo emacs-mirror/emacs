@@ -181,6 +181,7 @@ struct w32_display_info
   int mouse_face_past_end;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
 
   /* 1 if a mouse motion event came and we didn't handle it right away because
      gc was in progress.  */
@@ -280,7 +281,7 @@ struct x_output
 struct w32_output
 {
   /* Placeholder for things accessed through output_data.x.  */
-  struct x_output x_compatibile;
+  struct x_output x_compatible;
 
   /* Menubar "widget" handle.  */
   HMENU menubar_widget;
