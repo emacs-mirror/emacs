@@ -1950,14 +1950,27 @@ See also `auto-save-file-name-p'."
 	      "#"
 	      (file-name-nondirectory buffer-file-name)
 	      "#")
-    ;; For non-file bfr, use bfr name and Emacs pid.
-    ;; Don't allow slashes, though; auto-save would try to interpret it
-    ;; as a pathname, and it might not exist.
+
+    ;; Deal with buffers that don't have any associated files.  (Mail
+    ;; mode tends to create a good number of these.)
+
     (let ((buffer-name (buffer-name))
-	  (save-match-data (match-data)))
-      (while (string-match "/" buffer-name)
-	(aset buffer-name (match-beginning 0) ?-))
-      (store-match-data save-match-data)
+	  (limit 0))
+      ;; Use technique from Sebastian Kremer's auto-save
+      ;; package to turn slashes into \\!.  This ensures that
+      ;; the auto-save buffer name is unique.
+
+      (while (string-match "[/\\]" buffer-name limit)
+	(setq buffer-name (concat (substring buffer-name 0 (match-beginning 0))
+			(if (string= (substring buffer-name
+						(match-beginning 0)
+						(match-end 0))
+				     "/")
+			    "\\!"
+			  "\\\\")
+			(substring buffer-name (match-end 0))))
+	(setq limit (1+ (match-end 0))))
+
       (expand-file-name (format "#%s#%s#" buffer-name (make-temp-name ""))))))
 
 (defun auto-save-file-name-p (filename)
