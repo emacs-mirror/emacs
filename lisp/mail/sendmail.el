@@ -164,14 +164,21 @@ It is semi-obsolete and mail agents should no longer use it.")
 
 (defcustom mail-citation-hook nil
   "*Hook for modifying a citation just inserted in the mail buffer.
-Each hook function can find the citation between (point) and (mark t).
-And each hook function should leave point and mark around the citation
-text as modified.
+Each hook function can find the citation between (point) and (mark t),
+and should leave point and mark around the citation text as modified.
+The hook functions can find the header of the cited message
+in the variable `mail-citation-header', whether or not this is included
+in the cited portion of the message.
 
 If this hook is entirely empty (nil), a default action is taken
 instead of no action."
   :type 'hook
   :group 'sendmail)
+
+(defvar mail-citation-header nil
+  "While running `mail-citation-hook', this variable holds the message header.
+This enables the hook functions to see the whole message header
+regardless of what part of it (if any) is included in the cited text.")
 
 (defcustom mail-citation-prefix-regexp "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|[ \t]*"
   "*Regular expression to match a citation prefix plus whitespace.
@@ -1187,7 +1194,17 @@ and don't delete any header fields."
 		;; on account of mark's being inactive.
 		(mark-even-if-inactive t))
 	    (if mail-citation-hook
-		(run-hooks 'mail-citation-hook)
+		;; Bind mail-citation-hook to the inserted message's header.
+		(let ((mail-citation-header
+		       (buffer-substring-no-properties
+			start
+			(save-excursion
+			  (save-restriction
+			    (narrow-to-region start (point-max))
+			    (goto-char start)
+			    (rfc822-goto-eoh)
+			    (point))))))
+		(run-hooks 'mail-citation-hook))
 	      (if mail-yank-hooks
 		  (run-hooks 'mail-yank-hooks)
 		(mail-indent-citation)))))
@@ -1235,7 +1252,7 @@ and don't delete any header fields."
 	     (mark-even-if-inactive t))
 	 ;; Insert the citation text.
 	 (insert (with-current-buffer buffer
-		   (buffer-substring (point) (mark))))
+		   (buffer-substring-no-properties (point) (mark))))
 	 (push-mark start)
 	 ;; Indent or otherwise annotate the citation text.
 	 (if (consp arg)
@@ -1243,7 +1260,16 @@ and don't delete any header fields."
 	   (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
 					    mail-indentation-spaces)))
 	     (if mail-citation-hook
-		 (run-hooks 'mail-citation-hook)
+		 ;; Bind mail-citation-hook to the original message's header.
+		 (let ((mail-citation-header
+			(with-current-buffer buffer
+			  (buffer-substring-no-properties
+			   (point-min)
+			   (save-excursion
+			     (goto-char (point-min))
+			     (rfc822-goto-eoh)
+			     (point))))))
+		   (run-hooks 'mail-citation-hook))
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
 		 (mail-indent-citation))))))))
