@@ -246,11 +246,6 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
-/* Letter to use in finding device name of first pty,
-  if system supports pty's.  'p' means it is /dev/ptyp0  */
-
-#define FIRST_PTY_LETTER 'p'
-
 /*
  *	Use a Berkeley style sys/wait.h.
  *      This makes WIF* macros operate on structures instead of ints.
@@ -347,6 +342,46 @@ CC=gcc
 #define C_DEBUG_SWITCH -g
 
 #else /* not COFF */
+
+/* Pseudo-terminal support under SVR4 only loops to deal with errors. */
+
+#define PTY_ITERATION for (i = 0; i < 1; i++)
+
+/* This sets the name of the master side of the PTY. */
+
+#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
+
+/* This sets the name of the slave side of the PTY.  On SysVr4,
+   grantpt(3) forks a subprocess, so keep sigchld_handler() from
+   intercepting that death.  If any child but grantpt's should die
+   within, it should be caught after sigrelse(2). */
+
+#define PTY_TTY_NAME_SPRINTF			\
+  {						\
+    char *ptsname(), *ptyname;			\
+						\
+    sigblock(sigmask(SIGCLD));				\
+    if (grantpt(fd) == -1)			\
+      fatal("could not grant slave pty");	\
+    sigunblock(sigmask(SIGCLD));				\
+    if (unlockpt(fd) == -1)			\
+      fatal("could not unlock slave pty");	\
+    if (!(ptyname = ptsname(fd)))		\
+      fatal ("could not enable slave pty");	\
+    strncpy(pty_name, ptyname, sizeof(pty_name)); \
+    pty_name[sizeof(pty_name) - 1] = 0;		\
+  }
+
+/* Push various streams modules onto a PTY channel. */
+
+#define SETUP_SLAVE_PTY \
+  if (ioctl (xforkin, I_PUSH, "ptem") == -1)	\
+    fatal ("ioctl I_PUSH ptem", errno);		\
+  if (ioctl (xforkin, I_PUSH, "ldterm") == -1)	\
+    fatal ("ioctl I_PUSH ldterm", errno);	\
+  if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
+    fatal ("ioctl I_PUSH ttcompat", errno);
+
 
 #define C_COMPILER \
   TARGET_BINARY_INTERFACE=m88kdguxelf gcc -traditional
