@@ -1123,7 +1123,7 @@ A nonzero prefix argument also means ask about each subdirectory."
   (if noninteractive
       nil
     (save-some-buffers)
-    (set-buffer-modified-p (buffer-modified-p))) ;Update the mode line.
+    (force-mode-line-update))
   (let ((directories (list (expand-file-name directory)))
 	(file-count 0)
 	(dir-count 0)
