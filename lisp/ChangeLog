@@ -1,3 +1,26 @@
+2002-03-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el: Change maintainer to FSF.
+	(sgml-start-tag-regex, sgml-font-lock-keywords-1, sgml-mode-common)
+	(sgml-tags-invisible, sgml-beginning-of-tag):
+	Allow _ : and non-ASCII in tag names, as required for XML.
+	(sgml-name-char): Don't assume anything about charsets handled by
+	encode-char.
+
+	* textmodes/tex-mode.el (tex-guess-main-file): Handle the case
+	where one of the buffers is narrowed.
+
+	* hexl.el (hexlify-command, dehexlify-command): Remove.
+	(hexlify-buffer, dehexlify-buffer): Use call-process-region
+	rather than shell-command-on-region.
+
+	* newcomment.el (comment-forward): Use forward-comment to skip
+	over whitespace (or comments) even when comment-use-syntax is nil.
+
+	* progmodes/cperl-mode.el (cperl-menu): Add "-emacs" to the version.
+
+	* textmodes/xml-lite.el: New file.
+
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/artist.el (artist-system): Use make-temp-file.
