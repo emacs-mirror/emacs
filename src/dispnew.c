@@ -2472,17 +2472,20 @@ init_display ()
      terminal is so dumb that emacs gives up before and doesn't bother
      using the window system.
 
-     If the DISPLAY environment variable is set, try to use X, and die
-     with an error message if that doesn't work.  */
+     If the DISPLAY environment variable is set and nonempty,
+     try to use X, and die with an error message if that doesn't work.  */
 
 #ifdef HAVE_X_WINDOWS
   if (! display_arg)
     {
+      char *display;
 #ifdef VMS
-      display_arg = (getenv ("DECW$DISPLAY") != 0);
+      display = getenv ("DECW$DISPLAY");
 #else
-      display_arg = (getenv ("DISPLAY") != 0);
+      display = getenv ("DISPLAY");
 #endif
+
+      display_arg = (display != 0 && *display != 0);
     }
 
   if (!inhibit_window_system && display_arg)
