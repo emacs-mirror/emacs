@@ -1,3 +1,7 @@
+2003-01-24  Juanma Barranquero  <lektu@terra.es>
+
+	* isearch.el (isearch-forward): Fix typo.
+
 2003-01-23  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
