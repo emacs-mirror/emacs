@@ -82,10 +82,11 @@
 
 ;; define the map, so it can be bound by those who desire to do so:
 
-(defvar bookmark-map nil "This is a keymap containing bookmark
-functions.  It is not bound to any key by default: to bind it so 
-that you have a bookmark prefix, just use global-set-key and bind a
-key of your choice to \`bookmark-map\'.  All interactive bookmark
+(defvar bookmark-map nil
+  "Keymap containing bindings to bookmark functions.
+It is not bound to any key by default: to bind it
+so that you have a bookmark prefix, just use `global-set-key' and bind a
+key of your choice to `bookmark-map'.  All interactive bookmark
 functions have a binding in this keymap.")
 
 (define-prefix-command 'bookmark-map)
@@ -96,7 +97,7 @@ functions have a binding in this keymap.")
 (define-key bookmark-map "j" 'bookmark-jump)
 (define-key bookmark-map "i" 'bookmark-insert)
 (define-key bookmark-map "f" 'bookmark-locate) ; "f" for "find"
-(define-key bookmark-map "n" 'bookmark-rename) ; "n" for "new name"
+(define-key bookmark-map "r" 'bookmark-rename)
 ;; deletes bookmarks
 (define-key bookmark-map "d" 'bookmark-delete)
 ;; loads new file
@@ -118,47 +119,41 @@ functions have a binding in this keymap.")
 
 ;; more stuff added by db.
 (defvar bookmark-current-bookmark nil 
-  "This variable stores the bookmark most recently set, jumped to, or
-renamed.  It is buffer local, used to make moving a bookmark forward
+  "Name of bookmark most recently used in the current file.
+It is buffer local, used to make moving a bookmark forward
 through a file easier.")
 
 (make-variable-buffer-local 'bookmark-current-bookmark)
 
 (defvar bookmark-save-flag t
-  "*This variable determines when Emacs\' internal bookmark list will
-be saved to a file:
-
-Nil means never save bookmarks, except when \`bookmark-save\' is
-explicitly called \(\\[bookmark-save]\).
-
-t means save bookmarks when Emacs is killed.
-
-Otherise, it should be a number that is the frequency with which the
-bookmark list is saved \(i.e.: the number of times which Emacs\'
-bookmark list may be modified before it is automatically saved.\).  If
-it is a number, Emacs will also automatically save bookmarks when it
-is killed.
+  "*Controls when Emacs saves bookmarks to a file.
+--> Nil means never save bookmarks, except when `bookmark-save' is
+    explicitly called \(\\[bookmark-save]\).
+--> t means save bookmarks when Emacs is killed.
+--> Otherise, it should be a number that is the frequency with which
+    the bookmark list is saved \(i.e.: the number of times which
+    Emacs' bookmark list may be modified before it is automatically
+    saved.\).  If it is a number, Emacs will also automatically save
+    bookmarks when it is killed.
 
 Therefore, the way to get it to save every time you make or delete a
 bookmark is to set this variable to 1 \(or 0, which produces the same
 behavior.\)
 
 To specify the file in which to save them, modify the variable
-bookmark-file, which is \`~/.emacs-bkmrks\' by default.")
+bookmark-file, which is `~/.emacs-bkmrks' by default.")
 
 (defvar bookmark-alist-modification-count 0
-  "Number of times the bookmark list has been modified since last
-saved.")
+  "Number of modifications to bookmark list since it was last saved.")
 
 (defvar bookmark-file "~/.emacs-bkmrks" 
   "*File in which to save bookmarks by default.")
 
 (defvar bookmark-completion-ignore-case t
-  "*Non-nil means those bookmark functions which use completion will
-be case-insensitive in completion.")
+  "*Non-nil means bookmark functions ignore case in completion.")
 
-(defvar bookmark-search-size 500 "Length, in characters, of the
-context strings recorded on either side of a bookmark.")
+(defvar bookmark-search-size 500 
+  "Length of the context strings recorded on either side of a bookmark.")
 
 (defvar bookmark-alist ()
   "Association list of bookmarks.
@@ -170,15 +165,17 @@ instead, let the various bookmark functions do it for you.")
 (defvar bookmark-current-buffer nil)
 
 (defun bookmark-set (&optional parg)
-  "Set a bookmark named NAME inside a file.  With prefix arg, will not
-overwrite a bookmark that has the same name as NAME if such a bookmark
-already exists, but instead will \"push\" the new bookmark onto the
-bookmark alist.  Thus the most recently set bookmark with name NAME would
-be the one in effect at any given time, but the others are still there,
-should you decide to delete the most recent one.
+
+  "Set a bookmark named NAME inside a file.  
+With prefix arg, will not overwrite a bookmark that has the same name
+as NAME if such a bookmark already exists, but instead will \"push\"
+the new bookmark onto the bookmark alist.  Thus the most recently set
+bookmark with name NAME would be the one in effect at any given time,
+but the others are still there, should you decide to delete the most
+recent one.
 
 To yank words from the text of the buffer and use them as part of the
-bookmark name, type C-w while setting a bookmark.  Successive C-w\'s
+bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
 Typing C-v inserts the name of the current file being visited. Typing
@@ -305,10 +302,10 @@ the list of bookmarks.\)"
       (bookmark-load bookmark-file)))
 
 (defun bookmark-jump (str)
-  "Jump to bookmark BOOKMARK (a point in some file).  You may have a
-problem using this function if the value of variable
-\`bookmark-alist\' is nil.  If that happens, you need to load in some
-bookmarks.  See help on function \`bookmark-load\' for more about
+  "Jump to bookmark BOOKMARK (a point in some file).  
+You may have a problem using this function if the value of variable
+`bookmark-alist' is nil.  If that happens, you need to load in some
+bookmarks.  See help on function `bookmark-load' for more about
 this."
     (interactive (let ((completion-ignore-case
                         bookmark-completion-ignore-case))
@@ -347,8 +344,8 @@ this."
                    "\""))))))
 
 (defun bookmark-locate (str)
-  "Insert the name of the  file associated with BOOKMARK \(as opposed
-to the contents of that file\)."
+  "Insert the name of the  file associated with BOOKMARK. 
+\(This is not the same as the contents of that file\)."
   (interactive (let ((completion-ignore-case
                       bookmark-completion-ignore-case))
                  (list (completing-read
@@ -358,11 +355,18 @@ to the contents of that file\)."
                         0))))
   (insert (car (car (cdr (assoc str bookmark-alist))))))
 
-(defun bookmark-rename (old)
-  "Change the name of BOOKMARK to NEWNAME.  While you are entering
-the new name, consecutive C-w\'s will insert consectutive words from
-the text of the buffer into the new bookmark name, and C-v will insert
-the name of the file."
+(defun bookmark-rename (old &optional new)
+  "Change the name of BOOKMARK to NEWNAME.  
+If called from keyboard, prompts for OLD and NEWNAME.
+If called from menubar, prompts for NEWNAME.
+If called from Lisp, prompts for NEWNAME if only BOOKMARK was passed
+as an argument.  If called with two strings, then no prompting is
+done.  You must pass at least BOOKMARK when calling from Lisp.
+
+While you are entering the new name, consecutive C-w's insert
+consectutive words from the text of the buffer into the new bookmark
+name, and C-v inserts the name of the file."
+
   (interactive (let ((completion-ignore-case
                       bookmark-completion-ignore-case))
                  (list (completing-read "Old bookmark name: "
@@ -375,15 +379,16 @@ the name of the file."
     (setq bookmark-current-buffer (current-buffer))
     (let ((cell (assoc old bookmark-alist))
 	  (str
-	   (read-from-minibuffer 
-	    "New name: "
-	    nil
-	    (let ((now-map (copy-keymap minibuffer-local-map)))
-	      (progn (define-key now-map  "\C-w" 
-		       'bookmark-yank-word)
-		     (define-key now-map  "\C-v" 
-		       'bookmark-insert-current-file-name))
-	      now-map))))
+           (or new   ; use second arg, if non-nil
+               (read-from-minibuffer 
+                "New name: "
+                nil
+                (let ((now-map (copy-keymap minibuffer-local-map)))
+                  (progn (define-key now-map  "\C-w" 
+                           'bookmark-yank-word)
+                         (define-key now-map  "\C-v" 
+                           'bookmark-insert-current-file-name))
+                  now-map)))))
       (progn
 	(setcar cell str)
 	(setq bookmark-current-bookmark str)
@@ -393,10 +398,10 @@ the name of the file."
 	    (bookmark-save))))))
 
 (defun bookmark-insert (str)
-  "Insert the text of the file pointed to by bookmark BOOKMARK.  You
-may have a problem using this function if the value of variable
-\`bookmark-alist\' is nil.  If that happens, you need to load in some
-bookmarks.  See help on function \`bookmark-load\' for more about
+  "Insert the text of the file pointed to by bookmark BOOKMARK.  
+You may have a problem using this function if the value of variable
+`bookmark-alist' is nil.  If that happens, you need to load in some
+bookmarks.  See help on function `bookmark-load' for more about
 this."
   (interactive (let ((completion-ignore-case
                       bookmark-completion-ignore-case))
@@ -426,11 +431,12 @@ this."
                  "\""))))))
 
 (defun bookmark-delete (str)
-  "Delete the bookmark named NAME from the bookmark list.  Removes
-only the first instance of a bookmark with that name.  If there are
-one or more other bookmarks with the same name, they will not be
-deleted.  Defaults to the \"current\" bookmark \(that is, the one most
-recently used in this file, if any\)."
+  "Delete the bookmark named NAME from the bookmark list.  
+Removes only the first instance of a bookmark with that name.  If
+there are one or more other bookmarks with the same name, they will
+not be deleted.  Defaults to the \"current\" bookmark \(that is, the
+one most recently used in this file, if any\)."
+
   (interactive (let ((completion-ignore-case
 		      bookmark-completion-ignore-case))
 		 (list
@@ -471,8 +477,9 @@ recently used in this file, if any\)."
   (bookmark-save t))
 
 (defun bookmark-save (&optional parg file) 
-  "Save currently defined bookmarks in the file defined by the
-variable \`bookmark-file\'.  With a prefix arg, save it in file FILE.
+  "Save currently defined bookmarks.
+Saves by default in the file defined by the variable
+`bookmark-file'.  With a prefix arg, save it in file FILE.
 
 If you are calling this from Lisp, the two arguments are PREFIX-ARG
 and FILE, and if you just want it to write to the default file, then
@@ -481,9 +488,9 @@ instead.  If you pass in one argument, and it is non-nil, then the
 user will be interactively queried for a file to save in.
 
 When you want to load in the bookmarks from a file, use
-\\`bookmark-load\\', \\[bookmark-load].  That function will prompt you
+\`bookmark-load\', \\[bookmark-load].  That function will prompt you
 for a file, defaulting to the file defined by variable
-\`bookmark-file\'."
+`bookmark-file'."
   (interactive "P")
   (cond
    ((and (null parg) (null file))
@@ -514,15 +521,16 @@ for a file, defaulting to the file defined by variable
     (kill-buffer (current-buffer))))
 
 (defun bookmark-load (file &optional revert no-msg)
-  "Loads bookmarks from FILE, appending loaded bookmarks to the front
-of the list of bookmarks.  If optional second argument REVERT is
-non-nil, existing bookmarks are destroyed.  Optional third arg NO-MSG
-means don't display any messages while loading.
+  "Load bookmarks from FILE (which must be in bookmark format).
+Appends loaded bookmarks to the front of the list of bookmarks.  If
+optional second argument REVERT is non-nil, existing bookmarks are
+destroyed.  Optional third arg NO-MSG means don't display any messages
+while loading.
 
 If you load a file that doesn't contain a proper bookmark alist, you
-will corrupt Emacs\' bookmark list.  Generally, you should only load
+will corrupt Emacs's bookmark list.  Generally, you should only load
 in files that were created with the bookmark functions in the first
-place.  Your own personal bookmark file, \`~/.emacs-bkmrks\', is
+place.  Your own personal bookmark file, `~/.emacs-bkmrks', is
 maintained automatically by Emacs; you shouldn't need to load it
 explicitly."
   (interactive
@@ -558,12 +566,13 @@ explicitly."
 
 ;;;; bookmark menu bar stuff ;;;;
 
-(defvar bookmark-menu-bar-length 70 "*Maximum length of a bookmark name
-displayed on a popup menu.")
+(defvar bookmark-menu-bar-length 70 
+  "*Maximum length of a bookmark name displayed on a popup menu.")
 
 (defvar bookmark-enable-menu-bar t
-  "*Non-nil means put a bookmark menu on the menu bar \(assuming that
-you are running Emacs under a windowing system, such as X\).")
+  "*Non-nil means put a bookmark menu on the menu bar.
+\(Assuming that you are running Emacs under a windowing system, such
+as X.\)")
 
 (defun bookmark-make-menu-bar-alist ()
   (if (not bookmark-alist)
@@ -594,7 +603,11 @@ you are running Emacs under a windowing system, such as X\).")
 	(apply func-sym (list str)))))
 
 (defun bookmark-menu-bar-insert (event)
-  ;; see bookmark-insert
+  "Insert the text of the file pointed to by bookmark BOOKMARK.  
+You may have a problem using this function if the value of variable
+`bookmark-alist' is nil.  If that happens, you need to load in some
+bookmarks.  See help on function `bookmark-load' for more about
+this."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-insert
 				    "Bookmark Insert Menu"
@@ -602,7 +615,11 @@ you are running Emacs under a windowing system, such as X\).")
 				    event))
 
 (defun bookmark-menu-bar-jump (event)
-  ;; see bookmark-jump
+  "Jump to bookmark BOOKMARK (a point in some file).  
+You may have a problem using this function if the value of variable
+`bookmark-alist' is nil.  If that happens, you need to load in some
+bookmarks.  See help on function `bookmark-load' for more about
+this."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-jump
 				    "Bookmark Jump Menu"
@@ -610,7 +627,8 @@ you are running Emacs under a windowing system, such as X\).")
 				    event))
 
 (defun bookmark-menu-bar-locate (event)
-  ;; see bookmark-locate
+  "Insert the name of the  file associated with BOOKMARK. 
+\(This is not the same as the contents of that file\)."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-locate
 				    "Bookmark Locate Menu"
@@ -618,7 +636,16 @@ you are running Emacs under a windowing system, such as X\).")
 				    event))
 
 (defun bookmark-menu-bar-rename (event)
-  ;; see bookmark-rename
+  "Change the name of BOOKMARK to NEWNAME.  
+If called from keyboard, prompts for OLD and NEWNAME.
+If called from menubar, prompts for NEWNAME.
+If called from Lisp, prompts for NEWNAME if only BOOKMARK was passed
+as an argument.  If called with two strings, then no prompting is
+done.  You must pass at least BOOKMARK when calling from Lisp.
+
+While you are entering the new name, consecutive C-w's insert
+consectutive words from the text of the buffer into the new bookmark
+name, and C-v inserts the name of the file."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-rename
 				    "Bookmark Rename Menu"
@@ -626,7 +653,11 @@ you are running Emacs under a windowing system, such as X\).")
 				    event))
 
 (defun bookmark-menu-bar-delete (event)
-  ;; see bookmark-delete
+  "Delete the bookmark named NAME from the bookmark list.  
+Removes only the first instance of a bookmark with that name.  If
+there are one or more other bookmarks with the same name, they will
+not be deleted.  Defaults to the \"current\" bookmark \(that is, the
+one most recently used in this file, if any\)."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-delete
 				    "Bookmark Delete Menu"
