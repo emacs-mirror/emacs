@@ -212,13 +212,16 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 
 ;;;###autoload
 (defun coding-system-eol-type-mnemonic (coding-system)
-  "Return mnemonic letter of eol-type of CODING-SYSTEM."
-  (let ((eol-type (coding-system-eol-type coding-system)))
-    (cond ((vectorp eol-type) eol-mnemonic-undecided)
-	  ((eq eol-type 0) eol-mnemonic-unix)
-	  ((eq eol-type 1) eol-mnemonic-dos)
-	  ((eq eol-type 2) eol-mnemonic-mac)
-	  (t ?-))))
+  "Return the string indicating end-of-line format of CODING-SYSTEM."
+  (let* ((eol-type (coding-system-eol-type coding-system))
+	 (val (cond ((vectorp eol-type) eol-mnemonic-undecided)
+		    ((eq eol-type 0) eol-mnemonic-unix)
+		    ((eq eol-type 1) eol-mnemonic-dos)
+		    ((eq eol-type 2) eol-mnemonic-mac)
+		    (t "-"))))
+    (if (stringp val)
+	val
+      (char-to-string val))))
 
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
