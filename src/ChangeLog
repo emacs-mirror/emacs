@@ -1,3 +1,12 @@
+2002-07-11  Juanma Barranquero  <lektu@terra.es>
+
+	* alloc.c, buffer.c, bytecode.c, callint.c, callproc.c, coding.c
+	* composite.c, dired.c, dispnew.c, editfns.c, emacs.c, eval.c
+	* fileio.c, fns.c, insdel.c, keyboard.c, keymap.c, lread.c, macfns.c
+	* macmenu.c, minibuf.c, print.c, process.c, sound.c, textprop.c
+	* w32fns.c, w32menu.c, window.c, xfaces.c, xmenu.c, xselect.c
+	* xterm.c: Use SPECPDL_INDEX wherever makes sense.
+
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
 	* lisp.h (SPECPDL_INDEX): Rename from BINDING_STACK_SIZE. All callers
@@ -55,7 +64,7 @@
 	CCL_LookupCharConstTbl.
 	(syms_of_ccl): Defvar translation-hash-table-vector.
 
-2002-07-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-07-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused variable `face'.
 
