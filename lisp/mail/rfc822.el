@@ -239,19 +239,22 @@
 	       ;; an addr-spec, since many broken mailers output
 	       ;; "Hern K. Herklemeyer III
 	       ;;   <yank@megadeath.dod.gods-own-country>"
-               (cond ((= n 0))
-                     ((> n 1)
-                      (rfc822-bad-address "Missing route-spec"))
-                     ((= (preceding-char) ?\ ))
-                     (t (insert ?\ )))
-	       (rfc822-snarf-words)
-	       (setq n (1+ n)))
+               (let ((again t))
+                 (while again
+                   (or (= n 0) (bobp) (= (preceding-char) ?\ )
+                       (insert ?\ ))
+                   (rfc822-snarf-word)
+                   (setq n (1+ n))
+                   (setq again (or (rfc822-looking-at ?.)
+                                   (looking-at "[^][\000-\037\177-\377 ()<>@,;:\\.]"))))))
 	      ((= n 0)
 	       (throw 'address nil))
 	      ((= n 1) ; allow "foo" (losing unix seems to do this)
 	       (throw 'address
 		 (buffer-substring address-start (point))))
-	      ((or (eobp) (looking-at ","))
+              ((> n 1)
+               (rfc822-bad-address "Missing comma between addresses or badly-formatted address"))
+	      ((or (eobp) (= (following-char) ?,))
 	       (rfc822-bad-address "Missing comma or route-spec"))
 	      (t
 	       (rfc822-bad-address "Strange character or missing comma")))))))
