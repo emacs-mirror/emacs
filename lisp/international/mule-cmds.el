@@ -170,6 +170,15 @@
 ;;; ;; Here's an alternative key binding for X users (Shift-SPACE).
 ;;; (define-key global-map [?\S- ] 'toggle-input-method)
 
+;;; Mule related hyperlinks.
+(defconst help-xref-mule-regexp-template
+  (purecopy (concat "\\(\\<\\("
+		    "\\(coding system\\)\\|"
+		    "\\(input method\\)"
+		    "\\)\\s-+\\)?"
+		    ;; Note starting with word-syntax character:
+		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'")))
+
 (defun coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system which differs from CODING-SYSTEM in eol conversion.
 The returned coding system converts end-of-line by EOL-TYPE
@@ -1067,10 +1076,20 @@ The default is to use the most recent input method specified
       (setq input-method (symbol-name input-method)))
   (if (null input-method)
       (describe-current-input-method)
-    (with-output-to-temp-buffer "*Help*"
-      (let ((elt (assoc input-method input-method-alist)))
-	(princ (format "Input method: %s (`%s' in mode line) for %s\n  %s\n"
-		       input-method (nth 3 elt) (nth 1 elt) (nth 4 elt)))))))
+    (let ((current current-input-method))
+      (condition-case nil
+	  (progn
+	    (save-excursion
+	      (activate-input-method input-method)
+	      (describe-current-input-method))
+	    (activate-input-method current))
+	(error 
+	 (activate-input-method current)
+	 (with-output-to-temp-buffer "*Help*"
+	   (let ((elt (assoc input-method input-method-alist)))
+	     (princ (format
+		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
+		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
 
 (defun describe-current-input-method ()
   "Describe the input method currently in use."
@@ -1473,57 +1492,74 @@ of buffer-file-coding-system set by this function."
       (error "No documentation for the specified language"))
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
-  (let ((doc (get-language-info language-name 'documentation)))
+  (let ((doc (get-language-info language-name 'documentation))
+	pos)
     (with-output-to-temp-buffer "*Help*"
-      (princ-list language-name " language environment" "\n")
-      (if (stringp doc)
-	  (progn
-	    (princ-list doc)
-	    (terpri)))
-      (let ((str (get-language-info language-name 'sample-text)))
-	(if (stringp str)
-	    (progn
-	      (princ "Sample text:\n")
-	      (princ-list "  " str)
-	      (terpri))))
-      (let ((input-method (get-language-info language-name 'input-method))
-	    (l (copy-sequence input-method-alist)))
-	(princ "Input methods")
-	(when input-method
-	  (princ (format " (default, %s)" input-method))
-	  (setq input-method (assoc input-method input-method-alist))
-	  (setq l (cons input-method (delete input-method l))))
-	(princ ":\n")
-	(while l
-	  (if (string= language-name (nth 1 (car l)))
-	      (princ-list "  " (car (car l))
-			  (format " (`%s' in mode line)" (nth 3 (car l)))))
-	  (setq l (cdr l))))
-      (terpri)
-      (princ "Character sets:\n")
-      (let ((l (get-language-info language-name 'charset)))
-	(if (null l)
-	    (princ-list "  nothing specific to " language-name)
+      (save-excursion
+	(set-buffer standard-output)
+	(insert language-name " language environment\n\n")
+	(if (stringp doc)
+	    (insert doc "\n\n"))
+	(let ((str (get-language-info language-name 'sample-text)))
+	  (if (stringp str)
+	      (insert "Sample text:\n  " str "\n\n")))
+	(let ((input-method (get-language-info language-name 'input-method))
+	      (l (copy-sequence input-method-alist)))
+	  (insert "Input methods")
+	  (when input-method
+	    (insert " (default, " input-method ")")
+	    (setq input-method (assoc input-method input-method-alist))
+	    (setq l (cons input-method (delete input-method l))))
+	  (insert ":\n")
 	  (while l
-	    (princ-list "  " (car l) ": "
-			(charset-description (car l)))
-	    (setq l (cdr l)))))
-      (terpri)
-      (princ "Coding systems:\n")
-      (let ((l (get-language-info language-name 'coding-system)))
-	(if (null l)
-	    (princ-list "  nothing specific to " language-name)
-	  (while l
-	    (princ (format "  %s (`%c' in mode line):\n\t%s\n"
-			   (car l)
-			   (coding-system-mnemonic (car l))
-			   (coding-system-doc-string (car l))))
-	    (let ((aliases (coding-system-get (car l) 'alias-coding-systems)))
-	      (when aliases
-		(princ "\t")
-		(princ (cons 'alias: (cdr aliases)))
-		(terpri)))
-	    (setq l (cdr l))))))))
+	    (when (string= language-name (nth 1 (car l)))
+	      (insert "  " (car (car l)))
+	      (search-backward (car (car l)))
+	      (help-xref-button 0 #'describe-input-method (car (car l))
+				"mouse-2, RET: describe this input method")
+	      (goto-char (point-max))
+	      (insert " (\"" (nth 3 (car l)) "\" in mode line)\n"))
+	    (setq l (cdr l)))
+	  (insert "\n"))
+	(insert "Character sets:\n")
+	(let ((l (get-language-info language-name 'charset)))
+	  (if (null l)
+	      (insert "  nothing specific to " language-name "\n")
+	    (while l
+	      (insert "  " (symbol-name (car l)))
+	      (search-backward (symbol-name (car l)))
+	      (help-xref-button 0 #'describe-character-set (car l)
+				"mouse-2, RET: describe this character set")
+	      (goto-char (point-max))
+	      (insert ": " (charset-description (car l)) "\n")
+	      (setq l (cdr l)))))
+	(insert "\n")
+	(insert "Coding systems:\n")
+	(let ((l (get-language-info language-name 'coding-system)))
+	  (if (null l)
+	      (insert "  nothing specific to " language-name "\n")
+	    (while l
+	      (insert "  " (symbol-name (car l)))
+	      (search-backward (symbol-name (car l)))
+	      (help-xref-button 0 #'describe-coding-system (car l)
+				"mouse-2, RET: describe this coding system")
+	      (goto-char (point-max))
+	      (insert " (`"
+		      (coding-system-mnemonic (car l))
+		      "' in mode line):\n\t"
+		      (coding-system-doc-string (car l))
+		      "\n")
+	      (let ((aliases (coding-system-get (car l)
+						'alias-coding-systems)))
+		(when aliases
+		  (insert "\t(alias:")
+		  (while aliases
+		    (insert " " (symbol-name (car aliases)))
+		    (setq aliases (cdr aliases)))
+		  (insert ")\n")))
+	      (setq l (cdr l)))))
+	(help-setup-xref (list #'describe-language-environment language-name)
+			 (interactive-p))))))
 
 ;;; Locales.
 
