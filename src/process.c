@@ -1186,12 +1186,14 @@ create_process (process, new_argv, current_dir)
      char **new_argv;
      Lisp_Object current_dir;
 {
-  int pid, inchannel, outchannel, forkin, forkout;
+  int pid, inchannel, outchannel;
   int sv[2];
 #ifdef SIGCHLD
   SIGTYPE (*sigchld)();
 #endif
-  int pty_flag = 0;
+  /* Use volatile to protect variables from being clobbered by longjmp.  */
+  volatile int forkin, forkout;
+  volatile int pty_flag = 0;
   extern char **environ;
 
   inchannel = outchannel = -1;
@@ -1998,7 +2000,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  Atemp = input_wait_mask;
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if (select (MAXDESC, &Atemp, 0, 0, &timeout) <= 0)
+	  if ((select (MAXDESC, &Atemp, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+		       &timeout)
+	       <= 0))
 	    {
 	      /* It's okay for us to do this and then continue with
 		 the loop, since timeout has already been zeroed out.  */
@@ -2043,7 +2047,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  FD_ZERO (&Available);
 	}
       else
-	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
+	nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+		       &timeout);
 
       xerrno = errno;
 
@@ -2476,14 +2481,14 @@ send_process_trap ()
    OBJECT is the Lisp object that the data comes from.  */
 
 send_process (proc, buf, len, object)
-     Lisp_Object proc;
+     volatile Lisp_Object proc;
      char *buf;
      int len;
      Lisp_Object object;
 {
-  /* Don't use register vars; longjmp can lose them.  */
+  /* Use volatile to protect variables from being clobbered by longjmp.  */
   int rv;
-  unsigned char *procname = XSTRING (XPROCESS (proc)->name)->data;
+  volatile unsigned char *procname = XSTRING (XPROCESS (proc)->name)->data;
 
 #ifdef VMS
   struct Lisp_Process *p = XPROCESS (proc);
@@ -3756,7 +3761,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) && detect_input_pending ())
 	nfds = 0;
       else
-	nfds = select (1, &waitchannels, 0, 0, timeout_p);
+	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+		       timeout_p);
 
       /* Make C-g and alarm signals set flags again */
       clear_waiting_for_input ();
