@@ -1,3 +1,8 @@
+2004-11-08  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compile): Don't overwrite last command in
+	minibuffer history with default command if they are not equal.
+
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcalg2.el (math-do-integral-methods):  Try linear then
