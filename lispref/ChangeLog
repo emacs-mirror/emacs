@@ -1,3 +1,7 @@
+2001-08-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure: New file.
+
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* commands.texi (Repeat Events): Add description of
