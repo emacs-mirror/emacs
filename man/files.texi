@@ -213,6 +213,12 @@ However, before doing so, it checks that the file itself has not changed
 since you visited or saved it last.  If the file has changed, a warning
 message is printed.  @xref{Interlocking,,Simultaneous Editing}.
 
+@cindex maximum buffer size exceeded, error message
+  Since Emacs reads the visited file in its entirety, files whose size
+is larger than the maximum Emacs buffer size (@pxref{Buffers}) cannot be
+visited; if you try, Emacs will print an error message saying that the
+maximum buffer size is exceeded.
+
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs prints
 @samp{(New file)} in the echo area, but in other respects behaves as if
