@@ -2297,6 +2297,9 @@ doesn't exist, it is created."
 	      ;; and replace the leading "x:" with "/drive_x".
 	      (or (file-name-absolute-p file)
 		  (setq file (expand-file-name file))) ; make defaults explicit
+	      ;; Replace any invalid file-name characters (for the
+	      ;; case of backing up remote files).
+	      (setq file (convert-standard-filename file))
 	      (setq dir-sep-string (char-to-string directory-sep-char))
 	      (or (eq directory-sep-char ?/)
 		  (subst-char-in-string ?/ ?\\ file))
