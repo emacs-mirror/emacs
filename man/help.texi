@@ -412,7 +412,9 @@ Ops}), plus a few special commands of their own.
 @item @key{SPC}
 Scroll forward.
 @item @key{DEL}
-Scroll backward.
+@itemx @key{BS}
+Scroll backward.  On some keyboards, this key is known as @key{BS} or
+@key{backspace}.
 @item @key{RET}
 Follow a cross reference at point.
 @item @key{TAB}
