@@ -33,17 +33,21 @@ Boston, MA 02111-1307, USA.  */
  * Author: Larry Kolodney, 1985
  */
 
-
+#include "config.h"
 #include <stdio.h>
 
+#ifndef HAVE_STDLIB_H
 char *malloc ();
 char *realloc ();
 char *getenv ();
+#else
+#include <stdlib.h>
+#endif
 
-char *xmalloc ();
-char *xrealloc ();
-void skip_to_lf ();
-void sysfail ();
+char *xmalloc __P ((unsigned));
+char *xrealloc __P ((char *, unsigned));
+void skip_to_lf __P ((FILE *));
+void sysfail __P ((char *));
 
 int
 main (argc, argv)
