@@ -958,9 +958,10 @@ make_event_array (nargs, args)
 
   for (i = 0; i < nargs; i++)
     /* The things that fit in a string
-       are characters that are in 0...127 after discarding the meta bit.  */
+       are characters that are in 0...127,
+       after discarding the meta bit and all the bits above it.  */
     if (XTYPE (args[i]) != Lisp_Int
-	|| (XUINT (args[i]) & ~CHAR_META) >= 0200)
+	|| (XUINT (args[i]) & ~(-CHAR_META)) >= 0200)
       return Fvector (nargs, args);
 
   /* Since the loop exited, we know that all the things in it are
