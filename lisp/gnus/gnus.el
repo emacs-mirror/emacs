@@ -1612,6 +1612,7 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
      ("gnus-salt" :interactive t gnus-pick-mode gnus-binary-mode)
      ("gnus-uu" (gnus-uu-extract-map keymap) (gnus-uu-mark-map keymap))
      ("gnus-uu" :interactive t
+      gnus-uu-post-news
       gnus-uu-digest-mail-forward gnus-uu-digest-post-forward
       gnus-uu-mark-series gnus-uu-mark-region gnus-uu-mark-buffer
       gnus-uu-mark-by-regexp gnus-uu-mark-all
@@ -1626,6 +1627,11 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
      ("gnus-msg" (gnus-summary-send-map keymap)
       gnus-article-mail gnus-copy-article-buffer gnus-extended-version)
      ("gnus-msg" :interactive t
+      gnus-summary-wide-reply
+      gnus-summary-wide-reply-with-original
+      gnus-summary-followup-to-mail
+      gnus-summary-followup-to-mail-with-original
+      gnus-summary-post-forward
       gnus-group-post-news gnus-group-mail gnus-summary-post-news
       gnus-summary-followup gnus-summary-followup-with-original
       gnus-summary-cancel-article gnus-summary-supersede-article
