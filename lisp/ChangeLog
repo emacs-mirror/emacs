@@ -1,3 +1,7 @@
+2002-07-01  Juanma Barranquero  <lektu@terra.es>
+
+	* ido.el (ido-minibuffer-setup-hook): Doc fix.
+
 2002-07-01  Dave Love  <fx@gnu.org>
 
 	Make strokes a proper minor mode, and don't try to overload
@@ -18,7 +22,7 @@
 	(strokes-prompt-user-save-strokes): Modify format of the file.
 	(strokes-mode-map, strokes-unload-hook): New.
 	(strokes-buffer-name): Don't customize.
-	
+
 2002-07-01  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-index): Get immediate error if used in `dir'.
