@@ -27,7 +27,7 @@
 
 ;; This collection of functions implements the features of calendar.el,
 ;; diary.el, and holiday.el that deal with times of day, sunrise/sunset, and
-;; eqinoxes/solstices.
+;; equinoxes/solstices.
 
 ;; Based on the ``Almanac for Computers 1984,'' prepared by the Nautical
 ;; Almanac Office, United States Naval Observatory, Washington, 1984, on
