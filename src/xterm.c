@@ -6359,6 +6359,10 @@ x_list_fonts (f, pattern, size, maxnames)
   if (NILP (patterns))
     patterns = Fcons (pattern, Qnil);
 
+  /* We try at least 10 fonts because X server will return auto-scaled
+     fonts at the head.  */
+  if (maxnames < 10) maxnames = 10;
+
   for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
     {
       int num_fonts;
