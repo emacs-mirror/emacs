@@ -9,9 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.12
-@set EDITION 4.12
-@set DATE March 2000
+@set VERSION 4.15
+@set EDITION 4.15
+@set DATE November 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@astro.uva.nl
 @set MAINTAINER Carsten Dominik
@@ -5428,6 +5428,13 @@ Fixed bug which would parse @samp{\Section} just like @samp{\section}.
 @itemize @bullet
 @item
 Support for @file{bibentry} citation style.
+@end itemize
+@noindent @b{Version 4.15}
+@itemize @bullet
+@item
+Small bug fixes.
+@item
+Improved interaction with Emacs LaTeX mode.
 @end itemize
 
 @node Index,  , , Top
