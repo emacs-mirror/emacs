@@ -899,11 +899,51 @@ read1 (readcharfun)
 	{
 	  /* Accept compiled functions at read-time so that we don't have to
 	     build them using function calls.  */
-	  Lisp_Object tmp = read_vector (readcharfun);
-	  return Fmake_byte_code (XVECTOR(tmp)->size, XVECTOR (tmp)->contents);
+	  Lisp_Object tmp;
+	  tmp = read_vector (readcharfun);
+	  return Fmake_byte_code (XVECTOR (tmp)->size,
+				  XVECTOR (tmp)->contents);
 	}
+#ifdef USE_TEXT_PROPERTIES
+      if (c == '(')
+	{
+	  Lisp_Object tmp;
+	  struct gcpro gcpro1;
+
+	  /* Read the string itself.  */
+	  tmp = read1 (readcharfun);
+	  if (XTYPE (tmp) != Lisp_String)
+	    Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
+	  GCPRO1 (tmp);
+	  /* Read the intervals and their properties.  */
+	  while (1)
+	    {
+	      Lisp_Object beg, end, plist;
+
+	      beg = read1 (readcharfun);
+	      if (XTYPE (beg) == Lisp_Internal)
+		{
+		  if (XINT (beg) == ')')
+		    break;
+		  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("invalid string property list", 28), Qnil));
+		}
+	      end = read1 (readcharfun);
+	      if (XTYPE (end) == Lisp_Internal)
+		Fsignal (Qinvalid_read_syntax,
+			 Fcons (make_string ("invalid string property list", 28), Qnil));
+		
+	      plist = read1 (readcharfun);
+	      if (XTYPE (plist) == Lisp_Internal)
+		Fsignal (Qinvalid_read_syntax,
+			 Fcons (make_string ("invalid string property list", 28), Qnil));
+	      Fset_text_properties (beg, end, plist, tmp);
+	    }
+	  UNGCPRO;
+	  return tmp;
+	}
+#endif
       UNREAD (c);
-      return Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
+      Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
 
     case ';':
       while ((c = READCHAR) >= 0 && c != '\n');
