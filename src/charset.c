@@ -597,17 +597,13 @@ get_new_private_charset_id (dimension, width)
 
   if (dimension == 1)
     {
-      if (width == 1)
-	from = LEADING_CODE_EXT_11, to = LEADING_CODE_EXT_12;
-      else
-	from = LEADING_CODE_EXT_12, to = LEADING_CODE_EXT_21;
+      from = LEADING_CODE_EXT_11;
+      to = LEADING_CODE_EXT_21;
     }
   else
     {
-      if (width == 1)
-	from = LEADING_CODE_EXT_21, to = LEADING_CODE_EXT_22;
-      else
-	from = LEADING_CODE_EXT_22, to = LEADING_CODE_EXT_MAX + 1;
+      from = LEADING_CODE_EXT_21;
+      to = LEADING_CODE_EXT_MAX + 1;
     }
 
   for (charset = from; charset < to; charset++)
