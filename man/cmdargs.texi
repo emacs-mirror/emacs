@@ -975,6 +975,12 @@ Additional space (@dfn{leading}) between lines in pixels.
 @item @code{menuBar} (class @code{MenuBar})
 Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
 
+@item @code{toolBar} (class @code{ToolBar})
+Controls how may lines to reserve for the tool bar.  A zero value
+suppresses the tool bar.  If the value is non-zero and
+@code{auto-resize-tool-bars} is non-nil the tool bar's size will be
+changed automatically so that all tool bar items are visible.
+
 @item @code{minibuffer} (class @code{Minibuffer})
 If @samp{none}, don't make a minibuffer in this frame.
 It will use a separate minibuffer frame instead.

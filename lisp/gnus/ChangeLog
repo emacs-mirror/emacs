@@ -1,3 +1,7 @@
+2000-12-05  Dave Love  <fx@gnu.org>
+
+	* starttls.el: New file.
+
 2000-12-04  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-msg.el (gnus-msg-mail): COMPOSEFUNC should return t if
