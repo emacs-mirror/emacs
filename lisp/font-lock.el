@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm <simon@gnu.org>
 ;; Maintainer: FSF
@@ -310,9 +310,11 @@ FORM is an expression, whose value should be a keyword element, evaluated when
 the keyword is (first) used in a buffer.  This feature can be used to provide a
 keyword that can only be generated when Font Lock mode is actually turned on.
 
-For highlighting single items, typically only MATCH-HIGHLIGHT is required.
+For highlighting single items, for example each instance of the word \"foo\",
+typically only MATCH-HIGHLIGHT is required.
 However, if an item or (typically) items are to be highlighted following the
-instance of another item (the anchor) then MATCH-ANCHORED may be required.
+instance of another item (the anchor), for example each instance of the
+word \"bar\" following the word \"anchor\" then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
 
@@ -334,16 +336,16 @@ If LAXMATCH is non-nil, no error is signaled if there is no MATCH in MATCHER.
 
 For example, an element of the form highlights (if not already highlighted):
 
- \"\\\\\\=<foo\\\\\\=>\"		Discrete occurrences of \"foo\" in the value of the
+ \"\\\\\\=<foo\\\\\\=>\"		discrete occurrences of \"foo\" in the value of the
 			variable `font-lock-keyword-face'.
- (\"fu\\\\(bar\\\\)\" . 1)	Substring \"bar\" within all occurrences of \"fubar\" in
+ (\"fu\\\\(bar\\\\)\" . 1)	substring \"bar\" within all occurrences of \"fubar\" in
 			the value of `font-lock-keyword-face'.
  (\"fubar\" . fubar-face)	Occurrences of \"fubar\" in the value of `fubar-face'.
  (\"foo\\\\|bar\" 0 foo-bar-face t)
-			Occurrences of either \"foo\" or \"bar\" in the value
+			occurrences of either \"foo\" or \"bar\" in the value
 			of `foo-bar-face', even if already highlighted.
  (fubar-match 1 fubar-face)
-			The first subexpression within all occurrences of
+			the first subexpression within all occurrences of
 			whatever the function `fubar-match' finds and matches
 			in the value of `fubar-face'.
 
@@ -351,7 +353,8 @@ MATCH-ANCHORED should be of the form:
 
  (MATCHER PRE-MATCH-FORM POST-MATCH-FORM MATCH-HIGHLIGHT ...)
 
-where MATCHER is as for MATCH-HIGHLIGHT with one exception; see below.
+where MATCHER is a regexp to search for or the function name to call to make
+the search, as for MATCH-HIGHLIGHT above, but with one exception; see below.
 PRE-MATCH-FORM and POST-MATCH-FORM are evaluated before the first, and after
 the last, instance MATCH-ANCHORED's MATCHER is used.  Therefore they can be
 used to initialise before, and cleanup after, MATCHER is used.  Typically,
@@ -363,7 +366,7 @@ For example, an element of the form highlights (if not already highlighted):
 
  (\"\\\\\\=<anchor\\\\\\=>\" (0 anchor-face) (\"\\\\\\=<item\\\\\\=>\" nil nil (0 item-face)))
 
- Discrete occurrences of \"anchor\" in the value of `anchor-face', and subsequent
+ discrete occurrences of \"anchor\" in the value of `anchor-face', and subsequent
  discrete occurrences of \"item\" (on the same line) in the value of `item-face'.
  (Here PRE-MATCH-FORM and POST-MATCH-FORM are nil.  Therefore \"item\" is
  initially searched for starting from the end of the match of \"anchor\", and
@@ -376,9 +379,6 @@ However, if PRE-MATCH-FORM returns a position greater than the position after
 PRE-MATCH-FORM is evaluated, that position is used as the limit of the search.
 It is generally a bad idea to return a position greater than the end of the
 line, i.e., cause the MATCHER search to span lines.
-
-Note that the MATCH-ANCHORED feature is experimental; in the future, we may
-replace it with other ways of providing this functionality.
 
 These regular expressions should not match text which spans lines.  While
 \\[font-lock-fontify-buffer] handles multi-line patterns correctly, updating
@@ -539,6 +539,27 @@ the differences are listed below.  MATCH-HIGHLIGHT should be of the form:
 where SYNTAX can be of the form (SYNTAX-CODE . MATCHING-CHAR), the name of a
 syntax table, or an expression whose value is such a form or a syntax table.
 OVERRIDE cannot be `prepend' or `append'.
+
+For example, an element of the form highlights syntactically:
+
+ (\"\\\\$\\\\(#\\\\)\" 1 (1 . nil))
+
+ a hash character when following a dollar character, with a SYNTAX-CODE of
+ 1 (meaning punctuation syntax).  Assuming that the buffer syntax table does
+ specify hash characters to have comment start syntax, the element will only
+ highlight hash characters that do not follow dollar characters as comments
+ syntactically.
+
+ (\"\\\\('\\\\).\\\\('\\\\)\"
+  (1 (7 . ?'))
+  (2 (7 . ?')))
+
+ both single quotes which surround a single character, with a SYNTAX-CODE of
+ 7 (meaning string quote syntax) and a MATCHING-CHAR of a single quote (meaning
+ a single quote matches a single quote).  Assuming that the buffer syntax table
+ does not specify single quotes to have quote syntax, the element will only
+ highlight single quotes of the form 'c' as strings syntactically.
+ Other forms, such as foo'bar or 'fubar', will not be highlighted as strings.
 
 This is normally set via `font-lock-defaults'.")
 
@@ -1750,7 +1771,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; the entry for "Text Properties" something like:
 ;;
 ;; (define-key menu-bar-edit-menu [font-lock]
-;;   '("Syntax Highlighting" . font-lock-menu))
+;;   (cons "Syntax Highlighting" font-lock-menu))
 ;;
 ;; and remove a single ";" from the beginning of each line in the rest of this
 ;; section.  Probably the mechanism for telling the menu code what are menu
@@ -1783,7 +1804,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;  (put 'font-lock-fontify-less 'menu-enable '(identity)))
 ;
 ;;; Put the appropriate symbol property values on now.  See above.
-;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode))
+;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode)
 ;(put 'font-lock-mode 'menu-selected 'font-lock-mode)
 ;(put 'font-lock-fontify-more 'menu-enable '(nth 2 font-lock-fontify-level))
 ;(put 'font-lock-fontify-less 'menu-enable '(nth 1 font-lock-fontify-level))
@@ -1892,9 +1913,10 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      ;; Definitions.
      (list (concat "(\\(def\\("
 		   ;; Function declarations.
-		   "\\(advice\\|alias\\|method\\|"
-		   "ine-\\(derived-mode\\|function\\|skeleton\\|widget\\)\\|"
-		   "macro\\|subst\\|un\\)\\|"
+		   "\\(advice\\|alias\\|generic\\|macro\\*?\\|method\\|"
+		   "setf\\|subst\\*?\\|un\\*?\\|"
+		   "ine-\\(derived-mode\\|function\\|"
+		   "skeleton\\|widget\\)\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
@@ -1929,7 +1951,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "inline" "save-restriction" "save-excursion"
 		    "save-window-excursion" "save-selected-window"
 		    "save-match-data" "save-current-buffer" "unwind-protect"
-		    "condition-case" "track-mouse" "dont-compile"
+		    "condition-case" "track-mouse"
 		    "eval-after-load" "eval-and-compile" "eval-when-compile"
 		    "eval-when"
 		    "with-current-buffer" "with-electric-help"
@@ -1960,7 +1982,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;; Words inside `' tend to be symbol names.
       '("`\\(\\sw\\sw+\\)'" 1 font-lock-reference-face prepend)
       ;;
-      ;; CLisp `:' keywords as builtins.
+      ;; Constant values.
       '("\\<:\\sw\\sw+\\>" 0 font-lock-builtin-face)
       ;;
       ;; ELisp and CLisp `&' keywords as types.
@@ -1981,7 +2003,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      ;; this works for SOS, STklos, SCOOPS, Meroon and Tiny CLOS.
      (list (concat "(\\(define\\("
 		   ;; Function names.
-		   "\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)\\|"
+		   "\\(\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
 		   ;; Macro names, as variable names.  A bit dubious, this.
 		   "\\(-syntax\\)\\|"
 		   ;; Class names.
@@ -1991,8 +2013,8 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   "[ \t]*(?"
 		   "\\(\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
-	   '(7 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 6) font-lock-variable-name-face)
+	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)
+		     ((match-beginning 5) font-lock-variable-name-face)
 		     (t font-lock-type-face))
 	       nil t))
      ))
@@ -2021,8 +2043,8 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
       '("\\<<\\sw+>\\>" . font-lock-type-face)
       ;;
-      ;; Scheme `:' keywords as references.
-      '("\\<:\\sw+\\>" . font-lock-reference-face)
+      ;; Scheme `:' keywords as builtins.
+      '("\\<:\\sw+\\>" . font-lock-builtin-face)
       )))
   "Gaudy expressions to highlight in Scheme modes.")
 
@@ -2221,7 +2243,7 @@ The value of this variable is used when Font Lock mode is turned on."
   :group 'font-lock-extra-types)
 
 (defcustom c++-font-lock-extra-types
-  '("[io]?\\(f\\|str\\)?stream\\(buf\\)?" "ios"
+  '("\\([iof]\\|str\\)+stream\\(buf\\)?" "ios"
     "string" "rope"
     "list" "slist"
     "deque" "vector" "bit_vector"
@@ -2315,7 +2337,7 @@ See also `c-font-lock-extra-types'.")
    '("^#[ \t]*error[ \t]+\\(.+\\)" 1 font-lock-warning-face prepend)
    ;;
    ;; Fontify filenames in #include <...> preprocessor directives as strings.
-   '("^#[ \t]*\\(import\\|include\\)[ \t]+\\(<[^>\"\n]*>?\\)"
+   '("^#[ \t]*\\(import\\|include\\)[ \t]*\\(<[^>\"\n]*>?\\)"
      2 font-lock-string-face)
    ;;
    ;; Fontify function macro names.
