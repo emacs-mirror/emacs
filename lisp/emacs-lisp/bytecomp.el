@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.46 $")
+(defconst byte-compile-version "$Revision: 2.47 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1274,6 +1274,7 @@ The value is t if there were no errors, nil if errors."
   (if byte-compile-verbose
       (message "Compiling %s..." filename))
   (let ((byte-compile-current-file filename)
+	(set-auto-coding-for-load t)
 	target-file input-buffer output-buffer
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
