@@ -287,18 +287,24 @@
 
 ;;; Code:
 
+(defgroup forms nil
+  "Edit a file as a form to fill in."
+  :group 'data)
+
 ;;; Global variables and constants:
 
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.30 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.31 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.30 1997/06/10 18:32:33 kwzh Exp rms $")
+  $Id: forms.el,v 2.31 1997/06/11 21:07:22 rms Exp rms $")
 
-(defvar forms-mode-hooks nil
-  "Hook functions to be run upon entering Forms mode.")
+(defcustom forms-mode-hooks nil
+  "Hook functions to be run upon entering Forms mode."
+  :group 'forms
+  :type 'function)
 
 ;;; Mandatory variables - must be set by evaluating the control file.
 
@@ -313,26 +319,34 @@
 
 ;;; Optional variables with default values.
 
-(defvar forms-check-number-of-fields t
-  "*If non-nil, warn about records with wrong number of fields.")
+(defcustom forms-check-number-of-fields t
+  "*If non-nil, warn about records with wrong number of fields."
+  :group 'forms
+  :type 'boolean)
 
 (defvar forms-field-sep "\t"
   "Field separator character (default TAB).")
 
-(defvar forms-read-only nil
-  "Non-nil means: visit the file in view (read-only) mode.
-\(Defaults to the write access on the data file).")
+(defcustom forms-read-only nil
+  "*Non-nil means: visit the file in view (read-only) mode.
+\(Default is to allow write access on the data file)."
+  :group 'forms
+  :type 'boolean)
 
-(defvar forms-multi-line "\C-k"
-  "If not nil: use this character to separate multi-line fields (default C-k).")
+(defvar forms-multi-line "\C-k" "\
+If not nil: use this character to separate multi-line fields (default C-k).")
 
-(defvar forms-forms-scroll nil
+(defcustom forms-forms-scroll nil
   "*Non-nil means replace scroll-up/down commands in Forms mode.
-The replacement commands performs forms-next/prev-record.")
+The replacement commands performs forms-next/prev-record."
+  :group 'forms
+  :type 'boolean)
 
-(defvar forms-forms-jump nil
+(defcustom forms-forms-jump nil
   "*Non-nil means redefine beginning/end-of-buffer in Forms mode.
-The replacement commands performs forms-first/last-record.")
+The replacement commands performs forms-first/last-record."
+  :group 'forms
+  :type 'boolean)
 
 (defvar forms-read-file-filter nil
   "The name of a function that is called after reading the data file.
@@ -341,7 +355,7 @@ suitable for forms processing.")
 
 (defvar forms-write-file-filter nil
   "The name of a function that is called before writing the data file.
-This can be used to undo the effects of form-read-file-hook.")
+This can be used to undo the effects of `form-read-file-hook'.")
 
 (defvar forms-new-record-filter nil
   "The name of a function that is called when a new record is created.")
@@ -354,19 +368,27 @@ This can be used to undo the effects of form-read-file-hook.")
 This variable is for use by the filter routines only. 
 The contents may NOT be modified.")
 
-(defvar forms-use-text-properties (fboundp 'set-text-properties)
-  "*Non-nil means: use emacs-19 text properties.
-Defaults to t if this emacs is capable of handling text properties.")
+(defcustom forms-use-text-properties t
+  "*Non-nil means: use text properties.
+Defaults to t if this Emacs is capable of handling text properties."
+  :group 'forms
+  :type 'boolean)
 
-(defvar forms-insert-after nil
+(defcustom forms-insert-after nil
   "*Non-nil means: inserts of new records go after current record.
-Also, initial position is at last record.")
+Also, initial position is at last record."
+  :group 'forms
+  :type 'boolean)
 
-(defvar forms-ro-face 'default
-  "The face (a symbol) that is used to display read-only text on the screen.")
+(defcustom forms-ro-face 'default
+  "The face (a symbol) that is used to display read-only text on the screen."
+  :group 'forms
+  :type 'face)
 
-(defvar forms-rw-face 'region
-  "The face (a symbol) that is used to display read-write text on the screen.")
+(defcustom forms-rw-face 'region
+  "The face (a symbol) that is used to display read-write text on the screen."
+  :group 'forms
+  :type 'face)
 
 ;;; Internal variables.
 
