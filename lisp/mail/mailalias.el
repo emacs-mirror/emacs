@@ -73,7 +73,7 @@ removed from alias expansions."
 		    seplen (- (point) epos))
 	    (setq epos (marker-position end1) seplen 0))
 	  (let (translation
-		(string (buffer-substring pos epos)))
+		(string (buffer-substring-no-properties pos epos)))
 	    (if (and (not (assoc string disabled-aliases))
 		     (setq translation
 			   (cdr (assoc string mail-aliases))))
