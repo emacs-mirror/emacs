@@ -1,3 +1,15 @@
+2002-02-15  Richard M. Stallman  <rms@gnu.org>
+
+	* cvtmail.c (xrealloc): Always pass two args to `fatal'.
+
+	* movemail.c (popmail): Always pass two args to `error'.
+
+2002-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacsserver.c (main): Cast geteuid in sprintf to int.
+
+	* emacsclient.c (main): Cast isdigit argument to unsigned char.
+
 2002-02-10  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs-checkin: Use `sort -k 2', not `sort +1', as POSIX 1003.1-2001
