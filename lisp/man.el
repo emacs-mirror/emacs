@@ -675,16 +675,16 @@ Same for the ANSI bold and normal escape sequences."
 				     (substring msg 0 eos) msg))))
 		 (goto-char (point-max))
 		 (insert (format "\nprocess %s" msg))
-		 ))
-	  (if delete-buff
-	      (kill-buffer Man-buffer)
-	    (if Man-fontify-manpage-flag
-		(Man-fontify-manpage)
-	      (Man-cleanup-manpage))
-	    (run-hooks 'Man-cooked-hook)
-	    (Man-mode)
-	    (set-buffer-modified-p nil)
-	    ))
+		 )))
+        (if delete-buff
+            (kill-buffer Man-buffer)
+          (if Man-fontify-manpage-flag
+              (Man-fontify-manpage)
+            (Man-cleanup-manpage))
+          (run-hooks 'Man-cooked-hook)
+          (Man-mode)
+          (set-buffer-modified-p nil)
+          )
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
 
