@@ -1147,23 +1147,108 @@ selected frame."
 
 ;;; Setting a face based on a SPEC.
 
+(defun face-attr-match-p (face attrs &optional frame)
+  (or frame (setq frame (selected-frame)))
+  (and (face-attr-match-1 face frame attrs ':inverse-video
+			  'face-inverse-video-p)
+       (if (face-inverse-video-p face frame)
+	   (and
+	    (face-attr-match-1 face frame attrs
+			       ':foreground 'face-background
+			       (cdr (assq 'foreground-color
+					  (frame-parameters frame))))
+	    (face-attr-match-1 face frame attrs
+			       ':background 'face-foreground 
+			       (cdr (assq 'background-color
+					  (frame-parameters frame)))))
+	 (and
+	  (face-attr-match-1 face frame attrs ':foreground 'face-foreground)
+	  (face-attr-match-1 face frame attrs ':background 'face-background)))
+       (face-attr-match-1 face frame attrs ':stipple 'face-stipple)
+       (face-attr-match-1 face frame attrs ':bold 'face-bold-p)
+       (face-attr-match-1 face frame attrs ':italic 'face-italic-p)
+       (face-attr-match-1 face frame attrs ':underline 'face-underline-p)
+))
+
+(defun face-attr-match-1 (face frame plist property function
+			       &optional defaultval)
+  (while (and plist (not (eq (car plist) property)))
+    (setq plist (cdr (cdr plist))))
+  (eq (funcall function face frame)
+      (if plist
+	  (nth 1 plist)
+	(or defaultval
+	    (funcall function 'default frame)))))
+
+(defun face-spec-match-p (face spec &optional frame)
+  "Return t if FACE, on FRAME, matches what SPEC says it should look like."
+  (face-attr-match-p face (face-spec-choose spec frame) frame))
+
+(defun face-attr-construct (face &optional frame)
+  "Return a defface-style attribute list for FACE, as it exists on FRAME." 
+  (let (result)
+    (if (face-inverse-video-p face frame)
+	(progn
+	  (setq result (cons ':inverse-video (cons t result)))
+	  (or (face-attr-match-1 face frame nil
+				 ':foreground 'face-background
+				 (cdr (assq 'foreground-color
+					    (frame-parameters frame))))
+	      (setq result (cons ':foreground
+				 (cons (face-foreground face frame) result))))
+	  (or (face-attr-match-1 face frame nil
+				 ':background 'face-foreground 
+				 (cdr (assq 'background-color
+					    (frame-parameters frame))))
+	      (setq result (cons ':background
+				 (cons (face-background face frame) result)))))
+      (if (face-foreground face frame)
+	  (setq result (cons ':foreground
+			     (cons (face-foreground face frame) result))))
+      (if (face-background face frame)
+	  (setq result (cons ':background
+			     (cons (face-background face frame) result)))))
+    (if (face-stipple face frame)
+	(setq result (cons ':stipple
+			   (cons (face-stipple face frame) result))))
+    (if (face-bold-p face frame)
+	(setq result (cons ':bold
+			   (cons (face-bold-p face frame) result))))
+    (if (face-italic-p face frame)
+	(setq result (cons ':italic
+			   (cons (face-italic-p face frame) result))))
+    (if (face-underline-p face frame)
+	(setq result (cons ':underline
+			   (cons (face-underline-p face frame) result))))
+    result))
+    
+;; Choose the proper attributes for FRAME, out of SPEC.
+(defun face-spec-choose (spec &optional frame)
+  (or frame (setq frame (selected-frame)))
+  (let ((tail spec)
+	result)
+    (while tail
+      (let* ((entry (car tail))
+	     (display (nth 0 entry))
+	     (attrs (nth 1 entry)))
+	(setq tail (cdr tail))
+	(when (face-spec-set-match-display display frame)
+	  (setq result attrs tail nil))))
+    result))
+
 (defun face-spec-set (face spec &optional frame)
   "Set FACE's face attributes according to the first matching entry in SPEC.
 If optional FRAME is non-nil, set it for that frame only.
 If it is nil, then apply SPEC to each frame individually.
 See `defface' for information about SPEC."
-  (let ((tail spec))
-    (while tail 
-      (let* ((entry (car tail))
-	     (display (nth 0 entry))
-	     (attrs (nth 1 entry)))
-	(setq tail (cdr tail))
-	;; If the font was set automatically, clear it out
-	;; to allow it to be set it again.
-	(unless (face-font-explicit face frame)
-	  (set-face-font face nil frame))
-	(modify-face face nil nil nil nil nil nil frame)
-	(when (face-spec-set-match-display display frame)
+  (if frame
+      (let ((attrs (face-spec-choose spec frame)))
+	(when attrs
+	  ;; If the font was set automatically, clear it out
+	  ;; to allow it to be set it again.
+	  (unless (face-font-explicit face frame)
+	    (set-face-font face nil frame))
+	  (modify-face face nil nil nil nil nil nil frame)
 	  (face-spec-set-1 face frame attrs ':foreground 'set-face-foreground)
 	  (face-spec-set-1 face frame attrs ':background 'set-face-background)
 	  (face-spec-set-1 face frame attrs ':stipple 'set-face-stipple)
@@ -1171,18 +1256,16 @@ See `defface' for information about SPEC."
 	  (face-spec-set-1 face frame attrs ':italic 'set-face-italic-p)
 	  (face-spec-set-1 face frame attrs ':underline 'set-face-underline-p)
 	  (face-spec-set-1 face frame attrs ':inverse-video
-			   'set-face-inverse-video-p)
-	  (setq tail nil)))))
-  (if (null frame)
-      (let ((frames (frame-list))
-	    frame)
-	(while frames
-	  (setq frame (car frames)
-		frames (cdr frames))
-	  (face-spec-set face (or (get face 'saved-face)
-				  (get face 'face-defface-spec))
-			 frame)
-	  (face-spec-set face spec frame)))))
+			   'set-face-inverse-video-p)))
+    (let ((frames (frame-list))
+	  frame)
+      (while frames
+	(setq frame (car frames)
+	      frames (cdr frames))
+	(face-spec-set face (or (get face 'saved-face)
+				(get face 'face-defface-spec))
+		       frame)
+	(face-spec-set face spec frame)))))
 
 (defun face-spec-set-1 (face frame plist property function)
   (while (and plist (not (eq (car plist) property)))
