@@ -219,7 +219,7 @@ defaults to \"...\"."
 
 Nested alist is a list of the form (ENTRY . BRANCHES), where ENTRY is
 any Lisp object, and BRANCHES is a list of cons cells of the form
-(KEY-ELEMENT . NESTED-ALIST).
+\(KEY-ELEMENT . NESTED-ALIST).
 
 You can use a nested alist to store any Lisp object (ENTRY) for a key
 sequence KEYSEQ, where KEYSEQ is a sequence of KEY-ELEMENT.  KEYSEQ
