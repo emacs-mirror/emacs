@@ -1,6 +1,6 @@
 2001-10-14  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfns.c, dispnew.c: Put doc strings in comments.
+	* xfns.c, dispnew.c, xterm.c: Put doc strings in comments.
 
 2001-10-13  Gerd Moellmann  <gerd@gnu.org>
 
