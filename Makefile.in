@@ -343,7 +343,7 @@ install-arch-indep: mkdir
 	else \
 	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > ${datadir}/emacs/${version}/site-lisp/subdirs.el \
+	    > ${datadir}/emacs/${version}/site-lisp/subdirs.el; \
 	fi
 	chmod a+r ${datadir}/emacs/${version}/site-lisp/subdirs.el
 	if [ -f ${datadir}/emacs/site-lisp/subdirs.el ]; \
@@ -351,7 +351,7 @@ install-arch-indep: mkdir
 	else \
 	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > ${datadir}/emacs/site-lisp/subdirs.el \
+	    > ${datadir}/emacs/site-lisp/subdirs.el; \
 	fi
 	chmod a+r ${datadir}/emacs/site-lisp/subdirs.el
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
