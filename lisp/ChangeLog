@@ -1,3 +1,9 @@
+2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* emacs-lisp/lisp.el (mark-defun): Don't leave multiple marks
+	when repeated.
+	* textmodes/paragraphs.el (mark-paragraph): Ditto.
+
 2002-02-17  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* menu-bar.el (menu-bar-showhide-menu): Added speedbar.
