@@ -2575,7 +2575,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
   int items_pending;		/* How many items are in the X queue. */
   XEvent event;
   struct frame *f;
-  int event_found;
+  int event_found = 0;
   int prefix;
   Lisp_Object part;
 
@@ -3297,10 +3297,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	 Act as if there had been a hangup. */
       int fd = ConnectionNumber (x_current_display);
       SELECT_TYPE mask;
+      EMACS_TIME timeout;
 
       FD_SET(fd, &mask);
-      if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0,
-		       (EMACS_TIME *) 0)
+      EMACS_SET_SECS_USECS (timeout, 0, 0);
+      if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0, &timeout)
 	  && !XStuffPending ())
 	kill (getpid (), SIGHUP);
     }
