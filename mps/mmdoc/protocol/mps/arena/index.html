@@ -1,228 +1,179 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>MPS Arena Protocol</title>
 
-  <head>
+</head>
 
-   <title>MPS Arena Protocol</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>MPS Arena Protocol</h1>
 
-   <div align='center'>
+<p>incomplete</p>
 
-    <h1>MPS Arena Protocol</h1>
+<address>
+<a href="mailto:nb@ravenbrook.com">Nick Barnes</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2001-11-14
+</address>
 
-    <p>incomplete</p>
+</div>
 
-    <address>pekka, 1997-09-29</address>
 
-   </div>
+<h2><a id="section-Contents" name="section-Contents">Contents</a></h2>
 
-   <h2>
+<ul>
 
-    <a id='section-introduction' name='section-introduction'>Introduction</a>
+<li><a href="#section-1">1. Introduction</a></li>
 
-   </h2>
+<li><a href="#section-2">2. Overview</a></li>
 
-   <p>
+<li><a href="#section-3">3. Arena Classes</a></li>
 
-    <strong>.intro:</strong>
+<li><a href="#section-A">A. References</a></li>
 
-     This document describes the arena protocol in MPS.
+<li><a href="#section-B">B. Document history</a></li>
 
-   </p>
+</ul>
 
-   <h2>
 
-    <a id='section-overview' name='section-overview'>Overview</a>
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-   </h2>
+<p><a id="intro" name="intro"><strong>.intro:</strong></a>
 
-   <p>
+This document describes the arena protocol in MPS.</p>
 
-    <strong>.over.arena:</strong>
+<h2><a id="section-2" name="section-2">2. Overview</a></h2>
 
-     The arena is an object that represents the state of the MPS, and tells it where to get the memory it manages.
+<p><a id="over.arena" name="over.arena"><strong>.over.arena:</strong></a>
 
-   </p>
+The arena is an object that represents the state of the MPS, and tells
+it where to get the memory it manages.</p>
 
-   <p>
+<p><a id="over.session" name="over.session"><strong>.over.session:</strong></a>
 
-    <strong>.over.session:</strong>
+You typically start a session with the MPS by making an arena and end
+the session by destroying it.  The only function you might need to
+call before making an arena is <code
+class="source">mps_telemetry_control</code>.  Indeed, there are very
+few functions that you even <em>could</em> call without creating an
+arena.</p>
 
-     You typically start a session with the MPS by making an arena and end the session by destroying it.  The only function you might need to call before making an arena is mps_telemetry_control
+<p><a id="over.destroy" name="over.destroy"><strong>.over.destroy:</strong></a>
 
-    .  Indeed, there are very few functions that you even could call without creating an arena.  
+If you do not destroy an arena before terminating your program, the
+operating system will probably still reclaim the memory and other
+resources the arena was managing; but it is better to destroy it, to
+finish off properly.</p>
 
-    <strong>.over.destroy:</strong>
+<p>Before destroying an arena, you must first destroy all objects and
+data in it, as usual for abstract data types in the MPS.  If you can't
+destroy the arena properly, you might want to call <code
+class="source">mps_telemetry_flush</code> explicitly.</p>
 
-     If you do not destroy an arena before terminating your program, the operating system will probably still reclaim the memory and other resources the arena was managing; but it is better to destroy it, to finish off properly.  
+<p><a id="over.other" name="over.other"><strong>.over.other:</strong></a>
 
-   </p>
+Other types of objects are created "in the arena".  They are part of
+the world within the arena, and may interact and affect each other.</p>
 
-   <h2>
+<p><a id="over.multiple" name="over.multiple"><strong>.over.multiple:</strong></a>
 
-    <a id='section-b' name='section-b'>B</a>
+The MPS allows creation of multiple arenas.  It can be useful to have
+two active arenas and to try different things out in them.</p>
 
-   </h2>
+<p>Arenas do not interact.  However, they compete with each other for
+resources.</p>
 
-   <p>
+<p>It is not efficient to have multiple arenas containing
+garbage-collected objects.  Using multiple arenas is an advanced
+technique.  For more information, see [something in the User
+Guide].</p>
 
-    efore destroying an arena, you must first destroy all objects and data in it, as usual for 
+<h2><a id="section-3" name="section-3">Arena Classes</a></h2>
 
-    abstract data types in the MPS
+<p><a id="class" name="class"><strong>.class:</strong></a>
 
-    .  If you can't destroy the arena properly, you might want to call mps_telemetry_flush
+There are several classes of arena.  These differ mainly in the way
+that they acquire the memory to be managed.</p>
 
-     explicitly.
+<p>See the documentation of each arena class in
+symbol.mps.c.mps_arena_class_*.</p>
 
-   </p>
+<p>The class is chosen when the arena is created (see
+symbol.mps.c.mps_arena_create), in a way identical to pool
+classes.</p>
 
-   <p>
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-    <strong>.over.other:</strong>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-     Other types of objects are created "in the arena".  They are part of the world within the arena, and may interact and affect each other.
+<table>
 
-   </p>
+<tr valign="top">
 
-   <p>
+  <td>1997-09-29</td>
 
-    <strong>.over.multiple:</strong>
+  <td>pekka</td>
 
-     The MPS allows creation of multiple arenas.  It can be useful to have two active arenas and to try different things out in them.
+  <td>Created.</td>
 
-      Arenas do not interact.  However, they compete with each other for resources.
+</tr>
 
-      It is not efficient to have multiple arenas containing garbage-collected objects.  Using multiple arenas is an advanced technique.  For more information, see [something in the User Guide].
+<tr valign="top">
 
-   </p>
+  <td>1997-09-29 to 2000-05-22</td>
 
-   <h2>
+  <td />
 
-    <a id='section-arena-classes' name='section-arena-classes'>Arena Classes</a>
+  <td>Developed at Harlequin</td>
 
-   </h2>
+</tr>
 
-   <p>
+<tr valign="top">
 
-    <strong>.class:</strong>
+  <td>2001-09-26</td>
 
-     There are several classes of arena.  These differ mainly in the way that they acquire the memory to be managed.
+  <td><a href="mailto:ndl@ravenbrook.com">NDL</a></td>
 
-      See the documentation of each arena class in symbol.mps.c.mps_arena_class_*.
+  <td>Converted from xml to html (second pass).</td>
 
-      The class is chosen when the arena is created 
+</tr>
 
-    (see
+<tr valign="top">
 
-    symbol.mps.c.mps_arena_create
+  <td>2001-11-14</td>
 
-    )
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-    , in a way identical to pool classes
+  <td>Reformatted and adopted.</td>
 
-    .
+</tr>
 
-   </p>
+</table>
 
-   <h2>
+<hr />
 
-    <a id='section-A' name='section-A'>A. References</a>
+<p><small>Copyright &copy; 2001 Ravenbrook Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document.  You may not duplicate or reproduce this
+document in any form without the express permission of the copyright
+holder.</small></p>
 
-   </h2>
+<div align="center">
 
-   <h2>
+<p><code>$Id$</code></p>
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+</div>
 
-   </h2>
+</body>
 
-   <table>
-
-    <tr valign='top'>
-
-     <td>1997-09-29 14:20:24 +01</td>
-
-     <td>pekka</td>
-
-     <td>New document saved</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>1997-10-21 11:30:02 +01</td>
-
-     <td>pekka</td>
-
-     <td>Xref arena class doc</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>1998-10-30 20:36:59 +00</td>
-
-     <td>pekka</td>
-
-     <td>Note telemetry reqs; don't promise anything if not destroyed</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-22 16:02:48 +01</td>
-
-     <td>pekka</td>
-
-     <td>Fix title</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2001-09-26</td>
-
-     <td>
-
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
-
-     </td>
-
-     <td>Converted from xml to html (second pass).</td>
-
-    </tr>
-
-   </table>
-
-   <hr />
-
-   <p>
-
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
-
-   </p>
-
-   <div align='center'>
-
-    <p>
-
-     <code>$Id$</code>
-
-    </p>
-
-   </div>
-
-  </body>
-
- </html>
+</html>
 
