@@ -420,7 +420,9 @@ It is used only with TTYs or if `viper-use-replace-region-delimiters'
 is non-nil."
   :type 'string
   :group 'viper)
-(defcustom viper-use-replace-region-delimiters (not (viper-has-face-support-p))
+(defcustom viper-use-replace-region-delimiters 
+  (or (not (viper-has-face-support-p))
+      (and viper-xemacs-p (eq (viper-device-type) 'tty)))
   "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
 `viper-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays. By default, the delimiters are used only on TTYs."
@@ -979,7 +981,7 @@ Should be set in `~/.viper' file."
 ;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
 ;; Beginning with Emacs 19.26, the standard `minibuffer-exit-hook' is run
 ;; *after* exiting the minibuffer
-(defvar viper-minibuffer-exit-hook nil)
+(defvar viper-minibuffer-exit-hook '(viper-minibuffer-trim-tail))
        
 
 ;; Mode line

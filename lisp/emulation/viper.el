@@ -952,10 +952,11 @@ remains buffer-local."
 			(read-key-sequence "Describe key briefly: ")))))
   
   
-  ;; Advice for use in find-file and read-file-name commands.
-  (defadvice exit-minibuffer (before viper-exit-minibuffer-advice activate)
-    "Run `viper-minibuffer-exit-hook' just before exiting the minibuffer."
-    (run-hooks 'viper-minibuffer-exit-hook))
+  ;; This is now done in viper-minibuffer-exit-hook
+  ;;;; Advice for use in find-file and read-file-name commands.
+  ;;(defadvice exit-minibuffer (before viper-exit-minibuffer-advice activate)
+  ;;  "Run `viper-minibuffer-exit-hook' just before exiting the minibuffer."
+  ;;  (run-hooks 'viper-minibuffer-exit-hook))
   
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
@@ -1011,7 +1012,8 @@ remains buffer-local."
   
   (defadvice read-file-name (around viper-suffix-advice activate)
     "Tell `exit-minibuffer' to run `viper-file-add-suffix' as a hook."
-    (let ((viper-minibuffer-exit-hook 'viper-file-add-suffix))
+    (let ((viper-minibuffer-exit-hook
+	   (append viper-minibuffer-exit-hook '(viper-file-add-suffix))))
       ad-do-it))
   
   (defadvice start-kbd-macro (after viper-kbd-advice activate)

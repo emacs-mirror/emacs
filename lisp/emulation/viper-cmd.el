@@ -163,8 +163,10 @@
 	))
   (if (and (eq this-command 'dabbrev-expand)
 	   (integerp viper-pre-command-point)
+	   (markerp viper-insert-point)
+	   (marker-position viper-insert-point)
 	   (> viper-insert-point viper-pre-command-point))
-      (move-marker viper-insert-point viper-pre-command-point))
+      (viper-move-marker-locally viper-insert-point viper-pre-command-point))
   )
   
 (defsubst viper-insert-state-pre-command-sentinel ()
@@ -1137,6 +1139,11 @@ as a Meta key and any number of multiple escapes is allowed."
 
 ;; Saves last inserted text for possible use by viper-repeat command.
 (defun viper-save-last-insertion (beg end)
+  (condition-case nil
+      (setq viper-last-insertion (buffer-substring beg end))
+    (error
+     ;; beg or end marker are somehow screwed up
+     (setq viper-last-insertion nil)))
   (setq viper-last-insertion (buffer-substring beg end))
   (or (< (length viper-d-com) 5)
       (setcar (nthcdr 4 viper-d-com) viper-last-insertion))
@@ -1765,15 +1772,86 @@ Undo previous insertion and inserts new."
     (funcall hook)
     ))
   
-;; Interpret last event in the local map
+;; Interpret last event in the local map first; if fails, use exit-minibuffer.
+;; Run viper-minibuffer-exit-hook before exiting.
 (defun viper-exit-minibuffer ()
+  "Exit minibuffer Viper way."
   (interactive)
   (let (command)
     (setq command (local-key-binding (char-to-string last-command-char)))
+    (run-hooks 'viper-minibuffer-exit-hook)
     (if command
 	(command-execute command)
       (exit-minibuffer))))
   
+
+(defcustom viper-smart-suffix-list
+  '("" "tex" "c" "cc" "C" "el" "java" "html" "htm" "pl" "P" "p")
+  "*List of suffixes that Viper automatically tries to append to filenames ending with a `.'.
+This is useful when you the current directory contains files with the same
+prefix and many different suffixes. Usually, only one of the suffixes
+represents an editable file. However, file completion will stop at the `.'
+The smart suffix feature lets you hit RET in such a case, and Viper will
+select the appropriate suffix.
+
+Suffixes are tried in the order given and the first suffix for which a
+corresponding file exists is selected. If no file exists for any of the
+suffixes, the user is asked to confirm.
+
+To turn this feature off, set this variable to nil."
+  :type '(set string)
+  :group 'viper)
+    
+
+;; Try to add a suitable suffix to files whose name ends with a `.'
+;; Useful when the user hits RET on a non-completed file name.
+;; Used as a minibuffer exit hook in read-file-name
+(defun viper-file-add-suffix ()
+  (let ((count 0)
+	(len (length viper-smart-suffix-list))
+	(file (buffer-string))
+	found key cmd suff)
+    (goto-char (point-max))
+    (if (and viper-smart-suffix-list (string-match "\\.$" file))
+	(progn
+	  (while (and (not found) (< count len))
+	    (setq suff (nth count viper-smart-suffix-list)
+		  count (1+ count))
+	    (if (file-exists-p
+		 (format "%s%s" (substitute-in-file-name file) suff))
+		(progn
+		  (setq found t)
+		  (insert suff))))
+	  
+	  (if found
+	      ()
+	    (viper-tmp-insert-at-eob " [Please complete file name]")
+	    (unwind-protect 
+		(while (not (memq cmd
+				  '(exit-minibuffer viper-exit-minibuffer)))
+		  (setq cmd
+			(key-binding (setq key (read-key-sequence nil))))
+		  (cond ((eq cmd 'self-insert-command)
+			 (if viper-xemacs-p
+			     (insert (events-to-keys key))
+			   (insert key)))
+			((memq cmd '(exit-minibuffer viper-exit-minibuffer))
+			 nil)
+			(t (command-execute cmd)))
+		  )))
+	  ))))
+
+
+(defun viper-minibuffer-trim-tail ()
+  "Delete junk at the end of the first line of the minibuffer input.
+Remove this function from `viper-minibuffer-exit-hook', if this causes
+problems."
+  (if (viper-is-in-minibuffer)
+      (progn
+	(goto-char (point-min))
+	(end-of-line)
+	(delete-region (point) (point-max)))))
+
 
 ;;; Reading string with history  
     
@@ -3635,62 +3713,6 @@ Null string will repeat previous search."
 	      buffer-name)))
 	(kill-buffer buffer)
       (error "Buffer not killed"))))
-
-
-(defcustom viper-smart-suffix-list
-  '("" "tex" "c" "cc" "C" "el" "java" "html" "htm" "pl" "P" "p")
-  "*List of suffixes that Viper automatically tries to append to filenames ending with a `.'.
-This is useful when you the current directory contains files with the same
-prefix and many different suffixes. Usually, only one of the suffixes
-represents an editable file. However, file completion will stop at the `.'
-The smart suffix feature lets you hit RET in such a case, and Viper will
-select the appropriate suffix.
-
-Suffixes are tried in the order given and the first suffix for which a
-corresponding file exists is selected. If no file exists for any of the
-suffixes, the user is asked to confirm.
-
-To turn this feature off, set this variable to nil."
-  :type '(set string)
-  :group 'viper)
-    
-;; Try to add suffix to files ending with a `.'
-;; Useful when the user hits RET on a non-completed file name.
-(defun viper-file-add-suffix ()
-  (let ((count 0)
-	(len (length viper-smart-suffix-list))
-	(file (buffer-string))
-	found key cmd suff)
-    (goto-char (point-max))
-    (if (and viper-smart-suffix-list (string-match "\\.$" file))
-	(progn
-	  (while (and (not found) (< count len))
-	    (setq suff (nth count viper-smart-suffix-list)
-		  count (1+ count))
-	    (if (file-exists-p
-		 (format "%s%s" (substitute-in-file-name file) suff))
-		(progn
-		  (setq found t)
-		  (insert suff))))
-	  
-	  (if found
-	      ()
-	    (viper-tmp-insert-at-eob " [Please complete file name]")
-	    (unwind-protect 
-		(while (not (memq cmd
-				  '(exit-minibuffer viper-exit-minibuffer)))
-		  (setq cmd
-			(key-binding (setq key (read-key-sequence nil))))
-		  (cond ((eq cmd 'self-insert-command)
-			 (if viper-xemacs-p
-			     (insert (events-to-keys key))
-			   (insert key)))
-			((memq cmd '(exit-minibuffer viper-exit-minibuffer))
-			 nil)
-			(t (command-execute cmd)))
-		  )))
-	  ))))
-
 
      
 

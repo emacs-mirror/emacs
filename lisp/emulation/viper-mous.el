@@ -256,42 +256,47 @@ See `viper-surrounding-word' for the definition of a word in this case."
   (interactive "e\nP")
   (if viper-frame-of-focus	;; to handle clicks in another frame
       (select-frame viper-frame-of-focus))
-      
-  ;; turn arg into a number
-  (cond ((integerp arg) nil)
-	;; prefix arg is a list when one hits C-u then command
-	((and (listp arg) (integerp (car arg)))
-	 (setq arg (car arg)))
-	(t (setq arg 1)))
-      
-  (if (not (eq (key-binding viper-mouse-down-insert-key-parsed)
-	       'viper-mouse-catch-frame-switch))
-      () ; do nothing
-    (let (click-count interrupting-event)
-      (if (and
-	   (viper-multiclick-p)
-	   ;; This trick checks if there is a pending mouse event if so, we use
-	   ;; this latter event and discard the current mouse click If the next
-	   ;; pending event is not a mouse event, we execute the current mouse
-	   ;; event
-	   (progn
-	     (setq interrupting-event (viper-read-event))
-	     (viper-mouse-event-p last-input-event)))
-	  (progn ; interrupted wait
-	    (setq viper-global-prefix-argument arg)
-	    ;; count this click for XEmacs
-	    (viper-event-click-count click))
-	;; uninterrupted wait or the interrupting event wasn't a mouse event
-	(setq click-count (viper-event-click-count click))
-	(if (> click-count 1)
-	    (setq arg viper-global-prefix-argument
-		  viper-global-prefix-argument nil))
-	(insert (viper-mouse-click-get-word click arg click-count))
-	(if (and interrupting-event
-		 (eventp interrupting-event)
-		 (not (viper-mouse-event-p interrupting-event)))
-	    (viper-set-unread-command-events interrupting-event))
-	))))
+  (if (or (not (eq (key-binding viper-mouse-down-insert-key-parsed)
+		   'viper-mouse-catch-frame-switch))
+	  (not (eq (key-binding viper-mouse-up-insert-key-parsed)
+		   'viper-mouse-click-insert-word))
+	  (and viper-xemacs-p (not (event-over-text-area-p click))))
+      () ; do nothing, if binding isn't right or not over text
+    ;; turn arg into a number
+    (cond ((integerp arg) nil)
+	  ;; prefix arg is a list when one hits C-u then command
+	  ((and (listp arg) (integerp (car arg)))
+	   (setq arg (car arg)))
+	  (t (setq arg 1)))
+    
+    (if (not (eq (key-binding viper-mouse-down-insert-key-parsed)
+		 'viper-mouse-catch-frame-switch))
+	() ; do nothing
+      (let (click-count interrupting-event)
+	(if (and
+	     (viper-multiclick-p)
+	     ;; This trick checks if there is a pending mouse event if so, we
+	     ;; use this latter event and discard the current mouse click If
+	     ;; the next pending event is not a mouse event, we execute the
+	     ;; current mouse event
+	     (progn
+	       (setq interrupting-event (viper-read-event))
+	       (viper-mouse-event-p last-input-event)))
+	    (progn ; interrupted wait
+	      (setq viper-global-prefix-argument arg)
+	      ;; count this click for XEmacs
+	      (viper-event-click-count click))
+	  ;; uninterrupted wait or the interrupting event wasn't a mouse event
+	  (setq click-count (viper-event-click-count click))
+	  (if (> click-count 1)
+	      (setq arg viper-global-prefix-argument
+		    viper-global-prefix-argument nil))
+	  (insert (viper-mouse-click-get-word click arg click-count))
+	  (if (and interrupting-event
+		   (eventp interrupting-event)
+		   (not (viper-mouse-event-p interrupting-event)))
+	      (viper-set-unread-command-events interrupting-event))
+	  )))))
   
 ;; arg is an event. accepts symbols and numbers, too
 (defun viper-mouse-event-p (event)
@@ -324,9 +329,12 @@ this command."
   (interactive "e\nP")
   (if viper-frame-of-focus	;; to handle clicks in another frame
       (select-frame viper-frame-of-focus))
-  (if (not (eq (key-binding viper-mouse-down-search-key-parsed)
-	       'viper-mouse-catch-frame-switch))
-      () ; do nothing
+  (if (or (not (eq (key-binding viper-mouse-down-search-key-parsed)
+		   'viper-mouse-catch-frame-switch))
+	  (not (eq (key-binding viper-mouse-up-search-key-parsed)
+		   'viper-mouse-click-search-word))
+	  (and viper-xemacs-p (not (event-over-text-area-p click))))
+      () ; do nothing, if binding isn't right or not over text
     (let ((previous-search-string viper-s-string)
 	  click-word click-count)
     
