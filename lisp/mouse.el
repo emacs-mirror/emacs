@@ -49,6 +49,39 @@
   :version "21.4"
   :group 'mouse)
 
+(defcustom mouse-1-click-follows-link 350
+  "Non-nil means that clicking mouse-1 on a link follows the link.
+
+With the default setting, an ordinary mouse-1 click on a link
+performs the same action as mouse-2 on that link, while a longer
+mouse-1 click \(hold down the mouse-1 button for more than 350
+milliseconds) performs the original mouse-1 binding \(which
+typically sets point where you click the mouse).
+
+If value is an integer, the time elapsed between pressing and
+releasing the mouse button determines whether to follow the link
+or perform the normal mouse-1 action (typically set point).
+The absolute numeric value specifices the maximum duration of a
+\"short click\" in milliseconds.  A positive value means that a
+short click follows the link, and a longer click performs the
+normal action.  A negative value gives the opposite behaviour.
+
+If value is `double', a double click follows the link.
+
+Otherwise, a single mouse-1 click unconditionally follows the link.
+
+Note that dragging the mouse never follows the link.
+
+This feature only works in modes that specifically identify
+clickable text as links, so it may not work with some external
+packages.  See `mouse-on-link-p' for details."
+  :version "21.4"
+  :type '(choice (const :tag "Disabled" nil)
+		 (const :tag "Double click" double)
+                 (number :tag "Single click time limit" :value 350)
+                 (other :tag "Single click" t))
+  :group 'mouse)
+
 
 ;; Provide a mode-specific menu on a mouse button.
 
@@ -733,6 +766,51 @@ If the click is in the echo area, display the `*Messages*' buffer."
       (run-hooks 'mouse-leave-buffer-hook)
       (mouse-drag-region-1 start-event))))
 
+
+(defun mouse-on-link-p (pos)
+  "Return non-nil if POS is on a link in the current buffer.
+
+A clickable link is identified by one of the following methods:
+
+1) If the character at POS has a non-nil `follow-link' text or
+overlay property, the value of that property is returned.
+
+2) If there is a local key-binding or a keybinding at position
+POS for the `follow-link' event, the binding of that event
+determines whether POS is inside a link:
+
+- If the binding is `mouse-face', POS is inside a link if there
+is a non-nil `mouse-face' property at POS.  Return t in this case.
+
+- If the binding is a function, FUNC, POS is inside a link if
+the call \(FUNC POS) returns non-nil.  Return the return value
+from that call.
+
+- Otherwise, return the binding of the `follow-link' binding.
+
+The return value is interpreted as follows:
+
+- If it is a string, the mouse-1 event is translated into the
+first character of the string, i.e. the action of the mouse-1
+click is the local or global binding of that character.
+
+- If it is a vector, the mouse-1 event is translated into the
+first element of that vector, i.e. the action of the mouse-1
+click is the local or global binding of that event.
+
+- Otherwise, the mouse-1 event is translated into a mouse-2 event
+at the same position."
+  (or (get-char-property pos 'follow-link)
+      (save-excursion
+	(goto-char pos)
+	(let ((b (key-binding [follow-link] nil t)))
+	  (cond
+	   ((eq b 'mouse-face)
+	    (and (get-char-property pos 'mouse-face) t))
+	   ((functionp b)
+	    (funcall b pos))
+	   (t b))))))
+
 (defun mouse-drag-region-1 (start-event)
   (mouse-minibuffer-check start-event)
   (let* ((echo-keystrokes 0)
@@ -749,6 +827,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 		     (nth 3 bounds)
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
+	 on-link remap-double-click
 	 (click-count (1- (event-click-count start-event))))
     (setq mouse-selection-click-count click-count)
     (setq mouse-selection-click-count-buffer (current-buffer))
@@ -758,6 +837,13 @@ If the click is in the echo area, display the `*Messages*' buffer."
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
+    (setq on-link (and mouse-1-click-follows-link
+		       (mouse-on-link-p start-point)))
+    (setq remap-double-click (and on-link
+				  (eq mouse-1-click-follows-link 'double)
+				  (= click-count 1)))
+    (if remap-double-click  ;; Don't expand mouse overlay in links
+	(setq click-count 0))
     (let ((range (mouse-start-end start-point start-point click-count)))
       (move-overlay mouse-drag-overlay (car range) (nth 1 range)
 		    (window-buffer start-window))
@@ -880,6 +966,28 @@ If the click is in the echo area, display the `*Messages*' buffer."
 			 (or end-point
 			     (= (window-start start-window)
 				start-window-start)))
+		(if (and on-link
+			 (not end-point)
+			 (consp event)
+			 (or remap-double-click
+			     (and
+			      (not (eq mouse-1-click-follows-link 'double))
+			      (= click-count 0)
+			      (= (event-click-count event) 1)
+			      (not (input-pending-p))
+			      (or (not (integerp mouse-1-click-follows-link))
+				  (let ((t0 (posn-timestamp (event-start start-event)))
+					(t1 (posn-timestamp (event-end event))))
+				    (and (integerp t0) (integerp t1)
+					 (if (> mouse-1-click-follows-link 0)
+					     (<= (- t1 t0) mouse-1-click-follows-link)
+					   (< (- t0 t1) mouse-1-click-follows-link)))))
+			      (or (not double-click-time)
+				  (sit-for 0 (if (integerp double-click-time)
+						 double-click-time 500) t)))))
+		    (if (or (vectorp on-link) (stringp on-link))
+			(setq event (aref on-link 0))
+		      (setcar event 'mouse-2)))
 		(setq unread-command-events
 		      (cons event unread-command-events)))))
 	(delete-overlay mouse-drag-overlay)))))
