@@ -3463,9 +3463,13 @@ actually used.")
   /* Prevent redisplay optimizations.  */
   current_buffer->clip_changed = 1;
 
-  if (!NILP (beg) || !NILP (end))
-    if (!NILP (visit))
-      error ("Attempt to visit less than an entire file");
+  if (!NILP (visit))
+    {
+      if (!NILP (beg) || !NILP (end))
+	error ("Attempt to visit less than an entire file");
+      if (BEG < Z && NILP (replace))
+	error ("Cannot do file visiting in a non-empty buffer");
+    }
 
   if (!NILP (beg))
     CHECK_NUMBER (beg, 0);
