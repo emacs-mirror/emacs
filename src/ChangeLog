@@ -1,3 +1,8 @@
+2000-03-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c: Remove obsolete code in #if 0.
+	(Fx_focus_frame): New function.
+
 2000-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* doc.c (Fdocumentation_property): If value is not a string,

@@ -1,3 +1,7 @@
+2000-03-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (other-frame): Call x-focus-frame.
+
 2000-03-07  Dave Love  <fx@gnu.org>
 
 	* recentf.el (recentf-keep-non-readable-files-p): Add :set,
