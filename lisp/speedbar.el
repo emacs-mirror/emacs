@@ -2874,7 +2874,7 @@ If new functions are added, their state needs to be updated here."
   (goto-char (point-min))
   (let ((m nil))
     (while (and (setq m (re-search-forward
-			 (concat " \\(" (file-name-nondirectory file)
+			 (concat " \\(" (regexp-quote (file-name-nondirectory file))
 				 "\\)\\(" speedbar-indicator-regex "\\)?\n")
 			 nil t))
 		(not (string= file
