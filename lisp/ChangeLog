@@ -1,3 +1,27 @@
+2000-09-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-add-log-file-name, diff-current-defun): New funs.
+	(diff-mode): Add support for add-log.el.
+	(diff-hunk-text): Use char offsets rather than line offsets.
+	(diff-find-source-location): Replace LINE with line-offset (nil
+	if not found) and always set POS to a meaningful position.
+	Adapt to the new char-offsets.
+	(diff-apply-hunk): Drop support for the unused `select' POPUP.
+	Adapt to the new diff-find-source-location.
+	(diff-goto-source): Adapt to the new diff-find-source-location.
+
+	* add-log.el (add-log-file-name): New function (split out of
+	add-change-log-entry).
+	(add-change-log-entry): Use it.
+	Call add-log-file-name-function with the changelog file name if
+	the current buffer is not associated with any file.
+	Avoid find-file if the selected window is dedicated.
+
+	* diff-mode.el (diff-find-source-location):
+	Move code from diff-apply-hunk.  Return buffer rather than file.
+	(diff-apply-hunk): Use the new result from  diff-find-source-location.
+	(diff-goto-source): Use the new diff-find-source-location.
+
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* ehelp.el (electric-help): New defgroup.
