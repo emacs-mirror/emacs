@@ -1,3 +1,7 @@
+2002-03-11  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (syms_of_coding) <file-coding-system-alist>: Doc fix.
+
 2002-03-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (note_mouse_movement): Put code for
