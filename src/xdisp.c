@@ -4095,7 +4095,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	{
 	  val = Fget (val, Qcoding_system);
 	  if (NILP (eolvalue))
-	    eolvalue = Fget (coding_system, Qeol_type);
+	    eolvalue = Fget (val, Qeol_type);
 	}
 
       *buf++ = XFASTINT (XVECTOR (val)->contents[1]);
