@@ -10408,7 +10408,7 @@ redisplay_preserve_echo_area (from_where)
   else
     redisplay_internal (1);
 
-  if (rif->flush_display_optional)
+  if (rif != NULL && rif->flush_display_optional)
     rif->flush_display_optional (NULL);
 }
 
