@@ -1138,7 +1138,7 @@ window frame:
   With the X resource @samp{Emacs.Font}, you can specify a fontset name
 just like an actual font name.  But be careful not to specify a fontset
 name in a wildcard resource like @samp{Emacs*Font}---that wildcard
-specification matches various other resources, such as menus, and
+specification matches various other resources, such as for menus, and
 menus cannot handle fontsets.
 
   You can specify additional fontsets using X resources named
