@@ -1,3 +1,9 @@
+2001-01-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix bug setting
+	the enabled_p flag of the glyph row at window_end_vpos to 0.
+	(handle_single_display_prop): Fix last change.
+
 2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* window.c (Frecenter): Doc fix.
