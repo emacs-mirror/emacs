@@ -308,7 +308,8 @@ with a prefix argument."
   (dired-mark-pop-up
    nil 'shell files
    (function read-string)
-   (format prompt (dired-mark-prompt arg files))))
+   (format prompt (dired-mark-prompt arg files))
+   nil 'shell-command-history))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
