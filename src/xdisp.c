@@ -5248,16 +5248,16 @@ message_log_maybe_newline ()
 }
 
 
-/* Add a string M of length LEN to the message log, optionally
+/* Add a string M of length NBYTES to the message log, optionally
    terminated with a newline when NLFLAG is non-zero.  MULTIBYTE, if
    nonzero, means interpret the contents of M as multibyte.  This
    function calls low-level routines in order to bypass text property
    hooks, etc. which might not be safe to run.  */
 
 void
-message_dolog (m, len, nlflag, multibyte)
+message_dolog (m, nbytes, nlflag, multibyte)
      char *m;
-     int len, nlflag, multibyte;
+     int nbytes, nlflag, multibyte;
 {
   if (!NILP (Vmessage_log_max))
     {
@@ -5295,14 +5295,14 @@ message_dolog (m, len, nlflag, multibyte)
       if (multibyte
 	  && NILP (current_buffer->enable_multibyte_characters))
 	{
-	  int i, c, nbytes;
+	  int i, c, char_bytes;
 	  unsigned char work[1];
 	  
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
-	  for (i = 0; i < len; i += nbytes)
+	  for (i = 0; i < nbytes; i += nbytes)
 	    {
-	      c = string_char_and_length (m + i, len - i, &nbytes);
+	      c = string_char_and_length (m + i, nbytes - i, &char_bytes);
 	      work[0] = (SINGLE_BYTE_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
@@ -5312,20 +5312,20 @@ message_dolog (m, len, nlflag, multibyte)
       else if (! multibyte
 	       && ! NILP (current_buffer->enable_multibyte_characters))
 	{
-	  int i, c, nbytes;
+	  int i, c, char_bytes;
 	  unsigned char *msg = (unsigned char *) m;
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
-	  for (i = 0; i < len; i++)
+	  for (i = 0; i < nbytes; i++)
 	    {
 	      c = unibyte_char_to_multibyte (msg[i]);
-	      nbytes = CHAR_STRING (c, str);
-	      insert_1_both (str, 1, nbytes, 1, 0, 0);
+	      char_bytes = CHAR_STRING (c, str);
+	      insert_1_both (str, 1, char_bytes, 1, 0, 0);
 	    }
 	}
-      else if (len)
-	insert_1 (m, len, 1, 0, 0);
+      else if (nbytes)
+	insert_1 (m, nbytes, 1, 0, 0);
 
       if (nlflag)
 	{
@@ -5446,9 +5446,10 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
 }
 
 
-/* Display an echo area message M with a specified length of LEN
-   chars.  The string may include null characters.  If M is 0, clear
-   out any existing message, and let the mini-buffer text show through.
+/* Display an echo area message M with a specified length of NBYTES
+   bytes.  The string may include null characters.  If M is 0, clear
+   out any existing message, and let the mini-buffer text show
+   through.
 
    The buffer M must continue to exist until after the echo area gets
    cleared or some other message gets displayed there.  This means do
@@ -5456,25 +5457,25 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
    a buffer that was alloca'd.  */
 
 void
-message2 (m, len, multibyte)
+message2 (m, nbytes, multibyte)
      char *m;
-     int len;
+     int nbytes;
      int multibyte;
 {
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
   if (m)
-    message_dolog (m, len, 1, multibyte);
-  message2_nolog (m, len, multibyte);
+    message_dolog (m, nbytes, 1, multibyte);
+  message2_nolog (m, nbytes, multibyte);
 }
 
 
 /* The non-logging counterpart of message2.  */
 
 void
-message2_nolog (m, len, multibyte)
+message2_nolog (m, nbytes, multibyte)
      char *m;
-     int len;
+     int nbytes;
 {
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
@@ -5485,7 +5486,7 @@ message2_nolog (m, len, multibyte)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
       if (m)
-	fwrite (m, len, 1, stderr);
+	fwrite (m, nbytes, 1, stderr);
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
@@ -5512,7 +5513,7 @@ message2_nolog (m, len, multibyte)
 
       if (m)
 	{
-	  set_message (m, Qnil, len, multibyte);
+	  set_message (m, Qnil, nbytes, multibyte);
 	  if (minibuffer_auto_raise)
 	    Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
 	}
