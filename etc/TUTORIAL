@@ -790,20 +790,15 @@ level".  This is indicated by square brackets in the mode line,
 surrounding the parentheses around the major mode name.  For
 example, you might see [(Fundamental)] instead of (Fundamental).
 
-To get out of the recursive editing level, type
-  M-x top-level<Return>.
+To get out of the recursive editing level, type ESC ESC ESC.  That is
+an all-purpose "get out" command.  You can also use it for eliminating
+extra windows, and getting out of the minibuffer.
 
->> Try that now; it should display "Back to top level"
-   at the bottom of the screen.
-
-In fact, you were ALREADY at top level (not inside a recursive editing
-level) if you have obeyed instructions.  M-x top-level does not care;
-it gets out of any number of recursive editing levels, perhaps zero,
-to get back to top level.
+>> Type M-x to get into a minibuffer; then type ESC ESC ESC to get out.
 
 You can't use C-g to get out of a recursive editing level because C-g
-is used for discarding numeric arguments and partially typed commands
-WITHIN the recursive editing level.
+is used for canceling commands and arguments WITHIN the recursive
+editing level.
 
 
 * GETTING MORE HELP
