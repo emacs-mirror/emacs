@@ -753,6 +753,7 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
   par = XWINDOW (parent);
 
   windows_or_buffers_changed++;
+  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (p))) = 1;
 
   /* Are we trying to delete any frame's selected window?  */
   {
@@ -1606,6 +1607,8 @@ set_window_height (window, height, nodelete)
 
   XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
+  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
+
   XSETFASTINT (w->height, height);
   if (!NILP (w->hchild))
     {
@@ -1667,6 +1670,8 @@ set_window_width (window, width, nodelete)
 
   XSETFASTINT (w->last_modified, 0);
   windows_or_buffers_changed++;
+  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
+
   XSETFASTINT (w->width, width);
   if (!NILP (w->vchild))
     {
@@ -2149,6 +2154,7 @@ and put SIZE columns in the first of the pair.")
      if we are making side-by-side windows */
 
   windows_or_buffers_changed++;
+  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (o))) = 1;
   new = make_window ();
   p = XWINDOW (new);
 
@@ -2844,6 +2850,7 @@ by `current-window-configuration' (which see).")
 #endif
 
       windows_or_buffers_changed++;
+      FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
       /* Temporarily avoid any problems with windows that are smaller
 	 than they are supposed to be.  */
