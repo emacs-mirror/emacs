@@ -704,7 +704,7 @@ Stop at the first and last subheadings of a superior heading."
 	  (error "No previous same-level heading"))))))
 
 (defun outline-get-last-sibling ()
-  "Move to next heading of the same level, and return point or nil if none."
+  "Move to previous heading of the same level, and return point or nil if none."
   (let ((level (funcall outline-level)))
     (outline-previous-visible-heading 1)
     (while (and (> (funcall outline-level) level)
