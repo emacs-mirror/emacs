@@ -90,12 +90,14 @@
   "t if vt100 is in 132-column mode.")
 
 (defun vt100-wide-mode (&optional arg)
-  "Toggle 132/80 column mode for vt100s."
+  "Toggle 132/80 column mode for vt100s.
+With positive argument, switch to 132-column mode.
+With negative argument, switch to 80-column mode."
  (interactive "P")
  (setq vt100-wide-mode 
 	(if (null arg) (not vt100-wide-mode)
 	  (> (prefix-numeric-value arg) 0)))
  (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
- (set-frame-width (if vt100-wide-mode 132 80)))
+ (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 
 ;;; vt100.el ends here
