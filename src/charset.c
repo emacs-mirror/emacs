@@ -940,7 +940,6 @@ usage: (define-charset-internal ...)  */)
   return Qnil;
 }
 
-/* Fixme: Should this record the alias relationships for diagnostics?  */
 DEFUN ("define-charset-alias", Fdefine_charset_alias,
        Sdefine_charset_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for charset CHARSET.  */)
@@ -951,7 +950,6 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 
   CHECK_CHARSET_GET_ATTR (charset, attr);
   Fputhash (alias, attr, Vcharset_hash_table);
-  /* Fixme: should the ordered list be updated too?  */
   Vcharset_list = Fcons (alias, Vcharset_list);
   return Qnil;
 }
@@ -1708,6 +1706,49 @@ Clear encoder and decoder of charsets that are loaded from mapfiles.  */)
   return Qnil;
 }
 
+DEFUN ("charset-priority-list", Fcharset_priority_list,
+       Scharset_priority_list, 0, 1, 0,
+       doc: /* Return the list of charsets ordered by priority.
+HIGHESTP non-nil means just return the highest priority one.  */)
+     (highestp)
+     Lisp_Object highestp;
+{
+  Lisp_Object val = Qnil, list = Vcharset_ordered_list;
+
+  if (!NILP (highestp))
+    return CHARSET_NAME (CHARSET_FROM_ID (Fcar (list)));
+
+  while (!NILP (list))
+    {
+      val = Fcons (CHARSET_NAME (CHARSET_FROM_ID (XCAR (list))), val);
+      list = XCDR (list);
+    }
+  return Fnreverse (val);
+}
+
+DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
+       1, MANY, 0,
+       doc: /* Assign higher priority to the charsets given as arguments.
+usage: (set-charset-priority &rest charsets)  */)
+       (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object new_head = Qnil, old_list, id, arglist[2];
+  int i;
+
+  old_list = Fcopy_sequence (Vcharset_ordered_list);
+  for (i = 0; i < nargs; i++)
+    {
+      CHECK_CHARSET_GET_ID (args[i], id);
+      old_list = Fdelq (id, old_list);
+      new_head = Fcons (id, new_head);
+    }
+  arglist[0] = Fnreverse (new_head);
+  arglist[1] = old_list;
+  Vcharset_ordered_list = Fnconc (2, arglist);
+  return Qnil;
+}
 
 void
 init_charset ()
@@ -1807,6 +1848,8 @@ syms_of_charset ()
   defsubr (&Scharset_after);
   defsubr (&Siso_charset);
   defsubr (&Sclear_charset_maps);
+  defsubr (&Scharset_priority_list);
+  defsubr (&Sset_charset_priority);
 
   DEFVAR_LISP ("charset-map-directory", &Vcharset_map_directory,
 	       doc: /* Directory of charset map files that come with GNU Emacs.
