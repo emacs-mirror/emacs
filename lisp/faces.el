@@ -1151,7 +1151,8 @@ If FRAME is nil, the current FRAME is used."
 
 
 (defun face-spec-choose (spec &optional frame)
-  "Choose the proper attributes for FRAME, out of SPEC."
+  "Choose the proper attributes for FRAME, out of SPEC.
+If SPEC is nil, return nil."
   (unless frame
     (setq frame (selected-frame)))
   (let ((tail spec)
@@ -1178,7 +1179,8 @@ If FRAME is nil, the current FRAME is used."
 (defun face-spec-set (face spec &optional frame)
   "Set FACE's attributes according to the first matching entry in SPEC.
 FRAME is the frame whose frame-local face is set.  FRAME nil means
-do it on all frames.  See `defface' for information about SPEC."
+do it on all frames.  See `defface' for information about SPEC.
+If SPEC is nil, do nothing."
   (let ((attrs (face-spec-choose spec frame)))
     (when attrs
       (face-spec-reset-face face frame))
@@ -1219,6 +1221,16 @@ is used.  If nil or omitted, use the selected frame."
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
   (face-attr-match-p face (face-spec-choose spec frame) frame))
 
+(defun face-user-default-spec (face)
+  "Return the user's customized face-spec for FACE, or the default if none.
+If there is neither a user setting or a default for FACE, return nil."
+  (or (get face 'saved-face)
+      (get face 'face-defface-spec)))
+
+(defun face-default-spec (face)
+  "Return the default face-spec for FACE, ignoring any user customization.
+If there is no default for FACE, return nil."
+  (get face 'face-defface-spec))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1351,11 +1363,7 @@ according to the `background-mode' and `display-type' frame parameters."
       ;; For all named faces, choose face specs matching the new frame
       ;; parameters.
       (dolist (face (face-list))
-	(let ((spec (or (get face 'saved-face)
-			(get face 'face-defface-spec))))
-	  (when spec
-	    (face-spec-set face spec frame)))))))
-
+	(face-spec-set face (face-user-default-spec face) frame)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1440,13 +1448,10 @@ Value is the new frame created."
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
   (dolist (face (face-list))
-    (let ((spec (or (get face 'saved-face)
-		    (get face 'face-defface-spec))))
-      (when spec
-	(face-spec-set face spec frame))
-      (internal-merge-in-global-face face frame)
-      (when (memq window-system '(x w32 mac))
-	(make-face-x-resource-internal face frame))))
+    (face-spec-set face (face-user-default-spec face) frame)
+    (internal-merge-in-global-face face frame)
+    (when (memq window-system '(x w32 mac))
+      (make-face-x-resource-internal face frame)))
 
   ;; Initialize attributes from frame parameters.
   (let ((params '((foreground-color default :foreground)
