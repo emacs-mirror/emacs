@@ -12,7 +12,7 @@
 #
 # make clean  or  make mostlyclean
 #      Delete all files from the current directory that are normally
-#      created by building the program.  Don't delete the files that
+#      created by building the program.	 Don't delete the files that
 #      record the configuration.  Also preserve files that could be made
 #      by building, but normally aren't because the distribution comes
 #      with them.
@@ -68,19 +68,19 @@ exec_prefix=${prefix}
 # run directly (like etags).
 bindir=${exec_prefix}/bin
 
-# Where to install architecture-independent data files.  ${lispdir}
+# Where to install architecture-independent data files.	 ${lispdir}
 # and ${etcdir} are subdirectories of this.
 datadir=${prefix}/lib
 
 # Where to install and expect the files that Emacs modifies as it
-# runs.  These files are all architecture-independent. Right now, the
+# runs.	 These files are all architecture-independent. Right now, the
 # only such data is the locking directory; ${lockdir} is a
 # subdirectory of this.
 statedir=${prefix}/lib
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
-# data.  ${archlibdir} is a subdirectory of this.
+# data.	 ${archlibdir} is a subdirectory of this.
 libdir=${exec_prefix}/lib
 
 # Where to install Emacs's man pages, and what extension they should have.
@@ -132,7 +132,7 @@ buildlisppath=../lisp
 
 # Where to install the other architecture-independent data files
 # distributed with Emacs (like the tutorial, the cookie recipes and
-# the Zippy database).  This path usually contains the Emacs version
+# the Zippy database).	This path usually contains the Emacs version
 # number, so the data files for multiple versions of Emacs may be
 # installed at once.
 etcdir=${datadir}/emacs/${version}/etc
@@ -216,15 +216,15 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	 echo "# If you are thinking about editing it, you should seriously consider" ; \
 	 echo "# running \`make lib-src/Makefile' at the top of the" ;	\
 	 echo "# Emacs build tree instead, or editing" ;		\
-	 echo "# \`${srcdir}/lib-src/Makefile.in' itself." ; 		\
+	 echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
 	 /bin/sed < ${srcdir}/lib-src/Makefile.in			\
-	 -e 's|^\(version *=\).*$$|\1'"${version}"'|' 			\
-	 -e 's|^\(configname *=\).*$$|\1'"${configname}"'|' 		\
-	 -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'	 		\
+	 -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
+	 -e 's|^\(configname *=\).*$$|\1'"${configname}"'|'		\
+	 -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'			\
 	 -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
-	 -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|' 			\
-	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|' 			\
-	 -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|' 		\
+	 -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
+	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
+	 -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
 	 -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'		\
@@ -240,9 +240,9 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	 echo "# If you are thinking about editing it, you should seriously consider" ; \
 	 echo "# running \`make src/Makefile' at the top of the" ;	\
 	 echo "# Emacs build tree instead, or editing" ;		\
-	 echo "# \`${srcdir}/src/Makefile.in' itself." ; 		\
+	 echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
 	 /bin/sed < ${srcdir}/src/Makefile.in				\
-	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|' 			\
+	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
 	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
 	 -e '/^# DIST: /d') > src/Makefile.tmp
@@ -278,18 +278,20 @@ install: all mkdir
 	     done ; \
 	   fi ; \
 	 done
-	(cd info ; \
-	 if [ ! -f ${infodir}/dir ]; then \
-	   ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 ./dir ${infodir}/dir ; \
-         fi ; \
-	 for f in *.info* ; do \
-	   ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $$f ${infodir}/$$f ; \
-         done)
+	-(cd info ; \
+	  if [ ! -f ${infodir}/dir ]; then \
+	    ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 ./dir ${infodir}/dir ; \
+	  fi ; \
+	  if [ "`echo *.info*`" != "*.info*" ]; then \
+	    for f in *.info* ; do \
+	      ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 $$f ${infodir}/$$f ; \
+	    done ; \
+	  fi)
 	for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} ${INSTALLFLAGS} -m 444 etc/$${page}.1 \
 	    ${mandir}/$${page}${manext} ; \
-        done
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -m 1755 src/xemacs \
+	done
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -m 1755 src/emacs \
 	  ${bindir}/emacs-${version}
 	-rm -f ${bindir}/emacs
 	ln ${bindir}/emacs-${version} ${bindir}/emacs
@@ -312,17 +314,19 @@ install.sysv: all mkdir
 	   fi ; \
 	 done
 	-(cd info ; \
-	 if [ ! -f ${infodir}/dir ]; then \
-	   cpset ./dir ${infodir} 444 bin bin ; \
-         fi ; \
-	 for f in *.info* ; do \
-	    cpset $$f ${infodir} 444 bin bin ; \
-         done)
+	  if [ ! -f ${infodir}/dir ]; then \
+	    cpset ./dir ${infodir} 444 bin bin ; \
+	  fi ; \
+	  if [ "`echo *.info*`" != "*.info*" ]; then \
+	    for f in *.info* ; do \
+	       cpset $$f ${infodir} 444 bin bin ; \
+	    done ; \
+	  fi)
 	-for page in emacs etags ctags ; do \
 	  cpset etc/$${page}.1 ${mandir}/$${page}${manext} 444 bin bin ; \
-        done
+	done
 	-/bin/rm -f ${bindir}/emacs
-	-cpset src/xemacs ${bindir}/emacs-${version} 1755 bin bin
+	-cpset src/emacs ${bindir}/emacs-${version} 1755 bin bin
 	-ln ${bindir}/emacs-${version} ${bindir}/emacs
   
 install.xenix: all mkdir
@@ -342,21 +346,23 @@ install.xenix: all mkdir
 	     done ; \
 	   fi ; \
 	 done
-	(cd info ; \
-	 if [ ! -f ${infodir}/dir ]; then \
-	   cp ./dir ${infodir} ; \
-	   chmod 444 ${infodir}/dir ; \
-         fi ; \
-	 for f in *.info* ; do \
-	    cp $$f ${infodir} ; \
-	    chmod 444 ${infodir}/$$f ; \
-         done)
+	-(cd info ; \
+	  if [ ! -f ${infodir}/dir ]; then \
+	    cp ./dir ${infodir} ; \
+	    chmod 444 ${infodir}/dir ; \
+	  fi ; \
+	  if [ "`echo *.info*`" != "*.info*" ]; then \
+	    for f in *.info* ; do \
+	       cp $$f ${infodir} ; \
+	       chmod 444 ${infodir}/$$f ; \
+	    done ; \
+	  fi)
 	for page in emacs etags ctags ; do \
 	  cp etc/$${page}.1 ${mandir}/$${page}${manext} ; \
 	  chmod 444 ${mandir}/$${page}${manext} ; \
-        done
+	done
 	-mv -f ${bindir}/emacs ${bindir}/emacs.old
-	cp src/xemacs ${bindir}/emacs-${version}
+	cp src/emacs ${bindir}/emacs-${version}
 	ln ${bindir}/emacs-${version} ${bindir}/emacs
 	chmod 1755 ${bindir}/emacs
 	-rm -f ${bindir}/emacs.old
@@ -378,22 +384,24 @@ install.aix: all mkdir
 	     done ; \
 	   fi ; \
 	 done
-	(cd info ; \
-	 if [ ! -f ${infodir}/dir ]; then \
-	   ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} ./dir ; \
-         fi ; \
-	 for f in *.info* ; do \
-	    ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} $$f ; \
-         done)
-	${INSTALL_PROGRAM} ${INSTALLFLAGS} -M 1755 -f ${bindir} src/xemacs
-	mv ${bindir}/xemacs ${bindir}/emacs-${version}
+	-(cd info ; \
+	  if [ ! -f ${infodir}/dir ]; then \
+	    ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} ./dir ; \
+	  fi ; \
+	  if [ "`echo *.info*`" != "*.info*" ]; then \
+	    for f in *.info* ; do \
+	       ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${infodir} $$f ; \
+	    done ; \
+	  fi)
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -M 1755 -f ${bindir} src/emacs
+	mv ${bindir}/emacs ${bindir}/emacs-${version}
 	for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${mandir} etc/$${page}.1 ;\
-        done
+	done
 	-rm -f ${bindir}/emacs
 	ln ${bindir}/emacs-${version} ${bindir}/emacs
 
-### Build all the directories we're going to install Emacs in.  Since
+### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use make-path
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
@@ -407,16 +415,16 @@ FRC:
 # ==================== Cleaning up and miscellanea ====================
 
 ### `clean'
-###      Delete all files from the current directory that are normally
-###      created by building the program.  Don't delete the files that
-###      record the configuration.  Also preserve files that could be made
-###      by building, but normally aren't because the distribution comes
-###      with them.
+###	 Delete all files from the current directory that are normally
+###	 created by building the program.  Don't delete the files that
+###	 record the configuration.  Also preserve files that could be made
+###	 by building, but normally aren't because the distribution comes
+###	 with them.
 ### `mostlyclean'
-###      Like `clean', but may refrain from deleting a few files that
-###      people normally don't want to recompile.  For example, the
-###      `mostlyclean' target for GCC does not delete `libgcc.a', because
-###      recompiling it is rarely necessary and takes a lot of time.
+###	 Like `clean', but may refrain from deleting a few files that
+###	 people normally don't want to recompile.  For example, the
+###	 `mostlyclean' target for GCC does not delete `libgcc.a', because
+###	 recompiling it is rarely necessary and takes a lot of time.
 ### 
 clean mostlyclean:
 	cd src; make clean
@@ -428,19 +436,19 @@ clean mostlyclean:
 	fi
 
 ### `distclean'
-###      Delete all files from the current directory that are created by
-###      configuring or building the program.  This should leave only the
-###      files that would be in the distribution.
+###	 Delete all files from the current directory that are created by
+###	 configuring or building the program.  This should leave only the
+###	 files that would be in the distribution.
 distclean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} distclean); done
 	-(cd lock; rm *)
 	-rm config.status config-tmp-*
 
 ### `realclean'
-###      Delete everything from the current directory that can be
-###      reconstructed with this makefile.  This typically includes
-###      everything deleted by distclean, plus more: C source files
-###      produced by Bison, tags tables, info files, and so on.
+###	 Delete everything from the current directory that can be
+###	 reconstructed with this makefile.  This typically includes
+###	 everything deleted by distclean, plus more: C source files
+###	 produced by Bison, tags tables, info files, and so on.
 realclean:
 	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} realclean); done
 	(cd lock; rm *)
