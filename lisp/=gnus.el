@@ -970,7 +970,54 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map "q" 'gnus-group-exit)
   (define-key gnus-group-mode-map "Q" 'gnus-group-quit)
   (define-key gnus-group-mode-map "?" 'gnus-group-describe-briefly)
-  (define-key gnus-group-mode-map "\C-c\C-i" 'gnus-info-find-node))
+  (define-key gnus-group-mode-map "\C-c\C-i" 'gnus-info-find-node)
+
+  ;; Make a menu bar item.
+  (define-key gnus-group-mode-map [menu-bar GNUS]
+	(cons "GNUS" (make-sparse-keymap "GNUS")))
+
+  (define-key gnus-group-mode-map [menu-bar GNUS force-update]
+	'("Force Update" . gnus-group-force-update))
+  (define-key gnus-group-mode-map [menu-bar GNUS quit]
+	'("Quit" . gnus-group-quit))
+  (define-key gnus-group-mode-map [menu-bar GNUS exit]
+	'("Exit" . gnus-group-exit))
+  (define-key gnus-group-mode-map [menu-bar GNUS restart]
+	'("Restart" . gnus-group-restart))
+  (define-key gnus-group-mode-map [menu-bar GNUS suspend]
+	'("Suspend" . gnus-group-suspend))
+  (define-key gnus-group-mode-map [menu-bar GNUS get-new-news]
+	'("Get New News" . gnus-group-get-new-news))
+
+  ;; Make a menu bar item.
+  (define-key gnus-group-mode-map [menu-bar groups]
+	(cons "Groups" (make-sparse-keymap "Groups")))
+
+  (define-key gnus-group-mode-map [menu-bar groups catchup]
+	'("Catchup" . gnus-group-catchup))
+  (define-key gnus-group-mode-map [menu-bar groups edit-global-kill]
+	'("Edit Kill File" . gnus-group-edit-global-kill))
+
+  (define-key gnus-group-mode-map [menu-bar groups separator-2]
+	'("--"))
+
+  (define-key gnus-group-mode-map [menu-bar groups yank-group]
+	'("Yank Group" . gnus-group-yank-group))
+  (define-key gnus-group-mode-map [menu-bar groups kill-group]
+	'("Kill Group" . gnus-group-kill-group))
+
+  (define-key gnus-group-mode-map [menu-bar groups separator-1]
+	'("--"))
+
+  (define-key gnus-group-mode-map [menu-bar groups jump-to-group]
+	'("Jump to Group..." . gnus-group-jump-to-group))
+  (define-key gnus-group-mode-map [menu-bar groups list-all-groups]
+	'("List All Groups" . gnus-group-list-all-groups))
+  (define-key gnus-group-mode-map [menu-bar groups list-groups]
+	'("List Groups" . gnus-group-list-groups))
+  (define-key gnus-group-mode-map [menu-bar groups unsub-current-group]
+	'("Unsubscribe Group" . gnus-group-unsubscribe-current-group))
+  )
 
 (defun gnus-group-mode ()
   "Major mode for reading network news.
@@ -1625,7 +1672,7 @@ Type \\[widen] to remove restriction."
     "Editing a local KILL file (Type \\[gnus-kill-file-exit] to exit)")))
 
 (defun gnus-group-force-update ()
-  "Update .newsrc file."
+  "Update `.newsrc' file."
   (interactive)
   (gnus-save-newsrc-file))
 
@@ -1797,7 +1844,115 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
   (define-key gnus-summary-mode-map "q" 'gnus-summary-exit)
   (define-key gnus-summary-mode-map "Q" 'gnus-summary-quit)
   (define-key gnus-summary-mode-map "?" 'gnus-summary-describe-briefly)
-  (define-key gnus-summary-mode-map "\C-c\C-i" 'gnus-info-find-node))
+  (define-key gnus-summary-mode-map "\C-c\C-i" 'gnus-info-find-node)
+
+  (define-key gnus-summary-mode-map [menu-bar misc]
+	(cons "Misc" (make-sparse-keymap "misc")))
+
+  (define-key gnus-summary-mode-map [menu-bar misc caesar-message]
+	'("Caesar Message" . gnus-summary-caesar-message))
+  (define-key gnus-summary-mode-map [menu-bar misc cancel-article]
+	'("Cancel Article" . gnus-summary-cancel-article))
+  (define-key gnus-summary-mode-map [menu-bar misc edit-local-kill]
+	'("Edit Kill File" . gnus-summary-edit-local-kill))
+
+  (define-key gnus-summary-mode-map [menu-bar misc mark-as-unread]
+	'("Mark as Unread" . gnus-summary-mark-as-unread-forward))
+  (define-key gnus-summary-mode-map [menu-bar misc mark-as-read]
+	'("Mark as Read" . gnus-summary-mark-as-read))
+
+  (define-key gnus-summary-mode-map [menu-bar misc quit]
+	'("Quit GNUS" . gnus-summary-quit))
+  (define-key gnus-summary-mode-map [menu-bar misc exit]
+	'("Exit GNUS" . gnus-summary-exit))
+
+  (define-key gnus-summary-mode-map [menu-bar sort]
+	(cons "Sort" (make-sparse-keymap "sort")))
+
+  (define-key gnus-summary-mode-map [menu-bar sort sort-by-author]
+	'("Sort by Author" . gnus-summary-sort-by-author))
+  (define-key gnus-summary-mode-map [menu-bar sort sort-by-date]
+	'("Sort by Date" . gnus-summary-sort-by-date))
+  (define-key gnus-summary-mode-map [menu-bar sort sort-by-number]
+	'("Sort by Number" . gnus-summary-sort-by-number))
+  (define-key gnus-summary-mode-map [menu-bar sort sort-by-subject]
+	'("Sort by Subject" . gnus-summary-sort-by-subject))
+  (define-key gnus-summary-mode-map [menu-bar sort sort-summary]
+	'("Sort Summary" . gnus-summary-sort-summary))
+
+  (define-key gnus-summary-mode-map [menu-bar show/hide]
+	(cons "Show/Hide" (make-sparse-keymap "show/hide")))
+
+  (define-key gnus-summary-mode-map [menu-bar show/hide hide-all-threads]
+	'("Hide All Threads" . gnus-summary-hide-all-threads))
+  (define-key gnus-summary-mode-map [menu-bar show/hide hide-thread]
+	'("Hide Thread" . gnus-summary-hide-thread))
+  (define-key gnus-summary-mode-map [menu-bar show/hide show-all-threads]
+	'("Show All Threads" . gnus-summary-show-all-threads))
+  (define-key gnus-summary-mode-map [menu-bar show/hide show-all-headers]
+	'("Show All Headers" . gnus-summary-show-all-headers))
+  (define-key gnus-summary-mode-map [menu-bar show/hide show-thread]
+	'("Show Thread" . gnus-summary-show-thread))
+  (define-key gnus-summary-mode-map [menu-bar show/hide show-article]
+	'("Show Article" . gnus-summary-show-article))
+  (define-key gnus-summary-mode-map [menu-bar show/hide toggle-truncation]
+	'("Toggle Truncation" . gnus-summary-toggle-truncation))
+  (define-key gnus-summary-mode-map [menu-bar show/hide toggle-mime]
+	'("Toggle Mime" . gnus-summary-toggle-mime))
+  (define-key gnus-summary-mode-map [menu-bar show/hide toggle-header]
+	'("Toggle Header" . gnus-summary-toggle-header))
+
+  (define-key gnus-summary-mode-map [menu-bar action]
+	(cons "Action" (make-sparse-keymap "action")))
+
+  (define-key gnus-summary-mode-map [menu-bar action kill-same-subject]
+	'("kill-same-subject" . gnus-summary-kill-same-subject))
+  (define-key gnus-summary-mode-map [menu-bar action kill-thread]
+	'("kill-thread" . gnus-summary-kill-thread))
+  (define-key gnus-summary-mode-map [menu-bar action delete-marked-with]
+	'("delete-marked-with" . gnus-summary-delete-marked-with))
+  (define-key gnus-summary-mode-map [menu-bar action delete-marked-as-read]
+	'("delete-marked-as-read" . gnus-summary-delete-marked-as-read))
+  (define-key gnus-summary-mode-map [menu-bar action catchup-and-exit]
+	'("catchup-and-exit" . gnus-summary-catchup-and-exit))
+  (define-key gnus-summary-mode-map [menu-bar action catchup-to-here]
+	'("catchup-to-here" . gnus-summary-catchup-to-here))
+
+  (define-key gnus-summary-mode-map [menu-bar action save-in-file]
+	'("save-in-file" . gnus-summary-save-in-file))
+  (define-key gnus-summary-mode-map [menu-bar action save-article]
+	'("save-article" . gnus-summary-save-article))
+
+  (define-key gnus-summary-mode-map [menu-bar action followup-with-original]
+	'("followup-with-original" . gnus-summary-followup-with-original))
+  (define-key gnus-summary-mode-map [menu-bar action followup]
+	'("followup" . gnus-summary-followup))
+  (define-key gnus-summary-mode-map [menu-bar action reply-with-original]
+	'("reply-with-original" . gnus-summary-reply-with-original))
+  (define-key gnus-summary-mode-map [menu-bar action reply]
+	'("reply" . gnus-summary-reply))
+
+  (define-key gnus-summary-mode-map [menu-bar move]
+	(cons "Move" (make-sparse-keymap "move")))
+
+  (define-key gnus-summary-mode-map [menu-bar move down-thread]
+	'("down-thread" . gnus-summary-down-thread))
+  (define-key gnus-summary-mode-map [menu-bar move prev-same-subject]
+	'("prev-same-subject" . gnus-summary-prev-same-subject))
+  (define-key gnus-summary-mode-map [menu-bar move prev-group]
+	'("prev-group" . gnus-summary-prev-group))
+  (define-key gnus-summary-mode-map [menu-bar move next-unread-same-subject]
+	'("next-unread-same-subject" . gnus-summary-next-unread-same-subject))
+  (define-key gnus-summary-mode-map [menu-bar move next-unread-article]
+	'("next-unread-article" . gnus-summary-next-unread-article))
+  (define-key gnus-summary-mode-map [menu-bar move next-thread]
+	'("next-thread" . gnus-summary-next-thread))
+  (define-key gnus-summary-mode-map [menu-bar move next-group]
+	'("next-group" . gnus-summary-next-group))
+  (define-key gnus-summary-mode-map [menu-bar move first-unread-article]
+	'("first-unread-article" . gnus-summary-first-unread-article))
+  )
+
 
 (defun gnus-summary-mode ()
   "Major mode for reading articles in this newsgroup.
@@ -2742,7 +2897,7 @@ If argument UNREAD is non-nil, only unread article is selected."
 			    (if (listp event)
 				(car event)
 			      event)))
-		      (if (eq char type)
+		      (if (and (eq event type) (eq event cmd))
 			  (gnus-summary-next-group nil)
 			(setq unread-command-events (list event)))))
 		   )
@@ -3377,6 +3532,8 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-show-all-threads ()
   "Show all thread subtrees."
   (interactive)
+  (or gnus-show-threads
+      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	(let ((buffer-read-only nil))
@@ -3386,6 +3543,8 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-show-thread ()
   "Show thread subtrees."
   (interactive)
+  (or gnus-show-threads
+      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	(let ((buffer-read-only nil))
@@ -3399,6 +3558,8 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-hide-all-threads ()
   "Hide all thread subtrees."
   (interactive)
+  (or gnus-show-threads
+      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	;; Adjust cursor point.
@@ -3414,6 +3575,8 @@ With arg, turn showing conversation threads on iff arg is positive."
 (defun gnus-summary-hide-thread ()
   "Hide thread subtrees."
   (interactive)
+  (or gnus-show-threads
+      (gnus-summary-show-all-threads 1))
   (if gnus-show-threads
       (save-excursion
 	;; Adjust cursor point.
@@ -3962,6 +4125,16 @@ If prefix argument ALL is non-nil, all articles are marked as read."
 	  (setq unmarked (cdr unmarked))
 	  ))
     ))
+
+(defun gnus-summary-catchup-to-here ()
+  "Mark all articles before the current one in this newsgroup as read."
+  (interactive)
+  (beginning-of-line)
+  (let ((current (gnus-summary-article-number)))
+	(beginning-of-buffer)
+	(while (not (= (gnus-summary-article-number) current))
+	  (gnus-summary-mark-as-read)
+	  (gnus-summary-next-subject 1))))
 
 (defun gnus-summary-catchup-all (&optional quietly)
   "Mark all articles in this newsgroup as read."
