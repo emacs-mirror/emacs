@@ -11226,13 +11226,29 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      enum glyph_row_area area;
      int x0, y0, x1, y1;
 {
-  if (area == TEXT_AREA
-      && w->phys_cursor_on_p
-      && y0 <= w->phys_cursor.y
-      && y1 >= w->phys_cursor.y + w->phys_cursor_height
-      && x0 <= w->phys_cursor.x
-      && (x1 < 0 || x1 > w->phys_cursor.x))
-    w->phys_cursor_on_p = 0;
+  if (area == TEXT_AREA && w->phys_cursor_on_p)
+    {
+      int cx0 = w->phys_cursor.x;
+      int cx1 = cx0 + w->phys_cursor_width;
+      int cy0 = w->phys_cursor.y;
+      int cy1 = cy0 + w->phys_cursor_height;
+
+      if (x0 <= cx0 && (x1 < 0 || x1 >= cx1))
+	{
+	  /* The cursor image will be completely removed from the
+	     screen if the output area intersects the cursor area in
+	     y-direction.  When we draw in [y0 y1[, and some part of
+	     the cursor is at y < y0, that part must have been drawn
+	     before.  When scrolling, the cursor is erased before
+	     actually scrolling, so we don't come here.  When not
+	     scrolling, the rows above the old cursor row must have
+	     changed, and in this case these rows must have written
+	     over the cursor image.  Likewise if part of the cursor is
+	     below y1.  */
+	  if ((y0 >= cy0 && y0 < cy1) || (y1 >= cy0 && y1 < cy1))
+	    w->phys_cursor_on_p = 0;
+	}
+    }
 }
 
 
@@ -11312,6 +11328,7 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (CANON_X_UNIT (f), wd);
+  w->phys_cursor_width = wd;
   
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -11395,7 +11412,9 @@ x_draw_bar_cursor (w, row, width, kind)
 	width = f->output_data.x->cursor_width;
       width = min (cursor_glyph->pixel_width, width);
   
+      w->phys_cursor_width = width;
       x_clip_to_row (w, row, gc, 0);
+      
       if (kind == BAR_CURSOR)
 	  XFillRectangle (dpy, window, gc,
 			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
@@ -11448,10 +11467,17 @@ x_draw_phys_cursor_glyph (w, row, hl)
 		     hl, 0);
       w->phys_cursor_on_p = on_p;
 
+      if (hl == DRAW_CURSOR)
+	{
+	  struct glyph *cursor_glyph = get_phys_cursor_glyph (w);
+	  if (cursor_glyph)
+	    w->phys_cursor_width = cursor_glyph->pixel_width;
+	}
+
       /* When we erase the cursor, and ROW is overlapped by other
 	 rows, make sure that these overlapping parts of other rows
 	 are redrawn.  */
-      if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
+      else if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
 	{
 	  if (row > w->current_matrix->rows
 	      && MATRIX_ROW_OVERLAPS_SUCC_P (row - 1))
@@ -11715,7 +11741,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.hpos = hpos;
       w->phys_cursor.vpos = vpos;
       w->phys_cursor_type = new_cursor_type;
-      w->phys_cursor_width = new_cursor_width;
       w->phys_cursor_on_p = 1;
 
       switch (new_cursor_type)
@@ -11733,7 +11758,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case HBAR_CURSOR:
-	    x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
+	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
