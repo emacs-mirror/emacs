@@ -102,8 +102,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (let ((pos (point)))
 	(insert "English")
 	(put-text-property pos (point) 'face 'highlight))
-      (insert ", because the Emacs maintainers do not have
-translators to read other languages for them.\n\n")
+      (insert " if possible, because the Emacs maintainers
+usually do not have translators to read other languages for them.\n\n")
       (insert (format "Your bug report will be posted to the %s mailing list"
 		      (if pretest-p
 			  report-emacs-bug-pretest-address
