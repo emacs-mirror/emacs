@@ -1,3 +1,24 @@
+1999-12-07  Alexandre Oliva  <oliva@dcc.unicamp.br>
+
+	* unexelf.c: Include <syms.h>, not <sym.h> on IRIX.  Removed
+	duplicate definition of ElfW.
+	(find_section): Copied from unexsgi.c.
+	(unexec): Use find_section.  Adjust whitespace.  Initialize
+	new_data2_offset based on old_data, not sbss (this fixes a bug on
+	IRIX6).  Change #ifdef __mips to __sgi, since it's IRIX-specific.
+	Adjust test for presence of .mdebug section to the new return
+	value of find_section.
+	
+1999-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c: Merge changes from 20.5.
+	(unexec): Handle .lit4 and .lit8 unconditionally.
+
+	* m/iris4d.h (UNEXEC) [USG5_4]: Use unexelf.o instead of
+	unexsgi.o again.
+	
+	* m/iris5d.h (UNEXEC): Likewise.
+
 1999-12-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* editfns.c (Fdelete_and_extract_region): New function.
