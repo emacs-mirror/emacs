@@ -73,7 +73,7 @@
 #include "ss.h"
 #include <windows.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 typedef struct ThreadStruct {
