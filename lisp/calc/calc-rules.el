@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-rules () nil)
-
 
 (defun calc-compile-rule-set (name rules)
   (prog2
@@ -437,6 +433,8 @@ fitsystem(y, xv, pv, 0)  :=  fitsystem(y, xv, cons(fvh,fvt))
 				    solve(pv, table(fitparam(j), j, 1,
 						    hasfitparams(pv)))),
 fitparam(n) = x  :=  x ]"))
+
+(provide 'calc-rules)
 
 ;;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
 ;;; calc-rules.el ends here
