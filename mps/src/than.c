@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(MMdevel_lib.2) $
+ *  $HopeName: MMsrc!than.c(trunk.11) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -17,7 +17,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(MMdevel_lib.2) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.11) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -85,7 +85,7 @@ void ThreadRingResume(Ring threadRing)
   return;
 }
 
-/* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
 Space ThreadSpace(Thread thread)
 {
   return thread->space;

@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(MMdevel_lib.2) $
+ *  $HopeName: MMsrc!format.c(trunk.10) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(MMdevel_lib.2) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.10) $");
 
 
 Bool FormatCheck(Format format)
@@ -80,7 +80,7 @@ void FormatDestroy(Format format)
   SpaceFree(format->space, (Addr)format, sizeof(FormatStruct));
 }
 
-/* Must be thread safe.  See impl.c.mpsi.thread-safety. */
+/* Must be thread safe.  See design.mps.interface.c.thread-safety. */
 Space FormatSpace(Format format)
 {
   return format->space;

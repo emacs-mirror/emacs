@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(MMdevel_lib.3) $
+ *  $HopeName: MMsrc!root.c(trunk.15) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -11,7 +11,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(MMdevel_lib.3) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.15) $");
 
 Bool RootCheck(Root root)
 {
@@ -223,7 +223,7 @@ Res RootScan(ScanState ss, Root root)
   return ResOK;
 }
 
-/* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
 Space RootSpace(Root root)
 {
   return root->space;

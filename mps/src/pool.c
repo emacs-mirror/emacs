@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.16) $
+ * $HopeName: MMsrc!pool.c(trunk.17) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.16) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.17) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -324,7 +324,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-/* .pool.space: Thread safe; see impl.c.mpsi.thread-safety */
+/* .pool.space: Thread safe; see design.mps.interface.c.thread-safety */
 /* See impl.h.mpm for macro version */
 Space (PoolSpace)(Pool pool)
 {
