@@ -136,10 +136,10 @@ just before \"Other\" at the end."
   :group 'facemenu)
 
 (defcustom facemenu-unlisted-faces
-  '(modeline region secondary-selection highlight scratch-face
-    (purecopy "^font-lock-") (purecopy "^gnus-") (purecopy "^message-")
-    (purecopy "^ediff-") (purecopy "^term-") (purecopy "^vc-")
-    (purecopy "^widget-") (purecopy "^custom-") (purecopy "^vm-"))
+  `(modeline region secondary-selection highlight scratch-face
+    ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
+    ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
+    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
   "*List of faces not to include in the Face menu.
 Each element may be either a symbol, which is the name of a face, or a string,
 which is a regular expression to be matched against face names.  Matching
