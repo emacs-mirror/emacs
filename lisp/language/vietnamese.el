@@ -225,7 +225,11 @@ Both tables are indexed by the position code of Vietnamese characters.")
  nil
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (post-read-conversion . viqr-post-read-conversion)
-   (pre-write-conversion . viqr-pre-write-conversion)))
+   (pre-write-conversion . viqr-pre-write-conversion)
+   (charset-origin-alist
+    (vietnamese-viscii-lower "VISCII" viet-encode-viscii-char)
+    (vietnamese-viscii-upper "VISCII" viet-encode-viscii-char))))
+
 
 (define-coding-system-alias 'viqr 'vietnamese-viqr)
 
@@ -243,9 +247,6 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "Vietnamese" `((charset vietnamese-viscii-lower vietnamese-viscii-upper)
 		(nonascii-translation
 		 . ,viet-viscii-nonascii-translation-table)
-		(charset-origin-alist
-		 (vietnamese-viscii-lower "VISCII" viet-encode-viscii-char)
-		 (vietnamese-viscii-upper "VISCII" viet-encode-viscii-char))
 		(coding-system vietnamese-viscii vietnamese-vscii
 			       vietnamese-viqr)
 		(coding-priority vietnamese-viscii)
