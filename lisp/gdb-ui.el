@@ -172,7 +172,6 @@ The following interactive lisp functions help control operation :
   (if (eq window-system 'w32)
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
-  (gdb-enqueue-input (list "set width 0\n" 'ignore))
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
@@ -1706,14 +1705,13 @@ This arrangement depends on the value of `gdb-many-windows'."
 buffers."
   (goto-char (point-min))
   (if (search-forward "directory is " nil t)
-      (progn
-	(if (looking-at "\\S-*:\\(\\S-*\\)")
-	    (setq gdb-cdir (match-string 1))
-	  (looking-at "\\S-*")
-	  (setq gdb-cdir (match-string 0)))
-	(search-forward "Located in ")
+      (if (looking-at "\\S-*:\\(\\S-*\\)")
+	  (setq gdb-cdir (match-string 1))
 	(looking-at "\\S-*")
-	(setq gdb-main-file (match-string 0)))
+	(setq gdb-cdir (match-string 0))))
+  (if (search-forward "Located in " nil t)
+      (if (looking-at "\\S-*")
+	  (setq gdb-main-file (match-string 0)))
     (setq gdb-view-source nil))
   (delete-other-windows)
   (switch-to-buffer gud-comint-buffer)
