@@ -1,6 +1,6 @@
 @rem impl.bat.proddw
 @rem Script that automates building and collating a dylan product
-rem $HopeName: MMsrc!proddw.bat(trunk.4) $
+rem $HopeName: MMsrc!proddw.bat(trunk.5) $
 nmake /f w3i3mv.nmk VARIETY=ci mmdw.lib mpsplan.lib
 nmake /f w3i3mv.nmk VARIETY=hi mmdw.lib mpsplan.lib
 nmake /f w3i3mv.nmk VARIETY=he mmdw.lib mpsplan.lib
@@ -21,6 +21,7 @@ copy mpsavm.h dylan\mps\include
 copy mpscamc.h dylan\mps\include
 copy mpscawl.h dylan\mps\include
 copy mpsclo.h dylan\mps\include
+copy mpscsnc.h dylan\mps\include
 copy mpscmv.h dylan\mps\include
 copy mpsio.h dylan\mps\include
 copy mpslib.h dylan\mps\include
