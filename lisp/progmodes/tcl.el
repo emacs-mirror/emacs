@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.22 $
+;; Version: $Revision: 1.23 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/07/26 00:46:07 $|$Revision: 1.22 $|~/modes/tcl.el.Z|
+;; $Date: 1994/08/21 03:54:45 $|$Revision: 1.23 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.23  1994/08/21  03:54:45  tromey
+;; Keybindings don't overshadown comint bindings.
+;;
 ;; Revision 1.22  1994/07/26  00:46:07  tromey
 ;; Emacs 18 changes from Carl Witty.
 ;;
@@ -193,6 +196,7 @@
 ;; schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid)
 ;; warsaw@nlm.nih.gov (Barry A. Warsaw)
 ;; Carl Witty <cwitty@ai.mit.edu>
+;; T. V. Raman <raman@crl.dec.com>
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -266,7 +270,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.22 $")
+(defconst tcl-version "$Revision: 1.23 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -1909,7 +1913,7 @@ Parts of this were taken from indent-for-comment (simple.el)."
 The first line is assumed to look like \"#!.../program ...\"."
   (save-excursion
     (goto-char (point-min))
-    (if (looking-at "#![^ \t]*/\\([^ \t/]+\\)\\([ \t]\\|$\\)")
+    (if (looking-at "#![^ \t]*/\\([^ \t\n/]+\\)\\([ \t]\\|$\\)")
 	(progn
 	  (make-local-variable 'tcl-application)
 	  (setq tcl-application (buffer-substring (match-beginning 1)
