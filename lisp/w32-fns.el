@@ -392,7 +392,8 @@ bit output with no translation."
 (if (boundp 'w32-unicode-charset-defined)
     (progn
       (w32-add-charset-info "unicode" 'w32-charset-unicode t)
-      (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t)))
+      (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t))
+  (w32-add-charset-info "iso10646-1" 'w32-charset-default t))
 ;;   ;; If unicode windows charset is not defined, use ansi fonts.
 ;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
 
