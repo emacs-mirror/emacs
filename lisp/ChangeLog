@@ -1,3 +1,8 @@
+2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrev.el (write-abbrev-file): Make argument optional.  Doc fix.
+	(abbrev-prefix-mark): Doc fix.
+
 2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gud-watch): Load tooltip, if necessary.
