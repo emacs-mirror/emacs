@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.71";
+char pot_etags_version[] = "@(#) pot revision number is 11.76";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -268,7 +268,7 @@ logical typedefs_and_cplusplus;	/* -T: create tags for typedefs, level */
 				/* 0 struct/enum/union decls, and C++ */
 				/* member functions. */
 logical constantypedefs;	/* -d: create tags for C #define and enum */
-				/* constants.  Enum consts not implemented. */
+				/* constants. */
 				/* -D: opposite of -d.  Default under ctags. */
 logical update;			/* -u: update tags */
 logical vgrind_style;		/* -v: create vgrind style index output */
@@ -481,11 +481,11 @@ are.  Relative ones are stored relative to the output file's directory.");
 
   if (CTAGS)
     puts ("-d, --defines\n\
-        Create tag entries for constant C #defines, too.");
+        Create tag entries for C #define constants and enum constants, too.");
   else
     puts ("-D, --no-defines\n\
-        Don't create tag entries for constant C #defines.  This makes\n\
-	the tags file smaller.");
+        Don't create tag entries for C #define constants and enum constants.\n\
+	This makes the tags file smaller.");
 
   if (!CTAGS)
     {
@@ -731,7 +731,7 @@ main (argc, argv)
 
   /*
    * If etags, always find typedefs and structure tags.  Why not?
-   * Also default is to find macro constants.
+   * Also default is to find macro constants and enum constants.
    */
   if (!CTAGS)
     typedefs = typedefs_and_cplusplus = constantypedefs = TRUE;
@@ -1784,10 +1784,10 @@ int methodlen;
  * consider_token ()
  *	checks to see if the current token is at the start of a
  *	function, or corresponds to a typedef, or is a struct/union/enum
- *	tag.
+ *	tag, or #define, or an enum constant.
  *
- *	*IS_FUNC gets TRUE iff the token is a function or macro with args.
- *	C_EXT is which language we are looking at.
+ *	*IS_FUNC gets TRUE iff the token is a function or #define macro
+ *	with args.  C_EXT is which language we are looking at.
  *
  *	In the future we will need some way to adjust where the end of
  *	the token is; for instance, implementing the C++ keyword
@@ -1897,11 +1897,6 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
    * This structdef business is NOT invoked when we are ctags and the
    * file is plain C.  This is because a struct tag may have the same
    * name as another tag, and this loses with ctags.
-   *
-   * This if statement deals with the typdef state machine as
-   * follows: if typdef==ttypedseen and token is struct/union/class/enum,
-   * return FALSE.  All the other code here is for the structdef
-   * state machine.
    */
   switch (toktype)
     {
@@ -1915,6 +1910,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
 	}
       return FALSE;
     }
+
   if (structdef == skeyseen)
     {
       /* Save the tag for struct/union/class, for functions that may be
@@ -1934,7 +1930,20 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
       return FALSE;
     }
 
-  /* Detect GNU macros. */
+  /* Detect GNU macros.
+
+     DEFUN note for writers of emacs C code:
+      The DEFUN macro, used in emacs C source code, has a first arg
+     that is a string (the lisp function name), and a second arg that
+     is a C function name.  Since etags skips strings, the second arg
+     is tagged.  This is unfortunate, as it would be better to tag the
+     first arg.  The simplest way to deal with this problem would be
+     to name the tag with a name built from the function name, by
+     removing the initial 'F' character and substituting '-' for '_'.
+     Anyway, this assumes that the conventions of naming lisp
+     functions will never change.  Currently, this method is not
+     implemented, so writers of emacs code are recommended to put the
+     first two args of a DEFUN on the same line. */
   if (definedef == dnone && toktype == st_C_gnumacro)
     {
       next_token_is_func = TRUE;
@@ -1948,9 +1957,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
       return TRUE;
     }
 
-  /*
-   * Detecting Objective C constructs.
-   */
+  /* Detect Objective C constructs. */
   switch (objdef)
     {
     case onone:
@@ -2020,14 +2027,16 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
       return FALSE;
     }
 
-  /* A function? */
+  /* A function or enum constant? */
   switch (toktype)
     {
     case st_C_typespec:
       if (funcdef != finlist && funcdef != fignore)
         funcdef = fnone;		/* should be useless */
       return FALSE;
-    default:
+    case st_none:
+      if (constantypedefs && structdef == sinbody && structtype == st_C_enum)
+	return TRUE;
       if (funcdef == fnone)
 	{
 	  funcdef = ftagseen;
@@ -2041,9 +2050,9 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
 
 /*
  * C_entries ()
- *	This routine finds functions, typedefs, #define's and
- * 	struct/union/enum definitions in C syntax and adds them
- *	to the list.
+ *	This routine finds functions, typedefs, #define's, enum
+ * 	constants and struct/union/enum definitions in C syntax
+ *	and adds them to the list.
  */
 typedef struct
 {
@@ -2088,8 +2097,8 @@ do {									\
   definedef = dnone;							\
 } while (0)
 
-/* Ideally this macro should never be called wihen tok.valid is FALSE,
-   but this would mean that the state machines always guess right. */
+/* This macro should never be called when tok.valid is FALSE, but
+   we must protect about both invalid input and internal errors. */
 #define make_tag(isfun)  do \
 if (tok.valid) {							\
   char *name = NULL;							\
@@ -2097,7 +2106,7 @@ if (tok.valid) {							\
     name = savestr (token_name.buffer);					\
   pfnote (name, isfun, tok.buffer, tok.linelen, tok.lineno, tok.linepos); \
   tok.valid = FALSE;							\
-} while (0)
+} /* else if (DEBUG) abort (); */ while (0)
 
 void
 C_entries (c_ext, inf)
@@ -2270,7 +2279,8 @@ C_entries (c_ext, inf)
       /* Consider token only if some complicated conditions are satisfied. */
       if ((definedef != dnone
 	   || (cblev == 0 && structdef != scolonseen)
-	   || (cblev == 1 && cplpl && structdef == sinbody))
+	   || (cblev == 1 && cplpl && structdef == sinbody)
+	   || (structdef == sinbody && structtype == st_C_enum))
 	  && typdef != tignore
 	  && definedef != dignorerest
 	  && funcdef != finlist)
@@ -2560,8 +2570,8 @@ C_entries (c_ext, inf)
 	  switch (structdef)
 	    {
 	    case skeyseen:	/* unnamed struct */
-	      structtag = "_anonymous_";
 	      structdef = sinbody;
+	      structtag = "_anonymous_";
 	      break;
 	    case stagseen:
 	    case scolonseen:	/* named struct */
@@ -2590,7 +2600,7 @@ C_entries (c_ext, inf)
 		  objdef = oinbody;
 		  break;
 		default:
-		  /* Neutralize `extern "C" {' grot and look inside structs. */
+		  /* Neutralize `extern "C" {' grot. */
 		  if (cblev == 0 && structdef == snone && typdef == tnone)
 		    cblev = -1;
 		}
@@ -4337,7 +4347,6 @@ etags_getcwd ()
 #ifdef HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
-  char *p;
 
   while (getcwd (path, bufsize) == NULL)
     {
@@ -4347,11 +4356,14 @@ etags_getcwd ()
       path = xnew (bufsize, char);
     }
 
-  /* Convert backslashes to slashes.  */
 #if WINDOWSNT
-  for (p = path; *p != '\0'; p++)
-    if (*p == '\\')
-      *p = '/';
+  {
+    /* Convert backslashes to slashes.  */
+    char *p;
+    for (p = path; *p != '\0'; p++)
+      if (*p == '\\')
+	*p = '/';
+  }
 #endif
 
   return path;
@@ -4393,17 +4405,15 @@ relative_filename (file, dir)
 {
   char *fp, *dp, *abs, *res;
 
-  /* Find the common root of file and dir. */
+  /* Find the common root of file and dir (with a trailing slash). */
   abs = absolute_filename (file, cwd);
   fp = abs;
   dp = dir;
   while (*fp++ == *dp++)
     continue;
+  fp--, dp--;			/* back to the first different char */
   do
-    {
-      fp--;
-      dp--;
-    }
+    fp--, dp--;
   while (*fp != '/');
 
   /* Build a sequence of "../" strings for the resulting relative filename. */
