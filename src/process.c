@@ -2573,7 +2573,7 @@ nil, indicating the current buffer's process.")
   if (! NILP (XPROCESS (proc)->raw_status_low))
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
-    error ("Process %s not running", procname);
+    error ("Process %s not running", XSTRING (XPROCESS (proc)->name)->data);
 
   /* Sending a zero-length record is supposed to mean eof
      when TIOCREMOTE is turned on.  */
