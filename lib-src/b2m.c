@@ -50,7 +50,7 @@ main (argc, argv)
   (stdout)->_flag &= ~_IOTEXT;
   (stdin)->_flag &= ~_IOTEXT;
 #endif
-  if (strcmp (argv[1], "--help") == 0)
+  if (argc >= 2 && strcmp (argv[1], "--help") == 0)
     {
       fprintf (stderr, "Usage: %s <babylmailbox >unixmailbox\n", argv[0]);
       exit (0);
