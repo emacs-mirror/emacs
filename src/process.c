@@ -1494,7 +1494,7 @@ create_process (process, new_argv, current_dir)
   if (forkin != forkout && forkout >= 0)
     close (forkout);
 
-  XPROCESS (process)->tty_name = build_string (pty_name);
+  XPROCESS (process)->tty_name = pty_flag ? build_string (pty_name) : Qnil;
 
 #ifdef SIGCHLD
 #ifdef BSD4_1
