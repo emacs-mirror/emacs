@@ -400,6 +400,18 @@
 	* jit-lock.el (with-buffer-unmodified): Fix bug introduced by `)'
 	at the wrong place.
 
+2000-04-09  Dave Love  <fx@gnu.org>
+
+	* files.el (backup-enable-predicate): Use
+	temporary-file-directory, small-temporary-file-directory.
+	(make-backup-file-name-function, backup-directory-alist): New
+	variables.
+	(make-backup-file-name-1): New function.
+	(make-backup-file-name): Use it.
+	(find-backup-file-name): Likewise.  Use format for clarity, not
+	concat.
+	(file-newest-backup): Use make-backup-file-name.
+
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse-ffh.el: New file.
