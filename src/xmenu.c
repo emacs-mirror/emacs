@@ -40,6 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "keyboard.h"
 #include "blockinput.h"
+#include "puresize.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -360,7 +361,10 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
 
   /* Cache the data we just got in a sublist of the menu binding.  */
   if (NILP (cachelist))
-    XCONS (item1)->cdr = Fcons (Fcons (savedkey, descrip), def);
+    {
+      CHECK_IMPURE (item1);
+      XCONS (item1)->cdr = Fcons (Fcons (savedkey, descrip), def);
+    }
   else if (changed)
     {
       XCONS (cachelist)->car = savedkey;
