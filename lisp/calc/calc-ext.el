@@ -1318,7 +1318,9 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-inverse (&optional n)
   (interactive "P")
-  (let* ((hyp-flag (if (eq major-mode 'calc-keypad-mode)
+  (let* ((hyp-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
                        (with-current-buffer calc-main-buffer
                          calc-hyperbolic-flag)
                      calc-hyperbolic-flag))
@@ -1393,7 +1395,9 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-hyperbolic (&optional n)
   (interactive "P")
-  (let* ((inv-flag (if (eq major-mode 'calc-keypad-mode)
+  (let* ((inv-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
                        (with-current-buffer calc-main-buffer
                          calc-inverse-flag)
                      calc-inverse-flag))
