@@ -107,6 +107,11 @@ Amdahl UTS (580-amdahl-sysv)
   even worth trying to use it.  Success was obtained with the
   uts native C compiler on uts version 5.2.5.
 
+Apple Macintosh running Mac OS X
+
+  For installtion on all versions of the Mac OS platform, see the file 
+  mac/INSTALL.
+
 Apple PowerPC Macintosh running GNU/Linux
 
   There are special considerations for a variety of this system which
