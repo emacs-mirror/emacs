@@ -826,10 +826,15 @@ store_in_keymap (keymap, idx, def)
   if (!CONSP (keymap) || !EQ (XCAR (keymap), Qkeymap))
     error ("attempt to define a key in a non-keymap");
 
-  /* If idx is a list (some sort of mouse click, perhaps?),
-     the index we want to use is the car of the list, which
-     ought to be a symbol.  */
-  idx = EVENT_HEAD (idx);
+  /* If idx is a cons, and the car part is a character, idx must be of
+     the form (FROM-CHAR . TO-CHAR).  */
+  if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+    CHECK_CHARACTER_CDR (idx);
+  else
+    /* If idx is a list (some sort of mouse click, perhaps?),
+       the index we want to use is the car of the list, which
+       ought to be a symbol.  */
+    idx = EVENT_HEAD (idx);
 
   /* If idx is a symbol, it might have modifiers, which need to
      be put in the canonical order.  */
