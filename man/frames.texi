@@ -813,12 +813,12 @@ buffers are scrolled.
 @section Drag and Drop
 @cindex drag and drop
 
-  Emacs supports drag and drop using the mouse.  For instance, dropping
-text onto an Emacs frame inserts the text where it is dropped.  Dropping
-a file onto an Emacs frame visits that file.  As a special case,
-dropping the file on a Dired buffer moves or copies the file (according
-to the conventions of the application it came from) into the directory
-displayed in that buffer.
+  Emacs supports @dfn{drag and drop} using the mouse.  For instance,
+dropping text onto an Emacs frame inserts the text where it is dropped.
+Dropping a file onto an Emacs frame visits that file.  As a special
+case, dropping the file on a Dired buffer moves or copies the file
+(according to the conventions of the application it came from) into the
+directory displayed in that buffer.
 
 @vindex x-dnd-open-file-other-window
   Dropping a file normally visits it in the window you drop it on.  If

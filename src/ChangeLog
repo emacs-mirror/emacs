@@ -1,3 +1,34 @@
+2005-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (menubar_selection_callback): Force out GTK buffered
+	events so the menu event comes after them.  This is to prevent sit-for
+	from exiting on buffered events directly after a menu selection,
+	lisp code for Help => About Emacs uses sit-for.
+
+	* gtkutil.c (create_menus): Connect selection-done event instead of
+	the deactivate event to deactivate_cb.  This will make the last
+	leave event come before the call to deactivate_cb, so the leave
+	event does not make sit-for exit after a menu selection.
+
+2005-02-03  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (build_frame_matrix_from_leaf_window)
+	 [!GLYPH_DEBUG]: Fix xassert.
+
+	* xfaces.c (x_free_gc) [!GLYPH_DEBUG]: Fix xassert.
+
+	* xfns.c (unwind_create_frame) [!GLYPH_DEBUG]: Fix xassert.
+
+2005-02-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Use MAC_OS_X_VERSION_MAX_ALLOWED to conditionalize by
+	the compiling OS version.
+
+	* macfns.c (x_create_tip_frame): Likewise.
+
+	* macterm.c (mac_draw_string_common, x_make_frame_visible):
+	Likewise.
+
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_error_quitter): On GCC 3 and up, specify noinline.

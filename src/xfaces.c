@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -741,9 +741,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-#if GLYPH_DEBUG
-  xassert (--ngcs >= 0);
-#endif
+  IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
   UNBLOCK_INPUT;
 }
@@ -776,7 +774,7 @@ x_free_gc (f, gc)
      GC gc;
 {
   BLOCK_INPUT;
-  xassert (--ngcs >= 0);
+  IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);
   UNBLOCK_INPUT;
 }

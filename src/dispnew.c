@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,03,04
-       Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
+     2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2775,7 +2775,6 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
 
-#if GLYPH_DEBUG
 	  strcpy (w->current_matrix->method, w->desired_matrix->method);
 	  add_window_display_history (w, w->current_matrix->method, 0);
 #endif

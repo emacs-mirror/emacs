@@ -1,3 +1,27 @@
+2005-02-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-update): Don't put in
+	unnecessary newlines. Adjust the end of formula marker.
+
+	* calc/calc-lang.el (math-latex-parse-frac): Don't use arguments.
+	(math-latex-parse-two-args): New function.
+
+2005-02-03  Lute Kamstra  <lute@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Make sure that users cannot
+	remove the entire text of the tutorial by means of `undo'.
+
+2005-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-internal-change-dictionary): Fix problem
+	in recent changes, where the ispell process was repeatedly
+	killed & restarted.
+
+	* international/mule-cmds.el (set-locale-environment): Set file-name
+	coding system to utf-8 on Darwin systems.
+	(set-default-coding-systems): Don't set default-file-name-coding-system
+	on Darwin systems.
+
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
 	* hi-lock.el (hi-lock-mode): Turning on Hi-Lock turns on Font-Lock.
