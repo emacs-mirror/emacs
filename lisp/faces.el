@@ -149,7 +149,7 @@ If the face already exists, it is left unmodified.  Value is FACE."
 If NEW-FACE already exists as a face, it is modified to be like
 OLD-FACE.  If it doesn't already exist, it is created.
 
-If the optional argument FRAME is given as a frame,  NEW-FACE is
+If the optional argument FRAME is given as a frame, NEW-FACE is
 changed on FRAME only.
 If FRAME is t, the frame-independent default specification for OLD-FACE
 is copied to NEW-FACE.
