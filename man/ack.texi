@@ -359,7 +359,7 @@ Odd Gripenstam wrote @file{dcl-mode.el} for editing DCL command files.
 
 @item
 Michael Gschwind wrote @file{iso-cvt.el}, a package to convert between
-the ISO 8859-1 character set and the notations for non-@code{ASCII}
+the ISO 8859-1 character set and the notations for non-ASCII
 characters used by @TeX{} and net tradition, and @file{latin-2.el}, code
 which sets up case-conversion and syntax tables for the ISO Latin-2
 character set.
@@ -944,7 +944,7 @@ Oram contributed to its documentation.  Reingold has also contributed to
 F.@: Schelter, Dick King, Stephen Gildea, Michael Prange, and Jacob Gore.
 
 @item
-Alex Rezinsky contributed @file{which-func.el}, a mode that prints the
+Alex Rezinsky contributed @file{which-func.el}, a mode that shows the
 name of the current function in the mode line.
 
 @item
