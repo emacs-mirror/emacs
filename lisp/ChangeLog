@@ -74,6 +74,13 @@
 
 	* help-macro.el (three-step-help): Customize.
 
+1999-10-04  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* hexl.el (hexlify-buffer): Move point in proper range
+	if it is too large.
+	(hexl-after-revert-hook): Update hexl-max-address.
+	(hexl-address-to-marker): Doc fix.
+
 1999-10-03  Dave Love  <fx@gnu.org>
 
 	* image.el (defimage): Remove redundant code.  Substitute file in
