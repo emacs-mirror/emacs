@@ -1267,6 +1267,7 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/indent.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
 	$(SRC)/process.h \
 	$(SRC)/region-cache.h \
