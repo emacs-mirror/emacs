@@ -221,6 +221,11 @@ specialized filtering occurs before real filtering."
 
 (defvar ibuffer-current-format nil)
 
+(defcustom ibuffer-movement-cycle t
+  "If non-nil, then forward and backwards movement commands cycle."
+  :type 'boolean
+  :group 'ibuffer)
+
 (defcustom ibuffer-modified-char ?*
   "The character to display for modified buffers."
   :type 'character
@@ -893,9 +898,10 @@ width and the longest string in LIST."
   (beginning-of-line)
   (while (> arg 0)
     (forward-line -1)
-    (when (or (get-text-property (point) 'ibuffer-title)
-	      (and skip-group-names
-		   (get-text-property (point) 'ibuffer-filter-group-name)))
+    (when (and ibuffer-movement-cycle
+	       (or (get-text-property (point) 'ibuffer-title)
+		   (and skip-group-names
+			(get-text-property (point) 'ibuffer-filter-group-name))))
       (goto-char (point-max))
       (beginning-of-line))
     (ibuffer-skip-properties (append '(ibuffer-summary)
@@ -914,8 +920,9 @@ width and the longest string in LIST."
   (unless arg
     (setq arg 1))
   (beginning-of-line)
-  (when (or (eobp)
-	    (get-text-property (point) 'ibuffer-summary))
+  (when (and ibuffer-movement-cycle
+	     (or (eobp)
+		 (get-text-property (point) 'ibuffer-summary)))
     (goto-char (point-min)))
   (when (or (get-text-property (point) 'ibuffer-title)
 	    (and skip-group-names
@@ -930,8 +937,9 @@ width and the longest string in LIST."
       (ibuffer-backward-line (- arg))
     (while (> arg 0)
       (forward-line 1)
-      (when (or (eobp)
-		(get-text-property (point) 'ibuffer-summary))
+      (when (and ibuffer-movement-cycle
+		 (or (eobp)
+		     (get-text-property (point) 'ibuffer-summary)))
 	(goto-char (point-min)))
       (decf arg)
       (ibuffer-skip-properties (append '(ibuffer-title)
