@@ -1,3 +1,7 @@
+2000-05-31  Dave Love  <fx@gnu.org>
+
+	* textprop.c: Revert last change -- duplicated.
+
 2000-05-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (find_glyph_row_slice, swap_glyphs_in_rows): Put
