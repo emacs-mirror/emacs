@@ -786,62 +786,6 @@ WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
   return Qnil;
 }
 
-#if 0
-/* ??? Can this be replaced with a Lisp function?
-   It is used in minibuf.c.  Can we get rid of that?
-   Yes.  All uses in minibuf.c are gone, and parallels to these
-   functions have been defined in frame.el.  */
-
-DEFUN ("frame-configuration", Fframe_configuration, Sframe_configuration,
-       0, 0, 0,
-  "Return object describing current frame configuration.\n\
-The frame configuration is the current mouse position and selected frame.\n\
-This object can be given to `restore-frame-configuration'\n\
-to restore this frame configuration.")
-  ()
-{
-  Lisp_Object c, time;
-  
-  c = Fmake_vector (make_number(4), Qnil);
-  XVECTOR (c)->contents[0] = Fselected_frame();
-  if (mouse_position_hook)
-    (*mouse_position_hook) (&XVECTOR (c)->contents[1]
-			    &XVECTOR (c)->contents[2],
-			    &XVECTOR (c)->contents[3],
-			    &time);
-  return c;
-}
-
-DEFUN ("restore-frame-configuration", Frestore_frame_configuration,
-       Srestore_frame_configuration,
-       1, 1, 0,
-  "Restores frame configuration CONFIGURATION.")
-  (config)
-  Lisp_Object config;
-{
-  Lisp_Object x_pos, y_pos, frame;
-
-  CHECK_VECTOR (config, 0);
-  if (XVECTOR (config)->size != 3)
-    {
-      error ("Wrong size vector passed to restore-frame-configuration");
-    }
-  frame = XVECTOR (config)->contents[0];
-  CHECK_LIVE_FRAME (frame, 0);
-
-  Fselect_frame (frame, Qnil);
-
-#if 0
-  /* This seems to interfere with the frame selection mechanism. jla */
-  x_pos = XVECTOR (config)->contents[2];
-  y_pos = XVECTOR (config)->contents[3];
-  set_mouse_position (frame, XINT (x_pos), XINT (y_pos));
-#endif
-
-  return frame;
-}    
-#endif
-
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, 0,
   "Make the frame FRAME visible (assuming it is an X-window).\n\
@@ -1170,47 +1114,113 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
   return Qnil;
 }
 
-
-#if 0
-/* This function isn't useful enough by itself to include; we need to
-   add functions to allow the user to find the size of a font before
-   this is actually useful.  */
-
-DEFUN ("frame-pixel-size", Fframe_pixel_size, 
-       Sframe_pixel_size, 1, 1, 0,
-  "Return a cons (width . height) of FRAME's size in pixels.")
+DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
+  0, 1, 0,
+  "Height in pixels of a line in the font in frame FRAME.\n\
+If FRAME is omitted, the selected frame is used.\n\
+For a terminal frame, the value is always 1.")
   (frame)
      Lisp_Object frame;
 {
-  register struct frame *f;
-  int width, height;
+  struct frame *f;
 
-  CHECK_LIVE_FRAME (frame, 0);
-  f = XFRAME (frame);
-  
-  return Fcons (make_number (x_pixel_width (f)),
-		make_number (x_pixel_height (f)));
-}
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+    return make_number (x_char_height (f));
+  else
 #endif
-
-#if 0
-/* These functions have no C callers, and can be written nicely in lisp.  */
-
-DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
-  "Return number of lines available for display on selected frame.")
-  ()
-{
-  return make_number (FRAME_HEIGHT (selected_frame));
+    return make_number (1);
 }
 
-DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
-  "Return number of columns available for display on selected frame.")
-  ()
+
+DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
+  0, 1, 0,
+  "Width in pixels of characters in the font in frame FRAME.\n\
+If FRAME is omitted, the selected frame is used.\n\
+The width is the same for all characters, because\n\
+currently Emacs supports only fixed-width fonts.\n\
+For a terminal screen, the value is always 1.")
+  (frame)
+     Lisp_Object frame;
 {
-  return make_number (FRAME_WIDTH (selected_frame));
-}
+  struct frame *f;
+
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+    return make_number (x_char_width (f));
+  else
 #endif
+    return make_number (1);
+}
 
+DEFUN ("frame-pixel-height", Fframe_pixel_height, 
+       Sframe_pixel_height, 0, 1, 0,
+  "Return a FRAME's heightin pixels.\n\
+For a terminal frame, the result really gives the sizes in characters.\n\
+If FRAME is omitted, the selected frame is used.")
+  (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+    return make_number (x_pixel_height (f));
+  else
+#endif
+    return make_number (FRAME_HEIGHT (f));
+}
+
+DEFUN ("frame-pixel-width", Fframe_pixel_width, 
+       Sframe_pixel_width, 0, 1, 0,
+  "Return FRAME's width in pixels.\n\
+For a terminal frame, the result really gives the sizes in characters.\n\
+If FRAME is omitted, the selected frame is used.")
+  (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+
+  if (NILP (frame))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+    return make_number (x_pixel_width (f));
+  else
+#endif
+    return make_number (FRAME_WIDTH (f));
+}
+
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
   "Specify that the frame FRAME has LINES lines.\n\
 Optional third arg non-nil means that redisplay should use LINES lines\n\
@@ -1473,11 +1483,10 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
-#if 0
-  defsubr (&Sframe_pixel_size);
-  defsubr (&Sframe_height);
-  defsubr (&Sframe_width);
-#endif
+  defsubr (&Sframe_char_height);
+  defsubr (&Sframe_char_width);
+  defsubr (&Sframe_pixel_height);
+  defsubr (&Sframe_pixel_width);
   defsubr (&Sset_frame_height);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
@@ -1491,7 +1500,7 @@ keys_of_frame ()
 {
   initial_define_lispy_key (global_map, "switch-frame", "select-frame");
 }
-
+
 #else /* not MULTI_FRAME */
 
 /* If we're not using multi-frame stuff, we still need to provide some
@@ -1562,6 +1571,53 @@ DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
   return make_number (FRAME_WIDTH (selected_frame));
 }
 
+DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
+  0, 1, 0,
+  "Height in pixels of a line in the font in frame FRAME.\n\
+If FRAME is omitted, the selected frame is used.\n\
+For a terminal frame, the value is always 1.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (1);
+}
+
+
+DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
+  0, 1, 0,
+  "Width in pixels of characters in the font in frame FRAME.\n\
+If FRAME is omitted, the selected frame is used.\n\
+The width is the same for all characters, because\n\
+currently Emacs supports only fixed-width fonts.\n\
+For a terminal screen, the value is always 1.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (1);
+}
+
+DEFUN ("frame-pixel-height", Fframe_pixel_height, 
+       Sframe_pixel_height, 0, 1, 0,
+  "Return FRAME's height in pixels.\n\
+For a terminal frame, the result really gives the height in characters.\n\
+If FRAME is omitted, the selected frame is used.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (FRAME_HEIGHT (f));
+}
+
+DEFUN ("frame-pixel-width", Fframe_pixel_width, 
+       Sframe_pixel_width, 0, 1, 0,
+  "Return FRAME's width in pixels.\n\
+For a terminal frame, the result really gives the width in characters.\n\
+If FRAME is omitted, the selected frame is used.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (FRAME_WIDTH (f));
+}
+
 /* These are for backward compatibility with Emacs 18.  */
 
 DEFUN ("set-screen-height", Fset_screen_height, Sset_screen_height, 1, 2, 0,
@@ -1592,6 +1648,11 @@ but that the idea of the actual width of the screen should not be changed.")
 
 syms_of_frame ()
 {
+  defsubr (&Sselected_frame);
+  defsubr (&Sframe_char_height);
+  defsubr (&Sframe_char_width);
+  defsubr (&Sframe_pixel_height);
+  defsubr (&Sframe_pixel_width);
   defsubr (&Sset_frame_height);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
