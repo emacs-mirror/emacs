@@ -1908,8 +1908,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Function declarations.
 		   "\\(advice\\|alias\\|generic\\|macro\\*?\\|method\\|"
 		   "setf\\|subst\\*?\\|un\\*?\\|"
-		   "ine-\\(derived-mode\\|function\\|"
-		   "skeleton\\|widget\\)\\)\\|"
+		   "ine-\\(derived-mode\\|function\\|condition\\|"
+		   "skeleton\\|widget\\|setf-expander\\|method-combination\\|"
+		   "\\(symbol\\|compiler\\|modify\\)-macro\\)\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
@@ -1919,8 +1920,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   "[ \t'\(]*"
 		   "\\(\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
-	   '(7 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 5) font-lock-variable-name-face)
+	   '(8 (cond ((match-beginning 3) font-lock-function-name-face)
+		     ((match-beginning 4) font-lock-function-name-face)
+		     ((match-beginning 6) font-lock-variable-name-face)
 		     (t font-lock-type-face))
 	       nil t))
      ;;
@@ -1956,10 +1958,13 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       (cons (concat
 	     "(" (regexp-opt
 		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
-                    "ccase" "ctypecase" "handler-case" "assert" "error"
-		    "loop" "do" "do*" "dotimes" "dolist"
-		    "proclaim" "declaim" "declare"
-		    "lexical-let" "lexical-let*" "flet" "labels"
+		    "ccase" "ctypecase" "handler-case" "handler-bind"
+		    "restart-bind" "restart-case"
+		    "assert" "abort" "error" "cerror" "break" "ignore-errors"
+		    "loop" "do" "do*" "dotimes" "dolist" "the"
+		    "proclaim" "declaim" "declare" "symbol-macrolet"
+		    "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
+		    "destructuring-bind" "macrolet" "tagbody" "block"
 		    "return" "return-from") t)
 	     "\\>")
 	    1)
