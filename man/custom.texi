@@ -83,7 +83,7 @@ documentation on the variable name.
   These minor-mode variables provide a good way for Lisp programs to turn
 minor modes on and off; they are also useful in a file's local variables
 list.  But please think twice before setting minor modes with a local
-variables list, because most minor modes are matter of user
+variables list, because most minor modes are a matter of user
 preference---other users editing the same file might not want the same
 minor modes you prefer.
 
@@ -198,8 +198,7 @@ different under a window system, since faces are then used to indicate
 the active fields and other features.
 
 @menu
-* Groups: Customization Groups.
-                             How options are classified in a structure.
+* Groups: Customization Groups.   How options are classified in a structure.
 * Changing a Variable::      How to edit a value and set an option.
 * Saving Customizations::    Details of saving customizations.
 * Face Customization::       How to edit the attributes of a face.
@@ -687,8 +686,9 @@ change.  Each user option that you can set with the customization
 buffer is (if it is not a face) in fact a Lisp variable.  Emacs does
 not (usually) change the values of these variables; instead, you set
 the values, and thereby alter and control the behavior of certain
-Emacs commands.  Use of the customization buffer is explained above;
-here we describe other aspects of Emacs variables.
+Emacs commands.  Use of the customization buffer is explained above
+(@pxref{Easy Customization}); here we describe other aspects of Emacs
+variables.
 
 @menu
 * Examining::	        Examining or setting one variable's value.
@@ -761,7 +761,9 @@ buffer, type in the expression, and then type @kbd{C-j}.  @xref{Lisp
 Interaction}.
 
   Setting variables, like all means of customizing Emacs except where
-otherwise stated, affects only the current Emacs session.
+otherwise stated, affects only the current Emacs session.  The only
+way to alter the variable in future sessions is to put something in
+the @file{~/.emacs} file to set it those sessions (@pxref{Init File}).
 
 @node Hooks
 @subsection Hooks
@@ -1179,7 +1181,7 @@ historical, and we might change it someday.
 Function keys send input events just as character keys do, and keymaps
 can have bindings for them.
 
-  On many terminals, typing a function key actually sends the computer a
+  On text terminals, typing a function key actually sends the computer a
 sequence of characters; the precise details of the sequence depends on
 which function key and on the model of terminal you are using.  (Often
 the sequence starts with @kbd{@key{ESC} [}.)  If Emacs understands your
@@ -1464,16 +1466,17 @@ to bind @kbd{C-z} to @code{shell}:
 @end example
 
 @noindent
-This example uses a string constant containing one character, @kbd{C-z}.
-The single-quote before the command name, @code{shell}, marks it as a
+This example uses a string constant containing one character,
+@kbd{C-z}.  (@samp{\C-} is string syntax for a control character.)  The
+single-quote before the command name, @code{shell}, marks it as a
 constant symbol rather than a variable.  If you omit the quote, Emacs
 would try to evaluate @code{shell} immediately as a variable.  This
 probably causes an error; it certainly isn't what you want.
 
-  Here is another example that binds a key sequence two characters long:
+  Here is another example that binds the key sequence @kbd{C-x M-l}:
 
 @example
-(global-set-key "\C-xl" 'make-symbolic-link)
+(global-set-key "\C-x\M-l" 'make-symbolic-link)
 @end example
 
   To put @key{TAB}, @key{RET}, @key{ESC}, or @key{DEL} in the
@@ -1521,8 +1524,7 @@ keyboard-modified mouse button):
 @end example
 
   You can use a vector for the simple cases too.  Here's how to
-rewrite the first three examples above, using vectors to bind
-@kbd{C-z}, @kbd{C-x l}, and @kbd{C-x @key{TAB}}:
+rewrite the first six examples above to use vectors:
 
 @example
 (global-set-key [?\C-z] 'shell)
@@ -1535,7 +1537,7 @@ rewrite the first three examples above, using vectors to bind
 
 @noindent
 As you see, you represent a multi-character key sequence with a vector
-by listing each of the characters within the square brackets that
+by listing all of the characters in order within the square brackets that
 delimit the vector.
 
   Language and coding systems can cause problems with key bindings
@@ -1584,10 +1586,9 @@ given function key on your terminal, type @kbd{C-h c} followed by that
 key.
 
   A key sequence which contains function key symbols (or anything but
-@acronym{ASCII} characters) must be a vector rather than a string.  The vector
-syntax uses spaces between the elements, and square brackets around the
-whole vector.  Thus, to bind function key @samp{f1} to the command
-@code{rmail}, write the following:
+@acronym{ASCII} characters) must be a vector rather than a string.
+Thus, to bind function key @samp{f1} to the command @code{rmail},
+write the following:
 
 @example
 (global-set-key [f1] 'rmail)
@@ -1635,18 +1636,21 @@ word:
 @subsection Named @acronym{ASCII} Control Characters
 
   @key{TAB}, @key{RET}, @key{BS}, @key{LFD}, @key{ESC} and @key{DEL}
-started out as names for certain @acronym{ASCII} control characters, used so often
-that they have special keys of their own.  Later, users found it
+started out as names for certain @acronym{ASCII} control characters,
+used so often that they have special keys of their own.  For instance,
+@key{TAB} was another name for @kbd{C-i}.  Later, users found it
 convenient to distinguish in Emacs between these keys and the ``same''
-control characters typed with the @key{CTRL} key.
+control characters typed with the @key{CTRL} key.  Therefore, on most
+modern terminals, they are no longer the same, and @key{TAB} is
+distinguishable from @kbd{C-i}.
 
-  Emacs distinguishes these two kinds of input, when the keyboard
-reports these keys to Emacs.  It treats the ``special'' keys as function
-keys named @code{tab}, @code{return}, @code{backspace}, @code{linefeed},
-@code{escape}, and @code{delete}.  These function keys translate
-automatically into the corresponding @acronym{ASCII} characters @emph{if} they
-have no bindings of their own.  As a result, neither users nor Lisp
-programs need to pay attention to the distinction unless they care to.
+  Emacs can distinguish these two kinds of input if the keyboard does.
+It treats the ``special'' keys as function keys named @code{tab},
+@code{return}, @code{backspace}, @code{linefeed}, @code{escape}, and
+@code{delete}.  These function keys translate automatically into the
+corresponding @acronym{ASCII} characters @emph{if} they have no
+bindings of their own.  As a result, neither users nor Lisp programs
+need to pay attention to the distinction unless they care to.
 
   If you do not want to distinguish between (for example) @key{TAB} and
 @kbd{C-i}, make just one binding, for the @acronym{ASCII} character @key{TAB}
@@ -1950,12 +1954,14 @@ Reference Manual}.
 @cindex rebinding keys, permanently
 @cindex startup (init file)
 
-  When Emacs is started, it normally loads a Lisp program from the file
-@file{.emacs} or @file{.emacs.el} in your home directory.  We call this
-file your @dfn{init file} because it specifies how to initialize Emacs
-for you.  You can use the command line switch @samp{-q} to prevent
-loading your init file, and @samp{-u} (or @samp{--user}) to specify a
-different user's init file (@pxref{Initial Options}).
+  When Emacs is started, it normally loads a Lisp program from the
+file @file{.emacs} or @file{.emacs.el} in your home directory.  (You
+can also put it in a subdirectory @file{~/.emacs.d} and Emacs will
+still find it.)  We call this file your @dfn{init file} because it
+specifies how to initialize Emacs for you.  You can use the command
+line switch @samp{-q} to prevent loading your init file, and @samp{-u}
+(or @samp{--user}) to specify a different user's init file
+(@pxref{Initial Options}).
 
 @cindex @file{default.el}, the default init file
   There can also be a @dfn{default init file}, which is the library
@@ -2223,7 +2229,8 @@ If the function is not interactive, omit the @code{t} or use
 @code{nil}.
 
 @item
-Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}.
+Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}
+(@xref{Init Rebinding}).
 
 @example
 (global-set-key "\C-xl" 'make-symbolic-link)
@@ -2326,11 +2333,14 @@ library.  @xref{Hooks}.
 @subsection How Emacs Finds Your Init File
 
   Normally Emacs uses the environment variable @env{HOME} to find
-@file{.emacs}; that's what @samp{~} means in a file name.  But if you
-run Emacs from a shell started by @code{su}, Emacs tries to find your
-own @file{.emacs}, not that of the user you are currently pretending
-to be.  The idea is that you should get your own editor customizations
-even if you are running as the super user.
+@file{.emacs}; that's what @samp{~} means in a file name.  If @file{.emacs}
+is not found directly inside @file{~/}, Emacs looks for it in
+@file{~/.emacs.d/}.
+
+  However, if you run Emacs from a shell started by @code{su}, Emacs
+tries to find your own @file{.emacs}, not that of the user you are
+currently pretending to be.  The idea is that you should get your own
+editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets the user name from the environment variables @env{LOGNAME} and
