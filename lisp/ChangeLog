@@ -1,3 +1,22 @@
+2000-08-19  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-beginning-of-line):
+	Compiler macro removed; beginning-of-line is no longer always
+	equivalent to forward-line, in the presence of fields.
+
+	* comint.el (comint-output-filter): Remove ad-hoc saving of
+	restriction, and just use save-restriction, now that it works
+	correctly.  Don't adjust comint-last-input-start to account for
+	our insertion; it shouldn't have moved because we don't use
+	insert-before-markers anymore.  Comment out call to
+	`force-mode-line-update'; why is it here?
+
+	* gud.el (gud-basic-call): Temporarily widen gud comint buffer
+	while checking for prompt to delete.  Use `forward-line 0'
+	instead of beginning-of-line.
+	(gud-filter): Temporarily widen gud comint buffer while
+	examining output.
+
 2000-08-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/ispell.el (ispell-menu-map-needed): Put back the boundp
