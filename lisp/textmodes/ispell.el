@@ -1240,7 +1240,7 @@ pass it the output of the last ispell invocation."
     ;; terrible kludge, and it's a bit slow, but it does get the work done.)
     (let ((cmd (aref string 0))
 	  ;; The following commands are not passed to Ispell until
-	  ;; we have a *reall* reason to invoke it.
+	  ;; we have a *real* reason to invoke it.
 	  (cmds-to-defer '(?* ?@ ?~ ?+ ?- ?! ?%))
 	  (default-major-mode 'fundamental-mode)
 	  (session-buf ispell-session-buffer)
@@ -1929,7 +1929,8 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  (setq status (call-process prog nil t nil args word lookup-dict))
+	  ;; Use apply since `lookup-dict' can be nil.
+	  (setq status (apply #'call-process prog nil t nil args word lookup-dict))
 	  ;; grep returns status 1 and no output when word not found, which
 	  ;; is a perfectly normal thing.
 	  (if (stringp status)
