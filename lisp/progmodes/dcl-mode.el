@@ -51,6 +51,7 @@
 ;;
 ;;
 ;; Ideas for improvement:
+;; * Better font-lock support.
 ;; * Change meaning of `left margin' when dcl-tab-always-indent is nil.
 ;;   Consider the following line (`_' is the cursor):
 ;;     $ label: _ command
@@ -70,6 +71,26 @@
 ;;; Code:
 
 ;;; *** Customization *****************************************************
+
+
+;; First, font lock.  This is a minimal approach, please improve!
+
+(defvar dcl-font-lock-keywords
+  '(("\\<\\(if\\|then\\|else\\|endif\\)\\>"
+     1 font-lock-keyword-face)
+    ("\\<f[$][a-z]+\\>"
+     0 font-lock-builtin-face)
+    ("[.]\\(eq\\|not\\|or\\|and\\|lt\\|gt\\|le\\|ge\\|eqs\\|nes\\)[.]"
+     0 font-lock-builtin-face))
+  "Font lock keyword specification for DCL mode.
+Presently this includes some syntax, .OP.erators, and \"f$\" lexicals.")
+
+(defvar dcl-font-lock-defaults
+  '(dcl-font-lock-keywords nil)
+  "Font lock specification for DCL mode.")
+
+
+;; Now the rest.
 
 (defgroup dcl nil
   "Major mode for editing DCL command files."
@@ -566,7 +587,10 @@ Data lines are not indented at all.
 $           endloop1: ! This matches dcl-block-end-regexp
 $       endif
 $
-"
+
+
+There is some minimal font-lock support (see vars
+`dcl-font-lock-defaults' and `dcl-font-lock-keywords')."
   (interactive)
   (kill-all-local-variables)
   (set-syntax-table dcl-mode-syntax-table)
@@ -608,6 +632,10 @@ $
   (make-local-variable 'dcl-calc-command-indent-function)
   (make-local-variable 'dcl-calc-cont-indent-function)
   (make-local-variable 'dcl-electric-reindent-regexps)
+
+  ;; font lock
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults dcl-font-lock-defaults)
 
   (setq major-mode 'dcl-mode)
   (setq mode-name "DCL")
