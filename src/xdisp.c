@@ -6566,7 +6566,8 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	     for the *Message* buffer.  */
 	  for (i = 0; i < nbytes; i++)
 	    {
-	      c = unibyte_char_to_multibyte (msg[i]);
+	      c = msg[i];
+	      c = unibyte_char_to_multibyte (c);
 	      char_bytes = CHAR_STRING (c, str);
 	      insert_1_both (str, 1, char_bytes, 1, 0, 0);
 	    }
@@ -7837,7 +7838,8 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	  /* Convert a single-byte string to multibyte.  */
 	  for (i = 0; i < nbytes; i++)
 	    {
-	      c = unibyte_char_to_multibyte (msg[i]);
+	      c = msg[i];
+	      c = unibyte_char_to_multibyte (c);
 	      n = CHAR_STRING (c, str);
 	      insert_1_both (str, 1, n, 1, 0, 0);
 	    }
