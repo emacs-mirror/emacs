@@ -1527,6 +1527,11 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   if (FRAME_HEIGHT (selected_frame) <= 0)
     FRAME_HEIGHT (selected_frame) = tgetnum ("li");
 
+  if (FRAME_HEIGHT (selected_frame) < 3
+      || FRAME_WIDTH (selected_frame) < 3)
+    fatal ("Screen size %dx%d is too small.\n",
+	   FRAME_HEIGHT (selected_frame), FRAME_WIDTH (selected_frame));
+
   min_padding_speed = tgetnum ("pb");
   TN_standout_width = tgetnum ("sg");
   TabWidth = tgetnum ("tw");
