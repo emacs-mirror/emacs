@@ -7,7 +7,6 @@
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
-;; Version: 2.0  (based on RCS $Revision: 1.22 $, $Date: 1994/12/21 15:02:30 $)
 ;; Maintainer: Stefan Schoef <schoef@informatik.uni-oldenburg.de>
 ;; Keywords: BibTeX, LaTeX, TeX
 
@@ -1985,7 +1984,8 @@ given, calculate a new entry label."
                          (bibtex-end-of-entry)
                          (search-forward-regexp "^@" nil 'move)
                          (beginning-of-line)
-                         (point))))
+                         (point)))
+                  last-command)
               (kill-region start end)
               (let ((success (bibtex-find-entry-location autokey t)))
                 (yank)
