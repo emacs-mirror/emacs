@@ -1676,7 +1676,7 @@ Assumes that the current buffer is the speedbar buffer."
   "Refresh the current speedbar display, disposing of any cached data."
   (interactive)
   (let ((dl speedbar-shown-directories)
-	(dm (and (boundp 'deactivate-mark) deactivate-mark)))
+	deactivate-mark)
     (while dl
       (adelete 'speedbar-directory-contents-alist (car dl))
       (setq dl (cdr dl)))
@@ -1687,8 +1687,7 @@ Assumes that the current buffer is the speedbar buffer."
     ;; Reset the timer in case it got really hosed for some reason...
     (speedbar-set-timer speedbar-update-speed)
     (if (<= 1 speedbar-verbosity-level)
-	(speedbar-message "Refreshing speedbar...done"))
-    (if (boundp 'deactivate-mark) (setq deactivate-mark dm))))
+	(speedbar-message "Refreshing speedbar...done"))))
 
 (defun speedbar-item-load ()
   "Load the item under the cursor or mouse if it is a Lisp file."
