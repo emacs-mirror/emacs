@@ -420,7 +420,7 @@ Lisp_Object Vccl_program_table;
 					  IC += 2;
 					*/
 
-#define CCL_Extention		0x1F /* Extended CCL code
+#define CCL_Extension		0x1F /* Extended CCL code
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX
 					2:ARGUEMENT
 					3:...
@@ -1206,7 +1206,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    ic = jump_address;
 	  break;
 
-	case CCL_Extention:
+	case CCL_Extension:
 	  switch (EXCMD)
 	    {
 	    case CCL_ReadMultibyteChar2:
