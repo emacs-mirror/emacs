@@ -2239,6 +2239,7 @@ extern Lisp_Object string_make_unibyte P_ ((Lisp_Object));
 EXFUN (Fcopy_alist, 1);
 EXFUN (Fplist_get, 2);
 EXFUN (Fplist_put, 3);
+EXFUN (Fplist_member, 2);
 EXFUN (Fset_char_table_parent, 2);
 EXFUN (Fchar_table_extra_slot, 2);
 EXFUN (Fset_char_table_extra_slot, 3);
