@@ -814,7 +814,10 @@ you are such a person.")
 		       ediff-odd-diff-face-Ancestor))
 	       (copy-face 'secondary-selection face))))
     ))
-      
+
+(or (boundp 'facemenu-unlisted-faces)
+    (setq facemenu-unlisted-faces nil))
+
 (add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-A)
 (defvar ediff-current-diff-face-A
   (if (ediff-window-display-p)
