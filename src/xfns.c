@@ -1699,8 +1699,15 @@ hack_wm_protocols (widget)
 /* Create and set up the X window or widget for frame F.  */
 
 static void
+#ifdef USE_X_TOOLKIT
+x_window (f, window_prompting, minibuffer_only)
+     struct frame *f;
+     long window_prompting;
+     int minibuffer_only;
+#else /* not USE_X_TOOLKIT */
 x_window (f)
      struct frame *f;
+#endif /* not USE_X_TOOLKIT */
 {
   XClassHint class_hints;
   XSetWindowAttributes attributes;
@@ -1724,12 +1731,11 @@ x_window (f)
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
-  XtSetArg (al[ac], XtNx, f->display.x->left_pos); ac++;
-  XtSetArg (al[ac], XtNy, f->display.x->top_pos); ac++;
   shell_widget = XtCreatePopupShell ("shell",
 				     topLevelShellWidgetClass,
 				     Xt_app_shell, al, ac);
 
+  f->display.x->widget = shell_widget;
   /* maybe_set_screen_title_format (shell_widget); */
 
 
@@ -1738,6 +1744,11 @@ x_window (f)
   pane_widget = XtCreateWidget ("pane",
 				panedWidgetClass,
 				shell_widget, al, ac);
+
+  f->display.x->column_widget = pane_widget;
+
+  if (!minibuffer_only) 
+    initialize_frame_menubar (f);
 
   /* mappedWhenManaged to false tells to the paned window to not map/unmap 
    * the emacs screen when changing menubar.  This reduces flickering a lot.
@@ -1754,10 +1765,36 @@ x_window (f)
 				  pane_widget, al, ac);
  
   f->display.x->edit_widget = screen_widget;
-  f->display.x->widget = shell_widget;
-  f->display.x->column_widget = pane_widget;
  
+  if (f->display.x->menubar_widget)
+    XtManageChild (f->display.x->menubar_widget);
   XtManageChild (screen_widget); 
+
+  /* Do some needed geometry management.  */
+  {
+    int len;
+    char *tem, shell_position[32];
+    Arg al[2];
+    int ac = 0;
+
+    if (window_prompting & USPosition)
+      sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
+	       PIXEL_HEIGHT (f) + f->display.x->menubar_widget->core.height
+	       + f->display.x->menubar_widget->core.border_width,
+	       '+', f->display.x->left_pos,
+	       '+', f->display.x->top_pos);
+    else
+      sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
+	       PIXEL_HEIGHT (f) + f->display.x->menubar_widget->core.height
+	       + f->display.x->menubar_widget->core.border_width);
+    len = strlen (shell_position) + 1;
+    tem = (char *) xmalloc (len);
+    strncpy (tem, shell_position, len);
+    XtSetArg (al[ac], XtNgeometry, tem); ac++;
+    XtSetValues (shell_widget, al, ac);
+  }
+
+ 
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
@@ -2097,7 +2134,11 @@ be shared by the new frame.")
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
 
+#ifdef USE_X_TOOLKIT
+  x_window (f, window_prompting, minibuffer_only);
+#else
   x_window (f);
+#endif
   x_icon (f, parms);
   x_make_gc (f);
   init_frame_faces (f);
@@ -2125,11 +2166,14 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
 		       "menuBarLines", "MenuBarLines", number);
 
+/* With the toolkit, the geometry management is done in x_window.  */
+#ifndef USE_X_TOOLKIT
   tem0 = x_get_arg (parms, Qleft, 0, 0, number);
   tem1 = x_get_arg (parms, Qtop, 0, 0, number);
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 1, XINT (tem0), XINT (tem1));
   UNBLOCK_INPUT;
+#endif /* USE_X_TOOLKIT */
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
@@ -2139,11 +2183,6 @@ be shared by the new frame.")
      And the frame needs to be on Vframe_list
      or making it visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-
-#ifdef USE_X_TOOLKIT
-  /* Compute the size of the menubar and display it.  */
-  initialize_frame_menubar (f);
-#endif /* USE_X_TOOLKIT */
 
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
