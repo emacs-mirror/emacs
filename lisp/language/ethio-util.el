@@ -31,7 +31,6 @@
   "Setup multilingual environment for Ethiopic."
   (interactive)
   (setup-english-environment)
-  (setq primary-language "Ethiopic")
 
   (setq default-input-method "ethiopic")
 
