@@ -58,7 +58,7 @@ the desired column only if the line is long enough."
 ;; to accumulate them for extract-rectangle and delete-extract-rectangle.
 (defvar operate-on-rectangle-lines)
 
-;; ### NOTE: this function is untouched, but not used anymore appart in
+;; ### NOTE: this function is untouched, but not used anymore apart from
 ;; `delete-whitespace-rectangle'. `apply-on-rectangle' is used instead. --dv
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.
@@ -297,12 +297,10 @@ on the right side of the rectangle."
   (goto-char start))
 
 (defun open-rectangle-line (startcol endcol fill)
-  (let (spaces)
-    (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
-      (unless (and (not fill)
-		   (= (point) (point-at-eol)))
-	(indent-to endcol)))
-    ))
+  (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
+    (unless (and (not fill)
+		 (= (point) (point-at-eol)))
+      (indent-to endcol))))
 
 (defun delete-whitespace-rectangle-line (startcol endcol fill)
   (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
