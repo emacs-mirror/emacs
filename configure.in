@@ -980,6 +980,11 @@ case "${canonical}" in
     machine=wicat opsys=usg5-2
   ;;
 
+  ## IA-64
+  ia64*-*-linux* )
+    machine=ia64 opsys=gnu-linux
+  ;;
+
   ## Intel 386 machines where we don't care about the manufacturer
   i[3456]86-*-* )
     machine=intel386
