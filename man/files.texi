@@ -975,6 +975,11 @@ links point to directories.
 two different buffers, but it warns you about the situation.
 
 @vindex find-file-existing-other-name 
+  Normally, if you visit a file which Emacs is already visiting under a
+different name, Emacs prints a message in the echo area and uses an
+existing buffer, where that file is visited under another name.  This
+can happen on systems that support symbolic links, or if you use a long
+file name on a system which truncates long file names.
 
   If Emacs should use different buffers when visiting the same file
 under different names, set the variable
