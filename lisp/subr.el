@@ -135,6 +135,22 @@ If N is bigger than the length of X, return X."
       (setq x (cdr x)))
     x))
 
+(defun remove (elt seq)
+  "Return a copy of SEQ with all occurences of ELT removed.
+SEQ must be a list, vector, or string.  The comparison is done with `equal'."
+  (if (nlistp seq)
+      ;; If SEQ isn't a list, there's no need to copy SEQ because
+      ;; `delete' will return a new object.
+      (delete elt seq)
+    (delete elt (copy-sequence seq))))
+
+(defun remq (elt list)
+  "Return a copy of LIST with all occurences of ELT removed.
+The comparison is done with `eq'."
+  (if (memq elt list)
+      (delq elt (copy-sequence list))
+    list))
+
 (defun assoc-default (key alist &optional test default)
   "Find object KEY in a pseudo-alist ALIST.
 ALIST is a list of conses or objects.  Each element (or the element's car,
