@@ -1235,9 +1235,13 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
   "Switch to the Python process buffer.
 With prefix arg, position cursor at end of buffer."
   (interactive "P")
-  (if (get-buffer python-buffer)
-      (pop-to-buffer python-buffer)
-    (error "No current process buffer.  See variable `python-buffer'"))
+  ;; Start python unless we have a buffer.
+  (unless (and python-buffer
+	       (get-buffer python-buffer))
+    (run-python nil t))
+  (pop-to-buffer python-buffer)
+  ;; Make extra sure python is running in this buffer.
+  (python-proc)
   (when eob-p
     (push-mark)
     (goto-char (point-max))))
