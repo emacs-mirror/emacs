@@ -1528,7 +1528,7 @@ easier to plug-in arbitrary version control backends.  (See Lisp
 Changes for details on the new structure.)  As a result, the mechanism
 to enable and disable support for particular version systems has
 changed: everything is now controlled by the new variable
-`vc-handled-backends'.  Its value is a list of atoms that identify
+`vc-handled-backends'.  Its value is a list of symbols that identify
 version systems; the default is '(RCS CVS SCCS).  When finding a file,
 each of the backends in that list is tried in order to see whether the
 file is registered in that backend.
@@ -1584,14 +1584,11 @@ should come first in `vc-handled-backends', and the ``more remote''
 backend (CVS) should come later.  (The default value of
 `vc-handled-backends' already has it that way.)
 
-If you have a file registered in one backend already, you can register
-it in a second one by using C-x v i (vc-register) again.
-Alternatively, you can commit changes to another backend (say, RCS),
-by typing C-u C-x v v RCS RET (i.e. vc-next-action now accepts a
-backend name as a revision number).  When using the latter approach,
-VC registers the file in the more local backend if that hasn't already
-happened, and commits to a branch based on the current revision number
-from the more remote backend.
+You can then commit changes to another backend (say, RCS), by typing
+C-u C-x v v RCS RET (i.e. vc-next-action now accepts a backend name as
+a revision number).  VC registers the file in the more local backend
+if that hasn't already happened, and commits to a branch based on the
+current revision number from the more remote backend.
 
 If a file is registered in multiple backends, you can switch to
 another one using C-x v b (vc-switch-backend).  This does not change
@@ -1640,7 +1637,7 @@ is only meaningful if the CVSREAD variable is set, or if files are
 
 The commands C-x v s (vc-create-snapshot) and C-x v r
 (vc-retrieve-snapshot) are now also implemented for CVS.  If you give
-an empty argument to the latter, that performs a `cvs update',
+an empty snapshot name to the latter, that performs a `cvs update',
 starting at the given directory.
 
 *** Lisp Changes in VC
@@ -1649,11 +1646,11 @@ VC has been restructured internally to make it modular.  You can now
 add support for arbitrary version control backends by writing a
 library that provides a certain set of backend-specific functions, and
 then telling VC to use that library.  For example, to add support for
-a version system named FOO, you write a library named vc-foo.el, which
-provides a number of functions vc-foo-... (see commentary at the end
+a version system named SYS, you write a library named vc-sys.el, which
+provides a number of functions vc-sys-... (see commentary at the top
 of vc.el for a detailed list of them).  To make VC use that library,
-you need to put it somewhere into Emacs' load path and add the atom
-`FOO' to the list `vc-handled-backends'.
+you need to put it somewhere into Emacs' load path and add the symbol
+`SYS' to the list `vc-handled-backends'.
 
 *** The customizable EDT emulation package now supports the EDT
 SUBS command and EDT scroll margins.  It also works with more
