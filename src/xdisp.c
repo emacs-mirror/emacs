@@ -5823,10 +5823,14 @@ move_it_vertically_backward (it, dy)
 
   move_it_to (&it2, start_pos, -1, -1, -1, MOVE_TO_POS);
   xassert (IT_CHARPOS (*it) >= BEGV);
+  /* H is the actual vertical distance from the position in *IT
+     and the starting position.  */
   h = it2.current_y - it->current_y;
+  /* NLINES is the distance in number of lines.  */
   nlines = it2.vpos - it->vpos;
 
-  /* Correct IT's y and vpos position.  */
+  /* Correct IT's y and vpos position
+     so that they are relative to the starting point.  */
   it->vpos -= nlines;
   it->current_y -= h;
 
@@ -5838,10 +5842,10 @@ move_it_vertically_backward (it, dy)
 	move_it_by_lines (it, nlines, 1);
       xassert (IT_CHARPOS (*it) <= start_pos);
     }
-  else if (nlines)
+  else
     {
-      /* The y-position we try to reach.  Note that h has been
-         subtracted in front of the if-statement.  */
+      /* The y-position we try to reach, relative to *IT.
+	 Note that H has been subtracted in front of the if-statement.  */
       int target_y = it->current_y + h - dy;
       int y0 = it3.current_y;
       int y1 = line_bottom_y (&it3);
@@ -9999,8 +10003,10 @@ redisplay_internal (preserve_echo_area)
 		  /* Update the display.  */
 		  set_window_update_flags (XWINDOW (f->root_window), 1);
 		  pause |= update_frame (f, 0, 0);
+#if 0  /* Exiting the loop can leave the wrong value for buffer_shared.  */
 		  if (pause)
 		    break;
+#endif
 
 		  if (n == size)
 		    {
