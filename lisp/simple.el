@@ -156,11 +156,6 @@ With arg N, insert N newlines."
     (indent-to col 0)
     (goto-char pos)))
 
-(defcustom quoted-insert-character-offset (- (make-char 'latin-iso8859-1) 128)
-  "*Offset added by \\[quoted-insert] to character codes 0200 and above."
-  :tag 'integer
-  :group 'i18n)
-
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
@@ -185,7 +180,7 @@ this function useful in editing binary files."
     (and enable-multibyte-characters
 	 (>= char ?\200)
 	 (<= char ?\377)
-	 (setq char (+ quoted-insert-character-offset char)))
+	 (setq char (+ nonascii-insert-offset char)))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
@@ -2613,7 +2608,7 @@ Setting this variable automatically makes it local to the current buffer."
 			   (skip-chars-backward " \t")
 			 ;; Break the line after/before \c|.
 			 (forward-char 1)
-			 (if do-kinsoku
+                         (if (and enable-kinsoku enable-multibyte-characters)
 			     (kinsoku (save-excursion
 					(forward-line 0) (point)))))))
 		   ;; Let fill-point be set to the place where we end up.
