@@ -1,4 +1,4 @@
-;;; gnus.el --- a newsreader for GNU Emacs
+:;;; gnus.el --- a newsreader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
 ;;        1997, 1998, 2000 Free Software Foundation, Inc.
 
@@ -304,9 +304,9 @@ be set in `.emacs' instead."
 				(setq gnus-mode-line-image-cache
 				      (find-image
 				       '((:type xpm :file "gnus-pointer.xpm"
-						:ascent 'center)
+						:ascent center)
 					 (:type xbm :file "gnus-pointer.xbm"
-						:ascent 'center))))
+						:ascent center))))
 			      gnus-mode-line-image-cache)
 			    'help-echo "This is Gnus")
 		      str)
