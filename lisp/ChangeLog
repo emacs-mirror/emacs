@@ -4,6 +4,10 @@
 	(ido-copy-current-file-name, ido-wide-find-dirs-or-files):
 	Don't use `path' as name of local variables holding a file name.
 
+	* arc-mode.el (archive-arc-rename-entry): Fix error message.
+	(archive-lzh-summarize): Rename local var `path' to `dir'.
+	(archive-unique-fname) [!MSDOS]: Avoid byte-compiler warning.
+
 2003-01-14  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* apropos.el (apropos): Restore autoload cookie.  Fix typo in 
