@@ -143,7 +143,7 @@ and then returns."
 			   (help-mode)
 			   (goto-char (point-min))
 			   (while (or (memq char (append help-event-list
-							 (cons help-char '(?? ?\C-v ?\ ?\177 delete backspace vertical-scroll-bar ?\M-v))))
+							 (cons help-char '(?? ?\C-v ?\s ?\177 delete backspace vertical-scroll-bar ?\M-v))))
 				      (eq (car-safe char) 'switch-frame)
 				      (equal key "\M-v"))
 			     (condition-case nil
