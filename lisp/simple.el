@@ -1099,8 +1099,10 @@ specifies the value of ERROR-BUFFER."
 	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
 	  (let ((error-file
 		 (if error-buffer 
-		     (concat (file-name-directory temp-file-name-pattern)
-			     (make-temp-name "scor"))
+		     (make-temp-name
+		      (expand-file-name "scor"
+					(or small-temporary-file-directory
+					    temporary-file-directory)))
 		   nil)))
 	    (barf-if-buffer-read-only)
 	    (push-mark nil t)
@@ -1231,9 +1233,11 @@ specifies the value of ERROR-BUFFER."
 		       current-prefix-arg
 		       shell-command-default-error-buffer)))
   (let ((error-file
-	 (if error-buffer 
-	     (concat (file-name-directory temp-file-name-pattern)
-		     (make-temp-name "scor"))
+	 (if error-buffer
+	     (make-temp-name
+	      (expand-file-name "scor"
+				(or small-temporary-file-directory
+				    temporary-file-directory)))
 	   nil))
 	exit-status)
     (if (or replace
