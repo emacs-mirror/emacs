@@ -121,7 +121,7 @@ behavior.\)
 
 To specify the file in which to save them, modify the variable
 `bookmark-default-file', which is `~/.emacs.bmk' by default."
-  :type '(choice (const nil) (const t) integer)
+  :type '(choice (const nil) integer (other t))
   :group 'bookmark)
 
 
@@ -149,7 +149,8 @@ It can have four values: t, nil, `never', and `nospecial'.
 The first three have the same meaning that they do for the
 variable `version-control', and the final value `nospecial' means just
 use the value of `version-control'."
-  :type '(choice (const t) (const nil) (const never) (const nospecial))
+  :type '(choice (const nil) (const never) (const nospecial)
+		 (other t))
   :group 'bookmark)
 
 
