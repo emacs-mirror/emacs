@@ -1641,7 +1641,7 @@ extern int face_change_count;
 struct draw_fringe_bitmap_params
 {
   int which;  /* enum fringe_bitmap_type */
-  unsigned char *bits;
+  unsigned short *bits;
   int wd, h, dh;
   int x, y;
   int bx, nx, by, ny;
@@ -2189,7 +2189,7 @@ struct redisplay_interface
 				  struct draw_fringe_bitmap_params *p));
 
   /* Define and destroy fringe bitmap no. WHICH.  */
-  void (*define_fringe_bitmap) P_ ((int which, unsigned char *bits,
+  void (*define_fringe_bitmap) P_ ((int which, unsigned short *bits,
 				    int h, int wd));
   void (*destroy_fringe_bitmap) P_ ((int which));
 
