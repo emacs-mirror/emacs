@@ -1917,8 +1917,9 @@ STRING	     This is ignored for the purposes of calculating
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((and (boundp 'font-lock-string-face)
-	     (equal (get-text-property (point) 'face) font-lock-string-face))
+       ((or (and (boundp 'font-lock-string-face)
+		 (eq (get-text-property (point) 'face) font-lock-string-face))
+	    (eq (get-text-property (point) 'face) sh-heredoc-face))
 	(setq result t)
 	(setq have-result t))
        ((looking-at "\\s-*#")		; was (equal this-kw "#")
@@ -2115,9 +2116,8 @@ we go to the end of the previous line and do not check for continuations."
     (forward-comment (- (point-max)))
     (unless end (beginning-of-line))
     (when (and (not (bobp))
-	       (boundp 'font-lock-string-face)
 	       (equal (get-text-property (1- (point)) 'face)
-		      font-lock-string-face))
+		      sh-heredoc-face))
       (let ((p1 (previous-single-property-change (1- (point)) 'face)))
 	(when p1
 	  (goto-char p1)
@@ -3088,8 +3088,7 @@ This is always added to the end of the buffer."
        4 " ( "
        6 " )"
        15 '<
-       16 "end"
-       )
+       16 "end")
   (es eval sh-modify rc
       4 " = ")
   (rc eval sh-modify sh
@@ -3350,7 +3349,7 @@ t means to return a list of all possible completions of STRING.
        3 "while( "
        5 " )"
        10 '<
-       11 "end" )
+       11 "end")
   (es eval sh-modify sh
       3 "while { "
       5 " } {"
