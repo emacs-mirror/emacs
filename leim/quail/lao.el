@@ -95,7 +95,7 @@
   (copy-alist lao-consonant-alist))
 
 (quail-define-package
- "lao" "Lao" "(1"(B" t
+ "lao" "Lao" "(1E(B" t
  "Lao input method simulating Lao keyboard layout based on Thai TIS620"
  nil t t t t)
 
