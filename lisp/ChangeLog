@@ -1,5 +1,8 @@
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
+	* locate.el (locate): Cleaned up locate command's interactive prompting
+	Thanks to François_Pinard <pinard@iro.umontreal.ca> for suggestions.
+
 	* filecache.el (file-cache-case-fold-search): New variable 
 	(file-cache-assoc-function): New variable
 	(file-cache-minibuffer-complete): Use file-cache-assoc-function.
