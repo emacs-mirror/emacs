@@ -38,6 +38,21 @@
 	that the header of a tags section has either a number or nothing
 	after the last comma.
 
+2002-03-11  Richard M. Stallman  <rms@gnu.org>
+
+	* imenu.el (imenu-update-menubar-modified-tick): New variable.
+	(imenu-update-menubar): Don't call imenu--make-index-alist
+	if buffer has not changed since last time.
+
+	* desktop.el (desktop-buffer-handlers): Doc fix.
+	(desktop-buffer-file): Explicitly return BUF.
+
+	* paren.el (show-paren-function): Move back in other direction
+	to verify the match is correct.
+
+	* mail/supercite.el (sc-select-attribution): Accept whatever value
+	we get in CHOICE; there is no value meaning "try again".
+
 2002-03-11  Colin Walters  <walters@verbum.org>
 
 	* shell.el (toplevel): Revert previous change to use pcomplete.
@@ -58,7 +73,7 @@
 
 	* subr.el (add-to-list): Doc fix.
 
-2002-03-07  Miles Bader  <miles@gnu.org>
+2002-03-11  Miles Bader  <miles@gnu.org>
 
 	* pcomplete.el (pcomplete-entries): Expand environment variables
 	in filename.
