@@ -246,10 +246,9 @@ characters.  @xref{User Input}.
 
 @item Copyleft
 A copyleft is a notice giving the public legal permission to
-redistribute a program or other work of art.  Copylefts are used by
-left-wing programmers to promote freedom and cooperation, just as
-copyrights are used by right-wing programmers to gain power over other
-people.
+redistribute a program or other work of art.  Copyright is normally used
+to keep users divided and helpless; with copyleft we turn that around
+to empower users and encourage them to cooperate.
 
 The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
