@@ -541,7 +541,7 @@ getloadavg (loadavg, nelem)
   elem = -1;
 # endif
 
-# if !defined (LDAV_DONE) && defined (SUNOS_5)
+# if !defined (LDAV_DONE) && defined (HAVE_LIBKSTAT)
 /* Use libkstat because we don't have to be root.  */
 #  define LDAV_DONE
   kstat_ctl_t *kc;
@@ -586,7 +586,7 @@ getloadavg (loadavg, nelem)
     }
 
   kstat_close (kc);
-# endif /* SUNOS_5 */
+# endif /* HAVE_LIBKSTAT */
 
 # if !defined (LDAV_DONE) && defined (hpux) && defined (HAVE_PSTAT_GETDYNAMIC)
 /* Use pstat_getdynamic() because we don't have to be root.  */
