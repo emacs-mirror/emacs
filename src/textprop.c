@@ -446,8 +446,8 @@ a string or buffer.  Returns nil if unsuccessful.")
 
 DEFUN ("add-text-properties", Fadd_text_properties,
        Sadd_text_properties, 4, 4, 0,
-  "Add the PROPERTIES (a property list) to the text of OBJECT\n\
-(a string or buffer) in the range START to END.  Returns t if any change\n\
+  "Add the PROPERTIES, a property list, to the text of OBJECT,\n\
+a string or buffer, in the range START to END.  Returns t if any change\n\
 was made, nil otherwise.")
   (object, start, end, properties)
      Lisp_Object object, start, end, properties;
@@ -529,8 +529,8 @@ was made, nil otherwise.")
 
 DEFUN ("set-text-properties", Fset_text_properties,
        Sset_text_properties, 4, 4, 0,
-  "Make the text of OBJECT (a string or buffer) have precisely\n\
-PROPERTIES (a list of properties) in the range START to END.\n\
+  "Make the text of OBJECT, a string or buffer, have precisely\n\
+PROPERTIES, a list of properties, in the range START to END.\n\
 \n\
 If called with a valid property list, return t (text was changed).\n\
 Otherwise return nil.")
@@ -573,20 +573,14 @@ Otherwise return nil.")
       i = next_interval (i);
     }
 
+  /* We are starting at the beginning of an interval, I */
   while (len > 0)
     {
       if (LENGTH (i) >= len)
 	{
-	  if (LENGTH (i) == len)
-	    {
-	      if (NULL_INTERVAL_P (prev_changed))
-		set_properties (properties, i);
-	      else
-		merge_interval_left (i);
-	      return Qt;
-	    }
+	  if (LENGTH (i) > len)
+	    i = split_interval_left (i, len + 1);
 
-	  i = split_interval_left (i, len + 1);
 	  if (NULL_INTERVAL_P (prev_changed))
 	    set_properties (properties, i);
 	  else
@@ -611,8 +605,8 @@ Otherwise return nil.")
 
 DEFUN ("remove-text-properties", Fremove_text_properties,
        Sremove_text_properties, 4, 4, 0,
-  "Remove the PROPERTIES (a property list) from the text of OBJECT\n\
-(a string or buffer) in the range START to END.  Returns t if any change\n\
+  "Remove the PROPERTIES, a property list, from the text of OBJECT,\n\
+a string or buffer, in the range START to END.  Returns t if any change\n\
 was made, nil otherwise.")
   (object, start, end, properties)
      Lisp_Object object, start, end, properties;
@@ -694,7 +688,7 @@ range START to END. Returns t if any change was made, nil otherwise.")
   (object, start, end)
      Lisp_Object object, start, end;
 {
-  register INTERVAL i, unchanged;
+  register INTERVAL i;
   register prev_changed = NULL_INTERVAL;
   register int s, len, modified;
 
@@ -708,10 +702,10 @@ range START to END. Returns t if any change was made, nil otherwise.")
   if (i->position != s)
     {
       register int got;
-      unchanged = i;
+      register INTERVAL unchanged = i;
 
       /* If there are properties here, then this text will be modified. */
-      if (!NILP (i->plist))
+      if (! NILP (i->plist))
 	{
 	  i = split_interval_right (unchanged, s - unchanged->position + 1);
 	  i->plist = Qnil;
@@ -729,10 +723,13 @@ range START to END. Returns t if any change was made, nil otherwise.")
 
 	  got = LENGTH (i);
 	}
-      /* If the text of i is without any properties, and contains
-         LEN or more characters, then we return witout changing anything.*/
+      /* If the text of I is without any properties, and contains
+         LEN or more characters, then we may return without changing
+	 anything.*/
       else if (LENGTH (i) - (s - i->position) <= len)
 	return Qnil;
+      /* The amount of text to change extends past I, so just note
+	 how much we've gotten. */
       else
 	got = LENGTH (i) - (s - i->position);
 
@@ -746,10 +743,8 @@ range START to END. Returns t if any change was made, nil otherwise.")
     {
       if (LENGTH (i) >= len)
 	{
-	  /* If this last interval is exactly the right length,
-	     or is already without properties, then there's nothing
-	     to do except merge it if possible. */
-	  if (NILP (i->plist) || LENGTH (i) == len)
+	  /* If I has no properties, simply merge it if possible.  */
+	  if (NILP (i->plist))
 	    {
 	      if (! NULL_INTERVAL_P (prev_changed))
 		merge_interval_left (i);
@@ -757,16 +752,17 @@ range START to END. Returns t if any change was made, nil otherwise.")
 	      return modified ? Qt : Qnil;
 	    }
 
-	  /* Here we know the last interval is longer than LEN and
-	     has properties. */
-	  i = split_interval_left (i, len + 1);
-	  modified += erase_properties (i);
+          if (LENGTH (i) > len)
+            i = split_interval_left (i, len + 1);
 	  if (! NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
+	  else
+	    i->plist = Qnil;
 
-	  return modified ? Qt : Qnil;
+	  return Qt;
 	}
 
+      /* Here if we still need to erase past the end of I */
       len -= LENGTH (i);
       if (NULL_INTERVAL_P (prev_changed))
 	{
@@ -775,8 +771,8 @@ range START to END. Returns t if any change was made, nil otherwise.")
 	}
       else
 	{
-	  if (! NULL_INTERVAL_P (i))
-	    modified++;
+	  modified += ! NILP (i->plist);
+	  /* Merging I will give it the properties of PREV_CHANGED. */
 	  prev_changed = i = merge_interval_left (i);
 	}
 
