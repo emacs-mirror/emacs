@@ -220,3 +220,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define GAP_USE_BCOPY
 #define BCOPY_UPWARD_SAFE 1
 #define BCOPY_DOWNWARD_SAFE 1
+
+/* We need a little extra space, see ../../lisp/loadup.el */
+#define PURESIZE 240000
+
+/* We have (the code to control) a mouse.  */
+#define HAVE_MOUSE
