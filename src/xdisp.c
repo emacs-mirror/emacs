@@ -9788,11 +9788,13 @@ try_window_reusing_current_matrix (w)
       
       /* Display up to a row that can be reused.  The variable
 	 last_text_row is set to the last row displayed that displays
-	 text.  */
+	 text.  Note that it.vpos == 0 if or if not there is a
+         header-line; it's not the same as the MATRIX_ROW_VPOS!  */
       start_display (&it, w, new_start);
       first_row_y = it.current_y;
       w->cursor.vpos = -1;
       last_text_row = last_reused_text_row = NULL;
+      
       while (it.current_y < it.last_visible_y
 	     && IT_CHARPOS (it) < CHARPOS (start)
 	     && !fonts_changed_p)
@@ -9804,6 +9806,7 @@ try_window_reusing_current_matrix (w)
 	 have at least one reusable row.  */
       if (it.current_y < it.last_visible_y)
 	{
+	  /* IT.vpos always starts from 0; it counts text lines.  */
 	  nrows_scrolled = it.vpos;
 	  
 	  /* Find PT if not already found in the lines displayed.  */
@@ -9847,8 +9850,8 @@ try_window_reusing_current_matrix (w)
 	  run.current_y = first_row_y;
 	  run.desired_y = it.current_y;
 	  run.height = it.last_visible_y - it.current_y;
-	  if (run.height > 0
-	      && run.current_y != run.desired_y)
+
+	  if (run.height > 0 && run.current_y != run.desired_y)
 	    {
 	      update_begin (f);
 	      rif->update_window_begin_hook (w);
@@ -9867,13 +9870,14 @@ try_window_reusing_current_matrix (w)
 	  
 	  /* Disable lines not reused.  */
 	  for (i = 0; i < it.vpos; ++i)
-	    MATRIX_ROW (w->current_matrix, i)->enabled_p = 0;
+	    (start_row + i)->enabled_p = 0;
 	  
 	  /* Re-compute Y positions.  */
-	  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix) + nrows_scrolled;
 	  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
 	  max_y = it.last_visible_y;
-	  while (row < bottom_row)
+	  for (row = start_row + nrows_scrolled;
+	       row < bottom_row;
+	       ++row)
 	    {
 	      row->y = it.current_y;
 
@@ -9886,13 +9890,11 @@ try_window_reusing_current_matrix (w)
 		row->visible_height = row->height;
 	      
 	      it.current_y += row->height;
-	      ++it.vpos;
 
 	      if (MATRIX_ROW_DISPLAYS_TEXT_P (row))
 		last_reused_text_row = row;
 	      if (MATRIX_ROW_BOTTOM_Y (row) >= it.last_visible_y)
 		break;
-	      ++row;
 	    }
 	}
 
@@ -9948,7 +9950,7 @@ try_window_reusing_current_matrix (w)
       
       /* Find the row starting at new_start, if there is one.  Don't
 	 reuse a partially visible line at the end.  */
-      first_reusable_row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+      first_reusable_row = start_row;
       while (first_reusable_row->enabled_p
 	     && MATRIX_ROW_BOTTOM_Y (first_reusable_row) < yb
 	     && (MATRIX_ROW_START_CHARPOS (first_reusable_row)
@@ -9980,10 +9982,12 @@ try_window_reusing_current_matrix (w)
       /* Start displaying at the start of first_row_to_display.  */
       xassert (first_row_to_display->y < yb);
       init_to_row_start (&it, w, first_row_to_display);
-      nrows_scrolled = MATRIX_ROW_VPOS (first_reusable_row, w->current_matrix);
+      nrows_scrolled = (MATRIX_ROW_VPOS (first_reusable_row, w->current_matrix)
+			- start_vpos);
       it.vpos = (MATRIX_ROW_VPOS (first_row_to_display, w->current_matrix)
 		 - nrows_scrolled);
-      it.current_y = first_row_to_display->y - first_reusable_row->y;
+      it.current_y = (first_row_to_display->y - first_reusable_row->y
+		      + WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w));
 
       /* Display lines beginning with first_row_to_display in the
          desired matrix.  Set last_text_row to the last row displayed
@@ -10031,10 +10035,9 @@ try_window_reusing_current_matrix (w)
 
       /* Adjust Y positions of reused rows.  */
       bottom_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
-      row = first_reusable_row;
       min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       max_y = it.last_visible_y;
-      while (row < first_row_to_display)
+      for (row = first_reusable_row; row < first_row_to_display; ++row)
 	{
 	  row->y -= dy;
 	  if (row->y < min_y)
@@ -10044,7 +10047,6 @@ try_window_reusing_current_matrix (w)
 	      = row->height - (row->y + row->height - max_y);
 	  else
 	    row->visible_height = row->height;
-	  ++row;
 	}
 
       /* Disable rows not reused.  */
