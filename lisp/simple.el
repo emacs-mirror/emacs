@@ -3804,13 +3804,6 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq completion-base-size nil)
   (run-hooks 'completion-list-mode-hook))
 
-(defvar completion-fixup-function nil
-  "A function to customize how completions are identified in completion lists.
-`completion-setup-function' calls this function with no arguments
-each time it has found what it thinks is one completion.
-Point is at the end of the completion in the completion list buffer.
-If this function moves point, it can alter the end of that completion.")
-
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
@@ -3848,15 +3841,7 @@ The completion list buffer is available as the value of `standard-output'.")
 		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
       (insert (substitute-command-keys
 	       "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n"))
-      (forward-line 1)
-      (while (re-search-forward "[^ \t\n]+\\( [^ \t\n]+\\)*" nil t)
-	(let ((beg (match-beginning 0))
-	      (end (point)))
-	  (if completion-fixup-function
-	      (funcall completion-fixup-function))
-	  (put-text-property beg (point) 'mouse-face 'highlight)
-	  (goto-char end))))))
+select the completion near point.\n\n")))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
