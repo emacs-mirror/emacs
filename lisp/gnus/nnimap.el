@@ -723,10 +723,15 @@ If EXAMINE is non-nil the group is selected read-only."
 		     (int-to-string nnimap-server-port)
 		   "imap"))
 	   (alist (or (gnus-netrc-machine list server port "imap")
+		      (gnus-netrc-machine list server port "imaps")
 		      (gnus-netrc-machine list
 					  (or nnimap-server-address
 					      nnimap-address)
-					  port "imap")))
+					  port "imap")
+		      (gnus-netrc-machine list
+					  (or nnimap-server-address
+					      nnimap-address)
+					  port "imaps")))
 	   (user (gnus-netrc-get alist "login"))
 	   (passwd (gnus-netrc-get alist "password")))
       (if (imap-authenticate user passwd nnimap-server-buffer)

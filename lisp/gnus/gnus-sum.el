@@ -9056,8 +9056,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
     (gnus-set-mode-line 'summary)))
 
 (defun gnus-summary-copy-article (&optional n to-newsgroup select-method)
-  "Move the current article to a different newsgroup.
-If TO-NEWSGROUP is string, do not prompt for a newsgroup to move to.
+  "Copy the current article to some other group.
+If TO-NEWSGROUP is string, do not prompt for a newsgroup to copy to.
 When called interactively, if TO-NEWSGROUP is nil, use the value of
 the variable `gnus-move-split-methods' for finding a default target
 newsgroup.

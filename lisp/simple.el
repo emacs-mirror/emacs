@@ -4297,11 +4297,12 @@ to decide what to delete."
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
+      ;; Set buffer so buffer-local choose-completion-string-functions works.
+      (set-buffer buffer)
       (unless (run-hook-with-args-until-success
 	       'choose-completion-string-functions
 	       choice buffer mini-p base-size)
 	;; Insert the completion into the buffer where it was requested.
-	(set-buffer buffer)
 	(if base-size
 	    (delete-region (+ base-size (if mini-p
 					    (minibuffer-prompt-end)

@@ -692,6 +692,8 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 'sql-sqlite'.
 
 ** BibTeX mode:
+*** The new command bibtex-url browses a URL for the BibTeX entry at
+point (bound to C-c C-l and mouse-2 on clickable fields).
 *** The new command bibtex-entry-update (bound to C-c C-u) updates
 an existing BibTeX entry.
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
@@ -1247,9 +1249,9 @@ and to type `C-f' at the end of the search string in the minibuffer.
 search string used as the string to replace.
 
 +++
-** New user option `isearch-resume-enabled'.
-This option can be disabled, to avoid the normal behavior of isearch
-which puts calls to `isearch-resume' in the command history.
+** Isearch no longer adds `isearch-resume' commands to the command
+history by default.  To enable this feature, customize the new
+user option `isearch-resume-in-command-history'.
 
 +++
 ** New user option `history-delete-duplicates'.
@@ -1569,28 +1571,30 @@ per line.  Lines beginning with space or tab are ignored.
 **** The `::' qualifier triggers C++ parsing in C file.
 Previously, only the `template' and `class' keywords had this effect.
 
-**** In Perl, packages are tags.
-Subroutine tags are named from their package.  You can jump to sub tags
-as you did before, by the sub name, or additionally by looking for
-package::sub.
-
-**** New language PHP.
-Tags are functions, classes and defines.
-If the --members option is specified to etags, tags are vars also.
-
 **** New language HTML.
 Title and h1, h2, h3 are tagged.  Also, tags are generated when name= is
 used inside an anchor and whenever id= is used.
-
-**** New default keywords for TeX.
-The new keywords are def, newcommand, renewcommand, newenvironment and
-renewenvironment.
 
 **** In Makefiles, constants are tagged.
 If you want the old behavior instead, thus avoiding to increase the
 size of the tags file, use the --no-globals option.
 
+**** In Lua, all functions are tagged.
+
+**** In Perl, packages are tags.
+Subroutine tags are named from their package.  You can jump to sub tags
+as you did before, by the sub name, or additionally by looking for
+package::sub.
+
 **** In Prolog, etags creates tags for rules in addition to predicates.
+
+**** New language PHP.
+Tags are functions, classes and defines.
+If the --members option is specified to etags, tags are vars also.
+
+**** New default keywords for TeX.
+The new keywords are def, newcommand, renewcommand, newenvironment and
+renewenvironment.
 
 *** Honour #line directives.
 When Etags parses an input file that contains C preprocessor's #line
@@ -1602,7 +1606,7 @@ writes tags pointing to the source file.
 *** New option --parse-stdin=FILE.
 This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
-reads from standard input and mark the produced tags as belonging to
+reads from standard input and marks the produced tags as belonging to
 the file FILE.
 
 +++
@@ -2074,6 +2078,10 @@ anyone has committed to the repository since you last executed
 
 
 * New modes and packages in Emacs 21.4
+
+** The new package dns-mode.el add syntax highlight of DNS master files.
+The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
+to increment the SOA serial.
 
 ** The new package flymake.el does on-the-fly syntax checking of program
 source files.  See the Flymake's Info manual for more details.

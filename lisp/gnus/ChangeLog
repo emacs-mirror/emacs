@@ -1,3 +1,23 @@
+2004-09-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-copy-article): Fixed doc string.
+
+2004-09-10  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* nnimap.el (nnimap-open-connection): Remove extraneous end-paren.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection): allow 'imaps' as a synonym
+	for the 'imap' port in netrc files
+
+	* gnus-registry.el (gnus-registry-trim): watch out for negatives
+	in gnus-registry-trim
+
+2004-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* nndb.el (require): Remove tcp and duplicate cl.
+
 2004-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nntp.el (nntp): New customization group.
@@ -388,12 +408,14 @@
 	* gnus-cus.el: Merged revisions 7.2 through 7.5 into branch to support
 	gnus-agent.el update and incorporate bug fixes.
 
+See ChangeLog.2 for earlier changes.
+
+    Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
+
 ;; Local Variables:
 ;; coding: iso-2022-7bit
 ;; End:
-
-    Copyright (C) 2002 2004 Free Software Foundation, Inc.
-  Copying and distribution of this file, with or without modification,
-  are permitted provided the copyright notice and this notice are preserved.
 
 ;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

@@ -1,3 +1,28 @@
+2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (main): When relative file names are given as argument,
+	make them relative to the current working dir, rather than
+	relative to the output tags file, if the latter is in /dev.
+
+2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c [EXIT_SUCCESS, EXIT_FAILURE]: Define them when no
+	<stdlib.h> is available.
+	(enum sym_type): New st_C_attribute value for parsing
+	gcc's __attribute__.  Deleted st_C_typespec value.
+	(gperf, in_word_set): Use gperf 3, options changed.  Added the
+	__attribute__ keyword, removed all the st_C_typespec keywords,
+	changed attribute for Java to (C_JAVA & !C_PLPL).
+	(inattribute): New global bool, part of the C state machine.
+	(cblev): Identifier renamed to bracelev throughout.
+	(consider_token, C_entries): Numerous changes for making the
+	parser more robust and adding support for __attribute__.
+
+2004-09-13  David A. Capello  <dacap@users.sourceforge.net>  (tiny change)
+
+	* etags.c: (Lua_suffixes, Lua_help, lang_names, Lua_functions):
+	Support the Lua scripting language <http://www.lua.org>.
+
 2004-09-08  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c: [LONG_OPTIONS]: make it TRUE (ifdef) or FALSE (ifndef)

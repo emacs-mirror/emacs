@@ -279,6 +279,13 @@ respectively.
 ;; Authenticate using this username and password against my server.
 (setq smtpmail-auth-credentials
       '(("@var{hostname}" "@var{port}" "@var{username}" "@var{password}")))
+
+;; Note that if @var{port} is an integer, you must not quote it as a
+;; string.  Normally @var{port} should be the integer 25, and the example
+;; become:
+(setq smtpmail-auth-credentials
+      '(("@var{hostname}" 25 "@var{username}" "@var{password}")))
+
 ;; Use STARTTLS without authentication against the server.
 (setq smtpmail-starttls-credentials
       '(("@var{hostname}" "@var{port}" nil nil)))

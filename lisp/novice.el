@@ -44,7 +44,7 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 (defvaralias 'disabled-command-hook 'disabled-command-function)
 (make-obsolete-variable
  'disabled-command-hook
- "use the variable `disabled-command-function' instead." "21.4")
+ 'disabled-command-function "21.4")
 
 ;;;###autoload
 (defun disabled-command-function (&rest ignore)
@@ -93,7 +93,7 @@ SPC to try the command just this once, but leave it disabled.
      (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
        (while (not (memq (setq char (downcase (read-char)))
-			 '(?! ?  ?y ?n)))
+			 '(?! ?y ?n ?\ )))
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (if (= char ?!)
@@ -185,5 +185,5 @@ to future sessions."
 
 (provide 'novice)
 
-;;; arch-tag: f83c0f96-497e-4db6-a430-8703716c6dd9
+;; arch-tag: f83c0f96-497e-4db6-a430-8703716c6dd9
 ;;; novice.el ends here

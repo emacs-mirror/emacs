@@ -500,17 +500,6 @@ temporarily highlight in visited source lines."
 			 command-args)
 		       'grep-mode nil highlight-regexp)))
 
-;;; This doesn't work:
-;;;      ###autoload (autoload 'grep-mode "grep" nil t)
-;;; The ostensibly correct result is nonetheless opaque to the accounting
-;;; done in `generate-file-autoloads'; in loaddefs.el, the generated elisp is
-;;; correct but the generated header comment for grep.el lacks `grep-mode'.
-;;; This approach also doesn't help other users of `define-compilation-mode'
-;;; who wish to autoload.
-;;;
-;;; Better to extend autoload.el to grok `define-compilation-mode'.
-
-;;;###autoload
 (define-compilation-mode grep-mode "Grep"
   "Sets `grep-last-buffer' and `compilation-window-height'."
   (setq grep-last-buffer (current-buffer))
@@ -626,5 +615,5 @@ those sub directories of DIR."
 
 (provide 'grep)
 
-;;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
+;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
 ;;; grep.el ends here

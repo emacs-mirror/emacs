@@ -752,6 +752,9 @@ msdos_set_cursor_shape (struct frame *f, int start_line, int width)
   if (f && f != SELECTED_FRAME())
     return;
 
+  if (termscript)
+    fprintf (termscript, "\nCURSOR SHAPE=(%d,%d)", start_line, width);
+
   /* The character cell size in scan lines is stored at 40:85 in the
      BIOS data area.  */
   max_line = _farpeekw (_dos_ds, 0x485) - 1;
@@ -851,10 +854,12 @@ IT_set_cursor_type (struct frame *f, Lisp_Object cursor_type)
 	}
     }
   else
-    /* Treat anything unknown as "box cursor".  This includes nil, so
-       that a frame which doesn't specify a cursor type gets a box,
-       which is the default in Emacs.  */
-    msdos_set_cursor_shape (f, 0, BOX_CURSOR_WIDTH);
+    {
+      /* Treat anything unknown as "box cursor".  This includes nil, so
+	 that a frame which doesn't specify a cursor type gets a box,
+	 which is the default in Emacs.  */
+      msdos_set_cursor_shape (f, 0, BOX_CURSOR_WIDTH);
+    }
 }
 
 static void
@@ -1826,6 +1831,8 @@ static int cursor_cleared;
 static void
 IT_display_cursor (int on)
 {
+  if (termscript)
+    fprintf (termscript, "\nCURSOR %s", on ? "ON" : "OFF");
   if (on && cursor_cleared)
     {
       ScreenSetCursor (current_pos_Y, current_pos_X);

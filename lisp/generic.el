@@ -405,10 +405,10 @@ INI file.  This hook is NOT installed by default."
 The regexp is highlighted with FACE."
   (unless (listp keywords-list)
     (error "Keywords argument must be a list of strings"))
-  (list (concat prefix "\\<"
+  (list (concat prefix "\\_<"
 		;; Use an optimized regexp.
 		(regexp-opt keywords-list t)
-		"\\>" suffix)
+		"\\_>" suffix)
 	1
 	face))
 
