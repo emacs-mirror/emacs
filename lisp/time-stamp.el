@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 ;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
-;;; Maintainer's Time-stamp: <95/09/21 12:32:56 gildea>
+;;; Maintainer's Time-stamp: <95/12/28 19:48:49 gildea>
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Keywords: tools
@@ -28,7 +28,7 @@
 ;;;     Time-stamp: " "
 ;;; The time stamp is written between the brackets or quotes, resulting in
 ;;;     Time-stamp: <95/01/18 10:20:51 gildea>
-;;; Here is an example which puts the file name and time stamp in the binary:
+;;; Here is an example that puts the file name and time stamp in the binary:
 ;;; static char *time_stamp = "sdmain.c Time-stamp: <>";
 
 ;;; To activate automatic time stamping in GNU Emacs 19, add this code
@@ -48,7 +48,7 @@
 ;;; Originally based on the 19 Dec 88 version of
 ;;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;;; version 2, January 1995: replaced functions with %-escapes
-;;; $Id: time-stamp.el,v 1.14 1995/05/31 20:00:40 kwzh Exp kwzh $
+;;; $Id: time-stamp.el,v 1.15 1995/10/31 00:01:15 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -102,10 +102,10 @@ use \"%3a %3b %2d %02H:%02M:%02S %Z %y\"")
 ;;; do so only in the local variables section of the file itself.
 
 (defvar time-stamp-line-limit 8	    ;Do not change!
-  "Number of lines at the beginning of a file that are searched.
+  "Lines of a file searched; positive counts from start, negative from end.
 The patterns `time-stamp-start' and `time-stamp-end' must be found on one
-of the first `time-stamp-line-limit' lines of the file for the file to
-be time-stamped by \\[time-stamp].
+of the first (last) `time-stamp-line-limit' lines of the file for the
+file to be time-stamped by \\[time-stamp].
 
 Do not change `time-stamp-line-limit', `time-stamp-start', or
 `time-stamp-end' for yourself or you will be incompatible
@@ -152,40 +152,45 @@ The variables time-stamp-line-limit, time-stamp-start, and time-stamp-end
 control finding the template."
   (interactive)
   (let ((case-fold-search nil)
-	(need-to-warn nil))
+	(need-to-warn nil)
+	start search-end)
     (if (and (stringp time-stamp-start)
 	     (stringp time-stamp-end))
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (goto-char (point-min))
-	    (forward-line time-stamp-line-limit)
-	    (let ((start (point-min))
-		  (search-end (point)))
-	      (goto-char start)
-	      (while
-		  (and (< (point) search-end)
-		       (re-search-forward time-stamp-start search-end 'move))
-		(setq start (point))
-		(end-of-line)
-		(let ((line-end (point)))
-		  (goto-char start)
-		  (if (re-search-forward time-stamp-end line-end 'move)
-		      (progn
-			(if time-stamp-active
-			    (let ((end (match-beginning 0)))
-			      (delete-region start end)
-			      (goto-char start)
-			      (insert (time-stamp-string))
-			      (setq end (point))
-			      ;; remove any tabs used to format time stamp
-			      (goto-char start)
-			      (if (search-forward "\t" end t)
-				  (untabify start end)))
-			  (if time-stamp-warn-inactive
-			      ;; do warning outside save-excursion
-			      (setq need-to-warn t)))
-			(setq search-end (point)))))))))
+	    (if (> time-stamp-line-limit 0)
+		(progn
+		  (goto-char (setq start (point-min)))
+		  (forward-line time-stamp-line-limit)
+		  (setq search-end (point)))
+	      (goto-char (setq search-end (point-max)))
+	      (forward-line time-stamp-line-limit)
+	      (setq start (point)))
+	    (goto-char start)
+	    (while
+		(and (< (point) search-end)
+		     (re-search-forward time-stamp-start search-end 'move))
+	      (setq start (point))
+	      (end-of-line)
+	      (let ((line-end (point)))
+		(goto-char start)
+		(if (re-search-forward time-stamp-end line-end 'move)
+		    (progn
+		      (if time-stamp-active
+			  (let ((end (match-beginning 0)))
+			    (delete-region start end)
+			    (goto-char start)
+			    (insert (time-stamp-string))
+			    (setq end (point))
+			    ;; remove any tabs used to format time stamp
+			    (goto-char start)
+			    (if (search-forward "\t" end t)
+				(untabify start end)))
+			(if time-stamp-warn-inactive
+			    ;; do warning outside save-excursion
+			    (setq need-to-warn t)))
+		      (setq search-end (point))))))))
       ;; don't signal an error in a write-file-hook
       (message "time-stamp-start or time-stamp-end is not a string")
       (sit-for 1))
@@ -230,6 +235,12 @@ With arg, turn time stamping on if and only if arg is positive."
 
 (defconst time-stamp-weekday-full-names
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
+
+(defconst time-stamp-am-pm '("am" "pm")
+  "List of strings used to denote morning and afternoon.")
+
+(defconst time-stamp-no-file "(no file)"
+  "String to use when the buffer is not associated with a file.")
 
 (defun time-stamp-strftime (format &optional time)
   "Uses a FORMAT to format date, time, file, and user information.
@@ -328,8 +339,8 @@ of the format string."
 	      (eq cur-char ?P))
 	  (let ((name
 		 (if (> 12 (string-to-int (substring time-string 11 13)))
-		     "am"
-		   "pm")))
+		     (car time-stamp-am-pm)
+		   (car (cdr time-stamp-am-pm)))))
 	    (if (eq cur-char ?p)
 		name
 	      (upcase name))))
@@ -351,10 +362,10 @@ of the format string."
 	 ((eq cur-char ?f)		;buffer-file-name, base name only
 	  (if buffer-file-name
 	      (file-name-nondirectory buffer-file-name)
-	    "(no file)"))
+	    time-stamp-no-file))
 	 ((eq cur-char ?F)		;buffer-file-name, full path
 	  (or buffer-file-name
-	      "(no file)"))
+	      time-stamp-no-file))
 	 ((eq cur-char ?s)		;system name
 	  (system-name))
 	 ((eq cur-char ?u)		;user name
@@ -386,8 +397,7 @@ of the format string."
   "Return the name of the host where the user receives mail.
 This is the value of `mail-host-address' if bound and a string,
 otherwise the value of `time-stamp-mail-host' (for versions of Emacs
-before 19.29) otherwise the value of the function system-name.
-This function may be usefully referenced by `time-stamp-format'."
+before 19.29) otherwise the value of the function system-name."
   (or (and (boundp 'mail-host-address)
 	   (stringp mail-host-address)
 	   mail-host-address)
