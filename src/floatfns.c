@@ -829,7 +829,7 @@ static double
 rint (d)
      double d;
 {
-  return floor(d + 0.5);
+  return floor (d + 0.5);
 }
 #endif
 
