@@ -6271,7 +6271,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
   int this_one, the_other, clear_buffer_p, rc;
   int count = BINDING_STACK_SIZE ();
 
-  /* If buffers aren't life, make new ones.  */
+  /* If buffers aren't live, make new ones.  */
   ensure_echo_area_buffers ();
 
   clear_buffer_p = 0;
