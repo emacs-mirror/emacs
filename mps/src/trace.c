@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.91) $
+ * $HopeName: MMsrc!trace.c(trunk.92) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.91) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.92) $");
 
 
 /* Types
@@ -1355,6 +1355,8 @@ Size TraceGreyEstimate(Arena arena, RefSet refSet)
 }
 
 
+/* TraceFix -- fix a reference */
+
 Res TraceFix(ScanState ss, Ref *refIO)
 {
   Ref ref;
@@ -1370,8 +1372,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
   STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
-  /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
-  if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
+  TRACT_OF_ADDR(&tract, ss->arena, ref);
+  if (tract) {
     if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
       Seg seg;
       if (TRACT_SEG(&seg, tract)) {
@@ -1387,7 +1389,6 @@ Res TraceFix(ScanState ss, Ref *refIO)
         if(res != ResOK)
           return res;
       }
-
     } else { 
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
@@ -1400,7 +1401,6 @@ Res TraceFix(ScanState ss, Ref *refIO)
           }
         });
     }
-
   } else {
     /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT
@@ -1413,6 +1413,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
   return ResOK;
 }
 
+
+/* TraceFixEmergency -- fix a reference in emergency mode */
 
 Res TraceFixEmergency(ScanState ss, Ref *refIO)
 {
@@ -1428,8 +1430,8 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
   STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
-  /* TractOfAddr is inlined, see design.mps.trace.fix.tractofaddr */
-  if(TRACT_OF_ADDR(&tract, ss->arena, ref)) {
+  TRACT_OF_ADDR(&tract, ss->arena, ref);
+  if (tract) {
     if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
       Seg seg;
       if (TRACT_SEG(&seg, tract)) {
@@ -1440,7 +1442,6 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
         pool = TractPool(tract);
         PoolFixEmergency(pool, ss, seg, refIO);
       }
-
     } else { 
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
@@ -1453,7 +1454,6 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
           }
         });
     }
-
   } else {
     /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT ||
@@ -1583,7 +1583,7 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 /* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
  * This is as TraceScanArea except words are only fixed if they are
- * tagged as Dylan references (i.e. bottom two bits are zero).
+ * tagged as Dylan references (i.e., bottom two bits are zero).
  * @@@@ This Dylan-specificness should be generalized in some way.
  */
 
