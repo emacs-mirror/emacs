@@ -1715,8 +1715,8 @@ A prefix arg makes KEEP-TIME non-nil.")
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname);
   if (!NILP (handler))
-    return RETURN_UNGCPRO (call5 (handler, Qcopy_file, filename, newname,
-				  ok_if_already_exists, keep_date));
+    RETURN_UNGCPRO (call5 (handler, Qcopy_file, filename, newname,
+			   ok_if_already_exists, keep_date));
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -1890,8 +1890,8 @@ This is what happens in interactive use with M-x.")
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname);
   if (!NILP (handler))
-    return RETURN_UNGCPRO (call4 (handler, Qrename_file,
-				  filename, newname, ok_if_already_exists));
+    RETURN_UNGCPRO (call4 (handler, Qrename_file,
+			   filename, newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -1953,8 +1953,8 @@ This is what happens in interactive use with M-x.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
-    return RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
-				  newname, ok_if_already_exists));
+    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
+			   newname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -2007,8 +2007,8 @@ This happens for interactive use with M-x.")
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
-    return RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
-				  linkname, ok_if_already_exists));
+    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
+			   linkname, ok_if_already_exists));
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
