@@ -152,10 +152,9 @@ This is a good thing to set in mode hooks.")
 Strings comprising a character in this list will separate the arguments
 surrounding them, and also be regarded as arguments in their own right (unlike
 whitespace).  See `comint-arguments'.
-Defaults to (), the empty list.
+Defaults to the empty list.
 
-Good choices:
-  shell: \(\"|\" \"&\" \"<\" \">\" \"\(\" \")\" \";\")
+For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
 
 This is a good thing to set in mode hooks.")
 
@@ -982,47 +981,45 @@ Quotes are single and double."
 			(t nth))))
 	(comint-arguments string nth mth)))))
 
+;; Return a list of arguments from ARG.  Break it up at the
+;; delimiters in comint-delimiter-argument-list.  Returned list is backwards.
 (defun comint-delim-arg (arg)
-  ;; Return a list of arguments from ARG.  If there's a quote in there, just
-  ;; a list of the arg, otherwise try and break up using characters in
-  ;; comint-delimiter-argument-list.  Returned list is backwards.
-  (if (or (null comint-delimiter-argument-list)
-	  (string-match "[\"\'\`]" arg))
+  (if (null comint-delimiter-argument-list)
       (list arg)
-    (let ((not-delim (concat
-		      (format "\\([^%s]" (mapconcat
-					(function (lambda (d) (regexp-quote d)))
-					comint-delimiter-argument-list ""))
-		      "\\|"
-		      (mapconcat (function (lambda (d)
-					     (concat "\\\\" (regexp-quote d))))
-				 comint-delimiter-argument-list "\\|")
-		      "\\)+"))
-	  (delim-str (mapconcat (function (lambda (d)
-					    (concat (regexp-quote d) "+")))
-				comint-delimiter-argument-list "\\|"))
-	  (args ()) (pos 0))
-      (while (or (eq pos (string-match not-delim arg pos))
-		 (eq pos (string-match delim-str arg pos)))
-	(setq pos (match-end 0)
-	      args (cons (substring arg (match-beginning 0) pos) args)))
+    (let ((args nil)
+	  (pos 0)
+	  (len (length arg)))
+      (while (< pos len)
+	(let ((char (aref arg pos))
+	      (start pos))
+	  (if (memq char comint-delimiter-argument-list)
+	      (while (and (< pos len) (eq (aref arg pos) char))
+		(setq pos (1+ pos)))
+	    (while (and (< pos len)
+			(not (memq (aref arg pos)
+				   comint-delimiter-argument-list)))
+	      (setq pos (1+ pos))))
+	  (setq args (cons (substring arg start pos) args))))
       args)))
 
 (defun comint-arguments (string nth mth)
   "Return from STRING the NTH to MTH arguments.
 NTH and/or MTH can be nil, which means the last argument.
-Returned arguments are separated by single spaces.  Arguments are assumed to be
-delimited by whitespace.  Strings comprising characters in the variable
-`comint-delimiter-argument-list' are treated as delimiters and arguments.
+Returned arguments are separated by single spaces.
+We assume whitespace separates arguments, except within quotes.
+Also, a run of one or more of a single character
+in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  (let ((arg "\\(\\S \\|\\(\"[^\"]*\"\\|\'[^\']*\'\\|\`[^\`]*\`\\)\\)+")
+  (let ((arg "\\(\\(\"[^\"]*\"\\|\'[^\']*\'\\|\`[^\`]*\`\\)\\|\\S \\)+")
 	(args ()) (pos 0) (str nil))
     ;; We build a list of all the args.  Unnecessary, but more efficient, when
     ;; ranges of args are required, than picking out one by one and recursing.
     (while (string-match arg string pos)
       (setq pos (match-end 0)
 	    str (substring string (match-beginning 0) pos)
-	    args (nconc (comint-delim-arg str) args)))
+	    ;; (match-end 2) is non-nil if we found quotes.
+	    args (if (match-end 2) (cons str args)
+		   (nconc (comint-delim-arg str) args))))
     (let ((n (or nth (1- (length args))))
 	  (m (if mth (1- (- (length args) mth)) 0)))
       (mapconcat
