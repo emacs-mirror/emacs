@@ -29,7 +29,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'comint)
-  (require 'gud))
+  (require 'gud)
+  (require 'gdb-ui))
 
 
 ;;; Customizable settings
@@ -411,40 +412,15 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 	     (if tooltip-gud-dereference "on" "off"))))
 
 ; This will only display data that comes in one chunk. 
-; The prompt is lost in first chunk so needn't be stripped. 
 ; Larger arrays (say 400 elements) are displayed in
-; the tootip incompletely (only the last chunk is displayed
-; with the rest going to the gud buffer).
+; the tootip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
-; it may be difficult to do better.
+; it may be difficult to do better. gdba in gdb-ui.el
+; gets round this problem.
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
-  (case gud-minor-mode
-    (gdba (tooltip-show (tooltip-strip-annotations output)))
-    (t (tooltip-show (tooltip-strip-prompt process output)))))
-
-; this is derived from gdb-output-burst in gdb-ui.el. It
-; also only processes data that comes in one chunk properly.
-(defun tooltip-strip-annotations (string)
-  "Strip annotations from the output of the gdb process."
-  (save-match-data
-    (let ((output ""))
-
-      ;; Process all the complete markers in this chunk.
-      (while (string-match "\n\032\032\\(.*\\)\n" string)
-
-	;; Stuff prior to the match is just ordinary output.
-	;; It is either concatenated to OUTPUT or directed
-	;; elsewhere.
-	(setq output
-	      (gdb-concat-output 
-	       output
-	       (substring string 0 (match-beginning 0))))
-
-	;; Take that stuff off the string.
-	(setq string (substring string (match-end 0))))
-      output)))
+  (tooltip-show (tooltip-strip-prompt process output)))
 
 (defun tooltip-gud-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -478,10 +454,19 @@ This function must return nil if it doesn't handle EVENT."
 	(when expr
 	  (let ((cmd (tooltip-gud-print-command expr)))
 	    (unless (null cmd)	       ; CMD can be nil if unknown debugger
-	      (setq tooltip-gud-original-filter (process-filter process))
-	      (set-process-filter process 'tooltip-gud-process-output)
-	      (gud-basic-call cmd)
-	      expr)))))))
+	      (case gud-minor-mode
+		    (gdba (gdb-enqueue-input 
+			   (list  (concat cmd "\n") 'gdb-tooltip-print)))
+		    (t 
+		     (setq tooltip-gud-original-filter (process-filter process))
+		       (set-process-filter process 'tooltip-gud-process-output)
+		       (gud-basic-call cmd)))
+		    expr)))))))
+
+(defun gdb-tooltip-print ()
+  (tooltip-show 
+   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
+     (buffer-string))))
 
 
 ;;; Tooltip help.
