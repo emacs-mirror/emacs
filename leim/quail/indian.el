@@ -39,7 +39,7 @@
 (defun quail-indian-preceding-char-position (position)
   "Return the position of preceding composite character."
   (let (prec-composed)
-    (if (char-valid-p (char-before position)) ;; range o.k.
+    (if (characterp (char-before position)) ;; range o.k.
         (if (setq prec-composed (find-composition (1- position)))
             (car prec-composed)
           (1- position))
@@ -67,7 +67,7 @@
   ;;(message "input control-flag=%s, string=%s, key=%s"
   ;;         control-flag quail-current-str quail-current-key)
   ;; make quail-current-str string when possible.
-  (if (char-valid-p quail-current-str)
+  (if (characterp quail-current-str)
       (setq quail-current-str (char-to-string quail-current-str)))
   ;; reset quail-indian-update-preceding-char if it's initial.
   (if (= (overlay-start quail-overlay) (overlay-end quail-overlay))
@@ -182,7 +182,7 @@
     (let ((val (pop char-table)))
       (if (and key val)
 	  (quail-defrule
-	    (if (char-valid-p key) (char-to-string key) key)
+	    (if (characterp key) (char-to-string key) key)
 	    (if (stringp val) (vector val) val))))))
 
 ;;
