@@ -1,3 +1,11 @@
+2003-01-24  Dave Love  <fx@gnu.org>
+
+	* s/gnu-linux.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define for more
+	architectures.
+
+	* alloc.c (mark_stack) [!GC_LISP_OBJECT_ALIGNMENT && __GNUC__]:
+	Use __alignof__.
+
 2003-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (adjust_point_for_property): New second arg MODIFIED.
