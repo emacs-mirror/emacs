@@ -964,6 +964,8 @@ x_report_frame_params (f, alistptr)
   store_in_alist (alistptr, Qvisibility,
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
+  store_in_alist (alistptr, Qdisplay,
+		  XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->car);
 }
 
 
