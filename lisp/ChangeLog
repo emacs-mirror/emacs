@@ -1,3 +1,7 @@
+2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
+
 2001-10-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el: Make messages match original TPU/edt
@@ -28,8 +32,8 @@
 	(calendar-mouse-holidays, calendar-mouse-view-diary-entries)
 	(calendar-mouse-view-other-diary-entries)
 	(calendar-mouse-print-dates, calendar-mouse-2-date-menu)
-	(calendar-mouse-cal-tex-menu, cal-tex-mouse-filofax): Call
-	cal-menu-x-popup-menu instead of x-popup-menu.
+	(calendar-mouse-cal-tex-menu, cal-tex-mouse-filofax):
+	Call cal-menu-x-popup-menu instead of x-popup-menu.
 
 2001-10-01  Gerd Moellmann  <gerd@gnu.org>
 
@@ -41,8 +45,12 @@
 
 2001-10-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
+<<<<<<< ChangeLog
+	* help.el (help-for-help): Doc fix.  From Pavel@Janik.cz (Pavel Janik).
+=======
 	* help.el (help-for-help): Doc fix.  From Pavel@Janik.cz (Pavel
 	Jan,Bm(Bk).
+>>>>>>> 1.2772
 
 2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -62,10 +70,10 @@
 	beginning of the *Apropos* buffer more clear.
 
 2001-09-27  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-mult.el (ediff-get-meta-info): Installed Gerd's changes.
 	Added comments.
-	
+
 2001-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Use " \t" rather than
