@@ -1,6 +1,6 @@
 ;;; ethio-util.el --- utilities for Ethiopic
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: mule, multilingual, Ethiopic
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 
 ;;; Code:
 
@@ -34,18 +34,38 @@
   (let ((key-bindings '((" " . ethio-insert-space)
 			([?\S- ] . ethio-insert-ethio-space)
 			([?\C-'] . ethio-gemination)
-			([f2] . ethio-toggle-space)
-			([S-f2] . ethio-replace-space) ; as requested
-			([f3] . ethio-toggle-punctuation)
+
+			;; these old bindings conflict
+			;; with Emacs' binding policy
+
+			;; ([f2] . ethio-toggle-space)
+			;; ([S-f2] . ethio-replace-space) ; as requested
+			;; ([f3] . ethio-toggle-punctuation)
+			;; ([f4] . ethio-sera-to-fidel-buffer)
+			;; ([S-f4] . ethio-sera-to-fidel-region)
+			;; ([C-f4] . ethio-sera-to-fidel-mail-or-marker)
+			;; ([f5] . ethio-fidel-to-sera-buffer)
+			;; ([S-f5] . ethio-fidel-to-sera-region)
+			;; ([C-f5] . ethio-fidel-to-sera-mail-or-marker)
+			;; ([f6] . ethio-modify-vowel)
+			;; ([f7] . ethio-replace-space)
+			;; ([f8] . ethio-input-special-character)
+
+			;; this is the rewritten bindings
+
+			([f3] . ethio-fidel-to-sera-buffer)
+			([S-f3] . ethio-fidel-to-sera-region)
+			([C-f3] . ethio-fidel-to-sera-mail-or-marker)
 			([f4] . ethio-sera-to-fidel-buffer)
 			([S-f4] . ethio-sera-to-fidel-region)
 			([C-f4] . ethio-sera-to-fidel-mail-or-marker)
-			([f5] . ethio-fidel-to-sera-buffer)
-			([S-f5] . ethio-fidel-to-sera-region)
-			([C-f5] . ethio-fidel-to-sera-mail-or-marker)
-			([f6] . ethio-modify-vowel)
-			([f7] . ethio-replace-space)
-			([f8] . ethio-input-special-character)))
+			([S-f5] . ethio-toggle-punctuation)
+			([S-f6] . ethio-modify-vowel)
+			([S-f7] . ethio-replace-space)
+			([S-f8] . ethio-input-special-character)
+			([C-f9] . ethio-toggle-space)
+			([S-f9] . ethio-replace-space) ; as requested
+			))
 	kb)
     (while key-bindings
       (setq kb (car (car key-bindings)))
