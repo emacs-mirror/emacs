@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.15 $
+;; Version: $Revision: 1.16 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:38:11 $|$Revision: 1.15 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/26 05:06:14 $|$Revision: 1.16 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.16  1994/05/26  05:06:14  tromey
+; Menu items now sensitive as appropriate.
+;
 ; Revision 1.15  1994/05/22  20:38:11  tromey
 ; Added bug-report keybindings and menu entries.
 ;
@@ -243,7 +246,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.15 $")
+(defconst tcl-version "$Revision: 1.16 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -1960,7 +1963,7 @@ The first line is assumed to look like \"#!.../program ...\"."
       tcl-auto-newline
       tcl-tab-always-indent
       tcl-use-hairy-comment-detector
-      tcl-electric-has-style
+      tcl-electric-hash-style
       tcl-help-directory-list
       tcl-use-smart-word-finder
       tcl-application
