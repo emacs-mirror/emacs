@@ -173,34 +173,56 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 \(non-interactive\) companion function, `find-emacs-lisp-shadows'."
   
   (interactive)
-  (let* ((shadows (find-emacs-lisp-shadows))
-	 (n (/ (length shadows) 2))
-	 (msg (format "%s Emacs Lisp load-path shadowing%s found"
-		      (if (zerop n) "No" (concat "\n" (number-to-string n)))
-		      (if (= n 1) " was" "s were"))))
-    (if (interactive-p)
-	(save-excursion
-	  ;; We are interactive.
-	  ;; Create the *Shadows* buffer and display shadowings there.
-	  (let ((output-buffer (get-buffer-create "*Shadows*")))
-	    (display-buffer output-buffer)
-	    (set-buffer output-buffer)
-	    (erase-buffer)
-	    (while shadows
-	      (insert (format "%s hides %s\n" (car shadows)
-			      (car (cdr shadows))))
-	      (setq shadows (cdr (cdr shadows))))
-	    (insert msg "\n")))
-      ;; We are non-interactive, print shadows via message.
-      (when shadows
-	(message "This site has duplicate Lisp libraries with the same name.
+  (let* ((path (copy-sequence load-path))
+	(tem path)
+	toplevs)
+    ;; If we can find simple.el in two places,
+    (while tem
+      (if (file-exists-p (expand-file-name "simple.el" (car tem)))
+	  (setq toplevs (cons (car tem) toplevs)))
+      (setq tem (cdr tem)))
+    (if (> (length toplevs) 1)
+	;; Cut off our copy of load-path right before
+	;; the second directory which has simple.el in it.
+	;; This avoids loads of duplications between the source dir
+	;; and the dir where these files were copied by installation.
+	(let ((break (nth (- (length toplevs) 2) toplevs)))
+	  (setq tem path)
+	  (while tem
+	    (if (eq (nth 1 tem) break)
+		(progn
+		  (setcdr tem nil)
+		  (setq tem nil)))
+	    (setq tem (cdr tem)))))
+
+    (let* ((shadows (find-emacs-lisp-shadows path))
+	   (n (/ (length shadows) 2))
+	   (msg (format "%s Emacs Lisp load-path shadowing%s found"
+			(if (zerop n) "No" (concat "\n" (number-to-string n)))
+			(if (= n 1) " was" "s were"))))
+      (if (interactive-p)
+	  (save-excursion
+	    ;; We are interactive.
+	    ;; Create the *Shadows* buffer and display shadowings there.
+	    (let ((output-buffer (get-buffer-create "*Shadows*")))
+	      (display-buffer output-buffer)
+	      (set-buffer output-buffer)
+	      (erase-buffer)
+	      (while shadows
+		(insert (format "%s hides %s\n" (car shadows)
+				(car (cdr shadows))))
+		(setq shadows (cdr (cdr shadows))))
+	      (insert msg "\n")))
+	;; We are non-interactive, print shadows via message.
+	(when shadows
+	  (message "This site has duplicate Lisp libraries with the same name.
 If a locally-installed Lisp library overrides a library in the Emacs release,
 that can cause trouble, and you should probably remove the locally-installed
 version unless you know what you are doing.\n"))
-      (while shadows
-	(message "%s hides %s" (car shadows) (car (cdr shadows)))
-	(setq shadows (cdr (cdr shadows))))
-      (message "%s" msg))))
+	(while shadows
+	  (message "%s hides %s" (car shadows) (car (cdr shadows)))
+	  (setq shadows (cdr (cdr shadows))))
+	(message "%s" msg)))))
 
 (provide 'shadow)
 
