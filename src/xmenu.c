@@ -1051,7 +1051,8 @@ on the left of the dialog box and all following items on the right.\n\
 #ifdef USE_X_TOOLKIT
 
 /* Loop in Xt until the menu pulldown or dialog popup has been
-   popped down (deactivated).
+   popped down (deactivated).  This is used for x-popup-menu
+   and x-popup-dialog; it is not used for the menu bar any more.
 
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
