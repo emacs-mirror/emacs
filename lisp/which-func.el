@@ -106,7 +106,7 @@ Zero means compute the Imenu menu regardless of size."
   "*Toggle `which-func-mode'.
 You must modify via \\[customize] for this variable to have an effect."
   :set #'(lambda (symbol value)
-	   (which-func-mode (or value 0)))
+	   (which-func-mode (if value 1 0)))
   :initialize 'custom-initialize-default
   :type    'boolean
   :group   'which-func
