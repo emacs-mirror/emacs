@@ -81,7 +81,7 @@ is the position of the start of the region that you narrowed to.
 This function returns the maximum accessible value of point in the
 current buffer.  This is @code{(1+ (buffer-size))}, unless narrowing is
 in effect, in which case it is the position of the end of the region
-that you narrowed to.  (@xref{Narrowing}).
+that you narrowed to.  (@pxref{Narrowing}).
 @end defun
 
 @defun buffer-end flag

@@ -1196,7 +1196,7 @@ It uses the ordinary paragraph motion commands to find paragraph
 boundaries.  @xref{Paragraphs,,, emacs, The Emacs Manual}.
 @end deffn
 
-@deffn Command fill-region start end &optional justify nosqueeze
+@deffn Command fill-region start end &optional justify nosqueeze to-eop
 This command fills each of the paragraphs in the region from @var{start}
 to @var{end}.  It justifies as well if @var{justify} is
 non-@code{nil}.

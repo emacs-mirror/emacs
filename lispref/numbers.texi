@@ -953,20 +953,52 @@ in radians.
 @end defun
 
 @defun asin arg
-The value of @code{(asin @var{arg})} is a number between @minus{}pi/2
-and pi/2 (inclusive) whose sine is @var{arg}; if, however, @var{arg}
+The value of @code{(asin @var{arg})} is a number between
+@ifinfo
+@minus{}pi/2
+@end ifinfo
+@tex
+$-\pi/2$
+@end tex
+and
+@ifinfo
+pi/2
+@end ifinfo
+@tex
+$\pi/2$
+@end tex
+(inclusive) whose sine is @var{arg}; if, however, @var{arg}
 is out of range (outside [-1, 1]), then the result is a NaN.
 @end defun
 
 @defun acos arg
-The value of @code{(acos @var{arg})} is a number between 0 and pi
+The value of @code{(acos @var{arg})} is a number between 0 and
+@ifinfo
+pi
+@end ifinfo
+@tex
+$\pi$
+@end tex
 (inclusive) whose cosine is @var{arg}; if, however, @var{arg}
 is out of range (outside [-1, 1]), then the result is a NaN.
 @end defun
 
 @defun atan arg
-The value of @code{(atan @var{arg})} is a number between @minus{}pi/2
-and pi/2 (exclusive) whose tangent is @var{arg}.
+The value of @code{(atan @var{arg})} is a number between
+@ifinfo
+@minus{}pi/2
+@end ifinfo
+@tex
+$-\pi/2$
+@end tex
+and
+@ifinfo
+pi/2
+@end ifinfo
+@tex
+$\pi/2$
+@end tex
+(exclusive) whose tangent is @var{arg}.
 @end defun
 
 @defun exp arg

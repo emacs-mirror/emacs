@@ -1475,7 +1475,7 @@ specify the characters for which you want special behavior.
   These display rules apply to carriage return (character code 13), when
 it appears in the buffer.  But that character may not appear in the
 buffer where you expect it, if it was eliminated as part of end-of-line
-conversion (@xref{Coding System Basics}).
+conversion (@pxref{Coding System Basics}).
 
   These variables affect the way certain characters are displayed on the
 screen.  Since they change the number of columns the characters occupy,

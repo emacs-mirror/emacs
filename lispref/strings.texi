@@ -836,7 +836,7 @@ case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@xref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}).
 
 When the argument to @code{capitalize} is a character, @code{capitalize}
 has the same result as @code{upcase}.
@@ -863,7 +863,7 @@ had its initial letter converted to upper case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@xref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}).
 
 @example
 @group

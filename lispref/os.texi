@@ -1388,7 +1388,7 @@ In the example below, we set @code{keyboard-translate-table} to a
 char-table.  Then we fill it in to swap the characters @kbd{C-s} and
 @kbd{C-\} and the characters @kbd{C-q} and @kbd{C-^}.  Subsequently,
 typing @kbd{C-\} has all the usual effects of typing @kbd{C-s}, and vice
-versa.  (@xref{Flow Control} for more information on this subject.)
+versa.  (@pxref{Flow Control} for more information on this subject.)
 
 @cindex flow control example
 @example
