@@ -1,3 +1,17 @@
+2004-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (locate-file-completion): Handle nil in path-and-suffixes.
+	(file-truename): Expand all ~ constructs directly.
+	(insert-directory): Delete any error msg output by the
+	`insert-directory-program'.
+
+	* allout.el (allout-mode-exposure-menu, allout-mode-editing-menu):
+	(allout-mode-navigation-menu, allout-mode-misc-menu): New defvars.
+	(allout-prior-bindings, allout-added-bindings): Defvars deleted.
+	(allout-init): Use find-file-hook, not find-file-hooks.
+	(allout-mode): Eliminate Emacs 18 support.
+	Use write-contents-functions, not local-write-file-hooks.
+
 2004-04-17  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-error-properties): Fix for
