@@ -37,44 +37,45 @@ frame configuration, mark or list.
 A list of strings represents a rectangle.
 A list of the form (file . NAME) represents the file named NAME.")
 
-(defun get-register (char)
-  "Return contents of Emacs register named CHAR, or nil if none."
-  (cdr (assq char register-alist)))
+(defun get-register (reg)
+  "Return contents of Emacs register named REG, or nil if none."
+  (cdr (assq reg register-alist)))
 
-(defun set-register (char value)
-  "Set contents of Emacs register named CHAR to VALUE.  Returns VALUE.
+(defun set-register (register value)
+  "Set contents of Emacs register named REGISTER to VALUE.  Returns VALUE.
 See the documentation of the variable `register-alist' for possible VALUE."
-  (let ((aelt (assq char register-alist)))
+  (let ((aelt (assq register register-alist)))
     (if aelt
 	(setcdr aelt value)
-      (setq aelt (cons char value))
+      (setq aelt (cons register value))
       (setq register-alist (cons aelt register-alist)))
     value))
 
-(defun point-to-register (char &optional arg)
+(defun point-to-register (register &optional arg)
   "Store current location of point in register REGISTER.
 With prefix argument, store current frame configuration.
 Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
-  (set-register char (if arg (current-frame-configuration) (point-marker))))
+  (set-register register
+		(if arg (current-frame-configuration) (point-marker))))
 
-(defun window-configuration-to-register (char &optional arg)
+(defun window-configuration-to-register (register &optional arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
   (interactive "cWindow configuration to register: \nP")
-  (set-register char (current-window-configuration)))
+  (set-register register (current-window-configuration)))
 
-(defun frame-configuration-to-register (char &optional arg)
+(defun frame-configuration-to-register (register &optional arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
   (interactive "cFrame configuration to register: \nP")
-  (set-register char (current-frame-configuration)))
+  (set-register register (current-frame-configuration)))
 
 (defalias 'register-to-point 'jump-to-register)
-(defun jump-to-register (char &optional delete)
+(defun jump-to-register (register &optional delete)
   "Move point to location stored in a register.
 If the register contains a file name, find that file.
  \(To put a file name in a register, you must use `set-register'.)
@@ -85,7 +86,7 @@ Optional second arg non-nil (interactively, prefix argument) says to
 delete any existing frames that the frame configuration doesn't mention.
 \(Otherwise, these frames are iconified.)"
   (interactive "cJump to register: \nP")
-  (let ((val (get-register char)))
+  (let ((val (get-register register)))
     (cond
      ((and (fboundp 'frame-configuration-p)
 	   (frame-configuration-p val))
@@ -130,16 +131,16 @@ delete any existing frames that the frame configuration doesn't mention.
 ;      (error "Register does not contain a number"))
 ;  (set-register char (+ arg (get-register char))))
 
-(defun view-register (char)
+(defun view-register (register)
   "Display what is contained in register named REGISTER.
-REGISTER is a character."
+The Lisp value REGISTER is a character."
   (interactive "cView register: ")
-  (let ((val (get-register char)))
+  (let ((val (get-register register)))
     (if (null val)
-	(message "Register %s is empty" (single-key-description char))
+	(message "Register %s is empty" (single-key-description register))
       (with-output-to-temp-buffer "*Output*"
 	(princ "Register ")
-	(princ (single-key-description char))
+	(princ (single-key-description register))
 	(princ " contains ")
 	(cond
 	 ((integerp val)
@@ -180,14 +181,14 @@ REGISTER is a character."
 	  (princ "Garbage:\n")
 	  (prin1 val)))))))
 
-(defun insert-register (char &optional arg)
-  "Insert contents of register REG.  REG is a character.
+(defun insert-register (register &optional arg)
+  "Insert contents of register REGISTER.  (REGISTER is a character.)
 Normally puts point before and mark after the inserted text.
 If optional second arg is non-nil, puts mark before and point after.
 Interactively, second arg is non-nil if prefix arg is supplied."
   (interactive "*cInsert register: \nP")
   (push-mark)
-  (let ((val (get-register char)))
+  (let ((val (get-register register)))
     (cond
      ((consp val)
       (insert-rectangle val))
@@ -201,42 +202,45 @@ Interactively, second arg is non-nil if prefix arg is supplied."
       (error "Register does not contain text"))))
   (if (not arg) (exchange-point-and-mark)))
 
-(defun copy-to-register (char start end &optional delete-flag)
-  "Copy region into register REG.  With prefix arg, delete as well.
-Called from program, takes four args: REG, START, END and DELETE-FLAG.
+(defun copy-to-register (register start end &optional delete-flag)
+  "Copy region into register REGISTER.  With prefix arg, delete as well.
+Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
-  (set-register char (buffer-substring start end))
+  (set-register register (buffer-substring start end))
   (if delete-flag (delete-region start end)))
 
-(defun append-to-register (char start end &optional delete-flag)
-  "Append region to text in register REG.  With prefix arg, delete as well.
-Called from program, takes four args: REG, START, END and DELETE-FLAG.
+(defun append-to-register (register start end &optional delete-flag)
+  "Append region to text in register REGISTER.
+With prefix arg, delete as well.
+Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
-  (or (stringp (get-register char))
+  (or (stringp (get-register register))
       (error "Register does not contain text"))
-  (set-register char (concat (get-register char)
-			     (buffer-substring start end)))
+  (set-register register (concat (get-register register)
+			    (buffer-substring start end)))
   (if delete-flag (delete-region start end)))
 
-(defun prepend-to-register (char start end &optional delete-flag)
-  "Prepend region to text in register REG.  With prefix arg, delete as well.
-Called from program, takes four args: REG, START, END and DELETE-FLAG.
+(defun prepend-to-register (register start end &optional delete-flag)
+  "Prepend region to text in register REGISTER.
+With prefix arg, delete as well.
+Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
-  (or (stringp (get-register char))
+  (or (stringp (get-register register))
       (error "Register does not contain text"))
-  (set-register char (concat (buffer-substring start end)
-			     (get-register char)))
+  (set-register register (concat (buffer-substring start end)
+			    (get-register register)))
   (if delete-flag (delete-region start end)))
 
-(defun copy-rectangle-to-register (char start end &optional delete-flag)
-  "Copy rectangular region into register REG.  With prefix arg, delete as well.
-Called from program, takes four args: REG, START, END and DELETE-FLAG.
+(defun copy-rectangle-to-register (register start end &optional delete-flag)
+  "Copy rectangular region into register REGISTER.
+With prefix arg, delete as well.
+Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
-  (set-register char
+  (set-register register
 		(if delete-flag
 		    (delete-extract-rectangle start end)
 		  (extract-rectangle start end))))
