@@ -11134,6 +11134,61 @@ w32_initialize_display_info (display_name)
 
 }
 
+/* Create an xrdb-style database of resources to supercede registry settings.
+   The database is just a concatenation of C strings, finished by an additional
+   \0.  The string are submitted to some basic normalization, so
+
+     [ *]option[ *]:[ *]value...
+
+   becomes
+
+     option:value...
+
+   but any whitespace following value is not removed.  */
+
+static char *
+w32_make_rdb (xrm_option)
+     char *xrm_option;
+{
+  char *buffer = xmalloc (strlen (xrm_option) + 2);
+  char *current = buffer;
+  char ch;
+  int in_option = 1;
+  int before_value = 0;
+
+  do {
+    ch = *xrm_option++;
+
+    if (ch == '\n')
+      {
+        *current++ = '\0';
+        in_option = 1;
+        before_value = 0;
+      }
+    else if (ch != ' ')
+      {
+        *current++ = ch;
+        if (in_option && (ch == ':'))
+          {
+            in_option = 0;
+            before_value = 1;
+          }
+        else if (before_value)
+          {
+            before_value = 0;
+          }
+      }
+    else if (!(in_option || before_value))
+      {
+        *current++ = ch;
+      }
+  } while (ch);
+
+  *current = '\0';
+
+  return buffer;
+}
+
 struct w32_display_info *
 w32_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -11151,22 +11206,11 @@ w32_term_init (display_name, xrm_option, resource_name)
       w32_initialized = 1;
     }
 
-  {
-    int argc = 0;
-    char *argv[3];
-
-    argv[0] = "";
-    argc = 1;
-    if (xrm_option)
-      {
-	argv[argc++] = "-xrm";
-	argv[argc++] = xrm_option;
-      }
-  }
-
   w32_initialize_display_info (display_name);
 
   dpyinfo = &one_w32_display_info;
+
+  dpyinfo->xrdb = xrm_option ? w32_make_rdb (xrm_option) : NULL;
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
