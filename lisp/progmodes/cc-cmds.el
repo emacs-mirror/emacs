@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.15
+;; Version:    5.16
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -750,7 +750,8 @@ comment."
 ;; for proposed new variable comment-line-break-function
 (defun c-comment-line-break-function (&optional soft)
   ;; we currently don't do anything with soft line breaks
-  (if (not c-comment-continuation-stars)
+  (if (or (not c-comment-continuation-stars)
+	  (not (c-in-literal)))
       (indent-new-comment-line soft)
     (let ((here (point))
 	  (leader c-comment-continuation-stars))
@@ -775,6 +776,7 @@ comment."
   (require 'advice)
   (defadvice indent-new-comment-line (around c-line-break-advice activate)
     (if (or (not c-buffer-is-cc-mode)
+	    (not (c-in-literal))
 	    (not c-comment-continuation-stars))
 	ad-do-it
       (c-comment-line-break-function (ad-get-arg 0)))))
@@ -1252,10 +1254,9 @@ Optional prefix ARG means justify paragraph as well."
 	    (and (looking-at comment-start-skip)
 		 (setq comment-start-place (point)))))
 	 (re1 "\\|[ \t]*/\\*[ \t]*$\\|[ \t]*\\*/[ \t]*$\\|[ \t/*]*$"))
-    (if (and c-double-slash-is-comments-p
-	     (save-excursion
-	       (beginning-of-line)
-	       (looking-at ".*//")))
+    (if (save-excursion
+	  (beginning-of-line)
+	  (looking-at ".*//"))
 	(let ((fill-prefix fill-prefix)
 	       ;; Lines containing just a comment start or just an end
 	       ;; should not be filled into paragraphs they are next
