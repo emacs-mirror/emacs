@@ -1,3 +1,7 @@
+2001-11-17  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fwrite_region): Avoid initializer for Lisp_Object.
+
 2001-11-17  Jason Rumney  <jasonr@gnu.org>
 
 	* xterm.c (notice_overwritten_cursor): Take care of end < 0 case.
