@@ -1,3 +1,33 @@
+2001-02-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_encode_char): Treat eight bit graphic and control
+	characters the same as ASCII and latin-1.
+	(x_display_and_set_cursor): Check for the focus	frame's selected
+	window instead of selected_window.
+	(x_after_update_window_line): Don't clear if frame's internal
+	border width is zero.
+	(x_new_font): Don't change a tooltip's size.
+	(w32_initialize): Set char_ins_del_ok to 1.
+
+	* w32fns.c (Fx_show_tip): Fix calls to make_number.
+	(x_set_font): If font hasn't changed, avoid recomputing
+	faces and other things.
+	(x_set_tool_bar_lines): Do nothing if frame is
+	minibuffer-only,
+	(Fx_create_frame): Add the tool bar height to the frame
+	height.
+	(x_create_tip_frame): Prevent changing the tooltip's
+	background color by specifying a color for the default font
+	in .Xdefaults.
+	(Qcancel_timer): New variable.
+	(syms_of_w32fns): Initialize and staticpro it.
+	(Fx_hide_tip, Fx_show_tip): Use it.
+	(Fx_show_tip): Make sure to set tip_timer to nil when canceling
+	the timer.
+	(toplevel): Lisp code for generating parts of syms_of_w32fns removed.
+
+	* w32.c (init_environment): Duplicate local string before putenv.
+
 2001-02-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* charset.c (Fstring): A typo.
