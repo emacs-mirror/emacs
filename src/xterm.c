@@ -469,7 +469,8 @@ static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
+static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
+				   enum text_cursor_kinds));
 static int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
@@ -11333,10 +11334,11 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row, width)
+x_draw_bar_cursor (w, row, width, kind)
      struct window *w;
      struct glyph_row *row;
      int width;
+     enum text_cursor_kinds kind;
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
@@ -11390,10 +11392,19 @@ x_draw_bar_cursor (w, row, width)
       width = min (cursor_glyph->pixel_width, width);
   
       x_clip_to_row (w, row, gc, 0);
-      XFillRectangle (dpy, window, gc,
-		      WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
-		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      width, row->height);
+      if (kind == BAR_CURSOR)
+	  XFillRectangle (dpy, window, gc,
+			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			  width, row->height);
+      else
+	  XFillRectangle (dpy, window, gc,
+			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+						   row->height - width),
+			  cursor_glyph->pixel_width,
+			  width);
+
       XSetClipMask (dpy, gc, None);
     }
 }
@@ -11714,7 +11725,11 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, new_cursor_width);
+	  x_draw_bar_cursor (w, glyph_row, new_cursor_width, BAR_CURSOR);
+	  break;
+
+	case HBAR_CURSOR:
+	    x_draw_bar_cursor (w, glyph_row, new_cursor_width, HBAR_CURSOR);
 	  break;
 
 	case NO_CURSOR:
