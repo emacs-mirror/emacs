@@ -139,20 +139,24 @@
 			  (vector val))))
    (cdr hashtbls)))
 
-;;
- 
-;; (quail-define-package "devanagari-itrans" "Devanagari" "DevIT" t "Devanagari ITRANS")
+;; This needs to be seen by quail-update-leim-list-file, but cannot be
+;; commented out because quail-update-leim-list-file ignores
+;; commented-out lines.
+(if nil
+    (quail-define-package "devanagari-itrans" "Devanagari" "DevIT" t "Devanagari ITRANS"))
 (quail-define-indian-trans-package
  indian-dev-itrans-v5-hash "devanagari-itrans" "Devanagari" "DevIT"
  "Devanagari transliteration by ITRANS method.")
 
-;; (quail-define-package "devanagari-kyoto-harvard" "Devanagari" "DevKH" t "Devanagari Kyoto-Harvard")
+(if nil
+    (quail-define-package "devanagari-kyoto-harvard" "Devanagari" "DevKH" t "Devanagari Kyoto-Harvard"))
 (quail-define-indian-trans-package
  indian-dev-kyoto-harvard-hash
  "devanagari-kyoto-harvard" "Devanagari" "DevKH"
  "Devanagari transliteration by Kyoto-Harvard method.")
 
-;; (quail-define-package "devanagari-aiba" "Devanagari" "DevAB" t "Devanagari Aiba")
+(if nil
+    (quail-define-package "devanagari-aiba" "Devanagari" "DevAB" t "Devanagari Aiba"))
 (quail-define-indian-trans-package
  indian-dev-aiba-hash "devanagari-aiba" "Devanagari" "DevAB"
  "Devanagari transliteration by Aiba-method.")
@@ -206,7 +210,8 @@
     (;; Inscripts
      ?# ?$ ?^ ?* ?\])))
 
-;; (quail-define-package "devanagari-inscript" "Devanagari" "DevIS" t "Devanagari keyboard Inscript")
+(if nil
+    (quail-define-package "devanagari-inscript" "Devanagari" "DevIS" t "Devanagari keyboard Inscript"))
 (quail-define-inscript-package
  indian-dev-base-table inscript-dev-keytable
  "devanagari-inscript" "Devanagari" "DevIS"
