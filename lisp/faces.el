@@ -24,6 +24,13 @@
 
 ;;; Code:
 
+
+;;;; Functions for manipulating face vectors.
+
+;;; A face vector is a vector of the form:
+;;;    [face ID FONT FOREGROUND BACKGROUND BACKGROUND-PIXMAP UNDERLINE]
+
+;;; Type checkers.
 (defsubst internal-facep (x)
   (and (vectorp x) (= (length x) 8) (eq (aref x 0) 'face)))
 
@@ -31,38 +38,7 @@
   (` (while (not (internal-facep (, face)))
        (setq (, face) (signal 'wrong-type-argument (list 'internal-facep (, face)))))))
 
-
-(defvar global-face-data nil "do not use this")
-
-(defun face-list ()
-  "Returns a list of all defined face names."
-  (mapcar 'car global-face-data))
-
-(defun internal-find-face (name &optional frame)
-  "Retrieve the face named NAME.  Return nil if there is no such face.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
-  (if (and (eq frame t) (not (symbolp name)))
-      (setq name (face-name name)))
-  (if (symbolp name)
-      (cdr (assq name
-		 (if (eq frame t)
-		     global-face-data
-		   (frame-face-alist (or frame (selected-frame))))))
-    (internal-check-face name)
-    name))
-
-(defun internal-get-face (name &optional frame)
-  "Retrieve the face named NAME; error if there is none.
-If the optional argument FRAME is given, this gets the face NAME for
-that frame; otherwise, it uses the selected frame.
-If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned."
-  (or (internal-find-face name frame)
-      (internal-check-face name)))
-
+;;; Accessors.
 (defsubst face-name (face)
   "Return the name of face FACE."
   (aref (internal-get-face face) 1))
@@ -101,45 +77,8 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 Otherwise report on the defaults for face FACE (for new frames)."
  (aref (internal-get-face face frame) 7))
 
-
-(defun internal-set-face-1 (face name value index frame)
-  (let ((inhibit-quit t))
-    (if (null frame)
-	(let ((frames (frame-list)))
-	  (while frames
-	    (internal-set-face-1 (face-name face) name value index (car frames))
-	    (setq frames (cdr frames)))
-	  (aset (internal-get-face (if (symbolp face) face (face-name face)) t)
-		index value)
-	  value)
-      (or (eq frame t)
-	  (set-face-attribute-internal (face-id face) name value frame))
-      (aset (internal-get-face face frame) index value))))
-
-
-(defun read-face-name (prompt)
-  (let (face)
-    (while (= (length face) 0)
-      (setq face (completing-read prompt
-				  (mapcar '(lambda (x) (list (symbol-name x)))
-					  (face-list))
-				  nil t)))
-    (intern face)))
-
-(defun internal-face-interactive (what &optional bool)
-  (let* ((fn (intern (concat "face-" what)))
-	 (prompt (concat "Set " what " of face"))
-	 (face (read-face-name (concat prompt ": ")))
-	 (default (if (fboundp fn)
-		      (or (funcall fn face (selected-frame))
-			  (funcall fn 'default (selected-frame)))))
-	 (value (if bool
-		    (y-or-n-p (concat "Should face " (symbol-name face)
-				      " be " bool "? "))
-		  (read-string (concat prompt " " (symbol-name face) " to: ")
-			       default))))
-    (list face (if (equal value "") nil value))))
-
+
+;;; Mutators.
 
 (defsubst set-face-font (face font &optional frame)
   "Change the font of face FACE to FONT (a string).
@@ -182,6 +121,80 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "underline-p" "underlined"))
   (internal-set-face-1 face 'underline underline-p 7 frame))
+
+
+;;;; Associating face names (symbols) with their face vectors.
+
+(defvar global-face-data nil "do not use this")
+
+(defun face-list ()
+  "Returns a list of all defined face names."
+  (mapcar 'car global-face-data))
+
+(defun internal-find-face (name &optional frame)
+  "Retrieve the face named NAME.  Return nil if there is no such face.
+If the optional argument FRAME is given, this gets the face NAME for
+that frame; otherwise, it uses the selected frame.
+If FRAME is the symbol t, then the global, non-frame face is returned.
+If NAME is already a face, it is simply returned."
+  (if (and (eq frame t) (not (symbolp name)))
+      (setq name (face-name name)))
+  (if (symbolp name)
+      (cdr (assq name
+		 (if (eq frame t)
+		     global-face-data
+		   (frame-face-alist (or frame (selected-frame))))))
+    (internal-check-face name)
+    name))
+
+(defun internal-get-face (name &optional frame)
+  "Retrieve the face named NAME; error if there is none.
+If the optional argument FRAME is given, this gets the face NAME for
+that frame; otherwise, it uses the selected frame.
+If FRAME is the symbol t, then the global, non-frame face is returned.
+If NAME is already a face, it is simply returned."
+  (or (internal-find-face name frame)
+      (internal-check-face name)))
+
+
+(defun internal-set-face-1 (face name value index frame)
+  (let ((inhibit-quit t))
+    (if (null frame)
+	(let ((frames (frame-list)))
+	  (while frames
+	    (internal-set-face-1 (face-name face) name value index (car frames))
+	    (setq frames (cdr frames)))
+	  (aset (internal-get-face (if (symbolp face) face (face-name face)) t)
+		index value)
+	  value)
+      (or (eq frame t)
+	  (set-face-attribute-internal (face-id face) name value frame))
+      (aset (internal-get-face face frame) index value))))
+
+
+(defun read-face-name (prompt)
+  (let (face)
+    (while (= (length face) 0)
+      (setq face (completing-read prompt
+				  (mapcar '(lambda (x) (list (symbol-name x)))
+					  (face-list))
+				  nil t)))
+    (intern face)))
+
+(defun internal-face-interactive (what &optional bool)
+  (let* ((fn (intern (concat "face-" what)))
+	 (prompt (concat "Set " what " of face"))
+	 (face (read-face-name (concat prompt ": ")))
+	 (default (if (fboundp fn)
+		      (or (funcall fn face (selected-frame))
+			  (funcall fn 'default (selected-frame)))))
+	 (value (if bool
+		    (y-or-n-p (concat "Should face " (symbol-name face)
+				      " be " bool "? "))
+		  (read-string (concat prompt " " (symbol-name face) " to: ")
+			       default))))
+    (list face (if (equal value "") nil value))))
+
 
 
 (defun make-face (name)
