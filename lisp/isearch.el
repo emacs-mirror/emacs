@@ -242,7 +242,8 @@ Default value, nil, means edit the string instead."
       (while l
 	(set-char-table-default table (car l) 'isearch-printing-char)
 	(setq l (cdr l))))
-    ;; Make function keys, etc, exit the search.
+    ;; Make function keys, etc, which aren't bound to a scrolling-function
+    ;; exit the search.
     (define-key map [t] 'isearch-other-control-char)
     ;; Control chars, by default, end isearch mode transparently.
     ;; We need these explicit definitions because, in a dense keymap,
@@ -1224,18 +1225,176 @@ might return the position of the end of the line."
 	(goto-char isearch-barrier)))
   (isearch-process-search-char last-command-char))
 
+(defun isearch-unread-key-sequence (keylist)
+  "Unread the given key-sequence KEYLIST.
+Scroll-bar or mode-line events are processed appropriately."
+  (cancel-kbd-macro-events)
+  (apply 'isearch-unread keylist)
+  ;; If the event was a scroll-bar or mode-line click, the event will have
+  ;; been prefixed by a symbol such as vertical-scroll-bar.  We must remove
+  ;; it here, because this symbol will be attached to the event again next
+  ;; time it gets read by read-key-sequence.
+  ;;
+  ;; (Old comment from isearch-other-meta-char: "Note that we don't have to
+  ;; modify the event anymore in 21 because read_key_sequence no longer
+  ;; modifies events to produce fake prefix keys.")
+  (if (and (> (length keylist) 1)
+           (symbolp (car keylist))
+           (listp (cadr keylist))
+           (not (numberp (posn-point
+                          (event-start (cadr keylist)  )))))
+      (pop unread-command-events)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; scrolling within Isearch mode.  Alan Mackenzie (acm@muc.de), 2003/2/24
+;;
+;; The idea here is that certain vertical scrolling commands (like C-l
+;; `recenter') should be usable WITHIN Isearch mode.  For a command to be
+;; suitable, it must NOT alter the buffer, swap to another buffer or frame,
+;; tamper with isearch's state, or move point.  It is unacceptable for the
+;; search string to be scrolled out of the current window.  If a command
+;; attempts this, we scroll the text back again.
+;;
+;; We implement this feature with a property called `isearch-scroll'.
+;; If a command's symbol has the value t for this property it is a
+;; scrolling command.  The feature needs to be enabled by setting the
+;; customizable variable `isearch-allow-scroll' to a non-nil value.
+;;
+;; The universal argument commands (e.g. C-u) in simple.el are marked
+;; as scrolling commands, and isearch.el has been amended to allow
+;; prefix arguments to be passed through to scrolling commands.  Thus
+;; M-0 C-l will scroll point to the top of the window.
+;;
+;; Horizontal scrolling commands are currently not catered for.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Set the isearch-scroll property on some standard functions:
+;; Scroll-bar functions:
+(if (fboundp 'scroll-bar-toolkit-scroll)
+    (put 'scroll-bar-toolkit-scroll 'isearch-scroll t))
+(if (fboundp 'mac-handle-scroll-bar-event)
+    (put 'mac-handle-scroll-bar-event 'isearch-scroll t))
+(if (fboundp 'w32-handle-scroll-bar-event)
+    (put 'w32-handle-scroll-bar-event 'isearch-scroll t))
+
+;; Commands which scroll the window:
+(put 'recenter 'isearch-scroll t)
+(put 'reposition-window 'isearch-scroll t)
+(put 'scroll-up 'isearch-scroll t)
+(put 'scroll-down 'isearch-scroll t)
+
+;; Commands which act on the other window
+(put 'list-buffers 'isearch-scroll t)
+(put 'scroll-other-window 'isearch-scroll t)
+(put 'scroll-other-window-down 'isearch-scroll t)
+(put 'beginning-of-buffer-other-window 'isearch-scroll t)
+(put 'end-of-buffer-other-window 'isearch-scroll t)
+
+;; Commands which change the window layout
+(put 'delete-other-windows 'isearch-scroll t)
+(put 'balance-windows 'isearch-scroll t)
+(put 'split-window-vertically 'isearch-scroll t)
+(put 'enlarge-window 'isearch-scroll t)
+
+;; Universal argument commands
+(put 'universal-argument 'isearch-scroll t)
+(put 'negative-argument 'isearch-scroll t)
+(put 'digit-argument 'isearch-scroll t)
+
+(defcustom isearch-allow-scroll nil
+  "If non-nil, scrolling commands are allowed during incremental search."
+  :type 'boolean
+  :group 'isearch)
+
+(defun isearch-string-out-of-window (isearch-point)
+  "Test whether the search string is currently outside of the window.
+Return nil if it's completely visible, or if point is visible,
+together with as much of the search string as will fit; the symbol
+`above' if we need to scroll the text downwards; the symbol `below',
+if upwards."
+  (let ((w-start (window-start))
+        (w-end (window-end nil t))
+        (w-L1 (save-excursion (move-to-window-line 1) (point)))
+        (w-L-1 (save-excursion (move-to-window-line -1) (point)))
+        start end)                  ; start and end of search string in buffer
+    (if isearch-forward
+        (setq end isearch-point  start (or isearch-other-end isearch-point))
+      (setq start isearch-point  end (or isearch-other-end isearch-point)))
+    (cond ((or (and (>= start w-start) (<= end w-end))
+               (if isearch-forward
+                   (and (>= isearch-point w-L-1) (< isearch-point w-end)) ; point on Line -1
+                 (and (>= isearch-point w-start) (< isearch-point w-L1)))) ; point on Line 0
+           nil)
+          ((and (< start w-start)
+                (< isearch-point w-L-1))
+           'above)
+          (t 'below))))
+
+(defun isearch-back-into-window (above isearch-point)
+  "Scroll the window to bring the search string back into view.
+Restore point to ISEARCH-POINT in the process.  ABOVE is t when the
+search string is above the top of the window, nil when it is beneath
+the bottom."
+  (let (start end)
+    (if isearch-forward
+        (setq end isearch-point  start (or isearch-other-end isearch-point))
+      (setq start isearch-point  end (or isearch-other-end isearch-point)))
+    (if above
+        (progn
+          (goto-char start)
+          (recenter 0)
+          (when (>= isearch-point (window-end nil t))
+            (goto-char isearch-point)
+            (recenter -1)))
+      (goto-char end)
+      (recenter -1)
+      (when (< isearch-point (window-start))
+        (goto-char isearch-point)
+        (recenter 0))))
+  (goto-char isearch-point))
+
+(defun isearch-reread-key-sequence-naturally (keylist)
+  "Reread key sequence KEYLIST with Isearch mode's keymap deactivated.
+Return the key sequence as a string/vector."
+  (isearch-unread-key-sequence keylist)
+  (let (overriding-terminal-local-map)
+    (read-key-sequence nil)))  ; This will go through function-key-map, if nec.
+
+(defun isearch-lookup-scroll-key (key-seq)
+  "If KEY-SEQ is bound to a scrolling command, return it as a symbol.
+Otherwise return nil."
+  (let* ((overriding-terminal-local-map nil)
+         (binding (key-binding key-seq)))
+    (and binding (symbolp binding) (commandp binding)
+         (eq (get binding 'isearch-scroll) t)
+         binding)))
 
 (defalias 'isearch-other-control-char 'isearch-other-meta-char)
 
-(defun isearch-other-meta-char ()
-  "Exit the search normally and reread this key sequence.
-But only if `search-exit-option' is non-nil, the default.
-If it is the symbol `edit', the search string is edited in the minibuffer
-and the meta character is unread so that it applies to editing the string."
-  (interactive)
-  (let* ((key (this-command-keys))
+(defun isearch-other-meta-char (&optional arg)
+  "Process a miscellaneous key sequence in Isearch mode.
+
+Try to convert the current key-sequence to something usable in Isearch
+mode, either by converting it with `function-key-map', downcasing a
+key with C-<upper case>, or finding a \"scrolling command\" bound to
+it.  \(In the last case, we may have to read more events.)  If so,
+either unread the converted sequence or execute the command.
+
+Otherwise, if `search-exit-option' is non-nil (the default) unread the
+key-sequence and exit the search normally.  If it is the symbol
+`edit', the search string is edited in the minibuffer and the meta
+character is unread so that it applies to editing the string.
+
+ARG is the prefix argument.  It will be transmitted through to the
+scrolling command or to the command whose key-sequence exits
+Isearch mode."
+  (interactive "P")
+  (let* ((key (if current-prefix-arg    ; not nec the same as ARG
+                  (substring (this-command-keys) universal-argument-num-events)
+                (this-command-keys)))
 	 (main-event (aref key 0))
-	 (keylist (listify-key-sequence key)))
+	 (keylist (listify-key-sequence key))
+         scroll-command isearch-point)
     (cond ((and (= (length key) 1)
 		(let ((lookup (lookup-key function-key-map key)))
 		  (not (or (null lookup) (integerp lookup)
@@ -1287,23 +1446,27 @@ and the meta character is unread so that it applies to editing the string."
 	  ((eq search-exit-option 'edit)
 	   (apply 'isearch-unread keylist)
 	   (isearch-edit-string))
+          ;; Handle a scrolling function.
+          ((and isearch-allow-scroll
+                (progn (setq key (isearch-reread-key-sequence-naturally keylist))
+                       (setq keylist (listify-key-sequence key))
+                       (setq main-event (aref key 0))
+                       (setq scroll-command (isearch-lookup-scroll-key key))))
+           ;; From this point onwards, KEY, KEYLIST and MAIN-EVENT hold a
+           ;; complete key sequence, possibly as modified by function-key-map,
+           ;; not merely the one or two event fragment which invoked
+           ;; isearch-other-meta-char in the first place.
+           (setq isearch-point (point))
+           (setq prefix-arg arg)
+           (command-execute scroll-command)
+           (let ((ab-bel (isearch-string-out-of-window isearch-point)))
+             (if ab-bel
+                 (isearch-back-into-window (eq ab-bel 'above) isearch-point)))
+           (isearch-update))
 	  (search-exit-option
 	   (let (window)
-	     (cancel-kbd-macro-events)
-	     (apply 'isearch-unread keylist)
-
-	     ;; Properly handle scroll-bar and mode-line clicks for
-	     ;; which a dummy prefix event was generated as (aref key
-	     ;; 0).  Note that we don't have to modify the event
-	     ;; anymore in 21 because read_key_sequence no longer modifies
-	     ;; events to produce fake prefix keys.
-	     (when (and (> (length key) 1)
-			(symbolp (aref key 0))
-			(listp (aref key 1))
-			(not (numberp (posn-point
-				       (event-start (aref key 1))))))
-	       (pop unread-command-events)
-	       (setq main-event (car unread-command-events)))
+             (isearch-unread-key-sequence keylist)
+             (setq main-event (car unread-command-events))
 
 	     ;; If we got a mouse click event, that event contains the
 	     ;; window clicked on. maybe it was read with the buffer
@@ -1333,8 +1496,9 @@ and the meta character is unread so that it applies to editing the string."
 		   (isearch-done)
 		   (isearch-clean-overlays))
 	       (isearch-done)
-	       (isearch-clean-overlays))))
-	  (t;; otherwise nil
+	       (isearch-clean-overlays)
+               (setq prefix-arg arg))))
+          (t;; otherwise nil
 	   (isearch-process-search-string key key)))))
 
 (defun isearch-quote-char ()
@@ -1997,6 +2161,7 @@ A value of nil means highlight all matches."
 (defvar isearch-lazy-highlight-last-string nil)
 (defvar isearch-lazy-highlight-window nil)
 (defvar isearch-lazy-highlight-window-start nil)
+(defvar isearch-lazy-highlight-window-end nil)
 (defvar isearch-lazy-highlight-case-fold-search nil)
 (defvar isearch-lazy-highlight-regexp nil)
 
@@ -2031,12 +2196,15 @@ search string to change or the window to scroll)."
 		 (not (eq isearch-lazy-highlight-regexp
 			  isearch-regexp))
                  (not (= (window-start)
-                         isearch-lazy-highlight-window-start))))
+                         isearch-lazy-highlight-window-start))
+                 (not (= (window-end)   ; Window may have been split/joined.
+                         isearch-lazy-highlight-window-end))))
     ;; something important did indeed change
     (isearch-lazy-highlight-cleanup t) ;kill old loop & remove overlays
     (when (not isearch-invalid-regexp)
       (setq isearch-lazy-highlight-window       (selected-window)
             isearch-lazy-highlight-window-start (window-start)
+            isearch-lazy-highlight-window-end   (window-end)
             isearch-lazy-highlight-start        (point)
             isearch-lazy-highlight-end          (point)
             isearch-lazy-highlight-last-string  isearch-string
