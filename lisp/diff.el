@@ -30,6 +30,7 @@
 
 (require 'compile)
 
+;;; This is duplicated in vc.el.
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be be passed to diff.")
 
