@@ -68,7 +68,7 @@ TLASTLIB	= $(BLD)\lastfile.lib
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
 !if "$(BUILD_TYPE)" == "spd"
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
 !else
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd $(EXTRA_LINK)
 !endif
@@ -198,14 +198,14 @@ epaths.h:	..\nt\paths.h
 DOC		= $(OBJDIR)\etc\DOC-X
 $(DOC):;	cd ..\lib-src 
 		- $(DEL) DOC-X
-		$(MAKE) -f makefile.nt all
+		$(MAKE) $(MFLAGS) -f makefile.nt all
 		cd ..\src
 
 #
 # The dumped executable
 #
 emacs:          $(EMACS)
-$(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
+$(EMACS):       $(DOC) $(TEMACS)
 		cd $(BLD)
 		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup dump
 		cd ..\..
@@ -217,9 +217,39 @@ $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 # (it is the preload heap size in MB).
 #
 temacs:         $(BLD) $(TEMACS)
-$(TEMACS):      $(TLIB0) $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
+$(TEMACS):      $(PREPARED_HEADERS) $(TLIB0) $(TLIB1) $(TLIB2) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS_TMP) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 		..\nt\$(BLD)\addsection $(TEMACS_TMP) $(TEMACS) EMHEAP 16
+
+bootstrap: bootstrap-emacs
+
+#
+# Build a temacs with a sufficiently large PURESIZE to load the
+# Lisp files from loadup.el in source form.
+#
+bootstrap-temacs: bootstrap-clean
+		$(MAKE) $(MFLAGS) -f makefile.nt temacs CFLAGS="$(CFLAGS) -DPURESIZE=5000000"
+
+#
+# Dump an Emacs executable named bootstrap-emacs containing the 
+# files from loadup.el in source form.
+#
+bootstrap-emacs: bootstrap-temacs
+		cd $(BLD)
+		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup bootstrap
+		cd ..\..
+		- mkdir ..\bin
+		$(CP) $(EMACS) ..\bin
+
+#
+# Force recompile of files that depend on PURESIZE
+#
+bootstrap-clean:
+		- $(DEL) $(BLD)\alloc.obj
+		- $(DEL) $(BLD)\data.obj
+		- $(DEL) $(BLD)\intervals.obj
+		- $(DEL) $(BLD)\keyboard.obj
+		- $(DEL) $(BLD)\keymap.obj
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
@@ -291,7 +321,6 @@ $(BLD)\abbrev.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h
@@ -301,9 +330,7 @@ $(BLD)\alloc.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\puresize.h \
@@ -331,7 +358,6 @@ $(BLD)\atimer.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\atimer.h \
 	$(SRC)\syssignal.h \
 	$(SRC)\systime.h \
@@ -343,11 +369,10 @@ $(BLD)\buffer.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
+	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
@@ -360,7 +385,6 @@ $(BLD)\bytecode.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\syntax.h
 
@@ -369,7 +393,6 @@ $(BLD)\callint.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
 	$(SRC)\keyboard.h \
@@ -383,7 +406,6 @@ $(BLD)\callproc.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\msdos.h \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\process.h \
@@ -397,7 +419,6 @@ $(BLD)\casefiddle.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
 	$(SRC)\syntax.h
@@ -408,7 +429,6 @@ $(BLD)\casetab.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\cm.obj : \
@@ -424,17 +444,25 @@ $(BLD)\cmds.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\syntax.h
+
+$(BLD)\composite.obj : \
+	$(SRC)\composite.c \
+	$(SRC)\buffer.h \
+	$(SRC)\charset.h \
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\data.obj : \
 	$(SRC)\data.c \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\puresize.h \
 	$(SRC)\buffer.h \
 	$(SRC)\syssignal.h
@@ -446,7 +474,6 @@ $(BLD)\dired.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\vmsdir.h \
 	$(SRC)\ndir.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
 	$(SRC)\regex.h
@@ -456,7 +483,6 @@ $(BLD)\dispnew.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
 	$(SRC)\termhooks.h \
@@ -469,15 +495,14 @@ $(BLD)\dispnew.obj : \
 	$(SRC)\indent.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
 	$(SRC)\w32term.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
-	$(SRC)\systime.h \
-	$(SRC)\composite.h
+	$(SRC)\systime.h
 
 $(BLD)\doc.obj : \
 	$(SRC)\doc.c \
@@ -485,7 +510,6 @@ $(BLD)\doc.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\keyboard.h
 
@@ -495,6 +519,18 @@ $(BLD)\doprnt.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
 
+$(BLD)\dosfns.obj : \
+	$(SRC)\dosfns.c \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\buffer.h \
+	$(SRC)\termchar.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\frame.h \
+	$(SRC)\dosfns.h \
+	$(SRC)\msdos.h
+
 $(BLD)\editfns.obj : \
 	$(SRC)\editfns.c \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
@@ -503,9 +539,7 @@ $(BLD)\editfns.obj : \
 	$(SRC)\uaf.h \
 	$(SRC)\vms-pwd.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -518,10 +552,8 @@ $(BLD)\emacs.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
@@ -535,7 +567,6 @@ $(BLD)\eval.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\commands.h \
 	$(SRC)\keyboard.h
@@ -551,9 +582,7 @@ $(BLD)\fileio.obj : \
 	$(SRC)\msdos.h \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
 	$(SRC)\vmsdir.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -571,7 +600,6 @@ $(BLD)\filelock.obj : \
 	$(SRC)\vms-pwd.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
-	$(SRC)\lisp.h \
 	$(EMACS_ROOT)\src\epaths.h \
 	$(SRC)\buffer.h \
 	$(SRC)\vmsdir.h \
@@ -597,7 +625,6 @@ $(BLD)\floatfns.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\syssignal.h
 
 $(BLD)\fns.obj : \
@@ -605,12 +632,10 @@ $(BLD)\fns.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -619,7 +644,6 @@ $(BLD)\frame.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\window.h \
@@ -659,7 +683,6 @@ $(BLD)\indent.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\indent.h \
 	$(SRC)\frame.h \
@@ -668,7 +691,6 @@ $(BLD)\indent.obj : \
 	$(SRC)\termopts.h \
 	$(SRC)\disptab.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\region-cache.h \
 	$(SRC)\composite.h
@@ -678,9 +700,7 @@ $(BLD)\insdel.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
@@ -692,13 +712,12 @@ $(BLD)\intervals.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
+	$(SRC)\keyboard.h \
 	$(SRC)\buffer.h \
 	$(SRC)\puresize.h
-	$(CC) $(CFLAGS) -Fo$@ intervals.c
 
 $(BLD)\keyboard.obj : \
 	$(SRC)\keyboard.c \
@@ -707,7 +726,6 @@ $(BLD)\keyboard.obj : \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
-	$(SRC)\lisp.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\macros.h \
 	$(SRC)\frame.h \
@@ -726,7 +744,6 @@ $(BLD)\keyboard.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
 	$(SRC)\w32term.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h \
@@ -737,7 +754,6 @@ $(BLD)\keymap.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\keyboard.h \
@@ -756,7 +772,6 @@ $(BLD)\lread.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(EMACS_ROOT)\src\epaths.h \
 	$(SRC)\commands.h \
@@ -769,7 +784,6 @@ $(BLD)\macros.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\macros.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
@@ -780,7 +794,6 @@ $(BLD)\marker.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\minibuf.obj : \
@@ -788,11 +801,9 @@ $(BLD)\minibuf.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\syntax.h
@@ -802,7 +813,6 @@ $(BLD)\mocklisp.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\w32.obj : \
@@ -811,7 +821,6 @@ $(BLD)\w32.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
 	$(SRC)\w32heap.h
 
@@ -827,12 +836,10 @@ $(BLD)\w32inevt.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\w32heap.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\w32term.h
 
 $(BLD)\w32proc.obj : \
@@ -840,7 +847,6 @@ $(BLD)\w32proc.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\w32.h \
 	$(SRC)\w32heap.h \
 	$(SRC)\vmstime.h \
@@ -851,7 +857,6 @@ $(BLD)\w32console.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\disptab.h \
 	$(SRC)\termhooks.h \
@@ -865,14 +870,12 @@ $(BLD)\print.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\process.h \
 	$(SRC)\termchar.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -893,7 +896,6 @@ $(BLD)\process.obj : \
 	$(SRC)\syssignal.h \
 	$(SRC)\vmsproc.h \
 	$(SRC)\syswait.h \
-	$(SRC)\lisp.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h \
 	$(SRC)\termopts.h \
@@ -905,7 +907,6 @@ $(BLD)\ralloc.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
@@ -920,7 +921,6 @@ $(BLD)\regex.obj : \
 	$(SRC)\s\ms-w32.h \
 	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\syntax.h \
 	$(SRC)\regex.h
@@ -930,7 +930,6 @@ $(BLD)\region-cache.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\region-cache.h
 
@@ -940,9 +939,7 @@ $(BLD)\scroll.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\termchar.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\frame.h
 
 $(BLD)\search.obj : \
@@ -950,7 +947,6 @@ $(BLD)\search.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\syntax.h \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
@@ -970,7 +966,6 @@ $(BLD)\sunfns.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\window.h \
 	$(SRC)\buffer.h \
 	$(SRC)\termhooks.h
@@ -980,7 +975,6 @@ $(BLD)\syntax.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\syntax.h \
@@ -991,7 +985,6 @@ $(BLD)\sysdep.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\dosfns.h \
 	$(SRC)\msdos.h \
@@ -1008,7 +1001,6 @@ $(BLD)\sysdep.obj : \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\process.h \
 	$(SRC)\vmsdir.h \
 	$(SRC)\ndir.h \
@@ -1028,7 +1020,6 @@ $(BLD)\term.obj : \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
 	$(SRC)\cm.h \
-	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\disptab.h \
 	$(SRC)\termhooks.h \
@@ -1049,34 +1040,11 @@ $(BLD)\textprop.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h
-
-$(BLD)\intervals.obj : \
-	$(SRC)\intervals.c \
-	$(SRC)\buffer.h \
-	$(SRC)\intervals.h \
-	$(SRC)\composite.h \
-	$(SRC)\keyboard.h \
-	$(SRC)\puresize.h \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h
-
-$(BLD)\composite.obj : \
-	$(SRC)\composite.c \
-	$(SRC)\buffer.h \
-	$(SRC)\charset.h \
-	$(SRC)\intervals.h \
-	$(SRC)\composite.h \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\tparam.obj : \
 	$(SRC)\tparam.c \
@@ -1089,7 +1057,6 @@ $(BLD)\undo.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h
 
@@ -1112,11 +1079,9 @@ $(BLD)\widget.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\xterm.h \
 	$(SRC)\frame.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\widget.h \
 	$(SRC)\widgetprv.h
 
@@ -1125,7 +1090,6 @@ $(BLD)\window.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
@@ -1141,7 +1105,6 @@ $(BLD)\xdisp.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\termchar.h \
@@ -1152,7 +1115,6 @@ $(BLD)\xdisp.obj : \
 	$(SRC)\disptab.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\w32gui.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -1161,7 +1123,6 @@ $(BLD)\xfaces.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\xfaces.c \
-	$(SRC)\lisp.h \
 	$(SRC)\charset.h \
 	$(SRC)\fontset.h \
 	$(SRC)\w32term.h \
@@ -1171,7 +1132,6 @@ $(BLD)\xfaces.obj: \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\window.h \
-	$(SRC)\keyboard.h \
 	$(SRC)\intervals.h \
 	$(SRC)\composite.h
 
@@ -1181,7 +1141,6 @@ $(BLD)\w32fns.obj: \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32fns.c \
 	$(SRC)\x-list-font.c \
-	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\frame.h \
@@ -1201,7 +1160,6 @@ $(BLD)\w32menu.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32menu.c \
-	$(SRC)\lisp.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
@@ -1216,7 +1174,6 @@ $(BLD)\w32term.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32term.c \
-	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\w32heap.h \
 	$(SRC)\w32term.h \
@@ -1242,7 +1199,6 @@ $(BLD)\w32select.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32select.c \
-	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\dispextern.h \
@@ -1254,7 +1210,6 @@ $(BLD)\w32reg.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32reg.c \
-	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\blockinput.h
@@ -1270,7 +1225,6 @@ $(BLD)\w32bdf.obj: \
 	$(EMACS_ROOT)\src/m\intel386.h \
 	$(EMACS_ROOT)\src/config.h \
 	$(SRC)\w32bdf.c \
-	$(SRC)\lisp.h \
 	$(SRC)\charset.h \
 	$(SRC)\frame.h \
 	$(SRC)\dispextern.h \
@@ -1279,7 +1233,6 @@ $(BLD)\w32bdf.obj: \
 	$(SRC)\w32gui.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32bdf.h \
-	$(SRC)\lisp.h \
-	$(SRC)\w32term.h \
 	$(SRC)\w32.h \
+	$(SRC)\frame.h \
 	$(SRC)\blockinput.h
