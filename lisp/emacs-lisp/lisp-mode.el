@@ -426,7 +426,8 @@ alternative printed representations that can be displayed."
   ;; But when the end of the line is also the end of the buffer,
   ;; it does get called.  For consistency, pretend it was not called.
   (if (eobp)
-      (newline arg)
+      (let ((prefix-arg arg))
+	(command-execute (lookup-key global-map (this-single-command-keys))))
     (let ((value (get-text-property (point) 'printed-value)))
       (when value
 	(let ((beg (or (previous-single-property-change (min (point-max) (1+ (point)))
