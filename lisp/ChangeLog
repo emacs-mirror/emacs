@@ -1,3 +1,15 @@
+2000-12-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Provide a generic exit hook, as suggested by
+	Ovidiu Predescu <ovidiu@cup.hp.com>:
+	(bookmark-exit-hook): new var.
+	(bookmark-exit-hook-internal): new func, replaces
+	old raw lambda form in `kill-emacs-hook', and runs new
+	`bookmark-exit-hooks'.  No longer tests for the bookmark feature,
+	as logically that feature must have been provided if this function
+	is running.
+	Removed ;;;###autoload before the `add-hook' call.
+
 2000-12-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Setup indentation.

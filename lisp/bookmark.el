@@ -300,16 +300,6 @@ So the cdr of each bookmark is an alist too.
 (defvar bookmarks-already-loaded nil)
 
 
-;; just add the hook to make sure that people don't lose bookmarks
-;; when they kill Emacs, unless they don't want to save them.
-;;;###autoload
-(add-hook 'kill-emacs-hook
-          (function
-           (lambda () (and (featurep 'bookmark)
-                           bookmark-alist
-                           (bookmark-time-to-save-p t)
-                           (bookmark-save)))))
-
 ;; more stuff added by db.
 
 (defvar bookmark-current-bookmark nil 
@@ -2268,6 +2258,22 @@ corresponding bookmark function from Lisp \(the one without the
 ;;; Load Hook
 (defvar bookmark-load-hook nil
   "Hook to run at the end of loading bookmark.")
+
+;;; Exit Hook, called from kill-emacs-hook
+(defvar bookmark-exit-hook nil
+  "Hook to run when emacs exits")
+     
+(defun bookmark-exit-hook-internal ()
+  "Save bookmark state, if necessary, at Emacs exit time.
+This also runs `bookmark-exit-hooks'."
+  (and
+   (progn (run-hooks 'bookmark-exit-hooks) t)
+   bookmark-alist
+   (bookmark-time-to-save-p t)
+   (bookmark-save)))
+
+(add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal)
+
 
 (run-hooks 'bookmark-load-hook)
 
