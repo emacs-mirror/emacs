@@ -1,6 +1,6 @@
 2003-08-06  John Paul Wallington  <jpw@gnu.org>
 
-	* compile.texi (Compiler Errors): Say `@end defmac' after `defmac'.
+	* compile.texi (Compiler Errors): Say `@end defmac' after `@defmac'.
 
 	* display.texi (Warning Basics): Fix typo.
 	(Fringes): Add closing curly bracket and fix typo.
