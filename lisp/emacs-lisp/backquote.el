@@ -83,7 +83,7 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 ;; A few advertised variables that control which symbols are used
 ;; to represent the backquote, unquote, and splice operations.
 
-(defvar backquote-backquote-symbol '`
+(defvar backquote-backquote-symbol '\`
   "*Symbol used to represent a backquote or nested backquote (e.g. `).")
 
 (defvar backquote-unquote-symbol ',
@@ -101,10 +101,10 @@ places where expressions are evaluated and inserted or spliced in.
 
 For example:
 
-b                 => (ba bb bc)		; assume b has this value
-\(` (a b c))       => (a b c)		; backquote acts like quote
-\(` (a (, b) c))   => (a (ba bb bc) c)	; insert the value of b
-\(` (a (,@ b) c))  => (a ba bb bc c)	; splice in the value of b
+b              => (ba bb bc)		; assume b has this value
+`(a b c)       => (a b c)		; backquote acts like quote
+`(a (, b) c)   => (a (ba bb bc) c)	; insert the value of b
+`(a (,@ b) c)  => (a ba bb bc c)	; splice in the value of b
 
 Vectors work just like lists.  Nested backquotes are permitted."
   (cdr (backquote-process arg)))
@@ -112,7 +112,7 @@ Vectors work just like lists.  Nested backquotes are permitted."
 ;; GNU Emacs has no reader macros
 
 ;;;###autoload
-(defalias '` (symbol-function 'backquote))
+(defalias '\` (symbol-function 'backquote))
 
 ;; backquote-process returns a dotted-pair of a tag (0, 1, or 2) and
 ;; the backquote-processed structure.  0 => the structure is
