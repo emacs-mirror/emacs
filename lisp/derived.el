@@ -5,7 +5,7 @@
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
-;; Keywords: extensions
+;; Keywords: obsolete
 
 ;; This file is part of GNU Emacs.
 
