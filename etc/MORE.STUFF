@@ -1,4 +1,4 @@
-More Neat Stuff for your Emacs         -*-mode: text; outline-minor-mode: t-*-
+More Neat Stuff for your Emacs
 
 This file describes GNU Emacs programs and resources that are
 maintained by other people.  Some of these may become part of the
@@ -67,8 +67,7 @@ You might find bug-fixes or enhancements in these places.
 
  * BS: <URL:http://home.netsurf.de/olaf.sylvester/emacs>
 
- * CC Mode, ELP, Reporter, Supercite: <URL:http://www.python.org/emacs/>
-   Also home of Python Mode and possibly other good hacks.
+ * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
  * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
 
@@ -142,7 +141,7 @@ the future.
    <URL:news://sunsite.auc.dk/emacs.auctex>.
 
  * BBDB: personal Info Rolodex integrated with mail/news:
-   <URL:http://pw2.netcom.com/%7Esimmonmt/bbdb/index.html>
+   <URL:http://bbdb.sourceforge.net/>
 
  * Calc: computer algebra and numerical calculations:
    <URL:http:www.gnu.org/software/calc/calc.html>
@@ -225,10 +224,6 @@ the future.
 	Wnn6,
 	SJ3 Ver.2
 
- * Todo mode:
-   <URL:http://www.cl.cam.ac.uk/users/os10000/stuff/todo.html>
-   Todo list maintenance, interfacing to Diary mode.
-
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
@@ -241,3 +236,9 @@ the future.
 
 An unpacked current source tree may be available from
 <URL:ftp://ftp.emacs.org/pub/>.
+
+
+Local Variables:
+mode: text
+eval: (goto-address)
+End:
