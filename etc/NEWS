@@ -699,8 +699,10 @@ multiple files, and C-x d passes it to `dired'.
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
-*** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
-Failed isearch wraps to the top/final node.
+*** isearch in Info uses Info-search and searches through multiple nodes.
+Failed isearch wraps to the top/final node.  The user option
+`Info-isearch-search' controls whether to use Info-search or the
+default isearch search function.
 
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last

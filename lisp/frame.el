@@ -1273,6 +1273,7 @@ cursor display.  On a text-only terminal, this is not implemented."
 		       emacs-quick-startup
 		       (eq system-type 'ms-dos)
 		       (not (memq window-system '(x w32)))))
+  :group 'cursor
   :global t
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
   (if blink-cursor-timer (cancel-timer blink-cursor-timer))

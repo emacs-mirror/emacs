@@ -6683,8 +6683,12 @@ specified by `gnus-button-alist'."
       (save-excursion
 	(set-buffer gnus-summary-buffer)
 	(if server
-	    (let ((gnus-refer-article-method (list (list 'nntp server)))
+	    (let ((gnus-refer-article-method
+		   (nconc (list (list 'nntp server))
+			  gnus-refer-article-method))
 		  (nntp-port-number (or port "nntp")))
+	      (gnus-message 7 "Fetching %s with %s"
+			    message-id gnus-refer-article-method)
 	      (gnus-summary-refer-article message-id))
 	  (gnus-summary-refer-article message-id))))
      (group

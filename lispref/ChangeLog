@@ -1,3 +1,16 @@
+2005-02-24  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Explain that INIT-VALUE,
+	LIGHTER, and KEYMAP can be omitted when KEYWORD-ARGS are used.
+
+2005-02-23  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): define-minor-mode can be used
+	to define global minor modes as well.
+
+	* display.texi (Managing Overlays): overlay-buffer returns nil for
+	deleted overlays.
+
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.texi (Basic Completion): Allow symbols in addition to

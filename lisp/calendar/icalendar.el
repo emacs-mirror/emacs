@@ -90,7 +90,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version 0.09
+(defconst icalendar-version 0.10
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -360,12 +360,16 @@ children."
                 (append result (list (list param-name param-value)))))))
     result))
 
-(defun icalendar--decode-isodatetime (isodatetimestring)
+(defun icalendar--decode-isodatetime (isodatetimestring &optional day-shift)
   "Return ISODATETIMESTRING in format like `decode-time'.
-Converts from ISO-8601 to Emacs representation.  If ISODATETIMESTRING
-specifies UTC time (trailing letter Z) the decoded time is given in
-the local time zone! FIXME: TZID-attributes are ignored....! FIXME:
-multiple comma-separated values should be allowed!"
+Converts from ISO-8601 to Emacs representation.  If
+ISODATETIMESTRING specifies UTC time (trailing letter Z) the
+decoded time is given in the local time zone!  If optional
+parameter DAY-SHIFT is non-nil the result is shifted by DAY-SHIFT
+days.
+
+FIXME: TZID-attributes are ignored....!
+FIXME: multiple comma-separated values should be allowed!"
   (icalendar--dmsg isodatetimestring)
   (if isodatetimestring
       ;; day/month/year must be present
@@ -387,6 +391,15 @@ multiple comma-separated values should be allowed!"
                    (char-equal ?Z (aref isodatetimestring 15)))
           ;; if not UTC add current-time-zone offset
           (setq second (+ (car (current-time-zone)) second)))
+        ;; shift if necessary
+        (if day-shift
+            (let ((mdy (calendar-gregorian-from-absolute
+                        (+ (calendar-absolute-from-gregorian
+                            (list month day year))
+                           day-shift))))
+              (setq month (nth 0 mdy))
+              (setq day   (nth 1 mdy))
+              (setq year  (nth 2 mdy))))
         ;; create the decoded date-time
         ;; FIXME!?!
         (condition-case nil
@@ -1083,7 +1096,7 @@ FExport diary data into iCalendar file: ")
 
       ;; we're done, insert everything into the file
       (save-current-buffer
-        (let ((coding-system-for-write 'utf8))
+        (let ((coding-system-for-write 'utf-8))
           (set-buffer (find-file ical-filename))
           (goto-char (point-max))
           (insert "BEGIN:VCALENDAR")
@@ -1284,7 +1297,7 @@ written into the buffer ` *icalendar-errors*'."
                                        (unt
                                         (icalendar--datetime-to-diary-date
                                          (icalendar--decode-isodatetime
-                                          until))))
+                                          until -1))))
                              (setq diary-string
                                    (format
                                     (concat "%%%%(and "
@@ -1297,7 +1310,7 @@ written into the buffer ` *icalendar-errors*'."
                                      dtstart)
                                     (icalendar--datetime-to-diary-date
                                      (icalendar--decode-isodatetime
-                                      until)))))
+                                      until -1)))))
                                (setq diary-string
                                      (format "%%%%(and (diary-cyclic %d %s))"
                                              (* interval 7)
@@ -1369,7 +1382,7 @@ written into the buffer ` *icalendar-errors*'."
                                     e 'DTSTART))))
                              (de (icalendar--datetime-to-diary-date
                                   (icalendar--decode-isodatetime
-                                   until))))
+                                   until -1))))
                          (setq diary-string
                                (format
                                 "%%%%(and (diary-block %s %s))"
@@ -1406,11 +1419,14 @@ written into the buffer ` *icalendar-errors*'."
                                       (format "......"))))
                       (icalendar--split-value rdate)))
              ;; non-recurring event
-             ;; long event
+             ;; all-day event
              ((not (string= start-d end-d))
               (icalendar--dmsg "non-recurring event")
               (let ((ds (icalendar--datetime-to-diary-date dtstart))
-                    (de (icalendar--datetime-to-diary-date dtend)))
+                    (de (icalendar--datetime-to-diary-date
+                         (icalendar--decode-isodatetime
+                          (icalendar--get-event-property e 'DTEND)
+                          -1))))
                 (setq diary-string
                       (format "%%%%(and (diary-block %s %s))"
                               ds de)))

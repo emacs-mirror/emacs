@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
 @node Modes, Documentation, Keymaps, Top
@@ -1098,10 +1098,9 @@ characters are reserved for major modes.)
 @subsection Defining Minor Modes
 
   The macro @code{define-minor-mode} offers a convenient way of
-implementing a mode in one self-contained definition.  It supports only
-buffer-local minor modes, not global ones.
+implementing a mode in one self-contained definition.
 
-@defmac define-minor-mode mode doc [init-value [lighter [keymap keyword-args... body...]]]
+@defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args... body...
 @tindex define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
@@ -1122,8 +1121,10 @@ specifying bindings in this form:
 (@var{key-sequence} . @var{definition})
 @end example
 
-The @var{keyword-args} consist of keywords followed by corresponding
-values.  A few keywords have special meanings:
+The above three arguments @var{init-value}, @var{lighter}, and
+@var{keymap} can be (partially) omitted when @var{keyword-args} are
+used.  The @var{keyword-args} consist of keywords followed by
+corresponding values.  A few keywords have special meanings:
 
 @table @code
 @item :global @var{global}

@@ -332,16 +332,17 @@ is expected to contain of a PEM encoded certificate."
 KEYFILE should contain a PEM encoded key and certificate."
   (interactive)
   (with-current-buffer (or buffer (current-buffer))
-    (smime-sign-region
-     (point-min) (point-max)
-     (if keyfile
-	 keyfile
-       (smime-get-key-with-certs-by-email
-	(completing-read
-	 (concat "Sign using which key? "
-		 (if smime-keys (concat "(default " (caar smime-keys) ") ")
-		   ""))
-	 smime-keys nil nil (car-safe (car-safe smime-keys))))))))
+    (unless (smime-sign-region
+	     (point-min) (point-max)
+	     (if keyfile
+		 keyfile
+	       (smime-get-key-with-certs-by-email
+		(completing-read
+		 (concat "Sign using which key? "
+			 (if smime-keys (concat "(default " (caar smime-keys) ") ")
+			   ""))
+		 smime-keys nil nil (car-safe (car-safe smime-keys))))))
+      (error "Signing failed"))))
 
 (defun smime-encrypt-buffer (&optional certfiles buffer)
   "S/MIME encrypt BUFFER for recipients specified in CERTFILES.
@@ -350,11 +351,12 @@ a PEM encoded key and certificate.  Uses current buffer if BUFFER is
 nil."
   (interactive)
   (with-current-buffer (or buffer (current-buffer))
-    (smime-encrypt-region
-     (point-min) (point-max)
-     (or certfiles
-	 (list (read-file-name "Recipient's S/MIME certificate: "
-			       smime-certificate-directory nil))))))
+    (unless (smime-encrypt-region
+	     (point-min) (point-max)
+	     (or certfiles
+		 (list (read-file-name "Recipient's S/MIME certificate: "
+				       smime-certificate-directory nil))))
+      (error "Encryption failed"))))
 
 ;; Verify+decrypt region
 

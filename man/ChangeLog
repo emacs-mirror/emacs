@@ -1,3 +1,7 @@
+2005-02-23  Lute Kamstra  <lute@gnu.org>
+
+	* cmdargs.texi (Initial Options): Add cross reference.
+
 2005-02-18  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.texi: Add concept/function/variable indices (this work was

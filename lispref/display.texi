@@ -1339,7 +1339,8 @@ as an integer.
 @end defun
 
 @defun overlay-buffer overlay
-This function returns the buffer that @var{overlay} belongs to.
+This function returns the buffer that @var{overlay} belongs to.  It
+returns @code{nil}, if @var{overlay} has been deleted.
 @end defun
 
 @defun delete-overlay overlay

@@ -35,7 +35,7 @@
 ;; that the user will run with M-x, and `Custom-' for interactive commands.
 
 ;; The identity of a customize option is represented by a Lisp symbol.
-;; There is the following values associated with an option.  
+;; The following values are associated with an option.
 
 ;; 0. The current value.
 
@@ -48,42 +48,42 @@
 
 ;; 1. The widget value.
 
-;;    This is the value shown in the widget in a customize buffer.  
+;;    This is the value shown in the widget in a customize buffer.
 
 ;; 2. The customized value.
 
 ;;    This is the last value given to the option through customize.
 
 ;;    It is stored in the 'customized-value' property of the option, in a
-;;    cons-cell whose car evaluate to the customized value.   
+;;    cons-cell whose car evaluates to the customized value.
 
 ;; 3. The saved value.
 
 ;;    This is last value saved from customize.
 
 ;;    It is stored in the 'saved-value' property of the option, in a
-;;    cons-cell whose car evaluate to the saved value.   
+;;    cons-cell whose car evaluates to the saved value.
 
 ;; 4. The standard value.
 
 ;;    This is the value given in the 'defcustom' declaration.
 
 ;;    It is stored in the 'standard-value' property of the option, in a
-;;    cons-cell whose car evaluate to the standard value.   
+;;    cons-cell whose car evaluates to the standard value.
 
 ;; 5. The "think" value.
-   
-;;    This is what customize think the current value should be.
-   
-;;    This is the customize value, if any such value exists, otherwise
+
+;;    This is what customize thinks the current value should be.
+
+;;    This is the customized value, if any such value exists, otherwise
 ;;    the saved value, if that exists, and as a last resort the standard
-;;    value. 
+;;    value.
 
 ;; The reason for storing values unevaluated: This is so you can have
 ;; values that depend on the environment.  For example, you can have a
-;; valiable that has one value when Emacs is running under a window
+;; variable that has one value when Emacs is running under a window
 ;; system, and another value on a tty.  Since the evaluation is only done
-;; when the variable is firsty initialized, this is only relevant for the
+;; when the variable is first initialized, this is only relevant for the
 ;; saved (and standard) values, but affect others values for
 ;; compatibility.
 
@@ -103,8 +103,8 @@
 ;;    The widget value is different from the current value.
 
 ;; 2. changed
-   
-;;    The current value is different from the "think" value.   
+
+;;    The current value is different from the "think" value.
 
 ;; 3. set
 
@@ -120,7 +120,11 @@
 
 ;; 6. rogue
 
-;;    There are no standard value.
+;;    There is no standard value.  This means that the variable was
+;;    not defined with defcustom.  You can not create a Custom buffer
+;;    for such variables using the normal interactive Custom commands.
+;;    However, such Custom buffers can be created in other ways, for
+;;    instance, by calling `customize-option' non-interactively.
 
 ;; 7. hidden
 
@@ -129,7 +133,7 @@
 ;; 8. mismatch
 
 ;;    The widget value is not valid member of the :type specified for the
-;;    option. 
+;;    option.
 
 ;;; Code:
 
