@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.63";
+char pot_etags_version[] = "@(#) pot revision number is 11.66";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1498,7 +1498,7 @@ enum sym_type
 };
 
 /* Feed stuff between (but not including) %[ and %] lines to:
-      gperf -c -k1,3 -o -p -r -t
+      gperf -c -k 1,3 -o -p -r -t
 %[
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 %%
@@ -1507,12 +1507,14 @@ struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 @implementation,0,	st_C_objimpl
 @end,		0,	st_C_objend
 class,  	C_PLPL,	st_C_struct
+namespace,	C_PLPL,	st_C_struct
 domain, 	C_STAR,	st_C_struct
 union,  	0,	st_C_struct
 struct, 	0,	st_C_struct
 enum,    	0,	st_C_enum
 typedef, 	0,	st_C_typedef
 define,  	0,	st_C_define
+bool,		C_PLPL,	st_C_typespec
 long,    	0,	st_C_typespec
 short,   	0,	st_C_typespec
 int,     	0,	st_C_typespec
@@ -1527,6 +1529,9 @@ extern,  	0,	st_C_typespec
 static,  	0,	st_C_typespec
 const,   	0,	st_C_typespec
 volatile,	0,	st_C_typespec
+explicit,	C_PLPL,	st_C_typespec
+mutable,	C_PLPL,	st_C_typespec
+typename,	C_PLPL,	st_C_typespec
 # DEFUN used in emacs, the next three used in glibc (SYSCALL only for mach).
 DEFUN,		0,	st_C_gnumacro
 SYSCALL,	0,	st_C_gnumacro
@@ -1539,94 +1544,107 @@ PSEUDO,		0,	st_C_gnumacro
 %]
 and replace lines between %< and %> with its output. */
 /*%<*/
-/* C code produced by gperf version 1.8.1 (K&R C version) */
-/* Command-line: gperf -c -k1,3 -o -p -r -t  */
+/* C code produced by gperf version 2.1 (K&R C version) */
+/* Command-line: gperf -c -k 1,3 -o -p -r -t  */
 
 
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
 
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 15
-#define MIN_HASH_VALUE 7
-#define MAX_HASH_VALUE 63
+#define MIN_HASH_VALUE 34
+#define MAX_HASH_VALUE 121
 /*
-   29 keywords
-   57 is the maximum key range
+   34 keywords
+   88 is the maximum key range
 */
 
 static int
 hash (str, len)
-     register char  *str;
-     register int  len;
+     register char *str;
+     register unsigned int  len;
 {
   static unsigned char hash_table[] =
     {
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 17, 63, 63, 63,  4, 14,
-      4, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-      8, 63, 63,  0, 23, 63, 63, 63, 63, 63,
-     63, 63, 63, 63, 63, 63, 63, 28, 63, 28,
-     10, 31, 27, 18, 63,  6, 63, 63, 26,  1,
-     11,  2, 29, 63, 29, 16, 26, 13, 15, 63,
-     63, 63, 63, 63, 63, 63, 63, 63,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+     121, 121, 121, 121,  45, 121, 121, 121,  16,  19,
+      61, 121, 121, 121, 121, 121, 121, 121, 121, 121,
+      10, 121, 121,  20,  53, 121, 121, 121, 121, 121,
+     121, 121, 121, 121, 121, 121, 121,  41,  45,  22,
+      60,  47,  37,  28, 121,  55, 121, 121,  20,  14,
+      29,  30,   5, 121,  50,  59,  30,  54,   6, 121,
+     121, 121, 121, 121, 121, 121, 121, 121,
   };
   return len + hash_table[str[2]] + hash_table[str[0]];
 }
 
 struct C_stab_entry *
-in_word_set  (str, len)
+in_word_set (str, len)
      register char *str;
-     register int len;
+     register unsigned int len;
 {
 
   static struct C_stab_entry  wordlist[] =
     {
-      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",},
-      {"SYSCALL", 	0,	st_C_gnumacro},
-      {"",}, {"",}, {"",}, {"",}, {"",},
-      {"DEFUN", 		0,	st_C_gnumacro},
-      {"",}, {"",}, {"",},
-      {"domain",  	C_STAR,	st_C_struct},
-      {"",}, {"",}, {"",}, {"",}, {"",},
-      {"short",    	0,	st_C_typespec},
-      {"union",   	0,	st_C_struct},
-      {"void",     	0,	st_C_typespec},
-      {"",}, {"",},
-      {"PSEUDO", 		0,	st_C_gnumacro},
-      {"double",   	0,	st_C_typespec},
-      {"",}, {"",},
-      {"@end", 		0,	st_C_objend},
-      {"@implementation", 0,	st_C_objimpl},
-      {"float",    	0,	st_C_typespec},
-      {"int",      	0,	st_C_typespec},
-      {"",},
-      {"unsigned", 	0,	st_C_typespec},
-      {"@interface", 	0,	st_C_objprot},
-      {"",},
-      {"signed",   	0,	st_C_typespec},
-      {"long",     	0,	st_C_typespec},
-      {"ENTRY", 		0,	st_C_gnumacro},
-      {"define",   	0,	st_C_define},
-      {"const",    	0,	st_C_typespec},
-      {"",}, {"",}, {"",},
-      {"enum",     	0,	st_C_enum},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
       {"volatile", 	0,	st_C_typespec},
-      {"static",   	0,	st_C_typespec},
-      {"struct",  	0,	st_C_struct},
-      {"",}, {"",}, {"",},
-      {"@protocol", 	0,	st_C_objprot},
-      {"",}, {"",},
-      {"auto",     	0,	st_C_typespec},
-      {"",},
+      {"PSEUDO", 		0,	st_C_gnumacro},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"typedef",  	0,	st_C_typedef},
+      {"typename", 	C_PLPL,	st_C_typespec},
+      {"",}, {"",}, {"",}, 
+      {"SYSCALL", 	0,	st_C_gnumacro},
+      {"",}, {"",}, {"",}, 
+      {"mutable", 	C_PLPL,	st_C_typespec},
+      {"namespace", 	C_PLPL,	st_C_struct},
+      {"long",     	0,	st_C_typespec},
+      {"",}, {"",}, 
+      {"const",    	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, 
+      {"explicit", 	C_PLPL,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"void",     	0,	st_C_typespec},
+      {"",}, 
       {"char",     	0,	st_C_typespec},
       {"class",   	C_PLPL,	st_C_struct},
-      {"typedef",  	0,	st_C_typedef},
+      {"",}, {"",}, {"",}, 
+      {"float",    	0,	st_C_typespec},
+      {"",}, 
+      {"@implementation", 0,	st_C_objimpl},
+      {"auto",     	0,	st_C_typespec},
+      {"",}, 
+      {"ENTRY", 		0,	st_C_gnumacro},
+      {"@end", 		0,	st_C_objend},
+      {"bool", 		C_PLPL,	st_C_typespec},
+      {"domain",  	C_STAR,	st_C_struct},
+      {"",}, 
+      {"DEFUN", 		0,	st_C_gnumacro},
       {"extern",   	0,	st_C_typespec},
+      {"@interface", 	0,	st_C_objprot},
+      {"",}, {"",}, {"",}, 
+      {"int",      	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"signed",   	0,	st_C_typespec},
+      {"short",    	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"define",   	0,	st_C_define},
+      {"@protocol", 	0,	st_C_objprot},
+      {"enum",     	0,	st_C_enum},
+      {"static",   	0,	st_C_typespec},
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
+      {"union",   	0,	st_C_struct},
+      {"struct",  	0,	st_C_struct},
+      {"",}, {"",}, {"",}, {"",}, 
+      {"double",   	0,	st_C_typespec},
+      {"unsigned", 	0,	st_C_typespec},
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
