@@ -1,3 +1,8 @@
+2005-01-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (fast_find_position): Backtrack to find first row if
+	charpos is inside a display overlay that spans multiple lines.
+
 2005-01-18  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_iso2022): Translate invalid codes if
