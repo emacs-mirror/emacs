@@ -1,3 +1,13 @@
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (read-face-font): Include fontsets in the completion
+	list.
+
+	* international/mule-cmds.el (set-locale-environment): Insert
+	locale-translation-file-name in a unibyte buffer.
+
+	* international/characters.el: Fix setting of category `|'.
+
 2003-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* language/chinese.el (chinese-gb18030): Fix :charset-list.

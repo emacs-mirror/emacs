@@ -41,6 +41,8 @@
 
 	* process.c (send_process): Be sure to set coding->src_multibyte.
 
+	* xdisp.c (handle_auto_composed_prop): Fix setting of limit.
+
 2003-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.

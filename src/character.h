@@ -32,10 +32,11 @@ Boston, MA 02111-1307, USA.  */
       800-FFFF		E0..EF	   1110xxxx 10xxxxxx 10xxxxxx
     10000-1FFFFF	F0..F7	   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
    200000-3FFF7F	F8	   11111000 1000xxxx 10xxxxxx 10xxxxxx 10xxxxxx
-      invalid		F9..FF
+   3FFF80-3FFFFF	C0..C1	   1100000x 10xxxxxx (for eight-bit-char)
+   400000-...		invalid
 
-   raw-8-bit
-   3FFF80-3FFFFF	C0..C1	   1100000x 10xxxxxx
+   invalid 1st byte	80..BF	   10xxxxxx
+			F9..FF	   11111xxx (xxx != 000)
 */
 
 /* Maximum character code ((1 << CHARACTERBITS) - 1).  */
