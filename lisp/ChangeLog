@@ -1,5 +1,7 @@
 2000-09-18  Miles Bader  <miles@gnu.org>
 
+	* info.el (info-node, info-xref): Add dark-background variants.
+
 	* faces.el (header-line): Change defaults to be less confusing
 	when mixed with mode-lines.
 
@@ -7,7 +9,7 @@
 	Add extra `help-echo' and `local-map' props to node xrefs.
 	Use header-specific faces for node-names & xrefs.
 	(Info-use-header-line): New variable.
-	(info-header, info-header-xref, info-header-node): New faces.
+	(info-header-xref, info-header-node): New faces.
 	(Info-setup-header-line): New function.
 	(Info-select-node): Call Info-setup-header-line when enabled.
 	(Info-extract-pointer): Work even if the header line is hidden.
