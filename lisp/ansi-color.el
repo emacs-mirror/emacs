@@ -554,7 +554,13 @@ case we return nil."
 	  ((eq (car new-faces) 'default)
 	   (cdr new-faces))
 	  (t
-	   (append new-faces faces)))))
+	   ;; Like (append NEW-FACES FACES)
+	   ;; but delete duplicates in FACES.
+	   (let ((modified-faces (copy-sequence faces)))
+	     (dolist (face (nreverse new-faces))
+	       (setq modified-faces (delete face modified-faces))
+	       (push face modified-faces))
+	     modified-faces)))))
 
 (defun ansi-color-make-color-map ()
   "Creates a vector of face definitions and returns it.
@@ -637,7 +643,8 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 	    ((eq val 'default)
 	     (setq f (list val)))
 	    (t
-	     (add-to-list 'f val))))
+	     (unless (member val f)
+	       (push val f)))))
     f))
 
 (provide 'ansi-color)
