@@ -900,9 +900,10 @@ usage: (define-charset-internal ...)  */)
       if (charset.max_char > MAX_CHAR)
 	error ("Unsupported max char: %d", charset.max_char);
 
-      for (i = charset.min_char; i < 0x10000 && i <= charset.max_char;
-	   i += 128)
+      i = (charset.min_char >> 7) << 7;
+      for (; i < 0x10000 && i <= charset.max_char; i += 128)
 	CHARSET_FAST_MAP_SET (i, charset.fast_map);
+      i = (i >> 12) << 12;
       for (; i <= charset.max_char; i += 0x1000)
 	CHARSET_FAST_MAP_SET (i, charset.fast_map);
     }
