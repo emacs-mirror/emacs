@@ -1,3 +1,7 @@
+2002-06-07  Dave Love  <fx@gnu.org>
+
+	* charsets/tcvn.map: New file.
+
 2002-05-31  Dave Love  <fx@gnu.org>
 
 	* charsets/tibetan.map, charsets/sisheng.map:

@@ -1,3 +1,11 @@
+2002-06-07  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (tcvn-5712): New charset.
+
+	* language/vietnamese.el (vietnamese-tcvn, tcvn): New coding
+	system.
+	("Vietnamese"): Doc fix.
+
 2002-06-06  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (windows-936): New alias.
