@@ -1,5 +1,7 @@
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h (GC_MARK_STACK, REL_ALLOC_MMAP): Define.
+
 	* keymap.c (Fset_keymap_parent): Check for cycles in keymap
 	inheritance.
 
