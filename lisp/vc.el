@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.243 1999/01/22 16:28:12 spiegel Exp kwzh $
+;; $Id: vc.el,v 1.244 1999/03/13 05:04:24 kwzh Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -2856,9 +2856,14 @@ THRESHOLD, nil otherwise"
    (vc-do-command nil 0 "co" file 'MASTER
 		  "-f" (concat "-u" (vc-workfile-version file)))
    ;; CVS
-   ;; Check out via standard output (caused by the final argument 
-   ;; FILE below), so that no sticky tag is set.
-   (vc-backend-checkout file nil (vc-workfile-version file) file))
+   (progn
+     ;; Check out via standard output (caused by the final argument 
+     ;; FILE below), so that no sticky tag is set.      
+     (vc-backend-checkout file nil (vc-workfile-version file) file)
+     ;; If "cvs edit" was used to make the file writeable,
+     ;; call "cvs unedit" now to undo that.
+     (if (eq (vc-checkout-model file) 'manual)
+         (vc-do-command nil 0 "cvs" file 'WORKFILE "unedit"))))
   (vc-file-setprop file 'vc-locking-user 'none)
   (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
   (message "Reverting %s...done" file)
