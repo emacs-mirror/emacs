@@ -1,3 +1,8 @@
+2001-01-31  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (save-buffer): Don't give message if (buffer-file-name)
+	returns nil.
+	
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* toolbar/tool-bar.el (tool-bar-add-item): Doc fix.
