@@ -1240,6 +1240,10 @@ term_get_fkeys (address)
   extern char *tgetstr ();
   int i;
 
+  /* This can happen if CANNOT_DUMP or with strange options.  */
+  if (!initialized)
+    Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
