@@ -30,7 +30,7 @@ LN_S=@LN_S@
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
-lispdir = ${srcdir}/$(dot)$(dot)/lisp/
+lispsource = ${srcdir}/$(dot)$(dot)/lisp/
 libsrc = $(dot)$(dot)/lib-src/
 etc = $(dot)$(dot)/etc/
 shortnamesdir = $(dot)$(dot)/shortnames/
@@ -550,26 +550,26 @@ widgetobj=
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
 #ifdef HAVE_FACES
-#define FACE_SUPPORT ${lispdir}faces.elc ${lispdir}facemenu.elc
+#define FACE_SUPPORT ${lispsource}faces.elc ${lispsource}facemenu.elc
 #else
 #define FACE_SUPPORT
 #endif
 
 #ifdef LISP_FLOAT_TYPE
-#define FLOAT_SUPPORT ${lispdir}float-sup.elc
+#define FLOAT_SUPPORT ${lispsource}float-sup.elc
 #else
 #define FLOAT_SUPPORT
 #endif
 
 #ifdef MULTI_FRAME
-#define FRAME_SUPPORT ${lispdir}frame.elc
+#define FRAME_SUPPORT ${lispsource}frame.elc
 #else
 #define FRAME_SUPPORT
 #endif
 
 #ifdef HAVE_MOUSE
-#define MOUSE_SUPPORT ${lispdir}menu-bar.elc ${lispdir}mouse.elc \
-  ${lispdir}select.elc ${lispdir}scroll-bar.elc
+#define MOUSE_SUPPORT ${lispsource}menu-bar.elc ${lispsource}mouse.elc \
+  ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
 #define MOUSE_SUPPORT
 #endif
@@ -581,19 +581,19 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef VMS
-#define VMS_SUPPORT ${lispdir}vmsproc.elc ${lispdir}vms-patch.elc
+#define VMS_SUPPORT ${lispsource}vmsproc.elc ${lispsource}vms-patch.elc
 #else
 #define VMS_SUPPORT
 #endif
 
 #ifdef MSDOS
-#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc
+#define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-tab.elc ${lispsource}dos-fns.elc
 #else
 #define MSDOS_SUPPORT
 #endif
 
 #ifdef WINDOWSNT
-#define WINNT_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}winnt.elc
+#define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}winnt.elc
 #else
 #define WINNT_SUPPORT
 #endif
@@ -606,50 +606,50 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
    be present, like site-load.el and site-init.el; this makefile
    expects them all to be either present or buildable.  */
 lisp= \
-	${lispdir}abbrev.elc \
-	${lispdir}buff-menu.elc \
-	${lispdir}byte-run.elc \
-	${lispdir}c-mode.elc \
-	${lispdir}files.elc \
-	${lispdir}fill.elc \
-	${lispdir}format.elc \
+	${lispsource}abbrev.elc \
+	${lispsource}buff-menu.elc \
+	${lispsource}byte-run.elc \
+	${lispsource}c-mode.elc \
+	${lispsource}files.elc \
+	${lispsource}fill.elc \
+	${lispsource}format.elc \
 	FACE_SUPPORT \
 	MOUSE_SUPPORT \
 	FLOAT_SUPPORT \
 	FRAME_SUPPORT \
 	X_WINDOWS_SUPPORT \
-	${lispdir}help.elc \
-	${lispdir}indent.elc \
-	${lispdir}isearch.elc \
-	${lispdir}lisp-mode.elc \
-	${lispdir}lisp.elc \
-	${lispdir}loaddefs.el \
-	${lispdir}map-ynp.elc \
-	${lispdir}page.elc \
-	${lispdir}paragraphs.elc \
-	${lispdir}paths.el \
-	${lispdir}register.elc \
-	${lispdir}replace.elc \
-	${lispdir}simple.elc \
-	${lispdir}startup.elc \
-	${lispdir}subr.elc \
-	${lispdir}text-mode.elc \
-	${lispdir}vc-hooks.elc \
+	${lispsource}help.elc \
+	${lispsource}indent.elc \
+	${lispsource}isearch.elc \
+	${lispsource}lisp-mode.elc \
+	${lispsource}lisp.elc \
+	${lispsource}loaddefs.el \
+	${lispsource}map-ynp.elc \
+	${lispsource}page.elc \
+	${lispsource}paragraphs.elc \
+	${lispsource}paths.el \
+	${lispsource}register.elc \
+	${lispsource}replace.elc \
+	${lispsource}simple.elc \
+	${lispsource}startup.elc \
+	${lispsource}subr.elc \
+	${lispsource}text-mode.elc \
+	${lispsource}vc-hooks.elc \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
-	${lispdir}window.elc \
-	${lispdir}version.el
+	${lispsource}window.elc \
+	${lispsource}version.el
 
 /* Lisp files that may or may not be used.
    We must unconditionally put them in the DOC file.  */
-SOME_MACHINE_LISP =  ${lispdir}faces.elc ${lispdir}facemenu.elc \
-  ${lispdir}float-sup.elc ${lispdir}frame.elc \
-  ${lispdir}menu-bar.elc ${lispdir}mouse.elc \
-  ${lispdir}select.elc ${lispdir}scroll-bar.elc \
-  ${lispdir}vmsproc.elc ${lispdir}vms-patch.elc \
-  ${lispdir}ls-lisp.elc ${lispdir}dos-fns.elc \
-  ${lispdir}winnt.elc
+SOME_MACHINE_LISP =  ${lispsource}faces.elc ${lispsource}facemenu.elc \
+  ${lispsource}float-sup.elc ${lispsource}frame.elc \
+  ${lispsource}menu-bar.elc ${lispsource}mouse.elc \
+  ${lispsource}select.elc ${lispsource}scroll-bar.elc \
+  ${lispsource}vmsproc.elc ${lispsource}vms-patch.elc \
+  ${lispsource}ls-lisp.elc ${lispsource}dos-fns.elc \
+  ${lispsource}winnt.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
@@ -1000,11 +1000,12 @@ relock:
 /* Arrange to make a tags table in ../lisp, and another in this dir
    which includes ../lisp/TAGS by reference.  */
 ctagsfiles = [a-zA-Z]*.[hc]
-lisptagsfiles = ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
+lisptagsfiles = ../lisp/[a-zA-Z]*.el
 TAGS: $(ctagsfiles)
-	../lib-src/etags --include=../lisp/TAGS \
+	export DIR=`pwd`; cd ${srcdir}; \
+	$$DIR/../lib-src/etags --include=../lisp/TAGS \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
-../lisp/TAGS: $(lisptagsfiles)
-	cd ../lisp; $(MAKE) TAGS
-tags: TAGS ../lisp/TAGS
+${lispsource}TAGS: ${lispsource}$(lisptagsfiles)
+	cd ${lispsource}; $(MAKE) TAGS
+tags: TAGS ${lispsource}TAGS
 .PHONY: tags
