@@ -421,6 +421,10 @@ method temporarily.  To do this, type @kbd{C-\}
 it prompts for you to specify one.  This has the same effect as using
 @kbd{C-x @key{RET} C-\} to specify an input method.
 
+  When invoked with a numeric argument, as in @kbd{C-u C-\},
+@code{toggle-input-method} always prompts you for an input method,
+suggesting the most recently selected one as the default.
+
 @vindex default-input-method
   Selecting a language environment specifies a default input method for
 use in various buffers.  When you have a default input method, you can
