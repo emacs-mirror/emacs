@@ -1070,11 +1070,10 @@ The returned value is a Quail map specific to KEY."
 	    (if (if key
 		    (and (commandp cmd) (not (eq cmd 'quail-other-command)))
 		  (eq cmd 'quail-self-insert-command))
-		(progn
+		(let ((last-command-event (aref keyseq (1- (length keyseq))))
+		      (last-command this-command)
+		      (this-command cmd))
 		  (setq key t)
-		  (setq last-command-event (aref keyseq (1- (length keyseq)))
-			last-command this-command
-			this-command cmd)
 		  (condition-case err
 		      (call-interactively cmd)
 		    (quail-error (message "%s" (cdr err)) (beep))))
@@ -1162,11 +1161,10 @@ The returned value is a Quail map specific to KEY."
 			  nil nil t))
 		 (cmd (lookup-key (quail-conversion-keymap) keyseq)))
 	    (if (if key (commandp cmd) (eq cmd 'quail-self-insert-command))
-		(progn
+		(let ((last-command-event (aref keyseq (1- (length keyseq))))
+		      (last-command this-command)
+		      (this-command cmd))
 		  (setq key t)
-		  (setq last-command-event (aref keyseq (1- (length keyseq)))
-			last-command this-command
-			this-command cmd)
 		  (condition-case err
 		      (call-interactively cmd)
 		    (quail-error (message "%s" (cdr err)) (beep)))
