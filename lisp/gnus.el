@@ -5400,8 +5400,10 @@ group."
 		 (- (1+ (cdr active)) (car active)))))
     (gnus-summary-read-group
      group (or all (and (numberp number)
-			(zerop (+ number (length (cdr (assq 'tick marked)))
-				  (length (cdr (assq 'dormant marked)))))))
+			(zerop (+ number (gnus-range-length 
+					  (cdr (assq 'tick marked)))
+				  (gnus-range-length
+				   (cdr (assq 'dormant marked)))))))
      no-article)))
 
 (defun gnus-group-select-group (&optional all)
