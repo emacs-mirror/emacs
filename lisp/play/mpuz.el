@@ -1,8 +1,9 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2002 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
+;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -24,10 +25,10 @@
 
 ;;; Commentary:
 
-;; When this package is loaded, `M-x mpuz' generates a random multiplication
-;; puzzle.  This is a multiplication example in which each digit has been
-;; consistently replaced with some letter.  Your job is to reconstruct
-;; the original digits.  Type `?' while the mode is active for detailed help.
+;; `M-x mpuz' generates a random multiplication puzzle.  This is a
+;; multiplication example in which each digit has been consistently replaced
+;; with some letter.  Your job is to reconstruct the original digits.  Type
+;; `?' while the mode is active for detailed help.
 
 ;;; Code:
 
@@ -38,14 +39,47 @@
 
 (random t)				; randomize
 
-(defcustom mpuz-silent nil
-  "*Set this to t if you don't want dings on inputs."
+(defcustom mpuz-silent 'error
+  "*Set this to `nil' if you want dings on inputs.
+`t' means never ding, and `error' means only ding on wrong input."
+  :type '(choice (const :tag "No" nil)
+		 (const :tag "Yes" t)
+		 (const :tag "If correct" error))
+  :group 'mpuz)
+
+(defcustom mpuz-solve-when-trivial t
+  "*Solve any row that can be trivially calculated from what you've found."
   :type 'boolean
   :group 'mpuz)
 
-(defun mpuz-ding ()
-  "Dings, unless global variable `mpuz-silent' forbids it."
-  (or mpuz-silent (ding t)))
+(defcustom mpuz-allow-double-multiplicator nil
+  "*Allow 2nd factors like 33 or 77."
+  :type 'boolean
+  :group 'mpuz)
+
+(defcustom mpuz-unsolved-face
+  `(,(facemenu-get-face 'fg:red) bold)
+  "*Face to use for letters to be solved."
+  :type '(repeat face)
+  :group 'mpuz)
+
+(defcustom mpuz-solved-face
+  `(,(facemenu-get-face 'fg:green) bold)
+  "*Face to use for solved digits."
+  :type '(repeat face)
+  :group 'mpuz)
+
+(defcustom mpuz-trivial-face
+  `(,(facemenu-get-face 'fg:blue) bold)
+  "*Face to use for trivial digits solved for you."
+  :type '(repeat face)
+  :group 'mpuz)
+
+(defcustom mpuz-text-face
+  '(variable-pitch)
+  "*Face to use for text on right."
+  :type '(repeat face)
+  :group 'mpuz)
 
 
 ;; Mpuz mode and keymaps
@@ -59,29 +93,29 @@
   "Local keymap to use in Mult Puzzle.")
 
 (if mpuz-mode-map nil
-    (setq mpuz-mode-map (make-sparse-keymap))
-    (define-key mpuz-mode-map "a" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "b" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "c" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "d" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "e" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "f" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "g" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "h" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "i" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "j" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "A" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "B" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "C" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "D" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "E" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "F" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "G" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "H" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "I" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "J" 'mpuz-try-letter)
-    (define-key mpuz-mode-map "\C-g" 'mpuz-offer-abort)
-    (define-key mpuz-mode-map "?" 'describe-mode))
+  (setq mpuz-mode-map (make-sparse-keymap))
+  (define-key mpuz-mode-map "a" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "b" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "c" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "d" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "e" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "f" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "g" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "h" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "i" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "j" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "A" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "B" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "C" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "D" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "E" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "F" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "G" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "H" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "I" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "J" 'mpuz-try-letter)
+  (define-key mpuz-mode-map "\C-g" 'mpuz-offer-abort)
+  (define-key mpuz-mode-map "?" 'describe-mode))
 
 (defun mpuz-mode ()
   "Multiplication puzzle mode.
@@ -90,14 +124,15 @@ You have to guess which letters stand for which digits in the
 multiplication displayed inside the `*Mult Puzzle*' buffer.
 
 You may enter a guess for a letter's value by typing first the letter,
-then the digit.  Thus, to guess that A=3, type A 3.
+then the digit.  Thus, to guess that A=3, type `A 3'.
 
 To leave the game to do other editing work, just switch buffers.
 Then you may resume the game with M-x mpuz.
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (interactive)
   (setq major-mode 'mpuz-mode
-	mode-name  "Mult Puzzle")
+	mode-name  "Mult Puzzle"
+	tab-width 30)
   (use-local-map mpuz-mode-map)
   (run-hooks 'mpuz-mode-hook))
 
@@ -119,11 +154,15 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defvar mpuz-in-progress nil
   "True if a game is currently in progress.")
 
-(defvar mpuz-found-digits (make-vector 10 nil)
+(defvar mpuz-found-digits (make-bool-vector 10 nil)
   "A vector recording which digits have been decrypted.")
 
+(defvar mpuz-trivial-digits (make-bool-vector 10 nil)
+  "A vector recording which digits have been solved for you.")
+
 (defmacro mpuz-digit-solved-p (digit)
-  (list 'aref 'mpuz-found-digits digit))
+  `(or (aref mpuz-found-digits ,digit)
+       (aref mpuz-trivial-digits ,digit)))
 
 
 ;; A puzzle uses a permutation of [0..9] into itself.
@@ -160,20 +199,54 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defvar mpuz-board (make-vector 10 nil)
   "The board associates to any digit the list of squares where it appears.")
 
-(defun mpuz-put-digit-on-board (number square)
-  "Put (last digit of) NUMBER on SQUARE of the puzzle board."
-  ;; i.e. push SQUARE on NUMBER square-list
-  (setq number (% number 10))
-  (aset mpuz-board number (cons square (aref mpuz-board number))))
+(defun mpuz-put-number-on-board (number row &rest l)
+  "Put (last digit of) NUMBER on ROW and COLUMNS of the puzzle board."
+  (let (digit)
+    (while l
+      (setq digit (% number 10)
+	    number (/ number 10))
+      (aset mpuz-board digit `((,row . ,(car l)) ,@(aref mpuz-board digit)))
+      (setq l (cdr l)))))
 
-(defun mpuz-check-all-solved ()
+(defun mpuz-check-all-solved (&optional row col)
   "Check whether all digits have been solved. Return t if yes."
-  (catch 'found
-    (let ((digit -1))
-      (while (> 10 (setq digit (1+ digit)))
-	(if (and (not (mpuz-digit-solved-p digit)) ; unsolved
-		 (aref mpuz-board digit)) ; and appearing in the puzzle !
-	    (throw 'found nil))))
+  (catch 'solved
+    (let (A B1 B2 C D E squares)
+      (and mpuz-solve-when-trivial
+	   (not row)
+	   (while
+	       (cond ((or (and (setq B1 (or B1 (mpuz-check-all-solved 4 7))
+				     B2 (or B2 (mpuz-check-all-solved 4 9))
+				     E (or E (mpuz-check-all-solved 10))
+				     A (or A (mpuz-check-all-solved 2)))
+			       B1 B2)
+			  (and E (or A (and B1 B2))))
+		      (mpuz-solve)
+		      (mpuz-paint-board)
+		      (throw 'solved t))
+		     ((and (setq D (or D (mpuz-check-all-solved 8))
+				 C (or C (mpuz-check-all-solved 6)))
+			   D (not E))
+		      (mpuz-solve 10))
+		     ((and E (not (eq C D)))
+		      (mpuz-solve (if D 6 8)))
+		     ((and A (not (eq B2 C)))
+		      (mpuz-solve (if C 4 6) (if C 9)))
+		     ((and A (not (eq B1 D)))
+		      (mpuz-solve (if D 4 8) (if D 7)))
+		     ((and (not A) (or (and B2 C) (and B1 D)))
+		      (mpuz-solve 2)))))
+      (mpuz-paint-board)
+      (mapc (lambda (digit)
+	      (and (not (mpuz-digit-solved-p digit)) ; unsolved
+		   (setq squares (aref mpuz-board digit))
+		   (if row
+		       (if col
+			   (member (cons row col) squares)
+			 (assq row squares))
+		     squares) ; and appearing in the puzzle!
+		   (throw 'solved nil)))
+	    [0 1 2 3 4 5 6 7 8 9]))
     t))
 
 
@@ -186,118 +259,105 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   "Draw random values to be multiplied in a puzzle."
   (mpuz-build-random-perm)
   (fillarray mpuz-board nil)		; erase the board
-  (let (A B C D E)
-    ;; A,B,C,D & E, are the five rows of our multiplication.
-    ;; Choose random values, discarding uninteresting cases.
-    (while (progn
-	     (setq A (random 1000)
-		   B (random 100)
-		   C (* A (% B 10))
-		   D (* A (/ B 10))
-		   E (* A B))
-	     (or (< C 1000) (< D 1000)))) ; forbid leading zeros in C or D
+  ;; A,B,C,D & E, are the five rows of our multiplication.
+  ;; Choose random values, discarding cases with leading zeros in C or D.
+  (let* ((A (+ 112 (random 888)))
+	 (min (1+ (/ 1000 A)))
+	 (B1 (+ min (random (- 10 min))))
+	 B2 C D E)
+    (while (if (= B1 (setq B2 (+ min (random (- 10 min)))))
+	       (not mpuz-allow-double-multiplicator)))
+    (setq C (* A B2)
+	  D (* A B1)
+	  E (+ C (* D 10)))
     ;; Individual digits are now put on their respective squares.
-    ;; [NB: A square is a pair <row,column> of the screen.]
-    (mpuz-put-digit-on-board A		 '(2 . 9))
-    (mpuz-put-digit-on-board (/ A 10)	 '(2 . 7))
-    (mpuz-put-digit-on-board (/ A 100)	 '(2 . 5))
-    (mpuz-put-digit-on-board B		 '(4 . 9))
-    (mpuz-put-digit-on-board (/ B 10)	 '(4 . 7))
-    (mpuz-put-digit-on-board C		 '(6 . 9))
-    (mpuz-put-digit-on-board (/ C 10)	 '(6 . 7))
-    (mpuz-put-digit-on-board (/ C 100)	 '(6 . 5))
-    (mpuz-put-digit-on-board (/ C 1000)	 '(6 . 3))
-    (mpuz-put-digit-on-board D		 '(8 . 7))
-    (mpuz-put-digit-on-board (/ D 10)	 '(8 . 5))
-    (mpuz-put-digit-on-board (/ D 100)	 '(8 . 3))
-    (mpuz-put-digit-on-board (/ D 1000)	 '(8 . 1))
-    (mpuz-put-digit-on-board E		 '(10 . 9))
-    (mpuz-put-digit-on-board (/ E 10)	 '(10 . 7))
-    (mpuz-put-digit-on-board (/ E 100)	 '(10 . 5))
-    (mpuz-put-digit-on-board (/ E 1000)	 '(10 . 3))
-    (mpuz-put-digit-on-board (/ E 10000) '(10 . 1))))
+    ;; [NB: A square is a pair (row . column) of the screen.]
+    (mpuz-put-number-on-board A	2		 9 7 5)
+    (mpuz-put-number-on-board (+ (* B1 10) B2) 4 9 7)
+    (mpuz-put-number-on-board C	6		 9 7 5 3)
+    (mpuz-put-number-on-board D 8		   7 5 3 1)
+    (mpuz-put-number-on-board E	10		 9 7 5 3 1)))
 
 ;; Display
 ;;--------
 (defconst mpuz-framework
   "
      . . .
-                   Number of errors (this game): 0
+	Number of errors (this game):	0
     x  . .
    -------
    . . . .
-                        Number of completed games: 0
+	Number of completed games:	0
  . . . .
- ---------              Average number of errors: 0.00
+ ---------	Average number of errors:	0.00
  . . . . ."
   "The general picture of the puzzle screen, as a string.")
 
 (defun mpuz-create-buffer ()
   "Create (or recreate) the puzzle buffer. Return it."
-  (let ((buff (get-buffer-create "*Mult Puzzle*")))
+  (let ((buf (get-buffer-create "*Mult Puzzle*"))
+	(face `(face ,mpuz-text-face))
+	buffer-read-only)
     (save-excursion
-      (set-buffer buff)
-      (let ((buffer-read-only nil))
-	(erase-buffer)
-	(insert mpuz-framework)
-	(mpuz-paint-board)
-	(mpuz-paint-errors)
-	(mpuz-paint-statistics)))
-    buff))
+      (set-buffer buf)
+      (erase-buffer)
+      (insert mpuz-framework)
+      (set-text-properties 13 42 face)
+      (set-text-properties 79 105 face)
+      (set-text-properties 128 153 face)
+      (mpuz-paint-board)
+      (mpuz-paint-errors)
+      (mpuz-paint-statistics))
+    buf))
+
+(defun mpuz-paint-number (n &optional eol words)
+  (end-of-line eol)
+  (let (buffer-read-only)
+    (delete-region (point)
+		   (progn (backward-word (or words 1)) (point)))
+    (insert n)))
 
 (defun mpuz-paint-errors ()
   "Paint error count on the puzzle screen."
   (mpuz-switch-to-window)
-  (let ((buffer-read-only nil))
-    (goto-line 3)
-    (move-to-column 49)
-    (mpuz-delete-line)
-    (insert (prin1-to-string mpuz-nb-errors))))
+  (goto-line 3)
+  (mpuz-paint-number (prin1-to-string mpuz-nb-errors)))
 
 (defun mpuz-paint-statistics ()
   "Paint statistics about previous games on the puzzle screen."
-  (let* ((mean (if (zerop mpuz-nb-completed-games) 0
-		   (/ (+ mpuz-nb-completed-games (* 200 mpuz-nb-cumulated-errors))
-		      (* 2 mpuz-nb-completed-games))))
-	 (frac-part (% mean 100)))
-    (let ((buffer-read-only nil))
-      (goto-line 7)
-      (move-to-column 51)
-      (mpuz-delete-line)
-      (insert (prin1-to-string mpuz-nb-completed-games))
-      (goto-line 9)
-      (move-to-column 50)
-      (mpuz-delete-line)
-      (insert (format "%d.%d%d" (/ mean 100) (/ frac-part 10) (% frac-part 10))))))
+  (goto-line 7)
+  (mpuz-paint-number (prin1-to-string mpuz-nb-completed-games))
+  (mpuz-paint-number
+   (format "%.2f"
+	   (if (zerop mpuz-nb-completed-games)
+	       0
+	     (/ (+ 0.0 mpuz-nb-cumulated-errors)
+		mpuz-nb-completed-games)))
+   3 2))
 
 (defun mpuz-paint-board ()
   "Paint board situation on the puzzle screen."
   (mpuz-switch-to-window)
-  (let ((letter -1))
-    (while (> 10 (setq letter (1+ letter)))
-      (mpuz-paint-digit (mpuz-to-digit letter))))
+  (mapc 'mpuz-paint-digit [0 1 2 3 4 5 6 7 8 9])
   (goto-char (point-min)))
 
 (defun mpuz-paint-digit (digit)
   "Paint all occurrences of DIGIT on the puzzle board."
-  ;; (mpuz-switch-to-window)
   (let ((char (if (mpuz-digit-solved-p digit)
 		  (+ digit ?0)
-		  (+ (mpuz-to-letter digit) ?A)))
-	(square-l (aref mpuz-board digit)))
-    (let ((buffer-read-only nil))
-      (while square-l
-	(goto-line (car (car square-l)))	; line before column !
-	(move-to-column (cdr (car square-l)))
-	(insert char)
-	(delete-char 1)
-	(backward-char 1)
-	(setq square-l (cdr square-l))))))
-
-(defun mpuz-delete-line ()
-  "Clear from point to next newline."	; & put nothing in the kill ring
-  (while (not (= ?\n (char-after (point))))
-    (delete-char 1)))
+		(+ (mpuz-to-letter digit) ?A)))
+	(face `(face
+		,(cond ((aref mpuz-trivial-digits digit) mpuz-trivial-face)
+		       ((aref mpuz-found-digits digit) mpuz-solved-face)
+		       (mpuz-unsolved-face))))
+	buffer-read-only)
+    (mapc (lambda (square)
+	    (goto-line (car square))	; line before column!
+	    (move-to-column (cdr square))
+	    (insert char)
+	    (set-text-properties (1- (point)) (point) face)
+	    (delete-char 1))
+	  (aref mpuz-board digit))))
 
 (defun mpuz-get-buffer ()
   "Get the puzzle buffer if it exists."
@@ -305,41 +365,27 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-switch-to-window ()
   "Find or create the Mult-Puzzle buffer, and display it."
-  (let ((buff (mpuz-get-buffer)))
-    (or buff (setq buff (mpuz-create-buffer)))
-    (switch-to-buffer buff)
+  (let ((buf (mpuz-get-buffer)))
+    (or buf (setq buf (mpuz-create-buffer)))
+    (switch-to-buffer buf)
     (or buffer-read-only (toggle-read-only))
     (mpuz-mode)))
 
 
 ;; Game control
 ;;-------------
-(defun mpuz-abort-game ()
-  "Abort any puzzle in progress."
-  (message "Mult Puzzle aborted.")
-  (setq mpuz-in-progress nil
-	mpuz-nb-errors 0)
-  (fillarray mpuz-board nil)
-  (let ((buff (mpuz-get-buffer)))
-    (if buff (kill-buffer buff))))
-
 (defun mpuz-start-new-game ()
   "Start a new puzzle."
   (message "Here we go...")
   (setq mpuz-nb-errors 0
 	mpuz-in-progress t)
   (fillarray mpuz-found-digits nil)	; initialize mpuz-found-digits
+  (fillarray mpuz-trivial-digits nil)
   (mpuz-random-puzzle)
   (mpuz-switch-to-window)
   (mpuz-paint-board)
   (mpuz-paint-errors)
   (mpuz-ask-for-try))
-
-(defun mpuz-offer-new-game ()
-  "Ask if user wants to start a new puzzle."
-  (if (y-or-n-p "Start a new game ")
-      (mpuz-start-new-game)
-      (message "OK. I won't.")))
 
 ;;;###autoload
 (defun mpuz ()
@@ -349,18 +395,29 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (mpuz-switch-to-window)
   (if mpuz-in-progress
       (mpuz-offer-abort)
-      (mpuz-start-new-game)))
+    (mpuz-start-new-game)))
 
 (defun mpuz-offer-abort ()
   "Ask if user wants to abort current puzzle."
   (interactive)
   (if (y-or-n-p "Abort game ")
-      (mpuz-abort-game)
-      (mpuz-ask-for-try)))
+      (let ((buf (mpuz-get-buffer)))
+	(message "Mult Puzzle aborted.")
+	(setq mpuz-in-progress nil
+	      mpuz-nb-errors 0)
+	(fillarray mpuz-board nil)
+	(if buf (kill-buffer buf)))
+    (mpuz-ask-for-try)))
 
 (defun mpuz-ask-for-try ()
   "Ask for user proposal in puzzle."
-  (message "Your try ?"))
+  (message "Your try?"))
+
+(defun mpuz-ding (error)
+  "Dings, unless global variable `mpuz-silent' forbids it."
+  (cond ((eq mpuz-silent t))
+	((not mpuz-silent) (ding t))
+	(error (ding t))))
 
 (defun mpuz-try-letter ()
   "Propose a digit for a letter in puzzle."
@@ -370,9 +427,11 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(setq letter-char (upcase last-command-char)
 	      digit (mpuz-to-digit (- letter-char ?A)))
 	(cond ((mpuz-digit-solved-p digit)
-	       (message "%c already solved." letter-char))
+	       (message "%c already solved." letter-char)
+	       (mpuz-ding t))
 	      ((null (aref mpuz-board digit))
-	       (message "%c does not appear." letter-char))
+	       (message "%c does not appear." letter-char)
+	       (mpuz-ding t))
 	      ((progn (message "%c = " letter-char)
 		      ;; <char> has been entered.
 		      ;; Print "<char> =" and
@@ -380,38 +439,36 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		      (setq digit-char (read-char))
 		      (if (eq digit-char ?=)
 			  (setq digit-char (read-char)))
-		      (message "%c = %c" letter-char digit-char)
 		      (or (> digit-char ?9) (< digit-char ?0))) ; bad input
-	       (ding t))
+	       (message "%c = %c" letter-char digit-char)
+	       (mpuz-ding t))
 	      (t
 	       (mpuz-try-proposal letter-char digit-char))))
-      (mpuz-offer-new-game)))
+    (if (y-or-n-p "Start a new game ")
+	(mpuz-start-new-game)
+      (message "OK. I won't."))))
 
 (defun mpuz-try-proposal (letter-char digit-char)
   "Propose LETTER-CHAR as code for DIGIT-CHAR."
   (let* ((letter (- letter-char ?A))
 	 (digit (- digit-char ?0))
-	 (correct-digit (mpuz-to-digit letter)))
+	 (correct-digit (mpuz-to-digit letter))
+	 (game mpuz-nb-completed-games))
     (cond ((mpuz-digit-solved-p correct-digit)
 	   (message "%c has already been found." (+ correct-digit ?0)))
 	  ((mpuz-digit-solved-p digit)
 	   (message "%c has already been placed." digit-char))
 	  ((= digit correct-digit)
-	   (message "%c = %c correct !" letter-char digit-char)
-	   (mpuz-ding)
-	   (mpuz-correct-guess digit))
+	   (message "%c = %c correct!" letter-char digit-char)
+	   (mpuz-ding nil)
+	   (aset mpuz-found-digits digit t)	; Mark digit as solved
+	   (and (mpuz-check-all-solved)
+		(mpuz-close-game)))
 	  (t ;;; incorrect guess
-	   (message "%c = %c incorrect !" letter-char digit-char)
-	   (mpuz-ding)
+	   (message "%c = %c incorrect!" letter-char digit-char)
+	   (mpuz-ding t)
 	   (setq mpuz-nb-errors (1+ mpuz-nb-errors))
 	   (mpuz-paint-errors)))))
-
-(defun mpuz-correct-guess (digit)
-  "Handle correct guessing of DIGIT."
-  (aset mpuz-found-digits digit t)	; Mark digit as solved
-  (mpuz-paint-digit digit)		; Repaint it (now as a digit)
-  (if (mpuz-check-all-solved)
-      (mpuz-close-game)))
 
 (defun mpuz-close-game ()
   "Housecleaning when puzzle has been solved."
@@ -419,39 +476,43 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	mpuz-nb-cumulated-errors (+ mpuz-nb-cumulated-errors mpuz-nb-errors)
 	mpuz-nb-completed-games (1+ mpuz-nb-completed-games))
   (mpuz-paint-statistics)
-  (let ((message (mpuz-congratulate)))
+  (let ((message (format "Puzzle solved with %d error%s. That's %s"
+			 mpuz-nb-errors
+			 (if (= mpuz-nb-errors 1) "" "s")
+			 (cond ((= mpuz-nb-errors 0)	"perfect!")
+			       ((= mpuz-nb-errors 1)	"very good!")
+			       ((= mpuz-nb-errors 2)	"good.")
+			       ((= mpuz-nb-errors 3)	"not bad.")
+			       ((= mpuz-nb-errors 4)	"not too bad...")
+			       ((< mpuz-nb-errors 10)	"bad!")
+			       ((< mpuz-nb-errors 15)	"awful.")
+			       (t			"not serious.")))))
     (message message)
     (sit-for 4)
     (if (y-or-n-p (concat message "  Start a new game "))
 	(mpuz-start-new-game)
-	(message "Good Bye !"))))
+      (message "Good Bye!"))))
 
-(defun mpuz-congratulate ()
-  "Build a congratulation message when puzzle is solved."
-  (format "Puzzle solved with %d error%s. %s"
-	   mpuz-nb-errors
-	   (if (= mpuz-nb-errors 1) "" "s")
-	   (cond ((= mpuz-nb-errors 0)	      "That's perfect !")
-		 ((= mpuz-nb-errors 1)	      "That's very good !")
-		 ((= mpuz-nb-errors 2)	      "That's good.")
-		 ((= mpuz-nb-errors 3)	      "That's not bad.")
-		 ((= mpuz-nb-errors 4)	      "That's not too bad...")
-		 ((and (>= mpuz-nb-errors 5)
-		       (< mpuz-nb-errors 10)) "That's bad !")
-		 ((and (>= mpuz-nb-errors 10)
-		       (< mpuz-nb-errors 15)) "That's awful.")
-		 ((>= mpuz-nb-errors 15)      "That's not serious."))))
+(defun mpuz-solve (&optional row col)
+  "Find solution for autosolving."
+  (mapc (lambda (digit)
+	  (or (mpuz-digit-solved-p digit)
+	      (if row
+		  (not (if col
+			   (member (cons row col) (aref mpuz-board digit))
+			 (assq row (aref mpuz-board digit)))))
+	      (aset mpuz-trivial-digits digit t)))
+	[0 1 2 3 4 5 6 7 8 9])
+  t)
 
-(defun mpuz-show-solution ()
+(defun mpuz-show-solution (row)
   "Display solution for debugging purposes."
-  (interactive)
+  (interactive "P")
   (mpuz-switch-to-window)
-  (let (digit list)
-    (setq digit -1)
-    (while (> 10 (setq digit (1+ digit)))
-      (or (mpuz-digit-solved-p digit)
-	  (setq list (cons digit list))))
-    (mapcar 'mpuz-correct-guess list)))
+  (mpuz-solve (if row (* 2 (prefix-numeric-value row))))
+  (mpuz-paint-board)
+  (if (mpuz-check-all-solved)
+      (mpuz-close-game)))
 
 (provide 'mpuz)
 
