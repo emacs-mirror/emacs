@@ -134,7 +134,8 @@ space does not end a sentence, so don't break a line there."
   (or justify (setq justify (current-justification)))
 
   ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
-  (let ((fill-prefix fill-prefix))
+  (let ((fill-prefix fill-prefix)
+	(skip-after 0))
     ;; Figure out how this paragraph is indented, if desired.
     (if (and adaptive-fill-mode
 	     (or (null fill-prefix) (string= fill-prefix "")))
@@ -172,6 +173,9 @@ space does not end a sentence, so don't break a line there."
 	  (setq beg (point))
 	  (goto-char (max from to))
 	  (skip-chars-backward "\n")
+	  (setq skip-after (- to (point)))
+	  ;; If we omit some final newlines from the end of the narrowing,
+	  ;; arrange to advance past them at the end.
 	  (setq to (point)
 		from beg)
 	  (goto-char from)
@@ -307,7 +311,8 @@ space does not end a sentence, so don't break a line there."
 		    (justify-current-line justify t t)
 		  (forward-line -1)
 		  (justify-current-line justify nil t)
-		  (forward-line 1)))))))))
+		  (forward-line 1))))))
+      (forward-char skip-after))))
 
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix arg means justify as well.
