@@ -11237,8 +11237,8 @@
 	* format.el (format-deannotate-region): Don't change extents of
 	enclosing annotations of the same kind.
 
-	* format.el (format-deannotate-region): Use
-	property-increment-region to add to numeric properties.
+	* format.el (format-deannotate-region):
+	Use property-increment-region to add to numeric properties.
 
 1997-08-29  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -12431,8 +12431,8 @@
 
 	* progmodes/awk-mode.el (awk-mode): Require cc-mode, not cc-langs.
 
-	* wid-edit.el (widget-single-line-display-table): Variable
-	commented out; don't use it either.
+	* wid-edit.el (widget-single-line-display-table):
+	Variable commented out; don't use it either.
 
 	* case-table.el: Delete autoload cookies (file is preloaded).
 
@@ -12452,7 +12452,7 @@
 
 	* progmodes/cc-mode.el (idl-mode): Support for CORBA's IDL language.
 
-	* progmodes/cc-mode.el (c-initialize-cc-mode): move the calling of
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Move the calling of
 	c-make-styles-buffer-local into c-initialize-builtin-style.
 
 	* progmodes/cc-mode.el (c-initialize-cc-mode): Run the
@@ -12527,7 +12527,7 @@
 1997-08-08  Boris Goldowsky  <boris@gnu.ai.mit.edu>
 
 	* format.el (format-annotate-single-property-change,
-	format-annotate-atomic-property-change): move code that interprets
+	format-annotate-atomic-property-change): Move code that interprets
 	nil as 0 inside test that property is numeric.
 
 1997-08-08  Valery Alexeev  <valery@math.uga.edu>
@@ -13793,8 +13793,8 @@
 	(describe-fontset): Likewise.  Doc-string modified.
 	(list-fontsets): Likewise.
 
-	* international/encoded-kb.el (encoded-kbd-mode): Call
-	coding-system-XXX instead of coding-vector-XXX.
+	* international/encoded-kb.el (encoded-kbd-mode):
+	Call coding-system-XXX instead of coding-vector-XXX.
 
 1997-07-09  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -14612,8 +14612,8 @@
 	(type-break-cancel-function-timers): New function.
 	All callers of cancel-function-timers changed.
 	(type-break-check-post-command-hook): New function.
-	(type-break-mode, type-break-schedule, type-break-alarm,
-	type-break-time-warning-alarm): Call it.
+	(type-break-mode, type-break-schedule, type-break-alarm)
+	(type-break-time-warning-alarm): Call it.
 	(type-break-mode-line-countdown-or-break): New function.
 	(type-break): Call it.
 	(type-break-time-warning-schedule): Put type-break-time-warning
@@ -22779,8 +22779,8 @@
 	calling function, not setting variable.
 	(enriched-encode): New argument ORIG-BUF; evaluate
 	enriched-initial-annotation in that buffer.
-	(enriched-decode): Turn on use-hard-newlines with function.  Use
-	new `set-hard-newline-properties' function.  Set fill-column from
+	(enriched-decode): Turn on use-hard-newlines with function.
+	Use new `set-hard-newline-properties' function.  Set fill-column from
 	File-Width header; re-fill paragraphs only if there is no
 	File-Width header.
 

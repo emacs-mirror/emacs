@@ -1,5 +1,14 @@
 2002-11-02  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/fill.el (fill-paragraph-handle-comment): New var.
+	(fill-comment-paragraph): New fun (generalizes of lisp-fill-paragraph).
+	(fill-paragraph): Use them.
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph):
+	Use fill-comment-paragraph.
+
+2002-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
 	* bindings.el (mode-line-change-eol)
 	(mode-line-eol-desc-cache, mode-line-eol-desc): New.
 	(mode-line-mule-info): Use them for the EOL part of the modeline.
