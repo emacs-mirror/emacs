@@ -1,3 +1,7 @@
+2005-01-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Add `undo-outer-limit'.
+
 2005-01-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry): Use
