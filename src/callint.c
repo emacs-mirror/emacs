@@ -452,7 +452,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    ? (unsigned char *) ""
 	      : XSTRING (visargs[j])->data;
 
-      doprnt (prompt, sizeof prompt, prompt1, 0, j - 1, argstrings + 1);
+      doprnt (prompt, sizeof prompt, prompt1, (char *)0,
+	      j - 1, argstrings + 1);
 
       switch (*tem)
 	{
