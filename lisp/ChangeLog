@@ -1,3 +1,15 @@
+2000-11-22  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-menu-items-for-commands)
+	(recentf-make-menu-items, recentf-make-menu-item)
+	(recentf-filter-changer): Added :help and :active menu-item
+	properties.
+	
+	(recentf-build-dir-rules, recentf-dump-variable)
+	(recentf-edit-list, recentf-open-files-item)
+	(recentf-open-files): Replaced unnecessary `mapcar' with new
+	built-in `mapc'.
+	
 2000-11-23  Miles Bader  <miles@gnu.org>
 
 	* faces.el (menu): Make inverse-video on ttys too.
