@@ -155,6 +155,8 @@ int stack_copy_size;
 /* Non-zero means ignore malloc warnings.  Set during initialization.  */
 int ignore_warnings;
 
+Lisp_Object Qgc_cons_threshold;
+
 static void mark_object (), mark_buffer (), mark_kboards ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
@@ -1316,6 +1318,18 @@ int total_free_conses, total_free_markers, total_free_symbols;
 int total_free_floats, total_floats;
 #endif /* LISP_FLOAT_TYPE */
 
+/* Temporarily prevent garbage collection.  */
+
+int
+inhibit_garbage_collection ()
+{
+  int count = specpdl_ptr - specpdl;
+
+  specbind (Qgc_cons_threshold, make_number ((1 << (VALBITS - 1)) - 1));
+
+  return count;
+}
+
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
   "Reclaim storage for Lisp objects no longer needed.\n\
 Returns info on amount of space in use:\n\
@@ -2418,6 +2432,9 @@ which includes both saved text and other data.");
   memory_signal_data
     = Fcons (Qerror, Fcons (build_string ("Memory exhausted--use M-x save-some-buffers RET"), Qnil));
   staticpro (&memory_signal_data);
+
+  staticpro (&Qgc_cons_threshold);
+  Qgc_cons_threshold = intern ("gc-cons-threshold");
 
   defsubr (&Scons);
   defsubr (&Slist);
