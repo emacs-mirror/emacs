@@ -907,7 +907,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register struct Lisp_Marker *p;
 
   val = allocate_misc ();
-  XMISC (val)->type = Lisp_Misc_Marker;
+  XMISCTYPE (val) = Lisp_Misc_Marker;
   p = XMARKER (val);
   p->buffer = 0;
   p->bufpos = 0;
@@ -1540,7 +1540,7 @@ clear_marks ()
       {
 	register int i;
 	for (i = 0; i < lim; i++)
-	  if (sblk->markers[i].type == Lisp_Misc_Marker)
+	  if (sblk->markers[i].u_marker.type == Lisp_Misc_Marker)
 	    XUNMARK (sblk->markers[i].u_marker.chain);
 	lim = MARKER_BLOCK_SIZE;
       }
@@ -1731,7 +1731,7 @@ mark_object (objptr)
       break;
 
     case Lisp_Misc:
-      switch (XMISC (obj)->type)
+      switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Marker:
 	  XMARK (XMARKER (obj)->chain);
@@ -2033,7 +2033,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  {
 	    Lisp_Object *markword;
-	    switch (mblk->markers[i].type)
+	    switch (mblk->markers[i].u_marker.type)
 	      {
 	      case Lisp_Misc_Marker:
 		markword = &mblk->markers[i].u_marker.chain;
@@ -2052,7 +2052,7 @@ gc_sweep ()
 	    if (markword && !XMARKBIT (*markword))
 	      {
 		Lisp_Object tem;
-		if (mblk->markers[i].type == Lisp_Misc_Marker)
+		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
 		  {
 		    /* tem1 avoids Sun compiler bug */
 		    struct Lisp_Marker *tem1 = &mblk->markers[i].u_marker;
@@ -2061,7 +2061,7 @@ gc_sweep ()
 		  }
 		/* We could leave the type alone, since nobody checks it,
 		   but this might catch bugs faster.  */
-		mblk->markers[i].type = Lisp_Misc_Free;
+		mblk->markers[i].u_marker.type = Lisp_Misc_Free;
 		mblk->markers[i].u_free.chain = marker_free_list;
 		marker_free_list = &mblk->markers[i];
 		num_free++;
