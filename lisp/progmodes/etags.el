@@ -854,20 +854,19 @@ See documentation of variable `tags-file-name'."
       (while (search-forward "\177" nil t)
 	;; Handle multiple \177's on a line.
 	(save-excursion
-	  (skip-chars-backward "^-A-Za-z0-9_$\n") ;sym syntax? XXX
+	  (skip-syntax-backward "w_")
 	  (or (bolp)
 	      (intern (buffer-substring
 		       (point)
 		       (progn
-			 (skip-chars-backward "-A-Za-z0-9_$")
+			 (skip-syntax-backward "w_")
 			 ;; ??? New
 			 ;; `::' in the middle of a C++ tag.
 			 (and (= (preceding-char) ?:)
 			      (= (char-after (- (point) 2)) ?:)
 			      (progn
 				(backward-char 2)
-				(skip-chars-backward
-				 "-A-Za-z0-9_$")))
+				(skip-syntax-backward "w_")))
 			 (point)))
 		      table)))))
     table))
