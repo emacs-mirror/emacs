@@ -136,6 +136,8 @@
 (define-key scheme-mode-map "\C-c\C-l" 'scheme-load-file)
 (define-key scheme-mode-map "\C-c\C-k" 'scheme-compile-file) ;k for "kompile"
 
+(defvar scheme-buffer)
+
 (defun inferior-scheme-mode ()
   "Major mode for interacting with an inferior Scheme process.
 
@@ -187,13 +189,13 @@ to continue it."
   (setq comint-get-old-input (function scheme-get-old-input))
   (run-hooks 'inferior-scheme-mode-hook))
 
-(defun scheme-input-filter (str)
-  "Don't save anything matching inferior-scheme-filter-regexp"
-  (not (string-match inferior-scheme-filter-regexp str)))
-
 (defvar inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
   "*Input matching this regexp are not saved on the history list.
 Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
+
+(defun scheme-input-filter (str)
+  "Don't save anything matching inferior-scheme-filter-regexp"
+  (not (string-match inferior-scheme-filter-regexp str)))
 
 (defun scheme-get-old-input ()
   "Snarf the sexp ending at point"
