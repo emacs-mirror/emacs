@@ -10,11 +10,14 @@
 #define C_SWITCH_SYSTEM	-D_BSD
 #define LIBS_SYSTEM	-lbsd
 
-#ifdef __alpha
-#define LD_SWITCH_SYSTEM
-#else
-#define LD_SWITCH_SYSTEM	-non_shared
-#endif
+#define read sys_read
+#define write sys_write
+#define open sys_open
+#define close sys_close
+
+#define INTERRUPTIBLE_OPEN
+#define INTERRUPTIBLE_CLOSE
+#define INTERRUPTIBLE_IO
 
 #define SYSV_SYSTEM_DIR
 
