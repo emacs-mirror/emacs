@@ -87,6 +87,10 @@ arguments).  The function should return non-nil only if it recognizes and
 processes `argi'.  If it does so, it may consume successive arguments by
 altering `command-line-args-left' to remove them.")
 
+(defvar command-line-default-directory nil
+  "Default directory to use for command line arguments.
+This is normally copied from `default-directory' when Emacs starts.")
+
 (defvar before-init-hook nil
   "Functions to call after handling urgent options but before init files.
 The frame system uses this to open frames to display messages while
@@ -177,6 +181,8 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	   (run-hooks 'window-setup-hook)))))
 
 (defun command-line ()
+  (setq command-line-default-directory default-directory)
+
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
     (cond ((eq vc nil))			;don't do anything if not set
@@ -423,7 +429,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (set-buffer (get-buffer "*scratch*"))
 		 (erase-buffer)
 		 (set-buffer-modified-p nil)))))
-    (let ((dir default-directory)
+    (let ((dir command-line-default-directory)
 	  (file-count 0)
 	  first-file-buffer
 	  (line 0))
