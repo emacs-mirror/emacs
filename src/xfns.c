@@ -3977,8 +3977,7 @@ x_make_gc (f)
 	gray_bits, gray_width, gray_height,
 	f->output_data.x->foreground_pixel,
 	f->output_data.x->background_pixel,
-	DefaultDepth (FRAME_X_DISPLAY (f),
-		      XScreenNumberOfScreen (FRAME_X_SCREEN (f)))));
+	DefaultDepth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))));
 
   UNBLOCK_INPUT;
 }
@@ -10415,7 +10414,7 @@ hide_hourglass ()
 static Lisp_Object x_create_tip_frame P_ ((struct x_display_info *,
 					   Lisp_Object, Lisp_Object));
 static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
-				Lisp_Object, int *, int *));
+				Lisp_Object, int, int, int *, int *));
      
 /* The frame of a currently visible tooltip.  */
 
@@ -10768,13 +10767,15 @@ x_create_tip_frame (dpyinfo, parms, text)
 
 /* Compute where to display tip frame F.  PARMS is the list of frame
    parameters for F.  DX and DY are specified offsets from the current
-   location of the mouse.  Return coordinates relative to the root
-   window of the display in *ROOT_X, and *ROOT_Y.  */
+   location of the mouse.  WIDTH and HEIGHT are the width and height
+   of the tooltip.  Return coordinates relative to the root window of
+   the display in *ROOT_X, and *ROOT_Y.  */
 
 static void
-compute_tip_xy (f, parms, dx, dy, root_x, root_y)
+compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      struct frame *f;
      Lisp_Object parms, dx, dy;
+     int width, height;
      int *root_x, *root_y;
 {
   Lisp_Object left, top;
@@ -10788,18 +10789,30 @@ compute_tip_xy (f, parms, dx, dy, root_x, root_y)
   
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  BLOCK_INPUT;
-  XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
-		 &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
-  UNBLOCK_INPUT;
+  if (!INTEGERP (left) && !INTEGERP (top))
+    {
+      BLOCK_INPUT;
+      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
+		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+      UNBLOCK_INPUT;
+    }
 
-  *root_x += XINT (dx);
-  *root_y += XINT (dy);
-  
-  if (INTEGERP (left))
-    *root_x = XINT (left);
   if (INTEGERP (top))
     *root_y = XINT (top);
+  else if (*root_y + XINT (dy) - height < 0)
+    *root_y -= XINT (dy);
+  else
+    {
+      *root_y -= height;
+      *root_y += XINT (dy);
+    }
+
+  if (INTEGERP (left))
+    *root_x = XINT (left);
+  else if (*root_x + XINT (dx) + width > FRAME_X_DISPLAY_INFO (f)->width)
+    *root_x -= width + XINT (dx);
+  else
+    *root_x += XINT (dx);
 }
 
 
@@ -10881,9 +10894,10 @@ DY added (default is -10).")
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
+			  PIXEL_HEIGHT (f), &root_x, &root_y);
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       root_x, root_y - PIXEL_HEIGHT (f));
+		       root_x, root_y);
 	  UNBLOCK_INPUT;
 	  goto start_timer;
 	}
@@ -10968,11 +10982,11 @@ DY added (default is -10).")
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   BLOCK_INPUT;
   XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     root_x, root_y - height, width, height);
+		     root_x, root_y, width, height);
   XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
   
