@@ -1,3 +1,21 @@
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (enum coding_attr_index): New member
+	coding_attr_trans_tbl.
+	(CODING_ATTR_TRANS_TBL): New macro.
+
+	* coding.c (get_translation_table): New function.
+	(translate_chars): Fix the bug of skipping annotation data.
+	(decode_coding): Utilze get_translation_table.
+	(encode_coding): Likewise.
+	(char_encodable_p): Translate char if necessary.
+	(Funencodable_char_position): Likewise.
+	(Ffind_coding_systems_region_internal): Setup translation table
+	for encode in a coding system attribute vector in advance.
+	(Fcheck_coding_systems_region): Likewise.
+	(Fdefine_coding_system_internal): Allow a symbol as translation
+	table.  For shift-jis type coding system, allow 4th charset.
+
 2004-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_sjis): Check the first byte rigidly.

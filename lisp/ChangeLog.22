@@ -1,3 +1,14 @@
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (japanese-cp932): New coding system.
+	(cp932): New alias of it.
+
+	* international/mule-conf.el (katakana-sjis, cp932-2-byte)
+	(cp932): New charsets.
+
+	* international/mule.el (define-charset): If :code-space is not
+	given, generate it from :dimension.
+
 2004-01-23  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (reference-point-alist): Doc fixed.

@@ -1,3 +1,10 @@
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/mapconv: Handle UNICODE2.
+
+	* charsets/Makefile (CJK): Include CP932-2BYTE.map
+	(CP932-2BYTE.map): New target.
+
 2003-08-16  Kenichi Handa  <handa@m17n.org>
 
 	* charsets: New directory for scripts to generate charset map

@@ -1,3 +1,7 @@
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* CP932-2BYTE.map: New file.
+
 2003-09-26  Kenichi Handa  <handa@m17n.org>
 
 	* ps-prin1.ps (HeaderOrFooterTextLines): Handle multiple strings
