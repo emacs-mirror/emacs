@@ -809,6 +809,8 @@ Search, the `unseen' attribute is restored.")
     nil
   (setq rmail-summary-mode-map (make-keymap))
   (suppress-keymap rmail-summary-mode-map)
+
+  (define-key rmail-summary-mode-map [mouse-2] 'rmail-summary-mouse-goto-message)
   (define-key rmail-summary-mode-map "a"      'rmail-summary-add-label)
   (define-key rmail-summary-mode-map "b"      'rmail-summary-bury)
   (define-key rmail-summary-mode-map "c"      'rmail-summary-continue)
@@ -994,15 +996,19 @@ Search, the `unseen' attribute is restored.")
 (defvar rmail-summary-overlay nil)
 (put 'rmail-summary-overlay 'permanent-local t)
 
-;; Go to message N in the summary buffer which is current,
-;; and in the corresponding Rmail buffer.
-;; If N is nil, use the message corresponding to point in the summary
-;; and move to that message in the Rmail buffer.
-
-;; If NOWARN, don't say anything if N is out of range.
-;; If SKIP-RMAIL, don't do anything to the Rmail buffer.
+(defun rmail-summary-mouse-goto-message (event)
+  "Select the message whose summary line you click on."
+  (interactive "@e")
+  (goto-char (posn-point (event-end event)))
+  (rmail-summary-goto-msg))
 
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
+  "Go to message N in the summary buffer and the Rmail buffer.
+If N is nil, use the message corresponding to point in the summary
+and move to that message in the Rmail buffer.
+
+If NOWARN, don't say anything if N is out of range.
+If SKIP-RMAIL, don't do anything to the Rmail buffer."
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
   (if (eobp) (forward-line -1))
