@@ -133,8 +133,8 @@ extern char *sys_errlist[];
 #ifndef BSD4_1
 #ifndef LINUX
 extern char *sys_siglist[];
-#endif
-#else
+#endif /* not LINUX */
+#else /* BSD4_1 */
 char *sys_siglist[] =
   {
     "bum signal!!",
@@ -1791,7 +1791,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (select (MAXDESC, &Atemp, 0, 0, &timeout) <= 0)
 	    {
 	      /* It's okay for us to do this and then continue with
-		 the loop, since timeout has already been zeroed out. */
+		 the loop, since timeout has already been zeroed out.  */
 	      clear_waiting_for_input ();
 	      status_notify ();
 	    }
@@ -1869,7 +1869,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 the ptc file descriptor is automatically closed,
 		 yielding EBADF here or at select() call above.
 		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
-		 in m-ibmrt-aix.h), and here we just ignore the select error.
+		 in m/ibmrt-aix.h), and here we just ignore the select error.
 		 Cleanup occurs c/o status_notify after SIGCLD. */
 	      FD_ZERO (&Available); /* Cannot depend on values returned */
 #else
