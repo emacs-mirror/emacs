@@ -96,12 +96,13 @@ i -- Ignored, i.e. always nil.  Does not do I/O.\n\
 k -- Key sequence (downcase the last event if needed to get a definition).\n\
 K -- Key sequence to be redefined (do not downcase the last event).\n\
 m -- Value of mark as number.  Does not do I/O.\n\
+M -- Any string.  Inherits the current input method.\n\
 n -- Number read using minibuffer.\n\
 N -- Raw prefix arg, or if none, do like code `n'.\n\
 p -- Prefix arg converted to number.  Does not do I/O.\n\
 P -- Prefix arg in raw form.  Does not do I/O.\n\
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.\n\
-s -- Any string.\n\
+s -- Any string.  Does not inherit the current input method.\n\
 S -- Any symbol.\n\
 v -- Variable name: symbol that is user-variable-p.\n\
 x -- Lisp expression read but not evaluated.\n\
@@ -466,7 +467,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'a':		/* Symbol defined as a function */
 	  visargs[i] = Fcompleting_read (build_string (callint_message),
 					 Vobarray, Qfboundp, Qt,
-					 Qnil, Qnil, Qnil);
+					 Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
@@ -500,7 +501,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'C':		/* Command: symbol with interactive function */
 	  visargs[i] = Fcompleting_read (build_string (callint_message),
 					 Vobarray, Qcommandp,
-					 Qt, Qnil, Qnil, Qnil);
+					 Qt, Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
@@ -580,6 +581,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  varies[i] = 2;
 	  break;
 
+	case 'M':		/* String read via minibuffer with
+				   inheriting the current input method.  */
+	  args[i] = Fread_string (build_string (callint_message),
+				  Qnil, Qnil, Qnil, Qt);
+	  break;
+
 	case 'N':		/* Prefix arg, else number from minibuffer */
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
@@ -597,7 +604,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		first = 0;
 
 		tem = Fread_from_minibuffer (build_string (callint_message),
-					     Qnil, Qnil, Qnil, Qnil, Qnil);
+					     Qnil, Qnil, Qnil, Qnil, Qnil,
+					     Qnil);
 		if (! STRINGP (tem) || XSTRING (tem)->size == 0)
 		  args[i] = Qnil;
 		else
@@ -633,14 +641,15 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  varies[i] = 4;
 	  break;
 
-	case 's':		/* String read via minibuffer.  */
+	case 's':		/* String read via minibuffer without
+				   inheriting the current input method.  */
 	  args[i] = Fread_string (build_string (callint_message),
-				  Qnil, Qnil, Qnil);
+				  Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'S':		/* Any symbol.  */
 	  visargs[i] = Fread_string (build_string (callint_message),
-				     Qnil, Qnil, Qnil);
+				     Qnil, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
