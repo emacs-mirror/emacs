@@ -335,8 +335,8 @@ enum pvec_type
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) ((EMACS_INT) (((a) << (BITS_PER_EMACS_INT - VALBITS)) \
-			      >> (BITS_PER_EMACS_INT - VALBITS)))
+#define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
+		 >> (BITS_PER_EMACS_INT - VALBITS))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
