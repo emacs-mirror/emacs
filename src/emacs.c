@@ -937,6 +937,7 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
       syms_of_filelock ();
 #endif /* CLASH_DETECTION */
       syms_of_indent ();
+      syms_of_insdel ();
       syms_of_keyboard ();
       syms_of_keymap ();
       syms_of_macros ();
