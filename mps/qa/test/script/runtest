@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.10) $
+# $HopeName: MMQA_harness!script:runtest(trunk.11) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -149,6 +149,7 @@ sub run_testset {
  open(LOG_SUMMARY, ">".$logsummfile);
  open(LOG_RESULTS, ">".$logresfile);
  open(LOG_FULL,    ">".$logfullfile);
+ &describe_settings(LOG_SUMMARY);
  @LOG_FILES = (STDOUT, LOG_SUMMARY, LOG_RESULTS, LOG_FULL);
  &logcomment("Test set $testsetfile");
  &logcomment("");
