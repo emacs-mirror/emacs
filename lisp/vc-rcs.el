@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.29 2002/10/08 20:23:36 monnier Exp $
+;; $Id: vc-rcs.el,v 1.30 2002/11/12 19:46:47 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -99,8 +99,12 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;;; The definition should be at beginning of line (for Help and etags).
-;;;###autoload(defun vc-rcs-registered (f) (vc-default-registered 'RCS f))
+;;; The autoload cookie below places vc-rcs-registered directly into
+;;; loaddefs.el, so that vc-rcs.el does not need to be loaded for
+;;; every file that is visited.  The definition is repeated below
+;;; so that Help and etags can find it.
+
+;;;###autoload (defun vc-rcs-registered (f) (vc-default-registered 'RCS f))
 (defun vc-rcs-registered (f) (vc-default-registered 'RCS f))
 
 (defun vc-rcs-state (file)
