@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.9) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -196,12 +196,41 @@ void asserts(int expr, const char *format, ...)
 
 static void my_assert_handler(const char *cond, const char *id,
                        const char *file, unsigned line) {
- comment("MPS ASSERTION FAILURE");
- report("assert", "true");
- report("assertid", id);
- report("assertfile", file);
- report("assertline", "%u", line);
- report("assertcond", cond);
+ if (line == 0) {
+/* assertion condition contains condition, file, line, separated
+   by newline characters
+*/
+  const char *val;
+
+  comment("MPS ASSERTION FAILURE");
+  report("assert", "true");
+  report("assertid", "<no id supplied>");
+
+  fprintf(stdout, "!assertcond=");
+  val = cond;
+  while (*val != '\n') {
+   fputc(*val, stdout);
+   val++;
+  }
+  fputc('\n', stdout);
+  val++;
+  fprintf(stdout, "!assertfile=");
+  while (*val != '\n') {
+   fputc(*val, stdout);
+   val++;
+  }
+  fputc('\n', stdout);
+  val++;
+  report("assertline", val);
+  fflush(NULL);
+ } else {
+  comment("MPS ASSERTION FAILURE");
+  report("assert", "true");
+  report("assertid", id);
+  report("assertfile", file);
+  report("assertline", "%u", line);
+  report("assertcond", cond);
+ }
  myabort();
 }
 
