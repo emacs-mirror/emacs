@@ -4764,29 +4764,36 @@ gc_sweep ()
     register int lim = symbol_block_index;
     register int num_free = 0, num_used = 0;
 
-    symbol_free_list = 0;
+    symbol_free_list = NULL;
   
     for (sblk = symbol_block; sblk; sblk = *sprev)
       {
-	register int i;
 	int this_free = 0;
-	for (i = 0; i < lim; i++)
-	  if (!XMARKBIT (sblk->symbols[i].plist))
-	    {
-	      *(struct Lisp_Symbol **)&sblk->symbols[i].value = symbol_free_list;
-	      symbol_free_list = &sblk->symbols[i];
+	struct Lisp_Symbol *sym = sblk->symbols;
+	struct Lisp_Symbol *end = sym + lim;
+
+	for (; sym < end; ++sym)
+	  {
+	    int pure_p = PURE_POINTER_P (sym->name);
+	    
+	    if (!XMARKBIT (sym->plist) && !pure_p)
+	      {
+		*(struct Lisp_Symbol **) &sym->value = symbol_free_list;
+		symbol_free_list = sym;
 #if GC_MARK_STACK
-	      symbol_free_list->function = Vdead;
+		symbol_free_list->function = Vdead;
 #endif
-	      this_free++;
-	    }
-	  else
-	    {
-	      num_used++;
-	      if (!PURE_POINTER_P (sblk->symbols[i].name))
-		UNMARK_STRING (sblk->symbols[i].name);
-	      XUNMARK (sblk->symbols[i].plist);
-	    }
+		++this_free;
+	      }
+	    else
+	      {
+		++num_used;
+		if (!pure_p)
+		  UNMARK_STRING (sym->name);
+		XUNMARK (sym->plist);
+	      }
+	  }
+	
 	lim = SYMBOL_BLOCK_SIZE;
 	/* If this block contains only free symbols and we have already
 	   seen more than two blocks worth of free symbols then deallocate
