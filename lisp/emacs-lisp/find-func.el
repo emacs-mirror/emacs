@@ -81,6 +81,7 @@ default."
 
 ;;; Functions:
 
+;;;###autoload
 (defun find-function-noselect (function &optional path)
   "Returns list (BUFFER POINT) pointing to the definition of FUNCTION.
 
