@@ -97,14 +97,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define PNTR_COMPARISON_TYPE unsigned long
 
-/* On the 64 bit architecture, we can use 60 bits for addresses */
-
-#define VALBITS         60
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
-
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 
 #define XPNTR(a) XUINT (a)
