@@ -1,5 +1,11 @@
 2003-03-05  Juanma Barranquero  <lektu@terra.es>
 
+	* term/w32-win.el (x-handle-geometry): Put sizes on
+	`initial-frame-alist' too.
+
+	* startup.el (command-line-x-option-alist): Make --border-color set
+	the border-color frame parameter, not border-width.
+
 	* faces.el (frame-set-background-mode): Fix reference to attribute
 	"backgroundMode".
 
