@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
 @chapter Customization
@@ -64,7 +65,7 @@ negative argument always turns it off.
 buffer; each buffer is independent of the other buffers.  Therefore, you
 can enable the mode in particular buffers and disable it in others.  The
 per-buffer minor modes include Abbrev mode, Auto Fill mode, Auto Save
-mode, Font-Lock mode, Hscroll mode, ISO Accents mode, Outline minor
+mode, Font-Lock mode, ISO Accents mode, Outline minor
 mode, Overwrite mode, and Binary Overwrite mode.
 
   Abbrev mode allows you to define abbreviations that automatically expand
@@ -89,9 +90,6 @@ system crash.  @xref{Auto Save}.
 programs, such as comments, strings, and function names being defined.
 This requires a window system that can display multiple fonts.
 @xref{Faces}.
-
-  Hscroll mode performs horizontal scrolling automatically
-to keep point on the screen.  @xref{Horizontal Scrolling}.
 
   ISO Accents mode makes the characters @samp{`}, @samp{'}, @samp{"},
 @samp{^}, @samp{/} and @samp{~} combine with the following letter, to
@@ -129,10 +127,8 @@ you are in the minibuffer and completion is active.  @xref{Completion
 Options}.
 
   Line Number mode enables continuous display in the mode line of the
-line number of point.  @xref{Mode Line}.
-
-  Resize-Minibuffer mode makes the minibuffer expand as necessary to
-hold the text that you put in it.  @xref{Minibuffer Edit}.
+line number of point and Column Number mode enables display of the
+column number.  @xref{Mode Line}.
 
   Scroll Bar mode gives each window a scroll bar (@pxref{Scroll Bars}).
 Menu Bar mode gives each frame a menu bar (@pxref{Menu Bars}).  Both of
@@ -143,7 +139,7 @@ these modes are enabled by default when you use the X Window System.
 will get an error.  This means you must either set the mark, or
 explicitly ``reactivate'' it, before each command that uses the region.
 The advantage of Transient Mark mode is that Emacs can display the
-region highlighted (currently only when using X).  @xref{Setting Mark}.
+region highlighted (currently only when using X).  @xref{Mark}.
 
   For most minor modes, the command name is also the name of a variable
 which directly controls the mode.  The mode is enabled whenever this
