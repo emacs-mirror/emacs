@@ -1,3 +1,7 @@
+2004-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Undo previous change.
+
 2004-06-05  Juri Linkov  <juri@jurta.org>
 
 	* bindings.el (debug-ignored-errors): Add regexps for history
