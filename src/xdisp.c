@@ -1255,7 +1255,7 @@ update_menu_bar (f, save_match_data)
 	  struct buffer *prev = current_buffer;
 	  int count = specpdl_ptr - specpdl;
 
-	  if (!save_match_data)
+	  if (save_match_data)
 	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
 
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
