@@ -12,7 +12,7 @@
 #define LIBX11_SYSTEM -lXext
 
 #define LIB_X11_LIB -L/usr/lib/X11R5 -L/usr/lib/X11R4 -lX11
-#define C_SWITCH_SYSTEM -I/usr/include/X11R5 -I/usr/include/X11R4
+#define C_SWITCH_X_SYSTEM -I/usr/include/X11R5 -I/usr/include/X11R4
 
 /* Don't use shared libraries.  unexec doesn't handle them.
    Note GCC automatically passes -a archive to ld, and it has its own
