@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (c) 1994, 1995, 1996, 2002 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -141,7 +141,6 @@ Any property that is neither on this list nor dealt with by
 
 ;;; Internal variables
 
-
 (defcustom enriched-mode-hook nil
   "Hook run after entering/leaving Enriched mode.
 If you set variables in this hook, you should arrange for them to be restored
@@ -154,6 +153,11 @@ them and their old values to `enriched-old-bindings'."
   "Store old variable values that we change when entering mode.
 The value is a list of \(VAR VALUE VAR VALUE...).")
 (make-variable-buffer-local 'enriched-old-bindings)
+
+;; Technical internal variable.  Bound to t if `enriched-mode' is
+;; being rerun by a major mode to allow it to restore buffer-local
+;; variables and to correctly update `enriched-old-bindings'.
+(defvar enriched-rerun-flag nil)
 
 ;;;
 ;;; Define the mode
@@ -181,23 +185,21 @@ Commands:
 	 (while enriched-old-bindings
 	   (set (pop enriched-old-bindings) (pop enriched-old-bindings))))
 
-	((memq 'text/enriched buffer-file-format)
+	((and (memq 'text/enriched buffer-file-format)
+	      (not enriched-rerun-flag))
 	 ;; Mode already on; do nothing.
 	 nil)
 
 	(t				; Turn mode on
-	 (push 'text/enriched buffer-file-format)
+	 (add-to-list 'buffer-file-format 'text/enriched)
 	 ;; Save old variable values before we change them.
 	 ;; These will be restored if we exit Enriched mode.
 	 (setq enriched-old-bindings
 	       (list 'buffer-display-table buffer-display-table
-		     'indent-line-function indent-line-function
 		     'default-text-properties default-text-properties))
-	 (make-local-variable 'indent-line-function)
 	 (make-local-variable 'default-text-properties)
-	 (setq indent-line-function 'indent-to-left-margin ;WHY??  -sm
-	       buffer-display-table  enriched-display-table)
-	 (use-hard-newlines 1 nil)
+	 (setq buffer-display-table  enriched-display-table)
+	 (use-hard-newlines 1 (if enriched-rerun-flag 'never nil))
 	 (let ((sticky (plist-get default-text-properties 'front-sticky))
 	       (p enriched-par-props))
 	   (dolist (x p)
@@ -206,6 +208,20 @@ Commands:
 	       (setq default-text-properties
 		     (plist-put default-text-properties
 				'front-sticky sticky)))))))
+
+(defun enriched-before-change-major-mode ()
+  (when enriched-mode
+    (while enriched-old-bindings
+      (set (pop enriched-old-bindings) (pop enriched-old-bindings)))))
+
+(add-hook 'change-major-mode-hook 'enriched-before-change-major-mode)
+
+(defun enriched-after-change-major-mode ()
+  (when enriched-mode
+    (let ((enriched-rerun-flag t))
+      (enriched-mode 1))))
+
+(add-hook 'after-change-major-mode-hook 'enriched-after-change-major-mode)
 
 ;;;
 ;;; Keybindings
