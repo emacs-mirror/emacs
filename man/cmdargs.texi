@@ -338,14 +338,19 @@ to search for files.
 @item INFOPATH
 A colon-separated list of directories holding info files.  Setting this
 variable overrides the setting in @file{paths.el} when Emacs was built.
-@item LANG
-@itemx LC_ALL
+@item LC_ALL
 @itemx LC_CTYPE
-The user's preferred locale.  A locale name which contains
-@samp{8859-@var{n}}, @samp{8859_@var{n}} or @samp{8859@var{n}}, where
-@var{n} is between 1 and 4, automatically specifies the
-@samp{Latin-@var{n}} language environment when Emacs starts up.  If
-@var{n} is 9, that specifies @samp{Latin-5}.
+@itemx LANG
+@findex set-locale-environment
+@vindex locale-language-names
+@vindex locale-charset-language-names
+@vindex locale-preferred-coding-systems
+The user's locale, matched by @code{set-locale-environment} against
+entries in @code{locale-language-names},
+@code{locale-charset-language-names}, and
+@code{locale-preferred-coding-systems} to select a default language
+environment and coding system.  The first of these environment variables
+with a nonempty value specifies the locale.
 @item LOGNAME
 The user's login name.  See also @code{USER}.
 @item MAIL

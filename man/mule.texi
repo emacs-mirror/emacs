@@ -9,23 +9,24 @@
 @cindex encoding of characters
 
 @cindex Chinese
+@cindex Cyrillic
 @cindex Devanagari
 @cindex Hindi
 @cindex Marathi
-@cindex Ethiopian
+@cindex Ethiopic
 @cindex Greek
+@cindex Hebrew
 @cindex IPA
 @cindex Japanese
 @cindex Korean
 @cindex Lao
-@cindex Russian
 @cindex Thai
 @cindex Tibetan
 @cindex Vietnamese
   Emacs supports a wide variety of international character sets,
 including European variants of the Latin alphabet, as well as Chinese,
-Devanagari (Hindi and Marathi), Ethiopian, Greek, IPA, Japanese, Korean,
-Lao, Russian, Thai, Tibetan, and Vietnamese scripts.  These features
+Cyrillic, Devanagari (Hindi and Marathi), Ethiopic, Greek, Hebrew, IPA,
+Japanese, Korean, Lao, Thai, Tibetan, and Vietnamese scripts.  These features
 have been merged from the modified version of Emacs known as MULE (for
 ``MULti-lingual Enhancement to GNU Emacs'')
 
@@ -147,23 +148,54 @@ also specify the default coding system to use when you create a file.
 Each language environment also specifies a default input method.
 
 @findex set-language-environment
-  The way to select a language environment is with the command @kbd{M-x
+@vindex current-language-environment
+  To select a language environment, customize the option
+@code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally to
 the Emacs session.  The supported language environments include:
 
 @quotation
-Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-Alternativnyj,
-Cyrillic-ISO, Cyrillic-KOI8, Devanagari, English, Ethiopic, Greek,
-Hebrew, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
-Latin-5, Thai, Tibetan, and Vietnamese.
+Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
+Cyrillic-KOI8, Czech, Devanagari, English, Ethiopic, German, Greek,
+Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3,
+Latin-4, Latin-5, Latin-8, Latin-9, Romanian, Slovak, Slovenian, Thai,
+Tibetan, Turkish, and Vietnamese.
 @end quotation
 
+@findex set-locale-environment
+@vindex locale-language-names
+@vindex locale-charset-language-names
   Some operating systems let you specify the language you are using by
-setting locale environment variables.  Emacs handles one common special
-case of this: if your locale name for character types contains the
-string @samp{8859-@var{n}}, Emacs automatically selects the
-corresponding language environment.
+setting the locale environment variables @env{LC_ALL}, @env{LC_CTYPE},
+and @env{LANG}; the first of these which is nonempty specifies your
+locale.  Emacs handles this during startup by invoking the
+@code{set-locale-environment} function, which matches your locale
+against entries in the value of the variable
+@code{locale-language-names} and selects the corresponding language
+environment if a match is found.  But if your locale also matches an
+entry in the variable @code{locale-charset-language-names}, this entry
+is preferred if its character set disagrees.  For example, suppose the
+locale @samp{en_GB.ISO8859-15} matches @code{"Latin-1"} in
+@code{locale-language-names} and @code{"Latin-9"} in
+@code{locale-charset-language-names}; since these two language
+environments' character sets disagree, Emacs uses @code{"Latin-9"}.
+
+@findex set-locale-environment
+@vindex locale-preferred-coding-systems
+  The @code{set-locale-environment} function normally uses the preferred
+coding system established by the language environment to decode system
+messages.  But if your locale matches an entry in the variable
+@code{locale-preferred-coding-systems}, Emacs uses the corresponding
+coding system instead.  For example, if the locale @samp{ja_JP.PCK}
+matches @code{japanese-shift-jis} in
+@code{locale-preferred-coding-systems}, Emacs uses that encoding even
+though it might normally use @code{japanese-iso-8bit}.
+
+  The environment chosen from the locale when Emacs starts is
+overidden by any explicit use of the command
+@code{set-language-environment} or customization of
+@code{current-language-environment} in your init file.
 
 @kindex C-h L
 @findex describe-language-environment
@@ -749,6 +781,15 @@ differently) under the new coding system.  If you try to save one of
 these buffers under the visited file name, saving may use the wrong file
 name, or it may get an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
+
+@vindex locale-coding-system
+  The variable @code{locale-coding-system} specifies a coding system to
+use when encoding and decoding system strings such as system error
+messages and @code{format-time-string} formats and time stamps.  This
+coding system should be compatible with the underlying system's coding
+system, which is normally specified by the first environment variable in
+the list @env{LC_ALL}, @env{LC_CTYPE}, @env{LANG} whose value is
+nonempty.
 
 @node Fontsets
 @section Fontsets

@@ -377,6 +377,10 @@ Shell script mode (sh-script) can now indent scripts for shells
 derived from sh and rc.  The indentation style is customizeable, and
 sh-script can attempt to "learn" the current buffer's style.
 
+** Emacs now attempts to determine the initial language environment
+and preferred and locale coding systems systematically from the
+LC_ALL, LC_CTYPE, and LANG environment variables during startup.
+
 ** New language environments `Latin-8' and `Latin-9'.
 These correspond respectively to the ISO character sets 8859-14
 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).  There is
@@ -482,6 +486,24 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** New functions and variables for locales.
+
+The new variable `locale-coding-system' specifies how to encode and
+decode strings passed to low-level message functions like strerror and
+time functions like strftime.  The new variables `messages-locale' and
+`time-locale' give the system locales to be used during the next
+invocations of these two types of functions; the new variables
+`previous-messages-locale' and `previous-time-locale' give the locales
+most recently used.
+
+The new function `set-locale-environment' sets the language
+environment, preferred coding system, and locale coding system from
+the system locale as specified by the LC_ALL, LC_CTYPE, and LANG
+environment variables.  It is normally invoked during startup.  It
+uses the new variables `locale-language-names',
+`locale-charset-language-names', and `locale-preferred-coding-systems'
+to make its decisions.
 
 ** syntax tables now understand nested comments.
 To declare a comment syntax as allowing nesting, just add an `n'
