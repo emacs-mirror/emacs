@@ -1139,6 +1139,9 @@ push_key_description (c, p)
      register unsigned int c;
      register char *p;
 {
+  /* Clear all the meaningless bits above the meta bit.  */
+  c &= meta_modifier | ~ - meta_modifier;
+
   if (c & alt_modifier)
     {
       *p++ = 'A';
