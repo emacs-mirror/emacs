@@ -592,83 +592,16 @@ character code range.  Thus FUNC should iterate over [START, END]."
 		 (make-char charset (+ i start) start)
 		 (make-char charset (+ i start) (+ start chars -1)))))))
 
-(defun optimize-char-coding-system-table ()
-  "Optimize `char-coding-system-table'.
-Elements which compare `equal' are modified to share the same list."
-  (let (cache)
-    (map-char-table
-     (lambda (k v)
-       ;; This doesn't worry about elements which are permutations of
-       ;; each other.  As it is, with utf-translate-cjk on and
-       ;; code-pages loaded, the table has ~50k elements, which are
-       ;; reduced to ~1k.  (`optimize-char-table' might win if
-       ;; permutations were eliminated, but that's probably a small
-       ;; effect and not easy to test.)
-       (if v
-	   (let ((existing (car (member v cache))))
-	     (if existing
-		 (aset char-coding-system-table k existing)
-	       (push v cache)))))
-     char-coding-system-table))
-  (optimize-char-table char-coding-system-table))
-
 (defun register-char-codings (coding-system safe-chars)
-  "Add entries for CODING-SYSTEM to `char-coding-system-table'.
-If SAFE-CHARS is a char-table, its non-nil entries specify characters
-which CODING-SYSTEM encodes safely.  If SAFE-CHARS is t, register
-CODING-SYSTEM as a general one which can encode all characters."
-  (let ((general (char-table-extra-slot char-coding-system-table 0))
-	;; Charsets which have some members in the table, but not all
-	;; of them (i.e. not just a generic character):
-	(partials (char-table-extra-slot char-coding-system-table 1)))
-    (if (eq safe-chars t)
-	(or (memq coding-system general)
-	    (set-char-table-extra-slot char-coding-system-table 0
-				       (cons coding-system general)))
-      (map-char-table
-       (lambda (key val)
-	 (if (and (>= key 128) val)
-	     (let ((codings (aref char-coding-system-table key))
-		   (charset (char-charset key)))
-	       (unless (memq coding-system codings)
-		 (if (and (generic-char-p key)
-			  (memq charset partials))
-		     ;; The generic char would clobber individual
-		     ;; entries already in the table.  First save the
-		     ;; separate existing entries for all chars of the
-		     ;; charset (with the generic entry added, if
-		     ;; necessary).
-		     (let (entry existing)
-		       (map-charset-chars
-			(lambda (start end)
-			  (while (<= start end)
-			    (setq entry (aref char-coding-system-table start))
-			    (when entry
-			      (push (cons
-				     start
-				     (if (memq coding-system entry)
-					 entry
-				       (cons coding-system entry)))
-				    existing))
-			    (setq start (1+ start))))
-			charset)
-		       ;; Update the generic entry.
-		       (aset char-coding-system-table key
-			     (cons coding-system codings))
-		       ;; Override with the saved entries.
-		       (dolist (elt existing)
-			 (aset char-coding-system-table (car elt) (cdr elt))))
-		   (aset char-coding-system-table key
-			 (cons coding-system codings))
-		   (unless (or (memq charset partials)
-			       (generic-char-p key))
-		     (push charset partials)))))))
-       safe-chars)
-      ;; This is probably too expensive (e.g. multiple calls in
-      ;; ucs-tables), and only really relevant in certain cases, so do
-      ;; it explicitly where appropriate.
-      ;; (optimize-char-coding-system-table)
-      (set-char-table-extra-slot char-coding-system-table 1 partials))))
+  "This is an obsolete function.  
+It exists just for backward compatibility, and it does nothing.")
+(make-obsolete 'register-char-codings
+	       "Unnecessary function.  Calling it has no effect."
+	       "21.3")
+
+(defconst char-coding-system-table nil
+  "This is an obsolete variable.
+It exists just for backward compatibility, and the value is always nil.")
 
 (defun make-subsidiary-coding-system (coding-system)
   "Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM."
@@ -1088,7 +1021,6 @@ a value of `safe-charsets' in PLIST."
 		(if (and (symbolp val)
 			 (get val 'translation-table))
 		    (setq safe-chars (get val 'translation-table)))
-		(register-char-codings coding-system safe-chars)
 		(setq val safe-chars)))
 	  (plist-put plist prop val)))
       ;; The property `coding-category' may have been set differently
@@ -1121,6 +1053,8 @@ a value of `safe-charsets' in PLIST."
 	      (t
 	       (error "Invalid EOL-TYPE spec:%S" eol-type))))
   (put coding-system 'eol-type eol-type)
+
+  (define-coding-system-internal coding-system)
 
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
