@@ -2,12 +2,12 @@
 #
 # Build the MMsrc compound at tip of branch MM_epcore_brisling, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_epcore_brisling(trunk.1) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_epcore_brisling(trunk.2) $
 
 
 script="`basename $0`"
 platform=$1
-varieties="ti hi we"
+varieties="hi we"
 
 
 msg () {
