@@ -1632,8 +1632,20 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 
+  # Reportedly, some broken Solaris systems have XKBlib.h but are missing
+  # header files included from there.
+  AC_MSG_CHECKING(for Xkb)
+  AC_TRY_LINK([#include <X11/Xlib.h>
+#include <X11/XKBlib.h>],
+	[XkbDescPtr kb = XkbGetKeyboard (0, XkbAllComponentsMask, XkbUseCoreKbd);],
+	emacs_xkb=yes, emacs_xkb=no)
+  AC_MSG_CHECKING($emacs_xkb)
+  if test $emacs_xkb = yes; then
+    AC_DEFINE(HAVE_XKBGETKEYBOARD)
+  fi
+
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
-XScreenNumberOfScreen XSetWMProtocols XkbGetKeyboard)
+XScreenNumberOfScreen XSetWMProtocols)
 fi
 
 if test "${window_system}" = "x11"; then
