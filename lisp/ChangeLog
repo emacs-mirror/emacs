@@ -1,3 +1,8 @@
+2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* files.el (auto-save-file-name-transforms): Put remote files in
+	temporary-file-directory rather than /tmp.
+
 2001-11-21  Colin Walters  <walters@debian.org>
 
 	* calc/calc-macs.el (calc-slow-wrapper): Move (point) call outside

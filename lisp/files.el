@@ -286,7 +286,8 @@ Normally auto-save files are written under other names."
   :group 'auto-save)
 
 (defcustom auto-save-file-name-transforms
-  '(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)" "/tmp/\\2"))
+  `(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
+     ,(expand-file-name "\\2" temporary-file-directory)))
   "*Transforms to apply to buffer file name before making auto-save file name.
 Each transform is a list (REGEXP REPLACEMENT):
 REGEXP is a regular expression to match against the file name.
@@ -296,8 +297,9 @@ All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
 no further transforms are tried.
 
-The default value is set up to put the auto-save file into `/tmp'
-for editing a remote file."
+The default value is set up to put the auto-save file into the
+temporary directory (see the variable `temporary-file-directory') for
+editing a remote file."
   :group 'auto-save
   :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")))
   :version "21.1")
