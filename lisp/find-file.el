@@ -422,8 +422,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
                          (buffer-file-name)
                        "/none.none"))
 
-      (string-match ".*/\\(.+\\)$" pathname)
-      (setq fname (substring pathname (match-beginning 1) (match-end 1))
+      (setq fname (file-name-nondirectory pathname)
             no-match nil
             match (car alist))
 
