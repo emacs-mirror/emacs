@@ -1,5 +1,5 @@
 /* Get the system load averages.
-   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93, 1994
+   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93, 1994, 1995
    	Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -59,6 +59,11 @@
    We also #define LDAV_PRIVILEGED if a program will require
    special installation to be able to call getloadavg.  */
 
+/* This should always be first.  */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 
 /* Both the Emacs and non-Emacs sections want this.  Some
@@ -68,10 +73,6 @@
 #include <sys/param.h>
 #endif
 
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* Exclude all the code except the test program at the end
    if the system has its own `getloadavg' function.
