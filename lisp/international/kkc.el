@@ -232,17 +232,19 @@ and the return value is the length of the conversion."
 	  ;; Let's put the event back.
 	  (setq unread-input-method-events
 		(append (string-to-list keyseq) unread-input-method-events))
-	  (setq kkc-converting nil)))))
+	  (kkc-terminate)))))
 
   (force-mode-line-update)
   (goto-char (overlay-end kkc-overlay-tail))
-  (prog1 (- (point) from)
+  (prog1 (- (overlay-start kkc-overlay-head) from)
     (delete-overlay kkc-overlay-head)
     (delete-overlay kkc-overlay-tail)))
 
 (defun kkc-terminate ()
   "Exit from KKC mode by fixing the current conversion."
   (interactive)
+  (goto-char (overlay-end kkc-overlay-tail))
+  (move-overlay kkc-overlay-head (point) (point))
   (setq kkc-converting nil))
 
 (defun kkc-cancel ()
@@ -252,7 +254,7 @@ and the return value is the length of the conversion."
   (delete-region (overlay-start kkc-overlay-head)
 		 (overlay-end kkc-overlay-tail))
   (insert kkc-original-kana)
-  (kkc-terminate))
+  (setq kkc-converting nil))
 
 (defun kkc-first-char-only ()
   "Select only the first character currently converted."
