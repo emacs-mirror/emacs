@@ -136,6 +136,8 @@ bitmapdir=@bitmapdir@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 
+top_srcdir=@top_srcdir@
+
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
@@ -222,7 +224,7 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
-SUBDIR = lib-src src
+SUBDIR = lib-src @subdirs@ src
 
 # The makefiles of the directories in $SUBDIR.
 SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
@@ -235,9 +237,6 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Make
 # instead, we have written out explicit code in the `install' targets.
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
-
-# Set to FRC to force running autoconf and autoheader
-MAINT =
 
 all: ${SUBDIR} leim
 
@@ -291,8 +290,8 @@ Makefile: $(srcdir)/Makefile.in config.status
 config.status: ${srcdir}/configure
 	./config.status --recheck
 
-${srcdir}/configure: $(MAINT)
-	cd ${srcdir} && autoconf
+${srcdir}/configure: configure.in
+	cd ${srcdir} && autoconf && autoheader
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@true
@@ -327,6 +326,9 @@ lwlib/Makefile: $(srcdir)/lwlib/Makefile.in config.status
 	./config.status
 
 leim/Makefile: $(srcdir)/leim/Makefile.in config.status
+	./config.status
+
+gc/Makefile: $(srcdir)/gc/Makefile.in config.status
 	./config.status
 
 # ==================== Installation ====================
@@ -499,7 +501,7 @@ install-arch-indep: mkdir info
 ### Install LEIM files.  Although they are machine-independent, we
 ### have separate target here instead of including it in
 ### `install-arch-indep'.  People who extracted LEIM files after they
-### insalled Emacs itself can install only LEIM files by this target.
+### installed Emacs itself can install only LEIM files by this target.
 install-leim: leim/Makefile mkdir
 	cd leim; $(MAKE) install
 
@@ -569,6 +571,7 @@ mostlyclean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
+	(cd gc;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd man &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) mostlyclean)
@@ -587,6 +590,7 @@ clean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
+	(cd gc;  $(MAKE) $(MFLAGS) clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
@@ -607,6 +611,7 @@ distclean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
+	(cd gc;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
 	(cd lispref &&    $(MAKE) $(MFLAGS) distclean)
 	(cd lispintro &&    $(MAKE) $(MFLAGS) distclean)
@@ -630,6 +635,7 @@ maintainer-clean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd gc;  $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
@@ -666,6 +672,7 @@ unlock:
 	-(cd elisp; chmod u+w Makefile README *.texi)
 	(cd etc; $(MAKE) $(MFLAGS) unlock)
 	(cd lib-src; $(MAKE) $(MFLAGS) unlock)
+	(cd gc; $(MAKE) $(MFLAGS) unlock)
 	(cd lisp; $(MAKE) $(MFLAGS) unlock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
@@ -680,6 +687,7 @@ relock:
 	-(cd elisp; chmod u-w Makefile README *.texi)
 	(cd etc; $(MAKE) $(MFLAGS) relock)
 	(cd lib-src; $(MAKE) $(MFLAGS) relock)
+	(cd gc; $(MAKE) $(MFLAGS) relock)
 	(cd lisp; $(MAKE) $(MFLAGS) relock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
@@ -747,6 +755,7 @@ bootstrap-clean-before: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
+	(cd gc;  $(MAKE) $(MFLAGS) clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
