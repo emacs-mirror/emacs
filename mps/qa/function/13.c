@@ -57,6 +57,7 @@ static void test(void)
 
 /* turn on comments about copying and scanning */
  formatcomments = BLAH;
+ fixcomments = BLAH;
 
  cdie(mps_space_create(&space), "create space");
 
