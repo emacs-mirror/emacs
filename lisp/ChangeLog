@@ -1,3 +1,9 @@
+2000-10-02  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Don't bind
+	unused vars.  Treat byte-constant2 like byte-constant.  Fix bogus
+	comparison of opcode with operand.
+
 2000-10-03  Miles Bader  <miles@gnu.org>
 
 	* play/yow.el (yow): Don't display multi-line quotations in a *Help*
