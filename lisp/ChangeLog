@@ -1,3 +1,13 @@
+2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/tty-colors.el (color-name-rgb-alist): Add a comment
+	explaining why some "light*" colors are deliberately absent from
+	the alist.
+
+	* info.el (Info-title-1-face, Info-title-2-face)
+	(Info-title-3-face): Change colors for tty's, as suggested by
+	Miles Bader.
+
 2000-10-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el: Use registry "MuleTibetan-2" for

@@ -1,3 +1,7 @@
+2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* anti.texi (Antinews): Many changes from Richard Stallman.
+
 2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* misc.texi (Shell Mode): Document `comint-write-output', name
