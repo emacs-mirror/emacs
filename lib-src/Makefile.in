@@ -265,7 +265,7 @@ distclean: clean
 	-rm -f aixcc.c TAGS
 	-rm -f Makefile Makefile.in blessmail
 
-realclean: distclean
+maintainer-clean: distclean
 	true
 
 extraclean: realclean

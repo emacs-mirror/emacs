@@ -22,7 +22,7 @@
 #      `make distclean' should leave only the files that were in the
 #      distribution.
 # 
-# make realclean
+# make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
 #      everything deleted by distclean, plus more: C source files
@@ -400,7 +400,7 @@ FRC:
 
 # ==================== Cleaning up and miscellanea ====================
 
-.PHONY: mostlyclean clean distclean realclean extraclean
+.PHONY: mostlyclean clean distclean maintainer-clean extraclean
 
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
@@ -448,23 +448,23 @@ distclean: FRC
 	${top_distclean}
 	
 
-### `realclean'
+### `maintainer-clean'
 ###      Delete everything from the current directory that can be
 ###      reconstructed with this Makefile.  This typically includes
 ###      everything deleted by distclean, plus more: C source files
 ###      produced by Bison, tags tables, info files, and so on.
 ### 
-###      One exception, however: `make realclean' should not delete
+###      One exception, however: `make maintainer-clean' should not delete
 ###      `configure' even if `configure' can be remade using a rule in the
-###      Makefile.  More generally, `make realclean' should not delete
+###      Makefile.  More generally, `make maintainer-clean' should not delete
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
-realclean: FRC
-	(cd src;      $(MAKE) $(MFLAGS) realclean)
-	(cd oldXMenu; $(MAKE) $(MFLAGS) realclean)
-	(cd lwlib;    $(MAKE) $(MFLAGS) realclean)
-	(cd lib-src;  $(MAKE) $(MFLAGS) realclean)
-	-(cd man &&   $(MAKE) $(MFLAGS) realclean)
+maintainer-clean: FRC
+	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl

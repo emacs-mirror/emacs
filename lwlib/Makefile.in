@@ -67,7 +67,7 @@ mostlyclean:
 
 clean: mostlyclean
 distclean: clean
-realclean: distclean
+maintainer-clean: distclean
 
 tags::
 	$(TAGS) -t *.[ch]
