@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -601,7 +601,7 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 		 (progn
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1994 Free Software Foundation, Inc.\n\n")
+Copyright (C) 1995 Free Software Foundation, Inc.\n\n")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
