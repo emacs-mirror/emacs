@@ -183,6 +183,15 @@ changequote(, )dnl
 machine='' opsys='' unported=no
 case "${canonical}" in
 
+  ## FreeBSD ports
+  *-*-freebsd* )
+    opsys=freebsd
+    case "${canonical}" in
+      alpha*-*-freebsd*)	machine=alpha ;;
+      i[3456]86-*-freebsd*)	machine=intel386 ;;
+    esac
+  ;;
+
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
@@ -1027,7 +1036,6 @@ case "${canonical}" in
 				;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-386bsd* )	        opsys=386bsd ;;
-      *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=nextstep ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
