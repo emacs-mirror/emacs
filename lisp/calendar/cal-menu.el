@@ -230,6 +230,13 @@
     (calendar-goto-date (calendar-event-to-date))
     (view-diary-entries 1)))
 
+(defun calendar-mouse-set-mark ()
+  "Mark the date under the cursor."
+  (interactive)
+  (save-excursion
+    (calendar-goto-date (calendar-event-to-date))
+    (calendar-set-mark nil)))
+
 (defun calendar-mouse-print-dates ()
   "Pop up menu of equivalent dates to mouse selected date."
   (interactive)
@@ -272,7 +279,7 @@
                        t t)
                       '("Diary entries" . calendar-mouse-view-diary-entries)
                       '("Holidays" . calendar-mouse-holidays)
-                      '("Mark date" . calendar-set-mark)
+                      '("Mark date" . calendar-mouse-set-mark)
                       '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
                       '("Other calendars" . calendar-mouse-print-dates)))
             (list "Menu"
