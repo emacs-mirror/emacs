@@ -5314,12 +5314,9 @@ w32_ring_bell (void)
 
   f = SELECTED_FRAME ();
 
-  if (! FRAME_W32_P (f))
-    return;
-
   BLOCK_INPUT;
 
-  if (visible_bell)
+  if (FRAME_W32_P (f) && visible_bell)
     {
       int i;
       HWND hwnd = FRAME_W32_WINDOW (SELECTED_FRAME ());
@@ -10304,18 +10301,14 @@ w32_initialize ()
   /* MSVC does not type K&R functions with no arguments correctly, and
      so we must explicitly cast them.  */
   clear_frame_hook = (void (*)(void)) x_clear_frame;
-  ins_del_lines_hook = x_ins_del_lines;
-  change_line_highlight_hook = x_change_line_highlight;
-  delete_glyphs_hook = x_delete_glyphs;
   ring_bell_hook = (void (*)(void)) w32_ring_bell;
-  reset_terminal_modes_hook = (void (*)(void)) w32_reset_terminal_modes;
-  set_terminal_modes_hook = (void (*)(void)) w32_set_terminal_modes;
   update_begin_hook = x_update_begin;
   update_end_hook = x_update_end;
-  set_terminal_window_hook = w32_set_terminal_window;
+
   read_socket_hook = w32_read_socket;
+
   frame_up_to_date_hook = w32_frame_up_to_date;
-  reassert_line_highlight_hook = w32_reassert_line_highlight;
+
   mouse_position_hook = w32_mouse_position;
   frame_rehighlight_hook = w32_frame_rehighlight;
   frame_raise_lower_hook = w32_frame_raise_lower;
