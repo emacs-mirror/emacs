@@ -1,11 +1,24 @@
-2002-11-07  Juanma Barranquero  <lektu@terra.es>
-
-	* help.el (where-is): Repport also aliases of the passed command.
-
 2002-11-07   Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/sendmail.el (mail-default-directory): Set the version to
+	21.4.
+
+	* progmodes/compile.el (grep-compute-defaults): Undo previous
+	change.  Definition moved down.
+	(grep-command, grep-find-command, grep-tree-command): Allow value
+	nil.  Do not declare :get property.
+	(grep-use-null-device): Doc fix.  Fix type.  Do not declare :get
+	property.
+
+	* emacs-lisp/checkdoc.el (checkdoc-find-error): Use
+	get-file-buffer instead of get-buffer.
 
 	* cus-dep.el (custom-make-dependencies): Fix comment inserted in
 	cus-load.el.
+
+2002-11-07  Juanma Barranquero  <lektu@terra.es>
+
+	* help.el (where-is): Report also aliases of the passed command.
 
 2002-11-06  Dave Love  <fx@gnu.org>
 
