@@ -1425,13 +1425,13 @@ try_window_id (window)
   if (Z - GPT < end_unchanged)
     end_unchanged = Z - GPT;
 
-  if (beg_unchanged + 1 < start)
+  if (beg_unchanged + BEG < start)
     return 0;			/* Give up if changes go above top of window */
 
   /* Find position before which nothing is changed.  */
   bp = *compute_motion (start, 0, lmargin,
-			beg_unchanged + 1, height + 1, 0, width, hscroll,
-			pos_tab_offset (w, start));
+			min (ZV, beg_unchanged + BEG), height + 1, 0,
+			width, hscroll, pos_tab_offset (w, start));
   if (bp.vpos >= height)
     {
       if (point < bp.bufpos && !bp.contin)
