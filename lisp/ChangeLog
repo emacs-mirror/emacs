@@ -9,6 +9,8 @@
 	(ibuffer): Save window configuration before showing Ibuffer
 	buffer.
 
+	* help.el (describe-mode): Doc fix.
+
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
