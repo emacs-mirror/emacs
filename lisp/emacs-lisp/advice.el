@@ -3557,7 +3557,7 @@ the value of `ad-redefinition-action' and de/activate again."
 		;; we have a redefinition:
 		(if (not (memq ad-redefinition-action '(accept discard warn)))
 		    (error "ad-handle-definition (see its doc): `%s' %s"
-			   function "illegally redefined")
+			   function "invalidly redefined")
 		  (if (eq ad-redefinition-action 'discard)
 		      (ad-safe-fset function original-definition)
 		    (ad-set-orig-definition function current-definition)
@@ -3794,13 +3794,13 @@ during preloading.
 
 Look at the file `advice.el' for comprehensive documentation."
   (if (not (ad-name-p function))
-      (error "defadvice: Illegal function name: %s" function))
+      (error "defadvice: Invalid function name: %s" function))
   (let* ((class (car args))
 	 (name (if (not (ad-class-p class))
-		   (error "defadvice: Illegal advice class: %s" class)
+		   (error "defadvice: Invalid advice class: %s" class)
 		 (nth 1 args)))
 	 (position (if (not (ad-name-p name))
-		       (error "defadvice: Illegal advice name: %s" name)
+		       (error "defadvice: Invalid advice name: %s" name)
 		     (setq args (nthcdr 2 args))
 		     (if (ad-position-p (car args))
 			 (prog1 (car args)
@@ -3817,7 +3817,7 @@ Look at the file `advice.el' for comprehensive documentation."
 		(cond ((eq completion t) flag)
 		      ((assoc completion ad-defadvice-flags)
 		       (intern completion))
-		      (t (error "defadvice: Illegal or ambiguous flag: %s"
+		      (t (error "defadvice: Invalid or ambiguous flag: %s"
 				flag))))))
 	   args))
 	 (advice (ad-make-advice
