@@ -1,3 +1,7 @@
+2001-11-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keymap.c (access_keymap): Fix compilation error.
+
 2001-11-07  Miles Bader  <miles@gnu.org>
 
 	* xfns.c (x_set_frame_parameters): Avoid infinite recursion.
