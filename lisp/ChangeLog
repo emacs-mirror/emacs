@@ -1,3 +1,27 @@
+2004-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/elp.el (elp-instrument-function):
+	Use called-interactively-p.
+
+	* emacs-lisp/easymenu.el (easy-menu-intern):
+	Don't downcase; rather, case-flip the first letter of each word.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use called-interactively-p.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types):
+	Add interactive-only.
+	(byte-compile-warnings): Add interactive-only as option.
+	(byte-compile-interactive-only-functions): New variable.
+	(byte-compile-form): Warn about calls to functions
+	in byte-compile-interactive-only-functions.
+
+	* emacs-lisp/autoload.el (update-file-autoloads):
+	Don't use interactive-p; take new arg SAVE-AFTER.
+
+	* emacs-lisp/advice.el (ad-make-advised-definition):
+	Use called-interactively-p.
+
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* files.el (find-file-existing): New function.
@@ -90,6 +114,10 @@
 	* textmodes/bibtex.el (bibtex-make-field): Fix typo.
 
 2004-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-word): Don't use interactive-p.
+
+	* textmodes/flyspell.el (flyspell-word): Don't use interactive-p.
 
 	* allout.el (allout group): Add :version.
 	(allout-init): Don't use interactive-p.

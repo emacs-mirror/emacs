@@ -1,3 +1,26 @@
+2004-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range_2): New function.
+
+	* casefiddle.c (casify_region): Handle changes in byte-length
+	using replace_range_2.
+
+	* emacs.c (USAGE3): Delete --horizontal-scroll-bars, -hb.
+
+	* xdisp.c (back_to_previous_visible_line_start): 
+	Subtract 1 from pos when checking previous newline for invisibility.
+
+	* window.c (window_scroll_pixel_based): Update preserve_y
+	for header line if any.
+	(Fscroll_left, Fscroll_right): Don't call interactive_p;
+	use a new second argument instead.
+
+	* eval.c (Fcall_interactive_p): New function.
+	(interactive_p): Don't test INTERACTIVE here.
+	(Finteractive_p): Doc fix.
+
+	* eval.c (Feval): Abort if INPUT_BLOCKED_P.
+
 2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
