@@ -2130,7 +2130,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
       {
 	/* If actually changing the property, mark redisplay needed.  */
 	if (! NILP (buffer) && !EQ (XCONS (XCONS (tail)->cdr)->car, value))
-	  redisplay_region (buffer,
+	  redisplay_region (XBUFFER (buffer),
 			    marker_position (OVERLAY_START (overlay)),
 			    marker_position (OVERLAY_END   (overlay)));
 
@@ -2139,7 +2139,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 
   /* Actually changing the property; mark redisplay needed.  */
   if (! NILP (buffer))
-    redisplay_region (buffer,
+    redisplay_region (XBUFFER (buffer),
 		      marker_position (OVERLAY_START (overlay)),
 		      marker_position (OVERLAY_END   (overlay)));
 
