@@ -1277,10 +1277,12 @@ create_process (process, new_argv, current_dir)
 #ifdef HAVE_PTYS
 	/* First, disconnect its current controlling terminal.  */
 #ifdef HAVE_SETSID
+	/* We tried doing setsid only if pty_flag, but it caused
+	   process_set_signal to fail on SGI when using a pipe.  */
+	setsid ();
 	/* Make the pty's terminal the controlling terminal.  */
 	if (pty_flag)
 	  {
-	    setsid ();
 #ifdef TIOCSCTTY
 	    /* We ignore the return value
 	       because faith@cs.unc.edu says that is necessary on Linux.  */
