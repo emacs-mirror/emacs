@@ -137,11 +137,11 @@ in order to build a valid keymap.
 	 (keymap-name (concat mode-name "-map"))
 	 (keymap-doc (format "Keymap for %s mode." mode-name)))
     `(progn
-       ;; define the switch
+       ;; Define the variable to enable or disable the mode.
        (defvar ,mode ,init-value ,mode-doc)
        (make-variable-buffer-local ',mode)
 
-       ;; define the minor-mode keymap
+       ;; Define the minor-mode keymap.
        (defvar ,(intern keymap-name)
 	 (cond ((and ,keymap (keymapp ,keymap))
 		,keymap)
@@ -150,18 +150,21 @@ in order to build a valid keymap.
 	       (t (error "Invalid keymap %S" ,keymap)))
 	 ,keymap-doc)
 
-       ;; define the toggle and the hooks
-       ,(macroexpand `(easy-mmode-define-toggle ,mode ,doc)) ; toggle and hooks
+       ;; Define the toggle and the hooks.
+       ,(macroexpand `(easy-mmode-define-toggle ,mode ,doc))
 
-       ;; update the mode-bar
+       ;; Update the mode line.
        (or (assq ',mode minor-mode-alist)
 	   (setq minor-mode-alist
-		 (cons (list ',mode ,lighter) minor-mode-alist)))
+		 (cons (list ',mode nil) minor-mode-alist)))
+       (setcar (cdr (assq ',mode minor-mode-alist)) ,lighter)
 
-       ;; update the minor-mode-map
+       ;; Update the minor mode map.
        (or (assq ',mode minor-mode-map-alist)
 	   (setq minor-mode-map-alist 
-		 (cons (cons ',mode ,(intern keymap-name)) minor-mode-map-alist)))) ))
+		 (cons (cons ',mode ,(intern keymap-name)) minor-mode-map-alist)))
+       (setcdr (assq ',mode minor-mode-map-alist)
+	       ,(intern keymap-name))) ))
 
 (provide 'easy-mmode)
 
