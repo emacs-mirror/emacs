@@ -1,3 +1,32 @@
+2004-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (MAX_ALLOCA): Define here.
+	(safe_alloca_unwind): Add prototype.
+	(USE_SAFE_ALLOCA, SAFE_ALLOCA, SAFE_FREE): New macros.
+
+	* alloc.c (safe_alloca_unwind): New function.
+
+	* casefiddle.c (casify_object): Use SAFE_ALLOCA.
+
+	* charset.c (Fstring): Use SAFE_ALLOCA.
+
+	* coding.c (MAX_ALLOCA): Remove define.
+
+	* data.c (MAX_ALLOCA): Remove define.
+	(Faset): Use SAFE_ALLOCA.
+
+	* editfns.c (Fformat, Ftranspose_regions): Use SAFE_ALLOCA.
+
+	* fns.c (string_make_multibyte, string_to_multibyte)
+	(string_make_unibyte, Fmapconcat, Fmapcar): Use SAFE_ALLOCA.
+	(MAX_ALLOCA): Remove define.
+	(Fbase64_encode_region, Fbase64_encode_string)
+	(Fbase64_decode_region, Fbase64_decode_string): Use SAFE_ALLOCA.
+	(Fbase64_encode_region, Fbase64_encode_string): Fix potential
+	memory leak if encoding fails.
+
+	* xdisp.c (add_to_log): Use SAFE_ALLOCA.
+
 2004-06-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* print.c (Fwith_output_to_temp_buffer): Doc fix.
