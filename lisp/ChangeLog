@@ -1,6 +1,7 @@
 2001-08-16  Miles Bader  <miles@gnu.org>
 
 	* simple.el (line-move): Undo previous change.
+	
 	* comint.el (comint-send-input): Add `inhibit-line-move-field-capture' 
 	property to input-terminating `boundary' overlays to avoid
 	line-move wierdness.
@@ -11,6 +12,16 @@
 	buffer in a save-restriction.  Under one test case with Ediff,
 	window-scroll-functions are run with a window start that's
 	temporarily outside of the restriction.
+
+2001-08-16  Robert J. Chassell <bug-texinfo@gnu.org>
+
+	* textmodes/texnfo-upd.el: Update copyright notice, fix minor
+	typos.
+	(texinfo-find-lower-level-node, texinfo-find-higher-level-node)
+	(texinfo-menu-locate-entry-p, texinfo-start-menu-description)
+	(texinfo-update-menu-region-beginning)
+	(texinfo-update-menu-region-end, texinfo-find-pointer): Add new
+	command, @ifnottex, to regexps, so it is found.
 
 2001-08-16  Andrew Innes  <andrewi@gnu.org>
 
