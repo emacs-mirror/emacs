@@ -2269,7 +2269,7 @@ int
 get_property_and_range (pos, prop, val, start, end, object)
      int pos;
      Lisp_Object prop, *val;
-     int *start, *end;
+     EMACS_INT *start, *end;
      Lisp_Object object;
 {
   INTERVAL i, prev, next;
