@@ -5306,12 +5306,26 @@ If FACE is not a valid face name, it is used default face."
 	(let* ((coding-system-for-write 'raw-text-unix)
 	       (ps-printer-name (or ps-printer-name printer-name))
 	       (ps-lpr-switches
-		(append (and (stringp ps-printer-name)
-			     (list (concat "-P" ps-printer-name)))
-			ps-lpr-switches)))
+		(append
+		 (and (stringp ps-printer-name)
+		      (list (concat "-P" ps-printer-name)))
+		 ps-lpr-switches)))
 	  (if (and (memq system-type '(ms-dos windows-nt))
-		   (stringp ps-printer-name))
-	      (write-region (point-min) (point-max) ps-printer-name t 0)
+		   (or (and (boundp 'dos-ps-printer)
+			    (stringp (symbol-value 'dos-ps-printer)))
+		       (stringp ps-printer-name)))
+	      (let ((printer (or (and (boundp 'dos-ps-printer)
+				      (stringp (symbol-value 'dos-ps-printer))
+				      (symbol-value 'dos-ps-printer))
+				 ps-printer-name))
+		    ;; It seems that we must be careful about the
+		    ;; directory name that gets added by write-region
+		    ;; when using the standard "PRN" or "LPTx" ports.
+		    ;; The call can fail if the directory is on a
+		    ;; network drive.
+		    (safe-dir (or (getenv "windir") (getenv "TMPDIR") "c:/")))
+		(write-region (point-min) (point-max)
+			      (expand-file-name printer safe-dir) t 0))
 	    (apply 'call-process-region
 		   (point-min) (point-max) ps-lpr-command nil
 		   (and (fboundp 'start-process) 0)
