@@ -3298,7 +3298,7 @@ init_keyboard ()
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
       signal (SIGIO, input_available_signal);
-#endif SIGIO
+#endif /* SIGIO */
     }
 
 /* Use interrupt input by default, if it works and noninterrupt input
