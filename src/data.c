@@ -1550,8 +1550,7 @@ enum arithop
 extern Lisp_Object float_arith_driver ();
 
 Lisp_Object
-arith_driver
-  (code, nargs, args)
+arith_driver (code, nargs, args)
      enum arithop code;
      int nargs;
      register Lisp_Object *args;
@@ -1607,7 +1606,12 @@ arith_driver
 	case Amult: accum *= next; break;
 	case Adiv:
 	  if (!argnum) accum = next;
-	  else accum /= next;
+	  else
+	    {
+	      if (next == 0)
+		Fsignal (Qarith_error, Qnil);
+	      accum /= next;
+	    }
 	  break;
 	case Alogand: accum &= next; break;
 	case Alogior: accum |= next; break;
@@ -1668,7 +1672,11 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	  if (!argnum)
 	    accum = next;
 	  else
-	    accum /= next;
+	    {
+	      if (next == 0)
+		Fsignal (Qarith_error, Qnil);
+	      accum /= next;
+	    }
 	  break;
 	case Alogand:
 	case Alogior:
@@ -1746,6 +1754,9 @@ Both must be numbers or markers.")
 
       f1 = XTYPE (num1) == Lisp_Float ? XFLOAT (num1)->data : XINT (num1);
       f2 = XTYPE (num2) == Lisp_Float ? XFLOAT (num2)->data : XINT (num2);
+      if (f2 == 0)
+	Fsignal (Qarith_error, Qnil);
+
 #if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux)
       f1 = fmod (f1, f2);
 #else
@@ -1759,6 +1770,9 @@ Both must be numbers or markers.")
   CHECK_NUMBER_COERCE_MARKER (num1, 0);
   CHECK_NUMBER_COERCE_MARKER (num2, 1);
 #endif /* not LISP_FLOAT_TYPE */
+
+  if (XFASTINT (num2) == 0)
+    Fsignal (Qarith_error, Qnil);
 
   XSET (val, Lisp_Int, XINT (num1) % XINT (num2));
   return val;
