@@ -243,6 +243,12 @@ blessmail: ${SUBDIR_MAKEFILES} src FRC
 Makefile: $(srcdir)/Makefile.in config.status
 	./config.status
 
+config.status: configure
+	./config.status --recheck
+
+${srcdir}/configure: configure.in
+	cd ${srcdir} && autoconf
+
 src/Makefile: $(srcdir)/src/Makefile.in config.status
 	./config.status
 
