@@ -30,7 +30,7 @@
 	(set_internal): Simplify the test if SYMBOL is a constant.  If
 	SYMBOL has a buffer-local value and is an alias, use the aliased
 	symbol instead.
-	(syms_of_data): Initialze Qcyclic_variable_indirection and defsubr
+	(syms_of_data): Initialize Qcyclic_variable_indirection and defsubr
 	Sindirect_variable.
 
 	* bytecode.c (Fbyte_code) <varref>: Use SYMBOL_VALUE.
