@@ -15,7 +15,10 @@
 
 2004-02-29  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* printing.el (pr-insert-section-4): Adjust buffer interface.
+	* printing.el: Replace "As Is..." in PostScript file print/preview by
+	"No Preprocessing...".  Suggested by Colin Marquardt
+	<marquardt@zmd.de>.
+	(pr-insert-section-4): Adjust buffer interface.
 
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
