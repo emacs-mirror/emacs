@@ -338,8 +338,9 @@ If optional argument SERVICE is non-nil, open by the service name."
 	   ;; Do check unexpected close of connection.
 	   ;; Suggested by feldmark@hanako.stars.flab.fujitsu.junet.
 	   (if status
-	       (set-process-sentinel nntp-server-process
-				     'nntp-default-sentinel)
+	       (progn (set-process-sentinel nntp-server-process
+					    'nntp-default-sentinel)
+		      (nntp-send-command "^[25].*\r$" "MODE" "READER"))
 	     ;; We have to close connection here, since function
 	     ;;  `nntp-server-opened' may return incorrect status.
 	     (nntp-close-server-internal)
