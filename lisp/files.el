@@ -684,7 +684,7 @@ The buffer is not selected, just returned to the caller."
 		      (format
 		       (if (buffer-modified-p buf)
     "File %s changed on disk.  Discard your edits? "
-    "File %s changed on disk.  Read the new version? ")
+    "File %s changed on disk.  Reread from disk? ")
 		       (file-name-nondirectory filename)))
 		     (save-excursion
 		       (set-buffer buf)
