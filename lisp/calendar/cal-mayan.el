@@ -282,7 +282,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
 
 (defun calendar-next-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
-  "Move cursor to next instance of Mayan HAAB-DATE TZOKLIN-DATE combination.
+  "Move cursor to next instance of Mayan HAAB-DATE TZOLKIN-DATE combination.
 Echo Mayan date if NOECHO is t."
   (interactive (list (calendar-read-mayan-tzolkin-date)
                      (calendar-read-mayan-haab-date)))
@@ -299,7 +299,7 @@ Echo Mayan date if NOECHO is t."
 
 (defun calendar-previous-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
-  "Move to previous instance of Mayan TZOKLIN-DATE HAAB-DATE combination.
+  "Move to previous instance of Mayan TZOLKIN-DATE HAAB-DATE combination.
 Echo Mayan date if NOECHO is t."
   (interactive (list (calendar-read-mayan-tzolkin-date)
                      (calendar-read-mayan-haab-date)))
