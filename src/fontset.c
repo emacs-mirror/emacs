@@ -229,12 +229,27 @@ void (*check_window_system_func) P_ ((void));
 
 
 /* Prototype declarations for static functions.  */
+static int fontset_add P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+			    Lisp_Object));
 static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-static int fontset_id_valid_p P_ ((int));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object));
 static Lisp_Object find_font_encoding P_ ((char *));
+
+#ifdef FONTSET_DEBUG
+
+/* Return 1 if ID is a valid fontset id, else return 0.  */
+
+static int
+fontset_id_valid_p (id)
+     int id;
+{
+  return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
+}
+
+#endif
+
 
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
@@ -340,7 +355,7 @@ fontset_ref_and_range (fontset, c, from, to)
 			    Fmake_vector (make_number (1), (elt)))	\
    : fontset_add ((fontset), (range), (elt), (add)))
 
-static void
+static int
 fontset_add (fontset, range, elt, add)
      Lisp_Object fontset, range, elt, add;
 {
@@ -368,6 +383,7 @@ fontset_add (fontset, range, elt, add)
     char_table_set_range (fontset, from, to1, elt1);    
     from = to1 + 1;
   } while (from < to);
+  return 0;
 }
 
 
