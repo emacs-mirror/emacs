@@ -1,3 +1,9 @@
+2003-05-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* faq.texi: Update copyright and maintenance details.
+	Update some package URLs, versions, and maintainers.
+	Remove many references to the Emacs Lisp Archive.
+	
 2003-04-23  Simon Josefsson  <jas@extundo.com>
 
 	* smtpmail.texi: Fix license (the invariant sections mentioned has
