@@ -575,8 +575,9 @@ main (argc, argv, envp)
       printf ("\
 Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
+      [--version] [--no-site-file]\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
-      file-to-visit  [--kill]\n", argv[0]);
+      [+linenum] file-to-visit  [--kill]\n", argv[0]);
       exit (0);
     }
 
