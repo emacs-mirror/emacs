@@ -1212,6 +1212,8 @@ The symbol `error' should normally be one of them.\n\
 DATA should be a list.  Its elements are printed as part of the error message.\n\
 If the signal is handled, DATA is made available to the handler.\n\
 See also the function `condition-case'.")
+     /* When memory is full, ERROR-SYMBOL is nil,
+	and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).  */
   (error_symbol, data)
      Lisp_Object error_symbol, data;
 {
@@ -1361,8 +1363,9 @@ skip_debugger (conditions, data)
 
 /* Value of Qlambda means we have called debugger and user has continued.
    There are two ways to pass SIG and DATA:
-    - SIG is the error symbol, and DATA is the rest of the data.
+    = SIG is the error symbol, and DATA is the rest of the data.
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
+       This is for memory-full errors only.
 
    Store value returned from debugger into *DEBUGGER_VALUE_PTR.  */
 
@@ -1385,11 +1388,16 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       int count = specpdl_ptr - specpdl;
       int debugger_called = 0;
       Lisp_Object sig_symbol, combined_data;
+      /* This is set to 1 if we are handling a memory-full error,
+	 because these must not run the debugger.
+	 (There is no room in memory to do that!)  */
+      int no_debugger = 0;
 
       if (NILP (sig))
 	{
 	  combined_data = data;
 	  sig_symbol = Fcar (data);
+	  no_debugger = 1;
 	}
       else
 	{
@@ -1408,9 +1416,10 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 					       Fbacktrace, Qnil);
 #endif
 	}
-      if ((EQ (sig_symbol, Qquit)
-	   ? debug_on_quit
-	   : wants_debugger (Vdebug_on_error, conditions))
+      if (! no_debugger
+	  && (EQ (sig_symbol, Qquit)
+	      ? debug_on_quit
+	      : wants_debugger (Vdebug_on_error, conditions))
 	  && ! skip_debugger (conditions, combined_data)
 	  && when_entered_debugger < num_nonmacro_input_events)
 	{
