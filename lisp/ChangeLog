@@ -1,5 +1,7 @@
 2001-04-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* font-lock.el (font-lock-mode): Doc fix.
+
 	* dired-aux.el (dired-do-rename-regexp, dired-do-copy-regexp)
 	(dired-do-hardlink-regexp, dired-do-symlink-regexp): Doc fix.
 
