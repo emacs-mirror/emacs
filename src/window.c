@@ -4227,10 +4227,21 @@ displayed_window_lines (w)
 {
   struct it it;
   struct text_pos start;
+  int height = window_box_height (w);
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   start_display (&it, w, start);
-  move_it_vertically (&it, window_box_height (w));
+  move_it_vertically (&it, height);
+
+  /* Add in empty lines at the bottom of the window.  */
+  if (it.current_y < height)
+    {
+      struct frame *f = XFRAME (w->frame);
+      int rest = height - it.current_y;
+      int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+      it.vpos += lines;
+    }
+  
   return it.vpos;
 }
 
