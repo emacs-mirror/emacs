@@ -1,3 +1,8 @@
+1999-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* autorevert.el (auto-revert-mode): Make auto-revert-mode
+	permanent-local.
+
 1999-10-19  Peter Kleiweg  <kleiweg@let.rug.nl>
 	
 	* progmodes/ps-mode.el (ps-mode-print-function): Fix default
