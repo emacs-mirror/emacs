@@ -2640,7 +2640,7 @@ EXFUN (Fbolp, 0);
 EXFUN (Fbobp, 0);
 EXFUN (Fformat, MANY);
 EXFUN (Fmessage, MANY);
-extern Lisp_Object format1 P_ ((/* char *, ... */));
+extern Lisp_Object format2 P_ ((char *, Lisp_Object, Lisp_Object));
 extern Lisp_Object make_buffer_string P_ ((int, int, int));
 EXFUN (Fbuffer_substring, 2);
 EXFUN (Fbuffer_string, 0);
