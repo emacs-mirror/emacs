@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.24) $
+ * $HopeName: MMsrc!buffer.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.24) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.25) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -590,6 +590,8 @@ AP (BufferAP)(Buffer buffer)
 /* design.mps.interface.c.thread-safety. */
 Buffer (BufferOfAP)(AP ap)
 {
+  /* Can't AVER ap as that would not be thread safe */
+  /* No Check method for AP, so no AVER */
   /* .design.mps.misc.parent.thread-safe */
   return BufferOfAP(ap);
 }
@@ -599,6 +601,8 @@ Buffer (BufferOfAP)(AP ap)
 /* design.mps.interface.c.thread-safety. */
 Space (BufferSpace)(Buffer buffer)
 {
+  /* Can't AVER buffer as that wouldn not be thread safe */
+  /* AVERT(Buffer, buffer); */
   return BufferSpace(buffer);
 }
 
