@@ -411,7 +411,9 @@ and pushes mark ring.
 The variable `view-highlight-face' controls the face that is used
 for highlighting the match that is found."
   (interactive "p")
-  (View-search-regexp-forward n view-last-regexp))
+  (if view-last-regexp
+      (View-search-regexp-forward n view-last-regexp)
+    (error "No previous View-mode search")))
 
 (defun View-search-last-regexp-backward (n)
   "Search backward from window start for Nth instance of last regexp.
@@ -421,7 +423,9 @@ pushes mark ring.
 The variable `view-highlight-face' controls the face that is used
 for highlighting the match that is found."
   (interactive "p")
-  (View-search-regexp-backward n view-last-regexp))
+  (if view-last-regexp
+      (View-search-regexp-backward n view-last-regexp)
+    (error "No previous View-mode search")))
 
 (defun View-back-to-mark (&optional ignore)
   "Return to last mark set in View mode, else beginning of file.
