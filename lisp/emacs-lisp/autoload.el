@@ -31,6 +31,32 @@
 
 ;;; Code:
 
+(defvar generated-autoload-file "loaddefs.el"
+   "*File \\[update-file-autoloads] puts autoloads into.
+A `.el' file can set this in its local variables section to make its
+autoloads go somewhere else.")
+
+(defconst generate-autoload-cookie ";;;###autoload"
+  "Magic comment indicating the following form should be autoloaded.
+Used by \\[update-file-autoloads].  This string should be
+meaningless to Lisp (e.g., a comment).
+
+This string is used:
+
+;;;###autoload
+\(defun function-to-be-autoloaded () ...)
+
+If this string appears alone on a line, the following form will be
+read and an autoload made for it.  If there is further text on the line,
+that text will be copied verbatim to `generated-autoload-file'.")
+
+(defconst generate-autoload-section-header "\f\n;;;### "
+  "String inserted before the form identifying
+the section of autoloads for a file.")
+
+(defconst generate-autoload-section-trailer "\n;;;***\n"
+  "String which indicates the end of the section of autoloads for a file.")
+
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a defun, define-skeleton, defmacro or defcustom."
@@ -70,27 +96,6 @@ Returns nil if FORM is not a defun, define-skeleton, defmacro or defcustom."
 	nil))))
 
 (put 'define-skeleton 'doc-string-elt 3)
-
-(defconst generate-autoload-cookie ";;;###autoload"
-  "Magic comment indicating the following form should be autoloaded.
-Used by \\[update-file-autoloads].  This string should be
-meaningless to Lisp (e.g., a comment).
-
-This string is used:
-
-;;;###autoload
-\(defun function-to-be-autoloaded () ...)
-
-If this string appears alone on a line, the following form will be
-read and an autoload made for it.  If there is further text on the line,
-that text will be copied verbatim to `generated-autoload-file'.")
-
-(defconst generate-autoload-section-header "\f\n;;;### "
-  "String inserted before the form identifying
-the section of autoloads for a file.")
-
-(defconst generate-autoload-section-trailer "\n;;;***\n"
-  "String which indicates the end of the section of autoloads for a file.")
 
 ;;; Forms which have doc-strings which should be printed specially.
 ;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
@@ -287,11 +292,6 @@ are used."
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
 
-(defvar generated-autoload-file "loaddefs.el"
-   "*File \\[update-file-autoloads] puts autoloads into.
-A `.el' file can set this in its local variables section to make its
-autoloads go somewhere else.")
-
 ;;;###autoload
 (defun update-file-autoloads (file)
   "Update the autoloads for FILE in `generated-autoload-file'
@@ -398,7 +398,7 @@ This uses `update-file-autoloads' (which see) do its work."
 		      (mapcar (function (lambda (dir)
 					  (directory-files (expand-file-name dir)
 							   t
-							   "^[^=].*\\.el$")))
+							   "^[^=.].*\\.el$")))
 			      dirs)))
 	autoloads-file
 	top-dir)
