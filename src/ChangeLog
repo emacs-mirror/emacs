@@ -1,3 +1,8 @@
+2003-09-07  Eli Zaretskii  <eliz@elta.co.il>
+
+	* editfns.c (region_limit): Support any non-zero value of
+	BEGINNINGP.
+
 2003-09-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type): Partially undo 2002-03-01
