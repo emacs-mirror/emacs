@@ -59,11 +59,10 @@ found.  See that variable for more info.")
 
 ;;;###autoload
 (defvar compilation-buffer-name-function nil
-  "*Function to call with one argument, the name of the major mode of the
-compilation buffer, to give the buffer a name.  It should return a string.
-If nil, the name \"*compilation*\" is used for compilation buffers,
-and the name \"*grep*\" is used for grep buffers.
-\(Actually, the name (concat \"*\" (downcase major-mode) \"*\") is used.)")
+  "Function to compute the name of a compilation buffer.
+The function receives one argument, the name of the major mode of the
+compilation buffer.  It should return a string.
+nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
 (defvar compilation-finish-function nil
@@ -72,8 +71,9 @@ It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
 (defvar compilation-last-buffer nil
-  "The buffer in which the last compilation was started,
-or which was used by the last \\[next-error] or \\[compile-goto-error].")
+  "The most recent compilation buffer.
+A buffer becomes most recent when its compilation is started
+or when it is used with \\[next-error] or \\[compile-goto-error].")
 
 (defvar compilation-in-progress nil
   "List of compilation processes now running.")
@@ -85,8 +85,9 @@ or which was used by the last \\[next-error] or \\[compile-goto-error].")
   "Position of end of buffer when last error messages were parsed.")
 
 (defvar compilation-error-message "No more errors"
-  "Message to print when no more matches for `compilation-error-regexp-alist'
-are found.")
+  "Message to print when no more matches are found.")
+
+(defvar compilation-num-errors-found)
 
 (defvar compilation-error-regexp-alist
   '(
@@ -119,8 +120,9 @@ are found.")
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
     )
-  "Alist (REGEXP FILE-IDX LINE-IDX) of regular expressions to match errors in
-compilation.  If REGEXP matches, the FILE-IDX'th subexpression gives the file
+  "Alist that specifies how to match errors in compiler output.
+Each element has the form (REGEXP FILE-IDX LINE-IDX).
+If REGEXP matches, the FILE-IDX'th subexpression gives the file
 name, and the LINE-IDX'th subexpression gives the line number.")
 
 (defvar grep-regexp-alist
@@ -148,27 +150,23 @@ You might also use mode hooks to specify it in certain modes, like this:
 
 (defconst compilation-enter-directory-regexp
   ": Entering directory `\\(.*\\)'$"
-  "Regular expression for a line in the compilation log that
-changes the current directory.  This must contain one \\(, \\) pair
-around the directory name.
+  "Regular expression matching lines that indicate a new current directory.
+This must contain one \\(, \\) pair around the directory name.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
 
 (defconst compilation-leave-directory-regexp
   ": Leaving directory `\\(.*\\)'$"
-  "Regular expression for a line in the compilation log that
-changes the current directory to a previous value.  This may
-contain one \\(, \\) pair around the name of the directory
-being moved from.  If it does not, the last directory entered
-\(by a line matching `compilation-enter-directory-regexp'\) is assumed.
+  "Regular expression matching lines that indicate restoring current directory.
+This may contain one \\(, \\) pair around the name of the directory
+being moved from.  If it does not, the last directory entered \(by a
+line matching `compilation-enter-directory-regexp'\) is assumed.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
 
 (defvar compilation-directory-stack nil
-  "Stack of directories entered by lines matching
-\`compilation-enter-directory-regexp' and not yet left by lines matching
-\`compilation-leave-directory-regexp'.  The head element is the directory
-the compilation was started in.")
+  "Stack of previous directories for `compilation-leave-directory-regexp'.
+The head element is the directory the compilation was started in.")
 
 ;; History of compile commands.
 (defvar compile-history nil)
@@ -382,14 +380,12 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		    (set-buffer-modified-p (buffer-modified-p))
 		    (setq buffer-read-only t) ;I think is this wrong --roland
 		    (if (and opoint (< opoint omax))
-			(goto-char opoint)))
-		(set-buffer obuf))
-	      (if compilation-finish-function
-		  (funcall compilation-finish-function buffer msg))
-	      ))
+			(goto-char opoint))
+		    (if compilation-finish-function
+			(funcall compilation-finish-function buffer msg)))
+		(set-buffer obuf))))
 	  (setq compilation-in-progress (delq proc compilation-in-progress))
 	  ))))
-
 
 ;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
@@ -829,7 +825,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	regexp enter-group leave-group error-group
 	alist subexpr error-regexp-groups
 	(found-desired nil)
-	(nfound 0))
+	(compilation-num-errors-found 0))
 
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
@@ -946,15 +942,15 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		       (cons (cons (point-marker)
 				   (cons filename linenum))
 			     compilation-error-list))))
-	     (setq nfound (1+ nfound))
-	     (and find-at-least (>= nfound find-at-least)
+	     (setq compilation-num-errors-found (1+ compilation-num-errors-found))
+	     (and find-at-least (>= compilation-num-errors-found find-at-least)
 		  ;; We have found as many new errors as the user wants.
 		  (setq found-desired t)))
 	    (t
 	     (error "compilation-parse-errors: impossible regexp match!")))
 
       (message "Parsing error messages...%d (%d%% of buffer)"
-	       nfound
+	       compilation-num-errors-found
 	       (/ (* 100 (point)) (point-max)))
 
       (and limit-search (>= (point) limit-search)
