@@ -119,7 +119,7 @@
   "*Face to use when fontifying overstrike.")
 
 (defvar Man-underline-face 'underline
-  "*Face to use when fontifying underlinining.")
+  "*Face to use when fontifying underlining.")
 
 ;; Use the value of the obsolete user option Man-notify, if set.
 (defvar Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
