@@ -49,6 +49,7 @@
 (defvar finder-known-keywords
   '(
     (abbrev	. "abbreviation handling, typing shortcuts, macros")
+    ;; Too specific:
     (bib	. "code related to the `bib' bibliography processor")
     (c		. "support for the C language and related languages")
     (calendar	. "calendar and time management support")
@@ -59,6 +60,7 @@
     (emulations	. "emulations of other editors")
     (extensions	. "Emacs Lisp language extensions")
     (faces	. "support for multiple fonts")
+    (files      . "support for editing and manipulating files")
     (frames     . "support for Emacs frames and window systems")
     (games	. "games, jokes and amusements")
     (hardware	. "support for interfacing with exotic hardware")
@@ -82,7 +84,8 @@
     (tex	. "code related to the TeX formatter")
     (tools	. "programming tools")
     (unix	. "front-ends/assistants for, or emulators of, UNIX features")
-    (vms	. "support code for vms")
+;; Not a custom group and not currently useful.
+;;    (vms	. "support code for vms")
     (wp		. "word processing")
     ))
 
@@ -185,13 +188,25 @@ no arguments compiles from `load-path'."
   (move-to-column column t)
   (apply 'insert strings))
 
+(defvar finder-help-echo nil)
+
 (defun finder-mouse-face-on-line ()
-  "Put a `mouse-face' property on the previous line."
+  "Put `mouse-face' and `help-echo' properties on the previous line."
   (save-excursion
     (previous-line 1)
-    (put-text-property (save-excursion (beginning-of-line) (point))
-		       (progn (end-of-line) (point))
-		       'mouse-face 'highlight)))
+    (unless finder-help-echo
+      (setq finder-help-echo
+	    (let* ((keys1 (where-is-internal 'finder-select
+					     finder-mode-map))
+		   (keys (nconc (where-is-internal
+				 'finder-mouse-select finder-mode-map)
+				keys1)))
+	      (concat (mapconcat 'key-description keys ", ")
+		      ": select item"))))
+    (add-text-properties
+     (line-beginning-position) (line-end-position)
+     '(mouse-face highlight
+		  help-echo finder-help-echo))))
 
 ;;;###autoload
 (defun finder-list-keywords ()
@@ -203,7 +218,7 @@ no arguments compiles from `load-path'."
     (finder-mode)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (mapcar
+    (mapc
      (lambda (assoc)
        (let ((keyword (car assoc)))
 	 (insert (symbol-name keyword))
@@ -226,7 +241,7 @@ no arguments compiles from `load-path'."
     (insert
      "The following packages match the keyword `" key "':\n\n")
     (setq finder-headmark (point))
-    (mapcar
+    (mapc
      (lambda (x)
        (if (memq id (car (cdr (cdr x))))
 	   (progn
