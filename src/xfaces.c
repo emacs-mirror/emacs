@@ -647,7 +647,11 @@ compute_base_face (f, face)
   face->foreground = d->foreground_pixel;
   face->background = d->background_pixel;
   face->font = d->font;
+  face->stipple = 0;
   face->underline = 0;
+
+  /* Avoid a face comparison by making this invalid.  */
+  face->cached_index = -1;
 }
 
 
