@@ -1,5 +1,5 @@
 ;;; gnus-util.el --- utility functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -612,7 +612,7 @@ non-locally exits.  The variables listed in PROTECT are updated atomically.
 It is safe to use gnus-atomic-progn-assign with long computations.
 
 Note that if any of the symbols in PROTECT were unbound, they will be
-set to nil on a sucessful assignment.  In case of an error or other
+set to nil on a successful assignment.  In case of an error or other
 non-local exit, it will still be unbound."
   (let* ((temp-sym-map (mapcar (lambda (x) (list (make-symbol
 						  (concat (symbol-name x)

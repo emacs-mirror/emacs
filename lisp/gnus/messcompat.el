@@ -1,6 +1,6 @@
 ;;; messcompat.el --- making message mode compatible with mail mode
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; This file tries to provide backward compatability with sendmail.el
+;; This file tries to provide backward compatibility with sendmail.el
 ;; for Message mode.  It should be used by simply adding
 ;;
 ;; (require 'messcompat)

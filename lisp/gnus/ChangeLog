@@ -1,3 +1,49 @@
+2002-11-29  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* smiley-ems.el (gnus-smiley-display): Typo.
+
+	* nnvirtual.el: Typo.
+
+	* nnsoup.el (nnsoup-retrieve-headers): Typo.
+
+	* nnmail.el (nnmail-split, nnmail-process-unix-mail-format): Typos.
+
+	* nnimap.el: Typo.
+	(nnimap-split-rule, nnimap-find-minmax-uid): Typos.
+
+	* mm-encode.el (mm-safer-encoding): Typo.
+
+	* messcompat.el: Typo.
+
+	* message.el (message-face-alist): Typo.
+
+	* imap.el (imap-interactive-login, imap-anonymous-auth)
+	(imap-open): Typos.
+
+	* ietf-drums.el (ietf-drums-text-token, ietf-drums-qtext-token): Typos.
+	
+	* gnus.el: Typo.
+
+	* gnus-win.el (gnus-configure-frame): Typo.
+
+	* gnus-util.el (gnus-atomic-progn-assign): Typo.
+
+	* gnus-topic.el (gnus-topic-sort-topics): Typo.
+
+	* gnus-sum.el (gnus-summary-article-number) 
+	(gnus-summary-read-group-1, gnus-summary-mark-article) 
+	(gnus-summary-fetch-faq, gnus-refer-article-methods): Typos.
+
+	* gnus-mule.el (gnus-mule-add-group): Typo.
+
+	* gnus-mlspl.el (gnus-group-split-fancy): Typo.
+
+	* gnus-group.el (gnus-group-fetch-faq): Typo.
+
+	* gnus-art.el (gnus-decode-header-methods): Typo.
+
+	* flow-fill.el: Typo.
+
 2002-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* binhex.el (binhex-decode-region): Don't hardcode point-min == 1.

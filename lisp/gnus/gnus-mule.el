@@ -1,6 +1,6 @@
 ;;; gnus-mule.el --- provide backward compatibility function to GNUS
 
-;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 
 ;; Maintainer: FSF
@@ -39,7 +39,7 @@ All news groups deeper than NAME are also the target.
 If CODING-SYSTEM is a cons, the car part is used and the cdr
 part is ignored.
 
-This function exists for backward comaptibility with Emacs 20.  It is
+This function exists for backward compatibility with Emacs 20.  It is
 recommended to customize the variable `gnus-group-charset-alist'
 rather than using this function."
   (if (consp coding-system)

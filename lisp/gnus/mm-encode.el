@@ -1,5 +1,5 @@
 ;;; mm-encode.el --- functions for encoding MIME things 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -79,7 +79,7 @@ This variable should never be set directly, but bound before a call to
   "Return a safer but similar encoding."
   (cond
    ((memq encoding '(7bit 8bit quoted-printable)) 'quoted-printable)
-   ;; The remaing encodings are binary and base64 (and perhaps some
+   ;; The remaining encodings are binary and base64 (and perhaps some
    ;; non-standard ones), which are both turned into base64.
    (t 'base64)))
 

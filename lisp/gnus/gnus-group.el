@@ -3282,7 +3282,7 @@ to use."
     (gnus-group-group-name)
     (when current-prefix-arg
       (completing-read
-       "Faq dir: " (and (listp gnus-group-faq-directory)
+       "FAQ dir: " (and (listp gnus-group-faq-directory)
 			(mapcar #'list
 				gnus-group-faq-directory))))))
   (unless group

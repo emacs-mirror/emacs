@@ -1,5 +1,5 @@
 ;;; ietf-drums.el --- functions for parsing RFC822bis headers
-;; Copyright (C) 1998, 1999, 2000
+;; Copyright (C) 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -36,7 +36,7 @@
 (defvar ietf-drums-no-ws-ctl-token "\001-\010\013\014\016-\037\177"
   "US-ASCII control characters excluding CR, LF and white space.")
 (defvar ietf-drums-text-token "\001-\011\013\014\016-\177"
-  "US-ASCII characters exlcuding CR and LF.")
+  "US-ASCII characters excluding CR and LF.")
 (defvar ietf-drums-specials-token "()<>[]:;@\\,.\""
   "Special characters.")
 (defvar ietf-drums-quote-token "\\"
@@ -52,7 +52,8 @@
   "Textual token including full stop.")
 (defvar ietf-drums-qtext-token
   (concat ietf-drums-no-ws-ctl-token "\041\043-\133\135-\177")
-  "Non-white-space control characaters, plus the rest of ASCII excluding backslash and doublequote.")
+  "Non-white-space control characters, plus the rest of ASCII excluding 
+backslash and doublequote.")
 (defvar ietf-drums-tspecials "][()<>@,;:\\\"/?="
   "Tspecials.")
 

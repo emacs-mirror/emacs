@@ -1564,7 +1564,7 @@ If REVERSE, sort in reverse order."
   top)
 
 (defun gnus-topic-sort-topics (&optional topic reverse)
-  "Sort topics in TOPIC alphabeticaly by topic name.
+  "Sort topics in TOPIC alphabetically by topic name.
 If REVERSE, reverse the sorting order."
   (interactive 
    (list (completing-read "Sort topics in : " gnus-topic-alist nil t 

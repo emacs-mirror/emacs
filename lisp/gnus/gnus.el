@@ -2048,7 +2048,7 @@ This restriction may disappear in later versions of Gnus."
 		 (memq class gnus-visual))
 	   t))))
 
-;;; Load the compatability functions.
+;;; Load the compatibility functions.
 
 (require 'gnus-ems)
 

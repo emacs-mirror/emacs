@@ -1,5 +1,5 @@
 ;;; imap.el --- imap library
-;; Copyright (C) 1998, 1999, 2000
+;; Copyright (C) 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -716,7 +716,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 (defun imap-interactive-login (buffer loginfunc)
   "Login to server in BUFFER.
 LOGINFUNC is passed a username and a password, it should return t if
-it where sucessful authenticating itself to the server, nil otherwise.
+it where successful authenticating itself to the server, nil otherwise.
 Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
     (make-local-variable 'imap-username)
@@ -809,7 +809,7 @@ Returns t if login was successful, nil otherwise."
   t)
 
 (defun imap-anonymous-auth (buffer)
-  (message "imap: Loging in anonymously...")
+  (message "imap: Logging in anonymously...")
   (with-current-buffer buffer
     (imap-ok-p (imap-send-command-wait
 		(concat "LOGIN anonymous \"" (concat (user-login-name) "@"
@@ -882,7 +882,7 @@ AUTH indicates authenticator to use, see `imap-authenticators' for
 available authenticators.  If nil, it choices the best stream the
 server is capable of.
 BUFFER can be a buffer or a name of a buffer, which is created if
-necessery.  If nil, the buffer name is generated."
+necessary.  If nil, the buffer name is generated."
   (setq buffer (or buffer (format " *imap* %s:%d" server (or port 0))))
   (with-current-buffer (get-buffer-create buffer)
     (if (imap-opened buffer)

@@ -1,5 +1,5 @@
 ;;; nnimap.el --- imap backend for Gnus
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;;         Jim Radford <radford@robby.caltech.edu>
@@ -42,7 +42,7 @@
 ;;   o Split up big fetches (1,* header especially) in smaller chunks
 ;;   o What do I do with gnus-newsgroup-*?
 ;;   o Tell Gnus about new groups (how can we tell?)
-;;   o Respooling (fix Gnus?) (unnecessery?)
+;;   o Respooling (fix Gnus?) (unnecessary?)
 ;;   o Add support for the following: (if applicable)
 ;;       request-list-newsgroups, request-regenerate
 ;;       list-active-group,
@@ -97,7 +97,7 @@ Mail is read from this mailbox and split according to rules in
 This can be a string or a list of strings.")
 
 (defvar nnimap-split-rule nil
-  "*Mail will be split according to theese rules.
+  "*Mail will be split according to these rules.
 
 Mail is read from mailbox(es) specified in `nnimap-split-inbox'.
 
@@ -357,7 +357,7 @@ If SERVER is nil, uses the current server."
       (imap-mailbox-unselect nnimap-server-buffer)))
 
 (defun nnimap-find-minmax-uid (group &optional examine)
-  "Find lowest and highest active article nummber in GROUP.
+  "Find lowest and highest active article number in GROUP.
 If EXAMINE is non-nil the group is selected read-only."
   (with-current-buffer nnimap-server-buffer
     (when (imap-mailbox-select group examine)

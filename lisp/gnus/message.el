@@ -879,7 +879,7 @@ Defaults to `text-mode-abbrev-table'.")
 		 (unbold-region b e)
 		 (ununderline-region b e))))
   "Alist of mail and news faces for facemenu.
-The cdr of ech entry is a function for applying the face to a region.")
+The cdr of each entry is a function for applying the face to a region.")
 
 (defcustom message-send-hook nil
   "Hook run before sending messages."

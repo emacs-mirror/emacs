@@ -308,7 +308,7 @@ and the latter avoids underlining any whitespace at all."
 (defface gnus-emphasis-underline-bold-italic
   '((t (:weight bold :slant italic :underline t)))
   "Face used for displaying underlined bold italic emphasized text.
-Esample: (_/*word*/_)."
+Example: (_/*word*/_)."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-highlight-words
@@ -4797,11 +4797,11 @@ forbidden in URL encoding."
 
 This variable is a list of FUNCTION or (REGEXP . FUNCTION).  If item
 is FUNCTION, FUNCTION will be apply to all newsgroups.  If item is a
-(REGEXP . FUNCTION), FUNCTION will be only apply to thes newsgroups
+\(REGEXP . FUNCTION), FUNCTION will be only apply to these newsgroups
 whose names match REGEXP.
 
 For example:
-((\"chinese\" . gnus-decode-encoded-word-region-by-guess)
+\((\"chinese\" . gnus-decode-encoded-word-region-by-guess)
  mail-decode-encoded-word-region
  (\"chinese\" . rfc1843-decode-region))
 ")

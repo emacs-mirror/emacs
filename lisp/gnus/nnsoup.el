@@ -1,6 +1,6 @@
 ;;; nnsoup.el --- SOUP access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -158,7 +158,7 @@ backend for the messages.")
 		  (when index-buffer
 		    (insert-buffer-substring index-buffer)
 		    (goto-char b)
-		    ;; We have to remove the index number entires and
+		    ;; We have to remove the index number entries and
 		    ;; insert article numbers instead.
 		    (while (looking-at "[0-9]+")
 		      (replace-match (int-to-string number) t t)

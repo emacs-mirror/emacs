@@ -538,7 +538,7 @@ header line with the old Message-ID."
 	  (gnus-inews-yank-articles yank))))))
 
 (defun gnus-msg-treat-broken-reply-to ()
-  "Remove the Reply-to header iff broken-reply-to."
+  "Remove the Reply-to header if broken-reply-to."
   (when (gnus-group-find-parameter
 	 gnus-newsgroup-name 'broken-reply-to)
     (save-restriction

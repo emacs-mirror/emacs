@@ -1,5 +1,5 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -56,7 +56,7 @@
   :group 'nnmail)
 
 (defgroup nnmail-split nil
-  "Organizing the incomming mail in folders."
+  "Organizing the incoming mail in folders."
   :group 'nnmail)
 
 (defgroup nnmail-files nil
@@ -760,7 +760,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	(setq head-end (point))
 	;; We try the Content-Length value.  The idea: skip over the header
 	;; separator, then check what happens content-length bytes into the
-	;; message body.  This should be either the end ot the buffer, the
+	;; message body.  This should be either the end of the buffer, the
 	;; message separator or a blank line followed by the separator.
 	;; The blank line should probably be deleted.  If neither of the
 	;; three is met, the content-length header is probably invalid.

@@ -2385,7 +2385,7 @@ The following commands are available:
 
 (defmacro gnus-summary-article-number ()
   "The article number of the article on the current line.
-If there isn's an article number here, then we return the current
+If there isn't an article number here, then we return the current
 article number."
   '(progn
      (gnus-summary-skip-intangible)
@@ -2965,7 +2965,7 @@ If NO-DISPLAY, don't generate a summary buffer."
 	      (let ((gnus-newsgroup-dormant nil))
 		(gnus-summary-initial-limit show-all))
 	    (gnus-summary-initial-limit show-all))
-	;; When untreaded, all articles are always shown.
+	;; When unthreaded, all articles are always shown.
 	(setq gnus-newsgroup-limit
 	      (mapcar
 	       (lambda (header) (mail-header-number header))
@@ -5416,7 +5416,7 @@ displayed, no centering will be performed."
 
 (defun gnus-summary-toggle-truncation (&optional arg)
   "Toggle truncation of summary lines.
-With arg, turn line truncation on iff arg is positive."
+With arg, turn line truncation on if arg is positive."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg) (not truncate-lines)
@@ -5762,7 +5762,7 @@ in."
    (list
     (when current-prefix-arg
       (completing-read
-       "Faq dir: " (and (listp gnus-group-faq-directory)
+       "FAQ dir: " (and (listp gnus-group-faq-directory)
 			(mapcar (lambda (file) (list file))
 				gnus-group-faq-directory))))))
   (let (gnus-faq-buffer)
@@ -6990,7 +6990,7 @@ of what's specified by the `gnus-refer-thread-limit' variable."
 	  (gnus-message 3 "Couldn't fetch article %s" message-id)))))))
 
 (defun gnus-refer-article-methods ()
-  "Return a list of referrable methods."
+  "Return a list of referable methods."
   (cond
    ;; No method, so we default to current and native.
    ((null gnus-refer-article-method)
@@ -8283,7 +8283,7 @@ the actual number of articles marked is returned."
 If N is negative, mark backwards instead.  Mark with MARK, ?r by default.
 The difference between N and the actual number of articles marked is
 returned.
-Iff NO-EXPIRE, auto-expiry will be inhibited."
+If NO-EXPIRE, auto-expiry will be inhibited."
   (interactive "p")
   (gnus-summary-show-thread)
   (let ((backward (< n 0))
@@ -8376,7 +8376,7 @@ Four MARK strings are reserved: `? ' (unread), `?!' (ticked),
 If MARK is nil, then the default character `?r' is used.
 If ARTICLE is nil, then the article on the current line will be
 marked.
-Iff NO-EXPIRE, auto-expiry will be inhibited."
+If NO-EXPIRE, auto-expiry will be inhibited."
   ;; The mark might be a string.
   (when (stringp mark)
     (setq mark (aref mark 0)))
