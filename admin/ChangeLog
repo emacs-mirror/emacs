@@ -1,3 +1,7 @@
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* FOR-RELEASE (Indications): Remove two stage update for toolbar (Done).
+
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* FOR-RELEASE (Indications): Rearrange checklists for Emacs and
