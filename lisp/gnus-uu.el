@@ -180,7 +180,7 @@ Note that this variable can be used in conjunction with the
 Default is \"/tmp/\".")
 
 (defvar gnus-uu-do-not-unpack-archives nil 
-  "*Non-nil means that gnus-uu won't peek inside archives looking for files to dispay. 
+  "*Non-nil means that gnus-uu won't peek inside archives looking for files to display. 
 Default is nil.")
 
 (defvar gnus-uu-view-and-save nil 
