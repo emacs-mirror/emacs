@@ -1156,8 +1156,9 @@ enter_namespace (name)
   if (namespace_sp == namespace_stack_size)
     {
       int size = max (10, 2 * namespace_stack_size);
-      namespace_stack = (struct sym **) xrealloc ((void *)namespace_stack,
-						  size);
+      namespace_stack
+	= (struct sym **) xrealloc ((void *)namespace_stack,
+				    size * sizeof *namespace_stack);
       namespace_stack_size = size;
     }
   
