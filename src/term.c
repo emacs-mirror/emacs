@@ -793,75 +793,64 @@ clear_end_of_line (first_unused_hpos)
     }
 }
 
-/* Buffer to store the result of terminal codes.  It is initialized in
-   term_init and, if necessary, enlarged in encode_terminal_code.  */
-unsigned char *terminal_encode_buffer;
-/* Size of terminal_encode_buffer.  */
-static int terminal_encode_buf_size;
+/* Buffers to store the source and result of code conversion for terminal.  */
+static unsigned char *encode_terminal_src;
+static unsigned char *encode_terminal_dst;
+/* Allocated sizes of the above buffers.  */
+static int encode_terminal_src_size;
+static int encode_terminal_dst_size;
 
-/* Encode SRC_LEN glyphs starting at SRC to terminal output codes and
-   store them in terminal_encode_buffer.
+/* Encode SRC_LEN glyphs starting at SRC to terminal output codes.
+   Set CODING->produced to the byte-length of the resulting byte
+   sequence, and return a pointer to that byte sequence.  */
 
-   We store the number of glyphs actually converted in *CONSUMED.  The
-   return value is the number of bytes stored in
-   terminal_encode_buffer.
-
-   This function will stop before encoding all glyphs in these two
-   cases.
-
-   (1) If the first glyph doesn't have a string entry in Vglyph_table,
-       it stops at encountering a glyph that has a string entry in
-       Vglyph_table.n
-
-   (2) If the first has a string entry in Vglyph_table, it stops after
-       encoding that string.
-*/
-
-int
-encode_terminal_code (src, src_len, consumed)
+unsigned char *
+encode_terminal_code (src, src_len, coding)
      struct glyph *src;
      int src_len;
-     int *consumed;
+     struct coding_system *coding;
 {
   struct glyph *src_start = src, *src_end = src + src_len;
   register GLYPH g;
-  register int c;
-  Lisp_Object string;
-  unsigned char *workbuf, *buf;
-  int nchars;
+  unsigned char *buf;
+  int nchars, nbytes, required;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
-  struct coding_system *coding;
-  Lisp_Object attrs, charset_list;
+  Lisp_Object charset_list;
 
-#if 1
-  /* GLYPH-TABLE is not supported anymore in xdisp.c.  */
-  tlen = 0;
-#endif
+  /* Allocate sufficient size of buffer to store all characters in
+     multibyte-form.  But, it may be enlarged on demand if
+     Vglyph_table contains a string.  */
+  required = MAX_MULTIBYTE_LENGTH * src_len;
+  if (encode_terminal_src_size < required)
+    {
+      if (encode_terminal_src_size == 0)
+	encode_terminal_src = xmalloc (required);
+      else
+	encode_terminal_src = xrealloc (encode_terminal_src, required);
+      encode_terminal_src_size = required;
+    }
 
-  /* If terminal_coding does any conversion, use it, otherwise use
-     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
-     because it always return 1 if the member src_multibyte is 1.  */
-  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
-	    ? &terminal_coding
-	    : &safe_terminal_coding);
-  coding->destination = terminal_encode_buffer;
-  coding->dst_bytes = terminal_encode_buf_size;
-  coding->mode |= CODING_MODE_LAST_BLOCK;
-  attrs = CODING_ID_ATTRS (coding->id);
-  charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+  charset_list = coding_charset_list (coding);
 
-  workbuf = buf = alloca (MAX_MULTIBYTE_LENGTH * src_len);
-  for (nchars = 0; src < src_end; src++)
+  buf = encode_terminal_src;
+  nchars = 0;
+  while (src < src_end)
     {
       /* We must skip glyphs to be padded for a wide character.  */
       if (! CHAR_GLYPH_PADDING_P (*src))
 	{
-	  g = GLYPH_FROM_CHAR_GLYPH (src[0]);
+	  int c;
+	  Lisp_Object string;
+
 	  string = Qnil;
+	  g = GLYPH_FROM_CHAR_GLYPH (src[0]);
 
 	  if (g < 0 || g >= tlen)
-	    c = src->u.ch;
+	    {
+	      /* This glyph doesn't has an entry in Vglyph_table.  */
+	      c = src->u.ch;
+	    }
 	  else
 	    {
 	      /* This glyph has an entry in Vglyph_table,
@@ -879,47 +868,68 @@ encode_terminal_code (src, src_len, consumed)
 
 	  if (NILP (string))
 	    {
-	      if (! char_charset (c, charset_list, NULL))
-		{
-		  /* C is not encodable.  */
-		  int i;
-
-		  for (i = CHAR_WIDTH (c) - 1; i >= 0; i--, nchars++)
-		    *buf++ = '?';
-		}
-	      else
+	      if (char_charset (c, charset_list, NULL))
 		{
 		  /* Store the multibyte form of C at BUF.  */
 		  buf += CHAR_STRING (c, buf);
 		  nchars++;
 		}
+	      else
+		{
+		  /* C is not encodable.  */
+		  *buf++ = '?';
+		  nchars++;
+		  while (src + 1 < src_end && CHAR_GLYPH_PADDING_P (src[1]))
+		    {
+		      *buf++ = '?';
+		      nchars++;
+		      src++;
+		    }
+		}
 	    }
 	  else
 	    {
-	      if (nchars == 0)
+	      unsigned char *p = SDATA (string), *pend = p + SBYTES (string);
+
+	      if (! STRING_MULTIBYTE (string))
+		string = string_to_multibyte (string);
+	      nbytes = buf - encode_terminal_src;
+	      if (nbytes + SBYTES (string) < encode_terminal_src_size)
 		{
-		  encode_coding_object (coding, string, 0, 0, SCHARS (string),
-					SBYTES (string), Qnil);
-		  src++;
+		  encode_terminal_src_size = nbytes + SBYTES (string);
+		  encode_terminal_src = xrealloc (encode_terminal_src,
+						  encode_terminal_src_size);
+		  buf = encode_terminal_src + nbytes;
 		}
-	      break;
+	      bcopy (SDATA (string), buf, SBYTES (string));
+	      buf += SBYTES (string);
+	      nchars += SCHARS (string);
 	    }
 	}
+      src++;
     }
 
-  if (nchars > 0)
+  if (nchars == 0)
     {
-      coding->source = workbuf;
-      encode_coding_object (coding, Qnil, 0, 0, nchars,
-			    buf - workbuf, Qnil);
+      coding->produced = 0;
+      return NULL;
     }
-  /* coding->destination may have been reallocated.  */
-  terminal_encode_buffer = coding->destination;
-  if (terminal_encode_buf_size < coding->dst_bytes)
-    terminal_encode_buf_size = coding->dst_bytes;
 
-  *consumed = src - src_start;
-  return (coding->produced);
+  nbytes = buf - encode_terminal_src;
+  coding->source = encode_terminal_src;
+  if (encode_terminal_dst_size == 0)
+    {
+      encode_terminal_dst_size = encode_terminal_src_size;
+      encode_terminal_dst = xmalloc (encode_terminal_dst_size);
+    }
+  coding->destination = encode_terminal_dst;
+  coding->dst_bytes = encode_terminal_dst_size;
+  encode_coding_object (coding, Qnil, 0, 0, nchars, nbytes, Qnil);
+  /* coding->destination may have been reallocated.  */
+  encode_terminal_dst = coding->destination;
+  encode_terminal_dst_size = coding->dst_bytes;
+
+  return (encode_terminal_dst);
 }
 
 
@@ -931,6 +941,8 @@ write_glyphs (string, len)
   int produced, consumed;
   struct frame *sf = XFRAME (selected_frame);
   struct frame *f = updating_frame ? updating_frame : sf;
+  unsigned char *conversion_buffer;
+  struct coding_system *coding;
 
   if (write_glyphs_hook
       && ! FRAME_TERMCAP_P (f))
@@ -977,21 +989,20 @@ write_glyphs (string, len)
       highlight_if_desired ();
       turn_on_face (f, face_id);
 
-      while (n > 0)
+      if (n == len)
+	/* This is the last run.  */
+	coding->mode |= CODING_MODE_LAST_BLOCK;
+      conversion_buffer = encode_terminal_code (string, n, coding);
+      if (coding->produced > 0)
 	{
-	  produced = encode_terminal_code (string, n, &consumed);
-	  if (produced > 0)
-	    {
-	      fwrite (terminal_encode_buffer, 1, produced, stdout);
-	      if (ferror (stdout))
-		clearerr (stdout);
-	      if (termscript)
-		fwrite (terminal_encode_buffer, 1, produced, termscript);
-	    }
-	  len -= consumed;
-	  n -= consumed;
-	  string += consumed;
+	  fwrite (conversion_buffer, 1, coding->produced, stdout);
+	  if (ferror (stdout))
+	    clearerr (stdout);
+	  if (termscript)
+	    fwrite (conversion_buffer, 1, coding->produced, termscript);
 	}
+      len -= n;
+      string += n;
 
       /* Turn appearance modes off.  */
       turn_off_face (f, face_id);
@@ -1039,17 +1050,26 @@ insert_glyphs (start, len)
 
   turn_on_insert ();
   cmplus (len);
-  /* The bit CODING_MODE_LAST_BLOCK should be set to 1 only at the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+
+  if (! start)
+    space[0] = SPACEGLYPH;
+
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? &terminal_coding : &safe_terminal_coding);
+  /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
+     the tail.  */
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
+
   while (len-- > 0)
     {
-      int produced, consumed;
-
       OUTPUT1_IF (TS_ins_char);
       if (!start)
 	{
-	  terminal_encode_buffer[0] = SPACEGLYPH;
-	  produced = 1;
+	  conversion_buffer = space;
+	  coding->produced = 1;
 	}
       else
 	{
@@ -1064,16 +1084,21 @@ insert_glyphs (start, len)
 	      OUTPUT1_IF (TS_ins_char);
 	      start++, len--;
 	    }
-	  produced = encode_terminal_code (glyph, 1, &consumed);
+
+	  if (len <= 0)
+	    /* This is the last glyph.  */
+	    coding->mode |= CODING_MODE_LAST_BLOCK;
+
+	  conversion_buffer = encode_terminal_code (glyph, 1, coding);
 	}
 
-      if (produced > 0)
+      if (coding->produced > 0)
 	{
-	  fwrite (terminal_encode_buffer, 1, produced, stdout);
+	  fwrite (conversion_buffer, 1, coding->produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
-	    fwrite (terminal_encode_buffer, 1, produced, termscript);
+	    fwrite (conversion_buffer, 1, coding->produced, termscript);
 	}
 
       OUTPUT1_IF (TS_pad_inserted_char);
@@ -2247,7 +2272,8 @@ term_init (terminal_type)
   int status;
   struct frame *sf = XFRAME (selected_frame);
 
-  encode_terminal_bufsize = 0;
+  encode_terminal_src_size = 0;
+  encode_terminal_dst_size = 0;
 
 #ifdef WINDOWSNT
   initialize_w32_display ();
@@ -2642,14 +2668,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
-
-  if (! terminal_encode_buffer)
-    {
-      terminal_encode_buffer = xmalloc (1024);
-      if (! terminal_encode_buffer)
-	abort ();
-      terminal_encode_buf_size = 1024;
-    }
 #endif /* WINDOWSNT */
 
   xfree (buffer);
