@@ -2249,9 +2249,6 @@ init_lread ()
      from the default before dumping, don't override that value.  */
   if (initialized)
     {
-      Vsource_directory = Fexpand_file_name (build_string ("../"),
-					     Fcar (Fcdr (dump_path)));
-
       if (! NILP (Fequal (dump_path, Vload_path)))
 	{
 	  Vload_path = decode_env_path (0, normal);
@@ -2424,7 +2421,12 @@ This is useful when the file being loaded is a temporary copy.");
   DEFVAR_LISP ("source-directory", &Vsource_directory,
      "Directory in which Emacs sources were found when Emacs was built.\n\
 You cannot count on them to still be there!");
-  Vsource_directory = Qnil;
+  Vsource_directory
+    = Fexpand_file_name (build_string ("../"),
+			 Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH)));
+
+  /* Vsource_directory was initialized in init_lread.  */
+
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
 
