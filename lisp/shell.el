@@ -153,11 +153,10 @@ on lines which don't start with a prompt.
 
 This is a fine thing to set in your `.emacs' file.")
 
-(defvar shell-delimiter-argument-list '("|" "&" "<" ">" "(" ")" ";")
+(defvar shell-delimiter-argument-list '(?\| ?& ?< ?> ?\( ?\) ?\;)
   "List of characters to recognise as separate arguments.
-Defaults to \(\"|\" \"&\" \"\(\" \")\" \";\"), which works pretty well.
-This variable is used to initialise `comint-delimiter-argument-list' in the
-shell buffer.
+This variable is used to initialize `comint-delimiter-argument-list' in the
+shell buffer.  The default is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
 
 This is a fine thing to set in your `.emacs' file.")
 
