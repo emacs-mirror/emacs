@@ -495,7 +495,7 @@ Instead, these commands are available:
   (interactive)
   (rmail-mode-2)
   (rmail-set-message-counters)
-  (rmail-show-message))
+  (rmail-show-message rmail-total-messages))
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
