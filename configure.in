@@ -788,13 +788,14 @@ case "${canonical}" in
     # so that, for instance, grepping for `free' in stdlib.h fails and
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
     NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
-    NON_GCC_TEST_OPTIONS="-n32 -D_LANGUAGE_C"
+    NON_GCC_TEST_OPTIONS="-D_LANGUAGE_C"
   ;;
   mips-sgi-irix6* )
     machine=iris4d opsys=irix6-0
     # It's not clear whether -D_LANGUAGE_C is necessary as it is for 6.5,
     # but presumably it does no harm.
     NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
+    # -32 probably isn't necessary in later v.6s -- anyone know which?
     NON_GCC_TEST_OPTIONS=-32
   ;;
   mips-sgi-irix5.[01]* )
@@ -1207,6 +1208,15 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 HAVE_TIMEVAL=$emacs_cv_struct_timeval
 if test $emacs_cv_struct_timeval = yes; then
   AC_DEFINE(HAVE_TIMEVAL)
+fi
+
+AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
+AC_TRY_COMPILE([#include <math.h>], 
+[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;],
+  emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
+HAVE_EXCEPTION=$emacs_cv_struct_exception
+if test $emacs_cv_struct_exception != yes; then
+  AC_DEFINE(NO_MATHERR)
 fi
 
 dnl checks for structure members
@@ -1857,14 +1867,18 @@ rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd shutdown strftime getaddrinfo \
-__fpending ftello getloadavg mblen mbrlen strsignal setitimer ualarm)
+__fpending getloadavg mblen mbrlen strsignal setitimer ualarm)
 
 AC_FUNC_MKTIME
 if test "$ac_cv_func_working_mktime" = no; then
   AC_DEFINE(BROKEN_MKTIME)
 fi
 
-# UNIX98 PTYs.
+AC_SYS_LARGEFILE
+AC_CHECK_FUNCS(ftello)
+
+# UNIX98 PTYs.  AC_SYS_LARGEFILE should have defined _XOPEN_SOURCE
+# if we need it.
 AC_CHECK_FUNCS(grantpt)
 
 # PTY-related GNU extensions.
