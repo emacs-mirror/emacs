@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu.
 
-;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: rms
@@ -544,7 +544,9 @@ If item is an old format item, a new format item is returned."
 (defun easy-menu-current-active-maps ()
   (let ((maps (list (current-local-map) global-map)))
     (dolist (minor minor-mode-map-alist)
-      (if (symbol-value (car minor)) (push (cdr minor) maps)))
+      (when (and (boundp (car minor))
+		 (symbol-value (car minor)))
+	(push (cdr minor) maps)))
     (delq nil maps)))
 
 (defun easy-menu-get-map (map path &optional to-modify)
