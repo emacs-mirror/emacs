@@ -64,7 +64,7 @@ sub compile_and_link {
  &compiler_settings;
  $command = "$cc_command $cc_opts $cc_exe$exefile $srcfile ".
   "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
-
+ 
  if (system($command)) {
   return 0;
  } else {
@@ -89,7 +89,8 @@ sub run_test {
 die "*** need to munge $tempfile3 into results format";
 
  open(OUTPUT, "tmp_output");
- &filevars(OUTPUT);  *** need new version of this here!
+ &filevars(OUTPUT);  
+# *** need new version of this here!
  close(OUTPUT);
 
  if (&passfail()) {
