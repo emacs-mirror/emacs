@@ -115,7 +115,7 @@ element should come before the second.  The arguments are cons cells;
 
 (defvar imenu-scanning-message "Scanning buffer for index. (%3d%%)"
   "*Progress message during the index scanning of the buffer.
-If non NIL, user gets a message during the scanning of the buffer
+If non-nil, user gets a message during the scanning of the buffer
 
 Relevant only if the mode-specific function that creates the buffer
 index use `imenu-progress-message'.")
@@ -213,18 +213,22 @@ This function is called after the function pointed out by
       (/ (* 100 (1- pos)) (max total 1)))))
 
 ;;;
-;;; Macro to display a progress message.  This will probably be used
-;;; in a tight loop, that is why we use a macro.
+;;; Macro to display a progress message.
 ;;; RELPOS is the relative position to display.
 ;;; If RELPOS is nil, then the relative position in the buffer
 ;;; is calculated.
-(defmacro imenu-progress-message (&optional relpos reverse)
+;;; PREVPOS is the variable in which we store the last position displayed.
+(defmacro imenu-progress-message (prevpos &optional relpos reverse)
   (` (and
       imenu-scanning-message
-      (message imenu-scanning-message
-	       (, (if relpos
+      (let ((pos (, (if relpos
 		      relpos
-		    (` (imenu--relative-position (, reverse)))))))))
+		    (` (imenu--relative-position (, reverse)))))))
+	(if (, (if relpos t
+		 (` (> pos (+ 5 (, prevpos))))))
+	    (progn
+	      (message imenu-scanning-message pos)
+	      (setq (, prevpos) pos)))))))
 
 ;;;
 ;;; Function for suporting general looking submenu names.
@@ -306,17 +310,17 @@ Their results are gathered into an index alist."
 	     (error "The mode \"%s\" does not take full advantage of imenu.el yet."
 		    mode-name))      
 	 (let ((index-alist '())
-	       name)
+	       name prev-pos)
 	   (goto-char (point-max))
-	   (imenu-progress-message 0 t)
+	   (imenu-progress-message prev-pos 0 t)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function) 
-	     (imenu-progress-message nil t)
+	     (imenu-progress-message prev-pos nil t)
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))
 	     (and (stringp name)
 		  (push (cons name (point)) index-alist)))
-	   (imenu-progress-message 100 t)
+	   (imenu-progress-message prev-pos 100 t)
 	   index-alist))))
 
 (defun imenu--replace-spaces (name replacement)
@@ -448,12 +452,12 @@ not.
 
 The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
   (let (index-alist
-	(mouse-triggered (listp last-command-event))
+	(mouse-triggered (listp last-nonmenu-event))
 	(result t) )
     ;; If selected by mouse, see to that the window where the mouse is
     ;; really is selected.
     (and mouse-triggered
-	 (let ((window (posn-window (event-start last-command-event))))
+	 (let ((window (posn-window (event-start last-nonmenu-event))))
 	   (or (framep window) (select-window window))))
     ;; Create a list for this buffer only when needed.
     (while (eq result t)
@@ -461,7 +465,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
       (setq result
 	    (if (and mouse-triggered
 		     (not imenu-always-use-completion-buffer-p))
-		(imenu--mouse-menu index-alist last-command-event)
+		(imenu--mouse-menu index-alist last-nonmenu-event)
 	      (imenu--completion-buffer index-alist prompt)))
       (and (eq result t)
 	   (setq imenu--index-alist nil)))
@@ -519,12 +523,13 @@ See `imenu-choose-buffer-index' for more information."
   (let ((index-alist '())
 	(index-var-alist '())
 	(index-type-alist '())
-	(index-unknown-alist '()))
+	(index-unknown-alist '())
+	prev-pos)
     (goto-char (point-max))
-    (imenu-progress-message 0)
+    (imenu-progress-message prev-pos 0)
     ;; Search for the function
     (while (beginning-of-defun)
-      (imenu-progress-message nil t)
+      (imenu-progress-message prev-pos nil t)
       (save-match-data
 	(and (looking-at "(def")
 	     (save-excursion
@@ -551,7 +556,7 @@ See `imenu-choose-buffer-index' for more information."
 		 (forward-sexp 2)
 		 (push (imenu-example--name-and-position)
 		       index-unknown-alist)))))))
-    (imenu-progress-message 100)
+    (imenu-progress-message prev-pos 100)
     (and index-var-alist
 	 (push (cons (imenu-create-submenu-name "Variables") index-var-alist)
 	       index-alist))
@@ -579,15 +584,15 @@ See `imenu-choose-buffer-index' for more information."
 
 (defun imenu-example--create-c-index (&optional regexp)
   (let ((index-alist '())
-	(char))
+	prev-pos char)
     (goto-char (point-min))
-    (imenu-progress-message 0)
+    (imenu-progress-message prev-pos 0)
     ;; Search for the function
     (save-match-data
       (while (re-search-forward
 	      (or regexp imenu-example--function-name-regexp-c)
 	      nil t)
-	(imenu-progress-message)
+	(imenu-progress-message prev-pos)
 	(backward-up-list 1)
 	(save-excursion
 	  (goto-char (scan-sexps (point) 1))
@@ -595,7 +600,7 @@ See `imenu-choose-buffer-index' for more information."
 	;; Skip this function name if it is a prototype declaration.
 	(if (not (eq char ?\;))
 	    (push (imenu-example--name-and-position) index-alist))))
-    (imenu-progress-message 100)
+    (imenu-progress-message prev-pos 100)
     (nreverse index-alist)))
 
 ;;; 
