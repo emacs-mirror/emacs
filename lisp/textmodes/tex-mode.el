@@ -1878,7 +1878,9 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
         (tex-start-shell))
       (tex-send-command
        (if alt tex-alt-dvi-print-command tex-dvi-print-command)
-       print-file-name-dvi t))))
+       (shell-quote-argument
+	print-file-name-dvi)
+       t))))
 
 (defun tex-alt-print ()
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
