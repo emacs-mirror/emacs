@@ -21,6 +21,23 @@
 #include <string.h>
 #include <assert.h>
 
+static char *prog; /* program name */
+
+/* error -- error signalling */
+
+static void error(const char *format, ...)
+{
+  va_list args;
+
+  fflush(stdout); /* sync */
+  fprintf(stderr, "%s: @%lu ", prog, (ulong)eventTime);
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+  va_end(args);
+  exit(EXIT_FAILURE);
+}
+
 #define testArenaSIZE     ((size_t)64<<20)
 #define TABLE_SLOTS 49
 #define ITERATIONS 5000
@@ -302,6 +319,11 @@ int main(int argc, char **argv)
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+
+  if (argc >= 1)
+    prog = argv[0];
+  else
+    prog = "unknown";
 
   randomize(argc, argv);
 
