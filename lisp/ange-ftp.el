@@ -2529,13 +2529,17 @@ away in the internal cache."
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
 	 ;; In some locales, month abbreviations are as short as 2 letters,
 	 ;; and they can be padded on the right with spaces.
-	 (month (concat l l "+ *"))
+	 ;; weiand: changed: month ends with . or , or .,
+;;old	 (month (concat l l "+ *"))
+	 (month (concat l l "+[.]?,? *"))
 	 ;; Recognize any non-ASCII character.  
 	 ;; The purpose is to match a Kanji character.
 	 (k "[^\0-\177]")
 	 (s " ")
 	 (mm "[ 0-1][0-9]")
-	 (dd "[ 0-3][0-9]")
+	 ;; weiand: changed: day ends with .
+;;old	 (dd "[ 0-3][0-9]")
+	 (dd "[ 0-3][0-9][.]?")
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"))
 	 (japanese (concat mm k s dd k)))
 	 ;; Require the previous column to end in a digit.
