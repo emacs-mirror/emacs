@@ -22,14 +22,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "syntax.h"
 #include "buffer.h"
+#include "region-cache.h"
 #include "commands.h"
 #include "blockinput.h"
 
 #include <sys/types.h>
 #include "regex.h"
-
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
 
 /* We compile regexps into this buffer and then use it for searching. */
 
@@ -253,34 +251,94 @@ fast_string_match (regexp, string)
   return val;
 }
 
-/* Search for COUNT instances of the character TARGET, starting at START.
-   If COUNT is negative, search backwards.
+/* max and min.  */
+
+static int
+max (a, b)
+     int a, b;
+{
+  return ((a > b) ? a : b);
+}
+
+static int
+min (a, b)
+     int a, b;
+{
+  return ((a < b) ? a : b);
+}
+
+
+/* The newline cache: remembering which sections of text have no newlines.  */
+
+/* If the user has requested newline caching, make sure it's on.
+   Otherwise, make sure it's off.
+   This is our cheezy way of associating an action with the change of
+   state of a buffer-local variable.  */
+static void
+newline_cache_on_off (buf)
+     struct buffer *buf;
+{
+  if (NILP (buf->cache_long_line_scans))
+    {
+      /* It should be off.  */
+      if (buf->newline_cache)
+        {
+          free_region_cache (buf->newline_cache);
+          buf->newline_cache = 0;
+        }
+    }
+  else
+    {
+      /* It should be on.  */
+      if (buf->newline_cache == 0)
+        buf->newline_cache = new_region_cache ();
+    }
+}
+
+
+/* Search for COUNT instances of the character TARGET between START and END.
+
+   If COUNT is positive, search forwards; END must be >= START.
+   If COUNT is negative, search backwards for the -COUNTth instance;
+      END must be <= START.
+   If COUNT is zero, do anything you please; run rogue, for all I care.
+
+   If END is zero, use BEGV or ZV instead, as appropriate for the
+   direction indicated by COUNT.
 
    If we find COUNT instances, set *SHORTAGE to zero, and return the
    position after the COUNTth match.  Note that for reverse motion
    this is not the same as the usual convention for Emacs motion commands.
 
-   If we don't find COUNT instances before reaching the end of the
-   buffer (or the beginning, if scanning backwards), set *SHORTAGE to
-   the number of TARGETs left unfound, and return the end of the
-   buffer we bumped up against.
+   If we don't find COUNT instances before reaching END, set *SHORTAGE
+   to the number of TARGETs left unfound, and return END.
 
    If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
-scan_buffer (target, start, count, shortage, allow_quit)
-     int *shortage, start;
-     register int count, target;
+scan_buffer (target, start, end, count, shortage, allow_quit)
+     register int target;
+     int start, end;
+     int count;
+     int *shortage;
      int allow_quit;
 {
-  int limit = ((count > 0) ? ZV - 1 : BEGV);
-  int direction = ((count > 0) ? 1 : -1);
+  struct region_cache *newline_cache;
+  int direction; 
 
-  register unsigned char *cursor;
-  unsigned char *base;
+  if (count > 0)
+    {
+      direction = 1;
+      if (! end) end = ZV;
+    }
+  else
+    {
+      direction = -1;
+      if (! end) end = BEGV;
+    }
 
-  register int ceiling;
-  register unsigned char *ceiling_addr;
+  newline_cache_on_off (current_buffer);
+  newline_cache = current_buffer->newline_cache;
 
   if (shortage != 0)
     *shortage = 0;
@@ -288,78 +346,175 @@ scan_buffer (target, start, count, shortage, allow_quit)
   immediate_quit = allow_quit;
 
   if (count > 0)
-    while (start != limit + 1)
+    while (start != end)
       {
-	ceiling =  BUFFER_CEILING_OF (start);
-	ceiling = min (limit, ceiling);
-	ceiling_addr = &FETCH_CHAR (ceiling) + 1;
-	base = (cursor = &FETCH_CHAR (start));
-	while (1)
-	  {
-	    while (*cursor != target && ++cursor != ceiling_addr)
-	      ;
-	    if (cursor != ceiling_addr)
-	      {
-		if (--count == 0)
-		  {
-		    immediate_quit = 0;
-		    return (start + cursor - base + 1);
-		  }
-		else
-		  if (++cursor == ceiling_addr)
-		    break;
-	      }
-	    else
-	      break;
-	  }
-	start += cursor - base;
+        /* Our innermost scanning loop is very simple; it doesn't know
+           about gaps, buffer ends, or the newline cache.  ceiling is
+           the position of the last character before the next such
+           obstacle --- the last character the dumb search loop should
+           examine.  */
+        register int ceiling = end - 1;
+
+        /* If we're looking for a newline, consult the newline cache
+           to see where we can avoid some scanning.  */
+        if (target == '\n' && newline_cache)
+          {
+            int next_change;
+            immediate_quit = 0;
+            while (region_cache_forward
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
+            immediate_quit = 1;
+
+            /* start should never be after end.  */
+            if (start >= end)
+              start = end - 1;
+
+            /* Now the text after start is an unknown region, and
+               next_change is the position of the next known region. */
+            ceiling = min (next_change - 1, ceiling);
+          }
+
+        /* The dumb loop can only scan text stored in contiguous
+           bytes. BUFFER_CEILING_OF returns the last character
+           position that is contiguous, so the ceiling is the
+           position after that.  */
+        ceiling = min (BUFFER_CEILING_OF (start), ceiling);
+
+        {
+          /* The termination address of the dumb loop.  */ 
+          register unsigned char *ceiling_addr = &FETCH_CHAR (ceiling) + 1;
+          register unsigned char *cursor = &FETCH_CHAR (start);
+          unsigned char *base = cursor;
+
+          while (cursor < ceiling_addr)
+            {
+              unsigned char *scan_start = cursor;
+
+              /* The dumb loop.  */
+              while (*cursor != target && ++cursor < ceiling_addr)
+                ;
+
+              /* If we're looking for newlines, cache the fact that
+                 the region from start to cursor is free of them. */
+              if (target == '\n' && newline_cache)
+                know_region_cache (current_buffer, newline_cache,
+                                   start + scan_start - base,
+                                   start + cursor - base);
+
+              /* Did we find the target character?  */
+              if (cursor < ceiling_addr)
+                {
+                  if (--count == 0)
+                    {
+                      immediate_quit = 0;
+                      return (start + cursor - base + 1);
+                    }
+                  cursor++;
+                }
+            }
+
+          start += cursor - base;
+        }
       }
   else
-    {
-      start--;			/* first character we scan */
-      while (start > limit - 1)
-	{			/* we WILL scan under start */
-	  ceiling =  BUFFER_FLOOR_OF (start);
-	  ceiling = max (limit, ceiling);
-	  ceiling_addr = &FETCH_CHAR (ceiling) - 1;
-	  base = (cursor = &FETCH_CHAR (start));
-	  cursor++;
-	  while (1)
-	    {
-	      while (--cursor != ceiling_addr && *cursor != target)
-		;
-	      if (cursor != ceiling_addr)
-		{
-		  if (++count == 0)
-		    {
-		      immediate_quit = 0;
-		      return (start + cursor - base + 1);
-		    }
-		}
-	      else
-		break;
-	    }
-	  start += cursor - base;
-	}
-    }
+    while (start > end)
+      {
+        /* The last character to check before the next obstacle.  */
+        register int ceiling = end;
+
+        /* Consult the newline cache, if appropriate.  */
+        if (target == '\n' && newline_cache)
+          {
+            int next_change;
+            immediate_quit = 0;
+            while (region_cache_backward
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
+            immediate_quit = 1;
+
+            /* Start should never be at or before end.  */
+            if (start <= end)
+              start = end + 1;
+
+            /* Now the text before start is an unknown region, and
+               next_change is the position of the next known region. */
+            ceiling = max (next_change, ceiling);
+          }
+
+        /* Stop scanning before the gap.  */
+        ceiling = max (BUFFER_FLOOR_OF (start - 1), ceiling);
+
+        {
+          /* The termination address of the dumb loop.  */
+          register unsigned char *ceiling_addr = &FETCH_CHAR (ceiling);
+          register unsigned char *cursor = &FETCH_CHAR (start - 1);
+          unsigned char *base = cursor;
+
+          while (cursor >= ceiling_addr)
+            {
+              unsigned char *scan_start = cursor;
+
+              while (*cursor != target && --cursor >= ceiling_addr)
+                ;
+
+              /* If we're looking for newlines, cache the fact that
+                 the region from after the cursor to start is free of them.  */
+              if (target == '\n' && newline_cache)
+                know_region_cache (current_buffer, newline_cache,
+                                   start + cursor - base,
+                                   start + scan_start - base);
+
+              /* Did we find the target character?  */
+              if (cursor >= ceiling_addr)
+                {
+                  if (++count >= 0)
+                    {
+                      immediate_quit = 0;
+                      return (start + cursor - base);
+                    }
+                  cursor--;
+                }
+            }
+
+          start += cursor - base;
+        }
+      }
+
   immediate_quit = 0;
   if (shortage != 0)
     *shortage = count * direction;
-  return (start + ((direction == 1 ? 0 : 1)));
+  return start;
 }
 
 int
 find_next_newline_no_quit (from, cnt)
      register int from, cnt;
 {
-  return scan_buffer ('\n', from, cnt, (int *) 0, 0);
+  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
 }
 
 int
 find_next_newline (from, cnt)
      register int from, cnt;
 {
-  return scan_buffer ('\n', from, cnt, (int *) 0, 1);
+  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 1);
+}
+
+
+/* Like find_next_newline, but returns position before the newline,
+   not after, and only search up to TO.  This isn't just
+   find_next_newline (...)-1, because you might hit TO.  */
+int
+find_before_next_newline (from, to, cnt)
+{
+  int shortage;
+  int pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
+
+  if (shortage == 0)
+    pos--;
+  
+  return pos;
 }
 
 Lisp_Object skip_chars ();
