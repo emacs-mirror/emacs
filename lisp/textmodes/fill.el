@@ -241,7 +241,7 @@ Prefix arg (non-nil third arg, if called from program) means justify as well."
 		2 1))
 	 (match-end 0)))
       (goto-char beg)
-      (while (re-search-forward "[.?!][])""']*\n" nil t)
+      (while (re-search-forward "[.?!][])\"']*\n" nil t)
 	(forward-char -1)
 	(insert ? ))
       (goto-char (point-max))
