@@ -1,0 +1,28 @@
+display options and their current values
+
+Usage: qa options [<options>]
+
+'options' prints out a table of all options and flags used
+by the qa harness. Each may be specified by setting an
+environment variable (to "on" or "off" in the case of a flag)
+or as a command line option. The current values (i.e. resulting
+from defaults, environment variables and any options given
+to the 'options' command) are also shown.
+
+What the options mean:
+
+MMQA_MPS_INCLUDE_DIR
+ a directory where the MM header files may be found.
+
+MMQA_MPS_LINK_OBJ
+ the MM libraries (and any other necessary files, eg the
+ plinth) that must be linked.
+
+MMQA_INTERFACE_VERSION
+ the version of the MM interface to use. Default is
+ GR (grotesque), which should be correct for honeybee.3 and later.
+ Older interfaces were known as MO (modern) and OS (oldstyle).
+
+MMQA_LOG_DIR
+ the directory in which log files should be saved.
+

@@ -1,0 +1,11 @@
+run tests, reporting results and verdict
+
+Usage: qa try [<options>] <testfile> [<testfile> ...]
+
+'run' runs tests individually. The test libraries must previously
+have been compiled with 'clib'.
+
+'try' shows the test's output as it runs, then when it finishes,
+displays test information, results, and the verdict: PASS or FAIL.
+If you don't want these details, use 'try' instead of 'run'.
+
