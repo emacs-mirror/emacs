@@ -1,3 +1,20 @@
+2002-06-21  Richard M. Stallman  <rms@gnu.org>
+
+	* net/browse-url.el (browse-url-at-mouse): Don't pass an arg
+	to browse-url-at-point.
+
+	* play/zone.el (zone-idle): Var deleted.
+
+	* international/iso-acc.el (iso-languages) <french>:
+	`~ ' now generates `~', `~,' definition deleted.
+
+	* format.el (format-annotate-function): Copy multibyte flag
+	and selective-display into the new temp buffer.
+
+	* edmacro.el (edmacro-fix-menu-commands):
+	Discard `help-echo' events.  Handle (menu-bar) events.
+	Simplify by converting key sequence to a list and then back to vector.
+	
 2002-06-21  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (find-file-read-args): Add new argument `mustmatch' and

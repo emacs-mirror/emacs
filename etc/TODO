@@ -68,6 +68,11 @@ Other features we would like:
   of commands which could be replaced with a simpler common command.
   It should not make more than one suggestion per 10 minutes.
 
+* Add a way to define input methods by computing them (when first used)
+  from other input methods.  Then redefine C-x 8 to use a
+  user-selected input method, with the default being the union of
+  latin-1-prefix and latin-1-postfix.
+
 * Implement a clean way to use different major modes for
   different parts of a buffer.
 
