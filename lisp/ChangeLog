@@ -1,3 +1,12 @@
+2003-06-16  Pieter E.J. Pareit  <pieter.pareit@skynet.be>
+
+	* progmodes/mixal-mode.el: New file.
+
+2003-06-16  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (recover-session-finish): Don't give up when there are
+	two consecutive empty lines in the auto-save-list file.
+
 2003-06-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/copyright.el (copyright-update-year): New function
