@@ -4395,6 +4395,11 @@ init_process ()
     }
   bzero (proc_decode_coding_system, sizeof proc_decode_coding_system);
   bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
+
+  Vdefault_process_coding_system
+    = (NILP (buffer_defaults.enable_multibyte_characters)
+       ? Fcons (Qraw_text, Qnil)
+       : Fcons (Qemacs_mule, Qnil));
 }
 
 void
