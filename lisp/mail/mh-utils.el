@@ -576,8 +576,14 @@ Non-nil third argument means not to show the message."
       (setq mail-user-agent 'mh-e-user-agent)
       (run-hooks 'mh-find-path-hook))))
 
+(defun mh-file-command-p (file)
+  "Return t if file FILE is the name of a executable regular file."
+  (and (file-regular-p file) (file-executable-p file)))
+
 (defun mh-find-progs ()
-  (or (file-exists-p (expand-file-name "inc" mh-progs))
+  "Find the `inc' and `mhl' programs of MH.
+Set the `mh-progs' and `mh-lib' variables to the file names."
+  (or (and mh-progs (mh-file-command-p (expand-file-name "inc" mh-progs)))
       (setq mh-progs
 	    (or (mh-path-search exec-path "inc")
 		(mh-path-search '("/usr/local/bin/mh/"
@@ -587,10 +593,8 @@ Non-nil third argument means not to show the message."
 				  "/usr/contrib/mh/bin/" ;BSDI
 				  "/usr/local/bin/"
 				  )
-				"inc")
-		mh-progs
-		"/usr/local/bin/")))
-  (or (file-exists-p (expand-file-name "mhl" mh-lib))
+				"inc"))))
+  (or (and mh-lib (mh-file-command-p (expand-file-name "mhl" mh-lib)))
       (setq mh-lib
 	    ;; Look for a lib directory roughly parallel to the bin
 	    ;; directory:  Strip any trailing `mh' or `bin' path
@@ -608,14 +612,15 @@ Non-nil third argument means not to show the message."
 		   "mhl"))
 		(mh-path-search '("/usr/local/bin/mh/") "mhl")
 		(mh-path-search exec-path "mhl") ;unlikely
-		mh-lib
-		"/usr/local/lib/mh/"))))
+		)))
+  (unless (and mh-progs mh-lib)
+    (error "Cannot find the commands `inc' and `mhl'")))
 
 (defun mh-path-search (path file)
   ;; Search PATH, a list of directory names, for FILE.
   ;; Returns the element of PATH that contains FILE, or nil if not found.
   (while (and path
-	      (not (file-exists-p (expand-file-name file (car path)))))
+	      (not (mh-file-command-p (expand-file-name file (car path)))))
     (setq path (cdr path)))
   (car path))
 
