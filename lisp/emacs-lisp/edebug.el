@@ -2128,6 +2128,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec combine-after-change-calls t)
 (def-edebug-spec with-temp-file t)
 (def-edebug-spec with-temp-buffer t)
+(def-edebug-spec with-temp-message t)
 
 ;; Anything else?
 
