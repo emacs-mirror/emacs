@@ -4444,7 +4444,7 @@ DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
   "Convert the event description list EVENT-DESC to an event type.\n\
 EVENT-DESC should contain one base event type (a character or symbol)\n\
 and zero or more modifier names (control, meta, hyper, super, shift, alt,\n\
-drag, down, double or triple).\n\
+drag, down, double or triple).  The base must be last.\n\
 The return value is an event type (a character or symbol) which\n\
 has the same base event type and all the specified modifiers.")
   (event_desc)
@@ -4462,9 +4462,10 @@ has the same base event type and all the specified modifiers.")
       int this = 0;
 
       elt = XCONS (rest)->car;
+      rest = XCONS (rest)->cdr;
 
       /* Given a symbol, see if it is a modifier name.  */
-      if (SYMBOLP (elt))
+      if (SYMBOLP (elt) && CONSP (rest))
 	this = parse_solitary_modifier (elt);
 
       if (this != 0)
@@ -4474,7 +4475,6 @@ has the same base event type and all the specified modifiers.")
       else
 	base = elt;
 
-      rest = XCONS (rest)->cdr;
     }
 
   /* Let the symbol A refer to the character A.  */
