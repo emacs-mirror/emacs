@@ -76,7 +76,7 @@ typedef XGCValues * GC;
 typedef COLORREF Color;
 typedef DWORD Time;
 typedef HWND Window;
-typedef int Display;  /* ++KFS: define here? */
+typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
 typedef HCURSOR Cursor;
 
 #define XChar2b wchar_t
