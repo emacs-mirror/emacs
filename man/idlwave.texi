@@ -9,8 +9,8 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 3.11
-@set EDITION 1.7
+@set VERSION 3.12
+@set EDITION 1.8
 @set IDLVERSION 5.3
 @set NSYSROUTINES 1226
 @set NSYSKEYWORDS 5230
@@ -161,7 +161,7 @@ Sources of Routine Info
 * Routine Definitions::         Where IDL Routines are defined.
 * Routine Information Sources:: So how does IDLWAVE know about...
 * Library Scan::                Scanning the Libraries for Routine Info
-* Updating idlwave-rinfo.el::   Scanning the Reference Manual
+* Updating idlw-rinfo.el::      Scanning the Reference Manual
 @end detailmenu
 @end menu
 
@@ -1516,7 +1516,7 @@ IDLWAVE must know about the accessible routines.
 * Routine Definitions::         Where IDL Routines are defined.
 * Routine Information Sources:: So how does IDLWAVE know about...
 * Library Scan::                Scanning the Libraries for Routine Info
-* Updating idlwave-rinfo.el::   Scanning the IDL Manuals
+* Updating idlw-rinfo.el::      Scanning the IDL Manuals
 @end menu
 
 @node Routine Definitions, Routine Information Sources, Sources of Routine Info, Sources of Routine Info
@@ -1562,7 +1562,7 @@ routines.  IDLWAVE @value{VERSION} is distributed with a list of
 @value{NSYSROUTINES} routines and @value{NSYSKEYWORDS} keywords,
 reflecting IDL version @value{IDLVERSION}.  This list has been created
 by scanning the IDL manuals and is stored in the file
-@file{idlwave-rinfo.el}.  @xref{Updating idlwave-rinfo.el}, for
+@file{idlw-rinfo.el}.  @xref{Updating idlw-rinfo.el}, for
 information how to regenerate this file for new versions of IDL.@refill
 
 @item
@@ -1583,7 +1583,7 @@ the shell again at any time.@refill
 @item
 IDLWAVE can scan all or selected library files and store the result in a
 file which will be automatically loaded just like
-@file{idlwave-rinfo.el}. @xref{Library Scan}, for information how to
+@file{idlw-rinfo.el}. @xref{Library Scan}, for information how to
 scan library files.@refill
 @end enumerate
 
@@ -1598,7 +1598,7 @@ Non-@code{nil} means query the shell for info about compiled routines.
 @end defopt
 
 
-@node Library Scan, Updating idlwave-rinfo.el, Routine Information Sources, Sources of Routine Info
+@node Library Scan, Updating idlw-rinfo.el, Routine Information Sources, Sources of Routine Info
 @section Library Scan
 @cindex Library scan
 @cindex IDL library routine info
@@ -1647,17 +1647,17 @@ IDL library path for Windows and MacOS.  Not needed under Unix.
 @end defopt
 
 
-@node Updating idlwave-rinfo.el, , Library Scan, Sources of Routine Info
-@section Updating @file{idlwave-rinfo.el}
+@node Updating idlw-rinfo.el, , Library Scan, Sources of Routine Info
+@section Updating @file{idlw-rinfo.el}
 @cindex @file{get_rinfo}
-@cindex @file{idlwave.rinfo.el}
-@cindex Perl program, to create @file{idlwave.rinfo.el}
+@cindex @file{idlw-rinfo.el}
+@cindex Perl program, to create @file{idlw-rinfo.el}
 
-The file @file{idlwave-rinfo.el} contains the routine information for
+The file @file{idlw-rinfo.el} contains the routine information for
 the routines build into IDL.  This constant depends upon the version of
 IDL.  If you are lucky, the maintainer of IDLWAVE will always have
 access to the newest version of IDL and provide updates of
-@file{idlwave-rinfo.el} reflecting the currently released version of
+@file{idlw-rinfo.el} reflecting the currently released version of
 IDL.  The IDLWAVE package also contains a Perl program @file{get_rinfo}
 which constructs this file by scanning selected files from the IDL
 documentation.  The program needs @file{pdftotext} by Derek B. Noonburg.
