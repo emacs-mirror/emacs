@@ -59,7 +59,7 @@
 
 (defgroup apropos nil
   "Apropos commands for users and programmers"
-  :group 'Help
+  :group 'help
   :prefix "apropos")
 
 ;; I see a degradation of maybe 10-20% only.
