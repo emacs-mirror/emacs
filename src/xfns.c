@@ -37,6 +37,8 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include <paths.h>
+#include "charset.h"
+#include "fontset.h"
 
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
@@ -130,6 +132,9 @@ Lisp_Object Vx_no_window_manager;
 
 /* Search path for bitmap files.  */
 Lisp_Object Vx_bitmap_file_path;
+
+/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
+Lisp_Object Vx_pixel_size_width_font_regexp;
 
 /* Evaluate this expression to rebuild the section of syms_of_xfns
    that initializes and staticpros the symbols declared below.  Note
@@ -1587,11 +1592,16 @@ x_set_font (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   Lisp_Object result;
+  Lisp_Object fontset_name;
 
   CHECK_STRING (arg, 1);
 
+  fontset_name = Fquery_fontset (arg);
+
   BLOCK_INPUT;
-  result = x_new_font (f, XSTRING (arg)->data);
+  result = (STRINGP (fontset_name)
+	    ? x_new_fontset (f, XSTRING (fontset_name)->data)
+	    : x_new_font (f, XSTRING (arg)->data));
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
@@ -3175,16 +3185,28 @@ This function is an internal primitive--use `make-frame' instead.")
       specbind (Qx_resource_name, name);
     }
 
+  /* Create fontsets from `global_fontset_alist' before handling fonts.  */
+  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
+    fs_register_fontset (f, XCONS (tem)->car);
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   {
     Lisp_Object font;
 
     font = x_get_arg (parms, Qfont, "font", "Font", string);
+    if (!STRINGP (font))
+      font = x_get_arg (parms, Qfontset, "fontset", "Fontset", string);
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
-      font = x_new_font (f, XSTRING (font)->data);
+      {
+	Lisp_Object fontset = Fquery_fontset (font);
+	if (STRINGP (fontset))
+	  font = x_new_fontset (f, XSTRING (fontset)->data);
+	else
+	  font = x_new_font (f, XSTRING (font)->data);
+      }
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
       font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
@@ -3363,6 +3385,9 @@ x_get_focus_frame (frame)
   return xfocus;
 }
 
+#if 1
+#include "x-list-font.c"
+#else
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
   "Return a list of the names of available fonts matching PATTERN.\n\
 If optional arguments FACE and FRAME are specified, return only fonts\n\
@@ -3571,6 +3596,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
   return list;
 }
+#endif
 
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
@@ -4601,7 +4627,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
 	  do
 	    {
-	      c = FETCH_CHAR (p);
+	      c = FETCH_BYTE (p);
 	      if (len == f->width && hp == len - 1 && c != '\n')
 		goto draw_or_not;
 
@@ -5217,6 +5243,16 @@ unless you set it to something else.");
      and maybe the user would like to set it to t.  */
   Vx_no_window_manager = Qnil;
 
+  DEFVAR_LISP ("x-pixel-size-width-font-regexp",
+	       &Vx_pixel_size_width_font_regexp,
+     "Regexp matching a font name whose width is the same as `PIXEL_SIZE'.\n\
+\n\
+Since Emacs gets width of a font which this regexp maches from\n\
+PIXEL_SIZE field of the name, font finding mechanism gets faster for\n\
+such a font.  This is especially effective for such large fonts as\n\
+Chinese, Japanese, and Korean.");
+  Vx_pixel_size_width_font_regexp = Qnil;
+
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
 #endif
@@ -5265,6 +5301,14 @@ unless you set it to something else.");
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+
+  /* Setting callback functions for fontset handler.  */
+  get_font_info_func = x_get_font_info;
+  list_fonts_func = x_list_fonts;
+  load_font_func = x_load_font;
+  query_font_func = x_query_font;
+  set_frame_fontset_func = x_set_font;
+  check_window_system_func = check_x;
 }
 
 #endif /* HAVE_X_WINDOWS */
