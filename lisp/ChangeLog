@@ -1,3 +1,8 @@
+2001-10-10  Miles Bader  <miles@gnu.org>
+
+	* info.el (Info-insert-dir): Don't call `Info-fontify-menu-headers'.
+	(Info-fontify-node): Don't fontify the node if it's already been done.
+
 2001-10-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (end-of-buffer): Fix code scrolling specially
