@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,1999 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Fixit, Top
 @chapter File Handling
@@ -2012,6 +2012,16 @@ headers.
   There are many ways of customizing VC.  The options you can set fall
 into four categories, described in the following sections.
 
+@vindex vc-ignore-vc-files
+@cindex Version control, deactivating
+  In addition, it is possible to turn VC on and off generally by setting
+the variable @code{vc-ignore-vc-files}.  Normally VC will notice the
+presence of version control on a file you visit and automatically invoke
+the relevant program to check the file's state.  Change
+@code{vc-ignore-vc-files} if this isn't the right thing, for instance,
+if you edit files under version control but don't have the relevant
+version control programs available.
+
 @menu
 * Backend Options::       Customizing the back-end to your needs.
 * VC Workfile Handling::  Various options concerning working files.
@@ -2362,6 +2372,7 @@ compiling it.
 @group
 /@var{host}:@var{filename}
 /@var{user}@@@var{host}:@var{filename}
+/@var{user}@@@var{host}#@var{port}:@var{filename}
 @end group
 @end example
 
@@ -2369,7 +2380,8 @@ compiling it.
 When you do this, Emacs uses the FTP program to read and write files on
 the specified host.  It logs in through FTP using your user name or the
 name @var{user}.  It may ask you for a password from time to time; this
-is used for logging in on @var{host}.
+is used for logging in on @var{host}.  The form using @var{port} allows
+you to access servers running on a non-default TCP port.
 
 @cindex ange-ftp
 @vindex ange-ftp-default-user
@@ -2380,8 +2392,10 @@ that means to use your own user name.  But if you set the variable
 @code{ange-ftp}.)
 
 @vindex file-name-handler-alist
-  You can entirely turn off the FTP file name feature by setting the
-variable @code{file-name-handler-alist} to @code{nil}.
+  You can entirely turn off the FTP file name feature by removing the
+entries @var{ange-ftp-completion-hook-function} and
+@var{ange-ftp-hook-function} from the variable
+@code{file-name-handler-alist}.
 
 @node Quoted File Names
 @section Quoted File Names
