@@ -308,7 +308,8 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-iso-7",
   "coding-category-iso-8-1",
   "coding-category-iso-8-2",
-  "coding-category-iso-else",
+  "coding-category-iso-7-else",
+  "coding-category-iso-8-else",
   "coding-category-big5",
   "coding-category-binary"
 };
@@ -595,7 +596,8 @@ enum iso_code_class_type iso_code_class[256];
 	CODING_CATEGORY_MASK_ISO_7
 	CODING_CATEGORY_MASK_ISO_8_1
 	CODING_CATEGORY_MASK_ISO_8_2
-	CODING_CATEGORY_MASK_ISO_ELSE
+	CODING_CATEGORY_MASK_ISO_7_ELSE
+	CODING_CATEGORY_MASK_ISO_8_ELSE
    are set.  If a code which should never appear in ISO2022 is found,
    returns 0.  */
 
@@ -606,7 +608,9 @@ detect_coding_iso2022 (src, src_end)
   int mask = (CODING_CATEGORY_MASK_ISO_7
 	      | CODING_CATEGORY_MASK_ISO_8_1
 	      | CODING_CATEGORY_MASK_ISO_8_2
-	      | CODING_CATEGORY_MASK_ISO_ELSE);
+	      | CODING_CATEGORY_MASK_ISO_7_ELSE
+	      | CODING_CATEGORY_MASK_ISO_8_ELSE
+	      );
   int g1 = 0;			/* 1 iff designating to G1.  */
   int c, i;
 
@@ -628,24 +632,28 @@ detect_coding_iso2022 (src, src_end)
 	      if (c == ')' || (c == '$' && *src == ')'))
 		{
 		  g1 = 1;
-		  mask &= ~CODING_CATEGORY_MASK_ISO_7;
+		  mask &= ~(CODING_CATEGORY_MASK_ISO_7
+			    | CODING_CATEGORY_MASK_ISO_7_ELSE);
 		}
 	      src++;
 	      break;
 	    }
 	  else if (c == 'N' || c == 'O' || c == 'n' || c == 'o')
-	    return CODING_CATEGORY_MASK_ISO_ELSE;
+	    mask &= (CODING_CATEGORY_MASK_ISO_7_ELSE
+		     | CODING_CATEGORY_MASK_ISO_8_ELSE);
 	  break;
 
 	case ISO_CODE_SO:
 	  if (g1)
-	    return CODING_CATEGORY_MASK_ISO_ELSE;
+	    mask &= (CODING_CATEGORY_MASK_ISO_7_ELSE
+		     | CODING_CATEGORY_MASK_ISO_8_ELSE);
 	  break;
 	  
 	case ISO_CODE_CSI:
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
-	  mask &= ~CODING_CATEGORY_MASK_ISO_7;
+	  mask &= ~(CODING_CATEGORY_MASK_ISO_7
+		    | CODING_CATEGORY_MASK_ISO_7_ELSE);
 	  break;
 
 	default:
@@ -655,12 +663,13 @@ detect_coding_iso2022 (src, src_end)
 	    return 0;
 	  else
 	    {
-	      int count = 1;
+	      unsigned char *src_begin = src;
 
-	      mask &= ~CODING_CATEGORY_MASK_ISO_7;
+	      mask &= ~(CODING_CATEGORY_MASK_ISO_7
+			| CODING_CATEGORY_MASK_ISO_7_ELSE);
 	      while (src < src_end && *src >= 0xA0)
-		count++, src++;
-	      if (count & 1 && src < src_end)
+		src++;
+	      if ((src - src_begin - 1) & 1 && src < src_end)
 		mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
 	    }
 	  break;
@@ -2443,34 +2452,44 @@ setup_coding_system (coding_system, coding)
 
 	The category for a coding system which has the same code range
 	as SJIS.  Assigned the coding-system (Lisp
-	symbol) `shift-jis' by default.
+	symbol) `japanese-shift-jis' by default.
 
    o coding-category-iso-7
 
    	The category for a coding system which has the same code range
-	as ISO2022 of 7-bit environment.  Assigned the coding-system
-	(Lisp symbol) `iso-2022-7' by default.
+	as ISO2022 of 7-bit environment.  This doesn't use any locking
+	shift and single shift functions.  Assigned the coding-system
+	(Lisp symbol) `iso-2022-7bit' by default.
 
    o coding-category-iso-8-1
 
    	The category for a coding system which has the same code range
 	as ISO2022 of 8-bit environment and graphic plane 1 used only
-	for DIMENSION1 charset.  Assigned the coding-system (Lisp
-	symbol) `iso-8859-1' by default.
+	for DIMENSION1 charset.  This doesn't use any locking shift
+	and single shift functions.  Assigned the coding-system (Lisp
+	symbol) `iso-latin-1' by default.
 
    o coding-category-iso-8-2
 
    	The category for a coding system which has the same code range
 	as ISO2022 of 8-bit environment and graphic plane 1 used only
-	for DIMENSION2 charset.  Assigned the coding-system (Lisp
-	symbol) `euc-japan' by default.
+	for DIMENSION2 charset.  This doesn't use any locking shift
+	and single shift functions.  Assigned the coding-system (Lisp
+	symbol) `japanese-iso-8bit' by default.
 
-   o coding-category-iso-else
+   o coding-category-iso-7-else
 
    	The category for a coding system which has the same code range
-	as ISO2022 but not belongs to any of the above three
-	categories.  Assigned the coding-system (Lisp symbol)
-	`iso-2022-ss2-7' by default.
+	as ISO2022 of 7-bit environemnt but uses locking shift or
+	single shift functions.  Assigned the coding-system (Lisp
+	symbol) `iso-2022-7bit-lock' by default.
+
+   o coding-category-iso-8-else
+
+   	The category for a coding system which has the same code range
+	as ISO2022 of 8-bit environemnt but uses locking shift or
+	single shift functions.  Assigned the coding-system (Lisp
+	symbol) `iso-2022-8bit-ss2' by default.
 
    o coding-category-big5
 
