@@ -1,8 +1,3 @@
-2002-11-13  Simon Josefsson  <jas@extundo.com>
-
-	* mail/smtpmail.el (smtpmail-via-smtp): Fall back to
-	user-mail-address as sender.
-
 2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* configure.in (*-sunos5*, *-solaris*): Revert previous change -

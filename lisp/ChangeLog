@@ -1,3 +1,8 @@
+2002-11-13  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Fall back to
+	user-mail-address as sender.
+
 2002-12-15  Dave Love  <fx@gnu.org>
 
 	* international/utf-8.el (ucs-mule-cjk-to-unicode)
@@ -21,7 +26,8 @@
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names, rename-buffer)
 	(uniquify-delay-rationalize-file-buffer-names, kill-buffer-hook):
-	Undo 2002/09/27 change because kill-buffer-hook is not permanent-local.
+	Undo 2002/09/27 change because kill-buffer-hook is not
+	permanent-local.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
 	Optimize the remaining part of for-effect and/or expressions.
@@ -70,7 +76,7 @@
 2002-12-12  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/mule-cmds.el (set-language-info):
-	Update custom-type of current-language-environment.
+	Update custom-type of `current-language-environment'.
 	(current-language-environment): Fix custom type.
 
 2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
