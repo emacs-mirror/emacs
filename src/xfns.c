@@ -5324,6 +5324,7 @@ enum image_value_type
 {
   IMAGE_DONT_CHECK_VALUE_TYPE,
   IMAGE_STRING_VALUE,
+  IMAGE_STRING_OR_NIL_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
@@ -5418,6 +5419,11 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	{
 	case IMAGE_STRING_VALUE:
 	  if (!STRINGP (value))
+	    return 0;
+	  break;
+
+	case IMAGE_STRING_OR_NIL_VALUE:
+	  if (!STRINGP (value) && !NILP (value))
 	    return 0;
 	  break;
 
@@ -6384,8 +6390,8 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":width",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":height",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":foreground",	IMAGE_STRING_VALUE,			0},
-  {":background",	IMAGE_STRING_VALUE,			0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,   0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -6919,10 +6925,12 @@ xbm_load (f, img)
 	}
 
       /* Get foreground and background colors, maybe allocate colors.  */
-      if (fmt[XBM_FOREGROUND].count)
+      if (fmt[XBM_FOREGROUND].count
+	  && STRINGP (fmt[XBM_FOREGROUND].value))
 	foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
 					  foreground);
-      if (fmt[XBM_BACKGROUND].count)
+      if (fmt[XBM_BACKGROUND].count
+	  && STRINGP (fmt[XBM_BACKGROUND].value))
 	background = x_alloc_image_color (f, img, fmt[XBM_BACKGROUND].value,
 					  background);
 
@@ -8110,8 +8118,8 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":foreground",	IMAGE_STRING_VALUE,			0},
-  {":background",	IMAGE_STRING_VALUE,			0}
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `pbm'.  */
@@ -8309,9 +8317,11 @@ pbm_load (f, img)
       parse_image_spec (img->spec, fmt, PBM_LAST, Qpbm);
       
       /* Get foreground and background colors, maybe allocate colors.  */
-      if (fmt[PBM_FOREGROUND].count)
+      if (fmt[PBM_FOREGROUND].count
+	  && STRINGP (fmt[PBM_FOREGROUND].value))
 	fg = x_alloc_image_color (f, img, fmt[PBM_FOREGROUND].value, fg);
-      if (fmt[PBM_BACKGROUND].count)
+      if (fmt[PBM_BACKGROUND].count
+	  && STRINGP (fmt[PBM_BACKGROUND].value))
 	bg = x_alloc_image_color (f, img, fmt[PBM_BACKGROUND].value, bg);
       
       for (y = 0; y < height; ++y)
