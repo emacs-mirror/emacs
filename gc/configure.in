@@ -17,12 +17,11 @@ dnl Process this file with autoconf to produce configure.
 # Initialization
 # ==============
 
-AC_INIT(gc,6.2alpha4,Hans.Boehm@hp.com) 
+AC_INIT(gc,[6.2alpha6, modified for Emacs]) 
     ## version must conform to [0-9]+[.][0-9]+(alpha[0-9]+)?
 AC_CONFIG_SRCDIR(gcj_mlc.c)
 AC_CANONICAL_TARGET 
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.2 $)
 GC_SET_VERSION
 AM_INIT_AUTOMAKE
 
@@ -64,7 +63,7 @@ AC_ARG_ENABLE(parallel-mark,
 )
 
 AC_ARG_ENABLE(cplusplus,
-[  --enable-cplusplus		include C++ support in GC library and include directory],
+[  --enable-cplusplus		install C++ support],
 )
 
 AC_ARG_ENABLE(cppflags,
@@ -99,6 +98,10 @@ case "$THREADS" in
 	AC_DEFINE(GC_LINUX_THREADS)
 	AC_DEFINE(_REENTRANT)
 	;;
+     *-*-aix*)
+	AC_DEFINE(GC_AIX_THREADS)
+	AC_DEFINE(_REENTRANT)
+	;;
      *-*-hpux*)
 	AC_MSG_WARN("Only HP/UX 11 threads are supported.")
 	AC_DEFINE(GC_HPUX_THREADS)
@@ -126,7 +129,11 @@ case "$THREADS" in
 	AC_DEFINE(GC_WIN32_THREADS)
 	;;
      *-*-darwin*)
-	AC_DEFINE(GC_MACOSX_THREADS)
+	AC_DEFINE(GC_DARWIN_THREADS)
+	AC_DEFINE(THREAD_LOCAL_ALLOC)
+	if test "${enable_parallel_mark}" = yes; then
+	  AC_DEFINE(PARALLEL_MARK)
+	fi
 	;;
      *-*-osf*)
 	AC_DEFINE(GC_OSF1_THREADS)
@@ -169,7 +176,15 @@ AC_MSG_RESULT($THREADLIBS)
 esac
 AC_SUBST(THREADLIBS)
 
-# I'm not too familiar with autoconf, is this the best way to do this? -Brian
+case "$host" in 
+   powerpc-*-darwin*)
+      powerpc_darwin=true
+      ;;
+esac
+AM_CONDITIONAL(POWERPC_DARWIN,test x$powerpc_darwin = xtrue)
+
+# We never want libdl on darwin. It is a fake libdl that just ends up making
+# dyld calls anyway
 case "$host" in
   *-*-darwin*) ;;
   *) 
@@ -193,6 +208,7 @@ TARGET_ECOS="$with_ecos"
 )
 
 addobjs=
+addlibs=
 addincludes=
 addtests=
 CXXINCLUDES=
@@ -207,10 +223,11 @@ case "$TARGET_ECOS" in
 esac
 
 if test "${enable_cplusplus}" = yes; then
-      addobjs="$addobjs gc_cpp.lo"
       addincludes="$addincludes include/gc_cpp.h include/gc_allocator.h"
       addtests="$addtests test_cpp"
 fi
+
+AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 
 AC_SUBST(CXX)
 
@@ -286,6 +303,7 @@ fi
 addobjs="$addobjs $machdep"
 AC_SUBST(addobjs)
 AC_SUBST(addincludes)
+AC_SUBST(addlibs)
 AC_SUBST(addtests)
 
 AM_PROG_LIBTOOL

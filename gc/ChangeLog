@@ -1,3 +1,21 @@
+2003-06-16  Dave Love  <fx@gnu.org>
+
+	* Makefile.am, Makefile.dj, Makefile.in, aclocal.m4, alloc.c:
+	* alpha_mach_dep.S, configure, dbg_mlc.c, dyn_load.c, finalize.c:
+	* gc_dlopen.c, mach_dep.c, mark.c, mark_rts.c, misc.c:
+	* mkinstalldirs, os_dep.c, ptr_chck.c, reclaim.c, threadlibs.c:
+	* version.h, win32_threads.c, include/Makefile.am:
+	* include/Makefile.in, include/gc.h, include/gc_config_macros.h:
+	* include/gc_pthread_redirects.h, include/private/gc_locks.h:
+	* include/private/gc_priv.h, include/private/gcconfig.h: Merge
+	changes from 6.2alpha6.
+
+	* configure.in: Merge changes from 6.2alpha6.
+	(AC_REVISION): Removed.
+	(Ac_INIT): Modify version and remove bug address.
+
+	* Makefile.direct: Removed.
+
 2003-06-10  Dave Love  <fx@gnu.org>
 
 	* Makefile: Removed.
