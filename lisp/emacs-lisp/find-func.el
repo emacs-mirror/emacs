@@ -54,14 +54,17 @@
 ;;   :prefix "find-function"
   :group 'lisp)
 
+(defconst find-function-space-re "\\(?:\\s-\\|\n\\|;.*\n\\)+")
+
 (defcustom find-function-regexp
   ;; Match things like (defun foo ...), (defmacro foo ...),
   ;; (define-skeleton foo ...), (define-generic-mode 'foo ...),
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
-  "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
+  (concat
+   "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 \[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\
-\\|easy-mmode-define-global-mode\\)\\(\\s-\\|\n\\)+\\('\\|\(quote \\)?\
-%s\\(\\s-\\|$\\|\(\\|\)\\)"
+\\|easy-mmode-define-global-mode\\)" find-function-space-re
+   "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
@@ -73,7 +76,7 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  "^\\s-*(def[^umag]\\(\\w\\|\\s_\\)+\\*?\\s-+%s\\(\\s-\\|$\\)"
+  (concat"^\\s-*(def[^umag]\\(\\w\\|\\s_\\)+\\*?" find-function-space-re "%s\\(\\s-\\|$\\)")
   "The regexp used by `find-variable' to search for a variable definition.
 It should match right up to the variable name.  The default value
 avoids `defun', `defmacro', `defalias', `defadvice', `defgroup'.
@@ -145,7 +148,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 	    (goto-char (point-min))
 	    (if (or (re-search-forward regexp nil t)
 		    (re-search-forward
-		     (concat "^([^ ]+\\(\\s-\\|\n\\)+"
+		     (concat "^([^ ]+" find-function-space-re "['(]"
 			     (regexp-quote (symbol-name symbol))
 			     "\\>")
 		     nil t))
