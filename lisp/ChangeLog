@@ -1,3 +1,8 @@
+2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* arc-mode.el (archive-dostime): Fix a typo in minutes'
+	computation.
+
 2001-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* server.el (server-switch-buffer): Use get-window-with-predicate.
