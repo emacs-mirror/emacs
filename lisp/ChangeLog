@@ -1,3 +1,8 @@
+2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-fill-paragraph): Call fill-paragraph
+	with point inside rather than after the paragraph.
+
 2004-02-04  Sam Steingold  <sds@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods):
@@ -26,6 +31,13 @@
 	(dired-dnd-handle-file): New functions for drag and drop support.
 	(dired-mode): Initialize drag and drop if x-dnd present.
 
+2004-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode-map, cperl-do-auto-fill)
+	(cperl-menu): Use fill-paragraph, not cperl-fill-paragraph.
+	(cperl-mode): Set fill-paragraph-function.
+	(cperl-fill-paragraph): Make it non-interactive.
+
 2004-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* diff-mode.el (diff-mode-shared-map): Bind q to `quit-window'.
@@ -38,8 +50,7 @@
 
 2004-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/executable.el (executable-command-find-posix-p): Doc
-	fix.
+	* progmodes/executable.el (executable-command-find-posix-p): Doc fix.
 
 2004-02-01  Stephen Eglen  <stephen@gnu.org>
 
