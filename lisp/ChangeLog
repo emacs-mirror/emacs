@@ -1,3 +1,9 @@
+2000-11-27  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (.SUFFIXES): Add .SUFFIXES.
+
+	* makefile.w32-in (.SUFFIXES): Add .SUFFIXES.
+
 2000-11-27  Miles Bader  <miles@gnu.org>
 
 	* dired.el (dired-get-filename): Return filename verbatim if
