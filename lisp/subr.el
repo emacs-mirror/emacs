@@ -836,6 +836,12 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 ;; Give it a global value to avoid compiler warnings.
 (defvar font-lock-defaults nil)
 
+(defvar suspend-hook nil
+  "Normal hook run by `suspend-emacs', before suspending.")
+
+(defvar suspend-resume-hook nil
+  "Normal hook run by `suspend-emacs', after Emacs is continued.")
+
 ;; Avoid compiler warnings about this variable,
 ;; which has a special meaning on certain system types.
 (defvar buffer-file-type nil
