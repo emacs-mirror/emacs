@@ -1,3 +1,15 @@
+2003-04-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (reset-language-environment): Raise
+	the priority of mule-utf-8, mule-utf-16-be-with-signature and
+	mule-utf-16-le.-with-signature.
+
+	* international/mule-conf.el: Set coding-category-utf-16-be to
+	mule-utf-16-be-with-signature, coding-category-utf-16-le to
+	mule-utf-16-le-with-signature.  Raise the priority of
+	coding-category-utf-8, coding-category-utf-16-be, and
+	coding-category-utf-16-le
+
 2003-04-27  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* scroll-bar.el (scroll-bar-drag-1): Replace beginning-of-line with
