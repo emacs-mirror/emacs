@@ -3569,10 +3569,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	      int opoint = PT, opoint_byte = PT_BYTE;
 
 	      invis = 1;
-	      if (! NILP (current_buffer->enable_multibyte_characters))
-		INC_BOTH (pos, pos_byte);
-	      else
-		pos++, pos_byte++;
+	      INC_BOTH (pos, pos_byte);
 	      scan_newline (pos, pos_byte, ZV, ZV_BYTE, 1, 1);
 	      if (FETCH_BYTE (pos_byte - 1) == '\n')
 		{
