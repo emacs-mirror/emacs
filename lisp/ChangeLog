@@ -1,7 +1,7 @@
 2001-01-31  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-diag.el (describe-character-set): Pay
-	attention to charsets that don't have ISO2022's final char.
+	* international/mule-diag.el (describe-character-set): Check final
+	char valid before printing it.
 
 2001-01-30  Gerd Moellmann  <gerd@gnu.org>
 
