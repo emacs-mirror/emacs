@@ -1691,8 +1691,7 @@ window_list_1 (window, minibuf, all_frames)
                 Qnil, look at just the selected frame;
 		Qvisible, look at visible frames;
 	        a frame, just look at windows on that frame.
-   If MINI is non-zero, perform the operation on minibuffer windows too.
-*/
+   If MINI is non-zero, perform the operation on minibuffer windows too.  */
 
 enum window_loop
 {
@@ -1989,13 +1988,12 @@ value is reasonable when this function is called.")
 {
   struct window *w;
   int startpos;
-  int top;
+  int top, new_top;
 
   if (NILP (window))
     window = selected_window;
   else
     CHECK_LIVE_WINDOW (window, 0);
-
   w = XWINDOW (window);
 
   startpos = marker_position (w->start);
@@ -2011,7 +2009,9 @@ value is reasonable when this function is called.")
      on the frame.  But don't try to do this if the window start is
      outside the visible portion (as might happen when the display is
      not current, due to typeahead).  */
-  if (startpos >= BUF_BEGV (XBUFFER (w->buffer))
+  new_top = XFASTINT (w->top) - FRAME_TOP_MARGIN (XFRAME (WINDOW_FRAME (w)));
+  if (new_top != top
+      && startpos >= BUF_BEGV (XBUFFER (w->buffer))
       && startpos <= BUF_ZV (XBUFFER (w->buffer)))
     {
       struct position pos;
@@ -2023,6 +2023,7 @@ value is reasonable when this function is called.")
       pos = *vmotion (startpos, -top, w);
 
       set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
+      w->window_end_valid = Qnil;
       w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
 			       || FETCH_BYTE (pos.bytepos - 1) == '\n') ? Qt
 			      : Qnil);
