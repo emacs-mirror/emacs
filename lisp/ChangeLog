@@ -1,3 +1,9 @@
+2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Undo the change
+	from 2001-01-12.  It is not needed, since backspace is mapped into
+	DEL.
+
 2001-01-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* dabbrev.el (dabbrev--substitute-expansion): 
