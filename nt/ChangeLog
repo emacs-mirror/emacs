@@ -1,3 +1,8 @@
+2001-03-06  Andrew Innes  <andrewi@gnu.org>
+
+	* INSTALL: Add --ldflags to configure line for building with
+	recent versions of Cygwin GCC.
+
 2001-03-05  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* configure.bat: Use correct options when compiling a test program
