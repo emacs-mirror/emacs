@@ -1,3 +1,7 @@
+2000-05-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (encode_eol): Fix a bug of DOS style EOL encoding.
+
 2000-05-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* keyboard.c (read_char): Allow character codes 128..255 to be
