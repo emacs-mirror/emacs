@@ -29,7 +29,7 @@ dot = .
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
-BUILT_EMACS = $(dot)$(dot)/src/$(BLD)/emacs.exe
+BUILT_EMACS = $(THISDIR)/$(dot)$(dot)/src/$(BLD)/emacs.exe
 
 buildlisppath=$(CURDIR)/$(dot)$(dot)/lisp
 
