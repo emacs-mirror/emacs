@@ -115,14 +115,7 @@ extern char *sys_errlist[];
 
 #include <sys/ioctl.h>
 #include "systty.h"
-
-#ifdef BSD
-#ifdef BSD4_1
-#include <wait.h>
-#else /* not 4.1 */
-#include <sys/wait.h>
-#endif /* not 4.1 */
-#endif /* BSD */
+#include "syswait.h"
 
 #ifdef BROKEN_TIOCGWINSZ
 #undef TIOCGWINSZ
