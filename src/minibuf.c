@@ -86,6 +86,9 @@ Lisp_Object Qread_file_name_internal;
 Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
 Lisp_Object Qminibuffer_exit_hook, Vminibuffer_exit_hook;
 
+/* Function to call to read a buffer name.  */
+Lisp_Object Vread_buffer_function; 
+
 /* Nonzero means completion ignores case.  */
 
 int completion_ignore_case;
@@ -792,19 +795,32 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
      Lisp_Object prompt, def, require_match;
 {
   Lisp_Object tem;
-  Lisp_Object args[3];
-
+  Lisp_Object args[4];
+  
   if (BUFFERP (def))
     def = XBUFFER (def)->name;
-  if (!NILP (def))
+
+  if (NILP (Vread_buffer_function))
     {
-      args[0] = build_string ("%s(default %s) ");
+      if (!NILP (def))
+	{
+	  args[0] = build_string ("%s(default %s) ");
+	  args[1] = prompt;
+	  args[2] = def;
+	  prompt = Fformat (3, args);
+	}
+
+      return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
+			       require_match, Qnil, Qnil, def, Qnil);
+    }
+  else
+    {
+      args[0] = Vread_buffer_function;
       args[1] = prompt;
       args[2] = def;
-      prompt = Fformat (3, args);
+      args[3] = require_match;
+      return Ffuncall(4, args);
     }
-  return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
-			   require_match, Qnil, Qnil, def, Qnil);
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
@@ -1981,6 +1997,10 @@ syms_of_minibuf ()
 
   Qactivate_input_method = intern ("activate-input-method");
   staticpro (&Qactivate_input_method);
+
+  DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function, 
+    "If this is non-nil, `read-buffer' does its work by calling this function.");
+  Vread_buffer_function = Qnil;
 
   DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook, 
     "Normal hook run just after entry to minibuffer.");
