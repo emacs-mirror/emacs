@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Mouse support for MS intelli-mouse type mice
 
-;; Copyright (C) 1998, 2000, Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -40,6 +40,28 @@
 ;;; Code:
 
 (require 'custom)
+
+;; Setter function for mouse-button user-options.  Switch Mouse Wheel
+;; mode off and on again so that the old button is unbound and
+;; new button is bound to mwheel-scroll.
+
+(defun mouse-wheel-change-button (var button)
+  (set-default var button)
+  (when mouse-wheel-mode
+    (mouse-wheel-mode 0)
+    (mouse-wheel-mode 1)))
+
+(defcustom mouse-wheel-down-button 4
+  "Mouse button number for scrolling down."
+  :group 'mouse
+  :type 'integer
+  :set 'mouse-wheel-change-button)
+
+(defcustom mouse-wheel-up-button 5
+  "Mouse button number for scrolling up."
+  :group 'mouse
+  :type 'integer
+  :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-scroll-amount '(5 . 1)
   "Amount to scroll windows by when spinning the mouse wheel.
@@ -89,8 +111,8 @@ This can be slightly disconcerting, but some people may prefer it."
 	       (car mouse-wheel-scroll-amount))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
-	  (cond ((= button 4) (scroll-down amt))
-		((= button 5) (scroll-up amt))
+	  (cond ((= button mouse-wheel-down-button) (scroll-down amt))
+		((= button mouse-wheel-up-button) (scroll-up amt))
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))))
 
@@ -112,8 +134,14 @@ Returns non-nil if the new state is enabled."
   ;; versions of XEmacs as it can.
   (let ((keys
 	 (if (featurep 'xemacs)
-	     '(button4 [(shift button4)] button5 [(shift button5)])
-	   '([mouse-4] [S-mouse-4] [mouse-5] [S-mouse-5]))))
+	     (let ((down (intern (format "button%d" mouse-wheel-down-button)))
+		   (up (intern (format "button%d" mouse-wheel-up-button))))
+	       `(,down [(shift ,down)] ,up [(shift ,up)]))
+	   (let ((down (intern (format "mouse-%d" mouse-wheel-down-button)))
+		 (s-down (intern (format "S-mouse-%d" mouse-wheel-down-button)))
+		 (up (intern (format "mouse-%d" mouse-wheel-up-button)))
+		 (s-up (intern (format "S-mouse-%d" mouse-wheel-up-button))))
+	     `([,down] [,s-down] [,up] [,s-up])))))
     ;; This condition-case is here because Emacs 19 will throw an error
     ;; if you try to define a key that it does not know about.  I for one
     ;; prefer to just unconditionally do a mwheel-install in my .emacs, so
@@ -132,7 +160,6 @@ Returns non-nil if the new state is enabled."
 (defun mwheel-install (&optional uninstall)
   "Enable mouse wheel support."
   (mouse-wheel-mode t))
-
 
 (provide 'mwheel)
 
