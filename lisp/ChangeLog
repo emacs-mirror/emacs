@@ -1,5 +1,8 @@
 2000-10-06  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* emacs-lisp/easy-mmode.el (define-derived-mode): Tweak generated
+	docstring parts.
+
 	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp) 
 	(smbclient-prompt-regexp): Add usage note to doc string.
 	(ftp-font-lock-keywords, smbclient-font-lock-keywords): Removed.
