@@ -1159,7 +1159,7 @@ main (argc, argv, envp)
   init_eval ();
   init_data ();
 #ifdef CLASH_DETECTION
-  init_filelock ();;
+  init_filelock ();
 #endif
   init_atimer ();
   running_asynch_code = 0;

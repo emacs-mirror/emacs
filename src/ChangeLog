@@ -1,5 +1,7 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* editfns.c: Include ctype.h.
+
 	* xterm.c: USE_LUCID can be defined iff USE_X_TOOLKIT is defined.
 	(xm_scroll_callback) [USE_MOTIF]: Remove unused variable
 	`percent'.
