@@ -1,5 +1,7 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
+;; Copyright (C) 1993 Free Software Foundation, Inc.
+
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Maintainer:    supercite-help@anthem.nlm.nih.gov
 ;; Created:       February 1993
@@ -8,8 +10,6 @@
 ;; Keywords: mail, news
 
 ;; supercite.el revision: 3.54
-
-;; Copyright (C) 1993 Barry A. Warsaw
 
 ;; This file is part of GNU Emacs.
 
@@ -893,6 +893,11 @@ substring."
 This should be the author's full name minus an optional title."
   (let ((namestring
 	 (or
+	  ;; If there is a <...> in the name,
+	  ;; treat everything before that as the full name.
+	  ;; Even if it contains parens, use the whole thing.
+	  (and (string-match " *<.*>" from 0)
+	       (sc-name-substring from 0 (match-beginning 0) 0))
 	  (sc-name-substring
 	   from (string-match "(.*)" from 0) (match-end 0) 1)
 	  (sc-name-substring
