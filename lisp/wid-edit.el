@@ -1077,13 +1077,15 @@ When not inside a field, move to the previous button or field."
     ;; Don't subtract one if local-map works at the end of the overlay,
     ;; or if a special `boundary' field has been added after the widget
     ;; field.
-    (and overlay (if (and (not (eq (get-char-property (overlay-end overlay)
-						      'field)
-				   'boundary))
-			  (or widget-field-add-space
-			      (null (widget-get widget :size))))
-		     (1- (overlay-end overlay))
-		   (overlay-end overlay)))))
+    (and overlay
+	 (if (and (not (eq (get-char-property (overlay-end overlay)
+					      'field
+					      (widget-field-buffer widget))
+			   'boundary))
+		  (or widget-field-add-space
+		      (null (widget-get widget :size))))
+	     (1- (overlay-end overlay))
+	   (overlay-end overlay)))))
 
 (defun widget-field-find (pos)
   "Return the field at POS.
