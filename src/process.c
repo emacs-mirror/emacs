@@ -1236,12 +1236,20 @@ create_process (process, new_argv, current_dir)
 #endif
 #else /* not HAVE_SETSID */
 #ifdef USG
-	/* It's very important to call setpgrp() here and no time
+	/* It's very important to call setpgrp here and no time
 	   afterwards.  Otherwise, we lose our controlling tty which
 	   is set when we open the pty. */
 	setpgrp ();
 #endif /* USG */
 #endif /* not HAVE_SETSID */
+#ifdef NTTYDISC
+	{
+	  /* Use new line discipline.  */
+	  int ldisc = NTTYDISC;
+	  if (ioctl (xforkin, TIOCSETD, &ldisc) < 0)
+	    write (1, "create_process/TIOCSETD failed\n", 31);
+	}
+#endif
 #ifdef TIOCNOTTY 
 	/* In 4.3BSD, the TIOCSPGRP bug has been fixed, and now you
 	   can do TIOCSPGRP only to the process's controlling tty.  */
