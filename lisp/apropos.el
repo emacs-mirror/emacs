@@ -93,6 +93,15 @@ Returns list of symbols and documentation found."
       (setq p (cdr p)))
     list))
 
+;; Variables bound by super-apropos and used by its subroutines.
+;; It would be good to say what each one is for, but I don't know -- rms.
+(defvar apropos-item)
+(defvar apropos-var-doc)
+(defvar apropos-fn-doc)
+(defvar apropos-accumulate)
+(defvar apropos-regexp
+  "Within `super-apropos', this holds the REGEXP argument.")
+
 ;;;###autoload
 (defun super-apropos (regexp &optional do-all)
   "Show symbols whose names/documentation contain matches for REGEXP.
@@ -104,10 +113,11 @@ file.
 Returns list of symbols and documentation found."
   (interactive "sSuper Apropos: \nP")
   (setq do-all (or apropos-do-all do-all))
-  (let (apropos-accumulate fn-doc var-doc item)
-    (setq apropos-accumulate (super-apropos-check-doc-file regexp))
+  (let ((apropos-regexp regexp)
+	apropos-accumulate apropos-fn-doc apropos-var-doc apropos-item)
+    (setq apropos-accumulate (super-apropos-check-doc-file apropos-regexp))
     (if (null apropos-accumulate)
-	(message "No apropos matches for `%s'" regexp)
+	(message "No apropos matches for `%s'" apropos-regexp)
       (if do-all (mapatoms 'super-apropos-accumulate))
       (with-output-to-temp-buffer "*Help*"
 	(apropos-print-matches apropos-accumulate nil t do-all)))
@@ -143,36 +153,35 @@ Returns list of symbols and documentation found."
 		     (if (search-forward "\C-_" nil 'move)
 			 (1- (point))
 		       (point))))
-	      item (assq symbol sym-list))
+	      apropos-item (assq symbol sym-list))
 	(and (if (= type 1)
 		 (and (fboundp symbol) (documentation symbol))
 	       (documentation-property symbol 'variable-documentation))
-	     (or item
-		 (setq item (list symbol nil nil)
-		       sym-list (cons item sym-list)))
-	     (setcar (nthcdr type item) doc))))
+	     (or apropos-item
+		 (setq apropos-item (list symbol nil nil)
+		       sym-list (cons apropos-item sym-list)))
+	     (setcar (nthcdr type apropos-item) doc))))
     sym-list))
 
 ;; This is passed as the argument to map-atoms, so it is called once for every
 ;; symbol in obarray.  Takes one argument SYMBOL, and finds any memory-resident
-;; documentation on that symbol if it matches a variable regexp.  WARNING: this
-;; function depends on the symbols fn-doc var-doc regexp and item being bound
-;; correctly when it is called!"
+;; documentation on that symbol if it matches a variable regexp.
 
 (defun super-apropos-accumulate (symbol)
-  (cond ((string-match regexp (symbol-name symbol))
-	 (setq item (apropos-get-accum-item symbol))
-	 (setcar (cdr item) (or (safe-documentation symbol)
-				(nth 1 item)))
-	 (setcar (nthcdr 2 item) (or (safe-documentation-property symbol)
-				     (nth 2 item))))
+  (cond ((string-match apropos-regexp (symbol-name symbol))
+	 (setq apropos-item (apropos-get-accum-item symbol))
+	 (setcar (cdr apropos-item) (or (safe-documentation symbol)
+				(nth 1 apropos-item)))
+	 (setcar (nthcdr 2 apropos-item) (or (safe-documentation-property symbol)
+				     (nth 2 apropos-item))))
 	(t
-	 (and (setq fn-doc (safe-documentation symbol))
-	      (string-match regexp fn-doc)
-	      (setcar (cdr (apropos-get-accum-item symbol)) fn-doc))
-	 (and (setq var-doc (safe-documentation-property symbol))
-	      (string-match regexp var-doc)
-	      (setcar (nthcdr 2 (apropos-get-accum-item symbol)) var-doc))))
+	 (and (setq apropos-fn-doc (safe-documentation symbol))
+	      (string-match apropos-regexp apropos-fn-doc)
+	      (setcar (cdr (apropos-get-accum-item symbol)) apropos-fn-doc))
+	 (and (setq apropos-var-doc (safe-documentation-property symbol))
+	      (string-match apropos-regexp apropos-var-doc)
+	      (setcar (nthcdr 2 (apropos-get-accum-item symbol))
+		      apropos-var-doc))))
   nil)
 
 ;; Prints the symbols and documentation in alist MATCHES of form ((symbol
