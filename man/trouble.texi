@@ -73,7 +73,7 @@ special pains are taken for the particular system call within Emacs
 where the waiting occurs.  We have done this for the system calls that
 users are likely to want to quit from, but it's possible you will find
 another.  In one very common case---waiting for file input or output
-using NFS---Emacs itself knows how to quit, but most NFS implementations
+using NFS---Emacs itself knows how to quit, but many NFS implementations
 simply do not allow user programs to stop waiting for NFS when the NFS
 server is hung.
 
@@ -114,7 +114,8 @@ keymap.  @xref{Recursive Edit}.
 
   @kbd{C-x u} (@code{undo}) is not strictly speaking a way of canceling
 a command, but you can think of it as canceling a command that already
-finished executing.  @xref{Undo}.
+finished executing.  @xref{Undo}, for more information
+about the undo facility.
 
 @node Lossage, Bugs, Quitting, Top
 @section Dealing with Emacs Trouble
@@ -231,8 +232,8 @@ back to top level.  @xref{Recursive Edit}.
   If the data on the screen looks wrong, the first thing to do is see
 whether the text is really wrong.  Type @kbd{C-l} to redisplay the
 entire screen.  If the screen appears correct after this, the problem
-was entirely in the previous screen update.  (Otherwise, see @ref{Text
-Garbled}.)
+was entirely in the previous screen update.  (Otherwise, see the following
+section.)
 
   Display updating problems often result from an incorrect termcap entry
 for the terminal you are using.  The file @file{etc/TERMS} in the Emacs
@@ -379,7 +380,7 @@ If not, and you type another @kbd{C-g}, it is suspended again.
 @kbd{n} to both questions, and you will arrive at your former state.
 Presumably the quit you requested will happen soon.
 
-  The double-@kbd{C-g} feature is turned off when Emacs is running under
+  The double @kbd{C-g} feature is turned off when Emacs is running under
 the X Window System, since you can use the window manager to kill Emacs
 or to create another window and run another program.
 
