@@ -223,7 +223,8 @@ Usenet paths ending in an element that matches are removed also."
 		       "\\)[^,]*"))
 	(case-fold-search t)
 	pos epos)
-    (while (setq pos (string-match match userids pos))
+    (while (and (setq pos (string-match match userids pos))
+		(> (length userids 0)))
       ;; If there's a match, it starts at the beginning of the string,
       ;; or with `,'.  We must delete from that position to the
       ;; end of the user-id which starts at match-beginning 2.
