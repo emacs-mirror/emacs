@@ -701,7 +701,8 @@ Property value is a character."
 		     ;; TIndex = SIndex % TCount
 		     (T (% char 28)))
 		 (format "HANGUL SYLLABLE %s%s%s" 
-			 (aref (aref jamo-name-table 0) L)
+			 ;; U+110B is nil in this table.
+			 (or (aref (aref jamo-name-table 0) L) "")
 			 (aref (aref jamo-name-table 1) V)
 			 (if (= T 0) ""
 			   (aref (aref jamo-name-table 2) (1- T)))))))
