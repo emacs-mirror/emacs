@@ -117,7 +117,7 @@ Widget lw_create_widget (/* char* type, char* name, LWLIB_ID id,
 			 lw_callback selection_cb,
 			 lw_callback post_activate_cb */);
 LWLIB_ID lw_get_widget_id (/* Widget w */);
-void lw_modify_all_widgets (/* LWLIB_ID id, widget_value* val, Boolean deep_p */);
+int lw_modify_all_widgets (/* LWLIB_ID id, widget_value* val, Boolean deep_p */);
 void lw_destroy_widget (/* Widget w */);
 void lw_destroy_all_widgets (/* LWLIB_ID id */);
 void lw_destroy_everything (/* void */);
