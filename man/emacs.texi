@@ -99,6 +99,12 @@ Emacs is the extensible, customizable, self-documenting real-time
 display editor.  This Info file describes how to edit with Emacs and
 some of how to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
+
+@ifinfo
+If you never before used the Info documentation system, type @kbd{h},
+and Emacs will take you on a guided tour through the Info commands.
+@end ifinfo
+
 For information on extending Emacs, see @ref{Top, Emacs Lisp,, elisp, The
 Emacs Lisp Reference Manual}.
 @end ifnottex
