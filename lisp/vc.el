@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.325 2002/01/05 17:15:20 spiegel Exp $
+;; $Id: vc.el,v 1.326 2002/02/21 21:00:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1877,7 +1877,7 @@ actually call the backend, but performs a local diff."
     (if (listp diff-switches) diff-switches (list diff-switches))
     (if (listp vc-diff-switches) vc-diff-switches (list vc-diff-switches))
     (let* ((backend-switches-symbol
-	    (intern (concat "vc-" (symbol-name ,backend)
+	    (intern (concat "vc-" (downcase (symbol-name ,backend))
 			    "-diff-switches")))
 	   (backend-switches
 	    (if (boundp backend-switches-symbol)
