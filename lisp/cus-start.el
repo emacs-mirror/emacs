@@ -131,9 +131,9 @@
 							  :format "%t")))
 	     ;; lread.c
 	     (load-path environment 
-			(repeat (choice :tag "Directory"
+			(repeat (choice :tag "Current or Specific Dir"
 					(const :tag "use current" nil)
-					(directory :format "%v"))))
+					(directory :tag "Specific"))))
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
