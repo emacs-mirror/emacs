@@ -30,8 +30,10 @@
 ;;
 ;;   '(progn
 ;;      (define-key c-mode-map "\C-c\C-x" 'cpp-parse-buffer)
-;;      (define-key-after (bar (lookup-key c-mode-map [ menu-bar c ]))
-;;        [ cpp-parse ] '("Parse Conditionals" . cpp-parse-buffer) 'up)))
+;;      (define-key-after (lookup-key c-mode-map [ menu-bar c ])
+;;        [ cpp-parse ] '("Parse Conditionals" . cpp-parse-buffer) 'up))
+
+;; This package is inspired by Jim Coplien's delta editor for SCCS.
 
 ;;; Todo:
 
@@ -438,7 +440,8 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 	 (load-file ".cpp.el"))
 	((file-readable-p "~/.cpp.el")
 	 (load-file ".cpp.el")))
-  (cpp-edit-reset))
+  (if (eq major-mode 'cpp-edit-mode)
+      (cpp-edit-reset)))
 
 (defun cpp-edit-save ()
   "Load cpp configuration."
