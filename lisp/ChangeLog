@@ -24,10 +24,10 @@
 
 2002-04-03  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
-	* solar.el (solar-spring-or-summer-season): Deleted.
+	* solar.el (solar-spring-or-summer-season): Delete.
 	(solar-northern-spring-or-summer-season): New variable.
 	(solar-sunrise-and-sunset, solar-moment, solar-sunrise-sunset):
-	Rewritten.
+	Rewrite.
 
 	* solar.el (diary-sabbath-candles-minutes): New variable.
 	(diary-sabbath-candles): Use it instead of fixed 18 minutes.
@@ -37,8 +37,8 @@
 	calendar-mode-line-format.
 	Eval items in calendar-mode-line-format list.
 
-	* cal-tex.el (cal-tex-hook, cal-tex-year-hook, cal-tex-month-hook,
-	cal-tex-week-hook, cal-tex-daily-hook): Add doc strings.
+	* cal-tex.el (cal-tex-hook, cal-tex-year-hook, cal-tex-month-hook)
+	(cal-tex-week-hook, cal-tex-daily-hook): Add doc strings.
 
 	* cal-tex.el (cal-tex-latexify-list): Fix doc string.
 
@@ -76,6 +76,20 @@
 	* files.el (hack-one-local-variable):
 	Clear text props from string value.
 
+2002-04-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/f90.el (f90-keywords-re, f90-keywords-level-3-re)
+	(f90-procedures-re, f90-operators-re, f90-hpf-keywords-re):
+	Use regexp-opt.
+	(f90-keywords-re, f90-keywords-level-3-re): Add `pure' and `elemental'
+	from F95.
+	(f90-procedures-re): Add `null' and `cpu_time' from F95.
+	(f90-font-lock-keywords-1): Minor reorganization so we don't need
+	`override' any more.
+	(f90-font-lock-keywords-3): Use `keep' rather than `override'.
+	(f90-indent-subprogram): Use indent-region.
+	(f90-break-line): Use indent-according-to-mode.
+
 2002-04-02  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-close-tag): Rename from
@@ -83,10 +97,14 @@
 	(sgml-get-context): Remove use of sgml-inside-tag-p.
 	(sgml-inside-tag-p): Remove.
 	(sgml-looking-back-at): Short-circuit at beg of buffer.
-	(sgml-lexical-context,sgml-calculate-indent): Add support for
-	CDATA sections. 
+	(sgml-lexical-context, sgml-calculate-indent): Add support for
+	CDATA sections.
 
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help.el (help-key-description): New fun.
+	(describe-key-briefly, describe-key): Use it and
+	this-single-command-raw-keys plus new arg `untranslated'.
 
 	* textmodes/sgml-mode.el (sgml-at-indentation-p, sgml-tag)
 	(sgml-parse-tag-name, sgml-looking-back-at, sgml-parse-tag-backward)
