@@ -425,10 +425,10 @@ FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
 mostlyclean: FRC.mostlyclean
-	(cd src;      make ${MFLAGS} mostlyclean)
-	(cd oldXMenu; make ${MFLAGS} mostlyclean)
-	(cd lib-src;  make ${MFLAGS} mostlyclean)
-	(cd man;      make ${MFLAGS} mostlyclean)
+	(cd src;      $(MAKE) ${MFLAGS} mostlyclean)
+	(cd oldXMenu; $(MAKE) ${MFLAGS} mostlyclean)
+	(cd lib-src;  $(MAKE) ${MFLAGS} mostlyclean)
+	(cd man;      $(MAKE) ${MFLAGS} mostlyclean)
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -439,10 +439,10 @@ mostlyclean: FRC.mostlyclean
 ### 
 ###      Delete `.dvi' files here if they are not part of the distribution.
 clean: FRC.clean
-	(cd src;      make ${MFLAGS} clean)
-	(cd oldXMenu; make ${MFLAGS} clean)
-	(cd lib-src;  make ${MFLAGS} clean)
-	(cd man;      make ${MFLAGS} clean)
+	(cd src;      $(MAKE) ${MFLAGS} clean)
+	(cd oldXMenu; $(MAKE) ${MFLAGS} clean)
+	(cd lib-src;  $(MAKE) ${MFLAGS} clean)
+	(cd man;      $(MAKE) ${MFLAGS} clean)
 
 ### `distclean'
 ###      Delete all files from the current directory that are created by
@@ -455,10 +455,10 @@ top_distclean=\
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	(cd lock ; rm -f *)
 distclean: FRC.distclean
-	(cd src;      make ${MFLAGS} distclean)
-	(cd oldXMenu; make ${MFLAGS} distclean)
-	(cd lib-src;  make ${MFLAGS} distclean)
-	(cd man;      make ${MFLAGS} distclean)
+	(cd src;      $(MAKE) ${MFLAGS} distclean)
+	(cd oldXMenu; $(MAKE) ${MFLAGS} distclean)
+	(cd lib-src;  $(MAKE) ${MFLAGS} distclean)
+	(cd man;      $(MAKE) ${MFLAGS} distclean)
 	${top_distclean}
 	
 
@@ -474,10 +474,10 @@ distclean: FRC.distclean
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
 realclean: FRC.realclean
-	(cd src;      make ${MFLAGS} realclean)
-	(cd oldXMenu; make ${MFLAGS} realclean)
-	(cd lib-src;  make ${MFLAGS} realclean)
-	(cd man;      make ${MFLAGS} realclean)
+	(cd src;      $(MAKE) ${MFLAGS} realclean)
+	(cd oldXMenu; $(MAKE) ${MFLAGS} realclean)
+	(cd lib-src;  $(MAKE) ${MFLAGS} realclean)
+	(cd man;      $(MAKE) ${MFLAGS} realclean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -506,24 +506,24 @@ SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
 unlock:
 	chmod u+w $(SOURCES) cpp/*
 	-(cd elisp; chmod u+w Makefile README *.texi)
-	(cd etc; make unlock)
-	(cd lib-src; make unlock)
-	(cd lisp; make unlock)
+	(cd etc; $(MAKE) unlock)
+	(cd lib-src; $(MAKE) unlock)
+	(cd lisp; $(MAKE) unlock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd src; make unlock)
+	(cd src; $(MAKE) unlock)
 
 relock:
 	chmod u-w $(SOURCES) cpp/*
 	-(cd elisp; chmod u-w Makefile README *.texi)
-	(cd etc; make relock)
-	(cd lib-src; make relock)
-	(cd lisp; make relock)
+	(cd etc; $(MAKE) relock)
+	(cd lib-src; $(MAKE) relock)
+	(cd lisp; $(MAKE) relock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd src; make relock)
+	(cd src; $(MAKE) relock)
 
 TAGS tags:	lib-src
 	(cd ${srcdir}/src; \
@@ -536,6 +536,6 @@ dist:
 	cd ${srcdir}; make-dist
 
 info:
-	(cd ${srcdir}/man; make ${MFLAGS} info)
+	(cd ${srcdir}/man; $(MAKE) ${MFLAGS} info)
 dvi:
-	(cd ${srcdir}/man; make ${MFLAGS} dvi)
+	(cd ${srcdir}/man; $(MAKE) ${MFLAGS} dvi)
