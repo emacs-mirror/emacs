@@ -15,6 +15,9 @@
 
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-text, command-line-1): Use
+	`File' for the menu name instead of `Files'.
+	
 	* tmm.el: Update copyright.
 
 	* cus-start.el: Add entry for even-window-heights.
