@@ -261,7 +261,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define POSIX_SIGNALS
 
-/* Not worth converting the old GNU malloc to work with POSIX_SIGNALS.  */
+/* pmr@rock.concert.net says Emacs fails without this.  We don't know why.  */
 #define SYSTEM_MALLOC
 
 /* Define this if you use System 5 Release 4 Streams */
