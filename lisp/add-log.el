@@ -503,7 +503,7 @@ Has a preference of looking backwards."
 		   (forward-sexp 1)
 		   ;; The second element is usually a symbol being defined.
 		   ;; If it is not, use the first symbol in it.
-		   (skip-chars-forward " \tx\n'(")
+		   (skip-chars-forward " \t\n'(")
 		   (buffer-substring (point)
 				     (progn (forward-sexp 1)
 					    (point)))))
