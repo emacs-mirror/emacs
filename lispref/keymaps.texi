@@ -276,30 +276,51 @@ definition is a keymap; the same symbol appears in the new copy.
 @cindex keymap inheritance
 @cindex inheriting a keymap's bindings
 
-  A keymap can inherit the bindings of another keymap.  Do do this, make
-a keymap whose ``tail'' is another existing keymap to inherit from.
-Such a keymap looks like this:
+  A keymap can inherit the bindings of another keymap, which we call the
+@dfn{parent keymap}.  Such a keymap looks like this:
 
 @example
-(keymap @var{bindings}@dots{} . @var{other-keymap})
+(keymap @var{bindings}@dots{} . @var{parent-keymap})
 @end example
 
 @noindent
 The effect is that this keymap inherits all the bindings of
-@var{other-keymap}, whatever they may be at the time a key is looked up,
+@var{parent-keymap}, whatever they may be at the time a key is looked up,
 but can add to them or override them with @var{bindings}.
 
-If you change the bindings in @var{other-keymap} using @code{define-key}
+If you change the bindings in @var{parent-keymap} using @code{define-key}
 or other key-binding functions, these changes are visible in the
 inheriting keymap unless shadowed by @var{bindings}.  The converse is
 not true: if you use @code{define-key} to change the inheriting keymap,
-that affects @var{bindings}, but has no effect on @var{other-keymap}.
+that affects @var{bindings}, but has no effect on @var{parent-keymap}.
+
+The proper way to construct a keymap with a parent is to use
+@code{set-keymap-parent}; if you have code that directly constructs a
+keymap with a parent, please convert the program to use
+@code{set-keymap-parent} instead.
+
+@defun keymap-parent keymap
+This returns the parent keymap of @var{keymap}.  If @var{keymap}
+has no parent, @code{keymap-parent} returns @code{nil}.
+@end defun
+
+@defun set-keymap-parent keymap parent
+This sets the parent keymap of @var{keymap} to @var{parent}, and returns
+@var{parent}.  If @var{parent} is @code{nil}, this function gives
+@var{keymap} no parent at all.
+
+If @var{keymap} has submaps (bindings for prefix keys), they too receive
+new parent keymaps that reflect what @var{parent} specifies for those
+prefix keys.
+@end defun
 
 Here is an example showing how to make a keymap that inherits
 from @code{text-mode-map}:
 
 @example
-(setq my-mode-map (cons 'keymap text-mode-map))
+(let ((map (make-sparse-keymap)))
+  (set-keymap-parent map text-mode-map)
+  map)
 @end example
 
 @node Prefix Keys
@@ -1438,11 +1459,6 @@ binding with an item string looks like this:
 The item string for a binding should be short---one or two words.  It
 should describe the action of the command it corresponds to.
 
-As far as @code{define-key} is concerned, @var{string} is part of the
-event's binding.  However, @code{lookup-key} returns just
-@var{real-binding}, and only @var{real-binding} is used for executing
-the key.
-
 You can also supply a second string, called the help string, as follows:
 
 @example
@@ -1453,6 +1469,11 @@ Currently Emacs does not actually use @var{help-string}; it knows only
 how to ignore @var{help-string} in order to extract @var{real-binding}.
 In the future we may use @var{help-string} as extended documentation for
 the menu item, available on request.
+
+As far as @code{define-key} is concerned, @var{string} and
+@var{help-string} are part of the event's binding.  However,
+@code{lookup-key} returns just @var{real-binding}, and only
+@var{real-binding} is used for executing the key.
 
 If @var{real-binding} is @code{nil}, then @var{string} appears in the
 menu but cannot be selected.
@@ -1470,18 +1491,6 @@ look at a menu.  This is because the X toolkit requires the whole tree
 of menus in advance.  To force recalculation of the menu bar, call
 @code{force-mode-line-update} (@pxref{Mode Line Format}).
 
-Sometimes it is useful to make menu items that use the ``same'' command
-but with different enable conditions.  You can do this by defining alias
-commands.  Here's an example that makes two aliases for
-@code{toggle-read-only} and gives them different enable conditions:
-
-@example
-(defalias 'make-read-only 'toggle-read-only)
-(put 'make-read-only 'menu-enable '(not buffer-read-only))
-(defalias 'make-writable 'toggle-read-only)
-(put 'make-writable 'menu-enable 'buffer-read-only)
-@end example
-
 You've probably noticed that menu items show the equivalent keyboard key
 sequence (if any) to invoke the same command.  To save time on
 recalculation, menu display caches this information in a sublist in the
@@ -1496,10 +1505,32 @@ Don't put these sublists in the menu item yourself; menu display
 calculates them automatically.  Don't add keyboard equivalents to the
 item strings in a mouse menu, since that is redundant.
 
-If an alias command has no keyboard equivalent itself, menus show the
-keyboard equivalent of its underlying command.  In the example above,
-menu items defined to run @code{make-read-only} or @code{make-writable}
-would show the keyboard equivalents of @code{toggle-read-only}.
+Sometimes it is useful to make menu items that use the ``same'' command
+but with different enable conditions.  You can do this by defining alias
+commands.  Here's an example that makes two aliases for
+@code{toggle-read-only} and gives them different enable conditions:
+
+@example
+(defalias 'make-read-only 'toggle-read-only)
+(put 'make-read-only 'menu-enable '(not buffer-read-only))
+(defalias 'make-writable 'toggle-read-only)
+(put 'make-writable 'menu-enable 'buffer-read-only)
+@end example
+
+When using aliases in menus, often it is useful to display the
+equivalent key bindings for the ``real'' command name, not the aliases
+(which typically don't have any key bindings except for the menu
+itself).  To request this, give the alias symbol a non-@code{nil}
+@code{menu-alias} property.  Thus,
+
+@example
+(put 'make-read-only 'menu-alias t)
+(put 'make-writable 'menu-alias t)
+@end example
+
+@noindent
+causes menu items for @code{make-read-only} and @code{make-writable} to
+show the keyboard bindings for @code{toggle-read-only}.
 
 @node Mouse Menus
 @subsection Menus and the Mouse
