@@ -1,3 +1,7 @@
+1999-11-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* hippie-exp.el: Use new backquote syntax.
+
 1998-09-14  Michael Ernst  <mernst@alum.mit.edu>
 
 	* uniquify.el: Use new backquote syntax.
