@@ -11,7 +11,8 @@
 # make tags	to update tags tables.
 #
 # make distclean	to delete everything that wasn't in the distribution.
-#	This is a very dangerous thing to do!
+#	This is a very dangerous thing to do!  It removes backup files,
+#	among other things.
 # make clean
 #	This is a little less dangerous.
 # make dist
@@ -123,7 +124,7 @@ removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 src/paths.h: Makefile src/paths.h.in
 	lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	sed < src/paths.h.in > src/paths.h.tmp			\
+	sed < src/paths.h.in > src/paths.h.tmp				\
 	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
 	-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";'	\
 	-e 's;\(#.*PATH_EXEC\).*$$;\1 "${libdir}";'			\
