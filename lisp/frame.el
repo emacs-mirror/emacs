@@ -33,7 +33,7 @@ function, which should take an alist of parameters as its argument.")
 ;;; But that's not necessary, because the default is to have one.
 ;;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "Alist of frame parameters for creating the initial X window frame.
+  "*Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
 Parameters specified here supersede the values given in `default-frame-alist'.
@@ -57,20 +57,29 @@ as it appears, you need to use this three-step process:
 		       (sexp :tag "Value")))
   :group 'frames)
 
-(defvar minibuffer-frame-alist '((width . 80) (height . 2))
-  "Alist of frame parameters for initially creating a minibuffer frame.
+(defcustom minibuffer-frame-alist '((width . 80) (height . 2))
+  "*Alist of frame parameters for initially creating a minibuffer frame.
 You can set this in your `.emacs' file; for example,
  (setq minibuffer-frame-alist
    '((top . 1) (left . 1) (width . 80) (height . 2)))
 Parameters specified here supersede the values given in
-`default-frame-alist'.")
+`default-frame-alist', for a minibuffer frame."
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value")))
+  :group 'frames)
 
-(defvar pop-up-frame-alist nil
-  "Alist of frame parameters used when creating pop-up frames.
+(defcustom pop-up-frame-alist nil
+  "*Alist of frame parameters used when creating pop-up frames.
 Pop-up frames are used for completions, help, and the like.
 This variable can be set in your init file, like this:
   (setq pop-up-frame-alist '((width . 80) (height . 20)))
-These supersede the values given in `default-frame-alist'.")
+These supersede the values given in `default-frame-alist',
+for pop-up frames."
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value")))
+  :group 'frames)
 
 (setq pop-up-frame-function
       (function (lambda ()
