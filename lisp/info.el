@@ -1,5 +1,5 @@
-;;; info.el --- info package for Emacs  -- could use a "create node" feature.
-
+;;; info.el --- info package for Emacs.
+;;; Note that nowadays we expect info files to be made using makeinfo.
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
