@@ -1,6 +1,6 @@
 ;;; whitespace.el --- Warn about and clean bogus whitespaces in the file.
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -87,7 +87,7 @@ don't define defcustom"
   "Check for and fix five different types of whitespaces in source code."
   ;; Since XEmacs doesn't have a 'convenience group, use the next best group
   ;; which is 'editing?
-  :version "21.1"
+  ;; :version "21.1"
   :group (if whitespace-running-emacs 'convenience 'editing))
 
 (defcustom whitespace-check-leading-whitespace t

@@ -1,3 +1,9 @@
+2000-06-07  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (defgroup whitespace): Comment out `:version'.
+	XEmacs 20.4 has problems defining the group with this present.
+	We'll have this commented out till get resolve the problem.
+
 2000-06-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* align.el: Update from author.
@@ -6,7 +12,7 @@
 
 	* apropos.el (apropos-mode-hook): New user variable.
 	(apropos-mode): Run apropos-mode-hook.
-	
+
 2000-06-07  David Ponce  <david@dponce.com>
 
 	* recentf.el: Fixed recentf-edit-list and recentf-open-more-files
@@ -23,7 +29,7 @@
 	the list.
 	(recentf-relative-filter) New menu filter to show filenames
 	relative to `default-directory'.
-	
+
 2000-06-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: XEmacs compatibility.  Doc fix.  Can select page size
@@ -82,7 +88,7 @@
 	(ccl-encode-viscii, ccl-encode-viscii-font)
 	(ccl-decode-vscii, ccl-encode-vscii, ccl-encode-vscii-font):
 	Likewize.
-	
+
 	* language/cyrillic.el: Remove eval-when-compile.
 	(cyrillic-koi8-r-nonascii-translation-table): Define it as a
 	translation table made from cyrillic-koi8-r-decode-table.
@@ -133,7 +139,7 @@
 	(diff-reverse-direction, diff-fixup-modifs): Fix the regexps to
 	understand the format output by the `-p' argument to diff.
 
-	* progmodes/sh-script.el (sh-symbol-list, sh-number-or-symbol-list) 
+	* progmodes/sh-script.el (sh-symbol-list, sh-number-or-symbol-list)
 	(sh-re-done): Use defconst.
 	(sh-indent-supported-here, sh-electric-rparen-needed-here): Add defvar.
 	(sh-help-string-for-variable, sh-guess-basic-offset):
@@ -160,15 +166,15 @@
 	Be careful not to loop indefinitely in the post-command-hook function.
 
 2000-06-05  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-init.el (ediff-has-face-support-p): Make it paint faces on
 	tty's.
 	* ediff-diff.el (ediff-exec-process): Use --binary for fine
 	differences whenever appropriate.
 	* viper-cmd.el (viper-smart-suffix-list): Rearranged list members.
 	* viper.el (find-file, find-file-other-window): Get viper to do
-	wildcards. 
-	
+	wildcards.
+
 2000-06-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* jit-lock.el (jit-lock-saved-fontify-buffer-function): New var.
@@ -328,7 +334,7 @@
 
 	* byte-run.el (make-obsolete, make-obsolete-variable):
 	Add an optional WHEN argument and change the format of the
-	symbol-property information. 
+	symbol-property information.
 	* emacs-lisp/bytecomp.el (byte-compile-log): Don't quote lambda.
 	(byte-compile-obsolete, byte-compile-variable-ref): Understand the
 	new obsolete-symbol-property format and print WHEN if it is provided.
@@ -353,7 +359,7 @@
 	a large number of whitespace buffers causes emacs to `freeze'
 	for a considerable amount of time.
 
-	* whitespace.el: Updated e-mail address
+	* whitespace.el: Updated email address
 
 2000-05-31  Dave Love  <fx@gnu.org>
 
