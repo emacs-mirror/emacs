@@ -412,8 +412,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  new)
       (while tail
 	(setq new (cons (car tail) new))
-	(let ((default-directory (car tail)))
-	  (load (expand-file-name "subdirs.el" (car tail)) t t t))
+	(condition-case nil
+	    (let ((default-directory (car tail)))
+	      (load (expand-file-name "subdirs.el" (car tail)) t t t)))
 	(setq tail (cdr tail))))
     (if (not (eq system-type 'vax-vms))
 	(progn
