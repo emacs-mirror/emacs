@@ -122,23 +122,36 @@ REGISTER is a character."
 	(princ "Register ")
 	(princ (single-key-description char))
 	(princ " contains ")
-	(if (integerp val)
-	    (princ val)
-	  (if (markerp val)
-	      (progn
-		(princ "a buffer position:\nbuffer ")
-		(princ (buffer-name (marker-buffer val)))
-		(princ ", position ")
-		(princ (+ 0 val)))
-	    (if (consp val)
-		(progn
-		  (princ "the rectangle:\n")
-		  (while val
-		    (princ (car val))
-		    (terpri)
-		    (setq val (cdr val))))
-	      (princ "the string:\n")
-	      (princ val))))))))
+	(cond
+	 ((integerp val)
+	  (princ val))
+
+	 ((markerp val)
+	  (princ "a buffer position:\nbuffer ")
+	  (princ (buffer-name (marker-buffer val)))
+	  (princ ", position ")
+	  (princ (+ 0 val)))
+
+	 ((window-configuration-p val)
+	  (princ "a window configuration."))
+
+	 ((frame-configuration-p val)
+	  (princ "a frame configuration."))
+
+	 ((consp val)
+	  (princ "the rectangle:\n")
+	  (while val
+	    (princ (car val))
+	    (terpri)
+	    (setq val (cdr val))))
+
+	 ((stringp val)
+	  (princ "the text:\n")
+	  (princ val))
+
+	 (t
+	  (princ "Garbage:\n")
+	  (prin1 val)))))))
 
 (defun insert-register (char &optional arg)
   "Insert contents of register REG.  REG is a character.
