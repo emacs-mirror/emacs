@@ -582,9 +582,9 @@ Obeying it means displaying in another window the specified file and line."
 	(progn
 	  (setq str (concat
 		     (substring str (match-beginning 1) (match-end 1))
-		     (if insource
-			 (buffer-file-name)
-		       (car gud-last-frame))
+		     (file-name-nondirectory (if insource
+						 (buffer-file-name)
+					       (car gud-last-frame)))
 		     (substring str (match-beginning 2) (match-end 2))))))
     (if (string-match "\\(.*\\)%l\\(.*\\)" str)
 	(progn
