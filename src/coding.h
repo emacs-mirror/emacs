@@ -540,8 +540,7 @@ struct coding_system
 #endif /* !WINDOWSNT */
 
 /* Extern declarations.  */
-extern Lisp_Object make_conversion_work_buffer P_ ((int));
-extern Lisp_Object code_conversion_restore P_ ((Lisp_Object));
+extern Lisp_Object make_conversion_work_buffer P_ ((int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void setup_coding_system P_ ((Lisp_Object, struct coding_system *));
