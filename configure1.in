@@ -1010,6 +1010,7 @@ case "${canonical}" in
     case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;
+      *-isc4.0* )		opsys=isc4-0 ;;
       *-isc* )			opsys=isc3-0 ;;
       *-esix5* )		opsys=esix5r4; NON_GNU_CPP=/usr/lib/cpp ;;
       *-esix* )			opsys=esix ;;
