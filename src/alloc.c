@@ -192,9 +192,17 @@ int ignore_warnings;
 
 Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
-static void mark_object (), mark_buffer (), mark_kboards ();
+static void mark_buffer (), mark_kboards ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
+static void mark_glyph_matrix P_ ((struct glyph_matrix *));
+static void mark_face_cache P_ ((struct face_cache *));
+
+#ifdef HAVE_WINDOW_SYSTEM
+static void mark_image P_ ((struct image *));
+static void mark_image_cache P_ ((struct frame *));
+#endif /* HAVE_WINDOW_SYSTEM */
+
 
 extern int message_enable_multibyte;
 
@@ -1667,7 +1675,7 @@ Does not copy symbols.")
 
 struct gcpro *gcprolist;
 
-#define NSTATICS 768
+#define NSTATICS 1024
 
 Lisp_Object *staticvec[NSTATICS] = {0};
 
@@ -1739,14 +1747,18 @@ Garbage collection happens automatically if you cons more than\n\
   register struct backtrace *backlist;
   register Lisp_Object tem;
   char *omessage = echo_area_glyphs;
+  Lisp_Object omessage_string = echo_area_message;
   int omessage_length = echo_area_glyphs_length;
   int oldmultibyte = message_enable_multibyte;
   char stack_top_variable;
   register int i;
+  struct gcpro gcpro1;
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
   consing_since_gc = 0;
+
+  GCPRO1 (omessage_string);
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
@@ -1930,12 +1942,15 @@ Garbage collection happens automatically if you cons more than\n\
 
   if (garbage_collection_messages)
     {
+      if (STRINGP (omessage_string))
+	message3_nolog (omessage_string, omessage_length, oldmultibyte);
       if (omessage || minibuf_level > 0)
 	message2_nolog (omessage, omessage_length, oldmultibyte);
       else
 	message1_nolog ("Garbage collecting...done");
     }
 
+  UNGCPRO;
   return Fcons (Fcons (make_number (total_conses),
 		       make_number (total_free_conses)),
 		Fcons (Fcons (make_number (total_symbols),
@@ -2019,6 +2034,95 @@ clear_marks ()
   }
 }
 #endif
+
+/* Mark Lisp objects in glyph matrix MATRIX.  */
+
+static void
+mark_glyph_matrix (matrix)
+     struct glyph_matrix *matrix;
+{
+  struct glyph_row *row = matrix->rows;
+  struct glyph_row *end = row + matrix->nrows;
+
+  while (row < end)
+    {
+      if (row->enabled_p)
+	{
+	  int area;
+	  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+	    {
+	      struct glyph *glyph = row->glyphs[area];
+	      struct glyph *end_glyph = glyph + row->used[area];
+	      
+	      while (glyph < end_glyph)
+		{
+		  if (/* OBJECT Is zero for face extending glyphs, padding
+			 spaces and such.  */
+		      glyph->object
+		      /* Marking the buffer itself should not be necessary.  */
+		      && !BUFFERP (glyph->object))
+		    mark_object (&glyph->object);
+		  ++glyph;
+		}
+	    }
+	}
+      
+      ++row;
+    }
+}
+
+/* Mark Lisp faces in the face cache C.  */
+
+static void
+mark_face_cache (c)
+     struct face_cache *c;
+{
+  if (c)
+    {
+      int i, j;
+      for (i = 0; i < c->used; ++i)
+	{
+	  struct face *face = FACE_FROM_ID (c->f, i);
+
+	  if (face)
+	    {
+	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
+		mark_object (&face->lface[j]);
+	      mark_object (&face->registry);
+	    }
+	}
+    }
+}
+
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Mark Lisp objects in image IMG.  */
+
+static void
+mark_image (img)
+     struct image *img;
+{
+  mark_object (&img->spec);
+  
+  if (!NILP (img->data.lisp_val))
+    mark_object (&img->data.lisp_val);
+}
+
+
+/* Mark Lisp objects in image cache of frame F.  It's done this way so
+   that we don't have to include xterm.h here.  */
+
+static void
+mark_image_cache (f)
+     struct frame *f;
+{
+  forall_images_in_image_cache (f, mark_image);
+}
+
+#endif /* HAVE_X_WINDOWS */
+
+
 
 /* Mark reference to a Lisp_Object.
   If the object referred to has not been seen yet, recursively mark
@@ -2034,7 +2138,7 @@ clear_marks ()
 Lisp_Object *last_marked[LAST_MARKED_SIZE];
 int last_marked_index;
 
-static void
+void
 mark_object (argptr)
      Lisp_Object *argptr;
 {
@@ -2144,6 +2248,16 @@ mark_object (argptr)
 	  mark_object (&ptr->menu_bar_vector);
 	  mark_object (&ptr->buffer_predicate);
 	  mark_object (&ptr->buffer_list);
+	  mark_object (&ptr->menu_bar_window);
+	  mark_object (&ptr->toolbar_window);
+	  mark_face_cache (ptr->face_cache);
+#ifdef HAVE_WINDOW_SYSTEM
+	  mark_image_cache (ptr);
+	  mark_object (&ptr->desired_toolbar_items);
+	  mark_object (&ptr->current_toolbar_items);
+	  mark_object (&ptr->desired_toolbar_string);
+	  mark_object (&ptr->current_toolbar_string);
+#endif /* HAVE_WINDOW_SYSTEM */
 	}
       else if (GC_BOOL_VECTOR_P (obj))
 	{
@@ -2152,6 +2266,76 @@ mark_object (argptr)
 	  if (ptr->size & ARRAY_MARK_FLAG)
 	    break;   /* Already marked */
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	}
+      else if (GC_WINDOWP (obj))
+	{
+	  register struct Lisp_Vector *ptr = XVECTOR (obj);
+	  struct window *w = XWINDOW (obj);
+	  register EMACS_INT size = ptr->size;
+	  /* The reason we use ptr1 is to avoid an apparent hardware bug
+	     that happens occasionally on the FSF's HP 300s.
+	     The bug is that a2 gets clobbered by recursive calls to mark_object.
+	     The clobberage seems to happen during function entry,
+	     perhaps in the moveml instruction.
+	     Yes, this is a crock, but we have to do it.  */
+	  struct Lisp_Vector *volatile ptr1 = ptr;
+	  register int i;
+
+	  /* Stop if already marked.  */
+	  if (size & ARRAY_MARK_FLAG)
+	    break;
+
+	  /* Mark it.  */
+	  ptr->size |= ARRAY_MARK_FLAG;
+
+	  /* There is no Lisp data above The member CURRENT_MATRIX in
+	     struct WINDOW.  Stop marking when that slot is reached.  */
+	  for (i = 0;
+	       (char *) &ptr1->contents[i] < (char *) &w->current_matrix;
+	       i++)
+	    mark_object (&ptr1->contents[i]);
+
+	  /* Mark glyphs for leaf windows.  Marking window matrices is
+	     sufficient because frame matrices use the same glyph
+	     memory.  */
+	  if (NILP (w->hchild)
+	      && NILP (w->vchild)
+	      && w->current_matrix)
+	    {
+	      mark_glyph_matrix (w->current_matrix);
+	      mark_glyph_matrix (w->desired_matrix);
+	    }
+	}
+      else if (GC_HASH_TABLE_P (obj))
+	{
+	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	  EMACS_INT size = h->size;
+	  
+	  /* Stop if already marked.  */
+	  if (size & ARRAY_MARK_FLAG)
+	    break;
+
+	  /* Mark it.  */
+	  h->size |= ARRAY_MARK_FLAG;
+
+	  /* Mark contents.  */
+	  mark_object (&h->test);
+	  mark_object (&h->weak);
+	  mark_object (&h->rehash_size);
+	  mark_object (&h->rehash_threshold);
+	  mark_object (&h->hash);
+	  mark_object (&h->next);
+	  mark_object (&h->index);
+	  mark_object (&h->user_hash_function);
+	  mark_object (&h->user_cmp_function);
+
+	  /* If hash table is not weak, mark all keys and values.
+	     For weak tables, mark only the vector.  */
+	  if (GC_NILP (h->weak))
+	    mark_object (&h->key_and_value);
+	  else
+	    XVECTOR (h->key_and_value)->size |= ARRAY_MARK_FLAG;
+	    
 	}
       else
 	{
@@ -2170,6 +2354,7 @@ mark_object (argptr)
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
+
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    mark_object (&ptr1->contents[i]);
 	}
@@ -2187,7 +2372,7 @@ mark_object (argptr)
 	mark_object (&ptr->function);
 	mark_object (&ptr->plist);
 	XSETTYPE (*(Lisp_Object *) &ptr->name, Lisp_String);
-	mark_object (&ptr->name);
+	mark_object ((Lisp_Object *) &ptr->name);
 	/* Note that we do not mark the obarray of the symbol.
 	   It is safe not to do so because nothing accesses that
 	   slot except to check whether it is nil.  */
@@ -2403,12 +2588,104 @@ mark_kboards ()
       mark_object (&kb->Vdefault_minibuffer_frame);
     }
 }
+
+
+/* Value is non-zero if OBJ will survive the current GC because it's
+   either marked or does not need to be marked to survive.  */
+
+int
+survives_gc_p (obj)
+     Lisp_Object obj;
+{
+  int survives_p;
+  
+  switch (XGCTYPE (obj))
+    {
+    case Lisp_Int:
+      survives_p = 1;
+      break;
+
+    case Lisp_Symbol:
+      survives_p = XMARKBIT (XSYMBOL (obj)->plist);
+      break;
+
+    case Lisp_Misc:
+      switch (XMISCTYPE (obj))
+	{
+	case Lisp_Misc_Marker:
+	  survives_p = XMARKBIT (obj);
+	  break;
+	  
+	case Lisp_Misc_Buffer_Local_Value:
+	case Lisp_Misc_Some_Buffer_Local_Value:
+	  survives_p = XMARKBIT (XBUFFER_LOCAL_VALUE (obj)->realvalue);
+	  break;
+	  
+	case Lisp_Misc_Intfwd:
+	case Lisp_Misc_Boolfwd:
+	case Lisp_Misc_Objfwd:
+	case Lisp_Misc_Buffer_Objfwd:
+	case Lisp_Misc_Kboard_Objfwd:
+	  survives_p = 1;
+	  break;
+	  
+	case Lisp_Misc_Overlay:
+	  survives_p = XMARKBIT (XOVERLAY (obj)->plist);
+	  break;
+
+	default:
+	  abort ();
+	}
+      break;
+
+    case Lisp_String:
+      {
+	struct Lisp_String *s = XSTRING (obj);
+
+	if (s->size & MARKBIT)
+	  survives_p = s->size & ARRAY_MARK_FLAG;
+	else
+	  survives_p = (s->size & ~DONT_COPY_FLAG) > STRING_BLOCK_SIZE;
+      }
+      break;
+
+    case Lisp_Vectorlike:
+      if (GC_BUFFERP (obj))
+	survives_p = XMARKBIT (XBUFFER (obj)->name);
+      else if (GC_SUBRP (obj))
+	survives_p = 1;
+      else
+	survives_p = XVECTOR (obj)->size & ARRAY_MARK_FLAG;
+      break;
+
+    case Lisp_Cons:
+      survives_p = XMARKBIT (XCAR (obj));
+      break;
+
+#ifdef LISP_FLOAT_TYPE
+    case Lisp_Float:
+      survives_p = XMARKBIT (XFLOAT (obj)->type);
+      break;
+#endif /* LISP_FLOAT_TYPE */
+
+    default:
+      abort ();
+    }
+
+  return survives_p;
+}
+
+
 
 /* Sweep: find all structures not marked, and free them. */
 
 static void
 gc_sweep ()
 {
+  /* Remove or mark entries in weak hash tables.
+     This must be done before any object is unmarked.  */
+  sweep_weak_hash_tables ();
+
   total_string_size = 0;
   compact_strings ();
 
@@ -2746,6 +3023,11 @@ gc_sweep ()
     while (vector)
       if (!(vector->size & ARRAY_MARK_FLAG))
 	{
+#if 0
+	  if ((vector->size & (PSEUDOVECTOR_FLAG | PVEC_HASH_TABLE))
+	      == (PSEUDOVECTOR_FLAG | PVEC_HASH_TABLE))
+	    fprintf (stderr, "Freeing hash table %p\n", vector);
+#endif
 	  if (prev)
 	    prev->next = vector->next;
 	  else
@@ -2754,6 +3036,7 @@ gc_sweep ()
 	  lisp_free (vector);
 	  n_vectors--;
 	  vector = next;
+
 	}
       else
 	{
