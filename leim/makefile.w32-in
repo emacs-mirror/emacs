@@ -100,8 +100,8 @@ TIBETAN=$(srcdir)/quail/tibetan.elc
 
 LATIN=	$(srcdir)/quail/latin-pre.elc	\
 	$(srcdir)/quail/latin-post.elc	\
-	${srcdir}/quail/latin-alt.elc	\
-	${srcdir}/quail/latin-ltx.elc
+	$(srcdir)/quail/latin-alt.elc	\
+	$(srcdir)/quail/latin-ltx.elc
 
 SLAVIC= \
 	$(srcdir)/quail/czech.elc \
