@@ -4241,6 +4241,27 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      fkey_next
 		= get_keyelt (access_keymap (fkey_next, key, 1, 0));
 
+	      /* If the function key map gives a function, not an
+		 array, then call the function with no args and use
+		 its value instead.  */
+	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
+		  && fkey_end == t)
+		{
+		  struct gcpro gcpro1, gcpro2, gcpro3;
+		  Lisp_Object tem;
+		  tem = fkey_next;
+
+		  GCPRO3 (fkey_map, keytran_map, delayed_switch_frame);
+		  fkey_next = call0 (fkey_next);
+		  UNGCPRO;
+		  /* If the function returned something invalid,
+		     barf--don't ignore it.
+		     (To ignore it safely, we would need to gcpro a bunch of 
+		     other variables.)  */
+		  if (! (VECTORP (fkey_next) || STRINGP (fkey_next)))
+		    error ("Function in function-key-map returns invalid key sequence");
+		}
+
 	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
 		 sequence (i.e. fkey_end == t), replace it with
@@ -4263,8 +4284,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      int i;
 
 		      for (i = 0; i < len; i++)
-			XFASTINT (keybuf[fkey_start + i]) =
-			  XSTRING (fkey_next)->data[i];
+			XFASTINT (keybuf[fkey_start + i])
+			  = XSTRING (fkey_next)->data[i];
 		    }
 		  
 		  mock_input = t;
@@ -4313,8 +4334,29 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    keytran_next
 	      = get_keyelt (access_keymap (keytran_next, key, 1, 0));
 
+	    /* If the key translation map gives a function, not an
+	       array, then call the function with no args and use
+	       its value instead.  */
+	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
+		&& keytran_end == t)
+	      {
+		struct gcpro gcpro1, gcpro2, gcpro3;
+		Lisp_Object tem;
+		tem = keytran_next;
+
+		GCPRO3 (keytran_map, keytran_map, delayed_switch_frame);
+		keytran_next = call0 (keytran_next);
+		UNGCPRO;
+		/* If the function returned something invalid,
+		   barf--don't ignore it.
+		   (To ignore it safely, we would need to gcpro a bunch of 
+		   other variables.)  */
+		if (! (VECTORP (keytran_next) || STRINGP (keytran_next)))
+		  error ("Function in function-key-map returns invalid key sequence");
+	      }
+
 	    /* If keybuf[keytran_start..keytran_end] is bound in the
-	       function key map and it's a suffix of the current
+	       key translation map and it's a suffix of the current
 	       sequence (i.e. keytran_end == t), replace it with
 	       the binding and restart with keytran_start at the end. */
 	    if ((VECTORP (keytran_next) || STRINGP (keytran_next))
