@@ -1557,7 +1557,9 @@ colon with no reindentation or newlines by typing @kbd{C-c :}:
 
 @table @kbd
 @item C-c :
-@kindex C-c : @r{(C mode)}
+@c This uses ``colon'' instead of a literal `:' because Info cannot
+@c cope with a `:' in a menu
+@kindex C-c @key{colon} @r{(C mode)}
 @findex c-scope-operator
 Insert a double colon scope operator at point, without reindenting the
 line or adding any newlines (@code{c-scope-operator}).
