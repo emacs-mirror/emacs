@@ -2213,18 +2213,23 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   MultiLeft = tgetstr ("LE", address);
   MultiRight = tgetstr ("RI", address);
 
-  /* SVr4/ANSI color suppert.  */
+  /* SVr4/ANSI color suppert.  If "op" isn't available, don't support
+     color because we can't switch back to the default foreground and
+     background.  */
   TS_orig_pair = tgetstr ("op", address);
-  TS_set_foreground = tgetstr ("AF", address);
-  TS_set_background = tgetstr ("AB", address);
-  if (!TS_set_foreground)
+  if (TS_orig_pair)
     {
-      /* SVr4.  */
-      TS_set_foreground = tgetstr ("Sf", address);
-      TS_set_background = tgetstr ("Sb", address);
+      TS_set_foreground = tgetstr ("AF", address);
+      TS_set_background = tgetstr ("AB", address);
+      if (!TS_set_foreground)
+	{
+	  /* SVr4.  */
+	  TS_set_foreground = tgetstr ("Sf", address);
+	  TS_set_background = tgetstr ("Sb", address);
+	}
+      TN_max_colors = tgetnum ("Co");
+      TN_max_pairs = tgetnum ("pa");
     }
-  TN_max_colors = tgetnum ("Co");
-  TN_max_pairs = tgetnum ("pa");
 
   MagicWrap = tgetflag ("xn");
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
