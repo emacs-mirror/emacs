@@ -6810,8 +6810,7 @@ note_mode_line_or_margin_highlight (w, x, y, portion)
   struct frame *f = XFRAME (w->frame);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = dpyinfo->vertical_scroll_bar_cursor;
-  struct glyph_row *row;
-  int i, area, charpos;
+  int charpos;
   Lisp_Object string, help, map, pos;
 
   if (portion == 1 || portion == 3)
@@ -10406,6 +10405,11 @@ XTread_socket (sd, bufp, numchars, expected)
 	      goto OTHER;
 
 	    case KeyPress:
+
+	      /* Dispatch KeyPress events when in menu.  */
+	      if (popup_activated_flag)
+               goto OTHER;
+
 	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
 	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
