@@ -1,3 +1,23 @@
+2003-07-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-core.el (font-lock-defaults-alist): Remove obsolete entries.
+
+	* font-lock.el (font-lock-extra-types-widget)
+	(c-font-lock-extra-types, c++-font-lock-extra-types)
+	(objc-font-lock-extra-types, java-font-lock-extra-types)
+	(c-font-lock-keywords-1, c-font-lock-keywords-2, c-font-lock-keywords)
+	(c-font-lock-keywords-3, c-font-lock-syntactic-face-function)
+	(font-lock-match-c++-style-declaration-item-and-skip-to-next)
+	(font-lock-match-c++-structor-declaration)
+	(c++-font-lock-keywords-1, c++-font-lock-keywords-2)
+	(c++-font-lock-keywords-3, c++-font-lock-keywords)
+	(objc-font-lock-keywords-1, objc-font-lock-keywords-2)
+	(objc-font-lock-keywords-3, objc-font-lock-keywords)
+	(java-font-lock-keywords-1, java-font-lock-keywords-2)
+	(java-font-lock-keywords-3, java-font-lock-keywords)
+	(java-font-lock-syntactic-face-function): Remove obsolete code
+	and constants.  It's all in cc-fonts.el now.
+
 2003-07-04  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* mail/sendmail.el (mail-specify-envelope-from)
