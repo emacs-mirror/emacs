@@ -2,7 +2,7 @@
 ;;; Copyright 1989, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Time-stamp: <94/02/14 15:02:07 gildea>
+;; Time-stamp: <94/09/22 15:34:12 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -175,10 +175,6 @@ around literals."
   ["(zero)" "January" "February" "March" "April" "May" "June"
    "July" "August" "September" "October" "November" "December"])
 
-(defvar time-stamp-mail-host nil
-  "*Name of the host where the user receives mail.
-See the function `time-stamp-mail-host-name'.")
-
 ;;; Some useful functions to use in time-stamp-format
 
 ;;; Could generate most of a message-id with
@@ -186,10 +182,14 @@ See the function `time-stamp-mail-host-name'.")
 
 (defun time-stamp-mail-host-name ()
   "Return the name of the host where the user receives mail.
-This is the value of `time-stamp-mail-host' if bound and a string,
-otherwise the value of the function system-name.
+This is the value of `mail-host-address' if bound and a string,
+otherwise the value of `time-stamp-mail-host' (for versions of Emacs
+before 19.28) otherwise the value of the function system-name.
 This function may be usefully referenced by `time-stamp-format'."
-  (or (and (boundp 'time-stamp-mail-host)
+  (or (and (boundp 'mail-host-address)
+	   (stringp mail-host-address)
+	   mail-host-address)
+      (and (boundp 'time-stamp-mail-host)
 	   (stringp time-stamp-mail-host)
 	   time-stamp-mail-host)
       (system-name)))
@@ -277,4 +277,3 @@ The first character of DD is space if the value is less than 10."
 (provide 'time-stamp)
 
 ;;; time-stamp.el ends here
-
