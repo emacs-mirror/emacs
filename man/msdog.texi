@@ -460,7 +460,7 @@ After this command, setting @code{printer-name} to @code{"LPT2"}
 should produce the hardcopy on the networked printer.
 
   With some varieties of Windows network software, you can instruct
-Windows to capture a specific printer port such as @code{"LPT2"} and
+Windows to capture a specific printer port such as @code{"LPT2"}, and
 redirect it to a networked printer via the @w{@code{Control
 Panel->Printers}} applet instead of @samp{net use}.
 

@@ -1047,7 +1047,7 @@ Case tables (@pxref{Case Tables}).
 Character category tables (@pxref{Categories}).
 
 @item
-Display Tables (@pxref{Display Tables}).
+Display tables (@pxref{Display Tables}).
 
 @item
 Syntax tables (@pxref{Syntax Tables}).
