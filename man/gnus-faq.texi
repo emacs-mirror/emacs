@@ -306,7 +306,9 @@ The most vital entries in my (still young) all.SCORE:
 (("xref"
   ("alt.fan.oj-simpson" -1000 nil s))
  ("subject"
-  ("\\<\\(make\\|fast\\|big\\)\\s-*\\(money\\|cash\\|bucks?\\)\\>" -1000 nil r)
+  (concat "\\<\\(make\\|fast\\|big\\)\\s-*"
+          "\\(money\\|cash\\|bucks?\\)\\>" 
+   -1000 nil r)
   ("$$$$" -1000 nil s)))
 @end lisp
 
@@ -334,13 +336,17 @@ I  would like to contribute with mine.
   ;; $$$ Make Money $$$
   ("$$" -10 nil s)
   ;; Empty subjects are worthless!
-  ("^ *\\([(<]none[>)]\\|(no subject\\( given\\)?)\\)? *$" -10 nil r)
+  ("^ *\\([(<]none[>)]\\|(no subject\\( given\\)?)\\)? *$" 
+   -10 nil r)
   ;; Sometimes interesting announces occur!
   ("ANN?OU?NC\\(E\\|ING\\)" +10 nil r)
   ;; Some people think they're on mailing lists
   ("\\(un\\)?sub?scribe" -100 nil r)
   ;; Stop Micro$oft NOW!!
-  ("\\(m\\(icro\\)?[s$]\\(oft\\|lot\\)?-?\\)?wind?\\(ows\\|aube\\|oze\\)?[- ]*\\('?95\\|NT\\|3[.]1\\|32\\)" -1001 nil r)
+  ;; ("concat" used to avoid overfull box.)
+  (concat "\\(m\\(icro\\)?[s$]\\(oft\\|lot\\)?-?\\)?"
+          "wind?\\(ows\\|aube\\|oze\\)?[- ]*"
+          "\\('?95\\|NT\\|3[.]1\\|32\\)" -1001 nil r)
   ;; I've nothing to buy
   ("\\(for\\|4\\)[- ]*sale" -100 nil r)
   ;; SELF-DISCIPLINED people
@@ -383,12 +389,19 @@ excessively cross posted articles.
   ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -2 nil r)
   ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -4 nil r)
   ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -8 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -16 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -32 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -64 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -128 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -256 nil r)
-  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -512 nil r))
+  ("^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+    -16 nil r)
+  (concat "^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+          " \\S-+ \\S-+"
+    -32 nil r)
+  (concat "^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+          " \\S-+ \\S-+ \\S-+" -64 nil r)
+  (concat "^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+          " \\S-+ \\S-+ \\S-+ \\S-+" -128 nil r)
+  (concat "^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+          " \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -256 nil r)
+  (concat "^xref: \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+ \\S-+"
+          " \\S-+" \\S-+ \\S-+ \\S-+ \\S-+ \\S-+" -512 nil r))
 @end lisp
 
 @end enumerate
@@ -404,7 +417,7 @@ something like:
 @example
 (defconst mail-yank-ignored-headers
   "^.*:"
-  "Delete these headers from old message when it's inserted in a reply.")
+  "Delete these headers from message when it's inserted in reply.")
 @end example
 
 
@@ -486,8 +499,8 @@ in your @file{.gnus} instead.
 @item
 Q3.1  How do I convert my kill files to score files?
 
-A kill-to-score translator was written by Ethan Bradford
-<ethanb@@ptolemy.astro.washington.edu>.  It is available from@*
+@email{ethanb@@ptolemy.astro.washington.edu, Ethan Bradford} write a
+kill-to-score translator.  It is available from@*
 @file{http://baugi.ifi.uio.no/~larsi/ding-various/gnus-kill-to-score.el}.
 
 
@@ -526,8 +539,9 @@ Luis Fernandes <elf@@mailhost.ee.ryerson.ca>writes:@*
 This is what I use...customize as necessary...
 
 @lisp
-;;; Don't auto-select first article if reading sources, or archives or
-;;; jobs postings, etc. and just display the summary buffer
+;;; Don't auto-select first article if reading sources, or
+;;; archives or jobs postings, etc. and just display the
+;;; summary buffer
 (add-hook 'gnus-select-group-hook
 	  (function
 	   (lambda ()

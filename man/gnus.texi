@@ -6554,7 +6554,8 @@ a spool, you could
 
 @lisp
 (setq gnus-use-long-file-name '(not-save)) ; to get a hierarchy
-(setq gnus-default-article-saver 'gnus-summary-save-in-file) ; no encoding
+(setq gnus-default-article-saver 
+      'gnus-summary-save-in-file) ; no encoding
 @end lisp
 
 Then just save with @kbd{o}.  You'd then read this hierarchy with
@@ -7718,7 +7719,7 @@ Say how much time has elapsed between the article was posted and now
 (@code{gnus-article-date-lapsed}).  It looks something like:
 
 @example
-X-Sent: 9 years, 6 weeks, 4 days, 9 hours, 3 minutes, 28 seconds ago
+X-Sent: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
 
 The value of @code{gnus-article-date-lapsed-new-header} determines
@@ -10572,7 +10573,8 @@ The default value is
 
 @lisp
 '(("nntpd 1\\.5\\.11t"
-   (remove-hook 'nntp-server-opened-hook 'nntp-send-mode-reader)))
+   (remove-hook 'nntp-server-opened-hook 
+                'nntp-send-mode-reader)))
 @end lisp
 
 This ensures that Gnus doesn't send the @code{MODE READER} command to
@@ -10712,10 +10714,12 @@ define a server as follows:
 @lisp
 ;; Type `C-c C-c' after you've finished editing.
 ;;
-;; "snews" is port 563 and is predefined in our /etc/services
+;; "snews" is port 563 and is predefined 
+;; in our /etc/services
 ;;
 (nntp "snews.bar.com"
-      (nntp-open-connection-function nntp-open-ssl-stream)
+      (nntp-open-connection-function 
+        nntp-open-ssl-stream)
       (nntp-port-number "snews")
       (nntp-address "snews.bar.com"))
 @end lisp
@@ -11333,11 +11337,13 @@ from locking problems).
 Two example maildir mail sources:
 
 @lisp
-(maildir :path "/home/user-name/Maildir/" :subdirs ("cur" "new"))
+(maildir :path "/home/user-name/Maildir/" 
+         :subdirs ("cur" "new"))
 @end lisp
 
 @lisp
-(maildir :path "/user@@remotehost.org:~/Maildir/" :subdirs ("new"))
+(maildir :path "/user@@remotehost.org:~/Maildir/" 
+         :subdirs ("new"))
 @end lisp
 
 @item imap
@@ -11429,7 +11435,9 @@ after finishing the fetch.
 An example @sc{imap} mail source:
 
 @lisp
-(imap :server "mail.mycorp.com" :stream kerberos4 :fetchflag "\\Seen")
+(imap :server "mail.mycorp.com" 
+      :stream kerberos4 
+      :fetchflag "\\Seen")
 @end lisp
 
 @item webmail
@@ -11468,7 +11476,9 @@ folder after finishing the fetch.
 An example webmail source:
 
 @lisp
-(webmail :subtype 'hotmail :user "user-name" :password "secret")
+(webmail :subtype 'hotmail 
+         :user "user-name" 
+         :password "secret")
 @end lisp
 @end table
 
@@ -12916,13 +12926,13 @@ The password to use when posting.
 
 @item nnslashdot-directory
 @vindex nnslashdot-directory
-Where @code{nnslashdot} will store its files.  The default value is
+Where @code{nnslashdot} will store its files.  The default is
 @samp{~/News/slashdot/}.
 
 @item nnslashdot-active-url
 @vindex nnslashdot-active-url
-The @sc{url} format string that will be used to fetch the information on 
-news articles and comments.  The default is
+The @sc{url} format string that will be used to fetch the information on
+news articles and comments.  Default:
 @samp{http://slashdot.org/search.pl?section=&min=%d}.
 
 @item nnslashdot-comments-url
@@ -13712,9 +13722,10 @@ Here's an example:
 
 @lisp
 (setq gnus-post-method
-      '(nngateway "mail2news@@replay.com"
-                  (nngateway-header-transformation
-                   nngateway-mail2news-header-transformation)))
+      '(nngateway 
+        "mail2news@@replay.com"
+        (nngateway-header-transformation
+         nngateway-mail2news-header-transformation)))
 @end lisp
 
 @end table
@@ -14030,7 +14041,8 @@ Neither did I, we need examples.
 
 @lisp
 (setq nnimap-split-rule
-      '(("INBOX.nnimap"  "^Sender: owner-nnimap@@vic20.globalcom.se")
+      '(("INBOX.nnimap"  
+         "^Sender: owner-nnimap@@vic20.globalcom.se")
         ("INBOX.junk"    "^Subject:.*MAKE MONEY")
         ("INBOX.private" "")))
 @end lisp
@@ -15606,7 +15618,8 @@ returned is the local score file.  Phu.
 For example, to do hierarchical scoring but use a non-server-specific
 overall score file, you could use the value
 @example
-(list (lambda (group) ("all.SCORE")) 'gnus-score-find-hierarchical)
+(list (lambda (group) ("all.SCORE")) 
+      'gnus-score-find-hierarchical)
 @end example
 
 @item gnus-score-expiry-days
@@ -16284,7 +16297,9 @@ the @code{Xref} header.
 If you want to lower the score of articles that have been crossposted to
 more than, say, 3 groups:
 @lisp
-("xref" ("[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+" -1000 nil r))
+("xref" 
+  ("[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+"
+   -1000 nil r))
 @end lisp
 
 @item Matching on the body
@@ -16350,9 +16365,10 @@ All you have to do to use other people's score files is to set the
 or each score file directory.  Gnus will decide by itself what score
 files are applicable to which group.
 
-Say you want to use the score file
+To use the score file
 @file{/ftp@@ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE} and
-all score files in the @file{/ftp@@ftp.some-where:/pub/score} directory:
+all score files in the @file{/ftp@@ftp.some-where:/pub/score} directory,
+say this:
 
 @lisp
 (setq gnus-global-score-files
@@ -16361,6 +16377,7 @@ all score files in the @file{/ftp@@ftp.some-where:/pub/score} directory:
 @end lisp
 
 @findex gnus-score-search-global-directories
+@noindent
 Simple, eh?  Directory names must end with a @samp{/}.  These
 directories are typically scanned only once during each Gnus session.
 If you feel the need to manually re-scan the remote directories, you can
@@ -17414,13 +17431,13 @@ To be slightly more formal, here's a definition of what a valid split
 may look like:
 
 @example
-split       = frame | horizontal | vertical | buffer | form
-frame       = "(frame " size *split ")"
-horizontal  = "(horizontal " size *split ")"
-vertical    = "(vertical " size *split ")"
-buffer      = "(" buffer-name " " size *[ "point" ] *[ "frame-focus"] ")"
-size        = number | frame-params
-buffer-name = group | article | summary ...
+split      = frame | horizontal | vertical | buffer | form
+frame      = "(frame " size *split ")"
+horizontal = "(horizontal " size *split ")"
+vertical   = "(vertical " size *split ")"
+buffer     = "(" buf-name " " size *[ "point" ] *[ "frame-focus"] ")"
+size       = number | frame-params
+buf-name   = group | article | summary ...
 @end example
 
 The limitations are that the @code{frame} split can only appear as the
@@ -17516,13 +17533,14 @@ for composing mail and news while leaving the original frame intact.  To
 accomplish that, something like the following can be done:
 
 @lisp
-(message (frame 1.0
-                (if (not (buffer-live-p gnus-summary-buffer))
-                    (car (cdr (assoc 'group gnus-buffer-configuration)))
-                  (car (cdr (assoc 'summary gnus-buffer-configuration))))
-                (vertical ((user-position . t) (top . 1) (left . 1)
-                           (name . "Message"))
-                          (message 1.0 point))))
+(message 
+  (frame 1.0
+         (if (not (buffer-live-p gnus-summary-buffer))
+             (car (cdr (assoc 'group gnus-buffer-configuration)))
+           (car (cdr (assoc 'summary gnus-buffer-configuration))))
+         (vertical ((user-position . t) (top . 1) (left . 1)
+                    (name . "Message"))
+                   (message 1.0 point))))
 @end lisp
 
 @findex gnus-add-configuration
@@ -21470,7 +21488,9 @@ Below is a slightly shortened version of the @code{nndir} backend.
   "*Non-nil means that nndir will never retrieve NOV headers."
   nnml-nov-is-evil)
 
-(defvoo nndir-current-group "" nil nnml-current-group nnmh-current-group)
+(defvoo nndir-current-group "" 
+  nil 
+  nnml-current-group nnmh-current-group)
 (defvoo nndir-top-directory nil nil nnml-directory nnmh-directory)
 (defvoo nndir-get-new-mail nil nil nnml-get-new-mail nnmh-get-new-mail)
 
@@ -21488,7 +21508,8 @@ Below is a slightly shortened version of the @code{nndir} backend.
   (unless (assq 'nndir-directory defs)
     (push `(nndir-directory ,server) defs))
   (push `(nndir-current-group
-          ,(file-name-nondirectory (directory-file-name nndir-directory)))
+          ,(file-name-nondirectory 
+            (directory-file-name nndir-directory)))
         defs)
   (push `(nndir-top-directory
           ,(file-name-directory (directory-file-name nndir-directory)))
@@ -21627,47 +21648,47 @@ Here's a typical score file:
 BNF definition of a score file:
 
 @example
-score-file       = "" / "(" *element ")"
-element          = rule / atom
-rule             = string-rule / number-rule / date-rule
-string-rule      = "(" quote string-header quote space *string-match ")"
-number-rule      = "(" quote number-header quote space *number-match ")"
-date-rule        = "(" quote date-header quote space *date-match ")"
-quote            = <ascii 34>
-string-header    = "subject" / "from" / "references" / "message-id" /
-                   "xref" / "body" / "head" / "all" / "followup"
-number-header    = "lines" / "chars"
-date-header      = "date"
-string-match     = "(" quote <string> quote [ "" / [ space score [ "" /
-                   space date [ "" / [ space string-match-t ] ] ] ] ] ")"
-score            = "nil" / <integer>
-date             = "nil" / <natural number>
-string-match-t   = "nil" / "s" / "substring" / "S" / "Substring" /
-                   "r" / "regex" / "R" / "Regex" /
-                   "e" / "exact" / "E" / "Exact" /
-                   "f" / "fuzzy" / "F" / "Fuzzy"
-number-match     = "(" <integer> [ "" / [ space score [ "" /
-                   space date [ "" / [ space number-match-t ] ] ] ] ] ")"
-number-match-t   = "nil" / "=" / "<" / ">" / ">=" / "<="
-date-match       = "(" quote <string> quote [ "" / [ space score [ "" /
-                   space date [ "" / [ space date-match-t ] ] ] ] ")"
-date-match-t     = "nil" / "at" / "before" / "after"
-atom             = "(" [ required-atom / optional-atom ] ")"
-required-atom    = mark / expunge / mark-and-expunge / files /
-                   exclude-files / read-only / touched
-optional-atom    = adapt / local / eval
-mark             = "mark" space nil-or-number
-nil-or-number    = "nil" / <integer>
-expunge          = "expunge" space nil-or-number
+score-file      = "" / "(" *element ")"
+element         = rule / atom
+rule            = string-rule / number-rule / date-rule
+string-rule     = "(" quote string-header quote space *string-match ")"
+number-rule     = "(" quote number-header quote space *number-match ")"
+date-rule       = "(" quote date-header quote space *date-match ")"
+quote           = <ascii 34>
+string-header   = "subject" / "from" / "references" / "message-id" /
+                  "xref" / "body" / "head" / "all" / "followup"
+number-header   = "lines" / "chars"
+date-header     = "date"
+string-match    = "(" quote <string> quote [ "" / [ space score [ "" /
+                  space date [ "" / [ space string-match-t ] ] ] ] ] ")"
+score           = "nil" / <integer>
+date            = "nil" / <natural number>
+string-match-t  = "nil" / "s" / "substring" / "S" / "Substring" /
+                  "r" / "regex" / "R" / "Regex" /
+                  "e" / "exact" / "E" / "Exact" /
+                  "f" / "fuzzy" / "F" / "Fuzzy"
+number-match    = "(" <integer> [ "" / [ space score [ "" /
+                  space date [ "" / [ space number-match-t ] ] ] ] ] ")"
+number-match-t  = "nil" / "=" / "<" / ">" / ">=" / "<="
+date-match      = "(" quote <string> quote [ "" / [ space score [ "" /
+                  space date [ "" / [ space date-match-t ] ] ] ] ")"
+date-match-t    = "nil" / "at" / "before" / "after"
+atom            = "(" [ required-atom / optional-atom ] ")"
+required-atom   = mark / expunge / mark-and-expunge / files /
+                  exclude-files / read-only / touched
+optional-atom   = adapt / local / eval
+mark            = "mark" space nil-or-number
+nil-or-number   = "nil" / <integer>
+expunge         = "expunge" space nil-or-number
 mark-and-expunge = "mark-and-expunge" space nil-or-number
-files            = "files" *[ space <string> ]
-exclude-files    = "exclude-files" *[ space <string> ]
-read-only        = "read-only" [ space "nil" / space "t" ]
-adapt            = "adapt" [ space "ignore" / space "t" / space adapt-rule ]
-adapt-rule       = "(" *[ <string> *[ "(" <string> <integer> ")" ] ")"
-local            = "local" *[ space "(" <string> space <form> ")" ]
-eval             = "eval" space <form>
-space            = *[ " " / <TAB> / <NEWLINE> ]
+files           = "files" *[ space <string> ]
+exclude-files   = "exclude-files" *[ space <string> ]
+read-only       = "read-only" [ space "nil" / space "t" ]
+adapt        = "adapt" [ space "ignore" / space "t" / space adapt-rule ]
+adapt-rule      = "(" *[ <string> *[ "(" <string> <integer> ")" ] ")"
+local           = "local" *[ space "(" <string> space <form> ")" ]
+eval            = "eval" space <form>
+space           = *[ " " / <TAB> / <NEWLINE> ]
 @end example
 
 Any unrecognized elements in a score file should be ignored, but not
@@ -22034,9 +22055,9 @@ Here's a pseudo-BNF definition of this file:
 
 @example
 active      = *group-line
-group-line  = group space high-number space low-number space flag <NEWLINE>
+group-line  = group spc high-number spc low-number spc flag <NEWLINE>
 group       = <non-white-space string>
-space       = " "
+spc         = " "
 high-number = <non-negative integer>
 low-number  = <positive integer>
 flag        = "y" / "n" / "m" / "j" / "x" / "=" group
