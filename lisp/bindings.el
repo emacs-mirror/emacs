@@ -46,10 +46,28 @@
 
 ;;; Code:
 
-(defconst mode-line-mule-info
-  (purecopy '(""
-	      (current-input-method ("" current-input-method-title))
-	      "%Z"))
+(defun make-mode-line-mouse2-map (f) "\
+Return a keymap with single entry for mouse-2 on mode line.
+This is defined to run function F with no args in the buffer
+corresponding to the mode line clicked."
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2]
+      `(lambda (e)
+	 (interactive "e")
+	 (save-selected-window
+	   (select-window
+	    (posn-window (event-start e)))
+	   (,f)
+	   (force-mode-line-update))))
+    map))
+
+;; This might have a local-map to bring up a MULE menu or describe the
+;; current method.  At least give the user a clue what the field is.
+(defvar mode-line-mule-info
+  `(""
+    (current-input-method ("" (propertize current-input-method-title
+					  'help-echo "Input method")))
+    ,(propertize "%Z" 'help-echo (purecopy "Coding system information")))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
@@ -79,24 +97,11 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
 
-(defconst mode-line-modified
-  (let ((s "%1*%1+")
-	(map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-2]
-      (lambda (event)
-	(interactive "e")
-	(save-selected-window
-	  (select-window (posn-window (event-start event)))
-	  (let ((binding (key-binding "\C-x\C-q")))
-	    (if binding
-		(funcall binding)
-	      (toggle-read-only))))))
-    (set-text-properties 0 (length s)
-			 (list 'help-echo
-			       "Read-only status: mouse-2 toggles it"
-			       'local-map map)
-			 s)
-    (list s))
+(defvar mode-line-modified
+  (list (propertize
+	 "%1*%1+"
+	 'help-echo (purecopy "Read-only status: mouse-2 toggles it")
+	 'local-map (purecopy (make-mode-line-mouse2-map #'toggle-read-only))))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
@@ -127,11 +132,23 @@ STRING is included in the mode line iff VARIABLE's value is non-nil.
 Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
 ;; Don't use purecopy here--some people want to change these strings.
-(setq minor-mode-alist '((abbrev-mode " Abbrev")
-			 (overwrite-mode overwrite-mode)
-			 (auto-fill-function " Fill")
-			 ;; not really a minor mode...
-			 (defining-kbd-macro " Def")))
+(setq minor-mode-alist
+      (list
+       (list 'abbrev-mode
+	     (propertize " Abbrev"
+			 'help-echo (purecopy
+				     "mouse-2: turn off Abbrev mode")
+			 'local-map (purecopy (make-mode-line-mouse2-map
+					       #'abbrev-mode))))
+       '(overwrite-mode overwrite-mode)
+       (list 'auto-fill-function
+	     (propertize " Fill"
+			 'help-echo (purecopy
+				     "mouse-2: turn off Autofill mode")
+			 'local-map (purecopy (make-mode-line-mouse2-map
+					       #'auto-fill-mode))))
+       ;; not really a minor mode...
+       '(defining-kbd-macro " Def")))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
@@ -191,56 +208,58 @@ Return a string to display in the mode line for the current mode name."
 (defvar mode-line-mouse-sensitive-p nil "\
 Non-nil means mode line has been made mouse-sensitive.")
 
-(defvar mode-line-mode-menu nil "\
+(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
+
+;; These bindings were defined inside
+;; `make-mode-line-mouse-sensitive', but then invoking `x-popup-menu'
+;; with `mode-line-mode-menu' lost because the menu items were in
+;; purespace.
+(define-key mode-line-mode-menu [abbrev-mode]
+  `(menu-item ,(purecopy "Abbrev") abbrev-mode
+	      :button (:toggle . abbrev-mode)))
+(define-key mode-line-mode-menu [auto-revert-mode]
+  `(menu-item ,(purecopy "Auto revert") auto-revert-mode
+	      :button (:toggle . auto-revert-mode)))
+(define-key mode-line-mode-menu [auto-fill-mode]
+  `(menu-item ,(purecopy "Auto-fill") auto-fill-mode
+	      :button (:toggle . auto-fill-function)))
+(define-key mode-line-mode-menu [column-number-mode]
+  `(menu-item ,(purecopy "Column number") column-number-mode
+	      :button (:toggle . column-number-mode)))
+(define-key mode-line-mode-menu [flyspell-mode]
+  `(menu-item ,(purecopy "Flyspell") flyspell-mode
+	      :button (:toggle . (bound-and-true-p flyspell-mode))))
+(define-key mode-line-mode-menu [font-lock-mode]
+  `(menu-item ,(purecopy "Font-lock") font-lock-mode
+	      :button (:toggle . font-lock-mode)))
+(define-key mode-line-mode-menu [hide-ifdef-mode]
+  `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
+	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
+(define-key mode-line-mode-menu [highlight-changes-mode]
+  `(menu-item ,(purecopy "Highlight changes") highlight-changes-mode
+	      :button (:toggle . highlight-changes-mode)))
+(define-key mode-line-mode-menu [line-number-mode]
+  `(menu-item ,(purecopy "Line number") line-number-mode
+	      :button (:toggle . line-number-mode)))
+(define-key mode-line-mode-menu [outline-minor-mode]
+  `(menu-item ,(purecopy "Outline") outline-minor-mode
+	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
+(define-key mode-line-mode-menu [overwrite-mode]
+  `(menu-item ,(purecopy "Overwrite") overwrite-mode
+	      :button (:toggle . overwrite-mode)))
 
 (defun make-mode-line-mouse-sensitive ()
   (when (and window-system
 	     (not mode-line-mouse-sensitive-p))
     (setq mode-line-mouse-sensitive-p t)
-    (let ((map (make-sparse-keymap "Minor Modes")))
-      (define-key map [abbrev-mode]
-	'(menu-item "Abbrev" abbrev-mode
-		    :button (:toggle . abbrev-mode)))
-      (define-key map [auto-revert-mode]
-	'(menu-item "Auto revert" auto-revert-mode
-		    :button (:toggle . (bound-and-true-p auto-revert-mode))))
-      (define-key map [auto-fill-mode]
-	'(menu-item "Auto-fill" auto-fill-mode
-		    :button (:toggle . auto-fill-function)))
-      (define-key map [column-number-mode]
-	'(menu-item "Column number" column-number-mode
-		    :button (:toggle . column-number-mode)))
-      (define-key map [flyspell-mode]
-	'(menu-item "Flyspell" flyspell-mode
-		    :button (:toggle . (bound-and-true-p flyspell-mode))))
-      (define-key map [font-lock-mode]
-	'(menu-item "Font-lock" font-lock-mode
-		    :button (:toggle . font-lock-mode)))
-      (define-key map [hide-ifdef-mode]
-	'(menu-item "Hide ifdef" hide-ifdef-mode
-		    :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
-      (define-key map [highlight-changes-mode]
-	'(menu-item "Highlight changes" highlight-changes-mode
-		    :button (:toggle . (bound-and-true-p highlight-changes-mode))))
-      (define-key map [line-number-mode]
-	'(menu-item "Line number" line-number-mode
-		    :button (:toggle . line-number-mode)))
-      (define-key map [outline-minor-mode]
-	'(menu-item "Outline" outline-minor-mode
-		    :button (:toggle . (bound-and-true-p outline-minor-mode))))
-      (define-key map [overwrite-mode]
-	'(menu-item "Overwrite" overwrite-mode
-		    :button (:toggle . overwrite-mode)))
-      (setq mode-line-mode-menu (copy-keymap map))
-      (defun mode-line-mode-menu (event)
-	(interactive "@e")
-	(x-popup-menu event mode-line-mode-menu)))
+    (defun mode-line-mode-menu (event)
+      (interactive "@e")
+      (x-popup-menu event mode-line-mode-menu))
 
     ;; Add menu of buffer operations to the buffer identification part
     ;; of the mode line.
-    (let ((map (make-sparse-keymap))
-	  (s (copy-sequence "%12b")))
+    (let ((map (make-sparse-keymap)))
       (define-key map [mode-line mouse-1] 'mode-line-other-buffer)
       (define-key map [header-line mouse-1] 'mode-line-other-buffer)
       (define-key map [mode-line M-mouse-2] 'mode-line-unbury-buffer)
@@ -250,11 +269,13 @@ Menu of mode operations in the mode line.")
       (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
       (define-key map [header-line down-mouse-3] 'mouse-buffer-menu)
       (setq mode-line-buffer-identification-keymap map)
-      (setq-default mode-line-buffer-identification (list s))
-      (put-text-property 0 (length s) 'face '(:weight bold) s)
-      (put-text-property 0 (length s) 'help-echo
-			 "mouse-1: other buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu" s)
-      (put-text-property 0 (length s) 'local-map map s))
+      (setq-default mode-line-buffer-identification
+		    (list (propertize "%12b"
+				      'face '(:weight bold)
+				      'help-echo
+				      "mouse-1: other buffer, mouse-2: \
+prev, M-mouse-2: next, mouse-3: buffer menu"
+				      'local-map map))))
 
     ;; Menu of minor modes.
     (let ((map (make-sparse-keymap)))
