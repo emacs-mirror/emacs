@@ -44,11 +44,13 @@
 #define C_SWITCH_X_SYSTEM -I/usr/include/Motif1.2
 #define LD_SWITCH_X_DEFAULT -L/usr/lib/Motif1.2
 
+#ifndef HAVE_LIBXMU
 /* HP-UX doesn't supply Xmu.  */
 #define LIBXMU
 
 /* Unfortunately without libXmu we cannot support EditRes.  */
 #define NO_EDITRES
+#endif
 
 /* zoo@armadillo.com says we don't need -lXext in HPUX 9.  */
 #undef LIBX11_SYSTEM
