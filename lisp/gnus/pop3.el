@@ -109,7 +109,9 @@ Used for APOP authentication.")
 Returns the process associated with the connection."
   (let ((process-buffer
 	 (get-buffer-create (format "trace of POP session to %s" mailhost)))
-	(process))
+	(process)
+	(process-coding-system-alist
+	 (cons '("POP" . nil) process-coding-system-alist)))
     (save-excursion
       (set-buffer process-buffer)
       (erase-buffer))
