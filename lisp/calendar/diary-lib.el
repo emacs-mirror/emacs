@@ -1625,8 +1625,10 @@ marked on the calendar."
            (or (not marking-diary-entries) marking))
       (let ((date (calendar-gregorian-from-absolute
                    (+ (calendar-absolute-from-gregorian date) days))))
-        (if (setq diary-entry (eval sexp))
-            (mapconcat 'eval diary-remind-message ""))))
+        (when (setq diary-entry (eval sexp)) ; re-evaluate with adjusted date
+          ;; Discard any mark portion from diary-anniversary, etc.
+          (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
+          (mapconcat 'eval diary-remind-message ""))))
      ;; Diary entry may apply to one of a list of days before date
      ((and (listp days) days)
       (or (diary-remind sexp (car days) marking)
