@@ -1097,6 +1097,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_ReadMultibyteChar2:
 	      if (!src)
 		CCL_INVALID_CMD;
+
 	      do {
 		if (src >= src_end)
 		  {
@@ -1116,14 +1117,24 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      }
 		    else
 		      ccl->private_state = COMPOSING_NO_RULE_HEAD;
+
+		    continue;
 		  }
-		if (ccl->private_state != 0)
+		if (ccl->private_state != COMPOSING_NO)
 		  {
 		    /* composite character */
-		    if (*src < 0xA0)
-		      ccl->private_state = 0;
+		    if (i < 0xA0)
+		      ccl->private_state = COMPOSING_NO;
 		    else
 		      {
+			if (COMPOSING_WITH_RULE_RULE == ccl->private_state)
+			  {
+			    ccl->private_state = COMPOSING_WITH_RULE_HEAD;
+			    continue;
+			  }
+			else if (COMPOSING_WITH_RULE_HEAD == ccl->private_state)
+			  ccl->private_state = COMPOSING_WITH_RULE_RULE;
+
 			if (i == 0xA0)
 			  {
 			    if (src >= src_end)
@@ -1132,16 +1143,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			  }
 			else
 			  i -= 0x20;
-
-			if (COMPOSING_WITH_RULE_RULE == ccl->private_state)
-			  {
-			    ccl->private_state = COMPOSING_WITH_RULE_HEAD;
-			    continue;
-			  }
-			else if (COMPOSING_WITH_RULE_HEAD == ccl->private_state)
-			  ccl->private_state = COMPOSING_WITH_RULE_RULE;
 		      }
 		  }
+
 		if (i < 0x80)
 		  {
 		    /* ASCII */
@@ -1188,7 +1192,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		    reg[RRR] = CHARSET_ASCII;
 		    reg[rrr] = i;
 		  }
-	      } while (0);
+		break;
+	      } while (1);
 	      break;
 
 	    ccl_read_multibyte_character_suspend:
@@ -1206,7 +1211,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_WriteMultibyteChar2:
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
-		i = reg[rrr] & 0x7F;
+		i = reg[rrr] & 0x8F;
 	      else if (i == CHARSET_COMPOSITION)
 		i = MAKE_COMPOSITE_CHAR (reg[rrr]);
 	      else if (CHARSET_DIMENSION (i) == 1)
