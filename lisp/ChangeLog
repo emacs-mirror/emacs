@@ -1,3 +1,124 @@
+2000-10-28  John Wiegley  <johnw@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-maybe-correct-transposition):
+	Changed this function to operate on a temporary buffer instead of
+	the main buffer.  This not only keeps flyspell from marking a
+	buffer as changed that wasn't, but it solves the jumpy cursor
+	problem when attempts are made to edit incorrect words.
+	(flyspell-maybe-correct-doubling): Same change as for
+	`flyspell-maybe-correct-transposition'.
+
+	* calendar/timeclock.el (timeclock-log): Doc fix.
+	(timeclock-last-event): Doc fix.
+	(timeclock-log): Kill the timelog buffer after appending a new
+	event.
+	(timeclock-find-discrep): Use a temp buffer to read in the
+	timelog, instead of visiting the file.
+	(timeclock-log-data): A new function, along with a host of helper
+	functions, for the purpose of making timelog data accessible to
+	programmers.
+
+	* eshell/esh-mode.el (window-height test): Make certain that
+	`eshell-stringify-t' is non-nil.
+	(eshell-password-prompt-regexp): Changed to a much simpler
+	password regexp.
+	(eshell-send-input): If `eshell-invoke-directly' returns t,
+	directly invoke the parsed command using `eval'.  This improves
+	turn-around time on simple commands by a factor of three or
+	greater, such as cd, ls, pwd, etc. -- which get used very often.
+	It also conserves thousands of cons cells per call (since
+	`eshell-do-eval' consumes memory like a Cookie Monster set loose
+	in the Pacific Cookie Company).
+
+	* eshell/esh-test.el (eshell-test): Whitespace fix.
+
+	* eshell/em-ls.el (eshell-ls-insert-directory): Make
+	`eshell-ls-initial-args' nil when inserting directory contents.
+
+	* eshell/em-script.el (eshell-script-initialize): Add names to
+	`eshell-complex-commands, since `source' and `.' are complex.
+
+	* eshell/esh-cmd.el (eshell-rewrite-for-command,
+	eshell-rewrite-while-command): Use `eshell-protect' instead of
+	`eshell-copy-handles'.
+	(eshell-rewrite-if-command): Use `eshell-protect' to wrap the call
+	bodies.
+	(eshell-separate-commands): Whitespace fix.
+	(eshell-complex-commands): Added a new list of names, for
+	determining whether a given command is as simple as it looks.
+	(eshell-invoke-directly): New function.  Returns t if a command
+	should be invoked directly (using `eval'), rather than indirectly
+	using `eshell-do-eval'.
+	(eshell-do-eval): Whitespace fix.
+
+	* eshell/em-unix.el (eshell-default-target-is-dot): New variable,
+	which provides an emulation of the DOS shell behavior of assuming
+	that cp/mv/ln should copy/move/link to the current directory.
+	(eshell-remove-entries): Added a doc string.
+	(eshell-shuffle-files): Removed the check for `target' being null.
+	(eshell-mvcp-template, eshell-mvcpln-template): Renamed
+	`eshell-mvcp-template' to `eshell-mvcpln-template', and extended
+	it to do a smarter check of whether a destination was provided.
+	(eshell/mv, eshell/cp): Enable `:preserve-args'.
+	(eshell/ln): Enable `:preserve-args', and use
+	`eshell-mvcpln-template' to implement the body of the function.
+	(eshell/cat, eshell/make, eshell-poor-mans-grep, eshell-grep,
+	eshell/du, eshell/diff, eshell/locate): Stringify the argument
+	list after flattening it.  This makes it possible to cat files
+	with numerical names.
+	(eshell-unix-initialize): Added several names to
+	`eshell-complex-commands.
+	(eshell-unix-command-complex-p): Return t if a given command name
+	may result in external processes being invoked.
+
+	* eshell/em-glob.el (eshell-glob-show-progress): Make this
+	variable nil by default, since it slows down glob processing by a
+	factor of two or more, and increases memory consumption.
+
+	* eshell/em-smart.el: Added a note about how memory consumptive
+	smart display mode can be (at least this is true in Emacs 21).
+	(eshell-smart-initialize): Whitespace fix.
+	(eshell-refresh-windows): Use `if' instead of `when'.
+	(eshell-smart-scroll-window): Calling `save-current-buffer' was
+	not necessary.
+	(eshell-currently-handling-window): Added a missing global
+	variable.
+
+	* eshell/em-ls.el (eshell-do-ls): Code simplification.
+	(eshell-ls-sort-entries, eshell-ls-entries, eshell-ls-dir):
+	Whitespace fix.
+	(eshell-ls-exclude-hidden): Added this variable in addition to
+	`eshell-ls-exclude-regexp'.  This one prevents files beginning
+	with . from even being read, which can improve memory consumption
+	quite a bit.
+	(eshell-ls-dir): If `eshell-ls-exclude-hidden' is non-nil, do not
+	read file entries beginning with a dot.  In home directories with
+	lots of hidden files, fully two-thirds of the time spent in ls is
+	used to read directory entries that are immediately thrown away.
+	(eshell-ls-initial-args): Added back this configuration variable,
+	for specifying default initial arguments to every call to ls.
+	Much faster than using an alias to do the same thing.
+	(eshell-do-ls): Use `eshell-ls-initial-args', if set.
+	(eshell-ls-dir): Whitespace change.
+
+	* eshell/em-dirs.el (eshell/pwd): Small code simplification.
+
+	* eshell/esh-util.el: Don't require `ange-ftp' if it's not
+	available.
+	(eshell-stringify-t): Added a customization variable, to indicate
+	whether `t' should be rendered as a string at all.  If not, one
+	can still determine if the result of an expression is true using
+	"file-exists-p FILE && echo true".
+	(eshell-stringify): If `eshell-stringify-t' is nil, don't
+	stringify t!
+
+	* eshell/esh-module.el: Whitespace fix.
+
+	* eshell/em-alias.el (eshell-alias-initialize): Added
+	`eshell-command-aliased-p' to `eshell-complex-commands'.
+	(eshell-command-aliased-p): New function that returns t if a
+	command name names an aliased.
+
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-preserve-cursor-color): new test that avoids
@@ -865,7 +986,7 @@
 	* align.el, pcomplete.el, calendar/timeclock.el,
 	eshell/esh-module.el, eshell/eshell.el: Removed URL reference.
 
-	* calendar/timeclock.el (timeclock-find-discrep): A fix to same
+	* calendar/timeclock.el (timeclock-find-discrep): A fix to some
 	faulty math, where holiday hours were being computing as seconds.
 
 2000-10-13  John Wiegley  <johnw@gnu.org>

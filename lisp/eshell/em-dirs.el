@@ -297,7 +297,7 @@ Thus, this does not include the current directory.")
 		    (file-name-as-directory (cdr user))))
 		 eshell-user-names)))))))
 
-(defun eshell/pwd (&rest args)          ; ignored
+(defun eshell/pwd (&rest args)
   "Change output from `pwd` to be cleaner."
   (let* ((path default-directory)
 	 (len (length path)))
@@ -307,8 +307,8 @@ Thus, this does not include the current directory.")
 		       (string-match "\\`[A-Za-z]:[\\\\/]\\'" path))))
 	(setq path (substring path 0 (1- (length path)))))
     (if eshell-pwd-convert-function
-	(setq path (funcall eshell-pwd-convert-function path)))
-    path))
+	(funcall eshell-pwd-convert-function path)
+      path)))
 
 (defun eshell-expand-multiple-dots (path)
   "Convert '...' to '../..', '....' to '../../..', etc..

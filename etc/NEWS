@@ -1786,7 +1786,10 @@ Fill mode.
 *** gnus-mule.el is now just a compatibility layer over the built-in
 Gnus facilities.
 
-*** pcomplete.el ??
+*** pcomplete.el is a library that provides programmable completion
+facilities for Emacs, similar to what zsh and tcsh offer.  The main
+difference is that completion functions are written in Lisp, meaning
+they can be profiled, debugged, etc.
 
 ** Withdrawn packages
 

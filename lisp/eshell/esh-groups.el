@@ -132,4 +132,3 @@ functions, or as aliases which make some of Emacs' behavior more
 naturally accessible within Emacs."
   :tag "Extra alias functions"
   :group 'eshell-module)
-

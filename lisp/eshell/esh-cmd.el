@@ -203,6 +203,21 @@ which may be modified directly.  Any return value is ignored."
   :type 'hook
   :group 'eshell-cmd)
 
+(defcustom eshell-complex-commands nil
+  "*A list of commands names or functions, that determine complexity.
+That is, if a command is defined by a function named eshell/NAME,
+and NAME is part of this list, it is invoked as a complex command.
+Complex commands are always correct, but run much slower.  If a
+command works fine without being part of this list, then it doesn't
+need to be.
+
+If an entry is a function, it will be called with the name, and should
+return non-nil if the command is complex."
+  :type '(repeat :tag "Commands"
+		 (choice (string :tag "Name")
+			 (function :tag "Predicate")))
+  :group 'eshell-cmd)
+
 ;;; Code:
 
 (require 'esh-util)
@@ -518,8 +533,8 @@ implemented via rewriting, rather than as a function."
 			      (list 'car
 				    (list 'symbol-value
 					  (list 'quote 'for-items)))))
-		  (list 'eshell-copy-handles
-			 (eshell-invokify-arg body t)))
+		  (list 'eshell-protect
+			(eshell-invokify-arg body t)))
 	    (list 'setcar 'for-items
 		  (list 'cadr
 			(list 'symbol-value
@@ -583,7 +598,7 @@ must be implemented via rewriting, rather than as a function."
       (eshell-structure-basic-command
        'while '("while" "until") (car terms)
        (eshell-invokify-arg (cadr terms) nil t)
-       (list 'eshell-copy-handles
+       (list 'eshell-protect
 	     (eshell-invokify-arg (car (last terms)) t)))))
 
 (defun eshell-rewrite-if-command (terms)
@@ -596,13 +611,15 @@ must be implemented via rewriting, rather than as a function."
       (eshell-structure-basic-command
        'if '("if" "unless") (car terms)
        (eshell-invokify-arg (cadr terms) nil t)
-       (eshell-invokify-arg
-	(if (= (length terms) 5)
-	    (car (last terms 3))
-	  (car (last terms))) t)
-       (eshell-invokify-arg
-	(if (= (length terms) 5)
-	    (car (last terms))) t))))
+       (list 'eshell-protect
+	     (eshell-invokify-arg
+	      (if (= (length terms) 5)
+		  (car (last terms 3))
+		(car (last terms))) t))
+       (if (= (length terms) 5)
+	   (list 'eshell-protect
+		 (eshell-invokify-arg
+		  (car (last terms)))) t))))
 
 (defun eshell-exit-success-p ()
   "Return non-nil if the last command was \"successful\".
@@ -651,8 +668,8 @@ For an external command, it means an exit code of 0."
       (assert (car sep-terms))
       (setq final (eshell-structure-basic-command
 		   'if (string= (car sep-terms) "&&") "if"
-		   (list 'eshell-commands (car results))
-		   final
+		   (list 'eshell-protect (car results))
+		   (list 'eshell-protect final)
 		   nil t)
 	    results (cdr results)
 	    sep-terms (cdr sep-terms)))
@@ -690,8 +707,8 @@ For an external command, it means an exit code of 0."
 		  (list 'eshell-lisp-command (list 'quote obj)))
 	  (ignore (goto-char here))))))
 
-(defun eshell-separate-commands
-  (terms separator &optional reversed last-terms-sym)
+(defun eshell-separate-commands (terms separator &optional
+				       reversed last-terms-sym)
   "Separate TERMS using SEPARATOR.
 If REVERSED is non-nil, the list of separated term groups will be
 returned in reverse order.  If LAST-TERMS-SYM is a symbol, it's value
@@ -771,21 +788,6 @@ this grossness will be made to disappear by using `call/cc'..."
 	(run-hooks 'eshell-this-command-hook)
 	(eshell-errorn (error-message-string err))
 	(eshell-close-handles 1)))))
-
-;; (defun eshell-copy-or-protect-handles ()
-;;   (if (eshell-processp (car (aref eshell-current-handles
-;; 				  eshell-output-handle)))
-;;       (eshell-protect-handles eshell-current-handles)
-;;     (eshell-create-handles
-;;      (car (aref eshell-current-handles
-;; 		eshell-output-handle)) nil
-;;      (car (aref eshell-current-handles
-;; 		eshell-error-handle)) nil)))
-
-;; (defmacro eshell-copy-handles (object)
-;;   "Duplicate current I/O handles, so OBJECT works with its own copy."
-;;   `(let ((eshell-current-handles (eshell-copy-or-protect-handles)))
-;;      ,object))
 
 (defmacro eshell-copy-handles (object)
   "Duplicate current I/O handles, so OBJECT works with its own copy."
@@ -964,6 +966,22 @@ at the moment are:
 	(insert "\n\C-l\n" tag "\n\n" text
 		(if subform
 		    (concat "\n\n" (eshell-stringify subform)) ""))))))
+
+(defun eshell-invoke-directly (command input)
+  (let ((base (cadr (nth 2 (nth 2 (cadr command))))) name)
+    (if (and (eq (car base) 'eshell-trap-errors)
+	     (eq (car (cadr base)) 'eshell-named-command))
+	(setq name (cadr (cadr base))))
+    (and name (stringp name)
+	 (not (member name eshell-complex-commands))
+	 (catch 'simple
+	   (progn
+	    (eshell-for pred eshell-complex-commands
+	      (if (and (functionp pred)
+		       (funcall pred name))
+		  (throw 'simple nil)))
+	    t))
+	 (fboundp (intern-soft (concat "eshell/" name))))))
 
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."
@@ -1163,29 +1181,29 @@ be finished later after the completion of an asynchronous subprocess."
 	 ((eq (car form) 'prog1)
 	  (cadr form))
 	 (t
+	  ;; If a command desire to replace its execution form with
+	  ;; another command form, all it needs to do is throw the new
+	  ;; form using the exception tag `eshell-replace-command'.
+	  ;; For example, let's say that the form currently being
+	  ;; eval'd is:
+	  ;;
+	  ;;   (eshell-named-command "hello")
+	  ;;
+	  ;; Now, let's assume the 'hello' command is an Eshell alias,
+	  ;; the definition of which yields the command:
+	  ;;
+	  ;;   (eshell-named-command "echo" (list "Hello" "world"))
+	  ;;
+	  ;; What the alias code would like to do is simply substitute
+	  ;; the alias form for the original form.  To accomplish
+	  ;; this, all it needs to do is to throw the substitution
+	  ;; form with the `eshell-replace-command' tag, and the form
+	  ;; will be replaced within the current command, and
+	  ;; execution will then resume (iteratively) as before.
+	  ;; Thus, aliases can even contain references to asynchronous
+	  ;; sub-commands, and things will still work out as they
+	  ;; should.
 	  (let (result new-form)
-	    ;; If a command desire to replace its execution form with
-	    ;; another command form, all it needs to do is throw the
-	    ;; new form using the exception tag
-	    ;; `eshell-replace-command'.  For example, let's say that
-	    ;; the form currently being eval'd is:
-	    ;;
-	    ;;   (eshell-named-command \"hello\")
-	    ;;
-	    ;; Now, let's assume the 'hello' command is an Eshell
-	    ;; alias, the definition of which yields the command:
-	    ;;
-	    ;;   (eshell-named-command \"echo\" (list \"Hello\" \"world\"))
-	    ;;
-	    ;; What the alias code would like to do is simply
-	    ;; substitute the alias form for the original form.  To
-	    ;; accomplish this, all it needs to do is to throw the
-	    ;; substitution form with the `eshell-replace-command'
-	    ;; tag, and the form will be replaced within the current
-	    ;; command, and execution will then resume (iteratively)
-	    ;; as before.  Thus, aliases can even contain references
-	    ;; to asynchronous sub-commands, and things will still
-	    ;; work out as they should.
 	    (if (setq new-form
 		      (catch 'eshell-replace-command
 			(ignore

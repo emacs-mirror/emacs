@@ -180,9 +180,7 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|CVS \\|'s \\|login \\|^\\)\
-[Pp]assword\\|pass phrase\\|\\(Enter\\|Repeat\\) passphrase\\)\
-\\( for [^@ \t\n]+@[^@ \t\n]+\\)?:\\s *\\'"
+  "[Pp]ass\\(word\\|phrase\\).*:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
@@ -462,7 +460,8 @@ sessions, such as when using `eshell-command'.")
 
 (eshell-deftest var window-height
   "LINES equals window height"
-  (eshell-command-result-p "= $LINES (window-height)" "t\n"))
+  (let ((eshell-stringify-t t))
+    (eshell-command-result-p "= $LINES (window-height)" "t\n")))
 
 (defun eshell-command-started ()
   "Indicate in the modeline that a command has started."
@@ -736,7 +735,9 @@ newline."
 		      (run-hooks 'eshell-input-filter-functions)
 		      (and (catch 'eshell-terminal
 			     (ignore
-			      (eshell-eval-command cmd input)))
+			      (if (eshell-invoke-directly cmd input)
+				  (eval cmd)
+				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))
 	      (quit
 	       (eshell-reset t)

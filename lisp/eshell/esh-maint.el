@@ -48,7 +48,7 @@
 ;;   (interactive)
 ;;   (require 'autoload)
 ;;   (setq generated-autoload-file
-;; 	(expand-file-name (car command-line-args-left)))
+;;	(expand-file-name (car command-line-args-left)))
 ;;   (setq command-line-args-left (cdr command-line-args-left))
 ;;   (batch-update-autoloads))
 
@@ -65,23 +65,23 @@
 ;; Core Functionality\n")
 ;;   (eshell-for module
 ;;       (sort (eshell-subgroups 'eshell)
-;; 	    (function
-;; 	     (lambda (a b)
-;; 	       (string-lessp (symbol-name a)
-;; 			     (symbol-name b)))))
+;;	    (function
+;;	     (lambda (a b)
+;;	       (string-lessp (symbol-name a)
+;;			     (symbol-name b)))))
 ;;     (insert (format "* %-34s"
-;; 		    (concat (get module 'custom-tag) "::"))
-;; 	    (symbol-name module) ".\n"))
+;;		    (concat (get module 'custom-tag) "::"))
+;;	    (symbol-name module) ".\n"))
 ;;   (insert "\nOptional Functionality\n")
 ;;   (eshell-for module
 ;;       (sort (eshell-subgroups 'eshell-module)
-;; 	    (function
-;; 	     (lambda (a b)
-;; 	       (string-lessp (symbol-name a)
-;; 			     (symbol-name b)))))
+;;	    (function
+;;	     (lambda (a b)
+;;	       (string-lessp (symbol-name a)
+;;			     (symbol-name b)))))
 ;;     (insert (format "* %-34s"
-;; 		    (concat (get module 'custom-tag) "::"))
-;; 	    (symbol-name module) ".\n"))
+;;		    (concat (get module 'custom-tag) "::"))
+;;	    (symbol-name module) ".\n"))
 ;;   (insert "@end menu\n"))
 
 ;; (defun eshell-make-texi ()
@@ -91,27 +91,27 @@
 ;;   (require 'texidoc)
 ;;   (require 'pcomplete)
 ;;   (apply 'texidoc-files 'eshell-generate-main-menu "eshell.doci"
-;; 	 (append
-;; 	  (list "eshell.el")
-;; 	  (sort (mapcar
-;; 		 (function
-;; 		  (lambda (sym)
-;; 		    (let ((name (symbol-name sym)))
-;; 		      (if (string-match "\\`eshell-\\(.*\\)" name)
-;; 			  (setq name (concat "esh-" (match-string 1 name))))
-;; 		      (concat name ".el"))))
-;; 		 (eshell-subgroups 'eshell))
-;; 		'string-lessp)
-;; 	  (sort (mapcar
-;; 		 (function
-;; 		  (lambda (sym)
-;; 		    (let ((name (symbol-name sym)))
-;; 		      (if (string-match "\\`eshell-\\(.*\\)" name)
-;; 			  (setq name (concat "em-" (match-string 1 name))))
-;; 		      (concat name ".el"))))
-;; 		 (eshell-subgroups 'eshell-module))
-;; 		'string-lessp)
-;; 	  (list "eshell.texi"))))
+;;	 (append
+;;	  (list "eshell.el")
+;;	  (sort (mapcar
+;;		 (function
+;;		  (lambda (sym)
+;;		    (let ((name (symbol-name sym)))
+;;		      (if (string-match "\\`eshell-\\(.*\\)" name)
+;;			  (setq name (concat "esh-" (match-string 1 name))))
+;;		      (concat name ".el"))))
+;;		 (eshell-subgroups 'eshell))
+;;		'string-lessp)
+;;	  (sort (mapcar
+;;		 (function
+;;		  (lambda (sym)
+;;		    (let ((name (symbol-name sym)))
+;;		      (if (string-match "\\`eshell-\\(.*\\)" name)
+;;			  (setq name (concat "em-" (match-string 1 name))))
+;;		      (concat name ".el"))))
+;;		 (eshell-subgroups 'eshell-module))
+;;		'string-lessp)
+;;	  (list "eshell.texi"))))
 
 ;; (defun eshell-make-readme ()
 ;;   "Make the README file from eshell.el."

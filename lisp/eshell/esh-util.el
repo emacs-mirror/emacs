@@ -36,6 +36,14 @@
 
 ;;; User Variables:
 
+(defcustom eshell-stringify-t t
+  "*If non-nil, the string representation of t is 't'.
+If nil, t will be represented only in the exit code of the function,
+and not printed as a string.  This causes Lisp functions to behave
+similarly to external commands, as far as successful result output."
+  :type 'boolean
+  :group 'eshell-util)
+
 (defcustom eshell-group-file "/etc/group"
   "*If non-nil, the name of the group file on your system."
   :type '(choice (const :tag "No group file" nil) file)
@@ -305,7 +313,9 @@ If N or M is nil, it means the end of the list."
    ((numberp object)
     (number-to-string object))
    (t
-    (pp-to-string object))))
+    (unless (and (eq object t)
+		 (not eshell-stringify-t))
+      (pp-to-string object)))))
 
 (defsubst eshell-stringify-list (args)
   "Convert each element of ARGS into a string value."
@@ -611,7 +621,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (require 'ange-ftp))
+  (load "ange-ftp" t))
 
 (defun eshell-parse-ange-ls (dir)
   (let (entry)

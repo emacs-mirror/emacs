@@ -81,8 +81,9 @@ by zsh for filename generation."
   :type 'boolean
   :group 'eshell-glob)
 
-(defcustom eshell-glob-show-progress t
-  "*If non-nil, display progress messages during a recursive glob."
+(defcustom eshell-glob-show-progress nil
+  "*If non-nil, display progress messages during a recursive glob.
+This option slows down recursive glob processing by quite a bit."
   :type 'boolean
   :group 'eshell-glob)
 

@@ -24,7 +24,9 @@
 
 (provide 'esh-module)
 
-(eval-when-compile (require 'esh-maint) (require 'cl))
+(eval-when-compile
+  (require 'esh-maint)
+  (require 'cl))
 
 (defgroup eshell-module nil
   "The `eshell-module' group is for Eshell extension modules, which
@@ -85,7 +87,7 @@ customizing the variable `eshell-modules-list'."
 		   (equal (file-name-nondirectory byte-compile-current-file)
 			  "esh-modu.el"))))
     (let* ((directory (file-name-directory byte-compile-current-file))
-           (elc-file (expand-file-name "esh-groups.elc" directory)))
+	   (elc-file (expand-file-name "esh-groups.elc" directory)))
       (eshell-load-defgroups directory)
       (if (file-exists-p elc-file) (delete-file elc-file)))))
 

@@ -124,6 +124,11 @@ Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
+(defcustom eshell-default-target-is-dot nil
+  "*If non-nil, the default destination for cp, mv or ln is `.'."
+  :type 'boolean
+  :group 'eshell-unix)
+
 (defcustom eshell-du-prefer-over-ange nil
   "*Use Eshell's du in ange-ftp remote directories.
 Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
@@ -140,7 +145,12 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (when (eshell-using-module 'eshell-cmpl)
     (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
-	      'eshell-complete-host-reference nil t)))
+	      'eshell-complete-host-reference nil t))
+  (make-local-variable 'eshell-complex-commands)
+  (setq eshell-complex-commands
+	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
+		  "cat" "time" "cp" "mv" "make" "du" "diff")
+		eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
 (defalias 'eshell/basename 'file-name-nondirectory)
@@ -157,6 +167,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (funcall 'man (apply 'eshell-flatten-and-stringify args)))
 
 (defun eshell-remove-entries (path files &optional top-level)
+  "From PATH, remove all of the given FILES, perhaps interactively."
   (while files
     (if (string-match "\\`\\.\\.?\\'"
 		      (file-name-nondirectory (car files)))
@@ -302,8 +313,6 @@ Remove the DIRECTORY(ies), if they are empty.")
 
 (defun eshell-shuffle-files (command action files target func deep &rest args)
   "Shuffle around some filesystem entries, using FUNC to do the work."
-  (if (null target)
-      (error "%s: missing destination file" command))
   (let ((attr-target (eshell-file-attributes target))
 	(is-dir (or (file-directory-p target)
 		    (and preview (not eshell-warn-dot-directories))))
@@ -417,30 +426,35 @@ Remove the DIRECTORY(ies), if they are empty.")
 	    (format "tar %s %s" tar-args archive) args))))
 
 ;; this is to avoid duplicating code...
-(defmacro eshell-mvcp-template
-  (command action func query-var force-var &optional preserve)
-  `(if (and (string-match eshell-tar-regexp (car (last args)))
-	    (or (> (length args) 2)
-		(and (file-directory-p (car args))
-		     (or (not no-dereference)
-			 (not (file-symlink-p (car args)))))))
-       (eshell-shorthand-tar-command ,command args)
-     (let (target ange-cache)
-       (if (> (length args) 1)
-	   (progn
-	     (setq target (car (last args)))
-	     (setcdr (last args 2) nil))
-	 (setq args nil))
-       (eshell-shuffle-files
-	,command ,action args target ,func nil
-	,@(append
-	   `((if (and (or interactive
-			  ,query-var)
-		      (not force))
-		 1 (or force ,force-var)))
-	   (if preserve
-	       (list preserve)))))
-     nil))
+(defmacro eshell-mvcpln-template (command action func query-var
+					  force-var &optional preserve)
+  `(let ((len (length args)))
+     (if (or (= len 0)
+	     (and (= len 1) (null eshell-default-target-is-dot)))
+	 (error "%s: missing destination file or directory" ,command))
+     (if (= len 1)
+	 (nconc args '(".")))
+     (setq args (eshell-stringify-list (eshell-flatten-list args)))
+     (if (and ,(not (equal command "ln"))
+	      (string-match eshell-tar-regexp (car (last args)))
+	      (or (> (length args) 2)
+		  (and (file-directory-p (car args))
+		       (or (not no-dereference)
+			   (not (file-symlink-p (car args)))))))
+	 (eshell-shorthand-tar-command ,command args)
+       (let ((target (car (last args)))
+	     ange-cache)
+	 (setcdr (last args 2) nil)
+	 (eshell-shuffle-files
+	  ,command ,action args target ,func nil
+	  ,@(append
+	     `((if (and (or interactive
+			    ,query-var)
+			(not force))
+		   1 (or force ,force-var)))
+	     (if preserve
+		 (list preserve)))))
+       nil)))
 
 (defun eshell/mv (&rest args)
   "Implementation of mv in Lisp."
@@ -455,6 +469,7 @@ Remove the DIRECTORY(ies), if they are empty.")
      (?v "verbose" nil verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
+     :preserve-args
      :external "mv"
      :show-usage
      :usage "[OPTION]... SOURCE DEST
@@ -462,9 +477,9 @@ Remove the DIRECTORY(ies), if they are empty.")
 Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 \[OPTION] DIRECTORY...")
    (let ((no-dereference t))
-     (eshell-mvcp-template "mv" "moving" 'rename-file
-			   eshell-mv-interactive-query
-			   eshell-mv-overwrite-files))))
+     (eshell-mvcpln-template "mv" "moving" 'rename-file
+			     eshell-mv-interactive-query
+			     eshell-mv-overwrite-files))))
 
 (defun eshell/cp (&rest args)
   "Implementation of cp in Lisp."
@@ -487,6 +502,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
      (?v "verbose" nil verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
+     :preserve-args
      :external "cp"
      :show-usage
      :usage "[OPTION]... SOURCE DEST
@@ -494,9 +510,9 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
        (setq preserve t no-dereference t recursive t))
-   (eshell-mvcp-template "cp" "copying" 'copy-file
-			 eshell-cp-interactive-query
-			 eshell-cp-overwrite-files preserve)))
+   (eshell-mvcpln-template "cp" "copying" 'copy-file
+			   eshell-cp-interactive-query
+			   eshell-cp-overwrite-files preserve)))
 
 (defun eshell/ln (&rest args)
   "Implementation of ln in Lisp."
@@ -505,11 +521,13 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    '((?h "help" nil nil "show this usage screen")
      (?s "symbolic" nil symbolic
 	 "make symbolic links instead of hard links")
-     (?i "interactive" nil interactive "request confirmation if target already exists")
+     (?i "interactive" nil interactive
+	 "request confirmation if target already exists")
      (?f "force" nil force "remove existing destinations, never prompt")
      (?n "preview" nil preview
 	 "don't change anything on disk")
      (?v "verbose" nil verbose "explain what is being done")
+     :preserve-args
      :external "ln"
      :show-usage
      :usage "[OPTION]... TARGET [LINK_NAME]
@@ -518,27 +536,19 @@ Create a link to the specified TARGET with optional LINK_NAME.  If there is
 more than one TARGET, the last argument must be a directory;  create links
 in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
 with '--symbolic'.  When creating hard links, each TARGET must exist.")
-   (let (target no-dereference ange-cache)
-     (if (> (length args) 1)
-	 (progn
-	   (setq target (car (last args)))
-	   (setcdr (last args 2) nil))
-       (setq args nil))
-     (eshell-shuffle-files "ln" "linking" args target
-			   (if symbolic
-			       'make-symbolic-link
-			     'add-name-to-file) nil
-			   (if (and (or interactive
-					eshell-ln-interactive-query)
-				    (not force))
-			       1 (or force eshell-ln-overwrite-files))))
-   nil))
+   (let ((no-dereference t))
+     (eshell-mvcpln-template "ln" "linking"
+			     (if symbolic
+				 'make-symbolic-link
+			       'add-name-to-file)
+			     eshell-ln-interactive-query
+			     eshell-ln-overwrite-files))))
 
 (defun eshell/cat (&rest args)
   "Implementation of cat in Lisp.
 If in a pipeline, or the file is not a regular file, directory or
 symlink, then revert to the system's definition of cat."
-  (setq args (eshell-flatten-list args))
+  (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (if (or eshell-in-pipeline-p
 	  (catch 'special
 	    (eshell-for arg args
@@ -593,7 +603,8 @@ Concatenate FILE(s), or standard input, to standard output.")
 			 (list 'quote (eshell-copy-environment))))))
 	(compile (concat "make " (eshell-flatten-and-stringify args))))
     (throw 'eshell-replace-command
-	   (eshell-parse-command "*make" (eshell-flatten-list args)))))
+	   (eshell-parse-command "*make" (eshell-stringify-list
+					  (eshell-flatten-list args))))))
 
 (defun eshell-occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
@@ -627,7 +638,8 @@ available..."
 	      (default-directory default-dir))
 	  (erase-buffer)
 	  (occur-mode)
-	  (let ((files (eshell-flatten-list (cdr args)))
+	  (let ((files (eshell-stringify-list
+			(eshell-flatten-list (cdr args))))
 		(inhibit-redisplay t)
 		string)
 	    (when (car args)
@@ -670,14 +682,16 @@ external command."
 		      (not eshell-in-subcommand-p))))
 	(throw 'eshell-replace-command
 	       (eshell-parse-command (concat "*" command)
-				     (eshell-flatten-list args)))
+				     (eshell-stringify-list
+				      (eshell-flatten-list args))))
       (let* ((compilation-process-setup-function
 	      (list 'lambda nil
 		    (list 'setq 'process-environment
 			  (list 'quote (eshell-copy-environment)))))
 	     (args (mapconcat 'identity
 			      (mapcar 'shell-quote-argument
-				      (eshell-flatten-list args))
+				      (eshell-stringify-list
+				       (eshell-flatten-list args)))
 			      " "))
 	     (cmd (progn
 		    (set-text-properties 0 (length args)
@@ -797,7 +811,7 @@ external command."
 (defun eshell/du (&rest args)
   "Implementation of \"du\" in Lisp, passing ARGS."
   (setq args (if args
-		 (eshell-flatten-list args)
+		 (eshell-stringify-list (eshell-flatten-list args))
 	       '(".")))
   (let ((ext-du (eshell-search-path "du")))
     (if (and ext-du
@@ -909,7 +923,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
-  (let ((orig-args (eshell-flatten-list args)))
+  (let ((orig-args (eshell-stringify-list (eshell-flatten-list args))))
     (if (or eshell-plain-diff-behavior
 	    (not (and (eshell-interactive-output-p)
 		      (not eshell-in-pipeline-p)
@@ -951,7 +965,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (and (stringp (car args))
 	       (string-match "^-" (car args))))
       (throw 'eshell-replace-command
-	     (eshell-parse-command "*locate" (eshell-flatten-list args)))
+	     (eshell-parse-command "*locate" (eshell-stringify-list
+					      (eshell-flatten-list args))))
     (save-selected-window
       (let ((locate-history-list (list (car args))))
 	(locate-with-filter (car args) (cadr args))))))

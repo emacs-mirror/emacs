@@ -1986,7 +1986,7 @@ The word checked is the word at the mouse position."
 		      menu))))
 
 ;*---------------------------------------------------------------------*/
-;*    Some example functions for real autocrrecting                    */
+;*    Some example functions for real autocrrecting                   xb */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-maybe-correct-transposition (beg end poss)
   "Apply 'transpose-chars' to all points in the region BEG to END and
@@ -1994,17 +1994,24 @@ return t if any those result in a possible replacement suggested by ispell
 in POSS. Otherwise the change is undone.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
-  (when (consp poss)    
+  (when (consp poss)
     (catch 'done
-      (save-excursion
-        (goto-char (1+ beg))
-        (while (< (point) end)
-          (transpose-chars 1)
-          (when (member (buffer-substring beg end) (nth 2 poss))
-            (throw 'done t))
-          (transpose-chars -1)
-          (forward-char))
-        nil))))
+      (let ((str (buffer-substring beg end))
+	    (i 0) (len (- end beg)) tmp)
+	(while (< (1+ i) len)
+	  (setq tmp (aref str i))
+	  (aset str i (aref str (1+ i)))
+	  (aset str (1+ i) tmp)
+          (when (member str (nth 2 poss))
+	    (save-excursion
+	      (goto-char (+ beg i 1))
+	      (transpose-chars 1))
+	    (throw 'done t))
+	  (setq tmp (aref str i))
+	  (aset str i (aref str (1+ i)))
+	  (aset str (1+ i) tmp)
+	  (setq i (1+ i))))
+      nil)))
 
 (defun flyspell-maybe-correct-doubling (beg end poss)
   "For each doubled charachter in the region BEG to END, remove one and
@@ -2014,21 +2021,18 @@ in POSS. Otherwise the change is undone.
 This function is meant to be added to 'flyspell-incorrect-hook'."
   (when (consp poss) 
     (catch 'done
-      (save-excursion
-        (let ((last (char-after beg))
-              this)
-          (goto-char (1+ beg))          
-          (while (< (point) end)
-            (setq this (char-after))
-            (if (not (char-equal this last))
-                (forward-char)
-              (delete-char 1)
-              (when (member (buffer-substring beg (1- end)) (nth 2 poss))
-                (throw 'done t))
-              ;; undo
-              (insert-char this 1))            
-            (setq last this))
-          nil)))))
+      (let ((str (buffer-substring beg end))
+	    (i 0) (len (- end beg)))
+	(while (< (1+ i) len)
+	  (when (and (= (aref str i) (aref str (1+ i)))
+		     (member (concat (substring str 0 (1+ i))
+				     (substring str (+ i 2)))
+			     (nth 2 poss)))
+	    (goto-char (+ beg i))
+	    (delete-char 1)
+	    (throw 'done t))
+	  (setq i (1+ i))))
+      nil)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-already-abbrevp ...                                     */

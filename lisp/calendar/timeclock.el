@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.2
+;; Version: 2.3
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
@@ -222,8 +222,7 @@ in the modeline.  See the variable `timeclock-modeline-display'."
 
 (defvar timeclock-last-event nil
   "A list containing the last event that was recorded.
-The format of this list is (CODE TIME PROJECT).  PROJECT will be
-non-nil only if CODE is \"o\" or \"O\".")
+The format of this list is (CODE TIME PROJECT).")
 
 (defvar timeclock-last-event-workday nil
   "The number of seconds in the workday of `timeclock-last-event'.")
@@ -455,7 +454,7 @@ as with time remaining, where negative time really means overtime)."
 	    (truncate (/ (abs seconds) 60 60))
 	    (% (truncate (/ (abs seconds) 60)) 60))))
 
-(defun timeclock-workday-remaining (&optional today-only)
+(defsubst timeclock-workday-remaining (&optional today-only)
   "Return a the number of seconds until the workday is complete.
 The amount returned is relative to the value of `timeclock-workday'.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
@@ -463,7 +462,7 @@ the time worked today, and not to past time.  This argument only makes
 a difference if `timeclock-relative' is non-nil."
   (- (timeclock-find-discrep today-only)))
 
-(defun timeclock-currently-in-p ()
+(defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
   (equal (car timeclock-last-event) "i"))
 
@@ -483,7 +482,7 @@ See `timeclock-relative' for more information about the meaning of
 	(message string)
       string)))
 
-(defun timeclock-workday-elapsed (&optional relative)
+(defsubst timeclock-workday-elapsed (&optional relative)
   "Return a the number of seconds worked so far today.
 If RELATIVE is non-nil, the amount returned will be relative to past
 time worked.  The default is to return only the time that has elapsed
@@ -505,7 +504,7 @@ non-nil, the amount returned will be relative to past time worked."
 	(message string)
       string)))
 
-(defun timeclock-when-to-leave (&optional today-only)
+(defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing at when the workday ends today.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time.  This argument only makes
@@ -578,9 +577,8 @@ non-nil."
 (defun timeclock-log (code &optional project)
   "Log the event CODE to the timeclock log, at the time of call.
 If PROJECT is a string, it represents the project which the event is
-being logged for.  Normally only \"out\" events specify a project."
-  (save-excursion
-    (set-buffer (find-file-noselect timeclock-file))
+being logged for.  Normally only \"in\" events specify a project."
+  (with-current-buffer (find-file-noselect timeclock-file)
     (goto-char (point-max))
     (if (not (bolp))
 	(insert "\n"))
@@ -603,42 +601,40 @@ being logged for.  Normally only \"out\" events specify a project."
 		   timeclock-last-period)))
       (setq timeclock-last-event (list code now project)))
     (save-buffer)
-    (run-hooks 'timeclock-event-hook)))
+    (run-hooks 'timeclock-event-hook)
+    (kill-buffer (current-buffer))))
 
-(defun timeclock-read-moment ()
+(defvar timeclock-moment-regexp
+  (concat "\\([bhioO]\\)\\s-+"
+	  "\\([0-9]+\\)/\\([0-9]+\\)/\\([0-9]+\\)\\s-+"
+	  "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)[ \t]*" "\\([^\n]*\\)"))
+
+(defsubst timeclock-read-moment ()
   "Read the moment under point from the timelog."
-  (save-excursion
-    (beginning-of-line)
-    (let ((eol (save-excursion (end-of-line) (point))))
-      (if (re-search-forward
-	   (concat "^\\(.\\)\\s-+"
-		   "\\([0-9]+\\)/\\([0-9]+\\)/\\([0-9]+\\)\\s-+"
-		   "\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)\\s-*"
-		   "\\(.*\\)") eol t)
-	  (let ((code (match-string 1))
-		(year (string-to-number (match-string 2)))
-		(mon  (string-to-number (match-string 3)))
-		(mday (string-to-number (match-string 4)))
-		(hour (string-to-number (match-string 5)))
-		(min  (string-to-number (match-string 6)))
-		(sec  (string-to-number (match-string 7)))
-		(project (match-string 8)))
-	    (list code (encode-time sec min hour mday mon year)
-		  project))))))
+  (if (looking-at timeclock-moment-regexp)
+      (let ((code (match-string 1))
+	    (year (string-to-number (match-string 2)))
+	    (mon  (string-to-number (match-string 3)))
+	    (mday (string-to-number (match-string 4)))
+	    (hour (string-to-number (match-string 5)))
+	    (min  (string-to-number (match-string 6)))
+	    (sec  (string-to-number (match-string 7)))
+	    (project (match-string 8)))
+	(list code (encode-time sec min hour mday mon year) project))))
 
-(defun timeclock-time-to-seconds (time)
+(defsubst timeclock-time-to-seconds (time)
   "Convert TIME to a floating point number."
   (+ (* (car time) 65536.0)
      (cadr time)
      (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
 
-(defun timeclock-seconds-to-time (seconds)
+(defsubst timeclock-seconds-to-time (seconds)
   "Convert SECONDS (a floating point number) to an Emacs time structure."
   (list (floor seconds 65536)
 	(floor (mod seconds 65536))
 	(floor (* (- seconds (ffloor seconds)) 1000000))))
 
-(defun timeclock-time-to-date (time)
+(defsubst timeclock-time-to-date (time)
   "Convert the TIME value to a textual date string."
   (format-time-string "%Y/%m/%d" time))
 
@@ -655,49 +651,376 @@ This is only provided for coherency when used by
 	  (cadr timeclock-last-event)))
     timeclock-last-period))
 
+(defsubst timeclock-entry-length (entry)
+  (- (timeclock-time-to-seconds (cadr entry))
+     (timeclock-time-to-seconds (car entry))))
+
+(defsubst timeclock-entry-begin (entry)
+  (car entry))
+
+(defsubst timeclock-entry-end (entry)
+  (cadr entry))
+
+(defsubst timeclock-entry-project (entry)
+  (nth 2 entry))
+
+(defsubst timeclock-entry-comment (entry)
+  (nth 3 entry))
+
+
+(defsubst timeclock-entry-list-length (entry-list)
+  (let ((length 0))
+    (while entry-list
+      (setq length (+ length (timeclock-entry-length (car entry-list))))
+      (setq entry-list (cdr entry-list)))
+    length))
+
+(defsubst timeclock-entry-list-begin (entry-list)
+  (timeclock-entry-begin (car entry-list)))
+
+(defsubst timeclock-entry-list-end (entry-list)
+  (timeclock-entry-end (car (last entry-list))))
+
+(defsubst timeclock-entry-list-span (entry-list)
+  (- (timeclock-time-to-seconds (timeclock-entry-list-end entry-list))
+     (timeclock-time-to-seconds (timeclock-entry-list-begin entry-list))))
+
+(defsubst timeclock-entry-list-break (entry-list)
+  (- (timeclock-entry-list-span entry-list)
+     (timeclock-entry-list-length entry-list)))
+
+(defsubst timeclock-entry-list-projects (entry-list)
+  (let (projects)
+    (while entry-list
+      (let ((project (timeclock-entry-project (car entry-list))))
+	(if projects
+	    (add-to-list 'projects project)
+	  (setq projects (list project))))
+      (setq entry-list (cdr entry-list)))
+    projects))
+
+
+(defsubst timeclock-day-required (day)
+  (car day))
+
+(defsubst timeclock-day-length (day)
+  (timeclock-entry-list-length (cdr day)))
+
+(defsubst timeclock-day-debt (day)
+  (- (timeclock-day-required day)
+     (timeclock-day-length day)))
+
+(defsubst timeclock-day-begin (day)
+  (timeclock-entry-list-begin (cdr day)))
+
+(defsubst timeclock-day-end (day)
+  (timeclock-entry-list-end (cdr day)))
+
+(defsubst timeclock-day-span (day)
+  (timeclock-entry-list-span (cdr day)))
+
+(defsubst timeclock-day-break (day)
+  (timeclock-entry-list-break (cdr day)))
+
+(defsubst timeclock-day-projects (day)
+  (timeclock-entry-list-projects (cdr day)))
+
+(defmacro timeclock-day-list-template (func)
+  `(let ((length 0))
+     (while day-list
+       (setq length (+ length (,(eval func) (car day-list))))
+       (setq day-list (cdr day-list)))
+     length))
+
+(defun timeclock-day-list-required (day-list)
+  (timeclock-day-list-template 'timeclock-day-required))
+
+(defun timeclock-day-list-length (day-list)
+  (timeclock-day-list-template 'timeclock-day-length))
+
+(defun timeclock-day-list-debt (day-list)
+  (timeclock-day-list-template 'timeclock-day-debt))
+
+(defsubst timeclock-day-list-begin (day-list)
+  (timeclock-day-begin (car day-list)))
+
+(defsubst timeclock-day-list-end (day-list)
+  (timeclock-day-end (car (last day-list))))
+
+(defun timeclock-day-list-span (day-list)
+  (timeclock-day-list-template 'timeclock-day-span))
+
+(defun timeclock-day-list-break (day-list)
+  (timeclock-day-list-template 'timeclock-day-break))
+
+(defun timeclock-day-list-projects (day-list)
+  (let (projects)
+    (while day-list
+      (let ((projs (timeclock-day-projects (car day-list))))
+	(while projs
+	  (if projects
+	      (add-to-list 'projects (car projs))
+	    (setq projects (list (car projs))))
+	  (setq projs (cdr projs))))
+      (setq day-list (cdr day-list)))
+    projects))
+
+
+(defsubst timeclock-current-debt (&optional log-data)
+  (nth 0 (or log-data (timeclock-log-data))))
+
+(defsubst timeclock-day-alist (&optional log-data)
+  (nth 1 (or log-data (timeclock-log-data))))
+
+(defun timeclock-day-list (&optional log-data)
+  (let ((alist (timeclock-day-alist log-data))
+	day-list)
+    (while alist
+      (setq day-list (cons (cdar alist) day-list)
+	    alist (cdr alist)))
+    day-list))
+
+(defsubst timeclock-project-alist (&optional log-data)
+  (nth 2 (or log-data (timeclock-log-data))))
+
+
+(defun timeclock-log-data (&optional recent-only filename)
+  "Return the contents of the timelog file, in a useful format.
+A timelog contains data in the form of a single entry per line.
+Each entry has the form:
+
+  CODE YYYY/MM/DD HH:MM:SS [COMMENT]
+
+CODE is one of: b, h, i, o or O.  COMMENT is optional when the code is
+i, o or O.  The meanings of the codes are:
+
+  b  Set the current time balance, or \"time debt\".  Useful when
+     archiving old log data, when a debt must be carried forward.
+     The COMMENT here is the number of seconds of debt.
+
+  h  Set the required working time for the given day.  This must
+     be the first entry for that day.  The COMMENT in this case is
+     the number of hours that must be worked.  Floating point
+     amounts are allowed.
+
+  i  Clock in.  The COMMENT in this case should be the name of the
+     project worked on.
+
+  o  Clock out.  COMMENT is unnecessary, but can be used to provide
+     a description of how the period went, for example.
+
+  O  Final clock out.  Whatever project was being worked on, it is
+     now finished.  Useful for creating summary reports.
+
+When this function is called, it will return a data structure with the
+following format:
+
+  (DEBT ENTRIES-BY-DAY ENTRIES-BY-PROJECT)
+
+DEBT is a floating point number representing the number of seconds
+\"owed\" before any work was done.  For a new file (one without a 'b'
+entry), this is always zero.
+
+The two entries lists have similar formats.  They are both alists,
+where the CAR is the index, and the CDR is a list of time entries.
+For ENTRIES-BY-DAY, the CAR is a textual date string, of the form
+YYYY/MM/DD.  For ENTRIES-BY-PROJECT, it is the name of the project
+worked on, or t for the default project.
+
+The CDR for ENTRIES-BY-DAY is slightly different than for
+ENTRIES-BY-PROJECT.  It has the following form:
+
+  (DAY-LENGTH TIME-ENTRIES...)
+
+For ENTRIES-BY-PROJECT, there is no DAY-LENGTH member.  It is simply a
+list of TIME-ENTRIES.  Note that if DAY-LENGTH is nil, it means
+whatever is the default should be used.
+
+A TIME-ENTRY is a recorded time interval.  It has the following format
+\(although generally one does not have to manipulate these entries
+directly; see below):
+
+  (BEGIN-TIME END-TIME PROJECT [COMMENT] [FINAL-P])
+
+Anyway, suffice it to say there are a lot of structures.  Typically
+the user is expected to manipulate to the day(s) or project(s) that he
+or she wants, at which point the following helper functions may be
+used:
+
+  timeclock-day-required
+  timeclock-day-length
+  timeclock-day-debt
+  timeclock-day-begin
+  timeclock-day-end
+  timeclock-day-span
+  timeclock-day-break
+  timeclock-day-projects
+
+  timeclock-day-list-required
+  timeclock-day-list-length
+  timeclock-day-list-debt
+  timeclock-day-list-begin
+  timeclock-day-list-end
+  timeclock-day-list-span
+  timeclock-day-list-break
+  timeclock-day-list-projects
+
+  timeclock-entry-length
+  timeclock-entry-begin
+  timeclock-entry-end
+  timeclock-entry-project
+  timeclock-entry-comment
+
+  timeclock-entry-list-length
+  timeclock-entry-list-begin
+  timeclock-entry-list-end
+  timeclock-entry-list-span
+  timeclock-entry-list-break
+  timeclock-entry-list-projects
+
+A few comments should make the use of the above functions obvious:
+
+  `required' is the amount of time that must be spent during a day, or
+  sequence of days, in order to have no debt.
+
+  `length' is the actual amount of time that was spent.
+
+  `debt' is the difference between required time and length.  A
+  negative debt signifies overtime.
+
+  `begin' is the earliest moment at which work began.
+
+  `end' is the final moment work was done.
+
+  `span' is the difference between begin and end.
+
+  `break' is the difference between span and length.
+
+  `project' is the project that was worked on, and `projects' is a
+  list of all the projects that were worked on during a given period.
+
+  `comment', where it applies, could mean anything.
+
+There are a few more functions available, for locating day and entry
+lists:
+
+  timeclock-day-alist LOG-DATA
+  timeclock-project-alist LOG-DATA
+  timeclock-current-debt LOG-DATA
+
+See the documentation for the given function if more info is needed."
+  (let* ((log-data (list 0.0 nil nil))
+	 (now (current-time))
+	 (todays-date (timeclock-time-to-date now))
+	 last-date-limited last-date-seconds last-date
+	 (line 0) last beg day entry)
+    (with-temp-buffer
+      (insert-file-contents (or filename timeclock-file))
+      (when recent-only
+	(goto-char (point-max))
+	(unless (re-search-backward "^b\\s-+" nil t)
+	  (goto-char (point-min))))
+      (while (or (setq event (timeclock-read-moment))
+		 (and beg (not last)
+		      (setq last t event (list "o" now))))
+	(setq line (1+ line))
+	(cond ((equal (car event) "b")
+	       (setcar log-data (string-to-number (nth 2 event))))
+	      ((equal (car event) "h")
+	       (setq last-date-limited (timeclock-time-to-date (cadr event))
+		     last-date-seconds (* (string-to-number (nth 2 event))
+					  3600.0)))
+	      ((equal (car event) "i")
+	       (if beg
+		   (error "Error in format of timelog file, line %d" line)
+		 (setq beg t))
+	       (setq entry (list (cadr event) nil
+				 (and (> (length (nth 2 event)) 0)
+				      (nth 2 event))))
+	       (let ((date (timeclock-time-to-date (cadr event))))
+		 (if (and last-date
+			  (not (equal date last-date)))
+		   (setcar (cdr log-data)
+			   (cons (cons last-date day)
+				 (cadr log-data)))
+		   (setq day (list (and last-date-limited
+					last-date-seconds))))
+		 (setq last-date date
+		       last-date-limited nil)))
+	      ((equal (downcase (car event)) "o")
+	       (if (not beg)
+		   (error "Error in format of timelog file, line %d" line)
+		 (setq beg nil))
+	       (setcar (cdr entry) (cadr event))
+	       (let ((desc (and (> (length (nth 2 event)) 0)
+				(nth 2 event))))
+		 (if desc
+		     (nconc entry (list (nth 2 event))))
+		 (if (equal (car event) "O")
+		     (nconc entry (if desc
+				      (list t)
+				    (list nil t))))
+		 (nconc day (list entry))
+		 (setq desc (nth 2 entry))
+		 (let ((proj (assoc desc (nth 2 log-data))))
+		   (if (not proj)
+		       (setcar (cddr log-data)
+			       (cons (cons desc (list entry))
+				     (car (cddr log-data))))
+		     (nconc (cdr proj) (list entry)))))))
+	(forward-line))
+      (if day
+	  (setcar (cdr log-data)
+		  (cons (cons last-date day)
+			(cadr log-data))))
+      log-data)))
+
 (defun timeclock-find-discrep (&optional today-only)
   "Find overall discrepancy from `timeclock-workday' (in seconds).
 If TODAY-ONLY is non-nil, the discrepancy will be not be relative, and
 will correspond only to the amount of time elapsed today.  This is
 identical to what would be return if `timeclock-relative' were nil."
-  (let* ((now (current-time)) (first t)
+  ;; This is not implemented in terms of the functions above, because
+  ;; it's a bit wasteful to read all of that data in, just to throw
+  ;; away more than 90% of the information afterwards.
+  (let* ((now (current-time))
 	 (todays-date (timeclock-time-to-date now))
-	 accum event beg last-date
-	 last-date-limited last-date-seconds avg)
+	 (first t) (accum 0)
+	 event beg last-date avg
+	 last-date-limited last-date-seconds)
     (unless timeclock-discrepancy
       (setq timeclock-project-list nil
 	    timeclock-last-project nil
-	    timeclock-reason-list nil)
-      (save-excursion
-	(set-buffer (find-file-noselect timeclock-file))
-	(goto-char (point-min))
-	(setq accum 0)
-	(setq timeclock-elapsed 0)
+	    timeclock-reason-list nil
+	    timeclock-elapsed 0)
+      (with-temp-buffer
+	(insert-file-contents timeclock-file)
+	(goto-char (point-max))
+	(unless (re-search-backward "^b\\s-+" nil t)
+	  (goto-char (point-min)))
 	(while (setq event (timeclock-read-moment))
-	  (cond ((equal (car event) "h")
+	  (cond ((equal (car event) "b")
+		 (setq accum (string-to-number (nth 2 event))))
+		((equal (car event) "h")
 		 (setq last-date-limited
 		       (timeclock-time-to-date (cadr event))
 		       last-date-seconds
-		       (* (string-to-number (nth 2 event)) 3600)))
+		       (* (string-to-number (nth 2 event)) 3600.0)))
 		((equal (car event) "i")
 		 (when (and (nth 2 event)
 			    (> (length (nth 2 event)) 0))
 		   (add-to-list 'timeclock-project-list (nth 2 event))
 		   (setq timeclock-last-project (nth 2 event)))
 		 (let ((date (timeclock-time-to-date (cadr event))))
-		   (if (and last-date
-			    timeclock-relative
-			    (not (equal date last-date)))
-		       (setq accum (- accum
-				      (if last-date-limited
-					  last-date-seconds
-					timeclock-workday)))
-		     (unless (or last-date (not first))
+		   (if (and timeclock-relative
+			    (if last-date
+				(not (equal date last-date))
+			      first))
 		       (setq first nil
 			     accum (- accum
 				      (if last-date-limited
 					  last-date-seconds
-					timeclock-workday)))))
+					timeclock-workday))))
 		   (setq last-date date
 			 last-date-limited nil)
 		   (if beg
@@ -712,8 +1035,7 @@ identical to what would be return if `timeclock-relative' were nil."
 		     (if (not beg)
 			 (error "Error in format of timelog file!")
 		       (setq timeclock-last-period
-			     (- (timeclock-time-to-seconds (cadr event))
-				beg)
+			     (- (timeclock-time-to-seconds (cadr event)) beg)
 			     accum (+ timeclock-last-period accum)
 			     beg nil)))
 		 (if (equal last-date todays-date)

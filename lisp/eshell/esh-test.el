@@ -173,12 +173,12 @@
 		      system-configuration
 		      (cond ((featurep 'motif) ", Motif")
 			    ((featurep 'x-toolkit) ", X toolkit")
-			    (t ""))) "\n")
+			    (t ""))))
       (switch-to-buffer test-buffer)
       (delete-other-windows))
-    (eshell-for funcname
-	(sort (all-completions "eshell-test--" obarray 'functionp)
-	      'string-lessp)
+    (eshell-for funcname (sort (all-completions "eshell-test--"
+						obarray 'functionp)
+			       'string-lessp)
       (with-current-buffer test-buffer
 	(insert "\n"))
       (funcall (intern-soft funcname)))

@@ -57,6 +57,12 @@ properties to colorize its output based on the setting of
   :type 'hook
   :group 'eshell-ls)
 
+(defcustom eshell-ls-initial-args nil
+  "*If non-nil, this list of args is included before any call to `ls'.
+This is useful for enabling human-readable format (-h), for example."
+  :type '(repeat :tag "Arguments" string)
+  :group 'eshell-ls)
+
 (defcustom eshell-ls-use-in-dired nil
   "*If non-nil, use `eshell-ls' to read directories in dired."
   :set (lambda (symbol value)
@@ -77,9 +83,16 @@ properties to colorize its output based on the setting of
   :type 'integer
   :group 'eshell-ls)
 
-(defcustom eshell-ls-exclude-regexp "\\`\\."
+(defcustom eshell-ls-exclude-regexp nil
   "*Unless -a is specified, files matching this regexp will not be shown."
   :type 'regexp
+  :group 'eshell-ls)
+
+(defcustom eshell-ls-exclude-hidden t
+  "*Unless -a is specified, files beginning with . will not be shown.
+Using this boolean, instead of `eshell-ls-exclude-regexp', is both
+faster and conserves more memory."
+  :type 'boolean
   :group 'eshell-ls)
 
 (defcustom eshell-ls-use-colors t
@@ -196,13 +209,13 @@ This is really just for efficiency, to avoid having to stat the file
 yet again."
   `(if (numberp (nth 2 ,attrs))
        (if (= (user-uid) (nth 2 ,attrs))
- 	   (not (eq (aref (nth 8 ,attrs) ,index) ?-))
- 	 (,(eval func) ,file))
+	   (not (eq (aref (nth 8 ,attrs) ,index) ?-))
+	 (,(eval func) ,file))
      (not (eq (aref (nth 8 ,attrs)
- 		    (+ ,index (if (member (nth 2 ,attrs)
- 					  (eshell-current-ange-uids))
- 				  0 6)))
- 	      ?-))))
+		    (+ ,index (if (member (nth 2 ,attrs)
+					  (eshell-current-ange-uids))
+				  0 6)))
+	      ?-))))
 
 (defcustom eshell-ls-highlight-alist nil
   "*This alist correlates test functions to color.
@@ -248,7 +261,8 @@ instead."
 			 (symbol-value 'font-lock-buffers)))))
 	(let ((insert-func 'insert)
 	      (error-func 'insert)
-	      (flush-func 'ignore))
+	      (flush-func 'ignore)
+	      eshell-ls-initial-args)
 	  (eshell-do-ls (append switches (list file))))))))
 
 (defsubst eshell/ls (&rest args)
@@ -281,7 +295,9 @@ instead."
   (funcall flush-func -1)
   ;; process the command arguments, and begin listing files
   (eshell-eval-using-options
-   "ls" args
+   "ls" (if eshell-ls-initial-args
+	    (list eshell-ls-initial-args args)
+	  args)
    `((?a "all" nil show-all
 	 "show all files in directory")
      (?c nil by-ctime sort-method
@@ -343,11 +359,11 @@ Sort entries alphabetically across.")
 	 (error (concat "-I option requires that `eshell-glob'"
 			" be a member of `eshell-modules-list'")))
        (set-text-properties 0 (length ignore-pattern) nil ignore-pattern)
-       (if eshell-ls-exclude-regexp
-	   (setq eshell-ls-exclude-regexp
+       (setq eshell-ls-exclude-regexp
+	     (if eshell-ls-exclude-regexp
 		 (concat "\\(" eshell-ls-exclude-regexp "\\|"
-			 (eshell-glob-regexp ignore-pattern) "\\)"))
-	 (setq eshell-ls-exclude-regexp (eshell-glob-regexp ignore-pattern))))
+			 (eshell-glob-regexp ignore-pattern) "\\)")
+	       (eshell-glob-regexp ignore-pattern))))
      ;; list the files!
      (eshell-ls-entries
       (mapcar (function
@@ -356,7 +372,8 @@ Sort entries alphabetically across.")
 				(file-name-absolute-p arg))
 			   (expand-file-name arg)
 			 arg)
-		       (eshell-file-attributes arg)))) args)
+		       (eshell-file-attributes arg))))
+	      args)
       t (expand-file-name default-directory)))
    (funcall flush-func)))
 
@@ -491,12 +508,13 @@ relative to that directory."
 				 (file-relative-name dir root-dir)
 			       (expand-file-name dir)))
 			    (cdr dirinfo))) ":\n"))
-	(let ((entries
-	       (eshell-directory-files-and-attributes dir nil nil t)))
-	  (unless show-all
-	    (while (and entries
-			(string-match eshell-ls-exclude-regexp
-				      (caar entries)))
+	(let ((entries (eshell-directory-files-and-attributes
+			dir nil (and (not show-all)
+				     eshell-ls-exclude-hidden
+				     "\\`[^.]") t)))
+	  (when (and (not show-all) eshell-ls-exclude-regexp)
+	    (while (and entries (string-match eshell-ls-exclude-regexp
+					      (caar entries)))
 	      (setq entries (cdr entries)))
 	    (let ((e entries))
 	      (while (cdr e)
@@ -552,17 +570,13 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
 	     (let ((result
 		    (cond
 		     ((eq sort-method 'by-atime)
-		      (eshell-ls-compare-entries
-		       l r 4 'eshell-time-less-p))
+		      (eshell-ls-compare-entries l r 4 'eshell-time-less-p))
 		     ((eq sort-method 'by-mtime)
-		      (eshell-ls-compare-entries
-		       l r 5 'eshell-time-less-p))
+		      (eshell-ls-compare-entries l r 5 'eshell-time-less-p))
 		     ((eq sort-method 'by-ctime)
-		      (eshell-ls-compare-entries
-		       l r 6 'eshell-time-less-p))
+		      (eshell-ls-compare-entries l r 6 'eshell-time-less-p))
 		     ((eq sort-method 'by-size)
-		      (eshell-ls-compare-entries
-		       l r 7 '<))
+		      (eshell-ls-compare-entries l r 7 '<))
 		     ((eq sort-method 'by-extension)
 		      (let ((lx (file-name-extension
 				 (directory-file-name (car l))))
@@ -699,8 +713,8 @@ need to be printed."
       (if (and need-return (not dir-literal))
 	  (funcall insert-func "\n"))
       (eshell-ls-dir dir show-names
-		     (unless (file-name-absolute-p (car dir))
-		       root-dir) size-width)
+		     (unless (file-name-absolute-p (car dir)) root-dir)
+		     size-width)
       (setq need-return t))))
 
 (defun eshell-ls-find-column-widths (files)

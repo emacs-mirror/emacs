@@ -1,3 +1,7 @@
+2000-10-28  John Wiegley  <johnw@gnu.org>
+
+	* eshell.texi: Further editing, and finished the "bugs" section.
+
 2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cmdargs.texi (Colors X): Document support for -fg, -bg, and -rv

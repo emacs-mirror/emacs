@@ -77,6 +77,11 @@ it to get a real sense of how it works."
 ;;   scroll, etc.
 ;;
 ;; @ Like I said, it's not really comprehensible until you try it! ;)
+;;
+;; One disadvantage of this module is that it increases Eshell's
+;; memory consumption by a factor of two or more.  With small commands
+;; (such as pwd), where the screen is mostly full, consumption can
+;; increase by orders of magnitude.
 
 ;;; User Variables:
 
@@ -154,6 +159,7 @@ The options are `begin', `after' or `end'."
 
 (defvar eshell-smart-displayed nil)
 (defvar eshell-smart-command-done nil)
+(defvar eshell-currently-handling-window nil)
 
 ;;; Functions:
 
@@ -175,19 +181,17 @@ The options are `begin', `after' or `end'."
 
     (make-local-hook 'pre-command-hook)
     (make-local-hook 'after-change-functions)
-    (add-hook 'after-change-functions
-	      'eshell-disable-after-change nil t)
+    (add-hook 'after-change-functions 'eshell-disable-after-change nil t)
 
     (make-local-hook 'eshell-input-filter-functions)
-    (add-hook 'eshell-input-filter-functions
-	      'eshell-smart-display-setup nil t)
+    (add-hook 'eshell-input-filter-functions 'eshell-smart-display-setup nil t)
 
     (make-local-variable 'eshell-smart-command-done)
     (make-local-hook 'eshell-post-command-hook)
-    (add-hook  'eshell-post-command-hook
-	       (function
-		(lambda ()
-		  (setq eshell-smart-command-done t))) t t)
+    (add-hook 'eshell-post-command-hook
+	      (function
+	       (lambda ()
+		 (setq eshell-smart-command-done t))) t t)
 
     (unless (eq eshell-review-quick-commands t)
       (add-hook 'eshell-post-command-hook
@@ -198,10 +202,9 @@ The options are `begin', `after' or `end'."
   (unless eshell-currently-handling-window
     (let ((inhibit-point-motion-hooks t)
 	  (eshell-currently-handling-window t))
-      (save-current-buffer
-	(save-selected-window
-	  (select-window wind)
-	  (eshell-smart-redisplay))))))
+      (save-selected-window
+	(select-window wind)
+	(eshell-smart-redisplay)))))
 
 (defun eshell-refresh-windows (&optional frame)
   "Refresh all visible Eshell buffers."
@@ -210,10 +213,10 @@ The options are `begin', `after' or `end'."
      (function
       (lambda (wind)
 	(with-current-buffer (window-buffer wind)
-	  (when eshell-mode
-	    (let (window-scroll-functions)
-	      (eshell-smart-scroll-window wind (window-start))
-	      (setq affected t))))))
+	  (if eshell-mode
+	      (let (window-scroll-functions)
+		(eshell-smart-scroll-window wind (window-start))
+		(setq affected t))))))
      0 frame)
     (if affected
 	(let (window-scroll-functions)

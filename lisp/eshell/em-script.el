@@ -63,6 +63,9 @@ This includes when running `eshell-command'."
 		  (string= (file-name-nondirectory file)
 			   "eshell")) . eshell/source)
 	      eshell-interpreter-alist))
+  (make-local-variable 'eshell-complex-commands)
+  (setq eshell-complex-commands
+	(append '("source" ".") eshell-complex-commands))
   ;; these two variables are changed through usage, but we don't want
   ;; to ruin it for other modules
   (let (eshell-inside-quote-regexp
