@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.14 1998/03/14 04:47:44 rms Exp done $
+;; $Id: type-break.el,v 1.15 1998/04/20 02:43:44 done Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -76,7 +76,7 @@
 
 ;;;###autoload
 (defcustom type-break-mode nil
-  "*Non-`nil' means typing break mode is enabled.
+  "*Non-nil means typing break mode is enabled.
 See the docstring for the `type-break-mode' command for more information.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
@@ -346,19 +346,19 @@ approximate good values for this.
 There are several variables that affect how or when warning messages about
 imminent typing breaks are displayed.  They include:
 
-        type-break-mode-line-message-mode
-        type-break-time-warning-intervals
-        type-break-keystroke-warning-intervals
-        type-break-warning-repeat
-        type-break-warning-countdown-string
-        type-break-warning-countdown-string-type
+        `type-break-mode-line-message-mode'
+        `type-break-time-warning-intervals'
+        `type-break-keystroke-warning-intervals'
+        `type-break-warning-repeat'
+        `type-break-warning-countdown-string'
+        `type-break-warning-countdown-string-type'
 
 There are several variables that affect if, how, and when queries to begin
 a typing break occur.  They include:
 
-        type-break-query-mode
-        type-break-query-function
-        type-break-query-interval
+        `type-break-query-mode'
+        `type-break-query-function'
+        `type-break-query-interval'
 
 Finally, the command `type-break-statistics' prints interesting things."
   (interactive "P")
@@ -370,7 +370,7 @@ Finally, the command `type-break-statistics' prints interesting things."
     (cond
      ((and already-enabled type-break-mode)
       (and (interactive-p)
-           (message "type-break-mode is already enabled")))
+           (message "Type Break mode is already enabled")))
      (type-break-mode
       (or global-mode-string
           (setq global-mode-string '("")))
@@ -383,13 +383,13 @@ Finally, the command `type-break-statistics' prints interesting things."
       (type-break-mode-line-countdown-or-break nil)
       (type-break-schedule)
       (and (interactive-p)
-           (message "type-break-mode is enabled and reset")))
+           (message "Type Break mode is enabled and reset")))
      (t
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
       (type-break-cancel-schedule)
       (and (interactive-p)
-           (message "type-break-mode is disabled")))))
+           (message "Type Break mode is disabled")))))
   type-break-mode)
 
 (defun type-break-mode-line-message-mode (&optional prefix)
@@ -403,10 +403,10 @@ variable of the same name.
 
 Variables controlling the display of messages in the mode line include:
 
-        mode-line-format
-        global-mode-string
-        type-break-mode-line-break-message
-        type-break-mode-line-warning"
+        `mode-line-format'
+        `global-mode-string'
+        `type-break-mode-line-break-message'
+        `type-break-mode-line-warning'"
   (interactive "P")
   (setq type-break-mode-line-message-mode
         (>= (prefix-numeric-value prefix) 0))
