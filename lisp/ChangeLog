@@ -1,3 +1,48 @@
+2005-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/perl-mode.el (perl-mode-hook): Defvar it.
+	(perl-mode): Use run-mode-hooks.
+
+	* mail/rmail.el (rmail-movemail-program, rmail-pop-password)
+	(rmail-pop-password-required, rmail-remote-password): Doc fixes.
+	(rmail-preserve-inbox, rmail-probe, rmail-autodetect): Doc fix.
+
+	* mail/sendmail.el (sendmail-send-it): Reenaable the code
+	to compute resend-to-address and use it.
+
+	* tar-mode.el (tar-mode): Turn off undo unconditionally.
+
+	* image-mode.el: New file.
+
+	* image.el (insert-sliced-image): Add autoload cookie.
+
+	* font-lock.el (font-lock-lines-before): New user option.
+	(font-lock-after-change-function): Obey it.
+
+	* bindings.el (esc-map): Make M-g a prefix.
+	Bind M-g g and M-g M-g to goto-line.
+
+	* progmodes/perl-mode.el (perl-mode): Use run-mode-hooks.
+
+	* faces.el (face-id): Doc fix.
+
+2005-03-17  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/rmail.el (rmail-unknown-mail-followup-to): New function.
+	(rmail-show-message): Use rmail-unknown-mail-followup-to.
+	(rmail-reply): Recognize Mail-Followup-To and Mail-Reply-To headers.
+
+	* mail/sendmail.el (mail-yank-ignored-headers)
+	(mail-font-lock-keywords, mail-mode-fill-paragraph):
+	Add Mail-Followup-To and Mail-Reply-To headers.
+	(mail-citation-hook): Add autoload cookie.
+	(mail-mode): Doc fix.
+	(mail-mode-map): Bind mail-mail-followup-to and mail-mail-reply-to.
+	(mail-send): Compute Mail-Followup-To and Mail-Reply-To headers.
+	(mail-mode-fill-paragraph): Handle those headers.
+	(mail-mailing-lists): New variable.
+	(mail-mail-reply-to, mail-mail-followup-to): New functions.
+
 2005-03-17  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-fallback): Check for `(car previous)'
@@ -176,7 +221,7 @@
 2005-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (make-coding-system): Set property
-	'coding-system-define-form to nil.
+	coding-system-define-form to nil.
 	(define-coding-system-alias): Likewise.
 
 2005-03-11  Kenichi Handa  <handa@m17n.org>

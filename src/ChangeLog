@@ -1,3 +1,17 @@
+2005-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* dispnew.c (mirror_line_dance): Set W2 according to FRAME_FROM.
+
+	* fileio.c (Fcopy_file, Frename_file, Fadd_name_to_file)
+	(Fmake_symbolic_link): Use G to read the new file name.
+
+	* callint.c (Finteractive): Document G option.
+	(Fcall_interactively): Implement G option.
+
+	* buffer.c (buffer_lisp_local_variables): New function,
+	broken out from Fbuffer_local_variables.
+	(clone_per_buffer_values): Use buffer_lisp_local_variables.
+
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfns.c (xic_create_fontsetname): Add `motif' argument.

@@ -1,5 +1,7 @@
 2005-03-17  Richard M. Stallman  <rms@gnu.org>
 
+	* text.texi (Undo): Document extensible undo entries.
+
 	* searching.texi (String Search, Regexp Search, Regexp Search):
 	Cleanups.
 

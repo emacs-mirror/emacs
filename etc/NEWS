@@ -110,14 +110,23 @@ the existing file's name.  (This is the same convention that shell
 commands cp, mv, and ln follow.)  Thus, M-x copy-file RET ~/foo RET
 /tmp RET copies ~/foo to /tmp/foo.
 
+** M-o now is the prefix key for setting text properties;
+M-o M-o requests refontification.
+
+** M-g is now a prefix key.  M-g g and M-g M-g run goto-line.
+
+** font-lock-lines-before specifies a number of lines before the
+current line that should be refontified when you change the buffer.
+The default value is 1.
+
 ** C-u M-x goto-line now switches to the most recent previous buffer,
 and goes to the specified line in that buffer.
 
 When goto-line starts to execute, if there's a number in the buffer at
 point then it acts as the default argument for the minibuffer.
 
-** Emacs now responds to mouse-clicks on the mode-line, header-line and
-display margin, when run in an xterm.
+** Emacs now responds to mouse-clicks on the mode-line, header-line
+and display margin, when run in an xterm.
 
 ** M-SPC (just-one-space) when given a numeric argument N
 converts whitespace around point to N spaces.
@@ -2533,10 +2542,20 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 * Lisp Changes in Emacs 22.1
 
-** An element of buffer-undo-list can now have the form (FUNNAME .
-ARGS), where FUNNAME is a symbol other than t or nil.  That stands for
-a high-level change that should be undone by evaluating (apply FUNNAME
-ARGS).
++++
+** The new interactive-specification `G' reads a file name
+much like `F', but if the input is a directory name (even defaulted),
+it returns just the directory name.
+
++++
+** An element of buffer-undo-list can now have the form (apply FUNNAME
+. ARGS), where FUNNAME is a symbol other than t or nil.  That stands
+for a high-level change that should be undone by evaluating (apply
+FUNNAME ARGS).
+
+These entries can also have the form (apply DELTA BEG END FUNNAME . ARGS)
+which indicates that the change which took place was limited to the
+range BEG...END and increased the buffer size by DELTA.
 
 +++
 ** The line-move, scroll-up, and scroll-down functions will now
@@ -12284,7 +12303,7 @@ For example, if a string or comment terminating character is deleted, then if
 this feature is enabled subsequent lines in the buffer will be correctly
 refontified to reflect their new syntactic context.  Previously, only the line
 containing the deleted character would be refontified and you would have to use
-the command M-g M-g (font-lock-fontify-block) to refontify some lines.
+the command M-o M-o (font-lock-fontify-block) to refontify some lines.
 
 As a consequence of this new feature, two other variables have changed:
 
