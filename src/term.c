@@ -235,11 +235,6 @@ void (*redeem_scroll_bar_hook) P_ ((struct window *window));
 
 void (*judge_scroll_bars_hook) P_ ((FRAME_PTR FRAME));
 
-/* Hook to call in estimate_mode_line_height, if any.  */
-
-int (* estimate_mode_line_height_hook) P_ ((struct frame *f, enum face_id));
-
-
 /* Strings, numbers and flags taken from the termcap entry.  */
 
 char *TS_ins_line;		/* "al" */
@@ -1804,21 +1799,6 @@ produce_special_glyphs (it, what)
     }
   else
     abort ();
-}
-
-
-/* Return an estimation of the pixel height of mode or top lines on
-   frame F.  FACE_ID specifies what line's height to estimate.  */
-
-int
-estimate_mode_line_height (f, face_id)
-     struct frame *f;
-     enum face_id face_id;
-{
-  if (estimate_mode_line_height_hook)
-    return estimate_mode_line_height_hook (f, face_id);
-  else
-    return 1;
 }
 
 
