@@ -69,7 +69,7 @@
       (switch-to-buffer (create-file-buffer file))
       (setq buffer-file-name file)
       (setq default-directory (expand-file-name "~/"))
-      (setq auto-save-file-name nil)
+      (setq buffer-auto-save-file-name nil)
       (insert-file-contents (expand-file-name "TUTORIAL" data-directory))
       (goto-char (point-min))
       (search-forward "\n<<")

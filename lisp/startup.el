@@ -155,8 +155,11 @@ directory name of the directory where the `.emacs' file was looked for.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  ;; Choose a good default value for split-window-keep-point.
-  (setq split-window-keep-point (> baud-rate 2400))
+  ;;! This has been commented out; I currently find the behavior when
+  ;;! split-window-keep-point is nil disturbing, but if I can get used
+  ;;! to it, then it would be better to eliminate the option.
+  ;;! ;; Choose a good default value for split-window-keep-point.
+  ;;! (setq split-window-keep-point (> baud-rate 2400))
 
   ;; Read window system's init file if using a window system.
   (if (and window-system (not noninteractive))

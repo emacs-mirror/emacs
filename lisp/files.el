@@ -839,7 +839,14 @@ Value is a list whose car is the name for the backup file
 	   (possibilities (file-name-all-completions
 			   base-versions
 			   (file-name-directory fn)))
-	   (versions (sort (mapcar 'backup-extract-version possibilities)
+	   (versions (sort (mapcar
+			    (function
+			     (lambda (fn)
+			       (if (and (string-match "[0-9]+~$" fn bv-length)
+					(= (match-beginning 0) bv-length))
+				   (string-to-int (substring fn bv-length -1))
+				 0)))
+			    possibilities)
 			   '<))
 	   (high-water-mark (apply 'max 0 versions))
 	   (deserve-versions-p
@@ -856,12 +863,6 @@ Value is a list whose car is the name for the backup file
 			  (let ((v (nthcdr kept-old-versions versions)))
 			    (rplacd (nthcdr (1- number-to-delete) v) ())
 			    v))))))))
-
-(defun backup-extract-version (fn)
-  (if (and (string-match "[0-9]+~$" fn bv-length)
-	   (= (match-beginning 0) bv-length))
-      (string-to-int (substring fn bv-length -1))
-      0))
 
 (defun file-nlinks (filename)
   "Return number of names file FILENAME has."
