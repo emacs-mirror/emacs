@@ -5,6 +5,7 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
+;; Keywords: files
 
 ;; This file is part of GNU Emacs.
 
