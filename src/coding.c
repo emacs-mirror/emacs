@@ -46,31 +46,23 @@ Boston, MA 02111-1307, USA.  */
 
 CODING SYSTEM
 
-  Coding system is an encoding mechanism of one or more character
-  sets.  Here's a list of coding system types supported by Emacs.
-  When we say "decode", it means converting a text encoded by some
-  coding system into Emacs' internal format (emacs-utf-8), and when we
-  say "encode", it means converting a text of emacs-utf-8 to some
-  other coding system.
+  Coding system is an object for a encoding mechanism that contains
+  information about how to convert byte sequence to character
+  sequences and vice versa.  When we say "decode", it means converting
+  a byte sequence of a specific coding system into a character
+  sequence that is represented by Emacs' internal coding system
+  `emacs-utf-8', and when we say "encode", it means converting a
+  character sequence of emacs-utf-8 to a byte sequence of a specific
+  coding system.
 
-  Emacs represents a coding system by a Lisp symbol.  Each symbol is a
-  key to the hash table Vcharset_hash_table.  This hash table
-  associates the symbol to the corresponding detailed specifications.
+  In Emacs Lisp, a coding system is represented by a Lisp symbol.  In
+  C level, a coding system is represented by a vector of attributes
+  stored in the hash table Vcharset_hash_table.  The conversion from a
+  coding system symbol to attributes vector is done by looking up
+  Vcharset_hash_table by the symbol.
 
-  Before using a coding system for decoding and encoding, we setup a
-  structure of type `struct coding_system'.  This structure keeps
-  various information about a specific code conversion (e.g.  the
-  location of source and destination data).
-
-  Coding systems are classified into the following types by how to
-  represent a character in a byte sequence.  Here's a brief descrition
-  about type.
-
-  o Emacs' internal format (emacs-utf-8)
-
-  The extended UTF-8 which allows eight-bit raw bytes mixed with
-  character codes.  Emacs holds characters in buffers and strings by
-  this format.
+  Coding systems are classified into the following types depending on
+  the mechanism of encoding.  Here's a brief descrition about type.
 
   o UTF-8
 
@@ -136,6 +128,13 @@ END-OF-LINE FORMAT
   Since text characters encoding and end-of-line encoding are
   independent, any coding system described above can take any format
   of end-of-line (except for no-conversion).
+
+STRUCT CODING_SYSTEM
+
+  Before using a coding system for code conversion (i.e. decoding and
+  encoding), we setup a structure of type `struct coding_system'.
+  This structure keeps various information about a specific code
+  conversion (e.g.  the location of source and destination data).
 
 */
 
@@ -818,19 +817,27 @@ static int detected_mask[coding_category_raw_text] =
 
 /* Like EMIT_ONE_BYTE, but emit two bytes; C1 and C2.  */
 
-#define EMIT_TWO_BYTES(c1, c2)			\
-  do {						\
-    produced_chars += 2;			\
-    if (multibytep)				\
-      {						\
-	CHAR_STRING_ADVANCE ((int) (c1), dst);	\
-	CHAR_STRING_ADVANCE ((int) (c2), dst);	\
-      }						\
-    else					\
-      {						\
-	*dst++ = (c1);				\
-	*dst++ = (c2);				\
-      }						\
+#define EMIT_TWO_BYTES(c1, c2)		\
+  do {					\
+    produced_chars += 2;		\
+    if (multibytep)			\
+      {					\
+	int ch;				\
+					\
+	ch = (c1);			\
+	if (ch >= 0x80)			\
+	  ch = BYTE8_TO_CHAR (ch);	\
+	CHAR_STRING_ADVANCE (ch, dst);	\
+	ch = (c2);			\
+	if (ch >= 0x80)			\
+	  ch = BYTE8_TO_CHAR (ch);	\
+	CHAR_STRING_ADVANCE (ch, dst);	\
+      }					\
+    else				\
+      {					\
+	*dst++ = (c1);			\
+	*dst++ = (c2);			\
+      }					\
   } while (0)
 
 
@@ -889,10 +896,14 @@ coding_set_source (coding)
 	coding->source = GAP_END_ADDR + coding->src_pos_byte;
       else
 	{
-	  if (coding->src_pos < GPT
-	      && coding->src_pos + coding->src_chars >= GPT)
-	    move_gap_both (coding->src_pos, coding->src_pos_byte);
-	  coding->source = BYTE_POS_ADDR (coding->src_pos_byte);
+	  struct buffer *buf = XBUFFER (coding->src_object);
+	  EMACS_INT beg_byte = BUF_BEG_BYTE (buf);
+	  EMACS_INT gpt_byte = BUF_GPT_BYTE (buf);
+	  unsigned char *beg_addr = BUF_BEG_ADDR (buf);
+
+	  coding->source = beg_addr + coding->src_pos_byte - 1;
+	  if (coding->src_pos_byte >= gpt_byte)
+	    coding->source += BUF_GAP_SIZE (buf);
 	}
     }
   else if (STRINGP (coding->src_object))
@@ -1182,7 +1193,7 @@ encode_coding_utf_8 (coding)
   int *charbuf_end = charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  int produced_chars;
+  int produced_chars = 0;
   int c;
 
   if (multibytep)
@@ -1290,7 +1301,7 @@ decode_coding_utf_16 (coding)
       src_base = src;
       ONE_MORE_BYTE (c1);
       ONE_MORE_BYTE (c2);
-      c = (c1 << 16) | c2;
+      c = (c1 << 8) | c2;
       if (bom == utf_16_with_bom)
 	{
 	  if (endian == utf_16_big_endian
@@ -1333,7 +1344,7 @@ decode_coding_utf_16 (coding)
       ONE_MORE_BYTE (c1);
       ONE_MORE_BYTE (c2);
       c = (endian == utf_16_big_endian
-	   ? ((c1 << 16) | c2) : ((c2 << 16) | c1));
+	   ? ((c1 << 8) | c2) : ((c2 << 8) | c1));
       if (surrogate)
 	{
 	  if (! UTF_16_LOW_SURROGATE_P (c))
@@ -1404,8 +1415,8 @@ encode_coding_utf_16 (coding)
     {
       ASSURE_DESTINATION (safe_room);
       c = *charbuf++;
-      if (c >= 0x110000)
-	c = 0xFFFF;
+      if (c >= MAX_UNICODE_CHAR)
+	c = coding->default_char;
 
       if (c < 0x10000)
 	{
@@ -4504,6 +4515,7 @@ setup_coding_system (coding_system, coding)
       val = AREF (attrs, coding_attr_utf_16_endian);
       CODING_UTF_16_ENDIAN (coding) = (NILP (val) ? utf_16_big_endian
 				       : utf_16_little_endian);
+      CODING_UTF_16_SURROGATE (coding) = 0;
       coding->detector = detect_coding_utf_16;
       coding->decoder = decode_coding_utf_16;
       coding->encoder = encode_coding_utf_16;
@@ -5456,11 +5468,6 @@ decode_coding (coding)
 	    *p++ = *src++;
 	}
       coding->consumed = coding->src_bytes;
-    }
-
-  if (BUFFERP (coding->dst_object))
-    {
-      record_insert (coding->dst_pos, coding->produced_char);
     }
 
   return coding->result;
