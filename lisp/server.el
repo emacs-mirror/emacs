@@ -147,10 +147,9 @@ this way."
     (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))
 
 (defvar server-existing-buffer nil
-  "Non-nil means a buffer existed before the Emacs server was asked visit it.
+  "Non-nil means the buffer existed before the server was asked to visit it.
 This means that the server should not kill the buffer when you say you
-are done with it in the server.  This variable is local in each buffer
-where it is set.")
+are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
 ;; If a *server* buffer exists,
@@ -447,7 +446,7 @@ specifically for the clients and did not exist before their request for it."
 	    (if (and (buffer-modified-p)
 		     buffer-file-name
 		     (y-or-n-p (concat "Save file " buffer-file-name "? ")))
-		(save-buffer buffer)))
+		(save-buffer)))
 	  (server-buffer-done buffer)))))
 
 ;; Ask before killing a server buffer.
@@ -517,34 +516,42 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
   ;; if we have already killed one temp-file server buffer.
   ;; This means we should avoid the final "switch to some other buffer"
   ;; since we've already effectively done that.
-  (cond ((and (windowp server-window)
-	      (window-live-p server-window))
-	 (select-window server-window))
-	((framep server-window)
-	 (if (not (frame-live-p server-window))
-	     (setq server-window (make-frame)))
-	 (select-window (frame-selected-window server-window))))
-  (if (window-minibuffer-p (selected-window))
-      (select-window (next-window nil 'nomini 0)))
-  ;; Move to a non-dedicated window, if we have one.
-  (when (window-dedicated-p (selected-window))
-    (select-window (get-window-with-predicate
-		    (lambda (w) (not (window-dedicated-p w)))
-		    'nomini 'visible (selected-window))))
-  (set-window-dedicated-p (selected-window) nil)
-  (if next-buffer
-      (if (and (bufferp next-buffer)
-	       (buffer-name next-buffer))
-	  (switch-to-buffer next-buffer)
-	;; If NEXT-BUFFER is a dead buffer,
-	;; remove the server records for it
+  (if (null next-buffer)
+      (if server-clients
+	  (server-switch-buffer (nth 1 (car server-clients)) killed-one)
+	(unless (or killed-one
+		    (window-dedicated-p (selected-window)))
+	  (switch-to-buffer (other-buffer))))
+    (if (not (buffer-name next-buffer))
+	;; If NEXT-BUFFER is a dead buffer, remove the server records for it
 	;; and try the next surviving server buffer.
-	(apply 'server-switch-buffer
-	       (server-buffer-done next-buffer)))
-    (if server-clients
-	(server-switch-buffer (nth 1 (car server-clients)) killed-one)
-      (if (not killed-one)
-	  (switch-to-buffer (other-buffer))))))
+	(apply 'server-switch-buffer (server-buffer-done next-buffer))
+      ;; OK, we know next-buffer is live, let's display and select it.
+      (let ((win (get-buffer-window next-buffer 0)))
+	(if (and win (not server-window))
+	    ;; The buffer is already displayed: just reuse the window.
+	    (let ((frame (window-frame win)))
+	      (if (eq (frame-visible-p frame) 'icon)
+		  (raise-frame frame))
+	      (select-window win)
+	      (set-buffer next-buffer))
+	  ;; Otherwise, let's find an appropriate window.
+	  (cond ((and (windowp server-window)
+		      (window-live-p server-window))
+		 (select-window server-window))
+		((framep server-window)
+		 (if (not (frame-live-p server-window))
+		     (setq server-window (make-frame)))
+		 (select-window (frame-selected-window server-window))))
+	  (if (window-minibuffer-p (selected-window))
+	      (select-window (next-window nil 'nomini 0)))
+	  ;; Move to a non-dedicated window, if we have one.
+	  (when (window-dedicated-p (selected-window))
+	    (select-window (get-window-with-predicate
+			    (lambda (w) (not (window-dedicated-p w)))
+			    'nomini 'visible (selected-window))))
+	  (set-window-dedicated-p (selected-window) nil)
+	  (switch-to-buffer next-buffer))))))
 
 (global-set-key "\C-x#" 'server-edit)
 
