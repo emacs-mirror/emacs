@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.13 2001/07/16 07:46:48 pj Exp $
+;; Revision: $Id: pcvs-util.el,v 1.14 2001/10/03 20:28:01 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -350,7 +350,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
     `(progn
        (defvar ,sym nil ,(concat (or docstring "") "
 See `cvs-prefix-set' for further description of the behavior."))
-       (defconst ,cps
+       (defvar ,cps
 	 (let ((defaults ,defaults))
 	   ;; sanity ensurance
 	   (unless (>= (length defaults) cvs-prefix-number)
