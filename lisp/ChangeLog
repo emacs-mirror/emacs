@@ -1,3 +1,8 @@
+2001-08-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-beginning): Make sure the comment-start
+	we found isn't a comment-end (in cases where confusion is possible).
+
 2001-08-22  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Remove TARGET-FILE
@@ -5,8 +10,8 @@
 
 2001-08-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* gs.el (gs-set-ghostview-colors-window-prop): Call
-	x-change-window-property with 3rd arg FRAME.
+	* gs.el (gs-set-ghostview-colors-window-prop):
+	Call x-change-window-property with 3rd arg FRAME.
 	(gs-load-image): Wait for a previoius Ghostscript process
 	to complete before starting a new one.
 
@@ -14,25 +19,24 @@
 	pattern is only matched at the beginning of a string.
 	From Markus Rost <rost@math.ohio-state.edu>.
 
-	* international/swedish.el: Pre-Mule file removed.  From: Jonas
+	* international/swedish.el: Pre-Mule file removed.  From Jonas
 	Oberg <jonas@gnu.org>.
 
 2001-08-20  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-abort-on-error): Add custom variable
-	to whitespace to abort a write-file if whitespace is detected in
-	file.
+	to whitespace to abort a write-file if whitespace is detected in file.
 
 	* whitespace.el (whitespace-write-file-hook): Hook to be called
 	when writing a file. If `whitespace-abort-on-error' is set, the
-	write will abort on detecting whitespaces. If
-	`whitespace-auto-cleanup' is set, the file will be cleaned
+	write will abort on detecting whitespaces.
+	If `whitespace-auto-cleanup' is set, the file will be cleaned
 	automatically prior to writing.
 
 	* whitespace.el (whitespace-buffer-search): Let's not insert bogus
 	whitespaces in the error output!
 
-	* whitespace.el (whitespace-check-indent-whitespace): defaults to
+	* whitespace.el (whitespace-check-indent-whitespace): Defaults to
 	`indent-tabs-mode', since the latter notes user preferences on
 	TABs anyway.
 
@@ -88,8 +92,7 @@
 
 2001-08-16  Robert J. Chassell <bug-texinfo@gnu.org>
 
-	* textmodes/texnfo-upd.el: Update copyright notice, fix minor
-	typos.
+	* textmodes/texnfo-upd.el: Update copyright notice, fix minor typos.
 	(texinfo-find-lower-level-node, texinfo-find-higher-level-node)
 	(texinfo-menu-locate-entry-p, texinfo-start-menu-description)
 	(texinfo-update-menu-region-beginning)
@@ -110,15 +113,13 @@
 
 2001-08-16  Miles Bader  <miles@gnu.org>
 
-	* simple.el (line-move): Pass an ESCAPE-FROM-EDGE argument of t
-	when calling `constrain-to-field', to avoid problems with comint
-	prompts.
+	* simple.el (line-move): Pass an ESCAPE-FROM-EDGE argument of t when
+	calling `constrain-to-field', to avoid problems with comint prompts.
 
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): New function.
-	(toplevel): Set it as `common-lisp-indent-function' for
-	`defmethod'.
+	(toplevel): Set it as `common-lisp-indent-function' for `defmethod'.
 
 	* ediff-mult.el (ediff-get-meta-info): Fix the condition
 	of a while-loop.
@@ -137,8 +138,8 @@
 	(ps-print-version): New version number (6.5.4).
 	(coding-system-for-write): Change declaration position to avoid
 	XEmacs compilation gripes.
-	(coding-system-for-read, buffer-file-coding-system): Declarations
-	to avoid XEmacs compilation gripes.
+	(coding-system-for-read, buffer-file-coding-system):
+	Declarations to avoid XEmacs compilation gripes.
 
 	* ps-mule.el: Doc fix.
 	(ps-mule-encode-header-string): If STRING is not a string, replace
@@ -193,24 +194,23 @@
 	* view.el (toplevel): Use mode-line-minor-mode-keymap for the
 	minor mode name.
 
-	* time.el (display-time-string-forms): Use
-	make-mode-line-mouse-map instead of make-mode-line-mouse2-map.
+	* time.el (display-time-string-forms): Use make-mode-line-mouse-map
+	instead of make-mode-line-mouse2-map.
 
 	* subr.el (add-minor-mode): Use mode-line-minor-mode-keymap for
 	the minor mode name.
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Use
-	mode-line-minor-mode-keymap for the minor mode name.
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use  mode-line-minor-mode-keymap for the minor mode name.
 
-	* calendar/calendar.el (calendar-mode-line-format): Use
-	make-mode-line-mouse-map instead of make-mode-line-mouse2-map.
+	* calendar/calendar.el (calendar-mode-line-format):
+	Use make-mode-line-mouse-map instead of make-mode-line-mouse2-map.
 
 	* bindings.el (make-mode-line-mouse-map): Renamed from
 	make-mode-line-mouse2-map.  Take additional arg MOUSE.
 	(mode-line-modified): Use mouse-3 instead of mouse-2.
 	(mode-line-buffer-identification-keymap): Bind keys differently.
-	(propertized-buffer-identification): Adapt help-echo to new
-	bindings.
+	(propertized-buffer-identification): Adapt help-echo to new bindings.
 
 	* bindings.el (mode-line-format): Specify help-echo for line
 	number, column number and buffer-percent part of the mode-line.
@@ -247,8 +247,8 @@
 	* textmodes/paragraphs.el (forward-sentence): Avoid building
 	a regexp from sentence-end.  From Kenichi Handa <handa@etl.go.jp>.
 
-	* progmodes/executable.el (executable-set-magic): If
-	executable-find returns a quoted file name, unquote it before
+	* progmodes/executable.el (executable-set-magic):
+	If executable-find returns a quoted file name, unquote it before
 	inserting it.
 
 	* image.el (image-type-regexps): For JPEG files, use a regexp
@@ -259,18 +259,17 @@
 
 2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* play/animate.el: re-insert a reference to re-inserted function.
+	* play/animate.el: Re-insert a reference to re-inserted function.
 
 2001-08-06  Gerd Moellmann  <gerd@gnu.org>
 
-	* help.el (describe-function-1): Use
-	find-function-search-for-symbol instead of find-function-noselect
-	because the latter follows aliases.
+	* help.el (describe-function-1): Use find-function-search-for-symbol
+	instead of find-function-noselect because the latter follows aliases.
 
 	* play/animate.el (animate-birthday-present): Re-insert.
 
-	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Handle
-	old-style menu definitions.
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu):
+	Handle old-style menu definitions.
 
 2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -317,8 +316,7 @@
 
 2001-08-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* recentf.el (recentf-dump-variable): Handle a value of nil
-	correctly.
+	* recentf.el (recentf-dump-variable): Handle a value of nil correctly.
 
 	* custom.el (custom-set-variables): Set options with :require
 	clauses last.
@@ -332,8 +330,8 @@
 	* man.el (man): Mention Man-switches in the doc string.
 	(Man-switches): Mention -a in the doc string.
 
-	* textmodes/ispell.el (ispell-alternate-dictionary): Add
-	/usr/share/lib/dict/words, for Irix.
+	* textmodes/ispell.el (ispell-alternate-dictionary):
+	Add /usr/share/lib/dict/words, for Irix.
 
 	* bindings.el: Bind shifted and control-shifted kp-* keys to the
 	corresponding non-kp keys.  Suggested by Stephen Gildea
@@ -348,8 +346,8 @@
 	(uniquify-set-proposed): New function.
 	(uniquify-rationalize-file-buffer-names): Code reshuffled for
 	clarity and speed.
-	(uniquify-item-greaterp): Substitutes uniquify-item-lessp.  This
-	is equivalent to what the old code did.
+	(uniquify-item-greaterp): Substitutes uniquify-item-lessp.
+	This is equivalent to what the old code did.
 	(uniquify-rationalize-a-list): Never recompute the proposed
 	name.  Sort the conflicting sublist before rationalising it: this
 	is equivalent to what the old code did, but one directory element
@@ -373,16 +371,16 @@
 	* delsel.el (delete-selection-pre-hook): Don't set this-command
 	to `ignore' if the region is empty.
 
-	* international/mule.el (set-keyboard-coding-system): Set
-	keyboard-coding-system.
+	* international/mule.el (set-keyboard-coding-system):
+	Set keyboard-coding-system.
 
 	* smerge-mode.el (smerge-mode): Check if `font-lock-mode' is bound
 	before accessing it.
 
 2001-07-30  Andreas Schwab  <schwab@suse.de>
 
-	* menu-bar.el (toggle-highlight-paren-mode): Use
-	`(show-paren-mode)' as body.
+	* menu-bar.el (toggle-highlight-paren-mode):
+	Use `(show-paren-mode)' as body.
 
 2001-07-30  Andre Spiegel  <spiegel@gnu.org>
 
@@ -391,8 +389,8 @@
 
 2001-07-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* progmodes/make-mode.el (makefile-macroassign-regex): Recognize
-	the ?= operator.  From Jonathan Kamens <jik@curl.com>.
+	* progmodes/make-mode.el (makefile-macroassign-regex):
+	Recognize the ?= operator.  From Jonathan Kamens <jik@curl.com>.
 
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
@@ -410,8 +408,8 @@
 
 	* emacs-lisp/lisp-mode.el (last-sexp-setup-props): New function.
 	(last-sexp-toggle-display): Renamed from last-sexp-print.
-	(last-sexp-toggle-display, eval-last-sexp-1): Use
-	last-sexp-setup-props.
+	(last-sexp-toggle-display, eval-last-sexp-1):
+	Use last-sexp-setup-props.
 
 	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button):
 	New user-options.
@@ -451,8 +449,8 @@
 	(xterm-mouse-translate): Handle the case that we don't get a
 	down-event.
 
-	* emacs-lisp/find-func.el (find-function-regexp): Add
-	easy-mmode-define-global-mode to the regexp.  Allow newlines
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add easy-mmode-define-global-mode to the regexp.  Allow newlines
 	in front of the function name.
 
 	* isearch.el (isearch-other-meta-char): Fix last change.
@@ -475,24 +473,23 @@
 2001-07-23  Francesco Potorti`  <pot@gnu.org>
 
 	* uniquify.el: Overall speedup changes when using many buffers.
-	(uniquify-fix-item-base, uniquify-fix-item-filename,
-	uniquify-fix-item-buffer): Changed defmacro to defalias (cosmetic).
+	(uniquify-fix-item-base, uniquify-fix-item-filename)
+	(uniquify-fix-item-buffer): Changed defmacro to defalias (cosmetic).
 	(uniquify-fix-item-unrationalized-buffer): Deleted: was the fourth
 	place in the item, but was never used.
 	(uniquify-fix-item-min-proposed): New defalias: the fourth place
 	in the item is now used as cache for the proposed name.
 	(uniquify-rationalize-file-buffer-names): Move computation made on
-	newbuffile out of the loop, in the newbuffile-nd local var.  Use
-	dolist (cosmetic change).  Compute the proposed name for the most
+	newbuffile out of the loop, in the newbuffile-nd local var.
+	Use dolist (cosmetic change).  Compute the proposed name for the most
 	common case and cache it in the fourth place in the item.
 	(uniquify-rationalize-file-buffer-names): Used to return a a list
-	of buffer whose name was changed, but that return value was never
-	used.
+	of buffer whose name was changed, but that return value was never used.
 	(uniquify-item-lessp): Replaces uniquify-filename-lessp, works on
 	the cached proposed name, does much less consing and is quicker.
 	(uniquify-filename-lessp): Deleted.
-	(uniquify-rationalize-a-list): Use dolist (cosmetic change).  Do
-	not bind locally the uniquify-possibly-resolvable flag.  Use the
+	(uniquify-rationalize-a-list): Use dolist (cosmetic change).
+	Do not bind locally the uniquify-possibly-resolvable flag.  Use the
 	cached proposed name is possible.
 	(uniquify-get-proposed-name): Arguments changed, callers changed.
 	(uniquify-rationalize-conflicting-sublist): Explicitely reset the
@@ -522,8 +519,8 @@
 
 2001-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* startup.el (normal-top-level-add-subdirs-to-load-path): On
-	Windows, put into normal-top-level-add-subdirs-inode-list the
+	* startup.el (normal-top-level-add-subdirs-to-load-path):
+	On Windows, put into normal-top-level-add-subdirs-inode-list the
 	canonicalized names of the directories instead of inode numbers.
 
 2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
@@ -545,11 +542,11 @@
 	(ediff-listable-file): New function.
 	(ediff-file-attributes): Use ediff-listable-file.
 
-	* ediff-mult.el (ediff-meta-insert-file-info1): Use
-	ediff-listable-file.
+	* ediff-mult.el (ediff-meta-insert-file-info1):
+	Use ediff-listable-file.
 
-	* ediff-ptch.el (ediff-prompt-for-patch-file): Use
-	ediff-coding-system-for-read.
+	* ediff-ptch.el (ediff-prompt-for-patch-file):
+	Use ediff-coding-system-for-read.
 	(ediff-patch-file-internal): Use ediff-coding-system-for-write.
 
 	* ediff-diff.el (ediff-coding-system-for-read): Moved to ediff-init.el.
@@ -568,15 +565,14 @@
 	ex-token-list.
 	(viper-get-ex-address-subr): Convert registers to char data type.
 
-	* viper-util.el (viper-int-to-char,viper-char-equal): New
-	functions.
+	* viper-util.el (viper-int-to-char,viper-char-equal): New functions.
 	(viper-memq-char): Use viper-int-to-char.
 	(viper-file-checked-in-p): Use vc-locking-user, if vc doesn't have
 	vc-locking-state.
 	(viper-read-key): Use viper-read-key-sequence.
 
-	* viper.el (viper-major-mode-modifier-list): Added
-	inferior-emacs-lisp-mode.
+	* viper.el (viper-major-mode-modifier-list):
+	Added inferior-emacs-lisp-mode.
 	(this-major-mode-requires-vi-state): New function that uses simple
 	heuristics to decide if vi state is appropriate.
 	(set-viper-state-in-major-mode): Use this-major-mode-requires-vi-state.
