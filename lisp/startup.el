@@ -329,6 +329,9 @@ from being initialized."
 		 string)
   :group 'auto-save)
 
+(defvar locale-translation-file-name "/usr/share/locale/locale.alias"
+  "*File name for the system's file of locale-name aliases.")
+
 (defvar init-file-debug nil)
 
 (defvar init-file-had-error nil)
@@ -482,6 +485,17 @@ and any subdirectory that contains a file named `.nosearch'."
 	       (and (not (equal string "")) string))
 	     (let ((string (getenv "LANG")))
 	       (and (not (equal string "")) string)))))
+    ;; Translate "swedish" into "sv_SE.ISO-8859-1", and so on,
+    ;; using the translation file that GNU/Linux systems have.
+    (and ctype
+	 (not (string-match iso-8859-n-locale-regexp ctype))
+	 (file-exists-p locale-translation-file-name)
+	 (with-temp-buffer
+	   (insert-file-contents locale-translation-file-name)
+	   (if (re-search-forward (concat "^" ctype "[ \t]*") nil t)
+	       (setq ctype (buffer-substring (point)
+					     (progn (end-of-line) (point)))))))
+    ;; Now see if the locale specifies an ISO 8859 character set.
     (when (and ctype
 	       (string-match iso-8859-n-locale-regexp ctype))
       (let (charset (which (match-string 1 ctype)))
