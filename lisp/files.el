@@ -929,11 +929,14 @@ If the current buffer now contains an empty file that you just visited
 		file-dir (file-name-directory file)))
      (list (read-file-name
 	    "Find alternate file: " file-dir nil nil file-name))))
-  (and (buffer-modified-p) (buffer-file-name)
-       ;; (not buffer-read-only)
-       (not (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
-				 (buffer-name))))
-       (error "Aborted"))
+  (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
+    (error "Aborted"))
+  (when (and (buffer-modified-p) (buffer-file-name))
+    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+			     (buffer-name)))
+	(save-buffer)
+      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	(error "Aborted"))))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -949,14 +952,20 @@ If the current buffer now contains an empty file that you just visited
 	  (setq buffer-file-number nil)
 	  (setq buffer-file-truename nil)
 	  (find-file filename))
-      (cond ((eq obuf (current-buffer))
-	     (setq buffer-file-name ofile)
-	     (setq buffer-file-number onum)
-	     (setq buffer-file-truename otrue)
-	     (lock-buffer)
-	     (rename-buffer oname))))
-    (or (eq (current-buffer) obuf)
-	(kill-buffer obuf))))
+      (when (eq obuf (current-buffer))
+	;; This executes if find-file gets an error
+	;; and does not really find anything.
+	;; We put things back as they were.
+	;; If find-file actually finds something, we kill obuf below.
+	(setq buffer-file-name ofile)
+	(setq buffer-file-number onum)
+	(setq buffer-file-truename otrue)
+	(lock-buffer)
+	(rename-buffer oname)))
+    (unless (eq (current-buffer) obuf)
+      ;; We already asked; don't ask again.
+      (setq kill-buffer-query-functions nil)
+      (kill-buffer obuf))))
 
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
