@@ -77,7 +77,7 @@ or a list to evaluate when the item is chosen.
 ENABLE is an expression; the item is enabled for selection
 whenever this expression's value is non-nil.
 
-Alternatively, a menu item may have the form: 
+Alternatively, a menu item may have the form:
 
    [ NAME CALLBACK [ KEYWORD ARG ] ... ]
 
@@ -113,9 +113,9 @@ expression has a non-nil value.
 NAME is a string; the name of an argument to CALLBACK.
 
    :style STYLE
-   
+
 STYLE is a symbol describing the type of menu item.  The following are
-defined:  
+defined:
 
 toggle: A checkbox.
         Prepend the name with `(*) ' or `( ) ' depending on if selected or not.
@@ -144,11 +144,11 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
   ;; We can't do anything that might differ between Emacs dialects in
   ;; `easy-menu-define' in order to make byte compiled files
   ;; compatible.  Therefore everything interesting is done in this
-  ;; function. 
+  ;; function.
   (set symbol (easy-menu-create-menu (car menu) (cdr menu)))
-  (fset symbol (` (lambda (event) (, doc) (interactive "@e")
-		    (x-popup-menu event (, symbol)))))
-  (mapcar (function (lambda (map) 
+  (fset symbol `(lambda (event) ,doc (interactive "@e")
+                 (x-popup-menu event ,symbol)))
+  (mapcar (function (lambda (map)
 	    (define-key map (vector 'menu-bar (intern (car menu)))
 	      (cons (car menu) (symbol-value symbol)))))
 	  (if (keymapp maps) (list maps) maps)))
@@ -347,7 +347,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 	  (setq inserted t)
 	  (setq menu (cdr menu))))
        (t (setq menu (cdr menu)))))))
-       
+
 (defun easy-menu-always-true (x)
   ;; Return true if X never evaluates to nil.
   (if (consp x) (and (eq (car x) 'quote) (cadr x))

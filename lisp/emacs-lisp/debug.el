@@ -130,7 +130,7 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
     ;; Set this instead of binding it, so that `q'
     ;; will not restore it.
-    (setq overriding-terminal-local-map nil) 
+    (setq overriding-terminal-local-map nil)
     ;; Don't let these magic variables affect the debugger itself.
     (let ((last-command nil) this-command track-mouse
 	  (unread-command-char -1) unread-command-events
@@ -382,54 +382,53 @@ Applies to the frame whose line point is on in the backtrace."
 (put 'debugger-env-macro 'lisp-indent-function 0)
 (defmacro debugger-env-macro (&rest body)
   "Run BODY in original environment."
-  (`
-   (save-excursion
-     (if (null (buffer-name debugger-old-buffer))
-	 ;; old buffer deleted
-	 (setq debugger-old-buffer (current-buffer)))
-     (set-buffer debugger-old-buffer)
-     (let ((load-read-function debugger-outer-load-read-function)
-	   (overriding-terminal-local-map
-	    debugger-outer-overriding-terminal-local-map)
-	   (overriding-local-map debugger-outer-overriding-local-map)
-	   (track-mouse debugger-outer-track-mouse)
-	   (last-command debugger-outer-last-command)
-	   (this-command debugger-outer-this-command)
-	   (unread-command-char debugger-outer-unread-command-char)
-	   (unread-command-events debugger-outer-unread-command-events)
-	   (unread-post-input-method-events
-	    debugger-outer-unread-post-input-method-events)
-	   (last-input-event debugger-outer-last-input-event)
-	   (last-command-event debugger-outer-last-command-event)
-	   (last-nonmenu-event debugger-outer-last-nonmenu-event)
-	   (last-event-frame debugger-outer-last-event-frame)
-	   (standard-input debugger-outer-standard-input)
-	   (standard-output debugger-outer-standard-output)
-	   (inhibit-redisplay debugger-outer-inhibit-redisplay)
-	   (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
-       (set-match-data debugger-outer-match-data)
-       (prog1 (progn (,@ body))
-	 (setq debugger-outer-match-data (match-data))
-	 (setq debugger-outer-load-read-function load-read-function)
-	 (setq debugger-outer-overriding-terminal-local-map
-	       overriding-terminal-local-map)
-	 (setq debugger-outer-overriding-local-map overriding-local-map)
-	 (setq debugger-outer-track-mouse track-mouse)
-	 (setq debugger-outer-last-command last-command)
-	 (setq debugger-outer-this-command this-command)
-	 (setq debugger-outer-unread-command-char unread-command-char)
-	 (setq debugger-outer-unread-command-events unread-command-events)
-	 (setq debugger-outer-unread-post-input-method-events
-	       unread-post-input-method-events)
-	 (setq debugger-outer-last-input-event last-input-event)
-	 (setq debugger-outer-last-command-event last-command-event)
-	 (setq debugger-outer-last-nonmenu-event last-nonmenu-event)
-	 (setq debugger-outer-last-event-frame last-event-frame)
-	 (setq debugger-outer-standard-input standard-input)
-	 (setq debugger-outer-standard-output standard-output)
-	 (setq debugger-outer-inhibit-redisplay inhibit-redisplay)
-	 (setq debugger-outer-cursor-in-echo-area cursor-in-echo-area)
-	 )))))
+  `(save-excursion
+    (if (null (buffer-name debugger-old-buffer))
+        ;; old buffer deleted
+        (setq debugger-old-buffer (current-buffer)))
+    (set-buffer debugger-old-buffer)
+    (let ((load-read-function debugger-outer-load-read-function)
+          (overriding-terminal-local-map
+           debugger-outer-overriding-terminal-local-map)
+          (overriding-local-map debugger-outer-overriding-local-map)
+          (track-mouse debugger-outer-track-mouse)
+          (last-command debugger-outer-last-command)
+          (this-command debugger-outer-this-command)
+          (unread-command-char debugger-outer-unread-command-char)
+          (unread-command-events debugger-outer-unread-command-events)
+          (unread-post-input-method-events
+           debugger-outer-unread-post-input-method-events)
+          (last-input-event debugger-outer-last-input-event)
+          (last-command-event debugger-outer-last-command-event)
+          (last-nonmenu-event debugger-outer-last-nonmenu-event)
+          (last-event-frame debugger-outer-last-event-frame)
+          (standard-input debugger-outer-standard-input)
+          (standard-output debugger-outer-standard-output)
+          (inhibit-redisplay debugger-outer-inhibit-redisplay)
+          (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
+      (set-match-data debugger-outer-match-data)
+      (prog1 (progn ,@body)
+        (setq debugger-outer-match-data (match-data))
+        (setq debugger-outer-load-read-function load-read-function)
+        (setq debugger-outer-overriding-terminal-local-map
+              overriding-terminal-local-map)
+        (setq debugger-outer-overriding-local-map overriding-local-map)
+        (setq debugger-outer-track-mouse track-mouse)
+        (setq debugger-outer-last-command last-command)
+        (setq debugger-outer-this-command this-command)
+        (setq debugger-outer-unread-command-char unread-command-char)
+        (setq debugger-outer-unread-command-events unread-command-events)
+        (setq debugger-outer-unread-post-input-method-events
+              unread-post-input-method-events)
+        (setq debugger-outer-last-input-event last-input-event)
+        (setq debugger-outer-last-command-event last-command-event)
+        (setq debugger-outer-last-nonmenu-event last-nonmenu-event)
+        (setq debugger-outer-last-event-frame last-event-frame)
+        (setq debugger-outer-standard-input standard-input)
+        (setq debugger-outer-standard-output standard-output)
+        (setq debugger-outer-inhibit-redisplay inhibit-redisplay)
+        (setq debugger-outer-cursor-in-echo-area cursor-in-echo-area)
+        ))))
 
 (defun debugger-eval-expression (exp)
   "Eval an expression, in an environment like that outside the debugger."

@@ -1,5 +1,11 @@
 1999-11-12  Sam Steingold  <sds@ksp.com>
 
+	* emacs-lisp/debug.el (debugger-env-macro):
+	Use the new backquote syntax.
+
+	* emacs-lisp/easymenu.el (easy-menu-make-symbol):
+	Use the new backquote syntax.
+
 	* calendar/calendar.el (calendar-remove-frame-by-deleting):
 	New user variable.
 	(calendar-hide-window): Use it.
