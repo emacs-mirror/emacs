@@ -125,12 +125,15 @@ Uniplus 5.2 (-opsystem=unipl5-2)
 
   Works, on Dual machines at least.
 
-VMS (-opsystem=vms)
+VMS (-opsystem=vmsM.N)
 
   Works except for certain features (directory listing, dired,
   sending and receiving mail) that use synchronous subprocesses.
   We need people to write alternative implementations of these
   facilities.
+
+  The config file s/vms5-5.h may be right for some earlier versions;
+  please let us know what happens when you try it in VMS versions 5.0 thru 5.4.
 
   Note that Emacs for VMS is usually distributed in a special
   VMS distribution.  See the file ../VMSINSTALL for info on moving
