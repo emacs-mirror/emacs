@@ -941,8 +941,10 @@ EmacsFrameSetCharSize (widget, columns, rows)
       lw_refigure_widget (f->output_data.x->column_widget, False);
       update_hints_inhibit = 1;
 
-      /* Do parents first, otherwise LessTif's geometry
-	 management enters an infinite loop (as of 2000-01-15).  */
+      /* Do parents first, otherwise LessTif's geometry management
+	 enters an infinite loop (as of 2000-01-15).  This is fixed in
+	 later versions of LessTif (as of 2001-03-13); I'll leave it
+	 as is because I think it can't do any harm.  */
       XtVaSetValues (f->output_data.x->widget,
       		     XtNheight, outer_widget_height + hdelta,
 		     XtNwidth, outer_widget_width + wdelta, NULL);
