@@ -22,6 +22,7 @@
 (defvar current-gpl-version "2"
   "String representing the current version of the GPL.")
 
+;;;###autoload
 (defvar replace-copying-with nil
   "*If non-nil, replace copying notices with this file.")
 
