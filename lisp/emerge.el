@@ -45,11 +45,12 @@ won't destroy Emerge control variables."
        (put '(, var) 'preserved t))))
 
 ;; Add entries to minor-mode-alist so that emerge modes show correctly
-(setq emerge-minor-modes-list '((emerge-mode " Emerge")
-				(emerge-fast-mode " F")
-				(emerge-edit-mode " E")
-				(emerge-auto-advance " A")
-				(emerge-skip-prefers " S")))
+(defvar emerge-minor-modes-list
+  '((emerge-mode " Emerge")
+    (emerge-fast-mode " F")
+    (emerge-edit-mode " E")
+    (emerge-auto-advance " A")
+    (emerge-skip-prefers " S")))
 (if (not (assq 'emerge-mode minor-mode-alist))
     (setq minor-mode-alist (append emerge-minor-modes-list
 				   minor-mode-alist)))
@@ -132,6 +133,15 @@ is present, only one A or B entry is present, and an output entry is present.
 If nil: In such circumstances, the A or B file that is present will be
 copied to the designated output file.")
 
+(defvar emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
+  "*Flag placed above the highlighted block of code.  Must end with newline.
+Must be set before Emerge is loaded, or  emerge-new-flags  must be run
+after setting.")
+(defvar emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
+  "*Flag placed below the highlighted block of code.  Must end with newline.
+Must be set before Emerge is loaded, or  emerge-new-flags  must be run
+after setting.")
+
 ;; Hook variables
 
 (defvar emerge-startup-hook nil
@@ -166,6 +176,20 @@ same type to an `emerge-files...' command.")
 (defvar emerge-last-revision-ancestor nil
   "Last RCS revision used for ancestor file of an `emerge-revisions...' command.")
 
+(defvar emerge-before-flag-length)
+(defvar emerge-before-flag-lines)
+(defvar emerge-before-flag-match)
+(defvar emerge-after-flag-length)
+(defvar emerge-after-flag-lines)
+(defvar emerge-after-flag-match)
+(defvar emerge-diff-buffer)
+(defvar emerge-diff-error-buffer)
+(defvar emerge-prefix-argument)
+(defvar emerge-file-out)
+(defvar emerge-exit-func)
+(defvar emerge-globalized-difference-list)
+(defvar emerge-globalized-number-of-differences)
+
 ;; The flags used to mark differences in the buffers.
 
 ;; These function definitions need to be up here, because they are used
@@ -191,15 +215,6 @@ depend on the flags."
       (setq count (1+ count))
       (setq i (match-end 0)))
     count))
-
-(defvar emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
-  "*Flag placed above the highlighted block of code.  Must end with newline.
-Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting.")
-(defvar emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
-  "*Flag placed below the highlighted block of code.  Must end with newline.
-Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting.")
 
 ;; Calculate dependent variables
 (emerge-new-flags)
@@ -244,6 +259,15 @@ must be prefixed by \\<emerge-fast-keymap>\\[emerge-basic-keymap] in `edit' mode
 (defvar emerge-fast-keymap nil
   "Local keymap used in Emerge `fast' mode.
 Makes Emerge commands directly available.")
+
+(defvar emerge-options-menu
+  (make-sparse-keymap "Options"))
+
+(defvar emerge-merge-menu
+  (make-sparse-keymap "Merge"))
+
+(defvar emerge-move-menu
+  (make-sparse-keymap "Move"))
 
 (defvar emerge-command-prefix "\C-c\C-c"
   "*Command prefix for Emerge commands in `edit' mode.
@@ -308,7 +332,83 @@ Must be set before Emerge is loaded.")
   (substitute-key-definition 'write-file 'emerge-query-write-file
 			     emerge-fast-keymap (current-global-map))
   (substitute-key-definition 'save-buffer 'emerge-query-save-buffer
-			     emerge-fast-keymap (current-global-map)))
+			     emerge-fast-keymap (current-global-map))
+
+  (define-key emerge-basic-keymap [menu-bar] (make-sparse-keymap))
+
+  (define-key emerge-fast-keymap [menu-bar options]
+    (cons "Options" emerge-options-menu))
+  (define-key emerge-fast-keymap [menu-bar merge]
+    (cons "Merge" emerge-merge-menu))
+  (define-key emerge-fast-keymap [menu-bar move]
+    (cons "Move" emerge-move-menu))
+
+  (define-key emerge-move-menu [emerge-scroll-reset]
+    '("Scroll Reset" . emerge-scroll-reset))
+  (define-key emerge-move-menu [emerge-scroll-right]
+    '("Scroll Right" . emerge-scroll-right))
+  (define-key emerge-move-menu [emerge-scroll-left]
+    '("Scroll Left" . emerge-scroll-left))
+  (define-key emerge-move-menu [emerge-scroll-down]
+    '("Scroll Down" . emerge-scroll-down))
+  (define-key emerge-move-menu [emerge-scroll-up]
+    '("Scroll Up" . emerge-scroll-up))
+  (define-key emerge-move-menu [emerge-recenter]
+    '("Recenter" . emerge-recenter))
+  (define-key emerge-move-menu [emerge-mark-difference]
+    '("Mark Difference" . emerge-mark-difference))
+  (define-key emerge-move-menu [emerge-jump-to-difference]
+    '("Jump To Difference" . emerge-jump-to-difference))
+  (define-key emerge-move-menu [emerge-find-difference]
+    '("Find Difference" . emerge-find-difference))
+  (define-key emerge-move-menu [emerge-previous-difference]
+    '("Previous Difference" . emerge-previous-difference))
+  (define-key emerge-move-menu [emerge-next-difference]
+    '("Next Difference" . emerge-next-difference))
+
+
+  (define-key emerge-options-menu [emerge-one-line-window]
+    '("One Line Window" . emerge-one-line-window))
+  (define-key emerge-options-menu [emerge-set-merge-mode]
+    '("Set Merge Mode" . emerge-set-merge-mode))
+  (define-key emerge-options-menu [emerge-set-combine-template]
+    '("Set Combine Template..." . emerge-set-combine-template))
+  (define-key emerge-options-menu [emerge-default-B]
+    '("Default B" . emerge-default-B))
+  (define-key emerge-options-menu [emerge-default-A]
+    '("Default A" . emerge-default-A))
+  (define-key emerge-options-menu [emerge-skip-prefers]
+    '("Skip Prefers" . emerge-skip-prefers))
+  (define-key emerge-options-menu [emerge-auto-advance]
+    '("Auto Advance" . emerge-auto-advance))
+  (define-key emerge-options-menu [emerge-edit-mode]
+    '("Edit Mode" . emerge-edit-mode))
+  (define-key emerge-options-menu [emerge-fast-mode]
+    '("Fast Mode" . emerge-fast-mode))
+
+  (define-key emerge-merge-menu [emerge-abort] '("Abort" . emerge-abort))
+  (define-key emerge-merge-menu [emerge-quit] '("Quit" . emerge-quit))
+  (define-key emerge-merge-menu [emerge-split-difference]
+    '("Split Difference" . emerge-split-difference))
+  (define-key emerge-merge-menu [emerge-join-differences]
+    '("Join Differences" . emerge-join-differences))
+  (define-key emerge-merge-menu [emerge-trim-difference]
+    '("Trim Difference" . emerge-trim-difference))
+  (define-key emerge-merge-menu [emerge-combine-versions]
+    '("Combine Versions" . emerge-combine-versions))
+  (define-key emerge-merge-menu [emerge-copy-as-kill-B]
+    '("Copy B as Kill" . emerge-copy-as-kill-B))
+  (define-key emerge-merge-menu [emerge-copy-as-kill-A]
+    '("Copy A as Kill" . emerge-copy-as-kill-A))
+  (define-key emerge-merge-menu [emerge-insert-B]
+    '("Insert B" . emerge-insert-B))
+  (define-key emerge-merge-menu [emerge-insert-A]
+    '("Insert A" . emerge-insert-A))
+  (define-key emerge-merge-menu [emerge-select-B]
+    '("Select B" . emerge-select-B))
+  (define-key emerge-merge-menu [emerge-select-A]
+    '("Select A" . emerge-select-A)))
+
 
 ;; Variables which control each merge.  They are local to the merge buffer.
 
@@ -867,7 +967,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (setq emerge-file-out file-out)
   (emerge-files-internal
    file-a file-b nil
-   (list (` (lambda () (emerge-remote-exit (, file-out) '(, exit-func)))))
+   (list (` (lambda () (emerge-remote-exit (, file-out) '(, emerge-exit-func)))))
    file-out)
   (throw 'client-wait nil))
 
@@ -876,14 +976,14 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (setq emerge-file-out file-out)
   (emerge-files-with-ancestor-internal
    file-a file-b file-anc nil
-   (list (` (lambda () (emerge-remote-exit (, file-out) '(, exit-func)))))
+   (list (` (lambda () (emerge-remote-exit (, file-out) '(, emerge-exit-func)))))
    file-out)
   (throw 'client-wait nil))
 
-(defun emerge-remote-exit (file-out exit-func)
+(defun emerge-remote-exit (file-out emerge-exit-func)
   (emerge-write-and-delete file-out)
   (kill-buffer emerge-merge-buffer)
-  (funcall exit-func (if emerge-prefix-argument 1 0)))
+  (funcall emerge-exit-func (if emerge-prefix-argument 1 0)))
 
 ;;; Functions to start Emerge on RCS versions
 
@@ -1241,6 +1341,16 @@ Otherwise, the A or B file present is copied to the output file."
   ;; Install the Emerge commands
   (emerge-force-define-key emerge-edit-keymap emerge-command-prefix
 			   'emerge-basic-keymap)
+  (define-key emerge-edit-keymap [menu-bar] (make-sparse-keymap))
+
+  ;; Create the additional menu bar items.
+  (define-key emerge-edit-keymap [menu-bar options]
+    (cons "Options" emerge-options-menu))
+  (define-key emerge-edit-keymap [menu-bar merge]
+    (cons "Merge" emerge-merge-menu))
+  (define-key emerge-edit-keymap [menu-bar move]
+    (cons "Move" emerge-move-menu))
+
   ;; Suppress write-file and save-buffer
   (substitute-key-definition 'write-file
 			     'emerge-query-write-file
@@ -1801,7 +1911,7 @@ which there is no preference."
 	(if (zerop (% n 10))
 	    (message "Setting default to A...%d" n)))
       (emerge-unselect-and-select-difference selected-difference)))
-  (message "Default A set"))
+  (message "Default choice is now A"))
 
 (defun emerge-default-B ()
   "Make the B variant the default from here down.
@@ -1823,7 +1933,7 @@ which there is no preference."
 	(if (zerop (% n 10))
 	    (message "Setting default to B...%d" n)))
       (emerge-unselect-and-select-difference selected-difference)))
-  (message "Default B set"))
+  (message "Default choice is now B"))
 
 (defun emerge-fast-mode ()
   "Set fast mode, for Emerge.
@@ -2326,10 +2436,24 @@ merge buffers."
 	      (setq temp (- temp emerge-after-flag-lines)))))
     temp))
 
+(defun emerge-set-combine-template (string &optional localize)
+  "Set `emerge-combine-versions-template' to STRING.
+This value controls how `emerge-combine-versions' combines the two versions.
+With prefix argument, `emerge-combine-versions-template' is made local to this
+merge buffer.  Localization is permanent for any particular merge buffer."
+  (interactive "s\nP")
+  (if localize
+      (make-local-variable 'emerge-combine-versions-template))
+  (setq emerge-combine-versions-template string)
+  (message
+   (if (assq 'emerge-combine-versions-template (buffer-local-variables))
+       "emerge-set-combine-versions-template set locally"
+     "emerge-set-combine-versions-template set")))
+
 (defun emerge-set-combine-versions-template (start end &optional localize)
   "Copy region into `emerge-combine-versions-template'.
 This controls how `emerge-combine-versions' will combine the two versions.
-With prefix argument, `emerge-combine-versions' is made local to this
+With prefix argument, `emerge-combine-versions-template' is made local to this
 merge buffer.  Localization is permanent for any particular merge buffer."
   (interactive "r\nP")
   (if localize
