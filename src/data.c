@@ -101,6 +101,12 @@ wrong_type_argument (predicate, value)
 	 if (INTEGERP (value) && EQ (predicate, Qstringp))
 	   return Fnumber_to_string (value);
 	}
+
+      /* If VALUE is not even a valid Lisp object, abort here
+	 where we can get a backtrace showing where it came from.  */
+      if ((unsigned int) XGCTYPE (value) > Lisp_Window + 2)
+	abort ();
+
       value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
       tem = call1 (predicate, value);
     }
