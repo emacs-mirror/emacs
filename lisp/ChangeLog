@@ -1,3 +1,8 @@
+2002-09-02  Kim F. Storm  <storm@cua.dk>
+
+	* edmacro.el (edit-kbd-macro): Recognize new default binding for
+	C-x e in addition to old binding.
+
 2002-09-01  Richard M. Stallman  <rms@gnu.org>
 
 	* ruler-mode.el (defgroup ruler-mode): Use `convenience' as parent.
