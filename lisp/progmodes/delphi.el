@@ -65,11 +65,14 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.2 $"))
+  (let ((revision "$Revision: 3.3 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.3  2000/02/01 14:32:21  fx
+;;; (delphi): Add :version to defgroup.
+;;;
 ;;; Revision 3.2  1999/08/18 05:08:39  blaak
 ;;; checked in with -k by blaak at 1999/08/18 05:08:39
 ;;;
@@ -276,7 +279,7 @@ are followed by an expression.")
   `(,@delphi-end-block-statements ,@delphi-mid-block-statements)
   "Statements that match the indentation of the parent block.")
 
-(defconst delphi-decl-sections '(type const var label)
+(defconst delphi-decl-sections '(type const var label resourcestring)
   "Denotes the start of a declaration section.")
 
 (defconst delphi-class-types '(class object)
