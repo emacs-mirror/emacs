@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate December 25, 1998
+@set lastupdate December 31, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -459,11 +459,6 @@ free software.)
 @item
 A free replacement for Glimpse, which is not free software.
 
-@item 
-Software for making "slide" presentations.  It need not be compatible
-with the popular proprietary software to do this job, but it should do
-the same job.
-
 @item
 Software for desktop publishing.  We are extending Emacs into a WYSIWYG
 word processor, to handle primarily linear text; what this item proposes
@@ -582,9 +577,6 @@ A fast emulator for the i386 which works by translating
 machine instructions into the machine language of the host machine.
 (Support for emulation of other machines would enhance the program
 but might make it much more difficult.)
-
-@item
-A map display or geographic information system.
 
 @item
 Optical character recognition programs; especially if suitable for
