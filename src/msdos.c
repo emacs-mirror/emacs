@@ -3456,8 +3456,8 @@ dos_rawgetc ()
 		event.code = button_num;
 		event.modifiers = dos_get_modifiers (0)
 		  | (press ? down_modifier : up_modifier);
-		event.x = x;
-		event.y = y;
+		event.x = make_number (x);
+		event.y = make_number (y);
 		event.frame_or_window = selected_frame;
 		event.arg = Qnil;
 		event.timestamp = event_timestamp ();
