@@ -6314,11 +6314,6 @@ note_mouse_movement (frame, msg)
     }
 }
 
-/* This is used for debugging, to turn off note_mouse_highlight.  */
-
-int disable_mouse_highlight;
-
-
 
 /************************************************************************
 			      Mouse Face
@@ -6535,7 +6530,7 @@ note_mouse_highlight (f, x, y)
   if (popup_activated ())
     return;
 
-  if (disable_mouse_highlight
+  if (NILP (Vmouse_highlight)
       || !f->glyphs_initialized_p)
     return;
 
@@ -7444,6 +7439,8 @@ show_mouse_face (dpyinfo, draw)
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
       w->current_matrix != NULL
+      /* Don't update mouse highlight if hidden */
+      && (draw != DRAW_MOUSE_FACE || !dpyinfo->mouse_face_hidden)
       /* Recognize when we are called to operate on rows that don't exist
 	 anymore.  This can happen when a window is split.  */
       && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
@@ -8642,6 +8639,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  
 	  if (f && !f->iconified)
 	    {
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+		{
+		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (dpyinfo);
+		}
+
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
@@ -8663,6 +8666,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  
 	  if (f && !f->iconified)
 	    {
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+		{
+		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (dpyinfo);
+		}
+
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
@@ -8689,6 +8698,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  else
 	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  
+	  if (dpyinfo->mouse_face_hidden)
+	    {
+	      dpyinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (dpyinfo);
+	    }
+
 	  if (f)
 	    note_mouse_movement (f, &msg.msg);
 	  else
@@ -10852,6 +10867,7 @@ w32_initialize_display_info (display_name)
   dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
   dpyinfo->mouse_face_window = Qnil;
   dpyinfo->mouse_face_overlay = Qnil;
+  dpyinfo->mouse_face_hidden = 0;
   /* TODO: dpyinfo->gray */
 
 }
