@@ -1,4 +1,4 @@
-2003-10-20  Richard M. Stallman  <rms@gnu.org>
+2003-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-display-freq-count): Doc fix.
 

@@ -2564,6 +2564,7 @@ indentation of keywords and forms in loop forms.
 ** Indentation of backquoted forms has been made customizable in the
 cl-indent package.  See the new user option `lisp-backquote-indentation'.
 
++++
 ** Already true in Emacs 21.1, but not emphasized clearly enough:
 
 Multibyte buffers can now faithfully record all 256 character codes
@@ -2579,12 +2580,15 @@ the time it takes to convert the format.
 3. For binary files where format conversion would be pointless and
 wasteful.
 
++++
 ** If text has a `keymap' property, that keymap takes precedence
 over minor mode keymaps.
 
++++
 ** A hex escape in a string forces the string to be multibyte.
 An octal escape makes it unibyte.
 
++++
 ** At the end of a command, point moves out from within invisible
 text, in the same way it moves out from within text covered by an
 image or composition property.
@@ -2594,29 +2598,6 @@ This is particularly good because the intangible property often has
 unexpected side-effects since the property applies to everything
 (including `goto-char', ...) whereas this new code is only run after
 post-command-hook and thus does not care about intermediate states.
-
-** Only one of the beginning or end of an invisible, intangible region is
-considered an acceptable value for point; which one is determined by
-examining how the invisible/intangible properties are inherited when new
-text is inserted adjacent to them.  (The `front-sticky' and `rear-sticky'
-properties control this.)
-
-If the invisible/intangible would be inherited by any text inserted
-before this region, then the position before it is considered
-unacceptable, and point is forced to continue (if moving forwards, to
-the position following the invisible/intangible text; if moving
-backwards, to one position before).  If the properties would be
-inherited by any text inserted after, then the position after is
-considered unacceptable, and point is forced to keep moving (if moving
-backwards, to the position preceding the invisible/intangible text; if
-moving forwards, to one position later).
-
-Thus, point can only go to one end of an invisible, intangible region, but
-not the other one.  This prevents C-f and C-b from appearing to stand still
-on the screen.
-
-You should not set it up so that both the position before and the position
-after are unacceptable.
 
 +++
 ** field-beginning and field-end now accept an additional optional
