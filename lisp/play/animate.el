@@ -130,4 +130,39 @@ in the current window."
     ;; will undo the "animate" calls one by one.
     (undo-boundary)))
 
+;;;###autoload
+(defun animate-birthday-present ()
+  "Display Sarah's birthday present."
+  (interactive)
+  ;; Make a suitable buffer to display the birthday present in.
+  (switch-to-buffer (get-buffer-create "Sarah"))
+  (erase-buffer)
+  ;; Display the empty buffer.
+  (sit-for 0)
+  ;; Make sure indentation does not use tabs.
+  ;; They would confuse things.
+  (setq indent-tabs-mode nil)
+
+  (animate-string "Happy Birthday," 6)
+  (animate-string "Sarah" 7)
+
+  (sit-for 1)
+
+  (animate-string "You are my sunshine," 10 30)
+  (sit-for .5)
+  (animate-string "My only sunshine." 11 30)
+  (sit-for .5)
+  (animate-string "I'm awful sad that" 12 30)
+  (sit-for .5)
+  (animate-string "You've moved away." 13 30)
+  (sit-for .5)
+  (animate-string "Let's talk together" 15 30)
+  (sit-for .5)
+  (animate-string "And love more deeply." 16 30)
+  (sit-for .5)
+  (animate-string "Please bring back" 17 30)
+  (animate-string "my sunshine" 18 34)
+  (animate-string "to stay!" 19 34))
+
 ;;; animate.el ends here
+
