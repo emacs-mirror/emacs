@@ -2388,69 +2388,65 @@ x_scroll_bar_report_motion (f, bar_window, part, x, y, time)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   int win_x, win_y;
+  Window dummy_window;
+  int dummy_coord;
+  unsigned int dummy_mask;
 
   BLOCK_INPUT;
 
   /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
-  {
-    Window dummy_window;
-    int dummy_coord;
-    unsigned int dummy_mask;
+  if (! XQueryPointer (x_current_display,
+		       SCROLL_BAR_X_WINDOW (bar),
 
-    if (! XQueryPointer (x_current_display,
-			 SCROLL_BAR_X_WINDOW (bar),
+		       /* Root, child, root x and root y.  */
+		       &dummy_window, &dummy_window,
+		       &dummy_coord, &dummy_coord,
 
-			 /* Root, child, root x and root y.  */
-			 &dummy_window, &dummy_window,
-			 &dummy_coord, &dummy_coord,
+		       /* Position relative to scroll bar.  */
+		       &win_x, &win_y,
 
-			 /* Position relative to scroll bar.  */
-			 &win_x, &win_y,
+		       /* Mouse buttons and modifier keys.  */
+		       &dummy_mask))
+    *f = 0;
+  else
+    {
+      int inside_height
+	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+      int top_range
+	= VERTICAL_SCROLL_BAR_TOP_RANGE     (XINT (bar->height));
 
-			 /* Mouse buttons and modifier keys.  */
-			 &dummy_mask))
-      {
-	*f = 0;
-	goto done;
-      }
-  }
+      win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
-  {
-    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
-    int top_range     = VERTICAL_SCROLL_BAR_TOP_RANGE     (XINT (bar->height));
+      if (! NILP (bar->dragging))
+	win_y -= XINT (bar->dragging);
 
-    win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
+      if (win_y < 0)
+	win_y = 0;
+      if (win_y > top_range)
+	win_y = top_range;
 
-    if (! NILP (bar->dragging))
-      win_y -= XINT (bar->dragging);
+      *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+      *bar_window = bar->window;
 
-    if (win_y < 0)
-      win_y = 0;
-    if (win_y > top_range)
-      win_y = top_range;
+      if (! NILP (bar->dragging))
+	*part = scroll_bar_handle;
+      else if (win_y < XINT (bar->start))
+	*part = scroll_bar_above_handle;
+      else if (win_y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
+	*part = scroll_bar_handle;
+      else
+	*part = scroll_bar_below_handle;
 
-    *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-    *bar_window = bar->window;
+      XSET (*x, Lisp_Int, win_y);
+      XSET (*y, Lisp_Int, top_range);
 
-    if (! NILP (bar->dragging))
-      *part = scroll_bar_handle;
-    else if (win_y < XINT (bar->start))
-      *part = scroll_bar_above_handle;
-    else if (win_y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
-      *part = scroll_bar_handle;
-    else
-      *part = scroll_bar_below_handle;
+      mouse_moved = 0;
+      last_mouse_scroll_bar = Qnil;
+    }
 
-    XSET (*x, Lisp_Int, win_y);
-    XSET (*y, Lisp_Int, top_range);
-    *time = last_mouse_movement_time;
-  }
+  *time = last_mouse_movement_time;
 
-  mouse_moved = 0;
-  last_mouse_scroll_bar = Qnil;
-
- done:
   UNBLOCK_INPUT;
 }
 
