@@ -1,3 +1,8 @@
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-mode-map): New var.
+	(reveal-mode): Use it.
+
 2004-11-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-flush-pending-output): New variable.
