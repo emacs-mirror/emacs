@@ -1,6 +1,6 @@
 ;;; awk-mode.el --- AWK code editing commands for Emacs
 
-;; Copyright (C) 1988, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1988,94,96,2000  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, languages
@@ -52,102 +52,55 @@
   (modify-syntax-entry ?_ "_" awk-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" awk-mode-syntax-table))
 
-(defvar awk-mode-abbrev-table nil
-  "Abbrev table in use in Awk-mode buffers.")
-(define-abbrev-table 'awk-mode-abbrev-table ())
-
 ;; Regexps written with help from Peter Galbraith <galbraith@mixing.qc.dfo.ca>.
 (defconst awk-font-lock-keywords
   (eval-when-compile
     (list
      ;;
      ;; Function names.
-     '("^[ \t]*\\(function\\)\\>[ \t]*\\(\\sw+\\)?" 
+     '("^[ \t]*\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
      ;;
      ;; Variable names.
-     (cons (concat "\\<\\("
-;		   ("ARGC" "ARGIND" "ARGV" "CONVFMT" "ENVIRON" "ERRNO"
-;		    "FIELDWIDTHS" "FILENAME" "FNR" "FS" "IGNORECASE" "NF" "NR"
-;		    "OFMT" "OFS" "ORS" "RLENGTH" "RS" "RSTART" "SUBSEP")
-		   "ARG\\([CV]\\|IND\\)\\|CONVFMT\\|E\\(NVIRON\\|RRNO\\)\\|"
-		   "F\\(I\\(ELDWIDTHS\\|LENAME\\)\\|NR\\|S\\)\\|IGNORECASE\\|"
-		   "N[FR]\\|O\\(F\\(MT\\|S\\)\\|RS\\)\\|"
-		   "R\\(LENGTH\\|S\\(\\|TART\\)\\)\\|SUBSEP"
-		   "\\)\\>")
+     (cons (regexp-opt
+	    '("ARGC" "ARGIND" "ARGV" "CONVFMT" "ENVIRON" "ERRNO"
+	      "FIELDWIDTHS" "FILENAME" "FNR" "FS" "IGNORECASE" "NF" "NR"
+	      "OFMT" "OFS" "ORS" "RLENGTH" "RS" "RSTART" "SUBSEP") 'words)
 	   'font-lock-variable-name-face)
      ;;
      ;; Keywords.
-     (concat "\\<\\("
-;	     ("BEGIN" "END" "break" "continue" "delete" "exit" "for"
-;	      "getline" "if" "next" "print" "printf" "return" "while")
-	     "BEGIN\\|END\\|break\\|continue\\|delete\\|exit\\|else\\|for\\|"
-	     "getline\\|if\\|next\\|printf?\\|return\\|while"
-	     "\\)\\>")
+     (regexp-opt
+      '("BEGIN" "END" "break" "continue" "delete" "exit" "else" "for"
+	"getline" "if" "next" "print" "printf" "return" "while") 'words)
      ;;
      ;; Builtins.
-     (list (concat "\\<\\("
-;		   ("atan2" "close" "cos" "ctime" "exp" "gsub" "index" "int"
-;		    "length" "log" "match" "rand" "sin" "split" "sprintf"
-;		    "sqrt" "srand" "sub" "substr" "system" "time"
-;		    "tolower" "toupper")
-		   "atan2\\|c\\(lose\\|os\\|time\\)\\|exp\\|gsub\\|"
-		   "in\\(dex\\|t\\)\\|l\\(ength\\|og\\)\\|match\\|rand\\|"
-		   "s\\(in\\|p\\(lit\\|rintf\\)\\|qrt\\|rand\\|"
-		   "ub\\(\\|str\\)\\|ystem\\)\\|"
-		   "t\\(ime\\|o\\(lower\\|upper\\)\\)"
-		   "\\)(")
+     (list (regexp-opt
+	    '("atan2" "close" "cos" "ctime" "exp" "gsub" "index" "int"
+	      "length" "log" "match" "rand" "sin" "split" "sprintf"
+	      "sqrt" "srand" "sub" "substr" "system" "time"
+	      "tolower" "toupper") 'words)
 	   1 'font-lock-builtin-face)
      ;;
      ;; Operators.  Is this too much?
-     (cons (mapconcat 'identity
-		      '("&&" "||" "<=" "<" ">=" ">" "==" "!=" "!~" "~")
-		      "\\|")
+     (cons (regexp-opt '("&&" "||" "<=" "<" ">=" ">" "==" "!=" "!~" "~"))
 	   'font-lock-constant-face)
      ))
  "Default expressions to highlight in AWK mode.")
 
 ;;;###autoload
-(defun awk-mode ()
+(define-derived-mode awk-mode c-mode "AWK"
   "Major mode for editing AWK code.
-This is much like C mode except for the syntax of comments.  It uses
-the same keymap as C mode and has the same variables for customizing
+This is much like C mode except for the syntax of comments.  Its keymap
+inherits from C mode's and it has the same variables for customizing
 indentation.  It has its own abbrev table and its own syntax table.
 
-Turning on AWK mode calls the value of the variable `awk-mode-hook'
-with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (require 'cc-mode)
-  (c-initialize-cc-mode)
-  (use-local-map c-mode-map)
-  (setq major-mode 'awk-mode)
-  (setq mode-name "AWK")
-  (setq local-abbrev-table awk-mode-abbrev-table)
-  (set-syntax-table awk-mode-syntax-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'c-indent-line)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
-  (make-local-variable 'comment-start)
-  (setq comment-start "# ")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "#+ *")
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(awk-font-lock-keywords nil nil ((?_ . "w"))))
-  (run-hooks 'awk-mode-hook))
+Turning on AWK mode runs `awk-mode-hook'."
+  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "#+ *")
+  (setq font-lock-defaults '(awk-font-lock-keywords nil nil ((?_ . "w")))))
 
 (provide 'awk-mode)
 
