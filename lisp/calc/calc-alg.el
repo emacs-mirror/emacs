@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-alg.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -37,8 +37,7 @@
    (calc-with-default-simplification
     (let ((math-simplify-only nil))
       (calc-modify-simplify-mode arg)
-      (calc-enter-result 1 "dsmp" (calc-top 1)))))
-)
+      (calc-enter-result 1 "dsmp" (calc-top 1))))))
 
 (defun calc-modify-simplify-mode (arg)
   (if (= (math-abs arg) 2)
@@ -46,22 +45,19 @@
     (if (>= (math-abs arg) 3)
 	(setq calc-simplify-mode 'ext)))
   (if (< arg 0)
-      (setq calc-simplify-mode (list calc-simplify-mode)))
-)
+      (setq calc-simplify-mode (list calc-simplify-mode))))
 
 (defun calc-simplify ()
   (interactive)
   (calc-slow-wrapper
    (calc-with-default-simplification
-    (calc-enter-result 1 "simp" (math-simplify (calc-top-n 1)))))
-)
+    (calc-enter-result 1 "simp" (math-simplify (calc-top-n 1))))))
 
 (defun calc-simplify-extended ()
   (interactive)
   (calc-slow-wrapper
    (calc-with-default-simplification
-    (calc-enter-result 1 "esmp" (math-simplify-extended (calc-top-n 1)))))
-)
+    (calc-enter-result 1 "esmp" (math-simplify-extended (calc-top-n 1))))))
 
 (defun calc-expand-formula (arg)
   (interactive "p")
@@ -75,16 +71,14 @@
 			       (calc-top-n 1))
 			   (let ((top (calc-top-n 1)))
 			     (or (math-expand-formula top)
-				 top)))))))
-)
+				 top))))))))
 
 (defun calc-factor (arg)
   (interactive "P")
   (calc-slow-wrapper
    (calc-unary-op "fctr" (if (calc-is-hyperbolic)
 			     'calcFunc-factors 'calcFunc-factor)
-		  arg))
-)
+		  arg)))
 
 (defun calc-expand (n)
   (interactive "P")
@@ -92,8 +86,7 @@
    (calc-enter-result 1 "expa"
 		      (append (list 'calcFunc-expand
 				    (calc-top-n 1))
-			      (and n (list (prefix-numeric-value n))))))
-)
+			      (and n (list (prefix-numeric-value n)))))))
 
 (defun calc-collect (&optional var)
   (interactive "sCollect terms involving: ")
@@ -106,26 +99,22 @@
 	   (error "Bad format in expression: %s" (nth 1 var)))
        (calc-enter-result 1 "clct" (list 'calcFunc-collect
 					 (calc-top-n 1)
-					 var)))))
-)
+					 var))))))
 
 (defun calc-apart (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "aprt" 'calcFunc-apart arg))
-)
+   (calc-unary-op "aprt" 'calcFunc-apart arg)))
 
 (defun calc-normalize-rat (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "nrat" 'calcFunc-nrat arg))
-)
+   (calc-unary-op "nrat" 'calcFunc-nrat arg)))
 
 (defun calc-poly-gcd (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "pgcd" 'calcFunc-pgcd arg))
-)
+   (calc-binary-op "pgcd" 'calcFunc-pgcd arg)))
 
 (defun calc-poly-div (arg)
   (interactive "P")
@@ -139,22 +128,19 @@
 	 (if (not (Math-zerop calc-poly-div-remainder))
 	     (message "(Remainder was %s)"
 		      (math-format-flat-expr calc-poly-div-remainder 0))
-	   (message "(No remainder)")))))
-)
+	   (message "(No remainder)"))))))
 
 (defun calc-poly-rem (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "prem" 'calcFunc-prem arg))
-)
+   (calc-binary-op "prem" 'calcFunc-prem arg)))
 
 (defun calc-poly-div-rem (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "pdvr" 'calcFunc-pdivide arg)
-     (calc-binary-op "pdvr" 'calcFunc-pdivrem arg)))
-)
+     (calc-binary-op "pdvr" 'calcFunc-pdivrem arg))))
 
 (defun calc-substitute (&optional oldname newname)
   (interactive "sSubstitute old: ")
@@ -184,24 +170,21 @@
 	   (error "Bad format in expression: %s" (nth 1 old)))
        (or (math-expr-contains expr old)
 	   (error "No occurrences found.")))
-     (calc-enter-result num "sbst" (math-expr-subst expr old new))))
-)
+     (calc-enter-result num "sbst" (math-expr-subst expr old new)))))
 
 
 (defun calc-has-rules (name)
   (setq name (calc-var-value name))
   (and (consp name)
        (memq (car name) '(vec calcFunc-assign calcFunc-condition))
-       name)
-)
+       name))
 
 (defun math-recompile-eval-rules ()
   (setq math-eval-rules-cache (and (calc-has-rules 'var-EvalRules)
 				   (math-compile-rewrites
 				    '(var EvalRules var-EvalRules)))
 	math-eval-rules-cache-other (assq nil math-eval-rules-cache)
-	math-eval-rules-cache-tag (calc-var-value 'var-EvalRules))
-)
+	math-eval-rules-cache-tag (calc-var-value 'var-EvalRules)))
 
 
 ;;; Try to expand a formula according to its definition.
@@ -213,8 +196,7 @@
        (let ((res (let ((math-expand-formulas t))
 		    (apply (car expr) (cdr expr)))))
 	 (and (not (eq (car-safe res) (car expr)))
-	      res)))
-)
+	      res))))
 
 
 
@@ -270,15 +252,14 @@
 	 (and b
 	      (or (null a)
 		  (math-beforep (car a) (car b)))))
-	(t (string-lessp (symbol-name (car a)) (symbol-name (car b)))))
-)
+	(t (string-lessp (symbol-name (car a)) (symbol-name (car b))))))
 
 
-(defun math-simplify-extended (a)
+(defsubst math-simplify-extended (a)
   (let ((math-living-dangerously t))
-    (math-simplify a))
-)
-(fset 'calcFunc-esimplify (symbol-function 'math-simplify-extended))
+    (math-simplify a)))
+
+(defalias 'calcFunc-esimplify 'math-simplify-extended)
 
 (defun math-simplify (top-expr)
   (let ((math-simplifying t)
@@ -312,9 +293,9 @@
 			r (cdr r)))
 		(not (equal top-expr (setq res (math-simplify-step res)))))
 	 (setq top-expr res)))))
-  top-expr
-)
-(fset 'calcFunc-simplify (symbol-function 'math-simplify))
+  top-expr)
+
+(defalias 'calcFunc-simplify 'math-simplify)
 
 ;;; The following has a "bug" in that if any recursive simplifications
 ;;; occur only the first handler will be tried; this doesn't really
@@ -335,13 +316,12 @@
 						  aa))
 				     a))
 		    (setq handler (cdr handler))))))
-      aa))
-)
+      aa)))
 
 
+;; Placeholder, to synchronize autoloading.
 (defun math-need-std-simps ()
-  ;; Placeholder, to synchronize autoloading.
-)
+  nil)
 
 (math-defsimplify (+ -)
   (math-simplify-plus))
@@ -378,8 +358,7 @@
 	  (setcar (cdr (cdr expr)) temp)
 	  (setcar expr '+)
 	  (setcar (cdr aa) 0)))
-    expr)
-)
+    expr))
 
 (math-defsimplify *
   (math-simplify-times))
@@ -424,8 +403,7 @@
 	     (memq (nth 1 (nth 1 expr)) '(1 -1)))
 	(math-div (math-mul (nth 2 expr) (nth 1 (nth 1 expr)))
 		  (nth 2 (nth 1 expr)))
-      expr))
-)
+      expr)))
 
 (math-defsimplify /
   (math-simplify-divide))
@@ -473,8 +451,7 @@
 	   (math-simplify-divisor (cdr n) (cdr (cdr expr)) nover t))
       (setq np (cdr (cdr n))))
     (math-simplify-divisor np (cdr (cdr expr)) nover t)
-    expr)
-)
+    expr))
 
 (defun math-simplify-divisor (np dp nover dover)
   (cond ((eq (car-safe (car dp)) '/)
@@ -498,8 +475,7 @@
 	     (setq safe (or scalar (math-known-scalarp (nth 1 d) t))
 		   dp (cdr (cdr d))))
 	   (if safe
-	       (math-simplify-one-divisor np dp)))))
-)
+	       (math-simplify-one-divisor np dp))))))
 
 (defun math-simplify-one-divisor (np dp)
   (if (setq temp (math-combine-prod (car np) (car dp) nover dover t))
@@ -516,8 +492,7 @@
 	 (progn
 	   (setcar np (math-mul (car np)
 				(list 'calcFunc-sqrt (nth 1 (car dp)))))
-	   (setcar dp (nth 1 (car dp))))))
-)
+	   (setcar dp (nth 1 (car dp)))))))
 
 (defun math-common-constant-factor (expr)
   (if (Math-realp expr)
@@ -537,8 +512,7 @@
 	(if (eq (car expr) '/)
 	    (or (math-common-constant-factor (nth 1 expr))
 		(and (Math-integerp (nth 2 expr))
-		     (list 'frac 1 (math-abs (nth 2 expr)))))))))
-)
+		     (list 'frac 1 (math-abs (nth 2 expr))))))))))
 
 (defun math-cancel-common-factor (expr val)
   (if (memq (car-safe expr) '(+ - cplx sdev))
@@ -548,8 +522,7 @@
 	expr)
     (if (eq (car-safe expr) '*)
 	(math-mul (math-cancel-common-factor (nth 1 expr) val) (nth 2 expr))
-      (math-div expr val)))
-)
+      (math-div expr val))))
 
 (defun math-frac-gcd (a b)
   (if (Math-zerop a)
@@ -562,8 +535,7 @@
 	(and (Math-integerp a) (setq a (list 'frac a 1)))
 	(and (Math-integerp b) (setq b (list 'frac b 1)))
 	(math-make-frac (math-gcd (nth 1 a) (nth 1 b))
-			(math-gcd (nth 2 a) (nth 2 b))))))
-)
+			(math-gcd (nth 2 a) (nth 2 b)))))))
 
 (math-defsimplify %
   (math-simplify-mod))
@@ -600,8 +572,7 @@
 		  (math-known-integerp (if lin
 					   (math-mul (nth 1 lin) (nth 2 lin))
 					 (nth 1 expr)))
-		  (if lin (math-mod (car lin) 1) 0)))))
-)
+		  (if lin (math-mod (car lin) 1) 0))))))
 
 (math-defsimplify (calcFunc-eq calcFunc-neq calcFunc-lt
 			       calcFunc-gt calcFunc-leq calcFunc-geq)
@@ -636,8 +607,7 @@
 		((eq (car expr) 'calcFunc-geq)
 		 (or (and (eq signs 1) 0)
 		     (and (memq signs '(2 4 6)) 1))))
-	  expr)))
-)
+	  expr))))
 
 (defun math-simplify-add-term (np dp minus lplain)
   (or (math-vectorp (car np))
@@ -666,8 +636,7 @@
 		  (setcar dp 0))
 	      (progn
 		(setcar np 0)
-		(setcar dp (setq n (math-neg temp))))))))
-)
+		(setcar dp (setq n (math-neg temp)))))))))
 
 (math-defsimplify calcFunc-sin
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arcsin)
@@ -695,8 +664,7 @@
 		     (list '* (list 'calcFunc-sin (list '* (1- n) a))
 			   (list 'calcFunc-cos a))
 		     (list '* (list 'calcFunc-cos (list '* (1- n) a))
-			   (list 'calcFunc-sin a)))))))
-)
+			   (list 'calcFunc-sin a))))))))
 
 (math-defsimplify calcFunc-cos
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arccos)
@@ -724,8 +692,7 @@
 		     (list '* (list 'calcFunc-cos (list '* (1- n) a))
 			   (list 'calcFunc-cos a))
 		     (list '* (list 'calcFunc-sin (list '* (1- n) a))
-			   (list 'calcFunc-sin a)))))))
-)
+			   (list 'calcFunc-sin a))))))))
 
 (defun math-should-expand-trig (x &optional hyperbolic)
   (let ((m (math-is-multiple x)))
@@ -739,8 +706,7 @@
 		     '(calcFunc-arcsin calcFunc-arccos calcFunc-arctan)))
 	     (and (eq (car-safe (nth 1 m)) 'calcFunc-ln)
 		  (eq hyperbolic 'exp)))
-	 m))
-)
+	 m)))
 
 (defun math-known-sin (plus n mul off)
   (setq n (math-mul n mul))
@@ -778,8 +744,7 @@
 				(60 . 1)))))
 	   (cond ((eq n 0) (math-normalize (list 'calcFunc-sin plus)))
 		 ((eq n 60) (math-normalize (list 'calcFunc-cos plus)))
-		 (t nil)))))
-)
+		 (t nil))))))
 
 (math-defsimplify calcFunc-tan
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arctan)
@@ -808,8 +773,7 @@
 		 (math-div (math-sub 1 (list 'calcFunc-cos (nth 1 m)))
 			   (list 'calcFunc-sin (nth 1 m)))
 	       (math-div (list 'calcFunc-sin (nth 1 expr))
-			 (list 'calcFunc-cos (nth 1 expr)))))))
-)
+			 (list 'calcFunc-cos (nth 1 expr))))))))
 
 (defun math-known-tan (plus n mul)
   (setq n (math-mul n mul))
@@ -841,8 +805,7 @@
 	   (cond ((eq n 0) (math-normalize (list 'calcFunc-tan plus)))
 		 ((eq n 60) (math-normalize (list '/ -1
 						  (list 'calcFunc-tan plus))))
-		 (t nil)))))
-)
+		 (t nil))))))
 
 (math-defsimplify calcFunc-sinh
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arcsinh)
@@ -865,8 +828,7 @@
 			 (list '* (list 'calcFunc-sinh (list '* (1- n) a))
 			       (list 'calcFunc-cosh a))
 			 (list '* (list 'calcFunc-cosh (list '* (1- n) a))
-			       (list 'calcFunc-sinh a))))))))
-)
+			       (list 'calcFunc-sinh a)))))))))
 
 (math-defsimplify calcFunc-cosh
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arccosh)
@@ -889,8 +851,7 @@
 			 (list '* (list 'calcFunc-cosh (list '* (1- n) a))
 			       (list 'calcFunc-cosh a))
 			 (list '* (list 'calcFunc-sinh (list '* (1- n) a))
-			       (list 'calcFunc-sinh a))))))))
-)
+			       (list 'calcFunc-sinh a)))))))))
 
 (math-defsimplify calcFunc-tanh
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-arctanh)
@@ -913,8 +874,7 @@
 		 (math-div (math-sub (list 'calcFunc-cosh (nth 1 m)) 1)
 			   (list 'calcFunc-sinh (nth 1 m)))
 	       (math-div (list 'calcFunc-sinh (nth 1 expr))
-			 (list 'calcFunc-cosh (nth 1 expr)))))))
-)
+			 (list 'calcFunc-cosh (nth 1 expr))))))))
 
 (math-defsimplify calcFunc-arcsin
   (or (and (math-looks-negp (nth 1 expr))
@@ -929,8 +889,7 @@
       (and math-living-dangerously
 	   (eq (car-safe (nth 1 expr)) 'calcFunc-cos)
 	   (math-sub (math-quarter-circle t)
-		     (nth 1 (nth 1 expr)))))
-)
+		     (nth 1 (nth 1 expr))))))
 
 (math-defsimplify calcFunc-arccos
   (or (and (eq (nth 1 expr) 0)
@@ -947,8 +906,7 @@
       (and math-living-dangerously
 	   (eq (car-safe (nth 1 expr)) 'calcFunc-sin)
 	   (math-sub (math-quarter-circle t)
-		     (nth 1 (nth 1 expr)))))
-)
+		     (nth 1 (nth 1 expr))))))
 
 (math-defsimplify calcFunc-arctan
   (or (and (math-looks-negp (nth 1 expr))
@@ -957,8 +915,7 @@
 	   (math-div (math-half-circle t) 4))
       (and math-living-dangerously
 	   (eq (car-safe (nth 1 expr)) 'calcFunc-tan)
-	   (nth 1 (nth 1 expr))))
-)
+	   (nth 1 (nth 1 expr)))))
 
 (math-defsimplify calcFunc-arcsinh
   (or (and (math-looks-negp (nth 1 expr))
@@ -966,15 +923,13 @@
       (and (eq (car-safe (nth 1 expr)) 'calcFunc-sinh)
 	   (or math-living-dangerously
 	       (math-known-realp (nth 1 (nth 1 expr))))
-	   (nth 1 (nth 1 expr))))
-)
+	   (nth 1 (nth 1 expr)))))
 
 (math-defsimplify calcFunc-arccosh
   (and (eq (car-safe (nth 1 expr)) 'calcFunc-cosh)
        (or math-living-dangerously
 	   (math-known-realp (nth 1 (nth 1 expr))))
-       (nth 1 (nth 1 expr)))
-)
+       (nth 1 (nth 1 expr))))
 
 (math-defsimplify calcFunc-arctanh
   (or (and (math-looks-negp (nth 1 expr))
@@ -982,12 +937,10 @@
       (and (eq (car-safe (nth 1 expr)) 'calcFunc-tanh)
 	   (or math-living-dangerously
 	       (math-known-realp (nth 1 (nth 1 expr))))
-	   (nth 1 (nth 1 expr))))
-)
+	   (nth 1 (nth 1 expr)))))
 
 (math-defsimplify calcFunc-sqrt
-  (math-simplify-sqrt)
-)
+  (math-simplify-sqrt))
 
 (defun math-simplify-sqrt ()
   (or (and (eq (car-safe (nth 1 expr)) 'frac)
@@ -1069,8 +1022,7 @@
 				  (math-mul
 				   out
 				   (list 'calcFunc-sqrt
-					 (math-mul sums rest)))))))))))
-)
+					 (math-mul sums rest))))))))))))
 
 ;;; Rather than factoring x into primes, just check for the first ten primes.
 (defun math-squared-factor (x)
@@ -1083,12 +1035,10 @@
 	      (setq x (car res)
 		    fac (math-mul fac (car prsqr)))
 	    (setq prsqr (cdr prsqr))))
-	fac))
-)
+	fac)))
 
 (math-defsimplify calcFunc-exp
-  (math-simplify-exp (nth 1 expr))
-)
+  (math-simplify-exp (nth 1 expr)))
 
 (defun math-simplify-exp (x)
   (or (and (eq (car-safe x) 'calcFunc-ln)
@@ -1116,8 +1066,7 @@
 	     (and n
 		  (setq s (math-known-sin (car n) (nth 1 n) 120 0))
 		  (setq c (math-known-sin (car n) (nth 1 n) 120 300))
-		  (list '+ c (list '* s '(var i var-i)))))))
-)
+		  (list '+ c (list '* s '(var i var-i))))))))
 
 (math-defsimplify calcFunc-ln
   (or (and (eq (car-safe (nth 1 expr)) 'calcFunc-exp)
@@ -1142,8 +1091,7 @@
 				'(/ (* (var pi var-pi) (var i var-i)) 2)))
 		 (and (memq ips '(1 3))
 		      (math-sub (list 'calcFunc-ln (math-neg ip))
-				'(/ (* (var pi var-pi) (var i var-i)) 2)))))))
-)
+				'(/ (* (var pi var-pi) (var i var-i)) 2))))))))
 
 (math-defsimplify ^
   (math-simplify-pow))
@@ -1206,31 +1154,27 @@
       (and (eq (math-quarter-integer (nth 2 expr)) 2)
 	   (let ((temp (math-simplify-sqrt)))
 	     (and temp
-		  (list '^ temp (math-mul (nth 2 expr) 2))))))
-)
+		  (list '^ temp (math-mul (nth 2 expr) 2)))))))
 
 (math-defsimplify calcFunc-log10
   (and (eq (car-safe (nth 1 expr)) '^)
        (math-equal-int (nth 1 (nth 1 expr)) 10)
        (or math-living-dangerously
 	   (math-known-realp (nth 2 (nth 1 expr))))
-       (nth 2 (nth 1 expr)))
-)
+       (nth 2 (nth 1 expr))))
 
 
 (math-defsimplify calcFunc-erf
   (or (and (math-looks-negp (nth 1 expr))
 	   (math-neg (list 'calcFunc-erf (math-neg (nth 1 expr)))))
       (and (eq (car-safe (nth 1 expr)) 'calcFunc-conj)
-	   (list 'calcFunc-conj (list 'calcFunc-erf (nth 1 (nth 1 expr))))))
-)
+	   (list 'calcFunc-conj (list 'calcFunc-erf (nth 1 (nth 1 expr)))))))
 
 (math-defsimplify calcFunc-erfc
   (or (and (math-looks-negp (nth 1 expr))
 	   (math-sub 2 (list 'calcFunc-erfc (math-neg (nth 1 expr)))))
       (and (eq (car-safe (nth 1 expr)) 'calcFunc-conj)
-	   (list 'calcFunc-conj (list 'calcFunc-erfc (nth 1 (nth 1 expr))))))
-)
+	   (list 'calcFunc-conj (list 'calcFunc-erfc (nth 1 (nth 1 expr)))))))
 
 
 (defun math-linear-in (expr term &optional always)
@@ -1239,16 +1183,15 @@
 	     (p (math-is-polynomial expr term 1)))
 	(and (cdr p)
 	     p))
-    (and always (list expr 0)))
-)
+    (and always (list expr 0))))
 
 (defun math-multiple-of (expr term)
   (let ((p (math-linear-in expr term)))
     (and p
 	 (math-zerop (car p))
-	 (nth 1 p)))
-)
+	 (nth 1 p))))
 
+; not perfect, but it'll do
 (defun math-integer-plus (expr)
   (cond ((Math-integerp expr)
 	 (list 0 expr))
@@ -1260,8 +1203,7 @@
 	      (Math-integerp (nth 2 expr)))
 	 (list (nth 1 expr)
 	       (if (eq (car expr) '+) (nth 2 expr) (math-neg (nth 2 expr)))))
-	(t nil))   ; not perfect, but it'll do
-)
+	(t nil)))
 
 (defun math-is-linear (expr &optional always)
   (let ((offset nil)
@@ -1284,8 +1226,7 @@
     (if offset
 	(list offset (or (car coef) 1) (or (nth 1 coef) expr))
       (if coef
-	  (cons 0 coef))))
-)
+	  (cons 0 coef)))))
 
 (defun math-is-multiple (expr &optional always)
   (or (if (eq (car-safe expr) '*)
@@ -1312,8 +1253,7 @@
 	  (and (eq always 1)
 	       (list expr 1))
 	(and always 
-	     (list 1 expr))))
-)
+	     (list 1 expr)))))
 
 (defun calcFunc-lin (expr &optional var)
   (if var
@@ -1322,8 +1262,7 @@
 	(list 'vec (car res) (nth 1 res) var))
     (let ((res (math-is-linear expr t)))
       (or res (math-reject-arg expr "Linear term expected"))
-      (cons 'vec res)))
-)
+      (cons 'vec res))))
 
 (defun calcFunc-linnt (expr &optional var)
   (if var
@@ -1332,22 +1271,19 @@
 	(list 'vec (car res) (nth 1 res) var))
     (let ((res (math-is-linear expr)))
       (or res (math-reject-arg expr "Linear term expected"))
-      (cons 'vec res)))
-)
+      (cons 'vec res))))
 
 (defun calcFunc-islin (expr &optional var)
   (if (and (Math-objvecp expr) (not var))
       0
     (calcFunc-lin expr var)
-    1)
-)
+    1))
 
 (defun calcFunc-islinnt (expr &optional var)
   (if (Math-objvecp expr)
       0
     (calcFunc-linnt expr var)
-    1)
-)
+    1))
 
 
 
@@ -1364,8 +1300,7 @@
 	     (setq num (+ num (or (math-expr-contains-count
 				   (car expr) thing) 0))))
 	   (and (> num 0)
-		num))))
-)
+		num)))))
 
 (defun math-expr-contains (expr thing)
   (cond ((equal expr thing) 1)
@@ -1373,8 +1308,7 @@
 	(t
 	 (while (and (setq expr (cdr expr))
 		     (not (math-expr-contains (car expr) thing))))
-	 expr))
-)
+	 expr)))
 
 ;;; Return non-nil if any variable of thing occurs in expr.
 (defun math-expr-depends (expr thing)
@@ -1383,14 +1317,13 @@
 	   (math-expr-contains expr thing))
     (while (and (setq thing (cdr thing))
 		(not (math-expr-depends expr (car thing)))))
-    thing)
-)
+    thing))
 
 ;;; Substitute all occurrences of old for new in expr (non-destructive).
 (defun math-expr-subst (expr old new)
-  (math-expr-subst-rec expr)
-)
-(fset 'calcFunc-subst (symbol-function 'math-expr-subst))
+  (math-expr-subst-rec expr))
+
+(defalias 'calcFunc-subst 'math-expr-subst)
 
 (defun math-expr-subst-rec (expr)
   (cond ((equal expr old) new)
@@ -1405,8 +1338,7 @@
 		 (math-expr-subst-rec (nth 2 expr)))))
 	(t
 	 (cons (car expr)
-	       (mapcar 'math-expr-subst-rec (cdr expr)))))
-)
+	       (mapcar 'math-expr-subst-rec (cdr expr))))))
 
 ;;; Various measures of the size of an expression.
 (defun math-expr-weight (expr)
@@ -1415,8 +1347,7 @@
     (let ((w 1))
       (while (setq expr (cdr expr))
 	(setq w (+ w (math-expr-weight (car expr)))))
-      w))
-)
+      w)))
 
 (defun math-expr-height (expr)
   (if (Math-primp expr)
@@ -1424,8 +1355,7 @@
     (let ((h 0))
       (while (setq expr (cdr expr))
 	(setq h (max h (math-expr-height (car expr)))))
-      (1+ h)))
-)
+      (1+ h))))
 
 
 
@@ -1437,8 +1367,7 @@
     (if (cdr p)
 	(math-normalize   ; fix selection bug
 	 (math-build-polynomial-expr p base))
-      expr))
-)
+      expr)))
 
 ;;; If expr is of the form "a + bx + cx^2 + ...", return the list (a b c ...),
 ;;; else return nil if not in polynomial form.  If "loose", coefficients
@@ -1450,8 +1379,7 @@
 	 (poly (math-is-poly-rec expr math-poly-neg-powers)))
     (and (or (null degree)
 	     (<= (length poly) (1+ degree)))
-	 poly))
-)
+	 poly)))
 
 (defun math-is-poly-rec (expr negpow)
   (math-poly-simplify
@@ -1550,8 +1478,7 @@
        (and (or (not (math-poly-depends expr var))
 		loose)
 	    (not (eq (car expr) 'vec))
-	    (list expr))))
-)
+	    (list expr)))))
 
 ;;; Check if expr is a polynomial in var; if so, return its degree.
 (defun math-polynomial-p (expr var)
@@ -1577,14 +1504,12 @@
 	 (let ((p1 (math-polynomial-p (nth 1 expr) var)))
 	   (and p1 (* p1 (nth 2 expr)))))
 	((math-poly-depends expr var) nil)
-	(t 0))
-)
+	(t 0)))
 
 (defun math-poly-depends (expr var)
   (if math-poly-base-variable
       (math-expr-contains expr math-poly-base-variable)
-    (math-expr-depends expr var))
-)
+    (math-expr-depends expr var)))
 
 ;;; Find the variable (or sub-expression) which is the base of polynomial expr.
 (defun math-polynomial-base (mpb-top-expr &optional mpb-pred)
@@ -1594,8 +1519,7 @@
   (or (let ((const-ok nil))
 	(math-polynomial-base-rec mpb-top-expr))
       (let ((const-ok t))
-	(math-polynomial-base-rec mpb-top-expr)))
-)
+	(math-polynomial-base-rec mpb-top-expr))))
 
 (defun math-polynomial-base-rec (mpb-expr)
   (and (not (Math-objvecp mpb-expr))
@@ -1610,8 +1534,7 @@
 		(math-polynomial-base-rec '(var e var-e)))
 	   (and (or const-ok (math-expr-contains-vars mpb-expr))
 		(funcall mpb-pred mpb-expr)
-		mpb-expr)))
-)
+		mpb-expr))))
 
 ;;; Return non-nil if expr refers to any variables.
 (defun math-expr-contains-vars (expr)
@@ -1620,8 +1543,7 @@
 	   (progn
 	     (while (and (setq expr (cdr expr))
 			 (not (math-expr-contains-vars (car expr)))))
-	     expr)))
-)
+	     expr))))
 
 ;;; Simplify a polynomial in list form by stripping off high-end zeros.
 ;;; This always leaves the constant part, i.e., nil->nil and nonnil->nonnil.
@@ -1633,8 +1555,7 @@
 			 (Math-zerop (nth (1- (length pp)) pp)))
 	       (setcdr (nthcdr (- (length pp) 2) pp) nil))
 	     pp)
-	 p))
-)
+	 p)))
 
 ;;; Compute ac*a + bc*b for polynomials in list form a, b and
 ;;; coefficients ac, bc.  Result may be unsimplified.
@@ -1642,20 +1563,17 @@
   (and (or a b)
        (cons (math-add (math-mul (or (car a) 0) ac)
 		       (math-mul (or (car b) 0) bc))
-	     (math-poly-mix (cdr a) ac (cdr b) bc)))
-)
+	     (math-poly-mix (cdr a) ac (cdr b) bc))))
 
 (defun math-poly-zerop (a)
   (or (null a)
-      (and (null (cdr a)) (Math-zerop (car a))))
-)
+      (and (null (cdr a)) (Math-zerop (car a)))))
 
 ;;; Multiply two polynomials in list form.
 (defun math-poly-mul (a b)
   (and a b
        (math-poly-mix b (car a)
-		      (math-poly-mul (cdr a) (cons 0 b)) 1))
-)
+		      (math-poly-mul (cdr a) (cons 0 b)) 1)))
 
 ;;; Build an expression from a polynomial list.
 (defun math-build-polynomial-expr (p var)
@@ -1681,8 +1599,7 @@
 					      (car rp))
 					    (math-pow var n))))))
 	  accum))
-    0)
-)
+    0))
 
 
 (defun math-to-simple-fraction (f)
@@ -1694,6 +1611,6 @@
 		    (< (nth 1 f) 1000)
 		    (math-make-frac (nth 1 f)
 				    (math-scale-int 1 (- (nth 2 f)))))))
-      f)
-)
+      f))
 
+;;; calc-alg.el ends here
