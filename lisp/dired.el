@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001, 2002
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -1407,7 +1407,8 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
 	  (if (string-match (car elt) file)
 	      (setq cmd (cdr elt))))
 	(if cmd
-	    (dired-run-shell-command (concat cmd " " file))
+	    (dired-run-shell-command (concat cmd " "
+					     (shell-quote-argument file)))
 	  (view-file file))))))
 
 (defun dired-find-file-other-window ()
