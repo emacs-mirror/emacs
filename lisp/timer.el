@@ -70,6 +70,36 @@ fire each time Emacs is idle for that many seconds."
   (aset timer 4 repeat)
   timer)
 
+(defun timer-next-integral-multiple-of-time (time secs)
+  "Yield the next value after TIME that is an integral number of SECS
+since the epoch.  SECS may be a fraction."
+  (let ((time-base (ash 1 16)))
+    (if (fboundp 'atan)
+	;; Use floating point, taking care to not lose precision.
+	(let* ((float-time-base (float time-base))
+	       (million 1000000.0)
+	       (time-usec (+ (* million
+				(+ (* float-time-base (nth 0 time))
+				   (nth 1 time)))
+			     (nth 2 time)))
+	       (secs-usec (* million secs))
+	       (mod-usec (mod time-usec secs-usec))
+	       (next-usec (+ (- time-usec mod-usec) secs-usec))
+	       (time-base-million (* float-time-base million)))
+	  (list (floor next-usec time-base-million)
+		(floor (mod next-usec time-base-million) million)
+		(floor (mod next-usec million))))
+      ;; Floating point is not supported.
+      ;; Use integer arithmetic, avoiding overflow if possible.
+      (let* ((mod-sec (mod (+ (* (mod time-base secs)
+				 (mod (nth 0 time) secs))
+			      (nth 1 time))
+			   secs))
+	     (next-1-sec (+ (- (nth 1 time) mod-sec) secs)))
+	(list (+ (nth 0 time) (floor next-1-sec time-base))
+	      (mod next-1-sec time-base)
+	      0)))))
+
 (defun timer-relative-time (time secs &optional usecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds.
 SECS may be a fraction."
@@ -248,16 +278,25 @@ fire repeatedly that many seconds apart."
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
 TIME should be a string like \"11:23pm\", nil meaning now, a number of seconds
-from now, or a value from `encode-time'.
+from now, a value from `current-time', or t (with non-nil REPEAT)
+meaning the next integral multiple of REPEAT.
 REPEAT may be an integer or floating point number.
 The action is to call FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
+  (or (null repeat)
+      (and (numberp repeat) (< 0 repeat))
+      (error "Invalid repetition interval"))
+
   ;; Special case: nil means "now" and is useful when repeating.
   (if (null time)
       (setq time (current-time)))
+
+  ;; Special case: t means the next integral multiple of REPEAT.
+  (if (and (eq time t) repeat)
+      (setq time (timer-next-integral-multiple-of-time (current-time) repeat)))
 
   ;; Handle numbers as relative times in seconds.
   (if (numberp time)
@@ -284,10 +323,6 @@ This function returns a timer object which you can use in `cancel-timer'."
 
   (or (consp time)
       (error "Invalid time format"))
-
-  (or (null repeat)
-      (numberp repeat)
-      (error "Invalid repetition interval"))
 
   (let ((timer (timer-create)))
     (timer-set-time timer time repeat)
