@@ -314,7 +314,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
     (setq lis1 (delete "."  lis1)
 	  lis1 (delete ".." lis1))
 
-    (setq common (intersection lis1 lis2 :test comparison-func))
+    (setq common (intersection lis1 lis2 ':test comparison-func))
     ;; get rid of files that are directories in dir1 but not dir2
     (mapcar (function (lambda (elt)
 			(if (Xor (file-directory-p (concat auxdir1 elt))
@@ -322,7 +322,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 			    (setq common (delq elt common)))))
 	    common)
     ;; intersect with the third dir
-    (if lis3 (setq common (intersection common lis3 :test comparison-func)))
+    (if lis3 (setq common (intersection common lis3 ':test comparison-func)))
     (if (ediff-comparison-metajob3 jobname)
 	(mapcar (function (lambda (elt)
 			    (if (Xor (file-directory-p (concat auxdir1 elt))
@@ -335,11 +335,11 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 
     ;; compute difference list
     (setq difflist (set-difference
-		    (union (union lis1 lis2 :test comparison-func)
+		    (union (union lis1 lis2 ':test comparison-func)
 			   lis3
-			   :test comparison-func)
+			   ':test comparison-func)
 		    common
-		    :test comparison-func)
+		    ':test comparison-func)
 	  difflist (delete "."  difflist)
 	  ;; copy-list needed because sort sorts it by side effects
 	  difflist (sort (copy-list (delete ".." difflist)) 'string-lessp))
