@@ -17,18 +17,11 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* x_handle_selection_notify
-x_reply_selection_request  */
-
 
 /* Rewritten by jwz */
 
 #include <config.h>
 #include "lisp.h"
-#if 0
-#include <stdio.h>	/* termhooks.h needs this */
-#include "termhooks.h"
-#endif
 #include "xterm.h"	/* for all of the X includes */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
@@ -500,6 +493,8 @@ x_reply_selection_request (event, format, data, size, type)
     reply.property = reply.target;
 
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
+  BLOCK_INPUT;
+  x_catch_errors (display);
 
   /* Store the data on the requested property.
      If the selection is large, only store the first N bytes of it.
@@ -511,20 +506,18 @@ x_reply_selection_request (event, format, data, size, type)
 #if 0
       fprintf (stderr,"\nStoring all %d\n", bytes_remaining);
 #endif
-      BLOCK_INPUT;
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, size);
       /* At this point, the selection was successfully stored; ack it.  */
       XSendEvent (display, window, False, 0L, (XEvent *) &reply);
-      XFlush (display);
-      UNBLOCK_INPUT;
     }
   else
     {
       /* Send an INCR selection.  */
       struct prop_location *wait_object;
+      int had_errors;
 
-      BLOCK_INPUT;
+      x_start_queuing_selection_requests (display);
 
       if (x_window_to_frame (window)) /* #### debug */
 	error ("attempt to transfer an INCR to ourself!");
@@ -541,11 +534,14 @@ x_reply_selection_request (event, format, data, size, type)
       /* Tell 'em the INCR data is there...  */
       (void) XSendEvent (display, window, False, 0L, (XEvent *) &reply);
       XFlush (display);
+
+      had_errors = x_had_errors_p (display);
       UNBLOCK_INPUT;
 
       /* First, wait for the requestor to ack by deleting the property.
 	 This can run random lisp code (process handlers) or signal.  */
-      wait_for_property_change (wait_object);
+      if (! had_errors)
+	wait_for_property_change (wait_object);
 
       while (bytes_remaining)
 	{
@@ -567,7 +563,11 @@ x_reply_selection_request (event, format, data, size, type)
 	  bytes_remaining -= i;
 	  data += i;
 	  XFlush (display);
+	  had_errors = x_had_errors_p (display);
 	  UNBLOCK_INPUT;
+
+	  if (had_errors)
+	    break;
 
 	  /* Now wait for the requestor to ack this chunk by deleting the
 	     property.	 This can run random lisp code or signal.
@@ -585,9 +585,12 @@ x_reply_selection_request (event, format, data, size, type)
 
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
-      XFlush (display);
-      UNBLOCK_INPUT;
+      x_stop_queuing_selection_requests (display);
     }
+
+  XFlush (display);
+  x_uncatch_errors (display);
+  UNBLOCK_INPUT;
 }
 
 /* Handle a SelectionRequest event EVENT.
@@ -912,9 +915,11 @@ wait_for_property_change (location)
 
   XCONS (property_change_reply)->car = Qnil;
 
+  property_change_reply_object = location;
+  /* If the event we are waiting for arrives beyond here, it will set
+     property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
     {
-      property_change_reply_object = location;
       secs = x_selection_timeout / 1000;
       usecs = (x_selection_timeout % 1000) * 1000;
       wait_reading_process_input (secs, usecs, property_change_reply, 0);
@@ -1062,7 +1067,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
-  x_start_queuing_selection_requests (selected_frame);
+  x_start_queuing_selection_requests (display);
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
@@ -1073,7 +1078,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   x_check_errors (display, "Cannot get selection: %s");
   x_uncatch_errors (display);
-  x_stop_queuing_selection_requests (selected_frame);
+  x_stop_queuing_selection_requests (display);
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
