@@ -1,13 +1,12 @@
 ;;; calendar.el --- Calendar functions.  -*-byte-compile-dynamic: t;-*-
 
-;;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994 Free Software
+;;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995 Free Software
 ;;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, Gregorian calendar, Julian calendar, 
-;;	Hebrew calendar, Islamic calendar, ISO calendar, Julian day number,
-;;	diary, holidays
+;;	Julian day number, diary, holidays
 
 ;; This file is part of GNU Emacs.
 
@@ -27,36 +26,41 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements a calendar window.  It
-;; generates a calendar for the current month, together with the previous
-;; and coming months, or for any other three-month period.  The calendar
-;; can be scrolled forward and backward in the window to show months in
-;; the past or future; the cursor can move forward and backward by days,
-;; weeks, or months, making it possible, for instance, to jump to the
-;; date a specified number of days, weeks, or months from the date under
-;; the cursor.  The user can display a list of holidays and other notable
-;; days for the period shown; the notable days can be marked on the
-;; calendar, if desired.  The user can also specify that dates having
-;; corresponding diary entries (in a file that the user specifies) be
-;; marked; the diary entries for any date can be viewed in a separate
-;; window.  The diary and the notable days can be viewed independently of
-;; the calendar.  Dates can be translated from the (usual) Gregorian
-;; calendar to the day of the year/days remaining in year, to the ISO
-;; commercial calendar, to the Julian (old style) calendar, to the Hebrew
-;; calendar, to the Islamic calendar, to the French Revolutionary calendar,
-;; to the Mayan calendar, and to the astronomical (Julian) day number.
-;; When floating point is available, times of sunrise/sunset can be displayed,
-;; as can the phases of the moon.  Appointment notification for diary entries
-;; is available.
+;; This collection of functions implements a calendar window.  It generates a
+;; calendar for the current month, together with the previous and coming
+;; months, or for any other three-month period.  The calendar can be scrolled
+;; forward and backward in the window to show months in the past or future;
+;; the cursor can move forward and backward by days, weeks, or months, making
+;; it possible, for instance, to jump to the date a specified number of days,
+;; weeks, or months from the date under the cursor.  The user can display a
+;; list of holidays and other notable days for the period shown; the notable
+;; days can be marked on the calendar, if desired.  The user can also specify
+;; that dates having corresponding diary entries (in a file that the user
+;; specifies) be marked; the diary entries for any date can be viewed in a
+;; separate window.  The diary and the notable days can be viewed
+;; independently of the calendar.  Dates can be translated from the (usual)
+;; Gregorian calendar to the day of the year/days remaining in year, to the
+;; ISO commercial calendar, to the Julian (old style) calendar, to the Hebrew
+;; calendar, to the Islamic calendar, to the French Revolutionary calendar, to
+;; the Mayan calendar, to the Chinese calendar, to the Coptic calendar, to the
+;; Ethiopic calendar, and to the astronomical (Julian) day number.  When
+;; floating point is available, times of sunrise/sunset can be displayed, as
+;; can the phases of the moon.  Appointment notification for diary entries is
+;; available.
 
 ;; The following files are part of the calendar/diary code:
 
 ;;       cal-menu.el                   Menu support
+;;       cal-move.el                   Movement in the calendar
 ;;       cal-x.el                      X-windows dedicated frame functions
-;;       diary-lib.el, diary-ins.el    Diary functions
+;;       diary.el                      Diary functions
 ;;       holidays.el                   Holiday functions
-;;       cal-french.el                 French Revolutionary calendar
+;;       cal-julian.el                 Julian/astronomical calendars
+;;       cal-hebrew.el                 Hebrew calendar
+;;       cal-islamic.el                Islamic calendar
 ;;       cal-mayan.el                  Mayan calendars
+;;       cal-chinese.el                Chinese calendar
+;;       cal-coptic.el                 Coptic/Ethiopic calendars
 ;;       cal-dst.el                    Daylight savings time rules
 ;;       solar.el                      Sunrise/sunset, equinoxes/solstices
 ;;       lunar.el                      Phases of the moon
@@ -66,23 +70,6 @@
 ;;  Edward M. Reingold               Department of Computer Science
 ;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
 ;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
-;; GNU Emacs users too numerous to list pointed out a variety of problems
-;; with earlier forms of the `infinite' sliding calendar and suggested some
-;; of the features included in this package.  Especially significant in this
-;; regard was the suggestion of mark-diary-entries and view-diary-entries,
-;; together ideas for their implementation, by
-;;  Michael S. Littman		     Cognitive Science Research Group
-;;  (201) 829-5155                   Bell Communications Research
-;;  mlittman@wind.bellcore.com       445 South St. Box 1961 (2L-331)
-;;                                   Morristown, NJ  07960
-
-;; The algorithms for the Hebrew calendar are those of the Rambam (Rabbi Moses
-;; Maimonides), from his Mishneh Torah, as implemented by
-;;  Nachum Dershowitz                Department of Computer Science
-;;  (217) 333-4219                   University of Illinois at Urbana-Champaign
-;;  nachum@cs.uiuc.edu               1304 West Springfield Avenue
 ;;                                   Urbana, Illinois 61801
 
 ;; Technical details of all the calendrical calculations can be found in
@@ -102,7 +89,7 @@
 
 (defun calendar-version ()
   (interactive)
-  (message "Version 5.3, January 25, 1994"))
+  (message "Version 6, September 17, 1995"))
 
 ;;;###autoload
 (defvar calendar-week-start-day 0
@@ -342,6 +329,7 @@ causes the diary entry \"Vacation\" to appear from November 1 through November
 10, 1990.  Other functions available are `diary-float', `diary-anniversary',
 `diary-cyclic', `diary-day-of-year', `diary-iso-date', `diary-french-date',
 `diary-hebrew-date', `diary-islamic-date', `diary-mayan-date',
+`diary-chinese-date', `diary-coptic-date', `diary-ethiopic-date',
 `diary-yahrzeit', `diary-sunrise-sunset', `diary-phases-of-moon',
 `diary-parasha', `diary-omer', `diary-rosh-hodesh', and
 `diary-sabbath-candles'.  See the documentation for the function
@@ -634,6 +622,15 @@ somewhat; setting it to nil makes the diary display faster.")
 See the documentation for `calendar-holidays' for details.")
 
 ;;;###autoload
+(put 'oriental-holidays 'risky-local-variable t)
+;;;###autoload
+(defvar oriental-holidays
+  '((if (fboundp 'atan)
+	(holiday-chinese-new-year)))
+  "*Oriental holidays.
+See the documentation for `calendar-holidays' for details.")
+
+;;;###autoload
 (put 'local-holidays 'risky-local-variable t)
 ;;;###autoload
 (defvar local-holidays nil
@@ -836,16 +833,16 @@ See the documentation for `calendar-holidays' for details.")
 (defvar calendar-holidays
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
-          solar-holidays)
+          oriental-holidays solar-holidays)
   "*List of notable days for the command M-x holidays.
 
 Additional holidays are easy to add to the list, just put them in the list
 `other-holidays' in your .emacs file.  Similarly, by setting any of
 `general-holidays', `local-holidays' `christian-holidays', `hebrew-holidays',
-`islamic-holidays', or `solar-holidays' to nil in your .emacs file, you can
-eliminate unwanted categories of holidays.  The intention is that (in the US)
-`local-holidays' be set in site-init.el and `other-holidays' be set by the
-user.
+`islamic-holidays', `oriental-holidays', or `solar-holidays' to nil in your
+.emacs file, you can eliminate unwanted categories of holidays.  The intention
+is that (in the US) `local-holidays' be set in site-init.el and
+`other-holidays' be set by the user.
 
 Entries on the list are expressions that return (possibly empty) lists of
 items of the form ((month day year) string) of a holiday in the in the
@@ -1049,8 +1046,117 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (- (/ prior-years 100));;    - century years
        (/ prior-years 400))));;     + Gregorian leap years
 
+(autoload 'calendar-goto-today "cal-move"
+  "Reposition the calendar window so the current date is visible."
+  t)
+
+(autoload 'calendar-forward-month "cal-move"
+  "Move the cursor forward ARG months."
+  t)
+
+(autoload 'calendar-forward-year "cal-move"
+  "Move the cursor forward by ARG years."
+  t)
+
+(autoload 'calendar-backward-month "cal-move"
+  "Move the cursor backward by ARG months."
+  t)
+
+(autoload 'calendar-backward-year "cal-move"
+  "Move the cursor backward ARG years."
+  t)
+
+(autoload 'scroll-calendar-left "cal-move"
+  "Scroll the displayed calendar left by ARG months."
+  t)
+
+(autoload 'scroll-calendar-right "cal-move"
+  "Scroll the displayed calendar window right by ARG months."
+  t)
+
+(autoload 'scroll-calendar-left-three-months "cal-move"
+  "Scroll the displayed calendar window left by 3*ARG months."
+  t)
+
+(autoload 'scroll-calendar-right-three-months "cal-move"
+  "Scroll the displayed calendar window right by 3*ARG months."
+  t)
+
+(autoload 'calendar-cursor-to-nearest-date "cal-move"
+  "Move the cursor to the closest date."
+  t)
+
+(autoload 'calendar-forward-day "cal-move"
+  "Move the cursor forward ARG days."
+  t)
+
+(autoload 'calendar-backward-day "cal-move"
+  "Move the cursor back ARG days."
+  t)
+
+(autoload 'calendar-forward-week "cal-move"
+  "Move the cursor forward ARG weeks."
+  t)
+
+(autoload 'calendar-backward-week "cal-move"
+  "Move the cursor back ARG weeks."
+  t)
+
+(autoload 'calendar-beginning-of-week "cal-move"
+  "Move the cursor back ARG calendar-week-start-day's."
+  t)
+
+(autoload 'calendar-end-of-week "cal-move"
+  "Move the cursor forward ARG calendar-week-start-day+6's."
+  t)
+
+(autoload 'calendar-beginning-of-month "cal-move"
+  "Move the cursor backward ARG month beginnings."
+  t)
+
+(autoload 'calendar-end-of-month "cal-move"
+  "Move the cursor forward ARG month ends."
+  t)
+
+(autoload 'calendar-beginning-of-year "cal-move"
+  "Move the cursor backward ARG year beginnings."
+  t)
+
+(autoload 'calendar-end-of-year "cal-move"
+  "Move the cursor forward ARG year beginnings."
+  t)
+
+(autoload 'calendar-cursor-to-visible-date "cal-move"
+  "Move the cursor to DATE that is on the screen."
+  t)
+
+(autoload 'calendar-goto-date "cal-move"
+  "Move cursor to DATE."
+  t)
+
+(autoload 'calendar-one-frame-setup "cal-x"
+  "Start calendar and display it in a dedicated frame together with the diary.")
+
+(autoload 'calendar-two-frame-setup "cal-x"
+  "Start calendar and diary in separate, dedicated frames.")
+  
+;;;###autoload
+(defvar calendar-setup nil
+  "The frame set up of the calendar.
+The choices are `one-frame' (calendar and diary together in one separate,
+dediciated frame) or `two-frames' (calendar and diary in separate, dedicated
+frames); with any other value the current frame is used.")
+
 ;;;###autoload
 (defun calendar (&optional arg)
+  "Choose between the one frame, two frame, or basic calendar displays.
+The original function `calendar' has been renamed `calendar-basic-setup'."
+  (interactive "P")
+  (cond ((equal calendar-setup 'one-frame) (calendar-one-frame-setup arg))
+        ((equal calendar-setup 'two-frames) (calendar-two-frame-setup arg))
+        (t (calendar-basic-setup arg))))
+
+(defun calendar-basic-setup (&optional arg)
   "Display a three-month calendar in another window.
 The three months appear side by side, with the current month in the middle
 surrounded by the previous and next months.  The cursor is put on today's date.
@@ -1121,7 +1227,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
         (list-calendar-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
-(autoload 'view-diary-entries "diary-lib"
+(autoload 'view-diary-entries "diary"
   "Prepare and display a buffer with diary entries.
 Searches your diary file for entries that match ARG days starting with
 the date indicated by the cursor position in the displayed three-month
@@ -1145,11 +1251,11 @@ calendar."
   t)
 
 (autoload 'calendar-french-date-string "cal-french"
-  "String of French Revolutionary date of Gregorian DATE."
+  "String of French Revolutionary date of Gregorian date."
   t)
 
 (autoload 'calendar-mayan-date-string "cal-mayan"
-  "String of Mayan date of Gregorian DATE."
+  "String of Mayan date of Gregorian date."
   t)
 
 (autoload 'calendar-print-mayan-date "cal-mayan"
@@ -1184,73 +1290,149 @@ calendar."
   "Move cursor to previous instance of Mayan Haab/Tzoklin combination."
   t)
 
-(autoload 'show-all-diary-entries "diary-lib"
+(autoload 'calendar-goto-chinese-date "cal-chinese"
+   "Move cursor to Chinese date date."
+   t)
+
+(autoload 'calendar-print-chinese-date "cal-chinese"
+ "Show the Chinese date equivalents of date."
+ t)
+
+(autoload 'calendar-chinese-date-string "cal-chinese"
+  "String of Chinese date of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-julian-date "cal-julian"
+  "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
+  t)
+
+(autoload 'calendar-goto-iso-date "cal-iso"
+  "Move cursor to ISO date."
+  t)
+
+(autoload 'calendar-print-iso-date "cal-iso"
+  "Show the ISO date equivalents of date."
+  t)
+
+(autoload 'calendar-iso-date-string "cal-iso"
+  "String of ISO date of Gregorian date."
+  t)
+
+(autoload 'calendar-print-islamic-date "cal-islamic"
+  "Show the Islamic date equivalents of date."
+  t)
+
+(autoload 'calendar-islamic-date-string "cal-islamic"
+  "String of Islamic date of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-hebrew-date "cal-hebrew"
+  "Move cursor to Hebrew date date."
+  t)
+
+(autoload 'calendar-print-hebrew-date "cal-hebrew"
+  "Show the Hebrew date equivalents of date."
+  t)
+
+(autoload 'calendar-hebrew-date-string "cal-hebrew"
+  "String of Hebrew date of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-coptic-date "cal-coptic"
+   "Move cursor to Coptic date date."
+   t)
+
+(autoload 'calendar-print-coptic-date "cal-coptic"
+ "Show the Coptic date equivalents of date."
+ t)
+
+(autoload 'calendar-coptic-date-string "cal-coptic"
+  "String of Coptic date of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-ethiopic-date "cal-coptic"
+   "Move cursor to Ethiopic date date."
+   t)
+
+(autoload 'calendar-print-ethiopic-date "cal-coptic"
+ "Show the Ethiopic date equivalents of date."
+ t)
+
+(autoload 'calendar-ethiopic-date-string "cal-coptic"
+  "String of Ethiopic date of Gregorian date."
+  t)
+
+(autoload 'show-all-diary-entries "diary"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   t)
 
-(autoload 'mark-diary-entries "diary-lib"
+(autoload 'mark-diary-entries "diary"
   "Mark days in the calendar window that have diary entries.
 Each entry in diary file visible in the calendar window is marked."
   t)
 
-(autoload 'insert-diary-entry "diary-ins"
+(autoload 'make-diary-entry "diary"
+  "Insert a diary entry STRING which may be NONMARKING in FILE."
+  t)
+
+(autoload 'insert-diary-entry "diary"
   "Insert a diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-weekly-diary-entry "diary-ins"
+(autoload 'insert-weekly-diary-entry "diary"
   "Insert a weekly diary entry for the day of the week indicated by point."
   t)
 
 
-(autoload 'insert-monthly-diary-entry "diary-ins"
+(autoload 'insert-monthly-diary-entry "diary"
   "Insert a monthly diary entry for the day of the month indicated by point."
   t)
 
-(autoload 'insert-yearly-diary-entry "diary-ins"
+(autoload 'insert-yearly-diary-entry "diary"
   "Insert an annual diary entry for the day of the year indicated by point."
   t)
 
-(autoload 'insert-anniversary-diary-entry "diary-ins"
+(autoload 'insert-anniversary-diary-entry "diary"
   "Insert an anniversary diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-block-diary-entry "diary-ins"
+(autoload 'insert-block-diary-entry "diary"
   "Insert a block diary entry for the dates indicated by point and mark."
   t)
 
-(autoload 'insert-cyclic-diary-entry "diary-ins"
+(autoload 'insert-cyclic-diary-entry "diary"
   "Insert a cyclic diary entry starting at the date indicated by point."
   t)
 
-(autoload 'insert-hebrew-diary-entry "diary-ins"
+(autoload 'insert-hebrew-diary-entry "cal-hebrew"
   "Insert a diary entry for the Hebrew date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-hebrew-diary-entry "diary-ins"
+(autoload 'insert-monthly-hebrew-diary-entry "cal-hebrew"
   "Insert a monthly diary entry for the day of the Hebrew month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-hebrew-diary-entry "diary-ins"
+(autoload 'insert-yearly-hebrew-diary-entry "cal-hebrew"
   "Insert an annual diary entry for the day of the Hebrew year corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-islamic-diary-entry "diary-ins"
+(autoload 'insert-islamic-diary-entry "cal-islamic"
   "Insert a diary entry for the Islamic date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-islamic-diary-entry "diary-ins"
+(autoload 'insert-monthly-islamic-diary-entry "cal-islamic"
   "Insert a monthly diary entry for the day of the Islamic month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-islamic-diary-entry "diary-ins"
+(autoload 'insert-yearly-islamic-diary-entry "cal-islamic"
   "Insert an annual diary entry for the day of the Islamic year corresponding
 to the date indicated by point."
   t)
@@ -1344,7 +1526,7 @@ characters on the line."
    ;; Put in the days of the month
    (calendar-for-loop i from 1 to last do
       (insert (format "%2d " i))
-      (put-text-property (- (point) (if (< i 10) 2 3)) (1- (point))
+      (put-text-property (- (point) 3) (1- (point))
 			 'mouse-face 'highlight)
       (and (zerop (mod (+ i blank-days) 7))
            (/= i last)
@@ -1431,6 +1613,9 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "ga"  'calendar-goto-astro-day-number)
   (define-key calendar-mode-map "gh"  'calendar-goto-hebrew-date)
   (define-key calendar-mode-map "gi"  'calendar-goto-islamic-date)
+  (define-key calendar-mode-map "gC"  'calendar-goto-chinese-date)
+  (define-key calendar-mode-map "gk"  'calendar-goto-coptic-date)
+  (define-key calendar-mode-map "ge"  'calendar-goto-ethiopic-date)
   (define-key calendar-mode-map "gc"  'calendar-goto-iso-date)
   (define-key calendar-mode-map "gf"  'calendar-goto-french-date)
   (define-key calendar-mode-map "gml"  'calendar-goto-mayan-long-count-date)
@@ -1456,6 +1641,9 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "D"   'view-other-diary-entries)
   (define-key calendar-mode-map "s"   'show-all-diary-entries)
   (define-key calendar-mode-map "pd"  'calendar-print-day-of-year)
+  (define-key calendar-mode-map "pC"  'calendar-print-chinese-date)
+  (define-key calendar-mode-map "pk"  'calendar-print-coptic-date)
+  (define-key calendar-mode-map "pe"  'calendar-print-ethiopic-date)
   (define-key calendar-mode-map "pc"  'calendar-print-iso-date)
   (define-key calendar-mode-map "pj"  'calendar-print-julian-date)
   (define-key calendar-mode-map "pa"  'calendar-print-astro-day-number)
@@ -1628,91 +1816,6 @@ the STRINGS are just concatenated and the result truncated."
          (t (set-buffer buffer)
             (bury-buffer))))))
 
-(defun calendar-goto-today ()
-  "Reposition the calendar window so the current date is visible."
-  (interactive)
-  (let ((today (calendar-current-date)));; The date might have changed.
-    (if (not (calendar-date-is-visible-p today))
-        (generate-calendar-window)
-      (update-calendar-mode-line)
-      (calendar-cursor-to-visible-date today))))
-
-(defun calendar-forward-month (arg)
-  "Move the cursor forward ARG months.
-Movement is backward if ARG is negative."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let* ((cursor-date (calendar-cursor-to-date t))
-         (month (extract-calendar-month cursor-date))
-         (day (extract-calendar-day cursor-date))
-         (year (extract-calendar-year cursor-date)))
-    (increment-calendar-month month year arg)
-    (let ((last (calendar-last-day-of-month month year)))
-      (if (< last day)
-        (setq day last)))
-    ;; Put the new month on the screen, if needed, and go to the new date.
-    (let ((new-cursor-date (list month day year)))
-      (if (not (calendar-date-is-visible-p new-cursor-date))
-          (calendar-other-month month year))
-      (calendar-cursor-to-visible-date new-cursor-date))))
-
-(defun calendar-forward-year (arg)
-  "Move the cursor forward by ARG years.
-Movement is backward if ARG is negative."
-  (interactive "p")
-  (calendar-forward-month (* 12 arg)))
-
-(defun calendar-backward-month (arg)
-  "Move the cursor backward by ARG months.
-Movement is forward if ARG is negative."
-  (interactive "p")
-  (calendar-forward-month (- arg)))
-
-(defun calendar-backward-year (arg)
-  "Move the cursor backward ARG years.
-Movement is forward is ARG is negative."
-  (interactive "p")
-  (calendar-forward-month (* -12 arg)))
-
-(defun scroll-calendar-left (arg)
-  "Scroll the displayed calendar left by ARG months.
-If ARG is negative the calendar is scrolled right.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let ((old-date (calendar-cursor-to-date))
-        (today (calendar-current-date)))
-    (if (/= arg 0)
-        (progn
-          (increment-calendar-month displayed-month displayed-year arg)
-          (generate-calendar-window displayed-month displayed-year)
-          (calendar-cursor-to-visible-date
-           (cond
-            ((calendar-date-is-visible-p old-date) old-date)
-            ((calendar-date-is-visible-p today) today)
-            (t (list displayed-month 1 displayed-year))))))))
-
-(defun scroll-calendar-right (arg)
-  "Scroll the displayed calendar window right by ARG months.
-If ARG is negative the calendar is scrolled left.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (scroll-calendar-left (- arg)))
-
-(defun scroll-calendar-left-three-months (arg)
-  "Scroll the displayed calendar window left by 3*ARG months.
-If ARG is negative the calendar is scrolled right.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (scroll-calendar-left (* 3 arg)))
-
-(defun scroll-calendar-right-three-months (arg)
-  "Scroll the displayed calendar window right by 3*ARG months.
-If ARG is negative the calendar is scrolled left.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (scroll-calendar-left (* -3 arg)))
-
 (defun calendar-current-date ()
   "Returns the current date in a list (month day year)."
   (let ((s (current-time-string)))
@@ -1734,10 +1837,11 @@ ERROR is t, otherwise just returns nil."
            ((and (=  12 month) (= segment 0)) (1- displayed-year))
            ((and (=   1 month) (= segment 2)) (1+ displayed-year))
            (t displayed-year))))
-    (if (and (looking-at "[0-9]")
+    (if (and (looking-at "[ 0-9]?[0-9][^0-9]")
              (< 2 (count-lines (point-min) (point))))
         (save-excursion
-          (re-search-backward "[^0-9]")
+          (if (not (looking-at " "))
+                   (re-search-backward "[^0-9]"))
           (list month
                 (string-to-int (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))
@@ -1748,160 +1852,6 @@ ERROR is t, otherwise just returns nil."
                 (list month calendar-starred-day year)
               (if error (error "Not on a date!"))))
         (if error (error "Not on a date!"))))))
-
-(defun calendar-cursor-to-nearest-date ()
-  "Move the cursor to the closest date.
-The position of the cursor is unchanged if it is already on a date.
-Returns the list (month day year) giving the cursor position."
-  (let ((date (calendar-cursor-to-date))
-        (column (current-column)))
-    (if date
-        date
-      (if (> 3 (count-lines (point-min) (point)))
-          (progn
-            (goto-line 3)
-            (move-to-column column)))
-      (if (not (looking-at "[0-9]"))
-          (if (and (not (looking-at " *$"))
-                   (or (< column 25)
-                       (and (> column 27)
-                            (< column 50))
-                       (and (> column 52)
-                            (< column 75))))
-              (progn
-                (re-search-forward "[0-9]" nil t)
-                (backward-char 1))
-            (re-search-backward "[0-9]" nil t)))
-      (calendar-cursor-to-date))))
-
-(defun calendar-forward-day (arg)
-  "Move the cursor forward ARG days.
-Moves backward if ARG is negative."
-  (interactive "p")
-  (if (/= 0 arg)
-      (let*
-          ((cursor-date (calendar-cursor-to-date))
-           (cursor-date (if cursor-date
-                            cursor-date
-                          (if (> arg 0) (setq arg (1- arg)))
-                          (calendar-cursor-to-nearest-date)))
-           (new-cursor-date
-            (calendar-gregorian-from-absolute
-             (+ (calendar-absolute-from-gregorian cursor-date) arg)))
-           (new-display-month (extract-calendar-month new-cursor-date))
-           (new-display-year (extract-calendar-year new-cursor-date)))
-        ;; Put the new month on the screen, if needed, and go to the new date.
-        (if (not (calendar-date-is-visible-p new-cursor-date))
-            (calendar-other-month new-display-month new-display-year))
-        (calendar-cursor-to-visible-date new-cursor-date))))
-
-(defun calendar-backward-day (arg)
-  "Move the cursor back ARG days.
-Moves forward if ARG is negative."
-  (interactive "p")
-  (calendar-forward-day (- arg)))
-
-(defun calendar-forward-week (arg)
-  "Move the cursor forward ARG weeks.
-Moves backward if ARG is negative."
-  (interactive "p")
-  (calendar-forward-day (* arg 7)))
-
-(defun calendar-backward-week (arg)
-  "Move the cursor back ARG weeks.
-Moves forward if ARG is negative."
-  (interactive "p")
-  (calendar-forward-day (* arg -7)))
-
-(defun calendar-beginning-of-week (arg)
-  "Move the cursor back ARG calendar-week-start-day's."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let ((day (calendar-day-of-week (calendar-cursor-to-date))))
-    (calendar-backward-day
-     (if (= day calendar-week-start-day)
-         (* 7 arg)
-       (+ (mod (- day calendar-week-start-day) 7)
-          (* 7 (1- arg)))))))
-
-(defun calendar-end-of-week (arg)
-  "Move the cursor forward ARG calendar-week-start-day+6's."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let ((day (calendar-day-of-week (calendar-cursor-to-date))))
-    (calendar-forward-day
-     (if (= day (mod (1- calendar-week-start-day) 7))
-         (* 7 arg)
-       (+ (- 6 (mod (- day calendar-week-start-day) 7))
-          (* 7 (1- arg)))))))
-
-(defun calendar-beginning-of-month (arg)
-  "Move the cursor backward ARG month beginnings."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
-    (if (= day 1)
-        (calendar-backward-month arg)
-      (calendar-cursor-to-visible-date (list month 1 year))
-      (calendar-backward-month (1- arg)))))
-
-(defun calendar-end-of-month (arg)
-  "Move the cursor forward ARG month ends."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (last-day (calendar-last-day-of-month month year)))
-    (if (/= day last-day)
-        (progn
-          (calendar-cursor-to-visible-date (list month last-day year))
-          (setq arg (1- arg))))
-    (increment-calendar-month month year arg)
-    (let ((last-day (list
-                     month
-                     (calendar-last-day-of-month month year)
-                     year)))
-      (if (not (calendar-date-is-visible-p last-day))
-          (calendar-other-month month year)
-      (calendar-cursor-to-visible-date last-day)))))
-
-(defun calendar-beginning-of-year (arg)
-  "Move the cursor backward ARG year beginnings."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (jan-first (list 1 1 year)))
-    (if (and (= day 1) (= 1 month))
-        (calendar-backward-month (* 12 arg))
-      (if (and (= arg 1)
-               (calendar-date-is-visible-p jan-first))
-          (calendar-cursor-to-visible-date jan-first)
-        (calendar-other-month 1 (- year (1- arg)))))))
-
-(defun calendar-end-of-year (arg)
-  "Move the cursor forward ARG year beginnings."
-  (interactive "p")
-  (calendar-cursor-to-nearest-date)
-  (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (dec-31 (list 12 31 year)))
-    (if (and (= day 31) (= 12 month))
-        (calendar-forward-month (* 12 arg))
-      (if (and (= arg 1)
-               (calendar-date-is-visible-p dec-31))
-          (calendar-cursor-to-visible-date dec-31)
-        (calendar-other-month 12 (- year (1- arg)))
-        (calendar-cursor-to-visible-date (list 12 31 displayed-year))))))
 
 ;; The following version of calendar-gregorian-from-absolute is preferred for
 ;; reasons of clarity, BUT it's much slower than the version that follows it.
@@ -1954,28 +1904,6 @@ Gregorian date Sunday, December 31, 1 BC."
                       (setq day (- day mdays))))
           (setq month (1+ month)))
         (list month day year)))))
-
-(defun calendar-cursor-to-visible-date (date)
-  "Move the cursor to DATE that is on the screen."
-  (let* ((month (extract-calendar-month date))
-	 (day (extract-calendar-day date))
-	 (year (extract-calendar-year date))
-	 (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
-    (goto-line (+ 3
-		  (/ (+ day  -1
-                        (mod
-                         (- (calendar-day-of-week (list month 1 year))
-                            calendar-week-start-day)
-                         7))
-                     7)))
-    (move-to-column (+ 6
-		       (* 25
-			  (1+ (calendar-interval
-			       displayed-month displayed-year month year)))
-		       (* 3 (mod
-                             (- (calendar-day-of-week date)
-                                calendar-week-start-day)
-                             7))))))
 
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
@@ -2080,157 +2008,6 @@ If optional NODAY is t, does not ask for day, but just returns
                                    '(lambda (x) (and (< 0 x) (<= x last))))
             year))))
 
-(defun calendar-goto-date (date)
-  "Move cursor to DATE."
-  (interactive (list (calendar-read-date)))
-  (let ((month (extract-calendar-month date))
-        (year (extract-calendar-year date)))
-    (if (not (calendar-date-is-visible-p date))
-        (calendar-other-month
-         (if (and (= month 1) (= year 1))
-             2
-           month)
-         year)))
-  (calendar-cursor-to-visible-date date))
-
-(defun calendar-goto-julian-date (date &optional noecho)
-  "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Julian calendar year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-julian-from-absolute
-                    (calendar-absolute-from-gregorian
-                     today))))))
-          (month-array calendar-month-name-array)
-          (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Julian calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         nil t))
-                       (calendar-make-alist month-array 1 'capitalize))))
-          (last 
-           (if (and (zerop (% year 4)) (= month 2))
-               29
-             (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
-          (day (calendar-read
-                (format "Julian calendar day (%d-%d): "
-                        (if (and (= year 1) (= month 1)) 3 1) last)
-                '(lambda (x) 
-                   (and (< (if (and (= year 1) (= month 1)) 2 0) x)
-                        (<= x last))))))
-     (list (list month day year))))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-julian date)))
-  (or noecho (calendar-print-julian-date)))
-
-(defun calendar-goto-hebrew-date (date &optional noecho)
-  "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Hebrew calendar year (>3760): "
-                 '(lambda (x) (> x 3760))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-hebrew-from-absolute
-                    (calendar-absolute-from-gregorian today))))))
-          (month-array (if (hebrew-calendar-leap-year-p year)
-                           calendar-hebrew-month-name-array-leap-year
-                         calendar-hebrew-month-name-array-common-year))
-          (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Hebrew calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         (if (= year 3761)
-                             '(lambda (x)
-                                (let ((m (cdr
-                                          (assoc
-                                           (car x)
-                                           (calendar-make-alist
-                                            month-array)))))
-                                  (< 0
-                                     (calendar-absolute-from-hebrew
-                                      (list m
-                                            (hebrew-calendar-last-day-of-month
-                                             m year)
-                                            year))))))
-                                 
-                         t))
-                       (calendar-make-alist month-array 1 'capitalize))))
-          (last (hebrew-calendar-last-day-of-month month year))
-          (first (if (and (= year 3761) (= month 10))
-                     18 1))
-          (day (calendar-read
-                (format "Hebrew calendar day (%d-%d): "
-                        first last)
-                '(lambda (x) (and (<= first x) (<= x last))))))
-     (list (list month day year))))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-hebrew date)))
-  (or noecho (calendar-print-hebrew-date)))
-
-(defun calendar-goto-islamic-date (date &optional noecho)
-  "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Islamic calendar year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-islamic-from-absolute
-                    (calendar-absolute-from-gregorian today))))))
-          (month-array calendar-islamic-month-name-array)
-          (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Islamic calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         nil t))
-                       (calendar-make-alist month-array 1 'capitalize))))
-          (last (islamic-calendar-last-day-of-month month year))
-          (day (calendar-read
-                (format "Islamic calendar day (1-%d): " last)
-                '(lambda (x) (and (< 0 x) (<= x last))))))
-     (list (list month day year))))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-islamic date)))
-  (or noecho (calendar-print-islamic-date)))
-
-(defun calendar-goto-iso-date (date &optional noecho)
-  "Move cursor to ISO DATE; echo ISO date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "ISO calendar year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string (extract-calendar-year today))))
-          (no-weeks (extract-calendar-month
-                     (calendar-iso-from-absolute
-                      (1-
-                       (calendar-dayname-on-or-before
-                        1 (calendar-absolute-from-gregorian
-                           (list 1 4 (1+ year))))))))
-          (week (calendar-read
-                 (format "ISO calendar week (1-%d): " no-weeks)
-                 '(lambda (x) (and (> x 0) (<= x no-weeks)))))
-          (day (calendar-read
-                "ISO day (1-7): "
-                '(lambda (x) (and (<= 1 x) (<= x 7))))))
-     (list (list week day year))))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-iso date)))
-  (or noecho (calendar-print-iso-date)))
-
 (defun calendar-interval (mon1 yr1 mon2 yr2)
   "The number of months difference between MON1, YR1 and MON2, YR2."
   (+ (* 12 (- yr2 yr1))
@@ -2313,7 +2090,7 @@ MARK defaults to diary-entry-marker."
                 (insert mark)
                 (forward-char -2))
 	    (overlay-put
-             (make-overlay (1-(point)) (1+ (point))) 'face mark))))))
+             (make-overlay (1- (point)) (1+ (point))) 'face mark))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
@@ -2423,481 +2200,14 @@ Defaults to today's date if DATE is not given."
   (interactive)
   (message (calendar-day-of-year-string (calendar-cursor-to-date t))))
 
-(defun calendar-absolute-from-iso (date)
-  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The `ISO year' corresponds approximately to the Gregorian year, but
-weeks start on Monday and end on Sunday.  The first week of the ISO year is
-the first such week in which at least 4 days are in a year.  The ISO
-commercial DATE has the form (week day year) in which week is in the range
-1..52 and day is in the range 0..6 (1 = Monday, 2 = Tuesday, ..., 0 =
-Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let* ((week (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
-    (+ (calendar-dayname-on-or-before
-        1 (+ 3 (calendar-absolute-from-gregorian (list 1 1 year))))
-       (* 7 (1- week))
-       (if (= day 0) 6 (1- day)))))
-
-(defun calendar-iso-from-absolute (date)
-  "Compute the `ISO commercial date' corresponding to the absolute DATE.
-The ISO year corresponds approximately to the Gregorian year, but weeks
-start on Monday and end on Sunday.  The first week of the ISO year is the
-first such week in which at least 4 days are in a year.  The ISO commercial
-date has the form (week day year) in which week is in the range 1..52 and
-day is in the range 0..6 (1 = Monday, 2 = Tuesday, ..., 0 = Sunday).  The
-absolute date is the number of days elapsed since the (imaginary) Gregorian
-date Sunday, December 31, 1 BC."
-  (let* ((approx (extract-calendar-year
-                  (calendar-gregorian-from-absolute (- date 3))))
-         (year (+ approx
-                  (calendar-sum y approx
-                      (>= date (calendar-absolute-from-iso (list 1 1 (1+ y))))
-                      1))))
-    (list
-     (1+ (/ (- date (calendar-absolute-from-iso (list 1 1 year))) 7))
-     (% date 7)
-     year)))
-
-(defun calendar-iso-date-string (&optional date)
-  "String of ISO date of Gregorian DATE.
-Defaults to today's date if DATE is not given."
-  (let* ((d (calendar-absolute-from-gregorian 
-             (or date (calendar-current-date))))
-         (day (% d 7))
-         (iso-date (calendar-iso-from-absolute d)))
-    (format "Day %s of week %d of %d"
-            (if (zerop day) 7 day)
-            (extract-calendar-month iso-date)
-            (extract-calendar-year iso-date))))
-
-(defun calendar-print-iso-date ()
-  "Show equivalent ISO date for the date under the cursor."
-  (interactive)
-  (message "ISO date: %s"
-           (calendar-iso-date-string (calendar-cursor-to-date t))))
-
-(defun calendar-julian-from-absolute (date)
-  "Compute the Julian (month day year) corresponding to the absolute DATE.
-The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
-  (let* ((approx (/ (+ date 2) 366));; Approximation from below.
-         (year        ;; Search forward from the approximation.
-          (+ approx
-             (calendar-sum y approx
-                (>= date (calendar-absolute-from-julian (list 1 1 (1+ y))))
-                1)))
-         (month       ;; Search forward from January.
-          (1+ (calendar-sum m 1
-                 (> date
-                    (calendar-absolute-from-julian
-                     (list m
-                           (if (and (= m 2) (= (% year 4) 0))
-                               29
-                             (aref [31 28 31 30 31 30 31 31 30 31 30 31]
-                                   (1- m)))
-                           year)))
-                 1)))
-         (day         ;; Calculate the day by subtraction.
-          (- date (1- (calendar-absolute-from-julian (list month 1 year))))))
-    (list month day year)))
-
-(defun calendar-absolute-from-julian (date)
-  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
-    (+ (calendar-day-number date)
-       (if (and (= (% year 100) 0)
-                (/= (% year 400) 0)
-                (> month 2))
-           1 0);; Correct for Julian but not Gregorian leap year.
-       (* 365 (1- year))
-       (/ (1- year) 4)
-       -2)))
-
-(defun calendar-julian-date-string (&optional date)
-  "String of Julian date of Gregorian DATE.
-Defaults to today's date if DATE is not given.
-Driven by the variable `calendar-date-display-form'."
-  (calendar-date-string
-   (calendar-julian-from-absolute
-    (calendar-absolute-from-gregorian
-     (or date (calendar-current-date))))
-   nil t))
-
-(defun calendar-print-julian-date ()
-  "Show the Julian calendar equivalent of the date under the cursor."
-  (interactive)
-  (message "Julian date: %s"
-           (calendar-julian-date-string (calendar-cursor-to-date t))))
-
-(defun islamic-calendar-leap-year-p (year)
-  "Returns t if YEAR is a leap year on the Islamic calendar."
-  (memq (% year 30)
-        (list 2 5 7 10 13 16 18 21 24 26 29)))
-
-(defun islamic-calendar-last-day-of-month (month year)
-  "The last day in MONTH during YEAR on the Islamic calendar."
-  (cond
-   ((memq month (list 1 3 5 7 9 11)) 30)
-   ((memq month (list 2 4 6 8 10)) 29)
-   (t (if (islamic-calendar-leap-year-p year) 30 29))))
-
-(defun islamic-calendar-day-number (date)
-  "Return the day number within the year of the Islamic date DATE."
-    (let* ((month (extract-calendar-month date))
-           (day (extract-calendar-day date)))
-      (+ (* 30 (/ month 2))
-         (* 29 (/ (1- month) 2))
-         day)))
-
-(defun calendar-absolute-from-islamic (date)
-  "Absolute date of Islamic DATE.
-The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (y (% year 30))
-         (leap-years-in-cycle
-          (cond
-           ((< y 3) 0)  ((< y 6) 1)  ((< y 8) 2)  ((< y 11) 3) ((< y 14) 4)
-           ((< y 17) 5) ((< y 19) 6) ((< y 22) 7) ((< y 25) 8) ((< y 27) 9)
-           (t 10))))
-    (+ (islamic-calendar-day-number date);; days so far this year
-       (* (1- year) 354)                 ;; days in all non-leap years
-       (* 11 (/ year 30))                ;; leap days in complete cycles
-       leap-years-in-cycle               ;; leap days this cycle
-       227014)))                         ;; days before start of calendar
-
-(defun calendar-islamic-from-absolute (date)
-  "Compute the Islamic date (month day year) corresponding to absolute DATE.
-The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
-  (if (< date 227015)
-      (list 0 0 0);; pre-Islamic date
-    (let* ((approx (/ (- date 227014) 355));; Approximation from below.
-           (year           ;; Search forward from the approximation.
-            (+ approx
-               (calendar-sum y approx
-                             (>= date (calendar-absolute-from-islamic
-                                       (list 1 1 (1+ y))))
-                             1)))
-           (month          ;; Search forward from Muharram.
-            (1+ (calendar-sum m 1
-                              (> date
-                                 (calendar-absolute-from-islamic
-                                  (list m
-                                        (islamic-calendar-last-day-of-month
-                                         m year)
-                                        year)))
-                              1)))
-           (day            ;; Calculate the day by subtraction.
-            (- date
-               (1- (calendar-absolute-from-islamic (list month 1 year))))))
-      (list month day year))))
-
-(defvar calendar-islamic-month-name-array
-  ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
-   "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"])
-
-(defun calendar-islamic-date-string (&optional date)
-  "String of Islamic date before sunset of Gregorian DATE.
-Returns the empty string if DATE is pre-Islamic.
-Defaults to today's date if DATE is not given.
-Driven by the variable `calendar-date-display-form'."
-  (let ((calendar-month-name-array calendar-islamic-month-name-array)
-        (islamic-date (calendar-islamic-from-absolute
-                       (calendar-absolute-from-gregorian
-                        (or date (calendar-current-date))))))
-    (if (< (extract-calendar-year islamic-date) 1)
-        ""
-      (calendar-date-string islamic-date nil t))))
-
-(defun calendar-print-islamic-date ()
-  "Show the Islamic calendar equivalent of the date under the cursor."
-  (interactive)
-  (let ((i (calendar-islamic-date-string (calendar-cursor-to-date t))))
-    (if (string-equal i "")
-        (message "Date is pre-Islamic")
-      (message "Islamic date (until sunset): %s" i))))
-
-(defun calendar-hebrew-from-absolute (date)
-  "Compute the Hebrew date (month day year) corresponding to absolute DATE.
-The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
-  (let* ((greg-date (calendar-gregorian-from-absolute date))
-         (month (aref [9 10 11 12 1 2 3 4 7 7 7 8]
-                 (1- (extract-calendar-month greg-date))))
-         (day)
-         (year (+ 3760 (extract-calendar-year greg-date))))
-    (while (>= date (calendar-absolute-from-hebrew (list 7 1 (1+ year))))
-        (setq year (1+ year)))
-    (let ((length (hebrew-calendar-last-month-of-year year)))
-      (while (> date
-                (calendar-absolute-from-hebrew
-                 (list month
-                       (hebrew-calendar-last-day-of-month month year)
-                       year)))
-        (setq month (1+ (% month length)))))
-    (setq day (1+
-               (- date (calendar-absolute-from-hebrew (list month 1 year)))))
-    (list month day year)))
-
-(defun hebrew-calendar-leap-year-p (year)
-  "t if YEAR is a Hebrew calendar leap year."
-  (< (% (1+ (* 7 year)) 19) 7))
-
-(defun hebrew-calendar-last-month-of-year (year)
-  "The last month of the Hebrew calendar YEAR."
-  (if (hebrew-calendar-leap-year-p year)
-      13
-    12))
-
-(defun hebrew-calendar-last-day-of-month (month year)
-  "The last day of MONTH in YEAR."
-  (if (or (memq month (list 2 4 6 10 13))
-          (and (= month 12) (not (hebrew-calendar-leap-year-p year)))
-          (and (= month 8) (not (hebrew-calendar-long-heshvan-p year)))
-          (and (= month 9) (hebrew-calendar-short-kislev-p year)))
-      29
-    30))
-
-(defun hebrew-calendar-elapsed-days (year)
-  "Days from Sun. prior to start of Hebrew calendar to mean conjunction of Tishri of Hebrew YEAR."
-  (let* ((months-elapsed
-          (+ (* 235 (/ (1- year) 19));; Months in complete cycles so far.
-             (* 12 (% (1- year) 19))      ;; Regular months in this cycle
-             (/ (1+ (* 7 (% (1- year) 19))) 19)));; Leap months this cycle
-         (parts-elapsed (+ 204 (* 793 (% months-elapsed 1080))))
-         (hours-elapsed (+ 5
-                           (* 12 months-elapsed)
-                           (* 793 (/ months-elapsed 1080))
-                           (/ parts-elapsed 1080)))
-         (parts                                  ;; Conjunction parts
-          (+ (* 1080 (% hours-elapsed 24)) (% parts-elapsed 1080)))
-         (day                                    ;; Conjunction day
-          (+ 1 (* 29 months-elapsed) (/ hours-elapsed 24)))
-         (alternative-day
-          (if (or (>= parts 19440)    ;; If the new moon is at or after midday,
-                  (and (= (% day 7) 2);; ...or is on a Tuesday...
-                       (>= parts 9924)  ;;    at 9 hours, 204 parts or later...
-                       (not (hebrew-calendar-leap-year-p year)));; of a
-                                                                ;; common year,
-                  (and (= (% day 7) 1);; ...or is on a Monday...
-                       (>= parts 16789) ;;   at 15 hours, 589 parts or later...
-                       (hebrew-calendar-leap-year-p (1- year))));; at the end
-                                                     ;; of a leap year
-       ;; Then postpone Rosh HaShanah one day
-              (1+ day)
-       ;; Else
-            day)))
-    (if ;; If Rosh HaShanah would occur on Sunday, Wednesday, or Friday
-        (memq (% alternative-day 7) (list 0 3 5))
-  ;; Then postpone it one (more) day and return        
-        (1+ alternative-day)
-  ;; Else return        
-      alternative-day)))
-
-(defun hebrew-calendar-days-in-year (year)
-  "Number of days in Hebrew YEAR."
-  (- (hebrew-calendar-elapsed-days (1+ year))
-     (hebrew-calendar-elapsed-days year)))
-
-(defun hebrew-calendar-long-heshvan-p (year)
-  "t if Heshvan is long in Hebrew YEAR."
-  (= (% (hebrew-calendar-days-in-year year) 10) 5))
-
-(defun hebrew-calendar-short-kislev-p (year)
-  "t if Kislev is short in Hebrew YEAR."
-  (= (% (hebrew-calendar-days-in-year year) 10) 3))
-
-(defun calendar-absolute-from-hebrew (date)
-  "Absolute date of Hebrew DATE.
-The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
-    (+ day                            ;; Days so far this month.
-       (if (< month 7);; before Tishri
-     ;; Then add days in prior months this year before and after Nisan
-           (+ (calendar-sum
-               m 7 (<= m (hebrew-calendar-last-month-of-year year))
-               (hebrew-calendar-last-day-of-month m year))
-              (calendar-sum
-               m 1 (< m month)
-               (hebrew-calendar-last-day-of-month m year)))
-     ;; Else add days in prior months this year
-         (calendar-sum
-          m 7 (< m month)
-          (hebrew-calendar-last-day-of-month m year)))
-    (hebrew-calendar-elapsed-days year);; Days in prior years.
-    -1373429)))                        ;; Days elapsed before absolute date 1.
-
-(defvar calendar-hebrew-month-name-array-common-year
-  ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
-   "Heshvan" "Kislev" "Teveth" "Shevat" "Adar"])
-
-(defvar calendar-hebrew-month-name-array-leap-year
-  ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
-   "Heshvan" "Kislev" "Teveth" "Shevat" "Adar I" "Adar II"])
-
-(defun calendar-hebrew-date-string (&optional date)
-  "String of Hebrew date before sunset of Gregorian DATE.
-Defaults to today's date if DATE is not given.
-Driven by the variable `calendar-date-display-form'."
-  (let* ((hebrew-date (calendar-hebrew-from-absolute
-                       (calendar-absolute-from-gregorian
-                        (or date (calendar-current-date)))))
-         (calendar-month-name-array
-          (if (hebrew-calendar-leap-year-p (extract-calendar-year hebrew-date))
-              calendar-hebrew-month-name-array-leap-year
-            calendar-hebrew-month-name-array-common-year)))
-    (calendar-date-string hebrew-date nil t)))
-
-(defun calendar-print-hebrew-date ()
-  "Show the Hebrew calendar equivalent of the date under the cursor."
-  (interactive)
-  (message "Hebrew date (until sunset): %s"
-           (calendar-hebrew-date-string (calendar-cursor-to-date t))))
-
-(defun hebrew-calendar-yahrzeit (death-date year)
-  "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
-  (let* ((death-day (extract-calendar-day death-date))
-         (death-month (extract-calendar-month death-date))
-         (death-year (extract-calendar-year death-date)))
-    (cond
-     ;; If it's Heshvan 30 it depends on the first anniversary; if
-     ;; that was not Heshvan 30, use the day before Kislev 1.
-     ((and (= death-month 8)
-           (= death-day 30)
-           (not (hebrew-calendar-long-heshvan-p (1+ death-year))))
-      (1- (calendar-absolute-from-hebrew (list 9 1 year))))
-     ;; If it's Kislev 30 it depends on the first anniversary; if
-     ;; that was not Kislev 30, use the day before Teveth 1.
-     ((and (= death-month 9)
-           (= death-day 30)
-           (hebrew-calendar-short-kislev-p (1+ death-year)))
-      (1- (calendar-absolute-from-hebrew (list 10 1 year))))
-     ;; If it's Adar II, use the same day in last month of
-     ;; year (Adar or Adar II).
-     ((= death-month 13)
-      (calendar-absolute-from-hebrew
-       (list (hebrew-calendar-last-month-of-year year) death-day year)))
-     ;; If it's the 30th in Adar I and year is not a leap year
-     ;; (so Adar has only 29 days), use the last day in Shevat.
-     ((and (= death-day 30)
-           (= death-month 12)
-           (not (hebrew-calendar-leap-year-p year)))
-      (calendar-absolute-from-hebrew (list 11 30 year)))
-     ;; In all other cases, use the normal anniversary of the date of death.
-     (t (calendar-absolute-from-hebrew
-         (list death-month death-day year))))))
-
 (defun calendar-set-mode-line (str)
   "Set mode line to STR, centered, surrounded by dashes."
   (setq mode-line-format
         (calendar-string-spread (list str) ?- (frame-width))))
 
-;;;###autoload
-(defun list-yahrzeit-dates (death-date start-year end-year)
-  "List Yahrzeit dates for *Gregorian* DEATH-DATE from START-YEAR to END-YEAR.
-When called interactively from the calendar window, the date of death is taken
-from the cursor position."
-  (interactive
-   (let* ((death-date
-           (if (equal (current-buffer) (get-buffer calendar-buffer))
-               (calendar-cursor-to-date)
-             (let* ((today (calendar-current-date))
-                    (year (calendar-read
-                           "Year of death (>0): "
-                           '(lambda (x) (> x 0))
-                           (int-to-string (extract-calendar-year today))))
-                    (month-array calendar-month-name-array)
-                    (completion-ignore-case t)
-                    (month (cdr (assoc
-                                 (capitalize
-                                  (completing-read
-                                   "Month of death (name): "
-                                   (mapcar 'list (append month-array nil))
-                                   nil t))
-                                 (calendar-make-alist
-                                  month-array 1 'capitalize))))
-                    (last (calendar-last-day-of-month month year))
-                    (day (calendar-read
-                          (format "Day of death (1-%d): " last)
-                          '(lambda (x) (and (< 0 x) (<= x last))))))
-               (list month day year))))
-          (death-year (extract-calendar-year death-date))
-          (start-year (calendar-read
-                       (format "Starting year of Yahrzeit table (>%d): "
-                               death-year)
-                       '(lambda (x) (> x death-year))
-                       (int-to-string (1+ death-year))))
-          (end-year (calendar-read
-                     (format "Ending year of Yahrzeit table (>=%d): "
-                             start-year)
-                       '(lambda (x) (>= x start-year)))))
-   (list death-date start-year end-year)))
-  (message "Computing yahrzeits...")
-  (let* ((yahrzeit-buffer "*Yahrzeits*")
-         (h-date (calendar-hebrew-from-absolute
-                  (calendar-absolute-from-gregorian death-date)))
-         (h-month (extract-calendar-month h-date))
-         (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date)))
-    (set-buffer (get-buffer-create yahrzeit-buffer))
-    (setq buffer-read-only nil)
-    (calendar-set-mode-line
-     (format "Yahrzeit dates for %s = %s"
-             (calendar-date-string death-date)
-             (let ((calendar-month-name-array
-                    (if (hebrew-calendar-leap-year-p h-year)
-                        calendar-hebrew-month-name-array-leap-year
-                      calendar-hebrew-month-name-array-common-year)))
-               (calendar-date-string h-date nil t))))
-    (erase-buffer)
-    (goto-char (point-min))
-    (calendar-for-loop i from start-year to end-year do
-        (insert
-         (calendar-date-string
-          (calendar-gregorian-from-absolute
-           (hebrew-calendar-yahrzeit
-            h-date
-            (extract-calendar-year
-             (calendar-hebrew-from-absolute
-              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (display-buffer yahrzeit-buffer)
-    (message "Computing yahrzeits...done")))
-
-(defun calendar-astro-date-string (&optional date)
-  "String of astronomical (Julian) day number of afternoon of Gregorian DATE.
-Defaults to today's date if DATE is not given."
-  (int-to-string
-   (+ 1721425 (calendar-absolute-from-gregorian
-               (or date (calendar-current-date))))))
-
-(defun calendar-print-astro-day-number ()
-  "Show astronomical (Julian) day number of afternoon on date shown by cursor."
-  (interactive)
-  (message
-   "Astronomical (Julian) day number after noon UTC: %s"
-   (calendar-astro-date-string (calendar-cursor-to-date t))))
-
-(defun calendar-goto-astro-day-number (daynumber &optional noecho)
-  "Move cursor to astronomical (Julian) DAYNUMBER.
-Echo astronomical (Julian) day number unless NOECHO is t."
-  (interactive (list (calendar-read
-                      "Astronomical (Julian) day number (>1721425): "
-                      '(lambda (x) (> x 1721425)))))
-  (calendar-goto-date (calendar-gregorian-from-absolute (- daynumber 1721425)))
-  (or noecho (calendar-print-astro-day-number)))
+(defun calendar-mod (m n)
+  "Non-negative remainder of M/N with N instead of 0."
+  (1+ (mod (1- m) n)))
 
 (run-hooks 'calendar-load-hook)
 
