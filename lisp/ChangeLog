@@ -3,6 +3,11 @@
 	* comint.el (comint-send-input): Handle comint-process-echoes
 	differently.
 
+2001-09-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* locate.el (locate-insert-header): Remove unnecessary
+	whitespace.
+
 2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* arc-mode.el (archive-dostime): Fix a typo in minutes'
