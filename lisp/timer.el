@@ -254,7 +254,7 @@ fire repeatedly that many seconds apart."
 (defun timer-until (timer time)
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
-TIME is a time-list.
+TIME is a time-list."
   (let ((high (- (car time) (aref timer 1)))
 	(low (- (nth 1 time) (aref timer 2))))
     (+ low (* high 65536))))
