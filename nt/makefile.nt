@@ -71,12 +71,12 @@ install:	all emacs.bat
 		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
 		- $(ADDPM) $(INSTALL_DIR)
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		if not exist ..\same-dir.tst $(MAKE) -f makefile.nt real_install
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 
 #
 # This installs executables from ..\bin into the installation directory
@@ -87,19 +87,19 @@ fast_install:
 		$(CP) ..\lib-src\DOC $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\bin
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		if not exist ..\same-dir.tst $(CP) ..\bin\emacs.exe $(INSTALL_DIR)\bin
 		if not exist ..\same-dir.tst $(CP) ..\bin\etags.exe $(INSTALL_DIR)\bin
 		if not exist ..\same-dir.tst $(CP) ..\bin\ctags.exe $(INSTALL_DIR)\bin
 		if not exist ..\same-dir.tst nmake -f $(MAKE) real_install
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 
 real_install:
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		- mkdir $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\info
@@ -107,14 +107,14 @@ real_install:
 		- mkdir $(INSTALL_DIR)\data
 		if not exist ..\same-dir.tst $(CP_DIR) ..\etc $(INSTALL_DIR)\etc
 		if not exist ..\same-dir.tst $(CP_DIR) ..\info $(INSTALL_DIR)\info
-		- del /q ..\same-dir.tst
-		- del /q $(INSTALL_DIR)\same-dir.tst
+		- del ..\same-dir.tst
+		- del $(INSTALL_DIR)\same-dir.tst
 
 #
 # Maintenance
 # 
 CLEAN_CMD	= $(MAKE) -f makefile.nt clean
-clean:;		- del /q /s *~ *.pdb
+clean:;		- del /s *~ *.pdb
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 		- $(DEL_TREE) ..\bin
