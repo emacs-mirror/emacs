@@ -1,6 +1,6 @@
 ;;; flymake.el -- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003 Free Software Foundation
+;; Copyright (C) 2003, 2005  Free Software Foundation
 
 ;; Author:  Pavel Kobiakov <pk_at_work@yahoo.com>
 ;; Maintainer: Pavel Kobiakov <pk_at_work@yahoo.com>
@@ -170,7 +170,7 @@
     tmp))
 
 (defun flymake-set-at (list pos val)
-  "Set VAL at position POS in LIST"
+  "Set VAL at position POS in LIST."
   (let ((tmp (copy-sequence list)))	; (???)
     (setcar (nthcdr pos tmp) val)
     tmp))
@@ -231,7 +231,7 @@
 (defun flymake-set-buffer-value (buffer name value)
   (puthash name value (flymake-get-buffer-data buffer)))
 
-(defvar flymake-output-residual nil "")
+(defvar flymake-output-residual nil)
 
 (make-variable-buffer-local 'flymake-output-residual)
 
@@ -253,22 +253,22 @@
     (".+[0-9]+\\.tex$" flymake-master-tex-init flymake-master-cleanup flymake-get-real-file-name)
     (".+\\.tex$" flymake-simple-tex-init flymake-simple-cleanup flymake-get-real-file-name)
     (".+\\.idl$" flymake-simple-make-init flymake-simple-cleanup flymake-get-real-file-name)
-					;                                            (".+\\.cpp$" 1)
-					;                                            (".+\\.java$" 3)
-					;                                            (".+\\.h$" 2 (".+\\.cpp$" ".+\\.c$")
-					;                                                ("[ \t]*#[ \t]*include[ \t]*\"\\([\w0-9/\\_\.]*[/\\]*\\)\\(%s\\)\"" 1 2))
-					;                                            (".+\\.idl$" 1)
-					;                                            (".+\\.odl$" 1)
-					;                                            (".+[0-9]+\\.tex$" 2 (".+\\.tex$")
-					;                                                ("[ \t]*\\input[ \t]*{\\(.*\\)\\(%s\\)}" 1 2 ))
-					;                                            (".+\\.tex$" 1)
+    ;; (".+\\.cpp$" 1)
+    ;; (".+\\.java$" 3)
+    ;; (".+\\.h$" 2 (".+\\.cpp$" ".+\\.c$")
+    ;; ("[ \t]*#[ \t]*include[ \t]*\"\\([\w0-9/\\_\.]*[/\\]*\\)\\(%s\\)\"" 1 2))
+    ;; (".+\\.idl$" 1)
+    ;; (".+\\.odl$" 1)
+    ;; (".+[0-9]+\\.tex$" 2 (".+\\.tex$")
+    ;; ("[ \t]*\\input[ \t]*{\\(.*\\)\\(%s\\)}" 1 2 ))
+    ;; (".+\\.tex$" 1)
     )
   "*Files syntax checking is allowed for."
   :group 'flymake
   :type '(repeat (string symbol symbol symbol)))
 
 (defun flymake-get-file-name-mode-and-masks (file-name)
-  "Return the corresponding entry from 'flymake-allowed-file-name-masks'."
+  "Return the corresponding entry from `flymake-allowed-file-name-masks'."
   (unless (stringp file-name)
     (error "Invalid file-name"))
   (let ((count           (length flymake-allowed-file-name-masks))
@@ -289,8 +289,8 @@ Return nil if we cannot, non-nil if we can."
 (defun flymake-get-init-function (file-name)
   "Return init function to be used for the file."
   (let* ((init-f  (nth 0 (flymake-get-file-name-mode-and-masks file-name))))
-					;(flymake-log 0 "calling %s" init-f)
-					;(funcall init-f (current-buffer))
+    ;;(flymake-log 0 "calling %s" init-f)
+    ;;(funcall init-f (current-buffer))
     init-f))
 
 (defun flymake-get-cleanup-function (file-name)
@@ -387,6 +387,7 @@ Return t if so, nil if not."
 
 (defun flymake-build-relative-filename (from-dir to-dir)
   "Return rel: FROM-DIR/rel == TO-DIR."
+  ;; FIXME: Why not use `file-relative-name'?
   (if (not (equal (elt from-dir 0) (elt to-dir 0)))
       (error "First chars in file names %s, %s must be equal (same drive)"
 	     from-dir to-dir)
@@ -413,7 +414,7 @@ Return t if so, nil if not."
       (or rel "./"))))
 
 (defcustom flymake-master-file-dirs '("." "./src" "./UnitTest")
-  "Dirs where to llok for master files."
+  "Dirs where to look for master files."
   :group 'flymake
   :type '(repeat (string)))
 
@@ -426,8 +427,8 @@ Return t if so, nil if not."
 (defvar flymake-included-file-name)
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
-  "Find (by name and location) all posible master files.
-Mater files are .cpp and .c for and .h. Files are searched for
+  "Find (by name and location) all possible master files.
+Master files are .cpp and .c for and .h. Files are searched for
 starting from the .h directory and max max-level parent dirs.
 File contents are not checked."
   (let* ((dir-idx    0)
@@ -512,16 +513,16 @@ instead of reading master file from disk."
 		  (when (flymake-check-include source-file-name inc-path inc-name include-dirs)
 		    (setq found t)
 		    ;;  replace-match is not used here as it fails in
-		    ;; xemacs with 'last match not a buffer' error as
+		    ;; XEmacs with 'last match not a buffer' error as
 		    ;; check-includes calls replace-in-string
 		    (flymake-replace-region (current-buffer) match-beg match-end
 					    (file-name-nondirectory patched-source-file-name))))
 		(forward-line 1)))
 	    (when found
 	      (flymake-save-buffer-in-file (current-buffer) patched-master-file-name)))
-					;+(flymake-log 3 "killing buffer %s" (buffer-name master-file-temp-buffer))
+	;;+(flymake-log 3 "killing buffer %s" (buffer-name master-file-temp-buffer))
 	(kill-buffer master-file-temp-buffer)))
-					;+(flymake-log 3 "check-patch master file %s: %s" master-file-name found)
+    ;;+(flymake-log 3 "check-patch master file %s: %s" master-file-name found)
     (when found
       (flymake-log 2 "found master file %s" master-file-name))
     found))
@@ -866,7 +867,7 @@ line number outside the file being compiled."
       (overlay-put ov 'help-echo      tooltip-text)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
-					;+(flymake-log 3 "created overlay %s" ov)
+      ;;+(flymake-log 3 "created overlay %s" ov)
       ov)
     (flymake-log 3 "created an overlay at (%d-%d)" beg end)))
 
@@ -878,7 +879,7 @@ line number outside the file being compiled."
       (while (consp ov)
 	(when (flymake-overlay-p (car ov))
 	  (delete-overlay (car ov))
-					;+(flymake-log 3 "deleted overlay %s" ov)
+	  ;;+(flymake-log 3 "deleted overlay %s" ov)
 	  )
 	(setq ov (cdr ov))))))
 
@@ -893,8 +894,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
       (setq ov (cdr ov)))))
 
 (defface flymake-errline-face
-					;+   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
-					;+   '((((class color)) (:underline "OrangeRed"))
+  ;;+   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
+  ;;+   '((((class color)) (:underline "OrangeRed"))
   '((((class color)) (:background "LightPink"))
     (t (:bold t)))
   "Face used for marking error lines."
@@ -970,7 +971,8 @@ Perhaps use text from LINE-ERR-INFO-ILST to enhance highlighting."
 
 (defun flymake-split-output (output)
   "Split OUTPUT into lines.
-Return last one as residual if it does not end with newline char. Returns ((lines) residual)."
+Return last one as residual if it does not end with newline char.
+Returns ((LINES) RESIDUAL)."
   (when (and output (> (length output) 0))
     (let* ((lines (flymake-split-string output "[\n\r]+"))
 	   (complete (equal "\n" (char-to-string (aref output (1- (length output))))))
@@ -1007,40 +1009,43 @@ Convert it to flymake internal format."
 (defvar flymake-err-line-patterns ; regexp file-idx line-idx col-idx (optional) text-idx(optional), match-end to end of string is error text
   (append
    '(
-					; MS Visual C++ 6.0
+     ;; MS Visual C++ 6.0
      ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \: \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
       1 3 nil 4)
-					; jikes
+     ;; jikes
      ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[0-9]+\:[0-9]+\:[0-9]+\: \\(\\(Error\\|Warning\\|Caution\\|Semantic Error\\):[ \t\n]*\\(.+\\)\\)"
       1 3 nil 4)
-					; MS midl
+     ;; MS midl
      ("midl[ ]*:[ ]*\\(command line error .*\\)"
       nil nil nil 1)
-					; MS C#
+     ;; MS C#
      ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\),[0-9]+)\: \\(\\(error\\|warning\\|fatal error\\) \\(CS[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
       1 3 nil 4)
-					; perl
+     ;; perl
      ("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1)
-					; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
-					; ant/javac
+     ;; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
+     ;; ant/javac
      (" *\\(\\[javac\\]\\)? *\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
       2 4 nil 5))
    ;; compilation-error-regexp-alist)
    (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
-  "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx). Use flymake-reformat-err-line-patterns-from-compile-el to add patterns from compile.el")
+  "Patterns for matching error/warning lines.
+\(REGEXP FILE-IDX LINE-IDX ERR-TEXT-IDX).
+Use `flymake-reformat-err-line-patterns-from-compile-el' to add patterns
+from compile.el")
 
-					;(defcustom flymake-err-line-patterns
-					;  '(
-					;    ; MS Visual C++ 6.0
-					;    ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \: \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
-					;       1 3 4)
-					;   ; jikes
-					;   ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[0-9]+\:[0-9]+\:[0-9]+\: \\(\\(Error\\|Warning\\|Caution\\):[ \t\n]*\\(.+\\)\\)"
-					;       1 3 4))
-					;    "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx)"
-					;   :group 'flymake
-					;   :type '(repeat (string number number number))
-					;)
+;;(defcustom flymake-err-line-patterns
+;;  '(
+;;    ; MS Visual C++ 6.0
+;;    ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \: \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
+;;       1 3 4)
+;;   ; jikes
+;;   ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[0-9]+\:[0-9]+\:[0-9]+\: \\(\\(Error\\|Warning\\|Caution\\):[ \t\n]*\\(.+\\)\\)"
+;;       1 3 4))
+;;    "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx)"
+;;   :group 'flymake
+;;   :type '(repeat (string number number number))
+;;)
 
 (defun flymake-parse-line (line)
   "Parse LINE to see if it is an error of warning.
@@ -1133,7 +1138,7 @@ Return its components if so, nil if no."
   (if (flymake-get-project-include-dirs-from-cache basedir)
       (progn
 	(flymake-get-project-include-dirs-from-cache basedir))
-					;else
+    ;;else
     (let* ((command-line  (concat "make -C\"" basedir "\" DUMPVARS=INCLUDE_DIRS dumpvars"))
 	   (output        (shell-command-to-string command-line))
 	   (lines         (flymake-split-string output "\n"))
@@ -1317,7 +1322,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (call-interactively 'compile))
 
 (defvar flymake-is-running nil
-  "If t, flymake syntax check process is running for the current buffer")
+  "If t, flymake syntax check process is running for the current buffer.")
 
 (make-variable-buffer-local 'flymake-is-running)
 
@@ -1361,7 +1366,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (flymake-set-buffer-var buffer 'flymake-check-start-time check-start-time))
 
 (defvar flymake-check-was-interrupted nil
-  "t if syntax check was killed by flymake-compile")
+  "Non-nil if syntax check was killed by `flymake-compile'.")
 
 (make-variable-buffer-local 'flymake-check-was-interrupted)
 
@@ -1378,7 +1383,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
 (defun flymake-on-timer-event (buffer)
   "Start a syntax check for buffer BUFFER if necessary."
-					;+(flymake-log 3 "timer: running=%s, time=%s, cur-time=%s" (flymake-get-buffer-is-running buffer) (flymake-get-buffer-last-change-time buffer) (flymake-float-time))
+  ;;+(flymake-log 3 "timer: running=%s, time=%s, cur-time=%s" (flymake-get-buffer-is-running buffer) (flymake-get-buffer-last-change-time buffer) (flymake-float-time))
   (when (and (bufferp buffer) (not (flymake-get-buffer-is-running buffer)))
     (save-excursion
       (set-buffer buffer)
@@ -1474,7 +1479,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
       nil)))
 
 (defun flymake-goto-file-and-line (file line)
-  "Try to get buffer for file and goto line line in it"
+  "Try to get buffer for FILE and goto line LINE in it."
   (if (not (file-exists-p file))
       (flymake-log 1 "file %s does not exists" file)
     (progn
@@ -1590,7 +1595,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (setq after-change-functions (cons 'flymake-after-change-function after-change-functions))
     (add-hook 'after-save-hook 'flymake-after-save-hook)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook)
-					;+(add-hook 'find-file-hooks 'flymake-find-file-hook)
+    ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
 
     (flymake-report-status (current-buffer) "" "")
 
@@ -1608,7 +1613,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (setq after-change-functions (delq 'flymake-after-change-function  after-change-functions))
     (remove-hook 'after-save-hook (function flymake-after-save-hook) t)
     (remove-hook 'kill-buffer-hook (function flymake-kill-buffer-hook) t)
-					;+(remove-hook 'find-file-hooks (function flymake-find-file-hook) t)
+    ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
 
     (flymake-delete-own-overlays (current-buffer))
 
@@ -1627,8 +1632,8 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   :type 'boolean)
 
 (defun flymake-after-change-function (start stop len)
-  "Start syntax check for current buffer if it isn't already running"
-					;+(flymake-log 0 "setting change time to %s" (flymake-float-time))
+  "Start syntax check for current buffer if it isn't already running."
+  ;;+(flymake-log 0 "setting change time to %s" (flymake-float-time))
   (let((new-text (buffer-substring start stop)))
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log 3 "starting syntax check as new-line has been seen")
@@ -1647,10 +1652,10 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (flymake-set-buffer-timer (current-buffer) nil)))
 
 (defun flymake-find-file-hook ()
-					;+(when flymake-start-syntax-check-on-find-file
-					;+    (flymake-log 3 "starting syntax check on file open")
-					;+    (flymake-start-syntax-check-for-current-buffer)
-					;+)
+  ;;+(when flymake-start-syntax-check-on-find-file
+  ;;+    (flymake-log 3 "starting syntax check on file open")
+  ;;+    (flymake-start-syntax-check-for-current-buffer)
+  ;;+)
   (when (and (not (local-variable-p 'flymake-mode (current-buffer)))
 	     (flymake-can-syntax-check-file (buffer-file-name (current-buffer))))
     (flymake-mode)
@@ -1691,12 +1696,12 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (forward-char)))
 
 (defun flymake-goto-line (line-no)
-  "goto-line, then skip whitespace"
+  "Go to line LINE-NO, then skip whitespace."
   (goto-line line-no)
   (flymake-skip-whitespace))
 
 (defun flymake-goto-next-error ()
-  "go to next error in err ring"
+  "Go to next error in err ring."
   (interactive)
   (let ((line-no (flymake-get-next-err-line-no (flymake-get-buffer-err-info (current-buffer)) (flymake-current-line-no))))
     (when (not line-no)
@@ -1707,7 +1712,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
       (flymake-log 1 "no errors in current buffer"))))
 
 (defun flymake-goto-prev-error ()
-  "go to prev error in err ring"
+  "Go to prev error in err ring."
   (interactive)
   (let ((line-no (flymake-get-prev-err-line-no (flymake-get-buffer-err-info (current-buffer)) (flymake-current-line-no))))
     (when (not line-no)
@@ -1756,13 +1761,13 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     pos))
 
 (defun flymake-delete-temp-directory (dir-name)
-  "attempt to delete temp dir created by flymake-create-temp-with-folder-structure, do not fail on error."
+  "Attempt to delete temp dir created by `flymake-create-temp-with-folder-structure', do not fail on error."
   (let* ((temp-dir    (flymake-get-temp-dir))
 	 (suffix      (substring dir-name (1+ (length temp-dir))))
 	 (slash-pos   nil))
 
     (while (> (length suffix) 0)
-					;+(flymake-log 0 "suffix=%s" suffix)
+      ;;+(flymake-log 0 "suffix=%s" suffix)
       (flymake-safe-delete-directory (file-truename (concat (flymake-ensure-ends-with-slash temp-dir) suffix)))
       (setq slash-pos (flymake-strrchr suffix (string-to-char "/")))
       (if slash-pos
@@ -1786,8 +1791,8 @@ Delete temp file."
     (flymake-set-buffer-last-change-time buffer nil)))
 
 (defun flymake-get-real-file-name (buffer file-name-from-err-msg)
-  "Translate file name from error message to `real' file name.
-Return full-name. Names are real, not patched."
+  "Translate file name from error message to \"real\" file name.
+Return full-name.  Names are real, not patched."
   (let* ((real-name              nil)
 	 (source-file-name       (buffer-file-name buffer))
 	 (master-file-name       (flymake-get-buffer-value buffer "master-file-name"))
@@ -1805,7 +1810,7 @@ Return full-name. Names are real, not patched."
       (setq file-name-from-err-msg source-file-name))
 
     (setq real-name (flymake-get-full-patched-file-name file-name-from-err-msg base-dirs files))
-					; if real-name is nil, than file name from err msg is none of the files we've patched
+    ;; if real-name is nil, than file name from err msg is none of the files we've patched
     (if (not real-name)
 	(setq real-name (flymake-get-full-nonpatched-file-name file-name-from-err-msg base-dirs)))
     (if (not real-name)
@@ -1825,7 +1830,7 @@ Return full-name. Names are real, not patched."
 	(let* ((this-dir        (nth (1- base-dirs-count) base-dirs))
 	       (this-file       (nth 0 (nth (1- file-count) files)))
 	       (this-real-name  (nth 1 (nth (1- file-count) files))))
-					;+(flymake-log 0 "this-dir=%s this-file=%s this-real=%s msg-file=%s" this-dir this-file this-real-name file-name-from-err-msg)
+	  ;;+(flymake-log 0 "this-dir=%s this-file=%s this-real=%s msg-file=%s" this-dir this-file this-real-name file-name-from-err-msg)
 	  (when (and this-dir this-file (flymake-same-files
 					 (flymake-get-absolute-file-name-basedir file-name-from-err-msg this-dir)
 					 this-file))
@@ -1941,7 +1946,7 @@ Use CREATE-TEMP-F for creating temp copy."
   (flymake-simple-make-init-impl buffer 'flymake-create-temp-inplace t t "Makefile" 'flymake-get-make-cmdline))
 
 (defun flymake-master-make-init (buffer get-incl-dirs-f master-file-masks include-regexp-list)
-  "create make command line for a source file checked via master file compilation"
+  "Create make command line for a source file checked via master file compilation."
   (let* ((make-args nil)
 	 (temp-master-file-name (flymake-init-create-temp-source-and-master-buffer-copy
 				 buffer get-incl-dirs-f 'flymake-create-temp-inplace
@@ -1971,7 +1976,7 @@ Use CREATE-TEMP-F for creating temp copy."
   (flymake-simple-make-init-impl buffer 'flymake-create-temp-with-folder-structure nil nil "build.xml" 'flymake-get-ant-cmdline))
 
 (defun flymake-simple-java-cleanup (buffer)
-  "cleanup after flymake-simple-make-java-init -- delete temp file and dirs"
+  "Cleanup after `flymake-simple-make-java-init' -- delete temp file and dirs."
   (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
     (flymake-safe-delete-file temp-source-file-name)
     (when temp-source-file-name
@@ -1987,7 +1992,7 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; tex-specific init-cleanup routines
 (defun flymake-get-tex-args (file-name)
-					;(list "latex" (list "-c-style-errors" file-name))
+  ;;(list "latex" (list "-c-style-errors" file-name))
   (list "texify" (list "--pdf" "--tex-option=-c-style-errors" file-name)))
 
 (defun flymake-simple-tex-init (buffer)
@@ -2010,5 +2015,5 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (provide 'flymake)
 
-;;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
+;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
 ;;; flymake.el ends here
