@@ -1709,11 +1709,11 @@ scrolling the current window.  Leave the new window selected."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (save-excursion
-    (let (case-fold-search status
-	  ;; avoid bugs when syntax of `.' changes in various default modes
-	  (default-major-mode 'fundamental-mode)
-	  (result t))
+  (let (case-fold-search status
+	;; avoid bugs when syntax of `.' changes in various default modes
+	(default-major-mode 'fundamental-mode)
+	(result t))
+    (save-excursion
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (setq case-fold-search t)
       (erase-buffer)
