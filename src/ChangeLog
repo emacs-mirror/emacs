@@ -5,6 +5,25 @@
 
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lread.c (openp): Change arg exec_only to predicate.
+	(build_load_history): Use XCAR/XCDR.
+	(Flocate_file_internal): New fun.
+	(syms_of_lread): Defsubr it.
+	(Fload): Update call to openp.
+
+	* lisp.h (openp): Update prototype.
+
+	* xfns.c (x_create_bitmap_from_file, x_find_image_file):
+	* w32proc.c (sys_spawnve):
+	* w32fns.c (x_create_bitmap_from_file, x_find_image_file):
+	* w32.c (check_windows_init_file):
+	* sound.c (Fplay_sound_internal):
+	* process.c (Fstart_process):
+	* macfns.c (x_create_bitmap_from_file, x_find_image_file):
+	* mac.c (run_mac_command):
+	* emacs.c (init_cmdargs):
+	* callproc.c (Fcall_process): Update call to openp.
+
 	* textprop.c (remove_properties): Don't use XCAR without CONSP.
 
 	* xterm.c (XTread_socket): Disable the Xutf8LookupString code.
