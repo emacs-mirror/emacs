@@ -1,5 +1,9 @@
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* ps-print.el (ps-print-region, ps-print-region-with-faces) 
+	(ps-nb-pages-region): Signal an error if called interactively
+	and the mark is not active.
+
 	* simple.el (minibuffer-prompt-modification)
 	(minibuffer-prompt-insertion): New functions.
 	(minibuffer-prompt-properties): Use `modification-hooks' and
