@@ -33,12 +33,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Let the compiler tell us what byte order architecture we're compiling for */
-
-#ifdef __BIG_ENDIAN__
-#define BIG_ENDIAN
-#endif
-
 /* Define how to take a char and sign-extend into an int.
    On machines where char is signed, this is a no-op.  */
 

@@ -5,8 +5,8 @@
 
 /* With this defined, subprocesses made by (e.g.) M-x grep don't exit
    cleanly, they just hang.  ISC 2.2.1 does have select, in the -linet
-   library, but I guess it's not what Emacs needs.  --karl@cs.umb.edu
-#define HAVE_SELECT */
+   library, but I guess it's not what Emacs needs.  --karl@cs.umb.edu  */
+#undef HAVE_SELECT /* override configuration decision */
 
 /* Although ISC has sockets, again in -linet, again it's not what Emacs
    needs.  With this defined, interrupt-shell-subjob and the like do
@@ -42,9 +42,6 @@
 #else /* !__GNUC__ */
 #  define LIB_STANDARD -lPW -lc
 #endif /* !__GNUC__ */
-
-/* mt00@etherm.co.uk says this is needed for process.c.  */
-#define USE_UTIME
 
 #define NO_X_DESTROY_DATABASE
 

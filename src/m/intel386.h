@@ -63,10 +63,6 @@ NOTE-END */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* i386 is not big-endian: lowest numbered byte is least significant. */
-
-/* #undef BIG_ENDIAN */
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

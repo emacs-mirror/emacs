@@ -27,10 +27,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* 68000 has lowest-numbered byte as most significant */
-
-#define BIG_ENDIAN
-
 /* Say this machine is a 68000 */
 
 #define m68000
@@ -88,8 +84,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define TERMINFO
 
-#define HAVE_TIMEVAL
-#define HAVE_SELECT
 #define HAVE_PTYS
 #define HAVE_SOCKETS
 
@@ -97,9 +91,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* SX/A does not have sigblock(2) */
 #define sigblock(mask)	(0)
-
-#define USG_SYS_TIME
-#define USE_UTIME
 
 #define NO_SIOCTL_H
 

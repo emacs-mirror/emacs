@@ -66,14 +66,6 @@ NOTE-END */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-/* Under BSD, <endian.h> defines this to be 4321; rather than fight with it,
-   we'll just give in.  Compatibility, akido style.  */
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN 4321
-#endif
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

@@ -38,11 +38,6 @@ compiler is so brain damaged that it is not even worth trying to use it.
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#define BIG_ENDIAN
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

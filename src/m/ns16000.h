@@ -37,10 +37,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* 16000 is little-endian (lowest-numbered byte is least significant) */
-
-/* #define BIG_ENDIAN */  /* So don't define this.  */
-
 /* Say this machine is a 16000 */
 
 #define ns16000 1

@@ -58,28 +58,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_TERMIO
 
-/* Says to include time.h, and not include sys/time.h.  */
-
-#define NEED_TIME_H
-
-/*
- *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
- *	Look in <sys/time.h> for a timeval structure.
- */
-
-#define HAVE_TIMEVAL
-
-/* With HAVE_TIMEVAL define, Emacs expects to use `utimes'.
-   But HPUX does not have one.  */
-
-#define MISSING_UTIMES
-
-/*
- *	Define HAVE_SELECT if the system supports the `select' system call.
- */
-
-#define HAVE_SELECT
-
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
  */

@@ -8,9 +8,6 @@
 #undef INTEL386
 #undef aix386
 
-/* i370 is  big-endian */
-#define BIG_ENDIAN 
-
 #undef TEXT_START
 #undef SEGMENT_MASK
 #undef DATA_SECTION_ALIGNMENT

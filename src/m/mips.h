@@ -36,11 +36,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#define BIG_ENDIAN
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
@@ -201,14 +196,12 @@ NOTE-END  */
 
 #define HAVE_SYSVIPC
 
-#define HAVE_TIMEVAL
 #if defined(emacs) && !defined(INHIBIT_BSD_TIME)
 #include <bsd/sys/time.h>
 #endif
 
-/* #define HAVE_SELECT
-   The `select' in the system won't work for pipes,
-   so don't use it.  */
+/* The `select' in the system won't work for pipes, so don't use it.  */
+#undef HAVE_SELECT /* override configuration decision */
 
 #define HAVE_GETWD
 #define HAVE_GETTIMEOFDAY
@@ -217,7 +210,6 @@ NOTE-END  */
 #define HAVE_SOCKETS
 
 #undef NOMULTIPLEJOBS
-#define utimes utime  /* Someone should check this.  */
 
 /* ??? */
 #define IRIS

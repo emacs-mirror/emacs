@@ -57,22 +57,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_TERMIO
 
 /*
- *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
- *	Look in <sys/time.h> for a timeval structure.
- */
-
-/* #define HAVE_TIMEVAL */
- 
-/*
- *	Define HAVE_SELECT if the system supports the `select' system call.
- */
-
-/* SVr3.2 ports of X include an emulation of select in the libraries.  */
-#ifdef HAVE_X_WINDOWS
-#define HAVE_SELECT
-#endif
-
-/*
  *	Define HAVE_PTYS if the system supports pty devices.
  */
 
@@ -222,10 +206,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    are not declared.  */
 
 #define BROKEN_TIOCGWINSZ
-
-/* SVr3 does not have utimes(2) */
-
-#define USE_UTIME
 
 /* If we're using the System V X port, BSD bstring functions will be handy */
 

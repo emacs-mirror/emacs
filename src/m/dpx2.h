@@ -39,11 +39,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#define BIG_ENDIAN
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
@@ -194,16 +189,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * but we have that
 */
 #define GETPGRP_NO_ARG
-
-/* 
- * X support _needs_ this
- */
-#define HAVE_SELECT
-/*
- * and select requires these
- */
-#define HAVE_TIMEVAL
-#define USE_UTIME
 
 /* select also needs this header file--but not in ymakefile.  */
 #ifndef NOT_C_CODE

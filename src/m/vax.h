@@ -59,10 +59,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Vax is not big-endian: lowest numbered byte is least significant. */
-
-/* #undef BIG_ENDIAN */
-
 /* #define vax    -- appears to be done automatically  */
 
 /* Use type int rather than a union, to represent Lisp_Object */

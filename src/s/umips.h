@@ -42,14 +42,13 @@
 
 #define HAVE_SYSVIPC
 
-#define HAVE_TIMEVAL
 #if defined(emacs)
 #include <bsd/sys/time.h>
 #endif
 
-/* #define HAVE_SELECT
-   The `select' in the system won't work for pipes,
+/* The `select' in the system won't work for pipes,
    so don't use it.  */
+#define BROKEN_SELECT
 
 #define HAVE_DUP2
 #define HAVE_GETWD

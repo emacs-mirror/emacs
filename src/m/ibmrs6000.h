@@ -31,15 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-/* This conflicts with something in the system headers,
-   and isn't currently used, since NO_UNION_TYPE is defined.  */
-#if 0
-#define BIG_ENDIAN
-#endif
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

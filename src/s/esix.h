@@ -3,8 +3,6 @@
 
 #include "usg5-3.h"
 
-#define HAVE_TIMEVAL
-
 /* Some versions of V.3 have this, but not all. ESIX does. */
 #define HAVE_PTYS
 #define SYSV_PTYS
@@ -23,6 +21,4 @@
 /* ESIX does not need <sys/sioctl.h>, but needs <sys/ptem.h> */
 #define NO_SIOCTL_H
 #define NEED_PTEM_H
-#define USG_SYS_TIME
-#define USE_UTIME
 #define BROKEN_FIONREAD

@@ -25,10 +25,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define INTBITS 32		/* Number of bits in an int */
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-#define BIG_ENDIAN 
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 #define NO_ARG_ARRAY
@@ -104,8 +100,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #undef NOMULTIPLEJOBS	/* we have job control */
 #define HAVE_SOCKETS	/* sockets are available */
-#define HAVE_TIMEVAL	/* we have Berkeley style <sys/time.h> */
-#define HAVE_SELECT	/* XD88 has select(). */
 #define BROKEN_FIONREAD /* is this needed ? */
 #define BSTRING		/* its in libc but not declared in any header file. */
 #undef sigsetmask	/* XD88 has sigsetmask() */

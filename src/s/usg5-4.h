@@ -103,11 +103,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NSIG	32
 #endif
 
-/* libc has this stuff, but not utimes. */
-
-#define HAVE_SELECT
-#define HAVE_TIMEVAL
-
 /* We need bss_end from emacs.c for undumping */
 
 #ifndef USG_SHARED_LIBRARIES

@@ -35,12 +35,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* SPARC has lowest-numbered byte as most significant */
-
-#ifndef BIG_ENDIAN
-#define BIG_ENDIAN
-#endif
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

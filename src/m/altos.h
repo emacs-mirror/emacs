@@ -31,11 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Vax is not big-endian: lowest numbered byte is least significant,
-   but 68000's are. */
-
-#define BIG_ENDIAN
-
 #define EXPLICIT_SIGN_EXTEND
 
 /* Use type int rather than a union, to represent Lisp_Object */

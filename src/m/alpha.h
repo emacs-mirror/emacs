@@ -37,11 +37,6 @@ NOTE-END
 
 #define LONGBITS 64		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-/* Alpha is not big-endian #define BIG_ENDIAN */
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 

@@ -8,9 +8,6 @@
 
 /* This overrides some of the usual support for the mips and system V.3.  */
 
-/* The S2 does not know about utimes() */
-#define USE_UTIME
-
 /* The operating system apparently defines TIOCGETC
    but it doesn't work.  */
 #undef BROKEN_TIOCGETC

@@ -51,19 +51,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FIRST_PTY_LETTER 'p'
 
 /*
- *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
- *	Look in <sys/time.h> for a timeval structure.
- */
-
-#define HAVE_TIMEVAL
- 
-/*
- *	Define HAVE_SELECT if the system supports the `select' system call.
- */
-
-#define HAVE_SELECT
-
-/*
  *	Define HAVE_PTYS if the system supports pty devices.
  */
 

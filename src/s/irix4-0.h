@@ -8,7 +8,6 @@
 #include <alloca.h>
 #endif
 
-#undef IRIS_UTIME
 #undef NEED_SIOCTL
 
 /* Make process_send_signal work by "typing" a signal character on the pty.  */

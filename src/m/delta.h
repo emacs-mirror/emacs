@@ -33,11 +33,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#define BIG_ENDIAN
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
@@ -138,11 +133,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Machine specific stuff */
 #define HAVE_PTYS
 #define SYSV_PTYS
-#define HAVE_SELECT
 #ifdef HAVE_INET_SOCKETS	/* this comes from autoconf  */
 # define HAVE_SOCKETS		/* NSE may or may not have been installed */
 #endif
-#define HAVE_TIMEVAL
 #define SIGNALS_VIA_CHARACTERS
 #define BROKEN_CLOSEDIR		/* builtin closedir is interruptible */
 #undef HAVE_BCOPY		/* b* functions are just stubs to mem* ones */

@@ -31,10 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* GEC63 is big-endian: lowest numbered byte is most significant. */
-
-#define BIG_ENDIAN
-
 /* Say this machine is a 68000 */
 
 #define gec63

@@ -32,11 +32,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#define BIG_ENDIAN 
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
@@ -157,19 +152,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBX11_SYSTEM -lnsl -lbsd
 #endif /* USG5_4 */
 
-/* 
- * we have Berkeley style <sys/time.h>
- */
-#define HAVE_TIMEVAL
-
-/* SysV88 has select(). */
-#define HAVE_SELECT
 #define BROKEN_FIONREAD
-
-/*
- * don't use utimes, we ain't got one - use utime() instead
- */
-#define USE_UTIME
 
 /* previously defined in usg5-4, if we choose to use that.  */
 #ifndef LIBS_SYSTEM

@@ -44,9 +44,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO has termios.  */
 #define HAVE_TERMIOS
 
-/* SCO has timeval.  */
-#define HAVE_TIMEVAL
-
 /* SCO has ptys with unusual names.  */
 #define HAVE_PTYS
 

@@ -36,10 +36,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* lowest-numbered byte is most significant */
-
-#define BIG_ENDIAN
-
 /* XINT must explicitly sign-extend */
 
 #define EXPLICIT_SIGN_EXTEND

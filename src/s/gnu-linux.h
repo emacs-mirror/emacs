@@ -192,9 +192,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SYS_SIGLIST
 #define HAVE_GETWD            /* cure conflict with getcwd? */
 
-#define USE_UTIME             /* don't have utimes */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
-#define USG_SYS_TIME          /* use sys/time.h, not time.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
 #define POSIX_SIGNALS

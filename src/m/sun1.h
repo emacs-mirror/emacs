@@ -47,10 +47,6 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* 68000 has lowest-numbered byte as most significant */
-
-#define BIG_ENDIAN
-
 /* Say this machine is a 68000 */
 
 #define m68000

@@ -31,10 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* 68000 has lowest-numbered byte as most significant */
-
-#define BIG_ENDIAN
-
 /* XINT must explicitly sign-extend */
 
 #define EXPLICIT_SIGN_EXTEND
