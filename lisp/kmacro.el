@@ -26,7 +26,7 @@
 
 ;; The kmacro package is an alternative user interface to emacs'
 ;; keyboard macro functionality.  This functionality is normally bound
-;; to C-x (, C-x ), and C-x C-e, but these bindings are too hard to
+;; to C-x (, C-x ), and C-x e, but these bindings are too hard to
 ;; type to be really useful for doing small repeated tasks.
 
 ;; With kmacro, two function keys are dedicated to keyboard macros,
@@ -60,7 +60,7 @@
 ;; The following sequence: M-5 F7 x M-2 F7 y F8 F8 F8 F8
 ;; inserts the following string:  x5yx7yx9yx11y
 
-;; A macro can also be call using a mouse click, default S-mouse-3.
+;; A macro can also be called using a mouse click, default S-mouse-3.
 ;; This calls the macro at the point where you click the mouse.
 
 ;; When you have defined another macro, which is thus called via F8,
@@ -111,9 +111,7 @@
 
 ;;; Code:
 
-(provide 'kmacro)
-
-;;; Customization:
+;; Customization:
 
 (defgroup kmacro nil
   "Simplified keyboard macro user interface."
@@ -125,7 +123,7 @@
 ;;;###autoload
 (defcustom kmacro-initialize nil
   "Setting this variable turns on the kmacro functionality.
-This binds the kmacro function keys in the global-map, so
+This binds the kmacro function keys in the `global-map', so
 unsetting this variable does not have any effect!"
   :set #'(lambda (symbol value)
 	   (if value (kmacro-initialize))
@@ -156,23 +154,23 @@ unsetting this variable does not have any effect!"
 ;; State variables
 
 (defvar kmacro-counter 0
-  "*Current keyboard macro counter")
+  "*Current keyboard macro counter.")
 
 (defvar kmacro-counter-format "%d"
-  "*Current keyboard macro counter format")
+  "*Current keyboard macro counter format.")
 
 (defvar kmacro-counter-format-start kmacro-counter-format
   "Macro format at start of macro execution.")
 
-(defvar kmacro-last-counter 0 "Last counter inserted by key macro")
-(defvar kmacro-append-to nil "Last key macro if appending to macro")
-(defvar kmacro-ring nil "Key macro ring")
+(defvar kmacro-last-counter 0 "Last counter inserted by key macro.")
+(defvar kmacro-append-to nil "Last key macro if appending to macro.")
+(defvar kmacro-ring nil "Key macro ring.")
 
 (defvar kmacro-ring-max 4
-  "*Maximum number of key macros to save in key macro ring")
+  "*Maximum number of key macros to save in key macro ring.")
 
 (defun kmacro-display (macro)
-  "Display a keyboard macro."
+  "Display a keyboard MACRO."
   (let (s)
     (if (stringp macro)
 	(setq s (if (> (length macro) 50)
@@ -195,7 +193,7 @@ unsetting this variable does not have any effect!"
 
 
 (defun kmacro-start-macro (arg)
-  "Set kmacro-counter to ARG or 0 if missing, and start-kbd-macro.
+  "Set `kmacro-counter' to ARG or 0 if missing, and `start-kbd-macro'.
 With \\[universal-argument], append to current keyboard macro (keep kmacro-counter).
 
 When defining/executing macro, insert macro counter and increment with 
@@ -228,7 +226,7 @@ The format of the counter can be modified via \\[kmacro-set-format]."
 
 (defun kmacro-call-macro (arg)
   "End kbd macro if currently being defined; else call last kbd macro.
-With numeric prefix argument, repeat macro that many times.
+With numeric prefix ARG, repeat macro that many times.
 With \\[universal-argument], swap current macro with head of macro ring."
   (interactive "p")
   (cond 
@@ -315,7 +313,7 @@ With \\[universal-argument], unconditionally set counter to 0."
 	      (t 0))))
 
 (defun kmacro-set-format (format)
-  "Set macro counter format"
+  "Set macro counter FORMAT."
   (interactive "sMacro Counter Format (printf format): ")
   (setq kmacro-counter-format
 	(if (equal format "")
@@ -355,3 +353,5 @@ Otherwise, use customized keys."
   (unless (eq call-mouse t)
     (global-set-key (vector call-mouse)		'kmacro-end-call-mouse)))
 
+(provide 'kmacro)
+;;; kmacro.el ends here
