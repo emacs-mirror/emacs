@@ -6456,7 +6456,8 @@ display_echo_area_1 (a1, a2, a3, a4)
 
 
 /* Resize the echo area window to exactly the size needed for the
-   currently displayed message, if there is one.  */
+   currently displayed message, if there is one.  If a mini-buffer
+   is active, don't shrink it.  */
 
 void
 resize_echo_area_exactly ()
@@ -6466,9 +6467,15 @@ resize_echo_area_exactly ()
     {
       struct window *w = XWINDOW (echo_area_window);
       int resized_p;
+      Lisp_Object resize_exactly;
+
+      if (minibuf_level == 0)
+	resize_exactly = Qt;
+      else
+	resize_exactly = Qnil;
       
       resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
-					 (EMACS_INT) w, Qnil, 0, 0);
+					 (EMACS_INT) w, resize_exactly, 0, 0);
       if (resized_p)
 	{
 	  ++windows_or_buffers_changed;
@@ -6481,16 +6488,17 @@ resize_echo_area_exactly ()
 
 /* Callback function for with_echo_area_buffer, when used from
    resize_echo_area_exactly.  A1 contains a pointer to the window to
-   resize, A2 to A4 are not used.  Value is what resize_mini_window
-   returns.  */
+   resize, EXACTLY non-nil means resize the mini-window exactly to the
+   size of the text displayed.  A3 and A4 are not used.  Value is what
+   resize_mini_window returns.  */
 
 static int
-resize_mini_window_1 (a1, a2, a3, a4)
+resize_mini_window_1 (a1, exactly, a3, a4)
      EMACS_INT a1;
-     Lisp_Object a2;
+     Lisp_Object exactly;
      EMACS_INT a3, a4;
 {
-  return resize_mini_window ((struct window *) a1, 1);
+  return resize_mini_window ((struct window *) a1, !NILP (exactly));
 }
 
 
