@@ -203,33 +203,40 @@ in that frame; otherwise change each frame."
 	  (t value))))
 
 (defun modify-face (face foreground background stipple
-			 bold-p italic-p underline-p)
+		    bold-p italic-p underline-p &optional frame)
   "Change the display attributes for face FACE.
-FOREGROUND and BACKGROUND should be color strings or nil.
-STIPPLE should be a stipple pattern name or nil.
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame.
+
+FOREGROUND and BACKGROUND should be a colour name string (or list of strings to
+try) or nil.  STIPPLE should be a stipple pattern name string or nil.
+If nil, means do not change the display attribute corresponding to that arg.
+
 BOLD-P, ITALIC-P, and UNDERLINE-P specify whether the face should be set bold,
-in italic, and underlined, respectively.  (Yes if non-nil.)
-If called interactively, prompts for a face and face attributes."
+in italic, and underlined, respectively.  If neither nil or t, means do not
+change the display attribute corresponding to that arg.
+
+If called interactively, prompts for a face name and face attributes."
   (interactive
    (let* ((completion-ignore-case t)
-	  (face	       (symbol-name (read-face-name "Modify face: ")))
-	  (colors      (mapcar 'list x-colors))
-	  (stipples    (mapcar 'list
-			       (apply 'nconc
-				      (mapcar 'directory-files
-					      x-bitmap-file-path))))
-	  (foreground  (modify-face-read-string
-			face (face-foreground (intern face))
-			"foreground" colors))
-	  (background  (modify-face-read-string
-			face (face-background (intern face))
-			"background" colors))
-	  (stipple     (modify-face-read-string
-			face (face-stipple (intern face))
-			"stipple" stipples))
-	  (bold-p      (y-or-n-p (concat "Set face " face " bold ")))
-	  (italic-p    (y-or-n-p (concat "Set face " face " italic ")))
-	  (underline-p (y-or-n-p (concat "Set face " face " underline "))))
+	  (face		(symbol-name (read-face-name "Modify face: ")))
+	  (colors	(mapcar 'list x-colors))
+	  (stipples	(mapcar 'list (apply 'nconc
+					    (mapcar 'directory-files
+						    x-bitmap-file-path))))
+	  (foreground	(modify-face-read-string
+			 face (face-foreground (intern face))
+			 "foreground" colors))
+	  (background	(modify-face-read-string
+			 face (face-background (intern face))
+			 "background" colors))
+	  (stipple	(modify-face-read-string
+			 face (face-stipple (intern face))
+			 "stipple" stipples))
+	  (bold-p	(y-or-n-p (concat "Set face " face " bold ")))
+	  (italic-p	(y-or-n-p (concat "Set face " face " italic ")))
+	  (underline-p	(y-or-n-p (concat "Set face " face " underline ")))
+	  (all-frames-p	(y-or-n-p (concat "Modify face " face " in all frames "))))
      (message "Face %s: %s" face
       (mapconcat 'identity
        (delq nil
@@ -239,13 +246,23 @@ If called interactively, prompts for a face and face attributes."
 	      (and bold-p "bold") (and italic-p "italic")
 	      (and underline-p "underline"))) ", "))
      (list (intern face) foreground background stipple
-	   bold-p italic-p underline-p)))
-  (condition-case nil (set-face-foreground face foreground) (error nil))
-  (condition-case nil (set-face-background face background) (error nil))
-  (condition-case nil (set-face-stipple face stipple) (error nil))
-  (funcall (if bold-p 'make-face-bold 'make-face-unbold) face nil t)
-  (funcall (if italic-p 'make-face-italic 'make-face-unitalic) face nil t)
-  (set-face-underline-p face underline-p)
+	   bold-p italic-p underline-p
+	   (if all-frames-p nil (selected-frame)))))
+  (condition-case nil
+      (face-try-color-list 'set-face-foreground face foreground frame)
+    (error nil))
+  (condition-case nil
+      (face-try-color-list 'set-face-background face background frame)
+    (error nil))
+  (condition-case nil
+      (set-face-stipple face stipple frame)
+    (error nil))
+  (cond ((eq bold-p nil) (make-face-unbold face frame t))
+	((eq bold-p t) (make-face-bold face frame t)))
+  (cond ((eq italic-p nil) (make-face-unitalic face frame t))
+	((eq italic-p t) (make-face-italic face frame t)))
+  (if (memq underline-p '(nil t))
+      (set-face-underline-p face underline-p frame))
   (and (interactive-p) (redraw-display)))
 
 ;;;; Associating face names (symbols) with their face vectors.
