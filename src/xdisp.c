@@ -15665,6 +15665,8 @@ invisible_p (propval, list)
 			     Glyph Display
  ***********************************************************************/
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 #if GLYPH_DEBUG
 
 void
@@ -17647,7 +17649,7 @@ x_produce_glyphs (it)
 }
 
 
-
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 

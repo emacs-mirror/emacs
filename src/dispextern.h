@@ -933,6 +933,8 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* A sequence of glyphs to be drawn in the same face.  */
 
 struct glyph_string
@@ -1050,6 +1052,7 @@ struct glyph_string
   struct glyph_string *next, *prev;
 };
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /************************************************************************
@@ -2160,6 +2163,8 @@ struct redisplay_interface
   void (*fix_overlapping_area) P_ ((struct window *w, struct glyph_row *row,
 				    enum glyph_row_area area));
 
+#ifdef HAVE_WINDOW_SYSTEM
+
   /* Draw a fringe bitmap in window W of row ROW using parameters P.  */
   void (*draw_fringe_bitmap) P_ ((struct window *w, struct glyph_row *row,
 				  struct draw_fringe_bitmap_params *p));
@@ -2182,6 +2187,7 @@ struct redisplay_interface
 /* Draw a glyph string S.  */
   void (*draw_glyph_string) P_ ((struct glyph_string *s));
 
+#endif /* HAVE_WINDOW_SYSTEM */
 };
 
 /* The current interface for window-based redisplay.  */
