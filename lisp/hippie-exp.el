@@ -1,4 +1,8 @@
-;; Expand a word trying various ways to find its expansion.
+;;; hippie.el --- expand a word trying various ways to find its expansion.
+
+;; Author: Anders Holst <aho@sans.kth.se>
+;; Keywords: extensions
+
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
@@ -17,12 +21,9 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 ;; 
-;;  Author: Anders Holst (aho@sans.kth.se)
-;;
 ;;  Last change: 4 January 1993
 
-;;  
-;;  DESCRIPTION
+;; Commentary:
 ;;  
 ;;  `hippie-expand' is a single function for a lot of different kinds
 ;;  of completions and expansions.  Called repeatedly it tries all
@@ -124,6 +125,7 @@
 ;;  how to improve it.
 ;;
 
+;; Code:
 
 (defvar he-num -1)
 
@@ -672,3 +674,4 @@ string).  It returns t if a new expansion is found, nil otherwise."
       (skip-chars-forward "-_.")
       (point))))
 
+;;; hippie.el ends here

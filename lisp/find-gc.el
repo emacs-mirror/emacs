@@ -20,11 +20,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Code:
+;;; Commentary:
 
 ;;; Produce in unsafe-list the set of all functions that may invoke GC.
 ;;; This expects the Emacs sources to live in emacs-source-directory.
 ;;; It creates a temporary working directory /tmp/esrc.
+
+;;; Code:
 
 (defun find-gc-unsafe ()
   (trace-call-tree nil)

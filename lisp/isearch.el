@@ -1,10 +1,10 @@
-;; Incremental search minor mode.
+;; isearch.el ---- incremental search minor mode.
+
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; LCD Archive Entry:
-;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
-;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/03/07 08:43:57 $|$Revision: 1.22 $|~/modes/isearch-mode.el
+;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+
+;; |$Date: 1993/03/07 20:17:27 $|$Revision: 1.23 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -23,6 +23,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Commentary:
 
 ;;;====================================================================
 ;; Instructions
@@ -85,11 +87,18 @@
 ;; - Think about incorporating query-replace.
 ;; - Hooks and options for failed search.
 
+;;; Change Log:
+
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.22 1993/03/07 08:43:57 rms Exp rms $
-;;; $Log: isearch-mode.el,v $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.23 1993/03/07 20:17:27 rms Exp eric $
+;;; $Log: isearch.el,v $
+; Revision 1.23  1993/03/07  20:17:27  rms
+; (isearch-other-meta-char): Call listify-key-sequence.
+; (isearch-unread): Don't call it here.
+; (isearch-mode-map): Bind the ASCII-equivalent function keys.
+;
 ; Revision 1.22  1993/03/07  08:43:57  rms
 ; (isearch-mode): Don't make a pre-command-hook.
 ;
@@ -186,6 +195,7 @@
 ;;; 3/18/92 Fixed invalid-regexp.
 ;;; 3/18/92 Fixed yanking in regexps.
 
+;;; Code:
 
 
 ;;;=========================================================================
@@ -1574,3 +1584,4 @@ have special meaning in a regexp."
 
 ;;))
 
+;;; isearch.el ends here
