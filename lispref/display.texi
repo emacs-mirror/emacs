@@ -180,7 +180,7 @@ functions with @code{t} as the stream (@pxref{Output Functions}), or as
 follows:
 
 @defun message string &rest arguments
-This function displays a one-line message in the echo area.  The
+This function displays a message in the echo area.  The
 argument @var{string} is similar to a C language @code{printf} control
 string.  See @code{format} in @ref{String Conversion}, for the details
 on the conversion specifications.  @code{message} returns the
@@ -197,6 +197,13 @@ If @var{string} is @code{nil}, @code{message} clears the echo area; if
 the echo area has been expanded automatically, this brings it back to
 its normal size.  If the minibuffer is active, this brings the
 minibuffer contents back onto the screen immediately.
+
+@vindex message-truncate-lines
+Normally, if the message is longer than one line, the echo area is
+resized to display the message in its entirety.  But if the variable
+@code{message-truncate-lines} is bound to @code{t}, the echo area does
+not resize, and the message is truncated, as it was done in Emacs 20
+and before.
 
 @example
 @group
@@ -3298,7 +3305,7 @@ table, which is the value of the variable @code{glyph-table}.
 The value of this variable is the current glyph table.  It should be a
 vector; the @var{g}th element defines glyph code @var{g}.  If the value
 is @code{nil} instead of a vector, then all glyphs are simple (see
-below).
+below).  The glyph table is not used on windowed displays.
 @end defvar
 
   Here are the possible types of elements in the glyph table:
