@@ -186,6 +186,32 @@ find the jpeg library.
 configure libjpeg with both `--enable-static' and `--enable-shared'
 options.
 
+* Building Emacs over NFS fails with ``Text file busy''.
+
+This was reported to happen when building Emacs on RedHat GNU/Linux
+using a build directory automounted from Solaris (v5.6) file server,
+but it might not be limited to that configuration alone.  Presumably,
+the NFS server doesn't commit the files' data to disk quickly enough,
+and the Emacs executable file is left ``busy'' for several seconds
+after Emacs has finished dumping itself.  This causes the subsequent
+commands which invoke the dumped Emacs excutable to fail with the
+above message.
+
+If the NFS server runs on Solaris, apply the Solaris patch 105379-05
+(Sunos 5.6: /kernel/misc/nfssrv patch).  If that doesn't work, or if
+you have a different version of the OS or the NFS server, you can
+force the NFS server to use 1KB blocks, which was reported to fix the
+problem albeit at a price of slowing down file I/O.  You can force 1KB
+blocks by specifying the "-o  rsize=1024,wsize=1024" options to the
+`mount' command, or by adding ",rsize=1024,wsize=1024" to the mount
+options in the appropriate system configuration file, such as
+`/etc/auto.home'.
+
+Alternatively, when "make install" fails due to this problem, you
+could wait for a few seconds and then type "make install" again.  In
+one particular case, waiting for 10 or more seconds seemed to work
+around the problem.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
