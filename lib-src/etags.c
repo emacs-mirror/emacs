@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.90";
+char pot_etags_version[] = "@(#) pot revision number is 11.91";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -438,7 +438,7 @@ struct lang_entry lang_names [] =
   { "c*",      Cstar_entries,       Cstar_suffixes,       NULL              },
   { "erlang",  Erlang_functions,    Erlang_suffixes,      NULL              },
   { "fortran", Fortran_functions,   Fortran_suffixes,     NULL              },
-/*{ "java",    Cjava_entries,       Cjava_suffixes,       NULL             },*/
+  { "java",    Cjava_entries,       Cjava_suffixes,       NULL              },
   { "lisp",    Lisp_functions,      Lisp_suffixes,        NULL              },
   { "pascal",  Pascal_functions,    Pascal_suffixes,      NULL              },
   { "perl",    Perl_functions,      Perl_suffixes,        Perl_interpreters },
@@ -1539,7 +1539,7 @@ enum sym_type
 {
   st_none, st_C_objprot, st_C_objimpl, st_C_objend, st_C_gnumacro,
   st_C_struct, st_C_enum, st_C_define, st_C_typedef, st_C_typespec,
-  st_C_jstruct
+  st_C_javastruct
 };
 
 /* Feed stuff between (but not including) %[ and %] lines to:
@@ -1551,8 +1551,8 @@ struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 @protocol,	0,	st_C_objprot
 @implementation,0,	st_C_objimpl
 @end,		0,	st_C_objend
-extends,  	C_JAVA,	st_C_jstruct
-implements,  	C_JAVA,	st_C_jstruct
+extends,  	C_JAVA,	st_C_javastruct
+implements,  	C_JAVA,	st_C_javastruct
 class,  	C_PLPL,	st_C_struct
 namespace,	C_PLPL,	st_C_struct
 domain, 	C_STAR,	st_C_struct
@@ -1650,7 +1650,7 @@ in_word_set (str, len)
       {"",}, {"",}, 
       {"bool", 		C_PLPL,	st_C_typespec},
       {"extern",   	0,	st_C_typespec},
-      {"extends",   	C_JAVA,	st_C_jstruct},
+      {"extends",   	C_JAVA,	st_C_javastruct},
       {"",}, {"",}, 
       {"@implementation", 0,	st_C_objimpl},
       {"",}, {"",}, {"",}, 
@@ -1684,7 +1684,7 @@ in_word_set (str, len)
       {"typename", 	C_PLPL,	st_C_typespec},
       {"volatile", 	0,	st_C_typespec},
       {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"implements",   	C_JAVA,	st_C_jstruct},
+      {"implements",   	C_JAVA,	st_C_javastruct},
       {"",}, {"",}, 
       {"union",   	0,	st_C_struct},
       {"",}, 
@@ -1797,6 +1797,7 @@ enum
 
 /*
  * State machine for Objective C protocols and implementations.
+ * Tom R.Hageman <tom@basil.icce.rug.nl>
  */
 enum
 {
@@ -1950,7 +1951,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
    */
   switch (toktype)
     {
-    case st_C_jstruct:
+    case st_C_javastruct:
       if (structdef == stagseen)
         structdef = scolonseen;
       return FALSE;
@@ -3303,6 +3304,7 @@ Lisp_functions (inf)
 /*
  * Postscript tag functions
  * Just look for lines where the first character is '/'
+ * Richard Mlynarik <mly@adoc.xerox.com>
  */
 void 
 Postscript_functions (inf)
@@ -4073,8 +4075,7 @@ analyse_regex (regex_arg)
       return;
     }
   if (regex_arg[0] == '@'
-      && stat (regex_arg + 1, &stat_buf) == 0
-      && S_ISREG (stat_buf.st_mode))
+      && stat (regex_arg + 1, &stat_buf) == 0)
     {
       FILE *regexfp;
       struct linebuffer regexbuf;
