@@ -1824,7 +1824,7 @@ This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-quote-list nil
-  "List of characters to quote with `\' when in a file name.
+  "List of characters to quote with `\\' when in a file name.
 
 This is a good thing to set in mode hooks.")
 
