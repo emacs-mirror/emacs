@@ -1,12 +1,12 @@
 ;;; buff-menu.el --- buffer menu main function and support functions.
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -33,6 +33,7 @@
   (define-key Buffer-menu-mode-map "1" 'Buffer-menu-1-window)
   (define-key Buffer-menu-mode-map "f" 'Buffer-menu-this-window)
   (define-key Buffer-menu-mode-map "o" 'Buffer-menu-other-window)
+  (define-key Buffer-menu-mode-map "\C-o" 'Buffer-menu-switch-other-window)
   (define-key Buffer-menu-mode-map "s" 'Buffer-menu-save)
   (define-key Buffer-menu-mode-map "d" 'Buffer-menu-delete)
   (define-key Buffer-menu-mode-map "k" 'Buffer-menu-delete)
@@ -66,6 +67,7 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-this-window] -- select that buffer in place of the buffer menu buffer.
 \\[Buffer-menu-other-window] -- select that buffer in another window,
   so the buffer menu buffer remains visible in its window.
+\\[Buffer-menu-switch-other-window] -- switch the other window to this buffer.
 \\[Buffer-menu-visit-tags-table] -- visit-tags-table this buffer.
 \\[Buffer-menu-not-modified] -- clear modified-flag on that buffer.
 \\[Buffer-menu-save] -- mark that buffer to be saved, and move down.
@@ -273,6 +275,12 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
   "Select this line's buffer in other window, leaving buffer menu visible."
   (interactive)
   (switch-to-buffer-other-window (Buffer-menu-buffer t)))
+
+(defun Buffer-menu-switch-other-window ()
+  "Make the other window select this line's buffer.
+The current window remains selected."
+  (interactive)
+  (display-buffer (Buffer-menu-buffer t)))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
