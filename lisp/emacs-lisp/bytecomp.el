@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.122 $")
+(defconst byte-compile-version "$Revision: 2.123 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2065,7 +2065,7 @@ list that represents a doc string reference.
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
     (when (memq 'free-vars byte-compile-warnings)
-      (push (nth 1 form) byte-compile-dynamic-variables)
+      (push (nth 1 form) byte-compile-bound-variables)
       (if (eq (car form) 'defconst)
 	  (push (nth 1 form) byte-compile-const-variables)))
     (cond ((consp (nth 2 form))
@@ -3561,7 +3561,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
        "%s called with %d arguments, but accepts only %s"
        fun (length (cdr form)) "2-3"))
     (when (memq 'free-vars byte-compile-warnings)
-      (push var byte-compile-dynamic-variables)
+      (push var byte-compile-bound-variables)
       (if (eq fun 'defconst)
 	  (push var byte-compile-const-variables)))
     (byte-compile-body-do-effect
