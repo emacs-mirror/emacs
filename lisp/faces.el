@@ -1489,10 +1489,10 @@ with the default face for display, can be represented in a way that's
  (1) different in appearance than the default face, and
  (2) `close in spirit' to what the attributes specify, if not exact.
 
-Point (2) implies that a `:weight black' attribute will be satisified by
+Point (2) implies that a `:weight black' attribute will be satisfied by
 any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
-satisified by the tty display code's automatic substitution of a `dim'
+satisfied by the tty display code's automatic substitution of a `dim'
 face for italic."
   (let ((frame
 	 (if (framep display)
@@ -1657,8 +1657,7 @@ Value is the new frame created."
 	(progn
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
-	  ;; No need to call `face-set-after-frame-default'
-	  ;; since x-create-frame does that.
+	  (face-set-after-frame-default frame)
 	  (if (or (null frame-list) (null visibility-spec))
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
