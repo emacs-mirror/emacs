@@ -596,6 +596,7 @@ If you use ada-xref.el:
 
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression ada-imenu-generic-expression)
+  (setq imenu-case-fold-search t)
 
   (if (ada-xemacs) nil ; XEmacs uses properties 
     (make-local-variable 'font-lock-defaults)

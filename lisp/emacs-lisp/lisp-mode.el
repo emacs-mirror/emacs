@@ -212,6 +212,7 @@ if that value is non-nil."
   (setq major-mode 'emacs-lisp-mode)
   (setq mode-name "Emacs-Lisp")
   (lisp-mode-variables nil)
+  (setq imenu-case-fold-search nil)
   (run-hooks 'emacs-lisp-mode-hook))
 
 (defvar lisp-mode-map ()
@@ -242,6 +243,7 @@ if that value is non-nil."
   (setq major-mode 'lisp-mode)
   (setq mode-name "Lisp")
   (lisp-mode-variables t)
+  (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
   (run-hooks 'lisp-mode-hook))
 

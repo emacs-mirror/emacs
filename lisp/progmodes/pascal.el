@@ -371,6 +371,7 @@ no args, if that value is non-nil."
   ;; Imenu support
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression pascal-imenu-generic-expression)
+  (setq imenu-case-fold-search t)
   (run-hooks 'pascal-mode-hook))
 
 

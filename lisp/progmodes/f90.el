@@ -877,6 +877,7 @@ with no args, if that value is non-nil."
     (setq font-lock-defaults '(f90-font-lock-keywords nil t))
 
     ;; Tell imenu how to handle f90.
+    (setq imenu-case-fold-search t)
     (make-local-variable 'imenu-generic-expression)
     (setq imenu-generic-expression f90-imenu-generic-expression))
   (run-hooks 'f90-mode-hook)

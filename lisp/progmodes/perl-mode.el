@@ -331,6 +331,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   ;; Tell imenu how to handle Perl.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression perl-imenu-generic-expression)
+  (setq imenu-case-fold-search nil)
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment

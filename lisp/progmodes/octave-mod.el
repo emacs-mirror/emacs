@@ -515,7 +515,8 @@ including a reproducible test case and send the message."
   (setq font-lock-defaults '(octave-font-lock-keywords nil nil))
 
   (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression octave-mode-imenu-generic-expression)
+  (setq imenu-generic-expression octave-mode-imenu-generic-expression
+        imenu-case-fold-search nil)
 
   (octave-add-octave-menu)
   (octave-initialize-completions)

@@ -115,7 +115,10 @@
 ;;   ACorreir@pervasive-sw.com (Alfred Correira)
 
 ;;; Change log:
-;; $Log: generic-mode.el,v $
+;; $Log: generic.el,v $
+;; Revision 1.1  1997/06/15 07:01:26  rms
+;; Initial revision
+;;
 ;; Revision 1.6  1996/11/01 17:27:47  peter
 ;; Changed the function generic-function-name to return a string instead
 ;; of a symbol. Generic-mode now uses this for the mode's name
@@ -542,7 +545,8 @@ Some generic modes are defined in generic-extras.el"
 ;; Support for [KEYWORD] constructs found in INF, INI and Samba files
 (defun generic-bracket-support ()
   (setq imenu-generic-expression 
-	'((nil "^\\[\\(.*\\)\\]" 1))))
+	'((nil "^\\[\\(.*\\)\\]" 1))
+        imenu-case-fold-search t))
 
 ;; This generic mode is always defined
 (define-generic-mode 'default-generic-mode (list ?#)  nil nil nil nil)

@@ -829,6 +829,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
+	imenu-case-fold-search nil
 	shell (sh-feature sh-variables))
   (set-syntax-table (sh-feature sh-mode-syntax-table))
   (while shell

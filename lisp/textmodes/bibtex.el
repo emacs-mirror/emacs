@@ -2530,6 +2530,7 @@ non-nil.
           (bibtex-beginning-of-entry)))
   (setq imenu-generic-expression
         (list (list nil bibtex-reference-head bibtex-key-in-head)))
+  (setq imenu-case-fold-search t)
   (run-hooks 'bibtex-mode-hook))
 
 (defun bibtex-submit-bug-report ()

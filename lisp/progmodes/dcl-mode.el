@@ -542,7 +542,8 @@ $
   (setq comment-start-skip "\\$[ \t]*![ \t]*")
 
   (if (boundp 'imenu-generic-expression)
-      (setq imenu-generic-expression dcl-imenu-generic-expression))
+      (progn (setq imenu-generic-expression dcl-imenu-generic-expression)
+             (setq imenu-case-fold-search t)))
   (setq imenu-create-index-function 'dcl-imenu-create-index-function)
 
   (make-local-variable 'dcl-comment-line-regexp)

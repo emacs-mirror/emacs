@@ -340,6 +340,7 @@ no args if that value is non-nil."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression c++-imenu-generic-expression)
+  (setq imenu-case-fold-search nil)
   (run-hooks 'c++-mode-hook)
   (if c++-electric-colon
       (define-key c++-mode-map ":" 'electric-c++-terminator)))

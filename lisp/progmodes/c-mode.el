@@ -363,6 +363,7 @@ if that value is non-nil."
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression c-imenu-generic-expression)
+  (setq imenu-case-fold-search nil)
   (run-hooks 'c-mode-hook))
 
 (defun c-outline-level ()

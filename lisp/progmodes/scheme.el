@@ -152,7 +152,8 @@
   (set lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression scheme-imenu-generic-expression))
+  (setq imenu-generic-expression scheme-imenu-generic-expression)
+  (setq imenu-case-fold-search t))
 
 (defvar scheme-mode-line-process "")
 
@@ -281,7 +282,8 @@ if that value is non-nil and inserts the value of
   (run-hooks 'scheme-mode-hook)
   (run-hooks 'dsssl-mode-hook)
   (scheme-mode-variables)
-  (setq imenu-generic-expression dsssl-imenu-generic-expression))
+  (setq imenu-generic-expression dsssl-imenu-generic-expression)
+  (setq imenu-case-fold-search nil))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.

@@ -158,7 +158,8 @@ Key bindings:
 	c-class-key c-C-class-key
 	c-baseclass-key nil
 	c-comment-start-regexp c-C++-comment-start-regexp
-	imenu-generic-expression cc-imenu-c-generic-expression)
+	imenu-generic-expression cc-imenu-c-generic-expression
+        imenu-case-fold-search nil)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
   (c-update-modeline))
@@ -197,7 +198,8 @@ Key bindings:
 	c-class-key c-C++-class-key
 	c-access-key c-C++-access-key
 	c-recognize-knr-p nil
-	imenu-generic-expression cc-imenu-c++-generic-expression)
+	imenu-generic-expression cc-imenu-c++-generic-expression
+        imenu-case-fold-search nil)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c++-mode-hook)
   (c-update-modeline))
@@ -282,6 +284,7 @@ Key bindings:
  	c-access-key c-Java-access-key
 	;defun-prompt-regexp c-Java-defun-prompt-regexp
 	imenu-generic-expression cc-imenu-java-generic-expression
+        imenu-case-fold-search nil
 	)
   (c-set-style "java")
   (run-hooks 'c-mode-common-hook)

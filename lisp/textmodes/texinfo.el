@@ -515,6 +515,7 @@ value of texinfo-mode-hook."
   (setq words-include-escapes t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression texinfo-imenu-generic-expression)
+  (setq imenu-case-fold-search nil)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(texinfo-font-lock-keywords t))
   (make-local-variable 'outline-regexp)
