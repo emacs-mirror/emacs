@@ -1203,8 +1203,15 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  f->output_data.x->foreground_pixel
+  unsigned long pixel
     = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+
+  if (f->output_data.x->foreground_pixel != f->output_data.x->mouse_pixel
+      && f->output_data.x->foreground_pixel != f->output_data.x->cursor_pixel
+      && f->output_data.x->foreground_pixel != f->output_data.x->cursor_foreground_pixel)
+    unload_color (f, f->output_data.x->foreground_pixel);
+  f->output_data.x->foreground_pixel = pixel;
+
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
@@ -1227,8 +1234,14 @@ x_set_background_color (f, arg, oldval)
   Pixmap temp;
   int mask;
 
-  f->output_data.x->background_pixel
+  unsigned long pixel
     = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+
+  if (f->output_data.x->background_pixel != f->output_data.x->mouse_pixel
+      && f->output_data.x->background_pixel != f->output_data.x->cursor_pixel
+      && f->output_data.x->background_pixel != f->output_data.x->cursor_foreground_pixel)
+    unload_color (f, f->output_data.x->background_pixel);
+  f->output_data.x->background_pixel = pixel;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -1267,15 +1280,23 @@ x_set_mouse_color (f, arg, oldval)
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
   int count;
   int mask_color;
-
+  unsigned long pixel = f->output_data.x->mouse_pixel;
+  
   if (!EQ (Qnil, arg))
-    f->output_data.x->mouse_pixel
-      = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+    pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+
   mask_color = f->output_data.x->background_pixel;
 				/* No invisible pointers.  */
-  if (mask_color == f->output_data.x->mouse_pixel
-	&& mask_color == f->output_data.x->background_pixel)
-    f->output_data.x->mouse_pixel = f->output_data.x->foreground_pixel;
+  if (mask_color == pixel
+      && mask_color == f->output_data.x->background_pixel)
+    pixel = f->output_data.x->foreground_pixel;
+
+  if (f->output_data.x->background_pixel != f->output_data.x->mouse_pixel
+      && f->output_data.x->foreground_pixel != f->output_data.x->mouse_pixel
+      && f->output_data.x->cursor_pixel != f->output_data.x->mouse_pixel
+      && f->output_data.x->cursor_foreground_pixel != f->output_data.x->mouse_pixel)
+    unload_color (f, f->output_data.x->mouse_pixel);
+  f->output_data.x->mouse_pixel = pixel;
 
   BLOCK_INPUT;
 
@@ -1380,23 +1401,36 @@ x_set_cursor_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned long fore_pixel;
+  unsigned long fore_pixel, pixel;
 
   if (!EQ (Vx_cursor_fore_pixel, Qnil))
     fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
 				 WHITE_PIX_DEFAULT (f));
   else
     fore_pixel = f->output_data.x->background_pixel;
-  f->output_data.x->cursor_pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
-  
+  pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+
   /* Make sure that the cursor color differs from the background color.  */
-  if (f->output_data.x->cursor_pixel == f->output_data.x->background_pixel)
+  if (pixel == f->output_data.x->background_pixel)
     {
-      f->output_data.x->cursor_pixel = f->output_data.x->mouse_pixel;
-      if (f->output_data.x->cursor_pixel == fore_pixel)
+      pixel = f->output_data.x->mouse_pixel;
+      if (pixel == fore_pixel)
 	fore_pixel = f->output_data.x->background_pixel;
     }
+
+  if (f->output_data.x->background_pixel != f->output_data.x->cursor_foreground_pixel
+      && f->output_data.x->foreground_pixel != f->output_data.x->cursor_foreground_pixel
+      && f->output_data.x->mouse_pixel != f->output_data.x->cursor_foreground_pixel
+      && f->output_data.x->cursor_pixel != f->output_data.x->cursor_foreground_pixel)
+    unload_color (f, f->output_data.x->cursor_foreground_pixel);
   f->output_data.x->cursor_foreground_pixel = fore_pixel;
+
+  if (f->output_data.x->background_pixel != f->output_data.x->cursor_pixel
+      && f->output_data.x->foreground_pixel != f->output_data.x->cursor_pixel
+      && f->output_data.x->mouse_pixel != f->output_data.x->cursor_pixel
+      && f->output_data.x->cursor_foreground_pixel != f->output_data.x->cursor_pixel)
+    unload_color (f, f->output_data.x->cursor_pixel);
+  f->output_data.x->cursor_pixel = pixel;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -1451,6 +1485,7 @@ x_set_border_pixel (f, pix)
      struct frame *f;
      int pix;
 {
+  unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
 
   if (FRAME_X_WINDOW (f) != 0 && f->output_data.x->border_width > 0)
