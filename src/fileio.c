@@ -3793,19 +3793,11 @@ This does code conversion according to the value of\n\
 	  /* There's a possibility that we must combine bytes at the
 	     head (resp. the tail) of the just inserted text with the
 	     bytes before (resp. after) the gap to form a single
-	     character.  Thus, we, at first, rewind the adjusted
-	     character positions (GPT, ZV, Z), then adjust them again.  */
-	  GAP_SIZE += inserted;
-	  GPT_BYTE -= inserted;
-	  ZV_BYTE -= inserted;
-	  Z_BYTE -= inserted;
-	  GPT -= inserted;
-	  ZV -= inserted;
-	  Z -= inserted;
-
-	  inserted = multibyte_chars_in_text (GPT_ADDR, inserted);
-	  adjust_after_replace (PT, PT_BYTE, PT, PT_BYTE,
-				inserted, inserted_byte, 0);
+	     character.  */
+	  inserted = multibyte_chars_in_text (GPT_ADDR - inserted, inserted);
+	  adjust_after_insert (PT, PT_BYTE,
+			       PT + inserted_byte, PT_BYTE + inserted_byte,
+			       inserted);
 	}
 
 #ifdef DOS_NT
