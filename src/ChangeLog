@@ -1,3 +1,7 @@
+2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fassq, Fassoc, Frassq, Frassoc): Doc fixes.
+
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
 
 	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
@@ -15,8 +19,7 @@
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* fns.c (Freverse, Fnreverse, Fassq, Fassoc, Frassq, Frassoc):
-	Doc fixes.
+	* fns.c (Freverse, Fnreverse): Doc fixes.
 
 2003-11-19  Kim F. Storm  <storm@cua.dk>
 
