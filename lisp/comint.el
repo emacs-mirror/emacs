@@ -1965,17 +1965,17 @@ See also `comint-dynamic-complete-filename'."
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
   (let ((conf (current-window-configuration)))
-    (with-output-to-temp-buffer " *Completions*"
+    (with-output-to-temp-buffer "*Completions*"
       (display-completion-list (sort completions 'string-lessp)))
     (message "Hit space to flush")
     (let (key first)
       (if (save-excursion
-	    (set-buffer (get-buffer " *Completions*"))
+	    (set-buffer (get-buffer "*Completions*"))
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
 	    (and (consp first)
 		 (eq (window-buffer (posn-window (event-start first)))
-		     (get-buffer " *Completions*"))
+		     (get-buffer "*Completions*"))
 		 (eq (key-binding key) 'mouse-choose-completion)))
 	  ;; If the user does mouse-choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
