@@ -3698,7 +3698,14 @@ actually used.")
 
 	  /* We win!  We can handle REPLACE the optimized way.  */
 
-	  /* Extends the end of non-matching text area to multibyte
+	  /* Extend the start of non-matching text area to multibyte
+             character boundary.  */
+	  if (! NILP (current_buffer->enable_multibyte_characters))
+	    while (same_at_start > BEGV_BYTE
+		   && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
+	      same_at_start--;
+
+	  /* Extend the end of non-matching text area to multibyte
              character boundary.  */
 	  if (! NILP (current_buffer->enable_multibyte_characters))
 	    while (same_at_end < ZV_BYTE
@@ -3853,6 +3860,13 @@ actually used.")
 	  goto handled;
 	}
 
+      /* Extend the start of non-matching text area to multibyte
+	 character boundary.  */
+      if (! NILP (current_buffer->enable_multibyte_characters))
+	while (same_at_start > BEGV_BYTE
+	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
+	  same_at_start--;
+
       /* Scan this bufferful from the end, comparing with
 	 the Emacs buffer.  */
       bufpos = inserted;
@@ -3862,6 +3876,13 @@ actually used.")
       while (bufpos > 0 && same_at_end > same_at_start
 	     && FETCH_BYTE (same_at_end - 1) == conversion_buffer[bufpos - 1])
 	same_at_end--, bufpos--;
+
+      /* Extend the end of non-matching text area to multibyte
+	 character boundary.  */
+      if (! NILP (current_buffer->enable_multibyte_characters))
+	while (same_at_end < ZV_BYTE
+	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
+	  same_at_end++;
 
       /* Don't try to reuse the same piece of text twice.  */
       overlap = same_at_start - BEGV_BYTE - (same_at_end + inserted - ZV_BYTE);
