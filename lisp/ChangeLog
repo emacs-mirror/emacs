@@ -1,5 +1,9 @@
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* dired-aux.el (dired-do-create-files): Construct default file
+	name for dired-mark-read-file-name so that when the user enters
+	just RET, the target file will end up in the target directory.
+
 	* abbrev.el (prepare-abbrev-list-buffer): Get the value of
 	local-abbrev-table before changing buffers because it might
 	have a buffer-local binding.
