@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
+#include <signal.h>
 #include <../src/config.h>
 #undef read
 #undef write
@@ -81,8 +82,128 @@ extern int errno;
 #define FD_ZERO(p) (*(p) = 0)
 #endif /* no FD_SET */
 
+/* This is the file name of the socket that we made.  */
+
+char *socket_name;
+
+/* Name of this program.  */
+
+char *progname;
+
+/* Handle fatal signals.  */
+
+/* This is the handler.  */
+
+SIGTYPE
+delete_socket (sig)
+     int sig;
+{
+  signal (sig, SIG_DFL);
+  unlink (socket_name);
+  kill (getpid (), sig);
+}
+
+/* Set up to handle all the signals.  */
+
+handle_signals ()
+{
+  signal (SIGHUP, delete_socket);
+  signal (SIGINT, delete_socket);
+  signal (SIGQUIT, delete_socket);
+  signal (SIGILL, delete_socket);
+  signal (SIGTRAP, delete_socket);
+#ifdef SIGABRT
+  signal (SIGABRT, delete_socket);
+#endif
+#ifdef SIGHWE
+  signal (SIGHWE, delete_socket);
+#endif
+#ifdef SIGPRE
+  signal (SIGPRE, delete_socket);
+#endif
+#ifdef SIGORE
+  signal (SIGORE, delete_socket);
+#endif
+#ifdef SIGUME
+  signal (SIGUME, delete_socket);
+#endif
+#ifdef SIGDLK
+  signal (SIGDLK, delete_socket);
+#endif
+#ifdef SIGCPULIM
+  signal (SIGCPULIM, delete_socket);
+#endif
+#ifdef SIGIOT
+  /* This is missing on some systems - OS/2, for example.  */
+  signal (SIGIOT, delete_socket);
+#endif
+#ifdef SIGEMT
+  signal (SIGEMT, delete_socket);
+#endif
+  signal (SIGFPE, delete_socket);
+#ifdef SIGBUS
+  signal (SIGBUS, delete_socket);
+#endif
+  signal (SIGSEGV, delete_socket);
+#ifdef SIGSYS
+  signal (SIGSYS, delete_socket);
+#endif
+  signal (SIGTERM, delete_socket);
+#ifdef SIGXCPU
+  signal (SIGXCPU, delete_socket);
+#endif
+#ifdef SIGXFSZ
+  signal (SIGXFSZ, delete_socket);
+#endif /* SIGXFSZ */
+
+#ifdef AIX
+/* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
+  signal (SIGXCPU, delete_socket);
+#ifndef _I386
+  signal (SIGIOINT, delete_socket);
+#endif
+  signal (SIGGRANT, delete_socket);
+  signal (SIGRETRACT, delete_socket);
+  signal (SIGSOUND, delete_socket);
+  signal (SIGMSG, delete_socket);
+#endif /* AIX */
+}
+
+/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+void
+error (s1, s2)
+     char *s1, *s2;
+{
+  fprintf (stderr, "%s: ", progname);
+  fprintf (stderr, s1, s2);
+  fprintf (stderr, "\n");
+}
+
+/* Print error message and exit.  */
+void
+fatal (s1, s2)
+     char *s1, *s2;
+{
+  error (s1, s2);
+  exit (1);
+}
+
+/* Like malloc but get fatal error if memory is exhausted.  */
+
+long *
+xmalloc (size)
+     unsigned int size;
+{
+  long *result = (long *) malloc (size);
+  if (result == NULL)
+    fatal ("virtual memory exhausted", 0);
+  return result;
+}
+
 int
-main ()
+main (argc, argv)
+     int argc;
+     char **argv;
 {
   char system_name[32];
   int s, infd, fromlen;
@@ -97,6 +218,8 @@ main ()
 #ifndef convex
   char *getenv ();
 #endif
+
+  progname = argv[0];
 
   openfiles_size = 20;
   openfiles = (FILE **) malloc (openfiles_size * sizeof (FILE *));
@@ -133,6 +256,12 @@ main ()
   /* Delete anyone else's old server.  */
   unlink (server.sun_path);
 #endif
+
+  /* Save the socket name so we can delete it.  */
+  socket_name = (char *) xmalloc (strlen (server.sun_path) + 1);
+  strcpy (socket_name, server.sun_path);
+
+  handle_signals ();
 
   if (bind (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2) < 0)
     {
