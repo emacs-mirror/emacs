@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 15 May 1997
+@set lastupdate 7 June 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -23,7 +23,8 @@ last updated on @value{lastupdate}.
 @end ifinfo
 
 @menu
-* Preface::
+* Intro::
+* Highest Priority::
 * Documentation::
 * Unix-Related Projects::
 * Kernel Projects::
@@ -34,15 +35,17 @@ last updated on @value{lastupdate}.
 * Games and Recreations::
 @end menu
 
-@node Preface, Documentation, Top, Top
+@node Intro
 @chapter About the GNU Task List
 
-Check with @code{gnu@@prep.ai.mit.edu}, for a possibly more current
-copy.  You can also ftp it from a GNU FTP host in directory
-@file{/pub/gnu/tasks} - These files in different formats are available:
-@file{tasks.text}, @file{tasks.texi}, @file{tasks.info}, and
-@file{tasks.dvi}.  It is also available on the GNU World Wide Web
-server: @file{http://www.gnu.ai.mit.edu}.
+If you did not obtain this file directly from the GNU project and
+recently, please check for a newer version.  You can ftp it the task
+list from any GNU FTP host in directory @file{/pub/gnu/tasks}.  The task
+list is available there in several different formats: @file{tasks.text},
+@file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.
+
+The task list is also available on the GNU World Wide Web server:
+@url{http://www.gnu.ai.mit.edu/prep/tasks_toc.html}.
 
 If you start working steadily on a project, please let @code{gnu@@prep}
 know.  We might have information that could help you; we'd also like to
@@ -69,6 +72,51 @@ to improve performance.  Users who use the new functionality will
 appreciate it very much, if they use it; but even when they benefit from
 a performance improvement, they may not consider it very important.
 
+@node Highest Priority
+@chapter Highest Priority
+
+This task list mentions a large number of tasks that would be more or
+less useful.  With luck, at least one of them will inspire you to start
+writing.  It's better for you to work on any task that inspires you than
+not write free software at all.
+
+But if you would like to work on what we need most, here is a list of
+high priority projects.
+
+@itemize @bullet
+@item
+If you are good at writing documentation, please do.
+
+@item
+If you are very good at C programming and interested in kernels, you can
+help develop the GNU HURD.  Please look at
+@url{http://www.gnu.ai.mit.edu:/software/hurd/hurd.html}. then contact
+@email{gnu@@prep.ai.mit.edu} and ask for the latest HURD task list.
+
+@item
+If you are a Scheme fan, please help develop Guile.  Please look
+at @url{http://www.gnu.ai.mit.edu:/software/guile/guile.html} and then
+contact @email{guile@@gnu.ai.mit.edu}.
+
+@item
+Help develop the GNU web browser, E-scape.
+
+@item
+Help develop Windows NT emulation for GNU systems---for example, WINE.
+
+@item
+Implement the Kermit data transfer protocol.  (See below.)
+
+@item
+Develop a free compatible replacement for Qt, a graphics toolkit
+library.
+
+@item
+Develop a substitute, which runs on GNU systems, for some very popular
+or very important application that many non-programmers use on Windows,
+and which has no comparable free equivalent now.
+@end itemize
+
 @node Documentation
 @chapter Documentation
 
@@ -77,16 +125,11 @@ that already exist or will exist very soon:
 
 @itemize @bullet
 @item
-Completion of the documentation for CC-mode, a new Emacs mode for
-C, C++ and other languages.
-
-@item
 A C reference manual.  (RMS made a try at one, which you could start
 with).
 
 @item
 A manual for Ghostscript.
-
 
 @item
 A manual for TCSH.
@@ -317,9 +360,8 @@ Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
 
 @item
-A free program that does the same job as Kermit.  Actual compatibility
-with Kermit is not necessary, and you could make the job easier by using
-@code{sz} and @code{rz} to do the actual file transfer.
+A free program that can transfer files on a serial line
+using the same protocol that Kermit uses.
 
 @item
 An imitation of Page Maker or Ventura Publisher.
@@ -351,6 +393,13 @@ Addison-Wesley, ISBN 0-201-10745-7
 @end display
 
 (I don't quite agree with a few of the details they propose.)
+
+@item
+A program to convert Microsoft Word documents to TeX, LaTeX, Texinfo,
+text/enriched or some other format that free software can edit.
+
+@item
+A free replacement for the semi-free Qt library.
 
 @item
 Speech-generation programs (there is a program from Brown U that you
@@ -411,10 +460,8 @@ CAD software, such as a vague imitation of Autocad.
 @chapter Compilers for Other Batch Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
-Algol 60, Algol 68, PL/I, Cobol, Fortran 90, or whatever, to be used
-with the code generation phases of the GNU C compiler.  (C, C++, and
-Objective-C are done; Fortran 77 is mostly done; Ada, Pascal, and Java
-are being worked on.)
+Algol 60, Algol 68, PL/I, Cobol, Fortran 90, Eiffel, or whatever, to be
+used with the code generation phases of the GNU C compiler.
 
 @c Fortran status is here so gnu@prep and the volunteer coordinators
 @c don't have to answer the question -len
@@ -462,7 +509,8 @@ A golf game.
 Program a robot by sticking building blocks together,
 then watch it explore a world.
 @item
-Biomorph evolution (as in Scientific American).
+Biomorph evolution (as in Scientific American and @cite{The Blind
+Watchmaker}).
 @item
 A program to display effects of moving at relativistic speeds.
 @end itemize
