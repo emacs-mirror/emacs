@@ -58,9 +58,9 @@ int os_subtype;
 void
 cache_system_info (void)
 {
-  union 
+  union
     {
-      struct info 
+      struct info
 	{
 	  char  major;
 	  char  minor;
@@ -157,11 +157,11 @@ sbrk (unsigned long increment)
 {
   void *result;
   long size = (long) increment;
-  
+
   result = data_region_end;
-  
+
   /* If size is negative, shrink the heap by decommitting pages.  */
-  if (size < 0) 
+  if (size < 0)
     {
       int new_size;
       unsigned char *new_data_region_end;
@@ -172,7 +172,7 @@ sbrk (unsigned long increment)
       if ((data_region_end - size) < data_region_base)
 	return NULL;
 
-      /* We can only decommit full pages, so allow for 
+      /* We can only decommit full pages, so allow for
 	 partial deallocation [cga].  */
       new_data_region_end = (data_region_end - size);
       new_data_region_end = (unsigned char *)
@@ -188,9 +188,9 @@ sbrk (unsigned long increment)
  	}
 
       data_region_end -= size;
-    } 
+    }
   /* If size is positive, grow the heap by committing reserved pages.  */
-  else if (size > 0) 
+  else if (size > 0)
     {
       /* Sanity checks.  */
       if ((data_region_end + size) >
@@ -209,7 +209,7 @@ sbrk (unsigned long increment)
       real_data_region_end = (unsigned char *)
 	  ((long) (data_region_end + syspage_mask) & ~syspage_mask);
     }
-  
+
   return result;
 }
 
@@ -232,7 +232,7 @@ init_heap ()
   PIMAGE_NT_HEADERS nt_header;
 
   dos_header = (PIMAGE_DOS_HEADER) RVA_TO_PTR (0);
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) + 
+  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
 				   dos_header->e_lfanew);
   preload_heap_section = find_section ("EMHEAP", nt_header);
 
@@ -247,7 +247,7 @@ init_heap ()
 
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
-      if (((unsigned long) data_region_base & ~VALMASK) != 0) 
+      if (((unsigned long) data_region_base & ~VALMASK) != 0)
 	{
 	  printf ("Error: The heap was allocated in upper memory.\n");
 	  exit (1);
@@ -274,15 +274,15 @@ round_heap (unsigned long align)
 {
   unsigned long needs_to_be;
   unsigned long need_to_alloc;
-  
+
   needs_to_be = (unsigned long) ROUND_UP (get_heap_end (), align);
   need_to_alloc = needs_to_be - (unsigned long) get_heap_end ();
-  
-  if (need_to_alloc) 
+
+  if (need_to_alloc)
     sbrk (need_to_alloc);
 }
 
-#if (_MSC_VER >= 1000 && !defined(USE_CRT_DLL))
+#if (_MSC_VER >= 1000 && _MSC_VER < 1300 && !defined(USE_CRT_DLL))
 
 /* MSVC 4.2 invokes these functions from mainCRTStartup to initialize
    a heap via HeapCreate.  They are normally defined by the runtime,
