@@ -409,7 +409,6 @@ Lisp_Object Vtranslation_table_for_input;
 Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
 
-
 static void record_conversion_result (struct coding_system *coding,
 				      enum coding_result_code result);
 static int detect_coding_utf_8 P_ ((struct coding_system *,
@@ -7469,7 +7468,6 @@ buffer positions.  END is ignored.  */)
 }
 
 
-
 Lisp_Object
 code_convert_region (start, end, coding_system, dst_object, encodep, norecord)
      Lisp_Object start, end, coding_system, dst_object;
@@ -8451,7 +8449,7 @@ usage: (define-coding-system-internal ...)  */)
       struct charset *charset;
 
       if (XINT (Flength (charset_list)) != 3
-	  || XINT (Flength (charset_list)) != 4)
+	  && XINT (Flength (charset_list)) != 4)
 	error ("There should be three or four charsets");
 
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
