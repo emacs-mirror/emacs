@@ -707,7 +707,8 @@ process uses the \'dir\' command to get directory information.")
 (defvar ange-ftp-binary-file-name-regexp
   (concat "\\.[zZ]$\\|\\.lzh$\\|\\.arc$\\|\\.zip$\\|\\.zoo$\\|\\.tar$\\|"
 	  "\\.dvi$\\|\\.ps$\\|\\.elc$\\|TAGS$\\|\\.gif$\\|"
-	  "\\.EXE\\(;[0-9]+\\)?$\\|\\.[zZ]-part-..$\\|\\.gz$")
+	  "\\.EXE\\(;[0-9]+\\)?$\\|\\.[zZ]-part-..$\\|\\.gz$\\|"
+	  "\\.taz$\\|\\.tgz$")
   "*If a file matches this regexp then it is transferred in binary mode.")
 
 (defvar ange-ftp-gateway-host nil
@@ -856,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.35 $")
+(defconst ange-ftp-version "$Revision: 1.36 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
