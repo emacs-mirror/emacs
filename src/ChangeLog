@@ -1,3 +1,7 @@
+2000-11-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (lface_from_face_name): Function comment fix.
+
 2000-11-24  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (display_menu_bar, display_mode_line): Change the way we

@@ -1,5 +1,8 @@
 2000-11-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (face-set-after-frame-default): Let face attributes
+	specified for new frames override frame parameters.
+
 	* startup.el (command-line): Fix computation of the source file
 	for user-init-file when user-init-file is a compiled file.
 
