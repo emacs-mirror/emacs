@@ -1,3 +1,8 @@
+2001-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
+	OVERLAPS_P.
+
 2001-11-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (message_dolog): Remove unused variables `gcpro2',
