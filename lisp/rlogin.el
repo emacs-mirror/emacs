@@ -6,6 +6,8 @@
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Keywords: unix, comm
 
+;; $Id: rlogin.el,v 1.39 1997/05/05 01:00:35 rms Exp $
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -22,8 +24,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
-;; $Id: rlogin.el,v 1.38 1997/04/15 10:39:07 friedman Exp rms $
 
 ;;; Commentary:
 
@@ -364,5 +364,7 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
   (if rlogin-directory-tracking-mode
       (comint-dynamic-complete)
     (insert "\C-i")))
+
+(provide 'rlogin)
 
 ;;; rlogin.el ends here
