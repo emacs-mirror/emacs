@@ -38,10 +38,10 @@ char *
 tparam (string, outstring, len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
      char *string;
      char *outstring;
-     int arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9;
+     int len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9;
 {
   char *temp;
-  extern char *tparm();
+  extern char *tparm P_((const char *, ...));
 
   temp = tparm (string, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
   if (outstring == 0)
