@@ -1795,6 +1795,12 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   if (! cut_buffers_initialized) initialize_cut_buffers (display, window);
 
   BLOCK_INPUT;
+
+  /* Don't mess up with an empty value.  */
+  if (!bytes_remaining)
+    XChangeProperty (display, window, buffer_atom, XA_STRING, 8,
+		     PropModeReplace, data, 0);
+
   while (bytes_remaining)
     {
       int chunk = (bytes_remaining < max_bytes
