@@ -138,7 +138,11 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SYS_SOUNDCARD_H
 #undef HAVE_SOUNDCARD_H
 
-/* Define HAVE_SOUND if we have sound support.  */
+/* Define HAVE_SOUND if we have sound support.  We know it works
+   and compiles only on the specified platforms.   For others,
+   it probably doesn't make sense to try.  */
+
+#if defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
 #ifdef HAVE_MACHINE_SOUNDCARD_H
 #define HAVE_SOUND 1
 #endif
@@ -148,6 +152,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_SOUNDCARD_H
 #define HAVE_SOUND 1
 #endif
+#endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
 /* Some things figured out by the configure script, grouped as they are in
    configure.in.  */
