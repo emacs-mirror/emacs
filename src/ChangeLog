@@ -1,5 +1,8 @@
 2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xterm.h (XSync): If USE_GTK, define XSync as process_all and then
+	XSync.
+
 	* emacs.c (my_heap_start, heap_bss_diff, MAX_HEAP_BSS_DIFF):
 	New variables and constant.
 	(main): Calculate heap_bss_diff.  If we are dumping and the
