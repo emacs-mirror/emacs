@@ -553,7 +553,7 @@ emacs: temacs ${etc}DOC ${lisp}
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 
-${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp} SOME_MACHINE_OBJECTS
+${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${obj} SOME_MACHINE_OBJECTS
 	  ${lispdir}version.el > ${etc}DOC
