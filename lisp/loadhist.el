@@ -40,8 +40,12 @@ which is cleared out before dumping to make Emacs smaller.")
   "Return the input source from which SYM was loaded.
 This is a file name, or nil if the source was a buffer with no associated file."
   (unless load-history-loaded
-    (load (expand-file-name (format "fns-%s.el" emacs-version)
-			    exec-directory))
+    (load (expand-file-name
+	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
+	   (convert-standard-filename (format "fns-%s.el" emacs-version))
+	   exec-directory)
+	  ;; The file name fns-%s.el already has a .el extension.
+	  nil nil t)
     (setq load-history-loaded t))
   (catch 'foundit
     (mapcar
