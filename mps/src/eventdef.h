@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.12) $
+ * $HopeName: MMsrc!eventdef.h(trunk.13) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -85,7 +85,9 @@ RELATION(SegSetGrey                      , 0x001f, TRUE, Seg, PPU)
 RELATION(TraceFlipBegin                  , 0x0020, TRUE, Trace, PP)
 RELATION(TraceFlipEnd                    , 0x0021, TRUE, Trace, PP)
 RELATION(TraceReclaim                    , 0x0022, TRUE, Seg, P)
+#if 0 /* not in use */
 RELATION(TraceScan                       , 0x0023, TRUE, Seg, UUPPP)
+#endif
 RELATION(TraceAccess                     , 0x0024, TRUE, Seg, PPU)
 /* TracePoll's kind isn't really Trace, but then it isn't Seg either */
 RELATION(TracePoll                       , 0x0025, TRUE, Trace, PP)
@@ -117,3 +119,6 @@ RELATION(MV2Finish                       , 0x0038, TRUE, Pool, P)
 RELATION(MV2BufferFill                   , 0x0039, TRUE, Seg, PPWAW)
 RELATION(MV2BufferEmpty                  , 0x003A, TRUE, Seg, PPW)
 RELATION(SegAllocFail                    , 0x003B, TRUE, Seg, PWP)
+RELATION(TraceScanSeg                    , 0x003C, TRUE, Seg, UUPP)
+/* TraceScanSingleRef is not really a seg level event */
+RELATION(TraceScanSingleRef              , 0x003D, TRUE, Seg, UUPA)
