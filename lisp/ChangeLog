@@ -1,3 +1,14 @@
+2000-01-29  Dave Love  <fx@gnu.org>
+
+	* facemenu.el: Purecopy various strings.
+
+	* timezone.el (timezone-fix-time): Window against 69 for two-digit
+	years.  Deal with three-digit years.
+
+	* help.el (help-xref-symbol-regexp, help-xref-info-regexp): Use
+	defconst, purecopy.
+	(help-back-label): Purecopy it.
+
 2000-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* iswitchb.el (iswitchb-use-frame-buffer-list): New configuration
