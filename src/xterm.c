@@ -5601,6 +5601,8 @@ x_term_init (display_name, xrm_option, resource_name)
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
 
+  BLOCK_INPUT;
+
   if (!x_initialized)
     {
       x_initialize ();
@@ -5643,7 +5645,10 @@ x_term_init (display_name, xrm_option, resource_name)
 
   /* Detect failure.  */
   if (dpy == 0)
-    return 0;
+    {
+      UNBLOCK_INPUT;
+      return 0;
+    }
 
   /* We have definitely succeeded.  Record the new connection.  */
 
@@ -5816,6 +5821,8 @@ x_term_init (display_name, xrm_option, resource_name)
   if (interrupt_input)
     init_sigio (connection);
 #endif /* ! defined (SIGIO) */
+
+  UNBLOCK_INPUT;
 
   return dpyinfo;
 }
