@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion
 
-;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2001, 2002 Free Sofware Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -703,7 +703,7 @@ If PREDICATE is non-nil, it will also be used to refine the match
 \(files for which the PREDICATE returns nil will be excluded).
 If PATH is non-nil, it will be used for completion instead of
 consulting the last argument."
-  (let* ((name pcomplete-stub)
+  (let* ((name (substitute-env-vars pcomplete-stub))
 	 (default-directory (expand-file-name
 			     (or (file-name-directory name)
 				 default-directory)))
