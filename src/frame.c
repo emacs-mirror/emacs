@@ -2508,7 +2508,9 @@ frames; once the frame is created, it sticks with its assigned\n\
 minibuffer, no matter what this variable is set to.  This means that\n\
 this variable doesn't necessarily say anything meaningful about the\n\
 current set of frames, or where the minibuffer is currently being\n\
-displayed.");
+displayed.\n\
+\n\
+This variable is local to the current terminal and cannot be buffer-local.");
 
   staticpro (&Vframe_list);
 
