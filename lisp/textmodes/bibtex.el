@@ -2398,7 +2398,9 @@ The generation algorithm works as follows:
                (not
                 (eq (buffer-modified-tick)
                     bibtex-buffer-last-parsed-tick)))
-              (if (bibtex-parse-keys nil t t)
+	      ;; Output no progress messages in bibtex-parse-keys
+	      ;; because when in y-or-n-p that can hide the question.
+              (if (bibtex-parse-keys nil nil t)
                   ;; successful operation --> remove buffer from list
                   (setq buffers (cdr buffers)))
             ;; buffer is no BibTeX buffer or needs no parsing
