@@ -1833,7 +1833,7 @@ news-reply-mode-hook or mail-mode-hook to the following lambda expression:
 	    (let ((end (save-excursion
 			 (if (re-search-forward cite-regexp-end limit 'end)
 			     (match-beginning 0)
-			   limit))))
+			   (marker-position limit)))))
 	      (ispell-region (point) end)
 	      (goto-char end)))))
     (set-marker limit nil))))
