@@ -33,16 +33,17 @@
   (setq primary-language "Chinese-GB")
 
   (setq coding-category-iso-8-2 'chinese-iso-8bit)
-  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
-     coding-category-iso-else
+     coding-category-iso-7-else
      coding-category-iso-8-2
      coding-category-big5
      coding-category-iso-8-1
-     coding-category-emacs-mule))
+     coding-category-emacs-mule
+     coding-category-iso-8-else))
 
   (setq-default buffer-file-coding-system 'chinese-iso-8bit)
   (set-terminal-coding-system-internal 'chinese-iso-8bit)
@@ -50,7 +51,7 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method '("Chinese-GB" . "chinese-py")))
+  (setq default-input-method  "chinese-py-punct"))
 
 ;;;###autoload
 (defun setup-chinese-big5-environment ()
@@ -61,15 +62,16 @@
   (setq primary-language "Chinese-BIG5")
 
   (setq coding-category-iso-8-2 'chinese-big5)
-  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
-     coding-category-iso-else
+     coding-category-iso-7-else
      coding-category-big5
      coding-category-iso-8-2
-     coding-category-emacs-mule))
+     coding-category-emacs-mule
+     coding-category-iso-8-else))
 
   (setq-default buffer-file-coding-system 'chinese-big5)
   (set-terminal-coding-system-internal 'chinese-big5)
@@ -77,7 +79,7 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chienese-iso-7bit)
 
-  (setq default-input-method '("Chinese-BIG5" . "chinese-b5-py")))
+  (setq default-input-method "chinese-py-punct-b5"))
 
 ;;;###autoload
 (defun setup-chinese-cns-environment ()
@@ -87,15 +89,16 @@
 
   (setq primary-language "Chinese-CNS")
 
-  (setq coding-category-iso-else 'chinese-iso-7bit)
+  (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
   (setq coding-category-iso-8-2 'chinese-big5)
 
   (set-coding-priority
    '(coding-category-iso-7
-     coding-category-iso-else
+     coding-category-iso-7-else
      coding-category-iso-8-2
-     coding-category-big5))
+     coding-category-big5
+     coding-category-iso-7-else))
 
   (setq-default buffer-file-coding-system 'chinese-iso-7bit)
   (set-terminal-coding-system-internal 'chinese-iso-7bit)
@@ -103,7 +106,7 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method '("Chinese-CNS" . "quail-quick-cns")))
+  (setq default-input-method "quail-quick-cns"))
 
 ;; Hz/ZW encoding stuffs
 
