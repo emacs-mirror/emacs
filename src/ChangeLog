@@ -1,5 +1,8 @@
 2001-08-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (access_keymap): Return the cdr of the binding of
+	a generic character instead of its definition (KEY . BINDING).
+
 	* fileio.c (Finsert_file_contents): Set coding's dest_multibyte
 	to 0 also in the REPLACE case.
 
