@@ -269,24 +269,29 @@ format style.")
 
 (let ((comment-chars "c!*d")		; `d' for `debugging' comments
       (fortran-type-types
-;       (eval-when-compile
-;         (regexp-opt
-;          (let ((simple-types '("character" "byte" "integer" "logical"
-;                                "none" "real" "complex"
-;                                "double[ \t]*precision" "double[ \t]*complex"))
-;                (structured-types '("structure" "union" "map"))
-;                (other-types '("record" "dimension" "parameter" "common" "save"
-;                               "external" "intrinsic" "data" "equivalence")))
-;            (append
-;             (mapcar (lambda (x) (concat "implicit[ \t]*" x)) simple-types)
-;             simple-types
-;             (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
-;             structured-types
-;             other-types))))
-       ;; Fixme:
-       ;; Derived from the above, changing the escaped `[ \t]*'s back.
-       ;; Should be done with a `replace all in string' function at compile time...
-       "byte\\|c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|d\\(ata\\|imension\\|ouble[ \t]*\\(complex\\|precision\\)\\)\\|e\\(nd[ \t]*\\(map\\|structure\\|union\\)\\|quivalence\\|xternal\\)\\|i\\(mplicit[ \t]*\\(byte\\|c\\(haracter\\|omplex\\)\\|double[ \t]*\\(complex\\|precision\\)\\|integer\\|logical\\|none\\|real\\)\\|nt\\(eger\\|rinsic\\)\\)\\|logical\\|map\\|none\\|parameter\\|re\\(al\\|cord\\)\\|s\\(ave\\|tructure\\)\\|union")
+       (eval-when-compile
+	 (let ((re (regexp-opt
+		    (let ((simple-types
+			   '("character" "byte" "integer" "logical"
+			     "none" "real" "complex"
+			     "double precision" "double complex"))
+			  (structured-types '("structure" "union" "map"))
+			  (other-types '("record" "dimension"
+					 "parameter" "common" "save"
+					 "external" "intrinsic" "data"
+					 "equivalence")))
+		      (append
+		       (mapcar (lambda (x) (concat "implicit " x))
+			       simple-types)
+		       simple-types
+		       (mapcar (lambda (x) (concat "end " x))
+			       structured-types)
+		       structured-types
+		       other-types)))))
+	   ;; In the optimized regexp above, replace spaces by regexp
+	   ;; for optional whitespace, which regexp-opt would have
+	   ;; escaped.
+	   (mapconcat #'identity (split-string re) "[ \t]*"))))
       (fortran-keywords
        (eval-when-compile
          (regexp-opt '("continue" "format" "end" "enddo" "if" "then"
@@ -351,12 +356,14 @@ format style.")
                 ;; Fontify the type specifier.
                 '(1 font-lock-type-face)
                 ;; Fontify each declaration item (or just the /.../ block name).
-                '(font-lock-match-c-style-declaration-item-and-skip-to-next
+                `(font-lock-match-c-style-declaration-item-and-skip-to-next
                   ;; Start after any *(...) expression.
-                  (and (match-beginning 15)
-		       (condition-case nil
-			   (forward-sexp)
-			 (error nil)))
+                  (condition-case nil
+		      (and (and (match-beginning ,(+ 2 (regexp-opt-depth
+							fortran-type-types)))
+				(forward-sexp))
+			   (forward-sexp))
+		    (error nil))
                   ;; No need to clean up.
                   nil
                   ;; Fontify as a variable name, functions are
@@ -1026,10 +1033,10 @@ non-comment Fortran statement in the file, and nil otherwise."
   "Make text outside the current subprogram invisible.
 The subprogram visible is the one that contains or follows point."
   (interactive)
-        (save-excursion
-          (mark-fortran-subprogram)
-          (narrow-to-region (region-beginning)
-                            (region-end))))
+  (save-excursion
+    (let ((mark-active t))
+      (mark-fortran-subprogram)
+      (narrow-to-region (point) (mark)))))
 
 (defmacro fortran-with-subprogram-narrowing (&rest forms)
   "Execute FORMS with buffer temporarily narrowed to current subprogram.
@@ -1337,9 +1344,10 @@ An abbrev before point is expanded if variable `abbrev-mode' is non-nil."
   "Properly indent the Fortran subprogram which contains point."
   (interactive)
   (save-excursion
-    (mark-fortran-subprogram)
-    (message "Indenting subprogram...")
-    (indent-region (point) (mark) nil))
+    (let ((mark-active t))
+      (mark-fortran-subprogram)
+      (message "Indenting subprogram...")
+      (indent-region (point) (mark) nil)))
   (message "Indenting subprogram...done."))
 
 (defun fortran-calculate-indent ()
