@@ -3690,6 +3690,9 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 					   'set-variable-value-history)))))
 		 (list var val current-prefix-arg)))
 
+  (and (custom-variable-p var)
+       (not (get var 'custom-type))
+       (custom-load-symbol var))
   (let ((type (get var 'custom-type)))
     (when type
       ;; Match with custom type.
