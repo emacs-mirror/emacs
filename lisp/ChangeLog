@@ -1,3 +1,12 @@
+2004-11-03  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (xml-based-modes): Delete var.
+	(magic-mode-alist): New more general var.
+	(set-auto-mode): Use it.
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Preserve point even
+	when clicking from another window.
+
 2004-11-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc-cvs.el (vc-cvs-local-month-numbers): Delete var.
