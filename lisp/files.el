@@ -830,8 +830,11 @@ run `normal-mode' explicitly."
 				  ("\\.ml\\'" . lisp-mode)))
   "\
 Alist of filename patterns vs corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION).
-Visiting a file whose name matches REGEXP causes FUNCTION to be called.")
+Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION).
+Visiting a file whose name matches REGEXP causes FUNCTION to be called.
+If the element has the form (REGEXP FUNCTION), then after calling
+FUNCTION, we delete the suffix that matched REGEXP and search the list
+again for another match.")
 
 (defconst inhibit-local-variables-regexps '("\\.tar$")
   "List of regexps; if one matches a file name, don't look for local vars.")
@@ -843,7 +846,7 @@ Visiting a file whose name matches REGEXP causes FUNCTION to be called.")
 (defun set-auto-mode ()
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text, or
-compares the filename against the entries in auto-mode-alist.  It does
+compares the filename against the entries in `auto-mode-alist'.  It does
 not check for the \"mode:\" local variable in the Local Variables
 section of the file; for that, use `hack-local-variables'.
 
@@ -901,18 +904,28 @@ If `enable-local-variables' is nil, this function does not check for a
 	     (setq done t)))
       ;; If we didn't find a mode from a -*- line, try using the file name.
       (if (and (not done) buffer-file-name)
-	  (let ((alist auto-mode-alist)
-		(name buffer-file-name)
-		mode)
-	    (let ((case-fold-search (eq system-type 'vax-vms)))
-	      ;; Remove backup-suffixes from file name.
-	      (setq name (file-name-sans-versions name))
-	      ;; Find first matching alist entry.
-	      (while (and (not mode) alist)
-		(if (string-match (car (car alist)) name)
-		    (setq mode (cdr (car alist))))
-		(setq alist (cdr alist))))
-	    (if mode (funcall mode)))))))
+	  (let ((name buffer-file-name)
+		(case-fold-search (eq system-type 'vax-vms))
+		(keep-going t))
+	    ;; Remove backup-suffixes from file name.
+	    (setq name (file-name-sans-versions name))
+	    (while keep-going
+	      (setq keep-going nil)
+	      (let ((alist auto-mode-alist)
+		    (mode nil))
+		;; Find first matching alist entry.
+		(while (and (not mode) alist)
+		  (if (string-match (car (car alist)) name)
+		      (if (and (consp (cdr (car alist)))
+			       (nth 2 (car alist)))
+			  (progn
+			    (setq mode (car (cdr (car alist)))
+				  name (substring name 0 (match-beginning 0))
+				  keep-going t))
+			(setq mode (cdr (car alist))
+			      keep-going nil)))
+		  (setq alist (cdr alist)))
+		(if mode (funcall mode))))))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
