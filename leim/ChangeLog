@@ -1,3 +1,8 @@
+2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* quail/welsh.el: Avoid an error message due to a commented-out
+	input method.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* quail/rfc1345.el: Get rid of the explicit ^Z character.

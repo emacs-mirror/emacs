@@ -1,3 +1,9 @@
+2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/quail.el (quail-update-leim-list-file): Print the
+	offending file name if some of its quail-define-package forms is
+	broken.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Return the value
