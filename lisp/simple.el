@@ -795,11 +795,17 @@ If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
 If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in the current buffer.
 In either case, the output is inserted after point (leaving mark after it)."
-  (interactive (list (region-beginning) (region-end)
-		     (read-from-minibuffer "Shell command on region: "
-					   nil nil nil 'shell-command-history)
-		     current-prefix-arg
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (let ((string
+		      ;; Do this before calling region-beginning
+		      ;; and region-end, in case subprocess output
+		      ;; relocates them while we are in the minibuffer.
+		      (read-from-minibuffer "Shell command on region: "
+					    nil nil nil
+					    'shell-command-history)))
+		 (list (region-beginning) (region-end)
+		       string
+		       current-prefix-arg
+		       (prefix-numeric-value current-prefix-arg))))
   (if (and output-buffer
 	   (not (or (bufferp output-buffer) (stringp output-buffer))))
       ;; Replace specified region with output from command.
