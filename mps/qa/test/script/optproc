@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.11) $
+# $HopeName: MMQA_harness!script:optproc(trunk.12) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -10,6 +10,7 @@
 
 1;
 
+require "version";
 require "options";
 
 sub options {
@@ -168,7 +169,6 @@ sub explainoptions {
 
  $~ = "OPTLIST";
 
- print "\n";
  $optname = "OPTION";
  $optcode = "CODE";
  $optcur  = "CURRENT";
@@ -190,7 +190,13 @@ sub explainoptions {
 }
 
 sub displayalloptions {
+ print"------------------------------------------------------------------------
+ MMQA harness version $HARNESS_VERSION
+
+";
  &explainoptions(values %qa_options, values %qa_flags);
+ print"------------------------------------------------------------------------
+";
 }
 
 format OPTLIST =
