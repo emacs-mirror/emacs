@@ -624,7 +624,8 @@ There should be no more than seven characters after the final `/'")
 	  (or nomessage
 	      (message "Loading %s..." file))
 
-	  (load load-file noerror t t)
+	  (let ((load-force-doc-strings t))
+	    (load load-file noerror t t))
 
 	  (or nomessage
 	      (message "Loading %s...done." file)))
