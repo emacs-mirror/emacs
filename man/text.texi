@@ -852,10 +852,12 @@ paragraph-indent-minor-mode} to enter an equivalent minor mode, for
 instance during mail composition.
 
 @kindex M-TAB @r{(Text mode)}
-  Text mode, and all the modes based on it, define @kbd{M-@key{TAB}} as
-the command @code{ispell-complete-word}, which performs completion of
-the partial word in the buffer before point, using the spelling
-dictionary as the space of possible words.  @xref{Spelling}.
+  Text mode, and all the modes based on it, define @kbd{M-@key{TAB}}
+as the command @code{ispell-complete-word}, which performs completion
+of the partial word in the buffer before point, using the spelling
+dictionary as the space of possible words.  @xref{Spelling}.  If your
+window manager defines @kbd{M-@key{TAB}} to switch windows, you can
+type this Emacs command as @kbd{@key{ESC} @key{TAB}}.
 
 @vindex text-mode-hook
   Entering Text mode runs the hook @code{text-mode-hook}.  Other major
