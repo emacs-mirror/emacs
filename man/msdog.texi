@@ -140,6 +140,26 @@ faces are available and what they look like.
 how Emacs displays glyphs and characters which aren't supported by the
 native font built into the DOS display.
 
+@cindex cursor shape on MS-DOS
+  When Emacs starts, it changes the cursor shape to a solid box.  This
+is for compatibility with the Unix version, where the box cursor is the
+default.  This default shape can be changed to a bar by specifying the
+@code{cursor-type} parameter in the variable @code{default-frame-alist}
+(@pxref{Creating Frames}).  The MS-DOS terminal doesn't support a
+vertical-bar cursor, so the bar cursor is horizontal, and the its
+@code{@var{width}} parameter, if specified by the frame parameters,
+actually determines its height.  As an extension, the bar cursor
+specification can include the starting scan line of the cursor as well
+as its width, like this:
+
+@example
+ '(cursor-type bar @var{width} . @var{start})
+@end example
+
+@noindent
+In addition, if the @var{width} parameter is negative, the cursor bar
+begins at the top of the character cell.
+
 @cindex frames on MS-DOS
   Multiple frames (@pxref{Frames}) are supported on MS-DOS, but they all
 overlap, so you only see a single frame at any given moment.  That
