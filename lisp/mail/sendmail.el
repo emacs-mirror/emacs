@@ -773,6 +773,8 @@ See also the function `select-message-coding-system'.")
 		  0))
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
+	(coding (and (local-variable-p 'buffer-file-coding-system)
+		     buffer-file-coding-system))
 	resend-to-addresses
 	delimline
 	fcc-was-found
@@ -782,6 +784,7 @@ See also the function `select-message-coding-system'.")
 	  (set-buffer tembuf)
 	  (erase-buffer)
 	  (insert-buffer-substring mailbuf)
+	  (set-buffer-file-coding-system coding)
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
