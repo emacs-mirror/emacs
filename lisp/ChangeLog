@@ -1,3 +1,9 @@
+1999-11-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* complete.el (PC-do-completion): Use minibuffer-prompt-end to
+	find the start of the text.  Use field-string to read the user
+	input.
+
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (make-face-bold, make-face-unbold, make-face-italic)
