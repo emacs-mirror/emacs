@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.22 1995/06/15 20:42:24 kwzh Exp rms $
+;; $Id: makefile.el,v 1.23 1995/06/24 07:34:27 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -205,10 +205,8 @@ not be enclosed in { } or ( ).")
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
 
-;; TABs are important in Makefiles.  So highlight them in font-lock.
-;; Thanks to Job Ganzevoort <Job.Ganzevoort@cwi.nl> for this.
-(defvar makefile-tab-face 'makefile-tab-face
-  "Face to use for highlighting leading tabs in font-lock-mode.")
+(defvar makefile-space-face 'makefile-space-face
+  "Face to use for highlighting leading spaces in Font-Lock mode.")
 
 (defconst makefile-font-lock-keywords
   (list
@@ -222,9 +220,11 @@ not be enclosed in { } or ( ).")
    ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
-   ;; Highlight leading tab.  Maybe highlighting all leading TABs
-   ;; would be nice?  I don't know.
-   '("^\t" . makefile-tab-face)))
+   ;; Highlight leading spaces, since they are hard to see and
+   ;; can make a makefile fail to function.
+   ;; Don't highlight leading tabs, because they are normal
+   ;; and people assume that 8 cols of whitespace means a tab.
+   '("^ " . makefile-space-face)))
 
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
@@ -487,7 +487,7 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
-  (makefile-define-tab-face)
+  (makefile-define-space-face)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(makefile-font-lock-keywords))
 
@@ -1361,9 +1361,9 @@ Uses `makefile-use-curly-braces-for-macros-p'."
     (imenu-progress-message stupid 100)
     (nreverse alist)))
 
-(defun makefile-define-tab-face ()
-  (make-face 'makefile-tab-face)
-  (or (face-differs-from-default-p 'makefile-tab-face)
+(defun makefile-define-space-face ()
+  (make-face 'makefile-space-face)
+  (or (face-differs-from-default-p 'makefile-space-face)
       (let* ((light-bg (eq font-lock-background-mode 'light))
 	     (bg-color
 	      (cond ((memq font-lock-display-type '(mono monochrome))
@@ -1375,6 +1375,6 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 		     "hotpink")
 		    (t			; Dark color background.
 		     "hotpink"))))
-	(set-face-background 'makefile-tab-face bg-color))))
+	(set-face-background 'makefile-space-face bg-color))))
 
 ;;; makefile.el ends here
