@@ -1,3 +1,8 @@
+2001-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Use "rm -f" instead of "del /f", as the latter
+	is not supported by Windows 9X's COMMAND.COM.
+
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.bat: Make sure redirection is preceeded by a blank, to
