@@ -229,7 +229,8 @@ key is pressed."
   :group 'type-break)
 
 (defcustom type-break-file-name (convert-standard-filename "~/.type-break")
-  "*Name of file used to save state across sessions."
+  "*Name of file used to save state across sessions.
+If this is nil, no data will be saved across sessions."
   :type 'file
   :group 'type-break)
 
@@ -402,7 +403,9 @@ problems."
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
 
-      (setq type-break-time-last-break (type-break-get-previous-time))
+      (setq type-break-time-last-break
+            (or (type-break-get-previous-time)
+                (current-time)))
 
       ;; schedule according to break time from session file
       (type-break-schedule
@@ -434,11 +437,12 @@ problems."
       (type-break-mode-line-countdown-or-break nil)
       (type-break-cancel-schedule)
       (do-auto-save)
-      (with-current-buffer (find-file-noselect type-break-file-name
-                                               'nowarn)
-	(set-buffer-modified-p nil)
-        (unlock-buffer)
-        (kill-this-buffer))
+      (when type-break-file-name
+	(with-current-buffer (find-file-noselect type-break-file-name
+						 'nowarn)
+	  (set-buffer-modified-p nil)
+	  (unlock-buffer)
+	  (kill-this-buffer)))
       (and (interactive-p)
            (message "Type Break mode is disabled")))))
   type-break-mode)
@@ -498,7 +502,8 @@ variable of the same name."
 
 (defun type-break-file-time (&optional time)
   "File break time in `type-break-file-name', unless the file is locked."
-  (if (not (stringp (file-locked-p type-break-file-name)))
+  (if (and type-break-file-name
+           (not (stringp (file-locked-p type-break-file-name))))
       (with-current-buffer (find-file-noselect type-break-file-name
                                                'nowarn)
         (let ((inhibit-read-only t))
@@ -509,7 +514,8 @@ variable of the same name."
 
 (defun type-break-file-keystroke-count ()
   "File keystroke count in `type-break-file-name', unless the file is locked."
-  (if (not (stringp (file-locked-p type-break-file-name)))
+  (if (and type-break-file-name
+           (not (stringp (file-locked-p type-break-file-name))))
       ;; Prevent deactivation of the mark in some other buffer.
       (let (deactivate-mark)
 	(with-current-buffer (find-file-noselect type-break-file-name
@@ -536,6 +542,8 @@ return TIME, else return nil."
 (defun type-break-choose-file ()
   "Return file to read from."
   (cond
+   ((not type-break-file-name)
+    nil)
    ((and (file-exists-p type-break-auto-save-file-name)
          (file-readable-p type-break-auto-save-file-name))
     type-break-auto-save-file-name)
