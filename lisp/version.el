@@ -57,7 +57,8 @@ to the system configuration; look at `system-configuration' instead."
 		   "GNU Emacs %s (%s%s%s) of %s on %s")
                  emacs-version
 		 system-configuration
-		 (cond ((featurep 'motif) ", Motif")
+		 (cond ((featurep 'motif) 
+			(concat ", " (substring motif-version-string 4)))
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
