@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.348 2003/02/04 12:12:09 lektu Exp $
+;; $Id: vc.el,v 1.349 2003/02/05 23:13:21 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -816,12 +816,6 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (if (not (vc-backend (buffer-file-name)))
 	  (error "File %s is not under version control" (buffer-file-name))))))
-
-(defvar vc-binary-assoc nil)
-(defvar vc-binary-suffixes
-  (if (memq system-type '(ms-dos windows-nt))
-      '(".exe" ".com" ".bat" ".cmd" ".btm" "")
-    '("")))
 
 (defun vc-process-filter (p s)
   "An alternative output filter for async process P.
