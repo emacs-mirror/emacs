@@ -2154,8 +2154,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 		 "Dired by date")
 		(t
 		 (concat "Dired " dired-actual-switches)))))
-  ;; update mode line:
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle between sort by date/name and refresh the dired buffer.
