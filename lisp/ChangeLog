@@ -1,3 +1,7 @@
+2004-08-27  Masatake YAMATO  <jet@gyve.org>
+
+	* calendar/time-date.el (time-to-seconds): Add autoload cookies.
+
 2004-08-25  John Paul Wallington  <jpw@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Distinguish between
