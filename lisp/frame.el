@@ -414,8 +414,8 @@ These supersede the values given in `default-frame-alist'."
   "Make a frame on display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (or (string-match "\\`[^:]+:[0-9]+\\(:[0-9]+\\)?\\'" display)
-      (error "Invalid display, not HOST:SERVER or HOST:SERVER:SCREEN"))
+  (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
+      (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
   (make-frame (cons (cons 'display display) parameters)))
 
 (defun make-frame-command ()
