@@ -223,7 +223,7 @@ Other chars following \"%s\" are interpreted as follows:\n"
 ;; not used.
 (defun te-escape-extended-command-unread ()
   (interactive)
-  (setq unread-command-events (list last-input-char))
+  (setq unread-command-events (listify-key-sequence (this-command-keys)))
   (te-escape-extended-command))
 
 (defun te-set-escape-char (c)
