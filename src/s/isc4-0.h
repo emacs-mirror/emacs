@@ -6,3 +6,4 @@
    to clear the "POSIX process" flag on an exec.  */
 #define EXTRA_INITIALIZE __setostype (0)
 
+#define LIBS_SYSTEM -linet
