@@ -2748,10 +2748,7 @@ see the documentation of `rmail-resend'."
 	  ;; The mail buffer is now current.
 	  (save-excursion
 	    ;; Insert after header separator--before signature if any.
-	    (goto-char (point-min))
-	    (search-forward-regexp
-	     (concat "^" (regexp-quote mail-header-separator) "$"))
-	    (forward-line 1)
+	    (goto-char (mail-text-start))
 	    (insert "------- Start of forwarded message -------\n")
 	    ;; Quote lines with `- ' if they start with `-'.
 	    (let ((beg (point)) end)
@@ -2787,7 +2784,6 @@ typically for purposes of moderating a list."
   (require 'mailalias)
   (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
-	(mail-header-separator "")
 	(case-fold-search nil)
 	(mailbuf (current-buffer)))
     (unwind-protect
@@ -2969,17 +2965,15 @@ specifying headers which should not be copied into the new message."
 		(indent-rigidly (point-min) (point-max) bounce-indent))
 	    (rmail-clear-headers rmail-retry-ignored-headers)
 	    (rmail-clear-headers "^sender:\\|^from:\\|^return-path:")
-	    (goto-char (point-min))
+	    (mail-send-delimit-header)
 	    (save-restriction
-	      (search-forward "\n\n")
-	      (forward-line -1)
-	      (narrow-to-region (point-min) (point))
+	      (narrow-to-region (point-min) (mail-header-end))
 	      (setq resending (mail-fetch-field "resent-to"))
 	      (if mail-self-blind
 		  (if resending
 		      (insert "Resent-Bcc: " (user-login-name) "\n")
 		    (insert "BCC: " (user-login-name) "\n"))))
-	    (insert mail-header-separator)
+	    (goto-char (point-min))
 	    (mail-position-on-field (if resending "Resent-To" "To") t)
 	    (set-buffer rmail-this-buffer)
 	    (rmail-beginning-of-message))))))
