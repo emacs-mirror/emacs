@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.15 2001/01/08 16:25:43 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.16 2001/01/09 14:53:56 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,8 @@
 ;;;
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (require 'vc))
 
 (defcustom vc-rcs-release nil
   "*The release number of your RCS installation, as a string.
@@ -69,6 +70,16 @@ These are passed to the checkin program by \\[vc-rcs-checkin]."
 (defcustom vc-rcs-checkout-switches nil
   "*A string or list of strings specifying extra switches for RCS checkout.
 These are passed to the checkout program by \\[vc-rcs-checkout]."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "21.1"
+  :group 'vc)
+
+(defcustom vc-rcs-diff-switches nil
+  "*A string or list of strings specifying extra switches for rcsdiff under VC."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -534,15 +545,11 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-diff (file &optional oldvers newvers)
   "Get a difference report using RCS between two versions of FILE."
   (if (not oldvers) (setq oldvers (vc-workfile-version file)))
-  ;; If we know that --brief is not supported, don't try it.
-  (let* ((diff-switches-list (if (listp diff-switches)
-				 diff-switches
-			       (list diff-switches)))
-	 (options (append (list "-q"
-				(concat "-r" oldvers)
-				(and newvers (concat "-r" newvers)))
-			  diff-switches-list)))
-    (apply 'vc-do-command t 1 "rcsdiff" file options)))
+  (apply 'vc-do-command t 1 "rcsdiff" file
+         (append (list "-q"
+                       (concat "-r" oldvers)
+                       (and newvers (concat "-r" newvers)))
+                 (vc-diff-switches-list rcs))))
 
 
 ;;;
