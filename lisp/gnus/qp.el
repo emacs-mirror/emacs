@@ -1,7 +1,10 @@
 ;;; qp.el --- Quoted-Printable functions
+
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Keywords: mail, extensions
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -21,61 +24,51 @@
 
 ;;; Commentary:
 
+;; Functions for encoding and decoding quoted-printable text as
+;; defined in RFC 2045.
+
 ;;; Code:
 
-(require 'mm-util)
-
-(defvar quoted-printable-encoding-characters
-  (mapcar 'identity "0123456789ABCDEFabcdef"))
-
 (defun quoted-printable-decode-region (from to &optional charset)
-  "Decode quoted-printable in the region between FROM and TO.
-If CHARSET is non-nil, decode the region with charset."
+  "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
+If CHARSET is non-nil, decode bytes into characters with that charset."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (let (start)
+      (let ((nonascii-insert-offset nonascii-insert-offset)
+	    ;; RFC 2045:  An "=" followed by two hexadecimal digits,
+	    ;; one or both of which are lowercase letters in "abcdef",
+	    ;; is formally illegal. A robust implementation might
+	    ;; choose to recognize them as the corresponding uppercase
+	    ;; letters.
+	    (case-fold-search t))
+	(if charset
+	    (setq nonascii-insert-offset (- (make-char charset) 128)))
 	(narrow-to-region from to)
 	(goto-char from)
-	(while (not (eobp))
-	  (cond 
-	   ((eq (char-after) ?=)
-	    (delete-char 1)
-	    (unless start
-	      (setq start (point)))
-	    (cond
-	     ;; End of the line.
-	     ((eq (char-after) ?\n)
-	      (delete-char 1))
-	     ;; Encoded character.
-	     ((and
-	       (memq (char-after) quoted-printable-encoding-characters)
-	       (memq (char-after (1+ (point)))
-		     quoted-printable-encoding-characters))
-	      (insert
-	       (string-to-number
-		(buffer-substring (point) (+ 2 (point)))
-		16))
-	      (delete-char 2))
-	     ;; Quoted equal sign.
-	     ((eq (char-after) ?=)
-	      (forward-char 1))
-	     ;; End of buffer.
-	     ((eobp))
-	     ;; Invalid.
-	     (t
-	      (message "Malformed MIME quoted-printable message"))))
-	   ((and charset start (not (eq (mm-charset-after) 'ascii)))
-	    (mm-decode-coding-region start (point) charset)
-	    (setq start nil)
-	    (forward-char 1))
-	   (t
-	    (forward-char 1))))
-	(if (and charset start)
-	    (mm-decode-coding-region start (point) charset))))))
+	(while (and (skip-chars-forward "^=" to)
+		    (not (eobp)))
+	  (cond ((eq (char-after (1+ (point))) ?\n)
+		 (delete-char 2))
+		((looking-at "=[0-9A-F][0-9A-F]")
+		 (let ((byte (string-to-int (buffer-substring (1+ (point))
+							      (+ 3 (point)))
+					    16)))
+		   (if (and charset (fboundp 'unibyte-char-to-multibyte))
+		       (insert (unibyte-char-to-multibyte byte))
+		     (insert byte))
+		   (delete-region (point) (+ 3 (point)))
+		   (unless (eq byte ?=)
+		     (backward-char))))
+		((eq (char-after (1+ (point))) ?=)
+		 (forward-char)
+		 (delete-char 1))
+		(t
+		 (message "Malformed MIME quoted-printable message")
+		 (forward-char))))))))
 
 (defun quoted-printable-decode-string (string &optional charset)
-  "Decode the quoted-printable-encoded STRING and return the results.
+  "Decode the quoted-printable encoded STRING and return the result.
 If CHARSET is non-nil, decode the region with charset."
   (with-temp-buffer
     (insert string)
@@ -83,26 +76,33 @@ If CHARSET is non-nil, decode the region with charset."
     (buffer-string)))
 
 (defun quoted-printable-encode-region (from to &optional fold class)
-  "QP-encode the region between FROM and TO.
+  "Quoted-printable encode the region between FROM and TO per RFC 2045.
 
-If FOLD fold long lines.  If CLASS, translate the characters 
-matched by that regexp.
+If FOLD, fold long lines at 76 characters (as required by the RFC).
+If CLASS is non-nil, translate the characters matched by that class in
+the form expected by `skip-chars-forward'.
 
-If `mm-use-ultra-safe-encoding' is set, fold unconditionally and
+If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
+  (if (delq 'eight-bit-graphic
+	    (delq 'eight-bit-control
+		  (delq 'ascii (mm-find-charset-region from to))))
+      (error "Multibyte character in QP encoding region"))
+  (unless class
+    (setq class "^\000-\007\013\015-\037\200-\377="))
+  (if (fboundp 'string-as-multibyte)
+      (setq class (string-as-multibyte class)))
   (save-excursion
     (save-restriction
       (narrow-to-region from to)
-      ;;      (mm-encode-body)
       ;; Encode all the non-ascii and control characters.
       (goto-char (point-min))
-      (while (and (skip-chars-forward
-		   (or class "^\000-\007\013\015-\037\200-\377="))
+      (while (and (skip-chars-forward class)
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     (upcase (format "=%02x" (char-after)))
+	     (format "=%02x" (upcase (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
       (goto-char (point-min))
@@ -111,36 +111,39 @@ encode lines starting with \"From\"."
 	(while (not (eolp))
 	  (insert
 	   (prog1
-	       (upcase (format "=%02x" (char-after)))
+	       (format "=%02x" (upcase (char-after)))
 	     (delete-char 1)))))
-      (when (or fold mm-use-ultra-safe-encoding)
-	;; Fold long lines.
-	(let ((tab-width 1)) ;; HTAB is one character.
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    ;; In ultra-safe mode, encode "From " at the beginning of a
-	    ;; line.
-	    (when mm-use-ultra-safe-encoding
-	      (beginning-of-line)
-	      (when (looking-at "From ")
-		(replace-match "From=20" nil t)))
-	    (end-of-line)
-	    (while (> (current-column) 76) ;; tab-width must be 1.
-	      (beginning-of-line)
-	      (forward-char 75);; 75 chars plus an "="
-	      (search-backward "=" (- (point) 2) t)
-	      (insert "=\n")
-	      (end-of-line))
-	    (unless (eobp)
-	      (forward-line))))))))
+      (let ((mm-use-ultra-safe-encoding
+	     (and (boundp 'mm-use-ultra-safe-encoding)
+		  mm-use-ultra-safe-encoding)))
+	(when (or fold mm-use-ultra-safe-encoding)
+	  ;; Fold long lines.
+	  (let ((tab-width 1))		; HTAB is one character.
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      ;; In ultra-safe mode, encode "From " at the beginning
+	      ;; of a line.
+	      (when mm-use-ultra-safe-encoding
+		(beginning-of-line)
+		(when (looking-at "From ")
+		  (replace-match "From=20" nil t)))
+	      (end-of-line)
+	      (while (> (current-column) 76) ; tab-width must be 1.
+		(beginning-of-line)
+		(forward-char 75)	; 75 chars plus an "="
+		(search-backward "=" (- (point) 2) t)
+		(insert "=\n")
+		(end-of-line))
+	      (unless (eobp)
+		(forward-line)))))))))
 
 (defun quoted-printable-encode-string (string)
-  "QP-encode STRING and return the results."
-  (mm-with-unibyte-buffer
+  "Encode the STRING as quoted-printable and return the result."
+  (with-temp-buffer
     (insert string)
     (quoted-printable-encode-region (point-min) (point-max))
     (buffer-string)))
 
 (provide 'qp)
 
-;; qp.el ends here
+;;; qp.el ends here
