@@ -962,7 +962,7 @@ from Emacs 19.34 distribution:
 
 * Unicode characters are not unified with other Mule charsets.
 
-As of v21.1, Emacs charsets are still not unified.  This means that
+As of v21.2, Emacs charsets are still not unified.  This means that
 characters which belong to charsets such as Latin-2, Greek, Hebrew,
 etc. and the same characters in the `mule-unicode-*' charsets are
 different characters, as far as Emacs is concerned.  For example, text
@@ -983,7 +983,7 @@ such as LANG, LC_CTYPE, or LC_ALL to a string which ends with a
 `.UTF-8'.  For example, a system like this in a French locale might
 use `fr_FR.UTF-8' as the value of LANG.
 
-Since Unicode support in Emacs, as of v21.1, is not yet complete (see
+Since Unicode support in Emacs, as of v21.2, is not yet complete (see
 the previous entry in this file), UTF-8 support is not enabled by
 default, even in UTF-8 locales.  Thus, some Emacs features, such as
 non-ASCII keyboard input, might appear to be broken in these locales.
@@ -1173,13 +1173,13 @@ when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
 ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
 
-* Windows 95/98/ME crashes when trying to run non-existant subprocesses.
+* Windows 95/98/ME crashes when trying to run non-existent subprocesses.
 
 When a subprocess you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
-particular, this has been reported when trying to compile a java
-program in JDEE when javac.exe is installed, but not on the system
-path.
+particular, this has been reported when trying to compile a Java
+program in JDE when javac.exe is installed, but not on the system
+PATH.
 
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
