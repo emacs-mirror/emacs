@@ -1,3 +1,7 @@
+2000-11-02  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/find-func.el (find-variable-regexp): Avoid defgroup.
+
 2000-11-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/emacsbug.el (report-emacs-bug): Fix whitespace and

@@ -1,3 +1,8 @@
+2000-11-02  Dave Love  <fx@gnu.org>
+
+	* message.el (message-font-lock-keywords): Use [:alpha:] for
+	cite-prefix.
+
 2000-11-02  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* mm-uu.el (mm-uu-configure-list): Move back to old location,
