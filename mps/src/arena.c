@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.21) $
+ * $HopeName: MMsrc!arena.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -35,7 +35,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.21) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.22) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -281,7 +281,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
   res = (*class->init)(&arena, args);
-  if(res != ResOK) goto failInit;
+  if(res != ResOK)
+    goto failInit;
+  
+  ArenaEnter(arena);
+  AVERT(Arena, arena);
 
   /* design.mps.arena.pool.init */
   res = PoolInit(&arena->controlPoolStruct.poolStruct, 
@@ -352,7 +356,12 @@ void ArenaDestroy(Arena arena)
 
   AVERT(Arena, arena);
   AVER(!arena->insidePoll);
-  AVER(!arena->insideShield);
+  AVER(arena->insideShield);
+
+  /* Detach the arena from the global list. */
+  LockClaim(&arenaRingLock);
+  RingRemove(&arena->globalRing);
+  LockReleaseMPM(&arenaRingLock);
 
   class = arena->class;
 
@@ -383,14 +392,11 @@ void ArenaDestroy(Arena arena)
     PoolDestroy(pool);
   }
 
-  /* Detach the arena from the global list. */
-  LockClaim(&arenaRingLock);
-  RingRemove(&arena->globalRing);
-  LockReleaseMPM(&arenaRingLock);
-
   /* Destroy the control pool. */
   arena->poolReady = FALSE;
   PoolFinish(&arena->controlPoolStruct.poolStruct);
+
+  ArenaLeave(arena);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*class->finish)(arena);
