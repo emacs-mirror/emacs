@@ -484,6 +484,13 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	      (concat "~" (substring filename (match-end 0)))))
     filename))
 
+(defvar find-file-not-true-dirname-list nil
+  "*List of logical names for which visiting shouldn't save the true dirname.
+On VMS, when you visit a file using a logical name that searches a path,
+you may or may not want the visited file name to record the specific
+directory where the file was found.  If you *do not* want that, add the logical
+name to this list as a string.")
+
 (defun find-file-noselect (filename &optional nowarn)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -577,7 +584,16 @@ The buffer is not selected, just returned to the caller."
 		 (setq hooks (cdr hooks))))))
 	  ;; Find the file's truename, and maybe use that as visited name.
 	  (setq buffer-file-truename (abbreviate-file-name truename))
-	  (setq buffer-file-number number) 
+	  (setq buffer-file-number number)
+	  ;; On VMS, we may want to remember which directory in a search list
+	  ;; the file was found in.
+	  (and (eq system-type 'vax-vms)
+	       (let (logical)
+		 (if (string-match ":" (file-name-directory filename))
+		     (setq logical (substring (file-name-directory filename)
+					      0 (match-beginning 0))))
+		 (not (member logical find-file-not-true-dirname-list)))
+	       (setq buffer-file-name buffer-file-truename))
 	  (if find-file-visit-truename
 	      (setq buffer-file-name (setq filename buffer-file-truename)))
 	  ;; Set buffer's default directory to that of the file.
