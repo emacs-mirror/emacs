@@ -3614,6 +3614,11 @@ status_notify ()
 		deactivate_process (proc);
 	    }
 
+	  /* The actions above may have further incremented p->tick.
+	     So set p->update_tick again
+	     so that an error in the sentinel will not cause
+	     this code to be run again.  */
+	  XSETINT (p->update_tick, XINT (p->tick));
 	  /* Now output the message suitably.  */
 	  if (!NILP (p->sentinel))
 	    exec_sentinel (proc, msg);
