@@ -9562,7 +9562,10 @@ hscroll_window_tree (window)
 
 	      /* Position cursor in window.  */
 	      if (!hscroll_relative_p && hscroll_step_abs == 0)
-		hscroll = max (0, it.current_x - text_area_width / 2)
+		hscroll = max (0, (it.current_x
+				   - (ITERATOR_AT_END_OF_LINE_P (&it)
+				      ? (text_area_width - 4 * FRAME_COLUMN_WIDTH (it.f))
+				      : (text_area_width / 2))))
 		    	  / FRAME_COLUMN_WIDTH (it.f);
 	      else if (w->cursor.x >= text_area_width - h_margin)
 		{
