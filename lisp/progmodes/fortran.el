@@ -1768,7 +1768,8 @@ Intended as the value of `fill-paragraph-function'."
 	  (let (fill-paragraph-function)
 	    (fill-region start end justify))) ; with normal `fill-paragraph'
 	(set-marker start nil)
-	(set-marker end nil)))))
+	(set-marker end nil))))
+  t)
 
 (defun fortran-fill-statement ()
   "Fill a fortran statement up to `fill-column'."
@@ -1791,8 +1792,7 @@ Intended as the value of `fill-paragraph-function'."
                  (forward-line)
                  (fortran-remove-continuation)))
         (fortran-previous-statement)))
-    (fortran-indent-line)
-  t)                                    ; must return t for fill-paragraph
+    (fortran-indent-line))
 
 (provide 'fortran)
 
