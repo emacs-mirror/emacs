@@ -517,6 +517,7 @@ With any other arg, set comment column to indentation of the previous comment
   (cond
    ((eq arg '-) (comment-kill nil))
    (arg
+    (comment-normalize-vars)
     (save-excursion
       (beginning-of-line)
       (comment-search-backward)
@@ -533,6 +534,7 @@ With any other arg, set comment column to indentation of the previous comment
   "Kill the comment on this line, if any.
 With prefix ARG, kill comments on that many lines starting with this one."
   (interactive "P")
+  (comment-normalize-vars)
   (dotimes (_ (prefix-numeric-value arg))
     (save-excursion
       (beginning-of-line)
@@ -941,6 +943,7 @@ end- comment markers additionally to what `comment-add' already specifies."
 in which case call `uncomment-region'.  If a prefix arg is given, it
 is passed on to the respective function."
   (interactive "*r\nP")
+  (comment-normalize-vars)
   (funcall (if (save-excursion ;; check for already commented region
 		 (goto-char beg)
 		 (comment-forward (point-max))
