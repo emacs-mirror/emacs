@@ -3106,7 +3106,7 @@ in any of these classes."
 			  (not advised-interactive-form))
 		     ;; Check whether we were called interactively
 		     ;; in order to do proper prompting:
-		     `(if (interactive-p)
+		     `(if (called-interactively-p)
 			  (call-interactively ',origname)
 			,(ad-make-mapped-call orig-arglist
 					      advised-arglist
