@@ -461,7 +461,21 @@ also use a printer shared by another machine by setting
 slashes or backslashes here.)  To find out the names of shared printers,
 run the command @samp{net view} at a DOS command prompt to obtain a list
 of servers, and @samp{net view @var{server-name}} to see the names of printers
-(and directories) shared by that server.
+(and directories) shared by that server.  Alternatively, click the
+@samp{Network Neighborhood} icon on your desktop, and look for machines
+which share their printers via the network.
+
+  Some printers expect DOS codepage encoding of non-ASCII text, even
+though they are connected to a Windows machine which uses a different
+encoding for the same locale.  For example, in the Latin-1 locale, DOS
+uses codepage 850 whereas Windows uses codepage 1252.  @xref{MS-DOS and
+MULE}.  When you print to such printers from Windows, you can use the
+@kbd{C-x RET c} (@code{universal-coding-system-argument}) command before
+@kbd{M-x lpr-buffer}; Emacs will then convert the text to the DOS
+codepage that you specify.  For example, @kbd{C-x RET c cp850-dos RET
+M-x lpr-region RET} will print the region while converting it to the
+codepage 850 encoding.  You may need to create the @code{cp@var{nnn}}
+coding system with @kbd{M-x codepage-setup}.
 
   If you set @code{printer-name} to a file name, it's best to use an
 absolute file name.  Emacs changes the working directory according to
@@ -687,6 +701,14 @@ when you want to use it (@pxref{Specify Coding}).
 
   These coding systems are also useful for visiting a file encoded using
 a DOS codepage, using Emacs running on some other operating system.
+
+@cindex MS-Windows codepages
+  MS-Windows features its own codepages, which are different from the
+DOS codepages for the same locale.  For example, DOS codepage 850
+supports the same character set as Windows codepage 1252; DOS codepage
+855 supports the same character set as Windows codepage 1251, etc.
+The MS-Windows version of Emacs uses the current codepage for display
+when invoked with the @samp{-nw} option.
 
 @node MS-DOS Processes
 @section Subprocesses on MS-DOS
