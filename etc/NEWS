@@ -14,6 +14,9 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 21.4
 
+** DCL mode has new variables `dcl-font-lock-keywords' and
+`dcl-font-lock-defaults' to support use of font-lock.
+
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.
 
@@ -1178,7 +1181,7 @@ timing measurements of code (including the garbage collection component).
 ** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
 
-** The escape sequence \s is now interpreted as a SPACE character, 
+** The escape sequence \s is now interpreted as a SPACE character,
 unless it is followed by a `-' in a character constant (e.g. ?\s-A),
 in which case it is still interpreted as the super modifier.
 In strings, \s is always interpreted as a space.
