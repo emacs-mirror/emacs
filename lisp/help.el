@@ -1463,13 +1463,11 @@ out of view."
   (unless (or (one-window-p 'nomini)
               (not (pos-visible-in-window-p (point-min)))
               (/=  (frame-width) (window-width)))
-    (let* ((max-height (if (functionp temp-buffer-max-height)
-                           (funcall temp-buffer-max-height (current-buffer))
-                         temp-buffer-max-height))
-           (min-height (1- window-min-height))
-           (text-height (count-screen-lines))
-           (new-height (max (min text-height max-height) min-height)))
-      (set-window-text-height nil new-height))))
+    (fit-window-to-buffer
+     (selected-window)
+     (if (functionp temp-buffer-max-height)
+	 (funcall temp-buffer-max-height (current-buffer))
+       temp-buffer-max-height))))
 
 ;; `help-manyarg-func-alist' is defined primitively (in doc.c).
 ;; New primitives with `MANY' or `UNEVALLED' arglists should be added
