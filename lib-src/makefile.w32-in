@@ -204,8 +204,8 @@ lisp= \
 DOC	      = DOC 
 $(DOC):		$(BLD)/make-docfile.exe
 		- $(DEL) $(DOC)
-		"./$(BLD)/make-docfile" -d ../src $(obj) > $(DOC)
-		"./$(BLD)/make-docfile" -d ../src $(lisp) >> $(DOC)
+		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(obj) > $(DOC)
+		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(lisp) >> $(DOC)
 		$(CP) $(DOC) ../etc/DOC-X
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"
