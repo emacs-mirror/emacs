@@ -4,6 +4,11 @@
 	first line of every tutorial must be "Emacs Tutorial" in the
 	repective language.
 
+2005-03-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* FOR-RELEASE (TO BE DONE SHORTLY BEFORE RELEASE): New section.
+	Add `undo-ask-before-discard' to it.
+
 2005-03-02  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs: Only use the mkdir --verbose option if the

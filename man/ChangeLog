@@ -1,3 +1,10 @@
+2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Reverting): Move `auto-revert-check-vc-info' to
+	`VC Mode Line' and put in an xref to that node.
+	(VC Mode Line): Move `auto-revert-check-vc-info' here and clarify
+	its description.
+
 2005-03-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* calendar.texi (Calendar Systems): Say that the Persian calendar
