@@ -1,3 +1,15 @@
+2003-09-30  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el: A lot of comments updated.
+	(desktop-save-mode): Minor mode introduced.
+	(desktop-enable, desktop-clear-preserve-buffers): Variables made
+	obsolete.
+	(desktop-load-default): Function made obsolete.
+	(desktop-locals-to-save): Variable made customizable.
+	(desktop-read): Optional parameter `dirname' added.
+	(desktop-change-dir, desktop-revert): Parameter `dirname' in `desktop-read' used.
+	(desktop-save-in-load-dir): Renamed to `desktop-save-in-desktop-dir'.
+
 2003-09-29  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-clean-msg): Add user customizable message

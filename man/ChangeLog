@@ -1,3 +1,7 @@
+2003-09-30  Lars Hansen  <larsh@math.ku.dk>
+	
+	* misc.texi: Section "Saving Emacs Sessions" rewritten.
+
 2003-09-29  Jan D.  <jhd@gaffa.gaia.swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Correct typo.
