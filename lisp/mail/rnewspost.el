@@ -271,18 +271,21 @@ summary (abstract) of the message."
       (or (= (preceding-char) ?\n)
 	  (insert ?\n))
       (message "Posting to USENET...")
-      (call-process-region (point-min) (point-max) 
-			   news-inews-program nil 0 nil
-			   "-h")	; take all header lines!
-			   ;@@ setting of subject and newsgroups still needed?
-			   ;"-t" subject
-			   ;"-n" newsgroups
-      (message "Posting to USENET... done")
-      (goto-char (point-min))		;restore internal header separator
-      (search-forward "\n\n")
-      (replace-match (concat "\n" mail-header-separator "\n"))
-      (set-buffer-modified-p nil))
-    (and (fboundp 'bury-buffer) (bury-buffer))))
+      (unwind-protect
+	  (if (not (eq 0 
+		       (call-process-region (point-min) (point-max) 
+					    news-inews-program nil 0 nil
+					    "-h"))) ; take all header lines!
+					;@@ setting of subject and newsgroups still needed?
+					;"-t" subject
+					;"-n" newsgroups
+	      (error "Posting to USENET failed")
+	    (message "Posting to USENET... done"))
+	(goto-char (point-min))		;restore internal header separator
+	(search-forward "\n\n")
+	(replace-match (concat "\n" mail-header-separator "\n"))
+	(set-buffer-modified-p nil)))
+    (bury-buffer)))
 
 ;@@ shares some code with news-reply and news-post-news
 (defun news-mail-reply ()
