@@ -1,6 +1,6 @@
 ;;; mailalias.el --- expand and complete mailing address aliases
 
-;; Copyright (C) 1985, 1987, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -34,8 +34,9 @@
 
 (defvar mail-names t
   "Alist of local users, aliases and directory entries as available.
-When t this still needs to be initialized.
-This is the basis for `mail-complete'.")
+Elements have the form (MAILNAME) or (MAILNAME . FULLNAME).
+If the value means t, it means the real value should be calculated
+for the next use.  this is used in `mail-complete'.")
 
 (defvar mail-local-names t
   "Alist of local users.
@@ -66,6 +67,16 @@ When t this still needs to be initialized.")
   "Alist of header field and expression to return alist for completion.
 Expression may reference variable `pattern' which is the string being completed.
 If not on matching header, `mail-complete-function' gets called instead.")
+
+;;;###autoload
+(defvar mail-complete-style 'angles
+  "*Specifies how \\[mail-complete] formats the full name when it completes.
+If `nil', they contain just the return address like:
+	king@grassland.com
+If `parens', they look like:
+	king@grassland.com (Elvis Parsley)
+If `angles', they look like:
+	Elvis Parsley <king@grassland.com>")
 
 (defvar mail-complete-function 'ispell-complete-word
   "Function to call when completing outside `mail-complete-alist'-header.")
@@ -328,7 +339,15 @@ current header, calls `mail-complete-function' and passes prefix arg if any."
 		 (ding))
 		((not (string= pattern completion))
 		 (delete-region beg end)
-		 (insert completion))
+		 (let ((alist-elt (assoc completion mail-names)))
+		   (if (cdr alist-elt)
+		       (cond ((eq mail-complete-style 'parens)
+			      (insert completion " (" (cdr alist-elt) ")"))
+			     ((eq mail-complete-style 'angles)
+			      (insert (cdr alist-elt) " <" completion ">"))
+			     (t
+			      (insert completion)))
+		     (insert completion))))
 		(t
 		 (message "Making completion list...")
 		 (with-output-to-temp-buffer "*Completions*"
@@ -338,9 +357,10 @@ current header, calls `mail-complete-function' and passes prefix arg if any."
       (funcall mail-complete-function arg))))
 
 (defun mail-get-names (pattern)
-  "Fetch local users and global mail adresses for completion.
+  "Fetch local users and global mail addresses for completion.
 Consults `/etc/passwd' and a directory service if one is set up via
-`mail-directory-function'."
+`mail-directory-function'.
+PATTERN is the string we want to complete."
   (if (eq mail-local-names t)
       (save-excursion
 	(set-buffer (generate-new-buffer " passwd"))
@@ -351,6 +371,7 @@ Consults `/etc/passwd' and a directory service if one is set up via
 	(if mail-passwd-command
 	    (call-process shell-file-name nil t nil
 			  shell-command-switch mail-passwd-command))
+	(beginning-of-buffer)
 	(setq mail-local-names nil)
 	(while (not (eobp))
 	  ;;Recognize lines like
@@ -359,30 +380,37 @@ Consults `/etc/passwd' and a directory service if one is set up via
 	  ;;  +ethanb
 	  ;;while skipping
 	  ;;  +@SOFTWARE
-	  (if (looking-at "\\+?\\([^:@\n+]+\\)")
-	      (add-to-list 'mail-local-names (list (match-string 1))))
+	  ;; The second \(...\) matches the user id.
+	  (if (looking-at "\\+?\\([^:@\n+]+\\):[^:\n]*:\\([^\n:]*\\):")
+	      (add-to-list 'mail-local-names
+			   (cons (match-string 1)
+				 (user-full-name
+				  (string-to-int (match-string 2))))))
 	  (beginning-of-line 2))
 	(kill-buffer (current-buffer))))
   (if (or (eq mail-names t)
-		(eq mail-directory-names t))
+	  (eq mail-directory-names t))
       (let (directory)
 	(and mail-directory-function
 	     (eq mail-directory-names t)
 	     (setq directory
 		   (mail-directory (if mail-directory-requery pattern))))
+	(or mail-directory-requery
+	    (setq mail-directory-names directory))
 	(if (or directory
 		(eq mail-names t))
 	    (setq mail-names
-		  (sort (append (if (consp mail-aliases) mail-aliases)
+		  (sort (append (if (consp mail-aliases)
+				    (mapcar
+				     (function (lambda (a) (list (car a))))
+				     mail-aliases))
 				(if (consp mail-local-names)
 				    mail-local-names)
-				directory)
+				(or directory mail-directory-names))
 			(lambda (a b)
 			  ;; should cache downcased strings
 			  (string< (downcase (car a))
-				   (downcase (car b)))))))
-	(or mail-directory-requery
-	    (setq mail-directory-names directory))))
+				   (downcase (car b)))))))))
   mail-names)
 
 
@@ -398,19 +426,18 @@ Calls `mail-directory-function' and applies `mail-directory-parser' to output."
       (if (stringp mail-directory-parser)
 	  (while (re-search-forward mail-directory-parser nil t)
 	    (setq directory
-		  `((,(match-string 1))
-		    ,@directory)))
+		  (cons (match-string 1) directory)))
 	(if mail-directory-parser
 	    (setq directory (funcall mail-directory-parser))
 	  (while (not (eobp))
 	    (setq directory
-		  `((,(buffer-substring (point)
-					(progn
-					  (forward-line)
-					  (if (bolp)
-					    (1- (point))
-					    (point)))))
-		    ,@directory)))))
+		  (cons (buffer-substring (point)
+					  (progn
+					    (forward-line)
+					    (if (bolp)
+						(1- (point))
+					      (point))))
+			directory)))))
       (kill-buffer (current-buffer))
       (message "Querying directory...done")
       directory)))
