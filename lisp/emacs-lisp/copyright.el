@@ -36,8 +36,8 @@
 
 
 (defvar copyright-regexp
-  "\\(\251\\|[Cc]opyright\\s *:?\\s *(C)\
-\\|[Cc]opyright\\s *:?\\s *\251\\)\
+  "\\([Å©\251]\\|[Cc]opyright\\s *:?\\s *(C)\
+\\|[Cc]opyright\\s *:?\\s *[Å©\251]\\)\
 \\s *\\([1-9][-0-9, ']*[0-9]+\\) "
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years.")
