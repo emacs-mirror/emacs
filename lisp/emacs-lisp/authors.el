@@ -86,7 +86,7 @@ file individually.")
     ("Kenneth Manheimer" . "Ken Manheimer")
     ("Kenichi HANDA" . "Kenichi Handa")
     ("Jay Adams" . "Jay R. Adams")
-    ("Joe Arceneaux" . "Josef Arceneaux")
+    ("Joe Arceneaux" . "Joseph Arceneaux")
     ("K. Berry" . "Karl Berry")
     ("Michael Ernst" . "Michael D. Ernst")
     ("Dave Gillespie" . "David Gillespie")
@@ -127,7 +127,7 @@ listed.")
 
 
 (defconst authors-fixed-entries
-  '(("Joe Arceneax" :wrote "xrdb.c")
+  '(("Joseph Arceneaux" :wrote "xrdb.c")
     ("Blitz Product Development Corporation" :wrote "ispell.el")
     ("Frank Bresz" :wrote "diff.el")
     ("David M. Brown" :wrote "array.el")
