@@ -54,6 +54,7 @@
 ;;; Code:
 
 (require 'mail-utils)
+(require 'sendmail)
 
 (autoload 'rmail-output "rmailout"
   "Append this message to Unix mail file named FILE-NAME."
@@ -971,15 +972,10 @@ Mail and USENET news headers are not rotated."
     (let ((buffer-status buffer-read-only))
       (setq buffer-read-only nil)
       ;; setup the region
-      (set-mark (if (progn (goto-char (point-min))
-			    (search-forward
-			     (concat "\n"
-				     (if (equal major-mode 'news-mode)
-					 ""
-				       mail-header-separator)
-				     "\n") nil t))
-		     (point)
-		   (point-min)))
+      (set-mark (if (equal major-mode 'news-mode)
+		    (progn (goto-char (point-min))
+			   (search-forward "\n\n" nil t))
+		  (mail-text-start)))
       (goto-char (point-max))
       (caesar-region rotnum)
       (setq buffer-read-only buffer-status))))
