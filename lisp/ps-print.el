@@ -4709,7 +4709,16 @@ EndDSCPage\n")
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
-		 (match (char-after match-point)))
+		 (match (char-after match-point))
+		 (composition (find-composition from (1+ match-point))))
+	    (if composition
+		(if (and (nth 2 composition)
+			 (<= (car composition) match-point))
+		    (progn
+		      (setq match-point (car composition)
+			    match 0)
+		      (goto-char (nth 1 composition)))
+		  (setq composition nil)))
 	    (when (< from match-point)
 	      (ps-mule-set-ascii-font)
 	      (ps-plot 'ps-basic-plot-string from match-point bg-color))
@@ -4734,13 +4743,19 @@ EndDSCPage\n")
 		       (= ps-height-remaining ps-print-height))
 		  (ps-next-page)))
 
+	     (composition		; a composite sequence
+	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
+
+					; characters from ^@ to ^_ and
 	     ((> match 255)		; a multi-byte character
-	      (let ((charset (char-charset match)))
+	      (let* ((charset (char-charset match))
+		     (composition (find-composition match-point to))
+		     (stop (if (nth 2 composition) (car composition) to)))
 		(or (eq charset 'composition)
-		    (while (eq (charset-after) charset)
+		    (while (and (< (point) stop) (eq (charset-after) charset))
 		      (forward-char 1)))
 		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
-					; characters from ^@ to ^_ and
+
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
