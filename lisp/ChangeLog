@@ -1,3 +1,8 @@
+2000-06-19  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/etags.el (tags-query-replace): Put new parameters
+	START and END at the end, for backward compatibility.
+
 2000-06-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/codepage.el:
