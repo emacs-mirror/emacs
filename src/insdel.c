@@ -841,6 +841,24 @@ count_combining_after (string, length, pos, pos_byte)
   return pos_byte - opos_byte;
 }
 
+/* Adjust the position TARGET/TARGET_BYTE for the combining of NBYTES
+   following the position POS/POS_BYTE to the character preceding POS.
+   If TARGET is after POS+NBYTES, we only have to adjust the character
+   position TARGET, else, if TARGET is after POS, we have to adjust
+   both the character position TARGET and the byte position
+   TARGET_BYTE, else we don't have to do any adjustment.  */
+
+#define ADJUST_CHAR_POS(target, target_byte)	\
+  do {						\
+    if (target > pos + nbytes)			\
+      target -= nbytes;				\
+    else if (target >= pos)			\
+      {						\
+	target = pos;				\
+	target_byte = pos_byte + nbytes;	\
+      }						\
+  } while (0)
+
 /* Combine NBYTES stray trailing-codes, which were formerly separate
    characters, with the preceding character.  These bytes
    are located after position POS / POS_BYTE, and the preceding character
@@ -855,14 +873,10 @@ combine_bytes (pos, pos_byte, nbytes)
 
   adjust_overlays_for_delete (pos, nbytes);
 
-  if (PT > pos)
-    BUF_PT (current_buffer) -= nbytes;
-  if (GPT > pos)
-    GPT -= nbytes;
-  if (Z > pos)
-    Z -= nbytes;
-  if (ZV > pos)
-    ZV -= nbytes;
+  ADJUST_CHAR_POS (BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
+  ADJUST_CHAR_POS (GPT, GPT_BYTE);
+  ADJUST_CHAR_POS (Z, Z_BYTE);
+  ADJUST_CHAR_POS (ZV, ZV_BYTE);
 
   if (BUF_INTERVALS (current_buffer) != 0)
     /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
@@ -1311,8 +1325,8 @@ adjust_before_replace (from, from_byte, to, to_byte)
    making the text a buffer contents.  It exists just after GPT_ADDR.  */
 
 void
-adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
-     int from, from_byte, to, to_byte, len, len_byte;
+adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
+     int from, from_byte, to, to_byte, len, len_byte, replace;
 {
   int combined_before_bytes
     = count_combining_before (GPT_ADDR, len_byte, from, from_byte);
@@ -1344,7 +1358,11 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
 			     combined_before_bytes, combined_after_bytes, 0);
 #ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
-    offset_intervals (current_buffer, from, len - (to - from));
+    /* REPLACE zero means that we have not yet adjusted the interval
+       tree for the text between FROM and TO, thus, we must treat the
+       new text as a newly inserted text, not as a replacement of
+       something.  */
+    offset_intervals (current_buffer, from, len - (replace ? to - from : 0));
 #endif
 
   {
@@ -1701,7 +1719,8 @@ del_range_2 (from, from_byte, to, to_byte)
     gap_left (to, to_byte, 0);
 
   combined_after_bytes
-    = count_combining_before (GAP_END_ADDR, ZV_BYTE - GPT_BYTE, PT, PT_BYTE);
+    = count_combining_before (BUF_BYTE_ADDRESS (current_buffer, to_byte),
+			      ZV_BYTE - to_byte, from, from_byte);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
@@ -1711,6 +1730,11 @@ del_range_2 (from, from_byte, to, to_byte)
 
   record_delete (from - !!combined_after_bytes,
 		 nchars_del + combined_after_bytes + !!combined_after_bytes);
+  if (combined_after_bytes)
+    /* COMBINED_AFTER_BYTES nonzero means that the above record_delete
+       moved the gap by calling Fbuffer_substring.  We must move the
+       gap again to a proper place.  */
+    move_gap_both (from, from_byte);
   MODIFF++;
 
   /* Relocate point as if it were a marker.  */
@@ -1723,7 +1747,7 @@ del_range_2 (from, from_byte, to, to_byte)
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from_byte, nchars_del);
+  adjust_overlays_for_delete (from, nchars_del);
 
   GAP_SIZE += nbytes_del;
   ZV_BYTE -= nbytes_del;
@@ -1732,11 +1756,12 @@ del_range_2 (from, from_byte, to, to_byte)
   Z -= nchars_del;
   GPT = from;
   GPT_BYTE = from_byte;
-  *(GPT_ADDR) = 0;		/* Put an anchor.  */
 
   if (combined_after_bytes)
     move_gap_both (GPT + combined_after_bytes,
 		   GPT_BYTE + combined_after_bytes);
+
+  *(GPT_ADDR) = 0;		/* Put an anchor.  */
 
   if (GPT_BYTE < GPT)
     abort ();
@@ -1747,7 +1772,7 @@ del_range_2 (from, from_byte, to, to_byte)
     end_unchanged = Z - GPT;
 
   if (combined_after_bytes)
-    combine_bytes (PT, PT_BYTE, combined_after_bytes);
+    combine_bytes (from, from_byte, combined_after_bytes);
 
   if (combined_after_bytes)
     record_insert (GPT - 1, 1);
