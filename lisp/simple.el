@@ -2528,8 +2528,8 @@ or adjacent to a word."
 		   (setq end (point))
 		   (skip-syntax-backward "w_")
 		   (setq start (point)))
-		 (buffer-substring start end)))
-	(buffer-substring start end)))))
+		 (buffer-substring-no-properties start end)))
+	(buffer-substring-no-properties start end)))))
 
 (defcustom fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
@@ -2877,7 +2877,7 @@ in the mode line."
   (force-mode-line-update))
 
 (defgroup paren-blinking nil
-  "Blinking (un)matching of parens and expressions."
+  "Blinking matching of parens and expressions."
   :prefix "blink-matching-"
   :group 'paren-matching)
 
