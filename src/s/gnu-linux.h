@@ -226,3 +226,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #define HAVE_SYSVIPC
+
+#define A_TEXT_OFFSET(hdr) (N_MAGIC(hdr) == QMAGIC ? sizeof (struct exec) : 0)
+#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
+#define ADJUST_EXEC_HEADER \
+  unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
