@@ -1,3 +1,16 @@
+1999-11-19  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c (_GNU_SOURCE): Define only if undefined.
+	(get_scheme): Declaration deleted.
+	(main): error was called with an integer as second arg, instead of
+	a char pointer.
+	(canonicalize_filename): Bug removed.
+
+1999-11-18  Dave Love  <d.love@dl.ac.uk>
+
+	* etags.c (C_entries): Rename label `intoken', avoiding K&R
+	lossage from name clash with macro.
+
 1999-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (b2m): Add dependency on GETOPTDEPS.
