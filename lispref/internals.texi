@@ -593,8 +593,9 @@ Alas, we can't explain all the tricky details here.
 accept two arguments at the C level: the number of Lisp arguments, and
 a @code{Lisp_Object *} pointer to a C vector containing those Lisp
 arguments.  This C vector may be part of a Lisp vector, but it need
-not be.  The responsibility for protecting the Lisp arguments from GC
-rests with the caller in this case.
+not be.  The responsibility for using GCPRO to protecting the Lisp
+arguments from GC if necessary rests with the caller in this case,
+since the caller allocated or found the storage for them.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables
