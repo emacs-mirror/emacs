@@ -124,7 +124,7 @@
     ("-cr" cursor-color)
     ("-itype" icon-type t)
     ("-i" icon-type t)
-    ("-iconic" iconic-startup t)
+    ("-iconic" visibility icon)
     ("-vb" vertical-scroll-bars t)
     ("-hb" horizontal-scroll-bars t)
     ("-bd" border-color)
