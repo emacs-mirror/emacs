@@ -2288,6 +2288,7 @@ but the contents viewed as characters do change.  */)
   if (!modified_p && !NILP (Fbuffer_modified_p (Qnil)))
     Fset_buffer_modified_p (Qnil);
 
+#ifdef subprocesses
   /* Update coding systems of this buffer's process (if any).  */
   {
     Lisp_Object process;
@@ -2296,6 +2297,7 @@ but the contents viewed as characters do change.  */)
     if (PROCESSP (process))
       setup_process_coding_systems (process);
   }
+#endif	/* subprocesses */
 
   return flag;
 }
