@@ -668,7 +668,7 @@ DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
 #define ONE_BYTE_CHAR_WIDTH(c)					     	\
   (c < 0x20							     	\
    ? (c == '\t'							     	\
-      ? current_buffer->tab_width				     	\
+      ? XFASTINT (current_buffer->tab_width)			     	\
       : (c == '\n' ? 0 : (NILP (current_buffer->ctl_arrow) ? 4 : 2)))	\
    : (c < 0x7f							     	\
       ? 1							     	\
@@ -845,11 +845,11 @@ If POS is out of range or not at character boundary, return NIL.")
 
 DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
   "Concatenate all the argument characters and make the result a string.")
-  (nargs, args)
-     int nargs;
+  (n, args)
+     int n;
      Lisp_Object *args;
 {
-  int i, n = XINT (nargs);
+  int i;
   unsigned char *buf
     = (unsigned char *) malloc (MAX_LENGTH_OF_MULTI_BYTE_FORM * n);
   unsigned char *p = buf;
