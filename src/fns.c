@@ -326,7 +326,7 @@ with the original.")
     {
       Lisp_Object val;
       int size_in_chars
-	= (XBOOL_VECTOR (arg)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
+	= (XBOOL_VECTOR (arg)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
       bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
@@ -439,7 +439,7 @@ concat (nargs, args, target_type, last_special)
 	      else if (BOOL_VECTOR_P (this))
 		{
 		  int size_in_chars
-		    = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR)
+		    = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR - 1)
 		       / BITS_PER_CHAR);
 		  int byte;
 		  byte = XBOOL_VECTOR (val)->data[thisindex / BITS_PER_CHAR];
@@ -1099,7 +1099,7 @@ internal_equal (o1, o2, depth)
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    int size_in_chars
-	      = (XBOOL_VECTOR (o1)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
+	      = (XBOOL_VECTOR (o1)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
@@ -1183,7 +1183,7 @@ ARRAY is a vector, string, char-table, or bool-vector.")
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
       int size_in_chars
-	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR) / BITS_PER_CHAR;
+	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
       charval = (! NILP (item) ? -1 : 0);
       for (index = 0; index < size_in_chars; index++)
@@ -1333,7 +1333,16 @@ or a character code.")
   else if (VECTORP (range))
     {
       for (i = 0; i < XVECTOR (range)->size - 1; i++)
-	char_table = Faref (char_table, XVECTOR (range)->contents[i]);
+	{
+	  Lisp_Object tmp = Faref (char_table, XVECTOR (range)->contents[i]);
+	  if (NILP (tmp))
+	    {
+	      /* Make this char-table deeper.  */
+	      XVECTOR (char_table)->contents[XVECTOR (range)->contents[i]]
+		= tmp = Fmake_char_table (Qnil, Qnil);
+	    }
+	  char_table = tmp;
+	}
 
       if (EQ (XVECTOR (range)->contents[i], Qnil))
 	XCHAR_TABLE (char_table)->defalt = value;
