@@ -186,9 +186,10 @@ Print $ as a buffer-local-value pointer, assuming it is an Emacs Lisp Misc value
 end
 
 define xsymbol
-  xgetptr $
+  set $sym = $
+  xgetptr $sym
   print (struct Lisp_Symbol *) $ptr
-  xprintsym $
+  xprintsym $sym
   echo \n
 end
 document xsymbol
