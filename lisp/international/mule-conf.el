@@ -228,7 +228,8 @@
 
 (put 'undecided 'coding-system
      (vector t ?- "No conversion on encoding, automatic conversion on decoding"
-	     (list 'alias-coding-systems '(undecided))
+	     (list 'alias-coding-systems '(undecided)
+		   'safe-charsets '(ascii))
 	     nil))
 (setq coding-system-list (cons 'undecided coding-system-list))
 (setq coding-system-alist (cons '("undecided") coding-system-alist))
