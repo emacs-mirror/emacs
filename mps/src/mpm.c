@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.22) $
+ * $HopeName: MMsrc!mpm.c(trunk.23) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.22) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.23) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -66,7 +66,7 @@ Bool MPMCheck(void)
     for (e = DBL_MAX_10_EXP; e > 0; e /= 10)
       DBL_EXP_DIG++;
     CHECKL(DBL_EXP_DIG < DBL_DIG);
-    CHECKL(-DBL_MIN_10_EXP <= DBL_MAX_10_EXP);
+    CHECKL(-(DBL_MIN_10_EXP) <= DBL_MAX_10_EXP);
   }
 
   return TRUE;  
