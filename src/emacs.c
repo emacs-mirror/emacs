@@ -175,6 +175,9 @@ memory_warning_signal (sig)
   signal (sig, memory_warning_signal);
 
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
+
+  /* It might be unsafe to call do_auto_save now.  */
+  force_auto_save_soon ();
 }
 #endif
 
