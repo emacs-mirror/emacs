@@ -1,3 +1,7 @@
+2004-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (normal-top-level): Undo previous TERM change.
+
 2004-09-03  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--overlay-keymap): New keymap for
