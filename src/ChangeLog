@@ -1,3 +1,13 @@
+2001-10-17  Miles Bader  <miles@gnu.org>
+
+	* lisp.h (DEFUN): Remove `DOC_STRINGS_IN_COMMENTS' case.
+	* xmenu.c, xdisp.c, term.c, dispnew.c, abbrev.c, editfns.c, buffer.c
+	* xfns.c, alloc.c, minibuf.c, xterm.c, xfaces.c:
+	Change doc-string comments to `new style' [w/`doc:' keyword].
+	(DOC_STRINGS_IN_COMMENTS): Macro removed.
+	* minibuf.c: Remove old commented-out-DEFUN that was used to fake
+	out make-docfile.
+
 2001-10-16  Miles Bader  <miles@gnu.org>
 
 	* fns.c: Change doc-string comments to `new style' [w/`doc:' keyword].

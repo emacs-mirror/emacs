@@ -1,3 +1,8 @@
+2001-10-17  Miles Bader  <miles@gnu.org>
+
+	* make-docfile.c (put_char): New function.
+	(read_c_string_or_comment): Strip trailing spaces and newlines.
+
 2001-10-16  Miles Bader  <miles@gnu.org>
 
 	* make-docfile.c (scan_c_file): Handle `new style' doc strings in
