@@ -1578,6 +1578,7 @@ main (argc, argv
 #endif  /* end #ifdef HAVE_NTGUI */
     }
 
+  init_process (); /* init_display uses add_keyboard_wait_descriptor. */
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
@@ -1604,7 +1605,6 @@ main (argc, argv
 #ifdef VMS
   init_vmsfns ();
 #endif /* VMS */
-  init_process ();
 #ifdef HAVE_SOUND
   init_sound ();
 #endif
