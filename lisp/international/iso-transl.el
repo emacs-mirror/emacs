@@ -331,8 +331,8 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
     ("Spanish"
      ("!"  . [161])
      ("?"  . [191])
-     ("N"  . [241])
-     ("n"  . [209]))))
+     ("N"  . [209])
+     ("n"  . [241]))))
 
 (defvar iso-transl-ctl-x-8-map nil
   "Keymap for C-x 8 prefix.")
