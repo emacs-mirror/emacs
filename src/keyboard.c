@@ -949,8 +949,6 @@ command_loop_1 ()
 		       ||
 		       (dp && (XTYPE (dp->contents[lose]) != Lisp_String
 			       || XSTRING (dp->contents[lose])->size == sizeof (GLYPH))))
-		      && (SCREEN_CURSOR_X (selected_screen)
-			  != SCREEN_WIDTH (selected_screen) - 1)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
@@ -972,7 +970,6 @@ command_loop_1 ()
 		       ||
 		       (dp && (XTYPE (dp->contents[lose]) != Lisp_String
 			       || XSTRING (dp->contents[lose])->size == sizeof (GLYPH))))
-		      && (SCREEN_CURSOR_X (selected_screen) != 0)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
@@ -1038,8 +1035,8 @@ command_loop_1 ()
 	    Fundo_boundary ();
 	  Fcommand_execute (cmd, Qnil);
 
-	directly_done: ;
 	}
+    directly_done: ;
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -2734,10 +2731,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    {
 	      fkey_next =
 		get_keyelt (access_keymap (fkey_map, keybuf[fkey_end++]));
-
 	      /* If keybuf[fkey_start..fkey_next] is bound in the
-		 function key map and it's a suffix, replace it with
-		 the binding and restart.  */
+		 function key map and it's a suffix of the current
+		 sequence (i.e. fkey_next == t), replace it with
+		 the binding and restart with fkey_start at the end. */
 	      if (XTYPE (fkey_next) == Lisp_Vector
 		  && fkey_end == t)
 		{
@@ -2761,9 +2758,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      
 	      fkey_map = get_keymap_1 (fkey_next, 0);
 
-	      /* If we no longer have a bound suffix, advance 
-		 the start of the function key suffix and continue
-		 scanning from there.  */
+	      /* If we no longer have a bound suffix, try a new positions for 
+		 fkey_start.  */
 	      if (NILP (fkey_map))
 		{
 		  fkey_end = ++fkey_start;
