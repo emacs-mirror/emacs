@@ -160,7 +160,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
  '(ascii latin-iso8859-4 nil nil
    nil nil nil nil nil nil nil)
  '((safe-charsets ascii latin-iso8859-4)
-   (mime-charset . iso-8895-4)))
+   (mime-charset . iso-8859-4)))
 
 (define-coding-system-alias 'iso-8859-4 'iso-latin-4)
 (define-coding-system-alias 'latin-4 'iso-latin-4)
