@@ -206,7 +206,7 @@ Otherwise, it saves all modified buffers without asking.")
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-command "grep -n "
-  "Last grep command used in \\{grep}; default for next grep.")
+  "Last grep command used in \\[grep]; default for next grep.")
 
 ;;;###autoload
 (defvar compilation-search-path '(nil)
