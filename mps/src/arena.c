@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.58) $
+ * $HopeName: MMsrc!arena.c(trunk.59) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.58) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.59) $");
 
 
 /* Forward declarations */
@@ -407,6 +407,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(arena->serial < arenaSerial); 
   CHECKD(ArenaClass, arena->class);
   CHECKL(RingCheck(&arena->globalRing));
+  CHECKL(MPSVersion() == arena->mpsVersionString);
 
   CHECKL(BoolCheck(arena->poolReady));
   if(arena->poolReady) {               /* design.mps.arena.pool.ready */
@@ -1021,6 +1022,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                (WriteFP)arena, (WriteFU)arena->serial,
                "  class $P (\"$S\")\n", 
                (WriteFP)arena->class, arena->class->name,
+	       "  mpsVersion $S\n",
+	       arena->mpsVersionString,
                "  poolReady $S\n",     arena->poolReady ? "YES" : "NO",
                "  controlPool $P\n",   
                (WriteFP)&arena->controlPoolStruct,
