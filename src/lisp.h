@@ -318,10 +318,6 @@ enum pvec_type
 #define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) >> VALBITS))
 #endif
 
-#ifndef XSETTYPE
-#define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((EMACS_INT)(b) << VALBITS))
-#endif
-
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
    fact that Lisp_Int is 0.
