@@ -1088,8 +1088,11 @@ tty_defined_color (f, color_name, color_def, alloc)
 
   if (*color_name && !NILP (Ffboundp (Qtty_color_desc)))
     {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
       status = 0;
-      color_desc = call1 (Qtty_color_desc, build_string (color_name));
+      color_desc = call2 (Qtty_color_desc, build_string (color_name), frame);
       if (CONSP (color_desc) && CONSP (XCDR (color_desc)))
 	{
 	  color_idx = XINT (XCAR (XCDR (color_desc)));
@@ -1101,9 +1104,9 @@ tty_defined_color (f, color_name, color_def, alloc)
 	    }
 	  status = 1;
 	}
-      else if (NILP (Fsymbol_value (intern ("tty-color-alist"))))
+      else if (NILP (Fsymbol_value (intern ("tty-defined-color-alist"))))
 	/* We were called early during startup, and the colors are not
-	   yet set up in tty-color-alist.  Don't return a failure
+	   yet set up in tty-defined-color-alist.  Don't return a failure
 	   indication, since this produces the annoying "Unable to
 	   load color" messages in the *Messages* buffer.  */
 	status = 1;
@@ -1169,7 +1172,11 @@ tty_color_name (f, idx)
 
   if (idx >= 0 && !NILP (Ffboundp (Qtty_color_by_index)))
     {
-      Lisp_Object coldesc = call1 (Qtty_color_by_index, make_number (idx));
+      Lisp_Object frame;
+      Lisp_Object coldesc;
+
+      XSETFRAME (frame, f);
+      coldesc = call2 (Qtty_color_by_index, make_number (idx), frame);
 
       if (!NILP (coldesc))
 	return XCAR (coldesc);
@@ -6063,7 +6070,10 @@ realize_tty_face (c, attrs, charset)
   struct face *face;
   int weight, slant;
   Lisp_Object color;
-  Lisp_Object tty_color_alist = Fsymbol_value (intern ("tty-color-alist"));
+  Lisp_Object tty_defined_color_alist =
+    Fsymbol_value (intern ("tty-defined-color-alist"));
+  Lisp_Object tty_color_alist = intern ("tty-color-alist");
+  Lisp_Object frame;
   int face_colors_defaulted = 0;
 
   /* Frame must be a termcap frame.  */
@@ -6092,13 +6102,14 @@ realize_tty_face (c, attrs, charset)
   face->foreground = FACE_TTY_DEFAULT_FG_COLOR;
   face->background = FACE_TTY_DEFAULT_BG_COLOR;
 
+  XSETFRAME (frame, c->f);
   color = attrs[LFACE_FOREGROUND_INDEX];
   if (STRINGP (color)
       && XSTRING (color)->size
-      && !NILP (tty_color_alist)
-      && (color = Fassoc (color, tty_color_alist),
+      && !NILP (tty_defined_color_alist)
+      && (color = Fassoc (color, call1 (tty_color_alist, frame)),
 	  CONSP (color)))
-    /* Associations in tty-color-alist are of the form
+    /* Associations in tty-defined-color-alist are of the form
        (NAME INDEX R G B).  We need the INDEX part.  */
     face->foreground = XINT (XCAR (XCDR (color)));
 
@@ -6135,10 +6146,10 @@ realize_tty_face (c, attrs, charset)
   color = attrs[LFACE_BACKGROUND_INDEX];
   if (STRINGP (color)
       && XSTRING (color)->size
-      && !NILP (tty_color_alist)
-      && (color = Fassoc (color, tty_color_alist),
+      && !NILP (tty_defined_color_alist)
+      && (color = Fassoc (color, call1 (tty_color_alist, frame)),
 	  CONSP (color)))
-    /* Associations in tty-color-alist are of the form
+    /* Associations in tty-defined-color-alist are of the form
        (NAME INDEX R G B).  We need the INDEX part.  */
     face->background = XINT (XCAR (XCDR (color)));
 
