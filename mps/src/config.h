@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.21) $
+ * $HopeName: MMsrc!config.h(trunk.22) $
+ * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: MPS developers.
  */
@@ -114,17 +114,21 @@
  * os.s7 (Mac OS) with the VM Arena, in order to allow development in
  * an environment where real memory is used to simulate memory mapping.
  * 
- * ARENA_CLIENT_PAGE_SIZE is the size in bytes of a "page" (i.e. segment
- * granule) in the client arena. The number 8192 is an initial value with no
- * particular justification.
+ * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
+ * "page" (i.e., segment granule) in the client arena.  It's set at 8192
+ * with no particular justification.
  *
- * ARENA_CLIENT_DEFAULT_SEG_HIGH is a Bool governing whether segments default
- * 'high' (TRUE) or 'low' (FALSE). For EP-core, non-DL segments should be high
- * to reduce fragmentation of DL pools (See req.epcore.attr.footprint
- * and change 170193/trapping.beta.3 */
+ * .segpref.default: ARENA_DEFAULT_SEG_HIGH is a Bool governing whether
+ * segments default 'high' (TRUE) or 'low' (FALSE).  For EPcore, non-DL
+ * segments should be high to reduce fragmentation of DL pools (see
+ * request.epcore.170193).  ARENA_DEFAULT_REFSET has the same role for
+ * refset-based placement; again, for EPcore, we reserve half the arena
+ * for non-DL.
+ */
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
-#define ARENA_CLIENT_DEFAULT_SEG_HIGH   TRUE
+#define ARENA_DEFAULT_SEG_HIGH          TRUE
+#define ARENA_DEFAULT_REFSET            BS_UPPER_HALF(RefSet)
 
 #if defined(CONFIG_PROD_EPCORE)
 #define MPS_PROD_EPCORE
