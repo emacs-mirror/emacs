@@ -34,6 +34,10 @@ Boston, MA 02111-1307, USA.
 
 /* This gives us the page size and the size of the allocation unit on NT.  */
 SYSTEM_INFO sysinfo_cache;
+
+/* This gives us version, build, and platform identification.  */
+OSVERSIONINFO osinfo_cache;
+
 unsigned long syspage_mask = 0;
 
 /* These are defined to get Emacs to compile, but are not used.  */
@@ -75,6 +79,10 @@ cache_system_info (void)
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
   syspage_mask = sysinfo_cache.dwPageSize - 1;
+
+  /* Cache os info.  */
+  osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+  GetVersionEx (&osinfo_cache);
 }
 
 /* Emulate getpagesize.  */
