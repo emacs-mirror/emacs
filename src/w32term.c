@@ -195,7 +195,6 @@ win32_fill_rect (f, _hdc, pix, lprect)
 {
   HDC hdc;
   HBRUSH hb;
-  HANDLE oldobj;
   RECT rect;
   
   if (_hdc)
@@ -203,18 +202,15 @@ win32_fill_rect (f, _hdc, pix, lprect)
   else 
     {
       if (!f) return;
-      hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+      hdc = GetFrameDC (f);
     }
   
   hb = CreateSolidBrush (pix);
-  oldobj = SelectObject (hdc, hb);
-  
   FillRect (hdc, lprect, hb);
-  SelectObject (hdc, oldobj);
   DeleteObject (hb);
   
   if (!_hdc)
-    ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+    ReleaseFrameDC (f, hdc);
 }
 
 void 
@@ -222,7 +218,7 @@ win32_clear_window (f)
      FRAME_PTR f;
 {
   RECT rect;
-    
+
   GetClientRect (FRAME_WIN32_WINDOW (f), &rect);
   win32_clear_rect (f, NULL, &rect);
 }
@@ -248,6 +244,14 @@ win32_update_begin (f)
   highlight = 0;
 
   BLOCK_INPUT;
+
+  /* Regenerate display palette before drawing if list of requested
+     colors has changed. */
+  if (FRAME_WIN32_DISPLAY_INFO (f)->regen_palette)
+    {
+      win32_regenerate_palette (f);
+      FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = FALSE;
+    }
 
   if (f == FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
@@ -418,7 +422,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
   int orig_left = left;
   HDC hdc;
 
-  hdc = my_get_dc (window);
+  hdc = GetFrameDC (f);
 
   while (n > 0)
     {
@@ -571,7 +575,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
       }
     }
 
-  ReleaseDC (window, hdc);
+  ReleaseFrameDC (f, hdc);
 }
 
 
@@ -828,7 +832,7 @@ do_line_dance ()
 
   x_display_cursor (updating_frame, 0);
 
-  hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+  hdc = GetFrameDC (f);
 
   for (i = 0; i < ht; ++i)
     if (line_dance[i] != -1 && (distance = line_dance[i]-i) > 0)
@@ -862,7 +866,7 @@ do_line_dance ()
 	i = j+1;
       }
 
-  ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+  ReleaseFrameDC (f, hdc);
 
   for (i = 0; i < ht; ++i)
     if (line_dance[i] == -1)
@@ -2272,7 +2276,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
   if (numchars <= 0)
     abort ();                   /* Don't think this happens. */
 
-  while (get_next_msg (&msg, 0))
+  while (get_next_msg (&msg, FALSE))
     {
       switch (msg.msg.message)
 	{
@@ -2307,6 +2311,12 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      }
 	  }
 	  
+	  break;
+	case WM_PALETTECHANGED:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    /* Realize palette - will force update if needed. */
+	    ReleaseFrameDC (f, GetFrameDC (f));
 	  break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
@@ -2443,7 +2453,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      int width;
 	      int height;
 	      
-	      GetClientRect(msg.msg.hwnd, &rect);
+	      GetClientRect (msg.msg.hwnd, &rect);
 	      
 	      height = rect.bottom - rect.top + 1;
 	      width = rect.right - rect.left + 1;
@@ -2636,25 +2646,19 @@ x_draw_box (f)
   HBRUSH hb;
   HDC hdc;
   
-  hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+  hdc = GetFrameDC (f);
   
   hb = CreateSolidBrush (f->output_data.win32->cursor_pixel);
   
   rect.left = CHAR_TO_PIXEL_COL (f, curs_x);
   rect.top  = CHAR_TO_PIXEL_ROW (f, curs_y);
-  rect.right = rect.left + FONT_WIDTH (f->output_data.win32->font) - 1;
-  rect.bottom = rect.top + f->output_data.win32->line_height - 1;
-  
-  /*    rect.left++; */
-  /*    rect.top++; */
-  rect.right--;
-  rect.bottom--;
-  
+  rect.right = rect.left + FONT_WIDTH (f->output_data.win32->font);
+  rect.bottom = rect.top + f->output_data.win32->line_height;
+
   FrameRect (hdc, &rect, hb);
-  
   DeleteObject (hb);
-  
-  ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+
+  ReleaseFrameDC (f, hdc);
 }
 
 /* Clear the cursor of frame F to background color,
@@ -3016,8 +3020,8 @@ x_calc_absolute_position (f)
       rt.left = rt.right = rt.top = rt.bottom = 0;
       
       BLOCK_INPUT;
-      AdjustWindowRect(&rt, f->output_data.win32->dwStyle,
-		       FRAME_EXTERNAL_MENU_BAR (f));
+      AdjustWindowRect (&rt, f->output_data.win32->dwStyle,
+			FRAME_EXTERNAL_MENU_BAR (f));
       UNBLOCK_INPUT;
 
       pt.x += (rt.right - rt.left);
@@ -3124,8 +3128,8 @@ x_set_window_size (f, change_gravity, cols, rows)
     rect.right = pixelwidth;
     rect.bottom = pixelheight;
       
-    AdjustWindowRect(&rect, f->output_data.win32->dwStyle,
-		     FRAME_EXTERNAL_MENU_BAR (f));
+    AdjustWindowRect (&rect, f->output_data.win32->dwStyle,
+		      FRAME_EXTERNAL_MENU_BAR (f));
       
     /* All windows have an extra pixel */
 
@@ -3368,7 +3372,8 @@ x_make_frame_invisible (f)
 
 /* Change window state from mapped to iconified. */
 
-void x_iconify_frame (f)
+void
+x_iconify_frame (f)
      struct frame *f;
 {
   int result;
@@ -3442,12 +3447,12 @@ x_wm_set_size_hint (f, flags, user_position)
 
   flexlines = f->height;
 
-  enter_crit ();
+  enter_crit (CRIT_MSG);
 
   SetWindowLong (window, WND_X_UNITS_INDEX, FONT_WIDTH (f->output_data.win32->font));
   SetWindowLong (window, WND_Y_UNITS_INDEX, f->output_data.win32->line_height);
 
-  leave_crit ();
+  leave_crit (CRIT_MSG);
 }
 
 /* Window manager things */
@@ -3500,7 +3505,7 @@ win32_term_init (display_name, xrm_option, resource_name)
   char *defaultvalue;
   struct win32_display_info *dpyinfo;
   HDC hdc;
-  
+
   BLOCK_INPUT;
   
   if (!win32_initialized)
@@ -3531,7 +3536,7 @@ win32_term_init (display_name, xrm_option, resource_name)
   win32_display_name_list = Fcons (Fcons (display_name, Qnil),
 				   win32_display_name_list);
   dpyinfo->name_list_element = XCONS (win32_display_name_list)->car;
-  
+
   dpyinfo->win32_id_name
     = (char *) xmalloc (XSTRING (Vinvocation_name)->size
 			+ XSTRING (Vsystem_name)->size
@@ -3547,7 +3552,7 @@ win32_term_init (display_name, xrm_option, resource_name)
      all versions.  */
   dpyinfo->xrdb = xrdb;
 #endif
-  hdc = my_get_dc (GetDesktopWindow ());
+  hdc = GetDC (GetDesktopWindow ());
   
   dpyinfo->height = GetDeviceCaps (hdc, VERTRES);
   dpyinfo->width = GetDeviceCaps (hdc, HORZRES);
@@ -3556,6 +3561,7 @@ win32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->n_cbits = GetDeviceCaps (hdc, BITSPIXEL);
   dpyinfo->height_in = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->width_in = GetDeviceCaps (hdc, LOGPIXELSY);
+  dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->n_fonts = 0;
@@ -3576,6 +3582,13 @@ win32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->win32_highlight_frame = 0;
   
   ReleaseDC (GetDesktopWindow (), hdc);
+
+  /* initialise palette with white and black */
+  {
+    COLORREF color;
+    defined_color (0, "white", &color, 1);
+    defined_color (0, "black", &color, 1);
+  }
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -3626,6 +3639,21 @@ x_delete_display (dpyinfo)
 	}
     }
 
+  /* free palette table */
+  {
+    struct win32_palette_entry * plist;
+
+    plist = dpyinfo->p_colors_in_use;
+    while (plist)
+      {
+	struct win32_palette_entry * pentry = plist;
+	plist = plist->next;
+	xfree (pentry);
+      }
+    dpyinfo->p_colors_in_use = NULL;
+    if (dpyinfo->h_palette)
+      DeleteObject (dpyinfo->h_palette);
+  }
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->win32_id_name);
 }
