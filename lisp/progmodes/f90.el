@@ -156,10 +156,8 @@
 
 ;;; Code:
 
-(eval-when-compile 
-  (defvar comment-auto-fill-only-comments)
-  (defvar font-lock-keywords)
-  (defvar imenu--index-alist))
+(defvar comment-auto-fill-only-comments)
+(defvar font-lock-keywords)
 
 ;; User options
 
@@ -477,8 +475,8 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     ["Insert Block End"    f90-insert-end t]
     "--"
     ("Highlighting"
-     ["Toggle font-lock-mode" font-lock-mode :active t
-      :selected font-lock-mode :style toggle]
+     ["Toggle font-lock-mode" font-lock-mode :selected font-lock-mode
+      :style toggle]
      "--"
      ["Light highlighting (level 1)"    f90-font-lock-1 t]
      ["Moderate highlighting (level 2)" f90-font-lock-2 t]
@@ -496,13 +494,12 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
      ["Downcase Keywords (region)"   f90-downcase-region-keywords mark-active]
      )
     "--"
-    ["Toggle auto-fill"   auto-fill-mode :active t :selected auto-fill-function
+    ["Toggle auto-fill"   auto-fill-mode :selected auto-fill-function
      :style toggle]
-    ["Toggle abbrev-mode" abbrev-mode    :active t :selected abbrev-mode
-     :style toggle]
+    ["Toggle abbrev-mode" abbrev-mode    :selected abbrev-mode :style toggle]
     ["Add imenu Menu" f90-add-imenu-menu
-     :active (or (not (boundp 'imenu--index-alist)) (not imenu--index-alist))
-     :visible (fboundp 'imenu-add-to-menubar)]
+     :active (not (lookup-key (current-local-map) [menu-bar index]))
+     :included (fboundp 'imenu-add-to-menubar)]
     ))
 
 (defun f90-font-lock-1 ()
@@ -603,7 +600,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 (defun f90-add-imenu-menu ()
   "Add an imenu menu to the menubar."
   (interactive)
-  (if (and (boundp 'imenu--index-alist) imenu--index-alist)
+  (if (lookup-key (current-local-map) [menu-bar index])
       (message "%s" "F90-imenu already exists.")
     (imenu-add-to-menubar "F90-imenu")
     (redraw-frame (selected-frame))))
@@ -1324,7 +1321,7 @@ after indenting."
   (interactive)
   (let (indent no-line-number (pos (make-marker)) (case-fold-search t))
     (set-marker pos (point))
-    (beginning-of-line)			; digits after & \n are not line-nos
+    (beginning-of-line)                ; digits after & \n are not line-nos
     (if (save-excursion (and (f90-previous-statement) (f90-line-continued)))
 	(progn (setq no-line-number t) (skip-chars-forward " \t"))
       (f90-indent-line-no))
@@ -1351,7 +1348,7 @@ If run in the middle of a line, the line is not broken."
   (interactive)
   (let (string cont (case-fold-search t))
     (if abbrev-mode (expand-abbrev))
-    (beginning-of-line)			; reindent where likely to be needed
+    (beginning-of-line)                ; reindent where likely to be needed
     (f90-indent-line-no)
     (f90-indent-line 'no-update)
     (end-of-line)
@@ -1400,8 +1397,8 @@ If run in the middle of a line, the line is not broken."
 		       f90-if-indent)
 		      ((setq struct (f90-looking-at-type-like))
 		       f90-type-indent)
-		      ((or(setq struct (f90-looking-at-program-block-start))
-			  (looking-at "contains[ \t]*\\($\\|!\\)"))
+		      ((or (setq struct (f90-looking-at-program-block-start))
+                           (looking-at "contains[ \t]*\\($\\|!\\)"))
 		       f90-program-indent)))
     (if ind-b (setq ind-lev (+ ind-lev ind-b)))
     (if struct (setq block-list (cons struct block-list)))
