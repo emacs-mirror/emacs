@@ -246,22 +246,12 @@ returns an empty string.
 The @code{concat} function always constructs a new string that is
 not @code{eq} to any existing string.
 
-When an argument is an integer (not a sequence of integers), it is
-converted to a string of digits making up the decimal printed
-representation of the integer.  @strong{Don't use this feature; we plan
-to eliminate it.  If you already use this feature, change your programs
-now!}  The proper way to convert an integer to its decimal printed form
-is with @code{format} (@pxref{Formatting Strings}) or
+In Emacs versions before 21, when an argument was an integer (not a
+sequence of integers), it was converted to a string of digits making up
+the decimal printed representation of the integer.  This obsolete usage
+no longer works.  The proper way to convert an integer to its decimal
+printed form is with @code{format} (@pxref{Formatting Strings}) or
 @code{number-to-string} (@pxref{String Conversion}).
-
-@example
-@group
-(concat 137)
-     @result{} "137"
-(concat 54 321)
-     @result{} "54321"
-@end group
-@end example
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
