@@ -778,7 +778,8 @@ output from the current command if that happens to be appropriate."
 	(gdb-invalidate-registers)
 	(gdb-invalidate-locals)
 	(gdb-invalidate-threads)
-	(unless (eq window-system 'mac)
+	(unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
+	  ;; FIXME: with GDB-6 on Darwin, this might very well work.
 	  (dolist (frame (frame-list))
 	    (when (string-equal (frame-parameter frame 'name) "Speedbar")
 	      (setq gdb-var-changed t)    ; force update
