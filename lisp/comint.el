@@ -1396,9 +1396,11 @@ RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
 filter and C-g is pressed, this function returns nil rather than a string).
 
 Note that the keystrokes comprising the text can still be recovered
-\(temporarily) with \\[view-lossage].  This may be a security bug for some
-applications."
+\(temporarily) with \\[view-lossage].  Some people find this worrysome.
+Once the caller uses the password, it can erase the password
+by doing (fillarray STRING 0)."
   (let ((ans "")
+	(newans nil)
 	(c 0)
 	(echo-keystrokes 0)
 	(cursor-in-echo-area t)
@@ -1423,10 +1425,14 @@ applications."
 	    ((or (= c ?\r) (= c ?\n) (= c ?\e))
 	     (setq done t))
 	    ((= c ?\C-u)
+	     (fillarray ans 0)
 	     (setq ans ""))
 	    ((and (/= c ?\b) (/= c ?\177))
-	     (setq ans (concat ans (char-to-string c))))
+	     (setq newans (concat ans (char-to-string c)))
+	     (fillarray ans 0)
+	     (setq ans newans))
 	    ((> (length ans) 0)
+	     (aset ans (1- (length ans)) 0)
 	     (setq ans (substring ans 0 -1)))))
     (if quit-flag
         ;; Emulate a true quit, except that we have to return a value.
