@@ -5,7 +5,7 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2000-07-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Activate.c (XMenuActivate): Call help callback with two more
@@ -397,24 +397,24 @@
 
 	* Makefile (CC): Assignment commented out.
 
-1991-11-16  Noah Friedman  (friedman at nutrimat)
+1991-11-16  Noah Friedman  (friedman@nutrimat)
 
         * copyright.h: New file (copied from X11R4 distribution)
         * All files: Replaced occurrences of #include <X11/copyright.h>
           with #include "copyright.h"
 
-1991-10-25  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+1991-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* XMenu.h (enum _xmmode): Remove spurious comma.
 
 	* X10.h: New file.
 	* XMenu.h, XMenuInt.h: Include X10.h from this dir.
 
-1990-11-13  Richard Stallman  (rms at mole.ai.mit.edu)
+1990-11-13  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* XMenu.h (struct _xmenu): Use unsigned long for colors.
 
-1990-11-12  Richard Stallman  (rms at mole.ai.mit.edu)
+1990-11-12  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* Internal.c: Declare argument `display' in some functions.
 

@@ -67,7 +67,7 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-10-02  Miles Bader  <miles@gnu.org>
 
 	* minibuf.texi (Minibuffer Misc): Add entries for
@@ -89,7 +89,7 @@
 2001-09-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keymaps.texi (Creating Keymaps): Fix the description of the
-	result of make-keymap. 
+	result of make-keymap.
 
 2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -376,14 +376,14 @@ Tue Feb 23 10:50:25 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 	* Makefile (dist): Don't bother excluding autosave files; they'll
 	never make it into the temp directory anyway, and the hash marks
 	in the name are problematic for make and the Bourne shell.
-	(srcs): 
+	(srcs):
 
 Fri Feb 12 16:54:38 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* Makefile (dist): Don't include backup files or autosave files in
 	the distribution tar file.
 
-Tue Nov 26 21:10:34 1991  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+Tue Nov 26 21:10:34 1991  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* Makefile (srcs): Added index.perm.
 	(elisp.dvi): Remove erroneous shell comment.
@@ -391,11 +391,11 @@ Tue Nov 26 21:10:34 1991  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
 	Save old elisp.aux in elisp.oaux.
 	(clean): Added index.texi to be deleted.
 
-Sat Aug 11 17:39:10 1990  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+Sat Aug 11 17:39:10 1990  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* Makefile (elisp.dvi, index.texi): Use shell if instead of ifdef.
 
-Tue Jun 26 09:57:26 1990  David Lawrence  (tale at geech)
+Tue Jun 26 09:57:26 1990  David Lawrence  (tale@geech)
 
 	* files.texi:  Noted that completion-ignored-extensions is ignored
 	when making *Completions*.
@@ -405,16 +405,16 @@ Fri Jun  8 16:44:44 EDT 1990 Jay Fenlason (hack@ai.mit.edu)
 	* Makefile  make dist now depends on elisp.dvi, since it tries
 	to include it in the dist file.
 
-Wed Mar 28 22:57:35 1990  Jim Kingdon  (kingdon at mole.ai.mit.edu)
+Wed Mar 28 22:57:35 1990  Jim Kingdon  (kingdon@mole.ai.mit.edu)
 
 	* functions.texinfo (Mapping Functions): Add missing quote
 
-Mon Jun 19 18:09:24 1989  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+Mon Jun 19 18:09:24 1989  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* texinfo.tex (frenchspacing): Use decimal codes for char to be set.
 	(defunargs): Turn off \hyphenchar of \sl font temporarily.
 
-Wed May 10 18:01:17 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+Wed May 10 18:01:17 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* @result{}, @expansion{}, @print{}, @quiv{}, @point{},
 	and @error{} are the terms now being used.  The files in the
@@ -423,21 +423,21 @@ Wed May 10 18:01:17 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
 	* All instances of @indentedresultt{} have been changed to
 	`     @result{}', using 5 spaces at the begining of the line.
 
-Mon Apr 24 21:02:55 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+Mon Apr 24 21:02:55 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* @result{}, @expandsto{}, @prints{}, @quiv{}, @error{}, and the
 	experimental @indentedresult{}, @indentedexpandsto{} are part of
 	the texinfo.tex in this directory.  These TeX macros are not
 	stable yet.
 
-Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* texinfo.tex:  temporarily added
 		\let\result=\dblarrow
 		\def\error{{\it ERROR} \longdblarrow}
 	We need to do this better soon.
 
-Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* Applied Karl Berry's patches to *.texinfo files, but not to
 	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'. (Karl's

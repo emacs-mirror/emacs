@@ -25,25 +25,25 @@
 	* (Version 21.1 released.)
 
 2001-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper.texi: Clarified that viper won't expand special symbols in
 	search patterns.
-	
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-08-21  Andrew Choi  <akochoi@i-cable.com>
 
 	* macos.texi: Change mac-filename-to-unix and unix-filename-to-mac
 	to mac-file-name-to-posix and posix-file-name-to-mac, resp.
 
 2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper.texi: Added credits, new commands, like :make.
-	
+
 	* ediff.texi: added credits.
-	
+
 2001-06-08  Carsten Dominik  <dominik@astro.uva.nl>
 
 	* reftex.texi: Updated to version 4.16
@@ -77,7 +77,7 @@
 	* cc-mode.texi: Updated to CC mode version 5.28.
 
 2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper.texi: Added credits.
 
 2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -1027,36 +1027,36 @@
 		     Assembler mode is now mentioned and appropriately
 		     indexed under Programming Modes.
 
-1991-02-15  Robert J. Chassell  (bob at wookumz.ai.mit.edu)
+1991-02-15  Robert J. Chassell  (bob@wookumz.ai.mit.edu)
 
         * emacs.tex: Updated TeX ordering information.
 
-1990-08-30  David Lawrence  (tale at pogo.ai.mit.edu)
+1990-08-30  David Lawrence  (tale@pogo.ai.mit.edu)
 
 	* gnus.texinfo:  New file.  Removed installation instructions.
 
-1990-06-26  David Lawrence  (tale at geech)
+1990-06-26  David Lawrence  (tale@geech)
 
 	* emacs.tex:  Noted that completion-ignored-extensions is not used
 	to filter out names when all completions are displayed in
 	*Completions*.
 
-1990-05-25  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
 
-1990-03-21  Jim Kingdon  (kingdon at pogo.ai.mit.edu)
+1990-03-21  Jim Kingdon  (kingdon@pogo.ai.mit.edu)
 
 	* emacs.tex: Add @findex grep.
 
-1989-01-17  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* texinfo.tex:  Changed spelling of `\sc' font to `\smallcaps' and
 	then defined `\sc' as the command for smallcaps in Texinfo.  This
 	measns that the @sc command will produce small caps.  bfox has
 	made the corresponding change to makeinfo and texinfm.el.
 
-1988-08-16  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+1988-08-16  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
 
 	* emacs.tex:  Corrected two typos.  No other changes before
 	Version 19 will be made.
@@ -1070,11 +1070,11 @@
 	This file is clearly intended to be a chapter of some other work,
 	but the other work does not yet exist.
 
-1988-07-25  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+1988-07-25  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
 
 	* texinfo.texinfo: Three typos corrected.
 
-1988-05-23  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+1988-05-23  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
 
 	* emacs.tex: Update information for obtaining TeX distribution from the
 	University of Washington.

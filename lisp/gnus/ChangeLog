@@ -11,7 +11,7 @@
 
 	* mml.el (mml-generate-mime-1): Use mm-with-unibyte-current-buffer.
 	Suggested by  Dave Love  <fx@gnu.org>.
-	
+
 2001-11-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-synonym-alist): Revert (some).
@@ -50,7 +50,7 @@
 	(mm-find-mime-charset-region): Re-write.
 	(mm-with-unibyte-current-buffer): Restore buffer as well as
 	multibyteness.
-	
+
 2001-10-30  Simon Josefsson  <jas@extundo.com>
 
 	* nnimap.el (nnimap-date-days-ago): Defeat locale.
@@ -5710,9 +5710,9 @@
 
 	* pop3.el: New version.
 
-1999-07-05  Simon Josefsson
+1999-07-05  Simon Josefsson  <jas@pdc.kth.se>
 
-        * gnus-srvr.el (gnus-browse-foreign-server): Use read.
+	* gnus-srvr.el (gnus-browse-foreign-server): Use read.
 
 1999-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

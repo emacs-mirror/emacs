@@ -14,7 +14,7 @@
 
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* configure.in: AC_OUTPUT lispref/Makefile. 
+	* configure.in: AC_OUTPUT lispref/Makefile.
 
 	* configure: Regenerated.
 
@@ -58,7 +58,7 @@
 
 	* configure.in: Reindent --help output.
 	From Per Starback (starback@ling.uu.se).
-	
+
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: New entry for HP/UX-11.
@@ -117,12 +117,12 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Avoid `$@' which is handled specially in
 	Autoconf 2.52.  From "Adam J. Richter" <adam@yggdrasil.com>.
-	
+
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist (nt): Add subdirs.el to the list of distributed files.
@@ -150,7 +150,7 @@
 
 	* make-dist: Copy only `[a-z]*.{el,elc}' from leim/quail.
 	Don't copy quick-b5, quick-cns, tsang-b5, and tsang-cns files.
-	
+
 	* make-dist: Handle leim/MISC-DIC.  Only include
 	`[a-zA-Z]*.{el,elc}' from leim/quail.
 
@@ -203,7 +203,7 @@
 	* mkinstalldirs (errstatus): Chmod a+rx directories we create.
 
 	* Makefile.in (uninstall): Ignore exit code of `rm'.
-	
+
 	* Makefile.in (uninstall): Remove more info files.  Remove
 	${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
 
@@ -276,10 +276,10 @@
 	Merge fixes from latest GNU tar version.  These macros no longer
 	futz with _XOPEN_SOURCE, as that was not portable in practice.
 	(AC_FUNC_FSEEKO): New macro.
-	
+
 	* configure.in: Use it instead of invoking AC_CHECK_FUNCS on
 	ftello.
-	
+
 2000-12-05  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (TAGS, info): Avoid tab-prefixed comments in rules.
@@ -307,7 +307,7 @@
 
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* configure.in: Use m/macppc.h instead of the non-existent 
+	* configure.in: Use m/macppc.h instead of the non-existent
 	m/powerpc.h.
 
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
@@ -405,8 +405,8 @@
 
 2000-09-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* leim-Makefile.in (TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5) 
-	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN) 
+	* leim-Makefile.in (TIT-GB, TIT-BIG5, NON-TIT-GB, NON-TIT-BIG5)
+	(NON-TIT-CNS, JAPANESE, KOREAN, THAI, VIETNAMESE, LAO, INDIAN)
 	(TIBETAN, LATIN, SLAVIC, GREEK, RUSSIAN, MISC): Rename all .el
 	files to .elc.
 	(${TIT}): Adjusted for the above change.
@@ -444,7 +444,7 @@
 
 	* configure.in (REL_ALLOC_MMAP): Recognize in system configuration
 	file and print informational message.
-	
+
 	* configure.in (AC_FUNC_MMAP): Add.
 
 2000-09-01  Gerd Moellmann  <gerd@gnu.org>
@@ -569,7 +569,7 @@
 
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in (distclean): Also make distclean in lisp/. 
+	* Makefile.in (distclean): Also make distclean in lisp/.
 
 2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -582,7 +582,7 @@
 2000-06-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Generate lisp/Makefile.
-	
+
 	* configure.in: Add support for `*-lynxos*'.
 	Use `cpp' as NON_GNU_CPP for `alpha*-dec-osf[5-9]*', as
 	recommended by <Karen.Dorhamer@compaq.com> to fix problems
@@ -672,7 +672,7 @@
 	New targets.
 	(bootstrap): Rewritten in terms of the new targets above.  Make
 	info files, too.
-	
+
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* config.guess, config.sub: Use the versions of the files from
@@ -689,11 +689,11 @@
 
 	* configure.in (machine): Add `mipsel-*-netbsd*' and
 	`arm-*-netbsd*'.
-	
+
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
-	
+
 	* configure.in (machine): Add support for `*-auspex-sunos*'.
-	
+
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (C_OPTIMIZE_SWITCH) [__GNUC__]: Use -O2.
@@ -802,7 +802,7 @@
 	(AC_CHECK_FUNCS): Add __fpending, ftello, getloadavg, mblen,
 	mbrlen, strsignal.
 	(LOCALTIME_CACHE): Don't include stdlib.h, as config.h does this now.
-	
+
 1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* make-dist (dontcompile): look for the DONTCOMPILE variable rather
@@ -810,7 +810,7 @@
 
 1999-10-09  Richard M. Stallman  <rms@gnu.org>
 
-	* Makefile.in (uninstall, install-arch-indep, install-arch-dep): 
+	* Makefile.in (uninstall, install-arch-indep, install-arch-dep):
 	Unset CDPATH to prevent cd from generating output.
 
 1999-10-08  Stefan Monnier  <monnier@cs.yale.edu>
@@ -820,7 +820,7 @@
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (install-arch-indep): Add ada-mode.
-	
+
 1999-10-06  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Add rules for config.status, configure.
@@ -1230,7 +1230,7 @@
 
 	* update-subdirs: Delete subdirs.el if this dir has no subdirs.
 	Ignore subdirs named Old.
-	
+
 1997-08-04  Kenneth Stailey  <kstailey@elbereth.disclosure.com>
 
 	* configure.in: Add OpenBSD clause to set $machine.
@@ -1240,7 +1240,7 @@
 	* make-dist: Recompile everything after updating various Lisp files.
 	Recompile in leim as well as lisp.
 	Check in leim as well as lisp for mismatched files and too-long names.
-	
+
 1997-09-03  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (TAGS tags): Simply refer this to the src subdir.
@@ -1323,7 +1323,7 @@
 
 1997-07-25  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
-	* configure.in (doug_lea_malloc): Make __after_morecore_hook a 
+	* configure.in (doug_lea_malloc): Make __after_morecore_hook a
 	prerequisite to the use of Doug Lea's malloc.
 
 1997-07-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1378,7 +1378,7 @@
 
 	* make-dist: Don't mention site-lisp, site-init, site-start
 	or default, when listing files hat are not compiled and should be.
-	
+
 	* configure.in: Create src/config.stamp at the end.
 
 1997-07-04  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1389,7 +1389,7 @@
 
 	* Makefile.in (install-leim): New target.
 	(install): Depend on install-leim.
-	
+
 1997-07-01  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (SUBDIR): Add leim.
@@ -1455,7 +1455,7 @@
 	since make-dist now gets that done.
 
 	* make-dist: Use the new `updates' target in lisp/Makefile.
-	
+
 	* make-dist: Use new non-file targets in lisp/Makefile.
 
 1997-04-27  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1463,7 +1463,7 @@
 	* make-dist: Handle all subdirs of `lisp' uniformly.
 	Don't handle `term' and `language' specially.
 	Clear out umask at the beginning.
-	
+
 1997-04-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* make-dist: Use Make to update finder-inf.el and autoloads.
@@ -1496,7 +1496,7 @@
 
 	* make-dist: Use $EMACS to say where to run Emacs.
 	Add --no-update option.
-	
+
 1996-12-30  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
 	* configure.in (hppa1.1-hitachi-hiuxmpp): New configuration.
@@ -1508,7 +1508,7 @@
 	and *.opt and ChangeLog files.
 	(copying lib-src): Likewise.
 	Don't rm getdate.c or y.tab.*--they don't exist any more.
-	
+
 1996-12-18  Jonathan I. Kamens  <jik@annex-1-slip-jik.cam.ov.com>
 
 	* configure.in: Check for libmail, maillock.h and
@@ -1561,7 +1561,7 @@
 
 1996-09-04  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
-	* configure.in: Check for termios.h.  Check for setpgid. 
+	* configure.in: Check for termios.h.  Check for setpgid.
 
 1996-08-31  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
@@ -1595,7 +1595,7 @@
 	Use sunos413, not sunos4-1-3.
 	(m88k-dg-dgux5.4R3*): Use dgux5-4-3, not dgux5-4r3.
 	(arm-acorn-riscix1.2*): Use riscix12, not riscix1-2.
-	
+
 1996-08-22  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in (src/paths.h): Target deleted.
@@ -1683,7 +1683,7 @@
 	* config.sub: If last two words are not a recognized
 	KERNEL-OS pair, use just the last word as OS, as in 19.31.
 	Make conversion of gnu/linux to linux-gnu really work.
-	
+
 	* config.sub: If vendor unspecified with i386, use `pc' not `unknown'.
 
 1996-06-30  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1741,7 +1741,7 @@
 	* Makefile.in (install-arch-indep): If cd etc makes output,
 	don't treat that as part of the tar data.
 	Check that ./lisp actually exists.
-	
+
 1996-05-29  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
 	* make-dist: Check for long file names.
@@ -1812,7 +1812,7 @@
 	* configure.in (setlocale): Check for it.
 
 	* configure.in (*-*-sysv4.2*): If no /usr/ccs/lib/cpp, use /lib/cpp.
-	
+
 1996-03-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* configure.in: Use lignux instead of linux as value of opsys.
@@ -3286,7 +3286,7 @@
 	(checking ${with_gcc}): If "no", don't override CC if already set.
 	(CC): Initialize it as empty.
 
-1993-11-30  Richard Stallman  (rms at srarc2)
+1993-11-30  Richard Stallman  (rms@srarc2)
 
 	* configure.in (Suns): Set CPP if *-solaris2.3*.
 
@@ -4999,19 +4999,19 @@
 	* config.emacs: Make sure to set the "exit on error" flag once
 	we've removed config.status; errors should abort the configuration.
 
-1992-02-15  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+1992-02-15  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* config.emacs: Added -distribute option, so that the Makefile
 	paths are in their proper form.  I don't know why this matters.
 
-1992-02-14  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+1992-02-14  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* local-lisp: New directory, empty in the distribution, for people
 	to put local elisp code in.
 	* config.emacs: Include it in the default load path.
 	* README: Document it.
 
-1992-01-30  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+1992-01-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* config.emacs: Guess the type of signal handling functions based
 	on the contents of /usr/include/signal.h.
@@ -5032,7 +5032,7 @@
 
         * Makefile (install): Remove `B' from tar xf command.
 
-1992-01-13  Jim Blandy  (jimb at pogo.cs.oberlin.edu)
+1992-01-13  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* config.emacs: Removed support for the `maintain-environment'
 	option; the only important difference between this and its absence
@@ -5042,7 +5042,7 @@
 	* config.emacs: Fix arguments to sed when processing boolean
 	arguments.
 
-1991-12-05  Jim Blandy  (jimb at pogo.gnu.ai.mit.edu)
+1991-12-05  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* config.emacs: New file, to help automate the installation
         process.
@@ -5064,34 +5064,34 @@
 
 	* vms: New subdirectory for all the VMS stuff.
 
-1991-12-03  Jim Blandy  (jimb at pogo.gnu.ai.mit.edu)
+1991-12-03  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
 
 	* Makefile (LISPPATH): New variable.
 	(src/paths.h): Define PATH_LOADSEARCH according to LISPPATH.
 
-1990-09-28  Richard Stallman  (rms at mole.ai.mit.edu)
+1990-09-28  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* Makefile (install, install.sysv, install.xenix):
 	Install wakeup instead of loadst.  No need for setuid or setgid.
 
-1990-08-07  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+1990-08-07  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* Makefile (clean): Clean etc if that's not the installation dir.
 
-1990-04-26  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+1990-04-26  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* Makefile (paths.h): Make sed alter each name in the path.
 
-1988-08-30  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+1988-08-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* Makefile (install.sysv): Use cpio, not tar.
 
-1988-08-03  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+1988-08-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* Makefile (lockdir): Rename `lock' target.
 	Depend on it from install*, not from `all'.
 
-1988-05-16  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+1988-05-16  Richard Stallman  (rms@frosted-flakes.ai.mit.edu)
 
 	* Makefile: Changed LIBDIR and BINDIR back to /usr/local/{emacs,bin}
 	to match build-install and paths.h.
