@@ -275,6 +275,7 @@ if that value is non-nil."
 (put 'element 'scheme-indent-function 1)
 (put 'mode 'scheme-indent-function 1)
 (put 'with-mode 'scheme-indent-function 1)
+(put 'make 'scheme-indent-function 1)
 
 (defvar dsssl-font-lock-keywords
   '(("(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\\((?\\)\\(\\sw+\\)\\>"
