@@ -166,7 +166,7 @@ with the cdr.")
 	(kill-line nil)
 	(forward-line 1)
 	)
-      (insert-string new-key))
+      (insert new-key))
     (newline)))
 
 (defun mark-bib ()
