@@ -232,7 +232,9 @@ format style.")
     (modify-syntax-entry ?/ "." table)
     (modify-syntax-entry ?\' "\"" table)
     (modify-syntax-entry ?\" "\"" table)
-    (modify-syntax-entry ?\\ "\\" table)
+;;; Supposedly this is mistaken; Fortran does not treat \ as an escape.
+;;;    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?\\ "." table)
     ;; This might be better as punctuation, as for C, but this way you
     ;; can treat floating-point numbers as symbols.
     (modify-syntax-entry ?. "_" table)	; e.g. `a.ne.b'
