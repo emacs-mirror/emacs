@@ -58,7 +58,7 @@
 	   (iso-8859-14 . (nil . "ISO8859-14"))
 	   (iso-8859-15 . (nil . "ISO8859-15"))
 	   (chinese-gb2312 . (nil . "GB2312.1980-0"))
-	   (japanese-jisx0208 . (nil . "JISX0208.1990*"))
+	   (japanese-jisx0208 . (nil . "JISX0208*"))
 	   (korean-ksc5601 . (nil . "KSC5601.1987*"))
 	   (japanese-jisx0212 . (nil . "JISX0212*"))
 	   (big5 . (nil . "Big5"))
@@ -135,6 +135,7 @@
 	("JISX0208.1978" . japanese-jisx0208-1978)
 	("GB2312.1980" . chinese-gb2312)
 	("JISX0208.1990" . japanese-jisx0208)
+	("JISX0208.1983" . japanese-jisx0208)
 	("KSC5601.1987" . korean-ksc5601)
 	("JISX0212" . japanese-jisx0212)
 	("CNS11643.1992-1" . chinese-cns11643-1)
@@ -163,7 +164,8 @@
 	("JISX0213.2000-1" . japanese-jisx0213-1)
 	("JISX0213.2000-2" . japanese-jisx0213-2)
 	("abobe-symbol" . symbol)
-	("ISO10646-1" . unicode)))
+	("ISO10646-1" . unicode)
+	("ISO10646.indian-1" . unicode)))
 
 ;; Set arguments in `font-encoding-alist' (which see).
 (defun set-font-encoding (pattern charset)
