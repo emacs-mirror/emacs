@@ -1,7 +1,7 @@
 #
 #     BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
-# $HopeName: MMsrc/!o1algc.gmk(trunk.1)$
+# $HopeName: MMsrc!o1algc.gmk(trunk.2) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -12,9 +12,9 @@
 #
 
 PFM = o1algc
-PFMDEFS = -DOS_OSF1 -DARCH_ALPHA -DBUILD_GCC -D_ANSI_C_SOURCE
+PFMDEFS = -D_ANSI_C_SOURCE
 
-STD = asrtosan.c assert.c deque.c error.c liban.c meter.c misc.c sig.c
+STD = assert.c deque.c error.c liban.c meter.c misc.c
 MPM = arenan.c space.c pool.c poolclas.c poolmfs.c \
       poolmv.c pools.c root.c fix.c format.c buffer.c lockan.c
 AMC = poolamc.c
