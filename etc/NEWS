@@ -475,7 +475,7 @@ finished.
 
 ** New function substring-no-properties.
 
-+++
+---
 ** The new primitive `tty-display-color-cells' returns the number of
 distinct colors supported by a character terminal.
 
