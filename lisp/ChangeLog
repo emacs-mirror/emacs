@@ -1,3 +1,23 @@
+1999-10-19  Peter Kleiweg  <kleiweg@let.rug.nl>
+	
+	* progmodes/ps-mode.el (ps-mode-print-function): Fix default
+	value: \"lpr\" changed to "lpr"
+	(ps-mode-version): New constant
+	(ps-mode-show-version): New function, added key in ps-mode-map
+	(ps-run-messages): Removed
+	(ps-run-font-lock-keywords-2): New defcustom variable replacing
+	ps-run-messages. These keywords now include the value of
+	ps-run-prompt, making its fontification customizable.
+	(ps-run-init): Removed \\n from docstring, it is now added when
+	the value is used
+	(ps-run-font-lock-keywords-1): Added checking for initial ^ in
+	ps-run-prompt
+	(ps-mode): Added ps-run-font-lock-keywords-2 to list of
+	customizable variables in doc-string (it's equivalent
+	ps-run-messages was missing in previous version of the doc-string)
+	(ps-run-mode): Simplified assignment to font-lock-defaults, using
+	symbols only
+	
 1999-10-19  Alex Schroeder  <alex@gnu.org>
 
 	* ansi-color.el: Complete rewrite.
