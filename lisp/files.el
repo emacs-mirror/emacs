@@ -1169,6 +1169,9 @@ If `enable-local-variables' is nil, this function does not check for a
 (put 'outline-level 'risky-local-variable t)
 (put 'rmail-output-file-alist 'risky-local-variable t)
 
+;; This one is safe because the user gets to check it before it is used.
+(put 'compile-command 'safe-local-variable t)
+
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
 
@@ -1183,8 +1186,10 @@ If `enable-local-variables' is nil, this function does not check for a
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
-	     (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$"
-			   (symbol-name var)))
+	     (and
+	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$"
+			    (symbol-name var))
+	      (not (get var 'safe-local-variable))))
 	 ;; Permit evaling a put of a harmless property
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
