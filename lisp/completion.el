@@ -292,7 +292,7 @@ If nil, no new words added to the database or saved to the init file."
 
 (defcustom save-completions-flag t
   "*Non-nil means save most-used completions when exiting Emacs.
-See also `saved-completions-retention-time'."
+See also `save-completions-retention-time'."
   :type 'boolean
   :group 'completion)
 
