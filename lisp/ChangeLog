@@ -1,3 +1,8 @@
+2004-11-09  Stefan  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-intern): Revert to no-downcasing.
+	(easy-menu-name-match): Revert correspondingly.
+
 2004-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-defalias):
@@ -18,22 +23,31 @@
 2004-11-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-mode-hook, calc-trail-mode-hook)
-	(calc-start-hook, calc-end-hook, calc-load-hook):  New variables. 
+	(calc-start-hook, calc-end-hook, calc-load-hook):  New variables.
 
-	* calc/calc.el (calc, calc-trail-display, calc-mode):  Removed
-	obsolete sections. 
+	* calc/calc.el (calc, calc-trail-display, calc-mode):
+	Remove obsolete sections.
 
-	* calc/calc.el (calc-x-paste-text):  Removed.
+	* calc/calc.el (calc-x-paste-text):  Remove.
 
-	* calc/calc-ext.el (calc-init-extensions):  Bound calc-yank to
-	mouse-2. 
-	
+	* calc/calc-ext.el (calc-init-extensions):  Bind calc-yank to
+	mouse-2.
+
 2004-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-current-stack-level): New variable.
 	(gdb-info-frames-custom, gdb-frame-handler): Use it to find
 	current frame (in case of recursive calls).
 	(gdb-show-changed-values): Add :version keyword.
+
+2004-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule.el: Fix some warnings.
+
+	* international/mule-cmds.el: Change coding-system to utf-8.
+	(select-safe-coding-system-interactively):
+	New function extracted from select-safe-coding-system.
+	(select-safe-coding-system): Use it.
 
 2004-11-08  Richard M. Stallman  <rms@gnu.org>
 
@@ -60,16 +74,16 @@
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcalg2.el (math-do-integral-methods):  Try linear then
-	non-linear substitutions. 
+	non-linear substitutions.
 
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcalg2.el (math-linear-subst-tried): New variable.
-	(math-do-integral):  Set `math-linear-subst-tried' to nil. 
+	(math-do-integral):  Set `math-linear-subst-tried' to nil.
 	(math-do-integral-methods):  Use `math-linear-subst-tried' to
-	determine what type of substitution to try. 
-	(math-integ-try-linear-substituion):  Set
-	`math-linear-subst-tried' to t.
+	determine what type of substitution to try.
+	(math-integ-try-linear-substituion):
+	Set `math-linear-subst-tried' to t.
 
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
@@ -91,7 +105,7 @@
 	* simple.el (next-error group, face): Move before first use.
 	(next-error-highlight, next-error-highlight-no-select): Likewise.
 
-	* simple.el (line-move-invisible-p): Renamed from line-move-invisible.
+	* simple.el (line-move-invisible-p): Rename from line-move-invisible.
 	(line-move): New args NOERROR and TO-END.
 	Return t if if succeed in moving specified number of lines.
 	(move-end-of-line): New function.
@@ -105,21 +119,21 @@
 
 	* emacs-lisp/elp.el (elp-results): Delete wasteful beginning-of-buffer.
 
-	* international/iso-cvt.el (iso-cvt-define-menu): 
-	menu-bar-files-menu renamed to menu-bar-file-menu.
+	* international/iso-cvt.el (iso-cvt-define-menu):
+	Rename menu-bar-files-menu to menu-bar-file-menu.
 
 	* net/browse-url.el (browse-url-gnome-moz-program)
 	(browse-url-gnome-moz-arguments): Move up before first use.
 
 	* net/tramp.el (tramp group): Add :version.
 
-	* progmodes/ada-xref.el (ada-gdb-application): 
+	* progmodes/ada-xref.el (ada-gdb-application):
 	Use goto-char instead of beginning-of-buffer.
 
-	* progmodes/cperl-mode.el (cperl-info-on-command): 
+	* progmodes/cperl-mode.el (cperl-info-on-command):
 	Use goto-char instead of beginning-of-buffer.
 
-	* progmodes/idlw-shell.el (idlwave-shell-examine-map): 
+	* progmodes/idlw-shell.el (idlwave-shell-examine-map):
 	Move up before first use.
 	(idlwave-shell-temp-pro-file): Likewise.
 	(idlwave-shell-temp-rinfo-save-file): Likewise.
@@ -130,9 +144,8 @@
 
 2004-11-06  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
-	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode
-	-o /dev/stdout" before trying "uudecode -o -".  Suggested by Han
-	Boetes.
+	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode -o
+	/dev/stdout" before trying "uudecode -o -".  Suggested by Han Boetes.
 	(tramp-uudecode): Mention `uudecode -o /dev/stdout'.
 
 2004-11-06  David Ponce  <david@dponce.com>
@@ -150,7 +163,7 @@
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map): Fix last change.
 
-2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+2004-11-06  Stefan  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map-look-for-name): Remove.
 	(easy-menu-lookup-name): New fun to replace it.
@@ -189,8 +202,7 @@
 
 2004-11-04  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* files.el (set-auto-mode): Don't get error after setting
-	-*-mode-*-.
+	* files.el (set-auto-mode): Don't get error after setting -*-mode-*-.
 
 2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -312,8 +324,7 @@
 	(icalendar-convert-diary-to-ical)
 	(icalendar-extract-ical-from-buffer): Use only two args for
 	make-obsolete (XEmacs compatibility).
-	(icalendar-export-file, icalendar-import-file): Blank at end of
-	prompt.
+	(icalendar-export-file, icalendar-import-file): Blank at end of prompt.
 	(icalendar-export-region): Doc fix.
 	If error, return non-nil and write errors to a buffer.
 	Use correct weekday for weekly recurring events.
@@ -353,16 +364,16 @@
 
 2004-11-02  Pavel Kobiakov <pk_at_work@yahoo.com>
 
-	* progmodes/flymake.el (flymake-err-line-patterns): Use
-	`flymake-reformat-err-line-patterns-from-compile-el' to convert
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Use `flymake-reformat-err-line-patterns-from-compile-el' to convert
 	`compilation-error-regexp-alist-alist' to internal Flymake format.
 
 	* progmodes/flymake.el: eliminated byte-compiler warnings.
 
 2004-11-01  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-frac.el (calc-over-notation): Replaced
-	`completing-read' with `interactive "s"'.
+	* calc/calc-frac.el (calc-over-notation): Replace `completing-read'
+	with `interactive "s"'.
 
 2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

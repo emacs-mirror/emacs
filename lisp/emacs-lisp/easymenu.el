@@ -42,25 +42,7 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
   :version "20.3")
 
 (defsubst easy-menu-intern (s)
-  (if (stringp s)
-      (let ((copy (copy-sequence s))
-	    (pos 0)
-	    found)
-	;; For each letter that starts a word, flip its case.
-	;; This way, the usual convention for menu strings (capitalized)
-	;; corresponds to the usual convention for menu item event types
-	;; (all lower case).  It's a 1-1 mapping so causes no conflicts.
-	(while (setq found (string-match "\\<\\sw" copy pos))
-	  (setq pos (match-end 0))
-	  (unless (= (upcase (aref copy found))
-		     (downcase (aref copy found)))
-	    (aset copy found
-		  (if (= (upcase (aref copy found))
-			 (aref copy found))
-		      (downcase (aref copy found))
-		    (upcase (aref copy found))))))
-	 (intern copy))
-    s))
+  (if (stringp s) (intern s) s))
 
 ;;;###autoload
 (put 'easy-menu-define 'lisp-indent-function 'defun)
@@ -437,8 +419,7 @@ ITEM should be a keymap binding of the form (KEY . MENU-ITEM)."
 		  (error nil))		;`item' might not be a proper list.
 		;; Also check the string version of the symbol name,
 		;; for backwards compatibility.
-		(eq (car-safe item) (intern name))
-		(eq (car-safe item) (easy-menu-intern name)))))))
+		(eq (car-safe item) (intern name)))))))
 
 (defun easy-menu-always-true-p (x)
   "Return true if form X never evaluates to nil."
