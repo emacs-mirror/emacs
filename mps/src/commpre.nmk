@@ -1,7 +1,7 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.11) $
-# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+# $HopeName: MMsrc!commpre.nmk(trunk.12) $
+# Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
 #
@@ -63,9 +63,6 @@
 !ENDIF
 !IFNDEF AMS
 !ERROR commpre.nmk: AMS not defined
-!ENDIF
-!IFNDEF DW
-!ERROR commpre.nmk: DW not defined
 !ENDIF
 !IFNDEF SW
 !ERROR commpre.nmk: SW not defined
