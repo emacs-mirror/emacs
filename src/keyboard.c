@@ -9786,10 +9786,16 @@ If FILE is nil, close any open dribble file.  */)
 
 DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
        doc: /* Discard the contents of the terminal input buffer.
-Also cancel any kbd macro being defined.  */)
+Also end any kbd macro being defined.  */)
      ()
 {
-  current_kboard->defining_kbd_macro = Qnil;
+  if (!NILP (current_kboard->defining_kbd_macro))
+    {
+      /* Discard the last command from the macro.  */
+      Fcancel_kbd_macro_events ();
+      end_kbd_macro ();
+    }
+
   update_mode_lines++;
 
   Vunread_command_events = Qnil;
