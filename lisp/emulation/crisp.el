@@ -88,7 +88,7 @@ does not load Scroll All.")
 (defvar crisp-load-hook nil
   "Hooks to run after loadint the CRiSP emulator package.")
 
-(defvar crisp-version "crisp.el release 1.1/$Revision: 1.4 $"
+(defvar crisp-version "crisp.el release 1.1/$Revision: 1.5 $"
   "The release number and RCS version for the CRiSP emulator.")
 
 (defvar crisp-last-last-command nil
@@ -207,6 +207,7 @@ consecutive use moves point to the end of the buffer."
 
 ;; Now enable the mode
 
+;;;###autoload
 (defun crisp-mode ()
   "Toggle CRiSP emulation minor mode."
   (interactive nil)
