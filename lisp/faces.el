@@ -1110,28 +1110,6 @@ selected frame."
 	  (princ doc)
 	(princ "not documented as a face.")))))
 
-;;; Make the standard faces.
-;;; The C code knows the default and modeline faces as faces 0 and 1,
-;;; so they must be the first two faces made.
-(defun face-initialize ()
-  (make-face 'default)
-  (make-face 'modeline)
-  (make-face 'highlight)
-
-  ;; These aren't really special in any way, but they're nice to have around.
-
-  (make-face 'bold)
-  (make-face 'italic)
-  (make-face 'bold-italic)
-  (make-face 'region)
-  (make-face 'secondary-selection)
-  (make-face 'underline)
-
-  ;; We no longer set up any face attributes here.
-  ;; They are specified in cus-start.el.
-
-  (setq region-face (face-id 'region)))
-
 ;;; Setting a face based on a SPEC.
 
 (defun face-spec-set (face spec &optional frame)
@@ -1479,9 +1457,50 @@ examine the brightness for you."
 		       (funcall function face (car colors) frame)))))
 	  (setq colors (cdr colors)))))))
 
-;; If we are already using x-window frames, initialize faces for them.
-(if (memq (framep (selected-frame)) '(x w32))
-    (face-initialize))
+;;; Make the standard faces.
+;;; The C code knows the default and modeline faces as faces 0 and 1,
+;;; so they must be the first two faces made.
+(make-face 'default)
+(make-face 'modeline)
+(make-face 'highlight)
+
+;; These aren't really special in any way, but they're nice to have around.
+
+(make-face 'bold)
+(make-face 'italic)
+(make-face 'bold-italic)
+(make-face 'region)
+(make-face 'secondary-selection)
+(make-face 'underline)
+
+(setq region-face (face-id 'region))
+
+;; Specify how these faces look, and their documentation.
+(let ((all '((bold "Use bold font." ((t (:bold t))))
+	     (bold-italic "Use bold italic font." ((t (:bold t :italic t))))
+	     (italic "Use italic font." ((t (:italic t))))
+	     (underline "Underline text." ((t (:underline t))))
+	     (default "Used for text not covered by other faces." ((t nil)))
+	     (highlight "Highlight text in some way."
+			((((class color)) (:background "darkseagreen2"))
+			 (t (:inverse-video t))))
+	     (modeline "Used for displaying the modeline."
+		       ((t (:inverse-video t))))
+	     (region "Used for displaying the region."
+		     ((t (:background "gray"))))
+	     (secondary-selection
+	      "Used for displaying the secondary selection."
+	      ((((class color)) (:background "paleturquoise"))
+	       (t (:inverse-video t))))))
+      entry symbol doc spec)
+  (while all
+    (setq entry (car all)
+	  all (cdr all)
+	  symbol (nth 0 entry)
+	  doc (nth 1 entry)
+	  spec (nth 2 entry))
+    (put symbol 'face-documentation doc)
+    (put symbol 'face-defface-spec spec)))
 
 (provide 'faces)
 
