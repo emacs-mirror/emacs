@@ -1902,45 +1902,62 @@ make_ctrl_char (c)
 
 /* Display help echo in the echo area.
 
-   MSG a string means display that string, MSG nil means clear the
-   help echo.  If MSG is neither a string nor nil, it is evaluated
-   to obtain a string.
+   HELP a string means display that string, HELP nil means clear the
+   help echo.  If HELP is a function, call it with OBJECT and POS as
+   arguments; the function should return a help string or nil for
+   none.  For all other types of HELP evaluate it to obtain a string.
+
+   OBJECT is the object where a `help-echo' property was found; POS
+   is the position within OBJECT where it was found.  OBJECT is nil
+   if HELP isn't from a `help-echo' text property.
 
    OK_TO_IVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
    echo overwrites a keystroke echo currently displayed in the echo
    area.
 
-   Note: this function may only be called with MSG being nil or
-   a string from X code running asynchronously.  */
+   Note: this function may only be called with HELP nil or a string
+   from X code running asynchronously.  */
 
 void
-show_help_echo (msg, ok_to_overwrite_keystroke_echo)
-     Lisp_Object msg;
+show_help_echo (help, object, pos, ok_to_overwrite_keystroke_echo)
+     Lisp_Object help, object, pos;
      int ok_to_overwrite_keystroke_echo;
 {
-  if (!NILP (msg) && !STRINGP (msg))
+  if (!NILP (help) && !STRINGP (help))
     {
-      msg = eval_form (msg);
-      if (!STRINGP (msg))
+      if (FUNCTIONP (help))
+	{
+	  Lisp_Object args[3];
+	  args[0] = help;
+	  args[1] = object;
+	  args[2] = pos;
+	  help = call_function (3, args);
+	}
+      else
+	help = eval_form (help);
+      
+      if (!STRINGP (help))
 	return;
     }
 
-  if (STRINGP (msg) || NILP (msg))
+  if (STRINGP (help) || NILP (help))
     {
       if (!NILP (Vshow_help_function))
-	call1 (Vshow_help_function, msg);
+	call1 (Vshow_help_function, help);
       else if (/* Don't overwrite minibuffer contents.  */
 	       !MINI_WINDOW_P (XWINDOW (selected_window))
 	       /* Don't overwrite a keystroke echo.  */
-	       && (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
+	       && (NILP (echo_message_buffer)
+		   || ok_to_overwrite_keystroke_echo)
 	       /* Don't overwrite a prompt.  */
 	       && !cursor_in_echo_area)
 	{
-	  if (STRINGP (msg))
+	  if (STRINGP (help))
 	    {
 	      int count = specpdl_ptr - specpdl;
 	      specbind (Qmessage_truncate_lines, Qt);
-	      message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
+	      message3_nolog (help, XSTRING (help)->size,
+			      STRING_MULTIBYTE (help));
 	      unbind_to (count, Qnil);
 	    }
 	  else
@@ -2693,7 +2710,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Display help if not echoing.  */
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
-      show_help_echo (XCDR (XCDR (c)), 0);
+      /* (help-echo FRAME HELP OBJECT POS).  */
+      Lisp_Object help, object, position;
+      help = Fnth (make_number (2), c);
+      object = Fnth (make_number (3), c);
+      position = Fnth (make_number (4), c);
+      show_help_echo (help, object, position, 0);
       goto retry;
     }
   
@@ -3138,6 +3160,64 @@ kbd_buffer_store_event (event)
       ++kbd_store_ptr;
     }
 }
+
+
+/* Generate HELP_EVENT input_events in BUFP.
+
+   HELP is the help form.
+
+   FRAME is the frame on which the help is generated.  OBJECT is the
+   Lisp object where the help was found (a buffer, a string, or nil if
+   neither from a string nor from a buffer.  POS is the position
+   within OBJECT where the help was found.
+
+   Value is the number of input_events generated.  */
+
+int
+gen_help_event (bufp, help, frame, object, pos)
+     struct input_event *bufp;
+     Lisp_Object help, frame, object;
+     int pos;
+{
+  bufp->kind = HELP_EVENT;
+  bufp->frame_or_window = frame;
+  bufp->arg = object;
+  bufp->x = make_number (pos);
+  bufp->code = 0;
+
+  ++bufp;
+  bufp->kind = HELP_EVENT;
+  bufp->frame_or_window = frame;
+  bufp->arg = help;
+  bufp->code = 1;
+  
+  return 2;
+}
+
+
+/* Store HELP_EVENTs for HELP on FRAME in the input queue.  */
+
+void
+kbd_buffer_store_help_event (frame, help)
+     Lisp_Object frame, help;
+{
+  struct input_event event;
+
+  event.kind = HELP_EVENT;
+  event.frame_or_window = frame;
+  event.arg = Qnil;
+  event.x = make_number (0);
+  event.code = 0;
+  kbd_buffer_store_event (&event);
+  
+  event.kind = HELP_EVENT;
+  event.frame_or_window = frame;
+  event.arg = help;
+  event.x = make_number (0);
+  event.code = 1;
+  kbd_buffer_store_event (&event);
+}
+
 
 /* Discard any mouse events in the event buffer by setting them to
    no_event.  */
@@ -3358,12 +3438,21 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	kbd_fetch_ptr = event + 1;
       else if (event->kind == HELP_EVENT)
 	{
+	  /* There are always two consecutive HELP_EVENTs in the
+	     input queue.  */
+	  Lisp_Object object, position, help, frame;
+	  
+	  xassert (event->code == 0);
+	  frame = event->frame_or_window;
+	  object = event->arg;
+	  position = event->x;
+	  xassert ((event + 1)->code == 1);
+	  help = (event + 1)->arg;
+	  
 	  /* Event->frame_or_window is a frame, event->arg is the
 	     help to display.  */
-	  obj = Fcons (Qhelp_echo,
-		       Fcons (event->frame_or_window,
-			      event->arg));
-	  kbd_fetch_ptr = event + 1;
+	  obj = list5 (Qhelp_echo, frame, help, object, position);
+	  kbd_fetch_ptr = event + 2;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
 	{
