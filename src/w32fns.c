@@ -1,5 +1,5 @@
 /* Functions for the Win32 window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995 Free Software Foundation.
+   Copyright (C) 1989, 92, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2755,9 +2755,28 @@ record_keyup (unsigned int wparam, unsigned int lparam)
 static void
 reset_modifiers ()
 {
+  SHORT ctrl, alt;
+
   if (!modifiers_recorded)
     return;
-  bzero (modifiers, sizeof (modifiers));
+
+  ctrl = GetAsyncKeyState (VK_CONTROL);
+  alt = GetAsyncKeyState (VK_MENU);
+
+  if (ctrl == 0 || alt == 0)
+    /* Emacs doesn't have keyboard focus.  Do nothing.  */
+    return;
+
+  if (!(ctrl & 0x08000))
+    /* Clear any recorded control modifier state.  */
+    modifiers[EMACS_RCONTROL] = modifiers[EMACS_LCONTROL] = 0;
+
+  if (!(alt & 0x08000))
+    /* Clear any recorded alt modifier state.  */
+    modifiers[EMACS_RMENU] = modifiers[EMACS_LMENU] = 0;
+
+  /* Otherwise, leave the modifier state as it was when Emacs lost
+     keyboard focus.  */
 }
 
 static int
@@ -2950,6 +2969,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       case VK_CONTROL: 
       case VK_CAPITAL: 
       case VK_SHIFT:
+      case VK_NUMLOCK:
+      case VK_SCROLL: 
 	windows_translate = 1;
 	break;
       default:
@@ -3185,9 +3206,9 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       reset_modifiers ();
       goto dflt;
 
-    case WM_KILLFOCUS:
     case WM_SETFOCUS:
       reset_modifiers ();
+    case WM_KILLFOCUS:
     case WM_MOVE:
     case WM_SIZE:
     case WM_SYSCOMMAND:
