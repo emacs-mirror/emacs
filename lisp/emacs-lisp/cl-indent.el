@@ -382,13 +382,13 @@ by `lisp-body-indent'."
            (catch 1)
            (cond        (&rest (&whole 2 &rest 1)))
            (defvar      (4 2 2))
-           (defclass    ((&whole 4 &rest (&whole 2 &rest 1))
-                         &rest (&whole 2 &rest 1)))
+           (defclass    (6 4 (&whole 2 &rest 1) (&whole 2 &rest 1)))
            (defconstant . defvar)
            (defcustom   (4 2 2 2))
            (defparameter . defvar)
-           (define-modify-macro
-                        (4 &body))
+           (defconst     . defcustom)
+           (define-condition  . defclass)
+           (define-modify-macro (4 &body))
            (defsetf     (4 &lambda 4 &body))
            (defun       (4 &lambda &body))
            (define-setf-method . defun)
@@ -421,10 +421,8 @@ by `lisp-body-indent'."
            (handler-bind . let) (restart-bind . let)
            (locally 1)
            ;(loop ...)
-           (multiple-value-bind
-                        ((&whole 6 &rest 1) 4 &body))
-           (multiple-value-call
-                        (4 &body))
+           (multiple-value-bind ((&whole 6 &rest 1) 4 &body))
+           (multiple-value-call (4 &body))
            (multiple-value-prog1 1)
            (multiple-value-setq (4 2))
            (multiple-value-setf . multiple-value-setq)
@@ -446,6 +444,7 @@ by `lisp-body-indent'."
            (unwind-protect (5 &body))
            (when 1)
            (with-output-to-string (4 2))
+           (with-slots . multiple-value-bind)
            (with-standard-io-syntax (2)))))
   (while l
     (put (caar l) 'common-lisp-indent-function

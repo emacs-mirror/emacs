@@ -1,3 +1,9 @@
+2000-08-07  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/cl-indent.el (toplevel): Indent `defclass',
+	`defconst', `define-condition', `with-slots'.
+	* font-lock.el (lisp-font-lock-keywords-2): Added `with-' and `do-'.
+
 2000-08-03  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-use-prompt-regexp-instead-of-fields):

@@ -186,7 +186,7 @@
 ;; doesn't work.  Or maybe it allows you to think less and drift off to sleep.
 ;;
 ;; So, here are my opinions/advice/guidelines:
-;; 
+;;
 ;; - Highlight conceptual objects, such as function and variable names, and
 ;;   different objects types differently, i.e., (a) and (b) above, highlight
 ;;   function names differently to variable names.
@@ -1113,7 +1113,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	;;   `fontified' text props around since jit-lock-mode is also off.
 	;; - font-lock-default-fontify-buffer fails: this is not run
 	;;   any more anyway.   -sm
-	;; 
+	;;
 	;; (jit-lock-mode
 	;;  (jit-lock-after-unfontify-buffer))
 	(lazy-lock-mode
@@ -2177,6 +2177,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;;
       ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\sw+\\>" . font-lock-type-face)
+      ;;
+      ;; CL `with-' and `do-' constructs
+      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 
