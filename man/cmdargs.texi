@@ -182,11 +182,14 @@ your own.
 Enable the Emacs Lisp debugger for errors in the init file.
 
 @item --unibyte
-@cindex unibyte operation
+@cindex unibyte operation, command-line argument
 Set up to do almost everything with single-byte buffers and strings.
 All buffers and strings are unibyte unless you (or a Lisp program)
-explicitly ask for a multibyte buffer or string.  Setting the
-environment variable @env{EMACS_UNIBYTE} has the same effect.
+explicitly ask for a multibyte buffer or string.  (Note that when Emacs
+loads Lisp files for runnning, it normally does that in multibyte mode,
+even if @samp{--unibyte} is specified; see @ref{Enabling Multibyte}.)
+Setting the environment variable @env{EMACS_UNIBYTE} has the same
+effect.
 
 @item --multibyte
 Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
@@ -307,7 +310,7 @@ when you specify a relative directory name.
 The name of the Internet domain that the machine running Emacs is
 located in.  Used by the @sc{gnus} package.
 @item EMACS_UNIBYTE
-@cindex unibyte operation
+@cindex unibyte operation, environment variable
 Defining this environment variable directs Emacs to do almost everything
 with single-byte buffers and strings.  It is equivalent to using the
 @samp{--unibyte} command-line option on each invocation.  @xref{Initial
