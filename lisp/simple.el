@@ -139,6 +139,9 @@ With arg N, insert N newlines."
     (indent-to col 0)
     (goto-char pos)))
 
+(defvar quoted-insert-character-offset 2048
+  "Offset added by \\[quoted-insert] to character codes 0200 and above.")
+
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
@@ -157,6 +160,12 @@ this function useful in editing binary files."
 		      (eq overwrite-mode 'overwrite-mode-binary))
 		  (read-quoted-char)
 		(read-char))))
+    ;; Assume character codes 0200 - 0377 stand for 
+    ;; European characters in Latin-1, and convert them
+    ;; to Emacs characters.
+    (and enable-multibyte-characters
+	 (>= char ?\200)
+	 (setq char (+ quoted-insert-character-offset char)))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
