@@ -489,9 +489,13 @@ apropos} displays just the first line, and if that line's contents don't
 stand on their own, the result looks bad.  In particular, start the
 first line with a capital letter and end with a period.
 
-The documentation string is not limited to one line; use as many lines
-as you need to explain the details of how to use the function or
-variable.  Please use complete sentences in the additional lines.
+For a function, the first line should briefly answer the question,
+``What does this function do?''  For a variable, the first line should
+briefly answer the question, ``What does this value mean?''
+
+Don't limit the documentation string to one line; use as many lines as
+you need to explain the details of how to use the function or
+variable.  Please use complete sentences for the rest of the text too.
 
 @item
 For consistency, phrase the verb in the first sentence of a function's
