@@ -44,18 +44,17 @@
     (if input-method
 	(setq default-input-method input-method)))
 
-  ;; If this is a Latin-N character set, set up syntax for it in
-  ;; single-byte mode.  We can't use require because the file
-  ;; must be eval'd each time in case we change from one Latin-N to another.
-  (if (string-match "^Latin-\\([1-9]\\)$" language)
-      (let ((set-case-syntax-set-multibyte nil))
-	(load (downcase language) nil t)
-	(set-standard-case-table (standard-case-table))
-	(let ((list (buffer-list)))
-	  (while list
-	    (with-current-buffer (car list)
-	      (set-case-table (standard-case-table)))
-	    (setq list (cdr list)))))))
+  ;; If this language environment supports unibyte operation,
+  ;; load the proper syntax definitions for codes 0240-0377.
+  (when (get-language-info language 'unibyte-syntax)
+    (let ((set-case-syntax-set-multibyte nil))
+      (load (get-language-info language 'unibyte-syntax) nil t)
+      (set-standard-case-table (standard-case-table))
+      (let ((list (buffer-list)))
+	(while list
+	  (with-current-buffer (car list)
+	    (set-case-table (standard-case-table)))
+	  (setq list (cdr list)))))))
 
 ;; Latin-1 (ISO-8859-1)
 
@@ -89,6 +88,7 @@
 	     (charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
 	     (coding-priority iso-latin-1)
+	     (unibyte-syntax . "latin-1")
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . "\
@@ -121,6 +121,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 	     (charset ascii latin-iso8859-2)
 	     (coding-system iso-latin-2)
 	     (coding-priority iso-latin-2)
+	     (unibyte-syntax . "latin-2")
 	     (documentation . "\
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
@@ -152,6 +153,7 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 	     (charset ascii latin-iso8859-3)
 	     (coding-system iso-latin-3)
 	     (coding-priority iso-latin-3)
+	     (unibyte-syntax . "latin-3")
 	     (documentation . "\
 These languages are supported with the Latin-3 (ISO-8859-3) character set:
  Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
@@ -182,6 +184,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 	     (charset ascii latin-iso8859-4)
 	     (coding-system iso-8859-4)
 	     (coding-priority iso-8859-4)
+	     (unibyte-syntax . "latin-4")
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
@@ -212,6 +215,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (charset ascii latin-iso8859-9)
 	     (coding-system iso-latin-5)
 	     (coding-priority iso-latin-5)
+	     (unibyte-syntax . "latin-5")
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set."))
  '("European"))
@@ -229,6 +233,7 @@ These languages are supported with the Latin-5 (ISO-8859-9) character set."))
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
 	    (coding-priority iso-latin-1)
+	    (unibyte-syntax . "latin-1")
 	    (sample-text . "\
 German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
