@@ -3822,7 +3822,7 @@ With prefix arg, process files of marked classes only."
   (ebrowse-tags-loop-continue 'first-time))
 
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-tags-search-member-use (&optional fix-name)
   "Search for call sites of a member.
 If FIX-NAME is specified, search uses of that member.
@@ -3926,7 +3926,7 @@ Positions in buffers that have no file names are not saved."
 				     ebrowse-position-stack))))
 
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-back-in-position-stack (arg)
   "Move backward in the position stack.
 Prefix arg ARG says how much."
@@ -3934,7 +3934,7 @@ Prefix arg ARG says how much."
   (ebrowse-move-in-position-stack (max 1 arg)))
 
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-forward-in-position-stack (arg)
   "Move forward in the position stack.
 Prefix arg ARG says how much."
@@ -4019,7 +4019,7 @@ Runs the hook `ebrowse-electric-position-mode-hook'."
   (setq buffer-read-only t))
 
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-electric-position-menu ()
   "List positions in the position stack in an electric buffer."
   (interactive)
@@ -4121,7 +4121,7 @@ Installed on `local-write-file-hooks'."
   t)
 
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-save-tree ()
   "Save current tree in same file it was loaded from."
   (interactive)
@@ -4172,7 +4172,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
 
 ;;; Statistics
 
-;;; ###autoload
+;;;###autoload
 (defun ebrowse-statistics ()
   "Display statistics for a class tree."
   (interactive)

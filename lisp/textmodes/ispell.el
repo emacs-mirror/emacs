@@ -1477,7 +1477,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 ;;; a value or a list, whose value is the state of whether the
 ;;; dictionary needs to be saved.
 
-;;; ###autoload
+;;;###autoload
 (defun ispell-pdict-save (&optional no-query force-save)
   "Check to see if the personal dictionary has been modified.
 If so, ask if it needs to be saved."

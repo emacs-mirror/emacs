@@ -899,7 +899,7 @@ Return nil if there are no more doc strings."
     (skip-chars-forward " \n\t")
     t))
 
-;;; ###autoload
+;;;###autoload
 (defun checkdoc-comments (&optional take-notes)
   "Find missing comment sections in the current Emacs Lisp file.
 Prefix argument TAKE-NOTES non-nil means to save warnings in a

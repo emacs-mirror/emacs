@@ -1,5 +1,5 @@
 ;;; fortune.el --- Use fortune to create signatures
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -160,7 +160,7 @@ If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
     "Fortune file to use: "
     fortune-dir nil nil "")))
 
-;;; ###autoload
+;;;###autoload
 (defun fortune-add-fortune (string file)
   "Add STRING to a fortune file FILE.
 
@@ -171,7 +171,7 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 	 (if current-prefix-arg (fortune-ask-file))))
   (fortune-append string t file))
 
-;;; ###autoload
+;;;###autoload
 (defun fortune-from-region (beg end file)
   "Append the current region to a local fortune-like data file.
 
@@ -217,7 +217,7 @@ read the file name to use.  Otherwise use the value of `fortune-file'."
 
 ;;; **************
 ;;; Compile new database with strfile
-;;; ###autoload
+;;;###autoload
 (defun fortune-compile (&optional file)
   "Compile fortune file.
 
@@ -244,7 +244,7 @@ the value of `fortune-file'.  This currently cannot handle directories."
 	 
 ;;; **************
 ;;; Use fortune for signature
-;;; ###autoload
+;;;###autoload
 (defun fortune-to-signature (&optional file)
   "Create signature from output of the fortune program.
 
@@ -293,7 +293,7 @@ when supplied, specifies the file to choose the fortune from."
 	(concat fortune-program-options fort-file)))))
 
 
-;;; ###autoload
+;;;###autoload
 (defun fortune (&optional file)
   "Display a fortune cookie.
 
