@@ -406,8 +406,10 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   "Create a new frame, displaying the current buffer.
 
 Optional argument PARAMETERS is an alist of parameters for the new
-frame.  Specifically, PARAMETERS is a list of pairs, each having one
-of the following forms:
+frame.  Specifically, PARAMETERS is a list of pairs, each having
+the form (NAME . VALUE).
+
+Here are some of the parameters allowed (not a complete list):
 
 \(name . STRING)	- The frame should be named STRING.
 
