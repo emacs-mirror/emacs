@@ -452,6 +452,8 @@ x_consider_frame_title (frame)
       || bcmp (frame_title_buf, XSTRING (f->name)->data, len) != 0)
     x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
 }
+#else
+#define frame_title_ptr ((char *)0)
 #endif
 
 /* Prepare for redisplay by updating menu-bar item lists when appropriate.
