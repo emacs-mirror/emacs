@@ -2303,6 +2303,9 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
        (and (get (widget-value widget) 'standard-value)
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed saved rogue)))))
+    ("Use Backup Value" custom-variable-reset-backup
+     (lambda (widget)
+       (get (widget-value widget) 'backup-value)))
     ("---" ignore ignore)
     ("Add Comment" custom-comment-show custom-comment-invisible-p)
     ("---" ignore ignore)
@@ -2369,6 +2372,7 @@ Optional EVENT is the location for the menu."
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
+	   (custom-variable-backup-value widget)
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
@@ -2378,6 +2382,7 @@ Optional EVENT is the location for the menu."
 	     (setq comment nil)
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
+	   (custom-variable-backup-value widget)
 	   (funcall set symbol (setq val (widget-value child)))
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
@@ -2426,13 +2431,16 @@ Optional EVENT is the location for the menu."
     (custom-redraw-magic widget)))
 
 (defun custom-variable-reset-saved (widget)
-  "Restore the saved value for the variable being edited by WIDGET."
+  "Restore the saved value for the variable being edited by WIDGET.
+The value that was current before this operation
+becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
 	 (value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
     (cond ((or value comment)
 	   (put symbol 'variable-comment comment)
+	   (custom-variable-backup-value widget)
 	   (condition-case nil
 	       (funcall set symbol (eval (car value)))
 	     (error nil)))
@@ -2447,11 +2455,15 @@ Optional EVENT is the location for the menu."
 (defun custom-variable-reset-standard (widget)
   "Restore the standard setting for the variable being edited by WIDGET.
 This operation eliminates any saved setting for the variable,
-restoring it to the state of a variable that has never been customized."
+restoring it to the state of a variable that has never been customized.
+The value that was current before this operation
+becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default)))
     (if (get symbol 'standard-value)
-	(funcall set symbol (eval (car (get symbol 'standard-value))))
+	(progn
+	  (custom-variable-backup-value widget)
+	  (funcall set symbol (eval (car (get symbol 'standard-value)))))
       (error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
@@ -2461,6 +2473,42 @@ restoring it to the state of a variable that has never been customized."
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
+    ;; This call will possibly make the comment invisible
+    (custom-redraw widget)))
+
+(defun custom-variable-backup-value (widget)
+  "Back up the current value for WIDGET's variable.
+The backup value is kept in the car of the `backup-value' property."
+  (let* ((symbol (widget-value widget))
+	 (get (or (get symbol 'custom-get) 'default-value))
+	 (type (custom-variable-type symbol))
+	 (conv (widget-convert type))
+	 (value (if (default-boundp symbol)
+		    (funcall get symbol)
+		  (widget-get conv :value))))
+    (put symbol 'backup-value (list value))))
+
+(defun custom-variable-reset-backup (widget)
+  "Restore the backup value for the variable being edited by WIDGET.
+The value that was current before this operation
+becomes the backup value, so you can use this operation repeatedly
+to switch between two values."
+  (let* ((symbol (widget-value widget))
+	 (set (or (get symbol 'custom-set) 'set-default))
+	 (value (get symbol 'backup-value))
+	 (comment-widget (widget-get widget :comment-widget))
+	 (comment (widget-value comment-widget)))
+    (if value
+	(progn
+	  (custom-variable-backup-value widget)
+	  (condition-case nil
+	      (funcall set symbol (car value))
+	     (error nil)))
+      (error "No backup value for %s" symbol))
+    (put symbol 'customized-value (list (car value)))
+    (put symbol 'variable-comment comment)
+    (put symbol 'customized-variable-comment comment)
+    (custom-variable-state-set widget)
     ;; This call will possibly make the comment invisible
     (custom-redraw widget)))
 
