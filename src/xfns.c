@@ -5442,8 +5442,8 @@ static void define_image_type P_ ((struct image_type *type));
 static struct image_type *lookup_image_type P_ ((Lisp_Object symbol));
 static void image_error P_ ((char *format, Lisp_Object, Lisp_Object));
 static void x_laplace P_ ((struct frame *, struct image *));
-static int x_build_heuristic_mask P_ ((struct frame *, Lisp_Object,
-				       struct image *, Lisp_Object));
+static int x_build_heuristic_mask P_ ((struct frame *, struct image *,
+				       Lisp_Object));
 
 
 /* Define a new image type from TYPE.  This adds a copy of TYPE to
@@ -6088,10 +6088,7 @@ lookup_image (f, spec)
 	  /* Should we built a mask heuristically?  */
 	  heuristic_mask = image_spec_value (spec, QCheuristic_mask, NULL);
 	  if (img->pixmap && !img->mask && !NILP (heuristic_mask))
-	    {
-	      file = image_spec_value (spec, QCfile, NULL);
-	      x_build_heuristic_mask (f, file, img, heuristic_mask);
-	    }
+	    x_build_heuristic_mask (f, img, heuristic_mask);
 	}
     }
 
@@ -6172,9 +6169,8 @@ forall_images_in_image_cache (f, fn)
 			    X support code
  ***********************************************************************/
 
-static int x_create_x_image_and_pixmap P_ ((struct frame *, Lisp_Object,
-					    int, int, int, XImage **,
-					    Pixmap *));
+static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
+					    XImage **, Pixmap *));
 static void x_destroy_x_image P_ ((XImage *));
 static void x_put_x_image P_ ((struct frame *, XImage *, Pixmap, int, int));
 
@@ -6183,13 +6179,11 @@ static void x_put_x_image P_ ((struct frame *, XImage *, Pixmap, int, int));
    frame F.  Set *XIMG and *PIXMAP to the XImage and Pixmap created.
    Set (*XIMG)->data to a raster of WIDTH x HEIGHT pixels allocated
    via xmalloc.  Print error messages via image_error if an error
-   occurs.  FILE is the name of an image file being processed, for
-   error messages.  Value is non-zero if successful.  */
+   occurs.  Value is non-zero if successful.  */
 
 static int
-x_create_x_image_and_pixmap (f, file, width, height, depth, ximg, pixmap)
+x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
      struct frame *f;
-     Lisp_Object file;
      int width, height, depth;
      XImage **ximg;
      Pixmap *pixmap;
@@ -6207,7 +6201,7 @@ x_create_x_image_and_pixmap (f, file, width, height, depth, ximg, pixmap)
 			depth > 16 ? 32 : depth > 8 ? 16 : 8, 0);
   if (*ximg == NULL)
     {
-      image_error ("Unable to allocate X image for %s", file, Qnil);
+      image_error ("Unable to allocate X image", Qnil, Qnil);
       return 0;
     }
 
@@ -6220,7 +6214,7 @@ x_create_x_image_and_pixmap (f, file, width, height, depth, ximg, pixmap)
     {
       x_destroy_x_image (*ximg);
       *ximg = NULL;
-      image_error ("Unable to create pixmap for `%s'", file, Qnil);
+      image_error ("Unable to create X pixmap", Qnil, Qnil);
       return 0;
     }
 
@@ -6735,7 +6729,7 @@ xbm_load_image_from_file (f, img, specified_file)
   file = x_find_image_file (specified_file);
   if (!STRINGP (file))
     {
-      image_error ("Cannot find image file %s", specified_file, Qnil);
+      image_error ("Cannot find image file `%s'", specified_file, Qnil);
       UNGCPRO;
       return 0;
     }
@@ -6781,7 +6775,7 @@ xbm_load_image_from_file (f, img, specified_file)
       UNBLOCK_INPUT;
     }
   else
-    image_error ("Error loading XBM image %s", img->spec, Qnil);
+    image_error ("Error loading XBM image `%s'", img->spec, Qnil);
 
   UNGCPRO;
   return success_p;
@@ -6874,7 +6868,8 @@ xbm_load (f, img)
 	success_p = 1;
       else
 	{
-	  image_error ("Unable to create pixmap for XBM image", Qnil, Qnil);
+	  image_error ("Unable to create pixmap for XBM image `%s'",
+		       img->spec, Qnil);
 	  x_clear_image (f, img);
 	}
 
@@ -7059,7 +7054,7 @@ xpm_load (f, img)
       Lisp_Object file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  UNBLOCK_INPUT;
 	  return 0;
 	}
@@ -7416,7 +7411,7 @@ x_laplace (f, img)
   out = (long *) alloca (img->width * sizeof (long));
 
   /* Create an X image for output.  */
-  rc = x_create_x_image_and_pixmap (f, Qnil, img->width, img->height, 0,
+  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 0,
 				    &oimg, &pixmap);
 
   /* Fill first two rows.  */
@@ -7482,9 +7477,8 @@ x_laplace (f, img)
    heuristically.  Value is non-zero if successful. */
 
 static int
-x_build_heuristic_mask (f, file, img, how)
+x_build_heuristic_mask (f, img, how)
      struct frame *f;
-     Lisp_Object file;
      struct image *img;
      Lisp_Object how;
 {
@@ -7496,7 +7490,7 @@ x_build_heuristic_mask (f, file, img, how)
   BLOCK_INPUT;
   
   /* Create an image and pixmap serving as mask.  */
-  rc = x_create_x_image_and_pixmap (f, file, img->width, img->height, 1,
+  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
 				    &mask_img, &img->mask);
   if (!rc)
     {
@@ -7785,7 +7779,7 @@ pbm_load (f, img)
   /* Check magic number.  */
   if (end - p < 2 || *p++ != 'P')
     {
-      image_error ("Not a PBM image: %s", file, Qnil);
+      image_error ("Not a PBM image: `%s'", img->spec, Qnil);
     error:
       xfree (contents);
       UNGCPRO;
@@ -7819,7 +7813,7 @@ pbm_load (f, img)
       break;
 
     default:
-      image_error ("Not a PBM image: %s", file, Qnil);
+      image_error ("Not a PBM image: `%s'", img->spec, Qnil);
       goto error;
     }
 
@@ -7841,7 +7835,7 @@ pbm_load (f, img)
     goto error;
 
   BLOCK_INPUT;
-  if (!x_create_x_image_and_pixmap (f, file, width, height, 0,
+  if (!x_create_x_image_and_pixmap (f, width, height, 0,
 				    &ximg, &img->pixmap))
     {
       UNBLOCK_INPUT;
@@ -7901,8 +7895,8 @@ pbm_load (f, img)
 		ximg->data = NULL;
 		XDestroyImage (ximg);
 		UNBLOCK_INPUT;
-		image_error ("Invalid pixel value in file `%s'",
-			     file, Qnil);
+		image_error ("Invalid pixel value in image `%s'",
+			     img->spec, Qnil);
 		goto error;
 	      }
 	    
@@ -8106,7 +8100,7 @@ png_load (f, img)
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -8115,7 +8109,7 @@ png_load (f, img)
       fp = fopen (XSTRING (file)->data, "rb");
       if (!fp)
 	{
-	  image_error ("Cannot open image file %s", file, Qnil);
+	  image_error ("Cannot open image file `%s'", file, Qnil);
 	  UNGCPRO;
 	  fclose (fp);
 	  return 0;
@@ -8125,7 +8119,7 @@ png_load (f, img)
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
 	  || !png_check_sig (sig, sizeof sig))
 	{
-	  image_error ("Not a PNG file: %s", file, Qnil);
+	  image_error ("Not a PNG file: `%s'", file, Qnil);
 	  UNGCPRO;
 	  fclose (fp);
 	  return 0;
@@ -8142,7 +8136,7 @@ png_load (f, img)
       if (tbr.len < sizeof sig
 	  || !png_check_sig (tbr.bytes, sizeof sig))
 	{
-	  image_error ("Not a PNG file: %s", file, Qnil);
+	  image_error ("Not a PNG image: `%s'", img->spec, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -8316,7 +8310,7 @@ png_load (f, img)
   BLOCK_INPUT;
 
   /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, file, width, height, 0, &ximg,
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
 				    &img->pixmap))
     {
       UNBLOCK_INPUT;
@@ -8327,7 +8321,7 @@ png_load (f, img)
      contains an alpha channel.  */
   if (channels == 4
       && !transparent_p
-      && !x_create_x_image_and_pixmap (f, file, width, height, 1,
+      && !x_create_x_image_and_pixmap (f, width, height, 1,
 				       &mask_img, &img->mask))
     {
       x_destroy_x_image (ximg);
@@ -8637,13 +8631,12 @@ jpeg_load (f, img)
   file = Qnil;
   GCPRO1 (file);
 
-  /* Reading from :data takes precedence.  */
   if (NILP (specified_data))
     {
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -8669,7 +8662,7 @@ jpeg_load (f, img)
 	  /* Called from my_error_exit.  Display a JPEG error.  */
 	  char buffer[JMSG_LENGTH_MAX];
 	  cinfo.err->format_message ((j_common_ptr) &cinfo, buffer);
-	  image_error ("Error reading JPEG file `%s': %s", file,
+	  image_error ("Error reading JPEG image `%s': %s", img->spec,
 		       build_string (buffer));
 	}
 	  
@@ -8713,8 +8706,7 @@ jpeg_load (f, img)
   BLOCK_INPUT;
 
   /* Create X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, file, width, height, 0, &ximg,
-									&img->pixmap))
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       UNBLOCK_INPUT;
       longjmp (mgr.setjmp_buffer, 2);
@@ -9001,7 +8993,7 @@ tiff_load (f, img)
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file %s", file, Qnil);
+	  image_error ("Cannot find image file `%s'", file, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -9033,8 +9025,7 @@ tiff_load (f, img)
 
       if (!tiff)
 	{
-	  image_error ("Cannot open memory source `%s'. ",
-		       specified_data, Qnil);
+	  image_error ("Cannot open memory source for `%s'", img->spec, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -9050,7 +9041,7 @@ tiff_load (f, img)
   TIFFClose (tiff);
   if (!rc)
     {
-      image_error ("Error reading `%s'", file, Qnil);
+      image_error ("Error reading TIFF image `%s'", img->spec, Qnil);
       xfree (buf);
       UNGCPRO;
       return 0;
@@ -9059,8 +9050,7 @@ tiff_load (f, img)
   BLOCK_INPUT;
 
   /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, file, width, height, 0, &ximg, 
-				    &img->pixmap))
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       UNBLOCK_INPUT;
       xfree (buf);
@@ -9243,7 +9233,7 @@ gif_load (f, img)
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
 	{
-	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -9267,7 +9257,7 @@ gif_load (f, img)
       gif = DGifOpen(&memsrc, gif_read_from_memory);
       if (!gif)
 	{
-	  image_error ("Cannot open memory source `%s'",specified_data, Qnil);
+	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
 	  UNGCPRO;
 	  return 0;
 	}
@@ -9277,7 +9267,7 @@ gif_load (f, img)
   rc = DGifSlurp (gif);
   if (rc == GIF_ERROR)
     {
-      image_error ("Error reading `%s'", file, Qnil);
+      image_error ("Error reading `%s'", img->spec, Qnil);
       DGifCloseFile (gif);
       UNGCPRO;
       return 0;
@@ -9287,7 +9277,8 @@ gif_load (f, img)
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   if (ino >= gif->ImageCount)
     {
-      image_error ("Invalid image number `%s'", image, Qnil);
+      image_error ("Invalid image number `%s' in image `%s'",
+		   image, img->spec);
       DGifCloseFile (gif);
       UNGCPRO;
       return 0;
@@ -9299,8 +9290,7 @@ gif_load (f, img)
   BLOCK_INPUT;
 
   /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, file, width, height, 0, &ximg,
-				    &img->pixmap))
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       UNBLOCK_INPUT;
       DGifCloseFile (gif);
@@ -9566,8 +9556,7 @@ gs_load (f, img)
 
   if (!img->pixmap)
     {
-      image_error ("Unable to create pixmap for `%s'",
-		   image_spec_value (img->spec, QCfile, NULL), Qnil);
+      image_error ("Unable to create pixmap for `%s'", img->spec, Qnil);
       return 0;
     }
     
@@ -9679,7 +9668,7 @@ x_kill_gs_process (pixmap, f)
 	}
       else
 	image_error ("Cannot get X image of `%s'; colors will not be freed",
-		     image_spec_value (img->spec, QCfile, NULL), Qnil);
+		     img->spec, Qnil);
       
       UNBLOCK_INPUT;
     }
