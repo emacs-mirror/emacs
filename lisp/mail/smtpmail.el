@@ -197,7 +197,8 @@ don't define this value.")
 	  ;;
 	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
 	  (setq smtpmail-recipient-address-list
-		(smtpmail-deduce-address-list tembuf (point-min) delimline))
+		(or resend-to-addresses
+		    (smtpmail-deduce-address-list tembuf (point-min) delimline)))
 	  (kill-buffer smtpmail-address-buffer)
 
 	  (smtpmail-do-bcc delimline)
