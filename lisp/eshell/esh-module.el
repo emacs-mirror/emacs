@@ -71,8 +71,9 @@ customizing the variable `eshell-modules-list'."
 ;; documentation can be provided when the user customize's
 ;; `eshell-modules-list'.
 (eval-when-compile
-  (when (equal (file-name-nondirectory byte-compile-current-file)
-	       "esh-module.el")
+  (when (and byte-compile-current-file
+	     (equal (file-name-nondirectory byte-compile-current-file)
+		    "esh-module.el"))
     (let* ((directory (file-name-directory byte-compile-current-file))
            (elc-file (expand-file-name "esh-groups.elc" directory)))
       (eshell-load-defgroups directory)
