@@ -1,8 +1,8 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 ;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
+;;; Maintainer's Time-stamp: <95/05/30 13:28:56 gildea>
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Gildea's Last Time-stamp: <95/04/13 13:38:48 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@
 ;;; Originally based on the 19 Dec 88 version of
 ;;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;;; version 2, January 1995: replaced functions with %-escapes
+;;; $Id: time-stamp.el,v 1.1 95/05/30 17:57:24 gildea Exp $
 
 ;;; Code:
 
@@ -126,23 +127,26 @@ The format of the time stamp is determined by the variable  time-stamp-format.
 The variables time-stamp-line-limit, time-stamp-start, and time-stamp-end
 control finding the template."
   (interactive)
-  (if time-stamp-active
-      (let ((case-fold-search nil))
-	(if (and (stringp time-stamp-start)
-		 (stringp time-stamp-end))
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(goto-char (point-min))
-		(if (re-search-forward time-stamp-start
-				       (save-excursion
-					 (forward-line time-stamp-line-limit)
-					 (point))
-				       t)
-		    (let ((start (point)))
-		      (if (re-search-forward time-stamp-end
-					     (save-excursion (end-of-line) (point))
-					     t)
+  (let ((case-fold-search nil)
+	(need-to-warn nil))
+    (if (and (stringp time-stamp-start)
+	     (stringp time-stamp-end))
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (goto-char (point-min))
+	    (if (re-search-forward time-stamp-start
+				   (save-excursion
+				     (forward-line time-stamp-line-limit)
+				     (point))
+				   t)
+		(let ((start (point)))
+		  (if (re-search-forward time-stamp-end
+					 (save-excursion
+					   (end-of-line)
+					   (point))
+					 t)
+		      (if time-stamp-active
 			  (let ((end (match-beginning 0)))
 			    (delete-region start end)
 			    (goto-char start)
@@ -151,11 +155,17 @@ control finding the template."
 			    ;; remove any tabs used to format the time stamp
 			    (goto-char start)
 			    (if (search-forward "\t" end t)
-				(untabify start end))))))))
-	  ;; don't signal an error in a write-file-hook
-	  (message "time-stamp-start or time-stamp-end is not a string")))
-    (if time-stamp-warn-inactive
-	(message "Did not time-stamp buffer.")))
+				(untabify start end)))
+			(if time-stamp-warn-inactive
+			    ;; do the actual warning outside save-excursion
+			    (setq need-to-warn t))))))))
+      ;; don't signal an error in a write-file-hook
+      (message "time-stamp-start or time-stamp-end is not a string")
+      (sit-for 1))
+    (if need-to-warn
+	(progn
+	  (message "Warning: did not time-stamp buffer.")
+	  (sit-for 1))))
   ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
