@@ -791,7 +791,7 @@ A printed representation of an object is text which describes that object.  */)
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
-  /* Note that this won't make prepare_to_modify_buffer call 
+  /* Note that this won't make prepare_to_modify_buffer call
      ask-user-about-supersession-threat because this buffer
      does not visit a file.  */
   Ferase_buffer ();
@@ -929,7 +929,7 @@ DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugg
        doc: /* Redirect debugging output (stderr stream) to file FILE.
 If FILE is nil, reset target to the initial stderr stream.
 Optional arg APPEND non-nil (interactively, with prefix arg) means
-append to existing target file.  */) 
+append to existing target file.  */)
      (file, append)
      Lisp_Object file, append;
 {
@@ -1400,7 +1400,7 @@ print_object (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
-  char buf[30];
+  char buf[40];
 
   QUIT;
 
