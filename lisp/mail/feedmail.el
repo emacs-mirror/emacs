@@ -688,7 +688,7 @@ nil means insert them at the bottom.  This is mostly a novelty issue since
 the standards define the ordering of header fields to be immaterial and it's
 fairly likely that some MTA along the way will have its own idea of what the
 order should be, regardless of what you specify."
-  :group 'feedmail-header
+  :group 'feedmail-headers
   :type 'boolean
   )
 
@@ -706,7 +706,7 @@ For an explanation of fiddle-plexes, see the documentation for the
 variable feedmail-fiddle-plex-blurb.  In contrast to some other fiddle-plex
 manipulation functions, in this context, it makes no sense to have an element
 which is nil, t, or a simple string."
-  :group 'feedmail-header
+  :group 'feedmail-headers
   :type '(repeat (choice function)
 		 sexp) ; too complex to be described accurately
   )
