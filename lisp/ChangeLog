@@ -1,3 +1,12 @@
+2002-07-06  Francesco Potorti`  <pot@gnu.org>
+
+	* dos-w32.el (file-name-buffer-file-type-alist): Add knowledge of
+	.sx[dmicw] file suffixes for Open office data files.
+
+	* files.el (auto-mode-alist): Likewise.
+
+	* international/mule.el (auto-coding-alist): Likewise.
+
 2002-07-05  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--rectangle-operation): Don't call
