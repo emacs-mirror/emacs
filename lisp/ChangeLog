@@ -1,3 +1,7 @@
+2002-05-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in: Be sure also to run emacs with LANG=C.
+
 2002-05-16  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el: Doc fixes.
