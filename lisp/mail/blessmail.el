@@ -39,11 +39,13 @@
 (let ((attr (file-attributes rmail-spool-directory))
       modes)
   (or (eq t (car attr))
-      (error "%s is not a directory" rmail-spool-directory))
+      (signal 'error
+	      (list (format "%s is not a directory" rmail-spool-directory))))
   (setq modes (nth 8 attr))
+  (insert "#!/bin/sh\n")
   (cond
    ((= ?w (aref modes 8))
-    nil)
+    (insert "exit 0"))
    ((= ?w (aref modes 5))
     (insert "chgrp " (number-to-string (nth 3 attr))
 	    " $* && chmod g+s $*\n"))
