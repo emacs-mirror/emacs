@@ -962,7 +962,7 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 		 (setq backup-inhibited t)))
 	  (if rawfile
 	      (progn
-		(setq enable-multibyte-characters nil)
+		(set-buffer-multibyte nil)
 		(make-local-variable 'find-file-literally)
 		(setq find-file-literally t))
 	    (after-find-file error (not nowarn))
