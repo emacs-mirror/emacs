@@ -14855,7 +14855,7 @@ otherwise.  */);
   DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
     doc: /* *Margin around tool-bar buttons in pixels.
 If an integer, use that for both horizontal and vertical margins.
-Otherwise, value should be a pair of integers `(HORZ : VERT)' with
+Otherwise, value should be a pair of integers `(HORZ . VERT)' with
 HORZ specifying the horizontal margin, and VERT specifying the
 vertical margin.  */);
   Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
