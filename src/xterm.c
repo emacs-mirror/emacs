@@ -4902,6 +4902,10 @@ x_display_cursor (f, on, x, y)
 {
   BLOCK_INPUT;
 
+ if ((unsigned) x >= FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f)
+      || (unsigned) y >= FRAME_HEIGHT (f))
+    abort ();
+
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
     x_display_box_cursor (f, on, x, y);
   else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
