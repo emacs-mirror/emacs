@@ -1,5 +1,5 @@
 ;;; Disassembler for compiled Emacs Lisp code
-;;; Copyright (C) 1986 Free Software Foundation, Inc.
+;;; Copyright (C) 1986, 1991 Free Software Foundation, Inc.
 ;;; Original version by Doug Cutting (doug@csli.stanford.edu)
 ;;; Substantially modified by Jamie Zawinski <jwz@lucid.com> for
 ;;; the new lapcode-based byte compiler.
@@ -23,8 +23,9 @@
 
 
 ;;; The variable byte-code-vector is defined by the new bytecomp.el.
-;;; The function byte-decompile-lapcode is defined in byte-optimize.el.
-(require 'byte-optimize)
+;;; The function byte-decompile-lapcode is defined in byte-opt.el.
+;;; Since we don't use byte-decompile-lapcode, let's try not loading byte-opt.
+(require 'bytecomp)
 
 (defvar disassemble-column-1-indent 5 "*")
 (defvar disassemble-column-2-indent 10 "*")
