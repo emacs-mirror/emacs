@@ -2613,8 +2613,10 @@ SIZE includes that window's scroll bar, or the divider column to its right.")
     {
       if (!NILP (horflag))
 	/* Calculate the size of the left-hand window, by dividing
-	   the usable space in columns by two. */
-	size_int = XFASTINT (o->width) >> 1;
+	   the usable space in columns by two.
+	   We round up, since the left-hand window may include
+	   a dividing line, while the right-hand may not.  */
+	size_int = (XFASTINT (o->width) + 1) >> 1;
       else
 	size_int = XFASTINT (o->height) >> 1;
     }
