@@ -1699,8 +1699,9 @@ expression matching any number of whitespace characters."
 	with start = 0
 	finally return regexp
 	while (string-match "[ \t]+" regexp start)
-	do (setf (substring regexp (match-beginning 0) (match-end 0))
-		 "[ \t]*"
+	do (setq regexp (concat (substring regexp 0 (match-beginning 0))
+				"[ \t]*"
+				(substring regexp (match-end 0)))
 		 start (+ (match-beginning 0) 5))))
 
 
@@ -3313,10 +3314,9 @@ from point as default.  Value is a list (CLASS-NAME MEMBER-NAME)."
 	(unless member-name
 	  (error "No member name at point"))
 	(if members
-	    (let* ((alist (ebrowse-hash-table-to-alist members))
-		   (name (ebrowse-ignoring-completion-case
-			   (completing-read prompt alist nil nil member-name)))
-		   (completion-result (try-completion name alist)))
+	    (let* ((name (ebrowse-ignoring-completion-case
+			   (completing-read prompt members nil nil member-name)))
+		   (completion-result (try-completion name members)))
 	      ;; Cannot rely on `try-completion' returning t for exact
 	      ;; matches!  It returns the name as a string.
 	      (unless (setq member-info (gethash name members))
@@ -3555,8 +3555,7 @@ The file name is read from the minibuffer."
   (let* ((buffer (or (ebrowse-choose-from-browser-buffers)
 		     (error "No tree buffer")))
 	 (files (save-excursion (set-buffer buffer) (ebrowse-files-table)))
-	 (alist (ebrowse-hash-table-to-alist files))
-	 (file (completing-read "List members in file: " alist nil t))
+	 (file (completing-read "List members in file: " files nil t))
 	 (header (ebrowse-value-in-buffer 'ebrowse--header buffer))
 	 temp-buffer-setup-hook
 	 (members (ebrowse-member-table header)))
@@ -3639,15 +3638,6 @@ use choose a tree."
     (ebrowse-member-table header)))
 
 
-(defun ebrowse-hash-table-to-alist (table)
-  "Return an alist holding all key/value pairs of hash table TABLE."
-  (let ((list))
-    (maphash #'(lambda (key value)
-		 (setq list (cons (cons key value) list)))
-	     table)
-    list))
-  
-
 (defun ebrowse-cyclic-successor-in-string-list (string list)
   "Return the item following STRING in LIST.
 If STRING is the last element, return the first element as successor."
@@ -3672,9 +3662,8 @@ completion."
      ;; With prefix, read name from minibuffer with completion.
      (prefix
       (let* ((members (ebrowse-some-member-table))
-	     (alist (ebrowse-hash-table-to-alist members))
 	     (completion (completing-read "Insert member: "
-					  alist nil t pattern)))
+					  members nil t pattern)))
 	(when completion
 	  (setf ebrowse-last-completion-location nil)
 	  (delete-region begin end)
