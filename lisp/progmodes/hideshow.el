@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.9
+;; Maintainer-Version: 5.11
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -346,10 +346,12 @@ Note that `mode-line-format' is buffer-local.")
   "Delete hideshow overlays in region defined by FROM and TO."
   (when (< to from)
     (setq from (prog1 to (setq to from))))
-  (mapcar (lambda (ov)
-            (when (overlay-get ov 'hs)
-              (delete-overlay ov)))
-          (overlays-in from to)))
+  (let ((ovs (overlays-in from to)))
+    (while ovs
+      (let ((ov (car ovs)))
+	(when (overlay-get ov 'hs)
+	  (delete-overlay ov)))
+      (setq ovs (cdr ovs)))))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
@@ -396,11 +398,10 @@ on what kind of block it is suppose to hide."
         (overlay-put overlay 'intangible t)
         (overlay-put overlay 'hs flag)
         (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag))
-          (mapcar
-           (lambda (pair)
-             (overlay-put overlay (car pair) (cdr pair)))
-	   '((isearch-open-invisible . hs-isearch-show)
-	     (isearch-open-invisible-temporary . hs-isearch-show-temporary))))
+	  (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
+	  (overlay-put overlay
+		       'isearch-open-invisible-temporary
+		       'hs-isearch-show-temporary))
         overlay))))
 
 (defun hs-forward-sexp (match-data arg)
@@ -711,17 +712,18 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
    (or
     ;; first see if we have something at the end of the line
     (catch 'eol-begins-hidden-region-p
-      (let ((here (point)))
-        (mapcar (lambda (ov)
-                  (when (overlay-get ov 'hs)
-                    (goto-char
-                     (cond
-                      (end (overlay-end ov))
-                      ((eq 'comment (overlay-get ov 'hs)) here)
-                      (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
-                    (delete-overlay ov)
-                    (throw 'eol-begins-hidden-region-p t)))
-                (save-excursion (end-of-line) (overlays-at (point))))
+      (let ((here (point))
+	    (ovs (save-excursion (end-of-line) (overlays-at (point)))))
+	(while ovs
+	  (let ((ov (car ovs)))
+	    (when (overlay-get ov 'hs)
+	      (goto-char
+	       (cond (end (overlay-end ov))
+		     ((eq 'comment (overlay-get ov 'hs)) here)
+		     (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
+	      (delete-overlay ov)
+	      (throw 'eol-begins-hidden-region-p t)))
+	  (setq ovs (cdr ovs)))
         nil))
     ;; not immediately obvious, look for a suitable block
     (let ((c-reg (hs-inside-comment-p))
@@ -865,16 +867,17 @@ Key bindings:
                                    (list '(hs-minor-mode " hs")))))
 
 ;; make some variables permanently buffer-local
-(mapcar (lambda (var)
-          (make-variable-buffer-local var)
-          (put var 'permanent-local t))
-        '(hs-minor-mode
-          hs-c-start-regexp
-          hs-block-start-regexp
-          hs-block-start-mdata-select
-          hs-block-end-regexp
-          hs-forward-sexp-func
-          hs-adjust-block-beginning))
+(let ((vars '(hs-minor-mode
+	      hs-c-start-regexp
+	      hs-block-start-regexp
+	      hs-block-start-mdata-select
+	      hs-block-end-regexp
+	      hs-forward-sexp-func
+	      hs-adjust-block-beginning)))
+  (while vars
+    (let ((var (car vars)))
+      (make-variable-buffer-local var)
+      (put var 'permanent-local t))))
 
 ;;---------------------------------------------------------------------------
 ;; that's it
