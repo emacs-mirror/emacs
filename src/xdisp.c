@@ -3459,8 +3459,16 @@ set_iterator_to_next (it)
 	 Advance in the display table definition.  Reset it to null if
 	 end reached, and continue with characters from buffers/
 	 strings.  */
+      struct face *face;
+      
       ++it->current.dpvec_index;
+
+      /* Restore face and charset of the iterator to what they were
+	 before the display vector entry (these entries may contain
+	 faces, and of course characters of different charsets).  */
       it->face_id = it->saved_face_id;
+      it->charset = FACE_FROM_ID (it->f, it->face_id)->charset;
+      
       if (it->dpvec + it->current.dpvec_index == it->dpend)
 	{
 	  if (it->s)
