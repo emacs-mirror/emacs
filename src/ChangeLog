@@ -1,5 +1,8 @@
 2000-06-06  Kenichi Handa  <handa@etl.go.jp>
 
+	* buffer.c (Fset_buffer_multibyte): Don't make the current buffer
+	as modified if it is originally unmodified.
+
 	* term.c (encode_terminal_code): Change the way to check if
 	terminal coding does any conversion.
 	(append_glyph): Set glyph->pixel_width correctly.
