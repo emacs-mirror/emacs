@@ -807,12 +807,29 @@ See documentation of variable `tags-file-name'."
 
 ;;; Match qualifier functions for tagnames.
 
+(defmacro tags-with-syntax (&rest body)
+  (` (let ((current (current-buffer))
+	   (otable (syntax-table))
+	   (buffer (find-file-noselect (file-of-tag)))
+	   table)
+       (unwind-protect
+	   (progn
+	     (set-buffer buffer)
+	     (setq table (syntax-table))
+	     (set-buffer current)
+	     (set-syntax-table table)
+	     (,@ body))
+	 (set-syntax-table otable)))))
+
 ;; t if point is at a tag line that matches TAG "exactly".
 ;; point should be just after a string that matches TAG.
-(defun tag-exact-match-p (tag)
-  (and (looking-at "[ \t();,]?.*\177")
-       (let ((c (char-after (- (point) (length tag)))))
-	 (or (= c ?\n) (= c ?\ ) (= c ?\t)))))
+(defun tags-exact-match-p (tag)
+  (tags-with-syntax
+   (let ((end (point)))
+     (unwind-protect
+	 (= (match-beginning 0)
+	    (re-search-backward "\\(\\sw\\|\\s_\\)+" end t))
+       (goto-char end)))))
 
 ;; t if point is at a tag line that matches TAG as a word.
 ;; point should be just after a string that matches TAG.
