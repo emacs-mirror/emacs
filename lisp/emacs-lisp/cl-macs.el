@@ -888,7 +888,7 @@ Valid clauses are:
 	(cl-push (list (list temp (cl-pop args))) loop-bindings)
 	(cl-push (list '>= (list 'setq temp (list '1- temp)) 0) loop-body)))
 
-     ((eq word 'collect)
+     ((memq word '(collect collecting))
       (let ((what (cl-pop args))
 	    (var (cl-loop-handle-accum nil 'nreverse)))
 	(if (eq var loop-accum-var)
