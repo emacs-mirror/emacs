@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.11) $
+# $HopeName: MMQA_harness!script:logging(trunk.12) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -177,7 +177,7 @@ sub dispopts {
 sub displog {
  open(TESTLOG, $testlogfile);
  print $log_test_tran;
- while ($line = <TESTLOG>) {
+ while (defined($line = <TESTLOG>)) {
   print $line;
  }
  print $log_test_end;

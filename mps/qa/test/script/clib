@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: $
+# $HopeName: MMQA_harness!script:clib(trunk.1) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -16,7 +16,7 @@ sub clib {
 
  open(MANIFEST, "$testlib_dir/manifest");
 
- while ($tlfile = <MANIFEST>) {
+ while (defined($tlfile = <MANIFEST>)) {
   unless ($tlfile =~ /^%/) {
    chop($tlfile);
    $tlfile = $testlib_dir."/".$tlfile;
