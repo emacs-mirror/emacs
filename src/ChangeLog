@@ -1,5 +1,8 @@
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* fileio.c (Fsubstitute_in_file_name): Fix the change from
+	2002-02-08.
+
 	* xselect.c (Qcompound_text_with_extensions): Renamed from
 	Qcompound_text_no_extensions.
 	(lisp_data_to_selection_data, syms_of_xselect): Use the new name.
