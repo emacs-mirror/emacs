@@ -139,15 +139,10 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		  (when version 
 		    (setq where (get symbol 'custom-where))
 		    (when where
-		      (insert "(custom-put-if-not '" (symbol-name symbol) 
-			      " 'custom-version ")
-		      (prin1 version (current-buffer))
-		      (insert ")\n")
-		      (insert "(custom-put-if-not '" (symbol-name symbol))
-		      (if (get symbol 'standard-value)
-			  ;; This means it's a variable
+		      (if (or (custom-variable-p symbol)
+			      (custom-facep symbol))
+			  ;; This means it's a variable or a face.
 			  (progn
-			    (insert " 'standard-value t)\n")
 			    (if (assoc version version-alist)
 				(unless 
 				    (member where 
@@ -155,9 +150,20 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				  (push where (cdr (assoc version version-alist))))
 			      (push (cons version (list where)) version-alist)))
 			;; This is a group
+			(insert "(custom-put-if-not '" (symbol-name symbol) 
+				" 'custom-version ")
+			(prin1 version (current-buffer))
+			(insert ")\n")
+			(insert "(custom-put-if-not '" (symbol-name symbol))
 			(insert " 'group-documentation ")
 			(prin1 (get symbol 'group-documentation) (current-buffer))
-			(insert ")\n")))))))
+			(insert ")\n")
+			(when (get symbol 'custom-tag)
+			  (insert "(custom-put-if-not '" (symbol-name symbol))
+			  (insert " 'custom-tag ")
+			  (prin1 (get symbol 'custom-tag) (current-buffer))
+			  (insert ")\n"))
+			))))))
 
     (insert "\n(defvar custom-versions-load-alist "
 	    (if version-alist "'" ""))
