@@ -1,3 +1,8 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-confirm-expunge): Default to 
+	y-or-n-p.
+	
 2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-1):
@@ -21,11 +26,15 @@
 
 2000-11-22  Sam Steingold  <sds@gnu.org>
 
-	* simple.el (delete-trailing-whitespace): New interactive function.
+	* simple.el (delete-trailing-whitespace): New interactive
+	function.
+	
 	* progmodes/ada-mode.el (ada-mode): Use it instead of
 	`ada-remove-trailing-spaces'
 	(ada-remove-trailing-spaces): Removed.
+	
 	* textmodes/two-column.el (2C-merge): Recommend it in the doc.
+	
 	* textmodes/picture.el (picture-clean): Removed.
 	(picture-mode-exit): Call it instead of `picture-clean'.
 

@@ -1,5 +1,8 @@
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fmake_indirect_buffer): Don't treat nil as a
+	buffer object.
+
 	* frame.h (struct frame): Replace desired_tool_bar_items,
 	current_tool_bar_items, n_desired_tool_bar_items,
 	n_current_tool_bar_items removed with tool_bar_items and
