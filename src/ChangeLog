@@ -1,3 +1,12 @@
+2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.c (file_name_completion): Ignore a candidate directory if
+	it matches an element in completion-ignored-extensions that ends
+	in a slash.
+	(syms_of_dired) <completion-ignored-extensions>: Mention the above
+	feature in the doc string.
+	(Ffile_name_completion): Ditto.
+
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.c (skip_invisible): Don't skip "ellipsisized" text.
