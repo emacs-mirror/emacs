@@ -1121,6 +1121,18 @@ fi
 if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
   LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
   LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+  x_default_search_path=""
+  for x_library in `echo ${x_libraries} | sed -e "s/:/ /g"`; do
+    x_search_path="${x_library}/%L/%T/%N%C%S:\
+${x_library}/%L/%T/%N%C%S:${x_libary}/%l/%T/%N%C%S:\
+${x_library}/%T/%N%C%S:${x_library}/%L/%T/%N%S:\
+${x_library}/%l/%T/%N%S:${x_library}/%T/%N%S"
+    if test x"${x_default_search_path}" = x; then
+      x_default_search_path=${x_search_path}
+    else
+      x_default_search_path="${x_search_path}:${x_default_search_path}"
+    fi
+  done
 fi
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
@@ -1503,6 +1515,21 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   LIBS="$OLDLIBS"
 fi
 
+if test "${USE_X_TOOLKIT}" = "MOTIF"; then
+  AC_MSG_CHECKING(for Motif version 2.1)
+  AC_TRY_COMPILE([#include <Xm/Xm.h>],
+    [#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
+int x = 5;
+#else
+Motif version prior to 2.1.
+#endif],
+    [AC_MSG_RESULT(yes)
+     HAVE_MOTIF_2_1=yes
+     AC_DEFINE(HAVE_MOTIF_2_1)],
+    [AC_MSG_RESULT(no)
+     HAVE_MOTIF_2_1=no])
+fi
+
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_MSG_CHECKING(whether netdb declares h_errno)
 AC_TRY_LINK([#include <netdb.h>],
@@ -1658,6 +1685,7 @@ AC_SUBST(infodir)
 AC_SUBST(lispdir)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)
+AC_SUBST(x_default_search_path)
 AC_SUBST(etcdir)
 AC_SUBST(archlibdir)
 AC_SUBST(docdir)
