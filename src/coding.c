@@ -4959,7 +4959,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (replace)
     {
       signal_after_change (from, to - from, inserted);
-      update_compositions (from, to, CHECK_BORDER);
+      update_compositions (from, from + inserted, CHECK_BORDER);
     }
 
   {
