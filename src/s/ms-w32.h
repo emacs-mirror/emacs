@@ -1,5 +1,5 @@
 /* System description file for Windows NT.
-   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,6 +38,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef DOS_NT
 #define DOS_NT 	/* MSDOS or WINDOWSNT */
 #endif
+
+/* If you are compiling with a non-C calling convention but need to
+   declare vararg routines differently, put it here */
+#define _VARARGS_ __cdecl
+
+/* If you are providing a function to something that will call the
+   function back (like a signal handler and signal, or main) its calling
+   convention must be whatever standard the libraries expect */
+#define _CALLBACK_ __cdecl
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -103,7 +112,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *      Look in <sys/time.h> for a timeval structure.
  */
 
-/* #define HAVE_TIMEVAL */
+#define HAVE_TIMEVAL
+struct timeval 
+  {
+    long tv_sec;	/* seconds */
+    long tv_usec;	/* microseconds */
+  };
+struct timezone 
+  {
+    int	tz_minuteswest;	/* minutes west of Greenwich */
+    int	tz_dsttime;	/* type of dst correction */
+  };
+
+void gettimeofday (struct timeval *, struct timezone *);
+
 
 /*
  *      Define HAVE_SELECT if the system supports the `select' system call.
@@ -197,12 +219,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
-#define HAVE_DUP2       1
-#define HAVE_RENAME     1
-#define HAVE_RMDIR      1
-#define HAVE_MKDIR      1
+#define LISP_FLOAT_TYPE
+
+#define HAVE_DUP2       	1
+#define HAVE_RENAME     	1
+#define HAVE_RMDIR      	1
+#define HAVE_MKDIR      	1
 #define HAVE_GETHOSTNAME	1
-#define HAVE_MOUSE	1
+#define HAVE_RANDOM		1
+#define USE_UTIME		1
+#define HAVE_MOUSE		1
+#define HAVE_TZNAME		1
 
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
@@ -227,19 +254,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define mktemp  _mktemp
 #define open    _open
 #define pipe    _pipe
-#define random  rand
 #define read    _read
 #define rmdir   _rmdir
 #define sleep   nt_sleep
-#define srandom srand
 #define unlink  _unlink
 #define umask	_umask
+#define utime	_utime
 #define write   _write
 #define _longjmp        longjmp
 #define spawnve win32_spawnve
 #define wait    win32_wait
 #define signal  win32_signal
 #define rindex  strrchr
+#define ctime	nt_ctime	/* Place a wrapper around ctime (see nt.c).  */
 
 /* Defines that we need that aren't in the standard signal.h  */
 #define SIGHUP  1               /* Hang up */
@@ -254,6 +281,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define getdisk()               (_getdrive () - 1)
 #define getdefdir(_drv, _buf)   _getdcwd (_drv, _buf, MAXPATHLEN)
 
+#define EMACS_CONFIGURATION 	get_emacs_configuration ()
+#define EMACS_CONFIG_OPTIONS	"NT"	/* Not very meaningful yet.  */
+
 /* Define this so that winsock.h definitions don't get included when windows.h
    is...  I don't know if they do the right thing for emacs.  For this to
    have proper effect, config.h must always be included before windows.h.  */
@@ -262,8 +292,40 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Defines size_t and alloca ().  */
 #include <malloc.h>
 
+/* We have to handle stat specially.  However, #defining stat to
+   something else not only redefines uses of the function, but also
+   redefines uses of the type struct stat.  What unfortunate parallel
+   naming.  */
+#include <sys/stat.h>
+struct nt_stat 
+  {
+    struct _stat statbuf;
+  };
+
+#ifdef stat
+#undef stat
+#endif
+#define stat nt_stat
+#define st_dev statbuf.st_dev
+#define st_ino statbuf.st_ino
+#define st_mode statbuf.st_mode
+#define st_nlink statbuf.st_nlink
+#define st_uid statbuf.st_uid
+#define st_gid statbuf.st_gid
+#define st_rdev statbuf.st_rdev
+#define st_size statbuf.st_size
+#define st_atime statbuf.st_atime
+#define st_mtime statbuf.st_mtime
+#define st_ctime statbuf.st_ctime
+
+/* Define for those source files that do not include enough NT 
+   system files.  */
+#ifndef NULL
+#ifdef __cplusplus
+#define NULL	0
+#else
+#define NULL	((void *)0)
+#endif
+#endif
+
 /* ============================================================ */
-
-/* Give us extra pure storage.  */
-
-#define SYSTEM_PURESIZE_EXTRA 52000
