@@ -1466,7 +1466,8 @@ See also the documentation of make-char.")
 
 void
 map_char_table (c_function, function, subtable, arg, depth, indices)
-     Lisp_Object (*c_function) (), function, subtable, arg, *indices;
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+     Lisp_Object function, subtable, arg, *indices;
      int depth;
 {
   int i, to;
