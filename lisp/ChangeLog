@@ -1,3 +1,7 @@
+2004-11-06  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-menu-path): Use menu item name.
+
 2004-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/gdb-ui.el: Don't call define-fringe-bitmap if the
