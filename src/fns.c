@@ -131,7 +131,7 @@ To get the number of bytes, use `string-bytes'")
   (sequence)
      register Lisp_Object sequence;
 {
-  register Lisp_Object tail, val;
+  register Lisp_Object val;
   register int i;
 
  retry:
@@ -1609,7 +1609,7 @@ to be sure of changing the value of `foo'.")
 {
   if (VECTORP (seq))
     {
-      EMACS_INT i, n, size;
+      EMACS_INT i, n;
 
       for (i = n = 0; i < ASIZE (seq); ++i)
 	if (NILP (Fequal (AREF (seq, i), elt)))
