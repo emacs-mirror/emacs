@@ -1,5 +1,9 @@
 2005-01-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* progmodes/compile.el (compilation-start): Bind buffer-read-only
+	to nil before invoking call-process.  Reset buffer's modified flag
+	after fontifying it in the no-async branch.
+
 	* wid-edit.el (widget-specify-button): If mouse pointer shape
 	cannot be changed, use mouse face instead.
 
