@@ -4602,9 +4602,6 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   check_x ();
 
-  /* Use this general default value to start with until we know if
-     this frame has a specified name.  */
-  Vx_resource_name = Vinvocation_name;
 
 #ifdef MULTI_KBOARD
   kb = dpyinfo->kboard;
@@ -4618,7 +4615,6 @@ x_create_tip_frame (dpyinfo, parms, text)
       && !EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
-  Vx_resource_name = name;
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
