@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.43) $
+ * $HopeName: MMsrc!config.h(trunk.44) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -134,13 +134,12 @@
 #endif /* MPS_BUILD_MV */
 
 
-/* .epvm.subsequent-segment: POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE is
- * a default for the alignment of subsequent segments (non-initial
- * at each save level) in EPVM.  See
+/* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
+ * subsequent segments (non-initial at each save level) in EPVM.  See
  * design.mps.poolepvm.arch.segment.size.
  */
 
-#define POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE (64ul * 1024)
+#define EPVMDefaultSubsequentSegSIZE (64ul * 1024)
 
 
 /* Arena Configuration -- see impl.c.arena
