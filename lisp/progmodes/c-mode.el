@@ -1249,17 +1249,18 @@ If within a string or comment, move by sentences instead of statements."
 		  (indent-to this-indent)))
 	    ;; Indent any comment following the text.
 	    (or (looking-at comment-start-skip)
-		(let ((beg (point)))
-		  (and (re-search-forward
-			comment-start-skip
-			(save-excursion (end-of-line) (point)) t)
-		       ;; Make sure the comment starter we found
-		       ;; is not actually in a string or quoted.
-		       (let ((new-state
-			      (parse-partial-sexp beg (point)
-						  nil nil state)))
-			 (and (not (nth 3 new-state)) (not (nth 5 new-state))))
-		      (progn (indent-for-comment) (beginning-of-line)))))))))))
+		(save-excursion
+		  (let ((beg (point)))
+		    (and (re-search-forward
+			  comment-start-skip
+			  (save-excursion (end-of-line) (point)) t)
+			 ;; Make sure the comment starter we found
+			 ;; is not actually in a string or quoted.
+			 (let ((new-state
+				(parse-partial-sexp beg (point)
+						    nil nil state)))
+			   (and (not (nth 3 new-state)) (not (nth 5 new-state))))
+			 (indent-for-comment)))))))))))
 
 ;; Look at all comment-start strings in the current line after point.
 ;; Return t if one of them starts a real comment.
