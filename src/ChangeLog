@@ -1,3 +1,8 @@
+2000-09-18  Dave Love  <fx@gnu.org>
+
+	* keyboard.c (menu_bar_items, tool_bar_items) 
+	(current_active_maps): Remove redundant get_local_map call.
+
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_image_glyph_string): Remove a comment describing
