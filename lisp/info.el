@@ -2946,11 +2946,11 @@ the variable `Info-file-list-for-emacs'."
 		      '(font-lock-face info-xref
 			mouse-face highlight))))
 	      (when (eq Info-hide-note-references t)
-		(put-text-property (match-beginning 2) (match-beginning 4)
+		(put-text-property (match-beginning 2) (1- (match-end 4))
 				   'invisible t)
 		;; We need a stretchable space like :align-to but with
 		;; a minimum value.
-		(put-text-property (match-beginning 4) (match-end 4) 'display
+		(put-text-property (1- (match-end 4)) (match-end 4) 'display
 				   (if (>= 22 (- (match-end 1)
 						 (match-beginning 0)))
 				       '(space :align-to 24)
@@ -2958,7 +2958,10 @@ the variable `Info-file-list-for-emacs'."
 		(setq cont (looking-at "."))
 		(while (and (= (forward-line 1) 0)
 			    (looking-at "\\([ \t]+\\)[^*\n]"))
-		  (put-text-property (match-beginning 1) (match-end 1) 'display
+		  (put-text-property (match-beginning 1) (1- (match-end 1))
+				     'invisible t)
+		  (put-text-property (1- (match-end 1)) (match-end 1)
+				     'display
 				     (if cont
 					 '(space :align-to 26)
 				       '(space :align-to 24)))
