@@ -548,6 +548,7 @@ echo "Making links to \`lwlib'"
 echo "Making links to \`etc'"
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
 ### tex litter.
+### Don't distribute gfdl.1, since no man page references it.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$'`
  ln $files ../${tempdir}/etc
@@ -568,7 +569,7 @@ echo "Making links to \`etc'"
    fi
  done
  cd ../${tempdir}/etc
- rm -f fns*.el
+ rm -f fns*.el gfdl.1
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
