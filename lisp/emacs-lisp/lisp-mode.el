@@ -158,7 +158,10 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
-    (define-key map [backspace] 'backward-delete-char-untabify)
+    ;; This gets in the way when viewing a Lisp file in view-mode.  As
+    ;; long as [backspace] is mapped into DEL via the
+    ;; function-key-map, this should remain disabled!!
+    ;;;(define-key map [backspace] 'backward-delete-char-untabify)
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 
