@@ -1876,7 +1876,9 @@ replace_range (from, to, new, prepare, inherit, markers)
       *(GPT_ADDR) = 0;		/* Put an anchor.  */
       if (markers)
 	adjust_markers_for_insert (from, from_byte, to, to_byte, 0, 0, 0);
+      UNGCPRO;
       byte_combining_error ();
+      GCPRO1 (new);
     }
 
   /* Record deletion of the surrounding text that combines with
