@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
 
 ;; Authors:    1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
@@ -88,7 +88,7 @@
       (- ce-curcol langelem-col -1))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
-  ;; lineup an arglist-intro line to just after the open paren
+  ;; lineup an arglist-close line under the corresponding open paren
   (save-excursion
     (let ((langelem-col (c-langelem-col langelem t))
 	  (ce-curcol (save-excursion
@@ -96,6 +96,35 @@
 		       (backward-up-list 1)
 		       (current-column))))
       (- ce-curcol langelem-col))))
+
+(defun c-lineup-close-paren (langelem)
+  ;; Indents the closing paren under its corresponding open paren if
+  ;; the open paren is followed by code.  If the open paren ends its
+  ;; line, no indentation is added.  E.g:
+  ;;
+  ;; main (int,                main (
+  ;;       char **               int, char **
+  ;;      )            <->     )              <- c-lineup-close-paren
+  ;;
+  ;; Works with any type of paren.
+  (save-excursion
+    (condition-case nil
+	(let (opencol spec)
+	  (beginning-of-line)
+	  (backward-up-list 1)
+	  (setq spec (if (fboundp 'c-looking-at-special-brace-list)
+			 (c-looking-at-special-brace-list)))
+	  (if spec (goto-char (car spec)))
+	  (setq opencol (current-column))
+	  (forward-char 1)
+	  (if spec (progn
+		     (c-forward-syntactic-ws)
+		     (forward-char 1)))
+	  (c-forward-syntactic-ws (c-point 'eol))
+	  (if (eolp)
+	      0
+	    (- opencol (c-langelem-col langelem t))))
+      (error 0))))
 
 (defun c-lineup-streamop (langelem)
   ;; lineup stream operators
@@ -152,6 +181,27 @@
 	      (setq extra c-basic-offset))))
        (t (goto-char iopl)))
       (+ (- (current-column) langelem-col) extra))))
+
+(defun c-indent-one-line-block (langelem)
+  ;; Adds c-basic-offset to the indentation if the line is a one line
+  ;; block, otherwise 0.  E.g:
+  ;;
+  ;; if (n)                     if (n)
+  ;;   {m+=n; n=0;}     <->     {            <- c-indent-one-line-block
+  ;;                              m+=n; n=0;
+  ;;                            }
+  (save-excursion
+    (let ((eol (progn (end-of-line) (point))))
+      (beginning-of-line)
+      (skip-chars-forward " \t")
+      (if (and (eq (following-char) ?{)
+	       (condition-case nil
+		   (progn (forward-sexp) t)
+		 (error nil))
+	       (<= (point) eol)
+	       (eq (preceding-char) ?}))
+	  c-basic-offset
+	0))))
 
 (defun c-lineup-C-comments (langelem)
   ;; line up C block comment continuation lines
@@ -324,6 +374,14 @@
 	    (+ curcol (- prev-col-column (current-column)))
 	  c-basic-offset)))))
 
+(defun c-lineup-dont-change (langelem)
+  ;; Do not change the indentation of the current line
+  (save-excursion
+    (back-to-indentation)
+    (current-column)))
+
+
+
 (defun c-snug-do-while (syntax pos)
   "Dynamically calculate brace hanginess for do-while statements.
 Using this function, `while' clauses that end a `do-while' block will
@@ -371,7 +429,7 @@ indentation amount."
 
 ;; Useful for c-hanging-semi&comma-criteria
 (defun c-semi&comma-inside-parenlist ()
-  "Determine if a newline should be added after a semicolon.
+  "Controls newline insertion after semicolons in parenthesis lists.
 If a comma was inserted, no determination is made.  If a semicolon was
 inserted inside a parenthesis list, no newline is added otherwise a
 newline is added.  In either case, checking is stopped.  This supports
@@ -387,6 +445,39 @@ exactly the old newline insertion behavior."
 	  (error t))
 	t
       'stop)))
+
+;; Suppresses newlines before non-blank lines
+(defun c-semi&comma-no-newlines-before-nonblanks ()
+  "Controls newline insertion after semicolons.
+If a comma was inserted, no determination is made.  If a semicolon was
+inserted, and the following line is not blank, no newline is inserted.
+Otherwise, no determination is made."
+  (save-excursion
+    (if (and (= last-command-char ?\;)
+	     ;;(/= (point-max)
+	     ;;    (save-excursion (skip-syntax-forward " ") (point))
+	     (zerop (forward-line 1))
+	     (not (looking-at "^[ \t]*$")))
+	'stop
+      nil)))
+
+;; Suppresses new lines after semicolons in one-liners methods
+(defun c-semi&comma-no-newlines-for-oneline-inliners ()
+  "Controls newline insertion after semicolons for some one-line methods.
+If a comma was inserted, no determination is made.  Newlines are
+suppressed in one-liners, if the line is an in-class inline function.
+For other semicolon contexts, no determination is made."
+  (let ((syntax (c-guess-basic-syntax))
+        (bol (save-excursion
+               (if (c-safe (up-list -1) t)
+                   (c-point 'bol)
+                 -1))))
+    (if (and (eq last-command-char ?\;)
+             (eq (car (car syntax)) 'inclass)
+             (eq (car (car (cdr syntax))) 'topmost-intro)
+             (= (c-point 'bol) bol))
+        'stop
+      nil)))
 
 
 (provide 'cc-align)
