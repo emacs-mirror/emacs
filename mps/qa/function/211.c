@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!102.c(trunk.3) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = MVFF allocate from SW log (af_six)
  language = c
  link = testlib.o
