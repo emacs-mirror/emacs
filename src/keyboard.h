@@ -105,6 +105,9 @@ struct kboard
     /* Last anonymous kbd macro defined.  */
     Lisp_Object Vlast_kbd_macro;
 
+    /* Alist of system-specific X windows key symbols.  */
+    Lisp_Object Vsystem_key_alist;
+
     /* Number of displays using this KBOARD.  Normally 1, but can be
        larger when you have multiple screens on a single X display.  */
     int reference_count;
