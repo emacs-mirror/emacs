@@ -20,6 +20,7 @@
 	appt-delete-window-function here from emacs-xtra.
 
 	* calendar.texi: Update and reformat copyright.
+	Change all @xrefs to the non-printing emacs-xtra to @inforefs.
 	(Calendar/Diary): Menu now only on Mouse-3, not C-Mouse-3.
 	(Diary): Refer to `diary-file' rather than ~/diary.
 	(Diary Commands): Rename node to "Displaying the Diary".
