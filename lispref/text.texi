@@ -58,7 +58,7 @@ the character after point.
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
 * MD5 Checksum::     Compute the MD5 ``message digest''/``checksum''.
-* Atomic Changes::   Installing several buffer changs ``atomically''.
+* Atomic Changes::   Installing several buffer changes ``atomically''.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -68,6 +68,9 @@ the character after point.
   Many functions are provided to look at the characters around point.
 Several simple functions are described here.  See also @code{looking-at}
 in @ref{Regexp Search}.
+
+In the following four functions, ``beginning'' or ``end'' of buffer
+refers to the beginning or end of the accessible portion.
 
 @defun char-after &optional position
 This function returns the character in the current buffer at (i.e.,
@@ -230,9 +233,9 @@ This is the contents of buffer foo
 This function returns the symbol (or word) at or near point, as a string.
 The return value includes no text properties.
 
-The optional argument @var{really-word} is non-@code{nil}, it finds a
-word; otherwise, it finds a symbol (which includes word characters and
-both symbol constituent characters).
+If the optional argument @var{really-word} is non-@code{nil}, it finds a
+word; otherwise, it finds a symbol (which includes both word
+characters and symbol constituent characters).
 
 If the optional argument @var{strict} is non-@code{nil}, then point
 must be in or next to the symbol or word---if no symbol or word is
@@ -273,10 +276,10 @@ copying them into strings first.
 @defun compare-buffer-substrings buffer1 start1 end1 buffer2 start2 end2
 This function lets you compare two substrings of the same buffer or two
 different buffers.  The first three arguments specify one substring,
-giving a buffer and two positions within the buffer.  The last three
-arguments specify the other substring in the same way.  You can use
-@code{nil} for @var{buffer1}, @var{buffer2}, or both to stand for the
-current buffer.
+giving a buffer (or a buffer name) and two positions within the
+buffer.  The last three arguments specify the other substring in the
+same way.  You can use @code{nil} for @var{buffer1}, @var{buffer2}, or
+both to stand for the current buffer.
 
 The value is negative if the first substring is less, positive if the
 first is greater, and zero if they are equal.  The absolute value of
@@ -360,8 +363,7 @@ overlay.
 @defun insert-char character count &optional inherit
 This function inserts @var{count} instances of @var{character} into the
 current buffer before point.  The argument @var{count} should be a
-number (@code{nil} means 1), and @var{character} must be a character.
-The value is @code{nil}.
+number, and @var{character} must be a character.  The value is @code{nil}.
 
 This function does not convert unibyte character codes 128 through 255
 to multibyte characters, not even if the current buffer is a multibyte
@@ -375,7 +377,7 @@ insertion point.  @xref{Sticky Properties}.
 @defun insert-buffer-substring from-buffer-or-name &optional start end
 This function inserts a portion of buffer @var{from-buffer-or-name}
 (which must already exist) into the current buffer before point.  The
-text inserted is the region from @var{start} and @var{end}.  (These
+text inserted is the region between @var{start} and @var{end}.  (These
 arguments default to the beginning and end of the accessible portion of
 that buffer.)  This function returns @code{nil}.
 
@@ -418,9 +420,10 @@ commands intended primarily for the user but useful also in Lisp
 programs.
 
 @deffn Command insert-buffer from-buffer-or-name
-This command inserts the entire contents of @var{from-buffer-or-name}
-(which must exist) into the current buffer after point.  It leaves
-the mark after the inserted text.  The value is @code{nil}.
+This command inserts the entire accessible contents of
+@var{from-buffer-or-name} (which must exist) into the current buffer
+after point.  It leaves the mark after the inserted text.  The value
+is @code{nil}.
 @end deffn
 
 @deffn Command self-insert-command count
@@ -501,11 +504,11 @@ yanked, but can be reinserted using the undo mechanism (@pxref{Undo}).
 Some deletion functions do save text in the kill ring in some special
 cases.
 
-  All of the deletion functions operate on the current buffer, and all
-return a value of @code{nil}.
+  All of the deletion functions operate on the current buffer.
 
 @deffn Command erase-buffer
-This function deletes the entire text of the current buffer, leaving it
+This function deletes the entire text of the current buffer
+(@emph{not} just the accessible portion), leaving it
 empty.  If the buffer is read-only, it signals a @code{buffer-read-only}
 error; if some of the text in it is read-only, it signals a
 @code{text-read-only} error.  Otherwise, it deletes the text without
@@ -591,8 +594,9 @@ The value returned is always @code{nil}.
 This option specifies how @code{backward-delete-char-untabify} should
 deal with whitespace.  Possible values include @code{untabify}, the
 default, meaning convert a tab to many spaces and delete one;
-@code{hungry}, meaning delete all the whitespace characters before point
-with one command, and @code{nil}, meaning do nothing special for
+@code{hungry}, meaning delete all tabs and spaces before point with
+one command; @code{all} meaning delete all tabs, spaces and newlines
+before point, and @code{nil}, meaning do nothing special for
 whitespace characters.
 @end defopt
 
@@ -603,10 +607,13 @@ whitespace characters.
 commands intended primarily for the user but useful also in Lisp
 programs.
 
-@deffn Command delete-horizontal-space
+@deffn Command delete-horizontal-space &optional backward-only
 @cindex deleting whitespace
 This function deletes all spaces and tabs around point.  It returns
 @code{nil}.
+
+If @var{backward-only} is non-@code{nil}, the function deletes
+spaces and tabs before point, but not after point.
 
 In the following examples, we call @code{delete-horizontal-space} four
 times, once on each line, with point between the second and third
@@ -673,9 +680,10 @@ After the lines are joined, the function @code{fixup-whitespace} is
 responsible for deciding whether to leave a space at the junction.
 @end deffn
 
-@defun fixup-whitespace
-This function replaces all the whitespace surrounding point with either
-one space or no space, according to the context.  It returns @code{nil}.
+@deffn Command fixup-whitespace
+This function replaces all the horizontal whitespace surrounding point
+with either one space or no space, according to the context.  It
+returns @code{nil}.
 
 At the beginning or end of a line, the appropriate amount of space is
 none.  Before a character with close parenthesis syntax, or after a
@@ -709,7 +717,7 @@ This has too many spaces at the start of (this list)
 ---------- Buffer: foo ----------
 @end group
 @end smallexample
-@end defun
+@end deffn
 
 @deffn Command just-one-space
 @comment !!SourceFile simple.el
@@ -722,7 +730,7 @@ This function deletes blank lines surrounding point.  If point is on a
 blank line with one or more blank lines before or after it, then all but
 one of them are deleted.  If point is on an isolated blank line, then it
 is deleted.  If point is on a nonblank line, the command deletes all
-blank lines following it.
+blank lines immediately following it.
 
 A blank line is defined as a line containing only tabs and spaces.
 
@@ -771,7 +779,7 @@ would be difficult to change the terminology now.
 * Yanking::                How yanking is done.
 * Yank Commands::          Commands that access the kill ring.
 * Low-Level Kill Ring::	   Functions and variables for kill ring access.
-* Internals of Kill Ring:: Variables that hold kill-ring data.
+* Internals of Kill Ring:: Variables that hold kill ring data.
 @end menu
 
 @node Kill Ring Concepts
@@ -791,7 +799,7 @@ new entry automatically deletes the last entry.
 
   When kill commands are interwoven with other commands, each kill
 command makes a new entry in the kill ring.  Multiple kill commands in
-succession build up a single kill-ring entry, which would be yanked as a
+succession build up a single kill ring entry, which would be yanked as a
 unit; the second and subsequent consecutive kill commands add text to
 the entry made by the first one.
 
@@ -828,8 +836,10 @@ This is convenient because it lets the user use a series of kill
 commands to copy text from a read-only buffer into the kill ring.
 
 If @var{yank-handler} is non-@code{nil}, this puts that value onto
-the string of killed text, as a @code{yank-handler} property.
-@xref{Yanking}.
+the string of killed text, as a @code{yank-handler} text property.
+@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, any
+@code{yank-handler} properties present on the killed text are copied
+onto the kill ring, like other text properties.
 @end deffn
 
 @defopt kill-read-only-ok
@@ -841,9 +851,7 @@ updating the kill ring but not changing the buffer.
 @deffn Command copy-region-as-kill start end
 This command saves the region defined by @var{start} and @var{end} on
 the kill ring (including text properties), but does not delete the text
-from the buffer.  It returns @code{nil}.  It also indicates the extent
-of the text copied by moving the cursor momentarily, or by displaying a
-message in the echo area.
+from the buffer.  It returns @code{nil}.
 
 The command does not set @code{this-command} to @code{kill-region}, so a
 subsequent kill command does not append to the same kill ring entry.
@@ -865,9 +873,9 @@ text that they copy into the buffer.
 @defun insert-for-yank string
 This function normally works like @code{insert} except that it doesn't
 insert the text properties in the @code{yank-excluded-properties}
-list.  However, if the first character of @var{string} has a
-non-@code{nil}@code{yank-handler} text property, that property
-can do various special processing on the text being inserted.
+list.  However, if any part of @var{string} has a non-@code{nil}
+@code{yank-handler} text property, that property can do various
+special processing on that part of the text being inserted.
 @end defun
 
 @defun insert-buffer-substring-as-yank buf &optional start end
@@ -876,12 +884,11 @@ doesn't insert the text properties in the
 @code{yank-excluded-properties} list.
 @end defun
 
-  You can put a @code{yank-handler} text property on the text to
-control how it will be inserted if it is yanked.  The
-@code{insert-for-yank} function looks for a @code{yank-handler}
-property on the first character in its @var{string} argument.  The
-property value must be a list of one to four elements, with the
-following format (where elements after the first may be omitted):
+  You can put a @code{yank-handler} text property on all or part of
+the text to control how it will be inserted if it is yanked.  The
+@code{insert-for-yank} function looks for that property.  The property
+value must be a list of one to four elements, with the following
+format (where elements after the first may be omitted):
 
 @example
 (@var{function} @var{param} @var{noexclude} @var{undo})
@@ -891,15 +898,16 @@ following format (where elements after the first may be omitted):
 
 @table @var
 @item function
-When @var{function} is present and non-nil, it is called instead of
+When @var{function} is present and non-@code{nil}, it is called instead of
 @code{insert} to insert the string.  @var{function} takes one
 argument---the string to insert.
 
 @item param
 If @var{param} is present and non-@code{nil}, it replaces @var{string}
-as the object passed to @var{function} (or @code{insert}); for
-example, if @var{function} is @code{yank-rectangle}, @var{param}
-should be a list of strings to insert as a rectangle.
+(or the part of @var{string} being processed) as the object passed to
+@var{function} (or @code{insert}); for example, if @var{function} is
+@code{yank-rectangle}, @var{param} should be a list of strings to
+insert as a rectangle.
 
 @item noexclude
 If @var{noexclude} is present and non-@code{nil}, the normal removal of the
@@ -908,7 +916,7 @@ responsible for removing those properties.  This may be necessary
 if @var{function} adjusts point before or after inserting the object.
 
 @item undo
-If @var{undo} is present and non-nil, it is a function that will be
+If @var{undo} is present and non-@code{nil}, it is a function that will be
 called by @code{yank-pop} to undo the insertion of the current object.
 It is called with two arguments, the start and end of the current
 region.  @var{function} can set @code{yank-undo-function} to override
@@ -924,23 +932,29 @@ from the kill ring.  The text properties are copied too.
 
 @deffn Command yank &optional arg
 @cindex inserting killed text
-This command inserts before point the text in the first entry in the
+This command inserts before point the text at the front of the
 kill ring.  It positions the mark at the beginning of that text, and
 point at the end.
 
-If @var{arg} is a list (which occurs interactively when the user
-types @kbd{C-u} with no digits), then @code{yank} inserts the text as
-described above, but puts point before the yanked text and puts the mark
-after it.
+If @var{arg} is a non-@code{nil} list (which occurs interactively when
+the user types @kbd{C-u} with no digits), then @code{yank} inserts the
+text as described above, but puts point before the yanked text and
+puts the mark after it.
 
-If @var{arg} is a number, then @code{yank} inserts the @var{arg}th most
-recently killed text---the @var{arg}th element of the kill ring list.
+If @var{arg} is a number, then @code{yank} inserts the @var{arg}th
+most recently killed text---the @var{arg}th element of the kill ring
+list, counted cyclically from the front, which is considered the
+first element for this purpose.
 
-@code{yank} does not alter the contents of the kill ring or rotate it.
-It returns @code{nil}.
+@code{yank} does not alter the contents of the kill ring, unless it
+used text provided by another program, in which case it pushes that text
+onto the kill ring.  However if @var{arg} is an integer different from
+one, it rotates the kill ring to place the yanked string at the front.
+
+@code{yank} returns @code{nil}.
 @end deffn
 
-@deffn Command yank-pop arg
+@deffn Command yank-pop &optional arg
 This command replaces the just-yanked entry from the kill ring with a
 different entry from the kill ring.
 
@@ -949,6 +963,8 @@ This is allowed only immediately after a @code{yank} or another
 inserted by yanking.  @code{yank-pop} deletes that text and inserts in
 its place a different piece of killed text.  It does not add the deleted
 text to the kill ring, since it is already in the kill ring somewhere.
+It does however rotate the kill ring to place the newly yanked string at
+the front.
 
 If @var{arg} is @code{nil}, then the replacement text is the previous
 element of the kill ring.  If @var{arg} is numeric, the replacement is
@@ -966,7 +982,8 @@ The return value is always @code{nil}.
 If this variable is non-@code{nil}, the function @code{yank-pop} uses
 its value instead of @code{delete-region} to delete the text
 inserted by the previous @code{yank} or
-@code{yank-pop} command.
+@code{yank-pop} command.  The value must be a function of two
+arguments, the start and end of the current region.
 
 The function @code{insert-for-yank} automatically sets this variable
 according to the @var{undo} element of the @code{yank-handler}
@@ -992,27 +1009,44 @@ returns the @var{n}th kill, counting from the current yanking pointer.
 
 If @var{n} is zero, indicating a request for the latest kill,
 @code{current-kill} calls the value of
-@code{interprogram-paste-function} (documented below) before consulting
-the kill ring.
+@code{interprogram-paste-function} (documented below) before
+consulting the kill ring.  If that value is a function and calling it
+returns a string, @code{current-kill} pushes that string onto the kill
+ring and returns it.  It also sets the yanking pointer to point to
+that new entry, regardless of the value of @var{do-not-move}.
+Otherwise, @code{current-kill} does not treat a zero value for @var{n}
+specially: it returns the entry pointed at by the yanking pointer and
+does not move the yanking pointer.
 @end defun
 
-@defun kill-new string &optional yank-handler
-This function puts the text @var{string} into the kill ring as a new
-entry at the front of the ring.  It discards the oldest entry if
-appropriate.  It also invokes the value of
+@defun kill-new string &optional replace yank-handler
+This function pushes the text @var{string} onto the kill ring and
+makes the yanking pointer point to it.  It discards the oldest entry
+if appropriate.  It also invokes the value of
 @code{interprogram-cut-function} (see below).
+
+If @var{replace} is non-@code{nil}, then @code{kill-new} replaces the
+first element of the kill ring with @var{string}, rather than pushing
+@var{string} onto the kill ring.
 
 If @var{yank-handler} is non-@code{nil}, this puts that value onto
 the string of killed text, as a @code{yank-handler} property.
-@xref{Yanking}.
+@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, then
+@code{kill-new} copies any @code{yank-handler} properties present on
+@var{string} onto the kill ring, as it does with other text properties.
 @end defun
 
 @defun kill-append string before-p &optional yank-handler
 This function appends the text @var{string} to the first entry in the
-kill ring.  Normally @var{string} goes at the end of the entry, but if
+kill ring and makes the yanking pointer point to the combined entry.
+Normally @var{string} goes at the end of the entry, but if
 @var{before-p} is non-@code{nil}, it goes at the beginning.  This
-function also invokes the value of @code{interprogram-cut-function} (see
-below).  This handles @var{yank-handler} just like @code{kill-new}.
+function also invokes the value of @code{interprogram-cut-function}
+(see below).  This handles @var{yank-handler} just like
+@code{kill-new}, except that if @var{yank-handler} is different from
+the @code{yank-handler} property of the first entry of the kill ring,
+@code{kill-append} pushes the concatenated string onto the kill ring,
+instead of replacing the original first entry with it.
 @end defun
 
 @defvar interprogram-paste-function
@@ -1023,7 +1057,7 @@ programs, when you are using a window system.  Its value should be
 If the value is a function, @code{current-kill} calls it to get the
 ``most recent kill''.  If the function returns a non-@code{nil} value,
 then that value is used as the ``most recent kill''.  If it returns
-@code{nil}, then the first element of @code{kill-ring} is used.
+@code{nil}, then the front of the kill ring is used.
 
 The normal use of this hook is to get the window system's primary
 selection as the most recent kill, even if the selection belongs to
@@ -1033,13 +1067,17 @@ another application.  @xref{Window System Selections}.
 @defvar interprogram-cut-function
 This variable provides a way of communicating killed text to other
 programs, when you are using a window system.  Its value should be
-@code{nil} or a function of one argument.
+@code{nil} or a function of one required and one optional argument.
 
 If the value is a function, @code{kill-new} and @code{kill-append} call
-it with the new first element of the kill ring as an argument.
+it with the new first element of the kill ring as the first argument.
+The second, optional, argument has the same meaning as the @var{push}
+argument to @code{x-set-cut-buffer} (@pxref{Definition of
+x-set-cut-buffer}) and only affects the second and later cut buffers.
 
 The normal use of this hook is to set the window system's primary
-selection from the newly killed text.  @xref{Window System Selections}.
+selection (and first cut buffer) from the newly killed text.
+@xref{Window System Selections}.
 @end defvar
 
 @node Internals of Kill Ring
@@ -1112,7 +1150,7 @@ that @kbd{C-y} should yank.
 @defopt kill-ring-max
 The value of this variable is the maximum length to which the kill
 ring can grow, before elements are thrown away at the end.  The default
-value for @code{kill-ring-max} is 30.
+value for @code{kill-ring-max} is 60.
 @end defopt
 
 @node Undo
@@ -1149,7 +1187,9 @@ buffer.
 @item (@var{text} . @var{position})
 This kind of element indicates how to reinsert text that was deleted.
 The deleted text itself is the string @var{text}.  The place to
-reinsert it is @code{(abs @var{position})}.
+reinsert it is @code{(abs @var{position})}.  If @var{position} is
+positive, point was at the beginning of the deleted text, otherwise it
+was at the end.
 
 @item (t @var{high} . @var{low})
 This kind of element indicates that an unmodified buffer became
@@ -1241,13 +1281,13 @@ In an interactive call, @var{buffer-or-name} is the current buffer.
 You cannot specify any other buffer.
 @end deffn
 
-@deffn Command buffer-disable-undo &optional buffer
-@deffnx Command buffer-flush-undo &optional buffer
+@deffn Command buffer-disable-undo &optional buffer-or-name
+@deffnx Command buffer-flush-undo &optional buffer-or-name
 @cindex disable undo
-This function discards the undo list of @var{buffer}, and disables
+This function discards the undo list of @var{buffer-or-name}, and disables
 further recording of undo information.  As a result, it is no longer
 possible to undo either previous changes or any subsequent changes.  If
-the undo list of @var{buffer} is already disabled, this function
+the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
 This function returns @code{nil}.
@@ -3935,7 +3975,7 @@ changed text, its length is simply the difference between the first two
 arguments.
 @end defvar
 
-  Output of messges into the @samp{*Messages*} buffer does not
+  Output of messages into the @samp{*Messages*} buffer does not
 call these functions.
 
 @defmac combine-after-change-calls body...
