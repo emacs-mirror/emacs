@@ -1202,6 +1202,10 @@ lw_get_widget_value_for_widget (instance, w)
 }
 
 /* update other instances value when one thing changed */
+
+/* To forbid recursive calls */
+static Boolean lwlib_updating;
+
 /* This function can be used as a an XtCallback for the widgets that get 
   modified to update other instances of the widgets.  Closure should be the
   widget_instance. */
@@ -1211,17 +1215,14 @@ lw_internal_update_other_instances (widget, closure, call_data)
      XtPointer closure;
      XtPointer call_data;
 {
-  /* To forbid recursive calls */
-  static Boolean updating;
-  
   widget_instance* instance = (widget_instance*)closure;
   char* name = XtName (widget);
   widget_info* info;
   widget_instance* cur;
   widget_value* val;
 
-  /* never recurse as this could cause infinite recursions. */
-  if (updating)
+  /* Avoid possibly infinite recursion.  */
+  if (lwlib_updating)
     return;
 
   /* protect against the widget being destroyed */
@@ -1233,7 +1234,7 @@ lw_internal_update_other_instances (widget, closure, call_data)
   if (!info->instances->next)
     return;
 
-  updating = True;
+  lwlib_updating = True;
 
   for (val = info->val; val && strcmp (val->name, name); val = val->next);
 
@@ -1242,7 +1243,7 @@ lw_internal_update_other_instances (widget, closure, call_data)
       if (cur != instance)
 	set_one_value (cur, val, True);
 
-  updating = False;
+  lwlib_updating = False;
 }
 
 
