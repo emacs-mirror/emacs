@@ -1,3 +1,8 @@
+2004-12-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xaw.c: Put <KeyPress>Escape in dialogOverride so dialogs only
+	pops down on Escape, not any keypress.
+
 2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (find_first_selectable, find_next_selectable)

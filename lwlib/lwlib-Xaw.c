@@ -279,7 +279,7 @@ static char overrideTrans[] =
 	"<Message>WM_PROTOCOLS: lwlib_delete_dialog()";
 /* Dialogs pop down on any key press */
 static char dialogOverride[] =
-       "<KeyPress>:	lwlib_delete_dialog()";
+       "<KeyPress>Escape:	lwlib_delete_dialog()";
 static void wm_delete_window();
 static XtActionsRec xaw_actions [] = {
   {"lwlib_delete_dialog", wm_delete_window}
