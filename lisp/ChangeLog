@@ -1,3 +1,9 @@
+2005-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-move-columns): Fix face after extending a line.
+	(term-insert-spaces): Likewise.
+	(term-reset-terminal): Fix off by one error.
+
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule.el (auto-coding-alist): Add .xpi files.
