@@ -1,3 +1,9 @@
+2002-08-05  David Kastrup  <David.Kastrup@t-online.de>
+
+	* calc/calc.el (math-format-stack-value): Revert a broken
+	if->when replacement and reformat so that this does not happen
+	again.  Fixes a pretty lethal line formatting/yanking bug.
+
 2002-08-04  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* startup.el (fancy-splash-frame): Check selected frame last.
