@@ -1881,11 +1881,15 @@ saying what text to write."
 This function is useful for creating multiple shell process buffers
 or multiple mail buffers, etc."
   (interactive)
-  (let* ((new-buf (generate-new-buffer (buffer-name)))
-	 (name (buffer-name new-buf)))
-    (kill-buffer new-buf)
-    (rename-buffer name)
-    (set-buffer-modified-p (buffer-modified-p)))) ; force mode line update
+  (save-match-data
+    (let* ((base-name (if (string-match "<[0-9]+>\\'" (buffer-name))
+			  (substring (buffer-name) 0 (match-beginning 0))
+			(buffer-name)))
+	   (new-buf (generate-new-buffer base-name))
+	   (name (buffer-name new-buf)))
+      (kill-buffer new-buf)
+      (rename-buffer name)
+      (set-buffer-modified-p (buffer-modified-p))))) ; force mode line update
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs.
