@@ -1,3 +1,8 @@
+2003-12-28  Sam Steingold  <sds@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-file-attributes): Add new optional
+	parameter ID-FORMAT to conform with the 2003-11-30 patch.
+
 2003-12-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gud-gdb-command-name): Set default to
@@ -129,7 +134,7 @@
 	(group, documentation-string): Removed redundant (per 2003-10-25
 	change) calls to `widget-children-value-delete'.
 	(widget-choice-value-get, widget-choice-value-inline): Removed
-	functions. 
+	functions.
 	(menu-choice): Updated widget.
 
 2003-12-03  Kenichi Handa  <handa@m17n.org>
@@ -1905,7 +1910,7 @@
 	which does not exist in LaTeX.
 	(reftex-cite-format-builtin): Added amsrefs support.
 	(reftex-toc-confirm-promotion): New option
-	
+
 	* reftex-toc.el
 	(reftex-toc): Use `reftex-toc-split-windows-fraction'.
 	(reftex-toc-demote, reftex-toc-promote)

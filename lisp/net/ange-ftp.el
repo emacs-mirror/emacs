@@ -3434,7 +3434,7 @@ system TYPE.")
 	  (nreverse files)))
     (apply 'ange-ftp-real-directory-files directory full match v19-args)))
 
-(defun ange-ftp-file-attributes (file)
+(defun ange-ftp-file-attributes (file &optional id-format)
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
     (if parsed
@@ -3467,7 +3467,7 @@ system TYPE.")
 		      inode		;10 "inode number".
 		      -1		;11 device number [v19 only]
 		      ))))
-      (ange-ftp-real-file-attributes file))))
+      (ange-ftp-real-file-attributes file id-format))))
 
 (defun ange-ftp-file-newer-than-file-p (f1 f2)
   (let ((f1-parsed (ange-ftp-ftp-name f1))
