@@ -57,6 +57,8 @@
 (load "case-table")
 (load "international/characters")
 
+(message "Lists of integers (garbage collection statistics) are normal output")
+(message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (message "%s" (garbage-collect))
