@@ -417,13 +417,13 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
 		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
-    (if (eobp)
-	nil
-      ;; go to end of line before heading
-      (forward-char -1)
-      ;; skip preceding blank line, if there is one
-      (if (memq (preceding-char) '(?\n ?\^M))
-	  (forward-char -1)))))
+    (if (memq (preceding-char) '(?\n ?\^M))
+	(progn
+	  ;; got to end of line before heading
+	  (forward-char -1)
+	  (if (memq (preceding-char) '(?\n ?\^M))
+	      ;; leave blank line before heading
+	      (forward-char -1))))))
 
 (defun show-branches ()
   "Show all subheadings of this heading, but not their bodies."
