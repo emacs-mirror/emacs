@@ -6847,7 +6847,7 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING itself
 if the decoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil meant that the decoded text is
-inserted in BUFFER instead of returned as a astring.  In this case,
+inserted in BUFFER instead of returned as a string.  In this case,
 the return value is BUFFER.
 
 This function sets `last-coding-system-used' to the precise coding system
@@ -6868,7 +6868,7 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING
 itself if the encoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil meant that the encoded text is
-inserted in BUFFER instead of returned as a astring.  In this case,
+inserted in BUFFER instead of returned as a string.  In this case,
 the return value is BUFFER.
 
 This function sets `last-coding-system-used' to the precise coding system
@@ -7192,7 +7192,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 }
 
 DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
-       Sset_coding_system_priority, 1, MANY, 0,
+       Sset_coding_system_priority, 0, MANY, 0,
        doc: /* Assign higher priority to the coding systems given as arguments.
 usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
      (nargs, args)
