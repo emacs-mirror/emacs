@@ -301,7 +301,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	    (cons (list Info-current-file Info-current-node (point))
 		  Info-history)))
   ;; Go into info buffer.
-  (switch-to-buffer "*info*")
+  (pop-to-buffer "*info*")
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
