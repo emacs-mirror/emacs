@@ -809,9 +809,11 @@ find-file-hooks, etc.
 
 This function does not work for remote files, because it turns off
 file name handlers and remote file access uses a file name handler."
-  (let ((file-name-handler-alist nil)
-	(format-alist nil)
+  (let ((format-alist nil)
 	(after-insert-file-functions nil)
+	(coding-system-for-read 'no-conversion)
+	(coding-system-for-write 'no-conversion)
+	(jka-compr-compression-info-list nil)
 	(find-buffer-file-type-function
 	 (if (fboundp 'find-buffer-file-type)
 	     (symbol-function 'find-buffer-file-type)
@@ -830,7 +832,7 @@ If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
 The buffer is not selected, just returned to the caller.
 Optional first arg NOWARN non-nil means suppress any warning messages.
-Optional second arg RAWFILE non-nil means the file is read literally"
+Optional second arg RAWFILE non-nil means the file is read literally."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -950,26 +952,13 @@ Optional second arg RAWFILE non-nil means the file is read literally"
   "Visit file FILENAME with no conversion of any kind.
 Format conversion and character code conversion are both disabled,
 and multibyte characters are disabled in the resulting buffer.
+The major mode used is Fundamental mode regardless of the file name,
+and local variable specifications in the file are ignored.
 Automatic uncompression is also disabled."
   (interactive "FFind file literally: ")
-  (let ((coding-system-for-read 'no-conversion)
-	(coding-system-for-write 'no-conversion)
-	(auto-mode-alist (copy-sequence auto-mode-alist))
-	(jka-compr-compression-info-list nil)
-	(format-alist nil)
-	(after-insert-file-functions nil)
-	tail)
-    ;; Turn off use of tar-mode and archive-mode
-    ;; for this one file.  (We copied auto-mode-alist above
-    ;; so as not to alter it permanently.)
-    (setq tail auto-mode-alist)
-    (while tail
-      (if (memq (cdr (car tail)) '(tar-mode archive-mode))
-	  (setq auto-mode-alist (delq (car tail) auto-mode-alist)))
-      (setq tail (cdr tail)))
-    (prog1
-	(find-file filename)
-      (setq enable-multibyte-characters nil))))
+  (prog1
+      (switch-to-buffer (find-file-noselect filename nil t))
+    (setq enable-multibyte-characters nil)))
 
 (defvar after-find-file-from-revert-buffer nil)
 
