@@ -1,3 +1,15 @@
+2003-04-06  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-update): Use easy-menu-create-menu
+	rather than easy-menu-change.
+
+	* dired.el (dired-view-file): Let viewer program run asynchronously.
+
+2003-04-06  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	Correct the starting point for previous-single-property-change.
+
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (tag-find-file-of-tag): Renamed from 
