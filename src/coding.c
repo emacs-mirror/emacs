@@ -6692,7 +6692,7 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */
 {
   Lisp_Object val;
   if (SYMBOLP (default_coding_system))
-    XSETSTRING (default_coding_system, SYMBOL_NAME (default_coding_system));
+    XSETSTRING (default_coding_system, XPNTR (SYMBOL_NAME (default_coding_system)));
   val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
@@ -7873,7 +7873,9 @@ DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
        Sset_coding_system_priority, 0, MANY, 0,
        doc: /* Assign higher priority to the coding systems given as arguments.
 If multiple coding systems belongs to the same category,
-all but the first one are ignored.  */)
+all but the first one are ignored.
+
+usage: (set-coding-system-priority ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
