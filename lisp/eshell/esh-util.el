@@ -1,6 +1,6 @@
 ;;; esh-util --- general utilities
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -98,11 +98,10 @@ function `string-to-number'."
 
 (defcustom eshell-ange-ls-uids nil
   "*List of user/host/id strings, used to determine remote ownership."
-  :type '(list (cons :tag "Host/User Pair"
-		     (string :tag "Hostname")
-		     (repeat (cons :tag "User/UID List"
-				   (string :tag "Username")
-				   (repeat :tag "UIDs" string)))))
+  :type '(alist :key-type (string :tag "Hostname")
+		:value-type (alist :tag "User/UID List"
+				   :key-type (string :tag "Username")
+				   :value-type (repeat :tag "UIDs" string)))
   :group 'eshell-util)
 
 ;;; Internal Variables:
