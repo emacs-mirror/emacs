@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -590,7 +590,7 @@ Leaves the region surrounding the rectangle."
 (defvar picture-mode-map nil)
 
 (defun picture-substitute (oldfun newfun)
-  (substitute-key-definition oldfun newfun picture-mode-map global-map))
+  (define-key picture-mode-map (vector 'remap oldfun) newfun))
 
 (if (not picture-mode-map)
     (progn
