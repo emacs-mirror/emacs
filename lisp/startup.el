@@ -513,25 +513,41 @@ Copyright (C) 1994 Free Software Foundation, Inc.\n\n")
 		   (if (and (eq (key-binding "\C-h") 'help-command)
 			    (eq (key-binding "\C-xu") 'advertised-undo)
 			    (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
-			    (eq (key-binding "\C-h\C-c") 'describe-copying)
-			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
-			    (eq (key-binding "\C-h\C-w") 'describe-no-warranty)
-			    (eq (key-binding "\C-ht") 'help-with-tutorial))
+			    (eq (key-binding "\C-ht") 'help-with-tutorial)
+			    (eq (key-binding "\C-hi") 'info))
 		       (insert 
        "Type C-h for help; C-x u to undo changes.  (`C-' means use CTRL key.)
 To kill the Emacs job, type C-x C-c.
 Type C-h t for a tutorial on using Emacs.
-Type C-h i to enter Info, which you can use to read GNU documentation.
+Type C-h i to enter Info, which you can use to read GNU documentation.")
+		     (insert (substitute-command-keys
+			      (format "Type %s for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
+To kill the Emacs job, type \\[save-buffers-kill-emacs].
+Type \\[help-with-tutorial] for a tutorial on using Emacs.
+Type \\[info] to enter Info, which you can use to read GNU documentation."
+				      (let ((where (where-is-internal
+						    'help-command nil t)))
+					(if where
+					    (key-description where)
+					  "M-x help"))))))
 
+		   ;; Windows and MSDOS (currently) do not count as
+		   ;; window systems, but do have mouse support.
+		   (if (or (memq (system-type '(msdos windowsnt)))
+			   window-system)
+		       (insert "
+C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
+		   (insert "\n")
+		   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+			    (eq (key-binding "\C-h\C-d") 'describe-distribution)
+			    (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+		       (insert 
+			"
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
 You may give out copies of Emacs; type C-h C-c to see the conditions.
 Type C-h C-d for information on getting the latest version.")
 		     (insert (substitute-command-keys
-       "Type \\[help-command] for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
-To kill the Emacs job, type \\[save-buffers-kill-emacs].
-Type \\[help-with-tutorial] for a tutorial on using Emacs.
-Type \\[info] to enter Info, which you can use to read GNU documentation.
-
+			      "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version.")))
