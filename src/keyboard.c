@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "termhooks.h"
 #include "macros.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "commands.h"
@@ -34,7 +35,6 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "disptab.h"
 #include "dispextern.h"
-#include "keyboard.h"
 #include "syntax.h"
 #include "intervals.h"
 #include "blockinput.h"
@@ -73,7 +73,9 @@ Boston, MA 02111-1307, USA.  */
 /* Include systime.h after xterm.h to avoid double inclusion of time.h. */
 #include "systime.h"
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 
 /* Variables for blockinput.h: */
 
