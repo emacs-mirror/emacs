@@ -386,8 +386,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		  (car (or 
 			;; First check only tables already in buffers.
 			(save-excursion (tags-table-including buffer-file-name
-								 tags-table-list
-								 t))
+							      tags-table-list
+							      t))
 			;; Since that didn't find any, now do the
 			;; expensive version: reading new files.
 			(save-excursion (tags-table-including buffer-file-name
@@ -992,7 +992,8 @@ See documentation of variable `tags-file-name'."
 			       (progn (skip-chars-forward "^\177")
 				      (point))))
       (terpri)
-      (forward-line 1))))
+      (forward-line 1))
+    t))
 
 (defun etags-tags-apropos (string)
   (goto-char 1)
@@ -1247,12 +1248,13 @@ See documentation of variable `tags-file-name'."
 ;;;###autoload
 (defun list-tags (file)
   "Display list of tags in file FILE.
-FILE should not contain a directory specification
-unless it has one in the tags table."
+FILE should not contain a directory specification."
   (interactive (list (completing-read "List tags in file: "
 				      (save-excursion
 					(visit-tags-table-buffer)
-					(mapcar 'list (tags-table-files)))
+					(mapcar 'list
+						(mapcar 'file-name-nondirectory
+							(tags-table-files))))
 				      nil t nil)))
   (with-output-to-temp-buffer "*Tags List*"
     (princ "Tags in file ")
@@ -1262,10 +1264,11 @@ unless it has one in the tags table."
       (let ((first-time t)
 	    (gotany nil))
 	(while (visit-tags-table-buffer (not first-time))
+	  (setq first-time nil)
 	  (if (funcall list-tags-function file)
 	      (setq gotany t)))
 	(or gotany
-	    (error "File %s not in current tags tables"))))))
+	    (error "File %s not in current tags tables" file))))))
 
 ;;;###autoload
 (defun tags-apropos (regexp)
