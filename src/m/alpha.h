@@ -153,6 +153,10 @@ NOTE-END
 # endif
 #endif
 
+#ifdef __NetBSD__
+#define ORDINARY_LINK
+#endif
+
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
@@ -235,7 +239,11 @@ NOTE-END
 
 #ifndef NOT_C_CODE
 /* We need these because pointers are larger than the default ints.  */
+#ifndef __NetBSD__
 #include <alloca.h>
+#else
+#include <stdlib.h>
+#endif
 
 /* Hack alert!  For reasons unknown to mankind the string.h file insists
    on defining bcopy etc. as taking char pointers as arguments.  With
