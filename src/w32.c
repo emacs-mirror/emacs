@@ -724,9 +724,6 @@ get_volume_info (const char * name, const char ** pPath)
 	}
       while ( *name );
 
-      if (slashes > 1)
-	return FALSE;
-
       *str++ = '\\';
       *str = 0;
     }
