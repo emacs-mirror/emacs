@@ -441,7 +441,6 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   "Turn on View mode."
   ;; Always leave view mode before changing major mode.
   ;; This is to guarantee that the buffer-read-only variable is restored.
-  (make-local-hook 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
   (setq view-mode t
 	view-page-size (view-page-size-default view-page-size)
