@@ -1,3 +1,14 @@
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* avoid.el (mouse-avoidance-point-position): Use window-inside-edges
+	and call compute-motion with nil for topos and width to get proper
+	usable width and height for both window and non-window systems.
+
+	* windmove.el (windmove-coordinates-of-position): Let compute-motion
+	calculate usable window width and height.
+
+	* window.el (window-buffer-height): Call compute-motion with nil width.
+
 2004-08-01  David Kastrup  <dak@gnu.org>
 
 	* replace.el (query-replace-read-from): Use
