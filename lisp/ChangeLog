@@ -1,3 +1,8 @@
+2002-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-mode): Misc. changes to use
+	emulation-mode-map-alists instead of minor-mode-map-alist.
+
 2002-05-09  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-show-message):
