@@ -483,7 +483,7 @@ Return t if file exists.")
       if (!NILP (Vload_source_file_function))
 	{
 	  close (fd);
-	  return call3 (Vload_source_file_function, found, file,
+	  return call4 (Vload_source_file_function, found, file,
 			NILP (noerror) ? Qnil : Qt,
 			NILP (nomessage) ? Qnil : Qt);
 	}
