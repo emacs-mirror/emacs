@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* admin.el (add-release-logs): Put the log entry in lispref, too.
+
 2001-10-20  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs: Exit if we can't find some variable.
