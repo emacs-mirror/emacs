@@ -111,16 +111,6 @@ Boston, MA 02111-1307, USA.  */
 
 #undef BSTRING
 
-#ifdef BSTRING
-#undef bcopy
-#undef bzero
-#undef bcmp
-
-#define bcopy(a,b,s)	memcpy(b,a,s)
-#define bzero(a,s)	memset(a,0,s)
-#define bcmp		memcmp
-#endif
-
 /*
  * Define optimflags if you want to optimize.
  *	- Set to null string for pre-4.2 C compiler

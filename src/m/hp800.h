@@ -74,16 +74,6 @@ Boston, MA 02111-1307, USA.  */
 #if 0  /* Loses when sign bit of type field is set.  */
 #define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
 #endif
-
-/* Define the BSTRING functions in terms of the sysV functions. */
-/* On HPUX 8.05, including types.h can include strings.h
-   which declares these as functions.  Hence the #ifndef.  */
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s)	memcpy (b,a,s)
-#define bzero(a,s)	memset (a,0,s)
-#define bcmp		memcmp
-#endif
 
 /* Common definitions for HPUX and GNU/Linux.  */
 
