@@ -385,7 +385,7 @@ temp_output_buffer_setup (bufname)
   current_buffer->read_only = Qnil;
   Ferase_buffer ();
 
-  XSET (buf, Lisp_Buffer, current_buffer);
+  XSETBUFFER (buf, current_buffer);
   specbind (Qstandard_output, buf);
 
   set_buffer_internal (old);
