@@ -1,5 +1,12 @@
 2000-02-23  Dave Love  <fx@gnu.org>
 
+	* simple.el (zap-to-char, kill-line, kill-region, kill-word)
+	(backward-kill-word): Revert addition of * to interactive spec --
+	it's a feature.
+
+	* paragraphs.el: (kill-paragraph, backward-kill-paragraph)
+	(backward-kill-sentence, kill-sentence): Likewise.
+
 	* gud.el (gud-jdb-build-class-source-alist): Prepend space to
 	scratch buffer name.
 	(gud-format-command): Use int-to-string in ?l case.  Simplify
