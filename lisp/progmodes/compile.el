@@ -1692,53 +1692,55 @@ An error message with no file name and no file name has been seen earlier."))
 		    ;; location, and the file and line number of the error.
 		    ;; Save, as the start of the error, the beginning of the
 		    ;; line containing the match.
-		    (if (setq this-error
-			      (if (numberp linenum)
-				  (list (point-marker) filename linenum
-					(and column (string-to-int column)))
-				;; If linenum is not a number then it must be
-				;; a function returning an error position
-				;; descriptor or nil (meaning no position).
-				(save-excursion
-				  (funcall linenum filename column))))
+		    (setq this-error
+			  (if (numberp linenum)
+			      (list (point-marker) filename linenum
+				    (and column (string-to-int column)))
+			    ;; If linenum is not a number then it must be
+			    ;; a function returning an error position
+			    ;; descriptor or nil (meaning no position).
+			    (save-excursion
+			      (funcall linenum filename column))))
 			
-			;; We have an error position descriptor.
-			;; If we have found as many new errors as the user
-			;; wants, or if we are past the buffer position he
-			;; indicated, then we continue to parse until we have
-			;; seen all consecutive errors in the same file. This
-			;; means that all the errors of a source file will be
-			;; seen in one parsing run, so that the error positions
-			;; will be recorded as markers in the source file
-			;; buffer that will move when the buffer is changed.
-			(if (and (or (and find-at-least
-					  (>= compilation-num-errors-found
-					      find-at-least))
-				     (and limit-search
-					  (>= end-of-match limit-search)))
-				 compilation-error-list ;At least one previous.
-				 (not (equal ; Same filename?
-				       (car (cdr (car compilation-error-list)))
-				       (car (cdr this-error)))))
-			    ;; We are past the limits and the last error
-			    ;; parsed, didn't belong to the same source file
-			    ;; as the earlier ones i.e. we have seen all the
-			    ;; errors belonging to the earlier file. We don't
-			    ;; add the error just parsed so that the next
-			    ;; parsing run can get it and the following errors
-			    ;; in the same file all at once.
-			    (setq found-desired t)
+		    ;; We have an error position descriptor.
+		    ;; If we have found as many new errors as the user
+		    ;; wants, or if we are past the buffer position he
+		    ;; indicated, then we continue to parse until we have
+		    ;; seen all consecutive errors in the same file. This
+		    ;; means that all the errors of a source file will be
+		    ;; seen in one parsing run, so that the error positions
+		    ;; will be recorded as markers in the source file
+		    ;; buffer that will move when the buffer is changed.
+		    (if (and this-error
+			     compilation-error-list ; At least one previous.
+			     (or (and find-at-least
+				      (>= compilation-num-errors-found
+					  find-at-least))
+				 (and limit-search
+				      (>= end-of-match limit-search)))
+			     (not (equal ; Same filename?
+				   (car (cdr (car compilation-error-list)))
+				   (car (cdr this-error)))))
+			;; We are past the limits and the last error
+			;; parsed, didn't belong to the same source file
+			;; as the earlier ones i.e. we have seen all the
+			;; errors belonging to the earlier file. We don't
+			;; add the error just parsed so that the next
+			;; parsing run can get it and the following errors
+			;; in the same file all at once.
+			(setq found-desired t)
 
-			  (goto-char end-of-match) ; Prepare for next message.
-			  ;; Don't add the same source line more than once.
-			  (and (not (and
-				     compilation-error-list
-				     (equal (cdr (car compilation-error-list))
-					    (cdr this-error))))
-			       (setq compilation-error-list
-				     (cons this-error compilation-error-list)
-				     compilation-num-errors-found
-				     (1+ compilation-num-errors-found))))))
+		      (goto-char end-of-match) ; Prepare for next message.
+		      ;; Don't add the same source line more than once.
+		      (and this-error
+			   (not (and
+				 compilation-error-list
+				 (equal (cdr (car compilation-error-list))
+					(cdr this-error))))
+			   (setq compilation-error-list
+				 (cons this-error compilation-error-list)
+				 compilation-num-errors-found
+				 (1+ compilation-num-errors-found)))))
 
 		;; Not an error message.
 		(if (eq type `file)	; Change current file.
@@ -1767,16 +1769,16 @@ An error message with no file name and no file name has been seen earlier."))
 		       stack
 		       (setq compilation-directory-stack (cdr stack))
 		       (setq stack (car compilation-directory-stack))
-		       (setq default-directory stack))
-		  (goto-char end-of-match) ; Prepare to look at next message.
-		  (and limit-search (>= end-of-match limit-search)
-		       ;; The user wanted a specific error, and we're past it.
-		       ;; We do this check here rather than at the end of the
-		       ;; loop because if the last thing seen is an error
-		       ;; message, we must carefully discard the last error
-		       ;; when it is the first in a new file (see above in
-		       ;; the error-message case)
-		       (setq found-desired t))))
+		       (setq default-directory stack)))
+		(goto-char end-of-match) ; Prepare to look at next message.
+		(and limit-search (>= end-of-match limit-search)
+		     ;; The user wanted a specific error, and we're past it.
+		     ;; We do this check here rather than at the end of the
+		     ;; loop because if the last thing seen is an error
+		     ;; message, we must carefully discard the last error
+		     ;; when it is the first in a new file (see above in
+		     ;; the error-message case)
+		     (setq found-desired t)))
 
 	      ;; Go to before the last character in the message so that we will
 	      ;; see the next line also when the message ended at end of line.
