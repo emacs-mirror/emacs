@@ -1722,6 +1722,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-zoo-extract (archive name)
   (archive-extract-by-stdout archive name archive-zoo-extract))
 ;; -------------------------------------------------------------------------
+;; This line was a mistake; it is kept now for compatibility.
+;; rms  15 Oct 98
 (provide 'archive-mode)
+
+(provide 'arc-mode)
 
 ;; arc-mode.el ends here.
