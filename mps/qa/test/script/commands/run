@@ -1,20 +1,19 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:commands:run(trunk.4) $
+# $HopeName: MMQA_harness!script:commands:run(trunk.5) $
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, and give results in standard format, and mailing results)
 
-&options(
+&requiredoptions(
  "MPS_INCLUDE_DIR",
  "MPS_LINK_OBJ",
- "INTERFACE_VERSION",
+ "MPS_INTERFACE_VERSION",
+ "MPS_PRODUCT",
  "PLATFORM",
  "LOG_DIR"
 );
 
-require "require";
-
-foreach $testfile (@qa_args) {
+foreach $testfile (@ARGV) {
  &run_test($testfile, "yes", "results", "$LOG_DIR/last.log");
  &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
 }

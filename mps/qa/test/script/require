@@ -3,15 +3,24 @@
 #
 # require all the qa harness pl files
 #
+# should have no side effects, except for compiling some functions,
+# and setting some base values of variables
 
-require "dirs";
+require "version";
 require "useful";
-require "compile";
+require "display";
 require "logging";
-require "platform";
+require "compile";
 require "headread";
 require "runtest";
-require "display";
+
+require "dirs";
+require "platform";
+
+require "optproc";
+require "options";
+
+require "init";
 
 1;
 

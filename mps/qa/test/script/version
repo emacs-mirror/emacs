@@ -1,6 +1,15 @@
-# $HopeName: MMQA_harness!script:version(trunk.2) $
+# $HopeName: MMQA_harness!script:version(trunk.3) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
-$HARNESS_VERSION="2.0";
+$HARNESS_VERSION="2.1";
 
+# Version history:
+# [Recorded history begins with version 2.0]
+#
+#  2.0 -- First numbered harness version. Before this tests didn't
+#         know what they required.
+#  2.1 -- Addition of interface version HU. 1999-02-17
+#
+#
+#

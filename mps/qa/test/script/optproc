@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.13) $
+# $HopeName: MMQA_harness!script:optproc(trunk.14) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -10,15 +10,9 @@
 
 1;
 
-require "version";
-require "options";
-
-sub options {
- local (@req) = @_;
-
+sub process_options {
  &parseoptions;
  &applydefaults;
- &requiredoptions(@req);
 }
 
 sub requiredoptions {
@@ -49,6 +43,8 @@ sub requiredoptions {
 sub parseoptions {
  local ($tem);
 
+ @qa_args = ();
+
  while (defined ($_ = shift(@ARGV))) {
   if (/^\-+(.*)$/i) { # allow >1 minus sign before options!
    if ($qa_options{$1}) {
@@ -71,6 +67,7 @@ sub parseoptions {
    push(@qa_args, $_);
   }
  }
+ @ARGV = @qa_args;
 }
 
 sub getoption {

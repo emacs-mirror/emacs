@@ -1,19 +1,15 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:commands:index(trunk.7) $
+# $HopeName: MMQA_harness!script:commands:index(trunk.8) $
 #
 # make an index of all the tests (all .c files) in the
 # current directory, and write it on stdout.
 #
 
-&options();
-
-require "require";
-
-if (@qa_args == 0) {
- @qa_args = (".");
+if (@ARGV == 0) {
+ @ARGV = (".");
 }
 
-$index_obj=$qa_args[0];
+$index_obj=$ARGV[0];
 {
  if (-d $index_obj) {
   chdir($index_obj);

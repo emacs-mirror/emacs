@@ -1,12 +1,8 @@
 #!/usr/local/bin/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:commands:options(trunk.2) $
 #
 # display all the options ever
 #
-
-&options();
-
-require "require";
 
 &displayalloptions;
 

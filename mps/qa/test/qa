@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $HopeName: MMQA_harness!qa(trunk.6) $
+# $HopeName: MMQA_harness!qa(trunk.7) $
 #
 # First, we'll set up @INC so we can find the other
 # perl scripts we require. This program will be in the
@@ -19,7 +19,7 @@ if ($] < 5) {
 
 $test_dir = $0;
 
-$0 = "qa testing"; # this will show up in ps
+$0 = "mmqa harness"; # this will show up in ps
 
 $test_dir =~ s/\\/\//g; # i.e. convert to unix-style separators
 
@@ -41,9 +41,22 @@ push(@newINC, $script_dir);
 # the 'dirs' file. This must be done after reading command-line
 # options, so we don't try it now
 
-# Now we must process the command-line to qa
-# Since options may be command-dependent, all we do now
-# is get the command and run it
+# what we do is
+# (1) load in the harness, via require
+# (2) init, inc reading command line options
+# (3) run command
+#
+# Policy on options is: which options are meaningful and which are
+# required may be command dependent, _but_ what options exist
+# and what switches correspond to them is not.
+#
+
+require "require";
+
+&harness_init;
+
+# n.b. the above will alter @ARGV as it reads command-line options
+#
 
 $qa_command = shift(@ARGV);
 
@@ -53,8 +66,6 @@ unless ($qa_command)  {
 unless (-e "$script_dir/commands/".$qa_command) {
  die "Unknown command '".$qa_command."' -- 'qa help' for info.\n";
 }
-
-require "optproc";
 
 do "commands/".$qa_command;
 if ($@) {print $@};
