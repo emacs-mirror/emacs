@@ -1,3 +1,8 @@
+2001-12-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief` an
+	option.
+
 2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (x_draw_image_relief): Use predefined macro instead of
