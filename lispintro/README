@@ -1,0 +1,60 @@
+This directory contains the source of the "Introduction to programming
+in Emacs Lisp" written by Robert J. Chassell, bob@gnu.org.  This
+manual is an elementary introduction to programming in Emacs Lisp for
+people who are not programmers, and who are not necessarily interested
+in programming, but who do want to customize or extend their computing
+environment.
+
+This second edition of 2001 Nov 20 updates the previous editions to
+GNU Emacs 21.
+
+The Texinfo source file `emacs-lisp-intro.texi', formats without
+error using TeX version 3.14159, `kpathsea' version 3.3.1, 
+`texinfo.tex' version 2001-05-24.08, and `makeinfo' version 4.0b.
+
+Also, this tar file contains the following optional Encapsulated Post
+Script figures.
+
+    drawers.eps         7129 bytes
+    cons-1.eps          12136
+    cons-2.eps          12523
+    cons-2a.eps         12420
+    cons-3.eps          12984
+    cons-4.eps          13866
+    cons-5.eps          12986
+    lambda-1.eps        10252
+    lambda-2.eps        10278
+    lambda-3.eps        10275
+
+See the beginning of the `emacs-lisp-intro.texi' file for appropriate
+settings.  These figures are not necessary; they are merely nice to
+look at --- without them you get the same figures printed with ASCII
+characters.
+
+Whether and how you print PostScript depends on your site.  You not
+only need to set 'print-postscript-figures' before creating the .dvi
+file, but then must convert the .dvi file to .ps with a 'dvips' or
+equivalent command.
+
+On some systems you will see an error message when `psfig.tex' is
+loaded for the last two .eps files:
+
+            ! No room for a new \write .
+
+If this happens, try `epsf.tex' instead of `psfig.tex', or try typing
+RET at the error; the formatting may continue successfully.
+
+Or else find the section that says:
+
+ @c !!! Clear print-postscript-figures if the computer formatting this
+ @c     document is too small and cannot handle all the diagrams and figures.
+ @c clear print-postscript-figures
+
+and change the file so it reads:   @clear print-postscript-figures
+This will prevent TeX from attempting to load the last few .eps files.
+
+You will find additional instructions on formatting in the beginning
+of the Texinfo file 'emacs-lisp-intro.texi'.  Best Wishes!
+
+2001 Nov  20
+Robert J. Chassell, bob@gnu.org
