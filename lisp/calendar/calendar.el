@@ -752,7 +752,7 @@ See the documentation for `calendar-holidays' for details.")
         '(format "Daylight Savings Time Begins %s"
                   (if (fboundp 'atan)
                       (solar-time-string
-                       (/ calendar-daylight-savings-switchover-time
+                       (/ calendar-daylight-savings-starts-time
                           (float 60))
                        date
                        'standard)
@@ -763,7 +763,7 @@ See the documentation for `calendar-holidays' for details.")
      '(format "Daylight Savings Time Ends %s"
               (if (fboundp 'atan)
                   (solar-time-string
-                   (/ (- calendar-daylight-savings-switchover-time
+                   (/ (- calendar-daylight-savings-ends-time
                          calendar-daylight-time-offset)
                       (float 60))
                    date
@@ -978,13 +978,13 @@ Forward if N is positive or backward if N is negative."
 (defmacro calendar-last-day-of-month (month year)
   "The last day in MONTH during YEAR."
   (` (if (and
-            (, (macroexpand (` (calendar-leap-year-p (, year)))))
-            (= (, month) 2))
+            (= (, month) 2)
+            (, (macroexpand (` (calendar-leap-year-p (, year))))))
            29
          (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- (, month))))))
 ;;(defun calendar-last-day-of-month (month year)
 ;;  "The last day in MONTH during YEAR."
-;;  (if (and (calendar-leap-year-p year) (= month 2))
+;;  (if (and (= month 2) (calendar-leap-year-p year))
 ;;      29
 ;;    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
 
@@ -1024,21 +1024,22 @@ while (calendar-day-number '(12 31 1980)) returns 366."
 (defmacro calendar-absolute-from-gregorian (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
 The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (` (let ((year  (, (macroexpand (` (extract-calendar-year (, date)))))))
+  (` (let ((prior-years
+	    (1- (, (macroexpand (` (extract-calendar-year (, date))))))))
        (+ (, (macroexpand (` (calendar-day-number (, date)))));; Days this year
-          (* 365 (1- year));;        + Days in prior years
-          (/ (1- year) 4);;          + Julian leap years
-          (- (/ (1- year) 100));;    - century years
-          (/ (1- year) 400)))));;     + Gregorian leap years
+          (* 365 prior-years);;        + Days in prior years
+          (/ prior-years 4);;          + Julian leap years
+          (- (/ prior-years 100));;    - century years
+          (/ prior-years 400)))));;    + Gregorian leap years
 ;;(defun calendar-absolute-from-gregorian (date)
 ;;  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
 ;;The Gregorian date Sunday, December 31, 1 BC is imaginary."
-;;  (let ((year (extract-calendar-year date)))
+;;  (let ((prior-years (1- (extract-calendar-year date))))
 ;;    (+ (calendar-day-number date);; Days this year
-;;       (* 365 (1- year));;        + Days in prior years
-;;       (/ (1- year) 4);;          + Julian leap years
-;;       (- (/ (1- year) 100));;    - century years
-;;       (/ (1- year) 400))));;     + Gregorian leap years
+;;       (* 365 prior-years);;        + Days in prior years
+;;       (/ prior-years 4);;          + Julian leap years
+;;       (- (/ prior-years 100));;    - century years
+;;       (/ prior-years 400))));;     + Gregorian leap years
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -1493,19 +1494,19 @@ the inserted text.  Value is always t."
 
 The commands for cursor movement are:\\<calendar-mode-map>
 
-       \\[calendar-forward-day]  one day forward           \\[calendar-backward-day]  one day backward
-       \\[calendar-forward-week]  one week forward          \\[calendar-backward-week]  one week backward
+       \\[calendar-forward-day]  one day forward         \\[calendar-backward-day]  one day backward
+       \\[calendar-forward-week]  one week forward        \\[calendar-backward-week]  one week backward
        \\[calendar-forward-month]  one month forward       \\[calendar-backward-month]  one month backward
-       \\[calendar-forward-year]  one year forward        \\[calendar-backward-year]  one year backward
-       \\[calendar-beginning-of-week]  beginning of week         \\[calendar-end-of-week]  end of week
+       \\[calendar-forward-year]  one year forward      \\[calendar-backward-year]  one year backward
+       \\[calendar-beginning-of-week]  beginning of week       \\[calendar-end-of-week]  end of week
        \\[calendar-beginning-of-month]  beginning of month      \\[calendar-end-of-month]  end of month
        \\[calendar-beginning-of-year]  beginning of year       \\[calendar-end-of-year]  end of year
 
        \\[calendar-goto-date]  go to date
 
-       \\[calendar-goto-julian-date]  go to Julian date         \\[calendar-goto-astro-day-number]  go to astronomical (Julian) day number
-       \\[calendar-goto-hebrew-date]  go to Hebrew date         \\[calendar-goto-islamic-date]  go to Islamic date
-       \\[calendar-goto-iso-date]  go to ISO date            \\[calendar-goto-french-date]  go to French Revolutionary date
+       \\[calendar-goto-julian-date]  go to Julian date       \\[calendar-goto-astro-day-number]  go to astronomical (Julian) day number
+       \\[calendar-goto-hebrew-date]  go to Hebrew date       \\[calendar-goto-islamic-date]  go to Islamic date
+       \\[calendar-goto-iso-date]  go to ISO date          \\[calendar-goto-french-date]  go to French Revolutionary date
 
        \\[calendar-goto-mayan-long-count-date]  go to Mayan Long Count date
        \\[calendar-next-haab-date]  go to next occurrence of Mayan Haab date
@@ -1525,9 +1526,9 @@ You can determine the number of days (inclusive) between the point and mark by
 
 The commands for calendar movement are:
 
-       \\[scroll-calendar-right]  scroll one month right   \\[scroll-calendar-left]  scroll one month left
+       \\[scroll-calendar-right]  scroll one month right \\[scroll-calendar-left]  scroll one month left
        \\[scroll-calendar-right-three-months]  scroll 3 months right    \\[scroll-calendar-left-three-months]  scroll 3 months left
-       \\[calendar-current-month]  display current month        \\[calendar-other-month]  display another month
+       \\[calendar-current-month]  display current month      \\[calendar-other-month]  display another month
 
 Whenever it makes sense, the above commands take prefix arguments that
 multiply their affect.  For convenience, the digit keys and the minus sign
@@ -1636,13 +1637,14 @@ To find the times of sunrise and sunset and lunar phases use
        \\[calendar-sunrise-sunset]  show times of sunrise and sunset
        \\[calendar-phases-of-moon]  show times of quarters of the moon
 
-The times given will be at latitude `solar-latitude', longitude
-`solar-longitude' in time zone `solar-time-zone'.  These variables, and the
-variables `solar-location-name', `solar-standard-time-zone-name',
-`solar-daylight-time-zone-name', `solar-daylight-savings-starts',
-`solar-daylight-savings-ends', `calendar-daylight-time-offset',
-and `calendar-daylight-savings-switchover-time' should be set for
-your location.
+The times given will be for location `calendar-location-name' at latitude
+`calendar-latitude', longitude `calendar-longitude'; set these variables for
+your location.  The following variables are also consulted, and you must set
+them if your system does not initialize them properly: `calendar-time-zone',
+`calendar-daylight-time-offset', `calendar-standard-time-zone-name',
+`calendar-daylight-time-zone-name', `calendar-daylight-savings-starts',
+`calendar-daylight-savings-ends', `calendar-daylight-savings-starts-time',
+`calendar-daylight-savings-ends-time'.
 
 To exit from the calendar use
 
@@ -2549,6 +2551,27 @@ absolute date d, applying it to d-1 gives the DAYNAME previous to absolute
 date d, and applying it to d+7 gives the DAYNAME following absolute date d."
   (- date (% (- date dayname) 7)))
 
+(defun calendar-nth-named-absday (n dayname month year &optional day)
+  "The absolute date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
+A DAYNAME of 0 means Sunday, 1 means Monday, and so on.  If N<0,
+return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
+If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
+
+If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
+  (if (> n 0)
+      (+ (* 7 (1- n))
+	 (calendar-dayname-on-or-before
+	  dayname
+	  (+ 6 (calendar-absolute-from-gregorian
+		(list month (or day 1) year)))))
+    (+ (* 7 (1+ n))
+       (calendar-dayname-on-or-before
+	dayname
+	(calendar-absolute-from-gregorian
+	 (list month
+	       (or day (calendar-last-day-of-month month year))
+	       year))))))
+
 (defun calendar-nth-named-day (n dayname month year &optional day)
   "The date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
 A DAYNAME of 0 means Sunday, 1 means Monday, and so on.  If N<0,
@@ -2557,19 +2580,7 @@ If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
 
 If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
   (calendar-gregorian-from-absolute
-   (if (> n 0)
-       (+ (* 7 (1- n))
-	  (calendar-dayname-on-or-before
-	   dayname
-	   (+ 6 (calendar-absolute-from-gregorian
-		 (list month (or day 1) year)))))
-     (+ (* 7 (1+ n))
-	(calendar-dayname-on-or-before
-	 dayname
-	 (calendar-absolute-from-gregorian
-	  (list month
-                (or day (calendar-last-day-of-month month year))
-                year)))))))
+   (calendar-nth-named-absday n dayname month year day)))
 
 (defun calendar-print-day-of-year ()
   "Show the day number in the year and the number of days remaining in the
