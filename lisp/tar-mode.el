@@ -139,9 +139,6 @@ This information is useful, but it takes screen space away from file names."
 (put 'tar-superior-buffer 'permanent-local t)
 (put 'tar-superior-descriptor 'permanent-local t)
 
-;;; First, duplicate some Common Lisp functions; I used to just (require 'cl)
-;;; but "cl.el" was messing some people up (also it's really big).
-
 (defmacro tar-setf (form val)
   "A mind-numbingly simple implementation of setf."
   (let ((mform (macroexpand form (and (boundp 'byte-compile-macro-environment)
@@ -155,34 +152,6 @@ This information is useful, but it takes screen space away from file names."
 	  ((eq (car mform) 'cdr)
 	   (list 'setcdr (nth 1 mform) val))
 	  (t (error "don't know how to setf %s" form)))))
-
-(defmacro tar-dolist (control &rest body)
-  "syntax: (dolist (var-name list-expr &optional return-value) &body body)"
-  (let ((var (car control))
-	(init (car (cdr control)))
-	(val (car (cdr (cdr control)))))
-    (list 'let (list (list '_dolist_iterator_ init))
-	  (list 'while '_dolist_iterator_
-	    (cons 'let
-	      (cons (list (list var '(car _dolist_iterator_)))
-		    (append body
-			    (list (list 'setq '_dolist_iterator_
-					(list 'cdr '_dolist_iterator_)))))))
-	  val)))
-
-(defmacro tar-dotimes (control &rest body)
-  "syntax: (dolist (var-name count-expr &optional return-value) &body body)"
-  (let ((var (car control))
-	(n (car (cdr control)))
-	(val (car (cdr (cdr control)))))
-    (list 'let (list (list '_dotimes_end_ n)
-		     (list var 0))
-	  (cons 'while
-		(cons (list '< var '_dotimes_end_)
-		      (append body
-			      (list (list 'setq var (list '1+ var))))))
-	  val)))
-
 
 ;;; down to business.
 
@@ -316,7 +285,7 @@ write-date, checksum, link-type, and link-name."
 (defun tar-parse-octal-integer-safe (string)
   (let ((L (length string)))
     (if (= L 0) (error "empty string"))
-    (tar-dotimes (i L)
+    (dotimes (i L)
        (if (or (< (aref string i) ?0)
 	       (> (aref string i) ?7))
 	   (error "`%c' is not an octal digit"))))
@@ -352,7 +321,7 @@ write-date, checksum, link-type, and link-name."
 	 (l (length chk-string)))
     (aset hblock 154 0)
     (aset hblock 155 32)
-    (tar-dotimes (i l) (aset hblock (- 153 i) (aref chk-string (- l i 1)))))
+    (dotimes (i l) (aset hblock (- 153 i) (aref chk-string (- l i 1)))))
   hblock)
 
 (defun tar-clip-time-string (time)
@@ -428,22 +397,22 @@ MODE should be an integer which is a file mode value."
       (setq gid (if (= 0 (length gname)) (int-to-string gid) gname))
       (setq size (int-to-string size))
       (setq time (tar-clip-time-string time))
-      (tar-dotimes (i (min (1- namew) (length uid))) (aset string (- slash i) (aref uid (- (length uid) i 1))))
+      (dotimes (i (min (1- namew) (length uid))) (aset string (- slash i) (aref uid (- (length uid) i 1))))
       (aset string (1+ slash) ?/)
-      (tar-dotimes (i (min (1- groupw) (length gid))) (aset string (+ (+ slash 2) i) (aref gid i)))
-      (tar-dotimes (i (min sizew (length size))) (aset string (- lastdigit i) (aref size (- (length size) i 1))))
+      (dotimes (i (min (1- groupw) (length gid))) (aset string (+ (+ slash 2) i) (aref gid i)))
+      (dotimes (i (min sizew (length size))) (aset string (- lastdigit i) (aref size (- (length size) i 1))))
       (if tar-mode-show-date
-	  (tar-dotimes (i (length time)) (aset string (+ datestart i) (aref time i))))
+	  (dotimes (i (length time)) (aset string (+ datestart i) (aref time i))))
       (if multibyte
 	  (setq string (concat string name))
-	(tar-dotimes (i (length name)) (aset string (+ namestart i) (aref name i))))
+	(dotimes (i (length name)) (aset string (+ namestart i) (aref name i))))
       (if (or (eq link-p 1) (eq link-p 2))
 	  (if multibyte
 	      (setq string (concat string
 				   (if (= link-p 1) " ==> " " --> ")
 				   link-name))
-	    (tar-dotimes (i 3) (aset string (+ namestart 1 (length name) i) (aref (if (= link-p 1) "==>" "-->") i)))
-	    (tar-dotimes (i (length link-name)) (aset string (+ namestart 5 (length name) i) (aref link-name i)))))
+	    (dotimes (i 3) (aset string (+ namestart 1 (length name) i) (aref (if (= link-p 1) "==>" "-->") i)))
+	    (dotimes (i (length link-name)) (aset string (+ namestart 5 (length name) i) (aref link-name i)))))
       (put-text-property namestart (length string)
 			 'mouse-face 'highlight string)
       string)))
@@ -505,7 +474,7 @@ is visible (and the real data of the buffer is hidden)."
 	  (summaries nil))
       ;; Collect summary lines and insert them all at once since tar files
       ;; can be pretty big.
-      (tar-dolist (tar-desc (reverse tar-parse-info))
+      (dolist (tar-desc (reverse tar-parse-info))
 	(setq summaries
 	      (cons (tar-header-block-summarize (tar-desc-tokens tar-desc))
 		    (cons "\n"
@@ -922,7 +891,7 @@ the current tar-entry."
 With a prefix argument, mark that many files."
   (interactive "p")
   (beginning-of-line)
-  (tar-dotimes (i (if (< p 0) (- p) p))
+  (dotimes (i (if (< p 0) (- p) p))
     (if (tar-current-descriptor unflag) ; barf if we're not on an entry-line.
 	(progn
 	  (delete-char 1)
@@ -981,7 +950,7 @@ With a prefix argument, un-mark that many files backward."
       ;; iteration over the files that remain, or only iterate up to
       ;; the next file to be deleted.
       (let ((data-length (- data-end data-start)))
-	(tar-dolist (desc following-descs)
+	(dolist (desc following-descs)
 	  (tar-setf (tar-desc-data-start desc)
 		    (- (tar-desc-data-start desc) data-length))))
       ))
@@ -1214,7 +1183,7 @@ to make your changes permanent."
 	    ;; update the data pointer of this and all following files...
 	    (tar-setf (tar-header-size tokens) subfile-size)
 	    (let ((difference (- subfile-size-pad size-pad)))
-	      (tar-dolist (desc following-descs)
+	      (dolist (desc following-descs)
 		(tar-setf (tar-desc-data-start desc)
 			  (+ (tar-desc-data-start desc) difference))))
 	    ;;
