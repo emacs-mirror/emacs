@@ -102,12 +102,13 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; so that we won't reapply them in frame-notice-user-settings.
 	      ;; It would be wrong to reapply them then,
 	      ;; because that would override explicit user resizing.
-	      (setq initial-frame-alist
-		    (delq (assq 'height initial-frame-alist)
-			  (delq (assq 'width initial-frame-alist)
-				(delq (assq 'left initial-frame-alist)
-				      (delq (assq 'top initial-frame-alist)
-					    initial-frame-alist)))))
+	      ;; Remember that they may occur more than once.
+	      (let ((tail initial-frame-alist))
+		(while (consp tail)
+		  (if (and (consp (car tail))
+			   (memq (car (car tail)) '(height width top left)))
+		      (setq initial-frame-alist
+			    (delq tail initial-frame-alist)))))
 	      ;; Handle `reverse' as a parameter.
 	      (if (cdr (or (assq 'reverse initial-frame-alist)
 			   (assq 'reverse default-frame-alist)
