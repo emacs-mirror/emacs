@@ -1075,15 +1075,16 @@ AC_CONFIG_HEADER(src/config.h)
 
 #### Choose a compiler.
 if [ "x$CC" = x ]
-then cc_specified=1
+then true
+else cc_specified=1
 fi
 
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=1 ;;
   "no"  )
     if [ "x$CC" = x ]
-    then true;
-    else CC=cc;
+    then CC=cc;
+    else true;
     fi
     ;;
   * )
