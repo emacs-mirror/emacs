@@ -5,11 +5,12 @@
    This version sorts the output by function name.
    */
 
+#include "config.h"
 #include <stdio.h>
 #include <ctype.h>
-
+#ifndef HAVE_STDLIB_H		/* config.h includes stdlib.  */
 extern char *malloc ();
-char *xmalloc ();
+#endif
 
 #define NUL	'\0'
 #define MARKER '\037'
