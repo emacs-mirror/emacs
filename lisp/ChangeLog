@@ -1,5 +1,8 @@
 2000-11-22  Miles Bader  <miles@gnu.org>
 
+	* image-file.el (insert-image-file): Don't make `read-only'
+	property rear-nonsticky.
+
 	* isearch.el (isearch-original-minibuffer-message-timeout): New var.
 	(isearch-mode): Set `minibuffer-message-timeout' to nil, after
 	stashing away its original value.

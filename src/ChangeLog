@@ -1,5 +1,9 @@
 2000-11-22  Miles Bader  <miles@gnu.org>
 
+	* keyboard.c (Vminibuffer_message_timeout): New variable.
+	(command_loop_1): Use it to determine message timeout.
+	(syms_of_keyboard): Initialize it.
+
 	* xdisp.c (syms_of_xdisp): `mode-line-inverse-video' defualts to nil.
 
 2000-11-22  Kenichi Handa  <handa@etl.go.jp>
