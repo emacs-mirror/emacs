@@ -853,14 +853,14 @@ really-oldXMenu:
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS */
 
-paths.h: paths.in
+../config.status:: paths.in
 	@echo "The file paths.h needs to be set up from paths.in."
-	@echo "Consult the file \`INSTALL' for instructions for building Emacs."
+	@echo "Please run the `configure' script again."
 	exit 1
 
-config.h: config.in
+../config.status:: config.in
 	@echo "The file config.h needs to be set up from config.in."
-	@echo "Consult the file \`INSTALL' for instructions for building Emacs."
+	@echo "Please run the `configure' script again."
 	exit 1
 
 /* Some machines have alloca built-in.
