@@ -5129,7 +5129,7 @@ menu_bar_items (old)
 	  }
     }
 
-  /* Add nil, nil, nil at the end.  */
+  /* Add nil, nil, nil, nil at the end.  */
   i = menu_bar_items_index;
   if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
     {
