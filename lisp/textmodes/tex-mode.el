@@ -1260,8 +1260,8 @@ Mark is left at original location."
 		  (forward-char 1)
 		(forward-sexp 1))))))
       (message "%s words" count))))
-	    
-	    
+
+
 
 ;;; Invoking TeX in an inferior shell.
 
@@ -1292,13 +1292,13 @@ Mark is left at original location."
 In the tex buffer this can be used to continue an interactive tex run.
 In the tex shell buffer this command behaves like `comint-send-input'."
   (interactive)
-  (set-buffer (process-buffer (get-process "tex-shell")))
+  (set-buffer (tex-shell-buf))
   (comint-send-input)
   (tex-recenter-output-buffer nil))
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
-  (display-buffer (process-buffer (get-process "tex-shell")))
+  (display-buffer (tex-shell-buf))
   (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc msg)
@@ -1322,9 +1322,12 @@ In the tex shell buffer this command behaves like `comint-send-input'."
 (make-variable-buffer-local 'tex-send-command-modified-tick)
 
 (defun tex-shell-proc ()
-  (or (get-process "tex-shell") (error "No TeX subprocess")))
+  (or (tex-shell-running) (error "No TeX subprocess")))
 (defun tex-shell-buf ()
   (process-buffer (tex-shell-proc)))
+(defun tex-shell-buf-no-error ()
+  (let ((proc (tex-shell-running)))
+    (and proc (process-buffer proc))))
 
 (defun tex-send-command (command &optional file background)
   "Send COMMAND to TeX shell process, substituting optional FILE for *.
@@ -1443,8 +1446,9 @@ ALL other buffers."
     (tex-send-tex-command compile-command dir)))
 
 (defun tex-send-tex-command (cmd &optional dir)
-  (unless (or (equal dir (with-current-buffer (tex-shell-buf)
-			   default-directory))
+  (unless (or (equal dir (let ((buf (tex-shell-buf-no-error)))
+                           (and buf (with-current-buffer buf
+                                      default-directory))))
 	      (not dir))
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
@@ -1685,18 +1689,25 @@ This function is more useful than \\[tex-buffer] when you need the
 
 (defun tex-shell-running ()
   (let ((proc (get-process "tex-shell")))
-    (and proc
-         (eq (process-status (get-process "tex-shell")) 'run)
-         (buffer-live-p (process-buffer proc)))))
+    (when proc
+      (if (and (eq (process-status proc) 'run)
+               (buffer-live-p (process-buffer proc)))
+          ;; return the TeX process on success
+          proc
+          ;; get rid of the process permanently
+          ;; this should get rid of the annoying w32 problem with
+          ;; dead tex-shell buffer and live process
+          (delete-process proc)))))
 
 (defun tex-kill-job ()
   "Kill the currently running TeX job."
   (interactive)
-  ;; quit-process leads to core dumps of the tex process (except if
+  ;; `quit-process' leads to core dumps of the tex process (except if
   ;; coredumpsize has limit 0kb as on many environments).  One would
   ;; like to use (kill-process proc 'lambda), however that construct
   ;; does not work on some systems and kills the shell itself.
-  (quit-process (get-process "tex-shell") t))
+  (let ((proc (get-process "tex-shell")))
+    (when proc (quit-process proc t))))
 
 (defun tex-recenter-output-buffer (linenum)
   "Redisplay buffer of TeX job output so that most recent output can be seen.

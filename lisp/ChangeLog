@@ -1,3 +1,13 @@
+2001-05-29  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/tex-mode.el (tex-feed-input, tex-display-shell):
+	Use `tex-shell-buf'.
+	(tex-shell-proc): Use `tex-shell-running'.
+	(tex-shell-buf-no-error): New function.
+	(tex-send-tex-command): Use it.
+	(tex-shell-running): Kill tex-shell when the buffer is dead for w32.
+	(tex-kill-job): Check the process before calling `quit-process'.
+
 2001-05-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/utf-8.el (ccl-decode-mule-utf-8): Handle
