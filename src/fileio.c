@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,1997 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,1998 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1948,14 +1948,13 @@ duplicates what `expand-file-name' does.")
 	       convert what we substitute into multibyte.  */
 	    unsigned char workbuf[4], *str;
 	    int len;
-	    extern int nonascii_insert_offset;
 
 	    while (*o)
 	      {
 		int c = *o++;
-		if (c >= 0200)
+		c = unibyte_char_to_multibyte (c);
+		if (! SINGLE_BYTE_CHAR_P (c))
 		  {
-		    c += nonascii_insert_offset;
 		    len = CHAR_STRING (c, workbuf, str);
 		    bcopy (str, x, len);
 		    x += len;
