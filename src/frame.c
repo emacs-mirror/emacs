@@ -1369,7 +1369,12 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : FRAME_MINIBUF_ONLY_P (f) ? Qonly
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
-  store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
+#if 0 /* This ought to be correct in f->param_alist.  */
+  store_in_alist (&alist, Qmenu_bar_lines,
+		  (FRAME_MENU_BAR_LINES (f)
+		   ? FRAME_MENU_BAR_LINES (f)
+		   : FRAME_EXTERNAL_MENU_BAR (f)));
+#endif
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
