@@ -134,12 +134,12 @@ shell buffer.  The value may depend on the operating system or shell.
 
 This is a fine thing to set in your `.emacs' file.")
 
-(defvar shell-file-name-regexp
+(defvar shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt))
       "~/A-Za-z0-9_^$!#%&{}@`'.()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
-  "Regexp of characters valid in a file name.
-This variable is used to initialize `comint-file-name-regexp' in the
+  "String of characters valid in a file name.
+This variable is used to initialize `comint-file-name-chars' in the
 shell buffer.  The value may depend on the operating system or shell.
 
 This is a fine thing to set in your `.emacs' file.")
@@ -332,7 +332,7 @@ buffer."
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq comint-completion-fignore shell-completion-fignore)
   (setq comint-delimiter-argument-list shell-delimiter-argument-list)
-  (setq comint-file-name-regexp shell-file-name-regexp)
+  (setq comint-file-name-chars shell-file-name-chars)
   (setq comint-file-name-quote-list shell-file-name-quote-list)
   (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
   (make-local-variable 'paragraph-start)
