@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1997, 1998 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
