@@ -1,3 +1,13 @@
+2002-05-18  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-mode-syntax-table, f90-mode-map): Do the
+	initialization in the defvar. 
+	(f90-font-lock-on, f90-font-lock-off): Add 'menu-alias property.
+	(f90-font-lock-1, f90-font-lock-2, f90-font-lock-3)
+	(f90-font-lock-4): Move the doc strings.
+	(f90-menu-bar-menu): New internal variable to hold the top-level menu.
+	(f90-change-case-menu, f90-font-lock-menu): Minor code changes.
+
 2002-05-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tar-mode.el (tar-octal-time): Fix last change.
