@@ -112,12 +112,10 @@ main(void)
 hidden and hs-show-hidden-short-form is t
 /* My function main...
 int                   
-main(void)                  
-{ ...
+main(void)...
 
-
-The latest has the disadvantage of not being symetrical, but it saves
-screen lines ..."
+For latest you have to be on the line containing the ellipsis when 
+you do `hs-show-block'."
   :type 'boolean
   :group 'hideshow)
 
@@ -144,9 +142,9 @@ Values other than these four will be interpreted as `signal'.")
 
 ;;;#autoload
 (defvar hs-special-modes-alist 
-  '((c-mode "{" "}")
-    (c++-mode "{" "}" "/[*/]")
-    (java-mode   "\\(\\(\\([ \t]*\\(\\(public\\|private\\|protected\\|abstract\\|static\\|\\final\\)[ \t\n]+\\)+\\(synchronized[ \t\n]*\\)?[a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)"  "}"  "/[*/]" java-hs-forward-sexp java-hs-adjust-block-beginning))
+  '((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning)
+    (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
+    (java-mode   "\\(\\(\\([ \t]*\\(\\(public\\|private\\|protected\\|abstract\\|static\\|\\final\\)[ \t\n]+\\)+\\(synchronized[ \t\n]*\\)?[a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)"  "}"  "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
 ; I tested the java regexp using the following:
 ;(defvar hsj-public)
 ;(defvar hsj-syncronised)
@@ -271,7 +269,7 @@ It should return the position from where we should start hiding.
 
 It should not move the point.  
 
-See `java-hs-adjust-block-beginning' for an example of using this.")
+See `hs-c-like-adjust-block-beginning' for an example of using this.")
 
 ;(defvar hs-emacs-type 'fsf
 ;  "Used to support both Emacs and Xemacs.")
@@ -490,20 +488,27 @@ Return point, or nil if top-level."
     ;; backwards for the block beginning, or a block end.
     (while try-again
       (setq try-again nil)
-      (when (re-search-backward both-regexps (point-min) t)
-	(if (match-beginning 1) ; found a block beginning
-	    (if (save-match-data (hs-inside-comment-p)) 
-		;;but it was inside a comment, so we have to look for
-		;;it again
-		(setq try-again t)
-	      ;; that's what we were looking for
-	      (setq done (match-beginning 0)))
-	  ;; we found a block end, look to see if we were on a block
-	  ;; beginning when we started
-	  (if (and 
-	       (re-search-forward hs-block-start-regexp (point-max) t)
-	       (>= here (match-beginning 0)) (< here (match-end 0)))
-	      (setq done (match-beginning 0))))))
+      (if (and (re-search-backward both-regexps (point-min) t)
+	       (match-beginning 1)) ; found a block beginning
+	  (if (save-match-data (hs-inside-comment-p)) 
+	      ;;but it was inside a comment, so we have to look for
+	      ;;it again
+	      (setq try-again t)
+	    ;; that's what we were looking for
+	    (setq done (match-beginning 0)))
+	;; we found a block end, or we reached the beginning of the
+	;; buffer look to see if we were on a block beginning when we
+	;; started
+	(if (and 
+	     (re-search-forward hs-block-start-regexp (point-max) t)
+	     (or 
+	      (and (>= here (match-beginning 0)) (< here (match-end 0)))
+	      (and hs-show-hidden-short-form hs-adjust-block-beginning
+		   (save-match-data 
+		     (= 1 (count-lines 
+			   (funcall hs-adjust-block-beginning
+				    (match-end 0)) here))))))
+	      (setq done (match-beginning 0)))))
     (goto-char here)
     (while (and (not done)
 		;; This had problems because the regexp can match something
@@ -554,8 +559,8 @@ Return point, or nil if top-level."
 	  (forward-sexp 1))
       (forward-sexp 1))))
 
-(defun java-hs-adjust-block-beginning (arg)
-  "Function to be assigned to `hs-adjust-block-beginning'.
+(defun hs-c-like-adjust-block-beginning (arg)
+  "Function to be assigned to `hs-adjust-block-beginning' for C like modes.
 Arg is a position in buffer just after {. This goes back to the end of
 the function header. The purpose is to save some space on the screen
 when displaying hidden blocks."
