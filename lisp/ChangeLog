@@ -1,7 +1,7 @@
 2004-10-24 Masatake YAMATO <jet@gyve.org>
 
-	* progmodes/asm-mode.el: Use font-lock-variable-name-face for
-	registers.
+	* progmodes/asm-mode.el (asm-font-lock-keywords): Use
+	font-lock-variable-name-face for registers.
 
 2004-10-24  Nick Roberts  <nickrob@snap.net.nz>
 
