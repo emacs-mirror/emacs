@@ -206,7 +206,7 @@ Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
-Lisp_Object Qbox;
+extern Lisp_Object Qbox;
 Lisp_Object Qcursor_color;
 Lisp_Object Qcursor_type;
 Lisp_Object Qgeometry;
@@ -14819,8 +14819,6 @@ syms_of_w32fns ()
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
   staticpro (&Qborder_width);
-  Qbox = intern ("box");
-  staticpro (&Qbox);
   Qcursor_color = intern ("cursor-color");
   staticpro (&Qcursor_color);
   Qcursor_type = intern ("cursor-type");
