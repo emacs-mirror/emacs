@@ -277,8 +277,14 @@ in 24-hour format, set the variable @code{display-time-24hr-format}
 to @code{t}.
 
 @cindex mail (on mode line)
+@vindex display-time-use-mail-icon
+@vindex display-time-mail-face
   The word @samp{Mail} appears after the load level if there is mail
-for you that you have not read yet.
+for you that you have not read yet.  On a graphical display you can use
+an icon instead of @samp{Mail} by customizing
+@code{display-time-use-mail-icon}; this may save some space on the mode
+line.  You can customize @code{display-time-mail-face} to make the mail
+indicator prominent.
 
 @node Text Display
 @section How Text Is Displayed
