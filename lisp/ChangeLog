@@ -1,3 +1,10 @@
+2004-05-22  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-add-fundoc-usage): Use %S only for output of
+	`help-make-usage'.
+	(help-highlight-arguments): Skip function name before searching
+	for arguments.
+
 2004-05-21  Juanma Barranquero  <lektu@terra.es>
 
 	* allout.el (allout-chart-subtree, allout-rebullet-topic-grunt):
