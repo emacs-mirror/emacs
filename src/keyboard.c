@@ -5562,7 +5562,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  if (CONSP (start) && CONSP (XCONS (start)->cdr))
 		    {
 		      pos = POSN_BUFFER_POSN (start);
-		      if (INTEGERP (pos))
+		      if (INTEGERP (pos)
+			  && XINT (pos) >= BEG && XINT (pos) <= Z)
 			{
 			  map_here = get_local_map (XINT (pos), current_buffer);
 			  if (!EQ (map_here, orig_local_map))
@@ -6217,7 +6218,11 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
     {
       tem = Fget (cmd, Qdisabled);
       if (!NILP (tem) && !NILP (Vrun_hooks))
-	return call1 (Vrun_hooks, Qdisabled_command_hook);
+	{
+	  tem = Fsymbol_value (Qdisabled_command_hook);
+	  if (!NILP (tem))
+	    return call1 (Vrun_hooks, Qdisabled_command_hook);
+	}
     }
 
   while (1)
