@@ -4469,8 +4469,18 @@ x_update_menu_appearance (f)
 
       if (changed_p && f->output_data.x->menubar_widget)
 	{
+	  int blocked;
+	  
+	  /* Function set_frame_menubar may call Lisp, for example
+	     from menu_item_eval_property inside a condition-case.  If
+	     that code signals an error, Fsignal totally unblocks
+	     input, and if this function is called inside a
+	     BLOCK/UNBLOCK_INPUT which it is, this will screw up the
+	     interrupt_input_blocked count, unless we save it...  */
+	  blocked = interrupt_input_blocked;
 	  free_frame_menubar (f);
 	  set_frame_menubar (f, 1, 1);
+	  interrupt_input_blocked = blocked;
 	}
     }
 }
@@ -6039,8 +6049,8 @@ realize_basic_faces (f)
   int success_p = 0;
   int count = BINDING_STACK_SIZE ();
 
-  /* Block input there so that we won't be surprised by an X expose
-     event, for instance without having the faces set up.  */
+  /* Block input here so that we won't be surprised by an X expose
+     event, for instance, without having the faces set up.  */
   BLOCK_INPUT;
   specbind (Qscalable_fonts_allowed, Qt);
 
