@@ -2609,12 +2609,15 @@ x_window (f, window_prompting, minibuffer_only)
 	 : 0);
     extern char *lwlib_toolkit_type;
 
+#if 0 /* Experimentally, we now get the right results
+	 for -geometry -0-0 without this.  24 Aug 96, rms.  */
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
         Dimension ibw = 0;
         XtVaGetValues (pane_widget, XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
+#endif
 
     f->output_data.x->menubar_height = menubar_size;
 
