@@ -37,7 +37,6 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but FACE is evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
-    (put face 'face-defface-spec spec)
     (when (fboundp 'facep)
       (unless (facep face)
 	;; If the user has already created the face, respect that.
@@ -46,7 +45,7 @@
 	      frame)
 	  ;; Create global face.
 	  (make-empty-face face)
-	  ;; Create frame local faces
+	  ;; Create frame-local faces
 	  (while frames
 	    (setq frame (car frames)
 		  frames (cdr frames))
@@ -54,6 +53,8 @@
 	;; When making a face after frames already exist
 	(if (memq window-system '(x w32))
 	    (make-face-x-resource-internal face))))
+    ;; Don't record SPEC until we see it causes no errors.
+    (put face 'face-defface-spec spec)
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face (purecopy doc)))
     (custom-handle-all-keywords face args 'custom-face)
