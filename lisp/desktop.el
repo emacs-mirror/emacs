@@ -549,7 +549,8 @@ MODE is the major mode."
        info)
       (setq default-directory dirname)
       (if (file-exists-p filename) (delete-file filename))
-      (write-region (point-min) (point-max) filename nil 'nomessage)))
+      (let ((coding-system-for-write 'emacs-mule))
+	(write-region (point-min) (point-max) filename nil 'nomessage))))
   (setq desktop-dirname dirname))
 ;; ----------------------------------------------------------------------------
 (defun desktop-remove ()
