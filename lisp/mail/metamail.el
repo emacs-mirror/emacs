@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.8 1997/07/25 05:59:39 rms Exp rms $
+;; Version: $Id: metamail.el,v 1.9 1998/05/20 00:56:03 rms Exp fx $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -165,7 +165,7 @@ redisplayed as output is inserted."
 	(buffer-read-only nil)
 	(metafile (make-temp-name "/tmp/metamail"))
 	(option-environment
-	 (list (concat "EMACS_VIEW_MODE=" 
+	 (list (format "EMACS_VIEW_MODE=%d" 
 		       (if (numberp viewmode) viewmode 1)))))
     (save-excursion
       ;; Gee!  Metamail does not ouput to stdout if input comes from
