@@ -31,7 +31,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.24";
+char pot_etags_version[] = "@(#) pot revision number is 11.25";
+
+#define	TRUE	1
+#define	FALSE	0
+#ifndef DEBUG
+# define DEBUG FALSE
+#endif
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -70,9 +76,6 @@ extern int errno;
 #ifdef ETAGS_REGEXPS
 #include <regex.h>
 #endif /* ETAGS_REGEXPS */
-
-#define	TRUE	1
-#define	FALSE	0
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
  Let it undefined to make the program "etags", which makes emacs-style
@@ -218,7 +221,7 @@ struct linebuffer
 };
 
 struct linebuffer lb;		/* the current line */
-struct linebuffer token_str;	/* used by C_entries as temporary area */
+struct linebuffer token_name;	/* used by C_entries as temporary area */
 struct
 {
   long linepos;
@@ -861,7 +864,7 @@ main (argc, argv)
   init ();			/* set up boolean "functions" */
 
   initbuffer (&lb);
-  initbuffer (&token_str);
+  initbuffer (&token_name);
   initbuffer (&lbs[0].lb);
   initbuffer (&lbs[1].lb);
   initbuffer (&filename_lb);
@@ -1809,6 +1812,7 @@ consider_token (str, len, c, c_ext, cblev, is_func)
  */
 typedef struct
 {
+  logical valid;
   char *str;
   logical named;
   int linelen;
@@ -1840,16 +1844,22 @@ do {									\
 #define CNL								\
 do {									\
   CNL_SAVE_DEFINEDEF;							\
-  if (token_saved)							\
+  if (savetok.valid)							\
     {									\
       tok = savetok;							\
-      token_saved = FALSE;						\
+      savetok.valid = FALSE;						\
     }									\
   definedef = dnone;							\
 } while (0)
 
-#define make_tag(isfun)  pfnote (savestr (token_str.buffer), isfun, \
-  tok.named, tok.buffer, tok.linelen, tok.lineno, tok.linepos)
+#define make_tag(isfun)  do \
+{									\
+  if (tok.valid)							\
+    pfnote (savestr (token_name.buffer), isfun, tok.named,		\
+	    tok.buffer, tok.linelen, tok.lineno, tok.linepos);		\
+  else if (DEBUG) abort ();						\
+  tok.valid = FALSE;							\
+} while (0)
 
 void
 C_entries (c_ext, inf)
@@ -1866,8 +1876,8 @@ C_entries (c_ext, inf)
   int parlev;			/* current parenthesis level */
   logical incomm, inquote, inchar, quotednl, midtoken;
   logical cplpl;
-  logical token_saved;		/* token saved */
   TOKEN savetok;		/* token saved during preprocessor handling */
+
 
   curndx = newndx = 0;
   lineno = 0;
@@ -1876,8 +1886,9 @@ C_entries (c_ext, inf)
   *lp = 0;
 
   definedef = dnone; funcdef = fnone; typdef = tnone; structdef = snone;
-  next_token_is_func = yacc_rules = token_saved = FALSE;
+  next_token_is_func = yacc_rules = FALSE;
   midtoken = inquote = inchar = incomm = quotednl = FALSE;
+  tok.valid = savetok.valid = FALSE;
   cblev = 0;
   parlev = 0;
   cplpl = c_ext & C_PLPL;
@@ -2052,29 +2063,29 @@ C_entries (c_ext, inf)
 			    /* function defined in C++ class body */
 			    {
 			      int strsize = strlen(structtag) + 2 + toklen + 1;
-			      while (token_str.size < strsize)
+			      while (token_name.size < strsize)
 				{
-				  token_str.size *= 2;
-				  token_str.buffer = xrealloc(token_str.buffer,
-							      token_str.size);
+				  token_name.size *= 2;
+				  token_name.buffer=xrealloc(token_name.buffer,
+							     token_name.size);
 				}
-			      strcpy (token_str.buffer, structtag);
-			      strcat (token_str.buffer, "::");
-			      strncat (token_str.buffer,
+			      strcpy (token_name.buffer, structtag);
+			      strcat (token_name.buffer, "::");
+			      strncat (token_name.buffer,
 				       newlb.buffer+tokoff, toklen);
 			      tok.named = TRUE;
 			    }
 			  else
 			    {
-			      while (token_str.size < toklen + 1)
+			      while (token_name.size < toklen + 1)
 				{
-				  token_str.size *= 2;
-				  token_str.buffer = xrealloc(token_str.buffer,
-							      token_str.size);
+				  token_name.size *= 2;
+				  token_name.buffer=xrealloc(token_name.buffer,
+							      token_name.size);
 				}
-			      strncpy (token_str.buffer,
+			      strncpy (token_name.buffer,
 				       newlb.buffer+tokoff, toklen);
-			      token_str.buffer[toklen] = '\0';
+			      token_name.buffer[toklen] = '\0';
 			      if (structdef == stagseen
 				  || typdef == tend
 				  || (is_func
@@ -2087,6 +2098,7 @@ C_entries (c_ext, inf)
 			  tok.linelen = tokoff + toklen + 1;
 			  tok.buffer = newlb.buffer;
 			  tok.linepos = newlinepos;
+			  tok.valid = TRUE;
 
 			  if (definedef == dnone
 			      && (funcdef == ftagseen
@@ -2131,7 +2143,6 @@ C_entries (c_ext, inf)
 		  break;
 		case dsharpseen:
 		  savetok = tok;
-		  token_saved = TRUE;
 		}
 	      if (!yacc_rules || lp == newlb.buffer + 1)
 		{
