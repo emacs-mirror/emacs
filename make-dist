@@ -279,8 +279,7 @@ if [ "${make_tar}" = yes ]; then
   fi
   echo "Creating tar file."
   (cd ${tempparent}
-   tar cvf - ${emacsname}) \
-   | ${default_gzip} > ${emacsname}.tar.Z
+   tar cvf - ${emacsname} | ${default_gzip} > ${emacsname}.tar.Z
   )
 fi
 
