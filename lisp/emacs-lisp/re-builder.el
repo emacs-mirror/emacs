@@ -232,9 +232,16 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       (define-key reb-mode-map "\C-c\C-b" 'reb-change-target-buffer)
       (define-key reb-mode-map "\C-c\C-u" 'reb-force-update)))
 
-(define-derived-mode reb-mode nil "RE Builder"
-  "Major mode for interactively building Regular Expressions."
-  (reb-mode-common))
+(defun reb-mode ()
+  "Major mode for interactively building Regular Expressions.
+\\{reb-mode-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'reb-mode
+        mode-name "RE Builder")
+  (use-local-map reb-mode-map)
+  (reb-mode-common)
+  (run-hooks 'reb-mode-hook))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
