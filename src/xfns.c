@@ -5441,7 +5441,7 @@ Lisp_Object Qxbm;
 Lisp_Object QCtype, QCdata, QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex;
+Lisp_Object QCindex, QCuser_data;
 
 /* Other symbols.  */
 
@@ -5621,6 +5621,10 @@ parse_image_spec (spec, keywords, nkeywords, type, allow_other_keys_p)
 	return 0;
       value = XCAR (plist);
       plist = XCDR (plist);
+
+      /* Always ignore :user-data DATA.  */
+      if (EQ (key, QCuser_data))
+	continue;
 
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
@@ -10424,6 +10428,8 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&QCpt_height);
   QCindex = intern (":index");
   staticpro (&QCindex);
+  QCuser_data = intern (":user-data");
+  staticpro (&QCuser_data);
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
 
