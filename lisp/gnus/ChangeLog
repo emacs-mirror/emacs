@@ -36,6 +36,10 @@
 
 2000-11-08  Dave Love  <fx@gnu.org>
 
+	* mm-view.el: Use featurep for XEmacs test.
+	(mm-inline-message): Test for `remove-specifier'; don't use
+	condition-case.
+
 	* mm-bodies.el (mm-encode-body): Use mm-multibyte-p.
 
 	* gnus-score.el (gnus-score-load-file): Use expand-file-name.
