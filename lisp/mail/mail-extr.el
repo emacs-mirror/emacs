@@ -770,6 +770,8 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	     (insert-buffer-substring address))
 	    (t
 	     (error "Invalid address: %s" address)))
+
+      (set-text-properties (point-min) (point-max) nil)
       
       ;; stolen from rfc822.el
       ;; Unfold multiple lines.
