@@ -4,7 +4,6 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.35 2000/11/14 18:09:21 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -250,12 +249,17 @@ when editing big diffs)."
   :group 'diff-mode)
 (defvar diff-context-face 'diff-context-face)
 
+(defface diff-nonexistant-face
+  '((t (:inherit diff-file-header-face)))
+  "`diff-mode' face used to highlight nonexistant files in recursive diffs."
+  :group 'diff-mode)
+(defvar diff-nonexistant-face 'diff-nonexistant-face)
+
 (defvar diff-font-lock-keywords
   '(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
      (1 diff-hunk-header-face)
      (2 diff-function-face))
-    ("^--- .+ ----$"		;context
-     . diff-hunk-header-face)
+    ("^--- .+ ----$" . diff-hunk-header-face) ;context
     ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
      (2 diff-function-face))
@@ -267,6 +271,7 @@ when editing big diffs)."
     ("^[+>].*\n" . diff-added-face)
     ("^[-<].*\n" . diff-removed-face)
     ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
+    ("^Only in .*\n" . diff-nonexistant-face)
     ("^#.*" . font-lock-string-face)
     ("^[^-=+*!<>].*\n" . diff-context-face)))
 
