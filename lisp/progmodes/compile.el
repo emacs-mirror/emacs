@@ -743,6 +743,26 @@ visible rather than the begining."
   :version "20.3"
   :group 'compilation)
 
+
+(defun compilation-buffer-name (mode-name name-function)
+  "Return the name of a compilation buffer to use.
+If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
+to determine the buffer name.
+Likewise if `compilation-buffer-name-function' is non-nil.
+If current buffer is in Compilation mode for the same mode name
+return the name of the current buffer, so that it gets reused.
+Otherwise, construct a buffer name from MODE-NAME."
+  (cond (name-function 
+	 (funcall name-function mode-name))
+	(compilation-buffer-name-function 
+	 (funcall compilation-buffer-name-function mode-name))
+	((and (eq major-mode 'compilation-mode)
+	      (equal mode-name (nth 2 compilation-arguments)))
+	 (buffer-name))
+	(t
+	 (concat "*" (downcase mode-name) "*"))))
+
+
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser
 				 error-regexp-alist name-function
@@ -772,11 +792,8 @@ Returns the compilation buffer created."
       (or name-of-mode
 	  (setq name-of-mode "Compilation"))
       (setq outbuf
-	    (get-buffer-create
-	     (funcall (or name-function compilation-buffer-name-function
-			  (function (lambda (mode)
-				      (concat "*" (downcase mode) "*"))))
-		      name-of-mode)))
+	    (get-buffer-create (compilation-buffer-name name-of-mode
+							name-function)))
       (set-buffer outbuf)
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
