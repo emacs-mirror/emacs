@@ -252,25 +252,6 @@ enum event_kind
 				   the wheel event occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the event.  */
-#if defined(MAC_OSX)
-  MOUSE_WHEEL_EVENT,		/* A mouse-wheel event is generated on
-				   MAC_OSX by a wheel on a mouse
-				   (e.g., MS Intellimouse).  The event
-				   contains a delta that corresponds
-				   to the amount and direction that
-				   the wheel is rotated.  This delta
-				   is typically used to implement a
-				   scroll or zoom.
-				   .code gives the delta.
-				   .modifiers holds the state of the
-				   modifier keys.
-				   .x and .y give the mouse position,
-				   in characters, within the window.
-				   .frame_or_window gives the frame
-				   the wheel event occurred in.
-				   .timestamp gives a timestamp (in
-				   milliseconds) for the wheel event.  */
-#endif
 #ifdef WINDOWSNT
   LANGUAGE_CHANGE_EVENT,	/* A LANGUAGE_CHANGE_EVENT is generated
 				   on WINDOWSNT when the keyboard layout
