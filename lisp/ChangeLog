@@ -1,3 +1,7 @@
+2001-04-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* faces.el (modify-face): Add compatibility for non-interactive use.
+
 2001-04-24  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-cmd.el (eshell-find-alias-function): Corrected the
@@ -34,11 +38,9 @@
 	* eshell/eshell.el (eshell-command): Made a few changes so that
 	`eshell-command' could be called programmatically.
 
-	* eshell/esh-mode.el: Moved `eshell-non-interactive-p' to
-	eshell.el.
+	* eshell/esh-mode.el (eshell-non-interactive-p): Moved to eshell.el.
 
-	* eshell/eshell.el (eshell-non-interactive-p): Moved this variable
-	here.
+	* eshell/eshell.el (eshell-non-interactive-p): Moved from esh-mode.el.
 
 2001-04-23  John Wiegley  <johnw@gnu.org>
 
@@ -59,16 +61,16 @@
 2001-04-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (diary-entry-marker)
-	(calendar-today-marker, calendar-holiday-marker): Use
-	display-color-p instead of window-system.
+	(calendar-today-marker, calendar-holiday-marker):
+	Use display-color-p instead of window-system.
 	(calendar-mode-map, calendar-mode): Use display-popup-menus-p
 	instead of window-system.
 	(calendar-hide-window): Use display-multi-frame-p instead of
 	window-system.
 
 	* calendar/cal-x.el (calendar-two-frame-setup)
-	(calendar-only-one-frame-setup, calendar-one-frame-setup): Use
-	display-multi-frame-p instead of window-system.
+	(calendar-only-one-frame-setup, calendar-one-frame-setup):
+	Use display-multi-frame-p instead of window-system.
 
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
@@ -80,14 +82,12 @@
 2001-04-23  Alex Schroeder  <alex@gnu.org>
 
 	* goto-addr.el: Instead of defining line-beginning-position and
-	line-end-position a defalias is used for point-at-bol and
-	point-at-eol.
-	
+	line-end-position a defalias is used for point-at-bol and point-at-eol.
+
 2001-04-23  Alex Schroeder  <alex@gnu.org>
 
 	* goto-addr.el: Added XEmacs compatibility code.
-	(goto-address-highlight-keymap): Made keybindings XEmacs
-	compatible.
+	(goto-address-highlight-keymap): Made keybindings XEmacs compatible.
 
 2001-04-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -96,8 +96,7 @@
 2001-04-20  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-escape-newlines-and-send): New function.
-	(sql-db2): Set comint-input-sender to
-	sql-escape-newlines-and-send.
+	(sql-db2): Set comint-input-sender to sql-escape-newlines-and-send.
 
 2001-04-20  Alex Schroeder  <alex@gnu.org>
 
