@@ -885,8 +885,6 @@ static void
 add_command_key (key)
      Lisp_Object key;
 {
-  int size = XVECTOR (this_command_keys)->size;
-
   /* If reset-this-command-length was called recently, obey it now.
      See the doc string of that function for an explanation of why.  */
   if (before_command_restore_flag)
@@ -898,20 +896,15 @@ add_command_key (key)
       before_command_restore_flag = 0;
     }
 
-  if (this_command_key_count >= size)
-    {
-      Lisp_Object new_keys;
+  if (this_command_key_count >= ASIZE (this_command_keys))
+    this_command_keys = larger_vector (this_command_keys,
+				       2 * ASIZE (this_command_keys),
+				       Qnil);
 
-      new_keys = Fmake_vector (make_number (size * 2), Qnil);
-      bcopy (XVECTOR (this_command_keys)->contents,
-	     XVECTOR (new_keys)->contents,
-	     size * sizeof (Lisp_Object));
-
-      this_command_keys = new_keys;
-    }
-
-  XVECTOR (this_command_keys)->contents[this_command_key_count++] = key;
+  AREF (this_command_keys, this_command_key_count) = key;
+  ++this_command_key_count;
 }
+
 
 Lisp_Object
 recursive_edit_1 ()
@@ -2149,10 +2142,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
       if (CONSP (c)
-	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c)))
-	  && NILP (XCDR (c)))
+	  && EQ (XCDR (c), Qdisabled)
+	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c))))
 	c = XCAR (c);
-
+      
       /* If the queued event is something that used the mouse,
          set used_mouse_menu accordingly.  */
       if (used_mouse_menu
@@ -7421,14 +7414,12 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	     to indicate that they came from a mouse menu,
 	     so that when present in last_nonmenu_event
 	     they won't confuse things.  */
-	  for (tem = XCDR (value); !NILP (tem);
-	       tem = XCDR (tem))
+	  for (tem = XCDR (value); !NILP (tem); tem = XCDR (tem))
 	    {
 	      record_menu_key (XCAR (tem));
 	      if (SYMBOLP (XCAR (tem))
 		  || INTEGERP (XCAR (tem)))
-		XCAR (tem)
-		  = Fcons (XCAR (tem), Qnil);
+		XCAR (tem) = Fcons (XCAR (tem), Qdisabled);
 	    }
 
 	  /* If we got more than one event, put all but the first
@@ -8183,7 +8174,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  /* If we have a quit that was typed in another frame, and
 	     quit_throw_to_read_char switched buffers,
 	     replay to get the right keymap.  */
-	  if (XINT (key) == quit_char && current_buffer != starting_buffer)
+	  if (INTEGERP (key)
+	      && XINT (key) == quit_char
+	      && current_buffer != starting_buffer)
 	    {
 	      GROW_RAW_KEYBUF;
 	      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
