@@ -3409,6 +3409,9 @@ dos_rawgetc ()
 	      clear_mouse_face (dpyinfo);
 	    }
 
+#if 0
+	  /* Lisp must not be called asynchronously, so this must not
+	     be done.  */
 	  if (x_autoselect_window_p)
 	    {
 	      int mouse_area;
@@ -3433,6 +3436,7 @@ dos_rawgetc ()
 	    }
 	  else
 	    last_mouse_window = Qnil;
+#endif
 
 	  previous_help_echo = help_echo;
 	  help_echo = help_echo_object = help_echo_window = Qnil;
