@@ -128,9 +128,9 @@ will happen at the specified time."
       ;; Used to set timer-scratch to "", but nothing uses that var.
       (setq timer-process nil timer-alist nil))))
 
-(defun cancel-timer (function)
+(defun cancel-function-timers (function)
   "Cancel all events scheduled by `run-at-time' which would run FUNCTION."
-  (interactive "aCancel function: ")
+  (interactive "aCancel timers of function: ")
   (let ((alist timer-alist))
     (while alist
       (if (eq (nth 2 (car alist)) function)
