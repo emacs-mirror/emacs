@@ -1,3 +1,7 @@
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* movemail.c (index, rindex): Prototype conditionally.
+
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Change to DOS line endings.
