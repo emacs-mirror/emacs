@@ -4217,28 +4217,38 @@ x_draw_glyph_string (s)
       /* Draw underline.  */
       if (s->face->underline_p)
 	{
-	  unsigned long dy, h;
+	  unsigned long tem, h;
+	  int y;
 
+	  /* Get the underline thickness.  Default is 1 pixel.  */
 	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
 	    h = 1;
-	  if (!XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &dy)
-	      /* If the font specifies a negative underline position,
-		 we'll get a huge positive number, because dy is
-		 unsigned.  This comparison is a workaround that just
-		 ignores the font's underline position in that case.  XXX */
-	      || dy > s->height)
-	    dy = s->height - h;
+
+	  /* Get the underline position.  This is the recommended
+	     vertical offset in pixels from the baseline to the top of
+	     the underline.  This is a signed value according to the
+	     specs, and its default is
+
+	     ROUND ((maximum descent) / 2), with
+	     ROUND(x) = floor (x + 0.5)  */
+	  
+	  if (XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
+	    y = s->ybase + (long) tem;
+	  else if (s->face->font)
+	    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+	  else
+	    y = s->height - h;
       
 	  if (s->face->underline_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    XFillRectangle (s->display, s->window, s->gc,
+			    s->x, y, s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      XFillRectangle (s->display, s->window, s->gc,
+			      s->x, y, s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
