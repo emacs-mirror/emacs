@@ -1503,8 +1503,8 @@ This function returns the contents of cut buffer number @var{n}.
 If omitted @var{n} defaults to 0.
 @end defun
 
-@anchor{Definition of x-set-cut-buffer}
 @defun x-set-cut-buffer string &optional push
+@anchor{Definition of x-set-cut-buffer}
 This function stores @var{string} into the first cut buffer (cut buffer
 0).  If @var{push} is @code{nil}, only the first cut buffer is changed.
 If @var{push} is non-@code{nil}, that says to move the values down
@@ -1793,8 +1793,8 @@ This function returns @code{t} if the screen can display shades of gray.
 (All color displays can do this.)
 @end defun
 
-@anchor{Display Face Attribute Testing}
 @defun display-supports-face-attributes-p attributes &optional display
+@anchor{Display Face Attribute Testing}
 @tindex display-supports-face-attributes-p
 This function returns non-@code{nil} if all the face attributes in
 @var{attributes} are supported (@pxref{Face Attributes}).

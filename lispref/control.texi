@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
 @c  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/control
@@ -784,8 +784,8 @@ contains @samp{%}, it will be interpreted as a format specifier, with
 undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @end defun
 
-@anchor{Definition of signal}
 @defun signal error-symbol data
+@anchor{Definition of signal}
 This function signals an error named by @var{error-symbol}.  The
 argument @var{data} is a list of additional Lisp objects relevant to the
 circumstances of the error.
