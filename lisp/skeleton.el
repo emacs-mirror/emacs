@@ -192,35 +192,35 @@ syntactically necessary termination."))
 
 
 (defun skeleton-internal-1 (element)
-  (cond ( (and (integerp element)
-	       (< element 0))
-	  (delete-char element))
-	( (char-or-string-p element)
-	  (insert (if skeleton-transformation
-		      (funcall skeleton-transformation element)
-		    element)) )
-	( (eq element '\n)		; actually (eq '\n 'n)
-	  (newline)
-	  (indent-relative t) )
-	( (eq element '>)
-	  (indent-for-tab-command) )
-	( (eq element '<)
-	  (backward-delete-char-untabify (min tab-width (current-column))) )
-	( (eq element '_)
-	  (or point
-	      (setq point (point))) )
-	( (eq element '&)
-	  (if modified
-	      (setq definition (cdr definition))) )
-	( (eq element '|)
-	  (or modified
-	      (setq definition (cdr definition))) )
-	( (if (consp element)
-	      (or (stringp (car element))
-		  (consp (car element))))
-	  (while (skeleton-internal-list element (car element) t)) )
-	( (null element) )
-	( (skeleton-internal-1 (eval element)) )))
+  (cond ((and (integerp element)
+	      (< element 0))
+	 (delete-char element))
+	((char-or-string-p element)
+	 (insert (if skeleton-transformation
+		     (funcall skeleton-transformation element)
+		   element)) )
+	((eq element '\n)		; actually (eq '\n 'n)
+	 (newline)
+	 (indent-relative t) )
+	((eq element '>)
+	 (indent-for-tab-command) )
+	((eq element '<)
+	 (backward-delete-char-untabify (min tab-width (current-column))) )
+	((eq element '_)
+	 (or point
+	     (setq point (point))) )
+	((eq element '&)
+	 (if modified
+	     (setq definition (cdr definition))) )
+	((eq element '|)
+	 (or modified
+	     (setq definition (cdr definition))) )
+	((if (consp element)
+	     (or (stringp (car element))
+		 (consp (car element))))
+	 (while (skeleton-internal-list element (car element) t)) )
+	((null element) )
+	((skeleton-internal-1 (eval element)) )))
 
 
 ;; variables and command for automatically inserting pairs like () or ""
@@ -280,49 +280,47 @@ symmetrical ones, and the same character twice for the others."
 		    last-command-char))))))
 
 
-
-;;;###autoload
 ;; a more serious example can be found in shell-script.el
-(defun mirror-mode ()
-  "This major mode is an amusing little example of paired insertion.
-All printable characters do a paired self insert, while the other commands
-work normally."
-  (interactive)
-  (kill-all-local-variables)
-  (make-local-variable 'pair)
-  (make-local-variable 'pair-on-word)
-  (make-local-variable 'pair-filter)
-  (make-local-variable 'pair-alist)
-  (setq major-mode 'mirror-mode
-	mode-name "Mirror"
-	pair-on-word t
-	;; in the middle column insert one or none if odd window-width
-	pair-filter (lambda ()
-		      (if (>= (current-column)
-			      (/ (window-width) 2))
-			  ;; insert both on next line
-			  (next-line 1)
-			;; insert one or both?
-			(= (* 2 (1+ (current-column)))
-			   (window-width))))
-	;; mirror these the other way round as well
-	pair-alist '((?) _ ?()
-			      (?] _ ?[)
-			      (?} _ ?{)
-			      (?> _ ?<)
-			      (?/ _ ?\\)
-			      (?\\ _ ?/)
-			      (?` ?` _ "''")
-			      (?' ?' _ "``"))
-	;; in this mode we exceptionally ignore the user, else it's no fun
-	pair t)
-  (let ((map (make-keymap))
-	(i ? ))
-    (use-local-map map)
-    (setq map (car (cdr map)))
-    (while (< i ?\^?)
-      (aset map i 'pair-insert-maybe)
-      (setq i (1+ i))))
-  (run-hooks 'mirror-mode-hook))
+;;;(defun mirror-mode ()
+;;;  "This major mode is an amusing little example of paired insertion.
+;;;All printable characters do a paired self insert, while the other commands
+;;;work normally."
+;;;  (interactive)
+;;;  (kill-all-local-variables)
+;;;  (make-local-variable 'pair)
+;;;  (make-local-variable 'pair-on-word)
+;;;  (make-local-variable 'pair-filter)
+;;;  (make-local-variable 'pair-alist)
+;;;  (setq major-mode 'mirror-mode
+;;;	mode-name "Mirror"
+;;;	pair-on-word t
+;;;	;; in the middle column insert one or none if odd window-width
+;;;	pair-filter (lambda ()
+;;;		      (if (>= (current-column)
+;;;			      (/ (window-width) 2))
+;;;			  ;; insert both on next line
+;;;			  (next-line 1)
+;;;			;; insert one or both?
+;;;			(= (* 2 (1+ (current-column)))
+;;;			   (window-width))))
+;;;	;; mirror these the other way round as well
+;;;	pair-alist '((?) _ ?()
+;;;			      (?] _ ?[)
+;;;			      (?} _ ?{)
+;;;			      (?> _ ?<)
+;;;			      (?/ _ ?\\)
+;;;			      (?\\ _ ?/)
+;;;			      (?` ?` _ "''")
+;;;			      (?' ?' _ "``"))
+;;;	;; in this mode we exceptionally ignore the user, else it's no fun
+;;;	pair t)
+;;;  (let ((map (make-keymap))
+;;;	(i ? ))
+;;;    (use-local-map map)
+;;;    (setq map (car (cdr map)))
+;;;    (while (< i ?\^?)
+;;;      (aset map i 'pair-insert-maybe)
+;;;      (setq i (1+ i))))
+;;;  (run-hooks 'mirror-mode-hook))
 
 ;; skeleton.el ends here
