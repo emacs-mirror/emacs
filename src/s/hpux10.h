@@ -21,3 +21,7 @@
 #else
 #define LIBS_SYSTEM -l:libdld.sl
 #endif
+
+/* Make sure we get select from libc rather than from libcurses
+   because libcurses on HPUX 10.10 has a broken version of select.  */
+#define LIBS_TERMCAP -lc -lcurses
