@@ -308,6 +308,13 @@ This function tests whether its arguments are numerically equal, and
 returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
+@defun eql value1 value2
+This function compares two floating point numbers like @code{=}, and
+compares two integers like @code{=}, and acts like @code{eq} in all
+other cases.  Thus, @code{(eql 1.0 1)} returns @code{nil}, but
+@code{(eql 1.0 1.0)} and @code{(eql 1 1)} both return @code{t}.
+@end defun
+
 @defun /= number-or-marker1 number-or-marker2
 This function tests whether its arguments are numerically equal, and
 returns @code{t} if they are not, and @code{nil} if they are.
