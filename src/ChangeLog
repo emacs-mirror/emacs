@@ -1,3 +1,10 @@
+2005-03-26  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* w32term.h (x_output): add focus_state.
+
+	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
+	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
+
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fminibuffer_complete_and_exit, Fself_insert_and_exit):
