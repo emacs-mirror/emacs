@@ -129,7 +129,7 @@ Conditions are:
    the selected window is a minibuffer,
    and not in the middle of macro execution,
    and minibuffer-completion-table is not a symbol (which would
-       indicate some non-standard, non-simple completion mechansm,
+       indicate some non-standard, non-simple completion mechanism,
        like file-name and other custom-func completions)."
 
   (and (window-minibuffer-p (selected-window))
@@ -214,9 +214,9 @@ one of \(), \[], or \{} pairs.  The choice of brackets is as follows:
   \(...) - a single prospect is identified and matching is enforced,
   \[...] - a single prospect is identified but matching is optional, or
   \{...} - multiple prospects, separated by commas, are indicated, and
-          further input is required to distingish a single one.
+          further input is required to distinguish a single one.
 
-The displays for disambiguous matches have ` [Matched]' appended
+The displays for unambiguous matches have ` [Matched]' appended
 \(whether complete or not), or ` \[No matches]', if no eligible
 matches exist."
 
