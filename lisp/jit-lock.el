@@ -217,7 +217,7 @@ the variable `jit-lock-stealth-nice' and `jit-lock-stealth-lines'."
 	 (when (or (eq jit-lock-defer-contextually 'always)
 		   (and (not (eq jit-lock-defer-contextually 'never))
 			(null font-lock-keywords-only)))
-	   (add-hook 'after-change-functions 'jit-lock-after-change))
+	   (add-hook 'after-change-functions 'jit-lock-after-change nil t))
 	 
 	 ;; Install the fontification hook.
 	 (add-hook 'fontification-functions 'jit-lock-function))
