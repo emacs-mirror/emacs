@@ -101,6 +101,18 @@ any context prevents recognition of escape sequences as function keys in
 that context.
 
 @item
+Applications should not bind mouse events based on button 1 with the
+shift key held down.  These events include @kbd{S-mouse-1},
+@kbd{M-S-mouse-1}, @kbd{C-S-mouse-1}, and so on.  They are reserved for
+users.
+
+@item
+Modes should redefine @kbd{mouse-2} as a command to follow some sort of
+reference in the text of a buffer, if users usually would not want to
+alter the text in that buffer by hand.  Modes such as Dired, Info,
+Compilation, and Occur redefine it in this way.
+
+@item
 It is a bad idea to define aliases for the Emacs primitives.
 Use the standard names instead.
 
@@ -163,19 +175,18 @@ Do not use @code{message}, @code{throw}, @code{sleep-for},
 or @code{beep} to report errors.
 
 @item
-Avoid using recursive edits.  Instead, do what the Rmail @kbd{w} command
-does: use a new local keymap that contains one command defined to
-switch back to the old local keymap.  Or do what the @code{edit-options}
-command does: switch to another buffer and let the user switch back at
-will.  @xref{Recursive Editing}.
+Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}
+command does: use a new local keymap that contains one command defined
+to switch back to the old local keymap.  Or do what the
+@code{edit-options} command does: switch to another buffer and let the
+user switch back at will.  @xref{Recursive Editing}.
 
 @item
 In some other systems there is a convention of choosing variable names
 that begin and end with @samp{*}.  We don't use that convention in Emacs
-Lisp, so please don't use it in your library.  (In fact, in Emacs names
-of this form are conventionally used for program-generated buffers.) The
-users will find Emacs more coherent if all libraries use the same
-conventions.
+Lisp, so please don't use it in your programs.  (Emacs uses such names
+only for program-generated buffers.)  The users will find Emacs more
+coherent if all libraries use the same conventions.
 
 @item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
@@ -201,7 +212,7 @@ Foundation's name.
 @cindex speedups
 
   Here are ways of improving the execution speed of byte-compiled
-lisp programs.
+Lisp programs.
 
 @itemize @bullet
 @item
@@ -223,7 +234,7 @@ rearranging a data structure so that one of these primitive search
 functions can be used.
 
 @item
-Certain built-in functions are handled specially by the byte compiler
+Certain built-in functions are handled specially in byte-compiled code, 
 avoiding the need for an ordinary function call.  It is a good idea to
 use these functions rather than alternatives.  To see whether a function
 is handled specially by the compiler, examine its @code{byte-compile}
@@ -234,7 +245,7 @@ For example, the following input will show you that @code{aref} is
 compiled specially (@pxref{Array Functions}) while @code{elt} is not
 (@pxref{Sequence Functions}):
 
-@smallexample
+@example
 @group
 (get 'aref 'byte-compile)
      @result{} byte-compile-two-args
@@ -244,14 +255,14 @@ compiled specially (@pxref{Array Functions}) while @code{elt} is not
 (get 'elt 'byte-compile)
      @result{} nil
 @end group
-@end smallexample
+@end example
 
 @item
 If calling a small function accounts for a  substantial part of your
 program's running time, make the function inline.  This eliminates
 the function call overhead.  Since making a function inline reduces
 the flexibility of changing the program, don't do it unless it gives
-a noticeable speedup in something slow enough for users to care about
+a noticeable speedup in something slow enough that users care about
 the speed.  @xref{Inline Functions}.
 @end itemize
 
@@ -271,15 +282,23 @@ string, and you can save space by using a comment instead.
 
 @item
 The first line of the documentation string should consist of one or two
-complete sentences which stand on their own as a summary.  In particular,
-start the line with a capital letter and end with a period.
-For instance, use ``Return the cons of A and B.'' in preference to
-``Returns the cons of A and B@.''
+complete sentences which stand on their own as a summary.  @kbd{M-x
+apropos} displays just the first line, and if it doesn't stand on its
+own, the result looks bad.  In particular, start the first line with a
+capital letter and end with a period.
 
 The documentation string can have additional lines which expand on the
 details of how to use the function or variable.  The additional lines
 should be made up of complete sentences also, but they may be filled if
 that looks good.
+
+@item
+For consistency, phrase the verb in the first sentence of a
+documentation string as an infinitive with ``to'' omitted.  For
+instance, use ``Return the cons of A and B.'' in preference to ``Returns
+the cons of A and B@.''  Usually it looks good to do likewise for the
+rest of the first paragraph.  Subsequent paragraphs usually look better
+if they have proper subjects.
 
 @item
 Write documentation strings in the active voice, not the passive, and in
@@ -314,22 +333,23 @@ starting double-quote is not part of the string!
 
 @item
 A variable's documentation string should start with @samp{*} if the
-variable is one that users would want to set interactively often.  If
+variable is one that users would often want to set interactively.  If
 the value is a long list, or a function, or if the variable would only
 be set in init files, then don't start the documentation string with
 @samp{*}.  @xref{Defining Variables}.
 
 @item
 The documentation string for a variable that is a yes-or-no flag should
-start with words such as ``Non-nil means@dots{}'', to make it clear both
-that the variable only has two meaningfully distinct values and which value
-means ``yes''.
+start with words such as ``Non-nil means@dots{}'', to make it clear that
+all non-@code{nil} values are equivalent and indicate explicitly what
+@code{nil} and non-@code{nil} mean.
 
 @item
 When a function's documentation string mentions the value of an argument
 of the function, use the argument name in capital letters as if it were
 a name for that value.  Thus, the documentation string of the function
-@code{/} refers to its second argument as @samp{DIVISOR}.
+@code{/} refers to its second argument as @samp{DIVISOR}, because the
+actual argument name is @code{divisor}.
 
 Also use all caps for meta-syntactic variables, such as when you show
 the decomposition of a list or vector into subunits, some of which may
@@ -353,11 +373,11 @@ single-quotes for those symbols.)
 @item
 Don't write key sequences directly in documentation strings.  Instead,
 use the @samp{\\[@dots{}]} construct to stand for them.  For example,
-instead of writing @samp{C-f}, write @samp{\\[forward-char]}.  When the
-documentation string is printed, Emacs will substitute whatever key is
-currently bound to @code{forward-char}.  This will usually be
-@samp{C-f}, but if the user has moved key bindings, it will be the
-correct key for that user.  @xref{Keys in Documentation}.
+instead of writing @samp{C-f}, write @samp{\\[forward-char]}.  When
+Emacs displays the documentation string, it substitutes whatever key is
+currently bound to @code{forward-char}.  (This is normally @samp{C-f},
+but it may be some other character if the user has moved key bindings.)
+@xref{Keys in Documentation}.
 
 @item
 In documentation strings for a major mode, you will want to refer to the
@@ -391,7 +411,7 @@ aligned to the same column on the right of the source code.  Such
 comments usually explain how the code on the same line does its job.  In
 Lisp mode and related modes, the @kbd{M-;} (@code{indent-for-comment})
 command automatically inserts such a @samp{;} in the right place, or
-aligns such a comment if it is already inserted.
+aligns such a comment if it is already present.
 
 (The following examples are taken from the Emacs sources.)
 
@@ -406,7 +426,7 @@ aligns such a comment if it is already inserted.
 
 @item ;;
 Comments that start with two semicolons, @samp{;;}, should be aligned to
-the same level of indentation as the code.  Such comments are used to
+the same level of indentation as the code.  Such comments usually
 describe the purpose of the following lines or the state of the program
 at that point.  For example:
 
@@ -415,18 +435,22 @@ at that point.  For example:
 (prog1 (setq auto-fill-function
              @dots{}
              @dots{}
-  ;; update mode-line
+  ;; update mode line
   (force-mode-line-update)))
 @end group
 @end smallexample
 
-These comments are also written before a function definition to explain
-what the function does and how to call it properly.
+Every function that has no documentation string (because it is use only
+internally within the package it belongs to), should have instead a
+two-semicolon comment right before the function, explaining what the
+function does and how to call it properly.  Explain precisely what each
+argument means and how the function interprets its possible value.
 
 @item ;;;
 Comments that start with three semicolons, @samp{;;;}, should start at
-the left margin.  Such comments are not used within function
-definitions, but are used to make more general comments.  For example:
+the left margin.  Such comments are used outside function definitions to
+make general statements explaining the design principles of the program.
+For example:
 
 @smallexample
 @group
@@ -434,6 +458,17 @@ definitions, but are used to make more general comments.  For example:
 ;;; when it is to operate as a server
 ;;; for other processes.
 @end group
+@end smallexample
+
+Another use for triple-semicolon comments is for commenting out line
+within a function.  We use triple-semicolons for this precisely so that
+they remain at the left margin.
+
+@smallexample
+(defun foo (a)
+;;; This is no longer necessary.
+;;;  (force-mode-line-update)
+  (message "Finished with %s" a))
 @end smallexample
 
 @item ;;;;
@@ -452,14 +487,6 @@ The indentation commands of the Lisp modes in Emacs, such as @kbd{M-;}
 automatically indent comments according to these conventions,
 depending on the the number of semicolons.  @xref{Comments,,
 Manipulating Comments, emacs, The GNU Emacs Manual}.
-
-  If you wish to ``comment out'' a number of lines of code, use triple
-semicolons at the beginnings of the lines.
-
-  Any character may be included in a comment, but it is advisable to
-precede a character with syntactic significance in Lisp (such as
-@samp{\} or unpaired @samp{(} or @samp{)}) with a @samp{\}, to prevent
-it from confusing the Emacs commands for editing Lisp.
 
 @node Library Headers
 @section Conventional Headers for Emacs Libraries
@@ -499,7 +526,7 @@ them.  This section explains these conventions.  First, an example:
 The description should be complete in one line.
 
   After the copyright notice come several @dfn{header comment} lines,
-each beginning with @samp{;;; @var{header-name}:}.  Here is a table of
+each beginning with @samp{;; @var{header-name}:}.  Here is a table of
 the conventional possibilities for @var{header-name}:
 
 @table @samp
@@ -508,23 +535,23 @@ This line states the name and net address of at least the principal
 author of the library.
 
 If there are multiple authors, you can list them on continuation lines
-led by @code{;;<TAB>}, like this:
+led by @code{;;} and a tab character, like this:
 
 @smallexample
 @group
 ;; Author: Ashwin Ram <Ram-Ashwin@@cs.yale.edu>
-;;	Dave Sill <de5@@ornl.gov>
-;;	Dave Brennan <brennan@@hal.com>
-;;	Eric Raymond <esr@@snark.thyrsus.com>
+;;      Dave Sill <de5@@ornl.gov>
+;;      Dave Brennan <brennan@@hal.com>
+;;      Eric Raymond <esr@@snark.thyrsus.com>
 @end group
 @end smallexample
 
 @item Maintainer
 This line should contain a single name/address as in the Author line, or
-an address only, or the string ``FSF''.  If there is no maintainer line,
-the person(s) in the Author field are presumed to be the maintainers.
-The example above is mildly bogus because the maintainer line is
-redundant.
+an address only, or the string @samp{FSF}.  If there is no maintainer
+line, the person(s) in the Author field are presumed to be the
+maintainers.  The example above is mildly bogus because the maintainer
+line is redundant.
 
 The idea behind the @samp{Author} and @samp{Maintainer} lines is to make
 possible a Lisp function to ``send mail to the maintainer'' without
