@@ -318,7 +318,7 @@ nil if it is not visible in the current calendar window."
                     (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
                    "Selichot (night)")
              (list (calendar-gregorian-from-absolute (1- abs-r-h))
-                   "Erev Rosh HaShannah")
+                   "Erev Rosh HaShanah")
              (list (calendar-gregorian-from-absolute (1+ abs-r-h))
                    "Rosh HaShanah (second day)")
              (list (calendar-gregorian-from-absolute
@@ -1001,12 +1001,12 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
         (let*
             ((h-year (extract-calendar-year
                       (calendar-hebrew-from-absolute d)))
-             (rosh-hashannah
+             (rosh-hashanah
               (calendar-absolute-from-hebrew (list 7 1 h-year)))
              (passover
               (calendar-absolute-from-hebrew (list 1 15 h-year)))
-             (rosh-hashannah-day
-              (aref calendar-day-name-array (% rosh-hashannah 7)))
+             (rosh-hashanah-day
+              (aref calendar-day-name-array (% rosh-hashanah 7)))
              (passover-day
               (aref calendar-day-name-array (% passover 7)))
              (long-h (hebrew-calendar-long-heshvan-p h-year))
@@ -1017,9 +1017,9 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
              (year-format
               (symbol-value
                (intern (format "hebrew-calendar-year-%s-%s-%s";; keviah
-                               rosh-hashannah-day type passover-day))))
+                               rosh-hashanah-day type passover-day))))
              (first-saturday;; of Hebrew year
-              (calendar-dayname-on-or-before 6 (+ 6 rosh-hashannah)))
+              (calendar-dayname-on-or-before 6 (+ 6 rosh-hashanah)))
              (saturday;; which Saturday of the Hebrew year
               (/ (- d first-saturday) 7))
              (parasha (aref year-format saturday)))
