@@ -1,3 +1,9 @@
+2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (frame-set-background-mode): If a tty frame defines a
+	background color, use that to compute the background mode, instead
+	of always defaulting to "dark".
+
 2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-write-output): New function.
