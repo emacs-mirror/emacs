@@ -1,5 +1,8 @@
 2004-12-02  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/cc-mode.el (awk-mode autoload):
+	Supply t meaning interactive function.
+
 	* isearch.el (search-whitespace-regexp): Remove the group.  Doc fix.
 	(isearch-mode-map): No special definition for space.
 	(isearch-whitespace-chars): Command deleted.

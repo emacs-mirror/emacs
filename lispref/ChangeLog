@@ -1,3 +1,10 @@
+2004-12-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Selecting Windows): get-lru-window and
+	get-largest-window don't consider dedicated windows.
+
+	* text.texi (Undo): Document undo-in-progress.
+
 2004-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* locals.texi (Standard Buffer-Local Variables): Undo prev change.
