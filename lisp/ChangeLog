@@ -1,3 +1,7 @@
+2001-01-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* subr.el (last): Handle a list that doesn't end in nil.
+
 2001-01-12  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Bind `backspace'
