@@ -281,6 +281,7 @@ If DIR is positive skip forward; if negative, skip backward."
       (let ((temp start))
         (setq start end
               end temp)))
+  (setq mode (mod mode 3))
   (cond ((= mode 0)
 	 (list start end))
         ((and (= mode 1)
@@ -378,6 +379,9 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (defvar mouse-save-then-kill-posn nil)
 
 (defun mouse-save-then-kill-delete-region (beg end)
+  ;; We must make our own undo boundaries
+  ;; because they happen automatically only for the current buffer.
+  (undo-boundary)
   (if (or (= beg end) (eq buffer-undo-list t))
       ;; If we have no undo list in this buffer,
       ;; just delete.
@@ -393,6 +397,8 @@ This does not delete the region; it acts like \\[kill-ring-save]."
       ;; Now delete the rest of the specified region,
       ;; but don't record it.
       (setq buffer-undo-list t)
+      (if (/= (length (car kill-ring)) (- (max end beg) (min end beg)))
+	  (error "Lossage in mouse-save-then-kill-delete-region"))
       (delete-region beg end))
     (let ((tail buffer-undo-list))
       ;; Search back in buffer-undo-list for the string
@@ -401,7 +407,8 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 	(setq tail (cdr tail)))
       ;; Replace it with an entry for the entire deleted text.
       (and tail
-	   (setcar tail (cons (car kill-ring) (min beg end)))))))
+	   (setcar tail (cons (car kill-ring) (min beg end))))))
+  (undo-boundary))
 
 (defun mouse-save-then-kill (click)
   "Save text to point in kill ring; the second time, kill the text.
@@ -419,7 +426,7 @@ If you do this twice in the same position, the selection is killed."
 	;; Don't let a subsequent kill command append to this one:
 	;; prevent setting this-command to kill-region.
 	(this-command this-command))
-    (if (> mouse-selection-click-count 0)
+    (if (> (mod mouse-selection-click-count 3) 0)
 	(if (not (and (eq last-command 'mouse-save-then-kill)
 		      (equal click-posn
 			     (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
@@ -490,7 +497,7 @@ If you do this twice in the same position, the selection is killed."
 (global-set-key [M-drag-mouse-1] 'mouse-set-secondary)
 (global-set-key [M-down-mouse-1] 'mouse-drag-secondary)
 (global-set-key [M-mouse-3] 'mouse-secondary-save-then-kill)
-(global-set-key [M-mouse-2] 'mouse-kill-secondary)
+(global-set-key [M-mouse-2] 'mouse-yank-secondary)
 
 ;; An overlay which records the current secondary selection
 ;; or else is deleted when there is no secondary selection.
@@ -557,7 +564,7 @@ This must be bound to a button-down mouse event."
 	  (setq mouse-secondary-overlay
 		(make-overlay (point) (point))))
       (overlay-put mouse-secondary-overlay 'face 'secondary-selection)
-      (if (> click-count 0)
+      (if (> (mod click-count 3) 0)
 	  ;; Double or triple press: make an initial selection
 	  ;; of one word or line.
 	  (let ((range (mouse-start-end start-point start-point click-count)))
@@ -629,19 +636,45 @@ This must be bound to a button-down mouse event."
 	    (if (marker-position mouse-secondary-start)
 		(save-window-excursion
 		  (delete-overlay mouse-secondary-overlay)
+		  (x-set-selection 'SECONDARY nil)
 		  (select-window start-window)
 		  (save-excursion
 		    (goto-char mouse-secondary-start)
 		    (sit-for 1)))
-	      (kill-ring-save (overlay-start mouse-secondary-overlay)
-			      (overlay-end mouse-secondary-overlay))))))))
+	      (x-set-selection
+	       'SECONDARY
+	       (buffer-substring (overlay-start mouse-secondary-overlay)
+				 (overlay-end mouse-secondary-overlay)))))))))
 
-(defun mouse-kill-secondary ()
-  "Kill the text in the secondary selection."
-  (interactive "*")
-  (kill-region (overlay-start mouse-secondary-overlay)
-	       (overlay-end mouse-secondary-overlay))
+(defun mouse-yank-secondary (click)
+  "Insert the last stretch of killed text at the position clicked on.
+Prefix arguments are interpreted as with \\[yank]."
+  (interactive "e")
+  (save-excursion
+    (set-buffer (window-buffer (posn-window (event-start click))))
+    (goto-char (posn-point (event-start click)))
+    (insert (x-get-selection 'SECONDARY))))
+
+(defun mouse-kill-secondary (click)
+  "Kill the text in the secondary selection.
+This is intended more as a keyboard command than as a mouse command
+but it can work as either one.
+
+The current buffer (in case of keyboard use), or the buffer clicked on,
+must be the one that the secondary selection is in.  This requirement
+is to prevent accidents."
+  (interactive "e")
+  (or (eq (overlay-buffer mouse-secondary-overlay)
+	  (if (listp click)
+	      (window-buffer (posn-window (event-start click)))
+	    (current-buffer)))
+      (error "Select or click on the buffer where the secondary selection is"))
+  (save-excursion
+    (set-buffer (overlay-buffer mouse-secondary-overlay))
+    (kill-region (overlay-start mouse-secondary-overlay)
+		 (overlay-end mouse-secondary-overlay)))
   (delete-overlay mouse-secondary-overlay)
+  (x-set-selection 'SECONDARY nil)
   (setq mouse-secondary-overlay nil))
 
 (defun mouse-secondary-save-then-kill (click)
@@ -661,88 +694,99 @@ If you do this twice in the same position, the selection is killed."
 	;; Don't let a subsequent kill command append to this one:
 	;; prevent setting this-command to kill-region.
 	(this-command this-command))
-    (if (> mouse-selection-click-count 0)
-	(if (not (and (eq last-command 'mouse-secondary-save-then-kill)
-		      (equal click-posn
-			     (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
-	    ;; Find both ends of the object selected by this click.
-	    (let* ((range
-		    (mouse-start-end click-posn click-posn
-				     mouse-selection-click-count)))
-	      ;; Move whichever end is closer to the click.
-	      ;; That's what xterm does, and it seems reasonable.
-	      (if (< (abs (- click-posn (overlay-start mouse-secondary-overlay)))
-		     (abs (- click-posn (overlay-end mouse-secondary-overlay))))
-		  (move-overlay mouse-secondary-overlay (car range)
-				(overlay-end mouse-secondary-overlay))
+    (or (eq (window-buffer (posn-window posn))
+	    (or (and mouse-secondary-overlay
+		     (overlay-buffer mouse-secondary-overlay))
+		(if mouse-secondary-start
+		    (marker-buffer mouse-secondary-start))))
+	(error "Wrong buffer"))
+    (save-excursion
+      (set-buffer (window-buffer (posn-window posn)))
+      (if (> (mod mouse-selection-click-count 3) 0)
+	  (if (not (and (eq last-command 'mouse-secondary-save-then-kill)
+			(equal click-posn
+			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
+	      ;; Find both ends of the object selected by this click.
+	      (let* ((range
+		      (mouse-start-end click-posn click-posn
+				       mouse-selection-click-count)))
+		;; Move whichever end is closer to the click.
+		;; That's what xterm does, and it seems reasonable.
+		(if (< (abs (- click-posn (overlay-start mouse-secondary-overlay)))
+		       (abs (- click-posn (overlay-end mouse-secondary-overlay))))
+		    (move-overlay mouse-secondary-overlay (car range)
+				  (overlay-end mouse-secondary-overlay))
 		  (move-overlay mouse-secondary-overlay
 				(overlay-start mouse-secondary-overlay)
 				(nth 1 range)))
-	      ;; We have already put the old region in the kill ring.
-	      ;; Replace it with the extended region.
-	      ;; (It would be annoying to make a separate entry.)
-	      (setcar kill-ring (buffer-substring
-				 (overlay-start mouse-secondary-overlay)
-				 (overlay-end mouse-secondary-overlay)))
-	      (if interprogram-cut-function
-		  (funcall interprogram-cut-function (car kill-ring)))
-	      ;; Arrange for a repeated mouse-3 to kill this region.
-	      (setq mouse-save-then-kill-posn
-		    (list (car kill-ring) (point) click-posn)))
-	  ;; If we click this button again without moving it,
-	  ;; that time kill.
-	  (progn
-	    (mouse-save-then-kill-delete-region
-	     (overlay-start mouse-secondary-overlay)
-	     (overlay-end mouse-secondary-overlay))
-	    (setq mouse-save-then-kill-posn nil)
-	    (setq mouse-selection-click-count 0)
-	    (delete-overlay mouse-secondary-overlay)))
-      (if (and (eq last-command 'mouse-secondary-save-then-kill)
-	       mouse-save-then-kill-posn
-	       (eq (car mouse-save-then-kill-posn) (car kill-ring))
-	       (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
-	  ;; If this is the second time we've called
-	  ;; mouse-secondary-save-then-kill, delete the text from the buffer.
-	  (progn
-	    (mouse-save-then-kill-delete-region
-	     (overlay-start mouse-secondary-overlay)
-	     (overlay-end mouse-secondary-overlay))
-	    (setq mouse-save-then-kill-posn nil)
-	    (delete-overlay mouse-secondary-overlay))
-	(if (overlay-start mouse-secondary-overlay)
-	    ;; We have a selection, so adjust it.
+		;; We have already put the old region in the kill ring.
+		;; Replace it with the extended region.
+		;; (It would be annoying to make a separate entry.)
+		(setcar kill-ring (buffer-substring
+				   (overlay-start mouse-secondary-overlay)
+				   (overlay-end mouse-secondary-overlay)))
+		(if interprogram-cut-function
+		    (funcall interprogram-cut-function (car kill-ring)))
+		;; Arrange for a repeated mouse-3 to kill this region.
+		(setq mouse-save-then-kill-posn
+		      (list (car kill-ring) (point) click-posn)))
+	    ;; If we click this button again without moving it,
+	    ;; that time kill.
 	    (progn
-	      (select-window (posn-window posn))
-	      (if (numberp click-posn)
-		  (progn
-		    ;; Move whichever end of the region is closer to the click.
-		    ;; That is what xterm does, and it seems reasonable.
-		    (if (< (abs (- click-posn (overlay-start mouse-secondary-overlay)))
-			   (abs (- click-posn (overlay-end mouse-secondary-overlay))))
-			(move-overlay mouse-secondary-overlay click-posn
-				      (overlay-end mouse-secondary-overlay))
+	      (mouse-save-then-kill-delete-region
+	       (overlay-start mouse-secondary-overlay)
+	       (overlay-end mouse-secondary-overlay))
+	      (setq mouse-save-then-kill-posn nil)
+	      (setq mouse-selection-click-count 0)
+	      (delete-overlay mouse-secondary-overlay)))
+	(if (and (eq last-command 'mouse-secondary-save-then-kill)
+		 mouse-save-then-kill-posn
+		 (eq (car mouse-save-then-kill-posn) (car kill-ring))
+		 (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
+	    ;; If this is the second time we've called
+	    ;; mouse-secondary-save-then-kill, delete the text from the buffer.
+	    (progn
+	      (mouse-save-then-kill-delete-region
+	       (overlay-start mouse-secondary-overlay)
+	       (overlay-end mouse-secondary-overlay))
+	      (setq mouse-save-then-kill-posn nil)
+	      (delete-overlay mouse-secondary-overlay))
+	  (if (overlay-start mouse-secondary-overlay)
+	      ;; We have a selection, so adjust it.
+	      (progn
+		(if (numberp click-posn)
+		    (progn
+		      ;; Move whichever end of the region is closer to the click.
+		      ;; That is what xterm does, and it seems reasonable.
+		      (if (< (abs (- click-posn (overlay-start mouse-secondary-overlay)))
+			     (abs (- click-posn (overlay-end mouse-secondary-overlay))))
+			  (move-overlay mouse-secondary-overlay click-posn
+					(overlay-end mouse-secondary-overlay))
 			(move-overlay mouse-secondary-overlay
 				      (overlay-start mouse-secondary-overlay)
 				      click-posn))
-		    (setq deactivate-mark nil)))
-	      (setcar kill-ring (buffer-substring
-				 (overlay-start mouse-secondary-overlay)
-				 (overlay-end mouse-secondary-overlay)))
-	      (if interprogram-cut-function
-		  (funcall interprogram-cut-function (car kill-ring))))
-	  (if mouse-secondary-start
-	      ;; All we have is one end of a selection,
-	      ;; so put the other end here.
-	      (let ((start (+ 0 mouse-secondary-start)))
-		(set-buffer (window-buffer (posn-window (event-start click))))
-		(kill-ring-save start click-posn)
-		(if mouse-secondary-overlay
-		    (move-overlay mouse-secondary-overlay start click-posn)
-		  (setq mouse-secondary-overlay (make-overlay start click-posn)))
-		(overlay-put mouse-secondary-overlay 'face 'secondary-selection))))
-	(setq mouse-save-then-kill-posn
-	      (list (car kill-ring) (point) click-posn))))))
+		      (setq deactivate-mark nil)))
+		(setcar kill-ring (buffer-substring
+				   (overlay-start mouse-secondary-overlay)
+				   (overlay-end mouse-secondary-overlay)))
+		(if interprogram-cut-function
+		    (funcall interprogram-cut-function (car kill-ring))))
+	    (if mouse-secondary-start
+		;; All we have is one end of a selection,
+		;; so put the other end here.
+		(let ((start (+ 0 mouse-secondary-start)))
+		  (kill-ring-save start click-posn)
+		  (if mouse-secondary-overlay
+		      (move-overlay mouse-secondary-overlay start click-posn)
+		    (setq mouse-secondary-overlay (make-overlay start click-posn)))
+		  (overlay-put mouse-secondary-overlay 'face 'secondary-selection))))
+	  (setq mouse-save-then-kill-posn
+		(list (car kill-ring) (point) click-posn))))
+      (x-set-selection 'SECONDARY
+		       (if (overlay-buffer mouse-secondary-overlay)
+			   (buffer-substring
+			    (overlay-start mouse-secondary-overlay)
+			    (overlay-end mouse-secondary-overlay)))))))
 
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
