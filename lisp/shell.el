@@ -90,7 +90,7 @@
 ;;; m-c-b   shell-backward-command          Backward a shell command
 ;;; 	    dirs    			    Resync the buffer's dir stack
 ;;; 	    dirtrack-toggle                 Turn dir tracking on/off
-;;;         shell-strip-ctrl-m              Remove trailing ^Ms from output
+;;;         comint-strip-ctrl-m             Remove trailing ^Ms from output
 ;;;
 ;;; The shell mode hook is shell-mode-hook
 ;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
