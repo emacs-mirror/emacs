@@ -1,3 +1,39 @@
+2004-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* allout.el (allout group): Add :version.
+	(allout-init): Don't use interactive-p.
+	(allout-ascend-to-depth, allout-ascend, allout-end-of-level)
+	(allout-forward-current-level, allout-backward-current-level): 
+	Don't use interactive-p.
+
+	* textmodes/bibtex.el (bibtex-make-field): Don't use interactive-p.
+	(bibtex-find-text): Likewise.
+
+	* progmodes/vhdl-mode.el (vhdl-fill-region)
+	(vhdl-beginning-of-statement): Don't use interactive-p.
+
+	* progmodes/idlwave.el (idlwave-update-routine-info):
+	Don't use interactive-p.
+
+	* progmodes/idlw-shell.el (idlwave-shell-send-char):
+	Don't use interactive-p.
+
+	* progmodes/cperl-mode.el (cperl-switch-to-doc-buffer): 
+	Don't use interactive-p.
+
+	* progmodes/ada-xref.el (ada-make-body-gnatstub):
+	Don't use interactive-p.
+
+	* play/fortune.el (fortune-to-signature): Don't use interactive-p.
+	(fortune-in-buffer): Doc fix.
+
+	* play/5x5.el (5x5-new-game): Set up the buffer even if not interactive.
+
+	* net/eudc.el (eudc-display-records): Use with-output-to-temp-buffer;
+	don't select the temporary buffer.
+	(eudc-get-email): New optional arg ERROR; don't use interactive-p.
+	(eudc-get-phone): Likewise.
+
 2004-11-01  Kim F. Storm  <storm@cua.dk>
 
 	* man.el (Man-xref-normal-file): Fix help-echo.

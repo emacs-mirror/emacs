@@ -2313,6 +2313,13 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** The new function `called-interactively-p' does what many people
+have mistakenly believed `interactively-p' did: it returns t if the
+calling function was called through `call-interactively'.
+This should only be used when you cannot add a new "interactively"
+argument to the command.
+
++++
 ** An interactive specification may now use the code letter 'U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous 'k' or 'K' argument was a down-event; otherwise nil is used.

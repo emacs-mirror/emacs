@@ -85,6 +85,8 @@ to the FSF.
 	at the same time and do it in a context-sensitive way.
 *** ability to add mode-specific data to the partial-parse-state.
 
+** Add a way to convert a keyboard macro to equivalent Lisp code.
+
 ** Have a command suggestion help system that recognizes patterns
   of commands which could be replaced with a simpler common command.
   It should not make more than one suggestion per 10 minutes.

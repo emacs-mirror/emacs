@@ -18,11 +18,17 @@ redisplay uses an invalidated face_id with FACE_FROM_ID
 which then returns a NULL pointer.  Said to happen with
 isearch faces.
 
+* LOSSAGE
+
+** Clean up flymake.el to follow Emacs Lisp conventions.
 
 * GTK RELATED BUGS
 
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 
+** Make GTK update the menu bar in two stages, as with Xt,
+   so that the first can run Lisp code, while only the second
+   needs BLOCK_INPUT.
 
 * DOCUMENTATION
 
