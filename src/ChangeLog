@@ -1,3 +1,12 @@
+2002-07-01  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (do_ae_open_documents) [MAC_OSX]: Call FSpMakeFSRef
+	and FSRefMakePath to convert FSSpec returned with Apple Event to
+	Posix pathname.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Call
+	init_required_apple_events and disable the `Quit' menu item
+	provided automatically by the Carbon Toolbox.
+
 2002-07-01  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal decl
@@ -135,7 +144,7 @@
 	* w32fns.c (file_dialog_callback): New function.
 	(Fx_file_dialog): Allow selecting directories as well as files.
 
-2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* m/pmax.h (START_FILES): Define START_FILES for NetBSD and
 	OpenBSD. Add support for mipseb-*-netbsd* machines.

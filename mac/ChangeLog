@@ -1,3 +1,10 @@
+2002-07-01  Andrew Choi  <akochoi@shaw.ca>
+
+	* Emacs.app/Contents/Resources/Emacs.icns: New file.
+
+	* Emacs.app/Contents/Info.plist: Add CFBundleDocumentTypes and
+	CFBundleIconFile entries.
+
 2002-04-13  Andrew Choi  <akochoi@shaw.ca>
 
 	* Emacs.app/Contents/Info.plist: New file.
@@ -137,7 +144,7 @@
 	cursor row is invisible.  This can happen if cursor is on top line
 	of a window, and we switch to a buffer with a header line.
 
-2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
 
@@ -146,7 +153,7 @@
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
 	frame parameter have a numeric value all the time.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -164,7 +171,7 @@
 	* src/macterm.c: Merged changes from xterm.c.
 	* src/macfns.c: Merged changes from xfns.c.
 
-2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
@@ -268,7 +275,7 @@
 
 	* inc/macterm.h (x_display_list): Declare extern.
 
-2001-07-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
 

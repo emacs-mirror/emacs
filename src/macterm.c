@@ -12123,20 +12123,31 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
         int i;
         
         /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++) {
-          FSSpec fs;
-	  Str255 path_name, unix_path_name;
+        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++)
+	  {
+	    FSSpec fs;
+	    Str255 path_name, unix_path_name;
+#ifdef MAC_OSX
+	    FSRef fref;
+#endif
 
-          err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
-			    (Ptr) &fs, sizeof (fs), &actual_size);
-          if (err != noErr) break;
+	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
+			      (Ptr) &fs, sizeof (fs), &actual_size);
+	    if (err != noErr) break;
 
-	  if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
-				      fs.name) &&
-	      mac_to_posix_pathname (path_name, unix_path_name, 255))
-            drag_and_drop_file_list = Fcons (build_string (unix_path_name),
-					     drag_and_drop_file_list);
-        }
+#ifdef MAC_OSX
+	    err = FSpMakeFSRef (&fs, &fref);
+	    if (err != noErr) break;
+
+	    if (FSRefMakePath (&fref, unix_path_name, 255) == noErr)
+#else
+	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
+					fs.name) &&
+		mac_to_posix_pathname (path_name, unix_path_name, 255))
+#endif
+	      drag_and_drop_file_list = Fcons (build_string (unix_path_name),
+					       drag_and_drop_file_list);
+	  }
       }
   }
 
@@ -13142,6 +13153,12 @@ mac_initialize ()
 #endif
 
   mac_initialize_display_info ();
+
+#if TARGET_API_MAC_CARBON
+  init_required_apple_events ();
+
+  DisableMenuCommand (NULL, kHICommandQuit);
+#endif
 }
 
 
