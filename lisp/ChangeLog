@@ -1,5 +1,18 @@
 2000-10-23  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* faces.el (face-user-default-spec, face-default-spec): New functions.
+	(face-spec-choose, face-spec-set): Document nil-SPEC behavior.
+	(frame-set-background-mode, face-set-after-frame-default): 
+	Use `face-user-default-spec'.  Simplify code slightly.
+
+	* woman.el (woman-italic-face, woman-bold-face) 
+	(woman-unknown-face): Add dark-background variants.
+	(woman-default-faces): Renamed from `woman-colour-faces'.
+	Set using the stored defaults, rather than using hard-wired colors.
+	(woman-monochrome-faces): Renamed from `woman-black-faces'.
+	Just make the foreground `unspecified' rather than "black".
+	(woman-menu): Rename menu entries accordingly.
+
 	* faces.el (header-line): Make more reasonable on mono/grayscale
 	displays.
 
