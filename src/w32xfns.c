@@ -90,7 +90,7 @@ select_palette (FRAME_PTR f, HDC hdc)
     return;
 
   if (display_info->palette == 0)
-    abort ();
+    return;
 
   if (!NILP (Vw32_enable_palette))
     f->output_data.w32->old_palette =
