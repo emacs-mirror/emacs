@@ -393,7 +393,8 @@ updates before the buffer is saved, use `before-save-hook' .")
 (defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
-and the rest are not called.
+and the rest are not called and neither are the functions in
+`write-file-functions'.
 
 This variable is meant to be used for hooks that pertain to the
 buffer's contents, not to the particular visited file; thus,
