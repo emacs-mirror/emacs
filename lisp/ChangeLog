@@ -1,3 +1,7 @@
+2001-11-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (term-setup-hook): Add IT-setup-unicode-display.
+
 2001-11-04  Miles Bader  <miles@gnu.org>
 
 	* startup.el (fancy-splash-head): Reapply Gerd's hack to make the
