@@ -895,9 +895,16 @@ the cursor, for example screen magnifiers and text to speech programs.
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ---
-** Some images are now supported on Windows.
+** Some images are now supported on MS Windows.
 PBM and XBM images are supported, other formats which require external
 libraries may be supported in future.
+
+---
+** Sound is now supported on MS Windows.
+WAV format is supported on all versions of Windows, other formats such
+as AU, AIFF and MP3 may be supported in the m ore recent versions of
+Windows, or when other software provides hooks into the system level
+sound support for those formats.
 
 ---
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
