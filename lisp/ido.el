@@ -1219,15 +1219,14 @@ Removes badly formatted data and ignored directories."
 (defvar ido-minor-mode-map-entry nil)
 
 ;;;###autoload
-(defun ido-mode (&optional arg nobind)
+(defun ido-mode (&optional arg)
   "Toggle ido speed-ups on or off.
 With ARG, turn ido speed-up on if arg is positive, off otherwise.
-If second argument NOBIND is non-nil, no keys are rebound; otherwise,
-turning on ido-mode will modify the default keybindings for the
-find-file and switch-to-buffer families of commands to the ido
-versions of these functions.
-However, if second arg equals 'files, bind only for files, or if it
-equals 'buffers, bind only for buffers.
+Turning on ido-mode will remap (via a minor-mode keymap) the default
+keybindings for the `find-file' and `switch-to-buffer' families of
+commands to the ido versions of these functions.
+However, if ARG arg equals 'files, remap only commands for files, or
+if it equals 'buffers, remap only commands for buffer switching.
 This function also adds a hook to the minibuffer."
   (interactive "P")
   (setq ido-mode
@@ -1326,6 +1325,7 @@ This function also adds a hook to the minibuffer."
       (define-key map "\d"        'ido-delete-backward-updir)
       (define-key map [(meta backspace)] 'ido-delete-backward-word-updir)
       (define-key map [(control backspace)] 'ido-up-directory)
+      (define-key map "\C-l" 'ido-reread-directory)
       (define-key map [(meta ?b)] 'ido-next-work-file)
       (define-key map [(meta ?d)] 'ido-wide-find-dir)
       (define-key map [(meta ?f)] 'ido-wide-find-file)
@@ -1340,7 +1340,6 @@ This function also adds a hook to the minibuffer."
     (when (eq ido-cur-item 'file)
       (define-key map "\C-k" 'ido-delete-file-at-head)
       (define-key map "\C-o" 'ido-copy-current-word)
-      (define-key map "\C-l" 'ido-reread-directory)
       (define-key map "\C-w" 'ido-copy-current-file-name)
       (define-key map [(meta ?l)] 'ido-toggle-literal)
       (define-key map "\C-v" 'ido-toggle-vc)
@@ -2253,7 +2252,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   "Prompt for FILE to search for using find, starting from current directory."
   (interactive)
   (unless file
-    (setq file (read-string (concat "Wide find file: " ido-current-directory) ido-text)))
+    (let ((enable-recursive-minibuffers t))
+      (setq file
+	    (read-string (concat "Wide find file: " ido-current-directory) ido-text))))
   (when (> (length file) 0)
     (setq ido-use-merged-list t ido-try-merged-list 'wide)
     (setq ido-exit 'refresh)
@@ -2265,7 +2266,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   "Prompt for DIR to search for using find, starting from current directory."
   (interactive)
   (unless dir
-    (setq dir (read-string (concat "Wide find directory: " ido-current-directory) ido-text)))
+    (let ((enable-recursive-minibuffers t))
+      (setq dir
+	    (read-string (concat "Wide find directory: " ido-current-directory) ido-text))))
   (when (> (length dir) 0)
     (setq ido-use-merged-list t ido-try-merged-list 'wide)
     (setq ido-exit 'refresh)
@@ -2277,7 +2280,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   "Prompt for DIR to create in current directory."
   (interactive)
   (unless dir
-    (setq dir (read-string (concat "Make directory: " ido-current-directory) ido-text)))
+    (let ((enable-recursive-minibuffers t))
+      (setq dir
+	    (read-string (concat "Make directory: " ido-current-directory) ido-text))))
   (when (> (length dir) 0)
     (setq dir (concat ido-current-directory dir))
     (unless (file-exists-p dir)
