@@ -2052,7 +2052,83 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
        (kill-buffer Info-tag-table-buffer)))
 
 (add-hook 'kill-buffer-hook 'Info-kill-buffer)
-  
+
+;;; Speedbar support:
+;; These functions permit speedbar to display the "tags" in the
+;; current info node.
+
+(eval-when-compile (require 'speedbspec))
+
+(defvar Info-last-speedbar-node nil
+  "Last node viewed with speedbar in the form '(NODE FILE).")
+
+(defvar Info-speedbar-menu-items
+  '(["Browse Item On Line" speedbar-edit-line t])
+  "Additional menu-items to add to speedbar frame.")
+
+(defun Info-speedbar-buttons (buffer)
+  "Create a speedbar display to help navigation in an Info file.
+BUFFER is the buffer speedbar is requesting buttons for."
+  (goto-char (point-min))
+  (if (and (looking-at "<Directory>")
+	   (save-excursion
+	     (set-buffer buffer)
+	     (and (equal (car Info-last-speedbar-node) Info-current-node)
+		  (equal (cdr Info-last-speedbar-node) Info-current-file))))
+      nil
+    (erase-buffer)
+    (speedbar-insert-button "<Directory>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-directory)
+    (speedbar-insert-button "<Top>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-top-node)
+    (speedbar-insert-button "<Last>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-last)
+    (speedbar-insert-button "<Up>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-up)
+    (speedbar-insert-button "<Next>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-next)
+    (speedbar-insert-button "<Prev>" 'info-xref 'highlight
+			    'Info-speedbar-button
+			    'Info-prev)
+    (let ((completions nil))
+      (save-excursion
+	(set-buffer buffer)
+	(setq Info-last-speedbar-node
+	      (cons Info-current-node Info-current-file))
+	(goto-char (point-min))
+	;; Always skip the first one...
+	(re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+	(while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+	  (setq completions (cons (buffer-substring (match-beginning 1)
+						    (match-end 1))
+				  completions))))
+      (setq completions (nreverse completions))
+      (while completions
+	(speedbar-make-tag-line nil nil nil nil
+				(car completions) 'Info-speedbar-menu
+				nil 'info-node 0)
+	(setq completions (cdr completions))))))
+
+(defun Info-speedbar-button (text token indent)
+  "Called when user clicks <Directory> from speedbar.
+TEXT, TOKEN, and INDENT are unused."
+  (speedbar-with-attached-buffer
+   (funcall token)
+   (setq Info-last-speedbar-node nil)
+   (speedbar-update-contents)))
+
+(defun Info-speedbar-menu (text token indent)
+  "Goto the menu node specified in TEXT.
+TOKEN and INDENT are not used."
+  (speedbar-with-attached-buffer
+   (Info-menu text)
+   (setq Info-last-speedbar-node nil)
+   (speedbar-update-contents)))
 
 (provide 'info)
 
