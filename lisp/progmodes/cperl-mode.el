@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2003
+;; Copyright (C) 1985,86,87,91,92,93,94,95,96,97,98,99,2000,03,2004
 ;;     Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich and Bob Olson
@@ -1064,9 +1064,6 @@ the faces: please specify bold, italic, underline, shadow and box.)
      'indent-sexp 'cperl-indent-exp
      cperl-mode-map global-map)
     (substitute-key-definition
-     'fill-paragraph 'cperl-fill-paragraph
-     cperl-mode-map global-map)
-    (substitute-key-definition
      'indent-region 'cperl-indent-region
      cperl-mode-map global-map)
     (substitute-key-definition
@@ -1086,7 +1083,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	  ["End of function" end-of-defun t]
 	  ["Mark function" mark-defun t]
 	  ["Indent expression" cperl-indent-exp t]
-	  ["Fill paragraph/comment" cperl-fill-paragraph t]
+	  ["Fill paragraph/comment" fill-paragraph t]
 	  "----"
 	  ["Line up a construction" cperl-lineup (cperl-use-region-p)]
 	  ["Invert if/unless/while etc" cperl-invert-if-unless t]
@@ -1464,6 +1461,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (set (make-local-variable 'fill-paragraph-function) 'cperl-fill-paragraph)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'cperl-indent-line)
   (make-local-variable 'require-final-newline)
@@ -4255,11 +4253,11 @@ conditional/loop constructs."
 ;; Stolen from lisp-mode with a lot of improvements
 
 (defun cperl-fill-paragraph (&optional justify iteration)
-  "Like \\[fill-paragraph], but handle CPerl comments.
+  "Like `fill-paragraph', but handle CPerl comments.
 If any of the current line is a comment, fill the comment or the
 block of it that point is in, preserving the comment's initial
 indentation and initial hashes.  Behaves usually outside of comment."
-  (interactive "P")
+  ;; (interactive "P") ; Only works when called from fill-paragraph.  -stef
   (let (;; Non-nil if the current line contains a comment.
 	has-comment
 
@@ -4346,9 +4344,11 @@ indentation and initial hashes.  Behaves usually outside of comment."
       (let ((c (save-excursion (beginning-of-line)
 			       (cperl-to-comment-or-eol) (point)))
 	    (s (memq (following-char) '(?\ ?\t))) marker)
-	(if (>= c (point)) nil
+	(if (>= c (point))
+	    ;; Don't break line inside code: only inside comment.
+	    nil
 	  (setq marker (point-marker))
-	  (cperl-fill-paragraph)
+	  (fill-paragraph nil)
 	  (goto-char marker)
 	  ;; Is not enough, sometimes marker is a start of line
 	  (if (bolp) (progn (re-search-forward "#+[ \t]*")
