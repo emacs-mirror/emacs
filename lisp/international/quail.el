@@ -1828,7 +1828,8 @@ Remaining args are for FUNC."
 ;; Setup Quail completion buffer.
 (defun quail-setup-completion-buf ()
   (unless (buffer-live-p quail-completion-buf)
-    (setq quail-completion-buf (get-buffer-create "*Quail Completions*"))
+    (let ((default-enable-multibyte-characters enable-multibyte-characters))
+      (setq quail-completion-buf (get-buffer-create "*Quail Completions*")))
     (save-excursion
       (set-buffer quail-completion-buf)
       (setq quail-overlay (make-overlay 1 1))
@@ -1854,8 +1855,9 @@ the bottom-most ordinary window of the same frame,
 or in a newly created frame (if the selected frame has no other windows)."
   (when (quail-require-guidance-buf)
     ;; At first, setup a guidance buffer.
-    (or (buffer-live-p quail-guidance-buf)
-	(setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*")))
+    (let ((default-enable-multibyte-characters enable-multibyte-characters))
+      (or (buffer-live-p quail-guidance-buf)
+	  (setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*"))))
     (let ((name (quail-name))
 	  (title (quail-title)))
       (save-excursion
@@ -2389,7 +2391,8 @@ package to describe."
   (if package
       (setq package (assoc package quail-package-alist))
     (setq package quail-current-package))
-  (let ((help-xref-mule-regexp help-xref-mule-regexp-template))
+  (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
+	(default-enable-multibyte-characters enable-multibyte-characters))
     ;; At first, make sure that the help buffer has window.
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
