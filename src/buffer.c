@@ -1748,7 +1748,7 @@ advance_to_char_boundary (byte_pos)
   c = FETCH_BYTE (byte_pos);
   if (! CHAR_HEAD_P (c))
     {
-      /* We should advance BYTE_POS only when C is a constituen of a
+      /* We should advance BYTE_POS only when C is a constituent of a
          multibyte sequence.  */
       DEC_POS (byte_pos);
       INC_POS (byte_pos);
