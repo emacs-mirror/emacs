@@ -1138,10 +1138,12 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
   ;; (not a name) in Python buffers from which `run-python' &c is
   ;; invoked.  Would support multiple processes better.
   (unless (comint-check-proc python-buffer)
-    (let ((cmdlist (append (python-args-to-list cmd) '("-i")))
-	  (process-environment		; to import emacs.py
-	   (push (concat "PYTHONPATH=" data-directory)
-		 process-environment)))
+    (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
+	   (path (getenv "PYTHONPATH"))
+	   (process-environment		; to import emacs.py
+	    (push (concat "PYTHONPATH=" data-directory
+			  (if path (concat ":" path)))
+		  process-environment)))
       (set-buffer (apply 'make-comint "Python" (car cmdlist) nil
 			 (cdr cmdlist)))
       (setq python-buffer "*Python*"))
@@ -1276,7 +1278,6 @@ module-qualified names."
       ;; Fixme: I'm not convinced by this logic from python-mode.el.
       (python-send-command
        (if (string-match "\\.py\\'" file-name)
-	   ;; Fixme: make sure the directory is in the path list
 	   (let ((module (file-name-sans-extension
 			  (file-name-nondirectory file-name))))
 	     (format "emacs.eimport(%S,%S)"
@@ -1307,6 +1308,7 @@ See variable `python-buffer'.  Starts a new process if necessary."
 Otherwise inherits from `python-mode-syntax-table'.")
 
 (defvar view-return-to-alist)
+(eval-when-compile (autoload 'help-buffer "help-fns"))
 
 ;; Fixme: Should this actually be used instead of info-look, i.e. be
 ;; bound to C-h S?  Can we use other pydoc stuff before python 2.2?
@@ -1392,7 +1394,8 @@ Used with `eval-after-load'."
 		;; Don't use `info' because it would pop-up a *info* buffer.
 		(with-no-warnings
 		 (Info-goto-node (format "(python%s-lib)Miscellaneous Index"
-					 version)))
+					 version))
+		 t)
 	      (error nil)))))
     (info-lookup-maybe-add-help
      :mode 'python-mode
