@@ -76,10 +76,6 @@ A manual for Ghostscript.
 A manual for PIC (the graphics formatting language).
 
 @item
-A manual for Perl.  (The books that exist are not free, and
-thus not available to be part of the GNU system.)
-
-@item
 A manual for Oleo.
 
 @item
