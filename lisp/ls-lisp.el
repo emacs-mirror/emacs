@@ -134,29 +134,18 @@ are: A a c i r S s t u"
 		 (sum 0)
 		 elt
 		 short
-		 (file-list (directory-files dir nil wildcard))
-		 file-alist 
+		 (file-alist (directory-files-and-attributes dir nil wildcard))
 		 (now (current-time))
 		 ;; do all bindings here for speed
 		 file-size
 		 fil attr)
 	    (cond ((memq ?A switches)
-		   (setq file-list
-			 (ls-lisp-delete-matching "^\\.\\.?$" file-list)))
+		   (setq file-alist
+			 (ls-lisp-delete-matching "^\\.\\.?$" file-alist)))
 		  ((not (memq ?a switches))
 		   ;; if neither -A  nor -a, flush . files
-		   (setq file-list
-			 (ls-lisp-delete-matching "^\\." file-list))))
-	    (setq file-alist
-		  (mapcar
-		   (function
-		    (lambda (x)
-		      ;; file-attributes("~bogus") bombs
-		      (cons x (file-attributes (expand-file-name x)))))
-		   ;; inserting the call to directory-files right here
-		   ;; seems to stimulate an Emacs bug
-		   ;; ILLEGAL DATATYPE (#o37777777727) or #o67
-		   file-list))
+		   (setq file-alist
+			 (ls-lisp-delete-matching "^\\." file-alist))))
 	    ;; ``Total'' line (filled in afterwards).
 	    (insert (if (car-safe file-alist)
 			"total \007\n"
@@ -201,7 +190,7 @@ are: A a c i r S s t u"
   ;; Should perhaps use setcdr for efficiency.
   (let (result)
     (while list
-      (or (string-match regexp (car list))
+      (or (string-match regexp (car (car list)))
 	  (setq result (cons (car list) result)))
       (setq list (cdr list)))
     result))
