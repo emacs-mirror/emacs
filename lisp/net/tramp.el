@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.8"
+(defconst tramp-version "2.0.9"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -1244,7 +1244,7 @@ on the remote file system.")
   "perl -MMIME::Base64 -0777 -ne 'print encode_base64($_)'"
   "Perl program to use for encoding a file.
 Escape sequence %s is replaced with name of Perl binary.
-This string is passwd to `format', so percent characters need to be doubled.
+This string is passed to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
 on the remote host.")
 
@@ -1252,7 +1252,7 @@ on the remote host.")
   "perl -MMIME::Base64 -0777 -ne 'print decode_base64($_)'"
   "Perl program to use for decoding a file.
 Escape sequence %s is replaced with name of Perl binary.
-This string is passwd to `format', so percent characters need to be doubled.
+This string is passed to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
 on the remote host.")
 
@@ -3501,18 +3501,22 @@ file exists and nonzero exit status otherwise."
        5 "Starting remote shell `%s' for tilde expansion..." shell)
       (tramp-send-command
        multi-method method user host
-       (concat "PS1='$ ' ; exec " shell)) ;
+       (concat "PS1='$ ' exec " shell)) ;
       (unless (tramp-wait-for-regexp
                (get-buffer-process (current-buffer))
-               60 (format "\\(\\$ *\\|\\(%s\\)\\'\\)" shell-prompt-pattern))
+               60 (format "\\(\\$ *\\|\\(%s\\)\\)\\'" shell-prompt-pattern))
         (pop-to-buffer (buffer-name))
         (error "Couldn't find remote `%s' prompt." shell))
+      (tramp-message
+       10 "Setting remote shell prompt...")
       (process-send-string nil (format "PS1='%s%s%s'; PS2=''; PS3=''%s"
                                        tramp-rsh-end-of-line
                                        tramp-end-of-output
                                        tramp-rsh-end-of-line
                                        tramp-rsh-end-of-line))
       (tramp-wait-for-output)
+      (tramp-message
+       10 "Setting remote shell prompt...done")
       (tramp-send-command multi-method method user host "echo hello")
       (tramp-message 5 "Waiting for remote `%s' to start up..." shell)
       (unless (tramp-wait-for-output 5)
@@ -4645,7 +4649,7 @@ Goes through the list `tramp-coding-commands'."
 	   "Checking remote decoding command `%s' for sanity" dc)
 	  (unless (zerop (tramp-send-command-and-check
 			  multi-method method user host
-			  (format "%s </dev/null >/dev/null" dc) t))
+			  (format "echo xyzzy | %s | %s >/dev/null" ec dc) t))
 	    (throw 'wont-work nil))
 	  ;; If no encoding/decoding function is given, the
 	  ;; corresponding encoding/decoding command also has to work
@@ -5654,6 +5658,12 @@ local and remote machines are.
 If you can give a simple set of instructions to make this bug happen
 reliably, please include those.  Thank you for helping kill bugs in
 TRAMP.
+
+Another useful thing to do is to put (setq tramp-debug-buffer t) in
+the ~/.emacs file and to repeat the bug.  Then, include the contents
+of the *tramp/foo* buffer and the *debug tramp/foo* buffer in your bug
+report.
+
 --bug report follows this line--")))
 
 (defalias 'tramp-submit-bug 'tramp-bug)
