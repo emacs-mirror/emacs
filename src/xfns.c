@@ -1358,8 +1358,13 @@ x_set_foreground_color (f, arg, oldval)
 		      f->output_data.x->foreground_pixel);
       XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
 		      f->output_data.x->foreground_pixel);
+      
       XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
 		      f->output_data.x->foreground_pixel);
+      unload_color (f, f->output_data.x->cursor_pixel);
+      f->output_data.x->cursor_pixel
+	= x_copy_color (f, f->output_data.x->foreground_pixel);
+
       UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
@@ -1387,6 +1392,7 @@ x_set_background_color (f, arg, oldval)
 		      f->output_data.x->background_pixel);
       XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
 		      f->output_data.x->background_pixel);
+      
       XSetWindowBackground (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    f->output_data.x->background_pixel);
       {
