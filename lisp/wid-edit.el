@@ -2909,6 +2909,17 @@ link for that string."
   :format "%v\n%h"
   :documentation-property 'variable-documentation)
 
+(define-widget 'other 'sexp
+  "Matches any value, but doesn't let the user edit the value.
+This is useful as last item in a `choice' widget.
+You should use this widget type with a default value,
+as in (other DEFAULT) or (other :tag "NAME" DEFAULT).
+If the user selects this alternative, that specifies DEFAULT
+as the value."
+  :tag "Other"
+  :format "%t%n"
+  :value 'other)
+
 (defvar widget-string-prompt-value-history nil
   "History of input to `widget-string-prompt-value'.")
 
