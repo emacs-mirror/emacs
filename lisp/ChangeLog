@@ -1,3 +1,8 @@
+2001-11-21  Colin Walters  <walters@debian.org>
+
+	* calc/calc-macs.el (calc-slow-wrapper): Move (point) call outside
+	of (function ...) wrapper.
+
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* derived.el (define-derived-mode): Create the abbrev-table
