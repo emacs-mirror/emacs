@@ -1520,7 +1520,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int *BM_tab_base;
   register unsigned char *cursor, *p_limit;  
   register int i, j;
-  unsigned char *pat;
+  unsigned char *pat, *pat_end;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   unsigned char simple_translate[0400];
@@ -1562,10 +1562,15 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
   dirlen = len_byte * direction;
   infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
+
+  /* Record position after the end of the pattern.  */
+  pat_end = base_pat + len_byte;
+  /* BASE_PAT points to a character that we start scanning from.
+     It is the first character in a forward search,
+     the last character in a backward search.  */
   if (direction < 0)
-    pat = (base_pat += len_byte - 1);
-  else
-    pat = base_pat;
+    base_pat = pat_end - 1;
+
   BM_tab_base = BM_tab;
   BM_tab += 0400;
   j = dirlen;		/* to get it in a register */
@@ -1589,7 +1594,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   i = 0;
   while (i != infinity)
     {
-      unsigned char *ptr = pat + i;
+      unsigned char *ptr = base_pat + i;
       i += direction;
       if (i == dirlen)
 	i = infinity;
@@ -1600,7 +1605,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  int this_translated = 1;
 
 	  if (multibyte
-	      && (ptr + 1 == pat + len_byte || CHAR_HEAD_P (ptr[1])))
+	      /* Is *PTR the last byte of a character?  */
+	      && (pat_end - ptr == 1 || CHAR_HEAD_P (ptr[1])))
 	    {
 	      unsigned char *charstart = ptr;
 	      while (! CHAR_HEAD_P (*charstart))
