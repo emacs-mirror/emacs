@@ -939,6 +939,7 @@ cmd_error (data)
   Vexecuting_macro = Qnil;
   executing_macro = Qnil;
   current_kboard->Vprefix_arg = Qnil;
+  current_kboard->Vlast_prefix_arg = Qnil;
   cancel_echoing ();
 
   /* Avoid unquittable loop if data contains a circular list.  */
@@ -1122,6 +1123,7 @@ command_loop_1 ()
 #endif
 
   current_kboard->Vprefix_arg = Qnil;
+  current_kboard->Vlast_prefix_arg = Qnil;
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
   cancel_echoing ();
@@ -1151,6 +1153,7 @@ command_loop_1 ()
 
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = this_command;
+  current_kboard->Vreal_last_command = this_command;
 
   while (1)
     {
@@ -1287,7 +1290,7 @@ command_loop_1 ()
 	 if the symbol is a local variable.  */
       if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpre_command_hook);
-
+      
       if (NILP (this_command))
 	{
 	  /* nil means key is undefined.  */
@@ -1300,6 +1303,9 @@ command_loop_1 ()
 	{
 	  if (NILP (current_kboard->Vprefix_arg) && ! no_direct)
 	    {
+	      /* In case we jump to directly_done.  */
+	      Vcurrent_prefix_arg = current_kboard->Vprefix_arg;
+
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
 	      if (EQ (this_command, Qforward_char) && PT < ZV)
@@ -1442,9 +1448,9 @@ command_loop_1 ()
 	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
 	  Fcommand_execute (this_command, Qnil, Qnil, Qnil);
-
 	}
     directly_done: ;
+      current_kboard->Vlast_prefix_arg = Vcurrent_prefix_arg;
 
       /* Note that the value cell will never directly contain nil
 	 if the symbol is a local variable.  */
@@ -1478,6 +1484,7 @@ command_loop_1 ()
       if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_char))
 	{
 	  current_kboard->Vlast_command = this_command;
+	  current_kboard->Vreal_last_command = this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_single_command_key_start = 0;
@@ -3607,35 +3614,23 @@ static char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
-    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
-    "backspace",
-    "tab",
-    "linefeed",
-    "clear",
-    0,
-    "return",
-    0, 0,
-    0, 0, 0,			/* 0xff10 */
-    "pause",
-    0, 0, 0, 0, 0, 0, 0,
-    "escape",
+    0, 0, 0, 0, 0, 0, 0, 0,			      /* 0xff00...0f */
+    "backspace", "tab", "linefeed", "clear",
+    0, "return", 0, 0,
+    0, 0, 0, "pause",				      /* 0xff10...1f */
+    0, 0, 0, 0, 0, 0, 0, "escape",
     0, 0, 0, 0,
-    0, "kanji", "muhenkan", 
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff20...2f */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff30...3f */
+    0, "kanji", "muhenkan", "henkan",		      /* 0xff20...2f */
+    "romaji", "hiragana", "katakana", "hiragana-katakana",
+    "zenkaku", "hankaku", "zenkaku-hankaku", "touroku",
+    "massyo", "kana-lock", "kana-shift", "eisu-shift",
+    "eisu-toggle",				      /* 0xff30...3f */
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff40...4f */
 
-    "home",			/* 0xff50 */	/* IsCursorKey */
-    "left",
-    "up",
-    "right",
-    "down",
-    "prior",
-    "next",
-    "end",
-    "begin",
-    0,				/* 0xff59 */
-    0, 0, 0, 0, 0, 0,
+    "home", "left", "up", "right", /* 0xff50 */	/* IsCursorKey */
+    "down", "prior", "next", "end",
+    "begin", 0, 0, 0, 0, 0, 0, 0,
     "select",			/* 0xff60 */	/* IsMiscFunctionKey */
     "print",
     "execute",
@@ -3649,9 +3644,9 @@ static char *lispy_function_keys[] =
     "help",
     "break",			/* 0xff6b */
 
-    0, 0, 0, 0, 0, 0, 0, 0, "backtab", 0,
-    0,				/* 0xff76 */
-    0, 0, 0, 0, 0, 0, 0, 0, "kp-numlock",	/* 0xff7f */
+    0, 0, 0, 0,
+    0, 0, 0, 0, "backtab", 0, 0, 0,		/* 0xff70... */
+    0, 0, 0, 0, 0, 0, 0, "kp-numlock",		/* 0xff78... */
     "kp-space",			/* 0xff80 */	/* IsKeypadKey */
     0, 0, 0, 0, 0, 0, 0, 0,
     "kp-tab",			/* 0xff89 */
@@ -8458,7 +8453,9 @@ init_kboard (kb)
 {
   kb->Voverriding_terminal_local_map = Qnil;
   kb->Vlast_command = Qnil;
+  kb->Vreal_last_command = Qnil;
   kb->Vprefix_arg = Qnil;
+  kb->Vlast_prefix_arg = Qnil;
   kb->kbd_queue = Qnil;
   kb->kbd_queue_has_data = 0;
   kb->immediate_echo = 0;
@@ -8842,6 +8839,9 @@ command exit.\n\
 \n\
 The value `kill-region' is special; it means that the previous command\n\
 was a kill command.");
+
+  DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
+    "Same as `last-command', but never altered by Lisp code.");
 
   DEFVAR_LISP ("this-command", &this_command,
     "The command now being executed.\n\
