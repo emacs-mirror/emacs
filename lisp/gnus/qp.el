@@ -66,7 +66,7 @@ coding-system."
 		   (unless (eq byte ?=)
 		     (backward-char))))
 		(t
-		 (message "Malformed MIME quoted-printable message")
+		 (error "Malformed quoted-printable text")
 		 (forward-char)))))
       (if coding-system
 	  (mm-decode-coding-region (point-min) (point-max) coding-system)))))
