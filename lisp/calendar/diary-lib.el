@@ -502,10 +502,10 @@ This function is provided for optional use as the `diary-display-hook'."
                   (if date-holiday-list (insert ":  "))
                   (let* ((l (current-column))
                          (longest 0))
-                    (insert (mapconcat '(lambda (x)
-                                          (if (< longest (length x))
-                                              (setq longest (length x)))
-                                          x)
+                    (insert (mapconcat (lambda (x)
+					 (if (< longest (length x))
+					     (setq longest (length x)))
+					 x)
                                        date-holiday-list
                                        (concat "\n" (make-string l ? ))))
                     (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
@@ -782,7 +782,7 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                                    (calendar-make-alist
                                     calendar-day-name-array
                                     0
-                                    '(lambda (x) (substring x 0 3))))))
+                                    (lambda (x) (substring x 0 3))))))
                           (if mm-name
                               (if (string-equal mm-name "*")
                                   (setq mm 0)
@@ -792,7 +792,7 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                                             (calendar-make-alist
                                              calendar-month-name-array
                                              1
-                                             '(lambda (x) (substring x 0 3)))
+                                             (lambda (x) (substring x 0 3)))
                                             )))))
                           (mark-calendar-date-pattern mm dd yy))))
                     (setq d (cdr d))))
@@ -1532,7 +1532,7 @@ Prefix arg will make the entry nonmarking."
      (format "%s(diary-cyclic %d %s)"
              sexp-diary-entry-symbol
              (calendar-read "Repeat every how many days: "
-                            '(lambda (x) (> x 0)))
+                            (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
 
