@@ -269,16 +269,7 @@
 
 (require 'font-lock)
 
-;; Make sure lazy-lock.el is supported.
-(if (if (save-match-data (string-match "Lucid\\|XEmacs" (emacs-version)))
-	t
-      (and (= emacs-major-version 19) (< emacs-minor-version 30)))
-    (error "`lazy-lock' was written for Emacs 19.30 or later"))
-
 (eval-when-compile
-  ;;
-  ;; We don't do this at the top-level as idle timers are not necessarily used.
-  (require 'timer)
   ;; We don't do this at the top-level as we only use non-autoloaded macros.
   (require 'cl)
   ;;
@@ -301,52 +292,7 @@
 The order of execution is thus BODY, TEST, BODY, TEST and so on
 until TEST returns nil."
     (` (while (progn (,@ body) (, test)))))
-  (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function))
-  ;;
-  ;; We use this for clarity and speed.  Borrowed from a future Emacs.
-  (or (fboundp 'with-current-buffer)
-      (defmacro with-current-buffer (buffer &rest body)
-	"Execute the forms in BODY with BUFFER as the current buffer.
-The value returned is the value of the last form in BODY."
-	(` (save-excursion (set-buffer (, buffer)) (,@ body)))))
-  (put 'with-current-buffer 'lisp-indent-function 1)
-  ;;
-  ;; We use this for compatibility with a future Emacs.
-  (or (fboundp 'with-temp-message)
-      (defmacro with-temp-message (message &rest body)
-	(` (let ((temp-message (, message)) current-message)
-	     (unwind-protect
-		 (progn
-		   (when temp-message
-		     (setq current-message (current-message))
-		     (message temp-message))
-		   (,@ body))
-	       (when temp-message
-		 (message current-message)))))))
-  ;;
-  ;; We use this for compatibility with a future Emacs.
-  (or (fboundp 'defcustom)
-      (defmacro defcustom (symbol value doc &rest args) 
-	(` (defvar (, symbol) (, value) (, doc))))))
-
-;(defun lazy-lock-submit-bug-report ()
-;  "Submit via mail a bug report on lazy-lock.el."
-;  (interactive)
-;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.org" "lazy-lock 2.11"
-;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
-;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
-;       lazy-lock-defer-time lazy-lock-stealth-time
-;       lazy-lock-stealth-load lazy-lock-stealth-nice lazy-lock-stealth-lines
-;       lazy-lock-stealth-verbose)
-;     nil nil
-;     (concat "Hi Si.,
-;
-;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
-;know how to make a clear and unambiguous report.  To reproduce the bug:
-;
-;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
-;In the `*scratch*' buffer, evaluate:"))))
+  (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function)))
 
 (defvar lazy-lock-mode nil)			; Whether we are turned on.
 (defvar lazy-lock-buffers nil)			; For deferral.
@@ -1031,65 +977,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 ;; Version dependent workarounds and fixes.
 
-(when (if (save-match-data (string-match "Lucid\\|XEmacs" (emacs-version)))
-	  nil
-	(and (= emacs-major-version 19) (= emacs-minor-version 30)))
-  ;;
-  ;; We use `post-command-idle-hook' for deferral and stealth.  Oh Lordy.
-  (defun lazy-lock-install-timers (foo bar)
-    (add-hook 'post-command-idle-hook 'lazy-lock-fontify-post-command t)
-    (add-hook 'post-command-idle-hook 'lazy-lock-fontify-post-idle t)
-    (add-to-list 'lazy-lock-install (current-buffer))
-    (add-hook 'post-command-hook 'lazy-lock-fontify-after-install))
-  (defun lazy-lock-fontify-post-command ()
-    (and lazy-lock-buffers (not executing-kbd-macro)
-	 (progn
-	   (and deactivate-mark (deactivate-mark))
-	   (sit-for
-	    (or (cdr-safe lazy-lock-defer-time) lazy-lock-defer-time 0)))
-	 (lazy-lock-fontify-after-defer)))
-  (defun lazy-lock-fontify-post-idle ()
-    (and lazy-lock-stealth-time (not executing-kbd-macro)
-	 (not (window-minibuffer-p (selected-window)))
-	 (progn
-	   (and deactivate-mark (deactivate-mark))
-	   (sit-for lazy-lock-stealth-time))
-	 (lazy-lock-fontify-after-idle)))
-  ;;
-  ;; Simulate running of `window-scroll-functions' in `set-window-buffer'.
-  (defvar lazy-lock-install nil)
-  (defun lazy-lock-fontify-after-install ()
-    (remove-hook 'post-command-hook 'lazy-lock-fontify-after-install)
-    (while lazy-lock-install
-      (mapcar 'lazy-lock-fontify-conservatively
-	      (get-buffer-window-list (pop lazy-lock-install) 'nomini t)))))
-
-(when (if (save-match-data (string-match "Lucid\\|XEmacs" (emacs-version)))
-	  nil
-	(or (and (= emacs-major-version 20) (< emacs-minor-version 4))
-	    (= emacs-major-version 19)))
-  ;;
-  ;; We use `vertical-motion' rather than `window-end' UPDATE arg.
-  (defun lazy-lock-fontify-after-scroll (window window-start)
-    ;; Called from `window-scroll-functions'.
-    ;; Fontify WINDOW from WINDOW-START following the scroll.  We cannot use
-    ;; `window-end' so we work out what it would be via `vertical-motion'.
-    (let ((inhibit-point-motion-hooks t))
-      (save-excursion
-	(goto-char window-start)
-	(vertical-motion (window-height window) window)
-	(lazy-lock-fontify-region window-start (point))))
-    (set-window-redisplay-end-trigger window nil))
-  (defun lazy-lock-fontify-after-trigger (window trigger-point)
-    ;; Called from `redisplay-end-trigger-functions'.
-    ;; Fontify WINDOW from TRIGGER-POINT following the redisplay.  We cannot
-    ;; use `window-end' so we work out what it would be via `vertical-motion'.
-    (let ((inhibit-point-motion-hooks t))
-      (save-excursion
-	(goto-char (window-start window))
-	(vertical-motion (window-height window) window)
-	(lazy-lock-fontify-region trigger-point (point))))))
-
 (when (consp lazy-lock-defer-time)
   ;;
   ;; In 2.06.04 and below, `lazy-lock-defer-time' could specify modes and time.
@@ -1141,41 +1028,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (princ (substitute-command-keys "\\[customize-option]"))
     (princ " or change your ~/.emacs now."))
   (setq lazy-lock-defer-on-scrolling lazy-lock-defer-driven))
-
-;; Possibly absent.
-
-(unless (boundp 'font-lock-inhibit-thing-lock)
-  ;; Font Lock mode uses this to direct Lazy and Fast Lock modes to stay off.
-  (defvar font-lock-inhibit-thing-lock nil
-    "List of Font Lock mode related modes that should not be turned on."))
-
-(unless (fboundp 'font-lock-value-in-major-mode)
-  (defun font-lock-value-in-major-mode (alist)
-    ;; Return value in ALIST for `major-mode'.
-    (if (consp alist)
-	(cdr (or (assq major-mode alist) (assq t alist)))
-      alist)))
-
-(unless (fboundp 'buffer-live-p)
-  ;; We use this to check that a buffer we have to fontify still exists.
-  (defun buffer-live-p (object)
-    "Return non-nil if OBJECT is an editor buffer that has not been deleted."
-    (and (bufferp object) (buffer-name object))))
-
-(unless (fboundp 'get-buffer-window-list)
-  ;; We use this to get all windows showing a buffer we have to fontify.
-  (defun get-buffer-window-list (buffer &optional minibuf frame)
-    "Return windows currently displaying BUFFER, or nil if none."
-    (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
-      (walk-windows (function (lambda (window)
-				(when (eq (window-buffer window) buffer)
-				  (push window windows))))
-		    minibuf frame)
-      windows)))
-
-(unless (fboundp 'current-message)
-  (defun current-message ()
-    ""))
 
 ;; Install ourselves:
 
