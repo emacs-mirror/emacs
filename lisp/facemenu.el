@@ -148,7 +148,7 @@ when they are created.")
 ;;;###autoload
 (defvar facemenu-foreground-menu 
   (let ((map (make-sparse-keymap "Foreground Color")))
-    (define-key map "o" (cons "Other" 'facemenu-set-foreground))
+    (define-key map "o" (cons "Other..." 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
 ;;;###autoload
@@ -157,7 +157,7 @@ when they are created.")
 ;;;###autoload
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
-    (define-key map "o" (cons "Other" 'facemenu-set-background))
+    (define-key map "o" (cons "Other..." 'facemenu-set-background))
     map)
   "Menu keymap for background colors")
 ;;;###autoload
@@ -166,9 +166,10 @@ when they are created.")
 ;;;###autoload
 (defvar facemenu-special-menu 
   (let ((map (make-sparse-keymap "Special")))
-    (define-key map [read-only] (cons "Read-Only" 'facemenu-set-read-only))
-    (define-key map [invisible] (cons "Invisible" 'facemenu-set-invisible))
-    (define-key map [intangible] (cons "Intangible" 'facemenu-set-intangible))
+    (define-key map [?s] (cons "Remove Special" 'facemenu-remove-special))
+    (define-key map [?t] (cons "Intangible" 'facemenu-set-intangible))
+    (define-key map [?v] (cons "Invisible" 'facemenu-set-invisible))
+    (define-key map [?r] (cons "Read-Only" 'facemenu-set-read-only))
     map)
   "Menu keymap for non-face text-properties.")
 ;;;###autoload
@@ -190,42 +191,48 @@ when they are created.")
 ;;;###autoload
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
-    (define-key map [UnIndentRight] 
-      (cons "UnIndentRight" 'decrease-right-margin))
-    (define-key map [IndentRight]
-      (cons "IndentRight" 'increase-right-margin))
-    (define-key map [Unindent]
-      (cons "UnIndent" 'decrease-left-margin))
-    (define-key map [Indent]
-      (cons "Indent" 'increase-left-margin))
+    (define-key map [decrease-right-margin] 
+      (cons "Indent Right Less" 'decrease-right-margin))
+    (define-key map [increase-right-margin]
+      (cons "Indent Right More" 'increase-right-margin))
+    (define-key map [decrease-left-margin]
+      (cons "Indent Less" 'decrease-left-margin))
+    (define-key map [increase-left-margin]
+      (cons "Indent More" 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
 ;;;###autoload
 (defalias 'facemenu-indentation-menu facemenu-indentation-menu)
 
+;; This is split up to avoid an overlong line in loaddefs.el.
 ;;;###autoload
-(defvar facemenu-menu 
-  (let ((map (make-sparse-keymap "Face")))
-    (define-key map [dc] (cons "Display Colors" 'list-colors-display))
-    (define-key map [df] (cons "Display Faces" 'list-faces-display))
-    (define-key map [dp] (cons "List Properties" 'list-text-properties-at))
-    (define-key map [rm] (cons "Remove Properties" 'facemenu-remove-all))
-    (define-key map [s1] (list "-----------------"))
-    (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
-    (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
-    (define-key map [s2] (list "-----------------"))
-    (define-key map [sp] (cons "Special Props" 'facemenu-special-menu))
-    (define-key map [bg] (cons "Background Color" 'facemenu-background-menu))
-    (define-key map [fg] (cons "Foreground Color" 'facemenu-foreground-menu))
-    (define-key map [fc] (cons "Face" 'facemenu-face-menu))
-    map)
+(defvar facemenu-menu nil
   "Facemenu top-level menu keymap.")
+;;;###autoload
+(setq facemenu-menu (make-sparse-keymap "Text Properties"))
+;;;###autoload
+(let ((map facemenu-menu))
+  (define-key map [dc] (cons "Display Colors" 'list-colors-display))
+  (define-key map [df] (cons "Display Faces" 'list-faces-display))
+  (define-key map [dp] (cons "List Properties" 'list-text-properties-at))
+  (define-key map [ra] (cons "Remove All" 'facemenu-remove-all))
+  (define-key map [rm] (cons "Remove Properties" 'facemenu-remove-props))
+  (define-key map [s1] (list "-----------------")))
+;;;###autoload
+(let ((map facemenu-menu))
+  (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
+  (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
+  (define-key map [s2] (list "-----------------"))
+  (define-key map [sp] (cons "Special Props" 'facemenu-special-menu))
+  (define-key map [bg] (cons "Background Color" 'facemenu-background-menu))
+  (define-key map [fg] (cons "Foreground Color" 'facemenu-foreground-menu))
+  (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
 ;;;###autoload
 (defalias 'facemenu-menu facemenu-menu)
 
 (defvar facemenu-keymap 
   (let ((map (make-sparse-keymap "Set face")))
-    (define-key map "o" (cons "Other" 'facemenu-set-face))
+    (define-key map "o" (cons "Other..." 'facemenu-set-face))
     map)
   "Keymap for face-changing commands.
 `Facemenu-update' fills in the keymap according to the bindings
@@ -259,16 +266,18 @@ variables."
 It will be added to the top of the face list; any faces lower on the list that
 will not show through at all will be removed.
 
-Interactively, the face to be used is prompted for.
-If the region is active, it will be set to the requested face.  If 
-it is inactive \(even if mark-even-if-inactive is set) the next
-character that is typed \(or otherwise inserted) will be set to
-the selected face.  Moving point or switching buffers before
-typing a character cancels the request." 
+Interactively, the face to be used is read with the minibuffer.
+
+If the region is active and there is no prefix argument,
+this command sets the region to the requested face.
+
+Otherwise, this command specifies the face for the next character
+inserted.  Moving point or switching buffers before
+typing a character to insert cancels the specification." 
   (interactive (list (read-face-name "Use face: ")))
   (barf-if-buffer-read-only)
   (facemenu-add-new-face face)
-  (if mark-active
+  (if (and mark-active (not current-prefix-arg))
       (let ((start (or start (region-beginning)))
 	    (end (or end (region-end))))
 	(facemenu-add-face face start end))
@@ -309,14 +318,18 @@ typing a character cancels the request."
   "Set the face of the region or next character typed.
 This function is designed to be called from a menu; the face to use
 is the menu item's name.
-If the region is active, it will be set to the requested face.  If
-it is inactive \(even if mark-even-if-inactive is set) the next
-character that is typed \(or otherwise inserted) will be set to
-the selected face.  Moving point or switching buffers before
-typing a character cancels the request." 
+
+If the region is active and there is no prefix argument,
+this command sets the region to the requested face.
+
+Otherwise, this command specifies the face for the next character
+inserted.  Moving point or switching buffers before
+typing a character to insert cancels the specification." 
   (interactive (list last-command-event
-		     (if mark-active (region-beginning))
-		     (if mark-active (region-end))))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
   (barf-if-buffer-read-only)
   (facemenu-get-face face)
   (if start 
@@ -335,7 +348,7 @@ typing a character cancels the request."
 (defun facemenu-set-invisible (start end)
   "Make the region invisible.
 This sets the `invisible' text property; it can be undone with
-`facemenu-remove-all'."
+`facemenu-remove-special'."
   (interactive "r")
   (put-text-property start end 'invisible t))
 
@@ -343,7 +356,7 @@ This sets the `invisible' text property; it can be undone with
 (defun facemenu-set-intangible (start end)
   "Make the region intangible: disallow moving into it.
 This sets the `intangible' text property; it can be undone with
-`facemenu-remove-all'."
+`facemenu-remove-special'."
   (interactive "r")
   (put-text-property start end 'intangible t))
 
@@ -351,18 +364,34 @@ This sets the `intangible' text property; it can be undone with
 (defun facemenu-set-read-only (start end)
   "Make the region unmodifiable.
 This sets the `read-only' text property; it can be undone with
-`facemenu-remove-all'."
+`facemenu-remove-special'."
   (interactive "r")
   (put-text-property start end 'read-only t))
 
 ;;;###autoload
-(defun facemenu-remove-all (start end)
+(defun facemenu-remove-props (start end)
   "Remove all text properties that facemenu added to region."
   (interactive "*r") ; error if buffer is read-only despite the next line.
   (let ((inhibit-read-only t))
     (remove-text-properties 
      start end '(face nil invisible nil intangible nil 
 		      read-only nil category nil))))
+
+;;;###autoload
+(defun facemenu-remove-all (start end)
+  "Remove all text properties from the region."
+  (interactive "*r") ; error if buffer is read-only despite the next line.
+  (let ((inhibit-read-only t))
+    (set-text-properties start end nil)))
+
+;;;###autoload
+(defun facemenu-remove-special (start end)
+  "Remove all the \"special\" text properties from the region.
+These special properties include `invisible', `intangible' and `read-only'."
+  (interactive "*r") ; error if buffer is read-only despite the next line.
+  (let ((inhibit-read-only t))
+    (remove-text-properties 
+     start end '(invisible nil intangible nil read-only nil))))
 
 ;;;###autoload
 (defun list-text-properties-at (p)
