@@ -1,3 +1,62 @@
+2001-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* strings.texi (String Conversion) <string-to-number>: Document
+	that a float is returned for integers that are too large.
+
+	* frames.texi (Mouse Position): Document mouse-position-function.
+	(Display Feature Testing): Document display-images-p.
+	(Window Frame Parameters): Document the cursor-type variable.
+
+	* numbers.texi (Integer Basics): Document CL style read syntax for
+	integers in bases other than 10.
+
+	* positions.texi (List Motion): Document
+	open-paren-in-column-0-is-defun-start.
+
+	* lists.texi (Sets And Lists): Document member-ignore-case.
+
+	* internals.texi (Garbage Collection): Document the used and free
+	strings report.
+	(Memory Usage): Document strings-consed.
+
+	* os.texi (Time of Day): Document float-time.
+	(Recording Input): Document that clear-this-command-keys clears
+	the vector to be returned by recent-keys.
+
+	* keymaps.texi (Scanning Keymaps) <where-is-internal>: The
+	argument keymap can be a list.
+
+	* nonascii.texi (User-Chosen Coding Systems)
+	<select-safe-coding-system>: Document the new argument
+	accept-default-p and the variable
+	select-safe-coding-system-accept-default-p.  Tell what happens if
+	buffer-file-coding-system is undecided.
+	(Default Coding Systems): Document auto-coding-regexp-alist.
+
+	* display.texi (The Echo Area) <message>: Document
+	message-truncate-lines.
+	(Glyphs): Document that the glyph table is unused on windowed
+	displays.
+
+	* help.texi (Describing Characters) <single-key-description>:
+	Document the new argument no-angles.
+	(Accessing Documentation) <documentation-property>: Document that
+	a non-string property is evaluated.
+	<documentation>: Document that the function-documentation property
+	is looked for.
+
+	* windows.texi (Selecting Windows): Document some-window.
+
+	* text.texi (MD5 Checksum): New node, documents the md5 primitive.
+
+	* hooks.texi (Standard Hooks): Add kbd-macro-termination-hook and
+	apropos-mode-hook.
+
+	* commands.texi (Using Interactive): Document interactive-form.
+	(Keyboard Macros): Document kbd-macro-termination-hook.
+	(Command Loop Info): Document that clear-this-command-keys clears
+	the vector to be returned by recent-keys.
+
 2001-09-04  Werner LEMBERG  <wl@gnu.org>
 
 	* Makefile.in (srcdir, texinputdir): New variables.
