@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision:$")
+(defconst byte-compile-version "$Revision: 2.12 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1416,7 +1416,11 @@ With argument, insert value in current buffer after the form."
 	    " on "
 	    (current-time-string) "\n;;; from file " filename "\n")
     (insert ";;; in Emacs version " emacs-version "\n")
-    (insert ";;; with bytecomp version " byte-compile-version "\n;;; "
+    (insert ";;; with bytecomp version "
+	    (progn (string-match "\\$Revision: \\(.*\\) \\$"
+				 byte-compile-version)
+		   (replace-match "\\1" nil nil byte-compile-version))
+	    "\n;;; "
 	    (cond
 	     ((eq byte-optimize 'source) "with source-level optimization only")
 	     ((eq byte-optimize 'byte) "with byte-level optimization only")
