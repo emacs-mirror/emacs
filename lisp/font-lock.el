@@ -70,7 +70,7 @@
   'underline
   "Face to use for string constants.")
 
-(defvar font-lock-function-face
+(defvar font-lock-function-name-face
   'bold-italic
   "Face to use for function names.")
 
@@ -127,7 +127,9 @@ slow things down!")
     (goto-char start)
     (beginning-of-line)
     (setq end (min end (point-max)))
-    (let (state startline prev prevstate)
+    (let ((buffer-read-only nil)
+	  state startline prev prevstate
+	  (modified (buffer-modified-p)))
       ;; Find the state at the line-beginning before START.
       (setq startline (point))
       (if (eq (point) font-lock-cache-position)
@@ -164,7 +166,7 @@ slow things down!")
       ;; Find each interesting place between here and END.
       (while (and (< (point) end)
 		  (setq prev (point) prevstate state)
-		  (re-search-forward (concat "\\s\"\\|" (regexp-quote comment-start)) end t)
+		  (re-search-forward (concat "\\s\"\\|" comment-start-skip) end t)
 		  ;; Clear out the fonts of what we skip over.
 		  (progn (remove-text-properties prev (point) '(face nil)) t)
 		  ;; Verify the state at that place
@@ -199,7 +201,8 @@ slow things down!")
 	;; only if it was set on the very last iteration.
 	(setq prev nil))
       (and prev
-	   (remove-text-properties prev end '(face nil))))))
+	   (remove-text-properties prev end '(face nil)))
+      (set-buffer-modified-p modified))))
 
 ;; This code used to be used to show a string on reaching the end of it.
 ;; It is probably not needed due to later changes to handle strings
@@ -224,7 +227,10 @@ slow things down!")
 ;;					 font-lock-string-face)))))
 
 (defun font-lock-unfontify-region (beg end)
-  (remove-text-properties beg end '(face nil)))
+  (let ((modified (buffer-modified-p))
+	(buffer-read-only nil))
+    (remove-text-properties beg end '(face nil))
+    (set-buffer-modified-p modified)))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
@@ -259,6 +265,8 @@ slow things down!")
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(rest font-lock-keywords)
 	(count 0)
+	(buffer-read-only nil)
+	(modified (buffer-modified-p))
 	first str match face s e allow-overlap-p)
     (while rest
       (setq first (car rest) rest (cdr rest))
@@ -267,11 +275,11 @@ slow things down!")
 	     (setq str (car first))
 	     (cond ((consp (cdr first))
 		    (setq match (nth 1 first)
-			  face (nth 2 first)
+			  face (eval (nth 2 first))
 			  allow-overlap-p (nth 3 first)))
 		   ((symbolp (cdr first))
 		    (setq match 0 allow-overlap-p nil
-			  face (cdr first)))
+			  face (eval (cdr first))))
 		   (t
 		    (setq match (cdr first)
 			  allow-overlap-p nil
@@ -290,8 +298,8 @@ slow things down!")
 	      (put-text-property s e 'face face))))
       (if loudly (message "Fontifying %s... (regexps...%s)"
 			  (buffer-name)
-			  (make-string (setq count (1+ count)) ?.))))))
-
+			  (make-string (setq count (1+ count)) ?.))))
+    (set-buffer-modified-p modified)))
 
 ;; The user level functions
 
@@ -540,13 +548,13 @@ This does a lot more highlighting.")
 
 (defvar perl-font-lock-keywords
   (list
-   (concat "[ \n\t{]*\\("
-	   (mapconcat 'identity
-		      '("if" "until" "while" "elsif" "else" "unless" "for"
-			"foreach" "continue" "exit" "die" "last" "goto" "next"
-			"redo" "return" "local" "exec")
-		      "\\|")
-	   "\\)[ \n\t;(]")
+   (cons (concat "[ \n\t{]*\\("
+		 (mapconcat 'identity
+			    '("if" "until" "while" "elsif" "else" "unless" "for"
+			      "foreach" "continue" "exit" "die" "last" "goto" "next"
+			      "redo" "return" "local" "exec")
+			    "\\|")
+		 "\\)[ \n\t;(]") 1)
    (mapconcat 'identity
 	      '("#endif" "#else" "#ifdef" "#ifndef" "#if" "#include"
 		"#define" "#undef")
