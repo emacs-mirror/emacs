@@ -23,14 +23,39 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    rather than all of them.  This means allowing for a possible
    hole between the first bloc and the end of malloc storage. */
 
+#ifdef emacs
 #include "config.h"
 #include "lisp.h"		/* Needed for VALBITS.  */
+
+/* Declared in dispnew.c, this version doesn't screw up if regions
+   overlap.  */
+extern void safe_bcopy ();
+#endif
+
+#ifndef emacs
+#include <stddef.h>
+typedef size_t SIZE;
+typedef void *POINTER;
+#define EXCEEDS_LISP_PTR(x) 0
+
+#define safe_bcopy(x, y, z) memmove (y, x, z)
+#endif
+
 #undef NULL
 #include "mem_limits.h"
 #include "getpagesize.h"
 
 #define NIL ((POINTER) 0)
 
+/* A flag to indicate whether we have initialized ralloc yet.  For
+   Emacs's sake, please do not make this local to malloc_init; on some
+   machines, the dumping procedure makes all static variables
+   read-only.  On these machines, the word static is #defined to be
+   the empty string, meaning that r_alloc_initialized becomes an
+   automatic variable, and loses its value each time Emacs is started up.  */
+static int r_alloc_initialized = 0;
+
+static void r_alloc_init ();
 
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
@@ -50,7 +75,7 @@ static POINTER page_break_value;
    by changing the definition of PAGE. */
 #define PAGE (getpagesize ())
 #define ALIGNED(addr) (((unsigned int) (addr) & (PAGE - 1)) == 0)
-#define ROUNDUP(size) (((unsigned int) (size) + PAGE) & ~(PAGE - 1))
+#define ROUNDUP(size) (((unsigned int) (size) + PAGE - 1) & ~(PAGE - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(PAGE - 1)))
 
 /* Managing "almost out of memory" warnings.  */
@@ -67,11 +92,12 @@ check_memory_limits (address)
      POINTER address;
 {
   SIZE data_size = address - data_space_start;
+  int five_percent = lim_data / 20;
 
   switch (warnlevel)
     {
     case 0: 
-      if (data_size > (lim_data / 4) * 3)
+      if (data_size > five_percent * 15)
 	{
 	  warnlevel++;
 	  (*warn_function) ("Warning: past 75% of memory limit");
@@ -79,7 +105,7 @@ check_memory_limits (address)
       break;
 
     case 1: 
-      if (data_size > (lim_data / 20) * 17)
+      if (data_size > five_percent * 17)
 	{
 	  warnlevel++;
 	  (*warn_function) ("Warning: past 85% of memory limit");
@@ -87,7 +113,7 @@ check_memory_limits (address)
       break;
 
     case 2: 
-      if (data_size > (lim_data / 20) * 19)
+      if (data_size > five_percent * 19)
 	{
 	  warnlevel++;
 	  (*warn_function) ("Warning: past 95% of memory limit");
@@ -99,8 +125,21 @@ check_memory_limits (address)
       break;
     }
 
-    if (EXCEEDS_ELISP_PTR (address))
-      memory_full ();
+  /* If we go down below 70% full, issue another 75% warning
+     when we go up again.  */
+  if (data_size < five_percent * 14)
+    warnlevel = 0;
+  /* If we go down below 80% full, issue another 85% warning
+     when we go up again.  */
+  else if (warnlevel > 1 && data_size < five_percent * 16)
+    warnlevel = 1;
+  /* If we go down below 90% full, issue another 95% warning
+     when we go up again.  */
+  else if (warnlevel > 2 && data_size < five_percent * 18)
+    warnlevel = 2;
+
+  if (EXCEEDS_LISP_PTR (address))
+    memory_full ();
 }
 
 /* Functions to get and return memory from the system.  */
@@ -195,10 +234,6 @@ typedef struct bp
 
 /* Head and tail of the list of relocatable blocs. */
 static bloc_ptr first_bloc, last_bloc;
-
-/* Declared in dispnew.c, this version doesn't screw up if regions
-   overlap.  */
-extern void safe_bcopy ();
 
 /* Find the bloc referenced by the address in PTR.  Returns a pointer
    to that block. */
@@ -323,7 +358,7 @@ free_bloc (bloc)
 static int use_relocatable_buffers;
 
 /* Obtain SIZE bytes of storage from the free pool, or the system, as
-   neccessary.  If relocatable blocs are in use, this means relocating
+   necessary.  If relocatable blocs are in use, this means relocating
    them.  This function gets plugged into the GNU malloc's __morecore
    hook.
 
@@ -380,6 +415,9 @@ r_alloc (ptr, size)
 {
   register bloc_ptr new_bloc;
 
+  if (! r_alloc_initialized)
+    r_alloc_init ();
+
   new_bloc = get_bloc (size);
   if (new_bloc)
     {
@@ -392,7 +430,8 @@ r_alloc (ptr, size)
   return *ptr;
 }
 
-/* Free a bloc of relocatable storage whose data is pointed to by PTR. */
+/* Free a bloc of relocatable storage whose data is pointed to by PTR.
+   Store 0 in *PTR to show there's no block allocated.  */
 
 void
 r_alloc_free (ptr)
@@ -405,6 +444,7 @@ r_alloc_free (ptr)
     abort ();
 
   free_bloc (dead_bloc);
+  *ptr = 0;
 }
 
 /* Given a pointer at address PTR to relocatable data, resize it to SIZE.
@@ -450,42 +490,47 @@ r_re_alloc (ptr, size)
    from the system.  */
 extern POINTER (*__morecore) ();
 
-/* A flag to indicate whether we have initialized ralloc yet.  For
-   Emacs's sake, please do not make this local to malloc_init; on some
-   machines, the dumping procedure makes all static variables
-   read-only.  On these machines, the word static is #defined to be
-   the empty string, meaning that malloc_initialized becomes an
-   automatic variable, and loses its value each time Emacs is started
-   up.  */
-static int malloc_initialized = 0;
-
 /* Intialize various things for memory allocation. */
 
-void
-malloc_init (start, warn_func)
-     POINTER start;
-     void (*warn_func) ();
+static void
+r_alloc_init ()
 {
-  if (start)
-    data_space_start = start;
-
-  if (malloc_initialized)
+  if (r_alloc_initialized)
     return;
 
-  malloc_initialized = 1;
+  r_alloc_initialized = 1;
   __morecore = r_alloc_sbrk;
 
   virtual_break_value = break_value = sbrk (0);
   if (break_value == (POINTER)NULL)
-    (*warn_func)("Malloc initialization returned 0 from sbrk(0).");
+    abort ();
+#if 0 /* The following is unreasonable because warn_func may be 0.  */
+    (*warn_func)("memory initialization got 0 from sbrk(0).");
+#endif
 
   page_break_value = (POINTER) ROUNDUP (break_value);
+  /* Clear the rest of the last page; this memory is in our address space
+     even though it is after the sbrk value.  */
   bzero (break_value, (page_break_value - break_value));
   use_relocatable_buffers = 1;
 
   lim_data = 0;
   warnlevel = 0;
-  warn_function = warn_func;
 
   get_lim_data ();
+}
+
+/* This is the name Emacs expects to call.  */
+
+void
+memory_warnings (start, warn_func)
+     POINTER start;
+     void (*warn_func) ();
+{
+  if (start)
+    data_space_start = start;
+  else
+    data_space_start = start_of_data ();
+
+  warn_function = warn_func;
 }
