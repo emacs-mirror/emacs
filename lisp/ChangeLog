@@ -1,5 +1,8 @@
 2000-06-09  Kenichi Handa  <handa@etl.go.jp>
 
+	* ps-mule.el (ps-mule-font-info-database-bdf): Prefer the font
+	"tib24p-mule.bdf" for Tibetan.
+
 	* composite.el (decompose-composite-char): Declare it as obsolete.
 
 	* man.el (Man-fontify-manpage): Pay attention to overstrike
