@@ -43,9 +43,7 @@ then start up the emacs server (src/emacs, M-x server-start), and then
 You'll hopefully have two fully working frames on separate terminals.
 If you exit emacs, both terminals should be restored to their previous
 states.  You can close the newly opened frame and return to the shell
-without exiting Emacs with C-x 5 0, i.e., delete-frame.
-
-
+without exiting Emacs by pressing C-x 5 0, i.e., delete-frame.
 
 X, Mac, Windows and DOS support is broken, probably doesn't even
 compile -- this will be solved later.
