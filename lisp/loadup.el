@@ -53,14 +53,19 @@
 (load "indent")
 (garbage-collect)
 (load "window")
-(garbage-collect)
 (if (fboundp 'delete-frame)
     (progn
-      (load "frame")
-      (load "mouse")
+      (garbage-collect)
+      (load "frame")))
+(if (fboundp 'frame-face-alist)
+    (progn
       (garbage-collect)
       (load "faces")
-      (load "facemenu")
+      (load "facemenu")))
+(if (fboundp 'track-mouse)
+    (progn
+      (garbage-collect)
+      (load "mouse")
       (garbage-collect)
       (load "menu-bar")
       (load "scroll-bar")
