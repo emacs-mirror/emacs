@@ -26,12 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'comint)
-  (require 'gud)
-  (require 'gdb-ui))
-
 
 ;;; Customizable settings
 
