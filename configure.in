@@ -1658,7 +1658,7 @@ if test $emacs_cv_localtime_cache = yes; then
 fi
 
 if test "x$HAVE_TIMEVAL" = xyes; then
-AC_MSG_CHECKING(whether gettimeofday can't accept two arguments)
+AC_MSG_CHECKING(whether gettimeofday can accept two arguments)
 AC_TRY_LINK([
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
@@ -1676,8 +1676,8 @@ AC_TRY_LINK([
   struct timezone dummy;
   gettimeofday (&time, &dummy);
 ],
-  [AC_MSG_RESULT(no)],
-  [AC_MSG_RESULT(yes)
+  [AC_MSG_RESULT(yes)],
+  [AC_MSG_RESULT(no)
    AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)])
 fi
 
