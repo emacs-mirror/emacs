@@ -1491,9 +1491,6 @@ are specified.  */)
   CHECK_CHARSET_GET_ID (charset, id);
   charsetp = CHARSET_FROM_ID (id);
 
-  if (NILP (code))
-    return make_number (CHARSET_MIN_CHAR (charsetp));
-
   dimension = CHARSET_DIMENSION (charsetp);
   if (NILP (code1))
     code = charsetp->code_space[(dimension - 1) * 4];
