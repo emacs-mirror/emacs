@@ -1,3 +1,7 @@
+2003-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (xim_initialize): Redo 6/24 change.
+
 2003-07-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* buffer.c (copy_overlays): Use EMACS_INT for positions.
