@@ -75,6 +75,9 @@
 (require 'select)
 (require 'menu-bar)
 
+;; Disable until scrollbars are fully functional
+(scroll-bar-mode nil)
+
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
