@@ -65,9 +65,10 @@
 	* lisp.h (syms_of_fringe, init_fringe, init_fringe_once):
 	Add prototypes.
 
-	* macterm.c (x_draw_fringe_bitmap):  Copy unadapted code from
-	xterm.c to handle overlayed fringe bitmaps and to use cursor color
-	for displaying cursor in fringe.
+	* macterm.c (mac_draw_bitmap): Add overlay_p arg.
+	(x_draw_fringe_bitmap):  Handle overlayed fringe bitmaps;
+	thanks to YAMAMOTO Mitsuharu for advice on how to do this.
+	Use cursor color for displaying cursor in fringe.
 	(x_redisplay_interface): Add null handlers for
 	define_fringe_bitmap and destroy_fringe_bitmap functions.
 
