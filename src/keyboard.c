@@ -1451,8 +1451,9 @@ tracking_off (old_value)
 
 DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
   "Evaluate BODY with mouse movement and button release events enabled.\n\
-Within a track-mouse, read-event reports mouse movement and button releases;\n\
-otherwise, they are ignored.")
+Within a `track-mouse', mouse motion and button releases generate input\n\
+events that you can read with `read-event'.\n\
+Normally, these occurrences don't generate events.")
   (args)
      Lisp_Object args;
 {

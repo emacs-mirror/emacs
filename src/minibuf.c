@@ -732,7 +732,7 @@ Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
 
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   "Read a string in the minibuffer, with completion.\n\
-Args are PROMPT, TABLE, PREDICATE, REQUIRE-MATCH and INITIAL-INPUT.\n\
+Args: PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, BACKUP-N.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
