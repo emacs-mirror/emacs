@@ -236,9 +236,13 @@ ARGS is a list of additional arguments."
 
 
 
+;;;
 ;;; A "macro-only" reimplementation of define-derived-mode.
+;;;
 
-(defmacro easy-mmode-define-derived-mode (child parent name &optional docstring &rest body)
+(defalias 'easy-mmode-define-derived-mode 'define-derived-mode)
+;;;###autoload
+(defmacro define-derived-mode (child parent name &optional docstring &rest body)
   "Create a new mode as a variant of an existing mode.
 
 The arguments to this command are as follow:
@@ -312,34 +316,74 @@ its own `%s' just before exiting."
 	 ,docstring
 	 (interactive)
 					; Run the parent.
-	 (,parent)
+	 (combine-run-hooks
+
+	  (,parent)
 					; Identify special modes.
-	 (put ',child 'special (get ',parent 'special))
+	  (put ',child 'special (get ',parent 'special))
 					; Identify the child mode.
-	 (setq major-mode ',child)
-	 (setq mode-name ,name)
+	  (setq major-mode ',child)
+	  (setq mode-name ,name)
 					; Set up maps and tables.
-	 (unless (keymap-parent ,map)
-	   (set-keymap-parent ,map (current-local-map)))
-	 (let ((parent (char-table-parent ,syntax)))
-	   (unless (and parent (not (eq parent (standard-syntax-table))))
-	     (set-char-table-parent ,syntax (syntax-table))))
-	 (when local-abbrev-table
-	   (mapatoms
-	    (lambda (symbol)
-	      (or (intern-soft (symbol-name symbol) ,abbrev)
-		  (define-abbrev ,abbrev (symbol-name symbol)
-		    (symbol-value symbol) (symbol-function symbol))))
-	    local-abbrev-table))
+	  (unless (keymap-parent ,map)
+	    (set-keymap-parent ,map (current-local-map)))
+	  (let ((parent (char-table-parent ,syntax)))
+	    (unless (and parent (not (eq parent (standard-syntax-table))))
+	      (set-char-table-parent ,syntax (syntax-table))))
+	  (when local-abbrev-table
+	    (mapatoms
+	     (lambda (symbol)
+	       (or (intern-soft (symbol-name symbol) ,abbrev)
+		   (define-abbrev ,abbrev (symbol-name symbol)
+		     (symbol-value symbol) (symbol-function symbol))))
+	     local-abbrev-table))
        
-	 (use-local-map ,map)
-	 (set-syntax-table ,syntax)
-	 (setq local-abbrev-table ,abbrev)
+	  (use-local-map ,map)
+	  (set-syntax-table ,syntax)
+	  (setq local-abbrev-table ,abbrev)
 					; Splice in the body (if any).
-	 ,@body
+	  ,@body)
 					; Run the hooks, if any.
 	 (run-hooks ',hook)))))
 
+
+;;;
+;;; easy-mmode-define-navigation
+;;;
+
+(defmacro easy-mmode-define-navigation (base re &optional name endfun)
+  "Define BASE-next and BASE-prev to navigate in the buffer.
+RE determines the places the commands should move point to.
+NAME should describe the entities matched by RE and is used to build
+  the docstrings of the two functions.
+BASE-next also tries to make sure that the whole entry is visible by
+  searching for its end (by calling ENDFUN if provided or by looking for
+  the next entry) and recentering if necessary.
+ENDFUN should return the end position (with or without moving point)."
+  (let* ((base-name (symbol-name base))
+	 (prev-sym (intern (concat base-name "-prev")))
+	 (next-sym (intern (concat base-name "-next"))))
+    `(progn
+       (defun ,next-sym (&optional count)
+	 ,(format "Go to the next COUNT'th %s." (or name base-name))
+	 (interactive)
+	 (unless count (setq count 1))
+	 (if (< count 0) (,prev-sym (- count))
+	   (if (looking-at ,re) (incf count))
+	   (or (re-search-forward ,re nil t count) (ding))
+	   (goto-char (match-beginning 0))
+	   (when (eq (current-buffer) (window-buffer (selected-window)))
+	     (let ((endpt (or (save-excursion
+				,(if endfun `(,endfun)
+				   `(re-search-forward ,re nil t 2)))
+			      (point-max))))
+	       (unless (<= endpt (window-end)) (recenter))))))
+       (defun ,prev-sym (&optional count)
+	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
+	 (interactive)
+	 (unless count (setq count 1))
+	 (if (< count 0) (,next-sym (- count))
+	   (or (re-search-backward ,re nil t count) (ding)))))))
 
 (provide 'easy-mmode)
 

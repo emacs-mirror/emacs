@@ -25,6 +25,13 @@
 
 ;;; Commentary:
 
+;; Obsolete.
+;; Use the `derived-major-mode' provided by easy-mmode.el instead.
+;; It is only kept for backward compatibility with byte-compiled files
+;; which refer to `derived-mode-init-mode-variables' and other functions.
+
+
+
 ;; GNU Emacs is already, in a sense, object oriented -- each object
 ;; (buffer) belongs to a class (major mode), and that class defines
 ;; the relationship between messages (input events) and methods
@@ -95,7 +102,7 @@
 
 ;; PUBLIC: define a new major mode which inherits from an existing one.
 
-;;;###autoload
+;; ;;;###autoload
 (defmacro define-derived-mode (child parent name &optional docstring &rest body)
   "Create a new mode as a variant of an existing mode.
 
