@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.16) $
+ * $HopeName: MMsrc!amcss.c(trunk.17) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -37,9 +37,11 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if(res) die(res, "MPS_RESERVE_BLOCK");
+    if(res)
+      die(res, "MPS_RESERVE_BLOCK");
     res = dylan_init(p, size, exact_roots, NR_EXACT_ROOTS);
-    if(res) die(res, "dylan_init");
+    if(res)
+      die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
   return p;
