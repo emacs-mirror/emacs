@@ -1260,8 +1260,8 @@ instead, e.g.@: @samp{"o} for o-umlaut.  Load the library
 @vindex latin1-display
   If your terminal can display Latin-1, you can display characters
 from other European character sets using a mixture of equivalent
-Latin-1 characters and @sc{ascii} mnemonics.  Use the Custom option
-@code{latin1-display} to enable this.  The mnemonic @sc{ascii}
+Latin-1 characters and ASCII mnemonics.  Use the Custom option
+@code{latin1-display} to enable this.  The mnemonic ASCII
 sequences mostly correspond to those of the prefix input methods.
 
 @node Single-Byte Character Support

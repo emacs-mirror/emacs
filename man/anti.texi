@@ -129,7 +129,7 @@ It does not try to see if the preferred coding system is suitable.
 Commands which provide detailed information about character sets and
 coding systems, such as @code{list-charset-chars},
 @code{describe-character-set}, and the @kbd{C-u C-x =} key-sequence,
-no longer exist.  The less said about non-@sc{ascii} characters, the
+no longer exist.  The less said about non-ASCII characters, the
 better.
 
 @item
