@@ -301,8 +301,8 @@ Default value, nil, means edit the string instead.")
 (or minibuffer-local-isearch-map
     (let ((map (copy-keymap minibuffer-local-map)))
       (define-key map "\r" 'isearch-nonincremental-exit-minibuffer)
-;;      (define-key map "\M-n" 'isearch-ring-advance-edit)
-;;      (define-key map "\M-p" 'isearch-ring-retreat-edit)
+      (define-key map "\M-n" 'isearch-ring-advance-edit)
+      (define-key map "\M-p" 'isearch-ring-retreat-edit)
       (define-key map "\M-\t" 'isearch-complete-edit)
       (define-key map "\C-s" 'isearch-forward-exit-minibuffer)
       (define-key map "\C-r" 'isearch-reverse-exit-minibuffer)
@@ -555,8 +555,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   )
 
 
-(defun isearch-done ()
+(defun isearch-done (&optional nopush)
   ;; Called by all commands that terminate isearch-mode.
+  ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (use-local-map isearch-old-local-map)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (isearch-dehighlight t)
@@ -578,7 +579,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq isearch-mode nil)
   (set-buffer-modified-p (buffer-modified-p))  ;; update modeline
 
-  (if (> (length isearch-string) 0)
+  (if (and (> (length isearch-string) 0) (not nopush))
       ;; Update the ring data.
       (if isearch-regexp 
 	  (if (or (null regexp-search-ring)
@@ -684,7 +685,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	;; This is so that the user can do anything without failure, 
 	;; like switch buffers and start another isearch, and return.
 	(condition-case err
-	    (isearch-done)
+	    (isearch-done t)
 	  (exit nil))			; was recursive editing
 
 	(isearch-message) ;; for read-char
@@ -715,20 +716,11 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 		(isearch-unread e))
 	      (setq cursor-in-echo-area nil)
 	      (setq isearch-new-string
-		    (let ((search-ring search-ring)
-			  (regexp-search-ring regexp-search-ring))
+		    (let (junk-ring)
 		      (read-from-minibuffer (isearch-message-prefix)
 					    isearch-string
 					    minibuffer-local-isearch-map nil
-					    (cons
-					     (if isearch-regexp
-						 'regexp-search-ring
-					       'search-ring)
-					     (or
-					      (if isearch-regexp
-						  regexp-search-ring-yank-pointer
-						search-ring-yank-pointer)
-					      0))))
+					    'junk-ring))
 		    isearch-new-message (mapconcat 'text-char-description
 						   isearch-new-string "")))
 	  ;; Always resume isearching by restarting it.
@@ -793,7 +785,7 @@ Use `isearch-exit' to quit without signalling."
       ;; If search is successful, move back to starting point
       ;; and really do quit.
       (progn (goto-char isearch-opoint)
-	     (isearch-done)   ; exit isearch
+	     (isearch-done t)   ; exit isearch
 	     (signal 'quit nil))  ; and pass on quit signal
     ;; If search is failing, rub out until it is once more successful.
     (while (not isearch-success) (isearch-pop-state))
@@ -981,45 +973,35 @@ If no previous match was done, just beep."
   "Any other control char => unread it and exit the search normally.
 But only if `search-exit-option' is non-nil, the default.
 If it is the symbol `edit', the search string is edited in the minibuffer
-and the control char is unread so that it is applied to the editing."
+and the control char is unread so that it applies to editing the string."
   (interactive)
-  (cond
-   ((eq search-exit-option 'edit)
-    (isearch-unread (isearch-last-command-char))
-    (isearch-edit-string))
-   (search-exit-option  ;; any other non-nil value
-    (isearch-unread (isearch-last-command-char))
-    (isearch-done))
-   (t ;; search-exit-option is nil
-    (isearch-process-search-char (isearch-last-command-char)))
-   ))
+  (cond ((eq search-exit-option 'edit)
+	 (isearch-unread (isearch-last-command-char))
+	 (isearch-edit-string))
+	(search-exit-option;; any other non-nil value
+	 (isearch-unread (isearch-last-command-char))
+	 (isearch-done))
+	(t;; search-exit-option is nil
+	 (isearch-process-search-char (isearch-last-command-char)))))
 
 
 (defun isearch-other-meta-char ()
-  "Any other meta char => exit the search normally and reexecute the whole key.
-But only if `search-exit-option' is non-nil."
-  ;; This will probably work in place of isearch-other-control-char too,
-  ;; but here we use unwind-protect and command-execute since it is
-  ;; a multi-char key we would want to unread.
+  "Any other meta char => exit the search normally and reread the character.
+But only if `search-exit-option' is non-nil, the default.
+If it is the symbol `edit', the search string is edited in the minibuffer
+and the meta character is unread so that it applies to editing the string."
   (interactive)
-  (cond
-   (search-exit-option
-    (unwind-protect
-	;; Exit recursive edit and restore the outside keymap.
-	(isearch-done)
-      ;; Reexecute the key with the outside keymap.
-      ;; Note: this doesnt work unless the entered key is the same 
-      ;; as some outside key since command-execute only takes whole keys.
-      ;; So three character keys typically will not work!
-      ;; Also, executing the command here may not work if isearch was
-      ;; invoked non-interactively, since other input may be expected.
-      ;; We also can't do isearch-edit-string as in -other-control-char.
-      ;; because we need to set unread-command-key, if that existed.
-      ;; So a new unread-command-key would solve all these problems.
-      (command-execute (this-command-keys))))
-   (t  ;; otherwise nil
-    (isearch-process-search-string (this-command-keys) (this-command-keys))
-    )))
+  (cond ((eq search-exit-option 'edit)
+	 (let ((key (this-command-keys)))
+	   (isearch-unread (+ 128 (aref key (1- (length key))))))
+	 (isearch-edit-string))
+	(search-exit-option
+	 (let ((key (this-command-keys)))
+	   (isearch-unread (+ 128 (aref key (1- (length key))))))
+	 (isearch-done))
+	(t;; otherwise nil
+	 (isearch-process-search-string (this-command-keys)
+					(this-command-keys)))))
 
 
 (defun isearch-quote-char ()
@@ -1125,22 +1107,14 @@ If not in regexp mode, activate word search."
       (set yank-pointer-name
 	   (setq yank-pointer
 		 (% (+ (or yank-pointer 0)
-		       (if advance (+ length (% n length))))
+		       ;; Add LENGTH here to ensure a positive result.
+		       length
+		       (% (- n) length))
 		    length)))
 
-    (if (= minibuffer-history-position narg)
-	(error (if (= minibuffer-history-position 1)
-		   "End of history; no next item"
-		 "Beginning of history; no preceding item"))
       (erase-buffer)
-      (setq minibuffer-history-position narg)
-      (let ((elt (nth (1- minibuffer-history-position)
-		      (symbol-value minibuffer-history-variable))))
-	(insert
-	 (if minibuffer-history-sexp-flag
-	     (prin1-to-string elt)
-	   elt)))
-      (goto-char (point-min))))))
+      (insert (nth yank-pointer ring))
+      (goto-char (point-max))))))
 
 (defun isearch-ring-retreat-edit (n)
   "Inserts the previous element of the search history into the minibuffer."

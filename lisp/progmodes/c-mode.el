@@ -558,7 +558,8 @@ Returns nil if line starts inside a string, t if in a comment."
 			  ;; Recognize the DEFUN macro in Emacs.
 			  (if (save-excursion
 				;; Move down to the (putative) argnames line.
-				(while (not (looking-at " *[({}#/]"))
+				(while (and (not (eobp))
+					    (not (looking-at " *[({}#/]")))
 				  (forward-line 1))
 				;; Go back to the DEFUN, if it is one.
 				(condition-case nil

@@ -127,9 +127,9 @@ enum Lisp_Type
     Lisp_Buffer_Local_Value,
 
     /* Like Lisp_Buffer_Local_Value with one difference:
-	merely setting the variable while some buffer is current
-	does not cause that buffer to have its own local value of this variable.
-	Only make-local-variable does that.  */
+       merely setting the variable while some buffer is current
+       does not cause that buffer to have its own local value of this variable.
+       Only make-local-variable does that.  */
     Lisp_Some_Buffer_Local_Value,
 
 
