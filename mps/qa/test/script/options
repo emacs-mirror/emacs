@@ -1,7 +1,6 @@
 #!/usr/local/perl
 #
 
-#
 # global options for qa commands
 #
 # this file also has the job of detecting what platform
@@ -10,7 +9,7 @@
 
 # first to see where we are:
 
-if ($] =~ /perl for NT/) {
+if ($ENV{"OS"} eq "Windows_NT") {
  # it's NT, so find out what the processor is
  #  from a system variable
  $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
