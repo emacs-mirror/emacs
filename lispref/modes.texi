@@ -864,11 +864,12 @@ Define a command whose name is the same as the mode variable.
 Its job is to enable and disable the mode by setting the variable.
 
 The command should accept one optional argument.  If the argument is
-@code{nil}, it should toggle the mode (turn it on if it is off, and off
-if it is on).  Otherwise, it should turn the mode on if the argument is
-a positive integer, a symbol other than @code{nil} or @code{-}, or a
-list whose @sc{car} is such an integer or symbol; it should turn the
-mode off otherwise.
+@code{nil}, it should toggle the mode (turn it on if it is off, and
+off if it is on).  It should turn the mode on if the argument is a
+positive integer, the symbol @code{t}, or a list whose @sc{car} is one
+of those.  It should turn the mode off if the argument is a negative
+integer or zero, the symbol @code{-}, or a list whose @sc{car} is one
+of those.  The meaning of other arguments is not specified.
 
 Here is an example taken from the definition of @code{transient-mark-mode}.
 It shows the use of @code{transient-mark-mode} as a variable that enables or
