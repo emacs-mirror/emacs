@@ -76,10 +76,14 @@ key with some other primary purpose.  Sometimes it is labeled
 it.
 
   If there is no @key{META} key, you can still type Meta characters
-using two-character sequences starting with @key{ESC}.  Thus, you can enter
-@kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} by
-typing @kbd{@key{ESC} C-a}.  @key{ESC} is allowed on terminals with
-@key{META} keys, too, in case you have formed a habit of using it.
+using two-character sequences starting with @key{ESC}.  Thus, you can
+enter @kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter
+@kbd{C-M-a} by typing @kbd{@key{ESC} C-a}.  Unlike @key{META}, which
+modifies other characters, @key{ESC} is a separate character.  You
+don't hold down @key{ESC} while typing the next character; instead,
+you press it and release it, then you enter the next character.
+@key{ESC} is allowed on terminals with @key{META} keys, too, in case
+you have formed a habit of using it.
   
   The X Window System provides several other modifier keys that can be
 applied to any input character.  These are called @key{SUPER},
