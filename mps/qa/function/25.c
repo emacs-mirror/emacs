@@ -32,6 +32,7 @@ static char *ch_string(locell *x) {
  return x->data.data;
 }
 
+/*
 static size_t string_len(locell *x) {
  return x->data.len;
 }
@@ -63,6 +64,7 @@ static locell *right(locell *x, size_t i) {
  l = x->data.len;
  return mid(x, l-i, l);
 }
+*/
 
 static locell *conc(locell *x, locell *y) {
  size_t l, m;
@@ -89,7 +91,7 @@ static void test(void) {
  mps_fmt_t format;
 
  locell *a,*b,*c;
- int i,j;
+ int i;
 
  alloclocomments = 0;
  allowlocopies = 0;
