@@ -1,3 +1,7 @@
+2002-09-05  Markus Rost  <rost@math.ohio-state.edu>
+
+	* textmodes/table.el (table-command-prefix): Fix type.
+
 2002-09-05  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el Don't require vc.el at compile-time; it causes 
@@ -554,7 +558,7 @@
 
 2002-08-18  Richard M. Stallman  <rms@gnu.org>
 
-	* table.el: New file.
+	* textmodes/table.el: New file.
 
 	* font-core.el (font-lock-mode): Set change-major-mode-hook locally.
 
