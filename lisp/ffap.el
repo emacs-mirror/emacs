@@ -1185,6 +1185,14 @@ which may actually result in an url rather than a filename."
 			 remote-dir (substring name (match-end 1)))))
 		  (ffap-file-exists-string
 		   (ffap-replace-file-component remote-dir name))))))
+         ;; Try all parent directories by deleting the trailing directory
+         ;; name until existing directory is found or name stops changing
+         ((let ((dir name))
+            (while (and dir
+                        (not (ffap-file-exists-string dir))
+                        (not (equal dir (setq dir (file-name-directory
+                                                   (directory-file-name dir)))))))
+            (ffap-file-exists-string dir)))
 	 )
       (set-match-data data))))
 
