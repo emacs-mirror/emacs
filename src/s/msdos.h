@@ -223,6 +223,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
 
+/* We canuse mouse menus.  */
+#define HAVE_MENUS
+
 /* We have support for faces.  */
 #define HAVE_FACES
 
