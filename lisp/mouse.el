@@ -1571,26 +1571,29 @@ and selects that window."
 	  (while (and split-by-major-mode
 		      (and (> (length (car split-by-major-mode)) 3)
 			   (> (* buffers-left 10) (length buffers))))
-	    (setq subdivided-menus
-		  (cons (cons
-			 (nth 1 (car split-by-major-mode))
-			 (mouse-buffer-menu-alist
-			  (cdr (cdr (car split-by-major-mode)))))
-			subdivided-menus))
+	    (let ((this-mode-list (mouse-buffer-menu-alist
+				   (cdr (cdr (car split-by-major-mode))))))
+	      (and this-mode-list
+		   (setq subdivided-menus
+			 (cons (cons
+				(nth 1 (car split-by-major-mode))
+				this-mode-list)
+			       subdivided-menus))))
 	    (setq buffers-left
 		  (- buffers-left (length (cdr (car split-by-major-mode)))))
 	    (setq split-by-major-mode (cdr split-by-major-mode)))
 	  ;; If any major modes are left over,
 	  ;; make a single submenu for them.
 	  (if split-by-major-mode
-	      (setq subdivided-menus
-		    (cons (cons
-			   "Others"
-			   (mouse-buffer-menu-alist
-			    ;; we don't need split-by-major-mode any
-			    ;; more, so we can ditch it with nconc.
-			    (apply 'nconc (mapcar 'cddr split-by-major-mode))))
-			  subdivided-menus)))
+	      (let ((others-list
+		     (mouse-buffer-menu-alist
+		      ;; we don't need split-by-major-mode any more,
+		      ;; so we can ditch it with nconc.
+		      (apply 'nconc (mapcar 'cddr split-by-major-mode)))))
+		(and others-list
+		     (setq subdivided-menus
+			   (cons (cons "Others" others-list)
+				 subdivided-menus)))))
 	  (setq menu (cons "Buffer Menu" (nreverse subdivided-menus))))
       (progn
 	(setq alist (mouse-buffer-menu-alist buffers))
