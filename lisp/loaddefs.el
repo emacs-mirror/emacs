@@ -504,8 +504,8 @@ Returns list of symbols and documentation found." t nil)
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (14447
-;;;;;;  15307))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (14539
+;;;;;;  44524))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload (quote archive-mode) "arc-mode" "\
@@ -725,9 +725,19 @@ Use `auto-revert-mode' to revert a particular buffer." t nil)
 
 ;;;***
 
-;;;### (autoloads (mouse-avoidance-mode) "avoid" "avoid.el" (14263
-;;;;;;  35271))
+;;;### (autoloads (mouse-avoidance-mode mouse-avoidance-mode) "avoid"
+;;;;;;  "avoid.el" (14539 53646))
 ;;; Generated autoloads from avoid.el
+
+(defvar mouse-avoidance-mode nil "\
+Activate mouse avoidance mode.  
+See function `mouse-avoidance-mode' for possible values.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `mouse-avoidance-mode'.")
+
+(custom-add-to-group (quote avoid) (quote mouse-avoidance-mode) (quote custom-variable))
+
+(custom-add-load (quote mouse-avoidance-mode) (quote avoid))
 
 (autoload (quote mouse-avoidance-mode) "avoid" "\
 Set cursor avoidance mode to MODE.
@@ -2292,7 +2302,7 @@ Infodock (based on XEmacs) has an additional symbol on this list:
 
 ;;;### (autoloads (ccl-execute-with-args check-ccl-program define-ccl-program
 ;;;;;;  declare-ccl-program ccl-dump ccl-compile) "ccl" "international/ccl.el"
-;;;;;;  (14236 19568))
+;;;;;;  (14543 61454))
 ;;; Generated autoloads from international/ccl.el
 
 (autoload (quote ccl-compile) "ccl" "\
@@ -3323,7 +3333,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14505 58892))
+;;;;;;  (14542 5199))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3409,7 +3419,7 @@ Customize SYMBOL, which should be a face name or nil.
 If SYMBOL is nil, customize all faces." t nil)
 
 (autoload (quote customize-face-other-window) "cus-edit" "\
-Show customization buffer for FACE in other window." t nil)
+Show customization buffer for face SYMBOL in other window." t nil)
 
 (autoload (quote customize-customized) "cus-edit" "\
 Customize all user options set since the last save in this session." t nil)
@@ -3499,6 +3509,14 @@ If NOW is present and non-nil, FACE is created now, according to SPEC.
 COMMENT is a string comment about FACE.
 
 See `defface' for the format of SPEC." nil nil)
+
+;;;***
+
+;;;### (autoloads nil "cvs-status" "cvs-status.el" (14537 49316))
+;;; Generated autoloads from cvs-status.el
+
+(autoload (quote cvs-status-mode) "cvs-status" "\
+Mode used for cvs status output." t)
 
 ;;;***
 
@@ -4578,8 +4596,8 @@ Play sounds in message buffers." t nil)
 
 ;;;***
 
-;;;### (autoloads (define-minor-mode) "easy-mmode" "emacs-lisp/easy-mmode.el"
-;;;;;;  (14398 37514))
+;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap define-minor-mode)
+;;;;;;  "easy-mmode" "emacs-lisp/easy-mmode.el" (14539 53684))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias (quote easy-mmode-define-minor-mode) (quote define-minor-mode))
@@ -4597,6 +4615,10 @@ If it is a list, it is passed to `easy-mmode-define-keymap'
 in order to build a valid keymap.
 BODY contains code that will be executed each time the mode is (dis)activated.
 It will be executed after any toggling but before running the hooks." nil (quote macro))
+
+(autoload (quote easy-mmode-defmap) "easy-mmode" nil nil (quote macro))
+
+(autoload (quote easy-mmode-defsyntax) "easy-mmode" nil nil (quote macro))
 
 ;;;***
 
@@ -5382,7 +5404,7 @@ as a multilingual text encoded in a coding system set by
 ;;;***
 
 ;;;### (autoloads (enriched-decode enriched-encode enriched-mode)
-;;;;;;  "enriched" "enriched.el" (14513 4487))
+;;;;;;  "enriched" "enriched.el" (14539 53665))
 ;;; Generated autoloads from enriched.el
 
 (autoload (quote enriched-mode) "enriched" "\
@@ -6019,7 +6041,7 @@ with no args, if that value is non-nil." t nil)
 ;;;;;;  facemenu-remove-special facemenu-remove-all facemenu-remove-face-props
 ;;;;;;  facemenu-set-read-only facemenu-set-intangible facemenu-set-invisible
 ;;;;;;  facemenu-set-face-from-menu facemenu-set-background facemenu-set-foreground
-;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14529 14394))
+;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14539 53665))
 ;;; Generated autoloads from facemenu.el
  (define-key global-map "\M-g" 'facemenu-keymap)
  (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
@@ -6613,7 +6635,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14535 40196))
+;;;;;;  (14539 53666))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -6804,7 +6826,7 @@ Visit a file in Forms mode in other window." t nil)
 ;;;***
 
 ;;;### (autoloads (fortran-mode fortran-tab-mode-default) "fortran"
-;;;;;;  "progmodes/fortran.el" (14477 53257))
+;;;;;;  "progmodes/fortran.el" (14537 23071))
 ;;; Generated autoloads from progmodes/fortran.el
 
 (defvar fortran-tab-mode-default nil "\
@@ -7245,7 +7267,7 @@ Variables: handwrite-linespace     (default 12)
 ;;;***
 
 ;;;### (autoloads (hanoi-unix-64 hanoi-unix hanoi) "hanoi" "play/hanoi.el"
-;;;;;;  (14268 8415))
+;;;;;;  (14539 53714))
 ;;; Generated autoloads from play/hanoi.el
 
 (autoload (quote hanoi) "hanoi" "\
@@ -8212,7 +8234,7 @@ This will add a speedbar major display mode." t nil)
 
 ;;;### (autoloads (info-complete-file info-complete-symbol info-lookup-file
 ;;;;;;  info-lookup-symbol info-lookup-reset) "info-look" "info-look.el"
-;;;;;;  (14272 15606))
+;;;;;;  (14539 53666))
 ;;; Generated autoloads from info-look.el
 
 (autoload (quote info-lookup-reset) "info-look" "\
@@ -9046,6 +9068,28 @@ shown; this is often useful to constrain a big search." t nil)
 
 ;;;***
 
+;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (14537 49316))
+;;; Generated autoloads from log-edit.el
+
+(autoload (quote log-edit) "log-edit" "\
+Setup a buffer to enter a log message.
+The buffer will be put in `log-edit-mode'.
+If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
+Mark and point will be set around the entire contents of the
+buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
+Once you're done editing the message, pressing \\[log-edit-done] will call
+`log-edit-done' which will end up calling CALLBACK to do the actual commit." nil nil)
+
+;;;***
+
+;;;### (autoloads nil "log-view" "log-view.el" (14537 49316))
+;;; Generated autoloads from log-view.el
+
+(autoload (quote log-view-mode) "log-view" "\
+Major mode for browsing CVS log output." t)
+
+;;;***
+
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
 ;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14440
 ;;;;;;  46009))
@@ -9468,7 +9512,7 @@ Previous contents of that buffer are killed first." t nil)
 
 ;;;***
 
-;;;### (autoloads (man-follow man) "man" "man.el" (14252 7234))
+;;;### (autoloads (man-follow man) "man" "man.el" (14539 53667))
 ;;; Generated autoloads from man.el
 
 (defalias (quote manual-entry) (quote man))
@@ -10661,6 +10705,54 @@ You must modify via \\[customize] for this variable to have an effect.")
 
 ;;;***
 
+;;;### (autoloads (cvs-dired-use-hook cvs-status cvs-update cvs-examine
+;;;;;;  cvs-checkout) "pcvs" "pcvs.el" (14537 49318))
+;;; Generated autoloads from pcvs.el
+
+(autoload (quote cvs-checkout) "pcvs" "\
+Run a 'cvs checkout MODULES' in DIR.
+Feed the output to a *cvs* buffer, display it in the current window,
+and run `cvs-mode' on it.
+
+With a prefix argument, prompt for cvs FLAGS to use." t nil)
+
+(autoload (quote cvs-examine) "pcvs" "\
+Run a `cvs -n update' in the specified DIRECTORY.
+That is, check what needs to be done, but don't change the disc.
+Feed the output to a *cvs* buffer and run `cvs-mode' on it.
+With a prefix argument, prompt for a directory and cvs FLAGS to use.
+A prefix arg >8 (ex: \\[universal-argument] \\[universal-argument]),
+  prevents reuse of an existing *cvs* buffer.
+Optional argument NOSHOW if non-nil means not to display the buffer." t nil)
+
+(autoload (quote cvs-update) "pcvs" "\
+Run a `cvs update' in the current working DIRECTORY.
+Feed the output to a *cvs* buffer and run `cvs-mode' on it.
+With a prefix argument, prompt for a directory and cvs FLAGS to use.
+A prefix arg >8 (ex: \\[universal-argument] \\[universal-argument]),
+  prevents reuse of an existing *cvs* buffer." t nil)
+
+(autoload (quote cvs-status) "pcvs" "\
+Run a `cvs status' in the current working DIRECTORY.
+Feed the output to a *cvs* buffer and run `cvs-mode' on it.
+With a prefix argument, prompt for a directory and cvs FLAGS to use.
+A prefix arg >8 (ex: \\[universal-argument] \\[universal-argument]),
+  prevents reuse of an existing *cvs* buffer.
+Optional argument NOSHOW if non-nil means not to display the buffer." t nil)
+
+(add-to-list (quote completion-ignored-extensions) "CVS/")
+
+(defvar cvs-dired-use-hook (quote (4)) "\
+Whether or not opening a CVS directory should run PCL-CVS.
+NIL means never do it.
+ALWAYS means to always do it unless a prefix argument is given to the
+  command that prompted the opening of the directory.
+Anything else means to do it only if the prefix arg is equal to this value.")
+
+(progn (defun cvs-dired-noselect (dir) "Run `cvs-examine' if DIR is a CVS administrative directory.\nThe exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp dir) (setq dir (directory-file-name dir)) (when (and (string= "CVS" (file-name-nondirectory dir)) (file-readable-p (expand-file-name "Entries" dir)) cvs-dired-use-hook (if (eq cvs-dired-use-hook (quote always)) (not current-prefix-arg) (equal current-prefix-arg cvs-dired-use-hook))) (save-excursion (cvs-examine (file-name-directory dir) t t))))))
+
+;;;***
+
 ;;;### (autoloads (perl-mode) "perl-mode" "progmodes/perl-mode.el"
 ;;;;;;  (13639 61036))
 ;;; Generated autoloads from progmodes/perl-mode.el
@@ -10993,7 +11085,7 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-paper-type) "ps-print"
-;;;;;;  "ps-print.el" (14454 86))
+;;;;;;  "ps-print.el" (14543 36973))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -11343,7 +11435,7 @@ See \\[compile]." t nil)
 ;;;***
 
 ;;;### (autoloads (re-builder) "re-builder" "emacs-lisp/re-builder.el"
-;;;;;;  (14536 1936))
+;;;;;;  (14539 41135))
 ;;; Generated autoloads from emacs-lisp/re-builder.el
 
 (autoload (quote re-builder) "re-builder" "\
@@ -11352,8 +11444,8 @@ Call up the RE Builder for the current window." t nil)
 ;;;***
 
 ;;;### (autoloads (recentf-open-more-files recentf-cleanup recentf-edit-list
-;;;;;;  recentf-save-list recentf-mode) "recentf" "recentf.el" (14533
-;;;;;;  31505))
+;;;;;;  recentf-save-list recentf-mode) "recentf" "recentf.el" (14539
+;;;;;;  49146))
 ;;; Generated autoloads from recentf.el
 
 (autoload (quote recentf-mode) "recentf" "\
@@ -11378,10 +11470,11 @@ Allow the user to open files that are not in the menu." t nil)
 
 ;;;***
 
-;;;### (autoloads (clear-rectangle string-rectangle delete-whitespace-rectangle
-;;;;;;  open-rectangle insert-rectangle yank-rectangle kill-rectangle
-;;;;;;  extract-rectangle delete-extract-rectangle delete-rectangle
-;;;;;;  move-to-column-force) "rect" "rect.el" (14273 29571))
+;;;### (autoloads (clear-rectangle replace-rectangle string-rectangle
+;;;;;;  delete-whitespace-rectangle open-rectangle insert-rectangle
+;;;;;;  yank-rectangle kill-rectangle extract-rectangle delete-extract-rectangle
+;;;;;;  delete-rectangle move-to-column-force) "rect" "rect.el" (14537
+;;;;;;  23030))
 ;;; Generated autoloads from rect.el
 
 (autoload (quote move-to-column-force) "rect" "\
@@ -11460,6 +11553,9 @@ Insert STRING on each line of the region-rectangle, shifting text right.
 When called from a program the rectangle's corners are START and END.
 The left edge of the rectangle specifies the column for insertion.
 This command does not delete or overwrite any existing text." t nil)
+
+(autoload (quote replace-rectangle) "rect" "\
+Like `string-rectangle', but replace the original region." t nil)
 
 (autoload (quote clear-rectangle) "rect" "\
 Blank out the region-rectangle.
@@ -13853,7 +13949,7 @@ if large.  You can use Info-split to do this manually." t nil)
 ;;;***
 
 ;;;### (autoloads (texinfo-mode) "texinfo" "textmodes/texinfo.el"
-;;;;;;  (14302 8279))
+;;;;;;  (14536 60906))
 ;;; Generated autoloads from textmodes/texinfo.el
 
 (autoload (quote texinfo-mode) "texinfo" "\
