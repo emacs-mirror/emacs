@@ -1,9 +1,10 @@
 2004-05-03  Nick Roberts  <nickrob@gnu.org>
 
-	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer) 
+	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer)
 	(gdb-display-source-buffer, gdb-put-breakpoint-icon)
-	(gdb-remove-breakpoint-icons, gdb-assembler-custom): 
-	Look for window over visible frames.
+	(gdb-remove-breakpoint-icons, gdb-assembler-custom): Look for
+	window over visible frames.
+	(gdb-goto-breakpoint): Make buffer display file at breakpoint.
 
 2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
