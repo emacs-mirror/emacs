@@ -1,5 +1,12 @@
 2000-10-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (pure_bytes_used): Renamed from pureptr.
+	(ALIGN): New macro.
+	(pure_alloc): New function.
+	(make_pure_string, pure_cons, make_pure_float, make_pure_vector):
+	Use it.
+	(Fpurecopy): Use PURE_POINTER_P.
+
 	* xdisp.c (try_cursor_movement): Use cursor_row_p also when
 	PT has moved backward.
 	
