@@ -1535,7 +1535,16 @@ created."
 
 (defface header-line
   '((((type tty))
-     (:inverse-video t))
+     ;; This used to be `:inverse-video t', but that doesn't look very
+     ;; good when combined with inverse-video mode-lines and multiple
+     ;; windows.  Underlining looks better, and is more consistent with
+     ;; the window-system face variants, which deemphasize the
+     ;; header-line in relation to the mode-line face.  If a terminal
+     ;; can't underline, then the header-line will end up without any
+     ;; highlighting; this may be too confusing in general, although it
+     ;; happens to look good with the only current use of header-lines,
+     ;; the info browser. XXX
+     (:underline t))
     (((class color) (background light))
      (:box (:line-width 1 :style released-button)
 	   :background "grey90" :foreground "grey20"
