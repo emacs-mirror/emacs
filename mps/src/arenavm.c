@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.10) $
+ * $HopeName: MMsrc!arenavm.c(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.10) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.11) $");
 
 
 /* Space Arena Projection
@@ -124,6 +124,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
   if(res) return res;
 
   arena = SpaceArena(space);
+  /* see design.mps.space.arena */
   arena->base = VMBase(space);
   arena->limit = VMLimit(space);
   AVER(AddrOffset(arena->base, arena->limit) == size);
@@ -171,7 +172,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
   /* Set the zone shift to divide the arena into the same number of
    * zones as will fit into a reference set (the number of bits in a
    * word).  Note that some zones are discontiguous in the arena if the
-   * size is not a power of 2.
+   * size is not a power of 2. See design.mps.space.arena.
    */
   space->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
 
