@@ -1673,7 +1673,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		dpyinfo->mouse_face_window = window;
 		dpyinfo->mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1,
+					     !dpyinfo->mouse_face_hidden);
 
 		/* Display it as active.  */
 		show_mouse_face (dpyinfo, 1);
@@ -1707,7 +1708,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		dpyinfo->mouse_face_window = window;
 		dpyinfo->mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1,
+					     !dpyinfo->mouse_face_hidden);
 
 		/* Display it as active.  */
 		show_mouse_face (dpyinfo, 1);
