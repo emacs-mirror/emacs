@@ -1016,7 +1016,7 @@ This operates on the output from the \\[compile] command."
   (next-error -1))
 
 (defun first-error ()
-  "Reparse the error message buffer and start at the first error
+  "Reparse the error message buffer and start at the first error.
 Visit corresponding source code.
 This operates on the output from the \\[compile] command."
   (interactive)
