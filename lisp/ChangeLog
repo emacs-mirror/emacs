@@ -1,5 +1,7 @@
 2000-04-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* subr.el (add-minor-mode): Make argument MAP optional.
+
 	* desktop.el (desktop-save): Save list of minor modes.
 	(desktop-create-buffer): Restore minor modes.
 	(desktop-minor-mode-table): New user-option.
