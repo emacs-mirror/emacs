@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 2.05
+;; Version: 2.06
 
 ;;; This file is part of GNU Emacs.
 
@@ -38,10 +38,7 @@
 ;; 
 ;; Put in your ~/.emacs:
 ;;
-;; (autoload 'turn-on-lazy-lock "lazy-lock"
-;;   "Unconditionally turn on Lazy Lock mode.")
-;;
-;; (add-hook 'font-lock-mode-hook 'turn-on-lazy-lock)
+;; (setq font-lock-support-mode 'lazy-lock-mode)
 ;;
 ;; Start up a new Emacs and use font-lock as usual (except that you can use the
 ;; so-called "gaudier" fontification regexps on big files without frustration).
@@ -159,7 +156,7 @@
 ;; Lazy Lock mode does not work efficiently with Outline mode.  This is because
 ;; when in Outline mode, although text may be hidden (not visible in the
 ;; window), the text is visible to Emacs Lisp code (not surprisingly) and Lazy
-;; Lock fontifies it mercilessly.  Hopefully this will be fixed one day.
+;; Lock fontifies it mercilessly.  Maybe it will be fixed one day.
 ;;
 ;; Because buffer text is not necessarily fontified, other packages that expect
 ;; buffer text to be fontified in Font Lock mode either might not work as
@@ -175,8 +172,8 @@
 ;; the echoing of keystrokes in the minibuffer.  This is because of the way
 ;; deferral and stealth have to be implemented for Emacs 19.30.  Upgrade!
 ;;
-;; Currently XEmacs does not have the features to support lazy-lock.el.  Maybe
-;; it will one day.
+;; Currently XEmacs does not have the features to support this version of
+;; lazy-lock.el.  Maybe it will one day.
 
 ;; Feedback:
 ;;
@@ -231,6 +228,8 @@
 ;; - Returned `lazy-lock-fontify-after-install' hack (Darren Hall hint)
 ;; - Added `lazy-lock-defer-driven' functionality (Scott Byer hint)
 ;; - Made `lazy-lock-mode' wrap `font-lock-support-mode'
+;; 2.05--2.06:
+;; - Made `lazy-lock-fontify-after-defer' swap correctly (Scott Byer report)
 
 (require 'font-lock)
 
@@ -294,20 +293,21 @@ The value of this variable is used when Lazy Lock mode is turned on.")
 
 (defvar lazy-lock-defer-driven nil
   "*If non-nil, means fontification should be defer-driven.
-If nil, means demand-driven fontification is performed.  This means when the
-window scrolls into unfontified areas of the buffer, those areas are
-immediately fontified.  Thus scrolling never presents unfontified areas.
-However, since fontification occurs during scrolling, scrolling may be slow.
+If nil, means demand-driven fontification is performed.  This means when
+scrolling into unfontified areas of the buffer, those areas are immediately
+fontified.  Thus scrolling never presents unfontified areas.  However, since
+fontification occurs during scrolling, scrolling may be slow.
 If t, means defer-driven fontification is performed.  This means fontification
 of those areas is deferred.  Thus scrolling may present momentarily unfontified
 areas.  However, since fontification does not occur during scrolling, scrolling
 will be faster than demand-driven fontification.
-If non-nil and non-t, means buffer demand-driven fontification is performed
-until the buffer is fontified, then buffer fontification becomes defer-driven.
-Thus scrolling never presents unfontified areas until the buffer is fontified,
-at which point subsequent scrolling may present future buffer insertions
-momentarily unfontified.  However, since fontification does not occur during
-scrolling once the buffer is fontified, scrolling will become faster.
+If any other value, e.g., `eventually', means demand-driven fontification is
+performed until the buffer is fontified, then buffer fontification becomes
+defer-driven.  Thus scrolling never presents unfontified areas until the buffer
+is first fontified, after which subsequent scrolling may present future buffer
+insertions momentarily unfontified.  However, since fontification does not
+occur during scrolling after the buffer is first fontified, scrolling will
+become faster.
 
 The value of this variable is used when Lazy Lock mode is turned on.")
 
@@ -333,7 +333,7 @@ If nil, means stealth fontification is never performed.
 
 The value of this variable is used when Lazy Lock mode is turned on.")
 
-(defvar lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 200)
+(defvar lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
   "*Maximum size of a chunk of stealth fontification.
 Each iteration of stealth fontification can fontify this number of lines.
 To speed up input response during stealth fontification, at the cost of stealth
@@ -346,7 +346,7 @@ Each iteration of stealth fontification is separated by this amount of time.
 To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.")
 
-(defvar lazy-lock-stealth-verbose font-lock-verbose
+(defvar lazy-lock-stealth-verbose (not (null font-lock-verbose))
   "*If non-nil, means stealth fontification should show status messages.")
 
 (defvar lazy-lock-mode nil)
@@ -412,7 +412,7 @@ Use \\[lazy-lock-submit-bug-report] to send bug reports or feedback."
   "Submit via mail a bug report on lazy-lock.el."
   (interactive)
   (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.05"
+    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.06"
      '(lazy-lock-minimum-size lazy-lock-defer-driven lazy-lock-defer-time
        lazy-lock-stealth-time lazy-lock-stealth-nice lazy-lock-stealth-lines
        lazy-lock-stealth-verbose)
@@ -598,10 +598,10 @@ In the `*scratch*' buffer, evaluate:"))))
 	(lazy-lock-fontify-window (car windows))
 	(setq windows (cdr windows)))
       (setq lazy-lock-buffers (cdr lazy-lock-buffers))))
-  ;; Add hook if fontification should be defer-driven from now on.
-  (unless (or (not lazy-lock-defer-driven) (eq lazy-lock-defer-driven t)
-	      (memq 'lazy-lock-defer-after-scroll window-scroll-functions)
-	      (input-pending-p) (lazy-lock-unfontified-p))
+  ;; Add hook if fontification should now be defer-driven in this buffer.
+  (when (and lazy-lock-mode lazy-lock-defer-driven
+	     (memq 'lazy-lock-fontify-after-scroll window-scroll-functions)
+	     (not (or (input-pending-p) (lazy-lock-unfontified-p))))
     (remove-hook 'window-scroll-functions 'lazy-lock-fontify-after-scroll t)
     (add-hook 'window-scroll-functions 'lazy-lock-defer-after-scroll nil t)))
 
@@ -628,8 +628,7 @@ In the `*scratch*' buffer, evaluate:"))))
 	      (lazy-lock-fontify-chunk)))
 	  (setq buffers (cdr buffers))))
       (when message
-	(message "Fontifying stealthily...%s" (if continue "done" "quit")))
-      )))
+	(message "Fontifying stealthily...%s" (if continue "done" "quit"))))))
 
 (defun lazy-lock-fontify-after-outline ()
   ;; Called from `outline-view-change-hook'.
@@ -813,9 +812,6 @@ In the `*scratch*' buffer, evaluate:"))))
 
 ;; Install ourselves:
 
-;; We don't install ourselves on `font-lock-mode-hook' as other packages can be
-;; used with font-lock.el, and lazy-lock.el should be dumpable without forcing
-;; people to get lazy or making it difficult for people to use alternatives.
 (add-hook 'window-size-change-functions 'lazy-lock-fontify-after-resize)
 (add-hook 'redisplay-end-trigger-functions 'lazy-lock-fontify-after-trigger)
 
