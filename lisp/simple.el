@@ -2197,29 +2197,29 @@ it were the arg to `interactive' (which see) to interactively read the value."
 
 ;; Define the major mode for lists of completions.
 
-(defvar completion-mode-map nil)
-(or completion-mode-map
+(defvar completion-list-mode-map nil)
+(or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
-      (setq completion-mode-map map)))
+      (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
-(put 'completion-mode 'mode-class 'special)
+(put 'completion-list-mode 'mode-class 'special)
 
-(defun completion-mode ()
+(defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
-Type \\<completion-mode-map>\\[mouse-choose-completion] to select
+Type \\<completion-list-mode-map>\\[mouse-choose-completion] to select
 a completion with the mouse."
   (interactive)
   (kill-all-local-variables)
-  (use-local-map completion-mode-map)
-  (setq mode-name "Completion")
-  (setq major-mode 'completion-mode)
-  (run-hooks 'completion-mode-hook))
+  (use-local-map completion-list-mode-map)
+  (setq mode-name "Completion List")
+  (setq major-mode 'completion-list-mode)
+  (run-hooks 'completion-list-mode-hook))
 
 (defun completion-setup-function ()
   (save-excursion
-    (completion-mode)
+    (completion-list-mode)
     (goto-char (point-min))
     (if window-system
 	(insert (substitute-command-keys
