@@ -3870,33 +3870,60 @@ encoding_buffer_size (coding, src_bytes)
   return (src_bytes * magnification + CONVERSION_BUFFER_EXTRA_ROOM);
 }
 
-#ifndef MINIMUM_CONVERSION_BUFFER_SIZE
-#define MINIMUM_CONVERSION_BUFFER_SIZE 1024
-#endif
-
-char *conversion_buffer;
-int conversion_buffer_size;
-
-/* Return a pointer to a SIZE bytes of buffer to be used for encoding
-   or decoding.  Sufficient memory is allocated automatically.  If we
-   run out of memory, return NULL.  */
-
-char *
-get_conversion_buffer (size)
-     int size;
+/* Working buffer for code conversion.  */
+struct conversion_buffer
 {
-  if (size > conversion_buffer_size)
-    {
-      char *buf;
-      int real_size = conversion_buffer_size * 2;
+  int size;			/* size of data.  */
+  int on_stack;			/* 1 if allocated by alloca.  */
+  unsigned char *data;
+};
 
-      while (real_size < size) real_size *= 2;
-      buf = (char *) xmalloc (real_size);
-      xfree (conversion_buffer);
-      conversion_buffer = buf;
-      conversion_buffer_size = real_size;
+/* Don't use alloca for allocating memory space larger than this, lest
+   we overflow their stack.  */
+#define MAX_ALLOCA 16*1024
+
+/* Allocate LEN bytes of memory for BUF (struct conversion_buffer).  */
+#define allocate_conversion_buffer(buf, len)		\
+  do {							\
+    if (len < MAX_ALLOCA)				\
+      {							\
+	buf.data = (unsigned char *) alloca (len);	\
+	buf.on_stack = 1;				\
+      }							\
+    else						\
+      {							\
+	buf.data = (unsigned char *) xmalloc (len);	\
+	buf.on_stack = 0;				\
+      }							\
+    buf.size = len;					\
+  } while (0)
+
+/* Double the allocated memory for *BUF.  */
+static void
+extend_conversion_buffer (buf)
+     struct conversion_buffer *buf;
+{
+  if (buf->on_stack)
+    {
+      unsigned char *save = buf->data;
+      buf->data = (unsigned char *) xmalloc (buf->size * 2);
+      bcopy (save, buf->data, buf->size);
+      buf->on_stack = 0;
     }
-  return conversion_buffer;
+  else
+    {
+      buf->data = (unsigned char *) xrealloc (buf->data, buf->size * 2);
+    }
+  buf->size *= 2;
+}
+
+/* Free the allocated memory for BUF if it is not on stack.  */
+static void
+free_conversion_buffer (buf)
+     struct conversion_buffer *buf;
+{
+  if (!buf->on_stack)
+    xfree (buf->data);
 }
 
 int
@@ -3929,20 +3956,20 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   switch (ccl->status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
-      result = CODING_FINISH_INSUFFICIENT_SRC;
+      coding->result = CODING_FINISH_INSUFFICIENT_SRC;
       break;
     case CCL_STAT_SUSPEND_BY_DST:
-      result = CODING_FINISH_INSUFFICIENT_DST;
+      coding->result = CODING_FINISH_INSUFFICIENT_DST;
       break;
     case CCL_STAT_QUIT:
     case CCL_STAT_INVALID_CMD:
-      result = CODING_FINISH_INTERRUPT;
+      coding->result = CODING_FINISH_INTERRUPT;
       break;
     default:
-      result = CODING_FINISH_NORMAL;
+      coding->result = CODING_FINISH_NORMAL;
       break;
     }
-  return result;
+  return coding->result;
 }
 
 /* Decode EOL format of the text at PTR of BYTES length destructively
@@ -4170,6 +4197,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
 	}
       coding->consumed = coding->consumed_char = src - source;
       coding->produced = dst - destination;
+      coding->result = CODING_FINISH_NORMAL;
     }
 
   if (!coding->dst_multibyte)
@@ -4231,7 +4259,8 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
       && coding->consumed == src_bytes)
     coding->result = CODING_FINISH_NORMAL;
 
-  if (coding->mode & CODING_MODE_LAST_BLOCK)
+  if (coding->mode & CODING_MODE_LAST_BLOCK
+      && coding->result == CODING_FINISH_INSUFFICIENT_SRC)
     {
       unsigned char *src = source + coding->consumed;
       unsigned char *src_end = src + src_bytes;
@@ -4252,6 +4281,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
 	  coding->consumed = src_bytes;
 	}
       coding->produced = coding->produced_char = dst - destination;
+      coding->result = CODING_FINISH_NORMAL;
     }
 
   return coding->result;
@@ -5197,12 +5227,15 @@ decode_coding_string (str, coding, nocopy)
      int nocopy;
 {
   int len;
-  char *buf;
+  struct conversion_buffer buf;
   int from, to, to_byte;
   struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol;
   int result;
   int require_decoding;
+  int shrinked_bytes = 0;
+  Lisp_Object newstr;
+  int consumed, produced, produced_char;
 
   from = 0;
   to = XSTRING (str)->size;
@@ -5247,12 +5280,11 @@ decode_coding_string (str, coding, nocopy)
   /* Try to skip the heading and tailing ASCIIs.  */
   if (require_decoding && coding->type != coding_type_ccl)
     {
-      int from_orig = from;
-
       SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
 				0);
       if (from == to_byte)
 	require_decoding = 0;
+      shrinked_bytes = from + (STRING_BYTES (XSTRING (str)) - to_byte);
     }
 
   if (!require_decoding)
@@ -5271,46 +5303,77 @@ decode_coding_string (str, coding, nocopy)
 
   if (coding->composing != COMPOSITION_DISABLED)
     coding_allocate_composition_data (coding, from);
-
   len = decoding_buffer_size (coding, to_byte - from);
-  len += from + STRING_BYTES (XSTRING (str)) - to_byte;
-  GCPRO1 (str);
-  buf = get_conversion_buffer (len);
-  UNGCPRO;
+  allocate_conversion_buffer (buf, len);
 
-  if (from > 0)
-    bcopy (XSTRING (str)->data, buf, from);
-  result = decode_coding (coding, XSTRING (str)->data + from,
-			 buf + from, to_byte - from, len);
-  if (result == CODING_FINISH_INCONSISTENT_EOL)
+  consumed = produced = produced_char = 0;
+  while (1)
     {
-      /* We simply try to decode the whole string again but without
-         eol-conversion this time.  */
-      coding->eol_type = CODING_EOL_LF;
-      coding->symbol = saved_coding_symbol;
-      coding_free_composition_data (coding);
-      return decode_coding_string (str, coding, nocopy);
+      result = decode_coding (coding, XSTRING (str)->data + from + consumed,
+			      buf.data + produced, to_byte - from - consumed,
+			      buf.size - produced);
+      consumed += coding->consumed;
+      produced += coding->produced;
+      produced_char += coding->produced_char;
+      if (result == CODING_FINISH_NORMAL)
+	break;
+      if (result == CODING_FINISH_INSUFFICIENT_CMP)
+	coding_allocate_composition_data (coding, from + produced_char);
+      else if (result == CODING_FINISH_INSUFFICIENT_DST)
+	extend_conversion_buffer (&buf);
+      else if (result == CODING_FINISH_INCONSISTENT_EOL)
+	{
+	  /* Recover the original EOL format.  */
+	  if (coding->eol_type == CODING_EOL_CR)
+	    {
+	      unsigned char *p;
+	      for (p = buf.data; p < buf.data + produced; p++)
+		if (*p == '\n') *p = '\r';
+	    }
+	  else if (coding->eol_type == CODING_EOL_CRLF)
+	    {
+	      int num_eol = 0;
+	      unsigned char *p0, *p1;
+	      for (p0 = buf.data, p1 = p0 + produced; p0 < p1; p0++)
+		if (*p0 == '\n') num_eol++;
+	      if (produced + num_eol >= buf.size)
+		extend_conversion_buffer (&buf);
+	      for (p0 = buf.data + produced, p1 = p0 + num_eol; p0 > buf.data;)
+		{
+		  *--p1 = *--p0;
+		  if (*p0 == '\n') *--p1 = '\r';
+		}
+	      produced += num_eol;
+	      produced_char += num_eol;
+	    } 
+	  coding->eol_type = CODING_EOL_LF;
+	  coding->symbol = saved_coding_symbol;
+	}
     }
 
-  bcopy (XSTRING (str)->data + to_byte, buf + from + coding->produced,
-	 STRING_BYTES (XSTRING (str)) - to_byte);
-
-  len = from + STRING_BYTES (XSTRING (str)) - to_byte;
   if (coding->dst_multibyte)
-    str = make_multibyte_string (buf, len + coding->produced_char,
-				 len + coding->produced);
+    newstr = make_uninit_multibyte_string (produced_char + shrinked_bytes,
+					   produced + shrinked_bytes);
   else
-    str = make_unibyte_string (buf, len + coding->produced);
+    newstr = make_uninit_string (produced + shrinked_bytes);
+  if (from > 0)
+    bcopy (XSTRING (str)->data, XSTRING (newstr)->data, from);
+  bcopy (buf.data, XSTRING (newstr)->data + from, produced);
+  if (shrinked_bytes > from)
+    bcopy (XSTRING (str)->data + to_byte,
+	   XSTRING (newstr)->data + from + produced,
+	   shrinked_bytes - from);
+  free_conversion_buffer (&buf);
 
   if (coding->cmp_data && coding->cmp_data->used)
-    coding_restore_composition (coding, str);
+    coding_restore_composition (coding, newstr);
   coding_free_composition_data (coding);
 
   if (SYMBOLP (coding->post_read_conversion)
       && !NILP (Ffboundp (coding->post_read_conversion)))
-    str = run_pre_post_conversion_on_str (str, coding, 0);
+    newstr = run_pre_post_conversion_on_str (newstr, coding, 0);
 
-  return str;
+  return newstr;
 }
 
 Lisp_Object
@@ -5320,11 +5383,14 @@ encode_coding_string (str, coding, nocopy)
      int nocopy;
 {
   int len;
-  char *buf;
+  struct conversion_buffer buf;
   int from, to, to_byte;
   struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol;
   int result;
+  int shrinked_bytes = 0;
+  Lisp_Object newstr;
+  int consumed, consumed_char, produced;
 
   if (SYMBOLP (coding->pre_write_conversion)
       && !NILP (Ffboundp (coding->pre_write_conversion)))
@@ -5356,32 +5422,44 @@ encode_coding_string (str, coding, nocopy)
   /* Try to skip the heading and tailing ASCIIs.  */
   if (coding->type != coding_type_ccl)
     {
-      int from_orig = from;
-
       SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
 				1);
       if (from == to_byte)
 	return (nocopy ? str : Fcopy_sequence (str));
+      shrinked_bytes = from + (STRING_BYTES (XSTRING (str)) - to_byte);
     }
 
   len = encoding_buffer_size (coding, to_byte - from);
-  len += from + STRING_BYTES (XSTRING (str)) - to_byte;
-  GCPRO1 (str);
-  buf = get_conversion_buffer (len);
-  UNGCPRO;
+  allocate_conversion_buffer (buf, len);
 
+  consumed = consumed_char = produced = 0;
+
+  while (1)
+    {
+      result = encode_coding (coding, XSTRING (str)->data + from + consumed,
+			      buf.data + produced, to_byte - from - consumed,
+			      buf.size - produced);
+      consumed += coding->consumed;
+      produced += coding->produced;
+      if (result == CODING_FINISH_NORMAL)
+	break;
+      /* Now result should be CODING_FINISH_INSUFFICIENT_DST.  */
+      extend_conversion_buffer (&buf);
+    }
+
+  newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
-    bcopy (XSTRING (str)->data, buf, from);
-  result = encode_coding (coding, XSTRING (str)->data + from,
-			  buf + from, to_byte - from, len);
-  bcopy (XSTRING (str)->data + to_byte, buf + from + coding->produced,
-	 STRING_BYTES (XSTRING (str)) - to_byte);
+    bcopy (XSTRING (str)->data, XSTRING (newstr)->data, from);
+  bcopy (buf.data, XSTRING (newstr)->data + from, produced);
+  if (shrinked_bytes > from)
+    bcopy (XSTRING (str)->data + to_byte,
+	   XSTRING (newstr)->data + from + produced,
+	   shrinked_bytes - from);
 
-  len = from + STRING_BYTES (XSTRING (str)) - to_byte;
-  str = make_unibyte_string (buf, len + coding->produced);
+  free_conversion_buffer (&buf);
   coding_free_composition_data (coding);
 
-  return str;
+  return newstr;
 }
 
 
@@ -6208,12 +6286,6 @@ This function is internal use only.")
 /*** 9. Post-amble ***/
 
 void
-init_coding ()
-{
-  conversion_buffer = (char *) xmalloc (MINIMUM_CONVERSION_BUFFER_SIZE);
-}
-
-void
 init_coding_once ()
 {
   int i;
@@ -6252,8 +6324,6 @@ init_coding_once ()
   iso_code_class[ISO_CODE_SS2] = ISO_single_shift_2;
   iso_code_class[ISO_CODE_SS3] = ISO_single_shift_3;
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
-
-  conversion_buffer_size = MINIMUM_CONVERSION_BUFFER_SIZE;
 
   setup_coding_system (Qnil, &keyboard_coding);
   setup_coding_system (Qnil, &terminal_coding);
