@@ -24,11 +24,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 
 #ifndef BSD4_2
-#define BSD4_2
+#define BSD4_2 1
 #endif /* BSD4_2 */
 
 #ifndef BSD
-#define BSD 1
+#define BSD 42
 #endif /* BSD */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
