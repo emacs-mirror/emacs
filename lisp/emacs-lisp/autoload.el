@@ -230,6 +230,44 @@ markers before we call `read'."
 	      (print-escape-nonascii t))
 	  (print form outbuf)))))))
 
+(defun autoload-ensure-default-file (file)
+  "Make sure that the autoload file FILE exists and if not create it."
+  (unless (file-exists-p file)
+    (write-region
+     (concat ";;; " (file-name-nondirectory file)
+	     " --- automatically extracted autoloads\n"
+	     ";;\n"
+	     ";;; Code:\n\n"
+	     "\n;; Local Variables:\n"
+	     ";; version-control: never\n"
+	     ";; no-byte-compile: t\n"
+	     ";; no-update-autoloads: t\n"
+	     ";; End:\n"
+	     ";;; " (file-name-nondirectory file)
+	     "ends here\n")
+     nil file))
+  file)
+
+(defun autoload-insert-section-header (outbuf autoloads load-name file time)
+  "Insert the section-header line,
+which lists the file name and which functions are in it, etc."
+  (insert generate-autoload-section-header)
+  (prin1 (list 'autoloads autoloads load-name
+	       (if (stringp file) (autoload-trim-file-name file) file)
+	       time)
+	 outbuf)
+  (terpri outbuf)
+  ;; Break that line at spaces, to avoid very long lines.
+  ;; Make each sub-line into a comment.
+  (with-current-buffer outbuf
+    (save-excursion
+      (forward-line -1)
+      (while (not (eolp))
+	(move-to-column 64)
+	(skip-chars-forward "^ \n")
+	(or (eolp)
+	    (insert "\n" generate-autoload-section-continuation))))))
+
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
 autoloads are generated for defuns and defmacros in FILE
@@ -328,22 +366,8 @@ are used."
 	(progn
 	  ;; Insert the section-header line
 	  ;; which lists the file name and which functions are in it, etc.
-	  (insert generate-autoload-section-header)
-	  (prin1 (list 'autoloads autoloads-done load-name
-		       (autoload-trim-file-name file)
-		       (nth 5 (file-attributes file)))
-		 outbuf)
-	  (terpri outbuf)
-	  ;; Break that line at spaces, to avoid very long lines.
-	  ;; Make each sub-line into a comment.
-	  (with-current-buffer outbuf
-	    (save-excursion
-	      (forward-line -1)
-	      (while (not (eolp))
-		(move-to-column 64)
-		(skip-chars-forward "^ \n")
-		(or (eolp)
-		    (insert "\n" generate-autoload-section-continuation)))))
+	  (autoload-insert-section-header outbuf autoloads-done load-name file
+					  (nth 5 (file-attributes file)))
 	  (insert ";;; Generated autoloads from "
 		  (autoload-trim-file-name file) "\n")
 	  (goto-char output-end)
@@ -353,14 +377,16 @@ are used."
 ;;;###autoload
 (defun update-file-autoloads (file)
   "Update the autoloads for FILE in `generated-autoload-file'
-\(which FILE might bind in its local variables)."
+\(which FILE might bind in its local variables).
+Return FILE if there was no autoload cookie in it."
   (interactive "fUpdate autoloads for file: ")
   (let ((load-name (let ((name (file-name-nondirectory file)))
 		     (if (string-match "\\.elc?$" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(found nil)
-	(existing-buffer (get-file-buffer file)))
+	(existing-buffer (get-file-buffer file))
+	(no-autoloads nil))
     (save-excursion
       ;; We want to get a value for generated-autoload-file from
       ;; the local variables section if it's there.
@@ -370,9 +396,10 @@ are used."
       ;; but still decode EOLs.
       (let ((coding-system-for-read 'raw-text))
 	(set-buffer (find-file-noselect
-		     (expand-file-name generated-autoload-file
-				       (expand-file-name "lisp"
-							 source-directory))))
+		     (autoload-ensure-default-file
+		      (expand-file-name generated-autoload-file
+					(expand-file-name "lisp"
+							  source-directory)))))
 	;; This is to make generated-autoload-file have Unix EOLs, so
 	;; that it is portable to all platforms.
 	(setq buffer-file-coding-system 'raw-text-unix))
@@ -397,10 +424,7 @@ are used."
 		       (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
-				(or (> (car last-time) (car file-time))
-				    (and (= (car last-time) (car file-time))
-					 (>= (nth 1 last-time)
-					     (nth 1 file-time)))))
+				(not (autoload-before-p last-time file-time)))
 			   (progn
 			     (if (interactive-p)
 				 (message "\
@@ -450,13 +474,26 @@ Autoload section for %s is up to date."
 				 nil
 			       (if (interactive-p)
 				   (message "%s has no autoloads" file))
+			       (setq no-autoloads t)
 			       t)
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
 	      (generate-file-autoloads file))))
       (and (interactive-p)
 	   (buffer-modified-p)
-	   (save-buffer)))))
+	   (save-buffer))
+
+      (if no-autoloads file))))
+
+(defun autoload-before-p (time1 time2)
+  (or (< (car time1) (car time2))
+      (and (= (car time1) (car time2))
+	   (< (nth 1 time1) (nth 1 time2)))))
+
+(defun autoload-remove-section (begin)
+  (goto-char begin)
+  (search-forward generate-autoload-section-trailer)
+  (delete-region begin (point)))
 
 ;;;###autoload
 (defun update-autoloads-from-directories (&rest dirs)
@@ -464,37 +501,67 @@ Autoload section for %s is up to date."
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
-  (let ((files (apply 'nconc
-		      (mapcar (function (lambda (dir)
-					  (directory-files (expand-file-name dir)
-							   t
-							   "^[^=.].*\\.el$")))
-			      dirs)))
-	autoloads-file
-	top-dir)
-    (setq autoloads-file
+  (let* ((files (apply 'nconc
+		       (mapcar (lambda (dir)
+				 (directory-files (expand-file-name dir)
+						  ;; FIXME: add .gz etc...
+						  t "^[^=.].*\\.el\\'"))
+			       dirs)))
+	 (this-time (current-time))
+	 (no-autoloads nil)		;files with no autoload cookies.
+	 (autoloads-file
 	  (expand-file-name generated-autoload-file
-			    (expand-file-name "lisp"
-					      source-directory)))
-    (setq top-dir (file-name-directory autoloads-file))
-    (save-excursion
-      (set-buffer (find-file-noselect autoloads-file))
+			    (expand-file-name "lisp" source-directory)))
+	 (top-dir (file-name-directory autoloads-file)))
+
+    (with-current-buffer
+	(find-file-noselect (autoload-ensure-default-file autoloads-file))
       (save-excursion
+
+	;; Canonicalize file names and remove the autoload file itself.
+	(setq files (delete (autoload-trim-file-name buffer-file-name)
+			    (mapcar 'autoload-trim-file-name files)))
+
 	(goto-char (point-min))
 	(while (search-forward generate-autoload-section-header nil t)
 	  (let* ((form (autoload-read-section-header))
 		 (file (nth 3 form)))
-	    (cond ((not (stringp file)))
+	    (cond ((and (consp file) (stringp (car file)))
+		   ;; This is a list of files that have no autoload cookies.
+		   ;; There shouldn't be more than one such entry.
+		   ;; Remove the obsolete section.
+		   (autoload-remove-section (match-beginning 0))
+		   (let ((last-time (nth 4 form)))
+		     (dolist (file file)
+		       (let ((file-time (nth 5 (file-attributes file))))
+			 (when (and file-time
+				    (not (autoload-before-p last-time
+							    file-time)))
+			   ;; file unchanged
+			   (push file no-autoloads)
+			   (setq files (delete file files)))))))
+		  ((not (stringp file)))
 		  ((not (file-exists-p (expand-file-name file top-dir)))
 		   ;; Remove the obsolete section.
-		   (let ((begin (match-beginning 0)))
-		     (search-forward generate-autoload-section-trailer)
-		     (delete-region begin (point))))
+		   (autoload-remove-section (match-beginning 0)))
+		  ((equal (nth 4 form) (nth 5 (file-attributes file)))
+		   ;; File hasn't changed.
+		   nil)
 		  (t
 		   (update-file-autoloads file)))
 	    (setq files (delete file files)))))
-      ;; Elements remaining in FILES have no existing autoload sections.
-      (mapcar 'update-file-autoloads files)
+      ;; Elements remaining in FILES have no existing autoload sections yet.
+      (setq no-autoloads
+	    (append no-autoloads
+		    (delq nil (mapcar 'update-file-autoloads files))))
+      (when no-autoloads
+	;; Add the `no-autoloads' section.
+	(goto-char (point-max))
+	(search-backward "\f" nil t)
+	(autoload-insert-section-header
+	 (current-buffer) nil nil no-autoloads this-time)
+	(insert generate-autoload-section-trailer))
+
       (save-buffer))))
 
 ;;;###autoload
