@@ -3916,8 +3916,7 @@ next_element_from_buffer (it)
 	  else
 	    {
 	      it->overlay_strings_at_end_processed_p = 1;
-	      overlay_strings_follow_p
-		= get_overlay_strings (it);
+	      overlay_strings_follow_p = get_overlay_strings (it);
 	    }
 
 	  if (overlay_strings_follow_p)
@@ -3994,7 +3993,7 @@ next_element_from_buffer (it)
     }
 
   /* Value is zero if end of buffer reached.  */
-  xassert (!success_p || it->len > 0);
+  xassert (!success_p || it->what != IT_CHARACTER || it->len > 0);
   return success_p;
 }
 
