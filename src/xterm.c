@@ -6951,6 +6951,34 @@ same_x_server (name1, name2)
      char *name1, *name2;
 {
   int seen_colon = 0;
+  unsigned char *system_name = XSTRING (Vsystem_name)->data;
+  int system_name_length = strlen (system_name);
+  int length_until_period = 0;
+
+  while (system_name[length_until_period] != 0
+	 && system_name[length_until_period] != '.')
+    length_until_period++;
+
+  /* Treat `unix' like an empty host name.  */
+  if (! strncmp (name1, "unix:", 5))
+    name1 += 4;
+  if (! strncmp (name2, "unix:", 5))
+    name2 += 4;
+  /* Treat this host's name like an empty host name.  */
+  if (! strncmp (name1, system_name, system_name_length)
+      && name1[system_name_length] == ':')
+    name1 += system_name_length;
+  if (! strncmp (name2, system_name, system_name_length)
+      && name2[system_name_length] == ':')
+    name2 += system_name_length;
+  /* Treat this host's domainless name like an empty host name.  */
+  if (! strncmp (name1, system_name, length_until_period)
+      && name1[length_until_period] == ':')
+    name1 += length_until_period;
+  if (! strncmp (name2, system_name, length_until_period)
+      && name2[length_until_period] == ':')
+    name2 += length_until_period;
+
   for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
     {
       if (*name1 == ':')
