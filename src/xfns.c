@@ -3325,7 +3325,7 @@ DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
   return Qnil;
 }
 
-DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 3, 0,
+DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
   "Return a list of the names of available fonts matching PATTERN.\n\
 If optional arguments FACE and FRAME are specified, return only fonts\n\
 the same size as FACE on FRAME.\n\
@@ -3340,9 +3340,12 @@ The return value is a list of strings, suitable as arguments to\n\
 set-face-font.\n\
 \n\
 Fonts Emacs can't use (i.e. proportional fonts) may or may not be excluded\n\
-even if they match PATTERN and FACE.")
-  (pattern, face, frame)
-    Lisp_Object pattern, face, frame;
+even if they match PATTERN and FACE.\n\
+\n\
+The optional fourth argument MAXIMUM sets a limit on how many\n\
+fonts to match.  The first MAXIMUM fonts are reported.")
+  (pattern, face, frame, maximum)
+    Lisp_Object pattern, face, frame, maximum;
 {
   int num_fonts;
   char **names;
@@ -3352,11 +3355,21 @@ even if they match PATTERN and FACE.")
   XFontStruct *size_ref;
   Lisp_Object list;
   FRAME_PTR f;
+  Lisp_Object key;
+  int maxnames;
 
   check_x ();
   CHECK_STRING (pattern, 0);
   if (!NILP (face))
     CHECK_SYMBOL (face, 1);
+
+  if (NILP (maximum))
+    maxnames = 2000;
+  else
+    {
+      CHECK_NATNUM (maximum, 0);
+      maxnames = XINT (maximum);
+    }
 
   f = check_x_frame (frame);
 
@@ -3386,7 +3399,8 @@ even if they match PATTERN and FACE.")
     }
 
   /* See if we cached the result for this particular query.  */
-  list = Fassoc (pattern,
+  key = Fcons (pattern, maximum);
+  list = Fassoc (key,
 		 XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
 
   /* We have info in the cache for this PATTERN.  */
@@ -3437,14 +3451,14 @@ even if they match PATTERN and FACE.")
   if (size_ref)
     names = XListFontsWithInfo (FRAME_X_DISPLAY (f),
 				XSTRING (pattern)->data,
-				2000, /* maxnames */
+				maxnames, 
 				&num_fonts, /* count_return */
 				&info); /* info_return */
   else
 #endif
     names = XListFonts (FRAME_X_DISPLAY (f),
 			XSTRING (pattern)->data,
-			2000, /* maxnames */
+			maxnames,
 			&num_fonts); /* count_return */
 
   x_check_errors (FRAME_X_DISPLAY (f), "XListFonts failure: %s");
@@ -3465,7 +3479,7 @@ even if they match PATTERN and FACE.")
       for (i = 0; i < num_fonts; i++)
 	full_list = Fcons (build_string (names[i]), full_list);
       XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr
-	= Fcons (Fcons (pattern, full_list),
+	= Fcons (Fcons (key, full_list),
 		 XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
 
       /* Make a list of the fonts that have the right width.  */
