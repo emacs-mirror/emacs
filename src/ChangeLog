@@ -1,3 +1,7 @@
+2002-10-29  Dave Love  <fx@gnu.org>
+
+	* xterm.c (xaw_scroll_callback): Cast correctly.
+
 2002-10-28  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (lispy_accent_codes, lispy_accent_keys): Extend.
