@@ -460,25 +460,27 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
       /* if the `invisible' property is set, we can skip to
 	 the next property change */
       while (pos == next_invisible && pos < to)
-      {
-	XFASTINT (position) = pos;
-	prop = Fget_text_property (position,
-				   Qinvisible,
-				   Fcurrent_buffer ());
-        {
-	  Lisp_Object end;
+	{
+	  XFASTINT (position) = pos;
+	  prop = Fget_text_property (position,
+				     Qinvisible,
+				     Fcurrent_buffer ());
+	  {
+	    Lisp_Object end, limit;
 
-	  end = Fnext_single_property_change (position,
-					      Qinvisible,
-					      Fcurrent_buffer ());
-	  if (INTEGERP (end))
-	    next_invisible = XINT (end);
-	  else
-	    next_invisible = to;
-	  if (! NILP (prop))
-	    pos = next_invisible;
-        }
-      }
+	    /* This is just an estimate to give reasonable
+	       performance; nothing should go wrong if it is too small.  */
+	    XFASTINT (limit) = pos + 100;
+	    end = Fnext_single_property_change (position, Qinvisible,
+						Fcurrent_buffer (), limit);
+	    if (INTEGERP (end))
+	      next_invisible = XINT (end);
+	    else
+	      next_invisible = to;
+	    if (! NILP (prop))
+	      pos = next_invisible;
+	  }
+	}
       if (pos >= to)
 	break;
 #endif
