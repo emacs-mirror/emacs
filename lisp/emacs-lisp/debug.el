@@ -47,7 +47,7 @@
 (setq debugger 'debug)
 ;;;###autoload
 (defun debug (&rest debugger-args)
-  "Enter debugger.  Returns if user says \"continue\".
+  "Enter debugger.  To return, type \\<debugger-mode-map>`\\[debugger-continue]'.
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 
@@ -344,11 +344,11 @@ Complete list of commands:
 ;;;###autoload
 (defun debug-on-entry (function)
   "Request FUNCTION to invoke debugger each time it is called.
-If the user continues, FUNCTION's execution proceeds.
-Works by modifying the definition of FUNCTION,
+If you tell the debugger to continue, FUNCTION's execution proceeds.
+This works by modifying the definition of FUNCTION,
 which must be written in Lisp, not predefined.
 Use \\[cancel-debug-on-entry] to cancel the effect of this command.
-Redefining FUNCTION also does that."
+Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
   (debugger-reenable)
   (if (subrp (symbol-function function))
