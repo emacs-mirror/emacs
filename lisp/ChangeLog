@@ -1,5 +1,14 @@
 2002-02-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* strokes.el (strokes-do-stroke, strokes-do-complex-stroke):
+	Doc fix.
+	(strokes-help): Do not use doubled with-output-to-temp-buffer.
+	Fix the help string.
+	(strokes-prompt-user-save-strokes): Fix typo.
+	(strokes-list-strokes): Use proper exit-actionargument for
+	view-buffer.
+	Update copyright notice.
+
 	* international/mule-diag.el: Various doc and message fixes.
 	(non-iso-charset-alist): Add mac-roman.  Don't add entries for
 	codepages already present.
