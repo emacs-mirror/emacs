@@ -41,10 +41,7 @@
   (setq-default buffer-file-coding-system 'iso-2022-7bit)
 
   (setq default-input-method  "tibetan-wylie")
-  (setq-default default-input-method  "tibetan-wylie")
-
-  (setq sendmail-coding-system 'iso-2022-7bit
-	rmail-file-coding-system 'iso-2022-7bit))
+  (setq-default default-input-method  "tibetan-wylie"))
 
 ;;; This function makes a transcription string for
 ;;; re-composing a character.
