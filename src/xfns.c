@@ -187,7 +187,7 @@ Lisp_Object Qdisplay;
 
 /* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
-extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
+extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -1165,8 +1165,8 @@ x_decode_color (f, arg, def)
   if (defined_color (f, XSTRING (arg)->data, &cdef, 1))
     return cdef.pixel;
 
-  /* defined_color failed; return an ultimate default.  */
-  return def;
+  Fsignal (Qerror, Fcons (build_string ("undefined color"),
+			  Fcons (arg, Qnil)));
 }
 
 /* Functions called only from `x_set_frame_param'
@@ -3037,6 +3037,8 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "menuBar", "MenuBar", number);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", number);
+  x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
+		       "bufferPredicate", "BufferPredicate", symbol);
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
