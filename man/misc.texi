@@ -624,12 +624,6 @@ specifies how to recognize the end of a command.
 Move backward across one shell command, but not beyond the current line
 (@code{shell-backward-command}).
 
-@item C-c C-l
-@kindex C-c C-l @r{(Shell mode)}
-@findex comint-dynamic-list-input-ring
-Display the buffer's history of shell commands in another window
-(@code{comint-dynamic-list-input-ring}).
-
 @item M-x dirs
 Ask the shell what its current directory is, so that Emacs can agree
 with the shell.
@@ -740,13 +734,21 @@ Fetch the next later old shell command.
 @itemx M-s @var{regexp} @key{RET}
 Search backwards or forwards for old shell commands that match @var{regexp}.
 
-@item C-c C-x @r{(Shell mode)}
+@item C-c C-x
+@kindex C-c C-x @r{(Shell mode)}
 @findex comint-get-next-from-history
 Fetch the next subsequent command from the history.
 
-@item C-c . @r{(Shell mode)}
+@item C-c .
+@kindex C-c . @r{(Shell mode)}
 @findex comint-input-previous-argument
 Fetch one argument from an old shell command.
+
+@item C-c C-l
+@kindex C-c C-l @r{(Shell mode)}
+@findex comint-dynamic-list-input-ring
+Display the buffer's history of shell commands in another window
+(@code{comint-dynamic-list-input-ring}).
 @end table
 
   Shell buffers provide a history of previously entered shell commands.  To
@@ -815,21 +817,26 @@ Move point to the previous prompt (@code{comint-previous-prompt}).
 Move point to the following prompt (@code{comint-next-prompt}).
 
 @kindex C-c RET @r{(Shell mode)}
-@findex comint-copy-old-input
+@findex comint-insert-input
 @item C-c @key{RET}
 Copy the input command which point is in, inserting the copy at the end
-of the buffer (@code{comint-copy-old-input}).  This is useful if you
+of the buffer (@code{comint-insert-input}).  This is useful if you
 move point back to a previous command.  After you copy the command, you
 can submit the copy as input with @key{RET}.  If you wish, you can
 edit the copy before resubmitting it.
+
+@item Mouse-2
+Copy the input command that you click on, inserting the copy at the end
+of the buffer.
 @end table
 
   Moving to a previous input and then copying it with @kbd{C-c
-@key{RET}} produces the same results---the same buffer contents---that
-you would get by using @kbd{M-p} enough times to fetch that previous
-input from the history list.  However, @kbd{C-c @key{RET}} copies the
-text from the buffer, which can be different from what is in the history
-list if you edit the input text in the buffer after it has been sent.
+@key{RET}} or @kbd{Mouse-2} produces the same results---the same
+buffer contents---that you would get by using @kbd{M-p} enough times
+to fetch that previous input from the history list.  However, @kbd{C-c
+@key{RET}} copies the text from the buffer, which can be different
+from what is in the history list if you edit the input text in the
+buffer after it has been sent.
 
 @node History References
 @subsubsection Shell History References
