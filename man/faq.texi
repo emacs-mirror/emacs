@@ -4912,7 +4912,14 @@ You may have big problems using @code{mwm} as your window manager.
 For X11: Make sure it really is a @key{Meta} key.  Use @code{xev} to
 find out what keysym your @key{Meta} key generates.  It should be either
 @code{Meta_L} or @code{Meta_R}.  If it isn't, use @file{xmodmap} to fix
-the situation.
+the situation.  If @key{Meta} does generate @code{Meta_L} or
+@code{Meta_R}, but @kbd{M-x} produces a non-ASCII character, put this in
+your @file{~/.Xdefaults} file:
+
+@example
+ XTerm*eightBitInput:   false
+ XTerm*eightBitOutput:  true
+@end example
 
 @item
 Make sure the @code{pty} the @code{xterm} is using is passing 8 bit
