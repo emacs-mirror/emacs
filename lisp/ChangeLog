@@ -1,3 +1,11 @@
+2005-03-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (math-ms-args): Declare it.
+	(calc-embedded-eval-expr, calc-embedded-eval-get-var): Use variable
+	math-ms-args.
+	(calc-embedded-subst): Use math-multi-subst-rec to substitute
+	variables.
+
 2005-03-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-get-location):
