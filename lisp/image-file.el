@@ -36,6 +36,7 @@
 (require 'image)
 
 
+;;;###autoload
 (defcustom image-file-name-extensions
   '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm" "pbm")
   "*A list of image-file filename extensions.
@@ -55,6 +56,7 @@ variable is set using \\[customize]."
   :initialize 'custom-initialize-default
   :group 'image)
 
+;;;###autoload
 (defcustom image-file-name-regexps nil
   "*List of regexps matching image-file filenames.
 Filenames matching one of these regexps are considered image files,
