@@ -1,5 +1,12 @@
 2002-07-16  Ken Raeburn  <raeburn@gnu.org>
 
+	* fontset.c (Fset_fontset_font): Use SDATA instead of
+	XSTRING()->data.
+
+	* charset.h (FETCH_STRING_CHAR_ADVANCE,
+	FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SBYTES instead of
+	XSTRING()->size_byte.
+
 	* lisp.h (SDATA, SREF): Produce rvalue.
 	(SSET): New macro.
 	* alloc.c (make_event_array): Use SSET for storing into a string.
