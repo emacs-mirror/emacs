@@ -1,3 +1,8 @@
+2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-do-command): Use a pipe for async processes, so password
+	prompts don't show up at places where the user can't reply.
+
 2005-03-29  Olive Lin  <olive.lin@versateladsl.be>
 
 	* textmodes/tex-mode.el (tex-send-command): shell-quote-argument
