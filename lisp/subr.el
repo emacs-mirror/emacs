@@ -1242,8 +1242,9 @@ user can undo the change normally."
 	     (accept-change-group ,handle)
 	   (cancel-change-group ,handle))))))
 
-(defun prepare-change-group ()
+(defun prepare-change-group (&optional buffer)
   "Return a handle for the current buffer's state, for a change group.
+If you specify BUFFER, make a handle for BUFFER's state instead.
 
 Pass the handle to `activate-change-group' afterward to initiate
 the actual changes of the change group.
@@ -1269,7 +1270,9 @@ You can then activate that multibuffer change group with a single
 call to `activate-change-group' and finish it with a single call
 to `accept-change-group' or `cancel-change-group'."
 
-  (list (cons (current-buffer) buffer-undo-list)))
+  (if buffer
+      (list (cons buffer (with-current-buffer buffer buffer-undo-list)))
+    (list (cons (current-buffer) buffer-undo-list))))
 
 (defun activate-change-group (handle)
   "Activate a change group made with `prepare-change-group' (which see)."
