@@ -4028,7 +4028,10 @@ then characters with property value PROP are invisible,\n\
 and they have an ellipsis as well if ELLIPSIS is non-nil.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
-    "*Non-nil means deactivate the mark when the buffer contents change.");
+    "*Non-nil means deactivate the mark when the buffer contents change.\n\
+Non-nil also enables highlighting of the region whenever the mark is active.\n\
+The variable `highlight-nonselected-windows' controls whether to highlight\n\
+all windows or just the selected window.");
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
