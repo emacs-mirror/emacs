@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.40) $
+ * $HopeName: MMsrc!poolams.c(trunk.41) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -20,7 +20,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.40) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.41) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -412,24 +412,6 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
   *baseReturn = base;
   *limitReturn = limit;
   return TRUE;
-}
-
-
-/* AMSBufferInit -- the buffer init method
- *
- * This just sets rankSet.  See design.mps.poolams.buffer-init.
- */
-
-Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  Rank rank = va_arg(args, Rank);
-
-  AVERT(Pool, pool);
-  AVERT(AMS, PoolPoolAMS(pool));
-  AVERT(Rank, rank);
-
-  BufferSetRankSet(buffer, RankSetSingle(rank));
-  return ResOK;
 }
 
 
@@ -1197,7 +1179,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->offset = offsetof(AMSStruct, poolStruct);
   this->init = AMSInit;
   this->finish = AMSFinish;
-  this->bufferInit = AMSBufferInit;
+  this->bufferClass = EnsureRankBufClass;
   this->bufferFill = AMSBufferFill;
   this->bufferEmpty = AMSBufferEmpty;
   this->whiten = AMSWhiten;

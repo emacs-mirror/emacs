@@ -1,6 +1,6 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.4) $
+ * $HopeName: MMsrc!poolabs.c(trunk.5) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -24,19 +24,19 @@
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractAllocFreePoolClass - implements alloc & free
  *     AbstractBufferPoolClass - implements the buffer protocol
- *      AbstractBufferedSegPoolClass - uses BufferedSeg buffer class 
+ *      AbstractSegBufPoolClass - uses SegBuf buffer class 
  *       AbstractScanPoolClass - implements basic scanning
  *        AbstractCollectPoolClass - implements basic GC 
  */
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.4) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.5) $");
 
 typedef PoolClassStruct AbstractPoolClassStruct;
 typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
 typedef PoolClassStruct AbstractBufferPoolClassStruct;
-typedef PoolClassStruct AbstractBufferedSegPoolClassStruct;
+typedef PoolClassStruct AbstractSegBufPoolClassStruct;
 typedef PoolClassStruct AbstractScanPoolClassStruct;
 typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
@@ -75,10 +75,8 @@ void PoolClassMixInBuffer(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
   class->attr |= (AttrBUF | AttrBUF_RESERVE);
-  class->bufferInit = PoolTrivBufferInit;
   class->bufferFill = PoolTrivBufferFill;
   class->bufferEmpty = PoolTrivBufferEmpty;
-  class->bufferFinish = PoolTrivBufferFinish;
   /* By default, buffered pools treat frame operations as NOOPs */
   class->framePush = PoolTrivFramePush; 
   class->framePop = PoolTrivFramePop;
@@ -155,10 +153,8 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->finish = PoolTrivFinish;
   class->alloc = PoolNoAlloc;
   class->free = PoolNoFree;
-  class->bufferInit = PoolNoBufferInit;
   class->bufferFill = PoolNoBufferFill;
   class->bufferEmpty = PoolNoBufferEmpty;
-  class->bufferFinish = PoolNoBufferFinish;
   class->traceBegin = PoolNoTraceBegin;
   class->access = PoolNoAccess;
   class->whiten = PoolNoWhiten;
@@ -195,15 +191,15 @@ DEFINE_CLASS(AbstractBufferPoolClass, class)
   PoolClassMixInBuffer(class);
 }
 
-DEFINE_CLASS(AbstractBufferedSegPoolClass, class)
+DEFINE_CLASS(AbstractSegBufPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractBufferPoolClass);
-  class->bufferClass = EnsureBufferedSegClass;
+  class->bufferClass = EnsureSegBufClass;
 }
 
 DEFINE_CLASS(AbstractScanPoolClass, class)
 {
-  INHERIT_CLASS(class, AbstractBufferedSegPoolClass);
+  INHERIT_CLASS(class, AbstractSegBufPoolClass);
   PoolClassMixInScan(class);
 }
 

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.124) $
+ * $HopeName: MMsrc!mpm.h(trunk.125) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -361,10 +361,6 @@ extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
                          Bool withReservoirPermit);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
-extern Res PoolNoBufferInit(Pool pool, Buffer buf, va_list args);
-extern Res PoolTrivBufferInit(Pool pool, Buffer buf, va_list args);
-extern void PoolNoBufferFinish(Pool pool, Buffer buf);
-extern void PoolTrivBufferFinish(Pool pool, Buffer buf);
 extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                             Pool pool, Buffer buffer, Size size,
                             Bool withReservoirPermit);
@@ -429,7 +425,7 @@ extern void PoolClassMixInCollect(PoolClass class);
 extern AbstractPoolClass EnsureAbstractPoolClass(void);
 extern AbstractAllocFreePoolClass EnsureAbstractAllocFreePoolClass(void);
 extern AbstractBufferPoolClass EnsureAbstractBufferPoolClass(void);
-extern AbstractBufferPoolClass EnsureAbstractBufferedSegPoolClass(void);
+extern AbstractBufferPoolClass EnsureAbstractSegBufPoolClass(void);
 extern AbstractScanPoolClass EnsureAbstractScanPoolClass(void);
 extern AbstractCollectPoolClass EnsureAbstractCollectPoolClass(void);
 
@@ -741,7 +737,7 @@ extern void TractFinish(Tract tract);
 #define TractPool(tract)        ((tract)->pool)
 #define TractP(tract)           ((tract)->p)
 #define TractSetP(tract, pp)    ((void)((tract)->p = (pp)))
-#define TractHasSeg(tract)      ((tract)->hasSeg)
+#define TractHasSeg(tract)      ((Bool)(tract)->hasSeg)
 #define TractSetHasSeg(tract, b) ((void)((tract)->hasSeg = (b)))
 #define TractWhite(tract)       ((tract)->white)
 #define TractSetWhite(tract, w) ((void)((tract)->white = w))
@@ -815,10 +811,10 @@ extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern void *SegP(Seg seg);
 extern void SegSetP(Seg seg, void *p);
 extern Bool SegCheck(Seg seg);
-extern Bool SegGCCheck(SegGC gcseg);
+extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
 extern SegClass EnsureSegClass(void);
-extern SegClass EnsureSegGCClass(void);
+extern SegClass EnsureGCSegClass(void);
 
 
 /* DEFINE_SEG_CLASS
@@ -844,9 +840,9 @@ extern Addr (SegLimit)(Seg seg);
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
 #define SegNailed(seg)          ((seg)->nailed)
-#define SegOfPoolRing(node)     (&(RING_ELT(SegGC, poolRing, (node)) \
+#define SegOfPoolRing(node)     (&(RING_ELT(GCSeg, poolRing, (node)) \
                                    ->segStruct))
-#define SegOfGreyRing(node)     (&(RING_ELT(SegGC, greyRing, (node)) \
+#define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
 
 #define SegSetPM(seg, mode)     ((void)((seg)->pm = (mode)))
@@ -863,7 +859,7 @@ extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                          Pool pool, Bool isMutator, va_list args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
-extern Bool BufferedSegCheck(BufferedSeg bufseg);
+extern Bool SegBufCheck(SegBuf segbuf);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
@@ -935,7 +931,8 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 extern Bool BufferClassCheck(BufferClass class);
 extern BufferClass EnsureBufferClass(void);
-extern BufferClass EnsureBufferedSegClass(void);
+extern BufferClass EnsureSegBufClass(void);
+extern BufferClass EnsureRankBufClass(void);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
