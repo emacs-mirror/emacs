@@ -390,7 +390,10 @@ corresponds to many different Chinese characters, you must select one of
 the alternatives using special Emacs commands.  Keys such as @kbd{C-f},
 @kbd{C-b}, @kbd{C-n}, @kbd{C-p}, and digits have special definitions in
 this situation, used for selecting among the alternatives.  @key{TAB}
-displays a buffer showing all the possibilities.
+displays a buffer showing all the possibilities; clicking @kbd{Mouse-2}
+on one of the possible completions selects that alternative.
+@code{C-@key{SPC}} selects the current alternative, while typing a
+number @var{n} selects the @var{n}th column of the current row.
 
    In Japanese input methods, first you input a whole word using
 phonetic spelling; then, after the word is in the buffer, Emacs converts
