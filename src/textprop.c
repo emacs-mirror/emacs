@@ -304,6 +304,8 @@ set_properties (properties, interval, object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCONS (sym)->car, XCONS (value)->car,
 				    object);
+	    signal_after_change (interval->position, LENGTH (interval),
+				 LENGTH (interval));
 	  }
 
       /* For each new property that has no value at all in the old plist,
@@ -319,6 +321,8 @@ set_properties (properties, interval, object)
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCONS (sym)->car, Qnil,
 				    object);
+	    signal_after_change (interval->position, LENGTH (interval),
+				 LENGTH (interval));
 	  }
     }
 
@@ -386,6 +390,7 @@ add_properties (plist, i, object)
 			       make_number (i->position + LENGTH (i)));
 		record_property_change (i->position, LENGTH (i),
 					sym1, Fcar (this_cdr), object);
+		signal_after_change (i->position, LENGTH (i), LENGTH (i));
 	      }
 
 	    /* I's property has a different value -- change it */
@@ -404,6 +409,7 @@ add_properties (plist, i, object)
 			     make_number (i->position + LENGTH (i)));
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
+	      signal_after_change (i->position, LENGTH (i), LENGTH (i));
 	    }
 	  i->plist = Fcons (sym1, Fcons (val1, i->plist));
 	  changed++;
@@ -445,6 +451,7 @@ remove_properties (plist, i, object)
 	      record_property_change (i->position, LENGTH (i),
 				      sym, Fcar (Fcdr (current_plist)),
 				      object);
+	      signal_after_change (i->position, LENGTH (i), LENGTH (i));
 	    }
 
 	  current_plist = Fcdr (Fcdr (current_plist));
@@ -466,6 +473,7 @@ remove_properties (plist, i, object)
 				 make_number (i->position + LENGTH (i)));
 		  record_property_change (i->position, LENGTH (i),
 					  sym, Fcar (Fcdr (this)), object);
+		  signal_after_change (i->position, LENGTH (i), LENGTH (i));
 		}
 
 	      Fsetcdr (Fcdr (tail2), Fcdr (Fcdr (this)));
