@@ -253,13 +253,14 @@ the variable `jit-lock-stealth-nice'."
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
 (defun jit-lock-register (fun)
-  "Register FUN as a fontification function to be called by jit-lock.
-Only applies to the current buffer."
+  "Register FUN as a fontification function to be called in this buffer.
+FUN will be called with two arguments START and END indicating the region
+that need to be (re)fontified."
   (add-hook 'jit-lock-functions fun nil t)
   (jit-lock-mode t))
 
 (defun jit-lock-unregister (fun)
-  "Unregister FUN as a fontification function to be called by jit-lock.
+  "Unregister FUN as a fontification function.
 Only applies to the current buffer."
   (remove-hook 'jit-lock-functions fun t)
   (when (or (null jit-lock-functions)
