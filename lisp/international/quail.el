@@ -947,9 +947,7 @@ The returned value is a Quail map specific to KEY."
 		     (overlay-end quail-overlay))))
 
 (defun quail-terminate-translation ()
-  "Terminate the translation of the current key.
-Optional arg SUPPRESS-INSERT-CHUNK-HOOK if non-nil means don't run hooks
-in `input-method-after-insert-chunk-hook' (which see)."
+  "Terminate the translation of the current key."
   (let ((start (overlay-start quail-overlay)))
     (if (and start
 	     (< start (overlay-end quail-overlay)))
@@ -963,6 +961,7 @@ in `input-method-after-insert-chunk-hook' (which see)."
 	  (quail-delete-region)
 	  (setq last-command-char (car seq))
 	  (self-insert-command (or quail-prefix-arg 1))
+	  (setq quail-prefix-arg nil)
 	  (setq seq (cdr seq))
 	  (while seq
 	    (setq last-command-char (car seq))
@@ -976,8 +975,8 @@ in `input-method-after-insert-chunk-hook' (which see)."
   (setq overriding-terminal-local-map
 	(quail-conversion-keymap))
   ;; Run this hook only when the current input method doesn't require
-  ;; conversion.  When it requires, the conversoin function should run
-  ;; this hook at a proper timing.
+  ;; conversion.  When conversion is required, the conversion function
+  ;; should run this hook at a proper timing.
   (unless (quail-conversion-keymap)
     (run-hooks 'input-method-after-insert-chunk-hook)))
 
@@ -1018,8 +1017,12 @@ in `input-method-after-insert-chunk-hook' (which see)."
   (interactive "*")
   (setq quail-current-key
 	(concat quail-current-key (char-to-string last-command-event)))
-  (catch 'quail-tag
-    (quail-update-translation (quail-translate-key))))
+  (unless (catch 'quail-tag
+	    (quail-update-translation (quail-translate-key))
+	    t)
+    ;; If someone throws for `quail-tag' by value nil, we exit from
+    ;; translation mode.
+    (setq overriding-terminal-local-map nil)))
 
 ;; Return the actual definition part of Quail map MAP.
 (defun quail-map-definition (map)
