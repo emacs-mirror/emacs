@@ -667,12 +667,12 @@ all sections related to a subject, put something appropriate into the
 	      ;; the page will actually be displayed, but it seems
 	      ;; reasonable.
 	      (setenv "COLUMNS" (number-to-string (frame-width)))))
+	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer "sh" "-c"
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
-	  (setenv "GROFF_NO_SGR" "1")
 	  (let ((exit-status
 		 (call-process shell-file-name nil (list buffer nil) nil "-c"
 			       (format (Man-build-man-command) man-args)))
