@@ -116,7 +116,7 @@
 ;; You can do this automatically like this:
 ;;   (add-hook 'sh-set-shell-hook 'sh-learn-buffer-indent)
 ;; 
-;; However...   `sh-learn-buffer-indent' is extremely slow,
+;; However...  `sh-learn-buffer-indent' is extremely slow,
 ;; especially on large-ish buffer.  Also, if there are conflicts the
 ;; "last one wins" which may not produce the desired setting.
 ;; 
@@ -1010,12 +1010,12 @@ a number means align to that column, e.g. 0 means fist column."
 	  sh-symbol-list))
 
 (defcustom sh-indent-for-fi 0
-  "*How much to indent a fi relative to an if.   Usually 0."
+  "*How much to indent a fi relative to an if.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-done '0
-  "*How much to indent a done relative to its matching stmt.   Usually 0."
+  "*How much to indent a done relative to its matching stmt.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
