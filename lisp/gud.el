@@ -307,7 +307,8 @@ off the specialized speedbar mode."
 (defvar gud-gdb-history nil)
 
 (defun gud-gdb-massage-args (file args)
-  (cons "-fullname" args))
+  (cons "-cd" (cons (expand-file-name default-directory)
+		    (cons "-fullname" args))))
 
 (defvar gud-gdb-marker-regexp
   ;; This used to use path-separator instead of ":";
