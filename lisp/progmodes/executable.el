@@ -120,7 +120,7 @@ See `compilation-error-regexp-alist'.")
 ;; The C function openp slightly modified would do the trick fine
 (defun executable-find (command)
   "Search for COMMAND in exec-path and return the absolute file name.
-Return nil if COMMAND is not found anywhere in exec-path."
+Return nil if COMMAND is not found anywhere in `exec-path'."
   (let ((list exec-path)
 	file)
     (while list
