@@ -1,3 +1,11 @@
+2002-06-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Fformat_mode_line): New function.
+	(frame_title_buf, frame_title_buf_end, frame_title_ptr)
+	(store_frame_title_char, store_frame_title): Use unconditionally.
+	(init_xdisp): Defsubr Fformat_mode_line.
+	Initialize frame_title_buf etc. unconditionally.
+
 2002-06-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (read_key_sequence):
