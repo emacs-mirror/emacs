@@ -259,7 +259,7 @@ main (argc, argv)
       exit (1);
     }
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
   cwd = getwd (string);
 #else
   cwd = getcwd (string, sizeof string);
@@ -374,7 +374,7 @@ main (argc, argv)
     }
 
   /* Determine working dir, so we can prefix it to all the arguments.  */
-#ifdef BSD
+#ifdef BSD_SYSTEM
   temp = getwd (gwdirb);
 #else
   temp = getcwd (gwdirb, sizeof gwdirb);

@@ -310,13 +310,13 @@ main (argc, argv)
       if (indesc < 0)
 	pfatal_with_name (inname);
 
-#if defined (BSD) || defined (XENIX)
+#if defined (BSD_SYSTEM) || defined (XENIX)
       /* In case movemail is setuid to root, make sure the user can
 	 read the output file.  */
       /* This is desirable for all systems
 	 but I don't want to assume all have the umask system call */
       umask (umask (0) & 0333);
-#endif /* BSD or Xenix */
+#endif /* BSD_SYSTEM || XENIX */
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
@@ -354,7 +354,7 @@ main (argc, argv)
 	  }
       }
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
       if (fsync (outdesc) < 0)
 	pfatal_and_delete (outname);
 #endif
@@ -588,7 +588,7 @@ popmail (user, outfile, password)
    *      directories have lost mail when over quota because these checks were
    *      not made in previous versions of movemail. */
 
-#ifdef BSD
+#ifdef BSD_SYSTEM
   if (fsync (mbfi) < 0)
     {
       error ("Error in fsync: %s", strerror (errno));

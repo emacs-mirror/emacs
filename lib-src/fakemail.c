@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #define NO_SHORTNAMES
 #include <../src/config.h>
 
-#if defined (BSD) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
+#if defined (BSD_SYSTEM) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */
 int
 main ()
