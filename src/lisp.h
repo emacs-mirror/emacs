@@ -1555,6 +1555,7 @@ extern Lisp_Object Qdisabled;
 extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
+extern Lisp_Object menu_bar_items ();
 extern Lisp_Object Qvertical_scroll_bar;
 #ifdef MULTI_KBOARD
 extern void delete_kboard ();
