@@ -135,7 +135,11 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 #ifdef BSD
 #define EMACS_KILLPG(gid, signo) (killpg ( (gid), (signo)))
 #else
+#ifdef WINDOWSNT
+#define EMACS_KILLPG(gid, signo) (win32_kill_process (gid, signo))
+#else
 #define EMACS_KILLPG(gid, signo) (kill   (-(gid), (signo)))
+#endif
 #endif
 
 /* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
