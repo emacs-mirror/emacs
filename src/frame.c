@@ -30,6 +30,7 @@ Lisp_Object Qscreenp;
 Lisp_Object Vscreen_list;
 Lisp_Object Vterminal_screen;
 Lisp_Object Vglobal_minibuffer_screen;
+Lisp_Object Vdefault_screen_alist;
 
 /* A screen which is not just a minibuffer, or 0 if there are no
    such screens.  This is usually the most recent such screen that
@@ -128,8 +129,19 @@ make_screen (mini_p)
       XFASTINT (XWINDOW (mini_window)->height) = 1;
     }
 
-  XWINDOW (root_window)->buffer = Qt;
-  Fset_window_buffer (root_window, Fcurrent_buffer ());
+  /* Choose a buffer for the screen's root window.  */
+  {
+    Lisp_Object buf;
+
+    XWINDOW (root_window)->buffer = Qt;
+    buf = Fcurrent_buffer ();
+    /* If buf is a 'hidden' buffer (i.e. one whose name starts with
+       a space), try to find another one.  */
+    if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
+      buf = Fother_buffer (buf);
+    Fset_window_buffer (root_window, buf);
+  }
+
   if (mini_p)
     {
       XWINDOW (mini_window)->buffer = Qt;
@@ -1115,11 +1127,22 @@ syms_of_screen ()
   Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("global-minibuffer-screen", &Vglobal_minibuffer_screen,
- "A screen whose minibuffer is used by minibufferless screens.\n\
+    "A screen whose minibuffer is used by minibufferless screens.\n\
 When you create a minibufferless screen, by default it will use the\n\
 minibuffer of this screen.  It is up to you to create a suitable screen\n\
 and store it in this variable.");
   Vglobal_minibuffer_screen = Qnil;
+
+  DEFVAR_LISP ("default-screen-alist", &Vdefault_screen_alist,
+    "Alist of default values for screen creation.\n\
+These may be set in your init file, like this:\n\
+  (setq default-screen-alist '((width . 80) (height . 55)))\n\
+These override values given in window system configuration data, like\n\
+X Windows' defaults database.\n\
+For values specific to the first emacs screen, see initial-screen-alist.\n\
+For values specific to the separate minibuffer screen, see\n\
+minibuffer-screen-alist.");
+  Vdefault_screen_alist = Qnil;
 
   defsubr (&Sscreenp);
   defsubr (&Sselect_screen);
