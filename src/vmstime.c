@@ -357,7 +357,7 @@ struct tm *sys_gmtime(time_t *clock)
   gmt.tm_hour = tmp_vectime.hour;
   gmt.tm_mday = tmp_vectime.day;
   gmt.tm_mon = tmp_vectime.month - 1;
-  gmt.tm_year = tmp_vectime.year % 100;
+  gmt.tm_year = tmp_vectime.year - 1900;
 
   tmp_operation = LIB$K_DAY_OF_WEEK;
   status = LIB$CVT_FROM_INTERNAL_TIME(&tmp_operation,
