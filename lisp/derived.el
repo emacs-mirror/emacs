@@ -91,6 +91,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
