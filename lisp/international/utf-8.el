@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Author: TAKAHASHI Naoto  <ntakahas@m17n.org>
 ;; Keywords: multilingual, Unicode, UTF-8, i18n
@@ -76,106 +77,142 @@
   ;; Thus magnification factor is two.
   ;;
   `(2
-    ((loop
+    ((r5 = ,(charset-id 'eight-bit-control))
+     (r6 = ,(charset-id 'eight-bit-graphic))
+     (loop
       (read r0)
 
       ;; 1byte encoding, i.e., ascii
       (if (r0 < #x80)
 	  (write r0)
 
-	;; 2byte encoding
+	;; 2 byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
 	(if (r0 < #xe0)
 	    ((read r1)
-	     (r0 &= #x1f)
-	     (r0 <<= 6)
-	     (r1 &= #x3f)
-	     (r1 += r0)
-	     ;; now r1 holds scalar value
 
-	     ;; eight-bit-control
-	     (if (r1 < 160)
-		 ((r0 = ,(charset-id 'eight-bit-control))
-		  (write-multibyte-character r0 r1))
+	     (if ((r1 & #b11000000) != #b10000000)
+		 ;; Invalid 2-byte sequence
+		 ((if (r0 < #xa0)
+		      (write-multibyte-character r5 r0)
+		    (write-multibyte-character r6 r0))
+		  (if (r1 < #x80)
+		      (write r1)
+		    (if (r1 < #xa0)
+			(write-multibyte-character r5 r1)
+		      (write-multibyte-character r6 r1))))
 
-	       ;; latin-iso8859-1
-	       (if (r1 < 256)
-		   ((r0 = ,(charset-id 'latin-iso8859-1))
-		    (r1 -= 128)
-		    (write-multibyte-character r0 r1))
+	       ((r0 &= #x1f)
+		(r0 <<= 6)
+		(r1 &= #x3f)
+		(r1 += r0)
+		;; Now r1 holds scalar value
 
-		 ;; mule-unicode-0100-24ff (< 0800)
-		 ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		  (r1 -= #x0100)
-		  (r2 = (((r1 / 96) + 32) << 7))
-		  (r1 %= 96)
-		  (r1 += (r2 + 32))
-		  (write-multibyte-character r0 r1)))))
+		;; eight-bit-control
+		(if (r1 < 160)
+		    ((write-multibyte-character r5 r1))
+
+		  ;; latin-iso8859-1
+		  (if (r1 < 256)
+		      ((r0 = ,(charset-id 'latin-iso8859-1))
+		       (r1 -= 128)
+		       (write-multibyte-character r0 r1))
+
+		    ;; mule-unicode-0100-24ff (< 0800)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r1 -= #x0100)
+		     (r2 = (((r1 / 96) + 32) << 7))
+		     (r1 %= 96)
+		     (r1 += (r2 + 32))
+		     (write-multibyte-character r0 r1)))))))
 
 	  ;; 3byte encoding
+	  ;; zzzzyyyyyyxxxxxx = 1110zzzz 10yyyyyy 10xxxxxx
 	  (if (r0 < #xf0)
 	      ((read r1 r2)
-	       (r3 = ((r0 & #x0f) << 12))
-	       (r3 += ((r1 & #x3f) << 6))
-	       (r3 += (r2 & #x3f))
-	       ;; now r3 holds scalar value
 
-	       ;; mule-unicode-0100-24ff (>= 0800)
-	       (if (r3 < #x2500)
-		   ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		    (r3 -= #x0100)
-		    (r3 //= 96)
-		    (r1 = (r7 + 32))
-		    (r1 += ((r3 + 32) << 7))
-		    (write-multibyte-character r0 r1))
+	       ;; This is set to 1 if the encoding is invalid.
+	       (r4 = 0)
 
-		 ;; mule-unicode-2500-33ff
-		 (if (r3 < #x3400)
-		     ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
-		      (r3 -= #x2500)
-		      (r3 //= 96)
-		      (r1 = (r7 + 32))
-		      (r1 += ((r3 + 32) << 7))
-		      (write-multibyte-character r0 r1))
+	       (r3 = (r1 & #b11000000))
+	       (r3 |= ((r2 >> 2) & #b00110000))
+	       (if (r3 != #b10100000)
+		   (r4 = 1)
+		 ((r3 = ((r0 & #x0f) << 12))
+		  (r3 += ((r1 & #x3f) << 6))
+		  (r3 += (r2 & #x3f))
+		  (if (r3 < #x0800)
+		      (r4 = 1))))
 
-		   ;; U+3400 .. U+DFFF
-		   ;; keep those bytes as eight-bit-{control|graphic}
-		   (if (r3 < #xe000)
-		       (;; #xe0 <= r0 < #xf0, so r0 is eight-bit-graphic
-			(r3 = ,(charset-id 'eight-bit-graphic))
-			(write-multibyte-character r3 r0)
-			(if (r1 < #xa0)
-			    (r3 = ,(charset-id 'eight-bit-control)))
-			(write-multibyte-character r3 r1)
-			(if (r2 < #xa0)
-			    (r3 = ,(charset-id 'eight-bit-control))
-			  (r3 = ,(charset-id 'eight-bit-graphic)))
-			(write-multibyte-character r3 r2))
-
-		     ;; mule-unicode-e000-ffff
-		     ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-		      (r3 -= #xe000)
-		      (r3 //= 96)
-		      (r1 = (r7 + 32))
-		      (r1 += ((r3 + 32) << 7))
-		      (write-multibyte-character r0 r1))))))
+	       (if (r4 != 0)
+		   ;; Invalid 3-byte sequence
+		   ((if (r0 < #xa0)
+			(write-multibyte-character r5 r0)
+		      (write-multibyte-character r6 r0))
+		    (if (r1 < #x80)
+			(write r1)
+		      (if (r1 < #xa0)
+			  (write-multibyte-character r5 r1)
+			(write-multibyte-character r6 r1)))
+		    (if (r2 < #x80)
+			(write r2)
+		      (if (r2 < #xa0)
+			  (write-multibyte-character r5 r2)
+			(write-multibyte-character r6 r2))))
+		 
+		 ;; mule-unicode-0100-24ff (>= 0800)
+		 ((if (r3 < #x2500)
+		      ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		       (r3 -= #x0100)
+		       (r3 //= 96)
+		       (r1 = (r7 + 32))
+		       (r1 += ((r3 + 32) << 7))
+		       (write-multibyte-character r0 r1))
+		    
+		    ;; mule-unicode-2500-33ff
+		    (if (r3 < #x3400)
+			((r0 = ,(charset-id 'mule-unicode-2500-33ff))
+			 (r3 -= #x2500)
+			 (r3 //= 96)
+			 (r1 = (r7 + 32))
+			 (r1 += ((r3 + 32) << 7))
+			 (write-multibyte-character r0 r1))
+		      
+		      ;; U+3400 .. U+DFFF
+		    ;; keep those bytes as eight-bit-{control|graphic}
+		      (if (r3 < #xe000)
+			  ( ;; #xe0 <= r0 < #xf0, so r0 is eight-bit-graphic
+			   (r3 = r6)
+			   (write-multibyte-character r3 r0)
+			   (if (r1 < #xa0)
+			       (r3 = r5))
+			   (write-multibyte-character r3 r1)
+			   (if (r2 < #xa0)
+			       (r3 = r5)
+			     (r3 = r6))
+			   (write-multibyte-character r3 r2))
+			
+			;; mule-unicode-e000-ffff
+			((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+			 (r3 -= #xe000)
+			 (r3 //= 96)
+			 (r1 = (r7 + 32))
+			 (r1 += ((r3 + 32) << 7))
+			 (write-multibyte-character r0 r1))))))))
 
 	    ;; 4byte encoding
 	    ;; keep those bytes as eight-bit-{control|graphic}
 	    ((read r1 r2 r3)
 	     ;; r0 > #xf0, thus eight-bit-graphic
-	     (r4 = ,(charset-id 'eight-bit-graphic))
-	     (write-multibyte-character r4 r0)
+	     (write-multibyte-character r6 r0)
 	     (if (r1 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control)))
-	     (write-multibyte-character r4 r1)
+		 (write-multibyte-character r5 r1)
+	       (write-multibyte-character r6 r1))
 	     (if (r2 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control))
-	       (r4 = ,(charset-id 'eight-bit-graphic)))
-	     (write-multibyte-character r4 r2)
+		 (write-multibyte-character r5 r2)
+	       (write-multibyte-character r6 r2))
 	     (if (r3 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control))
-	       (r4 = ,(charset-id 'eight-bit-graphic)))
-	     (write-multibyte-character r4 r3)))))
+		 (write-multibyte-character r5 r3)
+	       (write-multibyte-character r6 r3))))))
 
       (repeat))))
 
