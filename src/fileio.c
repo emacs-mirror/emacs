@@ -3063,10 +3063,13 @@ This does code conversion according to the value of\n\
 
   /* Decide the coding-system of the file.  */
   {
-    Lisp_Object val = Vcoding_system_for_read;
-    if (NILP (current_buffer->enable_multibyte_characters))
-      val = Qnil;
-    else if (NILP (val))
+    Lisp_Object val;
+
+    if (!NILP (Vcoding_system_for_read))
+      val = Vcoding_system_for_read;
+    else if (NILP (current_buffer->enable_multibyte_characters))
+      val = Qemacs_mule;
+    else
       {
 	Lisp_Object args[6], coding_systems;
 
@@ -3806,12 +3809,13 @@ to the file, instead of any buffer contents, and END is ignored.")
   {
     Lisp_Object val;
 
-    if (auto_saving || NILP (current_buffer->enable_multibyte_characters))
+    if (auto_saving)
       val = Qnil;
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
-    else if (!NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
-					      Qnil)))
+    else if (NILP (current_buffer->enable_multibyte_characters)
+	     || !NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
+						 Qnil)))
       val = Fsymbol_value (Qbuffer_file_coding_system);
     else
       {
