@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 93, 94, 95, 97-99, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Dave Love <fx@gnu.org>
@@ -658,7 +658,6 @@ with no args, if that value is non-nil."
   (setq fortran-tab-mode-string " TAB-format")
   (setq indent-tabs-mode (fortran-analyze-file-format))
   (setq imenu-case-fold-search t)
-  (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression fortran-imenu-generic-expression)
   (setq imenu-syntax-alist '(("_$" . "w")))
   (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
@@ -668,8 +667,10 @@ with no args, if that value is non-nil."
          (let (fortran-blink-matching-if ; avoid blinking delay
                indent-region-function)
            (indent-region start end nil))))
-  (setq beginning-of-defun #'fortran-beginning-of-subprogram)
-  (setq end-of-defun #'fortran-end-of-subprogram)
+  (set (make-local-variable 'beginning-of-defun-function)
+       #'fortran-beginning-of-subprogram)
+  (set (make-local-variable 'end-of-defun-function)
+       #'fortran-end-of-subprogram)
   (run-hooks 'fortran-mode-hook))
 
 (defun fortran-comment-indent-function ()
