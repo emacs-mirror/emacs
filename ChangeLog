@@ -1,3 +1,7 @@
+2002-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL-CVS: New file.
+
 2002-06-07  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (x86_64-*-linux-gnu*): New system.
