@@ -31,7 +31,8 @@
 (eval-when-compile (require 'cl))
 
 (require 'nnoo)
-(require 'nnweb)
+(eval-when-compile (ignore-errors (require 'nnweb)))
+(eval '(require 'nnweb))
 
 (nnoo-declare nnlistserv
   nnweb)
