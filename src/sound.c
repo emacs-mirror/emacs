@@ -446,8 +446,8 @@ a system-dependent default device name is used.")
   else
     {
       s.data = attrs[SOUND_DATA];
-      bcopy (XSTRING (s.data)->data, s.header,
-	     min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data))));
+      s.header_size = min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data)));
+      bcopy (XSTRING (s.data)->data, s.header, s.header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */

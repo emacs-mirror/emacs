@@ -1,3 +1,8 @@
+2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sound.c (Fplay_sound): Initialize header_size also for :data
+	case.
+
 2002-01-13  Andreas Schwab  <schwab@suse.de>
 
 	* xterm.c (x_load_font): Never set fonts_changed_p to zero.
