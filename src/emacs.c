@@ -1095,6 +1095,24 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 #endif
     }
 
+  /* Gerd Moellmann <gerd@acm.org> says this makes profiling work on
+     FreeBSD.  It might work on some other systems too.
+     Give it a try and tell me if it works on your system.  */
+#ifdef __FreeBSD__
+#ifdef PROFILING
+  if (initialized)
+    {
+      extern void _mcleanup ();       
+      extern char etext;
+      extern void clear_glyph_matrix ();
+      atexit (_mcleanup);
+      monstartup (clear_glyph_matrix, &etext);
+    }
+  else
+    moncontrol (0);
+#endif
+#endif
+
   initialized = 1;
 
 #ifdef LOCALTIME_CACHE
