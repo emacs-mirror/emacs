@@ -722,7 +722,7 @@
 
 	* bindings.el: Bind shifted and control-shifted kp-* keys to the
 	corresponding non-kp keys.  Suggested by Stephen Gildea
-	<gildea@alum.mit.edu>.
+	<gildea@stop.mail-abuse.org>.
 
 2001-08-01  Francesco Potorti`  <pot@gnu.org>
 
@@ -3218,7 +3218,8 @@
 	to `postscript'.
 
 	* subr.el (read-passwd): Clear command history after each
-	character entered.  From: Stephen Gildea <gildea@alum.mit.edu>.
+	character entered.  From: Stephen Gildea
+	<gildea@stop.mail-abuse.org>.
 
 2001-03-27  Kenichi Handa  <handa@etl.go.jp>
 
@@ -6348,7 +6349,7 @@
 
 	* progmodes/ada-stmt.el: Update `maintainer'.
 
-2000-12-09  Stephen Gildea  <gildea@alum.mit.edu>
+2000-12-09  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el (time-stamp-old-format-warn): Reorder custom
 	choices to match documentation string.
@@ -8509,7 +8510,7 @@
 	* menu-bar.el (menu-bar-options-menu): Add a help string for
 	`uniquify'.
 
-2000-10-25  Stephen Gildea  <gildea@alum.mit.edu>
+2000-10-25  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el (time-stamp-string-preprocess):
 	Fix a wrong type argument error.
@@ -9175,7 +9176,7 @@
 	* toolbar/*.xpm: Reduce to max. 8 colors (mogrify -colorspace
 	transparent -colors 8).
 
-2000-10-13  Stephen Gildea  <gildea@alum.mit.edu>
+2000-10-13  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el (time-stamp): Fixed bug in new multi-line code
 	that breaks with old list format timestamps.
@@ -14529,7 +14530,7 @@
 2000-07-23  Noah Friedman  <friedman@splode.com>
 
 	* type-break.el (type-break): perform autosave.
-	Suggested by Stephen Gildea <gildea@intouchsys.com>.
+	Suggested by Stephen Gildea <gildea@stop.mail-abuse.org>.
 	(type-break-do-query): Cancel query schedule while performing
 	actual query, to avoid possibility of a second query being made
 	while first one is already in progress.
