@@ -1032,9 +1032,9 @@ esac
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 ### If we're using X11, we should use the X menu package.
-HAVE_X_MENU=no
+HAVE_MENUS=no
 case ${HAVE_X11} in
-  yes ) HAVE_X_MENU=yes ;;
+  yes ) HAVE_MENUS=yes ;;
 esac
 
 if test "${opsys}" = "hpux9"; then
@@ -1255,6 +1255,17 @@ XScreenNumberOfScreen XSetWMProtocols)
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
 fi
 
+if test "${window_system}" = "x11"; then
+  AC_MSG_CHECKING(X11 version)
+  AC_TRY_LINK([#include <X11/Xlib.h>],
+[#if XlibSpecificationRelease < 6
+fail;
+#endif
+], [AC_MSG_RESULT(6)
+    AC_DEFINE(HAVE_X11R6)],
+   [AC_MSG_RESULT(not 6)])
+fi
+
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_TRY_LINK([#include <X11/Intrinsic.h>],
@@ -1419,8 +1430,8 @@ fi
 if test "${HAVE_XFREE386}" = "yes" ; then
   AC_DEFINE(HAVE_XFREE386)
 fi
-if test "${HAVE_X_MENU}" = "yes" ; then
-  AC_DEFINE(HAVE_X_MENU)
+if test "${HAVE_MENUS}" = "yes" ; then
+  AC_DEFINE(HAVE_MENUS)
 fi
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC)
