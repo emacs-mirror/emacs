@@ -1301,7 +1301,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
 		= ((struct fringe_bitmap **)
 		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
 	      fringe_faces
-		= (unsigned *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (Lisp_Object));
+		= (Lisp_Object *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (Lisp_Object));
 
 	      for (; i < max_fringe_bitmaps; i++)
 		{
@@ -1472,7 +1472,7 @@ init_fringe ()
   fringe_bitmaps
     = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
   fringe_faces
-    = (unsigned *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
+    = (Lisp_Object *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
 
   for (i = 0; i < max_fringe_bitmaps; i++)
     {

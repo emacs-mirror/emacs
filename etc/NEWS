@@ -174,6 +174,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Emacs now responds to mouse-clicks on the mode-line, header-line and
+display margin, when run in an xterm.
+
+** M-SPC (just-one-space) when given a numeric argument N
+converts whitespace around point to N spaces.
+
 ** Control characters and escape glyphs are now shown in the new
 escape-glyph face.
 
@@ -426,6 +432,10 @@ Hits are fontified in green, and hits in binary files in orange.  Grep buffers
 can be saved and automatically revisited with the new Grep mode.
 
 *** Grep commands now have their own submenu and customization group.
+
++++
+*** `grep-find' is now also available under the name `find-grep' where
+people knowing `find-grep-dired' would probably expect it.
 
 *** The new variables `grep-window-height', `grep-auto-highlight', and
 `grep-scroll-output' can be used to override the corresponding
@@ -2540,6 +2550,12 @@ configuration files.
 * Incompatible Lisp Changes in Emacs 21.4
 
 +++
+** `suppress-keymap' now works by remapping `self-insert-command' to
+the command `undefined'.  (In earlier Emacs versions, it used
+`substitute-key-definition' to rebind self inserting characters to
+`undefined'.)
+
++++
 ** Mode line display ignores text properties as well as the
 :propertize and :eval forms in the value of a variable whose
 `risky-local-variable' property is nil.
@@ -2578,9 +2594,9 @@ back the match can start; this is a way to keep it from taking too long.
 
 +++
 ** New functions `make-progress-reporter', `progress-reporter-update',
-`progress-reporter-force-update' and `progress-reporter-done' provide
-a simple and efficient way for a command to present progress messages
-for the user.
+`progress-reporter-force-update', `progress-reporter-done', and
+`dotimes-with-progress-reporter' provide a simple and efficient way for
+a command to present progress messages for the user.
 
 ---
 ** To manipulate the File menu using easy-menu, you must specify the

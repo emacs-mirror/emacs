@@ -35,20 +35,23 @@ handle 2 noprint pass
 # debugging.
 handle SIGALRM ignore
 
-# Set up a mask to use.
-# This should be EMACS_INT, but in some cases that is a macro.
-# long ought to work in all cases right now.
+# $valmask and $tagmask are mask values set up by the xreload macro below.
 
+# Use $bugfix so that the value isn't a constant.
+# Using a constant runs into GDB bugs sometimes.
 define xgetptr
-  set $ptr = (gdb_use_union ? $arg0.u.val : $arg0 & $valmask) | gdb_data_seg_bits
+  set $bugfix = $arg0
+  set $ptr = (gdb_use_union ? $bugfix.u.val : $bugfix & $valmask) | gdb_data_seg_bits
 end
 
 define xgetint
-  set $int = gdb_use_union ? $arg0.s.val : (gdb_use_lsb ? $arg0 : $arg0 << gdb_gctypebits) >> gdb_gctypebits
+  set $bugfix = $arg0
+  set $int = gdb_use_union ? $bugfix.s.val : (gdb_use_lsb ? $bugfix : $bugfix << gdb_gctypebits) >> gdb_gctypebits
 end
 
 define xgettype
-  set $type = gdb_use_union ? $arg0.s.type : (enum Lisp_Type) (gdb_use_lsb ? $arg0 & $tagmask : $arg0 >> gdb_valbits)
+  set $bugfix = $arg0
+  set $type = gdb_use_union ? $bugfix.s.type : (enum Lisp_Type) (gdb_use_lsb ? $bugfix & $tagmask : $bugfix >> gdb_valbits)
 end
 
 # Set up something to print out s-expressions.

@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004  Free Software Foundation, Inc.
+;;   2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -2711,7 +2711,7 @@ you call it."
 (defun make-progress-reporter (message min-value max-value
 				       &optional current-value
 				       min-change min-time)
-  "Return progress reporter object usage with `progress-reporter-update'.
+  "Return progress reporter object to be used with `progress-reporter-update'.
 
 MESSAGE is shown in the echo area.  When at least 1% of operation
 is complete, the exact percentage will be appended to the
@@ -2799,6 +2799,33 @@ change the displayed message."
 (defun progress-reporter-done (reporter)
   "Print reporter's message followed by word \"done\" in echo area."
   (message "%sdone" (aref (cdr reporter) 3)))
+
+(defmacro dotimes-with-progress-reporter (spec message &rest body)
+  "Loop a certain number of times and report progress in the echo area.
+Evaluate BODY with VAR bound to successive integers running from
+0, inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
+the return value (nil if RESULT is omitted).
+
+At each iteration MESSAGE followed by progress percentage is
+printed in the echo area.  After the loop is finished, MESSAGE
+followed by word \"done\" is printed.  This macro is a
+convenience wrapper around `make-progress-reporter' and friends.
+
+\(fn (VAR COUNT [RESULT]) MESSAGE BODY...)"
+  (declare (indent 2) (debug ((symbolp form &optional form) form body)))
+  (let ((temp (make-symbol "--dotimes-temp--"))
+	(temp2 (make-symbol "--dotimes-temp2--"))
+	(start 0)
+	(end (nth 1 spec)))
+    `(let ((,temp ,end)
+	   (,(car spec) ,start)
+	   (,temp2 (make-progress-reporter ,message ,start ,end)))
+       (while (< ,(car spec) ,temp)
+	 ,@body
+	 (progress-reporter-update ,temp2
+				   (setq ,(car spec) (1+ ,(car spec)))))
+       (progress-reporter-done ,temp2)
+       nil ,@(cdr (cdr spec)))))
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

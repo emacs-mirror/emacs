@@ -143,11 +143,11 @@ static __malloc_size_t bytes_used_when_full;
 
 #define MARK_STRING(S)		((S)->size |= ARRAY_MARK_FLAG)
 #define UNMARK_STRING(S)	((S)->size &= ~ARRAY_MARK_FLAG)
-#define STRING_MARKED_P(S)	((S)->size & ARRAY_MARK_FLAG)
+#define STRING_MARKED_P(S)	(((S)->size & ARRAY_MARK_FLAG) != 0)
 
 #define VECTOR_MARK(V)		((V)->size |= ARRAY_MARK_FLAG)
 #define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
-#define VECTOR_MARKED_P(V)	((V)->size & ARRAY_MARK_FLAG)
+#define VECTOR_MARKED_P(V)	(((V)->size & ARRAY_MARK_FLAG) != 0)
 
 /* Value is the number of bytes/chars of S, a pointer to a struct
    Lisp_String.  This must be used instead of STRING_BYTES (S) or

@@ -1246,15 +1246,16 @@ line_bottom_y (it)
 }
 
 
-/* Return 1 if position CHARPOS is visible in window W.  Set *FULLY to
-   1 if POS is visible and the line containing POS is fully visible.
+/* Return 1 if position CHARPOS is visible in window W.
+   If visible, set *X and *Y to pixel coordinates of top left corner.
+   Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
    EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
    and header-lines heights.  */
 
 int
-pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully, *x, *y, exact_mode_line_heights_p;
+     int charpos, *x, *y, *rtop, *rbot, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
@@ -1267,7 +1268,7 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
       set_buffer_internal_1 (XBUFFER (w->buffer));
     }
 
-  *fully = visible_p = 0;
+  visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
   /* Compute exact mode line heights, if requested.  */
@@ -1298,14 +1299,16 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
       if (top_y < window_top_y)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
-	{
 	  visible_p = 1;
-	  *fully = bottom_y <= it.last_visible_y;
-	}
       if (visible_p && x)
 	{
 	  *x = it.current_x;
 	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	  if (rtop)
+	    {
+	      *rtop = max (0, window_top_y - top_y);
+	      *rbot = max (0, bottom_y - it.last_visible_y);
+	    }
 	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
@@ -1322,6 +1325,11 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
 	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
 	      *x = it2.current_x;
 	      *y = it2.current_y + it2.max_ascent - it2.ascent;
+	      if (rtop)
+		{
+		  *rtop = 0;
+		  *rbot = max (0, (it2.current_y + it2.max_ascent + it2.max_descent) - it.last_visible_y);
+		}
 	    }
 	}
     }
@@ -4669,51 +4677,52 @@ static void
 back_to_previous_visible_line_start (it)
      struct it *it;
 {
-  int visible_p = 0;
-
-  /* Go back one newline if not on BEGV already.  */
-  if (IT_CHARPOS (*it) > BEGV)
-    back_to_previous_line_start (it);
-
-  /* Move over lines that are invisible because of selective display
-     or text properties.  */
-  while (IT_CHARPOS (*it) > BEGV
-	 && !visible_p)
+  while (IT_CHARPOS (*it) > BEGV)
     {
-      visible_p = 1;
+      back_to_previous_line_start (it);
+      if (IT_CHARPOS (*it) <= BEGV)
+	break;
 
       /* If selective > 0, then lines indented more than that values
 	 are invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				(double) it->selective)) /* iftc */
-	visible_p = 0;
-      else
-	{
-	  Lisp_Object prop;
+	continue;
 
-	  /* Check the newline before point for invisibility.  */
-	  prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
+      /* Check the newline before point for invisibility.  */
+      {
+	Lisp_Object prop;
+	prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
 				     Qinvisible, it->window);
-	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
-	    visible_p = 0;
-	}
+	if (TEXT_PROP_MEANS_INVISIBLE (prop))
+	  continue;
+      }
 
-#if 0
-      /* Commenting this out fixes the bug described in
-	 http://www.math.ku.dk/~larsh/emacs/emacs-loops-on-large-images/test-case.txt.  */
-      if (visible_p)
-	{
-	  struct it it2 = *it;
+      /* If newline has a display property that replaces the newline with something
+	 else (image or text), find start of overlay or interval and continue search
+	 from that point.  */
+      {
+	struct it it2 = *it;
+	int pos = IT_CHARPOS (*it);
+	int beg, end;
+	Lisp_Object val, overlay;
 
-	  if (handle_display_prop (&it2) == HANDLED_RETURN)
-	    visible_p = 0;
-	}
-#endif
-
-      /* Back one more newline if the current one is invisible.  */
-      if (!visible_p)
-	back_to_previous_line_start (it);
+	if (handle_display_prop (&it2) == HANDLED_RETURN
+	    && !NILP (val = get_char_property_and_overlay
+		      (make_number (pos), Qdisplay, Qnil, &overlay))
+	    && (OVERLAYP (overlay)
+		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
+	  {
+	    if (beg < BEGV)
+	      beg = BEGV;
+	    IT_CHARPOS (*it) = beg;
+	    IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
+	    continue;
+	  }
+      }
+      break;
     }
 
   xassert (IT_CHARPOS (*it) >= BEGV);
@@ -20751,6 +20760,28 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
       past_end = 1;
     }
 
+  /* If whole rows or last part of a row came from a display overlay,
+     row_containing_pos will skip over such rows because their end pos
+     equals the start pos of the overlay or interval.  Backtrack if we
+     have a STOP object and previous row's end glyph came from STOP.  */
+  if (!NILP (stop))
+    {
+      struct glyph_row *prev = row-1;
+      while ((prev = row - 1, prev >= first)
+	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
+	     && prev->used[TEXT_AREA] > 0)
+	{
+	  end = prev->glyphs[TEXT_AREA];
+	  glyph = end + prev->used[TEXT_AREA];
+	  while (--glyph >= end
+		 && INTEGERP (glyph->object));
+	  if (glyph >= end
+	      && !EQ (stop, glyph->object))
+	    break;
+	  row = prev;
+	}
+    }
+
   *x = row->x;
   *y = row->y;
   *vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
@@ -21212,9 +21243,9 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 		  help_echo_pos = charpos;
 		}
 	    }
-	  if (NILP (pointer))
-	    pointer = Fsafe_plist_get (XCDR (object), QCpointer);
 	}
+      if (NILP (pointer))
+	pointer = Fsafe_plist_get (XCDR (object), QCpointer);
     }
 
   if (STRINGP (string))

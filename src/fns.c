@@ -4305,6 +4305,10 @@ sweep_weak_table (h, remove_entries_p)
 
 		  h->count = make_number (XFASTINT (h->count) - 1);
 		}
+	      else
+		{
+		  prev = idx;
+		}
 	    }
 	  else
 	    {

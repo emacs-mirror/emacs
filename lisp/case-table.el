@@ -95,6 +95,8 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table uc lc)
   (aset table lc lc)
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table.
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
@@ -108,6 +110,8 @@ that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (aset table c c)
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table.
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)

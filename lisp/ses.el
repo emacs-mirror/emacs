@@ -405,26 +405,6 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   (setq ses--header-row row)
   t)
 
-(defmacro ses-dotimes-msg (spec msg &rest body)
-  "(ses-dotimes-msg (VAR LIMIT) MSG BODY...): Like `dotimes', but
-a message is emitted using MSG every second or so during the loop."
-  (let ((msgvar   (make-symbol "msg"))
-	(limitvar (make-symbol "limit"))
-	(var      (car spec))
-	(limit    (cadr spec)))
-    `(let ((,limitvar ,limit)
-	   (,msgvar   ,msg))
-       (setq ses-start-time (float-time))
-       (message ,msgvar)
-       (setq ,msgvar (concat ,msgvar " (%d%%)"))
-       (dotimes (,var ,limitvar)
-	 (ses-time-check ,msgvar '(/ (* ,var 100) ,limitvar))
-	 ,@body)
-       (message nil))))
-
-(put 'ses-dotimes-msg 'lisp-indent-function 2)
-(def-edebug-spec ses-dotimes-msg ((symbolp form) form body))
-
 (defmacro ses-dorange (curcell &rest body)
   "Execute BODY repeatedly, with the variables `row' and `col' set to each
 cell in the range specified by CURCELL.  The range is available in the
@@ -1218,7 +1198,8 @@ the rectangle (MINROW,MINCOL)..(NUMROWS,NUMCOLS) by adding ROWINCR and COLINCR
 to each symbol."
   (let (reform)
     (let (mycell newval)
-      (ses-dotimes-msg (row ses--numrows) "Relocating formulas..."
+      (dotimes-with-progress-reporter
+          (row ses--numrows) "Relocating formulas..."
 	(dotimes (col ses--numcols)
 	  (setq ses-relocate-return nil
 		mycell (ses-get-cell row col)
@@ -1246,7 +1227,8 @@ to each symbol."
       (cond
        ((and (<= rowincr 0) (<= colincr 0))
 	;;Deletion of rows and/or columns
-	(ses-dotimes-msg (row (- ses--numrows minrow)) "Relocating variables..."
+	(dotimes-with-progress-reporter
+           (row (- ses--numrows minrow)) "Relocating variables..."
 	  (setq myrow  (+ row minrow))
 	  (dotimes (col (- ses--numcols mincol))
 	    (setq mycol  (+ col mincol)
@@ -1262,7 +1244,8 @@ to each symbol."
 	(let ((disty (1- ses--numrows))
 	      (distx (1- ses--numcols))
 	      myrow mycol)
-	  (ses-dotimes-msg (row (- ses--numrows minrow)) "Relocating variables..."
+	  (dotimes-with-progress-reporter
+	      (row (- ses--numrows minrow)) "Relocating variables..."
 	    (setq myrow (- disty row))
 	    (dotimes (col (- ses--numcols mincol))
 	      (setq mycol (- distx col)
@@ -1475,7 +1458,7 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
     (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
     ;;Create intangible properties, which also indicate which cell the text
     ;;came from.
-    (ses-dotimes-msg (row ses--numrows) "Finding cells..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
       (dotimes (col ses--numcols)
 	(setq pos  end
 	      sym  (ses-cell-symbol row col))
@@ -1724,7 +1707,7 @@ print area if NONARROW is nil."
     ;;find the data area when inserting or deleting *skip* values for cells
     (dotimes (row ses--numrows)
       (insert-and-inherit ses--blank-line))
-    (ses-dotimes-msg (row ses--numrows) "Reprinting..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Reprinting..."
       (if (eq (ses-cell-value row 0) '*skip*)
 	  ;;Column deletion left a dangling skip
 	  (ses-set-cell row 0 'value nil))
@@ -1809,11 +1792,13 @@ cells."
   ;;Reconstruct reference lists.
   (let (x yrow ycol)
     ;;Delete old reference lists
-    (ses-dotimes-msg (row ses--numrows) "Deleting references..."
+    (dotimes-with-progress-reporter
+        (row ses--numrows) "Deleting references..."
       (dotimes (col ses--numcols)
 	(ses-set-cell row col 'references nil)))
     ;;Create new reference lists
-    (ses-dotimes-msg (row ses--numrows) "Computing references..."
+    (dotimes-with-progress-reporter
+        (row ses--numrows) "Computing references..."
       (dotimes (col ses--numcols)
 	(dolist (ref (ses-formula-references (ses-cell-formula row col)))
 	  (setq x    (ses-sym-rowcol ref)
@@ -2073,7 +2058,7 @@ before current one."
     (ses-set-parameter 'ses--numrows (+ ses--numrows count))
     ;;Insert each row
     (ses-goto-print row 0)
-    (ses-dotimes-msg (x count) "Inserting row..."
+    (dotimes-with-progress-reporter (x count) "Inserting row..."
       ;;Create a row of empty cells.  The `symbol' fields will be set by
       ;;the call to ses-relocate-all.
       (setq newrow (make-vector ses--numcols nil))
@@ -2162,7 +2147,7 @@ If COL is specified, the new column(s) get the specified WIDTH and PRINTER
     (ses-create-cell-variable-range 0            (1- ses--numrows)
 				    ses--numcols (+ ses--numcols count -1))
     ;;Insert each column.
-    (ses-dotimes-msg (x count) "Inserting column..."
+    (dotimes-with-progress-reporter (x count) "Inserting column..."
       ;;Create a column of empty cells.  The `symbol' fields will be set by
       ;;the call to ses-relocate-all.
       (ses-adjust-print-width col (1+ width))
@@ -2220,7 +2205,7 @@ from the current one."
     (ses-begin-change)
     (ses-set-parameter 'ses--numcols (- ses--numcols count))
     (ses-adjust-print-width col (- width))
-    (ses-dotimes-msg (row ses--numrows) "Deleting column..."
+    (dotimes-with-progress-reporter (row ses--numrows) "Deleting column..."
       ;;Delete lines from cell data area
       (ses-goto-data row col)
       (ses-delete-line count)
@@ -2469,7 +2454,7 @@ formulas are to be inserted without relocation."
 	     (colincr  (- (cdr rowcol) (cdr first)))
 	     (pos      0)
 	     myrow mycol x)
-	(ses-dotimes-msg (row needrows) "Yanking..."
+	(dotimes-with-progress-reporter (row needrows) "Yanking..."
 	  (setq myrow (+ row (car rowcol)))
 	  (dotimes (col needcols)
 	    (setq mycol (+ col (cdr rowcol))

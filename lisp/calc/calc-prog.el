@@ -702,15 +702,17 @@
                     (intcmd (symbol-name (cdr def)))
                     (algcmd (substring (symbol-name func) 9)))
 	       (if (and defn (calc-valid-formula-func func))
-		   (progn
+		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
 		      (calc-edit-mode 
                        (list 'calc-finish-formula-edit (list 'quote func))
                        nil
-                       (format "Editing formula (%s, %s, bound to %s).\n"
-                               intcmd algcmd kys))
+                       (format (concat
+                                "Editing formula (%s, %s, bound to %s).\n"
+                                "Original formula: %s\n")
+                               intcmd algcmd kys niceexpr))
 		      (insert  (math-showing-full-precision
-                                (math-format-nice-expr defn (frame-width)))
+                                niceexpr)
                                "\n"))
 		     (calc-show-edit-buffer))
 		 (error "That command's definition cannot be edited")))))))
@@ -1124,6 +1126,8 @@ Redefine the corresponding command."
   (calc-execute-kbd-macro last-kbd-macro arg))
 
 (defun calc-execute-kbd-macro (mac arg &rest prefix)
+  (if calc-keep-args-flag
+      (calc-keep-args))
   (if (and (vectorp mac) (> (length mac) 0) (stringp (aref mac 0)))
       (setq mac (or (aref mac 1)
 		    (aset mac 1 (progn (and (fboundp 'edit-kbd-macro)

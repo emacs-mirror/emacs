@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -731,7 +731,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
-#ifdef MAC_OSX
+#ifdef MAC_OS_X_VERSION_10_2
   UInt32 textFlags, savedFlags;
   if (!NILP(Vmac_use_core_graphics)) {
     textFlags = kQDUseCGTextRendering;
@@ -748,7 +748,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
-#ifdef MAC_OSX
+#ifdef MAC_OS_X_VERSION_10_2
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
 #endif
@@ -2648,15 +2648,9 @@ x_draw_glyph_string_box (s)
   struct glyph *last_glyph;
   Rect clip_rect;
 
-  last_x = window_box_right (s->w, s->area);
-  if (s->row->full_width_p
-      && !s->w->pseudo_window_p)
-    {
-      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
-      if (s->area != RIGHT_MARGIN_AREA
-	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
-	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
-    }
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
 
   /* The glyph that may have a right box line.  */
   last_glyph = (s->cmp || s->img
@@ -5951,7 +5945,7 @@ decode_mac_font_name (name, size, scriptcode)
 
 
 static char *
-mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
+mac_to_x_fontname (name, size, style, scriptcode)
      char *name;
      int size;
      Style style;
@@ -6822,7 +6816,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	font->max_bounds.width = max_width;
       }
     }
-  
+
   TextFont (old_fontnum);  /* restore previous font number, size and face */
   TextSize (old_fontsize);
   TextFace (old_fontface);
@@ -9950,7 +9944,9 @@ Toolbox for processing before Emacs sees it.  */);
 #endif
 
   DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
-   doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
+   doc: /* If non-nil, allow anti-aliasing.
+The text will be rendered using Core Graphics text rendering which
+may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,

@@ -1295,10 +1295,9 @@ Switch to a buffer editing the last file dropped."
 (if (string= default-directory "/")
     (cd "~"))
 
-;; Tell Emacs to use pipes instead of pty's for processes because the
-;; latter sometimes lose characters.  Pty support is compiled in since
-;; ange-ftp will not work without it.
-(setq process-connection-type nil)
+;; Darwin 6- pty breakage is now controlled from the C code so that
+;; it applies to all builds on darwin.  See s/darwin.h PTY_ITERATION.
+;; (setq process-connection-type t)
 
 ;; Assume that fonts are always scalable on the Mac.  This sometimes
 ;; results in characters with jagged edges.  However, without it,

@@ -1,3 +1,10 @@
+2005-01-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-insert-part): Switch the multibyteness of data
+	which will be inserted according to the multibyteness of a buffer
+	rather than the type of contents.  Suggested by ARISAWA Akihiro
+	<ari@mbf.ocn.ne.jp>.
+
 2005-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* spam.el (spam-face): New face.  Don't use `gnus-splash-face'

@@ -9,11 +9,161 @@
 	some possibly unnecessary fontset checking code that crashed
 	when creating a new frame
 
+2005-01-22  Steven Tamm  <steventamm@mac.com>
+
+	* s/darwin.h: Removed PTY_ITERATION from here.
+	(DARWIN): Defined.
+	* process.c (init_process): Default process-connection-type to
+	nil on darwin 6 or less, t if it is 7 or higher.  This way the
+	broken pty behavior is still allowed on darwin 6 for interactive
+	processes for people that know what they are doing.
+
+2005-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (auto_window_vscroll_p): New boolean.
+	(syms_of_window): DEFVAR_BOOL it.
+	(Fpos_visible_in_window_p): Extend return value to include RTOP
+	and RBOT values if FULLY is nil.
+	(window_scroll_pixel_based): Adjust vscroll for partially visible
+	rows if auto_window_vscroll_p is set.
+	(Fset_window_vscroll): Do nothing if vscroll is not modified.
+
+	* xdisp.c (pos_visible_p): Replace FULLY arg by RTOP and RBOT args
+	to return number of partially invisible pixels at top and bottom
+	of the dislay row at POS.
+
+	* lisp.h (pos_visible_p): Fix prototype.
+
+2005-01-21  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fcopy_file): Doc fix.
+
+2005-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_detach_callback): Remove unused variable bw.
+	(xg_get_file_name): Move declaration ofx_use_old_gtk_file_dialog to
+	start of function for older compilers.
+
+2005-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fmessage): If arg is "", return "" (as before).
+
+	* keymap.c (access_keymap): Protect from bad value of meta_prefix_char.
+
+	* .gdbinit (xgetptr, xgetint, xgettype): Copy $arg0 into a temp
+	variable.
+
+2005-01-20  Steven Tamm  <steventamm@mac.com>
+
+	* editfns.c (Voperating_system_release): Added.
+	(init_editfns): Assign new variable operating-system-release
+	based on call to uname if available.
+	(get_operating_system_release): Added function to
+	allow c-level access to operating system release.
+
+	* config.h: Regenerated.
+
+	* s/darwin.h (PTY_ITERATION): Don't allow PTYs on darwin 6 or
+	less.
+	(MIN_PTY_KERNEL_VERSION): Defined minimum kernel version for
+	using ptys as '7'.
+
+2005-01-20  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (STRING_MARKED_P, VECTOR_MARKED_P): Return boolean.
+
+	* xterm.c (x_draw_glyph_string_box): Fix last_x for full width rows.
+	Thanks to Chong Yidong <cyd@stupidchicken.com> for debugging this.
+
+	* macterm.c (x_draw_glyph_string_box): Likewise.
+
+	* w32term.c (x_draw_glyph_string_box): Likewise.
+
+	* indent.c (Fvertical_motion): Temporarily disable selective display.
+
+2005-01-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Fix :pointer
+	image property.
+
+	* fns.c (sweep_weak_table): Advance prev pointer when we keep a pair.
+
+2005-01-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (fast_find_position): Backtrack to find first row if
+	charpos is inside a display overlay that spans multiple lines.
+
+2005-01-18  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Translate invalid codes if
+	translation-table is specified.
+
+2005-01-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (back_to_previous_visible_line_start): Undo 2004-12-28
+	change.  If handle_display_prop indicates newline is replaced by
+	image or text, move back to start of relevant overlay or interval
+	and continue scan from there.  Simplify.
+
+2005-01-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (mode_line_string, marginal_area_string): Fix
+	off-by-one error in search for glyph.
+
+2005-01-16  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (syms_of_macterm) <mac-allow-anti-aliasing>: Doc fix.
+
+2005-01-16  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_to_x_fontname): Removed spurious argument.
+
+2005-01-16  Andreas Schwab  <schwab@suse.de>
+
+	* macterm.c (mac_draw_string_common): Fix compilation on OSX 10.1.
+
+2005-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fringe.c (Fdefine_fringe_bitmap, init_fringe): When assigning
+	fringe_faces, cast result from xmalloc/xrealloc to Lisp_Object *.
+
+2005-01-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (READABLE_EVENTS_DO_TIMERS_NOW)
+	(READABLE_EVENTS_FILTER_EVENTS, READABLE_EVENTS_IGNORE_SQUEEZABLES):
+	New flags for readable_events.
+	(get_filtered_input_pending, readable_filtered_events): Removed.
+	(tracking_off): Call readable_events and get_input_pending with
+	flag READABLE_EVENTS_DO_TIMERS_NOW.
+	(readable_events): Move code from old readable_filtered_events here,
+	but check new READABLE_EVENTS_* in argument flags instead of previous
+	two boolean arguments do_timers_now and filter_events.
+	If we are doing mouse tracking and the mouse moved, return only if
+	READABLE_EVENTS_IGNORE_SQUEEZABLES is not set in flags.
+	(swallow_events): Call get_input_pending with flag
+	READABLE_EVENTS_DO_TIMERS_NOW.
+	(get_input_pending): Move code from old get_filtered_input_pending
+	here.  Replace boolean arguments do_timers_now, filter_events with
+	flags, and pass flags to readable_events.  Document new
+	READABLE_EVENTS_* flags.
+	(detect_input_pending_ignore_squeezables): New function.
+	(detect_input_pending_run_timers): Call get_input_pending with flag
+	READABLE_EVENTS_DO_TIMERS_NOW.
+	(Finput_pending_p): Call get_input_pending with flags
+	READABLE_EVENTS_DO_TIMERS_NOW and READABLE_EVENTS_FILTER_EVENTS.
+
+	* dispnew.c (update_window, update_frame_1): Replace calls to
+	detect_input_pending with detect_input_pending_ignore_squeezables
+	so that redisplay is not paused if the event queue contains only
+	mouse movements.
+
+	* lisp.h: Declare detect_input_pending_ignore_squeezables.
+
 2005-01-15  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (Vmac_use_core_graphics): defined for
-	mac-allow-anti-aliasing
-	(syms_of_macterm): Added mac-allow-anti-aliasing
+	* macterm.c (Vmac_use_core_graphics): Declare variable for
+	mac-allow-anti-aliasing.
+	(syms_of_macterm): DEFVAR_LISP and initialize it.
 	(mac_draw_string_common): Use core graphics text rendering if
 	mac-allow-anti-aliasing is enabled.
 
