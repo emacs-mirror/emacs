@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multibyte character, character set, syntax, category
 
@@ -50,6 +51,13 @@ Nothing special is needed to handle English.")
   :coding-type 'charset
   :charset-list '(ebcdic-uk)
   :mnemonic ?*)
+
+(define-coding-system 'ibm1047
+  "A version of EBCDIC used in OS/390 Unix"  ; says Groff
+  :coding-type 'charset
+  :charset-list '(ibm1047)
+  :mnemonic ?*)
+(define-coding-system-alias 'cp1047 'ibm1047)
 
 ;; Make "ASCII" an alias of "English" language environment.
 (set-language-info-alist
