@@ -213,7 +213,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 (defun hs-hide-block-at-point (&optional end comment c-reg)
   "Hide block iff on block beginning, optional END means reposition at end.
 COMMENT true means that it should hide a comment block, C-REG is a list
-of the forme (BEGIN . END) and specifies the limits of the comment." 
+of the form (BEGIN . END) and specifies the limits of the comment." 
   (if comment
       (let ((reg (if c-reg  c-reg (hs-inside-comment-p))))
 	(goto-char (nth 1 reg))
