@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 99, 2000, 2001
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 99, 2000, 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames, International, Windows, Top
@@ -230,6 +230,8 @@ dragging, the window scrolls at a steady rate until you move the mouse
 back into the window.  This way, you can mark regions that don't fit
 entirely on the screen.
 
+This way of setting the secondary selection does not alter the kill ring.
+
 @findex mouse-start-secondary
 @kindex M-Mouse-1
 @item M-Mouse-1
@@ -240,8 +242,9 @@ Set one endpoint for the @dfn{secondary selection}
 @kindex M-Mouse-3
 @item M-Mouse-3
 Make a secondary selection, using the place specified with @kbd{M-Mouse-1}
-as the other end (@code{mouse-secondary-save-then-kill}).  A second click
-at the same place kills the secondary selection just made.
+as the other end (@code{mouse-secondary-save-then-kill}).  This also
+puts the selected text in the kill ring.  A second click at the same
+place kills the secondary selection just made.
 
 @findex mouse-yank-secondary
 @kindex M-Mouse-2
@@ -376,8 +379,7 @@ horizontally, above the place in the mode line where you click.
 
 @kindex C-Mouse-2 @r{(scroll bar)}
   @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
-vertically, unless you are using an X toolkit's implementation of
-scroll bars.  @xref{Split Window}.
+vertically.  @xref{Split Window}.
 
   The commands above apply to areas of the mode line which do not have
 special mouse bindings of their own.  Some areas, such as the buffer
@@ -747,10 +749,8 @@ the level where you click up to the top of the window.  @kbd{Mouse-3}
 down to the level where you click.  By clicking repeatedly in the same
 place, you can scroll by the same distance over and over.
 
-  If you are using Emacs's own implementation of scroll bars, as opposed
-to scroll bars from an X toolkit, you can also click @kbd{C-Mouse-2} in
-the scroll bar to split a window vertically.  The split occurs on the
-line where you click.
+  You can also click @kbd{C-Mouse-2} in the scroll bar to split a
+window vertically.  The split occurs on the line where you click.
 
 @findex scroll-bar-mode
 @vindex scroll-bar-mode
@@ -800,9 +800,9 @@ buffers are scrolled.
 @section Drag and drop in Emacs.
 
 @cindex drag and drop
-  Emacs supports drag and drop so that dropping of files and text is handeled.
+  Emacs supports drag and drop so that dropping of files and text is handled.
 Currently supported drag and drop protocols are XDND, Motif and the old
-KDE 1.x protocol.  There is no drag support yet. 
+KDE 1.x protocol.  There is no drag support yet.
 When text is dropped on Emacs, Emacs inserts the text where it is dropped.
 When a file is dragged from a file manager to Emacs, Emacs opens that file.
 As a special case, if a file is dropped on a dired buffer the file is
@@ -896,7 +896,7 @@ file names.
 
   You can customize the option @code{use-file-dialog} to suppress the
 use of file selection windows even if you still want other kinds
-of dialogs.  This option has no effect if you have supressed all dialog
+of dialogs.  This option has no effect if you have suppressed all dialog
 boxes with the option @code{use-dialog-box}.
 
 
