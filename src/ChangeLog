@@ -1,3 +1,8 @@
+2002-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sysdep.c (sys_subshell) [MSDOS]: If PWD is set in the
+	environment, pass it down with corrected value.
+
 2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lread.c (read_filtered_event): Do not call start_hourglass
