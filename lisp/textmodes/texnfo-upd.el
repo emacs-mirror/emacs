@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989, 1990, 1991, 1992, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1991, 1992, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -673,7 +673,7 @@ complements the node name rather than repeats it as a title does."
             "\\|"                              ; or
             "\\(^@ifnottex[ ]*\n\\)"           ; ifnottex line, if any
             "\\)?"                             ; end of expression
-	    "\\)?")
+	    )
 	   nil t)
 	  (progn
 	    (setq title

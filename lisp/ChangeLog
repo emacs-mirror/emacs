@@ -1,3 +1,8 @@
+2002-03-01  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/texnfo-upd.el (texinfo-start-menu-description): Remove
+	extra paren in regexp.  From Michael Scholz <scholz-micha@gmx.de>.
+
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule-conf.el (ctext-no-compositions): Remove the
