@@ -1,3 +1,65 @@
+2001-11-16  Kim F. Storm  <storm@cua.dk>
+
+	The following changes are made to clean up the various internal
+	references to the fringes to actually use the term `fringe' for
+	them.  Previously, they were called `flags areas', `bitmap areas',
+	`left/right side of windows', or implicitly as `flags' or
+	`bitmaps':
+
+	* dispextern.h (FRINGE_FACE_ID): Renamed from BITMAP_AREA_FACE_ID.
+	Comments fixed. Use renamed symbols.
+	
+	* dispnew.c: Comment fix. Use renamed symbols.
+	
+	* frame.h (FRAME_FRINGE_COLS): Renamed from FRAME_FLAGS_AREA_COLS.
+	(FRAME_FRINGE_WIDTH): Renamed from FRAME_FLAGS_AREA_WIDTH.
+	(FRAME_LEFT_FRINGE_WIDTH): Renamed from FRAME_LEFT_FLAGS_AREA_WIDTH.
+	
+	* msdos.c: Comment fix.
+	
+	* w32fns.c: Use renamed symbols.
+	
+	* w32term.c: Comment fixes. Use renamed symbols.
+	(fringe_bitmap_type): Renamed from bitmap_type.
+	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
+	(w32_draw_fringe_bitmap): Renamed from w32_draw_bitmap.
+	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
+	
+	* w32term.h: Comment fixes. Use renamed symbols.
+	(fringes_extra): Renamed from flags_areas_extra.
+	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
+	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
+	(FRAME_X_FRINGE_COLS): Renamed from FRAME_X_FLAGS_AREA_COLS.
+	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
+	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
+	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
+	
+	* widget.c: Use renamed symbols.
+	
+	* window.c: Comment fixes. Use renamed symbols.
+	(coordinates-in-window-p): Doc fix.
+	
+	* xdisp.c: Comment fixes. Use renamed symbols.
+	
+	* xfaces.c (realize_basic_faces): Use FRINGE_FACE_ID.
+	
+	* xfns.c: Use renamed symbols.
+	
+	* xterm.c: Comment fixes. Use renamed symbols.
+	(fringe_bitmap_type): Renamed from bitmap_type.
+	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
+	(x_draw_fringe_bitmap): Renamed from x_draw_bitmap.
+	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
+
+	* xterm.h: Comment fixes. Use renamed symbols.
+	(fringes_extra): Renamed from flags_areas_extra.
+	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
+	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
+	(FRAME_X_FRINGE_COLS): Renamed from FRAME_X_FLAGS_AREA_COLS.
+	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
+	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
+	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
+
 2001-11-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (add-menu-item): Make help_echo and radio buttons

@@ -1,3 +1,25 @@
+2001-11-16  Kim F. Storm  <storm@cua.dk>
+
+	The following changes are made to clean up the various internal
+	references to the fringes to actually use the term `fringe'.
+
+	* src/macfns.c: Use renamed symbols.
+	
+	* src/macterm.c: Comment fixes. Use renamed symbols.
+	(fringe_bitmap_type): Renamed from bitmap_type.
+	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
+	(x_draw_fringe_bitmap): Renamed from x_draw_bitmap.
+	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
+
+	* inc/macterm.h: Comment fixes. Use renamed symbols.
+	(fringes_extra): Renamed from flags_areas_extra.
+	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
+	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
+	(FRAME_X_FRINGE_COLS): Renamed from FRAME_X_FLAGS_AREA_COLS.
+	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
+	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
+	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
+	
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
