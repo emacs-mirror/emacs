@@ -978,7 +978,7 @@ by nnmaildir-request-article.")
 	(throw 'return nil))
       (when (save-match-data (string-match "[\0/\t]" gname))
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
-	      (concat "Illegal characters (null, tab, or /) in group name: "
+	      (concat "Invalid characters (null, tab, or /) in group name: "
 		      gname))
 	(throw 'return nil))
       (setq groups (nnmaildir--srv-groups nnmaildir--cur-server))
@@ -1023,7 +1023,7 @@ by nnmaildir-request-article.")
 	(throw 'return nil))
       (when (save-match-data (string-match "[\0/\t]" new-name))
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
-	      (concat "Illegal characters (null, tab, or /) in group name: "
+	      (concat "Invalid characters (null, tab, or /) in group name: "
 		      new-name))
 	(throw 'return nil))
       (if (string-equal gname new-name) (throw 'return t))
