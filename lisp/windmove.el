@@ -1,10 +1,10 @@
-;; windmove.el -- directional window-selection routines.
+;;; windmove.el --- directional window-selection routines.
 ;;
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
-;; Keywords: window, movement
+;; Keywords: window, movement, convenience
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -51,7 +51,7 @@
 ;;     selected window; in this case, this policy selects A.
 ;; (2) Always move to the window to the right of the bottom edge of
 ;;     the selected window; in this case, this policy selects B.
-;; (3) Move to the window to the right of point in the slected
+;; (3) Move to the window to the right of point in the selected
 ;;     window.  This may select either A or B, depending on the
 ;;     position of point; in the illustrated example, it would select
 ;;     B.
@@ -122,8 +122,6 @@
 ;; to suggest wrap-around behavior.  Thanks also to Gerd Moellmann
 ;; (gerd@gnu.org) for his comments and suggestions.
 
-;; --------------------------------------------------------------------
-
 ;;; Code:
 
 
@@ -133,6 +131,7 @@
 (defgroup windmove nil
   "Directional selection of windows in a frame."
   :prefix "windmove-"
+  :version "21.1"
   :group 'windows
   :group 'convenience)
 
@@ -263,7 +262,7 @@ placement bugs in old versions of Emacs."
 ;; In the first phase, we make sure that the new location is sane.
 ;; "Sane" means that we can only fall of the edge of the frame in the
 ;; direction we're moving in, and that we don't miss the minibuffer if
-;; we're moving down and not already in the minibuffer.  The function 
+;; we're moving down and not already in the minibuffer.  The function
 ;; `windmove-constrain-loc-for-movement' takes care of all this.
 ;;
 ;; Then, we handle the wraparound, if it's enabled.  The function
@@ -521,7 +520,7 @@ DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'."
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-other-window-loc', or screams if there's no window there.
 (defun windmove-do-window-select (dir &optional arg window)
-  "Moves to the window at direction DIR.
+  "Move to the window at direction DIR.
 DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'.
 If no window is at direction DIR, an error is signaled."
   (let ((other-window (windmove-find-other-window dir arg window)))
