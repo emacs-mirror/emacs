@@ -864,7 +864,30 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
 
   compute_base_face (f, &face);
 
-  if (!NILP (prop))
+  if (CONSP (prop))
+    {
+      /* We have a list of faces, merge them in reverse order */
+      Lisp_Object length = Flength (prop);
+      int len = XINT (length);
+      Lisp_Object *faces;
+
+      /* Put them into an array */
+      faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+      for (j = 0; j < len; j++)
+	{
+	  faces[j] = Fcar (prop);
+	  prop = Fcdr (prop);
+	}
+      /* So that we can merge them in the reverse order */
+      for (j = len - 1; j >= 0; j--)
+	{
+	  facecode = face_name_id_number (f, faces[j]);
+	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
+	      && FRAME_PARAM_FACES (f) [facecode] != 0)
+	    merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
+	}
+    }
+  else if (!NILP (prop))
     {
       facecode = face_name_id_number (f, prop);
       if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
@@ -878,7 +901,31 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
   for (i = 0; i < noverlays; i++)
     {
       prop = Foverlay_get (overlay_vec[i], propname);
-      if (!NILP (prop))
+      if (CONSP (prop))
+	{
+	  /* We have a list of faces, merge them in reverse order */
+	  Lisp_Object length = Flength (prop);
+	  int len = XINT (length);
+	  Lisp_Object *faces;
+	  int i;
+
+	  /* Put them into an array */
+	  faces = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	  for (j = 0; j < len; j++)
+	    {
+	      faces[j] = Fcar (prop);
+	      prop = Fcdr (prop);
+	    }
+	  /* So that we can merge them in the reverse order */
+	  for (j = len - 1; j >= 0; j--)
+	    {
+	      facecode = face_name_id_number (f, faces[j]);
+	      if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
+		  && FRAME_PARAM_FACES (f) [facecode] != 0)
+		merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
+	    }
+	}
+      else if (!NILP (prop))
 	{
 	  Lisp_Object oend;
 	  int oendpos;
