@@ -46,6 +46,12 @@ more complete unification by calling (unify-8859-on-decoding-mode 1).
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
 
++++
+** Emacs can produce an underscore-like (horizontal bar) cursor.
+The underscore cursor is set by putting `(cursor-type . hbar)' in
+default-frame-alist.  It supports variable heights, like the `bar'
+cursor does.
+
 ---
 ** PO translation files are decoded according to their MIME headers
 when Emacs visits them.
