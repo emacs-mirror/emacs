@@ -448,12 +448,19 @@ default.  Also, installing them may be rather slow."
 
 			    ;; mule-unicode-e000-ffff
 			    ;; Fixme: fffe and ffff are invalid.
-			    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-			     (r3 -= #xe000)
-			     (r3 //= 96)
-			     (r1 = (r7 + 32))
-			     (r1 += ((r3 + 32) << 7))
-			     (write-multibyte-character r0 r1)))))))))
+			    ((r4 = r3)	; don't zap r3
+			     (lookup-integer utf-subst-table-for-decode r4 r5)
+			     (if r7
+				 ;; got a translation
+				 ((write-multibyte-character r4 r5)
+				  ;; Zapped through register starvation.
+				  (r5 = ,(charset-id 'eight-bit-control)))
+			       ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+				(r3 -= #xe000)
+				(r3 //= 96)
+				(r1 = (r7 + 32))
+				(r1 += ((r3 + 32) << 7))
+				(write-multibyte-character r0 r1)))))))))))
 
 	      (if (r0 < #xfe)
 		  ;; 4byte encoding
