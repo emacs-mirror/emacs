@@ -302,6 +302,8 @@ Return t if file exists.")
   Lisp_Object temp;
   struct gcpro gcpro1;
   Lisp_Object found;
+  /* 1 means inhibit the message at the beginning.  */
+  int nomessage1 = 0;
 
   CHECK_STRING (str, 0);
   str = Fsubstitute_in_file_name (str);
@@ -334,8 +336,13 @@ Return t if file exists.")
       XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
       result = stat (XSTRING (found)->data, &s2);
       if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
-	message ("Source file `%s' newer than byte-compiled file",
-		 XSTRING (found)->data);
+	{
+	  message ("Source file `%s' newer than byte-compiled file",
+		   XSTRING (found)->data);
+	  /* Don't immediately overwrite this message.  */
+	  if (!noninteractive)
+	    nomessage1 = 1;
+	}
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
     }
 
@@ -346,7 +353,7 @@ Return t if file exists.")
       error ("Failure to create stdio stream for %s", XSTRING (str)->data);
     }
 
-  if (NILP (nomessage))
+  if (NILP (nomessage) && !nomessage1)
     message ("Loading %s...", XSTRING (str)->data);
 
   GCPRO1 (str);
