@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "charset.h"
 
 Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
@@ -129,7 +130,7 @@ set_case_table (table, standard)
   if (NILP (up))
     {
       up = Fmake_char_table (Qcase_table, Qnil);
-      compute_trt_inverse (XCHAR_TABLE (table), XCHAR_TABLE (up));
+      compute_trt_inverse (table, up);
       XCHAR_TABLE (table)->extras[0] = up;
     }
 
@@ -144,7 +145,7 @@ set_case_table (table, standard)
       /* Set up the CANON vector; for each character,
 	 this sequence of upcasing and downcasing ought to
 	 get the "preferred" lowercase equivalent.  */
-      for (i = 0; i < 256; i++)
+      for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
 	XCHAR_TABLE (canon)->contents[i] = downvec[upvec[downvec[i]]];
       XCHAR_TABLE (table)->extras[1] = canon;
     }
@@ -152,7 +153,7 @@ set_case_table (table, standard)
   if (NILP (eqv))
     {
       eqv = Fmake_char_table (Qcase_table, Qnil);
-      compute_trt_inverse (XCHAR_TABLE (canon), XCHAR_TABLE (eqv));
+      compute_trt_inverse (canon, eqv);
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
@@ -169,6 +170,71 @@ set_case_table (table, standard)
   return table;
 }
 
+static void
+compute_trt_identity (bytes, depth, trt, inverse)
+     unsigned char *bytes;
+     int depth;
+     struct Lisp_Char_Table *trt, *inverse;
+{
+  register int i;
+
+  for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+    {
+      if (NATNUMP (trt->contents[i]))
+	{
+	  bytes[depth] = i;
+	  XSETFASTINT (inverse->contents[i],
+		       (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
+			: MAKE_NON_ASCII_CHAR (bytes[0]-128,
+					       bytes[1], bytes[2])));
+	}
+      else if (CHAR_TABLE_P (trt->contents[i]))
+	{
+	  bytes[depth] = i;
+	  inverse->contents[i] = Fmake_char_table (Qnil, Qnil);
+	  compute_trt_identity (bytes, depth + 1,
+				XCHAR_TABLE (trt->contents[i]),
+				XCHAR_TABLE (inverse->contents[i]));
+	}
+      else /* must be Qnil or Qidentity */
+	inverse->contents[i] = trt->contents[i];
+    }
+}
+
+static void
+compute_trt_shuffle (bytes, depth, ibase, trt, inverse)
+     unsigned char *bytes;
+     int depth;
+     Lisp_Object ibase;
+     struct Lisp_Char_Table *trt, *inverse;
+{
+  register int i;
+  Lisp_Object j, tem, q;
+
+  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+    {
+      bytes[depth] = i;
+      XSETFASTINT (j,
+		   (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
+		    : MAKE_NON_ASCII_CHAR (bytes[0]-128,
+					   bytes[1], bytes[2])));
+      q = trt->contents[i];
+      if (NATNUMP (q) && XFASTINT (q) != XFASTINT (j))
+	{
+	  tem = Faref (ibase, q);
+	  Faset (ibase, q, j);
+	  Faset (ibase, j, tem);
+	}
+      else if (CHAR_TABLE_P (q))
+	{
+	  bytes[depth] = i;
+	  compute_trt_shuffle (bytes, depth + 1, ibase,
+			       XCHAR_TABLE (trt->contents[i]),
+			       XCHAR_TABLE (inverse->contents[i]));
+	}
+    }
+}
+
 /* Given a translate table TRT, store the inverse mapping into INVERSE.
    Since TRT is not one-to-one, INVERSE is not a simple mapping.
    Instead, it divides the space of characters into equivalence classes.
@@ -176,24 +242,12 @@ set_case_table (table, standard)
    the elements of INVERSE.  */
 
 static void
-compute_trt_inverse (trt, inverse)
-     struct Lisp_Char_Table *trt, *inverse;
+compute_trt_inverse (trt, inv)
+     Lisp_Object trt, inv;
 {
-  register int i = 0400;
-  register unsigned char c, q;
-
-  while (i--)
-    inverse->contents[i] = i;
-  i = 0400;
-  while (i--)
-    {
-      if ((q = trt->contents[i]) != (unsigned char) i)
-	{
-	  c = inverse->contents[q];
-	  inverse->contents[q] = i;
-	  inverse->contents[i] = c;
-	}
-    }
+  unsigned char bytes[3];
+  compute_trt_identity (bytes, 0, XCHAR_TABLE (trt), XCHAR_TABLE (inv));
+  compute_trt_shuffle (bytes, 0, inv, XCHAR_TABLE (trt), XCHAR_TABLE (inv));
 }
 
 init_casetab_once ()
@@ -216,21 +270,22 @@ init_casetab_once ()
   Vascii_downcase_table = down;
   XCHAR_TABLE (down)->purpose = Qcase_table;
 
-  for (i = 0; i < 256; i++)
-    XCHAR_TABLE (down)->contents[i] = (i >= 'A' && i <= 'Z') ? i + 040 : i;
+  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+    XSETFASTINT (XCHAR_TABLE (down)->contents[i],
+		 (i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i);
 
   XCHAR_TABLE (down)->extras[1] = Fcopy_sequence (down);
 
   up = Fmake_char_table (Qcase_table, Qnil);
   XCHAR_TABLE (down)->extras[0] = up;
 
-  for (i = 0; i < 256; i++)
-    XCHAR_TABLE (up)->contents[i]
-      = ((i >= 'A' && i <= 'Z')
-	 ? i + ('a' - 'A')
-	 : ((i >= 'a' && i <= 'z')
-	    ? i + ('A' - 'a')
-	    : i));
+  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+    XSETFASTINT (XCHAR_TABLE (up)->contents[i],
+		 ((i >= 'A' && i <= 'Z')
+		  ? i + ('a' - 'A')
+		  : ((i >= 'a' && i <= 'z')
+		     ? i + ('A' - 'a')
+		     : i)));
 
   XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
 }
