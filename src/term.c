@@ -120,7 +120,7 @@ int (*mouse_tracking_enable_hook) ( /* int ENABLE */ );
    screen; under X, this means it lies about where the focus is.
    This hook tells the window system code to re-decide where to put
    the highlight.  */
-extern void (*screen_rehighlight_hook) ( /* SCREEN_PTR s */ );
+void (*screen_rehighlight_hook) ( /* SCREEN_PTR s */ );
 
 /* Strings, numbers and flags taken from the termcap entry.  */
 

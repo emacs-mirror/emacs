@@ -151,7 +151,7 @@ See backquote.el for details"
     (mapcar 'bq-iterative-list-builder (reverse form))
     (and state
 	 (cond ((eq state 'quote)
-		(list state tailmaker))
+		(list state (if (equal form tailmaker) form tailmaker)))
 	       ((= (length tailmaker) 1)
 		(funcall (bq-cadr (assq state bq-singles)) tailmaker))
 	       (t (cons state tailmaker))))))
