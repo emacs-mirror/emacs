@@ -1,5 +1,8 @@
 2001-07-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* mouse-sel.el (mouse-sel-bindings): Instead of unbinding
+	mouse-1 etc., bind them to `ignore'.
+
 	* eshell/esh-mode.el (eshell-send-invisible): Renamed from
 	send-invisible, which is already defined in Comint.
 	(eshell-watch-for-password-prompt): Use it.
