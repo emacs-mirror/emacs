@@ -341,8 +341,8 @@ find_defun_start (pos)
    the search was not successful).  */
 
 static int
-back_comment (from, stop)
-     int from, stop;
+back_comment (from, stop, comstyle)
+     int from, stop, comstyle;
 {
   /* Look back, counting the parity of string-quotes,
      and recording the comment-starters seen.
@@ -361,7 +361,7 @@ back_comment (from, stop)
   int comstart_parity = 0;
   int scanstart = from - 1;
   register enum syntaxcode code;
-  int c, comstyle = 0;
+  int c;
 
   /* At beginning of range to scan, we're outside of strings;
      that determines quote parity to the comment-end.  */
@@ -388,10 +388,16 @@ back_comment (from, stop)
 			
       /* If this char starts a 2-char comment start sequence,
 	 treat it like a 1-char comment starter.  */
-      if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
-	  && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
-	  && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
-	code = Scomment;
+      if (from < scanstart && SYNTAX_COMSTART_SECOND (c)
+	  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
+	  && comstyle == SYNTAX_COMMENT_STYLE (c))
+	{
+	  code = Scomment;
+	  DEC_POS (from);
+	  /* This is apparently the best we can do: */
+	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
+	  c = FETCH_CHAR (from);
+	}
 
       /* Ignore escaped characters.  */
       if (char_quoted (from))
@@ -1585,7 +1591,7 @@ between them, return t; otherwise return nil.")
 		  break;
 		}
 #endif /* 0 */
-	      found = back_comment (from, stop);
+	      found = back_comment (from, stop, comstyle);
 	      if (found != -1) from = found;
 #if 0
 	      /* Look back, counting the parity of string-quotes,
@@ -2032,7 +2038,7 @@ scan_lists (from, count, depth, sexpflag)
 		  break;
 		}
 #endif /* 0 */
-	      found = back_comment (from, stop);
+	      found = back_comment (from, stop, comstyle);
 	      if (found != -1) from = found;
 #if 0
 	      /* Look back, counting the parity of string-quotes,
