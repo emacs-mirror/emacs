@@ -5029,6 +5029,8 @@ DIR defaults to current buffer's directory default.")
   Lisp_Object val, insdef, insdef1, tem;
   struct gcpro gcpro1, gcpro2;
   register char *homedir;
+  int replace_in_history = 0;
+  int add_to_history = 0;
   int count;
 
   if (NILP (dir))
@@ -5090,13 +5092,25 @@ DIR defaults to current buffer's directory default.")
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch, insdef1,
 			  Qfile_name_history, default_filename, Qnil);
-  /* If Fcompleting_read returned the default string itself
+
+  tem = Fsymbol_value (Qfile_name_history);
+  if (CONSP (tem) && EQ (XCONS (tem)->car, val))
+    replace_in_history = 1;
+
+  /* If Fcompleting_read returned the inserted default string itself
      (rather than a new string with the same contents),
      it has to mean that the user typed RET with the minibuffer empty.
      In that case, we really want to return ""
      so that commands such as set-visited-file-name can distinguish.  */
   if (EQ (val, default_filename))
-    val = build_string ("");
+    {
+      /* In this case, Fcompleting_read has not added an element
+	 to the history.  Maybe we should.  */
+      if (! replace_in_history)
+	add_to_history = 1;
+
+      val = build_string ("");
+    }
 
 #ifdef VMS
   unbind_to (count, Qnil);
@@ -5105,80 +5119,35 @@ DIR defaults to current buffer's directory default.")
   UNGCPRO;
   if (NILP (val))
     error ("No file name specified");
+
   tem = Fstring_equal (val, insdef);
+
   if (!NILP (tem) && !NILP (default_filename))
-    return default_filename;
-  if (XSTRING (val)->size == 0 && NILP (insdef))
+    val = default_filename;
+  else if (XSTRING (val)->size == 0 && NILP (insdef))
     {
       if (!NILP (default_filename))
-	return default_filename;
+	val = default_filename;
       else
 	error ("No default file name");
     }
-  return Fsubstitute_in_file_name (val);
-}
+  val = Fsubstitute_in_file_name (val);
 
-#if 0                           /* Old version */
-DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
-  /* Don't confuse make-docfile by having two doc strings for this function.
-     make-docfile does not pay attention to #if, for good reason!  */
-  0)
-  (prompt, dir, defalt, mustmatch, initial)
-     Lisp_Object prompt, dir, defalt, mustmatch, initial;
-{
-  Lisp_Object val, insdef, tem;
-  struct gcpro gcpro1, gcpro2;
-  register char *homedir;
-  int count;
-
-  if (NILP (dir))
-    dir = current_buffer->directory;
-  if (NILP (defalt))
-    defalt = current_buffer->filename;
-
-  /* If dir starts with user's homedir, change that to ~. */
-  homedir = (char *) egetenv ("HOME");
-  if (homedir != 0
-      && STRINGP (dir)
-      && !strncmp (homedir, XSTRING (dir)->data, strlen (homedir))
-      && XSTRING (dir)->data[strlen (homedir)] == '/')
+  if (replace_in_history)
+    /* Replace what Fcompleting_read added to the history
+       with what we will actually return.  */
+    XCONS (Fsymbol_value (Qfile_name_history))->car = val;
+  else if (add_to_history)
     {
-      dir = make_string (XSTRING (dir)->data + strlen (homedir) - 1,
-			 XSTRING (dir)->size - strlen (homedir) + 1);
-      XSTRING (dir)->data[0] = '~';
+      /* Add the value to the history--but not if it matches
+	 the last value already there.  */
+      tem = Fsymbol_value (Qfile_name_history);
+      if (! CONSP (tem) || NILP (Fequal (XCONS (tem)->car, val)))
+	Fset (Qfile_name_history,
+	      Fcons (val, tem));
     }
-
-  if (!NILP (initial))
-    insdef = initial;
-  else if (insert_default_directory)
-    insdef = dir;
-  else
-    insdef = build_string ("");
-
-#ifdef VMS
-  count = specpdl_ptr - specpdl;
-  specbind (intern ("completion-ignore-case"), Qt);
-#endif
-
-  GCPRO2 (insdef, defalt);
-  val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			  dir, mustmatch,
-			  insert_default_directory ? insdef : Qnil,
-			  Qfile_name_history, Qnil, Qnil);
-
-#ifdef VMS
-  unbind_to (count, Qnil);
-#endif
-
-  UNGCPRO;
-  if (NILP (val))
-    error ("No file name specified");
-  tem = Fstring_equal (val, insdef);
-  if (!NILP (tem) && !NILP (defalt))
-    return defalt;
-  return Fsubstitute_in_file_name (val);
+  return val;
 }
-#endif /* Old version */
 
 syms_of_fileio ()
 {
