@@ -450,10 +450,6 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
   (marker)
      Lisp_Object marker;
 {
-  register Lisp_Object pos;
-  register int i;
-  register struct buffer *buf;
-
   CHECK_MARKER (marker, 0);
   if (XMARKER (marker)->buffer)
     return make_number (XMARKER (marker)->charpos);
@@ -847,7 +843,6 @@ nil means the marker stays before text inserted there.")
   (marker)
      register Lisp_Object marker;
 {
-  register Lisp_Object buf;
   CHECK_MARKER (marker, 0);
   return XMARKER (marker)->insertion_type ? Qt : Qnil;
 }
