@@ -1486,7 +1486,9 @@ in that case, this function acts as if `enable-local-variables' were t."
 					enable-local-variables)))
 	(hack-local-variables))
     (error (message "File local-variables error: %s"
-		    (prin1-to-string err)))))
+		    (prin1-to-string err))))
+  (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
+      (ucs-set-table-for-input)))
 
 (defvar auto-mode-alist
   (mapc
