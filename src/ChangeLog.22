@@ -1,3 +1,12 @@
+2004-03-04  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Ftranslate_region_internal): Renamed from
+	Ftranslate_region.  Accept a char-table in TABLE.
+	(syms_of_editfns): Defsubr Stranslate_region_internal.
+
+	* xfaces.c (set_lface_from_font_name): If a font is specified for
+	a frame, generate a fontset from the font.
+
 2004-03-03  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fface_font): New optional arg CHARACTER.

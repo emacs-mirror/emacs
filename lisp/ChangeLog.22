@@ -1,3 +1,8 @@
+2004-03-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (translate-region): Re-implement it here.
+	Make it interactive.
+
 2004-03-03  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-font-info-database): Typo in doc fixed.
