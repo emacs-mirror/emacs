@@ -5,6 +5,9 @@
 
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_display_and_set_cursor): Don't show a hollow box
+	cursor for buffers whose cursor_type is nil.
+	
 	* xterm.c (x_draw_image_glyph_string): Remove a comment describing
 	a feature to implement that is already implemented.
 	(note_mouse_highlight, x_find_ccl_program): Avoid some compiler
