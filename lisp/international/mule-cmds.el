@@ -533,8 +533,8 @@ and TO is ignored."
 			(setq non-safe-chars (cdr non-safe-chars)))
 		      (if (< shown len)
 			  (insert (format "%27s\n" "..."))))
-		    (insert (format "\
-These can't be encoded safely by the coding system %s.
+		    (insert (format
+"These can't be encoded safely by the coding system %s.
 
 Please select one from the following safe coding systems:\n"
 				    default-coding-system))
@@ -755,8 +755,8 @@ This file contains a list of libraries of Emacs input methods (LEIM)
 in the format of Lisp expression for registering each input method.
 Emacs loads this file at startup time.")
 
-(defvar leim-list-header (format "\
-;;; %s -- list of LEIM (Library of Emacs Input Method)
+(defvar leim-list-header (format
+";;; %s -- list of LEIM (Library of Emacs Input Method)
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
 ;; in the same directory as this file.  Loading this file registers
