@@ -1,3 +1,8 @@
+2004-04-29  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (WRITE_BUF_SIZE): This macro deleted.
+	(e_write): Fix previous change.
+
 2004-04-28  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): Set coding->common_flags
