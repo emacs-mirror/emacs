@@ -2079,6 +2079,7 @@ If FRAME is nil, describe the currently selected frame.  */)
   
   if (FRAME_LIVE_P (f))
     {
+      /* Avoid consing in frequent cases.  */
       if (EQ (parameter, Qname))
 	value = f->name;
 #ifdef HAVE_X_WINDOWS
