@@ -1,5 +1,14 @@
 2000-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (face_before_or_after_it_pos): Pass multibyteness
+	to DEC_TEXT_POS and INC_TEXT_POS.
+
+	* dispnew.c (direct_output_for_insert): Use DEC_TEXT_POS
+	with parameter MULTIBYTE_P.
+
+	* dispextern.h (INC_TEXT_POS, DEC_TEXT_POS): Add parameter 
+	MULTIBYTE_P.
+
 	* editfns.c (Fsubst_char_in_region): Don't use INC_POS in unibyte
 	buffers because it looks for multibyte character sequences which
 	don't exist in unibyte text.
