@@ -1,9 +1,9 @@
-;;; mailcap.el --- Functions for displaying MIME parts
+;;; mailcap.el --- MIME media types configuration
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Keywords: news, mail
+;; Keywords: news, mail, multimedia
 
 ;; This file is part of GNU Emacs.
 
@@ -24,11 +24,20 @@
 
 ;;; Commentary:
 
+;; Provides configuration of MIME media types from directly from Lisp
+;; and via the usual mailcap mechanism (RFC 1524).  Deals with
+;; mime.types similarly.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'mm-util)
+
+(defgroup mailcap nil
+  "Definition of viewers for MIME types."
+  :version "21.1"
+  :group 'mime)
 
 (defvar mailcap-parse-args-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
@@ -39,6 +48,10 @@
     table)
   "A syntax table for parsing sgml attributes.")
 
+;; Postpone using defcustom for this as it's so big and we essentially
+;; have to have two copies of the data around then.  Perhaps just
+;; customize the Lisp viewers and rely on the normal configuration
+;; files for the rest?  -- fx
 (defvar mailcap-mime-data
   '(("application"
      ("x-x509-ca-cert"
@@ -53,10 +66,11 @@
       (viewer . mailcap-save-binary-file)
       (non-viewer . t)
       (type . "application/octet-stream"))
-     ("dvi"
-      (viewer . "open %s")
-      (type   . "application/dvi")
-      (test   . (eq (mm-device-type) 'ns)))
+;;; XEmacs says `ns' device-type not implemented.
+;;      ("dvi"
+;;       (viewer . "open %s")
+;;       (type   . "application/dvi")
+;;       (test   . (eq (mm-device-type) 'ns)))
      ("dvi"
       (viewer . "xdvi %s")
       (test   . (eq (mm-device-type) 'x))
@@ -98,13 +112,28 @@
       (non-viewer . t)
       (type   . "application/zip")
       ("copiousoutput"))
+     ;; Prefer free viewers.
+     ("pdf"
+      (viewer . "gv %s")
+      (type . "application/pdf")
+      (test . window-system))
+     ("pdf"
+      (viewer . "xpdf %s")
+      (type . "application/pdf")
+      (test . (eq (mm-device-type) 'x)))
      ("pdf"
       (viewer . "acroread %s")
       (type   . "application/pdf"))
+;;; XEmacs says `ns' device-type not implemented.
+;;      ("postscript"
+;;       (viewer . "open %s")
+;;       (type   . "application/postscript")
+;;       (test   . (eq (mm-device-type) 'ns)))
      ("postscript"
-      (viewer . "open %s")
-      (type   . "application/postscript")
-      (test   . (eq (mm-device-type) 'ns)))
+      (viewer . "gv -safer %s")
+      (type . "application/postscript")
+      (test   . window-system)
+      ("needsx11"))
      ("postscript"
       (viewer . "ghostview -dSAFER %s")
       (type . "application/postscript")
@@ -138,10 +167,6 @@
       (type   . "message/rfc822"))
      ("rfc-*822"
       (viewer . view-mode)
-      (test   . (fboundp 'view-mode))
-      (type   . "message/rfc822"))
-     ("rfc-*822"
-      (viewer . fundamental-mode)
       (type   . "message/rfc822")))
     ("image"
      ("x-xwd"
@@ -162,10 +187,11 @@
       ("compose" . "xwd -frame > %s")
       (test   . (eq (mm-device-type) 'x))
       ("needsx11"))
-     (".*"
-      (viewer . "aopen %s")
-      (type   . "image/*")
-      (test   . (eq (mm-device-type) 'ns)))
+;;; XEmacs says `ns' device-type not implemented.
+;;      (".*"
+;;       (viewer . "aopen %s")
+;;       (type   . "image/*")
+;;       (test   . (eq (mm-device-type) 'ns)))
      (".*"
       (viewer . "display %s")
       (type . "image/*")
@@ -225,56 +251,35 @@ Which looks like:
    (\"plain\" . <info>)))
 
 Where <info> is another assoc list of the various information
-related to the mailcap RFC.  This is keyed on the lowercase
+related to the mailcap RFC 1524.  This is keyed on the lowercase
 attribute name (viewer, test, etc).  This looks like:
- ((viewer . viewerinfo)
-  (test   . testinfo)
-  (xxxx   . \"string\"))
+ ((viewer . VIEWERINFO)
+  (test   . TESTINFO)
+  (xxxx   . \"STRING\")
+  FLAG)
 
-Where viewerinfo specifies how the content-type is viewed.  Can be
+Where VIEWERINFO specifies how the content-type is viewed.  Can be
 a string, in which case it is run through a shell, with
 appropriate parameters, or a symbol, in which case the symbol is
-funcall'd, with the buffer as an argument.
+`funcall'ed, with the buffer as an argument.
 
-testinfo is a list of strings, or nil.  If nil, it means the
-viewer specified is always valid.  If it is a list of strings,
-these are used to determine whether a viewer passes the 'test' or
-not.")
+TESTINFO is a test for the viewer's applicability, or nil.  If nil, it
+means the viewer is always valid.  If it is a Lisp function, it is
+called with a list of items from any extra fields from the
+Content-Type header as argument to return a boolean value for the
+validity.  Otherwise, if it is a non-function Lisp symbol or list
+whose car is a symbol, it is `eval'led to yield the validity.  If it
+is a string or list of strings, it represents a shell command to run
+to return a true or false shell value for the validity.")
 
-(defvar mailcap-download-directory nil
-  "*Where downloaded files should go by default.")
-
-(defvar mailcap-temporary-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp/"))
-  "*Where temporary files go.")
+(defcustom mailcap-download-directory nil
+  "*Where downloaded files should go by default."
+  :type 'directory
+  :group 'mailcap)
 
 ;;;
 ;;; Utility functions
 ;;;
-
-(defun mailcap-generate-unique-filename (&optional fmt)
-  "Generate a unique filename in mailcap-temporary-directory."
-  (if (not fmt)
-      (let ((base (format "mailcap-tmp.%d" (user-real-uid)))
-	    (fname "")
-	    (x 0))
-	(setq fname (format "%s%d" base x))
-	(while (file-exists-p
-		(expand-file-name fname mailcap-temporary-directory))
-	  (setq x (1+ x)
-		fname (concat base (int-to-string x))))
-	(expand-file-name fname mailcap-temporary-directory))
-    (let ((base (concat "mm" (int-to-string (user-real-uid))))
-	  (fname "")
-	  (x 0))
-      (setq fname (format fmt (concat base (int-to-string x))))
-      (while (file-exists-p
-	      (expand-file-name fname mailcap-temporary-directory))
-	(setq x (1+ x)
-	      fname (format fmt (concat base (int-to-string x)))))
-      (expand-file-name fname mailcap-temporary-directory))))
 
 (defun mailcap-save-binary-file ()
   (goto-char (point-min))
@@ -289,7 +294,7 @@ not.")
 (defvar mailcap-maybe-eval-warning
   "*** WARNING ***
 
-This MIME part contains untrusted and possibly harmful content.  
+This MIME part contains untrusted and possibly harmful content.
 If you evaluate the Emacs Lisp code contained in it, a lot of nasty
 things can happen.  Please examine the code very carefully before you
 instruct Emacs to evaluate it.  You can browse the buffer containing
@@ -301,7 +306,7 @@ Make sure that this text consists only of few text lines.  Otherwise,
 Gnus might fail to display all of it.")
   
 (defun mailcap-maybe-eval ()
-  "Maybe evaluate a buffer of emacs lisp code."
+  "Maybe evaluate a buffer of Emacs Lisp code."
   (let ((lisp-buffer (current-buffer)))
     (goto-char (point-min))
     (when
@@ -311,7 +316,7 @@ Gnus might fail to display all of it.")
 					    "*Warning*"))))
 	    (unwind-protect
 		(with-current-buffer buffer
-		  (insert (substitute-command-keys 
+		  (insert (substitute-command-keys
 			   mailcap-maybe-eval-warning))
 		  (goto-char (point-min))
 		  (display-buffer buffer)
@@ -369,7 +374,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
       (setq mailcap-parsed-p t)))
 
 (defun mailcap-parse-mailcap (fname)
-  ;; Parse out the mailcap file specified by FNAME
+  "Parse out the mailcap file specified by FNAME."
   (let (major				; The major mime type (image/audio/etc)
 	minor				; The minor mime type (gif, basic, etc)
 	save-pos			; Misc saved positions used in parsing
@@ -409,9 +414,9 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	(skip-chars-forward " \t")
 	;;; Got the major/minor chunks, now for the viewers/etc
 	;;; The first item _must_ be a viewer, according to the
-	;;; RFC for mailcap files (#1343)
+	;;; RFC for mailcap files (#1524)
 	(setq viewer "")
-	(when (eq (char-after) ?\;) 
+	(when (eq (char-after) ?\;)
 	  (forward-char)
 	  (skip-chars-forward " \t")
 	  (setq save-pos (point))
@@ -432,7 +437,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	    (setq viewer (buffer-substring save-pos (point)))))
 	(setq save-pos (point))
 	(end-of-line)
-	(unless (equal viewer "") 
+	(unless (equal viewer "")
 	  (setq info (nconc (list (cons 'viewer viewer)
 				  (cons 'type (concat major "/"
 						      (if (string= minor ".*")
@@ -443,7 +448,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	(beginning-of-line)))))
 
 (defun mailcap-parse-mailcap-extras (st nd)
-  ;; Grab all the extra stuff from a mailcap entry
+  "Grab all the extra stuff from a mailcap entry."
   (let (
 	name				; From name=
 	value				; its value
@@ -488,11 +493,10 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
       results)))
 
 (defun mailcap-mailcap-entry-passes-test (info)
-  ;; Return t iff a mailcap entry passes its test clause or no test
-  ;; clause is present.
-  (let (status				; Call-process-regions return value
-	(test (assq 'test info))	; The test clause
-	)
+  "Return non-nil iff mailcap entry INFO passes its test clause.
+Also return non-nil if no test clause is present."
+  (let ((test (assq 'test info))	; The test clause
+	status)
     (setq status (and test (split-string (cdr test) " ")))
     (if (and (or (assoc "needsterm" info)
 		 (assoc "needsterminal" info)
@@ -519,7 +523,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 ;;;
 
 (defun mailcap-possible-viewers (major minor)
-  ;; Return a list of possible viewers from MAJOR for minor type MINOR
+  "Return a list of possible viewers from MAJOR for minor type MINOR."
   (let ((exact '())
 	(wildcard '()))
     (while major
@@ -554,18 +558,18 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	    (setq save-pos (point))
 	    (skip-chars-forward "%")
 	    (setq save-chr (char-after (point)))
+	    ;; Escapes:
+	    ;; %s: name of a file for the body data
+	    ;; %t: content-type
+	    ;; %{<parameter name}: value of parameter in mailcap entry
+	    ;; %n: number of sub-parts for multipart content-type
+	    ;; %F: a set of content-type/filename pairs for multiparts
 	    (cond
 	     ((null save-chr) nil)
 	     ((= save-chr ?t)
 	      (delete-region save-pos (progn (forward-char 1) (point)))
 	      (insert (or (cdr (assq 'type type-info)) "\"\"")))
-	     ((= save-chr ?M)
-	      (delete-region save-pos (progn (forward-char 1) (point)))
-	      (insert "\"\""))
-	     ((= save-chr ?n)
-	      (delete-region save-pos (progn (forward-char 1) (point)))
-	      (insert "\"\""))
-	     ((= save-chr ?F)
+	     ((memq save-chr '(?M ?n ?F))
 	      (delete-region save-pos (progn (forward-char 1) (point)))
 	      (insert "\"\""))
 	     ((= save-chr ?{)
@@ -577,13 +581,14 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	      (insert (or (cdr (assoc subst type-info)) "\"\"")))
 	     (t nil))))
 	(buffer-string)))
-     (t (error "Bad value to mailcap-unescape-mime-test. %s" test)))))
+     (t (error "Bad value to mailcap-unescape-mime-test: %s" test)))))
 
 (defvar mailcap-viewer-test-cache nil)
 
 (defun mailcap-viewer-passes-test (viewer-info type-info)
-  ;; Return non-nil iff the viewer specified by VIEWER-INFO passes its
-  ;; test clause (if any).
+  "Return non-nil iff viewer specified by VIEWER-INFO passes its test clause.
+Also retun non-nil if it has no test clause.  TYPE-INFO is an argument
+to supply to the test."
   (let* ((test-info (assq 'test viewer-info))
 	 (test (cdr test-info))
 	 (otest test)
@@ -598,8 +603,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 	((not test-info) t)		; No test clause
 	((not test) nil)		; Already failed test
 	((eq test t) t)			; Already passed test
-	((and (symbolp test)		; Lisp function as test
-	      (fboundp test))
+	((functionp test)		; Lisp function as test
 	 (funcall test type-info))
 	((and (symbolp test)		; Lisp variable as test
 	      (boundp test))
@@ -654,7 +658,7 @@ If TEST is not given, it defaults to t."
 ;;;
 
 (defun mailcap-viewer-lessp (x y)
-  ;; Return t iff viewer X is more desirable than viewer Y
+  "Return t iff viewer X is more desirable than viewer Y."
   (let ((x-wild (string-match "[*?]" (or (cdr-safe (assq 'type x)) "")))
 	(y-wild (string-match "[*?]" (or (cdr-safe (assq 'type y)) "")))
 	(x-lisp (not (stringp (or (cdr-safe (assq 'viewer x)) ""))))
@@ -735,104 +739,105 @@ this type is returned."
 ;;;
 
 (defvar mailcap-mime-extensions
-  '((""          . "text/plain")
-    (".abs"      . "audio/x-mpeg")
-    (".aif"      . "audio/aiff")
-    (".aifc"     . "audio/aiff")
-    (".aiff"     . "audio/aiff")
-    (".ano"      . "application/x-annotator")
-    (".au"       . "audio/ulaw")
-    (".avi"      . "video/x-msvideo")
-    (".bcpio"    . "application/x-bcpio")
-    (".bin"      . "application/octet-stream")
-    (".cdf"      . "application/x-netcdr")
-    (".cpio"     . "application/x-cpio")
-    (".csh"      . "application/x-csh")
-    (".css"      . "text/css")
-    (".dvi"      . "application/x-dvi")
-    (".diff"     . "text/x-patch")
-    (".el"       . "application/emacs-lisp")
-    (".eps"      . "application/postscript")
-    (".etx"      . "text/x-setext")
-    (".exe"      . "application/octet-stream")
-    (".fax"      . "image/x-fax")
-    (".gif"      . "image/gif")
-    (".hdf"      . "application/x-hdf")
-    (".hqx"      . "application/mac-binhex40")
-    (".htm"      . "text/html")
-    (".html"     . "text/html")
-    (".icon"     . "image/x-icon")
-    (".ief"      . "image/ief")
-    (".jpg"      . "image/jpeg")
-    (".macp"     . "image/x-macpaint")
-    (".man"      . "application/x-troff-man")
-    (".me"       . "application/x-troff-me")
-    (".mif"      . "application/mif")
-    (".mov"      . "video/quicktime")
-    (".movie"    . "video/x-sgi-movie")
-    (".mp2"      . "audio/x-mpeg")
-    (".mp3"      . "audio/x-mpeg")
-    (".mp2a"     . "audio/x-mpeg2")
-    (".mpa"      . "audio/x-mpeg")
-    (".mpa2"     . "audio/x-mpeg2")
-    (".mpe"      . "video/mpeg")
-    (".mpeg"     . "video/mpeg")
-    (".mpega"    . "audio/x-mpeg")
-    (".mpegv"    . "video/mpeg")
-    (".mpg"      . "video/mpeg")
-    (".mpv"      . "video/mpeg")
-    (".ms"       . "application/x-troff-ms")
-    (".nc"       . "application/x-netcdf")
-    (".nc"       . "application/x-netcdf")
-    (".oda"      . "application/oda")
-    (".patch"    . "text/x-patch")
-    (".pbm"      . "image/x-portable-bitmap")
-    (".pdf"      . "application/pdf")
-    (".pgm"      . "image/portable-graymap")
-    (".pict"     . "image/pict")
-    (".png"      . "image/png")
-    (".pnm"      . "image/x-portable-anymap")
-    (".ppm"      . "image/portable-pixmap")
-    (".ps"       . "application/postscript")
-    (".qt"       . "video/quicktime")
-    (".ras"      . "image/x-raster")
-    (".rgb"      . "image/x-rgb")
-    (".rtf"      . "application/rtf")
-    (".rtx"      . "text/richtext")
-    (".sh"       . "application/x-sh")
-    (".sit"      . "application/x-stuffit")
-    (".snd"      . "audio/basic")
-    (".src"      . "application/x-wais-source")
-    (".tar"      . "archive/tar")
-    (".tcl"      . "application/x-tcl")
-    (".tcl"      . "application/x-tcl")
-    (".tex"      . "application/x-tex")
-    (".texi"     . "application/texinfo")
-    (".tga"      . "image/x-targa")
-    (".tif"      . "image/tiff")
-    (".tiff"     . "image/tiff")
-    (".tr"       . "application/x-troff")
-    (".troff"    . "application/x-troff")
-    (".tsv"      . "text/tab-separated-values")
-    (".txt"      . "text/plain")
-    (".vbs"      . "video/mpeg")
-    (".vox"      . "audio/basic")
-    (".vrml"     . "x-world/x-vrml")
-    (".wav"      . "audio/x-wav")
-    (".wrl"      . "x-world/x-vrml")
-    (".xbm"      . "image/xbm")
-    (".xpm"      . "image/xpm")
-    (".xwd"      . "image/windowdump")
-    (".zip"      . "application/zip")
-    (".ai"       . "application/postscript")
-    (".jpe"      . "image/jpeg")
-    (".jpeg"     . "image/jpeg"))
-  "An assoc list of file extensions and corresponding MIME content-types.")
+  '((""        . "text/plain")
+    (".abs"   . "audio/x-mpeg")
+    (".aif"   . "audio/aiff")
+    (".aifc"  . "audio/aiff")
+    (".aiff"  . "audio/aiff")
+    (".ano"   . "application/x-annotator")
+    (".au"    . "audio/ulaw")
+    (".avi"   . "video/x-msvideo")
+    (".bcpio" . "application/x-bcpio")
+    (".bin"   . "application/octet-stream")
+    (".cdf"   . "application/x-netcdr")
+    (".cpio"  . "application/x-cpio")
+    (".csh"   . "application/x-csh")
+    (".css"   . "text/css")
+    (".dvi"   . "application/x-dvi")
+    (".diff"  . "text/x-patch")
+    (".el"    . "application/emacs-lisp")
+    (".eps"   . "application/postscript")
+    (".etx"   . "text/x-setext")
+    (".exe"   . "application/octet-stream")
+    (".fax"   . "image/x-fax")
+    (".gif"   . "image/gif")
+    (".hdf"   . "application/x-hdf")
+    (".hqx"   . "application/mac-binhex40")
+    (".htm"   . "text/html")
+    (".html"  . "text/html")
+    (".icon"  . "image/x-icon")
+    (".ief"   . "image/ief")
+    (".jpg"   . "image/jpeg")
+    (".macp"  . "image/x-macpaint")
+    (".man"   . "application/x-troff-man")
+    (".me"    . "application/x-troff-me")
+    (".mif"   . "application/mif")
+    (".mov"   . "video/quicktime")
+    (".movie" . "video/x-sgi-movie")
+    (".mp2"   . "audio/x-mpeg")
+    (".mp3"   . "audio/x-mpeg")
+    (".mp2a"  . "audio/x-mpeg2")
+    (".mpa"   . "audio/x-mpeg")
+    (".mpa2"  . "audio/x-mpeg2")
+    (".mpe"   . "video/mpeg")
+    (".mpeg"  . "video/mpeg")
+    (".mpega" . "audio/x-mpeg")
+    (".mpegv" . "video/mpeg")
+    (".mpg"   . "video/mpeg")
+    (".mpv"   . "video/mpeg")
+    (".ms"    . "application/x-troff-ms")
+    (".nc"    . "application/x-netcdf")
+    (".nc"    . "application/x-netcdf")
+    (".oda"   . "application/oda")
+    (".patch" . "text/x-patch")
+    (".pbm"   . "image/x-portable-bitmap")
+    (".pdf"   . "application/pdf")
+    (".pgm"   . "image/portable-graymap")
+    (".pict"  . "image/pict")
+    (".png"   . "image/png")
+    (".pnm"   . "image/x-portable-anymap")
+    (".ppm"   . "image/portable-pixmap")
+    (".ps"    . "application/postscript")
+    (".qt"    . "video/quicktime")
+    (".ras"   . "image/x-raster")
+    (".rgb"   . "image/x-rgb")
+    (".rtf"   . "application/rtf")
+    (".rtx"   . "text/richtext")
+    (".sh"    . "application/x-sh")
+    (".sit"   . "application/x-stuffit")
+    (".snd"   . "audio/basic")
+    (".src"   . "application/x-wais-source")
+    (".tar"   . "archive/tar")
+    (".tcl"   . "application/x-tcl")
+    (".tex"   . "application/x-tex")
+    (".texi"  . "application/texinfo")
+    (".tga"   . "image/x-targa")
+    (".tif"   . "image/tiff")
+    (".tiff"  . "image/tiff")
+    (".tr"    . "application/x-troff")
+    (".troff" . "application/x-troff")
+    (".tsv"   . "text/tab-separated-values")
+    (".txt"   . "text/plain")
+    (".vbs"   . "video/mpeg")
+    (".vox"   . "audio/basic")
+    (".vrml"  . "x-world/x-vrml")
+    (".wav"   . "audio/x-wav")
+    (".wrl"   . "x-world/x-vrml")
+    (".xbm"   . "image/xbm")
+    (".xpm"   . "image/xpm")
+    (".xwd"   . "image/windowdump")
+    (".zip"   . "application/zip")
+    (".ai"    . "application/postscript")
+    (".jpe"   . "image/jpeg")
+    (".jpeg"  . "image/jpeg"))
+  "An alist of file extensions and corresponding MIME content-types.
+This exists for you to customize the information in Lisp.  It is
+merged with values from mailcap files by `mailcap-parse-mimetypes'.")
 
 (defvar mailcap-mimetypes-parsed-p nil)
 
 (defun mailcap-parse-mimetypes (&optional path force)
-  "Parse out all the mimetypes specified in a unix-style path string PATH.
+  "Parse out all the mimetypes specified in a Unix-style path string PATH.
 Components of PATH are separated by the `path-separator' character
 appropriate for this system.  If PATH is omitted, use the value of
 environment variable MIMETYPES if set; otherwise use a default path.
@@ -871,7 +876,7 @@ If FORCE, re-parse even if already parsed."
     (setq mailcap-mimetypes-parsed-p t)))
 
 (defun mailcap-parse-mimetype-file (fname)
-  ;; Parse out a mime-types file
+  "Parse out a mime-types file FNAME."
   (let (type				; The MIME type for this line
 	extns				; The extensions for this line
 	save-pos			; Misc. saved buffer positions
@@ -913,26 +918,8 @@ If FORCE, re-parse even if already parsed."
       (setq extn (concat "." extn)))
   (cdr (assoc (downcase extn) mailcap-mime-extensions)))
 
-(defvar mailcap-binary-suffixes
-  (if (memq system-type '(ms-dos windows-nt))
-      '(".exe" ".com" ".bat" ".cmd" ".btm" "")
-    '("")))
-
-(defun mailcap-command-p (command)
-  "Say whether COMMAND is in the exec path.
-The path of COMMAND will be returned iff COMMAND is a command."
-  (let ((path (if (file-name-absolute-p command) '(nil) exec-path))
- 	file dir)
-    (catch 'found
-      (while (setq dir (pop path))
-	(let ((suffixes mailcap-binary-suffixes))
-	  (while suffixes
-	    (when (and (file-executable-p
-			(setq file (expand-file-name
-				    (concat command (pop suffixes))
-				    dir)))
-		       (not (file-directory-p file)))
-	      (throw 'found file))))))))
+;; Unused?
+(defalias 'mailcap-command-p 'executable-find)
 
 (defun mailcap-mime-types ()
   "Return a list of MIME media types."
