@@ -344,11 +344,6 @@ struct re_pattern_buffer
 };
 
 typedef struct re_pattern_buffer regex_t;
-
-
-/* search.c (search_buffer) in Emacs needs this one opcode value.  It is
-   defined both in `regex.c' and here.  */
-#define RE_EXACTN_VALUE 1
 
 /* Type for byte offsets within the string.  POSIX mandates this.  */
 typedef int regoff_t;
