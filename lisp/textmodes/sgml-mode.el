@@ -325,6 +325,9 @@ Otherwise, it is set to be buffer-local when the file has
   :version "21.2"
   :group 'sgml)
 
+(defvar sgml-empty-tags nil
+  "List of tags whose !ELEMENT definition says EMPTY.")
+
 (defun sgml-xml-guess ()
   "Guess whether the current buffer is XML."
   (save-excursion
@@ -541,22 +544,28 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
 	   (completing-read "Tag: " sgml-tag-alist))
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
-  `(("") '(setq v2 (sgml-attributes ,str t))
-    (if (and sgml-xml (eq v2 t)) "/>" ">")
-    (if (string= "![" ,str)
-	(prog1 '(("") " [ " _ " ]]")
-	  (backward-char))
-      (unless (or (eq v2 t)
-                  (string-match "^[/!?]" ,str))
-	(if (symbolp v2)
-	    ;; We use `identity' to prevent skeleton from passing
-	    ;; `str' through skeleton-transformation a second time.
-	    '(("") v2 _ v2 "</" (identity ',str) ?>)
-	  (if (eq (car v2) t)
-	      (cons '("") (cdr v2))
-	    (append '(("") (car v2))
-		    (cdr v2)
-		    '(resume: (car v2) _ "</" (identity ',str) ?>))))))))
+  `(("") '(setq v2 (sgml-attributes ,str t)) ?>
+    (cond
+     ((string= "![" ,str)
+      (backward-char)
+      '(("") " [ " _ " ]]"))
+     ((and (eq v2 t) sgml-xml (member ,str sgml-empty-tags))
+      '(("") -1 "/>"))
+     ((or (and (eq v2 t) (not sgml-xml)) (string-match "^[/!?]" ,str))
+      nil)
+     ((symbolp v2)
+      ;; Make sure we don't fall into an infinite loop.
+      ;; For xhtml's `tr' tag, we should maybe use \n instead.
+      (if (eq v2 t) (setq v2 nil))
+      ;; We use `identity' to prevent skeleton from passing
+      ;; `str' through skeleton-transformation a second time.
+      '(("") v2 _ v2 "</" (identity ',str) ?>))
+     ((eq (car v2) t)
+      (cons '("") (cdr v2)))
+     (t
+      (append '(("") (car v2))
+	      (cdr v2)
+	      '(resume: (car v2) _ "</" (identity ',str) ?>))))))
 
 (autoload 'skeleton-read "skeleton")
 
@@ -764,10 +773,10 @@ With prefix argument ARG, repeat this ARG times."
     (unwind-protect
 	(save-excursion
 	  (goto-char (point-min))
-	  (if (setq sgml-tags-invisible
-		    (if arg
-			(>= (prefix-numeric-value arg) 0)
-		      (not sgml-tags-invisible)))
+	  (if (set (make-local-variable 'sgml-tags-invisible)
+		   (if arg
+		       (>= (prefix-numeric-value arg) 0)
+		     (not sgml-tags-invisible)))
 	      (while (re-search-forward "<\\([!/?A-Za-z][-A-Za-z0-9]*\\)"
 					nil t)
 		(setq string
@@ -776,15 +785,17 @@ With prefix argument ARG, repeat this ARG times."
 		(goto-char (match-beginning 0))
 		(and (stringp string)
 		     (not (overlays-at (point)))
-		     (overlay-put (make-overlay (point)
-						(match-beginning 1))
-				  'before-string string))
+		     (let ((ol (make-overlay (point) (match-beginning 1))))
+		       (overlay-put ol 'before-string string)
+		       (overlay-put ol 'sgml-tag t)))
 		(put-text-property (point)
 				   (progn (forward-list) (point))
 				   'category 'sgml-tag))
 	    (let ((pos (point-min)))
 	      (while (< (setq pos (next-overlay-change pos)) (point-max))
-		(delete-overlay (car (overlays-at pos)))))
+		(dolist (ol (overlays-at pos))
+		  (if (overlay-get 'sgml-tag)
+		      (delete-overlay ol)))))
 	    (remove-text-properties (point-min) (point-max) '(category nil))))
       (restore-buffer-modified-p modified))
     (run-hooks 'sgml-tags-invisible-hook)
@@ -845,21 +856,19 @@ If this can't be done, return t."
 	   (match-end 0))
 	t)))
 
-(defun sgml-skip-close-p (obj) (and (eq obj t) (not sgml-xml)))
-
 (defun sgml-value (alist)
   "Interactively insert value taken from attributerule ALIST.
 See `sgml-tag-alist' for info about attribute rules."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
-    (if (sgml-skip-close-p (car alist)) ; (eq (car alist) t)
+    (if (and (eq (car alist) t) (not sgml-xml))
 	(when (cdr alist)
-          (insert "=\"")
-          (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
-          (if (string< "" alist)
-              (insert alist ?\")
-            (delete-backward-char 2)))
+	  (insert "=\"")
+	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
+	  (if (string< "" alist)
+	      (insert alist ?\")
+	    (delete-backward-char 2)))
       (insert "=\"")
       (when alist
         (insert (skeleton-read '(completing-read "Value: " alist))))
@@ -1023,7 +1032,8 @@ This takes effect when first loading the library.")
       ("base" t ,@href)
       ("dir" ,@list)
       ("font" nil "size" ("-1") ("+1") ("-2") ("+2") ,@1-7)
-      ("form" (\n _ \n "<input type=\"submit\" value=\"\">")
+      ("form" (\n _ \n "<input type=\"submit\" value=\"\""
+	       (if sgml-xml "/>" ">"))
        ("action" ,@(cdr href)) ("method" ("get") ("post")))
       ("h1" ,@align)
       ("h2" ,@align)
@@ -1045,12 +1055,13 @@ This takes effect when first loading the library.")
       ("p" t ,@align)
       ("select" (nil \n
 		     ("Text: "
-		      "<option>" str \n))
+		      "<option>" str (if sgml-xml "</option>") \n))
        ,name ("size" ,@1-9) ("multiple" t))
       ("table" (nil \n
 		    ((completing-read "Cell kind: " '(("td") ("th"))
 				      nil t "t")
-		     "<tr><" str ?> _ \n))
+		     "<tr><" str ?> _
+		     (if sgml-xml (concat "<" str "></tr>")) \n))
        ("border" t ,@1-9) ("width" "10") ("cellpadding"))
       ("td" ,@cell)
       ("textarea" ,name ("rows" ,@1-9) ("cols" ,@1-9))
@@ -1063,7 +1074,7 @@ This takes effect when first loading the library.")
       ("acronym")
       ("address")
       ("array" (nil \n
-		    ("Item: " "<item>" str \n))
+		    ("Item: " "<item>" str (if sgml-xml "</item>") \n))
        "align")
       ("au")
       ("b")
@@ -1072,7 +1083,7 @@ This takes effect when first loading the library.")
       ("blockquote" \n)
       ("body" \n ("background" ".gif") ("bgcolor" "#") ("text" "#")
        ("link" "#") ("alink" "#") ("vlink" "#"))
-      ("box" (nil _ "<over>" _))
+      ("box" (nil _ "<over>" _ (if sgml-xml "</over>")))
       ("br" t ("clear" ("left") ("right")))
       ("caption" ("valign" ("top") ("bottom")))
       ("center" \n)
@@ -1290,6 +1301,9 @@ To work around that, do:
 			(char-after (1- (match-end 0)))))
   (setq imenu-create-index-function 'html-imenu-index)
   (when sgml-xml (setq mode-name "XHTML"))
+  (set (make-local-variable 'sgml-empty-tags)
+       '("br" "hr" "img" "input" "area" "link" "param" "col"
+	 "base" "meta" "basefont" "frame" "isindex" "wbr"))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
