@@ -1,22 +1,35 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(MMdevel_gavinm_splay.4) $
+ * $HopeName: MMsrc!meter.c(trunk.4) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
+ * TRANSGRESSIONS
+ *
+ * .trans.label: We label meters with EventLabelAddr, but of course that's
+ * meant for labelling Addr's.  We get away with it as long as the type
+ * Meter is compatible with Addr.
  */
 
-#include "mpm.h"
 #include "meter.h"
-#include "math.h"
+#include "mpm.h"
+#include <math.h>
 
-void MeterInit(Meter meter, char *name) 
+
+void MeterInit(Meter meter, char *name, void *owner)
 {
+  Word sym;
+
   meter->name = name;
   meter->count = 0;
   meter->total = 0.0;
   meter->meanSquared = 0.0;
   meter->max = 0;
   meter->min = (Size)-1;
+
+  sym = EventInternString(name);
+  EventLabelAddr((Addr)meter, sym); /* see .trans.label */
+  EVENT_PP(MeterInit, meter, owner);
+  UNUSED(owner); /* @@@@ hack */
 }
 
 
@@ -56,7 +69,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
     return res;
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
-    /* --- stddev = sqrt(meanSquared - mean^2), but see
+    /* .stddev: stddev = sqrt(meanSquared - mean^2), but see
      * .limitation.variance above
      */
     double stddev = sqrt(fabs(meter->meanSquared - (mean * mean)));
@@ -71,11 +84,15 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
     if (res != ResOK)
       return res;
   }
-  res = WriteF(stream,
-               "}\n",
-               NULL);
-  if (res != ResOK)
-    return res;
+  res = WriteF(stream, "}\n", NULL);
 
-  return ResOK;
+  return res;
+}
+
+
+void MeterEmit(Meter meter)
+{
+  EVENT_PUDDUU(MeterValues, meter, meter->count, meter->total,
+               meter->meanSquared, meter->max, meter->min);
+  UNUSED(meter); /* @@@@ hack */
 }
