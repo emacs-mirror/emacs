@@ -3511,7 +3511,8 @@ forward_to_next_line_start (it, skipped_p)
        !newline_found_p && n < MAX_NEWLINE_DISTANCE;
        n += STRINGP (it->string) ? 0 : 1)
     {
-      get_next_display_element (it);
+      if (!get_next_display_element (it))
+	break;
       newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
       set_iterator_to_next (it, 0);
     }
