@@ -612,7 +612,7 @@ function, it is changed to a list of functions."
   (if (or local
 	  ;; Detect the case where make-local-variable was used on a hook
 	  ;; and do what we used to do.
-	  (and (local-variable-p hook)
+	  (and (local-variable-if-set-p hook)
 	       (not (memq t (symbol-value hook)))))
       ;; Alter the local value only.
       (or (if (consp function)
