@@ -824,6 +824,9 @@ extern Lisp_Object Vtranslation_table_vector;
 #define GET_TRANSLATION_TABLE(id) \
   (XCONS(XVECTOR(Vtranslation_table_vector)->contents[(id)])->cdr)
 
+/* A char-table for characters which may invoke auto-filling.  */
+extern Lisp_Object Vauto_fill_chars;
+
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
    faster than calling bcopy which has some overhead.  */
