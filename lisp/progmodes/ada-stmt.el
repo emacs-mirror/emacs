@@ -2,7 +2,7 @@
 
 ;; Copyright(C) 1987, 1993-1994, 1996-1998, 1999 Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.10 $ 
+;; Ada Core Technologies's version:   $Revision: 1.16 $ 
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
@@ -64,6 +64,7 @@
 (eval-when-compile
   (condition-case nil  (require 'skeleton)
     (error nil)))
+
 (require 'easymenu)
 
 (defun ada-stmt-add-to-ada-menu ()
@@ -108,12 +109,17 @@
 		 ["Exit" ada-exit t]
 		 ["When" ada-when t])))
     (if ada-xemacs
-	(progn
-	  (add-to-list 'menu "Statements")
-	  (add-submenu '("Ada") menu))
+	(funcall (symbol-function 'add-submenu)
+		 '("Ada") (append (list "Statements"
+					:included '(string= mode-name "Ada"))
+				  menu))
 
       (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Statements]
-	(cons "Statements" (easy-menu-create-menu "Statements" menu)) t))
+	(list 'menu-item
+	      "Statements"
+	      (easy-menu-create-menu "Statements" menu)
+	      :visible '(string= mode-name "Ada"))
+	t))
     ))
 
 
@@ -236,7 +242,7 @@ Indent for the first line of code."
   (save-excursion
     (goto-char (point-min))
     (if (fboundp 'make-header)
-	(make-header)
+	(funcall (symbol-function 'make-header))
       (ada-header-tmpl))))
 
 
@@ -244,21 +250,21 @@ Indent for the first line of code."
   "Insert a comment block containing the module title, author, etc."
   "[Description]: "
   "--                              -*- Mode: Ada -*-"
-  "\n-- Filename        : " (buffer-name)
-  "\n-- Description     : " str
-  "\n-- Author          : " (user-full-name) 
-  "\n-- Created On      : " (current-time-string)
-  "\n-- Last Modified By: ."
-  "\n-- Last Modified On: ."
-  "\n-- Update Count    : 0"
-  "\n-- Status          : Unknown, Use with caution!"
+  "\n" ada-fill-comment-prefix "Filename        : " (buffer-name)
+  "\n" ada-fill-comment-prefix "Description     : " str
+  "\n" ada-fill-comment-prefix "Author          : " (user-full-name) 
+  "\n" ada-fill-comment-prefix "Created On      : " (current-time-string)
+  "\n" ada-fill-comment-prefix "Last Modified By: ."
+  "\n" ada-fill-comment-prefix "Last Modified On: ."
+  "\n" ada-fill-comment-prefix "Update Count    : 0"
+  "\n" ada-fill-comment-prefix "Status          : Unknown, Use with caution!"
   "\n")
 
 
 (define-skeleton ada-display-comment
   "Inserts three comment lines, making a display comment."
   ()
-  "--\n-- " _ "\n--")
+  "--\n" ada-fill-comment-prefix _ "\n--")
 
 
 (define-skeleton ada-if
@@ -573,9 +579,10 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   (save-excursion 
     (let ((aa-end (point)))
       (ada-adjust-case-region 
-       (progn (goto-char beg) (forward-word -1) (point)) 
+       (progn (goto-char (symbol-value 'beg)) (forward-word -1) (point)) 
        (goto-char aa-end))
       )))
+
 (add-hook 'ada-mode-hook '(lambda ()
                             (setq skeleton-further-elements 
                                   '((< '(backward-delete-char-untabify
