@@ -1,9 +1,12 @@
 2000-11-03  Dave Love  <fx@gnu.org>
 
+	* mm-partial.el (mm-inline-partial): Space-prefix temp buffer
+	name.
+
 	* gnus-cus.el (gnus-group-parameters) <gcc-self>: Fix custom type.
 	<banner>: Fix custom type, doc.
 
-	* mm-decode.el (mm-display-external): Space prefix temp buffer
+	* mm-decode.el (mm-display-external): Space-prefix temp buffer
 	name.  Don't disable undo explicitly.
 
 2000-11-02  Dave Love  <fx@gnu.org>
