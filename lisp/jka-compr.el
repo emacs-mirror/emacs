@@ -722,16 +722,23 @@ This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
   (setq file-name-handler-alist (cons jka-compr-file-name-handler-entry
 				      file-name-handler-alist))
 
-  ;; Make entries in auto-mode-alist so that modes are chosen right
-  ;; according to the file names sans `.gz'.
   (mapcar
    (function (lambda (x)
-	       (and
-		(jka-compr-info-strip-extension x)
-		(setq auto-mode-alist (cons (list (jka-compr-info-regexp x)
-						  nil 'jka-compr)
-					    auto-mode-alist)))))
-
+	       (and (jka-compr-info-strip-extension x)
+		    ;; Make entries in auto-mode-alist so that modes
+		    ;; are chosen right according to the file names
+		    ;; sans `.gz'.
+		    (setq auto-mode-alist
+			  (cons (list (jka-compr-info-regexp x)
+				      nil 'jka-compr)
+				auto-mode-alist))
+		    ;; Also add these regexps to
+		    ;; inhibit-first-line-modes-suffixes, so that a
+		    ;; -*- line in the first file of a compressed tar
+		    ;; file doesn't override tar-mode.
+		    (setq inhibit-first-line-modes-suffixes
+			  (cons (jka-compr-info-regexp x)
+				inhibit-first-line-modes-suffixes)))))
    jka-compr-compression-info-list)
   (setq auto-mode-alist
 	(append auto-mode-alist jka-compr-mode-alist-additions)))
