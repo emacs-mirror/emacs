@@ -1,3 +1,8 @@
+1999-11-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (Fbyte_code) <BinsertN, Bcall>: Do the
+	BEFORE_POTENTIAL_GC before DISCARD.
+
 1999-11-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (Fgarbage_collect): Call unmark_byte_stack.
