@@ -123,7 +123,12 @@
 		  (progn
 		    (select-window window)
 		    (goto-char (window-start window))
-		    (move-to-window-line  (cdr where))
+		    (move-to-window-line (-
+					  (cdr where)
+					  (if (or header-line-format
+						  default-header-line-format)
+					      1
+					    0)))
 		    (move-to-column (+ (car where) (current-column)
 				       (if (string-match "\\` \\*Minibuf"
 							 (buffer-name))
