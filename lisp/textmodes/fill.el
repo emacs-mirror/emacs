@@ -295,13 +295,9 @@ If the charset has no such property, do nothing."
     (if (eq charset 'ascii)
 	(setq ch (preceding-char)
 	      charset (char-charset ch)))
-    (if (eq charset 'ascii)
-	nil
-      (if (eq charset 'composition)
-	  (setq charset (char-charset (composite-char-component ch 0)))))
-  (setq func (get-charset-property charset 'fill-find-break-point-function))
-  (if (and func (fboundp func))
-      (funcall func limit))))
+    (setq func (get-charset-property charset 'fill-find-break-point-function))
+    (if (and func (fboundp func))
+	(funcall func limit))))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
@@ -445,10 +441,6 @@ space does not end a sentence, so don't break a line there."
 	      (while (search-forward "\n" nil t)
 		(let ((prev (char-before (match-beginning 0)))
 		      (next (following-char)))
-		  (if (cmpcharp prev)
-		      (setq prev (composite-char-component prev 0)))
-		  (if (cmpcharp next)
-		      (setq next (composite-char-component next 0)))
 		  (if (and (or (aref (char-category-set next) ?|)
 			       (aref (char-category-set prev) ?|))
 			   (or (get-charset-property (char-charset prev)
