@@ -1,7 +1,7 @@
 /* impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.32) $
- * Copyright (C) 1998, 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!vmw3.c(trunk.33) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.vm.
  *
@@ -33,7 +33,7 @@
  *  .assume.lpvoid-addr:  We assume that the windows type LPVOID and
  *    the MM type Addr are assignment-compatible.
  *
- *  .assume.sysalign:  The assume that the page size on the system
+ *  .assume.sysalign: We assume that the page size on the system
  *    is a power of two.
  *
  *  Notes
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.32) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.33) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -71,11 +71,15 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+/* VMAlign -- return the page size */
+
 Align VMAlign(VM vm)
 {
   return vm->align;
 }
 
+
+/* VMCheck -- check a VM structure */
 
 Bool VMCheck(VM vm)
 {
@@ -92,8 +96,10 @@ Bool VMCheck(VM vm)
 
 
 
-/* VMRAMSize -- determine the RAM size for the platform */
-/* This is not a protocol function - but it could be in future */
+/* VMRAMSize -- determine the RAM size for the platform
+ *
+ * This is not a protocol function - but it could be in future.
+ */
 
 static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
 {
@@ -108,8 +114,10 @@ static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
 }
 
 
-/* VMSetCollectionStrategy -- initialize strategy for platform */
-/* This is not a protocol function - but it could be in future */
+/* VMSetCollectionStrategy -- initialize strategy for platform
+ *
+ * This is not a protocol function - but it could be in future.
+ */
 
 static Bool collectionStrategyInited = FALSE;
 
@@ -160,7 +168,6 @@ static Res VMSetCollectionStrategy(VM vm)
 }
 
 
-
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
 Res VMCreate(VM *vmReturn, Size size)
@@ -169,7 +176,8 @@ Res VMCreate(VM *vmReturn, Size size)
   SYSTEM_INFO si;
   Align align;
   VM vm;
-  Res sres;
+  Res res;
+  BOOL b;
 
   AVER(vmReturn != NULL);
 
@@ -181,20 +189,22 @@ Res VMCreate(VM *vmReturn, Size size)
   align = (Align)si.dwPageSize;
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
   size = SizeAlignUp(size, align);
-  if((size == 0) || (size > (Size)(DWORD)-1))
+  if ((size == 0) || (size > (Size)(DWORD)-1))
     return ResRESOURCE;
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
   vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
 		       MEM_COMMIT, PAGE_READWRITE);
-  if(vbase == NULL)
+  if (vbase == NULL)
     return ResMEMORY;
   vm = (VM)vbase;
 
   /* Allocate the address space. */
   vbase = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
-  if(vbase == NULL)
-    return ResRESOURCE;
+  if (vbase == NULL) {
+    res = ResRESOURCE;
+    goto failReserve;
+  }
 
   AVER(AddrIsAligned(vbase, align));
 
@@ -206,18 +216,23 @@ Res VMCreate(VM *vmReturn, Size size)
   AVER(vm->base < vm->limit);  /* .assume.not-last */
 
   vm->sig = VMSig;
-
   AVERT(VM, vm);
 
-  sres = VMSetCollectionStrategy(vm);
-  AVER(ResOK == sres);
+  res = VMSetCollectionStrategy(vm);
+  AVER(res == ResOK);
 
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
-
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
+  AVER(b != 0);
+  return res;
 }
 
+
+/* VMDestroy -- destroy the VM structure */
 
 void VMDestroy(VM vm)
 {
@@ -250,6 +265,8 @@ Addr VMBase(VM vm)
 }
 
 
+/* VMLimit -- return the limit address of the memory reserved */
+
 Addr VMLimit(VM vm)
 {
   AVERT(VM, vm);
@@ -257,6 +274,8 @@ Addr VMLimit(VM vm)
   return vm->limit;
 }
 
+
+/* VMReserved -- return the amount of address space reserved */
 
 Size VMReserved(VM vm)
 {
@@ -266,6 +285,8 @@ Size VMReserved(VM vm)
 }
 
 
+/* VMMapped -- return the amount of memory actually mapped */
+
 Size VMMapped(VM vm)
 {
   AVERT(VM, vm);
@@ -273,6 +294,8 @@ Size VMMapped(VM vm)
   return vm->mapped;
 }
 
+
+/* VMMap -- map the given range of memory */
 
 Res VMMap(VM vm, Addr base, Addr limit)
 {
@@ -292,7 +315,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   b = VirtualAlloc((LPVOID)base, (DWORD)AddrOffset(base, limit),
                    MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-  if(b == NULL)
+  if (b == NULL)
     return ResMEMORY;
   AVER((Addr)b == base);        /* base should've been aligned */
 
@@ -302,6 +325,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   return ResOK;
 }
 
+
+/* VMUnmap -- unmap the given range of memory */
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
@@ -317,8 +342,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(limit <= vm->limit);
 
   /* .improve.query-unmap: Could check that the pages we are about
-   * to unmap are mapped using VirtualQuery. */
-
+   * to unmap are mapped, using VirtualQuery.
+   */
   b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit),
                   MEM_DECOMMIT);
   AVER(b != 0);  /* .assume.free.success */
