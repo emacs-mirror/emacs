@@ -1544,9 +1544,9 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-@dnl For now, need to use an explicit `#define REL_ALLOC_MMAP 1' in
-@dnl the system configuration file (s/*.h) to turn the use of mmap
-@dnl in the relocating allocator on.
+dnl For now, need to use an explicit `#define REL_ALLOC_MMAP 1' in
+dnl the system configuration file (s/*.h) to turn the use of mmap
+dnl in the relocating allocator on.
 
 AC_FUNC_MMAP
 if test $rel_alloc_mmap = yes; then
