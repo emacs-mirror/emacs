@@ -5,7 +5,7 @@
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.6
+;; Version: 1.7
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,14 @@
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
+;;
+;; Purpose of this package:
+;;
+;; Installation instructions
+;;
+;; Usage instructions:
+;;
+;; Known bugs:
 ;;
 ;; Purpose of this package:
 ;;   To present a framework for mode-specific buffer indexes.
@@ -53,6 +61,10 @@
 ;;   Also run the 'add-hook' examples at the bottom of imenu.el.
 
 ;;; Change Log:
+;;    v1.7 Apr 12 1994 Ake Stenhoff
+;;	Changed doc strings refering to symbols.
+;;      Require 'cl' when compiling only.
+;;	Only uses 'cl' macros.
 ;;    v1.6 Feb 28 1994 Ake Stenhoff
 ;;      Added alist as an optional argument to 
 ;;     'imenu-choose-buffer-index'.
@@ -86,7 +98,7 @@
 ;;  
 
 ;;; Code
-(require 'cl)
+(eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -99,7 +111,7 @@
 
 Non-nil means always display the index in a completion buffer.
 Nil means display the index as a mouse menu when the mouse was
-used to trigger 'goto-index-pos'.")
+used to trigger `goto-index-pos'.")
 
 (defvar imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
@@ -110,11 +122,11 @@ Set this to nil if you don't want any sorting (faster).
 The items in the menu are then presented in the order they were found
 in the buffer.
 
-Set it to 'imenu--sort-by-name if you want alphabetic sorting.
+Set it to `imenu--sort-by-name' if you want alphabetic sorting.
 
 The function should take two arguments and return T if the first
 element should come before the second.  The arguments are cons cells;
-(NAME . POSITION).  Look at 'imenu--sort-by-name' for an example.")
+(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
 
 (defvar imenu-max-items 25
   "*Maximum number of elements in an index mouse-menu.")
@@ -124,7 +136,7 @@ element should come before the second.  The arguments are cons cells;
 If non NIL, user gets a message during the scanning of the buffer
 
 Relevant only if the mode-specific function that creates the buffer
-index use 'imenu-progress-message'.")
+index use `imenu-progress-message'.")
 
 (defvar imenu-space-replacement "^"
   "*The replacement string for spaces in index names.
@@ -149,7 +161,7 @@ of the current buffer as an alist. The elements in the alist look
 like: (INDEX-NAME . INDEX-POSITION). You may also nest index list like
 (INDEX-NAME . INDEX-ALIST).
 
-This function is called within a 'save-excursion'.
+This function is called within a `save-excursion'.
 
 The variable is buffer-local.")
 (make-variable-buffer-local 'imenu-create-index-function)
@@ -157,8 +169,8 @@ The variable is buffer-local.")
 (defvar prev-index-position-function 'beginning-of-defun
   "Function for finding the next index position.
 
-If 'imenu-create-index-function' is set to
-'imenu-default-create-index-function, then you must set this variable
+If `imenu-create-index-function' is set to
+`imenu-default-create-index-function', then you must set this variable
 to a function that will find the next index, looking backwards in the
 file.
 
@@ -170,7 +182,7 @@ index and it should return nil when it doesn't find another index. ")
   "Function for extracting the index name.
 
 This function is called after the function pointed out by
-'prev-index-position-function'.")
+`prev-index-position-function'.")
 (make-variable-buffer-local 'extract-index-name-function)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -234,7 +246,7 @@ This function is called after the function pointed out by
 
 ;;;
 ;;; Function for suporting general looking submenu names.
-;;; Uses 'imenu-submenu-name-format' for creating the name.
+;;; Uses `imenu-submenu-name-format' for creating the name.
 ;;; NAME is the base of the new submenu name.
 ;;;
 (defun imenu-create-submenu-name (name)
@@ -294,7 +306,7 @@ This function is called after the function pointed out by
   "*Wrapper for index searching functions.
 
 Moves point to end of buffer and then repeatedly calls
-'prev-index-position-function' and 'extract-index-name-function'.
+`prev-index-position-function' and `extract-index-name-function'.
 Their results are gathered into an index alist."
 
   (or (and (fboundp prev-index-position-function)
@@ -388,7 +400,6 @@ Returns t for rescan and otherwise a position number."
 	(imenu--completion-buffer (cdr choice) prompt))
        (t
 	choice))))))
-
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
 
@@ -397,7 +408,13 @@ INDEX-ALIST is the buffer index and EVENT is a mouse event.
 Returns t for rescan and otherwise a position number."
   (let* ((menu 	(imenu--split-menu
 		 (if imenu-sort-function
-		     (sort (copy-list index-alist) imenu-sort-function)
+		     (sort
+		      (let ((res nil)
+			    (oldlist index-alist))
+			;; Copy list method from the cl package `copy-list'
+			(while (consp oldlist) (push (pop oldlist) res))
+			(prog1 (nreverse res) (setcdr res oldlist)))
+		      imenu-sort-function)
 		   index-alist)
 		 (or title (buffer-name))))
 	 position)
@@ -426,10 +443,10 @@ prompted with PROMPT.
 If you call this function with index alist ALIST, then it lets the user
 select from ALIST.
 
-With no index alist ALIST, it calls 'imenu--make-index-alist' to
+With no index alist ALIST, it calls `imenu--make-index-alist' to
 create the index alist.
 
-If 'imenu-always-use-completion-buffer-p' is non-nil, then the
+If `imenu-always-use-completion-buffer-p' is non-nil, then the
 completion buffer is always used, no matter if the mouse was used or
 not.
 
@@ -457,7 +474,7 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 (defun goto-index-pos ()
   "Jump to selected part of buffer, using a buffer menu or mouse menu.
 
-See 'imenu-choose-buffer-index' for more information."
+See `imenu-choose-buffer-index' for more information."
   (interactive)
   (let ((index-item (imenu-choose-buffer-index)))
     (and index-item
@@ -487,7 +504,7 @@ See 'imenu-choose-buffer-index' for more information."
 ;;; 
 
 (defun imenu-example--lisp-extract-index-name ()
-  ;; Example of a candidate for 'imenu-extract-index-name-function'.
+  ;; Example of a candidate for `imenu-extract-index-name-function'.
   ;; This will generate a flat index of definitions in a lisp file.
   (save-match-data
     (and (looking-at "(def")
@@ -501,7 +518,7 @@ See 'imenu-choose-buffer-index' for more information."
 	   (error nil)))))
 
 (defun imenu-example--create-lisp-index ()
-  ;; Example of a candidate for 'imenu-create-index-function'.
+  ;; Example of a candidate for `imenu-create-index-function'.
   ;; It will generate a nested index of definitions.
   (let ((index-alist '())
 	(index-var-alist '())
