@@ -1,5 +1,8 @@
 2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* bs.el (bs--get-name, bs--get-file-name): Add help-echo to
+	mouse-highlighted text.
+
 	* dired.el (dired-mark-pop-up): Fix last change.
 
 2001-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
