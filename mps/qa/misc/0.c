@@ -1,7 +1,10 @@
-/* test cause segv and see if has usual effect
-   language c
-   link testlib.o
-   memoryerror=true
+/* TEST_HEADER
+ summary = cause segv and see if has usual effect
+ language = c
+ link = testlib.o
+OUTPUT_SPEC
+ memoryerror = true
+END_HEADER
 */
 
 #include "mps.h"
