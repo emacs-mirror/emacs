@@ -11,18 +11,28 @@
 	* startup.el (fancy-splash-head): Use splash8.xpm for color
 	depth 8.
 
-	* emacs-lisp/checkdoc.el (checkdoc-common-verbs-wrong-voice): Add
-	an antry for ``converts''.
+	* emacs-lisp/checkdoc.el (checkdoc-common-verbs-wrong-voice):
+	Add an antry for ``converts''.
 
-	* language/slovak.el ("Slovak"): Add documentation string.  From
-	Pavel@Janik.cz (Pavel Jan,Bm(Bk ml.).
+	* language/slovak.el ("Slovak"): Add documentation string.
+	From Pavel@Janik.cz (Pavel Jan,Bm(Bk ml.).
 
 	* language/czech.el ("Czech"): Add documentation string.
 	From Pavel@Janik.cz (Pavel Jan,Bm(Bk ml.).
 
-	* ps-mule.el (ps-mule-font-info-database-bdf): Change
-	`isci24-etl.bdf' to `isci24-mule.bdf'.  From: Kenichi Handa
-	<handa@etl.go.jp>.
+	* ps-mule.el (ps-mule-font-info-database-bdf): Change `isci24-etl.bdf'
+	to `isci24-mule.bdf'.  From: Kenichi Handa <handa@etl.go.jp>.
+
+2001-04-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/mail-extr.el (mail-extr-delete-char, mail-extr-safe-move-sexp)
+	(mail-extr-skip-whitespace-forward, mail-extr-nuke-char-at)
+	(mail-extr-skip-whitespace-backward, mail-extr-undo-backslash-quoting):
+	Use `defsubst' rather than a macro to ease debugging.
+	(mail-extr-last): Remove (use `last' instead).
+	(mail-extract-address-components): Properly reset the syntax-table
+	after parsing an address.  Use `last' rather than mail-extr-last.
+	Make sure the end marker stays at the very end.
 
 2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -34,16 +44,16 @@
 	* ps-print.el: Line and paragraph spacing feature.  Region to cut
 	out when printing.  Doc fix.
 	(ps-print-version): New version number (6.5).
-	(ps-line-spacing, ps-paragraph-spacing, ps-paragraph-regexp): New
-	vars.  Line and paragraph spacing feature.
+	(ps-line-spacing, ps-paragraph-spacing, ps-paragraph-regexp):
+	New vars.  Line and paragraph spacing feature.
 	(ps-begin-cut-regexp, ps-end-cut-regexp): New vars.  Region to cut
 	out when printing.
 	(ps-setup, ps-nb-pages, ps-get-page-dimensions, ps-begin-file)
 	(ps-get-font-size, ps-begin-job, ps-continue-line)
 	(ps-plot-region): Code fix.
 	(ps-print-prologue-2): Var eliminated.
-	(ps-line-spacing-internal, ps-paragraph-spacing-internal): New
-	internal vars.
+	(ps-line-spacing-internal, ps-paragraph-spacing-internal):
+	New internal vars.
 	(ps-get-size): New fun.
 	(ps-output-string-prim, ps-init-output-queue, ps-print-page-p)
 	(ps-next-line): Replace defun by defsubst.
@@ -84,17 +94,17 @@
 
 2001-04-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* frame.el (cursor-in-non-selected-windows): Replaces
-	show-cursor-in-non-selected-windows.
+	* frame.el (cursor-in-non-selected-windows):
+	Replaces show-cursor-in-non-selected-windows.
 
 2001-03-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
 	Delete entries for "chinese-py" and "chinese-ziranma".
-	(quail-misc-package-ext-info): New variable. 
+	(quail-misc-package-ext-info): New variable.
 	(tsang-quick-converter): New function.
-	(tsang-b5-converter, quick-b5-converter, tsang-cns-converter) 
-	(quick-cns-converter, py-converter, ziranma-converter) 
+	(tsang-b5-converter, quick-b5-converter, tsang-cns-converter)
+	(quick-cns-converter, py-converter, ziranma-converter)
 	(miscdic-convert, batch-miscdic-convert): New functions.
 
 2001-03-30  Kenichi Handa  <handa@etl.go.jp>
