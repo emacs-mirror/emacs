@@ -1,3 +1,12 @@
+2004-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix invalid encoding caused by the
+	previous sync.
+
+2004-04-16  Kenichi Handa  <handa@m17n.org>
+
+	Sync all files to HEAD.
+
 2004-04-15  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-compose-chars): Execute the main code in
