@@ -1,16 +1,25 @@
+2003-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-menu-entry-name-re): Allow newlines in
+	menu entry names.
+
+	* emacs-lisp/syntax.el (syntax-ppss-flush-cache): Rename from
+	syntax-ppss-after-change-function.
+	(syntax-ppss-after-change-function): New alias.  Update uses.
+	(syntax-ppss): Catch the case where the buffer is narrowed.
+
 2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos,
-	c-langelem-2nd-pos): Added accessor functions for syntactic
-	elements.
+	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos)
+	(c-langelem-2nd-pos): Add accessor functions for syntactic elements.
 
 2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el (c-literal-faces): Declare as a variable
 	since it might be modified.
 
-	* progmodes/cc-langs.el: (c++-make-template-syntax-table,
-	c-syntactic-ws-start, c-syntactic-ws-end): Gave more consistent
+	* progmodes/cc-langs.el: (c++-make-template-syntax-table)
+	(c-syntactic-ws-start, c-syntactic-ws-end): Give more consistent
 	names to these language constants.
 
 2003-07-15  Kim F. Storm  <storm@cua.dk>
@@ -25,7 +34,7 @@
 
 2003-07-13  Juanma Barranquero  <lektu@terra.es>
 
-	* frame.el (modify-all-frames-parameters): Reinstalled (copyright
+	* frame.el (modify-all-frames-parameters): Reinstall (copyright
 	papers received).
 
 2003-07-13  Karl Eichwalder  <ke@suse.de>
@@ -35,8 +44,8 @@
 
 2003-07-13  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
 
-	* textmodes/texinfo.el (texinfo-section-list): Append
-	appendixsection; a synonym for appendixsec.
+	* textmodes/texinfo.el (texinfo-section-list):
+	Append appendixsection; a synonym for appendixsec.
 
 2003-07-13  Jari Aalto  <jari.aalto@poboxes.com>
 
@@ -85,16 +94,16 @@
 2003-07-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-relative)
-	(timeclock-ask-before-exiting, timeclock-use-display-time): Doc
-	changes.
+	(timeclock-ask-before-exiting, timeclock-use-display-time):
+	Doc changes.
 	(timeclock-modeline-display): Give a message if
 	`timeclock-use-display-time' is non-nil but `display-time-mode'
 	is not active.
 
 2003-07-11  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-environment): Set
-	current-language-environment to the correct string.
+	* international/mule-cmds.el (set-language-environment):
+	Set current-language-environment to the correct string.
 
 2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -114,7 +123,7 @@
 	(timeclock-day-over-hook, timeclock-workday-remaining)
 	(timeclock-status-string, timeclock-when-to-leave)
 	(timeclock-when-to-leave-string, timeclock-log-data)
-	(timeclock-find-discrep, timeclock-day-base) 
+	(timeclock-find-discrep, timeclock-day-base)
 	(timeclock-generate-report, timeclock-visit-timelog): Doc fix.
 	(timeclock-modeline-display): Set the variable
 	`timeclock-modeline-display'.
@@ -145,8 +154,8 @@
 
 2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-fonts.el (javadoc-font-lock-keywords,
-	autodoc-font-lock-keywords): Don't byte compile on font lock
+	* progmodes/cc-fonts.el (javadoc-font-lock-keywords)
+	(autodoc-font-lock-keywords): Don't byte compile on font lock
 	initialization when running from byte compiled files.
 
 2003-07-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
@@ -156,8 +165,8 @@
 
 2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist,
-	c-lang-variable-inits, c-lang-variable-inits-tail): The values of
+	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist)
+	(c-lang-variable-inits, c-lang-variable-inits-tail): The values of
 	these are changed, so declare them as variables and not constants.
 
 2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
@@ -183,15 +192,14 @@
 
 	* man.el (Man-name-regexp): Match + as part of name.
 
-	* simple.el (visible-mode): Renamed from vis-mode.
+	* simple.el (visible-mode): Rename from vis-mode.
 	(vis-mode-saved-buffer-invisibility-spec): Doc fix.
 
 	* simple.el (current-word): New arg REALLY-WORD specifies
 	don't include punctuation chars.
 
 	* emacs-lisp/debug.el (debug, debugger-env-macro):
-	Use with-no-warnings while accessing and binding
-	unread-command-char.
+	Use with-no-warnings while accessing and binding unread-command-char.
 
 	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
 	Use explicit loop instead of calling standard-display-default.
@@ -1676,13 +1684,6 @@
 
 2003-06-30  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/compile.el (compile-auto-highlight): Default now t.
-	(compile): Doc fix.
-
-	* progmodes/compile.el (compilation-next-error): Fix previous change.
-
-	* emacs-lisp/debug.el (debug): 
-
 	* loadup.el (pure-space-overflow): Set it if overflow.
 
 	* startup.el (pure-space-overflow): New variable.
@@ -1788,14 +1789,14 @@
 	xxx-utf-16-{le,be} -> xxx-utf-16{le,be}.
 
 	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
-	Adjusted for the name change: xxx-utf-16-{le,be} ->
+	Adjust for the name change: xxx-utf-16-{le,be} ->
 	xxx-utf-16{le,be}.
 
 	* international/mule-conf.el: Adjusted for the name change:
 	xxx-utf-16-{le,be} -> xxx-utf-16{le,be}.
 
 	* international/mule-cmds.el (reset-language-environment):
-	Adjusted for the name change: xxx-utf-16-{le,be} ->
+	Adjust for the name change: xxx-utf-16-{le,be} ->
 	xxx-utf-16{le,be}.
 
 2003-06-20  Luc Teirlinck  <teirllm@mail.auburn.edu>
@@ -2124,10 +2125,10 @@
 
 2003-06-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
-	* textmodes/table.el (table-cell-horizontal-chars): Renamed from
+	* textmodes/table.el (table-cell-horizontal-chars): Rename from
 	table-cell-horizontal-char.  Now a string value instead of a
 	character.  ?= is allowed for horizontal boundary as well as ?-.
-	(table-command-remap-alist, table-command-list): Changed defconst to
+	(table-command-remap-alist, table-command-list): Change defconst to
 	defvar because the value is modified.
 	(table-insert, table-insert-row, table-insert-column)
 	(table-recognize, table-recognize-region, table-widen-cell)
@@ -2487,7 +2488,7 @@
 
 2003-06-01  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* desktop.el (desktop-create-buffer): Added (desktop-first-buffer) to
+	* desktop.el (desktop-create-buffer): Add (desktop-first-buffer) to
 	the let-statement to avoid the startup error that desktop-first-buffer
 	is undefined.
 
@@ -2555,7 +2556,7 @@
 2003-05-31  Juanma Barranquero  <lektu@terra.es>
 
 	* misc.el (mark-beginning-of-buffer, mark-end-of-buffer)
-	(upcase-char, forward-to-word, backward-to-word): Moved from unused.el.
+	(upcase-char, forward-to-word, backward-to-word): Move from unused.el.
 
 	* unused.el: Deleted (contents moved to misc.el).
 
@@ -2666,10 +2667,10 @@
 2003-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
-	Renamed from non-standard-icccm-encodings-alist.
+	Rename from non-standard-icccm-encodings-alist.
 	(ctext-non-standard-encodings-regexp): New variable
 	(ctext-post-read-conversion): Full rewrite.
-	(ctext-non-standard-designations-alist): Renamed from
+	(ctext-non-standard-designations-alist): Rename from
 	non-standard-designations-alist.
 	(ctext-pre-write-conversion): Full rewrite.
 
@@ -2720,7 +2721,7 @@
 	of local-write-file-hooks.  Use make-local-variable to make it local.
 
 	* descr-text.el (describe-char-unicode-data): New dummy definition.
-	(unicode-data): Commented out since we can't use UnicodeData.txt as is.
+	(unicode-data): Comment out since we can't use UnicodeData.txt as is.
 	(describe-char-unicodedata-file): Variable renamed and commented out.
 
 	* faces.el (set-face-attribute): Set face-modified prop to t
@@ -3018,34 +3019,34 @@
 	(check-ispell-version): Now the alias for `ispell-check-version'.
 	(ispell-message-fcc-skip): New variable that determines if and when
 	to query about saving Fcc copy of message if an attachment is large.
-	(ispell-skip-html): Declared buffer-local.
+	(ispell-skip-html): Declare buffer-local.
 	(ispell-local-dictionary-alist): Docstring expanded.
 	Tag name changed from "Character Set" to "Coding System".
-	(ispell-dictionary-alist-1): Removed redundant command-line option to
+	(ispell-dictionary-alist-1): Remove redundant command-line option to
 	load brasileiro, british, and castellano dictionary files.
-	(ispell-dictionary-alist-2): Removed redundant command-line option to
+	(ispell-dictionary-alist-2): Remove redundant command-line option to
 	load czech dictionary file.
-	(ispell-dictionary-alist-3): Moved francais-tex here.
-	(ispell-dictionary-alist-4): Removed german and german8 dictionaries.
+	(ispell-dictionary-alist-3): Move francais-tex here.
+	(ispell-dictionary-alist-4): Remove german and german8 dictionaries.
 	The deutsch ones are the correct definitions.  `nederlands'
 	and `nederlands8' dictionaries moved here.
 	(ispell-dictionary-alist-5): `polish' and `portugues' dictionaries
 	moved here.  Removed redundant command-line option to `norsk'
 	and `portugues'.
-	(ispell-dictionary-alist-6): Removed redundant command-line option to
+	(ispell-dictionary-alist-6): Remove redundant command-line option to
 	load `russian' and `slovak' dictionary files.
 	(ispell-dictionary-alist): Tag name changed from "Character Set" to
 	"Coding System".
-	(ispell-version): Updated to 3.6.
+	(ispell-version): Update to 3.6.
 	(ispell-library-directory): Calls non-deprecated function.
 	(ispell-valid-dictionary-list): New function returning all valid
 	dictionaries on machine.
 	(ispell-checking-message): Documentation string improved.
-	(ispell-skip-region-alist): Added uuencoded and postscript region
-	skipping.  Improved http/e-mail/file regexp to not match `/.\w'.
+	(ispell-skip-region-alist): Add uuencoded and postscript region
+	skipping.  Improve http/e-mail/file regexp to not match `/.\w'.
 	(ispell-html-skip-alists): New variable for html region support.
-	(ispell-send-string): Removed redundant xemacs check.
-	(ispell-word): Fix spelling error in documentation string, added
+	(ispell-send-string): Remove redundant xemacs check.
+	(ispell-word): Fix spelling error in documentation string, add
 	extent information to support highlighting in ispell-minor-mode.
 	(ispell-command-loop): Disable horizontal scrollbar in XEmacs
 	choices buffer.
@@ -3058,9 +3059,9 @@
 	(ispell-region): Add support for MIME region skipping and Fcc
 	message query for large attachments.
 	(ispell-begin-skip-region-regexp): Add documentation string.
-	Added message support and cleaned up code for generic and html regions.
+	Add message support and clean up code for generic and html regions.
 	(ispell-begin-skip-region): Function is now requires alist argument.
-	(ispell-begin-tex-skip-regexp): Added comments and support
+	(ispell-begin-tex-skip-regexp): Add comments and support
 	improved html and message regions.
 	(ispell-skip-region-list): New function for MIME and region skipping.
 	(ispell-tex-arg-end): Add documentation string.
@@ -3075,7 +3076,7 @@
 	(ispell-mime-skip-part): New function supporting MIME.
 	(ispell-message): Add MIME support.
 	(ispell-buffer-local-parsing): Variable `ispell-skip-html' now local.
-	(ispell-buffer-local-dict): Fixed bug for detecting and reloading
+	(ispell-buffer-local-dict): Fix bug for detecting and reloading
 	new dictionary.
 
 2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
@@ -5412,7 +5413,7 @@
 	* language/european.el (iso-latin-1): Definition of this coding
 	system moved to mule-conf.el.
 
-	* international/mule-conf.el (iso-latin-1): Moved from
+	* international/mule-conf.el (iso-latin-1): Move from
 	european.el.
 
 	* term/x-win.el (x-select-text): Don't set a text containing
@@ -5884,7 +5885,7 @@
 	unless it is used for a search path.  In GNU, the word `path' is
 	reserved for search paths.
 
-	* net/tramp.el (tramp-send-string, tramp-send-region): Removed.
+	* net/tramp.el (tramp-send-string, tramp-send-region): Remove.
 	(tramp-send-string): New function.  Takes over the role of the
 	functions above, in order to have a unique place handling
 	`tramp-chunksize'.  Same implementation as `tramp-send-region'.
@@ -19420,7 +19421,7 @@
 	(vc-cvs-retrieve-snapshot): Set file-property sticky-tag.
 	(vc-cvs-valid-symbolic-tag-name-p): New function.
 	(vc-cvs-parse-sticky-tag): New function.
-	(vc-cvs-parse-entry): Added parsing of sticky tags.
+	(vc-cvs-parse-entry): Add parsing of sticky tags.
 
 2002-02-21  Per Abrahamsen  <abraham@dina.kvl.dk>
 
