@@ -313,7 +313,9 @@ unless `mouse-sel-default-bindings' is `interprogram-cut-paste'.")
 (defvar mouse-sel-get-selection-function
   (lambda (selection)
     (if (eq selection 'PRIMARY)
-	(or (x-cut-buffer-or-selection-value) x-last-selected-text)
+	(or (x-cut-buffer-or-selection-value)
+	    (bound-and-true-p x-last-selected-text)
+	    (bound-and-true-p x-last-selected-text-primary))
       (x-get-selection selection)))
   "Function to call to get the selection.
 Called with one argument:
