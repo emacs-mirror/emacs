@@ -1233,8 +1233,8 @@ ESC or `q' to not overwrite any of the remaining files,
   "Copy all marked (or next ARG) files, or copy the current file.
 This normally preserves the last-modified date when copying.
 When operating on just the current file, you specify the new name.
-When operating on multiple or marked files, you specify a directory
-and new symbolic links are made in that directory
+When operating on multiple or marked files, you specify a directory,
+and new copies of these files are made in that directory
 with the same names that the files currently have."
   (interactive "P")
   (dired-do-create-files 'copy (function dired-copy-file)
