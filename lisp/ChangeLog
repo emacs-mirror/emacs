@@ -1,3 +1,8 @@
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (describe-key): Describe both down-event and up-event
+	for a mouse click.
+
 2004-10-26  Richard M. Stallman  <rms@gnu.org>
 
 	* woman.el (woman): Don't call interactive-p.
@@ -15,11 +20,11 @@
 
 	* progmodes/flymake.el (flymake-split-string): Use
 	`flymake-split-string-remove-empty-edges' in any case.
-	
+
 2004-10-26  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/flymake.el (flymake-err-line-patterns): 
-	Use `compilation-error-regexp-alist-alist' instead of 
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Use `compilation-error-regexp-alist-alist' instead of
 	`compilation-error-regexp-alist'.
 
 2004-10-25  Jay Belanger  <belanger@truman.edu>

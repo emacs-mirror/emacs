@@ -2289,6 +2289,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** An interactive specification may now use the code letter 'U' to get
+the up-event that was discarded in case the last key sequence read for a
+previous 'k' or 'K' argument was a down-event; otherwise nil is used.
+
 ** Function `translate-region' accepts also a char-table as TABLE
 argument.
 

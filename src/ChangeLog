@@ -1,3 +1,8 @@
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* callint.c (Fcall_interactively): Add 'U' code to get the
+	up-event discarded by a previous 'k' or 'K' argument.
+
 2004-10-26  David Kastrup  <dak@gnu.org>
 
 	* buffer.c (syms_of_buffer): Fix a few typos.

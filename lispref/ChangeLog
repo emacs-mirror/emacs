@@ -1,3 +1,7 @@
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Interactive Codes): Add U code letter.
+
 2004-10-25  Simon Josefsson  <jas@extundo.com>
 
 	* minibuf.texi (Reading a Password): Add.
