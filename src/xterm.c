@@ -2829,6 +2829,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      modifiers = event.xkey.state;
 
 	      /* This will have to go some day...  */
+
+	      /* make_lispy_event turns chars into control chars.
+		 Don't do it here because XLookupString is too eager.  */
+	      event.xkey.state &= ~ControlMask;
 	      nbytes =
 		XLookupString (&event.xkey, copy_buffer, 80, &keysym,
 			       &compose_status);
