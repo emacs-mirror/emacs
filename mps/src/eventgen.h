@@ -62,8 +62,8 @@ typedef struct {
   void * p0;
   struct AddrStruct * a1;
   Word w2;
-  Word w3;
-} EventPAWWStruct;
+  struct AddrStruct * a3;
+} EventPAWAStruct;
 
 typedef struct {
   Word code;
@@ -168,7 +168,7 @@ typedef union {
   EventPStruct p;
   EventPAAStruct paa;
   EventPAWStruct paw;
-  EventPAWWStruct paww;
+  EventPAWAStruct pawa;
   EventPPStruct pp;
   EventPPAUStruct ppau;
   EventPPAWPStruct ppawp;
@@ -231,14 +231,14 @@ typedef union {
     EVENT_END(type, _length); \
   END
 
-#define EVENT_PAWW(type, _p0, _a1, _w2, _w3) \
+#define EVENT_PAWA(type, _p0, _a1, _w2, _a3) \
   BEGIN \
-    size_t _length = sizeof(EventPAWWStruct); \
-    EVENT_BEGIN(type, PAWW, _length); \
-    Event.paww.p0 = (_p0); \
-    Event.paww.a1 = (_a1); \
-    Event.paww.w2 = (_w2); \
-    Event.paww.w3 = (_w3); \
+    size_t _length = sizeof(EventPAWAStruct); \
+    EVENT_BEGIN(type, PAWA, _length); \
+    Event.pawa.p0 = (_p0); \
+    Event.pawa.a1 = (_a1); \
+    Event.pawa.w2 = (_w2); \
+    Event.pawa.a3 = (_a3); \
     EVENT_END(type, _length); \
   END
 
@@ -360,7 +360,7 @@ typedef union {
 #define EventFormatP 3
 #define EventFormatPAA 4
 #define EventFormatPAW 5
-#define EventFormatPAWW 6
+#define EventFormatPAWA 6
 #define EventFormatPP 7
 #define EventFormatPPAU 8
 #define EventFormatPPAWP 9
@@ -380,7 +380,7 @@ typedef union {
 #define EVENT_P(type, p0)    NOOP
 #define EVENT_PAA(type, p0, p1, p2)    NOOP
 #define EVENT_PAW(type, p0, p1, p2)    NOOP
-#define EVENT_PAWW(type, p0, p1, p2, p3)    NOOP
+#define EVENT_PAWA(type, p0, p1, p2, p3)    NOOP
 #define EVENT_PP(type, p0, p1)    NOOP
 #define EVENT_PPAU(type, p0, p1, p2, p3)    NOOP
 #define EVENT_PPAWP(type, p0, p1, p2, p3, p4)    NOOP
