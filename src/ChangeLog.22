@@ -1,3 +1,11 @@
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Avoid detecting a code twice.
+
+	* coding.c (detect_coding_iso_2022): Fix handling of SS2 and SS3.
+	(detect_coding): Treat '\0' as normal ASCII byte..
+	(detect_coding_system): Likewise.
+
 2004-01-27  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (SJIS_TO_JIS2, JIS_TO_SJIS2): New macros.
