@@ -539,7 +539,7 @@ which the match was found."
       (beginning-of-line)
       (when (re-search-forward regexp nil t)
 	(list (string-equal "Ref:" (match-string 1))
-	      (1+ (read (current-buffer)))
+	      (+ (point-min) (read (current-buffer)))
 	      major-mode)))))
 
 (defun Info-find-in-tag-table (marker regexp)
@@ -929,7 +929,7 @@ a case-insensitive match is tried."
 			thisfilepos thisfilename)
 		    (search-forward ": ")
 		    (setq thisfilename  (buffer-substring beg (- (point) 2)))
-		    (setq thisfilepos (read (current-buffer)))
+		    (setq thisfilepos (+ (point-min) (read (current-buffer))))
 		    ;; read in version 19 stops at the end of number.
 		    ;; Advance to the next line.
 		    (forward-line 1)
@@ -1074,19 +1074,35 @@ If FORK is a string, it is the name to use for the new buffer."
 ;; It does completion using the alist in Info-read-node-completion-table
 ;; unless STRING starts with an open-paren.
 (defun Info-read-node-name-1 (string predicate code)
-  (let ((no-completion (and (> (length string) 0) (eq (aref string 0) ?\())))
-    (cond ((eq code nil)
-	   (if no-completion
-	       string
-	     (try-completion string Info-read-node-completion-table predicate)))
-	  ((eq code t)
-	   (if no-completion
-	       nil
-	     (all-completions string Info-read-node-completion-table predicate)))
-	  ((eq code 'lambda)
-	   (if no-completion
-	       t
-	     (assoc string Info-read-node-completion-table))))))
+  (cond
+   ;; First complete embedded file names.
+   ((string-match "\\`([^)]*\\'" string)
+    (let ((file (substring string 1)))
+      (cond
+       ((eq code nil)
+	(let ((comp (try-completion file 'locate-file-completion
+				    (cons Info-directory-list
+					  (mapcar 'car Info-suffix-list)))))
+	  (cond
+	   ((eq comp t) (concat string ")"))
+	   (comp (concat "(" comp)))))
+       ((eq code t) (all-completions file 'locate-file-completion
+				     (cons Info-directory-list
+					   (mapcar 'car Info-suffix-list))))
+       (t nil))))
+   ;; If a file name was given, then any node is fair game.
+   ((string-match "\\`(" string)
+    (cond
+     ((eq code nil) string)
+     ((eq code t) nil)
+     (t t)))
+   ;; Otherwise use Info-read-node-completion-table.
+   ((eq code nil)
+    (try-completion string Info-read-node-completion-table predicate))
+   ((eq code t)
+    (all-completions string Info-read-node-completion-table predicate))
+   (t
+    (test-completion string Info-read-node-completion-table predicate))))
 
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)
@@ -1443,8 +1459,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	    (while
 		(progn
 		  (while (re-search-forward pattern nil t)
-		    (push (cons (match-string-no-properties 1)
-				(match-beginning 1))
+		    (push (match-string-no-properties 1)
 			  completions))
 		  ;; Check subsequent nodes if applicable.
 		  (and Info-complete-next-re
