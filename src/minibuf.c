@@ -1444,15 +1444,17 @@ Completion ignores case if the ambient value of\n\
 */
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   0 /* See immediately above */)
-  (prompt, table, predicate, require_match, init, hist, def, inherit_input_method)
-     Lisp_Object prompt, table, predicate, require_match, init, hist, def;
-     Lisp_Object inherit_input_method;
+  (prompt, table, predicate, require_match, initial_input, hist, def, inherit_input_method)
+     Lisp_Object prompt, table, predicate, require_match, initial_input;
+     Lisp_Object hist, def, inherit_input_method;
 {
   Lisp_Object val, histvar, histpos, position;
+  Lisp_Object init;
   int pos = 0;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
 
+  init = initial_input;
   GCPRO1 (def);
 
   specbind (Qminibuffer_completion_table, table);
