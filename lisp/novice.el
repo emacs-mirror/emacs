@@ -26,6 +26,7 @@
 ;;;###autoload
 (setq disabled-command-hook 'disabled-command-hook)
 
+;;;###autoload
 (defun disabled-command-hook (&rest ignore)
   (let (char)
     (save-window-excursion
