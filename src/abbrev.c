@@ -111,7 +111,9 @@ To undefine an abbrev, define it with EXPANSION = nil.\n\
 If HOOK is non-nil, it should be a function of no arguments;\n\
 it is called after EXPANSION is inserted.\n\
 If EXPANSION is not a string, the abbrev is a special one,\n\
- which does not expand in the usual way but only runs HOOK.")
+ which does not expand in the usual way but only runs HOOK.\n\
+COUNT, if specified, initializes the abbrev's usage-count\n\
+which is incremented each time the abbrev is used.")
   (table, name, expansion, hook, count)
      Lisp_Object table, name, expansion, hook, count;
 {
