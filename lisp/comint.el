@@ -116,6 +116,7 @@
 ;;;     comint-input-ignoredups - boolean          ...
 ;;;     comint-last-input-match - string           ...
 ;;;     comint-dynamic-complete-functions - hook   For the completion mechanism
+;;;     comint-completion-fignore - list           ...
 ;;;     comint-get-old-input    - function     Hooks for specific 
 ;;;     comint-input-filter-functions - hook     process-in-a-buffer
 ;;;     comint-output-filter-functions - hook    function modes.
@@ -360,6 +361,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
   (make-local-variable 'comint-dynamic-complete-functions)
+  (make-local-variable 'comint-completion-fignore)
   (make-local-variable 'comint-get-old-input)
   (make-local-variable 'comint-input-filter-functions)
   (make-local-variable 'comint-input-filter)
@@ -1726,6 +1728,12 @@ This mirrors the optional behavior of tcsh.
 
 A non-nil value is useful if `comint-completion-autolist' is non-nil too.")
 
+(defvar comint-completion-fignore nil
+  "*List of suffixes to be disregarded during file completion.
+This mirrors the optional behavior of bash and tcsh.
+
+Note that this applies to `comint-dynamic-complete-filename' only.")
+
 (defvar comint-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
 This is used by comint's and shell's completion functions, and by shell's
@@ -1783,9 +1791,9 @@ it won't change parts of the filename already entered in the buffer; it just
 adds completion characters to the end of the filename.  A completions listing
 may be shown in a help buffer if completion is ambiguous.
 
-Completion is dependent on the value of `comint-completion-addsuffix' and
-`comint-completion-recexact', and the timing of completions listing is
-dependent on the value of `comint-completion-autolist'.
+Completion is dependent on the value of `comint-completion-addsuffix',
+`comint-completion-recexact' and `comint-completion-fignore', and the timing of
+completions listing is dependent on the value of `comint-completion-autolist'.
 
 Returns t if successful."
   (interactive)
@@ -1798,9 +1806,8 @@ Returns t if successful."
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
   (let* ((completion-ignore-case nil)
+	 (completion-ignored-extensions comint-completion-fignore)
 	 (success t)
-	 ;; For shell completion, treat all files as equally interesting.
-	 (completion-ignored-extensions nil)
 	 (filename (or (comint-match-partial-filename) ""))
          (pathdir (file-name-directory filename))
          (pathnondir (file-name-nondirectory filename))
@@ -1904,8 +1911,6 @@ See also `comint-dynamic-complete-filename'."
   "List in help buffer possible completions of the filename at point."
   (interactive)
   (let* ((completion-ignore-case nil)
-	 ;; For shell completion, treat all files as equally interesting.
-	 (completion-ignored-extensions nil)
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
