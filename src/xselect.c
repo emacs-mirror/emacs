@@ -1915,7 +1915,7 @@ Disowning it means there is no such selection.")
 {
   Time timestamp;
   Atom selection_atom;
-  XSelectionClearEvent event;
+  struct selection_input_event event;
   Display *display;
   struct x_display_info *dpyinfo;
 
@@ -1945,7 +1945,7 @@ Disowning it means there is no such selection.")
   SELECTION_EVENT_DISPLAY (&event) = display;
   SELECTION_EVENT_SELECTION (&event) = selection_atom;
   SELECTION_EVENT_TIME (&event) = timestamp;
-  x_handle_selection_clear (&event);
+  x_handle_selection_clear ((struct input_event *) &event);
 
   return Qt;
 }
