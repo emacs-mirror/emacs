@@ -163,13 +163,7 @@ If scan reaches end of buffer, stop there without error.")
   else
     CHECK_NUMBER (n, 0);
 
-  {
-    int pos = XFASTINT (Fline_beginning_position (n));
-    if (INTEGERP (current_buffer->minibuffer_prompt_length)
-	&& pos < XFASTINT (current_buffer->minibuffer_prompt_length))
-      pos = XFASTINT (current_buffer->minibuffer_prompt_length);
-    SET_PT (pos);
-  }
+  SET_PT (XINT (Fline_beginning_position (n)));
   
   return Qnil;
 }
@@ -182,9 +176,6 @@ If scan reaches end of buffer, stop there without error.")
   (n)
      Lisp_Object n;
 {
-  register int pos;
-  register int stop;
-
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
