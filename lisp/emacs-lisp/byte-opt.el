@@ -856,7 +856,6 @@
 
 (put '=   'byte-optimizer 'byte-optimize-binary-predicate)
 (put 'eq  'byte-optimizer 'byte-optimize-binary-predicate)
-(put 'eql 'byte-optimizer 'byte-optimize-binary-predicate)
 (put 'equal   'byte-optimizer 'byte-optimize-binary-predicate)
 (put 'string= 'byte-optimizer 'byte-optimize-binary-predicate)
 (put 'string-equal 'byte-optimizer 'byte-optimize-binary-predicate)
@@ -1140,7 +1139,8 @@
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
 	 float floor format frame-visible-p
-	 get get-buffer get-buffer-window getenv get-file-buffer
+	 get gethash get-buffer get-buffer-window getenv get-file-buffer
+	 hash-table-count
 	 int-to-string
 	 keymap-parent
 	 length local-variable-if-set-p local-variable-p log log10 logand logb logior lognot logxor lsh
@@ -1161,8 +1161,9 @@
 	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps
-	 dot dot-marker eobp eolp eq eql equal eventp floatp framep
+	 dot dot-marker eobp eolp eq equal eventp floatp framep
 	 get-largest-window get-lru-window
+	 hash-table-p
 	 identity ignore integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
 	 keymapp
