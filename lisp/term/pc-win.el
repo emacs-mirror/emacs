@@ -86,15 +86,14 @@
   "Handle the reverse-video frame parameter on MS-DOS frames."
   (when (cdr (assq 'reverse parameters))
       (let* ((params (frame-parameters frame))
-	     (bg (cdr (assq 'foreground-color params)))
-	     (fg (cdr (assq 'background-color params))))
-	(modify-frame-parameters frame '((reverse . nil)))
-	(if (equal bg (cdr (assq 'mouse-color params)))
+	     (fg (cdr (assq 'foreground-color params)))
+	     (bg (cdr (assq 'background-color params))))
+	(if (equal fg (cdr (assq 'mouse-color params)))
 	    (modify-frame-parameters frame
-				     (list (cons 'mouse-color fg))))
-	(if (equal bg (cdr (assq 'cursor-color params)))
+				     (list (cons 'mouse-color bg))))
+	(if (equal fg (cdr (assq 'cursor-color params)))
 	    (modify-frame-parameters frame
-				     (list (cons 'cursor-color fg)))))))
+				     (list (cons 'cursor-color bg)))))))
 
 ;; This must run after all the default colors are inserted into
 ;; tty-color-alist, since msdos-handle-reverse-video needs to know the
