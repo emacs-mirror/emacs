@@ -2480,10 +2480,15 @@ it were the arg to `interactive' (which see) to interactively read the value."
 ;; Record the buffer that was current when the completion list was requested.
 (defvar completion-reference-buffer)
 
+;; This records the length of the text at the beginning of the buffer
+;; which was not included in the completion.
+(defvar completion-base-size nil)
+
 (defun choose-completion ()
   "Choose the completion that point is in or next to."
   (interactive)
-  (let (beg end completion (buffer completion-reference-buffer))
+  (let (beg end completion (buffer completion-reference-buffer)
+	(base-size completion-base-size))
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
     (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
@@ -2501,7 +2506,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
       (select-window owindow))
-    (choose-completion-string completion buffer)))
+    (choose-completion-string completion buffer base-size)))
 
 ;; Delete the longest partial match for STRING
 ;; that can be found before POINT.
@@ -2522,7 +2527,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
       (forward-char 1))
     (delete-char len)))
 
-(defun choose-completion-string (choice &optional buffer)
+(defun choose-completion-string (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
@@ -2532,7 +2537,9 @@ it were the arg to `interactive' (which see) to interactively read the value."
 	(error "Minibuffer is not active for completion")
       ;; Insert the completion into the buffer where completion was requested.
       (set-buffer buffer)
-      (choose-completion-delete-max-match choice)
+      (if base-size
+	  (delete-region (+ base-size (point-min)) (point))
+	(choose-completion-delete-max-match choice))
       (insert choice)
       (remove-text-properties (- (point) (length choice)) (point)
 			      '(mouse-face nil))
@@ -2554,6 +2561,8 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (use-local-map completion-list-mode-map)
   (setq mode-name "Completion List")
   (setq major-mode 'completion-list-mode)
+  (make-local-variable 'completion-base-size)
+  (setq completion-base-size nil)
   (run-hooks 'completion-list-mode-hook))
 
 (defvar completion-fixup-function nil)
