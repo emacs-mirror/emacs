@@ -75,7 +75,7 @@ commands for operating on the blank lines in the buffer.
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
 being edited.  You can have several buffers, but at any time you are
-editing only one, the `selected' buffer, though several can be visible
+editing only one, the `current buffer,' though several can be visible
 when you are using multiple windows (q.v.).  Most buffers are visiting
 (q.v.@:) some file.  @xref{Buffers}.
 
@@ -206,7 +206,7 @@ The cursor is the rectangle on the screen which indicates the position
 called point (q.v.@:) at which insertion and deletion takes place.
 The cursor is on or under the character that follows point.  Often
 people speak of `the cursor' when, strictly speaking, they mean
-`point'.  @xref{Basic,Cursor,Basic Editing}.
+`point.'  @xref{Basic,Cursor,Basic Editing}.
 
 @item Customization
 Customization is making minor changes in the way Emacs works.  It is
@@ -369,8 +369,8 @@ A function key is a key on the keyboard that sends input but does not
 correspond to any character.  @xref{Function Keys}.
 
 @item Global
-Global means `independent of the current environment; in effect
-throughout Emacs'.  It is the opposite of local (q.v.@:).  Particular
+Global means ``independent of the current environment; in effect
+throughout Emacs.''  It is the opposite of local (q.v.@:).  Particular
 examples of the use of `global' appear below.
 
 @item Global Abbrev
@@ -520,7 +520,7 @@ considered lists.  Emacs has special commands for many operations on
 lists.  @xref{Lists}.
 
 @item Local
-Local means `in effect only in a particular context'; the relevant
+Local means ``in effect only in a particular context''; the relevant
 kind of context is a particular function execution, a particular
 buffer, or a particular major mode.  It is the opposite of `global'
 (q.v.@:).  Specific uses of `local' in Emacs terminology appear below.
@@ -590,7 +590,7 @@ words you can click on with the mouse to bring up menus, or you can use
 a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Message
-See `mail'.
+See `mail.'
 
 @item Meta
 Meta is the name of a modifier bit which a command character may have.
@@ -699,7 +699,7 @@ character.  The terminal's cursor (q.v.@:) indicates the location of
 point.  @xref{Basic,Point}.
 	
 @item Prefix Argument
-See `numeric argument'.
+See `numeric argument.'
 
 @item Prefix Key
 A prefix key is a key sequence (q.v.@:) whose sole function is to
@@ -772,7 +772,7 @@ correspond to changes that have been made in the text being edited.
 @xref{Screen,Redisplay}.
 
 @item Regexp
-See `regular expression'.
+See `regular expression.'
 
 @item Region
 The region is the text between point (q.v.@:) and the mark (q.v.@:).
@@ -788,10 +788,10 @@ for example, @samp{l[0-9]+} matches @samp{l} followed by one or more
 digits.  @xref{Regexps}.
 
 @item Repeat Count
-See `numeric argument'.
+See `numeric argument.'
 
 @item Replacement
-See `global substitution'.
+See `global substitution.'
 
 @item Restriction
 A buffer's restriction is the amount of text, at the beginning or the
@@ -867,7 +867,7 @@ Emacs has commands for moving by or killing by sentences.
 @xref{Sentences}.
 
 @item Sexp
-A sexp (short for `s-expression') is the basic syntactic unit of Lisp
+A sexp (short for ``s-expression'') is the basic syntactic unit of Lisp
 in its textual form: either a list, or Lisp atom.  Many Emacs commands
 operate on sexps.  The term `sexp' is generalized to languages other
 than Lisp, to mean a syntactically recognizable expression.
@@ -951,7 +951,7 @@ two adjacent characters, words, sexps (q.v.@:) or lines
 @item Truncation
 Truncating text lines in the display means leaving out any text on a
 line that does not fit within the right margin of the window
-displaying it.  See also `continuation line'.
+displaying it.  See also `continuation line.'
 @xref{Basic,Truncation,Basic Editing}.
 
 @item Undoing
@@ -995,14 +995,14 @@ can display the contents of one buffer (q.v.@:) at any time.
 @xref{Windows}, for commands to control the use of windows.
 
 @item Word Abbrev
-Synonymous with `abbrev'.
+See `abbrev.'
 
 @item Word Search
 Word search is searching for a sequence of words, considering the
 punctuation between them as insignificant.  @xref{Word Search}.
 
 @item WYSIWYG
-WYSIWYG stands for `What you see is what you get.'  Emacs generally
+WYSIWYG stands for ``What you see is what you get.''  Emacs generally
 provides WYSIWYG editing for files of characters; in Enriched mode
 (@pxref{Formatted Text}), it provides WYSIWYG editing for files that
 include text formatting information.
