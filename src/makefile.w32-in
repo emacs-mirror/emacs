@@ -406,7 +406,6 @@ $(BLD)/dired.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/vmsdir.h \
 	$(SRC)/ndir.h \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
@@ -436,7 +435,6 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/w32term.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/xterm.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h
 
 $(BLD)/doc.$(O) : \
@@ -472,7 +470,6 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/uaf.h \
-	$(SRC)/vms-pwd.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/w32gui.h \
@@ -480,7 +477,6 @@ $(BLD)/editfns.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/buffer.h \
 	$(SRC)/window.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h
 
 $(BLD)/emacs.$(O) : \
@@ -514,11 +510,9 @@ $(BLD)/fileio.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/uaf.h \
-	$(SRC)/vms-pwd.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(SRC)/msdos.h \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(SRC)/vmsdir.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/intervals.h \
@@ -526,7 +520,6 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/window.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h
 
 $(BLD)/filelock.$(O) : \
@@ -535,12 +528,10 @@ $(BLD)/filelock.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/uaf.h \
-	$(SRC)/vms-pwd.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/src/epaths.h \
 	$(SRC)/buffer.h \
-	$(SRC)/vmsdir.h \
 	$(SRC)/ndir.h
 
 $(BLD)/filemode.$(O) : \
@@ -688,7 +679,6 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/w32term.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/xterm.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h \
 	$(SRC)/atimer.h
 
@@ -798,7 +788,6 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/config.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h
 
 $(BLD)/w32console.$(O) : \
@@ -844,9 +833,7 @@ $(BLD)/process.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/frame.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/vmsproc.h \
 	$(SRC)/syswait.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h \
 	$(SRC)/termopts.h \
 	$(SRC)/composite.h \
@@ -935,7 +922,6 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(SRC)/systty.h \
-	$(SRC)/vmsproc.h \
 	$(SRC)/syswait.h \
 	$(SRC)/frame.h \
 	$(SRC)/window.h \
@@ -945,13 +931,10 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/process.h \
-	$(SRC)/vmsdir.h \
 	$(SRC)/ndir.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/vmstime.h \
 	$(SRC)/systime.h \
 	$(SRC)/uaf.h \
-	$(SRC)/vms-pwd.h \
 	$(EMACS_ROOT)/src/acldef.h \
 	$(EMACS_ROOT)/src/chpdef.h
 
