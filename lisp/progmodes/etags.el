@@ -58,7 +58,7 @@ to the current list (as opposed to starting a new list)."
   :group 'etags
   :type '(choice (const :tag "Do" t)
 		 (const :tag "Don't" nil)
-		 (const :tag "Ask" ask-user)))
+		 (other :tag "Ask" ask-user)))
 
 (defcustom tags-revert-without-query nil
   "*Non-nil means reread a TAGS table without querying, if it has changed."
