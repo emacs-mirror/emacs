@@ -623,6 +623,14 @@ redisplay ()
 	  if (cursor_vpos >= 0 && this_line_bufpos
 	      && this_line_endpos == tlendpos)
 	    {
+	      int left = XFASTINT (w->left);
+	      int *charstart_next_line
+		= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
+	      int adjust = Z - tlendpos + 1 - charstart_next_line[left];
+	      int i;
+
+	      adjust_window_charstarts (w, this_line_vpos, adjust);
+
 	      if (XFASTINT (w->width) != FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
 		preserve_other_columns (w);
 	      goto update;
