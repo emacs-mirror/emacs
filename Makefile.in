@@ -114,13 +114,6 @@ srcdir=@srcdir@
 @inst_paths@# themselves in separate directories.
 @inst_paths@lispdir=${datadir}/emacs/${version}/lisp
 
-@inst_paths@# Where to install the lisp files which are distributed
-@inst_paths@# with Emacs but not maintained by the FSF.  This
-@inst_paths@# includes the Emacs version, so that the lisp files for
-@inst_paths@# different versions of Emacs will install themselves in
-@inst_paths@# separate directories.
-@inst_paths@externallispdir=${datadir}/emacs/${version}/external-lisp
-
 @inst_paths@# Directories Emacs should search for lisp files specific
 @inst_paths@# to this site (i.e. customizations), before consulting
 @inst_paths@# ${lispdir}.  This should be a colon-separated list of
@@ -204,8 +197,8 @@ SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile
 # When installing the info files, we need to do special things to
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
-COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/external-lisp
-COPYDESTS = ${etcdir} ${lispdir} ${externallispdir}
+COPYDIR = ${srcdir}/etc ${srcdir}/lisp
+COPYDESTS = ${etcdir} ${lispdir}
 
 all:	src/paths.h ${SUBDIR}
 
