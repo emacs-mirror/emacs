@@ -1304,7 +1304,7 @@ assign_row (to, from)
    is non-zero if the glyph memory of WINDOW_ROW is part of the glyph
    memory of FRAME_ROW.  */
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 
 static int
 glyph_row_slice_p (window_row, frame_row)
@@ -3773,7 +3773,7 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       fflush (stdout);
 
       /* Check window matrices for lost pointers.  */
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
       check_window_matrix_pointers (root_window);
       add_frame_display_history (f, paused_p);
 #endif
@@ -4094,7 +4094,7 @@ update_window (w, force_p)
   else
     paused_p = 1;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
   
@@ -6482,7 +6482,7 @@ syms_of_display ()
   defsubr (&Sinternal_show_cursor);
   defsubr (&Sinternal_show_cursor_p);
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   defsubr (&Sdump_redisplay_history);
 #endif
 
