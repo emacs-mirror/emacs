@@ -939,35 +939,43 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 
   while (src < src_end)
     {
-      g = GLYPH_FROM_CHAR_GLYPH (*src);
-      
       /* We must skip glyphs to be padded for a wide character.  */
       if (! CHAR_GLYPH_PADDING_P (*src))
 	{
-	  c = src->u.ch.code;
-	  if (! GLYPH_CHAR_VALID_P (c))
+	  g = GLYPH_FROM_CHAR_GLYPH (src[0]);
+
+	  if (g < 0 || g >= tlen)
 	    {
-	      c = ' ';
-	      g = MAKE_GLYPH (sf, c, GLYPH_FACE (sf, g));
-	    }
-	  if (c < tlen)
-	    {
-	      /* G has an entry in Vglyph_table,
-		 so process any alias before testing for simpleness.  */
-	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-	      c = GLYPH_CHAR (sf, g);
-	    }
-	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
-	    {
-	      /* We set the multi-byte form of C at WORKBUF.  */
-	      len = CHAR_STRING (c, workbuf);
-	      buf = workbuf;
+	      /* This glyph doesn't has an entry in Vglyph_table.  */
+	      if (! CHAR_VALID_P (src->u.ch, 0))
+		{
+		  len = 1;
+		  buf = " ";
+		}
+	      else
+		{
+		  len = CHAR_STRING (src->u.ch, workbuf);
+		  buf = workbuf;
+		}
 	    }
 	  else
 	    {
-	      /* We have a string in Vglyph_table.  */
-	      len = GLYPH_LENGTH (tbase, g);
-	      buf = GLYPH_STRING (tbase, g);
+	      /* This glyph has an entry in Vglyph_table,
+		 so process any alias before testing for simpleness.  */
+	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+
+	      if (GLYPH_SIMPLE_P (tbase, tlen, g))
+		{
+		  /* We set the multi-byte form of C at WORKBUF.  */
+		  len = CHAR_STRING (src->u.ch, workbuf);
+		  buf = workbuf;
+		}
+	      else
+		{
+		  /* We have a string in Vglyph_table.  */
+		  len = GLYPH_LENGTH (tbase, g);
+		  buf = GLYPH_STRING (tbase, g);
+		}
 	    }
 	  
 	  result = encode_coding (coding, buf, dst, len, dst_end - dst);
@@ -1036,11 +1044,11 @@ write_glyphs (string, len)
   while (len > 0)
     {
       /* Identify a run of glyphs with the same face.  */
-      int face_id = string->u.ch.face_id;
+      int face_id = string->face_id;
       int n;
       
       for (n = 1; n < len; ++n)
-	if (string[n].u.ch.face_id != face_id)
+	if (string[n].face_id != face_id)
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
@@ -1099,7 +1107,7 @@ insert_glyphs (start, len)
      register int len;
 {
   char *buf;
-  GLYPH g;
+  struct glyph *glyph;
   struct frame *f, *sf;
 
   if (len <= 0)
@@ -1132,14 +1140,17 @@ insert_glyphs (start, len)
   while (len-- > 0)
     {
       int produced, consumed;
-      struct glyph glyph;
 
       OUTPUT1_IF (TS_ins_char);
       if (!start)
-	g = SPACEGLYPH;
+	{
+	  conversion_buffer[0] = SPACEGLYPH;
+	  produced = 1;
+	}
       else
 	{
-	  g = GLYPH_FROM_CHAR_GLYPH (*start);
+	  turn_on_face (f, start->face_id);
+	  glyph= start;
 	  ++start;
 	  /* We must open sufficient space for a character which
 	     occupies more than one column.  */
@@ -1148,18 +1159,17 @@ insert_glyphs (start, len)
 	      OUTPUT1_IF (TS_ins_char);
 	      start++, len--;
 	    }
+
+	  if (len <= 0)
+	    /* This is the last glyph.  */
+	    terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
+
+	  /* We use shared conversion buffer of the current size (1024
+	     bytes at least).  It is surely sufficient for just one glyph.  */
+	  produced = encode_terminal_code (&glyph, conversion_buffer, 1,
+					   conversion_buffer_size, &consumed);
 	}
 
-      if (len <= 0)
-	/* This is the last glyph.  */
-	terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-
-      /* We use shared conversion buffer of the current size (1024
-	 bytes at least).  It is surely sufficient for just one glyph.  */
-      SET_CHAR_GLYPH_FROM_GLYPH (glyph, g);
-      turn_on_face (f, glyph.u.ch.face_id);
-      produced = encode_terminal_code (&glyph, conversion_buffer,
-				       1, conversion_buffer_size, &consumed);
       if (produced > 0)
 	{
 	  fwrite (conversion_buffer, 1, produced, stdout);
@@ -1170,7 +1180,8 @@ insert_glyphs (start, len)
 	}
 
       OUTPUT1_IF (TS_pad_inserted_char);
-      turn_off_face (f, glyph.u.ch.face_id);
+      if (start)
+	turn_off_face (f, glyph->face_id);
     }
   
   cmcheckmagic ();
@@ -1752,9 +1763,9 @@ append_glyph (it)
     {
       glyph->type = CHAR_GLYPH;
       glyph->pixel_width = 1;
-      glyph->u.ch.code = it->c;
-      glyph->u.ch.face_id = it->face_id;
-      glyph->u.ch.padding_p = i > 0;
+      glyph->u.ch = it->c;
+      glyph->face_id = it->face_id;
+      glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       
