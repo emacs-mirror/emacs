@@ -29,28 +29,29 @@
 
 ;;; Code:
 
-(defvar awk-mode-syntax-table nil
-  "Syntax table in use in Awk-mode buffers.")
-
-(if awk-mode-syntax-table
-    ()
-  (setq awk-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\ "\\" awk-mode-syntax-table)
-  (modify-syntax-entry ?\n ">   " awk-mode-syntax-table)
-  (modify-syntax-entry ?\f ">   " awk-mode-syntax-table)
-  (modify-syntax-entry ?\# "<   " awk-mode-syntax-table)
-  (modify-syntax-entry ?/ "." awk-mode-syntax-table)
-  (modify-syntax-entry ?* "." awk-mode-syntax-table)
-  (modify-syntax-entry ?+ "." awk-mode-syntax-table)
-  (modify-syntax-entry ?- "." awk-mode-syntax-table)
-  (modify-syntax-entry ?= "." awk-mode-syntax-table)
-  (modify-syntax-entry ?% "." awk-mode-syntax-table)
-  (modify-syntax-entry ?< "." awk-mode-syntax-table)
-  (modify-syntax-entry ?> "." awk-mode-syntax-table)
-  (modify-syntax-entry ?& "." awk-mode-syntax-table)
-  (modify-syntax-entry ?| "." awk-mode-syntax-table)
-  (modify-syntax-entry ?_ "_" awk-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"" awk-mode-syntax-table))
+(defvar awk-mode-syntax-table
+  (let ((st (make-syntax-table)))
+  (modify-syntax-entry ?\\ "\\" st)
+  (modify-syntax-entry ?\n ">   " st)
+  (modify-syntax-entry ?\f ">   " st)
+  (modify-syntax-entry ?\# "<   " st)
+  ;; / can delimit regexes or be a division operator.  We assume that it is
+  ;; more commonly used for regexes and fix the remaining cases with
+  ;; `font-lock-syntactic-keywords'.
+  (modify-syntax-entry ?/ "\"" st)
+  (modify-syntax-entry ?* "." st)
+  (modify-syntax-entry ?+ "." st)
+  (modify-syntax-entry ?- "." st)
+  (modify-syntax-entry ?= "." st)
+  (modify-syntax-entry ?% "." st)
+  (modify-syntax-entry ?< "." st)
+  (modify-syntax-entry ?> "." st)
+  (modify-syntax-entry ?& "." st)
+  (modify-syntax-entry ?| "." st)
+  (modify-syntax-entry ?_ "_" st)
+  (modify-syntax-entry ?\' "\"" st)
+  st)
+  "Syntax table in use in `awk-mode' buffers.")
 
 ;; Regexps written with help from Peter Galbraith <galbraith@mixing.qc.dfo.ca>.
 (defconst awk-font-lock-keywords
@@ -87,6 +88,18 @@
      ))
  "Default expressions to highlight in AWK mode.")
 
+(require 'syntax)
+
+(defconst awk-font-lock-syntactic-keywords
+  ;; `/' is mostly used for /.../ regular expressions, but is also
+  ;; used as a division operator.  Distinguishing between the two is
+  ;; a pain in the youknowwhat.
+  ;; '(("\\(^\\|[<=>-+*%/!^,~(?:|&]\\)\\s-*\\(/\\)\\([^/\n\\]\\|\\\\.\\)*\\(/\\)"
+  ;;    (2 "\"") (4 "\"")))
+  '(("[^<=>-+*%/!^,~(?:|& \t\n\f]\\s-*\\(/\\)"
+     (1 (unless (nth 3 (syntax-ppss (match-beginning 1))) "."))))
+  "Syntactic keywords for `awk-mode'.")
+
 ;;;###autoload
 (define-derived-mode awk-mode c-mode "AWK"
   "Major mode for editing AWK code.
@@ -100,7 +113,11 @@ Turning on AWK mode runs `awk-mode-hook'."
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "#+ *")
-  (setq font-lock-defaults '(awk-font-lock-keywords nil nil ((?_ . "w")))))
+  (setq font-lock-defaults '(awk-font-lock-keywords
+			     nil nil ((?_ . "w")) nil
+			     (parse-sexp-lookup-properties . t)
+			     (font-lock-syntactic-keywords
+			      . awk-font-lock-syntactic-keywords))))
 
 (provide 'awk-mode)
 
