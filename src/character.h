@@ -161,15 +161,11 @@ extern int unibyte_to_multibyte_table[256];
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
-   : (unsigned) (c) <= MAX_5_BYTE_CHAR		\
-   ? char_string_with_unification (c, p)	\
-   : ((p)[0] = (0xC0 | (((c) >> 6) & 0x01)),	\
-      (p)[1] = (0x80 | ((c) & 0x3F)),		\
-      2))
+   : char_string (c, p))
 
-/* Store multibyte form of eight-bit char B in P.  The caller should
-   allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
-   Returns the length of the multibyte form.  */
+/* Store multibyte form of byte B in P.  The caller should allocate at
+   least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
+   length of the multibyte form.  */
 
 #define BYTE8_STRING(b, p)			\
   ((p)[0] = (0xC0 | (((b) >> 6) & 0x01)),	\
@@ -181,23 +177,21 @@ extern int unibyte_to_multibyte_table[256];
    allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
    And, advance P to the end of the multibyte form.  */
 
-#define CHAR_STRING_ADVANCE(c, p)			\
-  do {							\
-    if ((c) <= MAX_1_BYTE_CHAR)				\
-      *(p)++ = (c);					\
-    else if ((c) <= MAX_2_BYTE_CHAR)			\
-      *(p)++ = (0xC0 | ((c) >> 6)),			\
-	*(p)++ = (0x80 | ((c) & 0x3F));			\
-    else if ((c) <= MAX_3_BYTE_CHAR)			\
-      *(p)++ = (0xE0 | ((c) >> 12)),			\
-	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),		\
-	*(p)++ = (0x80 | ((c) & 0x3F));			\
-    else if ((c) <= MAX_5_BYTE_CHAR)			\
-      (p) += char_string_with_unification ((c), (p));	\
-    else						\
-      *(p)++ = (0xC0 | (((c) >> 6) & 0x01)),		\
-	*(p)++ = (0x80 | ((c) & 0x3F));			\
+#define CHAR_STRING_ADVANCE(c, p)		\
+  do {						\
+    if ((c) <= MAX_1_BYTE_CHAR)			\
+      *(p)++ = (c);				\
+    else if ((c) <= MAX_2_BYTE_CHAR)		\
+      *(p)++ = (0xC0 | ((c) >> 6)),		\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else if ((c) <= MAX_3_BYTE_CHAR)		\
+      *(p)++ = (0xE0 | ((c) >> 12)),		\
+	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else					\
+      (p) += char_string ((c), (p));		\
   } while (0)
+
 
 /* Nonzero iff BYTE starts a non-ASCII character in a multibyte
    form.  */
@@ -290,7 +284,7 @@ extern int unibyte_to_multibyte_table[256];
    ? ((((p)[0] & 0x0F) << 12)					\
       | (((p)[1] & 0x3F) << 6)					\
       | ((p)[2] & 0x3F))					\
-   : string_char_with_unification ((p), NULL, NULL))
+   : string_char ((p), NULL, NULL))
 
 
 /* Like STRING_CHAR but set ACTUAL_LEN to the length of multibyte
@@ -310,7 +304,7 @@ extern int unibyte_to_multibyte_table[256];
       ((((p)[0] & 0x0F) << 12)					\
        | (((p)[1] & 0x3F) << 6)					\
        | ((p)[2] & 0x3F)))					\
-   : string_char_with_unification ((p), NULL, &actual_len))
+   : string_char ((p), NULL, &actual_len))
 
 
 /* Like STRING_CHAR but advacen P to the end of multibyte form.  */
@@ -328,7 +322,7 @@ extern int unibyte_to_multibyte_table[256];
       ((((p)[-3] & 0x0F) << 12)					\
        | (((p)[-2] & 0x3F) << 6)				\
        | ((p)[-1] & 0x3F)))					\
-   : string_char_with_unification ((p), &(p), NULL))
+   : string_char ((p), &(p), NULL))
 
 
 /* Fetch the "next" character from Lisp string STRING at byte position
@@ -521,7 +515,8 @@ extern int unibyte_to_multibyte_table[256];
 
 
 #define MAYBE_UNIFY_CHAR(c)					\
-  if (CHAR_TABLE_P (Vchar_unify_table))				\
+  if (c > MAX_UNICODE_CHAR					\
+      && CHAR_TABLE_P (Vchar_unify_table))			\
     {								\
       Lisp_Object val;						\
       int unified;						\
@@ -563,9 +558,10 @@ extern int unibyte_to_multibyte_table[256];
    ? ASCII_CHAR_WIDTH (c)	\
    : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
 
-extern int char_string_with_unification P_ ((int, unsigned char *));
-extern int string_char_with_unification P_ ((const unsigned char *,
-					     const unsigned char **, int *));
+extern int char_resolve_modifier_mask P_ ((int));
+extern int char_string P_ ((int, unsigned char *));
+extern int string_char P_ ((const unsigned char *,
+			    const unsigned char **, int *));
 
 extern int translate_char P_ ((Lisp_Object, int c));
 extern int char_printable_p P_ ((int c));
