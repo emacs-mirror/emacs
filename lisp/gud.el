@@ -156,21 +156,57 @@ we're in the GUD buffer)."
 (defun gud-gdb-massage-args (file args)
   (cons "-fullname" (cons file args)))
 
+;; There's no guarantee that Emacs will hand the filter the entire
+;; marker at once; it could be broken up across several strings.  We
+;; might even receive a big chunk with several markers in it.  If we
+;; receive a chunk of text which looks like it might contain the
+;; beginning of a marker, we save it here between calls to the
+;; filter.
+(defvar gud-gdb-marker-acc "")
+
 (defun gud-gdb-marker-filter (string)
-  (if (string-match  "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n" string)
-      (progn
-	(setq gud-last-frame
-	      (cons
-	       (substring string (match-beginning 1) (match-end 1))
-	       (string-to-int
-		(substring string (match-beginning 2) (match-end 2)))))
-	;; this computation means the ^Z^Z-initiated marker in the
-	;; input string is never emitted.
-	(concat
-	 (substring string 0 (match-beginning 0))
-	 (substring string (match-end 0))
-	 ))
-    string))
+  (setq gud-gdb-marker-acc (concat gud-gdb-marker-acc string))
+  (let ((output ""))
+
+    ;; Process all the complete markers in this chunk.
+    (while (string-match "^\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+			 gud-gdb-marker-acc)
+      (setq
+
+       ;; Extract the frame position from the marker.
+       gud-last-frame
+       (cons (substring gud-gdb-marker-acc (match-beginning 1) (match-end 1))
+	     (string-to-int (substring gud-gdb-marker-acc
+				       (match-beginning 2)
+				       (match-end 2))))
+
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-gdb-marker-acc 0 (match-beginning 0)))
+
+       ;; Set the accumulator to the remaining text.
+       gud-gdb-marker-acc (substring gud-gdb-marker-acc (match-end 0))))
+
+    ;; Does the remaining text look like it might end with the
+    ;; beginning of another marker?  If it does, then keep it in
+    ;; gud-gdb-marker-acc until we receive the rest of it.  Since we
+    ;; know the full marker regexp above failed, it's pretty simple to
+    ;; test for marker starts.
+    (if (string-match "^\032.*\\'" gud-gdb-marker-acc)
+	(progn
+	  ;; Everything before the potential marker start can be output.
+	  (setq output (concat output (substring gud-gdb-marker-acc
+						 0 (match-beginning 0))))
+
+	  ;; Everything after, we save, to combine with later input.
+	  (setq gud-gdb-marker-acc
+		(substring gud-gdb-marker-acc (match-beginning 0))))
+
+      (setq output gud-gdb-marker-acc
+	    gud-gdb-marker-acc ""))
+
+    output))
 
 (defun gud-gdb-find-file (f)
   (find-file-noselect f))
