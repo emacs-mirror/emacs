@@ -1,16 +1,37 @@
 2002-05-26  Dave Love  <fx@gnu.org>
 
+	* mule.el (with-category-table): Use make-symbol.
+	(coding-system-list): Use coding-system-aliases.
+	(make-translation-table): Don't deal with generic characters.
+
+	* mule-util.el: (coding-system-post-read-conversion)
+	(coding-system-pre-write-conversion)
+	(coding-system-translation-table-for-decode)
+	(coding-system-translation-table-for-encode): Get the right
+	properties.
+	(with-coding-priority): New macro.
+	(detect-coding-with-language-environment): Use it.
+	(coding-system-equal): Use coding-system-plist.
+
+	* encoded-kb.el: (encoded-kbd-setup-keymap) <ccl>:
+	Use :valid property.
+
 	* mule-cmds.el (encode-coding-char): Use
 	find-coding-systems-string.  Don't use make-char.
+	(describe-language-environment): Use coding-system-aliases.
+	(prefer-coding-system): Doc fix.
 
-	* mule-diag.el (describe-current-coding-system): Fix
-	aliases listing.
+	* mule-diag.el (describe-current-coding-system): Fix aliases
+	listing.
 	(print-iso-2022-flags): Deleted.
 	(print-designation): Partly re-written.
 	(describe-coding-system): Deal with iso-2022 designations, flags.
 	Fix shift_jis case.
 	(describe-char-after): Use characterp.  Print explicit unicode.
 	Remove some obsolete code.
+	(print-coding-system-briefly): Fix printing aliases.
+	(print-coding-system): Use coding-system-aliases.
+	(mule-diag): Don't list coding categories.
 
 	* mule-conf.el: Doc fixes.  Remove redundant
 	:long-name properties.  Re-order charset priorities.
