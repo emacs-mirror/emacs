@@ -154,13 +154,6 @@ is sensitive to blank lines.")
 
 ;; Random helper functions
 
-(defun vc-name (file)
-  "Return the master name of a file, nil if it is not registered."
-  (or (vc-file-getprop file 'vc-name)
-      (vc-file-setprop file 'vc-name
-		       (let ((name-and-type (vc-registered file)))
-			 (and name-and-type (car name-and-type))))))
-
 (defun vc-registration-error (file)
   (if file
       (error "File %s is not under version control" file)
