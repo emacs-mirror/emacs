@@ -519,7 +519,7 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qnil))
 		{
-		  /* Element (nil prop val beg . end) is property change.  */
+		  /* Element (nil PROP VAL BEG . END) is property change.  */
 		  Lisp_Object beg, end, prop, val;
 
 		  prop = Fcar (cdr);
@@ -542,6 +542,18 @@ Return what remains of the list.  */)
 		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
 		  Fdelete_region (car, cdr);
+		}
+	      else if (SYMBOLP (car))
+		{
+		  Lisp_Object oldlist = current_buffer->undo_list;
+		  /* Element (FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  apply1 (car, cdr);
+		  /* Make sure this produces at least one undo entry,
+		     so the test in `undo' for continuing an undo series
+		     will work right.  */
+		  if (EQ (oldlist, current_buffer->undo_list))
+		    current_buffer->undo_list
+		      = Fcons (list2 (Qcdr, Qnil), current_buffer->undo_list);
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
@@ -589,7 +601,7 @@ Return what remains of the list.  */)
   UNGCPRO;
   return unbind_to (count, list);
 }
-
+
 void
 syms_of_undo ()
 {
