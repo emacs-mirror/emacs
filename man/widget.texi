@@ -614,7 +614,7 @@ representation of the @code{:value} property if not.
 @vindex match@r{ keyword}
 @item :match
 Should be a function called with two arguments, the widget and a value,
-and returning non-nil if the widget can represent the specified value.
+and returning non-@code{nil} if the widget can represent the specified value.
 
 @vindex validate@r{ keyword}
 @item :validate
