@@ -1,3 +1,15 @@
+2001-11-28  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs2log (Copyright): Add '(C)' as per coding guidelines.
+
+	The following changes are derived from suggestions by Bob Chapman
+	<rechapman@compuserve.com>.
+
+	* rcs2log (printlogline): Also allow tab and newline to separate
+	'(function):' from the rest of a comment.
+	(reformat the sorted log entries): Require date and author to
+	match the clumpname.
+
 2001-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (matching_regexp): Escape '\\'.

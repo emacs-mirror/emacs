@@ -29,9 +29,9 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.47 2001/07/20 09:05:26 gerd Exp eggert $'
+Id='$Id: rcs2log,v 1.48 2001/09/05 23:07:46 eggert Exp $'
 
-# Copyright 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001
 #  Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ Id='$Id: rcs2log,v 1.47 2001/07/20 09:05:26 gerd Exp eggert $'
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-Copyright='Copyright 2001 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2001 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -491,7 +491,7 @@ printlogline='{
 	#	* file: (function): comment
 	# to
 	#	* file (function): comment
-	if (Log ~ /^\([^)]*\): /) {
+	if (Log ~ /^\([^)]*\):[\t\n ]/) {
 		i = index(Log, ")")
 		filefunc = substr(Log, 1, i)
 		while ((j = index(filefunc, "\n"))) {
@@ -663,7 +663,7 @@ $AWK -F"$SOH" '
 				newclumpname = substr(newlog, 1, i)
 				while (substr(newlog, i+1) ~ /^['"$tab"' ]/) i++
 				newlog = substr(newlog, i+1)
-				if (clumpname == newclumpname) sep = ""
+				if (clumpname == newclumpname && date == $3 && author == $5) sep = ""
 			}
 			printf sep
 			clumpname = newclumpname
