@@ -1,4 +1,4 @@
-;;; viqr.el --- Quail packages for inputting Vietnamese with VIQR system
+;;; viqr.el --- Quail packages for inputting Vietnamese with VIQR system  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,4 +1,4 @@
-;;; lao.el --- Quail package for inputting Lao characters
+;;; lao.el --- Quail package for inputting Lao characters  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

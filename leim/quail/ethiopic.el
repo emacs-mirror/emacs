@@ -1,4 +1,4 @@
-;;; ethiopic.el --- Quail package for inputting Ethiopic characters
+;;; ethiopic.el --- Quail package for inputting Ethiopic characters  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997, 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

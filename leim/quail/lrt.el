@@ -1,4 +1,4 @@
-;;; lrt.el --- Quail package for inputting Lao characters by LRT method
+;;; lrt.el --- Quail package for inputting Lao characters by LRT method  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

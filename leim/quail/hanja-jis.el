@@ -1,4 +1,4 @@
-;;; hanja-jis.el --- Quail package for inputting Korean Hanja (JISX0208)
+;;; hanja-jis.el --- Quail package for inputting Korean Hanja (JISX0208)  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

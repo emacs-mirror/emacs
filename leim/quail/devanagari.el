@@ -1,4 +1,4 @@
-;;; devanagari.el --- Quail packages for inputting Devanagari
+;;; devanagari.el --- Quail packages for inputting Devanagari  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 

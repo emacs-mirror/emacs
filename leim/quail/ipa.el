@@ -1,4 +1,4 @@
-;;; ipa.el --- Quail package for inputting IPA characters
+;;; ipa.el --- Quail package for inputting IPA characters  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

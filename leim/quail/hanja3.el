@@ -1,4 +1,4 @@
-;;; hanja3.el --- Quail-package for Korean Hanja (KSC5601)
+;;; hanja3.el --- Quail-package for Korean Hanja (KSC5601)  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
