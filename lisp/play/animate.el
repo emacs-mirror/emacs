@@ -2,6 +2,9 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
+;; Maintainer: Richard Stallman <rms@gnu.org>
+;; Keywords: games
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -24,8 +27,6 @@
 ;; (animate-string STRING VPOS &optional HPOS)
 ;; makes the string STRING appear starting at VPOS, HPOS
 ;; by having each letter swoop into place from random starting position.
-
-;; animate-birthday-present was the first application of this program.
 
 ;;; Code:
 
@@ -130,4 +131,3 @@ in the current window."
     (undo-boundary)))
 
 ;;; animate.el ends here
-
