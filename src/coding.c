@@ -301,11 +301,11 @@ Lisp_Object Qtarget_idx;
 
 Lisp_Object Vselect_safe_coding_system_function;
 
-/* Mnemonic character of each format of end-of-line.  */
-int eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
-/* Mnemonic character to indicate format of end-of-line is not yet
+/* Mnemonic string for each format of end-of-line.  */
+Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
+/* Mnemonic string to indicate format of end-of-line is not yet
    decided.  */
-int eol_mnemonic_undecided;
+Lisp_Object eol_mnemonic_undecided;
 
 /* Format of end-of-line decided by system.  This is CODING_EOL_LF on
    Unix, CODING_EOL_CRLF on DOS/Windows, and CODING_EOL_CR on Mac.  */
@@ -5644,21 +5644,21 @@ or a cons of coding systems which are used as above.\n\
 See also the function `find-operation-coding-system'.");
   Vnetwork_coding_system_alist = Qnil;
 
-  DEFVAR_INT ("eol-mnemonic-unix", &eol_mnemonic_unix,
-    "Mnemonic character indicating UNIX-like end-of-line format (i.e. LF) .");
-  eol_mnemonic_unix = ':';
+  DEFVAR_LISP ("eol-mnemonic-unix", &eol_mnemonic_unix,
+    "*String displayed in mode line for UNIX-like (LF) end-of-line format.");
+  eol_mnemonic_unix = build_string (":");
 
-  DEFVAR_INT ("eol-mnemonic-dos", &eol_mnemonic_dos,
-    "Mnemonic character indicating DOS-like end-of-line format (i.e. CRLF).");
-  eol_mnemonic_dos = '\\';
+  DEFVAR_LISP ("eol-mnemonic-dos", &eol_mnemonic_dos,
+    "*String displayed in mode line for DOS-like (CRLF) end-of-line format.");
+  eol_mnemonic_dos = build_string ("\\");
 
-  DEFVAR_INT ("eol-mnemonic-mac", &eol_mnemonic_mac,
-    "Mnemonic character indicating MAC-like end-of-line format (i.e. CR).");
-  eol_mnemonic_mac = '/';
+  DEFVAR_LISP ("eol-mnemonic-mac", &eol_mnemonic_mac,
+    "*String displayed in mode line for MAC-like (CR) end-of-line format.");
+  eol_mnemonic_mac = build_string ("/");
 
-  DEFVAR_INT ("eol-mnemonic-undecided", &eol_mnemonic_undecided,
-    "Mnemonic character indicating end-of-line format is not yet decided.");
-  eol_mnemonic_undecided = ':';
+  DEFVAR_LISP ("eol-mnemonic-undecided", &eol_mnemonic_undecided,
+    "*String displayed in mode line when end-of-line format is not yet determined.");
+  eol_mnemonic_undecided = build_string (":");
 
   DEFVAR_LISP ("enable-character-translation", &Venable_character_translation,
     "*Non-nil enables character translation while encoding and decoding.");
