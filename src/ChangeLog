@@ -1,9 +1,36 @@
+2003-06-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (survives_gc_p): Simplify.
+
+	* buffer.c (set_buffer_internal_1): Test CONSP for lists.
+
+	* window.c (Fset_window_dedicated_p): Simplify.
+	(display_buffer_1): Don't raise the win from which minibuf was entered.
+	(temp_output_buffer_show): Don't assume BEG == 1.  Simplify.
+	(Fminibuffer_selected_window): Simplify.
+
+	* buffer.h (struct buffer_text): Lisp_Object `markers' => Lisp_Marker.
+
+	* lisp.h (unchain_marker): Lisp_Object arg => Lisp_Marker.
+	(struct Lisp_Marker): Lisp_Object `chain' => Lisp_Marker `next'.
+
+	* insdel.c (check_markers, adjust_markers_for_delete)
+	(adjust_markers_for_insert, adjust_markers_for_replace)
+	(prepare_to_modify_buffer, RESTORE_VALUE):
+	* marker.c (buf_charpos_to_bytepos, buf_bytepos_to_charpos)
+	(Fset_marker, set_marker_restricted, set_marker_both, unchain_marker)
+	(set_marker_restricted_both, Fbuffer_has_markers_at, count_markers):
+	* alloc.c (Fmake_marker, free_marker, gc_sweep):
+	* buffer.c (Fget_buffer_create, Fkill_buffer, Fset_buffer_multibyte):
+	* editfns.c (save_excursion_restore, transpose_markers):
+	* window.c (delete_window):
+	* xdisp.c (message_dolog): Update for new types.
+
 2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (set_font_frame_param): Set default_face_done_p to zero.
 	(realize_default_face): Use default_face_done_p for the force_p
-	argument to set_lface_from_font_name.  Set default_face_done_p to
-	one.
+	argument to set_lface_from_font_name.  Set default_face_done_p to one.
 
 	* frame.c (make_frame): Initialize default_face_done_p.
 
