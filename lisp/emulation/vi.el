@@ -1,7 +1,7 @@
 ;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs.
 
 ; This file is in the public domain because the authors distributed it
-; without a copyright noticed before the US signed the Bern Convention.
+; without a copyright notice before the US signed the Bern Convention.
 
 ;; Author: Neal Ziring <nz@rsch.wisc.edu>
 ;;	Felix S. T. Wu <wu@crys.wisc.edu>
@@ -117,11 +117,11 @@ command extensions.")
 ;;(fillarray vi-com-map 'vi-undefined)
   (define-key vi-com-map "\C-@" 'vi-mark-region) ; extension
   (define-key vi-com-map "\C-a" 'vi-ask-for-info)  ; extension
-  (define-key vi-com-map "\C-b" 'vi-backward-windowfull)
+  (define-key vi-com-map "\C-b" 'vi-backward-windowful)
   (define-key vi-com-map "\C-c" 'vi-do-old-mode-C-c-command) ; extension
   (define-key vi-com-map "\C-d" 'vi-scroll-down-window)
   (define-key vi-com-map "\C-e" 'vi-expose-line-below)
-  (define-key vi-com-map "\C-f" 'vi-forward-windowfull)
+  (define-key vi-com-map "\C-f" 'vi-forward-windowful)
   (define-key vi-com-map "\C-g" 'keyboard-quit)
   (define-key vi-com-map "\C-i" 'indent-relative-maybe) ; TAB
   (define-key vi-com-map "\C-j" 'vi-next-line) ; LFD
@@ -733,8 +733,8 @@ are given, use those instead of the ones saved."
 	   (kill-region vi-ins-point (point)))
     (vi-goto-command-state t)))
 
-(defun vi-backward-windowfull (count)
-  "Backward COUNT windowfulls. Default is one."
+(defun vi-backward-windowful (count)
+  "Backward COUNT windowfuls. Default is one."
   (interactive "p")
 ; (set-mark-command nil)
   (while (> count 0)
@@ -755,8 +755,8 @@ The given COUNT is remembered for future scrollings."
   (interactive "p")
   (scroll-up count))
 
-(defun vi-forward-windowfull (count)
-  "Forward COUNT windowfulls. Default is one."
+(defun vi-forward-windowful (count)
+  "Forward COUNT windowfuls. Default is one."
   (interactive "p")
 ; (set-mark-command nil)
   (while (> count 0)
