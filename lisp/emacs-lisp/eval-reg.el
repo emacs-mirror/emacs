@@ -1,11 +1,11 @@
-;;;; Redefine eval-region, and subroutines that use it, in Lisp
+;;; eval-region.el --- Redefine eval-region, and subrs that use it, in Lisp
 ;; Copyright (C) 1994 Daniel LaLiberte
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
