@@ -69,7 +69,7 @@ If t, the `message-signature-file' file will be inserted instead.
 If a function, the result from the function will be used instead.
 If a form, the result from the form will be used instead.")
 
-;;;###autoload
+;; Deleted the autoload cookie because this crashes in loaddefs.el.
 (defvar message-signature-file mail-signature-file
   "*File containing the text inserted at end of message. buffer.")
 
