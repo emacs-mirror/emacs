@@ -287,6 +287,7 @@ int message_buf_print;
 void
 message (m, a1, a2, a3)
      char *m;
+     EMACS_INT a1, a2, a3;
 {
   if (noninteractive)
     {
@@ -323,7 +324,7 @@ message (m, a1, a2, a3)
 	    {
 	      int len;
 #ifdef NO_ARG_ARRAY
-	      int a[3];
+	      EMACS_INT a[3];
 	      a[0] = a1;
 	      a[1] = a2;
 	      a[2] = a3;
