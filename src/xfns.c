@@ -6329,6 +6329,8 @@ xbm_scan (s, end, sval, ival)
      int *ival;
 {
   int c;
+
+ loop:
   
   /* Skip white space.  */
   while (*s < end && (c = *(*s)++, isspace (c)))
@@ -6390,6 +6392,18 @@ xbm_scan (s, end, sval, ival)
       if (*s < end)
 	*s = *s - 1;
       c = XBM_TK_IDENT;
+    }
+  else if (c == '/' && **s == '*')
+    {
+      /* C-style comment.  */
+      ++*s;
+      while (**s && (**s != '*' || *(*s + 1) != '/'))
+	++*s;
+      if (**s)
+	{
+	  *s += 2;
+	  goto loop;
+	}
     }
 
   return c;
