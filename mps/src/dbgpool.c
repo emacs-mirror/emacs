@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.8) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -307,6 +307,7 @@ static Res TagAlloc(PoolDebugMixin debug,
     }
   }
   tag->addr = new; tag->size = size;
+  SplayNodeInit(&tag->splayNode);
   /* In the future, we might call debug->tagInit here. */
   res = SplayTreeInsert(&debug->index, &tag->splayNode, (void *)&new);
   AVER(res == ResOK);
@@ -336,6 +337,7 @@ static void TagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
   AVER(tag->size == size);
   res = SplayTreeDelete(&debug->index, node, (void *)&old);
   AVER(res == ResOK);
+  SplayNodeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
 }
 
