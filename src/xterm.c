@@ -1906,9 +1906,7 @@ x_produce_glyphs (it)
       else if (it->char_to_display == '\t')
 	{
 	  int tab_width = it->tab_width * CANON_X_UNIT (it->f);
-	  int x = (it->current_x
-		   - it->prompt_width
-		   + it->continuation_lines_width);
+	  int x = it->current_x + it->continuation_lines_width;
 	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
       
 	  it->pixel_width = next_tab_x - x;
@@ -2230,6 +2228,8 @@ x_produce_glyphs (it)
   xassert (it->ascent >= 0 && it->descent > 0);
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
+  
+  it->descent += it->extra_line_spacing;
   
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
