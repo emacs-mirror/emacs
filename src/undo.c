@@ -477,14 +477,12 @@ Return what remains of the list.")
 			error ("Changes to be undone are outside visible portion of buffer");
 		      SET_PT (pos);
 
-		      /* Insert before markers so that if the mark is
-			 currently on the boundary of this deletion, it
-			 ends up on the other side of the now-undeleted
-			 text from point.  Since undo doesn't even keep
-			 track of the mark, this isn't really necessary,
-			 but it may lead to better behavior in certain
-			 situations.  */
-		      Finsert_before_markers (1, &membuf);
+		      /* Now that we record marker adjustments
+			 (caused by deletion) for undo,
+			 we should always insert after markers,
+			 so that undoing the marker adjustments
+			 put the markers back in the right place.  */
+		      Finsert (1, &membuf);
 		      SET_PT (pos);
 		    }
 		}
