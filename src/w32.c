@@ -21,30 +21,37 @@ Boston, MA 02111-1307, USA.
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
 */
 
+
 /* Define stat before including config.h.  */
 #include <string.h>
 #include <sys/stat.h>
+#include <malloc.h>
+
+static int is_toplevel_share_name (char *);
+static int stat_toplevel_share (char *, void *);
+
 int
 nt_stat (char *filename, struct stat *statbuf)
 {
-  int r, l = strlen (filename);
+  int l = strlen (filename);
   char *str = NULL;
-  extern long *xmalloc ();
-  extern void xfree ();
 
   /* stat has a bug when passed a name of a directory with a trailing
      backslash (but a trailing forward slash works fine).  */
   if (filename[l - 1] == '\\') 
     {
-      str = (char *) xmalloc (l + 1);
+      str = (char *) alloca (l + 1);
       strcpy (str, filename);
       str[l - 1] = '/';
-      r = stat (str, statbuf);
-      xfree (str);
-      return r;
+      return stat (str, statbuf);
     }
+
+  if (stat (filename, statbuf) == 0)
+    return 0;
+  else if (is_toplevel_share_name (filename))
+    return stat_toplevel_share (filename, statbuf);
   else
-    return stat (filename, statbuf);
+    return -1;
 }
 
 /* Place a wrapper around the NT version of ctime.  It returns NULL
@@ -75,6 +82,102 @@ nt_ctime (const time_t *t)
 #include "ntheap.h"
 
 extern int report_file_error (char *, Lisp_Object);
+
+/* Routines for extending stat above.  */
+static int
+get_unassigned_drive_letter ()
+{
+  int i;
+  unsigned int mask;
+ 
+  mask = GetLogicalDrives ();
+  for (i = 0; i < 26; i++)
+    {
+      if (mask & (1 << i))
+	continue;
+      break;
+    }
+  return (i == 26 ? -1 : 'A' + i);
+}
+
+void dostounix_filename (char *);
+
+/* Return nonzero if NAME is of the form \\host\share (forward slashes
+   also valid), otherwise return 0.  */
+static int
+is_toplevel_share_name (char *filename)
+{
+  int len;
+  char *name;
+  char *host;
+  char *share;
+  char *suffix;
+
+  len = strlen (filename);
+  name = alloca (len + 1);
+  strcpy (name, filename);
+
+  dostounix_filename (name);
+  if (name[0] != '/' || name[1] != '/')
+    return 0;
+
+  host = strtok (&name[2], "/");
+  share = strtok (NULL, "/");
+  suffix = strtok (NULL, "/");
+  if (!host || !share || suffix)
+    return 0;
+
+  return 1;
+}
+
+
+/* FILENAME is of the form \\host\share, and stat can't handle names
+   of this form.  But stat can handle \\host\share if it's been
+   assigned a drive letter.  So we create a network connection to this
+   share, assign it a drive letter, stat the drive letter, and
+   disconnect from the share.  Hassle... */
+static int
+stat_toplevel_share (char *filename, void *statbuf)
+{
+  NETRESOURCE net;
+  int drive_letter;
+  char drive[4];
+  int result;
+
+  drive_letter = get_unassigned_drive_letter ();
+  if (drive_letter < 0)
+    return -1;
+  
+  drive[0] = drive_letter;
+  drive[1] = ':';
+  drive[2] = '\0';
+  net.dwType = RESOURCETYPE_DISK;
+  net.lpLocalName = drive;
+  net.lpRemoteName = filename;
+  net.lpProvider = NULL;
+  
+  switch (WNetAddConnection2 (&net, NULL, NULL, 0))
+    {
+    case NO_ERROR:
+      break;
+    case ERROR_ALREADY_ASSIGNED:
+    default:
+      return -1;
+    }
+  
+  /* Name the toplevel directory on the drive letter. */
+  drive[2] = '/';
+  drive[3] = '\0';
+  result = stat (drive, (void *) statbuf);
+  
+  /* Strip the slash so we can disconnect. */
+  drive[2] = '\0';
+  if (WNetCancelConnection2 (drive, 0, TRUE) != NO_ERROR)
+    result = -1;
+
+  return result;
+}
+
 
 /* Get the current working directory.  */
 int
@@ -173,7 +276,7 @@ readdir (DIR *dirp)
 
       strncpy (filename, dirp->dd_buf, MAXNAMLEN);
       ln = strlen (filename)-1;
-      if (filename[ln] != '\\' && filename[ln] != ':')
+      if (!IS_ANY_SEP (filename[ln]))
 	strcat (filename, "\\");
       strcat (filename, "*.*");
 
