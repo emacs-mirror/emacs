@@ -37,8 +37,8 @@ static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 
 /* forward declarations */
-void arenaEnterLock(Arena, void (*)(Lock));
-void arenaLeaveLock(Arena, void (*)(Lock));
+void arenaEnterLock(Arena, int);
+void arenaLeaveLock(Arena, int);
 
 /* ArenaControlPool -- get the control pool */
 
@@ -424,21 +424,33 @@ void (ArenaEnter)(Arena arena)
 #else
 void ArenaEnter(Arena arena)
 {
-  arenaEnterLock(arena, LockClaim);
+  arenaEnterLock(arena, 0);
 }
 #endif
 
-void arenaEnterLock(Arena arena, void (*lock)(Lock))
+void arenaEnterLock(Arena arena, int recursive)
 {
+  Lock lock;
+
   /* This check is safe to do outside the lock.  Unless the client
      is also calling ArenaDestroy, but that's a protocol violation by
      the client if so. */
   AVER(CHECKT(Arena, arena));
 
   StackProbe(StackProbeDEPTH);
-  lock(ArenaGlobals(arena)->lock);
+  lock = ArenaGlobals(arena)->lock;
+  if(recursive) {
+	LockClaimRecursive(lock);
+  } else {
+	LockClaim(lock);
+  }
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
-  ShieldEnter(arena);
+  if(recursive) {
+	/* already in shield */
+  } else {
+	ShieldEnter(arena);
+  }
+  return;
 }
 
 /* Same as ArenaEnter, but for the few functions that need to be
@@ -447,7 +459,7 @@ void arenaEnterLock(Arena arena, void (*lock)(Lock))
 
 void ArenaEnterRecursive(Arena arena)
 {
-  arenaEnterLock(arena, LockClaimRecursive);
+  arenaEnterLock(arena, 1);
 }
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
@@ -461,21 +473,35 @@ void (ArenaLeave)(Arena arena)
 #else
 void ArenaLeave(Arena arena)
 {
-  arenaLeaveLock(arena, LockReleaseMPM);
+  arenaLeaveLock(arena, 0);
 }
 #endif
 
-void arenaLeaveLock(Arena arena, void (*unlock)(Lock))
+void arenaLeaveLock(Arena arena, int recursive)
 {
+  Lock lock;
+
   AVERT(Arena, arena);
-  ShieldLeave(arena);
+
+  lock = ArenaGlobals(arena)->lock;
+
+  if(recursive) {
+	/* no need to leave shield */
+  } else {
+    ShieldLeave(arena);
+  }
   ProtSync(arena);              /* <design/prot/#if.sync> */
-  unlock(ArenaGlobals(arena)->lock);
+  if(recursive) {
+    LockReleaseRecursive(lock);
+  } else {
+	LockReleaseMPM(lock);
+  }
+  return;
 }
 
 void ArenaLeaveRecursive(Arena arena)
 {
-  arenaLeaveLock(arena, LockReleaseRecursive);
+  arenaLeaveLock(arena, 1);
 }
 
 /* mps_exception_info -- pointer to exception info
