@@ -1,6 +1,6 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -108,26 +108,27 @@
 (defun mouse-drag-safe-scroll (row-delta &optional col-delta)
   "Scroll down ROW-DELTA lines and right COL-DELTA, ignoring buffer edge errors.
 Keep the cursor on the screen as needed."
-  (if (and row-delta
-	   (/= 0 row-delta))
-      (condition-case nil   ;; catch and ignore movement errors
-	  (scroll-down row-delta)
-	(beginning-of-buffer (message "Beginning of buffer"))
-	(end-of-buffer (message "End of buffer"))))
-  (if (and col-delta
-	   (/= 0 col-delta))
-      (progn
-	(scroll-right col-delta)
-	;; Make sure that the point stays on the visible screen
-	;; (if truncation-lines in set).
-	;; This code mimics the behavior we automatically get
-	;; when doing vertical scrolling.
-	;; Problem identified and a fix suggested by Tom Wurgler.
-	(cond
-	 ((< (current-column) (window-hscroll))
-	  (move-to-column (window-hscroll))) ; make on left column
-	 ((> (- (current-column) (window-hscroll) (window-width) -2) 0)
-	  (move-to-column (+ (window-width) (window-hscroll) -3)))))))
+  (let ((scroll-preserve-screen-position nil))
+    (if (and row-delta
+	     (/= 0 row-delta))
+	(condition-case nil ;; catch and ignore movement errors
+	    (scroll-down row-delta)
+	  (beginning-of-buffer (message "Beginning of buffer"))
+	  (end-of-buffer (message "End of buffer"))))
+    (if (and col-delta
+	     (/= 0 col-delta))
+	(progn
+	  (scroll-right col-delta)
+	  ;; Make sure that the point stays on the visible screen
+	  ;; (if truncation-lines in set).
+	  ;; This code mimics the behavior we automatically get
+	  ;; when doing vertical scrolling.
+	  ;; Problem identified and a fix suggested by Tom Wurgler.
+	  (cond
+	   ((< (current-column) (window-hscroll))
+	    (move-to-column (window-hscroll))) ; make on left column
+	   ((> (- (current-column) (window-hscroll) (window-width) -2) 0)
+	    (move-to-column (+ (window-width) (window-hscroll) -3))))))))
 
 (defun mouse-drag-repeatedly-safe-scroll (row-delta &optional col-delta)
   "Scroll ROW-DELTA rows and COL-DELTA cols until an event happens."
