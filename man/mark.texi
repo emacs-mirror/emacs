@@ -320,6 +320,8 @@ next balanced expression (@pxref{Expressions}).  These commands handle
 arguments just like @kbd{M-f} and @kbd{C-M-f}.  If you repeat these
 commands, the region is extended.  For example, you can type either
 @kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.
+The region is also extended when the mark is active in Transient Mark
+mode, regardless of the last command.
 
 @kindex C-x h
 @findex mark-whole-buffer

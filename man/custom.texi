@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002,2004
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
@@ -487,23 +487,38 @@ set, saved or reset.
   The customization buffer normally saves customizations in
 @file{~/.emacs}.  If you wish, you can save customizations in another
 file instead.  To make this work, your @file{~/.emacs} should set
-@code{custom-file} to the name of that file.  Emacs loads the file
-right after your @file{.emacs} if you did not load it already.  For
-example:
+@code{custom-file} to the name of that file.  If you are using Emacs
+version 21.4 or later, Emacs loads the file right after your
+@file{.emacs} if you did not load it already.  In earlier versions,
+you have to load the file in your @file{~/emacs}.  If you customize
+@code{custom-file} through the @samp{Customize} interface, you still
+need to load it in your @file{.emacs}, but there is no need to set
+it.  For example:
 
 @example
+;; @r{if not set through the @samp{Customize} interface:}
 (setq custom-file "~/.emacs-custom")
+
+;; @r{in Emacs versions before 21.4 or if set through}
+;; @r{the @samp{Customize} interface.}
+(load "~/.emacs-custom")
 @end example
 
-  The variable @code{custom-file} is useful if you want to have
-different customizations for different Emacs versions:
+  You can also use @code{custom-file} to specify different
+customization files for different Emacs versions, like this:
 
 @example
-(if (< emacs-major-version 21)
-    ;; @r{Emacs 20 customization.}
-    (setq custom-file "~/.custom-20.el")
-  ;; @r{Emacs 21 customization.}
-  (setq custom-file "~/.custom-21.el"))
+(cond ((< emacs-major-version 21)
+       ;; @r{Emacs 20 customization.}
+       (setq custom-file "~/.custom-20.el"))
+      ((and (= emacs-major-version 21) (< emacs-minor-version 4))
+       ;; @r{Emacs 21 customization, before version 21.4.}
+       (setq custom-file "~/.custom-21.el"))
+      (t
+       ;; @r{Emacs version 21.4 or later.}
+       (setq custom-file "~/.custom-21.4.el")))
+
+(load custom-file)
 @end example
 
   If Emacs was invoked with the @option{-q} or @option{--no-init-file}

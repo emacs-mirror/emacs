@@ -1,10 +1,76 @@
+2004-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (syms_of_eval) <quit-flag>: Doc fix.
+
+	* keyboard.c (Vthrow_on_input): New variable.
+	(syms_of_keyboard): Defvar and initialize it.
+	(kbd_buffer_store_event_hold): Handle Vthrow_on_input.
+
+	* lisp.h (QUIT): Check for Vthrow_on_input.
+	(Vthrow_on_input): Declare it.
+
+2004-12-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_iterator_to_next): Reset stop_charpos after display
+	vector.
+
+2004-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Call move_it_by_lines even if LINES = 0.
+
+	* minibuf.c (Fall_completions): Add var `zero' and use it in loop.
+	(Ftry_completion): Really use outer `zero'; eliminate inner one.
+
+2004-12-12  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_code): Fix previous change.
+
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (handle_async_input): Remove pthread mutex handling.
+	(input_available_signal): Move pthread thingy to !SYNC_INPUT branch.
+
+	* syntax.c (Fforward_word): Avoid non-idempotent side-effects
+	in macro arguments.
+
+	* minibuf.c (Ftry_completion, Fall_completions): Don't use
+	XFASTINT blindly.
+
+	* emacs.c (main, Fdump_emacs): Don't touch malloc hooks if SYNC_INPUT.
+
+2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* w32term.c (x_calc_absolute_position): Remove calculation of
+	difference between inner and outer window.  Don't subtract difference
+	for left and top calculations.
+
+	* xterm.c (x_calc_absolute_position): Don't subtract outer_pixel_diff
+	for left and top calculations.  Remove call to x_real_positions.
+	[Bug report by Drew Adams in November]
+	(x_check_expected_move): Do not set change_gravity to 1 when calling
+	x_set_offset.
+
+2004-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Use `escape-glyph' for
+	control chars and escaped octal codes.
+	(Qescape_glyph): New variable.
+	(syms_of_xdisp): Initialize it.
+	(escape_glyph_face): New variable.
+	(redisplay_window): Initialize it.
+
+2004-12-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (our_fill_input_buffer, jpeg_load, CHECK_LIB_AVAILABLE)
+	(init_image): Use 1 rather than TRUE.  TRUE's not always defined.
+
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
 	reset_malloc_hooks.
 
-	* keyboard.c (handle_async_input, input_available_signal): Add
-	! defined (SYSTEM_MALLOC) around thread code.
+	* keyboard.c (handle_async_input, input_available_signal):
+	Add ! defined (SYSTEM_MALLOC) around thread code.
 
 	* alloc.c: Add comment about the reason for (UN)BLOCK_INPUT_ALLOC.
 
@@ -42,12 +108,11 @@
 	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
 
 	* keyboard.c: Conditionally include pthread.h
-	(handle_async_inpu, input_available_signalt): If not in the main
+	(handle_async_input, input_available_signalt): If not in the main
 	thread, block signal, send signal to main thread and return.
 
 	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
-	Set current folder in file chooser if default_filename is a
-	directory.
+	Set current folder in file chooser if default_filename is a directory.
 
 2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

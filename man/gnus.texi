@@ -22603,6 +22603,7 @@ filters new mail, and it analyzes mail known to be spam or ham.
 @dfn{Ham} is the name used throughout @file{spam.el} to indicate
 non-spam messages.
 
+@cindex spam-initialize
 First of all, you @strong{must} run the function
 @code{spam-initialize} to autoload @code{spam.el} and to install the
 @code{spam.el} hooks.  There is one exception: if you use the

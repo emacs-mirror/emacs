@@ -1,8 +1,20 @@
+2004-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-narrow-to-page): Don't hardcode point-min.
+
+2004-12-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-rss-group): Use
+	gnus-group-make-group instead of gnus-group-unsubscribe-group.
+
+	* gnus-start.el (gnus-setup-news): Honor user's setting to
+	gnus-message-archive-method.  Suggested by Lute Kamstra
+	<Lute.Kamstra@xs4all.nl>.
+
 2004-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-forward-make-body-mml): Remove headers
-	according to message-forward-ignored-headers if a message is
-	decoded.
+	according to message-forward-ignored-headers if a message is decoded.
 
 2004-12-02  Romain Francoise  <romain@orebokech.com>
 
@@ -60,17 +72,16 @@
 
 2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-forbidden-properties): Fixed typo in doc
-	string.
+	* message.el (message-forbidden-properties): Fix typo in doc string.
 
 2004-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* message.el (message-strip-forbidden-properties): Bind
-	buffer-read-only (etc) to nil.
+	* message.el (message-strip-forbidden-properties):
+	Bind buffer-read-only (etc) to nil.
 
 2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-util.el (gnus-replace-in-string): Added doc string.
+	* gnus-util.el (gnus-replace-in-string): Add doc string.
 
 	* nnmail.el (nnmail-split-header-length-limit): Increase to 2048
 	to avoid problems when splitting mails with many recipients.
@@ -97,8 +108,8 @@
 
 2004-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-start.el (gnus-convert-old-newsrc): Assign
-	legacy-gnus-agent to 5.10.7.
+	* gnus-start.el (gnus-convert-old-newsrc):
+	Assign legacy-gnus-agent to 5.10.7.
 
 2004-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 

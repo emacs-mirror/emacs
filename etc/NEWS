@@ -671,6 +671,27 @@ command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
 marks omitted files. The variable dired-omit-files-p is obsoleted, use the
 mode toggling function instead.
 
++++
+** find-file-read-only visits multiple files in read-only mode,
+when the file name contains wildcard characters.
+
++++
+** find-alternate-file replaces the current file with multiple files,
+when the file name contains wildcard characters.
+
+** FFAP
+
++++
+*** New ffap commands and keybindings: C-x C-r (`ffap-read-only'),
+C-x C-v (`ffap-alternate-file'), C-x C-d (`ffap-list-directory'),
+C-x 4 r (`ffap-read-only-other-window'), C-x 4 d (`ffap-dired-other-window'),
+C-x 5 r (`ffap-read-only-other-frame'), C-x 5 d (`ffap-dired-other-frame').
+
+---
+*** FFAP accepts wildcards in a file name by default.  C-x C-f passes
+it to `find-file' with non-nil WILDCARDS argument, which visits
+multiple files, and C-x d passes it to `dired'.
+
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
@@ -1139,6 +1160,10 @@ All regular expression replacement commands now allow `\?' in the
 replacement string to specify a position where the replacement string
 can be edited for each replacement.
 
+** query-replace uses isearch highlighting with lazy highlighting
+when the user option `query-replace-highlight' is set to `isearch'.
+If it is t, it uses old query-replace highlighting method.
+
 +++
 ** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
@@ -1443,7 +1468,10 @@ you hit M-C-SPC (mark-sexp), M-@ (mark-word), M-h (mark-paragraph), or
 C-M-h (mark-defun) repeatedly, the marked region extends each time, so
 you can mark the next two sexps with M-C-SPC M-C-SPC, for example.
 This feature also works for mark-end-of-sentence, if you bind that to
-a key.
+a key.  It also extends the region when the mark is active in Transient
+Mark mode, regardless of the last command.  To start a new region with
+one of marking commands in Transient Mark mode, you can deactivate the
+active region with C-g, or set the new mark with C-SPC.
 
 +++
 ** Some commands do something special in Transient Mark mode when the
@@ -1467,6 +1495,11 @@ C-g.
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+
+** Movement commands `beginning-of-buffer', `end-of-buffer',
+`beginning-of-defun', `end-of-defun' do not set the mark if the new
+option `inhibit-mark-movement' is non-nil, or if the mark is already
+active in Transient Mark mode.
 
 +++
 ** In the *Occur* buffer, `o' switches to it in another window, and
@@ -2413,6 +2446,17 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** (while-no-input BODY...) runs BODY, but only so long as no input
+arrives.  If the user types or clicks anything, BODY stops as if a
+quit had occurred.  while-no-input returns the value of BODY, if BODY
+finishes.  It returns nil if BODY was aborted.
+
+---
+** To manipulate the File menu using easy-menu, you must specify the
+proper name "file".  In previous Emacs versions, you had to specify
+"files", even though the menu item itself was changed to say "File"
+several versions ago.
+
 +++
 ** read-from-minibuffer now accepts an additional argument KEEP-ALL
 saying to put all inputs in the history list, even empty ones.
@@ -2656,8 +2700,10 @@ strings by giving that character a non-nil `cursor' text property.
 around potentially blocking or long-running code in timers
 and post-command-hooks.
 
-** An unconditional face specification in defface (one where the DISPLAY part
-is just t) applies to all cases and does not override subsequent entries.
+** The first face specification element in a defface can specify
+`default' instead of frame classification.  Then its attributes act as
+defaults that apply to all the subsequent cases (and may be overridden
+by them).
 
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
@@ -6523,9 +6569,8 @@ function was declared obsolete.
 ** Function `plist-member' is renamed from `widget-plist-member' (which is
 retained as an alias).
 
-** Easy-menu's :filter now works as in XEmacs.
-It takes the unconverted (i.e. XEmacs) form of the menu and the result
-is automatically converted to Emacs' form.
+** Easy-menu's :filter now takes the unconverted form of the menu and
+the result is automatically converted to Emacs' form.
 
 ** The new function `window-list' has been defined
 

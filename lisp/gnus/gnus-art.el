@@ -5066,7 +5066,7 @@ If given a numerical ARG, move forward ARG pages."
 	  (goto-char (point-min))
 	  (gnus-insert-prev-page-button)))
       (when (and (gnus-visual-p 'page-marker)
-		 (< (+ (point-max) 2) (buffer-size)))
+		 (< (point-max) (save-restriction (widen) (point-max))))
 	(save-excursion
 	  (goto-char (point-max))
 	  (gnus-insert-next-page-button))))))

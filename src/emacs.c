@@ -1023,8 +1023,10 @@ main (argc, argv
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
+# ifndef SYNC_INPUT
   /* Arrange to disable interrupt input inside malloc etc.  */
   uninterrupt_malloc ();
+# endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
@@ -2246,7 +2248,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+#if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */

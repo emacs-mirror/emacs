@@ -1862,6 +1862,19 @@ is allowed once again."
 	 ,@body)
      (quit (setq quit-flag t) nil)))
 
+(defmacro while-no-input (&rest body)
+  "Execute BODY only as long as there's no pending input.
+If input arrives, that ends the execution of BODY,
+and `while-no-input' returns nil.  If BODY finishes,
+`while-no-input' returns whatever value BODY produced."
+  (declare (debug t) (indent 0))
+  (let ((catch-sym (make-symbol "input")))
+    `(with-local-quit
+       (catch ',catch-sym
+	 (let ((throw-on-input ',catch-sym))
+	   (when (sit-for 0 0 t)
+	     ,@body))))))
+
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
 If BODY makes changes in the buffer, they are recorded

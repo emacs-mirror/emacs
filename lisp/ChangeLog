@@ -1,3 +1,207 @@
+2004-12-14  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (list-buffers-noselect): Collect internal info
+	for every buffer in BUFFER-LIST arg too.
+	(Buffer-menu-switch-other-window): Bind pop-up-windows to t.
+	(Buffer-menu-switch-other-window, Buffer-menu-2-window):
+	Bind same-window-buffer-names and same-window-regexps to nil.
+
+2004-12-13  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-buffer-p, next-error-find-buffer):
+	Doc fix.
+
+	* mail/supercite.el (sc-cite-frame-alist): Doc fix.
+	(sc-cite-region, sc-uncite-region, sc-recite-region):
+	Fix previous change to handle not alist as a symbol, but
+	a citation frame as a symbol that represents a variable name.
+
+2004-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* filecache.el (file-cache-add-directory-using-find):
+	Only set up file-cache-find-command-posix-flag if we will use it.
+
+	* bindings.el (mode-line-buffer-identification-keymap):
+	Don't cancel the mode-line's usual down-mouse-1 binding.
+
+	* cus-edit.el (custom-face-selected): Handle `default' specs.
+	(custom-face-edit): Increase extra-offset.
+	(custom-display): Handle `default' specs.
+
+	* xml.el (xml-name-re, xml-entity-value-re): Add defvars.
+
+	* emacs-lisp/elint.el (elint-standard-variables)
+	(elint-unknown-builtin-args): Move definitions up.
+
+	* net/browse-url.el (browse-url-url-at-point): Add autoload.
+
+	* info.el (info-xref-visited): Use `default' instead of t.
+	(Info-try-follow-nearest-node): Don't explicitly load browse-url.
+
+	* faces.el (header-line, mode-line-inactive, tool-bar):
+	Use `default' instead of t for setting the defaults.
+	(face-spec-choose): Separate `t' from `default'.
+
+	* subr.el (while-no-input): New macro.
+
+2004-12-13  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>  (tiny change)
+
+	* filecache.el (file-cache-add-directory-using-find):
+	Only test file-cache-find-command-posix-flag on some systems.
+
+2004-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-repository-hostname): Adjust to new format.
+	Reported by Ville Skytt,Ad(B <scop@xemacs.org>.
+	(vc-svn-annotate-current-time, vc-svn-annotate-time-of-rev)
+	(vc-svn-annotate-time, vc-svn-annotate-extract-revision-at-line)
+	(vc-svn-annotate-command, vc-svn-annotate-re): Support for svn annotate.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* files.el (find-file-other-window, find-file-other-frame):
+	Add the first buffer to the returned value to return the complete
+	list of all visited buffers.
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use nil for `mustmatch' arg of
+	`find-file-read-args'.  Signal an error about non-existent file
+	only if file name doesn't contain wildcards.  Toggle read-only in
+	all visited buffers.
+	(find-alternate-file, find-alternate-file-other-window):
+	Add optional arg `wildcards'.  Doc fix.  Set `wildcards' to t when
+	called interactively.  Pass arg `wildcards' to other functions.
+	(find-file-noselect): Doc fix.
+
+	* ffap.el (ffap-dired-wildcards): Set default to "[*?][^/]*\\'".
+	Doc fix.
+	(ffap-directory-finder): New variable.
+	(ffap-string-at-point-mode-alist): Add * and ? to `file'.
+	(ffap-file-at-point): Add /* to immediately rejected names.
+	Return absolute file names matching ffap-dired-wildcards.
+	(ffap-read-file-or-url): Set default value for `completing-read'
+	to `buffer-file-name'.
+	(find-file-at-point): When filename matches ffap-dired-wildcards,
+	call ffap-file-finder with t arg `wildcards', instead of dired.
+	(ffap-other-window, ffap-other-frame): Return visited buffers.
+	(ffap-read-only, ffap-read-only-other-window)
+	(ffap-read-only-other-frame, ffap-alternate-file): New commands.
+	(dired-at-point): Call ffap-directory-finder instead of dired.
+	(ffap-dired-other-window, ffap-dired-other-frame)
+	(ffap-list-directory): New commands.
+	(ffap-bindings): New keybindings for new commands.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (beginning-of-buffer, end-of-buffer):
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Do not push mark when mark is active in transient-mark-mode.
+
+	* simple.el (mark-word):
+	* emacs-lisp/lisp.el (mark-sexp, mark-defun):
+	* textmodes/paragraphs.el (mark-paragraph):
+	Extend the region when mark is active in transient-mark-mode,
+	regardless of the last command.  Doc fix.
+
+	* simple.el (mark-word): Preserve direction when repeating.
+	Make arg optional.  Interactive "p" -> "P".
+	(transient-mark-mode, inhibit-mark-movement): Doc fix.
+
+	* emacs-lisp/lisp.el (mark-sexp): Reverse the condition for
+	preserving direction, to mark forward instead of backward when mark
+	is equal to point (e.g. when C-SPC C-M-SPC is typed in t-m-m).
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Set 7th arg of
+	`read-from-minibuffer' to `t' to inherit the current input
+	method (whose name is indicated by [IM] in the minibuffer prompt)
+	from the current buffer to the minibuffer.
+	(isearch-lazy-highlight-update): Put body to `with-local-quit'
+	to allow C-g quitting for lazy highlighting looping inside the
+	search with nested repetition operators.  Add overlay to the list
+	before setting its face and other properties to avoid the case of
+	code quitting after placing the new overlay but before it's
+	recorded on the list.  Select the window where isearch was
+	activated, to highlight matches in the right window when isearch
+	switches the current window to the minibuffer.
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters):
+	Use `isearch-message' as initial input for `read-string' instead
+	of adding it to the minibuffer prompt.  After reading a string
+	remove the initial value of `isearch-message' from the string.
+
+	* replace.el (replace-match-maybe-edit): Doc fix.
+	(perform-replace): Don't call `replace-highlight' when automatic
+	replacement is requested in literal mode, since it is intended
+	only to highlight words during entering a new replacement string
+	for \? in non-literal mode.
+
+	* replace.el (query-replace-highlight): Add new value `isearch'
+	that allows query replacement to use isearch highlighting.
+	Change type from `boolean' to `choice'.  Doc fix.
+	(replace-highlight, replace-dehighlight, perform-replace):
+	Use isearch highlighting if query-replace-highlight eq `isearch'.
+
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-continue, checkdoc-comments)
+	(checkdoc-message-text, checkdoc-defun): Fix format messages for `error'.
+
+	* textmodes/tex-mode.el (latex-backward-sexp-1): Handle the special
+	case of \end{verbatim}.
+
+2004-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-termcap-format): Synchronyze with terminfo.
+	(term-emulate-terminal): Handle reset.
+	(term-reset-terminal): New function.
+
+2004-12-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone-programs): Add `zone-pgm-random-life'.
+	(zone-fill-out-screen): New func.
+	(zone-pgm-drip): Use `zone-fill-out-screen'.
+	Also, no longer go to point-min on every cycle.
+	(zone-pgm-paragraph-spaz): Allow spazzing for texinfo-mode.
+	(zone-pgm-random-life-wait): New user var.
+	(zone-pgm-random-life): New func.
+
+2004-12-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (auto-mode-alist): Map .com to DCL mode.
+
+2004-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Treat S-SPC like SPC.
+
+2004-12-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Correct cursor position in a
+	buffer with a display margin.
+
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-keypd.el (calc-keypad-mode): Unbind unused mouse events.
+	(calc-keypad-left-click): Set buffer to calc-keymap-buffer.
+
+2004-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el: Delete code to set display table.
+	(escape-glyph): Redefine to be less loud.  (Copy minibuffer-prompt.)
+
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Add math-read-preprocess-string to autoloads.
+
+	* calc/calc-ext.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move to
+	calc-aent.el.
+
+	* calc/calc-aent.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move from
+	calc-ext.el.
+
 2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el (isearch-quote-char): Fix up typo in last change.
@@ -10,10 +214,9 @@
 	* edmacro.el: `edit-kbd-macro' is now bound to `C-x C-k e'.
 	(edmacro-finish-edit): Further update for keyboard macros that are
 	lambda forms.
-	(edmacro-sanitize-for-string): Correctly remove Meta modifier
-	(as suggested by Kim Storm).
+	(edmacro-sanitize-for-string): Correctly remove Meta modifier.
 
-2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-unfontify-region): Save buffer state.
 	(font-lock-default-unfontify-region): Don't save buffer state any more.
@@ -7853,7 +8056,115 @@
 	(compilation-forget-errors): Don't localize already local
 	compilation-locs and remove FIXME about refontifying.
 
-2004-04-14
+2004-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (emacs-quick-startup): New defvar (set by -Q).
+	(command-line): New option -Q.  Like -q --no-site-file, but
+	in addition it also disables menu-bar, tool-bar, scroll-bars,
+	tool-tips, and the blinking cursor.
+	(command-line-1): Skip startup screen if -Q.
+	(fancy-splash-head): Use ":align-to center" prop to center splash image.
+
+	* emulation/cua-base.el (cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
+
+2004-04-13  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
+	(syntax): Don't require.
+	(python) <defgroup>: Add :version.
+	(python-quote-syntax): Re-written.
+	(inferior-python-mode): Move stuff here from run-python and add
+	some more.
+	(python-preoutput-continuation, python-preoutput-result)
+	(python-dotty-syntax-table): New.
+	(python-describe-symbol): Use them.
+	(run-python): Move stuff to inferior-python-mode.  Modify code
+	loaded into Python.
+	(python-send-region): Use python-proc, python-send-string.
+	(python-send-string): Send newlines too.  Callers changed.
+	(python-load-file): Re-written.
+	(python-eldoc-function): New.
+	(info-look): Don't require.
+	(python-after-info-look): New.  A modified version of former
+	top-level code for use with eval-after-load.
+	(python-maybe-jython, python-guess-indent): Use widened buffer.
+	(python-fill-paragraph): Re-written.
+	(python-mode): Fix outline-regexp.  Set outline-heading-end-regexp,
+	eldoc-print-current-symbol-info-function.  Add to eldoc-mode-hook.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
+	Set compilation-error-regexp-alist earlier.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-shell-minor-mode-map, compile-mouse-goto-error)
+	(compile-goto-error): Re-merge the mouse and non-mouse commands.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compile-goto-error): Select the buffer/window
+	corresponding to the event.
+
+2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
+
+	* loadup.el: Add cygwin to system-type list, for unexec() support.
+
+2004-04-12  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
+	(ibuffer-restore-window-config-on-quit): New variable to replace
+	`ibuffer-delete-window-on-quit'.  Update all references.
+	(ibuffer-prev-window-config): New variable.
+	(ibuffer-quit): Restore previous window configuration instead of
+	deleting window.
+	(ibuffer): Save window configuration before showing Ibuffer buffer.
+
+	* help.el (describe-mode): Doc fix.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
+	not to treat nil as a function.
+
+	* vc-arch.el (vc-arch-root): Be a bit more careful.
+	(vc-arch-register): Save the buffer if we modified it.
+	(vc-arch-delete-rej-if-obsolete): Save excursion.
+	(vc-arch-find-file-hook): Use the simpler after-save-hook.
+	(vc-arch-responsible-p, vc-arch-init-version): New functions.
+
+	* net/ldap.el (ldap-search): Use list*.
+
+2004-04-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-follow-reference): Allow multiline reference name.
+
+2004-04-11  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
+
+	* progmodes/python.el: New file.
+
+2004-04-11  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): Function removed.
+	(vc-default-workfile-unchanged-p): Use condition-case to check for
+	backward compatibility.
+
+	* vc.el (vc-print-log): Use condition-case to check for backward
+	compatibility.
+
+2004-04-11  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-faces): New defgroup.
+	(dired-header, dired-mark, dired-marked, dired-flagged)
+	(dired-warning, dired-directory, dired-symlink, dired-ignored):
+	New faces.
+	(dired-header-face, dired-mark-face, dired-marked-face)
+	(dired-flagged-face, dired-warning-face, dired-directory-face)
+	(dired-symlink-face, dired-ignored-face): New face variables.
+	(dired-font-lock-keywords): Use them instead of font-lock faces.
 	Split the rule for dired marks into 3 separate rules: for marks,
 	marked file names and flagged file names.
 

@@ -3002,45 +3002,13 @@ for possible pointer shapes.
 A newline can have a @code{line-spacing} text or overlay property that
 controls the height of the display line ending with that newline.  The
 property value overrides the default frame line spacing and the buffer
-local @code{line-spacing} variable.  We will call the property value
-@var{line-spacing}.
-
-If @var{line-spacing} is a positive integer, the value specifies
-additional vertical space, below the display line, in pixels.
-
-If @var{line-spacing} is a floating point number or cons, the
-additional vertical space is the product of @var{line-spacing} and the
-default frame line height.
-
-If the @var{line-spacing} value is a cons @code{(total .
-@var{spacing})} where @var{spacing} is any of the forms described
-above, the value of @var{spacing} specifies the total displayed height
-of the line, regardless of the height of the characters in it.  This
-is equivalent to using the @code{line-height} property.
+local @code{line-spacing} variable.  @xref{Line Height}.
 
 @item line-height
 @kindex line-height @r{(text property)}
 A newline can have a @code{line-height} text or overlay property that
 controls the total height of the display line ending in that newline.
-We will call the property value @var{line-height}.
-
-If @var{line-height} is 0, the height of the line is determined solely
-from its contents; nothing is added.  Any @code{line-spacing} property
-on this newline is ignored.  This case is useful for tiling small
-images or image slices without adding blank areas between the images.
-
-If @var{line-height} is a positive integer, the value specifies the
-minimum line height in pixels.  The line's ascent height is
-increased as necessary to achieve the specified height.
-
-If @var{line-height} is a floating point number, the minimum line
-height is the product of @var{line-height} and the default frame line
-height.
-
-If @var{line-height} is a cons @code{(@var{ratio} . @var{face})}, the
-minimum line height is calculated as @var{ratio} times the height of
-face @var{face}.  The @var{ratio} is an integer or a floating point
-number.  If @var{face} is @code{t}, it refers to the current face.
+@xref{Line Height}.
 
 @item modification-hooks
 @cindex change hooks for a character

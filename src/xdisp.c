@@ -343,6 +343,11 @@ Lisp_Object Vvoid_text_area_pointer;
 
 Lisp_Object Qtrailing_whitespace;
 
+/* Name and number of the face used to highlight escape glyphs.  */
+
+Lisp_Object Qescape_glyph;
+int escape_glyph_face;
+
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
 
@@ -5014,6 +5019,21 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
+	      int face_id = escape_glyph_face;
+
+	      /* Find the face id if `escape-glyph' unless we recently did.  */
+	      if (face_id < 0)
+		{
+		  Lisp_Object tem = Fget (Qescape_glyph, Qface);
+		  if (INTEGERP (tem))
+		    face_id = XINT (tem);
+		  else
+		    face_id = 0;
+		  /* If there's overflow, use 0 instead.  */
+		  if (FAST_GLYPH_FACE (FAST_MAKE_GLYPH (0, face_id)) != face_id)
+		    face_id = 0;
+		  escape_glyph_face = face_id;
+		}
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -5023,10 +5043,10 @@ get_next_display_element (it)
 		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
 		    g = XINT (DISP_CTRL_GLYPH (it->dp));
 		  else
-		    g = FAST_MAKE_GLYPH ('^', 0);
+		    g = FAST_MAKE_GLYPH ('^', face_id);
 		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c ^ 0100, 0);
+		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		}
@@ -5043,7 +5063,7 @@ get_next_display_element (it)
 		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
 		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  else
-		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
+		    escape_glyph = FAST_MAKE_GLYPH ('\\', face_id);
 
 		  if (CHAR_BYTE8_P (it->c))
 		    {
@@ -5074,11 +5094,14 @@ get_next_display_element (it)
 		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
 		      /* Insert three more glyphs into IT->ctl_chars for
 			 the octal display of the character.  */
-		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 1], g);
-		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 2], g);
-		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 3], g);
 		    }
 		  ctl_len = len * 4;
@@ -5216,6 +5239,9 @@ set_iterator_to_next (it, reseat_p)
 
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
+
+	  /* Recheck faces after display vector */
+	  it->stop_charpos = 0;
 
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)
@@ -11678,6 +11704,9 @@ redisplay_window (window, just_this_one_p)
 #if GLYPH_DEBUG
   *w->desired_matrix->method = 0;
 #endif
+
+  /* Force this to be looked up again for each redisp of each window.  */
+  escape_glyph_face = -1;
 
   specbind (Qinhibit_point_motion_hooks, Qt);
 
@@ -22292,6 +22321,8 @@ syms_of_xdisp ()
   staticpro (&Qfontification_functions);
   Qtrailing_whitespace = intern ("trailing-whitespace");
   staticpro (&Qtrailing_whitespace);
+  Qescape_glyph = intern ("escape-glyph");
+  staticpro (&Qescape_glyph);
   Qimage = intern ("image");
   staticpro (&Qimage);
   QCmap = intern (":map");

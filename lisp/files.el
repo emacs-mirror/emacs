@@ -932,8 +932,7 @@ suppress wildcard expansion by setting `find-file-wildcards'.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
-  (interactive
-   (find-file-read-args "Find file: " nil))
+  (interactive (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -955,8 +954,8 @@ expand wildcards (if any) and visit multiple files."
     (if (listp value)
 	(progn
 	  (setq value (nreverse value))
-	  (switch-to-buffer-other-window (car value))
-	  (mapcar 'switch-to-buffer (cdr value)))
+	  (cons (switch-to-buffer-other-window (car value))
+		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-window value))))
 
 (defun find-file-other-frame (filename &optional wildcards)
@@ -975,8 +974,8 @@ expand wildcards (if any) and visit multiple files."
     (if (listp value)
 	(progn
 	  (setq value (nreverse value))
-	  (switch-to-buffer-other-frame (car value))
-	  (mapcar 'switch-to-buffer (cdr value)))
+	  (cons (switch-to-buffer-other-frame (car value))
+		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-frame value))))
 
 (defun find-file-existing (filename &optional wildcards)
@@ -991,35 +990,53 @@ Like \\[find-file] but only allow files that exists."
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other window: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file-other-window filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only other window: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file-other-window filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other frame: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file-other-frame filename wildcards)
-  (toggle-read-only 1)
-  (current-buffer))
+  (interactive (find-file-read-args "Find file read-only other frame: " nil))
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (find-file-other-frame filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
 
-(defun find-alternate-file-other-window (filename)
+(defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
-This command does not select that window."
+This command does not select that window.
+
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and replace the file with multiple files."
   (interactive
    (save-selected-window
      (other-window 1)
@@ -1030,17 +1047,21 @@ This command does not select that window."
 	    (setq file-name (file-name-nondirectory file)
 		  file-dir (file-name-directory file)))
        (list (read-file-name
-	      "Find alternate file: " file-dir nil nil file-name)))))
+	      "Find alternate file: " file-dir nil nil file-name)
+	     t))))
   (if (one-window-p)
-      (find-file-other-window filename)
+      (find-file-other-window filename wildcards)
     (save-selected-window
       (other-window 1)
-      (find-alternate-file filename))))
+      (find-alternate-file filename wildcards))))
 
-(defun find-alternate-file (filename)
+(defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
-\(presumably by mistake), use this command to visit the file you really want."
+\(presumably by mistake), use this command to visit the file you really want.
+
+Interactively, or if WILDCARDS is non-nil in a call from Lisp,
+expand wildcards (if any) and replace the file with multiple files."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -1049,7 +1070,8 @@ If the current buffer now contains an empty file that you just visited
 	  (setq file-name (file-name-nondirectory file)
 		file-dir (file-name-directory file)))
      (list (read-file-name
-	    "Find alternate file: " file-dir nil nil file-name))))
+	    "Find alternate file: " file-dir nil nil file-name)
+	   t)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
   (when (and (buffer-modified-p) (buffer-file-name))
@@ -1077,7 +1099,7 @@ If the current buffer now contains an empty file that you just visited
 	  (setq buffer-file-truename nil)
 	  ;; Likewise for dired buffers.
 	  (setq dired-directory nil)
-	  (find-file filename))
+	  (find-file filename wildcards))
       (when (eq obuf (current-buffer))
 	;; This executes if find-file gets an error
 	;; and does not really find anything.
@@ -1247,8 +1269,8 @@ Optional first arg NOWARN non-nil means suppress any warning messages.
 Optional second arg RAWFILE non-nil means the file is read literally.
 Optional third arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
-used and expanded, the value is a list of buffers
-that are visiting the various files."
+used and expanded, return a list of buffers that are visiting
+the various files."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -1757,6 +1779,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ses\\'" . ses-mode)
      ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
      ("\\.docbook\\'" . sgml-mode)
+     ("\\.com\\'" . dcl-mode)
      ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
      ;; Windows candidates may be opened case sensitively on Unix
      ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)

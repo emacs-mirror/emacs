@@ -8171,20 +8171,11 @@ x_calc_absolute_position (f)
   if (! ((flags & XNegative) || (flags & YNegative)))
     return;
 
-  /* Find the offsets of the outside upper-left corner of
-     the inner window, with respect to the outer window.
-     But do this only if we will need the results.  */
-  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-    /* This is to get *_pixels_outer_diff.  */
-    x_real_positions (f, &win_x, &win_y);
-
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-                   - 2 * FRAME_X_OUTPUT (f)->x_pixels_outer_diff
-		   - FRAME_PIXEL_WIDTH (f)
-		   + f->left_pos);
+                   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
 
   {
     int height = FRAME_PIXEL_HEIGHT (f);
@@ -8206,15 +8197,7 @@ x_calc_absolute_position (f)
 #endif
 
   if (flags & YNegative)
-    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-                  - FRAME_X_OUTPUT (f)->y_pixels_outer_diff
-
-                  /* Assume the window manager decorations are the same size on
-                     three sides, i.e. left, right and bottom.  This is to
-                     compensate for the bottom part.  */
-                  - FRAME_X_OUTPUT (f)->x_pixels_outer_diff
-		  - height
-		  + f->top_pos);
+    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height - height + f->top_pos);
   }
 
   /* The left_pos and top_pos
@@ -8330,7 +8313,9 @@ x_check_expected_move (f)
         FRAME_X_OUTPUT (f)->move_offset_left = expect_left - f->left_pos;
         FRAME_X_OUTPUT (f)->move_offset_top = expect_top - f->top_pos;
 
-        x_set_offset (f, expect_left, expect_top, 1);
+        f->left_pos = expect_left;
+        f->top_pos = expect_top;
+        x_set_offset (f, expect_left, expect_top, 0);
       }
     else if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
       FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;

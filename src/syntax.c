@@ -1320,6 +1320,7 @@ and the function returns nil.  Field boundaries are not noticed if
      (arg)
      Lisp_Object arg;
 {
+  Lisp_Object tmp;
   int orig_val, val;
 
   if (NILP (arg))
@@ -1332,8 +1333,9 @@ and the function returns nil.  Field boundaries are not noticed if
     val = XINT (arg) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
-  val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
-				       Qt, Qnil, Qnil));
+  tmp = Fconstrain_to_field (make_number (val), make_number (PT),
+			     Qt, Qnil, Qnil);
+  val = XFASTINT (tmp);
 
   SET_PT (val);
   return val == orig_val ? Qt : Qnil;

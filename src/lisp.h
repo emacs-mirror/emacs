@@ -1786,11 +1786,15 @@ extern char *stack_bottom;
 #ifdef SYNC_INPUT
 extern void handle_async_input P_ ((void));
 extern int interrupt_input_pending;
+
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       {							\
+        Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
+	if (EQ (Vthrow_on_input, flag))			\
+	  Fthrow (Vthrow_on_input, Qnil);		\
 	Fsignal (Qquit, Qnil);				\
       }							\
     else if (interrupt_input_pending)			\
@@ -1803,7 +1807,10 @@ extern int interrupt_input_pending;
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       {							\
+        Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
+	if (EQ (Vthrow_on_input, flag))			\
+	  Fthrow (Vthrow_on_input, Qnil);		\
 	Fsignal (Qquit, Qnil);				\
       }							\
   } while (0)
@@ -2917,6 +2924,7 @@ extern struct kboard *echo_kboard;
 extern void cancel_echoing P_ ((void));
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
+extern Lisp_Object Vthrow_on_input;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);

@@ -50,6 +50,85 @@
   "*The buffer to insert lint messages in.")
 
 ;;;
+;;; Data
+;;;
+
+(defconst elint-standard-variables
+  '(abbrev-mode auto-fill-function buffer-auto-save-file-name
+     buffer-backed-up buffer-display-count buffer-display-table buffer-display-time buffer-file-coding-system buffer-file-format
+     buffer-file-name buffer-file-number buffer-file-truename
+     buffer-file-type buffer-invisibility-spec buffer-offer-save
+     buffer-read-only buffer-saved-size buffer-undo-list
+     cache-long-line-scans case-fold-search ctl-arrow cursor-type comment-column
+     default-directory defun-prompt-regexp desktop-save-buffer enable-multibyte-characters fill-column fringes-outside-margins goal-column
+     header-line-format indicate-buffer-boundaries indicate-empty-lines
+     left-fringe-width
+     left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
+     mark-active mark-ring mode-line-buffer-identification
+     mode-line-format mode-line-modified mode-line-process mode-name
+     overwrite-mode 
+     point-before-scroll right-fringe-width right-margin-width
+     scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
+     selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
+  "Standard buffer local vars.")
+
+(defconst elint-unknown-builtin-args
+  '((while test &rest forms)
+    (insert-before-markers-and-inherit &rest text)
+    (catch tag &rest body)
+    (and &rest args)
+    (funcall func &rest args)
+    (insert &rest args)
+    (vconcat &rest args)
+    (run-hook-with-args hook &rest args)
+    (message-or-box string &rest args)
+    (save-window-excursion &rest body)
+    (append &rest args)
+    (logior &rest args)
+    (progn &rest body)
+    (insert-and-inherit &rest args)
+    (message-box string &rest args)
+    (prog2 x y &rest body)
+    (prog1 first &rest body)
+    (insert-before-markers &rest args)
+    (call-process-region start end program &optional delete
+			 destination display &rest args)
+    (concat &rest args)
+    (vector &rest args)
+    (run-hook-with-args-until-success hook &rest args)
+    (track-mouse &rest body)
+    (unwind-protect bodyform &rest unwindforms)
+    (save-restriction &rest body)
+    (quote arg)
+    (make-byte-code &rest args)
+    (or &rest args)
+    (cond &rest clauses)
+    (start-process name buffer program &rest args)
+    (run-hook-with-args-until-failure hook &rest args)
+    (if cond then &rest else)
+    (apply function &rest args)
+    (format string &rest args)
+    (encode-time second minute hour day month year zone &rest args)
+    (min &rest args)
+    (logand &rest args)
+    (logxor &rest args)
+    (max &rest args)
+    (list &rest args)
+    (message string &rest args)
+    (defvar symbol init doc)
+    (call-process program &optional infile destination display &rest args)
+    (with-output-to-temp-buffer bufname &rest body)
+    (nconc &rest args)
+    (save-excursion &rest body)
+    (run-hooks &rest hooks)
+    (/ x y &rest zs)
+    (- x &rest y)
+    (+ &rest args)
+    (* &rest args)
+    (interactive &optional args))
+  "Those built-ins for which we can't find arguments.")
+
+;;;
 ;;; ADT: top-form
 ;;;
 
@@ -723,85 +802,6 @@ If no documentation could be found args will be `unknown'."
 			  )))
 	    (if list list
 	      (elint-find-builtins))))
-
-;;;
-;;; Data
-;;;
-
-(defconst elint-standard-variables
-  '(abbrev-mode auto-fill-function buffer-auto-save-file-name
-     buffer-backed-up buffer-display-count buffer-display-table buffer-display-time buffer-file-coding-system buffer-file-format
-     buffer-file-name buffer-file-number buffer-file-truename
-     buffer-file-type buffer-invisibility-spec buffer-offer-save
-     buffer-read-only buffer-saved-size buffer-undo-list
-     cache-long-line-scans case-fold-search ctl-arrow cursor-type comment-column
-     default-directory defun-prompt-regexp desktop-save-buffer enable-multibyte-characters fill-column fringes-outside-margins goal-column
-     header-line-format indicate-buffer-boundaries indicate-empty-lines
-     left-fringe-width
-     left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
-     mark-active mark-ring mode-line-buffer-identification
-     mode-line-format mode-line-modified mode-line-process mode-name
-     overwrite-mode 
-     point-before-scroll right-fringe-width right-margin-width
-     scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
-     selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
-  "Standard buffer local vars.")
-
-(defconst elint-unknown-builtin-args
-  '((while test &rest forms)
-    (insert-before-markers-and-inherit &rest text)
-    (catch tag &rest body)
-    (and &rest args)
-    (funcall func &rest args)
-    (insert &rest args)
-    (vconcat &rest args)
-    (run-hook-with-args hook &rest args)
-    (message-or-box string &rest args)
-    (save-window-excursion &rest body)
-    (append &rest args)
-    (logior &rest args)
-    (progn &rest body)
-    (insert-and-inherit &rest args)
-    (message-box string &rest args)
-    (prog2 x y &rest body)
-    (prog1 first &rest body)
-    (insert-before-markers &rest args)
-    (call-process-region start end program &optional delete
-			 destination display &rest args)
-    (concat &rest args)
-    (vector &rest args)
-    (run-hook-with-args-until-success hook &rest args)
-    (track-mouse &rest body)
-    (unwind-protect bodyform &rest unwindforms)
-    (save-restriction &rest body)
-    (quote arg)
-    (make-byte-code &rest args)
-    (or &rest args)
-    (cond &rest clauses)
-    (start-process name buffer program &rest args)
-    (run-hook-with-args-until-failure hook &rest args)
-    (if cond then &rest else)
-    (apply function &rest args)
-    (format string &rest args)
-    (encode-time second minute hour day month year zone &rest args)
-    (min &rest args)
-    (logand &rest args)
-    (logxor &rest args)
-    (max &rest args)
-    (list &rest args)
-    (message string &rest args)
-    (defvar symbol init doc)
-    (call-process program &optional infile destination display &rest args)
-    (with-output-to-temp-buffer bufname &rest body)
-    (nconc &rest args)
-    (save-excursion &rest body)
-    (run-hooks &rest hooks)
-    (/ x y &rest zs)
-    (- x &rest y)
-    (+ &rest args)
-    (* &rest args)
-    (interactive &optional args))
-  "Those built-ins for which we can't find arguments.")
 
 (provide 'elint)
 

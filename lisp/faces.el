@@ -1335,21 +1335,29 @@ If SPEC is nil, return nil."
   (unless frame
     (setq frame (selected-frame)))
   (let ((tail spec)
-	result all)
+	result defaults)
     (while tail
       (let* ((entry (pop tail))
 	     (display (car entry))
-	     (attrs (cdr entry)))
-	(when (face-spec-set-match-display display frame)
-	  (setq result (if (null (cdr attrs)) ;; was (listp (car attrs))
-			   ;; Old-style entry, the attribute list is the
-			   ;; first element.
-			   (car attrs)
-			 attrs))
-	  (if (eq display t)
-	      (setq all result result nil)
+	     (attrs (cdr entry))
+	     thisval)
+	;; Get the attributes as actually specified by this alternative.
+	(setq thisval
+	      (if (null (cdr attrs)) ;; was (listp (car attrs))
+		  ;; Old-style entry, the attribute list is the
+		  ;; first element.
+		  (car attrs)
+		attrs))
+
+	;; If the condition is `default', that sets the default
+	;; for following conditions.
+	(if (eq display 'default)
+	    (setq defaults thisval)
+	  ;; Otherwise, if it matches, use it.
+	  (when (face-spec-set-match-display display frame)
+	    (setq result thisval)
 	    (setq tail nil)))))
-    (if all (append result all) result)))
+    (if defaults (append result defaults) result)))
 
 
 (defun face-spec-reset-face (face &optional frame)
@@ -1787,7 +1795,7 @@ created."
   :group 'basic-faces)
 
 (defface mode-line-inactive
-  '((t
+  '((default
      :inherit mode-line)
     (((type x w32 mac) (background light) (class color))
      :weight light
@@ -1807,7 +1815,7 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((t
+  '((default
      :inherit mode-line)
     (((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
@@ -1843,7 +1851,7 @@ created."
 
 
 (defface tool-bar
-  '((t
+  '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
     (((type x w32 mac) (class color))
@@ -2022,32 +2030,11 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'font-lock			; like `show-trailing-whitespace'
   :group 'basic-faces)
 
-
-;; Make escape characters stand out in display
-
-(defface escape-glyph
-  '((t :inherit secondary-selection))
-  "Basic face for displaying \\ and ^ in multichar glyphs.
-It is also used for ... in ellipses."
+(defface escape-glyph '((((background dark)) :foreground "cyan")
+			(((type pc)) :foreground "magenta")
+			(t :foreground "dark blue"))
+  "Face for displaying \\ and ^ in multichar glyphs."
   :group 'basic-faces)
-
-(put 'display-table 'char-table-extra-slots 6)
-
-(or standard-display-table
-    ;; avoid using autoloaded make-display-table here
-    (setq standard-display-table (make-char-table 'display-table nil)))
-
-(let* ((face (lsh (face-id 'escape-glyph) 19))
-       (backslash (+ face ?\\))
-       (dot (+ face ?.)))
-  (set-char-table-extra-slot standard-display-table 2 backslash)
-  (aset standard-display-table 2208 (vector backslash ?\s))
-  (aset standard-display-table 2221 (vector backslash ?-))
-  (set-char-table-extra-slot standard-display-table 3 (+ face ?^))
-  (set-char-table-extra-slot standard-display-table 4 (vector dot dot dot)))
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

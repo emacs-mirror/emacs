@@ -448,7 +448,6 @@ Menu of mode operations in the mode line.")
 (let ((map (make-sparse-keymap)))
   ;; Bind down- events so that the global keymap won't ``shine
   ;; through''.
-  (define-key map [mode-line down-mouse-1] 'ignore)
   (define-key map [mode-line mouse-1] 'mode-line-unbury-buffer)
   (define-key map [header-line down-mouse-1] 'ignore)
   (define-key map [header-line mouse-1] 'mode-line-unbury-buffer)

@@ -465,6 +465,73 @@ T means abort and give an error message.")
 
 ;;; Algebraic expression parsing.   [Public]
 
+(defvar math-read-replacement-list
+  '(;; Misc symbols
+    ("±" "+/-")  ; plus or minus
+    ("×" "*")    ; multiplication sign
+    ("÷" ":")    ; division sign
+    ("−" "-")    ; subtraction sign
+    ("∕" "/")    ; division sign
+    ("∗" "*")    ; asterisk multiplication
+    ("∞" "inf")  ; infinity symbol
+    ("≤" "<=")
+    ("≥" ">=")
+    ("≦" "<=")
+    ("≧" ">=")
+    ;; fractions
+    ("¼" "(1:4)") ; 1/4
+    ("½" "(1:2)") ; 1/2
+    ("¾" "(3:4)") ; 3/4
+    ("⅓" "(1:3)") ; 1/3
+    ("⅔" "(2:3)") ; 2/3
+    ("⅕" "(1:5)") ; 1/5
+    ("⅖" "(2:5)") ; 2/5
+    ("⅗" "(3:5)") ; 3/5
+    ("⅘" "(4:5)") ; 4/5
+    ("⅙" "(1:6)") ; 1/6
+    ("⅚" "(5:6)") ; 5/6
+    ("⅛" "(1:8)") ; 1/8
+    ("⅜" "(3:8)") ; 3/8
+    ("⅝" "(5:8)") ; 5/8
+    ("⅞" "(7:8)") ; 7/8
+    ("⅟" "1:")    ; 1/...
+    ;; superscripts
+    ("⁰" "0")  ; 0
+    ("¹" "1")  ; 1
+    ("²" "2")  ; 2
+    ("³" "3")  ; 3
+    ("⁴" "4")  ; 4
+    ("⁵" "5")  ; 5
+    ("⁶" "6")  ; 6
+    ("⁷" "7")  ; 7
+    ("⁸" "8")  ; 8
+    ("⁹" "9")  ; 9
+    ("⁺" "+")  ; +
+    ("⁻" "-")  ; -
+    ("⁽" "(")  ; (
+    ("⁾" ")")  ; )
+    ("ⁿ" "n")  ; n
+    ("ⁱ" "i")) ; i
+  "A list whose elements (old new) indicate replacements to make
+in Calc algebraic input.")
+
+(defvar math-read-superscripts
+  "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ⁿⁱ" ; 0123456789+-()ni
+  "A string consisting of the superscripts allowed by Calc.")
+
+(defun math-read-preprocess-string (str)
+  "Replace some substrings of STR by Calc equivalents."
+  (setq str
+        (replace-regexp-in-string (concat "[" math-read-superscripts "]+")
+                                  "^(\\&)" str))
+  (let ((rep-list math-read-replacement-list))
+    (while rep-list
+      (setq str
+            (replace-regexp-in-string (nth 0 (car rep-list))
+                                      (nth 1 (car rep-list)) str))
+      (setq rep-list (cdr rep-list))))
+  str)
+
 ;; The next few variables are local to math-read-exprs (and math-read-expr
 ;; in calc-ext.el), but are set in functions they call.
 
