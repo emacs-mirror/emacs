@@ -197,18 +197,6 @@ static unsigned char zv_bits[] = {
 static unsigned char left_bits[] = {
    0x18, 0x0c, 0x06, 0x3f, 0x3f, 0x06, 0x0c, 0x18};
 
-/* Marker for continued lines.  */
-
-#define continued_width 8
-#define continued_height 8
-static unsigned char continued_bits[] = {
-   0x30, 0x30, 0x30, 0x30, 0xb4, 0xfc, 0x78, 0x30};
-
-#define continuation_width 8
-#define continuation_height 8
-static unsigned char continuation_bits[] = {
-   0x0c, 0x1e, 0x3f, 0x2d, 0x0c, 0x0c, 0x0c, 0x0c};
-
 /* Right truncation arrow bitmap `->'.  */
 
 #define right_width 8
@@ -216,24 +204,35 @@ static unsigned char continuation_bits[] = {
 static unsigned char right_bits[] = {
    0x18, 0x30, 0x60, 0xfc, 0xfc, 0x60, 0x30, 0x18};
 
-/* Overlay arrow bitmap; a filled `<>'.  */
+/* Marker for continued lines.  */
 
-#if 1
+#define continued_width 8
+#define continued_height 8
+static unsigned char continued_bits[] = {
+   0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
+
+/* Marker for continuation lines.  */
+
+#define continuation_width 8
+#define continuation_height 8
+static unsigned char continuation_bits[] = {
+   0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
+
+/* Overlay arrow bitmap.  */
+
+#if 0
+/* A bomb.  */
 #define ov_width 8
 #define ov_height 8
 static unsigned char ov_bits[] = {
    0x30, 0x08, 0x3c, 0x7e, 0x7a, 0x7a, 0x62, 0x3c};
-
-#elif 0
-#define ov_width 8
-#define ov_height 8
-static unsigned char ov_bits[] = {
-   0x18, 0x04, 0x08, 0x1c, 0x3e, 0x3a, 0x32, 0x1c};
 #else
+/* A triangular arrow.  */
 #define ov_width 8
 #define ov_height 8
 static unsigned char ov_bits[] = {
-   0x18, 0x3c, 0x7e, 0xff, 0xff, 0x7e, 0x3c, 0x18};
+   0x03, 0x0f, 0x1f, 0x3f, 0x3f, 0x1f, 0x0f, 0x03};
+
 #endif
 
 extern Lisp_Object Qhelp_echo;
@@ -642,7 +641,7 @@ x_draw_vertical_border (w)
       int x0, x1, y0, y1;
 
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
-      x1 += FRAME_X_FLAGS_AREA_WIDTH (f);
+      x1 += FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f);
       y1 -= 1;
       
       XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 
@@ -746,7 +745,8 @@ x_after_update_window_line (desired_row)
 	  struct frame *f = XFRAME (w->frame);
 	  int width = FRAME_INTERNAL_BORDER_WIDTH (f);
 	  int height = desired_row->visible_height;
-	  int x = window_box_right (w, -1) + FRAME_X_FLAGS_AREA_WIDTH (f);
+	  int x = (window_box_right (w, -1)
+		   + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
 	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
 	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -790,7 +790,7 @@ x_draw_bitmap (w, row, which)
       bits = left_bits;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
       break;
       
     case OVERLAY_ARROW_BITMAP:
@@ -799,7 +799,7 @@ x_draw_bitmap (w, row, which)
       bits = ov_bits;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
       break;
       
     case RIGHT_TRUNCATION_BITMAP:
@@ -807,7 +807,7 @@ x_draw_bitmap (w, row, which)
       h = right_height;
       bits = right_bits;
       x = window_box_right (w, -1);
-      x += (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2;
+      x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
       break;
 
     case CONTINUED_LINE_BITMAP:
@@ -815,7 +815,7 @@ x_draw_bitmap (w, row, which)
       h = right_height;
       bits = continued_bits;
       x = window_box_right (w, -1);
-      x += (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2;
+      x += (FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f) - wd) / 2;
       break;
       
     case CONTINUATION_LINE_BITMAP:
@@ -824,7 +824,7 @@ x_draw_bitmap (w, row, which)
       bits = continuation_bits;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
       break;
 
     case ZV_LINE_BITMAP:
@@ -833,7 +833,7 @@ x_draw_bitmap (w, row, which)
       bits = zv_bits;
       x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
 	   - wd
-	   - (FRAME_X_FLAGS_AREA_WIDTH (f) - wd) / 2);
+	   - (FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - wd) / 2);
       break;
 
     default:
@@ -895,7 +895,7 @@ x_draw_row_bitmaps (w, row)
   /* Clear flags area if no bitmap to draw or if bitmap doesn't fill
      the flags area.  */
   if (bitmap == NO_BITMAP
-      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_FLAGS_AREA_WIDTH (f)
+      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
       || row->height > FRAME_FLAGS_BITMAP_HEIGHT (f))
     {
       /* If W has a vertical border to its left, don't draw over it.  */
@@ -919,11 +919,11 @@ x_draw_row_bitmaps (w, row)
       XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      face->gc,
 		      (left
-		       - FRAME_X_FLAGS_AREA_WIDTH (f)
+		       - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
 		       + border),
 		      WINDOW_TO_FRAME_PIXEL_Y (w, max (top_line_height,
 						       row->y)),
-		      FRAME_X_FLAGS_AREA_WIDTH (f) - border,
+		      FRAME_X_LEFT_FLAGS_AREA_WIDTH (f) - border,
 		      row->visible_height);
       if (!face->stipple)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
@@ -944,7 +944,7 @@ x_draw_row_bitmaps (w, row)
   /* Clear flags area if no bitmap to draw of if bitmap doesn't fill
      the flags area.  */
   if (bitmap == NO_BITMAP
-      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_FLAGS_AREA_WIDTH (f)
+      || FRAME_FLAGS_BITMAP_WIDTH (f) < FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f)
       || row->height > FRAME_FLAGS_BITMAP_HEIGHT (f))
     {
       int right = window_box_right (w, -1);
@@ -965,7 +965,7 @@ x_draw_row_bitmaps (w, row)
 		      right,
 		      WINDOW_TO_FRAME_PIXEL_Y (w, max (top_line_height,
 						       row->y)),
-		      FRAME_X_FLAGS_AREA_WIDTH (f),
+		      FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f),
 		      row->visible_height);
       if (!face->stipple)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
@@ -3269,7 +3269,7 @@ x_draw_glyph_string_box (s)
   if (s->row->full_width_p
       && !s->w->pseudo_window_p)
     {
-      last_x += FRAME_X_FLAGS_AREA_WIDTH (s->f);
+      last_x += FRAME_X_RIGHT_FLAGS_AREA_WIDTH (s->f);
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (s->f))
 	last_x += FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
     }
@@ -4319,7 +4319,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
       /* X is relative to the left edge of W, without scroll bars
 	 or flag areas.  */
       struct frame *f = XFRAME (w->frame);
-      int width = FRAME_FLAGS_AREA_WIDTH (f);
+      /* int width = FRAME_FLAGS_AREA_WIDTH (f);  */
       int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
 
       x += window_left_x;
@@ -4328,7 +4328,7 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
 
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	{
-	  width = FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
+	  int width = FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
 	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
 	    last_x += width;
 	  else
@@ -4965,8 +4965,8 @@ x_scroll_run (w, run)
      without mode lines.  Include in this box the flags areas to the
      left and right of W.  */
   window_box (w, -1, &x, &y, &width, &height);
-  width += 2 * FRAME_X_FLAGS_AREA_WIDTH (f);
-  x -= FRAME_X_FLAGS_AREA_WIDTH (f);
+  width += FRAME_X_FLAGS_AREA_WIDTH (f);
+  x -= FRAME_X_LEFT_FLAGS_AREA_WIDTH (f);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -5127,12 +5127,12 @@ expose_window_tree (w, r)
 		      &window_height);
 	  window_rect.x
 	    = (window_x
-	       - FRAME_X_FLAGS_AREA_WIDTH (f)
+	       - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
 	       - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f));
 	  window_rect.y = window_y;
 	  window_rect.width
 	    = (window_width
-	       + 2 * FRAME_X_FLAGS_AREA_WIDTH (f)
+	       + FRAME_X_FLAGS_AREA_WIDTH (f)
 	       + FRAME_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f));
 	  window_rect.height
 	    = window_height + CURRENT_MODE_LINE_HEIGHT (w);
@@ -6006,7 +6006,7 @@ note_mode_line_highlight (w, x, mode_line_p)
       glyph = row->glyphs[TEXT_AREA];
       end = glyph + row->used[TEXT_AREA];
       x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_FLAGS_AREA_WIDTH (f));
+	      + FRAME_X_LEFT_FLAGS_AREA_WIDTH (f));
       while (glyph < end
 	     && x >= x0 + glyph->pixel_width)
 	{
@@ -7897,12 +7897,12 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
     pixel_left = (window_x
 		  + window_width
-		  + FRAME_FLAGS_AREA_WIDTH (f)
+		  + FRAME_LEFT_FLAGS_AREA_WIDTH (f)
 		  + scroll_bar_area_width
 		  - pixel_width + 1);
   else
     pixel_left = (window_x
-		  - FRAME_FLAGS_AREA_WIDTH (f)
+		  - FRAME_LEFT_FLAGS_AREA_WIDTH (f)
 		  - scroll_bar_area_width);
 
   /* Does the scroll bar exist yet?  */
@@ -9717,8 +9717,8 @@ x_clip_to_row (w, row, gc, whole_line_p)
      the rectangle to the left and increase its width.  */
   if (whole_line_p)
     {
-      clip_rect.x -= FRAME_X_FLAGS_AREA_WIDTH (f);
-      clip_rect.width += 2 * FRAME_X_FLAGS_AREA_WIDTH (f);
+      clip_rect.x -= FRAME_X_LEFT_FLAGS_AREA_WIDTH (f);
+      clip_rect.width += FRAME_X_FLAGS_AREA_WIDTH (f);
     }
 
   XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, &clip_rect, 1, Unsorted);
@@ -10816,7 +10816,7 @@ x_set_window_size (f, change_gravity, cols, rows)
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
   f->output_data.x->flags_areas_extra
-    = 2 * FRAME_FLAGS_AREA_WIDTH (f);
+    = FRAME_FLAGS_AREA_WIDTH (f);
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
