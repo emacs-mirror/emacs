@@ -1,3 +1,26 @@
+2000-05-22  Dave Love  <fx@gnu.org>
+
+	* bindings.el: Remove debug-ignored-errors set in other files.
+
+	* progmodes/etags.el: Add to debug-ignored-errors.
+	(visit-tags-table-buffer): Clear out buffers holding old tables
+	when making a new list.
+	(etags-recognize-tags-table, tags-recognize-empty-tags-table): Use
+	mapc.
+
+	* completion.el: Doc fixes.  Add to debug-ignored-errors.  Don't
+	quote keywords.
+	(cmpl-string-case-type): Use character classes.
+
+	* comint.el: 
+	* textmodes/ispell.el: 
+	* imenu.el: 
+	* mail/mh-e.el:
+	* progmodes/compile.el: Add to debug-ignored-errors.
+
+	* dabbrev.el: Add to debug-ignored-errors.
+	(dabbrev-completion): Use mapc.
+
 2000-05-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* woman.el (From Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk)
