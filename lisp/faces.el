@@ -65,11 +65,11 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 Otherwise report on the defaults for face FACE (for new frames)."
   (aref (internal-get-face face frame) 5))
 
-(defsubst face-background-pixmap (face &optional frame)
- "Return the background pixmap name of face FACE, or nil if unspecified.
-If the optional argument FRAME is given, report on face FACE in that frame.
-Otherwise report on the defaults for face FACE (for new frames)."
- (aref (internal-get-face face frame) 6))
+;;(defsubst face-background-pixmap (face &optional frame)
+;; "Return the background pixmap name of face FACE, or nil if unspecified.
+;;If the optional argument FRAME is given, report on face FACE in that frame.
+;;Otherwise report on the defaults for face FACE (for new frames)."
+;; (aref (internal-get-face face frame) 6))
 
 (defsubst face-underline-p (face &optional frame)
  "Return t if face FACE is underlined.
@@ -102,19 +102,19 @@ in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background"))
   (internal-set-face-1 face 'background color 5 frame))
 
-(defsubst set-face-background-pixmap (face name &optional frame)
-  "Change the background pixmap of face FACE to PIXMAP.
-PIXMAP should be a string, the name of a file of pixmap data.
-The directories listed in the `x-bitmap-file-path' variable are searched.
+;;(defsubst set-face-background-pixmap (face name &optional frame)
+;;  "Change the background pixmap of face FACE to PIXMAP.
+;;PIXMAP should be a string, the name of a file of pixmap data.
+;;The directories listed in the `x-bitmap-file-path' variable are searched.
 
-Alternatively, PIXMAP may be a list of the form (WIDTH HEIGHT DATA)
-where WIDTH and HEIGHT are the size in pixels,
-and DATA is a string, containing the raw bits of the bitmap.  
+;;Alternatively, PIXMAP may be a list of the form (WIDTH HEIGHT DATA)
+;;where WIDTH and HEIGHT are the size in pixels,
+;;and DATA is a string, containing the raw bits of the bitmap.  
 
-If the optional FRAME argument is provided, change only
-in that frame; otherwise change each frame."
-  (interactive (internal-face-interactive "background-pixmap"))
-  (internal-set-face-1 face 'background-pixmap name 6 frame))
+;;If the optional FRAME argument is provided, change only
+;;in that frame; otherwise change each frame."
+;;  (interactive (internal-face-interactive "background-pixmap"))
+;;  (internal-set-face-1 face 'background-pixmap name 6 frame))
 
 (defsubst set-face-underline-p (face underline-p &optional frame)
   "Specify whether face FACE is underlined.  (Yes if UNDERLINE-P is non-nil.)
