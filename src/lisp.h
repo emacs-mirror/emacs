@@ -380,10 +380,6 @@ enum pvec_type
 #define XMARKBIT(a) ((a) & MARKBIT)
 #endif
 
-#ifndef XSETMARKBIT
-#define XSETMARKBIT(a,b) ((a) = ((a) & ~MARKBIT) | ((b) ? MARKBIT : 0))
-#endif
-
 #ifndef XMARK
 #define XMARK(a) ((a) |= MARKBIT)
 #endif
@@ -433,7 +429,6 @@ extern Lisp_Object make_number ();
 
 #define XGCTYPE(a) ((a).gu.type)
 #define XMARKBIT(a) ((a).gu.markbit)
-#define XSETMARKBIT(a,b) (XMARKBIT(a) = (b))
 #define XMARK(a) (XMARKBIT(a) = 1)
 #define XUNMARK(a) (XMARKBIT(a) = 0)
 
