@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.15 1993/09/24 01:03:32 eggert Exp eggert $
+# $Id: rcs2log,v 1.16 1993/10/19 02:50:31 eggert Exp rms $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -408,9 +408,9 @@ awk '
 				auth = author
 			printf "%s %s %2d %s %d  %s  ", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year, auth
 			if (mailaddr[author])
-				printf "(%s)\n\n", mailaddr[author]
+				printf "<%s>\n\n", mailaddr[author]
 			else
-				printf "(%s@%s)\n\n", author, "'"$hostname"'"
+				printf "<%s@%s>\n\n", author, "'"$hostname"'"
 		}
 		if (! filesknown[$1]) {
 			filesknown[$1] = 1
