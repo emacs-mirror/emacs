@@ -1,3 +1,12 @@
+2000-11-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-delay): Set to 10 seconds.
+	(fancy-splash-max-time): New user-option.
+	(fancy-splash-stop-time): New variable.
+	(fancy-splash-screens): Set it.  Catch `stop-splashing'.
+	(fancy-splash-screens-1): Throw `stop-splashing' when current
+	time is greater than fancy-splash-stop-time.
+
 2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs.el (cvs-mode-marked): New arg `noquery'.
