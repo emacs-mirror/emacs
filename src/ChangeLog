@@ -1,3 +1,9 @@
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* frame.c (Fframe_live_p): Doc fix.
+
+	* buffer.c (selective-display-ellipses): Doc fix.
+
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (to_multibyte): Fix computation of new read_buffer_size.
