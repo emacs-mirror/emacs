@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001
+   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -58,12 +58,15 @@ enum window_part
   ON_VERTICAL_BORDER,
   ON_HEADER_LINE,
   ON_LEFT_FRINGE,
-  ON_RIGHT_FRINGE
+  ON_RIGHT_FRINGE,
+  ON_LEFT_MARGIN,
+  ON_RIGHT_MARGIN
 };
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_size_fixed;
+extern Lisp_Object Qleft_margin, Qright_margin;
 extern Lisp_Object Qheight, Qwidth;
 
 static int displayed_window_lines P_ ((struct window *));
@@ -509,7 +512,9 @@ and BOTTOM is one more than the bottommost row used by WINDOW
       return 3.
    if it is on the window's top line, return 4;
    if it is in left or right fringe of the window,
-   return 5 or 6, and convert *X and *Y to window-relative corrdinates.
+   return 5 or 6, and convert *X and *Y to window-relative coordinates;
+   if it is in the marginal area to the left/right of the window,
+   return 7 or 8, and convert *X and *Y to window-relative coordinates.
 
    X and Y are frame relative pixel coordinates.  */
 
@@ -623,9 +628,16 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  *x -= left_x;
-	  *y -= top_y;
-	  part = ON_TEXT;
+	  if (*x <= window_box_right (w, LEFT_MARGIN_AREA))
+	    part = ON_LEFT_MARGIN;
+	  else if (*x >= window_box_left (w, RIGHT_MARGIN_AREA))
+	    part = ON_RIGHT_MARGIN;
+	  else
+	    {
+	      part = ON_TEXT;
+	      *x -= left_x;
+	      *y -= top_y;
+	    }
 	}
     }
   else
@@ -653,10 +665,17 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  /* Convert X and Y to window-relative pixel coordinates.  */
-	  *x -= left_x;
-	  *y -= top_y;
-	  part = ON_TEXT;
+	  if (*x <= window_box_right (w, LEFT_MARGIN_AREA))
+	    part = ON_LEFT_MARGIN;
+	  else if (*x >= window_box_left (w, RIGHT_MARGIN_AREA))
+	    part = ON_RIGHT_MARGIN;
+	  else
+	    {
+	      part = ON_TEXT;
+	      /* Convert X and Y to window-relative pixel coordinates.  */
+	      *x -= left_x;
+	      *y -= top_y;
+	    }
 	}
     }
 
@@ -678,7 +697,9 @@ If they are in the top mode line of WINDOW, `header-line' is returned.
 If they are in the left fringe of WINDOW, `left-fringe' is returned.
 If they are in the right fringe of WINDOW, `right-fringe' is returned.
 If they are on the border between WINDOW and its right sibling,
-  `vertical-line' is returned.  */)
+  `vertical-line' is returned.
+If they are in the windows's left or right marginal areas, `left-margin'\n\
+  or `right-margin' is returned.  */)
      (coordinates, window)
      register Lisp_Object coordinates, window;
 {
@@ -723,6 +744,12 @@ If they are on the border between WINDOW and its right sibling,
       
     case ON_RIGHT_FRINGE:
       return Qright_fringe;
+
+    case ON_LEFT_MARGIN:
+      return Qleft_margin;
+      
+    case ON_RIGHT_MARGIN:
+      return Qright_margin;
 
     default:
       abort ();
