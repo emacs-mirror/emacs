@@ -2159,35 +2159,35 @@ colors. `vc-annotate-background' specifies the background color."
 		    "annotate" (file-name-nondirectory (buffer-file-name)))))
   (message "Annotating... done"))
 
-(defun vc-annotate-car-last-cons (assoc-list)
-  "Return car of last cons in ASSOC-LIST."
-  (if (not (eq nil (cdr assoc-list)))
-      (vc-annotate-car-last-cons (cdr assoc-list))
-    (car (car assoc-list))))
+(defun vc-annotate-car-last-cons (a-list)
+  "Return car of last cons in association list A-LIST."
+  (if (not (eq nil (cdr a-list)))
+      (vc-annotate-car-last-cons (cdr a-list))
+    (car (car a-list))))
 
-;; Return an association list with span factor applied to the
-;; time-span of assoc-list.  Optionaly quantize to the factor of
-;; quantize.
-(defun vc-annotate-time-span (assoc-list span &optional quantize)
+(defun vc-annotate-time-span (a-list span &optional quantize)
+"Return an association list with factor SPAN applied to the time-span
+of association list A-LIST.  Optionaly quantize to the factor of
+QUANTIZE."
   ;; Apply span to each car of every cons
-  (if (not (eq nil assoc-list)) 
-      (append (list (cons (* (car (car assoc-list)) span)
-			  (cdr (car assoc-list))))
+  (if (not (eq nil a-list)) 
+      (append (list (cons (* (car (car a-list)) span)
+			  (cdr (car a-list))))
 	      (vc-annotate-time-span (nthcdr (cond (quantize) ; optional
 						   (1)) ; Default to cdr
-					     assoc-list) span quantize))))
+					     a-list) span quantize))))
 
-(defun vc-annotate-compcar (threshold &rest args)
-  "Test successive cars of ARGS against THRESHOLD.
-Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
-  ;; If no list is exhausted,
-  (if (and (not (memq 'nil args)) (< (car (car (car args))) threshold))
-      ;; apply to CARs.
-      (apply 'vc-annotate-compcar threshold
-	     ;; Recurse for rest of elements.
-	     (mapcar 'cdr args))
-    ;; Return the proper result
-    (car (car args))))
+(defun vc-annotate-compcar (threshold a-list)
+  "Test successive cons cells of association list A-LIST against
+THRESHOLD.  Return the first cons cell which car is not less than
+THRESHOLD, nil otherwise"
+ (let ((i 1)
+       (tmp-cons (car a-list)))
+   (while (and tmp-cons (< (car tmp-cons) threshold))
+     (setq tmp-cons (car (nthcdr i a-list)))
+     (setq i (+ i 1)))
+   tmp-cons))				; Return the appropriate value
+
 
 (defun vc-annotate-display (buffer &optional color-map)
   "Do the VC-Annotate display in BUFFER using COLOR-MAP."
@@ -2206,29 +2206,23 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
   (let* ((local-month-numbers 
 	  '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
 	    ("May" . 5) ("Jun" .  6) ("Jul" .  7) ("Aug" .  8) 
-	    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12)))
-	 ;; XEmacs use extents, GNU Emacs overlays.
-	 (overlay-or-extent (if (string-match "XEmacs" emacs-version)
-				(cons 'make-extent 'set-extent-property)
-			      (cons 'make-overlay 'overlay-put)))
-	 (make-overlay-or-extent (car overlay-or-extent))
-	 (set-property-overlay-or-extent (cdr overlay-or-extent)))
-
+	    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))))
     (set-buffer buffer)
     (display-buffer buffer)
     (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
 	(vc-annotate-mode))
     (goto-char (point-min))		; Position at the top of the buffer.
-    (while (re-search-forward 
-	    "^[0-9]+\\(\.[0-9]+\\)*\\s-+(\\sw+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "
+    (while (re-search-forward
+	    "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "
+;;	    "^[0-9]+\\(\.[0-9]+\\)*\\s-+(\\sw+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "
 	    nil t)
 
       (let* (;; Unfortunately, order is important. match-string will
              ;; be corrupted by extent functions in XEmacs. Access
              ;; string-matches first.
-	     (day (string-to-number (match-string 2)))
-             (month (cdr (assoc (match-string 3) local-month-numbers)))
-	     (year-tmp (string-to-number (match-string 4)))
+	     (day (string-to-number (match-string 1)))
+             (month (cdr (assoc (match-string 2) local-month-numbers)))
+	     (year-tmp (string-to-number (match-string 3)))
 	     (year (+ (if (> 100 year-tmp) 1900 0) year-tmp)) ; Possible millenium problem
 	     (high (- (car (current-time))
 		      (car (encode-time 0 0 0 day month year))))
@@ -2239,19 +2233,16 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
 	     (face-name (concat "vc-annotate-face-" (substring (cdr color) 1)))
 	     ;; Make the face if not done.
 	     (face (cond ((intern-soft face-name))
-			 ((make-face (intern face-name)))))
-	     (point (point))
-	     (foo (forward-line 1))
-	     (overlay (cond ((if (string-match "XEmacs" emacs-version)
-				 (extent-at point)
-			       (car (overlays-at point ))))
-			    ((apply make-overlay-or-extent point (point) nil)))))
+			 ((let ((tmp-face (make-face (intern face-name))))
+			    (set-face-foreground tmp-face (cdr color))
+			    (if vc-annotate-background
+				(set-face-background tmp-face vc-annotate-background))
+			    tmp-face)))) ; Return the face
+	     (point (point)))
 
-	(if vc-annotate-background
-	    (set-face-background face vc-annotate-background))
-	(set-face-foreground face (cdr color))
-	(apply set-property-overlay-or-extent overlay
-	       'face face nil)))))
+	(forward-line 1)
+	(overlay-put (make-overlay point (point) nil) 'face face)))))
+
 
 ;; Collect back-end-dependent stuff here
 
