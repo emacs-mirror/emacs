@@ -1,3 +1,8 @@
+2001-05-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/elp.el (elp-instrument-package): Don't allow empty
+	prefixes.
+
 2001-05-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* hexl.el (hexl-current-address): Print a message when called
