@@ -145,7 +145,7 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		    (substitute-key-definition olddef newdef keymap
 					       inner-def
 					       prefix1)))))
-	(if (arrayp (car scan))
+	(if (vectorp (car scan))
 	    (let* ((array (car scan))
 		   (len (length array))
 		   (i 0))
