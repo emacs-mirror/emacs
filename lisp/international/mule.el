@@ -189,6 +189,13 @@ attribute."
 	(plist-put props :short-name (symbol-name name)))
     (or (plist-get props :long-name)
 	(plist-put props :long-name (plist-get props :short-name)))
+    ;; We can probably get a worthwhile amount in purespace.
+    (setq props
+	  (mapcar (lambda (elt)
+		    (if (stringp elt)
+			(purecopy elt)
+		      elt))
+		  props))
     (setcdr (assq :plist attrs) props)
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
@@ -595,7 +602,8 @@ This attribute has a meaning only when `:coding-type' is `ccl'."
 
     ;; Add :name and :docstring properties to PROPS.
     (setq props
-	  (cons :name (cons name (cons :docstring (cons docstring props)))))
+	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
+							props)))))
     (setcdr (assq :plist common-attrs) props)
 
     (apply 'define-coding-system-internal 
