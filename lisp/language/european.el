@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; For European scripts, character sets ISO8859-1,2,3,4,9,14,15 are
-;; supported.
+;; For European scripts, character sets ISO8859-1,2,3,4,9,13,14,15,
+;; windows-1250,2,4,7, mac-roman and next are supported.
 
 ;;; Code:
 
@@ -233,13 +233,48 @@ addition of the Euro sign and some additional French and Finnish letters.
 Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
+(define-coding-system 'iso-latin-7
+  "ISO 2022 based 8-bit encoding for Latin-7 (MIME:ISO-8859-13)."
+  :coding-type 'charset
+  ;; `0' for `Latin-0'
+  :mnemonic ?*
+  :charset-list '(iso-8859-13)
+  :mime-charset 'iso-8859-13)
+
+(define-coding-system-alias 'iso-8859-13 'iso-latin-7)
+(define-coding-system-alias 'latin-7 'iso-latin-7)
+
+(define-coding-system 'windows-1250
+  "windows-1250 (Central European) encoding (MIME: WINDOWS-1250)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(windows-1250)
+  :mime-charset 'windows-1250)
+(define-coding-system-alias 'cp1250 'windows-1250)
+
 (define-coding-system 'windows-1252
-  "windows-1252 8-bit encoding for Cyrillic (MIME: WINDOWS-1252)"
+  "windows-1252 (Western European) encoding (MIME: WINDOWS-1252)"
   :coding-type 'charset
   :mnemonic ?*
   :charset-list '(windows-1252)
   :mime-charset 'windows-1252)
 (define-coding-system-alias 'cp1252 'windows-1252)
+
+(define-coding-system 'windows-1254
+  "windows-1254 (Turkish) encoding (MIME: WINDOWS-1254)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(windows-1254)
+  :mime-charset 'windows-1254)
+(define-coding-system-alias 'cp1254 'windows-1254)
+
+(define-coding-system 'windows-1257
+  "windows-1257 (Baltic) encoding (MIME: WINDOWS-1257)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(windows-1257)
+  :mime-charset 'windows-1257)
+(define-coding-system-alias 'cp1257 'windows-1257)
 
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
@@ -363,7 +398,6 @@ but it selects the Dutch tutorial."))
 	     (coding-priority latin-7)
 	     (nonascii-translation . iso-8859-13)
 	     ;; Fixme: input-method
-	     (features code-pages)
 	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
  '("European"))
 
@@ -372,7 +406,6 @@ but it selects the Dutch tutorial."))
 		(coding-priority latin-7)
 		(nonascii-translation . iso-8859-13)
 		(input-method . "lithuanian-keyboard")
-		(features code-pages)
 		(documentation . "Support for Lithuanian."))
  '("European"))
 
@@ -381,7 +414,6 @@ but it selects the Dutch tutorial."))
 	     (coding-priority latin-7)
 	     (nonascii-translation . iso-8859-13)
 	     (input-method . "latvian-keyboard")
-	     (features code-pages)
 	     (documentation . "Support for Latvian."))
  '("European"))
 
@@ -394,6 +426,13 @@ but it selects the Dutch tutorial."))
   ;; per IANA, rfc1345
   :mime-charset 'macintosh)
 
+(define-coding-system 'next
+  "NeXTstep encoding"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(next)
+  :mime-charset 'next)
+
 (defconst diacritic-composition-pattern "\\C^\\c^+")
 
 (defun diacritic-compose-region (beg end)
