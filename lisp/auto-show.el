@@ -42,7 +42,8 @@
 The default value is t.  To change the default, do this:
 	(set-default 'auto-show-mode nil)
 See also command `auto-show-mode'.
-This variable has no effect when lines are not being truncated.")
+This variable has no effect when lines are not being truncated.
+This variable is automatically local in each buffer where it is set.")
 
 (make-variable-buffer-local 'auto-show-mode)
 
@@ -63,7 +64,9 @@ visible.  Setting this to 0 disables this feature.")
 ;;;###autoload
 (defun auto-show-mode (arg)
   "Turn automatic horizontal scroll mode on or off.
-With arg, turn auto scrolling on if arg is positive, off otherwise."
+With arg, turn auto scrolling on if arg is positive, off otherwise.
+This mode is enabled or disabled for each buffer individually.
+It takes effect only when `truncate-lines' is non-nil."
   (interactive "P")
   (setq auto-show-mode
 	(if (null arg)
@@ -74,7 +77,7 @@ With arg, turn auto scrolling on if arg is positive, off otherwise."
   "Scroll horizontally to make point visible, if that is enabled.
 This function only does something if `auto-show-mode' is non-nil
 and longlines are being truncated in the selected window.
-See also the command `auto-show-toggle'."
+See also the command `auto-show-mode'."
   (interactive)
   (if (and auto-show-mode (auto-show-truncationp)
 	   (equal (window-buffer) (current-buffer)))
