@@ -174,11 +174,11 @@ an overlay having an `invisible' property and that overlay has a property
   :group 'isearch)
 
 (defcustom isearch-hide-immediately t
-  "If t hide the previous match if needed.  
-This has efect iff `search-invisible' is set to `open' and it means
-that if the current match is out of one of the previously shown
-regions hide is right away, as opposed to hiding it at the end of
-isearch."  
+  "If non-nil, re-hide an invisible match right away.
+This variable makes a difference when `search-invisible' is set to `open'.
+It means that after search makes some invisible text visible
+to show the match, it makes the text invisible again when the match moves.
+Ordinarily the text becomes invisible again at the end of the search."  
   :type 'boolean 
   :group 'isearch)
 
