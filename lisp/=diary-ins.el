@@ -1,4 +1,4 @@
-;;; diary-insert.el --- calendar functions for adding diary entries.
+;;; diary-ins.el --- calendar functions for adding diary entries.
 
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
@@ -271,6 +271,6 @@ Prefix arg will make the entry nonmarking."
              (error "Cursor is not on a date!"))))))
      arg)))
 
-(provide 'diary-insert)
+(provide 'diary-ins)
 
-;;; diary-insert.el ends here
+;;; diary-ins.el ends here

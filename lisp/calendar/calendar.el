@@ -53,7 +53,7 @@
 
 ;; The following files are part of the calendar/diary code:
 
-;;       diary.el, diary-insert.el     Diary functions
+;;       diary.el, diary-ins.el     Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       cal-french.el                 French Revolutionary calendar
 ;;       cal-mayan.el                  Mayan calendars
@@ -1241,60 +1241,60 @@ is created."
 Each entry in diary-file visible in the calendar window is marked."
   t)
 
-(autoload 'insert-diary-entry "diary-insert"
+(autoload 'insert-diary-entry "diary-ins"
   "Insert a diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-weekly-diary-entry "diary-insert"
+(autoload 'insert-weekly-diary-entry "diary-ins"
   "Insert a weekly diary entry for the day of the week indicated by point."
   t)
 
-(autoload 'insert-monthly-diary-entry "diary-insert"
+(autoload 'insert-monthly-diary-entry "diary-ins"
   "Insert a monthly diary entry for the day of the month indicated by point."
   t)
 
-(autoload 'insert-yearly-diary-entry "diary-insert"
+(autoload 'insert-yearly-diary-entry "diary-ins"
   "Insert an annual diary entry for the day of the year indicated by point."
   t)
 
-(autoload 'insert-anniversary-diary-entry "diary-insert"
+(autoload 'insert-anniversary-diary-entry "diary-ins"
   "Insert an anniversary diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-block-diary-entry "diary-insert"
+(autoload 'insert-block-diary-entry "diary-ins"
   "Insert a block diary entry for the dates indicated by point and mark."
   t)
 
-(autoload 'insert-cyclic-diary-entry "diary-insert"
+(autoload 'insert-cyclic-diary-entry "diary-ins"
   "Insert a cyclic diary entry starting at the date indicated by point."
   t)
 
-(autoload 'insert-hebrew-diary-entry "diary-insert"
+(autoload 'insert-hebrew-diary-entry "diary-ins"
   "Insert a diary entry for the Hebrew date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-hebrew-diary-entry "diary-insert"
+(autoload 'insert-monthly-hebrew-diary-entry "diary-ins"
   "Insert a monthly diary entry for the day of the Hebrew month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-hebrew-diary-entry "diary-insert"
+(autoload 'insert-yearly-hebrew-diary-entry "diary-ins"
   "Insert an annual diary entry for the day of the Hebrew year corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-islamic-diary-entry "diary-insert"
+(autoload 'insert-islamic-diary-entry "diary-ins"
   "Insert a diary entry for the Islamic date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-islamic-diary-entry "diary-insert"
+(autoload 'insert-monthly-islamic-diary-entry "diary-ins"
   "Insert a monthly diary entry for the day of the Islamic month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-islamic-diary-entry "diary-insert"
+(autoload 'insert-yearly-islamic-diary-entry "diary-ins"
   "Insert an annual diary entry for the day of the Islamic year corresponding
 to the date indicated by point."
   t)
