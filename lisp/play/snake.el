@@ -85,7 +85,7 @@
 ;; It is not safe to put this in /tmp.
 ;; Someone could make a symlink in /tmp
 ;; pointing to a file you don't want to clobber.
-(defvar snake-score-file "~/.snake-scores"
+(defvar snake-score-file "snake-scores"
   "File for holding high scores.")
 
 ;; ;;;;;;;;;;;;; display options ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
