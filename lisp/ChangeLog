@@ -1,3 +1,9 @@
+2000-07-12  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add optional version as 4th element of specs and
+	use it for several things new in v21.  Remove load-path.  Fix type
+	of line-number-display-limit.
+
 2000-07-11  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el: Don't require easymenu.  Use repeat counts
