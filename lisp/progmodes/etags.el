@@ -879,7 +879,7 @@ See documentation of variable `tags-file-name'."
 		 (goto-tag-location-function . etags-goto-tag-location)
 		 (find-tag-regexp-search-function . re-search-forward)
 		 (find-tag-regexp-tag-order . (tag-re-match-p))
-		 (find-tag-regexp-next-line-after-failuire-p . t)
+		 (find-tag-regexp-next-line-after-failure-p . t)
 		 (find-tag-search-function . search-forward)
 		 (find-tag-tag-order . (tag-exact-match-p tag-word-match-p
 							  tag-any-match-p))
