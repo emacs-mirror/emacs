@@ -2013,7 +2013,7 @@ warns you if the previous word is incorrectly spelled."
   (setq ispell-minor-mode
 	(not (or (and (null arg) ispell-minor-mode)
 		 (<= (prefix-numeric-value arg) 0))))
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
  
 (defun ispell-minor-check ()
   ;; Check previous word then continue with the normal binding of this key.
