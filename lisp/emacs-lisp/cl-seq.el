@@ -536,7 +536,7 @@ Keywords supported:  :key :start :end"
 (defun mismatch (cl-seq1 cl-seq2 &rest cl-keys)
   "Compare SEQ1 with SEQ2, return index of first mismatching element.
 Return nil if the sequences match.  If one sequence is a prefix of the
-other, the return value indicates the end of the shorted sequence.
+other, the return value indicates the end of the shorter sequence.
 Keywords supported:  :test :test-not :key :start1 :end1 :start2 :end2 :from-end"
   (cl-parsing-keywords (:test :test-not :key :from-end
 			(:start1 0) :end1 (:start2 0) :end2) ()
