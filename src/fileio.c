@@ -393,7 +393,11 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
      (filename)
      Lisp_Object filename;
 {
+#ifndef DOS_NT
   register const unsigned char *beg;
+#else
+  register unsigned char *beg;
+#endif
   register const unsigned char *p;
   Lisp_Object handler;
 
