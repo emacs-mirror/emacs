@@ -1,5 +1,8 @@
 2002-11-11   Markus Rost  <rost@math.ohio-state.edu>
 
+	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button):
+	Declare with defvar, not with defcustom.
+
 	* cus-dep.el: Don't require 'autoload.
 	(custom-make-dependencies):  Handle :version also for autoloaded
 	options.
