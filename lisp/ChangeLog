@@ -3,8 +3,13 @@
 	* international/codepage.el (codepage-setup): Don't define a
 	codepage if it is already defined.
 
-	* textmodes/po.el (po-find-charset): Search for the Charset=
-	header even if we've read less than 4KB.
+	* textmodes/po.el (po-content-type-charset-alist): Convert the
+	car of each association to a string.
+	(po-find-file-coding-system-guts): If the charset matches a name
+	of a codepage, set up that codepage and return it as a coding
+	system to decode the file.
+	(po-find-charset): Search for the Charset= header even if we've
+	read less than 4KB.
 	<top-level>: Remove the setup for all known codepages: it seems
 	to cause crashes in the CCL driver.
 
