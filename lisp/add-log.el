@@ -225,7 +225,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       (2 'change-log-email-face)))
     ;;
     ;; File names.
-    ("^\t\\* \\([^ ,:([\n]+\\)"
+    ("^\\(?: +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
      (1 'change-log-file-face)
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))

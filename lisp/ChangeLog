@@ -1,3 +1,11 @@
+2005-04-03  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+        * add-log.el (change-log-font-lock-keywords): The manual
+        describing a Change Log entry, says: (...) "Aside from these
+        header lines, every line in the change log starts with a space or
+        a tab.". The font-lock was not highlighting lines started with
+        spaces, added support for it.
+
 2005-04-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-url): Use format to generate the url.

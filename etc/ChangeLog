@@ -9,10 +9,10 @@
 2005-04-01  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
         * TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
-        TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
-        TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
-        TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title
-        line.        
+        * TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
+        * TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
+        * TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title
+        line.
         
         * TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
         revision 1.59, "Emacs" is not transliterated to cyrillic anymore;
@@ -20,7 +20,6 @@
         
         * TUTORIAL.sv: Sync some other changes with the TUTORIAL version
         1.61 in CVS by Mats Lidell <matsl@contactor.se>.
-
 
 2005-04-01  Lute Kamstra  <lute@gnu.org>
 
