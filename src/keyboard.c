@@ -2524,6 +2524,11 @@ make_lispy_event (event)
 	    Lisp_Object posn;
 	    int row, column;
 
+	    /* Ignore mouse events that were made on frame that
+	       have been deleted.  */
+	    if (! FRAME_LIVE_P (f))
+	      return Qnil;
+
 	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
 				   &column, &row, 0, 0);
 
