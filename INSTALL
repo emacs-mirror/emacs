@@ -76,19 +76,27 @@ that file `dir' in this directory contains an entry like this:
 * Image support libraries
 
 Emacs needs optional libraries to be able to display images (with the
-exception of PBM images whose support is built-in).  Here's the list
-of these optional libraries, and the URLs where they can be found:
+exception of PBM and XBM images whose support is built-in).  On some
+systems these may already be present or available as additional
+packages, particularly on GNU/Linux.  (In some cases older versions
+won't work because some routines are missing, and configure should
+avoid such old versions.)
+
+If necessary, you can build them from source.  None are vital for
+running Emacs.  Here's the list of these optional libraries, and the
+URLs where they can be found:
 
   . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
   . libpng for PNG:   ftp://www.libpng.org/pub/png/
-  . Zlib (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
+  . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
   . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
   . libtiff for TIFF: http://www.libtiff.org/
   . libungif for GIF: 
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
 
-Emacs needs to be configured with the appropriate --with-LIB option,
-to be built with these libraries.  See below for more details.
+Emacs will configure itself to build with these libraries if configure
+finds them on your system unless you supply the appropriate
+--without-LIB option.  See below for more details.
 
 
 BUILDING AND INSTALLATION:
@@ -163,19 +171,20 @@ add `--with-hesiod'.  These options enable Emacs to use POP; whether
 Emacs uses POP is controlled by individual users--see the Rmail
 chapter of the Emacs manual.
 
-To get Emacs with image support, configure with one or more of these
-options:
+For image support you may have to download, build, and install the
+appropriate image support libraries for image types other than XBM and
+PBM, see the list of URLs in "ADDITIONAL DISTRIBUTION FILES" above.
+(Note that PNG support requires libz in addition to libpng.)
 
-  --with-xpm        for XPM image support
-  --with-jpeg       for JPEG image support
-  --with-tiff       for TIFF image support
-  --with-gif        for GIF image support
-  --with-png        for PNG image support
+To disable individual types of image support in Emacs for some reason,
+even though configure finds the libraries, you can configure with one
+or more of these options:
 
-You will have to download, build, and install the appropriate image
-support libraries, see the list of URLs in "ADDITIONAL DISTRIBUTION
-FILES" above.  (Note that configuring --with-png requires Zlib in
-addition to libpng.)
+  --without-xpm        for XPM image support
+  --without-jpeg       for JPEG image support
+  --without-tiff       for TIFF image support
+  --without-gif        for GIF image support
+  --without-png        for PNG image support
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
