@@ -506,8 +506,6 @@ BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(open run stop)))))
 
-;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
-;; for the second argument (program).
 ;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
   "Make a comint process NAME in a buffer, running PROGRAM.
@@ -2193,12 +2191,6 @@ Typing SPC flushes the help buffer."
 ;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
 ;;   (run-hooks 'shell-mode-hook))
 ;;
-;;
-;; Note that make-comint is different from make-shell in that it
-;; doesn't have a default program argument. If you give make-shell
-;; a program name of NIL, it cleverly chooses one of explicit-shell-name,
-;; $ESHELL, $SHELL, or /bin/sh. If you give make-comint a program argument
-;; of NIL, it barfs. Adjust your code accordingly...
 ;;
 ;; Completion for comint-mode users
 ;; 
