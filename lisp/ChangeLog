@@ -1,7 +1,8 @@
 2004-12-06  Stefan  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-unfontify-region): Save buffer state.
-	(font-lock-default-unfontify-region): Dont' save buffer state any more.
+	(font-lock-default-unfontify-region): Don't save buffer state any
+	more.
 
 2004-12-07  Jay Belanger  <belanger@truman.edu>
 
