@@ -691,11 +691,6 @@ find_charset_in_str (str, len, charsets, table, cmpcharp)
 		}
 	      str += cmpcharp->len;
 	      len -= cmpcharp->len;
-	      if (!charsets[LEADING_CODE_COMPOSITION])
-		{
-		  charsets[LEADING_CODE_COMPOSITION] = 1;
-		  num += 1;
-		}
 	      continue;
 	    }
 
