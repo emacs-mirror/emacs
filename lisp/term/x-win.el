@@ -75,7 +75,8 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(require 'fontset)
+(if (fboundp 'new-fontset)
+    (require 'fontset))
 
 (defvar x-invocation-args)
 
