@@ -693,11 +693,15 @@ any other non-digit terminates the character code and is then used as input."))
       ;; Translate TAB key into control-I ASCII character, and so on.
       (and char
 	   (let ((translated (lookup-key function-key-map (vector char))))
-	     (if translated
+	     (if (arrayp translated)
 		 (setq char (aref translated 0)))))
       (cond ((null char))
 	    ((not (integerp char))
 	     (setq unread-command-events (list char)
+		   done t))
+	    ((/= (logand char ?\M-\^@) 0)
+	     ;; Turn a meta-character into a character with the 0200 bit set.
+	     (setq code (logior (logand char (lognot ?\M-\^@)) 128)
 		   done t))
 	    ((and (<= ?0 char) (< char (+ ?0 (min 10 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix) (- char ?0)))
@@ -715,9 +719,7 @@ any other non-digit terminates the character code and is then used as input."))
 	    (t (setq code char
 		     done t)))
       (setq first nil))
-    ;; Turn a meta-character into a character with the 0200 bit set.
-    (logior (if (/= (logand code ?\M-\^@) 0) 128 0)
-	    code)))
+    code))
 
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
