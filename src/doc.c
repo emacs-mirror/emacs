@@ -106,6 +106,10 @@ read_bytecode_char (unreadflag)
    (A negative integer is used for user variables, so we can distinguish
    them without actually fetching the doc string.)
 
+   If the location does not point to the beginning of a docstring
+   (e.g. because the file has been modified and the location is stale),
+   return nil.
+
    If UNIBYTE is nonzero, always make a unibyte string.
 
    If DEFINITION is nonzero, assume this is for reading
@@ -188,7 +192,9 @@ get_doc_string (filepos, unibyte, definition)
     }
 
   /* Seek only to beginning of disk block.  */
-  offset = position % (8 * 1024);
+  /* Make sure we read at least 1024 bytes before `position'
+     so we can check the leading text for consistency.  */
+  offset = min (position, max (1024, position % (8 * 1024)));
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
@@ -245,6 +251,30 @@ get_doc_string (filepos, unibyte, definition)
       p += nread;
     }
   emacs_close (fd);
+
+  /* Sanity checking.  */
+  if (CONSP (filepos))
+    {
+      int test = 1;
+      if (get_doc_string_buffer[offset - test++] != ' ')
+	return Qnil;
+      while (get_doc_string_buffer[offset - test] >= '0'
+	     && get_doc_string_buffer[offset - test] <= '9')
+	test++;
+      if (get_doc_string_buffer[offset - test++] != '@'
+	  || get_doc_string_buffer[offset - test] != '#')
+	return Qnil;
+    }
+  else
+    {
+      int test = 1;
+      if (get_doc_string_buffer[offset - test++] != '\n')
+	return Qnil;
+      while (get_doc_string_buffer[offset - test] > ' ')
+	test++;
+      if (get_doc_string_buffer[offset - test] != '\037')
+	return Qnil;
+    }
 
   /* Scan the text and perform quoting with ^A (char code 1).
      ^A^A becomes ^A, ^A0 becomes a null char, and ^A_ becomes a ^_.  */
@@ -303,6 +333,26 @@ read_doc_string (filepos)
      Lisp_Object filepos;
 {
   return get_doc_string (filepos, 0, 1);
+}
+
+static void
+reread_doc_file (file)
+{
+  Lisp_Object reply, prompt[3];
+  struct gcpro gcpro1;
+  GCPRO1 (file);
+  prompt[0] = build_string ("File ");
+  prompt[1] = NILP (file) ? Vdoc_file_name : file;
+  prompt[2] = build_string (" is out-of-sync.  Reload? ");
+  reply = Fy_or_n_p (Fconcat (3, prompt));
+  UNGCPRO;
+  if (NILP (reply))
+    error ("Aborted");
+
+  if (NILP (file))
+    Fsnarf_documentation (Vdoc_file_name);
+  else
+    Fload (file, Qt, Qt, Qt, Qnil);
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
@@ -384,7 +434,21 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (INTEGERP (doc) || CONSP (doc))
-    doc = get_doc_string (doc, 0, 0);
+    {
+      Lisp_Object tem;
+      tem = get_doc_string (doc, 0, 0);
+      if (NILP (tem))
+	{
+	  /* The file is newer, we need to reset the pointers.  */
+	  struct gcpro gcpro1, gcpro2;
+	  GCPRO2 (function, raw);
+	  reread_doc_file (Fcar_safe (doc));
+	  UNGCPRO;
+	  return Fdocumentation (function, raw);
+	}
+      else
+	doc = tem;
+    }
 
   if (NILP (raw))
     doc = Fsubstitute_command_keys (doc);
@@ -407,7 +471,19 @@ aren't strings.  */)
 
   tem = Fget (symbol, prop);
   if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
-    tem = get_doc_string (tem, 0, 0);
+    {
+      Lisp_Object doc = tem;
+      tem = get_doc_string (tem, 0, 0);
+      if (NILP (tem))
+	{
+	  /* The file is newer, we need to reset the pointers.  */
+	  struct gcpro gcpro1, gcpro2, gcpro3;
+	  GCPRO3 (symbol, prop, raw);
+	  reread_doc_file (Fcar_safe (doc));
+	  UNGCPRO;
+	  return Fdocumentation_property (symbol, prop, raw);
+	}
+    }
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
     tem = Feval (tem);
@@ -480,22 +556,25 @@ the same file name is found in the `data-directory'.  */)
   Lisp_Object sym;
   char *name;
 
-#ifndef CANNOT_DUMP
-  if (NILP (Vpurify_flag))
-    error ("Snarf-documentation can only be called in an undumped Emacs");
-#endif
-
   CHECK_STRING (filename);
 
+  if
 #ifndef CANNOT_DUMP
-  name = (char *) alloca (XSTRING (filename)->size + 14);
-  strcpy (name, "../etc/");
+    (!NILP (Vpurify_flag))
 #else /* CANNOT_DUMP */
-  CHECK_STRING (Vdoc_directory);
-  name = (char *) alloca (XSTRING (filename)->size
-			  + XSTRING (Vdoc_directory)->size + 1);
-  strcpy (name, XSTRING (Vdoc_directory)->data);
+      (0)
 #endif /* CANNOT_DUMP */
+    {
+      name = (char *) alloca (XSTRING (filename)->size + 14);
+      strcpy (name, "../etc/");
+    }
+  else
+    {
+      CHECK_STRING (Vdoc_directory);
+      name = (char *) alloca (XSTRING (filename)->size
+			  + XSTRING (Vdoc_directory)->size + 1);
+      strcpy (name, XSTRING (Vdoc_directory)->data);
+    }
   strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
 #ifdef VMS
 #ifndef VMS4_4
