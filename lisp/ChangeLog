@@ -1,3 +1,9 @@
+2001-03-02  Dave Love  <fx@gnu.org>
+
+	* files.el (insert-file-contents-literally): Bind
+	inhibit-file-name-handlers and inhibit-file-name-operation, not
+	jka-compr-compression-info-list.
+
 2001-03-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-normalize-vars): Use [ \t] for the trailing
