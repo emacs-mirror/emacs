@@ -1,5 +1,8 @@
 2000-04-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (compare_window_configurations): Signal an error
+	if parameters C1 or C2 aren't window configurations.
+
 	* bytecode.c (Fbyte_code): Add a bunch of BEFORE_POTENTIAL_GC/
 	AFTER_POTENTIAL_GC calls around calls to functions that can
 	signal an error and thus invoke the debugger.

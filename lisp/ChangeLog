@@ -1,3 +1,29 @@
+2000-04-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-mode-map): Define M-C-s like C-s and M-C-r
+	like C-r.
+
+	* progmodes/make-mode.el: Some doc fixes.
+	(makefile-mode-abbrev-table): New variable.
+	(makefile-mode): Set local abbrev table to makefile-mode-abbrev-table.
+	(makefile-font-lock-keywords): Fontify includes and conditionals.
+	(toplevel): Require `dabbrev' and `add-log' when compiling.
+
+	* replace.el (perform-replace): Don't move forward one char
+	when MATCH-AGAIN is nil, and REGEXP-FLAG is t.  We don't want
+	to do that because it leaves point 1 position after the last
+	replacement, after everything has been replaced.
+
+	* jit-lock.el (with-buffer-unmodified): New macro.
+	(with-buffer-prepared-for-font-lock): Don't preserve buffer's
+	modified state.
+	(jit-lock-function-1): Extracted from jit-lock-function; not
+	preserving buffer's modified state.
+	(jit-lock-function, jit-lock-stealth-fontify): Call
+	jit-lock-function-1.
+
+	* mail/rfc2368.el: Remove supernumerary copyright line.
+
 2000-04-04  Milan Zamazal  <pdm@freesoft.cz>
 
 	* glasses.el: Provide facilities for inserting space before left

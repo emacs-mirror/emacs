@@ -748,7 +748,18 @@ Provan).
 
 *** Minor improvements to many movement functions in tricky situations.
 
+** Makefile mode changes
+
+*** The mode now uses the abbrev table `makefile-mode-abbrev-table'.
+
+*** Conditionals and include statements are now highlighted when 
+Fontlock mode is active.
+
 ** Isearch changes
+
+** In Isearch mode, M-C-s and M-C-r are now bound like C-s and C-r,
+respectively, i.e. you can repeat a regexp isearch with the same keys
+that started the search.
 
 *** In Isearch mode, mouse-2 in the echo area now yanks the current
 selection into the search string rather than giving an error.
