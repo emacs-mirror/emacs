@@ -309,7 +309,6 @@ autoloads go somewhere else.")
 		     (let ((begin (match-beginning 0))
 			   (last-time (nth 4 form))
 			   (file-time (nth 5 (file-attributes file))))
-		       (message "%s: las %s vs %s" file last-time file-time)
 		       (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
@@ -318,8 +317,10 @@ autoloads go somewhere else.")
 					 (>= (nth 1 last-time)
 					     (nth 1 file-time)))))
 			   (progn
-			     (message "Autoload section for %s is up to date."
-				      file)
+			     (if (interactive-p)
+				 (message "\
+Autoload section for %s is up to date."
+					  file))
 			     (setq found 'up-to-date))
 			 (search-forward generate-autoload-section-trailer)
 			 (delete-region begin (point))
@@ -375,6 +376,7 @@ autoloads go somewhere else.")
 Update loaddefs.el with all the current autoloads from DIR, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
+  (setq dir (expand-file-name dir))
   (let ((files (directory-files dir nil "^[^=].*\\.el$")))
     (save-excursion
       (set-buffer (find-file-noselect
