@@ -650,7 +650,7 @@ Returns nil if the file cannot be opened or if there is no version limit.")
 
 Lisp_Object
 make_time (time)
-     int time;
+     time_t time;
 {
   return Fcons (make_number (time >> 16),
 		Fcons (make_number (time & 0177777), Qnil));
