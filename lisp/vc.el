@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.238 1998/10/30 19:11:08 fx Exp spiegel $
+;; $Id: vc.el,v 1.239 1998/11/04 15:09:38 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -928,6 +928,8 @@ before the filename."
 	    (vc-checkin file version comment)
 	    )))))
 
+(defvar vc-dired-window-configuration)
+
 (defun vc-next-action-dired (file rev comment)
   ;; Do a vc-next-action-on-file on all the marked files, possibly 
   ;; passing on the log comment we've just entered.
@@ -1559,6 +1561,9 @@ the variable `vc-header-alist'."
 	      (message "File contains conflict markers"))
 	  (message "Merge successful"))))))
 
+(defvar vc-ediff-windows)
+(defvar vc-ediff-result)
+
 ;;;###autoload
 (defun vc-resolve-conflicts (&optional name-A name-B)
   "Invoke ediff to resolve conflicts in the current buffer.
@@ -1645,6 +1650,9 @@ The conflicts must be marked with rcsmerge conflict markers."
 
 ;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
+
+(defvar vc-dired-switches)
+(defvar vc-dired-terse-mode)
 
 (define-derived-mode vc-dired-mode dired-mode "Dired under VC"
   "The major mode used in VC directory buffers.  It works like Dired,
