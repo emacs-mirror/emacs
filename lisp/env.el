@@ -1,6 +1,6 @@
 ;;; env.el --- functions to manipulate environment variables
 
-;; Copyright (C) 1991, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: processes, unix
@@ -62,11 +62,14 @@ This function works by modifying `process-environment'."
   (interactive
    (if current-prefix-arg
        (list (read-envvar-name "Clear environment variable: " 'exact) nil t)
-     (let ((var (read-envvar-name "Set environment variable: " nil)))
+     (let* ((var (read-envvar-name "Set environment variable: " nil))
+	    (value (getenv var)))
+       (when value
+	 (push value setenv-history))
        ;; Here finally we specify the args to give call setenv with.
        (list var (read-from-minibuffer (format "Set %s to value: " var)
 				       nil nil nil 'setenv-history
-				       (getenv var))))))
+				       value)))))
   (if unset (setq value nil))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
