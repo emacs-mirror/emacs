@@ -79,6 +79,8 @@ file individually.")
     ("Reingold Edward M" . "Edward M. Reingold")
     ("Roland B Roberts" . "Roland B. Roberts")
     ("Sam Shteingold" . "Sam Steingold")
+    ("W{\L}Odek Bzyl" . "Wlodzimierz Bzyl")
+    ("Kenneth Manheimer" . "Ken Manheimer")
     ("Kenichi HANDA" . "Kenichi Handa"))
   "Alist of author aliases.
 
@@ -284,8 +286,10 @@ buffer *Authors* containing authorship information."
 	(authors-scan-el file table)))
     (set-buffer (get-buffer-create buffer-name))
     (erase-buffer)
+    (set-buffer-file-coding-system 'iso-2022-7bit)
     (maphash #'authors-print table)
     (sort-lines nil (point-min) (point-max))
+    (insert "\nLocal" " Variables:\ncoding: iso-2022-7bit\nEnd:\n")
     (pop-to-buffer buffer-name)))
   
 
