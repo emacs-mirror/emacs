@@ -3870,7 +3870,7 @@ actually used.")
 	    report_file_error ("Setting file position",
 			       Fcons (orig_filename, Qnil));
 
-	  total_read = 0;
+	  total_read = nread = 0;
 	  while (total_read < trial)
 	    {
 	      nread = emacs_read (fd, buffer + total_read, trial - total_read);
@@ -3905,6 +3905,9 @@ actually used.")
 		giveup_match_end = 1;
 	      break;
 	    }
+
+	  if (nread == 0)
+	    break;
 	}
       immediate_quit = 0;
 
