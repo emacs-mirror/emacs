@@ -310,7 +310,7 @@ to:
 		    (match-beginning 0)
 		  (point-max)))))
     (setq boundary (concat (regexp-quote boundary) "[ \t]*$"))
-    (while (re-search-forward boundary end t)
+    (while (and (< (point) end) (re-search-forward boundary end t))
       (goto-char (match-beginning 0))
       (when start
 	(save-excursion
@@ -319,7 +319,7 @@ to:
 	    (setq parts (nconc (list (mm-dissect-buffer t)) parts)))))
       (forward-line 2)
       (setq start (point)))
-    (when start
+    (when (and start (< start end))
       (save-excursion
 	(save-restriction
 	  (narrow-to-region start end)

@@ -1968,10 +1968,13 @@ means show, 0 means toggle."
 	      (> arg 0))
 	  nil)
 	 ((< arg 0)
-	  (gnus-article-show-hidden-text type))
+	  (gnus-article-show-hidden-text type)
+	  t)
 	 (t
 	  (if (eq hide 'hidden)
-	      (gnus-article-show-hidden-text type)
+	      (progn
+		(gnus-article-show-hidden-text type)
+		t)
 	    nil)))))))
 
 (defun gnus-article-hidden-text-p (type)
