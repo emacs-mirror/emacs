@@ -1,3 +1,7 @@
+2004-02-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Handle overlay fringe bitmaps.
+
 2004-02-15  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
