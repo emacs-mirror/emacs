@@ -30,11 +30,10 @@ Boston, MA 02111-1307, USA.  */
    so make sure we don't use that name in this file.  */
 #undef vector
 #define vector *****
-
 #include "lisp.h"
 #include "commands.h"
 #include "charset.h"
-
+#include "coding.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
@@ -47,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifndef NULL
-#define NULL (void *)0
+#define NULL ((POINTER_TYPE *)0)
 #endif
 
 /* Nonzero enables use of dialog boxes for questions
@@ -56,11 +55,13 @@ int use_dialog_box;
 
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
+extern Lisp_Object Vlocale_coding_system;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
+Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 extern Lisp_Object Qinput_method_function;
 
@@ -2659,7 +2660,7 @@ The key is always a possible IDX argument to `aref'.  */)
 
   CHECK_CHAR_TABLE (char_table);
 
-  map_char_table ((void *) call2, Qnil, char_table, function, 0, indices);
+  map_char_table ((POINTER_TYPE *) call2, Qnil, char_table, function, 0, indices);
   return Qnil;
 }
 
@@ -3388,6 +3389,85 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   result = Fapply (3, newargs);
   UNGCPRO;
   return result;
+}
+
+#ifdef HAVE_LANGINFO_CODESET
+#include <langinfo.h>
+#endif
+
+DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
+       doc: /* Access locale category ITEM, if available.
+
+ITEM may be one of the following:
+`codeset', returning the character set as a string (CODESET);
+`days', returning a 7-element vector of day names (DAY_n);
+`months', returning a 12-element vector of month names (MON_n).
+
+If the system can't provide such information through a call to
+nl_langinfo(3), return nil.
+
+The data read from the system are decoded using `locale-coding-system'.  */)
+     (item)
+     Lisp_Object item;
+{
+  char *str = NULL;
+#ifdef HAVE_LANGINFO_CODESET
+  Lisp_Object val;
+  if (EQ (item, Qcodeset))
+    {
+      str = nl_langinfo (CODESET);
+      return build_string (str);
+    }
+#ifdef DAY_1
+  else if (EQ (item, Qdays))	/* e.g. for calendar-day-name-array */
+    {
+      Lisp_Object v = Fmake_vector (make_number (7), Qnil);
+      int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
+      int i;
+      synchronize_system_time_locale ();
+      for (i = 0; i < 7; i++)
+	{
+	  str = nl_langinfo (days[i]);
+	  val = make_unibyte_string (str, strlen (str));
+	  /* Fixme: Is this coding system necessarily right, even if
+	     it is consistent with CODESET?  If not, what to do?  */
+	  Faset (v, make_number (i),
+		 code_convert_string_norecord (val, Vlocale_coding_system,
+					       Qnil));
+	}
+      return v;
+    }
+#endif	/* DAY_1 */
+#ifdef MON_1
+  else if (EQ (item, Qmonths))	/* e.g. for calendar-month-name-array */
+    {
+      struct Lisp_Vector *p = allocate_vector (12);
+      int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
+			MON_8, MON_9, MON_10, MON_11, MON_12};
+      int i;
+      synchronize_system_time_locale ();
+      for (i = 0; i < 12; i++)
+	{
+	  str = nl_langinfo (months[i]);
+	  val = make_unibyte_string (str, strlen (str));
+	  p->contents[i] =
+	    code_convert_string_norecord (val, Vlocale_coding_system, Qnil);
+	}
+      XSETVECTOR (val, p);
+      return val;
+    }
+#endif	/* MON_1 */
+/* LC_PAPER stuff isn't defined as accessible in glibc as of 2.3.1,
+   but is in the locale files.  This could be used by ps-print.  */
+#ifdef PAPER_WIDTH
+  else if (EQ (item, Qpaper))
+    {
+      return list2 (make_number (nl_langinfo (PAPER_WIDTH)),
+		    make_number (nl_langinfo (PAPER_HEIGHT)));
+    }
+#endif	/* PAPER_WIDTH */
+#endif	/* HAVE_LANGINFO_CODESET*/
+    return Qnil;
 }
 
 /* base64 encode/decode functions (RFC 2045).
@@ -5429,6 +5509,17 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   Qsubfeatures = intern ("subfeatures");
   staticpro (&Qsubfeatures);
 
+#ifdef HAVE_LANGINFO_CODESET
+  Qcodeset = intern ("codeset");
+  staticpro (&Qcodeset);
+  Qdays = intern ("days");
+  staticpro (&Qdays);
+  Qmonths = intern ("months");
+  staticpro (&Qmonths);
+  Qpaper = intern ("paper");
+  staticpro (&Qpaper);
+#endif	/* HAVE_LANGINFO_CODESET */
+
   DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
     doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
@@ -5505,6 +5596,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
+  defsubr (&Slanginfo);
 }
 
 
