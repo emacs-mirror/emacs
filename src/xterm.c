@@ -2487,7 +2487,7 @@ struct glyph_string
 };
 
 
-#if 0
+#if 1
 
 static void
 x_dump_glyph_string (s)
@@ -3835,9 +3835,9 @@ x_draw_glyph_string_box (s)
   width = abs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
-  right_x = ((s->row->full_width_p
-	      ? last_x - 1
-	      : min (last_x, s->x + s->background_width) - 1));
+  right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
+	     ? last_x - 1
+	     : min (last_x, s->x + s->background_width) - 1);
   top_y = s->y;
   bottom_y = top_y + s->height - 1;
 
