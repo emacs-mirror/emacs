@@ -677,7 +677,7 @@ struct Lisp_Overlay
 
 union Lisp_Misc
   {
-    enum Lisp_Misc_Type type;
+    int type : 16;
     struct Lisp_Free u_free;
     struct Lisp_Marker u_marker;
     struct Lisp_Intfwd u_intfwd;
