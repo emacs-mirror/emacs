@@ -124,6 +124,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_FREXP
 #undef HAVE_FTIME
 #undef HAVE_RES_INIT /* For -lresolv on Suns.  */
+#undef HAVE_SETSID
 
 #undef HAVE_AIX_SMT_EXP
 
