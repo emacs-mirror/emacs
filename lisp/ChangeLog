@@ -1,3 +1,8 @@
+1999-12-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* tar-mode.el (tar-mode-map): Bind q to quit-window, not tar-quit.
+	(tar-quit): Function deleted.
+
 1999-12-29  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
 
 	* progmodes/hideshow.el (hs-minor-mode-menu): Fix omission bug;
