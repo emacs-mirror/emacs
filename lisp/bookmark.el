@@ -1160,7 +1160,15 @@ Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
   (interactive (bookmark-completing-read "Insert bookmark location"))
   (or no-history (bookmark-maybe-historicize-string bookmark))
-  (insert (bookmark-location bookmark)))
+  (let ((start (point)))
+    (prog1
+	(insert (bookmark-location bookmark)) ; *Return this line*
+      (if window-system
+	  (put-text-property start 
+			     (save-excursion (re-search-backward
+					      "[^ \t]")
+					     (1+ (point)))
+			     'mouse-face 'highlight)))))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1444,7 +1452,9 @@ explicitly."
   (define-key bookmark-bmenu-mode-map "t" 'bookmark-bmenu-toggle-filenames)
   (define-key bookmark-bmenu-mode-map "a" 'bookmark-bmenu-show-annotation)
   (define-key bookmark-bmenu-mode-map "A" 'bookmark-bmenu-show-all-annotations)
-  (define-key bookmark-bmenu-mode-map "e" 'bookmark-bmenu-edit-annotation))
+  (define-key bookmark-bmenu-mode-map "e" 'bookmark-bmenu-edit-annotation)
+  (define-key bookmark-bmenu-mode-map [mouse-2]
+    'bookmark-bmenu-other-window-with-mouse))
 
   
 
@@ -1495,7 +1505,16 @@ deletion, or > if it is flagged for displaying."
                   (not (string-equal annotation "")))
              (insert " *")
            (insert "  "))
-         (insert (concat (bookmark-name-from-full-record full-record) "\n"))))
+	 (let ((start (point)))
+	   (insert (bookmark-name-from-full-record full-record))
+	   (if window-system
+	       (put-text-property start 
+				  (save-excursion (re-search-backward
+						   "[^ \t]")
+						  (1+ (point)))
+				  'mouse-face 'highlight))
+	   (insert "\n")
+	   )))
      bookmark-alist))
   (goto-char (point-min))
   (forward-line 2)
@@ -1581,8 +1600,13 @@ Optional argument SHOW means show them unconditionally."
             (let ((bmrk (bookmark-bmenu-bookmark)))
               (setq bookmark-bmenu-hidden-bookmarks
                     (cons bmrk bookmark-bmenu-hidden-bookmarks))
-              (move-to-column bookmark-bmenu-file-column t)
-              (delete-region (point) (progn (end-of-line) (point)))
+	      (let ((start (save-excursion (end-of-line) (point))))
+		(move-to-column bookmark-bmenu-file-column t)
+		;; Strip off `mouse-face' from the white spaces region.
+		(if window-system
+		    (remove-text-properties start (point)
+					    '(mouse-face))))
+	      (delete-region (point) (progn (end-of-line) (point)))
               (insert "  ")
               ;; Pass the NO-HISTORY arg:
               (bookmark-insert-location bmrk t)
@@ -1608,7 +1632,14 @@ Optional argument SHOW means show them unconditionally."
               (while bookmark-bmenu-hidden-bookmarks
                 (move-to-column bookmark-bmenu-bookmark-column t)
                 (bookmark-kill-line)
-                (insert (car bookmark-bmenu-hidden-bookmarks))
+		(let ((start (point)))
+		  (insert (car bookmark-bmenu-hidden-bookmarks))
+		  (if window-system
+		      (put-text-property start 
+					 (save-excursion (re-search-backward
+							  "[^ \t]")
+							 (1+ (point)))
+					 'mouse-face 'highlight)))
                 (setq bookmark-bmenu-hidden-bookmarks
                       (cdr bookmark-bmenu-hidden-bookmarks))
                 (forward-line 1))))))))
@@ -1648,7 +1679,7 @@ Optional argument SHOW means show them unconditionally."
       (beginning-of-line)
       (forward-char bookmark-bmenu-bookmark-column)
       (prog1
-          (buffer-substring (point)
+          (buffer-substring-no-properties (point) 
                             (progn 
                               (end-of-line)
                               (point)))
@@ -1825,6 +1856,15 @@ The current window remains selected."
             (set-window-point (get-buffer-window buff) pos)
             (set-buffer o-buffer))
 	  (bookmark-show-annotation bookmark)))))
+
+(defun bookmark-bmenu-other-window-with-mouse (event)
+  "Select bookmark at the mouse pointer in other window, leaving bookmark menu visible."
+  (interactive "e")
+  (save-excursion
+    (set-buffer (window-buffer (posn-window (event-end event))))
+    (save-excursion
+      (goto-char (posn-point (event-end event)))
+      (bookmark-bmenu-other-window))))
 
 
 (defun bookmark-bmenu-show-annotation ()
