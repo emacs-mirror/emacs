@@ -1,3 +1,10 @@
+2004-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-decode-code-list): New
+	function.
+	(encoded-kbd-self-insert-charset): Support multibyte charsets.
+	(encoded-kbd-setup-keymap): Likewise.
+
 2004-10-12  Kenichi Handa  <handa@m17n.org>
 
 	* language/china-util.el (hz-set-msb-table): Turn chars beyond 128
