@@ -505,7 +505,11 @@ If the third argument is incorrect, Emacs may crash.")
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      Fcar (wrong_type_argument (Qlistp, v1));
+	      {
+		BEFORE_POTENTIAL_GC ();
+		Fcar (wrong_type_argument (Qlistp, v1));
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
@@ -534,7 +538,11 @@ If the third argument is incorrect, Emacs may crash.")
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      Fcdr (wrong_type_argument (Qlistp, v1));
+	      {
+		BEFORE_POTENTIAL_GC ();
+		Fcdr (wrong_type_argument (Qlistp, v1));
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
@@ -826,7 +834,9 @@ If the third argument is incorrect, Emacs may crash.")
 	    Lisp_Object v1, v2;
 	    v1 = POP;
 	    v2 = TOP;
+	    BEFORE_POTENTIAL_GC ();
 	    CHECK_NUMBER (v2, 0);
+	    AFTER_POTENTIAL_GC ();
 	    op = XINT (v2);
 	    immediate_quit = 1;
 	    while (--op >= 0)
@@ -836,7 +846,9 @@ If the third argument is incorrect, Emacs may crash.")
 		else if (!NILP (v1))
 		  {
 		    immediate_quit = 0;
+		    BEFORE_POTENTIAL_GC ();
 		    v1 = wrong_type_argument (Qlistp, v1);
+		    AFTER_POTENTIAL_GC ();
 		    immediate_quit = 1;
 		    op++;
 		  }
@@ -847,7 +859,11 @@ If the third argument is incorrect, Emacs may crash.")
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      Fcar (wrong_type_argument (Qlistp, v1));
+	      {
+		BEFORE_POTENTIAL_GC ();
+		Fcar (wrong_type_argument (Qlistp, v1));
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
@@ -1022,8 +1038,10 @@ If the third argument is incorrect, Emacs may crash.")
 	  {
 	    Lisp_Object v1, v2;
 	    v2 = POP; v1 = TOP;
+	    BEFORE_POTENTIAL_GC ();
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
+	    AFTER_POTENTIAL_GC ();
 #ifdef LISP_FLOAT_TYPE
 	    if (FLOATP (v1) || FLOATP (v2))
 	      {
@@ -1270,7 +1288,9 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bchar_syntax:
+	  BEFORE_POTENTIAL_GC ();
 	  CHECK_NUMBER (TOP, 0);
+	  AFTER_POTENTIAL_GC ();
 	  XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (XINT (TOP))]);
 	  break;
 
@@ -1381,7 +1401,9 @@ If the third argument is incorrect, Emacs may crash.")
 		/* Exchange args and then do nth.  */
 		v2 = POP;
 		v1 = TOP;
+		BEFORE_POTENTIAL_GC ();
 		CHECK_NUMBER (v2, 0);
+		AFTER_POTENTIAL_GC ();
 		op = XINT (v2);
 		immediate_quit = 1;
 		while (--op >= 0)
@@ -1391,7 +1413,9 @@ If the third argument is incorrect, Emacs may crash.")
 		    else if (!NILP (v1))
 		      {
 			immediate_quit = 0;
+			BEFORE_POTENTIAL_GC ();
 			v1 = wrong_type_argument (Qlistp, v1);
+			AFTER_POTENTIAL_GC ();
 			immediate_quit = 1;
 			op++;
 		      }
@@ -1402,7 +1426,11 @@ If the third argument is incorrect, Emacs may crash.")
 		else if (NILP (v1))
 		  TOP = Qnil;
 		else
-		  Fcar (wrong_type_argument (Qlistp, v1));
+		  {
+		    BEFORE_POTENTIAL_GC ();
+		    Fcar (wrong_type_argument (Qlistp, v1));
+		    AFTER_POTENTIAL_GC ();
+		  }
 	      }
 	    else
 	      {
@@ -1485,10 +1513,14 @@ If the third argument is incorrect, Emacs may crash.")
 
 #ifdef BYTE_CODE_SAFE
 	case Bset_mark:
+	  BEFORE_POTENTIAL_GC ();
 	  error ("set-mark is an obsolete bytecode");
+	  AFTER_POTENTIAL_GC ();
 	  break;
 	case Bscan_buffer:
+	  BEFORE_POTENTIAL_GC ();
 	  error ("scan-buffer is an obsolete bytecode");
+	  AFTER_POTENTIAL_GC ();
 	  break;
 #endif
 
@@ -1499,9 +1531,17 @@ If the third argument is incorrect, Emacs may crash.")
 	default:
 #ifdef BYTE_CODE_SAFE
 	  if (op < Bconstant)
-	    error ("unknown bytecode %d (byte compiler bug)", op);
+	    {
+	      BEFORE_POTENTIAL_GC ();
+	      error ("unknown bytecode %d (byte compiler bug)", op);
+	      AFTER_POTENTIAL_GC ();
+	    }
 	  if ((op -= Bconstant) >= const_length)
-	    error ("no constant number %d (byte compiler bug)", op);
+	    {
+	      BEFORE_POTENTIAL_GC ();
+	      error ("no constant number %d (byte compiler bug)", op);
+	      AFTER_POTENTIAL_GC ();
+	    }
 	  PUSH (vectorp[op]);
 #else
 	  PUSH (vectorp[op - Bconstant]);
