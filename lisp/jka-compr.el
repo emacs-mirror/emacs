@@ -873,6 +873,17 @@ The return value is the entry in `file-name-handler-alist' for jka-compr."
     installed))
 
 
+;;; Add the file I/O hook if it does not already exist.
+;;; Make sure that jka-compr-file-name-handler-entry is eq to the
+;;; entry for jka-compr in file-name-handler-alist.
+(and (jka-compr-installed-p)
+     (jka-compr-uninstall))
+
+
+;;; Note this definition must be at the end of the file, because
+;;; `define-minor-mode' actually calls the mode-function if the
+;;; associated variable is non-nil, which requires that all needed
+;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode auto-compression-mode
   "Toggle automatic file compression and uncompression.
@@ -890,7 +901,7 @@ Returns the new status of auto compression (non-nil means on)."
 
 ;;;###autoload
 (defmacro with-auto-compression-mode (&rest body)
-  "Evalutes BODY with automatic file compression and uncompression enabled."
+  "Evalute BODY with automatic file compression and uncompression enabled."
   (let ((already-installed (make-symbol "already-installed")))
     `(let ((,already-installed (jka-compr-installed-p)))
        (unwind-protect
@@ -901,15 +912,6 @@ Returns the new status of auto compression (non-nil means on)."
 	 (unless ,already-installed
 	   (jka-compr-uninstall))))))
 (put 'with-auto-compression-mode 'lisp-indent-function 0)
-
-
-;;; Add the file I/O hook if it does not already exist.
-;;; Make sure that jka-compr-file-name-handler-entry is eq to the
-;;; entry for jka-compr in file-name-handler-alist.
-(and (jka-compr-installed-p)
-     (jka-compr-uninstall))
-
-(jka-compr-install)
 
 
 (provide 'jka-compr)
