@@ -34,6 +34,7 @@ extern char *index P_ ((const char *, int));
 #endif
 
 extern Lisp_Object Qcursor_in_echo_area;
+extern Lisp_Object Qfile_directory_p;
 
 Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
@@ -520,17 +521,18 @@ supply if the command inquires which events were used to invoke it.  */)
 
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (build_string (callint_message), Qnil,
-				     current_buffer->directory, Qlambda, Qnil);
+				     current_buffer->directory, Qlambda, Qnil,
+				     Qfile_directory_p);
 	  break;
 
 	case 'f':		/* Existing file name. */
 	  args[i] = Fread_file_name (build_string (callint_message),
-				     Qnil, Qnil, Qlambda, Qnil);
+				     Qnil, Qnil, Qlambda, Qnil, Qnil);
 	  break;
 
 	case 'F':		/* Possibly nonexistent file name. */
 	  args[i] = Fread_file_name (build_string (callint_message),
-				     Qnil, Qnil, Qnil, Qnil);
+				     Qnil, Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'i':		/* Ignore an argument -- Does not do I/O */
