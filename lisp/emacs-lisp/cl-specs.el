@@ -1,4 +1,4 @@
-;; cl-specs.el - Edebug specs for cl.el
+;;; cl-specs.el - Edebug specs for cl.el
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1994/02/21 21:26:33 $|$Revision: 1.1 $|~/modes/cl-specs.el|
+;; |$Date: 1994/03/23 22:09:57 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
