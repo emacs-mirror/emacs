@@ -102,16 +102,16 @@ int max_lisp_eval_depth;
 /* Nonzero means enter debugger before next function call */
 int debug_on_next_call;
 
-/* Nonzero means display a backtrace if an error
- is handled by the command loop's error handler. */
-int stack_trace_on_error;
+/* List of conditions (non-nil atom means all) which cause a backtrace
+   if an error is handled by the command loop's error handler.
+Lisp_Object Vstack_trace_on_error;
 
-/* Nonzero means enter debugger if an error
- is handled by the command loop's error handler. */
-int debug_on_error;
+/* List of conditions (non-nil atom means all) which enter the debugger
+   if an error is handled by the command loop's error handler.
+Lisp_Object Vdebug_on_error;
 
 /* Nonzero means enter debugger if a quit signal
- is handled by the command loop's error handler. */
+   is handled by the command loop's error handler. */
 int debug_on_quit;
 
 /* Nonzero means we are trying to enter the debugger.
@@ -1121,9 +1121,43 @@ See also the function `condition-case'.")
   Fthrow (Qtop_level, Qt);
 }
 
-/* Value of Qlambda means we have called debugger and
-   user has continued.  Store value returned fromdebugger
-   into *debugger_value_ptr */
+/* Return nonzero iff LIST is a non-nil atom or
+   a list containing one of CONDITIONS.  */
+
+static int
+wants_debugger (list, conditions)
+     Lisp_Object list, conditions;
+{
+  static int looking = 0;
+
+  if (looking)
+    {
+      /* We got an error while looking in LIST.  */
+      looking = 0;
+      return 1;
+    }
+
+  if (NULL (list))
+    return 0;
+  if (! CONSP (list))
+    return 1;
+
+  looking = 1;
+  while (!NULL (conditions))
+    {
+      Lisp_Object tem;
+      tem = Fmemq (XCONS (conditions)->car, list);
+      if (! NULL (tem))
+	{
+	  looking = 0;
+	  return 1;
+	}
+      conditions = XCONS (conditions)->cdr;
+    }
+}
+
+/* Value of Qlambda means we have called debugger and user has continued.
+   Store value returned from debugger into *DEBUGGER_VALUE_PTR.  */
 
 static Lisp_Object
 find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
@@ -1138,10 +1172,11 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
     return Qt;
   if (EQ (handlers, Qerror))  /* error is used similarly, but means display a backtrace too */
     {
-      if (stack_trace_on_error)
+      if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
       if (!entering_debugger
-	  && EQ (sig, Qquit) ? debug_on_quit : debug_on_error)
+	  && ((EQ (sig, Qquit) && debug_on_quit)
+	      || wants_debugger (Vdebug_on_error, conditions)))
 	{
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qdebug_on_error, Qnil);
@@ -2266,20 +2301,25 @@ before making `inhibit-quit' nil.");
   Qand_optional = intern ("&optional");
   staticpro (&Qand_optional);
 
-  DEFVAR_BOOL ("stack-trace-on-error", &stack_trace_on_error,
+  DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
     "*Non-nil means automatically display a backtrace buffer\n\
-after any error that is handled by the editor command loop.");
-  stack_trace_on_error = 0;
+after any error that is handled by the editor command loop.\n\
+If the value is a list, an error only means to display a backtrace\n\
+if one of its condition symbols appears in the list.");
+  Vstack_trace_on_error = Qnil;
 
-  DEFVAR_BOOL ("debug-on-error", &debug_on_error,
+  DEFVAR_LISP ("debug-on-error", &Vdebug_on_error,
     "*Non-nil means enter debugger if an error is signaled.\n\
 Does not apply to errors handled by `condition-case'.\n\
+If the value is a list, an error only means to enter the debugger\n\
+if one of its condition symbols appears in the list.\n\
 See also variable `debug-on-quit'.");
-  debug_on_error = 0;
+  Vdebug_on_error = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
     "*Non-nil means enter debugger if quit is signaled (C-G, for example).\n\
-Does not apply if quit is handled by a `condition-case'.");
+Does not apply if quit is handled by a `condition-case'.
+A non-nil value is equivalent to a `debug-on-error' value containing 'quit.");
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
