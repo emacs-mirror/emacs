@@ -1,3 +1,8 @@
+2004-10-21  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-start): Rely on `cd' to get
+	dir right and also allow argumentless cd.
+
 2004-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode): Doc fix.
