@@ -700,7 +700,7 @@ Get previous element of history which is a completion of minibuffer contents."
       (forward-line (1- arg)))))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
-(define-function 'advertised-undo 'undo)
+(defalias 'advertised-undo 'undo)
 
 (defun undo (&optional arg)
   "Undo some previous changes.
@@ -1601,7 +1601,7 @@ Does not set point.  Does nothing if mark ring is empty."
 	(if (null (mark t)) (ding))
 	(setq mark-ring (cdr mark-ring)))))
 
-(define-function 'exchange-dot-and-mark 'exchange-point-and-mark)
+(defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark ()
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
