@@ -1,3 +1,8 @@
+2001-10-31  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (locale-language-names): Add chs and
+	cht as aliases for Chinese-GB and Chinese-BIG5.
+
 2001-10-31  Richard M. Stallman  <rms@gnu.org>
 
 	* bindings.el (mode-line-frame-identification): Add doc string.
