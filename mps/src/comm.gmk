@@ -1,7 +1,7 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.53) $
-# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+# $HopeName: MMsrc!comm.gmk(trunk.54) $
+# Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -276,7 +276,7 @@ testrunep: epvmss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv \
+mpmss apss amcss amcssth amsss segsmss awlut awlutth mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2eptst mv2test eventcnv messtest \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
@@ -355,6 +355,9 @@ $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
+$(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
+	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
@@ -365,6 +368,9 @@ $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
         $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
+	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
