@@ -1296,8 +1296,7 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 	  (if whole-path nil current-prefix-arg))
 	 (regexp
 	  (dired-read-regexp
-	   (concat (if whole-path "Path " "") operation " from (regexp): ")
-	   dired-flagging-regexp))
+	   (concat (if whole-path "Path " "") operation " from (regexp): ")))
 	 (newname
 	  (read-string
 	   (concat (if whole-path "Path " "") operation " " regexp " to: "))))
