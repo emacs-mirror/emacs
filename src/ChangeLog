@@ -1,3 +1,8 @@
+2001-04-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Fix a case where window_end_pos
+	and window_end_bytepos were not adjusted.
+
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (compute_char_face): If buffer is unibyte, set CH to
