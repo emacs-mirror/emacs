@@ -1,3 +1,10 @@
+2002-10-27  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-cannot-complete-command): New defcustom, default to
+	ido-completion-help (similar to iswitchb-cannot-complete-hook).
+	(ido-complete): Call value of ido-cannot-complete-command rather
+	than ido-completion-help when no common completion.
+
 2002-10-27  Dave Love  <fx@gnu.org>
 
 	* international/code-pages.el (iso-8859-11): New.
