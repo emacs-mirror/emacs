@@ -539,7 +539,7 @@ integer between 0 and 10.  This integer specifies the number of
 @dfn{extra slots} in the char-table.
 
 @cindex parent of char-table
-  A char-table can have a @dfn{parent}. which is another char-table.  If
+  A char-table can have a @dfn{parent}, which is another char-table.  If
 it does, then whenever the char-table specifies @code{nil} for a
 particular character @var{c}, it inherits the value specified in the
 parent.  In other words, @code{(aref @var{char-table} @var{c})} returns
