@@ -486,7 +486,7 @@ This returns ARGS with the arguments that have been processed removed."
 		   "Yellow"
 		   "green yellow"
 		   "GreenYellow")
-  "The full list of X colors from the `rgb.text' file.")
+  "The list of X colors from the `rgb.txt' file.")
 
 (defun x-defined-colors (&optional frame)
   "Return a list of colors supported for a particular frame.
