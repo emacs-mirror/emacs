@@ -1,3 +1,8 @@
+1999-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-continue): Don't continue if
+	debugger-may-continue is nil.
+
 1999-12-18  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-macs.el: Remove conditional definition of

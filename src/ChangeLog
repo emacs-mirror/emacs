@@ -1,3 +1,9 @@
+1999-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (debugger_may_continue): New variable.
+	(syms_of_eval): Add a DEFVAR_BOOL for it.
+	(call_debugger): Bind it.
+
 1999-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_set_face): Don't swap face colors when highlight or
