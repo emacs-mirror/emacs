@@ -543,6 +543,7 @@ even if your system policy allows users other than root to edit them.
 
 The default is 200; set the variable to nil to disable the feature.
 
++++
 ** A block cursor can be drawn as wide as the glyph under it under X.
 
 As an example: if a block cursor is over a tab character, it will be
