@@ -259,9 +259,6 @@ supply if the command inquires which events were used to invoke it.")
 	  function = wrong_type_argument (Qcommandp, function);
 	  goto retry;
 	}
-      if ((EMACS_INT) string == 1)
-	/* Let SPECS (which is nil) be used as the args.  */
-	string = 0;
     }
   else if (COMPILEDP (fun))
     {
@@ -271,7 +268,7 @@ supply if the command inquires which events were used to invoke it.")
     }
   else if (!CONSP (fun))
     goto lose;
-  else if (funcar = Fcar (fun), EQ (funcar, Qautoload))
+  else if (funcar = XCAR (fun), EQ (funcar, Qautoload))
     {
       GCPRO2 (function, prefix_arg);
       do_autoload (fun, function);
@@ -280,7 +277,7 @@ supply if the command inquires which events were used to invoke it.")
     }
   else if (EQ (funcar, Qlambda))
     {
-      specs = Fassq (Qinteractive, Fcdr (Fcdr (fun)));
+      specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
       if (NILP (specs))
 	goto lose;
       specs = Fcar (Fcdr (specs));
