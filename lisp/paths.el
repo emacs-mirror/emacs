@@ -32,11 +32,16 @@
 ;;; Code:
 
 (defvar Info-default-directory-list
-  (list "/usr/local/info/"
-	"/usr/local/lib/info/"
-	configure-info-directory
-	(expand-file-name "../info/" data-directory)
-	(expand-file-name "../../info/" data-directory))
+  (let ((start (list "/usr/local/info/"
+		     "/usr/local/lib/info/"
+		     configure-info-directory)))
+    (or (member configure-info-directory start)
+	(setq start (nconc start (list configure-info-directory))))
+    (or (member (expand-file-name "../info/" data-directory) start)
+	(setq start
+	      (nconc start
+		     (list (expand-file-name "../info/" data-directory)))))
+    start)
   "List of directories to search for Info documentation files.")
 
 (defvar news-path "/usr/spool/news/"
