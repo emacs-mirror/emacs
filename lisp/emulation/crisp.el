@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
 
-;; Author: Gary D. Foster <gfoster@suzieq.ml.org>
-;; Maintainer: FSF (unless Foster can be recontacted)
+;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
 
 ;; This file is part of GNU Emacs.
