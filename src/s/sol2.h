@@ -2,10 +2,6 @@
 
 #define SOLARIS2
 
-/* Solaris sometimes has two versions of gettimeofday
-   and we don't know which one we will get.  */
-#undef GETTIMEOFDAY_ONE_ARGUMENT
-
 /* eggert@twinsun.com said these work in Solaris.
    Perhaps they work in all kinds of SVR4, but this is more conservative.  */
 #undef BROKEN_TIOCGETC
