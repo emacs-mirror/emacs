@@ -11263,14 +11263,26 @@ x_connection_closed (display, error_message)
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
   Lisp_Object frame, tail;
 
-  /* Indicate that this display is dead.  */
+  /* We have to close the display to inform Xt that it doesn't
+     exist anymore.  If we don't, Xt will continue to wait for
+     events from the display.  As a consequence, a sequence of
 
-#if 0 /* Closing the display caused a bus error on OpenWindows.  */
+     M-x make-frame-on-display RET :1 RET
+     ...kill the new frame, so that we get an IO error...
+     M-x make-frame-on-display RET :1 RET
+
+     will indefinitely wait in Xt for events for display `:1', opened
+     in the first class to make-frame-on-display.
+
+     Closing the display is reported to lead to a bus error on
+     OpenWindows in certain situations.  I suspect that is a bug
+     in OpenWindows.  I don't know how to cicumvent it here.  */
+  
 #ifdef USE_X_TOOLKIT
   XtCloseDisplay (display);
 #endif
-#endif
 
+  /* Indicate that this display is dead.  */
   if (dpyinfo)
     dpyinfo->display = 0;
 
@@ -11658,11 +11670,13 @@ xim_close_dpy (dpyinfo)
 {
 #ifdef USE_XIM
 #ifdef HAVE_X11R6_XIM
-  XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				    NULL, EMACS_CLASS,
-				    xim_instantiate_callback, NULL);
+  if (dpyinfo->display)
+    XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
+				      NULL, EMACS_CLASS,
+				      xim_instantiate_callback, NULL);
 #endif /* not HAVE_X11R6_XIM */
-  XCloseIM (dpyinfo->xim);
+  if (dpyinfo->display)
+    XCloseIM (dpyinfo->xim);
   dpyinfo->xim = NULL;
   XFree (dpyinfo->xim_styles);
 #endif /* USE_XIM */
