@@ -1,5 +1,7 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (defface menu): Doc fix.
+
 	* wid-edit.el (widget-color-sample-face-get): Don't make
 	faces for undefined colors.
 
