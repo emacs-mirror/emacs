@@ -428,15 +428,12 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block]."
   (interactive "P")
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
-  (let ((on-p (and (not noninteractive)
+  (let ((maximum-size (font-lock-value-in-major-mode font-lock-maximum-size))
+	(on-p (and (not noninteractive)
 		   (not (eq (aref (buffer-name) 0) ?\ ))
 		   (if arg
 		       (> (prefix-numeric-value arg) 0)
-		     (not font-lock-mode))))
-	(maximum-size (if (not (consp font-lock-maximum-size))
-			  font-lock-maximum-size
-			(cdr (or (assq major-mode font-lock-maximum-size)
-				 (assq t font-lock-maximum-size))))))
+		     (not font-lock-mode)))))
     (if (not on-p)
 	(remove-hook 'after-change-functions 'font-lock-after-change-function
 		     t)
@@ -533,26 +530,32 @@ Font Lock is automatically turned on if the buffer major mode supports it and
 is in this list.  The sense of the list is negated if it begins with `not'.")
 
 ;;;###autoload
-(defun global-font-lock-mode (&optional arg)
+(defun global-font-lock-mode (&optional arg message)
   "Toggle Global Font Lock mode.
-With arg, turn Global Font Lock mode on if and only if arg is positive.
+With prefix ARG, turn Global Font Lock mode on if and only if ARG is positive.
+Displays a message saying whether the mode is on or off if MESSAGE is non-nil.
+Returns the new status of Global Font Lock mode (non-nil means on).
 
 When Global Font Lock mode is enabled, Font Lock mode is automagically
 turned on in a buffer if its major mode is one of `font-lock-global-modes'."
-  (interactive "P")
-  (if (if arg
-	  (<= (prefix-numeric-value arg) 0)
-	(memq 'font-lock-change-major-mode change-major-mode-hook))
-      (remove-hook 'change-major-mode-hook 'font-lock-change-major-mode)
-    (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
-    (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-    (setq font-lock-cache-buffers (buffer-list))))
+  (interactive "P\np")
+  (let ((off-p (if arg
+		   (<= (prefix-numeric-value arg) 0)
+		 (memq 'font-lock-change-major-mode change-major-mode-hook))))
+    (if off-p
+	(remove-hook 'change-major-mode-hook 'font-lock-change-major-mode)
+      (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
+      (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
+      (setq font-lock-cache-buffers (buffer-list)))
+    (if message
+	(message "Global Font Lock mode is now %s." (if off-p "OFF" "ON")))
+    (not off-p)))
 
 (defun font-lock-change-major-mode ()
   ;; Gross hack warning: Delicate readers should avert eyes now.
-  ;; Something is running `kill-all-local-variables', which generally means
-  ;; the major mode is being changed.  Run `turn-on-font-lock-if-enabled' after
-  ;; the current command has finished.
+  ;; Something is running `kill-all-local-variables', which generally means the
+  ;; major mode is being changed.  Run `turn-on-font-lock-if-enabled' after the
+  ;; current command has finished.
   (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
   (add-to-list 'font-lock-cache-buffers (current-buffer)))
 
@@ -568,7 +571,8 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 		  (if (eq (car-safe font-lock-global-modes) 'not)
 		      (not (memq major-mode (cdr font-lock-global-modes)))
 		    (memq major-mode font-lock-global-modes)))
-	      (turn-on-font-lock))))
+	      (let (inhibit-quit)
+		(turn-on-font-lock)))))
     (setq font-lock-cache-buffers (cdr font-lock-cache-buffers))))
 
 ;; End of Global Font Lock mode.
@@ -1020,20 +1024,24 @@ START should be at the beginning of a line."
 	(t				; Hopefully (MATCHER HIGHLIGHT ...)
 	 keyword)))
 
+(defun font-lock-value-in-major-mode (alist)
+  ;; Return value in ALIST for `major-mode', or ALIST if it is not an alist.
+  ;; Alist structure is ((MAJOR-MODE . VALUE)) where MAJOR-MODE may be t.
+  (if (consp alist)
+      (cdr (or (assq major-mode alist) (assq t alist)))
+    alist))
+
 (defun font-lock-choose-keywords (keywords level)
   ;; Return LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
   ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
-  (let ((level (if (not (consp level))
-		   level
-		 (cdr (or (assq major-mode level) (assq t level))))))
-    (cond ((symbolp keywords)
-	   keywords)
-	  ((numberp level)
-	   (or (nth level keywords) (car (reverse keywords))))
-	  ((eq level t)
-	   (car (reverse keywords)))
-	  (t
-	   (car keywords)))))
+  (cond ((symbolp keywords)
+	 keywords)
+	((numberp level)
+	 (or (nth level keywords) (car (reverse keywords))))
+	((eq level t)
+	 (car (reverse keywords)))
+	(t
+	 (car keywords))))
 
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
@@ -1047,8 +1055,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
       nil
     (let* ((defaults (or font-lock-defaults
 			 (cdr (assq major-mode font-lock-defaults-alist))))
-	   (keywords (font-lock-choose-keywords
-		      (nth 0 defaults) font-lock-maximum-decoration)))
+	   (keywords
+	    (font-lock-choose-keywords (nth 0 defaults)
+	     (font-lock-value-in-major-mode font-lock-maximum-decoration))))
       ;; Regexp fontification?
       (setq font-lock-keywords (if (fboundp keywords)
 				   (funcall keywords)
@@ -1347,7 +1356,7 @@ the face is also set; its value is the face name."
     '("\\<:\\sw+\\>" 0 font-lock-reference-face prepend)
     ;;
     ;; ELisp and CLisp `&' keywords as types.
-    '("\\<\\&\\(optional\\|rest\\|whole\\)\\>" . font-lock-type-face)
+    '("\\<\\&\\sw+\\>" . font-lock-type-face)
     ))
   "Gaudy level highlighting for Lisp modes.")
 
