@@ -1980,7 +1980,7 @@ Items}) for @code{print-region}, like this:
 @example
 (define-key menu-bar-print-menu [print-region]
   '(menu-item "Print Region" print-region
-              :enable (mark-active)))
+              :enable mark-active))
 @end example
 
 @noindent
@@ -1992,7 +1992,7 @@ we could do it this way:
 @example
 (define-key menu-bar-print-menu [print-region]
   '(menu-item "Print Region" print-region
-              :visible (mark-active)))
+              :visible mark-active))
 @end example
 
 @node Menu Bar
