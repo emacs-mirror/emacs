@@ -1995,7 +1995,6 @@ Return nil if there is no valid completion, else t.  */)
 {
   Lisp_Object completion, tem, tem1;
   register int i, i_byte;
-  register const unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
   int prompt_end_charpos = XINT (Fminibuffer_prompt_end ());
 
