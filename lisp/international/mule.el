@@ -843,10 +843,6 @@ like `mime-charset' as well as the current style like `:mime-charset'."
 	  (plist-get (coding-system-plist coding-system)
 		     (intern (concat ":" (symbol-name prop)))))))
 
-(defun coding-system-put (coding-system prop val)
-  "Change value in CODING-SYSTEM's property list PROP to VAL."
-  (plist-put (coding-system-plist coding-system) prop val))
-
 (defalias 'coding-system-parent 'coding-system-base)
 (make-obsolete 'coding-system-parent 'coding-system-base "20.3")
 
