@@ -866,8 +866,10 @@ run `normal-mode' explicitly."
 				  ("changelo\\'" . change-log-mode)
 				  ("ChangeLog.[0-9]+\\'" . change-log-mode)
 				  ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
-;; The following should come after the ChangeLog pattern
-;; for the sake of ChangeLog.1, etc.
+				  ("\\.scm\\.[0-9]*\\'" . scheme-mode)
+;;; The following should come after the ChangeLog pattern
+;;; for the sake of ChangeLog.1, etc.
+;;; and after the .scm.[0-9] pattern too.
 				  ("\\.[12345678]\\'" . nroff-mode)
 				  ("\\.TeX\\'" . tex-mode)
 				  ("\\.sty\\'" . latex-mode)
@@ -892,7 +894,6 @@ run `normal-mode' explicitly."
 				  ("\\.y\\'" . c-mode)
 				  ("\\.lex\\'" . c-mode)
 				  ("\\.oak\\'" . scheme-mode)
-				  ("\\.scm.[0-9]*\\'" . scheme-mode)
 				  ("\\.sgm\\'" . sgml-mode)
 				  ("\\.sgml\\'" . sgml-mode)
 				  ("\\.dtd\\'" . sgml-mode)
