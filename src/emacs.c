@@ -603,14 +603,14 @@ main (argc, argv, envp)
 
   initialized = 1;
 
-#ifdef sun
-  /* sun's localtime() has a bug.  it caches the value of the time
+#if defined (sun) || defined (LOCALTIME_CACHE)
+  /* sun's localtime has a bug.  it caches the value of the time
      zone rather than looking it up every time.  Since localtime() is
      called to bolt the undumping time into the undumped emacs, this
-     results in localtime() ignoring the TZ environment variable.
-     This flushes the new TZ value into localtime(). */
-  tzset();
-#endif /* sun */
+     results in localtime ignoring the TZ environment variable.
+     This flushes the new TZ value into localtime. */
+  tzset ();
+#endif /* defined (sun) || defined (LOCALTIME_CACHE) */
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
