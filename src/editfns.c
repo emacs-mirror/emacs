@@ -610,18 +610,17 @@ is returned as a character.")
       n = XINT (pos);
     }
 
+  if (n <= BEGV || n > ZV)
+    return Qnil;
+
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
       DEC_POS (n);
-      if (n < BEGV || n >= ZV)
-	return Qnil;
       XSETFASTINT (val, FETCH_CHAR (n));
     }
   else
     {
       n--;
-      if (n < BEGV || n >= ZV)
-	return Qnil;
       XSETFASTINT (val, FETCH_BYTE (n));
     }
    return val;
