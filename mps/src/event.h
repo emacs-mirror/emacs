@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.10) $
+ * $HopeName: MMsrc!event.h(trunk.11) $
  *
  * READERSHIP
  *
@@ -15,9 +15,9 @@
 #ifndef event_h
 #define event_h
 
-#include "mpm.h"
 #include "eventcom.h"
-#include "eventgen.h"
+#include "mpm.h"
+
 
 extern Res EventFlush(void);
 extern Res EventSync(void);
@@ -53,11 +53,11 @@ typedef Index EventKind;
 
 #define RELATION(type, code, always, kind, format) \
   enum { \
-    Event ## type ## High = ((code >> 8) & 0xFF), \
-    Event ## type ## Low = (code & 0xFF), \
-    Event ## type ## Always = always,\
-    Event ## type ## Kind = EventKind ## kind, \
-    Event ## type ## Format = EventFormat ## format \
+    Event##type##High = ((code >> 8) & 0xFF), \
+    Event##type##Low = (code & 0xFF), \
+    Event##type##Always = always, \
+    Event##type##Kind = EventKind##kind, \
+    Event##type##Format = EventFormat##format \
   }; 
   
 #include "eventdef.h"
@@ -65,33 +65,35 @@ typedef Index EventKind;
 #undef RELATION
 
 
-extern EventUnion Event;
+extern EventUnion EventMould;
 
 #define EVENT_BEGIN(type, format, _length) \
   BEGIN \
-    AVER(EventFormat ## format == Event ## type ## Format); \
+    AVER(EventFormat##format == Event##type##Format); \
     /* @@@@ As an interim measure, send the old event codes */ \
-    Event.any.code = Event ## type; \
+    EventMould.any.code = Event##type; \
     /* @@@@ Length is in words, excluding header; this will change */ \
     /* We know that _length is aligned to word size */ \
-    Event.any.length = ((_length / sizeof(Word)) - 3); \
-    Event.any.clock = mps_clock(); 
+    EventMould.any.length = ((_length / sizeof(Word)) - 3); \
+    EventMould.any.clock = mps_clock(); 
 
 #define EVENT_END(type, length) \
-  if(BS_IS_MEMBER(EventKindControl, ((Index)Event ## type ## Kind))) { \
-    AVER(EventNext <= EventLimit); \
-    if((length) > (size_t)(EventLimit - EventNext)) \
-      EventFlush(); /* @@@ should pass length */ \
-    AVER((length) <= (size_t)(EventLimit - EventNext)); \
-    mps_lib_memcpy(EventNext, &Event, (length)); \
-    EventNext += (length); \
-  } \
+    if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) { \
+      AVER(EventNext <= EventLimit); \
+      if((length) > (size_t)(EventLimit - EventNext)) \
+        EventFlush(); /* @@@@ should pass length */ \
+      AVER((length) <= (size_t)(EventLimit - EventNext)); \
+      mps_lib_memcpy(EventNext, &EventMould, (length)); \
+      EventNext += (length); \
+    } \
   END
 
 extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
+
 #else /* EVENT not */
+
 
 #define EventInit()            NOOP
 #define EventFinish()          NOOP
@@ -99,6 +101,8 @@ extern Word EventKindControl;
 #define EventInternString(l)   (UNUSED(l), (Word)0)
 #define EventLabelAddr(a, i)   BEGIN UNUSED(a); UNUSED(i); END
 
+
 #endif /* EVENT */
+
 
 #endif /* event_h */
