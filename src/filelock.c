@@ -278,7 +278,7 @@ lock_if_free (clasher, lfname)
      lock_info_type *clasher;
      register char *lfname; 
 {
-  while (lock_file_1 (lfname, 0) == 0)
+  if (lock_file_1 (lfname, 0) == 0)
     {
       int locker;
 
@@ -293,11 +293,8 @@ lock_if_free (clasher, lfname)
         }
       else if (locker == 1)
         return 1;  /* Someone else has it.  */
-      else if (locker == -1)
-        return -1; /* Something's wrong.  */
 
-       /* If some other error, or no such lock, try to lock again.  */
-       /* Is there a case where we loop forever?  */
+      return -1; /* Something's wrong.  */
     }
   return 0;
 }
