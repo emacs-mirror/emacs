@@ -456,6 +456,7 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
+  b->redisplay_end_trigger = Qnil;
 }
 
 /* Reset buffer B's local variables info.
@@ -3354,7 +3355,8 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.point_before_scroll, -1);
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
-  XSETFASTINT (buffer_local_flags.file_format, -1);
+  XSETINT (buffer_local_flags.file_format, -1);
+  XSETINT (buffer_local_flags.redisplay_end_trigger, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3892,6 +3894,15 @@ functions; it should only affect their performance.");
     "List of formats to use when saving this buffer.\n\
 Formats are defined by `format-alist'.  This variable is\n\
 set when a file is visited.  Automatically local in all buffers.");
+
+  DEFVAR_PER_BUFFER ("buffer-redisplay-end-trigger",
+		     &current_buffer->redisplay_end_trigger, Qnil,
+    "Trigger point for running `redisplay-end-trigger-hook'.\n\
+This variable is always local in every buffer.\n\
+If redisplay in the buffer reaches a position larger than the\n\
+value of `buffer-redisplay-end-trigger', then the hook is run\n\
+after first setting `buffer-redisplay-end-trigger' to nil.\n\
+If `buffer-redisplay-end-trigger' is nil, the hook is never run.");
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
