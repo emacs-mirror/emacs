@@ -2670,7 +2670,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bytepos = 0;
   p->charpos = 0;
-  p->chain = Qnil;
+  p->next = NULL;
   p->insertion_type = 0;
   return val;
 }
@@ -2681,7 +2681,7 @@ void
 free_marker (marker)
      Lisp_Object marker;
 {
-  unchain_marker (marker);
+  unchain_marker (XMARKER (marker));
 
   XMISC (marker)->u_marker.type = Lisp_Misc_Free;
   XMISC (marker)->u_free.chain = marker_free_list;
@@ -4930,33 +4930,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Misc:
-      /* FIXME: Maybe we should just use obj->mark for all?  */
-      switch (XMISCTYPE (obj))
-	{
-	case Lisp_Misc_Marker:
-	  survives_p = XMARKER (obj)->gcmarkbit;
-	  break;
-
-	case Lisp_Misc_Buffer_Local_Value:
-	case Lisp_Misc_Some_Buffer_Local_Value:
-	  survives_p = XBUFFER_LOCAL_VALUE (obj)->gcmarkbit;
-	  break;
-
-	case Lisp_Misc_Intfwd:
-	case Lisp_Misc_Boolfwd:
-	case Lisp_Misc_Objfwd:
-	case Lisp_Misc_Buffer_Objfwd:
-	case Lisp_Misc_Kboard_Objfwd:
-	  survives_p = 1;
-	  break;
-
-	case Lisp_Misc_Overlay:
-	  survives_p = XOVERLAY (obj)->gcmarkbit;
-	  break;
-
-	default:
-	  abort ();
-	}
+      survives_p = XMARKER (obj)->gcmarkbit;
       break;
 
     case Lisp_String:
@@ -5240,12 +5214,7 @@ gc_sweep ()
 	      {
 		Lisp_Object tem;
 		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
-		  {
-		    /* tem1 avoids Sun compiler bug */
-		    struct Lisp_Marker *tem1 = &mblk->markers[i].u_marker;
-		    XSETMARKER (tem, tem1);
-		    unchain_marker (tem);
-		  }
+		  unchain_marker (&mblk->markers[i].u_marker);
 		/* Set the type of the freed object to Lisp_Misc_Free.
 		   We could leave the type alone, since nobody checks it,
 		   but this might catch bugs faster.  */
