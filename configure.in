@@ -182,9 +182,9 @@ case "${canonical}" in
     machine=amdahl opsys=usg5-2-2
   ;;
 
-  ## Appallings - I mean, Apollos - running Domain
-  m68*-apollo* )
-    machine=apollo opsys=domain NON_GNU_CPP=/usr/lib/cpp
+  ## Apollo, Domain/OS
+  m68*-apollo-* )
+    machine=apollo opsys=bsd4-3
   ;;
 
   ## AT&T 3b2, 3b5, 3b15, 3b20
