@@ -498,14 +498,6 @@ The key bindings for `quickurl-list-mode' are:
   (setf (point) (posn-point (event-end event)))
   (quickurl-list-insert-url))
 
-(defun quickurl-list-focused-line ()
-  "Work out the line containing point."
-  (save-excursion
-    (beginning-of-line)
-    (let ((point (point)))
-      (setf (point) (point-min))
-      (loop while (< (point) point) sum 1 do (next-line 1)))))
-
 (defun quickurl-list-insert (type)
   "Insert the URL under cursor into `quickurl-list-last-buffer'.
 TYPE dictates what will be inserted, options are:
@@ -514,7 +506,7 @@ TYPE dictates what will be inserted, options are:
   `with-lookup' - Insert \"lookup <URL:url>\"
   `with-desc'   - Insert \"description <URL:url>\"
   `lookup'      - Insert the lookup for that URL"
-  (let ((url (nth (quickurl-list-focused-line) quickurl-urls)))
+  (let ((url (nth (count-lines (point-min) (point)) quickurl-urls)))
     (if url
         (with-current-buffer quickurl-list-last-buffer
           (insert
