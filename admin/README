@@ -7,7 +7,7 @@ Brief description of scripts found here:
 
 build-configs		build Emacs in various configurations
 check-doc-strings	check doc strings against documentation
-diff-tar-files		print a diff of the files containing in tar files
+diff-tar-files		show files added/removed between two tar files
 make-emacs		build Emacs in various ways
 quick-install-emacs	install emacs quickly (`incrementally')
 revdiff			get CVS diffs of files
