@@ -47,10 +47,11 @@
   "The automatically-created initial text of bug report.")
 
 ;;;###autoload
-(defun report-emacs-bug (topic)
+(defun report-emacs-bug (recent-keys topic)
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
-  (interactive "sBug Subject: ")
+  (interactive (list (recent-keys)
+		     (read-string "Bug Subject: ")))
   (if (mail nil
 	    (if (string-match "\\..*\\..*\\." emacs-version)
 		;; If there are four numbers in emacs-version,
@@ -81,7 +82,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 				       (listp key))
 				   (single-key-description key)
 				 (prin1-to-string key nil)))
-			     (recent-keys)
+			     recent-keys
 			     " "))
 	  (save-restriction
 	    (narrow-to-region before-keys (point))
