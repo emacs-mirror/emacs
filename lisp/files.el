@@ -2418,7 +2418,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (erase-buffer)
 	     (insert-file-contents file-name nil))
 	   (after-find-file nil nil t))
-	  (t (error "Recover-file cancelled.")))))
+	  (t (error "Recover-file cancelled")))))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.
