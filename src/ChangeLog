@@ -1,6 +1,6 @@
 2000-11-16  Kenichi Handa  <handa@etl.go.jp>
 
-	* dispnew.c (null_row): New gloval static variable.
+	* dispnew.c (null_row): New global static variable.
 	(clear_glyph_row): Delete local static variable null_row.
 
 2000-11-15  Jason Rumney  <jasonr@gnu.org>
