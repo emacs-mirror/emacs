@@ -1842,7 +1842,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
        ("hn" "Honduras")
        ("hr" "Croatia")
        ("ht" "Haiti")
-       ("hu" "Hungary"		"The Hungarian People's Republic")	;???
+       ("hu" "Hungary"		"The Hungarian Republic")	;???
        ("id" "Indonesia")
        ("ie" "Ireland")
        ("il" "Israel"		"The State of %s")
