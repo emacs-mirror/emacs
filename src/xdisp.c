@@ -624,6 +624,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static int redisplay_mode_lines P_ ((Lisp_Object, int));
 static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
 static int invisible_text_between_p P_ ((struct it *, int, int));
 static int next_element_from_ellipsis P_ ((struct it *));
@@ -682,7 +683,7 @@ static void update_menu_bar P_ ((struct frame *, int));
 static int try_window_reusing_current_matrix P_ ((struct window *));
 static int try_window_id P_ ((struct window *));
 static int display_line P_ ((struct it *));
-static void display_mode_lines P_ ((struct window *));
+static int display_mode_lines P_ ((struct window *));
 static void display_mode_line P_ ((struct window *, enum face_id,
 				   Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object));
@@ -6290,26 +6291,30 @@ echo_area_display (update_frame_p)
       window_height_changed_p = display_echo_area (w);
       w->must_be_updated_p = 1;
 
+      /* Update the display, unless called from redisplay_internal. */
       if (update_frame_p)
 	{
-	  /* Not called from redisplay_internal. */
+	  int n = 0;
 
-	  if (!display_completed || window_height_changed_p)
+	  /* If the display update has been interrupted by pending
+	     input, update mode lines in the frame.  Due to the
+	     pending input, it might have been that redisplay hasn't
+	     been called, so that mode lines above the echo area are
+	     garbaged.  This looks odd, so we prevent it here.  */
+	  if (!display_completed)
+	    n = redisplay_mode_lines (FRAME_ROOT_WINDOW (f), 0);
+	    
+	  if (window_height_changed_p)
 	    {
-	      /* Must update other windows.  If current display is not
-		 up-to-date because the last redisplay was interrupted
-		 by pending input, esp. the mode-line above the echo
-		 area might display garbage which looks odd.  */
-	      int count = specpdl_ptr - specpdl;
-	      specbind (Qredisplay_dont_pause, Qt);
+	      /* Must update other windows.  */
 	      windows_or_buffers_changed = 1;
 	      redisplay_internal (0);
-	      unbind_to (count, Qnil);
 	    }
-	  else if (FRAME_WINDOW_P (f))
+	  else if (FRAME_WINDOW_P (f) && n == 0)
 	    {
 	      /* Window configuration is the same as before.
-		 Can do with a display update of the echo area.  */
+		 Can do with a display update of the echo area,
+		 unless we displayed some mode lines.  */
 	      update_single_window (w, 1);
 	      rif->flush_display (f);
 	    }
@@ -12026,23 +12031,106 @@ display_menu_bar (w)
 			      Mode Line
  ***********************************************************************/
 
-/* Display the mode and/or top line of window W.  */
+/* Redisplay mode lines in the window tree whose root is WINDOW.  If
+   FORCE is non-zero, redisplay mode lines unconditionally.
+   Otherwise, redisplay only mode lines that are garbaged.  Value is
+   the number of windows whose mode lines were redisplayed.  */
 
-static void
+static int
+redisplay_mode_lines (window, force)
+     Lisp_Object window;
+     int force;
+{
+  int nwindows = 0;
+  
+  while (!NILP (window))
+    {
+      struct window *w = XWINDOW (window);
+      
+      if (WINDOWP (w->hchild))
+	nwindows += redisplay_mode_lines (w->hchild, force);
+      else if (WINDOWP (w->vchild))
+	nwindows += redisplay_mode_lines (w->vchild, force);
+      else if (force
+	       || FRAME_GARBAGED_P (XFRAME (w->frame))
+	       || !MATRIX_MODE_LINE_ROW (w->current_matrix)->enabled_p)
+	{
+	  Lisp_Object old_selected_frame;
+	  struct text_pos lpoint;
+	  struct buffer *old = current_buffer;
+
+	  /* Set the window's buffer for the mode line display.  */
+	  SET_TEXT_POS (lpoint, PT, PT_BYTE);
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
+	  
+	  /* Point refers normally to the selected window.  For any
+	     other window, set up appropriate value.  */
+	  if (!EQ (window, selected_window))
+	    {
+	      struct text_pos pt;
+	      
+	      SET_TEXT_POS_FROM_MARKER (pt, w->pointm);
+	      if (CHARPOS (pt) < BEGV)
+		TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
+	      else if (CHARPOS (pt) > (ZV - 1))
+		TEMP_SET_PT_BOTH (ZV, ZV_BYTE);
+	      else
+		TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
+	    }
+
+	  /* Temporarily set up the selected frame.  */
+      	  old_selected_frame = selected_frame;
+	  selected_frame = w->frame;
+
+	  /* Display mode lines.  */
+	  clear_glyph_matrix (w->desired_matrix);
+	  if (display_mode_lines (w))
+	    {
+	      ++nwindows;
+	      w->must_be_updated_p = 1;
+	    }
+
+	  /* Restore old settings.  */
+	  selected_frame = old_selected_frame;
+	  set_buffer_internal_1 (old);
+	  TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
+	}
+
+      window = w->next;
+    }
+
+  return nwindows;
+}
+
+
+/* Display the mode and/or top line of window W.  Value is the number
+   of mode lines displayed.  */
+
+static int
 display_mode_lines (w)
      struct window *w;
 {
+  int n = 0;
+  
   /* These will be set while the mode line specs are processed.  */
   line_number_displayed = 0;
   w->column_number_displayed = Qnil;
 
   if (WINDOW_WANTS_MODELINE_P (w))
-    display_mode_line (w, MODE_LINE_FACE_ID,
-		       current_buffer->mode_line_format);
+    {
+      display_mode_line (w, MODE_LINE_FACE_ID,
+			 current_buffer->mode_line_format);
+      ++n;
+    }
   
   if (WINDOW_WANTS_HEADER_LINE_P (w))
-    display_mode_line (w, HEADER_LINE_FACE_ID,
-		       current_buffer->header_line_format);
+    {
+      display_mode_line (w, HEADER_LINE_FACE_ID,
+			 current_buffer->header_line_format);
+      ++n;
+    }
+
+  return n;
 }
 
 
@@ -13157,6 +13245,7 @@ invisible_p (propval, list)
      Lisp_Object list;
 {
   register Lisp_Object tail, proptail;
+  
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
@@ -13166,22 +13255,25 @@ invisible_p (propval, list)
       if (CONSP (tem) && EQ (propval, XCAR (tem)))
 	return 1;
     }
+  
   if (CONSP (propval))
-    for (proptail = propval; CONSP (proptail);
-	 proptail = XCDR (proptail))
-      {
-	Lisp_Object propelt;
-	propelt = XCAR (proptail);
-	for (tail = list; CONSP (tail); tail = XCDR (tail))
-	  {
-	    register Lisp_Object tem;
-	    tem = XCAR (tail);
-	    if (EQ (propelt, tem))
-	      return 1;
-	    if (CONSP (tem) && EQ (propelt, XCAR (tem)))
-	      return 1;
-	  }
-      }
+    {
+      for (proptail = propval; CONSP (proptail); proptail = XCDR (proptail))
+	{
+	  Lisp_Object propelt;
+	  propelt = XCAR (proptail);
+	  for (tail = list; CONSP (tail); tail = XCDR (tail))
+	    {
+	      register Lisp_Object tem;
+	      tem = XCAR (tail);
+	      if (EQ (propelt, tem))
+		return 1;
+	      if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+		return 1;
+	    }
+	}
+    }
+  
   return 0;
 }
 
