@@ -1,3 +1,19 @@
+2000-09-12  Miyashita Hisashi  <himi@meadowy.org>
+
+	* ccl.c: Comment fixed.
+	(MAX_MAP_SET_LEVEL): Increased to 30.
+	(PUSH_MAPPING_STACK): Enclose with do-while block.
+	(POP_MAPPING_STACK): Likewise.
+	(stack_idx_of_map_multiple): New variable.
+	(CCL_CALL_FOR_MAP_INSTRUCTION): New macro.
+	(ccl_driver) <CCL_IterateMultipleMap>: If the content is a symbol,
+	call the corresponding CCL program by
+	CCL_CALL_FOR_MAP_INSTRUCTION.
+	(ccl_driver) <CCL_MapSingle>: Likewise.
+	(ccl_driver) <CCL_MapMultiple>: Rewritten to fix many bugs, deal
+	with the case where looking up process reaches to the end of
+	map-set, and call CCL programs as the above change.
+
 2000-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (png_load, jpeg_load): Declare some variables volatile
