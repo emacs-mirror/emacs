@@ -1192,7 +1192,11 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 		TOP = v1;
 	      }
 	    else
-	      TOP = Fsub1 (v1);
+	      {
+		BEFORE_POTENTIAL_GC ();
+		TOP = Fsub1 (v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
