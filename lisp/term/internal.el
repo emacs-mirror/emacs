@@ -607,6 +607,9 @@ display tables, and the language environment options as appropriate."
      (setq default-terminal-coding-system (intern (concat cp
 							  "-unix"))))
     (IT-display-table-setup cp)
+    ;; It's time: too many input methods in leim/quail produce
+    ;; Unicode characters.  Let the user see them.
+    (IT-setup-unicode-display)
     (prefer-coding-system (intern (concat cp "-dos")))
     (if default-enable-multibyte-characters
 	;; We want this in multibyte version only, since unibyte version
@@ -705,6 +708,9 @@ list.  You can (and should) also run it whenever the value of
       ;; Assume they support non-ASCII Latin characters like the IBM
       ;; codepage 437 does.
       (IT-display-table-setup "cp437")
+      ;; It's time: too many input methods in leim/quail produce
+      ;; Unicode characters.  Let the user see them.
+      (IT-setup-unicode-display)
       (prefer-coding-system coding-dos)
       (if default-enable-multibyte-characters
 	  (setq unibyte-display-via-language-environment t))
@@ -714,9 +720,6 @@ list.  You can (and should) also run it whenever the value of
 ;; until after the terminal is set and user's .emacs is processed,
 ;; because people might define their `dos-codepage-setup-hook' there.
 (add-hook 'term-setup-hook 'dos-codepage-setup)
-;; It's time: too many input methods in leim/quail produce
-;; Unicode characters.  Let the user see them.
-(add-hook 'term-setup-hook 'IT-setup-unicode-display t)
 
 ;; In multibyte mode, we want unibyte buffers to be displayed using
 ;; the terminal coding system, so that they display correctly on the
