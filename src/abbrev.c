@@ -104,18 +104,20 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
 
 DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 5, 0,
   "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.\n\
-NAME and EXPANSION are strings.\n\
+NAME must be a string.\n\
+EXPANSION should usually be a string.\n\
 To undefine an abbrev, define it with EXPANSION = nil.\n\
 If HOOK is non-nil, it should be a function of no arguments;\n\
-it is called after EXPANSION is inserted.")
+it is called after EXPANSION is inserted.\n\
+If EXPANSION is not a string, the abbrev is a special one,\n\
+ which does not expand in the usual way but only runs HOOK.")
   (table, name, expansion, hook, count)
      Lisp_Object table, name, expansion, hook, count;
 {
   Lisp_Object sym, oexp, ohook, tem;
   CHECK_VECTOR (table, 0);
   CHECK_STRING (name, 1);
-  if (!NILP (expansion))
-    CHECK_STRING (expansion, 2);
+
   if (NILP (count))
     count = make_number (0);
   else
@@ -289,12 +291,11 @@ Returns t if expansion took place.")
       SET_PT (wordend);
       Fundo_boundary ();
     }
-  SET_PT (wordstart);
+
   Vlast_abbrev_text
     = Fbuffer_substring (make_number (wordstart), make_number (wordend));
-  del_range (wordstart, wordend);
 
-  /* Now sym is the abbrev symbol. */
+  /* Now sym is the abbrev symbol.  */
   Vlast_abbrev = sym;
   last_abbrev_point = wordstart;
 
@@ -302,39 +303,48 @@ Returns t if expansion took place.")
     XSETINT (XSYMBOL (sym)->plist,
 	     XINT (XSYMBOL (sym)->plist) + 1);	/* Increment use count */
 
+  /* If this abbrev has an expansion, delete the abbrev
+     and insert the expansion.  */
   expansion = XSYMBOL (sym)->value;
-  insert_from_string (expansion, 0, XSTRING (expansion)->size, 1);
-  SET_PT (PT + whitecnt);
-
-  if (uccount && !lccount)
+  if (STRINGP (expansion))
     {
-      /* Abbrev was all caps */
-      /* If expansion is multiple words, normally capitalize each word */
-      /* This used to be if (!... && ... >= ...) Fcapitalize; else Fupcase
-	 but Megatest 68000 compiler can't handle that */
-      if (!abbrev_all_caps)
-	if (scan_words (PT, -1) > scan_words (wordstart, 1))
-	  {
-	    Fupcase_initials_region (make_number (wordstart),
-				     make_number (PT));
-	    goto caped;
-	  }
-      /* If expansion is one word, or if user says so, upcase it all. */
-      Fupcase_region (make_number (wordstart), make_number (PT));
-    caped: ;
-    }
-  else if (uccount)
-    {
-      /* Abbrev included some caps.  Cap first initial of expansion */
-      int pos = wordstart;
+      SET_PT (wordstart);
 
-      /* Find the initial.  */
-      while (pos < PT
-	     && SYNTAX (*BUF_CHAR_ADDRESS (current_buffer, pos)) != Sword)
-	pos++;
+      del_range (wordstart, wordend);
 
-      /* Change just that.  */
-      Fupcase_initials_region (make_number (pos), make_number (pos + 1));
+      insert_from_string (expansion, 0, XSTRING (expansion)->size, 1);
+      SET_PT (PT + whitecnt);
+
+      if (uccount && !lccount)
+	{
+	  /* Abbrev was all caps */
+	  /* If expansion is multiple words, normally capitalize each word */
+	  /* This used to be if (!... && ... >= ...) Fcapitalize; else Fupcase
+	     but Megatest 68000 compiler can't handle that */
+	  if (!abbrev_all_caps)
+	    if (scan_words (PT, -1) > scan_words (wordstart, 1))
+	      {
+		Fupcase_initials_region (make_number (wordstart),
+					 make_number (PT));
+		goto caped;
+	      }
+	  /* If expansion is one word, or if user says so, upcase it all. */
+	  Fupcase_region (make_number (wordstart), make_number (PT));
+	caped: ;
+	}
+      else if (uccount)
+	{
+	  /* Abbrev included some caps.  Cap first initial of expansion */
+	  int pos = wordstart;
+
+	  /* Find the initial.  */
+	  while (pos < PT
+		 && SYNTAX (*BUF_CHAR_ADDRESS (current_buffer, pos)) != Sword)
+	    pos++;
+
+	  /* Change just that.  */
+	  Fupcase_initials_region (make_number (pos), make_number (pos + 1));
+	}
     }
 
   hook = XSYMBOL (sym)->function;
