@@ -601,7 +601,10 @@ See `compilation-mode'."
     (forward-char 1)
     (setq mode-line-process
 	  (format ":%s [%s]"
-		  (process-status proc) (cdr status)))
+		  (if (fboundp 'process-status)
+		      (process-status proc) 
+		    "")
+		  (cdr status)))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
