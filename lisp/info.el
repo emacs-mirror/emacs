@@ -1518,6 +1518,7 @@ Give a blank topic name to go to the Index node itself."
   (interactive)
   (save-window-excursion
     (switch-to-buffer "*Help*")
+    (setq buffer-read-only nil)
     (erase-buffer)
     (insert (documentation 'Info-mode))
     (help-mode)
