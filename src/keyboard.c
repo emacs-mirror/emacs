@@ -1705,7 +1705,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
 
       cancel_echoing ();
-      c = read_char (0, 0, 0, Qnil, 0);
+      do
+	c = read_char (0, 0, 0, Qnil, 0);
+      while (XTYPE (c) == Lisp_Buffer);
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
       prepare_menu_bars ();
@@ -1713,7 +1715,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (EQ (c, make_number (040)))
 	{
 	  cancel_echoing ();
-	  c = read_char (0, 0, 0, Qnil, 0);
+	  do
+	    c = read_char (0, 0, 0, Qnil, 0);
+	  while (XTYPE (c) == Lisp_Buffer);
 	}
     }
 
@@ -3870,7 +3874,9 @@ read_char_minibuf_menu_prompt(commandflag, nmaps, maps)
 	 */
       orig_defn_macro = defining_kbd_macro ;
       defining_kbd_macro = 0 ;
-      obj = read_char (commandflag, 0, 0, Qnil, 0);
+      do
+	obj = read_char (commandflag, 0, 0, Qnil, 0);
+      while (XTYPE (obj) == Lisp_Buffer);
       defining_kbd_macro = orig_defn_macro ;
 
       if (XTYPE (obj) != Lisp_Int)
@@ -4304,6 +4310,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      goto done;
 	    }
 	  
+	  /* If the current buffer has been changed from under us, the
+	     keymap may have changed, so replay the sequence.  */
+	  if (XTYPE (key) == Lisp_Buffer)
+	    {
+	      mock_input = t;
+	      goto replay_sequence;
+	    }
+
 	  /* If we have a quit that was typed in another frame, and
 	     quit_throw_to_read_char switched buffers,
 	     replay to get the right keymap.  */
@@ -4314,7 +4328,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      Vquit_flag = Qnil;
 	      goto replay_sequence;
 	    }
-	    
+
 	  Vquit_flag = Qnil;
 	}
 
