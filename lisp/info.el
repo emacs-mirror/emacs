@@ -2913,6 +2913,7 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map "," 'Info-index-next)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
   (define-key Info-mode-map [mouse-2] 'Info-mouse-follow-nearest-node)
+  (define-key Info-mode-map [follow-link] 'mouse-face)
   )
 
 (defun Info-check-pointer (item)
@@ -3453,6 +3454,7 @@ Preserve text properties."
     (define-key keymap [header-line mouse-2] 'Info-next)
     (define-key keymap [header-line down-mouse-1] 'ignore)
     (define-key keymap [mouse-2] 'Info-next)
+    (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Next link in the text or the header line.")
 
@@ -3462,6 +3464,7 @@ Preserve text properties."
     (define-key keymap [header-line mouse-2] 'Info-prev)
     (define-key keymap [header-line down-mouse-1] 'ignore)
     (define-key keymap [mouse-2] 'Info-prev)
+    (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Prev link in the text or the header line.")
 
@@ -3472,6 +3475,7 @@ Preserve text properties."
     (define-key keymap [header-line mouse-2] 'Info-up)
     (define-key keymap [header-line down-mouse-1] 'ignore)
     (define-key keymap [mouse-2] 'Info-up)
+    (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
@@ -3506,7 +3510,7 @@ Preserve text properties."
               (put-text-property tbeg nend 'mouse-face 'highlight)
               (put-text-property tbeg nend
                                  'help-echo
-                                 (concat "Go to node "
+                                 (concat "mouse-2: Go to node "
                                          (buffer-substring nbeg nend)))
               ;; Always set up the text property keymap.
               ;; It will either be used in the buffer
