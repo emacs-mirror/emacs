@@ -609,7 +609,9 @@ echo LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE LANG=$LANG
 
 You can use the @kbd{M-!} command to execute the shell command from
 Emacs, and then copy the output from the @samp{*Messages*} buffer into
-the bug report.
+the bug report.  Alternatively, @kbd{M-x getenv @key{RET} LC_ALL
+@key{RET}} will print the value of @code{LC_ALL} in the echo area, and
+you can copy its output from the @samp{*Messages*} buffer.
 
 @item
 A description of what behavior you observe that you believe is
