@@ -1,3 +1,12 @@
+2000-09-10  Dave Love  <fx@gnu.org>
+
+	* textmodes/tildify.el: Minor doc/commentary fixes.
+	(tildify) <defgroup>: Add :version.
+
+	* faces.el (face-x-resources): Make custom type more specific.
+	(frame-background-mode): Use mapc.
+	(region) <defcustom>: Add :version.
+
 2000-09-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc-sccs.el (vc-sccs-register): 
