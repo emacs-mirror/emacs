@@ -184,12 +184,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define POSIX                 /* affects getpagesize.h and systty.h */
 #define POSIX_SIGNALS
 
-/* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
-/* we cannot get the maximum address for brk */
-#define ULIMIT_BREAK_VALUE (32*1024*1024)
-
-#define SEGMENT_MASK ((SEGMENT_SIZE)-1)
-
 /* Best not to include -lg, unless it is last on the command line */
 #define LIBS_DEBUG
 #define LIBS_TERMCAP -ltermcap -lcurses /* save some space with shared libs*/
@@ -217,12 +211,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    and is a very common addition to previous versions.  */
 
 #ifdef TERM
-#define LIBS_MACHINE -lclient
+#define LIBS_SYSTEM -lclient
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE -I/usr/src/term
 #else
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
-#define LIBS_MACHINE
+#define LIBS_SYSTEM
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE
 #endif
 
