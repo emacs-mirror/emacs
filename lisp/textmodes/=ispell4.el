@@ -328,36 +328,37 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 Return value is t unless exit is due to typing `q'."
   (interactive)
   (setq ispell-window-configuration nil)
-  (unwind-protect
-      (catch 'ispell-quit
-	;; There used to be a save-excursion here,
-	;; but that was annoying: it's better if point doesn't move
-	;; when you type q.
-	(let (next)
-	  (while (markerp (setq next (car ispell-bad-words)))
-	    (switch-to-buffer (marker-buffer next))
-	    (push-mark)
-	    (ispell-point next "at saved position.")
-	    (setq ispell-bad-words (cdr ispell-bad-words))
-	    (set-marker next nil)))
-	t)
-    (if ispell-window-configuration
-	(set-window-configuration ispell-window-configuration))
-    (cond ((null ispell-bad-words)
-	   (error "Ispell has not yet been run."))
-	  ((markerp (car ispell-bad-words))
-	   (message (substitute-command-keys
-                       "Type \\[ispell-next] to continue.")))
-	  ((eq (car ispell-bad-words) nil)
-	   (setq ispell-bad-words nil)
-	   (message "No more misspellings (but checker was interrupted.)"))
-	  ((eq (car ispell-bad-words) t)
-	   (setq ispell-bad-words nil)
-	   (message "Ispell done."))
-	  (t
-	   (setq ispell-bad-words nil)
-	   (message "Bad ispell internal list"))))
-  (ispell-dump))
+  (prog1
+      (unwind-protect
+	  (catch 'ispell-quit
+	    ;; There used to be a save-excursion here,
+	    ;; but that was annoying: it's better if point doesn't move
+	    ;; when you type q.
+	    (let (next)
+	      (while (markerp (setq next (car ispell-bad-words)))
+		(switch-to-buffer (marker-buffer next))
+		(push-mark)
+		(ispell-point next "at saved position.")
+		(setq ispell-bad-words (cdr ispell-bad-words))
+		(set-marker next nil)))
+	    t)
+	(if ispell-window-configuration
+	    (set-window-configuration ispell-window-configuration))
+	(cond ((null ispell-bad-words)
+	       (error "Ispell has not yet been run."))
+	      ((markerp (car ispell-bad-words))
+	       (message (substitute-command-keys
+			   "Type \\[ispell-next] to continue.")))
+	      ((eq (car ispell-bad-words) nil)
+	       (setq ispell-bad-words nil)
+	       (message "No more misspellings (but checker was interrupted.)"))
+	      ((eq (car ispell-bad-words) t)
+	       (setq ispell-bad-words nil)
+	       (message "Ispell done."))
+	      (t
+	       (setq ispell-bad-words nil)
+	       (message "Bad ispell internal list"))))
+    (ispell-dump)))
 
 ;;;###autoload
 (defun ispell-word (&optional resume)
@@ -548,7 +549,7 @@ L lookup; Q quit\n")
 	       (setq flag nil))
 	      ((= c ?q)
 	       (throw 'ispell-quit nil))
-	      ((= c quit-char)
+	      ((= c (nth 3 (current-input-mode)))
 	       (keyboard-quit))
 	      ((= c ? )
 	       (setq flag nil))
