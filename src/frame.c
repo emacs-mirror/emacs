@@ -199,7 +199,7 @@ make_frame (mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
-      buf = Fother_buffer (buf);
+      buf = Fother_buffer (buf, Qnil);
     Fset_window_buffer (root_window, buf);
   }
 
