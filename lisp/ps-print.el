@@ -1181,7 +1181,7 @@ when generating Postscript."
 
 (defcustom ps-auto-font-detect t
   "*Non-nil means automatically detect bold/italic face attributes.
-nil means rely solely on the lists `ps-bold-faces', `ps-italic-faces',
+If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces',
 and `ps-underlined-faces'."
   :type 'boolean
   :group 'ps-print-font)
@@ -3269,14 +3269,13 @@ If FACE is not a valid face name, it is used default face."
 
 (defun ps-face-bold-p (face)
   (if (eq ps-print-emacs-type 'emacs)
-      (ps-emacs-face-kind-p face 'bold "-\\(bold\\|demibold\\)-"
-			    ps-bold-faces)
+      (face-bold-p face)
     (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold"
 			   ps-bold-faces)))
 
 (defun ps-face-italic-p (face)
   (if (eq ps-print-emacs-type 'emacs)
-      (ps-emacs-face-kind-p face 'italic "-[io]-" ps-italic-faces)
+      (face-italic-p face)
     (or
      (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
      (ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces))))
