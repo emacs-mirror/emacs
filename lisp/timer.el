@@ -370,9 +370,11 @@ This function is for compatibility; see also `run-with-timer'."
 ;;;###autoload
 (defun run-with-idle-timer (secs repeat function &rest args)
   "Perform an action the next time Emacs is idle for SECS seconds.
-If REPEAT is non-nil, do this each time Emacs is idle for SECS seconds.
-SECS may be an integer or a floating point number.
 The action is to call FUNCTION with arguments ARGS.
+SECS may be an integer or a floating point number.
+
+If REPEAT is non-nil, do the action each time Emacs has been idle for
+exactly SECS seconds (that is, only once for each time Emacs becomes idle).
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive
