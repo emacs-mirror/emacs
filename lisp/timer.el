@@ -210,7 +210,9 @@ fire repeatedly that many seconds apart."
 	nil)
     (error "Invalid or uninitialized timer")))
 
+;;;###autoload
 (defalias 'disable-timeout 'cancel-timer)
+;;;###autoload
 (defun cancel-timer (timer)
   "Remove TIMER from the list of active timers."
   (or (timerp timer)
