@@ -413,7 +413,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 ;; Prepare the buffer for the compilation parsing commands to work.
 (defun compilation-setup ()
   ;; Make the buffer's mode line show process state.
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (set (make-local-variable 'compilation-error-list) nil)
   (set (make-local-variable 'compilation-old-error-list) nil)
   (set (make-local-variable 'compilation-parsing-end) 1)
@@ -474,7 +474,7 @@ See `compilation-mode'."
 		      (insert " at " (substring (current-time-string) 0 19))
 		      (forward-char 1)
 		      (setq mode-line-process
-			    (concat ": "
+			    (concat ":"
 				    (symbol-name (process-status proc))))
 		      ;; Since the buffer and mode line will show that the
 		      ;; process is dead, we can delete it now.  Otherwise it
