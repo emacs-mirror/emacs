@@ -384,7 +384,7 @@ field boundaries in a natural way)."
   :type 'boolean
   :group 'comint)
 
-(defcustom comint-mode-hook '()
+(defcustom comint-mode-hook '(turn-on-font-lock)
   "Called upon entry into `comint-mode'
 This is run before the process is cranked up."
   :type 'hook
@@ -507,8 +507,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   (set (make-local-variable 'comint-accum-marker) (make-marker))
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
