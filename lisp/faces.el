@@ -928,7 +928,7 @@ of a global face.  Value is the new attribute value."
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
-		   (setq new-value (car (tty-color-desc new-value frame))))
+		 (setq new-value (car (tty-color-desc new-value frame))))
 	       (when (assoc new-value valid)
 		 (setq new-value (cdr (assoc new-value valid)))))))
 	  ((eq valid 'integerp)
