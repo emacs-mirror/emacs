@@ -255,10 +255,12 @@ These hooks have the following distinct roles:
             (let ((buffer-read-only nil)
                   (diary-modified (buffer-modified-p))
                   (mark (regexp-quote diary-nonmarking-symbol)))
+              ;; First and last characters must be ^M or \n for
+              ;; selective display to work properly
               (goto-char (1- (point-max)))
               (if (not (looking-at "\^M\\|\n"))
                   (progn
-                    (forward-char 1)
+                    (goto-char (point-max))
                     (insert-string "\^M")))
               (goto-char (point-min))
               (if (not (looking-at "\^M\\|\n"))
