@@ -34,9 +34,9 @@
   "Turn FORM, a defun or defmacro, into an autoload for source file FILE.
 Returns nil if FORM is not a defun or defmacro."
   (let ((car (car-safe form)))
-    (if (or (eq car 'defun) (eq car 'defmacro))
-	(let (name doc macrop)
-	  (setq macrop (eq car 'defmacro))
+    (if (memq car '(defun defmacro))
+	(let ((macrop (eq car 'defmacro))
+	      name doc)
 	  (setq form (cdr form))
 	  (setq name (car form))
 	  ;; Ignore the arguments.
@@ -146,52 +146,83 @@ are used."
 		    (setq done-any t)
 		    (if (eolp)
 			;; Read the next form and make an autoload.
-			(let* ((form (prog1 (read (current-buffer))
+			(let* ((before (point))
+			       (form (prog1 (read (current-buffer))
 				       (forward-line 1)))
 			       (autoload (make-autoload form load-name))
 			       (doc-string-elt (get (car-safe form)
 						    'doc-string-elt)))
-			  (if autoload
-			      (setq autoloads-done (cons (nth 1 form)
-							 autoloads-done))
-			    (setq autoload form))
-			  (if (and doc-string-elt
-				   (stringp (nth doc-string-elt autoload)))
-			      ;; We need to hack the printing because the
-			      ;; doc-string must be printed specially for
-			      ;; make-docfile (sigh).
-			      (let* ((p (nthcdr (1- doc-string-elt)
-						autoload))
-				     (elt (cdr p)))
-				(setcdr p nil)
-				(princ "\n(" outbuf)
-				(mapcar (function (lambda (elt)
-						    (prin1 elt outbuf)
-						    (princ " " outbuf)))
-					autoload)
-				(princ "\"\\\n" outbuf)
-				(princ (substring
-					(prin1-to-string (car elt)) 1)
-				       outbuf)
-				(if (null (cdr elt))
-				    (princ ")" outbuf)
-				  (princ " " outbuf)
+			  (if (null autoload)
+			      ;; We are copying a defvar or defconst form.
+			      ;; Copy the text instead of printing the form,
+			      ;; so as to preserve the original formatting.
+			      (let ((inbuf (current-buffer))
+				    (after (point)))
+				(save-excursion
+				  (set-buffer outbuf)
+				  ;; Insert the form.
+				  (insert-buffer-substring inbuf before after)
+				  (and doc-string-elt
+				       (stringp (nth doc-string-elt form))
+				       ;; The form has a docstring.
+				       ;; Hack it for make-docfile.
+				       (save-excursion
+					 ;; Move point back to FORM's start.
+					 (backward-char (- after before))
+					 (skip-chars-forward " \t\n")
+					 (or (looking-at "(")
+					     (error "expected ("))
+					 (forward-char 1) ; Skip the paren.
+					 ;; Skip sexps before the docstring.
+					 (forward-sexp doc-string-elt)
+					 (skip-chars-forward " \t")
+					 (if (eolp) (delete-char 1))
+					 (skip-chars-forward " \t")
+					 (or (looking-at "\"")
+					     (error "expected \""))
+					 (forward-char 1) ; Skip the ".
+					 (insert "\\\n"))) ;make-docfile happy.
+				  (goto-char after)))
+			    ;; Write the autoload for this defun or defmacro.
+			    (setq autoloads-done (cons (nth 1 form)
+						       autoloads-done))
+			    (if (and doc-string-elt
+				     (stringp (nth doc-string-elt autoload)))
+				;; We need to hack the printing because the
+				;; doc-string must be printed specially for
+				;; make-docfile (sigh).
+				(let* ((p (nthcdr (1- doc-string-elt)
+						  autoload))
+				       (elt (cdr p)))
+				  (setcdr p nil)
+				  (princ "\n(" outbuf)
+				  (mapcar (function (lambda (elt)
+						      (prin1 elt outbuf)
+						      (princ " " outbuf)))
+					  autoload)
+				  (princ "\"\\\n" outbuf)
 				  (princ (substring
-					  (prin1-to-string (cdr elt))
-					  1)
-					 outbuf))
-				(terpri outbuf))
-			    (print autoload outbuf)))
+					  (prin1-to-string (car elt)) 1)
+					 outbuf)
+				  (if (null (cdr elt))
+				      (princ ")" outbuf)
+				    (princ " " outbuf)
+				    (princ (substring
+					    (prin1-to-string (cdr elt))
+					    1)
+					   outbuf))
+				  (terpri outbuf))
+			      (print autoload outbuf))))
 		      ;; Copy the rest of the line to the output.
 		      (let ((begin (point)))
 			(forward-line 1)
 			(princ (buffer-substring begin (point)) outbuf))))
-			((looking-at ";")
-			 ;; Don't read the comment.
-			 (forward-line 1))
-			(t
-			 (forward-sexp 1)
-			 (forward-line 1)))))))
+		   ((looking-at ";")
+		    ;; Don't read the comment.
+		    (forward-line 1))
+		   (t
+		    (forward-sexp 1)
+		    (forward-line 1)))))))
 	(or visited
 	    ;; We created this buffer, so we should kill it.
 	    (kill-buffer (current-buffer)))
