@@ -1,3 +1,8 @@
+2004-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL.CVS: Add info about ssh/cvs related problems and
+	work-around.
+
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* make-dist: Don't link index.*perm and permute-index into
