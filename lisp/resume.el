@@ -2,8 +2,6 @@
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
-;; This file is not yet part of GNU Emacs, but soon will be.
-
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY.  No author or distributor
 ;; accepts responsibility to anyone for the consequences of using it
