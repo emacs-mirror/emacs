@@ -590,7 +590,12 @@ later you should use choose-color.el *instead* of font-lock-extra.el
 Note that to enable Compile choices in the menu you need to install
 mode-compile.el.
 
-Get perl5-info from
+If your Emacs does not default to `cperl-mode' on Perl files, and you
+want it to: put the following into your .emacs file:
+
+  (defalias 'perl-mode 'cperl-mode)
+
+Get perl5-info from 
   $CPAN/doc/manual/info/perl-info.tar.gz
 older version was on
   http://www.metronet.com:70/9/perlinfo/perl5/manual/perl5-info.tar.gz
@@ -1480,11 +1485,11 @@ or as help on variables `cperl-tips', `cperl-problems',
   (setq	font-lock-defaults
 	(cond
 	 ((string< emacs-version "19.30")
-	  '(perl-font-lock-keywords-2))
+	  '(cperl-font-lock-keywords-2))
 	 ((string< emacs-version "19.33") ; Which one to use?
-	  '((perl-font-lock-keywords
-	     perl-font-lock-keywords-1
-	     perl-font-lock-keywords-2)))
+	  '((cperl-font-lock-keywords
+	     cperl-font-lock-keywords-1
+	     cperl-font-lock-keywords-2)))
 	 (t
 	  '((cperl-load-font-lock-keywords
 	     cperl-load-font-lock-keywords-1
@@ -2994,7 +2999,7 @@ Returns true if comment is found."
     ;; i2: start of the second arg, if any (before delim iff `ender').
     ;; ender: the last arg bounded by parens-like chars, the second one of them
     ;; starter: the starting delimiter of the first arg
-    ;; go-forward: has 2 args, and the second part is empth
+    ;; go-forward: has 2 args, and the second part is empty
     (list i i2 ender starter go-forward)))
 
 (defsubst cperl-postpone-fontification (b e type val &optional now)
@@ -3188,25 +3193,25 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		    ;; We start 'pod 1 char earlier to include the preceding line
 		    (beginning-of-line)
 		    (put-text-property (cperl-1- b) (point) 'syntax-type 'pod)
-		      (cperl-put-do-not-fontify b (point) t)
-		      ;; mark the non-literal parts as PODs
-		      (if cperl-pod-here-fontify
-			  (cperl-postpone-fontification b (point) 'face face t))
+		    (cperl-put-do-not-fontify b (point) t)
+		    ;; mark the non-literal parts as PODs
+		    (if cperl-pod-here-fontify 
+			(cperl-postpone-fontification b (point) 'face face t))
 		    (re-search-forward "\n\n[^ \t\f\n]" e 'toend)
 		    (beginning-of-line)
 		    (setq b (point)))
 		  (put-text-property (cperl-1- (point)) e 'syntax-type 'pod)
-		    (cperl-put-do-not-fontify (point) e t)
-		  (if cperl-pod-here-fontify
-			(progn
-			  ;; mark the non-literal parts as PODs
-			  (cperl-postpone-fontification (point) e 'face face t)
-			     (goto-char bb)
-			     (if (looking-at
-				  "=[a-zA-Z0-9_]+\\>[ \t]*\\(\\(\n?[^\n]\\)+\\)$")
-			      ;; mark the headers
-			      (cperl-postpone-fontification
-				  (match-beginning 1) (match-end 1)
+		  (cperl-put-do-not-fontify (point) e t)
+		  (if cperl-pod-here-fontify 
+		      (progn 
+			;; mark the non-literal parts as PODs
+			(cperl-postpone-fontification (point) e 'face face t)
+			(goto-char bb)
+			(if (looking-at 
+			     "=[a-zA-Z0-9_]+\\>[ \t]*\\(\\(\n?[^\n]\\)+\\)$")
+			    ;; mark the headers
+			    (cperl-postpone-fontification 
+			     (match-beginning 1) (match-end 1)
 				  'face head-face))
 			     (while (re-search-forward
 				     ;; One paragraph
@@ -3214,8 +3219,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 				     e 'toend)
 			    ;; mark the headers
 			    (cperl-postpone-fontification
-				(match-beginning 1) (match-end 1)
-				'face head-face))))
+			   (match-beginning 1) (match-end 1)
+			   'face head-face))))
 		  (cperl-commentify bb e nil)
 		  (goto-char e)
 		  (or (eq e (point-max))
@@ -4307,24 +4312,24 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 "ps-print"
 	 '(or cperl-faces-init (cperl-init-faces))))))
 
-(defvar perl-font-lock-keywords-1 nil
+(defvar cperl-font-lock-keywords-1 nil
   "Additional expressions to highlight in Perl mode.  Minimal set.")
-(defvar perl-font-lock-keywords nil
+(defvar cperl-font-lock-keywords nil
   "Additional expressions to highlight in Perl mode.  Default set.")
-(defvar perl-font-lock-keywords-2 nil
+(defvar cperl-font-lock-keywords-2 nil
   "Additional expressions to highlight in Perl mode.  Maximal set")
 
 (defun cperl-load-font-lock-keywords ()
   (or cperl-faces-init (cperl-init-faces))
-  perl-font-lock-keywords)
+  cperl-font-lock-keywords)
 
 (defun cperl-load-font-lock-keywords-1 ()
   (or cperl-faces-init (cperl-init-faces))
-  perl-font-lock-keywords-1)
+  cperl-font-lock-keywords-1)
 
 (defun cperl-load-font-lock-keywords-2 ()
   (or cperl-faces-init (cperl-init-faces))
-  perl-font-lock-keywords-2)
+  cperl-font-lock-keywords-2)
 
 (defun cperl-init-faces-weak ()
   ;; Allow `cperl-find-pods-heres' to run.
@@ -4529,15 +4534,15 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		  ;; (if (cperl-slash-is-regexp)
 		  ;;    font-lock-function-name-face 'default) nil t))
 		  )))
-	  (setq perl-font-lock-keywords-1
+	  (setq cperl-font-lock-keywords-1
 		(if cperl-syntaxify-by-font-lock
 		    (cons 'cperl-fontify-update
 			  t-font-lock-keywords)
 		  t-font-lock-keywords)
-		perl-font-lock-keywords perl-font-lock-keywords-1
-		perl-font-lock-keywords-2 (append
-					   perl-font-lock-keywords-1
-					   t-font-lock-keywords-1)))
+		cperl-font-lock-keywords cperl-font-lock-keywords-1
+		cperl-font-lock-keywords-2 (append
+					    cperl-font-lock-keywords-1
+					    t-font-lock-keywords-1)))
 	(if (fboundp 'ps-print-buffer) (cperl-ps-print-init))
 	(if (or (featurep 'choose-color) (featurep 'font-lock-extra))
 	    (eval			; Avoid a warning
@@ -6622,14 +6627,14 @@ We suppose that the regexp is scanned already."
       (cond
        ((match-beginning 1)		; #-comment
 	(or c (setq c (current-indentation)))
-	(beginning-of-line 2)		; Skip
-	(setq s (point))
-	(skip-chars-forward " \t")
-	(delete-region s (point))
-	(indent-to-column c))
-       (t
-	(delete-char -1)
-	(just-one-space))))))
+	  (beginning-of-line 2)		; Skip
+	  (setq s (point))
+	  (skip-chars-forward " \t")
+	  (delete-region s (point))
+	  (indent-to-column c))
+	 (t
+	  (delete-char -1)
+	  (just-one-space))))))
 
 (defun cperl-contract-levels ()
   "Find an enclosing group in regexp and contract all the kids.
@@ -6639,13 +6644,13 @@ We suppose that the regexp is scanned already."
   (condition-case nil
       (cperl-regext-to-level-start)
     (error				; We are outside outermost group
-     (goto-char (cperl-make-regexp-x))))
-  (let ((b (point)) (e (make-marker)) s c)
-    (forward-sexp 1)
-    (set-marker e (1- (point)))
-    (goto-char (1+ b))
-    (while (re-search-forward "\\(\\\\\\\\\\)\\|(" e t)
-      (cond
+       (goto-char (cperl-make-regexp-x))))
+    (let ((b (point)) (e (make-marker)) s c)
+      (forward-sexp 1)
+      (set-marker e (1- (point)))
+      (goto-char (1+ b))
+      (while (re-search-forward "\\(\\\\\\\\\\)\\|(" e t)
+	(cond 
        ((match-beginning 1)		; Skip
 	nil)
        (t				; Group
