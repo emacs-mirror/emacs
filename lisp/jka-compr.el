@@ -297,8 +297,10 @@ to keep: LEN chars starting BEG chars from the beginning."
 (defun jka-compr-call-process (prog message infile output temp args)
   (if jka-compr-use-shell
 
-      (let ((err-file (jka-compr-make-temp-name)))
-	    
+      (let ((err-file (jka-compr-make-temp-name))
+	    (coding-system-for-read 'undecided)
+            (coding-system-for-write 'no-conversion) )
+
 	(unwind-protect
 
 	    (or (memq
@@ -438,11 +440,14 @@ There should be no more than seven characters after the final `/'."
 				    compress-args)
 
 	    (with-current-buffer temp-buffer
-	      (jka-compr-run-real-handler 'write-region
-					  (list (point-min) (point-max)
-						filename
-						(and append can-append) 'dont))
-	      (erase-buffer))
+              (let ((coding-system-for-write 'no-conversion))
+                (if (memq system-type '(ms-dos windows-nt))
+                    (setq buffer-file-type t) )
+                (jka-compr-run-real-handler 'write-region
+                                            (list (point-min) (point-max)
+                                                  filename
+                                                  (and append can-append) 'dont))
+                (erase-buffer)) )
 
 	    (jka-compr-delete-temp-file temp-file)
 
@@ -490,7 +495,8 @@ There should be no more than seven characters after the final `/'."
 	      (local-copy
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
-	      size start)
+	      size start
+              (coding-system-for-read 'undecided) )
 
 	  (setq local-file (or local-copy filename))
 
