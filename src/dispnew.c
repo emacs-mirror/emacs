@@ -2549,6 +2549,22 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
   term_init (terminal_type);
 
+  {
+    int width = FRAME_WINDOW_WIDTH (selected_frame);
+    int height = FRAME_HEIGHT (selected_frame);
+
+    unsigned int total_glyphs = height * (width + 2) * sizeof (GLYPH);
+
+    /* If these sizes are so big they cause overflow,
+       just ignore the change.  It's not clear what better we could do.  */
+    if (total_glyphs / sizeof (GLYPH) / height != width + 2)
+      {
+	fprintf (stderr, "emacs: screen size %dx%d too big\n,",
+		 width, height);
+	exit (1);
+      }
+  }
+
   remake_frame_glyphs (selected_frame);
   calculate_costs (selected_frame);
 
