@@ -1,5 +1,8 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
+;; Maintainer: FSF
+;; Last-Modified: 1 Mar 1991
+
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ;; Temporary until Emacs always has this variable.
 (defvar rmail-delete-after-output nil

@@ -1,5 +1,8 @@
 ;;; replace.el --- replace commands for Emacs.
 
+;; Maintainer: FSF
+;; Last-Modified: 9 Jul 1992
+
 ;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 92 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defconst case-replace t "\
 *Non-nil means query-replace should preserve case in replacements.")
