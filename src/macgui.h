@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.  */
 
 typedef int Display;  /* fix later */
 
-typedef char * XrmDatabase;  /* fix later */
+typedef Lisp_Object XrmDatabase;
 
 typedef unsigned long Time;
 
