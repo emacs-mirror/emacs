@@ -1,6 +1,7 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 97 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
