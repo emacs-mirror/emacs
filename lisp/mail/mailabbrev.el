@@ -405,6 +405,19 @@ This is not actually made the current syntax table of the buffer, but
 simply controls the set of characters which may be a part of the name
 of a mail alias.  The value is set up, buffer-local, when first needed.")
 
+(defun mail-abbrev-make-syntax-table ()
+  (make-local-variable 'mail-abbrev-syntax-table)
+  (unless mail-abbrev-syntax-table
+    (let ((tab (copy-syntax-table old-syntax-table))
+	  (_ (aref (standard-syntax-table) ?_))
+	  (w (aref (standard-syntax-table) ?w)))
+      (map-char-table
+       (function (lambda (key value)
+		   (if (equal value _)
+		       (set-char-table-range tab key w))))
+       tab)
+      (modify-syntax-entry ?@ "w" tab)
+      (setq mail-abbrev-syntax-table tab))))
 
 (defun mail-abbrev-in-expansion-header-p ()
   "Whether point is in a mail-address header field."
@@ -459,18 +472,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	     ;;      expand-abbrev, and not as a result of the call to
 	     ;;      expand-abbrev which invoked *us*.
 
-	     (make-local-variable 'mail-abbrev-syntax-table)
-	     (unless mail-abbrev-syntax-table
-	       (let ((tab (copy-syntax-table old-syntax-table))
-		     (_ (aref (standard-syntax-table) ?_))
-		     (w (aref (standard-syntax-table) ?w)))
-		 (map-char-table
-		  (function (lambda (key value)
-			      (if (equal value _)
-				  (set-char-table-range tab key w))))
-		  tab)
-		 (modify-syntax-entry ?@ "w" tab)
-		 (setq mail-abbrev-syntax-table tab)))
+	     (mail-abbrev-make-syntax-table)
 
 	     ;; If the character just typed was non-alpha-symbol-syntax,
 	     ;; then don't expand the abbrev now (that is, don't expand
