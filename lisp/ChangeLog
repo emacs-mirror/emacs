@@ -1,3 +1,13 @@
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/cal-menu.el (top level): Delete local C-down-mouse-3
+	binding.  Suggested by Stephan Stahl <stahl@eos.franken.de>.
+
+	* calendar/cal-move.el (calendar-beginning-of-year): Move the
+	cursor to Jan 1 when needed.
+	(calendar-end-of-year): Fix -/+ typo.
+	Reported by Chong Yidong <cyd@stupidchicken.com>.
+
 2005-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-mode): Add autoload cookie.
