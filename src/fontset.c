@@ -435,7 +435,7 @@ fontset_pattern_regexp (pattern)
 	      *p1++ = '*';
 	    }
 	  else if (*p0 == '?')
-	    *p1++ == '.';
+	    *p1++ = '.';
 	  else
 	    *p1++ = *p0;
 	}
