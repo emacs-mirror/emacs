@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 01, 2003
+   Copyright (C) 1985,86,93,94,95,97,98,99,2000,01,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
