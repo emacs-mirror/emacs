@@ -1,3 +1,7 @@
+2000-07-14  Dave Love  <fx@gnu.org>
+
+	* syntax.c (back_comment): Add null default in switch for pcc.
+
 2000-07-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (realize_x_face): Make fontset using the base of the
