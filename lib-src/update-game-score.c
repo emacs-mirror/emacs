@@ -254,6 +254,8 @@ read_score(FILE *f, struct score_entry *score)
     if (getdelim(&score->username, &count, ' ', f) < 1
 	|| score->username == NULL)
       return -1;
+    /* Trim the space */
+    score->username[strlen(score->username)-1] = '\0';
   }
 #else
   {
