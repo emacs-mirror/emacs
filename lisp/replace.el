@@ -446,7 +446,7 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
 `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
-`automatic', `backup', and `help'.")
+`automatic', `backup', `exit-prefix', and `help'.")
 
 (define-key query-replace-map " " 'act)
 (define-key query-replace-map "\d" 'skip)
@@ -470,6 +470,8 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "?" 'help)
 (define-key query-replace-map "\C-g" 'quit)
 (define-key query-replace-map "\C-]" 'quit)
+(define-key query-replace-map "\e" 'exit-prefix)
+(define-key query-replace-map [escape] 'exit-prefix)
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
@@ -626,7 +628,11 @@ which will run faster and probably do exactly what you want."
 			(prog1 (match-data)
 			  (save-excursion (recursive-edit))))
 		       (setq replaced t))
+		      ;; Note: we do not need to treat `exit-prefix'
+		      ;; specially here, since we reread
+		      ;; any unrecognized character.
 		      (t
+		       (setq this-command 'mode-exited)
 		       (setq keep-going nil)
 		       (setq unread-command-events
 			     (append (listify-key-sequence key)
