@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.42) $
+ * $HopeName: MMsrc!poolams.c(trunk.43) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -20,11 +20,12 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.42) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.43) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
+
 
 
 /* AMSSegCheck -- check an AMS segment */
@@ -55,6 +56,65 @@ Bool AMSSegCheck(AMSSeg amsseg)
 }
 
 
+/* AMSCreateTables -- create the tables for an AMS seg */
+
+static Res AMSCreateTables(BT *allocReturn, 
+                           BT *nongreyReturn, 
+                           BT *nonwhiteReturn,
+                           Arena arena, Count length)
+{
+  Res res;
+  BT allocTable, nongreyTable, nonwhiteTable;
+
+  AVER(allocReturn != NULL);
+  AVER(nongreyReturn != NULL);
+  AVER(nonwhiteReturn != NULL);
+  AVERT(Arena, arena);
+  AVER(length > 0);
+
+  res = BTCreate(&allocTable, arena, length);
+  if(res != ResOK)
+    goto failAlloc;
+  res = BTCreate(&nongreyTable, arena, length);
+  if(res != ResOK)
+    goto failGrey;
+  res = BTCreate(&nonwhiteTable, arena, length);
+  if(res != ResOK)
+    goto failWhite;
+
+  *allocReturn = allocTable;
+  *nongreyReturn = nongreyTable;
+  *nonwhiteReturn = nonwhiteTable;
+  return ResOK;
+
+failWhite:
+  BTDestroy(nongreyTable, arena, length);
+failGrey:
+  BTDestroy(allocTable, arena, length);
+failAlloc:
+  return res;
+}
+
+
+/* AMSDestroyTables -- destroy the tables for an AMS seg */
+
+static void AMSDestroyTables(BT allocTable, 
+                             BT nongreyTable, 
+                             BT nonwhiteTable,
+                             Arena arena, Count length)
+{
+  AVER(allocTable != NULL);
+  AVER(nongreyTable != NULL);
+  AVER(nonwhiteTable != NULL);
+  AVERT(Arena, arena);
+  AVER(length > 0);
+
+  BTDestroy(nonwhiteTable, arena, length);
+  BTDestroy(nongreyTable, arena, length);
+  BTDestroy(allocTable, arena, length);
+}
+
+
 /* AMSSegInit -- Init method for AMS segments */
 
 static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, 
@@ -79,24 +139,19 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   super = EnsureGCSegClass();
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
-    return res;
+    goto failNextMethod;
 
   amsseg->grains = size >> ams->grainShift;
   amsseg->free = amsseg->grains;
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   amsseg->ambiguousFixes = FALSE;
 
-  res = BTCreate(&amsseg->allocTable, arena, amsseg->grains);
+  res = AMSCreateTables(&amsseg->allocTable, 
+                        &amsseg->nongreyTable, 
+                        &amsseg->nonwhiteTable,
+                        arena, amsseg->grains);
   if(res != ResOK)
-    goto failAlloc;
-
-  res = BTCreate(&amsseg->nongreyTable, arena, amsseg->grains);
-  if(res != ResOK)
-    goto failGrey;
-
-  res = BTCreate(&amsseg->nonwhiteTable, arena, amsseg->grains);
-  if(res != ResOK)
-    goto failWhite;
+    goto failCreateTables;
 
   /* start off using firstFree, see design.mps.poolams.no-bit */
   amsseg->allocTableInUse = FALSE;
@@ -114,12 +169,9 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   return ResOK;
 
-  /* keep the destructions in step with AMSSegFinish */
-failWhite:
-  BTDestroy(amsseg->nongreyTable, arena, amsseg->grains);
-failGrey:
-  BTDestroy(amsseg->allocTable, arena, amsseg->grains);
-failAlloc:
+failCreateTables:
+  super->finish(seg);
+failNextMethod:
   return res;
 }
 
@@ -142,9 +194,8 @@ static void AMSSegFinish(Seg seg)
   AVER(SegBuffer(seg) == NULL);
 
   /* keep the destructions in step with AMSSegInit failure cases */
-  BTDestroy(amsseg->nonwhiteTable, arena, amsseg->grains);
-  BTDestroy(amsseg->nongreyTable, arena, amsseg->grains);
-  BTDestroy(amsseg->allocTable, arena, amsseg->grains);
+  AMSDestroyTables(amsseg->allocTable, amsseg->nongreyTable, 
+                   amsseg->nonwhiteTable, arena, amsseg->grains);
 
   RingRemove(&amsseg->segRing);
   RingFinish(&amsseg->segRing);
@@ -158,6 +209,215 @@ static void AMSSegFinish(Seg seg)
   super->finish(seg);
 }  
 
+
+/* AMSSegMerge & AMSSegSplit -- AMSSeg split & merge methods
+ *
+ * See design.mps.poolams.split-merge.constrain.
+ *
+ * .empty: segment merging and splitting is limited to simple cases
+ * where the high segment is empty.
+ *
+ * .grain-align: segment merging and splitting is limited to cases
+ * where the join is aligned with the grain alignment
+ *
+ * .alloc-early: Allocations are performed before calling the 
+ * next method to simplify the fail cases. See
+ * design.mps.seg.split-merge.fail
+ *
+ * .table-names: The names of local variables holding the new
+ * allocation and colour tables are chosen to have names which
+ * are derivable from the field names for tables in AMSSegStruct.
+ * (I.e. allocTable, nongreyTable, nonwhiteTable). This simplifies
+ * processing of all such tables by a macro.
+ */
+
+static Res AMSSegMerge(Seg seg, Seg segHi, 
+                       Addr base, Addr mid, Addr limit,
+                       Bool withReservoirPermit, va_list args)
+{
+  SegClass super;
+  Count loGrains, hiGrains, allGrains;
+  AMSSeg amsseg, amssegHi;
+  Arena arena;
+  AMS ams;
+  BT allocTable, nongreyTable, nonwhiteTable;   /* .table-names */
+  Res res;
+
+  AVERT(Seg, seg);
+  AVERT(Seg, segHi);
+  amsseg = SegAMSSeg(seg);
+  amssegHi = SegAMSSeg(segHi);
+  AVERT(AMSSeg, amsseg);
+  AVERT(AMSSeg, amssegHi);
+  /* other parameters are checked by next-method */
+  arena = PoolArena(SegPool(seg));
+  ams = PoolPoolAMS(SegPool(seg));
+
+  loGrains = amsseg->grains;
+  hiGrains = amssegHi->grains;
+  allGrains = loGrains + hiGrains;
+
+  /* checks for .grain-align */
+  AVER(allGrains == AddrOffset(base, limit) >> ams->grainShift);
+  /* checks for .empty */
+  AVER(amssegHi->free == hiGrains);
+  AVER(!amssegHi->marksChanged);
+
+  /* .alloc-early  */
+  res = AMSCreateTables(&allocTable, &nongreyTable, &nonwhiteTable,
+                        arena, allGrains);
+  if(res != ResOK)
+    goto failCreateTables;
+
+  /* Merge the superclass fields via next-method call */
+  super = EnsureGCSegClass();
+  res = super->merge(seg, segHi, base, mid, limit, 
+                     withReservoirPermit, args);
+  if(res != ResOK)
+    goto failSuper;
+
+  /* Update fields of seg. Finish segHi. */
+
+#define MERGE_TABLES(table, setHighRangeFn) \
+  /* Implementation depends on .table-names */ \
+  BEGIN \
+    BTCopyRange(amsseg->table, (table), 0, loGrains); \
+    setHighRangeFn((table), loGrains, allGrains); \
+    BTDestroy(amsseg->table, arena, loGrains); \
+    BTDestroy(amssegHi->table, arena, hiGrains); \
+    amsseg->table = (table); \
+  END
+
+  MERGE_TABLES(nonwhiteTable, BTSetRange);
+  MERGE_TABLES(nongreyTable, BTSetRange);
+  MERGE_TABLES(allocTable, BTResRange);
+
+  amsseg->grains = allGrains;
+  amsseg->free = amsseg->free + amssegHi->free;
+  /* other fields in amsseg are unaffected */
+
+  RingRemove(&amssegHi->segRing);
+  RingFinish(&amssegHi->segRing);
+  amssegHi->sig = SigInvalid;
+
+  AVERT(AMSSeg, amsseg);
+  return ResOK;
+
+failSuper:
+  AMSDestroyTables(allocTable, nongreyTable, nonwhiteTable, 
+                   arena, allGrains);
+failCreateTables:
+  AVERT(AMSSeg, amsseg);
+  AVERT(AMSSeg, amssegHi);
+  return res;
+}
+
+
+static Res AMSSegSplit(Seg seg, Seg segHi, 
+                       Addr base, Addr mid, Addr limit,
+                       Bool withReservoirPermit, va_list args)
+{
+  SegClass super;
+  Count loGrains, hiGrains, allGrains;
+  AMSSeg amsseg, amssegHi;
+  Arena arena;
+  AMS ams;
+  BT allocTableLo, nongreyTableLo, nonwhiteTableLo; /* .table-names */
+  BT allocTableHi, nongreyTableHi, nonwhiteTableHi; /* .table-names */
+  Res res;
+
+  AVERT(Seg, seg);
+  AVER(segHi != NULL);  /* can't check fully, it's not initialized */
+  amsseg = SegAMSSeg(seg);
+  amssegHi = SegAMSSeg(segHi);
+  AVERT(AMSSeg, amsseg);
+  /* other parameters are checked by next-method */
+  arena = PoolArena(SegPool(seg));
+  ams = PoolPoolAMS(SegPool(seg));
+
+  loGrains = AMSGrains(ams, AddrOffset(base, mid)); 
+  hiGrains = AMSGrains(ams, AddrOffset(mid, limit)); 
+  allGrains = loGrains + hiGrains;
+
+  /* checks for .grain-align */
+  AVER(allGrains == amsseg->grains);
+  /* checks for .empty */
+  AVER(amsseg->free >= hiGrains);
+  if(amsseg->allocTableInUse) {
+    AVER(BTIsResRange(amsseg->allocTable, loGrains, allGrains));
+  } else {
+    AVER(amsseg->firstFree <= loGrains);
+  }
+
+  /* .alloc-early */
+  res = AMSCreateTables(&allocTableLo, &nongreyTableLo, &nonwhiteTableLo,
+                        arena, loGrains);
+  if(res != ResOK)
+    goto failCreateTablesLo;
+  res = AMSCreateTables(&allocTableHi, &nongreyTableHi, &nonwhiteTableHi,
+                        arena, hiGrains);
+  if(res != ResOK)
+    goto failCreateTablesHi;
+
+
+  /* Split the superclass fields via next-method call */
+  super = EnsureGCSegClass();
+  res = super->split(seg, segHi, base, mid, limit, 
+                     withReservoirPermit, args);
+  if(res != ResOK)
+    goto failSuper;
+
+  /* Update seg. Full initialization for segHi. */
+
+#define SPLIT_TABLES(table, setHighRangeFn) \
+  /* Implementation depends on .table-names */ \
+  BEGIN \
+    BTCopyRange(amsseg->table, table ## Lo, 0, loGrains); \
+    setHighRangeFn(table ## Hi, 0, hiGrains); \
+    BTDestroy(amsseg->table, arena, allGrains); \
+    amsseg->table = table ## Lo; \
+    amssegHi->table = table ## Hi; \
+  END 
+
+  SPLIT_TABLES(nonwhiteTable, BTSetRange);
+  SPLIT_TABLES(nongreyTable, BTSetRange);
+  SPLIT_TABLES(allocTable, BTResRange);
+
+  amsseg->grains = loGrains;
+  amssegHi->grains = hiGrains;
+  amsseg->free -= hiGrains;
+  amssegHi->free = hiGrains;
+  amssegHi->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
+  amssegHi->ambiguousFixes = FALSE;
+
+  /* start off using firstFree, see design.mps.poolams.no-bit */
+  amssegHi->allocTableInUse = FALSE;
+  amssegHi->firstFree = 0;
+  /* use colour tables if the segment is white */
+  amssegHi->colourTablesInUse = (SegWhite(segHi) != TraceSetEMPTY);
+
+  amssegHi->ams = ams;
+  RingInit(&amssegHi->segRing);
+  RingAppend((ams->allocRing)(ams, SegRankSet(segHi), SegSize(segHi)),
+             &amssegHi->segRing);
+
+  amssegHi->sig = AMSSegSig;
+  AVERT(AMSSeg, amsseg);
+  AVERT(AMSSeg, amssegHi);
+  return ResOK;
+
+failSuper:
+  AMSDestroyTables(allocTableHi, nongreyTableHi, nonwhiteTableHi, 
+                   arena, hiGrains);
+failCreateTablesHi:
+  AMSDestroyTables(allocTableLo, nongreyTableLo, nonwhiteTableLo, 
+                   arena, loGrains);
+failCreateTablesLo:
+  AVERT(AMSSeg, amsseg);
+  return res;
+}
+
+
 /* AMSSegDescribe -- describe an AMS segment */
 
 #define WRITE_BUFFER_LIMIT(stream, seg, i, buffer, accessor, char) \
@@ -168,7 +428,6 @@ static void AMSSegFinish(Seg seg)
       if(_res != ResOK) return _res; \
     } \
   END
-
 
 static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
 {
@@ -268,6 +527,8 @@ DEFINE_CLASS(AMSSegClass, class)
   class->size = sizeof(AMSSegStruct);
   class->init = AMSSegInit;
   class->finish = AMSSegFinish;
+  class->merge = AMSSegMerge;
+  class->split = AMSSegSplit;
   class->describe = AMSSegDescribe;
 }
 
