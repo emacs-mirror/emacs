@@ -183,31 +183,32 @@
 ;;;  User Configurable Variables
 ;;;
 
-;; For backward compatibility to Emacs 19, use defvar if defcustom is
-;; not defined.
-(if (fboundp 'defcustom)
-    (progn
-      (defcustom edt-keep-current-page-delimiter nil
-	"*Emacs MUST be restarted for a change in value to take effect!
+;; For backward compatibility to Emacs 19.
+(or (fboundp 'defcustom)
+    (defmacro defcustom (var value doc &rest ignore)
+      `(defvar ,var ,value ,doc)))
+
+(defcustom edt-keep-current-page-delimiter nil
+  "*Emacs MUST be restarted for a change in value to take effect!
 Non-nil leaves Emacs value of `page-delimiter' unchanged within EDT
 Emulation.  If set to nil (the default), the `page-delimiter' variable
 is set to \"\\f\" when edt-emulation-on is first invoked.  This
 setting replicates EDT's page delimiter behavior.  The original value
 is restored when edt-emulation-off is called."
-	:type 'boolean
-	:group 'edt)
+  :type 'boolean
+  :group 'edt)
       
-      (defcustom edt-use-EDT-control-key-bindings nil
-	"*Emacs MUST be restarted for a change in value to take effect!
+(defcustom edt-use-EDT-control-key-bindings nil
+  "*Emacs MUST be restarted for a change in value to take effect!
 Non-nil causes the control key bindings to be replaced with EDT
 bindings.  If set to nil (the default), EDT control key bindings are
 not used and the current Emacs control key bindings are retained for
 use within the EDT emulation."
-	:type 'boolean
-	:group 'edt)
+  :type 'boolean
+  :group 'edt)
 
-      (defcustom edt-word-entities '(?\t)
-	"*Specifies the list of EDT word entity characters.  
+(defcustom edt-word-entities '(?\t)
+  "*Specifies the list of EDT word entity characters.  
 The default list, (\?\\t), contains just the TAB character, which
 emulates EDT.  Characters are specified in the list using their
 decimal ASCII values.  A question mark, followed by the actual
@@ -228,68 +229,22 @@ representations, which you can also use:
 
 In EDT Emulation movement-by-word commands, each character in the list
 will be treated as if it were a separate word."
-	:type '(repeat integer)
-	:group 'edt)
+  :type '(repeat integer)
+  :group 'edt)
 
-      (defcustom edt-top-scroll-margin 10
-	"*Scroll margin at the top of the screen.  
+(defcustom edt-top-scroll-margin 10
+  "*Scroll margin at the top of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 10%.  If set to 0, top scroll margin is disabled."
-	:type 'integer
-	:group 'edt)
+  :type 'integer
+  :group 'edt)
 
-      (defcustom edt-bottom-scroll-margin 15
-	"*Scroll margin at the bottom of the screen.
+(defcustom edt-bottom-scroll-margin 15
+  "*Scroll margin at the bottom of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 15%.  If set to 0, bottom scroll margin is disabled."
-	:type 'integer
-	:group 'edt))
-  (progn
-    (defvar edt-keep-current-page-delimiter nil
-      "*Non-nil leaves Emacs value of `page-delimiter' unchanged within EDT
-Emulation.  If set to nil (the default), the `page-delimiter' variable
-is set to \"\\f\" when edt-emulation-on is first invoked.  This
-setting replicates EDT's page delimiter behavior.  The original value
-is restored when edt-emulation-off is called.")
-
-    (defvar edt-use-EDT-control-key-bindings nil
-      "*Non-nil causes the control key bindings to be replaced with EDT
-bindings.  If set to nil (the default), EDT control key bindings are
-not used and the current Emacs control key bindings are retained for
-use within the EDT emulation.")
-
-    (defvar edt-word-entities '(?\t)
-      "*Specifies the list of EDT word entity characters.  
-The default list, (\?\\t), contains just the TAB character, which
-emulates EDT.  Characters are specified in the list using their
-decimal ASCII values.  A question mark, followed by the actual
-character, can be used to indicate the numerical value of the
-character, instead of the actual decimal value.  So, ?A means the
-numerical value for the letter A, \?/ means the numerical value for /,
-etc.  Several unprintable and special characters have special
-representations, which you can also use:
-
-            \?\\b  specifies  BS, C-h
-            \?\\t  specifies  TAB, C-i
-            \?\\n  specifies  LFD, C-j
-            \?\\v  specifies  VTAB, C-k
-            \?\\f  specifies  FF, C-l
-            \?\\r  specifies  CR, C-m
-            \?\\e  specifies  ESC, C-[
-            \?\\\\  specifies  \\
-
-In EDT Emulation movement-by-word commands, each character in the list
-will be treated as if it were a separate word.")
-
-    (defvar edt-top-scroll-margin 10
-      "*Scroll margin at the top of the screen.
-Interpreted as a percent of the current window size with a default
-setting of 10%.  If set to 0, top scroll margin is disabled.")
-
-    (defvar edt-bottom-scroll-margin 15
-      "*Scroll margin at the bottom of the screen.
-Interpreted as a percent of the current window size with a default
-setting of 15%.  If set to 0, bottom scroll margin is disabled.")))
+  :type 'integer
+  :group 'edt)
 
 ;;;
 ;;; Internal Variables
