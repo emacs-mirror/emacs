@@ -1446,10 +1446,13 @@ create_process (process, new_argv, current_dir)
 	  }
 #endif /* TIOCNOTTY */
 
-#if !defined (RTU) && !defined (UNIPLUS)
-#if !(defined (HAVE_SETSID) && defined (TIOCSCTTY))
+#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
 /*** There is a suggestion that this ought to be a
-     conditional on TIOCSPGRP.  */
+     conditional on TIOCSPGRP,
+     or !(defined (HAVE_SETSID) && defined (TIOCSCTTY)).
+     Trying the latter gave the wrong results on Debian GNU/Linux 1.1;
+     that system does seem to need this code, even though
+     both HAVE_SETSID and TIOCSCTTY are defined.  */
 	/* Now close the pty (if we had it open) and reopen it.
 	   This makes the pty the controlling terminal of the subprocess.  */
 	if (pty_flag)
@@ -1476,8 +1479,7 @@ create_process (process, new_argv, current_dir)
 	    ioctl (xforkout, TIOCSPGRP, &pgrp);
 #endif
 	  }
-#endif /* not (HAVE_SETSID and TIOCSCTTY) */
-#endif /* not UNIPLUS and not RTU */
+#endif /* not UNIPLUS and not RTU and not DONT_REOPEN_PTY */
 
 #ifdef SETUP_SLAVE_PTY
 	if (pty_flag)
