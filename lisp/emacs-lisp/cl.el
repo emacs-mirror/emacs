@@ -552,6 +552,9 @@ Keywords supported:  :test :test-not :key"
   "Non-nil means don't make CL functions autoload.")
 
 ;;; Autoload the other portions of the package.
+;; We want to replace the basic versions of dolist, dotimes below.
+(fmakunbound 'dolist)
+(fmakunbound 'dotimes)
 (mapcar (function
 	 (lambda (set)
 	   (let ((file (if cl-fake-autoloads "<none>" (car set))))
