@@ -296,10 +296,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.31 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.32 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.31 1997/06/11 21:07:22 rms Exp rms $")
+  $Id: forms.el,v 2.32 1997/08/19 04:55:58 rms Exp rms $")
 
 (defcustom forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode."
@@ -327,11 +327,9 @@
 (defvar forms-field-sep "\t"
   "Field separator character (default TAB).")
 
-(defcustom forms-read-only nil
-  "*Non-nil means: visit the file in view (read-only) mode.
-\(Default is to allow write access on the data file)."
-  :group 'forms
-  :type 'boolean)
+(defvar forms-read-only nil
+  "Non-nil means: visit the file in view (read-only) mode.
+This is set automatically based on the file permissions.")
 
 (defvar forms-multi-line "\C-k" "\
 If not nil: use this character to separate multi-line fields (default C-k).")
