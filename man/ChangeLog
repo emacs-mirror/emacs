@@ -1,3 +1,8 @@
+1999-10-23  Paul Eggert  <eggert@twinsun.com>
+
+	* mule.texi, cmdargs.texi:
+	Describe new functions and variables for locales.
+
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (faq): use ../info/emacs-faq.info (as specified in the
