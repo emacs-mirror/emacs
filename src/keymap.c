@@ -1103,12 +1103,12 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
       if (CONSP (c))
 	{
-	  /* C may be a cons (FROM . TO) specifying a range of
-	     characters.  */
-	  if (CHARACTERP (XCAR (c)))
-	    CHECK_CHARACTER_CDR (c);
-	  else if (lucid_event_type_list_p (c))
+	  /* C may be a Lucid style event type list or a cons (FROM .
+	     TO) specifying a range of characters.  */
+	  if (lucid_event_type_list_p (c))
 	    c = Fevent_convert_list (c);
+	  else if (CHARACTERP (XCAR (c)))
+	    CHECK_CHARACTER_CDR (c);
 	}
 
       if (SYMBOLP (c))
