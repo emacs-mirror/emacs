@@ -1,3 +1,8 @@
+2000-10-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (x_draw_box_rect): Fix the calculation of width and
+	height for XFillRectangle.
+
 2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (Fstring_to_syntax): New function extracted from
