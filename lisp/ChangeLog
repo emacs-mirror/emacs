@@ -1,3 +1,8 @@
+2000-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-font-lock-keywords): Allow tabs and spaces,
+	for instance for the case that tab-width is 2.
+
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* toolbar/toolbar.el (toolbar-like-menu-item): Like in
