@@ -109,6 +109,12 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 #define NOT_C_CODE
 #include "../src/config.h"
 
+/* We won't really call alloca;
+   don't let the file name alloca.c get messed up.  */
+#ifdef alloca
+#undef alloca
+#endif
+
 /* Some s/*.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
