@@ -377,6 +377,11 @@ With prefix argument, don't jump to global mark when cancelling it."
   (define-key cua--global-mark-keymap [remap backward-delete-char-untabify] 'cua-delete-backward-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap self-insert-command]	'cua-insert-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap self-insert-iso]		'cua-insert-char-at-global-mark)
+
+  ;; Catch self-inserting characters which are "stolen" by other modes
+  (define-key cua--global-mark-keymap [t]
+    '(menu-item "sic" cua-insert-char-at-global-mark :filter cua--self-insert-char-p))
+
   (define-key cua--global-mark-keymap [remap newline]			'cua-insert-newline-at-global-mark)
   (define-key cua--global-mark-keymap [remap newline-and-indent]	'cua-insert-newline-at-global-mark)
   (define-key cua--global-mark-keymap "\r"				'cua-insert-newline-at-global-mark)
