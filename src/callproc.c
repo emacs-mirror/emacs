@@ -52,7 +52,7 @@ extern char *sys_errlist[];
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
-#include "paths.h"
+#include <paths.h>
 #include "process.h"
 #include "syssignal.h"
 

@@ -34,7 +34,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* USG */
 
 #include "lisp.h"
-#include "paths.h"
+#include <paths.h>
 #include "buffer.h"
 
 extern int errno;

@@ -29,7 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef standalone
 #include "buffer.h"
-#include "paths.h"
+#include <paths.h>
 #include "commands.h"
 #include "keyboard.h"
 #include "termhooks.h"
