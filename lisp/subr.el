@@ -1937,6 +1937,10 @@ in BODY."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar after-change-major-mode-hook nil
+  "Mode independent hook run after changing major modes.
+This is run just before the mode dependent hooks.")
+
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
 Execution is delayed if `delay-mode-hooks' is non-nil.
@@ -1948,6 +1952,7 @@ Major mode functions should use this."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
+    (run-hooks 'after-change-major-mode-hook)
     (apply 'run-hooks hooks)))
 
 (defmacro delay-mode-hooks (&rest body)
