@@ -1033,34 +1033,30 @@ Show the buffer in another window, but don't select it."
    (format "*Customize Option: %s*" (custom-unlispify-tag-name symbol))))
 
 ;;;###autoload
-(defun customize-face (&optional symbol)
+(defun customize-face (&optional face)
   "Customize SYMBOL, which should be a face name or nil.
 If SYMBOL is nil, customize all faces.
 
 Interactively, when point is on text which has a face specified,
 suggest to customized that face, if it's customizable."
   (interactive
-   (list
-    (let ((face (get-char-property (point) 'face)))
-      (if (and face (symbolp face))
-	  (completing-read (format "Customize face (default `%s'): " face)
-			   obarray 'custom-facep t nil nil (symbol-name face))
-	(completing-read "Customize face (default all): "
-			 obarray 'custom-facep t)))))
-  (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
+   (list (read-face-name "Customize face" "all faces" t)))
+  (if (member face '(nil ""))
+      (setq face (face-list)))
+  (if (and (listp face) (null (cdr face)))
+      (setq face (car face)))
+  (if (listp face)
       (custom-buffer-create (custom-sort-items
-			     (mapcar (lambda (symbol)
-				       (list symbol 'custom-face))
-				     (face-list))
+			     (mapcar (lambda (s)
+				       (list s 'custom-face))
+				     face)
 			     t nil)
 			    "*Customize Faces*")
-    (when (stringp symbol)
-      (setq symbol (intern symbol)))
-    (unless (symbolp symbol)
-      (error "Should be a symbol %S" symbol))
-    (custom-buffer-create (list (list symbol 'custom-face))
+    (unless (facep face)
+      (error "Invalid face %S"))
+    (custom-buffer-create (list (list face 'custom-face))
 			  (format "*Customize Face: %s*"
-				  (custom-unlispify-tag-name symbol)))))
+				  (custom-unlispify-tag-name face)))))
 
 ;;;###autoload
 (defun customize-face-other-window (&optional symbol)
