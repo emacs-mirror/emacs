@@ -953,6 +953,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bufpos = 0;
   p->chain = Qnil;
+  p->insertion_type = 0;
   return val;
 }
 
