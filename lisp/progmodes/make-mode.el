@@ -1231,11 +1231,10 @@ Insertion takes place at point."
 	(message "No macros or targets to browse! Consider running 'makefile-pickup-everything\'"))
     (let ((browser-buffer (get-buffer-create makefile-browser-buffer-name)))
 	(pop-to-buffer browser-buffer)
-	(make-variable-buffer-local 'makefile-browser-selection-vector)
 	(makefile-browser-fill targets macros)
 	(shrink-window-if-larger-than-buffer)
-	(setq makefile-browser-selection-vector
-	      (make-vector (+ (length targets) (length macros)) nil))
+	(set (make-local-variable 'makefile-browser-selection-vector)
+	     (make-vector (+ (length targets) (length macros)) nil))
 	(makefile-browser-start-interaction))))
 
 (defun makefile-switch-to-browser ()
