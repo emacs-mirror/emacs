@@ -1,6 +1,22 @@
+2000-09-22  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Add emacs-mime.
+
+	* emacs-mime.texi: New manual.
+
+	* message.texi: New version for Gnus 5.9.
+
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in: Remove/comment speedbar stuff.
+
+2000-09-22  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Add emacs-mime.
+
+	* emacs-mime.texi: New manual.
+
+	* message.texi: New version for Gnus 5.9.
 
 2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
