@@ -995,7 +995,7 @@ init_callproc_1 ()
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 }
 
-/* This is run after init_cmdargs, so that Vinvocation_directory is valid.  */
+/* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
 
 init_callproc ()
 {
@@ -1017,21 +1017,20 @@ init_callproc ()
 	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
 	  Vexec_directory = Ffile_name_as_directory (tem);
 #endif /* not DOS_NT */
+	}
 
-	  /* If we use ../lib-src, maybe use ../etc as well.
-	     Do so if ../etc exists and has our DOC-... file in it.  */
-	  if (data_dir == 0)
-	    {
-	      tem = Fexpand_file_name (build_string ("etc"),
-				       Vinstallation_directory);
-	      Vdoc_directory = Ffile_name_as_directory (tem);
-	    }
+      /* Maybe use ../etc as well as ../lib-src.  */
+      if (data_dir == 0)
+	{
+	  tem = Fexpand_file_name (build_string ("etc"),
+				   Vinstallation_directory);
+	  Vdoc_directory = Ffile_name_as_directory (tem);
 	}
     }
 
   /* Look for the files that should be in etc.  We don't use
      Vinstallation_directory, because these files are never installed
-     in /bin near the executable, and they are never in the build
+     near the executable, and they are never in the build
      directory when that's different from the source directory.
 
      Instead, if these files are not in the nominal place, we try the
