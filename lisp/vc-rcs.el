@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.5 2000/09/21 13:21:41 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.6 2000/09/22 07:48:08 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +27,9 @@
 ;;; Commentary:   see vc.el
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'vc))	;for macros defined there
 
 (defcustom vc-rcs-release nil
   "*The release number of your RCS installation, as a string.
