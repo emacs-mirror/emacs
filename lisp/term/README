@@ -1,14 +1,21 @@
    This directory contains files of elisp that customize Emacs for certain
-terminal types.  When Emacs starts, it checks the TERM environment variable to
-see what type of terminal the user is running on, checks for an elisp file
-named "term/${TERM}.el", and if one exists, loads it.
+terminal types.
+
+   When Emacs starts, it checks the TERM environment variable to see what type
+of terminal the user is running on, checks for an elisp file named
+"term/${TERM}.el", and if one exists, loads it.  If that doesn't yield a file
+that exists, the last hyphen and what follows it is stripped.  If that doesn't
+yield a file that exists, the previous hyphen is stripped, and so on until all
+hyphens are gone.  For example, if the terminal type is `aaa-48-foo', Emacs
+will try first `term/aaa-48-foo.el', then `term/aaa-48.el' and finally
+`term/aaa.el'.
 
    When writing terminal packages, there are some things it is good to keep in
 mind.
 
    First, about keycap names.  Your terminal package can create any keycap
 cookies it likes, but there are good reasons to stick to the set recognized by
-the X-windows code whenever possible.  The X key symbols recognized by Emacs
+the X-windows code whenever possible.  The key symbols recognized by Emacs
 are listed in src/term.c; look for the string `keys' in that file.
 
    For one thing, it means that you'll have the same Emacs key bindings on in
