@@ -758,7 +758,18 @@ If the third argument is incorrect, Emacs may crash.")
 	  v2 = POP; v1 = TOP;
 	  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
 	  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
-	  TOP = (XFLOATINT (v1) == XFLOATINT (v2)) ? Qt : Qnil;
+#ifdef LISP_FLOAT_TYPE
+	  if (FLOATP (num1) || FLOATP (num2))
+	    {
+	      double f1, f2;
+
+	      f1 = (FLOATP (v1) ? XFLOAT (v1)->data : XINT (v1));
+	      f2 = (FLOATP (v2) ? XFLOAT (v2)->data : XINT (v2));
+	      TOP = (f1 == f2 ? Qt : Qnil);
+	    }
+	  else
+#endif
+	    TOP = (XINT (num1) == XINT (num2) ? Qt : Qnil);
 	  break;
 
 	case Bgtr:
