@@ -1,3 +1,11 @@
+2002-09-13  Richard M. Stallman  <rms@gnu.org>
+
+	* s/sol2-6.h (UNEXEC): Comment out definition.
+
+	* unexsol.c (unexec): Don't downcase first letter of error msg.
+
+	* xfaces.c (Fcolor_supported_p): Just one arg is required.
+
 2002-09-12  Markus Rost  <rost@math.ohio-state.edu>
 
 	* unexsol.c: Include buffer.h, charset.h, coding.h.
