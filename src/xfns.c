@@ -3272,6 +3272,8 @@ best_xim_style (user, xim)
 
 /* Create XIC for frame F. */
 
+static XIMStyle xic_style;
+
 void
 create_frame_xic (f)
      struct frame *f;
@@ -3279,7 +3281,6 @@ create_frame_xic (f)
   XIM xim;
   XIC xic = NULL;
   XFontSet xfs = NULL;
-  static XIMStyle xic_style;
 
   if (FRAME_XIC (f))
     return;
