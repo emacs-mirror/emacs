@@ -2,6 +2,8 @@
 # Maintenance productions for the Lisp directory
 #
 
+SHELL = /bin/sh
+
 lisp=@srcdir@
 VPATH=@srcdir@
 
