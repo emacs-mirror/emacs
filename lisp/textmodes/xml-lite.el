@@ -110,7 +110,8 @@ Leave point at the beginning of the tag."
         (t                              ; open or empty tag
          (setq tag-type 'open
                name (xml-lite-parse-tag-name))
-         (if (eq ?/ (char-before (- tag-end 1)))
+         (if (or (eq ?/ (char-before (- tag-end 1)))
+                 (sgml-empty-tag-p name))
              (setq tag-type 'empty))))))
     (goto-char tag-start)
     (xml-lite-make-tag tag-type tag-start tag-end name)))
