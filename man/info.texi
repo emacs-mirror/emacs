@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.10 2001/04/15 08:43:53 eliz Exp $
+@comment $Id: info.texi,v 1.11 2001/04/17 12:13:47 eliz Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -404,7 +404,7 @@ In that case, @kbd{b} won't do anything.  Sorry; what can we do?
 @findex Info-summary
   You have just learned a considerable number of commands.  If you
 want to use one but have trouble remembering which, you should type
-a @key{?} (in Emacs it runs the @code{Info-summary} command) which
+a @kbd{?} (in Emacs it runs the @code{Info-summary} command) which
 prints out a brief list of commands.  When you are finished looking at
 the list, make it go away by typing a @key{SPC} repeatedly.
 
@@ -1013,16 +1013,17 @@ them.  However, if you want to edit an Info file, here is how.
 
 @cindex node delimiters
   The new node can live in an existing documentation file, or in a new
-one.  It must have a @key{^_} character before it (invisible to the
+one.  It must have a @samp{^_} character before it (invisible to the
 user; this node has one but you cannot see it), and it ends with either
-a @key{^_}, a @key{^L}, or the end of file.@footnote{If you put in a
-@key{^L} to end a new node, be sure that there is a @key{^_} after it
-to start the next one, since @key{^L} cannot @emph{start} a node.
-Also, a nicer way to make a node boundary be a page boundary as well
-is to put a @key{^L} @emph{right after} the @key{^_}.}
+a @samp{^_}, a @samp{^L} (``formfeed''), or the end of file.@footnote{If
+you put in a @samp{^L} to end a new node, be sure that there is a
+@samp{^_} after it to start the next one, since @samp{^L} cannot
+@emph{start} a node.  Also, a nicer way to make a node boundary be a
+page boundary as well is to put a @samp{^L} @emph{right after} the
+@samp{^_}.}
 
-  The @key{^_} starting a node must be followed by a newline or a
-@key{^L} newline, after which comes the node's header line.  The header
+  The @samp{^_} starting a node must be followed by a newline or a
+@samp{^L} newline, after which comes the node's header line.  The header
 line must give the node's name (by which Info finds it), and state the
 names of the @samp{Next}, @samp{Previous}, and @samp{Up} nodes (if there
 are any).  As you can see, this node's @samp{Up} node is the node
@@ -1191,7 +1192,7 @@ End Tag Table
 @noindent
 Note that it contains one line per node, and this line contains
 the beginning of the node's header (ending just after the node name),
-a @key{DEL} character, and the character position in the file of the
+a @samp{DEL} character, and the character position in the file of the
 beginning of the node.
 
 
@@ -1267,7 +1268,7 @@ hit the end of the current node.  The default is @code{t}.
 When set to a non-@code{nil} value, allows Info to execute Lisp code
 associated with nodes.  The Lisp code is executed when the node is
 selected.  The Lisp code to be executed should follow the node
-delimiter (the @key{DEL} character) and an @samp{execute: } tag, like
+delimiter (the @samp{DEL} character) and an @samp{execute: } tag, like
 this:
 
 @example
