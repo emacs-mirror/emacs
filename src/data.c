@@ -2714,7 +2714,7 @@ SIGTYPE
 arith_error (signo)
      int signo;
 {
-#if defined(USG) && !defined(POSIX_SIGNALS)
+#ifdef USG
   /* USG systems forget handlers when they are used;
      must reestablish each time */
   signal (signo, arith_error);
