@@ -38,6 +38,9 @@
 ;; For information on US government censorship of the Internet, and
 ;; what you can do to bring back freedom of the press, see the web
 ;; site http://www.vtw.org/
+;; See also the file etc/CENSORSHIP in the Emacs distribution
+;; for a discussion of why and how this file was censored, and the
+;; political implications of the issue.
 
 ;;; Code:
 
