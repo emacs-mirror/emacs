@@ -364,7 +364,6 @@ $(BLD)\movemail.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
-	$(EMACS_ROOT)\src\vmsproc.h \
 	$(EMACS_ROOT)\lib-src\..\src\syswait.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
 	$(SRC)\ntlib.h
@@ -385,7 +384,6 @@ $(BLD)\profile.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
-	$(EMACS_ROOT)\src\vmstime.h \
 	$(EMACS_ROOT)\lib-src\..\src\systime.h
 
 $(BLD)\qsort.obj : \
