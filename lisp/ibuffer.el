@@ -36,6 +36,8 @@
   (require 'ibuf-macs)
   (require 'dired))
 
+(require 'font-lock)
+
 ;;; Compatibility
 (eval-and-compile
   (if (fboundp 'window-list)
@@ -44,18 +46,7 @@
     (defun ibuffer-window-list ()
       (let ((ibuffer-window-list-result nil))
 	(walk-windows #'(lambda (win) (push win ibuffer-window-list-result)) 'nomini)
-	(nreverse ibuffer-window-list-result))))
-
-  (cond ((boundp 'global-font-lock-mode)
-	 (defsubst ibuffer-use-fontification ()
-	   (when (boundp 'font-lock-mode)
-	     font-lock-mode)))
-	((boundp 'font-lock-auto-fontify)
-	 (defsubst ibuffer-use-fontification ()
-	   font-lock-auto-fontify))
-	(t
-	 (defsubst ibuffer-use-fontification ()
-	   nil))))
+	(nreverse ibuffer-window-list-result)))))
 
 (defgroup ibuffer nil
   "An advanced replacement for `buffer-menu'.
@@ -67,7 +58,7 @@ the ability to filter the displayed buffers by various criteria."
 
 (defcustom ibuffer-formats '((mark modified read-only " " (name 16 16 :left :elide)
 				   " " (size 6 -1 :right)
-				   " " (mode 16 16 :right :elide) " " filename)
+				   " " (mode 16 16 :right :elide) " " filename-and-process)
 			     (mark " " (name 16 -1) " " filename))
   "A list of ways to display buffer lines.
 
@@ -152,7 +143,10 @@ Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
 buffer, and FACE is the face to use for fontification.  If the FORM
 evaluates to non-nil, then FACE will be put on the buffer name.  The
-element with the highest PRIORITY takes precedence."
+element with the highest PRIORITY takes precedence.
+
+If you change this variable, you must kill the ibuffer buffer and
+recreate it for the change to take effect."
   :type '(repeat
 	  (list (integer :tag "Priority")
 		(sexp :tag "Test Form")
@@ -756,7 +750,6 @@ directory, like `default-directory'."
 (defvar ibuffer-name-map nil)
 (unless ibuffer-name-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map ibuffer-mode-map)
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-visit-buffer)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
@@ -765,7 +758,6 @@ directory, like `default-directory'."
 (defvar ibuffer-mode-name-map nil)
 (unless ibuffer-mode-name-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map ibuffer-mode-map)
     (define-key map [(mouse-2)] 'ibuffer-mouse-filter-by-mode)
     (define-key map (kbd "RET") 'ibuffer-interactive-filter-by-mode)
     (setq ibuffer-mode-name-map map)))
@@ -773,7 +765,6 @@ directory, like `default-directory'."
 (defvar ibuffer-mode-filter-group-map nil)
 (unless ibuffer-mode-filter-group-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map ibuffer-mode-map)
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-toggle-filter-group)
     (define-key map (kbd "RET") 'ibuffer-toggle-filter-group)
@@ -786,6 +777,7 @@ directory, like `default-directory'."
   "Whether or not to delete the window upon exiting `ibuffer'.")
 
 (defvar ibuffer-did-modification nil)
+(defvar ibuffer-category-alist nil)
 
 (defvar ibuffer-sorting-functions-alist nil
   "An alist of functions which describe how to sort buffers.
@@ -1137,7 +1129,7 @@ a new window in the current frame, splitting vertically."
 (defsubst ibuffer-map-deletion-lines (func)
   (ibuffer-map-on-mark ibuffer-deletion-char func))
 
-(define-ibuffer-op save ()
+(define-ibuffer-op ibuffer-do-save ()
   "Save marked buffers as with `save-buffer'."
   (:complex t
    :opstring "saved"
@@ -1154,19 +1146,19 @@ a new window in the current frame, splitting vertically."
 	(save-buffer))))
   t)
 
-(define-ibuffer-op toggle-modified ()
+(define-ibuffer-op ibuffer-do-toggle-modified ()
   "Toggle modification flag of marked buffers."
   (:opstring "(un)marked as modified"
    :modifier-p t)
   (set-buffer-modified-p (not (buffer-modified-p))))
 
-(define-ibuffer-op toggle-read-only ()
+(define-ibuffer-op ibuffer-do-toggle-read-only ()
   "Toggle read only status in marked buffers."
   (:opstring "toggled read only status in"
    :modifier-p t)
   (toggle-read-only))
 
-(define-ibuffer-op delete ()
+(define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."
   (:opstring "killed"
    :active-opstring "kill"
@@ -1177,7 +1169,7 @@ a new window in the current frame, splitting vertically."
       'kill
     nil))
 
-(define-ibuffer-op kill-on-deletion-marks ()
+(define-ibuffer-op ibuffer-do-kill-on-deletion-marks ()
   "Kill buffers marked for deletion as with `kill-this-buffer'."
   (:opstring "killed"
    :active-opstring "kill"
@@ -1359,11 +1351,14 @@ If point is on a group name, this function operates on that group."
 		elide nil))
 	(list sym min max align elide)))
     form))
+
+(defsubst ibuffer-get-category (name)
+  (cdr (assq name ibuffer-category-alist)))
   
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
-  (let ((ellipsis (if (ibuffer-use-fontification) 
-		      (propertize ibuffer-eliding-string 'face 'bold)
-		    ibuffer-eliding-string)))
+  (let ((ellipsis (propertize ibuffer-eliding-string 'category
+			      (ibuffer-get-category
+			       'ibuffer-category-eliding-string))))
     (if (or elide ibuffer-elide-long-columns)
 	`(if (> strlen 5)
 	     ,(if from-end-p
@@ -1462,7 +1457,7 @@ If point is on a group name, this function operates on that group."
 		    ;; generate a call to the column function.
 		    (ibuffer-aif (assq sym ibuffer-inline-columns)
 				 (nth 1 it)
-				 `(,sym buffer mark)))
+				 `(,sym buffer mark (current-buffer))))
 		   ;; You're not expected to understand this.  Hell, I
 		   ;; don't even understand it, and I wrote it five
 		   ;; minutes ago.
@@ -1474,8 +1469,16 @@ If point is on a group name, this function operates on that group."
 					(put ',sym 'ibuffer-column-summary
 					     (cons ret (get ',sym 'ibuffer-column-summary)))
 					ret)))
-				  (lambda (arg sym)
-				    `(insert ,arg))))
+				  ;; We handle the `name' column specially.
+				  (if (eq sym 'ibuffer-make-column-name)
+				      (lambda (arg sym)
+					`(let ((pt (point)))
+					   (insert ,arg)
+					   (put-text-property pt (point)
+							      'category
+							      (ibuffer-buffer-name-category buffer mark))))
+				    (lambda (arg sym)
+				      `(insert ,arg)))))
 		   (mincompform `(< strlen ,(if (integerp min)
 						min
 					      'min)))
@@ -1633,6 +1636,17 @@ If point is on a group name, this function operates on that group."
 	      dired-directory)
 	 ""))))
 
+(define-ibuffer-column filename-and-process (:name "Filename/Process")
+  (let ((proc (get-buffer-process buffer))
+	(filename (ibuffer-make-column-filename buffer mark ibuffer-buf)))
+    (if proc
+	(concat (propertize (format "(%s %s) " proc (process-status proc))
+			    'category
+			    (with-current-buffer ibuffer-buf
+			      (ibuffer-get-category 'ibuffer-category-process)))
+		filename)
+      filename)))
+
 (defun ibuffer-format-column (str width alignment)
   (let ((left (make-string (/ width 2) ? ))
 	(right (make-string (- width (/ width 2)) ? )))
@@ -1641,52 +1655,22 @@ If point is on a group name, this function operates on that group."
       (:center (concat left str right))
       (t (concat str left right)))))
 
-(defun ibuffer-fontify-region-function (beg end &optional verbose)
-  (when verbose (message "Fontifying..."))
-  (let ((inhibit-read-only t))
-    (save-excursion
-      (goto-char beg)
-      (beginning-of-line)
-      (while (< (point) end)
-	(if (get-text-property (point) 'ibuffer-title-header)
-	    (put-text-property (point) (line-end-position) 'face ibuffer-title-face)
-	  (if (get-text-property (point) 'ibuffer-filter-group-name)
-	      (put-text-property (point) (line-end-position) 'face
-				 ibuffer-filter-group-name-face)
-	    (unless (or (get-text-property (point) 'ibuffer-title)
-			(get-text-property (point) 'ibuffer-summary))
-	      (multiple-value-bind (buf mark)
-		  (get-text-property (point) 'ibuffer-properties)
-		(let* ((namebeg (next-single-property-change (point) 'ibuffer-name-column
-							     nil (line-end-position)))
-		       (nameend (next-single-property-change namebeg 'ibuffer-name-column
-							     nil (line-end-position))))
-		  (put-text-property namebeg
-				     nameend
-				     'face
-				     (cond ((char-equal mark ibuffer-marked-char)
-					    ibuffer-marked-face)
-					   ((char-equal mark ibuffer-deletion-char)
-					    ibuffer-deletion-face)
-					   (t
-					    (let ((level -1)
-						  result)
-					      (dolist (e ibuffer-fontification-alist result)
-						(when (and (> (car e) level)
-							   (with-current-buffer buf
-							     (eval (cadr e))))
-						  (setq level (car e)
-							result
-							(if (symbolp (caddr e))
-							    (if (facep (caddr e))
-								(caddr e)
-							      (symbol-value (caddr e))))))))))))))))
-	(forward-line 1))))
-  (when verbose (message "Fontifying...done")))
-
-(defun ibuffer-unfontify-region-function (beg end)
-  (let ((inhibit-read-only t))
-    (remove-text-properties beg end '(face nil))))
+(defun ibuffer-buffer-name-category (buf mark)
+  (cond ((char-equal mark ibuffer-marked-char)
+	 (ibuffer-get-category 'ibuffer-category-marked))
+	((char-equal mark ibuffer-deletion-char)
+	 (ibuffer-get-category 'ibuffer-category-deleted))
+	(t
+	 (let ((level -1)
+	       (i 0)
+	       result)
+	   (dolist (e ibuffer-fontification-alist result)
+	     (when (and (> (car e) level)
+			(with-current-buffer buf
+			  (eval (cadr e))))
+	       (setq level (car e)
+		     result (car (nth i font-lock-category-alist))))
+	     (incf i))))))
 
 (defun ibuffer-insert-buffer-line (buffer mark format)
   "Insert a line describing BUFFER and MARK using FORMAT."
@@ -1898,7 +1882,7 @@ the value of point at the beginning of the line for that buffer."
 		       (next-single-property-change
 			(point-min) 'ibuffer-title)))
     (goto-char (point-min))
-    (put-text-property
+    (add-text-properties
      (point)
      (progn
        (let ((opos (point)))
@@ -1922,7 +1906,7 @@ the value of point at the beginning of the line for that buffer."
 					     (- min len)
 					     align)
 		    name))))))
-	 (put-text-property opos (point) 'ibuffer-title-header t)
+	 (add-text-properties opos (point) `(ibuffer-title-header t))
 	 (insert "\n")
 	 ;; Add the underlines
 	 (let ((str (save-excursion
@@ -1938,14 +1922,14 @@ the value of point at the beginning of the line for that buffer."
 			    str)))
 	 (insert "\n"))
        (point))
-     'ibuffer-title t)
+     `(ibuffer-title t category ,(ibuffer-get-category 'ibuffer-category-title)))
     ;; Now, insert the summary columns.
     (goto-char (point-max))
     (if (get-text-property (1- (point-max)) 'ibuffer-summary)
 	(delete-region (previous-single-property-change
 			(point-max) 'ibuffer-summary)
 		       (point-max)))
-    (put-text-property
+    (add-text-properties
      (point)
      (progn
        (insert "\n")
@@ -1972,7 +1956,7 @@ the value of point at the beginning of the line for that buffer."
 					     align)
 		    summary)))))))
        (point))
-     'ibuffer-summary t)))
+     `(ibuffer-summary t))))
 
 (defun ibuffer-update-mode-name ()
   (setq mode-name (format "Ibuffer by %s" (if ibuffer-sorting-mode
@@ -2080,9 +2064,12 @@ Do not display messages if SILENT is non-nil."
    (progn
      (insert "[ " display-name " ]")
      (point))
-   `(ibuffer-filter-group-name ,name keymap ,ibuffer-mode-filter-group-map
-			       mouse-face highlight
-			       help-echo ,(concat filter-string "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group ")))
+   `(ibuffer-filter-group-name
+     ,name
+     category ,(ibuffer-get-category 'ibuffer-category-filter-group-name)
+     keymap ,ibuffer-mode-filter-group-map
+     mouse-face highlight
+     help-echo ,(concat filter-string "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group ")))
   (insert "\n")
   (when bmarklist
     (put-text-property
@@ -2169,7 +2156,7 @@ buffers which are visiting a file."
 
 ;;;###autoload
 (defun ibuffer (&optional other-window-p name qualifiers noselect
-			  shrink filter-groups)
+			  shrink filter-groups formats)
   "Begin using `ibuffer' to edit a list of buffers.
 Type 'h' after entering ibuffer for more information.
 
@@ -2182,7 +2169,10 @@ Optional argument NOSELECT means don't select the Ibuffer buffer.
 Optional argument SHRINK means shrink the buffer to minimal size.  The
 special value `onewindow' means always use another window.
 Optional argument FILTER-GROUPS is an initial set of filtering
-groups to use; see `ibuffer-filter-groups'."
+groups to use; see `ibuffer-filter-groups'.
+Optional argument FORMATS is the value to use for `ibuffer-formats'.
+If specified, then the variable `ibuffer-formats' will have that value
+locally in this buffer."
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
@@ -2200,8 +2190,6 @@ groups to use; see `ibuffer-filter-groups'."
 	(unless (eq major-mode 'ibuffer-mode)
 	  (ibuffer-mode)
 	  (setq need-update t))
-	(when (ibuffer-use-fontification)
-	  (require 'font-lock))
 	(setq ibuffer-delete-window-on-quit other-window-p)
 	(when shrink
 	  (setq ibuffer-shrink-to-minimum-size shrink))
@@ -2211,6 +2199,8 @@ groups to use; see `ibuffer-filter-groups'."
 	(when filter-groups
 	  (require 'ibuf-ext)
 	  (setq ibuffer-filter-groups filter-groups))
+	(when formats
+	  (set (make-local-variable 'ibuffer-formats) formats))
 	(ibuffer-update nil)
 	;; Skip the group name by default.
 	(ibuffer-forward-line 0 t)
@@ -2406,12 +2396,30 @@ will be inserted before the group at point."
   ;; This makes things less ugly for Emacs 21 users with a non-nil
   ;; `show-trailing-whitespace'.
   (setq show-trailing-whitespace nil)
-  ;; Dummy font-lock-defaults to make font-lock turn on.  We want this
-  ;; so we know when to enable ibuffer's internal fontification.
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil
-	     (font-lock-fontify-region-function . ibuffer-fontify-region-function)
-	     (font-lock-unfontify-region-function . ibuffer-unfontify-region-function)))
+
+  (set (make-local-variable 'font-lock-category-alist) nil)
+  (set (make-local-variable 'ibuffer-category-alist) nil)
+  (dolist (elt (list
+		(cons (make-symbol "ibuffer-category-title")
+		      ibuffer-title-face)
+		(cons (make-symbol "ibuffer-category-marked")
+		      ibuffer-marked-face)	
+		(cons (make-symbol "ibuffer-category-deleted")
+		      ibuffer-deletion-face)
+		(cons (make-symbol "ibuffer-category-filter-group-name")
+		      ibuffer-filter-group-name-face)
+		(cons (make-symbol "ibuffer-category-process")
+		      'italic)
+		(cons (make-symbol "ibuffer-category-eliding-string")
+		      'bold)))
+    (push (cons (intern (symbol-name (car elt))) (car elt)) ibuffer-category-alist)
+    (push elt font-lock-category-alist))
+  (let ((i (1- (length ibuffer-fontification-alist))))
+    (while (>= i 0)
+      (push (cons (make-symbol (format "ibuffer-category-%d" i))
+		  (nth 2 (nth i ibuffer-fontification-alist)))
+	    font-lock-category-alist)
+      (decf i)))
   (set (make-local-variable 'revert-buffer-function)
        #'ibuffer-update)
   (set (make-local-variable 'ibuffer-sorting-mode)
