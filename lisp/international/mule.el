@@ -64,6 +64,7 @@ Return t if file exists."
 	(setq preloaded-file-list (cons file preloaded-file-list)))
       (unwind-protect
 	  (let ((load-file-name fullname)
+		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
@@ -774,12 +775,18 @@ LIST is a list of coding categories ordered by priority."
 
 ;;; FILE I/O
 
+(defvar set-auto-coding-for-load nil
+  "Non-nil means look for `load-coding' property instead of `coding'.
+This is used for loading and byte-compiling Emacs Lisp files.")
+
 (defun set-auto-coding (size)
   "Return coding system for a file of which SIZE bytes follow point.
+These bytes should include at least the first 1k of the file
+and the last 3k of the file, but the middle may be omitted.
 
-It checks for a -*- coding: tag in the first one or two lines
-following point.  If no coding: tag is found, it checks local
-variables spec in the last 3K-byte of SIZE bytes.
+It checks for a `coding:' tag in the first one or two lines following
+point.  If no `coding:' tag is found, it checks for alocal variables
+list in the last 3K bytes out of the SIZE bytes.
 
 The return value is the specified coding system,
 or nil if nothing specified.
@@ -792,14 +799,16 @@ function by default."
 	 (tail-start (+ head-start (max (- size 3072) 0)))
 	 (tail-end (+ head-start size))
 	 coding-system head-found tail-found pos)
-    ;; Try a short cut by searching for the string "coding:" at the
-    ;; head and tail of SIZE bytes.
-    (setq head-found (search-forward "coding:" head-end t))
+    ;; Try a short cut by searching for the string "coding:"
+    ;; and for "unibyte:" at th ehead and tail of SIZE bytes.
+    (setq head-found (or (search-forward "coding:" head-end t)
+			 (search-forward "unibyte:" head-end t)))
     (if (and head-found (> head-found tail-start))
 	;; Head and tail are overlapped.
 	(setq tail-found head-found)
       (goto-char tail-start)
-      (setq tail-found (search-forward "coding:" tail-end t)))
+      (setq tail-found (or (search-forward "coding:" tail-end t)
+			   (search-forward "unibyte:" tail-end t))))
 
     ;; At first check the head.
     (when head-found
@@ -816,12 +825,18 @@ function by default."
       (if pos (setq head-end pos))
       (when (< head-found head-end)
 	(goto-char head-start)
-	(if (re-search-forward
-	     "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)" head-end t)
-	    (progn
-	      (setq coding-system (intern (match-string 2)))
-	      (or (coding-system-p coding-system)
-		  (setq coding-system nil))))))
+	(when (and set-auto-coding-for-load
+		   (re-search-forward
+		    "-\\*-\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
+		    head-end t))
+	  (setq coding-system 'raw-text))
+	(when (and (not coding-system)
+		   (re-search-forward
+		    "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
+		    head-end t))
+	  (setq coding-system (intern (match-string 2)))
+	  (or (coding-system-p coding-system)
+	      (setq coding-system nil)))))
 
     ;; If no coding: tag in the head, check the tail.
     (when (and tail-found (not coding-system))
@@ -838,17 +853,24 @@ function by default."
 			     "^" prefix
 			     "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
 			     suffix "$"))
+		 (re-unibyte (concat
+			      "^" prefix
+			      "unibyte[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
+			      suffix "$"))
 		 (re-end (concat
 			  "^" prefix "end *:[ \t]*" suffix "$"))
 		 (pos (point)))
 	    (re-search-forward re-end tail-end 'move)
 	    (setq tail-end (point))
 	    (goto-char pos)
-	    (if (re-search-forward re-coding tail-end t)
-		(progn
-		  (setq coding-system (intern (match-string 1)))
-		  (or (coding-system-p coding-system)
-		      (setq coding-system nil)))))))
+	    (when (and set-auto-coding-for-load
+		       (re-search-forward re-unibyte tail-end t))
+	      (setq coding-system 'raw-text))
+	    (when (and (not coding-system)
+		       (re-search-forward re-coding tail-end t))
+	      (setq coding-system (intern (match-string 1)))
+	      (or (coding-system-p coding-system)
+		  (setq coding-system nil))))))
     coding-system))
 
 (setq set-auto-coding-function 'set-auto-coding)
