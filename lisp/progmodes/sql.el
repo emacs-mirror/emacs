@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
 ;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.4.5
+;; Version: 1.4.6
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -27,9 +27,9 @@
 ;;; Commentary:
 
 ;; Please send bug reports and bug fixes to the mailing list at
-;; sql.el@gnu.org so that I can merge them into the master source.  If
-;; you want to subscribe to the mailing list, send mail to
-;; sql.el-request@gnu.org with 'subscribe' in the subject line.
+;; sql.el@gnu.org (or sql.el@bsiag.com).  If you want to subscribe to
+;; the mailing list, send mail to sql.el-request@gnu.org with
+;; `subscribe sql.el FIRSTNAME LASTNAME' in the subject line.
 
 ;; You can get the latest version of this file from my homepage
 ;; <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>.
@@ -160,6 +160,12 @@ buffer is shown using `display-buffer'."
 
 (defcustom sql-input-ring-file-name nil
   "*If non-nil, name of the file to read/write input history.
+
+You have to set this variable if you want the history of your commands
+saved from one Emacs session to the next.  If this variable is set,
+exiting the SQL interpreter in an SQLi buffer will write the input
+history to the specified file.  Starting a new process in a SQLi buffer
+will read the input history from the specified file.
 
 You have to set this variable if you want the history of your commands
 saved from one Emacs session to the next.  If this variable is set,
@@ -613,9 +619,7 @@ can be changed by some entry functions to provide more hilighting.")
 (defun sql-accumulate-and-indent ()
   "Continue SQL statement on the next line."
   (interactive)
-  ;; comint-accumulate is a Emacs 20.X thingie
-  (if (not (string-match "XEmacs\\|Lucid\\|GNU Emacs 19" emacs-version))
-      (comint-accumulate))
+  (if (fboundp 'comint-accumulate) (comint-accumulate))
   (indent-according-to-mode))
 
 ;;;###autoload
