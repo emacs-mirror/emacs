@@ -1906,6 +1906,10 @@ do_autoload (fundef, funname)
   Lisp_Object fun, queue, first, second;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  if (! NILP (Vpurify_flag))
+    error ("Attempt to autoload %s while preparing to dump",
+	   XSYMBOL (funname)->name->data);
+
   fun = funname;
   CHECK_SYMBOL (funname);
   GCPRO3 (fun, funname, fundef);
