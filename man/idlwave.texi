@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../info/idlwave
 @settitle IDLWAVE User Manual
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * IDLWAVE: (idlwave).	Major mode and shell for IDL files.
 @end direntry
@@ -33,28 +33,22 @@ This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation,
 Inc.
 
-Permission is granted to make and distribute verbatim
-copies of this manual provided the copyright notice and
-this permission notice are preserved on all copies.
-     
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries a copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-     
-@end ignore
-Permission is granted to copy and distribute modified
-versions of this manual under the conditions for
-verbatim copying, provided that the entire resulting
-derived work is distributed under the terms of a permission
-notice identical to this one.
-     
-Permission is granted to copy and distribute
-translations of this manual into another language,
-under the above conditions for modified versions,
-except that this permission notice may be stated in a
-translation approved by the Free Software Foundation.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end ifinfo
 
 @titlepage
@@ -64,31 +58,28 @@ translation approved by the Free Software Foundation.
 
 @author by Carsten Dominik & J.D. Smith
 @page
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-@sp 2
 This is edition @value{EDITION} of the @cite{IDLWAVE User Manual} for
 IDLWAVE version @value{VERSION}, @value{DATE}.
-
 @sp 2
-
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+@sp 2
 @cindex Copyright, of IDLWAVE
-Permission is granted to make and distribute verbatim
-copies of this manual provided the copyright notice and
-this permission notice are preserved on all copies.
-     
-Permission is granted to copy and distribute modified
-versions of this manual under the conditions for
-verbatim copying, provided that the entire resulting
-derive work is distributed under the terms of a permission
-notice identical to this one.
-     
-Permission is granted to copy and distribute
-translations of this manual into another language,
-under the above conditions for modified versions,
-except that this permission notice may be stated in a
-translation approved by the Free Software Foundation.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end titlepage
 @contents
 
@@ -1258,7 +1249,7 @@ keywords).  Otherwise the routine definition statement
 @kindex M-?
 In any IDL program (or, as with most IDLWAVE commands, in the IDL
 Shell), press @kbd{M-?} (@code{idlwave-context-help}), or click with
-@kbd{S-mouse-3} to access context sensitive online help.  The following
+@kbd{S-Mouse-3} to access context sensitive online help.  The following
 locations are recognized context for help:
 
 @cindex Context, for online help
@@ -1296,11 +1287,11 @@ which online help can be accessed.
 @itemize @bullet
 @item
 Online help for routines and keywords can be accessed through the
-Routine Info display.  Click with @kbd{mouse-3} on an item to see the
+Routine Info display.  Click with @kbd{Mouse-3} on an item to see the
 corresponding help (@pxref{Routine Info}).
 @item
 When using completion and Emacs pops up a window with possible
-completions, clicking with @kbd{mouse-3} on a completion item invokes
+completions, clicking with @kbd{Mouse-3} on a completion item invokes
 help on that item (@pxref{Completion}).
 @end itemize
 @noindent
@@ -1308,8 +1299,8 @@ In both cases, a blue face indicates that the item is documented in the
 IDL manual, but an attempt will be made to visit non-blue items directly
 in the originating source file.
 
-@cindex Help application, keybindings
-@cindex Keybindings, in help application
+@cindex Help application, key bindings
+@cindex Key bindings, in help application
 The help window is normally displayed in a separate frame.  The
 following commands can be used to navigate inside the help system:
 
@@ -1326,7 +1317,7 @@ following commands can be used to navigate inside the help system:
 @tab Move back and forward through the help topic history.
 @item @kbd{c}
 @tab Clear the history.
-@item @kbd{mouse-2}
+@item @kbd{Mouse-2}
 @tab Follow a link.  Active links are displayed in a different font.
 Items under @i{See Also} are active, and classes have links to their
 methods and back.
@@ -1369,7 +1360,7 @@ The frame parameters for the special Online Help frame.
 @end defopt
 
 @defopt idlwave-max-popup-menu-items (@code{20})
-Maximum number of items per pane in popup menus.
+Maximum number of items per pane in pop-up menus.
 @end defopt
 
 @defopt idlwave-extra-help-function
@@ -1452,7 +1443,7 @@ M-@key{TAB}}.
 If the list of completions is too long to fit in the
 @file{*Completions*} window, the window can be scrolled by pressing
 @kbd{M-@key{TAB}} repeatedly.  Online help (if installed) for each
-possible completion is available by clicking with @kbd{mouse-3} on the
+possible completion is available by clicking with @kbd{Mouse-3} on the
 item.  Items for which system online help (from the IDL manual) is
 available will be displayed in a different font (e.g. colored blue).
 For other items, the corresponding source code or DocLib header will be
@@ -1699,7 +1690,7 @@ collects data about routines, and how to update this information.
 @cindex Templates
 
 IDLWAVE can insert IDL code templates into the buffer.  For a few
-templates, this is done with direct keybindings:
+templates, this is done with direct key bindings:
 
 @multitable @columnfractions .15 .85
 @item @kbd{C-c C-c}
@@ -1866,7 +1857,7 @@ String abbreviations:
 @end multitable
 
 @noindent You can easily add your own abbreviations or override existing
-abbrevs with @code{define-abbrev} in your mode hook using the
+abbrevs with @code{define-abbrev} in your mode hook, using the
 convenience function @code{idlwave-define-abbrev}:
 
 @lisp
@@ -2181,7 +2172,6 @@ Normal hook.  Executed when @file{idlwave.el} is loaded.
 @cindex Comint, Emacs package
 @cindex Windows
 @cindex MacOS
-@cindex Unix
 
 The IDLWAVE shell is an Emacs major mode which permits running the IDL
 program as an inferior process of Emacs, and works closely with the
@@ -2193,7 +2183,7 @@ Unfortunately IDL for Windows and MacOS do not have command-prompt
 versions and thus do not allow the interaction with
 Emacs@footnote{Please inform the maintainer if you come up with a way to
 make the IDLWAVE shell work on these systems.} --- so the IDLWAVE shell
-currently only works under Unix.
+currently only works under GNU and Unix.
 
 @menu
 * Starting the Shell::          How to launch IDL as a subprocess
@@ -2430,13 +2420,13 @@ modes.
 
 @kindex C-c C-d
 Programs can be compiled, run, and debugged directly from the source
-buffer in Emacs.  The IDLWAVE shell installs keybindings both in the
+buffer in Emacs.  The IDLWAVE shell installs key bindings both in the
 shell buffer and in all IDL code buffers of the current Emacs session.
 On Emacs versions which support this, it also installs a debugging
 toolbar.  The display of the toolbar can be toggled with @kbd{C-c C-d
 C-t} (@code{idlwave-shell-toggle-toolbar}).
 
-The debugging keybindings are by default on the prefix key @kbd{C-c
+The debugging key bindings are by default on the prefix key @kbd{C-c
 C-d}, so for example setting a breakpoint is done with @kbd{C-c C-d
 C-b}, compiling a source file with @kbd{C-c C-d C-c}.  If you find this
 too much work, you can add bindings for one or more modifier keys which
@@ -2660,7 +2650,7 @@ current region as expression.
 
 For added speed and convenience, there are mouse bindings which allow
 you to click on expressions and examine their values.  Use
-@kbd{S-mouse-2} to print an expression and @kbd{C-M-mouse-2} to invoke
+@kbd{S-Mouse-2} to print an expression and @kbd{C-M-Mouse-2} to invoke
 help (i.e. you need to hold down @key{META} and @key{CONTROL} while
 clicking with the middle mouse button).  If you simply click, the
 nearest expression will be selected in the same manner as described
@@ -2722,7 +2712,7 @@ mouse examine command, and two macros for generating your own examine
 bindings.
 
 The most powerful and flexible mouse examine command is available on
-@kbd{C-S-mouse-2}.  Just as for all the other mouse examine commands, it
+@kbd{C-S-Mouse-2}.  Just as for all the other mouse examine commands, it
 permits click or drag expression selection, but instead of sending
 hard-coded commands to the shell, it pops-up a customizable selection
 list of examine functions to choose among, configured with the
@@ -2732,8 +2722,10 @@ the command, and the values are the command strings, in which the text
 @code{___} (three underscores) will be replaced by the selected
 expression before being sent to the shell.  An example might be key
 @code{Structure Help} with value @code{help,___,/STRUCTURE}.
+@code{idlwave-shell-examine-alist} comes by default with a large list of
+examine commands, but can be easily customized to add more.
 
-In addition to the popup mouse command, you can easily create your own
+In addition to the pop-up mouse command, you can easily create your own
 customized bindings to inspect expressions using the two convenience
 macros @code{idlwave-shell-inspect} and
 @code{idlwave-shell-mouse-inspect}.  These create keyboard or
@@ -2764,7 +2756,7 @@ see, the possibilities are only marginally finite.
 
 @defopt idlwave-shell-examine-alist
 An alist of examine commands in which the keys name the command and are
-displayed in the selection popup, and the values are custom IDL examine
+displayed in the selection pop-up, and the values are custom IDL examine
 command strings to send, after all instances of @code{___} are replaced
 by the indicated expression.
 @end defopt
@@ -2848,7 +2840,7 @@ to get a separate frame for the IDL shell, remove that command from your
 @end lisp
 @item 
 The key sequence @kbd{M-@key{TAB}} no longer inserts a TAB character.
-Like in in many other Emacs modes, @kbd{M-@key{TAB}} now does
+Like in many other Emacs modes, @kbd{M-@key{TAB}} now does
 completion.  Inserting a TAB has therefore been moved to
 @kbd{C-@key{TAB}}.  On a character based terminal you can also use
 @kbd{C-c @key{SPC}}.
@@ -3054,7 +3046,6 @@ Controls under what circumstances routine info is updated automatically.
 @cindex IDL library routine info
 @cindex Windows
 @cindex MacOS
-@cindex Unix
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
 
@@ -3077,7 +3068,7 @@ path, just like in IDL}:
 (setq idlwave-system-directory "c:/RSI/IDL54/")
 @end lisp
 
-@noindent Under UNIX, these values will be automatically inferred from
+@noindent Under GNU and UNIX, these values will be automatically inferred from
 an IDLWAVE shell.
 
 The command @kbd{M-x idlwave-create-libinfo-file} can then be used to
@@ -3098,7 +3089,7 @@ from the same directories, call the command
 selected directories, write an updated version of the libinfo file and
 rebuild IDLWAVE's internal lists.  If you give three prefix arguments
 @w{@kbd{C-u C-u C-u C-c C-i}}, updating will be done with a background
-job@footnote{Unix systems only, I think.}.  You can continue to work,
+job@footnote{GNU and Unix systems only, I think.}.  You can continue to work,
 and the library catalog will be re-read when it is ready.
 
 A note of caution:  Depending on your local installation, the IDL
@@ -3112,11 +3103,11 @@ File for routine information of the IDL library.
 @end defopt
 
 @defopt idlwave-library-path
-IDL library path for Windows and MacOS.  Not needed under Unix.
+IDL library path for Windows and MacOS.  Not needed under GNU and Unix.
 @end defopt
 
 @defopt idlwave-system-directory
-The IDL system directory for Windows and MacOS.  Not needed under UNIX.
+The IDL system directory for Windows and MacOS.  Not needed under GNU and Unix.
 @end defopt
 
 @defopt idlwave-special-lib-alist
@@ -3300,7 +3291,7 @@ user is King!
     (font-lock-mode 1)                   ; Turn on font-lock mode
     (idlwave-auto-fill-mode 0)           ; Turn off auto filling
 
-    ;; Pad with with 1 space (if -n is used then make the
+    ;; Pad with 1 space (if -n is used then make the
     ;; padding a minimum of n spaces.)  The defaults use -1
     ;; instead of 1.
     (idlwave-action-and-binding "=" '(idlwave-expand-equal 1 1))
@@ -3379,8 +3370,8 @@ you have to rely on IDLDE to run and debug your programs.  However,
 editing IDL source files with Emacs/IDLWAVE works with all bells and
 whistles, including routine info, completion and fast online help.  Only
 a small amount of additional information must be specified in your
-.emacs file: You must specify path names which on a UNIX can be
-automatically gathered by talking to the IDL program.
+.emacs file: you must specify path names which on a GNU or UNIX system
+are automatically gathered by talking to the IDL program.
 
 Here is an example of the additional configuration needed for a Windows
 system.  I am assuming that IDLWAVE has been installed in
