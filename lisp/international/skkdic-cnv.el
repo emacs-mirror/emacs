@@ -372,7 +372,7 @@ the generated \"skkdic.el\" is saved."
 	(set-buffer buf)
 	(insert-buffer-substring skkbuf 1 pos))
       (insert "\n"
-	      ";;; Code:\n\n")
+	      ";;; Code:\n\n(eval-when-compile (require 'skkdic-cnv))\n\n")
 
       ;; Generate the body part of working buffer.
       (set-buffer skkbuf)
@@ -425,10 +425,10 @@ the generated \"skkdic.el\" is saved."
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
 For example, invoke:
-  % emacs -batch -l skkconv -f batch-skkdic-convert SKK-JISYO.L
+  % emacs -batch -l skkdic-cnv -f batch-skkdic-convert SKK-JISYO.L
 to generate  \"skkdic.el\" from SKK dictionary file \"SKK-JISYO.L\".
 To get complete usage, invoke:
- % emacs -batch -l skkconv -f batch-skkdic-convert -h"
+ % emacs -batch -l skkdic-cnv -f batch-skkdic-convert -h"
   (defvar command-line-args-left)	; Avoid compiler warning.
   (if (not noninteractive)
       (error "`batch-skkdic-convert' should be used only with -batch"))
@@ -449,8 +449,7 @@ To get complete usage, invoke:
       (message "It takes around 10 minutes even on Sun SS20.")
       (skkdic-convert filename targetdir)
       (message "Do byte-compile the created file by:")
-      (message "  %% emacs -batch -l skkdic-cnv -f batch-byte-compile skkdic.el")
-      (message  "                 ^^^^^^^^^^^^^ -- Don't forget this option!")
+      (message "  %% emacs -batch -f batch-byte-compile skkdic.el")
       ))
   (kill-emacs 0))
 
@@ -555,5 +554,7 @@ To get complete usage, invoke:
 	   (set-nested-alist (car entry) (cdr entry) map)
 	   (setq l (cdr l)))
 	 map)))
+
+(provide 'skkdic-cnv)
 
 ;; skkdic-cnv.el ends here
