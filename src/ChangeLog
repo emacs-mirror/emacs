@@ -1,3 +1,11 @@
+2001-01-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_new_font): Don't change a tooltip's size.
+
+	* xfns.c (x_create_tip_frame): Prevent changing the tooltip's
+	background color by specifying a color for the default font
+	in .Xdefaults.
+
 2001-01-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (CCL_READ_CHAR): Change the argument name from r to REG as
