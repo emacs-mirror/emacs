@@ -2361,7 +2361,7 @@ x_set_cursor_type (f, arg, oldval)
   set_frame_cursor_types (f, arg);
 
   /* Make sure the cursor gets redrawn.  */
-  cursor_type_changed = 1;  
+  cursor_type_changed = 1;
 }
 
 void
@@ -5090,7 +5090,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	return 0;
 
       goto dflt;
-      
+
     case WM_EMACS_SETCURSOR:
       {
 	Cursor cursor = (Cursor) wParam;
@@ -5098,7 +5098,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  SetCursor (cursor);
 	return 0;
       }
-      
+
     case WM_EMACS_CREATESCROLLBAR:
       return (LRESULT) w32_createscrollbar ((struct frame *) wParam,
 					    (struct scroll_bar *) lParam);
@@ -8789,7 +8789,7 @@ image_background_transparent (img, f, mask)
 	      mask = CreateCompatibleDC (frame_dc);
 	      release_frame_dc (f, frame_dc);
 
-	      prev = SelectObject (mask, img->mask);	      
+	      prev = SelectObject (mask, img->mask);
 	    }
 
 	  img->background_transparent
@@ -9339,12 +9339,12 @@ forall_images_in_image_cache (f, fn)
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
 #define DEF_IMGLIB_FN(func) FARPROC fn_##func
-    
+
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
     fn_##func = (void *) GetProcAddress (lib, #func);			\
     if (!fn_##func) return 0;						\
-  } 
+  }
 
 static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
                                             XImage **, Pixmap *));
@@ -10055,7 +10055,7 @@ static void convert_mono_to_color_image (f, img, foreground, background)
 	  0, 0, SRCCOPY);
 
   SelectObject (old_img_dc, old_prev);
-  SelectObject (new_img_dc, new_prev);	  
+  SelectObject (new_img_dc, new_prev);
   DeleteDC (old_img_dc);
   DeleteDC (new_img_dc);
   DeleteObject (img->pixmap);
@@ -11643,7 +11643,7 @@ DEF_IMGLIB_FN (png_create_read_struct);
 DEF_IMGLIB_FN (png_create_info_struct);
 DEF_IMGLIB_FN (png_destroy_read_struct);
 DEF_IMGLIB_FN (png_set_read_fn);
-DEF_IMGLIB_FN (png_init_io);  
+DEF_IMGLIB_FN (png_init_io);
 DEF_IMGLIB_FN (png_set_sig_bytes);
 DEF_IMGLIB_FN (png_read_info);
 DEF_IMGLIB_FN (png_get_IHDR);
@@ -11670,7 +11670,7 @@ init_png_functions (library)
   LOAD_IMGLIB_FN (library, png_create_info_struct);
   LOAD_IMGLIB_FN (library, png_destroy_read_struct);
   LOAD_IMGLIB_FN (library, png_set_read_fn);
-  LOAD_IMGLIB_FN (library, png_init_io);  
+  LOAD_IMGLIB_FN (library, png_init_io);
   LOAD_IMGLIB_FN (library, png_set_sig_bytes);
   LOAD_IMGLIB_FN (library, png_read_info);
   LOAD_IMGLIB_FN (library, png_get_IHDR);
@@ -11697,7 +11697,7 @@ png_image_p (object)
 {
   struct image_keyword fmt[PNG_LAST];
   bcopy (png_format, fmt, sizeof fmt);
-  
+
   if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
 
@@ -11754,7 +11754,7 @@ png_read_from_memory (png_ptr, data, length)
 
   if (length > tbr->len - tbr->index)
     fn_png_error (png_ptr, "Read error");
-  
+
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
 }
@@ -11896,14 +11896,14 @@ png_load (f, img)
   fn_png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
 		   &interlace_type, NULL, NULL);
 
-  /* If image contains simply transparency data, we prefer to 
+  /* If image contains simply transparency data, we prefer to
      construct a clipping mask.  */
   if (fn_png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
     transparent_p = 1;
   else
     transparent_p = 0;
 
-  /* This function is easier to write if we only have to handle 
+  /* This function is easier to write if we only have to handle
      one data format: RGB or RGBA with 8 bits per channel.  Let's
      transform other formats into that format.  */
 
@@ -11916,7 +11916,7 @@ png_load (f, img)
   fn_png_set_expand (png_ptr);
 
   /* Convert grayscale images to RGB.  */
-  if (color_type == PNG_COLOR_TYPE_GRAY 
+  if (color_type == PNG_COLOR_TYPE_GRAY
       || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     fn_png_set_gray_to_rgb (png_ptr);
 
@@ -11965,14 +11965,14 @@ png_load (f, img)
 	    }
 	}
       else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
-	/* Image contains a background color with which to 
+	/* Image contains a background color with which to
 	   combine the image.  */
 	fn_png_set_background (png_ptr, image_bg,
 			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
       else
 	{
 	  /* Image does not contain a background color with which
-	     to combine the image data via an alpha channel.  Use 
+	     to combine the image data via an alpha channel.  Use
 	     the frame's background instead.  */
 	  COLORREF color;
 	  png_color_16 frame_background;
@@ -12022,12 +12022,12 @@ png_load (f, img)
       fclose (fp);
       fp = NULL;
     }
-  
+
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
 				    &img->pixmap))
     goto error;
-  
+
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
   if (channels == 4
@@ -12062,16 +12062,16 @@ png_load (f, img)
 	  XPutPixel (ximg, x, y, PALETTERGB (r, g, b));
 #endif
 	  /* An alpha channel, aka mask channel, associates variable
-	     transparency with an image.  Where other image formats 
-	     support binary transparency---fully transparent or fully 
+	     transparency with an image.  Where other image formats
+	     support binary transparency---fully transparent or fully
 	     opaque---PNG allows up to 254 levels of partial transparency.
 	     The PNG library implements partial transparency by combining
 	     the image with a specified background color.
 
 	     I'm not sure how to handle this here nicely: because the
 	     background on which the image is displayed may change, for
-	     real alpha channel support, it would be necessary to create 
-	     a new image for each possible background.  
+	     real alpha channel support, it would be necessary to create
+	     a new image for each possible background.
 
 	     What I'm doing now is that a mask is created if we have
 	     boolean transparency information.  Otherwise I'm using
@@ -12262,9 +12262,9 @@ jpeg_image_p (object)
      Lisp_Object object;
 {
   struct image_keyword fmt[JPEG_LAST];
-  
+
   bcopy (jpeg_format, fmt, sizeof fmt);
-  
+
   if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
 
@@ -12335,7 +12335,7 @@ our_skip_input_data (cinfo, num_bytes)
     {
       if (num_bytes > src->bytes_in_buffer)
 	ERREXIT (cinfo, JERR_INPUT_EOF);
-      
+
       src->bytes_in_buffer -= num_bytes;
       src->next_input_byte += num_bytes;
     }
@@ -12373,7 +12373,7 @@ jpeg_memory_src (cinfo, data, len)
       src = (struct jpeg_source_mgr *) cinfo->src;
       src->next_input_byte = data;
     }
-  
+
   src = (struct jpeg_source_mgr *) cinfo->src;
   src->init_source = our_init_source;
   src->fill_input_buffer = our_fill_input_buffer;
@@ -12388,7 +12388,7 @@ jpeg_memory_src (cinfo, data, len)
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */
 
-static int 
+static int
 jpeg_load (f, img)
      struct frame *f;
      struct image *img;
@@ -12421,7 +12421,7 @@ jpeg_load (f, img)
 	  UNGCPRO;
 	  return 0;
 	}
-  
+
       fp = fopen (SDATA (file), "r");
       if (fp == NULL)
 	{
@@ -12435,7 +12435,7 @@ jpeg_load (f, img)
      error is detected.  This function will perform a longjmp.  */
   cinfo.err = fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
-  
+
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
     {
       if (rc == 1)
@@ -12446,7 +12446,7 @@ jpeg_load (f, img)
 	  image_error ("Error reading JPEG image `%s': %s", img->spec,
 		       build_string (buffer));
 	}
-	  
+
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
 	fclose ((FILE *) fp);
@@ -12457,7 +12457,7 @@ jpeg_load (f, img)
 
       /* Free pixmap and colors.  */
       x_clear_image (f, img);
-      
+
       UNGCPRO;
       return 0;
     }
@@ -12509,7 +12509,7 @@ jpeg_load (f, img)
 #endif
     colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
 				       * sizeof *colors);
-  
+
     for (i = 0; i < cinfo.actual_number_of_colors; ++i)
       {
 	int r = cinfo.colormap[ir][i];
@@ -12549,7 +12549,7 @@ jpeg_load (f, img)
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
     IMAGE_BACKGROUND (img, f, ximg);
-  
+
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
@@ -15649,7 +15649,7 @@ versions of Windows) characters.  */);
   defsubr (&Sx_file_dialog);
 }
 
-	
+
 /*
 	globals_of_w32fns is used to initialize those global variables that
 	must always be initialized on startup even when the global variable
@@ -15680,7 +15680,8 @@ init_external_image_libraries ()
 
 #if HAVE_JPEG
   /* Try loading jpeg library under probable names.  */
-  if (library = LoadLibrary ("jpeg.dll"))
+  if ((library = LoadLibrary ("libjpeg.dll"))
+      || (library = LoadLibrary ("jpeg.dll")))
     {
       if (init_jpeg_functions (library))
 	define_image_type (&jpeg_type);
