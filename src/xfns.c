@@ -78,13 +78,8 @@ extern void _XEditResCheckMessages ();
    Library.  */
 extern LWLIB_ID widget_id_tick;
 
-/* The one and only application context associated with the connection
-   to the one and only X display that Emacs uses.  */
-XtAppContext Xt_app_con;
-
-/* The one and only application shell.  Emacs screens are popup shells of this
-   application.  */
-Widget Xt_app_shell;
+/* This is part of a kludge--see lwlib/xlwmenu.c.  */
+XFontStruct *xlwmenu_default_font;
 
 extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
@@ -2218,9 +2213,9 @@ x_window (f, window_prompting, minibuffer_only)
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
-  shell_widget = XtCreatePopupShell ("shell",
-				     topLevelShellWidgetClass,
-				     Xt_app_shell, al, ac);
+  shell_widget = XtAppCreateShell (name, EMACS_CLASS,
+				   topLevelShellWidgetClass,
+				   FRAME_X_DISPLAY (f), al, ac);
 
   f->display.x->widget = shell_widget;
   /* maybe_set_screen_title_format (shell_widget); */
@@ -2671,6 +2666,10 @@ This function is an internal primitive--use `make-frame' instead.")
     x_default_parameter (f, parms, Qfont, font, 
 			 "font", "Font", string);
   }
+
+  /* Prevent lwlib/xlwmenu.c from crashing because of a bug
+     whereby it fails to get any font.  */
+  xlwmenu_default_font = f->display.x->font;
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
@@ -4417,7 +4416,12 @@ If DISPLAY is nil, that stands for the selected frame's display.")
     }
   x_destroy_all_bitmaps (dpyinfo);
   XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+#ifdef USE_X_TOOLKIT
+  XtCloseDisplay (dpyinfo->display);
+#else
   XCloseDisplay (dpyinfo->display);
+#endif
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
