@@ -974,4 +974,4 @@ may need to change the value of this variable.
 The Dired-X package provides various extra features for Dired mode.  You
 can load it with @code{M-x load-library} or customize
 @code{dired-load-hook} to add @samp{(require@w{ }'dired-x)}.
-@xref{Top, Introduction, dired-x, Dired Extra Version 2 User's Manual}.
+@xref{Top, Introduction, Dired Extra Version 2 User's Manual, dired-x}.
