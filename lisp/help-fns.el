@@ -97,6 +97,7 @@ With ARG, you are asked to choose which language."
 	  (forward-line 1)
 	  (newline (- n (/ n 2)))))
       (goto-char (point-min))
+      (setq buffer-undo-list nil)
       (set-buffer-modified-p nil))))
 
 ;;;###autoload
