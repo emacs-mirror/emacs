@@ -54,7 +54,6 @@ C_SWITCH_SYSTEM=
 SHELL=/bin/sh
 
 #define NO_SHORTNAMES
-#define THIS_IS_YMAKEFILE
 #define NOT_C_CODE
 #include "config.h"
 
@@ -240,6 +239,7 @@ SHORT= shortnames
 #endif
 
 #ifdef USE_X_TOOLKIT
+#define USE_@X_TOOLKIT_TYPE@
 TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
 #else
 TOOLKIT_DEFINES =
@@ -623,6 +623,7 @@ lisp= \
 	${lispsource}isearch.elc \
 	${lispsource}lisp-mode.elc \
 	${lispsource}lisp.elc \
+	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}map-ynp.elc \
 	${lispsource}page.elc \
