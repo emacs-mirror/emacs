@@ -64,6 +64,8 @@
 	     (exec-path execute
 			(repeat (choice (const :tag "default" nil)
 					(file :format "%v"))))
+	     ;; charset.c
+	     (charset-map-directory installation directory)
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
