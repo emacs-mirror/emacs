@@ -1,3 +1,7 @@
+2000-06-11  Dave Love  <fx@gnu.org>
+
+	* systime.h (EMACS_SYSTIME_H): Renamed from _SYSTIME_H.
+
 2000-06-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.h: Don't use _MSDOS_H_ as a symbol, use MSDOS_H_ instead.
