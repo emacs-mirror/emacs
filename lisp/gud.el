@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 1998, 2000 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2181,8 +2181,8 @@ It is saved for when this flag is not set.")
 	    (if gud-filter-pending-text
 		(setq string (concat gud-filter-pending-text string)
 		      gud-filter-pending-text nil))
-	    (save-excursion
-	      (set-buffer (process-buffer proc))
+
+	    (with-current-buffer (process-buffer proc)
 	      ;; If we have been so requested, delete the debugger prompt.
 	      (if (marker-buffer gud-delete-prompt-marker)
 		  (progn
