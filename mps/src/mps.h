@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.45) $
+ * $HopeName: MMsrc!mps.h(trunk.46) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -74,18 +74,18 @@ enum {
 #define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
 
 
-/* Reference Ranks */
+/* Reference Ranks
+ *
+ * See protocol.mps.reference. */
 
 extern mps_rank_t mps_rank_ambig(void);
 extern mps_rank_t mps_rank_exact(void);
-extern mps_rank_t mps_rank_final(void);
 extern mps_rank_t mps_rank_weak(void);
 
 /* These upper case symbolic forms are obsolescent. */
 /* Provided for source compatibility only. */
 #define MPS_RANK_AMBIG mps_rank_ambig()
 #define MPS_RANK_EXACT mps_rank_exact()
-#define MPS_RANK_FINAL mps_rank_final()
 #define MPS_RANK_WEAK mps_rank_weak()
 
 /* Root Modes */
