@@ -416,7 +416,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	  (or (string= tags-file-name buffer-file-name)
 	      ;; find-file-noselect has changed the file name.
 	      ;; Propagate the change to tags-file-name and tags-table-list.
-	      (let ((tail (member file tags-table-list)))
+	      (let ((tail (member tags-file-name tags-table-list)))
 		(if tail
 		    (setcar tail buffer-file-name))
 		(setq tags-file-name buffer-file-name)))
