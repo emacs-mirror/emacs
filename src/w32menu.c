@@ -333,7 +333,7 @@ push_left_right_boundary ()
   XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
 }
 
-/* Start a new menu pane in menu_items..
+/* Start a new menu pane in menu_items.
    NAME is the pane name.  PREFIX_VEC is a prefix key for this pane.  */
 
 static void
@@ -1703,7 +1703,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    wv->key = (char *) XSTRING (descrip)->data;
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
-             restricted to 16-bits..  */
+             restricted to 16-bits.  */
 	  wv->call_data = !NILP (def) ? (void *) (EMACS_INT) i : 0;
 	  wv->enabled = !NILP (enable);
 
