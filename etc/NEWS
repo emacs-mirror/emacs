@@ -138,8 +138,8 @@ as a hollow box or a thin bar.
 
 Some versions of X, notably XFree86, use Extended Segments to encode
 in X selections characters that belong to character sets which are not
-part of the list of standard charsets supported by the ICCCM spec.
-Examples of such non-standard character sets include ISO 8859-14, ISO
+part of the list of approved standard encodings defined by the ICCCM
+spec.  Examples of such non-standard encodings include ISO 8859-14, ISO
 8859-15, KOI8-R, and BIG5.  The new coding system
 `compound-text-with-extensions' supports these extensions, and is now
 used by default for encoding and decoding X selections.  If you don't
