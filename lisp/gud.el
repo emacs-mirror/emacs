@@ -1887,7 +1887,7 @@ between it and it's value."
   (gud-def gud-next   "next"    "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "cont"    "\C-r" "Continue with display.")
 
-  (setq comint-prompt-regexp "^> \|^.+\[[0-9]+\] ")
+  (setq comint-prompt-regexp "^> \\|^.+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'jdb-mode-hook)
 
