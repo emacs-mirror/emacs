@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -588,6 +588,20 @@ after_change_function_restore (value)
   Vafter_change_function = value;
 }
 
+static Lisp_Object
+before_change_functions_restore (value)
+     Lisp_Object value;
+{
+  Vbefore_change_functions = value;
+}
+
+static Lisp_Object
+after_change_functions_restore (value)
+     Lisp_Object value;
+{
+  Vafter_change_functions = value;
+}
+
 /* Signal a change to the buffer immediately before it happens.
    START and END are the bounds of the text to be changed,
    as Lisp objects.  */
@@ -608,14 +622,50 @@ signal_before_change (start, end)
       Lisp_Object function;
 
       function = Vbefore_change_function;
+
       record_unwind_protect (after_change_function_restore,
 			     Vafter_change_function);
       record_unwind_protect (before_change_function_restore,
 			     Vbefore_change_function);
+      record_unwind_protect (after_change_functions_restore,
+			     Vafter_change_functions);
+      record_unwind_protect (before_change_functions_restore,
+			     Vbefore_change_functions);
       Vafter_change_function = Qnil;
       Vbefore_change_function = Qnil;
+      Vafter_change_functions = Qnil;
+      Vbefore_change_functions = Qnil;
 
       call2 (function, start, end);
+      unbind_to (count, Qnil);
+    }
+
+  /* Now in any case run the before-change-function if any.  */
+  if (!NILP (Vbefore_change_functions))
+    {
+      int count = specpdl_ptr - specpdl;
+      Lisp_Object functions;
+
+      functions = Vbefore_change_functions;
+
+      record_unwind_protect (after_change_function_restore,
+			     Vafter_change_function);
+      record_unwind_protect (before_change_function_restore,
+			     Vbefore_change_function);
+      record_unwind_protect (after_change_functions_restore,
+			     Vafter_change_functions);
+      record_unwind_protect (before_change_functions_restore,
+			     Vbefore_change_functions);
+      Vafter_change_function = Qnil;
+      Vbefore_change_function = Qnil;
+      Vafter_change_functions = Qnil;
+      Vbefore_change_functions = Qnil;
+
+      while (CONSP (functions))
+	{
+	  call2 (XCONS (functions)->car, start, end);
+	  functions = XCONS (functions)->cdr;
+	}
       unbind_to (count, Qnil);
     }
 }
@@ -639,11 +689,45 @@ signal_after_change (pos, lendel, lenins)
 			     Vafter_change_function);
       record_unwind_protect (before_change_function_restore,
 			     Vbefore_change_function);
+      record_unwind_protect (after_change_functions_restore,
+			     Vafter_change_functions);
+      record_unwind_protect (before_change_functions_restore,
+			     Vbefore_change_functions);
       Vafter_change_function = Qnil;
       Vbefore_change_function = Qnil;
+      Vafter_change_functions = Qnil;
+      Vbefore_change_functions = Qnil;
 
       call3 (function, make_number (pos), make_number (pos + lenins),
 	     make_number (lendel));
+      unbind_to (count, Qnil);
+    }
+  if (!NILP (Vafter_change_functions))
+    {
+      int count = specpdl_ptr - specpdl;
+      Lisp_Object functions;
+      functions = Vafter_change_functions;
+
+      record_unwind_protect (after_change_function_restore,
+			     Vafter_change_function);
+      record_unwind_protect (before_change_function_restore,
+			     Vbefore_change_function);
+      record_unwind_protect (after_change_functions_restore,
+			     Vafter_change_functions);
+      record_unwind_protect (before_change_functions_restore,
+			     Vbefore_change_functions);
+      Vafter_change_function = Qnil;
+      Vbefore_change_function = Qnil;
+      Vafter_change_functions = Qnil;
+      Vbefore_change_functions = Qnil;
+
+      while (CONSP (functions))
+	{
+	  call3 (XCONS (functions)->car,
+		 make_number (pos), make_number (pos + lenins),
+		 make_number (lendel));
+	  functions = XCONS (functions)->cdr;
+	}
       unbind_to (count, Qnil);
     }
 }
