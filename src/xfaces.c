@@ -7297,24 +7297,8 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   /* Look at properties from overlays.  */
   {
     int next_overlay;
-    int len;
 
-    /* First try with room for 40 overlays.  */
-    len = 40;
-    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-    noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-			     &next_overlay, NULL, 0);
-
-    /* If there are more than 40, make enough space for all, and try
-       again.  */
-    if (noverlays > len)
-      {
-	len = noverlays;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-				 &next_overlay, NULL, 0);
-      }
-
+    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
