@@ -1,11 +1,11 @@
 ;;;_* allout.el --- Extensive outline mode for use alone and with other modes.
 
-;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 4.35 2000/02/01 15:58:14 klm Exp klm $||
+;; Version: $Id: allout.el,v 1.26 2001/02/26 12:01:50 gerd Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -507,7 +507,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 4.35 $"))
+  (let ((rcs-rev "$Revision: 1.26 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -2405,6 +2405,20 @@ Called as part of outline-post-command-business."
 ;;;_   = outline-isearch-was-font-lock
 (defvar outline-isearch-was-font-lock
   (and (boundp 'font-lock-mode) font-lock-mode))
+
+;;;_   > outline-flag-region (from to flag)
+(defmacro outline-flag-region (from to flag)
+  "Hide or show lines from FROM to TO, via emacs selective-display FLAG char.
+Ie, text following flag C-m \(carriage-return) is hidden until the
+next C-j (newline) char.
+
+Returns the endpoint of the region."
+  `(let ((buffer-read-only nil)
+	   (outline-override-protect t))
+       (subst-char-in-region ,from ,to
+			     (if (= ,flag ?\n) ?\r ?\n)
+			     ,flag t)))
+
 ;;;_   > outline-isearch-expose (mode)
 (defun outline-isearch-expose (mode)
   "Mode is either 'clear, 'start, 'continue, or 'final."
@@ -3526,18 +3540,6 @@ by pops to non-distinctive yanks.  Bug..."
 ;;;_ #6 Exposure Control
 
 ;;;_  - Fundamental
-;;;_   > outline-flag-region (from to flag)
-(defmacro outline-flag-region (from to flag)
-  "Hide or show lines from FROM to TO, via emacs selective-display FLAG char.
-Ie, text following flag C-m \(carriage-return) is hidden until the
-next C-j (newline) char.
-
-Returns the endpoint of the region."
-  `(let ((buffer-read-only nil)
-	   (outline-override-protect t))
-       (subst-char-in-region ,from ,to
-			     (if (= ,flag ?\n) ?\r ?\n)
-			     ,flag t)))
 ;;;_   > outline-flag-current-subtree (flag)
 (defun outline-flag-current-subtree (flag)
   "Hide or show subtree of currently-visible topic.
