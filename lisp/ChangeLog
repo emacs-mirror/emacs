@@ -1,3 +1,92 @@
+2000-09-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-minor-mode): Use define-minor-mode.
+	(outline-mode): Use define-derived-mode.
+
+	* progmodes/perl-mode.el (perl-mode): 
+	* progmodes/awk-mode.el (awk-mode):
+	* progmodes/asm-mode.el (asm-mode):
+	Don't gratuitously override the default for comment-column.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Distinguish the let-binding case from the funcall case.
+	(forward-sexp-function): New variable.
+	(forward-sexp): Use it.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Autoload.
+	(easy-mmode-defmap): Remove the now useless autoload.
+
+	* time.el (display-time-mode): Use define-minor-mode.
+
+	* subr.el (add-minor-mode): Don't eval NAME.
+	Don't depend on the presence of TOGGLE-FUN for any special behavior.
+	Use if rather than cond.
+
+	* simple.el (read-expression-map): Define more properly.
+	(comment-indent-hook): Remove.
+	(string-to-syntax): Bug fix.
+
+	* pcvs.el (cvs-ediff-exit-hook): Kill buffer before window.
+	(cvs-ediff-diff): Fix typo.
+	(cvs-revert-if-needed): Don't bother preserving read-only.
+
+	* paren.el (show-paren-mode): Use define-minor-mode.
+
+	* jka-compr.el (auto-compression-mode): Use define-minor-mode.
+	(toggle-auto-compression): Remove.
+	(jka-compr-build-file-regexp): Remove useless grouping.
+
+	* diff-mode.el (diff-mode-map, diff-minor-mode-prefix):
+	Avoid user-reserved bindings.
+	(diff-mode, diff-minor-mode): Drop make-local-hook (done by add-hook).
+	(diff-header-face): Revert to grey85.
+
+	* cvs-status.el (cvs-status-entry-leader-re): Minor fix.
+
+	* complete.el (partial-completion-mode) <defcustom>: Remove.
+	(partial-completion-mode): Use define-minor-mode.
+	(PC-do-completion): Understand `completion-auto-help = delay'
+	to mean to popup the completion buffer only the second time.
+	(PC-include-file-all-completions, PC-include-file-all-completions) 
+	(PC-include-file-all-completions): Don't quote lambda.
+
+	* comint.el (comint-mode-hook): Docstring fix.
+	(comint-mode): Use define-derived-mode.
+	(comint-mode-map): Remove obsolete comment.
+	(make-comint): Minor stylistic change.
+	(comint-insert-clicked-input): Be more careful to find the overlay.
+	Use this-command-keys rather than hardcoding mouse-2.
+
+	* font-lock.el: Replace confusing (,@ with ,
+	(tex-font-lock-keywords-1, tex-font-lock-keywords-2):
+	Don't use regexp-opt-depth.  Spice up the regexp for args.
+	Don't distinguish between cmds that can take an opt arg or not.
+	Use `append' and `prepend' rather than `keep'.
+
+	* textmodes/tex-mode.el (latex-imenu-indent-string): Add a space.
+	(latex-outline-regexp): New var.
+	(latex-outline-level): New fun.
+	(latex-section-alist): New var.
+	(latex-imenu-create-index): Use it.  Use `push' as well.
+	(tex-shell-map): Initialize it properly.
+	(tex-mode): Minor stylistic change.
+	(plain-tex-mode): Use define-derived-mode.
+	(latex-mode): Use define-derived-mode.
+	Construct the paragraph regexps in a more readable way.
+	Set the buffer-local outline-{level,regexp} vars.
+	(slitex-mode): Derive from latex-mode.
+	(tex-common-initialization): Don't kill-all-vars anymore.
+	Add setting for comment-add and font-lock-defaults.
+	(tex-start-shell): Use with-current-buffer and don't re-init keymap.
+	(tex-main-file): New fun.  Obey TeX-master as well and remove `.tex'.
+	(tex-start-tex): New arg DIR (and send a chdir command for it).
+	Also display the shell buffer and save it in tex-last-buffer-texed.
+	(tex-region): Use expand-file-name rather than concat.
+	Remove code made useless by changes in tex-start-tex.
+	(tex-file): Use tex-main-file and adapt to new tex-start-tex.
+
+	* map-ynp.el (map-y-or-n-p): Fix missing backquotes.
+
 2000-09-28  Dave Love  <fx@gnu.org>
 
 	* eshell/eshell.el (eshell) <defgroup>: Add :version.
