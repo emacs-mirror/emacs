@@ -229,7 +229,7 @@ echo "Making links to \`lisp/term'."
 
 echo "Making links to \`src'."
 ### Don't distribute =*.[ch] files, or the configured versions of
-### config.h.in, paths.h.in, or Makefile.in.in, or TAGS.
+### config.in, paths.in, or Makefile.in, or TAGS.
 (cd src
  echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
@@ -237,7 +237,7 @@ echo "Making links to \`src'."
  test -f ../${tempdir}/src/gmalloc.c || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
- ln README Makefile.in.in ChangeLog ChangeLog.? config.h.in paths.h.in \
+ ln README Makefile.in ChangeLog ChangeLog.? config.in paths.in \
     ../${tempdir}/src
  ln makefile.nt ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
@@ -262,7 +262,7 @@ echo "Making links to \`src/s'."
 echo "Making links to \`lib-src'."
 (cd lib-src
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
- ln ChangeLog Makefile.in.in README testfile vcdiff ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln emacs.csh rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
  rm -f getdate.tab.c y.tab.c y.tab.h
