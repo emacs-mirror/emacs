@@ -663,7 +663,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
               c (aref s 0))
         (zone-replace-char
          (char-width c)
-         t s (cond ((or (> top (point))
+         1 s (cond ((or (> top (point))
                         (< bot (point))
                         (or (> 11 (setq col (current-column)))
                             (< rtc col)))
