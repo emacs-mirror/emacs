@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.4) $
+ * $HopeName: MMsrc!mpm.h(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -407,7 +407,7 @@ extern Space RootSpace(Root root);
 
 extern Align VMAlign(void);
 extern Bool VMCheck(VM vm);
-extern Res VMCreate(Space *spaceReturn, size_t size);
+extern Res VMCreate(Space *spaceReturn, Size size);
 extern void VMDestroy(Space space);
 extern Addr VMBase(Space space);
 extern Addr VMLimit(Space space);
