@@ -71,7 +71,7 @@ Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
-Lisp_Object Qintegerp, Qnatnump, Qsymbolp, Qlistp, Qconsp;
+Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
@@ -2021,6 +2021,7 @@ syms_of_data ()
   Qsymbolp = intern ("symbolp");
   Qintegerp = intern ("integerp");
   Qnatnump = intern ("natnump");
+  Qwholenump = intern ("wholenump");
   Qstringp = intern ("stringp");
   Qarrayp = intern ("arrayp");
   Qsequencep = intern ("sequencep");
@@ -2204,6 +2205,7 @@ syms_of_data ()
   staticpro (&Qsymbolp);
   staticpro (&Qintegerp);
   staticpro (&Qnatnump);
+  staticpro (&Qwholenump);
   staticpro (&Qstringp);
   staticpro (&Qarrayp);
   staticpro (&Qsequencep);
@@ -2301,6 +2303,8 @@ syms_of_data ()
   defsubr (&Sadd1);
   defsubr (&Ssub1);
   defsubr (&Slognot);
+
+  Fset (Qwholenump, Qnatnump);
 }
 
 SIGTYPE
