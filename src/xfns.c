@@ -1555,7 +1555,9 @@ Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
 
 #ifdef HAVE_X11
 /* Calculate the desired size and position of this window,
-   or set rubber-band prompting if none. */
+   and return the attributes saying which aspects were specified.
+
+   This function does not make the coordinates positive.  */
 
 #define DEFAULT_ROWS 40
 #define DEFAULT_COLS 80
@@ -1608,7 +1610,10 @@ x_figure_window_size (f, parms)
       CHECK_NUMBER (tem1, 0);
       f->display.x->top_pos = XINT (tem0);
       f->display.x->left_pos = XINT (tem1);
-      x_calc_absolute_position (f);
+      if (f->display.x->top_pos < 0)
+	window_prompting |= YNegative;
+      if (f->display.x->left_pos < 0)
+	window_prompting |= YNegative;
       window_prompting |= USPosition;
     }
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
@@ -1713,24 +1718,20 @@ hack_wm_protocols (widget)
 }
 #endif
 
-/* Create and set up the X window or widget for frame F.  */
+#ifdef USE_X_TOOLKIT
+
+/* Create and set up the X widget for frame F.  */
 
 static void
-#ifdef USE_X_TOOLKIT
 x_window (f, window_prompting, minibuffer_only)
      struct frame *f;
      long window_prompting;
      int minibuffer_only;
-#else /* not USE_X_TOOLKIT */
-x_window (f)
-     struct frame *f;
-#endif /* not USE_X_TOOLKIT */
 {
   XClassHint class_hints;
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
-#ifdef USE_X_TOOLKIT
   Widget shell_widget;
   Widget pane_widget;
   Widget screen_widget;
@@ -1793,17 +1794,27 @@ x_window (f)
     char *tem, shell_position[32];
     Arg al[2];
     int ac = 0;
-    int menubar_size = 
-      (f->display.x->menubar_widget
-       ? (f->display.x->menubar_widget->core.height
-	  + f->display.x->menubar_widget->core.border_width)
-       : 0);
+    int menubar_size 
+      = (f->display.x->menubar_widget
+	 ? (f->display.x->menubar_widget->core.height
+	    + f->display.x->menubar_widget->core.border_width)
+	 : 0);
 
     if (window_prompting & USPosition)
-      sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
-	       PIXEL_HEIGHT (f) + menubar_size,
-	       '+', f->display.x->left_pos,
-	       '+', f->display.x->top_pos);
+      {
+	int left = f->display.x->left_pos;
+	int xneg = left < 0;
+	int top = f->display.x->top_pos;
+	int yneg = top < 0;
+	if (left < 0)
+	  left = -left;
+	if (top < 0)
+	  top = -top;
+	sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
+		 PIXEL_HEIGHT (f) + menubar_size,
+		 (xneg ? '-' : '+'), left,
+		 (yneg ? '-' : '+'), top);
+      }
     else
       sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
 	       PIXEL_HEIGHT (f) + menubar_size);
@@ -1814,7 +1825,8 @@ x_window (f)
     XtSetValues (shell_widget, al, ac);
   }
 
- 
+  x_calc_absolute_position (f);
+
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
@@ -1843,8 +1855,42 @@ x_window (f)
 
   XtMapWidget (screen_widget);
 
+  /* x_set_name normally ignores requests to set the name if the
+     requested name is the same as the current name.  This is the one
+     place where that assumption isn't correct; f->name is set, but
+     the X server hasn't been told.  */
+  {
+    Lisp_Object name;
+    int explicit = f->explicit_name;
+
+    f->explicit_name = 0;
+    name = f->name;
+    f->name = Qnil;
+    x_set_name (f, name, explicit);
+  }
+
+  XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
+		 f->display.x->text_cursor);
+
+  UNBLOCK_INPUT;
+
+  if (FRAME_X_WINDOW (f) == 0)
+    error ("Unable to create window");
+}
+
 #else /* not USE_X_TOOLKIT */
 
+/* Create and set up the X window for frame F.  */
+
+x_window (f)
+     struct frame *f;
+
+{
+  XClassHint class_hints;
+  XSetWindowAttributes attributes;
+  unsigned long attribute_mask;
+
+  x_calc_absolute_position (f);
 
   attributes.background_pixel = f->display.x->background_pixel;
   attributes.border_pixel = f->display.x->border_pixel;
@@ -1886,7 +1932,6 @@ x_window (f)
   XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f),
 		   &Xatom_wm_delete_window, 1);
 
-#endif /* not USE_X_TOOLKIT */
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
@@ -1910,6 +1955,8 @@ x_window (f)
   if (FRAME_X_WINDOW (f) == 0)
     error ("Unable to create window");
 }
+
+#endif /* not USE_X_TOOLKIT */
 
 /* Handle the icon stuff for this window.  Perhaps later we might
    want an x_set_icon_position which can be called interactively as
