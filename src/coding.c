@@ -5217,6 +5217,7 @@ decode_coding_string (str, coding, nocopy)
     {
       /* Decoding routines expect the source text to be unibyte.  */
       str = Fstring_as_unibyte (str);
+      to_byte = STRING_BYTES (XSTRING (str));
       nocopy = 1;
       coding->src_multibyte = 0;
     }
