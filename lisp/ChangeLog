@@ -1,3 +1,8 @@
+2003-01-09  Karl Berry  <karl@gnu.org>
+
+	* sort.el (sort-regexp-fields): pass noerror to re-search-forward,
+	so that we don't fail if no records match record-regexp.
+
 2003-01-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-edit.el (customize-group, customize-group-other-window):
