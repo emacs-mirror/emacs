@@ -375,7 +375,7 @@ install-arch-indep: mkdir
 	   cd ${srcdir}/info ; \
 	   (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   (cd $${thisdir}; chmod a+r ${infodir}/dir); \
-	   for f in ccmode* cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*; do \
+	   for f in ccmode* cl* dired-x* ediff* emacs* forms* gnus* info* message* mh-e* sc* vip*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
