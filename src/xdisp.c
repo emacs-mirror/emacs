@@ -239,7 +239,7 @@ int auto_raise_tool_bar_buttons_p;
 
 /* Margin around tool bar buttons in pixels.  */
 
-int tool_bar_button_margin;
+Lisp_Object Vtool_bar_button_margin;
 
 /* Thickness of shadow to draw around tool bar buttons.  */
 
@@ -7186,7 +7186,7 @@ build_desired_tool_bar_string (f)
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
-      int margin, relief, idx, end;
+      int hmargin, vmargin, relief, idx, end;
       extern Lisp_Object QCrelief, QCmargin, QCalgorithm, Qimage;
       extern Lisp_Object Qlaplace;
 
@@ -7219,7 +7219,24 @@ build_desired_tool_bar_string (f)
 
       /* Compute margin and relief to draw.  */
       relief = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
-      margin = relief + max (0, tool_bar_button_margin);
+      hmargin = vmargin = relief;
+
+      if (INTEGERP (Vtool_bar_button_margin)
+	  && XINT (Vtool_bar_button_margin) > 0)
+	{
+	  hmargin += XFASTINT (Vtool_bar_button_margin);
+	  vmargin += XFASTINT (Vtool_bar_button_margin);
+	}
+      else if (CONSP (Vtool_bar_button_margin))
+	{
+	  if (INTEGERP (XCAR (Vtool_bar_button_margin))
+	      && XINT (XCAR (Vtool_bar_button_margin)) > 0)
+	    hmargin += XFASTINT (XCAR (Vtool_bar_button_margin));
+	  
+	  if (INTEGERP (XCDR (Vtool_bar_button_margin))
+	      && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+	    vmargin += XFASTINT (XCDR (Vtool_bar_button_margin));
+	}
       
       if (auto_raise_tool_bar_buttons_p)
 	{
@@ -7228,7 +7245,8 @@ build_desired_tool_bar_string (f)
 	  if (selected_p)
 	    {
 	      plist = Fplist_put (plist, QCrelief, make_number (-relief));
-	      margin -= relief;
+	      hmargin -= relief;
+	      vmargin -= relief;
 	    }
 	}
       else
@@ -7240,12 +7258,20 @@ build_desired_tool_bar_string (f)
 			      (selected_p
 			       ? make_number (-relief)
 			       : make_number (relief)));
-	  margin -= relief;
+	  hmargin -= relief;
+	  vmargin -= relief;
 	}
 
       /* Put a margin around the image.  */
-      if (margin)
-	plist = Fplist_put (plist, QCmargin, make_number (margin));
+      if (hmargin || vmargin)
+	{
+	  if (hmargin == vmargin)
+	    plist = Fplist_put (plist, QCmargin, make_number (hmargin));
+	  else
+	    plist = Fplist_put (plist, QCmargin,
+				Fcons (make_number (hmargin),
+				       make_number (vmargin)));
+	}
 	  
       /* If button is not enabled, and we don't have special images
 	 for the disabled state, make the image appear disabled by
@@ -14088,9 +14114,13 @@ otherwise.");
     "*Non-nil means raise tool-bar buttons when the mouse moves over them.");
   auto_raise_tool_bar_buttons_p = 1;
 
-  DEFVAR_INT ("tool-bar-button-margin", &tool_bar_button_margin,
-    "*Margin around tool-bar buttons in pixels.");
-  tool_bar_button_margin = 1;
+  DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
+    "*Margin around tool-bar buttons in pixels.\n\
+If an integer, use that for both horizontal and vertical margins.\n\
+Otherwise, value should be a pair of integers `(HORZ : VERT)' with\n\
+HORZ specifying the horizontal margin, and VERT specifying the\n\
+vertical margin.");
+  Vtool_bar_button_margin = make_number (1);
 
   DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
     "Relief thickness of tool-bar buttons.");
