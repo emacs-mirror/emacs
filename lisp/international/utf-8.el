@@ -1,4 +1,4 @@
-;;; utf-8.el --- Limited UTF-8 decoding/encoding support -*- coding: iso-2022-7bit -*-
+;;; utf-8.el --- limited UTF-8 decoding/encoding support -*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
