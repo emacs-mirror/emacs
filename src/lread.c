@@ -60,6 +60,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+
 extern int errno;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
@@ -577,7 +581,7 @@ openp (path, str, suffix, storeptr, exec_only)
 	      if (exec_only)
 		fd = (access (fn, X_OK) == 0) ? 1 : -1;
 	      else
-		fd = open (fn, 0, 0);
+		fd = open (fn, O_RDONLY, 0);
 
 	      if (fd >= 0)
 		{
