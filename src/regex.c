@@ -1512,7 +1512,7 @@ typedef struct
 									\
   assert (fail_stack.avail >= NUM_NONREG_ITEMS);			\
 									\
-  DEBUG_POP (&failure_id);						\
+  DEBUG_POP (&failure_id.integer);					\
   DEBUG_PRINT2 ("  Popping failure id: %u\n", failure_id.integer);	\
 									\
   /* If the saved string location is NULL, it came from an		\
