@@ -67,6 +67,23 @@
   (while (string-match "//+" file)
     (setq file (replace-match "/" t t file)))
   (funcall gud-find-file file))
+
+;; Keymap definitions for menu bar entries common to all debuggers and
+;; slots for debugger-dependent ones in sensible places.  (Defined here
+;; before use.)
+(defvar gud-menu-map (make-sparse-keymap "Gud") nil)
+(define-key gud-menu-map [refresh] '("Refresh" . gud-refresh))
+(define-key gud-menu-map [remove] '("Remove breakpoint" . gud-remove))
+(define-key gud-menu-map [tbreak] nil)	; gdb, sdb and xdb
+(define-key gud-menu-map [break] '("Set breakpoint" . gud-break))
+(define-key gud-menu-map [up] nil)	; gdb, dbx, and xdb
+(define-key gud-menu-map [down] nil)	; gdb, dbx, and xdb
+(define-key gud-menu-map [print] '("Print expression" . gud-print))
+(define-key gud-menu-map [finish] nil)	; gdb or xdb
+(define-key gud-menu-map [stepi] '("Step instruction" . gud-stepi))
+(define-key gud-menu-map [step] '("Step line" . gud-step))
+(define-key gud-menu-map [next] '("Next line" . gud-next))
+(define-key gud-menu-map [cont] '("Continue" . gud-cont))
 
 ;; ======================================================================
 ;; command definition
@@ -212,7 +229,19 @@ we're in the GUD buffer)."
     output))
 
 (defun gud-gdb-find-file (f)
-  (find-file-noselect f))
+  (save-excursion
+    (let ((buf (find-file-noselect f)))
+      (set-buffer buf)
+      (define-key (current-local-map) [menu-bar debug]
+	;; The copy-keymap here avoids redefining the gud-menu-map
+	;; items in other buffers.
+	(cons "Gud" (copy-keymap gud-menu-map)))
+      (local-set-key [menu-bar debug tbreak]
+		     '("Temporary breakpoint" . gud-tbreak))
+      (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
+      (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+      (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+      buf)))
 
 (defvar gdb-minibuffer-local-map nil
   "Keymap for minibuffer prompting of gdb startup command.")
@@ -421,9 +450,14 @@ available with older versions of GDB."
   string)
 
 (defun gud-sdb-find-file (f)
-  (if gud-sdb-needs-tags
-      (find-tag-noselect f)
-    (find-file-noselect f)))
+  (save-excursion
+    (let ((buf (if gud-sdb-needs-tags
+		   (find-tag-noselect f)
+		 (find-file-noselect f))))
+      (set-buffer buf)
+      (define-key (current-local-map) [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
+      buf)))
 
 ;;;###autoload
 (defun sdb (command-line)
@@ -650,7 +684,13 @@ This works in IRIX 4, 5 and 6.")
     (or result "")))
 
 (defun gud-dbx-find-file (f)
-  (find-file-noselect f))
+  (save-excursion
+    (let ((buf (find-file-noselect f)))
+      (set-buffer buf)
+      (local-set-key [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+      (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+      buf)))
 
 ;;;###autoload
 (defun dbx (command-line)
@@ -772,8 +812,21 @@ containing the executable being debugged.")
     (or result "")))    
                
 (defun gud-xdb-find-file (f)
-  (let ((realf (gud-xdb-file-name f)))
-    (if realf (find-file-noselect realf))))
+  (save-excursion
+    (let ((realf (gud-xdb-file-name f)))
+      (if realf
+	  (let ((buf (find-file-noselect realf)))
+	    (set-buffer buf)
+	    (local-set-key [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+	    (local-set-key [menu-bar debug tbreak]
+			   '("Temporary breakpoint" . gud-tbreak))
+	    (local-set-key [menu-bar debug finish]
+			   '("Finish function" . gud-finish))
+	    (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+	    (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
+	    (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
+	    buf)
+	nil))))
 
 ;;;###autoload
 (defun xdb (command-line)
@@ -876,7 +929,11 @@ directories if your program contains sources from more than one directory."
     output))
 
 (defun gud-perldb-find-file (f)
-  (find-file-noselect f))
+  (save-excursion
+    (let ((buf (find-file-noselect f)))
+      (set-buffer buf)
+      (define-key (current-local-map) [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      buf)))
 
 ;;;###autoload
 (defun perldb (command-line)
@@ -1017,36 +1074,8 @@ comint mode, which see."
   (setq mode-line-process '(":%s"))
   (use-local-map (copy-keymap comint-mode-map))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
-  ;; Keymap definitions for menu bar entries common to all debuggers
-  ;; and slots for debugger-dependent ones.  The menu should be made
-  ;; to propagate to buffers found by gud-find-file.
   (define-key (current-local-map) [menu-bar debug]
-    (cons "Gud" (make-sparse-keymap "Gud")))
-  (define-key (current-local-map) [menu-bar debug refresh]
-    '("Refresh" . gud-refresh))
-  (define-key (current-local-map) [menu-bar debug remove]
-    '("Remove breakpoint" . gud-remove))
-  (define-key (current-local-map) [menu-bar debug tbreak] ; gdb, sdb and xdb
-    nil)
-  (define-key (current-local-map) [menu-bar debug break]
-    '("Set breakpoint" . gud-break))
-  (define-key (current-local-map) [menu-bar debug up] ; gdb, dbx, and xdb
-    nil)
-  (define-key (current-local-map) [menu-bar debug down]	; gdb, dbx, and xdb
-    nil)
-  (define-key (current-local-map) [menu-bar debug print]
-    '("Print expression" . gud-print))  ; though not in the source
-                                        ; buffer until it gets a menu...
-  (define-key (current-local-map) [menu-bar debug finish] ; gdb or xdb
-    nil)
-  (define-key (current-local-map) [menu-bar debug stepi]
-    '("Step instruction" . gud-stepi))
-  (define-key (current-local-map) [menu-bar debug step]
-    '("Step line" . gud-step))
-  (define-key (current-local-map) [menu-bar debug next]
-    '("Next line" . gud-next))
-  (define-key (current-local-map) [menu-bar debug cont]
-    '("Continue" . gud-cont))
+    (cons "Gud" gud-menu-map))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
