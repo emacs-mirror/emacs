@@ -73,7 +73,7 @@
 	   nil nil nil nil nil)
     (ibm   "IBM Code Page 850 (DOS)" 
 	   "1\\(^\\)"
-	   "recode ibm-ps:latin1" "recode latin1:ibm-pc" t nil)
+	   "recode ibm-pc:latin1" "recode latin1:ibm-pc" t nil)
     (mac   "Apple Macintosh" 
 	   "1\\(^\\)"
 	   "recode mac:latin1" "recode latin1:mac" t nil)
@@ -148,7 +148,8 @@ BUFFER should be the buffer that the output originally came from."
   (if (stringp method)
       (save-current-buffer
 	(set-buffer buffer)
-	(shell-command-on-region from to method t)
+	(with-output-to-temp-buffer "*Format Errors*"
+	  (shell-command-on-region from to method t nil standard-output))
 	(point))
     (funcall method from to buffer)))
 
@@ -158,7 +159,8 @@ If METHOD is a string, it is a shell command;
 otherwise, it should be a Lisp function."
   (if (stringp method)
       (progn
-	(shell-command-on-region from to method t)
+	(with-output-to-temp-buffer "*Format Errors*"
+	  (shell-command-on-region from to method t nil standard-output))
 	(point))
     (funcall method from to)))
 
