@@ -1,3 +1,7 @@
+1999-10-19  Dave Love  <fx@gnu.org>
+
+	* pop3.el: Merge changes from version `1.3s' which we weren't sent.
+
 1999-10-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gnus-start.el (gnus-slave-save-newsrc):
