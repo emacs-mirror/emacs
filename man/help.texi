@@ -38,9 +38,11 @@ customization buffers and the like.  @xref{Help Mode}.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
-  If you are looking for a certain feature, but don't know where exactly
-it is documented, and aren't even sure what is the name of the related
-command or option, we recommend these commands:
+  If you are looking for a certain feature, but don't know where
+exactly it is documented, and aren't even sure what is the name of the
+related command or option, we recommend trying these methods.  Usually
+it is best to start with an apropos command, then try searching the
+manual index, then finally look in the FAQ and the package keywords.
 
 @table @kbd
 @item C-h a @var{topic} @key{RET}
