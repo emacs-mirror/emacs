@@ -3,10 +3,11 @@
 
 #include "usg5-3.h"
 
-/* With this defined, subprocesses made by (e.g.) M-x grep don't exit
-   cleanly, they just hang.  ISC 2.2.1 does have select, in the -linet
-   library, but I guess it's not what Emacs needs.  --karl@cs.umb.edu  */
-#undef HAVE_SELECT /* override configuration decision */
+/* select (in -linet) works okay on X ptys, but not on the serial port.
+   karl@cs.umb.edu says that with that select call, subprocesses made by
+   (e.g.) M-x grep don't exit cleanly, they just hang.  Similar problems
+   have been observed in ISC 3.0.  */
+#define BROKEN_SELECT_NON_X
 
 /* Although ISC has sockets, again in -linet, again it's not what Emacs
    needs.  With this defined, interrupt-shell-subjob and the like do
