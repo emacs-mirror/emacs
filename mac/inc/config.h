@@ -1,4 +1,4 @@
-/* Handcrafted Emacs site configuration file for Mac OS.  -*- C -*- */
+/* Handcrafted Emacs site configuration file for Mac OS 9.  -*- C -*- */
 
 /* GNU Emacs site configuration template file.  -*- C -*-
    Copyright (C) 1988, 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
