@@ -40,7 +40,7 @@ Emacs
 
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
-* Calc: (calc). 	Advanced desk calculatotr and mathematical tool.
+* Calc: (calc). 	Advanced desk calculator and mathematical tool.
 * Eshell: (eshell).	A command shell implemented in Emacs Lisp.
 * EUDC: (eudc).		Emacs Unified Directory Client.
 * Forms: (forms).	Emacs package for editing data bases
