@@ -68,7 +68,6 @@ LDFLAGS=@LDFLAGS@
 CPPFLAGS=@CPPFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
-YACC=@YACC@
 EXEEXT=@EXEEXT@
 
 ### These help us choose version- and architecture-specific directories
@@ -236,9 +235,6 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Make
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-# Set to FRC to force running autoconf and autoheader
-MAINT =
-
 all: ${SUBDIR} leim
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
@@ -291,12 +287,12 @@ Makefile: $(srcdir)/Makefile.in config.status
 config.status: ${srcdir}/configure
 	./config.status --recheck
 
-${srcdir}/configure: $(MAINT)
+${srcdir}/configure: @MAINT@ ${srcdir}/configure.in
 	cd ${srcdir} && autoconf
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@true
-$(srcdir)/src/stamp-h.in: $(MAINT)
+$(srcdir)/src/stamp-h.in: @MAINT@ ${srcdir}/configure.in
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in
