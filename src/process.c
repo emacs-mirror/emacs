@@ -249,8 +249,8 @@ Lisp_Object Vprocess_alist;
 int proc_buffered_char[MAXDESC];
 
 /* Table of `struct coding-system' for each process.  */
-static struct coding_system proc_decode_coding_system[MAXDESC];
-static struct coding_system proc_encode_coding_system[MAXDESC];
+static struct coding_system *proc_decode_coding_system[MAXDESC];
+static struct coding_system *proc_encode_coding_system[MAXDESC];
 
 static Lisp_Object get_process ();
 
@@ -1154,42 +1154,49 @@ Remaining arguments are strings to give program as arguments.")
     Fset_marker (XPROCESS (proc)->mark,
 		 make_number (BUF_ZV (XBUFFER (buffer))), buffer);
 
-  /* Setup coding systems for communicating with the process.  */
-  {
-    /* Qt denotes that we have not yet called Ffind_coding_system.  */
-    Lisp_Object coding_systems = Qt;
-    Lisp_Object val, *args2;
-    struct gcpro gcpro1;
+  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+      || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
+    {
+      XPROCESS (proc)->decode_coding_system = Qnil;
+      XPROCESS (proc)->encode_coding_system = Qnil;
+    }
+  else
+    {
+      /* Setup coding systems for communicating with the process.  */
+      /* Qt denotes that we have not yet called Ffind_coding_system.  */
+      Lisp_Object coding_systems = Qt;
+      Lisp_Object val, *args2;
+      struct gcpro gcpro1;
 
-    if (NILP (val = Vcoding_system_for_read))
-      {
-	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
-	args2[0] = Qstart_process;
-	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	GCPRO1 (proc);
-	coding_systems = Ffind_coding_system (nargs + 1, args2);
-	UNGCPRO;
-	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->car;
-      }
-    XPROCESS (proc)->decode_coding_system = val;
+      if (NILP (val = Vcoding_system_for_read))
+	{
+	  args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	  args2[0] = Qstart_process;
+	  for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	  GCPRO1 (proc);
+	  coding_systems = Ffind_coding_system (nargs + 1, args2);
+	  UNGCPRO;
+	  if (CONSP (coding_systems))
+	    val = XCONS (coding_systems)->car;
+	}
+      XPROCESS (proc)->decode_coding_system = val;
 
-    if (NILP (val = Vcoding_system_for_write))
-      {
-	if (EQ (coding_systems, Qt))
-	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
-	    args2[0] = Qstart_process;
-	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_coding_system (nargs + 1, args2);
-	    UNGCPRO;
-	  }
-	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->cdr;
-      }
-    XPROCESS (proc)->encode_coding_system = val;
-  }
+      if (NILP (val = Vcoding_system_for_write))
+	{
+	  if (EQ (coding_systems, Qt))
+	    {
+	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
+	      args2[0] = Qstart_process;
+	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	      GCPRO1 (proc);
+	      coding_systems = Ffind_coding_system (nargs + 1, args2);
+	      UNGCPRO;
+	    }
+	  if (CONSP (coding_systems))
+	    val = XCONS (coding_systems)->cdr;
+	}
+      XPROCESS (proc)->encode_coding_system = val;
+    }
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
@@ -1356,10 +1363,16 @@ create_process (process, new_argv, current_dir)
     XSETFASTINT (XPROCESS (process)->subtty, forkin);
   XPROCESS (process)->pty_flag = (pty_flag ? Qt : Qnil);
   XPROCESS (process)->status = Qrun;
+  if (!proc_decode_coding_system[inchannel])
+    proc_decode_coding_system[inchannel]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (process)->decode_coding_system,
-		       &proc_decode_coding_system[inchannel]);
+		       proc_decode_coding_system[inchannel]);
+  if (!proc_encode_coding_system[outchannel])
+      proc_encode_coding_system[outchannel]
+	= (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (process)->encode_coding_system,
-		       &proc_encode_coding_system[outchannel]);
+		       proc_encode_coding_system[outchannel]);
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
@@ -1871,43 +1884,56 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (inch > max_process_desc)
     max_process_desc = inch;
 
-  /* Setup coding systems for communicating with the network stream.  */
-  {
-    struct gcpro gcpro1;
-    /* Qt denotes that we have not yet called Ffind_coding_system.  */
-    Lisp_Object coding_systems = Qt;
-    Lisp_Object args[5], val;
+  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+      || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
+    {
+      XPROCESS (proc)->decode_coding_system = Qnil;
+      XPROCESS (proc)->encode_coding_system = Qnil;
+    }
+  else
+    {
+      /* Setup coding systems for communicating with the network stream.  */
+      struct gcpro gcpro1;
+      /* Qt denotes that we have not yet called Ffind_coding_system.  */
+      Lisp_Object coding_systems = Qt;
+      Lisp_Object args[5], val;
 
-    if (NILP (val = Vcoding_system_for_read))
-      {
-	args[0] = Qopen_network_stream, args[1] = name,
-	  args[2] = buffer, args[3] = host, args[4] = service;
-	GCPRO1 (proc);
-	coding_systems = Ffind_coding_system (5, args);
-	UNGCPRO;
-	val = (CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil);
-      }
-    XPROCESS (proc)->decode_coding_system = val;
+      if (NILP (val = Vcoding_system_for_read))
+	{
+	  args[0] = Qopen_network_stream, args[1] = name,
+	    args[2] = buffer, args[3] = host, args[4] = service;
+	  GCPRO1 (proc);
+	  coding_systems = Ffind_coding_system (5, args);
+	  UNGCPRO;
+	  val = (CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil);
+	}
+      XPROCESS (proc)->decode_coding_system = val;
 
-    if (NILP (val = Vcoding_system_for_write))
-      {
-	if (EQ (coding_systems, Qt))
-	  {
-	    args[0] = Qopen_network_stream, args[1] = name,
-	      args[2] = buffer, args[3] = host, args[4] = service;
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_coding_system (5, args);
-	    UNGCPRO;
-	  }
-	val = (CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil);
-      }
-    XPROCESS (proc)->encode_coding_system = val;
-  }
+      if (NILP (val = Vcoding_system_for_write))
+	{
+	  if (EQ (coding_systems, Qt))
+	    {
+	      args[0] = Qopen_network_stream, args[1] = name,
+		args[2] = buffer, args[3] = host, args[4] = service;
+	      GCPRO1 (proc);
+	      coding_systems = Ffind_coding_system (5, args);
+	      UNGCPRO;
+	    }
+	  val = (CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil);
+	}
+      XPROCESS (proc)->encode_coding_system = val;
+    }
 
+  if (!proc_decode_coding_system[inch])
+    proc_decode_coding_system[inch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (proc)->decode_coding_system,
-		       &proc_decode_coding_system[inch]);
+		       proc_decode_coding_system[inch]);
+  if (!proc_encode_coding_system[outch])
+    proc_encode_coding_system[outch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (proc)->encode_coding_system,
-		       &proc_encode_coding_system[outch]);
+		       proc_encode_coding_system[outch]);
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
@@ -2570,7 +2596,7 @@ read_process_output (proc, channel)
   register struct buffer *old = current_buffer;
   register struct Lisp_Process *p = XPROCESS (proc);
   register int opoint;
-  struct coding_system *coding = &proc_decode_coding_system[channel];
+  struct coding_system *coding = proc_decode_coding_system[channel];
   int chars_in_decoding_buf = 0; /* If 1, `chars' points
 				    XSTRING (p->decoding_buf)->data.  */
 
@@ -2652,14 +2678,14 @@ read_process_output (proc, channel)
 	{
 	  p->decode_coding_system = coding->symbol;
 	  setup_coding_system (coding->symbol,
-			       &proc_decode_coding_system[channel]);
+			       proc_decode_coding_system[channel]);
 	  /* If coding-system for encoding is not yet decided, we set it
 	     as the same as coding-system for decoding.  */
 	  if (NILP (p->encode_coding_system))
 	    {
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
-				   &proc_encode_coding_system[channel]);
+				   proc_encode_coding_system[channel]);
 	    }
 	}
 #ifdef VMS
@@ -2888,7 +2914,7 @@ send_process (proc, buf, len, object)
   if (XINT (XPROCESS (proc)->outfd) < 0)
     error ("Output file descriptor of %s is closed", procname);
 
-  coding = &proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
+  coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
   if (CODING_REQUIRE_CONVERSION (coding))
     {
       int require = encoding_buffer_size (coding, len);
@@ -3982,9 +4008,9 @@ ENCODING (output to the process).")
   p->decode_coding_system = Fcheck_coding_system (decoding);
   p->encode_coding_system = Fcheck_coding_system (encoding);
   setup_coding_system (decoding,
-		       &proc_decode_coding_system[XINT (p->infd)]);
+		       proc_decode_coding_system[XINT (p->infd)]);
   setup_coding_system (encoding,
-		       &proc_encode_coding_system[XINT (p->outfd)]);
+		       proc_encode_coding_system[XINT (p->outfd)]);
 
   return Qnil;
 }
@@ -4077,6 +4103,8 @@ init_process ()
       chan_process[i] = Qnil;
       proc_buffered_char[i] = -1;
     }
+  bzero (proc_decode_coding_system, sizeof proc_decode_coding_system);
+  bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
 }
 
 syms_of_process ()
