@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.12 2000/10/08 19:11:34 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.13 2000/10/15 05:18:33 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,6 +57,10 @@
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
 ;; - use UP-TO-DATE rather than DEAD when cleaning before `examine'.
+;; - Allow to flush messages only
+;; - Allow to protect files like ChangeLog from flushing
+;; - Automatically cvs-mode-insert files from find-file-hook
+;;   (and don't flush them as long as they are visited)
 ;; 
 ;; - hide fileinfos without getting rid of them (will require ewok work).
 ;; - add toolbar entries
@@ -1905,14 +1909,9 @@ With prefix argument, prompt for cvs flags."
   (interactive)
   (let* ((fi (cvs-mode-marked nil nil :one t))
 	 (default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
-    ;; This `save-excursion' is necessary because of interaction between
-    ;; dynamic scoping and buffer-local variables:
-    ;; the above binding of `buffer-file-name' has temporarily changed the
-    ;; buffer-local variable (same thing for `default-directory'), so we
-    ;; need to switch back to the original buffer before the unbinding
-    ;; restores the old value.
-    (save-excursion (add-change-log-entry-other-window))))
+	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi)))
+	 change-log-default-name)
+    (add-change-log-entry-other-window)))
 
 ;; interactive commands to set optional flags
 
