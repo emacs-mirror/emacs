@@ -263,9 +263,11 @@ Boston, MA 02111-1307, USA.  */
 /* can't hurt to define these, even though read/write should auto restart */
 #define INTERRUPTIBLE_IO
 
+#ifndef NO_DGUX_SIGNAL_REDEF
 /* Can't use sys_signal because then etc/server.c would need sysdep.o.  */
 extern struct sigaction act, oact;
 #define signal(SIG,FUNC) berk_signal(SIG,FUNC)
+#endif
 
 #endif /* not NOT_C_CODE */
 
