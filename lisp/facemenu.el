@@ -65,8 +65,6 @@
 ;; document (e.g., `region') are listed in `facemenu-unlisted-faces'.
 
 ;;; Known Problems:
-;; Only works with Emacs 19.23 and later.
-;;
 ;; There is at present no way to display what the faces look like in
 ;; the menu itself.
 ;;
@@ -115,8 +113,16 @@ If you change this variable after loading facemenu.el, you will need to call
 Set this before loading facemenu.el, or call `facemenu-update' after
 changing it.")
 
+(defvar facemenu-colors
+  (if (eq 'x window-system)
+      (mapcar 'list (x-defined-colors)))
+  "Alist of colors, used for completion.")
+
 (defvar facemenu-next nil) ; set when we are going to set a face on next char.
 (defvar facemenu-loc nil)
+
+(defalias 'facemenu-foreground (make-sparse-keymap "Foreground"))
+(defalias 'facemenu-background (make-sparse-keymap "Background"))
 
 (defun facemenu-update ()
   "Add or update the \"Face\" menu in the menu bar."
@@ -134,35 +140,48 @@ changing it.")
   ;; We construct this list structure explicitly because a quoted constant
   ;; would be pure.
   (define-key facemenu-menu [update]    (cons "Update Menu" 'facemenu-update))
-  (define-key facemenu-menu [display]   (cons "Display" 'list-faces-display))
+  (define-key facemenu-menu [display]   (cons "Display Faces" 
+					      'list-faces-display))
   (define-key facemenu-menu [sep1]      (list "-------------"))
   (define-key facemenu-menu [remove]    (cons "Remove Properties"
 					      'facemenu-remove-all))
   (define-key facemenu-menu [read-only] (cons "Read-Only"
 					      'facemenu-set-read-only))
   (define-key facemenu-menu [invisible] (cons "Invisible"
-					  'facemenu-set-invisible))
+					      'facemenu-set-invisible))
   (define-key facemenu-menu [sep2]      (list "-------------"))
+  (define-key facemenu-menu [bg]        (cons "Background Color"
+					      'facemenu-background))
+  (define-key facemenu-menu [fg]        (cons "Foreground Color"
+					      'facemenu-foreground))
+  (define-key facemenu-menu [sep3]      (list "-------------"))
   (define-key facemenu-menu [other]     (cons "Other..." 'facemenu-set-face))
+
+  (define-key 'facemenu-foreground "o" (cons "Other" 'facemenu-set-foreground))
+  (define-key 'facemenu-background "o" (cons "Other" 'facemenu-set-background))
 
   ;; Define commands for face-changing
   (facemenu-iterate
-   (function 
-    (lambda (f)
-      (let ((face (car f))
-	    (name (symbol-name (car f)))
-	    (key  (cdr f)))
-	(cond ((memq face facemenu-unlisted-faces)
-	       nil)
-	      ((null key) (define-key facemenu-menu (vector face) 
-			     (cons name 'facemenu-set-face-from-menu)))
-	      (t (let ((function (intern (concat "facemenu-set-" name))))
-		   (fset function
-			 (` (lambda () (interactive)
-			      (facemenu-set-face (quote (, face))))))
-		   (define-key facemenu-keymap key (cons name function))
-		   (define-key facemenu-menu key (cons name function))))))
-      nil))
+   (lambda (f)
+     (let* ((face (car f))
+	    (name (symbol-name face))
+	    (key  (cdr f))
+	    (menu (cond ((string-match "^fg:" name) 'facemenu-foreground)
+			((string-match "^bg:" name) 'facemenu-background)
+			(t facemenu-menu))))
+       (if (memq menu '(facemenu-foreground facemenu-background))
+	   (setq name (substring name 3)))
+       (cond ((memq face facemenu-unlisted-faces)
+	      nil)
+	     ((null key) (define-key menu (vector face) 
+			   (cons name 'facemenu-set-face-from-menu)))
+	     (t (let ((function (intern (concat "facemenu-set-" name))))
+		  (fset function
+			(` (lambda () (interactive)
+			     (facemenu-set-face (quote (, face))))))
+		  (define-key facemenu-keymap key (cons name function))
+		  (define-key menu key (cons name function))))))
+     nil)
    (facemenu-complete-face-list facemenu-keybindings))
 
   (define-key global-map (vector 'menu-bar 'Face) 
@@ -176,20 +195,60 @@ changing it.")
 ;   s)
 
 ;;;###autoload
+(defun facemenu-read-color (prompt)
+  "Read a color using the minibuffer."
+  (let ((col (completing-read (or  "Color: ") facemenu-colors nil t)))
+    (if (equal "" col)
+	nil
+      col)))
+
+;;;###autoload
 (defun facemenu-set-face (face &optional start end)
-  "Set the face of the region or next character typed.
-The face to be used is prompted for.  
-If the region is active, it will be set to the requested face.  If
+  "Add FACE to the region or next character typed.
+It will be added to the top of the face list; any faces lower on the list that
+will not show through at all will be removed.
+
+Interactively, the face to be used is prompted for.
+If the region is active, it will be set to the requested face.  If 
 it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(via `self-insert-command') will be set to
 the the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
   (interactive (list (read-face-name "Use face: ")))
   (if mark-active
-      (put-text-property (or start (region-beginning))
-			 (or end (region-end))
-			 'face face)
-    (setq facemenu-next face facemenu-loc (point))))
+      (let ((start (or start (region-beginning)))
+	    (end (or end (region-end))))
+	(facemenu-add-face face start end))
+    (setq facemenu-next face
+	  facemenu-loc (point))))
+
+(defun facemenu-set-foreground (color &optional start end)
+  "Set the foreground color of the region or next character typed.
+The color is prompted for.  A face named `fg:color' is used \(or created).
+If the region is active, it will be set to the requested face.  If
+it is inactive \(even if mark-even-if-inactive is set) the next
+character that is typed \(via `self-insert-command') will be set to
+the the selected face.  Moving point or switching buffers before
+typing a character cancels the request." 
+  (interactive (list (facemenu-read-color "Foreground color: ")))
+  (let ((face (intern (concat "fg:" color))))
+    (or (facemenu-get-face face)
+	(error "Unknown color: %s" color))
+    (facemenu-set-face face start end)))
+
+(defun facemenu-set-background (color &optional start end)
+  "Set the background color of the region or next character typed.
+The color is prompted for.  A face named `bg:color' is used \(or created).
+If the region is active, it will be set to the requested face.  If
+it is inactive \(even if mark-even-if-inactive is set) the next
+character that is typed \(via `self-insert-command') will be set to
+the the selected face.  Moving point or switching buffers before
+typing a character cancels the request." 
+  (interactive (list (facemenu-read-color "Background color: ")))
+  (let ((face (intern (concat "bg:" color))))
+    (or (facemenu-get-face face)
+	(error "Unknown color: %s" color))
+    (facemenu-set-face face start end)))
 
 (defun facemenu-set-face-from-menu (face start end)
   "Set the face of the region or next character typed.
@@ -200,12 +259,12 @@ it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(via `self-insert-command') will be set to
 the the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
-  (interactive (let ((keys (this-command-keys)))
-		 (list (elt keys (1- (length keys)))
-		       (if mark-active (region-beginning))
-		       (if mark-active (region-end)))))
+  (interactive (list last-command-event
+		     (if mark-active (region-beginning))
+		     (if mark-active (region-end))))
+  (facemenu-get-face face)
   (if start 
-      (put-text-property start end 'face face)
+      (facemenu-add-face face start end)
     (setq facemenu-next face facemenu-loc (point))))
 
 (defun facemenu-set-invisible (start end)
@@ -237,6 +296,32 @@ This sets the `read-only' text property; it can be undone with
      start end '(face nil invisible nil intangible nil 
 		      read-only nil category nil))))
 
+(defun facemenu-get-face (face)
+  "Make sure FACE exists.
+If not, it is created.  If it is created and is of the form `fg:color', then
+set the foreground to that color. If of the form `bg:color', set the
+background.  In any case, add it to the appropriate menu.  Returns nil if
+given a bad color."
+  (if (internal-find-face face)
+      t
+    (make-face face)
+    (let* ((name (symbol-name face))
+	   (color (substring name 3)))
+      (cond ((string-match "^fg:" name)
+	     (set-face-foreground face color)
+	     (define-key 'facemenu-foreground (vector face) 
+	       (cons color 'facemenu-set-face-from-menu))
+	     (x-color-defined-p color))
+	    ((string-match "^bg:" name)
+	     (set-face-background face color)
+	     (define-key 'facemenu-background (vector face) 
+	       (cons color 'facemenu-set-face-from-menu))
+	     (x-color-defined-p color))
+	    (t
+	     (define-key facemenu-menu (vector face)
+	       (cons name 'facemenu-set-face-from-menu))
+	     t)))))
+
 (defun facemenu-after-change (begin end old-length)
   "May set the face of just-inserted text to user's request.
 This only happens if the change is an insertion, and
@@ -246,9 +331,8 @@ beginning of the insertion."
       nil
     (if (and (= 0 old-length)		; insertion
 	     (= facemenu-loc begin))	; point wasn't moved in between
-	(put-text-property begin end 'face facemenu-next))
+	(facemenu-add-face facemenu-next begin end))
     (setq facemenu-next nil)))
-
 
 (defun facemenu-complete-face-list (&optional oldlist)
   "Return alist of all faces that are look different.
@@ -276,6 +360,47 @@ order.  The elements added will have null cdrs."
      (nreverse (face-list)))
     list))
 
+(defun facemenu-add-face (face start end)
+  "Add FACE to text between START and END.
+For each section of that region that has a different face property, FACE will
+be consed onto it, and other faces that are completely hidden by that will be
+removed from the list."
+  (interactive "*xFace:\nr")
+  (let ((part-start start) part-end)
+    (while (not (= part-start end))
+      (setq part-end (next-single-property-change part-start 'face nil end))
+      (let ((prev (get-text-property part-start 'face)))
+	(put-text-property part-start part-end 'face
+			   (if (null prev)
+			       face
+			     (facemenu-discard-redundant-faces
+			      (cons face
+				    (if (listp prev) prev (list prev)))))))
+      (setq part-start part-end))))
+
+(defun facemenu-discard-redundant-faces (face-list &optional mask)
+  "Remove from FACE-LIST any faces that won't show at all.
+This means they have no non-nil elements that aren't also non-nil in an
+earlier face."
+  (let ((useful nil))
+    (cond ((null face-list) nil)
+	  ((null mask)
+	   (cons (car face-list)
+		 (facemenu-discard-redundant-faces
+		  (cdr face-list) 
+		  (copy-sequence (internal-get-face (car face-list))))))
+	  ((let ((i (length mask))
+		 (face (internal-get-face (car face-list))))
+	     (while (>= (setq i (1- i)) 0)
+	       (if (and (aref face i)
+			(not (aref mask i)))
+		   (progn (setq useful t)
+			  (aset mask i t))))
+	     useful)
+	   (cons (car face-list)
+		 (facemenu-discard-redundant-faces (cdr face-list) mask)))
+	  (t (facemenu-discard-redundant-faces (cdr face-list) mask)))))
+
 (defun facemenu-iterate (func iterate-list)
   "Apply FUNC to each element of LIST until one returns non-nil.
 Returns the non-nil value it found, or nil if all were nil."
@@ -288,4 +413,3 @@ Returns the non-nil value it found, or nil if all were nil."
 (add-hook 'after-change-functions 'facemenu-after-change)
 
 ;;; facemenu.el ends here
-
