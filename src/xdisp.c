@@ -686,9 +686,6 @@ static void handle_stop P_ ((struct it *));
 static int tool_bar_lines_needed P_ ((struct frame *));
 static int single_display_prop_intangible_p P_ ((Lisp_Object));
 static void ensure_echo_area_buffers P_ ((void));
-static struct glyph_row *row_containing_pos P_ ((struct window *, int,
-						 struct glyph_row *,
-						 struct glyph_row *));
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
 static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
 static int with_echo_area_buffer P_ ((struct window *, int,
@@ -11136,7 +11133,7 @@ sync_frame_with_window_matrix_rows (w)
    all rows to the end of the display area of W.  Value is the row
    containing CHARPOS or null.  */
 
-static struct glyph_row *
+struct glyph_row *
 row_containing_pos (w, charpos, start, end)
      struct window *w;
      int charpos;
