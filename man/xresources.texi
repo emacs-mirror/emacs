@@ -6,10 +6,10 @@
 
   Some aspects of Emacs behavior can be customized using X resources,
 as is usual for programs that use X.  X resources are the only way to
-customize tool-bar menus, pop-up menus and tooltip windows, since they
-are implemented by general-purpose libraries that always handle
-customization this way.  This appendix describes the X resources
-that Emacs recognizes and what they mean.
+customize tooltip windows and LessTif menus, since the libraries that
+implement them don't provide for customization through Emacs.  This
+appendix describes the X resources that Emacs recognizes and what they
+mean.
 
   One way to experiment with the effect of different resource settings
 is to use the @code{editres} program.  Select @samp{Get Tree} from the
