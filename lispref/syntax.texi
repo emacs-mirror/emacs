@@ -433,7 +433,7 @@ signaled if @var{char} is not a character.
 @exdent @r{Examples:}
 
 ;; @r{Put the space character in class whitespace.}
-(modify-syntax-entry ?\  " ")
+(modify-syntax-entry ?\s " ")
      @result{} nil
 @end group
 
@@ -479,7 +479,7 @@ character, @samp{)}.
 
 @example
 @group
-(string (char-syntax ?\ ))
+(string (char-syntax ?\s))
      @result{} " "
 @end group
 
