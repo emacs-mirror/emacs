@@ -1886,6 +1886,7 @@ is specified, returning t if it is specified."
 ;; Don't wait for outline.el to be loaded, for the sake of outline-minor-mode.
 (put 'outline-level 'risky-local-variable t)
 (put 'rmail-output-file-alist 'risky-local-variable t)
+(put 'font-lock-defaults 'risky-local-variable t)
 
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
@@ -1908,7 +1909,7 @@ A few variable names are treated specially."
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
 	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$"
+	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$"
 			    (symbol-name var))
 	      (not (get var 'safe-local-variable))))
 	 ;; Permit evalling a put of a harmless property.
@@ -3554,6 +3555,21 @@ PATTERN that already quotes some of the special characters."
 (defvar insert-directory-program "ls"
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
 
+(defcustom directory-free-space-program "df"
+  "*Program to get the amount of free space on a file system.
+We assume the output has the format of `df'.
+The value of this variable must be just a command name or file name;
+if you want to specify options, use `directory-free-space-args'.
+
+A value of nil disables this feature."
+  :type '(choice (string :tag "Program") (const :tag "None" nil))
+  :group 'dired)
+
+(defcustom directory-free-space-args "-Pk"
+  "*Options to use when running `directory-free-space-program'."
+  :type 'string
+  :group 'dired)
+
 ;; insert-directory
 ;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
 ;;   FULL-DIRECTORY-P is nil.
@@ -3674,22 +3690,32 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	    ;; First find the line to put it on.
 	    (when (re-search-forward "^total" nil t)
 	      ;; Try to find the number of free blocks.
-	      (save-match-data
-		(with-temp-buffer
-		  (call-process "df" nil t nil ".")
-		  ;; Usual format is a header line
-		  ;; followed by a line of numbers.
-		  (goto-char (point-min))
-		  (forward-line 1)
-		  (if (not (eobp))
-		      (progn
-			;; Move to the end of the "available blocks" number.
-			(skip-chars-forward "^ \t")
-			(forward-word 3)
-			;; Copy it into AVAILABLE.
-			(let ((end (point)))
-			  (forward-word -1)
-			  (setq available (buffer-substring (point) end)))))))
+	      ;; Non-Posix systems don't always have df,
+	      ;; but might have an equivalent system call.
+	      (if (fboundp 'file-system-info)
+		  (let ((fsinfo (file-system-info ".")))
+		    (if fsinfo
+			(setq available (format "%.0f" (/ (nth 2 fsinfo) 1024)))))
+		(save-match-data
+		  (with-temp-buffer
+		    (when (and directory-free-space-program
+			       (zerop (call-process directory-free-space-program
+						    nil t nil
+						    directory-free-space-args
+						    ".")))
+		      ;; Usual format is a header line
+		      ;; followed by a line of numbers.
+		      (goto-char (point-min))
+		      (forward-line 1)
+		      (if (not (eobp))
+			  (progn
+			    ;; Move to the end of the "available blocks" number.
+			    (skip-chars-forward "^ \t")
+			    (forward-word 3)
+			    ;; Copy it into AVAILABLE.
+			    (let ((end (point)))
+			      (forward-word -1)
+			      (setq available (buffer-substring (point) end)))))))))
 	      (when available
 		;; Replace "total" with "used", to avoid confusion.
 		(replace-match "used")
