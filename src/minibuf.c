@@ -742,6 +742,7 @@ read_minibuf_unwind (data)
     int count = specpdl_ptr - specpdl;
     /* Prevent error in erase-buffer.  */
     specbind (Qinhibit_read_only, Qt);
+    specbind (Qinhibit_modification_hooks, Qt);
     old_deactivate_mark = Vdeactivate_mark;
     Ferase_buffer ();
     Vdeactivate_mark = old_deactivate_mark;
