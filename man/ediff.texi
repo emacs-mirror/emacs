@@ -14,7 +14,7 @@
 @synindex fn cp
 @synindex pg cp
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
 @end direntry
