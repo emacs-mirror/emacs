@@ -6586,18 +6586,17 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ;; Before supporting continuation lines, " newsgroup ! 1-5" was
     ;; okay, but now it is invalid.  It should be "newsgroup! 1-5".
     (goto-char (point-min))
-    ;; Due to overflows in regex.c, change the following regexp:
+    ;; We used this regexp, but it caused overflows.
     ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(.*\\)$"
     ;; Suggested by composer@bucsf.bu.edu (Jeff Kellem)
     ;; but no longer viable because of extensive backtracking in Emacs 19:
     ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$"
     ;; but, the following causes trouble on some case:
     ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\|[^ \t\n].*\\)$"
-    (while (re-search-forward
-	    (if (= gnus-emacs-version 18)
-		"^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$"
-	      "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(.*\\)$")
-	    nil t)
+    ;; So now we don't try to match the tail of the line at all.
+    ;; It's just as easy to extract it later.
+    (while (re-search-forward "^\\([^:! \t\n]+\\)\\([:!]\\)"
+			      nil t)
       (setq newsgroup (buffer-substring (match-beginning 1) (match-end 1)))
       ;; Check duplications of newsgroups.
       ;; Note: Checking the duplications takes very long time.
@@ -6606,7 +6605,9 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
 	(setq subscribe
 	      (string-equal
 	       ":" (buffer-substring (match-beginning 2) (match-end 2))))
-	(setq ranges (buffer-substring (match-beginning 3) (match-end 3)))
+	(skip-chars-forward " \t")
+	(setq ranges (buffer-substring (point) (save-excursion
+						 (end-of-line) (point))))
 	(setq read-list nil)
 	(while (string-match "^[, \t]*\\([0-9-]+\\)" ranges)
 	  (setq subrange (substring ranges (match-beginning 1) (match-end 1)))
