@@ -581,11 +581,8 @@ to make it write to the debugging output.\n")
 
 #ifdef LISP_FLOAT_TYPE
 
-void
-float_to_string (buf, data)
-     char *buf;
 /*
- * This buffer should be at least as large as the max string size of the
+ * The buffer should be at least as large as the max string size of the
  * largest float, printed in the biggest notation.  This is undoubtably
  * 20d float_output_format, with the negative of the C-constant "HUGE"
  * from <math.h>.
@@ -597,6 +594,10 @@ float_to_string (buf, data)
  * re-writing _doprnt to be more sane)?
  * 			-wsr
  */
+
+void
+float_to_string (buf, data)
+     char *buf;
      double data;
 {
   register unsigned char *cp, c;
@@ -637,6 +638,19 @@ float_to_string (buf, data)
 	goto lose;
 
       sprintf (buf, XSTRING (Vfloat_output_format)->data, data);
+    }
+
+  /* Make sure there is a decimal point or an exponent,
+     so that the value is readable as a float.  */
+  for (cp = buf; *cp; cp++)
+    if (*cp < '0' || *cp > '9')
+      break;
+
+  if (*cp == 0)
+    {
+      *cp++ = '.';
+      *cp++ = '0';
+      *cp++ = 0;
     }
 }
 #endif /* LISP_FLOAT_TYPE */
