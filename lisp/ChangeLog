@@ -1,7 +1,7 @@
 2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* mouse.el (mouse-yank-at-click, mouse-yank-secondary): Revert
-	change from 2004-10-16.  '*' checks the current buffer, but the
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
+	Revert change from 2004-10-16.  '*' checks the current buffer, but the
 	mouse click may be in another buffer.
 
 2004-11-01  John Paul Wallington  <jpw@gnu.org>
@@ -18,7 +18,7 @@
 	* allout.el (allout group): Add :version.
 	(allout-init): Don't use interactive-p.
 	(allout-ascend-to-depth, allout-ascend, allout-end-of-level)
-	(allout-forward-current-level, allout-backward-current-level): 
+	(allout-forward-current-level, allout-backward-current-level):
 	Don't use interactive-p.
 
 	* textmodes/bibtex.el (bibtex-make-field): Don't use interactive-p.
@@ -33,7 +33,7 @@
 	* progmodes/idlw-shell.el (idlwave-shell-send-char):
 	Don't use interactive-p.
 
-	* progmodes/cperl-mode.el (cperl-switch-to-doc-buffer): 
+	* progmodes/cperl-mode.el (cperl-switch-to-doc-buffer):
 	Don't use interactive-p.
 
 	* progmodes/ada-xref.el (ada-make-body-gnatstub):
@@ -52,6 +52,12 @@
 2004-11-01  Kim F. Storm  <storm@cua.dk>
 
 	* man.el (Man-xref-normal-file): Fix help-echo.
+
+2004-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-last-tick): New var.
+	(reveal-post-command): Use it to avoid closing overlays when we're
+	appending text to them.
 
 2004-10-31  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -133,7 +139,7 @@
 	function.
 	(help-at-pt-display-when-idle): Remove autoload.
 
-2004-10-30  Stefan  <monnier@iro.umontreal.ca>
+2004-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* makefile.w32-in (custom-deps, autoloads): Fix *-hooks -> *-hook.
 
@@ -162,7 +168,7 @@
 	* mouse.el (mouse-show-mark): Replace the last occurrence of
 	x-lost-selection-hooks with x-lost-selection-functions.
 
-2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+2004-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-show-mark): Adjust to new name and don't assume
 	x-lost-selection-functions is bound.
@@ -1270,7 +1276,7 @@
 
 2004-09-17  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-mode-var-list): Fixed the value of
+	* calc/calc.el (calc-mode-var-list): Fix the value of
 	`calc-matrix-brackets'.
 
 2004-09-17  Romain Francoise  <romain@orebokech.com>
