@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.12) $
+ * $HopeName: MMsrc!trace.c(trunk.13) $
  */
 
 #include "std.h"
@@ -15,7 +15,7 @@
 #include "ld.h"
 #include <limits.h>
 
-SRCID("$HopeName: MMsrc!trace.c(trunk.12) $");
+SRCID("$HopeName: MMsrc!trace.c(trunk.13) $");
 
 Bool ScanStateIsValid(ScanState ss, ValidationType validParam)
 {
@@ -120,8 +120,6 @@ Error TraceFlip(Space space, TraceId ti, RefSet condemned)
   /* @@@@ This isn't correct if there are higher ranking roots than */
   /* data in pools. */
 
-  ShieldEnter(space);
-
   for(ss.rank = RefRankAMBIG; ss.rank <= RefRankEXACT; ++ss.rank) {
     deque = SpaceRootDeque(space);
     node = DequeFirst(deque);
@@ -134,7 +132,6 @@ Error TraceFlip(Space space, TraceId ti, RefSet condemned)
       if(RootRank(root) == ss.rank) {
         e = RootScan(&ss, root);
         if(e != ErrSUCCESS) {
-          ShieldLeave(space);
           return e;
         }
       }
@@ -142,8 +139,6 @@ Error TraceFlip(Space space, TraceId ti, RefSet condemned)
       node = next;
     }
   }
-
-  ShieldLeave(space);
 
   ss.sig = SigInvalid;	/* just in case */
 
@@ -275,8 +270,6 @@ Error TraceRun(Space space, TraceId ti, Bool *finishedReturn)
   ss.traceId = ti;
   ss.sig = ScanStateSig;
 
-  ShieldEnter(space);
-
   for(ss.rank = 0; ss.rank < RefRankMAX; ++ss.rank) {
     Deque deque;
     DequeNode node;
@@ -291,13 +284,11 @@ Error TraceRun(Space space, TraceId ti, Bool *finishedReturn)
     
       e = PoolScan(&ss, pool, &finished); 
       if(e != ErrSUCCESS) {
-	ShieldLeave(space);
 	return e;
       }
 
       if(!finished) {
 	*finishedReturn = FALSE;
-	ShieldLeave(space);
 	return ErrSUCCESS;
       }
 
@@ -305,7 +296,6 @@ Error TraceRun(Space space, TraceId ti, Bool *finishedReturn)
     }
   }
 
-  ShieldLeave(space);
 
   ss.sig = SigInvalid;	/* just in case */
 
