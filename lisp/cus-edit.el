@@ -3,6 +3,7 @@
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
+;; Maintainer: FSF
 ;; Keywords: help, faces
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +26,7 @@
 ;;; Commentary:
 ;;
 ;; This file implements the code to create and edit customize buffers.
-;; 
+;;
 ;; See `custom.el'.
 
 ;; No commands should have names starting with `custom-' because
@@ -823,6 +824,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
   (funcall (or (get variable 'custom-set) 'set-default) variable value)
   (put variable 'saved-value (list (custom-quote value)))
+  (custom-push-theme 'theme-value variable 'user 'set (list (custom-quote value)))
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil)
  	 (put variable 'saved-variable-comment nil))
@@ -1040,7 +1042,7 @@ version."
     (or (< major1 major2)
 	(and (= major1 major2)
 	     (< minor1 minor2)))))
-  
+
 ;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
 
@@ -2430,6 +2432,8 @@ Optional EVENT is the location for the menu."
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value (list (widget-value child)))
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (list (widget-value child)))
 	   (funcall set symbol (eval (widget-value child)))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment))
@@ -2440,6 +2444,9 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (list (custom-quote (widget-value
+						  child))))
 	   (funcall set symbol (widget-value child))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment)))
@@ -2455,6 +2462,7 @@ The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
+	 (comment-widget (widget-get widget :comment-widget))
 	 (value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
     (cond ((or value comment)
@@ -2478,7 +2486,8 @@ restoring it to the state of a variable that has never been customized.
 The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
-	 (set (or (get symbol 'custom-set) 'set-default)))
+	 (set (or (get symbol 'custom-set) 'set-default))
+	 (comment-widget (widget-get widget :comment-widget)))
     (if (get symbol 'standard-value)
 	(progn
 	  (custom-variable-backup-value widget)
@@ -2489,6 +2498,11 @@ becomes the backup value, so you can get it again."
     (put symbol 'customized-variable-comment nil)
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
       (put symbol 'saved-value nil)
+      (custom-push-theme 'theme-value symbol 'user 'reset 'standard)
+      ;; As a special optimizations we do not (explictly)
+      ;; save resets to standard when no theme set the value.
+      (if (null (cdr (get symbol 'theme-value)))
+	  (put symbol 'theme-value nil))
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
@@ -3073,6 +3087,7 @@ Optional EVENT is the location for the menu."
       (face-spec-set symbol '((t :foreground unspecified))))
     (unless (eq (widget-get widget :custom-state) 'standard)
       (put symbol 'saved-face value))
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (put symbol 'customized-face nil)
     (put symbol 'face-comment comment)
     (put symbol 'customized-face-comment nil)
@@ -3117,6 +3132,10 @@ restoring it to the state of a face that has never been customized."
     (put symbol 'customized-face-comment nil)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
+      (custom-push-theme 'theme-face symbol 'user 'reset 'standard)
+      ;; Do not explictly save resets to standards without themes.
+      (if (null (cdr (get symbol 'theme-face)))
+	  (put symbol  'theme-face nil))
       (put symbol 'saved-face-comment nil)
       (custom-save-all))
     (face-spec-set symbol value)
@@ -3695,7 +3714,11 @@ or (if there were none) at the end of the buffer."
 (defun custom-save-variables ()
   "Save all customized variables in `custom-file'."
   (save-excursion
+    (custom-save-delete 'custom-load-themes)
+    (custom-save-delete 'custom-reset-variables)
     (custom-save-delete 'custom-set-variables)
+    (custom-save-loaded-themes)
+    (custom-save-resets 'theme-value 'custom-reset-variables nil)
     (let ((standard-output (current-buffer))
 	  (saved-list (make-list 1 0))
 	  sort-fold-case)
@@ -3714,14 +3737,19 @@ or (if there were none) at the end of the buffer."
   ;; If there is more than one, they won't work right.\n")
       (mapcar
        (lambda (symbol)
-	 (let ((value (get symbol 'saved-value))
+	 (let ((spec (car-safe (get symbol 'theme-value)))
+	       (value (get symbol 'saved-value))
 	       (requests (get symbol 'custom-requests))
 	       (now (not (or (get symbol 'standard-value)
 			     (and (not (boundp symbol))
-				  (not (get symbol 'force-value))))))
+				  (not (eq (get symbol 'force-value)
+					   'rogue))))))
 	       (comment (get symbol 'saved-variable-comment))
 	       sep)
-	   (when (or value comment)
+	   (when (or (and spec
+			  (eq (nth 0 spec) 'user)
+			  (eq (nth 1 spec) 'set))
+		     comment)
 	     (unless (bolp)
 	       (princ "\n"))
 	     (princ " '(")
@@ -3758,7 +3786,9 @@ or (if there were none) at the end of the buffer."
 (defun custom-save-faces ()
   "Save all customized faces in `custom-file'."
   (save-excursion
+    (custom-save-delete 'custom-reset-faces)
     (custom-save-delete 'custom-set-faces)
+    (custom-save-resets 'theme-face 'custom-reset-faces '(default))
     (let ((standard-output (current-buffer))
 	  (saved-list (make-list 1 0))
 	  sort-fold-case)
@@ -3780,37 +3810,80 @@ or (if there were none) at the end of the buffer."
   ;; If there is more than one, they won't work right.\n")
       (mapcar
        (lambda (symbol)
-	 (let ((value (get symbol 'saved-face))
+	 (let ((theme-spec (car-safe (get symbol 'theme-face)))
+	       (value (get symbol 'saved-face))
 	       (now (not (or (get symbol 'face-defface-spec)
 			     (and (not (custom-facep symbol))
 				  (not (get symbol 'force-face))))))
 	       (comment (get symbol 'saved-face-comment)))
-	   ;; Don't print default face here.
-	   (unless (bolp)
-	     (princ "\n"))
-	   (princ " '(")
-	   (prin1 symbol)
-	   (princ " ")
-	   (prin1 value)
-	   (cond ((or now comment)
-		  (princ " ")
-		  (if now
-		      (princ "t")
-		    (princ "nil"))
-		  (cond (comment
-			 (princ " ")
-			 (prin1 comment)
-			 (princ ")"))
-			(t
-			 (princ ")"))))
-		 (t
-		  (princ ")")))))
+	   (when (or (and theme-spec
+			  (eq (nth 0 theme-spec) 'user)
+			  (eq (nth 1 theme-spec) 'set))
+		     comment)
+	     ;; Don't print default face here.
+	     (unless (bolp)
+	       (princ "\n"))
+	     (princ " '(")
+	     (prin1 symbol)
+	     (princ " ")
+	     (prin1 value)
+	     (cond ((or now comment)
+		    (princ " ")
+		    (if now
+			(princ "t")
+		      (princ "nil"))
+		    (cond (comment
+			   (princ " ")
+			   (prin1 comment)
+			   (princ ")"))
+			  (t
+			   (princ ")"))))
+		   (t
+		    (princ ")")))))))
        saved-list)
       (if (bolp)
 	  (princ " "))
       (princ ")")
       (unless (looking-at "\n")
-	(princ "\n")))))
+	(princ "\n"))))
+
+(defun custom-save-resets (property setter special)
+  (let (started-writing ignored-special)
+    ;; (custom-save-delete setter) Done by caller
+    (let ((standard-output (current-buffer))
+	  (mapper `(lambda (object)
+		    (let ((spec (car-safe (get object (quote ,property)))))
+		      (when (and (not (memq object ignored-special))
+				 (eq (nth 0 spec) 'user)
+				 (eq (nth 1 spec) 'reset))
+			;; Do not write reset statements unless necessary.
+			(unless started-writing
+			  (setq started-writing t)
+			  (unless (bolp)
+			    (princ "\n"))
+			(princ "(")
+			(princ (quote ,setter))
+			(princ "\n '(")
+			(prin1 object)
+			(princ " ")
+			(prin1 (nth 3 spec))
+			(princ ")")))))))
+      (mapc mapper special)
+      (setq ignored-special special)
+      (mapatoms mapper)
+      (when started-writing
+	(princ ")\n")))))
+			
+(defun custom-save-loaded-themes ()
+  (let ((themes (reverse (get 'user 'theme-loads-themes)))
+	(standard-output (current-buffer)))
+    (when themes
+      (unless (bolp) (princ "\n"))
+      (princ "(custom-load-themes")
+      (mapc (lambda (theme)
+	      (princ "\n   '")
+	      (prin1 theme)) themes)
+      (princ " )\n"))))	
 
 ;;;###autoload
 (defun customize-save-customized ()
@@ -3824,9 +3897,11 @@ or (if there were none) at the end of the buffer."
 		     (get symbol 'customized-variable-comment)))
 		(when face
 		  (put symbol 'saved-face face)
+		  (custom-push-theme 'theme-face symbol 'user 'set value)
 		  (put symbol 'customized-face nil))
 		(when value
 		  (put symbol 'saved-value value)
+		  (custom-push-theme 'theme-value symbol 'user 'set value)
 		  (put symbol 'customized-value nil))
 		(when variable-comment
 		  (put symbol 'saved-variable-comment variable-comment)
