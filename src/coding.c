@@ -402,10 +402,6 @@ Lisp_Object Vdefault_process_coding_system;
    to avoid infinite recursive call.  */
 static int inhibit_pre_post_conversion;
 
-/* Char-table containing safe coding systems of each character.  */
-Lisp_Object Vchar_coding_system_table;
-Lisp_Object Qchar_coding_system;
-
 /* Two special coding systems.  */
 Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
@@ -7105,7 +7101,8 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 
 DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
        Sset_coding_system_priority, 1, MANY, 0,
-       doc: /* Put higher priority to coding systems of the arguments.  */)
+       doc: /* Assign higher priority to coding systems given as arguments.
+usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -7200,7 +7197,8 @@ make_subsidiaries (base)
 
 DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
        Sdefine_coding_system_internal, coding_arg_max, MANY, 0,
-       doc: /* For internal use only.  */)
+       doc: /* For internal use only.
+usage: (define-coding-system-internal ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -7857,10 +7855,6 @@ syms_of_coding ()
   DEFSYM (Qtranslation_table_for_decode, "translation-table-for-decode");
   DEFSYM (Qtranslation_table_for_encode, "translation-table-for-encode");
 
-  DEFSYM (Qchar_coding_system, "char-coding-system");
-
-  Fput (Qchar_coding_system, Qchar_table_extra_slots, make_number (2));
-
   DEFSYM (Qvalid_codes, "valid-codes");
 
   DEFSYM (Qemacs_mule, "emacs-mule");
@@ -8144,13 +8138,6 @@ coding system used in each operation can't encode the text.
 
 The default value is `select-safe-coding-system' (which see).  */);
   Vselect_safe_coding_system_function = Qnil;
-
-  DEFVAR_LISP ("char-coding-system-table", &Vchar_coding_system_table,
-	       doc: /*
-Char-table containing safe coding systems of each characters.
-Each element doesn't include such generic coding systems that can
-encode any characters.   They are in the first extra slot.  */);
-  Vchar_coding_system_table = Fmake_char_table (Qchar_coding_system, Qnil);
 
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
