@@ -527,7 +527,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "\es"    'rmail-search)
   (define-key rmail-mode-map "t"      'rmail-toggle-header)
   (define-key rmail-mode-map "u"      'rmail-undelete-previous-message)
-  (define-key rmail-mode-map "w"      'rmail-edit-current-message)
+  (define-key rmail-mode-map "w"      'rmail-output-body-to-file)
   (define-key rmail-mode-map "x"      'rmail-expunge)
   (define-key rmail-mode-map "."      'rmail-beginning-of-message)
   (define-key rmail-mode-map "<"      'rmail-first-message)
@@ -556,6 +556,9 @@ Note:    it means the file has no messages in it.\n\^_")))
 
 (define-key rmail-mode-map [menu-bar classify output-menu]
   nil)
+
+(define-key rmail-mode-map [menu-bar classify output-body]
+  '("Output body to file..." . rmail-output-body-to-file))
 
 (define-key rmail-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)..." . rmail-output))
