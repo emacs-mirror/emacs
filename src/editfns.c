@@ -795,7 +795,7 @@ If you want them to stand for years in this century, you must do that yourself."
       /* Restore TZ to previous value.  */
       newenv = environ;
       environ = oldenv;
-      free (newenv);
+      xfree (newenv);
 #ifdef LOCALTIME_CACHE
       tzset ();
 #endif
