@@ -1883,15 +1883,17 @@ otherwise, show it in full."
     (if (eq pruned prune)
 	t
       (rmail-maybe-set-message-counters)
-      (let ((at-point-min (= (point) (point-min)))
-            (all-headers-visible (= (window-start) (point-min)))
-            (on-header (save-excursion
-                         (and (not (search-backward "\n\n" nil t))
-                              (progn
-                                (end-of-line)
-                                (re-search-backward "^[-A-Za-z0-9]+:" nil t))
-                              (match-string 0))))
-            (old-screen-line (rmail-count-screen-lines (window-start) (point))))
+      (let* ((window (get-buffer-window (current-buffer)))
+	     (at-point-min (= (point) (point-min)))
+	     (all-headers-visible (= (window-start window) (point-min)))
+	     (on-header (save-excursion
+			  (and (not (search-backward "\n\n" nil t))
+			       (progn
+				 (end-of-line)
+				 (re-search-backward "^[-A-Za-z0-9]+:" nil t))
+			       (match-string 0))))
+	     (old-screen-line
+	      (rmail-count-screen-lines (window-start window) (point))))
         (save-excursion
 	  (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
 	  (if pruned
@@ -1926,14 +1928,17 @@ otherwise, show it in full."
 	       (or (re-search-backward (concat "^" (regexp-quote on-header)) nil t)
 		   (goto-char (point-min))))
 	      (t
-	       (recenter old-screen-line)
-	       (if (and all-headers-visible
-			(not (= (window-start) (point-min))))
-		   (let ((lines-offscreen (rmail-count-screen-lines
-					   (point-min) (window-start))))
-		     (recenter (min (+ old-screen-line lines-offscreen)
-				    ;; last line of window
-				    (- (window-height) 2))))))))
+	       (save-selected-window
+		 (select-window window)
+		 (recenter old-screen-line)
+		 (if (and all-headers-visible
+			  (not (= (window-start) (point-min))))
+		     (let ((lines-offscreen (rmail-count-screen-lines
+					     (point-min)
+					     (window-start window))))
+		       (recenter (min (+ old-screen-line lines-offscreen)
+				      ;; last line of window
+				      (- (window-height) 2))))))))))
       (rmail-highlight-headers))))
 
 ;; Lifted from repos-count-screen-lines.
