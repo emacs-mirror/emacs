@@ -33,10 +33,10 @@
 ;; (require 'crisp)
 ;; and use M-x crisp-mode to toggle it on or off.
 
-;; This package will automatically default to loading the scroll-lock.el
+;; This package will automatically default to loading the scroll-all.el
 ;; package unless you put (setq crisp-load-scroll-lock nil) in your
 ;; .emacs.  If this feature is enabled, it will bind Meta-F1 to the
-;; scroll-lock mode toggle.
+;; scroll-all mode toggle.
 
 ;; Also, the default keybindings for this mode override the Meta-x key to
 ;; make it exit the editor.  If you don't like this change, you can
@@ -77,18 +77,18 @@ and provides the usual M-x functionality on the F10 key.
 If this variable is nil when you start the CRiSP emulator, it
 does not alter the binding of M-x.")
 
-(defvar crisp-load-scroll-lock t
-  "Controls loading of the Scroll Lock in the CRiSP emulator.
-Its Default behavior is to load and enable the Scroll Lock minor mode
+(defvar crisp-load-scroll-all t
+  "Controls loading of the Scroll All mode in the CRiSP emulator.
+Its Default behavior is to load and enable the Scroll All minor mode
 package when enabling the CRiSP emulator.
 
 If this variable is nil when you start the CRiSP emulator, it
-does not load Scroll Lock.")
+does not load Scroll All.")
 
 (defvar crisp-load-hook nil
   "Hooks to run after loadint the CRiSP emulator package.")
 
-(defvar crisp-version "crisp.el release 1.1/$Revision: 1.17 $"
+(defvar crisp-version "crisp.el release 1.1/$Revision: 1.3 $"
   "The release number and RCS version for the CRiSP emulator.")
 
 (if (string-match "XEmacs\\Lucid" emacs-version)
@@ -210,10 +210,10 @@ consecutive use moves point to the end of the buffer."
   (cond
    ((eq crisp-mode-enabled 't)
     (use-global-map crisp-mode-map)
-    (if crisp-load-scroll-lock
-	(require 'scroll-lock))
-    (if (featurep 'scroll-lock)
-	(define-key crisp-mode-map [(meta f1)] 'scroll-lock-mode))
+    (if crisp-load-scroll-all
+	(require 'scroll-all))
+    (if (featurep 'scroll-all)
+	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))
     (run-hooks 'crisp-load-hook))
    ((eq crisp-mode-enabled 'nil)
     (use-global-map crisp-mode-original-keymap))))
