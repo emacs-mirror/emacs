@@ -430,7 +430,7 @@ Possible options are:
 		    (eshell-parse-double-quote))))
 	(if name
 	  (list 'eshell-get-variable (eval name) 'indices))))
-     ((eq (char-after) ?<)
+     ((eq (char-after) ?\<)
       (let ((end (eshell-find-delimiter ?\< ?\>)))
 	(if (not end)
 	    (throw 'eshell-incomplete ?\<)
