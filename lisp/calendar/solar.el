@@ -392,10 +392,10 @@ several minutes."
 ;;;###autoload
 (defun sunrise-sunset (&optional arg)
   "Local time of sunrise and sunset for today.  Accurate to +/- 2 minutes.
-If called with an optional prefix argument, prompts for date.
+If called with an optional prefix argument, prompt for date.
 
-If called with an optional double prefix argument, prompts for longitude,
-latitude, time zone, and date.
+If called with an optional double prefix argument, prompt for longitude,
+latitude, time zone, and date, and always use standard time.
 
 This function is suitable for execution in a .emacs file."
  (interactive "p")
@@ -429,12 +429,10 @@ This function is suitable for execution in a .emacs file."
                  ((< calendar-time-zone 0)
                      (format "UTC%dmin" calendar-time-zone))
                  (t  (format "UTC+%dmin" calendar-time-zone)))))
-;;   Use outer context values always, unless you're going to prompt for
-;;   the values to use.  PKH
-;;        (calendar-daylight-savings-starts
-;;         (if (< arg 16) calendar-daylight-savings-starts))
-;;        (calendar-daylight-savings-ends
-;;         (if (< arg 16) calendar-daylight-savings-ends))
+        (calendar-daylight-savings-starts
+         (if (< arg 16) calendar-daylight-savings-starts))
+        (calendar-daylight-savings-ends
+         (if (< arg 16) calendar-daylight-savings-ends))
         (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
         (date-string (calendar-date-string date t))
         (time-string (solar-sunrise-sunset date))
