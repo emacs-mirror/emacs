@@ -34,15 +34,37 @@
   '(("\\`/\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]" . pbm)
     ("\\`GIF8" . gif)
-    ;; The following is from JPEG File Interchange Format, Version 1.02.
-    ("\\`\xff\xd8\xff\xe0..JFIF\0" . jpeg)
     ("\\`\211PNG\r\n" . png)
     ("\\`#define" . xbm)
     ("\\`\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
-    ("\\`%!PS" . postscript))
+    ("\\`%!PS" . postscript)
+    ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
-be of image type IMAGE-TYPE.")
+be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
+IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
+with one argument, a string containing the image data.  If PREDICATE returns
+a non-nil value, TYPE is the image's type ")
+
+
+(defun image-jpeg-p (data)
+  "Value is non-nil if DATA, a string, consists of JFIF image data."
+  (when (string-match "\\`\xff\xd8" data)
+    (catch 'jfif
+      (let ((len (length data)) (i 2))
+	(while (< i len)
+	  (when (/= (aref data i) #xff)
+	    (throw 'jfif nil))
+	  (setq i (1+ i))
+	  (when (>= (+ i 2) len)
+	    (throw 'jfif nil))
+	  (let ((nbytes (+ (lsh (aref data (+ i 1)) 8)
+			   (aref data (+ i 2)))))
+	    (when (= (aref data i) #xe0)
+	      ;; APP0 LEN1 LEN2 "JFIF\0"
+	      (throw 'jfif (string-match "\\`\xe0..JFIF\0" 
+					 (substring data i (+ i 10)))))
+	    (setq i (+ i nbytes))))))))
 
 
 ;;;###autoload
@@ -55,7 +77,11 @@ be determined."
     (while (and types (null type))
       (let ((regexp (car (car types)))
 	    (image-type (cdr (car types))))
-	(when (string-match regexp data)
+	(when (or (and (symbolp image-type)
+		       (string-match regexp data))
+		  (and (consp image-type)
+		       (funcall (car image-type) data)
+		       (setq image-type (cdr image-type))))
 	  (setq type image-type))
 	(setq types (cdr types))))
     type))
