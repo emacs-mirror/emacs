@@ -1,3 +1,11 @@
+2003-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increment base size.
+
+	* xdisp.c (fast_find_position): Enable Gerd's new definition.
+
+	* xterm.c (xim_initialize): Undo previous change.
+
 2003-06-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* alloc.c (survives_gc_p): Simplify.
