@@ -5859,7 +5859,17 @@ realize_x_face (cache, attrs, c, base_face)
     {
       bcopy (base_face, face, sizeof *face);
       face->gc = 0;
-      face->font = NULL;	/* to force realize_face to load font */
+
+      /* Don't try to free the colors copied bitwise from BASE_FACE.  */
+      face->foreground_defaulted_p = 1;
+      face->background_defaulted_p = 1;
+      face->underline_defaulted_p = 1; 
+      face->overline_color_defaulted_p = 1;
+      face->strike_through_color_defaulted_p = 1;
+      face->box_color_defaulted_p = 1;
+      
+      /* to force realize_face to load font */
+      face->font = NULL;
       return face;
     }
 
