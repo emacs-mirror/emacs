@@ -2089,6 +2089,7 @@ extern void safe_bcopy P_ ((char *, char *, int));
 
 /* Defined in xdisp.c */
 extern Lisp_Object Qinhibit_redisplay;
+extern Lisp_Object Qmessage_truncate_lines;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
