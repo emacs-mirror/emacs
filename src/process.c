@@ -1720,10 +1720,16 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     unrequest_sigio ();
 
  loop:
+
+  immediate_quit = 1;
+  QUIT;
+
   if (connect (s, (struct sockaddr *) &address, sizeof address) == -1
       && errno != EISCONN)
     {
       int xerrno = errno;
+
+      immediate_quit = 0;
 
       if (errno == EINTR)
 	goto loop;
@@ -1746,6 +1752,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
+
+  immediate_quit = 0;
 
 #ifdef POLL_FOR_INPUT
   unbind_to (count, Qnil);
