@@ -293,10 +293,10 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "--"))
 (define-key menu-bar-adv-search-menu [isearch-backward]
   '(menu-item "Incremental Search Backwards..." isearch-backward
-	      :help "Incremental search backwards for a string"))
+	      :help "Search backwards for a string as you type it"))
 (define-key menu-bar-adv-search-menu [isearch-forward]
   '(menu-item "Incremental Search..." isearch-forward
-	      :help "Incremental search forward for a string"))
+	      :help "Search forward for a string as you type it"))
 (define-key menu-bar-search-menu [re-search]
   (list 'menu-item "Advanced Search/Replace" menu-bar-adv-search-menu
 	      :help "Regexp and Tags search and replace"))
