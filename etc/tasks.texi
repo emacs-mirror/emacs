@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 7 December 1996
+@set lastupdate 3 January 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -173,11 +173,16 @@ Enhance GCC.  See files @file{PROJECTS} and @file{PROBLEMS} in the GCC
 distribution.
 
 @item
-GNU @code{sed} probably needs to be rewritten completely just to make it
-cleaner.
+Rewrite GNU @code{sed} completely, to make it cleaner.
 
 @item
-Work on the partially-implemented C interpreter project.
+Rewrite Automake and Deja-GNU in Scheme, so they can run in Guile.
+Right now they are written in Perl and TCL, respectively.  There are
+also other programs, not terribly long, which we would also like
+to have rewritten in Scheme.
+
+@item
+Finish the partially-implemented C interpreter project.
 
 @item
 Help with the development of GNUStep, a GNU implementation of the
@@ -320,7 +325,8 @@ A program to play sound distributed in ``Real Audio'' format.
 A program to generate ``Real Audio'' format from audio input.
 
 @item
-Scientific mathematical subroutines, including clones of SPSS.
+More scientific mathematical subroutines.
+(A clone of SPSS is being written already.)
 
 @item
 Statistical tools.
