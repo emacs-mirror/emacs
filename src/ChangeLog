@@ -1,3 +1,13 @@
+2005-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* casefiddle.c (casify_object): Enable changing characters of
+	different byte length.
+	(casify_region): Fix loop condition, args to replace_range_2, and
+	update opoint_byte.
+
+	* insdel.c (replace_range_2): Fix bugs in adjusting markers and
+	point.
+
 2005-02-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (back_to_previous_visible_line_start): Reset iterator

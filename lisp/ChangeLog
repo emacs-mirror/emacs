@@ -1,3 +1,18 @@
+2005-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-5.el (tbl): Setup cases of I-WITH-DOT-ABOVE,
+	DOTLESS-i.
+
+	* international/characters.el: Setup cases of GREEK-FINAL-SIGMA,
+	Y-WITH-DIAERESIS, I-WITH-DOT-ABOVE, DOTLESS-i.
+
+	* case-table.el (get-upcase-table): New function. 
+	(copy-case-table): Copy upcaes table too if non-nil.
+	(set-case-syntax-delims): Maintain upcase table too.
+	(set-case-syntax-pair): Likewise.
+	(set-upcase-syntax, set-downcase-syntax): New functions.
+	(set-case-syntax): Maintain upcase table too.
+
 2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: (gdb-goto-info): Delete.
