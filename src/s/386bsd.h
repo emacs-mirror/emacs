@@ -16,3 +16,6 @@
 
 /* For mem-limits.h.  */
 #define BSD4_2
+
+/* This affects a declaration in xrdb.c.  */
+#define DECLARE_GETPWUID_WITH_UID_T
