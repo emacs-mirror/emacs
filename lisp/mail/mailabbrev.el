@@ -254,10 +254,10 @@ If DEFINITION contains multiple addresses, separate them with commas."
       (setq definition (substring definition (match-end 0))))
   (if (string-match "[ \t\n,]+\\'" definition)
       (setq definition (substring definition 0 (match-beginning 0))))
-  (let ((result '())
-	(start 0)
-	(L (length definition))
-	end)
+  (let* ((result '())
+	 (L (length definition))
+	 (start (if (> L 0) 0))
+	 end)
     (while start
       ;; If we're reading from the mailrc file, then addresses are delimited
       ;; by spaces, and addresses with embedded spaces must be surrounded by
@@ -266,8 +266,8 @@ If DEFINITION contains multiple addresses, separate them with commas."
 	  (if (eq ?\" (aref definition start))
 	      (setq start (1+ start)
 		    end (string-match "\"[ \t,]*" definition start))
-	      (setq end (string-match "[ \t,]+" definition start)))
-	  (setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
+	    (setq end (string-match "[ \t,]+" definition start)))
+	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
       (setq result (cons (substring definition start end) result))
       (setq start (and end
 		       (/= (match-end 0) L)
