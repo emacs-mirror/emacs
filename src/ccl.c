@@ -484,7 +484,7 @@ Lisp_Object Vccl_program_table;
 /* Map the code in reg[rrr] by MAPs starting from the Nth (N =
    reg[RRR]) map.
 
-   MAPs are suppried in the succeeding CCL codes as follows:
+   MAPs are supplied in the succeeding CCL codes as follows:
 
    When CCL program gives this nested structure of map to this command:
 	((MAP-ID11
@@ -496,25 +496,25 @@ Lisp_Object Vccl_program_table;
 	  MAP-ID22)),
    the compiled CCL codes has this sequence:
 	CCL_MapMultiple (CCL code of this command)
-	16 (total number of MAPs and SEPARATERs)
-	-7 (1st SEPARATER)
+	16 (total number of MAPs and SEPARATORs)
+	-7 (1st SEPARATOR)
 	MAP-ID11
 	MAP-ID12
-	-3 (2nd SEPARATER)
+	-3 (2nd SEPARATOR)
 	MAP-ID121
 	MAP-ID122
 	MAP-ID123
 	MAP-ID13
-	-7 (3rd SEPARATER)
+	-7 (3rd SEPARATOR)
 	MAP-ID21
-	-4 (4th SEPARATER)
+	-4 (4th SEPARATOR)
 	MAP-ID211
-	-1 (5th SEPARATER)
+	-1 (5th SEPARATOR)
 	MAP_ID2111
 	MAP-ID212
 	MAP-ID22
 
-   A value of each SEPARATER follows this rule:
+   A value of each SEPARATOR follows this rule:
 	MAP-SET := SEPARATOR [(MAP-ID | MAP-SET)]+
 	SEPARATOR := -(number of MAP-IDs and SEPARATORs in the MAP-SET)
 
@@ -524,28 +524,38 @@ Lisp_Object Vccl_program_table;
    reg[rrr]), the mapping is treated as identity.
 
    The mapping is iterated for all maps in each map set (set of maps
-   separators by a SEPARATOR) except the case that lambda is
-   encountered (see below).
+   separated by SEPARATOR) except in the case that lambda is
+   encountered.  More precisely, the mapping proceeds as below:
+
+   At first, VAL0 is set to reg[rrr], and it is translated by the
+   first map to VAL1.  Then, VAL1 is translated by the next map to
+   VAL2.  This mapping is iterated until the last map is used.  The
+   result of the mapping is the last value of VAL?.
+
+   But, when VALm is mapped to VALn and VALn is not a number, the
+   mapping proceed as below:
+
+   If VALn is nil, the lastest map is ignored and the mapping of VALm
+   proceed to the next map.
+
+   In VALn is t, VALm is reverted to reg[rrr] and the mapping of VALm
+   proceed to the next map.
+
+   If VALn is lambda, the whole mapping process terminates, and VALm
+   is the result of this mapping.
 
    Each map is a Lisp vector of the following format (a) or (b):
 	(a)......[STARTPOINT VAL1 VAL2 ...]
 	(b)......[t VAL STARTPOINT ENDPOINT],
    where
 	STARTPOINT is an offset to be used for indexing a map,
-	ENDPOINT is a maxmum index number of a map,
+	ENDPOINT is a maximum index number of a map,
 	VAL and VALn is a number, nil, t, or lambda.  
 
    Valid index range of a map of type (a) is:
 	STARTPOINT <= index < STARTPOINT + map_size - 1
    Valid index range of a map of type (b) is:
-	STARTPOINT <= index < ENDPOINT
-
-   If VALn is nil, the map is ignored and mapping proceed to the next
-   map.
-   In VALn is t, reg[rrr] is reverted to the original value and
-   mapping proceed to the next map.
-   If VALn is lambda, mapping in the current MAP-SET finishes
-   and proceed to the upper level MAP-SET.  */
+	STARTPOINT <= index < ENDPOINT	*/
 
 #define CCL_MapMultiple 0x11	/* Mapping by multiple code conversion maps
 					 1:ExtendedCOMMNDXXXRRRrrrXXXXX
