@@ -1,3 +1,20 @@
+2001-05-18  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-ext.el (eshell-explicit-command-char): A new
+	configuration variable, which determines the initial character
+	that forces use of an external version of a command.  The default
+	is *, but may be set to \, for example.
+
+	* eshell/esh-ext.el (eshell-explicit-command):
+	Use `eshell-explicit-command-char' instead of ?*.
+	
+	* eshell/esh-cmd.el (eshell/which):
+	Use `eshell-explicit-command-char' instead of ?*.
+	
+	* eshell/em-cmpl.el (eshell-completion-command-name,
+	eshell-complete-commands-list): Use `eshell-explicit-command-char'
+	instead of ?*.
+
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-fix-name-for-vms): Reverse args of
