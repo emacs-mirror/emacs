@@ -402,7 +402,8 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 
 int
 find_composition (pos, limit, start, end, prop, object)
-     int pos, limit, *start, *end;
+     int pos, limit;
+     EMACS_INT *start, *end;
      Lisp_Object *prop, object;
 {
   Lisp_Object val;
@@ -446,7 +447,7 @@ run_composition_function (from, to, prop)
      Lisp_Object prop;
 {
   Lisp_Object func;
-  int start, end;
+  EMACS_INT start, end;
 
   func = COMPOSITION_MODIFICATION_FUNC (prop);
   /* If an invalid composition precedes or follows, try to make them
@@ -476,13 +477,14 @@ run_composition_function (from, to, prop)
 
 void
 update_compositions (from, to, check_mask)
-     int from, to, check_mask;
+     EMACS_INT from, to;
+     int check_mask;
 {
   Lisp_Object prop;
-  int start, end;
+  EMACS_INT start, end;
   /* The beginning and end of the region to set the property
      `auto-composed' to nil.  */
-  int min_pos = from, max_pos = to;
+  EMACS_INT min_pos = from, max_pos = to;
 
   if (inhibit_modification_hooks)
     return;
@@ -663,7 +665,7 @@ See `find-composition' for more detail.  */)
      Lisp_Object pos, limit, string, detail_p;
 {
   Lisp_Object prop, tail;
-  int start, end;
+  EMACS_INT start, end;
   int id;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
