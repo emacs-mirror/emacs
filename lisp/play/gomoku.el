@@ -44,18 +44,6 @@
 ;; it yourself :-).
 
 
-;; HOW TO INSTALL:
-;;
-;; There is nothing specific w.r.t. installation: just put this file in the
-;; lisp directory and add an autoload for command gomoku in site-init.el. If
-;; you don't want to rebuild Emacs, then every single user interested in
-;; Gomoku will have to put the autoload command in its .emacs file.  Another
-;; possibility is to define in your .emacs some command using (require
-;; 'gomoku).
-;;
-;; The most important thing is to BYTE-COMPILE gomoku.el because it is
-;; important that the code be as fast as possible.
-;;
 ;; There are two main places where you may want to customize the program: key
 ;; bindings and board display. These features are commented in the code. Go
 ;; and see.
@@ -63,7 +51,7 @@
 
 ;; HOW TO USE:
 ;;
-;; Once this file has been installed, the command "M-x gomoku" will display a
+;; The command "M-x gomoku" displays a
 ;; board, the size of which depends on the size of the current window. The
 ;; size of the board is easily modified by giving numeric arguments to the
 ;; gomoku command and/or by customizing the displaying parameters.
@@ -679,6 +667,7 @@ that DVAL has been added on SQUARE."
 ;;; INTERACTIVE COMMANDS.
 ;;;
 
+;;;###autoload
 (defun gomoku (&optional n m)
   "Start a Gomoku game between you and Emacs.
 If a game is in progress, this command allow you to resume it.
