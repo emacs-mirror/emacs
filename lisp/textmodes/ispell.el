@@ -415,7 +415,6 @@ where DICTNAME is the name of your default dictionary."
 (defcustom ispell-local-dictionary nil
   "If non-nil, the dictionary to be used for Ispell commands.
 The value must be a string dictionary name in `ispell-dictionary-alist'.
-This variable becomes buffer-local when set in any fashion.
 
 Setting `ispell-local-dictionary' to a value has the same effect as
 calling \\[ispell-change-dictionary] with that value.  This variable

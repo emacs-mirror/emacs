@@ -519,8 +519,7 @@ This must be the same that `ebrowse' uses.")
 
 (defvar ebrowse--last-regexp nil
   "Last regular expression searched for in tree and member buffers.
-Automatically buffer-local so that each tree and member buffer
-maintains its own search history.")
+Each tree and member buffer maintains its own search history.")
 (make-variable-buffer-local 'ebrowse--last-regexp)
 
 

@@ -734,7 +734,7 @@ level."
 (defun octave-indent-for-comment ()
   "Maybe insert and indent an Octave comment.
 If there is no comment already on this line, create a code-level comment
-(started by two comment characters) if the line is empty, or an in-line
+\(started by two comment characters) if the line is empty, or an in-line
 comment (started by one comment character) otherwise. 
 Point is left after the start of the comment which is properly aligned."
   (interactive)
