@@ -346,10 +346,10 @@ znak, ale netrapme se tím).  C-k a M-k jsou jako C-e a M-e ve smyslu
 vztahu øádkù k vìtám.
 
 Libovolnou èást bufferu mù¾ete té¾ zru¹it následující metodou.
-Pøesuòte se na konec této èásti a stisknìte C-@ nebo C-SPC (libovolnou
-z tìchto kombinací). (SPC oznaèuje mezerník.)  Pøesuòte se na druhý
-konec této èásti a stisknìte C-w.  Text mezi tìmito pozicemi bude
-zru¹en.
+Pøesuòte se na jeden konec této èásti a stisknìte C-@ nebo C-SPC
+(libovolnou z tìchto kombinací). (SPC oznaèuje mezerník.)  Pøesuòte
+se na druhý konec této èásti a stisknìte C-w.  Text mezi tìmito
+pozicemi bude zru¹en.
 
 >> Pøesuòte kurzor na písmeno L na zaèátku pøedchozího odstavce.
 >> Stisknìte C-SPC.  Emacs by mìl ve spodním øádku obrazovky
@@ -377,10 +377,10 @@ obsahu.  To u¾ není opakování.  C-u 2 C-k zru¹í dva øádky a jejich
 obsah; dvojitý stisk C-k by toto obvykle neudìlal.
 
 Vracení textu zpìt se nazývá "vhazování" ("yanking").  (Pøedstavte
-si opìtovné vhazování, vracení zpìt textu, který byl odstranìn.)
-Smazaný text mù¾ete vhodit buï na stejné místo, odkud byl smazán,
+si opìtovné vhazování, vracení døíve odstranìného textu zpátky.)
+Zru¹ený text mù¾ete vhodit buï na stejné místo, kde byl zru¹en,
 nebo na jiné místo v bufferu, nebo dokonce i do jiného souboru.
-Text mù¾ete vhodit i vícekrát, kdy vytváøíte jeho dal¹í kopie.
+Text mù¾ete vhodit i vícekrát, vytváøíte tak jeho dal¹í kopie.
 
 Pøíkazem pro vhazování je C-y.  Tento pøíkaz vlo¾í poslední smazaný
 text na pozici, na které se nachází kurzor.
@@ -968,8 +968,8 @@ Zde jsou dal¹í u¾iteèné C-h volby:
    pøíkaz C-p.
 
 Podobný pøíkaz C-h v zobrazí dokumentaci promìnné, její¾ hodnotu
-mù¾ete nastavit pro nastavení chování Emacsu.  Jméno promìnné musíte
-zadat a¾ se na nìj Emacs zeptá.
+mù¾ete nastavit a zmìnit tím chování Emacsu.  Jméno promìnné zadáte, a¾
+se na nì Emacs zeptá.
 
    C-h a	Pøíkazové apropos.  Zadejte klíèové slovo a Emacs vypí¹e
 		v¹echny pøíkazy, jejich¾ jména obsahují toto klíèové
@@ -989,13 +989,13 @@ odpovídajících jmen pøíkazù jako find-file.
 >> Stisknìte C-x 1 pro smazání okna s nápovìdou.
 
    C-h i	Ètení on-line manuálù (té¾ Info).  Tento pøíkaz
-		Vás pøepne do speciálního bufferu s názvem `*info*',
+		vás pøepne do speciálního bufferu s názvem `*info*',
 		ve kterém mù¾ete èíst on-line manuály pro balíky
 		nainstalované na va¹em systému.  Pokud stisknete
-		m emacs <Return> mù¾ete si napø. pøeèíst manuál
+		m emacs <Return> mù¾ete si napøíklad pøeèíst manuál
 		k Emacsu.  Pokud jste dosud nikdy nepou¾ívali Info,
 		stisknìte ? a Emacs vám pøedstaví hlavní mo¾nosti
-		módu pro Info.  Pokud toto pøedstavení absolvujete,
+		módu pro Info.  A¾ si tyto mo¾nosti prostudujete,
 		mìli byste pou¾ívat Info manuál Emacsu jako svoji
 		primární dokumentaci.
 
