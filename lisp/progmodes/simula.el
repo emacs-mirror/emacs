@@ -4,7 +4,7 @@
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no
-;; Version: 0.99
+;; Version: 0.992
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
