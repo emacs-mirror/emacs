@@ -1,3 +1,21 @@
+2003-11-08  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
+
+	These changes are to support Kannada language/script.
+	
+	* Makefile.in (DONTCOMPILE): Add kannada.el.
+
+	* makefile.w32-in (DONTCOMPILE): Add kannada.el.
+
+	* loadup.el: Preload kannada.el.
+
+	* language/ind-util.el (ucs-kannada-to-is13194-alist)
+	(is13194-to-ucs-kannada-hashtbl, is13194-to-ucs-kannada-regexp):
+	New variables.
+
+	* language/kannada.el: New file.
+
+	* language/knd-util.el: New file.
+
 2003-11-07  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/autoconf.el (autoconf-font-lock-keywords): Also
@@ -93,7 +111,7 @@
 
 	* international/characters.el: Fix some Unicode ranges.
 
-2003-10-28  Kenichi Handa  <handa@etlken2>
+2003-10-28  Kenichi Handa  <handa@m17n.org>
 
 	* disp-table.el (standard-display-8bit)
 	(standard-display-default, standard-display-ascii)

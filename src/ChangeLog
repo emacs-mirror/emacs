@@ -1,3 +1,8 @@
+2003-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp): Add kannada.el.
+	(shortlisp): Likewise.
+
 2003-11-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_allocate_composition_data): Reset
