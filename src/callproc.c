@@ -105,7 +105,7 @@ extern char **environ;
 
 Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
 Lisp_Object Vdata_directory, Vdoc_directory;
-Lisp_Object Vconfigure_info_directory, Vgame_score_directory;
+Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
 Lisp_Object Vtemp_file_name_pattern;
 
 Lisp_Object Vshell_file_name;
@@ -1626,13 +1626,13 @@ Emacs's info files; the default value for Info-default-directory-list
 includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 
-  DEFVAR_LISP ("game-score-directory", &Vgame_score_directory,
+  DEFVAR_LISP ("shared-game-score-directory", &Vshared_game_score_directory,
 	       doc: /* Directory of score files for games which come with GNU Emacs.
 If this variable is nil, then Emacs is unable to use a shared directory.  */);
 #ifdef HAVE_SHARED_GAME_DIR
-  Vgame_score_directory = build_string(HAVE_SHARED_GAME_DIR);
+  Vshared_game_score_directory = build_string(HAVE_SHARED_GAME_DIR);
 #else
-  Vgame_score_directory = build_string("~/.emacs.d/games");
+  Vshared_game_score_directory = Qnil;
 #endif
 
   DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
