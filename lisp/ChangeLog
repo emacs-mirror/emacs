@@ -1,5 +1,12 @@
 2002-05-23  Kim F. Storm  <storm@cua.dk>
 
+	* apropos.el (apropos-true-hit, apropos-false-hit-symbol)
+	(apropos-false-hit-str, apropos-true-hit-doc): New functions.
+	(apropos-command, apropos-value, apropos-documentation-internal)
+	(apropos-documentation-check-doc-file)
+	(apropos-documentation-check-elc-file): Use them to filter out
+	false matches where only one keyword matches, but more than once.
+	
 	* apropos.el (apropos-show-scores, apropos-orig-regexp)
 	(apropos-all-regexp, apropos-synonyms, apropos-words)
 	(apropos-all-words): New variables.
@@ -11,7 +18,7 @@
 	(apropos-documentation-check-doc-file)
 	(apropos-documentation-check-elc-file): Added scoring.
 	(apropos-print): Sort according to score.
-	
+
 2002-05-22  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* info.el (Info-mode-hook): Change `font-lock-mode' to
