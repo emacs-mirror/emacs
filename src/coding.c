@@ -1330,7 +1330,7 @@ detect_coding_iso2022 (src, src_end, multibytep)
   int mask = CODING_CATEGORY_MASK_ISO;
   int mask_found = 0;
   int reg[4], shift_out = 0, single_shifting = 0;
-  int c, c1, i, charset;
+  int c, c1, charset;
   /* Dummy for ONE_MORE_BYTE.  */
   struct coding_system dummy_coding;
   struct coding_system *coding = &dummy_coding;
@@ -3383,7 +3383,6 @@ setup_coding_system (coding_system, coding)
 {
   Lisp_Object coding_spec, coding_type, eol_type, plist;
   Lisp_Object val;
-  int i;
 
   /* At first, zero clear all members.  */
   bzero (coding, sizeof (struct coding_system));
@@ -3928,7 +3927,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
   register unsigned char c;
   unsigned char *src = source, *src_end = source + src_bytes;
   unsigned int mask, utf16_examined_p, iso2022_examined_p;
-  int i, idx;
+  int i;
 
   /* At first, skip all ASCII characters and control characters except
      for three ISO2022 specific control characters.  */
@@ -4090,7 +4089,7 @@ detect_coding (coding, src, src_bytes)
      int src_bytes;
 {
   unsigned int idx;
-  int skip, mask, i;
+  int skip, mask;
   Lisp_Object val;
 
   val = Vcoding_category_list;
@@ -4422,7 +4421,6 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
 {
   struct ccl_program *ccl
     = encodep ? &coding->spec.ccl.encoder : &coding->spec.ccl.decoder;
-  int result;
   unsigned char *dst = destination;
 
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
@@ -5743,7 +5741,6 @@ run_pre_post_conversion_on_str (str, coding, encodep)
 {
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
-  struct buffer *prev = current_buffer;
   int multibyte = STRING_MULTIBYTE (str);
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
@@ -5780,7 +5777,7 @@ decode_coding_string (str, coding, nocopy)
 {
   int len;
   struct conversion_buffer buf;
-  int from, to, to_byte;
+  int from, to_byte;
   struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol;
   int result;
@@ -5790,7 +5787,6 @@ decode_coding_string (str, coding, nocopy)
   int consumed, consumed_char, produced, produced_char;
 
   from = 0;
-  to = XSTRING (str)->size;
   to_byte = STRING_BYTES (XSTRING (str));
 
   saved_coding_symbol = Qnil;
@@ -5949,8 +5945,6 @@ encode_coding_string (str, coding, nocopy)
   int len;
   struct conversion_buffer buf;
   int from, to, to_byte;
-  struct gcpro gcpro1;
-  Lisp_Object saved_coding_symbol;
   int result;
   int shrinked_bytes = 0;
   Lisp_Object newstr;
@@ -5963,8 +5957,6 @@ encode_coding_string (str, coding, nocopy)
   from = 0;
   to = XSTRING (str)->size;
   to_byte = STRING_BYTES (XSTRING (str));
-
-  saved_coding_symbol = Qnil;
 
   /* Encoding routines determine the multibyteness of the source text
      by coding->src_multibyte.  */
@@ -6310,7 +6302,6 @@ DEFUN ("find-coding-systems-region-internal",
   int non_ascii_p = 0;
   int single_byte_char_found = 0;
   unsigned char *p1, *p1end, *p2, *p2end, *p;
-  Lisp_Object args[2];
 
   if (STRINGP (start))
     {
@@ -6388,7 +6379,7 @@ code_convert_region1 (start, end, coding_system, encodep)
      int encodep;
 {
   struct coding_system coding;
-  int from, to, len;
+  int from, to;
 
   CHECK_NUMBER_COERCE_MARKER (start, 0);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
