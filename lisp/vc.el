@@ -200,9 +200,10 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
 
 ;;;###autoload
 (defcustom vc-checkin-hook nil
-  "*Normal hook (List of functions) run after a checkin is done.
+  "*Normal hook (list of functions) run after a checkin is done.
 See `run-hooks'."
   :type 'hook
+  :options '(vc-comment-to-change-log)
   :group 'vc)
 
 ;;;###autoload
@@ -1101,19 +1102,21 @@ The optional argument REV may be a string specifying the new version level
 \(if nil increment the current level).  The file is either retained with write
 permissions zeroed, or deleted (according to the value of `vc-keep-workfiles').
 If the back-end is CVS, a writable workfile is always kept.
-COMMENT is a comment string; if omitted, a buffer is
-popped up to accept a comment."
+COMMENT is a comment string; if omitted, a buffer is popped up to accept a
+comment.
+
+Runs the normal hook `vc-checkin-hook'."
   (vc-start-entry file rev comment
 		  "Enter a change comment." 'vc-backend-checkin
 		  'vc-checkin-hook))
 
-;;; Here is a checkin hook that may prove useful to sites using the
-;;; ChangeLog facility supported by Emacs.
 (defun vc-comment-to-change-log (&optional whoami file-name)
   "Enter last VC comment into change log file for current buffer's file.
 Optional arg (interactive prefix) non-nil means prompt for user name and site.
 Second arg is file name of change log.  \
-If nil, uses `change-log-default-name'."
+If nil, uses `change-log-default-name'.
+
+May be useful as a `vc-checkin-hook' to update change logs automatically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
