@@ -912,18 +912,14 @@ DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
   "Put BUFFER at the end of the list of all buffers.\n\
 There it is the least likely candidate for `other-buffer' to return;\n\
 thus, the least likely buffer for \\[switch-to-buffer] to select by default.\n\
-If the argument is nil, bury the current buffer\n\
-and switch to some other buffer in the selected window.")
+BUFFER is also removed from the selected window if it was displayed there.\n\
+If BUFFER is omitted, the current buffer is buried.")
   (buf)
      register Lisp_Object buf;
 {
-  register Lisp_Object aelt, link;
-
+  /* Figure out what buffer we're going to bury.  */
   if (NILP (buf))
-    {
-      XSET (buf, Lisp_Buffer, current_buffer);
-      Fswitch_to_buffer (Fother_buffer (buf), Qnil);
-    }
+    XSET (buf, Lisp_Buffer, current_buffer);
   else
     {
       Lisp_Object buf1;
@@ -932,13 +928,23 @@ and switch to some other buffer in the selected window.")
       if (NILP (buf1))
 	nsberror (buf);
       buf = buf1;
-    }	  
+    }
 
-  aelt = Frassq (buf, Vbuffer_alist);
-  link = Fmemq (aelt, Vbuffer_alist);
-  Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-  XCONS (link)->cdr = Qnil;
-  Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+  /* Remove it from the screen.  */
+  if (EQ (buf, XWINDOW (selected_frame)->buffer))
+    Fswitch_to_buffer (Fother_buffer (buf), Qnil);
+
+  /* Move it to the end of the buffer list.  */
+  {
+    register Lisp_Object aelt, link;
+
+    aelt = Frassq (buf, Vbuffer_alist);
+    link = Fmemq (aelt, Vbuffer_alist);
+    Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
+    XCONS (link)->cdr = Qnil;
+    Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+  }
+
   return Qnil;
 }
 
