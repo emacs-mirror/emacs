@@ -1,3 +1,7 @@
+2001-12-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/fontset.el: Don't require ind-util when compiling.
+
 2001-12-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el (tpu-reset-screen-size): Use
