@@ -773,12 +773,15 @@ documentation for additional customization information."
   (list (let ((find-file-default
 	       (and buffer-file-name
 		    (abbreviate-file-name buffer-file-name)))
+	      (munge-default-fun
+	       (lambda ()
+		 (setq minibuffer-default find-file-default)
+		 ;; Clear out this hook so it does not interfere
+		 ;; with any recursive minibuffer usage.
+		 (pop minibuffer-setup-hook)))
 	      (minibuffer-setup-hook
-	       '((lambda ()
-		   (setq minibuffer-default find-file-default)
-		   ;; Clear out this hook so it does not interfere
-		   ;; with any recursive minibuffer usage.
-		   (setq minibuffer-setup-hook nil)))))
+	       minibuffer-setup-hook))
+	  (add-hook 'minibuffer-setup-hook munge-default-fun)
 	  (read-file-name prompt nil default-directory))
 	current-prefix-arg))
 
