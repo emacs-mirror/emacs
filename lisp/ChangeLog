@@ -1,5 +1,9 @@
 2002-04-06  Richard M. Stallman  <rms@gnu.org>
 
+	* enriched.el (enriched-decode-foreground, enriched-decode-background):
+	Use proper format for desired elts of `face' property.
+	Don't test display-color-p; make the properties unconditionally.
+
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	New alternatives for FILE:LINE.COL and for ranges of columns and lines.
 
