@@ -1,3 +1,8 @@
+2003-04-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* process.c (process_send_signal) [HPUX11]: Make C-c C-c work in
+	shell mode.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
