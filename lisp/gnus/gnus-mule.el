@@ -1,4 +1,4 @@
-;; gnus-mule.el -- Provide multilingual environment to GNUS
+;;; gnus-mule.el --- Provide multilingual environment to GNUS
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

@@ -1,4 +1,4 @@
-;; skkdic-utl.el -- utility functions for handling skkdic.el
+;;; skkdic-utl.el --- Utility functions for handling SKK dictionary
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

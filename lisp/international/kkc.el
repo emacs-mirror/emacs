@@ -1,4 +1,4 @@
-;; kkc.el -- Kana Kanji converter
+;;; kkc.el --- Kana Kanji converter
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

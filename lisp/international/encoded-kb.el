@@ -1,4 +1,4 @@
-;; encoded-kb.el -- handler for inputting multibyte characters encoded somehow
+;;; encoded-kb.el --- Handler to input multibyte characters encoded somehow
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

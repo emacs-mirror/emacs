@@ -1,4 +1,4 @@
-;; japan-util.el --  utilities for Japanese
+;;; japan-util.el ---  utilities for Japanese
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

@@ -1,4 +1,4 @@
-;; viet-util.el --  utilities for Vietnamese
+;;; viet-util.el ---  utilities for Vietnamese
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

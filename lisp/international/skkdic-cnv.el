@@ -1,4 +1,4 @@
-;; skkdic-cnv.el -- convert a SKK dictionary for `skkdic-utl'
+;;; skkdic-cnv.el --- Convert a SKK dictionary for `skkdic-utl'
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

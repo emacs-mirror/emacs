@@ -1,4 +1,4 @@
-;; china-util.el -- utilities for Chinese
+;;; china-util.el --- utilities for Chinese
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

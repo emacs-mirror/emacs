@@ -1,4 +1,4 @@
-;; lao-util.el -- utilities for Lao
+;;; lao-util.el --- utilities for Lao
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.

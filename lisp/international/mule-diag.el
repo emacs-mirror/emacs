@@ -1,4 +1,4 @@
-;; mule-diag.el -- show diagnosis of multilingual environment (MULE)
+;;; mule-diag.el --- Show diagnosis of multilingual environment (MULE)
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.

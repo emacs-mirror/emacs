@@ -1,4 +1,4 @@
-;; ccl.el -- CCL (Code Conversion Language) compiler
+;;; ccl.el --- CCL (Code Conversion Language) compiler
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
