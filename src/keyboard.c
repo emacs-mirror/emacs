@@ -7871,6 +7871,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   volatile int function_key_possible = 0;
   volatile int key_translation_possible = 0;
 
+  /* List of events for which a fake prefix key has been generated.  */
+  volatile Lisp_Object fake_prefixed_keys = Qnil;
+
   /* Save the status of key translation before each step,
      so that we can restore this after downcasing.  */
   Lisp_Object prev_fkey_map;
@@ -7885,6 +7888,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   int junk;
 #endif
 
+  struct gcpro gcpro1;
+
+  GCPRO1 (fake_prefixed_keys);
   raw_keybuf_count = 0;
 
   last_nonmenu_event = Qnil;
@@ -8117,6 +8123,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (EQ (key, Qt))
 	    {
 	      unbind_to (count, Qnil);
+	      UNGCPRO;
 	      return -1;
 	    }
 
@@ -8300,18 +8307,22 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      /* Expand mode-line and scroll-bar events into two events:
 		 use posn as a fake prefix key.  */
-	      if (SYMBOLP (posn))
+	      if (SYMBOLP (posn)
+		  && (NILP (fake_prefixed_keys)
+		      || NILP (Fmemq (key, fake_prefixed_keys))))
 		{
 		  if (t + 1 >= bufsize)
 		    error ("Key sequence too long");
-		  keybuf[t] = posn;
-		  keybuf[t+1] = key;
-		  mock_input = t + 2;
 		  
-		  /* Zap the position in key, so we know that we've
-		     expanded it, and don't try to do so again.  */
-		  POSN_BUFFER_POSN (EVENT_START (key))
-		    = Fcons (posn, Qnil);
+		  keybuf[t]     = posn;
+		  keybuf[t + 1] = key;
+		  mock_input    = t + 2;
+
+		  /* Record that a fake prefix key has been generated
+		     for KEY.  Don't modify the event; this would
+		     prevent proper action when the event is pushed
+		     back tino unread-command-events.  */
+		  fake_prefixed_keys = Fcons (key, fake_prefixed_keys);
 
 		  /* If on a mode line string with a local keymap,
 		     reconsider the key sequence with that keymap.  */
@@ -8880,6 +8891,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   
 
+  UNGCPRO;
   return t;
 }
 
