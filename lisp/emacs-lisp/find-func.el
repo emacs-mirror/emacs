@@ -144,7 +144,12 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 	      (progn
 		(set-syntax-table emacs-lisp-mode-syntax-table)
 		(goto-char (point-min))
-		(if (re-search-forward regexp nil t)
+		(if (or (re-search-forward regexp nil t)
+			(re-search-forward
+			 (concat "^([^ ]+ +"
+				 (regexp-quote (symbol-name symbol))
+				 "\\>")
+			 nil t))
 		    (progn
 		      (beginning-of-line)
 		      (cons (current-buffer) (point)))
@@ -278,18 +283,18 @@ See `find-function' for more details."
   (find-function-do-it function nil 'switch-to-buffer-other-frame))
 
 ;;;###autoload
-(defun find-variable-noselect (variable)
-  "Return a pair `(buffer . point)' pointing to the definition of SYMBOL.
+(defun find-variable-noselect (variable &optional file)
+  "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 
 Finds the Emacs Lisp library containing the definition of SYMBOL
 in a buffer and the point of the definition.  The buffer is
 not selected.
 
-The library where VARIABLE is defined is searched for in
+The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable"))
-  (let ((library (symbol-file variable)))
+  (let ((library (or file (symbol-file variable))))
     (find-function-search-for-symbol variable 'variable library)))
 
 ;;;###autoload
