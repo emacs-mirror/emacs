@@ -1091,7 +1091,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 
 ;; Functions for querying the master and lock files.
 
-(defun match-substring (bn)
+(defun vc-match-substring (bn)
   (buffer-substring (match-beginning bn) (match-end bn)))
 
 (defun vc-parse-buffer (patterns &optional file properties)
@@ -1107,16 +1107,16 @@ From a program, any arguments are passed to the `rcs2log' script."
 	     (if (string-match "\\\\(.*\\\\(" p)
 		 (let ((latest-date "") (latest-val))
 		   (while (re-search-forward p nil t)
-		     (let ((date (match-substring 2)))
+		     (let ((date (vc-match-substring 2)))
 		       (if (string< latest-date date)
 			   (progn
 			     (setq latest-date date)
 			     (setq latest-val
-				   (match-substring 1))))))
+				   (vc-match-substring 1))))))
 		   latest-val))
 	     (prog1
 		 (and (re-search-forward p nil t)
-		      (let ((value (match-substring 1)))
+		      (let ((value (vc-match-substring 1)))
 			(if file
 			    (vc-file-setprop file (car properties) value))
 			value))
