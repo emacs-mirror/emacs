@@ -1,3 +1,8 @@
+2002-01-07  Richard M. Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-variable, describe-function):
+	Do save-excursion.
+
 2002-01-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Skip error message from
