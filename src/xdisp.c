@@ -153,7 +153,6 @@ static void echo_area_display ();
 void mark_window_display_accurate ();
 static void redisplay_windows ();
 static void redisplay_window ();
-static void update_menu_bars ();
 static void update_menu_bar ();
 static void try_window ();
 static int try_window_id ();
@@ -667,6 +666,9 @@ prepare_menu_bars ()
   if (all_windows)
     {
       Lisp_Object tail, frame;
+      int count = specpdl_ptr - specpdl;
+
+      record_unwind_protect (Fstore_match_data, Fmatch_data ());
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -687,12 +689,14 @@ prepare_menu_bars ()
 	      UNGCPRO;
 	    }
 	  GCPRO1 (tail);
-	  update_menu_bar (XFRAME (frame));
+	  update_menu_bar (XFRAME (frame), 0);
 	  UNGCPRO;
 	}
+
+      unbind_to (count, Qnil);
     }
   else
-    update_menu_bar (selected_frame);
+    update_menu_bar (selected_frame, 1);
 
   /* Update all frame titles based on their buffer names, etc.
      We do this after the menu bars so that the frame will first
@@ -1181,15 +1185,19 @@ mark_window_display_accurate (window, flag)
 
 /* Update the menu bar item list for frame F.
    This has to be done before we start to fill in any display lines,
-   because it can call eval.  */
+   because it can call eval.
+
+   If SAVE_MATCH_DATA is 1, we must save and restore it here.  */
 
 static void
-update_menu_bar (f)
+update_menu_bar (f, save_match_data)
      FRAME_PTR f;
+     int save_match_data;
 {
   struct buffer *old = current_buffer;
   Lisp_Object window;
   register struct window *w;
+
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
   
@@ -1218,6 +1226,11 @@ update_menu_bar (f)
 		  <= BUF_SAVE_MODIFF (XBUFFER (w->buffer)))))
 	{
 	  struct buffer *prev = current_buffer;
+	  int count = specpdl_ptr - specpdl;
+
+	  if (!save_match_data)
+	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
+
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
@@ -1225,6 +1238,8 @@ update_menu_bar (f)
 #ifdef USE_X_TOOLKIT
 	  set_frame_menubar (f, 0);
 #endif /* USE_X_TOOLKIT */
+
+	  unbind_to (count, Qnil);
 	}
     }
 }
