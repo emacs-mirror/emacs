@@ -1,3 +1,7 @@
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* vc.el (vc-dired-purge): Avoid error from `kill-line'.
+
 2003-12-24  Andreas Schwab  <schwab@suse.de>
 
 	* shell.el (shell-file-name-quote-list): Add backslash.
