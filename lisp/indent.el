@@ -85,36 +85,39 @@ Called from a program, takes three arguments, START, END and ARG."
   "Function which is short cut to indent region using indent-according-to-mode.
 A value of nil means really run indent-according-to-mode on each line.")
 
-(defun indent-region (start end arg)
+(defun indent-region (start end column)
   "Indent each nonblank line in the region.
-With no argument, indent each line using indent-according-to-mode.
-\(If there is a fill prefix, make each line start with the fill prefix.)
+With no argument, indent each line using `indent-according-to-mode',
+or use `indent-region-function' to do the whole region if that's non-nil.
+If there is a fill prefix, make each line start with the fill prefix.
 With argument COLUMN, indent each line to that column.
 Called from a program, takes three args: START, END and COLUMN."
   (interactive "r\nP")
-  (if (null arg)
+  (if (null column)
       (if fill-prefix
 	  (save-excursion
 	    (goto-char end)
 	    (setq end (point-marker))
 	    (goto-char start)
 	    (let ((regexp (regexp-quote fill-prefix)))
-	    (while (< (point) end)
-	      (or (looking-at regexp)
-		  (insert fill-prefix))
-	      (forward-line 1))))
+	      (while (< (point) end)
+		(or (looking-at regexp)
+		    (and (bolp) (eolp))
+		    (insert fill-prefix))
+		(forward-line 1))))
 	(if indent-region-function
 	    (funcall indent-region-function start end)
 	  (save-excursion
-	  (goto-char end)
-	  (setq end (point-marker))
-	  (goto-char start)
-	  (or (bolp) (forward-line 1))
-	  (while (< (point) end)
-	    (funcall indent-line-function)
-	    (forward-line 1))
-	  (move-marker end nil))))
-    (setq arg (prefix-numeric-value arg))
+	    (goto-char end)
+	    (setq end (point-marker))
+	    (goto-char start)
+	    (or (bolp) (forward-line 1))
+	    (while (< (point) end)
+	      (or (and (bolp) (eolp)))
+		  (funcall indent-line-function))
+	      (forward-line 1))
+	    (move-marker end nil))))
+    (setq column (prefix-numeric-value column))
     (save-excursion
       (goto-char end)
       (setq end (point-marker))
@@ -123,7 +126,7 @@ Called from a program, takes three args: START, END and COLUMN."
       (while (< (point) end)
 	(delete-region (point) (progn (skip-chars-forward " \t") (point)))
 	(or (eolp)
-	(indent-to arg 0))
+	(indent-to column 0))
 	(forward-line 1))
       (move-marker end nil))))
 
