@@ -1877,6 +1877,8 @@ x_set_title (f, name)
 
   if (NILP (name))
     name = f->name;
+  else
+    CHECK_STRING (name, 0);
 
   if (FRAME_X_WINDOW (f))
     {
