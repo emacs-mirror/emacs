@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ;; Keywords: multimedia
 
 ;; This file is part of GNU Emacs.
@@ -148,8 +148,8 @@ BUFFER nil or omitted means use the current buffer."
     (while overlays
       (let ((overlay (car overlays)))
 	(when (overlay-get overlay 'put-image)
-	  (delete-overlay overlay)
-	(setq overlays (cdr overlays)))))))
+	  (delete-overlay overlay)))
+      (setq overlays (cdr overlays)))))
 
 
 ;;;###autoload
@@ -176,11 +176,9 @@ Example:
 	     (type (plist-get spec :type))
 	     (file (plist-get spec :file)))
 	(when (and (image-type-available-p type) (stringp file))
-	  (setq file (expand-file-name file))
-	  (unless (file-name-absolute-p file)
-	    (setq file (concat data-directory "/" file)))
-	  (when (file-exists-p file)
-	    (setq image (cons 'image spec))))
+	  (setq file (expand-file-name file data-directory))
+	  (when (file-readable-p file)
+	    (setq image (cons 'image (plist-put spec :file file)))))
 	(setq specs (cdr specs))))
     `(defvar ,symbol ',image ,doc)))
 
