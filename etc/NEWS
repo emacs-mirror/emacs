@@ -466,6 +466,10 @@ On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
 
 +++
+** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
+disabled by customizing the variable `use-file-dialog'.
+
++++
 ** Emacs can produce an underscore-like (horizontal bar) cursor.
 The underscore cursor is set by putting `(cursor-type . hbar)' in
 default-frame-alist.  It supports variable heights, like the `bar'

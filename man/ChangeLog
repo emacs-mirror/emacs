@@ -1,3 +1,7 @@
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Added use-file-dialog.
+
 2003-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* eshell.texi (Known Problems): Add doc item.
