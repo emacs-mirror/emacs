@@ -1289,7 +1289,7 @@ handle_single_motion_event (mw, ev)
     set_new_state (mw, val, level);
   remap_menubar (mw);
   
-#if 0
+#if 1
   /* Sync with the display.  Makes it feel better on X terms. */
   XSync (XtDisplay (mw), False);
 #endif
@@ -1307,6 +1307,7 @@ handle_motion_event (mw, ev)
   handle_single_motion_event (mw, ev);
 
   /* allow motion events to be generated again */
+#if 0
   if (ev->is_hint
       && XQueryPointer (XtDisplay (mw), ev->window,
 			&ev->root, &ev->subwindow,
@@ -1316,6 +1317,14 @@ handle_motion_event (mw, ev)
       && ev->state == state
       && (ev->x_root != x || ev->y_root != y))
     handle_single_motion_event (mw, ev);
+#else
+  XQueryPointer (XtDisplay (mw), ev->window,
+		 &ev->root, &ev->subwindow,
+		 &ev->x_root, &ev->y_root,
+		 &ev->x, &ev->y,
+		 &ev->state);
+  handle_single_motion_event (mw, ev);
+#endif
 }
 
 static void 
@@ -1481,4 +1490,14 @@ pop_up_menu (mw, event)
 #endif
 
   handle_motion_event (mw, (XMotionEvent*)event);
+}
+
+void GetWindowAttributes (w)
+     Widget w;
+{
+  XWindowAttributes attrs;
+
+  XGetWindowAttributes (XtDisplay (w),
+			XtWindow (w),
+			&attrs);
 }
