@@ -1,3 +1,16 @@
+2004-12-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (inhibit-mark-movement): Remove defvar.
+	(beginning-of-buffer, end-of-buffer): Don't use it.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun): Don't
+	use inhibit-mark-movement.
+
+	* emulation/cua-base.el (cua--preserve-mark-commands): Remove.
+	(cua--undo-push-mark): Remove.
+	(cua--pre-command-handler, cua--post-command-handler): Don't
+	fiddle with inhibit-mark-movement.
+
 2004-12-14  Juri Linkov  <juri@jurta.org>
 
 	* buff-menu.el (list-buffers-noselect): Collect internal info
