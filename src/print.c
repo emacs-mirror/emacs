@@ -337,9 +337,7 @@ printchar (ch, fun)
 	  int multibyte_p
 	    = !NILP (current_buffer->enable_multibyte_characters);
 	  
-	  if (!message_buf_print)
-	    setup_echo_area_for_printing (multibyte_p);
-
+	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
 	  message_dolog (str, len, 0, multibyte_p);
 	}
@@ -396,9 +394,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       int multibyte_p
 	= !NILP (current_buffer->enable_multibyte_characters);
       
-      if (!message_buf_print)
-	setup_echo_area_for_printing (multibyte_p);
-      
+      setup_echo_area_for_printing (multibyte_p);
       message_dolog (ptr, size_byte, 0, multibyte_p);
       
       if (size == size_byte)
