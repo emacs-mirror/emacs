@@ -1,3 +1,7 @@
+2002-07-30  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (localstatedir): New variable.
+
 2002-07-29  Jonathan Kamens  <jik@kamens.brookline.ma.us>
 
 	* b2m.pl: Fix regexp for finding return address fields.
