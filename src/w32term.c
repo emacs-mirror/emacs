@@ -1121,9 +1121,9 @@ w32_text_out (s, x, y,chars,nchars)
      wchar_t * chars;
      int nchars;
 {
-  int charset_dim = w32_font_is_double_byte (s->gc->font) ? 2 : 1;
-  if (s->gc->font->bdf)
-    w32_BDF_TextOut (s->gc->font->bdf, s->hdc,
+  int charset_dim = w32_font_is_double_byte (s->font) ? 2 : 1;
+  if (s->font->bdf)
+    w32_BDF_TextOut (s->font->bdf, s->hdc,
                      x, y, (char *) chars, charset_dim,
                      nchars * charset_dim, 0);
   else if (s->first_glyph->font_type == UNICODE_FONT)
