@@ -880,8 +880,8 @@ list_processes_1 ()
   current_buffer->truncate_lines = Qt;
 
   write_string ("\
-Proc         Status   Buffer         Command\n\
-----         ------   ------         -------\n", -1);
+Proc         Status   Buffer         Tty         Command\n\
+----         ------   ------         ---         -------\n", -1);
 
   for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
     {
@@ -948,6 +948,13 @@ Proc         Status   Buffer         Command\n\
 	Finsert (1, &XBUFFER (p->buffer)->name);
 
       Findent_to (make_number (37), minspace);
+
+      if (STRINGP (p->tty_name))
+	Finsert (1, &p->tty_name);
+      else
+	insert_string ("(none)");
+
+      Findent_to (make_number (49), minspace);
 
       if (NETCONN_P (proc))
         {
