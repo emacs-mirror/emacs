@@ -293,25 +293,31 @@ If the face already exists, it is unmodified."
 	   )))
   face)
 
-(defun copy-face (old-face new-name &optional frame new-frame)
-  "Define a face just like OLD-FACE, with name NEW-NAME.
-If NEW-NAME already exists as a face, it is modified to be like OLD-FACE.
-If the optional argument FRAME is given, this applies only to that frame.
-Otherwise it applies to each frame separately.
+(defun copy-face (old-face new-face &optional frame new-frame)
+  "Define a face just like OLD-FACE, with name NEW-FACE.
+If NEW-FACE already exists as a face, it is modified to be like OLD-FACE.
+If it doesn't already exist, it is created.
+
+If the optional argument FRAME is given as a frame,
+NEW-FACE is changed on FRAME only.
+If FRAME is t, the frame-independent default specification for OLD-FACE
+is copied to NEW-FACE.
+If FRAME is nil, copying is done for the frame-independent defaults
+and for each existing frame.
 If the optional fourth argument NEW-FRAME is given, 
 copy the information from face OLD-FACE on frame FRAME
-to face NEW-NAME on frame NEW-FRAME."
+to NEW-FACE on frame NEW-FRAME."
   (or new-frame (setq new-frame frame))
   (setq old-face (internal-get-face old-face frame))
   (let* ((inhibit-quit t)
-	 (new-face (or (internal-find-face new-name new-frame)
-		       (make-face new-name))))
+	 (new-face (or (internal-find-face new-face new-frame)
+		       (make-face new-face))))
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (copy-face old-face new-name (car frames))
+	    (copy-face old-face new-face (car frames))
 	    (setq frames (cdr frames)))
-	  (copy-face old-face new-name t))
+	  (copy-face old-face new-face t))
       (set-face-font new-face (face-font old-face frame) new-frame)
       (set-face-foreground new-face (face-foreground old-face frame) new-frame)
       (set-face-background new-face (face-background old-face frame) new-frame)
