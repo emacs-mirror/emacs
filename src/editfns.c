@@ -765,6 +765,10 @@ If you want them to stand for years in this century, you must do that yourself."
 	  sprintf (tzbuf, "XXX%s%d:%02d:%02d", "-" + (XINT (zone) < 0),
 		   abszone / (60*60), (abszone/60) % 60, abszone % 60);
 	  tzstring = tzbuf;
+#ifdef _NEXT_SOURCE
+	  /* On NEXTSTEP, timezone environment var is ignored.  */
+	  tm.tm_gmtoff = -abszone;
+#endif
 	}
       else
 	error ("Invalid time zone specification");
