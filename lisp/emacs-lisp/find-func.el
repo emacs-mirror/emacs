@@ -33,10 +33,13 @@
 ;; following code in your init file:
 ;;
 ;; ;;; find-func
+;; (find-function-setup-keys)
+;;
+;; or just:
+;;
 ;; (load "find-func")
 ;;
-;; and away you go!  The default given keybindings as the ones
-;; protected by autoload cookies at the bottom of this file.  It does
+;; if you don't like the given keybindings and away you go!  It does
 ;; pretty much what you would expect, putting the cursor at the
 ;; definition of the function or variable at point.
 ;;
@@ -64,7 +67,8 @@ should insert the function name.  The default value avoids `defconst',
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
-  :group 'find-function)
+  :group 'find-function
+  :version 20.3)
 
 (defcustom find-variable-regexp
   "^\\s-*(def[^uma\W]\\w+\\*?\\s-+%s\\(\\s-\\|$\\)"
@@ -74,7 +78,8 @@ avoids `defun', `defmacro', `defalias', `defadvice'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
-  :group 'find-function)
+  :group 'find-function
+  :version 20.3)
 
 (defcustom find-function-source-path nil
   "The default list of directories where find-function searches.
@@ -84,22 +89,20 @@ default."
   :type '(repeat directory)
   :group 'find-function)
 
-
-;;; Functions:
-
-;;;###autoload
 (defcustom find-function-recenter-line 1
   "The window line-number from which to start displaying a symbol definition.
 A value of nil implies center the beginning of the definition.
 See the function `center-to-window-line' for more information, and
 `find-function' and `find-variable'."
-  :group 'find-function)
+  :group 'find-function
+  :version 20.3)
 
 (defcustom find-function-after-hook nil
   "Hook run after finding symbol definition.
 
 See the functions `find-function' and `find-variable'."
-  :group 'find-function)
+  :group 'find-function
+  :version 20.3)
 
 ;;; Functions:
 
@@ -240,17 +243,21 @@ centered according to the variable `find-function-recenter-line'.
 See also `find-function-after-hook'.
 
 Point is saved in the buffer if it is one of the current buffers."
-  (let ((orig-point (point))
+  (let* ((orig-point (point))
+	(orig-buf (window-buffer))
 	(orig-buffers (buffer-list))
-	(buffer-point (funcall (if variable-p
-				   'find-variable-noselect
-				 'find-function-noselect)
-			       symbol)))
+	(buffer-point (save-excursion
+			(funcall (if variable-p
+				      'find-variable-noselect
+				    'find-function-noselect)
+				  symbol)))
+	(new-buf (car buffer-point))
+	(new-point (cdr buffer-point)))
     (when buffer-point
-      (funcall switch-fn (car buffer-point))
-      (when (memq (car buffer-point) orig-buffers)
+      (when (memq new-buf orig-buffers)
 	(push-mark orig-point))
-      (goto-char (cdr buffer-point))
+      (funcall switch-fn new-buf)
+      (goto-char new-point)
       (recenter find-function-recenter-line)
       (run-hooks find-function-after-hook))))
 
@@ -358,6 +365,17 @@ Point is saved if FUNCTION is in the current buffer."
   (let ((symb (variable-at-point)))
     (when (and symb (not (equal symb 0)))
       (find-variable-other-window symb))))
+
+;;;###autoload
+(defun find-function-setup-keys ()
+  "Define some key bindings for the find-function family of functions."
+  (define-key ctl-x-map "F" 'find-function)
+  (define-key ctl-x-4-map "F" 'find-function-other-window)
+  (define-key ctl-x-5-map "F" 'find-function-other-frame)
+  (define-key ctl-x-map "K" 'find-function-on-key)
+  (define-key ctl-x-map "V" 'find-variable)
+  (define-key ctl-x-4-map "V" 'find-variable-other-window)
+  (define-key ctl-x-5-map "V" 'find-variable-other-frame))
 
 (provide 'find-func)
 
