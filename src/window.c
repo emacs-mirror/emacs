@@ -4941,6 +4941,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
   FRAME_PTR f;
+  int old_point = -1;
 
   while (!WINDOW_CONFIGURATIONP (configuration))
     wrong_type_argument (Qwindow_configuration_p, configuration);
@@ -4951,6 +4952,8 @@ the return value is nil.  Otherwise the value is t.  */)
   new_current_buffer = data->current_buffer;
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
+  else
+    old_point = BUF_PT (XBUFFER (new_current_buffer));
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
@@ -5138,12 +5141,13 @@ the return value is nil.  Otherwise the value is t.  */)
       FRAME_ROOT_WINDOW (f) = data->root_window;
       /* Prevent "swapping out point" in the old selected window
 	 using the buffer that has been restored into it.
-	 That swapping out has already been done,
-	 near the beginning of this function.  */
+	 Use the point value from the beginning of this function
+	 since unshow_buffer (called from delete_all_subwindows)
+	 could have altered it.  */
       selected_window = Qnil;
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
 	set_marker_restricted (XWINDOW (data->current_window)->pointm,
-			       make_number (BUF_PT (XBUFFER (XWINDOW (data->current_window)->buffer))),
+			       old_point,
 			       XWINDOW (data->current_window)->buffer);
 		  
       Fselect_window (data->current_window);
