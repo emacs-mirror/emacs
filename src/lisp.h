@@ -569,13 +569,16 @@ typedef unsigned char UCHAR;
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
 
-/* Flag bits in a character.  These also get used in termhooks.h.  */
-#define CHAR_ALT   (0x020000)
-#define CHAR_SUPER (0x040000)
-#define CHAR_HYPER (0x080000)
-#define CHAR_SHIFT (0x100000)
-#define CHAR_CTL   (0x200000)
-#define CHAR_META  (0x400000)
+/* Flag bits in a character.  These also get used in termhooks.h.
+   Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
+   (MUlti-Lingual Emacs) might need 18 bits for the character value
+   itself, so we probably shouldn't use any bits lower than 0x040000.  */
+#define CHAR_ALT   (0x040000)
+#define CHAR_SUPER (0x080000)
+#define CHAR_HYPER (0x100000)
+#define CHAR_SHIFT (0x200000)
+#define CHAR_CTL   (0x400000)
+#define CHAR_META  (0x800000)
 
 /* Data type checking */
 
