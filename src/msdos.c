@@ -726,7 +726,11 @@ IT_write_glyphs (GLYPH *str, int str_len)
 	  /* Convert the character code to multibyte, if they
 	     requested display via language environment.  */
 	  ch = FAST_GLYPH_CHAR (g);
-	  if (unibyte_display_via_language_environment
+	  /* We only want to convert unibyte characters to multibyte
+	     in unibyte buffers!  Otherwise, the 8-bit code might come
+	     from the display table set up to display foreign characters.  */
+	  if (NILP (current_buffer->enable_multibyte_characters)
+	      && unibyte_display_via_language_environment
 	      && SINGLE_BYTE_CHAR_P (ch)
 	      && (ch >= 0240
 		  || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
