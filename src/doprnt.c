@@ -45,7 +45,8 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
     format_end = format + strlen (format);
 
   bufsize--;
-  while (fmt != format_end && bufsize > 0)	/* Loop until end of format string or buffer full */
+  while (fmt != format_end && bufsize > 0)	/* Loop until end of format
+						   string or buffer full */
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
