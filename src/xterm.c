@@ -10912,15 +10912,15 @@ XTread_socket (sd, bufp, numchars, expected)
 	      }
 
 	    case FocusIn:
-		{
+              {
                 int n;
 
                 n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
                 if (n > 0)
-		    {
-                  bufp += n, count += n, numchars -= n;
-		    }
-		}
+                  {
+                    bufp += n, count += n, numchars -= n;
+                  }
+              }
 
 	      goto OTHER;
 
