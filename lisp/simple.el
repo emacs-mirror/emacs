@@ -404,6 +404,15 @@ the minibuffer, then read and evaluate the result."
 				       (prin1-to-string command)
 				       read-expression-map t
 				       '(command-history . 1))))
+    ;; If command was added to command-history as a string,
+    ;; get rid of that.  We want only evallable expressions there.
+    (if (stringp (car command-history))
+	(setq command-history (cdr command-history)))
+
+    ;; If command to be redone does not match front of history,
+    ;; add it to the history.
+    (or (equal command (car command-history))
+	(setq command-history (cons command command-history)))
     (eval command)))
 
 (defun repeat-complex-command (arg)
