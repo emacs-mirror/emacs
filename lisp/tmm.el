@@ -164,10 +164,10 @@ Its value should be an event that has a binding in MENU."
     ;; tmm-km-list is an alist of (STRING . MEANING).
     ;; It has no other elements.
     ;; The order of elements in tmm-km-list is the order of the menu bar.
-    (mapcar (function (lambda (elt)
-			(if (stringp elt)
-			    (setq gl-str elt)
-			  (and (listp elt) (tmm-get-keymap elt not-menu)))))
+    (mapc (lambda (elt)
+	    (if (stringp elt)
+		(setq gl-str elt)
+	      (and (listp elt) (tmm-get-keymap elt not-menu))))
 	    menu)
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
@@ -299,15 +299,14 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-define-keys (minibuffer)
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (mapcar
-     (function
-      (lambda (c)
-        (if (listp tmm-shortcut-style)
-            (define-key map (char-to-string c) 'tmm-shortcut)
-          ;; only one kind of letters are shortcuts, so map both upcase and
-          ;; downcase input to the same
-          (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
-          (define-key map (char-to-string (upcase c)) 'tmm-shortcut))))
+    (mapc
+     (lambda (c)
+       (if (listp tmm-shortcut-style)
+	   (define-key map (char-to-string c) 'tmm-shortcut)
+	 ;; only one kind of letters are shortcuts, so map both upcase and
+	 ;; downcase input to the same
+	 (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
+	 (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
      tmm-short-cuts)
     (if minibuffer
 	(progn
@@ -375,13 +374,13 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	      (choose-completion))
 	  ;; In minibuffer
 	  (delete-region (minibuffer-prompt-end) (point-max))
-	  (mapcar (lambda (elt)
-		    (if (string=
-			 (substring (car elt) 0 
-				    (min (1+ (length tmm-mid-prompt))
-					 (length (car elt))))
-			 (concat (char-to-string c) tmm-mid-prompt))
-			(setq s (car elt))))
+	  (mapc (lambda (elt)
+		  (if (string=
+		       (substring (car elt) 0 
+				  (min (1+ (length tmm-mid-prompt))
+				       (length (car elt))))
+		       (concat (char-to-string c) tmm-mid-prompt))
+		      (setq s (car elt))))
 		  tmm-km-list)
 	  (insert s)
 	  (exit-minibuffer)))))
@@ -489,13 +488,13 @@ of `menu-bar-final-items'."
 	  (setq allbind (cons (local-key-binding keyseq) allbind))
 	  (setq allbind (cons (global-key-binding keyseq) allbind))
 	  ;; Merge all the elements of ALLBIND into one keymap.
-	  (mapcar (lambda (in)
-		    (if (and (symbolp in) (keymapp in))
-			(setq in (symbol-function in)))
-		    (and in (keymapp in)
-			 (if (keymapp bind)
-			     (setq bind (nconc bind (copy-sequence (cdr in))))
-			   (setq bind (copy-sequence in)))))
+	  (mapc (lambda (in)
+		  (if (and (symbolp in) (keymapp in))
+		      (setq in (symbol-function in)))
+		  (and in (keymapp in)
+		       (if (keymapp bind)
+			   (setq bind (nconc bind (copy-sequence (cdr in))))
+			 (setq bind (copy-sequence in)))))
 		  allbind)
 	  ;; Return that keymap.
 	  bind))))
