@@ -405,37 +405,37 @@ Note:    it means the file has no messages in it.\n\^_")))
   (cons "Classify" (make-sparse-keymap "Classify")))
 
 (define-key rmail-mode-map [menu-bar classify input-menu]
-  '("Input Rmail file (menu)" . rmail-input-menu))
+  '("Input Rmail file (menu)..." . rmail-input-menu))
 
 (define-key rmail-mode-map [menu-bar classify output-menu]
-  '("Output (Rmail menu)" . rmail-output-menu))
+  '("Output (Rmail menu)..." . rmail-output-menu))
 
 (define-key rmail-mode-map [menu-bar classify output-inbox]
-  '("Output (inbox)" . rmail-output))
+  '("Output (inbox)..." . rmail-output))
 
 (define-key rmail-mode-map [menu-bar classify output]
-  '("Output (Rmail)" . rmail-output-to-rmail-file))
+  '("Output (Rmail)..." . rmail-output-to-rmail-file))
 
 (define-key rmail-mode-map [menu-bar classify kill-label]
-  '("Kill Label" . rmail-kill-label))
+  '("Kill Label..." . rmail-kill-label))
 
 (define-key rmail-mode-map [menu-bar classify add-label]
-  '("Add Label" . rmail-add-label))
+  '("Add Label..." . rmail-add-label))
 
 (define-key rmail-mode-map [menu-bar summary]
   (cons "Summary" (make-sparse-keymap "Summary")))
 
 (define-key rmail-mode-map [menu-bar summary labels]
-  '("By Labels" . rmail-summary-by-labels))
+  '("By Labels..." . rmail-summary-by-labels))
 
 (define-key rmail-mode-map [menu-bar summary recipients]
-  '("By Recipients" . rmail-summary-by-recipients))
+  '("By Recipients..." . rmail-summary-by-recipients))
 
 (define-key rmail-mode-map [menu-bar summary topic]
-  '("By Topic" . rmail-summary-by-topic))
+  '("By Topic..." . rmail-summary-by-topic))
 
 (define-key rmail-mode-map [menu-bar summary regexp]
-  '("By Regexp" . rmail-summary-by-regexp))
+  '("By Regexp..." . rmail-summary-by-regexp))
 
 (define-key rmail-mode-map [menu-bar summary all]
   '("All" . rmail-summary))
@@ -453,7 +453,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   '("Continue" . rmail-continue))
 
 (define-key rmail-mode-map [menu-bar mail resend]
-  '("Re-send" . rmail-resend))
+  '("Re-send..." . rmail-resend))
 
 (define-key rmail-mode-map [menu-bar mail forward]
   '("Forward" . rmail-forward))
@@ -486,10 +486,10 @@ Note:    it means the file has no messages in it.\n\^_")))
   (cons "Move" (make-sparse-keymap "Move")))
 
 (define-key rmail-mode-map [menu-bar move search-back]
-  '("Search Back" . rmail-search-backward))
+  '("Search Back..." . rmail-search-backward))
 
 (define-key rmail-mode-map [menu-bar move search]
-  '("Search" . rmail-search))
+  '("Search..." . rmail-search))
 
 (define-key rmail-mode-map [menu-bar move previous]
   '("Previous Nondeleted" . rmail-previous-undeleted-message))
