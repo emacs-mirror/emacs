@@ -1,3 +1,7 @@
+2001-07-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/animate.el: New file.
+
 2001-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (normal-top-level-add-subdirs-to-load-path): On
