@@ -2157,6 +2157,9 @@ Return non-nil iff we received any output before the timeout expired.")
   int seconds;
   int useconds;
 
+  if (! NILP (process))
+    CHECK_PROCESS (process, 0);
+
   if (! NILP (timeout_msecs))
     {
       CHECK_NUMBER (timeout_msecs, 2);
