@@ -394,10 +394,13 @@ COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
   (let ((command (read-from-minibuffer prompt
 				       (prin1-to-string command)
-				       read-expression-map t)))
-    ;; Add edited command to command history, unless redundant.
-    (or (equal command (car command-history))
-	(setq command-history (cons command command-history)))
+				       read-expression-map t
+				       '(command-history . 1))))
+;;; Don't add the command to the history; read-from-minibuffer has
+;;; already done that.
+;;;    ;; Add edited command to command history, unless redundant.
+;;;    (or (equal command (car command-history))
+;;;	(setq command-history (cons command command-history)))
     (eval command)))
 
 (defun repeat-complex-command (arg)
@@ -416,20 +419,23 @@ to get different commands to edit and resubmit."
 	newcmd)
     (if elt
 	(progn
-	  (setq newcmd (read-from-minibuffer "Redo: "
-					     (prin1-to-string elt)
-					     read-expression-map
-					     t
-					     (cons 'command-history
-						   arg)))
-	  ;; If command was added to command-history as a string,
-	  ;; get rid of that.  We want only evallable expressions there.
-	  (if (stringp (car command-history))
-	      (setq command-history (cdr command-history)))
-	  ;; If command to be redone does not match front of history,
-	  ;; add it to the history.
-	  (or (equal newcmd (car command-history))
-	      (setq command-history (cons newcmd command-history)))
+	  (setq newcmd
+		(read-from-minibuffer
+		 "Redo: " (prin1-to-string elt) read-expression-map t
+		 (cons 'command-history arg)))
+
+;;;  read-from-minibuffer handles the adding of what is read to the history
+;;;  variable.
+;;;
+;;;	  ;; If command was added to command-history as a string,
+;;;	  ;; get rid of that.  We want only evallable expressions there.
+;;;	  (if (stringp (car command-history))
+;;;	      (setq command-history (cdr command-history)))
+;;;
+;;;	  ;; If command to be redone does not match front of history,
+;;;	  ;; add it to the history.
+;;;	  (or (equal newcmd (car command-history))
+;;;	      (setq command-history (cons newcmd command-history)))
 	  (eval newcmd))
       (ding))))
 
