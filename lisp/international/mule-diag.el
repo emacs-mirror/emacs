@@ -233,18 +233,6 @@ detailed meanings of these arguments."
     (if (> (length charset) 0)
 	(intern charset))))
 
-;; Vector of 16 space-only strings.  Nth string has display property
-;; '(space :align-to COL) when COL is the column number to align the
-;; Nth character in a row.  Used by `list-block-of-chars'.
-
-(defconst stretches-for-character-list
-  (let ((stretches (make-vector 16 nil)))
-    (dotimes (i 16)
-      (aset stretches i
-	    (propertize " " 'display `(space :align-to ,(+ 6 (* i 4))))))
-    stretches)
-  "For internal use only.")
-
 ;; List characters of the range MIN and MAX of CHARSET.  If dimension
 ;; of CHARSET is two (i.e. 2-byte charset), ROW is the first byte
 ;; (block index) of the characters, and MIN and MAX are the second
@@ -252,8 +240,8 @@ detailed meanings of these arguments."
 
 (defun list-block-of-chars (charset row min max)
   (let (i ch)
-    (insert-char ?- (+ 5 (* 4 16)))
-    (insert "\n   ")
+    (insert-char ?- (+ 7 (* 4 16)))
+    (insert "\n     ")
     (setq i 0)
     (while (< i 16)
       (insert (format "%4X" i))
@@ -261,7 +249,7 @@ detailed meanings of these arguments."
     (setq i (* (/ min 16) 16))
     (while (<= i max)
       (if (= (% i 16) 0)
-	  (insert (format "\n%4Xx" (/ (+ (* row 256) i) 16))))
+	  (insert (format "\n%6Xx" (/ (+ (* row 256) i) 16))))
       (setq ch (if (< i min)
 		   32
 		 (or (decode-char charset (+ (* row 256) i))
@@ -271,7 +259,7 @@ detailed meanings of these arguments."
 	  (setq ch (single-key-description ch))
 	(if (and (>= ch 128) (< ch 160))
 	    (setq ch (format "%02Xh" ch))))
-      (insert (aref stretches-for-character-list (% i 16)) ch)
+      (insert "\t" ch)
       (setq i (1+ i))))
   (insert "\n"))
 
@@ -291,7 +279,7 @@ detailed meanings of these arguments."
 	    (setcdr slot
 		    (cons (format " (%s)" charset)
 			  (cdr slot)))))
-      (setq indent-tabs-mode nil)
+      (setq tab-width 4)
       (set-buffer-multibyte t)
       (unless (charsetp charset)
 	(error "Invalid character set %s" charset))
@@ -887,8 +875,8 @@ but still contains full information about each coding system."
 	    (insert "\n    -" family
 		    ?- (or (aref requested 1) ?*) ; weight
 		    ?- (or (aref requested 2) ?*) ; slant
-		    "-*-" (or (aref requested 3) ?*) ; width
-		    "-*-" (or (aref requested 4) ?*) ; adstyle
+		    ?- (or (aref requested 3) ?*) ; width
+		    ?- (or (aref requested 4) ?*) ; adstyle
 		    "-*-*-*-*-*-*-" registry))))
 
       ;; Insert opened font names (if any).
