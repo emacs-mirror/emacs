@@ -44,18 +44,21 @@
 
 (defvar rmail-keywords)
 
+;;;###autoload
 (defun rmail-add-label (string)
   "Add LABEL to labels associated with current RMAIL message.
 Completion is performed over known labels when reading."
   (interactive (list (rmail-read-label "Add label")))
   (rmail-set-label string t))
 
+;;;###autoload
 (defun rmail-kill-label (string)
   "Remove LABEL from labels associated with current RMAIL message.
 Completion is performed over known labels when reading."
   (interactive (list (rmail-read-label "Remove label")))
   (rmail-set-label string nil))
 
+;;;###autoload
 (defun rmail-read-label (prompt)
   (if (not rmail-keywords) (rmail-parse-file-keywords))
   (let ((result
@@ -169,6 +172,7 @@ Completion is performed over known labels when reading."
 
 ;; Motion on messages with keywords.
 
+;;;###autoload
 (defun rmail-previous-labeled-message (n labels)
   "Show previous message with one of the labels LABELS.
 LABELS should be a comma-separated list of label names.
@@ -177,6 +181,7 @@ With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (rmail-next-labeled-message (- n) labels))
 
+;;;###autoload
 (defun rmail-next-labeled-message (n labels)
   "Show next message with one of the labels LABELS.
 LABELS should be a comma-separated list of label names.
