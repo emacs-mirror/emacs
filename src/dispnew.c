@@ -5693,6 +5693,13 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
   if (initialized
       && !noninteractive
+#ifdef MSDOS
+      /* The MSDOS terminal turns on its ``window system'' relatively
+	 late into the startup, so we cannot do the frame faces'
+	 initialization just yet.  It will be done later by pc-win.el
+	 and internal_terminal_init.  */
+      && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
+#endif
       && NILP (Vwindow_system))
     call0 (intern ("tty-set-up-initial-frame-faces"));
 }
