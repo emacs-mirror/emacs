@@ -4451,8 +4451,8 @@ static void
 x_draw_box (f)
      struct frame *f;
 {
-  int left = CHAR_TO_PIXEL_COL (f, f->cursor_x);
-  int top  = CHAR_TO_PIXEL_ROW (f, f->cursor_y);
+  int left = CHAR_TO_PIXEL_COL (f, curs_x);
+  int top  = CHAR_TO_PIXEL_ROW (f, curs_y);
   int width = FONT_WIDTH (f->display.x->font);
   int height = f->display.x->line_height;
 
@@ -5568,9 +5568,22 @@ x_make_frame_visible (f)
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
+    int one_in_four = 0;
     XSET (frame, Lisp_Frame, f);
     while (! f->async_visible)
-      x_sync (frame);
+      {
+	x_sync (frame);
+	/* On HPUX on the HP800, the sleep is needed sometimes.  */
+	if ((one_in_four & 3) == 0)
+	  {
+#ifdef EMACS_HAS_USECS
+	    Fsleep_for (make_number (1), make_number (0));
+#else
+	    Fsleep_for (make_number (0), make_number (250));
+#endif
+	  }
+	one_in_four++;
+      }
     FRAME_SAMPLE_VISIBILITY (f);
   }
 }
