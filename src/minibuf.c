@@ -1616,6 +1616,17 @@ do_completion ()
     {
       Fdelete_field (make_number (ZV)); /* Some completion happened */
       Finsert (1, &completion);
+
+      if (! completedp)
+	/* The case of the string changed, but that's all.  We're not
+	   sure whether this is a unique completion or not, so try again
+	   using the real case (this shouldn't recurse again, because
+	   the next time try-completion will return either `t' or the
+	   exact string).  */
+	{
+	  UNGCPRO;
+	  return do_completion ();
+	}
     }
 
   /* It did find a match.  Do we match some possibility exactly now? */
