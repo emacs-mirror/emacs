@@ -18,12 +18,20 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#include <config.h>
+
 /* Define these variables that serve as global parameters to termcap,
    so that we do not need to conditionalize the places in Emacs
    that set them.  */
 
 char *UP, *BC, PC;
+
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+speed_t ospeed;
+#else
 short ospeed;
+#endif
 
 static buffer[512];
 
