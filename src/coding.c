@@ -3788,14 +3788,22 @@ which is a list of all the arguments given to this function.")
 	      || (INTEGERP (target) && EQ (target, XCONS (elt)->car))))
 	{
 	  val = XCONS (elt)->cdr;
+	  /* Here, if VAL is both a valid coding system and a valid
+             function symbol, we return VAL as a coding system.  */
 	  if (CONSP (val))
 	    return val;
 	  if (! SYMBOLP (val))
 	    return Qnil;
 	  if (! NILP (Fcoding_system_p (val)))
 	    return Fcons (val, val);
-	  if (!NILP (Ffboundp (val)))
-	    return call1 (val, Flist (nargs, args));
+	  if (! NILP (Ffboundp (val)))
+	    {
+	      val = call1 (val, Flist (nargs, args));
+	      if (CONSP (val))
+		return val;
+	      if (SYMBOLP (val) && ! NILP (Fcoding_system_p (val)))
+		return Fcons (val, val);
+	    }
 	  return Qnil;
 	}
     }
