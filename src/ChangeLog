@@ -1,3 +1,22 @@
+2002-08-23  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefvar, Fdefconst, Fdefvaralias):
+	Record variables in load history as (defvar . VAR).
+	(Fdefvar): Don't record in load history if no initial value.
+	(Qdefvar): New variable.
+	(syms_of_eval): Init and staticpro it.
+
+	* lread.c (syms_of_lread): Doc fix.
+	(build_load_history): Use Fmember to see if a definition
+	is already in the Vload_history element.
+
+	* process.c (Fstart_process): Remove /: from program name.
+
+	* emacs.c (decode_env_path): Don't add /: if file name handler
+	has a `safe-magic' property.
+
+	* callproc.c (Fcall_process): Remove /: from program name.
+
 2002-08-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (PATFETCH): Remove the translating fetch.
