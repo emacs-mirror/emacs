@@ -107,18 +107,19 @@ int minibuffer_auto_raise;
 
 static Lisp_Object last_exact_completion;
 
-Lisp_Object Quser_variable_p;
-
-Lisp_Object Qminibuffer_default;
-
 /* Non-nil means it is the window for C-M-v to scroll
    when the minibuffer is selected.  */
 extern Lisp_Object Vminibuf_scroll_window;
 
 extern Lisp_Object Voverriding_local_map;
 
+Lisp_Object Quser_variable_p;
+
+Lisp_Object Qminibuffer_default;
+
 Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
+extern Lisp_Object Qmouse_face;
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
@@ -1820,7 +1821,9 @@ DEFUN ("display-completion-list", Fdisplay_completion_list, Sdisplay_completion_
 Each element may be just a symbol or string\n\
 or may be a list of two strings to be printed as if concatenated.\n\
 `standard-output' must be a buffer.\n\
-At the end, run the normal hook `completion-setup-hook'.\n\
+The actual completion alternatives, as inserted, are given `mouse-face'\n\
+properties of `highlight'.\n\
+At the end, this runs the normal hook `completion-setup-hook'.\n\
 It can find the completion buffer in `standard-output'.")
   (completions)
      Lisp_Object completions;
@@ -1928,7 +1931,25 @@ It can find the completion buffer in `standard-output'.")
 	  else if (!NILP (current_buffer->enable_multibyte_characters)
 		   && !STRING_MULTIBYTE (string))
 	    string = Fstring_make_multibyte (string);
-	  Fprinc (string, Qnil);
+
+	  if (BUFFERP (Vstandard_output))
+	    {
+	      int startpos = BUF_PT (XBUFFER (Vstandard_output));
+	      int endpos;
+
+	      Fprinc (string, Qnil);
+
+	      endpos = BUF_PT (XBUFFER (Vstandard_output));
+
+	      Fput_text_property (make_number (startpos),
+				  make_number (endpos),
+				  Qmouse_face, intern ("highlight"),
+				  Vstandard_output);
+	    }
+	  else
+	    {
+	      Fprinc (string, Qnil);
+	    }
 
 	  /* Output the annotation for this element.  */
 	  if (CONSP (elt))
