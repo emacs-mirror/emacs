@@ -1085,14 +1085,23 @@ the field."
   :type 'function
   :group 'widgets)
 
+(defun widget-narrow-to-field ()
+  "Narrow to field"
+  (interactive)
+  (let ((field (widget-field-find (point))))
+    (if field
+	(narrow-to-region (line-beginning-position) (line-end-position)))))
+
 (defun widget-complete ()
   "Complete content of editable field from point.
 When not inside a field, move to the previous button or field."
   (interactive)
   (let ((field (widget-field-find (point))))
     (if field
-	(widget-apply field :complete)
-      (error "Not in an editable field"))))
+	(save-restriction
+	  (widget-narrow-to-field)
+	  (widget-apply field :complete))
+	  (error "Not in an editable field"))))
 
 ;;; Setting up the buffer.
 
