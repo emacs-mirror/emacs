@@ -1,9 +1,17 @@
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	The following changes add the ELisp reference manual to the
+	distribution.
+
 	* make-dist: Add the lispref directory to the distribution.
 
 	* Makefile.in (install-arch-indep): Add elisp* to the list of
 	installed Info files.
+	(SUBDIR_MAKEFILES): Add lispref/Makefile.
+	(lispref/Makefile): New target.
+	(mostlyclean, clean, distclean, maintainer-clean, unlock, relock):
+	Add commands for the lispref directory.
+	(info, dvi): Ditto.
 
 	* config.bat: Configure in `lispref'.
 

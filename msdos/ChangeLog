@@ -1,3 +1,10 @@
+2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed6.inp (texinputdir): Add, for the lispref directory.
+
+	* mainmake.v2 (all): Add lispref.
+	(man lispref): Add lispref.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)

@@ -13,6 +13,7 @@
 	($(infodir)/elisp): Instead of just "elisp".  Reformat the
 	command to be compatible with man/Makefile.in, and to put the
 	output into ../info.
+	(info): Add target.
 	(installall): Target removed.
 
 2001-10-31  Pavel Janík  <Pavel@Janik.cz>
