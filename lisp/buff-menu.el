@@ -96,7 +96,8 @@ nil for default sorting by visited order.")
 
 (defconst Buffer-menu-buffer-column 4)
 
-(defvar Buffer-menu-mode-map nil "")
+(defvar Buffer-menu-mode-map nil
+  "Local keymap for `Buffer-menu-mode' buffers.")
 
 (if Buffer-menu-mode-map
     ()
@@ -199,8 +200,8 @@ Letters do not insert themselves; instead, they are commands.
 		(error "No buffer named `%s'" name)
 	      nil))
       (or (and buf (buffer-name buf) buf)
-      (if error-if-non-existent-p
-	  (error "No buffer on this line")
+	  (if error-if-non-existent-p
+	      (error "No buffer on this line")
 	    nil)))))
 
 (defun buffer-menu (&optional arg)
@@ -556,7 +557,6 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 ;; Fixme: This is wrong for left-hand scroll-bars.
 	 (header (concat "CRM " (Buffer-menu-buffer+size "Buffer" "Size")
 			 "  Mode" mode-end "File\n"))
 	 list desired-point name file mode)
@@ -639,8 +639,15 @@ For more information, see the function `buffer-menu'."
 	(princ "\n"))
       (Buffer-menu-mode)
       (when Buffer-menu-use-header-line
-	(set (make-local-variable 'Buffer-menu-header-line)
-	     (concat " " header))
+	(let ((spaces
+	       (/ (+ (or (frame-parameter nil 'left-fringe) 0)
+		     (or (if (eq (frame-parameter nil 'vertical-scroll-bars)
+				 'left)
+			     (frame-parameter nil 'scroll-bar-width))
+			 0))
+		  (frame-char-width))))
+	  (set (make-local-variable 'Buffer-menu-header-line)
+	       (concat (make-string spaces ? ) header)))
 	(setq header-line-format 'Buffer-menu-header-line))
       ;; DESIRED-POINT doesn't have to be set; it is not when the
       ;; current buffer is not displayed for some reason.
