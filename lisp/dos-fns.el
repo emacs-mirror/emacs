@@ -139,11 +139,14 @@ Writes the region to the device or file which is a value of
 `dos-printer' \(which see\).  Ignores any arguments beyond
 START and END."
 
-  (write-region start end dos-printer t 0)
-  ;; Make each print-out start on a new page, but don't waste
-  ;; paper if there was a form-feed at the end of this file.
-  (if (not (char-equal (char-after (1- end)) ?\C-l))
-      (write-region "\f" nil dos-printer t 0)))
+  ;; DOS printers need the lines to end with CR-LF pairs, so make
+  ;; sure it always happens that way.
+  (let ((coding-system-for-write 'undecided-dos))
+    (write-region start end dos-printer t 0)
+    ;; Make each print-out start on a new page, but don't waste
+    ;; paper if there was a form-feed at the end of this file.
+    (if (not (char-equal (char-after (1- end)) ?\C-l))
+	(write-region "\f" nil dos-printer t 0))))
 
 ;; Set this to nil if you have a port of the `lpr' program and
 ;; you want to use it for printing.  If the default setting is
