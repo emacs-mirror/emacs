@@ -1,11 +1,11 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -274,11 +274,12 @@ echo_area_display ()
 
 #ifdef MULTI_FRAME
   choose_minibuf_frame ();
+#endif
+
   f = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 
   if (! FRAME_VISIBLE_P (f))
     return;
-#endif
 
   if (frame_garbaged)
     {
@@ -465,9 +466,7 @@ redisplay ()
 	  pos = *compute_motion (tlbufpos, 0,
 				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
 				 point, 2, - (1 << (SHORTBITS - 1)),
-				 XFASTINT (w->width) - 1
-				 - (XFASTINT (w->width) + XFASTINT (w->left)
-				    != FRAME_WIDTH (selected_frame)),
+				 window_internal_width (w) - 1,
 				 XINT (w->hscroll),
 				 pos_tab_offset (w, tlbufpos));
 	  if (pos.vpos < 1)
@@ -501,7 +500,7 @@ redisplay ()
 	{
 	  /* Mark all the scrollbars to be removed; we'll redeem the ones
 	     we want when we redisplay their windows.  */
-	  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+	  if (condemn_scrollbars_hook)
 	    (*condemn_scrollbars_hook) (f);
 
 	  if (FRAME_VISIBLE_P (f))
@@ -509,7 +508,7 @@ redisplay ()
 
 	  /* Any scrollbars which redisplay_windows should have nuked
 	     should now go away.  */
-	  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+	  if (judge_scrollbars_hook)
 	    (*judge_scrollbars_hook) (f);
 	}
     }
@@ -714,12 +713,11 @@ redisplay_window (window, just_this_one)
   int height;
   register int lpoint = point;
   struct buffer *old = current_buffer;
-  register int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f));
+  register int width = window_internal_width (w) - 1;
   register int startp;
   register int hscroll = XINT (w->hscroll);
   struct position pos;
-  int opoint;
+  int opoint = point;
   int tem;
   int window_needs_modeline;
 
@@ -748,7 +746,7 @@ redisplay_window (window, just_this_one)
 	{
 	  if (echo_area_glyphs)
 	    /* We've already displayed the echo area glyphs, if any.  */
-	    return;
+	    goto finish_scrollbars;
 	}
       else
 	{
@@ -763,7 +761,7 @@ redisplay_window (window, just_this_one)
 	      display_string (w, vpos + i, "", 0, 0, 0, width);
 	    }
 	  
-	  return;
+	  goto finish_scrollbars;
 	}
     }
 
@@ -967,28 +965,36 @@ done:
       && height != XFASTINT (w->height))
     display_mode_line (w);
 
-  SET_PT (opoint);
-  current_buffer = old;
-  SET_PT (lpoint);
-
+ finish_scrollbars:
   if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
     {
-      struct scrollbar *bar = WINDOW_VERTICAL_SCROLLBAR (w);
+      int start, end, whole;
 
-      /* This isn't guaranteed to be right.  For the moment, we'll pretend
-	 it is.  */
-      int endp = Z - XINT (w->window_end_pos);
+      /* Calculate the start and end positions for the current window.
+	 Note that minibuffers sometimes aren't displaying any text.  */
+      if (! MINI_WINDOW_P (w)
+	  || (w == XWINDOW (minibuf_window) && ! echo_area_glyphs))
+	{
+	  start = startp;
+	  /* I don't think this is guaranteed to be right.  For the
+	     moment, we'll pretend it is.  */
+	  end = Z - XINT (w->window_end_pos);
+	  whole = Z - BEG;
+	}
+      else
+	start = end = whole = 0;
 
       /* Indicate what this scrollbar ought to be displaying now.  */
-      bar = ((*set_vertical_scrollbar_hook)
-	     (bar, w, endp - startp, Z - BEG, startp));
+      (*set_vertical_scrollbar_hook) (w, end - start, whole, start - 1);
 
       /* Note that we actually used the scrollbar attached to this window,
 	 so it shouldn't be deleted at the end of redisplay.  */
-      (*redeem_scrollbar_hook) (bar);
-
-      XSET (w->vertical_scrollbar, Lisp_Int, bar);
+      (*redeem_scrollbar_hook) (w);
     }
+
+  SET_PT (opoint);
+  current_buffer = old;
+  SET_PT (lpoint);
 }
 
 /* Do full redisplay on one window, starting at position `pos'. */
@@ -1004,8 +1010,7 @@ try_window (window, pos)
   register int last_text_vpos = vpos;
   int tab_offset = pos_tab_offset (w, pos);
   FRAME_PTR f = XFRAME (w->frame);
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f));
+  int width = window_internal_width (w) - 1;
   struct position val;
 
   Fset_marker (w->start, make_number (pos), Qnil);
@@ -1060,8 +1065,7 @@ try_window_id (window)
   FRAME_PTR f = XFRAME (w->frame);
   int top = XFASTINT (w->top);
   int start = marker_position (w->start);
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f));
+  int width = window_internal_width (w) - 1;
   int hscroll = XINT (w->hscroll);
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
   register int vpos;
@@ -1476,8 +1480,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   FRAME_PTR f = XFRAME (w->frame);
   int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left) != FRAME_WIDTH (f));
+  int width = window_internal_width (w) - 1;
   struct position val;
   int lastpos;
   int invis;
@@ -1743,7 +1746,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
       endp++;
       if (p1 < startp) p1 = startp;
       while (p1 < endp) *p1++ = SPACEGLYPH;
-      *p1++ = '|';
+
+      /* Don't draw vertical bars if we're using scrollbars.  They're
+         covered up by the scrollbars, and it's distracting to see
+         them when the scrollbar windows are flickering around to be
+         reconfigured.  */
+      *p1++ = (FRAME_HAS_VERTICAL_SCROLLBARS (f)
+	       ? ' ' : '|');
     }
   desired_glyphs->used[vpos] = max (desired_glyphs->used[vpos],
 				   p1 - desired_glyphs->glyphs[vpos]);
@@ -1762,8 +1771,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
       int i;
       int len = XSTRING (Voverlay_arrow_string)->size;
 
-      if (len > XFASTINT (w->width) - 1)
-	len = XFASTINT (w->width) - 1;
+      if (len > width)
+	len = width;
       for (i = 0; i < len; i++)
 	startp[i] = p[i];
       if (desired_glyphs->used[vpos] <
@@ -2214,7 +2223,8 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
   int tab_width = XINT (XBUFFER (w->buffer)->tab_width);
   register GLYPH *start;
   register GLYPH *end;
-  struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   GLYPH *p1start = desired_glyphs->glyphs[vpos] + hpos;
   int window_width = XFASTINT (w->width);
 
@@ -2232,9 +2242,18 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
   start = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
   end = start + window_width - (truncate != 0);
 
-  if ((window_width + XFASTINT (w->left))
-      != FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
-    *end-- = '|';
+  if ((window_width + XFASTINT (w->left)) != FRAME_WIDTH (f))
+    {
+      if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+	{
+	  int i;
+
+	  for (i = 0; i < VERTICAL_SCROLLBAR_WIDTH; i++)
+	    *end-- = ' ';
+	}
+      else
+	*end-- = '|';
+    }
 
   if (maxcol >= 0 && end - desired_glyphs->glyphs[vpos] > maxcol)
     end = desired_glyphs->glyphs[vpos] + maxcol;
