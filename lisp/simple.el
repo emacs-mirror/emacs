@@ -1089,7 +1089,7 @@ we stop and ignore all further elements."
 If it crosses the edge, we return nil."
   (cond ((integerp undo-elt)
 	 (and (>= undo-elt start)
-	      (<  undo-elt end)))
+	      (<= undo-elt end)))
 	((eq undo-elt nil)
 	 t)
 	((atom undo-elt)
@@ -1109,16 +1109,16 @@ If it crosses the edge, we return nil."
 		   (cons alist-elt undo-adjusted-markers)))
 	   (and (cdr alist-elt)
 		(>= (cdr alist-elt) start)
-		(< (cdr alist-elt) end))))
+		(<= (cdr alist-elt) end))))
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
 	   (and (>= (car tail) start)
-		(< (cdr tail) end))))
+		(<= (cdr tail) end))))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
 	 (and (>= (car undo-elt) start)
-	      (< (cdr undo-elt) end)))))
+	      (<= (cdr undo-elt) end)))))
 
 (defun undo-elt-crosses-region (undo-elt start end)
   "Test whether UNDO-ELT crosses one edge of that region START ... END.
@@ -2104,39 +2104,65 @@ you can use this command to copy text from a read-only buffer."
 		       (goto-char end))))
 		 (point))))
 
+
 (defun forward-visible-line (arg)
   "Move forward by ARG lines, ignoring currently invisible newlines only.
 If ARG is negative, move backward -ARG lines.
 If ARG is zero, move to the beginning of the current line."
   (condition-case nil
       (if (> arg 0)
-	  (while (> arg 0)
-	    (or (zerop (forward-line 1))
-		(signal 'end-of-buffer nil))
-	    ;; If the following character is currently invisible,
-	    ;; skip all characters with that same `invisible' property value,
-	    ;; then find the next newline.
-	    (while (and (not (eobp))
-			(let ((prop
-			       (get-char-property (point) 'invisible)))
-			  (if (eq buffer-invisibility-spec t)
-			      prop
-			    (or (memq prop buffer-invisibility-spec)
-				(assq prop buffer-invisibility-spec)))))
-	      (goto-char
-	       (if (get-text-property (point) 'invisible)
-		   (or (next-single-property-change (point) 'invisible)
-		       (point-max))
-		 (next-overlay-change (point))))
+	  (progn
+	    (while (> arg 0)
 	      (or (zerop (forward-line 1))
-		  (signal 'end-of-buffer nil)))
-	    (setq arg (1- arg)))
+		  (signal 'end-of-buffer nil))
+	      ;; If the newline we just skipped is invisible,
+	      ;; don't count it.
+	      (let ((prop
+		     (get-char-property (1- (point)) 'invisible)))
+		(if (if (eq buffer-invisibility-spec t)
+			prop
+		      (or (memq prop buffer-invisibility-spec)
+			  (assq prop buffer-invisibility-spec)))
+		    (setq arg (1+ arg))))
+	      (setq arg (1- arg)))
+	    ;; If invisible text follows, and it is a number of complete lines,
+	    ;; skip it.
+	    (let ((opoint (point)))
+	      (while (and (not (eobp))
+			  (let ((prop
+				 (get-char-property (point) 'invisible)))
+			    (if (eq buffer-invisibility-spec t)
+				prop
+			      (or (memq prop buffer-invisibility-spec)
+				  (assq prop buffer-invisibility-spec)))))
+		(goto-char
+		 (if (get-text-property (point) 'invisible)
+		     (or (next-single-property-change (point) 'invisible)
+			 (point-max))
+		   (next-overlay-change (point)))))
+	      (unless (bolp)
+		(goto-char opoint))))
 	(let ((first t))
 	  (while (or first (< arg 0))
 	    (if (zerop arg)
 		(beginning-of-line)
 	      (or (zerop (forward-line -1))
 		  (signal 'beginning-of-buffer nil)))
+	    ;; If the newline we just moved to is invisible,
+	    ;; don't count it.
+	    (unless (bobp)
+	      (let ((prop
+		     (get-char-property (1- (point)) 'invisible)))
+		(if (if (eq buffer-invisibility-spec t)
+			prop
+		      (or (memq prop buffer-invisibility-spec)
+			  (assq prop buffer-invisibility-spec)))
+		    (setq arg (1+ arg)))))
+	    (setq first nil)
+	    (setq arg (1+ arg)))
+	  ;; If invisible text follows, and it is a number of complete lines,
+	  ;; skip it.
+	  (let ((opoint (point)))
 	    (while (and (not (bobp))
 			(let ((prop
 			       (get-char-property (1- (point)) 'invisible)))
@@ -2148,11 +2174,9 @@ If ARG is zero, move to the beginning of the current line."
 	       (if (get-text-property (1- (point)) 'invisible)
 		   (or (previous-single-property-change (point) 'invisible)
 		       (point-min))
-		 (previous-overlay-change (point))))
-	      (or (zerop (forward-line -1))
-		  (signal 'beginning-of-buffer nil)))
-	    (setq first nil)
-	    (setq arg (1+ arg)))))
+		 (previous-overlay-change (point)))))
+	    (unless (bolp)
+	      (goto-char opoint)))))
     ((beginning-of-buffer end-of-buffer)
      nil)))
 
