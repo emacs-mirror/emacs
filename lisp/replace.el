@@ -36,15 +36,9 @@
 
 (defvar query-replace-history nil)
 
-(defcustom query-replace-interactive nil
+(defvar query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
-That becomes the \"string to replace\".
-If value is `initial', the last search string is inserted into
-the minibuffer as an initial value for \"string to replace\"."
-  :type '(choice (const :tag "Off" nil)
-                 (const :tag "Initial content" initial)
-                 (other :tag "Use default value" t))
-  :group 'matching)
+That becomes the \"string to replace\".")
 
 (defcustom query-replace-from-history-variable 'query-replace-history
   "History list to use for the FROM argument of `query-replace' commands.
@@ -74,8 +68,7 @@ strings or patterns."
   (unless noerror
     (barf-if-buffer-read-only))
   (let (from to)
-    (if (and query-replace-interactive
-             (not (eq query-replace-interactive 'initial)))
+    (if query-replace-interactive
         (setq from (car (if regexp-flag regexp-search-ring search-ring)))
       ;; The save-excursion here is in case the user marks and copies
       ;; a region in order to specify the minibuffer input.
@@ -83,9 +76,7 @@ strings or patterns."
       (save-excursion
         (setq from (read-from-minibuffer
                     (format "%s: " string)
-                    (if (eq query-replace-interactive 'initial)
-                        (car (if regexp-flag regexp-search-ring search-ring)))
-                    nil nil
+                    nil nil nil
                     query-replace-from-history-variable
                     nil t)))
       ;; Warn if user types \n or \t, but don't reject the input.
@@ -269,16 +260,15 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
-     (if query-replace-interactive
-         (setq from (car regexp-search-ring))
-       (setq from (read-from-minibuffer "Query replace regexp: "
-                                        nil nil nil
-                                        query-replace-from-history-variable
-                                        nil t)))
-     (setq to (list (read-from-minibuffer
-                     (format "Query replace regexp %s with eval: " from)
-                     nil nil t query-replace-to-history-variable from t)))
+   (let* ((from (if query-replace-interactive
+		    (car regexp-search-ring)
+		  (read-from-minibuffer "Query replace regexp: "
+					nil nil nil
+					query-replace-from-history-variable
+					nil t)))
+	  (to (list (read-from-minibuffer
+		     (format "Query replace regexp %s with eval: " from)
+		     nil nil t query-replace-to-history-variable from t))))
      ;; We make TO a list because replace-match-string-symbols requires one,
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
@@ -311,17 +301,16 @@ A prefix argument N says to use each replacement string N times
 before rotating to the next.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
-     (setq from (if query-replace-interactive
+   (let* ((from (if query-replace-interactive
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
 					nil nil nil
 					'query-replace-history nil t)))
-     (setq to (read-from-minibuffer
+	  (to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
 		       from)
 	       nil nil nil
-	       'query-replace-history from t))
+	       'query-replace-history from t)))
      (list from to
 	   (and current-prefix-arg
 		(prefix-numeric-value current-prefix-arg))
@@ -925,7 +914,6 @@ See also `multi-occur'."
 	  (let ((matches 0)	;; count of matched lines
 		(lines 1)	;; line count
 		(matchbeg 0)
-		(matchend 0)
 		(origpt nil)
 		(begpt nil)
 		(endpt nil)
@@ -945,8 +933,7 @@ See also `multi-occur'."
 		  (setq origpt (point))
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
-		    (setq matchbeg (match-beginning 0)
-			  matchend (match-end 0))
+		    (setq matchbeg (match-beginning 0))
 		    (setq begpt (save-excursion
 				  (goto-char matchbeg)
 				  (line-beginning-position)))
