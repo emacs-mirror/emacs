@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.59) $
+ * $HopeName: MMsrc!buffer.c(trunk.60) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -20,14 +20,14 @@
  * TRANSGRESSIONS
  *
  * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module (because impl.c.pool does not
+ * directly accessed by this module because impl.c.pool does not
  * provide an adequate (or adequately documented) interface.  They
  * bear this tag.
  */
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.59) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.60) $");
 
 
 /* forward declarations */
@@ -66,9 +66,9 @@ Bool BufferCheck(Buffer buffer)
   /* If any of the buffer's fields indicate that it is reset, make */
   /* sure it is really reset.  Otherwise, check various properties */
   /* of the non-reset fields. */
-  if(buffer->mode & BufferModeTRANSITION) {
+  if (buffer->mode & BufferModeTRANSITION) {
     /* nothing to check */
-  } else if((buffer->mode & BufferModeATTACHED) == 0 ||
+  } else if ((buffer->mode & BufferModeATTACHED) == 0 ||
      buffer->base == (Addr)0 ||
      buffer->apStruct.init == (Addr)0 ||
      buffer->apStruct.alloc == (Addr)0 ||
@@ -119,15 +119,15 @@ Bool BufferCheck(Buffer buffer)
     /* is kept at zero to avoid misuse (see */
     /* request.dylan.170429.sol.zero). */
 
-    if((buffer->apStruct.enabled && aplimit == (Addr)0) /* see .lwcheck */
-       || (!buffer->apStruct.enabled && BufferIsTrapped(buffer))) {
+    if ((buffer->apStruct.enabled && aplimit == (Addr)0) /* see .lwcheck */
+        || (!buffer->apStruct.enabled && BufferIsTrapped(buffer))) {
       /* .check.use-trapped: This checking function uses BufferIsTrapped, */
       /* So BufferIsTrapped can't do checking as that would cause an */
       /* infinite loop. */
       CHECKL(aplimit == (Addr)0);
-      if(buffer->mode & BufferModeFLIPPED) {
-        CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
-               buffer->apStruct.init == buffer->apStruct.alloc);
+      if (buffer->mode & BufferModeFLIPPED) {
+        CHECKL(buffer->apStruct.init == buffer->initAtFlip
+               || buffer->apStruct.init == buffer->apStruct.alloc);
         CHECKL(buffer->base <= buffer->initAtFlip);
         CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
       }
@@ -151,10 +151,8 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!CHECKT(Buffer, buffer)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
@@ -176,18 +174,14 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                "  limit $A\n",       buffer->apStruct.limit,
                "  poolLimit $A\n",   buffer->poolLimit,
                NULL);
-
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = buffer->class->describe(buffer, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = WriteF(stream, "} Buffer $P ($U)\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                NULL);
-
   return res;
 }
 
@@ -214,7 +208,7 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   buffer->pool = pool;
   RingInit(&buffer->poolRing);
   buffer->isMutator = isMutator;
-  if(arena->bufferLogging) {
+  if (arena->bufferLogging) {
     buffer->mode = BufferModeLOGGED;
   } else {
     buffer->mode = 0;
@@ -244,9 +238,8 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific initialization of the buffer. */
   res = (*class->init)(buffer, pool, args);
-  if(res != ResOK) {
+  if (res != ResOK)
     goto failInit;
-  }
 
   /* Attach the initialized buffer to the pool. */
   RingAppend(&pool->bufferRing, &buffer->poolRing);
@@ -300,13 +293,13 @@ Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
   /* Allocate memory for the buffer descriptor structure. */
   res = ControlAlloc(&p, arena, class->size, 
                      /* withReservoirPermit */ FALSE);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failAlloc;
   buffer = p;
 
   /* Initialize the buffer descriptor structure. */
   res = BufferInitV(buffer, class, pool, isMutator, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failInit;
 
   *bufferReturn = buffer;
@@ -326,7 +319,7 @@ void BufferDetach(Buffer buffer, Pool pool)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
-  if(!BufferIsReset(buffer)) {
+  if (!BufferIsReset(buffer)) {
     Addr init, limit;
     Size spare;
 
@@ -344,7 +337,7 @@ void BufferDetach(Buffer buffer, Pool pool)
 
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
-    if(buffer->isMutator) {
+    if (buffer->isMutator) {
       buffer->pool->emptyMutatorSize += spare;
       buffer->arena->emptyMutatorSize += spare;
       buffer->arena->allocMutatorSize +=
@@ -436,10 +429,7 @@ Bool BufferIsReset(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  if(buffer->mode & BufferModeATTACHED)
-    return FALSE;
-
-  return TRUE;
+  return !(buffer->mode & BufferModeATTACHED);
 }
 
 
@@ -455,10 +445,7 @@ Bool BufferIsReady(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  if(buffer->apStruct.init == buffer->apStruct.alloc)
-    return TRUE;
-
-  return FALSE;
+  return buffer->apStruct.init == buffer->apStruct.alloc;
 }
 
 
@@ -487,7 +474,7 @@ static void BufferSetUnflipped(Buffer buffer)
   AVER(buffer->mode & BufferModeFLIPPED);
   buffer->mode &= ~BufferModeFLIPPED;
   /* restore apStruct.limit if appropriate */
-  if(!BufferIsTrapped(buffer)) {
+  if (!BufferIsTrapped(buffer)) {
     buffer->apStruct.limit = buffer->poolLimit;
   }
   buffer->initAtFlip = (Addr)0;
@@ -503,8 +490,8 @@ static void BufferSetUnflipped(Buffer buffer)
 FrameState BufferFrameState(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  if(buffer->apStruct.enabled) {
-    if(buffer->apStruct.lwPopPending) {
+  if (buffer->apStruct.enabled) {
+    if (buffer->apStruct.lwPopPending) {
       return BufferFramePOP_PENDING;
     } else {
       AVER(buffer->apStruct.frameptr == NULL);
@@ -593,9 +580,9 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 
   /* Process any flip or PopPending */
-  if(!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
+  if (!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
-    if(buffer->mode & BufferModeFLIPPED) {
+    if (buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
     }
   
@@ -647,7 +634,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   /* satisfy the request?  If so, just increase the alloc marker and */
   /* return a pointer to the area below it. */
   next = AddrAdd(buffer->apStruct.alloc, size);
-  if(next > buffer->apStruct.alloc && next <= buffer->apStruct.limit) {
+  if (next > buffer->apStruct.alloc && next <= buffer->apStruct.limit) {
     buffer->apStruct.alloc = next;
     *pReturn = buffer->apStruct.init;
     return ResOK;
@@ -681,7 +668,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   buffer->apStruct.init = init;
   buffer->apStruct.alloc = AddrAdd(init, size);
   /* only set limit if not logged */
-  if((buffer->mode & BufferModeLOGGED) == 0) {
+  if ((buffer->mode & BufferModeLOGGED) == 0) {
     buffer->apStruct.limit = limit;
   } else {
     AVER(buffer->apStruct.limit == (Addr)0);
@@ -691,7 +678,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
 
   filled = AddrOffset(init, limit);
   buffer->fillSize += filled;
-  if(buffer->isMutator) {
+  if (buffer->isMutator) {
     if (base != init) { /* see design.mps.buffer.count.alloc.how */
       Size prealloc = AddrOffset(base, init);
       buffer->arena->allocMutatorSize -= prealloc;
@@ -736,9 +723,9 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
   /* If we're here because the buffer was trapped, then we attempt */
   /* the allocation here. */
-  if(!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
+  if (!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
-    if(buffer->mode & BufferModeFLIPPED) {
+    if (buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
     }
 
@@ -749,10 +736,10 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
     /* .fill.logged: If the buffer is logged then we leave it logged. */
     next = AddrAdd(buffer->apStruct.alloc, size);
-    if(next > buffer->apStruct.alloc &&
+    if (next > buffer->apStruct.alloc &&
        next <= buffer->poolLimit) {
       buffer->apStruct.alloc = next;
-      if(buffer->mode & BufferModeLOGGED) {
+      if (buffer->mode & BufferModeLOGGED) {
         EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
       }
       *pReturn = buffer->apStruct.init;
@@ -770,14 +757,14 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   res = (*pool->class->bufferFill)(&base, &limit,
                                    pool, buffer, size,
                                    withReservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   /* Set up the buffer to point at the memory given by the pool */
   /* and do the allocation that was requested by the client. */
   BufferAttach(buffer, base, limit, base, size);
 
-  if(buffer->mode & BufferModeLOGGED) {
+  if (buffer->mode & BufferModeLOGGED) {
     EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
   }
 
@@ -818,7 +805,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   /* be collected.  The commit must succeed when trip is called.  */
   /* The pointer "p" will have been fixed up.  (@@@@ Will it?) */
   /* .commit.trip: Trip the buffer if a flip has occurred. */
-  if(buffer->apStruct.limit == 0)
+  if (buffer->apStruct.limit == 0)
     return BufferTrip(buffer, p, size);
 
   /* No flip occurred, so succeed. */
@@ -874,8 +861,8 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   /* (won't've been scanned) so undo the allocation and fail commit. */
   /* Otherwise (see .commit.after) the object is valid (will've been */
   /* scanned) so commit can simply succeed. */
-  if((buffer->mode & BufferModeFLIPPED) &&
-     buffer->apStruct.init != buffer->initAtFlip) {
+  if ((buffer->mode & BufferModeFLIPPED)
+      && buffer->apStruct.init != buffer->initAtFlip) {
     /* Reset just enough state for Reserve/Fill to work. */
     /* The buffer is left trapped and we leave the untrapping */
     /* for the next reserve (which goes out of line to Fill */
@@ -886,13 +873,13 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   }
 
   /* Emit event including class if loggged */
-  if(buffer->mode & BufferModeLOGGED) {
+  if (buffer->mode & BufferModeLOGGED) {
     Bool b;
     Format format;
     Addr clientClass;
 
     b = PoolFormat(&format, buffer->pool);
-    if(b) {
+    if (b) {
       clientClass = format->class(p);
     } else {
       clientClass = (Addr)0;
@@ -926,9 +913,9 @@ void BufferFlip(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  if(BufferRankSet(buffer) != RankSetEMPTY &&
-     (buffer->mode & BufferModeFLIPPED) == 0 &&
-     !BufferIsReset(buffer)) {
+  if (BufferRankSet(buffer) != RankSetEMPTY
+      && (buffer->mode & BufferModeFLIPPED) == 0
+      && !BufferIsReset(buffer)) {
     AVER(buffer->initAtFlip == (Addr)0);
     buffer->initAtFlip = buffer->apStruct.init;
     /* Memory Barrier here? @@@@ */
@@ -950,7 +937,7 @@ void BufferFlip(Buffer buffer)
 
 Addr BufferScanLimit(Buffer buffer)
 {
-  if(buffer->mode & BufferModeFLIPPED) {
+  if (buffer->mode & BufferModeFLIPPED) {
     return buffer->initAtFlip;
   } else {
     return buffer->apStruct.init;
@@ -1122,8 +1109,8 @@ void BufferRampBegin(Buffer buffer, AllocPattern pattern)
   AVERT(Buffer, buffer);
   AVERT(AllocPattern, pattern);
 
-  AVER(buffer->rampCount < UINT_MAX);
   ++buffer->rampCount;
+  AVER(buffer->rampCount > 0);
 
   pool = BufferPool(buffer);
   AVERT(Pool, pool);
@@ -1140,7 +1127,7 @@ Res BufferRampEnd(Buffer buffer)
 
   AVERT(Buffer, buffer);
 
-  if(buffer->rampCount == 0)
+  if (buffer->rampCount == 0)
     return ResFAIL;
   --buffer->rampCount;
 
@@ -1159,7 +1146,7 @@ void BufferRampReset(Buffer buffer)
 
   AVERT(Buffer, buffer);
 
-  if(buffer->rampCount == 0)
+  if (buffer->rampCount == 0)
     return;
 
   pool = BufferPool(buffer);
@@ -1282,10 +1269,8 @@ static void bufferNoReassignSeg (Buffer buffer, Seg seg)
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
-  if(!CHECKT(Buffer, buffer)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
   /* dispatching function does it all */
   return ResOK;
 }
@@ -1356,9 +1341,9 @@ Bool SegBufCheck(SegBuf segbuf)
   CHECKL(BufferCheck(buffer));
   CHECKL(RankSetCheck(segbuf->rankSet));
 
-  if(buffer->mode & BufferModeTRANSITION) {
+  if (buffer->mode & BufferModeTRANSITION) {
     /* nothing to check */
-  } else if((buffer->mode & BufferModeATTACHED) == 0) {
+  } else if ((buffer->mode & BufferModeATTACHED) == 0) {
     CHECKL(segbuf->seg == NULL);
   } else {
     /* The buffer is attached to a segment. */
@@ -1367,7 +1352,7 @@ Bool SegBufCheck(SegBuf segbuf)
     /* To avoid recursive checking, leave it to SegCheck to make */
     /* sure the buffer and segment fields tally. */
     
-    if(buffer->mode & BufferModeFLIPPED) {
+    if (buffer->mode & BufferModeFLIPPED) {
       /* Only buffers that allocate pointers get flipped. */
       CHECKL(segbuf->rankSet != RankSetEMPTY);
     }
@@ -1547,19 +1532,15 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
   BufferClass super;
   Res res;
 
-  if(!CHECKT(Buffer, buffer)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
   segbuf = BufferSegBuf(buffer);
-  if(!CHECKT(SegBuf, segbuf)) 
-    return ResFAIL;
+  if (!CHECKT(SegBuf, segbuf)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = BUFFER_SUPERCLASS(SegBufClass);
   res = super->describe(buffer, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = WriteF(stream,
                "  Seg $P\n",         (WriteFP)segbuf->seg,
@@ -1595,8 +1576,7 @@ DEFINE_CLASS(SegBufClass, class)
 }
 
 
-/* RankBufClass -- support for the RankBufClass subclass 
- */
+/* RankBufClass -- support for the RankBufClass subclass */
 
 
 /* rankBufInit -- RankBufClass init method */
