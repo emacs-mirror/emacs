@@ -1579,7 +1579,9 @@ With argument, insert value in current buffer after the form."
 	(if (not (stringp (nth 3 form)))
 	    ;; No doc string to make-docfile; insert form in normal code.
 	    (byte-compile-keep-pending
-	     (list 'defalias (list 'quote name)
+	     (list (if (byte-compile-version-cond byte-compile-compatibility)
+		       'defalias 'fset)
+		   (list 'quote name)
 		   (cond ((not macrop)
 			  code)
 			 ((eq 'make-byte-code (car-safe code))
@@ -1590,7 +1592,9 @@ With argument, insert value in current buffer after the form."
 	  ;; Output the form by hand, that's much simpler than having
 	  ;; b-c-output-file-form analyze the defalias.
 	  (byte-compile-flush-pending)
-	  (princ "\n(defalias '" outbuffer)
+	  (princ (if (byte-compile-version-cond byte-compile-compatibility)
+		     "\n(defalias '" "\n(fset '")
+		 outbuffer)
 	  (prin1 name outbuffer)
 	  (byte-compile-output-docform
 	   (cond ((atom code)
