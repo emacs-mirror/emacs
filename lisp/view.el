@@ -43,7 +43,7 @@
 ;;
 ;; You could also bind view-file, view-buffer, view-buffer-other-window and
 ;; view-buffer-other-frame to keys.
-
+
 ;;; Code:
 
 (defgroup view nil
@@ -105,12 +105,15 @@ functions that enable or disable view mode.")
   "Normal hook run when starting to view a buffer or file."
   :type 'hook
   :group 'view)
-
+
 (defvar view-old-buffer-read-only nil)
 (make-variable-buffer-local 'view-old-buffer-read-only)
 
 (defvar view-old-Helper-return-blurb)
 (make-variable-buffer-local 'view-old-Helper-return-blurb)
+
+;; Just to avoid warnings.
+(defvar Helper-return-blurb)
 
 (defvar view-page-size nil
   "Default number of lines to scroll by View page commands.
@@ -160,7 +163,7 @@ This is local in each buffer, once it is used.")
 				'local-map mode-line-minor-mode-keymap
 				'help-echo "mouse-3: minor mode menu"))
 	      minor-mode-alist)))
-
+
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.
 (defvar view-mode-map
@@ -225,7 +228,7 @@ This is local in each buffer, once it is used.")
 (or (assq 'view-mode minor-mode-map-alist)
     (setq minor-mode-map-alist
 	  (cons (cons 'view-mode view-mode-map) minor-mode-map-alist)))
-
+
 ;;; Commands that enter or exit view mode.
 
 ;;;###autoload
@@ -349,7 +352,7 @@ Use this argument instead of explicitly setting `view-exit-action'."
     (switch-to-buffer-other-frame buffer)
     (view-mode-enter (and return-to (cons (selected-window) return-to))
 		     exit-action)))
-
+
 ;;;###autoload
 (defun view-mode (&optional arg)
   ;; In the following documentation string we have to use some explicit key
@@ -433,7 +436,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 	       (if (> (prefix-numeric-value arg) 0) view-mode (not view-mode)))
     (if view-mode (view-mode-disable)
       (view-mode-enable))))
-
+
 (defun view-mode-enable ()
   "Turn on View mode."
   ;; Always leave view mode before changing major mode.
@@ -506,7 +509,7 @@ This function runs the normal hook `view-mode-hook'."
     (message "%s"
 	     (substitute-command-keys "\
 View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
-
+
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
   "Exit View mode in various ways, depending on optional arguments.
 RETURN-TO-ALIST, EXIT-ACTION and ALL-WIN determine what to do after exit.
@@ -591,7 +594,7 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 	  (setq view-exit-action nil)
 	  (funcall exit-action buffer))
 	(force-mode-line-update))))
-
+
 (defun View-exit ()
   "Exit View mode but stay in current buffer."
   (interactive)
@@ -628,7 +631,7 @@ previous state and go to previous buffer or window."
   "Quit View mode, kill current buffer and return to previous buffer."
   (interactive)
   (view-mode-exit view-return-to-alist (or view-exit-action 'kill-buffer) t))
-
+
 
 ;;; Some help routines.
 
@@ -705,14 +708,16 @@ Also set the mark at the position where point was."
   (goto-line line)
   (view-recenter))
 
-(defun View-scroll-to-buffer-end ()
-  "Scroll backward or forward so that buffer end is at last line of window."
+(defun View-back-to-mark (&optional ignore)
+  "Return to last mark set in View mode, else beginning of file.
+Display that line at the center of the window.
+This command pops the mark ring, so that successive
+invocations return to earlier marks."
   (interactive)
-  (let ((p (if (pos-visible-in-window-p (point-max)) (point))))
-    (goto-char (point-max))
-    (recenter -1)
-    (and p (goto-char p))))
-
+  (goto-char (or (mark t) (point-min)))
+  (pop-mark)
+  (view-recenter))
+
 (defun view-scroll-lines (lines backward default maxdefault)
   ;; This function does the job for all the scrolling commands.
   ;; Scroll forward LINES lines.  If BACKWARD is true scroll backwards.
@@ -771,6 +776,14 @@ Also set the mark at the position where point was."
 		(if view-scroll-auto-exit "\\[View-scroll-page-forward]"
 		  "\\[View-quit]")))
     (message "End of buffer")))
+
+(defun View-scroll-to-buffer-end ()
+  "Scroll backward or forward so that buffer end is at last line of window."
+  (interactive)
+  (let ((p (if (pos-visible-in-window-p (point-max)) (point))))
+    (goto-char (point-max))
+    (recenter -1)
+    (and p (goto-char p))))
 
 (defun View-scroll-page-forward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines forward in View mode.
@@ -851,17 +864,7 @@ If LINES is more than a window-full, only the last window-full is shown."
   (let ((view-scroll-auto-exit nil)
 	(view-try-extend-at-buffer-end t))
     (view-scroll-lines lines nil view-page-size nil)))
-
-(defun View-back-to-mark (&optional ignore)
-  "Return to last mark set in View mode, else beginning of file.
-Display that line at the center of the window.
-This command pops the mark ring, so that successive
-invocations return to earlier marks."
-  (interactive)
-  (goto-char (or (mark t) (point-min)))
-  (pop-mark)
-  (view-recenter))
-
+
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.
 
