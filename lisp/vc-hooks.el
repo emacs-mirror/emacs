@@ -166,18 +166,6 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "=" 'vc-directory)
       ))
 
-(autoload 'vc-update-change-log "vc.el" nil t)
-(autoload 'vc-cancel-version "vc.el" nil t)
-(autoload 'vc-diff "vc.el" nil t)
-(autoload 'vc-insert-headers "vc.el" nil t)
-(autoload 'vc-register "vc.el" nil t)
-(autoload 'vc-print-log "vc.el" nil t)
-(autoload 'vc-retrieve-snapshot "vc.el" nil t)
-(autoload 'vc-creat-snapshot "vc.el" nil t)
-(autoload 'vc-directory "vc.el" nil t)
-(autoload 'vc-revert-buffer "vc.el" nil t)
-(autoload 'vc-next-action "vc.el" nil t)
-
 (provide 'vc-hooks)
 
 ;;; vc-hooks.el ends here
