@@ -1,5 +1,9 @@
 2001-03-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (string-key-binding): Renamed from
+	mode-line-key-binding.  Handle any event on a string.  Check for
+	`keymap' properties as well as `local-map' properties.
+
 	* comint.el (comint-insert-clicked-input): Use the last key
 	from this-command-keys to lookup the global key definition.
 
