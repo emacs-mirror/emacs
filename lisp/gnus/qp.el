@@ -92,13 +92,9 @@ You should probably avoid non-ASCII characters in this arg.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  ;; Fixme: what should this do in XEmacs/Mule?
-  (if (fboundp 'find-charset-region)	; else XEmacs, non-Mule
-      (if (delq 'unknown		; Emacs 20 unibyte
-		(delq 'eight-bit-graphic ; Emacs 21
-		      (delq 'eight-bit-control
-			    (delq 'ascii (find-charset-region from to)))))
-	  (error "Multibyte character in QP encoding region")))
+  (save-excursion
+    (if (re-search-forward "[^\x0-\xff]" to t)
+      (error "Multibyte character in QP encoding region")))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
