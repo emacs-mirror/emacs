@@ -858,13 +858,15 @@ See `shell-command-regexp'."
 	(progn (goto-char (match-beginning 1))
 	       (skip-chars-forward ";&|")))))
 
+(defvar shell-pcomplete-setup-done nil)
+
 (defun shell-pcomplete ()
   "Cycle forwards through completions at point, using `pcomplete'.
 This function merely invokes `pcomplete', after ensuring this buffer
 is set up for it."
   (interactive)
-  (unless (prog1 shell-pcomplete-setup-p
-           (setq shell-pcomplete-setup-p t))
+  (unless shell-pcomplete-setup-done
+    (setq shell-pcomplete-setup-done t)
     (pcomplete-comint-setup 'shell-dynamic-complete-functions))
   ;; Convince pcomplete we are calling it directly
   (setq this-command 'pcomplete)
@@ -875,8 +877,8 @@ is set up for it."
 This function merely invokes `pcomplete-reverse', after ensuring this
 buffer is set up for it."
   (interactive)
-  (unless (prog1 shell-pcomplete-setup-p
-	    (setq shell-pcomplete-setup-p t))
+  (unless shell-pcomplete-setup-done
+    (setq shell-pcomplete-setup-done t)
     (pcomplete-comint-setup 'shell-dynamic-complete-functions))
   ;; Convince pcomplete we are calling it directly
   (setq this-command 'pcomplete-reverse)
