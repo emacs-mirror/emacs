@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename tramp.info
+@setfilename ../info/tramp
 @settitle TRAMP User Manual
 @setchapternewpage odd
 @c %**end of header
@@ -11,8 +11,8 @@
 @c Version values, for easy modification
 @c NOTE: The 'UPDATED' value is updated by the 'time-stamp' function.
 @c       If you change it by hand, the modifications will not stay.
-@set VERSION $Revision: 2.20 $
-@set UPDATED Friday, 14 June, 2002
+@set VERSION $Revision: 1.1 $
+@set UPDATED Monday, 17 June, 2002
 
 
 @c Entries for @command{install-info} to use
