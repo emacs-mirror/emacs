@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:dirs(trunk.2) $
 #
 # set directories up for testing
 # n.b. this must happen _after_ options have been
@@ -11,8 +11,7 @@ $testlib_dir = $test_dir."/testlib";
 $obj_dir = $test_dir."/obj/".$PLATFORM;
 &ensuredir($obj_dir);
 
-$report_dir = $test_dir."/report";
-&ensuredir($report_dir);
+&ensuredir($LOG_DIR);
 
 sub ensuredir {
  local ($dir, $tdir, $odir) = @_;
