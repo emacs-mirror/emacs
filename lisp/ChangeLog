@@ -1,3 +1,11 @@
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Anchor user login name
+	and email address at the beginning and end of the address.
+
+	* mail/rmail.el (rmail-default-dont-reply-to-names): Make "info-"
+	anchored at the beginning of the email address.
+
 2004-02-16  TAKAI Kousuke  <tak@kmc.gr.jp>  (tiny change)
 
 	* international/ccl.el (ccl-compile-write): Pass `left' to
