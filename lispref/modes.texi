@@ -1870,6 +1870,11 @@ beginning of the @code{face} property.  If it is @code{append}, the face
 
 If @var{laxmatch} is non-@code{nil}, it means there should be no error
 if there is no subexpression numbered @var{subexp} in @var{matcher}.
+Obviously, fontification of the subexpression numbered @var{subexp} will
+not occur.  However, fontification of other subexpressions (and other
+regexps) will continue.  If @var{laxmatch} is @code{nil}, and the
+specified subexpression is missing, then an error is signalled which
+terminates search-based fontification.
 
 Here are some examples of elements of this kind, and what they do:
 
