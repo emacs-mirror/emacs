@@ -1053,9 +1053,11 @@ delete_window (window)
       unchain_marker (p->start);
     }
 
-  /* Free window glyph matrices.
-     It is sure that they are allocated again when ADJUST_GLYPHS
-     is called. */
+  /* Free window glyph matrices.  It is sure that they are allocated
+     again when ADJUST_GLYPHS is called.  Block input so that expose
+     events and other events that access glyph matrices are not
+     processed while we are changing them.  */
+  BLOCK_INPUT;
   free_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (frame)));
 
   tem = p->next;
@@ -1114,6 +1116,7 @@ delete_window (window)
 
   /* Adjust glyph matrices. */
   adjust_glyphs (frame);
+  UNBLOCK_INPUT;
 }
 
 
