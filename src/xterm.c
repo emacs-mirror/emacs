@@ -1564,6 +1564,10 @@ x_find_modifier_meanings ()
 	  KeyCode code =
 	    mods->modifiermap[(row * mods->max_keypermod) + col];
 
+	  /* Zeroes are used for filler.  Skip them.  */
+	  if (code == 0)
+	    continue;
+
 	  /* Are any of this keycode's keysyms a meta key?  */
 	  {
 	    int code_col;
