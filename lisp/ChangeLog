@@ -1,3 +1,13 @@
+1999-12-29  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
+
+	* progmodes/hideshow.el (hs-minor-mode-menu): Fix omission bug;
+	was used but not declared.
+
+	(hs-discard-overlays, hs-isearch-show, hs-isearch-show-temporary,
+	hs-find-block-beginning): Add or modify docstrings.
+
+	(hs-isearch-show): Rewrite.
+
 1999-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* icomplete.el (icomplete-exhibit): Adapt to prompt in buffer.
@@ -54,30 +64,30 @@
 	change-log-search-vc-number.
 
 1999-12-26  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
-	
+
 	* progmodes/compile.el (compilation-goto-locus): Delete hideshow
 	overlays if they interfere.
 	(compilation-find-file): Make intangible overlays tangible.
-	
+
 	* progmodes/hideshow.el: Generally, synch w/ maintainer
 	version 5.9.
 
 	(hs-show-hidden-short-form): Delete var; hard-code uses as `t'.
-	
+
 	(hs-minor-mode-hook): Don't initialize.
-	
+
 	(hs-special-modes-alist): Rewrite value and docstring.
-	
+
 	(hs-minor-mode-prefix): Delete unused var.
-	
+
 	(hs-block-start-mdata-select): New var, buffer local.
-	
+
 	(hs-headline): New var.
-	
+
 	(hs-match-data, hs-forward-sexp): New funcs.
-	
+
 	(hs-hide-comment-region): New func.
-	
+
 	(hs-discard-overlays, hs-flag-region, hs-hide-block-at-point,
 	hs-safety-is-job-n, hs-hide-initial-comment-block,
 	hs-inside-comment-p, hs-grok-mode-type, hs-find-block-beginning,
@@ -85,14 +95,14 @@
 	hs-c-like-adjust-block-beginning, hs-hide-all, hs-show-all,
 	hs-hide-block, hs-show-block, hs-show-region, hs-hide-level,
 	hs-mouse-toggle-hiding, hs-minor-mode): Rewrite.
-	
+
 	(hs-isearch-show): Renamed from `hs-isearch-open-invisible'.
 	(hs-isearch-show-temporary): New funcs.
-	
+
 	(hs-show-block-at-point, java-hs-forward-sexp): Delete funcs.
-	
+
 	(hs-hide-all, hs-mouse-toggle-hiding): Don't autoload.
-	
+
 	When constructing menu, use `[(shift button2)]' notation.
 
 1999-12-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
@@ -216,7 +226,7 @@
 	(byte-compile-lambda): Check that arg is a lambda.
 
 1999-11-16  Anders Lindgren  <AndersL@andersl.com>
-	
+
 	* font-lock.el: System for adding and removing keywords.
 	Both local (previously added keyword) and global keywords
 	can be removed.
@@ -240,7 +250,7 @@
 	* font-lock.el (font-lock-match-c++-structor-declaration,
 	c++-keywords): Fontify constructors and destructors with function
 	face inside C++ class declarations.
-	
+
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): If there is no #!-line, use
@@ -394,7 +404,7 @@
 	(custom-add-dependencies): New function.
 	(custom-set-variables): Take dependencies between args into
 	account.
-	
+
 	* battery.el (battery): Doc fix.
 
 1999-12-12  Gerd Moellmann  <gerd@gnu.org>
@@ -770,7 +780,7 @@
 
 	* sh-script.el: Fix for when font-lock mode is active.
 	(sh-font-lock-unfontify-region-function): New function.
-	
+
 1999-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-edit-menu): Define the Spell submenu even
@@ -824,7 +834,7 @@
 	(font-lock-add-keywords): Rename `major-mode' into `mode'.
 	(font-lock-remove-keywords): Added a dummy `mode' argument for
 	potential future support.
-	(font-lock-fontify-anchored-keywords, 
+	(font-lock-fontify-anchored-keywords,
 	(font-lock-fontify-keywords-region): Only handle multiline strings
 	if necessary (avoids a pathological behavior in (f.ex) diff-mode).
 
@@ -864,13 +874,13 @@
 	(font-lock-add-keywords): Use the new function to ensure idempotence.
 
 1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper-cmd.el (viper-minibuffer-standard-hook,
 	viper-minibuffer-real-start): Mew functions.
 	(viper-read-string-with-history,viper-file-add-suffix,
 	viper-trim-replace-chars-to-delete-if-necessary): Adapt to the
 	change in the status of the minibuffer prompt.
-	
+
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el (comint-redirect-results-list)
@@ -940,7 +950,7 @@
 	* dired-aux.el (dired-do-shell-command): Changed documentation.
 	(dired-shell-stuff-it): A `?' in COMMAND has now the same
 	meaning as `*'.
-	
+
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (insert-buffer): Doc fix.
@@ -965,7 +975,7 @@
 	(recognize-empty-tags-table): Renamed to
 	tags-recognize-empty-tags-table.
 	(complete-tag): Call tags-complete-tag bypassing try-completion.
-	
+
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): Docstring
@@ -1016,7 +1026,7 @@
 	* viper-cmd.el (viper-change-state): Use
 	viper-ESC-moves-cursor-back to decide whether to move the cursor
 	back.
-	
+
 1999-12-03  Kenichi Handa  <handa@mule.m17n.org>
 
 	* international/mule-util.el (truncate-string-to-width): Docsting
@@ -1051,7 +1061,7 @@
 	outline-regexp, add outline-level.
 	(lisp-outline-level): New.
 
-	* calendar/appt.el (appt-convert-time): Handle "12:MMam", 
+	* calendar/appt.el (appt-convert-time): Handle "12:MMam",
 	remove extraneous string-match.
 
 	* finder.el (finder-commentary): Activate Finder mode.
@@ -1132,7 +1142,7 @@
 
 	* add-log.el (change-log-mode-hook): Customize.
 	(add-log-current-defun): Use
-	fortran-{beginning,end}-of-subprogram.	
+	fortran-{beginning,end}-of-subprogram.
 
 1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
@@ -1142,7 +1152,7 @@
 
 1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
-	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): 
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Improve messages for capitalization of arg names,
 	for flag variables, for t and nil, for imperatives.
 	Call them imperatives rather than infinitives sans "to".
@@ -1170,18 +1180,18 @@
 	(hippie-expand-try-functions-list): Customize.
 
 1999-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper*el: Replaced old-style backquotes.
-	
+
 	* ediff*el: Replaced old-style backquotes.
-	
+
 	* ediff-merge
 	(ediff-looks-like-combined-merge,ediff-get-combined-region):
 	Changed to support the new format for ediff-combination-pattern.
-	
+
 	* ediff-diff (ediff-set-fine-overlays-in-one-buffer):
 	Changed to support the new format for ediff-combination-pattern.
-	
+
 1999-11-24  Dave Love  <fx@gnu.org>
 
 	* custom.el (custom-declare-group): Purecopy DOC.
@@ -1312,7 +1322,7 @@
 	* icomplete.el (icomplete-completions): Use an explicit variable
 	`icomplete-prospects-length', obviating the need to use an
 	apparently faulty throw/catch arrangement.
-	
+
 1999-11-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-display-table-setup): Don't overstep
@@ -1325,7 +1335,7 @@
 
 1999-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* scroll-bar.el (scroll-bar-toolkit-scroll): Add handling of the 
+	* scroll-bar.el (scroll-bar-toolkit-scroll): Add handling of the
 	`ratio' event for Xaw and Xaw3d(without arrows) scrollbars.
 
 	* files.el (auto-mode-alist): Add patterns for diff-mode.
@@ -1354,7 +1364,7 @@
 	(quickurl-ask): completion-ignore-case is set to the value of
 	quickurl-completion-ignore-case for the duration of the call to
 	completing-read.
-	
+
 1999-11-18  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* mail/rmailedit.el (rmail-cease-edit): Run rmail-mode-hook.
