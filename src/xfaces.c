@@ -1526,8 +1526,11 @@ If FRAME is nil or omitted, use the selected frame.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   return face_color_gray_p (f, SDATA (color)) ? Qt : Qnil;
 }
@@ -1544,8 +1547,11 @@ COLOR must be a valid color name.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   if (face_color_supported_p (f, SDATA (color), !NILP (background_p)))
     return Qt;
@@ -2252,7 +2258,7 @@ static double
 font_rescale_ratio (name)
      char *name;
 {
-  Lisp_Object tail, elt;  
+  Lisp_Object tail, elt;
 
   for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
     {
@@ -2465,7 +2471,7 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
 
   if (nfonts < 0 && CONSP (lfonts))
     num_fonts = XFASTINT (Flength (lfonts));
-  
+
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
   n = nignored = 0;
