@@ -1442,6 +1442,9 @@ Similarly for Soar, Scheme, etc."
 		(when comint-highlight-input
 		  (overlay-put over 'face 'comint-highlight-input)
 		  (overlay-put over 'mouse-face 'highlight)
+		  (overlay-put over
+			       'help-echo
+			       "mouse-2: insert previous clicked-on input")
 		  (overlay-put over 'evaporate t))))
 	    (unless comint-use-prompt-regexp-instead-of-fields
 	      ;; Make an overlay for the terminating newline
