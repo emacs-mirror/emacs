@@ -1075,19 +1075,19 @@ At end of the node's text, moves to the next node."
     (goto-char pos))
   (let (node)
     (cond
-     ((setq node (Info-get-token (point) "\\*note[ \n]" "\\*note[ \n]\\([^:]*\\):" t))
+     ((setq node (Info-get-token (point) "\\*note[ \n]" "\\*note[ \n]\\([^:]*\\):"))
       (Info-follow-reference node))
-     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\)::" t))
+     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\)::"))
       (Info-goto-node node))
-     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\):" t))
+     ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\):"))
       (Info-menu node))
-     ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)" t))
+     ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)"))
       (Info-goto-node node))
-     ((setq node (Info-get-token (point) "Next: " "Next: \\([^,\n\t]*\\)" t))
+     ((setq node (Info-get-token (point) "Next: " "Next: \\([^,\n\t]*\\)"))
       (Info-goto-node node))
-     ((setq node (Info-get-token (point) "File: " "File: \\([^,\n\t]*\\)" t))
+     ((setq node (Info-get-token (point) "File: " "File: \\([^,\n\t]*\\)"))
       (Info-goto-node "Top"))
-     ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)" t))
+     ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
       (Info-goto-node node))
      ((save-excursion (forward-line 1) (eobp))
       (Info-next)))
@@ -1151,7 +1151,7 @@ topics.  Info has commands to follow the references and show you other nodes.
 
 Selecting other nodes:
 \\[Info-next]	Move to the \"next\" node of this node.
-\\[Info-previous]	Move to the \"previous\" node of this node.
+\\[Info-prev]	Move to the \"previous\" node of this node.
 \\[Info-up]	Move \"up\" from this node.
 \\[Info-menu]	Pick menu item specified by name (or abbreviation).
 	Picking a menu item causes another node to be selected.
