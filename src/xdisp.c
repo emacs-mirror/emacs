@@ -14861,7 +14861,7 @@ vertical margin.  */);
   Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
 
   DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
-    doc: /* Relief thickness of tool-bar buttons.  */);
+    doc: /* *Relief thickness of tool-bar buttons.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
   DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
