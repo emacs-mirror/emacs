@@ -1,3 +1,13 @@
+2004-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_line_height_property): New function extracted from
+	original calc_line_height_property.
+	(calc_line_height_property): Rework.  Handle t and (nil . ratio).
+	(x_produce_glyphs): Use them to handle line-height and
+	line-spacing according to new height spec.
+	(Qtotal): Remove.
+	(syms_of_xdisp): Remove defsubr and intern for Qtotal.
+
 2004-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Don't use
