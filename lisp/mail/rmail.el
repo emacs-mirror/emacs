@@ -2690,6 +2690,12 @@ buffer visiting that file."
 Leaves original message, deleted, before the undigestified messages."
   t)
 
+(autoload 'unforward-rmail-message "undigest"
+  "Extract a forwarded message from the containing message.
+This puts the forwarded message into a separate rmail message
+following the containing message."
+  t)
+
 (provide 'rmail)
 
 ;;; rmail.el ends here
