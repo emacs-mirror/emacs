@@ -522,8 +522,8 @@ but it selects the Dutch tutorial."))
 (make-coding-system
  'mac-roman 4 ?M "Mac Roman Encoding"
  '(decode-mac-roman . encode-mac-roman)
- '((safe-chars . (get 'mac-roman-encoder 'translation-table))
-   (valid-codes (0 . 255))))
+ (list (cons 'safe-chars (get 'mac-roman-encoder 'translation-table))
+       '(valid-codes (0 . 255))))
 
 (provide 'european)
 
