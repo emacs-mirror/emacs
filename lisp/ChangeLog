@@ -1,3 +1,10 @@
+2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Allow a :minor-mode-function property to
+	specify a different minor mode toggle function than the variable.
+	* simple.el (auto-fill-function):
+	* subr.el (add-minor-mode): Use it.
+
 2005-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* language/ethio-util.el (sera-being-called-by-w3): New variable.
@@ -32,7 +39,7 @@
 
 	* isearch.el (isearch-error): New variable.
 	(isearch-invalid-regexp, isearch-within-brackets): Remove.
-	(isearch-error-state): Renamed from `isearch-invalid-regexp-state'.
+	(isearch-error-state): Rename from `isearch-invalid-regexp-state'.
 	(isearch-within-brackets-state): Remove.
 	(isearch-case-fold-search-state, isearch-pop-fun-state):
 	Decrease frame index.
@@ -73,7 +80,7 @@
 	* international/mule-cmds.el (locale-language-names): Modify the
 	format of elements and add more entries.
 	(locale-preferred-coding-systems): Add more entries.
-	(set-locale-environment): Adjusted for the change of
+	(set-locale-environment): Adjust for the change of
 	locale-language-names.
 
 2005-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
