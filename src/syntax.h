@@ -284,8 +284,9 @@ if (1)									\
     gl_state.offset = 0;						\
     gl_state.current_syntax_table = current_buffer->syntax_table;	\
     if (parse_sexp_lookup_properties)					\
-      update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),	\
-			   1, Qnil);					\
+      if ((COUNT) > 0 || (FROM) > BEGV)					\
+        update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),\
+			     1, Qnil);					\
   }									\
 else
 
