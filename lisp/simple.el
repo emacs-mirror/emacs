@@ -534,7 +534,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 (defcustom eval-expression-print-length 12
   "*Value to use for `print-length' when printing value in `eval-expression'."
   :group 'lisp
-  :type 'integer
+  :type '(choice (const nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
