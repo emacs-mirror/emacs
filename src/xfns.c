@@ -103,6 +103,7 @@ extern char *x_id_name;
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline. */
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
+Lisp_Object Vx_cross_pointer_shape;
 
 /* Color of chars displayed in cursor box. */
 Lisp_Object Vx_cursor_fore_pixel;
@@ -671,7 +672,7 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Cursor cursor, nontext_cursor, mode_cursor;
+  Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
   int mask_color;
 
   if (!EQ (Qnil, arg))
@@ -715,6 +716,16 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     mode_cursor = XCreateFontCursor (x_current_display, XC_xterm);
+  x_check_errors ("bad modeline pointer cursor: %s");
+
+  if (!EQ (Qnil, Vx_cross_pointer_shape))
+    {
+      CHECK_NUMBER (Vx_cross_pointer_shape, 0);
+      cross_cursor = XCreateFontCursor (x_current_display,
+                                          XINT (Vx_cross_pointer_shape));
+    }
+  else
+    cross_cursor = XCreateFontCursor (x_current_display, XC_crosshair);
 
   /* Check and report errors with the above calls.  */
   x_check_errors ("can't set cursor shape: %s");
@@ -739,6 +750,8 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (x_current_display, mode_cursor,
 		    &fore_color, &back_color);
+    XRecolorCursor (x_current_display, cross_cursor,
+                    &fore_color, &back_color);
   }
 #else /* X10 */
   cursor = XCreateCursor (16, 16, MouseCursor, MouseMask,
@@ -766,6 +779,10 @@ x_set_mouse_color (f, arg, oldval)
       && f->display.x->modeline_cursor != 0)
       XFreeCursor (XDISPLAY f->display.x->modeline_cursor);
   f->display.x->modeline_cursor = mode_cursor;
+  if (cross_cursor != f->display.x->cross_cursor
+      && f->display.x->cross_cursor != 0)
+      XFreeCursor (XDISPLAY f->display.x->cross_cursor);
+  f->display.x->cross_cursor = cross_cursor;
 #endif	/* HAVE_X11 */
 
   XFlushQueue ();
@@ -4149,6 +4166,8 @@ switches, if present.");
 	      "The shape of the pointer when over the mode line.");
 #endif
   Vx_mode_pointer_shape = Qnil;
+
+  Vx_cross_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");
