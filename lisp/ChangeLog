@@ -1,3 +1,8 @@
+2001-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-internal):
+	Set TERM variable in process-environment.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-select-node): If Info-use-header-line is nil, set
