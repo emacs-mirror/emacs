@@ -1,3 +1,8 @@
+2001-05-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/elp.el (elp-instrument-function): Handle advised
+	functions.
+
 2001-05-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* jit-lock.el (jit-lock-after-change): Check the font-lock-multiline
