@@ -4644,6 +4644,10 @@ mark_object (argptr)
 	  h->size |= ARRAY_MARK_FLAG;
 
 	  /* Mark contents.  */
+	  /* Do not mark next_free or next_weak.
+	     Being in the next_weak chain 
+	     should not keep the hash table alive.
+	     No need to mark `count' since it is an integer.  */
 	  mark_object (&h->test);
 	  mark_object (&h->weak);
 	  mark_object (&h->rehash_size);
