@@ -469,7 +469,8 @@ The function in this variable is called when selecting a normal index-item.")
 		     (oldlist menulist))
 		 ;; Copy list method from the cl package `copy-list'
 		 (while (consp oldlist) (push (pop oldlist) res))
-		 (prog1 (nreverse res) (setcdr res oldlist)))
+		 (if res		; in case, e.g. no functions defined
+		     (prog1 (nreverse res) (setcdr res oldlist))))
 	       imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)
 	(let ((count 0))
@@ -614,6 +615,18 @@ as a way for the user to ask to recalculate the buffer's index alist."
 	     (setq alist nil res elt))))
     res))
 
+(defvar imenu-syntax-alist nil
+  "Alist of syntax table modifiers to use while executing `imenu--generic-function'.
+
+The car of the assocs may be either a character or a string and the
+cdr is a syntax description appropriate fo `modify-syntax-entry'.  For
+a string, all the characters in the string get the specified syntax.
+
+This is typically used to give word syntax to characters which
+normallsymbol syntax to simplify `imenu-expression'
+and speed-up matching.")
+(make-variable-buffer-local 'imenu-syntax-alist)
+
 (defun imenu-default-create-index-function ()
   "*Wrapper for index searching functions.
 
@@ -732,45 +745,63 @@ pattern.
 		  patterns "\\)\\|\\(") 
 		 "\\)"))
 	prev-pos
-        (case-fold-search imenu-case-fold-search))
 
+        (case-fold-search imenu-case-fold-search)
+        (old-table (syntax-table))
+        (table (copy-syntax-table (syntax-table)))
+        (slist imenu-syntax-alist))
+    ;; Modify the syntax table used while matching regexps.
+    (while slist
+      ;; The character to modify may be a single CHAR or a STRING.
+      (let ((chars (if (numberp (car (car slist)))
+                       (list (car (car slist)))
+                     (mapcar 'identity (car (car slist)))))
+            (syntax (cdr (car slist))))
+        (while chars
+          (modify-syntax-entry (car chars) syntax table)
+          (setq chars (cdr chars)))
+        (setq slist (cdr slist))))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
-    (save-match-data
-      (while (re-search-backward global-regexp nil t)
-	(imenu-progress-message prev-pos nil t)
-        (setq found nil)
-	(save-excursion
-	  (goto-char (match-beginning 0))
-	  (mapcar 
-	   (function 
-	    (lambda (pat) 
-	      (let ((menu-title (car pat))
-		    (regexp (cadr pat))
-		    (index (caddr pat))
-		    (function (cadddr pat))
-		    (rest (cddddr pat)))
-		(if (and (not found) ; Only allow one entry;
-			 (looking-at regexp))
-		    (let ((beg (match-beginning index))
-			  (end (match-end index)))
-		      (setq found t)
-		      (push 
-		       (let ((name
-			      (buffer-substring-no-properties beg end)))
-			 ;; [ydi] updated for imenu-use-markers
-			 (if imenu-use-markers
-			     (setq beg (set-marker (make-marker) beg)))
-			 (if function
-			     (nconc (list name beg function)
-				    rest)
-			   (cons name beg)))
-		       (cdr 
-			(or (assoc menu-title index-alist)
-			    (car (push 
-				  (cons menu-title '()) 
-				  index-alist))))))))))
-	   patterns))))
+    (unwind-protect
+        (progn
+          (set-syntax-table table)
+          (save-match-data
+            (while (re-search-backward global-regexp nil t)
+              (imenu-progress-message prev-pos nil t)
+              (setq found nil)
+              (save-excursion
+                (goto-char (match-beginning 0))
+                (mapcar 
+                 (function 
+                  (lambda (pat) 
+                    (let ((menu-title (car pat))
+                          (regexp (cadr pat))
+                          (index (caddr pat))
+                          (function (cadddr pat))
+                          (rest (cddddr pat)))
+                      (if (and (not found) ; Only allow one entry;
+                               (looking-at regexp))
+                          (let ((beg (match-beginning index))
+                                (end (match-end index)))
+                            (setq found t)
+                            (push 
+                             (let ((name
+                                    (buffer-substring-no-properties beg end)))
+                               ;; [ydi] updated for imenu-use-markers
+                               (if imenu-use-markers
+                                   (setq beg (set-marker (make-marker) beg)))
+                               (if function
+                                   (nconc (list name beg function)
+                                          rest)
+                                 (cons name beg)))
+                             (cdr 
+                              (or (assoc menu-title index-alist)
+                                  (car (push 
+                                        (cons menu-title '()) 
+                                        index-alist))))))))))
+                 patterns)))
+            (set-syntax-table old-table))))
     (imenu-progress-message prev-pos 100 t)
     (let ((main-element (assq nil index-alist)))
       (nconc (delq main-element (delq 'dummy index-alist))
