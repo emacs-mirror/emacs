@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "puresize.h"
+#include "charset.h"
 
 #ifndef standalone
 #include "buffer.h"
@@ -93,7 +94,8 @@ Lisp_Object Qnumberp, Qnumber_or_marker_p;
 #endif
 
 static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
-static Lisp_Object Qfloat, Qwindow_configuration, Qprocess, Qwindow;
+static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
+Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector;
 
@@ -1545,57 +1547,72 @@ or a byte-code object.  IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-#if 1
-      if ((unsigned) idxval >= CHAR_TABLE_ORDINARY_SLOTS)
-	args_out_of_range (array, idx);
-      return val = XCHAR_TABLE (array)->contents[idxval];
-#else /* 0 */
-      if ((unsigned) idxval < CHAR_TABLE_ORDINARY_SLOTS)
-	val = XCHAR_TABLE (array)->data[idxval];
-      else
+      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
 	{
-	  int charset;
-	  unsigned char c1, c2;
-	  Lisp_Object val, temp;
-
-	  BREAKUP_NON_ASCII_CHAR (idxval, charset, c1, c2);
-
-	try_parent_char_table:
-	  val = XCHAR_TABLE (array)->contents[charset];
-	  if (c1 == 0 || !CHAR_TABLE_P (val))
-	    return val;
-
-	  temp = XCHAR_TABLE (val)->contents[c1];
-	  if (NILP (temp))
-	    val = XCHAR_TABLE (val)->defalt;
-	  else
-	    val = temp;
-
-	  if (NILP (val) && !NILP (XCHAR_TABLE (array)->parent))
+	  /* The element is stored in the top table.  We may return a
+             deeper char-table.  */
+	  val = XCHAR_TABLE (array)->contents[idxval];
+	  if (NILP (val))
+	    val = XCHAR_TABLE (array)->defalt;
+	  while (NILP (val))	/* Follow parents until we find some value.  */
 	    {
 	      array = XCHAR_TABLE (array)->parent;
-	      goto try_parent_char_table;
-
+	      if (NILP (array))
+		return Qnil;
+	      val = XCHAR_TABLE (array)->contents[idxval];
+	      if (NILP (val))
+		val = XCHAR_TABLE (array)->defalt;
 	    }
-
-	  if (c2 == 0 || !CHAR_TABLE_P (val))
-	    return val;
-
-	  temp = XCHAR_TABLE (val)->contents[c2];
-	  if (NILP (temp))
-	    val = XCHAR_TABLE (val)->defalt;
-	  else
-	    val = temp;
-
-	  if (NILP (val) && !NILP (XCHAR_TABLE (array)->parent))
-	    {
-	      array = XCHAR_TABLE (array)->parent;
-	      goto try_parent_char_table;
-	    }
-
 	  return val;
 	}
-#endif /* 0 */
+      else
+	{
+	  int idx[4];		/* For charset, code1, code2, and anchor.  */
+	  int i;
+	  Lisp_Object sub_array;
+
+	  /* There's no reason to treat a composite character
+             specially here.  */
+#if 0
+	  if (COMPOSITE_CHAR_P (idxval))
+	    /* For a composite characters, we use the first element as
+               the index.  */
+	    idxval = cmpchar_component (idxval, 0);
+#endif
+	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
+	  idx[3] = 0;
+
+	try_parent_char_table:
+	  sub_array = array;
+	  for (i = 0; idx[i]; i++)
+	    {
+	      val = XCHAR_TABLE (sub_array)->contents[idx[i]];
+	      if (NILP (val))
+		val = XCHAR_TABLE (sub_array)->defalt;
+	      if (NILP (val))
+		{
+		  array = XCHAR_TABLE (array)->parent;
+		  if (NILP (array))
+		    return Qnil;
+		  goto try_parent_char_table;
+		}
+	      if (!CHAR_TABLE_P (val))
+		return val;
+	      sub_array = val;
+	    }
+	  /* We come here because ARRAY is deeper than the specified
+	     indices.  We return a default value stored at the deepest
+	     level specified.  */
+	  val = XCHAR_TABLE (sub_array)->defalt;
+	  if (NILP (val))
+	    {
+	      array = XCHAR_TABLE (array)->parent;
+	      if (NILP (array))
+		return Qnil;
+	      goto try_parent_char_table;
+	    }
+	  return val;
+	}
     }
   else
     {
@@ -1656,41 +1673,35 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 
       if (idxval < 0)
 	args_out_of_range (array, idx);
-#if 1
-      if (idxval >= CHAR_TABLE_ORDINARY_SLOTS)
-	args_out_of_range (array, idx);
-      XCHAR_TABLE (array)->contents[idxval] = newelt;
-      return newelt;
-#else /* 0 */
       if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
-	val = XCHAR_TABLE (array)->contents[idxval];
+	XCHAR_TABLE (array)->contents[idxval] = newelt;
       else
 	{
-	  int charset;
-	  unsigned char c1, c2;
-	  Lisp_Object val, val2;
+	  int idx[4];		/* For charset, code1, code2, and anchor.  */
+	  int i;
+	  Lisp_Object val;
 
-	  BREAKUP_NON_ASCII_CHAR (idxval, charset, c1, c2);
+	  SPLIT_NON_ASCII_CHAR (idxval, idx[0], idx[1], idx[2]);
+	  idx[3] = 0;
 
-	  if (c1 == 0)
-	    return XCHAR_TABLE (array)->contents[charset] = newelt;
-
-	  val = XCHAR_TABLE (array)->contents[charset];
-	  if (!CHAR_TABLE_P (val))
-	    XCHAR_TABLE (array)->contents[charset]
-	      = val = Fmake_char_table (Qnil);
-
-	  if (c2 == 0)
-	    return XCHAR_TABLE (val)->contents[c1] = newelt;
-
-	  val2 = XCHAR_TABLE (val)->contents[c2];
-	  if (!CHAR_TABLE_P (val2))
-	    XCHAR_TABLE (val)->contents[charset]
-	      = val2 = Fmake_char_table (Qnil);
-
-	  return XCHAR_TABLE (val2)->contents[c2] = newelt;
+	  for (i = 0; idx[i + 1]; i++)
+	    {
+	      val = XCHAR_TABLE (array)->contents[idx[i]];
+	      if (CHAR_TABLE_P (val))
+		/* Look into this deeper array.  */
+		array = val;
+	      else
+		{
+		  /* VAL is the leaf.  Create a deeper array with the
+                     default value VAL, set it in the slot of VAL, and
+                     look into it.  */
+		  array = XCHAR_TABLE (array)->contents[idx[i]]
+		    = Fmake_char_table (Qnil, Qnil);
+		  XCHAR_TABLE (array)->defalt = val;
+		}
+	    }
+	  return XCHAR_TABLE (array)->contents[idx[i]] = newelt;
 	}
-#endif /* 0 */
     }
   else
     {
