@@ -491,8 +491,8 @@ negation if a prefix argument was given."
 	(not (eq (null browse-url-new-window-p)
 		 (null current-prefix-arg)))))
 
-(defun browse-url-maybe-new-window (arg)
-  (if (interactive-p)
+(defun browse-url-maybe-new-window (arg interactive)
+  (if interactive
       arg
     browse-url-new-window-p))
 
@@ -713,7 +713,7 @@ used instead of `browse-url-new-window-p'."
 				  (list "-remote"
 					(concat "openURL(" url
 						(if (browse-url-maybe-new-window
-						     new-window)
+						     new-window (interactive-p))
 						    ",new-window")
 						")")))))))
     (set-process-sentinel process
@@ -780,7 +780,7 @@ used instead of `browse-url-new-window-p'."
 	(save-excursion
 	  (find-file (format "/tmp/Mosaic.%d" pid))
 	  (erase-buffer)
-	  (insert (if (browse-url-maybe-new-window new-window)
+	  (insert (if (browse-url-maybe-new-window new-window (interactive-p))
 		      "newwin\n"
 		      "goto\n")
 		  url "\n")
@@ -848,7 +848,7 @@ used instead of `browse-url-new-window-p'."
   (process-send-string "browse-url"
 		       (concat "get url (" url ") output "
 			       (if (browse-url-maybe-new-window
-				    new-window)
+				    new-window (interactive-p))
 				   "new"
 				 "current")
 			       "\r\n"))
@@ -880,7 +880,7 @@ prefix argument reverses the effect of `browse-url-new-window-p'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "W3 URL: "))
-  (if (browse-url-maybe-new-window new-window)
+  (if (browse-url-maybe-new-window new-window (interactive-p))
       (w3-fetch-other-window)
     (w3-fetch url)))
 
@@ -929,13 +929,13 @@ used instead of `browse-url-new-window-p'."
 	 (buf (get-buffer "*lynx*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-lynx-input-attempts))
-    (if (and (browse-url-maybe-new-window new-buffer) buf)
+    (if (and (browse-url-maybe-new-window new-buffer (interactive-p)) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
 	;; choke on *lynx*<1>
 	(progn (set-buffer buf)
 	       (rename-uniquely)))
-    (if (or (browse-url-maybe-new-window new-buffer)
+    (if (or (browse-url-maybe-new-window new-buffer (interactive-p))
 	    (not buf)
 	    (not proc)
 	    (not (memq (process-status proc) '(run stop))))
@@ -1011,15 +1011,14 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "Mailto URL: "))
   (save-excursion
-    (let ((func (if (browse-url-maybe-new-window new-window)
-		    'compose-mail-other-window
-		  'compose-mail))
-	  (to (if (string-match "^mailto:" url)
+    (let ((to (if (string-match "^mailto:" url)
 		  (substring url 7)
 		url)))
-      (apply func
-	     (list to nil nil nil nil nil (cons 'insert-buffer
-						(current-buffer)))))))
+      (if (browse-url-maybe-new-window new-window (interactive-p))
+	  (compose-mail-other-window to nil nil nil nil
+				     (cons 'insert-buffer (current-buffer)))
+	(compose-mail to nil nil nil nil nil (cons 'insert-buffer
+					       (current-buffer)))))))
 
 ;; --- Random browser ---
 
