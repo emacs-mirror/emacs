@@ -1,3 +1,8 @@
+2000-11-19  Miles Bader  <miles@gnu.org>
+
+	* image-file.el (insert-image-file): Make `intangible' and
+	`read-only' properties rear-nonsticky too.
+
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* ps-print.el: Update copyright notice.
