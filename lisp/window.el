@@ -88,7 +88,9 @@ Anything else means restrict to the selected frame."
 
 (defun count-windows (&optional minibuf)
    "Returns the number of visible windows.
-Optional arg MINIBUF non-nil means count the minibuffer
+This counts the windows in the selected frame and (if the minibuffer is
+to be counted) its minibuffer frame (if that's not the same frame).
+The optional arg MINIBUF non-nil means count the minibuffer
 even if it is inactive."
    (let ((count 0))
      (walk-windows (function (lambda (w)
@@ -241,33 +243,32 @@ or if some of the window's contents are scrolled out of view,
 or if the window is not the full width of the frame,
 or if the window is the only window of its frame."
   (interactive)
-  (or window (setq window (selected-window)))
-  (let* ((ignore-final-newline
-	  ;; If buffer ends with a newline, ignore it when counting height
-	  ;; unless point is after it.
-	  (and (not (eobp))
-	       (eq ?\n (char-after (1- (point-max))))))
-	 (params (frame-parameters (window-frame window)))
-	 (mini (cdr (assq 'minibuffer params)))
-	 (edges (window-edges (selected-window)))
-	 text-height)
-    (if (and (< 1 (save-selected-window
-		    (select-window window)
-		    (count-windows)))
-	     (= (window-width window) (frame-width (window-frame window)))
-	     (pos-visible-in-window-p (point-min) window)
-	     (not (eq mini 'only))
-	     (or (not mini)
-		 (< (nth 3 edges)
-		    (nth 1 (window-edges mini)))
-		 (> (nth 1 edges)
-		    (cdr (assq 'menu-bar-lines params)))))
-	(save-selected-window
-	  (select-window window)
-	  (let (result height)
-	    (save-excursion
-	      (set-buffer (window-buffer window))
-	      (goto-char (point-min))
+  (save-selected-window
+    (if window
+	(select-window window)
+      (setq window (selected-window)))
+    (save-excursion
+      (set-buffer (window-buffer window))
+      (goto-char (point-min))
+      (let* ((ignore-final-newline
+	      ;; If buffer ends with a newline, ignore it when counting height
+	      ;; unless point is after it.
+	      (and (not (eobp))
+		   (eq ?\n (char-after (1- (point-max))))))
+	     (params (frame-parameters))
+	     (mini (cdr (assq 'minibuffer params)))
+	     (edges (window-edges))
+	     text-height)
+	(if (and (< 1 (count-windows))
+		 (= (window-width) (frame-width))
+		 (pos-visible-in-window-p (point-min) window)
+		 (not (eq mini 'only))
+		 (or (not mini)
+		     (< (nth 3 edges)
+			(nth 1 (window-edges mini)))
+		     (> (nth 1 edges)
+			(cdr (assq 'menu-bar-lines params)))))
+	    (let (result height)
 	      (setq result
 		    (compute-motion (point-min) '(0 . 0)
 				    (- (point-max)
