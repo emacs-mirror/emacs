@@ -177,56 +177,38 @@ The following key sequence may cause multilingual text insertion."
       (setq str (format "%s%c" str (read-char-exclusive))))
     (vector (aref result 0))))
 
-(defun encoded-kbd-self-insert-charset (arg)
-  (interactive "p")
+(defun encoded-kbd-self-insert-charset (ignore)
   (let* ((charset-list
 	  (coding-system-get (keyboard-coding-system) :charset-list))
 	 (charset (car charset-list))
 	 ;; For the moment, we can assume that the length of CHARSET-LIST
 	 ;; is 1, and the dimension of CHARSET is 1.
-	 (c (decode-char charset last-command-char)))
-    (unless c
-      (error "Can't decode the code point %d by %s"
-	     last-command-char charset))
-    ;; As simply setting unread-command-events may result in
-    ;; infinite-loop for characters 160..255, this is a temporary
-    ;; workaround until we found a better solution.
-    (let ((last-command-char c))
-      (self-insert-command arg))))
+	 (char (encoded-kbd-last-key)))
+    (vector (or (decode-char charset char) char))))
 
 (defun encoded-kbd-self-insert-utf-8 (arg)
   (interactive "p")
-  (let (len ch)
-    (cond ((< last-command-char #xE0)
-	   (setq len 1 ch (logand last-command-char #x1F)))
-	  ((< last-command-char #xF0)
-	   (setq len 2 ch (logand last-command-char #x0F)))
-	  ((< last-command-char #xF8)
-	   (setq len 3 ch (logand last-command-char #x07)))
+  (let ((char (encoded-kbd-last-key))
+	len)
+    (cond ((< char #xE0)
+	   (setq len 1 char (logand char #x1F)))
+	  ((< char #xF0)
+	   (setq len 2 char (logand char #x0F)))
+	  ((< char #xF8)
+	   (setq len 3 char (logand char #x07)))
 	  (t
-	   (setq len 4 ch 0)))
+	   (setq len 4 char 0)))
     (while (> len 0)
-      (setq ch (logior (lsh ch 6) (logand (read-char-exclusive) #x3F))
+      (setq char (logior (lsh char 6) (logand (read-char-exclusive) #x3F))
 	    len (1- len)))
-    (let ((last-command-char ch))
-      (self-insert-command arg))))
+    (vector char)))
 
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
   (define-key encoded-kbd-mode-map "\e" nil)
   ;; Then setup the keymap according to the keyboard coding system.
   (cond
-   ((eq encoded-kbd-coding 'charset)
-    (let* ((charset (car (coding-system-get coding :charset-list)))
-	   (code-space (get-charset-property charset :code-space))
-	   (from (max (aref code-space 0) 128))
-	   (to (aref code-space 1)))
-      (while (<= from to)
-	(define-key encoded-kbd-mode-map
-	  (vector from) 'encoded-kbd-self-insert-charset)
-	(setq from (1+ from)))))
-
-   ((eq (coding-system-type coding) 1)	; SJIS
+   ((eq (coding-system-type coding) 'shift-jis)
     (let ((i 128))
       (while (< i 256)
 	(define-key key-translation-map
@@ -234,46 +216,48 @@ The following key sequence may cause multilingual text insertion."
 	(setq i (1+ i))))
     8)
 
-   ((eq (coding-system-type coding) 3)	; Big5
-    (let ((i 161))
-      (while (< i 255)
+   ((eq (coding-system-type coding) 'charset)
+    (let* ((charset (car (coding-system-get coding :charset-list)))
+	   (code-space (get-charset-property charset :code-space))
+	   (from (max (aref code-space 0) 128))
+	   (to (aref code-space 1)))
+      (while (<= from to)
 	(define-key key-translation-map
-	  (vector i) 'encoded-kbd-self-insert-big5)
-	(setq i (1+ i))))
+	  (vector from) 'encoded-kbd-self-insert-charset)
+	(setq from (1+ from))))
     8)
 
-   ((eq (coding-system-type coding) 2) ; ISO-2022
-    (let ((flags (coding-system-flags coding))
-	  use-designation)
-      (if (aref flags 8)
+   ((eq (coding-system-type coding) 'iso-2022)
+    (let ((flags (coding-system-get coding :flags))
+	  (designation (coding-system-get coding :designation)))
+      (if (memq 'locking-shift flags)
 	  nil				; Don't support locking-shift.
 	(setq encoded-kbd-iso2022-designations (make-vector 4 nil)
 	      encoded-kbd-iso2022-invocations (make-vector 3 nil))
 	(dotimes (i 4)
-	  (if (aref flags i)
-	      (if (charsetp (aref flags i))
+	  (if (aref designation i)
+	      (if (charsetp (aref designation i))
 		  (aset encoded-kbd-iso2022-designations
-			i (aref flags i))
-		(setq use-designation t)
-		(if (charsetp (car-safe (aref flags i)))
+			i (aref designation i))
+		(if (charsetp (car-safe (aref designation i)))
 		    (aset encoded-kbd-iso2022-designations
-			  i (car (aref flags i)))))))
+			  i (car (aref designation i)))))))
 	(aset encoded-kbd-iso2022-invocations 0 0)
 	(if (aref encoded-kbd-iso2022-designations 1)
 	    (aset encoded-kbd-iso2022-invocations 1 1))
-	(when use-designation
+	(when (memq 'designation flags)
 	  (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix)
 	  (define-key key-translation-map "\e" 'encoded-kbd-iso2022-esc-prefix))
-	(when (or (aref flags 2) (aref flags 3))
+	(when (or (aref designation 2) (aref designation 3))
 	  (define-key key-translation-map
 	    [?\216] 'encoded-kbd-iso2022-single-shift)
 	  (define-key key-translation-map
 	    [?\217] 'encoded-kbd-iso2022-single-shift))
-	(or (eq (aref flags 0) 'ascii)
+	(or (eq (aref designation 0) 'ascii)
 	    (dotimes (i 96)
 	      (define-key key-translation-map
 		(vector (+ 32 i)) 'encoded-kbd-self-insert-iso2022-7bit)))
-	(if (aref flags 7)
+	(if (memq '7-bit flags)
 	    t
 	  (dotimes (i 96)
 	    (define-key key-translation-map
@@ -296,10 +280,10 @@ The following key sequence may cause multilingual text insertion."
 	  (setq from (1+ from))))
       8))
 
-   ((eq encoded-kbd-coding 'utf-8)
+   ((eq (coding-system-type coding) 'utf-8)
     (let ((i #xC0))
       (while (< i 256)
-	(define-key encoded-kbd-mode-map
+	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-utf-8)
 	(setq i (1+ i)))))
 
@@ -327,68 +311,38 @@ In Encoded-kbd mode, a text sent from keyboard is accepted
 as a multilingual text encoded in a coding system set by
 \\[set-keyboard-coding-system]."
   :global t
-  ;; We must at first reset input-mode to the original.
-  (if saved-input-mode (apply 'set-input-mode saved-input-mode))
+
   (if encoded-kbd-mode
-      (let ((coding (keyboard-coding-system)))
-	(setq saved-input-mode  (current-input-mode))
-	(cond ((null coding)
-	       (setq encoded-kbd-mode nil)
-	       (error "No coding system for keyboard input is set"))
+      ;; We are turning on Encoded-kbd mode.
+      (let ((coding (keyboard-coding-system))
+	    result)
+	(or saved-key-translation-map
+	    (if (keymapp key-translation-map)
+		(setq saved-key-translation-map
+		      (copy-keymap key-translation-map))
+	      (setq key-translation-map (make-sparse-keymap))))
+	(or saved-input-mode
+	    (setq saved-input-mode
+		  (current-input-mode)))
+	(setq result (and coding (encoded-kbd-setup-keymap coding)))
+	(if result
+	    (if (eq result 8)
+		(set-input-mode
+		 (nth 0 saved-input-mode) 
+		 (nth 1 saved-input-mode)
+		 'use-8th-bit
+		 (nth 3 saved-input-mode)))
+	  (setq encoded-kbd-mode nil
+		saved-key-translation-map nil
+		saved-input-mode nil)
+	  (error "Unsupported coding system in Encoded-kbd mode: %S"
+		 coding)))
 
-	      ((eq (coding-system-type coding) 'shift-jis)
-	       (set-input-mode
-		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))
-	       (setq encoded-kbd-coding 'sjis))
-
-	      ((eq (coding-system-type coding) 'iso-2022)
-	       (if (memq '7-bit (coding-system-get coding :flags))
-		   (setq encoded-kbd-coding 'iso2022-7)
-		 (set-input-mode
-		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		  'use-8th-bit (nth 3 saved-input-mode))
-		 (setq encoded-kbd-coding 'iso2022-8))
-	       (setq encoded-kbd-iso2022-designations
-		     (coding-system-get coding :designation))
-	       (setq encoded-kbd-iso2022-invocations (make-vector 3 nil))
-	       (aset encoded-kbd-iso2022-invocations 0 0)
-	       (aset encoded-kbd-iso2022-invocations 1 1))
-
-	      ((eq (coding-system-type coding) 'big5)
-	       (set-input-mode
-		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))
-	       (setq encoded-kbd-coding 'big5))
-
-	      ((eq (coding-system-type coding) 'ccl)
-	       (set-input-mode
-		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))
-	       (setq encoded-kbd-coding 'ccl))
-
-	      ((and (eq (coding-system-type coding) 'charset)
-		    (let* ((charset-list (coding-system-get coding
-							    :charset-list))
-			   (charset (car charset-list)))
-		      (and (= (length charset-list) 1)
-			   (= (charset-dimension charset) 1))))
-	       (set-input-mode
-		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))
-	       (setq encoded-kbd-coding 'charset))
-
-	      ((eq (coding-system-type coding) 'utf-8)
-	       (set-input-mode
-		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))
-	       (setq encoded-kbd-coding 'utf-8))
-
-	      (t
-	       (setq encoded-kbd-mode nil)
-	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
-		      (keyboard-coding-system))))
-	(encoded-kbd-setup-keymap coding))))
+    ;; We are turning off Encoded-kbd mode.
+    (setq key-translation-map saved-key-translation-map
+	  saved-key-translation-map nil)
+    (apply 'set-input-mode saved-input-mode)
+    (setq saved-input-mode nil)))
 
 (provide 'encoded-kb)
 

@@ -1,3 +1,9 @@
+2004-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-charset)
+	(encoded-kbd-self-insert-utf-8, encoded-kbd-setup-keymap)
+	(encoded-kbd-mode): Adjust code merged from trunk for unicode branch.
+
 2004-08-17  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Fix for the case CODE is a cons
