@@ -1471,15 +1471,15 @@ of buffer-file-coding-system set by this function."
     ;;
     ; aa Afar
     ; ab Abkhazian
-    ("af" . "Latin-3") ; Afrikaans
+    ("af" . "Latin-1") ; Afrikaans
     ("am" . "Ethiopic") ; Amharic
     ; ar Arabic
     ; as Assamese
     ; ay Aymara
     ; az Azerbaijani
     ; ba Bashkir
-    ("be" . "Cyrillic-ISO") ; Byelorussian
-    ("bg" . "Cyrillic-ISO") ; Bulgarian
+    ("be" . "Latin-5") ; Byelorussian
+    ("bg" . "Latin-5") ; Bulgarian
     ; bh Bihari
     ; bi Bislama
     ; bn Bengali, Bangla
@@ -1488,12 +1488,13 @@ of buffer-file-coding-system set by this function."
     ("ca" . "Latin-1") ; Catalan
     ; co Corsican
     ("cs" . "Czech")
-    ; cy Welsh
+    ("cy" . "Latin-8") ; Welsh
     ("da" . "Latin-1") ; Danish
     ("de" . "German")
     ; dz Bhutani
     ("el" . "Greek")
-    ("en" . "English")
+    ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
+    ("en" . "Latin-1") ; English
     ("eo" . "Latin-3") ; Esperanto
     ("es" . "Latin-1") ; Spanish
     ("et" . "Latin-4") ; Estonian
@@ -1504,9 +1505,9 @@ of buffer-file-coding-system set by this function."
     ("fo" . "Latin-1") ; Faroese
     ("fr" . "Latin-1") ; French
     ("fy" . "Latin-1") ; Frisian
-    ("ga" . "Latin-1") ; Irish
-    ; gd Scots Gaelic
-    ("gl" . "Latin-3") ; Galician
+    ("ga" . "Latin-1") ; Irish Gaelic (new orthography)
+    ("gd" . "Latin-1") ; Scots Gaelic
+    ("gl" . "Latin-1") ; Galician
     ; gn Guarani
     ; gu Gujarati
     ; ha Hausa
@@ -1526,7 +1527,7 @@ of buffer-file-coding-system set by this function."
     ; jw Javanese
     ; ka Georgian
     ; kk Kazakh
-    ("kl" . "Latin-4") ; Greenlandic
+    ("kl" . "Latin-1") ; Greenlandic
     ; km Cambodian
     ; kn Kannada
     ("ko" . "Korean")
@@ -1540,7 +1541,7 @@ of buffer-file-coding-system set by this function."
     ("lv" . "Latin-4") ; Latvian, Lettish
     ; mg Malagasy
     ; mi Maori
-    ("mk" . "Cyrillic-ISO") ; Macedonian
+    ("mk" . "Latin-5") ; Macedonian
     ; ml Malayalam
     ; mn Mongolian
     ; mo Moldavian
@@ -1560,11 +1561,11 @@ of buffer-file-coding-system set by this function."
     ; ps Pashto, Pushto
     ("pt" . "Latin-1") ; Portuguese
     ; qu Quechua
-    ("rm" . "Latin-1") ; Rhaeto-Romance
+    ("rm" . "Latin-1") ; Rhaeto-Romanic
     ; rn Kirundi
     ("ro" . "Romanian")
     ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
-    ("ru" . "Cyrillic-ISO") ; Russian
+    ("ru" . "Latin-5") ; Russian
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
@@ -1576,7 +1577,7 @@ of buffer-file-coding-system set by this function."
     ; sm Samoan
     ; sn Shona
     ; so Somali
-    ("sq" . "Latin-2") ; Albanian
+    ("sq" . "Latin-1") ; Albanian
     ("sr" . "Latin-2") ; Serbian (Latin alphabet)
     ; ss Siswati
     ; st Sesotho
@@ -1589,7 +1590,7 @@ of buffer-file-coding-system set by this function."
     ("th" . "Thai")
     ; ti Tigrinya
     ; tk Turkmen
-    ; tl Tagalog
+    ("tl" . "Latin-1") ; Tagalog
     ; tn Setswana
     ; to Tonga
     ("tr" . "Latin-5") ; Turkish
@@ -1597,7 +1598,7 @@ of buffer-file-coding-system set by this function."
     ; tt Tatar
     ; tw Twi
     ; ug Uighur
-    ("uk" . "Cyrillic-ISO") ; Ukrainian
+    ("uk" . "Latin-5") ; Ukrainian
     ; ur Urdu
     ; uz Uzbek
     ("vi" . "Vietnamese")
@@ -1617,15 +1618,6 @@ of buffer-file-coding-system set by this function."
     ("c$" . "ASCII")
     ("posix$" . "ASCII")
 
-    ;; generic ISO 8859 locales
-    (".*8859[-_]?1" . "Latin-1")
-    (".*8859[-_]?2" . "Latin-2")
-    (".*8859[-_]?3" . "Latin-3")
-    (".*8859[-_]?4" . "Latin-4")
-    (".*8859[-_]?9" . "Latin-5")
-    (".*8859[-_]?14" . "Latin-8")
-    (".*8859[-_]?15" . "Latin-9")
-
     ;; The "IPA" Emacs language environment does not correspond
     ;; to any ISO 639 code, so let it stand for itself.
     ("ipa$" . "IPA")
@@ -1634,32 +1626,38 @@ of buffer-file-coding-system set by this function."
     ("cz" . "Czech") ; e.g. Solaris 2.6
     ("ee" . "Latin-4") ; Estonian, e.g. X11R6.4
     ("iw" . "Hebrew") ; e.g. X11R6.4
-    ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
+    ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     )
   "List of pairs of locale regexps and language names.
-The first element whose locale regexp matches the start of a downcased
-locale specifies the language name corresponding to that locale.
+The first element whose locale regexp matches the start of a downcased locale
+specifies the language name corresponding to that locale.
 If the language name is nil, there is no corresponding language environment.")
+
+(defvar locale-charset-language-names
+  '((".*8859[-_]?1\\>" . "Latin-1")
+    (".*8859[-_]?2\\>" . "Latin-2")
+    (".*8859[-_]?3\\>" . "Latin-3")
+    (".*8859[-_]?4\\>" . "Latin-4")
+    (".*8859[-_]?9\\>" . "Latin-5")
+    (".*8859[-_]?14\\>" . "Latin-8")
+    (".*8859[-_]?15\\>" . "Latin-9")
+    )
+  "List of pairs of locale regexps and charset language names.
+The first element whose locale regexp matches the start of a downcased locale
+specifies the language name whose charsets corresponds to that locale.
+This language name is used if its charsets disagree with the charsets of
+the language name that would otherwise be used for this locale.")
 
 (defvar locale-preferred-coding-systems
   '(("ja.*[._]euc" . japanese-iso-8bit)
     ("ja.*[._]jis7" . iso-2022-jp)
     ("ja.*[._]pck" . japanese-shift-jis)
     ("ja.*[._]sjis" . japanese-shift-jis)
-    (".*[._].*8859[-_]?1" . iso-8859-1)
-    (".*[._].*8859[-_]?2" . iso-8859-2)
-    (".*[._].*8859[-_]?3" . iso-8859-3)
-    (".*[._].*8859[-_]?4" . iso-8859-4)
-    (".*[._].*8859[-_]?5" . iso-8859-5)
-    (".*[._].*8859[-_]?7" . iso-8859-7)
-    (".*[._].*8859[-_]?8" . iso-8859-8)
-    (".*[._].*8859[-_]?9" . iso-8859-9)
     )
-  "List of pairs of locale regexps and coding systems.
-The first element whose locale regexp matches the start of a downcased
-locale specifies the coding system to prefer when using that locale.
-If the coding system is nil, there is no special preference.")
+  "List of pairs of locale regexps and preferred coding systems.
+The first element whose locale regexp matches the start of a downcased locale
+specifies the coding system to prefer when using that locale.")
 
 (defun locale-name-match (key alist)
   "Search for KEY in ALIST, which should be a list of regexp-value pairs.
@@ -1707,10 +1705,19 @@ directory named `/usr/share/locale' or `/usr/lib/locale'."
 
     (setq locale-name (downcase locale-name))
 
-    (let ((language-name (locale-name-match
-			  locale-name locale-language-names))
-	  (coding-system (locale-name-match
-			  locale-name locale-preferred-coding-systems)))
+    (let ((language-name
+	   (locale-name-match locale-name locale-language-names))
+	  (charset-language-name
+	   (locale-name-match locale-name locale-charset-language-names))
+	  (coding-system
+	   (locale-name-match locale-name locale-preferred-coding-systems)))
+
+      (if (and charset-language-name
+	       (not
+		(equal (get-language-info language-name 'charset)
+		       (get-language-info charset-language-name 'charset))))
+	  (setq language-name charset-language-name))
+
       (when language-name
 
 	;; Set up for this character set.  This is now the right way
