@@ -137,7 +137,8 @@ WINS=\
 	play \
 	progmodes \
 	term \
-	textmodes
+	textmodes \
+        toolbar
 
 doit:
 
