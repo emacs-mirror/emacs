@@ -1328,7 +1328,11 @@ make, or the user didn't cancel the call."
 			     replace-count)
 		    noedit nil))
 	    (if (not query-flag)
-		(let ((inhibit-read-only query-replace-skip-read-only))
+		(let ((inhibit-read-only
+		       query-replace-skip-read-only))
+		  (unless noedit
+		    (replace-highlight (nth 0 real-match-data)
+				       (nth 1 real-match-data)))
 		  (setq noedit
 			(replace-match-maybe-edit
 			 next-replacement nocasify literal

@@ -1,3 +1,8 @@
+2004-06-26  David Kastrup  <dak@gnu.org>
+
+	* replace.el (perform-replace): Highlight the match even in
+	non-query mode if there is potential replace string editing.
+
 2004-06-26  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el (tramp-handle-file-remote-p): New implementation to
