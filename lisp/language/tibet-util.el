@@ -194,9 +194,15 @@ Returns non-nil, if CH contains vowel/vowel modifiers."
 (defun tibetan-vertical-stacking (first second upward)
   "Return a vertically stacked composite char consisting of FIRST and SECOND.
 If UPWARD is non-nil, then SECOND is put above FIRST."
-  (if upward
-      (compose-chars first '(tc . bc) second)
-    (compose-chars first '(bc . tc) second)))
+  (let (l rule)
+    (if (cmpcharp first)
+	    (setq l (decompose-composite-char first 'list t))
+        (setq l (list first)))
+    (if upward
+	    (setq rule (list '(tc . bc)))
+        (setq rule (list '(bc . tc))))
+    (setq l (append l rule (list second)))
+    (apply 'compose-chars l)))
 
 ;;; This function makes a composite char from a string.
 ;;; Note that this function returns a string, not a char.
