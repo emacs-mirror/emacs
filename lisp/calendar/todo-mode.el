@@ -6,9 +6,13 @@
 ;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
 ;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
 
-;; $Id: todomode.el,v 1.5 1997/08/05 14:43:39 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.6 1997/08/05 16:47:01 os10000 Exp os10000 $
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.6  1997/08/05 16:47:01  os10000
+;; Incorporated menus for XEmacs from Allan.Cochrane@soton.sc.philips.com,
+;; fixed TYPO, fixed todo-file-cmd, cleaned up rcs history.
+;;
 ;; Revision 1.5  1997/08/05  14:43:39  os10000
 ;; Added improvements from Ron Gut <rgut@aware.com>.
 ;; Added category management.
@@ -84,6 +88,21 @@
 ;; and use the #include command to include your todo list file as part
 ;; of your diary.
 ;;
+;; Another nifty feature is the insertion accuracy.  If you have 8 items
+;; in your TODO list, then you may get asked 4 questions by the binary
+;; insertion algorithm.  However, you may not really have a need for such
+;; accurate priorities amongst your TODO items.  If you now think about
+;; the binary insertion halfing the size of the window each time, then
+;; the threshhold is the window size at which it will stop.  If you set
+;; the threshhold to zero, the upper and lower bound will coincide at the
+;; end of the loop and you will insert your item just before that point.
+;; If you set the threshhold to i.e. 8, it will stop as soon as the window
+;; size drops below that amount and will insert the item in the approximate
+;; centre of that window.  I got the idea for this feature after reading
+;; a very helpful e-mail reply from Trey Jackson <tjackson@ichips.intel.com>
+;; who corrected some of my awful coding and pointed me towards some good
+;; reading.  Thanks Trey!
+;;
 ;; Enjoy this package and express your gratitude by sending valuables
 ;; to my parents' address as listed above!!!
 ;;
@@ -97,24 +116,30 @@
 (defvar todo-file-do "~/.todo-do" "TODO mode filename of list file")
 (defvar todo-file-done "~/.todo-done" "TODO mode filename of archive file")
 (defvar todo-mode-hook nil "Hooks invoked when the *TODO* buffer is created.")
+(defvar todo-ins-thresh 0 "TODO mode insertion accuracy.")
 
 ;; ---------------------------------------------------------------------------
 
 (require 'time-stamp)
 
-(defvar todo-mode-map (make-sparse-keymap) "TODO mode keymap.  See `todo-mode'")
-(define-key todo-mode-map "+" 'todo-cmd-forw)
-(define-key todo-mode-map "-" 'todo-cmd-back)
-(define-key todo-mode-map "e" 'todo-cmd-edit)
-(define-key todo-mode-map "f" 'todo-cmd-file)
-(define-key todo-mode-map "i" 'todo-cmd-inst)
-(define-key todo-mode-map "k" 'todo-cmd-kill)
-(define-key todo-mode-map "l" 'todo-cmd-lowr)
-(define-key todo-mode-map "n" 'todo-cmd-next)
-(define-key todo-mode-map "p" 'todo-cmd-prev)
-(define-key todo-mode-map "q" 'todo-cmd-done)
-(define-key todo-mode-map "r" 'todo-cmd-rais)
-(define-key todo-mode-map "s" 'todo-cmd-save)
+(defvar todo-mode-map nil "TODO mode keymap.  See `todo-mode'")
+(if todo-mode-map
+    nil
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (define-key map "+" 'todo-cmd-forw)
+    (define-key map "-" 'todo-cmd-back)
+    (define-key map "e" 'todo-cmd-edit)
+    (define-key map "f" 'todo-cmd-file)
+    (define-key map "i" 'todo-cmd-inst)
+    (define-key map "k" 'todo-cmd-kill)
+    (define-key map "l" 'todo-cmd-lowr)
+    (define-key map "n" 'todo-cmd-next)
+    (define-key map "p" 'todo-cmd-prev)
+    (define-key map "q" 'todo-cmd-done)
+    (define-key map "r" 'todo-cmd-rais)
+    (define-key map "s" 'todo-cmd-save)
+    (setq todo-mode-map map)))
 
 (defun todo-cat-slct ()
   (let ((todo-category-name (nth todo-category-number todo-cats)))
@@ -190,17 +215,6 @@
 (defvar todo-prv-lne 0 "previous line that I asked about.")
 (defvar todo-prv-ans 0 "previous answer that I got.")
 
-(defun todo-ask (lne) "Ask whether entry is more important than at LNE."
-  (if (not (equal todo-prv-lne lne))
-      (progn
-	(setq todo-prv-lne lne)
-	(goto-line todo-prv-lne)
-	(setq todo-prv-ans (y-or-n-p (concat "More important than '" (todo-line) "'? ")))
-	)
-    )
-  todo-prv-ans
-  )
-
 (defun todo-add-category (cat) "Add a new category to the TODO list."
   (interactive)
   (save-window-excursion
@@ -219,49 +233,56 @@
   0
   )
 
-(defun todo-cmd-inst () "Insert new TODO list entry."
+(defun todo-cmd-inst ()
+  "Insert new TODO list entry."
   (interactive)
   (beginning-of-line nil)
   (let* ((todo-entry (concat todo-prefix " " (read-from-minibuffer "New TODO entry: ")))
-	 (temp-catgs todo-cats)
-	 (todo-hstry (cons 'temp-catgs (+ todo-category-number 1))))
+         (temp-catgs todo-cats)
+         (todo-hstry (cons 'temp-catgs (+ todo-category-number 1))))
     (save-window-excursion
       (setq todo-category
-	    (read-from-minibuffer "Category: " (nth todo-category-number todo-cats) nil nil todo-hstry))
-      (let* ((ltrgt todo-category)
-	     (lnmbr 0)
-	     (ltext (car todo-cats))
-	     (lrest (cdr todo-cats)))
-	(setq ltext (car todo-cats))
-	(while (not (or (null lrest) (string-equal ltext ltrgt)))
-	  (setq ltext (car lrest))
-	  (setq lrest (cdr lrest))
-	  (setq lnmbr (+ 1 lnmbr))
-	  )
-	(setq todo-category-number
-	      (if (string-equal ltext todo-category) lnmbr (todo-add-category todo-category)))
-	)
+            (read-from-minibuffer "Category: "
+                                  (nth todo-category-number todo-cats)
+                                  nil nil todo-hstry))
+
+      (let ((cat-exists (member todo-category todo-cats)))
+        (setq todo-category-number
+              (if cat-exists
+                  (- (length todo-cats) (length cat-exists))
+                (todo-add-category todo-category))))
       (todo-show)
       (setq todo-prv-lne 0)
-      (let* ((todo-fst 1)
-	     (todo-lst (+ 1 (count-lines (point-min) (point-max)))))
-	(while (< todo-fst todo-lst)
-	  (let* ((todo-cur (/ (+ todo-fst todo-lst) 2))
-		 (todo-ans (if (< todo-cur todo-lst) (todo-ask todo-cur) nil)))
-	    (if todo-ans
-		(setq todo-lst todo-cur)
-	      (setq todo-fst (+ todo-cur 1)))
-	    )
-	  )
-	(goto-line todo-fst)
-	)
+
+      (let ((todo-fst 1)
+            (todo-lst (+ 1 (count-lines (point-min) (point-max)))))
+        (while (> (- todo-lst todo-fst) todo-ins-thresh)
+          (let* ((todo-cur (/ (+ todo-fst todo-lst) 2))
+                 (todo-ans (if (< todo-cur todo-lst) (todo-ask todo-cur) nil)))
+            (if todo-ans
+                (setq todo-lst todo-cur)
+              (setq todo-fst (+ todo-cur 1)))))
+
+	(setq todo-fst (/ (+ todo-fst todo-lst) 2))
+        ;; goto-line doesn't have the desired behavior in a narrowed buffer
+        (goto-char (point-min))
+	(message (format "todo-fst=%d" todo-fst))
+        (forward-line (- todo-fst 1)))
+      
       (insert (concat todo-entry "\n"))
-      (forward-line -1)
-      )
+      (forward-line -1))
     (beginning-of-line nil)
-    (message "")
-    )
-  )
+    (message "")))
+
+(defun todo-ask (lne) 
+  "Ask whether entry is more important than at LNE."
+  (if (not (equal todo-prv-lne lne))
+      (progn
+        (setq todo-prv-lne lne)
+        (goto-char (point-min))
+        (forward-line (- todo-prv-lne 1))
+        (setq todo-prv-ans (y-or-n-p (concat "More important than '" (todo-line) "'? ")))))
+  todo-prv-ans)
 
 (defun todo-cmd-kill () "Delete current TODO list entry."
   (interactive)
