@@ -1,3 +1,8 @@
+2003-02-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* files.el (abbreviate-file-name): Shorten docstring: variables
+	are now hyperlinks and `C-h v' need not be mentioned explicitly.
+
 2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Document removal of
