@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.0
 
-;;	$Id: vc.el,v 1.24 1993/03/09 23:02:40 eric Exp eric $	
+;;	$Id: vc.el,v 1.25 1993/03/11 07:45:02 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -108,9 +108,6 @@ is sensitive to blank lines.")
 (defvar vc-log-version)
 
 (defconst vc-name-assoc-file "VC-names")
-
-(defmacro vc-error-occurred (&rest body)
-  (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
 
 ;; File property caching
 
