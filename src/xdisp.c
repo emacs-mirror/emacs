@@ -19248,7 +19248,7 @@ cursor_in_mouse_face_p (w)
    of last line in W.  In the row containing CHARPOS, stop before glyphs
    having STOP as object.  */
 
-#if 0 /* This is a version of fast_find_position that's more correct
+#if 1 /* This is a version of fast_find_position that's more correct
 	 in the presence of hscrolling, for example.  I didn't install
 	 it right away because the problem fixed is minor, it failed
 	 in 20.x as well, and I think it's too risky to install
@@ -19315,7 +19315,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
   return past_end;
 }
 
-#else /* not 0 */
+#else /* not 1 */
 
 static int
 fast_find_position (w, pos, hpos, vpos, x, y, stop)
@@ -19413,7 +19413,7 @@ fast_find_position (w, pos, hpos, vpos, x, y, stop)
   return 0;
 }
 
-#endif /* not 0 */
+#endif /* not 1 */
 
 
 /* Find the position of the glyph for position POS in OBJECT in
