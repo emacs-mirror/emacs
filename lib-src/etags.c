@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.20";
+char pot_etags_version[] = "@(#) pot revision number is 14.21";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -5085,7 +5085,10 @@ analyse_regex (regex_arg, ignore_case)
      bool ignore_case;
 {
   if (regex_arg == NULL)
-    free_patterns ();		/* --no-regex: remove existing regexps */
+    {
+      free_patterns ();		/* --no-regex: remove existing regexps */
+      return;
+    }
 
   /* A real --regexp option or a line in a regexp file. */
   switch (regex_arg[0])
