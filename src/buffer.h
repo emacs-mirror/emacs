@@ -475,6 +475,8 @@ extern Lisp_Object Vafter_change_function;
 extern Lisp_Object Vbefore_change_functions;
 extern Lisp_Object Vafter_change_functions;
 extern Lisp_Object Vfirst_change_hook;
+extern Lisp_Object Qbefore_change_functions;
+extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
 
 extern Lisp_Object Vdeactivate_mark;
