@@ -95,11 +95,11 @@ This command selects a buffer visiting the file @var{filename},
 using an existing buffer if there is one, and otherwise creating a
 new buffer and reading the file into it.  It also returns that buffer.
 
-The body of the @code{find-file} function is very simple and looks
-like this:
+Aside from some technical details, the body of the @code{find-file}
+function is basically equivalent to:
 
 @example
-(switch-to-buffer (find-file-noselect filename))
+(switch-to-buffer (find-file-noselect filename nil nil wildcards))
 @end example
 
 @noindent
@@ -193,12 +193,14 @@ When @code{view-file} is called interactively, it prompts for
 @end deffn
 
 @tindex find-file-wildcards
-@defvar find-file-wildcards
+@defopt find-file-wildcards
 If this variable is non-@code{nil}, then the various @code{find-file}
 commands check for wildcard characters and visit all the files that
-match them.  If this is @code{nil}, then wildcard characters are
-not treated specially.
-@end defvar
+match them (when invoked interactively or when their @var{wildcards}
+argument is non-@code{nil}).  If this option is @code{nil}, then
+the @code{find-file} commands ignore their @var{wildcards} argument
+and never treat wildcard characters specially.
+@end defopt
 
 @defvar find-file-hook
 The value of this variable is a list of functions to be called after a
@@ -206,8 +208,7 @@ file is visited.  The file's local-variables specification (if any) will
 have been processed before the hooks are run.  The buffer visiting the
 file is current when the hook functions are run.
 
-This variable works just like a normal hook, but we think that renaming
-it would not be advisable.  @xref{Hooks}.
+This variable is a normal hook.  @xref{Hooks}.
 @end defvar
 
 @defvar find-file-not-found-functions
@@ -322,16 +323,21 @@ backed up when the buffer is next saved.
 With an argument of 16 or 64, reflecting 2 or 3 @kbd{C-u}'s, the
 @code{save-buffer} function unconditionally backs up the previous
 version of the file before saving it.
+
+@item
+With an argument of 0, unconditionally do @emph{not} make any backup file.
 @end itemize
 @end deffn
 
+@anchor{Definition of save-some-buffers}
 @deffn Command save-some-buffers &optional save-silently-p pred
 This command saves some modified file-visiting buffers.  Normally it
 asks the user about each buffer.  But if @var{save-silently-p} is
 non-@code{nil}, it saves all the file-visiting buffers without querying
 the user.
 
-The optional @var{pred} argument controls which buffers to ask about.
+The optional @var{pred} argument controls which buffers to ask about
+(or to save silently if @var{save-silently-p} is non-@code{nil}).
 If it is @code{nil}, that means to ask only about file-visiting buffers.
 If it is @code{t}, that means also offer to save certain other non-file
 buffers---those that have a non-@code{nil} buffer-local value of
@@ -346,6 +352,7 @@ whether to offer to save that buffer.  If it returns a non-@code{nil}
 value in a certain buffer, that means do offer to save that buffer.
 @end deffn
 
+@anchor{Definition of write-file}
 @deffn Command write-file filename &optional confirm
 This function writes the current buffer into file @var{filename}, makes
 the buffer visit that file, and marks it not modified.  Then it renames
@@ -355,7 +362,13 @@ calling @code{set-visited-file-name} (@pxref{Buffer File Name}) and
 @code{save-buffer}.
 
 If @var{confirm} is non-@code{nil}, that means to ask for confirmation
-before overwriting an existing file.
+before overwriting an existing file.  Interactively, confirmation is
+required, unless the user supplies a prefix argument.
+
+If @var{filename} is an existing directory, or a symbolic link to one,
+@code{write-file} uses the name of the visited file, in directory
+@var{filename}.  If the buffer is not visiting a file, it uses the
+buffer name instead.
 @end deffn
 
   Saving a buffer runs several hooks.  It also performs format
@@ -378,8 +391,9 @@ To do so, execute the following code:
 @end example
 
 You might wish to save the file modes value returned by
-@code{backup-buffer} and use that to set the mode bits of the file that
-you write.  This is what @code{save-buffer} normally does.
+@code{backup-buffer} and use that (if non-@code{nil}) to set the mode
+bits of the file that you write.  This is what @code{save-buffer}
+normally does. @xref{Making Backups,, Making Backup Files}.
 
 The hook functions in @code{write-file-functions} are also responsible for
 encoding the data (if desired): they must choose a suitable coding
@@ -428,7 +442,7 @@ One use of this hook is in Fast Lock mode; it uses this hook to save the
 highlighting information in a cache file.
 @end defopt
 
-@defvar file-precious-flag
+@defopt file-precious-flag
 If this variable is non-@code{nil}, then @code{save-buffer} protects
 against I/O errors while saving by writing the new file to a temporary
 name instead of the name it is supposed to have, and then renaming it to
@@ -442,7 +456,7 @@ all hard links between the file you save and other file names.
 
 Some modes give this variable a non-@code{nil} buffer-local value
 in particular buffers.
-@end defvar
+@end defopt
 
 @defopt require-final-newline
 This variable determines whether files may be written out that do
@@ -541,11 +555,21 @@ function returns @code{nil}.
 
 An error is signaled if @var{filename} specifies a nonwritable file,
 or a nonexistent file in a directory where files cannot be created.
+
+When called from Lisp, this function is completely equivalent to:
+
+@example
+(write-region start end filename t)
+@end example
 @end deffn
 
 @deffn Command write-region start end filename &optional append visit lockname mustbenew
 This function writes the region delimited by @var{start} and @var{end}
 in the current buffer into the file specified by @var{filename}.
+
+If @var{start} is @code{nil}, then the command writes the entire buffer
+contents (@emph{not} just the accessible portion) to the file and
+ignores @var{end}.
 
 @c Emacs 19 feature
 If @var{start} is a string, then @code{write-region} writes or appends
@@ -601,6 +625,7 @@ feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
 @end deffn
 
+@anchor{Definition of with-temp-file}
 @defmac with-temp-file file body...
 The @code{with-temp-file} macro evaluates the @var{body} forms with a
 temporary buffer as the current buffer; then, at the end, it writes the
@@ -612,7 +637,8 @@ in @var{body}.
 The current buffer is restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
 
-See also @code{with-temp-buffer} in @ref{Current Buffer}.
+See also @code{with-temp-buffer} in @ref{Definition of
+with-temp-buffer,, The Current Buffer}.
 @end defmac
 
 @node File Locks
@@ -725,7 +751,10 @@ or directories unless otherwise noted.
 @cindex accessibility of a file
 @cindex file accessibility
 
-  These functions test for permission to access a file in specific ways.
+  These functions test for permission to access a file in specific
+ways.  Unless explicitly stated otherwise, they recursively follow
+symbolic links for their file name arguments, at all levels (at the
+level of the file itself and at all levels of parent directories).
 
 @defun file-exists-p filename
 This function returns @code{t} if a file named @var{filename} appears
@@ -829,7 +858,13 @@ using @var{string} as the error message text.
 
 @defun file-ownership-preserved-p filename
 This function returns @code{t} if deleting the file @var{filename} and
-then creating it anew would keep the file's owner unchanged.
+then creating it anew would keep the file's owner unchanged.  It also
+returns @code{t} for nonexistent files.
+
+If @var{filename} is a symbolic link, then, unlike the other functions
+discussed here, @code{file-ownership-preserved-p} does @emph{not}
+replace @var{filename} with its target.  However, it does recursively
+follow symbolic links at all levels of parent directories.
 @end defun
 
 @defun file-newer-than-file-p filename1 filename2
@@ -837,8 +872,8 @@ then creating it anew would keep the file's owner unchanged.
 @cindex file modification time
 This function returns @code{t} if the file @var{filename1} is
 newer than file @var{filename2}.  If @var{filename1} does not
-exist, it returns @code{nil}.  If @var{filename2} does not exist,
-it returns @code{t}.
+exist, it returns @code{nil}.  If @var{filename1} does exist, but
+@var{filename2} does not, it returns @code{t}.
 
 In the following example, assume that the file @file{aug-19} was written
 on the 19th, @file{aug-20} was written on the 20th, and the file
@@ -877,9 +912,10 @@ as directories, symbolic links, and ordinary files.
 @defun file-symlink-p filename
 @cindex file symbolic links
 If the file @var{filename} is a symbolic link, the
-@code{file-symlink-p} function returns the link target as a string.
-(Determining the file name that the link points to from the target is
-nontrivial.)
+@code{file-symlink-p} function returns the (non-recursive) link target
+as a string.  (Determining the file name that the link points to from
+the target is nontrivial.)  First, this function recursively follows
+symbolic links at all levels of parent directories.
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
 @code{file-symlink-p} returns @code{nil}.
@@ -905,6 +941,9 @@ If the file @var{filename} is not a symbolic link (or there is no such file),
 
 @c !!! file-symlink-p: should show output of ls -l for comparison
 @end defun
+
+The next two functions recursively follow symbolic links at
+all levels for @var{filename}.
 
 @defun file-directory-p filename
 This function returns @code{t} if @var{filename} is the name of an
@@ -957,14 +996,31 @@ because they eliminate symbolic links as a cause of name variation.
 @defun file-truename filename
 The function @code{file-truename} returns the truename of the file
 @var{filename}.  The argument must be an absolute file name.
+
+This function does not expand environment variables.  Only
+@code{substitute-in-file-name} does that.  @xref{Definition of
+substitute-in-file-name}.
+
+If you may need to follow symbolic links preceding @samp{..}@:
+appearing as a name component, you should make sure to call
+@code{file-truename} without prior direct or indirect calls to
+@code{expand-file-name}, as otherwise the file name component
+immediately preceding @samp{..} will be ``simplified away'' before
+@code{file-truename} is called.  To eliminate the need for a call to
+@code{expand-file-name}, @code{file-truename} handles @samp{~} in the
+same way that @code{expand-file-name} does.  @xref{File Name
+Expansion,, Functions that Expand Filenames}.
 @end defun
 
 @defun file-chase-links filename &optional limit
 This function follows symbolic links, starting with @var{filename},
 until it finds a file name which is not the name of a symbolic link.
-Then it returns that file name.  If you specify a number for
-@var{limit}, then after chasing through that many links, the function
-just returns what it as even if that is still a symbolic link.
+Then it returns that file name.  This function does @emph{not} follow
+symbolic links at the level of parent directories.
+
+If you specify a number for @var{limit}, then after chasing through
+that many links, the function just returns what it has even if that is
+still a symbolic link.
 @end defun
 
   To illustrate the difference between @code{file-chase-links} and
@@ -1007,6 +1063,10 @@ The highest value returnable is 4095 (7777 octal), meaning that
 everyone has read, write, and execute permission, that the @acronym{SUID} bit
 is set for both others and group, and that the sticky bit is set.
 
+If @var{filename} does not exist, @code{file-modes} returns @code{nil}.
+
+This function recursively follows symbolic links at all levels.
+
 @example
 @group
 (file-modes "~/junk/diffs")
@@ -1034,6 +1094,11 @@ is set for both others and group, and that the sticky bit is set.
 @end example
 @end defun
 
+If the @var{filename} argument to the next two functions is a symbolic
+link, then these function do @emph{not} replace it with its target.
+However, they both recursively follow symbolic links at all levels of
+parent directories.
+
 @defun file-nlinks filename
 This functions returns the number of names (i.e., hard links) that
 file @var{filename} has.  If the file does not exist, then this function
@@ -1059,6 +1124,7 @@ link to.
 @end example
 @end defun
 
+@anchor{Definition of file-attributes}
 @defun file-attributes filename &optional id-format
 This function returns a list of attributes of file @var{filename}.  If
 the specified file cannot be opened, it returns @code{nil}.
@@ -1213,7 +1279,12 @@ Replace the old file without confirmation if @var{ok-if-already-exists}
 is any other value.
 @end itemize
 
-@defun add-name-to-file oldname newname &optional ok-if-already-exists
+The next four commands all recursively follow symbolic links at all
+levels of parent directories for their first argument, but, if that
+argument is itself a symbolic link, then only @code{copy-file}
+replaces it with its (recursive) target.
+
+@deffn Command add-name-to-file oldname newname &optional ok-if-already-exists
 @cindex file with multiple names
 @cindex file hard link
 This function gives the file named @var{oldname} the additional name
@@ -1279,7 +1350,7 @@ for one file are not allowed.  Some systems implement multiple names
 by copying the file instead.
 
 See also @code{file-nlinks} in @ref{File Attributes}.
-@end defun
+@end deffn
 
 @deffn Command rename-file filename newname &optional ok-if-already-exists
 This command renames the file @var{filename} as @var{newname}.
@@ -1288,10 +1359,6 @@ If @var{filename} has additional names aside from @var{filename}, it
 continues to have those names.  In fact, adding the name @var{newname}
 with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
-
-In an interactive call, this function prompts for @var{filename} and
-@var{newname} in the minibuffer; also, it requests confirmation if
-@var{newname} already exists.
 @end deffn
 
 @deffn Command copy-file oldname newname &optional ok-if-exists time
@@ -1307,9 +1374,19 @@ some operating systems.)  If setting the time gets an error,
 
 This function copies the file modes, too.
 
-In an interactive call, this function prompts for @var{filename} and
-@var{newname} in the minibuffer; also, it requests confirmation if
-@var{newname} already exists.
+In an interactive call, a prefix argument specifies a non-@code{nil}
+value for @var{time}.
+@end deffn
+
+@deffn Command make-symbolic-link filename newname  &optional ok-if-exists
+@pindex ln
+@kindex file-already-exists
+This command makes a symbolic link to @var{filename}, named
+@var{newname}.  This is like the shell command @samp{ln -s
+@var{filename} @var{newname}}.
+
+This function is not available on systems that don't support symbolic
+links.
 @end deffn
 
 @deffn Command delete-file filename
@@ -1322,22 +1399,11 @@ A suitable kind of @code{file-error} error is signaled if the file does
 not exist, or is not deletable.  (On Unix and GNU/Linux, a file is
 deletable if its directory is writable.)
 
+If @var{filename} is a symbolic link, @code{delete-file} does not
+replace it with its target, but it does follow symbolic links at all
+levels of parent directories.
+
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
-@end deffn
-
-@deffn Command make-symbolic-link filename newname  &optional ok-if-exists
-@pindex ln
-@kindex file-already-exists
-This command makes a symbolic link to @var{filename}, named
-@var{newname}.  This is like the shell command @samp{ln -s
-@var{filename} @var{newname}}.
-
-In an interactive call, this function prompts for @var{filename} and
-@var{newname} in the minibuffer; also, it requests confirmation if
-@var{newname} already exists.
-
-This function is not available on systems that don't support symbolic
-links.
 @end deffn
 
 @defun define-logical-name varname string
@@ -1346,8 +1412,10 @@ This function defines the logical name @var{varname} to have the value
 @end defun
 
 @defun set-file-modes filename mode
-This function sets mode bits of @var{filename} to @var{mode} (which must
-be an integer).  Only the low 12 bits of @var{mode} are used.
+This function sets mode bits of @var{filename} to @var{mode} (which
+must be an integer).  Only the low 12 bits of @var{mode} are used.
+This function recursively follows symbolic links at all levels for
+@var{filename}.
 @end defun
 
 @c Emacs 19 feature
@@ -1500,18 +1568,6 @@ This function returns the nondirectory part of @var{filename}.
 @end example
 @end defun
 
-@defun file-name-extension filename &optional period
-This function returns @var{filename}'s final ``extension,'' if any,
-after applying @code{file-name-sans-versions} to remove any
-version/backup part.  It returns @code{nil} for extensionless file
-names such as @file{foo}.  If @var{period} is non-@code{nil}, then the
-returned value includes the period that delimits the extension, and if
-@var{filename} has no extension, the value is @code{""}.  If the last
-component of a file name begins with a @samp{.}, that @samp{.} doesn't
-count as the beginning of an extension, so, for example,
-@file{.emacs}'s ``extension'' is @code{nil}, not @samp{.emacs}.
-@end defun
-
 @defun file-name-sans-versions filename &optional keep-backup-version
 This function returns @var{filename} with any file version numbers,
 backup version numbers, or trailing tildes discarded.
@@ -1541,11 +1597,29 @@ return value, but backup version numbers are kept.
 @end example
 @end defun
 
+@defun file-name-extension filename &optional period
+This function returns @var{filename}'s final ``extension'', if any,
+after applying @code{file-name-sans-versions} to remove any
+version/backup part.  The extension, in a file name, is the part that
+starts with the last @samp{.} in the last name component (minus
+any version/backup part).
+
+This function returns @code{nil} for extensionless file names such as
+@file{foo}.  It returns @code{""} for null extensions, as in
+@file{foo.}.  If the last component of a file name begins with a
+@samp{.}, that @samp{.}  doesn't count as the beginning of an
+extension.  Thus, @file{.emacs}'s ``extension'' is @code{nil}, not
+@samp{.emacs}.
+
+If @var{period} is non-@code{nil}, then the returned value includes
+the period that delimits the extension, and if @var{filename} has no
+extension, the value is @code{""}.
+@end defun
+
 @defun file-name-sans-extension filename
-This function returns @var{filename} minus its ``extension,'' if any.
-The extension, in a file name, is the part that starts with the last
-@samp{.} in the last name component, except if that @samp{.} is the
-first character of the file name's last component.  For example,
+This function returns @var{filename} minus its extension, if any.  The
+version/backup part, if present, is only removed if the file has an
+extension.  For example,
 
 @example
 (file-name-sans-extension "foo.lose.c")
@@ -1556,7 +1630,14 @@ first character of the file name's last component.  For example,
      @result{} "/my/home/.emacs"
 (file-name-sans-extension "/my/home/.emacs.el")
      @result{} "/my/home/.emacs"
+(file-name-sans-extension "~/foo.el.~3~")
+     @result{} "~/foo"
+(file-name-sans-extension "~/foo.~3~")
+     @result{} "~/foo.~3~"
 @end example
+
+Note that the @samp{.~3~} in the two last examples is the backup part,
+not an extension.
 @end defun
 
 @ignore
@@ -1623,9 +1704,9 @@ actually a kind of file, so it has a file name, which is related to
 the directory name but not identical to it.  (This is not quite the
 same as the usual Unix terminology.)  These two different names for
 the same entity are related by a syntactic transformation.  On GNU and
-Unix systems, this is simple: a directory name ends in a slash (or
-backslash), whereas the directory's name as a file lacks that slash.
-On MSDOS and VMS, the relationship is more complicated.
+Unix systems, this is simple: a directory name ends in a slash,
+whereas the directory's name as a file lacks that slash.  On MSDOS and
+VMS, the relationship is more complicated.
 
   The difference between a directory name and its name as a file is
 subtle but crucial.  When an Emacs variable or function argument is
@@ -1635,7 +1716,7 @@ always a directory name.
 
   The following two functions convert between directory names and file
 names.  They do nothing special with environment variable substitutions
-such as @samp{$HOME}, and the constructs @samp{~}, and @samp{..}.
+such as @samp{$HOME}, and the constructs @samp{~}, @samp{.} and @samp{..}.
 
 @defun file-name-as-directory filename
 This function returns a string representing @var{filename} in a form
@@ -1713,7 +1794,9 @@ abbreviations to use for file directories.  Each element has the form
 @code{(@var{from} . @var{to})}, and says to replace @var{from} with
 @var{to} when it appears in a directory name.  The @var{from} string is
 actually a regular expression; it should always start with @samp{^}.
-The function @code{abbreviate-file-name} performs these substitutions.
+The @var{to} string should be an ordinary absolute directory name.  Do
+not use @samp{~} to stand for a home directory in that string.  The
+function @code{abbreviate-file-name} performs these substitutions.
 
 You can set this variable in @file{site-init.el} to describe the
 abbreviations appropriate for your site.
@@ -1732,6 +1815,7 @@ and so on.
   To convert a directory name to its abbreviation, use this
 function:
 
+@anchor{Definition of abbreviate-file-name}
 @defun abbreviate-file-name filename
 This function applies abbreviations from @code{directory-abbrev-alist}
 to its argument, and substitutes @samp{~} for the user's home
@@ -1748,6 +1832,9 @@ to an absolute one.  Since this is done relative to a default directory,
 you must specify the default directory name as well as the file name to
 be expanded.  Expansion also simplifies file names by eliminating
 redundancies such as @file{./} and @file{@var{name}/../}.
+
+In the next two functions, the @var{directory} argument can be either
+a directory name or a directory file name.  @xref{Directory Names}.
 
 @defun expand-file-name filename &optional directory
 This function converts @var{filename} to an absolute file name.  If
@@ -1776,6 +1863,12 @@ used.  For example:
 @end group
 @end example
 
+If the part of the combined file name before the first slash is
+@samp{~}, it expands to the value of the @env{HOME} environment
+variable (usually your home directory).  If the part before the first
+slash is @samp{~@var{user}} and if @var{user} is a valid login name,
+it expands to @var{user}'s home directory.
+
 Filenames containing @samp{.} or @samp{..} are simplified to their
 canonical form:
 
@@ -1788,6 +1881,27 @@ canonical form:
 
 Note that @code{expand-file-name} does @emph{not} expand environment
 variables; only @code{substitute-in-file-name} does that.
+
+Note also that @code{expand-file-name} does not follow symbolic links
+at any level.  This results in a difference between the way
+@code{file-truename} and @code{expand-file-name} treat @samp{..}.
+Assuming that @samp{/tmp/bar} is a symbolic link to the directory
+@samp{/tmp/foo/bar} we get:
+
+@example
+@group
+(file-truename "/tmp/bar/../myfile")
+     @result{} "/tmp/foo/myfile"
+@end group
+@group
+(expand-file-name "/tmp/bar/../myfile")
+     @result{} "/tmp/myfile"
+@end group
+@end example
+
+If you may need to follow symbolic links preceding @samp{..}, you
+should make sure to call @code{file-truename} without prior direct or
+indirect calls to @code{expand-file-name}.  @xref{Truenames}.
 @end defun
 
 @c Emacs 19 feature
@@ -1829,8 +1943,9 @@ default-directory
 @end example
 @end defvar
 
+@anchor{Definition of substitute-in-file-name}
 @defun substitute-in-file-name filename
-This function replaces environment variables references in
+This function replaces environment variable references in
 @var{filename} with the environment variable values.  Following
 standard Unix shell syntax, @samp{$} is the prefix to substitute an
 environment variable value.  If the input contains @samp{$$}, that is
@@ -1862,8 +1977,9 @@ the user's home directory name, has value @samp{/xcssun/users/rms}.
 @end group
 @end example
 
-After substitution, if a @samp{~} or a @samp{/} appears following a
-@samp{/}, everything before the following @samp{/} is discarded:
+After substitution, if a @samp{~} or a @samp{/} appears immediately
+after another @samp{/}, the function discards everything before it (up
+through the immediately preceding @samp{/}).
 
 @example
 @group
@@ -1895,7 +2011,7 @@ construct a name for such a file, starting in Emacs 21:
 The job of @code{make-temp-file} is to prevent two different users or
 two different jobs from trying to use the exact same file name.
 
-@defun make-temp-file prefix &optional dir-flag
+@defun make-temp-file prefix &optional dir-flag suffix
 @tindex make-temp-file
 This function creates a temporary file and returns its name.
 The name starts with @var{prefix}; it also contains a number that is
@@ -1913,8 +2029,12 @@ When @code{make-temp-file} returns, the file has been created and is
 empty.  At that point, you should write the intended contents into the
 file.
 
-If @var{dir-flag} is non-@code{nil}, @code{make-temp-file} creates
-an empty directory instead of an empty file.
+If @var{dir-flag} is non-@code{nil}, @code{make-temp-file} creates an
+empty directory instead of an empty file.  It returns the file name,
+not the directory name, of that directory.  @xref{Directory Names}.
+
+If @var{suffix} is non-@code{nil}, @code{make-temp-file} adds it at
+the end of the file name.
 
 To prevent conflicts among different libraries running in the same
 Emacs, each Lisp program that uses @code{make-temp-file} should have its
@@ -1944,9 +2064,10 @@ you should use @code{make-temp-name} instead:
 This function generates a string that can be used as a unique file name.
 The name starts with @var{string}, and contains a number that is
 different in each Emacs job.  It is like @code{make-temp-file} except
-that it just constructs a name, and does not create a file.  On MS-DOS,
-the @var{string} prefix can be truncated to fit into the 8+3 file-name
-limits.
+that it just constructs a name, and does not create a file.  Another
+difference is that @var{string} should be an absolute file name.  On
+MS-DOS, this function can truncate the @var{string} prefix to fit into
+the 8+3 file-name limits.
 @end defun
 
 @defvar temporary-file-directory
@@ -1964,11 +2085,11 @@ system; it is based on the @code{TMPDIR}, @code{TMP} and @code{TEMP}
 environment variables, with a fall-back to a system-dependent name if
 none of these variables is defined.
 
-Even if you do not use @code{make-temp-name} to choose the temporary
-file's name, you should still use this variable to decide which
-directory to put the file in.  However, if you expect the file to be
-small, you should use @code{small-temporary-file-directory} first if
-that is non-@code{nil}.
+Even if you do not use @code{make-temp-file} to create the temporary
+file, you should still use this variable to decide which directory to
+put the file in.  However, if you expect the file to be small, you
+should use @code{small-temporary-file-directory} first if that is
+non-@code{nil}.
 @end defvar
 
 @tindex small-temporary-file-directory
@@ -2066,8 +2187,8 @@ has five files whose names begin with @samp{f}: @file{foo},
 @defopt completion-ignored-extensions
 @code{file-name-completion} usually ignores file names that end in any
 string in this list.  It does not ignore them when all the possible
-completions end in one of these suffixes or when a buffer showing all
-possible completions is displayed.@refill
+completions end in one of these suffixes.  This variable has no effect
+on @code{file-name-all-completions}.@refill
 
 A typical value might look like this:
 
@@ -2176,17 +2297,20 @@ An error is signaled if @var{directory} is not the name of a directory
 that can be read.
 @end defun
 
-@defun directory-files-and-attributes directory &optional full-name match-regexp nosort
+@defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format
 This is similar to @code{directory-files} in deciding which files
 to report on and how to report their names.  However, instead
 of returning a list of file names, it returns for each file a
 list @code{(@var{filename} . @var{attributes})}, where @var{attributes}
 is what @code{file-attributes} would return for that file.
+The optional argument @var{id-format} has the same meaning as the
+corresponding argument to @code{file-attributes} (@pxref{Definition
+of file-attributes}).
 @end defun
 
 @defun file-name-all-versions file dirname
 This function returns a list of all versions of the file named
-@var{file} in directory @var{dirname}.
+@var{file} in directory @var{dirname}.  It is only available on VMS.
 @end defun
 
 @tindex file-expand-wildcards
@@ -2207,6 +2331,8 @@ normally also relative to the current default directory.  However, if
 This function inserts (in the current buffer) a directory listing for
 directory @var{file}, formatted with @code{ls} according to
 @var{switches}.  It leaves point after the inserted text.
+@var{switches} may be a string of options, or a list of strings
+representing individual options.
 
 The argument @var{file} may be either a directory name or a file
 specification including wildcard characters.  If @var{wildcard} is
@@ -2228,6 +2354,12 @@ If @var{wildcard} is non-@code{nil}, it also runs the shell specified by
 MS-DOS and MS-Windows systems usually lack the standard Unix program
 @code{ls}, so this function emulates the standard Unix program @code{ls}
 with Lisp code.
+
+As a technical detail, when @var{switches} contains the long
+@samp{--dired} option, @code{insert-directory} treats it specially,
+for the sake of dired.  However, the normally equivalent short
+@samp{-D} option is just passed on to @code{insert-directory-program},
+as any other option.
 @end defun
 
 @defvar insert-directory-program
@@ -2247,8 +2379,9 @@ delete directories.
 
 @defun make-directory dirname &optional parents
 This function creates a directory named @var{dirname}.
-If @var{parents} is non-@code{nil}, that means to create
-the parent directories first, if they don't already exist.
+If @var{parents} is non-@code{nil}, as is always the case in an
+interactive call, that means to create the parent directories first,
+if they don't already exist.
 @end defun
 
 @defun delete-directory dirname
@@ -2256,6 +2389,9 @@ This function deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
 must use @code{delete-directory} for them.  If the directory contains
 any files, @code{delete-directory} signals an error.
+
+This function only follows symbolic links at the level of parent
+directories.
 @end defun
 
 @node Magic File Names
@@ -2287,10 +2423,10 @@ check the given file name against @code{file-name-handler-alist}.  If
 the file name matches @var{regexp}, the primitives handle that file by
 calling @var{handler}.
 
-The first argument given to @var{handler} is the name of the primitive;
-the remaining arguments are the arguments that were passed to that
-primitive.  (The first of these arguments is most often the file name
-itself.)  For example, if you do this:
+The first argument given to @var{handler} is the name of the
+primitive, as a symbol; the remaining arguments are the arguments that
+were passed to that primitive.  (The first of these arguments is most
+often the file name itself.)  For example, if you do this:
 
 @example
 (file-exists-p @var{filename})
@@ -2501,7 +2637,7 @@ of the local copy file.
 @end defun
 
 @defun file-remote-p filename
-This functions return @code{t} if @var{filename} is a remote file---that is,
+This function returns @code{t} if @var{filename} is a remote file---that is,
 a magic file name that handles @code{file-local-copy}.
 @end defun
 
@@ -2631,11 +2767,14 @@ When @code{write-region} writes data into a file, it first calls the
 encoding functions for the formats listed in @code{buffer-file-format},
 in the order of appearance in the list.
 
-@deffn Command format-write-file file format
-This command writes the current buffer contents into the file @var{file}
-in format @var{format}, and makes that format the default for future
-saves of the buffer.  The argument @var{format} is a list of format
-names.
+@deffn Command format-write-file file format &optional confirm
+This command writes the current buffer contents into the file
+@var{file} in format @var{format}, and makes that format the default
+for future saves of the buffer.  The argument @var{format} is a list
+of format names.  Except for the @var{format} argument, this command
+is similar to @code{write-file}.  In particular, @var{confirm} has the
+same meaning and interactive treatment as the corresponding argument
+to @code{write-file}.  @xref{Definition of write-file}.
 @end deffn
 
 @deffn Command format-find-file file format
@@ -2667,8 +2806,10 @@ The argument @var{format} is a list of format names.  If @var{format} is
 This variable specifies the format to use for auto-saving.  Its value is
 a list of format names, just like the value of
 @code{buffer-file-format}; however, it is used instead of
-@code{buffer-file-format} for writing auto-save files.  This variable is
-always buffer-local in all buffers.
+@code{buffer-file-format} for writing auto-save files.  If the value
+is @code{t}, the default, auto-saving uses the same format as a
+regular save in the same buffer.  This variable is always buffer-local
+in all buffers.
 @end defvar
 
 @ignore
