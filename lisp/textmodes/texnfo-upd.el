@@ -197,6 +197,9 @@ are inserted as descriptions."
           (while (and (< (point) region-end)
                       (texinfo-find-higher-level-node level region-end))
             (setq level (texinfo-hierarchic-level))
+	    ;; Don't allow texinfo-find-higher-level-node
+	    ;; to find the same node again.
+	    (forward-line 1)
             (while (texinfo-find-lower-level-node level region-end)
               (setq level (texinfo-hierarchic-level)) ; new, lower level
               (texinfo-make-one-menu level))))))
@@ -304,7 +307,11 @@ of the node if one is found; else do not move point."
 Search is limited to the end of the marked region, REGION-END.
 
 Return t if the node is found, else nil.  Leave point at the beginning
-of the node if one is found; else do not move point."
+of the node if one is found; else do not move point.
+
+A `@node' line starting at point does count as a match;
+if the match is found there, the value is t and point does not move."
+
   (let ((case-fold-search t))
     (cond
      ((or (string-equal "top" level) (string-equal "chapter" level))
