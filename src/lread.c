@@ -165,7 +165,11 @@ unreadchar (readcharfun, c)
      Lisp_Object readcharfun;
      int c;
 {
-  if (XTYPE (readcharfun) == Lisp_Buffer)
+  if (c == -1)
+    /* Don't back up the pointer if we're unreading the end-of-input mark,
+       since readchar didn't advance it when we read it.  */
+    ;
+  else if (XTYPE (readcharfun) == Lisp_Buffer)
     {
       if (XBUFFER (readcharfun) == current_buffer)
 	SET_PT (point - 1);
