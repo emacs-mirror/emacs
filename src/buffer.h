@@ -199,7 +199,7 @@ Boston, MA 02111-1307, USA.  */
   while (0)
      
 
-/* Macros to set PT in the current buffer, or another buffer..  */
+/* Macros to set PT in the current buffer, or another buffer.  */
 
 #define SET_PT(position) (set_point (current_buffer, (position)))
 #define TEMP_SET_PT(position) (temp_set_point (current_buffer, (position)))
@@ -540,7 +540,7 @@ struct buffer
      This comes before `name' because it is marked in a special way.  */
   Lisp_Object undo_list;
 
-  /* Everything from here down must be a Lisp_Object */
+  /* Everything from here down must be a Lisp_Object.  */
 
   /* The name of this buffer.  */
   Lisp_Object name;
@@ -593,9 +593,9 @@ struct buffer
   /* This buffer's category table.  */
   Lisp_Object category_table;
 
-  /* Values of several buffer-local variables */
+  /* Values of several buffer-local variables.  */
   /* tab-width is buffer-local so that redisplay can find it
-     in buffers that are not current */
+     in buffers that are not current.  */
   Lisp_Object case_fold_search;
   Lisp_Object tab_width;
   Lisp_Object fill_column;
@@ -663,7 +663,7 @@ struct buffer
      saving.  */
   Lisp_Object buffer_file_coding_system;
 
-  /* List of symbols naming the file format used for visited file. */
+  /* List of symbols naming the file format used for visited file.  */
   Lisp_Object file_format;
 
   /* True if the newline position cache and width run cache are
