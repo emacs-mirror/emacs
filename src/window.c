@@ -2694,7 +2694,7 @@ shrink_windows (total, size, nchildren, shrinkable,
             ++nonzero_sizes;
             nonzero_idx = i;
           }
-      
+
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_size)
           {
@@ -3011,6 +3011,9 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
   if (EQ (window, selected_window))
     b->last_selected_window = window;
+
+  /* Let redisplay errors through.  */
+  b->display_error_modiff = 0;
 
   /* Update time stamps of buffer display.  */
   if (INTEGERP (b->display_count))
