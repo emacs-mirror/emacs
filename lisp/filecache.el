@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: convenience
-;; Time-stamp: <2000-08-28 16:18:03 pbreton>
+;; Time-stamp: <2000-08-31 19:44:13 pbreton>
 ;;
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
@@ -324,8 +324,7 @@ Find is run in DIRECTORY."
     (call-process file-cache-find-command nil
 		  (get-buffer file-cache-buffer) nil
 		  dir "-name"
-		  (if (memq system-type
-			    (list 'windows-nt 'ms-dos)) "'*'" "*")
+		  (if (eq system-type 'windows-nt) "'*'" "*")
 		  "-print")
     (file-cache-add-from-file-cache-buffer)))
 
