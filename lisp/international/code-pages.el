@@ -3896,6 +3896,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Ъ]
  "Unicode-based KOI8-T encoding for Cyrillic")
 (coding-system-put 'koi8-t 'mime-charset nil) ; not in the IANA list
+(define-coding-system-alias 'cyrillic-koi8-t 'koi8-t)
 
 ;;   Online final ISO draft:
 
