@@ -490,8 +490,10 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
-;; We have base64 functions built in now.
+;; We have base64 and md5 functions built in now.
 (add-to-list 'features 'base64)
+(add-to-list 'features 'md5)
+(add-to-list 'features 'overlay)
 
 (define-key esc-map "\t" 'complete-symbol)
 
