@@ -393,6 +393,9 @@ if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
   extrasub='/^VPATH[	 ]*=/c\
 vpath %.c $(srcdir)\
 vpath %.h $(srcdir)\
+vpath %.y $(srcdir)\
+vpath %.l $(srcdir)\
+vpath %.s $(srcdir)\
 vpath %.in $(srcdir)'
 fi
 
