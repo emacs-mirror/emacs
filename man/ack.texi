@@ -459,10 +459,10 @@ load-path problems when some Lisp file ``shadows'' another.
 
 @item
 Simon Josefsson wrote @file{flow-fill.el}, a package for interpreting
-RFC2646 formatted text in messages, @file{imap.el}, an Emacs Lips
-library for talking to IMAP servers, @file{nnimap}, the IMAP
-back-end for Gnus, nd @file{rfc2104.el}, a hashed message authentication
-facility.
+RFC2646 formatted text in messages, @file{imap.el}, an Emacs Lisp
+library for talking to IMAP servers, @file{nnimap}, the IMAP back-end
+for Gnus, @file{rfc2104.el}, a hashed message authentication facility,
+and @file{fringe.el} a package for customizing the fringe.
 
 @item
 Tomoji Kagatani implemented @file{smtpmail.el}, used for sending out
