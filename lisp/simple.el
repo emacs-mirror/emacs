@@ -178,13 +178,13 @@ useful for editing binary files."
 		      (eq overwrite-mode 'overwrite-mode-binary))
 		  (read-quoted-char)
 		(read-char))))
-    ;; Assume character codes 0200 - 0377 stand for 
-    ;; European characters in Latin-1, and convert them
-    ;; to Emacs characters.
-    (and enable-multibyte-characters
-	 (>= char ?\200)
-	 (<= char ?\377)
-	 (setq char (+ nonascii-insert-offset char)))
+    ;; Assume character codes 0240 - 0377 stand for characters in some
+    ;; single-byte character set, and convert them to Emacs
+    ;; characters.
+    (if (and enable-multibyte-characters
+	     (>= char ?\240)
+	     (<= char ?\377))
+	(setq char (unibyte-char-to-multibyte char)))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
