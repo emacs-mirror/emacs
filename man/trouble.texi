@@ -570,9 +570,9 @@ specified dribble file until the Emacs process is killed.
 @item
 @findex open-termscript
 @cindex termscript file
-@cindex @code{TERM} environment variable
+@cindex @env{TERM} environment variable
 For possible display bugs, the terminal type (the value of environment
-variable @code{TERM}), the complete termcap entry for the terminal from
+variable @env{TERM}), the complete termcap entry for the terminal from
 @file{/etc/termcap} (since that file is not identical on all machines),
 and the output that Emacs actually sent to the terminal.
 
@@ -946,14 +946,14 @@ form that is clearly safe to install.
 
 If you would like to help pretest Emacs releases to assure they work
 well, or if you would like to work on improving Emacs, please contact
-the maintainers at @code{bug-gnu-emacs@@gnu.org}.  A pretester
+the maintainers at @email{bug-gnu-emacs@@gnu.org}.  A pretester
 should be prepared to investigate bugs as well as report them.  If you'd
 like to work on improving Emacs, please ask for suggested projects or
 suggest your own ideas.
 
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
-@code{bug-gnu-emacs@@gnu.org} before you start; it might be
+@email{bug-gnu-emacs@@gnu.org} before you start; it might be
 possible to suggest ways to make your extension fit in better with the
 rest of Emacs.
 
@@ -966,7 +966,7 @@ ways to find it:
 @itemize @bullet
 @item
 Send a message to the mailing list
-@code{help-gnu-emacs@@gnu.org}, or post your request on
+@email{help-gnu-emacs@@gnu.org}, or post your request on
 newsgroup @code{gnu.emacs.help}.  (This mailing list and newsgroup
 interconnect, so it does not matter which one you use.)
 

@@ -111,7 +111,7 @@ conversion, uncompression and auto mode selection as
 @vindex default-enable-multibyte-characters
   To turn off multibyte character support by default, start Emacs with
 the @samp{--unibyte} option (@pxref{Initial Options}), or set the
-environment variable @samp{EMACS_UNIBYTE}.  You can also customize
+environment variable @env{EMACS_UNIBYTE}.  You can also customize
 @code{enable-multibyte-characters} or, equivalently, directly set the
 variable @code{default-enable-multibyte-characters} in your init file to
 have basically the same effect as @samp{--unibyte}.

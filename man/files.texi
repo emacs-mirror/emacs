@@ -98,7 +98,7 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 
   @samp{$} in a file name is used to substitute environment variables.
 For example, if you have used the shell command @samp{export
-FOO=rms/hacks} to set up an environment variable named @code{FOO}, then
+FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
 you can use @file{/u/$FOO/test.c} or @file{/u/$@{FOO@}/test.c} as an
 abbreviation for @file{/u/rms/hacks/test.c}.  The environment variable
 name consists of all the alphanumeric characters after the @samp{$};
@@ -543,8 +543,8 @@ control the making of backups for that buffer's file.  For example,
 Rmail mode locally sets @code{version-control} to @code{never} to make sure
 that there is only one backup for an Rmail file.  @xref{Locals}.
 
-@cindex @code{VERSION_CONTROL} environment variable
-  If you set the environment variable @code{VERSION_CONTROL}, to tell
+@cindex @env{VERSION_CONTROL} environment variable
+  If you set the environment variable @env{VERSION_CONTROL}, to tell
 various GNU utilities what to do with backup files, Emacs also obeys the
 environment variable by setting the Lisp variable @code{version-control}
 accordingly at startup.  If the environment variable's value is @samp{t}
@@ -2079,13 +2079,13 @@ file at any time.  However, there are ways to restrict this, resulting
 in behavior that resembles locking.
 
 @cindex CVSREAD environment variable (CVS)
-  For one thing, you can set the @code{CVSREAD} environment variable to
+  For one thing, you can set the @env{CVSREAD} environment variable to
 an arbitrary value.  If this variable is defined, CVS makes your work
 files read-only by default.  In Emacs, you must type @kbd{C-x C-q} to
 make the file writeable, so that editing works in fact similar as if
 locking was used.  Note however, that no actual locking is performed, so
 several users can make their files writeable at the same time.  When
-setting @code{CVSREAD} for the first time, make sure to check out all
+setting @env{CVSREAD} for the first time, make sure to check out all
 your modules anew, so that the file protections are set correctly.
 
 @cindex cvs watch feature

@@ -171,14 +171,14 @@ the @samp{Reply-to} address in preference to the @samp{From} address.
 By adding a @samp{Reply-to} field to your header, you can work around
 any problems your @samp{From} address may cause for replies.
 
-@cindex @code{REPLYTO} environment variable
+@cindex @env{REPLYTO} environment variable
 @vindex mail-default-reply-to
 To put a fixed @samp{Reply-to} address into every outgoing message, set
 the variable @code{mail-default-reply-to} to that address (as a string).
 Then @code{mail} initializes the message with a @samp{Reply-to} field as
 specified.  You can delete or alter that header field before you send
 the message, if you wish.  When Emacs starts up, if the environment
-variable @code{REPLYTO} is set, @code{mail-default-reply-to} is
+variable @env{REPLYTO} is set, @code{mail-default-reply-to} is
 initialized from that environment variable.
 
 @item In-reply-to

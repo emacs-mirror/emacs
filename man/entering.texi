@@ -6,7 +6,7 @@
 @cindex entering Emacs
 @cindex starting Emacs 
 
-  The usual way to invoke Emacs is with the shell command @samp{emacs}.
+  The usual way to invoke Emacs is with the shell command @command{emacs}.
 Emacs clears the screen and then displays an initial help message and
 copyright notice.  Some operating systems discard all type-ahead when
 Emacs starts up; they give Emacs no way to prevent this.  Therefore, it
@@ -14,7 +14,7 @@ is advisable to wait until Emacs clears the screen before typing your
 first editing command.
 
   If you run Emacs from a shell window under the X Window System, run it
-in the background with @samp{emacs&}.  This way, Emacs does not tie up
+in the background with @command{emacs&}.  This way, Emacs does not tie up
 the shell window, so you can use that to run other shell commands while
 Emacs operates its own X windows.  You can begin typing Emacs commands
 as soon as you direct your keyboard input to the Emacs frame.
@@ -86,12 +86,12 @@ Kill Emacs (@code{save-buffers-kill-emacs}).
 @findex suspend-emacs
   To suspend Emacs, type @kbd{C-z} (@code{suspend-emacs}).  This takes
 you back to the shell from which you invoked Emacs.  You can resume
-Emacs with the shell command @samp{%emacs} in most common shells.
+Emacs with the shell command @command{%emacs} in most common shells.
 
   On systems that do not support suspending programs, @kbd{C-z} starts
 an inferior shell that communicates directly with the terminal.
 Emacs waits until you exit the subshell.  (The way to do that is
-probably with @kbd{C-d} or @samp{exit}, but it depends on which shell
+probably with @kbd{C-d} or @command{exit}, but it depends on which shell
 you use.)  The only way on these systems to get back to the shell from
 which Emacs was run (to log out, for example) is to kill Emacs.
 

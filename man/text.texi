@@ -1440,11 +1440,11 @@ view the progress of your output towards being printed.  If your terminal
 has the ability to display @TeX{} output files, you can preview the
 output on the terminal with @kbd{C-c C-v} (@code{tex-view}).
 
-@cindex @code{TEXINPUTS} environment variable
+@cindex @env{TEXINPUTS} environment variable
 @vindex tex-directory
   You can specify the directory to use for running @TeX{} by setting the
 variable @code{tex-directory}.  @code{"."} is the default value.  If
-your environment variable @code{TEXINPUTS} contains relative directory
+your environment variable @env{TEXINPUTS} contains relative directory
 names, or if your files contains @samp{\input} commands with relative
 file names, then @code{tex-directory} @emph{must} be @code{"."} or you
 will get the wrong results.  Otherwise, it is safe to specify some other

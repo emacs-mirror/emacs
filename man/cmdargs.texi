@@ -91,7 +91,7 @@ Visit @var{file} using @code{find-file}, then go to line number
 Load a Lisp library named @var{file} with the function @code{load}.
 @xref{Lisp Libraries}.  The library can be found either in the current
 directory, or in the Emacs library search path as specified
-with @code{EMACSLOADPATH} (@pxref{General Variables}).
+with @env{EMACSLOADPATH} (@pxref{General Variables}).
 
 @item -f @var{function}
 @itemx --funcall=@var{function}
@@ -140,7 +140,7 @@ the initial Emacs frame.
 
 @item -nw
 @itemx --no-windows
-Don't communicate directly with X, disregarding the @code{DISPLAY}
+Don't communicate directly with X, disregarding the @env{DISPLAY}
 environment variable even if it is set.
 
 @need 3000
@@ -186,10 +186,10 @@ Enable the Emacs Lisp debugger for errors in the init file.
 Set up to do almost everything with single-byte buffers and strings.
 All buffers and strings are unibyte unless you (or a Lisp program)
 explicitly ask for a multibyte buffer or string.  Setting the
-environment variable @code{EMACS_UNIBYTE} has the same effect.
+environment variable @env{EMACS_UNIBYTE} has the same effect.
 
 @item --multibyte
-Inhibit the effect of @code{EMACS_UNIBYTE}, so that Emacs
+Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
 uses multibyte characters by default, as usual.
 @end table
 
@@ -240,7 +240,7 @@ within the shell that is the parent of the Emacs job.  This is why
 @code{edit} is an alias rather than a program or a shell script.  It is
 not possible to implement a resumption command that could be run from
 other subjobs of the shell; no way to define a command that could be
-made the value of @code{EDITOR}, for example.  Therefore, this feature
+made the value of @env{EDITOR}, for example.  Therefore, this feature
 does not take the place of the Emacs Server feature (@pxref{Emacs
 Server}).
 
@@ -264,7 +264,7 @@ conventional to use upper case letters only.
 Because environment variables come from the operating system there is no
 general way to set them; it depends on the operating system and
 especially the shell that you are using.  For example, here's how to set
-the environment variable @code{ORGANIZATION} to @samp{not very much}
+the environment variable @env{ORGANIZATION} to @samp{not very much}
 using bash:
 
 @example
@@ -290,7 +290,7 @@ the X documentation for more information.
 @node General Variables
 @appendixsubsec General Variables
 
-@table @code
+@table @env
 @item AUTHORCOPY
 The name of a file used to archive news articles posted with the @sc{gnus}
 package.
@@ -322,7 +322,7 @@ overrides the setting in @file{paths.h} when Emacs was built.
 The location of Emacs-specific binaries.  Setting this variable
 overrides the setting in @file{paths.h} when Emacs was built.
 @item ESHELL
-Used for shell-mode to override the @code{SHELL} environment variable.
+Used for shell-mode to override the @env{SHELL} environment variable.
 @item HISTFILE
 The name of the file that shell commands are saved in between logins.
 This variable defaults to @file{~/.history} if you use (t)csh as shell,
@@ -355,7 +355,7 @@ entries in @code{locale-language-names},
 environment and coding system.  The first of these environment variables
 with a nonempty value specifies the locale.
 @item LOGNAME
-The user's login name.  See also @code{USER}.
+The user's login name.  See also @env{USER}.
 @item MAIL
 The name of the user's system mail inbox.
 @item MAILRC
@@ -394,7 +394,7 @@ set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 handles the machine's own display.
 @item TERMCAP
 The name of the termcap library file describing how to program the
-terminal specified by the @code{TERM} variable.  This defaults to
+terminal specified by the @env{TERM} variable.  This defaults to
 @file{/etc/termcap}.
 @item TMPDIR
 Used by the Emerge package as a prefix for temporary files.
@@ -403,7 +403,7 @@ This specifies the current time zone and possibly also daylight savings
 information.  On MS-DOS, the default is based on country code; see the
 file @file{msdos.c} for details.
 @item USER
-The user's login name.  See also @code{LOGNAME}.  On MS-DOS, this
+The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
 @item VERSION_CONTROL
 Used to initialize the @code{version-control} variable (@pxref{Backup
@@ -415,13 +415,13 @@ Names}).
 
 These variables are used only on particular configurations:
 
-@table @code
+@table @env
 @item COMSPEC
 On MS-DOS, the name of the command interpreter to use.  This is used to
-make a default value for the @code{SHELL} environment variable.
+make a default value for the @env{SHELL} environment variable.
 
 @item NAME
-On MS-DOS, this variable defaults to the value of the @code{USER}
+On MS-DOS, this variable defaults to the value of the @env{USER}
 variable.
 
 @item TEMP
@@ -455,9 +455,9 @@ Used when initializing the Sun windows system.
 @node Display X
 @appendixsec Specifying the Display Name 
 @cindex display name (X Windows)
-@cindex @code{DISPLAY} environment variable
+@cindex @env{DISPLAY} environment variable
 
-  The environment variable @code{DISPLAY} tells all X clients, including
+  The environment variable @env{DISPLAY} tells all X clients, including
 Emacs, where to display their windows.  Its value is set up by default
 in ordinary circumstances, when you start an X server and run jobs
 locally.  Occasionally you may need to specify the display yourself; for
@@ -470,7 +470,7 @@ window displayed at their local terminal.  You might need to use login
 to another system because the files you want to edit are there, or
 because the Emacs executable file you want to run is there.
 
-  The syntax of the @code{DISPLAY} environment variable is
+  The syntax of the @env{DISPLAY} environment variable is
 @samp{@var{host}:@var{display}.@var{screen}}, where @var{host} is the
 host name of the X Window System server machine, @var{display} is an
 arbitrarily-assigned number that distinguishes your server (X terminal)
@@ -481,10 +481,10 @@ included, @var{screen} is usually zero.
 
   For example, if your host is named @samp{glasperle} and your server is
 the first (or perhaps the only) server listed in the configuration, your
-@code{DISPLAY} is @samp{glasperle:0.0}.
+@env{DISPLAY} is @samp{glasperle:0.0}.
 
   You can specify the display name explicitly when you run Emacs, either
-by changing the @code{DISPLAY} variable, or with the option @samp{-d
+by changing the @env{DISPLAY} variable, or with the option @samp{-d
 @var{display}} or @samp{--display=@var{display}}.  Here is an example:
 
 @smallexample

@@ -1806,7 +1806,7 @@ In La@TeX{} text, the argument of any of the commands @code{\chapter},
 tag.@refill
 
 Other commands can make tags as well, if you specify them in the
-environment variable @code{TEXTAGS} before invoking @code{etags}.  The
+environment variable @env{TEXTAGS} before invoking @code{etags}.  The
 value of this environment variable should be a colon-separated list of
 command names.  For example,
 

@@ -302,10 +302,10 @@ mail with Rmail.  This operation is called @dfn{getting new mail}.  You
 can get new mail at any time in Rmail by typing @kbd{g}.
 
 @vindex rmail-primary-inbox-list
-@cindex @code{MAIL} environment variable
+@cindex @env{MAIL} environment variable
   The variable @code{rmail-primary-inbox-list} contains a list of the
 files which are inboxes for your primary Rmail file.  If you don't set
-this variable explicitly, it is initialized from the @code{MAIL}
+this variable explicitly, it is initialized from the @env{MAIL}
 environment variable, or, as a last resort, set to @code{nil}, which
 means to use the default inbox.  The default inbox is
 @file{/var/mail/@var{username}}, @file{/usr/spool/mail/@var{username}},
@@ -1122,13 +1122,13 @@ with POP if you compile it with the macro @code{MAIL_USE_POP} defined.
 @code{movemail} only works with POP3, not with older
 versions of POP.
 
-@cindex @code{MAILHOST} environment variable
+@cindex @env{MAILHOST} environment variable
 @cindex POP inboxes
   Assuming you have compiled and installed @code{movemail}
 appropriately, you can specify a POP inbox by using a ``file name'' of
 the form @samp{po:@var{username}}, in the inbox list of an Rmail file.
 @code{movemail} handles such a name by opening a connection to the POP
-server.  The @code{MAILHOST} environment variable specifies the machine
+server.  The @env{MAILHOST} environment variable specifies the machine
 to look for the server on; alternatively, you can specify the POP server
 host name as part of the mailbox name using the syntax
 @samp{po:@var{username}:@var{hostname}}.

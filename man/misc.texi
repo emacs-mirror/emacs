@@ -370,11 +370,11 @@ returns the command's exit status when it is called from a Lisp program.
 @vindex shell-file-name
 @cindex environment
   Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify the
-shell to use.  This variable is initialized based on your @code{SHELL}
+shell to use.  This variable is initialized based on your @env{SHELL}
 environment variable when Emacs is started.  If the file name does not
 specify a directory, the directories in the list @code{exec-path} are
 searched; this list is initialized based on the environment variable
-@code{PATH} when Emacs is started.  Your @file{.emacs} file can override
+@env{PATH} when Emacs is started.  Your @file{.emacs} file can override
 either or both of these default initializations.@refill
 
   Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete.
@@ -419,15 +419,15 @@ subshell.  If you rename this buffer as well, you can create a third
 one, and so on.  All the subshells run independently and in parallel.
 
 @vindex explicit-shell-file-name
-@cindex @code{ESHELL} environment variable
-@cindex @code{SHELL} environment variable
+@cindex @env{ESHELL} environment variable
+@cindex @env{SHELL} environment variable
   The file name used to load the subshell is the value of the variable
 @code{explicit-shell-file-name}, if that is non-@code{nil}.  Otherwise,
-the environment variable @code{ESHELL} is used, or the environment
-variable @code{SHELL} if there is no @code{ESHELL}.  If the file name
+the environment variable @env{ESHELL} is used, or the environment
+variable @env{SHELL} if there is no @env{ESHELL}.  If the file name
 specified is relative, the directories in the list @code{exec-path} are
 searched; this list is initialized based on the environment variable
-@code{PATH} when Emacs is started.  Your @file{.emacs} file can override
+@env{PATH} when Emacs is started.  Your @file{.emacs} file can override
 either or both of these default initializations.
 
   To specify a coding system for the shell, you can use the command
@@ -473,7 +473,7 @@ most common command syntax; it may not work for unusual shells.
 alternative and more aggressive method of tracking changes in the
 current directory.
 
-  Emacs defines the environment variable @code{EMACS} in the subshell,
+  Emacs defines the environment variable @env{EMACS} in the subshell,
 with value @code{t}.  A shell script can check this variable to
 determine whether it has been run from an Emacs subshell.
 
@@ -1032,7 +1032,7 @@ type of terminal your using.  Terminal types @samp{ansi}
 or @samp{vt100} will work on most systems.
 
 @c   If you are talking to a Bourne-compatible
-@c shell, and your system understands the @code{TERMCAP} variable,
+@c shell, and your system understands the @env{TERMCAP} variable,
 @c you can use the command @kbd{M-x shell-send-termcap}, which
 @c sends a string specifying the terminal type and size.
 @c (This command is also useful after the window has changed size.)
@@ -1096,13 +1096,13 @@ off directory tracking.
 @pindex emacsclient
 @cindex Emacs as a server
 @cindex server, using Emacs as
-@cindex @code{EDITOR} environment variable
+@cindex @env{EDITOR} environment variable
 
   Various programs such as @code{mail} can invoke your choice of editor
 to edit a particular piece of text, such as a message that you are
 sending.  By convention, most of these programs use the environment
-variable @code{EDITOR} to specify which editor to run.  If you set
-@code{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
+variable @env{EDITOR} to specify which editor to run.  If you set
+@env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
 inconvenient fashion, by starting a new, separate Emacs process.  This
 is inconvenient because it takes time and because the new Emacs process
 doesn't share the buffers in the existing Emacs process.
@@ -1111,18 +1111,18 @@ doesn't share the buffers in the existing Emacs process.
 programs like @code{mail} by using the Emacs client and Emacs server
 programs.  Here is how.
 
-@cindex @code{TEXEDIT} environment variable
+@cindex @env{TEXEDIT} environment variable
   First, the preparation.  Within Emacs, call the function
 @code{server-start}.  (Your @file{.emacs} file can do this automatically
 if you add the expression @code{(server-start)} to it.)  Then, outside
-Emacs, set the @code{EDITOR} environment variable to @samp{emacsclient}.
+Emacs, set the @env{EDITOR} environment variable to @samp{emacsclient}.
 (Note that some programs use a different environment variable; for
 example, to make @TeX{} use @samp{emacsclient}, you should set the
-@code{TEXEDIT} environment variable to @samp{emacsclient +%d %s}.)
+@env{TEXEDIT} environment variable to @samp{emacsclient +%d %s}.)
 
 @kindex C-x #
 @findex server-edit
-  Then, whenever any program invokes your specified @code{EDITOR}
+  Then, whenever any program invokes your specified @env{EDITOR}
 program, the effect is to send a message to your principal Emacs telling
 it to visit a file.  (That's what the program @code{emacsclient} does.)
 Emacs displays the buffer immediately and you can immediately begin
@@ -1131,7 +1131,7 @@ editing it.
   When you've finished editing that buffer, type @kbd{C-x #}
 (@code{server-edit}).  This saves the file and sends a message back to
 the @code{emacsclient} program telling it to exit.  The programs that
-use @code{EDITOR} wait for the ``editor'' (actually, @code{emacsclient})
+use @env{EDITOR} wait for the ``editor'' (actually, @code{emacsclient})
 to exit.  @kbd{C-x #} also checks for other pending external requests
 to edit various files, and selects the next such file.
 

@@ -1,9 +1,16 @@
-2000-05-20  Karl Eichwalder  <ke@suse.de>
+2000-05-23   Gerd Moellmann  <gerd@gnu.org>
 
 	* cmdargs.texi, custom.texi, dired-x.texi, ediff.texi,
 	entering.texi, files.texi, frames.texi, misc.texi, msdog.texi,
 	mule.texi, programs.texi, rmail.texi, sending.texi, text.texi,
 	trouble.texi: Fix markup; mostly replace @code with @env.
+
+	* ebrowse.texi: Use @command.  Change title page.
+	
+2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ebrowse.texi: Various markup and index fixes.  Changes for
+	MS-DOS.
 	
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 

@@ -2286,7 +2286,7 @@ library.  @xref{Hooks}.
 @node Find Init
 @subsection How Emacs Finds Your Init File
 
-  Normally Emacs uses the environment variable @code{HOME} to find
+  Normally Emacs uses the environment variable @env{HOME} to find
 @file{.emacs}; that's what @samp{~} means in a file name.  But if you
 have done @code{su}, Emacs tries to find your own @file{.emacs}, not
 that of the user you are currently pretending to be.  The idea is
@@ -2294,9 +2294,9 @@ that you should get your own editor customizations even if you are
 running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
-It gets the user name from the environment variables @code{LOGNAME} and
-@code{USER}; if neither of those exists, it uses effective user-ID.
-If that user name matches the real user-ID, then Emacs uses @code{HOME};
+It gets the user name from the environment variables @env{LOGNAME} and
+@env{USER}; if neither of those exists, it uses effective user-ID.
+If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.
 @c  LocalWords:  backtab

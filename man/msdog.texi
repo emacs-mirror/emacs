@@ -249,20 +249,20 @@ example, the name of a backup file for @file{docs.txt} is
 turn on support for long file names.  If you do that, Emacs doesn't
 truncate file names or convert them to lower case; instead, it uses the
 file names that you specify, verbatim.  To enable long file name
-support, set the environment variable @code{LFN} to @samp{y} before
+support, set the environment variable @env{LFN} to @samp{y} before
 starting Emacs.  Unfortunately, Windows NT doesn't allow DOS programs to
 access long file names, so Emacs built for MS-DOS will only see their
 short 8+3 aliases.
 
-@cindex @code{HOME} directory under MS-DOS
+@cindex @env{HOME} directory under MS-DOS
   MS-DOS has no notion of home directory, so Emacs on MS-DOS pretends
-that the directory where it is installed is the value of @code{HOME}
+that the directory where it is installed is the value of @env{HOME}
 environment variable.  That is, if your Emacs binary,
 @file{emacs.exe}, is in the directory @file{c:/utils/emacs/bin}, then
-Emacs acts as if @code{HOME} were set to @samp{c:/utils/emacs}.  In
+Emacs acts as if @env{HOME} were set to @samp{c:/utils/emacs}.  In
 particular, that is where Emacs looks for the init file @file{_emacs}.
 With this in mind, you can use @samp{~} in file names as an alias for
-the home directory, as you would in Unix.  You can also set @code{HOME}
+the home directory, as you would in Unix.  You can also set @env{HOME}
 variable in the environment before starting Emacs; its value will then
 override the above default behavior.
 

@@ -443,7 +443,7 @@ speedbar for it.
 
   A single Emacs can talk to more than one X Windows display.
 Initially, Emacs uses just one display---the one specified with the
-@code{DISPLAY} environment variable or with the @samp{--display} option
+@env{DISPLAY} environment variable or with the @samp{--display} option
 (@pxref{Initial Options}).  To connect to another display, use the
 command @code{make-frame-on-display}:
 
