@@ -1454,6 +1454,7 @@ extern void signal_before_change ();
 extern void signal_after_change ();
 
 /* Defined in xdisp.c */
+extern Lisp_Object Vmessage_log_max;
 extern void message ();
 extern void message1 ();
 extern void message1_nolog ();
