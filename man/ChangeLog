@@ -1,3 +1,8 @@
+2005-01-26  Lute Kamstra  <lute@gnu.org>
+
+	* cmdargs.texi (Initial Options): Add a cross reference to `Init
+	File'.  Mention the `-Q' option at the `--no-site-file' option.
+
 2005-01-24  David Kastrup  <dak@gnu.org>
 
 	* faq.texi: Update AUCTeX version info.
