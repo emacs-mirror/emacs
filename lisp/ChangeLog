@@ -1,7 +1,12 @@
+2001-03-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-internal-list): Fix bogus logic.
+	(skeleton-pair-insert-maybe): Don't pair after a backslash.
+
 2001-03-23  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Call
-	ccl-execute-on-string directly so that CCL program handling
+	* international/encoded-kb.el (encoded-kbd-self-insert-ccl):
+	Call ccl-execute-on-string directly so that CCL program handling
 	multibyte sequence can work correctly.
 	(encoded-kbd-setup-keymap): Fix the default value of `valid-codes'
 	property of the coding system.
