@@ -246,19 +246,24 @@ with a prefix argument."
 	(forward-line 1)))))
 
 (defun dired-collect-file-versions (fn)
-  ;;  "If it looks like file FN has versions, return a list of the versions.
-  ;;That is a list of strings which are file names.
-  ;;The caller may want to flag some of these files for deletion."
-    (let* ((base-versions
-	    (concat (file-name-nondirectory fn) ".~"))
-	   (bv-length (length base-versions))
-	   (possibilities (file-name-all-completions
-			   base-versions
-			   (file-name-directory fn)))
-	   (versions (mapcar 'backup-extract-version possibilities)))
-      (if versions
-	  (setq dired-file-version-alist (cons (cons fn versions)
-					       dired-file-version-alist)))))
+  (let ((fn (file-name-sans-versions fn)))
+    ;; Only do work if this file is not already in the alist.
+    (if (assoc fn dired-file-version-alist)
+	nil
+      ;; If it looks like file FN has versions, return a list of the versions.
+      ;;That is a list of strings which are file names.
+      ;;The caller may want to flag some of these files for deletion."
+      (let* ((base-versions
+	      (concat (file-name-nondirectory fn) ".~"))
+	     (bv-length (length base-versions))
+	     (possibilities (file-name-all-completions
+			     base-versions
+			     (file-name-directory fn)))
+	     (versions (mapcar 'backup-extract-version possibilities)))
+	(if versions
+	    (setq dired-file-version-alist
+		  (cons (cons fn versions)
+			dired-file-version-alist)))))))
 
 (defun dired-trample-file-versions (fn)
   (let* ((start-vn (string-match "\\.~[0-9]+~$" fn))
