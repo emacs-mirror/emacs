@@ -208,8 +208,8 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	  (when (re-search-forward "^total" nil t)
 	    (let ((available (get-free-disk-space ".")))
 	      (when available
-		;; Replace "total" with "used", to avoid confusion.
-		(replace-match "used")
+		;; Replace "total" with "total used", to avoid confusion.
+		(replace-match "total used in directory")
 		(end-of-line)
 		(insert " available " available)))))))))
 
