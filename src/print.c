@@ -91,6 +91,9 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 /* Avoid actual stack overflow in print.  */
 int print_depth;
 
+/* Nonzero if inside outputting backquote in old style.  */
+int old_backquote_output;
+
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
 Lisp_Object being_printed[PRINT_CIRCLE];
@@ -1154,6 +1157,7 @@ print (obj, printcharfun, escapeflag)
      int escapeflag;
 {
   print_depth = 0;
+  old_backquote_output = 0;
 
   /* Reset print_number_index and Vprint_number_table only when
      the variable Vprint_continuous_numbering is nil.  Otherwise,
@@ -1582,6 +1586,7 @@ print_object (obj, printcharfun, escapeflag)
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
+	       && ! old_backquote_output
 	       && ((EQ (XCAR (obj), Qbackquote)
 		    || EQ (XCAR (obj), Qcomma)
 		    || EQ (XCAR (obj), Qcomma_at)
@@ -1593,6 +1598,29 @@ print_object (obj, printcharfun, escapeflag)
       else
 	{
 	  PRINTCHAR ('(');
+	  
+	  /* If the first element is a backquote form,
+	     print it old-style so it won't be misunderstood.  */
+	  if (print_quoted && CONSP (XCAR (obj))
+	      && CONSP (XCDR (XCAR (obj)))
+	      && NILP (XCDR (XCDR (XCAR (obj))))
+	      && EQ (XCAR (XCAR (obj)), Qbackquote))
+	    {
+	      Lisp_Object tem;
+	      tem = XCAR (obj);
+	      PRINTCHAR ('(');
+
+	      print_object (Qbackquote, printcharfun, 0);
+	      PRINTCHAR (' ');
+
+	      ++old_backquote_output;
+	      print_object (XCAR (XCDR (tem)), printcharfun, 0);
+	      --old_backquote_output;
+	      PRINTCHAR (')');
+
+	      obj = XCDR (obj);
+	    }
+
 	  {
 	    int print_length, i;
 	    Lisp_Object halftail = obj;
