@@ -102,7 +102,7 @@ Gnus is a Usenet Newsreader and Electronic Mail User Agent implemented
 
 @menu
 * [1.1]::   What is the latest version of Gnus?
-* [1.2]::   What's new in 5.10.0?
+* [1.2]::   What's new in 5.10?
 * [1.3]::   Where and how to get Gnus?
 * [1.4]::   What to do with the tarball now? 
 * [1.5]::   Which version of Emacs do I need?
@@ -119,7 +119,7 @@ What is the latest version of Gnus?
 
 Answer: 
 
- Jingle please: Gnus 5.10.0 is released, get it while it's
+ Jingle please: Gnus 5.10 is released, get it while it's
  hot! As well as the step in version number is rather
  small, Gnus 5.10 has tons of new features which you
  shouldn't miss, however if you are cautious, you might
@@ -131,7 +131,7 @@ Answer:
 @end ifnottex
 @subsubheading Question 1.2: 
 
-What's new in 5.10.0?
+What's new in 5.10?
 
 Answer: 
 
@@ -227,7 +227,7 @@ Which version of Emacs do I need?
 
 Answer: 
 
- Gnus 5.10.0 requires an Emacs version that is greater
+ Gnus 5.10 requires an Emacs version that is greater
  than or equal to Emacs 20.7 or XEmacs 21.1.
  
 @ifnottex
@@ -440,7 +440,7 @@ the line
 @example
 
 SET HOME=C:\myhome
-	    
+            
 @end example
 
 @noindent
@@ -548,9 +548,9 @@ Answer:
 
 @example
 (add-to-list 'gnus-secondary-select-methods 
-	     '(nntp "news.yourSecondProvider.net"))
+             '(nntp "news.yourSecondProvider.net"))
 (add-to-list 'gnus-secondary-select-methods 
-	     '(nntp "news.yourThirdProvider.net"))	    
+             '(nntp "news.yourThirdProvider.net"))          
 @end example
  
 @ifnottex
@@ -745,9 +745,9 @@ Answer:
 (add-to-list 
  'gnus-secondary-select-methods
  '(nnimap "Give the baby a name"
-	  (nnimap-address "imap.yourProvider.net")
-	  (nnimap-port 143)
-	  (nnimap-list-pattern "archive.*")))
+          (nnimap-address "imap.yourProvider.net")
+          (nnimap-port 143)
+          (nnimap-list-pattern "archive.*")))
 @end example
 
 @noindent
@@ -877,7 +877,7 @@ Answer:
  fetched when you enter a group and slow down the process of entering a group).
  
 
- If you already use Gnus 5.10.0, you can say 
+ If you already use Gnus 5.10, you can say 
  @samp{/o N} 
  In summary buffer to load the last N messages, this feature is not available in 5.8.8
  
@@ -1000,7 +1000,7 @@ Answer:
 
 Answer: 
 
- Only if you use Gnus 5.10.0 or younger. In this case you've got the
+ Only if you use Gnus 5.10 or younger. In this case you've got the
  choice between w3, w3m, links, lynx and html2text, which
  one is used can be specified in the variable
  mm-text-html-renderer, so if you want links to render your
@@ -1033,7 +1033,7 @@ Answer:
  @samp{W Y f} gives you full deuglify.
  See @samp{W Y C-h} or
  have a look at the menus for other deuglifications).
- Outlook deuglify is only available since Gnus 5.10.0.
+ Outlook deuglify is only available since Gnus 5.10.
  
 @ifnottex
 @node [4.9], [4.10], [4.8], FAQ 4 - Reading messages
@@ -1204,8 +1204,8 @@ Answer:
 @example
 (gnus-add-configuration 
  '(article (vertical 1.0
-		     (summary .35 point)
-		     (article 1.0))))
+                     (summary .35 point)
+                     (article 1.0))))
 @end example
  
 
@@ -1252,7 +1252,7 @@ Answer:
  sadly hard tabulators are broken in 5.8.8.
  
 
- Since 5.10.0, Gnus offers you some very nice new specifiers,
+ Since 5.10, Gnus offers you some very nice new specifiers,
  e.g. %B which draws a thread-tree and %&user-date which
  gives you a date where the details are dependent of the
  articles age. Here's an example which uses both:
@@ -1771,7 +1771,7 @@ Answer:
 @end example
 
 @noindent
- if you already use Gnus 5.10.0, if you still use 5.8.8 or
+ if you already use Gnus 5.10, if you still use 5.8.8 or
  5.9 try this instead:
  
 
@@ -1793,7 +1793,7 @@ Answer:
 
 Answer: 
 
- Since 5.10.0 Gnus doesn't generate a sender header by
+ Since 5.10 Gnus doesn't generate a sender header by
  default. For older Gnus' try this in ~/.gnus:
  
 
@@ -1851,10 +1851,10 @@ Answer:
 @end example
 @noindent
  in ~/.gnus.  If you use Gnus 5.9 or ealier, you can use this
-instead:
+instead (works for newer versions a well):
 @example
 (eval-after-load "message"
-  '(let (myfqdn "yourmachine.yourdomain.tld");; <-- Edit this!
+  '(let ((fqdn "yourmachine.yourdomain.tld"));; <-- Edit this!
      (if (boundp 'message-user-fqdn)
          (setq message-user-fqdn fqdn)
        (gnus-message 1 "Redefining `message-make-fqdn'.")
@@ -2021,7 +2021,7 @@ Answer:
  the raw message, look for the message-id, and say
  @samp{M-^ the@@message.id RET} in a
  summary buffer.
- Since Gnus 5.10.0 there's also a Gnus interface for
+ Since Gnus 5.10 there's also a Gnus interface for
  groups.google.com which you can call with
  @samp{G W}) in group buffer.
  
@@ -2046,9 +2046,9 @@ Answer:
  engines and with the help of nnir you can search trough
  the indexed mail and generate a temporary group with all
  messages which met your search criteria. If this sound
- cool to you get nnir.el from
- @uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/}
- or @uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
+ cool to you get nnir.el from the contrib directory of the Gnus
+ distribution or
+ @uref{http://quimby.gnus.org/cgi-bin/cvsweb.cgi/~checkout~/gnus/contrib/nnir.el?rev=HEAD&content-type=text/plain}
  Instructions on how to use it are at the top of the file.
  
 @ifnottex
@@ -2231,7 +2231,7 @@ Answer:
  later when you're offline. It kind of mimics offline
  newsreaders like e.g. Forte Agent. If you want to use
  the Agent place the following in ~/.gnus if you are
- still using 5.8.8 or 5.9 (it's the default since 5.10.0):
+ still using 5.8.8 or 5.9 (it's the default since 5.10):
  
 
 @example
@@ -2524,7 +2524,7 @@ Answer:
 
 @noindent
  in ~/.emacs. If you don't care about width of CJK
- characters or use Gnus 5.10.0 or younger together with a
+ characters or use Gnus 5.10 or younger together with a
  recent GNU Emacs, you should say
  
 
@@ -2538,7 +2538,7 @@ Answer:
  two suggestions). Finally if you are still using 5.8.8
  or 5.9 and experience speed problems with summary
  buffer generation, you definitely should update to
- 5.10.0 since there quite some work on improving it has
+ 5.10 since there quite some work on improving it has
  been done.
  
 @ifnottex

@@ -1,3 +1,8 @@
+2004-09-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Narrow to headers
+	in `header' match.  Reported by Svend Tollak Munkejord.
+
 2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-decode.el (mm-copy-to-buffer): Preserve the data's unibyteness.
