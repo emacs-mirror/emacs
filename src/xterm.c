@@ -10767,8 +10767,27 @@ static struct redisplay_interface x_redisplay_interface =
 void
 x_delete_frame_display (struct display *display)
 {
-  /* We don't do anything, the connection to the X server must remain
-     open. */
+  struct x_display_info *dpyinfo = display->display_info;
+
+  BLOCK_INPUT;
+  /* Free the fonts in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
+      }
+
+  x_destroy_all_bitmaps (dpyinfo);
+  XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+#ifdef USE_X_TOOLKIT
+  XtCloseDisplay (dpyinfo->display);
+#else
+  XCloseDisplay (dpyinfo->display);
+#endif
+
+  x_delete_display (dpyinfo);
+  UNBLOCK_INPUT;
 }
 
 

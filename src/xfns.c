@@ -4051,25 +4051,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");
 
-  BLOCK_INPUT;
-  /* Free the fonts in the font table.  */
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name)
-      {
-	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
-      }
-
-  x_destroy_all_bitmaps (dpyinfo);
-  XSetCloseDownMode (dpyinfo->display, DestroyAll);
-
-#ifdef USE_X_TOOLKIT
-  XtCloseDisplay (dpyinfo->display);
-#else
-  XCloseDisplay (dpyinfo->display);
-#endif
-
-  x_delete_display (dpyinfo);
-  UNBLOCK_INPUT;
+  x_delete_frame_display (dpyinfo->frame_display);
 
   return Qnil;
 }
