@@ -2558,7 +2558,8 @@ If VISIT is non-nil, BEG and END must be nil.")
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
     }
 
-  signal_after_change (point, 0, inserted);
+  if (NILP (visit) && total > 0)
+    signal_after_change (point, 0, inserted);
   
   if (inserted > 0)
     {
