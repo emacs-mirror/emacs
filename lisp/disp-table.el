@@ -206,27 +206,17 @@ for users who call this function in `.emacs'."
 	       (equal (aref standard-display-table 161) [161])))
       (progn
 	(standard-display-default 160 255)
-	(unless (or (memq window-system '(x w32))
-		    (interactive-p))
+	(unless (or (memq window-system '(x w32)))
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
-    ;; If the user does this explicitly from Lisp (as in .emacs),
-    ;; turn off multibyte chars for more compatibility.
-    (unless (interactive-p)
-      (setq-default enable-multibyte-characters nil)
-      (mapcar (lambda (buffer)
-		(with-current-buffer buffer
-		  (if enable-multibyte-characters
-		      (set-buffer-multibyte nil))))
-	      (buffer-list)))
-    ;; If the user does this explicitly,
-    ;; switch to Latin-1 language environment
+    ;; Turn off multibyte chars for more compatibility.
+    (setq-default enable-multibyte-characters nil)
+
+    ;; Switch to Latin-1 language environment
     ;; unless some other has been specified.
-    (unless (interactive-p)
-      (if (equal current-language-environment "English")
-	  (set-language-environment "latin-1")))
-    (unless (or noninteractive (memq window-system '(x w32))
-		(interactive-p))
+    (if (equal current-language-environment "English")
+	(set-language-environment "latin-1"))
+    (unless (or noninteractive (memq window-system '(x w32)))
       ;; Send those codes literally to a character-based terminal.
       ;; If we are using single-byte characters,
       ;; it doesn't matter which coding system we use.
