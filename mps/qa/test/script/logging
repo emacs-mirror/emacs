@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.7) $
+# $HopeName: MMQA_harness!script:logging(trunk.8) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -12,16 +12,77 @@ $: = " \n-\\/";
 @LOG_FILES = (STDOUT);
 
 #
+# &verbose_test_report
+# a complete test report, with everything except the transcript,
+# in a machine-readable form suitable for later processing. This
+# is intended to be mailed to an archive.
+#
+
+sub verbose_test_report {
+ local ($LOGFILE, $oldhandle) = @_;
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ %eh = ();
+ print "\n--- ".$log_test_head."\n";
+ &vdispvals(*test_header, *eh);
+ print "\n--- ".$log_test_spec."\n";
+ &vdispvals(*spec_output, *spec_rel);
+ print "\n--- ".$log_test_opts."\n";
+ &vdispopts;
+ print "\n--- ".$log_test_ident."\n";
+ &vdispvals(*identify, *eh);
+ print "\n--- ".$log_test_params."\n";
+ &vdispvals(*parmdefs, *eh);
+ print "\n--- ".$log_test_res."\n";
+ &vdispvals(*real_output, *eh);
+ print "\n--- ".$log_test_conc."\n";
+ %conclusions=("verdict", $testconclusion);
+ &vdispvals(*conclusions, *eh);
+ if ($LOGFILE) {
+  select($oldhandle);
+ }
+}
+
+sub vdispvals {
+ local (*vals, *rels, $key, $rel, $val) = @_;
+
+ foreach $key (sort keys %vals) {
+  $val = $vals{$key};
+  $rel = ($rels{$key} || "=");
+  print "$key $rel $val\n";
+ }
+}
+
+sub vdispopts {
+ local ($key, $rel, $val);
+
+ foreach $key (sort values %qa_options) {
+  if (&getoption($key)) {
+   $val = &getoption($key);
+   $rel = "=";
+   print "$key $rel $val\n";
+  }
+ }
+}
+
+#
 # &describe_test(report_type)
 #
 # prints out report on a test. report_type is one of:
 #   full:    everything
 #   summary: single line, pass/fail
 #   results: test, spec output, results, conclusion
+#   verbose: as produced by verbose_test_report above
 #
 
 sub describe_test {
  local ($report, $LOGFILE, $oldhandle) = @_;
+
+ if ($report eq "verbose") {
+  &verbose_test_report($LOGFILE);
+  return;
+ }
 
  if ($LOGFILE) {
   $oldhandle = select($LOGFILE);
@@ -155,8 +216,10 @@ $barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min      
 # what the output looks like:
 #
 
+$log_test_head   = "TEST HEADER\n";
 $log_test_spec   = "SPECIFIED RESULTS\n";
 $log_test_opts   = "MMQA OPTIONS\n";
+$log_test_ident  = "SETUP USED\n";
 $log_test_params = "PARAMETER SETTINGS\n";
 $log_test_res    = "RESULTS\n";
 $log_test_conc   = "CONCLUSION\n";
