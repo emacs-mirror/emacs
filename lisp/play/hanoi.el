@@ -240,4 +240,6 @@
 	    (backward-char (/ (+ len 1) 2))
 	    (delete-char 1) (insert ?\|))))))
 
-;;; hanoi.el
+(provide 'hanoi)
+
+;;; hanoi.el ends here
