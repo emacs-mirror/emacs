@@ -89,7 +89,7 @@ g:O:with_x:with_x10:\
 
 config_h_opts=":\
 have_x_windows:have_x11:have_x_menu:\
-c_switch_site:sigtype:\
+c_switch_site:sigtype:gnu_malloc:rel_alloc:\
 "
 
 prefix=
@@ -492,6 +492,7 @@ case "${O}" in
 esac
 sed_flags="-e 's:@machine@:${machfile}:'"
 sed_flags="${sed_flags} -e 's:@opsystem@:${opsysfile}:'"
+
 for flag in `echo ${config_h_opts} | tr ':' ' '`; do
   # Note that SYSV `tr' doesn't handle character ranges.
   cflagname=`echo ${flag} \
@@ -510,6 +511,7 @@ for flag in `echo ${config_h_opts} | tr ':' ' '`; do
   esac
   sed_flags="${sed_flags} ${f}"
 done
+
 rm -f src/config.h.tmp
 eval '/bin/sed '${sed_flags}' < src/config.h.in > src/config.h.tmp'
 ./move-if-change src/config.h.tmp src/config.h
