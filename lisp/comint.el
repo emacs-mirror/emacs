@@ -1383,7 +1383,8 @@ applications."
       (if stars
           (message "%s%s" prompt (make-string (length ans) ?*))
         (message prompt))
-      (setq c (read-char))
+      ;; Use this instead of `read-char' to avoid "Non-character input-event".
+      (setq c (read-char-exclusive))
       (cond ((= c ?\C-g)
              ;; This function may get called from a process filter, where
              ;; inhibit-quit is set.  In later versions of emacs read-char
