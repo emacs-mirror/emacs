@@ -24,7 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    for gcc-2.5.8 or later compiler.
    -pmr@pajato.com */
 
-#include "dgux5.4R2.h"
+#include "dgux5-4R2.h"
 
 /* DGUX 5.4R3.00 brought the definition of `struct inet_addr' into
    compliance wiht the majority of Unix systems.  The workaround
