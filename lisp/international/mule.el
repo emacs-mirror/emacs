@@ -269,7 +269,11 @@ don't have corresponding generic characters.  If CHARSET is one of
 them and you don't supply CODE1, return the character of the smallest
 code in CHARSET.
 
-If CODE1 or CODE2 are invalid (out of range), this function signals an error."
+If CODE1 or CODE2 are invalid (out of range), this function signals an
+error.  However, the eighth bit of both CODE1 and CODE2 is zeroed
+before they are used to index CHARSET.  Thus you may use, say, the
+actual ISO 8859 character code rather than subtracting 128, as you
+would need to index the corresponding Emacs charset."
   (make-char-internal (charset-id charset) code1 code2))
 
 (put 'make-char 'byte-compile
@@ -536,21 +540,77 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
 	  (setq tail (cdr tail)))))
     codings))
 
+(defun map-charset-chars (func charset)
+  "Use FUNC to map over all characters in CHARSET for side effects.
+FUNC is a function of two args, the start and end (inclusive) of a
+character code range.  Thus FUNC should iterate over [START, END]."
+  (let* ((dim (charset-dimension charset))
+	 (chars (charset-chars charset))
+	 (start (if (= chars 94)
+		    33
+		  32)))
+    (if (= dim 1)
+	(funcall func
+		 (make-char charset start)
+		 (make-char charset (+ start chars -1)))
+      (dotimes (i chars)
+	(funcall func
+		 (make-char charset (+ i start) start)
+		 (make-char charset (+ i start) (+ start chars -1)))))))
+
 (defun register-char-codings (coding-system safe-chars)
-  (let ((general (char-table-extra-slot char-coding-system-table 0)))
+  "Add entries for CODING-SYSTEM to `char-coding-system-table'.
+If SAFE-CHARS is a char-table, its non-nil entries specify characters
+which CODING-SYSTEM encodes safely.  If SAFE-CHARS is t, register
+CODING-SYSTEM as a general one which can encode all characters."
+  (let ((general (char-table-extra-slot char-coding-system-table 0))
+	;; Charsets which have some members in the table, but not all
+	;; of them (i.e. not just a generic character):
+	(partials (char-table-extra-slot char-coding-system-table 1)))
     (if (eq safe-chars t)
 	(or (memq coding-system general)
 	    (set-char-table-extra-slot char-coding-system-table 0
 				       (cons coding-system general)))
       (map-char-table
-       (function
-	(lambda (key val)
-	  (if (and (>= key 128) val)
-	      (let ((codings (aref char-coding-system-table key)))
-		(or (memq coding-system codings)
-		    (aset char-coding-system-table key
-			  (cons coding-system codings)))))))
-       safe-chars))))
+       (lambda (key val)
+	 (if (and (>= key 128) val)
+	     (let ((codings (aref char-coding-system-table key))
+		   (charset (char-charset key)))
+	       (unless (memq coding-system codings)
+		 (if (and (generic-char-p key)
+			  (memq charset partials))
+		     ;; The generic char would clobber individual
+		     ;; entries already in the table.  First save the
+		     ;; separate existing entries for all chars of the
+		     ;; charset (with the generic entry added, if
+		     ;; necessary).
+		     (let (entry existing)
+		       (map-charset-chars
+			(lambda (start end)
+			  (while (<= start end)
+			    (setq entry (aref char-coding-system-table start))
+			    (when entry
+			      (push (cons
+				     start
+				     (if (memq coding-system entry)
+					 entry
+				       (cons coding-system entry)))
+				    existing))
+			    (setq start (1+ start))))
+			charset)
+		       ;; Update the generic entry.
+		       (aset char-coding-system-table key
+			     (cons coding-system codings))
+		       ;; Override with the saved entries.
+		       (dolist (elt existing)
+			 (aset char-coding-system-table (car elt) (cdr elt))))
+		   (aset char-coding-system-table key
+			 (cons coding-system codings))
+		   (unless (or (memq charset partials)
+			       (generic-char-p key))
+		     (push charset partials)))))))
+       safe-chars)
+      (set-char-table-extra-slot char-coding-system-table 1 partials))))
 
 
 (defun make-subsidiary-coding-system (coding-system)
@@ -770,7 +830,7 @@ following properties are recognized:
   The value is a list to indicate valid byte ranges of the encoded
   file.  Each element of the list is an integer or a cons of integer.
   In the former case, the integer value is a valid byte code.  In the
-  latter case, the integers specifies the range of valid byte codes.
+  latter case, the integers specify the range of valid byte codes.
 
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
@@ -1330,8 +1390,8 @@ function by default."
 	  (if (and pos
 		   (= (char-after head-start) ?#)
 		   (= (char-after (1+ head-start)) ?!))
-	     ;; If the file begins with "#!" (exec interpreter magic),
-	  ;; look for coding frobs in the first two lines.  You cannot
+	      ;; If the file begins with "#!" (exec interpreter magic),
+	      ;; look for coding frobs in the first two lines.  You cannot
 	      ;; necessarily put them in the first line of such a file
 	      ;; without screwing up the interpreter invocation.
 	      (setq pos (search-forward "\n" head-end t)))
