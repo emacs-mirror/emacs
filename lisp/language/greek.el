@@ -64,7 +64,7 @@
 
 (set-language-info-alist
  "Greek" '((charset iso-8859-7)
-	   (coding-system . (greek-iso-8bit))
+	   (coding-system . (greek-iso-8bit windows-1253 cp851 cp869))
 	   (coding-priority greek-iso-8bit)
 	   (nonascii-translation . iso-8859-7)
 	   (input-method . "greek")
