@@ -388,7 +388,7 @@ FLAGS specifies more precise information of each TYPE.
       code of the coding system.
 
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
-    for encoding and decoding.  See the documentation of CCL for more detail."
+    for decoding and encoding.  See the documentation of CCL for more detail."
 
   ;; At first, set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
@@ -609,6 +609,35 @@ LIST is a list of coding-categories ordered by priority."
     (setq coding-category-list (nreverse l))))
 
 ;;; FILE I/O
+
+(defun auto-file-coding-system (head-lines)
+  "Return coding system for a file which has HEAD-LINES at the head.
+HEAD-LINES is a string of the first two lines of the file.
+This checks for a -*- coding tag in the buffers's text,
+and return the specified coding system.
+
+The variable `auto-file-coding-system' (which see) is set to this
+function by default."
+  (let ((limit (string-match "\n" head-lines))
+	(coding-system nil))
+    (if limit
+	(when (string-match "^#!" head-lines)
+	  ;; If the file begins with "#!" (exec interpreter magic),
+	  ;; look for coding frobs in the first two lines.  You cannot
+	  ;; necessarily put them in the first line of such a file
+	  ;; without screwing up the interpreter invocation.
+	  (setq limit (string-match "\n" head-lines limit))
+	  (or limit
+	      (setq limit (length head-lines))))
+      (setq limit (length head-lines)))
+    (when (and (string-match "-\\*-[ \t]*coding:[ \t]*\\([^ ;]+\\)" head-lines)
+	       (< (match-beginning 1) limit))
+      (setq coding-system
+	    (intern (substring head-lines (match-beginning 1) (match-end 1))))
+      (if (coding-system-p coding-system)
+	  coding-system))))
+
+(setq auto-file-coding-system-function 'auto-file-coding-system)
 
 ;; Set buffer-file-coding-system of the current buffer after some text
 ;; is inserted.
