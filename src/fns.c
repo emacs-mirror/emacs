@@ -3377,7 +3377,7 @@ base64_encode_1 (from, to, length, line_break, multibyte)
 {
   int counter = 0, i = 0;
   char *e = to;
-  unsigned char c;
+  int c;
   unsigned int value;
   int bytes;
 
@@ -3386,9 +3386,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (!SINGLE_BYTE_CHAR_P (c))
+	  if (bytes > 1)
 	    return -1;
-	  i += bytes;
+	  i++;
 	}
       else
 	c = from[i++];
@@ -3424,7 +3424,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  i += bytes;
+	  if (bytes > 1)
+	    return -1;
+	  i++;
 	}
       else
 	c = from[i++];
@@ -3444,7 +3446,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  i += bytes;
+	  if (bytes > 1)
+	    return -1;
+	  i++;
 	}
       else
 	c = from[i++];
