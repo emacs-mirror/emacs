@@ -26,13 +26,6 @@
 ;; Parse a text for C preprocessor conditionals, and highlight or hide
 ;; the text inside the conditionals as you wish.
 
-;; You might want to bind keys as follows.
-;;
-;;   '(progn
-;;      (define-key c-mode-map "\C-c\C-x" 'cpp-parse-buffer)
-;;      (define-key-after (lookup-key c-mode-map [ menu-bar c ])
-;;        [ cpp-parse ] '("Parse Conditionals" . cpp-parse-buffer) 'up))
-
 ;; This package is inspired by Jim Coplien's delta editor for SCCS.
 
 ;;; Todo:
@@ -85,9 +78,11 @@ screens, and none if you don't use a window system.")
    "elif\\|else\\|endif\\)\\b\\)"))
 
 ;;;###autoload
-(defun cpp-parse-buffer (arg)
-  "Parse all conditionals in the current buffer end edit symbols.
-A prefix arg supress editing the symbols."
+(defun cpp-highlight-buffer (arg)
+  "Highlight C code according to preprocessor conditionals.
+This command pops up a buffer which you should edit to specify
+what kind of highlighting to use, and the criteria for highlighting.
+A prefix arg supresses display of that buffer."
   (interactive "P")
   (setq cpp-parse-symbols nil)
   (cpp-parse-reset)
@@ -342,7 +337,7 @@ Each entry is a list with the following elements:
 (make-variable-buffer-local 'cpp-edit-symbols)
 
 (defun cpp-edit-mode ()
-  "Major mode for editing cpp display information.
+  "Major mode for editing the criteria for highlighting cpp conditionals.
 Click on objects to change them.  
 You can also use the keyboard accelerators indicated like this: [K]ey."
   (kill-all-local-variables)
