@@ -582,6 +582,7 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/window.h \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
+	$(SRC)/w32term.h \
 	$(SRC)/keyboard.h
 
 $(BLD)/getloadavg.$(O) : \
@@ -783,6 +784,7 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/config.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32term.h \
 	$(SRC)/systime.h
 
 $(BLD)/w32console.$(O) : \
@@ -1022,7 +1024,8 @@ $(BLD)/window.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/disptab.h \
 	$(SRC)/keyboard.h \
-	$(SRC)/composite.h
+	$(SRC)/composite.h \
+	$(SRC)/w32term.h
 
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
@@ -1040,6 +1043,7 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/termhooks.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32term.h \
 	$(SRC)/intervals.h \
 	$(SRC)/composite.h
 
@@ -1084,6 +1088,7 @@ $(BLD)/w32menu.$(O): \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/w32menu.c \
+	$(SRC)/w32term.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/frame.h \
 	$(SRC)/window.h \
@@ -1127,7 +1132,8 @@ $(BLD)/w32select.$(O): \
 	$(SRC)/w32gui.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
-	$(SRC)/blockinput.h
+	$(SRC)/blockinput.h \
+	$(SRC)/composite.h
 
 $(BLD)/w32reg.$(O): \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
@@ -1143,6 +1149,7 @@ $(BLD)/w32xfns.$(O): \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/w32xfns.c \
+	$(SRC)/w32term.h
 
 $(BLD)/w32bdf.$(O): \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
