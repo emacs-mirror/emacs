@@ -119,7 +119,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   "*Extra indent for lines not starting new statements.")
 (defconst c-continued-brace-offset 0
   "*Extra indent for substatements that start with open-braces.
-This is in addition to c-continued-statement-offset.")
+This is in addition to `c-continued-statement-offset'.")
 (defconst c-style-alist
   '(("GNU"
      (c-indent-level               .  2)
@@ -136,7 +136,7 @@ This is in addition to c-continued-statement-offset.")
     ("BSD"
      (c-indent-level               .  4)
      (c-argdecl-indent             .  4)
-     (c-brace-offset               . -4)
+     (c-continued-brace-offset     . -4)
      (c-label-offset               . -4)
      (c-continued-statement-offset .  4))
     ("C++"
