@@ -585,6 +585,15 @@ the characters that stand for them.
 @item \S@var{code}
 @cindex @samp{\S} in regexp
 matches any character whose syntax is not @var{code}.
+
+@item \c@var{c}
+matches any character whose category is @var{c}.  Here @var{c} is a
+character that represents a category: thus, @samp{c} for Chinese
+characters or @samp{g} for Greek characters in the standard category
+table.
+
+@item \C@var{c}
+matches any character whose category is not @var{c}.
 @end table
 
   The following regular expression constructs match the empty string---that is,
