@@ -28,7 +28,7 @@
 ;;;; Functions for manipulating face vectors.
 
 ;;; A face vector is a vector of the form:
-;;;    [face NAME ID FONT FOREGROUND BACKGROUND BACKGROUND-PIXMAP UNDERLINE]
+;;;    [face NAME ID FONT FOREGROUND BACKGROUND STIPPLE UNDERLINE]
 
 ;;; Type checkers.
 (defsubst internal-facep (x)
@@ -70,11 +70,14 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 5))
 
-;;(defsubst face-background-pixmap (face &optional frame)
-;; "Return the background pixmap name of face FACE, or nil if unspecified.
-;;If the optional argument FRAME is given, report on face FACE in that frame.
-;;Otherwise report on the defaults for face FACE (for new frames)."
-;; (aref (internal-get-face face frame) 6))
+(defsubst face-stipple (face &optional frame)
+ "Return the stipple pixmap name of face FACE, or nil if unspecified.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+If FRAME is omitted or nil, use the selected frame."
+ (aref (internal-get-face face frame) 6))
+
+(defalias 'face-background-pixmap 'face-stipple)
 
 (defsubst face-underline-p (face &optional frame)
  "Return t if face FACE is underlined.
@@ -108,19 +111,21 @@ in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background"))
   (internal-set-face-1 face 'background color 5 frame))
 
-;;(defsubst set-face-background-pixmap (face name &optional frame)
-;;  "Change the background pixmap of face FACE to PIXMAP.
-;;PIXMAP should be a string, the name of a file of pixmap data.
-;;The directories listed in the `x-bitmap-file-path' variable are searched.
+(defsubst set-face-stipple (face name &optional frame)
+  "Change the stipple pixmap of face FACE to PIXMAP.
+PIXMAP should be a string, the name of a file of pixmap data.
+The directories listed in the `x-bitmap-file-path' variable are searched.
 
-;;Alternatively, PIXMAP may be a list of the form (WIDTH HEIGHT DATA)
-;;where WIDTH and HEIGHT are the size in pixels,
-;;and DATA is a string, containing the raw bits of the bitmap.  
+Alternatively, PIXMAP may be a list of the form (WIDTH HEIGHT DATA)
+where WIDTH and HEIGHT are the size in pixels,
+and DATA is a string, containing the raw bits of the bitmap.  
 
-;;If the optional FRAME argument is provided, change only
-;;in that frame; otherwise change each frame."
-;;  (interactive (internal-face-interactive "background-pixmap"))
-;;  (internal-set-face-1 face 'background-pixmap name 6 frame))
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame."
+  (interactive (internal-face-interactive "stipple"))
+  (internal-set-face-1 face 'background-pixmap name 6 frame))
+
+(defalias 'set-face-background-pixmap 'set-face-stipple)
 
 (defsubst set-face-underline-p (face underline-p &optional frame)
   "Specify whether face FACE is underlined.  (Yes if UNDERLINE-P is non-nil.)
@@ -305,9 +310,11 @@ If the face already exists, it is unmodified."
 		(bg  (or (x-get-resource (concat name ".attributeBackground")
 					 "Face.AttributeBackground")
 			 (and set-anyway (face-background face))))
-;;		(bgp (or (x-get-resource (concat name ".attributeBackgroundPixmap")
-;;					 "Face.AttributeBackgroundPixmap")
-;;			 (and set-anyway (face-background-pixmap face))))
+		(bgp (or (x-get-resource (concat name ".attributeStipple")
+					 "Face.AttributeStipple")
+			 (x-get-resource (concat name ".attributeBackgroundPixmap")
+					 "Face.AttributeBackgroundPixmap")
+			 (and set-anyway (face-stipple face))))
 		(ulp (let ((resource (x-get-resource
 				      (concat name ".attributeUnderline")
 				      "Face.AttributeUnderline")))
@@ -327,10 +334,10 @@ If the face already exists, it is unmodified."
 	       (condition-case ()
 		   (set-face-background face bg frame)
 		 (error (message "color `%s' not allocated for face `%s'" bg name))))
-;;	   (if bgp
-;;	       (condition-case ()
-;;		   (set-face-background-pixmap face bgp frame)
-;;		 (error (message "pixmap `%s' not found for face `%s'" bgp name))))
+	   (if bgp
+	       (condition-case ()
+		   (set-face-stipple face bgp frame)
+		 (error (message "pixmap `%s' not found for face `%s'" bgp name))))
 	   (if (or ulp set-anyway)
 	       (set-face-underline-p face ulp frame))
 	   )))
@@ -370,8 +377,9 @@ to NEW-FACE on frame NEW-FRAME."
 	 (set-face-font new-face nil new-frame)))
       (set-face-foreground new-face (face-foreground old-face frame) new-frame)
       (set-face-background new-face (face-background old-face frame) new-frame)
-;;;      (set-face-background-pixmap
-;;;       new-face (face-background-pixmap old-face frame) new-frame)
+      (set-face-stipple new-face
+			(face-stipple old-face frame)
+			new-frame)
       (set-face-underline-p new-face (face-underline-p old-face frame)
 			    new-frame))
     new-face))
@@ -384,9 +392,8 @@ to NEW-FACE on frame NEW-FRAME."
        (equal (face-background face1 frame) (face-background face2 frame))
        (equal (face-font face1 frame) (face-font face2 frame))
        (eq (face-underline-p face1 frame) (face-underline-p face2 frame))
-;;       (equal (face-background-pixmap face1 frame)
-;;	      (face-background-pixmap face2 frame))
-       ))
+       (equal (face-stipple face1 frame)
+	      (face-stipple face2 frame))))
 
 (defun face-differs-from-default-p (face &optional frame)
   "True if face FACE displays differently from the default face, on FRAME.
@@ -404,9 +411,9 @@ is displayed on top of."
 		  (null (face-background face frame)))
 	      (or (equal (face-font default frame) (face-font face frame))
 		  (null (face-font face frame)))
-;;;	      (or (equal (face-background-pixmap default frame)
-;;;			 (face-background-pixmap face frame))
-;;;		  (null (face-background-pixmap face frame)))
+	      (or (equal (face-stipple default frame)
+			 (face-stipple face frame))
+		  (null (face-stipple face frame)))
 	      (equal (face-underline-p default frame)
 		     (face-underline-p face frame))
 	      ))))
