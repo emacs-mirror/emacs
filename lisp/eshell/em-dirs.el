@@ -408,6 +408,8 @@ in the minibuffer:
 		   (eshell-parse-command "ls" (cdr args))))
 	nil))))
 
+(put 'eshell/cd 'eshell-no-numeric-conversions t)
+
 (defun eshell-add-to-dir-ring (path)
   "Add PATH to the last-dir-ring, if applicable."
   (unless (and (not (ring-empty-p eshell-last-dir-ring))
@@ -469,6 +471,8 @@ in the minibuffer:
 	(eshell/dirs t)))))
   nil)
 
+(put 'eshell/pushd 'eshell-no-numeric-conversions t)
+
 ;;; popd [+n]
 (defun eshell/popd (&rest args)
   "Implementation of popd in Lisp."
@@ -496,6 +500,8 @@ in the minibuffer:
 	  (t
 	   (error "Couldn't popd"))))
   nil)
+
+(put 'eshell/popd 'eshell-no-numeric-conversions t)
 
 (defun eshell/dirs (&optional if-verbose)
   "Implementation of dirs in Lisp."

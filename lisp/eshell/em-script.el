@@ -119,6 +119,8 @@ Invoke the Eshell commands in FILE in a subshell, binding ARGS to $1,
 $2, etc.")
    (eshell-source-file (car args) (cdr args) t)))
 
+(put 'eshell/source 'eshell-no-numeric-conversions t)
+
 (defun eshell/. (&rest args)
   "Source a file in the current environment."
   (eshell-eval-using-options
@@ -129,6 +131,8 @@ $2, etc.")
 Invoke the Eshell commands in FILE within the current shell
 environment, binding ARGS to $1, $2, etc.")
    (eshell-source-file (car args) (cdr args))))
+
+(put 'eshell/. 'eshell-no-numeric-conversions t)
 
 ;;; Code:
 

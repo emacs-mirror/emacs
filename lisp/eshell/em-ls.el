@@ -273,6 +273,8 @@ instead."
 	(flush-func 'eshell-flush))
     (eshell-do-ls args)))
 
+(put 'eshell/ls 'eshell-no-numeric-conversions t)
+
 (eval-when-compile
   (defvar block-size)
   (defvar dereference-links)

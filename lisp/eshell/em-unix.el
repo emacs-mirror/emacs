@@ -166,6 +166,8 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   "Invoke man, flattening the arguments appropriately."
   (funcall 'man (apply 'eshell-flatten-and-stringify args)))
 
+(put 'eshell/man 'eshell-no-numeric-conversions t)
+
 (defun eshell-remove-entries (path files &optional top-level)
   "From PATH, remove all of the given FILES, perhaps interactively."
   (while files
@@ -276,6 +278,8 @@ Remove (unlink) the FILE(s).")
      (setq args (cdr args)))
    nil))
 
+(put 'eshell/rm 'eshell-no-numeric-conversions t)
+
 (defun eshell/mkdir (&rest args)
   "Implementation of mkdir in Lisp."
   (eshell-eval-using-options
@@ -290,6 +294,8 @@ Create the DIRECTORY(ies), if they do not already exist.")
      (setq args (cdr args)))
    nil))
 
+(put 'eshell/mkdir 'eshell-no-numeric-conversions t)
+
 (defun eshell/rmdir (&rest args)
   "Implementation of rmdir in Lisp."
   (eshell-eval-using-options
@@ -303,6 +309,8 @@ Remove the DIRECTORY(ies), if they are empty.")
      (eshell-funcalln 'delete-directory (car args))
      (setq args (cdr args)))
    nil))
+
+(put 'eshell/rmdir 'eshell-no-numeric-conversions t)
 
 (eval-when-compile
   (defvar no-dereference)
@@ -483,6 +491,8 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 			     eshell-mv-interactive-query
 			     eshell-mv-overwrite-files))))
 
+(put 'eshell/mv 'eshell-no-numeric-conversions t)
+
 (defun eshell/cp (&rest args)
   "Implementation of cp in Lisp."
   (eshell-eval-using-options
@@ -516,6 +526,8 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
 			   eshell-cp-interactive-query
 			   eshell-cp-overwrite-files preserve)))
 
+(put 'eshell/cp 'eshell-no-numeric-conversions t)
+
 (defun eshell/ln (&rest args)
   "Implementation of ln in Lisp."
   (eshell-eval-using-options
@@ -545,6 +557,8 @@ with '--symbolic'.  When creating hard links, each TARGET must exist.")
 			       'add-name-to-file)
 			     eshell-ln-interactive-query
 			     eshell-ln-overwrite-files))))
+
+(put 'eshell/ln 'eshell-no-numeric-conversions t)
 
 (defun eshell/cat (&rest args)
   "Implementation of cat in Lisp.
@@ -593,6 +607,8 @@ Concatenate FILE(s), or standard input, to standard output.")
      ;; if the file does not end in a newline, do not emit one
      (setq eshell-ensure-newline-p nil))))
 
+(put 'eshell/cat 'eshell-no-numeric-conversions t)
+
 ;; special front-end functions for compilation-mode buffers
 
 (defun eshell/make (&rest args)
@@ -607,6 +623,8 @@ Concatenate FILE(s), or standard input, to standard output.")
     (throw 'eshell-replace-command
 	   (eshell-parse-command "*make" (eshell-stringify-list
 					  (eshell-flatten-list args))))))
+
+(put 'eshell/make 'eshell-no-numeric-conversions t)
 
 (defun eshell-occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
@@ -964,6 +982,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (pop-to-buffer (current-buffer))))))
   nil)
 
+(put 'eshell/diff 'eshell-no-numeric-conversions t)
+
 (defun eshell/locate (&rest args)
   "Alias \"locate\" to call Emacs `locate' function."
   (if (or eshell-plain-locate-behavior
@@ -979,12 +999,16 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (let ((locate-history-list (list (car args))))
 	(locate-with-filter (car args) (cadr args))))))
 
+(put 'eshell/locate 'eshell-no-numeric-conversions t)
+
 (defun eshell/occur (&rest args)
   "Alias \"occur\" to call Emacs `occur' function."
   (let ((inhibit-read-only t))
     (if (> (length args) 2)
 	(error "usage: occur: (REGEXP &optional NLINES)")
       (apply 'occur args))))
+
+(put 'eshell/occur 'eshell-no-numeric-conversions t)
 
 ;;; Code:
 

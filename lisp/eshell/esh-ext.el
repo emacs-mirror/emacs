@@ -239,6 +239,8 @@ Adds the given PATH to $PATH.")
 	 (eshell-printn (car paths))
 	 (setq paths (cdr paths)))))))
 
+(put 'eshell/addpath 'eshell-no-numeric-conversions t)
+
 (defun eshell-script-interpreter (file)
   "Extract the script to run from FILE, if it has #!<interp> in it.
 Return nil, or a list of the form:
