@@ -8,5 +8,4 @@ lofmt.c
 myfmt.c
 newfmt.c
 platform.c
-plinth.c
 testlib.c
