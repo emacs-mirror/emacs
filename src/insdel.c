@@ -139,21 +139,7 @@ gap_left (charpos, bytepos, newgap)
   int new_s1;
 
   if (!newgap)
-    {
-      if (unchanged_modified == MODIFF
-	  && overlay_unchanged_modified == OVERLAY_MODIFF)
-	{
-	  beg_unchanged = charpos - BEG;
-	  end_unchanged = Z - charpos;
-	}
-      else
-	{
-	  if (Z - GPT < end_unchanged)
-	    end_unchanged = Z - GPT;
-	  if (charpos < beg_unchanged)
-	    beg_unchanged = charpos - BEG;
-	}
-    }
+    BUF_COMPUTE_UNCHANGED (current_buffer, charpos, GPT);
 
   i = GPT_BYTE;
   to = GAP_END_ADDR;
@@ -228,19 +214,7 @@ gap_right (charpos, bytepos)
   register int i;
   int new_s1;
 
-  if (unchanged_modified == MODIFF
-      && overlay_unchanged_modified == OVERLAY_MODIFF)
-    {
-      beg_unchanged = charpos - BEG;
-      end_unchanged = Z - charpos;
-    }
-  else
-    {
-      if (Z - charpos - 1 < end_unchanged)
-	end_unchanged = Z - charpos;
-      if (GPT - BEG < beg_unchanged)
-	beg_unchanged = GPT - BEG;
-    }
+  BUF_COMPUTE_UNCHANGED (current_buffer, charpos, GPT);
 
   i = GPT_BYTE;
   from = GAP_END_ADDR;
@@ -1737,8 +1711,8 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   }
 
   /* As byte combining will decrease Z, we must check this again. */
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   CHECK_MARKERS ();
 
@@ -1870,10 +1844,10 @@ replace_range (from, to, new, prepare, inherit, markers)
   if (GPT_BYTE < GPT)
     abort ();
 
-  if (GPT - BEG < beg_unchanged)
-    beg_unchanged = GPT - BEG;
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
+  if (GPT - BEG < BEG_UNCHANGED)
+    BEG_UNCHANGED = GPT - BEG;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   if (GAP_SIZE < insbytes)
     make_gap (insbytes - GAP_SIZE);
@@ -2019,8 +1993,8 @@ replace_range (from, to, new, prepare, inherit, markers)
     combine_bytes (from, from_byte, combined_before_bytes);
 
   /* As byte combining will decrease Z, we must check this again. */
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   if (outgoing_insbytes == 0)
     evaporate_overlays (from);
@@ -2259,10 +2233,10 @@ del_range_2 (from, from_byte, to, to_byte)
   if (GPT_BYTE < GPT)
     abort ();
 
-  if (GPT - BEG < beg_unchanged)
-    beg_unchanged = GPT - BEG;
-  if (Z - GPT < end_unchanged)
-    end_unchanged = Z - GPT;
+  if (GPT - BEG < BEG_UNCHANGED)
+    BEG_UNCHANGED = GPT - BEG;
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   if (combined_after_bytes)
     {
@@ -2275,8 +2249,8 @@ del_range_2 (from, from_byte, to, to_byte)
 
       record_insert (GPT - 1, 1);
 
-      if (Z - GPT < end_unchanged)
-	end_unchanged = Z - GPT;
+      if (Z - GPT < END_UNCHANGED)
+	END_UNCHANGED = Z - GPT;
     }
 
   CHECK_MARKERS ();
@@ -2302,14 +2276,7 @@ modify_region (buffer, start, end)
 
   prepare_to_modify_buffer (start, end, NULL);
 
-  if (start - 1 < beg_unchanged
-      || (unchanged_modified == MODIFF
-	  && overlay_unchanged_modified == OVERLAY_MODIFF))
-    beg_unchanged = start - 1;
-  if (Z - end < end_unchanged
-      || (unchanged_modified == MODIFF
-	  && overlay_unchanged_modified == OVERLAY_MODIFF))
-    end_unchanged = Z - end;
+  BUF_COMPUTE_UNCHANGED (buffer, start - 1, end);
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
