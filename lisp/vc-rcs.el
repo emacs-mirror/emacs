@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.14 2000/11/20 14:14:25 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.15 2001/01/08 16:25:43 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -79,7 +79,7 @@ These are passed to the checkout program by \\[vc-rcs-checkout]."
 
 (defcustom vc-rcs-header (or (cdr (assoc 'RCS vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
-  :type 'string
+  :type '(repeat string)
   :version "21.1"
   :group 'vc)
 
