@@ -138,8 +138,8 @@ set_case_table (table, standard)
   if (NILP (up))
     {
       up = Fmake_char_table (Qcase_table, Qnil);
-      map_char_table (set_identity, Qnil, table, up, 0, indices);
-      map_char_table (shuffle, Qnil, table, up, 0, indices);
+      map_char_table (set_identity, Qnil, table, table, up, 0, indices);
+      map_char_table (shuffle, Qnil, table, table, up, 0, indices);
       XCHAR_TABLE (table)->extras[0] = up;
     }
 
@@ -147,14 +147,14 @@ set_case_table (table, standard)
     {
       canon = Fmake_char_table (Qcase_table, Qnil);
       XCHAR_TABLE (table)->extras[1] = canon;
-      map_char_table (set_canon, Qnil, table, table, 0, indices);
+      map_char_table (set_canon, Qnil, table, table, table, 0, indices);
     }
 
   if (NILP (eqv))
     {
       eqv = Fmake_char_table (Qcase_table, Qnil);
-      map_char_table (set_identity, Qnil, canon, eqv, 0, indices);
-      map_char_table (shuffle, Qnil, canon, eqv, 0, indices);
+      map_char_table (set_identity, Qnil, canon, canon, eqv, 0, indices);
+      map_char_table (shuffle, Qnil, canon, canon, eqv, 0, indices);
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
