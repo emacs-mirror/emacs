@@ -116,7 +116,7 @@ decimal key must be specified."
 		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
   :require 'keypad
   :group 'keyboard)
@@ -139,7 +139,7 @@ decimal key must be specified."
 		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
   :require 'keypad
   :group 'keyboard)
@@ -162,7 +162,7 @@ decimal key must be specified."
 		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
   :require 'keypad
   :group 'keyboard)
@@ -185,7 +185,7 @@ decimal key must be specified."
 		 (const :tag "Numeric prefix arguments" prefix) 
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
   :require 'keypad
   :group 'keyboard)
@@ -205,7 +205,9 @@ keys are bound.
  'S-cursor Bind shifted keypad keys to the shifted cursor movement keys.
  'cursor   Bind keypad keys to the cursor movement keys.
  'numeric  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
- 'none     Removes all bindings for keypad keys in function-key-map.
+ 'none     Removes all bindings for keypad keys in function-key-map;
+           this enables any user-defined bindings for the keypad keys
+           in the global and local keymaps.
 
 If SETUP is 'numeric and the optional fourth argument DECIMAL is non-nil,
 the decimal key on the keypad is mapped to DECIMAL instead of `.'"
