@@ -64,7 +64,10 @@ With prefix arg, prompt for second argument SWITCHES,
 				   (if default
 				       (concat "(default " default ") ")
 				     ""))
-			   (dired-current-directory) default t)
+			   (if default
+			       (dired-current-directory)
+			     (dired-dwim-target-directory))
+			   default t)
 	   (if current-prefix-arg
 	       (read-string "Options for diff: "
 			    (if (stringp diff-switches)
