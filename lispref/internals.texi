@@ -255,10 +255,11 @@ information:
  (@var{used-syms} . @var{free-syms})
 @end group
  (@var{used-miscs} . @var{free-miscs})
- @var{used-string-chars} 
+ @var{used-string-chars}
  @var{used-vector-slots}
  (@var{used-floats} . @var{free-floats})
- (@var{used-intervals} . @var{free-intervals}))
+ (@var{used-intervals} . @var{free-intervals})
+ (@var{used-strings} . @var{free-strings}))
 @end example
 
 Here is an example:
@@ -268,7 +269,8 @@ Here is an example:
 (garbage-collect)
      @result{} ((106886 . 13184) (9769 . 0)
                 (7731 . 4651) 347543 121628
-                (31 . 94) (1273 . 168))
+                (31 . 94) (1273 . 168)
+                (25474 . 3569))
 @end group
 @end example
 
@@ -319,6 +321,15 @@ data structure used for representing text properties.
 @item free-intervals
 The number of intervals for which space has been obtained
 from the operating system, but that are not currently being used.
+
+@item used-strings
+The number of strings in use.
+
+@item free-strings
+The number of string headers for which the space was obtained from the
+operating system, but which are currently not in use.  (A string
+object consists of a header and the storage for the string text
+itself; the latter is only allocated when the string is created.)
 @end table
 @end deffn
 
@@ -409,6 +420,11 @@ certain objects not visible to users.
 @defvar intervals-consed
 The total number of intervals that have been allocated so far
 in this Emacs session.
+@end defvar
+
+@defvar strings-consed
+The total number of strings that have been allocated so far in this
+Emacs session.
 @end defvar
 
 @node Writing Emacs Primitives
