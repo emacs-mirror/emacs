@@ -1884,6 +1884,10 @@ With prefix argument ARG, turn auto-saving on if positive, else off."
 		      (not buffer-read-only))
 		 buffer-file-name
 	       (make-auto-save-file-name))))
+  ;; If -1 was stored here, to temporarily turn off saving,
+  ;; turn it back on.
+  (and (< buffer-saved-size 0)
+       (setq buffer-saved-size 0))
   (if (interactive-p)
       (message "Auto-save %s (in this buffer)"
 	       (if buffer-auto-save-file-name "on" "off")))
