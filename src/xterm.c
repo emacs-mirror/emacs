@@ -5194,30 +5194,10 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 
 #ifdef HAVE_X11
   {
-    int hostname_size = 256;
-
-    hostname = (char *) xmalloc (hostname_size);
-
 #if 0
     XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
-
-    /* Try to get the host name; if the buffer is too short, try
-       again.  Apparently, the only indication gethostname gives of
-       whether the buffer was large enough is the presence or absence
-       of a '\0' in the string.  Eech.  */
-    for (;;)
-      {
-	gethostname (hostname, hostname_size - 1);
-	hostname[hostname_size - 1] = '\0';
-
-	/* Was the buffer large enough for gethostname to store the '\0'?  */
-	if (strlen (hostname) < hostname_size - 1)
-	  break;
-
-	hostname_size <<= 1;
-	hostname = (char *) xrealloc (hostname, hostname_size);
-      }
+    hostname = get_system_name ();
     x_id_name = (char *) xmalloc (XSTRING (Vinvocation_name)->size
 				+ strlen (hostname)
 				+ 2);
