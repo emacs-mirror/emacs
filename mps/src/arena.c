@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName$
+ * $HopeName: MMsrc!arena.c(trunk.34) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.31) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.34) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -469,7 +469,7 @@ void ArenaLeave(Arena arena)
  * for the access to continue.
  */
 
-Bool ArenaAccess(Addr addr, AccessSet mode)
+Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
   Seg seg;
   Ring node, nextNode;

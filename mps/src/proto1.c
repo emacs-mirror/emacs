@@ -1,6 +1,6 @@
 /* impl.c.proto1: PROTECTION FOR DIGITAL UNIX
  *
- *  $HopeName: MMsrc!proto1.c(trunk.1) $
+ *  $HopeName: MMsrc!proto1.c(trunk.2) $
  *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  */
 
@@ -27,7 +27,7 @@
 /* for getpid() */
 #include <unistd.h>
 
-SRCID(proto1, "$HopeName: MMsrc!proto1.c(trunk.1) $");
+SRCID(proto1, "$HopeName: MMsrc!proto1.c(trunk.2) $");
 
 
 /* The previously-installed signal action, as returned by */
@@ -79,7 +79,9 @@ static void sigHandle(int sig, siginfo_t *info, void *context)
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
 
-    if(ArenaAccess(base, mode))
+    /* MutatorFaultContext parameter is a dummy parameter in this */
+    /* implementation */
+    if(ArenaAccess(base, mode, NULL))
       return;
   }
 

@@ -1,6 +1,6 @@
 /*  impl.c.protso: PROTECTION FOR SOLARIS
  *
- *  $HopeName: MMsrc!protso.c(MMdevel_config_thread.3) $
+ *  $HopeName: MMsrc!protso.c(trunk.5) $
  *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  */
@@ -29,7 +29,7 @@
 #error "protso.c is Solaris specific, but MPS_OS_SO is not set"
 #endif
 
-SRCID(protso, "$HopeName: MMsrc!protso.c(trunk.4) $");
+SRCID(protso, "$HopeName: MMsrc!protso.c(trunk.5) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -100,7 +100,9 @@ static void sigHandle(int sig, siginfo_t *info, void *context)
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
 
-    if(ArenaAccess(base, mode))
+    /* MutatorFaultContext parameter is a dummy parameter for this */
+    /* implementation */
+    if(ArenaAccess(base, mode, NULL))
       return;
   }
 

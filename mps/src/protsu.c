@@ -1,6 +1,6 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(trunk.8) $
+ * $HopeName: MMsrc!protsu.c(trunk.9) $
  * Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -32,7 +32,7 @@
 #include <sys/mman.h>
 #include <signal.h>
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.8) $");
+SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.9) $");
 
 
 /* Fix up unprototyped system calls. */
@@ -105,7 +105,9 @@ static void sigHandle(int sig, int code,
     AccessSet mode;
     AVER(addr != SIG_NOADDR);           /* .assume.addr */
     mode = AccessREAD | AccessWRITE;    /* .sigh.decode */
-    if(ArenaAccess((Addr)addr, mode))   /* .sigh.size */
+    /* MutatorFaultContext parameter is a dummy parameter in */
+    /* this implementation */
+    if(ArenaAccess((Addr)addr, mode, NULL))   /* .sigh.size */
       return;
   }
 
