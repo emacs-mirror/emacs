@@ -1221,8 +1221,8 @@ silly_event_symbol_error (c)
       error ((modifiers & ~meta_modifier
 	      ? "To bind the key %s, use [?%s], not [%s]"
 	      : "To bind the key %s, use \"%s\", not [%s]"),
-	     XSYMBOL (c)->name->data, XSTRING (keystring)->data,
-	     XSYMBOL (c)->name->data);
+	     XSTRING (SYMBOL_NAME (c))->data, XSTRING (keystring)->data,
+	     XSTRING (SYMBOL_NAME (c))->data);
     }
 }
 
@@ -2118,8 +2118,8 @@ around function keys and event symbols.  */)
       if (NILP (no_angles))
 	{
 	  char *buffer
-	    = (char *) alloca (STRING_BYTES (XSYMBOL (key)->name) + 5);
-	  sprintf (buffer, "<%s>", XSYMBOL (key)->name->data);
+	    = (char *) alloca (STRING_BYTES (XSTRING (SYMBOL_NAME (key))) + 5);
+	  sprintf (buffer, "<%s>", XSTRING (SYMBOL_NAME (key))->data);
 	  return build_string (buffer);
 	}
       else
@@ -2736,13 +2736,13 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    abort();
 
-	  p = title = (char *) alloca (42 + XSYMBOL (modes[i])->name->size);
+	  p = title = (char *) alloca (42 + XSTRING (SYMBOL_NAME (modes[i]))->size);
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
-	  bcopy (XSYMBOL (modes[i])->name->data, p,
-		 XSYMBOL (modes[i])->name->size);
-	  p += XSYMBOL (modes[i])->name->size;
+	  bcopy (XSTRING (SYMBOL_NAME (modes[i]))->data, p,
+		 XSTRING (SYMBOL_NAME (modes[i]))->size);
+	  p += XSTRING (SYMBOL_NAME (modes[i]))->size;
 	  *p++ = '\'';
 	  bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
 	  p += sizeof (" Minor Mode Bindings") - 1;
@@ -2945,7 +2945,7 @@ describe_command (definition, args)
 
   if (SYMBOLP (definition))
     {
-      XSETSTRING (tem1, XSYMBOL (definition)->name);
+      tem1 = SYMBOL_NAME (definition);
       insert1 (tem1);
       insert_string ("\n");
     }
@@ -2967,7 +2967,7 @@ describe_translation (definition, args)
 
   if (SYMBOLP (definition))
     {
-      XSETSTRING (tem1, XSYMBOL (definition)->name);
+      tem1 = SYMBOL_NAME (definition);
       insert1 (tem1);
       insert_string ("\n");
     }
