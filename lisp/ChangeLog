@@ -1,3 +1,12 @@
+2000-02-25  Sam Steingold  <sds@goems.com>
+
+	* emacs-lisp/cl-indent.el (toplvel): Indent `pprint-logical-block'
+	properly.
+	
+2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* mail/rmail.el (rmail-resend): Verify buffer is really Rmail.
+
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/helper.el (Helper-describe-mode): Make buffer

@@ -1,3 +1,15 @@
+2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+	
+	* fileio.c (Ffile_symlink_p): If result starts with a `/'
+	and contains a `:', prepend `/:'.
+
+	* window.c (select_window_1): If selected_window is nil,
+	don't "swap out" the buffer's point.
+	(Fset_window_configuration): Set selected_window to nil
+	before calling Fselect_window.
+	(unshow_buffer): Don't set point in buffer from window's point
+	if another more recently selected window also shows the buffer.
+
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (recursive_edit_1): Cancel busy-cursor.
