@@ -1,4 +1,8 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
+
+;; Maintainer: FSF
+;; Last-Modified: 9 May 1991
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -16,6 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 (defvar nroff-mode-abbrev-table nil
   "Abbrev table used while in nroff mode.")

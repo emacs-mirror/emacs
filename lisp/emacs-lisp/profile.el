@@ -1,9 +1,10 @@
 ;;; profile.el -- generate run time measurements of elisp functions
-;;;
-;;; Author:		Boaz Ben-Zvi <boaz@lcs.mit.edu>
-;;; Created:	        Feb. 7, 1992
-;;; Last Modified:	Feb. 7, 1992
-;;; Version:		1.0
+
+;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
+;; Created: 7 Feb 1992
+;; Last-Modified: 7 Feb 1992
+;; Version: 1.0
+;; Adapted-By: ESR
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -23,6 +24,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ; DESCRIPTION:
 ; ------------
@@ -130,6 +132,8 @@
 ;   }
 ;}
 ; -------- end of clip ----------------
+
+;;; Code:
 
 ;;;
 ;;;  User modifiable VARIABLES

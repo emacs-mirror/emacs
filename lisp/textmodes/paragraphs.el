@@ -1,5 +1,8 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
+;; Maintainer: FSF
+;; Last-Modified: 13 May 1991
+
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defconst paragraph-start "^[ \t\n\f]" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.")

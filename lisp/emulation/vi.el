@@ -2,7 +2,7 @@
 
 ;; Author: Neal Ziring <nz@rsch.wisc.edu>
 ;;	Felix S. T. Wu <wu@crys.wisc.edu>
-;; Last-Modified: 7 Jan 1987
+;; Last-Modified: 07 Jan 1987
 
 ;;; Commentary: 
 

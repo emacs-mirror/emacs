@@ -1,7 +1,10 @@
 ;;; rfc822.el --- hairy rfc822 parser for mail and news and suchlike
 
+;; Author: Richard Mlynarik <mly@eddie.mit.edu>
+;; Maintainer: FSF
+;; Last-Modified: 26 Nov 1990
+
 ;; Copyright (C) 1986-1990 Free Software Foundation, Inc.
-;; Author Richard Mlynarik.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 ;; uses address-start free, throws to address
 (defun rfc822-bad-address (reason)

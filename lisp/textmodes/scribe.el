@@ -1,7 +1,7 @@
 ;;; scribe.el --- scribe mode, and its idiosyncratic commands.
 
 ;; Maintainer: FSF
-;; Last-Modified: 9 May 1991
+;; Last-Modified: 09 May 1991
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

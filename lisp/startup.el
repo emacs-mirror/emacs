@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Maintainer: FSF
-;; Last-Modified: 9 Jul 1992
+;; Last-Modified: 09 Jul 1992
 
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 

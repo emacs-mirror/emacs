@@ -1,5 +1,8 @@
 ;;; rect.el --- rectangle functions for GNU Emacs.
 
+;; Maintainer: FSF
+;; Last-Modified: 9 May 1991
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.

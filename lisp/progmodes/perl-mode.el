@@ -1,4 +1,10 @@
-;; Perl code editing commands for GNU Emacs
+;;; perl-mode.el --- Perl code editing commands for GNU Emacs
+
+;; Author: William F. Mann
+;; Maintainer: FSF
+;; Last-Modified: 21 Dec 1991
+;; Adapted-By: ESR
+
 ;;   Copyright (C) 1990  William F. Mann
 ;; Adapted from C code editing commands 'c-mode.el', Copyright 1987 by the
 ;; Free Software Foundation, under terms of its General Public License.
@@ -20,6 +26,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Commentary:
 
 ;; To enter perl-mode automatically, add (autoload 'perl-mode "perl-mode")
 ;; to your .emacs file and change the first line of your perl script to:
@@ -89,6 +97,7 @@
 ;;         [$DB'line#'
 ;;          ] =~ s/;9$//;
 
+;;; Code:
 
 (defvar perl-mode-abbrev-table nil
   "Abbrev table in use in perl-mode buffers.")

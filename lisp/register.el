@@ -1,5 +1,8 @@
 ;;; register.el --- register commands for Emacs.
 
+;; Maintainer: FSF
+;; Last-Modified: 9 Jul 1992
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defvar register-alist nil
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.

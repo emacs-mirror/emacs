@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs.
 
 ;; Maintainer: FSF
-;; Last-Modified: 9 Jul 1992
+;; Last-Modified: 09 Jul 1992
 
 ;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 92 Free Software Foundation, Inc.
 
