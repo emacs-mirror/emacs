@@ -1,3 +1,11 @@
+2001-02-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (LATIN): Include ${srcdir}/quail/latin-alt.elc.
+
+	* makefile.w32-in (LATIN): Likewise.
+
+	* quail/latin-ltx.el: New file -- LaTeX-like Latin input method.
+
 2001-02-01  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (LATIN): Include $(srcdir)/quail/latin-alt.elc.
