@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc.el,v 1.275 2000/10/03 11:22:13 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -93,7 +93,7 @@
 ;;     Only required if files can be locked by somebody else.
 ;; * register (file rev comment)
 ;; * unregister (file backend)
-;; - receive-file (file move)
+;; - receive-file (file rev)
 ;; - responsible-p (file)
 ;;     Should also work if FILE is a directory (ends with a slash).
 ;; - could-register (file)
@@ -1127,15 +1127,6 @@ The default is to return nil always."
   "Return non-nil if BACKEND could be used to register FILE.
 The default implementation returns t for all files."
   t)
-
-(defun vc-unregister (file)
-  "Unregister FILE from version control system BACKEND."
-  (vc-call unregister file)
-  (vc-file-clearprops file))
-
-(defun vc-default-unregister (backend file)
-  "Default implementation of `vc-unregister', signals an error."
-  (error "Unregistering files is not supported for %s" backend))
 
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
@@ -2290,46 +2281,51 @@ base level.  If NEW-BACKEND has a lower precedence than the current
 backend, then commit all changes that were made under the current
 backend to NEW-BACKEND, and unregister FILE from the current backend.
 \(If FILE is not yet registered under NEW-BACKEND, register it.)"
-  (let ((old-backend (vc-backend file)))
+  (let* ((old-backend (vc-backend file))
+	 (edited (memq (vc-state file) '(edited needs-merge)))
+	 (registered (vc-call-backend new-backend 'registered file))
+	 (move
+	  (and registered    ; Never move if not registered in new-backend yet.
+	       ;; move if new-backend comes later in vc-handled-backends
+	       (or (memq new-backend (memq old-backend vc-handled-backends))
+		   (y-or-n-p "Final transfer ? "))))
+	 (comment nil))
     (if (eq old-backend new-backend)
-	(error "%s is the current backend of %s"
-	       new-backend file)
-      (with-vc-properties
-       file
-       (vc-call-backend new-backend 'receive-file file 
-			;; set MOVE argument if new-backend
-			;; comes later in vc-handled-backends
-			(memq new-backend 
-			      (memq old-backend vc-handled-backends)))
-       `((vc-backend ,new-backend))))
-    (vc-resynch-buffer file t t)))
-
-(defun vc-default-receive-file (backend file move)
-  "Let BACKEND receive FILE from another version control system.
-If MOVE is non-nil, then FILE is unregistered from the old
-backend and its comment history is used as the initial contents
-of the log entry buffer."
-  (let ((old-backend (vc-backend file))
-	(rev (vc-workfile-version file))
-	(state (vc-state file))
-	(comment (and move (vc-call comment-history file))))
-    (if move (vc-unregister file))
-    (vc-file-clearprops file)
-    (if (not (vc-call-backend backend 'registered file))
-	(with-vc-properties 
-	 file
-	 ;; TODO: If the file was 'edited under the old backend,
-	 ;; this should actually register the version 
-	 ;; it was based on.
-	 (vc-call-backend backend 'register file rev "")
-	 `((vc-backend ,backend)))
-      (vc-file-setprop file 'vc-backend backend)
-      (vc-file-setprop file 'vc-state 'edited)
-      (set-file-modes file
-		      (logior (file-modes file) 128)))
-    (when (or move (eq state 'edited))
+	(error "%s is the current backend of %s" new-backend file))
+    (if registered
+	(set-file-modes file (logior (file-modes file) 128))
+      ;; `registered' might have switched under us.
+      (vc-switch-backend file old-backend)
+      (let ((copy (and edited (make-temp-name file)))
+	    (rev (vc-workfile-version file)))
+	;; Go back to the base unmodified file.
+	(unwind-protect
+	    (progn
+	      (when copy (copy-file file copy)) ; (vc-revert-file file))
+	                                        ; TODO: uncomment when we
+	                                        ; have local version caching
+	      (vc-call-backend new-backend 'receive-file file rev))
+	  (when copy
+	    (vc-switch-backend file new-backend)
+	    (unless (eq (vc-checkout-model file) 'implicit)
+	      (vc-checkout file t nil))
+	    (rename-file copy file 'ok-if-already-exists)))))
+    (when move
+      (vc-switch-backend file old-backend)
+      (setq comment (vc-call comment-history file))
+      (vc-call unregister file))
+    (vc-switch-backend file new-backend)
+    (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
       (vc-checkin file nil comment (stringp comment)))))
+
+(defun vc-default-unregister (backend file)
+  "Default implementation of `vc-unregister', signals an error."
+  (error "Unregistering files is not supported for %s" backend))
+
+(defun vc-default-receive-file (backend file rev)
+  "Let BACKEND receive FILE from another version control system."
+  (vc-call-backend backend 'register file rev ""))
 
 (defun vc-rename-master (oldmaster newfile templates)
   "Rename OLDMASTER to be the master file for NEWFILE based on TEMPLATES."
