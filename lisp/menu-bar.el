@@ -41,6 +41,10 @@
 (define-key menu-bar-file-menu [kill-buffer]
   '("Kill Buffer" . kill-this-buffer))
 (define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
+(define-key menu-bar-file-menu [epatch]
+  '("Apply Patch" . menu-bar-epatch-menu))
+(define-key menu-bar-file-menu [ediff]
+  '("Compare Files" . menu-bar-ediff-menu))
 (define-key menu-bar-file-menu [emerge] '("Emerge" . menu-bar-emerge-menu))
 (define-key menu-bar-file-menu [calendar] '("Calendar" . calendar))
 (define-key menu-bar-file-menu [rmail] '("Read Mail" . rmail))
