@@ -709,7 +709,6 @@ This can safely be nil as long as the Calc files are on the load-path.")
 	calc-version-date "Mon Nov 19 2001"
 	calc-trail-pointer nil		; "Current" entry in trail buffer.
         calc-trail-overlay nil		; Value of overlay-arrow-string.
-	calc-was-split nil		; Had multiple windows before Calc.
         calc-undo-list nil		; List of previous operations for undo.
         calc-redo-list nil		; List of recent undo operations.
         calc-main-buffer nil		; Pointer to Calculator buffer.
@@ -1171,7 +1170,6 @@ commands given here will actually operate on the *Calculator* stack."
 	    (switch-to-buffer (current-buffer) t)
 	  (if (get-buffer-window (current-buffer))
 	      (select-window (get-buffer-window (current-buffer)))
-	    (setq calc-was-split nil)
 	    (if (and (boundp 'calc-window-hook) calc-window-hook)
 		(run-hooks 'calc-window-hook)
 	      (let ((w (get-largest-window)))
@@ -1179,9 +1177,6 @@ commands given here will actually operate on the *Calculator* stack."
 			 (> (window-height w)
 			    (+ window-min-height calc-window-height 2)))
 		    (progn
-		      (or (one-window-p)
-			  (setq calc-was-split (list w (window-height w)
-						     (selected-window))))
 		      (setq w (split-window w
 					    (- (window-height w)
 					       calc-window-height 2)
@@ -1258,8 +1253,7 @@ commands given here will actually operate on the *Calculator* stack."
 		   (= (window-width win) (frame-width))  ; avoid calc-keypad
 		   (not (get-buffer-window "*Calc Keypad*")))
 	      (setq calc-window-height (- (window-height win) 2)))
-	  (if calc-was-split
-	      (calc-delete-windows-keep buf kbuf)
+	  (progn
 	    (delete-windows-on buf)
 	    (delete-windows-on kbuf))
 	  (bury-buffer buf)
