@@ -1748,18 +1748,18 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       Lisp_Object name, buffer, host, service;
 {
   Lisp_Object proc;
-#ifndef HAVE_GETADDRINFO
+#ifdef HAVE_GETADDRINFO
+  struct addrinfo hints, *res, *lres;
+  int ret = 0;
+  int xerrno = 0;
+  char *portstring, portbuf[128];
+#else /* HAVE_GETADDRINFO */
   struct sockaddr_in address;
   struct servent *svc_info;
   struct hostent *host_info_ptr, host_info;
   char *(addr_list[2]);
   IN_ADDR numeric_addr;
   int port;
-#else /* HAVE_GETADDRINFO */
-  struct addrinfo hints, *res, *lres;
-  int ret = 0;
-  int xerrno = 0;
-  char *portstring, portbuf[128];
 #endif /* HAVE_GETADDRINFO */
   int s = -1, outch, inch;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1777,13 +1777,11 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   CHECK_STRING (host, 0);
 
 #ifdef HAVE_GETADDRINFO
-  /*
-   * SERVICE can either be a string or int.
-   * Convert to a C string for later use by getaddrinfo.
-   */
+  /* SERVICE can either be a string or int.
+     Convert to a C string for later use by getaddrinfo.  */
   if (INTEGERP (service))
     {
-      sprintf (portbuf, "%d", XINT (service));
+      sprintf (portbuf, "%ld", (long) XINT (service));
       portstring = portbuf;
     }
   else
@@ -1791,7 +1789,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       CHECK_STRING (service, 0);
       portstring = XSTRING (service)->data;
     }
-#else /* ! HAVE_GETADDRINFO */
+#else /* HAVE_GETADDRINFO */
   if (INTEGERP (service))
     port = htons ((unsigned short) XINT (service));
   else
@@ -1802,7 +1800,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	error ("Unknown service \"%s\"", XSTRING (service)->data);
       port = svc_info->s_port;
     }
-#endif /* ! HAVE_GETADDRINFO */
+#endif /* HAVE_GETADDRINFO */
 
 
   /* Slow down polling to every ten seconds.
@@ -1815,32 +1813,30 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 
 #ifndef TERM
 #ifdef HAVE_GETADDRINFO
-  {
-    immediate_quit = 1;
-    QUIT;
-    memset (&hints, 0, sizeof (hints));
-    hints.ai_flags = 0;
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = 0;
-    ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
-    if (ret)
-      {
-	error ("%s/%s %s", XSTRING (host)->data, portstring,
-	       strerror (ret));
-      }
-    immediate_quit = 0;
-  }
+  immediate_quit = 1;
+  QUIT;
+  memset (&hints, 0, sizeof (hints));
+  hints.ai_flags = 0;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = 0;
+  ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
+  if (ret)
+    error ("%s/%s %s", XSTRING (host)->data, portstring, gai_strerror(ret));
+  immediate_quit = 0;
 
-  s = -1;
+  /* Do this in case we never enter the for-loop below.  */
   count1 = specpdl_ptr - specpdl;
-  record_unwind_protect (close_file_unwind, make_number (s));
+  s = -1;
 
   for (lres = res; lres; lres = lres->ai_next)
     {
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
-      if (s < 0) 
-	continue;
+      if (s < 0)
+	{
+	  xerrno = errno;
+	  continue;
+	}
 
       /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
 	 when connect is interrupted.  So let's not let it get interrupted.
@@ -1850,6 +1846,12 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	 to quit if polling is turned off.  */
       if (interrupt_input)
 	unrequest_sigio ();
+
+      /* Make us close S if quit.  */
+      count1 = specpdl_ptr - specpdl;
+      record_unwind_protect (close_file_unwind, make_number (s));
+
+    loop:
 
       immediate_quit = 1;
       QUIT;
@@ -1863,11 +1865,33 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	 though.  Would non-blocking connect calls be portable?  */
       turn_on_atimers (0);
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
+      xerrno = errno;
       turn_on_atimers (1);
-      if (ret == 0)
+
+      if (ret == 0 || xerrno == EISCONN)
+	/* The unwind-protect will be discarded afterwards.
+	   Likewise for immediate_quit.  */
 	break;
+
+      immediate_quit = 0;
+
+      if (xerrno == EINTR)
+	goto loop;
+      if (xerrno == EADDRINUSE && retry < 20)
+	{
+	  /* A delay here is needed on some FreeBSD systems,
+	     and it is harmless, since this retrying takes time anyway
+	     and should be infrequent.  */
+	  Fsleep_for (make_number (1), Qnil);
+	  retry++;
+	  goto loop;
+	}
+
+      /* Discard the unwind protect closing S.  */
+      specpdl_ptr = specpdl + count1;
+      count1 = specpdl_ptr - specpdl;
+      
       emacs_close (s);
-      s = -1;
     }
 
   freeaddrinfo (res);
@@ -1880,7 +1904,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
-#else /* ! HAVE_GETADDRINFO */
+  
+#else /* not HAVE_GETADDRINFO */
 
   while (1)
     {
@@ -1901,6 +1926,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	break;
       Fsleep_for (make_number (1), Qnil);
     }
+  
   if (host_info_ptr == 0)
     /* Attempt to interpret host as numeric inet address */
     {
@@ -1982,11 +2008,12 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
-#endif /* ! HAVE_GETADDRINFO */
+  
+#endif /* not HAVE_GETADDRINFO */
 
   immediate_quit = 0;
 
-  /* Discard the unwind protect.  */
+  /* Discard the unwind protect, if any.  */
   specpdl_ptr = specpdl + count1;
 
 #ifdef POLL_FOR_INPUT
