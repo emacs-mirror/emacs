@@ -645,16 +645,16 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   (ibuffer-update nil t))
 
 ;;;###autoload
-(defun ibuffer-kill-line (&optional arg)
+(defun ibuffer-kill-line (&optional arg interactive-p)
   "Kill the filter group at point.
 See also `ibuffer-kill-filter-group'."
-  (interactive "P")
+  (interactive "P\np")
   (ibuffer-aif (save-excursion
 		 (ibuffer-forward-line 0)
 		 (get-text-property (point) 'ibuffer-filter-group-name))
       (progn
 	(ibuffer-kill-filter-group it))
-      (funcall (if (interactive-p) #'call-interactively #'funcall)
+      (funcall (if interactive-p #'call-interactively #'funcall)
 	       #'kill-line arg)))
 
 (defun ibuffer-insert-filter-group-before (newgroup group)
