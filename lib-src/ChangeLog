@@ -2,8 +2,11 @@
 
 	* etags.c (Ada_funcs): Do not tag "use type Xxxx;".
 
-	* etags.c: New language HTML.
-	(make_tag): Never generate null length tag names.
+	* etags.c: (HTML_labels): New language HTML.
+	(etags_strcasecmp): Like BSD's, for compatibility.
+	(strcaseeq): Make it into a macro.
+
+	* etags.c (make_tag): Never generate null length tag names.
 	(linebuffer_init): Renamed from initbuffer.  All callers changed.
 	(pattern): Structure renamed to `regexp', member regex renamed to
 	pattern.
@@ -12,14 +15,11 @@
 	always set to true, cannot be reset.
 	(add_regex, regex_tag_multiline, readline): Use it.
 	(main): Free some global structures.
-
-	* etags.c (fdesc): New member `written'.
+	(fdesc): New member `written'.
 	(readline, process_file): Initialise it.
 	(put_entries): Set it.
 	(main): Use it to create entries for files without tags.
 	(total_size_of_entries): Do not count invalid tags.
-	(etags_strcasecmp): Like BSD's, for compatibility.
-	(strcaseeq): Make it into a macro.
 
 2002-08-19  Stefan Monnier  <monnier@cs.yale.edu>
 
