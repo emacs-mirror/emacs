@@ -107,6 +107,11 @@ using but only when you also use Edebug."
   :type 'hook
   :group 'edebug)
 
+;; edebug-all-defs and edebug-all-forms need to be autoloaded
+;; because the byte compiler binds them; as a result, if edebug
+;; is first loaded for a require in a compilation, they will be left unbound.
+
+;;;###autoload
 (defcustom edebug-all-defs nil
   "*If non-nil, evaluation of any defining forms will instrument for Edebug.
 This applies to `eval-defun', `eval-region', `eval-buffer', and
@@ -120,6 +125,11 @@ variable.  You may wish to make it local to each buffer with
   :type 'boolean
   :group 'edebug)
 
+;; edebug-all-defs and edebug-all-forms need to be autoloaded
+;; because the byte compiler binds them; as a result, if edebug
+;; is first loaded for a require in a compilation, they will be left unbound.
+
+;;;###autoload
 (defcustom edebug-all-forms nil
   "*Non-nil evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
