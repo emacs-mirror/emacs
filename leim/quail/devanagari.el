@@ -55,16 +55,13 @@
       (let* ((from (overlay-start quail-conv-overlay))
 	     (to   (overlay-end quail-conv-overlay))
 	     (dstr (buffer-substring from to)))
-	(delete-overlay quail-overlay)
-	(delete-overlay quail-conv-overlay)
-	(save-restriction
-	  (narrow-to-region from to)
-	  (goto-char (point-min))
-	  (delete-region (point-min) (point-max))
-	  (insert (devanagari-compose-string dstr 'sanskrit))
-	  (goto-char (point-max)))
-	(setq overriding-terminal-local-map nil)))
-  (setq unread-command-events (list last-command-event)))
+	(setq overriding-terminal-local-map nil
+	      quail-converting nil
+	      quail-conversion-str
+	      (concat (devanagari-compose-string dstr 'sanskrit)
+		      (list (if (numberp last-command-char)
+				last-command-char
+			      (get last-command-char 'ascii-character))))))))
 
 (quail-define-package 
  "devanagari-keyboard-a" "Devanagari" "DevK" t
@@ -467,16 +464,13 @@ Special Keys : Anuswar         n'
       (let* ((from (overlay-start quail-conv-overlay))
 	     (to   (overlay-end quail-conv-overlay))
 	     (dstr (buffer-substring from to)))
-	(delete-overlay quail-overlay)
-	(delete-overlay quail-conv-overlay)
-	(save-restriction
-	  (narrow-to-region from to)
-	  (goto-char (point-min))
-	  (delete-region (point-min) (point-max))
-	  (insert (devanagari-compose-string dstr))
-	  (goto-char (point-max)))
-	(setq overriding-terminal-local-map nil)))
-  (setq unread-command-events (list last-command-event)))
+	(setq overriding-terminal-local-map nil
+	      quail-converting nil
+	      quail-conversion-str
+	      (concat (devanagari-compose-string dstr)
+		      (list (if (numberp last-command-char)
+				last-command-char
+			      (get last-command-char 'ascii-character))))))))
 
 (eval-when-compile
 
