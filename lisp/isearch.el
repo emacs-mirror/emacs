@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/06/06 22:11:22 $|$Revision: 1.41 $
+;; |$Date: 1993/06/09 11:53:58 $|$Revision: 1.42 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -1332,11 +1332,13 @@ If there is no completion possible, say so and continue searching."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (if (or (null search-highlight) (not (internal-find-face 'isearch nil)))
+  (if (null search-highlight)
       nil
     (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
     (move-overlay isearch-overlay beg end (current-buffer))
-    (overlay-put isearch-overlay 'face 'isearch)))
+    (overlay-put isearch-overlay 'face
+		 (if (internal-find-face 'isearch nil)
+		     'isearch 'region))))
 
 (defun isearch-dehighlight (totally)
   (if isearch-overlay
