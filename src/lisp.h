@@ -572,15 +572,6 @@ typedef struct interval *INTERVAL;
 #define CHECK_STRING_OR_BUFFER(x, i) \
   { if (!STRINGP ((x)) && !BUFFERP ((x))) \
       x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
-
-/* Macro used to conditionally compile intervals into certain data
-   structures.  See, e.g., struct Lisp_String below.  */
-#define DECLARE_INTERVALS INTERVAL intervals;
-
-/* Macro used to conditionally compile interval initialization into
-   certain code.  See, e.g., alloc.c.  */
-#define INITIALIZE_INTERVAL(ptr,val) ptr->intervals = val
-
 
 /* In a cons, the markbit of the car is the gc mark bit */
 
