@@ -1,3 +1,8 @@
+2001-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* makefile.nt (lisp): Synchronize with src/Makefile.in.
+	* makefile.w32-in (lisp): Ditto.
+
 2001-07-25  Juanma Barranquero  <jbarranquero@peoplecall.com>
 
 	* grep-changelog (parse_changelog): Remove unused local variable.
