@@ -183,7 +183,9 @@ See `interactive'.\n\
 \n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in the command-history.\n\
-Otherwise, this is done only if an arg is read using the minibuffer.")
+Otherwise, this is done only if an arg is read using the minibuffer.\n\
+Optional third arg KEYS, if given, specifies the sequence of events to\n\
+supply if the command inquires which events were used to invoke it.")
   (function, record_flag, keys)
      Lisp_Object function, record_flag, keys;
 {
