@@ -723,10 +723,10 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
     (while not-finished
       (cond ((looking-at "[ \t]+")
 	     (goto-char (match-end 0))
-	     (if (eql category 'null)
+	     (if (eq category 'null)
 		 (setq category 'space)))
 	    ((looking-at "\n")
-	     (cond ((eql category 'newline)
+	     (cond ((eq category 'newline)
 		    (setq category 'par)
 		    (setq not-finished nil))
 		   (t
@@ -738,7 +738,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	    (t
 	     (setq not-finished nil))))
     (skip-chars-forward " \t\n\f")
-    (if (eql category 'newline)
+    (if (eq category 'newline)
 	'space				;TeX doesn't distinguish
       category)))
 
