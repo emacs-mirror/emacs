@@ -219,7 +219,7 @@ The argument FILE is the file name to write."
      (while tables
        (insert-abbrev-table-description (car tables) nil)
        (setq tables (cdr tables))))
-   (write-region 1 (point-max) file)
+   (write-region (point-min) (point-max) file)
    (erase-buffer)))
 
 (defun add-mode-abbrev (arg)
