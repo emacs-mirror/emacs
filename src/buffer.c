@@ -3543,7 +3543,15 @@ init_buffer ()
       buf[rc + 1] = '\0';
     }
 #endif /* not VMS */
+
   current_buffer->directory = build_string (buf);
+
+  /* Add /: to the front of the name
+     if it would otherwise be treated as magic.  */
+  temp = Ffind_file_name_handler (current_buffer->directory, Qt);
+  if (! NILP (temp))
+    current_buffer->directory
+      = concat2 (build_string ("/:"), current_buffer->directory);
 
   temp = get_minibuffer (0);
   XBUFFER (temp)->directory = current_buffer->directory;
