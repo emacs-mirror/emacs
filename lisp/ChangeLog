@@ -1,3 +1,12 @@
+2005-03-31  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode):
+	Renamed from easy-mmode-define-global-mode.
+	(easy-mmode-define-global-mode): Alias for define-global-minor-mode.
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Update
+	syntax of | and # for two-character comment syntax.
+
 2005-03-31  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode)
