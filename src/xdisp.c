@@ -112,6 +112,9 @@ char *previous_echo_glyphs;
 /* Nonzero means truncate lines in all windows less wide than the frame */
 int truncate_partial_width_windows;
 
+/* A flag to control how to display unibyte 8-bit character.  */
+int unibyte_display_via_language_environment;
+
 /* Nonzero means we have more than one non-minibuffer-only frame.
    Not guaranteed to be accurate except while parsing frame-title-format.  */
 int multiple_frames;
@@ -3825,6 +3828,12 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
              by octal form.  */
 	  int remaining_bytes = len;
 
+	  if (unibyte_display_via_language_environment
+	      && SINGLE_BYTE_CHAR_P (c)
+	      && (c >= 0240
+		  || (c >= 0200 && !NILP (Vnonascii_translation_table))))
+	    c = unibyte_char_to_multibyte (c);
+
 	  if (c >= 0400 && CHAR_VALID_P (c, 0))
 	    {
 	      /* C is a multibyte character.  */
@@ -5597,6 +5606,15 @@ is not valid when these functions are called.");
     "*Number of characters of overlap when scrolling a one-line window.\n\
 This commonly affects the minibuffer window, hence the name of the variable.");
   minibuffer_scroll_overlap = 20;
+
+  DEFVAR_BOOL ("unibyte-display-via-language-environment",
+	       &unibyte_display_via_language_environment,
+   "*Non-nil means display unibyte text according to language environment.\n\
+Specifically this means that unibyte non-ASCII characters\n\
+are displayed by converting them to the equivalent multibyte characters\n\
+according to the current language environment.  As a result, they are\n\
+displayed according to the current fontset.");
+  unibyte_display_via_language_environment = 0;
 }
 
 /* initialize the window system */
