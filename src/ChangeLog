@@ -1,3 +1,11 @@
+2001-11-04  Richard M. Stallman  <rms@gnu.org>
+
+	* gmalloc.c: Test BROKEN_PROTOTYPES.
+
+	* xfns.c: Include unistd.h, if it exists.
+
+	* editfns.c: Move the include of ctype.h after unistd.h.
+
 2001-11-03  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (Fmake_local_variable): Doc fix.
