@@ -1606,8 +1606,7 @@ of buffer-file-coding-system set by this function."
 	    (when (string= language-name (nth 1 (car l)))
 	      (insert "  " (car (car l)))
 	      (search-backward (car (car l)))
-	      (help-xref-button 0 #'describe-input-method (car (car l))
-				"mouse-2, RET: describe this input method")
+	      (help-xref-button 0 'help-input-method (car (car l)))
 	      (goto-char (point-max))
 	      (insert " (\""
 		      (if (stringp (nth 3 (car l)))
@@ -1623,8 +1622,7 @@ of buffer-file-coding-system set by this function."
 	    (while l
 	      (insert "  " (symbol-name (car l)))
 	      (search-backward (symbol-name (car l)))
-	      (help-xref-button 0 #'describe-character-set (car l)
-				"mouse-2, RET: describe this character set")
+	      (help-xref-button 0 'help-character-set (car l))
 	      (goto-char (point-max))
 	      (insert ": " (charset-description (car l)) "\n")
 	      (setq l (cdr l)))))
@@ -1636,8 +1634,7 @@ of buffer-file-coding-system set by this function."
 	    (while l
 	      (insert "  " (symbol-name (car l)))
 	      (search-backward (symbol-name (car l)))
-	      (help-xref-button 0 #'describe-coding-system (car l)
-				"mouse-2, RET: describe this coding system")
+	      (help-xref-button 0 'help-coding-system (car l))
 	      (goto-char (point-max))
 	      (insert " (`"
 		      (coding-system-mnemonic (car l))
