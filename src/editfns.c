@@ -578,10 +578,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
   "Return character in current buffer at position POS.\n\
 POS is an integer or a buffer pointer.\n\
-If POS is out of range, the value is nil.\n\
-If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
- multi-byte form is ignored, and only one byte at POS\n\
- is returned as a character.")
+If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
 {
@@ -589,8 +586,12 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
   register Lisp_Object val;
 
   if (NILP (pos))
-    pos_byte = PT_BYTE;
-  else if (MARKERP (pos))
+    {
+      pos_byte = PT_BYTE;
+      pos = PT;
+    }
+
+  if (MARKERP (pos))
     {
       pos_byte = marker_byte_position (pos);
       if (pos_byte < BEGV_BYTE || pos_byte >= ZV_BYTE)
@@ -611,10 +612,7 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
   "Return character in current buffer preceding position POS.\n\
 POS is an integer or a buffer pointer.\n\
-If POS is out of range, the value is nil.\n\
-If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
-multi-byte form is ignored, and only one byte preceding POS\n\
-is returned as a character.")
+If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
 {
@@ -622,8 +620,12 @@ is returned as a character.")
   register int pos_byte;
 
   if (NILP (pos))
-    pos_byte = PT_BYTE;
-  else if (MARKERP (pos))
+    {
+      pos_byte = PT_BYTE;
+      pos = PT;
+    }
+
+  if (MARKERP (pos))
     {
       pos_byte = marker_byte_position (pos);
 
