@@ -4033,7 +4033,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      count++;
 		      numchars--;
 		    }
-		  else if (! NILP(Vframe_list)
+		  else if (! NILP (Vframe_list)
 			   && ! NILP (XCONS (Vframe_list)->cdr))
 		    /* Force a redisplay sooner or later
 		       to update the frame titles
@@ -5336,15 +5336,18 @@ x_set_offset (f, xoff, yoff, change_gravity)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  /* It is a mystery why we need to add the border_width here
-     when the frame is already visible, but experiment says we do.  */
   modified_left = f->output_data.x->left_pos;
   modified_top = f->output_data.x->top_pos;
+#if 0 /* Running on psilocin (Debian), and displaying on the NCD X-terminal,
+	 this seems to be unnecessary and incorrect.  rms, 4/17/97.  */
+  /* It is a mystery why we need to add the border_width here
+     when the frame is already visible, but experiment says we do.  */
   if (change_gravity != 0)
     {
       modified_left += f->output_data.x->border_width;
       modified_top += f->output_data.x->border_width;
     }
+#endif
 
 #ifdef USE_X_TOOLKIT
   XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
