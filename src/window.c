@@ -62,11 +62,19 @@ static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
 static int window_min_size_1 P_ ((struct window *, int));
 static int window_min_size P_ ((struct window *, int, int, int *));
 static void size_window P_ ((Lisp_Object, int, int, int));
-static void foreach_window_1 P_ ((struct window *, void (*fn) (), int, int,
-				  int, int));
-static void freeze_window_start P_ ((struct window *, int));
+static int foreach_window_1 P_ ((struct window *, int (*fn) (), int, int,
+				 int, int, int, int, int, int, int));
+static int freeze_window_start P_ ((struct window *, int));
 static int window_fixed_size_p P_ ((struct window *, int, int));
 static void enlarge_window P_ ((Lisp_Object, int, int));
+static Lisp_Object window_list P_ ((void));
+static int add_window_to_list P_ ((struct window *));
+static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
+				    Lisp_Object, int));
+static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
+					 Lisp_Object *));
+
 
 
 /* This is the window in which the terminal's cursor should
@@ -78,6 +86,12 @@ static void enlarge_window P_ ((Lisp_Object, int, int));
    FRAME_SELECTED_WINDOW (selected_frame).  */
 
 Lisp_Object selected_window;
+
+/* A list of all windows for use by next_window and Fwindow_list.
+   Functions creating or deleting windows should invalidate this cache
+   by setting it to nil.  */
+
+Lisp_Object Vwindow_list;
 
 /* The mini-buffer window of the selected frame.
    Note that you cannot test for mini-bufferness of an arbitrary window
@@ -238,6 +252,8 @@ make_window ()
   XSETWINDOW (val, p);
   XSETFASTINT (p->last_point, 0);
   p->frozen_window_start_p = 0;
+
+  Vwindow_list = Qnil;
   return val;
 }
 
@@ -586,50 +602,73 @@ If they are on the border between WINDOW and its right sibling,\n\
     }
 }
 
+
+/* Callback for foreach_window, used in window_from_coordinates.
+   Check if window W contains coordinates *X/*Y.  If it does, return W
+   in *WINDOW, as Lisp_Object, and return in *PART the part of the
+   window under coordinates *X/*Y.  Return zero from this function to
+   stop iterating over windows.  */
+
+static int
+check_window_containing (w, window, x, y, part)
+     struct window *w;
+     Lisp_Object *window;
+     int *x, *y, *part;
+{
+  int found;
+
+  found = coordinates_in_window (w, x, y);
+  if (found)
+    {
+      *part = found - 1;
+      XSETWINDOW (*window, w);
+    }
+  
+  return !found;
+}
+
+
 /* Find the window containing frame-relative pixel position X/Y and
    return it as a Lisp_Object.  If X, Y is on the window's modeline,
    set *PART to 1; if it is on the separating line between the window
    and its right sibling, set it to 2; otherwise set it to 0.  If
    there is no window under X, Y return nil and leave *PART
-   unmodified.  TOOL_BAR_P non-zero means detect tool-bar windows.  */
+   unmodified.  TOOL_BAR_P non-zero means detect tool-bar windows.
+
+   This function was previously implemented with a loop cycling over
+   windows with Fnext_window, and starting with the frame's selected
+   window.  It turned out that this doesn't work with an
+   implementation of next_window using Vwindow_list, because
+   FRAME_SELECTED_WINDOW (F) is not always contained in the window
+   tree of F when this function is called asynchronously from
+   note_mouse_highlight.  The original loop didn't terminate in this
+   case.  */
 
 Lisp_Object
-window_from_coordinates (frame, x, y, part, tool_bar_p)
-     FRAME_PTR frame;
+window_from_coordinates (f, x, y, part, tool_bar_p)
+     struct frame *f;
      int x, y;
      int *part;
      int tool_bar_p;
 {
-  register Lisp_Object tem, first;
-  int found;
+  Lisp_Object window;
 
-  tem = first = FRAME_SELECTED_WINDOW (frame);
-
-  do
-    {
-      found = coordinates_in_window (XWINDOW (tem), &x, &y);
-
-      if (found)
-	{
-	  *part = found - 1;
-	  return tem;
-	}
-
-      tem = Fnext_window (tem, Qt, Qlambda);
-    }
-  while (!EQ (tem, first));
-
-  /* See if it's in the tool bar window, if a tool bar exists.  */
-  if (tool_bar_p
-      && WINDOWP (frame->tool_bar_window)
-      && XFASTINT (XWINDOW (frame->tool_bar_window)->height)
-      && coordinates_in_window (XWINDOW (frame->tool_bar_window), &x, &y))
+  window = Qnil;
+  foreach_window (f, check_window_containing, &window, &x, &y, part);
+  
+  /* If not found above, see if it's in the tool bar window, if a tool
+     bar exists.  */
+  if (NILP (window)
+      && tool_bar_p
+      && WINDOWP (f->tool_bar_window)
+      && XINT (XWINDOW (f->tool_bar_window)->height) > 0
+      && coordinates_in_window (XWINDOW (f->tool_bar_window), &x, &y))
     {
       *part = 0;
-      return frame->tool_bar_window;
+      window = f->tool_bar_window;
     }
 
-  return Qnil;
+  return window;
 }
 
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
@@ -1021,6 +1060,7 @@ delete_window (window)
   par = XWINDOW (parent);
 
   windows_or_buffers_changed++;
+  Vwindow_list = Qnil;
   frame = XFRAME (WINDOW_FRAME (p));
   FRAME_WINDOW_SIZES_CHANGED (frame) = 1;
 
@@ -1133,9 +1173,217 @@ delete_window (window)
   adjust_glyphs (frame);
   UNBLOCK_INPUT;
 }
-
 
-extern Lisp_Object next_frame (), prev_frame ();
+
+
+/***********************************************************************
+			     Window List
+ ***********************************************************************/
+
+/* Add window W to Vwindow_list.  This is a callback function for
+   foreach_window, used from window_list.  */
+
+static int
+add_window_to_list (w)
+     struct window *w;
+{
+  Lisp_Object window;
+  XSETWINDOW (window, w);
+  Vwindow_list = Fcons (window, Vwindow_list);
+  return 1;
+}
+
+
+/* Return a list of all windows, for use by next_window.  If
+   Vwindow_list is a list, return that list.  Otherwise, build a new
+   list, cache it in Vwindow_list, and return that.  */
+
+static Lisp_Object
+window_list ()
+{
+  if (!CONSP (Vwindow_list))
+    {
+      Lisp_Object tail;
+      Vwindow_list = Qnil;
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+	foreach_window (XFRAME (XCAR (tail)), add_window_to_list);
+    }
+  
+  return Vwindow_list;
+}
+
+
+/* Value is non-zero if WINODW satisfies the constraints given by
+   MINIBUF and ALL_FRAMES.
+
+   MINIBUF t means WINDOW may be a minibuffer window.
+   MINIBUF `lambda' means it may not be a minibuffer window.
+   MINIBUF being a window means WINDOW must be equal to MINIBUF.
+
+   ALL_FRAMES t means WINDOW may be on any frame.
+   ALL_FRAMES nil means WINDOW must not be on a minibuffer-only frame.
+   ALL_FRAMES `visible' means WINDOW must be on a visible frame.
+   ALL_FRAMES 0 means WINDOW must be on a visible or iconified frame.
+   ALL_FRAMES being a frame means WINDOW must be on that frame.
+   ALL_FRAMES being a window means WINDOW must be on a frame using
+   the same minibuffer as ALL_FRAMES.  */
+
+static int
+candidate_window_p (window, minibuf, all_frames)
+     Lisp_Object window, minibuf, all_frames;
+{
+  struct window *w = XWINDOW (window);
+  struct frame *f = XFRAME (w->frame);
+  int candidate_p = 1;
+
+  if (!BUFFERP (w->buffer))
+    candidate_p = 0;
+  else if (MINI_WINDOW_P (w)
+           && (EQ (minibuf, Qlambda)
+	       || (WINDOWP (minibuf) && !EQ (minibuf, window))))
+    {
+      /* If MINIBUF is `lambda' don't consider any mini-windows.
+         If it is a window, consider only that one.  */
+      candidate_p = 0;
+    }
+  else if (NILP (all_frames))
+    candidate_p = !FRAME_MINIBUF_ONLY_P (f);
+  else if (EQ (all_frames, Qvisible))
+    {
+      FRAME_SAMPLE_VISIBILITY (f);
+      candidate_p = FRAME_VISIBLE_P (f);
+    }
+  else if (INTEGERP (all_frames) && XINT (all_frames) == 0)
+    {
+      FRAME_SAMPLE_VISIBILITY (f);
+      candidate_p = FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f);
+    }
+  else if (FRAMEP (all_frames))
+    candidate_p = EQ (all_frames, w->frame);
+  else if (WINDOWP (all_frames))
+    candidate_p = (EQ (FRAME_MINIBUF_WINDOW (f), all_frames)
+		   || EQ (XWINDOW (all_frames)->frame, w->frame)
+		   || EQ (XWINDOW (all_frames)->frame, FRAME_FOCUS_FRAME (f)));
+
+  return candidate_p;
+}
+
+
+/* Decode arguments as allowed by Fnext_window, Fprevious_window, and
+   Fwindow_list.  See there for the meaning of WINDOW, MINIBUF, and
+   ALL_FRAMES.  */
+
+static void
+decode_next_window_args (window, minibuf, all_frames)
+     Lisp_Object *window, *minibuf, *all_frames;
+{
+  if (NILP (*window))
+    *window = selected_window;
+  else
+    CHECK_LIVE_WINDOW (*window, 0);
+  
+  /* MINIBUF nil may or may not include minibuffers.  Decide if it
+     does.  */
+  if (NILP (*minibuf))
+    *minibuf = minibuf_level ? minibuf_window : Qlambda;
+  else if (!EQ (*minibuf, Qt))
+    *minibuf = Qlambda;
+  
+  /* Now *MINIBUF can be t => count all minibuffer windows, `lambda'
+     => count none of them, or a specific minibuffer window (the
+     active one) to count.  */
+
+  /* ALL_FRAMES nil doesn't specify which frames to include.  */
+  if (NILP (*all_frames))
+    *all_frames = (!EQ (*minibuf, Qlambda)
+		   ? FRAME_MINIBUF_WINDOW (XFRAME (XWINDOW (*window)->frame))
+		   : Qnil);
+  else if (EQ (*all_frames, Qvisible))
+    ;
+  else if (XFASTINT (*all_frames) == 0)
+    ;
+  else if (FRAMEP (*all_frames))
+    ;
+  else if (!EQ (*all_frames, Qt))
+    *all_frames = Qnil;
+  
+  /* Now *ALL_FRAMES is t meaning search all frames, nil meaning
+     search just current frame, `visible' meaning search just visible
+     frames, 0 meaning search visible and iconified frames, or a
+     window, meaning search the frame that window belongs to, or a
+     frame, meaning consider windows on that frame, only.  */
+}
+
+
+/* Return the next or previous window of WINDOW in canonical ordering
+   of windows.  NEXT_P non-zero means return the next window.  See the
+   documentation string of next-window for the meaning of MINIBUF and
+   ALL_FRAMES.  */
+
+static Lisp_Object
+next_window (window, minibuf, all_frames, next_p)
+     Lisp_Object window, minibuf, all_frames;
+     int next_p;
+{
+  decode_next_window_args (&window, &minibuf, &all_frames);
+  
+  /* If ALL_FRAMES is a frame, and WINDOW isn't on that frame, just
+     return the first window on the frame.  */
+  if (FRAMEP (all_frames)
+      && !EQ (all_frames, XWINDOW (window)->frame))
+    return Fframe_first_window (all_frames);
+  
+  if (!next_p)
+    {
+      Lisp_Object list;
+      
+      /* Find WINDOW in the list of all windows.  */
+      list = Fmemq (window, window_list ());
+
+      /* Scan forward from WINDOW to the end of the window list.  */
+      if (CONSP (list))
+	for (list = XCDR (list); CONSP (list); list = XCDR (list))
+	  if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	    break;
+
+      /* Scan from the start of the window list up to WINDOW.  */
+      if (!CONSP (list))
+	for (list = Vwindow_list;
+	     CONSP (list) && !EQ (XCAR (list), window);
+	     list = XCDR (list))
+	  if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	    break;
+
+      if (CONSP (list))
+	window = XCAR (list);
+    }
+  else
+    {
+      Lisp_Object candidate, list;
+      
+      /* Scan through the list of windows for candidates.  If there are
+	 candidate windows in front of WINDOW, the last one of these
+	 is the one we want.  If there are candidates following WINDOW
+	 in the list, again the last one of these is the one we want.  */
+      candidate = Qnil;
+      for (list = window_list (); CONSP (list); list = XCDR (list))
+	{
+	  if (EQ (XCAR (list), window))
+	    {
+	      if (WINDOWP (candidate))
+		break;
+	    }
+	  else if (candidate_window_p (XCAR (list), minibuf, all_frames))
+	    candidate = XCAR (list);
+	}
+
+      if (WINDOWP (candidate))
+	window = candidate;
+    }
+
+  return window;
+}
+
 
 /* This comment supplies the doc string for `next-window',
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -1172,113 +1420,11 @@ windows, eventually ending up back at the window you started with.\n\
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
        0)
   (window, minibuf, all_frames)
-     register Lisp_Object window, minibuf, all_frames;
+     Lisp_Object window, minibuf, all_frames;
 {
-  register Lisp_Object tem;
-  Lisp_Object start_window;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (window, 0);
-
-  start_window = window;
-
-  /* minibuf == nil may or may not include minibuffers.
-     Decide if it does.  */
-  if (NILP (minibuf))
-    minibuf = (minibuf_level ? minibuf_window : Qlambda);
-  else if (! EQ (minibuf, Qt))
-    minibuf = Qlambda;
-  /* Now minibuf can be t => count all minibuffer windows,
-     lambda => count none of them,
-     or a specific minibuffer window (the active one) to count.  */
-
-  /* all_frames == nil doesn't specify which frames to include.  */
-  if (NILP (all_frames))
-    all_frames = (! EQ (minibuf, Qlambda)
-		  ? (FRAME_MINIBUF_WINDOW
-		     (XFRAME
-		      (WINDOW_FRAME
-		       (XWINDOW (window)))))
-		  : Qnil);
-  else if (EQ (all_frames, Qvisible))
-    ;
-  else if (XFASTINT (all_frames) == 0)
-    ;
-  else if (FRAMEP (all_frames) && ! EQ (all_frames, Fwindow_frame (window)))
-    /* If all_frames is a frame and window arg isn't on that frame, just
-       return the first window on the frame.  */
-    return Fframe_first_window (all_frames);
-  else if (! EQ (all_frames, Qt))
-    all_frames = Qnil;
-  /* Now all_frames is t meaning search all frames,
-     nil meaning search just current frame,
-     visible meaning search just visible frames,
-     0 meaning search visible and iconified frames,
-     or a window, meaning search the frame that window belongs to.  */
-
-  /* Do this loop at least once, to get the next window, and perhaps
-     again, if we hit the minibuffer and that is not acceptable.  */
-  do
-    {
-      /* Find a window that actually has a next one.  This loop
-	 climbs up the tree.  */
-      while (tem = XWINDOW (window)->next, NILP (tem))
-	if (tem = XWINDOW (window)->parent, !NILP (tem))
-	  window = tem;
-	else
-	  {
-	    /* We've reached the end of this frame.
-	       Which other frames are acceptable?  */
-	    tem = WINDOW_FRAME (XWINDOW (window));
-	    if (! NILP (all_frames))
-	      {
-		Lisp_Object tem1;
-
-		tem1 = tem;
-		tem = next_frame (tem, all_frames);
-		/* In the case where the minibuffer is active,
-		   and we include its frame as well as the selected one,
-		   next_frame may get stuck in that frame.
-		   If that happens, go back to the selected frame
-		   so we can complete the cycle.  */
-		if (EQ (tem, tem1))
-		  tem = selected_frame;
-	      }
-	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
-
-	    break;
-	  }
-
-      window = tem;
-
-      /* If we're in a combination window, find its first child and
-	 recurse on that.  Otherwise, we've found the window we want.  */
-      while (1)
-	{
-	  if (!NILP (XWINDOW (window)->hchild))
-	    window = XWINDOW (window)->hchild;
-	  else if (!NILP (XWINDOW (window)->vchild))
-	    window = XWINDOW (window)->vchild;
-	  else break;
-	}
-
-      QUIT;
-    }
-  /* Which windows are acceptable?
-     Exit the loop and accept this window if
-     this isn't a minibuffer window,
-     or we're accepting all minibuffer windows,
-     or this is the active minibuffer and we are accepting that one, or
-     we've come all the way around and we're back at the original window.  */
-  while (MINI_WINDOW_P (XWINDOW (window))
-	 && ! EQ (minibuf, Qt)
-	 && ! EQ (minibuf, window)
-	 && ! EQ (window, start_window));
-
-  return window;
+  return next_window (window, minibuf, all_frames, 1);
 }
+
 
 /* This comment supplies the doc string for `previous-window',
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -1316,127 +1462,11 @@ windows, eventually ending up back at the window you started with.\n\
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
        0)
   (window, minibuf, all_frames)
-     register Lisp_Object window, minibuf, all_frames;
+     Lisp_Object window, minibuf, all_frames;
 {
-  register Lisp_Object tem;
-  Lisp_Object start_window;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (window, 0);
-
-  start_window = window;
-
-  /* minibuf == nil may or may not include minibuffers.
-     Decide if it does.  */
-  if (NILP (minibuf))
-    minibuf = (minibuf_level ? minibuf_window : Qlambda);
-  else if (! EQ (minibuf, Qt))
-    minibuf = Qlambda;
-  /* Now minibuf can be t => count all minibuffer windows,
-     lambda => count none of them,
-     or a specific minibuffer window (the active one) to count.  */
-
-  /* all_frames == nil doesn't specify which frames to include.
-     Decide which frames it includes.  */
-  if (NILP (all_frames))
-    all_frames = (! EQ (minibuf, Qlambda)
-		   ? (FRAME_MINIBUF_WINDOW
-		      (XFRAME
-		       (WINDOW_FRAME
-			(XWINDOW (window)))))
-		   : Qnil);
-  else if (EQ (all_frames, Qvisible))
-    ;
-  else if (XFASTINT (all_frames) == 0)
-    ;
-  else if (FRAMEP (all_frames) && ! EQ (all_frames, Fwindow_frame (window)))
-    /* If all_frames is a frame and window arg isn't on that frame, just
-       return the first window on the frame.  */
-    return Fframe_first_window (all_frames);
-  else if (! EQ (all_frames, Qt))
-    all_frames = Qnil;
-  /* Now all_frames is t meaning search all frames,
-     nil meaning search just current frame,
-     visible meaning search just visible frames,
-     0 meaning search visible and iconified frames,
-     or a window, meaning search the frame that window belongs to.  */
-
-  /* Do this loop at least once, to get the previous window, and perhaps
-     again, if we hit the minibuffer and that is not acceptable.  */
-  do
-    {
-      /* Find a window that actually has a previous one.  This loop
-	 climbs up the tree.  */
-      while (tem = XWINDOW (window)->prev, NILP (tem))
-	if (tem = XWINDOW (window)->parent, !NILP (tem))
-	  window = tem;
-	else
-	  {
-	    /* We have found the top window on the frame.
-	       Which frames are acceptable?  */
-	    tem = WINDOW_FRAME (XWINDOW (window));
-	    if (! NILP (all_frames))
-	      /* It's actually important that we use prev_frame here,
-		 rather than next_frame.  All the windows acceptable
-		 according to the given parameters should form a ring;
-		 Fnext_window and Fprevious_window should go back and
-		 forth around the ring.  If we use next_frame here,
-		 then Fnext_window and Fprevious_window take different
-		 paths through the set of acceptable windows.
-		 window_loop assumes that these `ring' requirement are
-		 met.  */
-	      {
-		Lisp_Object tem1;
-
-		tem1 = tem;
-		tem = prev_frame (tem, all_frames);
-		/* In the case where the minibuffer is active,
-		   and we include its frame as well as the selected one,
-		   next_frame may get stuck in that frame.
-		   If that happens, go back to the selected frame
-		   so we can complete the cycle.  */
-		if (EQ (tem, tem1))
-		  tem = selected_frame;
-	      }
-	    /* If this frame has a minibuffer, find that window first,
-	       because it is conceptually the last window in that frame.  */
-	    if (FRAME_HAS_MINIBUF_P (XFRAME (tem)))
-	      tem = FRAME_MINIBUF_WINDOW (XFRAME (tem));
-	    else
-	      tem = FRAME_ROOT_WINDOW (XFRAME (tem));
-
-	    break;
-	  }
-
-      window = tem;
-      /* If we're in a combination window, find its last child and
-	 recurse on that.  Otherwise, we've found the window we want.  */
-      while (1)
-	{
-	  if (!NILP (XWINDOW (window)->hchild))
-	    window = XWINDOW (window)->hchild;
-	  else if (!NILP (XWINDOW (window)->vchild))
-	    window = XWINDOW (window)->vchild;
-	  else break;
-	  while (tem = XWINDOW (window)->next, !NILP (tem))
-	    window = tem;
-	}
-    }
-  /* Which windows are acceptable?
-     Exit the loop and accept this window if
-     this isn't a minibuffer window,
-     or we're accepting all minibuffer windows,
-     or this is the active minibuffer and we are accepting that one, or
-     we've come all the way around and we're back at the original window.  */
-  while (MINI_WINDOW_P (XWINDOW (window))
-	 && ! EQ (minibuf, Qt)
-	 && ! EQ (minibuf, window)
-	 && ! EQ (window, start_window));
-
-  return window;
+  return next_window (window, minibuf, all_frames, 0);
 }
+
 
 DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
   "Select the ARG'th different window on this frame.\n\
@@ -1445,28 +1475,43 @@ This command selects the window ARG steps away in that order.\n\
 A negative ARG moves in the opposite order.  If the optional second\n\
 argument ALL_FRAMES is non-nil, cycle through all frames.")
   (arg, all_frames)
-     register Lisp_Object arg, all_frames;
+     Lisp_Object arg, all_frames;
 {
-  register int i;
-  register Lisp_Object w;
+  Lisp_Object window;
+  int i;
 
   CHECK_NUMBER (arg, 0);
-  w = selected_window;
-  i = XINT (arg);
-
-  while (i > 0)
-    {
-      w = Fnext_window (w, Qnil, all_frames);
-      i--;
-    }
-  while (i < 0)
-    {
-      w = Fprevious_window (w, Qnil, all_frames);
-      i++;
-    }
-  Fselect_window (w);
+  window = selected_window;
+  
+  for (i = XINT (arg); i > 0; --i)
+    window = Fnext_window (window, Qnil, all_frames);
+  for (; i < 0; ++i)
+    window = Fprevious_window (window, Qnil, all_frames);
+  
+  Fselect_window (window);
   return Qnil;
 }
+
+
+DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
+  "Return a list windows in canonical ordering.\n\
+Arguments are like for `next-window'.")
+  (window, minibuf, all_frames)
+     Lisp_Object minibuf, all_frames;
+{
+  Lisp_Object tail, list;
+
+  decode_next_window_args (&window, &minibuf, &all_frames);
+  list = Qnil;
+  
+  for (tail = window_list (); CONSP (tail); tail = XCDR (tail))
+    if (candidate_window_p (XCAR (tail), minibuf, all_frames))
+      list = Fcons (XCAR (tail), list);
+  
+  return list;
+}
+
+
 
 /* Look at all windows, performing an operation specified by TYPE
    with argument OBJ.
@@ -5030,39 +5075,47 @@ non-negative multiple of the canonical character height of WINDOW.")
 
 /* Call FN for all leaf windows on frame F.  FN is called with the
    first argument being a pointer to the leaf window, and with
-   additional arguments A1..A4.  */
+   additional arguments A1..A9.  Stops when FN returns 0.  */
 
 void
-foreach_window (f, fn, a1, a2, a3, a4)
+foreach_window (f, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9)
      struct frame *f;
-     void (* fn) ();
-     int a1, a2, a3, a4;
+     int (* fn) ();
+     int a1, a2, a3, a4, a5, a6, a7, a8, a9;
 {
-  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, a1, a2, a3, a4);
+  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)),
+		    fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
 
 /* Helper function for foreach_window.  Call FN for all leaf windows
    reachable from W.  FN is called with the first argument being a
-   pointer to the leaf window, and with additional arguments A1..A4.  */
+   pointer to the leaf window, and with additional arguments A1..A9.
+   Stop when FN returns 0.  Value is 0 if stopped by FN.  */
 
-static void
-foreach_window_1 (w, fn, a1, a2, a3, a4)
+static int
+foreach_window_1 (w, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9)
      struct window *w;
-     void (* fn) ();
-     int a1, a2, a3, a4;
+     int (* fn) ();
+     int a1, a2, a3, a4, a5, a6, a7, a8, a9;
 {
-  while (w)
+  int cont;
+  
+  for (cont = 1; w && cont;)
     {
       if (!NILP (w->hchild))
- 	foreach_window_1 (XWINDOW (w->hchild), fn, a1, a2, a3, a4);
+ 	cont = foreach_window_1 (XWINDOW (w->hchild),
+				 fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
       else if (!NILP (w->vchild))
- 	foreach_window_1 (XWINDOW (w->vchild), fn, a1, a2, a3, a4);
-      else
-	fn (w, a1, a2, a3, a4);
+ 	cont = foreach_window_1 (XWINDOW (w->vchild),
+				 fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+      else if (fn (w, a1, a2, a3, a4, a5, a6, a7, a8, a9) == 0)
+	cont = 0;
       
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
+
+  return cont;
 }
 
 
@@ -5070,7 +5123,7 @@ foreach_window_1 (w, fn, a1, a2, a3, a4)
    mini-window or the selected window.  FREEZE_P non-zero means freeze
    the window start.  */
 
-static void
+static int
 freeze_window_start (w, freeze_p)
      struct window *w;
      int freeze_p;
@@ -5083,6 +5136,7 @@ freeze_window_start (w, freeze_p)
     freeze_p = 0;
   
   w->frozen_window_start_p = freeze_p;
+  return 1;
 }
 
 
@@ -5234,6 +5288,12 @@ init_window_once ()
 }
 
 void
+init_window ()
+{
+  Vwindow_list = Qnil;
+}
+
+void
 syms_of_window ()
 {
   Qleft_bitmap_area = intern ("left-bitmap-area");
@@ -5259,6 +5319,8 @@ syms_of_window ()
 
   Qtemp_buffer_show_hook = intern ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
+
+  staticpro (&Vwindow_list);
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
     "Non-nil means call as function to display a help buffer.\n\
@@ -5467,6 +5529,7 @@ The selected frame is the one whose configuration has changed.");
   defsubr (&Swindow_vscroll);
   defsubr (&Sset_window_vscroll);
   defsubr (&Scompare_window_configurations);
+  defsubr (&Swindow_list);
 }
 
 void
