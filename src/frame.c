@@ -2121,10 +2121,11 @@ If FRAME is nil, describe the currently selected frame.  */)
 		    }
 		}
 	    }
+	  else
+	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
 	}
       else if (EQ (parameter, Qdisplay_type)
 	       || EQ (parameter, Qbackground_mode))
-	/* Avoid consing in frequent cases.  */
 	value = Fcdr (Fassq (parameter, f->param_alist));
       else
 	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
