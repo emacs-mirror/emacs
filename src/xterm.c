@@ -783,7 +783,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    if (charset == CHARSET_ASCII || charset == charset_latin_iso8859_1)
 	      {
 		font = FACE_FONT (face);
-		if (font == (XFontStruct *) FACE_DEFAULT)
+		if (!font || font == (XFontStruct *) FACE_DEFAULT)
 		  font = f->output_data.x->font;
 		baseline = FONT_BASE (f->output_data.x->font);
 		if (charset == charset_latin_iso8859_1)
@@ -837,12 +837,14 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		    xgcv.background = face->foreground;
 		    xgcv.foreground = face->background;
 		  }
-		if (font)
-		  xgcv.font = font->fid;
-		else
-		  xgcv.font = FACE_FONT (face)->fid;
 		xgcv.graphics_exposures = 0;
-		mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+		mask = GCForeground | GCBackground | GCGraphicsExposures;
+		if (font)
+		  {
+		    xgcv.font = font->fid;
+		    mask |= GCFont;
+		  }
+
 		if (FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc)
 		  XChangeGC (FRAME_X_DISPLAY (f),
 			     FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
