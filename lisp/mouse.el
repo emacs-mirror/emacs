@@ -1005,8 +1005,8 @@ again.  If you do this twice in the same position, it kills the selection."
 		  (overlay-put mouse-secondary-overlay 'face 'secondary-selection))))
 	  (setq mouse-save-then-kill-posn
 		(list (car kill-ring) (point) click-posn))))
-      (x-set-selection 'SECONDARY
-		       (if (overlay-buffer mouse-secondary-overlay)
+      (if (overlay-buffer mouse-secondary-overlay)
+	  (x-set-selection 'SECONDARY
 			   (buffer-substring
 			    (overlay-start mouse-secondary-overlay)
 			    (overlay-end mouse-secondary-overlay)))))))
