@@ -6,3 +6,10 @@
 
 #define ISC4_0
 #define NEED_SIOCTL
+
+/* fmcphers@csugrad.cs.vt.edu reported this was necessary.
+   He used GCC.  I don't know what is needed with other compilers.  */
+#ifdef __GNUC__
+#undef LIBX11_SYSTEM
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lcposix -lc
+#endif
