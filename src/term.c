@@ -27,6 +27,8 @@ Boston, MA 02111-1307, USA.  */
 #include "cm.h"
 #undef NULL
 #include "lisp.h"
+#include "charset.h"
+#include "coding.h"
 #include "frame.h"
 #include "disptab.h"
 #include "termhooks.h"
@@ -196,7 +198,9 @@ void (*judge_scroll_bars_hook)( /* FRAME_PTR *FRAME */ );
 
 /* Strings, numbers and flags taken from the termcap entry.  */
 
-char *TS_ins_line;		/* termcap "al" */
+char *TS_end_italic_mode;	/* termcal "ae" */
+char *TS_ins_line;		/* "al" */
+char *TS_italic_mode;		/* "as" */
 char *TS_ins_multi_lines;	/* "AL" (one parameter, # lines to insert) */
 char *TS_bell;			/* "bl" */
 char *TS_clr_to_bottom;		/* "cd" */
@@ -219,6 +223,8 @@ char *TS_insert_mode;		/* "im", enter character-insert mode */
 char *TS_pad_inserted_char;	/* "ip".  Just padding, no commands.  */
 char *TS_end_keypad_mode;	/* "ke" */
 char *TS_keypad_mode;		/* "ks" */
+char *TS_bold_mode;		/* "md" */
+char *TS_end_bold_mode;		/* "me" */
 char *TS_pad_char;		/* "pc", char to use as padding */
 char *TS_repeat;		/* "rp" (2 params, # times to repeat
 				   and character to be repeated) */
@@ -228,6 +234,8 @@ char *TS_standout_mode;		/* "so" */
 char *TS_rev_scroll;		/* "sr" */
 char *TS_end_termcap_modes;	/* "te" */
 char *TS_termcap_modes;		/* "ti" */
+char *TS_end_underscore_mode;	/* "ue" */
+char *TS_underscore_mode;	/* "us" */
 char *TS_visible_bell;		/* "vb" */
 char *TS_end_visual_mode;	/* "ve" */
 char *TS_visual_mode;		/* "vi" */
@@ -760,6 +768,74 @@ clear_end_of_line_raw (first_unused_hpos)
     }
 }
 
+/* Encode SRC_LEN glyphs starting at SRC to terminal output codes and
+   store them at DST.  Do not write more than DST_LEN bytes.  That may
+   require stopping before all SRC_LEN input glyphs have been
+   converted.
+
+   We store the number of glyphs actually converted in *CONSUMED.  The
+   return value is the number of bytes store in DST.  */
+
+int
+encode_terminal_code (src, dst, src_len, dst_len, consumed)
+     GLYPH *src;
+     int src_len;
+     unsigned char *dst;
+     int dst_len, *consumed;
+{
+  GLYPH *src_start = src, *src_end = src + src_len;
+  unsigned char *dst_start = dst, *dst_end = dst + dst_len;
+  register GLYPH g = *src;
+  int c = GLYPH_CHAR (selected_frame, g);
+  unsigned char workbuf[4], *buf;
+  int len, produced, processed;
+  register int tlen = GLYPH_TABLE_LENGTH;
+  register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+
+  while (src < src_end)
+    {
+      g = *src;
+      /* We must skip glyphs to be padded for a wide character.  */
+      if (! (g & GLYPH_MASK_PADDING))
+	{
+	  c = GLYPH_CHAR (selected_frame, g);
+	  if (COMPOSITE_CHAR_P (c))
+	    {
+	      /* If C is a composite character, we can display
+		 only the first component.  */
+	      g = cmpchar_table[COMPOSITE_CHAR_ID (c)]->glyph[0],
+	      c = GLYPH_CHAR (selected_frame, g);
+	    }
+	  if (c < tlen)
+	    {
+	      /* G has an entry in Vglyph_table,
+		 so process any alias before testing for simpleness.  */
+	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+	      c = GLYPH_CHAR (selected_frame, g);
+	    }
+	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
+	    /* We set the multi-byte form of C at BUF.  */
+	    len = CHAR_STRING (c, workbuf, buf);
+	  else
+	    /* We have the multi-byte form in Vglyph_table.  */
+	    len = GLYPH_LENGTH (tbase, g), buf = GLYPH_STRING (tbase, g);
+	  
+	  produced = encode_coding (&terminal_coding, buf, dst,
+				     len, dst_end - dst, &processed);
+	  if (processed < len)
+	    /* We get a carryover because the remaining output
+	       buffer is too short.  We must break the loop here
+	       without increasing SRC so that the next call of
+	       this function start from the same glyph.  */
+	    break;
+	  dst += produced;
+	}
+      src++;
+    }
+  *consumed = src - src_start;
+  return (dst - dst_start);
+}
+
 
 write_glyphs (string, len)
      register GLYPH *string;
@@ -768,6 +844,7 @@ write_glyphs (string, len)
   register GLYPH g;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+  int produced, consumed;
 
   if (write_glyphs_hook
       && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
@@ -787,42 +864,42 @@ write_glyphs (string, len)
       && (curX + len - (chars_wasted[curY] & 077)
 	  == FRAME_WIDTH (selected_frame)))
     len --;
+  if (len <= 0)
+    return;
 
   cmplus (len);
-  while (--len >= 0)
+  /* The field `last_block' should be set to 1 only at the tail.  */
+  terminal_coding.last_block = 0;
+  while (len > 0)
     {
-      g = *string++;
-      /* Check quickly for G beyond length of table.
-	 That implies it isn't an alias and is simple.  */
-      if (g >= tlen)
+      /* We use shared conversion buffer of the current size (1024
+	 bytes at least).  Usually it is sufficient, but if not, we
+	 just repeat the loop.  */
+      produced = encode_terminal_code (string, conversion_buffer,
+				       len, conversion_buffer_size, &consumed);
+      if (produced > 0)
 	{
-	simple:
-	  putc (g & 0xff, stdout);
+	  fwrite (conversion_buffer, 1, produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
-	    putc (g & 0xff, termscript);
+	    fwrite (conversion_buffer, 1, produced, termscript);
 	}
-      else
-	{
-	  /* G has an entry in Vglyph_table,
-	     so process any alias and then test for simpleness.  */
-	  while (GLYPH_ALIAS_P (tbase, tlen, g))
-	    g = GLYPH_ALIAS (tbase, g);
-	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
-	    goto simple;
-	  else
-	    {
-	      /* Here if G (or its definition as an alias) is not simple.  */
-	      fwrite (GLYPH_STRING (tbase, g), 1, GLYPH_LENGTH (tbase, g),
-		      stdout);
-	      if (ferror (stdout))
-		clearerr (stdout);
-	      if (termscript)
-		fwrite (GLYPH_STRING (tbase, g), 1, GLYPH_LENGTH (tbase, g),
-			termscript);
-	    }
-	}
+      len -= consumed;
+      string += consumed;
+    }
+  /* We may have to output some codes to terminate the writing.  */
+  terminal_coding.last_block = 1;
+  produced = encode_coding (&terminal_coding, (char *)0, conversion_buffer,
+			    0, conversion_buffer_size,
+			    &consumed);
+  if (produced > 0)
+    {
+      fwrite (conversion_buffer, 1, produced, stdout);
+      if (ferror (stdout))
+	clearerr (stdout);
+      if (termscript)
+	fwrite (conversion_buffer, 1, produced, termscript);
     }
   cmcheckmagic ();
 }
@@ -834,9 +911,12 @@ insert_glyphs (start, len)
      register int len;
 {
   char *buf;
-  register GLYPH g;
+  GLYPH g;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+
+  if (len <= 0)
+    return;
 
   if (insert_glyphs_hook && ! FRAME_TERMCAP_P (updating_frame))
     {
@@ -857,30 +937,42 @@ insert_glyphs (start, len)
 
   turn_on_insert ();
   cmplus (len);
-  while (--len >= 0)
+  /* The field `last_block' should be set to 1 only at the tail.  */
+  terminal_coding.last_block = 0;
+  while (len > 0)
     {
+      int produced, consumed;
+
       OUTPUT1_IF (TS_ins_char);
       if (!start)
 	g = SPACEGLYPH;
       else
-	g = *start++;
-
-      if (GLYPH_SIMPLE_P (tbase, tlen, g))
 	{
-	  putc (g & 0xff, stdout);
-	  if (ferror (stdout))
-	    clearerr (stdout);
-	  if (termscript)
-	    putc (g & 0xff, termscript);
+	  g = *start++;
+	  /* We must open sufficient space for a character which
+	     occupies more than one column.  */
+	  while (*start && GLYPH_MASK_PADDING)
+	    {
+	      OUTPUT1_IF (TS_ins_char);
+	      start++, len--;
+	    }
 	}
-      else
+
+      if (len <= 0)
+	/* This is the last glyph.  */
+	terminal_coding.last_block = 1;
+
+      /* We use shared conversion buffer of the current size (1024
+	 bytes at least).  It is surely sufficient for just one glyph.  */
+      produced = encode_terminal_code (&g, conversion_buffer,
+				       1, conversion_buffer_size, &consumed);
+      if (produced > 0)
 	{
-	  fwrite (GLYPH_STRING (tbase, g), 1, GLYPH_LENGTH (tbase, g), stdout);
+	  fwrite (conversion_buffer, 1, produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
-	    fwrite (GLYPH_STRING (tbase, g), 1, GLYPH_LENGTH (tbase, g),
-		    termscript);
+	    fwrite (conversion_buffer, 1, produced, termscript);
 	}
 
       OUTPUT1_IF (TS_pad_inserted_char);
@@ -1558,6 +1650,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   Wcm.cm_tab = tgetstr ("ta", address);
   TS_end_termcap_modes = tgetstr ("te", address);
   TS_termcap_modes = tgetstr ("ti", address);
+  TS_bold_mode = tgetstr ("md", address);
+  TS_end_bold_mode = tgetstr ("me", address);
+  TS_underscore_mode = tgetstr ("us", address);
+  TS_end_underscore_mode = tgetstr ("ue", address);
   Up = tgetstr ("up", address);
   TS_visible_bell = tgetstr ("vb", address);
   TS_end_visual_mode = tgetstr ("ve", address);
