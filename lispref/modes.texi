@@ -1139,10 +1139,12 @@ update of the mode line so as to display the new information or
 display it in the new way.
 
 @c Emacs 19 feature
-@defun force-mode-line-update
+@defun force-mode-line-update &optional all
 Force redisplay of the current buffer's mode line and header line.
 The next redisplay will update the mode line and header line based on
-the latest values of all relevant variables.
+the latest values of all relevant variables.  With optional
+non-@code{nil} @var{all}, force redisplay of all mode lines and header
+lines.
 
 This function also forces recomputation of the menu bar menus
 and the frame title.
