@@ -993,8 +993,7 @@ ring (history).
 
 *** The new variable `comint-input-history-ignore' is a regexp for
 identifying history lines that should be ignored, like tcsh inserts in
-time-stamp strings starting a `#'.  The default value of this variable
-is "^#".
+time-stamp strings.  The default value of this variable is "^#".
 
 ** Changes to Rmail mode
 

@@ -1,5 +1,8 @@
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_connection_closed): Set handling_signal to 0 at
+	the start.
+
 	* xdisp.c (pos_visible_p): Take into account that CHARPOS maybe
 	in or at the start of invisible text.
 
