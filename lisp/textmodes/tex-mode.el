@@ -656,12 +656,15 @@ preceded by a blank, to COMMAND.  If FILE is nil, no substitution will be made
 in COMMAND.  COMMAND can be any expression that evaluates to a command string."
   (save-excursion
     (let* ((cmd (eval command))
-           (star (string-match "\\*" cmd)))
+           (star (string-match "\\*" cmd))
+           (front (substring cmd 0 star))
+           (back (if star (substring cmd (1+ star)) "")))
       (comint-proc-query (get-process "tex-shell")
-                         (concat (substring cmd 0 star)
-                                 (if file (concat " " file) "")
-                                 (if star (substring cmd (1+ star) nil) "")
-                                 (if background "&\n" "\n"))))))
+                         (concat
+                          (if file (if star (concat front file back)
+                                     (concat cmd " " file))
+                            cmd)
+                          (if background "&\n" "\n"))))))
 
 (defun tex-delete-last-temp-files ()
   "Delete any junk files from last temp file."
