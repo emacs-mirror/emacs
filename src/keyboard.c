@@ -55,6 +55,11 @@ Boston, MA 02111-1307, USA.  */
 #include "syssignal.h"
 #include "systty.h"
 
+#include <sys/types.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 /* This is to get the definitions of the XK_ symbols.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -878,7 +883,6 @@ This function is called by the editor initialization to begin editing.")
   ()
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object val;
 
   command_loop_level++;
   update_mode_lines = 1;
@@ -1183,8 +1187,8 @@ void safe_run_hooks ();
 Lisp_Object
 command_loop_1 ()
 {
-  Lisp_Object cmd, tem;
-  int lose, lose2;
+  Lisp_Object cmd;
+  int lose;
   int nonundocount;
   Lisp_Object keybuf[30];
   int i;
@@ -1614,7 +1618,6 @@ void
 safe_run_hooks (hook)
      Lisp_Object hook;
 {
-  Lisp_Object value;
   int count = specpdl_ptr - specpdl;
   specbind (Qinhibit_quit, hook);
 
@@ -2971,7 +2974,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 {
   register int c;
   Lisp_Object obj;
-  EMACS_TIME next_timer_delay;
 
   if (noninteractive)
     {
@@ -3418,7 +3420,6 @@ timer_check (do_it_now)
 
   while (CONSP (timers) || CONSP (idle_timers))
     {
-      int triggertime = EMACS_SECS (now);
       Lisp_Object *vector;
       Lisp_Object timer, idle_timer;
       EMACS_TIME timer_time, idle_timer_time;
@@ -3530,7 +3531,6 @@ timer_check (do_it_now)
 	{
 	  if (NILP (vector[0]))
 	    {
-	      Lisp_Object tem;
 	      int was_locked = single_kboard;
 	      int count = specpdl_ptr - specpdl;
 #ifdef HAVE_WINDOW_SYSTEM
@@ -4610,7 +4610,6 @@ make_lispy_event (event)
 	FRAME_PTR f;
 	Lisp_Object window;
 	Lisp_Object posn;
-	Lisp_Object head, position;
 	Lisp_Object files;
 	int row, column;
 
@@ -4754,9 +4753,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       if (WINDOWP (window))
 	{
 	  struct window *w = XWINDOW (window);
-	  int hpos, vpos;
 	  int wx, wy;
-	  int pos;
 	  
 	  /* Get window relative coordinates.  */
 	  wx = FRAME_TO_WINDOW_PIXEL_X (w, XINT (x));
@@ -5868,7 +5865,6 @@ menu_bar_items (old)
   if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
     {
       Lisp_Object tem;
-      int newsize = 2 * i;
       tem = Fmake_vector (make_number (2 * i), Qnil);
       bcopy (XVECTOR (menu_bar_items_vector)->contents,
 	     XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
@@ -5895,7 +5891,7 @@ static void
 menu_bar_one_keymap (keymap)
      Lisp_Object keymap;
 {
-  Lisp_Object tail, item, table;
+  Lisp_Object tail, item;
 
   menu_bar_one_keymap_changed_items = Qnil;
 
@@ -5983,7 +5979,6 @@ menu_bar_item (key, item)
       if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
 	{
 	  Lisp_Object tem;
-	  int newsize = 2 * i;
 	  tem = Fmake_vector (make_number (2 * i), Qnil);
 	  bcopy (XVECTOR (menu_bar_items_vector)->contents,
 		 XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
@@ -6168,7 +6163,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      else if (EQ (tem, QCkeys))
 		{
 		  tem = XCONS (item)->car;
-		  if (CONSP (tem) || STRINGP (tem) && NILP (cachelist))
+		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
 		    XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
 		      = tem;
 		}
@@ -6303,11 +6298,11 @@ parse_menu_item (item, notreal, inmenubar)
 	}
       /* We had a saved key. Is it still bound to the command?  */
       else if (NILP (tem)
-	       || !EQ (tem, def)
-	       /* If the command is an alias for another
-		  (such as lmenu.el set it up), check if the
-		  original command matches the cached command.  */
-	       && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function)))
+	       || (!EQ (tem, def)
+		   /* If the command is an alias for another
+		      (such as lmenu.el set it up), check if the
+		      original command matches the cached command.  */
+		   && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
 	chkcache = 1;		/* Need to recompute key binding.  */
 
       if (chkcache)
@@ -6601,7 +6596,6 @@ parse_tool_bar_item (key, item)
   extern Lisp_Object QCenable, QCvisible, QChelp, QCfilter;
   extern Lisp_Object QCbutton, QCtoggle, QCradio;
   int i;
-  struct gcpro gcpro1;
 
   /* Defininition looks like `(tool-bar-item CAPTION BINDING
      PROPS...)'.  Rule out items that aren't lists, don't start with
@@ -6799,7 +6793,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 {
   int mapno;
   register Lisp_Object name;
-  Lisp_Object rest, vector;
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
@@ -7358,7 +7351,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   int prev_keytran_start;
   int prev_keytran_end;
 
+#if defined (GOBBLE_FIRST_EVENT)
   int junk;
+#endif
 
   raw_keybuf_count = 0;
 
@@ -7537,8 +7532,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       /* If not, we should actually read a character.  */
       else
 	{
-	  struct buffer *buf = current_buffer;
-
 	  {
 #ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
@@ -8392,7 +8385,7 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 {
   Lisp_Object keybuf[30];
   register int i;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
   int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
@@ -8437,7 +8430,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
 {
   Lisp_Object keybuf[30];
   register int i;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
   int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
@@ -8596,7 +8589,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
       if (sizeof (int) == sizeof (EMACS_INT))
 	sprintf (buf, "%d ", XINT (XCONS (prefixarg)->car));
       else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", XINT (XCONS (prefixarg)->car));
+	sprintf (buf, "%ld ", (long) XINT (XCONS (prefixarg)->car));
       else
 	abort ();
     }
@@ -8605,7 +8598,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
       if (sizeof (int) == sizeof (EMACS_INT))
 	sprintf (buf, "%d ", XINT (prefixarg));
       else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", XINT (prefixarg));
+	sprintf (buf, "%ld ", (long) XINT (prefixarg));
       else
 	abort ();
     }
@@ -8991,11 +8984,10 @@ On such systems, Emacs starts a subshell instead of suspending.")
   (stuffstring)
      Lisp_Object stuffstring;
 {
-  Lisp_Object tem;
   int count = specpdl_ptr - specpdl;
   int old_height, old_width;
   int width, height;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
 
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring, 0);
