@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.109 1998/05/07 21:34:54 rms Exp spiegel $
+;; $Id: vc-hooks.el,v 1.110 1998/05/17 15:33:39 spiegel Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -1119,6 +1119,9 @@ control system name."
 (defun vc-file-not-found-hook ()
   "When file is not found, try to check it out from RCS or SCCS.
 Returns t if checkout was successful, nil otherwise."
+  ;; When a file does not exist, ignore cached info about it
+  ;; from a previous visit.
+  (vc-file-clearprops buffer-file-name)
   (if (and (not vc-ignore-vc-files) 
            (vc-backend buffer-file-name))
       (save-excursion
