@@ -348,20 +348,20 @@
 ;; From src/xfns.c
 (defun x-display-color-p (&optional display) 't)
 (defun x-list-fonts (pattern &optional face frame maximum width)
-  (if (and (numberp width) (= width 1))
-      (list "default")
+  (if (or (null width) (and (numberp width) (= width 1)))
+      (list "ms-dos")
     (list "no-such-font")))
 (defun x-color-defined-p (color) (numberp (msdos-color-translate color)))
 (defun x-display-pixel-width (&optional frame) (frame-width frame))
 (defun x-display-pixel-height (&optional frame) (frame-height frame))
-(defun x-display-planes (&optional frame) 4) ; 3 for background, actually
-(defun x-display-color-cells (&optional frame) 16) ; ???
+(defun x-display-planes (&optional frame) 4) ;bg switched to 16 colors as well
+(defun x-display-color-cells (&optional frame) 16)
 (defun x-server-max-request-size (&optional frame) 1000000) ; ???
 (defun x-server-vendor (&optional frame) t "GNU")
 (defun x-server-version (&optional frame) '(1 0 0))
 (defun x-display-screens (&optional frame) 1)
-(defun x-display-mm-height (&optional frame) 200) ; Guess the size of my
-(defun x-display-mm-width (&optional frame) 253)  ; monitor, MW...
+(defun x-display-mm-height (&optional frame) 245) ; Guess the size of my
+(defun x-display-mm-width (&optional frame) 322)  ; monitor, EZ...
 (defun x-display-backing-store (&optional frame) 'not-useful)
 (defun x-display-visual-class (&optional frame) 'static-color)
 (fset 'x-display-save-under 'ignore)
@@ -380,22 +380,7 @@ If FRAME is omitted or nil, use the selected frame."
 ;; From lisp/term/x-win.el
 (setq x-display-name "pc")
 (setq split-window-keep-point t)
-(defvar x-colors '("black"
-		   "blue"
-		   "green"
-		   "cyan"
-		   "red"
-		   "magenta"
-		   "brown"
-		   "lightgray"
-		   "darkgray"
-		   "lightblue"
-		   "lightgreen"
-		   "lightcyan"
-		   "lightred"
-		   "lightmagenta"
-		   "yellow"
-		   "white")
+(defvar x-colors (mapcar 'car msdos-color-values)
   "The list of colors available on a PC display under MS-DOS.")
 (defun x-defined-colors (&optional frame)
   "Return a list of colors supported for a particular frame.
@@ -420,8 +405,7 @@ The value may be different for frames on different X displays."
 (defvar x-last-selected-text nil)
 
 (defvar x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to the primary selection.")
+  "Non-nil means cutting and pasting uses the clipboard.")
 
 (defun x-select-text (text &optional push)
   (if x-select-enable-clipboard 
@@ -457,6 +441,15 @@ This is in addition to the primary selection.")
 ;; it, no matter which variety they've asked for.
 (defun x-frob-font-slant (font which)
   font)
+(defun x-frob-font-weight (font which)
+  font)
+(defun x-font-family-list ()
+  "Return a list of available font families on FRAME.\n\
+If FRAME is omitted or nil, use the selected frame.\n\
+Value is a list of conses (FAMILY . FIXED-P) where FAMILY\n\
+is a font family, and FIXED-P is non-nil if fonts of that family\n\
+are fixed-pitch."
+  '(("default" . t)))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
