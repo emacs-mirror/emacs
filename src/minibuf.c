@@ -2002,9 +2002,7 @@ property of a history variable overrides this default.");
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", &enable_recursive_minibuffers,
     "*Non-nil means to allow minibuffer commands while in the minibuffer.\n\
-More precisely, this variable makes a difference when the minibuffer window\n\
-is the selected window.  If you are in some other window, minibuffer commands\n\
-are allowed even if a minibuffer is active.");
+This variable makes a difference whenever the minibuffer window is active.");
   enable_recursive_minibuffers = 0;
 
   DEFVAR_LISP ("minibuffer-completion-table", &Vminibuffer_completion_table,
