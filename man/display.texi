@@ -256,6 +256,9 @@ beyond which buffer fontification is suppressed.
 
 @c @w is used below to prevent a bad page-break.
 @vindex font-lock-beginning-of-syntax-function
+@cindex incorrect fontification
+@cindex parenthesis in column zero and fontification
+@cindex brace in column zero and fontification
   Comment and string fontification (or ``syntactic'' fontification)
 relies on analysis of the syntactic structure of the buffer text.  For
 the sake of speed, some modes, including C mode and Lisp mode,
