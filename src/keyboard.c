@@ -11399,19 +11399,19 @@ mark_kboards ()
     {
       if (kb->kbd_macro_buffer)
 	for (p = kb->kbd_macro_buffer; p < kb->kbd_macro_ptr; p++)
-	  mark_object (p);
-      mark_object (&kb->Voverriding_terminal_local_map);
-      mark_object (&kb->Vlast_command);
-      mark_object (&kb->Vreal_last_command);
-      mark_object (&kb->Vprefix_arg);
-      mark_object (&kb->Vlast_prefix_arg);
-      mark_object (&kb->kbd_queue);
-      mark_object (&kb->defining_kbd_macro);
-      mark_object (&kb->Vlast_kbd_macro);
-      mark_object (&kb->Vsystem_key_alist);
-      mark_object (&kb->system_key_syms);
-      mark_object (&kb->Vdefault_minibuffer_frame);
-      mark_object (&kb->echo_string);
+	  mark_object (*p);
+      mark_object (kb->Voverriding_terminal_local_map);
+      mark_object (kb->Vlast_command);
+      mark_object (kb->Vreal_last_command);
+      mark_object (kb->Vprefix_arg);
+      mark_object (kb->Vlast_prefix_arg);
+      mark_object (kb->kbd_queue);
+      mark_object (kb->defining_kbd_macro);
+      mark_object (kb->Vlast_kbd_macro);
+      mark_object (kb->Vsystem_key_alist);
+      mark_object (kb->system_key_syms);
+      mark_object (kb->Vdefault_minibuffer_frame);
+      mark_object (kb->echo_string);
     }
   {
     struct input_event *event;
@@ -11419,10 +11419,10 @@ mark_kboards ()
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
-	mark_object (&event->x);
-	mark_object (&event->y);
-	mark_object (&event->frame_or_window);
-	mark_object (&event->arg);
+	mark_object (event->x);
+	mark_object (event->y);
+	mark_object (event->frame_or_window);
+	mark_object (event->arg);
       }
   }
 }
