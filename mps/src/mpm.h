@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.145) $
+ * $HopeName: MMsrc!mpm.h(trunk.146) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -417,7 +417,7 @@ extern void TraceDestroy(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
 extern void TraceStart(Trace trace, double mortality, double finishingTime);
-extern void TracePoll(Arena arena);
+extern void TracePoll(Globals globals);
 
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
@@ -526,18 +526,18 @@ extern void (ArenaLeave)(Arena arena);
 #endif
 
 
-extern void (ArenaPoll)(Arena arena);
+extern void (ArenaPoll)(Globals globals);
 #ifdef MPS_PROD_EPCORE
-#define ArenaPoll(arena)  UNUSED(arena)
+#define ArenaPoll(globals)  UNUSED(globals)
 #endif
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
 
 
-extern void ArenaClamp(Arena arena);
-extern void ArenaRelease(Arena arena);
-extern void ArenaPark(Arena arena);
-extern Res ArenaCollect(Arena arena);
+extern void ArenaClamp(Globals globals);
+extern void ArenaRelease(Globals globals);
+extern void ArenaPark(Globals globals);
+extern Res ArenaCollect(Globals globals);
 
 extern Res ControlInit(Arena arena);
 extern void ControlFinish(Arena arena);
