@@ -1,9 +1,0 @@
-                        DELIVER THE FULL RELEASE
-                         obj.deliver-dylan-full
-                          obsolete planned obj
-                           richard 1995-08-07
-
-Responsible: richard
-Due: 04/12/95
-Products: .report
-Procedures: proc.universal

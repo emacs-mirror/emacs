@@ -1,6 +1,0 @@
-                     AMBIGUOUS AND EXACT REFERENCES
-                               idea.ambig
-                               draft idea
-                           richard 1995-08-01
-
-

@@ -1,8 +1,0 @@
-                        REVIEW ROLE: CONSISTENCY
-                         role.check.consistency
-                             incomplete doc
-                           gavinm 1996-07-26
-
-The consistency checking role focuses on whether the product document or 
-documents are internally consistent.
-

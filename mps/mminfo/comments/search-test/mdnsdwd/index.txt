@@ -1,7 +1,0 @@
-                          SEARCH-TEST MDNSDWD
-                      comments.search-test.mdnsdwd
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign.notes.some
-

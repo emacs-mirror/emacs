@@ -1,8 +1,0 @@
-                           SEARCH-TEST LATEST
-                     comments.search-test.a.latest
-                              obsolete doc
-                          richardk 1998-10-22
-
-.intro: See comments.search-test.a.guide.docs.other.
-.word: davit
-

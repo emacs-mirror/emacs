@@ -1,9 +1,0 @@
-                GENERAL REQUIREMENTS OF THE MM PROJECTS
-                              req.general
-                             incomplete doc
-                           richard 1996-07-24
-
-[This should contain non-project specific requirements, and requirements for 
-projects themselves, derived from goal.general.  Do all our current projects 
-meet these requirements?  -- richard]
-

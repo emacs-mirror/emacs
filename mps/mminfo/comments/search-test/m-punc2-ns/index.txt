@@ -1,7 +1,0 @@
-                         SEARCH-TEST M-PUNC2-NS
-                    comments.search-test.m-punc2-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign & notes   malign \ notes   malign : notes   malign . notes
-

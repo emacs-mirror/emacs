@@ -1,8 +1,0 @@
-                             GOAL STATEMENT
-                               type.goal
-                            incomplete type
-                           richard 1995-08-09
-
-Rules: rule.universal
-
-Tag template: goal.<client>.<name>

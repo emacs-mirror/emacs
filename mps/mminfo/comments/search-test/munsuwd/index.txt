@@ -1,7 +1,0 @@
-                          SEARCH-TEST MUNSUWD
-                      comments.search-test.munsuwd
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign_notes_some
-

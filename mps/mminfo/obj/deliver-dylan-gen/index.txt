@@ -1,9 +1,0 @@
-                    DELIVER THE GENERATIONAL RELEASE
-                         obj.deliver-dylan-gen
-                          obsolete planned obj
-                           richard 1995-08-07
-
-Responsible: richard
-Due: 06/11/95
-Products: .report
-Procedures: proc.universal

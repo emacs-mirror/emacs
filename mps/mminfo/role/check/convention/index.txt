@@ -1,8 +1,0 @@
-                        REVIEW ROLE: CONVENTION
-                         role.check.convention
-                             incomplete doc
-                           gavinm 1996-07-26
-
-The Convention checking role concentrates on whether the product document 
-complies with detailed conventions and rules.
-

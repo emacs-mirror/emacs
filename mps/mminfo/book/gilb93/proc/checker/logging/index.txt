@@ -1,6 +1,0 @@
-                  PROCEDURE FOR CHECKER DURING LOGGING
-                    book.gilb93.proc.checker.logging
-                            incomplete quote
-                           richard 1995-08-04
-
-

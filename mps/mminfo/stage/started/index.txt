@@ -1,8 +1,0 @@
-                          THE "STARTED" STAGE
-                             stage.started
-                             obsolete stage
-                           richard 1995-08-22
-
-
-.meaning: The task has been started, but is not yet finished.
-

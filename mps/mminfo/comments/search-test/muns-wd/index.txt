@@ -1,7 +1,0 @@
-                          SEARCH-TEST MUNS-WD
-                      comments.search-test.muns-wd
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign_notes some
-

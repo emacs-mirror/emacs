@@ -1,6 +1,0 @@
-                               NECESSARY
-                               urgency.5
-                            obsolete urgency
-                           richard 1995-08-15
-
-Adjective: necessary

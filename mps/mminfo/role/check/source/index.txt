@@ -1,9 +1,0 @@
-                          REVIEW ROLE: SOURCE
-                           role.check.source
-                             incomplete doc
-                           gavinm 1996-07-26
-
-The Source checking role concentrates on whether the product document is 
-consistent with any source documents, and whether dependencies and links are 
-documented where appropriate.
-

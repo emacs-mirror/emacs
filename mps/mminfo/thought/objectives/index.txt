@@ -1,7 +1,0 @@
-           REPORT ON THE OBJECTIVES COMPONENT OF THE INFOSYS
-                           thought.objectives
-                              obsolete doc
-                             drj 1995-10-27
-
-Seems very heavywight at the moment.
-

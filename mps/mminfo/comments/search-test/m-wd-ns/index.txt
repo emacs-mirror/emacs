@@ -1,7 +1,0 @@
-                          SEARCH-TEST M-WD-NS
-                      comments.search-test.m-wd-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign some notes
-

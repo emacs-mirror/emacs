@@ -1,9 +1,0 @@
-                          THE "DEFINED" STAGE
-                             stage.defined
-                             obsolete stage
-                           richard 1995-08-22
-
-
-.meaning: The task has been identified and defined, but has not yet been 
-scheduled or assigned.
-

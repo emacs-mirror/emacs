@@ -1,6 +1,0 @@
-                  PROCEDURE FOR CHECKER DURING KICKOFF
-                    book.gilb93.proc.checker.kickoff
-                            incomplete quote
-                           richard 1995-08-04
-
-

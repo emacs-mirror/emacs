@@ -1,7 +1,0 @@
-                        SEARCH-TEST MS-MS-NS-NS
-                    comments.search-test.ms-ms-ns-ns
-                              obsolete doc
-                          richardk 1998-10-22
-
-maligns maligns notes notes
-

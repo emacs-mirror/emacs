@@ -1,9 +1,0 @@
-                  MICRSOFT WINDOWS NT 3.5 WORKSTATION
-                              resource.nt
-                              obsolete doc
-                             drj 1996-07-18
-
-drj thinks that the current version installed on aaron is from January 1995 
-MSDN Level 2 subscription, "SDKs, DDKs, And Operating Systems", disk 5 (of 
-15).  Not any more it's not.  It's some version of NT 4.0
-

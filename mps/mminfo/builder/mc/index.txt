@@ -1,6 +1,0 @@
-                        MICROSOFT SDK C COMPILER
-                               builder.mc
-                            obsolete builder
-                           richard 1996-06-05
-
-Pre-processor symbol: MPS_BUILD_MC

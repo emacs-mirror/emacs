@@ -1,6 +1,0 @@
-                 SGI IRIX 4, MIPS II, SGI 'CC' COMPILER
-                            platform.i4m2cc
-                          incomplete platform
-                            nickb 1997-02-19
-
-Pre-processor symbol: MPS_PF_I4M2CC

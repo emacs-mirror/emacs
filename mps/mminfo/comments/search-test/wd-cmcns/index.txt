@@ -1,7 +1,0 @@
-                          SEARCH-TEST WD-CMCNS
-                     comments.search-test.wd-cmcns
-                              obsolete doc
-                          richardk 1998-10-22
-
-some :malign:notes
-

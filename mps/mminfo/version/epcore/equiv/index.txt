@@ -1,8 +1,0 @@
-                 MM/EPCORE "EQUIVALENT" PRODUCT VERSION
-                          version.epcore.equiv
-                             incomplete doc
-                           richard 1996-07-17
-
-See plan.epcore.release.equiv. This version has been rolled into the "Trapping" 
-version, plan.epcore.release.trap.
-

@@ -1,4 +1,0 @@
-           THE DESIGN OF THE ALLOCATE ONLY MEMORY POOL CLASS
-                            design.mps.poola
-                            obsolete design
-                           richard 1995-08-25

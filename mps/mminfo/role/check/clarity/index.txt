@@ -1,7 +1,0 @@
-                          REVIEW ROLE: CLARITY
-                           role.check.clarity
-                             incomplete doc
-                           gavinm 1996-07-26
-
-The clarity checking role focuses on whether the document is clear and obvious.
-

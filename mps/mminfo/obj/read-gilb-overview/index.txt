@@ -1,9 +1,0 @@
-              READ GILB93, ESPECIALLY THE OVERVIEW CHAPTER
-                         obj.read-gilb-overview
-                          obsolete unknown obj
-                             drj 1995-11-01
-
-Responsible: drj
-Due: 10/11/95
-Products: .report
-Procedures: proc.universal

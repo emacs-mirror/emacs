@@ -1,7 +1,0 @@
-                        SEARCH-TEST M-QQNS-CZAN
-                    comments.search-test.m-qqns-czan
-                              obsolete doc
-                          richardk 1998-10-22
-
-malign "notes" categorization
-

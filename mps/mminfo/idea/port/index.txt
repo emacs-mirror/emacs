@@ -1,6 +1,0 @@
-                        APPROPRIATE PORTABILITY
-                               idea.port
-                             obsolete idea
-                           richard 1995-08-01
-
-

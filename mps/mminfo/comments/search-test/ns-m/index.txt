@@ -1,7 +1,0 @@
-                            SEARCH-TEST NS-M
-                       comments.search-test.ns-m
-                              obsolete doc
-                          richardk 1998-10-22
-
-notes malign
-
