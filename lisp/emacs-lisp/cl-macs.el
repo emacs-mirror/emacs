@@ -2645,4 +2645,8 @@ surrounded by (block NAME ...).
 
 (run-hooks 'cl-macs-load-hook)
 
+;;; Local variables:
+;;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
+;;; End:
+
 ;;; cl-macs.el ends here
