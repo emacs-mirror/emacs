@@ -1,5 +1,17 @@
 2005-01-12  Juri Linkov  <juri@jurta.org>
 
+	* facemenu.el (list-colors-display): Add new arg buffer-name.
+	Use it.  Fix docstring.  Replace code for identifying duplicate
+	colors by the name with call to `list-colors-duplicates' which
+	identifies duplicate colors by the value unless the color
+	is one of special Windows colors.  Set truncate-lines to t.
+	Print sorted duplicate color names on each line.  Indent to 22
+	\(the longest color name in rgb.txt) instead of 20.  Optimize.
+	(list-colors-duplicates): New function.
+	(facemenu-color-name-equal): Delete function.
+
+2005-01-12  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (search-highlight, isearch, isearch-lazy-highlight):
 	Bring together isearch highlight related options.
 	(lazy-highlight): Replace group `replace' by `matching'.
