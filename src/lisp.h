@@ -745,45 +745,72 @@ typedef unsigned char UCHAR;
 
 #ifdef LISP_FLOAT_TYPE
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
+#define GC_NUMBERP(x) (GC_INTEGERP (x) || GC_FLOATP (x))
 #else
 #define NUMBERP(x) (INTEGERP (x))
+#define GC_NUMBERP(x) (GC_INTEGERP (x))
 #endif
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
+#define GC_NATNUMP(x) (GC_INTEGERP (x) && XINT (x) >= 0)
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
+#define GC_INTEGERP(x) (XGCTYPE ((x)) == Lisp_Int)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
+#define GC_SYMBOLP(x) (XGCTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
+#define GC_MISCP(x) (XGCTYPE ((x)) == Lisp_Misc)
 #define STRINGP(x) (XTYPE ((x)) == Lisp_String)
+#define GC_STRINGP(x) (XGCTYPE ((x)) == Lisp_String)
 #define VECTORP(x) (XTYPE ((x)) == Lisp_Vector)
+#define GC_VECTORP(x) (XGCTYPE ((x)) == Lisp_Vector)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
+#define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
 #define COMPILEDP(x) (XTYPE ((x)) == Lisp_Compiled)
+#define GC_COMPILEDP(x) (XGCTYPE ((x)) == Lisp_Compiled)
 #define BUFFERP(x) (XTYPE ((x)) == Lisp_Buffer)
+#define GC_BUFFERP(x) (XGCTYPE ((x)) == Lisp_Buffer)
 #define SUBRP(x) (XTYPE ((x)) == Lisp_Subr)
+#define GC_SUBRP(x) (XGCTYPE ((x)) == Lisp_Subr)
 #define PROCESSP(x) (XTYPE ((x)) == Lisp_Process)
+#define GC_PROCESSP(x) (XGCTYPE ((x)) == Lisp_Process)
 #ifdef MULTI_FRAME
 #define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
+#define GC_FRAMEP(x) (XGCTYPE ((x)) == Lisp_Frame)
 #else
 #ifdef HAVE_MOUSE
 /* We could use this in the !HAVE_MOUSE case also, but we prefer a compile-time
    error message in case FRAMEP is used.  */
 #define FRAMEP(x) (EQ (x, Fselected_frame ()))
+#define GC_FRAMEP(x) (GC_EQ (x, Fselected_frame ()))
 #endif
 #endif
 #define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
+#define GC_WINDOWP(x) (XGCTYPE ((x)) == Lisp_Window)
 #define WINDOW_CONFIGURATIONP(x) (XTYPE ((x)) == Lisp_Window_Configuration)
+#define GC_WINDOW_CONFIGURATIONP(x) (XGCTYPE ((x)) == Lisp_Window_Configuration)
 #ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
+#define GC_FLOATP(x) (XGCTYPE ((x)) == Lisp_Float)
 #else
 #define FLOATP(x) (0)
+#define GC_FLOATP(x) (0)
 #endif
 #define OVERLAYP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
+#define GC_OVERLAYP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
+#define GC_MARKERP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
 #define INTFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
+#define GC_INTFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
 #define BOOLFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
+#define GC_BOOLFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
 #define OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
+#define GC_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
 #define BUFFER_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
+#define GC_BUFFER_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
 #define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
+#define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
+#define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
