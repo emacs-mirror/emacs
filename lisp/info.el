@@ -1089,6 +1089,8 @@ NAME may be an abbreviation of the reference name."
 ;;    (Info-menu (car list))
 ;;    (setq list (cdr list))))
 
+(defvar Info-complete-menu-buffer)
+
 (defun Info-complete-menu-item (string predicate action)
   (let ((case-fold-search t))
     (cond ((eq action nil)
