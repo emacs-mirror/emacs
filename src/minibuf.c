@@ -1253,7 +1253,7 @@ is used to further constrain the set of candidates.  */)
 	}
       else if (type == 2)
 	{
-	  if (XFASTINT (bucket) != 0)
+	  if (!EQ (bucket, make_number (0)))
 	    {
 	      elt = bucket;
 	      eltstring = Fsymbol_name (elt);
@@ -1509,7 +1509,7 @@ are ignored unless STRING itself starts with a space.  */)
 	}
       else if (type == 2)
 	{
-	  if (XFASTINT (bucket) != 0)
+	  if (!EQ (bucket, make_number (0)))
 	    {
 	      elt = bucket;
 	      eltstring = Fsymbol_name (elt);
