@@ -1993,8 +1993,6 @@ a character set name, or a character code.")
   (char_table, range)
      Lisp_Object char_table, range;
 {
-  int i;
-
   CHECK_CHAR_TABLE (char_table, 0);
 
   if (EQ (range, Qnil))
@@ -2093,7 +2091,7 @@ See also the documentation of make-char.")
   (char_table, ch, value)
      Lisp_Object char_table, ch, value;
 {
-  int c, i, charset, code1, code2;
+  int c, charset, code1, code2;
   Lisp_Object temp;
 
   CHECK_CHAR_TABLE (char_table, 0);
@@ -2356,7 +2354,6 @@ mapcar1 (leni, vals, fn, seq)
   else if (STRINGP (seq))
     {
       /* Multi-byte string.  */
-      int len_byte = STRING_BYTES (XSTRING (seq));
       int i_byte;
 
       for (i = 0, i_byte = 0; i < leni;)
@@ -2589,7 +2586,6 @@ is nil.")
   register Lisp_Object ans;
   Lisp_Object args[2];
   struct gcpro gcpro1;
-  Lisp_Object menu;
 
   CHECK_STRING (prompt, 0);
 
@@ -3934,7 +3930,7 @@ sweep_weak_hash_tables ()
 	      n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
 	      for (bucket = 0; bucket < n; ++bucket)
 		{
-		  Lisp_Object idx, key, value, prev, next;
+		  Lisp_Object idx, prev;
 
 		  /* Follow collision chain, removing entries that
 		     don't survive this garbage collection.  */
@@ -4017,7 +4013,7 @@ sweep_weak_hash_tables ()
 /* Combine two integers X and Y for hashing.  */
 
 #define SXHASH_COMBINE(X, Y)						\
-     ((((unsigned)(X) << 4) + ((unsigned)(X) >> 24) & 0x0fffffff)	\
+     ((((unsigned)(X) << 4) + (((unsigned)(X) >> 24) & 0x0fffffff))	\
       + (unsigned)(Y))
 
 
