@@ -329,8 +329,9 @@ struct x_display
   Widget menubar_widget;
 #endif
 
-  /* 1 for bitmap icon, 0 for text icon.  */
-  int icon_bitmap_flag;
+  /* If >=0, a bitmap index.  The indicated bitmap is used for the
+     icon. */
+  int icon_bitmap;
 
   FONT_TYPE *font;
 
