@@ -305,7 +305,10 @@ If optional arg is the atom `same', don't look for a new table;
 If arg is nil or absent, choose a first buffer from information in
 `tags-file-name', `tags-table-list', `tags-table-list-pointer'.
 Returns t if it visits a tags table, or nil if there are no more in the list."
-  (cond ((eq cont 'same))
+  (cond ((eq cont 'same)
+	 ;; We don't need to look for a setting for tags-file-name,
+	 ;; but other than that we should behave just as if passed nil.
+	 (setq cont nil))
 
 	(cont
 	 (if (tags-next-table)
@@ -937,7 +940,7 @@ if the file was newly read in, the value is the filename."
 	 (setq next-file-list (tags-table-files))))
   (or next-file-list
       (save-excursion
-	;; When doing (visit-tag-table-buffer t),
+	;; When doing (visit-tags-table-buffer t),
 	;; the tags table buffer must be current.
 	(if (and (visit-tags-table-buffer 'same)
 		 (visit-tags-table-buffer t))
