@@ -59,6 +59,7 @@
 (defvar gdb-var-list nil "List of variables in watch window")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
 (defvar gdb-buffer-type nil)
+(defvar gdb-overlay-arrow-position nil)
 (defvar gdb-variables '()
   "A list of variables that are local to the GUD buffer.")
 
@@ -1682,7 +1683,12 @@ This arrangement depends on the value of `gdb-many-windows'."
 		(gdb-remove-breakpoint-icons (point-min) (point-max) t)
 		(setq gud-minor-mode nil)
 		(kill-local-variable 'tool-bar-map)
-		(setq gud-running nil)))))))
+		(setq gud-running nil))))))
+  (when (markerp gdb-overlay-arrow-position)
+    (move-marker gdb-overlay-arrow-position nil)
+    (setq gdb-overlay-arrow-position nil))
+  (setq overlay-arrow-variable-list
+	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list)))
 
 (defun gdb-source-info ()
   "Find the source file where the program starts and displays it with related
@@ -1869,9 +1875,9 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
-  (push 'gdb-overlay-arrow-position overlay-arrow-variable-list)
-  (put 'gdb-overlay-arrow-position 'overlay-arrow-string "=>")
   (setq gdb-overlay-arrow-position nil)
+  (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
+  (put 'gdb-overlay-arrow-position 'overlay-arrow-string "=>")
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
