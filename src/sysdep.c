@@ -255,6 +255,7 @@ change_input_fd (fd)
 
 /* Discard pending input on descriptor input_fd.  */
 
+void
 discard_tty_input ()
 {
 #ifndef WINDOWSNT
@@ -313,6 +314,7 @@ stuff_char (c)
 
 #endif /* SIGTSTP */
 
+void
 init_baud_rate ()
 {
   if (noninteractive)
@@ -408,6 +410,7 @@ wait_for_termination_signal ()
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */
 
+void
 wait_for_termination (pid)
      int pid;
 {
@@ -505,6 +508,7 @@ wait_for_termination (pid)
  *      (may flush input as well; it does not matter the way we use it)
  */
  
+void
 flush_pending_output (channel)
      int channel;
 {
@@ -532,6 +536,7 @@ flush_pending_output (channel)
     It should not echo or do line-editing, since that is done
     in Emacs.  No padding needed for insertion into an Emacs buffer.  */
 
+void
 child_setup_tty (out)
      int out;
 {
@@ -645,6 +650,7 @@ static void restore_signal_handlers P_ ((struct save_signal *));
 
 /* Suspend the Emacs process; give terminal to its superior.  */
 
+void
 sys_suspend ()
 {
 #ifdef VMS
@@ -714,6 +720,7 @@ sys_suspend ()
 
 /* Fork a subshell.  */
 
+void
 sys_subshell ()
 {
 #ifndef VMS
@@ -861,6 +868,7 @@ restore_signal_handlers (saved_handlers)
 
 int old_fcntl_flags;
 
+void
 init_sigio (fd)
      int fd;
 {
@@ -878,6 +886,7 @@ reset_sigio ()
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
 
+void
 request_sigio ()
 {
   if (read_socket_hook)
@@ -891,6 +900,7 @@ request_sigio ()
   interrupts_deferred = 0;
 }
 
+void
 unrequest_sigio ()
 {
   if (read_socket_hook)
@@ -906,6 +916,7 @@ unrequest_sigio ()
 #else /* no FASYNC */
 #ifdef STRIDE		/* Stride doesn't have FASYNC - use FIOASYNC */
 
+void
 request_sigio ()
 {
   int on = 1;
@@ -917,6 +928,7 @@ request_sigio ()
   interrupts_deferred = 0;
 }
 
+void
 unrequest_sigio ()
 {
   int off = 0;
@@ -934,6 +946,7 @@ unrequest_sigio ()
 
 #include <termios.h>
 
+void
 request_sigio ()
 {
   int on = 1;
@@ -949,6 +962,7 @@ request_sigio ()
   sigprocmask(SIG_UNBLOCK, &st, (sigset_t *)0);
 }
 
+void
 unrequest_sigio ()
 {
   int off = 0;
@@ -962,6 +976,7 @@ unrequest_sigio ()
 
 #else /* ! _CX_UX */
 
+void
 request_sigio ()
 {
   if (read_socket_hook)
@@ -970,6 +985,7 @@ request_sigio ()
   croak ("request_sigio");
 }
  
+void
 unrequest_sigio ()
 {
   if (read_socket_hook)
@@ -1219,6 +1235,7 @@ static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
 static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif 
 
+void
 init_sys_modes ()
 {
   struct emacs_tty tty;
@@ -1589,6 +1606,7 @@ tabs_safe_p ()
    Store number of lines into *HEIGHTP and width into *WIDTHP.
    We store 0 if there's no valid information.  */
 
+void
 get_frame_size (widthp, heightp)
      int *widthp, *heightp;
 {
@@ -1684,6 +1702,7 @@ set_window_size (fd, height, width)
 
 /* Prepare the terminal for exiting Emacs; move the cursor to the
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
+void
 reset_sys_modes ()
 {
   if (noninteractive)
@@ -1776,6 +1795,7 @@ reset_sys_modes ()
 
 /* Set up the proper status flags for use of a pty.  */
 
+void
 setup_pty (fd)
      int fd;
 {
@@ -2033,6 +2053,7 @@ sys_sleep (timeval)
     SYS$WAITFR (timer_ef);	  /* Wait for timer expiry only */
 }
 
+void
 init_sigio (fd)
      int fd;
 {
@@ -2044,11 +2065,13 @@ reset_sigio ()
   unrequest_sigio ();
 }
 
+void
 request_sigio ()
 {
   croak ("request sigio");
 }
 
+void
 unrequest_sigio ()
 {
   croak ("unrequest sigio");
@@ -2623,6 +2646,7 @@ sys_open (path, oflag, mode)
     return open (path, oflag);
 }
 
+void
 init_sigio (fd)
      int fd;
 {
@@ -2640,6 +2664,7 @@ reset_sigio ()
   ioctl (0, TIOCLSET, &lmode);
 }
 
+void
 request_sigio ()
 {
   sigrelse (SIGTINT);
@@ -2647,6 +2672,7 @@ request_sigio ()
   interrupts_deferred = 0;
 }
 
+void
 unrequest_sigio ()
 {
   sighold (SIGTINT);
