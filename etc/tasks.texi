@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate September 18, 1998
+@set lastupdate September 22, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -212,12 +212,6 @@ Many utilities need documentation, including @code{grep} and others.
 @chapter Unix-Related Projects
 
 @itemize @bullet
-@item
-An improved version of the POSIX utility @code{pax}.  There is one on
-Usenet, but it is said to be poorly written.  Talk with
-@email{thomas@@gnu.org}, @email{pinard@@iro.umontreal.ca} and
-@email{juo@@klinzhai.rutgers.edu} for advice about this project.
-
 @ignore
 @item
 Modify the GNU @code{dc} program to use the math routines of GNU
