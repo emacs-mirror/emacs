@@ -243,7 +243,7 @@
                  (while again
                    (or (= n 0) (bobp) (= (preceding-char) ?\ )
                        (insert ?\ ))
-                   (rfc822-snarf-word)
+                   (rfc822-snarf-words)
                    (setq n (1+ n))
                    (setq again (or (rfc822-looking-at ?.)
                                    (looking-at "[^][\000-\037\177-\377 ()<>@,;:\\.]"))))))
