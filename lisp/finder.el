@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -184,7 +184,7 @@ no arguments compiles from `load-path'."
 
 (defun finder-insert-at-column (column &rest strings)
   "Insert, at column COLUMN, other args STRINGS."
-  (if (> (current-column) column) (insert "\n"))
+  (if (>= (current-column) column) (insert "\n"))
   (move-to-column column t)
   (apply 'insert strings))
 
