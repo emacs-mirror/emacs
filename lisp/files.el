@@ -425,12 +425,13 @@ The buffer is not selected, just returned to the caller."
 	  (after-find-file error (not nowarn))))
       buf)))
 
-(defun after-find-file (&optional error warn)
+(defun after-find-file (&optional error warn noauto)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
-Optional args ERROR and WARN: ERROR non-nil means there was an
+Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
 error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
+NOAUTO means don't mess with auto-save mode.
 Finishes by calling the functions in `find-file-hooks'."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
   (if noninteractive
@@ -470,7 +471,7 @@ Finishes by calling the functions in `find-file-hooks'."
 	  (progn
 	    (message msg)
 	    (or not-serious (sit-for 1 nil t)))))
-    (if auto-save-default
+    (if (and auto-save-default (not noauto))
 	(auto-save-mode t)))
   (normal-mode t)
   (mapcar 'funcall find-file-hooks))
@@ -1281,7 +1282,7 @@ do the work."
 		   (erase-buffer))
 		 (insert-file-contents file-name (not auto-save-p))))
 	     (goto-char (min opoint (point-max)))
-	     (after-find-file nil)
+	     (after-find-file nil nil t)
 	     t)))))
 
 (defun recover-file (file)
@@ -1313,7 +1314,7 @@ do the work."
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil))
-	   (after-find-file nil))
+	   (after-find-file nil nil t))
 	  (t (error "Recover-file cancelled.")))))
 
 (defun kill-some-buffers ()
