@@ -1254,7 +1254,7 @@ N is the digit argument used to invoke this command."
   (interactive)
   (if Info-standalone
       (save-buffers-kill-emacs)
-    (bury-buffer)))
+    (quit-window)))
 
 (defun Info-next-menu-item ()
   (interactive)
