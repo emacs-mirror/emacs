@@ -1,7 +1,8 @@
-;;; czech.el -- support for Czech -*- coding: iso-2022-7bit; -*-
+;;; czech.el --- support for Czech -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
+;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, Czech
 
@@ -46,4 +47,4 @@ and select's the Czech tutorial."))
 
 (provide 'czech)
 
-;; czech.el ends here
+;;; czech.el ends here

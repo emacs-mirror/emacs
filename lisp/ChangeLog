@@ -1,3 +1,7 @@
+2001-07-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* language/czech.el: a fix to follow coding conventions.
+
 2001-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* speedbar.el (speedbar-supported-extension-expressions): Add .g
