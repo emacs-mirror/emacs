@@ -1955,7 +1955,8 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      if (XINT (rows) != f->height || XINT (cols) != f->width)
+      if (XINT (rows) != f->height || XINT (cols) != f->width
+	  || FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
 	x_set_window_size (f, 1, XINT (cols), XINT (rows));
     }
   else
