@@ -1,5 +1,9 @@
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (forward_to_next_line_start): If already on a newline,
+	just consume it to avoid unintended skipping over invisible text
+	below.
+
 	* keyboard.c (lucid_event_type_list_p): Handle `help-echo',
 	`vertical-line', `mode-line' and `header-line' events.
 

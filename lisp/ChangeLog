@@ -1,6 +1,11 @@
+2000-11-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-automatic-folder-directives): Add a custom
+	type, group and version.
+
 2000-11-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* select.el (x-get-selection): Docstring dix.
+	* select.el (x-get-selection): Docstring fix.
 
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
