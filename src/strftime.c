@@ -91,6 +91,14 @@ extern char *tzname[];
 # endif
 #endif
 
+#ifdef _LIBC
+# define MEMPCPY(d, s, n) __mempcpy (d, s, n)
+#else
+# ifndef HAVE_MEMPCPY
+#  define MEMPCPY(d, s, n) ((void *) ((char *) memcpy (d, s, n) + (n)))
+# endif
+#endif
+
 #ifndef __P
 # if defined (__GNUC__) || (defined (__STDC__) && __STDC__)
 #  define __P(args) args
@@ -196,8 +204,7 @@ static const char zeroes[16] = /* "0000000000000000" */
     do									      \
       {									      \
 	int _this = _len > 16 ? 16 : _len;				      \
-	memcpy ((P), spaces, _this);					      \
-	(P) += _this;							      \
+	(P) = mempcpy ((P), spaces, _this);				      \
 	_len -= _this;							      \
       }									      \
     while (_len > 0);							      \
@@ -210,8 +217,7 @@ static const char zeroes[16] = /* "0000000000000000" */
     do									      \
       {									      \
 	int _this = _len > 16 ? 16 : _len;				      \
-	memcpy ((P), zeroes, _this);					      \
-	(P) += _this;							      \
+	(P) = mempcpy ((P), zeroes, _this);				      \
 	_len -= _this;							      \
       }									      \
     while (_len > 0);							      \
