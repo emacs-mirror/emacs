@@ -1,4 +1,4 @@
-;;; sendmail.el --- mail sending commands for Emacs.
+;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
 ;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000
 ;;   Free Software Foundation, Inc.
@@ -153,7 +153,7 @@ This file need not actually exist."
   "Normal hook, run each time a new outgoing mail message is initialized.
 The function `mail-setup' runs this hook."
   :type 'hook
-  :options '(fortune-to-signature spook)
+  :options '(fortune-to-signature spook mail-abbrevs-setup)
   :group 'sendmail)
 
 (defvar mail-aliases t
