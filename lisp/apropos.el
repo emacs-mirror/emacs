@@ -71,36 +71,32 @@ Slows them down more or less.  Set this non-nil if you have a fast machine."
   :type 'boolean)
 
 
-(defcustom apropos-symbol-face (if window-system 'bold)
-  "*Face for symbol name in apropos output or `nil'.
-This looks good, but slows down the commands several times."
+(defcustom apropos-symbol-face 'bold
+  "*Face for symbol name in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-keybinding-face (if window-system 'underline)
-  "*Face for keybinding display in apropos output or `nil'.  
-This looks good, but slows down the commands several times."
+(defcustom apropos-keybinding-face 'underline
+  "*Face for lists of keybinding in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-label-face (if window-system 'italic)
-  "*Face for label (Command, Variable ...) in apropos output or `nil'.
-If this is `nil' no mouse highlighting occurs.
-This looks good, but slows down the commands several times.
-When this is a face name, as it is initially, it gets transformed to a
-text-property list for efficiency."
+(defcustom apropos-label-face 'italic
+  "*Face for label (`Command', `Variable' ...) in Apropos output.
+A value of nil means don't use any special font for them, and also
+turns off mouse highlighting."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-property-face (if window-system 'bold-italic)
-  "*Face for property name in apropos output or `nil'.  
-This looks good, but slows down the commands several times."
+(defcustom apropos-property-face 'bold-italic
+  "*Face for property name in apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-match-face (if window-system 'secondary-selection)
-  "*Face for matching part in apropos-documentation/value output or `nil'.  
-This looks good, but slows down the commands several times."
+(defcustom apropos-match-face 'secondary-selection
+  "*Face for matching text in Apropos documentation/value, or nil for none.
+This applies when you look for matches in the documentation or variable value
+for the regexp; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
@@ -494,6 +490,10 @@ Will return nil instead."
 
 
 
+(defvar apropos-label-properties nil
+  "List of face properties to use for a label.
+Bound by `apropos-print' for use by `apropos-print-doc'.")
+
 (defun apropos-print (do-keys spacing)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
@@ -506,10 +506,11 @@ alphabetically by symbol name; but this function also sets
     (setq apropos-accumulator
 	  (sort apropos-accumulator (lambda (a b)
 				      (string-lessp (car a) (car b)))))
-    (and apropos-label-face
-	 (symbolp apropos-label-face)
-	 (setq apropos-label-face `(face ,apropos-label-face
-					 mouse-face highlight)))
+    (setq apropos-label-properties
+	  (if (and apropos-label-face
+		   (symbolp apropos-label-face))
+	      `(face ,apropos-label-face
+		     mouse-face highlight)))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
@@ -623,10 +624,10 @@ alphabetically by symbol name; but this function also sets
 	(put-text-property (- (point) 2) (1- (point))
 			   'action action)
 	(insert str ": ")
-	(if apropos-label-face
+	(if apropos-label-properties
 	    (add-text-properties (- (point) (length str) 2)
 				 (1- (point))
-				 apropos-label-face))
+				 apropos-label-properties))
 	(insert (if do-keys (substitute-command-keys i) i))
 	(or (bolp) (terpri)))))
 
