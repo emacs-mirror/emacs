@@ -1851,6 +1851,8 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      ResetEvent (cp->char_avail);
 
 	    case STATUS_READ_ACKNOWLEDGED:
+	      /* Give process time to buffer some more output for us */
+	      Sleep (50);
 	      break;
 
 	    default:
