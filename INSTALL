@@ -522,6 +522,12 @@ To build and install Emacs, type these commands:
     config msdos
     make install
 
+You may need to work around a type conflict between gmalloc.c and the
+header file djgppstd.h regarding declarations of memalign and valloc.
+Temporarily deleting those declarations from djgppstd.h while compiling
+Emacs or while compiling gmalloc.c should do it.  We found out about this
+problem too late to include a more convenient fix--sorry.
+
 To save disk space, Emacs is built with the idea that you will execute
 it from the same place in the file system where you built it.  As the
 /usr/local/ subtree does not exist on most MSDOG systems, the
