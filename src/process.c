@@ -1822,7 +1822,12 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   hints.ai_protocol = 0;
   ret = getaddrinfo (XSTRING (host)->data, portstring, &hints, &res);
   if (ret)
+#ifdef HAVE_GAI_STRERROR
     error ("%s/%s %s", XSTRING (host)->data, portstring, gai_strerror(ret));
+#else
+    error ("%s/%s getaddrinfo error %d", XSTRING (host)->data, portstring,
+	   ret);
+#endif
   immediate_quit = 0;
 
   /* Do this in case we never enter the for-loop below.  */
