@@ -472,7 +472,14 @@ which font is being used for displaying the character."
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
 	 item-list max-width)
-    (unless (eq charset 'unknown)
+    (if (eq charset 'unknown)
+	(setq item-list
+	      `(("character"
+		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
+			  (if (< char 256)
+			      (single-key-description char)
+			    (char-to-string char))
+			  char char char))))
       (setq item-list
 	    `(("character"
 	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
@@ -508,44 +515,45 @@ which font is being used for displaying the character."
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
 	      ,(if window-system
-		   (list "font" (char-font (point)))
+		   (list "font" (or (internal-char-font (point))
+				    "-- none --"))
 		 (list "terminal code"
 		       (let* ((coding (terminal-coding-system))
 			      (encoded (encode-coding-char char coding)))
 			 (if encoded
 			     (encoded-string-description encoded coding)
-			   "not encodable"))))))
-      (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
-					   item-list)))
-      (with-output-to-temp-buffer "*Help*"
-	(save-excursion
-	  (set-buffer standard-output)
-	  (let ((formatter (format "%%%ds:" max-width)))
-	    (dolist (elt item-list)
-	      (insert (format formatter (car elt)))
-	      (dolist (clm (cdr elt))
-		(when (>= (+ (current-column) (string-width clm) 1)
-			  (frame-width))
-		  (insert "\n")
-		  (indent-to (1+ max-width)))
-		(insert " " clm))
-	      (insert "\n")))
-	  (when composition
-	    (insert "\nComposed with the following characerter(s) "
-		    (mapconcat (lambda (x) (format "`%c'" x))
-			       (substring composed 1)
-			       ", ")
-		    " to form `" composed "'")
-	    (if (nth 3 composition)
-		(insert ".\n")
-	      (insert "\nby the rule ("
-		      (mapconcat (lambda (x)
-				   (format (if (consp x) "%S" "?%c") x))
-				 (nth 2 composition)
-				 " ")
-		      ").\n"
-		      "See the variable `reference-point-alist' for the meaning of the rule.\n")))
-	  )))))
+			   "not encodable")))))))
+    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+					 item-list)))
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(let ((formatter (format "%%%ds:" max-width)))
+	  (dolist (elt item-list)
+	    (insert (format formatter (car elt)))
+	    (dolist (clm (cdr elt))
+	      (when (>= (+ (current-column) (string-width clm) 1)
+			(frame-width))
+		(insert "\n")
+		(indent-to (1+ max-width)))
+	      (insert " " clm))
+	    (insert "\n")))
+	(when composition
+	  (insert "\nComposed with the following characerter(s) "
+		  (mapconcat (lambda (x) (format "`%c'" x))
+			     (substring composed 1)
+			     ", ")
+		  " to form `" composed "'")
+	  (if (nth 3 composition)
+	      (insert ".\n")
+	    (insert "\nby the rule ("
+		    (mapconcat (lambda (x)
+				 (format (if (consp x) "%S" "?%c") x))
+			       (nth 2 composition)
+			       " ")
+		    ").\n"
+		    "See the variable `reference-point-alist' for the meaning of the rule.\n")))
+	))))
 
 
 ;;; CODING-SYSTEM
