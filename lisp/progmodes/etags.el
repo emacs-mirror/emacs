@@ -365,7 +365,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 							   tags-table-list)))
 		;; Fourth, use the user variable tags-file-name, if it is not
 		;; already in tags-table-list.
-		(and (not (tags-table-list-member tags-file-name))
+		(and tags-file-name
+		     (not (tags-table-list-member tags-file-name))
 		     tags-file-name)
 		;; Fifth, use the user variable giving the table list.
 		(car tags-table-list)
