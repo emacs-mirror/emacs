@@ -399,8 +399,8 @@ Note that the style variables are always made local to the buffer."
 (defvar c-mode-abbrev-table nil
   "Abbreviation table used in c-mode buffers.")
 (define-abbrev-table 'c-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+  '(("else" "else" c-electric-continued-statement 0 t)
+    ("while" "while" c-electric-continued-statement 0 t)))
 
 (defvar c-mode-map ()
   "Keymap used in c-mode buffers.")
@@ -460,9 +460,9 @@ Key bindings:
 (defvar c++-mode-abbrev-table nil
   "Abbreviation table used in c++-mode buffers.")
 (define-abbrev-table 'c++-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)
-    ("catch" "catch" c-electric-continued-statement 0)))
+  '(("else" "else" c-electric-continued-statement 0 t)
+    ("while" "while" c-electric-continued-statement 0 t)
+    ("catch" "catch" c-electric-continued-statement 0 t)))
 
 (defvar c++-mode-map ()
   "Keymap used in c++-mode buffers.")
@@ -527,8 +527,8 @@ Key bindings:
 (defvar objc-mode-abbrev-table nil
   "Abbreviation table used in objc-mode buffers.")
 (define-abbrev-table 'objc-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+  '(("else" "else" c-electric-continued-statement 0 t)
+    ("while" "while" c-electric-continued-statement 0 t)))
 
 (defvar objc-mode-map ()
   "Keymap used in objc-mode buffers.")
@@ -589,10 +589,10 @@ Key bindings:
 (defvar java-mode-abbrev-table nil
   "Abbreviation table used in java-mode buffers.")
 (define-abbrev-table 'java-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)
-    ("catch" "catch" c-electric-continued-statement 0)
-    ("finally" "finally" c-electric-continued-statement 0)))
+  '(("else" "else" c-electric-continued-statement 0 t)
+    ("while" "while" c-electric-continued-statement 0 t)
+    ("catch" "catch" c-electric-continued-statement 0 t)
+    ("finally" "finally" c-electric-continued-statement 0 t)))
 
 (defvar java-mode-map ()
   "Keymap used in java-mode buffers.")
@@ -718,8 +718,8 @@ Key bindings:
 (defvar pike-mode-abbrev-table nil
   "Abbreviation table used in pike-mode buffers.")
 (define-abbrev-table 'pike-mode-abbrev-table
-  '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+  '(("else" "else" c-electric-continued-statement 0 t)
+    ("while" "while" c-electric-continued-statement 0 t)))
 
 (defvar pike-mode-map ()
   "Keymap used in pike-mode buffers.")
