@@ -251,7 +251,7 @@ save_excursion_save ()
 			  == current_buffer);
 
   return Fcons (Fpoint_marker (),
-		Fcons (Fcopy_marker (current_buffer->mark),
+		Fcons (Fcopy_marker (current_buffer->mark, Qnil),
 		       Fcons (visible ? Qt : Qnil,
 			      current_buffer->mark_active)));		       
 }
