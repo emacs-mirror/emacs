@@ -31,7 +31,6 @@ locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp:${datadir}/emacs/${version}/leim'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
-lockdir='${sharedstatedir}/emacs/lock'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
@@ -1660,7 +1659,6 @@ AC_SUBST(lispdir)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)
 AC_SUBST(etcdir)
-AC_SUBST(lockdir)
 AC_SUBST(archlibdir)
 AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
