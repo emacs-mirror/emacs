@@ -246,11 +246,10 @@ The syntax, more precisely:
 		      converted))))
       (setq tail (cdr tail)))
     (setq choice (x-popup-dialog t (cons name (nreverse converted))))
-    (setq meaning (assq choice converted))
-    (if meaning
-	(if (symbolp (cdr meaning))
-	    (call-interactively (cdr meaning))
-	  (eval (cdr meaning))))))
+    (if choice
+	(if (symbolp choice)
+	    (call-interactively choice)
+	  (eval choice)))))
 
 ;; This is empty because the usual elements of the menu bar
 ;; are provided by menu-bar.el instead.
