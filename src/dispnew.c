@@ -3071,7 +3071,7 @@ direct_output_for_insert (g)
   /* Give up if highlighting trailing whitespace and we have trailing
      whitespace in glyph_row.  We would have to remove the trailing
      whitespace face in that case.  */
-  if (it.show_trailing_whitespace_p
+  if (!NILP (Vshow_trailing_whitespace)
       && glyph_row->used[TEXT_AREA])
     {
       struct glyph *last;
@@ -3185,7 +3185,7 @@ direct_output_for_insert (g)
   glyph_row->contains_overlapping_glyphs_p
     |= it.glyph_row->contains_overlapping_glyphs_p;
 
-  if (it.show_trailing_whitespace_p)
+  if (!NILP (Vshow_trailing_whitespace))
     highlight_trailing_whitespace (it.f, glyph_row);
 
   /* Write glyphs.  If at end of row, we can simply call write_glyphs.
@@ -3281,6 +3281,10 @@ direct_output_forward_char (n)
 
   /* Can't use direct output if highlighting a region.  */
   if (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
+    return 0;
+
+  /* Can't use direct output if highlighting trailing whitespace.  */
+  if (!NILP (Vshow_trailing_whitespace))
     return 0;
 
   row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
