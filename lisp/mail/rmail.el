@@ -544,11 +544,13 @@ The first parenthesized expression should match the MIME-charset name.")
   nil)
 
 (defvar rmail-font-lock-keywords
+  ;; These are all matched case-insensitively.
   (eval-when-compile
     (let* ((cite-chars "[>|}]")
-	   (cite-prefix "A-Za-z")
+	   (cite-prefix "a-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
-      (list '("^\\(From\\|Sender\\|Resent-[Ff]rom\\):" . font-lock-function-name-face)
+      (list '("^\\(From\\|Sender\\|Resent-From\\):"
+	      . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
 	    '("^Subject:" . font-lock-comment-face)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
@@ -562,7 +564,7 @@ The first parenthesized expression should match the MIME-charset name.")
 	       (beginning-of-line) (end-of-line)
 	       (2 font-lock-constant-face nil t)
 	       (4 font-lock-comment-face nil t)))
-	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
+	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
 
@@ -1123,7 +1125,7 @@ Instead, these commands are available:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
 	'(rmail-font-lock-keywords
-	  t nil nil nil
+	  t t nil nil
 	  (font-lock-maximum-size . nil)
 	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
 	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
