@@ -1,5 +1,8 @@
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* atimer.c (alarm_signal_handler) [USG && !POSIX_SIGNALS]: 
+	Remove code setting signal handler.
+
 	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]: 
 	Clear ICRNL and INLCR.  From Daiki Ueno <ueno@unixuser.org>.
 
