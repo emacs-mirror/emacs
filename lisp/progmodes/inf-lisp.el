@@ -1,5 +1,5 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
-;;; Copyright (C) 1988 Free Software Foundation, Inc.
+;;; Copyright (C) 1988, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -58,84 +58,6 @@
 ;;; Maybe I should ensure the process mark is in the window when I send
 ;;; text to the process? Switch selectable?
 
-;; YOUR .EMACS FILE
-;;=============================================================================
-;; Some suggestions for your .emacs file.
-;;
-;; ; If inferior-lisp lives in some non-standard directory, you must tell emacs
-;; ; where to get it. This may or may not be necessary.
-;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
-;;
-;; ; Autoload inferior-lisp from file inf-lisp.el
-;; (autoload 'inferior-lisp "inferior-lisp"
-;;           "Run an inferior Lisp process."
-;;           t)
-;;
-;; ; Define C-c t to run my favorite command in inferior-lisp mode:
-;; (setq inferior-lisp-load-hook
-;;       '((lambda () 
-;;           (define-key inferior-lisp-mode-map "\C-ct" 'favorite-cmd))))
-
-
-;;; Brief Command Documentation:
-;;;============================================================================
-;;; Comint Mode Commands: (common to inferior-lisp and all
-;;; comint-derived modes)
-;;;
-;;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-c-r   comint-previous-input-matching  Search backwards in input history
-;;; return  comint-send-input
-;;; c-a     comint-bol                      Beginning of line; skip prompt.
-;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
-;;; c-c c-u comint-kill-input	    	    ^u
-;;; c-c c-w backward-kill-word    	    ^w
-;;; c-c c-c comint-interrupt-subjob 	    ^c
-;;; c-c c-z comint-stop-subjob	    	    ^z
-;;; c-c c-\ comint-quit-subjob	    	    ^\
-;;; c-c c-o comint-kill-output		    Delete last batch of process output
-;;; c-c c-r comint-show-output		    Show last batch of process output
-;;;         send-invisible                  Read line w/o echo & send to proc
-;;;         comint-continue-subjob	    Useful if you accidentally suspend
-;;;					        top-level job.
-;;; comint-mode-hook is the comint mode hook.
-
-;;; Inferior Lisp Mode Commands:
-;;; c-m-x   lisp-send-defun     This binding is a gnu convention.
-;;; c-c c-l lisp-load-file  	Prompt for file name; tell Lisp to load it.
-;;; c-c c-k lisp-compile-file	Prompt for file name; tell Lisp to kompile it.
-;;; 	    	    	    	Filename completion is available, of course.
-;;;
-;;; Additionally, these commands are added to the key bindings of Lisp mode:
-;;; c-m-x   lisp-eval-defun         This binding is a gnu convention.
-;;; c-c c-e lisp-eval-defun 	    Send the current defun to Lisp process.
-;;; c-x c-e lisp-eval-last-sexp     Send the previous sexp to Lisp process.
-;;; c-c c-r lisp-eval-region        Send the current region to Lisp process.
-;;; c-c c-c lisp-compile-defun      Compile the current defun in Lisp process.
-;;; c-c c-z switch-to-lisp          Switch to the Lisp process buffer.
-;;; c-c c-l lisp-load-file          (See above. In a Lisp file buffer, default
-;;; c-c c-k lisp-compile-file        is to load/compile the current file.)
-;;; c-c c-d lisp-describe-sym	    Query Lisp for a symbol's description.
-;;; c-c c-a lisp-show-arglist	    Query Lisp for function's arglist.
-;;; c-c c-f lisp-show-function-documentation Query Lisp for a function's doc.
-;;; c-c c-v lisp-show-variable-documentation Query Lisp for a variable's doc.
-
-;;; inferior-lisp	    	    	    Fires up the Lisp process.
-;;; lisp-compile-region     	    Compile all forms in the current region.
-;;;
-;;; Inferior Lisp Mode Variables:
-;;; inferior-lisp-filter-regexp	    Match this => don't get saved on input hist
-;;; inferior-lisp-program   	    Name of Lisp program run-lisp executes
-;;; inferior-lisp-load-command	    Customises lisp-load-file
-;;; inferior-lisp-mode-hook  	    
-;;; inferior-lisp-prompt	    Initialises comint-prompt-regexp.
-;;;				    Backwards compatibility.
-;;; lisp-source-modes               Anything loaded into a buffer that's in
-;;;                                 one of these modes is considered Lisp 
-;;;                                 source by lisp-load/compile-file.
-
-;;; Read the rest of this file for more information.
-
 ;;; Code:
 
 (require 'comint)
@@ -144,9 +66,9 @@
 
 ;;;###autoload
 (defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
-  "*What not to save on inferior Lisp's input history
-Input matching this regexp is not saved on the input history in inferior-lisp
-mode. Default is whitespace followed by 0 or 1 single-letter :keyword 
+  "*What not to save on inferior Lisp's input history.
+Input matching this regexp is not saved on the input history in Inferior Lisp
+mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword 
 (as in :a, :c, etc.)")
 
 (defvar inferior-lisp-mode-map nil)
@@ -155,6 +77,11 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 	     (full-copy-sparse-keymap comint-mode-map))
        (setq inferior-lisp-mode-map
 	     (nconc inferior-lisp-mode-map shared-lisp-mode-map))
+       ;; Make separate prefix definitions so that we don't clobber the ones
+       ;; inherited from other keymaps.  
+       (define-key inferior-lisp-mode-map "\C-x" (make-sparse-keymap))
+       (define-key inferior-lisp-mode-map "\C-c" (make-sparse-keymap))
+       (define-key inferior-lisp-mode-map "\e" (make-sparse-keymap))
        (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
        (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
        (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
@@ -185,14 +112,13 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 ;;; Previous versions of this package bound commands to C-c <letter>
 ;;; bindings, which is not allowed by the gnumacs standard.
 
+;;;  "This function binds many inferior-lisp commands to C-c <letter> bindings,
+;;;where they are more accessible. C-c <letter> bindings are reserved for the
+;;;user, so these bindings are non-standard. If you want them, you should
+;;;have this function called by the inferior-lisp-load-hook:
+;;;    (setq inferior-lisp-load-hook '(inferior-lisp-install-letter-bindings))
+;;;You can modify this function to install just the bindings you want."
 (defun inferior-lisp-install-letter-bindings ()
-  "This function binds many inferior-lisp commands to C-c <letter> bindings,
-where they are more accessible. C-c <letter> bindings are reserved for the
-user, so these bindings are non-standard. If you want them, you should
-have this function called by the inferior-lisp-load-hook:
-    (setq inferior-lisp-load-hook '(inferior-lisp-install-letter-bindings))
-You can modify this function to install just the bindings you want."
-  
   (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
   (define-key lisp-mode-map "\C-cr" 'lisp-eval-region-and-go)
   (define-key lisp-mode-map "\C-cc" 'lisp-compile-defun-and-go)
@@ -215,12 +141,12 @@ You can modify this function to install just the bindings you want."
 
 ;;;###autoload
 (defvar inferior-lisp-program "lisp"
-  "*Program name for invoking an inferior Lisp with `inferior-lisp'.")
+  "*Program name for invoking an inferior Lisp with for Inferior Lisp mode.")
 
 ;;;###autoload
 (defvar inferior-lisp-load-command "(load \"%s\")\n"
   "*Format-string for building a Lisp expression to load a file.
-This format string should use %s to substitute a file name
+This format string should use `%s' to substitute a file name
 and should result in a Lisp expression that will command the inferior Lisp
 to load that file.  The default works acceptably on most Lisps.
 The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\\n\"
@@ -229,10 +155,10 @@ but it works only in Common Lisp.")
 
 ;;;###autoload
 (defvar inferior-lisp-prompt "^[^> ]*>+:? *"
-  "Regexp to recognise prompts in the inferior Lisp.
+  "Regexp to recognise prompts in the Inferior Lisp mode.
 Defaults to \"^[^> ]*>+:? *\", which works pretty good for Lucid, kcl,
-and franz. This variable is used to initialise comint-prompt-regexp in the 
-inferior-lisp buffer.
+and franz.  This variable is used to initialize `comint-prompt-regexp' in the 
+Inferior Lisp buffer.
 
 More precise choices:
 Lucid Common Lisp: \"^\\(>\\|\\(->\\)+\\) *\"
@@ -243,23 +169,23 @@ This is a fine thing to set in your .emacs file.")
 
 ;;;###autoload
 (defvar inferior-lisp-mode-hook '()
-  "*Hook for customising inferior-lisp mode")
+  "*Hook for customising Inferior Lisp mode.")
 
 (defun inferior-lisp-mode () 
   "Major mode for interacting with an inferior Lisp process.  
 Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O through an
-Emacs buffer.  Variable inferior-lisp-program controls which Lisp interpreter
-is run.  Variables inferior-lisp-prompt, inferior-lisp-filter-regexp and
-inferior-lisp-load-command can customize this mode for different Lisp
+Emacs buffer.  Variable `inferior-lisp-program' controls which Lisp interpreter
+is run.  Variables `inferior-lisp-prompt', `inferior-lisp-filter-regexp' and
+`inferior-lisp-load-command' can customize this mode for different Lisp
 interpreters.
 
 For information on running multiple processes in multiple buffers, see
-documentation for variable inferior-lisp-buffer.
+documentation for variable `inferior-lisp-buffer'.
 
 \\{inferior-lisp-mode-map}
 
-Customisation: Entry to this mode runs the hooks on comint-mode-hook and
-inferior-lisp-mode-hook (in that order).
+Customisation: Entry to this mode runs the hooks on `comint-mode-hook' and
+`inferior-lisp-mode-hook' (in that order).
 
 You can send text to the inferior Lisp process from other buffers containing
 Lisp source.  
@@ -299,24 +225,24 @@ to continue it."
   (run-hooks 'inferior-lisp-mode-hook))
 
 (defun lisp-get-old-input ()
-  "Snarf the sexp ending at point"
+  "Return a string containing the sexp ending at point."
   (save-excursion
     (let ((end (point)))
       (backward-sexp)
       (buffer-substring (point) end))))
 
 (defun lisp-input-filter (str)
-  "Don't save anything matching inferior-lisp-filter-regexp"
+  "t if STR does not match `inferior-lisp-filter-regexp'."
   (not (string-match inferior-lisp-filter-regexp str)))
 
 ;;;###autoload
 (defun inferior-lisp (cmd)
-  "Run an inferior Lisp process, input and output via buffer *inferior-lisp*.
-If there is a process already running in *inferior-lisp*, just switch
+  "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
+If there is a process already running in `*inferior-lisp*', just switch
 to that buffer.
 With argument, allows you to edit the command line (default is value
-of inferior-lisp-program).  Runs the hooks from
-inferior-lisp-mode-hook (after the comint-mode-hook is run).
+of `inferior-lisp-program').  Runs the hooks from
+`inferior-lisp-mode-hook' (after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (interactive (list (if current-prefix-arg
 			 (read-string "Run lisp: " inferior-lisp-program)
@@ -329,7 +255,8 @@ inferior-lisp-mode-hook (after the comint-mode-hook is run).
   (setq inferior-lisp-buffer "*inferior-lisp*")
   (switch-to-buffer "*inferior-lisp*"))
 
-(fset 'run-lisp 'inferior-lisp)
+;;;###autoload
+(defalias 'run-lisp 'inferior-lisp)
 
 ;;; Break a string up into a list of arguments.
 ;;; This will break if you have an argument with whitespace, as in
@@ -349,7 +276,7 @@ inferior-lisp-mode-hook (after the comint-mode-hook is run).
 
 (defun lisp-eval-region (start end &optional and-go)
   "Send the current region to the inferior Lisp process.
-Prefix argument means switch-to-lisp afterwards."
+Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "r\nP")
   (comint-send-region (inferior-lisp-proc) start end)
   (comint-send-string (inferior-lisp-proc) "\n")
@@ -357,7 +284,7 @@ Prefix argument means switch-to-lisp afterwards."
 
 (defun lisp-eval-defun (&optional and-go)
   "Send the current defun to the inferior Lisp process.
-Prefix argument means switch-to-lisp afterwards."
+Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (save-excursion
     (end-of-defun)
@@ -369,14 +296,14 @@ Prefix argument means switch-to-lisp afterwards."
 
 (defun lisp-eval-last-sexp (&optional and-go)
   "Send the previous sexp to the inferior Lisp process.
-Prefix argument means switch-to-lisp afterwards."
+Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (lisp-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
 
 ;;; Common Lisp COMPILE sux. 
 (defun lisp-compile-region (start end &optional and-go)
   "Compile the current region in the inferior Lisp process.
-Prefix argument means switch-to-lisp afterwards."
+Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "r\nP")
   (comint-send-string
    (inferior-lisp-proc)
@@ -386,7 +313,7 @@ Prefix argument means switch-to-lisp afterwards."
 
 (defun lisp-compile-defun (&optional and-go)
   "Compile the current defun in the inferior Lisp process.
-Prefix argument means switch-to-lisp afterwards."
+Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (save-excursion
     (end-of-defun)
@@ -414,26 +341,22 @@ With argument, positions cursor at end of buffer."
 ;;; easier to type C-c e than C-u C-c C-e.
 
 (defun lisp-eval-region-and-go (start end)
-  "Send the current region to the inferior Lisp, 
-and switch to the process buffer."
+  "Send the current region to the inferior Lisp, and switch to its buffer."
   (interactive "r")
   (lisp-eval-region start end t))
 
 (defun lisp-eval-defun-and-go ()
-  "Send the current defun to the inferior Lisp, 
-and switch to the process buffer."
+  "Send the current defun to the inferior Lisp, and switch to its buffer."
   (interactive)
   (lisp-eval-defun t))
 
 (defun lisp-compile-region-and-go (start end)
-  "Compile the current region in the inferior Lisp, 
-and switch to the process buffer."
+  "Compile the current region in the inferior Lisp, and switch to its buffer."
   (interactive "r")
   (lisp-compile-region start end t))
 
 (defun lisp-compile-defun-and-go ()
-  "Compile the current defun in the inferior Lisp, 
-and switch to the process buffer."
+  "Compile the current defun in the inferior Lisp, and switch to its buffer."
   (interactive)
   (lisp-compile-defun t))
 
@@ -476,14 +399,14 @@ and switch to the process buffer."
 
 
 (defvar lisp-prev-l/c-dir/file nil
-  "Saves the (directory . file) pair used in the last lisp-load-file or
-lisp-compile-file command. Used for determining the default in the 
-next one.")
+  "Record last directory and file used in loading or compiling.
+This holds a cons cell of the form `(DIRECTORY . FILE)'
+describing the last `lisp-load-file' or `lisp-compile-file' command.")
 
 (defvar lisp-source-modes '(lisp-mode)
   "*Used to determine if a buffer contains Lisp source code.
 If it's loaded into a buffer that is in one of these major modes, it's
-considered a Lisp source file by lisp-load-file and lisp-compile-file.
+considered a Lisp source file by `lisp-load-file' and `lisp-compile-file'.
 Used by these commands to determine defaults.")
 
 (defun lisp-load-file (file-name)
@@ -561,7 +484,7 @@ Used by these commands to determine defaults.")
 ;;; Adapted from function-called-at-point in help.el.
 (defun lisp-fn-called-at-pt ()
   "Returns the name of the function called in the current call.
-Nil if it can't find one."
+The value is nil if it can't find one."
   (condition-case nil
       (save-excursion
 	(save-restriction
@@ -589,26 +512,26 @@ Nil if it can't find one."
 
 (defun lisp-show-function-documentation (fn)
   "Send a command to the inferior Lisp to give documentation for function FN.
-See variable lisp-function-doc-command."
+See variable `lisp-function-doc-command'."
   (interactive (lisp-symprompt "Function doc" (lisp-fn-called-at-pt)))
   (comint-proc-query (inferior-lisp-proc)
 		     (format lisp-function-doc-command fn)))
 
 (defun lisp-show-variable-documentation (var)
   "Send a command to the inferior Lisp to give documentation for function FN.
-See variable lisp-var-doc-command."
+See variable `lisp-var-doc-command'."
   (interactive (lisp-symprompt "Variable doc" (lisp-var-at-pt)))
   (comint-proc-query (inferior-lisp-proc) (format lisp-var-doc-command var)))
 
 (defun lisp-show-arglist (fn)
-  "Sends an query to the inferior Lisp for the arglist for function FN.
-See variable lisp-arglist-command."
+  "Send a query to the inferior Lisp for the arglist for function FN.
+See variable `lisp-arglist-command'."
   (interactive (lisp-symprompt "Arglist" (lisp-fn-called-at-pt)))
   (comint-proc-query (inferior-lisp-proc) (format lisp-arglist-command fn)))
 
 (defun lisp-describe-sym (sym)
   "Send a command to the inferior Lisp to describe symbol SYM.
-See variable lisp-describe-sym-command."
+See variable `lisp-describe-sym-command'."
   (interactive (lisp-symprompt "Describe" (lisp-var-at-pt)))
   (comint-proc-query (inferior-lisp-proc)
 		     (format lisp-describe-sym-command sym)))
@@ -618,19 +541,18 @@ See variable lisp-describe-sym-command."
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
-Inf-lisp.el supports, in a fairly simple fashion, running multiple
-Lisp processes. To run multiple Lisp processes, you start the first up
-with \\[inferior-lisp]. It will be in a buffer named *inferior-lisp*.
-Rename this buffer with \\[rename-buffer]. You may now start up a new
-process with another \\[inferior-lisp]. It will be in a new buffer,
-named *inferior-lisp*. You can switch between the different process
+To run multiple Lisp processes, you start the first up
+with \\[inferior-lisp].  It will be in a buffer named `*inferior-lisp*'.
+Rename this buffer with \\[rename-buffer].  You may now start up a new
+process with another \\[inferior-lisp].  It will be in a new buffer,
+named `*inferior-lisp*'.  You can switch between the different process
 buffers with \\[switch-to-buffer].
 
 Commands that send text from source buffers to Lisp processes --
-like lisp-eval-defun or lisp-show-arglist -- have to choose a process
-to send to, when you have more than one Lisp process around. This
-is determined by the global variable inferior-lisp-buffer. Suppose you
-have three inferior lisps running:
+like `lisp-eval-defun' or `lisp-show-arglist' -- have to choose a process
+to send to, when you have more than one Lisp process around.  This
+is determined by the global variable `inferior-lisp-buffer'.  Suppose you
+have three inferior Lisps running:
     Buffer              Process
     foo                 inferior-lisp
     bar                 inferior-lisp<2>
@@ -641,23 +563,18 @@ what process do you send it to?
 - If you're in a process buffer (foo, bar, or *inferior-lisp*), 
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
-  send it to the process attached to buffer inferior-lisp-buffer.
-This process selection is performed by function inferior-lisp-proc.
+  send it to the process attached to buffer `inferior-lisp-buffer'.
+This process selection is performed by function `inferior-lisp-proc'.
 
 Whenever \\[inferior-lisp] fires up a new process, it resets
-inferior-lisp-buffer to be the new process's buffer. If you only run
-one process, this will do the right thing. If you run multiple
-processes, you can change inferior-lisp-buffer to another process
-buffer with \\[set-variable].
+`inferior-lisp-buffer' to be the new process's buffer.  If you only run
+one process, this does the right thing.  If you run multiple
+processes, you can change `inferior-lisp-buffer' to another process
+buffer with \\[set-variable].")
 
-More sophisticated approaches are, of course, possible. If you find yourself
-needing to switch back and forth between multiple processes frequently,
-you may wish to consider ilisp.el, a larger, more sophisticated package
-for running inferior Lisp processes. The approach taken here is for a
-minimal, simple implementation. Feel free to extend it.")
-
+;;  "Returns the current inferior Lisp process.
+;; See variable `inferior-lisp-buffer'."
 (defun inferior-lisp-proc ()
-  "Returns the current inferior-lisp process. See variable inferior-lisp-buffer."
   (let ((proc (get-buffer-process (if (eq major-mode 'inferior-lisp-mode)
 				      (current-buffer)
 				    inferior-lisp-buffer))))
@@ -668,7 +585,7 @@ minimal, simple implementation. Feel free to extend it.")
 ;;; Do the user's customisation...
 ;;;===============================
 (defvar inferior-lisp-load-hook nil
-  "This hook is run when inferior-lisp is loaded in.
+  "This hook is run when the library `inf-lisp' is loaded.
 This is a good place to put keybindings.")
 
 (run-hooks 'inferior-lisp-load-hook)
