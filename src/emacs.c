@@ -1106,6 +1106,11 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       extern char etext;
       extern Lisp_Object Fredraw_frame ();
       atexit (_mcleanup);
+      /* This uses Fredraw_frame because that function
+	 comes first in the Emacs executable.
+	 It might be better to use something that gives
+	 the start of the text segment, but start_of_text
+	 is not defined on all systems now.  */
       monstartup (Fredraw_frame, &etext);
     }
   else
