@@ -120,6 +120,11 @@ Lisp_Object Vwindow_list;
 
 Lisp_Object minibuf_window;
 
+/* Non-nil means it is the window whose mode line should be
+   shown as the selected window when the minibuffer is selected.  */
+
+Lisp_Object Vminibuf_selected_window;
+
 /* Non-nil means it is the window for C-M-v to scroll
    when the mini-buffer is selected.  */
 
@@ -4793,6 +4798,7 @@ struct save_window_data
     Lisp_Object current_window;
     Lisp_Object current_buffer;
     Lisp_Object minibuf_scroll_window;
+    Lisp_Object minibuf_selected_window;
     Lisp_Object root_window;
     Lisp_Object focus_frame;
     /* Record the values of window-min-width and window-min-height
@@ -5156,6 +5162,7 @@ the return value is nil.  Otherwise the value is t.  */)
   window_min_width = XINT (data->min_width);
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
+  Vminibuf_selected_window = data->minibuf_selected_window;
 
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
 }
@@ -5365,7 +5372,8 @@ redirection (see `redirect-frame-focus').  */)
   data->selected_frame = selected_frame;
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSETBUFFER (data->current_buffer, current_buffer);
-  data->minibuf_scroll_window = Vminibuf_scroll_window;
+  data->minibuf_scroll_window = minibuf_level > 0 ? Vminibuf_scroll_window : Qnil;
+  data->minibuf_selected_window = minibuf_level > 0 ? Vminibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
   XSETINT (data->min_height, window_min_height);
@@ -5649,8 +5657,12 @@ compare_window_configurations (c1, c2, ignore_positions)
   if (! EQ (d1->current_buffer, d2->current_buffer))
     return 0;
   if (! ignore_positions)
-    if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
-      return 0;
+    {
+      if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
+	return 0;
+      if (! EQ (d1->minibuf_selected_window, d2->minibuf_selected_window))
+	return 0;
+    }
   /* Don't compare the root_window field.
      We don't require the two configurations
      to use the same window object,
