@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-poly () nil)
-
 
 (defun calcFunc-pcont (expr &optional var)
   (cond ((Math-primp expr)
@@ -1172,6 +1169,8 @@
 
 (defun calcFunc-expandpow (x n)
   (math-normalize (math-expand-power x n)))
+
+(provide 'calc-poly)
 
 ;;; arch-tag: d2566c51-2ccc-45f1-8c50-f3462c2953ff
 ;;; calc-poly.el ends here
