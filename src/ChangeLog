@@ -1,3 +1,8 @@
+2000-06-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_frame_1): Handle case that cursor vpos is 
+	out of bounds.
+
 2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* unexec.c (toplevel): Fix last change, so as not to deprive MSDOS
