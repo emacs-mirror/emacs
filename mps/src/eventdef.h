@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.6) $
+ * $HopeName: MMsrc!eventdef.h(trunk.7) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -104,4 +104,5 @@ RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)
 RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
 /* RootScanned isn't a seg event, but so what */
 RELATION(RootScan                        , 0x0032, TRUE, Seg, PWW)
-
+RELATION(Intern                          , 0x0033, TRUE, User, WS)
+RELATION(Label                           , 0x0034, TRUE, User, AW)
