@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
          Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1574,7 +1574,7 @@ test_completion (txt)
 int
 do_completion ()
 {
-  Lisp_Object completion, tem;
+  Lisp_Object completion, string, tem;
   int completedp;
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
@@ -1601,10 +1601,18 @@ do_completion ()
       return 1;
     }
 
-  /* compiler bug */
-  tem = Fstring_equal (completion, Ffield_string(make_number (ZV)));
-  completedp = NILP (tem);
-  if (completedp)
+  string = Ffield_string (make_number (ZV));
+
+  /* COMPLETEDP should be true if some completion was done, which
+     doesn't include simply changing the case of the entered string.
+     However, for appearance, the string is rewritten if the case
+     changes.  */
+  tem = Fcompare_strings (completion, Qnil, Qnil, string, Qnil, Qnil, Qt);
+  completedp = (tem != Qt);
+
+  tem = Fstring_equal (completion, string);
+  if (NILP (tem))
+    /* Rewrite the user's input.  */
     {
       Fdelete_field (make_number (ZV)); /* Some completion happened */
       Finsert (1, &completion);
