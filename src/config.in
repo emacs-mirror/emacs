@@ -258,6 +258,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_FPATHCONF
 #undef HAVE_SELECT
 #undef HAVE_MKTIME
+#undef BROKEN_MKTIME		/* have mktime but it's broken */
 #undef HAVE_EUIDACCESS
 #undef HAVE_GETPAGESIZE
 #undef HAVE_TZSET
@@ -272,6 +273,8 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE___FPENDING
 #undef HAVE_FTELLO
 #undef HAVE_GETLOADAVG
+#undef NLIST_STRUCT
+#undef NLIST_NAME_UNION
 #undef HAVE_MBLEN
 #undef HAVE_MBRLEN
 #undef HAVE_STRSIGNAL
