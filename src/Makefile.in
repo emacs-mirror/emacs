@@ -197,7 +197,7 @@ CC = C_COMPILER
 #define START_FILES pre-crt0.o /lib/crt0.o
 #endif /* ! defined (COFF_ENCAPSULATE) */
 #else /* ! defined (NO_REMAP) */
-#define START_FILES crt0.o
+#define START_FILES ecrt0.o
 #endif /* ! defined (NO_REMAP) */
 #endif /* START_FILES */
 STARTFILES = START_FILES
@@ -814,8 +814,8 @@ casetab.o: casetab.c buffer.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h commands.h window.h $(config_h) 
 pre-crt0.o: pre-crt0.c
-crt0.o: crt0.c $(config_h)
-	CRT0_COMPILE ${srcdir}/crt0.c
+ecrt0.o: ecrt0.c $(config_h)
+	CRT0_COMPILE ${srcdir}/ecrt0.c
 dired.o: dired.c commands.h buffer.h $(config_h) regex.h
 dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h $(config_h)
