@@ -637,30 +637,13 @@ get_char_property_and_overlay (position, prop, object, overlay)
     }
   if (BUFFERP (object))
     {
-      int posn = XINT (position);
       int noverlays;
-      Lisp_Object *overlay_vec, tem;
-      int len;
+      Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 
       set_buffer_temp (XBUFFER (object));
 
-      /* First try with room for 40 overlays.  */
-      len = 40;
-      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-
-      noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-			       NULL, NULL, 0);
-
-      /* If there are more than 40,
-	 make enough space for all, and try again.  */
-      if (noverlays > len)
-	{
-	  len = noverlays;
-	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-				   NULL, NULL, 0);
-	}
+      GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, 0);
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
       set_buffer_temp (obuf);
@@ -668,7 +651,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
       /* Now check the overlays in order of decreasing priority.  */
       while (--noverlays >= 0)
 	{
-	  tem = Foverlay_get (overlay_vec[noverlays], prop);
+	  Lisp_Object tem = Foverlay_get (overlay_vec[noverlays], prop);
 	  if (!NILP (tem))
 	    {
 	      if (overlay)
