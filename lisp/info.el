@@ -1767,7 +1767,7 @@ parent node."
 				 current-point
 				 t)))))
     (if (or virtual-end 
-	    (pos-visible-in-window-p (point-min) t)))
+	    (pos-visible-in-window-p (point-min) t))
 	(Info-last-preorder)
       (scroll-down))))
 
