@@ -164,7 +164,7 @@
 With prefix arg, turn XTerm mouse mode on iff arg is positive.
 
 Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
-  nil " Mouse" nil
+  nil " Mouse" nil :global t
   (if xterm-mouse-mode
       ;; Turn it on
       (unless window-system

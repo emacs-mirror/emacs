@@ -265,8 +265,8 @@ VALUE is assumed to be a list of widgets."
 ;;; Widget Minor Mode.
 
 (defvar widget-minor-mode nil
-  "I non-nil, we are in Widget Minor Mode.")
-  (make-variable-buffer-local 'widget-minor-mode)
+  "If non-nil, we are in Widget Minor Mode.")
+(make-variable-buffer-local 'widget-minor-mode)
 
 (defvar widget-minor-mode-map nil
   "Keymap used in Widget Minor Mode.")
