@@ -1,6 +1,10 @@
+2001-05-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* language/slovak.el, language/czech.el: New maintainer.
+
 2001-05-16  Sam Steingold  <sds@gnu.org>
 
-	* emacs-lisp/cl-indent.el (toplevel): indent the :method
+	* emacs-lisp/cl-indent.el (toplevel): Indent the :method
 	sub-form of `defgeneric' correctly.
 
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>

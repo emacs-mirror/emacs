@@ -1,3 +1,9 @@
+2001-05-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* quail/slovak.el, quail/czech.el: Set guidance to t for czech and
+	slovak input methods. New maintainer.  From Pavel Jan,Am(Bk
+	<Pavel@Janik.cz>.
+
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/latin-ltx.el: Add more translations.  From
