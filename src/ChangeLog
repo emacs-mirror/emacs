@@ -1,5 +1,8 @@
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
+	* search.c (Fmatch_data): Doc fix.  Explicitly state that
+	match-data is undefined if last search failed.
+
 	* keymap.c (Fcommand_remapping): Renamed from Fremap_command.
 	All uses changed.
 
