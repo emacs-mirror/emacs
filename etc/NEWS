@@ -39,6 +39,9 @@ work on Macintosh.
 
 * Changes in Emacs 21.1
 
+** Refill minor mode provides preliminary support for keeping
+paragraphs filled as you modify them.
+
 ** auto-compression mode is no longer enabled just by loading jka-compr.el.
 To control it, set `auto-compression-mode' via Custom or use the
 `auto-compression-mode' command.
