@@ -416,7 +416,7 @@ The optional third and fourth arguments BEG and END specify
 the part of the file to read.
 
 The return value is like the value of `insert-file-contents':
-a list (ABSOLUTE-FILE-NAME . SIZE)."
+a list (ABSOLUTE-FILE-NAME SIZE)."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (read-file-name "Find file: "))
@@ -429,7 +429,7 @@ a list (ABSOLUTE-FILE-NAME . SIZE)."
       (setq size (nth 1 value)))
     (if format
 	(setq size (format-decode format size)
-	      value (cons (car value) size)))
+	      value (list (car value) size)))
     value))
 
 (defun format-read (&optional prompt)
