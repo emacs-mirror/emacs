@@ -2402,7 +2402,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (defun dynamic-completion-mode ()
   "Enable dynamic word-completion."
   (interactive)
-  (add-hook 'find-file-hooks 'cmpl-find-file-hook)
+  (add-hook 'find-file-hook 'cmpl-find-file-hook)
   (add-hook 'pre-command-hook 'completion-before-command)
 
   ;; Install the appropriate mode tables.
