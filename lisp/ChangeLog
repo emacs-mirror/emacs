@@ -1,3 +1,15 @@
+2001-02-01  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-switches): New user option.
+	(vc-version-diff): Use it.
+	(vc-diff-switches-list): New macro.
+
+	* vc-{rcs,cvs,sccs}.el: (vc-BACKEND-diff-switches): New
+	customization options.
+	(vc-BACKEND-diff): Use new options via vc-diff-switches-list.
+
+	* vc-sccs.el (vc-workfile-unchanged-p): Return correct status.
+
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* msb.el (toplevel): Quote hook symbols.
