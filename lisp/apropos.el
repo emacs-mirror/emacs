@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
-;; Rewritten: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: help
 
 ;; This file is part of GNU Emacs.
