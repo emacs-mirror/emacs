@@ -5,7 +5,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Thu Aug 15 2002 14:02:14 (PDT)
+;; Revised: mar feb 18 2003 10:03:18 (Romance Standard Time)
 
 ;; This file is part of GNU Emacs.
 
@@ -3039,7 +3039,7 @@ CALS (DocBook DTD):
 	(setq col-list (cons (car (table--get-coordinate (car starting-cell))) nil))
 	(setq row-list (cons (cdr (table--get-coordinate (car starting-cell))) nil))
 	(setq i 0)
-	(let ((wheel [?- ?\ ?| ?/]))
+	(let ((wheel [?- ?\\ ?| ?/]))
 	  (while
 	      (progn
 		(if (interactive-p)
