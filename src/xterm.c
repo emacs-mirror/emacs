@@ -1139,19 +1139,6 @@ static void x_produce_glyphs P_ ((struct it *));
 static void x_produce_image_glyph P_ ((struct it *it));
 
 
-/* Return a pointer to per-char metric information in FONT of a
-   character pointed by B which is a pointer to an XChar2b.  */
-
-#define PER_CHAR_METRIC(font, b)					   \
-  ((font)->per_char							   \
-   ? ((font)->per_char + (b)->byte2 - (font)->min_char_or_byte2		   \
-      + (((font)->min_byte1 || (font)->max_byte1)			   \
-	 ? (((b)->byte1 - (font)->min_byte1)				   \
-	    * ((font)->max_char_or_byte2 - (font)->min_char_or_byte2 + 1)) \
-	 : 0))								   \
-   : &((font)->max_bounds))
-
-
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
    is not contained in the font.  */
 
