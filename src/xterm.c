@@ -5676,6 +5676,7 @@ x_make_frame_visible (f)
 	/* On HPUX on the HP800, the sleep is needed sometimes.  */
 	if ((one_in_four & 3) == 0)
 	  {
+	    QUIT;
 #ifdef EMACS_HAS_USECS
 	    Fsleep_for (make_number (1), make_number (0));
 #else
