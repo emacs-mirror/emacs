@@ -119,7 +119,7 @@ With a prefix argument, format the macro in a more concise way."
 	     (if (string-equal cmd "")
 		 (error "No command name given"))
 	     (setq mac (symbol-function cmd)))
-	    ((eq cmd 'view-lossage)
+	    ((memq cmd '(view-lossage electric-view-lossage))
 	     (setq mac (recent-keys))
 	     (setq cmd 'last-kbd-macro))
 	    ((null cmd)
