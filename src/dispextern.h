@@ -1862,8 +1862,12 @@ struct redisplay_interface
   void (*update_window_begin_hook) P_ ((struct window *w));
 
   /* Function to call after window W has been updated in window-based
-     redisplay.  CURSOR_ON_P non-zero means switch cursor on.  */
-  void (*update_window_end_hook) P_ ((struct window *w, int cursor_on_p));
+     redisplay.  CURSOR_ON_P non-zero means switch cursor on.
+     MOUSE_FACE_OVERWRITTEN_P non-zero means that some lines in W
+     that contained glyphs in mouse-face were overwritten, so we
+     have to update the mouse hightlight.  */
+  void (*update_window_end_hook) P_ ((struct window *w, int cursor_on_p,
+				      int mouse_face_overwritten_p));
   
   /* Move cursor to row/column position VPOS/HPOS, pixel coordinates
      Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
@@ -1872,6 +1876,9 @@ struct redisplay_interface
 
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) P_ ((struct frame *f));
+
+  /* Clear the mouse hightlight in windwo W, if there is any.  */
+  void (*clear_mouse_face) P_ ((struct window *w));
 
   /* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
      frame F.  */
