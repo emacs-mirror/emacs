@@ -14,7 +14,7 @@
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
 /^LOADLIBES *=/s!=.*$!=!
-/^ALLOCA *=/s!=.*$!=alloca.o!
+/^ALLOCA *=/s!@ALLOCA@!!
 /^INSTALLABLES/s/emacsclient *//
 s!^	\./!	!
 /^UTILITIES=/s/ wakeup//
