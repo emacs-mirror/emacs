@@ -1,3 +1,16 @@
+2002-08-05  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.11 released.
+	(tramp-perl-file-attributes): Print uid and gid as signed
+	integers.
+	(tramp-invoke-ange-ftp): Correct check for Ange-FTP being loaded.
+	Invoke Ange-FTP with tramp-run-real-handler to avoid Ange-FTP
+	calling Tramp again.
+	(tramp-find-file-exists-command): Check for `ls -d' last, after
+	all the variants on `test -e'.
+	(tramp-post-connection): Erase buffer before finding a command to
+	check if file exists.
+
 2002-08-05  David Kastrup  <David.Kastrup@t-online.de>
 
 	* calc/calc.el (math-format-stack-value): Revert a broken

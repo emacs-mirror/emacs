@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.10"
+(defconst tramp-version "2.0.11"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -1216,17 +1216,16 @@ some systems don't, and for them we have this shell function.")
 ;; output.  If you are hacking on this, note that you get *no* output
 ;; unless this spits out a complete line, including the '\n' at the
 ;; end.
-(defconst tramp-perl-file-attributes (concat
- "$f = $ARGV[0];
+(defconst tramp-perl-file-attributes "\
+$f = $ARGV[0];
 @s = lstat($f);
 if (($s[2] & 0170000) == 0120000) { $l = readlink($f); $l = \"\\\"$l\\\"\"; }
 elsif (($s[2] & 0170000) == 040000) { $l = \"t\"; }
 else { $l = \"nil\" };
-printf(\"(%s %u %u %u (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) (%u %u))\\n\",
+printf(\"(%s %u %d %d (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) (%u %u))\\n\",
 $l, $s[3], $s[4], $s[5], $s[8] >> 16 & 0xffff, $s[8] & 0xffff,
 $s[9] >> 16 & 0xffff, $s[9] & 0xffff, $s[10] >> 16 & 0xffff, $s[10] & 0xffff,
 $s[7], $s[2], $s[1] >> 16 & 0xffff, $s[1] & 0xffff, $s[0] >> 16 & 0xffff, $s[0] & 0xffff);"
- )
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.")
 
@@ -3189,14 +3188,15 @@ necessary anymore."
 
 (defun tramp-invoke-ange-ftp (operation &rest args)
   "Invoke the Ange-FTP handler function and throw."
-  (or ange-ftp-name-format (require 'ange-ftp))
+  (or (boundp 'ange-ftp-name-format) (require 'ange-ftp))
   (let ((ange-ftp-name-format
 	 (list (nth 0 tramp-file-name-structure)
 	       (nth 3 tramp-file-name-structure)
 	       (nth 2 tramp-file-name-structure)
 	       (nth 4 tramp-file-name-structure))))
     (throw 'tramp-forward-to-ange-ftp
-	   (apply 'ange-ftp-hook-function operation args))))
+	   (tramp-run-real-handler 'ange-ftp-hook-function
+				   (cons operation args)))))
 
 (defun tramp-ange-ftp-file-name-p (multi-method method)
   "Check if it's a filename that should be forwarded to Ange-FTP."
@@ -3470,9 +3470,6 @@ file exists and nonzero exit status otherwise."
     ;;                  `/usr/bin/test'.
     ;; `/usr/bin/test -e'       In case `/bin/test' does not exist.
     (unless (or
-             (and (setq tramp-file-exists-command "ls -d %s")
-                  (tramp-handle-file-exists-p existing)
-                  (not (tramp-handle-file-exists-p nonexisting)))
              (and (setq tramp-file-exists-command "test -e %s")
                   (tramp-handle-file-exists-p existing)
                   (not (tramp-handle-file-exists-p nonexisting)))
@@ -3480,6 +3477,9 @@ file exists and nonzero exit status otherwise."
                   (tramp-handle-file-exists-p existing)
                   (not (tramp-handle-file-exists-p nonexisting)))
              (and (setq tramp-file-exists-command "/usr/bin/test -e %s")
+                  (tramp-handle-file-exists-p existing)
+                  (not (tramp-handle-file-exists-p nonexisting)))
+             (and (setq tramp-file-exists-command "ls -d %s")
                   (tramp-handle-file-exists-p existing)
                   (not (tramp-handle-file-exists-p nonexisting))))
       (error "Couldn't find command to check if file exists."))))
@@ -4456,6 +4456,7 @@ locale to C and sets up the remote shell search path."
   ;;
   ;; Daniel Pittman <daniel@danann.net>
   (sleep-for 1)
+  (erase-buffer)
   (tramp-find-file-exists-command multi-method method user host)
   (make-local-variable 'tramp-ls-command)
   (setq tramp-ls-command (tramp-find-ls-command multi-method method user host))
