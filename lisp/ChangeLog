@@ -7,13 +7,18 @@
 	arguments; the other two were unused.
 	(ibuffer-redisplay, ibuffer-update): Always skip special areas.
 
-	* calc/calc-bin.el (math-format-radix-float): Load `calc-ext'
-	before we call `math-group-float'.
+	* ibuf-macs.el, ibuf-ext.el: Update callers of
+	`ibuffer-map-lines'.
+
+	* calc/calc-bin.el (math-format-radix-float): Use `when'.
+	
+	* calc/calc.el (math-format-number): Load `calc-ext' before we
+	call `math-group-float'.
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
 	Renamed from `gamegrid-add-score'.
 	(gamegrid-add-score-insecure): Restored from the old
-	`update-game-score'.
+	`gamegrid-add-score'.
 	(gamegrid-add-score): Just dispatch on `system-type' to one of the
 	previous two functions.
 
