@@ -1241,6 +1241,7 @@ This enforces rescanning the buffer on next use."
     ;; Scan whatever was required by the caller.
     (reftex-do-parse rescan file))))
 
+;;;###autoload
 (defun reftex-scanning-info-available-p ()
   "Is the scanning info about the current document available?"
   (unless reftex-docstruct-symbol
@@ -1617,7 +1618,6 @@ When DIE is non-nil, throw an error if file not found."
 (autoload 'reftex-notice-new "reftex-parse")
 (autoload 'reftex-nth-arg "reftex-parse")
 (autoload 'reftex-locate-bibliography-files "reftex-parse")
-(autoload 'reftex-all-document-files "reftex-parse")
 (autoload 'reftex-ensure-index-support "reftex-parse")
 (autoload 'reftex-everything-regexp "reftex-parse")
 
