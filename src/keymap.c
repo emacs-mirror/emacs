@@ -87,7 +87,6 @@ static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command ();
 static void describe_map ();
-static void describe_map_2 ();
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -1968,7 +1967,7 @@ key             binding\n\
 	    sub_shadows = Fcons (shmap, sub_shadows);
 	}
 
-      describe_map (Fcdr (elt), Fcar (elt), partial, sub_shadows);
+      describe_map (Fcdr (elt), Fcar (elt), describe_command, partial, sub_shadows);
 
     skip: ;
     }
@@ -2005,31 +2004,6 @@ describe_command (definition)
     }
 }
 
-/* Describe the contents of map MAP, assuming that this map itself is
-   reached by the sequence of prefix keys KEYS (a string or vector).
-   PARTIAL, SHADOW is as in `describe_map_tree' above.  */
-
-static void
-describe_map (map, keys, partial, shadow)
-     Lisp_Object map, keys;
-     int partial;
-     Lisp_Object shadow;
-{
-  register Lisp_Object keysdesc;
-
-  if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
-    {
-      Lisp_Object tem;
-      /* Call Fkey_description first, to avoid GC bug for the other string.  */
-      tem = Fkey_description (keys);
-      keysdesc = concat2 (tem, build_string (" "));
-    }
-  else
-    keysdesc = Qnil;
-
-  describe_map_2 (map, keysdesc, describe_command, partial, shadow);
-}
-
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.  */
 
@@ -2048,22 +2022,35 @@ shadow_lookup (shadow, key, flag)
   return Qnil;
 }
 
-/* Insert a description of KEYMAP into the current buffer.  */
+/* Describe the contents of map MAP, assuming that this map itself is
+   reached by the sequence of prefix keys KEYS (a string or vector).
+   PARTIAL, SHADOW is as in `describe_map_tree' above.  */
 
 static void
-describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
-     register Lisp_Object keymap;
-     Lisp_Object elt_prefix;
+describe_map (map, keys, elt_describer, partial, shadow)
+     register Lisp_Object map;
+     Lisp_Object keys;
      int (*elt_describer) ();
      int partial;
      Lisp_Object shadow;
 {
+  Lisp_Object elt_prefix;
   Lisp_Object tail, definition, event;
   Lisp_Object tem;
   Lisp_Object suppress;
   Lisp_Object kludge;
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3;
+
+  if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
+    {
+      Lisp_Object tem;
+      /* Call Fkey_description first, to avoid GC bug for the other string.  */
+      tem = Fkey_description (keys);
+      elt_prefix = concat2 (tem, build_string (" "));
+    }
+  else
+    elt_prefix = Qnil;
 
   if (partial)
     suppress = intern ("suppress-keymap");
@@ -2076,7 +2063,7 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
 
   GCPRO3 (elt_prefix, definition, kludge);
 
-  for (tail = XCONS (keymap)->cdr; CONSP (tail); tail = Fcdr (tail))
+  for (tail = XCONS (map)->cdr; CONSP (tail); tail = Fcdr (tail))
     {
       QUIT;
 
@@ -2107,7 +2094,7 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
 	      if (!NILP (tem)) continue;
 	    }
 
-	  tem = Flookup_key (keymap, kludge, Qt);
+	  tem = Flookup_key (map, kludge, Qt);
 	  if (! EQ (tem, definition)) continue;
 
 	  if (first)
