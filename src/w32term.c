@@ -11124,7 +11124,7 @@ w32_term_init (display_name, xrm_option, resource_name)
 
   /* initialise palette with white and black */
   {
-    COLORREF color;
+    XColor color;
     w32_defined_color (0, "white", &color, 1);
     w32_defined_color (0, "black", &color, 1);
   }
