@@ -263,7 +263,10 @@ autoloads go somewhere else.")
 	  (if (save-excursion
 		(set-buffer (find-file-noselect file))
 		(save-excursion
-		  (search-forward generate-autoload-cookie nil t)))
+		  (save-restriction
+		    (widen)
+		    (goto-char (point-min))
+		    (search-forward generate-autoload-cookie nil t))))
 	      ;; There are autoload cookies in FILE.
 	      ;; Have the user tell us where to put the new section.
 	      (progn
