@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.254 1999/09/06 22:15:10 rms Exp $
+;; $Id: vc.el,v 1.255 1999/09/22 12:58:49 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2595,16 +2595,18 @@ THRESHOLD, nil otherwise"
 			(failed t))
 		    (unwind-protect
 			(progn
-                          (with-temp-file filename
-                            (apply 'vc-do-command
-                                   (current-buffer) 0 "get" file 'MASTER
-                                   "-s" ;; suppress diagnostic output
-                                   (if writable "-e")
-                                   "-p" 
-                                   (and rev
-                                        (concat "-r" 
-                                                (vc-lookup-triple file rev)))
-                                   switches))
+                          (let ((coding-system-for-read 'no-conversion)
+                                (coding-system-for-write 'no-conversion))
+                            (with-temp-file filename
+                              (apply 'vc-do-command
+                                     (current-buffer) 0 "get" file 'MASTER
+                                     "-s" ;; suppress diagnostic output
+                                     (if writable "-e")
+                                     "-p" 
+                                     (and rev
+                                          (concat "-r" 
+                                                  (vc-lookup-triple file rev)))
+                                     switches)))
                           (set-file-modes filename
                                           (logior (file-modes (vc-name file))
                                                   (if writable 128 0)))
@@ -2624,13 +2626,15 @@ THRESHOLD, nil otherwise"
 		      (failed t))
 		  (unwind-protect
 		      (progn
-                        (with-temp-file filename
-                          (apply 'vc-do-command
-                                 (current-buffer) 0 "co" file 'MASTER
-                                 "-q" ;; suppress diagnostic output
-                                 (if writable "-l")
-                                 (concat "-p" rev)
-                                 switches))
+                        (let ((coding-system-for-read 'no-conversion)
+                              (coding-system-for-write 'no-conversion))
+                          (with-temp-file filename
+                            (apply 'vc-do-command
+                                   (current-buffer) 0 "co" file 'MASTER
+                                   "-q" ;; suppress diagnostic output
+                                   (if writable "-l")
+                                   (concat "-p" rev)
+                                   switches)))
                         (set-file-modes filename 
                                         (logior (file-modes (vc-name file))
                                                 (if writable 128 0)))
@@ -2675,14 +2679,16 @@ THRESHOLD, nil otherwise"
 		(let ((failed t))
 		  (unwind-protect
 		      (progn
-                        (with-temp-file filename
-                          (apply 'vc-do-command
-                                 (current-buffer) 0 "cvs" file 'WORKFILE 
-                                 "-Q" ;; suppress diagnostic output
-                                 "update"
-                                 (concat "-r" rev)
-                                 "-p"
-                                 switches))
+                        (let ((coding-system-for-read 'no-conversion)
+                              (coding-system-for-write 'no-conversion))
+                          (with-temp-file filename
+                            (apply 'vc-do-command
+                                   (current-buffer) 0 "cvs" file 'WORKFILE 
+                                   "-Q" ;; suppress diagnostic output
+                                   "update"
+                                   (concat "-r" rev)
+                                   "-p"
+                                   switches)))
 			(setq failed nil))
 		    (and failed (file-exists-p filename) (delete-file filename))))
 	      ;; default for verbose checkout: clear the sticky tag
