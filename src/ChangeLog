@@ -1,3 +1,7 @@
+2000-08-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (Fchar_width): Doc fix.
+
 2000-08-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* charset.c (Fstring_width): Doc fix.
