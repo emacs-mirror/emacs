@@ -195,21 +195,19 @@ found on the last refer-find-entry or refer-find-next-entry."
      ;; find window in which to display bibliography file.
      ;; if a bibliography file is already displayed in a window, use
      ;; that one, otherwise use any window other than the current one
-     (while (not found)
-       (while (and (not (null (setq file (nth n files))))
-                   (setq n (1+ n))
-                   (not (string-equal file
-                                      (buffer-file-name
-                                       (window-buffer new-window))))))
-       (setq found
-             (if (null file)
-                 (eq (setq new-window (next-window new-window 'nomini))
-                     old-window)
-               't)))
-     (if (null file)                     ; didn't find bib file in any window:
-         (progn (if (one-window-p 'nomini)
-                    (setq old-window (split-window)))
-                (setq new-window (next-window old-window 'nomini))))
+     (setq new-window
+	   (some-window (lambda (w)
+			  (while (and (not (null (setq file (nth n files))))
+				      (setq n (1+ n))
+				      (not (string-equal file
+							 (buffer-file-name
+							  (window-buffer w))))))
+			  file)))
+     (unless new-window
+       ;; didn't find bib file in any window:
+       (when (one-window-p 'nomini)
+	 (setq old-window (split-window)))
+       (setq new-window (next-window old-window 'nomini)))
      (select-window (if refer-same-file
                         old-window
                       new-window))  ; the window in which to show the bib file
