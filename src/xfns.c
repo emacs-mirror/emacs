@@ -899,7 +899,7 @@ x_set_menu_bar_lines (f, value, oldval)
      most of the commands try to apply themselves to the minibuffer
      frame itslef, and get an error because you can't switch buffers
      in or split the minibuffer window.  */
-  if (FRAME_MINBUF_ONLY_P (f))
+  if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
   if (XTYPE (value) == Lisp_Int)
