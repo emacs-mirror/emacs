@@ -2947,8 +2947,17 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 #endif /* MSDOS */
 
   dir = ENCODE_FILE (dir);
+#ifdef WINDOWSNT
+  /* The read-only attribute of the parent directory doesn't affect
+     whether a file or directory can be created within it.  Some day we
+     should check ACLs though, which do affect this.  */
+  if (stat (XSTRING (dir)->data, &statbuf) < 0)
+    return Qnil;
+  return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
+#else
   return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
 	  ? Qt : Qnil);
+#endif
 }
 
 DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
