@@ -185,7 +185,7 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; process each line individually.
   (while (string-match "\n" string)
     (let ((request (substring string 0 (match-beginning 0)))
-	  client
+	  client nowait
 	  (files nil)
 	  (lineno 1))
       ;; Remove this line from STRING.
@@ -197,23 +197,27 @@ Prefix arg means just kill any existing server communications subprocess."
 	      (setq request (substring request (match-end 0)))
 	      (setq client (list (substring request 0 (string-match " " request))))
 	      (setq request (substring request (match-end 0)))
+	      (setq foofoo request)
 	      (while (string-match "[^ ]+ " request)
 		(let ((arg
 		       (substring request (match-beginning 0) (1- (match-end 0)))))
 		  (setq request (substring request (match-end 0)))
-		  (if (string-match "\\`\\+[0-9]+\\'" arg)
-		      ;; ARG is a line number option.
-		      (setq lineno (read (substring arg 1)))
-		    ;; ARG is a file name.
-		    ;; Collapse multiple slashes to single slashes.
-		    (setq arg (command-line-normalize-file-name arg))
-		    (setq files
-			  (cons (list arg lineno)
-				files))
-		    (setq lineno 1))))
-	      (server-visit-files files client)
+		  (if (string-match "\\`-nowait" arg)
+		      (setq nowait t)
+		    (if (string-match "\\`\\+[0-9]+\\'" arg)
+			;; ARG is a line number option.
+			(setq lineno (read (substring arg 1)))
+		      ;; ARG is a file name.
+		      ;; Collapse multiple slashes to single slashes.
+		      (setq arg (command-line-normalize-file-name arg))
+		      (setq files
+			    (cons (list arg lineno)
+				  files))
+		      (setq lineno 1)))))
+	      (server-visit-files files client nowait)
 	      ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
-	      (setq server-clients (cons client server-clients))
+	      (or nowait
+		  (setq server-clients (cons client server-clients)))
 	      (server-switch-buffer (nth 1 client))
 	      (run-hooks 'server-switch-hook)
 	      (message (substitute-command-keys
@@ -221,9 +225,11 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; Save for later any partial line that remains.
   (setq server-previous-string string))
 
-(defun server-visit-files (files client)
+(defun server-visit-files (files client &optional nowait)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
-FILES is an alist whose elements are (FILENAME LINENUMBER)."
+FILES is an alist whose elements are (FILENAME LINENUMBER).
+NOWAIT non-nil means this client is not waiting for the results,
+so don't mark these buffers specially, just visit them normally."
   ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
   (let (client-record (last-nonmenu-event t) (obuf (current-buffer)))
     ;; Restore the current buffer afterward, but not using save-excursion,
@@ -249,7 +255,9 @@ FILES is an alist whose elements are (FILENAME LINENUMBER)."
 	      (set-buffer (find-file-noselect filen))
 	      (run-hooks 'server-visit-hook)))
 	  (goto-line (nth 1 (car files)))
-	  (setq server-buffer-clients (cons (car client) server-buffer-clients))
+	  (if (not nowait)
+	      (setq server-buffer-clients
+		    (cons (car client) server-buffer-clients)))
 	  (setq client-record (cons (current-buffer) client-record))
 	  (setq files (cdr files)))
       (set-buffer obuf))
