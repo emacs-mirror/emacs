@@ -1,3 +1,7 @@
+2000-12-22  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
+
+	* comint.el (comint-password-prompt-regexp): Support CVS.
+
 2000-12-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (delete-key-deletes-forward-mode): Simplify.  Also
