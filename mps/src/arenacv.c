@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.5) $
+ * $HopeName: MMsrc!arenacv.c(trunk.6) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers
@@ -16,15 +16,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 #include "mpm.h"
 #include "testlib.h"
 #include "mpsavm.h"
 #include "mpsacl.h"
 #include "mpsaan.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 
 #define segsSIZE 500
