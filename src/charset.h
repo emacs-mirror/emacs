@@ -884,7 +884,7 @@ extern Lisp_Object Vtranslation_table_vector;
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
-  (XCONS(XVECTOR(Vtranslation_table_vector)->contents[(id)])->cdr)
+  (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
 
 /* A char-table for characters which may invoke auto-filling.  */
 extern Lisp_Object Vauto_fill_chars;
