@@ -178,7 +178,8 @@ To save places automatically in all files, put this in your `.emacs' file:
   (let ((cell (assoc buffer-file-name save-place-alist)))
     (if cell
         (progn
-          (goto-char (cdr cell))
+	  (or after-find-file-from-revert-buffer
+	      (goto-char (cdr cell)))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
 
