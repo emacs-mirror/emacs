@@ -509,7 +509,7 @@ merge_widget_value (val1, val2, level)
 	       val1->help, val2->help);
       change = max (change, VISIBLE_CHANGE);
       safe_free_str (val1->help);
-      val1->key = safe_strdup (val2->help);
+      val1->help = safe_strdup (val2->help);
     }
   if (val1->enabled != val2->enabled)
     {
