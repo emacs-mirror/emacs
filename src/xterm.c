@@ -4129,7 +4129,7 @@ x_draw_image_relief (s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
+      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : 3;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
