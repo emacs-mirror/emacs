@@ -693,17 +693,7 @@ Associates the function with the current load file, if any.")
   (symbol, definition)
      register Lisp_Object symbol, definition;
 {
-  CHECK_SYMBOL (symbol, 0);
-  if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
-    Vautoload_queue = Fcons (Fcons (symbol, XSYMBOL (symbol)->function),
-			     Vautoload_queue);
-  XSYMBOL (symbol)->function = definition;
-  /* Handle automatic advice activation */
-  if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
-    {
-      call2 (Qad_activate, symbol, Qnil);
-      definition = XSYMBOL (symbol)->function;
-    }
+  definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (symbol);
   return definition;
 }
