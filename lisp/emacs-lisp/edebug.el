@@ -4315,9 +4315,8 @@ It is removed when you hit any char."
 
 (defalias 'edebug-window-live-p 'window-live-p)
 
-;; Mark takes an argument in Emacs 19.
 (defun edebug-mark ()
-  (mark t))	;; Does this work for lemacs too?
+  (mark t))
 
 (defun edebug-set-conditional-breakpoint (arg condition)
   "Set a conditional breakpoint at nearest sexp.
@@ -4348,10 +4347,6 @@ With prefix argument, make it a temporary breakpoint."
 	      (setq read-expression-history edebug-expression-history)
 	      ))))))
   (edebug-modify-breakpoint t condition arg))
-
-;;; The default for all above is Emacs.
-
-;; Epoch specific code was in a separate file: edebug-epoch.el.
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
 
