@@ -646,7 +646,7 @@ del_range_1 (from, to, prepare)
   adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
 
   /* Adjust the overlay center as needed.  This must be done after
-   adjusting the markers that bound the overlays.  */
+     adjusting the markers that bound the overlays.  */
   adjust_overlays_for_delete (from, numdel);
 
   GAP_SIZE += numdel;
