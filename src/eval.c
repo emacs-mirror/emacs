@@ -1349,7 +1349,7 @@ See also the function `condition-case'.")
   extern int display_busy_cursor_p;
   struct backtrace *bp;
 
-  immediate_quit = 0;
+  immediate_quit = handling_signal = 0;
   if (gc_in_progress || waiting_for_input)
     abort ();
 
