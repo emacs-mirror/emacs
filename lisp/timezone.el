@@ -1,6 +1,9 @@
 ;;; Timezone package for GNU Emacs
 
-;; Copyright(C) 1990, 1991, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+
+;;; Author: Masanobu Umeda
+;;; Maintainer: umerin@mse.kyutech.ac.jp
 
 ;; This file is part of GNU Emacs.
 
@@ -304,3 +307,5 @@ Recognize HH:MM:SS, HH:MM, HHMMSS, HHMM."
   (or (and (zerop  (% year 4))
 	   (not (zerop (% year 100))))
       (zerop (% year 400))))
+
+;;; timezone.el ends here
