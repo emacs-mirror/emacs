@@ -51,7 +51,7 @@
 	    nil
 	  (if (> (length trans) 1)
 	      (setq ptype 'voweltone
-		    trans (vector trans))
+		    trans (vector (compose-string trans)))
 	    (setq ptype (get-char-code-property (aref trans 0) 'phonetic-type))
 	    (cond ((memq ptype '(vowel-upper vowel-lower))
 		   (setq ptype 'vowel))
