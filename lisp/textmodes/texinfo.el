@@ -571,7 +571,7 @@ to jump to the corresponding spot in the Texinfo source file."
              ;; ((looking-at "@subheading ") 13)
 
              ((looking-at 
-               (concat "@\\(" texinfo-subsubsection-level-regexp "\\)")) 13)
+               (concat "@\\(" texinfo-subsubsection-level-regexp "\\)")) 17)
              ;; ((looking-at "@subsubsection ") 17)
              ;; ((looking-at "@unnumberedsubsubsec ") 17)
              ;; ((looking-at "@appendixsubsubsec ") 17)
