@@ -1292,10 +1292,14 @@ spaces are put between sequence elements, etc.")
   (keys)
      Lisp_Object keys;
 {
+  int len;
+  int i;
+  Lisp_Object sep;
+  Lisp_Object *args;
+
   if (XTYPE (keys) == Lisp_String)
     {
       Lisp_Object vector;
-      int i;
       vector = Fmake_vector (Flength (keys), Qnil);
       for (i = 0; i < XSTRING (keys)->size; i++)
 	{
@@ -1308,7 +1312,23 @@ spaces are put between sequence elements, etc.")
 	}
       keys = vector;
     }
-  return Fmapconcat (Qsingle_key_description, keys, build_string (" "));
+
+  /* In effect, this computes
+     (mapconcat 'single-key-description keys " ")
+     but we shouldn't use mapconcat because it can do GC.  */
+
+  len = XVECTOR (keys)->size;
+  sep = build_string (" ");
+  /* This has one extra element at the end that we don't pass to Fconcat.  */
+  args = (Lisp_Object *) alloca (len * 2 * sizeof (Lisp_Object));
+
+  for (i = 0; i < len; i++)
+    {
+      args[i * 2] = Fsingle_key_description (XVECTOR (keys)->contents[i]);
+      args[i * 2 + 1] = sep;
+    }
+
+  return Fconcat (len * 2 - 1, args);
 }
 
 char *
