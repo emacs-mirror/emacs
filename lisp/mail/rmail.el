@@ -1441,7 +1441,7 @@ change the invisible header text."
   (interactive)
   (rmail-show-message rmail-current-message))
 
-(defun rmail-show-message (&optional n)
+(defun rmail-show-message (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
   (interactive "p")
@@ -1482,10 +1482,12 @@ If summary buffer is currently displayed, update current message there also."
 	;; If there is a summary buffer, try to move to this message
 	;; in that buffer.  But don't complain if this message
 	;; is not mentioned in the summary.
-	(if (rmail-summary-exists)
-	    (let ((curr-msg rmail-current-message))
-	      (rmail-select-summary
-	       (rmail-summary-goto-msg curr-msg t t))))
+	;; Don't do this at all if we were called on behalf
+	;; of cursor motion in the summary buffer.
+	(and (rmail-summary-exists) (not no-summary)
+	     (let ((curr-msg rmail-current-message))
+	       (rmail-select-summary
+		(rmail-summary-goto-msg curr-msg t t))))
 	(if blurb
 	    (message blurb))))))
 
