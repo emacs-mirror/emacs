@@ -1,5 +1,8 @@
 2000-10-18  Dave Love  <fx@gnu.org>
 
+	* mm-bodies.el (mm-uu-decode-function)
+	(mm-uu-binhex-decode-function): Defvar when compiling.
+
 	* gnus-nocem.el (gnus-nocem-issuers): Update.
 	(gnus-nocem-check-from): New option.
 	(gnus-nocem-scan-groups): Use it.
