@@ -2163,6 +2163,7 @@ extern void syms_of_coding P_ ((void));
 /* Defined in character.c */
 extern void init_character_once P_ ((void));
 extern void syms_of_character P_ ((void));
+EXFUN (Funibyte_char_to_multibyte, 1);
 
 /* Defined in charset.c */
 EXFUN (Fchar_bytes, 1);
