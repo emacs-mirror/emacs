@@ -142,7 +142,7 @@ the previous line when starting from a line beginning."
 
 (defun tpu-write-file-hook nil
   "Eliminate whitespace at ends of lines, if the cursor is free."
-  (if (and (buffer-modified-p) tpu-cursor-free) (picture-clean)))
+  (if (and (buffer-modified-p) tpu-cursor-free) (tpu-trim-line-ends)))
 
 (or (memq 'tpu-write-file-hook write-file-hooks)
     (setq write-file-hooks
@@ -473,7 +473,7 @@ version that respects the bottom scroll margin."
 (defun tpu-set-cursor-bound nil
   "Constrain the cursor to the flow of the text."
   (interactive)
-  (picture-clean)
+  (tpu-trim-line-ends)
   (setq tpu-cursor-free nil)
   (substitute-key-definition 'tpu-set-cursor-bound
 			     'tpu-set-cursor-free
