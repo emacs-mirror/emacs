@@ -581,6 +581,7 @@ Suggested binding is ^C-k."
 
 ;;; bibtex mode:
 
+;;;###autoload
 (defun bibtex-mode () 
   "Major mode for editing bibtex files.
 
