@@ -179,7 +179,6 @@ struct window
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
 
-/* The rest are currently not used or only half used */
     /* Frame coords of mark as of last time display completed */
     /* May be nil if mark does not exist or was not on frame */
     Lisp_Object last_mark_x;
@@ -511,6 +510,18 @@ struct window
       / WINDOW_FRAME_COLUMN_WIDTH (W))			\
    : FRAME_FRINGE_COLS (WINDOW_XFRAME (W)))
 
+/* Column-width of the left and right fringe.  */
+
+#define WINDOW_LEFT_FRINGE_COLS(W)			\
+  ((WINDOW_LEFT_FRINGE_WIDTH ((W))			\
+    + WINDOW_FRAME_COLUMN_WIDTH (W) - 1)		\
+   / WINDOW_FRAME_COLUMN_WIDTH (W))
+
+#define WINDOW_RIGHT_FRINGE_COLS(W)			\
+  ((WINDOW_RIGHT_FRINGE_WIDTH ((W))			\
+    + WINDOW_FRAME_COLUMN_WIDTH (W) - 1)		\
+   / WINDOW_FRAME_COLUMN_WIDTH (W))
+
 /* Pixel-width of the left and right fringe.  */
 
 #define WINDOW_LEFT_FRINGE_WIDTH(W)			\
@@ -636,21 +647,27 @@ struct window
    : WINDOW_LEFT_EDGE_X (W))
 
 
-/* Height in pixels of the mode line.  May be zero if W doesn't have a
-   mode line.  */
+/* Height in pixels, and in lines, of the mode line.
+   May be zero if W doesn't have a mode line.  */
 
 #define WINDOW_MODE_LINE_HEIGHT(W)	\
   (WINDOW_WANTS_MODELINE_P ((W))	\
    ? CURRENT_MODE_LINE_HEIGHT (W)	\
    : 0)
 
-/* Height in pixels of the header line.  Zero if W doesn't have a header
-   line.  */
+#define WINDOW_MODE_LINE_LINES(W)		\
+  (!! WINDOW_WANTS_MODELINE_P ((W)))
+
+/* Height in pixels, and in lines, of the header line.
+   Zero if W doesn't have a header line.  */
 
 #define WINDOW_HEADER_LINE_HEIGHT(W)	\
   (WINDOW_WANTS_HEADER_LINE_P ((W))	\
    ? CURRENT_HEADER_LINE_HEIGHT (W)	\
    : 0)
+
+#define WINDOW_HEADER_LINE_LINES(W)		\
+  (!! WINDOW_WANTS_HEADER_LINE_P ((W)))
 
 /* Pixel height of window W without mode line.  */
 
