@@ -1305,7 +1305,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
     {
       /* Merge FONTSET onto the default fontset.  */
       val = Fcopy_sequence (Vdefault_fontset);
-      map_char_table (override_font_info, Qnil, fontset, val, 0, indices);
+      map_char_table (override_font_info, Qnil, fontset, fontset, val, 0, indices);
       fontset = val;
     }
 
@@ -1317,7 +1317,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
 		      Fcons (XCDR (FONTSET_ASCII (fontset)), Qnil)),
 	       Qnil);
   val = Fcons (val, val);
-  map_char_table (accumulate_font_info, Qnil, fontset, val, 0, indices);
+  map_char_table (accumulate_font_info, Qnil, fontset, fontset, val, 0, indices);
   val = XCDR (val);
 
   /* For each FONT-INFO, if CHAR_OR_RANGE (car part) is a generic
