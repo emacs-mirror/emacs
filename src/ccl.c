@@ -1818,7 +1818,7 @@ As side effect, each element of REGISTERS holds the value of\n\
 
   CHECK_VECTOR (reg, 1);
   if (XVECTOR (reg)->size != 8)
-    error ("Length of vector REGISTERS is not 9");
+    error ("Length of vector REGISTERS is not 8");
 
   for (i = 0; i < 8; i++)
     ccl.reg[i] = (INTEGERP (XVECTOR (reg)->contents[i])
