@@ -52,6 +52,9 @@
 
 (defvar add-menu-item-count 0)
 
+;; This is a variable whose value is always nil.
+(defvar make-lucid-menu-keymap-disable nil)
+
 ;; Return a menu keymap corresponding to a Lucid-style menu list
 ;; MENU-ITEMS, and with name MENU-NAME.
 (defun make-lucid-menu-keymap (menu-name menu-items)
@@ -73,7 +76,9 @@
 	       (setq command (make-symbol (format "menu-function-%d"
 						  add-menu-item-count)))
 	       (setq add-menu-item-count (1+ add-menu-item-count))
-	       (put command 'menu-enable (aref item 2))
+	       (if (aref item 2)
+		   (put command 'menu-enable (aref item 2))
+		 (put command 'menu-enable 'make-lucid-menu-keymap-disable))
 	       (setq name (aref item 0))	       
 	       (if (symbolp callback)
 		   (fset command callback)
