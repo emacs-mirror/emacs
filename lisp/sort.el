@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986, 1987, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1994, 1995, 2003 Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
@@ -441,7 +441,7 @@ sRegexp specifying key within record: \nr")
       (goto-char (point-min))
       (let (sort-regexp-record-end
 	    (sort-regexp-fields-regexp record-regexp))
-	(re-search-forward sort-regexp-fields-regexp)
+	(re-search-forward sort-regexp-fields-regexp nil t)
 	(setq sort-regexp-record-end (point))
 	(goto-char (match-beginning 0))
 	(sort-subr reverse
