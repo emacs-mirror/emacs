@@ -351,6 +351,12 @@ See also the documentation of make-char."
 ;;
 ;; The value is a translation table to be applied on encoding.
 ;;
+;; o safe-chars
+;;
+;; The value is a char table.  If a character has non-nil value in it,
+;; the character is safely supported by the coding system.  This
+;; overrides the specification of safe-charsets.
+
 ;; o safe-charsets
 ;;
 ;; The value is a list of charsets safely supported by the coding
@@ -492,8 +498,11 @@ coding system whose eol-type is N."
       (setcdr tem (cons coding-system (cdr tem))))))
 
 (defun coding-system-list (&optional base-only)
-  "Return a list of all existing coding systems.
-If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
+  "Return a list of all existing non-subsidiary coding systems.
+If optional arg BASE-ONLY is non-nil, only base coding systems are listed.
+The value doesn't include subsidiary coding systems which are what
+made from bases and aliases automatically for various end-of-line
+formats (e.g. iso-latin-1-unix, koi8-r-dos)."
   (let* ((codings (copy-sequence coding-system-list))
 	 (tail (cons nil codings)))
     ;; Remove subsidiary coding systems (eol variants) and alias
@@ -509,6 +518,23 @@ If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
 	    (setcdr tail (cdr (cdr tail)))
 	  (setq tail (cdr tail)))))
     codings))
+
+(defun register-char-codings (coding-system safe-chars)
+  (let ((general (char-table-extra-slot char-coding-system-table 0)))
+    (if (eq safe-chars t)
+	(or (memq coding-system general)
+	    (set-char-table-extra-slot char-coding-system-table 0
+				       (cons coding-system general)))
+      (map-char-table
+       (function
+	(lambda (key val)
+	  (if (and (>= key 128) val)
+	      (let ((codings (aref char-coding-system-table key)))
+		(or (memq coding-system codings)
+		    (aset char-coding-system-table key
+			  (cons coding-system codings)))))))
+       safe-chars))))
+
 
 ;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
@@ -579,7 +605,8 @@ FLAGS specifies more detailed information of the coding system as follows:
     DESIGNATION-BOL non-nil means designation sequences should be placed
       at beginning of line on output.
     SAFE non-nil means convert unsafe characters to `?' on output.
-      Unsafe characters are what not specified in SAFE-CHARSET.
+      Characters not specified in the property `safe-charsets' nor
+      `safe-chars' are unsafe.
     ACCEPT-LATIN-EXTRA-CODE non-nil means code-detection routine accepts
       a code specified in `latin-extra-code-table' (which see) as a valid
       code of the coding system.
@@ -718,13 +745,45 @@ a value of `safe-charsets' in PLIST."
 		   (not (consp (car properties)))))
 	  ;; In the old version, the arg PROPERTIES is a list to be
 	  ;; set in PLIST as a value of property `safe-charsets'.
-	  (plist-put plist 'safe-charsets properties)
-	;; In the current version PROPERTIES is a property list.
-	;; Reflect it into PLIST one by one.
-	(let ((l properties))
-	  (while l
-	    (plist-put plist (car (car l)) (cdr (car l)))
-	    (setq l (cdr l)))))
+	  (setq properties (list (cons 'safe-charsets properties))))
+      ;; In the current version PROPERTIES is a property list.
+      ;; Reflect it into PLIST one by one while handling safe-chars
+      ;; specially.
+      (let ((safe-charsets (cdr (assq 'safe-charsets properties)))
+	    (safe-chars (cdr (assq 'safe-chars properties)))
+	    (l properties)
+	    prop val)
+	;; If only safe-charsets is specified, make a char-table from
+	;; it, and store that char-table as the value of `safe-chars'.
+	(if (and (not safe-chars) safe-charsets)
+	    (let (charset)
+	      (if (eq safe-charsets t)
+		  (setq safe-chars t)
+		(setq safe-chars (make-char-table 'safe-chars))
+		(while safe-charsets
+		  (setq charset (car safe-charsets)
+			safe-charsets (cdr safe-charsets))
+		  (cond ((eq charset 'ascii)) ; just ignore
+			((eq charset 'eight-bit-control)
+			 (let ((i 128))
+			   (while (< i 160)
+			     (aset safe-chars i t)
+			     (setq i (1+ i)))))
+			((eq charset 'eight-bit-graphic)
+			 (let ((i 160))
+			   (while (< i 256)
+			     (aset safe-chars i t)
+			     (setq i (1+ i)))))
+			(t
+			 (aset safe-chars (make-char charset) t)))))
+	      (setq l (cons (cons 'safe-chars safe-chars) l))))
+	(while l
+	  (setq prop (car (car l)) val (cdr (car l)) l (cdr l))
+	  (if (eq prop 'safe-chars)
+	      (progn
+		(setq val safe-chars)
+		(register-char-codings coding-system safe-chars)))
+	  (plist-put plist prop val)))
       ;; The property `coding-category' may have been set differently
       ;; through PROPERTIES.
       (setq coding-category (plist-get plist 'coding-category))
@@ -768,14 +827,19 @@ a value of `safe-charsets' in PLIST."
     (if (or (eq coding-category 'coding-category-iso-8-1)
 	    (eq coding-category 'coding-category-iso-8-2))
 	(let ((esc (intern (concat (symbol-name coding-system) "-with-esc")))
-	      (doc (format "Same as %s but can handle any charsets by ISO's escape sequences." coding-system)))
+	      (doc (format "Same as %s but can handle any charsets by ISO's escape sequences." coding-system))
+	      (safe-charsets (assq 'safe-charsets properties))
+	      (mime-charset (assq 'mime-charset properties)))
+	  (if safe-charsets
+	      (setcdr safe-charsets t)
+	    (setq properties (cons (cons 'safe-charsets t) properties)))
+	  (if mime-charset
+	      (setcdr mime-charset nil))
 	  (make-coding-system esc type mnemonic doc
 			      (if (listp (car flags))
 				  (cons (append (car flags) '(t)) (cdr flags))
 				(cons (list (car flags) t) (cdr flags)))
-			      properties)
-	  (coding-system-put esc 'mime-charset nil)
-	  (coding-system-put esc 'safe-charsets t))))
+			      properties))))
 
   coding-system)
 
