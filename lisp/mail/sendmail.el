@@ -29,6 +29,17 @@
 ;;; Code:
 
 ;;;###autoload
+(defvar mail-from-style 'angles "\
+*Specifies how \"From:\" fields look.
+
+If `nil', they contain just the return address like:
+	king@grassland.com
+If `parens', they look like:
+	king@grassland.com (Elvis Parsley)
+If `angles', they look like:
+	Elvis Parsley <king@grassland.com>")
+
+;;;###autoload
 (defvar mail-self-blind nil "\
 Non-nil means insert BCC to self in messages to be sent.
 This is done when the message is initialized,
@@ -488,6 +499,18 @@ the user from the mailer."
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
 		(replace-match ""))
+	    ;; Put the "From:" field in unless for some odd reason
+	    ;; they put one in themselves.
+	    (goto-char (point-min))
+	    (if (not (re-search-forward "^From:" delimline t))
+		(let* ((login (user-login-name))
+		       (fullname (user-full-name)))
+		  (cond ((eq mail-from-style 'angles)
+			 (insert "From: " fullname " <" login ">\n"))
+			((eq mail-from-style 'parens)
+			 (insert "From: " login " (" fullname ")\n"))
+			((null mail-from-style)
+			 (insert "From: " login "\n")))))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
