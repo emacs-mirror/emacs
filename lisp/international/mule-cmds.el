@@ -1079,7 +1079,9 @@ If INPUT-METHOD is nil, deactivate any current input method."
 
 (defun set-input-method (input-method)
   "Select and activate input method INPUT-METHOD for the current buffer.
-This also sets the default input method to the one you specify."
+This also sets the default input method to the one you specify.
+To deactivate the input method interactively, use \\[toggle-input-method].
+To deactivate it programmatically, use \\[inactivate-input-method]."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
