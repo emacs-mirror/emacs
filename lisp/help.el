@@ -225,14 +225,6 @@ C-p Display information about the GNU project.
 C-w Display information on absence of warranty for GNU Emacs."
   help-map)
 
-
-
-(define-key help-map "F" 'Info-goto-emacs-command-node)
-(define-key help-map "K" 'Info-goto-emacs-key-command-node)
-(define-key help-map "I" 'info-lookup-symbol)
-
-
-
 
 
 (defun function-called-at-point ()
