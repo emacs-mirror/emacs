@@ -69,6 +69,12 @@ otherwise)."
   :type '(number :tag "seconds")
   :group 'paren-showing)
 
+(defcustom show-paren-priority 1000
+  "*Priority of paren highlighting overlays."
+  :type 'integer
+  :group 'paren-showing
+  :version "21.1")
+  
 (defcustom show-paren-ring-bell-on-mismatch nil
   "*If non-nil, beep if mismatched paren is detected."
   :type 'boolean
@@ -204,6 +210,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 		  (move-overlay show-paren-overlay-1 from to (current-buffer))
 		(setq show-paren-overlay-1 (make-overlay from to)))
 	      ;; Always set the overlay face, since it varies.
+	      (overlay-put show-paren-overlay-1 'priority show-paren-priority)
 	      (overlay-put show-paren-overlay-1 'face face)))
 	  ;;
 	  ;; Turn on highlighting for the matching paren, if found.
@@ -227,6 +234,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	      (setq show-paren-overlay (make-overlay from to))))
 	  ;;
 	  ;; Always set the overlay face, since it varies.
+	  (overlay-put show-paren-overlay 'priority show-paren-priority)
 	  (overlay-put show-paren-overlay 'face face)))
     ;; show-paren-mode is nil in this buffer.
     (and show-paren-overlay
