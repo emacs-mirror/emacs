@@ -14,6 +14,10 @@ test_lib.h
 #include "versind.h"
 #include "platform.h"
 
+/* This will not stay here for long. You hope. 2005-02-23 */
+#define MPS_PF_ALIGN (8)
+
+void mmqa_assert_handler(const char*, const char*, const char*, unsigned);
 
 /* Give textual description of mps error code */
 
