@@ -3584,17 +3584,17 @@ rmdir (dpath)
 	  dup2 (fd, 1);
 	  dup2 (fd, 2);
         }
-      wait_for_termination (cpid);
-  if (synch_process_death != 0 || synch_process_retcode != 0)
-      return -1;		/* /bin/rmdir failed */
+      execl ("/bin/rmdir", "rmdir", dpath, (char *) 0);
+      _exit (-1);		/* Can't exec /bin/rmdir */
+
     default:			/* Parent process */
-      while (cpid != wait (&status));	/* Wait for kid to finish */
+      wait_for_termination (cpid);
     }
 
-  if (WIFSIGNALED (status) || WEXITSTATUS (status) != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0)
     {
       errno = EIO;		/* We don't know why, but */
-      return -1;		/* /bin/mkdir failed */
+      return -1;		/* /bin/rmdir failed */
     }
 
   return 0;
