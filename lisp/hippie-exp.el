@@ -248,9 +248,9 @@ undoes the expansion."
 	      (ding))
 	    (if (and hippie-expand-verbose
 		     (not (window-minibuffer-p (selected-window))))
-		(message (concat "Using "
-				 (prin1-to-string (nth he-num 
-				   hippie-expand-try-functions-list)))))))
+		(message "Using %s"
+			 (prin1-to-string (nth he-num 
+				   hippie-expand-try-functions-list))))))
       (if (and (>= he-num 0)
 	       (eq (marker-buffer he-string-beg) (current-buffer)))
 	  (progn
