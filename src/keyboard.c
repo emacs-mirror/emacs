@@ -10614,7 +10614,10 @@ by position only.  */);
 On window-system frames, value is the number of pixels the mouse may have
 moved horizontally or vertically between two clicks to make a double-click.
 On non window-system frames, value is interpreted in units of 1/8 characters
-instead of pixels.  */);
+instead of pixels.
+
+This variable is also the threshold for motion of the mouse
+to count as a drag.  */);
   double_click_fuzz = 3;
   
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
