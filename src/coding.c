@@ -3256,15 +3256,18 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	{
 	  for (i = 0; i < CODING_CATEGORY_IDX_MAX; i++)
 	    {
-	      priorities[i] &= try;
-	      if (priorities[i] & CODING_CATEGORY_MASK_ISO)
+	      if (priorities[i] & try & CODING_CATEGORY_MASK_ISO)
 		mask = detect_coding_iso2022 (src, src_end);
-	      else if (priorities[i] & CODING_CATEGORY_MASK_SJIS)
+	      else if (priorities[i] & try & CODING_CATEGORY_MASK_SJIS)
 		mask = detect_coding_sjis (src, src_end);
-	      else if (priorities[i] & CODING_CATEGORY_MASK_BIG5)
+	      else if (priorities[i] & try & CODING_CATEGORY_MASK_BIG5)
 		mask = detect_coding_big5 (src, src_end);      
-	      else if (priorities[i] & CODING_CATEGORY_MASK_EMACS_MULE)
+	      else if (priorities[i] & try & CODING_CATEGORY_MASK_EMACS_MULE)
 		mask = detect_coding_emacs_mule (src, src_end);      
+	      else if (priorities[i] & CODING_CATEGORY_MASK_RAW_TEXT)
+		mask = CODING_CATEGORY_MASK_RAW_TEXT;
+	      else if (priorities[i] & CODING_CATEGORY_MASK_BINARY)
+		mask = CODING_CATEGORY_MASK_BINARY;
 	      if (mask)
 		goto label_return_highest_only;
 	    }
@@ -3279,7 +3282,7 @@ detect_coding_mask (source, src_bytes, priorities, skip)
       if (try & CODING_CATEGORY_MASK_EMACS_MULE)
 	mask |= detect_coding_emacs_mule (src, src_end);      
     }
-  return (mask | CODING_CATEGORY_MASK_RAW_TEXT);
+  return (mask | CODING_CATEGORY_MASK_RAW_TEXT | CODING_CATEGORY_MASK_BINARY);
 
  label_return_highest_only:
   for (i = 0; i < CODING_CATEGORY_IDX_MAX; i++)
