@@ -2570,7 +2570,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
-       doc: /* Returns product of any number of arguments, which are numbers or markers.
+       doc: /* Return product of any number of arguments, which are numbers or markers.
 usage: (* &rest NUMBERS-OR-MARKERS)  */)
      (nargs, args)
      int nargs;
@@ -2580,7 +2580,7 @@ usage: (* &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("/", Fquo, Squo, 2, MANY, 0,
-       doc: /* Returns first argument divided by all the remaining arguments.
+       doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
 usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
      (nargs, args)
@@ -2591,7 +2591,7 @@ usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
 }
 
 DEFUN ("%", Frem, Srem, 2, 2, 0,
-       doc: /* Returns remainder of X divided by Y.
+       doc: /* Return remainder of X divided by Y.
 Both must be integers or markers.  */)
      (x, y)
      register Lisp_Object x, y;
@@ -2632,7 +2632,7 @@ fmod (f1, f2)
 #endif /* ! HAVE_FMOD */
 
 DEFUN ("mod", Fmod, Smod, 2, 2, 0,
-       doc: /* Returns X modulo Y.
+       doc: /* Return X modulo Y.
 The result falls between zero (inclusive) and Y (exclusive).
 Both X and Y must be numbers or markers.  */)
      (x, y)
