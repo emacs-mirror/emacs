@@ -6,7 +6,7 @@ s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
 /^	\.\/temacs/i\
-	stubedit temacs.exe minstack=40k
+	stubedit temacs.exe minstack=100k
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
