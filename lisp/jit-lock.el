@@ -32,6 +32,7 @@
 (eval-when-compile
   (defmacro with-buffer-unmodified (&rest body)
     "Eval BODY, preserving the current buffer's modified state."
+    (declare (debug t))
     (let ((modified (make-symbol "modified")))
       `(let ((,modified (buffer-modified-p)))
 	 (unwind-protect
@@ -42,6 +43,7 @@
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
+    (declare (debug t))
     `(with-buffer-unmodified
       (let ((buffer-undo-list t)
 	    (inhibit-read-only t)
@@ -123,7 +125,7 @@ means where modification on a line causes syntactic change on subsequent lines,
 those subsequent lines are not refontified to reflect their new context.
 If t, means fontification occurs on those lines modified and all
 subsequent lines.  This means those subsequent lines are refontified to reflect
-their new syntactic context, either immediately or when scrolling into them.
+their new syntactic context, after `jit-lock-context-time' seconds.
 If any other value, e.g., `syntax-driven', means syntactically true
 fontification occurs only if syntactic fontification is performed using the
 buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
@@ -134,6 +136,10 @@ The value of this variable is used when JIT Lock mode is turned on."
 		 (other :tag "syntax-driven" syntax-driven))
   :group 'jit-lock)
 
+(defcustom jit-lock-context-time 0.5
+  "Idle time after which text is contextually refontified, if applicable."
+  :type '(number :tag "seconds"))
+  
 (defcustom jit-lock-defer-time nil ;; 0.25
   "Idle time after which deferred fontification should take place.
 If nil, fontification is not deferred."
@@ -160,7 +166,8 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
-
+(defvar jit-lock-context-timer nil
+  "Timer for context fontification in Just-in-time Lock mode.")
 (defvar jit-lock-defer-timer nil
   "Timer for deferred fontification in Just-in-time Lock mode.")
 
@@ -190,7 +197,7 @@ following ways:
 
 - Deferred context fontification if `jit-lock-contextually' is
   non-nil.  This means fontification updates the buffer corresponding to
-  true syntactic context, after `jit-lock-stealth-time' seconds of Emacs
+  true syntactic context, after `jit-lock-context-time' seconds of Emacs
   idle time, while Emacs remains idle.  Otherwise, fontification occurs
   on modified lines only, and subsequent lines can remain fontified
   corresponding to previous syntactic contexts.  This is useful where
@@ -221,6 +228,10 @@ the variable `jit-lock-stealth-nice'."
 
 	 ;; Initialize contextual fontification if requested.
 	 (when (eq jit-lock-contextually t)
+	   (unless jit-lock-context-timer
+	     (setq jit-lock-context-timer
+		   (run-with-idle-timer jit-lock-context-time t
+					'jit-lock-context-fontify)))
 	   (setq jit-lock-context-unfontify-pos
 		 (or jit-lock-context-unfontify-pos (point-max))))
 
@@ -231,7 +242,8 @@ the variable `jit-lock-stealth-nice'."
 	;; Turn Just-in-time Lock mode off.
 	(t
 	 ;; Cancel our idle timers.
-	 (when (and (or jit-lock-stealth-timer jit-lock-defer-timer)
+	 (when (and (or jit-lock-stealth-timer jit-lock-defer-timer
+			jit-lock-context-timer)
 		    ;; Only if there's no other buffer using them.
 		    (not (catch 'found
 			   (dolist (buf (buffer-list))
@@ -240,6 +252,9 @@ the variable `jit-lock-stealth-nice'."
 	   (when jit-lock-stealth-timer
 	     (cancel-timer jit-lock-stealth-timer)
 	     (setq jit-lock-stealth-timer nil))
+	   (when jit-lock-context-timer
+	     (cancel-timer jit-lock-context-timer)
+	     (setq jit-lock-context-timer nil))
 	   (when jit-lock-defer-timer
 	     (cancel-timer jit-lock-defer-timer)
 	     (setq jit-lock-defer-timer nil)))
@@ -425,28 +440,6 @@ This functions is called after Emacs has been idle for
 				     (concat "JIT stealth lock "
 					     (buffer-name)))
 
-		;; Perform deferred unfontification, if any.
-		(when jit-lock-context-unfontify-pos
-		  (save-restriction
-		    (widen)
-		    (when (and (>= jit-lock-context-unfontify-pos (point-min))
-			       (< jit-lock-context-unfontify-pos (point-max)))
-		      ;; If we're in text that matches a complex multi-line
-		      ;; font-lock pattern, make sure the whole text will be
-		      ;; redisplayed eventually.
-		      (when (get-text-property jit-lock-context-unfontify-pos
-					       'jit-lock-defer-multiline)
-			(setq jit-lock-context-unfontify-pos
-			      (or (previous-single-property-change
-				   jit-lock-context-unfontify-pos
-				   'jit-lock-defer-multiline)
-				  (point-min))))
-		      (with-buffer-prepared-for-jit-lock
-			(remove-text-properties
-			 jit-lock-context-unfontify-pos (point-max)
-			 '(fontified nil jit-lock-defer-multiline nil)))
-		      (setq jit-lock-context-unfontify-pos (point-max)))))
-
 		;; In the following code, the `sit-for' calls cause a
 		;; redisplay, so it's required that the
 		;; buffer-modified flag of a buffer that is displayed
@@ -501,6 +494,36 @@ This functions is called after Emacs has been idle for
       ;; (message "Jit-Defer Done")
       )))
 
+
+(defun jit-lock-context-fontify ()
+  "Refresh fontification to take new context into account."
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when jit-lock-context-unfontify-pos
+	;; (message "Jit-Context %s" (buffer-name))
+	(save-restriction
+	  (widen)
+	  (when (and (>= jit-lock-context-unfontify-pos (point-min))
+		     (< jit-lock-context-unfontify-pos (point-max)))
+	    ;; If we're in text that matches a complex multi-line
+	    ;; font-lock pattern, make sure the whole text will be
+	    ;; redisplayed eventually.
+	    ;; Despite its name, we treat jit-lock-defer-multiline here
+	    ;; rather than in jit-lock-defer since it has to do with multiple
+	    ;; lines, i.e. with context.
+	    (when (get-text-property jit-lock-context-unfontify-pos
+				     'jit-lock-defer-multiline)
+	      (setq jit-lock-context-unfontify-pos
+		    (or (previous-single-property-change
+			 jit-lock-context-unfontify-pos
+			 'jit-lock-defer-multiline)
+			(point-min))))
+	    (with-buffer-prepared-for-jit-lock
+	     ;; Force contextual refontification.
+	     (remove-text-properties
+	      jit-lock-context-unfontify-pos (point-max)
+	      '(fontified nil jit-lock-defer-multiline nil)))
+	    (setq jit-lock-context-unfontify-pos (point-max))))))))
 
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.
