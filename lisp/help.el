@@ -1476,6 +1476,16 @@ out of view."
 ;; to this alist.
 ;; The parens and function name are redundant, but it's messy to add
 ;; them in `documentation'.
+
+;; This will find any missing items:
+;; (let (l)
+;;   (mapatoms (lambda (x)
+;; 	      (if (and (fboundp x)
+;; 		       (subrp (symbol-function x))
+;; 		       (not (numberp (cdr (subr-arity (symbol-function x)))))
+;; 		       (not (assq x help-manyarg-func-alist)))
+;; 		  (push x l))))
+;;   l)
 (defconst help-manyarg-func-alist
   (purecopy
    '((list . "(list &rest OBJECTS)")
@@ -1548,10 +1558,13 @@ out of view."
      (track-mouse . "(track-mouse BODY ...)")
      (ml-if . "(ml-if COND THEN ELSE...)")
      (ml-provide-prefix-argument . "(ml-provide-prefix-argument ARG1 ARG2)")
+     (ml-prefix-argument-loop . "(ml-prefix-argument-loop ...)")
      (with-output-to-temp-buffer
 	 . "(with-output-to-temp-buffer BUFFNAME BODY ...)")
      (save-window-excursion . "(save-window-excursion BODY ...)")
      (find-operation-coding-system
-      . "(find-operation-coding-system OPERATION ARGUMENTS ...)"))))
+      . "(find-operation-coding-system OPERATION ARGUMENTS ...)")
+     (insert-before-markers-and-inherit
+      . "(insert-before-markers-and-inherit &rest ARGS)"))))
 
 ;;; help.el ends here
