@@ -849,6 +849,15 @@ However, simplification is not vital; if you can't do this or don't have
 time to try, please report the bug with your original test case.
 
 @item
+A core dump file.
+
+Debugging the core dump might be useful, but it can only be done on
+your machine, with your Emacs executable.  Therefore, sending the core
+dump file to the Emacs maintainers won't be useful.  Above all, don't
+include the core file in an email bug report!  Such a large message
+can be extremely inconvenient.
+
+@item
 A system-call trace of Emacs execution.
 
 System-call traces are very useful for certain special kinds of
