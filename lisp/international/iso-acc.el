@@ -56,7 +56,8 @@
 ;; minor mode, or disable it.
 
 ;; If you want only some of these characters to serve as accents,
-;; set iso-accents-enable to the list of characters that should be special.
+;; add a language to iso-languages which specifies the accent characters
+;; that you want, then select the language with iso-accents-customize.
 
 ;;; Code:
 
@@ -114,10 +115,11 @@ Each element of the list is of the form (LANGUAGE ENABLE LIST).
 LANGUAGE is a string naming the language.
 
 ENABLE is a list of characters that will be used as accent prefixes.
-It will be the value of the iso-accents-enable variable.
+It will be the value of the `iso-accents-enable' variable
+if you select this language.
 
 LIST is a list of accent translations.  It will be the value of the
-iso-accents-list variable.")
+`iso-accents-list' variable.")
 
 (defvar iso-language nil
   "Language for which ISO Accents mode is currently customized.
@@ -178,8 +180,10 @@ See the function `iso-accents-mode'.")
 (defvar iso-accents-enable nil
   "*List of accent keys that become prefixes in ISO Accents mode.
 The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
-accent keys.  For certain languages, you might want to remove some of
-those characters that are not actually used.")
+accent keys.  For certain languages, it is better to use a subset of
+the accent characters.  Do not set this variable directly;
+instead, define a language in `iso-languages' and then specify that
+language with `iso-accents-customize'.")
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
@@ -197,9 +201,8 @@ When Iso-accents mode is enabled, accent character keys
 \(`, ', \", ^, / and ~) do not self-insert; instead, they modify the following
 letter key so that it inserts an ISO accented letter.
 
-The variable `iso-accents-enable' specifies the list of characters to
-enable as accents.  If you don't need all of them, remove the ones you
-don't need from that list.
+You can customize ISO Accents mode to a particular language
+with the command `iso-accents-customize'.
 
 Special combinations: ~c gives a c with cedilla,
 ~d gives an Icelandic eth (d with dash).
