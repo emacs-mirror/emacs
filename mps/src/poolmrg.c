@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.20) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.21) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.20) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.21) $");
 
 
 /* Types */
@@ -508,16 +508,24 @@ static void MRGFinish(Pool pool)
   mrg = PoolPoolMRG(pool);
   AVERT(MRG, mrg);
 
-  /* Before destroying the groups, we isolate the rings */
-  /* in the pool structure.  The problem we are avoiding here is */
-  /* when the rings point to memory that has been unmapped by one */
-  /* groupDestroy and a subsequent groupDestroy calls MRGCheck */
-  /* which checks the rings which causes the program to fault */
-  /* because RingCheck will access unmapped memory. */
+  /* .finish.ring: Before destroying the groups, we isolate the */
+  /* rings in the pool structure.  The problem we are avoiding here */
+  /* is when the rings point to memory that has been unmapped by one */
+  /* groupDestroy and a subsequent groupDestroy calls MRGCheck which */
+  /* checks the rings which causes the program to fault because */
+  /* RingCheck will access unmapped memory. */
+
   /* We call RingRemove on the master node for the rings, thereby */
   /* effectively emptying them, but leaving the rest of the ring */
   /* "dangling".  This is okay as we are about to destroy all the */
   /* groups so the contents of the rings will dissappear soon. */
+
+  /* .finish.no-final: Note that this relies on the fact that no */
+  /* Guardians are in the FINAL state and hence on the Arena Message */
+  /* Queue.  We are guaranteed this because MRGFinish is only called */
+  /* from ArenaDestroy, and the message queue has been emptied prior */
+  /* to the call.  See impl.c.arena.message.queue.empty */
+
   if(!RingIsSingle(&mrg->entryRing)) {
     RingRemove(&mrg->entryRing);
   }
