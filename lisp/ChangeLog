@@ -3,6 +3,9 @@
 	* autorevert.el (auto-revert-handler): Handle auto-revert-mode.
 	Call vc-find-file-hook here instead of in auto-revert-buffers.
 	(auto-revert-buffers): Delete call to vc-find-file-hook.
+	(auto-revert-verbose, global-auto-revert-non-file-buffers)
+	(global-auto-revert-mode, auto-revert-set-timer)
+	(auto-revert-handler, auto-revert-buffers): Doc fixes.
 
 2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
