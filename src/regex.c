@@ -3461,7 +3461,7 @@ static boolean alt_match_null_string_p (),
 
 /* Free everything we malloc.  */
 #ifdef MATCH_MAY_ALLOCATE
-#define FREE_VAR(var) if (var) REGEX_FREE (var); var = NULL
+#define FREE_VAR(var) if (var) then { REGEX_FREE (var); var = NULL; } else
 #define FREE_VARIABLES()						\
   do {									\
     REGEX_FREE_STACK (fail_stack.stack);				\
