@@ -1422,7 +1422,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (SINGLE_BYTE_CHAR_P (c))
 		{
 		  if (! SINGLE_BYTE_CHAR_P (c2))
-		    error ("Invalid charcter range: %s",
+		    error ("Invalid character range: %s",
 			   XSTRING (string)->data);
 		  while (c <= c2)
 		    {
@@ -1433,7 +1433,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      else
 		{
 		  if (c_leading_code != c2_leading_code)
-		    error ("Invalid charcter range: %s",
+		    error ("Invalid character range: %s",
 			   XSTRING (string)->data);
 		  fastmap[c_leading_code] = 1;
 		  if (c <= c2)
