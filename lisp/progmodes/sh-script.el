@@ -194,6 +194,8 @@ the car and cdr are the same symbol.")
 
 (defun sh-canonicalize-shell (shell)
   "Convert a shell name SHELL to the one we should handle it as."
+  (if (string-match "\.exe\\'" shell)
+      (setq shell (substring shell 0 (match-beginning 0))))
   (or (symbolp shell)
       (setq shell (intern shell)))
   (or (cdr (assq shell sh-alias-alist))
@@ -830,6 +832,8 @@ Calls the value of `sh-set-shell-hook' if set."
 				      (lambda (x) (eq (cdr x) 'sh-mode)))
 		     (eq executable-query 'function)
 		     t))
+  (if (string-match "\.exe\\'" shell)
+      (setq shell (substring shell 0 (match-beginning 0))))
   (setq sh-shell (intern (file-name-nondirectory shell))
 	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
 		     sh-shell))
@@ -847,13 +851,13 @@ Calls the value of `sh-set-shell-hook' if set."
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
-	imenu-case-fold-search nil
-	shell (sh-feature sh-variables))
+	imenu-case-fold-search nil)
   (set-syntax-table (or (sh-feature sh-mode-syntax-table)
 			(standard-syntax-table)))
-  (while shell
-    (sh-remember-variable (car shell))
-    (setq shell (cdr shell)))
+  (let ((vars (sh-feature sh-variables)))
+    (while vars
+      (sh-remember-variable (car vars))
+      (setq vars (cdr vars))))
 ;; Packages should not need to toggle Font Lock mode.  sm.
 ;  (and (boundp 'font-lock-mode)
 ;       font-lock-mode
