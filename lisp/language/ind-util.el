@@ -213,7 +213,7 @@ FUNCTION will be called 15 times."
     ;; trans-char -- nil / string / list of strings
     (when (and char trans-char)
       (if (stringp trans-char) (setq trans-char (list trans-char)))
-      (if (char-valid-p char) (setq char (char-to-string char)))
+      (if (characterp char) (setq char (char-to-string char)))
       (puthash char (car trans-char) encode-hash)
       (mapc
        (lambda (trans)
@@ -233,7 +233,7 @@ FUNCTION will be called 15 times."
 (defun indian--puthash-c (c trans-c halant hashtbls)
   (indian--map
    (lambda (c trans-c)
-     (if (char-valid-p c) (setq c (char-to-string c)))
+     (if (characterp c) (setq c (char-to-string c)))
      (indian--puthash-char (concat c halant) trans-c hashtbls))
    c trans-c))
 
@@ -249,8 +249,8 @@ FUNCTION will be called 15 times."
      (indian--map
       (lambda (v trans-v)
 	(when (and c trans-c  v trans-v)
-	  (if (char-valid-p c) (setq c (char-to-string c)))
-	  (setq v (if (char-valid-p (cadr v)) (char-to-string (cadr v)) ""))
+	  (if (characterp c) (setq c (char-to-string c)))
+	  (setq v (if (characterp (cadr v)) (char-to-string (cadr v)) ""))
 	  (if (stringp trans-c) (setq trans-c (list trans-c)))
 	  (if (stringp trans-v) (setq trans-v (list trans-v)))
 	  (indian--puthash-char 
@@ -534,11 +534,9 @@ FUNCTION will be called 15 times."
      (set hashtable (make-hash-table :test 'equal :size 128))
      (mapc
       (function (lambda (x)
-        (put-char-code-property (decode-char 'ucs (car x)) 
-                                'script script)
-        (put-char-code-property (decode-char 'ucs (car x)) 
-                                'iscii (cdr x))
-        (puthash (cdr x) (char-to-string (decode-char 'ucs (car x)))
+        (put-char-code-property (car x) 'script script)
+        (put-char-code-property (car x) 'iscii (cdr x))
+        (puthash (cdr x) (char-to-string (car x))
                  (eval hashtable))))
       (eval (intern (concat "ucs-" (symbol-name script)
                             "-to-is13194-alist"))))
@@ -548,8 +546,8 @@ FUNCTION will be called 15 times."
 
 (defvar ucs-to-is13194-regexp
   ;; only Devanagari is supported now.
-  (concat "[" (char-to-string (decode-char 'ucs #x0900))
-          "-" (char-to-string (decode-char 'ucs #x097f)) "]")
+  (concat "[" (char-to-string #x0900)
+          "-" (char-to-string #x097f) "]")
   "Regexp that matches to conversion")
 
 (defun ucs-to-iscii-region (from to)
