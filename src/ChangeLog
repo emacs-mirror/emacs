@@ -1,3 +1,7 @@
+2000-11-22  Dave Love  <fx@gnu.org>
+
+	* s/sol2-5.h (_LARGEFILE_SOURCE, _FILE_OFFSET_BITS): Don't define.
+
 2000-11-22  Miles Bader  <miles@gnu.org>
 
 	* keyboard.c (Vminibuffer_message_timeout): New variable.
