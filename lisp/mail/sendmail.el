@@ -24,18 +24,18 @@
 ;;; Code:
 
 ;;;###autoload
-(defconst mail-self-blind nil "\
+(defvar mail-self-blind nil "\
 Non-nil means insert BCC to self in messages to be sent.
 This is done when the message is initialized,
 so you can remove or alter the BCC field to override the default.")
 
 ;;;###autoload
-(defconst mail-interactive nil "\
+(defvar mail-interactive nil "\
 Non-nil means when sending a message wait for and display errors.
 nil means let mailer mail back a message to report errors.")
 
 ;;;###autoload
-(defconst mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:" "\
+(defvar mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:" "\
 Delete these headers from old message when it's inserted in a reply.")
 
 ;; Useful to set in site-init.el
