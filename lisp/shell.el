@@ -68,7 +68,7 @@
 ;;; m-R     comint-previous-matching-input-from-input -"- matching input
 ;;; m-s     comint-next-matching-input      Next input that matches
 ;;; m-S     comint-next-matching-input-from-input     -"- matching input
-;;; m-c-r   comint-previous-input-matching  Search backwards in input history
+;;; m-c-l   comint-show-output		    Show last batch of process output
 ;;; return  comint-send-input
 ;;; c-a     comint-bol                      Beginning of line; skip prompt
 ;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
@@ -301,7 +301,7 @@ cause the window to scroll to the end of the buffer."
 		    ((string-match "ksh$" shell) "~/.sh_history")
 		    (t "~/.history")))))
   (run-hooks 'shell-mode-hook)
-  (comint-read-input-ring)
+  (comint-read-input-ring t)
   (shell-dirstack-message))
 
 ;;;###autoload
