@@ -73,13 +73,14 @@ Lisp_Object Vx_sent_selection_hooks;
 unsigned long last_event_timestamp;
 
 /* This is an association list whose elements are of the form
-     ( selection-name selection-value selection-timestamp )
-   selection-name is a lisp symbol, whose name is the name of an X Atom.
-   selection-value is the value that emacs owns for that selection.
+     ( SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
+   SELECTION-NAME is a lisp symbol, whose name is the name of an X Atom.
+   SELECTION-VALUE is the value that emacs owns for that selection.
      It may be any kind of Lisp object.
-   selection-timestamp is the time at which emacs began owning this selection,
+   SELECTION-TIMESTAMP is the time at which emacs began owning this selection,
      as a cons of two 16-bit numbers (making a 32 bit time.)
-   If there is an entry in this alist, then it can be assumed that emacs owns
+   FRAME is the frame for which we made the selection.
+   If there is an entry in this alist, then it can be assumed that Emacs owns
     that selection.
    The only (eq) parts of this list that are visible from Lisp are the
     selection-values.
@@ -98,7 +99,6 @@ Lisp_Object Vselection_converter_alist;
    we give up on it.  This is in milliseconds (0 = no timeout.)
  */
 int x_selection_timeout;
-
 
 /* Utility functions */
 
@@ -237,11 +237,7 @@ x_own_selection (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
   Display *display = x_current_display;
-#ifdef X_TOOLKIT
-  Window selecting_window = XtWindow (selected_screen->display.x->edit_widget);
-#else
   Window selecting_window = FRAME_X_WINDOW (selected_frame);
-#endif
   Time time = last_event_timestamp;
   Atom selection_atom;
 
@@ -264,7 +260,8 @@ x_own_selection (selection_name, selection_value)
     selection_time = long_to_cons ((unsigned long) time);
     selection_data = Fcons (selection_name,
 			    Fcons (selection_value,
-				   Fcons (selection_time, Qnil)));
+				   Fcons (selection_time,
+					  Fcons (Fselected_frame (), Qnil))));
     prev_value = assq_no_quit (selection_name, Vselection_alist);
 
     Vselection_alist = Fcons (selection_data, Vselection_alist);
@@ -760,6 +757,59 @@ x_handle_selection_clear (event)
   }
 }
 
+/* Clear all selections that were made from frame F.
+   We do this when about to delete a frame.  */
+
+void
+x_clear_frame_selections (f)
+     FRAME_PTR f;
+{
+  Lisp_Object frame;
+  Lisp_Object rest;
+
+  XSET (frame, Lisp_Frame, f);
+
+  /* Otherwise, we're really honest and truly being told to drop it.
+     Don't use Fdelq as that may QUIT;.  */
+
+  while (!NILP (Vselection_alist)
+	 && EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (Vselection_alist)))))))
+    {
+      /* Let random Lisp code notice that the selection has been stolen.  */
+      Lisp_Object hooks, selection_symbol;
+
+      hooks = Vx_lost_selection_hooks;
+      selection_symbol = Fcar (Vselection_alist);
+
+      if (!EQ (hooks, Qunbound))
+	{
+	  for (; CONSP (hooks); hooks = Fcdr (hooks))
+	    call1 (Fcar (hooks), selection_symbol);
+	  redisplay_preserve_echo_area ();
+	}
+
+      Vselection_alist = Fcdr (Vselection_alist);
+    }
+
+  for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
+    if (EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (XCONS (rest)->cdr)))))))
+      {
+	/* Let random Lisp code notice that the selection has been stolen.  */
+	Lisp_Object hooks, selection_symbol;
+
+	hooks = Vx_lost_selection_hooks;
+	selection_symbol = Fcar (XCONS (rest)->cdr);
+
+	if (!EQ (hooks, Qunbound))
+	  {
+	    for (; CONSP (hooks); hooks = Fcdr (hooks))
+	      call1 (Fcar (hooks), selection_symbol);
+	    redisplay_preserve_echo_area ();
+	  }
+	XCONS (rest)->cdr = Fcdr (XCONS (rest)->cdr);
+	break;
+      }
+}
 
 /* Nonzero if any properties for DISPLAY and WINDOW
    are on the list of what we are waiting for.  */
@@ -980,11 +1030,7 @@ x_get_foreign_selection (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
   Display *display = x_current_display;
-#ifdef X_TOOLKIT
-  Window requestor_window = XtWindow (selected_screen->display.x->edit_widget);
-#else
   Window requestor_window = FRAME_X_WINDOW (selected_frame);
-#endif
   Time requestor_time = last_event_timestamp;
   Atom target_property = Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (display, selection_symbol);
