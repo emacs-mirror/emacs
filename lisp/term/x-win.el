@@ -634,6 +634,7 @@ This returns ARGS with the arguments that have been processed removed."
 ;; the display.
 (set-input-mode t nil t)
 
+(setq screen-creation-function 'x-create-screen)
 (x-read-resources)
 (setq command-line-args (x-handle-args command-line-args))
 (x-pop-initial-window)

@@ -53,7 +53,6 @@ extern struct direct *readdir ();
 #include "commands.h"
 
 #include "regex.h"
-#include "search.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
