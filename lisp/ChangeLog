@@ -1,3 +1,8 @@
+2001-10-29  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el: Mention vc-*-switches in backend API documentation.
+	(vc-annotate): Adapt doc string to recent change.
+
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* enriched.el (enriched-face-ans): Handle face attributes
