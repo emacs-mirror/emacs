@@ -724,6 +724,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		    ;; into user-init-file.
 		    (setq user-init-file t)
 		    (load user-init-file-1 t t)
+		    ;; If we did not find the user's init file,
+		    ;; set user-init-file conclusively to nil;
+		    ;; don't let it be set from default.el.
+		    (if (eq user-init-file t)
+			(setq user-init-file nil))
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
