@@ -104,7 +104,7 @@ failing to support job control properly, but that is a matter of taste.)
 
   When Emacs communicates directly with an X server and creates its own
 dedicated X windows, @kbd{C-z} has a different meaning.  Suspending an
-applications that uses its own X windows is not meaningful or useful.
+application that uses its own X windows is not meaningful or useful.
 Instead, @kbd{C-z} runs the command @code{iconify-or-deiconify-frame},
 which temporarily closes up the selected Emacs frame (@pxref{Frames}).
 The way to get back to a shell window is with the window manager.

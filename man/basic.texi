@@ -251,7 +251,7 @@ again try to stick to a fixed horizontal position, as usual.
 
 @vindex track-eol
   If you set the variable @code{track-eol} to a non-@code{nil} value,
-then @kbd{C-n} and @kbd{C-p} when at the end of the starting line move
+then @kbd{C-n} and @kbd{C-p}, when starting at the end of the line, move
 to the end of another line.  Normally, @code{track-eol} is @code{nil}.
 @xref{Variables}, for how to set variables such as @code{track-eol}.
 
