@@ -82,7 +82,10 @@ variable is set using \\[customize]."
   (let ((exts-regexp
 	 (and image-file-name-extensions
 	      (concat "\\."
-		      (regexp-opt image-file-name-extensions t)
+		      (regexp-opt (nconc (mapcar #'upcase
+						 image-file-name-extensions)
+					 image-file-name-extensions)
+				  t)
 		      "\\'"))))
     (if image-file-name-regexps
 	(mapconcat 'identity
