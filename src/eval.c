@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001, 2002
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -783,7 +783,8 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
     /* Simple (defvar <var>) should not count as a definition at all.
        It could get in the way of other definitions, and unloading this
        package could try to make the variable unbound.  */
-    
+    ;
+
   return sym;
 }
 
