@@ -6,6 +6,11 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
 
+* Installation changes in Emacs 21.2
+
+** Support for BSD/OS 5.0 has been added.
+
+
 * Changes in Emacs 21.2
 
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
@@ -31,6 +36,10 @@ NEWS.
 
 
 * Lisp Changes in Emacs 21.2
+
+** The meanings of scroll-up-aggressively and scroll-down-aggressively
+have been interchanged, so that the former now controls scrolling up,
+and the latter now controls scrolling down.
 
 ** The variable `compilation-parse-errors-filename-function' can
 be used to transform filenames found in compilation output.
