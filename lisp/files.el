@@ -1969,6 +1969,10 @@ beginning and `after-revert-hook' at the end."
 		 (insert-file-contents file-name (not auto-save-p)
 				       nil nil t)))
 	     (goto-char (min opoint (point-max)))
+	     ;; Recompute the truename in case changes in symlinks
+	     ;; have changed the truename.
+	     (setq buffer-file-truename
+		   (abbreviate-file-name (file-truename buffer-file-name)))
 	     (after-find-file nil nil t t)
 	     (run-hooks 'after-revert-hook)
 	     t)))))
