@@ -78,8 +78,13 @@ typedef DWORD Time;
 typedef HWND Window;
 typedef HCURSOR Cursor;
 
-/* Dummy; we don't yet support images in the Windows port */
-typedef int XImage;
+/* Windows equivalent of XImage.  */
+typedef struct _XImage
+{
+  unsigned char * data;
+  BITMAPINFO info;
+  /* Optional RGBQUAD array for palette follows (see BITMAPINFO docs).  */
+} XImage;
 
 #define FACE_DEFAULT (~0)
 
