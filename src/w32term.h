@@ -1,4 +1,4 @@
-/* Definitions and headers for communication under the Win32 API.
+/* Definitions and headers for communication on the Microsoft W32 API.
    Copyright (C) 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -603,8 +603,8 @@ typedef struct {
 #define WND_LAST_INDEX      (16)
 #define WND_EXTRA_BYTES     (WND_LAST_INDEX)
 
-extern DWORD dwWinThreadId;
-extern HANDLE hWinThread;
+extern DWORD dwWindowsThreadId;
+extern HANDLE hWindowsThread;
 extern DWORD dwMainThreadId;
 extern HANDLE hMainThread;
 

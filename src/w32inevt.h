@@ -1,4 +1,4 @@
-/* Input routines for Emacs on Win32 API.
+/* Input routines for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
