@@ -6,7 +6,6 @@
 ;; Maintainer: Dave Love <d.love@dl.ac.uk>
 ;; Created: 03 Apr 1995
 ;; Keywords: hypertext, hypermedia, mouse
-;; X-Home page: http://wombat.doc.ic.ac.uk/
 
 ;; This file is part of GNU Emacs.
 
@@ -156,7 +155,8 @@
 ;; Customisation (~/.emacs)
 
 ;; To see what variables are available for customization, type
-;; `M-x set-variable browse-url TAB'.
+;; `M-x set-variable browse-url TAB'.  Better, use
+;; `M-x customize-group browse-url'.
 
 ;; Bind the browse-url commands to keys with the `C-c C-z' prefix
 ;; (as used by html-helper-mode):
@@ -227,6 +227,7 @@
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
+  :prefix "browse-url-"
   :group 'hypermedia)
 
 ;;;###autoload
@@ -306,9 +307,9 @@ Hostname matching is stricter in this case than for
   "A regular expression matching a URL marked up per RFC1738.
 This may be broken across lines.")
 
-(defvar browse-url-filename-alist
+(defcustom browse-url-filename-alist
   '(("^/+" . "file:/"))
-  "An alist of (REGEXP . STRING) pairs.
+  "*An alist of (REGEXP . STRING) pairs.
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING.  All pairs are applied in the order given.
 The default value prepends `file:' to any path beginning with `/'.
@@ -320,17 +321,25 @@ For example, to map EFS filenames to URLs:
 	  '((\"/webmaster@webserver:/home/www/html/\" .
 	     \"http://www.acme.co.uk/\")
 	    (\"^/+\" . \"file:/\")))
-")
+"
+  :type '(repeat (cons :format "%v"
+                       (string :tag "Regexp")
+                       (string :tag "Replacement")))
+  :group 'browse-url)
 
-(defvar browse-url-save-file nil
-  "If non-nil, save the buffer before displaying its file.
-Used by the `browse-url-of-file' command.")
+(defcustom browse-url-save-file nil
+  "*If non-nil, save the buffer before displaying its file.
+Used by the `browse-url-of-file' command."
+  :type 'boolean
+  :group 'browse-url)
 
-(defvar browse-url-of-file-hook nil
-  "Run after `browse-url-of-file' has asked a browser to load a file.
+(defcustom browse-url-of-file-hook nil
+  "*Run after `browse-url-of-file' has asked a browser to load a file.
 
 Set this to `browse-url-netscape-reload' to force Netscape to load the
-file rather than displaying a cached copy.")
+file rather than displaying a cached copy."
+  :type 'hook
+  :group 'browse-url)
 
 (defvar browse-url-usr1-signal
   (if (and (boundp 'emacs-major-version)
@@ -341,15 +350,19 @@ file rather than displaying a cached copy.")
 Emacs 19.29 accepts 'SIGUSR1, earlier versions require an integer
 which is 30 on SunOS and 16 on HP-UX and Solaris.")
 
-(defvar browse-url-CCI-port 3003
-  "Port to access XMosaic via CCI.
+(defcustom browse-url-CCI-port 3003
+  "*Port to access XMosaic via CCI.
 This can be any number between 1024 and 65535 but must correspond to
-the value set in the browser.")
+the value set in the browser."
+  :type 'integer
+  :group 'browse-url)
 
-(defvar browse-url-CCI-host "localhost"
+(defcustom browse-url-CCI-host "localhost"
   "*Host to access XMosaic via CCI.
 This should be the host name of the machine running XMosaic with CCI
-enabled.  The port number should be set in `browse-url-CCI-port'.")
+enabled.  The port number should be set in `browse-url-CCI-port'."
+  :type 'string
+  :group 'browse-url)
 
 (defvar browse-url-temp-file-name nil)
 (make-variable-buffer-local 'browse-url-temp-file-name)
@@ -404,20 +417,28 @@ incompatibly at version 4."
   :type 'number
   :group 'browse-url)
 
-(defvar browse-url-lynx-input-field 'avoid
+(defcustom browse-url-lynx-input-field 'avoid
   "*Action on selecting an existing Lynx buffer at an input field.
 What to do when sending a new URL to an existing Lynx buffer in Emacs
 if the Lynx cursor is on an input field (in which case the `g' command
 would be entered as data).  Such fields are recognized by the
 underlines ____.  Allowed values: nil: disregard it, 'warn: warn the
 user and don't emit the URL, 'avoid: try to avoid the field by moving
-down (this *won't* always work).")
+down (this *won't* always work)."
+  :type '(choice (const :tag "Move to try to avoid field" :value avoid)
+                 (const :tag "Disregard" :value nil)
+                 (const :tag "Warn, don't emit URL" :value warn))
+  :group 'browse-url)
 
-(defvar browse-url-lynx-input-attempts 10
-  "*How many times to try to move down from a series of lynx input fields.")
+(defcustom browse-url-lynx-input-attempts 10
+  "*How many times to try to move down from a series of lynx input fields."
+  :type 'integer
+  :group 'browse-url)
 
-(defvar browse-url-lynx-input-delay 0.2
-  "*How many seconds to wait for lynx between moves down from an input field.")
+(defcustom browse-url-lynx-input-delay 0.2
+  "*How many seconds to wait for lynx between moves down from an input field."
+  :type 'number
+  :group 'browse-url)
 
 (defvar browse-url-temp-file-list '())
 
@@ -577,7 +598,7 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
   (if (consp browse-url-browser-function)
-      (apply browse-url-choose-browser args)
+      (apply 'browse-url-choose-browser args)
     (apply browse-url-browser-function args)))
 
 (defun browse-url-choose-browser (url &rest args)
