@@ -726,8 +726,11 @@ Otherwise returns the library directory name, if that is defined."
   (let ((case-fold-search-val case-fold-search)
 	;; avoid bugs when syntax of `.' changes in various default modes
 	(default-major-mode 'fundamental-mode)
+	(default-directory temporary-file-directory)
 	result status)
     (save-excursion
+      (let ((buf (get-buffer " *ispell-tmp*")))
+	(if buf (kill-buffer buf)))
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (erase-buffer)
       (setq status (call-process
