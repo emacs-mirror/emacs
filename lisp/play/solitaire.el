@@ -140,7 +140,7 @@ check after each move or undo)
 What is Solitaire?
 
 I don't know who invented this game, but it seems to be rather old and
-it's origin seems be northern Africa.  Here's how to play:
+its origin seems be northern Africa.  Here's how to play:
 Initially, the board will look similar to this:
 
 	Le Solitaire             
