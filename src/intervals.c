@@ -883,7 +883,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
 	  newi.plist = merge_properties_sticky (pleft, pright);
 
-	  if(! prev) /* i.e. position == BEG */
+	  if (! prev) /* i.e. position == BEG */
 	    {
 	      if (! intervals_equal (i, &newi))
 		{
@@ -1660,31 +1660,82 @@ textget (plist, prop)
 }
 
 
-/* Set point in BUFFER to POSITION.  If the target position is 
+/* Set point "temporarily", without checking any text properties.  */
+
+INLINE void
+temp_set_point (buffer, charpos)
+     struct buffer *buffer;
+     int charpos;
+{
+  temp_set_point_both (buffer, charpos,
+		       buf_charpos_to_bytepos (buffer, charpos));
+}
+
+/* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
+   byte position BYTEPOS.  */
+
+INLINE void
+temp_set_point_both (buffer, charpos, bytepos)
+     int charpos;
+     struct buffer *buffer;
+{
+  /* In a single-byte buffer, the two positions must be equal.  */
+  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer)
+      && charpos != bytepos)
+    abort ();
+
+  if (charpos > bytepos)
+    abort ();
+
+  if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
+    abort ();
+
+  BUF_PT_BYTE (buffer) = bytepos;
+  BUF_PT (buffer) = charpos;
+}
+
+/* Set point in BUFFER to CHARPOS.  If the target position is 
    before an intangible character, move to an ok place.  */
 
 void
-set_point (position, buffer)
-     register int position;
+set_point (buffer, charpos)
      register struct buffer *buffer;
+     register int charpos;
+{
+  set_point_both (buffer, charpos, buf_charpos_to_bytepos (buffer, charpos));
+}
+
+/* Set point in BUFFER to CHARPOS, which corresponds to byte
+   position BYTEPOS.  If the target position is 
+   before an intangible character, move to an ok place.  */
+
+void
+set_point_both (buffer, charpos, bytepos)
+     register struct buffer *buffer;
+     register int charpos;
 {
   register INTERVAL to, from, toprev, fromprev, target;
   int buffer_point;
   register Lisp_Object obj;
   int old_position = BUF_PT (buffer);
-  int backwards = (position < old_position ? 1 : 0);
+  int backwards = (charpos < old_position ? 1 : 0);
   int have_overlays;
   int original_position;
 
   buffer->point_before_scroll = Qnil;
 
-  if (position == BUF_PT (buffer))
+  if (charpos == BUF_PT (buffer))
     return;
+
+  /* In a single-byte buffer, the two positions must be equal.  */
+  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer)
+      && charpos != bytepos)
+    abort ();
 
   /* Check this now, before checking if the buffer has any intervals.
      That way, we can catch conditions which break this sanity check
      whether or not there are intervals in the buffer.  */
-  if (position > BUF_ZV (buffer) || position < BUF_BEGV (buffer))
+  if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
   have_overlays = (! NILP (buffer->overlays_before)
@@ -1694,17 +1745,17 @@ set_point (position, buffer)
      then we can do it quickly.  */
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) && ! have_overlays)
     {
-      BUF_PT (buffer) = position;
+      temp_set_point_both (buffer, charpos, bytepos);
       return;
     }
 
-  /* Set TO to the interval containing the char after POSITION,
-     and TOPREV to the interval containing the char before POSITION.
+  /* Set TO to the interval containing the char after CHARPOS,
+     and TOPREV to the interval containing the char before CHARPOS.
      Either one may be null.  They may be equal.  */
-  to = find_interval (BUF_INTERVALS (buffer), position);
-  if (position == BUF_BEGV (buffer))
+  to = find_interval (BUF_INTERVALS (buffer), charpos);
+  if (charpos == BUF_BEGV (buffer))
     toprev = 0;
-  else if (to && to->position == position)
+  else if (to && to->position == charpos)
     toprev = previous_interval (to);
   else
     toprev = to;
@@ -1731,11 +1782,11 @@ set_point (position, buffer)
   if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to)
       && ! have_overlays)
     {
-      BUF_PT (buffer) = position;
+      temp_set_point_both (buffer, charpos, bytepos);
       return;
     }
 
-  original_position = position;
+  original_position = charpos;
 
   /* If the new position is between two intangible characters
      with the same intangible property value,
@@ -1745,16 +1796,16 @@ set_point (position, buffer)
 	  || have_overlays)
       /* Intangibility never stops us from positioning at the beginning
 	 or end of the buffer, so don't bother checking in that case.  */
-      && position != BEGV && position != ZV)
+      && charpos != BEGV && charpos != ZV)
     {
       Lisp_Object intangible_propval;
       Lisp_Object pos;
 
-      XSETINT (pos, position);
+      XSETINT (pos, charpos);
 
       if (backwards)
 	{
-	  intangible_propval = Fget_char_property (make_number (position),
+	  intangible_propval = Fget_char_property (make_number (charpos),
 						   Qintangible, Qnil);
 
 	  /* If following char is intangible,
@@ -1768,7 +1819,7 @@ set_point (position, buffer)
 	}
       else
 	{
-	  intangible_propval = Fget_char_property (make_number (position - 1),
+	  intangible_propval = Fget_char_property (make_number (charpos - 1),
 						   Qintangible, Qnil);
 
 	  /* If following char is intangible,
@@ -1781,18 +1832,19 @@ set_point (position, buffer)
 
 	}
 
-      position = XINT (pos);
+      charpos = XINT (pos);
+      bytepos = buf_charpos_to_bytepos (buffer, charpos);
     }
 
-  if (position != original_position)
+  if (charpos != original_position)
     {
-      /* Set TO to the interval containing the char after POSITION,
-	 and TOPREV to the interval containing the char before POSITION.
+      /* Set TO to the interval containing the char after CHARPOS,
+	 and TOPREV to the interval containing the char before CHARPOS.
 	 Either one may be null.  They may be equal.  */
-      to = find_interval (BUF_INTERVALS (buffer), position);
-      if (position == BUF_BEGV (buffer))
+      to = find_interval (BUF_INTERVALS (buffer), charpos);
+      if (charpos == BUF_BEGV (buffer))
 	toprev = 0;
-      else if (to && to->position == position)
+      else if (to && to->position == charpos)
 	toprev = previous_interval (to);
       else
 	toprev = to;
@@ -1802,7 +1854,7 @@ set_point (position, buffer)
      and TOPREV is the interval before the stopping point.
      One or the other may be null.  */
 
-  BUF_PT (buffer) = position;
+  temp_set_point_both (buffer, charpos, bytepos);
 
   /* We run point-left and point-entered hooks here, iff the
      two intervals are not equivalent.  These hooks take
@@ -1833,28 +1885,18 @@ set_point (position, buffer)
 
       if (! EQ (leave_before, enter_before) && !NILP (leave_before))
 	call2 (leave_before, make_number (old_position),
-	       make_number (position));
+	       make_number (charpos));
       if (! EQ (leave_after, enter_after) && !NILP (leave_after))
 	call2 (leave_after, make_number (old_position),
-	       make_number (position));
+	       make_number (charpos));
 
       if (! EQ (enter_before, leave_before) && !NILP (enter_before))
 	call2 (enter_before, make_number (old_position),
-	       make_number (position));
+	       make_number (charpos));
       if (! EQ (enter_after, leave_after) && !NILP (enter_after))
 	call2 (enter_after, make_number (old_position),
-	       make_number (position));
+	       make_number (charpos));
     }
-}
-
-/* Set point temporarily, without checking any text properties.  */
-
-INLINE void
-temp_set_point (position, buffer)
-     int position;
-     struct buffer *buffer;
-{
-  BUF_PT (buffer) = position;
 }
 
 /* Move point to POSITION, unless POSITION is inside an intangible
@@ -1923,7 +1965,7 @@ get_local_map (position, buffer)
      register struct buffer *buffer;
 {
   Lisp_Object prop, tem, lispy_position, lispy_buffer;
-  int old_begv, old_zv;
+  int old_begv, old_zv, old_begv_byte, old_zv_byte;
 
   /* Perhaps we should just change `position' to the limit.  */
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
@@ -1933,8 +1975,12 @@ get_local_map (position, buffer)
      the visible region contains no characters and hence no properties.  */
   old_begv = BUF_BEGV (buffer);
   old_zv = BUF_ZV (buffer);
+  old_begv_byte = BUF_BEGV_BYTE (buffer);
+  old_zv_byte = BUF_ZV_BYTE (buffer);
   BUF_BEGV (buffer) = BUF_BEG (buffer);
   BUF_ZV (buffer) = BUF_Z (buffer);
+  BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
+  BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
 
   /* There are no properties at the end of the buffer, so in that case
      check for a local map on the last character of the buffer instead.  */
@@ -1946,6 +1992,8 @@ get_local_map (position, buffer)
 
   BUF_BEGV (buffer) = old_begv;
   BUF_ZV (buffer) = old_zv;
+  BUF_BEGV_BYTE (buffer) = old_begv_byte;
+  BUF_ZV_BYTE (buffer) = old_zv_byte;
 
   /* Use the local map only if it is valid.  */
   /* Do allow symbols that are defined as keymaps.  */
