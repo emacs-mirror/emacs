@@ -3171,17 +3171,20 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  Window win, child;
 		  int win_x, win_y;
 
-		  /* Coords are relative to the parent.
-		     Convert them to root-relative.  */
+		  /* Find the position of the outside upper-left corner of
+		     the window, in the root coordinate system.  Don't
+		     refer to the parent window here; we may be processing
+		     this event after the window manager has changed our
+		     parent, but before we have reached the ReparentNotify.  */
 		  XTranslateCoordinates (x_current_display,
 			       
 					 /* From-window, to-window.  */
-					 f->display.x->parent_desc,
+					 f->display.x->window_desc,
 					 ROOT_WINDOW,
 
 					 /* From-position, to-position.  */
-					 event.xconfigure.x,
-					 event.xconfigure.y,
+					 -event.xconfigure.border_width,
+					 -event.xconfigure.border_width,
 					 &win_x, &win_y,
 
 					 /* Child of win.  */
