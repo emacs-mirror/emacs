@@ -1476,6 +1476,43 @@ redisplay_windows (window, preserve_echo_area)
     redisplay_window (window, 0, preserve_echo_area);
 }
 
+/* Return value in display table DP (Lisp_Char_Table *) for character
+   C.  Since a display table doesn't have any parent, we don't have to
+   follow parent.  Do not call this function directly but use the
+   macro DISP_CHAR_VECTOR.  */
+Lisp_Object
+disp_char_vector (dp, c)
+     struct Lisp_Char_Table *dp;
+     int c;
+{
+  int code[4], i;
+  Lisp_Object val;
+
+  if (SINGLE_BYTE_CHAR_P (c)) return (dp->contents[c]);
+  
+  SPLIT_NON_ASCII_CHAR (c, code[0], code[1], code[2]);
+  if (code[0] != CHARSET_COMPOSITION)
+    {
+      if (code[1] < 32) code[1] = -1;
+      else if (code[2] < 32) code[2] = -1;
+    }
+  /* Here, the possible range of CODE[0] (== charset ID) is
+     128..MAX_CHARSET.  Since the top level char table contains data
+     for multibyte characters after 256th element, we must increment
+     CODE[0] by 128 to get a correct index.  */
+  code[0] += 128;
+  code[3] = -1;		/* anchor */
+
+  for (i = 0; code[i] >= 0; i++, dp = XCHAR_TABLE (val))
+    {
+      val = dp->contents[code[i]];
+      if (!SUB_CHAR_TABLE_P (val))
+	return (NILP (val) ? dp->defalt : val);
+    }
+  /* Here, VAL is a sub char table.  We return the default value of it.  */
+  return (dp->defalt);
+}
+
 /* Redisplay window WINDOW and its subwindows.  */
 
 static void
