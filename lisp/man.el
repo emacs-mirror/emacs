@@ -155,7 +155,7 @@ the manpage buffer."
   :type 'face
   :group 'man)
 
-(defcustom Man-reverse-face 'secondary-selection
+(defcustom Man-reverse-face 'highlight
   "*Face to use when fontifying reverse video."
   :type 'face
   :group 'man)
