@@ -1,5 +1,10 @@
 2003-01-06  Kenichi Handa  <handa@m17n.org>
 
+	* chartab.c (char_table_ascii): Check if the char table contents
+	is sub-char-table or not.
+	(char_table_set): Fix argument to char_table_ascii.
+	(char_table_set_range): Likewise.
+
 	* coding.c (CATEGORY_MASK_RAW_TEXT): New macro.
 	(detect_coding_utf_8, detect_coding_utf_16)
 	(detect_coding_emacs_mule, detect_coding_iso_2022)
