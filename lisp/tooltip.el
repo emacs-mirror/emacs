@@ -47,7 +47,7 @@
 
 (defvar tooltip-mode)
 
-(defcustom tooltip-delay 1.0
+(defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
   :tag "Delay"
   :type 'number
@@ -69,7 +69,7 @@ Do so after `tooltip-short-delay'."
   :group 'tooltip)
 
 
-(defcustom tooltip-hide-delay 5
+(defcustom tooltip-hide-delay 10
   "Hide tooltips automatically after this many seconds."
   :tag "Hide delay"
   :type 'number
