@@ -286,11 +286,11 @@ do_debug_on_call (code)
    The definition of `For' shows what you have to do.  */
 
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
-  "Eval args until one of them yields non-nil, then return that value.\n\
-The remaining args are not evalled at all.\n\
-If all args return nil, return nil.\n\
-usage: (or CONDITIONS ...)")
-  (args)
+       doc: /* Eval args until one of them yields non-nil, then return that value.
+The remaining args are not evalled at all.
+If all args return nil, return nil.
+usage: (or CONDITIONS ...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val;
@@ -317,11 +317,11 @@ usage: (or CONDITIONS ...)")
 }
 
 DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
-  "Eval args until one of them yields nil, then return nil.\n\
-The remaining args are not evalled at all.\n\
-If no arg yields nil, return the last arg's value.\n\
-usage: (and CONDITIONS ...)")
-  (args)
+  doc: /* Eval args until one of them yields nil, then return nil.
+The remaining args are not evalled at all.
+If no arg yields nil, return the last arg's value.
+usage: (and CONDITIONS ...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val;
@@ -348,12 +348,12 @@ usage: (and CONDITIONS ...)")
 }
 
 DEFUN ("if", Fif, Sif, 2, UNEVALLED, 0,
-  "If COND yields non-nil, do THEN, else do ELSE...\n\
-Returns the value of THEN or the value of the last of the ELSE's.\n\
-THEN must be one expression, but ELSE... can be zero or more expressions.\n\
-If COND yields nil, and there are no ELSE's, the value is nil.\n\
-usage: (if COND THEN ELSE...)")
-  (args)
+  doc: /* If COND yields non-nil, do THEN, else do ELSE...
+Returns the value of THEN or the value of the last of the ELSE's.
+THEN must be one expression, but ELSE... can be zero or more expressions.
+If COND yields nil, and there are no ELSE's, the value is nil.
+usage: (if COND THEN ELSE...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object cond;
@@ -369,16 +369,16 @@ usage: (if COND THEN ELSE...)")
 }
 
 DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
-  "Try each clause until one succeeds.\n\
-Each clause looks like (CONDITION BODY...).  CONDITION is evaluated\n\
-and, if the value is non-nil, this clause succeeds:\n\
-then the expressions in BODY are evaluated and the last one's\n\
-value is the value of the cond-form.\n\
-If no clause succeeds, cond returns nil.\n\
-If a clause has one element, as in (CONDITION),\n\
-CONDITION's value if non-nil is returned from the cond-form.\n\
-usage: (cond CLAUSES...)")
-  (args)
+       doc: /* Try each clause until one succeeds.
+Each clause looks like (CONDITION BODY...).  CONDITION is evaluated
+and, if the value is non-nil, this clause succeeds:
+then the expressions in BODY are evaluated and the last one's
+value is the value of the cond-form.
+If no clause succeeds, cond returns nil.
+If a clause has one element, as in (CONDITION),
+CONDITION's value if non-nil is returned from the cond-form.
+usage: (cond CLAUSES...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object clause, val;
@@ -404,9 +404,9 @@ usage: (cond CLAUSES...)")
 }
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
-  "Eval BODY forms sequentially and return value of last one.\n\
-usage: (progn BODY ...)")
-  (args)
+       doc: /* Eval BODY forms sequentially and return value of last one.
+usage: (progn BODY ...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val, tem;
@@ -443,11 +443,11 @@ usage: (progn BODY ...)")
 }
 
 DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
-  "Eval FIRST and BODY sequentially; value from FIRST.\n\
-The value of FIRST is saved during the evaluation of the remaining args,\n\
-whose values are discarded.\n\
-usage: (prog1 FIRST BODY...)")
-  (args)
+       doc: /* Eval FIRST and BODY sequentially; value from FIRST.
+The value of FIRST is saved during the evaluation of the remaining args,
+whose values are discarded.
+usage: (prog1 FIRST BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object val;
@@ -477,11 +477,11 @@ usage: (prog1 FIRST BODY...)")
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-  "Eval X, Y and BODY sequentially; value from Y.\n\
-The value of Y is saved during the evaluation of the remaining args,\n\
-whose values are discarded.\n\
-usage: (prog2 X Y BODY...)")
-  (args)
+       doc: /* Eval X, Y and BODY sequentially; value from Y.
+The value of Y is saved during the evaluation of the remaining args,
+whose values are discarded.
+usage: (prog2 X Y BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object val;
@@ -513,15 +513,15 @@ usage: (prog2 X Y BODY...)")
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
-  "Set each SYM to the value of its VAL.\n\
-The symbols SYM are variables; they are literal (not evaluated).\n\
-The values VAL are expressions; they are evaluated.\n\
-Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.\n\
-The second VAL is not computed until after the first SYM is set, and so on;\n\
-each VAL can use the new value of variables set earlier in the `setq'.\n\
-The return value of the `setq' form is the value of the last VAL.\n\
-usage: (setq SYM VAL SYM VAL ...)")
-  (args)
+       doc: /* Set each SYM to the value of its VAL.
+The symbols SYM are variables; they are literal (not evaluated).
+The values VAL are expressions; they are evaluated.
+Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.
+The second VAL is not computed until after the first SYM is set, and so on;
+each VAL can use the new value of variables set earlier in the `setq'.
+The return value of the `setq' form is the value of the last VAL.
+usage: (setq SYM VAL SYM VAL ...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object args_left;
@@ -548,20 +548,20 @@ usage: (setq SYM VAL SYM VAL ...)")
 }
      
 DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
-  "Return the argument, without evaluating it.  `(quote x)' yields `x'.\n\
-usage: (quote ARG)")
-  (args)
+       doc: /* Return the argument, without evaluating it.  `(quote x)' yields `x'.
+usage: (quote ARG)  */)
+     (args)
      Lisp_Object args;
 {
   return Fcar (args);
 }
      
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
-  "Like `quote', but preferred for objects which are functions.\n\
-In byte compilation, `function' causes its argument to be compiled.\n\
-`quote' cannot do that.\n\
-usage: (function ARG)")
-  (args)
+       doc: /* Like `quote', but preferred for objects which are functions.
+In byte compilation, `function' causes its argument to be compiled.
+`quote' cannot do that.
+usage: (function ARG)  */)
+     (args)
      Lisp_Object args;
 {
   return Fcar (args);
@@ -569,11 +569,11 @@ usage: (function ARG)")
 
 
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
-  "Return t if function in which this appears was called interactively.\n\
-This means that the function was called with call-interactively (which\n\
-includes being called as the binding of a key)\n\
-and input is currently coming from the keyboard (not in keyboard macro).")
-  ()
+       doc: /* Return t if function in which this appears was called interactively.
+This means that the function was called with call-interactively (which
+includes being called as the binding of a key)
+and input is currently coming from the keyboard (not in keyboard macro).  */)
+     ()
 {
   return interactive_p (1) ? Qt : Qnil;
 }
@@ -637,11 +637,11 @@ interactive_p (exclude_subrs_p)
 
 
 DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
-  "Define NAME as a function.\n\
-The definition is (lambda ARGLIST [DOCSTRING] BODY...).\n\
-See also the function `interactive'.\n\
-usage: (defun NAME ARGLIST [DOCSTRING] BODY...)")
-  (args)
+       doc: /* Define NAME as a function.
+The definition is (lambda ARGLIST [DOCSTRING] BODY...).
+See also the function `interactive'.
+usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object fn_name;
@@ -657,14 +657,14 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)")
 }
 
 DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
-  "Define NAME as a macro.\n\
-The definition is (macro lambda ARGLIST [DOCSTRING] BODY...).\n\
-When the macro is called, as in (NAME ARGS...),\n\
-the function (lambda ARGLIST BODY...) is applied to\n\
-the list ARGS... as it appears in the expression,\n\
-and the result should be a form to be evaluated instead of the original.\n\
-usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)")
-  (args)
+       doc: /* Define NAME as a macro.
+The definition is (macro lambda ARGLIST [DOCSTRING] BODY...).
+When the macro is called, as in (NAME ARGS...),
+the function (lambda ARGLIST BODY...) is applied to
+the list ARGS... as it appears in the expression,
+and the result should be a form to be evaluated instead of the original.
+usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object fn_name;
@@ -681,11 +681,11 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)")
 
 
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 2, 0,
-  "Make SYMBOL a variable alias for symbol ALIASED.\n\
-Setting the value of SYMBOL will subsequently set the value of ALIASED,\n\
-and getting the value of SYMBOL will return the value ALIASED has.\n\
-ALIASED nil means remove the alias; SYMBOL is unbound after that.")
-  (symbol, aliased)
+       doc: /* Make SYMBOL a variable alias for symbol ALIASED.
+Setting the value of SYMBOL will subsequently set the value of ALIASED,
+and getting the value of SYMBOL will return the value ALIASED has.
+ALIASED nil means remove the alias; SYMBOL is unbound after that.  */)
+     (symbol, aliased)
      Lisp_Object symbol, aliased;
 {
   struct Lisp_Symbol *sym;
@@ -707,20 +707,21 @@ ALIASED nil means remove the alias; SYMBOL is unbound after that.")
 
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
-  "Define SYMBOL as a variable.\n\
-You are not required to define a variable in order to use it,\n\
-but the definition can supply documentation and an initial value\n\
-in a way that tags can recognize.\n\n\
-INITVALUE is evaluated, and used to set SYMBOL, only if SYMBOL's value is void.\n\
-If SYMBOL is buffer-local, its default value is what is set;\n\
- buffer-local values are not affected.\n\
-INITVALUE and DOCSTRING are optional.\n\
-If DOCSTRING starts with *, this variable is identified as a user option.\n\
- This means that M-x set-variable recognizes it.\n\
- See also `user-variable-p'.\n\
-If INITVALUE is missing, SYMBOL's value is not set.\n\
-usage: (defvar SYMBOL [INITVALUE DOCSTRING])")
-  (args)
+       doc: /* Define SYMBOL as a variable.
+You are not required to define a variable in order to use it,
+but the definition can supply documentation and an initial value
+in a way that tags can recognize.
+
+INITVALUE is evaluated, and used to set SYMBOL, only if SYMBOL's value is void.
+If SYMBOL is buffer-local, its default value is what is set;
+ buffer-local values are not affected.
+INITVALUE and DOCSTRING are optional.
+If DOCSTRING starts with *, this variable is identified as a user option.
+ This means that M-x set-variable recognizes it.
+ See also `user-variable-p'.
+If INITVALUE is missing, SYMBOL's value is not set.
+usage: (defvar SYMBOL [INITVALUE DOCSTRING])  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object sym, tem, tail;
@@ -756,14 +757,14 @@ usage: (defvar SYMBOL [INITVALUE DOCSTRING])")
 }
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
-  "Define SYMBOL as a constant variable.\n\
-The intent is that neither programs nor users should ever change this value.\n\
-Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
-If SYMBOL is buffer-local, its default value is what is set;\n\
- buffer-local values are not affected.\n\
-DOCSTRING is optional.\n\
-usage: (defconst SYMBOL INITVALUE [DOCSTRING])")
-  (args)
+       doc: /* Define SYMBOL as a constant variable.
+The intent is that neither programs nor users should ever change this value.
+Always sets the value of SYMBOL to the result of evalling INITVALUE.
+If SYMBOL is buffer-local, its default value is what is set;
+ buffer-local values are not affected.
+DOCSTRING is optional.
+usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object sym, tem;
@@ -788,13 +789,13 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])")
 }
 
 DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
-  "Returns t if VARIABLE is intended to be set and modified by users.\n\
-\(The alternative is a variable used internally in a Lisp program.)\n\
-Determined by whether the first character of the documentation\n\
-for the variable is `*' or if the variable is customizable (has a non-nil\n\
-value of any of `custom-type', `custom-loads' or `standard-value'\n\
-on its property list).")
-  (variable)
+       doc: /* Returns t if VARIABLE is intended to be set and modified by users.
+\(The alternative is a variable used internally in a Lisp program.)
+Determined by whether the first character of the documentation
+for the variable is `*' or if the variable is customizable (has a non-nil
+value of any of `custom-type', `custom-loads' or `standard-value'
+on its property list).  */)
+     (variable)
      Lisp_Object variable;
 {
   Lisp_Object documentation;
@@ -823,13 +824,13 @@ on its property list).")
 }  
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
-  "Bind variables according to VARLIST then eval BODY.\n\
-The value of the last form in BODY is returned.\n\
-Each element of VARLIST is a symbol (which is bound to nil)\n\
-or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
-Each VALUEFORM can refer to the symbols already bound by this VARLIST.\n\
-usage: (let* VARLIST BODY...)")
-  (args)
+       doc: /* Bind variables according to VARLIST then eval BODY.
+The value of the last form in BODY is returned.
+Each element of VARLIST is a symbol (which is bound to nil)
+or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
+Each VALUEFORM can refer to the symbols already bound by this VARLIST.
+usage: (let* VARLIST BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object varlist, val, elt;
@@ -862,13 +863,13 @@ usage: (let* VARLIST BODY...)")
 }
 
 DEFUN ("let", Flet, Slet, 1, UNEVALLED, 0,
-  "Bind variables according to VARLIST then eval BODY.\n\
-The value of the last form in BODY is returned.\n\
-Each element of VARLIST is a symbol (which is bound to nil)\n\
-or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
-All the VALUEFORMs are evalled before any symbols are bound.\n\
-usage: (let VARLIST BODY...)")
-  (args)
+       doc: /* Bind variables according to VARLIST then eval BODY.
+The value of the last form in BODY is returned.
+Each element of VARLIST is a symbol (which is bound to nil)
+or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
+All the VALUEFORMs are evalled before any symbols are bound.
+usage: (let VARLIST BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object *temps, tem;
@@ -920,11 +921,11 @@ usage: (let VARLIST BODY...)")
 }
 
 DEFUN ("while", Fwhile, Swhile, 1, UNEVALLED, 0,
-  "If TEST yields non-nil, eval BODY... and repeat.\n\
-The order of execution is thus TEST, BODY, TEST, BODY and so on\n\
-until TEST returns nil.\n\
-usage: (while TEST BODY...)")
-  (args)
+       doc: /* If TEST yields non-nil, eval BODY... and repeat.
+The order of execution is thus TEST, BODY, TEST, BODY and so on
+until TEST returns nil.
+usage: (while TEST BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object test, body, tem;
@@ -946,13 +947,14 @@ usage: (while TEST BODY...)")
 }
 
 DEFUN ("macroexpand", Fmacroexpand, Smacroexpand, 1, 2, 0,
-  "Return result of expanding macros at top level of FORM.\n\
-If FORM is not a macro call, it is returned unchanged.\n\
-Otherwise, the macro is expanded and the expansion is considered\n\
-in place of FORM.  When a non-macro-call results, it is returned.\n\n\
-The second optional arg ENVIRONMENT specifies an environment of macro\n\
-definitions to shadow the loaded ones for use in file byte-compilation.")
-  (form, environment)
+       doc: /* Return result of expanding macros at top level of FORM.
+If FORM is not a macro call, it is returned unchanged.
+Otherwise, the macro is expanded and the expansion is considered
+in place of FORM.  When a non-macro-call results, it is returned.
+
+The second optional arg ENVIRONMENT specifies an environment of macro
+definitions to shadow the loaded ones for use in file byte-compilation.  */)
+     (form, environment)
      Lisp_Object form;
      Lisp_Object environment;
 {
@@ -1024,15 +1026,15 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 }
 
 DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
-  "Eval BODY allowing nonlocal exits using `throw'.\n\
-TAG is evalled to get the tag to use; it must not be nil.\n\
-\n\
-Then the BODY is executed.\n\
-Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.\n\
-If no throw happens, `catch' returns the value of the last BODY form.\n\
-If a throw happens, it specifies the value to return from `catch'.\n\
-usage: (catch TAG BODY...)")
-  (args)
+       doc: /* Eval BODY allowing nonlocal exits using `throw'.
+TAG is evalled to get the tag to use; it must not be nil.
+
+Then the BODY is executed.
+Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.
+If no throw happens, `catch' returns the value of the last BODY form.
+If a throw happens, it specifies the value to return from `catch'.
+usage: (catch TAG BODY...)  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object tag;
@@ -1135,9 +1137,9 @@ unwind_to_catch (catch, value)
 }
 
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
-  "Throw to the catch for TAG and return VALUE from it.\n\
-Both TAG and VALUE are evalled.")
-  (tag, value)
+       doc: /* Throw to the catch for TAG and return VALUE from it.
+Both TAG and VALUE are evalled.  */)
+     (tag, value)
      register Lisp_Object tag, value;
 {
   register struct catchtag *c;
@@ -1156,12 +1158,12 @@ Both TAG and VALUE are evalled.")
 
 
 DEFUN ("unwind-protect", Funwind_protect, Sunwind_protect, 1, UNEVALLED, 0,
-  "Do BODYFORM, protecting with UNWINDFORMS.\n\
-If BODYFORM completes normally, its value is returned\n\
-after executing the UNWINDFORMS.\n\
-If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.\n\
-usage: (unwind-protect BODYFORM UNWINDFORMS...)")
-  (args)
+       doc: /* Do BODYFORM, protecting with UNWINDFORMS.
+If BODYFORM completes normally, its value is returned
+after executing the UNWINDFORMS.
+If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.
+usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object val;
@@ -1181,26 +1183,27 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)")
 struct handler *handlerlist;
 
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
-  "Regain control when an error is signaled.\n\
-executes BODYFORM and returns its value if no error happens.\n\
-Each element of HANDLERS looks like (CONDITION-NAME BODY...)\n\
-where the BODY is made of Lisp expressions.\n\n\
-A handler is applicable to an error\n\
-if CONDITION-NAME is one of the error's condition names.\n\
-If an error happens, the first applicable handler is run.\n\
-\n\
-The car of a handler may be a list of condition names\n\
-instead of a single condition name.\n\
-\n\
-When a handler handles an error,\n\
-control returns to the condition-case and the handler BODY... is executed\n\
-with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).\n\
-VAR may be nil; then you do not get access to the signal information.\n\
-\n\
-The value of the last BODY form is returned from the condition-case.\n\
-See also the function `signal' for more info.\n\
-usage: (condition-case VAR BODYFORM HANDLERS...)")
-  (args)
+       doc: /* Regain control when an error is signaled.
+executes BODYFORM and returns its value if no error happens.
+Each element of HANDLERS looks like (CONDITION-NAME BODY...)
+where the BODY is made of Lisp expressions.
+
+A handler is applicable to an error
+if CONDITION-NAME is one of the error's condition names.
+If an error happens, the first applicable handler is run.
+
+The car of a handler may be a list of condition names
+instead of a single condition name.
+
+When a handler handles an error,
+control returns to the condition-case and the handler BODY... is executed
+with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).
+VAR may be nil; then you do not get access to the signal information.
+
+The value of the last BODY form is returned from the condition-case.
+See also the function `signal' for more info.
+usage: (condition-case VAR BODYFORM HANDLERS...)  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object val;
@@ -1404,17 +1407,18 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
 static Lisp_Object find_handler_clause ();
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
-  "Signal an error.  Args are ERROR-SYMBOL and associated DATA.\n\
-This function does not return.\n\n\
-An error symbol is a symbol with an `error-conditions' property\n\
-that is a list of condition names.\n\
-A handler for any of those names will get to handle this signal.\n\
-The symbol `error' should normally be one of them.\n\
-\n\
-DATA should be a list.  Its elements are printed as part of the error message.\n\
-If the signal is handled, DATA is made available to the handler.\n\
-See also the function `condition-case'.")
-  (error_symbol, data)
+       doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
+This function does not return.
+
+An error symbol is a symbol with an `error-conditions' property
+that is a list of condition names.
+A handler for any of those names will get to handle this signal.
+The symbol `error' should normally be one of them.
+
+DATA should be a list.  Its elements are printed as part of the error message.
+If the signal is handled, DATA is made available to the handler.
+See also the function `condition-case'.  */)
+     (error_symbol, data)
      Lisp_Object error_symbol, data;
 {
   /* When memory is full, ERROR-SYMBOL is nil,
@@ -1740,18 +1744,18 @@ error (m, a1, a2, a3)
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 1, 0,
-  "T if FUNCTION makes provisions for interactive calling.\n\
-This means it contains a description for how to read arguments to give it.\n\
-The value is nil for an invalid function or a symbol with no function\n\
-definition.\n\
-\n\
-Interactively callable functions include strings and vectors (treated\n\
-as keyboard macros), lambda-expressions that contain a top-level call\n\
-to `interactive', autoload definitions made by `autoload' with non-nil\n\
-fourth argument, and some of the built-in functions of Lisp.\n\
-\n\
-Also, a symbol satisfies `commandp' if its function definition does so.")
-  (function)
+       doc: /* Non-nil if FUNCTION makes provisions for interactive calling.
+This means it contains a description for how to read arguments to give it.
+The value is nil for an invalid function or a symbol with no function
+definition.
+
+Interactively callable functions include strings and vectors (treated
+as keyboard macros), lambda-expressions that contain a top-level call
+to `interactive', autoload definitions made by `autoload' with non-nil
+fourth argument, and some of the built-in functions of Lisp.
+
+Also, a symbol satisfies `commandp' if its function definition does so.  */)
+     (function)
      Lisp_Object function;
 {
   register Lisp_Object fun;
@@ -1802,19 +1806,19 @@ Also, a symbol satisfies `commandp' if its function definition does so.")
 
 /* ARGSUSED */
 DEFUN ("autoload", Fautoload, Sautoload, 2, 5, 0,
-  "Define FUNCTION to autoload from FILE.\n\
-FUNCTION is a symbol; FILE is a file name string to pass to `load'.\n\
-Third arg DOCSTRING is documentation for the function.\n\
-Fourth arg INTERACTIVE if non-nil says function can be called interactively.\n\
-Fifth arg TYPE indicates the type of the object:\n\
-   nil or omitted says FUNCTION is a function,\n\
-   `keymap' says FUNCTION is really a keymap, and\n\
-   `macro' or t says FUNCTION is really a macro.\n\
-Third through fifth args give info about the real definition.\n\
-They default to nil.\n\
-If FUNCTION is already defined other than as an autoload,\n\
-this does nothing and returns nil.")
-  (function, file, docstring, interactive, type)
+       doc: /* Define FUNCTION to autoload from FILE.
+FUNCTION is a symbol; FILE is a file name string to pass to `load'.
+Third arg DOCSTRING is documentation for the function.
+Fourth arg INTERACTIVE if non-nil says function can be called interactively.
+Fifth arg TYPE indicates the type of the object:
+   nil or omitted says FUNCTION is a function,
+   `keymap' says FUNCTION is really a keymap, and
+   `macro' or t says FUNCTION is really a macro.
+Third through fifth args give info about the real definition.
+They default to nil.
+If FUNCTION is already defined other than as an autoload,
+this does nothing and returns nil.  */)
+     (function, file, docstring, interactive, type)
      Lisp_Object function, file, docstring, interactive, type;
 {
 #ifdef NO_ARG_ARRAY
@@ -1926,8 +1930,8 @@ do_autoload (fundef, funname)
 
 
 DEFUN ("eval", Feval, Seval, 1, 1, 0,
-  "Evaluate FORM and return its value.")
-  (form)
+       doc: /* Evaluate FORM and return its value.  */)
+     (form)
      Lisp_Object form;
 {
   Lisp_Object fun, val, original_fun, original_args;
@@ -2137,11 +2141,11 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 }
 
 DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
-  "Call FUNCTION with our remaining args, using our last arg as list of args.\n\
-Then return the value FUNCTION returns.\n\
-Thus, (apply '+ 1 2 '(3 4)) returns 10.\n\
-usage: (apply FUNCTION &rest ARGUMENTS)")
-  (nargs, args)
+       doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
+Then return the value FUNCTION returns.
+Thus, (apply '+ 1 2 '(3 4)) returns 10.
+usage: (apply FUNCTION &rest ARGUMENTS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2222,18 +2226,18 @@ usage: (apply FUNCTION &rest ARGUMENTS)")
 enum run_hooks_condition {to_completion, until_success, until_failure};
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
-  "Run each hook in HOOKS.  Major mode functions use this.\n\
-Each argument should be a symbol, a hook variable.\n\
-These symbols are processed in the order specified.\n\
-If a hook symbol has a non-nil value, that value may be a function\n\
-or a list of functions to be called to run the hook.\n\
-If the value is a function, it is called with no arguments.\n\
-If it is a list, the elements are called, in order, with no arguments.\n\
-\n\
-To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.\n\
-usage: (run-hooks &rest HOOKS)")
-  (nargs, args)
+       doc: /* Run each hook in HOOKS.  Major mode functions use this.
+Each argument should be a symbol, a hook variable.
+These symbols are processed in the order specified.
+If a hook symbol has a non-nil value, that value may be a function
+or a list of functions to be called to run the hook.
+If the value is a function, it is called with no arguments.
+If it is a list, the elements are called, in order, with no arguments.
+
+To make a hook variable buffer-local, use `make-local-hook',
+not `make-local-variable'.
+usage: (run-hooks &rest HOOKS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2250,21 +2254,21 @@ usage: (run-hooks &rest HOOKS)")
 }
       
 DEFUN ("run-hook-with-args", Frun_hook_with_args,
-  Srun_hook_with_args, 1, MANY, 0,
-  "Run HOOK with the specified arguments ARGS.\n\
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil\n\
-value, that value may be a function or a list of functions to be\n\
-called to run the hook.  If the value is a function, it is called with\n\
-the given arguments and its return value is returned.  If it is a list\n\
-of functions, those functions are called, in order,\n\
-with the given arguments ARGS.\n\
-It is best not to depend on the value return by `run-hook-with-args',\n\
-as that may change.\n\
-\n\
-To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.\n\
-usage: (run-hook-with-args HOOK &rest ARGS)")
-  (nargs, args)
+       Srun_hook_with_args, 1, MANY, 0,
+       doc: /* Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+value, that value may be a function or a list of functions to be
+called to run the hook.  If the value is a function, it is called with
+the given arguments and its return value is returned.  If it is a list
+of functions, those functions are called, in order,
+with the given arguments ARGS.
+It is best not to depend on the value return by `run-hook-with-args',
+as that may change.
+
+To make a hook variable buffer-local, use `make-local-hook',
+not `make-local-variable'.
+usage: (run-hook-with-args HOOK &rest ARGS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2272,18 +2276,18 @@ usage: (run-hook-with-args HOOK &rest ARGS)")
 }
 
 DEFUN ("run-hook-with-args-until-success", Frun_hook_with_args_until_success,
-  Srun_hook_with_args_until_success, 1, MANY, 0,
-  "Run HOOK with the specified arguments ARGS.\n\
-HOOK should be a symbol, a hook variable.  Its value should\n\
-be a list of functions.  We call those functions, one by one,\n\
-passing arguments ARGS to each of them, until one of them\n\
-returns a non-nil value.  Then we return that value.\n\
-If all the functions return nil, we return nil.\n\
-\n\
-To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.\n\
-usage: (run-hook-with-args-until-success HOOK &rest ARGS)")
-  (nargs, args)
+       Srun_hook_with_args_until_success, 1, MANY, 0,
+       doc: /* Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  Its value should
+be a list of functions.  We call those functions, one by one,
+passing arguments ARGS to each of them, until one of them
+returns a non-nil value.  Then we return that value.
+If all the functions return nil, we return nil.
+
+To make a hook variable buffer-local, use `make-local-hook',
+not `make-local-variable'.
+usage: (run-hook-with-args-until-success HOOK &rest ARGS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2291,18 +2295,18 @@ usage: (run-hook-with-args-until-success HOOK &rest ARGS)")
 }
 
 DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
-  Srun_hook_with_args_until_failure, 1, MANY, 0,
-  "Run HOOK with the specified arguments ARGS.\n\
-HOOK should be a symbol, a hook variable.  Its value should\n\
-be a list of functions.  We call those functions, one by one,\n\
-passing arguments ARGS to each of them, until one of them\n\
-returns nil.  Then we return nil.\n\
-If all the functions return non-nil, we return non-nil.\n\
-\n\
-To make a hook variable buffer-local, use `make-local-hook',\n\
-not `make-local-variable'.\n\
-usage: (run-hook-with-args-until-failure HOOK &rest ARGS)")
-  (nargs, args)
+       Srun_hook_with_args_until_failure, 1, MANY, 0,
+       doc: /* Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  Its value should
+be a list of functions.  We call those functions, one by one,
+passing arguments ARGS to each of them, until one of them
+returns nil.  Then we return nil.
+If all the functions return non-nil, we return non-nil.
+
+To make a hook variable buffer-local, use `make-local-hook',
+not `make-local-variable'.
+usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2626,11 +2630,11 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
-  "Call first argument as a function, passing remaining arguments to it.\n\
-Return the value that function returns.\n\
-Thus, (funcall 'cons 'x 'y) returns (x . y).\n\
-usage: (funcall FUNCTION &rest ARGUMENTS)")
-  (nargs, args)
+       doc: /* Call first argument as a function, passing remaining arguments to it.
+Return the value that function returns.
+Thus, (funcall 'cons 'x 'y) returns (x . y).
+usage: (funcall FUNCTION &rest ARGUMENTS)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2906,9 +2910,9 @@ funcall_lambda (fun, nargs, arg_vector)
 }
 
 DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
-  1, 1, 0,
-  "If byte-compiled OBJECT is lazy-loaded, fetch it now.")
-  (object)
+       1, 1, 0,
+       doc: /* If byte-compiled OBJECT is lazy-loaded, fetch it now.  */)
+     (object)
      Lisp_Object object;
 {
   Lisp_Object tem;
@@ -3143,9 +3147,9 @@ top_level_set (symbol, newval)
 #endif /* 0 */
 
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
-  "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.\n\
-The debugger is entered when that frame exits, if the flag is non-nil.")
-  (level, flag)
+       doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
+The debugger is entered when that frame exits, if the flag is non-nil.  */)
+     (level, flag)
      Lisp_Object level, flag;
 {
   register struct backtrace *backlist = backtrace_list;
@@ -3165,9 +3169,9 @@ The debugger is entered when that frame exits, if the flag is non-nil.")
 }
 
 DEFUN ("backtrace", Fbacktrace, Sbacktrace, 0, 0, "",
-  "Print a trace of Lisp function calls currently active.\n\
-Output stream used is value of `standard-output'.")
-  ()
+       doc: /* Print a trace of Lisp function calls currently active.
+Output stream used is value of `standard-output'.  */)
+     ()
 {
   register struct backtrace *backlist = backtrace_list;
   register int i;
@@ -3223,16 +3227,16 @@ Output stream used is value of `standard-output'.")
 }
 
 DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, NULL,
-  "Return the function and arguments NFRAMES up from current execution point.\n\
-If that frame has not evaluated the arguments yet (or is a special form),\n\
-the value is (nil FUNCTION ARG-FORMS...).\n\
-If that frame has evaluated its arguments and called its function already,\n\
-the value is (t FUNCTION ARG-VALUES...).\n\
-A &rest arg is represented as the tail of the list ARG-VALUES.\n\
-FUNCTION is whatever was supplied as car of evaluated list,\n\
-or a lambda expression for macro calls.\n\
-If NFRAMES is more than the number of frames, the value is nil.")
-  (nframes)
+       doc: /* Return the function and arguments NFRAMES up from current execution point.
+If that frame has not evaluated the arguments yet (or is a special form),
+the value is (nil FUNCTION ARG-FORMS...).
+If that frame has evaluated its arguments and called its function already,
+the value is (t FUNCTION ARG-VALUES...).
+A &rest arg is represented as the tail of the list ARG-VALUES.
+FUNCTION is whatever was supplied as car of evaluated list,
+or a lambda expression for macro calls.
+If NFRAMES is more than the number of frames, the value is nil.  */)
+     (nframes)
      Lisp_Object nframes;
 {
   register struct backtrace *backlist = backtrace_list;
@@ -3265,28 +3269,28 @@ void
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
-    "*Limit on number of Lisp variable bindings & unwind-protects.\n\
-If Lisp code tries to make more than this many at once,\n\
-an error is signaled.");
+	      doc: /* *Limit on number of Lisp variable bindings & unwind-protects.
+If Lisp code tries to make more than this many at once,
+an error is signaled.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", &max_lisp_eval_depth,
-    "*Limit on depth in `eval', `apply' and `funcall' before error.\n\
-This limit is to catch infinite recursions for you before they cause\n\
-actual stack overflow in C, which would be fatal for Emacs.\n\
-You can safely make it considerably larger than its default value,\n\
-if that proves inconveniently small.");
+	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
+This limit is to catch infinite recursions for you before they cause
+actual stack overflow in C, which would be fatal for Emacs.
+You can safely make it considerably larger than its default value,
+if that proves inconveniently small.  */);
 
   DEFVAR_LISP ("quit-flag", &Vquit_flag,
-    "Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.\n\
-Typing C-g sets `quit-flag' non-nil, regardless of `inhibit-quit'.");
+	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
+Typing C-g sets `quit-flag' non-nil, regardless of `inhibit-quit'.  */);
   Vquit_flag = Qnil;
 
   DEFVAR_LISP ("inhibit-quit", &Vinhibit_quit,
-    "Non-nil inhibits C-g quitting from happening immediately.\n\
-Note that `quit-flag' will still be set by typing C-g,\n\
-so a quit will be signaled as soon as `inhibit-quit' is nil.\n\
-To prevent this happening, set `quit-flag' to nil\n\
-before making `inhibit-quit' nil.");
+	       doc: /* Non-nil inhibits C-g quitting from happening immediately.
+Note that `quit-flag' will still be set by typing C-g,
+so a quit will be signaled as soon as `inhibit-quit' is nil.
+To prevent this happening, set `quit-flag' to nil
+before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
   Qinhibit_quit = intern ("inhibit-quit");
@@ -3322,73 +3326,73 @@ before making `inhibit-quit' nil.");
   staticpro (&Qand_optional);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
-    "*Non-nil means automatically display a backtrace buffer\n\
-after any error that is handled by the editor command loop.\n\
-If the value is a list, an error only means to display a backtrace\n\
-if one of its condition symbols appears in the list.");
+	       doc: /* *Non-nil means automatically display a backtrace buffer
+after any error that is handled by the editor command loop.
+If the value is a list, an error only means to display a backtrace
+if one of its condition symbols appears in the list.  */);
   Vstack_trace_on_error = Qnil;
 
   DEFVAR_LISP ("debug-on-error", &Vdebug_on_error,
-    "*Non-nil means enter debugger if an error is signaled.\n\
-Does not apply to errors handled by `condition-case' or those\n\
-matched by `debug-ignored-errors'.\n\
-If the value is a list, an error only means to enter the debugger\n\
-if one of its condition symbols appears in the list.\n\
-When you evaluate an expression interactively, this variable\n\
-is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.\n\
-See also variable `debug-on-quit'.");
+	       doc: /* *Non-nil means enter debugger if an error is signaled.
+Does not apply to errors handled by `condition-case' or those
+matched by `debug-ignored-errors'.
+If the value is a list, an error only means to enter the debugger
+if one of its condition symbols appears in the list.
+When you evaluate an expression interactively, this variable
+is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
+See also variable `debug-on-quit'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", &Vdebug_ignored_errors,
-    "*List of errors for which the debugger should not be called.\n\
-Each element may be a condition-name or a regexp that matches error messages.\n\
-If any element applies to a given error, that error skips the debugger\n\
-and just returns to top level.\n\
-This overrides the variable `debug-on-error'.\n\
-It does not apply to errors handled by `condition-case'.");
+    doc: /* *List of errors for which the debugger should not be called.
+Each element may be a condition-name or a regexp that matches error messages.
+If any element applies to a given error, that error skips the debugger
+and just returns to top level.
+This overrides the variable `debug-on-error'.
+It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
-    "*Non-nil means enter debugger if quit is signaled (C-g, for example).\n\
-Does not apply if quit is handled by a `condition-case'.\n\
-When you evaluate an expression interactively, this variable\n\
-is temporarily non-nil if `eval-expression-debug-on-quit' is non-nil.");
+	       doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+Does not apply if quit is handled by a `condition-case'.
+When you evaluate an expression interactively, this variable
+is temporarily non-nil if `eval-expression-debug-on-quit' is non-nil.  */);
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
-    "Non-nil means enter debugger before next `eval', `apply' or `funcall'.");
+	       doc: /* Non-nil means enter debugger before next `eval', `apply' or `funcall'.  */);
 
   DEFVAR_BOOL ("debugger-may-continue", &debugger_may_continue,
-    "Non-nil means debugger may continue execution.\n\
-This is nil when the debugger is called under circumstances where it\n\
-might not be safe to continue.");
+	       doc: /* Non-nil means debugger may continue execution.
+This is nil when the debugger is called under circumstances where it
+might not be safe to continue.  */);
   debugger_may_continue = 1;
 
   DEFVAR_LISP ("debugger", &Vdebugger,
-    "Function to call to invoke debugger.\n\
-If due to frame exit, args are `exit' and the value being returned;\n\
- this function's value will be returned instead of that.\n\
-If due to error, args are `error' and a list of the args to `signal'.\n\
-If due to `apply' or `funcall' entry, one arg, `lambda'.\n\
-If due to `eval' entry, one arg, t.");
+	       doc: /* Function to call to invoke debugger.
+If due to frame exit, args are `exit' and the value being returned;
+ this function's value will be returned instead of that.
+If due to error, args are `error' and a list of the args to `signal'.
+If due to `apply' or `funcall' entry, one arg, `lambda'.
+If due to `eval' entry, one arg, t.  */);
   Vdebugger = Qnil;
 
   DEFVAR_LISP ("signal-hook-function", &Vsignal_hook_function,
-    "If non-nil, this is a function for `signal' to call.\n\
-It receives the same arguments that `signal' was given.\n\
-The Edebug package uses this to regain control.");
+	       doc: /* If non-nil, this is a function for `signal' to call.
+It receives the same arguments that `signal' was given.
+The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
 
   Qmocklisp_arguments = intern ("mocklisp-arguments");
   staticpro (&Qmocklisp_arguments);
   DEFVAR_LISP ("mocklisp-arguments", &Vmocklisp_arguments,
-    "While in a mocklisp function, the list of its unevaluated args.");
+	       doc: /* While in a mocklisp function, the list of its unevaluated args.  */);
   Vmocklisp_arguments = Qt;
 
   DEFVAR_LISP ("debug-on-signal", &Vdebug_on_signal,
-    "*Non-nil means call the debugger regardless of condition handlers.\n\
-Note that `debug-on-error', `debug-on-quit' and friends\n\
-still determine whether to handle the particular condition.");
+	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
+Note that `debug-on-error', `debug-on-quit' and friends
+still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
 
   Vrun_hooks = intern ("run-hooks");
