@@ -940,7 +940,8 @@
 	 form)
 	 ;; The body is nil
 	((eq (car form) 'let)
-	 (append '(progn) (mapcar 'car (mapcar 'cdr (nth 1 form))) '(nil)))
+	 (append '(progn) (mapcar 'car-safe (mapcar 'cdr-safe (nth 1 form)))
+		 '(nil)))
 	(t
 	 (let ((binds (reverse (nth 1 form))))
 	   (list 'let* (reverse (cdr binds)) (nth 1 (car binds)) nil)))))
