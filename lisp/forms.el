@@ -102,6 +102,11 @@
 ;;;			If no write access to the data file is
 ;;;			possible, view mode is enforced. 
 ;;;
+;;;     forms-check-number-of-fields            [bool, default t]
+;;;                   If non-nil, a warning will be issued whenever
+;;;                   a record is found that does not have the number
+;;;                   of fields specified by `forms-number-of-fields'.
+;;;
 ;;;	forms-multi-line			[string, default "^K"]
 ;;;			If non-null the records of the data file may
 ;;;			contain fields that can span multiple lines in
@@ -282,10 +287,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.18 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.19 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.18 1995/06/18 14:43:23 jvromans Exp jvromans $")
+  $Id: forms.el,v 2.19 1995/07/08 13:16:54 jvromans Exp rms $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -302,6 +307,9 @@
   "Number of fields per record.")
 
 ;;; Optional variables with default values.
+
+(defvar forms-check-number-of-fields t
+  "If non-nil, warn about records with wrong number of fields.")
 
 (defvar forms-field-sep "\t"
   "Field separator character (default TAB).")
@@ -1484,9 +1492,11 @@ Commands:                        Equivalent keys in read-only mode:
   ;; Verify the number of fields, extend forms--the-record-list if needed.
   (if (= (length forms--the-record-list) forms-number-of-fields)
       nil
-    (beep)
-    (message "Warning: this record has %d fields instead of %d"
-	     (length forms--the-record-list) forms-number-of-fields)
+    (if (null forms-check-number-of-fields)
+	nil
+      (beep)
+      (message "Warning: this record has %d fields instead of %d"
+	       (length forms--the-record-list) forms-number-of-fields))
     (if (< (length forms--the-record-list) forms-number-of-fields)
 	(setq forms--the-record-list 
 	      (append forms--the-record-list
