@@ -63,24 +63,24 @@
 ;;============================================================================
 ;; Comint Mode Commands: (common to shell and all comint-derived modes)
 ;;
-;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;; m-n	    comint-next-input  	    	    Cycle forwards
+;; m-p	   comint-previous-input    	   Cycle backwards in input history
+;; m-n	   comint-next-input  	    	   Cycle forwards
 ;; m-r     comint-previous-matching-input  Previous input matching a regexp
 ;; m-s     comint-next-matching-input      Next input that matches
-;; m-c-l   comint-show-output		    Show last batch of process output
+;; m-c-l   comint-show-output		   Show last batch of process output
 ;; return  comint-send-input
-;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
+;; c-d	   comint-delchar-or-maybe-eof	   Delete char unless at end of buff.
 ;; c-c c-a comint-bol                      Beginning of line; skip prompt
-;; c-c c-u comint-kill-input	    	    ^u
-;; c-c c-w backward-kill-word    	    ^w
-;; c-c c-c comint-interrupt-subjob 	    ^c
-;; c-c c-z comint-stop-subjob	    	    ^z
-;; c-c c-\ comint-quit-subjob	    	    ^\
-;; c-c c-o comint-kill-output		    Delete last batch of process output
-;; c-c c-r comint-show-output		    Show last batch of process output
+;; c-c c-u comint-kill-input	    	   ^u
+;; c-c c-w backward-kill-word    	   ^w
+;; c-c c-c comint-interrupt-subjob 	   ^c
+;; c-c c-z comint-stop-subjob	    	   ^z
+;; c-c c-\ comint-quit-subjob	    	   ^\
+;; c-c c-o comint-kill-output		   Delete last batch of process output
+;; c-c c-r comint-show-output		   Show last batch of process output
 ;; c-c c-h comint-dynamic-list-input-ring  List input history
 ;;         send-invisible                  Read line w/o echo & send to proc
-;;         comint-continue-subjob	    Useful if you accidentally suspend
+;;         comint-continue-subjob	   Useful if you accidentally suspend
 ;;					        top-level job
 ;; comint-mode-hook is the comint mode hook.
 
@@ -91,8 +91,8 @@
 ;;					List completions in help buffer
 ;; m-c-f   shell-forward-command	Forward a shell command
 ;; m-c-b   shell-backward-command	Backward a shell command
-;; 	    dirs			Resync the buffer's dir stack
-;; 	    dirtrack-mode		Turn dir tracking on/off
+;; 	   dirs				Resync the buffer's dir stack
+;; 	   dirtrack-mode		Turn dir tracking on/off
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;
 ;; The shell mode hook is shell-mode-hook
@@ -758,7 +758,7 @@ command again."
   "Copy the environment variable VARIABLE from the subshell to Emacs.
 This command reads the value of the specified environment variable
 in the shell, and sets the same environment variable in Emacs
-\(what `getenv' in Emacvs would return) to that value.
+\(what `getenv' in Emacs would return) to that value.
 That value will affect any new subprocesses that you subsequently start
 from Emacs."
   (interactive (list (read-envvar-name "\
