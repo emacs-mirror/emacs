@@ -24,6 +24,21 @@
 
 ;;; Code:
 
+(eval-when-compile
+ ;; These used to be defsubsts, now they're subrs.  Avoid losing if we're
+ ;; being compiled with an old Emacs that still has defsubrs in it.
+ (put 'face-name 'byte-optimizer nil)
+ (put 'face-id 'byte-optimizer nil)
+ (put 'face-font 'byte-optimizer nil)
+ (put 'face-foreground 'byte-optimizer nil)
+ (put 'face-background 'byte-optimizer nil)
+ (put 'face-stipple 'byte-optimizer nil)
+ (put 'face-underline-p 'byte-optimizer nil)
+ (put 'set-face-font 'byte-optimizer nil)
+ (put 'set-face-foreground 'byte-optimizer nil)
+ (put 'set-face-background 'byte-optimizer nil)
+ (put 'set-stipple 'byte-optimizer nil)
+ (put 'set-face-underline-p 'byte-optimizer nil))
 
 ;;;; Functions for manipulating face vectors.
 
