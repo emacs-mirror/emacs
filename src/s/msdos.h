@@ -153,9 +153,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_MODE_T
 
-/* we can use dj's getpagesize() */
-#define HAVE_GETPAGESIZE
-
 /* New chdir () routine. */
 #ifdef chdir
 #undef chdir

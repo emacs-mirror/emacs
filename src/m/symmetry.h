@@ -59,9 +59,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/dynix"
 
-/* define HAVE_GETPAGESIZE for Symmetry */
-#define HAVE_GETPAGESIZE
-
 /* Avoids a compiler bug */
 
 #define TAHOE_REGISTER_BUG

@@ -181,7 +181,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#define HAVE_GETPAGESIZE
 #define HAVE_VFORK
 #define HAVE_SYS_SIGLIST
 #define HAVE_GETWD            /* cure conflict with getcwd? */
@@ -201,9 +200,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_DEBUG
 #define LIBS_TERMCAP -ltermcap -lcurses /* save some space with shared libs*/
 #define LIB_STANDARD -lc /* avoid -lPW */
-#ifdef HAVE_X11
-#define LD_SWITCH_SYSTEM -L/usr/X386/lib
-#endif
 
 /* Don't use -g in test compiles in configure.
    This is so we will use the same shared libs for that linking
