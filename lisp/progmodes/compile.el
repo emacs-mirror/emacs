@@ -119,6 +119,11 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 \\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
 :\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
 
+    ;; Microsoft C/C++:
+    ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
+    ;;  d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
+    ("\n\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 3)
+
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
