@@ -1,3 +1,7 @@
+2001-03-30  Miles Bader  <miles@gnu.org>
+
+	* subr.el (interactive-form): Fix paren typo.
+
 2001-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/profile.el: Say that it's obsolete in the header
