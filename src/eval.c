@@ -1086,6 +1086,11 @@ internal_condition_case (bfun, handlers, hfun)
   struct catchtag c;
   struct handler h;
 
+  /* Since Fsignal resets this to 0, it had better be 0 now
+     or else we have a potential bug.  */
+  if (interrupt_input_blocked != 0)
+    abort ();
+
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
