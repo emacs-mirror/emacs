@@ -193,6 +193,35 @@ you should bind @code{load-path} locally with @code{let} around the
 calls to @code{load}.
 @end defopt
 
+  The default value of @code{load-path}, when running an Emacs which has
+been installed on the system, looks like this:
+
+@smallexample
+("/usr/local/share/emacs/@var{version}/site-lisp"
+ "/usr/local/share/emacs/site-lisp"
+ "/usr/local/share/emacs/@var{version}/lisp")
+@end smallexample
+
+  The last of these three directories is where the Lisp files of Emacs
+itself are installed; the first two are for additional Lisp packages
+installed at your site.  The first directory is for locally installed
+packages that belong with a particular Emacs version; the second is for
+locally installed packages that can be used with any installed Emacs
+version.
+
+  There are several reasons why a Lisp package that works well in one
+Emacs version can cause trouble in another.  Sometimes packages need
+updating for incompatible changes in Emacs; sometimes they depend on
+undocumented internal Emacs data that can change without notice;
+sometimes a newer Emacs version incorporates a version of the package,
+and should be used only with that version.
+
+  If you run Emacs from the directory where it was built---that is, an
+executable that has not been formally installed---then @code{load-path}
+normally contains two additional directories.  These are the @code{lisp}
+and @code{site-lisp} subdirectories of the main build directory.  (Both
+are represented as absolute file names.)
+
 @defvar load-in-progress
 This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.
