@@ -25,49 +25,32 @@
 
 ;;; Code:
 
-(defconst display-table-extras 6
-  "The number of extra slots in a display table.")
+(put 'display-table 'char-table-extra-slots 6)
 
 ;;;###autoload
 (defun make-display-table ()
   "Return a new, empty display table."
-  (make-char-table display-table-extras nil))
+  (make-char-table 'display-table nil))
 
 (or standard-display-table
     (setq standard-display-table (make-display-table)))
 
-(defconst display-table-slot-name-alist
-  '((truncation		0 display-table-char-p)
-    (wrap		1 display-table-char-p)
-    (escape		2 display-table-char-p)
-    (control		3 display-table-char-p)
-    (selective-display	4 display-table-vector-p)
-    (vertical-border	5 display-table-char-p))
-  "Association list of display-table slot names.
-Each element contains the slot name, slot number, and a predicate
-function to test the validity of values for the setter function.")
+;;; Display-table slot names.  The property value says which slot.
 
-(defun display-table-char-p (c)
-  "Test whether c is a valid character for display-tables."
-  (and (integerp c) (<= 0 c) (<= c 256)))
-
-(defun display-table-vector-p (cv)
-  "Test whether CV is a valid character vector for display-tables."
-  (and (vectorp cv)
-       ;; (every 'display-table-char-p cv)
-       (let ((i (1- (length cv))))
-	 (while (and (<= 0 i) (display-table-char-p (aref cv i)))
-	   (setq i (1- i)))
-	 (> 0 i))))
+(put 'truncation 'display-table-slot 0)
+(put 'wrap 'display-table-slot 1)
+(put 'escape 'display-table-slot 2)
+(put 'control 'display-table-slot 3)
+(put 'selective-display 'display-table-slot 4)
+(put 'vertical-border 'display-table-slot 5)
 
 ;;;###autoload
 (defun display-table-slot (display-table slot)
   "Return the value of the extra slot in DISPLAY-TABLE named SLOT.
-SLOT may be a number from 0 to 5 inclusive, or a name (symbol).
-See `display-table-slot-name-alist' for the names and numbers."
+SLOT may be a number from 0 to 5 inclusive, or a slot name (symbol)."
   (let ((slot-number
 	 (if (numberp slot) slot
-	   (or (car (cdr (assoc slot display-table-slot-name-alist)))
+	   (or (get slot 'display-table-slot)
 	       (error "Invalid display-table slot name: %s" slot)))))
     (char-table-extra-slot display-table slot-number)))
 
@@ -76,33 +59,28 @@ See `display-table-slot-name-alist' for the names and numbers."
   "Set the value of the extra slot in DISPLAY-TABLE named SLOT to VALUE.
 SLOT may be a number from 0 to 5 inclusive, or a name (symbol).
 See `display-table-slot-name-alist' for the names and numbers."
-  (let* ((slot-entry
-	  (or (if (numberp slot)
-		  (cdr (nth slot display-table-slot-name-alist))
-		(cdr (assoc slot display-table-slot-name-alist)))
-	      (error "Invalid display-table slot: %s" slot)))
-	 (slot-number (car slot-entry))
-	 (slot-predicate (car (cdr slot-entry))))
-    (if (funcall slot-predicate value)
-	(set-char-table-extra-slot display-table slot-number value)
-      (signal 'wrong-type-argument (list slot-predicate value)))))
+  (let ((slot-number
+	 (if (numberp slot) slot
+	   (or (get slot 'display-table-slot)
+	       (error "Invalid display-table slot name: %s" slot)))))
+    (set-char-table-extra-slot display-table slot-number value)))
 
 ;;;###autoload
 (defun describe-display-table (dt)
   "Describe the display table DT in a help buffer."
   (with-output-to-temp-buffer "*Help*"
     (princ "\nTruncation glyph: ")
-    (prin1 (char-table-extra-slot dt 0)) ;direct access is faster
+    (prin1 (display-table-slot dt 'truncation))
     (princ "\nWrap glyph: ")
-    (prin1 (char-table-extra-slot dt 1))
+    (prin1 (display-table-slot dt 'wrap))
     (princ "\nEscape glyph: ")
-    (prin1 (char-table-extra-slot dt 2))
+    (prin1 (display-table-slot dt 'escape))
     (princ "\nCtrl glyph: ")
-    (prin1 (char-table-extra-slot dt 3))
+    (prin1 (display-table-slot dt 'control))
     (princ "\nSelective display glyph sequence: ")
-    (prin1 (char-table-extra-slot dt 4))
+    (prin1 (display-table-slot dt 'selective-display))
     (princ "\nVertical window border glyph: ")
-    (prin1 (char-table-extra-slot dt 5))
+    (prin1 (display-table-slot dt 'vertical-border))
     (princ "\nCharacter display glyph sequences:\n")
     (save-excursion
       (set-buffer standard-output)
