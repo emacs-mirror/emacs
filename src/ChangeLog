@@ -1,3 +1,26 @@
+2004-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left 
+	and canon_width.
+	(xg_frame_cleared): Removed.
+
+	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose,
+	xg_find_top_left_in_fixed): Removed.
+	(xg_create_scroll_bar): Put an event box widget between
+	the scroll bar widget and the edit widget.
+	(xg_show_scroll_bar): Show the parent widget (the event box).
+	(xg_remove_scroll_bar): Destroy parent (the event box) also.
+	(xg_update_scrollbar_pos): Remove arguments real_left and canon_width.
+	Move the parent (the event box) widget inside the fixed widget.
+	Move window clear to xterm.c.
+
+	* gtkutil.h (xg_frame_cleared): Removed.
+	
+	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
+	(x_scroll_bar_create, XTset_vertical_scroll_bar): Remove
+	arguments left and width to xg_update_scrollbar_pos.
+	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
+
 2004-10-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_mode_element): Fix display of wide chars.
