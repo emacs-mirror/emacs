@@ -1535,14 +1535,14 @@ or a function symbol which, when called, returns such a cons cell."
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.
-A translation table is a char table intended for for character
+A translation table is a char table intended for character
 translation in CCL programs.
 
-Each argument is a list of elemnts of the form (FROM . TO), where FROM
+Each argument is a list of elements of the form (FROM . TO), where FROM
 is a character to be translated to TO.
 
 FROM can be a generic character (see `make-char').  In this case, TO is
-a generic character containing the same number of characters, or a
+a generic character containing the same number of characters, or an
 ordinary character.  If FROM and TO are both generic characters, all
 characters belonging to FROM are translated to characters belonging to TO
 without changing their position code(s).
