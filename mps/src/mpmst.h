@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.35) $
+ * $HopeName: MMsrc!mpmst.h(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -480,6 +480,7 @@ typedef struct TraceStruct {
   Arena arena;                  /* owning arena */
   Action action;                /* the action that launched the trace */
   RefSet white;                 /* superset of refs in white set */
+  RefSet mayMove;		/* superset of refs in moving set */
   TraceState state;             /* current state of trace */
   Size condemned;               /* condemned set size */
   Size foundation;              /* initial grey set size */

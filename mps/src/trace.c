@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.47) $
+ * $HopeName: MMsrc!trace.c(trunk.48) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.47) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.48) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -60,6 +60,7 @@ Bool TraceCheck(Trace trace)
   CHECKL(trace == &trace->arena->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace->ti));
   /* Can't check trace->white -- not in O(1) anyway. */
+  CHECKL(RefSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
     case TraceINIT:
@@ -141,6 +142,11 @@ static Res TraceStart(Trace trace, Action action)
     if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
       trace->white = RefSetUnion(trace->white, RefSetOfSeg(arena, seg));
       trace->condemned += SegSize(seg);
+      /* if the pool is a moving GC, then condemned objects may move */
+      if(pool->class->attr & AttrMOVINGGC) {
+        trace->mayMove =
+	  RefSetUnion(trace->mayMove, RefSetOfSeg(arena, seg));
+      }
     }
 
     node = next;
@@ -286,6 +292,7 @@ found:
   trace->arena = arena;
   trace->action = action;
   trace->white = RefSetEMPTY;
+  trace->mayMove = RefSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -396,12 +403,12 @@ static Res TraceFlip(Trace trace)
 
   TraceFlipBuffers(arena);
  
-  /* Update location dependency structures.  white is */
-  /* a conservative approximation of the refset of refs which */
-  /* may move during this collection. */
-  /* @@@@ It is too conservative.  Not everything white will */
-  /* necessarily move. */
-  LDAge(arena, trace->white);
+  /* Update location dependency structures. */
+  /* mayMove is a conservative approximation of the refset of refs */
+  /* which may move during this collection. */
+  if(trace->mayMove != RefSetEMPTY) {
+    LDAge(arena, trace->mayMove);
+  }
 
   /* At the moment we must scan all roots, because we don't have */
   /* a mechanism for shielding them.  There can't be any weak or */
