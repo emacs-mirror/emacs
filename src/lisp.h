@@ -60,9 +60,9 @@ extern void die P_((const char *, const char *, int));
 
 #ifdef ENABLE_CHECKING
 
-#define CHECK(check,msg) ((check || suppress_checking		\
+#define CHECK(check,msg) (((check) || suppress_checking		\
 			   ? (void) 0				\
-			   : die (msg, __FILE__, __LINE__)),	\
+			   : die ((msg), __FILE__, __LINE__)),	\
 			  0)
 
 /* Let's get some compile-time checking too.  */
@@ -335,7 +335,10 @@ enum pvec_type
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.  */
+   fact that Lisp_Int is 0.
+   Beware: XFASTINT applied to a non-positive integer or to something
+   else than an integer should return something that preserves all the
+   info that was in the Lisp_Object, because it is used in EQ.  */
 #define XFASTINT(a) ((a) + 0)
 #define XSETFASTINT(a, b) ((a) = (b))
 
@@ -1691,9 +1694,6 @@ extern void defvar_kboard P_ ((char *, int));
 
    If func is non-zero, undoing this binding applies func to old_value;
       This implements record_unwind_protect.
-   If func is zero and symbol is nil, undoing this binding evaluates
-      the list of forms in old_value; this implements Lisp's unwind-protect
-      form.
 
    Otherwise, the element is a variable binding.
 
