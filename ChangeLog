@@ -1,3 +1,8 @@
+2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* INSTALL (* GNU/Linux development packages): Tell people to
+	install additional packages for compiling Emacs.
+
 2003-04-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* configure.in: Use the same configuration for all aix5, not just

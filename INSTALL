@@ -172,6 +172,13 @@ BDF fonts etl-unicode.tar.gz used by ps-print and ps-mule to print
 Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
 and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
 
+* GNU/Linux development packages
+
+Many GNU/Linux systems do not come with development packages by
+default; they just include the files that you need to run Emacs, but
+not those you need to compile it.  For example, to compile Emacs with
+X11 support, you may need to install the special `X11 development'
+package (`xlibs-dev' on Debian).
 
 
 DETAILED BUILDING AND INSTALLATION:
