@@ -4369,8 +4369,8 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
 DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
   "Look up KEY in TABLE and return its associated value.\n\
 If KEY is not found, return DFLT which defaults to nil.")
-  (table, key, dflt)
-     Lisp_Object table, key;
+  (key, table, dflt)
+     Lisp_Object key, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
   int i = hash_lookup (h, key, NULL);
@@ -4382,8 +4382,8 @@ DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
   "Associate KEY with VALUE is hash table TABLE.\n\
 If KEY is already present in table, replace its current value with\n\
 VALUE.")
-  (table, key, value)
-     Lisp_Object table, key, value;
+  (key, value, table)
+     Lisp_Object key, value, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
   int i;
@@ -4401,8 +4401,8 @@ VALUE.")
 
 DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
   "Remove KEY from TABLE.")
-  (table, key)
-     Lisp_Object table, key;
+  (key, table)
+     Lisp_Object key, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
   hash_remove (h, key);
