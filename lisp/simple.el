@@ -2484,7 +2484,7 @@ With prefix arg, `transient-mark-mode' is enabled temporarily."
       (goto-char omark)
       nil)))
 
-(define-minor-mode transient-mark-mode
+(defun transient-mark-mode (arg)
   "Toggle Transient Mark mode.
 With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
@@ -2505,7 +2505,15 @@ default part of the buffer's text.  Examples of such commands include
 \\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
 the prompt, to see the documentation of commands which are sensitive to
 the Transient Mark mode."
-  :global t :group 'editing-basics)
+  (interactive "P")
+  (setq transient-mark-mode
+	(if (null arg)
+	    (not transient-mark-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (if (interactive-p)
+      (if transient-mark-mode
+	  (message "Transient Mark mode enabled")
+	(message "Transient Mark mode disabled"))))
 
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
@@ -3276,7 +3284,12 @@ specialization of overwrite-mode, entered by setting the
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
-(define-minor-mode line-number-mode
+(defcustom line-number-mode t
+  "*Non-nil means display line number in mode line."
+  :type 'boolean
+  :group 'editing-basics)
+
+(defun line-number-mode (arg)
   "Toggle Line Number mode.
 With arg, turn Line Number mode on iff arg is positive.
 When Line Number mode is enabled, the line number appears
@@ -3285,14 +3298,27 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics)
+  (interactive "P")
+  (setq line-number-mode
+	(if (null arg) (not line-number-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
-(define-minor-mode column-number-mode
+(defcustom column-number-mode nil
+  "*Non-nil means display column number in mode line."
+  :type 'boolean
+  :group 'editing-basics)
+
+(defun column-number-mode (arg)
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics)
+  (interactive "P")
+  (setq column-number-mode
+	(if (null arg) (not column-number-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
