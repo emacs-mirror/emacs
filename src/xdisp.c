@@ -239,7 +239,8 @@ message1 (m)
 }
 
 /* Display an echo area message M with a specified length of LEN chars.
-   This way, null characters can be included.  */
+   This way, null characters can be included.  Do not pass text that is
+   stored in a Lisp string.  */
 
 void
 message2 (m, len)
