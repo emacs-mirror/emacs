@@ -1,3 +1,7 @@
+2005-01-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-display-raw): Fix docstring.
+
 2005-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-here-doc-open-re): Don't allow | or other
