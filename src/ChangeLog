@@ -1,3 +1,11 @@
+2002-01-07  Jason Rumney  <jasonr@gnu.org>
+
+	* xmenu.c (set_frame_menubar, xmenu_show):
+	(xdialog_show):	Initialize wv->help to Qnil. 
+
+	* w32menu.c (single_submenu, set_frame_menubar, w32_menu_show):
+	(w32_dialog_show): Initialize wv->help to Qnil.
+
 2002-01-06  Jason Rumney  <jasonr@gnu.org>
 
 	* xmenu.c (single_submenu): Initialize wv->help to Qnil.
