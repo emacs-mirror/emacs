@@ -58,7 +58,7 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 			(read-input "Site name: " (system-name))
 		      (system-name)))
 	 (defun (add-log-current-defun))
-	 entry entry-position empty-entry)
+	 paragraph-end entry)
     (or file-name
 	(setq file-name (or change-log-default-name
 			    default-directory)))
@@ -71,69 +71,55 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
     (setq file-name
 	  (expand-file-name (or (file-symlink-p file-name) file-name)))
     (set (make-local-variable 'change-log-default-name) file-name)
-    (if buffer-file-name
-	(setq entry (if (string-match
-			 (concat "^" (regexp-quote (file-name-directory
-						    file-name)))
-			 buffer-file-name)
-			(substring buffer-file-name (match-end 0))
-		      (file-name-nondirectory buffer-file-name))))
-    ;; Never want to add a change log entry for the ChangeLog file itself.
-    (if (equal entry "ChangeLog")
-	(setq entry nil
-	      defun nil))
+
+    ;; Set ENTRY to the file name to use in the new entry.
+    (and buffer-file-name
+	 ;; Never want to add a change log entry for the ChangeLog file itself.
+	 (not (string= buffer-file-name file-name))
+	 (setq entry (if (string-match
+			  (concat "^" (regexp-quote (file-name-directory
+						     file-name)))
+			  buffer-file-name)
+			 (substring buffer-file-name (match-end 0))
+		       (file-name-nondirectory buffer-file-name))))
+
     (if (and other-window (not (equal file-name buffer-file-name)))
 	(find-file-other-window file-name)
       (find-file file-name))
     (undo-boundary)
     (goto-char (point-min))
-    (or (looking-at (concat (substring (current-time-string) 0 10)
-				 ".* " full-name "  (" login-name "@"))
+    (or (looking-at (concat (regexp-quote (substring (current-time-string)
+						     0 10))
+			    ".* " (regexp-quote full-name)
+			    "  (" (regexp-quote login-name) "@"))
 	(insert (current-time-string)
 		"  " full-name
-		"  (" login-name
-		"@" site-name ")\n\n"))
+		"  (" login-name "@" site-name ")\n\n"))
+
+    ;; Search only within the first paragraph.
+    (forward-paragraph 1)
+    (setq paragraph-end (point))
     (goto-char (point-min))
-    (setq empty-entry
-	  (and (search-forward "\n\t* \n" nil t)
-	       (1- (point))))
-    (if (and entry
-	     (not empty-entry))
-	;; Look for today's entry for the same file.
-	;; If there is an empty entry (just a `*'), take the hint and
-	;; use it.  This is so that C-x a from the ChangeLog buffer
-	;; itself can be used to force the next entry to be added at
-	;; the beginning, even if there are today's entries for the
-	;; same file (but perhaps different revisions).
-	(let ((entry-boundary (save-excursion
-				(and (re-search-forward "\n[A-Z]" nil t)
-				     (point)))))
-	  (setq entry-position (save-excursion
-				 (and (re-search-forward
-				       (concat
-					(regexp-quote (concat "* " entry))
-					;; don't accept `foo.bar' when
-					;; looking for `foo':
-					"[ \n\t,:]")
-				       entry-boundary
-				       t)
-				      (1- (match-end 0)))))))
+
     ;; Now insert the new line for this entry.
-    (cond (entry-position
-	   ;; Move to the existing entry for the same file.
-	   (goto-char entry-position)
-	   (re-search-forward "^\\s *$")
+    (cond ((re-search-forward "^\\s *\\*\\s *$" paragraph-end t)
+	   ;; Put this file name into the existing empty entry.
+	   (if entry
+	       (insert entry)))
+	  ((and (re-search-forward
+		 (concat (regexp-quote (concat "* " entry))
+			 ;; Don't accept `foo.bar' when
+			 ;; looking for `foo':
+			 "\\(\\s \\|[(),:]\\)")
+		 paragraph-end t))
+	   ;; Add to the existing entry for the same file.
+	   (re-search-forward "^\\s *$\\|^\\s \\*")
 	   (beginning-of-line)
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (save-excursion (forward-line 1) (point))))
 	   (insert "\n\n")
 	   (forward-line -2)
 	   (indent-relative-maybe))
-	  (empty-entry
-	   ;; Put this file name into the existing empty entry.
-	   (goto-char empty-entry)
-	   (if entry
-	       (insert entry)))
 	  (t
 	   ;; Make a new entry.
 	   (forward-line 1)
@@ -165,9 +151,6 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	  (insert ": ")))))
 
 ;;;###autoload
-(define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
-
-;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add an entry for today.
 First arg (interactive prefix) non-nil means prompt for user name and site.
@@ -177,6 +160,7 @@ Interactively, with a prefix argument, the file name is prompted for."
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
   (add-change-log-entry whoami file-name t))
+;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 ;;;###autoload
 (defun change-log-mode ()
@@ -188,10 +172,10 @@ Runs `change-log-mode-hook'."
   (interactive)
   (kill-all-local-variables)
   (indented-text-mode)
-  (setq major-mode 'change-log-mode)
-  (setq mode-name "Change Log")
-  (setq left-margin 8)
-  (setq fill-column 74)
+  (setq major-mode 'change-log-mode
+	mode-name "Change Log"
+	left-margin 8
+	fill-column 74)
   ;; Let each entry behave as one paragraph:
   (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
   (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
