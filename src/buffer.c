@@ -100,8 +100,11 @@ static Lisp_Object Vbuffer_local_symbols;
    buffer-local slots.  If a slot contains Qnil, then the
    corresponding buffer slot may contain a value of any type.  If a
    slot contains an integer, then prospective values' tags must be
-   equal to that integer.  When a tag does not match, the function
-   buffer_slot_type_mismatch will signal an error.  */
+   equal to that integer (except nil is always allowed).
+   When a tag does not match, the function
+   buffer_slot_type_mismatch will signal an error.
+
+   If a slot here contains -1, the corresponding variable is read-only.  */
 struct buffer buffer_local_types;
 
 /* Flags indicating which built-in buffer-local variables
@@ -520,6 +523,7 @@ reset_buffer (b)
   XSETINT (b->display_count, 0);
   b->extra2 = Qnil;
   b->extra3 = Qnil;
+  b->enable_multibyte_characters = buffer_defaults.enable_multibyte_characters;
 }
 
 /* Reset buffer B's local variables info.
@@ -3712,7 +3716,8 @@ evaporate_overlays (pos)
 }
 
 /* Somebody has tried to store a value with an unacceptable type
-   into the buffer-local slot with offset OFFSET.  */
+   in the slot with offset OFFSET.  */
+
 void
 buffer_slot_type_mismatch (offset)
      int offset;
@@ -3725,11 +3730,12 @@ buffer_slot_type_mismatch (offset)
     case Lisp_Int:	type_name = "integers";  break;
     case Lisp_String:	type_name = "strings";   break;
     case Lisp_Symbol:	type_name = "symbols";   break;
+
     default:
       abort ();
     }
 
-  error ("only %s should be stored in the buffer-local variable %s",
+  error ("Only %s should be stored in the buffer-local variable %s",
 	 type_name, XSYMBOL (sym)->name->data);
 }
 
@@ -3818,6 +3824,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
   XSETINT (buffer_local_flags.display_count, -1);
+  XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3844,12 +3851,9 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
   XSETFASTINT (buffer_local_flags.category_table, 0x20000);
   XSETFASTINT (buffer_local_flags.direction_reversed, 0x40000);
-  XSETFASTINT (buffer_local_flags.enable_multibyte_characters, 0x80000);
+  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, 0x80000);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags |= 0x80000;
-  XSETFASTINT (buffer_local_flags.buffer_file_coding_system, 0x100000);
-  /* Make this one a permanent local.  */
-  buffer_permanent_local_flags |= 0x100000;
   
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -4136,7 +4140,8 @@ This variable does not apply to characters whose display is specified\n\
 in the current display table (if there is one).");
 
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
-		     &current_buffer->enable_multibyte_characters, Qnil,
+		     &current_buffer->enable_multibyte_characters,
+		     make_number (-1),
     "*Non-nil means the buffer contents are regarded as multi-byte form\n\
 of characters, not a binary code.  This affects the display, file I/O,\n\
 and behaviors of various editing commands.");
