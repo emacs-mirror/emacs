@@ -346,6 +346,11 @@ struct frame
   /* Nonzero if the mouse has moved on this display
      since the last time we checked.  */
   char mouse_moved;
+
+  /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *
+     SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a
+     frame parameter.  0 means don't do gamma correction.  */
+  double gamma;
 };
 
 #ifdef MULTI_KBOARD
