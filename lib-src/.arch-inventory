@@ -1,0 +1,7 @@
+# Ignore binaries
+backup ^(test-distrib|make-docfile|profile|digest-doc|movemail|cvtmail|fakemail|yow|emacsserver|hexl|update-game-score|etags|ctags|emacsclient|b2m|ebrowse)$
+
+# Building actually makes a copy/link of the source file
+precious ^(ctags\.c)$
+
+# arch-tag: da33b3d6-170d-4fe5-9eb8-ed2753bc9b4f
