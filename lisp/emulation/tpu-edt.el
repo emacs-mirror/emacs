@@ -1418,7 +1418,7 @@ They are saved for the TPU-edt undelete-lines command."
 
 (defun tpu-delete-to-eol (num)
   "Delete text up to end of line.
-With argument, delete up to to Nth line-end past point.
+With argument, delete up to the Nth line-end past point.
 They are saved for the TPU-edt undelete-lines command."
   (interactive "p")
   (let ((beg (point)))
@@ -1430,7 +1430,7 @@ They are saved for the TPU-edt undelete-lines command."
 
 (defun tpu-delete-to-bol (num)
   "Delete text back to beginning of line.
-With argument, delete up to to Nth line-end past point.
+With argument, delete up to the Nth line-end past point.
 They are saved for the TPU-edt undelete-lines command."
   (interactive "p")
   (let ((beg (point)))
