@@ -68,6 +68,7 @@ bocks of code selectively.
 * Hideshow::            Displaying blocks selectively.
 * Documentation::       Getting documentation of functions you plan to call.
 * Change Log::	        Maintaining a change history for your program.
+* Authors::             Maintaining an @file{AUTHORS} file.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Imenu::               Making buffer indexes as menus.
@@ -1754,6 +1755,24 @@ of entries with either the current or old-style date formats.
 
   Version control systems are another way to keep track of changes in your
 program and keep a change log.  @xref{Log Buffer}.
+
+@node Authors
+@section @file{AUTHORS} files
+@cindex @file{AUTHORS} file
+
+  Programs which have many contributors usually include a file named
+@file{AUTHORS} in their distribution, which lists the individual
+contributions.  Emacs has a special command for maintaining the
+@file{AUTHORS} file that is part of the Emacs distribution.
+
+@findex authors
+  The @kbd{M-x authors} command prompts for the name of the root of the
+Emacs source directory.  It then scans @file{ChageLog} files and Lisp
+source files under that directory for information about authors of
+individual packages and people who made changes in source files, and
+puts the information it gleans into a buffer named @samp{*Authors*}.
+You can then edit the contents of that buffer and merge it with the
+exisiting @file{AUTHORS} file.
 
 @node Tags
 @section Tags Tables
