@@ -129,7 +129,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_MKDIR
 #undef HAVE_RMDIR
 #undef HAVE_RANDOM
-#undef HAVE_RAND48
+#undef HAVE_LRAND48
 #undef HAVE_BCOPY
 #undef HAVE_BCMP
 #undef HAVE_LOGB
