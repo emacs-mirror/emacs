@@ -121,6 +121,9 @@ bound to delete-backward-char.")
 (defvar vip-tags-file-name "TAGS")
 
 (defvar vip-inhibit-startup-message nil)
+
+(defvar vip-startup-file (convert-standard-filename "~/.vip")
+  "filename used as strtup file for `vip-mode'.")
 
 ;; basic set up
 
@@ -243,7 +246,8 @@ Type `n' to quit this window for now.\n")
 	    (progn
 	      (save-excursion
 		(set-buffer
-		 (find-file-noselect (substitute-in-file-name "~/.vip")))
+		 (find-file-noselect
+		  (substitute-in-file-name vip-startup-file)))
 		(goto-char (point-max))
 		(insert "\n(setq vip-inhibit-startup-message t)\n")
 		(save-buffer)
@@ -3020,6 +3024,6 @@ vip-s-string"
 		(point-min)
 		(if (null ex-addresses) (point-max) (car ex-addresses))))))
 
-(if (file-exists-p "~/.vip") (load "~/.vip"))
+(if (file-exists-p vip-startup-file) (load vip-startup-file))
 
 ;;; vip.el ends here
