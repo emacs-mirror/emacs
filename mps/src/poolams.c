@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.11) $
+ * $HopeName: MMsrc!poolams.c(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.11) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.12) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -420,6 +420,24 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
   *baseReturn = base;
   *limitReturn = limit;
   return TRUE;
+}
+
+
+/* AMSBufferInit -- the buffer init method
+ *
+ * This just sets rankSet.  See design.mps.poolams.buffer-init.
+ */
+
+static Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
+{
+  Rank rank = va_arg(args, Rank);
+
+  AVERT(Pool, pool);
+  AVERT(AMS, PoolPoolAMS(pool));
+  AVERT(Rank, rank);
+
+  buffer->rankSet = RankSetSingle(rank);
+  return ResOK;
 }
 
 
@@ -1198,7 +1216,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSFinish,                 /* finish */
   PoolNoAlloc,               /* design.mps.poolams.no-alloc */
   PoolNoFree,                /* design.mps.poolams.no-free */
-  PoolTrivBufferInit,        /* design.mps.poolams.triv-buffer-init */
+  AMSBufferInit,
   AMSBufferFill,             /* bufferFill */
   AMSBufferEmpty,            /* bufferEmpty */
   PoolTrivBufferFinish,      /* design.mps.poolams.triv-buffer-finish */
