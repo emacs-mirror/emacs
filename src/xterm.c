@@ -7641,7 +7641,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 		   round down even for negative values.  */
 		if (gx < 0)
 		  gx -= width - 1;
-		if (y < 0)
+		if (gy < 0)
 		  gy -= height - 1;
 		gx = (gx + width - 1) / width * width;
 		gy = (gy + height - 1) / height * height;
