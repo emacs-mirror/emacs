@@ -1,7 +1,7 @@
 ;;; texinfmt.el --- format Texinfo files into Info files.
 
 ;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 
-;;               1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;;               1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@prep.ai.mit.edu>
 ;; Keywords: maint, tex, docs
@@ -34,7 +34,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.37 of 24 May 1997")
+(defvar texinfmt-version "2.38 of 3 July 1998")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
@@ -103,7 +103,7 @@ If optional argument HERE is non-nil, insert info at point."
 ;;; Top level buffer and region formatting functions
 
 ;;;###autoload
-(defun texinfo-format-buffer (&optional notagify)
+(defun texinfo-format-buffer (&optional nosplit)
   "Process the current buffer as texinfo code, into an Info file.
 The Info file output is generated in a buffer visiting the Info file
 name specified in the @setfilename command.
@@ -114,13 +114,11 @@ Info-split to do these manually."
   (interactive "P")
   (let ((lastmessage "Formatting Info file..."))
     (message lastmessage)
+    (widen)
     (texinfo-format-buffer-1)
-    (if notagify
+    (Info-tagify)
+    (if nosplit
         nil
-      (if (> (buffer-size) 30000)
-          (progn
-            (message (setq lastmessage "Making tags table for Info file..."))
-            (Info-tagify)))
       (if (> (buffer-size) 100000)
           (progn
             (message (setq lastmessage "Splitting Info file..."))
@@ -301,11 +299,12 @@ converted to Info is stored in a temporary buffer."
     (goto-char (point-min))
     (texinfo-format-scan)
     (goto-char (point-min))
-    
+    (Info-tagify input-buffer)
+    (goto-char (point-min))
     (message "Done.")))
 
 ;;;###autoload
-(defun texi2info (&optional notagify)
+(defun texi2info (&optional nosplit)
   "Convert the current buffer (written in Texinfo code) into an Info file.
 The Info file output is generated in a buffer visiting the Info file
 names specified in the @setfilename command.
@@ -315,9 +314,8 @@ creates a master menu.  This work is done on a temporary buffer that
 is automatically removed when the Info file is created.  The original
 Texinfo source buffer is not changed.
 
-Non-nil argument (prefix, if interactive) means don't make tag table
-and don't split the file if large.  You can use Info-tagify and
-Info-split to do these manually."
+Non-nil argument (prefix, if interactive) means don't split the file
+if large.  You can use Info-split to do this manually."
   (interactive "P")
   (let ((temp-buffer (concat  "*--" (buffer-name) "--temporary-buffer*" )))
     (message "First updating nodes and menus, then creating Info file.")
@@ -327,7 +325,7 @@ Info-split to do these manually."
     (texinfo-master-menu t)
     (message "Now creating Info file.")
     (sit-for 2)
-    (texinfo-format-buffer notagify)
+    (texinfo-format-buffer nosplit)
     (save-buffer)
     (kill-buffer temp-buffer)))
 
@@ -475,12 +473,14 @@ Info-split to do these manually."
    "^@"
    "\\("
    "direntry\\|"
-   "example\\|"
-   "smallexample\\|"
    "lisp\\|"
    "smalllisp\\|"
+   "example\\|"
+   "smallexample\\|"
    "display\\|"
+   "smalldisplay\\|"
    "format\\|"
+   "smallformat\\|"
    "flushleft\\|"
    "flushright\\|"
    "menu\\|"
@@ -877,12 +877,12 @@ lower types.")
       (setq texinfo-command-end (point))
       ;; Handle let aliasing
       (setq texinfo-command-name
-	    (let (trial
-		  (cmdname 
-		   (buffer-substring
-		    (1+ texinfo-command-start) texinfo-command-end)))
-	      (while (setq trial (assoc cmdname texinfo-alias-list))
-		(setq cmdname (cdr trial)))
+            (let (trial
+                  (cmdname 
+                   (buffer-substring
+                    (1+ texinfo-command-start) texinfo-command-end)))
+              (while (setq trial (assoc cmdname texinfo-alias-list))
+                (setq cmdname (cdr trial)))
             (intern cmdname)))
       ;; Call the handler for this command.
       (let ((enclosure-type
@@ -1225,6 +1225,26 @@ Leave point after argument."
     (if (nth 1 args)
         (insert "*Note " (nth 1 args) ": (" (nth 2 args) ")" (car args))
       (insert "*Note " "(" (nth 2 args) ")" (car args) "::"))))
+
+
+;;; URL Reference: @uref
+
+;; @uref produces a reference to a uniform resource locator (URL).  
+;; It takes one mandatory argument, the URL, and one optional argument, 
+;; the text to display (the default is the URL itself).  
+
+(put 'uref 'texinfo-format 'texinfo-format-uref)
+(defun texinfo-format-uref ()
+  "Format URL and optional URL-TITLE.
+Insert ` ... ' around URL if no URL-TITLE argument; 
+otherwise, insert URL-TITLE followed by URL in parentheses."
+  (let ((args (texinfo-format-parse-args)))
+    (texinfo-discard-command)
+    ;; if url-title 
+    (if (nth 1 args)
+        (insert  (nth 1 args) " (" (nth 0 args) ")")
+      (insert "`" (nth 0 args) "'"))
+    (goto-char texinfo-command-start)))
 
 
 ;;; Section headings
@@ -2253,17 +2273,38 @@ This command is executed when texinfmt sees @item inside @multitable."
 (put 'var 'texinfo-format 'texinfo-format-var)
 ;;  @sc  a small caps font for TeX; formatted as `var' in Info
 (put 'sc 'texinfo-format 'texinfo-format-var)
+;;  @acronym   for abbreviations in all caps, such as `NASA'.
+;;  Convert all letters to uppercase if they are not already.
+(put 'acronym 'texinfo-format 'texinfo-format-var)
 (defun texinfo-format-var ()
   (insert (upcase (texinfo-parse-arg-discard)))
   (goto-char texinfo-command-start))
 
-(put 'url 'texinfo-format 'texinfo-format-code)
 (put 'cite 'texinfo-format 'texinfo-format-code)
 (put 'code 'texinfo-format 'texinfo-format-code)
+;; @command (for command names)
+(put 'command 'texinfo-format 'texinfo-format-code)
+;; @env (for environment variables)
+(put 'env 'texinfo-format 'texinfo-format-code)
 (put 'file 'texinfo-format 'texinfo-format-code)
 (put 'samp 'texinfo-format 'texinfo-format-code)
+(put 'url 'texinfo-format 'texinfo-format-code)
 (defun texinfo-format-code ()
   (insert "`" (texinfo-parse-arg-discard) "'")
+  (goto-char texinfo-command-start))
+
+;; @option (for command-line options) must be different from @code
+;; because of its special formatting in @table; namely that it does
+;; not lead to inserted ` ... ' in a table, but does elsewhere.
+(put 'option 'texinfo-format 'texinfo-format-option)
+(defun texinfo-format-option ()
+  "Insert ` ... ' around arg unless inside a table; in that case, no quotes."
+  ;; `looking-at-backward' not available in v. 18.57, 20.2
+  (if (not (search-backward ""    ; searched-for character is a control-H
+                    (save-excursion (beginning-of-line) (point))
+                    t))
+      (insert "`" (texinfo-parse-arg-discard) "'")
+      (insert  (texinfo-parse-arg-discard)))
   (goto-char texinfo-command-start))
 
 (put 'emph 'texinfo-format 'texinfo-format-emph)
@@ -2353,9 +2394,11 @@ If used within a line, follow `@bullet' with braces."
     (goto-char texinfo-command-start)))
 
 
-;;; @example, @lisp, @quotation, @display, @smalllisp, @smallexample
+;;; @example, @lisp, @quotation, @display, @smalllisp, @smallexample,
+;;  @smalldisplay
 
 (put 'display 'texinfo-format 'texinfo-format-example)
+(put 'smalldisplay 'texinfo-format 'texinfo-format-example)
 (put 'example 'texinfo-format 'texinfo-format-example)
 (put 'lisp 'texinfo-format 'texinfo-format-example)
 (put 'quotation 'texinfo-format 'texinfo-format-example)
@@ -2368,6 +2411,7 @@ If used within a line, follow `@bullet' with braces."
 
 (put 'example 'texinfo-end 'texinfo-end-example)
 (put 'display 'texinfo-end 'texinfo-end-example)
+(put 'smalldisplay 'texinfo-end 'texinfo-end-example)
 (put 'lisp 'texinfo-end 'texinfo-end-example)
 (put 'quotation 'texinfo-end 'texinfo-end-example)
 (put 'smallexample 'texinfo-end 'texinfo-end-example)
@@ -2412,9 +2456,9 @@ If used within a line, follow `@bullet' with braces."
 (defun texinfo-format-dircategory ()
   (let ((str (texinfo-parse-arg-discard)))
     (delete-region (point)
-		   (progn
-		     (skip-chars-forward " ")
-		     (point)))
+                   (progn
+                     (skip-chars-forward " ")
+                     (point)))
     (insert "INFO-DIR-SECTION " str "\n")))
 
 ;;; @cartouche 
@@ -2436,11 +2480,13 @@ If used within a line, follow `@bullet' with braces."
 ;; indent; this means that in Info, @format is similar to @flushleft.
 
 (put 'format 'texinfo-format 'texinfo-format-flushleft)
+(put 'smallformat 'texinfo-format 'texinfo-format-flushleft)
 (put 'flushleft 'texinfo-format 'texinfo-format-flushleft)
 (defun texinfo-format-flushleft ()
   (texinfo-discard-line))
 
 (put 'format 'texinfo-end 'texinfo-end-flushleft)
+(put 'smallformat 'texinfo-end 'texinfo-end-flushleft)
 (put 'flushleft 'texinfo-end 'texinfo-end-flushleft)
 (defun texinfo-end-flushleft ()
   (texinfo-discard-command))
@@ -3977,10 +4023,25 @@ the @ifeq command."
 (put 'lispnarrowing 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'need 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'nopara 'texinfo-format 'texinfo-discard-line-with-args)
+
+;; @novalidate suppresses cross-reference checking and auxiliary file
+;; creation with TeX.  The Info-validate command checks that every
+;; node pointer points to an existing node.  Since this Info command
+;; is not invoked automatically, the @novalidate command is irrelevant
+;; and not supported by texinfmt.el
+(put 'novalidate 'texinfo-format 'texinfo-discard-line-with-args)
+
 (put 'page 'texinfo-format 'texinfo-discard-line-with-args)
+(put 'pagesizes 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'parindent 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'setchapternewpage 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'setq 'texinfo-format 'texinfo-discard-line-with-args)
+
+(put 'setcontentsaftertitlepage
+     'texinfo-format 'texinfo-discard-line-with-args)
+(put 'setshortcontentsaftertitlepage
+     'texinfo-format 'texinfo-discard-line-with-args)
+
 (put 'settitle 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'setx 'texinfo-format 'texinfo-discard-line-with-args)
 (put 'shortcontents 'texinfo-format 'texinfo-discard-line-with-args)
