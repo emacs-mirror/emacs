@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.7) $
+ * $HopeName: MMsrc!amcss.c(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -48,7 +48,7 @@ static void *test(void *arg, size_t s)
   mps_fmt_t format;
   mps_root_t exact_root, ambig_root;
   mps_word_t i;
-  unsigned collections;
+  mps_word_t collections;
 
   space = (mps_space_t)arg;
   UNUSED(s);
@@ -82,7 +82,7 @@ static void *test(void *arg, size_t s)
     unsigned c;
     size_t r;
 
-    c = mps_amc_collections((mps_pool_t)pool);
+    c = mps_collections(space);
 
     if(collections != c) {
       collections = c;
