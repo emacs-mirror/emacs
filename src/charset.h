@@ -1,4 +1,4 @@
-/* Header for multilingual character handler.
+/* Header for multibyte character handler.
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
@@ -27,21 +27,20 @@ Boston, MA 02111-1307, USA.  */
   A character set ("charset" hereafter) is a meaningful collection
   (i.e. language, culture, functionality, etc) of characters.  Emacs
   handles multiple charsets at once.  Each charset corresponds to one
-  of ISO charsets (except for a special charset for composition
-  characters).  Emacs identifies a charset by a unique identification
-  number, whereas ISO identifies a charset by a triplet of DIMENSION,
-  CHARS and FINAL-CHAR.  So, hereafter, just saying "charset" means an
-  identification number (integer value).
+  of ISO charsets.  Emacs identifies a charset by a unique
+  identification number, whereas ISO identifies a charset by a triplet
+  of DIMENSION, CHARS and FINAL-CHAR.  So, hereafter, just saying
+  "charset" means an identification number (integer value).
 
-  The value range of charset is 0x00, 0x80..0xFE.  There are four
+  The value range of charset is 0x00, 0x81..0xFE.  There are four
   kinds of charset depending on DIMENSION (1 or 2) and CHARS (94 or
   96).  For instance, a charset of DIMENSION2_CHARS94 contains 94x94
-
+  characters.
 
   Within Emacs Lisp, a charset is treated as a symbol which has a
   property `charset'.  The property value is a vector containing
   various information about the charset.  For readability of C codes,
-  we use the following convention on C variable names:
+  we use the following convention for C variable names:
 	charset_symbol: Emacs Lisp symbol of a charset
 	charset_id: Emacs Lisp integer of an identification number of a charset
 	charset: C integer of an identification number of a charset
@@ -55,7 +54,7 @@ Boston, MA 02111-1307, USA.  */
   character in Emacs' buffer and string.
 
   We call a charset which has extended leading-code as "private
-  charset" because those are mainly for a charset which is not
+  charset" because those are mainly for a charset which is not yet
   registered by ISO.  On the contrary, we call a charset which does
   not have extended leading-code as "official charset".
 
@@ -65,7 +64,7 @@ Boston, MA 02111-1307, USA.  */
   0x00		official dim1    -- none --		-- none --
 		(ASCII)
   0x01..0x7F	--never used--
-  0x80		COMPOSITION	 same as charset	-- none --
+  0x80		--never used--
   0x81..0x8F	official dim1    same as charset	-- none --
   0x90..0x99	official dim2	 same as charset	-- none --
   0x9A..0x9F	--never used--
@@ -80,20 +79,9 @@ Boston, MA 02111-1307, USA.  */
   0xFF		--never used--
   ---------------------------------------------------------------------------
 
-  In the table, "COMPOSITION" means a charset for a composite
-  character which is a character composed from several (up to 16)
-  non-composite characters (components).  Although a composite
-  character can contain components of many charsets, a composite
-  character itself belongs to the charset CHARSET-COMPOSITION.  See
-  the document "GENERAL NOTE on COMPOSITE CHARACTER" below for more
-  detail.
-
 */
 
 /* Definition of special leading-codes.  */
-/* Base leading-code.  */
-/* Special leading-code followed by components of a composite character.  */
-#define LEADING_CODE_COMPOSITION	0x80
 /* Leading-code followed by extended leading-code.  */
 #define LEADING_CODE_PRIVATE_11	0x9A /* for private DIMENSION1 of 1-column */
 #define LEADING_CODE_PRIVATE_12	0x9B /* for private DIMENSION1 of 2-column */
@@ -122,10 +110,8 @@ Boston, MA 02111-1307, USA.  */
 
 /* Definition of special charsets.  */
 #define CHARSET_ASCII		0
-#define CHARSET_COMPOSITION	0x80
 
 extern int charset_ascii;	/* ASCII */
-extern int charset_composition;	/* for a composite character */
 extern int charset_latin_iso8859_1; /* ISO8859-1 (Latin-1) */
 extern int charset_jisx0208_1978; /* JISX0208.1978 (Japanese Kanji old set) */
 extern int charset_jisx0208;	/* JISX0208.1983 (Japanese Kanji) */
@@ -194,35 +180,6 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
 */
 
-/*** GENERAL NOTE on COMPOSITE CHARACTER ***
-
-  A composite character is a character composed from several (up to
-  16) non-composite characters (components).  Although each component
-  can belong to any charset, a composite character itself belongs to
-  the charset `charset-composition' and is assigned a special
-  leading-code `LEADING_CODE_COMPOSITION' for multi-byte form.  See
-  the document "2. Emacs internal format handlers" in `coding.c' for
-  more detail about multi-byte form.
-
-  A character code of composite character has special format.  In the
-  above document, FIELD1 of a composite character is 0x1F.  Each
-  composite character is assigned a sequential number CMPCHAR-ID.
-  FIELD2 and FIELD3 are combined to make 14bits field for holding
-  CMPCHAR-ID, which means that Emacs can handle at most 2^14 (= 16384)
-  composite characters at once.
-
-  -----------------------------------------------------------------------
-  charset		FIELD1 (5-bit)	    FIELD2&3 (14-bit)
-  -----------------------------------------------------------------------
-  CHARSET-COMPOSITION	0x1F		    CMPCHAR-ID
-  -----------------------------------------------------------------------  
-
-  Emacs assigns CMPCHAR-ID to a composite character only when it
-  requires the character code of the composite character (e.g. while
-  displaying the composite character).
-
-*/
-
 /* Masks of each field of character code.  */
 #define CHAR_FIELD1_MASK (0x1F << 14)
 #define CHAR_FIELD2_MASK (0x7F << 7)
@@ -242,17 +199,11 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
   ((MIN_CHARSET_OFFICIAL_DIMENSION2 - 0x8F) << 14)
 #define MIN_CHAR_PRIVATE_DIMENSION2 \
   ((MIN_CHARSET_PRIVATE_DIMENSION2 - 0xE0) << 14)
-#define MIN_CHAR_COMPOSITION \
-  (0x1F << 14)
-#define MAX_CHAR_COMPOSITION (GLYPH_MASK_CHAR - 1)
-
-/* A generic character for composition characters.  */
-#define GENERIC_COMPOSITION_CHAR (GLYPH_MASK_CHAR)
+/* Maximum character code currently used plus 1.  */
+#define MAX_CHAR (0x1F << 14)
 
 /* 1 if C is an ASCII character, else 0.  */
 #define SINGLE_BYTE_CHAR_P(c) ((c) >= 0 && (c) < 0x100)
-/* 1 if C is an composite character, else 0.  */
-#define COMPOSITE_CHAR_P(c) ((c) >= MIN_CHAR_COMPOSITION)
 
 /* 1 if BYTE is a character in itself, in multibyte mode.  */
 #define ASCII_BYTE_P(byte) ((byte) < 0x80)
@@ -379,10 +330,10 @@ extern Lisp_Object Vcharset_symbol_table;
 /* 1 if CHARSET is in valid value range, else 0.  */
 #define CHARSET_VALID_P(charset)					 \
   ((charset) == 0							 \
-   || ((charset) >= 0x80 && (charset) <= MAX_CHARSET_OFFICIAL_DIMENSION2) \
+   || ((charset) > 0x80 && (charset) <= MAX_CHARSET_OFFICIAL_DIMENSION2) \
    || ((charset) >= MIN_CHARSET_PRIVATE_DIMENSION1 && (charset) <= MAX_CHARSET))
 
-/* 1 if CHARSET is already defined (and not CHARSET_COMPOSITION), else 0.  */
+/* 1 if CHARSET is already defined, else 0.  */
 #define CHARSET_DEFINED_P(charset)			\
   (((charset) >= 0) && ((charset) <= MAX_CHARSET)	\
    && !NILP (CHARSET_TABLE_ENTRY (charset)))
@@ -406,67 +357,47 @@ extern int width_by_char_head[256];
       ? CHAR_FIELD2 (c) + 0x70		 	\
       : ((c) < MIN_CHAR_PRIVATE_DIMENSION2	\
 	 ? CHAR_FIELD1 (c) + 0x8F	 	\
-	 : ((c) < MIN_CHAR_COMPOSITION	 	\
-	    ? CHAR_FIELD1 (c) + 0xE0	 	\
-	    : ((c) <= MAX_CHAR_COMPOSITION	\
-	       ? CHARSET_COMPOSITION		\
-	       : CHARSET_ASCII)))))
+	 : CHAR_FIELD1 (c) + 0xE0)))
 
 /* Return charset at the place pointed by P.  */
-#define CHARSET_AT(p)			   	\
-  (*(p) < 0x80				   	\
-   ? CHARSET_ASCII			   	\
-   : (*(p) == LEADING_CODE_COMPOSITION	   	\
-      ? CHARSET_COMPOSITION		   	\
-      : (*(p) < LEADING_CODE_PRIVATE_11	   	\
-	 ? (int)*(p)			   	\
-	 : (*(p) <= LEADING_CODE_PRIVATE_22	\
-	    ? (int)*((p) + 1)		   	\
-	    : -1))))
+#define CHARSET_AT(p)				\
+  (*(p) < 0x80					\
+   ? CHARSET_ASCII				\
+   : (*(p) < LEADING_CODE_PRIVATE_11		\
+      ? (int)*(p)				\
+      : (*(p) <= LEADING_CODE_PRIVATE_22	\
+	 ? (int)*((p) + 1)			\
+	 : -1)))
 
 /* Same as `CHARSET_AT ()' but perhaps runs faster because of an
    additional argument C which is the code (byte) at P.  */
-#define FIRST_CHARSET_AT(p, c)		  	\
-  ((c) < 0x80				  	\
-   ? CHARSET_ASCII			  	\
-   : ((c) == LEADING_CODE_COMPOSITION	  	\
-      ? CHARSET_COMPOSITION		  	\
-      : ((c) < LEADING_CODE_PRIVATE_11	  	\
-	 ? (int)(c)			  	\
-	 : ((c) <= LEADING_CODE_PRIVATE_22	\
-	    ? (int)*((p) + 1)		  	\
-	    : -1))))
+#define FIRST_CHARSET_AT(p, c)		\
+  ((c) < 0x80				\
+   ? CHARSET_ASCII			\
+   : ((c) < LEADING_CODE_PRIVATE_11	\
+      ? (int)(c)			\
+      : ((c) <= LEADING_CODE_PRIVATE_22	\
+	 ? (int)*((p) + 1)		\
+	 : -1)))
 
-/* Check if two characters C1 and C2 belong to the same charset.
-   Always return 0 for composite characters.  */
-#define SAME_CHARSET_P(c1, c2)				     	\
-  (c1 < MIN_CHAR_COMPOSITION				     	\
-   && (SINGLE_BYTE_CHAR_P (c1)				     	\
-       ? SINGLE_BYTE_CHAR_P (c2)			     	\
-       : (c1 < MIN_CHAR_OFFICIAL_DIMENSION2		     	\
-	  ? (c1 & CHAR_FIELD2_MASK) == (c2 & CHAR_FIELD2_MASK)  \
-	  : (c1 & CHAR_FIELD1_MASK) == (c2 & CHAR_FIELD1_MASK))))
+/* Check if two characters C1 and C2 belong to the same charset.  */
+#define SAME_CHARSET_P(c1, c2)					\
+  (SINGLE_BYTE_CHAR_P (c1)					\
+   ? SINGLE_BYTE_CHAR_P (c2)					\
+   : (c1 < MIN_CHAR_OFFICIAL_DIMENSION2				\
+      ? (c1 & CHAR_FIELD2_MASK) == (c2 & CHAR_FIELD2_MASK)	\
+      : (c1 & CHAR_FIELD1_MASK) == (c2 & CHAR_FIELD1_MASK)))
 
 /* Return a non-ASCII character of which charset is CHARSET and
    position-codes are C1 and C2.  DIMENSION1 character ignores C2.  */
 #define MAKE_NON_ASCII_CHAR(charset, c1, c2)				\
-  ((charset) == CHARSET_COMPOSITION					\
-   ? ((c2) < 0								\
-      ? (((charset) - 0x70) << 7) + (c1)				\
-      : MAKE_COMPOSITE_CHAR (((c1) << 7) + (c2)))			\
-   : (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1	\
-      ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))		\
-      : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2			\
-	 ? ((((charset) - 0x8F) << 14)					\
-	    | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))	\
-	 : ((((charset) - 0xE0) << 14)					\
-	    | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2))))))
-
-/* Return a composite character of which CMPCHAR-ID is ID.  */
-#define MAKE_COMPOSITE_CHAR(id) (MIN_CHAR_COMPOSITION + (id))
-
-/* Return CMPCHAR-ID of a composite character C.  */
-#define COMPOSITE_CHAR_ID(c) ((c) - MIN_CHAR_COMPOSITION)
+  (! CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1	\
+   ? (((charset) - 0x70) << 7) | ((c1) <= 0 ? 0 : (c1))			\
+   : ((charset) < MIN_CHARSET_PRIVATE_DIMENSION2			\
+      ? ((((charset) - 0x8F) << 14)					\
+	 | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))	\
+      : ((((charset) - 0xE0) << 14)					\
+	 | ((c1) <= 0 ? 0 : ((c1) << 7)) | ((c2) <= 0 ? 0 : (c2)))))
 
 /* Return a character of which charset is CHARSET and position-codes
    are C1 and C2.  DIMENSION1 character ignores C2.  */
@@ -488,41 +419,6 @@ extern int width_by_char_head[256];
 
 #define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
-/* Parse composite character string STR of length LENGTH (>= 2) and
-   set BYTES to the length of actual multibyte sequence.
-
-   It is assumed that *STR is LEADING_CODE_COMPOSITION and the
-   following (LENGTH - 1) bytes satisfy !CHAR_HEAD_P.
-
-   Actually, the whole multibyte sequence starting with
-   LEADING_CODE_COMPOSITION is treated as a single multibyte
-   character.  So, here, we just set BYTES to LENGTH.
-
-   This macro should be called only from PARSE_MULTIBYTE_SEQ.  */
-
-#define PARSE_COMPOSITE_SEQ(str, length, bytes)	\
-  do {						\
-    (bytes) = (length);				\
-  } while (0)
-
-
-/* Parse non-composite multibyte character string STR of length
-   LENGTH (>= 2) and set BYTES to the length of actual multibyte
-   sequence.
-
-   It is assumed that *STR is one of base leading codes (excluding
-   LEADING_CODE_COMPOSITION) and the following (LENGTH - 1) bytes
-   satisfy !CHAR_HEAD_P.
-
-   This macro should be called only from PARSE_MULTIBYTE_SEQ.  */
-
-#define PARSE_CHARACTER_SEQ(str, length, bytes)	\
-  do {						\
-    (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]);	\
-    if ((bytes) > (length))			\
-      (bytes) = (length);			\
-  } while (0)
-
 /* Parse string STR of length LENGTH and check if a multibyte
    characters is at STR.  If so, set BYTES for that character, else
    set BYTES to 1.  */
@@ -530,17 +426,14 @@ extern int width_by_char_head[256];
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)			\
   do {								\
     int i = 1;							\
-    if (ASCII_BYTE_P (*str))					\
-      bytes = 1;						\
+    while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
+    if (i == 1)							\
+      (bytes) = 1;						\
     else							\
       {								\
-	while (i < (length) && ! CHAR_HEAD_P ((str)[i])) i++;	\
-	if (i == 1)						\
-	  (bytes) = 1;						\
-	else if ((str)[0] == LEADING_CODE_COMPOSITION)		\
-	  PARSE_COMPOSITE_SEQ (str, i, bytes);			\
-	else							\
-	  PARSE_CHARACTER_SEQ (str, i, bytes);			\
+	(bytes) = BYTES_BY_CHAR_HEAD ((str)[0]);		\
+	if ((bytes) > (length))					\
+	  (bytes) = (length);					\
       }								\
   } while (0)
 
@@ -550,16 +443,14 @@ extern int width_by_char_head[256];
 
    Do not use this macro for an ASCII character.  */
 
-#define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			 \
-  ((c) & CHAR_FIELD1_MASK						 \
-   ? (charset = ((c) < MIN_CHAR_COMPOSITION				 \
-		 ? (CHAR_FIELD1 (c)					 \
-		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
-		 : CHARSET_COMPOSITION),				 \
-      c1 = CHAR_FIELD2 (c),						 \
-      c2 = CHAR_FIELD3 (c))						 \
-   : (charset = CHAR_FIELD2 (c) + 0x70,					 \
-      c1 = CHAR_FIELD3 (c),						 \
+#define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			\
+  ((c) & CHAR_FIELD1_MASK						\
+   ? (charset = (CHAR_FIELD1 (c)					\
+		 + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)),	\
+      c1 = CHAR_FIELD2 (c),						\
+      c2 = CHAR_FIELD3 (c))						\
+   : (charset = CHAR_FIELD2 (c) + 0x70,					\
+      c1 = CHAR_FIELD3 (c),						\
       c2 = -1))
 
 /* The charset of character C is stored in CHARSET, and the
@@ -572,25 +463,19 @@ extern int width_by_char_head[256];
    : SPLIT_NON_ASCII_CHAR (c, charset, c1, c2))
 
 /* Return 1 iff character C has valid printable glyph.  */
-#define CHAR_PRINTABLE_P(c)		\
-  (SINGLE_BYTE_CHAR_P (c)		\
-   || ((c) >= MIN_CHAR_COMPOSITION	\
-       ? (c) < MAX_CHAR			\
-       : char_printable_p (c)))
+#define CHAR_PRINTABLE_P(c)	\
+  (SINGLE_BYTE_CHAR_P (c)	\
+   || char_printable_p (c))
 
 /* The charset of the character at STR is stored in CHARSET, and the
    position-codes are stored in C1 and C2.
-   We store -1 in C2 if the character is just 2 bytes.
+   We store -1 in C2 if the character is just 2 bytes.  */
 
-   If the character is a composite character, the upper 7-bit and
-   lower 7-bit of CMPCHAR-ID are set in C1 and C2 respectively.  No
-   range checking.  */
-
-#define SPLIT_STRING(str, len, charset, c1, c2)			      	\
-  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) < 2		      	\
-    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > len	      	\
-    || split_non_ascii_string (str, len, &charset, &c1, &c2) < 0)	\
-   ? c1 = *(str), charset = CHARSET_ASCII			      	\
+#define SPLIT_STRING(str, len, charset, c1, c2)			\
+  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) < 2		\
+    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > len	\
+    || split_string (str, len, &charset, &c1, &c2) < 0)		\
+   ? c1 = *(str), charset = CHARSET_ASCII			\
    : charset)
 
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
@@ -612,16 +497,15 @@ extern int iso_charset_table[2][2][128];
    representations: multi-byte form and single-word form (character
    code).  */
 
-/* Set STR a pointer to the multi-byte form of the character C.  If C
-   is not a composite character, the multi-byte form is set in WORKBUF
-   and STR points WORKBUF.  The caller should allocate at least 4-byte
-   area at WORKBUF in advance.  Returns the length of the multi-byte
-   form.  If C is an invalid character code, signal an error.  */
+/* Store multi-byte form of the character C in STR.  The caller should
+   allocate at least 4-byte area at STR in advance.  Returns the
+   length of the multi-byte form.  If C is an invalid character code,
+   signal an error.  */
 
-#define CHAR_STRING(c, workbuf, str)		 	\
-  (SINGLE_BYTE_CHAR_P (c)			 	\
-   ? *(str = workbuf) = (unsigned char)(c), 1	 	\
-   : non_ascii_char_to_string (c, workbuf, (unsigned char **)&str))
+#define CHAR_STRING(c, str)		\
+  (SINGLE_BYTE_CHAR_P (c)		\
+   ? *(str) = (unsigned char)(c), 1	\
+   : char_to_string (c, (unsigned char *)str))
 
 /* Return a character code of the character of which multi-byte form
    is at STR and the length is LEN.  If STR doesn't contain valid
@@ -630,7 +514,7 @@ extern int iso_charset_table[2][2][128];
 #define STRING_CHAR(str, len)				\
   (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
    ? (unsigned char) *(str)				\
-   : string_to_non_ascii_char (str, len, 0))
+   : string_to_char (str, len, 0))
 
 /* This is like STRING_CHAR but the third arg ACTUAL_LEN is set to the
    length of the multi-byte form.  Just to know the length, use
@@ -639,7 +523,7 @@ extern int iso_charset_table[2][2][128];
 #define STRING_CHAR_AND_LENGTH(str, len, actual_len)	\
   (BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	\
    ? ((actual_len) = 1), (unsigned char) *(str)		\
-   : string_to_non_ascii_char (str, len, &(actual_len)))
+   : string_to_char (str, len, &(actual_len)))
 
 /* Fetch the "next" multibyte character from Lisp string STRING
    at byte position BYTEIDX, character position CHARIDX.
@@ -663,6 +547,26 @@ if (1)									      \
     BYTEIDX += actual_len;						      \
     CHARIDX++;								      \
   }									      \
+else
+
+/* Like FETCH_STRING_CHAR_SPACE_LEFT but fetch character from the
+   current buffer.  */
+
+#define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)			  \
+if (1)									  \
+  {									  \
+    unsigned char *fetch_buf_char_ptr = BYTE_POS_ADDR (BYTEIDX);	  \
+    int fetch_buf_char_space_left = ((CHARIDX < GPT ? GPT_BYTE : Z_BYTE)  \
+  				       - BYTEIDX);			  \
+    int actual_len;							  \
+    									  \
+    OUTPUT								  \
+  	= STRING_CHAR_AND_LENGTH (fetch_buf_char_ptr,			  \
+  				  fetch_buf_char_space_left, actual_len); \
+    									  \
+    BYTEIDX += actual_len;						  \
+    CHARIDX++;								  \
+  }									  \
 else
 
 /* Return the length of the multi-byte form at string STR of length LEN.  */
@@ -812,70 +716,21 @@ while (0)
 
 #endif /* emacs */
 
-/* Maximum counts of components in one composite character.  */
-#define MAX_COMPONENT_COUNT 16
-
-/* Structure to hold information of a composite character.  */
-struct cmpchar_info {
-  /* Byte length of the composite character.  */
-  int len;
-
-  /* Multi-byte form of the composite character.  */
-  unsigned char *data;
-
-  /* Length of glyph codes.  */
-  int glyph_len;
-
-  /* Width of the overall glyph of the composite character.  */
-  int width;
-
-  /* Pointer to an array of glyph codes of the composite character.
-     This actually contains only character code, no face.  */
-  GLYPH *glyph;
-
-  /* Pointer to an array of composition rules.  The value has the form:
-	(0xA0 + ((GLOBAL-REF-POINT << 2) | NEW-REF-POINT))
-     where each XXX-REF-POINT is 0..8.  */
-  unsigned char *cmp_rule;
-
-  /* Pointer to an array of x-axis offset of left edge of glyphs
-     relative to the left of of glyph[0] except for the first element
-     which is the absolute offset from the left edge of overall glyph.
-     The actual pixel offset should be calculated by multiplying each
-     frame's one column width by this value:
-	(i.e. FONT_WIDTH (f->output_data.x->font) * col_offset[N]).  */
-  float *col_offset;
-
-  /* Work slot used by `dumpglyphs' (xterm.c).  */
-  int face_work;
-};
-
-/* Table of pointers to the structure `cmpchar_info' indexed by
-   CMPCHAR-ID.  */
-extern struct cmpchar_info **cmpchar_table;
-/* Number of the current composite characters.  */
-extern int n_cmpchars;
-
-/* This is the maximum length of multi-byte form.  */
-#define MAX_LENGTH_OF_MULTI_BYTE_FORM (MAX_COMPONENT_COUNT * 6)
-
-/* Maximum character code currently used.  */
-#define MAX_CHAR (MIN_CHAR_COMPOSITION + n_cmpchars)
+/* This is the maximum byte length of multi-byte sequence.  */
+#define MAX_MULTIBYTE_LENGTH 4
 
 extern void invalid_character P_ ((int));
 
 extern int translate_char P_ ((Lisp_Object, int, int, int, int));
-extern int split_non_ascii_string P_ ((const unsigned char *, int, int *,
+extern int split_string P_ ((const unsigned char *, int, int *,
 				       unsigned char *, unsigned char *));
-extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *));
-extern int non_ascii_char_to_string P_ ((int, unsigned char *, unsigned char **));
+extern int char_to_string P_ ((int, unsigned char *));
+extern int string_to_char P_ ((const unsigned char *, int, int *));
 extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
-extern int str_cmpchar_id P_ ((const unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
-extern int cmpchar_component P_ ((int, int, int));
 extern int find_charset_in_str P_ ((unsigned char *, int, int *,
-				    Lisp_Object, int, int));
+				    Lisp_Object, int));
 extern int strwidth P_ ((unsigned char *, int));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
@@ -902,10 +757,6 @@ extern Lisp_Object Vauto_fill_chars;
 
 /* Length of C in bytes.  */
 
-#define CHAR_LEN(C)					\
-     (CHAR_CHARSET ((C)) == CHARSET_COMPOSITION		\
-      ? cmpchar_table[COMPOSITE_CHAR_ID ((C))]->len	\
-      : CHARSET_BYTES (CHAR_CHARSET ((C))))
-
+#define CHAR_LEN(C) CHARSET_BYTES (CHAR_CHARSET ((C)))
 
 #endif /* _CHARSET_H */
