@@ -2302,6 +2302,7 @@ IT_set_frame_parameters (f, alist)
   int redraw = 0, fg_set = 0, bg_set = 0;
   unsigned long orig_fg;
   unsigned long orig_bg;
+  extern Lisp_Object Qdefault, QCforeground, QCbackground;
 
   /* If we are creating a new frame, begin with the original screen colors
      used for the initial frame.  */
@@ -2346,7 +2347,6 @@ IT_set_frame_parameters (f, alist)
   /* Now process the alist elements in reverse of specified order.  */
   for (i--; i >= 0; i--)
     {
-      extern Lisp_Object Qdefault, QCforeground, QCbackground;
       Lisp_Object prop, val;
       Lisp_Object frame;
 
@@ -2441,7 +2441,8 @@ IT_set_frame_parameters (f, alist)
 	  FRAME_BACKGROUND_PIXEL (f) = orig_fg;
 	  XSETFRAME (frame, f);
 	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-					     tty_color_name (orig_fg), frame);
+					     tty_color_name (f, orig_fg),
+					     frame);
 	  redraw = 1;
 	}
       if (!bg_set)
@@ -2449,7 +2450,8 @@ IT_set_frame_parameters (f, alist)
 	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
 	  XSETFRAME (frame, f);
 	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-					     tty_color_name (orig_bg), frame);
+					     tty_color_name (f, orig_bg),
+					     frame);
 	  redraw = 1;
 	}
     }
