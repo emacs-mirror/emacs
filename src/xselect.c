@@ -1170,7 +1170,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   BLOCK_INPUT;
   /* First probe the thing to find out how big it is.  */
   result = XGetWindowProperty (display, window, property,
-			       0, 0, False, AnyPropertyType,
+			       0L, 0L, False, AnyPropertyType,
 			       actual_type_ret, actual_format_ret,
 			       actual_size_ret,
 			       &bytes_remaining, &tmp_data);
@@ -1200,7 +1200,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 #endif
       result
 	= XGetWindowProperty (display, window, property,
-			      offset/4, buffer_size/4,
+			      (long)offset/4, (long)buffer_size/4,
 			      False,
 			      AnyPropertyType,
 			      actual_type_ret, actual_format_ret,
