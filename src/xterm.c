@@ -4255,6 +4255,7 @@ x_catch_errors ()
 /* If any X protocol errors have arrived since the last call to
    x_catch_errors or x_check_errors, signal an Emacs error using
    sprintf (a buffer, FORMAT, the x error message text) as the text.  */
+
 void
 x_check_errors (format)
      char *format;
@@ -4271,6 +4272,8 @@ x_check_errors (format)
       error (buf);
     }
 }
+
+/* Stop catching X protocol errors and let them make Emacs die.  */
 
 void
 x_uncatch_errors ()
