@@ -281,6 +281,10 @@ detailed meanings of these arguments."
   (interactive (list (read-charset "Character set: ")))
   (with-output-to-temp-buffer "*Character List*"
     (with-current-buffer standard-output
+      (if (coding-system-p charset)
+	  ;; Useful to be able to do C-u C-x = to find file code, for
+	  ;; instance:
+	  (set-buffer-file-coding-system charset))
       (setq mode-line-format (copy-sequence mode-line-format))
       (let ((slot (memq 'mode-line-buffer-identification mode-line-format)))
 	(if slot
