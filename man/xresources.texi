@@ -247,6 +247,14 @@ useful for debugging X problems.
 @item @code{title} (class @code{Title})
 Name to display in the title bar of the initial Emacs frame.
 
+@item @code{useXIM} (class @code{UseXIM})
+@cindex XIM
+@cindex X input methods
+Turn off use of X input methods (XIM) if @samp{false} or @samp{off}.
+This is only relevant if your Emacs is actually built with XIM
+support.  It is potentially useful to turn off XIM for efficiency,
+especially slow X client/server links.
+
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
 @samp{off}.
