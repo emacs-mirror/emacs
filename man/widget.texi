@@ -149,7 +149,7 @@ create any widgets, the code has been split in two files:
 @table @file
 @item widget.el
 This will declare the user variables, define the function
-@code{widget-define}, and autoload the function @code{widget-create}. 
+@code{define-widget}, and autoload the function @code{widget-create}. 
 @item wid-edit.el
 Everything else is here, there is no reason to load it explicitly, as
 it will be autoloaded when needed.
@@ -1480,12 +1480,12 @@ its ancestors have been deactivated.  Do not attempt to set the
 @cindex new widgets
 @cindex defining new widgets
 
-You can define specialized widgets with @code{widget-define}.  It allows
+You can define specialized widgets with @code{define-widget}.  It allows
 you to create a shorthand for more complex widgets, including specifying
 component widgets and new default values for the keyword
 arguments. 
 
-@defun widget-define name class doc &rest args
+@defun define-widget name class doc &rest args
 Define a new widget type named @var{name} from @code{class}.
 
 @var{name} and class should both be symbols, @code{class} should be one
@@ -1510,7 +1510,7 @@ create identical widgets:
 
 @end defun
 
-Using @code{widget-define} just stores the definition of the widget type
+Using @code{define-widget} just stores the definition of the widget type
 in the @code{widget-type} property of @var{name}, which is what
 @code{widget-create} uses.
 
