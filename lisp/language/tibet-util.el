@@ -38,12 +38,12 @@
   (setup-english-environment)
   (setq coding-category-iso-8-2 'tibetan)
 
-  (setq-default buffer-file-coding-system 'iso-2022-7)
+  (setq-default buffer-file-coding-system 'iso-2022-7bit)
 
-  (setq default-input-method  "quail-tibetan-wylie")
+  (setq default-input-method  "tibetan-wylie")
 
-  (setq sendmail-coding-system 'iso-2022-7
-	rmail-file-coding-system 'iso-2022-7))
+  (setq sendmail-coding-system 'iso-2022-7bit
+	rmail-file-coding-system 'iso-2022-7bit))
 
 ;;; This function makes a transcription string for
 ;;; re-composing a character.
