@@ -180,6 +180,7 @@ The functions are called in the order given until one of them returns non-nil.")
 The buffer's local variables (if any) will have been processed before the
 functions are called.")
 
+;;; In case someone does make it local.
 (put 'write-file-hooks 'permanent-local t)
 (defvar write-file-hooks nil
   "List of functions to be called before writing out a buffer to a file.
@@ -187,7 +188,14 @@ If one of them returns non-nil, the file is considered already written
 and the rest are not called.
 These hooks are considered to pertain to the visited file.
 So this list is cleared if you change the visited file name.
-See also `write-contents-hooks'.")
+See also `write-contents-hooks'.
+Don't make this variable buffer-local; instead, use `local-write-file-hooks'.")
+
+(put 'local-write-file-hooks 'permanent-local t)
+(defvar local-write-file-hooks nil
+  "Just like `write-file-hooks', except intended for per-buffer use.
+The functions in this list are called before the ones in
+`write-file-hooks'.")
 
 (defvar write-contents-hooks nil
   "List of functions to be called before writing out a buffer to a file.
@@ -918,6 +926,7 @@ if you wish to pass an empty string as the argument."
   ;; that visit things that are not local files as if they were files.
   ;; Changing to visit an ordinary local file instead should flush the hook.
   (kill-local-variable 'write-file-hooks)
+  (kill-local-variable 'local-write-file-hooks)
   (kill-local-variable 'revert-buffer-function)
   (kill-local-variable 'backup-inhibited)
   ;; Turn off backup files for certain file names.
@@ -1244,7 +1253,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	       (save-excursion
 		 (goto-char (point-max))
 		 (insert ?\n)))
-	  (let ((hooks (append write-contents-hooks write-file-hooks))
+	  (let ((hooks (append write-contents-hooks local-write-file-hooks
+			       write-file-hooks))
 		(done nil))
 	    (while (and hooks
 			(not (setq done (funcall (car hooks)))))
