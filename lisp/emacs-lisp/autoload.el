@@ -77,7 +77,7 @@ Returns nil if FORM is not a function or variable or macro definition."
 				      define-generic-mode
 				      easy-mmode-define-minor-mode
 				      define-minor-mode)) t)
-		    (eq (car-safe (car form)) 'interactive))
+		    (eq (car-safe (car body)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
       ;; Convert defcustom to a simpler (and less space-consuming) defvar,
       ;; but add some extra stuff if it uses :require.
