@@ -2578,20 +2578,17 @@ See also `auto-save-file-name-p'."
 
     (let ((buffer-name (buffer-name))
 	  (limit 0))
-      ;; Use technique from Sebastian Kremer's auto-save
-      ;; package to turn slashes into \\!.  This ensures that
-      ;; the auto-save buffer name is unique.
-
-      (while (string-match "[/\\]" buffer-name limit)
-	(setq buffer-name (concat (substring buffer-name 0 (match-beginning 0))
-			(if (string= (substring buffer-name
-						(match-beginning 0)
-						(match-end 0))
-				     "/")
-			    "\\!"
-			  "\\\\")
-			(substring buffer-name (match-end 0))))
-	(setq limit (1+ (match-end 0))))
+      ;; Eliminate all slashes and backslashes by
+      ;; replacing them with sequences that start with %.
+      ;; Quote % also, to keep distinct names distinct.
+      (while (string-match "[/\\%]" buffer-name limit)
+	(let* ((character (aref buffer-name (match-beginning 0)))
+	       (replacement
+		(cond ((eq character ?%) "%%")
+		      ((eq character ?/) "%+")
+		      ((eq character ?\\) "%-"))))
+	  (setq buffer-name (replace-match replacement t t buffer-name))
+	  (setq limit (1+ (match-end 0)))))
       ;; Generate the file name.
       (expand-file-name
        (format "#%s#%s#" buffer-name (make-temp-name ""))
