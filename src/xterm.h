@@ -201,34 +201,34 @@ struct frame *x_focus_frame;
 /* Variables associated with the X display screen this emacs is using. */
 
 /* How many screens this X display has. */
-extern Lisp_Object x_screen_count;
+extern int x_screen_count;
 
 /* The vendor supporting this X server. */
 extern Lisp_Object Vx_vendor;
 
 /* The vendor's release number for this X server. */
-extern Lisp_Object x_release;
+extern int x_release;
 
 /* Height of this X screen in pixels. */
-extern Lisp_Object x_screen_height;
+extern int x_screen_height;
 
 /* Height of this X screen in millimeters. */
-extern Lisp_Object x_screen_height_mm;
+extern int x_screen_height_mm;
 
 /* Width of this X screen in pixels. */
-extern Lisp_Object x_screen_width;
+extern int x_screen_width;
 
 /* Width of this X screen in millimeters. */
-extern Lisp_Object x_screen_width_mm;
+extern int x_screen_width_mm;
 
 /* Does this X screen do backing store? */
 extern Lisp_Object Vx_backing_store;
 
 /* Does this X screen do save-unders? */
-extern Lisp_Object x_save_under;
+extern int x_save_under;
 
 /* Number of planes for this screen. */
-extern Lisp_Object x_screen_planes;
+extern int x_screen_planes;
 
 /* X Visual type of this screen. */
 extern Lisp_Object Vx_screen_visual;
