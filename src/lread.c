@@ -1800,8 +1800,12 @@ read1 (readcharfun, pch, first_in_list)
 	  nchars = p - read_buffer;
 
 	if (read_pure)
-	  return make_pure_string (read_buffer, nchars, p - read_buffer);
-	return make_multibyte_string (read_buffer, nchars, p - read_buffer);
+	  return make_pure_string (read_buffer, nchars, p - read_buffer,
+				   (force_multibyte
+				    || (p - read_buffer != nchars)));
+	return make_specified_string (read_buffer, nchars, p - read_buffer,
+				      (force_multibyte
+				       || (p - read_buffer != nchars)));
       }
 
     case '.':
@@ -2234,7 +2238,7 @@ make_symbol (str)
   int len = strlen (str);
 
   return Fmake_symbol ((!NILP (Vpurify_flag)
-			? make_pure_string (str, len, len)
+			? make_pure_string (str, len, len, 0)
 			: make_string (str, len)));
 }
 
@@ -2484,7 +2488,7 @@ init_obarray ()
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
-  Qnil = Fmake_symbol (make_pure_string ("nil", 3, 3));
+  Qnil = Fmake_symbol (make_pure_string ("nil", 3, 3, 0));
   Vobarray = Fmake_vector (oblength, make_number (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
@@ -2497,7 +2501,7 @@ init_obarray ()
   tem = &XVECTOR (Vobarray)->contents[hash];
   *tem = Qnil;
 
-  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7, 7));
+  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7, 7, 0));
   XSYMBOL (Qnil)->function = Qunbound;
   XSYMBOL (Qunbound)->value = Qunbound;
   XSYMBOL (Qunbound)->function = Qunbound;
