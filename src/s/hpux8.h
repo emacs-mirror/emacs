@@ -30,4 +30,6 @@
    and none have sioctl.h, so might as well define this.  */
 #define NO_SIOCTL_H
 
-#define HAVE_RANDOM
+/* If you use X11R4 you must define this.  If you use
+   X11R5 you must comment this out */
+/* #define HAVE_RANDOM */
