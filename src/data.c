@@ -101,6 +101,8 @@ static Lisp_Object Qchar_table, Qbool_vector;
 
 static Lisp_Object swap_in_symval_forwarding ();
 
+Lisp_Object set_internal ();
+
 Lisp_Object
 wrong_type_argument (predicate, value)
      register Lisp_Object predicate, value;
