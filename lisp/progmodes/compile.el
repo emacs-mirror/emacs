@@ -256,8 +256,52 @@ Otherwise, it saves all modified buffers without asking.")
   '(("^\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
-(defvar grep-command "grep -n "
-  "Last grep command used in \\[grep]; default for next grep.")
+;; Use zgrep if available, to work nicely with compressed files.
+;; Otherwise, use ordinary grep.
+(defvar grep-program
+  (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
+		 (call-process "zgrep" nil nil nil
+			       "foo" grep-null-device)
+	       (error nil))
+	     1)
+      "zgrep"
+    "grep")
+  "The default grep program for `grep-command' and `grep-find-command'.")
+
+;; Use -e if grep supports it,
+;; because that avoids lossage if the pattern starts with `-'.
+(defvar grep-command
+  (if (equal (condition-case nil	; in case "grep" isn't in exec-path
+		 (call-process grep-program nil nil nil
+			       "-e" "foo" grep-null-device)
+	       (error nil))
+	     1)
+      (format "%s -n -e " grep-program)
+    (format "%s -n " grep-program))
+  "The default grep command for \\[grep].")
+
+(defvar grep-find-use-xargs
+  (if (equal (call-process "find" nil nil nil
+			   grep-null-device "-print0")
+	     0)
+      'gnu)
+  "Whether \\[grep-find] uses the `xargs' utility by default.
+
+If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+if not nil and not `gnu', it uses `find -print' and `xargs'.
+
+This variable's value takes effect when `compile.el' is loaded
+by influencing the default value for the variable `grep-find-command'.")
+
+(defvar grep-find-command
+  (cond ((eq grep-find-use-xargs 'gnu)
+	 (format "find . -type f -print0 | xargs -0 -e %s" grep-command))
+	(grep-find-use-xargs
+	 (format "find . -type f -print | xargs %s" grep-command))
+	(t (cons (format "find . -type f -exec %s {} /dev/null \\;"
+			 grep-command)
+		 (+ 22 (length grep-command)))))
+  "The default find command for \\[grep-find].")
 
 ;;;###autoload
 (defvar compilation-search-path '(nil)
@@ -308,6 +352,7 @@ write into the compilation buffer, and to put in its mode line.")
 (defvar compile-history nil)
 ;; History of grep commands.
 (defvar grep-history nil)
+(defvar grep-find-history nil)
 
 (defun compilation-mode-font-lock-keywords ()
   "Return expressions to highlight in Compilation mode."
@@ -392,10 +437,27 @@ easily repeat a grep command."
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
   (let* ((compilation-process-setup-function 'grep-process-setup)
-	 (buf (compile-internal (concat command-args " " grep-null-device)
+	 (buf (compile-internal (if grep-null-device
+				    (concat command-args " " grep-null-device)
+				  command-args)
 				"No more grep hits" "grep"
 				;; Give it a simpler regexp to match.
 				nil grep-regexp-alist)))))
+
+
+;;;###autoload
+(defun grep-find (command-args)
+  "Run grep via find, with user-specified args, and collect output in a buffer.
+While find runs asynchronously, you can use the \\[next-error] command
+to find the text that grep hits refer to.
+
+This command uses a special history list for its arguments, so you can
+easily repeat a find command."
+  (interactive
+   (list (read-from-minibuffer "Run find (like this): "
+			       grep-find-command nil nil 'grep-find-history)))
+  (let ((grep-null-device nil))		; see grep
+    (grep command-args)))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
