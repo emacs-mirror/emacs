@@ -1028,7 +1028,10 @@ This function is used for `comint-input-sender' if using `sql-oracle' on NT."
 		   nil nil nil sql-placeholder-history)
 		  t t string)))
   (comint-send-string proc string)
-  (comint-send-string proc "\n"))
+  (if comint-input-sender-no-newline
+      (if (not (string-equal input ""))
+	  (process-send-eof))
+    (comint-send-string proc "\n")))
 
 ;; Using DB2 interactively, newlines must be escaped with " \".
 ;; The space before the backslash is relevant.
@@ -1046,7 +1049,10 @@ Every newline in STRING will be preceded with a space and a backslash."
       (setq start me))
     (setq result (concat result (substring string start)))
     (comint-send-string proc result)
-    (comint-send-string proc "\n")))
+    (if comint-input-sender-no-newline
+	(if (not (string-equal input ""))
+	    (process-send-eof))
+      (comint-send-string proc "\n"))))
 
 
 
