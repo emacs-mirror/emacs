@@ -9,7 +9,9 @@
 	* src/mac.c (stat): Don't fail for aliases.
 	(sys_open) [__MRC__]: Set file creator and type for newly-created
 	files.
-
+	(sleep) [__MRC__]: Place loop around WaitNextEvent to check time
+	elapsed instead of use WaitNextEvent call as a delay.
+	
 2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* src/macterm.c (init_font_name_table): Add an additional entry to

@@ -969,9 +969,15 @@ gettimeofday (tp)
 unsigned int
 sleep (unsigned int seconds)
 {
+  unsigned long time_up;
   EventRecord e;
 
-  WaitNextEvent (0, &e, seconds * 60UL, NULL);	/* Accept no event; just wait. by T.I.*/
+  time_up = TickCount () + seconds * 60;
+  while (TickCount () < time_up)
+    {
+      /* Accept no event; just wait. by T.I.  */
+      WaitNextEvent (0, &e, 30, NULL);
+    }
 
   return (0);
 }
