@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987,88,89,90,93,94,95 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,93,94,95,96 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
@@ -6877,12 +6877,13 @@ If READ-ALL is non-nil, all articles in the group are selected."
       (cond ((or (eq 'tick (car prev)) (eq 'dormant (car prev)))
 	     ;; Make sure that all ticked articles are a subset of the
 	     ;; unread/unselected articles.
-	     (while m
-	       (if (or (memq (car m) gnus-newsgroup-unreads)
-		       (memq (car m) gnus-newsgroup-unselected))
-		   (setq prev m)
-		 (setcdr prev (cdr m)))
-	       (setq m (cdr m))))
+	     ;;(while m
+	     ;;  (if (or (memq (car m) gnus-newsgroup-unreads)
+	     ;;  (memq (car m) gnus-newsgroup-unselected))
+	     ;; (setq prev m)
+	     ;; (setcdr prev (cdr m)))
+	     ;; (setq m (cdr m)))
+	     )
 	    ((eq 'score (car prev))
 	     ;; Scored articles should be a subset of
 	     ;; unread/unselected articles. 
@@ -11954,6 +11955,8 @@ is returned insted of the status string."
 	     (nth 1 method) accept-function last)))
 
 (defun gnus-request-accept-article (group &optional last)
+  (goto-char (point-max))
+  (or (bolp) (insert "\n"))
   (let ((func (if (symbolp group) group
 		(car (gnus-find-method-for-group group)))))
     (funcall (intern (format "%s-request-accept-article" func))
