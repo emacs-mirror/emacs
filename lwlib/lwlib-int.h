@@ -7,6 +7,7 @@
 extern char *strdup (const char *);
 extern int strcasecmp (const char *, const char *);
 */
+extern char *safe_strdup (char *);
 
 typedef struct _widget_instance
 {
@@ -49,5 +50,6 @@ lw_internal_update_other_instances ();
 widget_value*
 lw_get_widget_value_for_widget ();
 
-#endif /* LWLIB_INTERNAL_H */
+widget_info *lw_get_widget_info ();
 
+#endif /* LWLIB_INTERNAL_H */
