@@ -12,11 +12,11 @@ VPATH=@srcdir@
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
-INFO_TARGETS = ../info/emacs ../info/cl ../info/forms ../info/vip \
-	       ../info/gnus ../info/sc ../info/info ../info/dired-x \
-	       ../info/mh-e
-DVI_TARGETS = emacs.dvi cl.dvi forms.dvi vip.dvi gnus.dvi sc.dvi \
-		dired-x.dvi mh-e.dvi
+INFO_TARGETS = ../info/emacs ../info/cl ../info/dired-x ../info/forms \
+	       ../info/gnus ../info/info \
+	       ../info/mh-e ../info/sc ../info/vip ../info/viper
+DVI_TARGETS = emacs.dvi cl.dvi dired-x.dvi forms.dvi gnus.dvi \
+		 mh-e.dvi sc.dvi vip.dvi viper.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -118,6 +118,11 @@ gnus.dvi: gnus.texi
 
 ../etc/GNU: gnu1.texi gnu.texi
 	makeinfo --no-headers -o ../etc/GNU gnu1.texi
+
+../info/viper: viper.texi viper-cmd.texi
+	$(MAKEINFO) viper.texi
+viper.dvi: viper.texi viper-cmd.texi
+	$(TEXI2DVI) ${srcdir}/viper.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
