@@ -475,10 +475,10 @@ Return t if file exists.")
   if (NILP (nomessage))
     {
       if (newer)
-	message ("Loading %s... (compiled; note, source file is newer)",
+	message ("Loading %s (compiled; note, source file is newer)...",
 		 XSTRING (file)->data);
       else if (compiled)
-	message ("Loading %s... (compiled)", XSTRING (file)->data);
+	message ("Loading %s (compiled)...", XSTRING (file)->data);
       else
 	message ("Loading %s...", XSTRING (file)->data);
     }
@@ -510,10 +510,10 @@ Return t if file exists.")
   if (!noninteractive && NILP (nomessage))
     {
       if (newer)
-	message ("Loading %s...done (compiled; note, source file is newer)",
+	message ("Loading %s (compiled; note, source file is newer)...done",
 		 XSTRING (file)->data);
       else if (compiled)
-	message ("Loading %s...done (compiled)", XSTRING (file)->data);
+	message ("Loading %s (compiled)...done", XSTRING (file)->data);
       else
 	message ("Loading %s...done", XSTRING (file)->data);
     }
