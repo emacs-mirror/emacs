@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.35 2001/09/27 21:13:44 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.36 2001/10/11 01:44:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -765,14 +765,7 @@ rather than at left margin."
       (unless (or ce (eolp)) (insert "\n") (indent-according-to-mode))
       (comment-with-narrowing beg end
 	(let ((min-indent (point-max))
-	      (max-indent 0)
-	      ;; We rebind the invisibility spec because move-to-column
-	      ;; skips invisible text.  Only reveal ellipses.
-	      (buffer-invisibility-spec
-	       (if (listp buffer-invisibility-spec)
-	      	   (mapcar (lambda (x) (if (cdr-safe x) t x))
-	      		   buffer-invisibility-spec)
-	      	 buffer-invisibility-spec)))
+	      (max-indent 0))
 	  (goto-char (point-min))
 	  ;; Quote any nested comment marker
 	  (comment-quote-nested comment-start comment-end nil)
