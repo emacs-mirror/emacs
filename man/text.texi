@@ -1735,13 +1735,13 @@ characters themselves (@code{sgml-name-8bit-mode}).
 @findex sgml-validate
 Run a shell command (which you must specify) to validate the current
 buffer as SGML (@code{sgml-validate}).
-@end table
 
 @item C-x TAB
 @kindex C-c TAB @r{(SGML mode)}
 @findex sgml-tags-invisible
 Toggle the visibility of existing tags in the buffer.  This can be
 used as a cheap preview.
+@end table
 
 @vindex sgml-xml-mode
   SGML mode and HTML mode support XML also.  In XML, every opening tag
