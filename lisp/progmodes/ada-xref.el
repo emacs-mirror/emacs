@@ -143,7 +143,8 @@ Otherwise, ask the user for the name of the project file to use."
 
 (defcustom ada-tight-gvd-integration nil
   "*If non-nil, a new Emacs frame will be swallowed in GVD when debugging.
-If GVD is not the debugger used, nothing happens.")
+If GVD is not the debugger used, nothing happens."
+  :type 'boolean :group 'ada)
 
 (defcustom ada-xref-search-with-egrep t
   "*If non-nil, use egrep to find the possible declarations for an entity.
@@ -506,12 +507,12 @@ All the directories are returned as absolute directories."
 			    (equal ada-prj-default-project-file
 				   (car x))
 			    ))))
-     
+
 	      ;; Parses all the known project files, and insert at
 	      ;; least the default one (in case
 	      ;; ada-xref-project-files is nil)
 	      (or ada-xref-project-files '(nil))))))
-      
+
     (easy-menu-add-item ada-mode-menu '() submenu)))
 
 
