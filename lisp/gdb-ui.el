@@ -1831,7 +1831,6 @@ BUFFER nil or omitted means use the current buffer."
 	    (if (re-search-forward gdb-current-address nil t)
 		(progn
 		  (setq pos (point))
-		  (setq gdb-overlay-arrow-string "=>")
 		  (beginning-of-line)
 		  (or gdb-overlay-arrow-position
 		      (setq gdb-overlay-arrow-position (make-marker)))
@@ -1871,6 +1870,7 @@ BUFFER nil or omitted means use the current buffer."
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
   (push 'gdb-overlay-arrow-position overlay-arrow-variable-list)
+  (put 'gdb-overlay-arrow-position 'overlay-arrow-string "=>")
   (setq gdb-overlay-arrow-position nil)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
