@@ -176,6 +176,9 @@ static int any_help_event_p;
 
 int mouse_autoselect_window;
 
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
+static Lisp_Object last_window;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -361,7 +364,8 @@ static int fast_find_string_pos P_ ((struct window *, int, Lisp_Object,
 static void set_output_cursor P_ ((struct cursor_pos *));
 static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
 					   int *, int *, int *, int));
-static void note_mode_line_highlight P_ ((struct window *, int, int));
+static void note_mode_line_or_margin_highlight P_ ((struct window *, int,
+						    int, int));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
 static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
@@ -3508,6 +3512,13 @@ x_draw_glyph_string_foreground (s)
 
       /* Draw text with TextOut and friends. */
       w32_text_out (s, x, s->ybase - boff, s->char2b, s->nchars);
+
+      if (s->face->overstrike)
+	{
+	  /* For overstriking (to simulate bold-face), draw the
+	     characters again shifted to the right by one pixel.  */
+	  w32_text_out (s, x + 1, s->ybase - boff, s->char2b, s->nchars);
+	}
     }
   if (s->font && s->font->hfont)
     SelectObject (s->hdc, old_font);
@@ -3554,10 +3565,17 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-          w32_text_out (s, x + s->cmp->offsets[s->gidx * 2],
-                       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-                       s->char2b + i, 1);
+	{
+	  w32_text_out (s, x + s->cmp->offsets[s->gidx * 2],
+			s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			s->char2b + i, 1);
+	  if (s->face->overstrike)
+	    w32_text_out (s, x + s->cmp->offsets[s->gidx * 2] + 1,
+			  s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			  s->char2b + i, 1);
+	}
     }
+
   if (s->font && s->font->hfont)
     SelectObject (s->hdc, old_font);
 }
@@ -5181,6 +5199,14 @@ x_write_glyphs (start, len)
 		     hpos, hpos + len,
 		     DRAW_NORMAL_TEXT, 0);
 
+  /* Invalidate old phys cursor if the glyph at its hpos is redrawn.  */
+  if (updated_area == TEXT_AREA
+      && updated_window->phys_cursor_on_p
+      && updated_window->phys_cursor.vpos == output_cursor.vpos
+      && updated_window->phys_cursor.hpos >= hpos
+      && updated_window->phys_cursor.hpos < hpos + len)
+    updated_window->phys_cursor_on_p = 0;
+
   UNBLOCK_INPUT;
 
   /* Advance the output cursor.  */
@@ -6339,28 +6365,6 @@ note_mouse_movement (frame, msg)
   memcpy (&last_mouse_motion_event, msg, sizeof (last_mouse_motion_event));
   XSETFRAME (last_mouse_motion_frame, frame);
 
-#if 0 /* Calling Lisp asynchronously is not safe.  */
-  if (mouse_autoselect_window)
-    {
-      int area;
-      Lisp_Object window;
-      static Lisp_Object last_window;
-
-      window = window_from_coordinates (frame, mouse_x, mouse_y, &area, 0);
-
-      /* Window will be selected only when it is not selected now and
-	 last mouse movement event was not in it.  Minibuffer window
-	 will be selected iff it is active.  */
-      if (!EQ (window, last_window)
-	  && !EQ (window, selected_window)
-	  && (!MINI_WINDOW_P (XWINDOW (window))
-	      || (EQ (window, minibuf_window) && minibuf_level > 0)))
-	Fselect_window (window);
-
-      last_window=window;
-    }
-#endif
-
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
       frame->mouse_moved = 1;
@@ -6501,79 +6505,54 @@ frame_to_window_pixel_xy (w, x, y)
 }
 
 
-/* Take proper action when mouse has moved to the mode or header line of
-   window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
-   mode line.  X is relative to the start of the text display area of
-   W, so the width of fringes and scroll bars must be subtracted
-   to get a position relative to the start of the mode line.  */
+/* Take proper action when mouse has moved to the mode or header line
+   or marginal area of window W, x-position X and y-position Y.  Area
+   is 1, 3, 6 or 7 for the mode line, header line, left and right
+   marginal area respectively.  X is relative to the start of the text
+   display area of W, so the width of bitmap areas and scroll bars
+   must be subtracted to get a position relative to the start of the
+   mode line.  */
 
 static void
-note_mode_line_highlight (w, x, mode_line_p)
+note_mode_line_or_margin_highlight (w, x, y, portion)
      struct window *w;
-     int x, mode_line_p;
+     int x, y, portion;
 {
   struct frame *f = XFRAME (w->frame);
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   Cursor cursor = dpyinfo->vertical_scroll_bar_cursor;
-  struct glyph_row *row;
+  int charpos;
+  Lisp_Object string, help, map, pos;
 
-  if (mode_line_p)
-    row = MATRIX_MODE_LINE_ROW (w->current_matrix);
+  if (portion == 1 || portion == 3)
+    string = mode_line_string (w, x, y, portion == 1, &charpos);
   else
-    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+    string = marginal_area_string (w, x, y, portion, &charpos);
 
-  if (row->enabled_p)
+  if (STRINGP (string))
     {
-      struct glyph *glyph, *end;
-      Lisp_Object help, map;
-      int x0;
+      pos = make_number (charpos);
 
-      /* Find the glyph under X.  */
-      glyph = row->glyphs[TEXT_AREA];
-      end = glyph + row->used[TEXT_AREA];
-      x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_LEFT_FRINGE_WIDTH (f));
-
-      while (glyph < end
-	     && x >= x0 + glyph->pixel_width)
+      /* If we're on a string with `help-echo' text property, arrange
+	 for the help to be displayed.  This is done by setting the
+	 global variable help_echo to the help string.  */
+      help = Fget_text_property (pos, Qhelp_echo, string);
+      if (!NILP (help))
 	{
-	  x0 += glyph->pixel_width;
-	  ++glyph;
+	  help_echo = help;
+	  XSETWINDOW (help_echo_window, w);
+	  help_echo_object = string;
+	  help_echo_pos = charpos;
 	}
 
-      if (glyph < end
-	  && STRINGP (glyph->object)
-	  && STRING_INTERVALS (glyph->object)
-	  && glyph->charpos >= 0
-	  && glyph->charpos < SCHARS (glyph->object))
-	{
-	  /* If we're on a string with `help-echo' text property,
-	     arrange for the help to be displayed.  This is done by
-	     setting the global variable help_echo to the help string.  */
-	  help = Fget_text_property (make_number (glyph->charpos),
-				     Qhelp_echo, glyph->object);
-	  if (!NILP (help))
-            {
-              help_echo = help;
-              XSETWINDOW (help_echo_window, w);
-              help_echo_object = glyph->object;
-              help_echo_pos = glyph->charpos;
-            }
-
-	  /* Change the mouse pointer according to what is under X/Y.  */
-	  map = Fget_text_property (make_number (glyph->charpos),
-				    Qlocal_map, glyph->object);
-	  if (KEYMAPP (map))
-	    cursor = f->output_data.w32->nontext_cursor;
-	  else
-	    {
-	      map = Fget_text_property (make_number (glyph->charpos),
-					Qkeymap, glyph->object);
-	      if (KEYMAPP (map))
-		cursor = f->output_data.w32->nontext_cursor;
-	    }
-	}
+     /* Change the mouse pointer according to what is under X/Y.  */
+      map = Fget_text_property (pos, Qlocal_map, string);
+      if (!KEYMAPP (map))
+	map = Fget_text_property (pos, Qkeymap, string);
+      if (KEYMAPP (map))
+	cursor = f->output_data.w32->nontext_cursor;
     }
+
   w32_define_cursor (FRAME_W32_WINDOW (f), cursor);
 }
 
@@ -6643,9 +6622,9 @@ note_mouse_highlight (f, x, y)
     }
 
   /* Mouse is on the mode or header line?  */
-  if (portion == 1 || portion == 3)
+  if (portion == 1 || portion == 3 || portion == 6 || portion == 7)
     {
-      note_mode_line_highlight (w, x, portion == 1);
+      note_mode_line_or_margin_highlight (w, x, y, portion);
       return;
     }
 
@@ -8805,7 +8784,38 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    }
 
 	  if (f)
-	    note_mouse_movement (f, &msg.msg);
+	    {
+	      /* Generate SELECT_WINDOW_EVENTs when needed.  */
+	      if (mouse_autoselect_window)
+		{
+		  Lisp_Object window;
+		  int area;
+		  int x = LOWORD (msg.msg.lParam);
+		  int y = HIWORD (msg.msg.lParam);
+
+		  window = window_from_coordinates (f,
+						    x, y,
+						    &area, 0);
+
+		  /* Window will be selected only when it is not
+		     selected now and last mouse movement event was
+		     not in it.  Minibuffer window will be selected
+		     iff it is active.  */
+		  if (WINDOWP(window)
+		      && !EQ (window, last_window)
+		      && !EQ (window, selected_window)
+		      && numchars > 0)
+		    {
+		      bufp->kind = SELECT_WINDOW_EVENT;
+		      bufp->frame_or_window = window;
+		      bufp->arg = Qnil;
+		      ++bufp, ++count, --numchars;
+		    }
+
+		  last_window=window;
+		}
+	      note_mouse_movement (f, &msg.msg);
+	    }
 	  else
             {
               /* If we move outside the frame, then we're
@@ -9165,6 +9175,14 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  break;
 
 	case WM_SETFOCUS:
+	  /* TODO: Port this change:
+	     2002-06-28  Jan D.  <jan.h.d@swipnet.se>
+	   * xterm.h (struct x_output): Add focus_state.
+	   * xterm.c (x_focus_changed): New function.
+	     (x_detect_focus_change): New function.
+	     (XTread_socket): Call x_detect_focus_change for FocusIn/FocusOut
+	     EnterNotify and LeaveNotify to track X focus changes.
+	   */
 	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           dpyinfo->w32_focus_event_frame = f;
@@ -9398,11 +9416,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 			     Text Cursor
  ***********************************************************************/
 
-/* Notice if the text cursor of window W has been overwritten by a
-   drawing operation that outputs glyphs starting at START_X and
-   ending at END_X in the line given by output_cursor.vpos.
-   Coordinates are area-relative.  END_X < 0 means all the rest
-   of the line after START_X has been written.  */
+/* Notice when the text cursor of window W has been completely
+   overwritten by a drawing operation that outputs glyphs in AREA
+   starting at X0 and ending at X1 in the line starting at Y0 and
+   ending at Y1.  X coordinates are area-relative.  X1 < 0 means all
+   the rest of the line after X0 has been written.  Y coordinates
+   are window-relative.  */
 
 static void
 notice_overwritten_cursor (w, area, x0, x1, y0, y1)
@@ -9410,13 +9429,36 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      enum glyph_row_area area;
      int x0, x1, y0, y1;
 {
-  if (area == TEXT_AREA
-      && w->phys_cursor_on_p
-      && y0 <= w->phys_cursor.y
-      && y1 >= w->phys_cursor.y + w->phys_cursor_height
-      && x0 <= w->phys_cursor.x
-      && (x1 < 0 || x1 > w->phys_cursor.x))
-    w->phys_cursor_on_p = 0;
+  if (area == TEXT_AREA && w->phys_cursor_on_p)
+    {
+      int cx0 = w->phys_cursor.x;
+      int cx1 = cx0 + w->phys_cursor_width;
+      int cy0 = w->phys_cursor.y;
+      int cy1 = cy0 + w->phys_cursor_height;
+
+      if (x0 <= cx0 && (x1 < 0 || x1 >= cx1))
+	{
+	  /* The cursor image will be completely removed from the
+	     screen if the output area intersects the cursor area in
+	     y-direction.  When we draw in [y0 y1[, and some part of
+	     the cursor is at y < y0, that part must have been drawn
+	     before.  When scrolling, the cursor is erased before
+	     actually scrolling, so we don't come here.  When not
+	     scrolling, the rows above the old cursor row must have
+	     changed, and in this case these rows must have written
+	     over the cursor image.
+
+	     Likewise if part of the cursor is below y1, with the
+	     exception of the cursor being in the first blank row at
+	     the buffer and window end because update_text_area
+	     doesn't draw that row.  (Except when it does, but
+	     that's handled in update_text_area.)  */
+
+	  if (((y0 >= cy0 && y0 < cy1) || (y1 > cy0 && y1 < cy1))
+	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
+	    w->phys_cursor_on_p = 0;
+	}
+    }
 }
 
 
@@ -9495,12 +9537,15 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (CANON_X_UNIT (f), wd);
+  w->phys_cursor_width = wd;
 
   rect.right = rect.left + wd;
   hdc = get_frame_dc (f);
+  /* Set clipping, draw the rectangle, and reset clipping again.  */
+  w32_clip_to_row (w, row, hdc, 0);
   FrameRect (hdc, &rect, hb);
   DeleteObject (hb);
-
+  w32_set_clip_rectangle (hdc, NULL);
   release_frame_dc (f, hdc);
 }
 
@@ -9545,10 +9590,6 @@ x_draw_bar_cursor (w, row, width, kind)
       COLORREF cursor_color = f->output_data.w32->cursor_pixel;
       struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
 
-      if (width < 0)
-        width = FRAME_CURSOR_WIDTH (f);
-      width = min (cursor_glyph->pixel_width, width);
-
       /* If the glyph's background equals the color we normally draw
 	 the bar cursor in, the bar cursor in its normal color is
 	 invisible.  Use the glyph's foreground color instead in this
@@ -9558,6 +9599,14 @@ x_draw_bar_cursor (w, row, width, kind)
 	cursor_color = face->foreground;
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+
+      if (width < 0)
+        width = FRAME_CURSOR_WIDTH (f);
+      width = min (cursor_glyph->pixel_width, width);
+
+      w->phys_cursor_width = width;
+
+
       hdc = get_frame_dc (f);
       w32_clip_to_row (w, row, hdc, 0);
 
@@ -9574,6 +9623,8 @@ x_draw_bar_cursor (w, row, width, kind)
 						  row->height - width),
 			 cursor_glyph->pixel_width, width);
 	}
+
+      w32_set_clip_rectangle (hdc, NULL);
       release_frame_dc (f, hdc);
     }
 }
@@ -9607,10 +9658,14 @@ x_draw_phys_cursor_glyph (w, row, hl)
   if (w->phys_cursor.hpos < row->used[TEXT_AREA])
     {
       int on_p = w->phys_cursor_on_p;
-      x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
-                     w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
-                     hl, 0);
+      int x1;
+      x1 = x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
+			  w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
+			  hl, 0);
       w->phys_cursor_on_p = on_p;
+
+      if (hl == DRAW_CURSOR)
+	w->phys_cursor_width = x1 - w->phys_cursor.x;
 
       /* When we erase the cursor, and ROW is overlapped by other
 	 rows, make sure that these overlapping parts of other rows
@@ -9846,7 +9901,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       else
 	{
 	  w->phys_cursor_type = new_cursor_type;
-	  w->phys_cursor_width = new_cursor_width;
 	}
 
       w->phys_cursor_on_p = 1;
@@ -9895,6 +9949,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case NO_CURSOR:
+	  w->phys_cursor_width = 0;
 	  break;
 
 	default:
