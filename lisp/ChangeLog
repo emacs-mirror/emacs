@@ -1,3 +1,7 @@
+2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* rect.el (delete-rectangle-line): Fix pos/column confusion.
+
 2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* menu-bar.el (menu-bar-edit-menu) <copy>: Put an explicit key binding.

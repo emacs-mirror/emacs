@@ -137,13 +137,9 @@ the function is called."
 (defun delete-rectangle-line (startcol endcol fill)
   (let ((pt (line-end-position)))
     (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
-      (if (and (not fill) (<= pt endcol))
-	  (delete-region (point) pt)
-	;; else
-	(setq pt (point))
-	(move-to-column-force endcol)
-	(delete-region pt (point))))
-    ))
+      (setq pt (point))
+      (move-to-column-force endcol)
+      (delete-region pt (point)))))
 
 (defun delete-extract-rectangle-line (startcol endcol lines fill)
   (let ((pt (point-at-eol)))
