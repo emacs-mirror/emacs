@@ -678,6 +678,10 @@ case "${canonical}" in
   ;;
 
   ## Suns
+  sparc-*-linux* | sparc-*-lignux* )
+    machine=sparc opsys=lignux
+  ;;
+
   *-sun-sunos* | *-sun-bsd* | *-sun-solaris* \
     | i[345]86-*-solaris2* | i[345]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
