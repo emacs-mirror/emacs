@@ -70,6 +70,9 @@
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
+;; Fixme: AKA Shift-JIS according to
+;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
+;; that correct?
 
 (define-coding-system 'japanese-iso-7bit-1978-irv
   "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman."

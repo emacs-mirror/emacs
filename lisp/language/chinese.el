@@ -190,6 +190,8 @@ Support for Chinese CNS character sets.  Note that EUC-TW coding system
 accepts Big5 for input also (which is then converted to CNS)."))
  '("Chinese"))
 
+;; Fixme: GBK coding system
+
 (provide 'chinese)
 
 ;;; chinese.el ends here
