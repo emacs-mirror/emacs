@@ -39,7 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "frame.h"
 #include "window.h"
-#if defined (HAVE_MENUS) && defined (HAVE_WINDOW_SYSTEM)
+#if defined (HAVE_MENUS) && defined (HAVE_X_WINDOWS)
 #include "xterm.h"
 #endif
 
