@@ -1740,9 +1740,8 @@ prompt skip is done by skipping text matching the regular expression
 `comint-prompt-regexp', a buffer local variable."
   (interactive "P")
   (if arg
-      ;; Disregard prompt
-      (let ((inhibit-field-text-motion t))
-	(beginning-of-line))
+      ;; Unlike `beginning-of-line', forward-line ignores field boundaries
+      (forward-line 0)
     (goto-char (comint-line-beginning-position))))
 
 ;; These three functions are for entering text you don't want echoed or
