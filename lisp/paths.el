@@ -91,20 +91,13 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
-	;; SVR4 is said to use /var/mail, and make /usr/mail a link to that;
-	;; but since I'm not sure it's generally true, calling file-exists-p
-	;; prevents lossage if it isn't true. -- rms.
-	((and (string-match "^[^-]+-[^-]+-sysv4" system-configuration)
-	      (file-exists-p "/var/mail"))
-	 "/var/mail/")
-	;; BSD386 is said to use /var/mail.
-	((and (string-match "^[^-]+-[^-]+-bsd386" system-configuration)
-	      (file-exists-p "/var/mail"))
+	;; SVR4 and recent BSD are said to use this.
+	;; Rather than trying to know precisely which systems use it,
+	;; let's assume this dir is never used for anything else.
+	((file-exists-p "/var/mail")
 	 "/var/mail/")
 	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
-	((eq system-type 'netbsd)
-	 "/var/mail/")
 	(t "/usr/spool/mail/"))
   "Name of directory used by system mailer for delivering new mail.
 Its name should end with a slash.")
