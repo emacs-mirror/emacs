@@ -91,7 +91,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 Commands that restore windows when finished viewing a buffer, apply to all
 windows that display the buffer and have restore information in
 `view-return-to-alist'.
-If view-exits-all-viewing-windows is nil only the selected window is
+If `view-exits-all-viewing-windows' is nil, only the selected window is
 considered for restoring."
   :type 'boolean
   :group 'view)
@@ -131,8 +131,8 @@ If nil then the local value of this is initially set to half window size.")
 (defvar view-return-to-alist nil
   "What to do with used windows and where to go when finished viewing buffer.
 This is local in each buffer being viewed.
-It is added to by view-mode-enter when starting to view a buffer and
-subtracted from by view-mode-exit when finished viewing the buffer.
+It is added to by `view-mode-enter' when starting to view a buffer and
+subtracted from by `view-mode-exit' when finished viewing the buffer.
 
 See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
 `view-return-to-alist'.")
@@ -475,6 +475,7 @@ OLD-BUF-INFO tells what to do with WINDOW when exiting.  It is one of:
 2) t         Delete WINDOW or, if it is the only window, its frame.
 3) (OLD-BUFF START POINT)  Display buffer OLD-BUFF with displayed text
                            starting at START and point at POINT in WINDOW.
+4) quit-window   Do quit-window in WINDOW.
 
 For list of all View commands, type H or h while viewing.
 
@@ -510,6 +511,7 @@ OLD-BUF-INFO is information on what to do with WINDOW and is one of:
 2) t         Delete WINDOW or, if it is the only window, its frame.
 3) (OLD-BUF START POINT)  Display buffer OLD-BUF with displayed text
                           starting at START and point at POINT in WINDOW.
+4) quit-window   Do quit-window in WINDOW.
 
 If one of the WINDOW in RETURN-TO-ALIST is the selected window and the
 corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
@@ -549,6 +551,8 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 		  (set-window-buffer window (car old-buf-info)) ; old-buf
 		  (set-window-start window (car (cdr old-buf-info)))
 		  (set-window-point window (car (cdr (cdr old-buf-info)))))
+		 ((eq old-buf-info 'quit-window)
+		  (quit-window)) ; Not case 2, do nothing.
 		 ((not (eq old-buf-info t)) nil) ; Not case 2, do nothing.
 		 ((not (one-window-p t)) (delete-window))
 		 ((not (eq frame (next-frame)))
