@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 
 /* If ever some function outside this file will need to call any
    clipboard-related function, the following prototypes and constants
