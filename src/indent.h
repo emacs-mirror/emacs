@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 struct position
   {
     int bufpos;
+    int bytepos;
     int hpos;
     int vpos;
     int prevhpos;
