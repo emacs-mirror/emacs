@@ -965,6 +965,9 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_eval ();
   init_coding ();
   init_data ();
+#ifdef CLASH_DETECTION
+  init_filelock ();;
+#endif
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
