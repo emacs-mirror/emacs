@@ -777,6 +777,8 @@ void
 signal_before_change (start, end)
      Lisp_Object start, end;
 {
+  Lisp_Object args[2];
+
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook)
@@ -829,11 +831,9 @@ signal_before_change (start, end)
       Vafter_change_functions = Qnil;
       Vbefore_change_functions = Qnil;
 
-      while (CONSP (functions))
-	{
-	  call2 (XCONS (functions)->car, start, end);
-	  functions = XCONS (functions)->cdr;
-	}
+      args[0] = start;
+      args[1] = end;
+      Frun_hook_with_args (intern ("before-change-functions"), 2, args);
       unbind_to (count, Qnil);
     }
 
@@ -854,6 +854,8 @@ void
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
 {
+  Lisp_Object args[3];
+
   if (!NILP (Vafter_change_function))
     {
       int count = specpdl_ptr - specpdl;
@@ -896,13 +898,10 @@ signal_after_change (pos, lendel, lenins)
       Vafter_change_functions = Qnil;
       Vbefore_change_functions = Qnil;
 
-      while (CONSP (functions))
-	{
-	  call3 (XCONS (functions)->car,
-		 make_number (pos), make_number (pos + lenins),
-		 make_number (lendel));
-	  functions = XCONS (functions)->cdr;
-	}
+      XSETFASTINT (args[0], pos);
+      XSETFASTINT (args[1], pos + lenins);
+      XSETFASTINT (args[2], lendel);
+      Frun_hook_with_args (intern ("after-change-functions"), 3, args);
       unbind_to (count, Qnil);
     }
 
