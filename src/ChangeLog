@@ -1,3 +1,11 @@
+2004-03-13  Eli Zaretskii  <eliz@elta.co.il>
+
+	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is
+	defined.
+
+	* emacs.c (main): Call syms_of_xmenu only if HAVE_MENUS is
+	defined.
+
 2004-03-12  Richard M. Stallman  <rms@gnu.org>
 
 	* fns.c (internal_equal): New arg PROPS controls comparing
@@ -44,6 +52,7 @@
 	(obj): Add $(GTK_OBJ) to list.
 
 2004-03-11  Steven Tamm <steventamm@mac.com>
+
 	* image.c [MAC_OSX]: Include sys/stat.h
 
 	* macfns.c (syms_of_macfns): Remove definitions of things now
