@@ -410,6 +410,11 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 {
   register Lisp_Object val, delayed_switch_frame;
 
+#ifdef HAVE_WINDOW_SYSTEM
+  if (display_busy_cursor_p)
+    cancel_busy_cursor ();
+#endif
+  
   delayed_switch_frame = Qnil;
 
   /* Read until we get an acceptable event.  */
@@ -467,6 +472,10 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
   if (! NILP (delayed_switch_frame))
     unread_switch_frame = delayed_switch_frame;
 
+#ifdef HAVE_WINDOW_SYSTEM
+  if (display_busy_cursor_p)
+    start_busy_cursor ();
+#endif
   return val;
 }
 
