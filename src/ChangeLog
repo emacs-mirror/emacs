@@ -1,3 +1,8 @@
+2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (scan_sexps_forward): Give precedence to a 2-char
+	comment-starter over a 1-char one.
+
 2004-10-27  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): In mode lines,
@@ -22,8 +27,8 @@
 2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Put empty line between comment and function body.
-	(xg_destroy_widgets): Renamed from remove_from_container.  Just
-	destroy all widgets in list.  Argument wcont removed.
+	(xg_destroy_widgets): Rename from remove_from_container.
+	Just destroy all widgets in list.  Argument wcont removed.
 	(xg_update_menubar, xg_update_submenu): Call xg_destroy_widgets
 	instead of remove_from_container.
 	(xg_display_close, xg_create_tool_bar, update_frame_tool_bar)
@@ -69,17 +74,17 @@
 
 2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
-        * xterm.h (x_output): New member `xic_base_fontname'.
-        (FRAME_XIC_BASE_FONTNAME): New macro.
-        (xic_free_xfontset): Declare.
+	* xterm.h (x_output): New member `xic_base_fontname'.
+	(FRAME_XIC_BASE_FONTNAME): New macro.
+	(xic_free_xfontset): Declare.
 
-        * xfns.c (xic_create_xfontset): Share fontsets between frames
-        based on base_fontname.
-        (xic_free_xfontset): New function.
-        (free_frame_xic): Use it.
-        (xic_set_xfontset): Ditto.
+	* xfns.c (xic_create_xfontset): Share fontsets between frames
+	based on base_fontname.
+	(xic_free_xfontset): New function.
+	(free_frame_xic): Use it.
+	(xic_set_xfontset): Ditto.
 
-        * xterm.c (xim_destroy_callback): Ditto.
+	* xterm.c (xim_destroy_callback): Ditto.
 
 
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
@@ -123,10 +128,10 @@
 
 	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left
 	and canon_width.
-	(xg_frame_cleared): Removed.
+	(xg_frame_cleared): Remove.
 
-	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose,
-	xg_find_top_left_in_fixed): Removed.
+	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose)
+	(xg_find_top_left_in_fixed): Remove.
 	(xg_create_scroll_bar): Put an event box widget between
 	the scroll bar widget and the edit widget.
 	(xg_show_scroll_bar): Show the parent widget (the event box).
@@ -135,11 +140,11 @@
 	Move the parent (the event box) widget inside the fixed widget.
 	Move window clear to xterm.c.
 
-	* gtkutil.h (xg_frame_cleared): Removed.
+	* gtkutil.h (xg_frame_cleared): Remove.
 
 	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
-	(x_scroll_bar_create, XTset_vertical_scroll_bar): Remove
-	arguments left and width to xg_update_scrollbar_pos.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar):
+	Remove arguments left and width to xg_update_scrollbar_pos.
 	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
 
 2004-10-19  Kenichi Handa  <handa@m17n.org>
