@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.5) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.6) $
 #
 # Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
 #
@@ -18,7 +18,7 @@
 #  BuildProgram -d Variety clean
 
 COptions    = -ansi strict -proto strict -typecheck strict -w error ¶
-              -d TARGET_VAR_{Variety} -d TARGET_ARENA_CLIENT -sym full
+              -d CONFIG_VAR_{Variety} -d CONFIG_PROD_EPCORE -sym full
 
 ":" Ä "::"
 
