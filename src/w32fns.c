@@ -3737,21 +3737,6 @@ x_get_focus_frame (frame)
   XSETFRAME (xfocus, dpyinfo->win32_focus_frame);
   return xfocus;
 }
-
-DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
-  "This function is obsolete, and does nothing.")
-  (frame)
-     Lisp_Object frame;
-{
-  return Qnil;
-}
-
-DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
-  "This function is obsolete, and does nothing.")
-  ()
-{
-  return Qnil;
-}
 
 XFontStruct *
 win32_load_font (dpyinfo,name)
