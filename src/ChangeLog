@@ -1,3 +1,7 @@
+2003-06-02  Kenichi Handa  <handa@m17n.org>
+
+	* buffer.c (Fset_buffer_multibyte): Fix previous change.
+
 2003-05-31  John Paul Wallington  <jpw@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): byte-run, float-sup, map-ynp, and
