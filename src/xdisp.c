@@ -950,6 +950,8 @@ redisplay_window (window, just_this_one)
   else if (just_this_one && !MINI_WINDOW_P (w)
 	   && point >= startp
 	   && XFASTINT (w->last_modified)
+	   /* or else vmotion on first line won't work.  */
+	   && ! NILP (w->start_at_line_beg)
 	   && ! EQ (w->window_end_valid, Qnil)
 	   && do_id && !clip_changed
 	   && !blank_end_of_window
