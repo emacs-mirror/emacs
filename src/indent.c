@@ -44,11 +44,11 @@ int indent_tabs_mode;
 
 #define CR 015
 
-/* These three values memoize the current column to avoid recalculation.  */
+/* These three values memorize the current column to avoid recalculation.  */
 
 /* Last value returned by current_column.
    Some things in set last_known_column_point to -1
-   to mark the memoized value as invalid.  */
+   to mark the memorized value as invalid.  */
 
 int last_known_column;
 
