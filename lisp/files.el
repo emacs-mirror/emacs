@@ -1371,7 +1371,7 @@ the modes of the new file to agree with the old modes."
 			  (and backup-by-copying-when-mismatch
 			       (let ((attr (file-attributes real-file-name)))
 				 (or (nth 9 attr)
-				     (/= (nth 2 attr) (user-uid))))))
+				     (not (file-ownership-preserved-p real-file-name))))))
 		      (condition-case ()
 			  (copy-file real-file-name backupname t t)
 			(file-error
