@@ -1823,34 +1823,35 @@ whether or not it is currently displayed in some window.")
 {
   struct it it;
   struct text_pos pt;
-  struct buffer *old, *b;
   struct window *w;
+  Lisp_Object old_buffer;
+  struct gcpro gcpro1;
 
   CHECK_NUMBER (lines, 0);
   if (! NILP (window))
     CHECK_WINDOW (window, 0);
   else
     window = selected_window;
-
   w = XWINDOW (window);
-  b = XBUFFER (w->buffer);
-  if (b != current_buffer)
+
+  old_buffer = Qnil;
+  GCPRO1 (old_buffer);
+  if (XBUFFER (w->buffer) != current_buffer)
     {
-      old = current_buffer;
-      set_buffer_internal_1 (b);
+      /* Set the window's buffer temporarily to the current buffer.  */
+      old_buffer = w->buffer;
+      XSETBUFFER (w->buffer, current_buffer);
     }
-  else
-    old = NULL;
       
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
   move_it_by_lines (&it, XINT (lines), 0);
   SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 
-  if (old)
-    set_buffer_internal_1 (old);
+  if (BUFFERP (old_buffer))
+    w->buffer = old_buffer;
   
-  return make_number (it.vpos);
+  RETURN_UNGCPRO (make_number (it.vpos));
 }
 
 
