@@ -1410,11 +1410,13 @@ The cdr of each element is the corresponding Emacs charset or coding system.")
 	  (newpt (make-marker))
 	  (modified-p (buffer-modified-p))
 	  (case-fold-search nil)
+	  ;; We need multibyte conversion of "TO" type because the
+	  ;; buffer may be multibyte, and, in that case, the pattern
+	  ;; must contain eight-bit-control/graphic characters.
+	  (pattern (string-to-multibyte "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002\\|\e%G[^\e]+\e%@"))
 	  last-coding-system-used
 	  encoding textlen chset)
-      (while (re-search-forward
-	      "\\(\e\\)%/[0-4]\\([\200-\377][\200-\377]\\)\\([^\002]+\\)\002\\|\e%G[^\e]+\e%@"
-	      nil 'move)
+      (while (re-search-forward pattern nil 'move)
 	(set-marker newpt (point))
 	(set-marker pt (match-beginning 0))
 	(if (= (preceding-char) ?@)
