@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2001/02/19 14:54:52 Vinicius>
-;; Version:	6.4
+;; Time-stamp:	<2001/03/23 21:27:46 Vinicius>
+;; Version:	6.5
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.4"
-  "ps-print.el, v 6.4 <2001/02/19 vinicius>
+(defconst ps-print-version "6.5"
+  "ps-print.el, v 6.5 <2001/03/23 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -849,6 +849,35 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-header-title-font-size' determines the font size, in points,
 ;; for the top line of text in the header (similar to `ps-font-size').
 ;;
+;; The variable `ps-line-spacing' determines the line spacing, in points, for
+;; ordinary text, when generating PostScript (similar to `ps-font-size').  The
+;; default value is 0 (zero = no line spacing).
+;;
+;; The variable `ps-paragraph-spacing' determines the paragraph spacing, in
+;; points, for ordinary text, when generating PostScript (similar to
+;; `ps-font-size').  The default value is 0 (zero = no paragraph spacing).
+;;
+;; To get all lines with some spacing set both `ps-line-spacing' and
+;; `ps-paragraph-spacing' variables.
+;;
+;; The variable `ps-paragraph-regexp' specifies the paragraph delimiter.  It
+;; should be a regexp or nil.  The default value is "[ \t]*$", that is, an
+;; empty line or a line containing only spaces and tabs.
+;;
+;; The variable `ps-begin-cut-regexp' and `ps-end-cut-regexp' specify the start
+;; and end of a region to cut out when printing.
+;;
+;; As an example, variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' may
+;; be set to "^Local Variables:" and "^End:", respectively, in order to leave
+;; out some special printing instructions from the actual print.  Special
+;; printing instructions may be appended to the end of the file just like any
+;; other buffer-local variables.  See section "Local Variables in Files" on
+;; Emacs manual for more information.
+;; 
+;; Variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' control together what
+;; actually gets printed.  Both variables may be set to nil in which case no
+;; cutting occurs.  By default, both variables are set to nil.
+;;
 ;;
 ;; Adding a New Font Family
 ;; ------------------------
@@ -1249,8 +1278,10 @@ Please send all bug fixes and enhancements to
 ;; of folding lines.
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
+;;
+;; Thanks to Pavel Janik ml <Pavel@Janik.cz> for documentation correction.
 ;;
 ;; Thanks to Corinne Ilvedson <cilvedson@draper.com> for line number font size
 ;; suggestion.
@@ -1640,6 +1671,7 @@ This variable is used only when `ps-printer-name' is a non-empty string."
 		 :tag "Printer Name Option"
 		 (const :tag "None" nil)
 		 (string :tag "Option"))
+  :version "21.1"
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
@@ -1678,6 +1710,7 @@ If it's nil, automatic feeding takes place."
 
 (defcustom ps-end-with-control-d (and ps-windows-system t)
   "*Non-nil means insert C-d at end of PostScript file generated."
+  :version "21.1"
   :type 'boolean
   :group 'ps-print-printer)
 
@@ -2718,6 +2751,75 @@ By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
   :group 'ps-print-miscellany)
 
+(defcustom ps-line-spacing 0
+  "*Specify line spacing, in points, for ordinary text.
+
+See also `ps-paragraph-spacing' and `ps-paragraph-regexp'.
+
+To get all lines with some spacing set both `ps-line-spacing' and
+`ps-paragraph-spacing' variables."
+  :type '(choice :menu-tag "Line Spacing For Ordinary Text"
+		 :tag "Line Spacing For Ordinary Text"
+		 (number :tag "Line Spacing")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Line Spacing")
+		       (number :tag "Portrait Line Spacing")))
+  :version "21.1"
+  :group 'ps-print-miscellany)
+
+(defcustom ps-paragraph-spacing 0
+  "*Specify paragraph spacing, in points, for ordinary text.
+
+See also `ps-line-spacing' and `ps-paragraph-regexp'.
+
+To get all lines with some spacing set both `ps-line-spacing' and
+`ps-paragraph-spacing' variables."
+  :type '(choice :menu-tag "Paragraph Spacing For Ordinary Text"
+		 :tag "Paragraph Spacing For Ordinary Text"
+		 (number :tag "Paragraph Spacing")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Paragraph Spacing")
+		       (number :tag "Portrait Paragraph Spacing")))
+  :version "21.1"
+  :group 'ps-print-miscellany)
+
+(defcustom ps-paragraph-regexp "[ \t]*$"
+  "*Specify paragraph delimiter.
+
+It should be a regexp or nil.
+
+See also `ps-paragraph-spacing'."
+  :type '(choice :menu-tag "Paragraph Delimiter"
+		 (const :tag "No Delimiter" nil)
+		 (regexp :tag "Delimiter Regexp"))
+  :version "21.1"
+  :group 'ps-print-miscellany)
+
+(defcustom ps-begin-cut-regexp nil
+  "*Specify regexp which is start of a region to cut out when printing.
+
+As an example, variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' may be
+set to \"^Local Variables:\" and \"^End:\", respectively, in order to leave out
+some special printing instructions from the actual print.  Special printing
+instructions may be appended to the end of the file just like any other
+buffer-local variables.  See section \"Local Variables in Files\" on Emacs
+manual for more information.
+
+Variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' control together what
+actually gets printed.  Both variables may be set to nil in which case no
+cutting occurs."
+  :type 'regexp
+  :version "21.1"
+  :group 'ps-print-miscellany)
+
+(defcustom ps-end-cut-regexp nil
+  "*Specify regexp which is end of the region to cut out when printing.
+
+See `ps-begin-cut-regexp' for more information."
+  :type 'regexp
+  :version "21.1"
+  :group 'ps-print-miscellany)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Selected Pages
@@ -2952,6 +3054,11 @@ The table depends on the current ps-print setup."
       ps-header-title-font-size %s
       ps-line-number-font       %s
       ps-line-number-font-size  %s
+      ps-line-spacing           %s
+      ps-paragraph-spacing      %s
+      ps-paragraph-regexp       %s
+      ps-begin-cut-regexp       %s
+      ps-end-cut-regexp         %s
 
       ps-even-or-odd-pages   %s
       ps-selected-pages      %s
@@ -3035,6 +3142,11 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-header-title-font-size)
    ps-line-number-font
    (ps-print-quote ps-line-number-font-size)
+   (ps-print-quote ps-line-spacing)
+   (ps-print-quote ps-paragraph-spacing)
+   (ps-print-quote ps-paragraph-regexp)
+   (ps-print-quote ps-begin-cut-regexp)
+   (ps-print-quote ps-end-cut-regexp)
    (ps-print-quote ps-even-or-odd-pages)
    (ps-print-quote ps-selected-pages)
    (ps-print-quote ps-last-selected-pages)
@@ -3224,10 +3336,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
   "ps-print PostScript error handler.")
 
 (defvar ps-print-prologue-1 ""
-  "ps-print PostScript prologue begin.")
-
-(defvar ps-print-prologue-2 ""
-  "ps-print PostScript prologue end.")
+  "ps-print PostScript prologue.")
 
 ;; Start Editing Here:
 
@@ -3304,6 +3413,8 @@ This is in units of points (1/72 inch).")
 (defvar ps-font-size-internal nil)
 (defvar ps-header-font-size-internal nil)
 (defvar ps-header-title-font-size-internal nil)
+(defvar ps-line-spacing-internal nil)
+(defvar ps-paragraph-spacing-internal nil)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3641,7 +3752,11 @@ and on the current ps-print setup."
 	 (ps-header-title-font-size-internal
 	  (or ps-header-title-font-size-internal
 	      (ps-get-font-size 'ps-header-title-font-size)))
+	 (ps-line-spacing-internal
+	  (or ps-line-spacing-internal
+	      (ps-get-size ps-line-spacing "line spacing")))
 	 (buf (get-buffer-create "*Nb-Pages*"))
+	 (ils ps-line-spacing-internal) ; initial line spacing
 	 (ifs ps-font-size-internal)	; initial font size
 	 (ilh (ps-line-height 'ps-font-for-text)) ; initial line height
 	 (page-height (progn (ps-get-page-dimensions)
@@ -3660,10 +3775,10 @@ and on the current ps-print setup."
 	 nb-lpp				; current nb of lines per page
 	 nb-page			; current nb of pages
 	 )
-    (setq lh-min      (/ (* ilh fs-min) ifs)
+    (setq lh-min      (/ (- (* (+ ilh ils) fs-min) ils) ifs)
 	  nb-lpp-max  (floor (/ page-height lh-min))
 	  nb-page-min (ceiling (/ (float nb-lines) nb-lpp-max))
-	  lh-max      (/ (* ilh fs-max) ifs)
+	  lh-max      (/ (- (* (+ ilh ils) fs-max) ils) ifs)
 	  nb-lpp-min  (floor (/ page-height lh-max))
 	  nb-page-max (ceiling (/ (float nb-lines) nb-lpp-min))
 	  nb-page     nb-page-min)
@@ -3797,7 +3912,8 @@ page-height == bm + print-height + tm - ho - hh
     ;; ps-zebra-stripe-follow is `full' or `full-follow'
     (if ps-zebra-stripe-full-p
 	(let* ((line-height (ps-line-height 'ps-font-for-text))
-	       (zebra (* line-height ps-zebra-stripe-height)))
+	       (zebra (* (+ line-height ps-line-spacing-internal)
+			 ps-zebra-stripe-height)))
 	  (setq ps-print-height (- (* (floor ps-print-height zebra) zebra)
 				   line-height))
 	  (if (<= ps-print-height 0)
@@ -3805,11 +3921,13 @@ page-height == bm + print-height + tm - ho - hh
 ps-zebra-stripe-follow == %s
 ps-zebra-stripe-height == %s
 font-text-height       == %s
-page-height == ((floor print-height (th * zh)) * (th * zh)) - th
+line-spacing           == %s
+page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 => print-height == %d !"
 		     ps-zebra-stripe-follow
 		     ps-zebra-stripe-height
 		     (ps-line-height 'ps-font-for-text)
+		     ps-line-spacing-internal
 		     ps-print-height))))))
 
 (defun ps-print-preprint (prefix-arg)
@@ -3874,7 +3992,7 @@ page-height == ((floor print-height (th * zh)) * (th * zh)) - th
     table)
   "Vector used to map characters to PostScript string escape codes.")
 
-(defun ps-output-string-prim (string)
+(defsubst ps-output-string-prim (string)
   (insert "(")				;insert start-string delimiter
   (save-excursion			;insert string
     (insert (string-as-unibyte string)))
@@ -3887,7 +4005,7 @@ page-height == ((floor print-height (th * zh)) * (th * zh)) - th
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
 
-(defun ps-init-output-queue ()
+(defsubst ps-init-output-queue ()
   (setq ps-output-head (list "")
 	ps-output-tail ps-output-head))
 
@@ -3901,7 +4019,7 @@ page-height == ((floor print-height (th * zh)) * (th * zh)) - th
 		(< ps-last-page ps-page-postscript)))))
 
 
-(defun ps-print-page-p ()
+(defsubst ps-print-page-p ()
   (setq ps-print-page-p
 	(and (cond ((null ps-first-page))
 		   ((<= ps-page-postscript ps-last-page)
@@ -3920,7 +4038,7 @@ page-height == ((floor print-height (th * zh)) * (th * zh)) - th
 		   ))))
 
 
-(defun ps-print-sheet-p ()
+(defsubst ps-print-sheet-p ()
   (setq ps-print-page-p
 	(cond ((eq ps-even-or-odd-pages 'even-sheet)
 	       (= (logand ps-page-sheet 1) 0))
@@ -3980,17 +4098,19 @@ page-height == ((floor print-height (th * zh)) * (th * zh)) - th
    ;; Literal strings should be output as is -- the string must
    ;; contain its own PS string delimiters, '(' and ')', if necessary.
    ((stringp content)
-    (ps-output content))
+    (ps-output (ps-mule-encode-header-string content fonttag)))
 
    ;; Functions are called -- they should return strings; they will be
    ;; inserted as strings and the PS string delimiters added.
    ((and (symbolp content) (fboundp content))
-    (ps-output-string (funcall content)))
+    (ps-output-string (ps-mule-encode-header-string (funcall content)
+						    fonttag)))
 
    ;; Variables will have their contents inserted.  They should
    ;; contain strings, and will be inserted as strings.
    ((and (symbolp content) (boundp content))
-    (ps-output-string (symbol-value content)))
+    (ps-output-string (ps-mule-encode-header-string (symbol-value content)
+						    fonttag)))
 
    ;; Anything else will get turned into an empty string.
    (t
@@ -4651,7 +4771,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
     (ps-output "%%EndComments\n%%BeginDefaults\n%%PageMedia: "
 	       (ps-page-dimensions-get-media dimensions)
-	       "\n%%EndDefaults\n\n%%BeginPrologue\n\n"
+	       "\n%%EndDefaults\n\n%%BeginProlog\n\n"
 	       "/languagelevel where{pop}{/languagelevel 1 def}ifelse\n"
 	       (format "/ErrorMessage  %s def\n\n"
 		       (or (cdr (assoc ps-error-handler-message
@@ -4696,11 +4816,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output-boolean "ShowNofN          " ps-show-n-of-n)
 
     (let ((line-height (ps-line-height 'ps-font-for-text)))
-      (ps-output (format "/LineHeight       %s def\n" line-height)
+      (ps-output (format "/LineSpacing      %s def\n" ps-line-spacing-internal)
+		 (format "/ParagraphSpacing %s def\n"
+			 ps-paragraph-spacing-internal)
+		 (format "/LineHeight       %s def\n" line-height)
 		 (format "/LinesPerColumn   %d def\n"
-			 (round (/ (+ ps-print-height
-				      (* line-height 0.45))
-				   line-height)))))
+			 (let ((height (+ line-height
+					  ps-line-spacing-internal)))
+			   (round (/ (+ ps-print-height
+					(* height 0.45))
+				     height))))))
 
     (ps-output-boolean "WarnPaperSize   " ps-warn-paper-type)
     (ps-output-boolean "Zebra           " ps-zebra-stripes)
@@ -4770,7 +4895,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		       (ps-get-font-size 'ps-line-number-font-size)
 		       ps-line-number-font))
 
-    (ps-output "\n" ps-print-prologue-2 "\n")
+    (ps-output "\n\n% ---- These lines must be kept together because...
+
+/h0 F
+/HeaderTitleLineHeight FontHeight def
+
+/h1 F
+/HeaderLineHeight FontHeight def
+/HeaderDescent    Descent def
+
+% ---- ...because `F' has a side-effect on `FontHeight' and `Descent'\n\n")
 
     ;; Text fonts
     (let ((font (ps-font-alist 'ps-font-for-text))
@@ -4787,7 +4921,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
       (ps-output (format "/SpaceWidthRatio %f def\n"
 			 (/ (ps-lookup 'space-width) (ps-lookup 'size)))))
 
-    (ps-output "\n%%EndPrologue\n\n%%BeginSetup\n")
+    (ps-output "\n%%EndProlog\n\n%%BeginSetup\n")
     (unless (eq ps-spool-config 'lpr-switches)
       (ps-output "\n%%BeginFeature: *Duplex "
 		 (ps-boolean-capitalized ps-spool-duplex)
@@ -4864,18 +4998,28 @@ XSTART YSTART are the relative position for the first page in a sheet.")
        (and (buffer-modified-p) " (unsaved)")))))
 
 
+(defun ps-get-size (size mess &optional arg)
+  (let ((siz (cond ((numberp size)
+		    size)
+		   ((and (consp size)
+			 (numberp (car size))
+			 (numberp (cdr size)))
+		    (if ps-landscape-mode
+			(car size)
+		      (cdr size)))
+		   (t
+		    -1))))
+    (and (< siz 0)
+	 (error "Invalid %s `%S'%s"
+		mess size
+		(if arg
+		    (format " for `%S'" arg)
+		  "")))
+    siz))
+
+
 (defun ps-get-font-size (font-sym)
-  (let ((font-size (symbol-value font-sym)))
-    (cond ((numberp font-size)
-	   font-size)
-	  ((and (consp font-size)
-		(numberp (car font-size))
-		(numberp (cdr font-size)))
-	   (if ps-landscape-mode
-	       (car font-size)
-	     (cdr font-size)))
-	  (t
-	   (error "Invalid font size `%S' for `%S'" font-size font-sym)))))
+  (ps-get-size (symbol-value font-sym) "font size" font-sym))
 
 
 (defun ps-begin-job ()
@@ -4883,7 +5027,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
       (setq ps-print-prologue-0    (ps-prologue-file 0)
 	    ps-print-prologue-1    (ps-prologue-file 1)
-	    ps-print-prologue-2    (ps-prologue-file 2)
 	    ps-mark-code-directory ps-postscript-code-directory))
   ;; selected pages
   (let (new page)
@@ -4931,6 +5074,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-lines-printed 0
 	ps-print-page-p t
 	ps-showline-count (car ps-printing-region)
+	ps-line-spacing-internal      (ps-get-size ps-line-spacing
+						   "line spacing")
+	ps-paragraph-spacing-internal (ps-get-size ps-paragraph-spacing
+						   "paragraph spacing")
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
 	ps-header-font-size-internal (ps-get-font-size 'ps-header-font-size)
 	ps-header-title-font-size-internal
@@ -5048,19 +5195,24 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (and (< (point) limit)
        (forward-char 1)))
 
-(defun ps-next-line ()
+(defsubst ps-next-line ()
   (setq ps-showline-count (1+ ps-showline-count)
 	ps-lines-printed  (1+ ps-lines-printed))
-  (let ((lh (ps-line-height 'ps-font-for-text)))
+  (let* ((paragraph-p (and ps-paragraph-regexp
+			   (looking-at ps-paragraph-regexp)))
+	 (lh (+ (ps-line-height 'ps-font-for-text)
+		(if paragraph-p
+		    ps-paragraph-spacing-internal
+		  ps-line-spacing-internal))))
     (if (< ps-height-remaining lh)
 	(ps-next-page)
       (setq ps-width-remaining  ps-print-width
 	    ps-height-remaining (- ps-height-remaining lh))
-      (ps-output "HL\n"))))
+      (ps-output (if paragraph-p "PHL\n" "LHL\n")))))
 
 (defun ps-continue-line ()
   (setq ps-lines-printed (1+ ps-lines-printed))
-  (let ((lh (ps-line-height 'ps-font-for-text)))
+  (let ((lh (+ (ps-line-height 'ps-font-for-text) ps-line-spacing-internal)))
     (if (< ps-height-remaining lh)
 	(ps-next-page)
       (setq ps-width-remaining  ps-print-width
@@ -5166,6 +5318,15 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     ;; ...break the region up into chunks separated by tabs, linefeeds,
     ;; pagefeeds, control characters, and plot each chunk.
     (while (< from to)
+      ;; skip lines between cut markers
+      (and ps-begin-cut-regexp ps-end-cut-regexp
+	   (looking-at ps-begin-cut-regexp)
+	   (progn
+	     (goto-char (match-end 0))
+	     (and (re-search-forward ps-end-cut-regexp to 'noerror)
+		  (= (following-char) ?\n)
+		  (forward-char 1))
+	     (setq from (point))))
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
@@ -5956,7 +6117,7 @@ STRING should contain only ASCII characters.")
   "Adjust current font if current charset is not ASCII.")
 
 (autoload 'ps-mule-plot-string        "ps-mule"
-  "Generate PostScript code for ploting characters in the region FROM and TO.
+  "Generate PostScript code for plotting characters in the region FROM and TO.
 
 It is assumed that all characters in this region belong to the same charset.
 
@@ -5978,6 +6139,11 @@ This checks if all multi-byte characters in the region are printable or not.")
 
 (autoload 'ps-mule-begin-page         "ps-mule"
   "Initialize multi-byte charset for printing current page.")
+
+(autoload 'ps-mule-encode-header-string "ps-mule"
+  "Generate PostScript code for plotting characters in header STRING.
+
+It is assumed that the length of STRING is not zero.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
