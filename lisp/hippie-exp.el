@@ -483,11 +483,12 @@ otherwise."
   (if (memq system-type '(vax-vms axp-vms))
       (or (file-directory-p file)
 	  (file-directory-p (concat file "[000000]")))
-    (file-directory-p dir-part)))
+    (file-directory-p file)))
   
 (defun he-concat-directory-file-name (dir-part name-part)
   "Try to slam together two parts of a file specification, system dependently."
-  (cond ((memq system-type '(axp-vms vax-vms))
+  (cond ((null dir-part) name-part)
+	((memq system-type '(axp-vms vax-vms))
 	 (if (and (string= (substring dir-part -1) "]")
 		  (string= (substring name-part 0 2) "[."))
 	     (concat (substring dir-part 0 -1) (substring name-part 1))
