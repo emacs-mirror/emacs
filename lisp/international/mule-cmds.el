@@ -1708,8 +1708,10 @@ specifies the character set for the major languages of Western Europe."
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
     (setq language-name "English"))
-  (or (assoc-ignore-case language-name language-info-alist)
+  (let ((slot (assoc-ignore-case language-name language-info-alist)))
+    (unless slot
       (error "Language environment not defined: %S" language-name))
+    (setq language-name (car slot)))
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
