@@ -2820,7 +2820,7 @@ See also `java-font-lock-extra-types'.")
    (list
     ;;
     ;; Fontify all builtin type specifiers.
-    (cons (concat "\\<" java-minor-types "\\>") 'font-lock-type-face)
+    (cons (concat "\\<\\(" java-minor-types "\\)\\>") 'font-lock-type-face)
     ;;
     ;; Fontify all builtin keywords (except below).
     (concat "\\<\\(" java-keywords "\\|" java-major-types "\\)\\>")
