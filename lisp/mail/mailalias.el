@@ -23,6 +23,10 @@
 
 ;;; Code:
 
+(defvar mail-aliases t
+  "Alias of mail address aliases,
+or t meaning should be initialized from `~/.mailrc'.")
+
 ;; Called from sendmail-send-it, or similar functions,
 ;; only if some mail aliases are defined.
 (defun expand-mail-aliases (beg end &optional exclude)
