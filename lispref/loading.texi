@@ -478,6 +478,18 @@ convention used only in the preloaded uncompiled Lisp files such as
 documentation string in the @file{etc/DOC} file.  @xref{Building Emacs}.
 See also the commentary in @file{lib-src/make-docfile.c}.
 
+  If you write a function definition with an unusual macro that is not
+one of the known and recognized function definition methods, use of an
+ordinary magic autoload comment would copy the whole definition into
+@code{loaddefs.el}.  That is not desirable.  You can put the desired
+@code{autoload} call into @code{loaddefs.el} instead by writing this:
+
+@smallexample
+;;;###autoload (autoload 'foo "myfile")
+(mydefunmacro foo
+  ...)
+@end smallexample
+
 @node Repeated Loading
 @section Repeated Loading
 @cindex repeated loading
