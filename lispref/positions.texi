@@ -310,6 +310,12 @@ portion, if narrowing is in effect), it positions point there.  No error
 is signaled.
 @end deffn
 
+@defun line-beginning-position &optional count
+@tindex line-beginning-position
+Return the position that @code{(beginning-of-line @var{count})}
+would move to.
+@end defun
+
 @deffn Command end-of-line &optional count
 This function moves point to the end of the current line.  With an
 argument @var{count} not @code{nil} or 1, it moves forward
@@ -319,6 +325,12 @@ If this function reaches the end of the buffer (or of the accessible
 portion, if narrowing is in effect), it positions point there.  No error
 is signaled.
 @end deffn
+
+@defun line-end-position &optional count
+@tindex line-end-position
+Return the position that @code{(end-of-line @var{count})}
+would move to.
+@end defun
 
 @deffn Command forward-line &optional count
 @cindex beginning of line
