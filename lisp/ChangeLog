@@ -1,3 +1,10 @@
+2003-07-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-setup-windows, gdb-restore-windows): Restore
+	assembler in source window if that is what has been selected.
+	(menu): Add gdb-restore-windows to menu. Make gdba
+	specific menus only visible from gdba.
+
 2003-07-28  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
 	* progmodes/compile.el (compilation-environment): New user variable.
