@@ -1,3 +1,8 @@
+2000-07-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (Ffontset_info): Make the return value more compatible
+	with that of Emacs 20.
+
 2000-07-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (Fsignal): Handle case that backtrace_list is null.
