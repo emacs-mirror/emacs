@@ -349,9 +349,9 @@ locks up, grabbing all mouse and keyboard events.  We still don't know
 what causes these problems; they are not reproducible by Emacs
 developers.
 
-* Known problems with the MS-Windows port of Emacs 21.1.
+* Known problems with the MS-Windows port of Emacs 21.2.
 
-Emacs 21.1 built for MS-Windows doesn't support images and the tool bar.
+Emacs 21.2 built for MS-Windows doesn't support images and the tool bar.
 Support for these will be added in future versions.
 
 Frames are not refreshed while the File or Font dialog or a pop-up menu
@@ -375,7 +375,7 @@ characters, is copied and pasted into a buffer.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs (as of v21.1).  Some
+Windows input methods are not recognized by Emacs (as of v21.2).  Some
 of these input methods cause the keyboard to send characters encoded
 in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
 characters, ISO 8859-8 for Hebrew characters, etc.).  To make this
@@ -387,13 +387,18 @@ appropriate keyboard encoding automatically, but it doesn't do that
 yet.)
 
 Multilingual text put into the Windows clipboard by other Windows
-applications cannot be safely pasted into Emacs (as of v21.1).  This
+applications cannot be safely pasted into Emacs (as of v21.2).  This
 is because Windows uses Unicode to represent multilingual text, but
 Emacs does not yet support Unicode well enough to decode it.  This
 means that Emacs can only interchange non-ASCII text with other
 Windows programs if the characters are in the system codepage.
 Reportedly, a partial solution is to install the Mule-UCS package and
 set selection-coding-system to utf-16-le-dos.
+
+The %h format specifier for format-time-string does not work on Windows.
+The %b format specifier does not produce abbreviated month names with
+consistent widths for some locales on some versions of Windows. This is
+caused by a deficiency in the underlying system library function.
 
 * The `configure' script doesn't find the jpeg library.
 
