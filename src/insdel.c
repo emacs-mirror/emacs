@@ -584,7 +584,8 @@ make_gap_smaller (nbytes_removed)
   int real_gap_loc_byte;
   int real_Z;
   int real_Z_byte;
-  int old_gap_size;
+  int real_beg_unchanged;
+  int new_gap_size;
 
   /* Make sure the gap is at least 20 bytes.  */
   if (GAP_SIZE - nbytes_removed < 20)
@@ -596,18 +597,19 @@ make_gap_smaller (nbytes_removed)
 
   real_gap_loc = GPT;
   real_gap_loc_byte = GPT_BYTE;
-  old_gap_size = GAP_SIZE;
+  new_gap_size = GAP_SIZE - nbytes_removed;
   real_Z = Z;
   real_Z_byte = Z_BYTE;
+  real_beg_unchanged = BEG_UNCHANGED;
 
   /* Pretend that the last unwanted part of the gap is the entire gap,
      and that the first desired part of the gap is part of the buffer
      text.  */
-  bzero (GPT_ADDR, GAP_SIZE - nbytes_removed);
-  GPT += GAP_SIZE - nbytes_removed;
-  GPT_BYTE += GAP_SIZE - nbytes_removed;
-  Z += GAP_SIZE - nbytes_removed;
-  Z_BYTE += GAP_SIZE - nbytes_removed;
+  bzero (GPT_ADDR, new_gap_size);
+  GPT += new_gap_size;
+  GPT_BYTE += new_gap_size;
+  Z += new_gap_size;
+  Z_BYTE += new_gap_size;
   GAP_SIZE = nbytes_removed;
 
   /* Move the unwanted pretend gap to the end of the buffer.  This
@@ -617,11 +619,12 @@ make_gap_smaller (nbytes_removed)
   enlarge_buffer_text (current_buffer, -nbytes_removed);
 
   /* Now restore the desired gap.  */
-  GAP_SIZE = old_gap_size - nbytes_removed;
+  GAP_SIZE = new_gap_size;
   GPT = real_gap_loc;
   GPT_BYTE = real_gap_loc_byte;
   Z = real_Z;
   Z_BYTE = real_Z_byte;
+  BEG_UNCHANGED = real_beg_unchanged;
 
   /* Put an anchor.  */
   *(Z_ADDR) = 0;
