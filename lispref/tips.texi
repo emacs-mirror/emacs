@@ -1,0 +1,582 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/tips
+@node Tips, GNU Emacs Internals, Calendar, Top
+@appendix Tips and Standards
+@cindex tips
+@cindex standards of coding style
+@cindex coding standards
+
+  This chapter describes no additional features of Emacs Lisp.
+Instead it gives advice on making effective use of the features described
+in the previous chapters.
+
+@menu
+* Style Tips::                Writing clean and robust programs.
+* Compilation Tips::          Making compiled code run fast.
+* Documentation Tips::        Writing readable documentation strings.
+* Comment Tips::	      Conventions for writing comments.
+* Library Headers::           Standard headers for library packages.
+@end menu
+
+@node Style Tips
+@section Writing Clean Lisp Programs
+
+  Here are some tips for avoiding common errors in writing Lisp code
+intended for widespread use:
+
+@itemize @bullet
+@item
+Since all global variables share the same name space, and all functions
+share another name space, you should choose a short word to distinguish
+your program from other Lisp programs.  Then take care to begin the
+names of all global variables, constants, and functions with the chosen
+prefix.  This helps avoid name conflicts.
+
+This recommendation applies even to names for traditional Lisp
+primitives that are not primitives in Emacs Lisp---even to @code{cadr}.
+Believe it or not, there is more than one plausible way to define
+@code{cadr}.  Play it safe; append your name prefix to produce a name
+like @code{foo-cadr} or @code{mylib-cadr} instead.
+
+If you write a function that you think ought to be added to Emacs under
+a certain name, such as @code{twiddle-files}, don't call it by that name
+in your program.  Call it @code{mylib-twiddle-files} in your program,
+and send mail to @samp{bug-gnu-emacs@@prep.ai.mit.edu} suggesting we add
+it to Emacs.  If and when we do, we can change the name easily enough.
+
+If one prefix is insufficient, your package may use two or three
+alternative common prefixes, so long as they make sense.
+
+Separate the prefix from the rest of the symbol name with a hyphen,
+@samp{-}.  This will be consistent with Emacs itself and with most Emacs
+Lisp programs.
+
+@item
+It is often useful to put a call to @code{provide} in each separate
+library program, at least if there is more than one entry point to the
+program.
+
+@item
+If one file @var{foo} uses a macro defined in another file @var{bar},
+@var{foo} should contain @code{(require '@var{bar})} before the first
+use of the macro.  (And @var{bar} should contain @code{(provide
+'@var{bar})}, to make the @code{require} work.)  This will cause
+@var{bar} to be loaded when you byte-compile @var{foo}.  Otherwise, you
+risk compiling @var{foo} without the necessary macro loaded, and that
+would produce compiled code that won't work right.  @xref{Compiling
+Macros}.
+
+@item
+If you define a major mode, make sure to run a hook variable using
+@code{run-hooks}, just as the existing major modes do.  @xref{Hooks}.
+
+@item
+Please do not define @kbd{C-c @var{letter}} as a key in your major
+modes.  These sequences are reserved for users; they are the
+@strong{only} sequences reserved for users, so we cannot do without
+them.
+
+Instead, define sequences consisting of @kbd{C-c} followed by a
+non-letter.  These sequences are reserved for major modes.
+
+Changing all the major modes in Emacs 18 so they would follow this
+convention was a lot of work.  Abandoning this convention would waste
+that work and inconvenience the users.
+
+@item
+You should not bind @kbd{C-h} following any prefix character (including
+@kbd{C-c}).  If you don't bind @kbd{C-h}, it is automatically available
+as a help character for listing the subcommands of the prefix character.
+
+@item
+You should not bind a key sequence ending in @key{ESC} except following
+another @key{ESC}.  (That is, it is ok to bind a sequence ending in
+@kbd{@key{ESC} @key{ESC}}.)
+
+The reason for this rule is that a non-prefix binding for @key{ESC} in
+any context prevents recognition of escape sequences as function keys in
+that context.
+
+@item
+It is a bad idea to define aliases for the Emacs primitives.
+Use the standard names instead.
+
+@item
+Redefining an Emacs primitive is an even worse idea.
+It may do the right thing for a particular program, but 
+there is no telling what other programs might break as a result.
+
+@item
+If a file does replace any of the functions or library programs of
+standard Emacs, prominent comments at the beginning of the file should
+say which functions are replaced, and how the behavior of the
+replacements differs from that of the originals.
+
+@item
+If a file requires certain standard library programs to be loaded
+beforehand, then the comments at the beginning of the file should say
+so.
+
+@item
+Please keep the names of your Emacs Lisp source files to 13 characters
+or less.  This way, if the files are compiled, the compiled files' names
+will be 14 characters or less, which is short enough to fit on all kinds
+of Unix systems.
+
+@item
+Don't use @code{next-line} or @code{previous-line} in programs; nearly
+always, @code{forward-line} is more convenient as well as more
+predictable and robust.  @xref{Text Lines}.
+
+@item
+Don't use functions that set the mark in your Lisp code (unless you are
+writing a command to set the mark).  The mark is a user-level feature,
+so it is incorrect to change the mark except to supply a value for the
+user's benefit.  @xref{The Mark}.
+
+In particular, don't use these functions:
+
+@itemize @bullet
+@item
+@code{beginning-of-buffer}, @code{end-of-buffer}
+@item
+@code{replace-string}, @code{replace-regexp}
+@end itemize
+
+If you just want to move point, or replace a certain string, without any
+of the other features intended for interactive users, you can replace
+these functions with one or two lines of simple Lisp code.
+
+@item
+The recommended way to print a message in the echo area is with
+the @code{message} function, not @code{princ}.  @xref{The Echo Area}.
+
+@item
+When you encounter an error condition, call the function @code{error}
+(or @code{signal}).  The function @code{error} does not return.
+@xref{Signaling Errors}.
+
+Do not use @code{message}, @code{throw}, @code{sleep-for},
+or @code{beep} to report errors.
+
+@item
+Avoid using recursive edits.  Instead, do what the Rmail @kbd{w} command
+does: use a new local keymap that contains one command defined to
+switch back to the old local keymap.  Or do what the @code{edit-options}
+command does: switch to another buffer and let the user switch back at
+will.  @xref{Recursive Editing}.
+
+@item
+In some other systems there is a convention of choosing variable names
+that begin and end with @samp{*}.  We don't use that convention in Emacs
+Lisp, so please don't use it in your library.  (In fact, in Emacs names
+of this form are conventionally used for program-generated buffers.) The
+users will find Emacs more coherent if all libraries use the same
+conventions.
+
+@item
+Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
+default indentation parameters.
+
+@item
+Don't make a habit of putting close-parentheses on lines by themselves;
+Lisp programmers find this disconcerting.  Once in a while, when there
+is a sequence of many consecutive close-parentheses, it may make sense
+to split them in one or two significant places.
+
+@item
+Please put a copyright notice on the file if you give copies to anyone.
+Use the same lines that appear at the top of the Lisp files in Emacs
+itself.  If you have not signed papers to assign the copyright to the
+Foundation, then place your name in the copyright notice in place of the
+Foundation's name.
+@end itemize
+
+@node Compilation Tips
+@section Tips for Making Compiled Code Fast
+@cindex execution speed
+@cindex speedups
+
+  Here are ways of improving the execution speed of byte-compiled
+lisp programs.
+
+@itemize @bullet
+@item
+@cindex profiling
+@cindex timing programs
+@cindex @file{profile.el}
+Use the @file{profile} library to profile your program.  See the file
+@file{profile.el} for instructions.
+
+@item
+Use iteration rather than recursion whenever possible.
+Function calls are slow in Emacs Lisp even when a compiled function
+is calling another compiled function.
+
+@item
+Using the primitive list-searching functions @code{memq}, @code{assq} or
+@code{assoc} is even faster than explicit iteration.  It may be worth
+rearranging a data structure so that one of these primitive search
+functions can be used.
+
+@item
+Certain built-in functions are handled specially by the byte compiler
+avoiding the need for an ordinary function call.  It is a good idea to
+use these functions rather than alternatives.  To see whether a function
+is handled specially by the compiler, examine its @code{byte-compile}
+property.  If the property is non-@code{nil}, then the function is
+handled specially.
+
+For example, the following input will show you that @code{aref} is
+compiled specially (@pxref{Array Functions}) while @code{elt} is not
+(@pxref{Sequence Functions}):
+
+@smallexample
+@group
+(get 'aref 'byte-compile)
+     @result{} byte-compile-two-args
+@end group
+
+@group
+(get 'elt 'byte-compile)
+     @result{} nil
+@end group
+@end smallexample
+
+@item
+If calling a small function accounts for a  substantial part of your
+program's running time, make the function inline.  This eliminates
+the function call overhead.  Since making a function inline reduces
+the flexibility of changing the program, don't do it unless it gives
+a noticeable speedup in something slow enough for users to care about
+the speed.  @xref{Inline Functions}.
+@end itemize
+
+@node Documentation Tips
+@section Tips for Documentation Strings
+
+  Here are some tips for the writing of documentation strings.
+
+@itemize @bullet
+@item
+Every command, function or variable intended for users to know about
+should have a documentation string.
+
+@item
+An internal subroutine of a Lisp program need not have a documentation
+string, and you can save space by using a comment instead.
+
+@item
+The first line of the documentation string should consist of one or two
+complete sentences which stand on their own as a summary.  In particular,
+start the line with a capital letter and end with a period.
+For instance, use ``Return the cons of A and B.'' in preference to
+``Returns the cons of A and B@.''
+
+The documentation string can have additional lines which expand on the
+details of how to use the function or variable.  The additional lines
+should be made up of complete sentences also, but they may be filled if
+that looks good.
+
+@item
+Write documentation strings in the active voice, not the passive, and in
+the present tense, not the future.  For instance, use ``Return a list
+containing A and B.'' instead of ``A list containing A and B will be
+returned.''
+
+@item
+Avoid using the word ``cause'' (or its equivalents) unnecessarily.
+Instead of, ``Cause Emacs to display text in boldface,'' write just
+``Display text in boldface.''
+
+@item
+Do not start or end a documentation string with whitespace.
+
+@item
+Format the documentation string so that it fits in an Emacs window on an
+80 column screen.  It is a good idea for most lines to be no wider than
+60 characters.  The first line can be wider if necessary to fit the 
+information that ought to be there.
+
+However, rather than simply filling the entire documentation string, you
+can make it much more readable by choosing line breaks with care.
+Use blank lines between topics if the documentation string is long.
+ 
+@item
+@strong{Do not} indent subsequent lines of a documentation string so
+that the text is lined up in the source code with the text of the first
+line.  This looks nice in the source code, but looks bizarre when users
+view the documentation.  Remember that the indentation before the
+starting double-quote is not part of the string!
+
+@item
+A variable's documentation string should start with @samp{*} if the
+variable is one that users would want to set interactively often.  If
+the value is a long list, or a function, or if the variable would only
+be set in init files, then don't start the documentation string with
+@samp{*}.  @xref{Defining Variables}.
+
+@item
+The documentation string for a variable that is a yes-or-no flag should
+start with words such as ``Non-nil means@dots{}'', to make it clear both
+that the variable only has two meaningfully distinct values and which value
+means ``yes''.
+
+@item
+When a function's documentation string mentions the value of an argument
+of the function, use the argument name in capital letters as if it were
+a name for that value.  Thus, the documentation string of the function
+@code{/} refers to its second argument as @samp{DIVISOR}.
+
+Also use all caps for meta-syntactic variables, such as when you show
+the decomposition of a list or vector into subunits, some of which may
+vary.
+
+@item
+@iftex
+When a documentation string refers to a Lisp symbol, write it as it
+would be printed (which usually means in lower case), with single-quotes
+around it.  For example: @samp{`lambda'}.  There are two exceptions:
+write @code{t} and @code{nil} without single-quotes.
+@end iftex
+@ifinfo
+When a documentation string refers to a Lisp symbol, write it as it
+would be printed (which usually means in lower case), with single-quotes
+around it.  For example: @samp{lambda}.  There are two exceptions: write
+t and nil without single-quotes.  (In this manual, we normally do use
+single-quotes for those symbols.)
+@end ifinfo
+
+@item
+Don't write key sequences directly in documentation strings.  Instead,
+use the @samp{\\[@dots{}]} construct to stand for them.  For example,
+instead of writing @samp{C-f}, write @samp{\\[forward-char]}.  When the
+documentation string is printed, Emacs will substitute whatever key is
+currently bound to @code{forward-char}.  This will usually be
+@samp{C-f}, but if the user has moved key bindings, it will be the
+correct key for that user.  @xref{Keys in Documentation}.
+
+@item
+In documentation strings for a major mode, you will want to refer to the
+key bindings of that mode's local map, rather than global ones.
+Therefore, use the construct @samp{\\<@dots{}>} once in the
+documentation string to specify which key map to use.  Do this before
+the first use of @samp{\\[@dots{}]}.  The text inside the
+@samp{\\<@dots{}>} should be the name of the variable containing the
+local keymap for the major mode.
+
+It is not practical to use @samp{\\[@dots{}]} very many times, because
+display of the documentation string will become slow.  So use this to
+describe the most important commands in your major mode, and then use
+@samp{\\@{@dots{}@}} to display the rest of the mode's keymap.
+
+@item
+Don't use the term ``Elisp'', since that is or was a trademark.
+Use the term ``Emacs Lisp''.
+@end itemize
+
+@node Comment Tips
+@section Tips on Writing Comments
+
+  We recommend these conventions for where to put comments and how to
+indent them:
+
+@table @samp
+@item ;
+Comments that start with a single semicolon, @samp{;}, should all be
+aligned to the same column on the right of the source code.  Such
+comments usually explain how the code on the same line does its job.  In
+Lisp mode and related modes, the @kbd{M-;} (@code{indent-for-comment})
+command automatically inserts such a @samp{;} in the right place, or
+aligns such a comment if it is already inserted.
+
+(The following examples are taken from the Emacs sources.)
+
+@smallexample
+@group
+(setq base-version-list                 ; there was a base
+      (assoc (substring fn 0 start-vn)  ; version to which
+             file-version-assoc-list))  ; this looks like
+                                        ; a subversion
+@end group
+@end smallexample
+
+@item ;;
+Comments that start with two semicolons, @samp{;;}, should be aligned to
+the same level of indentation as the code.  Such comments are used to
+describe the purpose of the following lines or the state of the program
+at that point.  For example:
+
+@smallexample
+@group
+(prog1 (setq auto-fill-function
+             @dots{}
+             @dots{}
+  ;; update mode-line
+  (force-mode-line-update)))
+@end group
+@end smallexample
+
+These comments are also written before a function definition to explain
+what the function does and how to call it properly.
+
+@item ;;;
+Comments that start with three semicolons, @samp{;;;}, should start at
+the left margin.  Such comments are not used within function
+definitions, but are used to make more general comments.  For example:
+
+@smallexample
+@group
+;;; This Lisp code is run in Emacs
+;;; when it is to operate as a server
+;;; for other processes.
+@end group
+@end smallexample
+
+@item ;;;;
+Comments that start with four semicolons, @samp{;;;;}, should be aligned
+to the left margin and are used for headings of major sections of a
+program.  For example:
+
+@smallexample
+;;;; The kill ring
+@end smallexample
+@end table
+
+@noindent
+The indentation commands of the Lisp modes in Emacs, such as @kbd{M-;}
+(@code{indent-for-comment}) and @key{TAB} (@code{lisp-indent-line})
+automatically indent comments according to these conventions,
+depending on the the number of semicolons.  @xref{Comments,,
+Manipulating Comments, emacs, The GNU Emacs Manual}.
+
+  If you wish to ``comment out'' a number of lines of code, use triple
+semicolons at the beginnings of the lines.
+
+  Any character may be included in a comment, but it is advisable to
+precede a character with syntactic significance in Lisp (such as
+@samp{\} or unpaired @samp{(} or @samp{)}) with a @samp{\}, to prevent
+it from confusing the Emacs commands for editing Lisp.
+
+@node Library Headers
+@section Conventional Headers for Emacs Libraries
+@cindex header comments
+@cindex library header comments
+
+  Emacs 19 has conventions for using special comments in Lisp libraries
+to divide them into sections and give information such as who wrote
+them.  This section explains these conventions.  First, an example:
+
+@smallexample
+@group
+;;; lisp-mnt.el --- minor mode for Emacs Lisp maintainers
+
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+@end group
+
+;; Author: Eric S. Raymond <esr@@snark.thyrsus.com>
+;; Maintainer: Eric S. Raymond <esr@@snark.thyrsus.com>
+;; Created: 14 Jul 1992
+;; Version: 1.2
+@group
+;; Keywords: docs
+
+;; This file is part of GNU Emacs.
+@var{copying conditions}@dots{}
+@end group
+@end smallexample
+
+  The very first line should have this format:
+
+@example
+;;; @var{filename} --- @var{description}
+@end example
+
+@noindent
+The description should be complete in one line.
+
+  After the copyright notice come several @dfn{header comment} lines,
+each beginning with @samp{;;; @var{header-name}:}.  Here is a table of
+the conventional possibilities for @var{header-name}:
+
+@table @samp
+@item Author
+This line states the name and net address of at least the principal
+author of the library.
+
+If there are multiple authors, you can list them on continuation lines
+led by @code{;;<TAB>}, like this:
+
+@smallexample
+@group
+;; Author: Ashwin Ram <Ram-Ashwin@@cs.yale.edu>
+;;	Dave Sill <de5@@ornl.gov>
+;;	Dave Brennan <brennan@@hal.com>
+;;	Eric Raymond <esr@@snark.thyrsus.com>
+@end group
+@end smallexample
+
+@item Maintainer
+This line should contain a single name/address as in the Author line, or
+an address only, or the string ``FSF''.  If there is no maintainer line,
+the person(s) in the Author field are presumed to be the maintainers.
+The example above is mildly bogus because the maintainer line is
+redundant.
+
+The idea behind the @samp{Author} and @samp{Maintainer} lines is to make
+possible a Lisp function to ``send mail to the maintainer'' without
+having to mine the name out by hand.
+
+Be sure to surround the network address with @samp{<@dots{}>} if
+you include the person's full name as well as the network address.
+
+@item Created
+This optional line gives the original creation date of the
+file.  For historical interest only.
+
+@item Version
+If you wish to record version numbers for the individual Lisp program, put
+them in this line.
+
+@item Adapted-By
+In this header line, place the name of the person who adapted the
+library for installation (to make it fit the style conventions, for
+example).
+
+@item Keywords
+This line lists keywords for the @code{finder-by-keyword} help command.
+This field is important; it's how people will find your package when
+they're looking for things by topic area.
+@end table
+
+  Just about every Lisp library ought to have the @samp{Author} and
+@samp{Keywords} header comment lines.  Use the others if they are
+appropriate.  You can also put in header lines with other header
+names---they have no standard meanings, so they can't do any harm.
+
+  We use additional stylized comments to subdivide the contents of the
+library file.  Here is a table of them:
+
+@table @samp
+@item ;;; Commentary:
+This begins introductory comments that explain how the library works.
+It should come right after the copying permissions.
+
+@item ;;; Change log:
+This begins change log information stored in the library file (if you
+store the change history there).  For most of the Lisp
+files distributed with Emacs, the change history is kept in the file
+@file{ChangeLog} and not in the source file at all; these files do
+not have a @samp{;;; Change log:} line.
+
+@item ;;; Code:
+This begins the actual code of the program.
+
+@item ;;; @var{filename} ends here
+This is the @dfn{footer line}; it appears at the very end of the file.
+Its purpose is to enable people to detect truncated versions of the file
+from the lack of a footer line.
+@end table
