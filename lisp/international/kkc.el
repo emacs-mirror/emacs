@@ -264,6 +264,8 @@ and the return value is the length of the conversion."
 	;; Then, ask users to select a desirable conversion.
 	(force-mode-line-update)
 	(setq kkc-converting t)
+	;; Hide "... loaded" message.
+	(message nil)
 	(while kkc-converting
 	  (set-buffer-modified-p modified-p)
 	  (let* ((overriding-terminal-local-map kkc-keymap)
