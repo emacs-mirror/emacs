@@ -333,12 +333,13 @@ find_defun_start (pos)
   return find_start_value;
 }
 
-/* Checks whether FROM is the end of comment.  Does not try to
-   fallback more than to STOP.
-   Returns -1 if cannot find comment ending at from, otherwise start
-   of comment.  Global syntax data remains valid for
-   backward search starting at the returned value (or at FROM, if
-   the search was not successful).  */
+/* Checks whether FROM is at the end of a comment;
+   and if so, returns position of the start of the comment.
+   But does not move back before STOP.
+   Returns -1 if there is no comment ending at FROM.
+
+   Global syntax data remains valid for backward search starting at
+   the returned value (or at FROM, if the search was not successful).  */
 
 static int
 back_comment (from, stop, comstyle)
@@ -374,7 +375,7 @@ back_comment (from, stop, comstyle)
       c = FETCH_CHAR (from);
       code = SYNTAX (c);
 
-      /* If this char is the second of a 2-char comment sequence,
+      /* If this char is the second of a 2-char comment end sequence,
 	 back up and give the pair the appropriate syntax.  */
       if (from > stop && SYNTAX_COMEND_SECOND (c)
 	  && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1)))
@@ -388,16 +389,10 @@ back_comment (from, stop, comstyle)
 			
       /* If this char starts a 2-char comment start sequence,
 	 treat it like a 1-char comment starter.  */
-      if (from < scanstart && SYNTAX_COMSTART_SECOND (c)
-	  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
-	  && comstyle == SYNTAX_COMMENT_STYLE (c))
-	{
-	  code = Scomment;
-	  DEC_POS (from);
-	  /* This is apparently the best we can do: */
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  c = FETCH_CHAR (from);
-	}
+      if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
+	  && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
+	  && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
+	code = Scomment;
 
       /* Ignore escaped characters.  */
       if (char_quoted (from))
