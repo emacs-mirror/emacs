@@ -8006,7 +8006,8 @@ Errors running the hook are caught and ignored.");
 
   DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
     "Normal hook run after each command is executed, if idle.\n\
-Errors running the hook are caught and ignored.");
+Errors running the hook are caught and ignored.\n\
+This feature is obsolete; use idle timers instead.  See `etc/NEWS'.");
   Vpost_command_idle_hook = Qnil;
 
   DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
