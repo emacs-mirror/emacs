@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight savings rules.
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'calendar)
+(require 'cal-persia)
 
 (defvar calendar-current-time-zone-cache nil
   "Cache for result of calendar-current-time-zone.")
@@ -128,7 +129,7 @@ Return nil if no such transition can be found."
 
 (defun calendar-time-zone-daylight-rules (abs-date utc-diff)
   "Return daylight transition rule for ABS-DATE, UTC-DIFF sec offset from UTC.
-ABS-DIFF must specify a day that contains a daylight savings transition.
+ABS-DATE must specify a day that contains a daylight savings transition.
 The result has the proper form for calendar-daylight-savings-starts'."
   (let* ((date (calendar-gregorian-from-absolute abs-date))
 	 (weekday (% abs-date 7))
@@ -153,7 +154,16 @@ The result has the proper form for calendar-daylight-savings-starts'."
 		      (cons
 		       (list 'calendar-nth-named-day 1 weekday m 'year j)
 		       l)))
-	     l)))
+	     l)
+	   ;; 01-01 and 07-01 for this year's Persian calendar.
+	   (if (and (= m 3) (<= 20 d) (<= d 21))
+	       '((calendar-gregorian-from-absolute
+		  (calendar-absolute-from-persian
+		   (list 1 1 (- year 621))))))
+	   (if (and (= m 9) (<= 22 d) (<= d 23))
+	       '((calendar-gregorian-from-absolute
+		  (calendar-absolute-from-persian
+		   (list 7 1 (- year 621))))))))
 	 (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
 	 (year (1+ y)))
     ;; Scan through the next few years until only one rule remains.
