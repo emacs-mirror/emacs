@@ -1626,8 +1626,10 @@ This function is more useful than \\[tex-buffer] when you need the
 	       (nreverse elts) ":")))
 
 (defun tex-shell-running ()
-  (and (get-process "tex-shell")
-       (eq (process-status (get-process "tex-shell")) 'run)))
+  (let ((proc (get-process "tex-shell")))
+    (and proc
+         (eq (process-status (get-process "tex-shell")) 'run)
+         (buffer-live-p (process-buffer proc)))))
 
 (defun tex-kill-job ()
   "Kill the currently running TeX job."

@@ -1,3 +1,8 @@
+2001-02-15  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/tex-mode.el (tex-shell-running):
+	Check the process buffer too.
+
 2001-02-15  Dave Love  <fx@gnu.org>
 
 	* battery.el (battery-status-function): Fix doc, :type.
@@ -32,7 +37,7 @@
 
 2001-02-13  Miles Bader  <miles@gnu.org>
 
-	* faces.el (set-face-background, set-face-foreground) 
+	* faces.el (set-face-background, set-face-foreground)
 	(set-face-stipple): Treat a value of nil as being `unspecified'.
 
 2001-02-12  Dave Love  <d.love@dl.ac.uk>
@@ -52,21 +57,21 @@
 	(speedbar-buffers-line-path): Return file for tags, and dir for files.
 
 2001-02-12  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-diff.el (ediff-make-diff2-buffer): Removed bogus checks
 	for remote files.
 	(ediff-coding-system-for-read): Replaced the no-conversion default
 	with raw-text.
-	
+
 	* ediff-init.el: Removed :version from defcustom vars.
-	
+
 	* ediff-util.el (ediff-compute-custom-diffs-maybe): Better
 	handling of the diff mode
-	
+
 	* ediff.texi: Added ediff-coding-system-for-read.
-	
+
 	* viper.texi: Fix typos.
-	
+
 2001-02-11  Dave Love  <fx@gnu.org>
 
 	* shadowfile.el: Doc fixes.
@@ -174,7 +179,7 @@
 
 2001-02-06  Dave Love  <fx@gnu.org>
 
-	* add-log.el (add-log-current-defun-function) 
+	* add-log.el (add-log-current-defun-function)
 	(add-log-buffer-file-name-function, add-log-file-name-function):
 	Fix :type.
 	(change-log-mode) <font-lock-defaults>: Set SYNTAX-BEGIN.
@@ -220,7 +225,7 @@
 	(hi-lock-line-face-buffer): Doc fixes.
 	(hi-lock-face-buffer): Doc fixes.
 	(hi-lock-unface-buffer): Doc fixes.
-	
+
 2001-02-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* dabbrev.el (dabbrev-ignored-buffer-regexps): Renamed from
@@ -296,7 +301,7 @@
 	* progmodes/f90.el (f90-mode): Remove startup message.
 
 	* vc-cvs.el: Remove autoloads.  Require vc when compiling.
-	
+
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Fix code determining whether or not
@@ -340,7 +345,7 @@
 	* term/w32-win.el (mouse-set-font): Doc fix.
 
 2001-01-31  Stefan Monnier  <monnier@cs.yale.edu>
-	
+
 	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer): Doc fix.
 	(hi-lock-find-patterns): Turn on font-lock-mode, if it is not
 	on already.
@@ -349,7 +354,7 @@
 
 	* files.el (save-buffer): Don't give message if (buffer-file-name)
 	returns nil.
-	
+
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* toolbar/tool-bar.el (tool-bar-add-item): Doc fix.
@@ -373,7 +378,7 @@
 
 	* frame.el (frame-notice-user-settings): Do the tool-bar
 	stuff only for graphical displays.  Fix a braino.
-	
+
 	* frame.el (frame-initialize): Create initial frame visible.
 	(frame-notice-user-settings): When tool-bar has been switched off,
 	correct the frame size and sync too-bar-mode.
