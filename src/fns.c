@@ -1150,6 +1150,9 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	}
     }
   UNGCPRO;
+
+  message ("%s(y or n) %c", XSTRING (xprompt)->data, answer ? 'y' : 'n');
+
   return answer ? Qt : Qnil;
 }
 
