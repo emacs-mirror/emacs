@@ -188,14 +188,17 @@ before obeying `rmail-ignored-headers'.")
       (list '("^\\(From\\|Sender\\):" . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
 	    '("^Subject:" . font-lock-comment-face)
-	    '("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
+	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
+	      . font-lock-keyword-face)
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
 	    `(,cite-chars
 	      (,(concat "\\=[ \t]*"
-			"\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-			cite-chars ".*")
+			"\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			"\\(" cite-chars "[ \t]*\\)\\)+"
+			"\\(.*\\)")
 	       (beginning-of-line) (end-of-line)
-	       (0 font-lock-reference-face)))       
+	       (2 font-lock-reference-face nil t)
+	       (4 font-lock-comment-face nil t)))
 	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
