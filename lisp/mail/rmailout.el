@@ -165,7 +165,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 					     (mail-fetch-field "really-from")
 					     (mail-fetch-field "sender")
 					     "unknown"))
-		" " (current-time-string) "\n")
+		" " (or (mail-fetch-field "date") (current-time-string)) "\n")
 	;; ``Quote'' "\nFrom " as "\n>From "
 	;;  (note that this isn't really quoting, as there is no requirement
 	;;   that "\n[>]+From " be quoted in the same transparent way.)
