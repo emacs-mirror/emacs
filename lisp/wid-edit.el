@@ -1,11 +1,12 @@
 ;;; wid-edit.el --- Functions for creating and using widgets.
 ;;
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
+;; Maintainer: FSF
 ;; Keywords: extensions
 ;; Version: 1.9951
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
+;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
 ;; This file is part of GNU Emacs.
 
@@ -46,18 +47,6 @@
   (autoload 'Info-goto-node "info")
   (autoload 'finder-commentary "finder" nil t)
 
-  (unless (and (featurep 'custom) (fboundp 'custom-declare-variable))
-    ;; We have the old custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args) 
-      (` (defvar (, var) (, value) (, doc))))
-    (defmacro defface (&rest args) nil)
-    (define-widget-keywords :prefix :tag :load :link :options :type :group)
-    (when (fboundp 'copy-face)
-      (copy-face 'default 'widget-documentation-face)
-      (copy-face 'bold 'widget-button-face)
-      (copy-face 'italic 'widget-field-face)))
-
   (unless (fboundp 'button-release-event-p)
     ;; XEmacs function missing from Emacs.
     (defun button-release-event-p (event)
@@ -89,7 +78,7 @@
   :group 'faces)
 
 (defvar widget-documentation-face 'widget-documentation-face
-  "Face used for documentation strings in widges.
+  "Face used for documentation strings in widgets.
 This exists as a variable so it can be set locally in certain buffers.")
 
 (defface widget-documentation-face '((((class color)
@@ -104,7 +93,7 @@ This exists as a variable so it can be set locally in certain buffers.")
   :group 'widget-faces)
 
 (defvar widget-button-face 'widget-button-face
-  "Face used for buttons in widges.
+  "Face used for buttons in widgets.
 This exists as a variable so it can be set locally in certain buffers.")
 
 (defface widget-button-face '((t (:bold t)))
@@ -340,12 +329,12 @@ new value."
     (unless (or (stringp help-echo) (null help-echo))
       (setq help-echo 'widget-mouse-help))    
     (widget-put widget :field-overlay overlay)
-    (overlay-put overlay 'detachable nil)
+    ;;(overlay-put overlay 'detachable nil)
     (overlay-put overlay 'field widget)
     (overlay-put overlay 'local-map map)
-    (overlay-put overlay 'keymap map)
+    ;;(overlay-put overlay 'keymap map)
     (overlay-put overlay 'face face)
-    (overlay-put overlay 'balloon-help help-echo)
+    ;;(overlay-put overlay 'balloon-help help-echo)
     (overlay-put overlay 'help-echo help-echo))
   (widget-specify-secret widget))
 
@@ -377,7 +366,7 @@ new value."
       (setq help-echo 'widget-mouse-help))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'mouse-face widget-mouse-face)
-    (overlay-put overlay 'balloon-help help-echo)
+    ;;(overlay-put overlay 'balloon-help help-echo)
     (overlay-put overlay 'help-echo help-echo)
     (overlay-put overlay 'face face)))
 
@@ -444,15 +433,13 @@ new value."
       ;; (overlay-put overlay 'mouse-face 'widget-inactive-face)
       (overlay-put overlay 'evaporate t)
       (overlay-put overlay 'priority 100)
-      (overlay-put overlay (if (string-match "XEmacs" emacs-version)
-			       'read-only
-			     'modification-hooks) '(widget-overlay-inactive))
+      (overlay-put overlay 'modification-hooks '(widget-overlay-inactive))
       (widget-put widget :inactive overlay))))
 
 (defun widget-overlay-inactive (&rest junk)
   "Ignoring the arguments, signal an error."
   (unless inhibit-read-only
-    (error "Attempt to modify inactive widget")))
+    (error "The widget here is not active")))
 
 
 (defun widget-specify-active (widget)
@@ -502,7 +489,7 @@ Otherwise, just return the value."
       (widget-apply widget :default-get)))
 
 (defun widget-match-inline (widget vals)
-  ;; In WIDGET, match the start of VALS.
+  "In WIDGET, match the start of VALS."
   (cond ((widget-get widget :inline)
 	 (widget-apply widget :match-inline vals))
 	((and vals
@@ -886,8 +873,7 @@ Recommended as a parent keymap for modes using widgets.")
 
 (unless widget-field-keymap 
   (setq widget-field-keymap (copy-keymap widget-keymap))
-  (unless (string-match "XEmacs" (emacs-version))
-    (define-key widget-field-keymap [menu-bar] 'nil))
+  (define-key widget-field-keymap [menu-bar] 'nil)
   (define-key widget-field-keymap "\C-k" 'widget-kill-line)
   (define-key widget-field-keymap "\M-\t" 'widget-complete)
   (define-key widget-field-keymap "\C-m" 'widget-field-activate)
@@ -900,8 +886,7 @@ Recommended as a parent keymap for modes using widgets.")
 
 (unless widget-text-keymap 
   (setq widget-text-keymap (copy-keymap widget-keymap))
-  (unless (string-match "XEmacs" (emacs-version))
-    (define-key widget-text-keymap [menu-bar] 'nil))
+  (define-key widget-text-keymap [menu-bar] 'nil)
   (define-key widget-text-keymap "\C-a" 'widget-beginning-of-line)
   (define-key widget-text-keymap "\C-e" 'widget-end-of-line)
   (set-keymap-parent widget-text-keymap global-map))
@@ -914,6 +899,10 @@ Recommended as a parent keymap for modes using widgets.")
 	(widget-apply-action field event)
       (call-interactively
        (lookup-key widget-global-map (this-command-keys))))))
+
+(defvar widget-button-pressed-face 'widget-button-pressed-face
+  "Face used for pressed buttons in widgets.
+This exists as a variable so it can be set locally in certain buffers.")
 
 (defface widget-button-pressed-face 
   '((((class color))
@@ -940,9 +929,9 @@ Recommended as a parent keymap for modes using widgets.")
 		 (unwind-protect
 		     (let ((track-mouse t))
 		       (overlay-put overlay
-				    'face 'widget-button-pressed-face)
+				    'face widget-button-pressed-face)
 		       (overlay-put overlay 
-				    'mouse-face 'widget-button-pressed-face)
+				    'mouse-face widget-button-pressed-face)
 		       (unless (widget-apply button :mouse-down-action event)
 			 (while (not (button-release-event-p event))
 			   (setq event (widget-read-event)
@@ -953,10 +942,10 @@ Recommended as a parent keymap for modes using widgets.")
 			       (progn 
 				 (overlay-put overlay 
 					      'face
-					      'widget-button-pressed-face)
+					      widget-button-pressed-face)
 				 (overlay-put overlay 
 					      'mouse-face 
-					      'widget-button-pressed-face))
+					      widget-button-pressed-face))
 			     (overlay-put overlay 'face face)
 			     (overlay-put overlay 'mouse-face mouse-face))))
 		       (when (and pos 
@@ -2692,7 +2681,7 @@ when he invoked the menu."
 ;;; The `group' Widget.
 
 (define-widget 'group 'default
-  "A widget which group other widgets inside."
+  "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
   :format "%v"
   :value-create 'widget-group-value-create
@@ -2839,7 +2828,10 @@ link for that string."
     (let ((regexp widget-documentation-link-regexp)
 	  (predicate widget-documentation-link-p)
 	  (type widget-documentation-link-type)
-	  (buttons (widget-get widget :buttons)))
+	  (buttons (widget-get widget :buttons))
+	  (widget-mouse-face (default-value 'widget-mouse-face))
+	  (widget-button-face widget-documentation-face)
+	  (widget-button-pressed-face widget-documentation-face))
       (save-excursion
 	(goto-char from)
 	(while (re-search-forward regexp to t)
@@ -3541,38 +3533,6 @@ To use this type, you must define :match or :match-alternatives."
   (widget-default-notify widget child event))
 
 ;;; The Help Echo
-
-(defun widget-echo-help-mouse ()
-  "Display the help message for the widget under the mouse.
-Enable with (run-with-idle-timer 1 t 'widget-echo-help-mouse)"
-  (let* ((pos (mouse-position))
-	 (frame (car pos))
-	 (x (car (cdr pos)))
-	 (y (cdr (cdr pos)))
-	 (win (window-at x y frame))
-	 (where (coordinates-in-window-p (cons x y) win)))
-    (when (consp where)
-      (save-window-excursion
-	(progn ; save-excursion
-	  (select-window win)
-	  (let* ((result (compute-motion (window-start win)
-					 '(0 . 0)
-					 (point-max)
-					 where
-					 (window-width win)
-					 (cons (window-hscroll) 0)
-					 win)))
-	    (when (and (eq (nth 1 result) x)
-		       (eq (nth 2 result) y))
-	      (widget-echo-help (nth 0 result))))))))
-  (unless track-mouse
-    (setq track-mouse t)
-    (add-hook 'post-command-hook 'widget-stop-mouse-tracking)))
-
-(defun widget-stop-mouse-tracking (&rest args)
-  "Stop the mouse tracking done while idle."
-  (remove-hook 'post-command-hook 'widget-stop-mouse-tracking)
-  (setq track-mouse nil))
 
 (defun widget-at (pos)
   "The button or field at POS."
