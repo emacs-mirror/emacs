@@ -695,7 +695,7 @@ store_symval_forwarding (sym, valcontents, newval)
       valcontents = XSYMBOL (sym)->value;
       if (BUFFER_LOCAL_VALUEP (valcontents)
 	  || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-	XCONS (XSYMBOL (sym)->value)->car = newval;
+	XBUFFER_LOCAL_VALUE (valcontents)->car = newval;
       else
 	XSYMBOL (sym)->value = newval;
     }
@@ -727,20 +727,23 @@ swap_in_symval_forwarding (sym, valcontents)
      Note that REALVALUE can be a forwarding pointer. */
 
   register Lisp_Object tem1;
-  tem1 = XCONS (XCONS (valcontents)->cdr)->car;
+  tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
 
   if (NILP (tem1) || current_buffer != XBUFFER (tem1))
     {
-      tem1 = XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car;
-      Fsetcdr (tem1, do_symval_forwarding (XCONS (valcontents)->car));
+      tem1 = XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car;
+      Fsetcdr (tem1,
+	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->car));
       tem1 = assq_no_quit (sym, current_buffer->local_var_alist);
       if (NILP (tem1))
-	tem1 = XCONS (XCONS (valcontents)->cdr)->cdr;
-      XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car = tem1;
-      XSETBUFFER (XCONS (XCONS (valcontents)->cdr)->car, current_buffer);
-      store_symval_forwarding (sym, XCONS (valcontents)->car, Fcdr (tem1));
+	tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr;
+      XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car = tem1;
+      XSETBUFFER (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car,
+		  current_buffer);
+      store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (valcontents)->car,
+			       Fcdr (tem1));
     }
-  return XCONS (valcontents)->car;
+  return XBUFFER_LOCAL_VALUE (valcontents)->car;
 }
 
 /* Find the value of a symbol, returning Qunbound if it's not bound.
@@ -825,7 +828,8 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   else if (BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
-      /* valcontents is actually a pointer to a cons heading something like:
+      /* valcontents is actually a pointer to a struct resembling a cons,
+	 with contents something like:
 	 (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
 
 	 BUFFER is the last buffer for which this symbol's value was
@@ -854,14 +858,14 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 
       /* What value are we caching right now?  */
       current_alist_element =
-	XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car;
+	XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car;
 
       /* If the current buffer is not the buffer whose binding is
 	 currently cached, or if it's a Lisp_Buffer_Local_Value and
 	 we're looking at the default value, the cache is invalid; we
 	 need to write it out, and find the new CURRENT-ALIST-ELEMENT.  */
       if ((current_buffer
-	   != XBUFFER (XCONS (XCONS (valcontents)->cdr)->car))
+	   != XBUFFER (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car))
 	  || (BUFFER_LOCAL_VALUEP (valcontents)
 	      && EQ (XCONS (current_alist_element)->car,
 		     current_alist_element)))
@@ -870,7 +874,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 	     back to its alist element.  This works if the current
 	     buffer only sees the default value, too.  */
           Fsetcdr (current_alist_element,
-		   do_symval_forwarding (XCONS (valcontents)->car));
+		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->car));
 
 	  /* Find the new value for CURRENT-ALIST-ELEMENT.  */
 	  tem1 = Fassq (sym, current_buffer->local_var_alist);
@@ -882,7 +886,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 		 make CURRENT-ALIST-ELEMENT point to itself,
 		 indicating that we're seeing the default value.  */
 	      if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
-		tem1 = XCONS (XCONS (valcontents)->cdr)->cdr;
+		tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr;
 
 	      /* If it's a Lisp_Buffer_Local_Value, give this buffer a
 		 new assoc for a local value and set
@@ -895,12 +899,14 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 		}
 	    }
 	  /* Cache the new buffer's assoc in CURRENT-ALIST-ELEMENT.  */
-	  XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car = tem1;
+	  XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car
+	    = tem1;
 
 	  /* Set BUFFER, now that CURRENT-ALIST-ELEMENT is accurate.  */
-	  XSETBUFFER (XCONS (XCONS (valcontents)->cdr)->car, current_buffer);
+	  XSETBUFFER (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car,
+		      current_buffer);
 	}
-      valcontents = XCONS (valcontents)->car;
+      valcontents = XBUFFER_LOCAL_VALUE (valcontents)->car;
     }
 
   /* If storing void (making the symbol void), forward only through
@@ -947,12 +953,12 @@ default_value (sym)
 	 ordinary setq stores just that slot.  So use that.  */
       Lisp_Object current_alist_element, alist_element_car;
       current_alist_element
-	= XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car;
+	= XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car;
       alist_element_car = XCONS (current_alist_element)->car;
       if (EQ (alist_element_car, current_alist_element))
-	return do_symval_forwarding (XCONS (valcontents)->car);
+	return do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->car);
       else
-	return XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->cdr;
+	return XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->cdr;
     }
   /* For other variables, get the current value.  */
   return do_symval_forwarding (valcontents);
@@ -1024,13 +1030,15 @@ for this variable.")
     return Fset (sym, value);
 
   /* Store new value into the DEFAULT-VALUE slot */
-  XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->cdr = value;
+  XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->cdr = value;
 
   /* If that slot is current, we must set the REALVALUE slot too */
-  current_alist_element = XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car;
+  current_alist_element
+    = XCONS (XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr)->car;
   alist_element_buffer = Fcar (current_alist_element);
   if (EQ (alist_element_buffer, current_alist_element))
-    store_symval_forwarding (sym, XCONS (valcontents)->car, value);
+    store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (valcontents)->car,
+			     value);
 
   return value;
 }
@@ -1087,7 +1095,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   (sym)
      register Lisp_Object sym;
 {
-  register Lisp_Object tem, valcontents;
+  register Lisp_Object tem, valcontents, newval;
 
   CHECK_SYMBOL (sym, 0);
 
@@ -1099,15 +1107,18 @@ The function `default-value' gets the default value and `set-default' sets it.")
     return sym;
   if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
-      XSETTYPE (XSYMBOL (sym)->value, Lisp_Buffer_Local_Value);
+      XMISC (XSYMBOL (sym)->value)->type = Lisp_Misc_Buffer_Local_Value;
       return sym;
     }
   if (EQ (valcontents, Qunbound))
     XSYMBOL (sym)->value = Qnil;
   tem = Fcons (Qnil, Fsymbol_value (sym));
   XCONS (tem)->car = tem;
-  XSYMBOL (sym)->value = Fcons (XSYMBOL (sym)->value, Fcons (Fcurrent_buffer (), tem));
-  XSETTYPE (XSYMBOL (sym)->value, Lisp_Buffer_Local_Value);
+  newval = allocate_misc ();
+  XMISC (newval)->type = Lisp_Misc_Buffer_Local_Value;
+  XBUFFER_LOCAL_VALUE (newval)->car = XSYMBOL (sym)->value;
+  XBUFFER_LOCAL_VALUE (newval)->cdr = Fcons (Fcurrent_buffer (), tem);
+  XSYMBOL (sym)->value = newval;
   return sym;
 }
 
@@ -1147,28 +1158,31 @@ Use `make-local-hook' instead.")
   /* Make sure sym is set up to hold per-buffer values */
   if (!SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
+      Lisp_Object newval;
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
       XCONS (tem)->car = tem;
-      XSYMBOL (sym)->value = Fcons (XSYMBOL (sym)->value, Fcons (Qnil, tem));
-      XSETTYPE (XSYMBOL (sym)->value, Lisp_Some_Buffer_Local_Value);
+      newval = allocate_misc ();
+      XMISC (newval)->type = Lisp_Misc_Some_Buffer_Local_Value;
+      XBUFFER_LOCAL_VALUE (newval)->car = XSYMBOL (sym)->value;
+      XBUFFER_LOCAL_VALUE (newval)->cdr = Fcons (Qnil, tem);
+      XSYMBOL (sym)->value = newval;
     }
   /* Make sure this buffer has its own value of sym */
   tem = Fassq (sym, current_buffer->local_var_alist);
   if (NILP (tem))
     {
       current_buffer->local_var_alist
-        = Fcons (Fcons (sym, XCONS (XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->cdr)->cdr),
+        = Fcons (Fcons (sym, XCONS (XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr)->cdr),
 		 current_buffer->local_var_alist);
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value */
       {
-	/* This local variable avoids "expression too complex" on IBM RT.  */
-	Lisp_Object xs;
-    
-	xs = XSYMBOL (sym)->value;
-	if (current_buffer == XBUFFER (XCONS (XCONS (xs)->cdr)->car))
-	  XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->car = Qnil; 
+	Lisp_Object *pvalbuf;
+	valcontents = XSYMBOL (sym)->value;
+	pvalbuf = &XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
+	if (current_buffer == XBUFFER (*pvalbuf))
+	  *pvalbuf = Qnil;
       }
     }
 
@@ -1176,7 +1190,7 @@ Use `make-local-hook' instead.")
      variable for this buffer immediately.  If C code modifies the
      variable before we swap in, then that new value will clobber the
      default value the next time we swap.  */
-  valcontents = XCONS (XSYMBOL (sym)->value)->car;
+  valcontents = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car;
   if (INTFWDP (valcontents) || BOOLFWDP (valcontents) || OBJFWDP (valcontents))
     swap_in_symval_forwarding (sym, XSYMBOL (sym)->value);
 
@@ -1219,15 +1233,17 @@ From now on the default value will apply in this buffer.")
 
   tem = Fassq (sym, current_buffer->local_var_alist);
   if (!NILP (tem))
-    current_buffer->local_var_alist = Fdelq (tem, current_buffer->local_var_alist);
+    current_buffer->local_var_alist
+      = Fdelq (tem, current_buffer->local_var_alist);
 
   /* Make sure symbol does not think it is set up for this buffer;
      force it to look once again for this buffer's value */
   {
-    Lisp_Object sv;
-    sv = XSYMBOL (sym)->value;
-    if (current_buffer == XBUFFER (XCONS (XCONS (sv)->cdr)->car))
-      XCONS (XCONS (sv)->cdr)->car = Qnil;
+    Lisp_Object *pvalbuf;
+    valcontents = XSYMBOL (sym)->value;
+    pvalbuf = &XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
+    if (current_buffer == XBUFFER (*pvalbuf))
+      *pvalbuf = Qnil;
   }
 
   return sym;
