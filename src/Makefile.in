@@ -28,6 +28,9 @@ CPP=@CPP@
 CFLAGS=@CFLAGS@
 C_SWITCH_SYSTEM=
 LN_S=@LN_S@
+# These escaped doublequotes become part of the macro definition in emacs.c.
+# Thus, the definition is a C string constant.
+configuration=\"@configuration@\"
 
 /* On Xenix and the IBM RS6000, double-dot gets screwed up.  */
 dot = .
@@ -289,6 +292,10 @@ LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 
 #if __GNUC__ > 1
 
+#ifdef LINKER
+#define LINKER_WAS_SPECIFIED
+#endif
+
 /* Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
    places that are difficult to figure out at make time.  Fortunately,
    these same versions allow you to pass arbitrary flags on to the
@@ -309,12 +316,16 @@ LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 
 GNULIB_VAR = LIB_GCC
 
+#ifndef LINKER_WAS_SPECIFIED
 /* GCC passes any argument prefixed with -Xlinker directly to the
    linker.  See prefix-args.c for an explanation of why we don't do
    this with the shell's `for' construct.
    Note that some people don't have '.'  in their paths, so we must
    use ./prefix-args.  */
 #define YMF_PASS_LDFLAGS(flags) `./prefix-args -Xlinker flags`
+#else
+#define YMF_PASS_LDFLAGS(flags) flags
+#endif
 
 #else /* __GNUC__ < 2 */
 
@@ -685,6 +696,7 @@ doc.o : doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o : doprnt.c
 editfns.o : editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
 emacs.o : emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h) 
+	$(CC) -c -DCONFIGURATION="$(configuration)" $(CPPFLAGS) $(ALL_CFLAGS) $<
 fileio.o : fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
 filelock.o : filelock.c buffer.h paths.h $(config_h)
 filemode.o : filemode.c  $(config_h)
