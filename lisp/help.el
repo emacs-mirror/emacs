@@ -315,6 +315,7 @@ describes the minor mode."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (let ((minor-modes minor-mode-alist)
+	  (first t)
 	  (locals (buffer-local-variables)))
       (while minor-modes
 	(let* ((minor-mode (car (car minor-modes)))
@@ -334,13 +335,17 @@ describes the minor mode."
 				      0 (match-beginning 0)))))
 		(while (and indicator (symbolp indicator))
 		  (setq indicator (symbol-value indicator)))
+		(if first
+		    (princ "The minor modes are described first,
+followed by the major mode, which is described on the last page.\n\f\n"))
+		(setq first nil)
 		(princ (format "%s minor mode (%s):\n"
 			       pretty-minor-mode
 			       (if indicator
 				   (format "indicator%s" indicator)
 				 "no indicator")))
 		(princ (documentation minor-mode))
-		(princ "\n\n"))))
+		(princ "\n\f\n"))))
 	(setq minor-modes (cdr minor-modes))))
     (princ mode-name)
     (princ " mode:\n")
