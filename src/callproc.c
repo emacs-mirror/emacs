@@ -717,9 +717,15 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	QUIT;
       }
   give_up: ;
-  }
 
   Vlast_coding_system_used = process_coding.symbol;
+
+  /* If the caller required, let the buffer inherit the
+     coding-system used to decode the process output.  */
+  if (inherit_process_coding_system)
+    call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	   make_number (total_read));
+  }
 
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
