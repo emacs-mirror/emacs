@@ -9,3 +9,4 @@ build-configs		build Emacs in various configurations
 check-doc-strings	check doc strings against documentation
 make-emacs		build Emacs in various ways
 revdiff			get CVS diffs of files
+quick-install-emacs	install emacs quickly (`incrementally')
