@@ -182,11 +182,11 @@ rejecting one login and prompting again for a username and password.")
 ;;;###autoload
 (defun telnet (host)
   "Open a network login connection to host named HOST (a string).
-Communication with HOST is recorded in a buffer *HOST-telnet*.
+Communication with HOST is recorded in a buffer `*telnet-HOST*'.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen telnet connection to host: ")
   (let* ((comint-delimiter-argument-list '(?\  ?\t))
-         (name (concat (comint-arguments host 0 nil) "-telnet" ))
+         (name (concat "telnet-" (comint-arguments host 0 nil) ))
 	 (buffer (get-buffer (concat "*" name "*"))))
     (if (and buffer (get-buffer-process buffer))
 	(switch-to-buffer (concat "*" name "*"))
