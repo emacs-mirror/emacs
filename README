@@ -7,9 +7,8 @@ they allow us to notice and fix problems on machines we don't have, or
 in code we don't use often.  See the file BUGS for more information on
 how to report bugs.
 
-See the files `etc/NEWS' and `etc/news.texi' for information on new
-features and other user-visible changes since the last version of
-Emacs.
+See the file etc/NEWS for information on new features and other
+user-visible changes since the last version of Emacs.
 
 The file INSTALL in this directory says how to bring up GNU Emacs on
 Unix, once you have loaded the entire subtree of this directory.
@@ -40,6 +39,10 @@ marriage of custom-baked configuration code and autoconf macros; it
 may be wise to avoid rebuilding `configure' from `configure.in' when
 possible.
 
+If you do want to rebuild `configure' from `configure.in', you will
+need to install autoconf and GNU m4 (the version of m4 supplied with
+your system might not be enough).
+
 The file `Makefile.in' is a template used by `configure' to create
 `Makefile'.
 
@@ -61,7 +64,10 @@ There are several subdirectories:
     subdirectories are architecture-independent too.
 
 `info' holds the Info documentation tree for Emacs.
-`man' holds the source code for the Emacs manual.
+`man' holds the source code for the Emacs manual.  If you modify the
+      manual sources, you will need the `makeinfo' program to produce
+      an updated manual.  `makeinfo' is part of the GNU Texinfo
+      package; you need version 4.0 or later of Texinfo.
 
    Note that the Emacs Lisp manual sources are distributed separately.
 (They are twice as large as the Emacs manual in the man subdirectory.)
@@ -69,6 +75,11 @@ There are several subdirectories:
 `msdos' holds configuration files for compiling Emacs under MSDOG.
 `vms' holds instructions and useful files for running Emacs under VMS.
 `nt' holds various command files and documentation files that pertain
-    to running Emacs on Windows NT.
+     to running Emacs on Windows NT.
 `mac' holds instructions, sources, and other useful files for building
       and running Emacs on the Mac.
+
+   Building Emacs on non-Posix platforms requires to install tools
+that aren't part of the standard distribution of the OS.  The
+platform-specific README files and installation instructions should
+list the required tools.
