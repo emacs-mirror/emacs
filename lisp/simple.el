@@ -2264,11 +2264,11 @@ not end the comment.  Blank lines do not get comments."
 			;; This is questionable if comment-end ends in
 			;; whitespace.  That is pretty brain-damaged,
 			;; though.
-			(skip-chars-backward " \t")
-			(if (and (>= (- (point) (point-min)) (length ce))
-				 (save-excursion
-				   (backward-char (length ce))
-				   (looking-at (regexp-quote ce))))
+			(while (progn (skip-chars-backward " \t")
+				      (and (>= (- (point) (point-min)) (length ce))
+					   (save-excursion
+					     (backward-char (length ce))
+					     (looking-at (regexp-quote ce)))))
 			    (delete-char (- (length ce)))))
 		    (let ((count numarg))
 		      (while (> 1 (setq count (1+ count)))
