@@ -6628,8 +6628,9 @@ If not nil, this is a vector indexed by glyph code to define the glyph.\n\
 Each element can be:\n\
  integer: a glyph code which this glyph is an alias for.\n\
  string: output this glyph using that string (not impl. in X windows).\n\
- nil: this glyph mod 256 is char code to output,\n\
-    and this glyph / 256 is face code for X windows (see `face-id').");
+ nil: this glyph mod 524288 is the code of a character to output,\n\
+    and this glyph / 524288 is the face number (see `face-id') to use\n\
+    while outputting it.");
   Vglyph_table = Qnil;
 
   DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
