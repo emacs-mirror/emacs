@@ -35,7 +35,7 @@
 ;; To enable this code, simply put this at the top of your .emacs
 ;; file:
 ;;
-;; (mwheel-install)
+;; (mouse-wheel-mode 1)
 
 ;;; Code:
 
