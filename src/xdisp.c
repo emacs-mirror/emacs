@@ -5777,6 +5777,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 				  result = MOVE_NEWLINE_OR_CR;
 				  break;
 				}
+			      if (it->method == next_element_from_display_vector)
+				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -14785,6 +14787,8 @@ display_line (it)
 				  row->continued_p = 0;
 				  row->exact_window_width_line_p = 1;
 				}
+			      else if (it->method == next_element_from_display_vector)
+				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -14955,12 +14959,10 @@ display_line (it)
 		{
 		  if (!get_next_display_element (it))
 		    {
-#ifdef HAVE_WINDOW_SYSTEM
 		      it->continuation_lines_width = 0;
 		      row->ends_at_zv_p = 1;
 		      row->exact_window_width_line_p = 1;
 		      break;
-#endif /* HAVE_WINDOW_SYSTEM */
 		    }
 		  if (ITERATOR_AT_END_OF_LINE_P (it))
 		    {
