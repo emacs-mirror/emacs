@@ -1,3 +1,9 @@
+2001-03-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* indent.c (current_column, current_column_1, Fmove_to_column) 
+	(compute_motion): Handle characters from display vectors
+	differently.
+
 2001-03-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* xterm.c (x_draw_glyph_string): Draw relief (if any) before
