@@ -124,7 +124,8 @@ casify_object (flag, obj)
 		  if ((int) flag >= (int) CASE_CAPITALIZE)
 		    inword = SYNTAX (c) == Sword;
 		}
-	      obj = make_multibyte_string (buf, j, j_byte);
+	      obj = make_specified_string (buf, j, j_byte,
+					   STRING_MULTIBYTE (obj));
 	    }
 	  return obj;
 	}
