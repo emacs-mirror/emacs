@@ -33,29 +33,6 @@
   :version "21.3"
   :prefix "w32")
 
-;; mwheel.el should probably be adapted to accept mouse-wheel events
-;; then this could go.
-(defcustom mouse-wheel-scroll-amount '(5  ((shift) . 1) ((control) . nil))
-  "*Amount to scroll windows by when spinning the mouse wheel.
-This is actually a cons cell, where the first item is the amount to scroll
-on a normal wheel event. The rest is ignored on Windows, see mwheel.el if
-you wish to implement modifier keys."
-  :group 'w32
-  :group 'mouse
-  :type '(cons
-	  (choice :tag "Normal"
-		  (const :tag "Full screen" :value nil)
-		  (integer :tag "Specific # of lines")
-		  (float :tag "Fraction of window"))
-          (repeat
-           (cons
-            (repeat (choice :tag "modifier" (const alt) (const control) (const hyper)
-                            (const meta) (const shift) (const super)))
-            (choice :tag "scroll amount"
-                    (const :tag "Full screen" :value nil)
-                    (integer :tag "Specific # of lines")
-                    (float :tag "Fraction of window"))))))
-
 ;; Redefine the font selection to use the standard W32 dialog
 (defcustom w32-use-w32-font-dialog t
   "*Use the standard font dialog.
