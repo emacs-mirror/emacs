@@ -85,8 +85,8 @@ Otherwise report on the defaults for face FACE (for new frames)."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
-  (internal-set-face-1 face 'font (x-resolve-font-name font face frame)
-		       3 frame))
+  (if (stringp font) (setq font (x-resolve-font-name font face frame)))
+  (internal-set-face-1 face 'font font 3 frame))
 
 (defsubst set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
@@ -416,15 +416,19 @@ set its foreground and background to the default background and foreground."
 (defun x-resolve-font-name (pattern &optional face frame)
   "Return a font name matching PATTERN.
 All wildcards in PATTERN become substantiated.
+If PATTERN is nil, return the name of the frame's base font, which never
+contains wildcards.
 Given optional arguments FACE and FRAME, try to return a font which is
-also the same size as FACE on FRAME,"
-  (let ((fonts (x-list-fonts pattern face frame)))
-    (or fonts
-	(if face
-	    (error "no fonts match `%S'." pattern)
-	  (error "no fonts matching pattern are the same size as `%s'."
-		 pattern face)))
-    (car fonts)))
+also the same size as FACE on FRAME."
+  (if pattern
+      (let ((fonts (x-list-fonts pattern face frame)))
+	(or fonts
+	    (if face
+		(error "no fonts match `%S'." pattern)
+	      (error "no fonts matching pattern are the same size as `%s'."
+		     pattern face)))
+	(car fonts))
+    (cdr (assq 'font (frame-parameters (selected-frame))))))
 
 (defun x-frob-font-weight (font which)
   (if (or (string-match x-font-regexp font)
