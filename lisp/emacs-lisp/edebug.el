@@ -2877,7 +2877,7 @@ MSG is printed after `::::} '."
 	    ;; Remember selected-window after recursive-edit.
 	    ;;      (setq edebug-inside-window (selected-window))
 
-	    (store-match-data edebug-outside-match-data)
+	    (set-match-data edebug-outside-match-data)
 
 	    ;; Recursive edit may have changed buffers,
 	    ;; so set it back before exiting let.
@@ -3536,7 +3536,7 @@ Return the result of the last expression."
 
        (set-buffer edebug-buffer)  ; why?
        ;; (use-local-map edebug-outside-map)
-       (store-match-data edebug-outside-match-data)
+       (set-match-data edebug-outside-match-data)
        ;; Restore outside context.
        (let (;; (edebug-inside-map (current-local-map)) ;; restore map??
 	     (last-command-char edebug-outside-last-command-char)
