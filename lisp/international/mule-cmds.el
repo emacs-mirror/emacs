@@ -1693,7 +1693,10 @@ The default status is as follows:
   (setq nonascii-translation-table nil
 	nonascii-insert-offset 0)
 
-  (set-overriding-fontspec-internal nil))
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (and (fboundp 'fontset-list)
+       (set-overriding-fontspec-internal nil)))
 
 (reset-language-environment)
 
@@ -1800,10 +1803,13 @@ specifies the character set for the major languages of Western Europe."
       (require (car required-features))
       (setq required-features (cdr required-features))))
 
-  (let ((overriding-fontspec (get-language-info language-name 
-						'overriding-fontspec)))
-    (if overriding-fontspec
-	(set-overriding-fontspec-internal overriding-fontspec)))
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (when (fboundp 'fontset-list)
+    (let ((overriding-fontspec (get-language-info language-name 
+						  'overriding-fontspec)))
+      (if overriding-fontspec
+	  (set-overriding-fontspec-internal overriding-fontspec))))
 
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
