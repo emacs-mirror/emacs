@@ -481,6 +481,25 @@ coding system whose eol-type is N."
 	  (setq len (/ len 2))))
       (setcdr tem (cons coding-system (cdr tem))))))
 
+(defun coding-system-list (&optional base-only)
+  "Return a list of all existing coding systems.
+If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
+  (let* ((codings (copy-sequence coding-system-list))
+	 (tail (cons nil codings)))
+    ;; Remove subsidiary coding systems (eol variants) and alias
+    ;; coding systems (if necessary).
+    (while (cdr tail)
+      (let* ((coding (car (cdr tail)))
+	     (aliases (coding-system-get coding 'alias-coding-systems)))
+	(if (or
+	     ;; CODING is an eol variant if not in ALIASES.
+	     (not (memq coding aliases))
+	     ;; CODING is an alias if it is not car of ALIASES.
+	     (and base-only (not (eq coding (car aliases)))))
+	    (setcdr tail (cdr (cdr tail)))
+	  (setq tail (cdr tail)))))
+    codings))
+
 ;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
   (let ((coding-spec (coding-system-spec coding-system))
