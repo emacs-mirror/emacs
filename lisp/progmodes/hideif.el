@@ -205,6 +205,15 @@
           (cons '(hide-ifdef-mode " Ifdef")
                 minor-mode-alist)))
 
+;; fix c-mode syntax table so we can recognize whole symbols.
+(defvar hide-ifdef-syntax-table
+  (copy-syntax-table c-mode-syntax-table)
+  "Syntax table used for tokenizing #if expressions.")
+
+(modify-syntax-entry ?_ "w" hide-ifdef-syntax-table)
+(modify-syntax-entry ?& "." hide-ifdef-syntax-table)
+(modify-syntax-entry ?\| "." hide-ifdef-syntax-table)
+
 ;;;###autoload
 (defun hide-ifdef-mode (arg)
   "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
@@ -249,11 +258,6 @@ hide-ifdef-read-only
 
   (if hide-ifdef-mode
       (progn
-	; fix c-mode syntax table so we can recognize whole symbols.
-	(modify-syntax-entry ?_ "w")
-	(modify-syntax-entry ?& ".")
-	(modify-syntax-entry ?\| ".")
-
 	; inherit global values
 	(make-local-variable 'hide-ifdef-env)
 	(setq hide-ifdef-env (default-value 'hide-ifdef-env))
@@ -376,55 +380,54 @@ that form should be displayed.")
   "Separate string into a list of tokens"
   (let ((token-list nil)
 	(expr-start 0)
-	(expr-length (length expr-string)))
+	(expr-length (length expr-string))
+	(current-syntax-table (syntax-table)))
+    (unwind-protect
+	(progn
+	  (set-syntax-table hide-ifdef-syntax-table)
+	  (while (< expr-start expr-length) 
+;	    (message "expr-start = %d" expr-start) (sit-for 1)
+	    (cond
+	     ((string-match "^[ \t]+" expr-string expr-start)
+	      ;; skip whitespace
+	      (setq expr-start (match-end 0))
+	      ;; stick newline in string so ^ matches on the next string-match
+	      (aset expr-string (1- expr-start) ?\n))
 
-    (while (< expr-start expr-length) 
-;      (message "expr-start = %d" expr-start) (sit-for 1)
-      (cond
-	((string-match "^[ \t]+" expr-string expr-start)
-	   ; skip whitespace
-	 (setq expr-start (match-end 0))
-	 ; stick newline in string so ^ matches on the next string-match
-	 (aset expr-string (1- expr-start) ?\n)
-	 )
+	     ((string-match "^/\\*" expr-string expr-start)
+	      (setq expr-start (match-end 0))
+	      (aset expr-string (1- expr-start) ?\n)
+	      (or
+	       (string-match hif-end-of-comment
+			     expr-string expr-start) ; eat comment
+	       (string-match "$" expr-string expr-start)) ; multi-line comment
+	      (setq expr-start (match-end 0))
+	      (aset expr-string (1- expr-start) ?\n))
 
-	((string-match "^/\\*" expr-string expr-start)
-	 (setq expr-start (match-end 0))
-	 (aset expr-string (1- expr-start) ?\n)
-	 (or
-	   (string-match hif-end-of-comment
-			 expr-string expr-start) ; eat comment
-	   (string-match "$" expr-string expr-start)) ; multi-line comment
-	 (setq expr-start (match-end 0))
-	 (aset expr-string (1- expr-start) ?\n)
-	 )
+	     ((string-match "^//" expr-string expr-start)
+	      (string-match "$" expr-string expr-start)
+	      (setq expr-start (match-end 0)))
 
-	((string-match "^//" expr-string expr-start)
-	 (string-match "$" expr-string expr-start)
-	 (setq expr-start (match-end 0))
-	 )
+	     ((string-match hif-token-regexp expr-string expr-start)
+	      (let ((token (substring expr-string expr-start (match-end 0))))
+		(setq expr-start (match-end 0))
+		(aset expr-string (1- expr-start) ?\n)
+;		(message "token: %s" token) (sit-for 1)
+		(setq token-list
+		      (cons
+		       (cond
+			((string-equal token "||") 'or)
+			((string-equal token "&&") 'and)
+			((string-equal token "!")  'not)
+			((string-equal token "defined") 'hif-defined)
+			((string-equal token "(") 'lparen)
+			((string-equal token ")") 'rparen)
+			(t (intern token)))
+		       token-list))))
 
-	((string-match hif-token-regexp expr-string expr-start)
-	  (let ((token (substring expr-string expr-start (match-end 0))))
-	    (setq expr-start (match-end 0))
-	    (aset expr-string (1- expr-start) ?\n)
-;	    (message "token: %s" token) (sit-for 1)
-	    (setq token-list
-		  (cons
-		    (cond
-		      ((string-equal token "||") 'or)
-		      ((string-equal token "&&") 'and)
-		      ((string-equal token "!")  'not)
-		      ((string-equal token "defined") 'hif-defined)
-		      ((string-equal token "(") 'lparen)
-		      ((string-equal token ")") 'rparen)
-		      (t (intern token)))
-		    token-list))
-	    ))
-	  (t (error "Bad #if expression: %s" expr-string))
-	  ))
-    (nreverse token-list)
-    ))
+	     (t (error "Bad #if expression: %s" expr-string)))))
+      (set-syntax-table current-syntax-table))
+    (nreverse token-list)))
 
 ;;;-----------------------------------------------------------------
 ;;; Translate C preprocessor #if expressions using recursive descent.
