@@ -1,3 +1,8 @@
+2003-03-05  Juanma Barranquero  <lektu@terra.es>
+
+	* startup.el (command-line-x-option-alist): Make --border-color set
+	the border-color attribute, not border-width.
+
 2003-03-04  Rob Kaut  <rob@siworks.com>  (tiny change)
 
 	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region): Remove
