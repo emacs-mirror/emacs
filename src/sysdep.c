@@ -2283,7 +2283,11 @@ init_system_name ()
 	}
     }
 #endif /* HAVE_SOCKETS */
-#if (HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)) || HAVE_GETDOMAINNAME
+  /* We used to try using getdomainname as an alternative
+     to sysinfo, here, but NIIBE Yutaka <gniibe@etl.go.jp> says that
+     getdomainname gets the NIS/YP domain which often is not the same
+     as in Internet domain name.  */
+#if (HAVE_SYSINFO && defined (SI_SRPC_DOMAIN))
   if (! index (hostname, '.'))
     {
       /* The hostname is not fully qualified.  Append the domain name.  */
@@ -2295,7 +2299,6 @@ init_system_name ()
 	{
 	  char *domain = (char *) alloca (domain_size + 1);
 	  char *fqdn = (char *) alloca (hostlen + 1 + domain_size + 1);
-#if HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)
 	  int sys_domain_size = sysinfo (SI_SRPC_DOMAIN, domain, domain_size);
 	  if (sys_domain_size <= 0)
 	    break;
@@ -2304,23 +2307,6 @@ init_system_name ()
 	      domain_size = sys_domain_size;
 	      continue;
 	    }
-#else /* HAVE_GETDOMAINNAME */
-	  if (getdomainname (domain, domain_size - 1) != 0 || ! *domain)
-	    break;
-	  domain[domain_size - 1] = '\0';
-	  if (strlen (domain) == domain_size - 1)
-	    {
-	      domain_size *= 2;
-	      continue;
-	    }
-	  /* If we get an answer which means "domain unknown",
-	     don't use a domain.  */
-	  if (!strcmp (domain, "(none)"))
-	    {
-	      *domain = 0;
-	      break;
-	    }
-#endif /* HAVE_GETDOMAINNAME */
 	  strcpy (fqdn, hostname);
 	  if (domain[0] == '.')
 	    strcpy (fqdn + hostlen, domain);
@@ -2333,7 +2319,7 @@ init_system_name ()
 	  break;
 	}
     }
-#endif /*! ((HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)) || HAVE_GETDOMAINNAME)*/
+#endif /* HAVE_SYSINFO && defined (SI_SRPC_DOMAIN) */
   Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
