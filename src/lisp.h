@@ -141,10 +141,6 @@ enum Lisp_Type
        in the current buffer.  Value is byte index of slot within buffer */
     Lisp_Buffer_Objfwd,
 
-    /* In symbol value cell, means var is unbound.
-       In symbol function cell, means function name is undefined. */
-    Lisp_Void,
-
     /* Window used for Emacs display.
        Data inside looks like a Lisp_Vector.  */
     Lisp_Window,
@@ -720,7 +716,6 @@ typedef unsigned char UCHAR;
 #define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
 #define BUFFER_OBJFWDP(x) (XTYPE ((x)) == Lisp_Buffer_Objfwd)
-#define VOIDP(x) (XTYPE ((x)) == Lisp_Void)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
