@@ -1843,7 +1843,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 #if defined(sun) && !defined(USG5_4)
       else if (nfds > 0 && FD_ISSET (0, &Available) && interrupt_input)
-	/* System sometimes fails to deliver SIGIO.  */
+	/* System sometimes fails to deliver SIGIO.
+
+	   David J. Mackenzie says that Emacs doesn't compile under
+	   Solaris if this code is enabled, thus the USG5_4 in the CPP
+	   conditional.  "I haven't noticed any ill effects so far.
+	   If you find a Solaris expert somewhere, they might know
+	   better." */
 	kill (getpid (), SIGIO);
 #endif
 
