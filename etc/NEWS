@@ -1459,12 +1459,64 @@ The new function `remove-list-of-text-properties' is almost the same
 as `remove-text-properties'.  The only difference is that it takes
 a list of property names as argument rather than a property list.
 
-** New functions insert-for-yank and insert-buffer-substring-as-yank.
+** New function insert-for-yank.
 
-These functions work like `insert' and `insert-buffer-substring', but
-removes the text properties in the `yank-excluded-properties' list.
+This function normally works like `insert' but removes the text
+properties in the `yank-excluded-properties' list.  However, if the
+inserted text has a `yank-handler' text property on the first
+character of the string, the insertion of the text may be modified in
+a number of ways.  See the description of `yank-handler' below.
+
+** New function insert-buffer-substring-as-yank.
+
+This function works like `insert-buffer-substring', but removes the
+text properties in the `yank-excluded-properties' list.
 
 ** New function insert-buffer-substring-no-properties.
+
+This function is like insert-buffer-substring, but removes all
+text properties from the inserted substring.
+
+** New `yank-handler' text property may be used to control how
+previously killed text on the kill-ring is reinserted.
+
+The value of the yank-handler property must be a list with one to five
+elements with the following format:
+  (FUNCTION PARAM NOEXCLUDE UNDO COMMAND).
+
+The `insert-for-yank' function looks for a yank-handler property on
+the first character on its string argument (typically the first
+element on the kill-ring).  If a yank-handler property is found,
+the normal behaviour of `insert-for-yank' is modified in various ways:
+
+  When FUNCTION is present and non-nil, it is called instead of `insert'
+to insert the string.  FUNCTION takes one argument--the object to insert.
+  If PARAM is present and non-nil, it replaces STRING as the object
+passed to FUNCTION (or `insert'); for example, if FUNCTION is
+`yank-rectangle', PARAM should be a list of strings to insert as a
+rectangle.
+  If NOEXCLUDE is present and non-nil, the normal removal of the
+yank-excluded-properties is not performed; instead FUNCTION is
+responsible for removing those properties.  This may be necessary
+if FUNCTION adjusts point before or after inserting the object.
+  If UNDO is present and non-nil, it is a function that will be called
+by `yank-pop' to undo the insertion of the current object.  It is
+called with two arguments, the start and end of the current region. 
+FUNCTION may set `yank-undo-function' to override the UNDO value.
+  If COMMAND is present and non-nil, `this-command' is set to COMMAND
+after calling FUNCTION (or insert).  Note that setting `this-command'
+to a value different from `yank' will prevent `yank-pop' from undoing
+this yank.
+
+*** The functions kill-new, kill-append, and kill-region now has an
+optional third argument to specify the yank-handler text property
+to put on the killed text.
+
+*** The function yank-pop will now use a non-nil value of the variable
+`yank-undo-function' (instead of delete-region) to undo the previous
+yank or yank-pop command (or a call to insert-for-yank).  The function
+insert-for-yank automatically sets that variable according to the UNDO
+element of the string argument's yank-handler text property if present.
 
 ** New function display-supports-face-attributes-p may be used to test
 whether a given set of face attributes is actually displayable.
