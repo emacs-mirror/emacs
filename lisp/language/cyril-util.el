@@ -45,6 +45,19 @@
 			   "cyrillic-yawerty")
   (setq coding-category-raw-text 'cyrillic-alternativnyj))
 
+;;;###autoload
+(defun cyrillic-encode-koi8-r-char (char)
+  "Return KOI8-R external character code of CHAR if appropriate."
+  (aref (char-table-extra-slot cyrillic-koi8-r-nonascii-translation-table 0)
+	char))
+
+;;;###autoload
+(defun cyrillic-encode-alternativnyj-char (char)
+  "Return ALTERNATIVNYJ external character code of CHAR if appropriate."
+  (aref (char-table-extra-slot
+	 cyrillic-alternativnyj-nonascii-translation-table 0)
+	char))
+
 
 ;; Display 
 
