@@ -1,3 +1,7 @@
+2004-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Line Height): Rewrite text for clarity.
+
 2004-12-11  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Display): Add node "Line Height" to menu.
